@@ -1,0 +1,404 @@
+// ─────────────────────────────────────────────────────────────
+//  src/components/ui/BirthForm.tsx
+//  Birth data entry form with location autocomplete
+//  Calls /api/atlas/search for typeahead, /api/chart/calculate on submit
+// ─────────────────────────────────────────────────────────────
+'use client'
+
+import { useState, useRef, useCallback, useEffect } from 'react'
+import type { ChartOutput, ChartSettings } from '@/types/astrology'
+import { DEFAULT_SETTINGS } from '@/types/astrology'
+
+// ── Types ─────────────────────────────────────────────────────
+
+interface LocationResult {
+  name:      string
+  country:   string
+  admin1:    string
+  latitude:  number
+  longitude: number
+  timezone:  string
+}
+
+interface BirthFormProps {
+  onResult: (data: ChartOutput) => void
+  onLoading?: (loading: boolean) => void
+}
+
+// ── Component ────────────────────────────────────────────────
+
+export function BirthForm({ onResult, onLoading }: BirthFormProps) {
+  const [name,      setName]      = useState('')
+  const [date,      setDate]      = useState('')
+  const [time,      setTime]      = useState('12:00')
+  const [place,     setPlace]     = useState('')
+  const [lat,       setLat]       = useState<number | null>(null)
+  const [lng,       setLng]       = useState<number | null>(null)
+  const [tz,        setTz]        = useState('Asia/Kolkata')
+  const [settings,  setSettings]  = useState<ChartSettings>(DEFAULT_SETTINGS)
+
+  const [locationResults, setLocationResults] = useState<LocationResult[]>([])
+  const [searchOpen,      setSearchOpen]      = useState(false)
+  const [searching,       setSearching]       = useState(false)
+  const [loading,         setLoading]         = useState(false)
+  const [error,           setError]           = useState<string | null>(null)
+  const [showAdvanced,    setShowAdvanced]     = useState(false)
+
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // ── Location search ──────────────────────────────────────
+
+  const searchLocations = useCallback(async (q: string) => {
+    if (q.length < 2) { setLocationResults([]); return }
+    setSearching(true)
+    try {
+      const res  = await fetch(`/api/atlas/search?q=${encodeURIComponent(q)}`)
+      const data = await res.json()
+      setLocationResults(data.results ?? [])
+      setSearchOpen(true)
+    } catch {
+      setLocationResults([])
+    } finally {
+      setSearching(false)
+    }
+  }, [])
+
+  const handlePlaceChange = (val: string) => {
+    setPlace(val)
+    setLat(null); setLng(null)
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    searchTimer.current = setTimeout(() => searchLocations(val), 200)
+  }
+
+  const selectLocation = (loc: LocationResult) => {
+    setPlace(`${loc.name}, ${loc.admin1 ? loc.admin1 + ', ' : ''}${loc.country}`)
+    setLat(loc.latitude)
+    setLng(loc.longitude)
+    setTz(loc.timezone)
+    setLocationResults([])
+    setSearchOpen(false)
+  }
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setSearchOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // ── Submit ───────────────────────────────────────────────
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+
+    if (!name.trim()) { setError('Please enter a name'); return }
+    if (!date)        { setError('Please enter birth date'); return }
+    if (!lat || !lng) { setError('Please select a location from the list'); return }
+
+    setLoading(true)
+    onLoading?.(true)
+
+    try {
+      const res = await fetch('/api/chart/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:       name.trim(),
+          birthDate:  date,
+          birthTime:  time.includes(':') && time.split(':').length === 2 ? `${time}:00` : time,
+          birthPlace: place,
+          latitude:   lat,
+          longitude:  lng,
+          timezone:   tz,
+          settings,
+        }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || !json.success) {
+        setError(json.error ?? 'Calculation failed')
+        return
+      }
+
+      onResult(json.data)
+    } catch {
+      setError('Network error — please try again')
+    } finally {
+      setLoading(false)
+      onLoading?.(false)
+    }
+  }
+
+  // ── Render ───────────────────────────────────────────────
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+      {/* Name */}
+      <div>
+        <label>Full name</label>
+        <input
+          className="input"
+          type="text"
+          placeholder="e.g. Ravi Kumar"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoComplete="off"
+        />
+      </div>
+
+      {/* Date + Time row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div>
+          <label>Date of birth</label>
+          <input
+            className="input"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            max={new Date().toISOString().slice(0,10)}
+            style={{ colorScheme: 'dark' }}
+          />
+        </div>
+        <div>
+          <label>Time of birth</label>
+          <input
+            className="input"
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            style={{ colorScheme: 'dark' }}
+          />
+        </div>
+      </div>
+
+      {/* Location with autocomplete */}
+      <div style={{ position: 'relative' }} ref={dropdownRef}>
+        <label>
+          Birth place
+          {searching && (
+            <span style={{ marginLeft: 8, fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              searching…
+            </span>
+          )}
+        </label>
+        <input
+          className="input"
+          type="text"
+          placeholder="City, Country — e.g. Mumbai, India"
+          value={place}
+          onChange={(e) => handlePlaceChange(e.target.value)}
+          onFocus={() => locationResults.length > 0 && setSearchOpen(true)}
+          autoComplete="off"
+        />
+
+        {/* Coords display */}
+        {lat !== null && lng !== null && (
+          <div style={{
+            marginTop: 4, fontSize: '0.75rem',
+            color: 'var(--text-muted)',
+            fontFamily: 'JetBrains Mono, monospace',
+            display: 'flex', gap: '1rem',
+          }}>
+            <span>{lat.toFixed(4)}°N</span>
+            <span>{lng.toFixed(4)}°E</span>
+            <span style={{ color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif' }}>
+              {tz}
+            </span>
+          </div>
+        )}
+
+        {/* Dropdown */}
+        {searchOpen && locationResults.length > 0 && (
+          <div style={{
+            position: 'absolute', zIndex: 100, width: '100%', top: '100%', marginTop: 4,
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border-bright)',
+            borderRadius: 8,
+            boxShadow: 'var(--shadow-deep)',
+            maxHeight: 280, overflowY: 'auto',
+          }}>
+            {locationResults.map((loc, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => selectLocation(loc)}
+                style={{
+                  display: 'flex', flexDirection: 'column', gap: 2,
+                  width: '100%', textAlign: 'left',
+                  padding: '0.6rem 1rem',
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  borderBottom: i < locationResults.length - 1 ? '1px solid var(--border-soft)' : 'none',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(201,168,76,0.07)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                <span style={{
+                  fontFamily: 'Cormorant Garamond, serif',
+                  fontSize: '1rem',
+                  color: 'var(--text-primary)',
+                }}>
+                  {loc.name}
+                  {loc.admin1 && (
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+                      {', '}{loc.admin1}
+                    </span>
+                  )}
+                </span>
+                <span style={{
+                  fontSize: '0.75rem',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  color: 'var(--text-muted)',
+                  display: 'flex', gap: '0.75rem',
+                }}>
+                  <span>{loc.country}</span>
+                  <span>{loc.latitude.toFixed(2)}°, {loc.longitude.toFixed(2)}°</span>
+                  <span style={{ color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif' }}>
+                    {loc.timezone}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Advanced settings toggle */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((o) => !o)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--text-muted)', fontFamily: 'Cormorant Garamond, serif',
+            fontSize: '0.85rem', letterSpacing: '0.06em',
+            display: 'flex', alignItems: 'center', gap: '0.4rem',
+            padding: 0,
+          }}
+        >
+          <span style={{
+            transform: showAdvanced ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform 0.15s', fontSize: '0.6rem',
+          }}>▶</span>
+          Advanced settings
+        </button>
+
+        {showAdvanced && (
+          <div style={{
+            marginTop: '0.75rem', padding: '1rem',
+            background: 'var(--surface-2)', borderRadius: 8,
+            border: '1px solid var(--border-soft)',
+            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem',
+          }}>
+            <div>
+              <label style={{ fontSize: '0.72rem' }}>Ayanamsha</label>
+              <select
+                className="input"
+                value={settings.ayanamsha}
+                onChange={(e) => setSettings((s) => ({ ...s, ayanamsha: e.target.value as any }))}
+                style={{ colorScheme: 'dark' }}
+              >
+                <option value="lahiri">Lahiri (default)</option>
+                <option value="true_chitra">True Chitra</option>
+                <option value="raman">Raman</option>
+                <option value="true_revati">True Revati</option>
+                <option value="usha_shashi">Usha-Shashi</option>
+                <option value="yukteshwar">Yukteshwar</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem' }}>House system</label>
+              <select
+                className="input"
+                value={settings.houseSystem}
+                onChange={(e) => setSettings((s) => ({ ...s, houseSystem: e.target.value as any }))}
+                style={{ colorScheme: 'dark' }}
+              >
+                <option value="whole_sign">Whole Sign</option>
+                <option value="placidus">Placidus</option>
+                <option value="equal">Equal House</option>
+                <option value="bhava_chalita">Bhava Chalita</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem' }}>Karaka scheme</label>
+              <select
+                className="input"
+                value={settings.karakaScheme}
+                onChange={(e) => setSettings((s) => ({ ...s, karakaScheme: Number(e.target.value) as 7|8 }))}
+                style={{ colorScheme: 'dark' }}
+              >
+                <option value={8}>8 Karakas (standard)</option>
+                <option value={7}>7 Karakas</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem' }}>Rahu/Ketu nodes</label>
+              <select
+                className="input"
+                value={settings.nodeMode}
+                onChange={(e) => setSettings((s) => ({ ...s, nodeMode: e.target.value as any }))}
+                style={{ colorScheme: 'dark' }}
+              >
+                <option value="mean">Mean nodes</option>
+                <option value="true">True nodes</option>
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          background: 'rgba(212,120,138,0.1)',
+          border: '1px solid rgba(212,120,138,0.3)',
+          borderRadius: 8,
+          color: 'var(--rose)',
+          fontFamily: 'Cormorant Garamond, serif',
+          fontSize: '0.95rem',
+        }}>
+          {error}
+        </div>
+      )}
+
+      {/* Submit */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn btn-primary"
+        style={{
+          width: '100%',
+          justifyContent: 'center',
+          fontSize: '1.1rem',
+          padding: '0.75rem',
+          opacity: loading ? 0.7 : 1,
+        }}
+      >
+        {loading ? (
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{
+              width: 16, height: 16,
+              border: '2px solid rgba(0,0,0,0.3)',
+              borderTopColor: 'rgba(0,0,0,0.8)',
+              borderRadius: '50%',
+              animation: 'spin-slow 0.7s linear infinite',
+              display: 'inline-block',
+            }} />
+            Calculating…
+          </span>
+        ) : (
+          <>🪐 Calculate Chart</>
+        )}
+      </button>
+    </form>
+  )
+}

@@ -160,7 +160,7 @@ export function getCurrentDasha(
 
   function traverse(dashas: DashaNode[]): boolean {
     for (const node of dashas) {
-      if (nowMs >= node.start.getTime() && nowMs < node.end.getTime()) {
+      if (nowMs >= new Date(node.start).getTime() && nowMs < new Date(node.end).getTime()) {
         path.push(node)
         if (node.children.length > 0) {
           traverse(node.children)
@@ -180,7 +180,7 @@ export function getCurrentDasha(
  */
 export function getDashaTimeRemaining(node: DashaNode): string {
   const now = Date.now()
-  const remaining = node.end.getTime() - now
+  const remaining = new Date(node.end).getTime() - now
 
   if (remaining <= 0) return 'Completed'
 
