@@ -5,6 +5,7 @@
 'use client'
 
 import type { GrahaData } from '@/types/astrology'
+import { NAKSHATRA_LORDS } from '@/types/astrology'
 
 const GRAHA_FULL: Record<string, string> = {
   Su: 'Sun',  Mo: 'Moon',  Ma: 'Mars',    Me: 'Mercury',
@@ -18,23 +19,49 @@ const RASHI_NAMES: Record<number, string> = {
 }
 
 function dignityBadge(dignity: string) {
-  const map: Record<string, { cls: string; label: string }> = {
-    exalted:      { cls: 'badge badge-exalt', label: 'Exalted' },
-    moolatrikona: { cls: 'badge badge-gold',  label: 'Moolatrikona' },
-    own:          { cls: 'badge badge-gold',  label: 'Own sign' },
-    debilitated:  { cls: 'badge badge-debil', label: 'Debilitated' },
-    neutral:      { cls: '', label: '' },
+  const isGold = ['exalted', 'moolatrikona', 'own', 'great_friend'].includes(dignity)
+  const isDanger = ['debilitated', 'great_enemy', 'enemy'].includes(dignity)
+
+  let bg = 'rgba(255,255,255,0.05)'
+  let color = 'var(--text-muted)'
+  let text = dignity.replace('_', ' ')
+
+  if (isGold) {
+    bg = 'var(--gold-faint)'
+    color = 'var(--text-gold)'
+  } else if (isDanger) {
+    bg = 'rgba(224,123,142,0.1)'
+    color = 'var(--rose)'
+  } else if (dignity === 'friend') {
+    bg = 'rgba(78,205,196,0.1)'
+    color = 'var(--teal)'
   }
-  const d = map[dignity] ?? { cls: '', label: '' }
-  if (!d.label) return null
-  return <span className={d.cls} style={{ fontSize: '0.7rem' }}>{d.label}</span>
+
+  if (dignity === 'neutral') text = 'Neutral'
+
+  return (
+    <span style={{
+      display: 'inline-block',
+      padding: '0.25rem 0.6rem',
+      borderRadius: '999px',
+      background: bg,
+      color: color,
+      fontSize: '0.68rem',
+      fontWeight: 600,
+      textTransform: 'capitalize',
+      letterSpacing: '0.02em',
+      whiteSpace: 'nowrap'
+    }}>
+      {text}
+    </span>
+  )
 }
 
 function fmtDeg(deg: number) {
   const d = Math.floor(deg)
   const m = Math.floor((deg - d) * 60)
   const s = Math.round(((deg - d) * 60 - m) * 60)
-  return `${d}°${String(m).padStart(2,'0')}'${String(s).padStart(2,'0')}"`
+  return `${String(d).padStart(2,'0')}° ${String(m).padStart(2,'0')}' ${String(s).padStart(2,'0')}"`
 }
 
 interface GrahaTableProps {
@@ -42,138 +69,100 @@ interface GrahaTableProps {
 }
 
 export function GrahaTable({ grahas }: GrahaTableProps) {
+  // Sort so Sun is first... or just use the passed array
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: 'auto', width: '100%' }}>
       <table style={{
         width: '100%',
         borderCollapse: 'collapse',
-        fontFamily: 'Cormorant Garamond, serif',
-        fontSize: '0.85rem',
+        textAlign: 'left',
       }}>
         <thead>
           <tr style={{
-            borderBottom: '1px solid var(--border-bright)',
-            color: 'var(--text-gold)',
-            fontSize: '0.72rem',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
+            borderBottom: '2px solid var(--border)',
           }}>
-            {['Graha','Sign','Degree','Nakshatra / Pada','Dignity','Karaka','Status'].map((h) => (
-              <th key={h} style={{ padding: '0.4rem 0.5rem', textAlign: 'left', fontWeight: 500 }}>{h}</th>
+            {['GRAHA', 'LONGITUDE', 'NAKSHATRA', 'PADA', 'LORD', 'DIGNITY'].map((h) => (
+              <th key={h} style={{
+                padding: '0.75rem 0.5rem',
+                color: 'var(--rose)', // The deep crimson/red color from image
+                fontSize: '0.65rem',
+                fontWeight: 800,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+              }}>
+                {h}
+              </th>
             ))}
           </tr>
         </thead>
-        <tbody>
-          {grahas.map((g, i) => (
-            <tr
-              key={g.id}
-              style={{
-                borderBottom: '1px solid var(--border-soft)',
-                background: i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(201,168,76,0.05)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent')}
-            >
-              {/* Graha name */}
-              <td style={{ padding: '0.35rem 0.5rem' }}>
-                <span style={{
-                  fontWeight: 500,
-                  color: g.isRetro ? 'var(--rose)' : 'var(--text-primary)',
-                  fontSize: '0.9rem',
-                }}>
-                  {GRAHA_FULL[g.id]}
-                </span>
-                <span style={{
-                  marginLeft: 6, fontSize: '0.72rem',
-                  color: 'var(--text-muted)',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}>
-                  {g.id}
-                </span>
-              </td>
+        <tbody style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem' }}>
+          {grahas.map((g, i) => {
+            const lordId = NAKSHATRA_LORDS[g.nakshatraIndex]
+            const lordName = GRAHA_FULL[lordId] || lordId
 
-              {/* Sign */}
-              <td style={{ padding: '0.35rem 0.5rem', color: 'var(--text-secondary)' }}>
-                {RASHI_NAMES[g.rashi]}
-                <span style={{
-                  marginLeft: 6, fontSize: '0.72rem',
-                  color: 'var(--text-muted)',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}>
-                  {g.rashi}
-                </span>
-              </td>
-
-              {/* Degree */}
-              <td style={{
-                padding: '0.35rem 0.5rem',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.85rem',
-                color: 'var(--text-secondary)',
-              }}>
-                {fmtDeg(g.degree)}
-              </td>
-
-              {/* Nakshatra / Pada */}
-              <td style={{ padding: '0.35rem 0.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>
-                  {g.nakshatraName}
-                </span>
-                <span style={{
-                  marginLeft: 6,
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted)',
-                }}>
-                  Pada {g.pada}
-                </span>
-              </td>
-
-              {/* Dignity */}
-              <td style={{ padding: '0.35rem 0.5rem' }}>
-                {dignityBadge(g.dignity)}
-              </td>
-
-              {/* Karaka */}
-              <td style={{ padding: '0.35rem 0.5rem' }}>
-                {g.charaKaraka && (
+            return (
+              <tr
+                key={g.id}
+                style={{
+                  borderBottom: '1px solid var(--border-soft)',
+                  background: i % 2 === 0 ? 'rgba(0,0,0,0.015)' : 'transparent',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--gold-faint)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = i % 2 === 0 ? 'rgba(0,0,0,0.015)' : 'transparent')}
+              >
+                {/* Graha name */}
+                <td style={{ padding: '0.85rem 0.5rem' }}>
                   <span style={{
                     fontFamily: 'Cormorant Garamond, serif',
-                    fontSize: '0.82rem',
-                    color: 'var(--text-gold)',
-                    fontStyle: 'italic',
+                    fontWeight: 700,
+                    fontSize: '1.05rem',
+                    color: g.isRetro ? 'var(--rose)' : 'var(--text-primary)',
                   }}>
-                    {g.charaKaraka}
+                    {GRAHA_FULL[g.id]}
+                    {g.isRetro && <span style={{ fontSize: '0.7rem', verticalAlign: 'top', marginLeft: 2 }}>(R)</span>}
                   </span>
-                )}
-              </td>
+                </td>
 
-              {/* Status */}
-              <td style={{ padding: '0.35rem 0.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                  {g.isRetro && (
-                    <span className="badge badge-retro" style={{ fontSize: '0.68rem' }}>Retro</span>
-                  )}
-                  {g.isCombust && (
-                    <span style={{
-                      fontSize: '0.68rem', padding: '0.15rem 0.5rem',
-                      background: 'rgba(228,104,58,0.12)',
-                      color: '#e4683a',
-                      border: '1px solid rgba(228,104,58,0.3)',
-                      borderRadius: 99,
-                      fontFamily: 'Cormorant Garamond, serif',
-                      letterSpacing: '0.05em',
-                    }}>
-                      Combust
-                    </span>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
+                {/* Longitude (Sign + Degree) */}
+                <td style={{ padding: '0.85rem 0.5rem', whiteSpace: 'nowrap' }}>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 500, marginRight: '0.5rem' }}>
+                    {RASHI_NAMES[g.rashi]}
+                  </span>
+                  <span style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.8rem',
+                    color: 'var(--text-secondary)',
+                  }}>
+                    {fmtDeg(g.degree)}
+                  </span>
+                </td>
+
+                {/* Nakshatra */}
+                <td style={{ padding: '0.85rem 0.5rem', color: 'var(--text-secondary)' }}>
+                  {g.nakshatraName}
+                </td>
+
+                {/* Pada */}
+                <td style={{ padding: '0.85rem 0.5rem', color: 'var(--text-secondary)' }}>
+                  {g.pada}
+                </td>
+
+                {/* Lord */}
+                <td style={{ padding: '0.85rem 0.5rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                  {lordName}
+                </td>
+
+                {/* Dignity */}
+                <td style={{ padding: '0.85rem 0.5rem' }}>
+                  {dignityBadge(g.dignity)}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
   )
 }
+

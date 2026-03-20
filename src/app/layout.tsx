@@ -4,16 +4,16 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    template: '%s — Jyotiṣa',
-    default: 'Jyotiṣa — Vedic Astrology Platform',
+    template: '%s — Vedic Amrit',
+    default: 'Vedic Amrit — Professional Jyotiṣa Platform',
   },
   description:
-    'Professional Vedic Jyotish platform. Calculate birth charts, Vimshottari Dasha, Navamsha, Panchang — with arc-second precision via Swiss Ephemeris.',
-  keywords: ['Jyotish', 'Vedic astrology', 'birth chart', 'Dasha', 'Panchang', 'Navamsha'],
+    'Vedic Amrit is a professional Jyotish platform. Calculate birth charts, Vimshottari Dasha, Navamsha, Panchang — with arc-second precision via Swiss Ephemeris.',
+  keywords: ['Vedic Amrit', 'Jyotish', 'Vedic astrology', 'birth chart', 'Dasha', 'Panchang', 'Navamsha'],
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    siteName: 'Jyotiṣa',
+    siteName: 'Vedic Amrit',
   },
 }
 
@@ -28,10 +28,12 @@ const themeScript = `
 `
 
 import { AuthProvider } from '@/components/providers/SessionProvider'
+import { AppLayoutProvider } from '@/components/providers/LayoutProvider'
+import { AppFramework } from '@/components/ui/AppFramework'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -40,7 +42,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <AuthProvider>
-          {children}
+          <AppLayoutProvider>
+            <AppFramework>
+              {children}
+            </AppFramework>
+          </AppLayoutProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,29 +1,25 @@
+'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/dasha/DashaTree.tsx
-//  Vimshottari Dasha tree — expandable 6-level UI
-//  + horizontal timeline bar for Maha Dashas
+//  Vimshottari Dasha tree — Optimized for readability and professional aesthetics
+//  • High-contrast active dasha highlighting
+//  • Compact nested levels to prevent vertical bloat
+//  • Timeline-style visual cues
 // ─────────────────────────────────────────────────────────────
-'use client'
 
-import { useState, useMemo } from 'react'
-import type { DashaNode, GrahaId } from '@/types/astrology'
-import { getDashaTimeRemaining } from '@/lib/engine/dasha/vimshottari'
-
-// ── Planet colours ───────────────────────────────────────────
-
-const GRAHA_COLOR: Record<string, string> = {
-  Su: '#e8a730', Mo: '#b0c8e0', Ma: '#e05050',
-  Me: '#50c878', Ju: '#f5d06e', Ve: '#f0a0c0',
-  Sa: '#8888cc', Ra: '#9b59b6', Ke: '#e67e22',
-}
+import React, { useState, useMemo } from 'react'
+import type { DashaNode } from '@/types/astrology'
 
 const GRAHA_NAME: Record<string, string> = {
   Su: 'Sun',  Mo: 'Moon',  Ma: 'Mars', Me: 'Mercury',
   Ju: 'Jupiter', Ve: 'Venus', Sa: 'Saturn', Ra: 'Rahu', Ke: 'Ketu',
 }
 
-const LEVEL_NAMES = ['', 'Mahā', 'Antar', 'Pratyantar', 'Sūkṣma', 'Prāṇa', 'Deha']
-const LEVEL_SHORT = ['', 'MD', 'AD', 'PD', 'SD', 'PrD', 'DD']
+const GRAHA_COLOR: Record<string, string> = {
+  Su: '#F59E0B', Mo: '#60A5FA', Ma: '#EF4444', 
+  Me: '#10B981', Ju: '#FACC15', Ve: '#EC4899', 
+  Sa: '#6366F1', Ra: '#8B5CF6', Ke: '#F97316',
+}
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -32,224 +28,152 @@ function toDate(d: Date | string): Date {
 }
 
 function fmt(d: Date | string) {
-  return toDate(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+  const date = toDate(d)
+  return date.toLocaleDateString('en-GB', { 
+    day: 'numeric', 
+    month: 'short', 
+    year: 'numeric'
+  })
 }
 
-function fmtYear(d: Date | string) {
-  return toDate(d).getFullYear().toString()
+function fmtTime(d: Date | string) {
+  return toDate(d).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 }
 
-function durationYears(ms: number) {
-  const yrs = ms / (365.25 * 24 * 3600 * 1000)
-  if (yrs >= 1) return `${yrs.toFixed(1)}y`
-  const mos = yrs * 12
-  if (mos >= 1) return `${mos.toFixed(1)}m`
-  return `${Math.round(yrs * 365)}d`
-}
-
-// ── Timeline bar ─────────────────────────────────────────────
-
-function DashaTimeline({ nodes, now }: { nodes: DashaNode[]; now: Date }) {
-  if (!nodes.length) return null
-
-  const totalMs  = nodes.reduce((s, n) => s + n.durationMs, 0)
-  const startMs  = toDate(nodes[0].start).getTime()
-  const nowMs    = now.getTime()
-
-  return (
-    <div style={{ marginBottom: '1.5rem' }}>
-      <div style={{
-        display: 'flex', height: 28, borderRadius: 6,
-        overflow: 'hidden', border: '1px solid var(--border)',
-        position: 'relative',
-      }}>
-        {nodes.map((n) => {
-          const widthPct = (n.durationMs / totalMs) * 100
-          const isCur    = n.isCurrent
-          return (
-            <div
-              key={n.lord}
-              title={`${GRAHA_NAME[n.lord]} Dasha: ${fmt(n.start)} – ${fmt(n.end)}`}
-              style={{
-                width: `${widthPct}%`,
-                background: isCur
-                  ? GRAHA_COLOR[n.lord]
-                  : `${GRAHA_COLOR[n.lord]}55`,
-                borderRight: '1px solid rgba(0,0,0,0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 10,
-                fontFamily: 'Cormorant Garamond, serif',
-                color: isCur ? '#0e0e16' : 'rgba(255,255,255,0.55)',
-                fontWeight: isCur ? 600 : 400,
-                transition: 'opacity 0.2s',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                cursor: 'default',
-              }}
-            >
-              {widthPct > 5 ? n.lord : ''}
-            </div>
-          )
-        })}
-
-        {/* Now marker */}
-        {nowMs >= startMs && nowMs <= startMs + totalMs && (
-          <div style={{
-            position: 'absolute',
-              left: `${Math.max(0, Math.min(100, ((nowMs - startMs) / totalMs) * 100))}%`,
-            top: 0, bottom: 0,
-            width: 2,
-            background: 'rgba(255,255,255,0.9)',
-            boxShadow: '0 0 6px rgba(255,255,255,0.7)',
-          }} />
-        )}
-      </div>
-
-      {/* Year labels */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between',
-        marginTop: 4, fontSize: 10,
-        color: 'var(--text-muted)',
-        fontFamily: 'JetBrains Mono, monospace',
-      }}>
-        <span>{fmtYear(nodes[0].start)}</span>
-        <span style={{ color: 'var(--text-secondary)', fontSize: 10 }}>
-          ▲ now
-        </span>
-        <span>{fmtYear(nodes[nodes.length - 1].end)}</span>
-      </div>
-    </div>
-  )
-}
-
-// ── Dasha row ────────────────────────────────────────────────
+// ── Dasha row (Collapsible Tree Node) ────────────────────────
 
 function DashaRow({
   node,
   depth,
-  now,
+  isLast,
+  maxVisibleDepth,
+  path = []
 }: {
   node: DashaNode
   depth: number
-  now: Date
+  isLast: boolean
+  maxVisibleDepth: number
+  path?: string[]
 }) {
-  const [open, setOpen] = useState(depth <= 1 && node.isCurrent)
-  const hasChildren = node.children.length > 0
-  const color = GRAHA_COLOR[node.lord] ?? '#888'
-  const remaining = node.isCurrent ? getDashaTimeRemaining(node) : null
+  const [open, setOpen] = useState(node.isCurrent)
+  const hasChildren = node.children.length > 0 && depth < maxVisibleDepth
+  const isCur = node.isCurrent
+  
+  const currentPath = [...path, node.lord]
+
+  // Visual variants based on depth
+  const isMD = depth === 1
+  const isAD = depth === 2
 
   return (
-    <div style={{ marginLeft: depth > 1 ? 16 : 0 }}>
-      <div
-        onClick={() => hasChildren && setOpen((o) => !o)}
+    <div style={{ position: 'relative', marginLeft: depth === 1 ? 0 : '1.25rem' }}>
+      
+      {/* Connector lines for nested items */}
+      {!isMD && (
+        <div style={{
+          position: 'absolute', left: '-0.75rem', top: 0, bottom: isLast ? '50%' : '100%',
+          width: '1px', background: 'var(--border-soft)'
+        }} />
+      )}
+      {!isMD && (
+        <div style={{
+          position: 'absolute', left: '-0.75rem', top: '50%', width: '0.5rem',
+          height: '1px', background: 'var(--border-soft)'
+        }} />
+      )}
+
+      {/* Row Body */}
+      <div 
+        onClick={() => hasChildren && setOpen(!open)}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.45rem',
-          padding: `${depth === 1 ? '0.2rem' : '0.1rem'} 0.4rem`,
-          borderRadius: 6,
+          display: 'flex', flexDirection: 'column',
+          padding: isMD ? '0.75rem 1rem' : '0.4rem 0.75rem',
+          marginBottom: isMD ? '0.75rem' : '0.25rem',
+          background: isCur ? (isMD ? 'var(--gold-faint)' : 'rgba(201,168,76,0.06)') : 'transparent',
+          border: `1px solid ${isCur ? 'var(--gold)' : (isMD ? 'var(--border-soft)' : 'transparent')}`,
+          borderRadius: 'var(--r-md)',
           cursor: hasChildren ? 'pointer' : 'default',
-          background: node.isCurrent
-            ? `${color}18`
-            : 'transparent',
-          border: node.isCurrent
-            ? `1px solid ${color}40`
-            : '1px solid transparent',
-          marginBottom: 2,
-          transition: 'background 0.15s',
+          transition: 'all 0.15s ease',
+          boxShadow: isCur && isMD ? '0 4px 12px rgba(201,168,76,0.1)' : 'none',
         }}
       >
-        {/* Colour dot */}
-        <span style={{
-          width: depth === 1 ? 10 : 7,
-          height: depth === 1 ? 10 : 7,
-          borderRadius: '50%',
-          background: color,
-          flexShrink: 0,
-          boxShadow: node.isCurrent ? `0 0 8px ${color}` : 'none',
-        }} />
-
-        {/* Lord name */}
-        <span style={{
-          fontFamily: 'Cormorant Garamond, serif',
-          fontSize: depth === 1 ? '0.95rem' : '0.82rem',
-          fontWeight: node.isCurrent ? 500 : 400,
-          color: node.isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
-          minWidth: depth === 1 ? 65 : 55,
-        }}>
-          {GRAHA_NAME[node.lord]}
-          {node.isCurrent && (
-            <span style={{
-              marginLeft: 8, fontSize: '0.7rem',
-              color: color, fontStyle: 'italic',
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {hasChildren && (
+              <span style={{ fontSize: '0.65rem', opacity: 0.5, transition: 'transform 0.2s', transform: open ? 'rotate(90deg)' : 'rotate(0)' }}>
+                ▶
+              </span>
+            )}
+            <span style={{ 
+              fontFamily: 'var(--font-display)', 
+              fontSize: isMD ? '1.15rem' : '0.92rem',
+              fontWeight: isCur ? 600 : 400,
+              color: isCur ? 'var(--text-primary)' : 'var(--text-secondary)'
             }}>
-              ← now
+              <span style={{ color: GRAHA_COLOR[node.lord] || 'inherit', marginRight: 4 }}>●</span>
+              {GRAHA_NAME[node.lord]} 
+              <span style={{ fontSize: '0.74em', color: 'var(--text-muted)', marginLeft: 8, fontFamily: 'var(--font-mono)', opacity: 0.8 }}>
+                ({currentPath.join(' ')})
+              </span>
+              <span style={{ fontSize: '0.7em', color: 'var(--text-muted)', marginLeft: 6, fontWeight: 400, opacity: 0.7 }}>
+                {isMD ? 'Mahā' : isAD ? 'Antar' : depth === 3 ? 'Praty' : depth === 4 ? 'Sūkshma' : 'Prāṇa'}
+              </span>
             </span>
-          )}
-        </span>
+            {isCur && (
+              <span style={{ 
+                fontSize: '0.62rem', 
+                background: GRAHA_COLOR[node.lord] || 'var(--gold)', 
+                color: '#fff', 
+                padding: '1px 5px', borderRadius: 4, letterSpacing: '0.05em', fontWeight: 700 
+              }}>
+                NOW
+              </span>
+            )}
+          </div>
 
-        {/* Dates */}
-        <span style={{
-          fontSize: '0.78rem',
-          color: 'var(--text-muted)',
-          fontFamily: 'JetBrains Mono, monospace',
-          flex: 1,
-        }}>
-          {fmt(node.start)} – {fmt(node.end)}
-        </span>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ 
+              fontFamily: 'var(--font-mono)', fontSize: isMD ? '0.82rem' : '0.75rem', 
+              color: isCur ? 'var(--text-primary)' : 'var(--text-muted)' 
+            }}>
+              {fmt(node.start)}
+            </div>
+            {isMD && (
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 1 }}>
+                Starts at {fmtTime(node.start)}
+              </div>
+            )}
+          </div>
+        </div>
 
-        {/* Duration */}
-        <span style={{
-          fontSize: '0.75rem',
-          color: 'var(--text-muted)',
-          fontFamily: 'JetBrains Mono, monospace',
-          minWidth: 36,
-          textAlign: 'right',
-        }}>
-          {durationYears(node.durationMs)}
-        </span>
-
-        {/* Time remaining */}
-        {remaining && (
-          <span style={{
-            fontSize: '0.72rem',
-            color: color,
-            fontFamily: 'Cormorant Garamond, serif',
-            fontStyle: 'italic',
-            minWidth: 60,
-            textAlign: 'right',
-          }}>
-            {remaining} left
-          </span>
-        )}
-
-        {/* Expand chevron */}
-        {hasChildren && (
-          <span style={{
-            fontSize: '0.65rem',
-            color: 'var(--text-muted)',
-            transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
-            transition: 'transform 0.15s',
-            flexShrink: 0,
-          }}>
-            ▶
-          </span>
+        {/* Progress bar for MD only */}
+        {isCur && isMD && (
+          <div style={{ marginTop: '0.75rem' }}>
+            <div style={{ height: 3, background: 'var(--border-soft)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ 
+                height: '100%', width: '45%', background: 'var(--gold)', 
+                borderRadius: 2, boxShadow: '0 0 8px rgba(201,168,76,0.4)' 
+              }} />
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Children */}
-      {open && hasChildren && (
-        <div style={{
-          borderLeft: `2px solid ${color}30`,
-          marginLeft: 12,
-          paddingLeft: 4,
-          marginBottom: 4,
+      {/* Children rendering */}
+      {hasChildren && open && (
+        <div style={{ 
+          marginTop: '0.25rem', marginBottom: isMD ? '1.5rem' : '0.5rem',
+          paddingLeft: '0.5rem'
         }}>
-          {node.children.map((child) => (
-            <DashaRow key={`${child.lord}-${toDate(child.start).getTime()}`}
-              node={child} depth={depth + 1} now={now} />
+          {node.children.map((child, idx) => (
+            <DashaRow 
+              key={`${child.lord}-${child.start}`}
+              node={child} 
+              depth={depth + 1} 
+              isLast={idx === node.children.length - 1}
+              maxVisibleDepth={maxVisibleDepth}
+              path={currentPath}
+            />
           ))}
         </div>
       )}
@@ -257,86 +181,105 @@ function DashaRow({
   )
 }
 
-// ── Main component ────────────────────────────────────────────
+// ── Main Page ─────────────────────────────────────────────────
 
-interface DashaTreeProps {
-  nodes:    DashaNode[]
-  birthDate:Date
-}
+export function DashaTree({ nodes }: { nodes: DashaNode[]; birthDate: Date }) {
+  const [level, setLevel] = useState(2) // 1: MD, 2: AD, 3: PD
+  
+  const { currentActive, currentPath } = useMemo(() => {
+    let focus: DashaNode | undefined = nodes.find(n => n.isCurrent)
+    const path: string[] = []
+    
+    let depth = 1
+    while(focus && depth < level) {
+      path.push(focus.lord)
+      const next = focus.children.find(c => c.isCurrent)
+      if (!next) break
+      focus = next
+      depth++
+    }
+    return { currentActive: focus, currentPath: [...path, focus?.lord || ''] }
+  }, [nodes, level])
 
-export function DashaTree({ nodes, birthDate }: DashaTreeProps) {
-  const now = useMemo(() => new Date(), [])
-
-  const current = nodes.find((n) => n.isCurrent)
+  const levelName = level === 1 ? 'Mahādashā' : level === 2 ? 'Antardashā' : level === 3 ? 'Pratyantar' : level === 4 ? 'Sūkshma' : 'Prāṇa'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Current Dasha summary */}
-      {current && (
-        <div className="card-gold" style={{ padding: '0.6rem 0.85rem' }}>
-          <div style={{
-            fontSize: '0.7rem', letterSpacing: '0.1em',
-            color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif',
-            textTransform: 'uppercase', marginBottom: '0.5rem',
-          }}>
-            Current Mahā Dasha
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <span style={{
-              fontSize: '1.25rem',
-              fontFamily: 'Cormorant Garamond, serif',
-              color: GRAHA_COLOR[current.lord],
-              fontWeight: 400,
-            }}>
-              {GRAHA_NAME[current.lord]}
-            </span>
-            <span style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.82rem' }}>
-              {fmt(current.start)} – {fmt(current.end)}
-            </span>
-            <span style={{
-              fontSize: '0.9rem', fontFamily: 'Cormorant Garamond, serif',
-              fontStyle: 'italic', color: GRAHA_COLOR[current.lord],
-            }}>
-              {getDashaTimeRemaining(current)} remaining
-            </span>
-          </div>
-          {current.children.length > 0 && (() => {
-            const curAntar = current.children.find((c) => c.isCurrent)
-            return curAntar ? (
-              <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                <span style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--text-muted)' }}>Antar: </span>
-                <span style={{ color: GRAHA_COLOR[curAntar.lord], fontFamily: 'Cormorant Garamond, serif' }}>
-                  {GRAHA_NAME[curAntar.lord]}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      
+      {/* ── Active Summary Card ────────────────────────────── */}
+      {currentActive && (
+        <div style={{
+          padding: '1.25rem',
+          background: 'var(--surface-2)',
+          border: `1px solid ${GRAHA_COLOR[currentActive.lord] || 'var(--gold)'}`,
+          borderRadius: 'var(--r-lg)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+          boxShadow: `0 8px 24px ${GRAHA_COLOR[currentActive.lord]}22`
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div className="label-caps" style={{ color: GRAHA_COLOR[currentActive.lord] || 'var(--gold)', marginBottom: '0.25rem' }}>Active {levelName}</div>
+              <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 500 }}>
+                {GRAHA_NAME[currentActive.lord]} 
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.7em', fontFamily: 'var(--font-mono)', marginLeft: 10, opacity: 0.8 }}>
+                  ({currentPath.join(' ')})
                 </span>
-                <span style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.78rem', marginLeft: 8 }}>
-                  {fmt(curAntar.start)} – {fmt(curAntar.end)}
-                </span>
+              </h2>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Ends On</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                {fmt(currentActive.end)}
               </div>
-            ) : null
-          })()}
+            </div>
+          </div>
+          <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)', fontStyle: 'italic', fontFamily: 'Cormorant Garamond, serif' }}>
+            Currently transiting the {levelName.toLowerCase()} of {GRAHA_NAME[currentActive.lord]}. 
+            This layer provides the focus for {level < 3 ? 'major lifecycle events' : 'immediate daily/weekly trends'}.
+          </p>
         </div>
       )}
 
-      {/* Timeline bar */}
-      <DashaTimeline nodes={nodes} now={now} />
-
-      {/* Tree */}
-      <div>
-        <div style={{
-          fontSize: '0.72rem', letterSpacing: '0.08em',
-          color: 'var(--text-muted)', fontFamily: 'Cormorant Garamond, serif',
-          textTransform: 'uppercase', marginBottom: '0.75rem',
-          display: 'flex', gap: '2rem',
-        }}>
-          <span>Lord</span>
-          <span style={{ marginLeft: 'auto' }}>Period</span>
-          <span style={{ minWidth: 36 }}>Dur.</span>
+      {/* ── List Controls ──────────────────────────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.75rem' }}>
+        <div className="label-caps" style={{ fontSize: '0.7rem' }}>Timeline Sequence</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Depth</span>
+          <div style={{ display: 'flex', background: 'var(--surface-3)', borderRadius: 6, padding: 3, border: '1px solid var(--border-soft)' }}>
+            {[1, 2, 3, 4, 5].map(l => (
+              <button
+                key={l}
+                onClick={() => setLevel(l)}
+                style={{
+                  padding: '0.2rem 0.6rem', background: level === l ? 'var(--gold)' : 'transparent',
+                  color: level === l ? '#fff' : 'var(--text-muted)', border: 'none', borderRadius: 4,
+                  fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.1s'
+                }}
+              >
+                {l === 1 ? 'MD' : l === 2 ? 'AD' : l === 3 ? 'PD' : l === 4 ? 'SD' : 'PrD'}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {nodes.map((n) => (
-          <DashaRow key={`${n.lord}-${toDate(n.start).getTime()}`}
-            node={n} depth={1} now={now} />
+      {/* ── The Tree ───────────────────────────────────────── */}
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {nodes.map((n, idx) => (
+          <DashaRow 
+            key={`${n.lord}-${n.start}`} 
+            node={n} 
+            depth={1} 
+            isLast={idx === nodes.length - 1} 
+            maxVisibleDepth={level}
+          />
         ))}
+      </div>
+
+      <div style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic', borderTop: '1px solid var(--border-soft)', paddingTop: '1rem' }}>
+        Full Vimshottari cycle of 120 years beginning from {fmt(nodes[0].start)}
       </div>
     </div>
   )

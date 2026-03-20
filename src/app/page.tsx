@@ -5,18 +5,16 @@
 //  Redesigned: themed, animated, cleaner visual hierarchy
 // ─────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect } from 'react'
-import { useSession, signOut } from 'next-auth/react'
-import Link from 'next/link'
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { BirthForm }     from '@/components/ui/BirthForm'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { DashaTree }     from '@/components/dasha/DashaTree'
 import { GrahaTable }    from '@/components/ui/GrahaTable'
-import { ThemeToggle }   from '@/components/ui/ThemeToggle'
+import { useAppLayout } from '@/components/providers/LayoutProvider'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
-
-type Tab = 'dashboard' | 'planets' | 'dasha' | 'panchang' | 'arudhas'
 
 // ─────────────────────────────────────────────────────────────
 //  Panchang Panel
@@ -27,11 +25,10 @@ function PanchangPanel({ p }: { p: ChartOutput['panchang'] }) {
     new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
 
   const items = [
-    { label: 'Vara',      value: p.vara.name,     sub: `Lord: ${p.vara.lord}`,                      icon: '☀' },
-    { label: 'Tithi',     value: p.tithi.name,    sub: p.tithi.paksha === 'shukla' ? 'Śukla Pakṣa' : 'Kṛṣṇa Pakṣa', icon: '🌙' },
-    { label: 'Nakshatra', value: p.nakshatra.name, sub: `Pada ${p.nakshatra.pada} · ${p.nakshatra.lord}`, icon: '⭐' },
-    { label: 'Yoga',      value: p.yoga.name,     sub: `#${p.yoga.number}`,                          icon: '☯' },
-    { label: 'Karana',    value: p.karana.name,   sub: `#${p.karana.number}`,                        icon: '✦' },
+    { label: 'Tithi',     value: p.tithi.name },
+    { label: 'Nakshatra', value: p.nakshatra.name },
+    { label: 'Yoga',      value: p.yoga.name },
+    { label: 'Karana',    value: p.karana.name },
   ]
 
   const muhurtas = [
@@ -41,27 +38,49 @@ function PanchangPanel({ p }: { p: ChartOutput['panchang'] }) {
   ]
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '0.75rem' }}>
-        {items.map(({ label, value, sub, icon }, i) => (
-          <div
-            key={label}
-            className="stat-chip"
-            style={{ animationDelay: `${i * 0.05}s` }}
-          >
-            <div className="stat-label">{label}</div>
-            <div className="stat-value">
-              <span style={{ marginRight: 6, opacity: 0.7 }}>{icon}</span>
-              {value}
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{
+        background: 'var(--gradient-dark, linear-gradient(135deg, #4A0E17 0%, #2A0810 100%))',
+        backgroundColor: '#350a11', // fallback
+        padding: '1.5rem',
+        borderRadius: 'var(--r-md)',
+        color: '#ffffff',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        border: '1px solid rgba(255,255,255,0.05)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
+          <span style={{ color: 'var(--gold)', filter: 'drop-shadow(0 0 4px rgba(201,168,76,0.5))', fontSize: '1.2rem' }}>☀️</span>
+          <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 600, letterSpacing: '0.02em', color: '#fff' }}>
+            Daily Panchang
+          </h3>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {items.map(({ label, value }) => (
+            <div key={label} style={{ 
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.75rem' 
+            }}>
+              <span style={{ 
+                textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 600, 
+                letterSpacing: '0.12em', color: 'rgba(255,255,255,0.6)' 
+              }}>
+                {label}
+              </span>
+              <span style={{ 
+                fontWeight: 600, fontSize: '0.95rem', fontFamily: 'Cormorant Garamond, serif', 
+                color: 'var(--gold-light, #fde68a)' 
+              }}>
+                {value}
+              </span>
             </div>
-            <div className="stat-sub">{sub}</div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div>
-        <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Muhūrta Windows</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.6rem' }}>
+        <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Muhūrta Windows</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
           {muhurtas.map(({ label, times, color, neutral }) => (
             <div key={label} style={{
               padding: '0.85rem 1rem',
@@ -184,7 +203,7 @@ function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
         </span>
         <span>
           <span style={{ color: 'var(--gold)' }}>Darapada (A7): </span>
-          {arudhas.A7 ? RASHI_NAMES[arudhas.A7] : '—'} · partner's image
+          {arudhas.A7 ? RASHI_NAMES[arudhas.A7] : '—'} · partner&apos;s image
         </span>
       </div>
     </div>
@@ -230,28 +249,29 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
 //  Main Page
 // ─────────────────────────────────────────────────────────────
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'dashboard', label: 'All Details', icon: '◫' },
-  { id: 'planets',   label: 'Planets',     icon: '✦' },
-  { id: 'dasha',     label: 'Daśā',        icon: '⏳' },
-  { id: 'panchang',  label: 'Pañcāṅga',    icon: '📅' },
-  { id: 'arudhas',   label: 'Āruḍhas',     icon: '☯' },
-]
-
 export default function HomePage() {
   const { data: session, status } = useSession()
+  const { activeTab } = useAppLayout()
+  const searchParams = useSearchParams()
+  
   const [chart,      setChart]      = useState<ChartOutput | null>(null)
   const [loading,    setLoading]    = useState(false)
-  const [activeTab,  setActiveTab]  = useState<Tab>('dashboard')
   const [saving,     setSaving]     = useState(false)
   const [saveDone,   setSaveDone]   = useState(false)
-  const [saveType,   setSaveType]   = useState<'regular' | 'personal'>('regular')
-  const [showSaveMenu, setShowSaveMenu] = useState(false)
+  const [isFormOpen, setIsFormOpen] = useState(true)
+
+  // Listen for 'New Consultation' link clicks
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      setIsFormOpen(true)
+      // Clear chart to start fresh
+      setChart(null)
+    }
+  }, [searchParams])
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
     setSaving(true)
-    setShowSaveMenu(false)
     try {
       const res = await fetch('/api/chart/save', {
         method: 'POST',
@@ -279,396 +299,160 @@ export default function HomePage() {
     }
   }
 
-  // Dashboard handles all views simultaneously
-
   const moonNakIndex = chart?.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
   const tithiNumber  = chart?.panchang.tithi.number ?? 1
   const varaNumber   = chart?.panchang.vara.number  ?? 0
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+      {chart ? (
+         <div className="fade-up" style={{ minWidth: 0 }}>
+            
+            {/* Headings Row & Birth Summary Strip */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '2rem', borderBottom: '1px solid var(--border-soft)', paddingBottom: '2rem', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                 <div>
+                    <span className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.25rem', display: 'block', fontSize: '0.65rem' }}>Astrological Portrait</span>
+                    <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.75rem', fontWeight: 400, margin: '0', color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                      {chart.meta.name}
+                    </h1>
+                 </div>
 
-      {/* ── Ambient background orbs ─────────────────────────── */}
-      <div aria-hidden style={{
-        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', width: 600, height: 600,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(139,124,246,0.12) 0%, transparent 70%)',
-          top: '-200px', left: '30%',
-          animation: 'orb-drift 18s ease-in-out infinite',
-        }} />
-        <div style={{
-          position: 'absolute', width: 400, height: 400,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(201,168,76,0.09) 0%, transparent 70%)',
-          bottom: '-100px', right: '10%',
-          animation: 'orb-drift 22s ease-in-out infinite reverse',
-        }} />
-        <div style={{
-          position: 'absolute', width: 300, height: 300,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(78,205,196,0.06) 0%, transparent 70%)',
-          top: '40%', left: '-80px',
-          animation: 'orb-drift 26s ease-in-out infinite 4s',
-        }} />
-      </div>
-
-      {/* ── Header ──────────────────────────────────────────── */}
-      <header style={{
-        padding: '0 2rem',
-        height: 60,
-        borderBottom: '1px solid var(--border)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        position: 'sticky', top: 0, zIndex: 50,
-        background: 'var(--header-bg)',
-        gap: '1rem',
-      }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span style={{
-            fontSize: '1.6rem',
-            display: 'inline-block',
-            animation: 'float 4s ease-in-out infinite',
-            filter: 'drop-shadow(0 0 8px rgba(201,168,76,0.3))'
-          }}>🪐</span>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <span style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.4rem', fontWeight: 600,
-              letterSpacing: '0.05em',
-              color: 'var(--text-gold)',
-            }}>
-              Jyotiṣa
-            </span>
-            <span style={{ 
-              fontSize: '0.68rem', 
-              color: 'var(--header-text-muted)', 
-              letterSpacing: '0.08em', 
-              fontStyle: 'italic',
-              fontWeight: 500
-            }}>
-              The Eye of the Vedas
-            </span>
-          </div>
-        </div>
-
-        {/* Nav right */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Link href="/panchang"
-            className="hide-mobile"
-            style={{ 
-              fontFamily: 'var(--font-body)', 
-              fontSize: '0.75rem', 
-              fontWeight: 700, 
-              color: 'var(--header-text)', 
-              textDecoration: 'none',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em'
-            }}
-          >Pañcāṅga</Link>
-
-          <Link href="/my/charts"
-            className="hide-mobile"
-            style={{ 
-              fontFamily: 'var(--font-body)', 
-              fontSize: '0.75rem', 
-              fontWeight: 700, 
-              color: 'var(--header-text)', 
-              textDecoration: 'none',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em'
-            }}
-          >My Charts</Link>
-
-          {status === 'authenticated' ? (
-            <Link href="/account"
-              style={{ 
-                fontFamily: 'var(--font-body)', 
-                fontSize: '0.75rem', 
-                fontWeight: 700, 
-                color: 'var(--gold-light)', 
-                textDecoration: 'none',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em'
-              }}
-            >
-              {session.user.name || 'Account'}
-            </Link>
-          ) : (
-            <>
-              <Link href="/login"
-                style={{ 
-                  fontFamily: 'var(--font-body)', 
-                  fontSize: '0.75rem', 
-                  fontWeight: 700, 
-                  color: 'var(--header-text)', 
-                  textDecoration: 'none',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em'
-                }}
-              >Sign In</Link>
-              <Link href="/signup"
-                className="btn btn-primary btn-sm hide-mobile"
-              >Join Free</Link>
-            </>
-          )}
-
-          <ThemeToggle />
-        </nav>
-      </header>
-
-      {/* ── Main ────────────────────────────────────────────── */}
-      <main className="main-grid" style={{
-        flex: 1,
-        position: 'relative', zIndex: 1,
-        display: 'grid',
-        gridTemplateColumns: '340px 1fr',
-        maxWidth: 1440,
-        width: '100%',
-        margin: '0 auto',
-        padding: '2rem',
-        gap: '2rem',
-        alignItems: 'start',
-      }}>
-
-        {/* ── Left: Form panel ────────────────────────────── */}
-        <div className="form-panel-sticky slide-left" style={{ position: 'sticky', top: '4.5rem' }}>
-          <div className="card" style={{ padding: '1.5rem' }}>
-            <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-              <h2 style={{ fontSize: '1.1rem', letterSpacing: '0.04em', margin: 0, fontFamily: 'var(--font-display)' }}>
-                Birth Details
-              </h2>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Janma Kāla</span>
-            </div>
-            <BirthForm
-              onResult={(data) => { setChart(data) }}
-              onLoading={setLoading}
-              autoSubmit
-            />
-          </div>
-
-          {chart && <ChartSummary chart={chart} />}
-        </div>
-
-        {/* ── Right: Chart result ──────────────────────────── */}
-        {chart ? (
-          <div className="fade-up chart-area" style={{ minWidth: 0 }}>
-
-            {/* Person header */}
-            <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <h2 style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '2rem', fontWeight: 300,
-                  letterSpacing: '0.03em',
-                  margin: 0, marginBottom: '0.25rem',
-                }}>
-                  {chart.meta.name}
-                </h2>
-                <div style={{
-                  display: 'flex', gap: '1rem', flexWrap: 'wrap',
-                  fontSize: '0.8rem', color: 'var(--text-muted)',
-                }}>
-                  <span style={{ fontFamily: 'var(--font-mono)' }}>
-                    {chart.meta.birthDate} · {chart.meta.birthTime}
-                  </span>
-                  <span>{chart.meta.birthPlace}</span>
-                  <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>{chart.meta.timezone}</span>
-                </div>
-              </div>
-
-              {status === 'authenticated' && (
-                <div style={{ position: 'relative' }}>
-                  <div style={{ display: 'flex', gap: '1px' }}>
-                    <button
-                      onClick={() => handleSave('regular')}
-                      disabled={saving || saveDone}
-                      className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}
-                      style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, minWidth: 100 }}
-                    >
-                      {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
-                    </button>
-                    {!saveDone && (
-                      <button
-                        onClick={() => setShowSaveMenu(!showSaveMenu)}
-                        className="btn btn-primary btn-sm"
-                        style={{ padding: '0 0.5rem', borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-                      >
-                         ▾
-                      </button>
-                    )}
-                  </div>
-                  
-                  {showSaveMenu && (
-                    <div 
-                      className="glass fade-up" 
-                      style={{ 
-                        position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', 
-                        width: 180, padding: '0.5rem', zIndex: 100, border: '1px solid var(--border-bright)' 
-                      }}
-                      onMouseLeave={() => setShowSaveMenu(false)}
-                    >
-                      <button 
-                        onClick={() => handleSave('personal')}
-                        style={{ 
-                          width: '100%', padding: '0.6rem 0.75rem', textAlign: 'left', 
-                          background: 'none', border: 'none', color: 'var(--text-primary)',
-                          fontSize: '0.82rem', cursor: 'pointer', borderRadius: 'var(--r-sm)'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--gold-faint)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                      >
-                        🌟 Set as MY birth details
-                      </button>
+                 {/* Compact Birth Summary Strip */}
+                 <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Born</span>
+                       <span style={{ fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{chart.meta.birthDate}</span>
+                       <span style={{ color: 'var(--border-bright)' }}>•</span>
+                       <span style={{ fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{chart.meta.birthTime}</span>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* ── Main Screen Layout: Always-Visible Chart + Sidenav & Content ───────────────────────────── */}
-            <div className="fade-up" style={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              
-              {/* Left Side: Always-Visible Chart */}
-              <div className="card" style={{ flex: '1 1 400px', minWidth: '400px', padding: '0.75rem', position: 'sticky', top: '4.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                  <h3 className="label-caps" style={{ margin: 0 }}>Varga Charts</h3>
-                </div>
-                <VargaSwitcher
-                  vargas={chart.vargas}
-                  vargaLagnas={chart.vargaLagnas ?? {}}
-                  ascRashi={chart.lagnas.ascRashi}
-                  arudhas={chart.arudhas}
-                  size={400}
-                  moonNakIndex={moonNakIndex}
-                  tithiNumber={tithiNumber}
-                  varaNumber={varaNumber}
-                />
+                    <div style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>In</span>
+                       <span style={{ fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{chart.meta.birthPlace}</span>
+                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>({chart.meta.latitude.toFixed(2)}N, {chart.meta.longitude.toFixed(2)}E)</span>
+                    </div>
+                    <div style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Ascendant</span>
+                       <span style={{ fontWeight: 600, color: 'var(--text-gold)', fontSize: '0.9rem', fontFamily: 'var(--font-display)' }}>
+                          {RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} {chart.lagnas.ascDegreeInRashi.toFixed(1)}°
+                       </span>
+                    </div>
+                 </div>
               </div>
 
-              {/* Right Side: Sidenav + Dynamic Content */}
-              <div style={{ flex: '1 1 500px', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                
-                {/* Sidenav */}
-                <div style={{ 
-                  display: 'flex', flexDirection: 'column', gap: '0.35rem', 
-                  width: '130px', flexShrink: 0, 
-                  position: 'sticky', top: '4.5rem' 
-                }}>
-                  {TABS.map(t => {
-                    const isActive = activeTab === t.id
-                    return (
-                      <button 
-                        key={t.id} 
-                        onClick={() => setActiveTab(t.id)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '0.5rem',
-                          padding: '0.6rem 0.75rem',
-                          background: isActive ? 'var(--gold-faint)' : 'var(--surface-2)',
-                          border: `1px solid ${isActive ? 'var(--gold)' : 'var(--border-soft)'}`,
-                          color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                          borderRadius: 'var(--r-md)',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          fontFamily: 'Cormorant Garamond, serif',
-                          fontSize: '0.95rem',
-                          transition: 'all 0.15s'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isActive) e.currentTarget.style.borderColor = 'var(--border-bright)'
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isActive) e.currentTarget.style.borderColor = 'var(--border-soft)'
-                        }}
-                      >
-                        <span style={{ fontSize: '0.75rem', opacity: isActive ? 1 : 0.6 }}>{t.icon}</span>
-                        {t.label}
-                      </button>
-                    )
-                  })}
-                </div>
+              <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.5rem' }}>
+                 {status === 'authenticated' && (
+                   <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
+                     {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
+                   </button>
+                 )}
+                 <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm" style={{ background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-bright)' }}>
+                   ✎ Edit Details
+                 </button>
+                 <button onClick={() => { setChart(null); setIsFormOpen(true) }} className="btn btn-primary btn-sm" style={{ background: 'var(--gold-faint)', color: 'var(--text-gold)', border: '1px solid var(--gold)' }}>
+                   + New Chart
+                 </button>
+              </div>
+            </div>
+           
+            {/* Responsive: Dominant CHART | Tab Content */}
+            <div className="chart-layout-grid" style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: '1.5rem', 
+              alignItems: 'start' 
+            }}>
+               {/* LEFT: Dominant chart area */}
+               <div style={{ flex: '1 1 500px', minWidth: 'min(100%, 300px)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <VargaSwitcher
+                     vargas={chart.vargas}
+                     vargaLagnas={chart.vargaLagnas ?? {}}
+                     ascRashi={chart.lagnas.ascRashi}
+                     arudhas={chart.arudhas}
+                     moonNakIndex={moonNakIndex}
+                     tithiNumber={tithiNumber}
+                     varaNumber={varaNumber}
+                  />
+               </div>
 
-                {/* Selected Content */}
-                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                  
-                  {activeTab === 'dashboard' && (
+               {/* RIGHT: Active Tab Content (Sticky so it follows long chart lists) */}
+               <div style={{ 
+                 flex: '1 0 380px', 
+                 maxWidth: '100%',
+                 display: 'flex', flexDirection: 'column', 
+                 gap: '1.5rem', 
+                 position: 'sticky', 
+                 top: '5.5rem',
+                 paddingRight: '4px' 
+               }}>
+                 {activeTab === 'dashboard' && (
                     <>
-                      <div className="card graha-table-wrap" style={{ padding: '0.75rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Planetary Positions</h3>
-                        <GrahaTable grahas={chart.grahas} />
+                      <div className="card" style={{ padding: '1.5rem' }}>
+                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
+                           <h3 className="label-caps" style={{ margin: 0 }}>Planetary Micro-Details</h3>
+                         </div>
+                         <GrahaTable grahas={chart.grahas} />
                       </div>
-                      <div className="card" style={{ padding: '0.75rem', maxHeight: '500px', overflowY: 'auto' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Vimśottarī Daśā</h3>
-                        <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />
+                      <div className="card" style={{ padding: '1.5rem' }}>
+                         <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Vimśottarī Daśā Sequence</h3>
+                         <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />
                       </div>
                     </>
-                  )}
+                 )}
 
-                  {activeTab === 'planets' && (
-                    <div className="card graha-table-wrap fade-up" style={{ padding: '0.75rem', height: '100%', overflowY: 'auto' }}>
-                      <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Planetary Positions</h3>
-                      <GrahaTable grahas={chart.grahas} />
+                 {activeTab === 'planets' && (
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Planetary Status & Diagnostics</h3>
+                       <GrahaTable grahas={chart.grahas} />
                     </div>
-                  )}
+                 )}
 
-                  {activeTab === 'dasha' && (
-                    <div className="card fade-up" style={{ padding: '0.75rem', height: '100%', overflowY: 'auto' }}>
-                      <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Vimśottarī Daśā</h3>
-                      <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />
+                 {activeTab === 'dasha' && (
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '1rem', color: 'var(--text-gold)' }}>Vimśottarī Daśā</h3>
+                       <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />
                     </div>
-                  )}
+                 )}
 
-                  {activeTab === 'panchang' && (
-                    <div className="card fade-up" style={{ padding: '0.75rem', height: '100%', overflowY: 'auto' }}>
-                      <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Pañcāṅga</h3>
-                      <PanchangPanel p={chart.panchang} />
+                 {activeTab === 'panchang' && (
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Daily Pañcāṅga Analysis</h3>
+                       <PanchangPanel p={chart.panchang} />
                     </div>
-                  )}
+                 )}
 
-                  {activeTab === 'arudhas' && (
-                    <div className="card fade-up" style={{ padding: '0.75rem', height: '100%', overflowY: 'auto' }}>
-                      <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Āruḍhas</h3>
-                      <ArudhaPanel arudhas={chart.arudhas} />
+                 {activeTab === 'arudhas' && (
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Bhāva Āruḍhas</h3>
+                       <ArudhaPanel arudhas={chart.arudhas} />
                     </div>
-                  )}
+                 )}
+               </div>
 
-                </div>
-              </div>
             </div>
-          </div>
-        ) : (
-          /* Empty state */
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            minHeight: 400,
-          }}>
-            <div style={{ textAlign: 'center', opacity: 0.45 }} className="fade-in">
-              <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'float 5s ease-in-out infinite' }}>
-                🌌
+         </div>
+      ) : (
+         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+            {!isFormOpen && (
+              <div style={{ textAlign: 'center', opacity: 0.6 }} className="fade-in">
+                <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'float 5s ease-in-out infinite' }}>🌌</div>
+                <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>The Canvas is Empty</p>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Initiate a new consultation to cast an astrological chart.</p>
+                <button onClick={() => setIsFormOpen(true)} className="btn btn-primary" style={{ padding: '0.75rem 2rem', fontSize: '1rem' }}>
+                  + Cast Natal Chart
+                </button>
               </div>
-              <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontStyle: 'italic', color: 'var(--text-muted)' }}>
-                Enter birth details to cast the chart
-              </p>
-            </div>
-          </div>
-        )}
-      </main>
+            )}
+         </div>
+      )}
 
-      {/* ── Loading state is now handled inline by BirthForm ──────────────────────────────────── */}
-
-      {/* ── Footer ───────────────────────────────────────────── */}
+      {/* Footer inside main area */}
       <footer style={{
-        position: 'relative', zIndex: 1,
-        padding: '1rem 2rem',
-        borderTop: '1px solid var(--border-soft)',
+        marginTop: 'auto', paddingTop: '2rem', paddingBottom: '1rem',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: '0.5rem',
-        fontSize: '0.75rem',
-        color: 'var(--text-muted)',
+        flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)'
       }}>
         <span>
           Powered by{' '}
@@ -677,6 +461,56 @@ export default function HomePage() {
         </span>
         <span>Kāla tier — free forever ✦</span>
       </footer>
+
+      {/* ── Fixed Drawer for Birth Details Form ──────────────── */}
+      <div 
+        style={{
+          position: 'absolute', inset: 0, zIndex: 100,
+          background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)',
+          opacity: isFormOpen ? 1 : 0, pointerEvents: isFormOpen ? 'auto' : 'none',
+          transition: 'opacity 0.3s ease'
+        }}
+        onClick={() => chart && setIsFormOpen(false)}
+      />
+      <div style={{ 
+        position: 'absolute', right: 0, top: 0, bottom: 0, width: 450, maxWidth: '100vw',
+        background: 'var(--surface-1)', zIndex: 101, boxShadow: '-8px 0 32px rgba(0,0,0,0.3)',
+        display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--border-bright)',
+        transform: isFormOpen ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+      }}>
+        <div style={{
+          padding: '1.5rem', borderBottom: '1px solid var(--border)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: 'var(--surface-2)'
+        }}>
+          <div>
+             <h2 style={{ fontSize: '1.4rem', margin: '0 0 0.2rem 0', fontFamily: 'var(--font-display)', color: 'var(--text-gold)', fontWeight: 600 }}>Birth Details</h2>
+             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', letterSpacing: '0.05em' }}>Janma Kāla Entry</span>
+          </div>
+          {chart && (
+            <button 
+              onClick={() => setIsFormOpen(false)}
+              style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', width: 36, height: 36, borderRadius: '50%', fontSize: '1.2rem', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        
+        <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
+           <BirthForm
+             onResult={(data) => { 
+               setChart(data);
+               setTimeout(() => setIsFormOpen(false), 300);
+             }}
+             onLoading={setLoading}
+             autoSubmit
+             initialName="Transit"
+           />
+           {chart && <ChartSummary chart={chart} />}
+        </div>
+      </div>
     </div>
   )
 }

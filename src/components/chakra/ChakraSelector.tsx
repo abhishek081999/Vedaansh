@@ -59,11 +59,11 @@ export function ChakraSelector({
   const [showVara,      setShowVara]      = useState(true)
 
   // Typography scaling
-  const [fontScale,     setFontScale]     = useState(1.0)
-  const [planetScale,   setPlanetScale]   = useState(1.0)
-  const [arudhaScale,   setArudhaScale]   = useState(1.0)
-  const [infoScale,     setInfoScale]     = useState(1.0)
-  const [chartScale,    setChartScale]    = useState(1.0)
+  const [fontScale,     setFontScale]     = useState(1.20)
+  const [planetScale,   setPlanetScale]   = useState(1.15)
+  const [arudhaScale,   setArudhaScale]   = useState(1.30)
+  const [infoScale,     setInfoScale]     = useState(0.85)
+  const [chartScale,    setChartScale]    = useState(1.35)
   
   const [showSettings,  setShowSettings]  = useState(false)
 

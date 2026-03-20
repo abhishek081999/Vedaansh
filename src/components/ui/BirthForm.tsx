@@ -52,15 +52,16 @@ interface BirthFormProps {
   onResult: (data: ChartOutput) => void
   onLoading?: (loading: boolean) => void
   autoSubmit?: boolean   // calculate immediately on mount with defaults
+  initialName?: string
 }
 
 // ── Component ────────────────────────────────────────────────
 
-export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthFormProps) {
+export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName = 'Transit' }: BirthFormProps) {
   const { date: todayDate, time: nowTime } = nowIST()
   const searchParams = useSearchParams()
 
-  const [name, setName] = useState(DELHI_DEFAULT.name)
+  const [name, setName] = useState(initialName)
   const [date, setDate] = useState(todayDate)
   const [time, setTime] = useState(nowTime)
   const [place, setPlace] = useState(DELHI_DEFAULT.place)
@@ -77,7 +78,6 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
   const [showAdvanced, setShowAdvanced] = useState(false)
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const calcTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const didAutoSubmit = useRef(false)
 
@@ -146,20 +146,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
     }
   }, [])
 
-  // Auto-calculate automatically when form data changes (debounce 400ms)
-  useEffect(() => {
-    if (!didAutoSubmit.current) return
-    if (!date || !time || lat === null || lng === null) return
-
-    if (calcTimer.current) clearTimeout(calcTimer.current)
-    calcTimer.current = setTimeout(() => {
-      submitChart(name, date, time, place, lat, lng, tz, settings)
-    }, 400)
-
-    return () => {
-      if (calcTimer.current) clearTimeout(calcTimer.current)
-    }
-  }, [name, date, time, lat, lng, tz, settings, autoSubmit])
+  // Auto-calculate is disabled — chart only recalculates on explicit button click.
+  // (The initial autoSubmit on mount still works via the URL/defaults effect above.)
 
   const handlePlaceChange = (val: string) => {
     setPlace(val)
@@ -571,29 +559,42 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
         </div>
       )}
 
-      {/* Submit (Hidden visually but required if enter is pressed, though auto-submit is primary) */}
-      <div style={{ 
-        display: loading ? 'flex' : 'none', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        height: '42px',
-        color: 'var(--text-muted)',
-        fontFamily: 'var(--font-display)',
-        fontStyle: 'italic',
-        fontSize: '0.9rem' 
-      }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{
-            width: 14, height: 14,
-            border: '2px solid rgba(0,0,0,0.25)',
-            borderTopColor: 'var(--gold)',
-            borderRadius: '50%',
-            animation: 'spin-slow 0.7s linear infinite',
-            display: 'inline-block',
-          }} />
-          Consulting the stars…
-        </span>
-      </div>
+      {/* Submit button */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn btn-primary"
+        style={{
+          width: '100%',
+          justifyContent: 'center',
+          padding: '0.85rem',
+          fontSize: '0.95rem',
+          fontFamily: 'Cormorant Garamond, serif',
+          letterSpacing: '0.04em',
+          opacity: loading ? 0.75 : 1,
+          transition: 'opacity 0.2s',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+        }}
+      >
+        {loading ? (
+          <>
+            <span style={{
+              width: 14, height: 14,
+              border: '2px solid rgba(255,255,255,0.3)',
+              borderTopColor: '#fff',
+              borderRadius: '50%',
+              animation: 'spin-slow 0.7s linear infinite',
+              display: 'inline-block',
+              flexShrink: 0,
+            }} />
+            Consulting the stars…
+          </>
+        ) : (
+          <>🪐 Calculate Chart</>
+        )}
+      </button>
     </form>
   )
 }

@@ -89,6 +89,7 @@
   --header-bg: rgba(9, 9, 15, 0.88);
   --header-text: var(--text-secondary);
   --header-text-muted: var(--text-muted);
+  --header-border: var(--border);
 
   /* Scrollbar */
   --scrollbar-track: #16162a;
@@ -119,9 +120,10 @@
 
   /* Primary Accent: Devaguru Red / Maroon */
   --primary-brand: #841b1b; 
-  --header-bg: #841b1b;
-  --header-text: #ffffff;
-  --header-text-muted: rgba(255, 255, 255, 0.85);
+  --header-bg: rgba(253, 250, 243, 0.9);
+  --header-text: #121212;
+  --header-text-muted: #666666;
+  --header-border: #841b1b;
 
   /* Gold: Deep academic gold */
   --gold: #a67c00;
@@ -967,3 +969,79 @@ select.input {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDENAV — Responsive & Toggle
+   ═══════════════════════════════════════════════════════════════ */
+
+/* On mobile (< 768px): sidenav is fixed overlay, full-height */
+@media (max-width: 767px) {
+  /* Show the mobile backdrop when sidenav is open */
+  .sidenav-mobile-overlay {
+    display: block !important;
+  }
+
+  /* Main content always full-width on mobile (sidenav overlays) */
+  .main-content {
+    margin-left: 0 !important;
+  }
+
+  /* 3-col chart grid collapses to single column */
+  .chart-layout-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Right tab panel loses max-height scroll on mobile — just flows */
+  .tab-panel-scroll {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+}
+
+/* On desktop (≥ 768px): sidenav is inline, no overlay */
+@media (min-width: 768px) {
+  .sidenav-mobile-overlay {
+    display: none !important;
+  }
+
+  /* 2-col chart grid: chart | tabs */
+  .chart-layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+}
+
+/* On medium screens tighten the right tab column */
+@media (min-width: 768px) and (max-width: 1200px) {
+  .chart-layout-grid {
+    grid-template-columns: 1fr 300px !important;
+  }
+}
+
+/* Very wide — give chart even more breathing room */
+@media (min-width: 1400px) {
+  .chart-layout-grid {
+    grid-template-columns: 1fr 420px !important;
+  }
+}
+
+/* Divisional Chart Grid: Force 1 column on mobile, STRICTLY max 2 on desktop */
+.varga-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .varga-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Constraint on very wide screens so the 2 charts don't grow too wide */
+@media (min-width: 1600px) {
+  .varga-grid {
+    grid-template-columns: repeat(2, minmax(400px, 600px)) !important;
+    justify-content: center;
+  }
+}

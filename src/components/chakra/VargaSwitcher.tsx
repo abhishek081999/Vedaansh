@@ -1,10 +1,9 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/chakra/VargaSwitcher.tsx
-//  Dual varga chart selector
-//  • D1 is always primary (gold) — fixed default
-//  • Click any other pill → select as secondary (blue) for comparison
-//  • Click active secondary → deselect (back to D1 alone)
-//  • Shows 1 or 2 ChakraSelectors side by side (stacked on mobile)
+//  Multi-varga chart selector
+//  • Unlimited selections — pick as many as you need
+//  • Responsive grid: 2 per row on laptop, 1 on mobile
+//  • Click any pill → toggle selection
 // ─────────────────────────────────────────────────────────────
 'use client'
 
@@ -164,29 +163,26 @@ export function VargaSwitcher({
   tithiNumber  = 1,
   varaNumber   = 0,
 }: VargaSwitcherProps) {
-  const primary = 'D1'  // always fixed
-  const [secondary, setSecondary] = useState<string | null>(null)
-  const [stacked, setStacked] = useState<boolean>(false)
+  // Allow multiple selection (default to D1)
+  const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
 
   const available = VARGA_META.filter(v => v.name in vargas)
 
   function handlePillClick(name: string) {
-    if (name === primary) return          // D1 is always fixed primary
-    if (name === secondary) {
-      setSecondary(null)                  // click active secondary → deselect
+    if (selected.includes(name)) {
+      if (selected.length > 1) {
+        setSelected(selected.filter(n => n !== name))
+      }
     } else {
-      setSecondary(name)                  // any other → set as secondary
+      setSelected([...selected, name])
     }
   }
 
   function pillState(name: string): 'primary' | 'secondary' | 'none' {
-    if (name === primary)   return 'primary'
-    if (name === secondary) return 'secondary'
+    if (selected[0] === name) return 'primary'
+    if (selected.includes(name)) return 'secondary'
     return 'none'
   }
-
-  const primaryMeta    = available.find(v => v.name === primary) ?? available[0]
-  const secondaryMeta  = secondary ? available.find(v => v.name === secondary) : null
 
   function chartProps(name: string) {
     const grahas      = vargas[name] ?? vargas['D1'] ?? []
@@ -194,29 +190,18 @@ export function VargaSwitcher({
     return { grahas, varAscRashi }
   }
 
-  const { grahas: pGrahas, varAscRashi: pAsc } = chartProps(primaryMeta?.name ?? 'D1')
-  const secProps = secondaryMeta ? chartProps(secondaryMeta.name) : null
-
-  // Chart size — shrink when showing two side by side
-  const chartSize = (secondaryMeta && !stacked) ? Math.min(size * 0.62, 380) : size
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
       {/* ── Pill row ─────────────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <span style={{
-          fontFamily: 'Cormorant Garamond, serif',
-          fontSize: '0.72rem', letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          color: 'var(--text-muted)',
-          flexShrink: 0,
-          paddingTop: '0.3rem',
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem', flexWrap: 'wrap' }}>
+        <span className="label-caps" style={{ 
+          fontSize: '0.65rem', color: 'var(--text-muted)', flexShrink: 0, paddingTop: '0.4rem' 
         }}>
-          Varga
+          Multi-Chart View
         </span>
 
-        <div style={{ display: 'flex', gap: '0.28rem', flexWrap: 'wrap', flex: 1 }}>
+        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', flex: 1 }}>
           {available.map(v => (
             <Pill
               key={v.name}
@@ -230,82 +215,46 @@ export function VargaSwitcher({
         </div>
       </div>
 
-      {/* ── Hint & Layout Controls ─────────────────────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{
-          fontSize: '0.72rem',
-          fontFamily: 'Cormorant Garamond, serif',
-          fontStyle: 'italic',
-          color: 'var(--text-muted)',
-        }}>
-          D1 is always shown · click any other varga to compare {stacked ? 'stacked' : 'side by side'} · click again to close
-        </div>
-        
-        {secondaryMeta && (
-          <button
-            onClick={() => setStacked(!stacked)}
-            style={{
-              fontSize: '0.75rem', padding: '0.2rem 0.6rem',
-              background: 'transparent', color: 'var(--text-secondary)',
-              border: '1px solid var(--border-soft)', borderRadius: '4px',
-              fontFamily: 'Cormorant Garamond, serif', cursor: 'pointer',
-              display: 'flex', gap: '0.3rem', alignItems: 'center'
-            }}
-          >
-            {stacked ? '◫ Show Side-by-Side' : '⬒ Show Stacked'}
-          </button>
-        )}
-      </div>
-
-      {/* ── Chart(s) ─────────────────────────────────────────── */}
-      <div className="dual-chart-grid" style={{
-        display: 'flex',
-        gap: '1.25rem',
-        alignItems: stacked ? 'center' : 'flex-start',
-        flexDirection: stacked ? 'column' : 'row',
-        flexWrap: stacked ? 'wrap' : 'nowrap',
+      {/* ── Grid of Selected Charts ────────────────────────────── */}
+      <div className="varga-grid" style={{
+        display: 'grid',
+        gap: '1.5rem',
+        marginTop: '0.5rem'
       }}>
-        {/* Primary */}
-        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-          {primaryMeta && (
-            <ChartLabel meta={primaryMeta} accent="gold" />
-          )}
-          <ChakraSelector
-            ascRashi={pAsc}
-            grahas={pGrahas}
-            size={chartSize}
-            userPlan={userPlan}
-            defaultStyle="north"
-            arudhas={arudhas}
-            moonNakIndex={moonNakIndex}
-            tithiNumber={tithiNumber}
-            varaNumber={varaNumber}
-          />
-        </div>
+        {selected.map((name, idx) => {
+          const meta = VARGA_META.find(v => v.name === name) ?? { name, full: name, topic: '' }
+          const { grahas, varAscRashi } = chartProps(name)
+          const isPrimary = idx === 0
 
-        {/* Secondary */}
-        {secondaryMeta && secProps && (
-          <div style={{ 
-            flex: '1 1 auto', minWidth: 0, 
-            padding: '1rem', 
-            background: 'var(--surface-2)', 
-            border: '1px dashed var(--border-accent)', 
-            borderRadius: '8px' 
-          }}>
-            <ChartLabel meta={secondaryMeta} accent="blue" prefix="Comparing: " />
-            <ChakraSelector
-              ascRashi={secProps.varAscRashi}
-              grahas={secProps.grahas}
-              size={chartSize}
-              userPlan={userPlan}
-              defaultStyle="north"
-              arudhas={arudhas}
-              moonNakIndex={moonNakIndex}
-              tithiNumber={tithiNumber}
-              varaNumber={varaNumber}
-            />
-          </div>
-        )}
+          return (
+            <div key={name} className="fade-up" style={{
+              padding: '1.25rem',
+              background: 'var(--surface-1)',
+              border: `1px solid ${isPrimary ? 'var(--gold)' : 'var(--border)'}`,
+              borderRadius: 'var(--r-lg)',
+              boxShadow: 'var(--shadow-card)',
+            }}>
+              <ChartLabel 
+                meta={meta} 
+                accent={isPrimary ? 'gold' : 'blue'} 
+              />
+              
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+                <ChakraSelector
+                  ascRashi={varAscRashi}
+                  grahas={grahas}
+                  size={360} /* Uniform size for the grid */
+                  userPlan={userPlan}
+                  defaultStyle="north"
+                  arudhas={arudhas}
+                  moonNakIndex={moonNakIndex}
+                  tithiNumber={tithiNumber}
+                  varaNumber={varaNumber}
+                />
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
