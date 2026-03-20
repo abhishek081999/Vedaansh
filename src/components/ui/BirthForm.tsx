@@ -77,6 +77,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
   const [showAdvanced, setShowAdvanced] = useState(false)
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const calcTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const didAutoSubmit = useRef(false)
 
@@ -144,6 +145,21 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
       setSearching(false)
     }
   }, [])
+
+  // Auto-calculate automatically when form data changes (debounce 400ms)
+  useEffect(() => {
+    if (!didAutoSubmit.current) return
+    if (!date || !time || lat === null || lng === null) return
+
+    if (calcTimer.current) clearTimeout(calcTimer.current)
+    calcTimer.current = setTimeout(() => {
+      submitChart(name, date, time, place, lat, lng, tz, settings)
+    }, 400)
+
+    return () => {
+      if (calcTimer.current) clearTimeout(calcTimer.current)
+    }
+  }, [name, date, time, lat, lng, tz, settings, autoSubmit])
 
   const handlePlaceChange = (val: string) => {
     setPlace(val)
@@ -255,6 +271,24 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
     setTime(value)
   }
 
+  // ── Incremental Time Adjusters ───────────────────────────
+
+  const adjustTime = (minutes: number) => {
+    const current = new Date(`${date}T${formatTimeForInput(time)}`)
+    if (isNaN(current.getTime())) return
+    current.setMinutes(current.getMinutes() + minutes)
+    
+    const yyyy = current.getFullYear()
+    const mm = String(current.getMonth() + 1).padStart(2, '0')
+    const dd = String(current.getDate()).padStart(2, '0')
+    const hh = String(current.getHours()).padStart(2, '0')
+    const mins = String(current.getMinutes()).padStart(2, '0')
+    const ss = String(current.getSeconds()).padStart(2, '0')
+    
+    setDate(`${yyyy}-${mm}-${dd}`)
+    setTime(`${hh}:${mins}:${ss}`)
+  }
+
   // ── Render ────────────────────────────────────────────────
 
   return (
@@ -321,6 +355,48 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
             style={{ colorScheme: 'auto', width: '100%', boxSizing: 'border-box' }}
           />
         </div>
+      </div>
+
+      {/* Time Adjuster Stepper */}
+      <div style={{
+        display: 'flex', gap: '0.35rem', justifyContent: 'center', width: '100%',
+        marginTop: '-0.3rem', marginBottom: '0.4rem', flexWrap: 'wrap'
+      }}>
+        {[
+          { label: '-1d', val: -1440 },
+          { label: '-1h', val: -60 },
+          { label: '-1m', val: -1 },
+          { label: '+1m', val: 1 },
+          { label: '+1h', val: 60 },
+          { label: '+1d', val: 1440 },
+        ].map(btn => (
+          <button
+            key={btn.label}
+            type="button"
+            onClick={() => adjustTime(btn.val)}
+            disabled={loading}
+            style={{
+              flex: '1',
+              padding: '0.25rem 0.2rem',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--border-soft)',
+              borderRadius: 'var(--r-sm)',
+              fontSize: '0.72rem',
+              color: 'var(--text-secondary)',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontFamily: 'var(--font-mono)',
+              minWidth: '40px'
+            }}
+            onMouseEnter={e => {
+              if (!loading) e.currentTarget.style.borderColor = 'var(--border-bright)'
+            }}
+            onMouseLeave={e => {
+              if (!loading) e.currentTarget.style.borderColor = 'var(--border-soft)'
+            }}
+          >
+            {btn.label}
+          </button>
+        ))}
       </div>
 
       {/* Location Field with autocomplete */}
@@ -495,29 +571,29 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
         </div>
       )}
 
-      {/* Submit */}
-      <button
-        type="submit"
-        disabled={loading}
-        className="btn btn-primary"
-        style={{ width: '100%', justifyContent: 'center', fontSize: '1.05rem', padding: '0.7rem', opacity: loading ? 0.7 : 1 }}
-      >
-        {loading ? (
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{
-              width: 14, height: 14,
-              border: '2px solid rgba(0,0,0,0.25)',
-              borderTopColor: 'rgba(0,0,0,0.7)',
-              borderRadius: '50%',
-              animation: 'spin-slow 0.7s linear infinite',
-              display: 'inline-block',
-            }} />
-            Calculating…
-          </span>
-        ) : (
-          <>🪐 Calculate Chart</>
-        )}
-      </button>
+      {/* Submit (Hidden visually but required if enter is pressed, though auto-submit is primary) */}
+      <div style={{ 
+        display: loading ? 'flex' : 'none', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '42px',
+        color: 'var(--text-muted)',
+        fontFamily: 'var(--font-display)',
+        fontStyle: 'italic',
+        fontSize: '0.9rem' 
+      }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{
+            width: 14, height: 14,
+            border: '2px solid rgba(0,0,0,0.25)',
+            borderTopColor: 'var(--gold)',
+            borderRadius: '50%',
+            animation: 'spin-slow 0.7s linear infinite',
+            display: 'inline-block',
+          }} />
+          Consulting the stars…
+        </span>
+      </div>
     </form>
   )
 }

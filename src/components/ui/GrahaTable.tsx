@@ -48,7 +48,7 @@ export function GrahaTable({ grahas }: GrahaTableProps) {
         width: '100%',
         borderCollapse: 'collapse',
         fontFamily: 'Cormorant Garamond, serif',
-        fontSize: '0.95rem',
+        fontSize: '0.85rem',
       }}>
         <thead>
           <tr style={{
@@ -59,7 +59,7 @@ export function GrahaTable({ grahas }: GrahaTableProps) {
             textTransform: 'uppercase',
           }}>
             {['Graha','Sign','Degree','Nakshatra / Pada','Dignity','Karaka','Status'].map((h) => (
-              <th key={h} style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 400 }}>{h}</th>
+              <th key={h} style={{ padding: '0.4rem 0.5rem', textAlign: 'left', fontWeight: 500 }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -76,11 +76,11 @@ export function GrahaTable({ grahas }: GrahaTableProps) {
               onMouseLeave={(e) => (e.currentTarget.style.background = i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent')}
             >
               {/* Graha name */}
-              <td style={{ padding: '0.6rem 0.75rem' }}>
+              <td style={{ padding: '0.35rem 0.5rem' }}>
                 <span style={{
                   fontWeight: 500,
                   color: g.isRetro ? 'var(--rose)' : 'var(--text-primary)',
-                  fontSize: '1rem',
+                  fontSize: '0.9rem',
                 }}>
                   {GRAHA_FULL[g.id]}
                 </span>
@@ -94,7 +94,7 @@ export function GrahaTable({ grahas }: GrahaTableProps) {
               </td>
 
               {/* Sign */}
-              <td style={{ padding: '0.6rem 0.75rem', color: 'var(--text-secondary)' }}>
+              <td style={{ padding: '0.35rem 0.5rem', color: 'var(--text-secondary)' }}>
                 {RASHI_NAMES[g.rashi]}
                 <span style={{
                   marginLeft: 6, fontSize: '0.72rem',
@@ -107,7 +107,7 @@ export function GrahaTable({ grahas }: GrahaTableProps) {
 
               {/* Degree */}
               <td style={{
-                padding: '0.6rem 0.75rem',
+                padding: '0.35rem 0.5rem',
                 fontFamily: 'JetBrains Mono, monospace',
                 fontSize: '0.85rem',
                 color: 'var(--text-secondary)',
@@ -116,7 +116,7 @@ export function GrahaTable({ grahas }: GrahaTableProps) {
               </td>
 
               {/* Nakshatra / Pada */}
-              <td style={{ padding: '0.6rem 0.75rem' }}>
+              <td style={{ padding: '0.35rem 0.5rem' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>
                   {g.nakshatraName}
                 </span>
@@ -131,12 +131,12 @@ export function GrahaTable({ grahas }: GrahaTableProps) {
               </td>
 
               {/* Dignity */}
-              <td style={{ padding: '0.6rem 0.75rem' }}>
+              <td style={{ padding: '0.35rem 0.5rem' }}>
                 {dignityBadge(g.dignity)}
               </td>
 
               {/* Karaka */}
-              <td style={{ padding: '0.6rem 0.75rem' }}>
+              <td style={{ padding: '0.35rem 0.5rem' }}>
                 {g.charaKaraka && (
                   <span style={{
                     fontFamily: 'Cormorant Garamond, serif',
@@ -150,7 +150,7 @@ export function GrahaTable({ grahas }: GrahaTableProps) {
               </td>
 
               {/* Status */}
-              <td style={{ padding: '0.6rem 0.75rem' }}>
+              <td style={{ padding: '0.35rem 0.5rem' }}>
                 <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
                   {g.isRetro && (
                     <span className="badge badge-retro" style={{ fontSize: '0.68rem' }}>Retro</span>

@@ -16,7 +16,7 @@ import { ThemeToggle }   from '@/components/ui/ThemeToggle'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 
-type Tab = 'chart' | 'planets' | 'arudhas' | 'dasha' | 'panchang'
+type Tab = 'dashboard' | 'planets' | 'dasha' | 'panchang' | 'arudhas'
 
 // ─────────────────────────────────────────────────────────────
 //  Panchang Panel
@@ -230,20 +230,19 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
 //  Main Page
 // ─────────────────────────────────────────────────────────────
 
-const TABS: { id: Tab; label: string; emoji: string }[] = [
-  { id: 'chart',    label: 'Chart',     emoji: '🪐' },
-  { id: 'planets',  label: 'Planets',   emoji: '✦' },
-  { id: 'arudhas',  label: 'Āruḍhas',   emoji: '☯' },
-  { id: 'dasha',    label: 'Daśā',      emoji: '⏳' },
-  { id: 'panchang', label: 'Pañcāṅga',  emoji: '📅' },
+const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: 'dashboard', label: 'All Details', icon: '◫' },
+  { id: 'planets',   label: 'Planets',     icon: '✦' },
+  { id: 'dasha',     label: 'Daśā',        icon: '⏳' },
+  { id: 'panchang',  label: 'Pañcāṅga',    icon: '📅' },
+  { id: 'arudhas',   label: 'Āruḍhas',     icon: '☯' },
 ]
 
 export default function HomePage() {
   const { data: session, status } = useSession()
   const [chart,      setChart]      = useState<ChartOutput | null>(null)
   const [loading,    setLoading]    = useState(false)
-  const [activeTab,  setActiveTab]  = useState<Tab>('chart')
-  const [tabKey,     setTabKey]     = useState(0)  // forces re-animation on tab switch
+  const [activeTab,  setActiveTab]  = useState<Tab>('dashboard')
   const [saving,     setSaving]     = useState(false)
   const [saveDone,   setSaveDone]   = useState(false)
   const [saveType,   setSaveType]   = useState<'regular' | 'personal'>('regular')
@@ -280,10 +279,7 @@ export default function HomePage() {
     }
   }
 
-  function switchTab(id: Tab) {
-    setActiveTab(id)
-    setTabKey((k) => k + 1)
-  }
+  // Dashboard handles all views simultaneously
 
   const moonNakIndex = chart?.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
   const tithiNumber  = chart?.panchang.tithi.number ?? 1
@@ -449,7 +445,7 @@ export default function HomePage() {
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Janma Kāla</span>
             </div>
             <BirthForm
-              onResult={(data) => { setChart(data); switchTab('chart') }}
+              onResult={(data) => { setChart(data) }}
               onLoading={setLoading}
               autoSubmit
             />
@@ -534,62 +530,114 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Tab bar */}
-            <div className="tab-bar" style={{ marginBottom: '1.5rem' }}>
-              {TABS.map(({ id, label, emoji }) => (
-                <button
-                  key={id}
-                  id={`tab-${id}`}
-                  className={`tab-btn${activeTab === id ? ' active' : ''}`}
-                  onClick={() => switchTab(id)}
-                >
-                  <span style={{ marginRight: '0.35rem', opacity: 0.75 }}>{emoji}</span>
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab panels */}
-            <div key={tabKey} className="fade-up">
-              {activeTab === 'chart' && (
+            {/* ── Main Screen Layout: Always-Visible Chart + Sidenav & Content ───────────────────────────── */}
+            <div className="fade-up" style={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              
+              {/* Left Side: Always-Visible Chart */}
+              <div className="card" style={{ flex: '1 1 400px', minWidth: '400px', padding: '0.75rem', position: 'sticky', top: '4.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                  <h3 className="label-caps" style={{ margin: 0 }}>Varga Charts</h3>
+                </div>
                 <VargaSwitcher
                   vargas={chart.vargas}
                   vargaLagnas={chart.vargaLagnas ?? {}}
                   ascRashi={chart.lagnas.ascRashi}
                   arudhas={chart.arudhas}
-                  size={500}
+                  size={400}
                   moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber}
                   varaNumber={varaNumber}
                 />
-              )}
+              </div>
 
-              {activeTab === 'planets' && (
-                <div className="card graha-table-wrap">
-                  <GrahaTable grahas={chart.grahas} />
+              {/* Right Side: Sidenav + Dynamic Content */}
+              <div style={{ flex: '1 1 500px', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                
+                {/* Sidenav */}
+                <div style={{ 
+                  display: 'flex', flexDirection: 'column', gap: '0.35rem', 
+                  width: '130px', flexShrink: 0, 
+                  position: 'sticky', top: '4.5rem' 
+                }}>
+                  {TABS.map(t => {
+                    const isActive = activeTab === t.id
+                    return (
+                      <button 
+                        key={t.id} 
+                        onClick={() => setActiveTab(t.id)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.5rem',
+                          padding: '0.6rem 0.75rem',
+                          background: isActive ? 'var(--gold-faint)' : 'var(--surface-2)',
+                          border: `1px solid ${isActive ? 'var(--gold)' : 'var(--border-soft)'}`,
+                          color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          borderRadius: 'var(--r-md)',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          fontFamily: 'Cormorant Garamond, serif',
+                          fontSize: '0.95rem',
+                          transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive) e.currentTarget.style.borderColor = 'var(--border-bright)'
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) e.currentTarget.style.borderColor = 'var(--border-soft)'
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', opacity: isActive ? 1 : 0.6 }}>{t.icon}</span>
+                        {t.label}
+                      </button>
+                    )
+                  })}
                 </div>
-              )}
 
-              {activeTab === 'arudhas' && (
-                <div className="card">
-                  <ArudhaPanel arudhas={chart.arudhas} />
-                </div>
-              )}
+                {/* Selected Content */}
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  
+                  {activeTab === 'dashboard' && (
+                    <>
+                      <div className="card graha-table-wrap" style={{ padding: '0.75rem' }}>
+                        <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Planetary Positions</h3>
+                        <GrahaTable grahas={chart.grahas} />
+                      </div>
+                      <div className="card" style={{ padding: '0.75rem', maxHeight: '500px', overflowY: 'auto' }}>
+                        <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Vimśottarī Daśā</h3>
+                        <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />
+                      </div>
+                    </>
+                  )}
 
-              {activeTab === 'dasha' && (
-                <div className="card">
-                  <DashaTree
-                    nodes={chart.dashas.vimshottari}
-                    birthDate={new Date(chart.meta.birthDate)}
-                  />
-                </div>
-              )}
+                  {activeTab === 'planets' && (
+                    <div className="card graha-table-wrap fade-up" style={{ padding: '0.75rem', height: '100%', overflowY: 'auto' }}>
+                      <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Planetary Positions</h3>
+                      <GrahaTable grahas={chart.grahas} />
+                    </div>
+                  )}
 
-              {activeTab === 'panchang' && (
-                <div className="card">
-                  <PanchangPanel p={chart.panchang} />
+                  {activeTab === 'dasha' && (
+                    <div className="card fade-up" style={{ padding: '0.75rem', height: '100%', overflowY: 'auto' }}>
+                      <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Vimśottarī Daśā</h3>
+                      <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />
+                    </div>
+                  )}
+
+                  {activeTab === 'panchang' && (
+                    <div className="card fade-up" style={{ padding: '0.75rem', height: '100%', overflowY: 'auto' }}>
+                      <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Pañcāṅga</h3>
+                      <PanchangPanel p={chart.panchang} />
+                    </div>
+                  )}
+
+                  {activeTab === 'arudhas' && (
+                    <div className="card fade-up" style={{ padding: '0.75rem', height: '100%', overflowY: 'auto' }}>
+                      <h3 className="label-caps" style={{ marginBottom: '0.6rem' }}>Āruḍhas</h3>
+                      <ArudhaPanel arudhas={chart.arudhas} />
+                    </div>
+                  )}
+
                 </div>
-              )}
+              </div>
             </div>
           </div>
         ) : (
@@ -610,58 +658,7 @@ export default function HomePage() {
         )}
       </main>
 
-      {/* ── Loading overlay ──────────────────────────────────── */}
-      {loading && (
-        <div style={{
-          position: 'fixed', inset: 0,
-          background: 'rgba(9,9,15,0.7)',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 300,
-          animation: 'fadeIn 0.2s ease',
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            {/* Dual-ring spinner */}
-            <div style={{ position: 'relative', width: 64, height: 64, margin: '0 auto 1.25rem' }}>
-              <div style={{
-                position: 'absolute', inset: 0,
-                border: '3px solid transparent',
-                borderTopColor: 'var(--gold)',
-                borderRadius: '50%',
-                animation: 'spin-slow 0.85s linear infinite',
-              }} />
-              <div style={{
-                position: 'absolute', inset: 8,
-                border: '2px solid transparent',
-                borderTopColor: 'var(--accent)',
-                borderRadius: '50%',
-                animation: 'spin-slow 0.6s linear infinite reverse',
-              }} />
-              <div style={{
-                position: 'absolute',
-                inset: '50%', transform: 'translate(-50%,-50%)',
-                width: 8, height: 8,
-                background: 'var(--gold)',
-                borderRadius: '50%',
-                animation: 'glow-pulse 1.2s ease-in-out infinite',
-              }} />
-            </div>
-            <p style={{
-              fontFamily: 'var(--font-display)',
-              color: 'var(--text-gold)',
-              fontSize: '1.1rem',
-              fontStyle: 'italic',
-              margin: 0,
-            }}>
-              Consulting the chart
-            </p>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
-              Jyotisha
-            </p>
-          </div>
-        </div>
-      )}
+      {/* ── Loading state is now handled inline by BirthForm ──────────────────────────────────── */}
 
       {/* ── Footer ───────────────────────────────────────────── */}
       <footer style={{

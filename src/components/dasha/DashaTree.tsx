@@ -147,8 +147,8 @@ function DashaRow({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.6rem',
-          padding: `${depth === 1 ? '0.55rem' : '0.35rem'} 0.75rem`,
+          gap: '0.45rem',
+          padding: `${depth === 1 ? '0.2rem' : '0.1rem'} 0.4rem`,
           borderRadius: 6,
           cursor: hasChildren ? 'pointer' : 'default',
           background: node.isCurrent
@@ -174,10 +174,10 @@ function DashaRow({
         {/* Lord name */}
         <span style={{
           fontFamily: 'Cormorant Garamond, serif',
-          fontSize: depth === 1 ? '1.05rem' : '0.9rem',
+          fontSize: depth === 1 ? '0.95rem' : '0.82rem',
           fontWeight: node.isCurrent ? 500 : 400,
           color: node.isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
-          minWidth: depth === 1 ? 80 : 60,
+          minWidth: depth === 1 ? 65 : 55,
         }}>
           {GRAHA_NAME[node.lord]}
           {node.isCurrent && (
@@ -273,9 +273,9 @@ export function DashaTree({ nodes, birthDate }: DashaTreeProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* Current Dasha summary */}
       {current && (
-        <div className="card-gold" style={{ padding: '1rem 1.25rem' }}>
+        <div className="card-gold" style={{ padding: '0.6rem 0.85rem' }}>
           <div style={{
-            fontSize: '0.75rem', letterSpacing: '0.1em',
+            fontSize: '0.7rem', letterSpacing: '0.1em',
             color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif',
             textTransform: 'uppercase', marginBottom: '0.5rem',
           }}>
@@ -283,10 +283,10 @@ export function DashaTree({ nodes, birthDate }: DashaTreeProps) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <span style={{
-              fontSize: '1.6rem',
+              fontSize: '1.25rem',
               fontFamily: 'Cormorant Garamond, serif',
               color: GRAHA_COLOR[current.lord],
-              fontWeight: 300,
+              fontWeight: 400,
             }}>
               {GRAHA_NAME[current.lord]}
             </span>
