@@ -258,7 +258,7 @@ export function VargaSwitcher({
       </div>
 
       {/* ── Chart(s) ─────────────────────────────────────────── */}
-      <div style={{
+      <div className="dual-chart-grid" style={{
         display: 'flex',
         gap: '1.25rem',
         alignItems: stacked ? 'center' : 'flex-start',

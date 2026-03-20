@@ -335,7 +335,7 @@ export default function PanchangPage() {
 
       <main style={{
         flex: 1, maxWidth: 900, width: '100%',
-        margin: '0 auto', padding: '2rem 1.5rem',
+        margin: '0 auto', padding: 'clamp(1rem, 4vw, 2rem) clamp(0.75rem, 3vw, 1.5rem)',
         display: 'flex', flexDirection: 'column', gap: '1.75rem',
       }}>
 
@@ -474,7 +474,7 @@ export default function PanchangPage() {
               <div className="label-caps" style={{ marginBottom: '0.75rem' }}>
                 Pañca Aṅga — Five Limbs
               </div>
-              <div style={{
+              <div className="panchang-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                 gap: '0.75rem',

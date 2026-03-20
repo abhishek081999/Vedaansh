@@ -323,7 +323,7 @@ export default function HomePage() {
       </header>
 
       {/* ── Main ────────────────────────────────────────────── */}
-      <main style={{
+      <main className="main-grid" style={{
         flex: 1,
         position: 'relative', zIndex: 1,
         display: 'grid',
@@ -337,7 +337,7 @@ export default function HomePage() {
       }}>
 
         {/* ── Left: Form panel ────────────────────────────── */}
-        <div style={{ position: 'sticky', top: '4.5rem' }} className="slide-left">
+        <div className="form-panel-sticky slide-left" style={{ position: 'sticky', top: '4.5rem' }}>
           <div className="card" style={{ padding: '1.5rem' }}>
             <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
               <h2 style={{ fontSize: '1.1rem', letterSpacing: '0.04em', margin: 0, fontFamily: 'var(--font-display)' }}>
@@ -357,7 +357,7 @@ export default function HomePage() {
 
         {/* ── Right: Chart result ──────────────────────────── */}
         {chart ? (
-          <div className="fade-up" style={{ minWidth: 0 }}>
+          <div className="fade-up chart-area" style={{ minWidth: 0 }}>
 
             {/* Person header */}
             <div style={{ marginBottom: '1.25rem' }}>
@@ -412,7 +412,7 @@ export default function HomePage() {
               )}
 
               {activeTab === 'planets' && (
-                <div className="card">
+                <div className="card graha-table-wrap">
                   <GrahaTable grahas={chart.grahas} />
                 </div>
               )}

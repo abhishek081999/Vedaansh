@@ -838,3 +838,119 @@ select.input {
     display: none !important;
   }
 }
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — Mobile-first breakpoints
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Tablet and below (≤ 900px) ─────────────────────────────── */
+@media (max-width: 900px) {
+  /* Main two-column layout stacks */
+  .main-grid {
+    grid-template-columns: 1fr !important;
+    padding: 1rem !important;
+    gap: 1.25rem !important;
+  }
+
+  /* Unstick the form panel on mobile */
+  .form-panel-sticky {
+    position: static !important;
+  }
+
+  /* Chart sizing */
+  .chart-area {
+    min-width: 0 !important;
+  }
+}
+
+/* ── Mobile (≤ 640px) ───────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Header */
+  .header-inner {
+    padding: 0 1rem !important;
+  }
+  .header-tagline {
+    display: none;
+  }
+
+  /* Main padding */
+  .main-grid {
+    padding: 0.75rem !important;
+    gap: 1rem !important;
+  }
+
+  /* Form card */
+  .card {
+    padding: 1rem !important;
+  }
+
+  /* Tab bar — scrollable on mobile */
+  .tab-bar {
+    gap: 0 !important;
+  }
+  .tab-btn {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.88rem !important;
+    white-space: nowrap;
+  }
+
+  /* Varga pills — smaller on mobile */
+  .varga-pill {
+    padding: 0.18rem 0.45rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* Chart comparison — stack vertically on mobile */
+  .dual-chart-grid {
+    flex-direction: column !important;
+  }
+
+  /* Panchang stat chips — 2 col on mobile */
+  .panchang-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* GrahaTable — horizontal scroll */
+  .graha-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .graha-table-wrap table {
+    min-width: 600px;
+  }
+
+  /* Dasha tree — tighter */
+  .dasha-tree-item {
+    padding: 0.3rem 0.5rem !important;
+  }
+
+  /* Chart size — full width SVG */
+  svg[aria-label*="chart"],
+  svg[aria-label*="birth"] {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Hide decorative elements */
+  .ambient-ring {
+    display: none;
+  }
+
+  /* Person name */
+  .chart-name {
+    font-size: 1.3rem !important;
+  }
+}
+
+/* ── Extra small (≤ 400px) ──────────────────────────────────── */
+@media (max-width: 400px) {
+  .main-grid {
+    padding: 0.5rem !important;
+  }
+  .tab-btn {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.8rem !important;
+  }
+  .panchang-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
