@@ -18,7 +18,8 @@ import { YogaList }           from '@/components/ui/YogaList'
 import { TransitOverlay }     from '@/components/ui/TransitOverlay'
 import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
-import type { ChartOutput, Rashi } from '@/types/astrology'
+import type { ChartOutput, Rashi, ChartSettings } from '@/types/astrology'
+import { DEFAULT_SETTINGS } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 
 // ─────────────────────────────────────────────────────────────
@@ -257,6 +258,7 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
 export default function HomePage() {
   const { data: session, status } = useSession()
   const { activeTab } = useAppLayout()
+  const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'yogini' | 'chara'>('vimshottari')
   const searchParams = useSearchParams()
@@ -278,6 +280,20 @@ export default function HomePage() {
         .then(data => {
           if (data.success && data.personalChart) {
              setDefaultChart(data.personalChart)
+          }
+          // Apply user preferences
+          if (data.success && data.user?.preferences) {
+            const prefs = data.user.preferences
+            setUserPrefs(prev => ({
+              ...prev,
+              ...(prefs.defaultAyanamsha    ? { ayanamsha:    prefs.defaultAyanamsha    } : {}),
+              ...(prefs.defaultHouseSystem  ? { houseSystem:  prefs.defaultHouseSystem  } : {}),
+              ...(prefs.defaultNodeMode     ? { nodeMode:     prefs.defaultNodeMode     } : {}),
+              ...(prefs.karakaScheme        ? { karakaScheme: prefs.karakaScheme        } : {}),
+              ...(prefs.showDegrees   != null ? { showDegrees:  prefs.showDegrees   } : {}),
+              ...(prefs.showNakshatra != null ? { showNakshatra:prefs.showNakshatra } : {}),
+              ...(prefs.showKaraka    != null ? { showKaraka:   prefs.showKaraka    } : {}),
+            }))
           }
         })
         .finally(() => setFetchingDefault(false))
@@ -686,8 +702,17 @@ export default function HomePage() {
                 }}
                 onLoading={setLoading}
                 autoSubmit
-                initialName="Transit"
-                initialData={defaultChart || undefined}
+                initialName="Natal Chart"
+                initialData={chart ? {
+                  name: chart.meta.name,
+                  birthDate: chart.meta.birthDate,
+                  birthTime: chart.meta.birthTime,
+                  birthPlace: chart.meta.birthPlace,
+                  latitude: chart.meta.latitude,
+                  longitude: chart.meta.longitude,
+                  timezone: chart.meta.timezone,
+                  settings: { ...userPrefs, ...chart.meta.settings },
+                } : (defaultChart || undefined)}
               />
             )}
            {chart && <ChartSummary chart={chart} />}
