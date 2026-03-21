@@ -25,14 +25,22 @@ A full-stack **Vedic Astrology** web application built with **Next.js 14** and *
 ## Key Features
 
 - **Precise Calculations**: Powered by Swiss Ephemeris for planetary positions, dignities, and dashas.
-- **Dynamic Theming**: Premium **Light** and **Dark** modes with high-contrast astrological charts.
+- **Import Capabilities**: Seamlessly import charts from popular software formats like **Jagannatha Hora (.jhd)** and **Shri Jyoti Star (.sjs)**.
+- **Comprehensive Dashas**: 
+    - **Vimshottari Dasha**: Hierarchical timeline view of Maha, Antar, and Pratyantar dashas.
+    - **Yogini Dasha**: Accurate calculation of Yogini periods, planet lords, and sub-periods.
+- **Advanced Diagnostic Tools**:
+    - **Shadbala**: Detailed planetary strength calculations with advanced graphs and interactive visual representation.
+    - **Ashtakavarga**: Complete Ashtakavarga charts and point calculations.
+    - **Yoga & Panchang**: Display of astrological combinations (Yogas) and natal Panchang details.
+- **Dynamic Theming**: Premium modernized **Light** and **Dark** modes with high-contrast astrological charts ensuring readability for all chart styles.
 - **Advanced Chart Settings**: 
+    - **Planet Filtering**: Easily toggle between displaying all planets or only the 9 traditional grahas.
     - **Live Scaling**: Independently adjust sizes for Planets, Arudhas, and Degree details.
     - **Flexible Layouts**: Compare Varga charts using **Side-by-Side** or **Stacked** orientations.
-    - **Overcrowding Handling**: Intelligent "Zig-Zag" planet positioning to prevent overlapping text.
+    - **Overcrowding Handling**: Intelligent "Zig-Zag" planet positioning to prevent overlapping text, fully supported in North Indian and other chart styles.
     - **Arudha Clustering**: Short-labeled Arudha Padas are automatically grouped to fit inside house boundaries.
 - **Divisional Charts (Vargas)**: Instant switching between D1 (Rashi) to D60 (Shastyamsha).
-- **Vimshottari Dasha**: Hierarchical timeline view of Maha, Antar, and Pratyantar dashas.
 
 
 ---
