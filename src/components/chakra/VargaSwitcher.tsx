@@ -51,6 +51,7 @@ interface VargaSwitcherProps {
   tithiNumber?:   number
   varaNumber?:    number
   transitGrahas?: GrahaData[]
+  direction?:     'grid' | 'column'
 }
 
 // ── Pill button ───────────────────────────────────────────────
@@ -164,6 +165,7 @@ export function VargaSwitcher({
   tithiNumber  = 1,
   varaNumber   = 0,
   transitGrahas = [],
+  direction     = 'grid',
 }: VargaSwitcherProps) {
   // Allow multiple selection (default to D1)
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
@@ -218,8 +220,9 @@ export function VargaSwitcher({
       </div>
 
       {/* ── Grid of Selected Charts ────────────────────────────── */}
-      <div className="varga-grid" style={{
-        display: 'grid',
+      <div className={direction === 'grid' ? "varga-grid" : ""} style={{
+        display: direction === 'grid' ? 'grid' : 'flex',
+        flexDirection: direction === 'grid' ? undefined : 'column',
         gap: '1.5rem',
         marginTop: '0.5rem'
       }}>

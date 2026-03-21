@@ -1147,4 +1147,95 @@ select.input {
     grid-template-columns: repeat(2, minmax(400px, 600px)) !important;
     justify-content: center;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PRINT REPORTING
+   ═══════════════════════════════════════════════════════════════ */
+@media print {
+  .no-print, aside, header, footer {
+    display: none !important;
+  }
+
+  /* Force variables to light mode for printing to avoid white-on-white or dark backgrounds */
+  :root, [data-theme="dark"], [data-theme="light"] {
+    --bg-page: #ffffff !important;
+    --surface-0: #ffffff !important;
+    --surface-1: #ffffff !important;
+    --surface-2: #f8fafc !important;
+    --surface-3: #f1f5f9 !important;
+    --text-primary: #000000 !important;
+    --text-secondary: #333333 !important;
+    --text-muted: #666666 !important;
+    --text-gold: #92400e !important; /* amber-800 for legibility */
+    --gold: #b48600 !important;
+    --gold-faint: rgba(180, 134, 0, 0.05) !important;
+    --border: #dddddd !important;
+    --border-soft: #eeeeee !important;
+    --border-bright: #cccccc !important;
+    --chart-sign-green: #15803d !important;
+    --accent: #4f46e5 !important;
+    --teal: #0d9488 !important;
+    --rose: #e11d48 !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  /* Remove backgrounds from complex headers/cards */
+  .fade-up > div[style*="background"],
+  div[style*="background-image"],
+  div[style*="linear-gradient"] {
+    background: transparent !important;
+    background-image: none !important;
+    color: #000 !important;
+    border: 1px solid #ddd !important;
+  }
+  
+  /* Reset specific elements that have inline white text */
+  .fade-up span[style*="color: rgba(255,255,255"],
+  .fade-up span[style*="color: #fff"] {
+    color: #333 !important;
+  }
+
+  .fade-up h3 {
+    color: #000 !important;
+  }
+
+  /* Expand all cards, remove heavy backgrounds to save ink */
+  .card {
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    color: #000 !important;
+  }
+
+  /* Force elements to flow properly on page breaks */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+    color: #000 !important;
+  }
+
+  /* Adjust grid columns to print nicely without side-by-side squishing if needed */
+  .print-break {
+    page-break-before: always;
+    break-before: page;
+  }
 }

@@ -27,7 +27,7 @@ export function ThemeToggle() {
       light: 'classic',
       classic: 'dark'
     }
-    const next = nextThemeMap[theme] || 'dark'
+    const next = nextThemeMap[theme as ThemeType] ?? 'dark'
     setTheme(next)
     document.documentElement.setAttribute('data-theme', next)
     localStorage.setItem('jyotish-theme', next)

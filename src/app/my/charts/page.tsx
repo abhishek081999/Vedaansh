@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useCallback } from 'react'
+import { ChartNotes } from '@/components/ui/ChartNotes'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -64,6 +65,7 @@ function ChartCard({
   const [confirmDel, setConfirmDel] = useState(false)
   const [deleting,   setDeleting]   = useState(false)
   const [toggling,   setToggling]   = useState(false)
+  const [showNotes,  setShowNotes]  = useState(false)
 
   async function handleTogglePublic() {
     setToggling(true)
@@ -217,7 +219,36 @@ function ChartCard({
         >
           {deleting ? '…' : confirmDel ? 'Confirm?' : '🗑'}
         </button>
+
+        {/* Notes toggle */}
+        <button
+          onClick={() => setShowNotes(n => !n)}
+          title="View / add notes"
+          style={{
+            padding: '0.3rem 0.65rem',
+            background: showNotes ? 'rgba(139,124,246,0.12)' : 'var(--surface-2)',
+            border: `1px solid ${showNotes ? 'rgba(139,124,246,0.35)' : 'var(--border)'}`,
+            borderRadius: 'var(--r-md)',
+            fontSize: '0.78rem',
+            color: showNotes ? 'var(--accent)' : 'var(--text-muted)',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          ✏
+        </button>
       </div>
+
+      {/* Notes panel */}
+      {showNotes && (
+        <div style={{
+          marginTop: '0.5rem',
+          borderTop: '1px solid var(--border-soft)',
+          paddingTop: '0.75rem',
+        }}>
+          <ChartNotes chartId={chart._id} />
+        </div>
+      )}
     </div>
   )
 }

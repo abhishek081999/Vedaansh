@@ -28,6 +28,7 @@ const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[
 
 const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'varshaphal',   label: 'Varṣaphal',     icon: '☀', path: '/' },
+  { id: 'compare', label: 'Compare Charts', icon: '⇔', path: '/compare' },
   { id: 'my-charts',    label: 'My Charts',     icon: '📚', path: '/my/charts' },
 ]
 

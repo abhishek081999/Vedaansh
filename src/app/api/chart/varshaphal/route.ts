@@ -54,10 +54,12 @@ export async function POST(req: NextRequest) {
         name:       `${natalName ?? 'Chart'} — Varshaphal ${returnYear}`,
         birthDate:  dateStr,
         birthTime:  timeStr,
+        utcDate:    dateStr,
+        utcTime:    timeStr,
         birthPlace,
         latitude,
         longitude,
-        timezone:   'UTC',   // return JD is in UTC
+        timezone:   'UTC',
         settings:   settings as ChartSettings,
       },
       'hora',   // compute all features
