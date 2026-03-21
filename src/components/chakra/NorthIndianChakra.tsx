@@ -78,6 +78,7 @@ interface NorthIndianProps {
   showNakshatra?: boolean
   showKaraka?: boolean
   arudhas?: ArudhaData
+  transitGrahas?: GrahaData[]   // optional transit planets overlay
   interactive?: boolean
   onHouseClick?: (house: number) => void
   fontScale?: number
@@ -96,6 +97,7 @@ export function NorthIndianChakra({
   showNakshatra = false,
   showKaraka = false,
   arudhas,
+  transitGrahas,
   interactive = false,
   onHouseClick,
   fontScale = 1.0,
@@ -375,6 +377,52 @@ export function NorthIndianChakra({
           </g>
         )
       })}
+
+
+      {/* ── Transit planet overlay ── */}
+      {transitGrahas && (() => {
+        // Group transit planets by house (1-12 based on natal ascendant)
+        const tByHouse: Record<number, GrahaData[]> = {}
+        for (const tg of transitGrahas) {
+          // Map transit rashi to house relative to natal ascendant
+          const tHouse = ((tg.rashi - ascRashi + 12) % 12) + 1
+          if (!tByHouse[tHouse]) tByHouse[tHouse] = []
+          tByHouse[tHouse].push(tg)
+        }
+
+        return Object.entries(tByHouse).map(([hStr, tPlanets]) => {
+          const h = Number(hStr)
+          const pts = polyPts(h, S)
+          if (!pts.length) return null
+          const [gcx, gcy] = centroid(pts)
+          const tFont = S * 0.032 * fontScale * planetScale
+
+          return tPlanets.map((tg, ti) => {
+             // Offset transit planets slightly so they don't overlap natal ones completely
+             const col = ti % 2
+             const row = Math.floor(ti / 2)
+             const offX = (tPlanets.length > 1) ? (col === 0 ? -S * 0.04 : S * 0.04) : 0
+             const offY = S * 0.04 + row * tFont * 1.4
+
+             return (
+              <text
+                key={`transit-${tg.id}-${ti}`}
+                x={gcx + offX}
+                y={gcy + offY}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={Math.round(tFont)}
+                fontWeight={700}
+                fontFamily="var(--font-mono)"
+                fill={tg.isRetro ? 'rgba(200,140,255,0.90)' : 'rgba(139,124,246,0.90)'}
+                style={{ filter: 'drop-shadow(0 0 4px rgba(139,124,246,0.6))' }}
+              >
+                {tg.id}{tg.isRetro ? '℞' : ''}
+              </text>
+            )
+          })
+        })
+      })()}
 
       {/* Outer framing box */}
       <rect x=".5" y=".5" width={S - 1} height={S - 1}

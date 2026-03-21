@@ -9,7 +9,6 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { BirthForm }     from '@/components/ui/BirthForm'
-import { VarshaphalPanel }   from '@/components/ui/VarshaphalPanel'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { DashaTree }     from '@/components/dasha/DashaTree'
 import { GrahaTable }    from '@/components/ui/GrahaTable'
@@ -254,7 +253,6 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
 export default function HomePage() {
   const { data: session, status } = useSession()
   const { activeTab } = useAppLayout()
-  const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'yogini' | 'chara'>('vimshottari')
   const searchParams = useSearchParams()
   
   const [chart,      setChart]      = useState<ChartOutput | null>(null)
@@ -414,31 +412,8 @@ export default function HomePage() {
 
                  {activeTab === 'dasha' && (
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                        <h3 className="label-caps" style={{ flex: 1, margin: 0 }}>Daśā System</h3>
-                        <div style={{ display: 'flex', gap: '0.4rem' }}>
-                          {([
-                            { id: 'vimshottari' as const, label: 'Viṁśottarī', sub: '120 yr' },
-                            { id: 'yogini'      as const, label: 'Yoginī',     sub: '36 yr' },
-                            { id: 'chara'       as const, label: 'Chara',      sub: '12 signs' },
-                          ]).map(({ id, label, sub }) => (
-                            <button key={id} onClick={() => setDashaSystem(id)} style={{
-                              padding: '0.3rem 0.65rem',
-                              background: dashaSystem === id ? 'rgba(201,168,76,0.15)' : 'var(--surface-2)',
-                              border: `1px solid ${dashaSystem === id ? 'var(--border-bright)' : 'var(--border)'}`,
-                              borderRadius: 'var(--r-md)', cursor: 'pointer',
-                              fontFamily: 'var(--font-display)', fontSize: '0.8rem',
-                              fontWeight: dashaSystem === id ? 700 : 500,
-                              color: dashaSystem === id ? 'var(--text-gold)' : 'var(--text-secondary)',
-                            }}>
-                              {label} <span style={{ fontSize: '0.62rem', opacity: 0.6, marginLeft: 3 }}>{sub}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      {dashaSystem === 'vimshottari' && <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />}
-                      {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <DashaTree nodes={chart.dashas.yogini} birthDate={new Date(chart.meta.birthDate)} /> : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate to see Yoginī Daśā.</p>)}
-                      {dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate to see Chara Daśā.</p>)}
+                       <h3 className="label-caps" style={{ marginBottom: '1rem', color: 'var(--text-gold)' }}>Vimśottarī Daśā</h3>
+                       <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />
                     </div>
                  )}
 
@@ -458,13 +433,6 @@ export default function HomePage() {
                     }
                   </div>
                 )}
-
-                 {activeTab === 'varshaphal' && (
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                      <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Varṣaphal — Solar Return</h3>
-                      <VarshaphalPanel natalChart={chart} />
-                    </div>
-                 )}
 
                 {activeTab === 'arudhas' && (
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>

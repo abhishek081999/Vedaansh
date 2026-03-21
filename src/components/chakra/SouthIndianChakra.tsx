@@ -69,6 +69,7 @@ interface SouthIndianProps {
   showKaraka?:    boolean
   showArudha?:    boolean
   arudhas?:       ArudhaData
+  transitGrahas?: GrahaData[]
   interactive?:   boolean
   onCellClick?:   (rashi: Rashi) => void
   highlightRashi?:Rashi | null
@@ -89,6 +90,7 @@ export function SouthIndianChakra({
   showKaraka    = false,
   showArudha    = false,
   arudhas,
+  transitGrahas,
   interactive   = false,
   onCellClick,
   highlightRashi = null,
@@ -310,6 +312,31 @@ export function SouthIndianChakra({
             })()}
           </g>
         )
+      })}
+
+      {/* ── Transit planet overlay ── */}
+      {transitGrahas && Object.entries(SIGN_CELLS).map(([signStr, [row, col]]) => {
+        const sign = Number(signStr) as Rashi
+        const tPlanets = transitGrahas.filter(tg => tg.rashi === sign)
+        if (!tPlanets.length) return null
+        const cx = col * cell + cell * 0.5
+        const cy = row * cell + cell * 0.72
+        const tFont = cell * 0.115 * fontScale * planetScale
+        return tPlanets.map((tg, ti) => (
+          <text
+            key={`transit-s-${tg.id}-${ti}`}
+            x={cx + (tPlanets.length > 1 && ti % 2 === 1 ? cell * 0.18 : tPlanets.length > 1 ? -cell * 0.18 : 0)}
+            y={cy + Math.floor(ti / 2) * tFont * 1.5}
+            textAnchor="middle" dominantBaseline="middle"
+            fontSize={Math.round(tFont)}
+            fontWeight={700}
+            fontFamily="var(--font-mono)"
+            fill={tg.isRetro ? 'rgba(200,140,255,0.90)' : 'rgba(139,124,246,0.90)'}
+            style={{ filter: 'drop-shadow(0 0 3px rgba(139,124,246,0.5))' }}
+          >
+            {tg.id}{tg.isRetro ? '℞' : ''}
+          </text>
+        ))
       })}
 
       {/* Centre decorative lines */}

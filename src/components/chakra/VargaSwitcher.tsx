@@ -47,9 +47,10 @@ interface VargaSwitcherProps {
   arudhas?:      ArudhaData
   userPlan?:     UserPlan
   size?:         number
-  moonNakIndex?: number
-  tithiNumber?:  number
-  varaNumber?:   number
+  moonNakIndex?:  number
+  tithiNumber?:   number
+  varaNumber?:    number
+  transitGrahas?: GrahaData[]
 }
 
 // ── Pill button ───────────────────────────────────────────────
@@ -162,6 +163,7 @@ export function VargaSwitcher({
   moonNakIndex = 0,
   tithiNumber  = 1,
   varaNumber   = 0,
+  transitGrahas = [],
 }: VargaSwitcherProps) {
   // Allow multiple selection (default to D1)
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
@@ -247,6 +249,7 @@ export function VargaSwitcher({
                   userPlan={userPlan}
                   defaultStyle="north"
                   arudhas={arudhas}
+                  transitGrahas={transitGrahas}
                   moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber}
                   varaNumber={varaNumber}

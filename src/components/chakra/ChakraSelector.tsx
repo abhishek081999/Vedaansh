@@ -20,6 +20,7 @@ interface ChakraSelectorProps {
   // Panchang data — needed for Sarvatobhadra
   moonNakIndex?: number    // 0–26
   arudhas?:     ArudhaData  // for Āruḍha overlay
+  transitGrahas?: GrahaData[]  // transit planet overlay
   tithiNumber?:  number    // 1–30
   varaNumber?:   number    // 0=Sun … 6=Sat
   defaultStyle?: ChartStyle
@@ -49,6 +50,7 @@ export function ChakraSelector({
   defaultStyle = 'north',
   size         = 480,
   userPlan     = 'kala',
+  transitGrahas = [],
 }: ChakraSelectorProps) {
   const [style,         setStyle]         = useState<ChartStyle>(defaultStyle)
   const [showDegrees,   setShowDegrees]   = useState(true)
@@ -176,6 +178,7 @@ export function ChakraSelector({
             ascRashi={ascRashi}
             grahas={displayGrahas}
             arudhas={arudhas}
+            transitGrahas={transitGrahas}
             showArudha={showArudha}
             size={Math.round(size * chartScale)}
             showDegrees={showDegrees}
@@ -192,6 +195,7 @@ export function ChakraSelector({
             ascRashi={ascRashi}
             grahas={displayGrahas}
             arudhas={showArudha ? arudhas : undefined}
+            transitGrahas={transitGrahas}
             size={Math.round(size * chartScale)}
             showDegrees={showDegrees}
             showNakshatra={showNakshatra}
