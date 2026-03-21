@@ -10,12 +10,12 @@ import { useEffect, useState } from 'react'
 type ThemeType = 'dark' | 'light' | 'classic'
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<ThemeType>('dark')
+  const [theme, setTheme] = useState<ThemeType>('classic')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     const stored = localStorage.getItem('jyotish-theme') as ThemeType | null
-    const initial = stored && ['dark', 'light', 'classic'].includes(stored) ? stored : 'dark'
+    const initial = stored && ['dark', 'light', 'classic'].includes(stored) ? stored : 'classic'
     setTheme(initial)
     document.documentElement.setAttribute('data-theme', initial)
     setMounted(true)

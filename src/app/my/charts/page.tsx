@@ -10,6 +10,7 @@ import { ChartNotes } from '@/components/ui/ChartNotes'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { useAppLayout } from '@/components/providers/LayoutProvider'
 
 interface SavedChart {
   _id:        string
@@ -256,6 +257,7 @@ function ChartCard({
 export default function MyChartsPage() {
   const router  = useRouter()
   const { status } = useSession()
+  const { setActiveTab } = useAppLayout()
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -293,6 +295,7 @@ export default function MyChartsPage() {
   useEffect(() => { fetchCharts(page) }, [page, fetchCharts])
 
   function handleLoad(chart: SavedChart) {
+    setActiveTab('dashboard')
     const params = new URLSearchParams({
       name:       chart.name,
       birthDate:  chart.birthDate,

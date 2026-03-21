@@ -157,28 +157,7 @@ export default function ComparePage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
-      <header style={{ padding: '0 2rem', height: '3.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 50, background: 'var(--header-bg)', borderBottom: '1px solid var(--border-soft)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-            <span>🪐</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedic Amrit</span>
-          </Link>
-          <span style={{ color: 'var(--border)' }}>|</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-gold)', fontWeight: 600 }}>Chart Comparison</span>
-        </div>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }} className="no-print">
-          {step === 'done' && (
-            <button onClick={() => {
-              setView('all');
-              setTimeout(() => window.print(), 350);
-            }} className="btn btn-secondary btn-sm" style={{ background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-bright)' }}>
-              🖨 Print Full Report
-            </button>
-          )}
-          {step === 'done' && <button onClick={() => { setChartA(null); setChartB(null); setStep('a') }} className="btn btn-ghost btn-sm">New Comparison</button>}
-          <ThemeToggle />
-        </div>
-      </header>
+     
 
       <main style={{ flex: 1, maxWidth: 1100, width: '100%', margin: '0 auto', padding: 'clamp(1rem,3vw,2rem)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 

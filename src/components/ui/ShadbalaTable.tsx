@@ -158,7 +158,7 @@ function ComparisonChart({ planets }: { planets: Record<string, ShadbalaPlanet> 
 
 // ── Main Component ────────────────────────────────────────────
 
-export function ShadbalaTable({ shadbala }: { shadbala: ShadbalaResult }) {
+export function ShadbalaTable({ shadbala, hideDetails = false }: { shadbala: ShadbalaResult, hideDetails?: boolean }) {
   const { planets, strongest, weakest } = shadbala
   const [hoveredPlanet, setHoveredPlanet] = useState<string | null>(null)
 
@@ -172,7 +172,8 @@ export function ShadbalaTable({ shadbala }: { shadbala: ShadbalaResult }) {
         <div style={{ 
           padding: '1rem', background: 'var(--surface-2)', 
           border: '1px solid var(--border-bright)', borderRadius: 'var(--r-md)',
-          display: 'flex', alignItems: 'center', gap: '1rem'
+          display: 'flex', alignItems: 'center', gap: '1rem',
+          flex: 1
         }}>
           <div style={{ 
             width: 44, height: 44, borderRadius: '50%', background: `${PLANET_COLOR[strongest]}22`, 
@@ -180,10 +181,10 @@ export function ShadbalaTable({ shadbala }: { shadbala: ShadbalaResult }) {
           }}>
             {PLANET_SYMBOL[strongest]}
           </div>
-          <div>
+          <div style={{ flex: 1 }}>
             <div className="label-caps" style={{ color: 'var(--teal)', fontSize: '0.6rem', marginBottom: 2 }}>Strongest</div>
             <div style={{ fontSize: '1rem', fontWeight: 500, fontFamily: 'var(--font-display)' }}>{PLANET_NAMES[strongest]}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>{planets[strongest]?.total} Rupas</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>{planets[strongest]?.total.toFixed(2)} Rupas</div>
           </div>
         </div>
 
@@ -191,7 +192,8 @@ export function ShadbalaTable({ shadbala }: { shadbala: ShadbalaResult }) {
         <div style={{ 
           padding: '1rem', background: 'var(--surface-2)', 
           border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)',
-          display: 'flex', alignItems: 'center', gap: '1rem'
+          display: 'flex', alignItems: 'center', gap: '1rem',
+          flex: 1
         }}>
           <div style={{ 
             width: 44, height: 44, borderRadius: '50%', background: `${PLANET_COLOR[weakest]}22`, 
@@ -199,10 +201,10 @@ export function ShadbalaTable({ shadbala }: { shadbala: ShadbalaResult }) {
           }}>
             {PLANET_SYMBOL[weakest]}
           </div>
-          <div>
+          <div style={{ flex: 1 }}>
             <div className="label-caps" style={{ color: 'var(--rose)', fontSize: '0.6rem', marginBottom: 2 }}>Weakest</div>
             <div style={{ fontSize: '1rem', fontWeight: 500, fontFamily: 'var(--font-display)' }}>{PLANET_NAMES[weakest]}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>{planets[weakest]?.total} Rupas</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>{planets[weakest]?.total.toFixed(2)} Rupas</div>
           </div>
         </div>
 
@@ -214,85 +216,87 @@ export function ShadbalaTable({ shadbala }: { shadbala: ShadbalaResult }) {
       </div>
 
       {/* ── Detailed Breakdown Grid ────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '0.75rem' }}>
-        {ORDER.map((id, index) => {
-          const p = planets[id]
-          if (!p) return null
-          const col = PLANET_COLOR[id]
-          const isHovered = hoveredPlanet === id
+      {!hideDetails && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '0.75rem' }}>
+          {ORDER.map((id, index) => {
+            const p = planets[id]
+            if (!p) return null
+            const col = PLANET_COLOR[id]
+            const isHovered = hoveredPlanet === id
 
-          const componentValues = COMPONENTS.map(c => p[c.key as keyof ShadbalaPlanet] as number)
+            const componentValues = COMPONENTS.map(c => p[c.key as keyof ShadbalaPlanet] as number)
 
-          return (
-            <div 
-              key={id}
-              onMouseEnter={() => setHoveredPlanet(id)}
-              onMouseLeave={() => setHoveredPlanet(null)}
-              style={{
-                background: 'var(--surface-1)',
-                border: `1px solid ${isHovered ? col : 'var(--border)'}`,
-                borderLeft: `4px solid ${col}`,
-                borderRadius: 'var(--r-md)',
-                padding: '1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                transition: 'all 0.2s ease',
-                transform: isHovered ? 'translateY(-2px)' : 'none',
-                boxShadow: isHovered ? `0 8px 24px rgba(0,0,0,0.2)` : 'none',
-                animationDelay: `${index * 0.05}s`
-              }}
-              className="fade-up"
-            >
-              {/* Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                   <div style={{ fontSize: '1.2rem', color: col }}>{PLANET_SYMBOL[id]}</div>
-                   <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>{PLANET_NAMES[id]}</h3>
+            return (
+              <div 
+                key={id}
+                onMouseEnter={() => setHoveredPlanet(id)}
+                onMouseLeave={() => setHoveredPlanet(null)}
+                style={{
+                  background: 'var(--surface-1)',
+                  border: `1px solid ${isHovered ? col : 'var(--border)'}`,
+                  borderLeft: `4px solid ${col}`,
+                  borderRadius: 'var(--r-md)',
+                  padding: '1rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                  transition: 'all 0.2s ease',
+                  transform: isHovered ? 'translateY(-2px)' : 'none',
+                  boxShadow: isHovered ? `0 8px 24px rgba(0,0,0,0.2)` : 'none',
+                  animationDelay: `${index * 0.05}s`
+                }}
+                className="fade-up"
+              >
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                     <div style={{ fontSize: '1.2rem', color: col }}>{PLANET_SYMBOL[id]}</div>
+                     <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>{PLANET_NAMES[id]}</h3>
+                  </div>
+                  
+                  <div style={{ textAlign: 'right' }}>
+                     <span style={{ fontSize: '1.1rem', fontWeight: 700, color: p.isStrong ? 'var(--text-primary)' : 'var(--rose)', fontFamily: 'var(--font-mono)' }}>
+                       {p.total.toFixed(2)}
+                     </span>
+                     <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginLeft: 4 }}>/ {p.required}</span>
+                  </div>
                 </div>
-                
-                <div style={{ textAlign: 'right' }}>
-                   <span style={{ fontSize: '1.1rem', fontWeight: 700, color: p.isStrong ? 'var(--text-primary)' : 'var(--rose)', fontFamily: 'var(--font-mono)' }}>
-                     {p.total.toFixed(2)}
-                   </span>
-                   <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginLeft: 4 }}>/ {p.required}</span>
+
+                {/* Main Content: Radar + List */}
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <RadarChart data={componentValues} color={col} size={110} />
+                  
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {COMPONENTS.map(c => (
+                      <div key={c.key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem' }}>
+                         <span style={{ color: 'var(--text-muted)' }}>{c.label}</span>
+                         <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{ (p[c.key as keyof ShadbalaPlanet] as number).toFixed(2) }</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Main Content: Radar + List */}
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <RadarChart data={componentValues} color={col} size={110} />
-                
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  {COMPONENTS.map(c => (
-                    <div key={c.key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem' }}>
-                       <span style={{ color: 'var(--text-muted)' }}>{c.label}</span>
-                       <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{ (p[c.key as keyof ShadbalaPlanet] as number).toFixed(2) }</span>
-                    </div>
-                  ))}
+                {/* Strength Badge */}
+                <div style={{
+                  padding: '0.35rem',
+                  borderRadius: 'var(--r-xs)',
+                  background: p.isStrong ? 'rgba(78,205,196,0.08)' : 'rgba(224,123,142,0.08)',
+                  color: p.isStrong ? 'var(--teal)' : 'var(--rose)',
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  textAlign: 'center',
+                  border: `1px solid ${p.isStrong ? 'rgba(78,205,196,0.15)' : 'rgba(224,123,142,0.15)'}`,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em'
+                }}>
+                  {p.isStrong ? '● Strong Engagement' : '○ Below Threshold'}
                 </div>
-              </div>
 
-              {/* Strength Badge */}
-              <div style={{
-                padding: '0.35rem',
-                borderRadius: 'var(--r-xs)',
-                background: p.isStrong ? 'rgba(78,205,196,0.08)' : 'rgba(224,123,142,0.08)',
-                color: p.isStrong ? 'var(--teal)' : 'var(--rose)',
-                fontSize: '0.65rem',
-                fontWeight: 700,
-                textAlign: 'center',
-                border: `1px solid ${p.isStrong ? 'rgba(78,205,196,0.15)' : 'rgba(224,123,142,0.15)'}`,
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em'
-              }}>
-                {p.isStrong ? '● Strong Engagement' : '○ Below Threshold'}
               </div>
-
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       <div style={{ textAlign: 'center', paddingTop: '1rem', opacity: 0.6 }}>
         <p style={{ fontSize: '0.68rem', fontStyle: 'italic', margin: 0 }}>

@@ -425,7 +425,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       </div>
 
       {/* Date + Time row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', width: '100%' }}>
+      <div className="grid-responsive-2" style={{ width: '100%' }}>
         {/* Date Field */}
         <div style={{ width: '100%', minWidth: 0 }}>
           <label className="field-label">Date</label>
@@ -619,11 +619,10 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         </button>
 
         {showAdvanced && (
-          <div style={{
+          <div className="grid-responsive-2" style={{
             marginTop: '0.75rem', padding: '1rem',
             background: 'var(--surface-2)', borderRadius: 'var(--r-md)',
             border: '1px solid var(--border-soft)',
-            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem',
             animation: 'fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) both',
           }}>
             <div>

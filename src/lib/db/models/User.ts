@@ -106,7 +106,6 @@ const UserSchema = new Schema<IUser>({
 
 // ── Indexes ───────────────────────────────────────────────────
 
-UserSchema.index({ email: 1 })
 UserSchema.index({ oauthProvider: 1, oauthId: 1 })
 
 // ── Methods ───────────────────────────────────────────────────

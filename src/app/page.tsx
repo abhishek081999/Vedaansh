@@ -17,6 +17,7 @@ import { AshtakavargaGrid }   from '@/components/ui/AshtakavargaGrid'
 import { YogaList }           from '@/components/ui/YogaList'
 import { TransitOverlay }     from '@/components/ui/TransitOverlay'
 import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
+import { NakshatraPanel } from '@/components/ui/NakshatraPanel'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import type { ChartOutput, Rashi, ChartSettings } from '@/types/astrology'
 import { DEFAULT_SETTINGS } from '@/types/astrology'
@@ -354,7 +355,7 @@ export default function HomePage() {
   const varaNumber   = chart?.panchang.vara.number  ?? 0
 
   return (
-    <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+    <div className="main-responsive-padding" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       {chart ? (
          <div className="fade-up" style={{ minWidth: 0 }}>
             
@@ -363,7 +364,7 @@ export default function HomePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                  <div>
                     <span className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.25rem', display: 'block', fontSize: '0.65rem' }}>Astrological Portrait</span>
-                    <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.75rem', fontWeight: 400, margin: '0', color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                    <h1 className="chart-name" style={{ fontFamily: 'var(--font-display)', fontWeight: 400, margin: '0', color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
                       {chart.meta.name}
                     </h1>
                  </div>
@@ -392,7 +393,7 @@ export default function HomePage() {
                  </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', paddingTop: '0.5rem', flexWrap: 'wrap' }}>
                  {status === 'authenticated' && (
                    <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
                      {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
@@ -407,13 +408,20 @@ export default function HomePage() {
               </div>
             </div>
            
-            {/* Responsive: Dominant CHART | Tab Analysis */}
-            <div className="chart-layout-grid" style={{ 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              gap: '2.5rem', 
-              alignItems: 'start' 
-            }}>
+            {/* ── Nakshatra: full-width workspace (replaces two-column layout) ── */}
+            {activeTab === 'nakshatra' && (
+              <div className="card fade-up" style={{ padding: '1.25rem', width: '100%' }}>
+                <NakshatraPanel chart={chart} />
+              </div>
+            )}
+
+             {/* Responsive: Dominant CHART | Tab Analysis — hidden when nakshatra workspace active */}
+             {activeTab !== 'nakshatra' && <div className="chart-layout-grid" style={{ 
+               display: 'flex', 
+               flexWrap: 'wrap', 
+               gap: '2.5rem', 
+               alignItems: 'start' 
+             }}>
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '2 1 600px', 
@@ -585,6 +593,8 @@ export default function HomePage() {
                     </div>
                  )}
                </div>
+             </div>}  {/* end chart-layout-grid conditional */}
+
 
                {/* BOTTOM: Dashboard Extended Details (Full width Diagnostics) */}
                {activeTab === 'dashboard' && (
@@ -607,7 +617,7 @@ export default function HomePage() {
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Planetary Strengths (Shadbala)</h3>
                         {chart.shadbala 
-                          ? <ShadbalaTable shadbala={chart.shadbala} />
+                          ? <ShadbalaTable shadbala={chart.shadbala} hideDetails={true} />
                           : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Shadbala data unavailable.</p>
                         }
                     </div>
@@ -626,8 +636,7 @@ export default function HomePage() {
                     </div>
                  </div>
                )}
-            </div>
-         </div>
+             </div>
       ) : (
          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
             {!isFormOpen && (
@@ -660,19 +669,21 @@ export default function HomePage() {
       {/* ── Fixed Drawer for Birth Details Form ──────────────── */}
       <div 
         style={{
-          position: 'absolute', inset: 0, zIndex: 100,
-          background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)',
+          position: 'fixed', inset: 0, zIndex: 1100,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
           opacity: isFormOpen ? 1 : 0, pointerEvents: isFormOpen ? 'auto' : 'none',
           transition: 'opacity 0.3s ease'
         }}
         onClick={() => chart && setIsFormOpen(false)}
       />
-      <div style={{ 
-        position: 'absolute', right: 0, top: 0, bottom: 0, width: 450, maxWidth: '100vw',
-        background: 'var(--surface-1)', zIndex: 101, boxShadow: '-8px 0 32px rgba(0,0,0,0.3)',
+      <div className="form-drawer" style={{ 
+        position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 1101, 
+        boxShadow: '-8px 0 32px rgba(0,0,0,0.4)',
+        background: 'var(--surface-1)',
         display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--border-bright)',
         transform: isFormOpen ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+        transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        width: 450, // Default width for desktop (overridden by class on mobile)
       }}>
         <div style={{
           padding: '1.5rem', borderBottom: '1px solid var(--border)',
@@ -686,7 +697,15 @@ export default function HomePage() {
           {chart && (
             <button 
               onClick={() => setIsFormOpen(false)}
-              style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', width: 36, height: 36, borderRadius: '50%', fontSize: '1.2rem', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+              style={{ 
+                background: 'var(--surface-3)', 
+                border: '1px solid var(--border-soft)', 
+                width: 32, height: 32, borderRadius: '50%', 
+                fontSize: '1rem', cursor: 'pointer', color: 'var(--text-primary)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                transition: 'all 0.2s',
+                zIndex: 10
+              }}
             >
               ✕
             </button>

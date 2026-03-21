@@ -17,6 +17,7 @@ const ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] =
   { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: '/' },
   { id: 'arudhas',   label: 'Āruḍhas',     icon: '☯', path: '/' },
   { id: 'yogas',     label: 'Yogas',       icon: '✧', path: '/' },
+  { id: 'nakshatra', label: 'Nakṣatra',    icon: '🌙', path: '/' },
   { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
 ]
 
@@ -124,7 +125,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
 
       {/* ── Sidenav (Left Global Sidebar) ───────────────────── */}
       <aside
-        className="sidenav"
+        className={`sidenav ${isSidenavOpen ? 'open' : ''}`}
         style={{
           width: 250, flexShrink: 0,
           background: 'var(--surface-2)',
@@ -282,18 +283,18 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
 
       {/* ── Main Work Area ───────────────────────────────────── */}
       <main
+        className="main-content"
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', position: 'relative',
           zIndex: 1, overflowY: 'auto', minWidth: 0,
-          marginLeft: isSidenavOpen ? 250 : 0,
           transition: 'margin-left 0.4s cubic-bezier(0.16,1,0.3,1)',
         }}
       >
         {/* Top Header */}
         <header style={{
-          padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           borderBottom: `1px solid var(--header-border)`, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          position: 'sticky', top: 0, zIndex: 40, background: 'var(--header-bg)', gap: '1rem',
+          position: 'sticky', top: 0, zIndex: 40, background: 'var(--header-bg)', gap: '0.75rem',
           transition: 'background 0.3s ease'
         }}>
           {/* Left: Toggler + Brand */}
@@ -318,12 +319,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Right: Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <nav style={{ display: 'flex', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <nav className="hide-mobile" style={{ display: 'flex', gap: '1.25rem' }}>
               <Link href="/panchang" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Pañcāṅga</Link>
               <Link href="/my/charts" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Library</Link>
             </nav>
-            <div style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
+            <div className="hide-mobile" style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
             <ThemeToggle />
           </div>
         </header>

@@ -172,7 +172,7 @@ export function ChakraSelector({
         )}
 
       {/* ── Chart ─────────────────────────────────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', overflow: 'hidden' }}>
         {style === 'south' && (
           <SouthIndianChakra
             ascRashi={ascRashi}
