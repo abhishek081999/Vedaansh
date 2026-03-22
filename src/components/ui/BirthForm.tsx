@@ -164,6 +164,35 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
     }
   }, [])
 
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return
+    setSearching(true)
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lt, longitude: lg } = pos.coords
+        setLat(lt)
+        setLng(lg)
+        // Reverse geocode via atlas search (approximate)
+        try {
+          const res = await fetch(`/api/atlas/search?lat=${lt}&lng=${lg}`)
+          const data = await res.json()
+          if (data.results?.[0]) {
+            const loc = data.results[0]
+            setPlace(`${loc.name}, ${loc.country}`)
+            setTz(loc.timezone)
+          } else {
+            setPlace(`Current Location (${lt.toFixed(2)}, ${lg.toFixed(2)})`)
+          }
+        } catch {
+          setPlace(`Current Location (${lt.toFixed(2)}, ${lg.toFixed(2)})`)
+        } finally {
+          setSearching(false)
+        }
+      },
+      () => setSearching(false)
+    )
+  }
+
   // Auto-calculate is disabled — chart only recalculates on explicit button click.
   // (The initial autoSubmit on mount still works via the URL/defaults effect above.)
 
@@ -524,6 +553,26 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               searching…
             </span>
           )}
+          <button
+            type="button"
+            onClick={useMyLocation}
+            title="Use current device location"
+            style={{
+              marginLeft: 'auto',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--gold)',
+              fontSize: '0.68rem',
+              fontFamily: 'var(--font-body)',
+              letterSpacing: '0.06em',
+              padding: 0,
+              textTransform: 'uppercase',
+              fontWeight: 600,
+            }}
+          >
+            Use My Location 📍
+          </button>
         </label>
         <input
           className="input"

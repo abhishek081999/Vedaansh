@@ -1120,6 +1120,22 @@ select.input {
   }
 }
 
+.main-responsive-padding {
+  padding: 2rem;
+}
+
+@media (max-width: 1023px) {
+  .main-responsive-padding {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-responsive-padding {
+    padding: 0.75rem;
+  }
+}
+
 /* ── Extra small (≤ 400px) ──────────────────────────────────── */
 @media (max-width: 400px) {
   .main-grid {

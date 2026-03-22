@@ -110,8 +110,8 @@ export function NakshatraPanel({ chart }: { chart: ChartOutput }) {
       <div style={{display:'flex',gap:'1.5rem',alignItems:'flex-start',flexWrap:'wrap'}}>
 
         {/* LEFT: D1 Chart */}
-        <div style={{flex:'0 0 auto',maxWidth:480,minWidth:320}}>
-          <div className="card" style={{padding:'1rem'}}>
+        <div style={{ flex: '1 1 auto', width: '100%', maxWidth: '100%', display: 'flex', justifyContent: 'center' }}>
+          <div className="card" style={{ padding: '1rem', width: '100%', maxWidth: 500 }}>
             <div style={{fontSize:'0.62rem',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--text-muted)',marginBottom:'0.6rem'}}>
               D1 · Rashi Chart — Janma Lagna
             </div>
@@ -123,7 +123,7 @@ export function NakshatraPanel({ chart }: { chart: ChartOutput }) {
               tithiNumber={tithiNum}
               varaNumber={varaNum}
               defaultStyle="north"
-              size={380}
+              size={340} // Reduced base size for better mobile fit
             />
             {/* Quick nakshatra badge per house */}
             <div style={{marginTop:'0.75rem',padding:'0.6rem',background:'var(--surface-2)',borderRadius:'var(--r-sm)',fontSize:'0.72rem',color:'var(--text-muted)',lineHeight:1.6}}>
@@ -134,7 +134,7 @@ export function NakshatraPanel({ chart }: { chart: ChartOutput }) {
         </div>
 
         {/* RIGHT: Analysis panel */}
-        <div style={{flex:'1 1 380px',minWidth:300,display:'flex',flexDirection:'column',gap:'1rem'}}>
+        <div style={{flex:'1 1 350px',width: '100%', minWidth:300,display:'flex',flexDirection:'column',gap:'1rem'}}>
           {/* Sub-tab bar */}
           <div style={{display:'flex',gap:'3px',flexWrap:'wrap',background:'var(--surface-3)',borderRadius:'var(--r-md)',padding:'4px',border:'1px solid var(--border-soft)'}}>
             {TABS.map(t=>(
@@ -438,8 +438,8 @@ function PlanetTab({positions, moonNakIdx}:{positions:any[], moonNakIdx:number})
   return (
     <div style={{display:'flex',flexDirection:'column',gap:'0.75rem'}}>
       <p style={{fontSize:'0.75rem',color:'var(--text-muted)',fontStyle:'italic',margin:0}}>Graha Nakshatras — Planet positions with their Pada and Navtara relative to Birth Moon ({NAK_NAMES[moonNakIdx]}).</p>
-      <div style={{overflowX:'auto'}}>
-        <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.75rem',color:'var(--text-secondary)'}}>
+      <div style={{ overflowX: 'auto', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', background: 'var(--surface-1)' }}>
+        <table style={{width:'100%', minWidth: '500px', borderCollapse:'collapse',fontSize:'0.75rem',color:'var(--text-secondary)'}}>
           <thead>
             <tr>{['Planet','Nakshatra','Pada','Lord','Navtara','Gana'].map(c=><th key={c} style={{padding:'0.45rem 0.6rem',textAlign:'left',fontSize:'0.58rem',textTransform:'uppercase',letterSpacing:'.1em',color:'var(--text-muted)',borderBottom:'1px solid var(--border)',whiteSpace:'nowrap'}}>{c}</th>)}</tr>
           </thead>
@@ -453,7 +453,7 @@ function PlanetTab({positions, moonNakIdx}:{positions:any[], moonNakIdx:number})
                   <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}><div style={{display:'flex',alignItems:'center',gap:'0.35rem'}}><span>{p.grahaId==='As'?'Asc':ICON[p.grahaId]}</span><span style={{fontWeight:600,color:'var(--text-primary)'}}>{p.grahaName}</span></div></td>
                   <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)',color:'var(--text-primary)'}}>{p.nakshatraName}</td>
                   <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}>{p.pada}</td>
-                  <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)',color:'var(--text-gold)'}}>{GRAHA_NAMES[p.lord] || '—'}</td>
+                  <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)',color:'var(--text-gold)'}}>{GRAHA_NAMES[p.lord as GrahaId] || '—'}</td>
                   <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}>
                     <span style={{color:QC[q].text,fontWeight:600}}>{taraName}</span>
                   </td>
@@ -531,7 +531,7 @@ function CompatTab({birthNakIdx}:{birthNakIdx:number}) {
 }
 
 // ── Remedies ──────────────────────────────────────────────────
-function RemediesTab({remedy,nakIdx}:{remedy:ReturnType<typeof NAKSHATRA_REMEDIES[number]|undefined>&{};nakIdx:number}) {
+function RemediesTab({remedy,nakIdx}:{remedy: (typeof NAKSHATRA_REMEDIES)[number]; nakIdx:number}) {
   if(!remedy) return <div style={{color:'var(--text-muted)',padding:'2rem',textAlign:'center'}}>Remedy data unavailable.</div>
   const sections=[
     {title:'Mantras & Seed',icon:'🕉',items:[

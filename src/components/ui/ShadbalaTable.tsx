@@ -111,7 +111,16 @@ function ComparisonChart({ planets }: { planets: Record<string, ShadbalaPlanet> 
         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Required vs Actual</span>
       </div>
 
-      <div style={{ height: 180, display: 'flex', alignItems: 'flex-end', gap: '1.5rem', padding: '0 1rem', paddingTop: '1rem' }}>
+      <div style={{ 
+        height: 180, 
+        display: 'flex', 
+        alignItems: 'flex-end', 
+        gap: 'clamp(0.25rem, 4vw, 1.5rem)', 
+        padding: '0 0.5rem', 
+        paddingTop: '1rem',
+        width: '100%',
+        overflowX: 'hidden'
+      }}>
         {ORDER.map(id => {
           const p = planets[id]
           if (!p) return null
@@ -217,7 +226,11 @@ export function ShadbalaTable({ shadbala, hideDetails = false }: { shadbala: Sha
 
       {/* ── Detailed Breakdown Grid ────────────────────────────── */}
       {!hideDetails && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '0.75rem' }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', 
+          gap: '0.75rem' 
+        }}>
           {ORDER.map((id, index) => {
             const p = planets[id]
             if (!p) return null

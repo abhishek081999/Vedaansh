@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider }      from '@/components/providers/SessionProvider'
 import { AppLayoutProvider } from '@/components/providers/LayoutProvider'
+import { ChartProvider }     from '@/components/providers/ChartProvider'
 import { AppFramework }      from '@/components/ui/AppFramework'
 
 // ── Prevent theme flash ───────────────────────────────────────
@@ -110,9 +111,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <AuthProvider>
           <AppLayoutProvider>
-            <AppFramework>
-              {children}
-            </AppFramework>
+            <ChartProvider>
+              <AppFramework>
+                {children}
+              </AppFramework>
+            </ChartProvider>
           </AppLayoutProvider>
         </AuthProvider>
       </body>

@@ -19,6 +19,7 @@ import { TransitOverlay }     from '@/components/ui/TransitOverlay'
 import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
 import { NakshatraPanel } from '@/components/ui/NakshatraPanel'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
+import { useChart } from '@/components/providers/ChartProvider'
 import type { ChartOutput, Rashi, ChartSettings } from '@/types/astrology'
 import { DEFAULT_SETTINGS } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
@@ -264,11 +265,10 @@ export default function HomePage() {
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'yogini' | 'chara'>('vimshottari')
   const searchParams = useSearchParams()
   
-  const [chart,      setChart]      = useState<ChartOutput | null>(null)
+  const { chart, setChart, isFormOpen, setIsFormOpen } = useChart()
   const [loading,    setLoading]    = useState(false)
   const [saving,     setSaving]     = useState(false)
   const [saveDone,   setSaveDone]   = useState(false)
-  const [isFormOpen, setIsFormOpen] = useState(false)
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
 
@@ -309,16 +309,16 @@ export default function HomePage() {
     }
   }, [searchParams])
 
-  // 3. Open form by default ONLY if not authenticated or no default chart after fetching
+  // 3. Open form by default ONLY if 'new=true' is in URL or we explicitly want to start blank
   useEffect(() => {
     if (status === 'loading' || fetchingDefault) return
-    if (!chart && !searchParams.get('name')) {
-      // If we don't have a chart on screen, decide if form should be open
-      if (status === 'unauthenticated' || (!fetchingDefault && !defaultChart)) {
-        setIsFormOpen(true)
-      }
+    
+    // We no longer open the form automatically on cold load.
+    // The user will see the landing screen with options to Cast Natal or Current charts.
+    if (searchParams.get('new') === 'true' && !chart) {
+      setIsFormOpen(true)
     }
-  }, [status, fetchingDefault, defaultChart, chart, searchParams])
+  }, [status, fetchingDefault, searchParams, chart])
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
@@ -424,8 +424,8 @@ export default function HomePage() {
              }}>
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
-                 flex: '2 1 600px', 
-                 minWidth: 'min(100%, 400px)', 
+                 flex: '1 1 600px', 
+                 minWidth: 'min(100%, 600px)', 
                  display: 'flex', 
                  flexDirection: 'column', 
                  gap: '1.5rem',
@@ -446,8 +446,9 @@ export default function HomePage() {
 
                {/* RIGHT: Active Tab Content (Sidebar Analysis) */}
                <div style={{ 
-                 flex: '1 0 320px', 
+                 flex: '1 1 350px', 
                  maxWidth: '100%',
+                 minWidth: 'min(100%, 350px)',
                  display: 'flex', flexDirection: 'column', 
                  gap: '1.5rem', 
                  position: 'sticky', 
@@ -598,14 +599,14 @@ export default function HomePage() {
 
                {/* BOTTOM: Dashboard Extended Details (Full width Diagnostics) */}
                {activeTab === 'dashboard' && (
-                 <div style={{ 
-                   flex: '1 1 100%', 
-                   display: 'grid', 
-                   gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
-                   gap: '1.5rem', 
-                   marginTop: '0.5rem',
-                   order: 3 // Extended details always last
-                 }}>
+                  <div style={{ 
+                    flex: '1 1 100%', 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', 
+                    gap: '1.5rem', 
+                    marginTop: '1.5rem',
+                    order: 3 // Extended details always last
+                  }}>
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Ashtakavarga Grid</h3>
                         {chart.ashtakavarga 
@@ -638,18 +639,57 @@ export default function HomePage() {
                )}
              </div>
       ) : (
-         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '2rem' }}>
             {!isFormOpen && (
-              <div style={{ textAlign: 'center', opacity: 0.6 }} className="fade-in">
-                <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'float 5s ease-in-out infinite' }}>🌌</div>
-                <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>The Canvas is Empty</p>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Initiate a new consultation to cast an astrological chart.</p>
-                <button onClick={() => setIsFormOpen(true)} className="btn btn-primary" style={{ padding: '0.75rem 2rem', fontSize: '1rem' }}>
-                  + Cast Natal Chart
-                </button>
+              <div style={{ 
+                textAlign: 'center', 
+                maxWidth: '600px',
+                padding: '3rem 2rem',
+                background: 'var(--surface-1)',
+                border: '1px solid var(--border-soft)',
+                borderRadius: 'var(--r-lg)',
+                boxShadow: 'var(--shadow-deep)',
+              }} className="fade-in">
+                <div style={{ fontSize: '4.5rem', marginBottom: '1.5rem', animation: 'float 6s ease-in-out infinite' }}>🌌</div>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text-primary)', margin: '0 0 1rem 0', fontWeight: 500, letterSpacing: '-0.02em' }}>
+                  The Cosmic Canvas
+                </h2>
+                <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', marginBottom: '2.5rem', lineHeight: 1.6 }}>
+                  Initiate a new astrological consultation to cast a chart. 
+                  Choose between a detailed Birth Chart or a quick analysis of the current celestial moment.
+                </p>
+                
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button 
+                    onClick={() => {
+                      setIsFormOpen(true);
+                      setChart(null);
+                    }} 
+                    className="btn btn-primary" 
+                    style={{ padding: '0.85rem 2rem', fontSize: '1rem', minWidth: '180px' }}
+                  >
+                    ✦ Cast Natal Chart
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsFormOpen(true);
+                    }} 
+                    className="btn btn-secondary" 
+                    style={{ 
+                      padding: '0.85rem 2rem', 
+                      fontSize: '1rem', 
+                      minWidth: '180px',
+                      background: 'rgba(201,168,76,0.05)',
+                      border: '1px solid var(--gold)',
+                      color: 'var(--text-gold)'
+                    }}
+                  >
+                    🕒 Add Current Chart
+                  </button>
+                </div>
               </div>
             )}
-         </div>
+          </div>
       )}
 
       {/* Footer inside main area */}
@@ -674,7 +714,7 @@ export default function HomePage() {
           opacity: isFormOpen ? 1 : 0, pointerEvents: isFormOpen ? 'auto' : 'none',
           transition: 'opacity 0.3s ease'
         }}
-        onClick={() => chart && setIsFormOpen(false)}
+        onClick={() => setIsFormOpen(false)}
       />
       <div className="form-drawer" style={{ 
         position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 1101, 
@@ -694,22 +734,20 @@ export default function HomePage() {
              <h2 style={{ fontSize: '1.4rem', margin: '0 0 0.2rem 0', fontFamily: 'var(--font-display)', color: 'var(--text-gold)', fontWeight: 600 }}>Birth Details</h2>
              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', letterSpacing: '0.05em' }}>Janma Kāla Entry</span>
           </div>
-          {chart && (
-            <button 
-              onClick={() => setIsFormOpen(false)}
-              style={{ 
-                background: 'var(--surface-3)', 
-                border: '1px solid var(--border-soft)', 
-                width: 32, height: 32, borderRadius: '50%', 
-                fontSize: '1rem', cursor: 'pointer', color: 'var(--text-primary)', 
-                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                transition: 'all 0.2s',
-                zIndex: 10
-              }}
-            >
-              ✕
-            </button>
-          )}
+          <button 
+            onClick={() => setIsFormOpen(false)}
+            style={{ 
+              background: 'var(--surface-3)', 
+              border: '1px solid var(--border-soft)', 
+              width: 32, height: 32, borderRadius: '50%', 
+              fontSize: '1rem', cursor: 'pointer', color: 'var(--text-primary)', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              transition: 'all 0.2s',
+              zIndex: 10
+            }}
+          >
+            ✕
+          </button>
         </div>
         
         <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
@@ -720,7 +758,7 @@ export default function HomePage() {
                   setTimeout(() => setIsFormOpen(false), 300);
                 }}
                 onLoading={setLoading}
-                autoSubmit
+                autoSubmit={!!searchParams.get('name')}
                 initialName="Natal Chart"
                 initialData={chart ? {
                   name: chart.meta.name,

@@ -62,13 +62,20 @@ export function ChakraSelector({
   const [onlyNine,      setOnlyNine]      = useState(true)
 
   // Typography scaling
-  const [fontScale,     setFontScale]     = useState(1.20)
-  const [planetScale,   setPlanetScale]   = useState(1.15)
-  const [arudhaScale,   setArudhaScale]   = useState(1.30)
-  const [infoScale,     setInfoScale]     = useState(0.85)
-  const [chartScale,    setChartScale]    = useState(1.35)
+  const [fontScale,     setFontScale]     = useState(1.10)
+  const [planetScale,   setPlanetScale]   = useState(1.05)
+  const [arudhaScale,   setArudhaScale]   = useState(1.20)
+  const [infoScale,     setInfoScale]     = useState(0.80)
+  const [chartScale,    setChartScale]    = useState(1.0)
   
   const [showSettings,  setShowSettings]  = useState(false)
+
+  // Use smaller scale on mobile initially
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setChartScale(0.9)
+    }
+  }, [])
 
   const isSBC = style === 'sarvatobhadra'
 
