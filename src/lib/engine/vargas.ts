@@ -52,12 +52,13 @@ export const D9 = (lon: number): number => {
 }
 
 /** D60 — Shashtiamsha (past karma, most sensitive — changes every 2 minutes)
- *  Odd signs: start from Aries; Even signs: start from Aquarius (reverse-ish)
+ *  Parashara rule: Count forward as many parts as the Shashtiamsha index (N)
+ *  starting from the occupied natal sign (tadraaseh).
  */
 export const D60 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 60)  // 0–59
-  return isOdd(sign) ? mod12(p + 1) : mod12(33 - p)
+  return mod12(sign + p)
 }
 
 // ── Tier 2 — Velā Vargas (D1–D60 standard set) ───────────────
@@ -77,11 +78,13 @@ export const D3 = (lon: number): number => {
   return mod12(sign + p * 4)
 }
 
-/** D4 — Chaturthamsha (Turyamsha: health, property) */
+/** D4 — Chaturthamsha (Turyamsha: health, property)
+ *  Rule: The four parts start from the same sign, its 4th, 7th, and 10th.
+ */
 export const D4 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 4)  // 0–3
-  return isOdd(sign) ? mod12(sign + p * 3) : mod12(sign + p * 3 + 9)
+  return mod12(sign + p * 3)
 }
 
 /** D7 — Saptamsha (children and grandchildren) */
@@ -95,7 +98,7 @@ export const D7 = (lon: number): number => {
 export const D10 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 10)  // 0–9
-  return isOdd(sign) ? mod12(sign + p) : mod12(sign + p + 9)
+  return isOdd(sign) ? mod12(sign + p) : mod12(sign + p + 8)
 }
 
 /** D12 — Dwadashamsha (parents) */
@@ -105,14 +108,16 @@ export const D12 = (lon: number): number => {
   return mod12(sign + p)  // starts from own sign, adds parts
 }
 
-/** D16 — Shodashamsha (vehicles, comforts, happiness) */
+/** D16 — Shodashamsha (vehicles, comforts, happiness)
+ *  Movable (1,4,7,10) → starts from Aries (1)
+ *  Fixed (2,5,8,11)   → starts from Leo (5)
+ *  Dual (3,6,9,12)    → starts from Sagittarius (9)
+ */
 export const D16 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 16)  // 0–15
-  if (sign % 4 === 1) return mod12(1 + p)   // Aries, Leo, Sag → from Ar
-  if (sign % 4 === 2) return mod12(4 + p)   // Taurus, Virgo, Cp → from Cn
-  if (sign % 4 === 3) return mod12(7 + p)   // Gemini, Libra, Aq → from Li
-  return mod12(10 + p)                       // Cancer, Scorpio, Pi → from Cp
+  const base = [1, 5, 9][(sign - 1) % 3]
+  return mod12(base + p)
 }
 
 /** D20 — Vimshamsha (spiritual progress, upasana) */

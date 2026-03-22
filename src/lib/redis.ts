@@ -123,8 +123,8 @@ export function chartCacheKey(
   karakaScheme: number,
   gulikaMode: string,
 ): string {
-  // Added v4: prefix to force cache refresh after Yogini calculation fixes
-  return `v4:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}`
+  // Added v6: prefix to force cache refresh after Varga (D4, D10, D16, D60) fixes
+  return `v6:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}`
 }
 
 export function panchangCacheKey(
