@@ -272,29 +272,60 @@ export default function HomePage() {
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
 
-  // 1. Fetch default chart if logged in
+  // 1. Fetch default chart if logged in (with client-side caching)
   useEffect(() => {
     if (status === 'authenticated') {
+      // Check local cache first for instant load
+      const cached = sessionStorage.getItem('jyotish_user_me')
+      if (cached) {
+        try {
+          const data = JSON.parse(cached)
+          if (data.success) {
+            if (data.personalChart) setDefaultChart(data.personalChart)
+            if (data.user?.preferences) {
+              const prefs = data.user.preferences
+              setUserPrefs(prev => ({
+                ...prev,
+                ...(prefs.defaultAyanamsha    ? { ayanamsha:    prefs.defaultAyanamsha    } : {}),
+                ...(prefs.defaultHouseSystem  ? { houseSystem:  prefs.defaultHouseSystem  } : {}),
+                ...(prefs.defaultNodeMode     ? { nodeMode:     prefs.defaultNodeMode     } : {}),
+                ...(prefs.karakaScheme        ? { karakaScheme: prefs.karakaScheme        } : {}),
+                ...(prefs.showDegrees   != null ? { showDegrees:  prefs.showDegrees   } : {}),
+                ...(prefs.showNakshatra != null ? { showNakshatra:prefs.showNakshatra } : {}),
+                ...(prefs.showKaraka    != null ? { showKaraka:   prefs.showKaraka    } : {}),
+              }))
+            }
+          }
+        } catch (e) {
+          sessionStorage.removeItem('jyotish_user_me')
+        }
+      }
+
       setFetchingDefault(true)
       fetch('/api/user/me')
         .then(r => r.json())
         .then(data => {
-          if (data.success && data.personalChart) {
-             setDefaultChart(data.personalChart)
-          }
-          // Apply user preferences
-          if (data.success && data.user?.preferences) {
-            const prefs = data.user.preferences
-            setUserPrefs(prev => ({
-              ...prev,
-              ...(prefs.defaultAyanamsha    ? { ayanamsha:    prefs.defaultAyanamsha    } : {}),
-              ...(prefs.defaultHouseSystem  ? { houseSystem:  prefs.defaultHouseSystem  } : {}),
-              ...(prefs.defaultNodeMode     ? { nodeMode:     prefs.defaultNodeMode     } : {}),
-              ...(prefs.karakaScheme        ? { karakaScheme: prefs.karakaScheme        } : {}),
-              ...(prefs.showDegrees   != null ? { showDegrees:  prefs.showDegrees   } : {}),
-              ...(prefs.showNakshatra != null ? { showNakshatra:prefs.showNakshatra } : {}),
-              ...(prefs.showKaraka    != null ? { showKaraka:   prefs.showKaraka    } : {}),
-            }))
+          if (data.success) {
+            // Update cache
+            sessionStorage.setItem('jyotish_user_me', JSON.stringify(data))
+            
+            if (data.personalChart) {
+               setDefaultChart(data.personalChart)
+            }
+            // Apply user preferences
+            if (data.user?.preferences) {
+              const prefs = data.user.preferences
+              setUserPrefs(prev => ({
+                ...prev,
+                ...(prefs.defaultAyanamsha    ? { ayanamsha:    prefs.defaultAyanamsha    } : {}),
+                ...(prefs.defaultHouseSystem  ? { houseSystem:  prefs.defaultHouseSystem  } : {}),
+                ...(prefs.defaultNodeMode     ? { nodeMode:     prefs.defaultNodeMode     } : {}),
+                ...(prefs.karakaScheme        ? { karakaScheme: prefs.karakaScheme        } : {}),
+                ...(prefs.showDegrees   != null ? { showDegrees:  prefs.showDegrees   } : {}),
+                ...(prefs.showNakshatra != null ? { showNakshatra:prefs.showNakshatra } : {}),
+                ...(prefs.showKaraka    != null ? { showKaraka:   prefs.showKaraka    } : {}),
+              }))
+            }
           }
         })
         .finally(() => setFetchingDefault(false))
@@ -751,7 +782,11 @@ export default function HomePage() {
         </div>
         
         <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
-            {(status === 'unauthenticated' || (!fetchingDefault)) && (
+            {/* 
+                Optimization: Render BirthForm immediately if query params are present (from "My Charts" or deep links).
+                Don't wait for the background user/me fetch to finish.
+            */}
+            {(status === 'unauthenticated' || !fetchingDefault || !!searchParams.get('name')) && (
               <BirthForm
                 onResult={(data) => { 
                   setChart(data);

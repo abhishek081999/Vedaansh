@@ -80,8 +80,13 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [manualMode, setManualMode] = useState(false)
+  
+  // Timezone list for manual entry
+  const [tzList] = useState(() => (typeof Intl !== 'undefined' && (Intl as any).supportedValuesOf) ? (Intl as any).supportedValuesOf('timeZone') as string[] : ['Asia/Kolkata', 'UTC', 'America/New_York'])
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const searchCache = useRef<Map<string, LocationResult[]>>(new Map())
   const dropdownRef = useRef<HTMLDivElement>(null)
   const jhdRef = useRef<HTMLInputElement>(null)
   const [jhdMsg, setJhdMsg] = useState<string|null>(null)
@@ -150,12 +155,26 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   // ── Location search ───────────────────────────────────────
 
   const searchLocations = useCallback(async (q: string) => {
-    if (q.length < 2) { setLocationResults([]); return }
+    const query = q.trim().toLowerCase()
+    if (query.length < 2) { setLocationResults([]); return }
+    
+    // Check cache first
+    if (searchCache.current.has(query)) {
+      setLocationResults(searchCache.current.get(query) || [])
+      setSearchOpen(true)
+      return
+    }
+
     setSearching(true)
     try {
-      const res = await fetch(`/api/atlas/search?q=${encodeURIComponent(q)}`)
+      const res = await fetch(`/api/atlas/search?q=${encodeURIComponent(query)}`)
       const data = await res.json()
-      setLocationResults(data.results ?? [])
+      const results = data.results ?? []
+      
+      // Update cache
+      searchCache.current.set(query, results)
+      
+      setLocationResults(results)
       setSearchOpen(true)
     } catch {
       setLocationResults([])
@@ -200,7 +219,15 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
     setPlace(val)
     setLat(null); setLng(null)
     if (searchTimer.current) clearTimeout(searchTimer.current)
-    searchTimer.current = setTimeout(() => searchLocations(val), 200)
+    
+    // If it's in cache, show it immediately
+    const query = val.trim().toLowerCase()
+    if (query.length >= 2 && searchCache.current.has(query)) {
+        setLocationResults(searchCache.current.get(query)!)
+        setSearchOpen(true)
+    }
+
+    searchTimer.current = setTimeout(() => searchLocations(val), 150)
   }
 
   const selectLocation = (loc: LocationResult) => {
@@ -210,6 +237,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
     setTz(loc.timezone)
     setLocationResults([])
     setSearchOpen(false)
+    setManualMode(false) // Exit manual mode if picking from list
   }
 
   // Close dropdown on outside click
@@ -353,8 +381,17 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
     e.preventDefault()
     if (!name.trim()) { setError('Please enter a name'); return }
     if (!date) { setError('Please enter birth date'); return }
-    if (!lat || !lng) { setError('Please select a location from the list'); return }
-    await submitChart(name, date, time, place, lat, lng, tz, settings)
+    if (lat === null || lng === null) { 
+      setError('Please select a location or enter coordinates manually'); 
+      return 
+    }
+
+    // If in manual mode, use the coordinates as the place name
+    const finalPlace = manualMode 
+      ? `Manual (${lat.toFixed(4)}, ${lng.toFixed(4)})` 
+      : place
+
+    await submitChart(name, date, time, finalPlace, lat, lng, tz, settings)
   }
 
   // ── Refresh to now ────────────────────────────────────────
@@ -574,74 +611,133 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
             Use My Location 📍
           </button>
         </label>
-        <input
-          className="input"
-          type="text"
-          placeholder="City, Country"
-          value={place}
-          onChange={(e) => handlePlaceChange(e.target.value)}
-          onFocus={() => locationResults.length > 0 && setSearchOpen(true)}
-          autoComplete="off"
-          style={{ width: '100%', boxSizing: 'border-box' }}
-        />
+        {/* Mode Toggler */}
+        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', marginBottom: '0.25rem' }}>
+          <button
+            type="button"
+            onClick={() => setManualMode(!manualMode)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: manualMode ? 'var(--gold)' : 'var(--text-muted)',
+              fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.04em',
+              textTransform: 'uppercase', padding: '0 2px'
+            }}
+          >
+            {manualMode ? '✓ Search City instead' : '✎ Enter Lat/Lng Manually'}
+          </button>
+        </div>
 
-        {/* Coords display */}
-        {lat !== null && lng !== null && (
-          <div style={{
-            marginTop: 4, fontSize: '0.72rem',
-            color: 'var(--text-muted)',
-            fontFamily: 'JetBrains Mono, monospace',
-            display: 'flex', gap: '1rem', flexWrap: 'wrap',
-          }}>
-            <span>{lat.toFixed(4)}° N</span>
-            <span>{lng.toFixed(4)}° E</span>
-            <span style={{ color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif' }}>{tz}</span>
+        {manualMode ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', animation: 'fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) both' }}>
+             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Latitude (-90 to 90)</label>
+                  <input 
+                    type="number" step="0.0001" placeholder="e.g. 28.6139" 
+                    className="input" style={{ width: '100%' }}
+                    value={lat ?? ''} onChange={e => setLat(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Longitude (-180 to 180)</label>
+                  <input 
+                    type="number" step="0.0001" placeholder="e.g. 77.2090" 
+                    className="input" style={{ width: '100%' }}
+                    value={lng ?? ''} onChange={e => setLng(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+             </div>
+             <div>
+                <label style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Timezone (IANA)</label>
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type="text" placeholder="e.g. Asia/Kolkata" 
+                    className="input" style={{ width: '100%' }}
+                    value={tz} onChange={e => setTz(e.target.value)}
+                    list="tz-datalist"
+                  />
+                  <datalist id="tz-datalist">
+                    {tzList.slice(0, 50).map(t => <option key={t} value={t} />)}
+                  </datalist>
+                </div>
+             </div>
           </div>
-        )}
+        ) : (
+          <>
+            <input
+              className="input"
+              type="text"
+              placeholder="City, Country"
+              value={place}
+              onChange={(e) => handlePlaceChange(e.target.value)}
+              onFocus={() => {
+                if (locationResults.length > 0) setSearchOpen(true)
+                else if (place.length >= 2) searchLocations(place)
+              }}
+              autoComplete="off"
+              style={{ width: '100%', boxSizing: 'border-box' }}
+            />
 
-        {/* Dropdown */}
-        {searchOpen && locationResults.length > 0 && (
-          <div style={{
-            position: 'absolute', zIndex: 100, width: '100%', top: '100%', marginTop: 4,
-            background: 'var(--surface-2)',
-            border: '1px solid var(--border-bright)',
-            borderRadius: 8,
-            boxShadow: 'var(--shadow-deep)',
-            maxHeight: 280, overflowY: 'auto',
-            boxSizing: 'border-box',
-          }}>
-            {locationResults.map((loc, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => selectLocation(loc)}
-                style={{
-                  display: 'flex', flexDirection: 'column', gap: 2,
-                  width: '100%', textAlign: 'left',
-                  padding: '0.6rem 1rem',
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  borderBottom: i < locationResults.length - 1
-                    ? '1px solid var(--border-soft)' : 'none',
-                  transition: 'background 0.1s',
-                  boxSizing: 'border-box',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(201,168,76,0.07)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
-                <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1rem', color: 'var(--text-primary)' }}>
-                  {loc.name}
-                  {loc.admin1 && (
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>, {loc.admin1}</span>
-                  )}
-                </span>
-                <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem' }}>
-                  <span>{loc.country}</span>
-                  <span>{loc.latitude.toFixed(2)}°, {loc.longitude.toFixed(2)}°</span>
-                  <span style={{ color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif' }}>{loc.timezone}</span>
-                </span>
-              </button>
-            ))}
-          </div>
+            {/* Coords display overlay */}
+            {lat !== null && lng !== null && (
+              <div style={{
+                marginTop: 4, fontSize: '0.72rem',
+                color: 'var(--text-muted)',
+                fontFamily: 'JetBrains Mono, monospace',
+                display: 'flex', gap: '0.8rem', flexWrap: 'wrap',
+                alignItems: 'center'
+              }}>
+                <span title="Latitude">{lat.toFixed(4)}° N</span>
+                <span title="Longitude">{lng.toFixed(4)}° E</span>
+                <span style={{ color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif' }}>{tz}</span>
+              </div>
+            )}
+
+            {/* Dropdown */}
+            {searchOpen && locationResults.length > 0 && (
+              <div style={{
+                position: 'absolute', zIndex: 100, width: '100%', top: '100%', marginTop: 4,
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border-bright)',
+                borderRadius: 8,
+                boxShadow: 'var(--shadow-deep)',
+                maxHeight: 280, overflowY: 'auto',
+                boxSizing: 'border-box',
+              }}>
+                {locationResults.map((loc, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => selectLocation(loc)}
+                    style={{
+                      display: 'flex', flexDirection: 'column', gap: 2,
+                      width: '100%', textAlign: 'left',
+                      padding: '0.6rem 1rem',
+                      background: 'transparent', border: 'none', cursor: 'pointer',
+                      borderBottom: i < locationResults.length - 1
+                        ? '1px solid var(--border-soft)' : 'none',
+                      transition: 'background 0.1s',
+                      boxSizing: 'border-box',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(201,168,76,0.07)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                      {loc.name}
+                      {loc.admin1 && (
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>, {loc.admin1}</span>
+                      )}
+                    </span>
+                    <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem' }}>
+                      <span>{loc.country}</span>
+                      <span>{loc.latitude.toFixed(2)}°, {loc.longitude.toFixed(2)}°</span>
+                      <span style={{ color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif' }}>{loc.timezone}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

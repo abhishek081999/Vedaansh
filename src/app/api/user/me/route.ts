@@ -11,12 +11,15 @@ import { Chart } from '@/lib/db/models/Chart'
 
 export async function GET() {
   try {
-    const session = await auth()
+    // Parallelize session check and DB connection
+    const [session] = await Promise.all([
+      auth(),
+      connectDB()
+    ])
+
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
-
-    await connectDB()
 
     const [user, personalChart] = await Promise.all([
       User.findById(session.user.id).select('-passwordHash').lean(),

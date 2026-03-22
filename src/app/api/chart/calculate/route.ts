@@ -88,10 +88,6 @@ export async function POST(req: NextRequest) {
     }
     const input = result.data
 
-    // Get session — determines tier/plan
-    const session = await auth()
-    const plan: UserPlan = (session?.user as any)?.plan ?? 'kala'
-
     // Convert local birth time → UTC for sweph
     const { utcDate, utcTime } = localToUTC(input.birthDate, input.birthTime, input.timezone)
 
@@ -106,8 +102,12 @@ export async function POST(req: NextRequest) {
       input.settings.gulikaMode,
     )
 
-    // Check cache first
-    const cached = await redis.get(cacheKey)
+    // Parallelize session check and cache lookup to reduce total latency
+    const [session, cached] = await Promise.all([
+      auth(),
+      redis.get(cacheKey)
+    ])
+
     if (cached) {
       // Overwrite name, place, etc. from input — these don't affect calculation
       // but are stored in meta. We want to return the name from input.
@@ -126,28 +126,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, data: finalData, fromCache: true })
     }
 
-    // Connect DB (needed for chart save later — warm the connection)
-    await connectDB()
+    const plan: UserPlan = (session?.user as any)?.plan ?? 'kala'
 
-    // Run calculation
-    const chartData = await calculateChart(
-      {
-        name:       input.name,
-        birthDate:  input.birthDate,
-        birthTime:  input.birthTime,
-        utcDate:    utcDate,
-        utcTime:    utcTime,
-        birthPlace: input.birthPlace,
-        latitude:   input.latitude,
-        longitude:  input.longitude,
-        timezone:   input.timezone,
-        settings:   input.settings as ChartSettings,
-      },
-      plan,
-    )
+    // Run calculation and connect DB (for warming) in parallel
+    const [chartData] = await Promise.all([
+      calculateChart(
+        {
+          name:       input.name,
+          birthDate:  input.birthDate,
+          birthTime:  input.birthTime,
+          utcDate:    utcDate,
+          utcTime:    utcTime,
+          birthPlace: input.birthPlace,
+          latitude:   input.latitude,
+          longitude:  input.longitude,
+          timezone:   input.timezone,
+          settings:   input.settings as ChartSettings,
+        },
+        plan,
+      ),
+      connectDB() 
+    ])
 
-    // Cache result
-    await redis.set(cacheKey, chartData, 86_400)
+    // Cache result — don't await so the user gets the results immediately 🚀
+    // (Upstash Redis over HTTP adds ~100-200ms which we can shave off here)
+    redis.set(cacheKey, chartData, 86_400).catch(err => {
+      console.error('[redis.set] cache write failed (background):', err)
+    })
 
     return NextResponse.json({ success: true, data: chartData, fromCache: false })
 

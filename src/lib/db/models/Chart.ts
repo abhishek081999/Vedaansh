@@ -50,6 +50,7 @@ const ChartSchema = new Schema<IChart>({
   timestamps: true,
 })
 
+ChartSchema.index({ userId: 1, isPersonal: 1 })
 ChartSchema.index({ userId: 1, createdAt: -1 })
 ChartSchema.index({ isPublic: 1, createdAt: -1 })
 

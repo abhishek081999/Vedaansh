@@ -25,16 +25,25 @@ let clientPromise: Promise<MongoClient>
 const mongoClientOpts = {
   family: 4,
   serverSelectionTimeoutMS: 10_000,
+  serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true }
 }
 
 if (process.env.NODE_ENV === 'development') {
   // In dev, reuse the client across hot reloads
   if (!global._mongoClientPromise) {
+    console.log('[auth/mongodb] Initializing development connection...')
     const client = new MongoClient(mongoUri, mongoClientOpts)
-    global._mongoClientPromise = client.connect()
+    global._mongoClientPromise = client.connect().then(c => {
+       console.log('[auth/mongodb] Connected successfully')
+       return c
+    }).catch(err => {
+       console.error('[auth/mongodb] Connection failed:', err)
+       throw err
+    })
   }
   clientPromise = global._mongoClientPromise
 } else {
+  console.log('[auth/mongodb] Initializing production connection...')
   const client = new MongoClient(mongoUri, mongoClientOpts)
   clientPromise = client.connect()
 }

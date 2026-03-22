@@ -36,15 +36,25 @@ export async function connectDB(): Promise<typeof mongoose> {
       dbName: getOptionalEnv('MONGODB_DB_NAME') || 'jyotish',
       // Force IPv4 to avoid IPv6 resolution issues on some networks
       family: 4,
-      serverSelectionTimeoutMS: 10_000,
+      serverSelectionTimeoutMS: 8_000,
+      heartbeatFrequencyMS: 10_000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      socketTimeoutMS: 45_000,
+      serverApi: { version: '1' as '1', strict: true, deprecationErrors: true }
     }
 
+    console.log('[mongodb] Connecting to instance...')
     cached.promise = mongoose.connect(mongoUri, opts)
   }
 
   try {
     cached.conn = await cached.promise
+    if (cached.conn.connection.readyState === 1) {
+      console.log('[mongodb] Successfully connected')
+    }
   } catch (e) {
+    console.error('[mongodb] Connection failed:', e)
     cached.promise = null
     throw e
   }

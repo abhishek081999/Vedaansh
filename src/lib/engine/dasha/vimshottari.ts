@@ -126,6 +126,11 @@ function buildSubDashas(
 
     const start = new Date(cursor)
     const end   = new Date(cursor + durationMs)
+    const isCurrent = now >= cursor && now < cursor + durationMs
+
+    // Optimization: For levels deeper than 4 (Sukshma), only calculate sub-periods 
+    // for the CURRENT branch to avoid exponential JSON growth (~500k nodes down to ~1k).
+    const shouldGoDeeper = currentLevel < maxDepth && (currentLevel <= 4 || isCurrent)
 
     nodes.push({
       lord,
@@ -133,8 +138,8 @@ function buildSubDashas(
       end,
       durationMs,
       level: currentLevel,
-      isCurrent: now >= cursor && now < cursor + durationMs,
-      children: currentLevel < maxDepth
+      isCurrent,
+      children: shouldGoDeeper
         ? buildSubDashas(lord, start, end, durationMs, currentLevel + 1, maxDepth, now)
         : [],
     })
