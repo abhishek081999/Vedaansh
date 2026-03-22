@@ -432,7 +432,7 @@ export default function AccountPage() {
       </main>
 
       <footer style={{ padding: '1.5rem 2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontSize: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
-        Vedic Amrit · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa</span> Platform
+        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa</span> Platform
       </footer>
     </div>
   )

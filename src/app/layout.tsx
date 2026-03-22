@@ -9,15 +9,15 @@ import { AppFramework }      from '@/components/ui/AppFramework'
 // ── Prevent theme flash ───────────────────────────────────────
 const themeScript = `(function(){try{var t=localStorage.getItem('jyotish-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':t==='dark'?'dark':'classic')}catch(e){}})();`
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedicamrit.com'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
 // ── Root metadata ─────────────────────────────────────────────
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
 
   title: {
-    template: '%s — Vedic Amrit',
-    default:  'Vedic Amrit — Free Vedic Astrology & Jyotiṣa Platform',
+    template: '%s — Vedaansh',
+    default:  'Vedaansh — Free Vedic Astrology & Jyotiṣa Platform',
   },
 
   description:
@@ -26,36 +26,36 @@ export const metadata: Metadata = {
   keywords: [
     'Vedic astrology', 'Jyotish', 'kundali', 'birth chart', 'free horoscope',
     'Vimshottari Dasha', 'Navamsha', 'D9 chart', 'Panchang', 'Arudha Lagna',
-    'Rahu Kalam', 'Nakshatra', 'Swiss Ephemeris', 'Vedic Amrit',
+    'Rahu Kalam', 'Nakshatra', 'Swiss Ephemeris', 'Vedaansh',
     'Lahiri ayanamsha', 'divisional charts', 'varga charts',
   ],
 
-  authors:  [{ name: 'Vedic Amrit' }],
-  creator:  'Vedic Amrit',
-  publisher:'Vedic Amrit',
+  authors:  [{ name: 'Vedaansh' }],
+  creator:  'Vedaansh',
+  publisher:'Vedaansh',
 
   // ── Open Graph ──────────────────────────────────────────────
   openGraph: {
     type:      'website',
     locale:    'en_IN',
     url:        BASE_URL,
-    siteName:  'Vedic Amrit',
-    title:     'Vedic Amrit — Free Vedic Astrology Platform',
+    siteName:  'Vedaansh',
+    title:     'Vedaansh — Free Vedic Astrology Platform',
     description:
       'Free Vedic birth charts, Dasha, 16 vargas, Panchang. Swiss Ephemeris precision.',
     images: [{
       url:    '/og-default.png',
       width:  1200,
       height: 630,
-      alt:    'Vedic Amrit — Vedic Astrology Platform',
+      alt:    'Vedaansh — Vedic Astrology Platform',
     }],
   },
 
   // ── Twitter card ────────────────────────────────────────────
   twitter: {
     card:        'summary_large_image',
-    site:        '@vedicamrit',
-    title:       'Vedic Amrit — Free Vedic Astrology',
+    site:        '@vedaansh',
+    title:       'Vedaansh — Free Vedic Astrology',
     description: 'Free birth charts, Dasha, 16 vargas, Panchang. Swiss Ephemeris precision.',
     images:      ['/og-default.png'],
   },
@@ -80,7 +80,7 @@ export const metadata: Metadata = {
   },
 
   // ── App metadata ────────────────────────────────────────────
-  applicationName: 'Vedic Amrit',
+  applicationName: 'Vedaansh',
   category:        'astrology',
 }
 

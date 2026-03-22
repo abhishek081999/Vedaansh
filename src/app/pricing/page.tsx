@@ -84,7 +84,7 @@ const FAQ = [
   { q: 'Is Kāla really free forever?', a: 'Yes. The Kāla tier is permanently free with no credit card required. We believe core Jyotish tools should be accessible to everyone.' },
   { q: 'What payment methods are accepted?', a: 'We accept all major credit/debit cards, UPI, net banking, and wallets via Razorpay. International cards also accepted.' },
   { q: 'Can I cancel anytime?', a: 'Yes, subscriptions can be cancelled at any time. Your access continues until the end of the billing period.' },
-  { q: 'Is there a student discount?', a: 'Yes — students and Jyotish teachers get 40% off Velā. Email us at support@vedicamrit.com with your credentials.' },
+  { q: 'Is there a student discount?', a: 'Yes — students and Jyotish teachers get 40% off Velā. Email us at support@vedaansh.com with your credentials.' },
   { q: 'Do you offer refunds?', a: 'We offer a 7-day money-back guarantee on all paid plans if you are not satisfied.' },
 ]
 
@@ -125,7 +125,7 @@ export default function PricingPage() {
         amount:      data.amount,
         currency:    data.currency,
         order_id:    data.orderId,
-        name:        'Vedic Amrit',
+        name:        'Vedaansh',
         description: `${data.planLabel} — ${billing} subscription`,
         prefill: {
           name:  data.userName,
@@ -179,7 +179,7 @@ export default function PricingPage() {
       <header style={{ padding: '0 2rem', height: '3.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 50, background: 'var(--header-bg)', borderBottom: '1px solid var(--border-soft)' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
           <span>🪐</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedic Amrit</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
         </Link>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           {session ? (
@@ -444,7 +444,7 @@ export default function PricingPage() {
       </main>
 
       <footer style={{ padding: '1.5rem 2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontSize: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
-        Vedic Amrit · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa Platform</span> · All prices in INR · GST applicable
+        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa Platform</span> · All prices in INR · GST applicable
       </footer>
     </div>
   )

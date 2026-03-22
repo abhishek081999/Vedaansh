@@ -3,11 +3,11 @@
 // Use in server components only
 
 export function WebsiteJsonLd() {
-  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedicamrit.com'
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
   const data = {
     '@context': 'https://schema.org',
     '@type':    'WebSite',
-    name:       'Vedic Amrit',
+    name:       'Vedaansh',
     url:         BASE_URL,
     description: 'Free Vedic astrology platform. Calculate birth charts, Dasha, Navamsha & Panchang.',
     potentialAction: {
@@ -28,7 +28,7 @@ export function SoftwareAppJsonLd() {
   const data = {
     '@context':       'https://schema.org',
     '@type':          'SoftwareApplication',
-    name:             'Vedic Amrit',
+    name:             'Vedaansh',
     operatingSystem: 'Web',
     applicationCategory: 'LifestyleApplication',
     offers: {

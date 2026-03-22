@@ -140,7 +140,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
             style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-gold)', letterSpacing: '0.02em' }}
           >
-            Vedic Amrit
+            Vedaansh
           </span>
         </div>
 
@@ -202,7 +202,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: '1px solid var(--border-soft)' }}>
             <span style={{ fontSize: '1.5rem', filter: 'drop-shadow(0 0 8px rgba(201,168,76,0.3))' }}>🪐</span>
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, flex: 1 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 600, color: 'var(--text-gold)', letterSpacing: '0.05em' }}>Vedic Amrit</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 600, color: 'var(--text-gold)', letterSpacing: '0.05em' }}>Vedaansh</span>
               <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', letterSpacing: '0.08em', fontStyle: 'italic' }}>Vedic Astrology</span>
             </div>
             <button

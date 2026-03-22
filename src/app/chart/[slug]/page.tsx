@@ -236,7 +236,7 @@ export default function PublicChartPage() {
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
           <span style={{ fontSize: '1.3rem' }}>🪐</span>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-gold)' }}>
-            Vedic Amrit
+            Vedaansh
           </span>
         </Link>
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -337,7 +337,7 @@ export default function PublicChartPage() {
                 🔗 Public Chart
               </span>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-                Shared via Vedic Amrit · Calculate your own chart free
+                Shared via Vedaansh · Calculate your own chart free
               </span>
             </div>
 
@@ -434,7 +434,7 @@ export default function PublicChartPage() {
       }}>
         Powered by <span style={{ color: 'var(--text-gold)' }}>Swiss Ephemeris</span>
         {' '}· Kāla — free forever ·{' '}
-        <Link href="/" style={{ color: 'var(--text-gold)', textDecoration: 'none' }}>Vedic Amrit</Link>
+        <Link href="/" style={{ color: 'var(--text-gold)', textDecoration: 'none' }}>Vedaansh</Link>
       </footer>
     </div>
   )

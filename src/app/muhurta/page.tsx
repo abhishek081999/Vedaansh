@@ -343,7 +343,7 @@ export default function MuhurtaPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
             <span style={{ fontSize: '1.2rem' }}>🪐</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedic Amrit</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
           </Link>
           <span style={{ color: 'var(--border)' }}>|</span>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-gold)', fontWeight: 600 }}>

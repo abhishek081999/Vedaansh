@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedicamrit.com'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 export async function generateChartMetadata(slug: string): Promise<Metadata> {
@@ -41,7 +41,7 @@ export async function generateChartMetadata(slug: string): Promise<Metadata> {
         url,
         type:     'profile',
         images:   [{ url: ogImage, width: 1200, height: 630, alt: `${name} — Vedic Chart` }],
-        siteName: 'Vedic Amrit',
+        siteName: 'Vedaansh',
       },
       twitter: {
         card:        'summary_large_image',
@@ -52,8 +52,8 @@ export async function generateChartMetadata(slug: string): Promise<Metadata> {
     }
   } catch {
     return {
-      title:       'Vedic Chart — Vedic Amrit',
-      description: 'View this Vedic Jyotish birth chart on Vedic Amrit.',
+      title:       'Vedic Chart — Vedaansh',
+      description: 'View this Vedic Jyotish birth chart on Vedaansh.',
     }
   }
 }

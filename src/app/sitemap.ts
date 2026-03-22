@@ -4,7 +4,7 @@ import type { MetadataRoute } from 'next'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedicamrit.com'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
