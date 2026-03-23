@@ -52,7 +52,104 @@ function toDeg(totalDeg: number): number {
   return ((totalDeg % 360) + 360) % 360
 }
 
-// ── South Indian Chart SVG ────────────────────────────────────
+// ── North Indian Chart SVG ────────────────────────────────────
+
+function polyPts(h: number, S: number): string {
+  const Q = S/4, M = S/2
+  const pts: [number,number][][] = [
+    [], // placeholder for index 0
+    [[Q,Q],[M,M],[3*Q,Q],[M,0]],
+    [[0,0],[Q,Q],[M,0]],
+    [[0,0],[0,M],[Q,Q]],
+    [[0,M],[Q,3*Q],[M,M],[Q,Q]],
+    [[0,M],[0,S],[Q,3*Q]],
+    [[Q,3*Q],[0,S],[M,S]],
+    [[Q,3*Q],[M,S],[3*Q,3*Q],[M,M]],
+    [[3*Q,3*Q],[M,S],[S,S]],
+    [[3*Q,3*Q],[S,S],[S,M]],
+    [[3*Q,Q],[M,M],[3*Q,3*Q],[S,M]],
+    [[3*Q,Q],[S,M],[S,0]],
+    [[M,0],[3*Q,Q],[S,0]],
+  ]
+  return pts[h]?.map(([x,y]) => `${x},${y}`).join(' ') ?? ''
+}
+
+function centroidN(h: number, S: number): [number,number] {
+  const Q = S/4, M = S/2
+  const c: Record<number,[number,number]> = {
+    1:[M, M*0.55], 2:[Q*0.7,Q*0.55], 3:[Q*0.55,Q], 4:[M*0.55,M],
+    5:[Q*0.55,3*Q], 6:[Q*0.7,3*Q+Q*0.45], 7:[M,M*1.45],
+    8:[3*Q+Q*0.3,3*Q+Q*0.45], 9:[3*Q+Q*0.45,3*Q],
+    10:[M*1.45,M], 11:[3*Q+Q*0.45,Q], 12:[3*Q+Q*0.3,Q*0.55],
+  }
+  return c[h] ?? [M,M]
+}
+
+function rashiLabelPos(h: number, S: number): [number,number] {
+  const Q = S/4, M = S/2, o = S*0.045
+  const p: Record<number,[number,number]> = {
+    1:[M,M-o], 2:[Q,Q-o], 3:[Q-o,Q], 4:[M-o,M],
+    5:[Q-o,3*Q], 6:[Q,3*Q+o], 7:[M,M+o], 8:[3*Q,3*Q+o],
+    9:[3*Q+o,3*Q], 10:[M+o,M], 11:[3*Q+o,Q], 12:[3*Q,Q-o],
+  }
+  return p[h] ?? [M,M]
+}
+
+function buildNorthSVG(chart: ChartOutput, size = 400): string {
+  const S = size
+  const ascRashi = chart.lagnas.ascRashi
+  const grahas = chart.grahas.filter(g => !['Ur','Ne','Pl'].includes(g.id))
+
+  const signInHouse = (h: number) => (((ascRashi - 1 + h - 1) % 12) + 1) as number
+  const byHouse: Record<number, GrahaData[]> = {}
+  for (let h = 1; h <= 12; h++) byHouse[h] = []
+  grahas.forEach(g => {
+    for (let h = 1; h <= 12; h++) {
+      if (signInHouse(h) === g.rashi) { byHouse[h].push(g); break }
+    }
+  })
+
+  let cells = ''
+  for (let h = 1; h <= 12; h++) {
+    const pts = polyPts(h, S)
+    if (!pts) continue
+    const sign = signInHouse(h)
+    const isLagna = h === 1
+    const fill   = isLagna ? '#e8f4fd' : 'transparent'
+    const stroke = isLagna ? '#2e6da4' : '#888'
+    const sw     = isLagna ? 1.5 : 1
+
+    // Sign number label
+    const [lx,ly] = rashiLabelPos(h, S)
+    const signTxt = `<text x="${lx}" y="${ly}" font-family="Arial" font-size="${S*0.032}" font-weight="600" fill="${isLagna?'#2e6da4':'#5a8a5a'}" text-anchor="middle" dominant-baseline="middle">${sign}</text>`
+
+    // Planets
+    const [cx,cy] = centroidN(h, S)
+    const ps = byHouse[h]
+    const pf = S * 0.034
+    const df = S * 0.022
+    const lh = pf + df + 2
+    const startY = cy - (ps.length * lh) / 2
+    const planetTxts = ps.map((g, i) => {
+      const py = startY + i * lh + pf * 0.5
+      const col2 = dignityColor(g.dignity)
+      const lbl = (GRAHA_ABBR[g.id] || g.id) + (g.isRetro ? 'ᴿ' : '')
+      const deg = Math.floor(toDeg(g.lonSidereal) % 30)
+      return `<text x="${cx}" y="${py}" font-family="Arial" font-size="${pf}" font-weight="600" fill="${col2}" text-anchor="middle" dominant-baseline="middle">${lbl}</text>
+<text x="${cx}" y="${py+pf*0.8}" font-family="Arial" font-size="${df}" fill="#666" text-anchor="middle" dominant-baseline="middle">${deg}°</text>`
+    }).join('\n')
+
+    cells += `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>
+${signTxt}${planetTxts}`
+  }
+
+  // Outer border
+  cells += `<rect x="0.5" y="0.5" width="${S-1}" height="${S-1}" fill="none" stroke="#888" stroke-width="1"/>`
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">${cells}</svg>`
+}
+
+
 
 const SIGN_CELLS: Record<number, [number,number]> = {
   12:[0,0],  1:[0,1],  2:[0,2],  3:[0,3],
@@ -488,7 +585,7 @@ function buildArudhasHTML(chart: ChartOutput): string {
 
 export function generateChartHTML(chart: ChartOutput): string {
   const { meta } = chart
-  const chartSVG = buildSouthSVG(chart, 380)
+  const chartSVG = buildNorthSVG(chart, 380)
   const generatedAt = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' })
 
   return `<!DOCTYPE html>

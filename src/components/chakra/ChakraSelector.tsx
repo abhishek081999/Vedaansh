@@ -9,7 +9,6 @@
 import React, { useState } from 'react'
 import { SouthIndianChakra }     from './SouthIndianChakra'
 import { NorthIndianChakra }     from './NorthIndianChakra'
-import { EastIndianChakra }      from './EastIndianChakra'
 import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
 import { CircleChakra }          from './CircleChakra'
 import { BhavaChakra }           from './BhavaChakra'
@@ -37,7 +36,6 @@ interface ChakraSelectorProps {
 const STYLES: { id: ChartStyle; label: string; shortLabel: string; description: string; tier?: string }[] = [
   { id: 'north',         label: 'North Indian',  shortLabel: 'North',   description: 'Houses fixed, signs rotate' },
   { id: 'south',         label: 'South Indian',  shortLabel: 'South',   description: 'Signs fixed, houses rotate' },
-  { id: 'east',          label: 'East Indian',   shortLabel: 'East',    description: 'Bengali / Odisha fixed-sign grid' },
   { id: 'sarvatobhadra', label: 'Sarvatobhadra', shortLabel: 'SBC',     description: '9×9 nakshatra wheel' },
   { id: 'circle',        label: 'Circle Wheel',  shortLabel: 'Circle',  description: '12 equal slices, ascendant at 9 o\'clock' },
   { id: 'bhava',         label: 'Bhava Chakra',  shortLabel: 'Bhava',   description: 'Unequal houses from actual Placidus cusps', tier: 'vela' },
@@ -61,7 +59,10 @@ export function ChakraSelector({
   userPlan     = 'kala',
   transitGrahas = [],
 }: ChakraSelectorProps) {
-  const [style,         setStyle]         = useState<ChartStyle>(defaultStyle)
+  const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle','bhava','bhava_chalita']
+  const [style, setStyle] = useState<ChartStyle>(
+    VALID_STYLES.includes(defaultStyle as ChartStyle) ? defaultStyle as ChartStyle : 'north'
+  )
   const [showDegrees,   setShowDegrees]   = useState(true)
   const [showNakshatra, setShowNakshatra] = useState(false)
   const [showKaraka,    setShowKaraka]    = useState(false)
@@ -228,17 +229,6 @@ export function ChakraSelector({
             arudhaScale={arudhaScale}
           />
         )}
-        {style === 'east' && (
-          <EastIndianChakra
-            ascRashi={ascRashi}
-            grahas={displayGrahas}
-            size={Math.round(size * chartScale)}
-            showDegrees={showDegrees}
-            showNakshatra={showNakshatra}
-            showKaraka={showKaraka}
-          />
-        )}
-
         {style === 'sarvatobhadra' && (
           <SarvatobhadraChakra
             grahas={displayGrahas}

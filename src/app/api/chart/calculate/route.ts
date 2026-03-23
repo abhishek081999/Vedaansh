@@ -23,7 +23,7 @@ const SettingsSchema = z.object({
   nodeMode:     z.enum(['mean','true']).default('mean'),
   karakaScheme: z.union([z.literal(7), z.literal(8)]).default(8),
   gulikaMode:   z.enum(['begin','middle','end','phaladipika']).default('phaladipika'),
-  chartStyle:   z.enum(['south','north','east','circle','bhava','bhava_chalita']).default('south'),
+  chartStyle:   z.enum(['south','north','circle','bhava','bhava_chalita','sarvatobhadra']).default('south'),
   showDegrees:  z.boolean().default(true),
   showNakshatra:z.boolean().default(false),
   showKaraka:   z.boolean().default(false),
