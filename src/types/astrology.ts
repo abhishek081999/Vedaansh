@@ -146,7 +146,7 @@ export interface ChartSettings {
 export const DEFAULT_SETTINGS: ChartSettings = {
   ayanamsha:    'lahiri',
   houseSystem:  'whole_sign',
-  nodeMode:     'mean',
+  nodeMode:     'true',
   karakaScheme: 8,
   gulikaMode:   'phaladipika',
   chartStyle:   'south',

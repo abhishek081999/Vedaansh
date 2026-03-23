@@ -13,8 +13,13 @@ const C = sweph.constants
 export const PLANET_IDS: Record<Exclude<GrahaId, 'Ke'>, number> = {
   Su: C.SE_SUN,   Mo: C.SE_MOON,    Ma: C.SE_MARS,
   Me: C.SE_MERCURY, Ju: C.SE_JUPITER, Ve: C.SE_VENUS,
-  Sa: C.SE_SATURN,  Ra: C.SE_MEAN_NODE,
+  Sa: C.SE_SATURN,  Ra: C.SE_MEAN_NODE, // Default, will be overridden by settings
   Ur: C.SE_URANUS,  Ne: C.SE_NEPTUNE,  Pl: C.SE_PLUTO,
+}
+
+export const NODE_IDS = {
+  mean: C.SE_MEAN_NODE,
+  true: C.SE_TRUE_NODE,
 }
 
 export const SWISSEPH_IDS = PLANET_IDS  // backward compat

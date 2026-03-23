@@ -18,6 +18,7 @@ import {
   ketuLongitude,
   signOf,
   toSidereal,
+  NODE_IDS,
 } from '@/lib/engine/ephemeris'
 import { calcHouses } from '@/lib/engine/houses'
 import { calcAllBhavaArudhas, calcGrahaArudhas } from '@/lib/engine/arudhas'
@@ -78,13 +79,15 @@ function buildGrahas(
   jd: number,
   ayanamsha: number,
   sunTropLon: number,
+  nodeMode: 'mean' | 'true' = 'mean',
 ): GrahaData[] {
   const order: Array<Exclude<GrahaId, 'Ke'>> = [
     'Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra'
   ]
 
   const grahas: GrahaData[] = order.map((id): GrahaData => {
-    const pos = getPlanetPosition(jd, SWISSEPH_IDS[id])
+    const swId = id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id]
+    const pos = getPlanetPosition(jd, swId)
     const lonSidereal = toSidereal(pos.longitude, ayanamsha)
     const nak = getNakshatra(lonSidereal)
     const rashi = signOf(lonSidereal) as Rashi
@@ -183,7 +186,7 @@ export async function calculateChart(
 
   // Grahas
   const sunTropLon = getPlanetPosition(jd, SWISSEPH_IDS.Su).longitude
-  const grahas = buildGrahas(jd, ayanamshaVal, sunTropLon)
+  const grahas = buildGrahas(jd, ayanamshaVal, sunTropLon, settings.nodeMode)
   const moon = grahas.find((g) => g.id === 'Mo')!
   const sun = grahas.find((g) => g.id === 'Su')!
 

@@ -20,6 +20,7 @@ import { TransitOverlay }     from '@/components/ui/TransitOverlay'
 import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
 import { PlanetsWorkspace } from '@/components/ui/PlanetsWorkspace'
 import { NakshatraPanel } from '@/components/ui/NakshatraPanel'
+import { HousePanel } from '@/components/ui/HousePanel'
 import { ExportPdfButton } from '@/components/ui/ExportPdfButton'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
@@ -454,8 +455,8 @@ export default function HomePage() {
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets') && (
-              <div className={`${activeTab === 'planets' ? '' : 'card'} fade-up`} style={{ padding: activeTab === 'planets' ? '0' : '1.25rem', width: '100%' }}>
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house') && (
+              <div className={`${(activeTab === 'planets' || activeTab === 'house') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house') ? '0' : '1.25rem', width: '100%' }}>
                 {activeTab.startsWith('nakshatra-') ? (
                   <NakshatraPanel 
                     chart={chart} 
@@ -463,6 +464,8 @@ export default function HomePage() {
                   />
                   ) : activeTab === 'planets' ? (
                     <PlanetsWorkspace chart={chart} />
+                  ) : activeTab === 'house' ? (
+                    <HousePanel chart={chart} />
                   ) : (
                   <VarshaphalPanel natalChart={chart} />
                 )}
@@ -470,7 +473,7 @@ export default function HomePage() {
             )}
 
              {/* Responsive: Dominant CHART | Tab Analysis — hidden when full-width workspace active */}
-             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && <div className="chart-layout-grid">
+             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '1 1 600px', 
