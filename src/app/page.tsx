@@ -18,13 +18,16 @@ import { AshtakavargaGrid }   from '@/components/ui/AshtakavargaGrid'
 import { YogaList }           from '@/components/ui/YogaList'
 import { TransitOverlay }     from '@/components/ui/TransitOverlay'
 import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
+import { PlanetsWorkspace } from '@/components/ui/PlanetsWorkspace'
 import { NakshatraPanel } from '@/components/ui/NakshatraPanel'
 import { ExportPdfButton } from '@/components/ui/ExportPdfButton'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import type { ChartOutput, Rashi, ChartSettings } from '@/types/astrology'
-import { DEFAULT_SETTINGS } from '@/types/astrology'
+import { DEFAULT_SETTINGS, NAKSHATRA_NAMES as NAK_NAMES } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { PlanetDetailCard } from '@/components/ui/PlanetDetailCard'
+import { getGraNakPositions, getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
 
 // ─────────────────────────────────────────────────────────────
 //  Panchang Panel
@@ -451,21 +454,23 @@ export default function HomePage() {
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal') && (
-              <div className="card fade-up" style={{ padding: '1.25rem', width: '100%' }}>
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets') && (
+              <div className={`${activeTab === 'planets' ? '' : 'card'} fade-up`} style={{ padding: activeTab === 'planets' ? '0' : '1.25rem', width: '100%' }}>
                 {activeTab.startsWith('nakshatra-') ? (
                   <NakshatraPanel 
                     chart={chart} 
                     initialTab={activeTab.replace('nakshatra-', '') as any} 
                   />
-                ) : (
+                  ) : activeTab === 'planets' ? (
+                    <PlanetsWorkspace chart={chart} />
+                  ) : (
                   <VarshaphalPanel natalChart={chart} />
                 )}
               </div>
             )}
 
              {/* Responsive: Dominant CHART | Tab Analysis — hidden when full-width workspace active */}
-             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && <div className="chart-layout-grid">
+             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '1 1 600px', 
@@ -596,12 +601,6 @@ export default function HomePage() {
                     </div>
                   )}
 
-                  {activeTab === 'planets' && (
-                     <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>Planetary Status & Diagnostics</h3>
-                        <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} />
-                     </div>
-                  )}
 
                   {activeTab === 'dasha' && (
                      <div className="card fade-up" style={{ padding: '1.5rem', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>

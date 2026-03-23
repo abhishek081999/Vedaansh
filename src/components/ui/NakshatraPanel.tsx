@@ -14,19 +14,10 @@ import {
   type DayForecast, type ActivityType,
 } from '@/lib/engine/nakshatraRemedies'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
-import { NAKSHATRA_NAMES as NAK_NAMES, GRAHA_NAMES } from '@/types/astrology'
+import { NAKSHATRA_NAMES as NAK_NAMES, GRAHA_NAMES, GRAHA_SANSKRIT, RASHI_NAMES } from '@/types/astrology'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 
-// ── helpers ───────────────────────────────────────────────────
-const QC = {
-  auspicious:   { bg:'rgba(78,205,196,.08)',  border:'rgba(78,205,196,.3)',  text:'var(--teal)' },
-  inauspicious: { bg:'rgba(224,123,142,.08)', border:'rgba(224,123,142,.3)', text:'var(--rose)' },
-  neutral:      { bg:'rgba(245,158,66,.08)',  border:'rgba(245,158,66,.25)', text:'var(--amber)' },
-}
-const GANA_COL: Record<string,string> = { Deva:'#818cf8', Manushya:'#34d399', Rakshasa:'#f87171' }
-const ICON: Record<string,string> = {
-  Su:'☉',Mo:'☽',Ma:'♂',Me:'☿',Ju:'♃',Ve:'♀',Sa:'♄',Ra:'☊',Ke:'☋',Ur:'⛢',Ne:'♆',Pl:'♇',
-}
+import { PlanetDetailCard, ICON, QC, GANA_COL } from '@/components/ui/PlanetDetailCard'
 const RATING_COL: Record<string,string> = {
   Excellent:'#4ade80',Good:'#86efac',Neutral:'#fbbf24',Avoid:'#f87171',
 }
@@ -38,7 +29,7 @@ const TABS: {id:SubTab;label:string;icon:string}[] = [
   {id:'bestdays', label:'Best Days',  icon:'📅'},
   {id:'muhurta',  label:'Muhurta',    icon:'⚡'},
   {id:'panchaka', label:'Panchaka',   icon:'🔥'},
-  {id:'planet',   label:'Planet',     icon:'✦'},
+  {id:'planet',   label:'Planets',    icon:'✦'},
   {id:'compat',   label:'Compat',     icon:'🔗'},
   {id:'remedies', label:'Remedies',   icon:'🙏'},
 ]
@@ -172,7 +163,7 @@ export function NakshatraPanel({ chart, initialTab = 'navtara' }: { chart: Chart
               {subTab==='bestdays'  && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
               {subTab==='muhurta'   && <MuhurtaTab nakIdx={birthNakIdx} />}
               {subTab==='panchaka'  && <PanchakaTab grahas={chart.grahas} />}
-              {subTab==='planet'    && <PlanetTab positions={planetPos} moonNakIdx={birthNakIdx} />}
+              {subTab==='planet'    && <PlanetTab positions={planetPos} chart={chart} moonNakIdx={birthNakIdx} />}
               {subTab==='compat'    && <CompatTab birthNakIdx={birthNakIdx} />}
               {subTab==='remedies'  && <RemediesTab remedy={remedy} nakIdx={birthNakIdx} />}
             </div>
@@ -449,39 +440,87 @@ function PanchakaTab({grahas}:{grahas:ChartOutput['grahas']}) {
 }
 
 // ── Planet Nakshatras ─────────────────────────────────────────
-function PlanetTab({positions, moonNakIdx}:{positions:any[], moonNakIdx:number}) {
+function PlanetTab({positions, chart, moonNakIdx}:{positions:any[], chart: ChartOutput, moonNakIdx:number}) {
+  const { shadbala } = chart
+  
+  const mergedPlanets = useMemo(() => {
+    return positions.map(p => {
+      const full = chart.grahas.find(g => g.id === p.grahaId)
+      const shad = shadbala?.planets[p.grahaId]
+      return { ...p, ...full, shadbala: shad }
+    })
+  }, [positions, chart.grahas, shadbala])
+
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'0.75rem'}}>
-      <p style={{fontSize:'0.75rem',color:'var(--text-muted)',fontStyle:'italic',margin:0}}>Graha Nakshatras — Planet positions with their Pada and Navtara relative to Birth Moon ({NAK_NAMES[moonNakIdx]}).</p>
-      <div style={{ overflowX: 'auto', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', background: 'var(--surface-1)' }}>
-        <table style={{width:'100%', minWidth: '500px', borderCollapse:'collapse',fontSize:'0.75rem',color:'var(--text-secondary)'}}>
-          <thead>
-            <tr>{['Planet','Nakshatra','Pada','Lord','Navtara','Gana'].map(c=><th key={c} style={{padding:'0.45rem 0.6rem',textAlign:'left',fontSize:'0.58rem',textTransform:'uppercase',letterSpacing:'.1em',color:'var(--text-muted)',borderBottom:'1px solid var(--border)',whiteSpace:'nowrap'}}>{c}</th>)}</tr>
-          </thead>
-          <tbody>
-            {positions.map((p,i)=>{
-              const taraIdx = (p.nakshatraIndex - moonNakIdx + 27) % 9
-              const taraName = TARA_NAMES[taraIdx]
-              const q = TARA_QUALITIES[taraName].quality
-              return (
-                <tr key={p.grahaId} style={{background:i%2===0?'transparent':'rgba(255,255,255,.02)'}}>
-                  <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}><div style={{display:'flex',alignItems:'center',gap:'0.35rem'}}><span>{p.grahaId==='As'?'Asc':ICON[p.grahaId]}</span><span style={{fontWeight:600,color:'var(--text-primary)'}}>{p.grahaName}</span></div></td>
-                  <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)',color:'var(--text-primary)'}}>{p.nakshatraName}</td>
-                  <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}>{p.pada}</td>
-                  <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)',color:'var(--text-gold)'}}>{GRAHA_NAMES[p.lord as GrahaId] || '—'}</td>
-                  <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}>
-                    <span style={{color:QC[q].text,fontWeight:600}}>{taraName}</span>
-                  </td>
-                  <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}><span style={{color:GANA_COL[p.gana],fontWeight:600}}>{p.gana}</span></td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+    <div style={{display:'flex',flexDirection:'column',gap:'1.5rem'}}>
+      
+      {/* Shadbala Summary Highlights */}
+      {shadbala && (
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem'}}>
+          <div style={{padding:'0.85rem',background:'linear-gradient(135deg, rgba(78,205,196,0.1) 0%, var(--surface-2) 100%)',borderRadius:'var(--r-md)',border:'1px solid rgba(78,205,196,0.25)',display:'flex',alignItems:'center',gap:'0.75rem'}}>
+            <div style={{width:36,height:36,borderRadius:'50%',background:'rgba(78,205,196,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem',color:'var(--teal)'}}>🏆</div>
+            <div>
+              <div style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Strongest Planet</div>
+              <div style={{fontWeight:700,color:'var(--text-primary)',fontSize:'0.9rem'}}>{GRAHA_NAMES[shadbala.strongest as GrahaId]} ({shadbala.planets[shadbala.strongest]?.total.toFixed(1)} Rupas)</div>
+            </div>
+          </div>
+          <div style={{padding:'0.85rem',background:'linear-gradient(135deg, rgba(224,123,142,0.1) 0%, var(--surface-2) 100%)',borderRadius:'var(--r-md)',border:'1px solid rgba(224,123,142,0.25)',display:'flex',alignItems:'center',gap:'0.75rem'}}>
+            <div style={{width:36,height:36,borderRadius:'50%',background:'rgba(224,123,142,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem',color:'var(--rose)'}}>📉</div>
+            <div>
+              <div style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Weakest Planet</div>
+              <div style={{fontWeight:700,color:'var(--text-primary)',fontSize:'0.9rem'}}>{GRAHA_NAMES[shadbala.weakest as GrahaId]} ({shadbala.planets[shadbala.weakest]?.total.toFixed(1)} Rupas)</div>
+            </div>
+          </div>
+        </div>
+      )}
+      <div style={{display:'flex',flexDirection:'column',gap:'0.75rem'}}>
+        <p style={{fontSize:'0.75rem',color:'var(--text-muted)',fontStyle:'italic',margin:0}}>Graha Nakshatras — Planet positions with their Pada and Navtara relative to Birth Moon ({NAK_NAMES[moonNakIdx]}).</p>
+        <div style={{ overflowX: 'auto', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', background: 'var(--surface-1)' }}>
+          <table style={{width:'100%', minWidth: '500px', borderCollapse:'collapse',fontSize:'0.75rem',color:'var(--text-secondary)'}}>
+            <thead>
+              <tr>{['Planet','Nakshatra','Pada','Lord','Navtara','Gana'].map(c=><th key={c} style={{padding:'0.45rem 0.6rem',textAlign:'left',fontSize:'0.58rem',textTransform:'uppercase',letterSpacing:'.1em',color:'var(--text-muted)',borderBottom:'1px solid var(--border)',whiteSpace:'nowrap'}}>{c}</th>)}</tr>
+            </thead>
+            <tbody>
+              {positions.map((p,i)=>{
+                const taraIdx = (p.nakshatraIndex - moonNakIdx + 27) % 9
+                const taraName = TARA_NAMES[taraIdx]
+                const q = TARA_QUALITIES[taraName].quality
+                return (
+                  <tr key={p.grahaId} style={{background:i%2===0?'transparent':'rgba(255,255,255,.02)'}}>
+                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}><div style={{display:'flex',alignItems:'center',gap:'0.35rem'}}><span>{p.grahaId==='As'?'Asc':ICON[p.grahaId]}</span><span style={{fontWeight:600,color:'var(--text-primary)'}}>{p.grahaName}</span></div></td>
+                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)',color:'var(--text-primary)'}}>{p.nakshatraName}</td>
+                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}>{p.pada}</td>
+                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)',color:'var(--text-gold)'}}>{GRAHA_NAMES[p.lord as GrahaId] || '—'}</td>
+                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}>
+                      <span style={{color:QC[q].text,fontWeight:600}}>{taraName}</span>
+                    </td>
+                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}><span style={{color:GANA_COL[p.gana],fontWeight:600}}>{p.gana}</span></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Detailed Planet Analysis Section */}
+      <div style={{marginTop:'0.5rem'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'0.75rem',marginBottom:'1.25rem'}}>
+          <div style={{height:'1px',flex:1,background:'linear-gradient(to right,transparent,var(--border-soft))'}} />
+          <h3 style={{fontFamily:'var(--font-display)',fontSize:'1rem',color:'var(--text-gold)',margin:0,textTransform:'uppercase',letterSpacing:'0.1em'}}>Detailed Planetary Analysis</h3>
+          <div style={{height:'1px',flex:1,background:'linear-gradient(to left,transparent,var(--border-soft))'}} />
+        </div>
+
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))',gap:'1rem'}}>
+          {mergedPlanets.map((p: any) => (
+            <PlanetDetailCard key={p.grahaId} p={p} moonNakIdx={moonNakIdx} ascRashi={chart.lagnas.ascRashi} />
+          ))}
+        </div>
       </div>
     </div>
   )
 }
+
 
 // ── Compatibility ─────────────────────────────────────────────
 function CompatTab({birthNakIdx}:{birthNakIdx:number}) {
