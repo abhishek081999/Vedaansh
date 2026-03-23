@@ -1,13 +1,15 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/VarshaphalPanel.tsx
 //  Solar Return (Varshaphal) chart viewer
-//  Shown as a tab in the main chart page
+//  Redesigned as a full-page workspace
 // ─────────────────────────────────────────────────────────────
 'use client'
 
 import { useState, useCallback } from 'react'
 import type { ChartOutput, GrahaData } from '@/types/astrology'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
+import { ChakraSelector } from '@/components/chakra/ChakraSelector'
+import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 
 interface VarshaphalPanelProps {
   natalChart: ChartOutput
@@ -63,61 +65,74 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
     }
   }, [year, natalSun, natalChart])
 
-  const years = Array.from({ length: 10 }, (_, i) => thisYear - 2 + i)
-    .filter(y => y > birthYear)
+  const years = Array.from({ length: 15 }, (_, i) => thisYear - 5 + i)
+    .filter(y => y >= birthYear)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-      {/* Header info */}
+      {/* ── Feature Header ── */}
       <div style={{
-        padding: '0.85rem 1rem',
-        background: 'rgba(201,168,76,0.07)',
-        border: '1px solid rgba(201,168,76,0.20)',
+        display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap',
+        padding: '1.25rem 1.5rem',
+        background: 'linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.05) 100%)',
+        border: '1px solid rgba(201,168,76,0.25)',
         borderRadius: 'var(--r-md)',
-        fontSize: '0.82rem', color: 'var(--text-secondary)',
-        fontFamily: 'var(--font-display)',
       }}>
-        <strong style={{ color: 'var(--text-gold)' }}>Varshaphal</strong> (Solar Return) — the chart cast for the exact moment the Sun returns to its natal position each year. Used for yearly predictions and life themes.
-        {natalSun && (
-          <span style={{ marginLeft: 8, fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Natal Sun: {natalSun.totalDegree.toFixed(4)}°
-          </span>
-        )}
-      </div>
-
-      {/* Year selector + Calculate */}
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        <div>
-          <label style={{ fontSize: '0.72rem', display: 'block', marginBottom: '0.35rem' }}>Select Year</label>
+        <div style={{
+          width: 56, height: 56, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(201,168,76,0.3) 0%, transparent 70%)',
+          border: '1px solid rgba(201,168,76,0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '1.8rem', flexShrink: 0
+        }}>☀️</div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+            Varshaphal <span style={{ color: 'var(--text-gold)', marginLeft: 8 }}>{year}</span>
+          </div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.5, maxWidth: 600 }}>
+            Solar Return Analysis — The chart for the exact moment the Sun returns to its natal position. 
+            Used for predicting themes and events for the current year.
+            {natalSun && (
+              <span style={{ marginLeft: 8, color: 'var(--text-gold)', fontWeight: 600 }}>
+                · Natal Sun: {natalSun.totalDegree.toFixed(3)}°
+              </span>
+            )}
+          </div>
+        </div>
+        
+        {/* Quick Year Selector */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="label-caps" style={{ fontSize: '0.6rem' }}>Select Return Year</div>
           <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
             {years.map(y => (
-              <button key={y} onClick={() => setYear(y)} style={{
-                padding: '0.3rem 0.65rem',
-                background: year === y ? 'rgba(201,168,76,0.15)' : 'var(--surface-2)',
-                border: `1px solid ${year === y ? 'var(--border-bright)' : 'var(--border)'}`,
-                borderRadius: 'var(--r-md)', cursor: 'pointer',
+              <button key={y} onClick={() => { setYear(y); if (result?.meta.returnYear !== y) setResult(null) }} style={{
+                padding: '0.35rem 0.75rem',
+                background: year === y ? 'var(--gold)' : 'var(--surface-3)',
+                border: `1px solid ${year === y ? 'var(--gold)' : 'var(--border-soft)'}`,
+                borderRadius: 'var(--r-sm)', cursor: 'pointer',
                 fontFamily: 'var(--font-mono)', fontSize: '0.82rem',
                 fontWeight: year === y ? 700 : 400,
-                color: year === y ? 'var(--text-gold)' : 'var(--text-secondary)',
+                color: year === y ? '#000' : 'var(--text-secondary)',
+                transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center', gap: '4px'
               }}>
                 {y}
-                {y === thisYear && <span style={{ marginLeft: 3, fontSize: '0.6rem', color: 'var(--teal)' }}>●</span>}
+                {y === thisYear && <span style={{ fontSize: '0.62rem', opacity: 0.8 }}>•</span>}
               </button>
             ))}
           </div>
+          <button 
+            onClick={calculate} 
+            disabled={loading || !natalSun}
+            className="btn btn-primary btn-sm"
+            style={{ marginTop: '0.25rem' }}
+          >
+            {loading ? (
+               <><span className="spin-loader" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', marginRight: 6 }} /> Calculating…</>
+            ) : `Cast ${year} Solar Return`}
+          </button>
         </div>
-
-        <button
-          onClick={calculate}
-          disabled={loading || !natalSun}
-          className="btn btn-primary btn-sm"
-          style={{ alignSelf: 'flex-end' }}
-        >
-          {loading ? (
-            <><span className="spin-loader" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} /> Calculating…</>
-          ) : `Cast ${year} Solar Return`}
-        </button>
       </div>
 
       {error && (
@@ -126,83 +141,155 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
         </div>
       )}
 
-      {/* Result */}
-      {result && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
-          {/* Return moment */}
-          <div style={{
-            display: 'flex', gap: '1rem', flexWrap: 'wrap',
-            padding: '0.75rem 1rem',
-            background: 'var(--surface-2)', border: '1px solid var(--border)',
-            borderRadius: 'var(--r-md)',
-          }}>
-            <div>
-              <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Solar Return Moment (UTC)</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--text-primary)', marginTop: 2 }}>
-                {fmtDateTime(result.meta.returnDateUTC)}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Sun Longitude</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--text-gold)', marginTop: 2 }}>
-                {result.meta.natalSunSidereal.toFixed(4)}° (sidereal)
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Location</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: 2 }}>
-                {natalChart.meta.birthPlace}
-              </div>
-            </div>
+      {/* ── Results Content ── */}
+      {result ? (
+        <div className="fade-up" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+          
+          {/* LEFT: The Charts (Main focus) */}
+          <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
+             <div className="card" style={{ padding: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                   <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text-muted)', fontWeight: 700 }}>
+                      Varshaphal Chart · {result.chart.meta.name}
+                   </div>
+                   <div style={{ fontSize: '0.7rem', color: 'var(--text-gold)', background: 'var(--gold-faint)', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
+                      {year} Return
+                   </div>
+                </div>
+                <VargaSwitcher
+                  vargas={result.chart.vargas}
+                  vargaLagnas={result.chart.vargaLagnas ?? {}}
+                  ascRashi={result.chart.lagnas.ascRashi}
+                  lagnas={result.chart.lagnas}
+                  arudhas={result.chart.arudhas}
+                  userPlan="kala"
+                  moonNakIndex={result.chart.grahas.find((g: GrahaData) => g.id === 'Mo')?.nakshatraIndex ?? 0}
+                />
+             </div>
           </div>
 
-          {/* Varshaphal chart */}
-          <div>
-            <div className="label-caps" style={{ marginBottom: '0.75rem' }}>
-              {result.chart.meta.name}
-            </div>
-            <VargaSwitcher
-              vargas={result.chart.vargas}
-              vargaLagnas={result.chart.vargaLagnas ?? {}}
-              ascRashi={result.chart.lagnas.ascRashi}
-              lagnas={result.chart.lagnas}
-              arudhas={result.chart.arudhas}
-              userPlan="kala"
-              moonNakIndex={result.chart.grahas.find((g: GrahaData) => g.id === 'Mo')?.nakshatraIndex ?? 0}
-            />
-          </div>
+          {/* RIGHT: Diagnostics & Info */}
+          <div style={{ flex: '1 1 320px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+             
+             {/* Natal Reference Chart */}
+             <div className="card" style={{ padding: '1rem', border: '1px solid var(--gold-faint)' }}>
+                <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem', color: 'var(--text-gold)' }}>Janma Kundalī (Natal)</div>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                   <ChakraSelector
+                      ascRashi={natalChart.lagnas.ascRashi}
+                      grahas={natalChart.vargas?.D1 ?? natalChart.grahas}
+                      moonNakIndex={natalChart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0}
+                      arudhas={natalChart.arudhas}
+                      tithiNumber={natalChart.panchang.tithi.number}
+                      varaNumber={natalChart.panchang.vara.number}
+                      defaultStyle="north"
+                      size={240} 
+                   />
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.85rem', fontFamily: 'var(--font-display)' }}>
+                   <strong style={{ color: 'var(--text-secondary)' }}>{natalChart.meta.name}</strong> · {(RASHI_NAMES as any)[natalChart.lagnas.ascRashi]} Lagna
+                </div>
+             </div>
 
-          {/* Key planets */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '0.5rem',
-          }}>
-            {result.chart.grahas.slice(0, 9).map(g => (
-              <div key={g.id} style={{
-                padding: '0.5rem 0.75rem',
-                background: 'var(--surface-2)', border: '1px solid var(--border)',
-                borderRadius: 'var(--r-sm)',
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-              }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-secondary)', minWidth: 24 }}>{g.id}</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.78rem', color: 'var(--text-primary)' }}>
-                  {g.totalDegree.toFixed(2)}°
-                  {g.isRetro && <span style={{ color: 'var(--rose)', marginLeft: 3 }}>℞</span>}
-                </span>
-                <span style={{
-                  marginLeft: 'auto', fontSize: '0.65rem', fontFamily: 'var(--font-display)',
-                  color: g.dignity === 'exalted' ? 'var(--teal)' : g.dignity === 'debilitated' ? 'var(--rose)' : 'var(--text-muted)',
-                  fontStyle: 'italic',
-                }}>{g.dignity}</span>
+             {/* Return Moment Info */}
+             <div className="card" style={{ padding: '1rem' }}>
+                <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Moment Analysis</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                   <div>
+                      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Precise Moment (UTC)</div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: 2 }}>
+                        {fmtDateTime(result.meta.returnDateUTC)}
+                      </div>
+                   </div>
+                   <div style={{ height: 1, background: 'var(--border-soft)' }} />
+                   <div>
+                      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Sun Position</div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-gold)', marginTop: 2 }}>
+                        {result.meta.natalSunSidereal.toFixed(4)}° (sidereal)
+                      </div>
+                   </div>
+                   <div style={{ height: 1, background: 'var(--border-soft)' }} />
+                   <div>
+                      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Reference Location</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: 2 }}>
+                        {natalChart.meta.birthPlace}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{natalChart.meta.latitude.toFixed(2)}N, {natalChart.meta.longitude.toFixed(2)}E</div>
+                   </div>
+                </div>
+             </div>
+
+             {/* Planet Positions Table */}
+             <div className="card" style={{ padding: '1rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>Solar Return Planets</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                   {result.chart.grahas.slice(0, 11).map(g => (
+                      <div key={g.id} style={{
+                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                         padding: '0.4rem 0.6rem', background: 'var(--surface-3)', borderRadius: 'var(--r-sm)',
+                         border: '1px solid var(--border-soft)'
+                      }}>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-muted)', width: 22 }}>{g.id}</span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: 500 }}>{(GRAHA_NAMES as any)[g.id] || g.id}</span>
+                         </div>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                               {g.totalDegree.toFixed(2)}°
+                               {g.isRetro && <span style={{ color: 'var(--rose)', marginLeft: 3 }}>℞</span>}
+                            </span>
+                            <span style={{ 
+                               fontSize: '0.6rem', color: g.dignity === 'exalted' ? 'var(--teal)' : g.dignity === 'debilitated' ? 'var(--rose)' : 'var(--text-muted)',
+                               fontStyle: 'italic', minWidth: 50, textAlign: 'right'
+                            }}>{g.dignity}</span>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             </div>
+
+             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '0 0.5rem' }}>
+                * Varshaphal cast using Janma place and {natalChart.meta.settings.ayanamsha} ayanamsha.
+             </div>
+
+          </div>
+        </div>
+      ) : (
+        /* Empty State -> with Natal Reference */
+        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+           <div className="card fade-up" style={{ flex: '1 1 450px', padding: '3rem 2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.25rem', border: '1px dashed var(--border)' }}>
+              <div style={{ fontSize: '3rem', opacity: 0.15 }}>🌞</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                 Generate Solar Return for <strong>{year}</strong>
               </div>
-            ))}
-          </div>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: 400, lineHeight: 1.6 }}>
+                 Compare your Janma Kundalī (right) with the upcoming Solar Return energies for {year}.
+              </p>
+              <button 
+                onClick={calculate} 
+                className="btn btn-primary btn-lg"
+                style={{ padding: '0.85rem 2.5rem' }}
+              >
+                 Cast {year} Solar Return
+              </button>
+           </div>
 
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', textAlign: 'center', paddingTop: '0.5rem', borderTop: '1px solid var(--border-soft)' }}>
-            Varshaphal chart cast at natal location · {natalChart.meta.settings.ayanamsha} ayanamsha
-          </div>
+           <div className="card fade-up" style={{ flex: '0 0 320px', padding: '1.25rem', border: '1px solid var(--gold-faint)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="label-caps" style={{ marginBottom: '1.25rem', fontSize: '0.65rem', color: 'var(--text-gold)', width: '100%' }}>Natal Reference (Janma)</div>
+              <ChakraSelector
+                 ascRashi={natalChart.lagnas.ascRashi}
+                 grahas={natalChart.vargas?.D1 ?? natalChart.grahas}
+                 moonNakIndex={natalChart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0}
+                 arudhas={natalChart.arudhas}
+                 tithiNumber={natalChart.panchang.tithi.number}
+                 varaNumber={natalChart.panchang.vara.number}
+                 defaultStyle="north"
+                 size={250} 
+              />
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '1rem', fontFamily: 'var(--font-display)' }}>
+                 {natalChart.meta.name} · {(RASHI_NAMES as any)[natalChart.lagnas.ascRashi]} Lagna
+              </div>
+           </div>
         </div>
       )}
     </div>

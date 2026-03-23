@@ -450,18 +450,22 @@ export default function HomePage() {
               </div>
             </div>
            
-            {/* ── Nakshatra: full-width workspace (replaces two-column layout) ── */}
-            {activeTab.startsWith('nakshatra-') && (
+            {/* ── Full-width workspaces (replaces two-column layout) ── */}
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal') && (
               <div className="card fade-up" style={{ padding: '1.25rem', width: '100%' }}>
-                <NakshatraPanel 
-                  chart={chart} 
-                  initialTab={activeTab.replace('nakshatra-', '') as any} 
-                />
+                {activeTab.startsWith('nakshatra-') ? (
+                  <NakshatraPanel 
+                    chart={chart} 
+                    initialTab={activeTab.replace('nakshatra-', '') as any} 
+                  />
+                ) : (
+                  <VarshaphalPanel natalChart={chart} />
+                )}
               </div>
             )}
 
-             {/* Responsive: Dominant CHART | Tab Analysis — hidden when nakshatra workspace active */}
-             {!activeTab.startsWith('nakshatra-') && <div className="chart-layout-grid">
+             {/* Responsive: Dominant CHART | Tab Analysis — hidden when full-width workspace active */}
+             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '1 1 600px', 
@@ -744,12 +748,7 @@ export default function HomePage() {
                    </div>
                  )}
 
-                  {activeTab === 'varshaphal' && (
-                     <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Solar Return</h3>
-                        <VarshaphalPanel natalChart={chart} />
-                     </div>
-                  )}
+
 
                   {activeTab === 'arudhas' && (
                      <div className="card fade-up" style={{ padding: '1.25rem' }}>

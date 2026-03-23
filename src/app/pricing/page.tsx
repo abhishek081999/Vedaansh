@@ -29,7 +29,6 @@ const FEATURES = {
       '✓ Chart Comparison (Synastry)',
       '✓ Transit Overlay',
       '✓ Public chart sharing',
-      '✓ JHD / SJS file import',
       '— Save up to 3 charts',
     ],
   },
