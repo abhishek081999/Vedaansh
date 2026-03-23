@@ -93,7 +93,7 @@ export const AYANAMSHA_NAMES: Record<AyanamshaMode, string> = {
 
 // ── House Systems ────────────────────────────────────────────
 
-export type HouseSystem = 'whole_sign' | 'placidus' | 'equal'
+export type HouseSystem = 'whole_sign' | 'placidus' | 'equal' | 'bhava_chalita'
 
 export const HOUSE_SYSTEM_NAMES: Record<HouseSystem, string> = {
   whole_sign:    'Whole Sign',

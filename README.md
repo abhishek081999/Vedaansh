@@ -5,7 +5,7 @@
 
 A full-featured Vedic astrology (Jyotish) web platform modelled on deva.guru, built entirely in TypeScript. The platform provides arc-second-accurate ephemeris calculations, multiple Dasha systems, divisional charts, Ashtakavarga, Shadbala, Muhurta finding, and interactive SVG chakra renderers — all powered by the Swiss Ephemeris C library via the `swisseph` npm package.
 
-**Build Status: Phases 1–4 complete — Kāla free tier is live. Phase 5 (Velā) in progress.**
+**Build Status: Phases 1–5 complete — Velā premium tier is live. Phase 6 (Horā) in progress.**
 
 ---
 
@@ -61,6 +61,15 @@ A full-featured Vedic astrology (Jyotish) web platform modelled on deva.guru, bu
 ### Horā Edition — ₹999/month ⏳ Planned (Phases 6–7)
 10,008 charts · All 41 varga schemes in UI · 30+ Dasha systems · All Bala systems (Bhava Bala, Sphuta Drishti, Vaiseshikamsa) · Astrocartography (ACG lines on Leaflet map) · Bhava Chakra + Bhava Chalita SVG renderers · Tithi/Nakshatra/Dasha Pravesh charts · 36 Sahams · White-label chart sharing · 10,000 API requests/day
 
+### 🚀 Latest Improvements (v2.2.x - Mar 2026) ✅
+- **Vedaansh Rebranding**: Full ecosystem rename from "Vedic Amrit" to **Vedaansh**.
+- **Planets Workspace**: New interactive dual-chart (D1/D9) view with diagnostic micro-details table.
+- **Nakshatra Lab**: Recursive Pada maps, Navtara analysis, Best Days forecasts, and activity-specific Muhurta ratings.
+- **Varshaphal Redesign**: Dynamic full-width Solar Return workspace with split-screen comparative layout.
+- **Dashboard v2**: Responsive mobile-first dashboard with integrated "Personal Day" cosmic insights.
+- **Engine Precision**: Refined D4, D10, D16, and D60 divisional calculations; absolute sidereal longitude for house cusps.
+- **i18n**: Initial Hindi translation rollout for birth forms and planetary tables.
+
 ---
 
 ## Calculation Engine — 18 Modules
@@ -72,8 +81,10 @@ All engine modules are pure TypeScript functions (no side effects). Given the sa
 | `ephemeris.ts` | ✅ | swisseph wrapper — all 9 Navagraha + Ketu + Ascendant + outer planets |
 | `ayanamsha.ts` | ✅ | 7 modes: Lahiri, True Chitra, True Revati, Raman, Yukteshwar, Usha-Shashi, Krishnamurti |
 | `houses.ts` | ✅ | Whole Sign, Placidus, Equal, Bhava Chalita — cusps + bhavas |
-| `nakshatra.ts` | ✅ | Nakshatra, Pada, Tithi, Yoga, Karana, Vara, Hora, Rahu/Gulika Kalam |
-| `vargas.ts` | ✅ | All 41 varga schemes (D1–D150) — pure functions, each returns rashi 1–12 |
+| `nakshatra.ts` | ✅ | Basic Nakshatra, Pada, Tithi, Yoga, Karana, Vara, Hora, Rahu/Gulika Kalam |
+| `nakshatraAdvanced.ts`| ✅ | Navtara, Panchaka, Muhurta suitability, and Best Days forecasts |
+| `nakshatraRemedies.ts`| ✅ | Nakshatra-specific rituals, mantras, and balancing practices |
+| `vargas.ts` | ✅ | All 41 varga schemes (D1–D150) — logic corrected for D10, D4, D16, D60 |
 | `arudhas.ts` | ✅ | All 12 Bhava Arudhas (AL–A12) + Graha Arudhas with edge-case handling |
 | `karakas.ts` | ✅ | Chara Karakas — 7-karaka and 8-karaka schemes (Ke=Scorpio, Ra=Aquarius) |
 | `dignity.ts` | ✅ | Exaltation, debilitation, moolatrikona, own, friend, neutral, enemy |
@@ -330,10 +341,10 @@ The test suite uses Vitest with reference chart fixtures in `__tests__/fixtures/
 | 2 — Atlas + Auth + DB | Weeks 9–13 | ✅ Complete | MongoDB live, NextAuth, 5.1M atlas |
 | 3 — Frontend + Chakras | Weeks 14–21 | ✅ Complete | All SVG renderers, Dasha tree, full UI |
 | 4 — Panchang + Launch | Weeks 22–26 | ✅ Complete | Kāla free tier live |
-| 5 — Velā Features | Weeks 27–35 | ✅ Complete | Razorpay payments, PDF export, all Velā features |
-| 6 — Horā Vargas & Dashas | Weeks 36–47 | 🕒 In Progress | 41 vargas in UI, 30+ Dasha systems |
-| 7 — Horā Advanced Views | Weeks 48–57 | ⏳ Planned | Bhava Chakra, Astrocartography, Pravesh charts |
-| 8 — Scale + Polish | Weeks 58–64 | ⏳ Planned | i18n, PWA, admin dashboard, load testing |
+| 5 — Velā Features | Weeks 27–35 | ✅ Complete | Razorpay, PDF export, multi-device sync |
+| 6 — Horā Lab | Weeks 36–47 | ✅ Complete | Adv. Nakshatra workspace, 41 vargas in UI |
+| 7 — Horā Core | Weeks 48–57 | 🕒 In Progress | Bhava Chakra, 30+ Dashas, Astrocartography |
+| 8 — Scale + Polish | Weeks 58–64 | ⏳ Planned | Full i18n, PWA, Admin Dashboard |
 
 ### Immediate Next Steps
 
@@ -362,4 +373,4 @@ Private project — all rights reserved.
 ---
 
 *Jyotiṣa — The Eye of the Vedas*  
-*v2.2 · March 2026 · github.com/abhishek081999/Vedaansh*
+*v2.2.5 · March 24, 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*
