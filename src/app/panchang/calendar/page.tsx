@@ -9,7 +9,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { LocationPicker, DELHI_DEFAULT, type LocationValue } from '@/components/ui/LocationPicker'
+import { useChart } from '@/components/providers/ChartProvider'
+import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 
 // ── Types ─────────────────────────────────────────────────────
 interface DayData {
@@ -251,6 +252,7 @@ function DayDetail({ data, date }: { data: DayData; date: string }) {
 
 // ── Main page ─────────────────────────────────────────────────
 export default function MonthlyPanchangPage() {
+  const { chart } = useChart()
   const today      = todayIST()
   const todayYear  = parseInt(today.slice(0, 4))
   const todayMonth = parseInt(today.slice(5, 7)) - 1
@@ -261,7 +263,7 @@ export default function MonthlyPanchangPage() {
   const [selected, setSelected] = useState<string | null>(today)
   const fetchQueue = useRef<Set<string>>(new Set())
 
-  const [location, setLocation] = useState<LocationValue>(DELHI_DEFAULT)
+  const [location, setLocation] = useState<LocationValue>(getSavedLocation)
 
   // Fetch a single day
   const fetchDay = useCallback(async (date: string) => {
@@ -348,7 +350,12 @@ export default function MonthlyPanchangPage() {
               {MONTHS[month]} {year}
             </h1>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
-              <LocationPicker value={location} onChange={(loc) => { setLocation(loc); setDayMap({}) }} label="" />
+              <LocationPicker
+                value={location}
+                onChange={(loc) => { setLocation(loc); setDayMap({}) }}
+                label=""
+                birthLocation={chart ? { lat: chart.meta.latitude, lng: chart.meta.longitude, tz: chart.meta.timezone, name: chart.meta.birthPlace } : null}
+              />
             </div>
           </div>
 

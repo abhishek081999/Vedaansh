@@ -1,4 +1,17 @@
-'use client'
+#!/usr/bin/env python3
+# Run from project root: python apply-location-picker.py
+import os, sys
+
+def read(p):
+    with open(p, encoding='utf-8') as f: return f.read()
+
+def write(p, c):
+    with open(p, 'w', encoding='utf-8') as f: f.write(c)
+
+print("\n=== Location Picker Upgrade ===\n")
+
+# ── 1. Rewrite LocationPicker.tsx ────────────────────────────
+NEW_PICKER = r"""'use client'
 // src/components/ui/LocationPicker.tsx
 // Atlas-backed location typeahead with:
 // - localStorage persistence (remembers last location)
@@ -221,3 +234,75 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
     </div>
   )
 }
+"""
+
+write('src/components/ui/LocationPicker.tsx', NEW_PICKER)
+print("  [ok] LocationPicker.tsx — rewritten with persistence + geolocation + birth location")
+
+# ── Helper to update a page ───────────────────────────────────
+def update_page(path, fn_name, picker_old, picker_new):
+    c = read(path)
+    changed = False
+
+    # Replace import
+    old_import = "import { LocationPicker, DELHI_DEFAULT, type LocationValue } from '@/components/ui/LocationPicker'"
+    new_import  = "import { useChart } from '@/components/providers/ChartProvider'\nimport { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'"
+    if old_import in c and 'getSavedLocation' not in c:
+        c = c.replace(old_import, new_import); changed = True
+
+    # Replace initial state
+    if 'DELHI_DEFAULT)' in c:
+        c = c.replace('useState<LocationValue>(DELHI_DEFAULT)', 'useState<LocationValue>(getSavedLocation)'); changed = True
+
+    # Add useChart inside function
+    marker = f"export default function {fn_name}() {{\n"
+    if marker in c and 'const { chart } = useChart()' not in c:
+        c = c.replace(marker, marker + "  const { chart } = useChart()\n"); changed = True
+
+    # Replace LocationPicker JSX
+    if picker_old in c:
+        c = c.replace(picker_old, picker_new); changed = True
+
+    write(path, c)
+    print(f"  {'[ok]' if changed else '[--]'} {path}")
+
+# ── 2. Panchang daily page ────────────────────────────────────
+update_page(
+    'src/app/panchang/page.tsx',
+    'PanchangPage',
+    '<LocationPicker value={location} onChange={setLocation} label="" />',
+    '''<LocationPicker
+                value={location}
+                onChange={setLocation}
+                label=""
+                birthLocation={chart ? { lat: chart.meta.latitude, lng: chart.meta.longitude, tz: chart.meta.timezone, name: chart.meta.birthPlace } : null}
+              />'''
+)
+
+# ── 3. Panchang calendar page ─────────────────────────────────
+update_page(
+    'src/app/panchang/calendar/page.tsx',
+    'MonthlyPanchangPage',
+    '<LocationPicker value={location} onChange={(loc) => { setLocation(loc); setDayMap({}) }} label="" />',
+    '''<LocationPicker
+                value={location}
+                onChange={(loc) => { setLocation(loc); setDayMap({}) }}
+                label=""
+                birthLocation={chart ? { lat: chart.meta.latitude, lng: chart.meta.longitude, tz: chart.meta.timezone, name: chart.meta.birthPlace } : null}
+              />'''
+)
+
+# ── 4. Muhurta page ───────────────────────────────────────────
+update_page(
+    'src/app/muhurta/page.tsx',
+    'MuhurtaPage',
+    '<LocationPicker value={location} onChange={setLocation} label="\ud83d\udccd Location" />',
+    '''<LocationPicker
+              value={location}
+              onChange={setLocation}
+              label="\ud83d\udccd Location"
+              birthLocation={chart ? { lat: chart.meta.latitude, lng: chart.meta.longitude, tz: chart.meta.timezone, name: chart.meta.birthPlace } : null}
+            />'''
+)
+
+print("\n=== Done! Run: npm run typecheck ===\n")

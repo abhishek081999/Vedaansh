@@ -4,7 +4,8 @@
 //  Daily Panchang — location-aware, date-navigable
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect, useCallback } from 'react'
-import { LocationPicker, DELHI_DEFAULT, type LocationValue } from '@/components/ui/LocationPicker'
+import { useChart } from '@/components/providers/ChartProvider'
+import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 
 interface PanchangData {
   date: string
@@ -228,11 +229,12 @@ function TithiProgress({ percent, paksha }: { percent: number; paksha: string })
 }
 
 export default function PanchangPage() {
+  const { chart } = useChart()
   const [date,     setDate]     = useState(todayIST)
   const [data,     setData]     = useState<PanchangData | null>(null)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState<string | null>(null)
-  const [location, setLocation] = useState<LocationValue>(DELHI_DEFAULT)
+  const [location, setLocation] = useState<LocationValue>(getSavedLocation)
   const [horaOpen, setHoraOpen] = useState(false)
   const [tick,     setTick]     = useState(0)
 
@@ -290,7 +292,12 @@ export default function PanchangPage() {
             {fmtDateLong(date)}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
-            <LocationPicker value={location} onChange={setLocation} label="" />
+            <LocationPicker
+                value={location}
+                onChange={setLocation}
+                label=""
+                birthLocation={chart ? { lat: chart.meta.latitude, lng: chart.meta.longitude, tz: chart.meta.timezone, name: chart.meta.birthPlace } : null}
+              />
           </div>
         </div>
 

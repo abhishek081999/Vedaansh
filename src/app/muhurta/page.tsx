@@ -14,7 +14,8 @@
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { LocationPicker, DELHI_DEFAULT, type LocationValue } from '@/components/ui/LocationPicker'
+import { useChart } from '@/components/providers/ChartProvider'
+import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 
 // ── Types ─────────────────────────────────────────────────────
 interface DayPanchang {
@@ -274,6 +275,7 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
 
 // ── Main page ─────────────────────────────────────────────────
 export default function MuhurtaPage() {
+  const { chart } = useChart()
   const today = todayIST()
   const [purpose,   setPurpose]   = useState('general')
   const [fromDate,  setFromDate]  = useState(today)
@@ -284,7 +286,7 @@ export default function MuhurtaPage() {
   const [error,     setError]     = useState<string | null>(null)
   const [minGrade,  setMinGrade]  = useState<'A' | 'B' | 'C' | 'D'>('B')
 
-  const [location, setLocation] = useState<LocationValue>(DELHI_DEFAULT)
+  const [location, setLocation] = useState<LocationValue>(getSavedLocation)
 
   const findMuhurta = useCallback(async () => {
     setLoading(true)
