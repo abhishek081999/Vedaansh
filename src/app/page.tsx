@@ -266,6 +266,8 @@ export default function HomePage() {
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'yogini' | 'chara'>( 'vimshottari')
+  const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
+  const [altVimshottari, setAltVimshottari] = useState<import('@/types/astrology').DashaNode[] | null>(null)
   const searchParams = useSearchParams()
   
   const { chart, setChart, isFormOpen, setIsFormOpen } = useChart()
@@ -373,7 +375,23 @@ export default function HomePage() {
     }
   }
 
-  const moonNakIndex = chart?.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
+  useEffect(() => {
+    if (!chart || vimshottariTara === 'Mo') { setAltVimshottari(null); return }
+    let refLon: number | null = null
+    if (vimshottariTara === 'As') {
+      refLon = chart.lagnas.ascDegree
+    } else {
+      const g = chart.grahas.find(g => g.id === vimshottariTara)
+      if (g) refLon = g.lonSidereal
+    }
+    if (refLon === null) { setAltVimshottari(null); return }
+    import('@/lib/engine/dasha/vimshottari').then(({ calcVimshottari }) => {
+      const nodes = calcVimshottari(refLon!, new Date(chart.meta.birthDate), 4)
+      setAltVimshottari(nodes)
+    })
+  }, [chart, vimshottariTara])
+
+    const moonNakIndex = chart?.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
   const tithiNumber  = chart?.panchang.tithi.number ?? 1
   const varaNumber   = chart?.panchang.vara.number  ?? 0
 
@@ -578,7 +596,44 @@ export default function HomePage() {
                        </div>
 
                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                         {dashaSystem === 'vimshottari' && <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />}
+                         {dashaSystem === 'vimshottari' && (
+                           <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+                             <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexWrap:'wrap' }}>
+                               <span style={{ fontSize:'0.65rem', color:'var(--text-muted)', fontWeight:600,
+                                 letterSpacing:'0.08em', textTransform:'uppercase' }}>
+                                 Starting Tara
+                               </span>
+                               {(['Mo','As','Su','Ma','Me','Ju','Ve','Sa','Ra','Ke'] as const).map(id => {
+                                 const locked = userPlan === 'kala' && id !== 'Mo'
+                                 const labels: Record<string,string> = {
+                                   Mo:'Moon', As:'Lagna', Su:'Sun', Ma:'Mars', Me:'Mercury',
+                                   Ju:'Jupiter', Ve:'Venus', Sa:'Saturn', Ra:'Rahu', Ke:'Ketu',
+                                 }
+                                 return (
+                                   <button key={id}
+                                     onClick={() => locked ? (window.location.href='/pricing') : setVimshottariTara(id)}
+                                     title={locked ? 'Requires Vela plan' : `Start from ${labels[id]} nakshatra`}
+                                     style={{
+                                       padding:'0.2rem 0.55rem', fontSize:'0.7rem', fontFamily:'inherit',
+                                       background: vimshottariTara===id ? 'var(--gold-faint)' : 'var(--surface-3)',
+                                       border: `1px solid ${vimshottariTara===id ? 'var(--gold)' : 'var(--border-soft)'}`,
+                                       borderRadius:'var(--r-sm)', cursor:'pointer', transition:'all 0.12s',
+                                       color: locked ? 'var(--text-muted)' : (vimshottariTara===id ? 'var(--text-gold)' : 'var(--text-secondary)'),
+                                       opacity: locked ? 0.5 : 1,
+                                       display:'inline-flex', alignItems:'center', gap:'0.2rem',
+                                     }}>
+                                     {locked && <span style={{fontSize:'0.6rem'}}>&#x1F512;</span>}
+                                     {labels[id]}
+                                   </button>
+                                 )
+                               })}
+                             </div>
+                             <DashaTree
+                               nodes={vimshottariTara==='Mo' ? chart.dashas.vimshottari : (altVimshottari ?? chart.dashas.vimshottari)}
+                               birthDate={new Date(chart.meta.birthDate)}
+                             />
+                           </div>
+                         )}
                          {dashaSystem === 'ashtottari' && (
                            chart.dashas.ashtottari?.length 
                              ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> 
