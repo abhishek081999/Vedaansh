@@ -63,18 +63,10 @@ function NorthIndianGrid({ data, ascRashi, size = 320 }: { data: number[], ascRa
   }
 
   const getPos = (h: number) => {
-    const o = S * 0.05
-    switch(h) {
-      case 1:  return { x: M,     y: M - o }
-      case 4:  return { x: M - o, y: M }
-      case 7:  return { x: M,     y: M + o }
-      case 10: return { x: M + o, y: M }
-      default:
-        const pts = polyPts(h)
-        return { 
-          x: pts.reduce((s,p)=>s+p[0],0)/pts.length, 
-          y: pts.reduce((s,p)=>s+p[1],0)/pts.length 
-        }
+    const pts = polyPts(h)
+    return { 
+      x: pts.reduce((s,p)=>s+p[0],0)/pts.length, 
+      y: pts.reduce((s,p)=>s+p[1],0)/pts.length 
     }
   }
 

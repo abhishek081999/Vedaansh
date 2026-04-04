@@ -89,3 +89,42 @@ export async function sendWelcomeEmail(email: string, plan: string, expiresAt: D
     return { success: false, error: err }
   }
 }
+
+export async function sendPasswordResetEmail(email: string, token: string) {
+  const resetLink = `${baseUrl}/reset-password?token=${token}`
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `Vedaansh <${process.env.FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      to: [email],
+      subject: 'Reset your password — Vedaansh',
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <h2 style="color: #c9a84c;">🔑 Password Reset Request</h2>
+          <p>We received a request to reset your Vedaansh password. Click the button below to choose a new password. This link expires in <strong>1 hour</strong>.</p>
+          <div style="margin: 28px 0;">
+            <a href="${resetLink}"
+               style="background-color: #c9a84c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+              Reset My Password
+            </a>
+          </div>
+          <p style="color: #666; font-size: 0.85rem;">
+            If you didn't request a password reset, you can safely ignore this email — your password will remain unchanged.
+          </p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+          <p style="color: #999; font-size: 0.75rem; text-align: center;">© 2026 Vedaansh · Professional Jyotiṣa Platform</p>
+        </div>
+      `,
+    })
+
+    if (error) {
+      console.error('[email/reset] resend error:', error)
+      return { success: false, error }
+    }
+
+    return { success: true, data }
+  } catch (err) {
+    console.error('[email/reset] unexpected error:', err)
+    return { success: false, error: err }
+  }
+}
