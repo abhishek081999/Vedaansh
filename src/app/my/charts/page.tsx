@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { ChartNotes } from '@/components/ui/ChartNotes'
+import { BulkImport } from '@/components/ui/BulkImport'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -345,12 +346,58 @@ export default function MyChartsPage() {
     }
   }, [status, router])
 
-  const [charts,  setCharts]  = useState<SavedChart[]>([])
-  const [pag,     setPag]     = useState<Pagination | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState<string | null>(null)
-  const [page,    setPage]    = useState(1)
-  const [search,  setSearch]  = useState('')
+  const [charts,      setCharts]      = useState<SavedChart[]>([])
+  const [pag,         setPag]         = useState<Pagination | null>(null)
+  const [loading,     setLoading]     = useState(true)
+  const [error,       setError]       = useState<string | null>(null)
+  const [page,        setPage]        = useState(1)
+  const [search,      setSearch]      = useState('')
+  const [exporting,        setExporting]        = useState(false)
+  const [tmplDownloading,  setTmplDownloading]  = useState(false)
+
+  async function handleExportAll() {
+    setExporting(true)
+    try {
+      const res = await fetch('/api/chart/export-xlsx')
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        alert(json.error || 'Export failed')
+        return
+      }
+      const blob     = await res.blob()
+      const url      = URL.createObjectURL(blob)
+      const filename = res.headers.get('Content-Disposition')
+        ?.match(/filename="(.+)"/)?.[1] ?? 'vedaansh-charts.xlsx'
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 6000)
+    } catch {
+      alert('Could not export charts. Please try again.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  async function handleDownloadTemplate() {
+    setTmplDownloading(true)
+    try {
+      const res = await fetch('/api/chart/template')
+      if (!res.ok) throw new Error('Template generation failed')
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = 'vedaansh-charts-template.xlsx'
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
+    } catch {
+      alert('Could not download template. Please try again.')
+    } finally {
+      setTmplDownloading(false)
+    }
+  }
 
   const fetchCharts = useCallback(async (p: number) => {
     setLoading(true)
@@ -431,6 +478,51 @@ export default function MyChartsPage() {
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
           style={{ flex: 1, minWidth: 200 }}
         />
+        {/* Export all charts as XLSX */}
+        {(pag?.total ?? 0) > 0 && (
+          <button
+            id="export-all-xlsx-btn"
+            onClick={handleExportAll}
+            disabled={exporting}
+            className="btn btn-ghost"
+            style={{
+              whiteSpace: 'nowrap',
+              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+              opacity: exporting ? 0.6 : 1,
+            }}
+            title={`Export all ${pag?.total} charts as XLSX`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            {exporting ? 'Exporting…' : 'Export XLSX'}
+          </button>
+        )}
+        {/* Download blank template */}
+        <button
+          id="download-template-btn"
+          onClick={handleDownloadTemplate}
+          disabled={tmplDownloading}
+          className="btn btn-ghost"
+          style={{
+            whiteSpace: 'nowrap',
+            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            opacity: tmplDownloading ? 0.6 : 1,
+            borderColor: 'rgba(201,168,76,0.35)',
+            color: 'var(--gold)',
+          }}
+          title="Download XLSX template to fill and import"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          {tmplDownloading ? 'Downloading…' : '⬇ Template'}
+        </button>
+        <BulkImport onImportComplete={() => fetchCharts(page)} />
         <Link href="/" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }}>
           + New Chart
         </Link>
