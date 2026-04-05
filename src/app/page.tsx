@@ -403,7 +403,15 @@ export default function HomePage() {
 
   return (
     <div className="main-responsive-padding" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      {chart ? (
+      {loading ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', padding: '6rem 2rem', minHeight: '60vh' }}>
+          <div className="spin-loader" style={{ width: 56, height: 56, border: '4px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%', borderLeftColor: 'transparent' }} />
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--text-gold)', margin: '0 0 0.5rem 0', fontWeight: 500 }}>Recalculating Karma…</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Aligning with stellar coordinates with Swiss Ephemeris precision.</p>
+          </div>
+        </div>
+      ) : chart ? (
          <div className="fade-up" style={{ minWidth: 0 }}>
             
             {/* Headings Row & Birth Summary Strip */}
