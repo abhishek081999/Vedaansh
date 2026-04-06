@@ -417,7 +417,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           className="main-content"
           style={{
             flex: 1, display: 'flex', flexDirection: 'column', position: 'relative',
-            zIndex: isFormOpen ? 1200 : 1, overflowY: 'auto', minWidth: 0,
+            zIndex: isFormOpen ? 1200 : 1, overflowY: 'auto', overflowX: 'hidden', minWidth: 0,
             transition: 'margin-left 0.4s cubic-bezier(0.16,1,0.3,1)',
             scrollBehavior: 'smooth'
           }}

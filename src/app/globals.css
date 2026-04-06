@@ -311,11 +311,15 @@ html {
   -webkit-font-smoothing: var(--font-smooth-mac);
   -moz-osx-font-smoothing: var(--font-smooth-moz);
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   min-height: 100vh;
   background: var(--bg-gradient);
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
 }
 
 /* ── Typography ─────────────────────────────────────────────── */
