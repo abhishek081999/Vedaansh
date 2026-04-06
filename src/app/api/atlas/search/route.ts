@@ -41,26 +41,51 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
   const roundedLng = lng.toFixed(2)
   const cacheKey = `tz:${roundedLat},${roundedLng}`
   
-  // Try Redis first
-  const cached = await redis.get<string>(cacheKey)
-  if (cached) return cached
+  // 1. Try Redis cache
+  try {
+    const cached = await redis.get<string>(cacheKey)
+    if (cached) return cached
+  } catch (e) {
+    console.error('[tz] Redis lookup failed:', e)
+  }
 
   try {
-    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`, {
-      next: { revalidate: 604800 } // 7 days (Next.js data cache fallback)
-    })
+    // 2. Query BigDataCloud reverse geocode API (free tier)
+    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+    if (!res.ok) throw new Error('API request failed')
+    
     const data = await res.json()
     
-    // Attempt to find timezone in the response
+    // 3. Extract IANA timezone from informative info
     const info = data.localityInfo?.informative || []
-    const tzEntry = info.find((i: any) => i.description === 'time zone' || i.order === 1)
-    const tz = tzEntry?.name || 'UTC'
+    const tzEntry = info.find((i: any) => 
+       i.description === 'time zone' || 
+       (i.name && i.name.includes('/') && i.name.length > 5)
+    )
     
-    // Cache in Redis for persistent performance
-    await redis.set(cacheKey, tz, CACHE_TTL.ATLAS)
+    const countryCode = data.countryCode || ""
+    const isIndia = countryCode === "IN" || (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+    
+    // Validate that it looks like an IANA timezone (e.g., "Asia/Kolkata")
+    let tz = isIndia ? 'Asia/Kolkata' : 'UTC'
+    
+    if (tzEntry?.name && tzEntry.name.includes('/')) {
+      tz = tzEntry.name
+    } else {
+      // Fallback: check if the API returned a direct timezone object
+      if (data.timezone && typeof data.timezone === 'string' && data.timezone.includes('/')) {
+        tz = data.timezone
+      }
+    }
+    
+    // 4. Cache in Redis
+    await redis.set(cacheKey, tz, CACHE_TTL.ATLAS).catch(() => {})
     return tz
-  } catch {
-    return 'UTC'
+  } catch (err) {
+    console.error('[tz] Fetch failed for', lat, lng, err)
+    // Emergency fallback for India context
+    const isIndiaFallback = (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+    return isIndiaFallback ? 'Asia/Kolkata' : 'UTC'
   }
 }
 
@@ -122,11 +147,16 @@ export async function GET(req: NextRequest) {
   // Global search cache to prevent redundant external Photon calls
   const searchCacheKey = `atlas:search:${q.toLowerCase()}`
   const cachedResults = await redis.get<LocationResult[]>(searchCacheKey)
-  if (cachedResults) {
-    return NextResponse.json(
-      { results: cachedResults, fromCache: true },
-      { headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600' } }
-    )
+  if (cachedResults && cachedResults.length > 0) {
+    // Safety: If cached results have 'UTC', we re-verify them to clear the old bug
+    const hasUTC = cachedResults.some(r => r.timezone === 'UTC' || !r.timezone)
+    if (!hasUTC) {
+      return NextResponse.json(
+        { results: cachedResults, fromCache: true },
+        { headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600' } }
+      )
+    }
+    // If we have 'UTC' results, continue to fresh fetch to fix them
   }
 
   try {
@@ -147,8 +177,13 @@ export async function GET(req: NextRequest) {
         const country = feat.properties.country || ''
         const admin1  = feat.properties.state || ''
 
-        // TZ check (from Redis or BigDataCloud)
-        const timezone = await fetchTimezone(lat, lng)
+        // TZ check (from Redis or BigDataCloud) — now with India fallback logic
+        let timezone = await fetchTimezone(lat, lng)
+        
+        // India bounding box safety within search results mapping
+        if (timezone === 'UTC' && lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4) {
+          timezone = 'Asia/Kolkata'
+        }
 
         return {
           name,

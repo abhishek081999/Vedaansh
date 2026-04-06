@@ -112,7 +112,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       const pl = pPlace || ''
       const lt = parseFloat(pLat)
       const lg = parseFloat(pLng)
-      const tzone = pTz || 'UTC'
+      const tzone = pTz || '' // Start empty if not provided from URL
 
       setName(n)
       setDate(d)
@@ -120,11 +120,28 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       setPlace(pl)
       setLat(lt)
       setLng(lg)
-      setTz(tzone)
-
-      setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, settings), 150)
+      
+      if (tzone) {
+        setTz(tzone)
+        setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, settings), 150)
+      } else {
+        // If coords provided but no TZ, we MUST resolve it first to avoid UTC bug
+        fetch(`/api/atlas/search?lat=${lt}&lng=${lg}`)
+          .then(r => r.json())
+          .then(data => {
+            const resolvedTz = data.results?.[0]?.timezone || 'Asia/Kolkata' // Default to IST if all else fails
+            setTz(resolvedTz)
+            submitChart(n, d, t, pl, lt, lg, resolvedTz, settings)
+          })
+          .catch(() => {
+            setTz('Asia/Kolkata')
+            submitChart(n, d, t, pl, lt, lg, 'Asia/Kolkata', settings)
+          })
+      }
     } else if (autoSubmit && initialData) {
       didAutoSubmit.current = true
+      const resolvedTz = initialData.timezone || 'Asia/Kolkata'
+      setTz(resolvedTz)
       setTimeout(() => submitChart(
         initialData.name,
         initialData.birthDate,
@@ -132,11 +149,12 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         initialData.birthPlace,
         initialData.latitude,
         initialData.longitude,
-        initialData.timezone,
+        resolvedTz,
         initialData.settings || DEFAULT_SETTINGS
       ), 150)
     } else if (autoSubmit) {
       didAutoSubmit.current = true
+      setTz(DELHI_DEFAULT.tz)
       setTimeout(() => submitChart(
         DELHI_DEFAULT.name,
         todayDate,
@@ -168,10 +186,24 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
     try {
       const res = await fetch(`/api/atlas/search?q=${encodeURIComponent(query)}`)
       const data = await res.json()
-      const results = data.results ?? []
+      let results = data.results ?? []
       
-      // Update cache
-      searchCache.current.set(query, results)
+      // Client-side fix: If any result still says UTC but is in India, fix it immediately
+      results = results.map((loc: LocationResult) => {
+        if (loc.timezone === 'UTC' && loc.latitude > 6.7 && loc.latitude < 37.5 && loc.longitude > 68.1 && loc.longitude < 97.4) {
+          return { ...loc, timezone: 'Asia/Kolkata' }
+        }
+        return loc
+      })
+      
+      // Only cache if results are GOOD (no UTC for India)
+      const hasBadUTC = results.some((r: LocationResult) => 
+        r.timezone === 'UTC' && r.latitude > 6.7 && r.latitude < 37.5 && r.longitude > 68.1 && r.longitude < 97.4
+      )
+      
+      if (!hasBadUTC && results.length > 0) {
+        searchCache.current.set(query, results)
+      }
       
       setLocationResults(results)
       setSearchOpen(true)
@@ -544,20 +576,6 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
                   />
                 </div>
              </div>
-             <div>
-                <label style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Timezone (IANA)</label>
-                <div style={{ position: 'relative' }}>
-                  <input 
-                    type="text" placeholder="e.g. Asia/Kolkata" 
-                    className="input" style={{ width: '100%' }}
-                    value={tz} onChange={e => setTz(e.target.value)}
-                    list="tz-datalist"
-                  />
-                  <datalist id="tz-datalist">
-                    {tzList.slice(0, 50).map(t => <option key={t} value={t} />)}
-                  </datalist>
-                </div>
-             </div>
           </div>
         ) : (
           <>
@@ -586,14 +604,42 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               }}>
                 <span title="Latitude">{lat.toFixed(4)}° N</span>
                 <span title="Longitude">{lng.toFixed(4)}° E</span>
-                <span style={{ color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif' }}>{tz}</span>
               </div>
             )}
+
+            {/* Explicit Timezone Selection */}
+            <div style={{ marginTop: '0.9rem' }}>
+              <label className="field-label" style={{ marginBottom: '0.35rem' }}>Timezone (IANA)</label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type="text" placeholder="e.g. Asia/Kolkata" 
+                  className="input" style={{ width: '100%', boxSizing: 'border-box' }}
+                  value={tz} 
+                  onChange={e => setTz(e.target.value)}
+                  list="tz-datalist"
+                />
+                <datalist id="tz-datalist">
+                   <option value="Asia/Kolkata" />
+                   <option value="Asia/Dubai" />
+                   <option value="Asia/Singapore" />
+                   <option value="UTC" />
+                   <option value="America/New_York" />
+                   <option value="America/Los_Angeles" />
+                   <option value="Europe/London" />
+                   <option value="Europe/Paris" />
+                   <option value="Australia/Sydney" />
+                   {tzList.slice(0, 80).map(t => <option key={t} value={t} />)}
+                </datalist>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-gold)', marginTop: 2, fontStyle: 'italic', opacity: 0.8 }}>
+                  Currently: {tz}
+                </div>
+              </div>
+            </div>
 
             {/* Dropdown */}
             {searchOpen && locationResults.length > 0 && (
               <div style={{
-                position: 'absolute', zIndex: 100, width: '100%', top: '100%', marginTop: 4,
+                position: 'absolute', zIndex: 100, width: '100%', top: '56px', marginTop: 4,
                 background: 'var(--surface-2)',
                 border: '1px solid var(--border-bright)',
                 borderRadius: 8,
@@ -628,7 +674,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
                     <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem' }}>
                       <span>{loc.country}</span>
                       <span>{loc.latitude.toFixed(2)}°, {loc.longitude.toFixed(2)}°</span>
-                      <span style={{ color: 'var(--text-gold)', fontFamily: 'Cormorant Garamond, serif' }}>{loc.timezone}</span>
+                      <span style={{ color: loc.timezone === 'UTC' ? 'var(--rose)' : 'var(--text-gold)', fontWeight: loc.timezone === 'UTC' ? 400 : 700 }}>{loc.timezone === 'UTC' && loc.latitude > 6.7 ? 'Asia/Kolkata' : loc.timezone}</span>
                     </span>
                   </button>
                 ))}
