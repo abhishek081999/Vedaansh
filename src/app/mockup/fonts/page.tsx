@@ -51,7 +51,7 @@ export default function FontMockupPage() {
               
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-surface-0/60 backdrop-blur-sm cursor-help">
                 <p className="text-sm font-body px-8 text-center leading-relaxed">
-                  The Navamsha (D9) chart provides deep insight into your soul's purpose and the fruits of your karma.
+                  The Navamsha (D9) chart provides deep insight into your soul&apos;s purpose and the fruits of your karma.
                 </p>
               </div>
             </div>
@@ -92,7 +92,7 @@ export default function FontMockupPage() {
               <div className="flex items-start gap-3">
                 <Calendar className="w-4 h-4 text-muted mt-1" />
                 <div>
-                  <h4 className="font-body font-semibold text-sm">Tomorrow's Transit</h4>
+                  <h4 className="font-body font-semibold text-sm">Tomorrow&apos;s Transit</h4>
                   <p className="text-xs text-muted">Sun enters Aries (Mesha Sankranti)</p>
                 </div>
               </div>
@@ -112,8 +112,8 @@ export default function FontMockupPage() {
                <span>Typography Tip</span>
              </div>
              <p className="text-sm font-body leading-relaxed italic text-accent-dim">
-               "Setting navigation items with a slight letter-spacing (0.05em) creates 
-               a breathability that feels inherently premium."
+               &quot;Setting navigation items with a slight letter-spacing (0.05em) creates 
+               a breathability that feels inherently premium.&quot;
              </p>
           </div>
         </div>
