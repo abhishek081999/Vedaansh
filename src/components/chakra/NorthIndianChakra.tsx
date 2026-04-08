@@ -10,7 +10,9 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import type { GrahaData, Rashi, ArudhaData } from '@/types/astrology'
+import type { GrahaData, Rashi, ArudhaData, LagnaData } from '@/types/astrology'
+import { getNakshatra } from '@/lib/engine/nakshatra'
+import { NAKSHATRA_SHORT } from '@/types/astrology'
 
 function dignityColor(dignity: string, isRetro: boolean): string {
   if (isRetro) return 'var(--dig-retro)'
@@ -78,6 +80,7 @@ interface NorthIndianProps {
   showNakshatra?: boolean
   showKaraka?: boolean
   arudhas?: ArudhaData
+  lagnas?: LagnaData
   transitGrahas?: GrahaData[]   // optional transit planets overlay
   interactive?: boolean
   onHouseClick?: (house: number) => void
@@ -97,6 +100,7 @@ export function NorthIndianChakra({
   showNakshatra = false,
   showKaraka = false,
   arudhas,
+  lagnas,
   transitGrahas,
   interactive = false,
   onHouseClick,
@@ -113,7 +117,7 @@ export function NorthIndianChakra({
   const signInHouse = (h: number): number =>
     ((ascRashi - 1 + h - 1) % 12) + 1
 
-  const byHouse: Record<number, GrahaData[]> = {}
+  const byHouse: Record<number, any[]> = {}
   for (const g of grahas) {
     for (let h = 1; h <= 12; h++) {
       if (signInHouse(h) === g.rashi) {
@@ -124,10 +128,26 @@ export function NorthIndianChakra({
     }
   }
 
+  // Inject AS (Ascendant) into 1st house
+  if (lagnas) {
+    if (!byHouse[1]) byHouse[1] = []
+    const ascNak = getNakshatra(lagnas.ascDegree)
+    byHouse[1].unshift({
+      id: 'AS',
+      degree: lagnas.ascDegreeInRashi,
+      rashi: ascRashi,
+      dignity: 'neutral',
+      isRetro: false,
+      nakshatraIndex: ascNak.index,
+      nakshatraName: ascNak.name,
+      pada: ascNak.pada,
+      charaKaraka: null
+    })
+  }
+
   const isKite = (h: number) => h === 1 || h === 4 || h === 7 || h === 10
 
   // ── Group arudha labels by house ─────────────────────────────
-  // Each arudha has a rashi; draw it in the house whose sign = that rashi
   const ARUDHA_KEYS = ['AL', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12'] as const
   const arudhaByHouse: Record<number, string[]> = {}
   if (arudhas) {
@@ -141,6 +161,16 @@ export function NorthIndianChakra({
           break
         }
       }
+    }
+  }
+
+  // ── Transit planets by house ────────────────────────────────
+  const tByHouse: Record<number, GrahaData[]> = {}
+  if (transitGrahas) {
+    for (const tg of transitGrahas) {
+      const tHouse = ((tg.rashi - ascRashi + 12) % 12) + 1
+      if (!tByHouse[tHouse]) tByHouse[tHouse] = []
+      tByHouse[tHouse].push(tg)
     }
   }
 
@@ -245,12 +275,19 @@ export function NorthIndianChakra({
 
         const aFont = Math.round(Math.min(plFont * 0.82, S * 0.028) * arudhaScale)
 
+        const tPlanetsInSelf = tByHouse[h] ?? []
+        const hasTransits = tPlanetsInSelf.length > 0
+
         // Total height of planet block + arudha block — centre it in plArea
         const totalPlH = rows * lineH
         const totalAH = numARows > 0 ? (aFont * 0.7 + (numARows - 1) * aFont * 1.3) : 0
         const totalContentH = totalPlH + totalAH
 
-        const plBlockTopY = plAreaTop + Math.max(0, (plAreaH - totalContentH) / 2)
+        // ── Vertical alignment logic ──
+        // Keep natal planets in the top half if transits exist
+        const plBlockTopY = hasTransits
+          ? plAreaTop + (plAreaH * 0.05)
+          : plAreaTop + Math.max(0, (plAreaH - totalContentH) / 2)
 
         // Two-col horizontal offset — wider spacing
         const colOff = useTwoCol ? Math.min(cellW * 0.28, S * 0.06) : 0
@@ -308,7 +345,7 @@ export function NorthIndianChakra({
                   <text
                     x={px} y={py}
                     fontSize={Math.round(plFont)}
-                    fontFamily="Cormorant Garamond, serif"
+                    fontFamily="var(--font-chart-planets)"
                     fontWeight="var(--fw-medium)"
                     fill={fillCol}
                     textAnchor="middle"
@@ -328,18 +365,18 @@ export function NorthIndianChakra({
                       {deg}
                     </text>
                   )}
-                  {showNakshatra && (
+                   {showNakshatra && g.nakshatraIndex !== undefined && (
                     <text
                       x={px}
                       y={py + plFont * 0.72 + degFont * (showDegrees ? 1.65 : 0.5)}
                       fontSize={Math.round(degFont * 0.85)}
-                      fontFamily="Cormorant Garamond, serif"
+                      fontFamily="var(--font-chart-planets)"
                       fontStyle="italic"
                       fill="var(--text-muted)"
                       textAnchor="middle"
                       dominantBaseline="middle"
                     >
-                      {g.nakshatraName.slice(0, 3)} {g.pada}
+                      {NAKSHATRA_SHORT[g.nakshatraIndex]} {g.pada}
                     </text>
                   )}
                 </g>
@@ -363,7 +400,7 @@ export function NorthIndianChakra({
                   x={gcx}
                   y={baseY + ci * aFont * 1.3}
                   fontSize={aFont}
-                  fontFamily="Cormorant Garamond, serif"
+                  fontFamily="var(--font-chart-planets)"
                   fontStyle="italic"
                   fontWeight="var(--fw-bold)"
                   fill="var(--text-gold)"
@@ -374,55 +411,50 @@ export function NorthIndianChakra({
                 </text>
               ))
             })()}
+            {/* ── Transit planet overlay ── */}
+            {hasTransits && tPlanetsInSelf.map((tg, ti) => {
+               const tFont = S * 0.024 * fontScale * planetScale
+               const col = ti % 2
+               const row = Math.floor(ti / 2)
+               const offX = (tPlanetsInSelf.length > 1) ? (col === 0 ? -S * 0.05 : S * 0.05) : 0
+               
+               // Offset from bottom of the SAFE house area
+               const ty = plAreaTop + plAreaH * 0.90 + (row * tFont * 1.1)
+
+               return (
+                <g key={`transit-${tg.id}-${ti}`}>
+                  <text
+                    x={gcx + offX}
+                    y={ty}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={Math.round(tFont)}
+                    fontWeight={800}
+                    fontFamily="var(--font-mono)"
+                    fill={tg.isRetro ? 'rgba(120,80,220,0.95)' : 'rgba(100,80,180,0.95)'}
+                  >
+                    {tg.id}{tg.isRetro ? '℞' : ''}{showDegrees ? Math.floor(tg.degree) : ''}
+                  </text>
+                  {showNakshatra && tg.nakshatraIndex !== undefined && (
+                    <text
+                      x={gcx + offX}
+                      y={ty + tFont * 0.8}
+                      fontSize={Math.round(tFont * 0.75)}
+                      fontFamily="var(--font-chart-planets)"
+                      fill="var(--chart-transit)"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      style={{ opacity: 0.8 }}
+                    >
+                      {NAKSHATRA_SHORT[tg.nakshatraIndex]}
+                    </text>
+                  )}
+                </g>
+               )
+            })}
           </g>
         )
       })}
-
-
-      {/* ── Transit planet overlay ── */}
-      {transitGrahas && (() => {
-        // Group transit planets by house (1-12 based on natal ascendant)
-        const tByHouse: Record<number, GrahaData[]> = {}
-        for (const tg of transitGrahas) {
-          // Map transit rashi to house relative to natal ascendant
-          const tHouse = ((tg.rashi - ascRashi + 12) % 12) + 1
-          if (!tByHouse[tHouse]) tByHouse[tHouse] = []
-          tByHouse[tHouse].push(tg)
-        }
-
-        return Object.entries(tByHouse).map(([hStr, tPlanets]) => {
-          const h = Number(hStr)
-          const pts = polyPts(h, S)
-          if (!pts.length) return null
-          const [gcx, gcy] = centroid(pts)
-          const tFont = S * 0.032 * fontScale * planetScale
-
-          return tPlanets.map((tg, ti) => {
-             // Offset transit planets slightly so they don't overlap natal ones completely
-             const col = ti % 2
-             const row = Math.floor(ti / 2)
-             const offX = (tPlanets.length > 1) ? (col === 0 ? -S * 0.04 : S * 0.04) : 0
-             const offY = S * 0.04 + row * tFont * 1.4
-
-             return (
-              <text
-                key={`transit-${tg.id}-${ti}`}
-                x={gcx + offX}
-                y={gcy + offY}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize={Math.round(tFont * 0.85)}
-                fontWeight={700}
-                fontFamily="var(--font-mono)"
-                fill={tg.isRetro ? 'rgba(200,140,255,0.90)' : 'rgba(139,124,246,0.90)'}
-                style={{ filter: 'drop-shadow(0 0 4px rgba(139,124,246,0.6))' }}
-              >
-                {tg.id}{tg.isRetro ? '℞' : ''}{showDegrees ? ` ${Math.floor(tg.degree)}°` : ''}
-              </text>
-            )
-          })
-        })
-      })()}
 
       {/* Outer framing box */}
       <rect x=".5" y=".5" width={S - 1} height={S - 1}

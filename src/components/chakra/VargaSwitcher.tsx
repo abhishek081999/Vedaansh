@@ -99,7 +99,9 @@ export function VargaSwitcher({
     if (!isUnlocked(meta, userPlan)) { window.location.href='/pricing'; return }
     const name = meta.name
     if (selected.includes(name)) {
-      if (selected.length > 1) setSelected(p => p.filter(n => n !== name))
+      if (selected.length > 1 && name !== 'D1') {
+        setSelected(p => p.filter(n => n !== name))
+      }
     } else {
       setSelected(p => [...p, name])
     }
