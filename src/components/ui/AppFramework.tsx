@@ -125,7 +125,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       borderLeft: `3px solid ${isActive ? 'var(--gold)' : 'transparent'}`,
       color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
       borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-      fontFamily: 'Cormorant Garamond, serif', fontSize: '1.05rem', transition: 'all 0.15s',
+      fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.15s',
+      letterSpacing: '0.04em',
       width: '100%', textDecoration: 'none',
       paddingLeft: isSub ? '2rem' : '0.75rem'
     }
@@ -323,7 +324,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
                 background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'Cormorant Garamond, serif', fontSize: '1.05rem', transition: 'all 0.15s',
+                fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.15s',
+                letterSpacing: '0.04em',
                 width: '100%'
               }}
             >
@@ -374,7 +376,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
                 background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'Cormorant Garamond, serif', fontSize: '1.05rem', transition: 'all 0.15s',
+                fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.15s',
+                letterSpacing: '0.04em',
                 width: '100%'
               }}
             >

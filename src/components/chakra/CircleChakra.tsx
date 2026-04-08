@@ -191,6 +191,7 @@ export function CircleChakra({
                     x={px} y={py}
                     textAnchor="middle" dominantBaseline="central"
                     fontSize={pf} fontWeight={600} fill={col}
+                    fontFamily="var(--font-chart-planets)"
                   >
                     {label}{showDegrees ? ` ${Math.floor(g.degree)}°` : ''}
                   </text>

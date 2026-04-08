@@ -259,7 +259,7 @@ export function SarvatobhadraChakra({
       <rect width={size} height={size} fill="var(--surface-1, #1a1a2e)" rx="8" />
 
       {/* ── Full grid lines ─────────────────────────────────── */}
-      <g stroke="rgba(201,168,76,0.12)" strokeWidth="0.5">
+      <g stroke="var(--gold)" strokeWidth="0.8" style={{ opacity: 0.25 }}>
         {Array.from({ length: GRID + 1 }, (_, i) => (
           <g key={i}>
             <line x1={i * cell} y1={0} x2={i * cell} y2={size} />
@@ -283,8 +283,8 @@ export function SarvatobhadraChakra({
               width={cell - 1} height={cell - 1}
               fill={
                 isCorner
-                  ? 'rgba(201,168,76,0.04)'
-                  : 'rgba(255,255,255,0.018)'
+                  ? 'rgba(201,168,76,0.08)'
+                  : 'rgba(201,168,76,0.03)'
               }
               stroke="none"
             />
@@ -299,7 +299,7 @@ export function SarvatobhadraChakra({
             key={`tithi-top-${r}-${i + 1}`}
             x={(i + 1) * cell + 0.5} y={r * cell + 0.5}
             width={cell - 1} height={cell - 1}
-            fill="rgba(180,140,220,0.04)"
+            fill="rgba(180,140,220,0.07)"
             stroke="none"
           />
         ))
@@ -310,7 +310,7 @@ export function SarvatobhadraChakra({
             key={`tithi-side-${c}-${i + 2}`}
             x={c * cell + 0.5} y={(i + 2) * cell + 0.5}
             width={cell - 1} height={cell - 1}
-            fill="rgba(180,140,220,0.04)"
+            fill="rgba(180,140,220,0.07)"
             stroke="none"
           />
         ))
@@ -323,7 +323,7 @@ export function SarvatobhadraChakra({
             key={`vara-h-${r}-${i + 2}`}
             x={(i + 2) * cell + 0.5} y={r * cell + 0.5}
             width={cell - 1} height={cell - 1}
-            fill="rgba(100,180,140,0.04)"
+            fill="rgba(100,180,140,0.07)"
             stroke="none"
           />
         ))
@@ -334,7 +334,7 @@ export function SarvatobhadraChakra({
             key={`vara-v-${c}-${i + 3}`}
             x={c * cell + 0.5} y={(i + 3) * cell + 0.5}
             width={cell - 1} height={cell - 1}
-            fill="rgba(100,180,140,0.04)"
+            fill="rgba(100,180,140,0.07)"
             stroke="none"
           />
         ))
@@ -345,9 +345,9 @@ export function SarvatobhadraChakra({
         <rect
           x={moonCell.col * cell + 1} y={moonCell.row * cell + 1}
           width={cell - 2} height={cell - 2}
-          fill="rgba(208,232,240,0.12)"
-          stroke="rgba(208,232,240,0.5)"
-          strokeWidth="1.5"
+          fill="rgba(208,232,240,0.18)"
+          stroke="rgba(160,210,240,0.65)"
+          strokeWidth="1.8"
           rx="2"
         />
       )}
@@ -357,9 +357,9 @@ export function SarvatobhadraChakra({
         <rect
           x={tithiCell.col * cell + 1} y={tithiCell.row * cell + 1}
           width={cell - 2} height={cell - 2}
-          fill="rgba(180,140,220,0.10)"
-          stroke="rgba(180,140,220,0.4)"
-          strokeWidth="1"
+          fill="rgba(180,140,220,0.15)"
+          stroke="rgba(180,140,220,0.55)"
+          strokeWidth="1.2"
           rx="2"
         />
       )}
@@ -369,9 +369,9 @@ export function SarvatobhadraChakra({
         <rect
           x={varaCell.col * cell + 1} y={varaCell.row * cell + 1}
           width={cell - 2} height={cell - 2}
-          fill="rgba(100,180,140,0.10)"
-          stroke="rgba(100,180,140,0.4)"
-          strokeWidth="1"
+          fill="rgba(100,180,140,0.15)"
+          stroke="rgba(100,180,140,0.55)"
+          strokeWidth="1.2"
           rx="2"
         />
       )}
@@ -379,16 +379,18 @@ export function SarvatobhadraChakra({
       {/* ── Corner direction labels ───────────────────────────── */}
       {Object.entries(CORNERS).map(([dir, [r, c]]) => (
         <g key={`corner-${dir}`}>
-          <text
-            x={cx(c)} y={cy(r) + fs.dir * 0.4}
-            fontSize={fs.dir}
-            fill="rgba(201,168,76,0.4)"
-            fontFamily="Cormorant Garamond, serif"
-            textAnchor="middle"
-            letterSpacing="1"
-          >
-            {CORNER_LABELS[dir]}
-          </text>
+            <text
+              x={cx(c)} y={cy(r) + fs.dir * 0.4}
+              fontSize={fs.dir}
+              fill="var(--gold-dim)"
+              fontFamily="var(--font-chart-planets)"
+              textAnchor="middle"
+              letterSpacing="1"
+              fontWeight="600"
+              style={{ opacity: 0.8 }}
+            >
+              {CORNER_LABELS[dir]}
+            </text>
         </g>
       ))}
 
@@ -406,9 +408,9 @@ export function SarvatobhadraChakra({
             <text
               x={cx(col)} y={cy(row) - fs.nak * 0.55}
               fontSize={fs.nak}
-              fill={isMoon ? '#d0e8f0' : 'rgba(201,168,76,0.75)'}
-              fontFamily="Cormorant Garamond, serif"
-              fontWeight={isMoon ? '600' : '400'}
+              fill={isMoon ? 'var(--accent)' : 'var(--gold-dim)'}
+              fontFamily="var(--font-chart-planets)"
+              fontWeight={isMoon ? '700' : '600'}
               textAnchor="middle"
             >
               {nakName}
@@ -418,9 +420,11 @@ export function SarvatobhadraChakra({
             <text
               x={cx(col)} y={cy(row) + fs.lord * 0.6}
               fontSize={fs.lord}
-              fill={isMoon ? 'rgba(208,232,240,0.65)' : 'rgba(201,168,76,0.35)'}
-              fontFamily="Cormorant Garamond, serif"
+              fill={isMoon ? 'var(--accent)' : 'var(--gold-dim)'}
+              fontFamily="var(--font-chart-planets)"
               textAnchor="middle"
+              fontWeight="600"
+              style={{ opacity: 0.7 }}
             >
               {lord}
             </text>
@@ -430,8 +434,10 @@ export function SarvatobhadraChakra({
               x={col * cell + cell * 0.1}
               y={row * cell + cell * 0.2}
               fontSize={fs.nak * 0.7}
-              fill="rgba(201,168,76,0.2)"
-              fontFamily="Cormorant Garamond, serif"
+              fill="var(--gold-dim)"
+              fontFamily="var(--font-chart-planets)"
+              fontWeight="600"
+              style={{ opacity: 0.4 }}
             >
               {i + 1}
             </text>
@@ -454,7 +460,7 @@ export function SarvatobhadraChakra({
                     y={dotY + fs.dot * 0.38}
                     fontSize={fs.dot}
                     fill={dignityColor(g.dignity, g.isRetro)}
-                    fontFamily="Cormorant Garamond, serif"
+                    fontFamily="var(--font-chart-planets)"
                     fontWeight="500"
                   >
                     {g.id}
@@ -481,10 +487,11 @@ export function SarvatobhadraChakra({
             x={cx(col)}
             y={cy(row) + fs.tithi * 0.4}
             fontSize={fs.tithi}
-            fill={isCurrentTithi ? 'rgba(180,140,220,0.9)' : 'rgba(180,140,220,0.35)'}
+            fill="var(--accent)"
             fontFamily="Cormorant Garamond, serif"
-            fontWeight={isCurrentTithi ? '600' : '400'}
+            fontWeight={isCurrentTithi ? '800' : '600'}
             textAnchor="middle"
+            style={{ opacity: isCurrentTithi ? 1 : 0.6 }}
           >
             {cellTithis.map((i) => i + 1).join('/')}
           </text>
@@ -501,10 +508,11 @@ export function SarvatobhadraChakra({
             x={cx(col)}
             y={cy(row) + fs.vara * 0.4}
             fontSize={fs.vara}
-            fill={isCurrent ? 'rgba(100,210,160,0.9)' : 'rgba(100,180,140,0.35)'}
+            fill="var(--teal)"
             fontFamily="Cormorant Garamond, serif"
-            fontWeight={isCurrent ? '600' : '400'}
+            fontWeight={isCurrent ? '800' : '600'}
             textAnchor="middle"
+            style={{ opacity: isCurrent ? 1 : 0.65 }}
           >
             {lord}
           </text>
@@ -517,30 +525,31 @@ export function SarvatobhadraChakra({
           key={`aksh-${label}`}
           x={cx(col)} y={cy(row) + fs.aksh * 0.4}
           fontSize={fs.aksh}
-          fill="rgba(184,176,212,0.4)"
+          fill="var(--text-secondary)"
           fontFamily="Cormorant Garamond, serif"
           fontStyle="italic"
+          fontWeight="600"
           textAnchor="middle"
+          style={{ opacity: 0.7 }}
         >
           {label}
         </text>
       ))}
-
-      {/* ── Centre: Brahma ───────────────────────────────────── */}
       <rect
-        x={4 * cell + 2} y={4 * cell + 2}
-        width={cell - 4} height={cell - 4}
-        fill="rgba(201,168,76,0.06)"
-        stroke="rgba(201,168,76,0.3)"
-        strokeWidth="1"
-        rx="3"
+        x={4 * cell + 1} y={4 * cell + 1}
+        width={cell - 2} height={cell - 2}
+        fill="var(--gold-faint)"
+        stroke="var(--gold)"
+        strokeWidth="1.5"
+        rx="2"
       />
       <text
         x={cx(4)} y={cy(4) - fs.brahma * 0.5}
         fontSize={fs.brahma}
-        fill="rgba(201,168,76,0.65)"
+        fill="var(--gold-dim)"
         fontFamily="Cormorant Garamond, serif"
         fontStyle="italic"
+        fontWeight="700"
         textAnchor="middle"
       >
         Brahma
@@ -548,8 +557,8 @@ export function SarvatobhadraChakra({
       {/* Decorative star / asterisk in centre */}
       <g
         transform={`translate(${cx(4)}, ${cy(4) + fs.brahma * 0.6})`}
-        stroke="rgba(201,168,76,0.35)"
-        strokeWidth="0.8"
+        stroke="rgba(201,168,76,0.45)"
+        strokeWidth="1.0"
         strokeLinecap="round"
       >
         {[0, 45, 90, 135].map((deg) => {
@@ -565,25 +574,21 @@ export function SarvatobhadraChakra({
         })}
       </g>
 
-      {/* ── Ring border emphasis lines ────────────────────────── */}
-      <g stroke="rgba(201,168,76,0.25)" strokeWidth="0.75" fill="none">
-        {/* Outer nakshatra ring border (inner edge) */}
+      {/* ── Ring border emphasis lines (The 5 structural borders) ── */}
+      <g stroke="var(--gold)" strokeWidth="1.6" fill="none">
+        {/* Outer boundary of Nakshatra ring */}
+        <rect x={0.5} y={0.5} width={size - 1} height={size - 1} rx="8" />
+        {/* Border 1: Between Nakshatra and Tithi rings */}
         <rect x={cell} y={cell} width={cell * 7} height={cell * 7} />
-        {/* Tithi ring border (inner edge) */}
+        {/* Border 2: Between Tithi and Vara rings */}
         <rect x={cell * 2} y={cell * 2} width={cell * 5} height={cell * 5} />
-        {/* Vara ring border (inner edge) */}
+        {/* Border 3: Between Vara and Akshara rings */}
         <rect x={cell * 3} y={cell * 3} width={cell * 3} height={cell * 3} />
+        {/* Border 4: Boundary of Brahma centre cell is already emphasized below */}
       </g>
 
       {/* ── Outer border of entire chart ─────────────────────── */}
-      <rect
-        x={0.5} y={0.5}
-        width={size - 1} height={size - 1}
-        fill="none"
-        stroke="rgba(201,168,76,0.35)"
-        strokeWidth="1"
-        rx="8"
-      />
+      {/* Outer frame already handled in the 5 borders group above */}
     </svg>
   )
 }

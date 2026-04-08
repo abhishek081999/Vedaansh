@@ -162,7 +162,7 @@ export function EastIndianChakra({
       <rect x={c+0.5} y={c+0.5} width={c-1} height={c-1}
         fill="transparent" stroke="var(--gold,#c9a84c)" strokeWidth={1.25}/>
       <text x={S/2} y={S/2} textAnchor="middle" dominantBaseline="central"
-        fontSize={c*0.38} fill="rgba(201,168,76,0.18)" fontFamily="serif">ॐ</text>
+        fontSize={c*0.38} fill="rgba(201,168,76,0.18)" fontFamily="var(--font-chart-planets)">ॐ</text>
 
       {cells.map(({ sign, pts, rect }) => {
         const isLagna  = sign === ascRashi
@@ -220,7 +220,7 @@ export function EastIndianChakra({
                 <g key={g.id}>
                   <text x={px} y={py} textAnchor="middle" dominantBaseline="middle"
                     fontSize={Math.round(plFont)} fontWeight="500"
-                    fontFamily="Cormorant Garamond,serif" fill={fc}
+                    fontFamily="var(--font-chart-planets)" fill={fc}
                   >{g.id}{ret}{kar}</text>
                   {showDegrees && <text x={px} y={py+plFont*0.72+degFont*0.5}
                     textAnchor="middle" dominantBaseline="middle"
@@ -230,7 +230,7 @@ export function EastIndianChakra({
                     y={py+plFont*0.72+degFont*(showDegrees?1.65:0.5)}
                     textAnchor="middle" dominantBaseline="middle"
                     fontSize={Math.round(degFont*0.85)} fontStyle="italic"
-                    fontFamily="Cormorant Garamond,serif" fill="var(--text-muted)"
+                    fontFamily="var(--font-chart-planets)" fill="var(--text-muted)"
                   >{g.nakshatraName?.slice(0,3)} {g.pada}</text>}
                 </g>
               )
@@ -258,7 +258,7 @@ export function EastIndianChakra({
                 <text key={`a${ci}`} x={ax} y={baseY+ci*aFont*1.3}
                   textAnchor="middle" dominantBaseline="middle"
                   fontSize={Math.round(aFont)} fontStyle="italic" fontWeight="700"
-                  fontFamily="Cormorant Garamond,serif" fill="var(--text-gold)"
+                  fontFamily="var(--font-chart-planets)" fill="var(--text-gold)"
                 >{txt}</text>
               ))
             })()}

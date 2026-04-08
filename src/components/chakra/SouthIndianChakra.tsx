@@ -204,7 +204,7 @@ export function SouthIndianChakra({
               y={y + cell * 0.18}
               fontSize={fs.sign}
               fill="var(--chart-label-muted)"
-              fontFamily="Cormorant Garamond, serif"
+              fontFamily="var(--font-chart-planets)"
               textAnchor="end"
             >
               {SIGN_ABBR[sign]}
@@ -220,7 +220,7 @@ export function SouthIndianChakra({
                   y={y + cell * 0.96}
                   fontSize={fs.lagna}
                   fill="var(--chart-label-muted)"
-                  fontFamily="Cormorant Garamond, serif"
+                  fontFamily="var(--font-chart-planets)"
                   textAnchor="middle"
                   fontStyle="italic"
                 >
@@ -251,7 +251,7 @@ export function SouthIndianChakra({
                     y={yPos}
                     fontSize={fs.graha}
                     fill={color}
-                    fontFamily="Cormorant Garamond, serif"
+                    fontFamily="var(--font-chart-planets)"
                     fontWeight="var(--fw-medium)"
                   >
                     {g.id}{ret}
@@ -273,7 +273,7 @@ export function SouthIndianChakra({
                       y={yPos + lineH * (showDegrees || showKaraka ? 1.8 : 0.9)}
                       fontSize={fs.degree * 0.88}
                       fill="var(--text-muted)"
-                      fontFamily="Cormorant Garamond, serif"
+                      fontFamily="var(--font-chart-planets)"
                       fontStyle="italic"
                     >
                       {g.nakshatraName.slice(0, 3)}{g.pada}
@@ -302,7 +302,7 @@ export function SouthIndianChakra({
                   y={baseY + ci * fs.arudha * 1.4}
                   fontSize={fs.arudha}
                   fill="var(--text-gold)"
-                  fontFamily="Cormorant Garamond, serif"
+                  fontFamily="var(--font-chart-planets)"
                   fontStyle="italic"
                   fontWeight="var(--fw-bold)"
                 >

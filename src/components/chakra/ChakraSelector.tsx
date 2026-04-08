@@ -115,7 +115,7 @@ export function ChakraSelector({
               style={{
                 padding: '0.3rem 0.65rem',
                 fontSize: '0.8rem',
-                fontFamily: 'Cormorant Garamond, serif',
+                fontFamily: 'var(--font-chart-planets)',
                 letterSpacing: '0.04em',
                 cursor: 'pointer',
                 border: '1px solid',
@@ -281,7 +281,7 @@ export function ChakraSelector({
               <span style={{
                 fontSize: '0.75rem',
                 color: 'var(--text-muted)',
-                fontFamily: 'Cormorant Garamond, serif',
+                fontFamily: 'var(--font-chart-planets)',
               }}>
                 {label}
               </span>
@@ -297,7 +297,7 @@ export function ChakraSelector({
           paddingTop: '0.5rem',
           borderTop: '1px solid var(--border-soft)',
           fontSize: '0.75rem',
-          fontFamily: 'Cormorant Garamond, serif',
+          fontFamily: 'var(--font-chart-planets)',
           color: 'var(--text-muted)',
         }}>
           <span><span style={{ color: 'rgba(208,232,240,0.7)' }}>■</span> Moon nakshatra</span>
