@@ -301,7 +301,8 @@ const GRAHA_COL: Record<string,string> = {
 
 function fmt(d: Date | string): string {
   const dt = new Date(d)
-  return dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })
+  return dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) + 
+         ' ' + dt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' })
 }
 
 function buildDashaHTML(chart: ChartOutput): string {

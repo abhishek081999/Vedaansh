@@ -398,7 +398,7 @@ function HomeContent() {
     }
     if (refLon === null) { setAltVimshottari(null); return }
     import('@/lib/engine/dasha/vimshottari').then(({ calcVimshottari }) => {
-      const nodes = calcVimshottari(refLon!, new Date(chart.meta.birthDate), 4)
+      const nodes = calcVimshottari(refLon!, new Date(chart.meta.birthDate), 6)
       setAltVimshottari(nodes)
     })
   }, [chart, vimshottariTara])

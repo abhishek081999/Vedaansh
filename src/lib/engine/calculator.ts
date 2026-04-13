@@ -330,7 +330,7 @@ export async function calculateChart(
   })
 
   // Dashas
-  const dashaDepth = plan === 'free' ? 4 : 6
+  const dashaDepth = 6
   const vimshottari = calcVimshottari(moon.lonSidereal, birthUtc, dashaDepth)
 
   // Panchang

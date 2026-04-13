@@ -44,6 +44,15 @@ function fmtDate(d: Date | string, compact = false) {
   })
 }
 
+function fmtTime(d: Date | string) {
+  const date = toDate(d)
+  return date.toLocaleTimeString('en-IN', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
 function calculateProgress(start: Date | string, end: Date | string): number {
   const s = toDate(start).getTime()
   const e = toDate(end).getTime()
@@ -56,8 +65,8 @@ function calculateProgress(start: Date | string, end: Date | string): number {
 // ── Sub-components ───────────────────────────────────────────
 
 function DashaLevelBadge({ depth }: { depth: number }) {
-  const labels = ['MD', 'AD', 'PD', 'SD', 'PrA']
-  const names = ['Mahā', 'Antar', 'Pratyantar', 'Sūkshma', 'Prāṇa']
+  const labels = ['MD', 'AD', 'PD', 'SD', 'PrD', 'DD']
+  const names = ['Mahā', 'Antar', 'Pratyantar', 'Sūkshma', 'Prāṇa', 'Deha']
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
       <span style={{ 
@@ -187,9 +196,15 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>{fmtDate(node.start, true)}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>{fmtDate(node.start, true)}</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', opacity: 0.8 }}>{fmtTime(node.start)}</span>
+                      </div>
                       <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{progress.toFixed(1)}% Completed</span>
-                      <span style={{ color: 'var(--text-muted)' }}>{fmtDate(node.end, true)}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>{fmtDate(node.end, true)}</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', opacity: 0.8 }}>{fmtTime(node.end)}</span>
+                      </div>
                     </div>
                     <div style={{ height: 4, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
                       <div style={{ 
@@ -294,12 +309,14 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
                   </div>
                 </div>
 
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  {fmtDate(node.start, true)}
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column' }}>
+                  <span>{fmtDate(node.start, true)}</span>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{fmtTime(node.start)}</span>
                 </div>
 
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  {fmtDate(node.end, true)}
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column' }}>
+                  <span>{fmtDate(node.end, true)}</span>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{fmtTime(node.end)}</span>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
