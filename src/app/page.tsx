@@ -26,6 +26,8 @@ const PlanetsWorkspace = dynamic(() => import('@/components/ui/PlanetsWorkspace'
 const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
 const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
 const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => m.HousePanel), { ssr: false })
+const ActiveHousesCard = dynamic(() => import('@/components/dashboard/ActiveHousesCard').then(m => m.ActiveHousesCard), { ssr: false })
+const ProgressionWidget = dynamic(() => import('@/components/dashboard/ProgressionWidget').then(m => m.ProgressionWidget), { ssr: false })
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
@@ -279,6 +281,7 @@ function HomeContent() {
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'yogini' | 'chara'>( 'vimshottari')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
+  const [activeVarga, setActiveVarga] = useState<string>('D1')
   const [altVimshottari, setAltVimshottari] = useState<import('@/types/astrology').DashaNode[] | null>(null)
   const searchParams = useSearchParams()
   
@@ -288,6 +291,7 @@ function HomeContent() {
   const [saveDone,   setSaveDone]   = useState(false)
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
+  const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
 
   // 1. Fetch default chart if logged in (with client-side caching)
   useEffect(() => {
@@ -348,6 +352,18 @@ function HomeContent() {
         .finally(() => setFetchingDefault(false))
     }
   }, [status])
+  
+  // 1b. Fetch today's panchang for dashboard insights
+  useEffect(() => {
+    if (chart && activeTab === 'dashboard' && !todayPanchang) {
+      const todayString = new Date().toISOString().split('T')[0]
+      fetch(`/api/panchang?date=${todayString}&lat=${chart.meta.latitude}&lng=${chart.meta.longitude}&tz=${encodeURIComponent(chart.meta.timezone)}`)
+        .then(r => r.json())
+        .then(json => {
+            if (json.success) setTodayPanchang(json.data)
+        })
+    }
+  }, [chart, activeTab, todayPanchang])
 
   // 2. Open form if 'new=true' is in URL
   useEffect(() => {
@@ -398,7 +414,7 @@ function HomeContent() {
     }
     if (refLon === null) { setAltVimshottari(null); return }
     import('@/lib/engine/dasha/vimshottari').then(({ calcVimshottari }) => {
-      const nodes = calcVimshottari(refLon!, new Date(chart.meta.birthDate), 4)
+      const nodes = calcVimshottari(refLon!, new Date(chart.meta.birthDate), 6)
       setAltVimshottari(nodes)
     })
   }, [chart, vimshottariTara])
@@ -512,7 +528,10 @@ function HomeContent() {
                      moonNakIndex={moonNakIndex}
                      tithiNumber={tithiNumber}
                      varaNumber={varaNumber}
+                     onActiveVargaChange={setActiveVarga}
                      transitGrahas={transitGrahas ?? undefined}
+                     chart={chart}
+                     transitMoonLon={todayPanchang?.moonLongitudeSidereal}
                   />
 
                   {activeTab === 'dashboard' && (
@@ -520,7 +539,15 @@ function HomeContent() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', alignItems: 'center' }}>
                         <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem' }}>Planetary Micro-Details</h3>
                       </div>
-                      <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} limited={true} />
+                      <GrahaTable 
+                        grahas={chart.grahas} 
+                        vargas={chart.vargas} 
+                        vargaLagnas={chart.vargaLagnas} 
+                        lagnas={chart.lagnas} 
+                        upagrahas={chart.upagrahas} 
+                        activeVarga={activeVarga} 
+                        limited={true} 
+                      />
                     </div>
                   )}
                </div>
@@ -570,21 +597,24 @@ function HomeContent() {
                           </p>
                         </div>
 
-                        <div
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.78rem',
-                            color: 'var(--text-muted)',
-                            padding: '0.5rem 0.75rem',
-                            background: 'var(--surface-2)',
-                            border: '1px solid var(--border-soft)',
-                            borderRadius: 'var(--r-md)',
-                            whiteSpace: 'nowrap',
-                          }}
-                          title="Birth Moon Nakshatra"
-                        >
-                          Moon: {chart.panchang.nakshatra.name}
-                        </div>
+                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <ProgressionWidget birthDate={chart.meta.birthDate} />
+                            <div
+                              style={{
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '0.78rem',
+                                color: 'var(--text-muted)',
+                                padding: '0.5rem 0.75rem',
+                                background: 'var(--surface-2)',
+                                border: '1px solid var(--border-soft)',
+                                borderRadius: 'var(--r-md)',
+                                whiteSpace: 'nowrap',
+                              }}
+                              title="Birth Moon Nakshatra"
+                            >
+                              Moon: {chart.panchang.nakshatra.name}
+                            </div>
+                         </div>
                       </div>
 
                        <PersonalDayCard 
@@ -593,6 +623,12 @@ function HomeContent() {
                          latitude={chart.meta.latitude}
                          longitude={chart.meta.longitude}
                          timezone={chart.meta.timezone}
+                         todayPanchang={todayPanchang}
+                       />
+
+                       <ActiveHousesCard 
+                         chart={chart} 
+                         transitMoonLon={todayPanchang?.moonLongitudeSidereal}
                        />
                        
                        <div className="card" style={{ padding: '1.25rem' }}>

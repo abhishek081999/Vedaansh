@@ -138,7 +138,8 @@ function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.55rem' }}>
       {items.map(({ key, label, desc }) => {
-        const rashi = (arudhas as unknown as Record<string, number>)[key]
+        const dataKey = key === 'UL' ? 'A12' : key
+        const rashi = (arudhas as unknown as Record<string, number>)[dataKey]
         if (!rashi) return null
         return (
           <div key={key} style={{
@@ -179,6 +180,7 @@ export default function PublicChartPage() {
   const [error,   setError]   = useState<string | null>(null)
   const [tab,     setTab]     = useState<Tab>('chart')
   const [tabKey,  setTabKey]  = useState(0)
+  const [activeVarga, setActiveVarga] = useState<string>('D1')
 
   function switchTab(t: Tab) { setTab(t); setTabKey(k => k + 1) }
 
@@ -369,13 +371,20 @@ export default function PublicChartPage() {
                   lagnas={chart.lagnas}
                   arudhas={chart.arudhas}
                   userPlan="free"
+                  onActiveVargaChange={setActiveVarga}
                   moonNakIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0}
                 />
               )}
 
               {tab === 'planets' && (
                 <div className="card">
-                  <GrahaTable grahas={chart.grahas} />
+                  <GrahaTable 
+                    grahas={chart.grahas} 
+                    vargas={chart.vargas} 
+                    vargaLagnas={chart.vargaLagnas}
+                    lagnas={chart.lagnas}
+                    activeVarga={activeVarga}
+                  />
                 </div>
               )}
 

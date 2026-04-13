@@ -49,7 +49,7 @@ function dashaIndex(lord: GrahaId): number {
 export function calcVimshottari(
   moonLonSidereal: number,
   birthDate: Date,
-  depth: number = 4,
+  depth: number = 6,
   startTaraGraha?: GrahaId,
 ): DashaNode[] {
   // ── Step 1: Find birth Nakshatra and lord ────────────────

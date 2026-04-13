@@ -2,7 +2,9 @@
 'use client'
 import { useState } from 'react'
 import { ChakraSelector } from './ChakraSelector'
-import type { GrahaData, Rashi, UserPlan, ArudhaData } from '@/types/astrology'
+import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
+import { calcArudhaOutput } from '@/lib/engine/arudhas'
+import { getActiveHouses } from '@/lib/engine/activeHouses'
 
 interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'gold'|'platinum' }
 
@@ -32,10 +34,13 @@ function isUnlocked(meta: VargaMeta, plan: UserPlan) { return planLevel(plan)>=t
 
 interface Props {
   vargas: Record<string,GrahaData[]>; vargaLagnas: Record<string,Rashi>
-  lagnas?: import('@/types/astrology').LagnaData
+  lagnas?: LagnaData
   ascRashi: Rashi; arudhas?: ArudhaData; userPlan?: UserPlan
   size?: number; moonNakIndex?: number; tithiNumber?: number; varaNumber?: number
   transitGrahas?: GrahaData[]; direction?: 'grid'|'column'
+  onActiveVargaChange?: (v: string) => void
+  chart?: ChartOutput
+  transitMoonLon?: number
 }
 
 function Pill({ meta, plan, state, onClick }: {
@@ -90,7 +95,8 @@ function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'gold'|'blue' }
 export function VargaSwitcher({
   vargas, vargaLagnas, ascRashi, arudhas, userPlan='free', lagnas,
   size=500, moonNakIndex=0, tithiNumber=1, varaNumber=0,
-  transitGrahas=[], direction='grid',
+  transitGrahas=[], direction='grid', onActiveVargaChange,
+  chart, transitMoonLon,
 }: Props) {
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
   const available = VARGA_META.filter(v => v.name in vargas || v.tier==='free')
@@ -100,10 +106,14 @@ export function VargaSwitcher({
     const name = meta.name
     if (selected.includes(name)) {
       if (selected.length > 1 && name !== 'D1') {
-        setSelected(p => p.filter(n => n !== name))
+        const newSelected = selected.filter(n => n !== name)
+        setSelected(newSelected)
+        if (onActiveVargaChange) onActiveVargaChange(newSelected[0])
       }
     } else {
-      setSelected(p => [...p, name])
+      const newSelected = [...selected, name]
+      setSelected(newSelected)
+      if (onActiveVargaChange) onActiveVargaChange(name)
     }
   }
 
@@ -162,6 +172,16 @@ export function VargaSwitcher({
         {visible.map((name, idx) => {
           const meta = VARGA_META.find(v => v.name === name) ?? { name, full:name, topic:'', tier:'free' as const }
           const { grahas, varAscRashi } = chartProps(name)
+          
+          // Calculate varga-specific arudhas
+          // Use calcArudhaOutput directly here if it supports any sign as ascRashi
+          const vArudhasRaw = calcArudhaOutput(varAscRashi, grahas)
+          const vArudhas: ArudhaData = {
+            ...vArudhasRaw,
+            suryaArudhas: {},
+            chandraArudhas: {}
+          }
+
           return (
             <div key={name} className="fade-up" style={{
               padding:'1.25rem', background:'var(--surface-1)',
@@ -172,9 +192,11 @@ export function VargaSwitcher({
               <div style={{ display:'flex',justifyContent:'center',marginTop:'1rem' }}>
                 <ChakraSelector
                   ascRashi={varAscRashi} grahas={grahas} size={360}
-                  userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={arudhas}
+                  vargaName={name}
+                  userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={vArudhas}
                   transitGrahas={name === 'D1' ? transitGrahas : []} moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}
+                  highlightHouses={chart ? getActiveHouses(chart, transitMoonLon, grahas, { ...lagnas!, ascRashi: varAscRashi }) : []}
                 />
               </div>
             </div>
