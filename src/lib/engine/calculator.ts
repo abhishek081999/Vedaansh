@@ -205,6 +205,10 @@ function vargaNamesForPlan(plan: UserPlan): VargaName[] {
   return ALL_VARGAS
 }
 
+function dashaDepthForPlan(plan: UserPlan): number {
+  return plan === 'free' ? 4 : 6
+}
+
 // ── Main export ───────────────────────────────────────────────
 
 export async function calculateChart(
@@ -346,7 +350,7 @@ export async function calculateChart(
   })
 
   // Dashas
-  const dashaDepth = 6
+  const dashaDepth = dashaDepthForPlan(plan)
   const vimshottari = calcVimshottari(moon.lonSidereal, birthUtc, dashaDepth)
 
   // Panchang
