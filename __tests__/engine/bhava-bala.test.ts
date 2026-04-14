@@ -5,7 +5,7 @@ import { calculateShadbala } from '@/lib/engine/shadbala'
 import { toJulianDay, getPlanetPosition, getAyanamsha, toSidereal, SWISSEPH_IDS, ketuLongitude } from '@/lib/engine/ephemeris'
 import { calcHouses } from '@/lib/engine/houses'
 import { getDignity } from '@/lib/engine/dignity'
-import type { GrahaId, Rashi } from '@/types/astrology'
+import type { GrahaId, Rashi, LagnaData } from '@/types/astrology'
 
 describe('Bhava Bala Engine', () => {
   // Setup J2000 Chart for Delhi
@@ -50,7 +50,15 @@ const J2000_DATE = '2000-01-01T12:00:00Z'
     }
   })
 
-  const lagnaData = calcHouses(jd, lat, lon, ayanMode, 'whole_sign')
+  const houses = calcHouses(jd, lat, lon, ayanMode, 'whole_sign')
+  const lagnaData: LagnaData = {
+    ascDegree: houses.ascendantSidereal,
+    ascRashi: houses.ascRashi,
+    ascDegreeInRashi: houses.ascDegreeInRashi,
+    mcDegree: houses.mcSidereal,
+    horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0, pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+    cusps: houses.cuspsSidereal
+  }
   const birthUtc = new Date(J2000_DATE)
   const sunrise = new Date(J2000_DATE)
   sunrise.setUTCHours(1, 4, 0) // Dummy sunrise

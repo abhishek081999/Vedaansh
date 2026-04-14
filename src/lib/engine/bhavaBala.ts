@@ -85,7 +85,7 @@ export function calculateBhavaBala(
 ): BhavaBalaResult {
   const houses: Record<number, BhavaBalaHouse> = {}
   
-  const ascDegree = lagnas.ascendantSidereal
+  const ascDegree = lagnas.ascDegree
   const ascRashi = lagnas.ascRashi
   
   // Peak points for Digbala (Middle of each house)
