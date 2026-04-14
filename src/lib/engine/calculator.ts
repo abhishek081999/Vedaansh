@@ -60,6 +60,7 @@ import { checkPushkara } from './pushkara'
 import { checkMrityuBhaga } from './mrityuBhaga'
 import { calculateYogiPoint } from './yogiPoint'
 import { buildChartInterpretation } from './advancedInterpretation'
+import { calculateBhavaBala } from './bhavaBala'
 
 // ── Input ─────────────────────────────────────────────────────
 
@@ -341,6 +342,7 @@ export async function calculateChart(
     moon.totalDegree,
     sun.totalDegree,
   ) as ShadbalaResult)
+  const bhavaBala = calculateBhavaBala(shadbala, grahas, lagnaData)
   const interpretation = buildChartInterpretation({
     grahas,
     shadbala,
@@ -417,6 +419,7 @@ export async function calculateChart(
     upagrahas: {},
     shadbala,
     vimsopaka,
+    bhavaBala,
     ashtakavarga: calculateAshtakavarga(grahas, lagnaData),
     yogas: detectYogas(grahas, lagnaData),
     yogiPoint,

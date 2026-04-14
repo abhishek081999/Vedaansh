@@ -21,6 +21,7 @@ const AshtakavargaGrid = dynamic(() => import('@/components/ui/AshtakavargaGrid'
 const YogaList = dynamic(() => import('@/components/ui/YogaList').then(m => m.YogaList), { ssr: false })
 const TransitOverlay = dynamic(() => import('@/components/ui/TransitOverlay').then(m => m.TransitOverlay), { ssr: false })
 const ShadbalaTable = dynamic(() => import('@/components/ui/ShadbalaTable').then(m => m.ShadbalaTable), { ssr: false })
+const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').then(m => m.BhavaBalaTable), { ssr: false })
 const VimsopakaBalaPanel = dynamic(() => import('@/components/ui/VimsopakaBalaPanel').then(m => m.VimsopakaBalaPanel), { ssr: false })
 const PlanetsWorkspace = dynamic(() => import('@/components/ui/PlanetsWorkspace').then(m => m.PlanetsWorkspace), { ssr: false })
 const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
@@ -868,6 +869,34 @@ function HomeContent() {
                     </div>
                   )}
 
+                   {activeTab === 'bhava-bala' && (
+                    <div className="card fade-up" style={{ padding: '1rem' }}>
+                      <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>
+                        Bhāva Bala Quick Widget
+                      </div>
+                      {chart.bhavaBala ? (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--teal)' }}>
+                              {chart.bhavaBala.houses[chart.bhavaBala.strongestHouse].totalRupa.toFixed(1)} R
+                            </div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Strongest: H{chart.bhavaBala.strongestHouse}</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--rose)' }}>
+                              {chart.bhavaBala.houses[chart.bhavaBala.weakestHouse].totalRupa.toFixed(1)} R
+                            </div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Weakest: H{chart.bhavaBala.weakestHouse}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
+                          Bhava Bala data unavailable.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {activeTab === 'vimsopaka' && (
                     <div className="card fade-up" style={{ padding: '1rem' }}>
                       <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>
@@ -905,6 +934,17 @@ function HomeContent() {
                    {chart.shadbala
                      ? <ShadbalaTable shadbala={chart.shadbala} />
                      : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Recalculate chart to see Shadbala.</div>
+                   }
+                 </div>
+               )}
+
+               {/* BOTTOM: Full-width Bhava Bala below charts */}
+               {activeTab === 'bhava-bala' && (
+                 <div className="card fade-up" style={{ padding: '1.25rem', marginTop: '1.5rem' }}>
+                   <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Bhāva Bala — House Strength</div>
+                   {chart.bhavaBala
+                     ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
+                     : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Recalculate chart to see Bhava Bala.</div>
                    }
                  </div>
                )}

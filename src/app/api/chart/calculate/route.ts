@@ -79,8 +79,9 @@ function hasAdvancedFeatures(chartData: any): boolean {
   // Check for yogiPoint
   const hasYogiPoint = !!chartData.yogiPoint
   const hasInterpretation = !!chartData.interpretation && Array.isArray(chartData.interpretation?.topInsights)
+  const hasBhavaBala = !!chartData.bhavaBala
   
-  return hasGrahaFeatures && hasYogiPoint && hasInterpretation
+  return hasGrahaFeatures && hasYogiPoint && hasInterpretation && hasBhavaBala
 }
 
 // ── Timezone conversion ───────────────────────────────────────

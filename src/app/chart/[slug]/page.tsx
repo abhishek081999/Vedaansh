@@ -19,6 +19,9 @@ import { ShadbalaTable }    from '@/components/ui/ShadbalaTable'
 import { VimsopakaBalaPanel } from '@/components/ui/VimsopakaBalaPanel'
 import { ThemeToggle }      from '@/components/ui/ThemeToggle'
 import { InterpretationPanel } from '@/components/ui/InterpretationPanel'
+import dynamic from 'next/dynamic'
+
+const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').then(m => m.BhavaBalaTable), { ssr: false })
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES }      from '@/types/astrology'
 
@@ -42,7 +45,7 @@ interface Branding {
   brandLogo: string | null
 }
 
-type Tab = 'chart' | 'planets' | 'interpretation' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'vimsopaka'
+type Tab = 'chart' | 'planets' | 'interpretation' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'bhava-bala' | 'vimsopaka'
 
 const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'chart',   label: 'Chart',    emoji: '◯' },
@@ -50,6 +53,7 @@ const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'interpretation', label: 'Interpretation', emoji: '✧' },
   { id: 'dasha',   label: 'Daśā',     emoji: '⏳' },
   { id: 'shadbala',label: 'Ṣaḍbala',  emoji: '⚖' },
+  { id: 'bhava-bala', label: 'Bhāva Bala', emoji: '⌗' },
   { id: 'vimsopaka',label: 'Viṁśopaka',emoji: '⑳' },
   { id: 'panchang',label: 'Pañcāṅga', emoji: '📅' },
   { id: 'arudhas', label: 'Āruḍhas',  emoji: '☯' },
@@ -474,6 +478,19 @@ export default function PublicChartPage() {
                 <div className="card">
                   <div className="label-caps" style={{ marginBottom: '1rem' }}>Ṣaḍbala — Six-fold Strength</div>
                   <ShadbalaTable shadbala={chart.shadbala} />
+                </div>
+              )}
+
+              {tab === 'bhava-bala' && (
+                <div className="card">
+                  <div className="label-caps" style={{ marginBottom: '1rem' }}>Bhāva Bala — House Strength</div>
+                  {chart.bhavaBala ? (
+                    <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                      Bhava Bala is unavailable for this chart.
+                    </div>
+                  )}
                 </div>
               )}
 
