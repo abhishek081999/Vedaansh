@@ -11,6 +11,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import Image from 'next/image'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { GrahaTable }    from '@/components/ui/GrahaTable'
 import { DashaTree }     from '@/components/dasha/DashaTree'
@@ -248,7 +249,14 @@ export default function PublicChartPage() {
       }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
           {branding?.brandLogo ? (
-            <img src={branding.brandLogo} alt={branding.brandName || 'Brand'} style={{ height: '1.8rem', width: 'auto' }} />
+            <Image 
+              src={branding.brandLogo} 
+              alt={branding.brandName || 'Brand'} 
+              style={{ height: '1.8rem', width: 'auto' }} 
+              height={28}
+              width={100}
+              unoptimized
+            />
           ) : (
             <>
               <span style={{ fontSize: '1.3rem' }}>🪐</span>
