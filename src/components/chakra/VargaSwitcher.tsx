@@ -5,6 +5,7 @@ import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
 import { calcArudhaOutput } from '@/lib/engine/arudhas'
 import { getActiveHouses } from '@/lib/engine/activeHouses'
+import { getVargaPosition } from '@/lib/engine/vargas'
 
 interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'gold'|'platinum' }
 
@@ -38,6 +39,7 @@ interface Props {
   ascRashi: Rashi; arudhas?: ArudhaData; userPlan?: UserPlan
   size?: number; moonNakIndex?: number; tithiNumber?: number; varaNumber?: number
   transitGrahas?: GrahaData[]; direction?: 'grid'|'column'
+  comparisonGrahas?: GrahaData[] // partner chart
   onActiveVargaChange?: (v: string) => void
   chart?: ChartOutput
   transitMoonLon?: number
@@ -96,7 +98,7 @@ export function VargaSwitcher({
   vargas, vargaLagnas, ascRashi, arudhas, userPlan='free', lagnas,
   size=500, moonNakIndex=0, tithiNumber=1, varaNumber=0,
   transitGrahas=[], direction='grid', onActiveVargaChange,
-  chart, transitMoonLon,
+  chart, transitMoonLon, comparisonGrahas = [],
 }: Props) {
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
   const available = VARGA_META.filter(v => v.name in vargas || v.tier==='free')
@@ -194,7 +196,12 @@ export function VargaSwitcher({
                   ascRashi={varAscRashi} grahas={grahas} size={360}
                   vargaName={name}
                   userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={vArudhas}
-                  transitGrahas={name === 'D1' ? transitGrahas : []} moonNakIndex={moonNakIndex}
+                  transitGrahas={name === 'D1' ? transitGrahas : []} 
+                  comparisonGrahas={comparisonGrahas.length > 0 ? comparisonGrahas.map(g => {
+                    const vPos = getVargaPosition(g.totalDegree, name as any)
+                    return { ...g, totalDegree: vPos.totalDegree, degree: vPos.degree, rashi: vPos.rashi as Rashi }
+                  }) : []}
+                  moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}
                   highlightHouses={chart ? getActiveHouses(chart, transitMoonLon, grahas, { ...lagnas!, ascRashi: varAscRashi }) : []}
                 />

@@ -82,6 +82,7 @@ interface NorthIndianProps {
   arudhas?: ArudhaData
   lagnas?: LagnaData
   transitGrahas?: GrahaData[]   // optional transit planets overlay
+  comparisonGrahas?: GrahaData[] // partner chart overlay for synastry
   interactive?: boolean
   onHouseClick?: (house: number) => void
   fontScale?: number
@@ -103,6 +104,7 @@ export function NorthIndianChakra({
   arudhas,
   lagnas,
   transitGrahas,
+  comparisonGrahas,
   interactive = false,
   onHouseClick,
   fontScale      = 1.0,
@@ -173,6 +175,16 @@ export function NorthIndianChakra({
       const tHouse = ((tg.rashi - ascRashi + 12) % 12) + 1
       if (!tByHouse[tHouse]) tByHouse[tHouse] = []
       tByHouse[tHouse].push(tg)
+    }
+  }
+
+  // ── Comparison planets by house ──────────────────────────────
+  const cByHouse: Record<number, GrahaData[]> = {}
+  if (comparisonGrahas) {
+    for (const cg of comparisonGrahas) {
+      const cHouse = ((cg.rashi - ascRashi + 12) % 12) + 1
+      if (!cByHouse[cHouse]) cByHouse[cHouse] = []
+      cByHouse[cHouse].push(cg)
     }
   }
 
@@ -278,16 +290,17 @@ export function NorthIndianChakra({
         const aFont = Math.round(Math.min(plFont * 0.82, S * 0.028) * arudhaScale)
 
         const tPlanetsInSelf = tByHouse[h] ?? []
+        const cPlanetsInSelf = cByHouse[h] ?? []
         const hasTransits = tPlanetsInSelf.length > 0
+        const hasComparison = cPlanetsInSelf.length > 0
 
         // Total height of planet block + arudha block — centre it in plArea
         const totalPlH = rows * lineH
         const totalAH = numARows > 0 ? (aFont * 0.7 + (numARows - 1) * aFont * 1.3) : 0
         const totalContentH = totalPlH + totalAH
 
-        // ── Vertical alignment logic ──
-        // Keep natal planets in the top half if transits exist
-        const plBlockTopY = hasTransits
+        // Keep natal planets in the top half if transits/comparison exist
+        const plBlockTopY = (hasTransits || hasComparison)
           ? plAreaTop + (plAreaH * 0.05)
           : plAreaTop + Math.max(0, (plAreaH - totalContentH) / 2)
 
@@ -452,6 +465,35 @@ export function NorthIndianChakra({
                       {NAKSHATRA_SHORT[tg.nakshatraIndex]}
                     </text>
                   )}
+                </g>
+               )
+            })}
+
+            {/* ── Comparison planet overlay (Synastry) ── */}
+            {hasComparison && cPlanetsInSelf.map((cg, ci) => {
+               const cFont = S * 0.024 * fontScale * planetScale
+               const col = ci % 2
+               const row = Math.floor(ci / 2)
+               const offX = (cPlanetsInSelf.length > 1) ? (col === 0 ? -S * 0.05 : S * 0.05) : 0
+               
+               // Offset from bottom, above transits if they exist
+               const vBase = hasTransits ? 0.75 : 0.90
+               const ty = plAreaTop + plAreaH * vBase + (row * cFont * 1.1)
+
+               return (
+                <g key={`compare-${cg.id}-${ci}`}>
+                  <text
+                    x={gcx + offX}
+                    y={ty}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={Math.round(cFont)}
+                    fontWeight={800}
+                    fontFamily="var(--font-mono)"
+                    fill={cg.isRetro ? 'var(--rose)' : 'var(--text-gold)'}
+                  >
+                    {cg.id}{cg.isRetro ? '℞' : ''}{showDegrees ? Math.floor(cg.degree) : ''}
+                  </text>
                 </g>
                )
             })}

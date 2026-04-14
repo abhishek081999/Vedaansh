@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
+import { calcTaraBala, calcChandraBala } from '@/lib/engine/muhurtaPersonal'
 
 // ── Types ─────────────────────────────────────────────────────
 interface DayPanchang {
@@ -40,6 +41,10 @@ interface MuhurtaResult {
   avoid:   string[]        // Inauspicious times to avoid
   reasons: string[]        // Why this day is good/bad
   panchang: DayPanchang
+  personal?: {
+    taraBala:    { name: string; score: number; desc: string }
+    chandraBala: { position: number; score: number; desc: string }
+  }
 }
 
 // ── Purpose definitions ───────────────────────────────────────
@@ -105,7 +110,7 @@ const PURPOSE_RULES: Record<string, {
 }
 
 // ── Scoring function ──────────────────────────────────────────
-function scorePanchang(p: DayPanchang, purpose: string): MuhurtaResult {
+function scorePanchang(p: DayPanchang, purpose: string, natal?: { moonNak: number; moonSign: number }): MuhurtaResult {
   const rules = PURPOSE_RULES[purpose] ?? PURPOSE_RULES.general
   let score = 50
   const reasons: string[] = []
@@ -143,11 +148,30 @@ function scorePanchang(p: DayPanchang, purpose: string): MuhurtaResult {
   // Sunrise window (morning is generally auspicious)
   windows.push(`Morning window: ${fmtTime(p.sunrise)} – ${addMinutes(p.sunrise, 96)}`)
 
+  // Personal Bala
+  let personal: MuhurtaResult['personal'] = undefined
+  if (natal) {
+    const tb = calcTaraBala(natal.moonNak, p.nakshatra.index)
+    const cb = calcChandraBala(natal.moonSign, Math.floor(p.moonLongitudeSidereal / 30) + 1)
+    
+    personal = {
+      taraBala: { name: tb.name, score: tb.score, desc: tb.desc },
+      chandraBala: { position: cb.position, score: cb.score, desc: cb.desc }
+    }
+
+    // Adjust score based on personal factors
+    // Tara Bala weight: 20 pts, Chandra Bala weight: 15 pts
+    score += (tb.score / 100) * 20
+    score += (cb.score / 100) * 15
+    reasons.push(`${tb.quality === 'good' ? '✓' : '✗'} Tara Bala: ${tb.name} (${tb.desc})`)
+    reasons.push(`${cb.quality === 'good' ? '✓' : '✗'} Chandra Bala: ${cb.position} from Moon (${cb.desc})`)
+  }
+
   score = Math.max(0, Math.min(100, score))
   const grade: 'A' | 'B' | 'C' | 'D' =
     score >= 75 ? 'A' : score >= 55 ? 'B' : score >= 35 ? 'C' : 'D'
 
-  return { date: p.date, score, grade, windows, avoid, reasons, panchang: p }
+  return { date: p.date, score, grade, windows, avoid, reasons, panchang: p, personal }
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -250,6 +274,19 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
               <div key={a} style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', paddingLeft: 8 }}>{a}</div>
             ))}
           </div>
+          {/* Personal Highlights */}
+          {result.personal && (
+             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.4rem' }}>
+                <div style={{ padding: '0.5rem', background: 'var(--surface-3)', borderRadius: '6px' }}>
+                   <div style={{ fontSize: '0.6rem', opacity: 0.6, textTransform: 'uppercase' }}>Tara Bala</div>
+                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: result.personal.taraBala.score > 50 ? 'var(--teal)' : 'var(--rose)' }}>{result.personal.taraBala.name}</div>
+                </div>
+                <div style={{ padding: '0.5rem', background: 'var(--surface-3)', borderRadius: '6px' }}>
+                   <div style={{ fontSize: '0.6rem', opacity: 0.6, textTransform: 'uppercase' }}>Chandra Bala</div>
+                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: result.personal.chandraBala.score > 50 ? 'var(--teal)' : 'var(--rose)' }}>{result.personal.chandraBala.position}th Pos</div>
+                </div>
+             </div>
+          )}
           {/* Reasons */}
           <div style={{ borderTop: '1px solid var(--border-soft)', paddingTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {result.reasons.map(r => (
@@ -296,6 +333,11 @@ export default function MuhurtaPage() {
 
     // Collect all dates in range
     const dates: string[] = []
+    const natal = chart ? { 
+      moonNak: chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0,
+      moonSign: chart.grahas.find(g => g.id === 'Mo')?.rashi ?? 1
+    } : undefined
+
     let d = fromDate
     while (d <= toDate && dates.length < 60) {   // max 60 days
       dates.push(d)
@@ -312,7 +354,7 @@ export default function MuhurtaPage() {
           const res  = await fetch(`/api/panchang?date=${date}&lat=${location.lat}&lng=${location.lng}&tz=${encodeURIComponent(location.tz)}`)
           const json = await res.json()
           if (json.success) {
-            const result = scorePanchang(json.data, purpose)
+            const result = scorePanchang(json.data, purpose, natal)
             scored.push(result)
           }
         } catch { /* skip failed days */ }

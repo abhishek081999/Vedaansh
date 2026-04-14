@@ -27,6 +27,67 @@ const ZONES_16 = [
   { id: 'NNW',  name: 'North-North-West', ruling: 'Me', element: 'Air',   quality: 'Attraction, Sex', angle: 337.5 },
 ]
 
+// 45 Deities Mapping (Name, x, y, w, h)
+// Outer 32 (Perimeter)
+const DEITY_MAP = [
+  // North Edge (East to West)
+  { id: 'shikhi', name: 'Shikhi', x: 8, y: 0, w: 1, h: 1, ang: [33.75, 45] },
+  { id: 'parjanya', name: 'Parjanya', x: 7, y: 0, w: 1, h: 1, ang: [45, 56.25] },
+  { id: 'jayant', name: 'Jayant', x: 6, y: 0, w: 1, h: 1, ang: [56.25, 67.5] },
+  { id: 'indra', name: 'Indra', x: 5, y: 0, w: 1, h: 1, ang: [67.5, 78.75] },
+  { id: 'surya', name: 'Surya', x: 4, y: 0, w: 1, h: 1, ang: [78.75, 90] },
+  { id: 'satya', name: 'Satya', x: 3, y: 0, w: 1, h: 1, ang: [90, 101.25] },
+  { id: 'bhrisha', name: 'Bhrisha', x: 2, y: 0, w: 1, h: 1, ang: [101.25, 112.5] },
+  { id: 'antariksh', name: 'Antariksh', x: 1, y: 0, w: 1, h: 1, ang: [112.5, 123.75] },
+  
+  // East Edge (North to South)
+  { id: 'agni', name: 'Agni', x: 8, y: 1, w: 1, h: 1, ang: [123.75, 135] },
+  { id: 'pusha', name: 'Pusha', x: 8, y: 2, w: 1, h: 1, ang: [135, 146.25] },
+  { id: 'vitatha', name: 'Vitatha', x: 8, y: 3, w: 1, h: 1, ang: [146.25, 157.5] },
+  { id: 'grihakshat', name: 'Grihakshat', x: 8, y: 4, w: 1, h: 1, ang: [157.5, 168.75] },
+  { id: 'yama', name: 'Yama', x: 8, y: 5, w: 1, h: 1, ang: [168.75, 180] },
+  { id: 'gandharv', name: 'Gandharv', x: 8, y: 6, w: 1, h: 1, ang: [180, 191.25] },
+  { id: 'bhringraj', name: 'Bhringraj', x: 8, y: 7, w: 1, h: 1, ang: [191.25, 202.5] },
+  { id: 'mrigha', name: 'Mrigha', x: 8, y: 8, w: 1, h: 1, ang: [202.5, 213.75] },
+
+  // South Edge (West to East)
+  { id: 'pitru', name: 'Pitr', x: 1, y: 8, w: 1, h: 1, ang: [213.75, 225] },
+  { id: 'dauvarik', name: 'Dauvarik', x: 2, y: 8, w: 1, h: 1, ang: [225, 236.25] },
+  { id: 'sugriv', name: 'Sugriv', x: 3, y: 8, w: 1, h: 1, ang: [236.25, 247.5] },
+  { id: 'pushpadant', name: 'Pushpadant', x: 4, y: 8, w: 1, h: 1, ang: [247.5, 258.75] },
+  { id: 'varun', name: 'Varun', x: 5, y: 8, w: 1, h: 1, ang: [258.75, 270] },
+  { id: 'asur', name: 'Asur', x: 6, y: 8, w: 1, h: 1, ang: [270, 281.25] },
+  { id: 'shosh', name: 'Shosh', x: 7, y: 8, w: 1, h: 1, ang: [281.25, 292.5] },
+  { id: 'papiyaksha', name: 'Papiyaksha', x: 0, y: 8, w: 1, h: 1, ang: [292.5, 303.75] },
+
+  // West Edge (South to North)
+  { id: 'roga', name: 'Roga', x: 0, y: 7, w: 1, h: 1, ang: [303.75, 315] },
+  { id: 'naga', name: 'Naga', x: 0, y: 6, w: 1, h: 1, ang: [315, 326.25] },
+  { id: 'mukhya', name: 'Mukhya', x: 0, y: 5, w: 1, h: 1, ang: [326.25, 337.5] },
+  { id: 'bhallat', name: 'Bhallat', x: 0, y: 4, w: 1, h: 1, ang: [337.5, 348.75] },
+  { id: 'soma', name: 'Soma', x: 0, y: 3, w: 1, h: 1, ang: [348.75, 360] },
+  { id: 'bhujag', name: 'Bhujag', x: 0, y: 2, w: 1, h: 1, ang: [0, 11.25] },
+  { id: 'aditi', name: 'Aditi', x: 0, y: 1, w: 1, h: 1, ang: [11.25, 22.5] },
+  { id: 'diti', name: 'Diti', x: 0, y: 0, w: 1, h: 1, ang: [22.5, 33.75] },
+
+  // Inner Deities (The 12)
+  { id: 'apah', name: 'Apah', x: 7, y: 1, w: 1, h: 1, ang: [45, 90], inner: true },
+  { id: 'apah_vatsa', name: 'Apah-vatsa', x: 7, y: 2, w: 1, h: 1, ang: [45, 90], inner: true },
+  { id: 'aryama', name: 'Aryama', x: 7, y: 3, w: 1, h: 3, ang: [90, 135], inner: true },
+  { id: 'savita', name: 'Savita', x: 7, y: 6, w: 1, h: 1, ang: [90, 135], inner: true },
+  { id: 'savitra', name: 'Savitra', x: 7, y: 7, w: 1, h: 1, ang: [90, 135], inner: true },
+  { id: 'vivaswan', name: 'Vivaswan', x: 3, y: 7, w: 3, h: 1, ang: [180, 225], inner: true },
+  { id: 'indra_inner', name: 'Indra', x: 2, y: 7, w: 1, h: 1, ang: [180, 225], inner: true },
+  { id: 'jaya', name: 'Jaya', x: 1, y: 7, w: 1, h: 1, ang: [180, 225], inner: true },
+  { id: 'mitra', name: 'Mitra', x: 1, y: 3, w: 1, h: 3, ang: [270, 315], inner: true },
+  { id: 'rudra', name: 'Rudra', x: 1, y: 2, w: 1, h: 1, ang: [270, 315], inner: true },
+  { id: 'rajayakshma', name: 'Rājapaksha', x: 1, y: 1, w: 1, h: 1, ang: [270, 315], inner: true },
+  { id: 'prithvi_dhara', name: 'Prithvi-dhara', x: 3, y: 1, w: 3, h: 1, ang: [0, 45], inner: true },
+
+  // Center
+  { id: 'brahma', name: 'BRAHMA', x: 3, y: 3, w: 3, h: 3, ang: [0, 360], center: true },
+]
+
 const ZONES_8 = [
   { id: 'N',    name: 'North',            ruling: 'Me', element: 'Water', quality: 'Opportunities, Career', angle: 0 },
   { id: 'NE',   name: 'North-East',       ruling: 'Ju', element: 'Water', quality: 'Wisdom, Clarity', angle: 45 },
@@ -42,6 +103,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
   const { grahas } = chart
   const [mode, setMode] = useState<'8' | '16'>('16')
   const [selectedZone, setSelectedZone] = useState<string | null>(null)
+  const [selectedDeity, setSelectedDeity] = useState<string | null>(null)
 
   const activeZones = mode === '16' ? ZONES_16 : ZONES_8
   const sectorAngle = mode === '16' ? 22.5 : 45
@@ -568,85 +630,229 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '2rem' }}>
         
         {/* 45 Deities (Devatas) Grid Analysis */}
-        <div className="card" style={{ padding: '2rem' }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
-                <span>💠</span> 45 Deities (Vāstu Purusha Mandala)
-              </h3>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: 'var(--surface-3)', padding: '2px 8px', borderRadius: '4px' }}>EKASHITI PADA</span>
+        <div className="card" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <div>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
+                  <span>💠</span> 45 Deities (Vāstu Puruṣa Mandala)
+                </h3>
+                <p style={{ margin: '0.4rem 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Interactive 81-pada grid (Ekashitipada) showing internal energy fields and planetary hits.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.7rem' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><span style={{ width: 8, height: 8, background: 'var(--teal)', borderRadius: 2 }}></span> Blessed</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><span style={{ width: 8, height: 8, background: 'var(--rose)', borderRadius: 2 }}></span> Afflicted</span>
+                </div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: 'var(--surface-3)', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--border-soft)' }}>EKASHITI PADA</span>
+              </div>
            </div>
            
-           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '0.5rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-              {(() => {
-                // Precise 45 Deity Mapping (Simplifying Square to 360-degree radial for dashboard)
-                const DEITIES = [
-                  { name: 'Shikhi', start: 33.75, end: 45, zone: 'NE' },
-                  { name: 'Parjanya', start: 45, end: 56.25, zone: 'NE' },
-                  { name: 'Jayant', start: 56.25, end: 67.5, zone: 'NE' },
-                  { name: 'Indra', start: 67.5, end: 78.75, zone: 'E' },
-                  { name: 'Surya', start: 78.75, end: 90, zone: 'E' },
-                  { name: 'Satya', start: 90, end: 101.25, zone: 'E' },
-                  { name: 'Bhrisha', start: 101.25, end: 112.5, zone: 'E' },
-                  { name: 'Antariksh', start: 112.5, end: 123.75, zone: 'SE' },
-                  { name: 'Agni', start: 123.75, end: 135, zone: 'SE' },
-                  { name: 'Pusha', start: 135, end: 146.25, zone: 'SE' },
-                  { name: 'Vitatha', start: 146.25, end: 157.5, zone: 'S' },
-                  { name: 'Grihakshat', start: 157.5, end: 168.75, zone: 'S' },
-                  { name: 'Yama', start: 168.75, end: 180, zone: 'S' },
-                  { name: 'Gandharv', start: 180, end: 191.25, zone: 'S' },
-                  { name: 'Bhringraj', start: 191.25, end: 202.5, zone: 'SW' },
-                  { name: 'Mrigha', start: 202.5, end: 213.75, zone: 'SW' },
-                  { name: 'Pitru', start: 213.75, end: 225, zone: 'SW' },
-                  { name: 'Dauvarik', start: 225, end: 236.25, zone: 'W' },
-                  { name: 'Sugriv', start: 236.25, end: 247.5, zone: 'W' },
-                  { name: 'Pushpadant', start: 247.5, end: 258.75, zone: 'W' },
-                  { name: 'Varun', start: 258.75, end: 270, zone: 'W' },
-                  { name: 'Asur', start: 270, end: 281.25, zone: 'W' },
-                  { name: 'Shosh', start: 281.25, end: 292.5, zone: 'NW' },
-                  { name: 'Papiyaksha', start: 292.5, end: 303.75, zone: 'NW' },
-                  { name: 'Roga', start: 303.75, end: 315, zone: 'NW' },
-                  { name: 'Naga', start: 315, end: 326.25, zone: 'N' },
-                  { name: 'Mukhya', start: 326.25, end: 337.5, zone: 'N' },
-                  { name: 'Bhallat', start: 337.5, end: 348.75, zone: 'N' },
-                  { name: 'Soma', start: 348.75, end: 360, zone: 'N' },
-                  { name: 'Aditi', start: 0, end: 11.25, zone: 'N' },
-                  { name: 'Diti', start: 11.25, end: 22.5, zone: 'NE' },
-                  { name: 'Brahma', start: 0, end: 360, zone: 'Center' }, // Special handling for center
-                ]
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '3rem', alignItems: 'start' }}>
+              {/* Mandala SVG Grid */}
+              <div style={{ position: 'relative', width: '100%', maxWidth: '550px', margin: '0 auto', aspectRatio: '1' }}>
+                 <svg viewBox="0 0 90 90" style={{ width: '100%', height: '100%', filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.3))' }}>
+                    {(() => {
+                      return (
+                        <>
+                          {/* 81 Padas Grid (Background) */}
+                          <defs>
+                            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="var(--border-soft)" strokeWidth="0.1"/>
+                            </pattern>
+                          </defs>
+                          <rect width="90" height="90" fill="url(#grid)" stroke="var(--border)" strokeWidth="0.5" />
 
-                return DEITIES.map(d => {
-                  // Check for planetary hits in this deity's angle range
-                  const hits = grahas.filter(p => {
-                    const angle = (p.rashi - 1) * 30 + p.degree
-                    if (d.name === 'Brahma') return false // Simplified
-                    return angle >= d.start && angle < d.end
-                  })
+                          {/* Deity Cells */}
+                          {DEITY_MAP.map(d => {
+                            const hits = grahas.filter(p => {
+                              const angle = ((p.rashi - 1) * 30 + p.degree) % 360
+                              if (d.center) return false // Brahma is special
+                              if (d.ang[0] > d.ang[1]) { // Handles crossing 360/0
+                                return angle >= d.ang[0] || angle < d.ang[1]
+                              }
+                              return angle >= d.ang[0] && angle < d.ang[1]
+                            })
+                            const maleficHit = hits.some(h => ['Sa', 'Ra', 'Ke', 'Ma'].includes(h.id))
+                            const beneficHit = hits.some(h => ['Ju', 'Ve', 'Mo', 'Me'].includes(h.id))
+                            const isActive = selectedDeity === d.id
+                            
+                            let color = 'transparent'
+                            if (maleficHit) color = 'var(--rose)'
+                            else if (beneficHit) color = 'var(--teal)'
+                            else if (d.center) color = 'var(--gold)'
 
-                  const maleficHit = hits.some(h => ['Sa', 'Ra', 'Ke', 'Ma'].includes(h.id))
-                  const beneficHit = hits.some(h => ['Ju', 'Ve', 'Mo', 'Me'].includes(h.id))
-                  
-                  let status = 'Neutral'
-                  let color = 'var(--text-muted)'
-                  
-                  if (maleficHit) { status = 'Afflicted'; color = 'var(--rose)' }
-                  else if (beneficHit) { status = 'Blessed'; color = 'var(--teal)' }
+                            return (
+                              <g 
+                                key={d.id} 
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => setSelectedDeity(d.id)}
+                              >
+                                <rect 
+                                  x={d.x * 10} y={d.y * 10} 
+                                  width={d.w * 10} height={d.h * 10}
+                                  fill={color}
+                                  fillOpacity={isActive ? 0.3 : color === 'transparent' ? 0 : 0.15}
+                                  stroke={isActive ? 'var(--gold)' : 'var(--border-soft)'}
+                                  strokeWidth={isActive ? 0.8 : 0.2}
+                                  style={{ transition: 'all 0.2s' }}
+                                />
+                                {d.w >= 1 && d.h >= 1 && (
+                                  <text 
+                                    x={d.x * 10 + (d.w * 5)} 
+                                    y={d.y * 10 + (d.h * 5)} 
+                                    fontSize={d.center ? '4' : '2.2'} 
+                                    textAnchor="middle" 
+                                    dominantBaseline="middle"
+                                    fill={isActive ? 'var(--text-gold)' : 'var(--text-muted)'}
+                                    fontWeight={d.center ? 800 : (isActive || maleficHit || beneficHit ? 700 : 400)}
+                                    style={{ pointerEvents: 'none', transition: 'all 0.2s' }}
+                                  >
+                                    {d.name.substring(0, 10)}
+                                  </text>
+                                )}
+                                {hits.length > 0 && (
+                                  <circle 
+                                    cx={d.x * 10 + (d.w * 10) - 2} 
+                                    cy={d.y * 10 + 2} 
+                                    r="1.2" 
+                                    fill={maleficHit ? 'var(--rose)' : 'var(--teal)'} 
+                                  />
+                                )}
+                              </g>
+                            )
+                          })}
+                        </>
+                      )
+                    })()}
+                 </svg>
+              </div>
 
-                  return (
-                    <div key={d.name} style={{ 
-                      padding: '0.5rem', background: 'var(--surface-2)', borderRadius: '6px', 
-                      border: `1px solid ${color === 'var(--text-muted)' ? 'var(--border-soft)' : color}`,
-                      textAlign: 'center'
-                    }}>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 800 }}>{d.name}</div>
-                      <div style={{ fontSize: '0.55rem', color: color, marginTop: '2px' }}>{status}</div>
-                    </div>
-                  )
-                })
-              })()}
+              {/* Deity Detail Panel */}
+              <div className="card fade-in" style={{ padding: '1.5rem', background: 'var(--surface-2)', border: '1px solid var(--border)', height: '100%', minHeight: '350px' }}>
+                {selectedDeity ? (
+                  (() => {
+                    const DEITY_DESC: Record<string, string> = {
+                      brahma: 'The Absolute Consciousness. Ruling of Center. Anchor for all energy.',
+                      shikhi: 'The point where idea becomes a thought. Pure creative impulse.',
+                      parjanya: 'The rain-giver. Fertilty and creation of life.',
+                      jayant: 'Victorious. Provides momentum to win and succeed.',
+                      indra: 'The King. Management, administration and skill.',
+                      surya: 'Solar power. Integrity, social connection, and visibility.',
+                      satya: 'Truth. Goodwill and social reputation.',
+                      bhrisha: 'The power of focus. Thinking and execution.',
+                      antariksh: 'Inner space. Spiritual realization.',
+                      agni: 'Transformation. Cash flow and confidence.',
+                      pusha: 'Nutrient. Power to nourish and progress.',
+                      vitatha: 'The power of pretending. Use for marketing or acting.',
+                      grihakshat: 'The limit-setter. Managing household and boundaries.',
+                      yama: 'Upholder of Dharma. Rule, order, and social duty.',
+                      gandharv: 'Cosmic music. Bliss, relaxation and entertainment.',
+                      bhringraj: 'Discriminator. Sorting what is needed and what is not.',
+                      mrigha: 'The seeker. Seeking knowledge and curiosity.',
+                      pitru: 'The portal to ancestors. Stability, lineage, and root energy.',
+                      dauvarik: 'Gatekeeper. Filters who enters your life/business.',
+                      sugriv: 'Friend with a good neck. Supportive contacts and networking.',
+                      pushpadant: 'The blossom of teeth. Financial growth and success.',
+                      varun: 'God of cosmic waters. Oversight of all contracts and promises.',
+                      asur: 'The depth of darkness. Secrecy and internal strength.',
+                      shosh: 'The power of drying out. Removes stagnation and heals depression.',
+                      papiyaksha: 'The accumulation of wrong-doings. Mental blocks.',
+                      roga: 'Healing. The point where sickness is overcome.',
+                      naga: 'Connectivity. The desire to reach and interact.',
+                      mukhya: 'The Main door energy. Direction and purpose.',
+                      bhallat: 'The power of abundance. Financial gains and health.',
+                      soma: 'Moon energy. Refreshment and the container of bliss (Soma).',
+                      bhujag: 'Mental strength. Power of endurance.',
+                      aditi: 'Mother of Gods. Security and protection.',
+                      diti: 'The splitter. Power to separate and choose.',
+                      apah: 'Healing water. Immunity and health.',
+                      apah_vatsa: 'The carrier. Carrying ideas into manifestation.',
+                      aryama: 'The noble. Patron of marriage and support.',
+                      savita: 'The stimulator. Starting new things.',
+                      savitra: 'The radiator. Spreading awareness.',
+                      vivaswan: 'The expansive. Social reach and growth.',
+                      indra_inner: 'Executive power. Managing internal affairs.',
+                      jaya: 'Success in skills. Mastering a craft.',
+                      mitra: 'The friend. Universal friendship and calm.',
+                      rudra: 'The transformer. Healing and destruction of old patterns.',
+                      rajayakshma: 'The consumption. Enjoyment of luxury.',
+                      prithvi_dhara: 'The foundation. Support and structure.',
+                    }
+                    // Fetch deity info from the map logic (duplicated here for UI logic but could be refactored)
+                    const d = selectedDeity // This is just the ID
+                    const name = selectedDeity.charAt(0).toUpperCase() + selectedDeity.slice(1).replace('_', ' ')
+                    
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ padding: '4px 10px', background: 'var(--gold-faint)', color: 'var(--text-gold)', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Devatā Detail</div>
+                            {selectedDeity === 'brahma' && <span style={{ fontSize: '1.2rem' }}>☀️</span>}
+                         </div>
+                         
+                         <div>
+                            <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', color: 'var(--text-primary)', fontSize: '1.8rem' }}>{name}</h2>
+                            <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                              {DEITY_DESC[d] || 'A vital energy field in the Vāstu Mandala representing specific cosmic attributes and psychographic influences.'}
+                            </p>
+                         </div>
+
+                         <div className="divider" style={{ opacity: 0.1 }} />
+
+                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Planetary Hit Analysis</div>
+                               {(() => {
+                                  const deityData = DEITY_MAP.find(dm => dm.id === d)
+                                  if (!deityData) return null
+                                  
+                                  const hits = grahas.filter(p => {
+                                     const angle = ((p.rashi - 1) * 30 + p.degree) % 360
+                                     if (deityData.center) return false
+                                     if (deityData.ang[0] > deityData.ang[1]) {
+                                        return angle >= deityData.ang[0] || angle < deityData.ang[1]
+                                     }
+                                     return angle >= deityData.ang[0] && angle < deityData.ang[1]
+                                  })
+
+                                  const maleficHits = hits.filter(h => ['Sa', 'Ra', 'Ke', 'Ma'].includes(h.id))
+                                  const beneficHits = hits.filter(h => ['Ju', 'Ve', 'Mo', 'Me'].includes(h.id))
+                                  
+                                  return (
+                                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        {maleficHits.map(h => (
+                                          <span key={h.id} className="badge badge-rose" style={{ background: 'var(--rose-faint)', color: 'var(--rose)', border: '1px solid var(--rose)' }}>⚠ Afflicted: {h.name}</span>
+                                        ))}
+                                        {beneficHits.map(h => (
+                                          <span key={h.id} className="badge badge-teal" style={{ background: 'var(--teal-faint)', color: 'var(--teal)', border: '1px solid var(--teal)' }}>✓ Blessed: {h.name}</span>
+                                        ))}
+                                        {hits.length === 0 && (
+                                          <span className="badge badge-accent" style={{ background: 'var(--teal-faint)', color: 'var(--teal)', border: '1px solid var(--teal)' }}>✓ No Malefic Affliction</span>
+                                        )}
+                                     </div>
+                                  )
+                               })()}
+                            </div>
+
+                            <div>
+                               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Manifestation</div>
+                               <div style={{ padding: '0.8rem', background: 'var(--surface-3)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  {selectedDeity === 'agni' ? 'Ensures steady wealth and digestion.' : selectedDeity === 'pitru' ? 'Provides family roots and progeny.' : 'Maintains zonal equilibrium.'}
+                                </div>
+                            </div>
+                         </div>
+                      </div>
+                    )
+                  })()
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', opacity: 0.4 }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💠</div>
+                    <p style={{ fontSize: '1rem', fontWeight: 300, maxWidth: '200px' }}>Select a deity on the grid to see detailed properties.</p>
+                  </div>
+                )}
+              </div>
            </div>
-           <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-              Micro-analysis of internal energy fields. &quot;Afflicted&quot; indicates a malefic planet occupying that deity&apos;s specific degree segment.
-           </p>
         </div>
 
         {/* Priority Remedy Checklist */}

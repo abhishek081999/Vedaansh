@@ -39,6 +39,7 @@ const ChartInputSchema = z.object({
   longitude: z.number().min(-180).max(180),
   timezone:  z.string().min(1, 'Timezone is required'),  // IANA e.g. 'Asia/Kolkata'
   settings:  SettingsSchema.default({}),
+  prashnaNumber: z.number().min(1).max(249).optional(),
 })
 
 type ChartInput = z.infer<typeof ChartInputSchema>
@@ -141,6 +142,7 @@ export async function POST(req: NextRequest) {
       input.settings.houseSystem,
       input.settings.karakaScheme,
       input.settings.gulikaMode,
+      input.prashnaNumber || 0,
     )
 
     // Parallelize session check and cache lookup to reduce total latency
@@ -185,6 +187,7 @@ export async function POST(req: NextRequest) {
           longitude:  input.longitude,
           timezone:   input.timezone,
           settings:   input.settings as ChartSettings,
+          prashnaNumber: input.prashnaNumber,
         },
         plan,
       ),

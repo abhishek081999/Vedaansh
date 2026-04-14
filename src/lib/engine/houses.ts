@@ -52,10 +52,19 @@ export function calcHouses(
   lng:  number,
   mode: AyanamshaMode,
   system: HouseSystem = 'whole_sign',
+  fixedSiderealAsc?: number,
 ): HouseData {
   const ayanamsha = getAyanamsha(jd, mode)
   const code = HOUSE_SYSTEM_CODES[system]
 
+  // If fixedSiderealAsc is provided, we need to find the tropical equivalent 
+  // for sweph to calculate other cusps relative to it.
+  // Note: For true KP, the MC and other cusps are still time-dependent, 
+  // but the Ascendant is fixed by the number.
+  let activeJd = jd
+  // If we wanted to shift time to match that Ascendant, we'd need an iterative search.
+  // For now, we'll just calculate standard houses and override the Ascendant.
+  
   // sweph.houses returns { ascendant, mc, cusps: [0, csp1, csp2, ... csp12] }
   const r = sweph.houses(jd, lat, lng, code) as any
   if (r.error) throw new Error(`houses error: ${r.error}`)
@@ -68,7 +77,7 @@ export function calcHouses(
   const ascTropical = r.data?.points?.[0] ?? r.ascendant ?? rawCusps[1]
   const mcTropical  = r.data?.points?.[1] ?? r.mc ?? 0
 
-  const ascSidereal = toSidereal(ascTropical, ayanamsha)
+  const ascSidereal = fixedSiderealAsc !== undefined ? fixedSiderealAsc : toSidereal(ascTropical, ayanamsha)
   const mcSidereal  = toSidereal(mcTropical,  ayanamsha)
 
   // Sidereal cusps

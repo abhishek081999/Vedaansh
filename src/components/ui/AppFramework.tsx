@@ -26,6 +26,7 @@ const ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] =
   { id: 'planets',   label: 'Planets',     icon: '✦', path: '/' },
   { id: 'interpretation', label: 'Interpretation', icon: '✧', path: '/' },
   { id: 'house',     label: 'House',       icon: '🏠', path: '/' },
+  { id: 'roadmap',   label: 'Cosmic Roadmap', icon: '🛣️', path: '/' },
   { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
   { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: '/' },
   { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: '/' },
@@ -44,8 +45,10 @@ const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[
 
 const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'astro-vastu', label: 'Astro Vastu', icon: '🏠', path: '/' },
-  { id: 'varshaphal',   label: 'Varṣaphal',     icon: '☀', path: '/' },
-  { id: 'compare', label: 'Compare Charts', icon: '⇔', path: '/compare' },
+  { id: 'muhurta', label: 'Muhurta Finder', icon: '🕒', path: '/muhurta' },
+  { id: 'prashna', label: 'Prashna (Horary)', icon: '🎯', path: '/prashna' },
+  { id: 'compare', label: 'Synastry Overlay', icon: '⚭', path: '/compare' },
+  { id: 'clients', label: 'CRM / Clients',   icon: '👥', path: '/clients' },
   { id: 'pricing',    label: 'Pricing',         icon: '💎', path: '/pricing' },
   { id: 'my-charts',    label: 'My Charts',     icon: '📚', path: '/my/charts' },
 ]

@@ -61,6 +61,7 @@ import { checkMrityuBhaga } from './mrityuBhaga'
 import { calculateYogiPoint } from './yogiPoint'
 import { buildChartInterpretation } from './advancedInterpretation'
 import { calculateBhavaBala } from './bhavaBala'
+import { getKPSeedDegree } from './kpSeeds'
 
 // ── Input ─────────────────────────────────────────────────────
 
@@ -75,6 +76,7 @@ export interface CalculateChartInput {
   longitude: number
   timezone: string
   settings?: ChartSettings
+  prashnaNumber?: number // KP Horary 1-249
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -231,7 +233,8 @@ export async function calculateChart(
   const sun = grahas.find((g) => g.id === 'Su')!
 
   // Houses
-  const houses = calcHouses(jd, input.latitude, input.longitude, settings.ayanamsha, settings.houseSystem)
+  const fixedAsc = input.prashnaNumber ? getKPSeedDegree(input.prashnaNumber) : undefined
+  const houses = calcHouses(jd, input.latitude, input.longitude, settings.ayanamsha, settings.houseSystem, fixedAsc)
   
 
 

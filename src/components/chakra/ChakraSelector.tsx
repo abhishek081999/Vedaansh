@@ -25,6 +25,7 @@ interface ChakraSelectorProps {
   moonNakIndex?: number    // 0–26
   arudhas?:     ArudhaData  // for Āruḍha overlay
   transitGrahas?: GrahaData[]  // transit planet overlay
+  comparisonGrahas?: GrahaData[] // partner chart overlay
   tithiNumber?:  number    // 1–30
   varaNumber?:   number    // 0=Sun … 6=Sat
   lagnas?:       LagnaData
@@ -61,6 +62,7 @@ export function ChakraSelector({
   size         = 480,
   userPlan     = 'free',
   transitGrahas = [],
+  comparisonGrahas = [],
   vargaName = 'D1',
   highlightHouses = [],
 }: ChakraSelectorProps) {
@@ -140,6 +142,16 @@ export function ChakraSelector({
     
     return lagnas
   }, [lagnas, ascRashi, grahas, vargaName])
+
+  // ── Project Comparison Grahas to correct Varga ──────────────────
+  const displayComparison = React.useMemo(() => {
+    if (!comparisonGrahas.length || vargaName === 'D1') return comparisonGrahas
+    // We assume incoming comparisonGrahas are D1 grahas, so we project them
+    // but looking at how vargas work, we might already have projected them in parent.
+    // However, ChakraSelector usually handles this for the main 'grahas' prop.
+    // If vargaName is not D1, we might need to project comparison grahas.
+    return comparisonGrahas
+  }, [comparisonGrahas, vargaName])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -252,6 +264,7 @@ export function ChakraSelector({
             grahas={showNatal ? displayGrahas : []}
             arudhas={arudhas}
             transitGrahas={transitGrahas}
+            comparisonGrahas={displayComparison}
             showArudha={showArudha}
             size={Math.round(size * chartScale)}
             showDegrees={showDegrees}
@@ -271,6 +284,7 @@ export function ChakraSelector({
             grahas={showNatal ? displayGrahas : []}
             arudhas={showArudha ? arudhas : undefined}
             transitGrahas={transitGrahas}
+            comparisonGrahas={displayComparison}
             size={Math.round(size * chartScale)}
             showDegrees={showDegrees}
             showNakshatra={showNakshatra}
@@ -303,6 +317,7 @@ export function ChakraSelector({
             showDegrees={showDegrees} showNakshatra={showNakshatra}
             showKaraka={showKaraka} showArudha={showArudha}
             arudhas={arudhas} transitGrahas={transitGrahas}
+            comparisonGrahas={displayComparison}
             fontScale={fontScale} planetScale={planetScale}
             lagnas={displayLagnas}
           />

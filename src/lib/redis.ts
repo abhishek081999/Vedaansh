@@ -122,9 +122,10 @@ export function chartCacheKey(
   houseSystem: string,
   karakaScheme: number,
   gulikaMode: string,
+  prashnaNumber: number = 0,
 ): string {
-  // Added v8: prefix to force refresh after full Varga details implementation
-  return `v8:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}`
+  // Added v9: prefix for Prashna seed support
+  return `v9:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 
 export function panchangCacheKey(

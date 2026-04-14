@@ -14,6 +14,7 @@ import { YogaList }      from '@/components/ui/YogaList'
 import type { ChartOutput, GrahaData } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
 import { calculateAshtakoot } from '@/lib/engine/ashtakoot'
+import { CompatibilityDoshaPanel } from '@/components/ui/CompatibilityDoshaPanel'
 
 // ── Compatibility ─────────────────────────────────────────────
 interface CompatItem { label: string; score: number; reason: string }
@@ -144,7 +145,7 @@ function PanchangPanel({ p }: { p: ChartOutput['panchang'] }) {
 const GRAHA_ORDER = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke']
 const GRAHA_SYM: Record<string,string> = { Su:'☀',Mo:'☽',Ma:'♂',Me:'☿',Ju:'♃',Ve:'♀',Sa:'♄',Ra:'☊',Ke:'☋' }
 
-type View = 'compat' | 'charts' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'ashtakoot' | 'all'
+type View = 'compat' | 'doshas' | 'ashtakoot' | 'charts' | 'overlay' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'all'
 
 import { Suspense } from 'react'
 
@@ -231,9 +232,11 @@ function CompareContent() {
             {/* View tabs */}
             <div className="no-print" style={{ display:'flex',gap:'0.4rem',flexWrap:'wrap' }}>
               {([
-                ['compat','🔮 Compatibility'],
+                ['compat','🔮 Basic Affinity'],
+                ['doshas', '⚔️ Dosha Analysis'],
                 ['ashtakoot', '🎎 Aṣṭakūṭa (36 Point)'],
-                ['charts','◯ Charts'],
+                ['charts','◯ Side-by-Side'],
+                ['overlay', '⚭ Overlay View'],
                 ['planets','✦ Planet Table'],
                 ['dasha', '⏳ Dasha'],
                 ['ashtakavarga', '⬡ Ashtakavarga'],
@@ -249,7 +252,7 @@ function CompareContent() {
             {/* Compatibility */}
             {(view === 'compat' || view === 'all') && (
               <div className="card" style={{ padding:'1.5rem' }}>
-                <div className="label-caps" style={{ marginBottom:'1rem' }}>Compatibility Factors</div>
+                <div className="label-caps" style={{ marginBottom:'1rem' }}>Basic Compatibility Factors</div>
                 <div style={{ display:'flex',flexDirection:'column',gap:'0.55rem' }}>
                   {items.map((item,i)=>(
                     <div key={i} style={{ display:'flex',alignItems:'center',gap:'0.75rem',padding:'0.6rem 0.9rem',background:item.score>0?'rgba(78,205,196,0.06)':item.score<0?'rgba(224,123,142,0.06)':'var(--surface-2)',border:`1px solid ${item.score>0?'rgba(78,205,196,0.20)':item.score<0?'rgba(224,123,142,0.20)':'var(--border)'}`,borderRadius:'var(--r-md)' }}>
@@ -265,9 +268,12 @@ function CompareContent() {
                   ))}
                   {items.length === 0 && <p style={{ color:'var(--text-muted)',fontStyle:'italic',fontFamily:'var(--font-display)' }}>No significant compatibility factors found.</p>}
                 </div>
-                <p style={{ fontSize:'0.7rem',color:'var(--text-muted)',fontFamily:'var(--font-display)',fontStyle:'italic',marginTop:'1rem',textAlign:'center',borderTop:'1px solid var(--border-soft)',paddingTop:'0.75rem' }}>
-                  Per classical Jyotish · Moon sign, Venus–Moon, Jupiter aspects & Lagna compatibility
-                </p>
+              </div>
+            )}
+
+            {(view === 'doshas' || view === 'all') && (
+              <div className="fade-up">
+                 <CompatibilityDoshaPanel chartA={chartA} chartB={chartB} />
               </div>
             )}
 
@@ -377,6 +383,26 @@ function CompareContent() {
                     <VargaSwitcher vargas={chart.vargas} vargaLagnas={chart.vargaLagnas??{}} ascRashi={chart.lagnas.ascRashi} lagnas={chart.lagnas} arudhas={chart.arudhas} userPlan={userPlan} direction="column" />
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Overlay View */}
+            {(view === 'overlay' || view === 'all') && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ textAlign: 'center', background: 'var(--surface-3)', padding: '0.75rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                   <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>● {chartA.meta.name}</span>
+                   <span style={{ color: 'var(--text-muted)', margin: '0 1rem' }}>+</span>
+                   <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>● {chartB.meta.name} (Overlaid)</span>
+                </div>
+                <VargaSwitcher 
+                  vargas={chartA.vargas} 
+                  vargaLagnas={chartA.vargaLagnas??{}} 
+                  ascRashi={chartA.lagnas.ascRashi} 
+                  lagnas={chartA.lagnas} 
+                  arudhas={chartA.arudhas} 
+                  userPlan={userPlan} 
+                  comparisonGrahas={chartB.grahas} 
+                />
               </div>
             )}
 
