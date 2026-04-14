@@ -42,6 +42,7 @@ async function run() {
     const passwordHash = await bcrypt.hash(TEST_USER.password, 12)
 
     const db = mongoose.connection.db
+    if (!db) throw new Error('Database connection failed')
     const usersCol = db.collection('users')
 
     // Check if user exists

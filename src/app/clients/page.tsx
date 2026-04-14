@@ -52,11 +52,13 @@ interface Client {
 }
 
 function ClientCard({ 
-  client, onOpen, onUpdate 
+  client, onOpen, onUpdate, onEdit, onDelete 
 }: { 
   client: Client
   onOpen: (c: Client) => void
   onUpdate: (c: Client) => void
+  onEdit: (c: Client) => void
+  onDelete: (id: string) => void
 }) {
   const [showNotes, setShowNotes] = useState(false)
   const [activeTab, setActiveTab] = useState<'notes' | 'remedies'>('notes')
@@ -97,6 +99,23 @@ function ClientCard({
         onUpdate(json.client)
         setNewRemedy({ title: '', status: 'suggested' })
       }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleCycleRemedyStatus(remedyId: string, current: string) {
+    const statuses = ['suggested', 'started', 'completed', 'abandoned']
+    const next = statuses[(statuses.indexOf(current) + 1) % statuses.length]
+    setSubmitting(true)
+    try {
+      const res = await fetch(`/api/clients/${client._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ remedyAction: 'update', remedyId, remedyStatus: next })
+      })
+      const json = await res.json()
+      if (json.success) onUpdate(json.client)
     } finally {
       setSubmitting(false)
     }
@@ -279,12 +298,28 @@ function ClientCard({
           View Chart
         </button>
         <button 
+          onClick={() => onEdit(client)}
+          className="btn btn-secondary btn-sm"
+          style={{ borderRadius: 'var(--r-md)', padding: '0 0.75rem' }}
+          title="Edit Details"
+        >
+          ✎
+        </button>
+        <button 
           onClick={() => setShowNotes(!showNotes)}
           className="btn btn-secondary btn-sm"
           style={{ borderRadius: 'var(--r-md)', padding: '0 0.75rem' }}
           title="Session Notes"
         >
           {client.notes.length} 📝
+        </button>
+        <button 
+          onClick={() => onDelete(client._id)}
+          className="btn btn-ghost btn-sm"
+          style={{ borderRadius: 'var(--r-md)', padding: '0 0.75rem', color: 'var(--rose)' }}
+          title="Delete Client"
+        >
+          🗑️
         </button>
       </div>
 
@@ -373,7 +408,17 @@ function ClientCard({
                       <div style={{ fontWeight: 600 }}>{r.title}</div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{new Date(r.prescribedAt).toLocaleDateString()}</div>
                     </div>
-                    <span className="badge" style={{ fontSize: '0.6rem', opacity: 0.8 }}>{r.status}</span>
+                    <button 
+                      onClick={() => handleCycleRemedyStatus(r._id!, r.status)}
+                      disabled={submitting}
+                      className="badge" 
+                      style={{ 
+                        fontSize: '0.6rem', opacity: 0.8, cursor: 'pointer', border: 'none',
+                        background: r.status === 'completed' ? 'var(--teal-soft)' : 'var(--surface-3)'
+                      }}
+                    >
+                      {r.status}
+                    </button>
                   </div>
                 ))}
               </div>
@@ -396,6 +441,8 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [adding, setAdding] = useState(false)
 
   const fetchClients = useCallback(async () => {
@@ -444,6 +491,47 @@ export default function ClientsPage() {
       console.error('Quick add failed', e)
     } finally {
       setAdding(false)
+    }
+  }
+
+  async function handleSaveEdit(data: any) {
+    if (!editingClient) return
+    setAdding(true)
+    try {
+      const res = await fetch(`/api/clients/${editingClient._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:       data.meta.name,
+          birthDate:  data.meta.birthDate,
+          birthTime:  data.meta.birthTime,
+          birthPlace: data.meta.birthPlace,
+          latitude:   data.meta.latitude,
+          longitude:  data.meta.longitude,
+          timezone:   data.meta.timezone,
+        })
+      })
+      const json = await res.json()
+      if (res.ok && json.success) {
+        setShowEditModal(false)
+        fetchClients()
+      } else {
+        alert(json.error || 'Failed to update client')
+      }
+    } catch (e) {
+      console.error('Update failed', e)
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  async function handleDeleteClient(id: string) {
+    if (!confirm('Are you sure you want to delete this client? All history will be lost.')) return
+    try {
+      const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' })
+      if (res.ok) fetchClients()
+    } catch (e) {
+      console.error('Delete failed', e)
     }
   }
 
@@ -585,6 +673,11 @@ export default function ClientsPage() {
                   key={c._id} 
                   client={c} 
                   onOpen={handleOpenClient}
+                  onEdit={(c) => {
+                    setEditingClient(c)
+                    setShowEditModal(true)
+                  }}
+                  onDelete={handleDeleteClient}
                   onUpdate={(updated) => {
                     setClients(prev => prev.map(old => old._id === updated._id ? updated : old))
                   }} 
@@ -702,6 +795,50 @@ export default function ClientsPage() {
             <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '1.5rem' }}>Quick Add Client</h2>
             <div style={{ maxHeight: '70vh', overflowY: 'auto', padding: '0.25rem' }}>
               <BirthForm onResult={handleQuickAdd} onLoading={setAdding} />
+            </div>
+            {adding && (
+              <div style={{ 
+                position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'inherit'
+              }}>
+                <div className="spin-loader" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {showEditModal && editingClient && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+          backdropFilter: 'blur(4px)', zIndex: 2000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
+        }}>
+          <div style={{
+            background: 'var(--surface-1)', borderRadius: 'var(--r-xl)',
+            width: '100%', maxWidth: 500, padding: '2rem', position: 'relative',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid var(--border)'
+          }}>
+            <button 
+              onClick={() => setShowEditModal(false)}
+              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'none', border: 'none', fontSize: '1.5rem', color: 'var(--text-muted)', cursor: 'pointer' }}
+            >
+              ×
+            </button>
+            <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '1.5rem' }}>Edit Client Details</h2>
+            <div style={{ maxHeight: '70vh', overflowY: 'auto', padding: '0.25rem' }}>
+              <BirthForm 
+                onResult={handleSaveEdit} 
+                onLoading={setAdding} 
+                initialData={{
+                  name:       editingClient.name,
+                  birthDate:  editingClient.birthDate,
+                  birthTime:  editingClient.birthTime.slice(0, 5),
+                  birthPlace: editingClient.birthPlace,
+                  latitude:   editingClient.latitude,
+                  longitude:  editingClient.longitude,
+                  timezone:   editingClient.timezone
+                }}
+              />
             </div>
             {adding && (
               <div style={{ 

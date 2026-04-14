@@ -29,6 +29,7 @@ const UpdateClientSchema = z.object({
   nextSessionAt: z.string().optional(),
   remedyAction:  z.enum(['add', 'update', 'delete']).optional(),
   remedyId:      z.string().optional(),
+  remedyStatus:  z.enum(['suggested', 'started', 'completed', 'abandoned']).optional(),
 })
 
 // Add Note Schema
@@ -69,13 +70,33 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!parsed.success) return NextResponse.json({ success: false, error: 'Invalid input' }, { status: 400 })
 
     await connectDB()
-    const client = await Client.findOneAndUpdate(
-      { _id: params.id, userId },
-      { $set: parsed.data },
-      { new: true }
-    )
+    const { remedyAction, remedyId, remedyStatus, ...rest } = parsed.data
 
-    if (!client) return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 })
+    let client;
+    if (remedyAction === 'update' && remedyId && remedyStatus) {
+      client = await Client.findOneAndUpdate(
+        { _id: params.id, userId, 'remedies._id': remedyId },
+        { $set: { 'remedies.$.status': remedyStatus } },
+        { new: true }
+      )
+    } else if (remedyAction === 'delete' && remedyId) {
+      client = await Client.findOneAndUpdate(
+        { _id: params.id, userId },
+        { $pull: { remedies: { _id: remedyId } } },
+        { new: true }
+      )
+    } else {
+      if (rest.birthTime && rest.birthTime.length === 5) {
+        rest.birthTime = `${rest.birthTime}:00`
+      }
+      client = await Client.findOneAndUpdate(
+        { _id: params.id, userId },
+        { $set: rest },
+        { new: true }
+      )
+    }
+
+    if (!client) return NextResponse.json({ success: false, error: 'Client not found or update failed' }, { status: 404 })
 
     return NextResponse.json({ success: true, client })
   } catch (err) {

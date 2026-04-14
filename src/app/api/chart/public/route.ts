@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       { new: true }
     )
       .select('userId name birthDate birthTime birthPlace latitude longitude timezone settings slug views lastViewedAt createdAt')
-      .lean()
+      .lean() as any
 
     if (!chart) {
       return NextResponse.json({ success: false, error: 'Chart not found or not public' }, { status: 404 })
