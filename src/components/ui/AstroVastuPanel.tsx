@@ -421,7 +421,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
            </h3>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
              {(() => {
-                const lagnaRashi = grahas.find(g => g.id === 'As')?.rashi || 1
+                const lagnaRashi = chart.lagna.ascRashi
                 const facing = lagnaRashi % 4 === 1 ? 'East' : lagnaRashi % 4 === 2 ? 'South' : lagnaRashi % 4 === 3 ? 'West' : 'North'
                 return (
                   <div style={{ padding: '1.25rem', background: 'var(--surface-3)', borderRadius: '12px', border: '1px solid var(--accent-glow)' }}>
@@ -478,7 +478,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               ].map(item => (
                 <div key={item.obj} style={{ padding: '0.5rem 0.8rem', background: 'var(--surface-3)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '0.8rem' }}>
                    <span style={{ fontWeight: 600 }}>{item.obj}</span>
-                   <span style={{ color: 'var(--text-gold)', marginLeft: '0.5rem' }}>{item.dir}</span>
+                   <span style={{ color: 'var(--text-gold)', marginLeft: '0.5rem' }}>{item.zone}</span>
                 </div>
               ))}
            </div>
