@@ -29,6 +29,7 @@ const ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] =
   { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
   { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: '/' },
   { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: '/' },
+  { id: 'bhava-bala', label: 'Bhāva Bala',   icon: '⌗', path: '/' },
   { id: 'vimsopaka',  label: 'Viṁśopaka',    icon: '⑳', path: '/' },
   { id: 'yogas',     label: 'Yogas',       icon: '✧', path: '/' },
 

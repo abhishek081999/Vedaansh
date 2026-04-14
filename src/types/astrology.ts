@@ -424,6 +424,7 @@ export interface ChartOutput {
   upagrahas: Record<string, GrahaData>
   shadbala:  ShadbalaResult
   vimsopaka: import('@/lib/engine/vimsopaka').VimsopakaBalaResult
+  bhavaBala?: BhavaBalaResult
   ashtakavarga?: AshtakavargaResult
   yogas?:        YogaResult[]
   yogiPoint:    YogiPointResult  // Yogi/Sahayogi/Avayogi points for prosperity analysis
@@ -536,6 +537,25 @@ export interface ShadbalaResult {
   planets:   Record<string, ShadbalaPlanet>
   strongest: string
   weakest:   string
+}
+
+// ── Bhava Bala (House Strength) ────────────────────────────────
+
+export interface BhavaBalaHouse {
+  house:            number  // 1-12
+  rashi:            Rashi
+  adhipatiBala:     number  // Shadbala total of the house lord
+  digBala:          number  // Directional strength of the house (0-60)
+  drishtiBala:      number  // Aspectual strength on the house center
+  totalShash:       number  // Total in Shashtiamsas
+  totalRupa:        number  // Total in Rupas (Shash / 60)
+  isStrong:         boolean
+}
+
+export interface BhavaBalaResult {
+  houses:           Record<number, BhavaBalaHouse>
+  strongestHouse:   number
+  weakestHouse:     number
 }
 
 // ── Graha Yogas ───────────────────────────────────────────────
