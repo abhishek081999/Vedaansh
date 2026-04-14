@@ -7,7 +7,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { findSolarReturnJD, jdToDate } from '@/lib/engine/varshaphal'
 import { calculateChart } from '@/lib/engine/calculator'
-import type { ChartSettings } from '@/types/astrology'
+import { getMunthaRashi, getTajikaYogas } from '@/lib/engine/tajika'
+import type { ChartSettings, Rashi } from '@/types/astrology'
 
 export const runtime = 'nodejs'
 
@@ -65,6 +66,13 @@ export async function POST(req: NextRequest) {
       'platinum',   // compute all features
     )
 
+    // 4. Calculate Tajika specific fields
+    const birthYear = parseInt(body.birthDate?.slice(0, 4) || '1990')
+    const completedAge = returnYear - birthYear
+    const natalAscRashi = (body.natalAscRashi || 1) as Rashi
+    const munthaRashi = getMunthaRashi(natalAscRashi, completedAge)
+    const tajikaYogas = getTajikaYogas(chart.grahas)
+
     return NextResponse.json({
       success: true,
       chart,
@@ -73,6 +81,9 @@ export async function POST(req: NextRequest) {
         returnJD,
         returnDateUTC: returnDate.toISOString(),
         natalSunSidereal,
+        munthaRashi,
+        tajikaYogas,
+        completedAge
       },
     })
   } catch (err) {
