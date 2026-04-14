@@ -73,6 +73,7 @@ interface SouthIndianProps {
   arudhas?:       ArudhaData
   lagnas?:        LagnaData
   transitGrahas?: GrahaData[]
+  comparisonGrahas?: GrahaData[]
   interactive?:   boolean
   onCellClick?:   (rashi: Rashi) => void
   highlightRashi?:Rashi | null
@@ -96,6 +97,7 @@ export function SouthIndianChakra({
   arudhas,
   lagnas,
   transitGrahas,
+  comparisonGrahas,
   interactive   = false,
   onCellClick,
   highlightRashi = null,
@@ -363,6 +365,31 @@ export function SouthIndianChakra({
             style={{ filter: 'drop-shadow(0 0 3px rgba(139,124,246,0.5))' }}
           >
             {tg.id}{tg.isRetro ? '℞' : ''}{showDegrees ? ` ${Math.floor(tg.degree)}°` : ''}
+          </text>
+        ))
+      })}
+
+      {/* ── Comparison planet overlay (Synastry) ── */}
+      {comparisonGrahas && Object.entries(SIGN_CELLS).map(([signStr, [row, col]]) => {
+        const sign = Number(signStr) as Rashi
+        const cPlanets = comparisonGrahas.filter(cg => cg.rashi === sign)
+        if (!cPlanets.length) return null
+        const cx = col * cell + cell * 0.5
+        const cy = row * cell + cell * 0.85
+        const cFont = cell * 0.115 * fontScale * planetScale
+        return cPlanets.map((cg, ci) => (
+          <text
+            key={`compare-s-${cg.id}-${ci}`}
+            x={cx + (cPlanets.length > 1 && ci % 2 === 1 ? cell * 0.18 : cPlanets.length > 1 ? -cell * 0.18 : 0)}
+            y={cy + Math.floor(ci / 2) * cFont * 1.5}
+            textAnchor="middle" dominantBaseline="middle"
+            fontSize={Math.round(cFont * 0.85)}
+            fontWeight={800}
+            fontFamily="var(--font-mono)"
+            fill={cg.isRetro ? 'var(--rose)' : 'var(--text-gold)'}
+            style={{ filter: 'drop-shadow(0 0 3px rgba(184,134,11,0.3))' }}
+          >
+            {cg.id}{cg.isRetro ? '℞' : ''}{showDegrees ? ` ${Math.floor(cg.degree)}°` : ''}
           </text>
         ))
       })}

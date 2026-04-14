@@ -646,12 +646,17 @@ function buildArudhasHTML(chart: ChartOutput): string {
 
 export function generateChartHTML(chart: ChartOutput, branding?: Branding): string {
   const { meta } = chart
-  const chartSVG = buildNorthSVG(chart, 380)
   const generatedAt = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' })
 
   const brandName = branding?.brandName || 'VEDAANSH JYOTISH'
   const brandLogo = branding?.brandLogo ? `<img src="${branding.brandLogo}" style="height:24px;width:auto">` : '🪐'
   const siteUrl  = branding?.brandName ? '' : 'vedaansh.com'
+  
+  const d9grahas = chart.vargas?.D9 || []
+  const d9ascRashi = chart.vargaLagnas?.D9 || chart.lagnas.ascRashi
+  const d1SVG = buildNorthSVG(chart, 320)
+  // Create a pseudo-chart for D9 to use the same SVG builder
+  const d9SVG = buildNorthSVG({ ...chart, grahas: d9grahas.length ? d9grahas.map(g => ({...g, totalDegree: g.totalDegree ?? 0})) : [], lagnas: { ...chart.lagnas, ascRashi: d9ascRashi } } as any, 320)
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -793,81 +798,69 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
 </div>
 
 <!-- ══════════════════════════════════════════════════════════ -->
-<!-- PAGE 1: Cover + Birth Details + Chart                     -->
+<!-- PAGE 0: Cover Page                                        -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:2rem">
+  <div style="font-size:4rem;margin-bottom:1rem">${brandLogo}</div>
+  <h1 style="font-size:3.5rem;font-family:'Cormorant Garamond',serif;color:#1e3a5f;letter-spacing:0.05em">${brandName}</h1>
+  <div style="width:60px;height:4px;background:#c9a84c;margin:1rem 0"></div>
+  <h2 style="border:none;font-size:1.8rem;margin-bottom:0">Personalized Jyotish Portfolio</h2>
+  <div style="font-size:1.4rem;color:#555;margin-top:2rem">FOR</div>
+  <div style="font-size:2.2rem;font-weight:700;color:#1e3a5f;margin-top:0.5rem">${meta.name}</div>
+  <div style="margin-top:4rem;color:#888;font-size:0.9rem">GENERATED ON: ${generatedAt}</div>
+  <div style="margin-top:auto;padding-bottom:2rem;color:#c9a84c;font-weight:700;letter-spacing:0.1em;border-top:1px solid #eee;width:100%;padding-top:2rem">
+    CONFIDENTIAL ASTROLOGICAL ANALYSIS
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- PAGE 1: Natal Insights (D1 & D9)                          -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="page">
   <div class="page-header">
     <div>
       <div class="logo-text">${branding?.brandLogo ? brandLogo : `🪐 ${brandName}`}</div>
-      <h1>${meta.name}</h1>
-      <div class="subtitle">Birth Chart — Vedic Astrology Report</div>
+      <h1>Natal Insights</h1>
+      <div class="subtitle">${meta.name} — ${meta.birthDate} · ${meta.birthPlace}</div>
     </div>
     <div style="text-align:right">
-      <span class="badge">${capitalize(meta.settings.ayanamsha)} Ayanamsha</span><br>
-      <span style="font-size:10px;color:#aaa;margin-top:4px;display:block">Generated ${generatedAt}</span>
+       <span class="badge">${capitalize(meta.settings.ayanamsha)} Ayanamsha</span>
     </div>
   </div>
 
-  <div class="cover-grid">
-    <!-- South Indian Chart -->
-    <div>
-      <h2>Birth Chart (D1 — Rashi)</h2>
-      ${chartSVG}
-    </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-bottom:2.5rem;margin-top:1rem">
+     <div style="text-align:center">
+        <h3 style="margin-bottom:0.75rem;font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:#1e3a5f">D1: Rashi (Standard)</h3>
+        <div style="border:1.5px solid #e0e0e0;padding:12px;background:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.05);border-radius:4px">${d1SVG}</div>
+        <div style="font-size:11px;color:#888;margin-top:8px">Primary Life Chart & Body</div>
+     </div>
+     <div style="text-align:center">
+        <h3 style="margin-bottom:0.75rem;font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:#1e3a5f">D9: Navamsha (Fruits)</h3>
+        <div style="border:1.5px solid #e0e0e0;padding:12px;background:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.05);border-radius:4px">${d9SVG}</div>
+        <div style="font-size:11px;color:#888;margin-top:8px">Strength of Planets & Relationships</div>
+     </div>
+  </div>
 
-    <!-- Birth Details + Lagnas -->
+  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:2rem">
     <div>
-      <h2>Birth Details</h2>
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="info-label">Name</span>
-          <span class="info-value">${meta.name}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Birth Date</span>
-          <span class="info-value">${fmtDate(meta.birthDate)}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Birth Time</span>
-          <span class="info-value">${meta.birthTime}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Birth Place</span>
-          <span class="info-value">${meta.birthPlace}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Latitude</span>
-          <span class="info-value">${meta.latitude.toFixed(4)}°</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Longitude</span>
-          <span class="info-value">${meta.longitude.toFixed(4)}°</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Timezone</span>
-          <span class="info-value">${meta.timezone}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Ayanamsha</span>
-          <span class="info-value">${capitalize(meta.settings.ayanamsha)} (${meta.ayanamshaValue.toFixed(4)}°)</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">House System</span>
-          <span class="info-value">${capitalize(meta.settings.houseSystem)}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Nodes</span>
-          <span class="info-value">${capitalize(meta.settings.nodeMode)}</span>
-        </div>
+      <h2 style="margin-bottom:0.75rem">Birth Details</h2>
+      <div class="info-grid" style="grid-template-columns: 1fr 1.5fr;">
+         <div class="info-item"><span class="info-label">Gender</span><span class="info-value">${capitalize((meta as any).gender || 'other')}</span></div>
+         <div class="info-item"><span class="info-label">Birth Time</span><span class="info-value">${meta.birthTime}</span></div>
+         <div class="info-item"><span class="info-label">Place</span><span class="info-value">${meta.birthPlace}</span></div>
+         <div class="info-item"><span class="info-label">Lat/Long</span><span class="info-value">${meta.latitude.toFixed(4)}, ${meta.longitude.toFixed(4)}</span></div>
+         <div class="info-item"><span class="info-label">Timezone</span><span class="info-value">${meta.timezone}</span></div>
+         <div class="info-item"><span class="info-label">Nodes</span><span class="info-value">${capitalize(meta.settings.nodeMode)}</span></div>
       </div>
-
-      <h2>Special Lagnas</h2>
-      ${buildLagnasHTML(chart)}
+    </div>
+    <div>
+       <h2 style="margin-bottom:0.75rem">Special Lagnas</h2>
+       ${buildLagnasHTML(chart)}
     </div>
   </div>
 
   <div class="page-footer">
-    <span>${brandName} ${siteUrl ? `— ${siteUrl}` : ''}</span>
+    <span>Portfolio for ${meta.name}</span>
     <span>Page 1</span>
   </div>
 </div>
