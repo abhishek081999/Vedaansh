@@ -510,7 +510,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               ))}
            </div>
            <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Heatmap indicates relative energy saturation. Zones with >75% are your "Power Corridors".
+              Heatmap indicates relative energy saturation. Zones with &gt;75% are your "Power Corridors".
            </p>
         </div>
 
