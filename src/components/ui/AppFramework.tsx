@@ -27,17 +27,18 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
     label: 'Core Analysis',
     tabs: [
       { id: 'planets',   label: 'Planets',     icon: '✦', path: '/' },
-      { id: 'interpretation', label: 'Interpretation', icon: '✧', path: '/' },
+      { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
       { id: 'house',     label: 'House',       icon: '🏠', path: '/' },
       { id: 'yogas',     label: 'Yogas',       icon: '✧', path: '/' },
+      { id: 'interpretation', label: 'Interpretation', icon: '✧', path: '/' },
     ]
   },
   {
     label: 'Predictive Timing',
     tabs: [
+      { id: 'varshaphal', label: 'Solar Return (Varshfal)', icon: '☀️', path: '/' },
       { id: 'transit-scrubber', label: 'Time Scrubber', icon: '⏳', path: '/' },
       { id: 'roadmap',   label: 'Cosmic Roadmap', icon: '🛣️', path: '/' },
-      { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
     ]
   },
   {

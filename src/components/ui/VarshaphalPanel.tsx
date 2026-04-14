@@ -6,7 +6,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import type { ChartOutput, GrahaData } from '@/types/astrology'
+import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
@@ -28,7 +28,17 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
 
   const [year,     setYear]     = useState(thisYear)
   const [loading,  setLoading]  = useState(false)
-  const [result,   setResult]   = useState<{ chart: ChartOutput; meta: { returnDateUTC: string; returnYear: number; natalSunSidereal: number } } | null>(null)
+  const [result,   setResult]   = useState<{ 
+    chart: ChartOutput; 
+    meta: { 
+      returnDateUTC: string; 
+      returnYear: number; 
+      natalSunSidereal: number; 
+      munthaRashi: number; 
+      tajikaYogas: any[];
+      completedAge: number;
+    } 
+  } | null>(null)
   const [error,    setError]    = useState<string | null>(null)
 
   // Get natal Sun sidereal longitude
@@ -53,6 +63,8 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
           birthPlace:       natalChart.meta.birthPlace,
           settings:         natalChart.meta.settings,
           natalName:        natalChart.meta.name,
+          birthDate:        natalChart.meta.birthDate,
+          natalAscRashi:    natalChart.lagnas.ascRashi,
         }),
       })
       const json = await res.json()
@@ -168,54 +180,67 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
              </div>
           </div>
 
-          {/* RIGHT: Diagnostics & Info */}
+          {/* RIGHT: Analysis & Diagnostics */}
           <div style={{ flex: '1 1 320px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
              
-             {/* Natal Reference Chart */}
-             <div className="card" style={{ padding: '1rem', border: '1px solid var(--gold-faint)' }}>
-                <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem', color: 'var(--text-gold)' }}>Janma Kundalī (Natal)</div>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                   <ChakraSelector
-                      ascRashi={natalChart.lagnas.ascRashi}
-                      grahas={natalChart.vargas?.D1 ?? natalChart.grahas}
-                      moonNakIndex={natalChart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0}
-                      arudhas={natalChart.arudhas}
-                      tithiNumber={natalChart.panchang.tithi.number}
-                      varaNumber={natalChart.panchang.vara.number}
-                      defaultStyle="north"
-                      size={240} 
-                   />
+             {/* Tajika Analysis (Muntha & Yogas) */}
+             <div className="card" style={{ padding: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                  <span style={{ fontSize: '1.2rem' }}>💎</span>
+                  <div className="label-caps" style={{ fontSize: '0.7rem', color: 'var(--text-gold)', margin: 0 }}>Tajika Analysis</div>
                 </div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.85rem', fontFamily: 'var(--font-display)' }}>
-                   <strong style={{ color: 'var(--text-secondary)' }}>{natalChart.meta.name}</strong> · {(RASHI_NAMES as any)[natalChart.lagnas.ascRashi]} Lagna
-                </div>
-             </div>
 
-             {/* Return Moment Info */}
-             <div className="card" style={{ padding: '1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Moment Analysis</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                   <div>
-                      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Precise Moment (UTC)</div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: 2 }}>
-                        {fmtDateTime(result.meta.returnDateUTC)}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  {/* Muntha */}
+                  <div style={{ padding: '1rem', background: 'var(--gold-faint)', borderRadius: '12px', border: '1px solid var(--gold)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-gold)' }}>Muntha Position</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 600, fontFamily: 'var(--font-display)', marginTop: '0.2rem' }}>
+                          {(RASHI_NAMES as any)[result.meta.munthaRashi as Rashi]}
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>(Age {result.meta.completedAge})</span>
+                        </div>
                       </div>
-                   </div>
-                   <div style={{ height: 1, background: 'var(--border-soft)' }} />
-                   <div>
-                      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Sun Position</div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-gold)', marginTop: 2 }}>
-                        {result.meta.natalSunSidereal.toFixed(4)}° (sidereal)
+                      <div style={{ 
+                        height: '36px', width: '36px', borderRadius: '50%', background: 'var(--gold)', color: '#000', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem' 
+                      }}>
+                        {((result.meta.munthaRashi - result.chart.lagnas.ascRashi + 12) % 12) + 1}
                       </div>
-                   </div>
-                   <div style={{ height: 1, background: 'var(--border-soft)' }} />
-                   <div>
-                      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Reference Location</div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: 2 }}>
-                        {natalChart.meta.birthPlace}
-                      </div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{natalChart.meta.latitude.toFixed(2)}N, {natalChart.meta.longitude.toFixed(2)}E</div>
-                   </div>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.75rem', lineHeight: 1.4 }}>
+                      The yearly Muntha resides in your <strong>House {((result.meta.munthaRashi - result.chart.lagnas.ascRashi + 12) % 12) + 1}</strong>.
+                    </div>
+                  </div>
+
+                  {/* Tajika Yogas */}
+                  <div>
+                    <div className="label-caps" style={{ fontSize: '0.6rem', marginBottom: '0.75rem', opacity: 0.6 }}>Yearly Tajika Yogas</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                      {result.meta.tajikaYogas.length > 0 ? result.meta.tajikaYogas.map((yoga, i) => (
+                        <div key={i} style={{ 
+                          padding: '0.85rem 1rem', 
+                          background: 'var(--surface-3)', 
+                          borderRadius: '8px', 
+                          border: `1px solid ${yoga.type === 'auspicious' ? 'var(--teal)' : 'var(--rose)'}`,
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{yoga.name}</span>
+                            <span style={{ fontSize: '0.6rem', padding: '2px 6px', borderRadius: 4, background: yoga.type === 'auspicious' ? 'var(--teal-faint)' : 'var(--rose-faint)', color: yoga.type === 'auspicious' ? 'var(--teal)' : 'var(--rose)' }}>
+                              {yoga.type.toUpperCase()}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 4 }}>
+                            {yoga.graha1} aspecting {yoga.graha2}. {yoga.description}
+                          </div>
+                        </div>
+                      )) : (
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem', border: '1px dashed var(--border)', borderRadius: 8 }}>
+                          No major Tajika yogas detected.
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
              </div>
 
@@ -238,10 +263,6 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                                {g.totalDegree.toFixed(2)}°
                                {g.isRetro && <span style={{ color: 'var(--rose)', marginLeft: 3 }}>℞</span>}
                             </span>
-                            <span style={{ 
-                               fontSize: '0.6rem', color: g.dignity === 'exalted' ? 'var(--teal)' : g.dignity === 'debilitated' ? 'var(--rose)' : 'var(--text-muted)',
-                               fontStyle: 'italic', minWidth: 50, textAlign: 'right'
-                            }}>{g.dignity}</span>
                          </div>
                       </div>
                    ))}
