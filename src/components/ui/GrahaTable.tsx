@@ -124,7 +124,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     if (activeVarga && activeVarga !== selectedVarga) {
       setSelectedVarga(activeVarga)
     }
-  }, [activeVarga])
+  }, [activeVarga, selectedVarga])
 
   // Use the selected varga's grahas if available
   const currentGrahas = (vargas && vargas[selectedVarga]) ? vargas[selectedVarga] : grahas

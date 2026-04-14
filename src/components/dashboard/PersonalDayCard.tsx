@@ -77,7 +77,7 @@ export function PersonalDayCard({
       }
     }
     fetchToday()
-  }, [latitude, longitude, timezone])
+  }, [latitude, longitude, timezone, todayPanchang])
 
   if (loading) {
     return (

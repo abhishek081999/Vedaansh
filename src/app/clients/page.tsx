@@ -767,7 +767,7 @@ export default function ClientsPage() {
             </h4>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               Use tags like <strong>#career</strong> or <strong>#VIP</strong> to categorize your clients. 
-              The Active Dasha track helps you know who's entering a challenging Sade Sati or Mahadasha shift.
+              The Active Dasha track helps you know who&apos;s entering a challenging Sade Sati or Mahadasha shift.
             </p>
           </div>
         </aside>
