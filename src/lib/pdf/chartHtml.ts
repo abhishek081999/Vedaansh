@@ -305,14 +305,18 @@ function buildAstroVastuSummary(chart: ChartOutput): string {
 
 function buildACGReport(chart: ChartOutput): string {
   const { calculateACG } = require('@/lib/engine/astrocartography')
-  const { jd, latitude, longitude } = chart.meta
-  const acg = calculateACG(jd, latitude, longitude)
+  const { julianDay, latitude, longitude } = chart.meta
+  const acg = calculateACG(julianDay, latitude, longitude)
   
   const MAJOR_CITIES = [
-    { name: 'London', lat: 51.5074, lng: -0.1278 }, { name: 'New York', lat: 40.7128, lng: -74.0060 },
-    { name: 'Tokyo', lat: 35.6895, lng: 139.6917 }, { name: 'Dubai', lat: 25.2048, lng: 55.2708 },
-    { name: 'Singapore', lat: 1.3521, lng: 103.8198 }, { name: 'Mumbai', lat: 19.0760, lng: 72.8777 },
-    { name: 'Zurich', lat: 47.3769, lng: 8.5417 }, { name: 'Los Angeles', lat: 34.0522, lng: -118.2437 }
+    { name: 'London', lat: 51.5074, lng: -0.1278, country: 'United Kingdom' }, 
+    { name: 'New York', lat: 40.7128, lng: -74.0060, country: 'USA' },
+    { name: 'Tokyo', lat: 35.6895, lng: 139.6917, country: 'Japan' }, 
+    { name: 'Dubai', lat: 25.2048, lng: 55.2708, country: 'UAE' },
+    { name: 'Singapore', lat: 1.3521, lng: 103.8198, country: 'Singapore' }, 
+    { name: 'Mumbai', lat: 19.0760, lng: 72.8777, country: 'India' },
+    { name: 'Zurich', lat: 47.3769, lng: 8.5417, country: 'Switzerland' }, 
+    { name: 'Los Angeles', lat: 34.0522, lng: -118.2437, country: 'USA' }
   ]
 
   const results = MAJOR_CITIES.map(city => {

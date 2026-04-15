@@ -16,15 +16,17 @@ import { dateToJD, getPlanetPosition, SWISSEPH_IDS, getAyanamsha } from '@/lib/e
 import { analyzeMuhurta, MuhurtaActivity } from '@/lib/engine/muhurtaAnalysis';
 
 export async function GET(req: NextRequest) {
+  let lastStage = 'initialization';
   try {
     const { searchParams } = new URL(req.url);
+    lastStage = 'location-parsing';
     const lat = parseFloat(searchParams.get('lat') || '28.6139');
     const lng = parseFloat(searchParams.get('lng') || '77.2090');
     const tz = searchParams.get('tz') || 'Asia/Kolkata';
     const natalNakIndex = parseInt(searchParams.get('natalNak') || '0');
     const ayanMode = (searchParams.get('ayan') || 'lahiri') as any;
 
-    let lastStage = 'init';
+    lastStage = 'planetary-engine';
     const startDate = new Date();
     
     try {
