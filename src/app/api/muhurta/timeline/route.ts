@@ -12,7 +12,7 @@ import {
   getYamaganda, 
   getAbhijitMuhurta 
 } from '@/lib/engine/nakshatra';
-import { dateToJD, getPlanetPosition, SWISSEPH_IDS } from '@/lib/engine/ephemeris';
+import { dateToJD, getPlanetPosition, SWISSEPH_IDS, getAyanamsha } from '@/lib/engine/ephemeris';
 import { analyzeMuhurta, MuhurtaActivity } from '@/lib/engine/muhurtaAnalysis';
 
 export async function GET(req: NextRequest) {
