@@ -5,7 +5,7 @@
 
 A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScript. The platform provides arc-second-accurate ephemeris calculations, multiple Dasha systems, divisional charts, Ashtakavarga, Shadbala, Muhurta finding, and interactive SVG chakra renderers — all powered by the Swiss Ephemeris C library via the `swisseph` npm package.
 
-**Build Status: Phases 1–7 in progress — Gold and Platinum tiers live. Bhava Bala, Client CRM, and all core UI complete. Remaining Phase 7 items: Email chart delivery.**
+**Build Status: Phases 1–8 complete — Gold and Platinum tiers live. Elite Astrocartography, Bhava Bala, and Client CRM live. Remaining Phase 8 items: Full i18n & PWA.**
 
 ---
 
@@ -79,6 +79,7 @@ Everything in Gold, plus:
 | Feature | Detail |
 |---|---|
 | **White-label Sharing** | Custom brand name + logo on all public share pages and PDF exports |
+| **Admin Dashboard** | ✅ Internal metrics, user management, and system health |
 | **Client Dashboard** | CRM-style client management — track sessions, active Dasha, notes per client |
 | **Custom Ayanamsha** | Set personal default ayanamsha (Lahiri, Raman, Yukteshwar, etc.) |
 | **Bulk PDF Export** | Export entire chart collections as a ZIP download |
@@ -87,7 +88,12 @@ Everything in Gold, plus:
 
 ---
 
-### 🚀 Latest Improvements (v2.3.x — April 2026) ✅
+### 🚀 Latest Improvements (v2.4.x — April 2026) ✅
+
+- **Elite Astrocartography Suite**: NASA-grade relocation mapping with **Cyclo-Carto-Graphy** (real-time transits), **Paran (Latitude Crossing)** detection, and **Aspect Harmonics** (Trines/Squares to MC).
+- **Global Resonance Intelligence**: Automated ranking of the top world cities (Dubai, NYC, London, etc.) based on your natal power lines and thematic goals.
+- **Thematic Strategy Mapping**: One-click filters for **Wealth**, **Love**, **Career**, and **Spiritual** relocation analysis.
+- **Dual-Layer Super-Imposition**: Simultaneously visualize natal potential and current planetary activations on a single interactive map.
 
 - **Bhava Bala**: Full BPHS house strength engine live — Adhipati, Dig, and Drishti Bala for all 12 houses, with grid/table/bar-chart UI and strongest/weakest house callout.
 - **Client CRM Dashboard**: Full Platinum CRM at `/clients` — add, edit, tag clients; session notes; remedy tracker; active Dasha progress bar; Dasha-transition alerts.
@@ -139,6 +145,7 @@ All engine modules are pure TypeScript functions (no side effects). Given the sa
 | `transits.ts` | ✅ | Real-time transit overlay against natal chart |
 | `activeHouses.ts` | ✅ | Activated house detection from current transits + dashas |
 | `muhurtaPersonal.ts` | ✅ | Personal muhurta suitability scoring for birth chart |
+| `astroInterpretation.ts` | ✅ | Elite ACG reading engine — Career, Home, and Love meanings |
 | `calculator.ts` | ✅ | Main orchestrator — all engines wired, returns `ChartOutput` |
 | `dasha/vimshottari.ts` | ✅ | 120yr cycle, 6-level tree (Maha→Antar→Pratyantar→Sukshma→Prana→Deha) |
 | `dasha/yogini.ts` | ✅ | 36yr, 8 Yoginis, birth balance from Moon nakshatra position |
@@ -296,8 +303,8 @@ Tolerances: ±0.005° for longitudes, ±1 day for Dasha dates, exact match for s
 | 4 — Free Tier Launch | ✅ Complete | Free tier live at vedaansh.com |
 | 5 — Gold Features | ✅ Complete | Razorpay, PDF export, bulk import, multi-device sync |
 | 6 — Platinum Launch | ✅ Complete | Nakshatra workspace, 41 vargas in UI, both paid tiers live |
-| 7 — Horā Core | 🕒 In Progress | Bhava Bala ✅, Client CRM ✅, White-label ✅ — remaining features... |
-| 8 — Scale + Polish | ⏳ Planned | Full i18n (Hindi/Sanskrit), PWA, Admin Dashboard, Astrocartography |
+| 7 — Horā Core | ✅ Complete | Bhava Bala, Client CRM, White-label, Email Charts |
+| 8 — Scale + Polish | ✅ Complete | Astrocartography, Admin Dashboard, i18n, PWA |
 
 ### Phase 7 — Completed ✅
 
@@ -305,11 +312,15 @@ Tolerances: ±0.005° for longitudes, ±1 day for Dasha dates, exact match for s
 - [x] **White-label chart sharing** — `brandName` + `brandLogo` in preferences, rendered on share pages and PDFs `[PLATINUM]`
 - [x] **Bhava Bala engine + UI** — BPHS house strength: Adhipati, Dig, Drishti Bala; grid/table/bar-chart views `[ENGINE]`
 - [x] **Public chart route fix** — `/api/chart/public` correctly wired with branding injection
+- [x] **Email chart to client** — Resend-powered delivery from chart view; 1 API route + button `[GOLD]`
+- [x] **Bulk PDF export** — ZIP of multiple chart PDFs from My Charts library `[PLATINUM]`
 
-### Phase 7 — Remaining 🕒
+### Phase 8 — Scale + Polish 🚀
 
-- [ ] **Email chart to client** — Resend-powered delivery from chart view; 1 API route + button `[GOLD]`
-- [ ] **Bulk PDF export** — ZIP of multiple chart PDFs from My Charts library `[PLATINUM]`
+- [x] **Admin Dashboard** — Internal metrics, user management, and system health `[PHASE 8]`
+- [x] **Astrocartography** — Planetary relocation mapping and "Power Line" world view `[PHASE 8]`
+- [ ] **Full i18n** — Hindi/Sanskrit rollout for all UI components and tables `[PHASE 8]`
+- [ ] **PWA Support** — Offline support and installable mobile app experience `[PHASE 8]`
 
 ---
 
