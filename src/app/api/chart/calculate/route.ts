@@ -83,12 +83,13 @@ function hasAdvancedFeatures(chartData: any): boolean {
   const hasBhavaBala = !!chartData.bhavaBala
   
   // Check if varga grahas specifically have the recalculated flags
-  // If we only have inherited D1 flags, the varga object might look the same
-  // but we want to ensure the latest calculator logic was applied.
   const d9Grahas = chartData?.vargas?.D9
   const hasVargaAdvanced = d9Grahas && d9Grahas[0] && d9Grahas[0].vargaCalculated === true
   
-  return hasGrahaFeatures && hasYogiPoint && hasInterpretation && hasBhavaBala && hasVargaAdvanced
+  // Check for Upagrahas and Beeja/Kshetra Sphuta
+  const hasUpagrahas = !!chartData.upagrahas && Object.keys(chartData.upagrahas).length >= 7
+
+  return hasGrahaFeatures && hasYogiPoint && hasInterpretation && hasBhavaBala && hasVargaAdvanced && hasUpagrahas
 }
 
 // ── Timezone conversion ───────────────────────────────────────

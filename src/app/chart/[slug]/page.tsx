@@ -430,6 +430,7 @@ export default function PublicChartPage() {
                     vargas={chart.vargas} 
                     vargaLagnas={chart.vargaLagnas}
                     lagnas={chart.lagnas}
+                    upagrahas={chart.upagrahas}
                     activeVarga={activeVarga}
                     onVargaChange={setActiveVarga}
                   />

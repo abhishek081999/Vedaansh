@@ -54,6 +54,7 @@ import {
   type Rashi,
   type UserPlan,
   type YuddhaResult,
+  type UpagrahaData,
 } from '@/types/astrology'
 import { checkGandanta } from './gandanta'
 import { checkPushkara } from './pushkara'
@@ -68,6 +69,13 @@ import {
   calculateKPCusps,
   calculateRulingPlanets
 } from './kpEngine'
+import {
+  calculateGulikaMaandi,
+  calculateNonLuminous,
+  calculateBeejaSphuta,
+  calculateKshetraSphuta,
+  buildUpagrahaData
+} from './upagrahas'
 
 // ── Input ─────────────────────────────────────────────────────
 
@@ -450,7 +458,38 @@ export async function calculateChart(
       sunrise, sunset, moonrise: null, moonset: null,
       rahuKalam, gulikaKalam, yamaganda, abhijitMuhurta: abhijit, horaTable: [],
     },
-    upagrahas: {},
+    upagrahas: (() => {
+      const isDayVal = birthUtc.getTime() >= sunrise.getTime() && birthUtc.getTime() <= sunset.getTime()
+      const gmOffsets = calculateGulikaMaandi(jd, sunrise, sunset, isDayVal, vara.number, houses.ascendantSidereal)
+      
+      const gDate = new Date((isDayVal ? sunrise : sunset).getTime() + gmOffsets.gulika)
+      const mDate = new Date((isDayVal ? sunrise : sunset).getTime() + gmOffsets.maandi)
+      
+      const hG = calcHouses(dateToJD(gDate), input.latitude, input.longitude, settings.ayanamsha, settings.houseSystem)
+      const hM = calcHouses(dateToJD(mDate), input.latitude, input.longitude, settings.ayanamsha, settings.houseSystem)
+
+      const nl = calculateNonLuminous(sun.totalDegree)
+      
+      const vLon = grahas.find(g => g.id === 'Ve')?.lonSidereal ?? 0
+      const jLon = grahas.find(g => g.id === 'Ju')?.lonSidereal ?? 0
+      const mLon = grahas.find(g => g.id === 'Ma')?.lonSidereal ?? 0
+      
+      const beeja = calculateBeejaSphuta(sun.totalDegree, vLon, jLon)
+      const kshetra = calculateKshetraSphuta(moon.totalDegree, mLon, jLon)
+
+      const res: Record<string, UpagrahaData> = {
+        Gulika: buildUpagrahaData('Gulika', hG.ascendantSidereal),
+        Maandi: buildUpagrahaData('Maandi', hM.ascendantSidereal),
+        Dhooma: buildUpagrahaData('Dhooma', nl.Dhooma),
+        Vyatipata: buildUpagrahaData('Vyatipata', nl.Vyatipata),
+        Paridhi: buildUpagrahaData('Paridhi', nl.Paridhi),
+        Indrachapa: buildUpagrahaData('Indrachapa', nl.Indrachapa),
+        Upaketu: buildUpagrahaData('Upaketu', nl.Upaketu),
+        'Beeja Sphuta': buildUpagrahaData('Beeja Sphuta', beeja),
+        'Kshetra Sphuta': buildUpagrahaData('Kshetra Sphuta', kshetra),
+      }
+      return res
+    })(),
     shadbala,
     vimsopaka,
     bhavaBala,
