@@ -292,6 +292,19 @@ export interface GrahaData {
   }
 }
 
+// ── Upagraha Data ────────────────────────────────────────────
+
+export interface UpagrahaData {
+  id:           string
+  name:         string
+  lonSidereal:  number
+  rashi:        Rashi
+  rashiName:    string
+  degree:       number
+  nakshatraName: string
+  pada:         number
+}
+
 // ── Lagna Data ───────────────────────────────────────────────
 
 export interface LagnaData {
@@ -363,7 +376,6 @@ export type DashaSystem =
   | 'narayana'
   | 'tithi_ashtottari'
   | 'naisargika'
-  | 'yogini'
 
 export interface DashaNode {
   lord:       string
@@ -427,7 +439,7 @@ export interface ChartOutput {
   vargaLagnas: Record<string, Rashi>          // ascendant sign in each varga chart
   dashas:    Record<DashaSystem, DashaNode[]>
   panchang:  PanchangData
-  upagrahas: Record<string, GrahaData>
+  upagrahas: Record<string, UpagrahaData>
   shadbala:  ShadbalaResult
   vimsopaka: import('@/lib/engine/vimsopaka').VimsopakaBalaResult
   bhavaBala?: BhavaBalaResult

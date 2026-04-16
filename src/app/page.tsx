@@ -650,7 +650,7 @@ function HomeContent() {
                         upagrahas={chart.upagrahas} 
                         activeVarga={activeVarga} 
                         onVargaChange={setActiveVarga}
-                        limited={true} 
+                        limited={false} 
                       />
                     </div>
                   )}

@@ -266,23 +266,23 @@
   --surface-3: #edead9;
   --surface-4: #e2dfcb;
 
-  /* Primary Accent: Devaguru Red / Maroon */
-  --primary-brand: #841b1b; 
-  --header-bg: rgba(253, 250, 243, 0.9);
-  --header-text: #121212;
-  --header-text-muted: #666666;
-  --header-border: #841b1b;
+  /* Primary Accent: Devaguru Saffron / Deep Gold */
+  --primary-brand: #c2410c; /* High-end saffron */
+  --header-bg: rgba(253, 250, 243, 0.94);
+  --header-text: #2d2a26;
+  --header-text-muted: #78716c;
+  --header-border: #f59e0b;
 
-  /* Gold: Deep academic gold */
-  --gold: #a67c00;
-  --gold-light: #d4ac0d;
-  --gold-dim: #7a5c18;
-  --gold-faint: rgba(166, 124, 0, 0.08);
+  /* Gold: Deep academic vedic gold */
+  --gold: #b45309;
+  --gold-light: #f59e0b;
+  --gold-dim: #78350f;
+  --gold-faint: rgba(245, 158, 11, 0.08);
 
-  /* Secondary Accents */
-  --accent: #4a4080;
-  --accent-dim: #352d60;
-  --accent-glow: rgba(74, 64, 128, 0.15);
+  /* Secondary Accents (Deep Maroon) */
+  --accent: #991b1b;
+  --accent-dim: #7f1d1d;
+  --accent-glow: rgba(153, 27, 27, 0.12);
 
   /* Status */
   --rose: #92182b;
@@ -408,6 +408,29 @@ body {
   overflow-x: hidden;
   position: relative;
   width: 100%;
+}
+
+/* ── Vedic Assets ───────────────────────────────────────────── */
+
+[data-theme="classic"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20l5-5-5-5-5 5 5 5zm0-20l5 5-5 5-5-5 5-5zm0 40l5-5-5-5-5 5 5 5zM0 20l5-5-5-5-5 5 5 5zm40 0l5-5-5-5-5 5 5 5z' fill='%23b45309' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: -1;
+}
+
+.ornamental-border {
+  border: 4px double var(--gold-light);
+  border-image: linear-gradient(to bottom, var(--gold-light), var(--gold-dim)) 1;
+}
+
+.vedic-text {
+  font-family: var(--font-display);
+  color: var(--primary-brand);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.05);
 }
 
 /* ── Typography ─────────────────────────────────────────────── */

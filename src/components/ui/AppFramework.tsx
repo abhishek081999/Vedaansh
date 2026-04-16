@@ -88,12 +88,17 @@ const ADVANCED_ASTRO_TABS: { id: string; label: string; icon: string; path?: str
   { id: 'transit-scrubber', label: 'Time Scrubber', icon: '⏳', path: '/scrubber' },
 ]
 
-const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'clients', label: 'CRM / Clients',   icon: '👥', path: '/clients' },
-  { id: 'pricing',    label: 'Pricing',         icon: '💎', path: '/pricing' },
-  { id: 'my-charts',    label: 'My Charts',     icon: '📚', path: '/my/charts' },
-]
+const VEDIC_ICONS = {
+  om: `<svg viewBox="0 0 100 100" fill="currentColor"><path d="M52.3,47.2c0.2,2,1.3,4,3.2,5.2c1.9,1.1,4.3,1.4,6.4,1.1c2-0.3,3.8-1.2,5.3-2.6c1.5-1.4,2.5-3.3,2.8-5.3 c0.3-2,0-4-1.1-5.7c-1.1-1.7-2.9-2.9-4.8-3.4c1.1-0.2,2.3-0.5,3.4-1c1.1-0.6,2.1-1.3,2.9-2.2c0.8-0.9,1.5-2,1.8-3.3 c0.4-1.3,0.4-2.7,0-4c-0.4-1.3-1.1-2.4-2-3.4c-1-0.9-2.2-1.6-3.6-2c-1.4-0.4-2.9-0.5-4.3-0.2c-1.4,0.3-2.8,1-3.9,1.9 c-1.1-0.9-2.4-1.6-3.8-1.9c-1.4-0.3-2.9-0.2-4.3,0.2c-1.4,0.4-2.7,1.1-3.6,2c-1,0.9-1.6,2.1-2,3.4c-0.4,1.3-0.4,2.7-0,4 c0.4,1.3,1,2.4,1.8,3.3c0.8,0.9,1.8,1.7,2.9,2.2c1.1,0.6,2.3,0.8,3.4,1c-2,0.5-3.8,1.7-4.8,3.4c-1.1,1.7-1.4,3.7-1.1,5.7 C50,44,50.8,45.8,52.3,47.2z M65.7,21.5c1.3,0.3,2.5,1,3.4,2c0.9,1,1.4,2.3,1.6,3.6c0.2,1.4,0,2.8-0.7,4.1 c-0.6,1.4-1.7,2.5-3.1,3.1c1.3,0.6,2.4,1.7,3,3.1c0.7,1.3,0.9,2.8,0.7,4.1c-0.2,1.4-0.7,2.6-1.6,3.6c-0.9,1-2,1.7-3.4,2 c-1.3,0.3-2.7,0.2-4-0.2c-1.4-0.4-2.4-1.2-3.2-2.3c-0.8-1-1.1-2.4-1.1-3.8c0-1.4,0.4-2.8,1.2-3.8c0.8-1.1,1.8-1.8,3.1-2.3 c-1.3-0.4-2.3-1.2-3.1-2.3c-0.7-1.1-1.1-2.4-1.1-3.8c0-1.4,0.3-2.7,1.1-3.8c0.8-1.1,1.8-1.9,3.1-2.3C63,21.3,64.4,21.3,65.7,21.5z"/></svg>`,
+  swastik: `<svg viewBox="0 0 100 100" fill="currentColor"><path d="M50,0v37.5H12.5V12.5H25v12.5h12.5V0H50z M12.5,50V12.5h37.5V50H12.5z M87.5,50H50V12.5H87.5V25h-12.5v12.5H87.5V50z M50,87.5V50h37.5v37.5H75v-12.5H62.5v12.5 H50z M12.5,87.5v-37.5H50v37.5H37.5v-12.5H25v12.5H12.5z"/></svg>`,
+  ganesha: `<svg viewBox="0 0 100 100" fill="currentColor"><path d="M50,10c-15,0-20,10-20,20s5,15,10,20c0,0-15,5-15,20c0,10,10,20,25,20s25-10,25-20c0-15-15-20-15-20c5-5,10-10,10-20 S65,10,50,10z M50,15c10,0,15,8,15,15s-5,15-10,20c-5,5-10,10-10,20c0,5,5,10,5,10s-10,0-10-10c0-10-5-15-10-20c-5-5-10-12-10-20 S40,15,50,15z"/></svg>`
+}
 
+const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
+  { id: 'clients',    label: 'CRM / Clients', icon: '👥', path: '/clients' },
+  { id: 'pricing',    label: 'Pricing',       icon: '💎', path: '/pricing' },
+  { id: 'my-charts',  label: 'My Charts',     icon: '📚', path: '/my/charts' },
+]
 
 export function AppFramework({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
@@ -305,12 +310,18 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           >
             <span style={{ fontSize: '1.25rem' }}>☰</span>
           </button>
-          <span 
-            className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
-            style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-gold)', letterSpacing: '0.02em' }}
-          >
-            Vedaansh
-          </span>
+          
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
+            <div style={{ width: 22, height: 22, color: 'var(--gold)' }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.swastik }} />
+            <span 
+              className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
+              style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-gold)', letterSpacing: '0.04em' }}
+            >
+              Vedaansh
+            </span>
+            <div style={{ width: 14, height: 14, color: 'var(--gold)', opacity: 0.5 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
+          </Link>
+
           {isOffline && (
             <div style={{ background: 'var(--rose)', color: '#fff', fontSize: '0.6rem', padding: '2px 8px', borderRadius: 4, fontWeight: 800, letterSpacing: '0.05em' }}>OFFLINE</div>
           )}
@@ -372,25 +383,32 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           }}
         >
           {/* Logo area */}
-          <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: '1px solid var(--border-soft)' }}>
-            <span style={{ fontSize: '1.5rem', filter: 'drop-shadow(0 0 8px rgba(201,168,76,0.3))' }}>🪐</span>
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, flex: 1 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 600, color: 'var(--text-gold)', letterSpacing: '0.05em' }}>Vedaansh</span>
-              <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', letterSpacing: '0.08em', fontStyle: 'italic' }}>Vedic Astrology</span>
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'linear-gradient(to bottom, var(--surface-1), var(--surface-2))' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--gold)', marginBottom: '0.5rem' }}>
+              <div style={{ width: 44, height: 44 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganesha }} />
             </div>
-            <button
-              onClick={() => setIsSidenavOpen(false)}
-              style={{
-                background: 'none', border: '1px solid var(--border-soft)', borderRadius: 6,
-                width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.75rem', 
-                transition: 'all 0.15s'
-              }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-bright)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-soft)'}
-            >
-              ✕
-            </button>
+            <div style={{ textAlign: 'center', fontSize: '0.6rem', color: 'var(--gold)', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '1rem', opacity: 0.8 }}>॥ श्री गणेशाय नमः ॥</div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+               <div style={{ width: 28, height: 28, color: 'var(--gold)', opacity: 0.8 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.swastik }} />
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, flex: 1 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-gold)', letterSpacing: '0.05em' }}>Vedaansh</span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 600 }}>TATTVA & JYOTIṢA</span>
+              </div>
+              <button
+                onClick={() => setIsSidenavOpen(false)}
+                style={{
+                  background: 'none', border: '1px solid var(--border-soft)', borderRadius: 6,
+                  width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.75rem', 
+                  transition: 'all 0.15s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-bright)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-soft)'}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {/* User Profile Block */}
@@ -571,6 +589,9 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
 
           {/* Bottom Actions */}
           <div style={{ padding: '1.25rem', borderTop: '1px solid var(--border-soft)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--gold)', opacity: 0.2, marginBottom: '0.5rem' }}>
+              <div style={{ width: 24, height: 24 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
+            </div>
             <Link href="/?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.85rem', textDecoration: 'none' }}>
               + New Consultation
             </Link>

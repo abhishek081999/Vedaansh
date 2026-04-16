@@ -8,7 +8,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 
 import {
-  GrahaData, LagnaData, RASHI_SHORT, RASHI_NAMES, NAKSHATRA_SHORT, NAKSHATRA_NAMES,
+  GrahaData, LagnaData, UpagrahaData, RASHI_SHORT, RASHI_NAMES, NAKSHATRA_SHORT, NAKSHATRA_NAMES,
   GRAHA_NAMES, GRAHA_SANSKRIT, RASHI_SANSKRIT, Rashi, GrahaId
 } from '@/types/astrology'
 import { SIGN_INTERPRETATIONS, NAKSHATRA_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
@@ -113,7 +113,7 @@ interface BodyInfo {
 interface GrahaTableProps {
   grahas:     GrahaData[]
   lagnas?:    LagnaData
-  upagrahas?: Record<string, GrahaData>
+  upagrahas?: Record<string, UpagrahaData>
   limited?:   boolean
   vargas?:      Record<string, GrahaData[]>
   vargaLagnas?: Record<string, Rashi>
@@ -204,7 +204,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     // Upagrahas only in D1
     if (upagrahas && !limited && selectedVarga === 'D1') {
       Object.values(upagrahas).forEach(d => {
-        list.push({ name: d.name, totalDeg: d.totalDegree, color: 'var(--text-secondary)' })
+        list.push({ name: d.name, totalDeg: d.lonSidereal, color: 'var(--text-secondary)' })
       })
     }
 
