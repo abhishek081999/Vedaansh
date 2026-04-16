@@ -89,13 +89,16 @@ Everything in Gold, plus:
 
 ---
 
-### 🚀 Latest Improvements (v2.4.x — April 2026) ✅
+### 🚀 Latest Improvements (v2.6.x — April 2026) ✅
+
+- **Interactive Aspect (Dṛṣṭi) System**: Standard Parashari aspects visualized across all chakras with animated dashed lines (North/Circle) and sign highlights (South).
+- **Professional Prashna Dashboard**: Horary astrology finalized with an **SVG Oracle Compass** for remedial directions, **Ruling Planets** analytics, and **KP Significators** (A-D levels).
+- **Platinum CRM 2.0**: Expanded practice management with global **session-note search**, **follow-up date tracking**, and automated dasha-transition alerts.
+- **Consultancy-Grade Reporting**: "Copy Report to Clipboard" for Prashna results; restricted tooltips to planet names in details tables for a cleaner workspace.
+- **Shared Analytics Tooltips**: Refactored interpretive engine into a platform-wide `PlanetTooltipCard` for consistent diagnostic insights.
 
 - **Elite Astrocartography Suite**: NASA-grade relocation mapping with **Cyclo-Carto-Graphy** (real-time transits), **Local Space (Azimuth)** lines, **Paran (Latitude Crossing)** detection, and **Aspect Harmonics** (Trines/Squares to MC).
 - **Progressive Web App (PWA)**: Full offline resilience with Service Workers, Web manifest v3, and native-grade installability for iOS/Android/Desktop.
-- **Global Resonance Intelligence**: Automated ranking of the top world cities (Dubai, NYC, London, etc.) based on your natal power lines and thematic goals.
-- **Thematic Strategy Mapping**: One-click filters for **Wealth**, **Love**, **Career**, and **Spiritual** relocation analysis.
-- **Dual-Layer Super-Imposition**: Simultaneously visualize natal potential and current planetary activations on a single interactive map.
 
 - **Bhava Bala**: Full BPHS house strength engine live — Adhipati, Dig, and Drishti Bala for all 12 houses, with grid/table/bar-chart UI and strongest/weakest house callout.
 - **Client CRM Dashboard**: Full Platinum CRM at `/clients` — add, edit, tag clients; session notes; remedy tracker; active Dasha progress bar; Dasha-transition alerts.
@@ -113,7 +116,7 @@ Everything in Gold, plus:
 
 ---
 
-## Calculation Engine — 33 Modules
+## Calculation Engine — 34 Modules
 
 All engine modules are pure TypeScript functions (no side effects). Given the same inputs, they always return the same outputs.
 
@@ -148,6 +151,7 @@ All engine modules are pure TypeScript functions (no side effects). Given the sa
 | `activeHouses.ts` | ✅ | Activated house detection from current transits + dashas |
 | `muhurtaPersonal.ts` | ✅ | Personal muhurta suitability scoring for birth chart |
 | `astroInterpretation.ts` | ✅ | Elite ACG reading engine — Career, Home, and Love meanings |
+| `aspects.ts` | ✅ | Visual Parashari Drishti — standard and special planetary house aspects |
 | `calculator.ts` | ✅ | Main orchestrator — all engines wired, returns `ChartOutput` |
 | `dasha/vimshottari.ts` | ✅ | 120yr cycle, 6-level tree (Maha→Antar→Pratyantar→Sukshma→Prana→Deha) |
 | `dasha/yogini.ts` | ✅ | 36yr, 8 Yoginis, birth balance from Moon nakshatra position |
@@ -307,6 +311,7 @@ Tolerances: ±0.005° for longitudes, ±1 day for Dasha dates, exact match for s
 | 6 — Platinum Launch | ✅ Complete | Nakshatra workspace, 41 vargas in UI, both paid tiers live |
 | 7 — Horā Core | ✅ Complete | Bhava Bala, Client CRM, White-label, Email Charts |
 | 8 — Scale + Polish | ✅ Complete | Astrocartography, Admin Dashboard, i18n, PWA |
+| 9 — Elite Analysis | ✅ Complete | Interactive Aspects, Prashna Professional, CRM v2 |
 
 ### Phase 7 — Completed ✅
 
@@ -341,4 +346,4 @@ Private project — all rights reserved.
 ---
 
 *Jyotiṣa — The Eye of the Vedas*  
-*v2.5.0 · April 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*
+*v2.6.0 · April 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*

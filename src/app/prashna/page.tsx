@@ -121,20 +121,20 @@ export default function PrashnaPage() {
     const moon = chart.grahas.find(g => g.id === 'Mo')
     if (!moon) return []
     const ascLordId = getHouseLord(chart.lagnas.ascRashi)
-    const asc = chart.grahas.find(g => g.id === ascLordId)
     
     // Star lords from nakshatraAdvanced
     const moonStar = getKPSubLord(moon.totalDegree).nakshatraLord
     const ascStar = getKPSubLord(chart.lagnas.ascDegree).nakshatraLord
 
     return [
-      { label: 'Day Lord', value: p.vara.lord },
-      { label: 'Moon Sign Lord', value: moon.rashiName.slice(0, 3) + ' Lord' },
-      { label: 'Moon Star Lord', value: moonStar },
-      { label: 'Lagna Lord', value: asc?.id ?? '??' },
-      { label: 'Lagna Star Lord', value: ascStar }
+      { label: 'Day Lord', value: p.vara.lord, desc: 'Quality of the moment' },
+      { label: 'Moon Sign Lord', value: moon.rashiName.slice(0, 3) + ' Lord', desc: 'Mental focus' },
+      { label: 'Moon Star Lord', value: moonStar, desc: 'Execution of desire' },
+      { label: 'Lagna Lord', value: ascLordId, desc: 'The Querent' },
+      { label: 'Lagna Star Lord', value: ascStar, desc: 'The Nature of Query' }
     ]
   }, [chart])
+
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
@@ -571,14 +571,51 @@ export default function PrashnaPage() {
                  
                  <div className="divider" style={{ margin: '0.5rem 0' }} />
                  
-                 <div style={{ background: 'var(--surface-3)', padding: '0.75rem', borderRadius: 'var(--r-md)' }}>
-                    <span className="label-caps" style={{ fontSize: '0.65rem' }}>Remedial Direction</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.4rem' }}>
-                       <span style={{ fontSize: '1.2rem' }}>🧭</span>
-                       <span style={{ fontWeight: 700 }}>{analysis?.direction ?? 'Center'}</span>
+                 <div style={{ background: 'var(--surface-3)', padding: '1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                       <span className="label-caps" style={{ fontSize: '0.65rem' }}>Oracle's Compass</span>
+                       <span style={{ fontWeight: 700, color: 'var(--gold)', fontSize: '0.9rem' }}>{analysis?.direction}</span>
                     </div>
-                    <p style={{ fontSize: '0.75rem', marginTop: 4, opacity: 0.8 }}>Solution lies in this sector. Clear Vastu defects here.</p>
-                 </div>
+                    <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
+                       <div style={{ width: 80, height: 80, position: 'relative' }}>
+                          <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
+                             {/* Compass Ring */}
+                             <circle cx="50" cy="50" r="45" fill="none" stroke="var(--border)" strokeWidth="1" strokeDasharray="2 2" />
+                             {/* Direction Markers */}
+                             {['N','E','S','W'].map((d, i) => (
+                               <text key={d} x={50 + 36 * Math.cos((i * 90 - 90) * Math.PI / 180)} y={50 + 36 * Math.sin((i * 90 - 90) * Math.PI / 180) + 3} fontSize="8" fill="var(--text-muted)" textAnchor="middle">{d}</text>
+                             ))}
+                             {/* Indicator Needle */}
+                             {(() => {
+                                const DIRECTIONS: Record<string, number> = { 'North':-90, 'NE':-45, 'East':0, 'SE':45, 'South':90, 'SW':135, 'West':180, 'NW':-135 }
+                                const angle = DIRECTIONS[analysis?.direction || 'North'] || 0
+                                return (
+                                  <g transform={`rotate(${angle}, 50, 50)`}>
+                                     <line x1="50" y1="50" x2="85" y2="50" stroke="var(--gold)" strokeWidth="2" markerEnd="url(#arrow)" />
+                                     <circle cx="50" cy="50" r="3" fill="var(--gold)" />
+                                  </g>
+                                )
+                             })()}
+                             <defs>
+                               <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                 <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--gold)" />
+                               </marker>
+                             </defs>
+                          </svg>
+                       </div>
+                       <p style={{ fontSize: '0.75rem', opacity: 0.8, margin: 0, lineHeight: 1.5 }}>
+                          The solution or growth sector lies in the <strong>{analysis?.direction}</strong> direction. Align movements and vastu corrections to this quad.
+                       </p>
+                    </div>
+                  </div>
+                  
+                  <button className="btn btn-secondary btn-sm" style={{ width: '100%' }} onClick={() => {
+                    const text = `VEDAANSH PRASHNA ANALYSIS\nOutcome: ${analysis?.headline}\nConfidence: ${analysis?.confidence}%\n\nInsights:\n${analysis?.details.join('\n')}\n\nDirection: ${analysis?.direction}`;
+                    navigator.clipboard.writeText(text);
+                    alert('Analysis copied to clipboard!');
+                  }}>
+                    📋 Copy Report to Clipboard
+                  </button>
               </div>
 
             </div>

@@ -32,11 +32,6 @@ const ActiveHousesCard = dynamic(() => import('@/components/dashboard/ActiveHous
 const ProgressionWidget = dynamic(() => import('@/components/dashboard/ProgressionWidget').then(m => m.ProgressionWidget), { ssr: false })
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
 const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
-const AstroVastuPanel = dynamic(() => import('@/components/ui/AstroVastuPanel').then(m => m.AstroVastuPanel), { ssr: false })
-const AstroCartographyMap = dynamic(() => import('@/components/ui/AstroCartographyMap'), { ssr: false })
-const AstroCartographyAnalysis = dynamic(() => import('@/components/ui/AstroCartographyAnalysis').then(m => m.AstroCartographyAnalysis), { ssr: false })
-const TransitTimeline = dynamic(() => import('@/components/ui/TransitTimeline').then(m => m.TransitTimeline), { ssr: false })
-const TransitScrubber = dynamic(() => import('@/components/dashboard/TransitScrubber').then(m => m.TransitScrubber), { ssr: false })
 const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
@@ -564,8 +559,8 @@ function HomeContent() {
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'astro-vastu' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto' || activeTab === 'kp-stellar') && (
-              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto' || activeTab === 'kp-stellar') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto' || activeTab === 'kp-stellar') ? '0' : '1.25rem', width: '100%' }}>
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'kp-stellar') && (
+              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '0' : '1.25rem', width: '100%' }}>
                 {activeTab.startsWith('nakshatra-') ? (
                   <NakshatraPanel 
                     chart={chart} 
@@ -577,36 +572,6 @@ function HomeContent() {
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (
                   <InterpretationPanel interpretation={chart.interpretation} />
-                ) : activeTab === 'astro-vastu' ? (
-                  <AstroVastuPanel chart={chart} />
-                ) : activeTab === 'roadmap' ? (
-                  <TransitTimeline ascRashi={chart.lagnas.ascRashi} />
-                ) : activeTab === 'transit-scrubber' ? (
-                  <TransitScrubber natalChart={chart} onTransitChange={setTransitGrahas} />
-                ) : activeTab === 'astro-carto' ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '0 1rem' }}>
-                    <div style={{ padding: '1.25rem 0 0' }}>
-                      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>Global Relocation Intelligence</h2>
-                      <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: 700, lineHeight: 1.6 }}>
-                        Mapping your birth potential across the globe. Tap any location on the map to see how your horizons shift, or explore the active power lines below.
-                      </p>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.5rem', alignItems: 'start' }}>
-                        <AstroCartographyMap 
-                          jd={chart.meta.julianDay} 
-                          birthCoords={[chart.meta.latitude, chart.meta.longitude]} 
-                          onVisiblePlanetsChange={handleAcgPlanetsChange}
-                        />
-                        <div style={{ position: 'sticky', top: '1.5rem' }}>
-                           <AstroCartographyAnalysis 
-                              visiblePlanets={selectedAcgPlanets} 
-                              parans={activeAcgParans}
-                              natalData={acgNatalData}
-                           />
-                        </div>
-                    </div>
-                  </div>
                 ) : activeTab === 'kp-stellar' ? (
                   <KPStellarPanel chart={chart} />
                 ) : (
@@ -616,7 +581,7 @@ function HomeContent() {
             )}
 
              {/* Responsive: Dominant CHART | Tab Analysis — hidden when full-width workspace active */}
-             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && activeTab !== 'astro-vastu' && activeTab !== 'roadmap' && activeTab !== 'transit-scrubber' && activeTab !== 'astro-carto' && <div className="chart-layout-grid">
+             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && activeTab !== 'kp-stellar' && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '1 1 600px', 

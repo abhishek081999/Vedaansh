@@ -3,10 +3,14 @@
 // Circle/Wheel chakra — 12 equal pie slices, ascendant at 9 o'clock (180°)
 // Houses go ANTI-clockwise. H1 at left (9 o'clock), H2 above-left, etc.
 
-import React from 'react'
-import type { GrahaData, Rashi, ArudhaData, LagnaData } from '@/types/astrology'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
+import type { GrahaData, Rashi, ArudhaData, LagnaData, GrahaId } from '@/types/astrology'
 import { RASHI_SHORT, NAKSHATRA_SHORT } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
+import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
+import { getAspectedHouses } from '@/lib/engine/aspects'
+
+
 
 const SIGN_ELEMENT: Record<number, string> = {
   1:'fire',2:'earth',3:'air',4:'water',5:'fire',6:'earth',
@@ -75,6 +79,53 @@ export function CircleChakra({
   fontScale = 1.0, planetScale = 1.0,
 }: Props) {
   const cx = size / 2, cy = size / 2
+  const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [isMounted, setIsMounted] = useState(false)
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => { setIsMounted(true) }, [])
+
+  const handlePlanetMouseEnter = (e: React.MouseEvent, g: any) => {
+    const isMainPlanet = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'].includes(g.id as string)
+    if (!isMainPlanet) return
+
+    setMousePos({ x: e.clientX, y: e.clientY })
+    if (hoverTimer.current) clearTimeout(hoverTimer.current)
+    hoverTimer.current = setTimeout(() => {
+      setHoveredPlanet({
+        id: g.id,
+        name: g.name || g.id,
+        totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
+        isRetro: g.isRetro,
+        dignity: g.dignity,
+        nakshatraIndex: g.nakshatraIndex,
+        nakshatraName: g.nakshatraName,
+        pada: g.pada,
+        charaKaraka: g.charaKaraka,
+        avastha: g.avastha,
+        house: ((g.rashi - ascRashi + 12) % 12) + 1
+      })
+    }, 200)
+  }
+
+
+  const handlePlanetMouseLeave = () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current)
+    setHoveredPlanet(null)
+  }
+
+  const handlePlanetMouseMove = (e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY })
+  }
+
+  const aspectLines = useMemo(() => {
+    if (!hoveredPlanet || !hoveredPlanet.house) return []
+    const targets = getAspectedHouses(hoveredPlanet.id as GrahaId, hoveredPlanet.house)
+    return targets.map(t => ({ from: hoveredPlanet.house!, to: t }))
+  }, [hoveredPlanet])
+
+
   const outerR  = size / 2 - 6
   const signR   = outerR - 28   // sign label ring
   const planetR = signR  - 16   // planet zone outer edge
@@ -204,7 +255,14 @@ export function CircleChakra({
               const col   = DIGNITY_COLORS[g.dignity] ?? '#aaa'
               const label = (GRAHA_SHORT[g.id] ?? g.id) + (g.isRetro ? '\u1D3F' : '')
               return (
-                <g key={g.id}>
+                <g 
+                  key={g.id}
+                  onMouseEnter={(e) => handlePlanetMouseEnter(e, g)}
+                  onMouseLeave={handlePlanetMouseLeave}
+                  onMouseMove={handlePlanetMouseMove}
+                  style={{ cursor: 'help' }}
+                >
+
                   <text
                     x={px} y={py}
                     textAnchor="middle" dominantBaseline="central"
@@ -271,6 +329,28 @@ export function CircleChakra({
           )
         })
       )}
+      {/* ── Aspect Lines ── */}
+      {aspectLines.map(({ from, to }, idx) => {
+        const [fx, fy] = polar(cx, cy, innerR, houseMidDeg(from))
+        const [tx, ty] = polar(cx, cy, innerR, houseMidDeg(to))
+        return (
+          <line
+            key={idx}
+            x1={fx} y1={fy} x2={tx} y2={ty}
+            stroke="var(--gold)"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+            opacity="0.6"
+          >
+            <animate attributeName="stroke-dashoffset" from="40" to="0" dur="2s" repeatCount="indefinite" />
+          </line>
+        )
+      })}
+
+      {/* ── Tooltip Portal Removed ── */}
     </svg>
+
+
   )
 }
+

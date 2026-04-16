@@ -13,6 +13,12 @@
 import type { GrahaData, Rashi, ArudhaData, LagnaData } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { NAKSHATRA_SHORT } from '@/types/astrology'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
+import { getAspectedHouses } from '@/lib/engine/aspects'
+import type { GrahaId } from '@/types/astrology'
+
+
 
 function dignityColor(dignity: string, isRetro: boolean): string {
   if (isRetro) return 'var(--dig-retro)'
@@ -114,6 +120,46 @@ export function NorthIndianChakra({
   highlightHouses = [],
 }: NorthIndianProps) {
   const S = size
+  const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [isMounted, setIsMounted] = useState(false)
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => { setIsMounted(true) }, [])
+
+  const handlePlanetMouseEnter = (e: React.MouseEvent, g: any) => {
+    const isMainPlanet = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'].includes(g.id as string)
+    if (!isMainPlanet) return
+
+    setMousePos({ x: e.clientX, y: e.clientY })
+    if (hoverTimer.current) clearTimeout(hoverTimer.current)
+    hoverTimer.current = setTimeout(() => {
+      setHoveredPlanet({
+        id: g.id,
+        name: g.name || g.id,
+        totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
+        isRetro: g.isRetro,
+        dignity: g.dignity,
+        nakshatraIndex: g.nakshatraIndex,
+        nakshatraName: g.nakshatraName,
+        pada: g.pada,
+        charaKaraka: g.charaKaraka,
+        avastha: g.avastha,
+        house: Object.keys(byHouse).find(h => byHouse[Number(h)].some(pg => pg.id === g.id)) ? Number(Object.keys(byHouse).find(h => byHouse[Number(h)].some(pg => pg.id === g.id))) : undefined
+      })
+    }, 200)
+  }
+
+
+  const handlePlanetMouseLeave = () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current)
+    setHoveredPlanet(null)
+  }
+
+  const handlePlanetMouseMove = (e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY })
+  }
+
 
   const BASE_PL_FONT = S * 0.038 * fontScale * planetScale
   const BASE_DEG_FONT = S * 0.024 * fontScale * infoScale
@@ -148,6 +194,13 @@ export function NorthIndianChakra({
       charaKaraka: null
     })
   }
+
+  const aspectLines = useMemo(() => {
+    if (!hoveredPlanet || !hoveredPlanet.house) return []
+    const targets = getAspectedHouses(hoveredPlanet.id as GrahaId, hoveredPlanet.house)
+    return targets.map(t => ({ from: hoveredPlanet.house!, to: t }))
+  }, [hoveredPlanet])
+
 
   const isKite = (h: number) => h === 1 || h === 4 || h === 7 || h === 10
 
@@ -357,7 +410,14 @@ export function NorthIndianChakra({
               const kar = showKaraka && g.charaKaraka ? ` ${g.charaKaraka}` : ''
 
               return (
-                <g key={g.id}>
+                <g 
+                  key={g.id}
+                  onMouseEnter={(e) => handlePlanetMouseEnter(e, g)}
+                  onMouseLeave={handlePlanetMouseLeave}
+                  onMouseMove={handlePlanetMouseMove}
+                  style={{ cursor: 'help' }}
+                >
+
                   <text
                     x={px} y={py}
                     fontSize={Math.round(plFont)}
@@ -504,6 +564,43 @@ export function NorthIndianChakra({
       {/* Outer framing box */}
       <rect x=".5" y=".5" width={S - 1} height={S - 1}
         fill="none" stroke="var(--gold)" strokeWidth="1.5" />
+
+      {/* ── Aspect Lines ── */}
+      {aspectLines.map(({ from, to }, idx) => {
+        const [fx, fy] = centroid(polyPts(from, S))
+        const [tx, ty] = centroid(polyPts(to, S))
+        return (
+          <line
+            key={idx}
+            x1={fx} y1={fy} x2={tx} y2={ty}
+            stroke="var(--gold)"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+            opacity="0.6"
+            style={{ pointerEvents: 'none' }}
+          >
+            <animate attributeName="stroke-dashoffset" from="40" to="0" dur="2s" repeatCount="indefinite" />
+          </line>
+        )
+      })}
+
+      {/* ── House Highlights ── */}
+      {aspectLines.map(({ to }, idx) => {
+        const pts = polyPts(to, S).map(p => p.join(',')).join(' ')
+        return (
+          <polygon
+            key={`h-${idx}`}
+            points={pts}
+            fill="var(--gold-faint)"
+            opacity="0.15"
+            style={{ pointerEvents: 'none' }}
+          />
+        )
+      })}
+
+      {/* ── Tooltip Portal Removed ── */}
     </svg>
+
+
   )
 }

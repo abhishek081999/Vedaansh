@@ -7,6 +7,20 @@ import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
+// ── Navigation Progress Bar Animation ──
+const progressKeyframes = `
+@keyframes navProgress {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(-20%); }
+  100% { transform: translateX(0); }
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(201, 168, 76, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
+}
+`;
+
 const TOP_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'dashboard', label: 'Dashboard',   icon: '◫', path: '/' },
 ]
@@ -38,8 +52,6 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
     label: 'Predictive Timing',
     tabs: [
       { id: 'varshaphal', label: 'Solar Return (Varshfal)', icon: '☀️', path: '/' },
-      { id: 'transit-scrubber', label: 'Time Scrubber', icon: '⏳', path: '/' },
-      { id: 'roadmap',   label: 'Cosmic Roadmap', icon: '🛣️', path: '/' },
     ]
   },
   {
@@ -55,7 +67,6 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
     label: 'Calculations',
     tabs: [
       { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
-      { id: 'astro-carto', label: 'Astro-Cartography', icon: '🌍', path: '/' },
     ]
   }
 ]
@@ -63,19 +74,25 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
 const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'daily-panchang',   label: 'Daily Pañcāṅga',        icon: '📅', path: '/panchang' },
   { id: 'monthly-panchang', label: 'Monthly Calendar',       icon: '🗓', path: '/panchang/calendar' },
-  { id: 'muhurta',          label: 'Muhūrta Finder',         icon: '🔍', path: '/muhurta' },
-  { id: 'sbc',              label: 'Sarvatobhadra Chakra',   icon: '⬛', path: '/sbc' },
+]
+
+const ADVANCED_ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] = [
+  { id: 'astro-vastu', label: 'Astro Vastu', icon: '🏠', path: '/vastu' },
+  { id: 'astro-carto', label: 'AstroCartography', icon: '🌍', path: '/acg' },
+  { id: 'sbc', label: 'Sarvatobhadra Chakra', icon: '⬛', path: '/sbc' },
+  { id: 'muhurta', label: 'Muhurta Finder', icon: '🕒', path: '/muhurta' },
+  { id: 'prashna', label: 'Prashna', icon: '🎯', path: '/prashna' },
+  { id: 'compare', label: 'Synastry Overlay', icon: '⚭', path: '/compare' },
+  { id: 'roadmap', label: 'Cosmic Roadmap', icon: '🛣️', path: '/roadmap' },
+  { id: 'transit-scrubber', label: 'Time Scrubber', icon: '⏳', path: '/scrubber' },
 ]
 
 const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'astro-vastu', label: 'Astro Vastu', icon: '🏠', path: '/' },
-  { id: 'muhurta', label: 'Muhurta Finder', icon: '🕒', path: '/muhurta' },
-  { id: 'prashna', label: 'Prashna (Horary)', icon: '🎯', path: '/prashna' },
-  { id: 'compare', label: 'Synastry Overlay', icon: '⚭', path: '/compare' },
   { id: 'clients', label: 'CRM / Clients',   icon: '👥', path: '/clients' },
   { id: 'pricing',    label: 'Pricing',         icon: '💎', path: '/pricing' },
   { id: 'my-charts',    label: 'My Charts',     icon: '📚', path: '/my/charts' },
 ]
+
 
 export function AppFramework({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
@@ -84,15 +101,23 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab, language, setLanguage } = useAppLayout()
   const { chart, isFormOpen, setIsFormOpen } = useChart()
   const [isAstroOpen, setIsAstroOpen] = useState(true)
+  const [isAdvancedAstroOpen, setIsAdvancedAstroOpen] = useState(false)
   const [isPanchangOpen, setIsPanchangOpen] = useState(false)
   const [isNakshatraOpen, setIsNakshatraOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
+
   useEffect(() => {
+    setIsNavigating(false)
     const saved = localStorage.getItem('astro-nav-expanded')
     if (saved !== null) {
       setIsAstroOpen(saved === 'true')
+    }
+    const savedAdv = localStorage.getItem('advanced-astro-nav-expanded')
+    if (savedAdv !== null) {
+      setIsAdvancedAstroOpen(savedAdv === 'true')
     }
     const savedP = localStorage.getItem('panchang-nav-expanded')
     if (savedP !== null) {
@@ -113,12 +138,20 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       window.removeEventListener('online', onOnline)
       window.removeEventListener('offline', onOffline)
     }
-  }, [])
+  }, [pathname])
 
   const toggleAstroOpen = () => {
     setIsAstroOpen(prev => {
       const next = !prev
       localStorage.setItem('astro-nav-expanded', String(next))
+      return next
+    })
+  }
+
+  const toggleAdvancedAstroOpen = () => {
+    setIsAdvancedAstroOpen(prev => {
+      const next = !prev
+      localStorage.setItem('advanced-astro-nav-expanded', String(next))
       return next
     })
   }
@@ -151,36 +184,103 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const renderTab = (t: { id: string; label: string; icon: string; path?: string }, isSub?: boolean) => {
     const isCurrentPage = (t.path === pathname)
     const isActive = t.path === '/' ? (isCurrentPage && activeTab === t.id) : isCurrentPage
+    
     const handleNav = (e: React.MouseEvent) => {
       const isAstrologyTab = t.path === '/' || !t.path
+      
+      // Start navigation animation
+      if (t.path !== pathname) {
+        setIsNavigating(true)
+      }
+
       if (isAstrologyTab && !chart) {
         setIsFormOpen(true)
       }
-
       setActiveTab(t.id)
       if (window.innerWidth < 1024) setIsSidenavOpen(false)
     }
+
     const style: React.CSSProperties = {
-      display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.65rem 0.75rem',
-      background: isActive ? 'var(--gold-faint)' : 'transparent', border: 'none',
+      display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.7rem 0.75rem',
+      background: isActive ? 'var(--gold-faint)' : 'transparent', 
+      border: 'none',
       borderLeft: `3px solid ${isActive ? 'var(--gold)' : 'transparent'}`,
       color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-      borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-      fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.15s',
+      borderRadius: '0 var(--r-md) var(--r-md) 0', 
+      cursor: 'pointer', 
+      textAlign: 'left',
+      fontFamily: 'var(--font-body)', 
+      fontSize: '0.9rem', 
+      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
       letterSpacing: '0.04em',
-      width: '100%', textDecoration: 'none',
-      paddingLeft: isSub ? '2rem' : '0.75rem'
+      width: '100%', 
+      textDecoration: 'none',
+      paddingLeft: isSub ? '2rem' : '0.85rem',
+      position: 'relative',
+      overflow: 'hidden'
     }
+
     return (
-      <Link key={t.id} href={t.path || '/'} onClick={handleNav} style={style}>
-         <span style={{ fontSize: '1rem', opacity: isActive ? 1 : 0.5 }}>{t.icon}</span>
-         <span style={{ fontWeight: isActive ? 600 : 400 }}>{t.label}</span>
+      <Link 
+        key={t.id} 
+        href={t.path || '/'} 
+        onClick={handleNav} 
+        style={style}
+        onMouseEnter={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = 'var(--surface-3)'
+            e.currentTarget.style.paddingLeft = isSub ? '2.15rem' : '1rem'
+            e.currentTarget.style.color = 'var(--text-primary)'
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.paddingLeft = isSub ? '2rem' : '0.85rem'
+            e.currentTarget.style.color = 'var(--text-secondary)'
+          }
+        }}
+      >
+         <span style={{ 
+           fontSize: '1.1rem', 
+           opacity: isActive ? 1 : 0.6,
+           transition: 'transform 0.2s',
+           transform: isActive ? 'scale(1.1)' : 'scale(1)',
+           filter: isActive ? 'drop-shadow(0 0 4px var(--gold))' : 'none'
+         }}>
+           {t.icon}
+         </span>
+         <span style={{ 
+           fontWeight: isActive ? 600 : 400,
+           transition: 'all 0.2s',
+           textShadow: isActive ? '0 0 1px rgba(201,168,76,0.2)' : 'none'
+         }}>
+           {t.label}
+         </span>
+         {isActive && (
+           <div style={{
+             position: 'absolute', right: '0.5rem', width: '4px', height: '4px', borderRadius: '50%', background: 'var(--gold)',
+             boxShadow: '0 0 8px var(--gold)',
+             animation: 'pulseGlow 2s infinite'
+           }} />
+         )}
       </Link>
     )
   }
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', background: 'var(--bg-page)' }}>
+      <style dangerouslySetInnerHTML={{ __html: progressKeyframes }} />
+      
+      {/* ── Global Top Progress Bar ── */}
+      {isNavigating && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, height: '3px',
+          background: 'linear-gradient(90deg, transparent, var(--gold), #fff)',
+          zIndex: 9999,
+          animation: 'navProgress 1.5s ease-in-out forwards'
+        }} />
+      )}
       
       {/* ── Top Global Header ────────────────────────────────── */}
       <header style={{
@@ -385,6 +485,32 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                   {group.tabs.map(t => renderTab(t, true))}
                 </div>
               ))}
+            </div>
+
+            <button
+              onClick={toggleAdvancedAstroOpen}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
+                background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
+                color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
+                fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.15s',
+                letterSpacing: '0.04em',
+                width: '100%'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <span style={{ fontSize: '1rem', opacity: 0.5 }}>⚛</span>
+                <span>Advanced Astrology</span>
+              </div>
+              <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isAdvancedAstroOpen ? '▲' : '▼'}</span>
+            </button>
+            <div style={{
+              overflow: 'hidden',
+              maxHeight: isAdvancedAstroOpen ? '800px' : '0',
+              transition: 'max-height 0.3s ease-in-out',
+              display: 'flex', flexDirection: 'column', gap: '0.25rem'
+            }}>
+              {ADVANCED_ASTRO_TABS.map(t => renderTab(t, true))}
             </div>
 
             <button
