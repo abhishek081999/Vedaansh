@@ -292,7 +292,7 @@ export function PlanetHoverTooltip({ planet, children, disabled = false }: Plane
   }
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: Event) => {
       if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
         hide()
       }
