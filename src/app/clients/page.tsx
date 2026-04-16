@@ -48,8 +48,10 @@ interface Client {
   activeDashaStart?: string
   activeDashaEnd?: string
   dashaAlert?: { type: 'MD_CHANGE' | 'AD_CHANGE'; date: string; lord: string } | null
+  followUpAt?: string
   createdAt:  string
 }
+
 
 function ClientCard({ 
   client, onOpen, onUpdate, onEdit, onDelete 
@@ -216,35 +218,28 @@ function ClientCard({
           </div>
         </div>
         
-        {/* Active Dasha Track with Progress bar */}
-        <div style={{ 
-          textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.3rem', width: 90
-        }}>
-          <div style={{ 
-            fontSize: '0.65rem', color: 'var(--text-muted)', 
-            textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 
-          }}>
-            Dasha
-          </div>
-          <div style={{ 
-            display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: 'flex-end',
-            fontFamily: 'var(--font-mono)', fontSize: '0.92rem', color: 'var(--gold)'
-          }}>
+        {/* Follow-up / Dasha Track */}
+        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.3rem', width: 90 }}>
+          {client.followUpAt && (
+             <div style={{ marginBottom: '0.2rem' }}>
+                <div style={{ fontSize: '0.55rem', color: 'var(--rose)', textTransform: 'uppercase', fontWeight: 800 }}>Follow-up</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {new Date(client.followUpAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                </div>
+             </div>
+          )}
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Dasha</div>
+          <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: 'flex-end', fontFamily: 'var(--font-mono)', fontSize: '0.92rem', color: 'var(--gold)' }}>
             <span style={{ fontWeight: 800 }}>{dashaParts[0]}</span>
             <span style={{ opacity: 0.4 }}>/</span>
             <span style={{ fontWeight: 400 }}>{dashaParts[1]}</span>
           </div>
-          <div style={{ 
-            height: '3px', width: '100%', background: 'var(--border-soft)', 
-            borderRadius: '2px', overflow: 'hidden' 
-          }}>
-            <div style={{ 
-              height: '100%', width: `${dashaPct}%`, background: 'var(--gold)',
-              boxShadow: '0 0 4px var(--gold-soft)', transition: 'width 1s ease'
-            }} />
+          <div style={{ height: '3px', width: '100%', background: 'var(--border-soft)', borderRadius: '2px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${dashaPct}%`, background: 'var(--gold)', boxShadow: '0 0 4px var(--gold-soft)', transition: 'width 1s ease' }} />
           </div>
         </div>
       </div>
+
 
       {/* Dasha Transition Alert */}
       {client.dashaAlert && (
@@ -544,11 +539,15 @@ export default function ClientsPage() {
   }, [status, router, fetchClients])
 
   const filteredClients = useMemo(() => {
+    const q = search.toLowerCase()
     return clients.filter(c => 
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.tags.some(t => t.toLowerCase().includes(search.toLowerCase()))
+      c.name.toLowerCase().includes(q) ||
+      c.tags.some(t => t.toLowerCase().includes(q)) ||
+      c.notes.some(n => n.content.toLowerCase().includes(q)) ||
+      (c.email && c.email.toLowerCase().includes(q))
     )
   }, [clients, search])
+
 
   const stats = useMemo(() => {
     return {
@@ -612,8 +611,9 @@ export default function ClientsPage() {
             Consultant <span style={{ color: 'var(--gold)' }}>CRM</span>
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-            Manage your practice, track client dashas, and session history in one workspace.
+            Platinum Workspace: Client history search, follow-ups, and transition monitoring.
           </p>
+
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button onClick={() => setShowAddModal(true)} className="btn btn-primary">+ Add Client</button>

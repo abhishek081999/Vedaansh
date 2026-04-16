@@ -4,11 +4,16 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
+
 import {
-  GrahaData, LagnaData, RASHI_SHORT, NAKSHATRA_SHORT,
+  GrahaData, LagnaData, RASHI_SHORT, RASHI_NAMES, NAKSHATRA_SHORT, NAKSHATRA_NAMES,
   GRAHA_NAMES, GRAHA_SANSKRIT, RASHI_SANSKRIT, Rashi, GrahaId
 } from '@/types/astrology'
+import { SIGN_INTERPRETATIONS, NAKSHATRA_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
+import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
+
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { ConditionBadges } from '@/components/ui/AdvancedAnalysisPanel'
 import { VARGA_META, getVargaPosition } from '@/lib/engine/vargas'
@@ -102,6 +107,8 @@ interface BodyInfo {
   dignity?: string
 }
 
+
+
 interface GrahaTableProps {
   grahas:     GrahaData[]
   lagnas?:    LagnaData
@@ -112,12 +119,21 @@ interface GrahaTableProps {
   activeVarga?: string
 }
 
-// ── Component ────────────────────────────────────────────────
+
+
+// ── Component ────────────────────────────────────────────
 
 export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, activeVarga }: GrahaTableProps) {
   const { language } = useAppLayout()
   const isSa = language === 'sa'
   const [selectedVarga, setSelectedVarga] = React.useState<string>(activeVarga || 'D1')
+  const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [isMounted, setIsMounted] = useState(false)
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => { setIsMounted(true) }, [])
+
 
   // Sync with prop if it changes
   React.useEffect(() => {
@@ -325,6 +341,13 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
               const nak = getNak(b.totalDeg)
               const nav = getNav(b.totalDeg)
               const graha = b.id ? grahas.find(g => g.id === b.id) : undefined
+              const isMainPlanet = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'].includes(b.id as string)
+
+              const handleMouseLeave = () => {
+                if (hoverTimer.current) clearTimeout(hoverTimer.current)
+                setHoveredPlanet(null)
+              }
+
 
               return (
                 <tr
@@ -332,25 +355,59 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                   style={{
                     borderBottom: '1px solid var(--border-soft)',
                     background: i % 2 === 0 ? 'rgba(0,0,0,0.015)' : 'transparent',
+                    transition: 'background 0.15s',
                   }}
                 >
+
                   {/* ── Body ──────────────────────────────── */}
                   <td style={{ padding: '0.45rem 0.7rem', verticalAlign: 'middle', textAlign: 'left' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'nowrap' }}>
-                      <span style={{
-                        fontWeight: 600,
-                        color: b.color || 'var(--text-primary)',
-                        fontSize: '0.82rem',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        maxWidth: '7rem',
-                      }}>
+                      <span 
+                        onMouseEnter={(e) => {
+                          if (!isMainPlanet || !graha) return
+                          setMousePos({ x: e.clientX, y: e.clientY })
+                          if (hoverTimer.current) clearTimeout(hoverTimer.current)
+                          hoverTimer.current = setTimeout(() => {
+                            const nak = getNak(b.totalDeg)
+                            const house = ((rashiIdx - currentLagnaRashi + 12) % 12) + 1
+                            setHoveredPlanet({
+                              id: String(b.id), name: b.name, totalDeg: b.totalDeg,
+                              isRetro: b.isRetro, dignity: b.dignity, avastha: b.avastha,
+                              nakshatraIndex: Math.floor(b.totalDeg / (360/27)) % 27,
+                              nakshatraName: nak.name, pada: nak.pada,
+                              charaKaraka: b.karaka ?? undefined,
+                              isCombust: graha.isCombust,
+                              house,
+                            })
+                          }, 200)
+                        }}
+
+                        onMouseLeave={handleMouseLeave}
+                        onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+                        style={{
+                          fontWeight: 600,
+                          color: b.color || 'var(--text-primary)',
+                          fontSize: '0.82rem',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: '7rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.2rem',
+                          cursor: isMainPlanet ? 'help' : 'default',
+                          textDecoration: isMainPlanet ? 'underline dotted var(--gold-faint)' : 'none',
+                          textUnderlineOffset: '3px'
+                        }}>
                         {b.name}
                         {b.isRetro && (
-                          <span style={{ fontSize: '0.58rem', marginLeft: 3, verticalAlign: 'super', opacity: 0.8 }}>R</span>
+                          <span style={{ fontSize: '0.58rem', marginLeft: 2, verticalAlign: 'super', opacity: 0.8 }}>℞</span>
+                        )}
+                        {isMainPlanet && (
+                          <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', opacity: 0.6, marginLeft: 2 }} title="Hover for interpretation">●</span>
                         )}
                       </span>
+
                       {b.karaka && (
                         <span style={{
                           fontSize: '0.58rem', color: 'var(--text-muted)', fontWeight: 700,
@@ -361,7 +418,6 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                         </span>
                       )}
                     </div>
-                    {/* Condition badges on same row below name — compact */}
                     {graha && (
                       <div style={{ marginTop: '0.15rem' }}>
                         <ConditionBadges graha={graha} />
@@ -433,6 +489,12 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
           </tbody>
         </table>
       </div>
+
+      {/* ── Tooltip Portal ── */}
+      {isMounted && hoveredPlanet && (
+        <PlanetTooltipCard planet={hoveredPlanet} x={mousePos.x} y={mousePos.y} />
+      )}
+
     </div>
   )
 }

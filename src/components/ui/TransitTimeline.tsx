@@ -104,61 +104,71 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
             const month = date.toLocaleString('default', { month: 'short' })
             const day = date.getDate()
             const color = GRAHA_COLORS[ev.planetId] || 'var(--gold)'
+            
+            const PLANET_LABELS: Record<string, string> = {
+              Ju: 'Guru (Jupiter)',
+              Sa: 'Shani (Saturn)',
+              Ra: 'Rahu (North Node)',
+              Ke: 'Ketu (South Node)',
+            }
+            const planetLabel = PLANET_LABELS[ev.planetId] || ev.planetId
 
             return (
               <div key={i} className="transit-row" style={{ position: 'relative' }}>
                 {/* Dot */}
                 <div style={{ 
-                  position: 'absolute', left: '-2.4rem', top: '0.2rem', 
-                  width: '12px', height: '12px', borderRadius: '50%', 
-                  background: color, border: '3px solid var(--bg-page)',
-                  boxShadow: `0 0 10px ${color}88`, zIndex: 2
+                   position: 'absolute', left: '-2.4rem', top: '0.2rem', 
+                   width: '12px', height: '12px', borderRadius: '50%', 
+                   background: color, border: '3px solid var(--bg-page)',
+                   boxShadow: `0 0 10px ${color}88`, zIndex: 2
                 }} />
 
                 {/* Date Label (Floating) */}
                 <div style={{ 
-                  position: 'absolute', left: '-7rem', top: '0', 
-                  width: '4rem', textAlign: 'right', 
-                  fontFamily: 'var(--font-mono)', fontSize: '0.75rem', 
-                  color: 'var(--text-muted)', lineHeight: 1.2 
+                   position: 'absolute', left: '-7rem', top: '0', 
+                   width: '4rem', textAlign: 'right', 
+                   fontFamily: 'var(--font-mono)', fontSize: '0.75rem', 
+                   color: 'var(--text-muted)', lineHeight: 1.2 
                 }}>
-                  <div style={{ fontWeight: 800, color: 'var(--text-secondary)' }}>{day}</div>
-                  <div>{month}</div>
+                   <div style={{ fontWeight: 800, color: 'var(--text-secondary)' }}>{day}</div>
+                   <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', opacity: 0.7 }}>{month}</div>
                 </div>
 
                 <div className="card" style={{ 
-                  padding: '1.25rem', display: 'flex', gap: '1.25rem', alignItems: 'center',
-                  background: `linear-gradient(90deg, ${color}05 0%, transparent 100%)`,
-                  borderLeft: `4px solid ${color}`,
-                  transition: 'transform 0.2s',
-                  cursor: 'default'
+                   padding: '1.25rem', display: 'flex', gap: '1.25rem', alignItems: 'center',
+                   background: `linear-gradient(90deg, ${color}08 0%, transparent 100%)`,
+                   borderLeft: `4px solid ${color}`,
+                   transition: 'transform 0.2s',
+                   cursor: 'default'
                 }} onMouseOver={e => e.currentTarget.style.transform = 'translateX(5px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateX(0)'}>
-                  
-                  <div style={{ 
-                    width: '48px', height: '48px', borderRadius: '12px', 
-                    background: 'var(--surface-3)', border: '1px solid var(--border-soft)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.5rem', color: color
-                  }}>
-                    {GRAHA_ICONS[ev.planetId]}
-                  </div>
+                   
+                   <div style={{ 
+                     width: '48px', height: '48px', borderRadius: '12px', 
+                     background: 'var(--surface-3)', border: '1px solid var(--border-soft)',
+                     display: 'flex', alignItems: 'center', justifyContent: 'center',
+                     fontSize: '1.5rem', color: color,
+                     boxShadow: `inset 0 0 10px ${color}15`
+                   }}>
+                     {GRAHA_ICONS[ev.planetId]}
+                   </div>
 
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                      <span className="badge" style={{ background: `${color}15`, color: color, fontSize: '0.65rem', fontWeight: 800 }}>{ev.type.replace('_',' ').toUpperCase()}</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{ev.planetId === 'Ju' ? 'Bṛhaspati' : ev.planetId === 'Sa' ? 'Shani' : 'Nodes'}</span>
-                    </div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                      {ev.description}
-                    </div>
-                  </div>
+                   <div style={{ flex: 1 }}>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                       <span className="badge" style={{ background: `${color}15`, color: color, fontSize: '0.65rem', fontWeight: 800, border: `1px solid ${color}33` }}>{ev.type.replace('_',' ').toUpperCase()}</span>
+                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{planetLabel}</span>
+                     </div>
+                     <div style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                       {ev.description}
+                     </div>
+                   </div>
 
-                  <div style={{ textAlign: 'right', minWidth: '80px' }}>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Influence</div>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: ev.type.includes('house') ? 'var(--text-gold)' : 'var(--text-secondary)' }}>
-                      House {ev.house}
-                    </div>
-                  </div>
+                   <div style={{ textAlign: 'right', minWidth: '90px' }}>
+                     <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activation</div>
+                     <div style={{ fontSize: '0.95rem', fontWeight: 700, color: ev.type.includes('house') ? 'var(--text-gold)' : 'var(--text-secondary)' }}>
+                       House {ev.house}
+                     </div>
+                     <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Focus Area</div>
+                   </div>
                 </div>
               </div>
             )

@@ -13,6 +13,12 @@
 import type { GrahaData, Rashi, ArudhaData, LagnaData } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { NAKSHATRA_SHORT } from '@/types/astrology'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
+import { getAspectedHouses } from '@/lib/engine/aspects'
+import type { GrahaId } from '@/types/astrology'
+
+
 
 // ── Fixed sign → [row, col] in 4×4 grid ──────────────────────
 
@@ -108,6 +114,52 @@ export function SouthIndianChakra({
   highlightHouses = [],
 }: SouthIndianProps) {
   const cell = size / 4
+  const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [isMounted, setIsMounted] = useState(false)
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => { setIsMounted(true) }, [])
+
+  const handlePlanetMouseEnter = (e: React.MouseEvent, g: any) => {
+    const isMainPlanet = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'].includes(g.id as string)
+    if (!isMainPlanet) return
+
+    setMousePos({ x: e.clientX, y: e.clientY })
+    if (hoverTimer.current) clearTimeout(hoverTimer.current)
+    hoverTimer.current = setTimeout(() => {
+      setHoveredPlanet({
+        id: g.id,
+        name: g.name || g.id,
+        totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
+        isRetro: g.isRetro,
+        dignity: g.dignity,
+        nakshatraIndex: g.nakshatraIndex,
+        nakshatraName: g.nakshatraName,
+        pada: g.pada,
+        charaKaraka: g.charaKaraka,
+        avastha: g.avastha,
+        house: ((g.rashi - ascRashi + 12) % 12) + 1
+      })
+    }, 200)
+  }
+
+
+  const handlePlanetMouseLeave = () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current)
+    setHoveredPlanet(null)
+  }
+
+  const handlePlanetMouseMove = (e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY })
+  }
+
+
+  const aspectHighlights = useMemo(() => {
+    if (!hoveredPlanet || !hoveredPlanet.house) return []
+    const targets = getAspectedHouses(hoveredPlanet.id as GrahaId, hoveredPlanet.house)
+    return targets.map(h => ((ascRashi - 1 + h - 1) % 12) + 1)
+  }, [hoveredPlanet, ascRashi])
 
   // Planets grouped by rashi (signs are fixed in South Indian)
   const byRashi: Record<number, GrahaData[]> = {}
@@ -190,6 +242,7 @@ export function SouthIndianChakra({
               width={cell - 1} height={cell - 1}
               fill={
                 isHouseHi ? 'rgba(253, 230, 138, 0.12)' :
+                isAspected ? 'var(--gold-faint)' :
                 isHi  ? 'var(--accent-glow)' :
                 isAsc ? 'var(--gold-faint)' :
                         'transparent'
@@ -275,7 +328,14 @@ export function SouthIndianChakra({
               const kar   = showKaraka && g.charaKaraka ? ` [${g.charaKaraka}]` : ''
 
               return (
-                <g key={g.id}>
+                <g 
+                  key={g.id}
+                  onMouseEnter={(e) => handlePlanetMouseEnter(e, g)}
+                  onMouseLeave={handlePlanetMouseLeave}
+                  onMouseMove={handlePlanetMouseMove}
+                  style={{ cursor: 'help' }}
+                >
+
                   <text
                     x={px}
                     y={yPos}
@@ -403,6 +463,10 @@ export function SouthIndianChakra({
         <line x1={cell} y1={cell} x2={cell*3} y2={cell*3} stroke="var(--border)" strokeWidth="0.5" />
         <line x1={cell*3} y1={cell} x2={cell} y2={cell*3} stroke="var(--border)" strokeWidth="0.5" />
       </g>
+
+      {/* ── Tooltip Portal Removed ── */}
     </svg>
+
+
   )
 }
