@@ -238,7 +238,7 @@ export const DEFAULT_SETTINGS: ChartSettings = {
   nodeMode:     'true',
   karakaScheme: 8,
   gulikaMode:   'phaladipika',
-  chartStyle:   'south',
+  chartStyle:   'north',
   showDegrees:  true,
   showNakshatra:false,
   showKaraka:   false,
