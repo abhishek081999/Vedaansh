@@ -10,6 +10,7 @@ import {
 } from '@/types/astrology'
 import { getNakshatraCharacteristics, getNavtaraChakra } from '@/lib/engine/nakshatraAdvanced'
 import { SIGN_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
+import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL } from '@/lib/engine/sarvatobhadra'
 
 interface Branding {
   brandName?: string | null
@@ -89,22 +90,23 @@ function polyPts(h: number, S: number): string {
 }
 
 function centroidN(h: number, S: number): [number,number] {
-  const Q = S/4, M = S/2
+  const Q = S/4, M = S/2, Q3 = 3*Q
   const c: Record<number,[number,number]> = {
-    1:[M, M*0.62], 2:[Q*0.75,Q*0.65], 3:[Q*0.65,Q*1.05], 4:[M*0.65,M*0.95],
-    5:[Q*0.65,3*Q-Q*0.05], 6:[Q*0.75,3*Q+Q*0.35], 7:[M,M*1.38],
-    8:[3*Q+Q*0.25,3*Q+Q*0.35], 9:[3*Q+Q*0.35,3*Q-Q*0.05],
-    10:[M*1.35,M*0.95], 11:[3*Q+Q*0.35,Q*1.05], 12:[3*Q+Q*0.25,Q*0.65],
+    1:[M, Q*0.75], 2:[Q*0.75, Q*0.4], 3:[Q*0.4, Q*0.75], 4:[M*0.75, M],
+    5:[Q*0.4, Q3*1.08], 6:[Q*0.75, S-Q*0.4], 7:[M, S-Q*0.75],
+    8:[Q3*1.08, S-Q*0.4], 9:[S-Q*0.4, Q3*1.08],
+    10:[S-Q*0.75, M], 11:[S-Q*0.4, Q*0.75], 12:[Q3*1.08, Q*0.4],
   }
   return c[h] ?? [M,M]
 }
 
 function rashiLabelPos(h: number, S: number): [number,number] {
-  const Q = S/4, M = S/2, o = S*0.045
+  const Q = S/4, M = S/2, Q3 = 3*Q
   const p: Record<number,[number,number]> = {
-    1:[M,M-o], 2:[Q,Q-o], 3:[Q-o,Q], 4:[M-o,M],
-    5:[Q-o,3*Q], 6:[Q,3*Q+o], 7:[M,M+o], 8:[3*Q,3*Q+o],
-    9:[3*Q+o,3*Q], 10:[M+o,M], 11:[3*Q+o,Q], 12:[3*Q,Q-o],
+    1:[M, Q*1.15], 2:[Q, Q*0.4], 3:[Q*0.4, Q], 4:[M*0.75, M*1.1],
+    5:[Q*0.4, Q3], 6:[Q, S-Q*0.4], 7:[M, S-Q*1.15],
+    8:[Q3, S-Q*0.4], 9:[S-Q*0.4, Q3], 10:[S-Q*0.75, M*0.9],
+    11:[S-Q*0.4, Q], 12:[Q3, Q*0.4],
   }
   return p[h] ?? [M,M]
 }
@@ -139,17 +141,32 @@ function buildNorthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
 
     const [cx,cy] = centroidN(h, S)
     const ps = byHouse[h]
-    const pf = S * 0.045
-    const df = S * 0.026
-    const lh = pf + df + 2
-    const startY = cy - ((ps.length - 1) * lh) / 2
+    
+    // Dynamic adjustments for crowded houses
+    const many = ps.length > 2
+    const pf = S * (many ? 0.038 : 0.045)
+    const lh = pf * 1.2
     
     const planetTxts = ps.map((g, i) => {
-      const py = startY + i * lh
+      let xOff = 0
+      let yOff = 0
+      
+      if (ps.length > 3) {
+        // Two-column layout for high crowding
+        const col = i % 2
+        const row = Math.floor(i / 2)
+        xOff = (col === 0 ? -1 : 1) * (S * 0.08)
+        yOff = (row - (Math.ceil(ps.length/2)-1)/2) * lh
+      } else {
+        // Single column stacking
+        yOff = (i - (ps.length - 1) / 2) * lh
+      }
+
       const color = dignityColor(g.dignity)
       const label = g.id + (g.isRetro ? 'R' : '')
       const deg = Math.floor(g.degree ?? (g.totalDegree % 30))
-      return `<text x="${cx}" y="${py}" font-family="Arial" font-size="${pf}" font-weight="700" fill="${color}" text-anchor="middle" dominant-baseline="middle">${label} ${deg}°</text>`
+      
+      return `<text x="${cx + xOff}" y="${cy + yOff}" font-family="Arial, sans-serif" font-size="${pf}" font-weight="700" fill="${color}" text-anchor="middle" dominant-baseline="middle">${label} ${deg}°</text>`
     }).join('\n')
 
     cells += `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>
@@ -222,8 +239,8 @@ function buildSouthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
 }
 
 function buildChartSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280): string {
-  const style = chart.meta.settings.chartStyle || 'north'
-  return style === 'south' ? buildSouthSVG(chart, vargaKey, size) : buildNorthSVG(chart, vargaKey, size)
+  // Force North Indian Diamond style as per user requirement
+  return buildNorthSVG(chart, vargaKey, size)
 }
 
 // ── Components & UI Sections ───────────────────────────────────
@@ -378,34 +395,115 @@ function buildBhavaBalaSection(chart: ChartOutput): string {
   `
 }
 
-function buildSBCSection(chart: ChartOutput): string {
-  // A simplified visual grid for SBC (9x9)
-  let grid = ''
-  for (let i = 0; i < 81; i++) {
-    const isEdge = i < 9 || i > 71 || i % 9 === 0 || i % 9 === 8
-    const bg = isEdge ? THEME.surface : '#fff'
-    grid += `<div style="aspect-ratio:1; border:1px solid ${THEME.border}; background:${bg}; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700"></div>`
+function buildSBCSVG(chart: ChartOutput, size = 320): string {
+  const S = size
+  const cs = S / 9
+  const grid = getSBCGrid()
+  const natal = getPlanetsOnSBC(chart.grahas, true)
+  
+  // Use a slightly larger viewBox to prevent edge clipping of text
+  const pad = 10
+  let content = `<rect width="${S}" height="${S}" fill="#fff" stroke="${THEME.primary}" stroke-width="2"/>`
+  
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cell = grid[r][c]
+      const x = c * cs, y = r * cs
+      const isEdge = r === 0 || r === 8 || c === 0 || c === 8
+      const fill = cell.type === 'center' ? THEME.accentLight : isEdge ? THEME.surface : '#fff'
+      
+      content += `<rect x="${x}" y="${y}" width="${cs}" height="${cs}" fill="${fill}" stroke="${THEME.border}" stroke-width="0.3"/>`
+      
+      if (cell.label) {
+        let label = cell.label
+        // Abbreviate very long interior names
+        if (cell.type === 'vara') {
+            if (label === 'Maṅgal') label = 'Maṅg'
+            if (label === 'Budha') label = 'Bud'
+            if (label === 'Śukra') label = 'Śuk'
+            if (label === 'Śani') label = 'Śani'
+        }
+        
+        let fontSize = cs * 0.32
+        if (cell.type === 'nakshatra') fontSize = cs * 0.18 // Smaller for long names
+        if (cell.type === 'vowel' || cell.type === 'consonant') fontSize = cs * 0.38
+        
+        const color = cell.type === 'center' ? THEME.primary : THEME.text
+        content += `<text x="${x + cs/2}" y="${y + cs/2 + 2}" font-family="Arial, sans-serif" font-size="${fontSize}" fill="${color}" font-weight="700" text-anchor="middle" dominant-baseline="middle">${label}</text>`
+      }
+    }
   }
+  
+  const natalMap = new Map<string, any[]>()
+  natal.forEach(p => {
+    const k = `${p.row},${p.col}`
+    if (!natalMap.has(k)) natalMap.set(k, [])
+    natalMap.get(k)!.push(p)
+  })
+  
+  natalMap.forEach((ps, k) => {
+    const [r, c] = k.split(',').map(Number)
+    const x = c * cs, y = r * cs
+    const badgeSize = cs * 0.28
+    
+    ps.slice(0, 3).forEach((p, i) => {
+      // Position badges along the bottom edge of the cell
+      const cx = x + (i + 1) * (cs / (ps.length + 1))
+      const cy = y + cs - (badgeSize/2) - 2
+      const color = PLANET_COLOR[p.planet] || '#888'
+      content += `
+        <circle cx="${cx}" cy="${cy}" r="${badgeSize/2}" fill="${color}" stroke="#fff" stroke-width="0.5"/>
+        <text x="${cx}" y="${cy + 1}" font-family="Arial" font-size="${badgeSize*0.5}" fill="#fff" font-weight="900" text-anchor="middle" dominant-baseline="middle">${PLANET_SYMBOL[p.planet] || p.planet[0]}</text>
+      `
+    })
+  })
+  
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${S + pad*2}" height="${S + pad*2}" viewBox="-${pad} -${pad} ${S + pad*2} ${S + pad*2}">${content}</svg>`
+}
 
+function buildSBCLegend(chart: ChartOutput): string {
+    const ids = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'] as GrahaId[]
+    const items = ids.map(id => {
+        const color = PLANET_COLOR[id] || '#888'
+        const symbol = PLANET_SYMBOL[id] || id[0]
+        return `
+            <div style="display:flex; align-items:center; gap:8px; background:#fff; padding:4px 8px; border-radius:4px; border:1px solid ${THEME.border}">
+                <div style="width:16px; height:16px; border-radius:50%; background:${color}; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:900">${symbol}</div>
+                <div style="font-size:11px; font-weight:700; color:${THEME.secondary}">${GRAHA_NAMES[id]}</div>
+            </div>
+        `
+    }).join('')
+    return `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:1rem">${items}</div>`
+}
+
+function buildSBCSection(chart: ChartOutput): string {
   return `
-    <div style="display: grid; grid-template-columns: repeat(9, 1fr); width: 320px; margin: 2rem auto; border: 2px solid ${THEME.primary}; box-shadow: 0 10px 30px rgba(0,0,0,0.05)">
-      ${grid}
-    </div>
-    <div style="padding: 2.5rem; border: 2px double ${THEME.accent}; background: ${THEME.bg}; position: relative; margin-top: 2rem">
-        <h4 style="margin-bottom: 1.5rem; text-align: center; color: ${THEME.primary}; font-family: 'Playfair Display', serif">Sarvatobhadra Chakra - Vedha Insights</h4>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px">
-            <div class="card" style="text-align: center">
-                <div class="card-title">Left Vedha</div>
-                <div style="font-size: 11px">Focus: Past Karma & Inheritance</div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; margin-top: 1rem">
+        <div style="padding: 10px; background: white; border-radius: 8px; border: 1px solid ${THEME.border}; box-shadow: 0 4px 12px rgba(0,0,0,0.03)">
+            ${buildSBCSVG(chart, 400)}
+        </div>
+        
+        ${buildSBCLegend(chart)}
+        
+        <div style="width: 100%; padding: 2.5rem; border: 2px double ${THEME.accent}; background: ${THEME.bg}; position: relative; margin-top: 1rem">
+            <h4 style="margin-bottom: 1.5rem; text-align: center; color: ${THEME.primary}; font-family: 'Playfair Display', serif">Sarvatobhadra Chakra - Vedha Insights</h4>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px">
+                <div class="card" style="text-align: center; background: #fff; padding: 15px">
+                    <div class="card-title" style="color:${THEME.secondary}; margin-bottom:10px">Left Vedha</div>
+                    <div style="font-size: 11px">Focus: Past Karma & Inheritance. Influences subconscious patterns and early-life foundations.</div>
+                </div>
+                <div class="card" style="text-align: center; background: #fff; padding: 15px">
+                    <div class="card-title" style="color:${THEME.secondary}; margin-bottom:10px">Front Vedha</div>
+                    <div style="font-size: 11px">Focus: Current Identity & Path. Direct impact on health, status, and professional trajectory.</div>
+                </div>
+                <div class="card" style="text-align: center; background: #fff; padding: 15px">
+                    <div class="card-title" style="color:${THEME.secondary}; margin-bottom:10px">Right Vedha</div>
+                    <div style="font-size: 11px">Focus: Future Potential & Goals. Shows the opening of fortune and expansionary trends.</div>
+                </div>
             </div>
-            <div class="card" style="text-align: center">
-                <div class="card-title">Front Vedha</div>
-                <div style="font-size: 11px">Focus: Current Identity & Path</div>
-            </div>
-            <div class="card" style="text-align: center">
-                <div class="card-title">Right Vedha</div>
-                <div style="font-size: 11px">Focus: Future Potential & Goals</div>
-            </div>
+            <p style="text-align: center; margin-top: 2rem; font-size: 12px; color: ${THEME.muted}; font-style: italic">
+              Note: This grid maps the ${chart.panchang.nakshatra.name} nakshatra at birth to see the "fortress" of your cosmic geometry.
+            </p>
         </div>
     </div>
   `
@@ -450,21 +548,32 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Outfit', sans-serif; font-size: 13px; color: ${THEME.text}; background: #e2dfcb; line-height: 1.6; }
+    html, body { 
+      background: #e2dfcb; 
+      -webkit-print-color-adjust: exact !important; 
+      print-color-adjust: exact !important;
+    }
+    body { font-family: 'Outfit', sans-serif; font-size: 13px; color: ${THEME.text}; line-height: 1.6; }
     
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
     @media print {
-      body { background: ${THEME.bg}; }
+      body { background: white !important; }
       .no-print { display: none !important; }
       .page { 
+        width: 210mm;
+        height: 297mm;
         page-break-after: always; 
-        padding: 1.2cm 1.5cm; 
-        min-height: 29.7cm; 
+        padding: 1.5cm 2cm; 
         background: ${THEME.bg} !important; 
         box-shadow: none !important; 
         margin: 0 !important; 
         border:none !important; 
         position: relative; 
-        overflow: visible; /* Fix clipping for long sections */
+        overflow: hidden; 
       }
       .page::before { 
         content: 'ॐ'; 
@@ -489,10 +598,25 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         opacity: 0.4;
       }
       .page:last-child { page-break-after: avoid; }
+      
+      table, tr, td, .card, .interp-block { 
+        page-break-inside: avoid !important; 
+        break-inside: avoid !important; 
+      }
     }
 
     @media screen {
-      .page { width: 21cm; min-height: 29.7cm; margin: 40px auto; padding: 2cm; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.1); border-radius: 4px; position: relative; overflow: visible; border: 1px solid #eee; }
+      .page { 
+        width: 21cm; 
+        min-height: 29.7cm; 
+        margin: 40px auto; 
+        padding: 2cm; 
+        background: #fff; 
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1); 
+        border-radius: 4px; 
+        position: relative; 
+        border: 1px solid #eee; 
+      }
       .page::before { content: 'ॐ'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 50rem; color: #f8fafc; z-index: -1; opacity: 0.5; pointer-events: none; }
     }
 
@@ -508,11 +632,11 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     .section-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: ${THEME.primary}; margin-bottom: 2rem; font-weight: 700; border-bottom: 3px solid ${THEME.accentLight}; padding-bottom: 10px; }
     .section-title span { color: ${THEME.accent}; font-family: 'Outfit', sans-serif; font-size: 1.2rem; vertical-align: middle; margin-right: 15px; opacity: 0.5; }
 
-    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; break-inside: avoid; }
     .data-table th { text-align: left; padding: 12px; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid ${THEME.primary}; color: ${THEME.primary}; }
     .data-table td { padding: 12px; border-bottom: 1px solid ${THEME.border}; font-size: 12px; }
 
-    .av-table { width: 100%; border-collapse: collapse; text-align: center; font-family: monospace; }
+    .av-table { width: 100%; border-collapse: collapse; text-align: center; font-family: monospace; break-inside: avoid; }
     .av-table th { padding: 8px; border: 1px solid ${THEME.border}; background: ${THEME.surface}; }
     .av-table td { padding: 8px; border: 1px solid ${THEME.border}; }
 
