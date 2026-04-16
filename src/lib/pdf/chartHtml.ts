@@ -11,6 +11,7 @@ import {
 import { getNakshatraCharacteristics, getNavtaraChakra } from '@/lib/engine/nakshatraAdvanced'
 import { SIGN_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
 import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL } from '@/lib/engine/sarvatobhadra'
+import type { PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
 
 interface Branding {
   brandName?: string | null
@@ -434,7 +435,7 @@ function buildSBCSVG(chart: ChartOutput, size = 320): string {
     }
   }
   
-  const natalMap = new Map<string, any[]>()
+  const natalMap = new Map<string, PlanetOnSBC[]>()
   natal.forEach(p => {
     const k = `${p.row},${p.col}`
     if (!natalMap.has(k)) natalMap.set(k, [])
