@@ -59,6 +59,7 @@ export function calcYoginiDasha(
 ): DashaNode[] {
   const NAK_SPAN  = 360 / 27             // ~13.333°
   const startYogini = yoginiForNakshatra(moonNakIndex)
+  const now = Date.now()
 
   // Balance remaining in birth Yogini based on Moon position within nakshatra
   // moonDegInNak is 0–NAK_SPAN degrees within the nakshatra
@@ -77,7 +78,6 @@ export function calcYoginiDasha(
     const ms      = years * 365.25 * 24 * 60 * 60 * 1000
     const start   = new Date(cursor)
     const end     = new Date(cursor.getTime() + ms)
-    const now     = Date.now()
 
     nodes.push({
       lord:      yogini.lord,
@@ -88,7 +88,7 @@ export function calcYoginiDasha(
       level:     1,
       isCurrent: now >= start.getTime() && now < end.getTime(),
       children:  depth > 1
-        ? buildYoginiAntar(yogini.lord, start, end, depth - 1)
+        ? buildSubDashas(yogini.lord, start, end, ms, 2, depth, now)
         : [],
     })
 
@@ -102,40 +102,46 @@ export function calcYoginiDasha(
 // Each Yogini sub-period is proportional to the Yogini's years
 // Sub-lord sequence starts from the same Yogini's lord
 
-function buildYoginiAntar(
-  mahaLord:  string,
-  start:     Date,
-  end:       Date,
-  depth:     number,
+function buildSubDashas(
+  mahaLord:    string,
+  parentStart: Date,
+  parentEnd:   Date,
+  parentMs:    number,
+  currentLevel:number,
+  maxDepth:    number,
+  now:         number,
 ): DashaNode[] {
-  const totalMs   = end.getTime() - start.getTime()
   const mahaYogini = YOGINIS.find(y => y.lord === mahaLord) ?? YOGINIS[0]
   const startIdx  = YOGINIS.indexOf(mahaYogini)
 
   const nodes: DashaNode[] = []
-  let cursor = new Date(start)
-  const now  = Date.now()
+  let cursor = parentStart.getTime()
 
   for (let i = 0; i < 8; i++) {
     const yIdx   = (startIdx + i) % 8
     const yogini = YOGINIS[yIdx]
     const frac   = yogini.years / TOTAL_YEARS
-    const ms     = totalMs * frac
+    const durationMs = parentMs * frac
     const s      = new Date(cursor)
-    const e      = new Date(cursor.getTime() + ms)
+    const e      = new Date(cursor + durationMs)
+    const isCurrent = now >= cursor && now < (cursor + durationMs)
+
+    const shouldGoDeeper = currentLevel < maxDepth && (currentLevel <= 3 || isCurrent)
 
     nodes.push({
       lord:       yogini.lord,
       label:      `${yogini.name} (${GRAHA_MAP[yogini.lord]})`,
       start:      s,
       end:        e,
-      durationMs: ms,
-      level:      2,
-      isCurrent:  now >= s.getTime() && now < e.getTime(),
-      children:   [],
+      durationMs: durationMs,
+      level:      currentLevel,
+      isCurrent,
+      children:   shouldGoDeeper
+        ? buildSubDashas(yogini.lord, s, e, durationMs, currentLevel + 1, maxDepth, now)
+        : [],
     })
 
-    cursor = e
+    cursor += durationMs
   }
 
   return nodes
