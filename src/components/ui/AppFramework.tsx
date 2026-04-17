@@ -21,52 +21,54 @@ const progressKeyframes = `
 }
 `;
 
+const ASTROLOGY_ROUTE = '/asrology'
+
 const TOP_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'dashboard', label: 'Dashboard',   icon: '◫', path: '/' },
+  { id: 'dashboard', label: 'Dashboard',   icon: '◫', path: ASTROLOGY_ROUTE },
 ]
 
 const NAKSHATRA_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'nakshatra-overview', label: 'Overview',  icon: '🌟', path: '/' },
-  { id: 'nakshatra-navtara',  label: 'Navtara',   icon: '🔯', path: '/' },
-  { id: 'nakshatra-bestdays', label: 'Best Days', icon: '📅', path: '/' },
-  { id: 'nakshatra-muhurta',  label: 'Muhurta',   icon: '⚡', path: '/' },
-  { id: 'nakshatra-panchaka', label: 'Panchaka',  icon: '🔥', path: '/' },
-  { id: 'nakshatra-planet',   label: 'Planet',    icon: '✦', path: '/' },
-  { id: 'nakshatra-compat',   label: 'Compat',    icon: '🔗', path: '/' },
-  { id: 'nakshatra-remedies', label: 'Remedies',  icon: '🙏', path: '/' },
+  { id: 'nakshatra-overview', label: 'Overview',  icon: '🌟', path: ASTROLOGY_ROUTE },
+  { id: 'nakshatra-navtara',  label: 'Navtara',   icon: '🔯', path: ASTROLOGY_ROUTE },
+  { id: 'nakshatra-bestdays', label: 'Best Days', icon: '📅', path: ASTROLOGY_ROUTE },
+  { id: 'nakshatra-muhurta',  label: 'Muhurta',   icon: '⚡', path: ASTROLOGY_ROUTE },
+  { id: 'nakshatra-panchaka', label: 'Panchaka',  icon: '🔥', path: ASTROLOGY_ROUTE },
+  { id: 'nakshatra-planet',   label: 'Planet',    icon: '✦', path: ASTROLOGY_ROUTE },
+  { id: 'nakshatra-compat',   label: 'Compat',    icon: '🔗', path: ASTROLOGY_ROUTE },
+  { id: 'nakshatra-remedies', label: 'Remedies',  icon: '🙏', path: ASTROLOGY_ROUTE },
 ]
 
 const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: string; path?: string }[] }[] = [
   {
     label: 'Core Analysis',
     tabs: [
-      { id: 'planets',   label: 'Planets',     icon: '✦', path: '/' },
-      { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
-      { id: 'house',     label: 'House',       icon: '🏠', path: '/' },
-      { id: 'yogas',     label: 'Yogas',       icon: '✧', path: '/' },
-      { id: 'kp-stellar', label: 'Stellar (KP)', icon: '⭐', path: '/' },
-      { id: 'interpretation', label: 'Interpretation', icon: '✧', path: '/' },
+      { id: 'planets',   label: 'Planets',     icon: '✦', path: ASTROLOGY_ROUTE },
+      { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: ASTROLOGY_ROUTE },
+      { id: 'house',     label: 'House',       icon: '🏠', path: ASTROLOGY_ROUTE },
+      { id: 'yogas',     label: 'Yogas',       icon: '✧', path: ASTROLOGY_ROUTE },
+      { id: 'kp-stellar', label: 'Stellar (KP)', icon: '⭐', path: ASTROLOGY_ROUTE },
+      { id: 'interpretation', label: 'Interpretation', icon: '✧', path: ASTROLOGY_ROUTE },
     ]
   },
   {
     label: 'Predictive Timing',
     tabs: [
-      { id: 'varshaphal', label: 'Solar Return (Varshfal)', icon: '☀️', path: '/' },
+      { id: 'varshaphal', label: 'Solar Return (Varshfal)', icon: '☀️', path: ASTROLOGY_ROUTE },
     ]
   },
   {
     label: 'Strength & Analytics',
     tabs: [
-      { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: '/' },
-      { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: '/' },
-      { id: 'bhava-bala', label: 'Bhāva Bala',   icon: '⌗', path: '/' },
-      { id: 'vimsopaka',  label: 'Viṁśopaka',    icon: '⑳', path: '/' },
+      { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: ASTROLOGY_ROUTE },
+      { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: ASTROLOGY_ROUTE },
+      { id: 'bhava-bala', label: 'Bhāva Bala',   icon: '⌗', path: ASTROLOGY_ROUTE },
+      { id: 'vimsopaka',  label: 'Viṁśopaka',    icon: '⑳', path: ASTROLOGY_ROUTE },
     ]
   },
   {
     label: 'Calculations',
     tabs: [
-      { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
+      { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: ASTROLOGY_ROUTE },
     ]
   }
 ]
@@ -77,7 +79,7 @@ const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[
 ]
 
 const ADVANCED_ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'jaimini', label: 'Jaimini Astrology', icon: '💠', path: '/' },
+  { id: 'jaimini', label: 'Jaimini Astrology', icon: '💠', path: ASTROLOGY_ROUTE },
   { id: 'astro-vastu', label: 'Astro Vastu', icon: '🏠', path: '/vastu' },
   { id: 'astro-carto', label: 'AstroCartography', icon: '🌍', path: '/acg' },
   { id: 'sbc', label: 'Sarvatobhadra Chakra', icon: '⬛', path: '/sbc' },
@@ -189,10 +191,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
 
   const renderTab = (t: { id: string; label: string; icon: string; path?: string }, isSub?: boolean) => {
     const isCurrentPage = (t.path === pathname)
-    const isActive = t.path === '/' ? (isCurrentPage && activeTab === t.id) : isCurrentPage
+    const isActive = t.path === ASTROLOGY_ROUTE ? (isCurrentPage && activeTab === t.id) : isCurrentPage
     
     const handleNav = (e: React.MouseEvent) => {
-      const isAstrologyTab = t.path === '/' || !t.path
+      const isAstrologyTab = t.path === ASTROLOGY_ROUTE || !t.path
       
       // Start navigation animation
       if (t.path !== pathname) {
@@ -586,7 +588,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--gold)', opacity: 0.2, marginBottom: '0.5rem' }}>
               <div style={{ width: 24, height: 24 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
             </div>
-            <Link href="/?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.85rem', textDecoration: 'none' }}>
+            <Link href="/asrology?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.85rem', textDecoration: 'none' }}>
               + New Consultation
             </Link>
             {status === 'authenticated' && (

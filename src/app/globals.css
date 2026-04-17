@@ -1504,6 +1504,20 @@ select.input {
   box-shadow: var(--shadow-deep);
 }
 
+.landing-shell .btn {
+  min-height: 42px;
+}
+
+.landing-portal-card {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.landing-portal-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-bright) !important;
+  box-shadow: var(--shadow-lift);
+}
+
 .pricing-header {
   padding: 0 2rem;
   height: 3.75rem;
@@ -1671,6 +1685,24 @@ select.input {
 }
 
 @media (max-width: 768px) {
+  .landing-shell {
+    padding-bottom: 0.25rem;
+  }
+
+  .landing-shell section {
+    margin-bottom: 0.9rem !important;
+  }
+
+  .landing-shell .card,
+  .landing-shell .card-gold {
+    border-radius: var(--r-lg) !important;
+  }
+
+  .landing-shell .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .chart-header-row {
     padding-bottom: 1.25rem;
     margin-bottom: 1.25rem;
