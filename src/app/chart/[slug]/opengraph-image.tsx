@@ -11,6 +11,7 @@ export const contentType = 'image/png'
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 export default async function OGImage({ params }: { params: { slug: string } }) {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vedaansh.com'
   try {
     await connectDB()
     const chartRaw = await Chart.findOne({ slug: params.slug, isPublic: true })
