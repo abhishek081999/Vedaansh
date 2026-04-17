@@ -7,6 +7,8 @@ import { NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { hashOneTimeToken } from '@/lib/security/tokens'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
@@ -18,6 +20,16 @@ const Schema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, {
+      rateLimit: {
+        bucket: 'auth-reset-password',
+        limit: 12,
+        windowSeconds: 15 * 60,
+        message: 'Too many attempts. Please try again later.',
+      },
+    })
+    if (blockedResponse) return blockedResponse
+
     const body   = await req.json()
     const parsed = Schema.safeParse(body)
 
@@ -27,6 +39,7 @@ export async function POST(req: Request) {
     }
 
     const { token, password } = parsed.data
+    const tokenHash = hashOneTimeToken(token)
 
     const client = new MongoClient(mongoUri)
     await client.connect()
@@ -35,7 +48,7 @@ export async function POST(req: Request) {
 
     // Find user with valid, non-expired token
     const user = await users.findOne({
-      resetToken:        token,
+      resetToken:        tokenHash,
       resetTokenExpires: { $gt: new Date() },
     })
 

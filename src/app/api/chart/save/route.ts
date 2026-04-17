@@ -11,6 +11,7 @@ import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import { User }  from '@/lib/db/models/User'
 import crypto from 'crypto'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 export const runtime = 'nodejs'
 
@@ -36,6 +37,9 @@ const SaveSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    if (blockedResponse) return blockedResponse
+
     const session = await auth()
     const body    = await req.json()
     const parsed  = SaveSchema.safeParse(body)

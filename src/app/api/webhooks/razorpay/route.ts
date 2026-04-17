@@ -4,6 +4,7 @@ import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { sendWelcomeEmail } from '@/lib/email'
+import { redis } from '@/lib/redis'
 
 export const runtime = 'nodejs'
 
@@ -15,6 +16,16 @@ function verifyWebhookSignature(body: string, signature: string, secret: string)
     .update(body)
     .digest('hex')
   return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
+}
+
+async function isReplayEvent(eventType: string, rawBody: string): Promise<boolean> {
+  const fingerprint = crypto.createHash('sha256').update(`${eventType}:${rawBody}`).digest('hex')
+  const key = `webhook:razorpay:seen:${fingerprint}`
+  const seen = await redis.get<string>(key)
+  if (seen) return true
+  // 6h dedupe window keeps retries idempotent while limiting cache growth.
+  await redis.set(key, '1', 6 * 60 * 60)
+  return false
 }
 
 // ── Plan helpers ──────────────────────────────────────────────
@@ -103,6 +114,10 @@ export async function POST(req: NextRequest) {
     event = JSON.parse(rawBody)
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  if (await isReplayEvent(event.event, rawBody)) {
+    return NextResponse.json({ received: true, duplicate: true })
   }
 
   try {

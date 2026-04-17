@@ -11,11 +11,23 @@ import { auth } from '@/auth'
 import { generateChartHTML } from '@/lib/pdf/chartHtml'
 import { sendChartEmail } from '@/lib/email'
 import type { ChartOutput } from '@/types/astrology'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, {
+      requireSameOrigin: true,
+      rateLimit: {
+        bucket: 'chart-send-email',
+        limit: 20,
+        windowSeconds: 15 * 60,
+        message: 'Too many email requests. Please try again later.',
+      },
+    })
+    if (blockedResponse) return blockedResponse
+
     const session = await auth()
     const plan = (session?.user as any)?.plan ?? 'free'
 
