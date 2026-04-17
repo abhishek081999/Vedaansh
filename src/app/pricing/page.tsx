@@ -56,11 +56,11 @@ const FEATURES = {
   platinum: {
     name: 'Platinum',
     subtitle: 'For professionals',
-    price: { monthly: 999, yearly: 8499 },
+    price: { monthly: 700, yearly: 8400 },
     color: 'var(--teal)',
     border: 'rgba(78,205,196,0.50)',
     bg: 'rgba(78,205,196,0.08)',
-    badge: 'Coming Soon',
+    badge: 'Premium',
     features: [
       '✓ Everything in Gold',
       '✓ White-labeling: Use your own brand/logo on shares',
@@ -267,11 +267,7 @@ export default function PricingPage() {
 
                 {/* Price */}
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', minHeight: '3.5rem' }}>
-                  {tier.badge === 'Coming Soon' ? (
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                      TBA
-                    </span>
-                  ) : price === 0 ? (
+                  {price === 0 ? (
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                       Free
                     </span>
@@ -287,7 +283,7 @@ export default function PricingPage() {
                     </>
                   )}
                 </div>
-                {billing === 'yearly' && price > 0 && tier.badge !== 'Coming Soon' && (
+                {billing === 'yearly' && price > 0 && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
                     ₹{tier.price.yearly}/year — save ₹{(tier.price.monthly * 12) - tier.price.yearly}
                   </div>
@@ -327,21 +323,21 @@ export default function PricingPage() {
                   <>
                     <button
                       onClick={() => handleSubscribe(key as 'gold' | 'platinum')}
-                      disabled={checkoutLoading === key || tier.badge === 'Coming Soon'}
+                      disabled={checkoutLoading === key}
                       style={{
                         display: 'block', width: '100%', padding: '0.65rem 1rem',
-                        textAlign: 'center', background: tier.badge === 'Coming Soon' ? 'var(--text-muted)' : tier.color,
+                        textAlign: 'center', background: tier.color,
                         borderRadius: 'var(--r-md)', textDecoration: 'none',
                         fontFamily: 'var(--font-display)', fontSize: '0.85rem',
                         fontWeight: 700, color: '#fff', border: 'none',
-                        cursor: (checkoutLoading === key || tier.badge === 'Coming Soon') ? 'not-allowed' : 'pointer',
-                        opacity: (checkoutLoading === key || tier.badge === 'Coming Soon') ? 0.75 : 1,
+                        cursor: checkoutLoading === key ? 'not-allowed' : 'pointer',
+                        opacity: checkoutLoading === key ? 0.75 : 1,
                         transition: 'opacity 0.15s',
                       }}
                     >
                       {checkoutLoading === key
                         ? 'Opening checkout…'
-                        : tier.badge === 'Coming Soon' ? 'Coming Soon' : `Upgrade to ${tier.name} →`}
+                        : `Upgrade to ${tier.name} →`}
                     </button>
                     {checkoutError && checkoutLoading === null && (
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-danger)', marginTop: '0.4rem', textAlign: 'center' }}>

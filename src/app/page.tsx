@@ -7,8 +7,9 @@
 
 import dynamic from 'next/dynamic'
 import React, { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { BirthForm }     from '@/components/ui/BirthForm'
 
 // Dynamic imports for heavy tab-specific components
@@ -294,6 +295,7 @@ function HomeContent() {
   const [activeAcgParans, setActiveAcgParans] = useState<any[]>([])
   const [acgNatalData, setAcgNatalData] = useState<any[]>([])
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const [loading,    setLoading]    = useState(false)
   const [saving,     setSaving]     = useState(false)
@@ -303,7 +305,6 @@ function HomeContent() {
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
-  const [autoLoaded,      setAutoLoaded]      = useState(false)
 
   const handleAcgPlanetsChange = React.useCallback((planets: Set<any>, parans: any[], rawNatal?: any[]) => {
     setSelectedAcgPlanets(prev => {
@@ -375,30 +376,6 @@ function HomeContent() {
     }
   }, [status])
 
-  // 1c. Auto-load default chart if enabled and no chart is active
-  useEffect(() => {
-    if (status === 'authenticated' && defaultChart && !chart && !autoLoaded && !searchParams.has('name') && !searchParams.has('new')) {
-      setAutoLoaded(true)
-      setLoading(true)
-      fetch('/api/chart/calculate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...defaultChart,
-          settings: { ...userPrefs, ...defaultChart.settings }
-        })
-      })
-      .then(r => r.json())
-      .then(json => {
-        if (json.success) {
-          setChart(json.data)
-        }
-      })
-      .catch(err => console.error('Auto-load failed', err))
-      .finally(() => setLoading(false))
-    }
-  }, [status, defaultChart, chart, autoLoaded, searchParams, userPrefs, setChart])
-  
   // 1b. Fetch today's panchang for dashboard insights
   useEffect(() => {
     if (chart && activeTab === 'dashboard' && !todayPanchang) {
@@ -500,6 +477,37 @@ function HomeContent() {
     const moonNakIndex = chart?.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
   const tithiNumber  = chart?.panchang.tithi.number ?? 1
   const varaNumber   = chart?.panchang.vara.number  ?? 0
+
+  const openAstrologyApp = React.useCallback(() => {
+    router.push('/asrology?new=true')
+  }, [router])
+
+  const openMyDefaultChart = React.useCallback(async () => {
+    if (!defaultChart) {
+      router.push('/asrology?new=true')
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await fetch('/api/chart/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...defaultChart,
+          settings: { ...userPrefs, ...defaultChart.settings },
+        }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setChart(json.data)
+        router.push('/asrology')
+      }
+    } catch (error) {
+      console.error('Default chart load failed', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [defaultChart, router, setChart, userPrefs])
 
   return (
     <div className="main-responsive-padding" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -1071,49 +1079,165 @@ function HomeContent() {
                )}
              </div>
       ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '2rem' }}>
-            {!isFormOpen && (
-              <div className="fade-in main-empty-state">
-                <div style={{ fontSize: '4.5rem', marginBottom: '1.5rem', animation: 'float 6s ease-in-out infinite' }}>🌌</div>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text-primary)', margin: '0 0 1rem 0', fontWeight: 500, letterSpacing: '-0.02em' }}>
-                  The Cosmic Canvas
-                </h2>
-                <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', marginBottom: '2.5rem', lineHeight: 1.6 }}>
-                  Initiate a new astrological consultation to cast a chart. 
-                  Choose between a detailed Birth Chart or a quick analysis of the current celestial moment.
-                </p>
-                
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <button 
-                    onClick={() => {
-                      setIsFormOpen(true);
-                      setChart(null);
-                    }} 
-                    className="btn btn-primary" 
-                    style={{ padding: '0.85rem 2rem', fontSize: '1rem', minWidth: '180px' }}
-                  >
-                    ✦ Cast Natal Chart
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setIsFormOpen(true);
-                    }} 
-                    className="btn btn-secondary" 
-                    style={{ 
-                      padding: '0.85rem 2rem', 
-                      fontSize: '1rem', 
-                      minWidth: '180px',
-                      background: 'rgba(201,168,76,0.05)',
-                      border: '1px solid var(--gold)',
-                      color: 'var(--text-gold)'
-                    }}
-                  >
-                    🕒 Add Current Chart
-                  </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: 'clamp(1rem, 2.5vw, 2rem)' }}>
+          {!isFormOpen && (
+            <div className="fade-in landing-shell" style={{ width: '100%', maxWidth: 1240 }}>
+              <section
+                className="card-gold fade-up"
+                style={{
+                  padding: 'clamp(1.5rem, 3vw, 3rem)',
+                  borderRadius: 'var(--r-xl)',
+                  marginBottom: '1.25rem',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    width: 220,
+                    height: 220,
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(201,168,76,0.22), transparent 70%)',
+                    top: -80,
+                    right: -70,
+                    pointerEvents: 'none',
+                  }}
+                />
+                <div className="label-caps" style={{ marginBottom: '0.75rem', color: 'var(--text-gold)' }}>
+                  Vedaansh ecosystem
                 </div>
-              </div>
-            )}
-          </div>
+                <h1 style={{ margin: 0, maxWidth: 820 }}>
+                  Your modern Vedic life platform with a classic soul.
+                </h1>
+                <p style={{ marginTop: '0.9rem', maxWidth: 820, fontSize: '1.02rem' }}>
+                  Astrology, Ayurveda-inspired wellness, scriptures, consultations, learning, community, and commerce -
+                  unified into one experience.
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.25rem' }}>
+                  <button onClick={openAstrologyApp} className="btn btn-primary">
+                    ✦ Open Astrology App
+                  </button>
+                  {status === 'authenticated' && defaultChart && (
+                    <button onClick={openMyDefaultChart} className="btn btn-secondary">
+                      My Chart
+                    </button>
+                  )}
+                  <Link href="/pricing" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                    ⟡ View Plans
+                  </Link>
+                  <Link href="/my/charts" className="btn btn-ghost" style={{ textDecoration: 'none' }}>
+                    ◈ Explore My Charts
+                  </Link>
+                </div>
+              </section>
+
+              <section
+                className="card fade-up-1"
+                style={{
+                  padding: 'clamp(1.25rem, 3vw, 2rem)',
+                  marginBottom: '1.25rem',
+                  border: '1px solid var(--border-bright)',
+                }}
+              >
+                <div className="label-caps" style={{ marginBottom: '0.7rem' }}>
+                  Live now
+                </div>
+                <h2 style={{ margin: '0 0 0.7rem 0' }}>Astrology App is ready</h2>
+                <p style={{ margin: 0, maxWidth: 920 }}>
+                  Start with your birth chart, panchang, dasha, varga analysis, nakshatra intelligence, and advanced
+                  workflows - then move into consultations, courses, and Vedic lifestyle actions.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
+                  {[
+                    { title: 'Birth Chart', sub: 'Core mapping' },
+                    { title: 'Panchang', sub: 'Daily timing' },
+                    { title: 'Dasha', sub: 'Life periods' },
+                    { title: 'Nakshatra', sub: 'Soul coding' },
+                    { title: 'Varga', sub: 'Divisional depth' },
+                    { title: 'Interpretations', sub: 'Action guidance' },
+                  ].map((item) => (
+                    <div key={item.title} className="stat-chip">
+                      <span className="stat-value" style={{ fontSize: '0.95rem' }}>{item.title}</span>
+                      <span className="stat-sub">{item.sub}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1rem' }}>
+                  <button onClick={openAstrologyApp} className="btn btn-primary">
+                    Launch Astrology App
+                  </button>
+                  <Link href="/asrology?new=true" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                    New Consultation
+                  </Link>
+                </div>
+              </section>
+
+              <section className="fade-up-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.9rem', marginBottom: '1.25rem' }}>
+                {[
+                  { icon: '🕉', title: 'Consultation', text: 'Book astrologers and manage your guided sessions.', href: '/clients', comingSoon: true },
+                  { icon: '🛍', title: 'Shop', text: 'Discover Vedic and lifestyle products with integrated checkout.', href: '/pricing', comingSoon: true },
+                  { icon: '🤝', title: 'Community', text: 'Build a Vedic social space for seekers and practitioners.', href: '/roadmap', comingSoon: true },
+                  { icon: '✍', title: 'Blogs', text: 'Publish practical guidance and timeless Vedic insights.', href: '/roadmap', comingSoon: true },
+                  { icon: '📜', title: 'Research', text: 'Organize serious studies, references, and findings.', href: '/roadmap', comingSoon: true },
+                  { icon: '🎓', title: 'Courses', text: 'Structured Jyotish and Vedic learning pathways.', href: '/roadmap', comingSoon: true },
+                  { icon: '🌿', title: 'Vedic Lifestyle', text: 'Daily dharmic living principles and routines.', href: '/muhurta', comingSoon: true },
+                  { icon: '✨', title: 'Healings', text: 'Remedies, rituals, and mindful wellness pathways.', href: '/panchang', comingSoon: true },
+                ].map((item) => (
+                  <Link
+                    key={item.title}
+                    href={item.href}
+                    className="card landing-portal-card"
+                    style={{ textDecoration: 'none', padding: '1rem', display: 'block' }}
+                  >
+                    <div style={{ fontSize: '1.1rem', marginBottom: '0.35rem' }}>{item.icon}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.45rem' }}>
+                      <div className="label-caps">Portal</div>
+                      {item.comingSoon && <span className="badge badge-gold">Coming Soon</span>}
+                    </div>
+                    <h3 style={{ margin: '0 0 0.4rem 0', fontSize: '1.15rem' }}>{item.title}</h3>
+                    <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>{item.text}</p>
+                  </Link>
+                ))}
+              </section>
+
+              <section className="card fade-up-3" style={{ textAlign: 'center', padding: '1.4rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Vedic Vision</div>
+                <h3 style={{ margin: '0 0 0.45rem 0' }}>Astrology + Ayurveda + Scriptures + Conscious Living</h3>
+                <p style={{ margin: '0 auto', maxWidth: 780 }}>
+                  Vedaansh is designed as one spiritual-operating platform where guidance, practice, learning, and daily life
+                  come together.
+                </p>
+                <div style={{ marginTop: '0.95rem', display: 'flex', justifyContent: 'center', gap: '0.7rem', flexWrap: 'wrap' }}>
+                  <button onClick={openAstrologyApp} className="btn btn-primary">
+                    Start with Astrology App
+                  </button>
+                  <Link href="/roadmap" className="btn btn-ghost" style={{ textDecoration: 'none' }}>
+                    See Expansion Journey
+                  </Link>
+                </div>
+              </section>
+
+              <section className="card fade-up-4" style={{ padding: '1.3rem', marginTop: '1rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Start journey</div>
+                <h3 style={{ margin: '0 0 0.55rem 0' }}>One click to enter your astrology workspace</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                  Tap below and your birth details drawer opens instantly. From there, cast chart and continue into consultations,
+                  guidance, and your complete Vedaansh ecosystem.
+                </p>
+                <div style={{ marginTop: '0.9rem', display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
+                  <button onClick={openAstrologyApp} className="btn btn-primary">
+                    Open Astrology App Now
+                  </button>
+                  <Link href="/pricing" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                    Compare Memberships
+                  </Link>
+                </div>
+              </section>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Footer inside main area */}
