@@ -2,18 +2,32 @@
 import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 import { MongoClient } from 'mongodb'
+import { hashOneTimeToken } from '@/lib/security/tokens'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
 
 export async function GET(req: Request) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, {
+      rateLimit: {
+        bucket: 'auth-verify-email',
+        limit: 30,
+        windowSeconds: 15 * 60,
+        message: 'Too many verification attempts. Please try again later.',
+      },
+    })
+    if (blockedResponse) return blockedResponse
+
     const { searchParams } = new URL(req.url)
     const token = searchParams.get('token')
 
     if (!token) {
       return NextResponse.json({ success: false, error: 'Missing token' }, { status: 400 })
     }
+
+    const tokenHash = hashOneTimeToken(token)
 
     const client = new MongoClient(mongoUri)
     await client.connect()
@@ -22,7 +36,7 @@ export async function GET(req: Request) {
 
     // Find valid/not-expired token
     const user = await users.findOne({
-      verificationToken:   token,
+      verificationToken:   tokenHash,
       verificationExpires: { $gt: new Date() }
     })
 

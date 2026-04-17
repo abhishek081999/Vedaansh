@@ -4,6 +4,7 @@ import Razorpay from 'razorpay'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 export const runtime = 'nodejs'
 
@@ -40,6 +41,9 @@ const CheckoutSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    if (blockedResponse) return blockedResponse
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json(

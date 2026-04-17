@@ -764,9 +764,13 @@ describe('Vimshottari Dasha — extended', () => {
   const ayan      = getAyanamsha(birthJD, 'lahiri')
   const moonSid   = toSidereal(getPlanetPosition(birthJD, SWISSEPH_IDS.Mo).longitude, ayan)
 
-  it('Level 6 (Deha) generates correctly', () => {
+  it('Level 6 (Deha) generates correctly (current branch)', () => {
     const dashas = calcVimshottari(moonSid, birthDate, 6)
-    expect(dashas[0].children[0].children[0].children[0].children).toHaveLength(9)
+    const currentMaha = dashas.find(d => d.isCurrent)!
+    const currentAntar = currentMaha.children.find(d => d.isCurrent)!
+    const currentPratyantar = currentAntar.children.find(d => d.isCurrent)!
+    const currentSukshma = currentPratyantar.children.find(d => d.isCurrent)!
+    expect(currentSukshma.children).toHaveLength(9)
   })
 
   it('All 9 Maha Dasha lords are distinct', () => {

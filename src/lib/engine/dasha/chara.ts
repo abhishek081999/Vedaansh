@@ -81,41 +81,61 @@ function charaDuration(sign: number, grahas: GrahaData[]): number {
 // Same rules as Maha but within the Maha period
 // Sequence starts from the same Maha sign
 
-function buildCharaAntar(
-  mahaSigns:  number[],
-  mahaStart:  Date,
-  mahaEnd:    Date,
-  grahas:     GrahaData[],
-  birthDate:  Date,
+function buildSubDashas(
+  mahaSigns:   number[],
+  parentStart: Date,
+  parentEnd:   Date,
+  parentMs:    number,
+  currentLevel:number,
+  maxDepth:    number,
+  grahas:      GrahaData[],
+  now:         number,
 ): DashaNode[] {
-  const totalMs   = mahaEnd.getTime() - mahaStart.getTime()
   const durations = mahaSigns.map(s => charaDuration(s, grahas))
   const totalDur  = durations.reduce((a, b) => a + b, 0)
 
   const nodes: DashaNode[] = []
-  let cursor = new Date(mahaStart)
-  const now  = Date.now()
+  let cursor = parentStart.getTime()
 
   for (let i = 0; i < mahaSigns.length; i++) {
     const sign = mahaSigns[i]
     const frac = durations[i] / totalDur
-    const ms   = totalMs * frac
+    const durationMs = parentMs * frac
     const s    = new Date(cursor)
-    const e    = new Date(cursor.getTime() + ms)
+    const e    = new Date(cursor + durationMs)
+    const isCurrent = now >= cursor && now < (cursor + durationMs)
+
+    const shouldGoDeeper = currentLevel < maxDepth && (currentLevel <= 3 || isCurrent)
 
     nodes.push({
       lord:       SIGN_LORD[sign] ?? 'Su',
       label:      `${RASHI_NAMES[sign]} (H${sign})`,
       start:      s,
       end:        e,
-      durationMs: ms,
-      level:      2,
-      isCurrent:  now >= s.getTime() && now < e.getTime(),
-      children:   [],
+      durationMs: durationMs,
+      level:      currentLevel,
+      isCurrent,
+      children:   shouldGoDeeper
+        ? buildSubDashas(buildSequence(sign), s, e, durationMs, currentLevel + 1, maxDepth, grahas, now)
+        : [],
     })
-    cursor = e
+    cursor += durationMs
   }
   return nodes
+}
+
+// ── Rashi names for display ───────────────────────────────────
+function buildSequence(startSign: number): number[] {
+  const seq: number[] = []
+  const isOdd = (s: number) => s % 2 === 1
+  if (isOdd(startSign)) {
+    for (let s = startSign; s <= 12; s++) seq.push(s)
+    for (let s = 1; s < startSign; s++) seq.push(s)
+  } else {
+    for (let s = startSign; s >= 1; s--) seq.push(s)
+    for (let s = 12; s > startSign; s--) seq.push(s)
+  }
+  return seq
 }
 
 // Rashi names for display
@@ -139,21 +159,6 @@ export function calcCharaDasha(
   //  - Odd signs (1,3,5,7,9,11): forward (Ar,Ge,Le,Li,Sg,Aq)
   //  - Even signs (2,4,6,8,10,12): backward (Ta,Ca,Vi,Sc,Cp,Pi)
   const isOdd = (s: number) => s % 2 === 1
-
-  // Build full 12-sign sequence starting from ascendant sign
-  function buildSequence(startSign: number): number[] {
-    const seq: number[] = []
-    if (isOdd(startSign)) {
-      // Forward: startSign → 12, then 1 → startSign-1
-      for (let s = startSign; s <= 12; s++) seq.push(s)
-      for (let s = 1; s < startSign; s++) seq.push(s)
-    } else {
-      // Backward: startSign → 1, then 12 → startSign+1
-      for (let s = startSign; s >= 1; s--) seq.push(s)
-      for (let s = 12; s > startSign; s--) seq.push(s)
-    }
-    return seq
-  }
 
   const sequence = buildSequence(ascRashi)
 
@@ -193,7 +198,7 @@ export function calcCharaDasha(
       level:      1,
       isCurrent:  now >= start.getTime() && now < end.getTime(),
       children:   depth > 1
-        ? buildCharaAntar(antarSeq, start, end, grahas, birthDate)
+        ? buildSubDashas(antarSeq, start, end, ms, 2, depth, grahas, now)
         : [],
     })
 

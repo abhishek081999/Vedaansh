@@ -12,10 +12,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import crypto from 'crypto'
+import Razorpay from 'razorpay'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 export const runtime = 'nodejs'
 
@@ -23,8 +25,6 @@ const VerifySchema = z.object({
   paymentId: z.string().min(1),
   orderId:   z.string().min(1),
   signature: z.string().min(1),
-  plan:      z.enum(['gold', 'platinum']),
-  interval:  z.enum(['monthly', 'yearly']),
 })
 
 const PLAN_PRICES = {
@@ -41,6 +41,9 @@ function addInterval(date: Date, interval: 'monthly' | 'yearly'): Date {
 
 export async function POST(req: NextRequest) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    if (blockedResponse) return blockedResponse
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -52,7 +55,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 })
     }
 
-    const { paymentId, orderId, signature, plan, interval } = parsed.data
+    const { paymentId, orderId, signature } = parsed.data
 
     // ── 1. Verify Razorpay HMAC signature ────────────────────
     const secret = process.env.RAZORPAY_KEY_SECRET
@@ -68,12 +71,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Payment verification failed' }, { status: 400 })
     }
 
-    // ── 2. Activate subscription in DB ───────────────────────
+    // ── 2. Fetch authoritative payment metadata from Razorpay ─
+    const keyId = process.env.RAZORPAY_KEY_ID
+    if (!keyId || !secret) throw new Error('Razorpay credentials not configured')
+    const razorpay = new Razorpay({ key_id: keyId, key_secret: secret })
+    const payment = await razorpay.payments.fetch(paymentId)
+
+    if (!payment || payment.id !== paymentId || payment.order_id !== orderId) {
+      return NextResponse.json({ success: false, error: 'Payment correlation failed' }, { status: 400 })
+    }
+    if (payment.status !== 'captured' && payment.status !== 'authorized') {
+      return NextResponse.json({ success: false, error: 'Payment not successful' }, { status: 400 })
+    }
+
+    const notePlan = payment.notes?.plan
+    const noteInterval = payment.notes?.interval
+    const noteUserId = payment.notes?.userId
+    if ((notePlan !== 'gold' && notePlan !== 'platinum') || (noteInterval !== 'monthly' && noteInterval !== 'yearly')) {
+      return NextResponse.json({ success: false, error: 'Invalid payment metadata' }, { status: 400 })
+    }
+    if (noteUserId !== session.user.id) {
+      return NextResponse.json({ success: false, error: 'User mismatch in payment metadata' }, { status: 403 })
+    }
+
+    const plan = notePlan
+    const interval = noteInterval
+
+    // ── 3. Activate subscription in DB ───────────────────────
     await connectDB()
 
     const now    = new Date()
     const expiry = addInterval(now, interval)
     const amount = PLAN_PRICES[plan][interval]
+    if (payment.amount !== amount) {
+      return NextResponse.json({ success: false, error: 'Amount mismatch' }, { status: 400 })
+    }
 
     // Upsert subscription record
     await Subscription.findOneAndUpdate(

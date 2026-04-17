@@ -5,16 +5,30 @@
 
 import { NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
+import { hashOneTimeToken } from '@/lib/security/tokens'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
 
 export async function POST(req: Request) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, {
+      rateLimit: {
+        bucket: 'auth-verify',
+        limit: 30,
+        windowSeconds: 15 * 60,
+        message: 'Too many verification attempts. Please try again later.',
+      },
+    })
+    if (blockedResponse) return blockedResponse
+
     const { token } = await req.json()
     if (!token) {
       return NextResponse.json({ success: false, error: 'Token is required' }, { status: 400 })
     }
+
+    const tokenHash = hashOneTimeToken(token)
 
     const client = new MongoClient(mongoUri)
     await client.connect()
@@ -23,7 +37,7 @@ export async function POST(req: Request) {
 
     // Find user with matching token and valid expiration
     const user = await users.findOne({ 
-      verificationToken: token,
+      verificationToken: tokenHash,
       verificationExpires: { $gt: new Date() }
     })
 

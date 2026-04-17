@@ -442,9 +442,9 @@ export async function calculateChart(
     vargaLagnas,
     dashas: {
       vimshottari,
-      yogini: calcYoginiDasha(moonNak.index, moonNak.degreeInNak, birthUtc, 2),
-      ashtottari: calcAshtottari(moon.lonSidereal, birthUtc, 3),
-      chara: calcCharaDasha(grahas, lagnaData, birthUtc, 2),
+      yogini: calcYoginiDasha(moonNak.index, moonNak.degreeInNak, birthUtc, Math.min(dashaDepth, 4)),
+      ashtottari: calcAshtottari(moon.lonSidereal, birthUtc, dashaDepth),
+      chara: calcCharaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
       narayana: [], tithi_ashtottari: [], naisargika: [],
     },
     panchang: {

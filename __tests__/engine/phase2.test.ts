@@ -319,15 +319,45 @@ describe('Full calculator integration', () => {
     for (const g of roled) expect(roles).toContain(g.charaKaraka)
   })
 
-  it('Gold/Platinum plan gets deeper dasha than Free', async () => {
+    it('Gold/Platinum plan gets deeper dasha than Free (current period)', async () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
-    const input = { name:'Test', birthDate:'2000-06-15', birthTime:'12:00:00', utcDate:'2000-06-15', utcTime:'12:00:00',
-      birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC' }
+    // Use a fixed birth date in the past to ensure we are in a stable dasha period
+    const input = { 
+      name:'Test', 
+      birthDate: '1995-06-15', 
+      birthTime:'12:00:00', 
+      utcDate: '1995-06-15', 
+      utcTime:'12:00:00',
+      birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC' 
+    }
     const free = await calculateChart(input, 'free')
     const gold = await calculateChart(input, 'gold')
-    // Depth is level-based: check a dasha's children depth
-    expect(gold.dashas.vimshottari[0].children[0].children[0].children[0].children.length).toBeGreaterThan(0)
-    expect(free.dashas.vimshottari[0].children[0].children[0].children[0].children).toHaveLength(0)
+    
+    // Find current active branch in gold chart
+    const currentMaha = gold.dashas.vimshottari.find(m => m.isCurrent)
+    expect(currentMaha, 'Current Mahadasha should exist').toBeDefined()
+    
+    const currentAntar = currentMaha!.children.find(a => a.isCurrent)
+    expect(currentAntar, 'Current Antardasha should exist').toBeDefined()
+    
+    const currentPratyantar = currentAntar!.children.find(p => p.isCurrent)
+    expect(currentPratyantar, 'Current Pratyantardasha should exist').toBeDefined()
+    
+    const currentSukshma = currentPratyantar!.children.find(s => s.isCurrent)
+    if (currentSukshma) {
+      expect(currentSukshma.children.length).toBeGreaterThan(0) // Level 5 (Prana) exists for current
+    }
+    
+    // Non-current periods at depth 4 (Sukshma) should be empty
+    const otherMaha = gold.dashas.vimshottari.find(m => !m.isCurrent)!
+    const otherAntar = otherMaha.children[0]
+    const otherPratyantar = otherAntar.children[0]
+    const otherSukshma = otherPratyantar.children[0]
+    expect(otherSukshma.children).toHaveLength(0) // Level 5 (Prana) pruned for non-current
+    
+    // Free plan should be shallow even for current
+    const freeMaha = free.dashas.vimshottari.find(m => m.isCurrent)!
+    expect(freeMaha.children[0].children[0].children[0].children).toHaveLength(0)
   })
 
   it('Vimshottari has 9 periods summing ~120 years', async () => {

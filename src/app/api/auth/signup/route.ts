@@ -10,6 +10,8 @@ import { z } from 'zod'
 
 import crypto from 'crypto'
 import { sendVerificationEmail } from '@/lib/email'
+import { hashOneTimeToken } from '@/lib/security/tokens'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
@@ -22,6 +24,16 @@ const SignupSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, {
+      rateLimit: {
+        bucket: 'auth-signup',
+        limit: 10,
+        windowSeconds: 15 * 60,
+        message: 'Too many signup attempts. Please try again later.',
+      },
+    })
+    if (blockedResponse) return blockedResponse
+
     const body   = await req.json()
     const parsed = SignupSchema.safeParse(body)
 
@@ -33,6 +45,7 @@ export async function POST(req: Request) {
     const { name, email, password } = parsed.data
     const pwHash = await bcrypt.hash(password, 12)
     const verificationToken = crypto.randomBytes(32).toString('hex')
+    const verificationTokenHash = hashOneTimeToken(verificationToken)
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
     const client = new MongoClient(mongoUri)
@@ -54,7 +67,7 @@ export async function POST(req: Request) {
       passwordHash:        pwHash,
       plan:                'free',
       emailVerified:       null,
-      verificationToken,
+      verificationToken:   verificationTokenHash,
       verificationExpires,
       preferences:         {},
       devices:             [],

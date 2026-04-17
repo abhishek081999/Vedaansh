@@ -8,6 +8,8 @@ import { MongoClient } from 'mongodb'
 import crypto from 'crypto'
 import { z } from 'zod'
 import { sendPasswordResetEmail } from '@/lib/email'
+import { hashOneTimeToken } from '@/lib/security/tokens'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
@@ -18,6 +20,16 @@ const Schema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, {
+      rateLimit: {
+        bucket: 'auth-forgot-password',
+        limit: 8,
+        windowSeconds: 15 * 60,
+        message: 'Too many requests. Please try again later.',
+      },
+    })
+    if (blockedResponse) return blockedResponse
+
     const body   = await req.json()
     const parsed = Schema.safeParse(body)
 
@@ -50,6 +62,7 @@ export async function POST(req: Request) {
 
     // Generate token
     const token   = crypto.randomBytes(32).toString('hex')
+    const tokenHash = hashOneTimeToken(token)
     const expires = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
 
     // Store token in DB
@@ -58,7 +71,7 @@ export async function POST(req: Request) {
     const db2 = client2.db(dbName)
     await db2.collection('users').updateOne(
       { email: lowerEmail },
-      { $set: { resetToken: token, resetTokenExpires: expires } }
+      { $set: { resetToken: tokenHash, resetTokenExpires: expires } }
     )
     await client2.close()
 

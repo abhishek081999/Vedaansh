@@ -40,6 +40,7 @@ const ICONS = {
   ganesha: `<svg viewBox="0 0 100 100" width="60" height="60" fill="currentColor"><path d="M50,10c-15,0-20,10-20,20s5,15,10,20c0,0-15,5-15,20c0,10,10,20,25,20s25-10,25-20c0-15-15-20-15-20c5-5,10-10,10-20 S65,10,50,10z M50,15c10,0,15,8,15,15s-5,15-10,20c-5,5-10,10-10,20c0,5,5,10,5,10s-10,0-10-10c0-10-5-15-10-20c-5-5-10-12-10-20 S40,15,50,15z"/></svg>`
 }
 
+
 // ── Helpers ───────────────────────────────────────────────────
 
 function fmtDMS(totalDeg: number): string {
@@ -66,6 +67,86 @@ function capitalize(s: string): string {
 function escapeHtml(s: string): string {
   if (!s) return ''
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+function formatCoordinate(value: number, positive: string, negative: string): string {
+  const direction = value >= 0 ? positive : negative
+  return `${Math.abs(value).toFixed(2)}${direction}`
+}
+
+function formatDateTime(value?: Date | string | null): string {
+  if (!value) return 'N/A'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'N/A'
+  return date.toLocaleString('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
+function buildShadbalaMiniCharts(chart: ChartOutput): string {
+  const planets = chart.shadbala?.planets || {}
+  const order = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
+  const metrics = [
+    { key: 'sthanaBala', title: 'Sthaana Bala', decimals: 2, allowNegative: false, scale: 60 },
+    { key: 'kalaBala', title: 'Kaala Bala', decimals: 2, allowNegative: false, scale: 60 },
+    { key: 'digBala', title: 'DigBala', decimals: 2, allowNegative: false, scale: 60 },
+    { key: 'chestaBala', title: 'Cheshta Bala', decimals: 2, allowNegative: false, scale: 60 },
+    { key: 'drikBala', title: 'DrigBala', decimals: 2, allowNegative: true, scale: 60 },
+    { key: 'naisargikaBala', title: 'Naisargika Bala', decimals: 2, allowNegative: false, scale: 60 },
+    { key: 'totalShash', title: 'Shadbala', decimals: 1, allowNegative: false, scale: 1 },
+    { key: 'total', title: 'Shadbala (rupas)', decimals: 2, allowNegative: false, scale: 1 },
+    { key: 'ratio', title: 'Shadbala (% strength)', decimals: 0, allowNegative: false, scale: 100 },
+  ] as const
+
+  const cards = metrics.map(metric => {
+    const vals = order.map(id => {
+      const p = planets[id]
+      if (!p) return 0
+      if (metric.key === 'ratio') return p.ratio * metric.scale
+      return (p[metric.key as keyof typeof p] as number) * metric.scale
+    })
+    const maxAbs = Math.max(...vals.map(v => Math.abs(v)), 1)
+
+    const bars = vals.map((v, idx) => {
+      const id = order[idx]
+      const h = Math.max(2, (Math.abs(v) / maxAbs) * 42)
+      const isNeg = metric.allowNegative && v < 0
+      const label = metric.key === 'ratio' ? v.toFixed(0) : v.toFixed(metric.decimals)
+      const align = isNeg ? 'flex-start' : 'flex-end'
+      const barBg = isNeg
+        ? 'linear-gradient(180deg, #c86a7b, #a64557)'
+        : 'linear-gradient(180deg, #b5868f, #946870)'
+
+      return `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:2px">
+          <div style="font-size:8px; color:${THEME.muted}; font-family:monospace">${label}</div>
+          <div style="width:100%; max-width:16px; height:50px; display:flex; align-items:${align}">
+            <div style="width:100%; height:${h}px; border-radius:2px; background:${barBg}"></div>
+          </div>
+          <div style="font-size:8px; color:${THEME.secondary}; font-weight:800">${id}</div>
+        </div>
+      `
+    }).join('')
+
+    return `
+      <div class="mini-chart-card">
+        <div class="mini-chart-title">${metric.title}</div>
+        <div class="mini-chart-grid">${bars}</div>
+      </div>
+    `
+  }).join('')
+
+  return `
+    <div class="mini-charts-wrap">
+      <div class="small-meta" style="margin-bottom:8px">Classic Multi-Chart View</div>
+      <div class="mini-charts-grid">${cards}</div>
+    </div>
+  `
 }
 
 // ── SVG Chart Builder (North Indian) ──────────────────────────
@@ -540,6 +621,11 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   const { meta } = chart
   const brandName = branding?.brandName || 'VEDAANSH PREMIUM'
   const brandLogo = branding?.brandLogo ? `<img src="${branding.brandLogo}" style="height:50px">` : `<span style="font-size:40px">💠</span>`
+  const shadbalaPlanets = chart.shadbala?.planets || {}
+  const coreShadbalaIds = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
+  const availableShadbalaIds = coreShadbalaIds.filter(id => Boolean(shadbalaPlanets[id]))
+  const strongestId = chart.shadbala?.strongest || 'Ju'
+  const weakestId = chart.shadbala?.weakest || 'Sa'
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -554,7 +640,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       -webkit-print-color-adjust: exact !important; 
       print-color-adjust: exact !important;
     }
-    body { font-family: 'Outfit', sans-serif; font-size: 13px; color: ${THEME.text}; line-height: 1.6; }
+    body { font-family: 'Outfit', sans-serif; font-size: 12px; color: ${THEME.text}; line-height: 1.6; }
     
     @page {
       size: A4;
@@ -629,13 +715,21 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     .main-title { font-family: 'Playfair Display', serif; font-size: 4.5rem; font-weight: 700; color: ${THEME.primary}; margin: 1rem 0; letter-spacing: -2px; }
     .sub-title { font-size: 1.25rem; font-weight: 600; color: ${THEME.accent}; text-transform: uppercase; letter-spacing: 0.4em; }
     
-    .section-badge { display: inline-block; background: ${THEME.accentLight}; color: ${THEME.accent}; padding: 4px 12px; border-radius: 4px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
-    .section-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: ${THEME.primary}; margin-bottom: 2rem; font-weight: 700; border-bottom: 3px solid ${THEME.accentLight}; padding-bottom: 10px; }
+    .section-badge { display: inline-block; background: ${THEME.accentLight}; color: ${THEME.accent}; padding: 4px 12px; border-radius: 4px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border: 1px solid #f5deb3; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 2rem; color: ${THEME.primary}; margin-bottom: 1.4rem; font-weight: 700; border-bottom: 2px solid ${THEME.accentLight}; padding-bottom: 10px; }
     .section-title span { color: ${THEME.accent}; font-family: 'Outfit', sans-serif; font-size: 1.2rem; vertical-align: middle; margin-right: 15px; opacity: 0.5; }
 
     .data-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; break-inside: avoid; }
-    .data-table th { text-align: left; padding: 12px; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid ${THEME.primary}; color: ${THEME.primary}; }
-    .data-table td { padding: 12px; border-bottom: 1px solid ${THEME.border}; font-size: 12px; }
+    .data-table th { text-align: left; padding: 10px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid ${THEME.primary}; color: ${THEME.primary}; letter-spacing: 0.8px; }
+    .data-table td { padding: 9px 10px; border-bottom: 1px solid ${THEME.border}; font-size: 11px; vertical-align: top; }
+    .data-table tbody tr:nth-child(even) { background: #fffcf6; }
+    .shadbala-table { table-layout: fixed; width: 100%; }
+    .shadbala-table th,
+    .shadbala-table td { padding: 6px 4px; font-size: 9px; }
+    .shadbala-table th { letter-spacing: 0.2px; white-space: normal; line-height: 1.15; text-transform: uppercase; }
+    .shadbala-table td { white-space: normal; word-break: break-word; line-height: 1.2; hyphens: auto; }
+    .shadbala-table th:first-child,
+    .shadbala-table td:first-child { font-weight: 800; }
 
     .av-table { width: 100%; border-collapse: collapse; text-align: center; font-family: monospace; break-inside: avoid; }
     .av-table th { padding: 8px; border: 1px solid ${THEME.border}; background: ${THEME.surface}; }
@@ -665,6 +759,13 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     
     .vedic-border { border: 2px double ${THEME.accent}; padding: 10px; border-radius: 4px; position: relative; }
     .vedic-ornament { position: absolute; color: ${THEME.accent}; opacity: 0.4; }
+    .trad-panel { background: #fffdf8; border: 1px solid ${THEME.border}; border-left: 4px solid ${THEME.accent}; border-radius: 8px; padding: 14px; }
+    .small-meta { font-size: 10px; color: ${THEME.muted}; text-transform: uppercase; letter-spacing: 0.8px; }
+    .mini-charts-wrap { width: 100%; border:1px solid ${THEME.border}; border-radius:10px; background:${THEME.surface}; padding:10px; overflow:hidden; }
+    .mini-charts-grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:8px; width:100%; }
+    .mini-chart-card { border:1px solid ${THEME.border}; border-radius:6px; background:#fff; padding:6px; min-width:0; }
+    .mini-chart-title { text-align:center; font-size:9px; font-weight:800; color:${THEME.secondary}; margin-bottom:4px; }
+    .mini-chart-grid { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:2px; align-items:end; min-height:64px; }
   </style>
 </head>
 <body>
@@ -725,8 +826,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <div class="toc-item"><span>16. Current Sub-Period Focus</span> <span>18</span></div>
     <div class="toc-item"><span>17. Astro-Vastu Architectural Alignment</span> <span>19</span></div>
     <div class="toc-item"><span>18. Global Resonance (Astrocartography)</span> <span>20</span></div>
-    <div class="toc-item"><span>19. Remedial Architecture (Gems & Mantras)</span> <span>21</span></div>
-    <div class="toc-item"><span>20. Synthesis & Next Steps</span> <span>22</span></div>
+    <div class="toc-item"><span>19. Synthesis & Next Steps</span> <span>21</span></div>
   </div>
   ${PageFooter(2, meta.name)}
 </div>
@@ -738,7 +838,9 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <tr><td style="font-weight:700;background:${THEME.surface}">Name of Native</td><td>${meta.name}</td><td style="font-weight:700;background:${THEME.surface}">Gender</td><td>Not Specified</td></tr>
     <tr><td style="font-weight:700;background:${THEME.surface}">Birth Date</td><td>${new Date(meta.birthDate).toDateString()}</td><td style="font-weight:700;background:${THEME.surface}">Birth Time</td><td>${meta.birthTime}</td></tr>
     <tr><td style="font-weight:700;background:${THEME.surface}">Birth Place</td><td colspan="3">${meta.birthPlace}</td></tr>
-    <tr><td style="font-weight:700;background:${THEME.surface}">Coord.</td><td>${meta.latitude.toFixed(2)}N, ${meta.longitude.toFixed(2)}E</td><td style="font-weight:700;background:${THEME.surface}">Timezone</td><td>${meta.timezone}</td></tr>
+    <tr><td style="font-weight:700;background:${THEME.surface}">Coord.</td><td>${formatCoordinate(meta.latitude, 'N', 'S')}, ${formatCoordinate(meta.longitude, 'E', 'W')}</td><td style="font-weight:700;background:${THEME.surface}">Timezone</td><td>${meta.timezone}</td></tr>
+    <tr><td style="font-weight:700;background:${THEME.surface}">Ayanamsha</td><td>${meta.settings.ayanamsha} (${meta.ayanamshaValue.toFixed(6)}°)</td><td style="font-weight:700;background:${THEME.surface}">House System</td><td>${meta.settings.houseSystem}</td></tr>
+    <tr><td style="font-weight:700;background:${THEME.surface}">Node Mode</td><td>${meta.settings.nodeMode}</td><td style="font-weight:700;background:${THEME.surface}">Calculated At</td><td>${formatDateTime(meta.calculatedAt)}</td></tr>
   </table>
   
   <div style="display:flex; gap: 1rem; margin-top: 3rem; width: 100%">
@@ -754,12 +856,18 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   
   <div style="margin-top: 3rem; background: ${THEME.surface}; padding: 25px; border-radius: 15px">
     <h3 style="margin-bottom: 10px; color: ${THEME.primary}">Sacred Panchanga</h3>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size:11px">
         <div><strong>Day Lord (Vara):</strong> ${chart.panchang.vara.name}</div>
         <div><strong>Tithi:</strong> ${chart.panchang.tithi.name} (${chart.panchang.tithi.paksha})</div>
         <div><strong>Nakshatra:</strong> ${chart.panchang.nakshatra.name}</div>
         <div><strong>Yoga:</strong> ${chart.panchang.yoga.name}</div>
-        <div><strong>Abhijit:</strong> ${chart.panchang.abhijitMuhurta ? 'Available' : 'N/A'}</div>
+        <div><strong>Karana:</strong> ${chart.panchang.karana.name}</div>
+        <div><strong>Sunrise:</strong> ${formatDateTime(chart.panchang.sunrise)}</div>
+        <div><strong>Sunset:</strong> ${formatDateTime(chart.panchang.sunset)}</div>
+        <div><strong>Rahu Kalam:</strong> ${formatDateTime(chart.panchang.rahuKalam?.start)} - ${formatDateTime(chart.panchang.rahuKalam?.end)}</div>
+        <div><strong>Yamaganda:</strong> ${formatDateTime(chart.panchang.yamaganda?.start)} - ${formatDateTime(chart.panchang.yamaganda?.end)}</div>
+        <div><strong>Gulika Kalam:</strong> ${formatDateTime(chart.panchang.gulikaKalam?.start)} - ${formatDateTime(chart.panchang.gulikaKalam?.end)}</div>
+        <div><strong>Abhijit Muhurta:</strong> ${chart.panchang.abhijitMuhurta ? `${formatDateTime(chart.panchang.abhijitMuhurta.start)} - ${formatDateTime(chart.panchang.abhijitMuhurta.end)}` : 'N/A'}</div>
     </div>
   </div>
   ${PageFooter(3, meta.name)}
@@ -772,30 +880,34 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <thead>
       <tr>
         <th>Graha</th>
+        <th>Sanskrit</th>
         <th>Degree</th>
         <th>Rashi</th>
         <th>Nakshatra</th>
         <th>Pada</th>
         <th>Dignity</th>
+        <th>State</th>
       </tr>
     </thead>
     <tbody>
       <tr style="background:${THEME.surface}; font-weight:800">
-        <td>Ascendant</td><td>${fmtDMS(chart.lagnas.ascDegree)}</td><td>${RASHI_NAMES[chart.lagnas.ascRashi]}</td><td>${NAKSHATRA_NAMES[Math.floor(chart.lagnas.ascDegree/(360/27))]}</td><td>-</td><td>House 1</td>
+        <td>Ascendant</td><td>Lagna</td><td>${fmtDMS(chart.lagnas.ascDegree)}</td><td>${RASHI_NAMES[chart.lagnas.ascRashi]}</td><td>${NAKSHATRA_NAMES[Math.floor(chart.lagnas.ascDegree/(360/27))]}</td><td>-</td><td>House 1</td><td>-</td>
       </tr>
       ${chart.grahas.filter(g => !['Ur','Ne','Pl'].includes(g.id)).map(g => `
         <tr>
           <td style="font-weight:700">${g.name} ${g.isRetro?'℞':''}</td>
+          <td>${GRAHA_SANSKRIT[g.id]}</td>
           <td style="font-family:monospace">${fmtDMS(g.lonSidereal)}</td>
           <td>${g.rashiName}</td>
           <td>${g.nakshatraName}</td>
           <td>${g.pada}</td>
           <td style="color:${dignityColor(g.dignity)};font-weight:800">${capitalize(g.dignity)}</td>
+          <td>${g.isCombust ? 'Combust' : 'Direct'} • ${capitalize(g.avastha.baladi)} / ${capitalize(g.avastha.jagradadi)}</td>
         </tr>`).join('')}
     </tbody>
   </table>
   
-  <h3 class="section-badge" style="margin-top: 2rem">Special Points & Sabba</h3>
+  <h3 class="section-badge" style="margin-top: 2rem">Special Points & Lagnas</h3>
   ${buildSpecialLagnas(chart)}
   ${PageFooter(4, meta.name)}
 </div>
@@ -902,35 +1014,56 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
 <!-- PAGE 12: SHADBALA -->
 <div class="page">
   ${SectionHeader('10', 'Quantum Strength', 'Shadbala Analysis')}
-  <p style="margin-bottom: 2rem">Shadbala calculates 6 sources of strength to determine the precise power of each planet.</p>
-  <table class="data-table">
-    <thead><tr><th>Planet</th><th>Sthana</th><th>Dig</th><th>Kala</th><th>Chesta</th><th>Drik</th><th>Total</th><th>Status</th></tr></thead>
+  <p style="margin-bottom: 2rem">Shadbala calculates six strength streams in rupas. Values below include both aggregate rupas and shashtiamsa totals for accurate interpretation.</p>
+  <table class="data-table shadbala-table">
+    <colgroup>
+      <col style="width:10%">
+      <col style="width:7%">
+      <col style="width:6%">
+      <col style="width:6%">
+      <col style="width:7%">
+      <col style="width:9%">
+      <col style="width:7%">
+      <col style="width:8%">
+      <col style="width:8%">
+      <col style="width:8%">
+      <col style="width:7%">
+      <col style="width:7%">
+    </colgroup>
+    <thead><tr><th>Planet</th><th>Sthana</th><th>Dig</th><th>Kala</th><th>Chesta</th><th>Naisargika</th><th>Drik</th><th>Total (Rupa)</th><th>Total (Sh)</th><th>Required</th><th>Ratio</th><th>Status</th></tr></thead>
     <tbody>
-      ${['Su','Mo','Ma','Me','Ju','Ve','Sa'].map(id => {
+      ${availableShadbalaIds.map(id => {
         const pb = chart.shadbala.planets[id]
         if (!pb) return ''
         return `
           <tr>
             <td style="font-weight:700">${GRAHA_NAMES[id as GrahaId]}</td>
-            <td>${pb.sthanaBala.toFixed(0)}</td>
-            <td>${pb.digBala.toFixed(0)}</td>
-            <td>${pb.kalaBala.toFixed(0)}</td>
-            <td>${pb.chestaBala.toFixed(0)}</td>
-            <td>${pb.drikBala.toFixed(0)}</td>
-            <td style="font-weight:900">${pb.total.toFixed(0)}</td>
-            <td style="color:${pb.isStrong?THEME.emerald:THEME.muted}">${pb.isStrong?'STRONG':'MODERATE'}</td>
+            <td>${pb.sthanaBala.toFixed(2)}</td>
+            <td>${pb.digBala.toFixed(2)}</td>
+            <td>${pb.kalaBala.toFixed(2)}</td>
+            <td>${pb.chestaBala.toFixed(2)}</td>
+            <td>${pb.naisargikaBala.toFixed(2)}</td>
+            <td>${pb.drikBala.toFixed(2)}</td>
+            <td style="font-weight:900">${pb.total.toFixed(2)}</td>
+            <td>${pb.totalShash.toFixed(1)}</td>
+            <td>${pb.required.toFixed(2)}</td>
+            <td>${pb.ratio.toFixed(2)}x</td>
+            <td style="color:${pb.isStrong?THEME.emerald:THEME.rose};font-weight:800">${pb.isStrong?'STRONG':'NEEDS BOOST'}</td>
           </tr>`
-      }).join('')}
+      }).join('') || '<tr><td colspan="12">Shadbala data unavailable.</td></tr>'}
     </tbody>
   </table>
   
-  <div style="margin-top: 3rem; display: flex; align-items: flex-end; gap: 5px; height: 150px; padding: 20px; border-bottom: 2px solid ${THEME.primary}">
-    ${['Su','Mo','Ma','Me','Ju','Ve','Sa'].map(id => {
-      const h = (chart.shadbala.planets[id]?.total || 0) / 6
-      return `<div style="flex:1; background:${THEME.primary}; height:${h}px; border-radius: 4px 4px 0 0; position:relative; text-align:center">
-        <span style="position:absolute; bottom:-25px; left:0; right:0; font-weight:800; font-size:10px">${id}</span>
-      </div>`
-    }).join('')}
+  ${buildShadbalaMiniCharts(chart)}
+  <div class="trad-panel" style="margin-top: 2.2rem">
+    <div class="small-meta">Canonical Reading</div>
+    <div style="margin-top:6px">
+      Strongest Graha: <strong>${GRAHA_NAMES[strongestId as GrahaId] || strongestId}</strong> |
+      Weakest Graha: <strong>${GRAHA_NAMES[weakestId as GrahaId] || weakestId}</strong>
+    </div>
+    <div style="margin-top:6px; font-size:11px; color:${THEME.muted}">
+      A ratio above 1.00 means the graha crosses its traditional minimum required bala.
+    </div>
   </div>
   ${PageFooter(12, meta.name)}
 </div>
@@ -1135,56 +1268,9 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   ${PageFooter(20, meta.name)}
 </div>
 
-<!-- PAGE 21: REMEDIES -->
+<!-- PAGE 21: SYNTHESIS -->
 <div class="page">
-  ${SectionHeader('19', 'Remedial Architecture', 'Planetary Balance')}
-  <p style="margin-bottom: 2rem; color: ${THEME.muted}">Vedic remedies (Upayas) are designed to harmonize planetary vibrations and strengthen your bio-magnetic field.</p>
-  
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; margin-top: 1rem">
-    <div style="border: 2px solid ${THEME.surface}; border-radius: 15px; padding: 25px; background: ${THEME.surface}">
-        <h4 style="color: ${THEME.primary}; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif">Ratna (Gemstone) Advice</h4>
-        <div style="font-size: 13px; line-height: 1.8">
-            <div style="margin-bottom: 1rem"><strong>Propitious Stone:</strong> ${chart.shadbala.strongest === 'Ju' ? 'Yellow Sapphire' : chart.shadbala.strongest === 'Su' ? 'Ruby' : chart.shadbala.strongest === 'Ve' ? 'Diamond' : 'White Sapphire'}</div>
-            <div style="margin-bottom: 1rem"><strong>Metal:</strong> ${['Su','Ma','Ju'].includes(chart.shadbala.strongest) ? 'Gold' : 'Silver/Platinum'}</div>
-            <div style="margin-bottom: 1rem"><strong>Finger:</strong> Index or Ring finger of the dominant hand.</div>
-            <p style="font-size: 11px; color: ${THEME.muted}; font-style: italic">Note: Ensure natural, untreated stones. Minimum 3+ carats suggested for results.</p>
-        </div>
-    </div>
-    
-    <div style="background:${THEME.primary}; color: #fff; padding: 25px; border-radius: 15px; border: 1px solid ${THEME.accent}">
-        <h4 style="margin-bottom: 15px; color:${THEME.accentLight}; font-family: 'Playfair Display', serif">Sacred Mantras</h4>
-        <p style="font-size: 11px; margin-bottom: 15px">Chant these sounds to harmonize your environment with your cosmic signature.</p>
-        <div style="font-family:serif; font-style:italic; font-size: 1.1rem; text-align:center; margin: 15px 0">"Om ${chart.shadbala.weakest === 'Sa' ? 'Namah Shivaya' : 'Shrim Klim Lakshmi-Narayana Namaha'}"</div>
-        <p style="font-size: 10px; opacity: 0.8">Repetitions: 108 times daily. Best performed during Brahma Muhurta (dawn).</p>
-    </div>
-  </div>
-
-  <div style="margin-top: 3rem; padding: 30px; border: 2px double ${THEME.border}; border-radius: 20px; background: #fff">
-    <h4 style="text-align: center; color: ${THEME.primary}; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif">Dana (Charity) & Ritual Alignment</h4>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center; font-size: 11px">
-        <div>
-            <div style="font-size: 24px; margin-bottom: 10px">🐄</div>
-            <div style="font-weight: 800; color: ${THEME.primary}">Jiva Karuna</div>
-            <div style="margin-top: 5px">Feed stray cows or birds on ${chart.shadbala.weakest === 'Sa' ? 'Saturdays' : 'Thursdays'}.</div>
-        </div>
-        <div>
-            <div style="font-size: 24px; margin-bottom: 10px">🍚</div>
-            <div style="font-weight: 800; color: ${THEME.primary}">Anna Dana</div>
-            <div style="margin-top: 5px">Donate raw grains to community kitchens on Full Moon days.</div>
-        </div>
-        <div>
-            <div style="font-size: 24px; margin-bottom: 10px">🕯️</div>
-            <div style="font-weight: 800; color: ${THEME.primary}">Deepa Danam</div>
-            <div style="margin-top: 5px">Light a sesame oil lamp near a Peepal tree at sunset.</div>
-        </div>
-    </div>
-  </div>
-  ${PageFooter(21, meta.name)}
-</div>
-
-<!-- PAGE 22: SYNTHESIS -->
-<div class="page">
-  ${SectionHeader('20', 'The Life Synthesis', 'Report Summary')}
+  ${SectionHeader('19', 'The Life Synthesis', 'Report Summary')}
   <p style="margin-bottom: 3rem; font-size: 1.15rem; line-height: 1.8; font-style: italic; border-bottom: 1px solid ${THEME.accentLight}; padding-bottom: 20px">
     "${escapeHtml(chart.interpretation.headline)}"
   </p>
@@ -1232,7 +1318,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <div style="font-weight: 900; letter-spacing: 2px">OM TAT SAT</div>
     <div style="font-size: 10px; margin-top: 10px">Vedaansh Jyotish Master Dossier • Professional Edition</div>
   </div>
-  ${PageFooter(22, meta.name)}
+  ${PageFooter(21, meta.name)}
 </div>
 
 </body>

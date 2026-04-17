@@ -7,11 +7,15 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart, ChartCache } from '@/lib/db/models/Chart'
 import { User } from '@/lib/db/models/User'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 export const runtime = 'nodejs'
 
 export async function DELETE(req: NextRequest) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    if (blockedResponse) return blockedResponse
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 })

@@ -8,11 +8,15 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import crypto from 'crypto'
+import { applyRouteSecurity } from '@/lib/security/route'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
+    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    if (blockedResponse) return blockedResponse
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -34,7 +38,7 @@ export async function POST(req: NextRequest) {
     let nextSlug = chart.slug
 
     if (nextIsPublic && !nextSlug) {
-      nextSlug = crypto.randomBytes(5).toString('hex')
+      nextSlug = crypto.randomBytes(12).toString('hex')
     }
 
     chart.isPublicSource = nextIsPublic // Just being safe with internal field if any
