@@ -316,15 +316,19 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <span style={{ fontSize: '1.25rem' }}>☰</span>
           </button>
           
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-            <div style={{ width: 22, height: 22, color: '#C06C2D' }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganeshaSwastik }} />
-            <span 
-              className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
-              style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 700, color: '#C06C2D', letterSpacing: '0.04em' }}
-            >
-              Vedaansh
-            </span>
-            <div style={{ width: 14, height: 14, color: '#C06C2D', opacity: 0.5 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
+            <div style={{ width: 24, height: 24, color: 'var(--logo-border)' }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganeshaSwastik }} />
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+              <span 
+                className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
+                style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--logo-border)', letterSpacing: '0.04em' }}
+              >
+                Vedaansh
+              </span>
+              <span style={{ fontSize: '0.55rem', color: 'var(--logo-border)', letterSpacing: '0.05em', fontWeight: 600, opacity: 0.9 }}>
+                ॥ श्री गणेशाय नमः ॥
+              </span>
+            </div>
           </Link>
 
           {isOffline && (
@@ -388,12 +392,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           }}
         >
           {/* Logo area */}
-          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'linear-gradient(to bottom, #FFFBF5, #F7F3E8)' }}>
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-               <div style={{ width: 28, height: 28, color: '#C06C2D', opacity: 0.9 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganeshaSwastik }} />
+               <div style={{ width: 30, height: 30, color: 'var(--logo-border)', opacity: 0.9 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganeshaSwastik }} />
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, flex: 1 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: '#8b4513', letterSpacing: '0.05em' }}>Vedaansh</span>
-                <span style={{ fontSize: '0.65rem', color: '#C06C2D', letterSpacing: '0.1em', fontWeight: 600 }}>॥ श्री गणेशाय नमः ॥</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.05em' }}>Vedaansh</span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--logo-text-sub)', letterSpacing: '0.1em', fontWeight: 600 }}>॥ श्री गणेशाय नमः ॥</span>
               </div>
               <button
                 onClick={() => setIsSidenavOpen(false)}
