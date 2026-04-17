@@ -6,6 +6,14 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Redis } from '@upstash/redis'
+import * as zlib from 'zlib'
+import { promisify } from 'util'
+
+const gzip = promisify(zlib.gzip)
+const gunzip = promisify(zlib.gunzip)
+
+const COMPRESSION_THRESHOLD = 128 * 1024 // 128KB
+const COMPRESSION_PREFIX = 'cz:' // Compressed Zlib
 
 // ── Client ────────────────────────────────────────────────────
 
@@ -19,7 +27,14 @@ function getRedis(): Redis | null {
 
   if (!url || !token) return null
 
-  _redis = new Redis({ url, token })
+  _redis = new Redis({ 
+    url, 
+    token,
+    retry: {
+      retries: 5,
+      backoff: (retryCount) => Math.min(Math.exp(retryCount) * 50, 2000),
+    },
+  })
   return _redis
 }
 
@@ -33,11 +48,32 @@ export const redis = {
     try {
       const client = getRedis()
       if (!client) return null
-      return await client.get<T>(key)
+      
+      const raw = await client.get<unknown>(key)
+      if (!raw) return null
+
+      // Handle decompression
+      if (typeof raw === 'string' && raw.startsWith(COMPRESSION_PREFIX)) {
+        try {
+          const compressedData = Buffer.from(raw.slice(COMPRESSION_PREFIX.length), 'base64')
+          const decompressed = await gunzip(compressedData)
+          return JSON.parse(decompressed.toString()) as T
+        } catch (decompErr) {
+          console.error('[redis.get] Decompression failed:', decompErr)
+          return null
+        }
+      }
+
+      return raw as T
     } catch (err) {
-      if (typeof err === 'object' && err !== null && 'message' in err && (err.message as string).includes('quota exceeded')) {
-         // Silently fail if DB is full to avoid log spam
-         return null
+      if (typeof err === 'object' && err !== null) {
+        const msg = (err as any).message || ''
+        if (msg.includes('quota exceeded')) return null
+        if (msg.includes('terminated') || msg.includes('timeout')) {
+          // These are common in transient network issues or large payloads
+          console.warn(`[redis.get] ${msg} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
+          return null
+        }
       }
       console.warn('[redis.get] error:', err)
       return null
@@ -54,13 +90,31 @@ export const redis = {
       if (!client) return
       
       // Enforce JSON serialization
-      const serializedValue = typeof value === 'string' ? value : JSON.stringify(value)
+      let serializedValue = typeof value === 'string' ? value : JSON.stringify(value)
       
+      // Compression for large payloads
+      if (serializedValue.length > COMPRESSION_THRESHOLD) {
+        try {
+          const originalSize = serializedValue.length
+          const compressed = await gzip(Buffer.from(serializedValue))
+          serializedValue = COMPRESSION_PREFIX + compressed.toString('base64')
+          
+          console.info(`[redis.set] Compressed large payload for ${key}: ${(originalSize / 1024).toFixed(1)}KB -> ${(serializedValue.length / 1024).toFixed(1)}KB`)
+        } catch (compErr) {
+          console.error('[redis.set] Compression failed:', compErr)
+          // Fallback to uncompressed
+        }
+      }
+
       await client.set(key, serializedValue, { ex: ttlSeconds })
     } catch (err) {
-      if (typeof err === 'object' && err !== null && 'message' in err && (err.message as string).includes('quota exceeded')) {
-         // Silently fail if DB is full to avoid log spam
-         return
+      if (typeof err === 'object' && err !== null) {
+        const msg = (err as any).message || ''
+        if (msg.includes('quota exceeded')) return
+        if (msg.includes('terminated') || msg.includes('timeout')) {
+          console.warn(`[redis.set] ${msg} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
+          return
+        }
       }
       console.warn('[redis.set] error:', err)
     }
