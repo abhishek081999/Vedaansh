@@ -338,7 +338,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               >
                 Vedaansh
               </span>
-              <span style={{ fontSize: '0.55rem', color: 'var(--logo-border)', letterSpacing: '0.05em', fontWeight: 600, opacity: 0.9 }}>
+              <span style={{ fontSize: '0.55rem', color: 'var(--logo-border)', letterSpacing: '0.05em', fontWeight: 600, opacity: 0.9, whiteSpace: 'nowrap' }}>
                 ॥ श्री गणेशाय नमः ॥
               </span>
             </div>
@@ -405,7 +405,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           }}
         >
           {/* Logo area */}
-          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
+          <div style={{ padding: '1.45rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
               <Link
                 href="/home"
@@ -424,7 +424,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, minWidth: 0 }}>
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.05em' }}>Vedaansh</span>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--logo-text-sub)', letterSpacing: '0.1em', fontWeight: 600 }}>॥ श्री गणेशाय नमः ॥</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--logo-text-sub)', letterSpacing: '0.1em', fontWeight: 600, whiteSpace: 'nowrap' }}>॥ श्री गणेशाय नमः ॥</span>
                 </div>
               </Link>
               <button
@@ -444,7 +444,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* User Profile Block */}
-          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-soft)' }}>
+          <div style={{ padding: '1.35rem 1.5rem', borderBottom: '1px solid var(--border-soft)' }}>
             {status === 'loading' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.5 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 'var(--r-md)', background: 'var(--surface-3)', animation: 'pulse 1.5s infinite' }} />
