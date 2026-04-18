@@ -35,100 +35,16 @@ const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').
 const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
 const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
 const JaiminiPanel = dynamic(() => import('@/components/ui/JaiminiPanel'), { ssr: false })
+const AstroDetailsPanel = dynamic(() => import('@/components/ui/AstroDetailsPanel').then(m => m.AstroDetailsPanel), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
-import type { ChartOutput, Rashi, ChartSettings } from '@/types/astrology'
-import { DEFAULT_SETTINGS, NAKSHATRA_NAMES as NAK_NAMES } from '@/types/astrology'
+import type { ChartOutput, GrahaId, Rashi, ChartSettings } from '@/types/astrology'
+import { DEFAULT_SETTINGS, GRAHA_NAMES, NAKSHATRA_NAMES as NAK_NAMES } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { PlanetDetailCard } from '@/components/ui/PlanetDetailCard'
 import { getGraNakPositions, getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
-
-// ─────────────────────────────────────────────────────────────
-//  Panchang Panel
-// ─────────────────────────────────────────────────────────────
-
-function PanchangPanel({ p }: { p: ChartOutput['panchang'] }) {
-  const fmtTime = (d: Date | string) =>
-    new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-
-  const items = [
-    { label: 'Tithi',     value: p.tithi.name },
-    { label: 'Nakshatra', value: p.nakshatra.name },
-    { label: 'Yoga',      value: p.yoga.name },
-    { label: 'Karana',    value: p.karana.name },
-  ]
-
-  const muhurtas = [
-    { label: 'Rāhu Kālam',      times: p.rahuKalam,      color: 'var(--rose)',  neutral: false },
-    { label: 'Gulikā Kālam',    times: p.gulikaKalam,    color: 'var(--rose)',  neutral: false },
-    ...(p.abhijitMuhurta ? [{ label: 'Abhijit Muhūrta', times: p.abhijitMuhurta, color: 'var(--teal)', neutral: true }] : []),
-  ]
-
-  return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{
-        background: 'var(--gradient-dark, linear-gradient(135deg, #4A0E17 0%, #2A0810 100%))',
-        backgroundColor: '#350a11', // fallback
-        padding: '1.5rem',
-        borderRadius: 'var(--r-md)',
-        color: '#ffffff',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        border: '1px solid rgba(255,255,255,0.05)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
-          <span style={{ color: 'var(--gold)', filter: 'drop-shadow(0 0 4px rgba(201,168,76,0.5))', fontSize: '1.2rem' }}>☀️</span>
-          <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 600, letterSpacing: '0.02em', color: '#fff' }}>
-            Daily Panchang
-          </h3>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {items.map(({ label, value }) => (
-            <div key={label} style={{ 
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.75rem' 
-            }}>
-              <span style={{ 
-                textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 600, 
-                letterSpacing: '0.12em', color: 'rgba(255,255,255,0.6)' 
-              }}>
-                {label}
-              </span>
-              <span style={{ 
-                fontWeight: 600, fontSize: '0.95rem', fontFamily: 'Cormorant Garamond, serif', 
-                color: 'var(--gold-light, #fde68a)' 
-              }}>
-                {value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Muhūrta Windows</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
-          {muhurtas.map(({ label, times, color, neutral }) => (
-            <div key={label} style={{
-              padding: '0.85rem 1rem',
-              background: neutral ? 'rgba(78,205,196,0.06)' : 'rgba(224,123,142,0.06)',
-              border: `1px solid ${neutral ? 'rgba(78,205,196,0.2)' : 'rgba(224,123,142,0.2)'}`,
-              borderRadius: 'var(--r-md)',
-            }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color, marginBottom: '0.35rem' }}>
-                {label}
-              </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-                {fmtTime(times.start)} – {fmtTime(times.end)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
+import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
 
 // ─────────────────────────────────────────────────────────────
 //  Arudha Panel
@@ -273,6 +189,34 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
   )
 }
 
+function DashboardMetricChip({
+  label,
+  value,
+  sub,
+  valueColor = 'var(--teal)',
+}: {
+  label: string
+  value: string | number
+  sub?: string
+  valueColor?: string
+}) {
+  return (
+    <div
+      className="card"
+      style={{
+        padding: '0.65rem 0.85rem',
+        background: 'var(--surface-2)',
+        border: '1px solid var(--border-bright)',
+        textAlign: 'center',
+      }}
+    >
+      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{label}</div>
+      <div style={{ fontSize: '1.05rem', fontWeight: 800, color: valueColor }}>{value}</div>
+      {sub ? <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{sub}</div> : null}
+    </div>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────
 //  Main Page
 // ─────────────────────────────────────────────────────────────
@@ -305,6 +249,60 @@ function HomeContent() {
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
+  const [dashExpandAv, setDashExpandAv] = useState(false)
+  const [dashExpandShad, setDashExpandShad] = useState(false)
+  const [dashExpandVim, setDashExpandVim] = useState(false)
+
+  const dashboardAshtakSummary = useMemo(() => {
+    if (!chart?.ashtakavarga) return null
+    const ascRashi = chart.lagnas.ascRashi ?? 1
+    const sav = chart.ashtakavarga.sav
+    const houses = sav.map((val, i) => {
+      const rashi = ((ascRashi - 1 + i) % 12) + 1
+      return { house: i + 1, val, rashi: rashi as Rashi }
+    })
+    const sorted = [...houses].sort((a, b) => b.val - a.val)
+    return {
+      savTotal: chart.ashtakavarga.savTotal,
+      avg: (chart.ashtakavarga.savTotal / 12).toFixed(1),
+      highest: sorted[0],
+      lowest: sorted[sorted.length - 1],
+    }
+  }, [chart])
+
+  const dashboardShadbalaSummary = useMemo(() => {
+    if (!chart?.shadbala) return null
+    const { strongest, weakest, planets } = chart.shadbala
+    const core: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
+    const sn = GRAHA_NAMES[strongest as GrahaId] ?? strongest
+    const wn = GRAHA_NAMES[weakest as GrahaId] ?? weakest
+    const ratios = core.map((id) => planets[id]?.ratio).filter((r): r is number => typeof r === 'number')
+    const meanRatio = ratios.length ? (ratios.reduce((a, b) => a + b, 0) / ratios.length).toFixed(2) : '—'
+    return {
+      strongestLabel: sn,
+      weakestLabel: wn,
+      strongTotal: planets[strongest]?.total.toFixed(2) ?? '—',
+      weakTotal: planets[weakest]?.total.toFixed(2) ?? '—',
+      meanRatio,
+    }
+  }, [chart])
+
+  const dashboardVimsopakaSummary = useMemo(() => {
+    if (!chart?.vimsopaka?.planets) return null
+    const v = chart.vimsopaka
+    const board = v.leaderboard?.length ? v.leaderboard : []
+    const top3 = board.slice(0, 3)
+    const strongScore = v.planets[v.strongest]?.shodasvarga
+    const weakScore = v.planets[v.weakest]?.shodasvarga
+    return {
+      strongest: GRAHA_NAMES[v.strongest as GrahaId] ?? v.strongest,
+      weakest: GRAHA_NAMES[v.weakest as GrahaId] ?? v.weakest,
+      strongScore: strongScore != null ? strongScore.toFixed(2) : '—',
+      weakScore: weakScore != null ? weakScore.toFixed(2) : '—',
+      avg: v.insights?.averageShodasvarga != null ? v.insights.averageShodasvarga.toFixed(2) : null,
+      top3,
+    }
+  }, [chart])
 
   const handleAcgPlanetsChange = React.useCallback((planets: Set<any>, parans: any[], rawNatal?: any[]) => {
     setSelectedAcgPlanets(prev => {
@@ -479,12 +477,12 @@ function HomeContent() {
   const varaNumber   = chart?.panchang.vara.number  ?? 0
 
   const openAstrologyApp = React.useCallback(() => {
-    router.push('/asrology?new=true')
+    router.push('/astrology?new=true')
   }, [router])
 
   const openMyDefaultChart = React.useCallback(async () => {
     if (!defaultChart) {
-      router.push('/asrology?new=true')
+      router.push('/astrology?new=true')
       return
     }
     setLoading(true)
@@ -500,7 +498,7 @@ function HomeContent() {
       const json = await res.json()
       if (json.success) {
         setChart(json.data)
-        router.push('/asrology')
+        router.push('/astrology')
       }
     } catch (error) {
       console.error('Default chart load failed', error)
@@ -508,6 +506,106 @@ function HomeContent() {
       setLoading(false)
     }
   }, [defaultChart, router, setChart, userPrefs])
+
+  const landingFeaturePillars = [
+    { title: 'Kundli Intelligence', detail: 'Accurate birth-chart with varga depth and applied interpretation.' },
+    { title: 'Panchang Precision', detail: 'Daily tithi, nakshatra, yoga, karana, and actionable muhurta timing.' },
+    { title: 'Consultation Ready', detail: 'Chart workflows built for personal, family, and client-level use.' },
+    { title: 'Remedy Direction', detail: 'Practical next steps rooted in classical Jyotish principles.' },
+  ]
+
+  const landingTrustStats = [
+    { label: 'Core engines', value: '20+' },
+    { label: 'Analysis layers', value: '50+' },
+    { label: 'Primary modules', value: '8' },
+    { label: 'Precision base', value: 'Swiss Ephemeris' },
+  ]
+
+  const landingJourney = [
+    { step: '01', title: 'Enter Birth Details', text: 'Open Astrology app and submit date, time, and place.' },
+    { step: '02', title: 'Generate Deep Chart', text: 'Instantly compute grahas, houses, dasha, and divisional charts.' },
+    { step: '03', title: 'Read & Act', text: 'Move from insights to timing windows, remedies, and consultation.' },
+  ]
+
+  const trustedBy = ['Jyotish Practitioners', 'Consultants', 'Learners', 'Seekers', 'Vedic Families', 'Wellness Guides']
+
+  const landingVariant = searchParams.get('lpv') === 'b' ? 'b' : 'a'
+  const heroCopy = landingVariant === 'b'
+    ? {
+        headline: 'From Kundli to clear life decisions, all in one Vedic platform.',
+        subline:
+          'Stop jumping across tools. Vedaansh combines deep chart analysis, panchang timing, and action-ready interpretation in one premium workflow.',
+        cta: 'Start Free Chart',
+      }
+    : {
+        headline: 'Build your complete Vedic journey on one premium platform.',
+        subline:
+          'Inspired by the depth users love in products like VedicRishi and AstroBharati, Vedaansh unifies serious Jyotish analysis, daily guidance, consultation workflows, and conscious life planning.',
+        cta: '✦ Open Astrology App',
+      }
+
+  const trackLandingCta = React.useCallback((ctaName: string) => {
+    const payload = {
+      event: 'landing_cta_click',
+      ctaName,
+      variant: landingVariant,
+      ts: Date.now(),
+    }
+
+    if (typeof window === 'undefined') return
+    ;(window as any).__vedaanshLandingEvents = (window as any).__vedaanshLandingEvents ?? []
+    ;(window as any).__vedaanshLandingEvents.push(payload)
+
+    // Future-proof bridge for common analytics providers when connected.
+    if (typeof (window as any).plausible === 'function') {
+      ;(window as any).plausible('landing_cta_click', { props: { ctaName, variant: landingVariant } })
+    }
+    if (typeof (window as any).umami?.track === 'function') {
+      ;(window as any).umami.track('landing_cta_click', { ctaName, variant: landingVariant })
+    }
+    if (typeof (window as any).posthog?.capture === 'function') {
+      ;(window as any).posthog.capture('landing_cta_click', { ctaName, variant: landingVariant })
+    }
+  }, [landingVariant])
+
+  const landingTestimonials = [
+    {
+      quote: 'This feels like a serious Jyotish workstation, not just a horoscope page. The depth and structure are excellent.',
+      name: 'Early Practitioner User',
+      role: 'Advanced Learner',
+    },
+    {
+      quote: 'The Panchang + chart + interpretation flow saves time in daily guidance and consultation preparation.',
+      name: 'Consultation-Focused User',
+      role: 'Practicing Astrologer',
+    },
+    {
+      quote: 'Clean UI, deep analysis, and clear next actions. This is exactly where modern Vedic platforms should go.',
+      name: 'Vedic Community Member',
+      role: 'Power User',
+    },
+  ]
+
+  const landingFaqs = [
+    {
+      q: 'Is Vedaansh only for experts?',
+      a: 'No. Beginners can start with guided chart interpretation, while advanced users can dive into varga, dasha, and deeper analysis.',
+    },
+    {
+      q: 'What makes this different from typical astrology apps?',
+      a: 'Vedaansh is built as a platform with analytics depth, timing tools, consultation readiness, and long-term Vedic life direction.',
+    },
+    {
+      q: 'Can I use this for client consultations?',
+      a: 'Yes. The workflow supports both personal use and practitioner-style consultation flow, including saved charts and CRM pathways.',
+    },
+    {
+      q: 'What should I start with first?',
+      a: 'Open Astrology App, cast your chart, then use Panchang and interpretation tabs to move into immediate practical actions.',
+    },
+  ]
+
+  const [landingFaqOpen, setLandingFaqOpen] = useState(0)
 
   return (
     <div className="main-responsive-padding" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -887,8 +985,14 @@ function HomeContent() {
                   {activeTab === 'panchang' && (
                      <div className="card fade-up" style={{ padding: '1.25rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Daily Pañcāṅga Analysis</h3>
-                        <PanchangPanel p={chart.panchang} />
+                        <NatalPanchangPanel p={chart.panchang} />
                      </div>
+                  )}
+
+                  {activeTab === 'astro-details' && (
+                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                      <AstroDetailsPanel chart={chart} />
+                    </div>
                   )}
 
                   {activeTab === 'yogas' && (
@@ -1040,32 +1144,155 @@ function HomeContent() {
                     order: 3 // Extended details always last
                   }}>
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Ashtakavarga Grid</h3>
-                        {chart.ashtakavarga 
-                          ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
-                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Aṣṭakavarga data unavailable.</p>
-                        }
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Ashtakavarga Grid</h3>
+                          {chart.ashtakavarga ? (
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setDashExpandAv((e) => !e)}
+                              style={{ fontSize: '0.72rem' }}
+                            >
+                              {dashExpandAv ? 'Show less' : 'Show more'}
+                            </button>
+                          ) : null}
+                        </div>
+                        {!chart.ashtakavarga ? (
+                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Aṣṭakavarga data unavailable.</p>
+                        ) : dashExpandAv ? (
+                          <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
+                        ) : dashboardAshtakSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.65rem' }}>
+                              <DashboardMetricChip label="SAV total" value={dashboardAshtakSummary.savTotal} sub="Typical ~337" />
+                              <DashboardMetricChip label="Avg / sign" value={dashboardAshtakSummary.avg} sub="Bindus per house" valueColor="var(--text-gold)" />
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                              <span style={{ color: 'var(--teal)', fontWeight: 700 }}>Peak:</span>{' '}
+                              H{dashboardAshtakSummary.highest.house} ({RASHI_SHORT[dashboardAshtakSummary.highest.rashi]}) —{' '}
+                              {dashboardAshtakSummary.highest.val} bindus ·{' '}
+                              <span style={{ color: 'var(--rose)', fontWeight: 700 }}>Low:</span> H{dashboardAshtakSummary.lowest.house} (
+                              {RASHI_SHORT[dashboardAshtakSummary.lowest.rashi]}) — {dashboardAshtakSummary.lowest.val}
+                            </p>
+                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              Samudaya (SAV) combines all graha contributions. Open full view for BAV, chart styles, and tables.
+                            </p>
+                          </div>
+                        ) : null}
                     </div>
 
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Planetary Strengths (Shadbala)</h3>
-                        {chart.shadbala 
-                          ? <ShadbalaTable shadbala={chart.shadbala} hideDetails={true} preferClassicCharts={true} />
-                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Shadbala data unavailable.</p>
-                        }
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Classic Multi-Chart View</h3>
+                          {chart.shadbala ? (
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setDashExpandShad((e) => !e)}
+                              style={{ fontSize: '0.72rem' }}
+                            >
+                              {dashExpandShad ? 'Show less' : 'Show more'}
+                            </button>
+                          ) : null}
+                        </div>
+                        {!chart.shadbala ? (
+                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Shadbala data unavailable.</p>
+                        ) : dashExpandShad ? (
+                          <ShadbalaTable shadbala={chart.shadbala} classicMultiChartOnly />
+                        ) : dashboardShadbalaSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.65rem' }}>
+                              <DashboardMetricChip
+                                label="Strongest"
+                                value={`${dashboardShadbalaSummary.strongestLabel} · ${dashboardShadbalaSummary.strongTotal} R`}
+                                sub="Ṣaḍbala total (rupas)"
+                              />
+                              <DashboardMetricChip
+                                label="Weakest"
+                                value={`${dashboardShadbalaSummary.weakestLabel} · ${dashboardShadbalaSummary.weakTotal} R`}
+                                sub="Ṣaḍbala total (rupas)"
+                                valueColor="var(--rose)"
+                              />
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                              Mean strength ratio (7 grahas): <strong style={{ fontFamily: 'var(--font-mono)' }}>{dashboardShadbalaSummary.meanRatio}×</strong> vs required minimum.
+                            </p>
+                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              Expand for per-metric mini charts (Sthāna, Kāla, Dig, Cheshta, Drik, totals).
+                            </p>
+                          </div>
+                        ) : null}
                     </div>
 
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Viṁśopaka Bala (16 Vargas)</h3>
-                        {chart.vimsopaka 
-                          ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
-                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Viṁśopaka data unavailable.</p>
-                        }
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Viṁśopaka Bala (16 Vargas)</h3>
+                          {chart.vimsopaka ? (
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setDashExpandVim((e) => !e)}
+                              style={{ fontSize: '0.72rem' }}
+                            >
+                              {dashExpandVim ? 'Show less' : 'Show more'}
+                            </button>
+                          ) : null}
+                        </div>
+                        {!chart.vimsopaka ? (
+                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Viṁśopaka data unavailable.</p>
+                        ) : dashExpandVim ? (
+                          <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
+                        ) : dashboardVimsopakaSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.65rem' }}>
+                              <DashboardMetricChip
+                                label="Leader (16 vargas)"
+                                value={`${dashboardVimsopakaSummary.strongest}`}
+                                sub={`${dashboardVimsopakaSummary.strongScore} / 20`}
+                              />
+                              <DashboardMetricChip
+                                label="Lowest"
+                                value={`${dashboardVimsopakaSummary.weakest}`}
+                                sub={`${dashboardVimsopakaSummary.weakScore} / 20`}
+                                valueColor="var(--rose)"
+                              />
+                              {dashboardVimsopakaSummary.avg ? (
+                                <DashboardMetricChip label="Chart average" value={dashboardVimsopakaSummary.avg} sub="Mean · 16-varga" valueColor="var(--text-gold)" />
+                              ) : null}
+                            </div>
+                            {dashboardVimsopakaSummary.top3.length > 0 ? (
+                              <div>
+                                <div className="label-caps" style={{ marginBottom: '0.35rem', fontSize: '0.6rem' }}>Top 3</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                  {dashboardVimsopakaSummary.top3.map((row) => (
+                                    <span
+                                      key={row.id}
+                                      style={{
+                                        fontSize: '0.78rem',
+                                        padding: '0.35rem 0.55rem',
+                                        borderRadius: 'var(--r-sm)',
+                                        border: '1px solid var(--border)',
+                                        background: 'var(--surface-2)',
+                                        fontFamily: 'var(--font-mono)',
+                                      }}
+                                    >
+                                      #{row.rank} {GRAHA_NAMES[row.id as GrahaId] ?? row.id}{' '}
+                                      <span style={{ color: 'var(--teal)' }}>{row.score.toFixed(2)}</span>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              Full panel includes heatmaps, dignity matrix, schemes (ṣaḍ/sapta/daśa/ṣoḍaśa), and remedies.
+                            </p>
+                          </div>
+                        ) : null}
                     </div>
 
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Natal Panchang</h3>
-                        <PanchangPanel p={chart.panchang} />
+                        <NatalPanchangPanel p={chart.panchang} />
                     </div>
 
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
@@ -1083,7 +1310,7 @@ function HomeContent() {
           {!isFormOpen && (
             <div className="fade-in landing-shell" style={{ width: '100%', maxWidth: 1240 }}>
               <section
-                className="card-gold fade-up"
+                className="card-gold fade-up landing-hero"
                 style={{
                   padding: 'clamp(1.5rem, 3vw, 3rem)',
                   borderRadius: 'var(--r-xl)',
@@ -1106,30 +1333,77 @@ function HomeContent() {
                   }}
                 />
                 <div className="label-caps" style={{ marginBottom: '0.75rem', color: 'var(--text-gold)' }}>
-                  Vedaansh ecosystem
+                  Vedaansh spiritual intelligence platform
                 </div>
-                <h1 style={{ margin: 0, maxWidth: 820 }}>
-                  Your modern Vedic life platform with a classic soul.
-                </h1>
+                <h1 style={{ margin: 0, maxWidth: 820 }}>{heroCopy.headline}</h1>
                 <p style={{ marginTop: '0.9rem', maxWidth: 820, fontSize: '1.02rem' }}>
-                  Astrology, Ayurveda-inspired wellness, scriptures, consultations, learning, community, and commerce -
-                  unified into one experience.
+                  {heroCopy.subline}
                 </p>
+                <div className="landing-trust-grid">
+                  {landingTrustStats.map((item) => (
+                    <div key={item.label} className="stat-chip landing-trust-chip">
+                      <span className="stat-value">{item.value}</span>
+                      <span className="stat-sub">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.25rem' }}>
-                  <button onClick={openAstrologyApp} className="btn btn-primary">
-                    ✦ Open Astrology App
+                  <button onClick={() => { trackLandingCta('hero_primary'); openAstrologyApp() }} className="btn btn-primary">
+                    {heroCopy.cta}
                   </button>
+                  <Link href="/panchang" onClick={() => trackLandingCta('hero_panchang')} className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                    🕉 Open Panchang App
+                  </Link>
+                  <Link href="/panchang/calendar" onClick={() => trackLandingCta('hero_calendar')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                    🗓 Open Panchang Calendar
+                  </Link>
                   {status === 'authenticated' && defaultChart && (
-                    <button onClick={openMyDefaultChart} className="btn btn-secondary">
+                    <button onClick={() => { trackLandingCta('hero_my_chart'); openMyDefaultChart() }} className="btn btn-secondary">
                       My Chart
                     </button>
                   )}
-                  <Link href="/pricing" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                  <Link href="/pricing" onClick={() => trackLandingCta('hero_pricing')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
                     ⟡ View Plans
                   </Link>
-                  <Link href="/my/charts" className="btn btn-ghost" style={{ textDecoration: 'none' }}>
+                  <Link href="/my/charts" onClick={() => trackLandingCta('hero_my_charts')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
                     ◈ Explore My Charts
                   </Link>
+                </div>
+              </section>
+
+              <section className="card fade-up-1 landing-compare-card" style={{ marginBottom: '1.25rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Why Vedaansh</div>
+                <h3 style={{ margin: '0 0 0.7rem 0' }}>Designed for depth + clarity, not just daily horoscope content</h3>
+                <div className="landing-compare-grid">
+                  <div className="landing-compare-col">
+                    <h4 style={{ margin: '0 0 0.6rem 0' }}>Vedaansh</h4>
+                    <ul className="landing-compare-list">
+                      <li>Integrated chart, panchang, dasha, varga, and interpretation flow</li>
+                      <li>Built for both personal seekers and practitioner consultations</li>
+                      <li>Action-oriented guidance from analysis to next step</li>
+                      <li>Platform vision: astrology + lifestyle + learning + community</li>
+                    </ul>
+                  </div>
+                  <div className="landing-compare-col">
+                    <h4 style={{ margin: '0 0 0.6rem 0' }}>Typical astrology apps</h4>
+                    <ul className="landing-compare-list is-muted">
+                      <li>Often fragmented between reports, chat, and tools</li>
+                      <li>Limited depth in advanced varga and workflow continuity</li>
+                      <li>Heavy focus on one-off predictions over guided execution</li>
+                      <li>Less structured path from insight to practical action</li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
+
+              <section className="card fade-up-1 landing-trusted-strip" style={{ marginBottom: '1.25rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Trusted by communities</div>
+                <div className="landing-marquee">
+                  <div className="landing-marquee-track">
+                    {[...trustedBy, ...trustedBy].map((item, idx) => (
+                      <span key={`${item}-${idx}`} className="landing-trusted-pill">{item}</span>
+                    ))}
+                  </div>
                 </div>
               </section>
 
@@ -1144,46 +1418,71 @@ function HomeContent() {
                 <div className="label-caps" style={{ marginBottom: '0.7rem' }}>
                   Live now
                 </div>
-                <h2 style={{ margin: '0 0 0.7rem 0' }}>Astrology App is ready</h2>
+                <h2 style={{ margin: '0 0 0.7rem 0' }}>A modern Jyotish command center is ready</h2>
                 <p style={{ margin: 0, maxWidth: 920 }}>
-                  Start with your birth chart, panchang, dasha, varga analysis, nakshatra intelligence, and advanced
-                  workflows - then move into consultations, courses, and Vedic lifestyle actions.
+                  Start with your birth chart, panchang, dasha, varga analysis, and nakshatra intelligence. Then move
+                  into consultation, remedy planning, and long-term Vedic life guidance.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
-                  {[
-                    { title: 'Birth Chart', sub: 'Core mapping' },
-                    { title: 'Panchang', sub: 'Daily timing' },
-                    { title: 'Dasha', sub: 'Life periods' },
-                    { title: 'Nakshatra', sub: 'Soul coding' },
-                    { title: 'Varga', sub: 'Divisional depth' },
-                    { title: 'Interpretations', sub: 'Action guidance' },
-                  ].map((item) => (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
+                  {landingFeaturePillars.map((item) => (
                     <div key={item.title} className="stat-chip">
                       <span className="stat-value" style={{ fontSize: '0.95rem' }}>{item.title}</span>
-                      <span className="stat-sub">{item.sub}</span>
+                      <span className="stat-sub">{item.detail}</span>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1rem' }}>
-                  <button onClick={openAstrologyApp} className="btn btn-primary">
+                  <button onClick={() => { trackLandingCta('live_now_launch'); openAstrologyApp() }} className="btn btn-primary">
                     Launch Astrology App
                   </button>
-                  <Link href="/asrology?new=true" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                  <Link href="/astrology?new=true" onClick={() => trackLandingCta('live_now_new_consultation')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
                     New Consultation
                   </Link>
                 </div>
               </section>
 
+              <section className="card fade-up-4 landing-cta-band" style={{ marginBottom: '1.25rem' }}>
+                <div>
+                  <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--text-gold)' }}>Ready now</div>
+                  <h3 style={{ margin: 0 }}>Open your Vedic command center in one tap</h3>
+                  <p style={{ margin: '0.45rem 0 0 0', maxWidth: 760 }}>
+                    Cast your chart, review today&apos;s panchang, and move to clear action guidance in a single focused flow.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.7rem', flexWrap: 'wrap' }}>
+                  <button onClick={() => { trackLandingCta('cta_band_start_now'); openAstrologyApp() }} className="btn btn-primary">
+                    Start Now
+                  </button>
+                  <Link href="/pricing" onClick={() => trackLandingCta('cta_band_view_plans')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                    View Plans
+                  </Link>
+                </div>
+              </section>
+
+              <section className="card fade-up-2 landing-flow-card" style={{ marginBottom: '1.25rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>How it flows</div>
+                <h3 style={{ margin: '0 0 0.65rem 0' }}>From birth data to life direction in minutes</h3>
+                <div className="landing-flow-grid">
+                  {landingJourney.map((item) => (
+                    <article key={item.step} className="landing-flow-item">
+                      <span className="badge badge-gold">{item.step}</span>
+                      <h4 style={{ margin: '0.65rem 0 0.35rem 0', fontSize: '1rem' }}>{item.title}</h4>
+                      <p style={{ margin: 0, fontSize: '0.88rem' }}>{item.text}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
               <section className="fade-up-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.9rem', marginBottom: '1.25rem' }}>
                 {[
-                  { icon: '🕉', title: 'Consultation', text: 'Book astrologers and manage your guided sessions.', href: '/clients', comingSoon: true },
-                  { icon: '🛍', title: 'Shop', text: 'Discover Vedic and lifestyle products with integrated checkout.', href: '/pricing', comingSoon: true },
-                  { icon: '🤝', title: 'Community', text: 'Build a Vedic social space for seekers and practitioners.', href: '/roadmap', comingSoon: true },
-                  { icon: '✍', title: 'Blogs', text: 'Publish practical guidance and timeless Vedic insights.', href: '/roadmap', comingSoon: true },
-                  { icon: '📜', title: 'Research', text: 'Organize serious studies, references, and findings.', href: '/roadmap', comingSoon: true },
-                  { icon: '🎓', title: 'Courses', text: 'Structured Jyotish and Vedic learning pathways.', href: '/roadmap', comingSoon: true },
-                  { icon: '🌿', title: 'Vedic Lifestyle', text: 'Daily dharmic living principles and routines.', href: '/muhurta', comingSoon: true },
-                  { icon: '✨', title: 'Healings', text: 'Remedies, rituals, and mindful wellness pathways.', href: '/panchang', comingSoon: true },
+                  { icon: '🔭', title: 'Astrology Workspace', text: 'Chart + varga + dasha + interpretation in one workspace.', href: '/astrology?new=true', comingSoon: false },
+                  { icon: '📆', title: 'Panchang & Calendar', text: 'Daily and monthly timing windows for practical planning.', href: '/panchang', comingSoon: false },
+                  { icon: '👥', title: 'Consultation CRM', text: 'Manage clients, sessions, and chart records with structure.', href: '/clients', comingSoon: false },
+                  { icon: '🧭', title: 'Muhurta Planner', text: 'Find suitable windows for action, events, and decisions.', href: '/muhurta', comingSoon: false },
+                  { icon: '📚', title: 'Learning Hub', text: 'Structured Jyotish and Vedic learning tracks.', href: '/roadmap', comingSoon: true },
+                  { icon: '🛍', title: 'Vedic Commerce', text: 'Future-ready layer for products, remedies, and rituals.', href: '/pricing', comingSoon: true },
+                  { icon: '🌿', title: 'Lifestyle Guidance', text: 'Daily dharmic routines with spiritual wellness alignment.', href: '/roadmap', comingSoon: true },
+                  { icon: '🤝', title: 'Community Layer', text: 'A seeker-first social and devotional ecosystem.', href: '/roadmap', comingSoon: true },
                 ].map((item) => (
                   <Link
                     key={item.title}
@@ -1202,6 +1501,49 @@ function HomeContent() {
                 ))}
               </section>
 
+              <section className="card fade-up-3 landing-testimonials" style={{ marginBottom: '1.25rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>What users want</div>
+                <h3 style={{ margin: '0 0 0.7rem 0' }}>Built for trust, depth, and practical action</h3>
+                <div className="landing-testimonial-grid">
+                  {landingTestimonials.map((item) => (
+                    <article key={item.name} className="landing-testimonial-item">
+                      <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.6 }}>&quot;{item.quote}&quot;</p>
+                      <div style={{ marginTop: '0.7rem' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.86rem' }}>{item.name}</div>
+                        <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{item.role}</div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <section className="card fade-up-4 landing-faq" style={{ marginBottom: '1.25rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>FAQ</div>
+                <h3 style={{ margin: '0 0 0.75rem 0' }}>Everything you need to start with confidence</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                  {landingFaqs.map((item, idx) => {
+                    const isOpen = landingFaqOpen === idx
+                    return (
+                      <div key={item.q} className="landing-faq-item">
+                        <button
+                          type="button"
+                          className="landing-faq-btn"
+                          onClick={() => setLandingFaqOpen(isOpen ? -1 : idx)}
+                        >
+                          <span>{item.q}</span>
+                          <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>{isOpen ? '−' : '+'}</span>
+                        </button>
+                        {isOpen ? (
+                          <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                            {item.a}
+                          </p>
+                        ) : null}
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+
               <section className="card fade-up-3" style={{ textAlign: 'center', padding: '1.4rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Vedic Vision</div>
                 <h3 style={{ margin: '0 0 0.45rem 0' }}>Astrology + Ayurveda + Scriptures + Conscious Living</h3>
@@ -1210,10 +1552,10 @@ function HomeContent() {
                   come together.
                 </p>
                 <div style={{ marginTop: '0.95rem', display: 'flex', justifyContent: 'center', gap: '0.7rem', flexWrap: 'wrap' }}>
-                  <button onClick={openAstrologyApp} className="btn btn-primary">
+                  <button onClick={() => { trackLandingCta('vision_start'); openAstrologyApp() }} className="btn btn-primary">
                     Start with Astrology App
                   </button>
-                  <Link href="/roadmap" className="btn btn-ghost" style={{ textDecoration: 'none' }}>
+                  <Link href="/roadmap" onClick={() => trackLandingCta('vision_roadmap')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
                     See Expansion Journey
                   </Link>
                 </div>
@@ -1227,14 +1569,20 @@ function HomeContent() {
                   guidance, and your complete Vedaansh ecosystem.
                 </p>
                 <div style={{ marginTop: '0.9rem', display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
-                  <button onClick={openAstrologyApp} className="btn btn-primary">
+                  <button onClick={() => { trackLandingCta('start_journey_open_app'); openAstrologyApp() }} className="btn btn-primary">
                     Open Astrology App Now
                   </button>
-                  <Link href="/pricing" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                  <Link href="/pricing" onClick={() => trackLandingCta('start_journey_pricing')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
                     Compare Memberships
                   </Link>
                 </div>
               </section>
+
+              <div className="landing-sticky-mobile-cta">
+                <button onClick={() => { trackLandingCta('sticky_mobile_start'); openAstrologyApp() }} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                  ✦ Start Astrology App
+                </button>
+              </div>
             </div>
           )}
         </div>

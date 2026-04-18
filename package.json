@@ -37,7 +37,7 @@
     "mongodb": "^6.21.0",
     "mongoose": "^8.4.0",
     "next": "14.2.5",
-    "next-auth": "^5.0.0-beta.19",
+    "next-auth": "^5.0.0-beta.25",
     "razorpay": "^2.9.2",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",

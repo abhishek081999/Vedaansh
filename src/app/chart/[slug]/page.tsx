@@ -24,6 +24,7 @@ import dynamic from 'next/dynamic'
 const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').then(m => m.BhavaBalaTable), { ssr: false })
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES }      from '@/types/astrology'
+import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -73,59 +74,6 @@ function fmtTime(str: string): string {
   const [h, m] = str.split(':').map(Number)
   const ampm = h >= 12 ? 'PM' : 'AM'
   return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${ampm}`
-}
-
-// ── Panchang Panel ────────────────────────────────────────────
-
-function PanchangPanel({ p }: { p: ChartOutput['panchang'] }) {
-  function ft(d: Date | string) {
-    const dt  = new Date(d)
-    const hrs = dt.getHours(); const min = String(dt.getMinutes()).padStart(2,'0')
-    return `${hrs % 12 || 12}:${min} ${hrs >= 12 ? 'PM' : 'AM'}`
-  }
-  const items = [
-    { label: 'Vara',      value: p.vara.name,       sub: `Lord: ${p.vara.lord}`,                        icon: '☀' },
-    { label: 'Tithi',     value: p.tithi.name,      sub: p.tithi.paksha === 'shukla' ? 'Śukla Pakṣa' : 'Kṛṣṇa Pakṣa', icon: '🌙' },
-    { label: 'Nakshatra', value: p.nakshatra.name,  sub: `Pada ${p.nakshatra.pada} · ${p.nakshatra.lord}`, icon: '⭐' },
-    { label: 'Yoga',      value: p.yoga.name,       sub: `#${p.yoga.number}`,                            icon: '☯' },
-    { label: 'Karana',    value: p.karana.name,     sub: `#${p.karana.number}`,                          icon: '✦' },
-  ]
-  const muhurtas = [
-    { label: 'Rāhu Kālam',   times: p.rahuKalam,      bad: true },
-    { label: 'Gulikā Kālam', times: p.gulikaKalam,    bad: true },
-    ...(p.abhijitMuhurta ? [{ label: 'Abhijit Muhūrta', times: p.abhijitMuhurta, bad: false }] : []),
-  ]
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '0.75rem' }}>
-        {items.map(({ label, value, sub, icon }) => (
-          <div key={label} className="stat-chip">
-            <div className="stat-label">{icon} {label}</div>
-            <div className="stat-value">{value}</div>
-            <div className="stat-sub">{sub}</div>
-          </div>
-        ))}
-      </div>
-      <div>
-        <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Muhūrta Windows</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.6rem' }}>
-          {muhurtas.map(({ label, times, bad }) => (
-            <div key={label} style={{
-              padding: '0.85rem 1rem',
-              background: bad ? 'rgba(224,123,142,0.06)' : 'rgba(78,205,196,0.06)',
-              border: `1px solid ${bad ? 'rgba(224,123,142,0.2)' : 'rgba(78,205,196,0.2)'}`,
-              borderRadius: 'var(--r-md)',
-            }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: bad ? 'var(--rose)' : 'var(--teal)', marginBottom: '0.35rem', fontFamily: 'var(--font-display)' }}>{label}</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-                {ft(times.start)} – {ft(times.end)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
 }
 
 // ── Arudha Panel ──────────────────────────────────────────────
@@ -474,7 +422,7 @@ export default function PublicChartPage() {
               {tab === 'panchang' && (
                 <div className="card">
                   <div className="label-caps" style={{ marginBottom: '1rem' }}>Natal Pañcāṅga</div>
-                  <PanchangPanel p={chart.panchang} />
+                  <NatalPanchangPanel p={chart.panchang} />
                 </div>
               )}
 

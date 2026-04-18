@@ -6,9 +6,32 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { fromZonedTime } from 'date-fns-tz'
+import { addDays } from 'date-fns'
+import { fromZonedTime, formatInTimeZone } from 'date-fns-tz'
+import type { Rashi } from '@/types/astrology'
 import { redis, panchangCacheKey, CACHE_TTL } from '@/lib/redis'
-import { getSunriseSunset } from '@/lib/engine/sunrise'
+import { getSunriseSunset, getMoonriseMoonset, getSunrise } from '@/lib/engine/sunrise'
+import { rashiBlockFromLongitude } from '@/lib/panchang/sidereal'
+import { getChoghadiyaTable } from '@/lib/panchang/choghadiya'
+import {
+  SAURA_MASA_BY_RASHI,
+  RITU_BY_RASHI,
+  getAyana,
+  SAMVATSARA_NAMES,
+  samvatsaraIndexForYear,
+  approximateShakaYear,
+  approximateVikramSamvat,
+} from '@/lib/panchang/hindu-calendar'
+import { findNextTithiEnd, findNextNakshatraEnd, findNextYogaEnd } from '@/lib/panchang/transitions'
+import { buildPanchangDayTimeline } from '@/lib/panchang/day-timeline'
+import { getPanchangPlanetSnapshot } from '@/lib/panchang/planets-snapshot'
+import {
+  getDurMuhurat,
+  getGodhuliMuhurat,
+  isRiktaTithi,
+  riktaTithiDescription,
+} from '@/lib/panchang/muhurta-extra'
+import { personalBalaPayload } from '@/lib/panchang/tara-chandra-bala'
 import {
   toJulianDay,
   getPlanetPosition,
@@ -36,7 +59,35 @@ const QuerySchema = z.object({
     'lahiri','true_chitra','true_revati','true_pushya',
     'raman','usha_shashi','yukteshwar'
   ]).default('lahiri'),
+  birthNak: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null ? undefined : v),
+    z.coerce.number().int().min(0).max(26).optional(),
+  ),
+  birthMoonRashi: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null ? undefined : v),
+    z.coerce.number().int().min(1).max(12).optional(),
+  ),
 })
+
+function mergePersonalBala(
+  data: Record<string, unknown>,
+  birthNak: number | undefined,
+  birthMoonRashi: number | undefined,
+): Record<string, unknown> {
+  if (birthNak === undefined) return data
+  const nak = data.nakshatra as { index: number } | undefined
+  const moonR = data.moonRashi as { rashi: number } | undefined
+  if (!nak || moonR?.rashi == null) return data
+  return {
+    ...data,
+    personalBala: personalBalaPayload(
+      birthNak,
+      nak.index,
+      moonR.rashi as Rashi,
+      birthMoonRashi,
+    ),
+  }
+}
 
 // Sunrise/sunset now calculated via swisseph rise_trans (see sunrise.ts)
 
@@ -54,13 +105,14 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const { date, lat, lng, tz, ayanamsha } = query.data
+    const { date, lat, lng, tz, ayanamsha, birthNak, birthMoonRashi } = query.data
 
     // Check cache
     const cacheKey = panchangCacheKey(date, lat, lng)
     const cached   = await redis.get(cacheKey)
     if (cached) {
-      return NextResponse.json({ success: true, data: cached, fromCache: true })
+      const data = mergePersonalBala(cached as Record<string, unknown>, birthNak, birthMoonRashi)
+      return NextResponse.json({ success: true, data, fromCache: true })
     }
 
     // Compute noon JD for the date (in UTC)
@@ -88,6 +140,7 @@ export async function GET(req: NextRequest) {
 
     // Real sunrise/sunset via swisseph rise_trans
     const { sunrise, sunset } = getSunriseSunset(date, lat, lng, tz)
+    const { moonrise, moonset } = getMoonriseMoonset(date, lat, lng, tz)
 
     const rahuKalam   = getRahuKalam(sunrise, sunset, vara.number)
     const gulikaKalam = getGulikaKalam(sunrise, sunset, vara.number)
@@ -95,10 +148,38 @@ export async function GET(req: NextRequest) {
     const abhijit     = getAbhijitMuhurta(sunrise, sunset)
     const horaTable   = getHoraTable(sunrise, sunset, vara.lord)
 
+    const nextDateStr = formatInTimeZone(addDays(fromZonedTime(`${date}T12:00:00`, tz), 1), tz, 'yyyy-MM-dd')
+    const nextSunrise = getSunrise(nextDateStr, lat, lng, tz)
+    const timeline = buildPanchangDayTimeline(sunrise, nextSunrise, sunset, ayanamsha)
+    const choghadiya  = getChoghadiyaTable(sunrise, sunset, nextSunrise, vara.number)
+
+    const tithiEnd   = findNextTithiEnd(jd, ayanamsha)
+    const nakEnd     = findNextNakshatraEnd(jd, ayanamsha)
+    const yogaEnd    = findNextYogaEnd(jd, ayanamsha)
+    const planetRows = getPanchangPlanetSnapshot(jd, ayanamsha)
+
+    const sunRashiBlk = rashiBlockFromLongitude(sunSid)
+    const elong = ((moonSid - sunSid) % 360 + 360) % 360
+
+    const ceYear    = parseInt(formatInTimeZone(noonLocal, tz, 'yyyy'), 10)
+    const ceMonth0  = parseInt(formatInTimeZone(noonLocal, tz, 'MM'), 10) - 1
+    const samIdx    = samvatsaraIndexForYear(ceYear)
+    const ritu      = RITU_BY_RASHI[sunRashiBlk.rashi as Rashi]
+    const ayana     = getAyana(sunRashiBlk.rashi as Rashi)
+
+    const brahmaStart = new Date(sunrise.getTime() - 96 * 60 * 1000)
+    const brahmaEnd   = new Date(sunrise.getTime() - 48 * 60 * 1000)
+
+    const [dur1, dur2] = getDurMuhurat(sunrise, sunset)
+    const godhuli      = getGodhuliMuhurat(sunset)
+    const rikta        = isRiktaTithi(tithi.number)
+
     const panchang = {
       date,
       location: { lat, lng, tz },
       ayanamsha,
+      sunRashi:  rashiBlockFromLongitude(sunSid),
+      moonRashi: rashiBlockFromLongitude(moonSid),
       vara: {
         number:   vara.number,
         name:     vara.name,
@@ -139,6 +220,8 @@ export async function GET(req: NextRequest) {
       },
       sunrise: sunrise.toISOString(),
       sunset:  sunset.toISOString(),
+      moonrise: moonrise ? moonrise.toISOString() : null,
+      moonset:  moonset ? moonset.toISOString() : null,
       rahuKalam:   { start: rahuKalam.start.toISOString(),   end: rahuKalam.end.toISOString() },
       gulikaKalam: { start: gulikaKalam.start.toISOString(), end: gulikaKalam.end.toISOString() },
       yamaganda:   { start: yamaganda.start.toISOString(),   end: yamaganda.end.toISOString() },
@@ -154,13 +237,73 @@ export async function GET(req: NextRequest) {
       sunLongitudeSidereal:  sunSid,
       moonLongitudeSidereal: moonSid,
       julianDay: jd,
+      lunarElongationDeg: Math.round(elong * 1000) / 1000,
+      calendarContext: {
+        sauraMasa: SAURA_MASA_BY_RASHI[sunRashiBlk.rashi as Rashi],
+        rituSa: ritu.sa,
+        rituEn: ritu.en,
+        ayanaSa: ayana.sa,
+        ayanaEn: ayana.en,
+        samvatsara: SAMVATSARA_NAMES[samIdx],
+        samvatsaraIndex: samIdx,
+        shakaYear: approximateShakaYear(ceYear, ceMonth0),
+        vikramSamvat: approximateVikramSamvat(ceYear, ceMonth0),
+      },
+      limbEnds: {
+        tithi: tithiEnd ? tithiEnd.toISOString() : null,
+        nakshatra: nakEnd ? nakEnd.toISOString() : null,
+        yoga: yogaEnd ? yogaEnd.toISOString() : null,
+      },
+      brahmaMuhurta: {
+        start: brahmaStart.toISOString(),
+        end: brahmaEnd.toISOString(),
+      },
+      planets: planetRows.map((p) => ({
+        id: p.id,
+        sa: p.sa,
+        longitude: Math.round(p.longitude * 1e6) / 1e6,
+        rashiEn: p.rashiEn,
+        rashiSa: p.rashiSa,
+        degInSign: Math.round(p.degInSign * 1e4) / 1e4,
+        retro: p.retro,
+        combust: p.combust,
+      })),
+      choghadiya: {
+        day: choghadiya.day.map((s) => ({
+          name: s.name,
+          quality: s.quality,
+          start: s.start.toISOString(),
+          end: s.end.toISOString(),
+        })),
+        night: choghadiya.night.map((s) => ({
+          name: s.name,
+          quality: s.quality,
+          start: s.start.toISOString(),
+          end: s.end.toISOString(),
+        })),
+      },
+      riktaTithi: {
+        active: rikta,
+        detail: riktaTithiDescription(),
+      },
+      durMuhurat: [
+        { start: dur1.start.toISOString(), end: dur1.end.toISOString() },
+        { start: dur2.start.toISOString(), end: dur2.end.toISOString() },
+      ],
+      godhuliMuhurat: {
+        start: godhuli.start.toISOString(),
+        end: godhuli.end.toISOString(),
+      },
+      timeline,
     }
 
-    // Cache for 24 hours
+    // Cache for 24 hours (personal Tārā/Chandra bala is merged per-request, not stored)
     await redis.set(cacheKey, panchang, CACHE_TTL.PANCHANG)
 
+    const data = mergePersonalBala(panchang as Record<string, unknown>, birthNak, birthMoonRashi)
+
     return NextResponse.json(
-      { success: true, data: panchang, fromCache: false },
+      { success: true, data, fromCache: false },
       { headers: { 'Cache-Control': 'public, s-maxage=3600' } },
     )
 

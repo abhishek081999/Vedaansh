@@ -156,6 +156,19 @@ function toShashtiamsa(ru: number) {
   return ru * 60
 }
 
+/** Shared metric definitions for the Classic Multi-Chart grid (modern classic_grid + dashboard-only). */
+const PANEL_METRICS = [
+  { key: 'sthanaBala', title: 'Sthaana Bala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
+  { key: 'kalaBala', title: 'Kaala Bala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
+  { key: 'digBala', title: 'DigBala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
+  { key: 'chestaBala', title: 'Cheshta Bala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
+  { key: 'drikBala', title: 'DrigBala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: true },
+  { key: 'naisargikaBala', title: 'Naisargika Bala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
+  { key: 'totalShash', title: 'Shadbala', toDisplay: (v: number) => v, decimals: 0, allowNegative: false },
+  { key: 'total', title: 'Shadbala (rupas)', toDisplay: (v: number) => v, decimals: 2, allowNegative: false },
+  { key: 'ratio', title: 'Shadbala (% strength)', toDisplay: (v: number) => v * 100, decimals: 0, allowNegative: false },
+] as const
+
 function buildPrintableHtml(shadbala: ShadbalaResult) {
   const planets = shadbala.planets
   const headers = ORDER.map((id) => `<th>${id}</th>`).join('')
@@ -197,11 +210,14 @@ export function ShadbalaTable({
   shadbala,
   hideDetails = false,
   preferClassicCharts = false,
+  classicMultiChartOnly = false,
   variant = 'full',
 }: {
   shadbala: ShadbalaResult
   hideDetails?: boolean
   preferClassicCharts?: boolean
+  /** Dashboard: show only the Classic Multi-Chart grid (no Modern analytics chrome). */
+  classicMultiChartOnly?: boolean
   variant?: 'full' | 'widget'
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>('modern')
@@ -269,6 +285,50 @@ export function ShadbalaTable({
     )
   }
 
+  if (classicMultiChartOnly) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '0.5rem' }}>
+          {PANEL_METRICS.map((metric) => {
+            const vals = ORDER.map((id) => {
+              const raw = planets[id]?.[metric.key as keyof ShadbalaPlanet]
+              const numeric = typeof raw === 'number' ? raw : 0
+              return metric.toDisplay(numeric)
+            })
+            const maxAbs = Math.max(...vals.map((v) => Math.abs(v)), 1)
+            return (
+              <div key={metric.key} style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)', padding: '0.45rem' }}>
+                <div style={{ textAlign: 'center', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{metric.title}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0,1fr))', gap: '0.2rem', alignItems: 'end', minHeight: 96 }}>
+                  {vals.map((v, idx) => {
+                    const h = Math.max(2, (Math.abs(v) / maxAbs) * 64)
+                    const neg = v < 0
+                    return (
+                      <div key={`${metric.key}-${ORDER[idx]}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem' }}>
+                        <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{v.toFixed(metric.decimals)}</div>
+                        <div style={{ width: '100%', maxWidth: 20, height: 68, display: 'flex', alignItems: neg && metric.allowNegative ? 'flex-start' : 'flex-end' }}>
+                          <div
+                            style={{
+                              width: '100%',
+                              height: h,
+                              borderRadius: 2,
+                              background: neg && metric.allowNegative
+                                ? 'linear-gradient(180deg, #c86a7b, #a64557)'
+                                : 'linear-gradient(180deg, #b5868f, #946870)',
+                            }}
+                          />
+                        </div>
+                        <div style={{ fontSize: '0.64rem', color: 'var(--text-secondary)', fontWeight: 700 }}>{ORDER[idx]}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+      </div>
+    )
+  }
+
   const strongestId = (shadbala.strongest as PlanetCode) in PLANET_NAMES ? (shadbala.strongest as PlanetCode) : 'Su'
   const weakestId = (shadbala.weakest as PlanetCode) in PLANET_NAMES ? (shadbala.weakest as PlanetCode) : 'Sa'
   const avgRatio = ranked.length ? ranked.reduce((s, p) => s + p.ratio, 0) / ranked.length : 0
@@ -285,18 +345,6 @@ export function ShadbalaTable({
     w.focus()
     w.print()
   }
-
-  const panelMetrics = [
-    { key: 'sthanaBala', title: 'Sthaana Bala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
-    { key: 'kalaBala', title: 'Kaala Bala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
-    { key: 'digBala', title: 'DigBala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
-    { key: 'chestaBala', title: 'Cheshta Bala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
-    { key: 'drikBala', title: 'DrigBala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: true },
-    { key: 'naisargikaBala', title: 'Naisargika Bala', toDisplay: (v: number) => toShashtiamsa(v), decimals: 1, allowNegative: false },
-    { key: 'totalShash', title: 'Shadbala', toDisplay: (v: number) => v, decimals: 0, allowNegative: false },
-    { key: 'total', title: 'Shadbala (rupas)', toDisplay: (v: number) => v, decimals: 2, allowNegative: false },
-    { key: 'ratio', title: 'Shadbala (% strength)', toDisplay: (v: number) => v * 100, decimals: 0, allowNegative: false },
-  ] as const
 
   if (viewMode === 'classic') {
     return (
@@ -529,7 +577,7 @@ export function ShadbalaTable({
         <div className="card" style={{ padding: '0.85rem' }}>
           <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Classic Multi-Chart View</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '0.5rem' }}>
-            {panelMetrics.map((metric) => {
+            {PANEL_METRICS.map((metric) => {
               const vals = ORDER.map((id) => {
                 const raw = planets[id]?.[metric.key as keyof ShadbalaPlanet]
                 const numeric = typeof raw === 'number' ? raw : 0

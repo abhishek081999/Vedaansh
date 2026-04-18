@@ -39,6 +39,17 @@ export default auth((req: NextRequest & { auth: any }) => {
   const { pathname } = req.nextUrl
   const session      = req.auth
 
+  // Keep canonical landing route at /home
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/home', req.url))
+  }
+  // Backward-compatibility for old misspelled route
+  if (pathname === '/asrology') {
+    const target = new URL('/astrology', req.url)
+    target.search = req.nextUrl.search
+    return NextResponse.redirect(target)
+  }
+
   // ── API route protection ──────────────────────────────────
   const isProtectedApi = PROTECTED_API.some((p) => pathname.startsWith(p))
   if (isProtectedApi && !session?.user) {

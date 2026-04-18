@@ -28,11 +28,16 @@ const contentSecurityPolicy = [
 const nextConfig = {
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // Allow native addons like swisseph
-      config.externals = [...(config.externals || []), 'swisseph', 'better-sqlite3']
+      // Allow native addons like sweph
+      config.externals = [...(config.externals || []), 'sweph', 'better-sqlite3']
     }
     return config
   },
+
+  experimental: {
+    serverComponentsExternalPackages: ['sweph'],
+  },
+  transpilePackages: ['next-auth'],
 
   // Security headers
   async headers() {

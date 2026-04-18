@@ -6,7 +6,7 @@
 
 import sweph from 'sweph'
 import { toJulianDay } from './ephemeris'
-import { fromZonedTime, toZonedTime } from 'date-fns-tz'
+import { fromZonedTime } from 'date-fns-tz'
 
 // ── swisseph rise_trans flags ─────────────────────────────────
 // SE_CALC_RISE  = 1  (sunrise)
@@ -21,7 +21,31 @@ const ATTEMP               = 15        // average temperature (°C)
 
 // sweph types are incomplete — cast to any for rise_trans
 const swephAny = sweph as any
-const SE_SUN = swephAny.SE_SUN ?? 0
+const C = sweph.constants
+const SE_SUN  = C.SE_SUN  ?? 0
+const SE_MOON = C.SE_MOON ?? 1
+
+/**
+ * Swiss Ephemeris `rise_trans` (sweph npm) returns `{ flag, error, data }` where `data` is the event JD.
+ * Older code paths sometimes used `tret[0]` — support both.
+ */
+function jdFromRiseTrans(result: { flag: number; data?: number; tret?: number[] }): number | null {
+  if (result.flag !== C.OK) return null
+  if (typeof result.data === 'number' && result.data > 0) return result.data
+  const t0 = result.tret?.[0]
+  if (typeof t0 === 'number' && t0 > 0) return t0
+  return null
+}
+
+/** Julian day for this exact instant (UTC components), for rise_trans search start. */
+function dateToJulianDayUtc(d: Date): number {
+  return toJulianDay(
+    d.getUTCFullYear(),
+    d.getUTCMonth() + 1,
+    d.getUTCDate(),
+    d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600 + d.getUTCMilliseconds() / 3_600_000,
+  )
+}
 
 /**
  * Calculate true astronomical sunrise for a given date and location.
@@ -34,17 +58,14 @@ export function getSunrise(
   tz:        string,
 ): Date {
   try {
-    // Start search from midnight UT of the date
+    // JD at local civil midnight (must use full UTC time — not UTC y/m/d @ 0h)
     const midnightLocal = fromZonedTime(`${dateStr}T00:00:00`, tz)
-    const y = midnightLocal.getUTCFullYear()
-    const m = midnightLocal.getUTCMonth() + 1
-    const d = midnightLocal.getUTCDate()
-    const jdMidnight = toJulianDay(y, m, d, 0)
+    const jdStart       = dateToJulianDayUtc(midnightLocal)
 
     const geopos: [number, number, number] = [lng, lat, 0]   // sweph: [longitude, latitude, altitude]
 
     const result = swephAny.rise_trans(
-      jdMidnight,
+      jdStart,
       SE_SUN,
       '',
       SEFLG_SWIEPH,
@@ -54,12 +75,10 @@ export function getSunrise(
       ATTEMP,
     )
 
-    if (result.error || !result.tret || result.tret[0] === 0) {
-      return fallbackSunrise(dateStr, tz)
-    }
+    const jdEv = jdFromRiseTrans(result)
+    if (jdEv == null) return fallbackSunrise(dateStr, tz)
 
-    // tret[0] is Julian Day of rise event
-    return julianDayToDate(result.tret[0])
+    return julianDayToDate(jdEv)
   } catch {
     return fallbackSunrise(dateStr, tz)
   }
@@ -76,15 +95,12 @@ export function getSunset(
 ): Date {
   try {
     const midnightLocal = fromZonedTime(`${dateStr}T00:00:00`, tz)
-    const y = midnightLocal.getUTCFullYear()
-    const m = midnightLocal.getUTCMonth() + 1
-    const d = midnightLocal.getUTCDate()
-    const jdMidnight = toJulianDay(y, m, d, 0)
+    const jdStart       = dateToJulianDayUtc(midnightLocal)
 
     const geopos: [number, number, number] = [lng, lat, 0]
 
     const result = swephAny.rise_trans(
-      jdMidnight,
+      jdStart,
       SE_SUN,
       '',
       SEFLG_SWIEPH,
@@ -94,11 +110,10 @@ export function getSunset(
       ATTEMP,
     )
 
-    if (result.error || !result.tret || result.tret[0] === 0) {
-      return fallbackSunset(dateStr, tz)
-    }
+    const jdEv = jdFromRiseTrans(result)
+    if (jdEv == null) return fallbackSunset(dateStr, tz)
 
-    return julianDayToDate(result.tret[0])
+    return julianDayToDate(jdEv)
   } catch {
     return fallbackSunset(dateStr, tz)
   }
@@ -116,6 +131,83 @@ export function getSunriseSunset(
   return {
     sunrise: getSunrise(dateStr, lat, lng, tz),
     sunset:  getSunset(dateStr, lat, lng, tz),
+  }
+}
+
+/** True if instant falls on the given civil calendar date in `tz`. */
+function isLocalDate(iso: Date, dateStr: string, tz: string): boolean {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(iso) === dateStr
+}
+
+/**
+ * First Moon rise on the civil day `dateStr` at `lat`/`lng`, or null (high lat / ephemeris edge cases).
+ */
+export function getMoonrise(dateStr: string, lat: number, lng: number, tz: string): Date | null {
+  try {
+    const dayStart = fromZonedTime(`${dateStr}T00:00:00`, tz)
+    const jd0      = dateToJulianDayUtc(dayStart)
+    const geopos: [number, number, number] = [lng, lat, 0]
+
+    const result = swephAny.rise_trans(
+      jd0,
+      SE_MOON,
+      '',
+      SEFLG_SWIEPH,
+      SE_CALC_RISE,
+      geopos,
+      ATPRESS,
+      ATTEMP,
+    )
+
+    const jdEv = jdFromRiseTrans(result)
+    if (jdEv == null) return null
+
+    const t = julianDayToDate(jdEv)
+    return isLocalDate(t, dateStr, tz) ? t : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * First Moon set on the civil day `dateStr` at `lat`/`lng`, or null.
+ */
+export function getMoonset(dateStr: string, lat: number, lng: number, tz: string): Date | null {
+  try {
+    const dayStart = fromZonedTime(`${dateStr}T00:00:00`, tz)
+    const jd0      = dateToJulianDayUtc(dayStart)
+    const geopos: [number, number, number] = [lng, lat, 0]
+
+    const result = swephAny.rise_trans(
+      jd0,
+      SE_MOON,
+      '',
+      SEFLG_SWIEPH,
+      SE_CALC_SET,
+      geopos,
+      ATPRESS,
+      ATTEMP,
+    )
+
+    const jdEv = jdFromRiseTrans(result)
+    if (jdEv == null) return null
+
+    const t = julianDayToDate(jdEv)
+    return isLocalDate(t, dateStr, tz) ? t : null
+  } catch {
+    return null
+  }
+}
+
+export function getMoonriseMoonset(
+  dateStr: string,
+  lat: number,
+  lng: number,
+  tz: string,
+): { moonrise: Date | null; moonset: Date | null } {
+  return {
+    moonrise: getMoonrise(dateStr, lat, lng, tz),
+    moonset:  getMoonset(dateStr, lat, lng, tz),
   }
 }
 
