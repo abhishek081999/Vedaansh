@@ -8,6 +8,7 @@
 import dynamic from 'next/dynamic'
 import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BirthForm }     from '@/components/ui/BirthForm'
@@ -1332,42 +1333,58 @@ function HomeContent() {
                     pointerEvents: 'none',
                   }}
                 />
-                <div className="label-caps" style={{ marginBottom: '0.75rem', color: 'var(--text-gold)' }}>
-                  Vedaansh spiritual intelligence platform
+                <div className="landing-hero-mark" aria-hidden>
+                  <Image
+                    src="/veda-icon.png"
+                    alt=""
+                    width={420}
+                    height={420}
+                    className="landing-hero-mark-img"
+                    priority
+                  />
                 </div>
-                <h1 style={{ margin: 0, maxWidth: 820 }}>{heroCopy.headline}</h1>
-                <p style={{ marginTop: '0.9rem', maxWidth: 820, fontSize: '1.02rem' }}>
-                  {heroCopy.subline}
-                </p>
-                <div className="landing-trust-grid">
-                  {landingTrustStats.map((item) => (
-                    <div key={item.label} className="stat-chip landing-trust-chip">
-                      <span className="stat-value">{item.value}</span>
-                      <span className="stat-sub">{item.label}</span>
+                <div className="landing-hero-content">
+                  <div className="label-caps" style={{ marginBottom: '0.75rem', color: 'var(--text-gold)' }}>
+                    Vedaansh spiritual intelligence platform
+                  </div>
+                  <h1 className="landing-hero-title" style={{ margin: 0, maxWidth: 820 }}>{heroCopy.headline}</h1>
+                  <p className="landing-hero-subline" style={{ marginTop: '0.9rem', maxWidth: 820, fontSize: '1.02rem' }}>
+                    {heroCopy.subline}
+                  </p>
+                  <div className="landing-trust-grid">
+                    {landingTrustStats.map((item) => (
+                      <div key={item.label} className="stat-chip landing-trust-chip">
+                        <span className="stat-value">{item.value}</span>
+                        <span className="stat-sub">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="landing-hero-cta-row">
+                    <div className="landing-hero-main-ctas">
+                      <button onClick={() => { trackLandingCta('hero_primary'); openAstrologyApp() }} className="btn btn-primary landing-hero-primary-btn">
+                        {heroCopy.cta}
+                      </button>
+                      <Link href="/panchang" onClick={() => trackLandingCta('hero_panchang')} className="btn btn-secondary landing-hero-secondary-btn" style={{ textDecoration: 'none' }}>
+                        Open Panchang App
+                      </Link>
                     </div>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.25rem' }}>
-                  <button onClick={() => { trackLandingCta('hero_primary'); openAstrologyApp() }} className="btn btn-primary">
-                    {heroCopy.cta}
-                  </button>
-                  <Link href="/panchang" onClick={() => trackLandingCta('hero_panchang')} className="btn btn-primary" style={{ textDecoration: 'none' }}>
-                    🕉 Open Panchang App
-                  </Link>
-                  <Link href="/panchang/calendar" onClick={() => trackLandingCta('hero_calendar')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-                    🗓 Open Panchang Calendar
-                  </Link>
-                  {status === 'authenticated' && defaultChart && (
-                    <button onClick={() => { trackLandingCta('hero_my_chart'); openMyDefaultChart() }} className="btn btn-secondary">
-                      My Chart
-                    </button>
-                  )}
-                  <Link href="/pricing" onClick={() => trackLandingCta('hero_pricing')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-                    ⟡ View Plans
-                  </Link>
-                  <Link href="/my/charts" onClick={() => trackLandingCta('hero_my_charts')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
-                    ◈ Explore My Charts
-                  </Link>
+                    <div className="landing-hero-sub-ctas">
+                      <Link href="/panchang/calendar" onClick={() => trackLandingCta('hero_calendar')} className="btn btn-ghost landing-hero-sub-btn" style={{ textDecoration: 'none' }}>
+                        Panchang Calendar
+                      </Link>
+                      {status === 'authenticated' && defaultChart && (
+                        <button onClick={() => { trackLandingCta('hero_my_chart'); openMyDefaultChart() }} className="btn btn-ghost landing-hero-sub-btn">
+                          My Chart
+                        </button>
+                      )}
+                      <Link href="/pricing" onClick={() => trackLandingCta('hero_pricing')} className="btn btn-ghost landing-hero-sub-btn" style={{ textDecoration: 'none' }}>
+                        View Plans
+                      </Link>
+                      <Link href="/my/charts" onClick={() => trackLandingCta('hero_my_charts')} className="btn btn-ghost landing-hero-sub-btn" style={{ textDecoration: 'none' }}>
+                        Explore My Charts
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </section>
 
