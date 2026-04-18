@@ -15,6 +15,7 @@ import type { ChartOutput, GrahaData } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
 import { calculateAshtakoot } from '@/lib/engine/ashtakoot'
 import { CompatibilityDoshaPanel } from '@/components/ui/CompatibilityDoshaPanel'
+import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
 
 // ── Compatibility ─────────────────────────────────────────────
 interface CompatItem { label: string; score: number; reason: string }
@@ -93,53 +94,6 @@ function grade(score: number) {
   if (score >= 3) return { g: 'B', label: 'Good',       color: 'var(--text-gold)' }
   if (score >= 0) return { g: 'C', label: 'Moderate',   color: 'var(--accent)' }
   return              { g: 'D', label: 'Challenging', color: 'var(--rose)' }
-}
-
-function PanchangPanel({ p }: { p: ChartOutput['panchang'] }) {
-  const fmtTime = (d: Date | string) =>
-    new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-
-  const items = [
-    { label: 'Tithi',     value: p.tithi.name },
-    { label: 'Nakshatra', value: p.nakshatra.name },
-    { label: 'Yoga',      value: p.yoga.name },
-    { label: 'Karana',    value: p.karana.name },
-  ]
-  const muhurtas = [
-    { label: 'Rāhu Kālam',      times: p.rahuKalam,      color: 'var(--rose)',  neutral: false },
-    { label: 'Gulikā Kālam',    times: p.gulikaKalam,    color: 'var(--rose)',  neutral: false },
-    ...(p.abhijitMuhurta ? [{ label: 'Abhijit Muhūrta', times: p.abhijitMuhurta, color: 'var(--teal)', neutral: true }] : []),
-  ]
-
-  return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ background: 'var(--gradient-dark, linear-gradient(135deg, #4A0E17 0%, #2A0810 100%))', backgroundColor: '#350a11', padding: '1.5rem', borderRadius: 'var(--r-md)', color: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
-          <span style={{ color: 'var(--gold)', filter: 'drop-shadow(0 0 4px rgba(201,168,76,0.5))', fontSize: '1.2rem' }}>☀️</span>
-          <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 600, letterSpacing: '0.02em', color: '#fff' }}>Daily Panchang</h3>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {items.map(({ label, value }) => (
-            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.75rem' }}>
-              <span style={{ textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.6)' }}>{label}</span>
-              <span style={{ fontWeight: 600, fontSize: '0.95rem', fontFamily: 'Cormorant Garamond, serif', color: 'var(--gold-light, #fde68a)' }}>{value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div>
-        <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Muhūrta Windows</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
-          {muhurtas.map(({ label, times, color, neutral }) => (
-            <div key={label} style={{ padding: '0.85rem 1rem', background: neutral ? 'rgba(78,205,196,0.06)' : 'rgba(224,123,142,0.06)', border: `1px solid ${neutral ? 'rgba(78,205,196,0.2)' : 'rgba(224,123,142,0.2)'}`, borderRadius: 'var(--r-md)' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color, marginBottom: '0.35rem' }}>{label}</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>{fmtTime(times.start)} – {fmtTime(times.end)}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
 }
 
 const GRAHA_ORDER = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke']
@@ -478,7 +432,7 @@ function CompareContent() {
                     {(view === 'panchang' || view === 'all') && (
                       <div className="card fade-up" style={{ padding: '1.25rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Natal Panchang</h3>
-                        <PanchangPanel p={chart.panchang} />
+                        <NatalPanchangPanel p={chart.panchang} title="Natal Pañcāṅga" />
                       </div>
                     )}
                   </div>

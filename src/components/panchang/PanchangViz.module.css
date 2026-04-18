@@ -1,0 +1,211 @@
+/* Animated pañcāṅga sky wheel — prefers subtle motion */
+
+.wrap {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: linear-gradient(165deg, var(--surface-1) 0%, var(--surface-2) 100%);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--surface-2);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.toggle {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--text-gold);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0.2rem 0;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+  gap: 1rem;
+  padding: 1rem 1rem 1.15rem;
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.svgWrap {
+  position: relative;
+  width: 100%;
+  max-width: min(100%, 420px);
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+
+.svgWrap svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Gentle animations */
+@keyframes pulseGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgba(176, 200, 224, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(176, 200, 224, 0.55));
+  }
+}
+
+@keyframes sunPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(232, 167, 48, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 9px rgba(232, 167, 48, 0.65));
+  }
+}
+
+.moonG {
+  animation: pulseGlow 3.2s ease-in-out infinite;
+}
+
+.sunG {
+  animation: sunPulse 3.5s ease-in-out infinite;
+}
+
+.arcPath {
+  stroke-dasharray: var(--arc-len, 320);
+  stroke-dashoffset: var(--arc-len, 320);
+  animation: dashDraw 1.15s ease-out forwards;
+}
+
+@keyframes dashDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moonG,
+  .sunG,
+  .arcPath {
+    animation: none;
+  }
+
+  .arcPath {
+    stroke-dashoffset: 0 !important;
+  }
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.legendRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+.dayBar {
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border-soft);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.nowNeedle {
+  animation: needleGlow 2s ease-in-out infinite;
+}
+
+.dayPctText {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  fill: var(--text-secondary);
+  paint-order: stroke fill;
+  stroke: color-mix(in srgb, var(--surface-1) 92%, transparent);
+  stroke-width: 2px;
+  letter-spacing: 0.02em;
+}
+
+@keyframes needleGlow {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nowNeedle {
+    animation: none;
+  }
+}
+
+.moonPhase {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  margin: 0 auto 0.5rem;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.25);
+}
+
+.legendTitle {
+  font-weight: 600;
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Rāśī abbreviations drawn after thick arcs — halo keeps them readable */
+.zodiacText {
+  fill: var(--text-muted);
+  font-size: 9px;
+  font-family: var(--font-mono);
+  paint-order: stroke fill;
+  stroke: color-mix(in srgb, var(--surface-1) 92%, transparent);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}

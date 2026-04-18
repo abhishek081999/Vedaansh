@@ -216,7 +216,8 @@ export function panchangCacheKey(
   lat: number,
   lng: number,
 ): string {
-  return `panchang:${date}:${lat.toFixed(2)}:${lng.toFixed(2)}`
+  // v8: merged timeline segments + per-row guides
+  return `panchang:v8:${date}:${lat.toFixed(2)}:${lng.toFixed(2)}`
 }
 
 export function atlasCacheKey(query: string): string {

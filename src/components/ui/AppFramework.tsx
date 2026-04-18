@@ -21,7 +21,7 @@ const progressKeyframes = `
 }
 `;
 
-const ASTROLOGY_ROUTE = '/asrology'
+const ASTROLOGY_ROUTE = '/astrology'
 
 const TOP_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'dashboard', label: 'Dashboard',   icon: '◫', path: ASTROLOGY_ROUTE },
@@ -117,7 +117,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab, language, setLanguage } = useAppLayout()
-  const { chart, isFormOpen, setIsFormOpen } = useChart()
+  const { chart, isFormOpen, setIsFormOpen, setChart } = useChart()
   const [isAstroOpen, setIsAstroOpen] = useState(true)
   const [isAdvancedAstroOpen, setIsAdvancedAstroOpen] = useState(false)
   const [isPanchangOpen, setIsPanchangOpen] = useState(false)
@@ -317,7 +317,15 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <span style={{ fontSize: '1.25rem' }}>☰</span>
           </button>
           
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
+          <Link
+            href="/home"
+            onClick={() => {
+              setChart(null)
+              setIsFormOpen(false)
+              setActiveTab('dashboard')
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}
+          >
             <img 
               src="/veda-icon.png" 
               alt="Vedaansh Logo"
@@ -398,16 +406,27 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         >
           {/* Logo area */}
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-               <img 
-                 src="/veda-icon.png" 
-                 alt="Vedaansh Logo"
-                 style={{ width: 44, height: 44, objectFit: 'contain' }}
-               />
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, flex: 1 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.05em' }}>Vedaansh</span>
-                <span style={{ fontSize: '0.65rem', color: 'var(--logo-text-sub)', letterSpacing: '0.1em', fontWeight: 600 }}>॥ श्री गणेशाय नमः ॥</span>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+              <Link
+                href="/home"
+                onClick={() => {
+                  setChart(null)
+                  setIsFormOpen(false)
+                  setActiveTab('dashboard')
+                  if (window.innerWidth < 1024) setIsSidenavOpen(false)
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', minWidth: 0, flex: 1 }}
+              >
+                <img
+                  src="/veda-icon.png"
+                  alt="Vedaansh Logo"
+                  style={{ width: 44, height: 44, objectFit: 'contain' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, minWidth: 0 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.05em' }}>Vedaansh</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--logo-text-sub)', letterSpacing: '0.1em', fontWeight: 600 }}>॥ श्री गणेशाय नमः ॥</span>
+                </div>
+              </Link>
               <button
                 onClick={() => setIsSidenavOpen(false)}
                 style={{
@@ -605,7 +624,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--gold)', opacity: 0.2, marginBottom: '0.5rem' }}>
               <div style={{ width: 24, height: 24 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
             </div>
-            <Link href="/asrology?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.85rem', textDecoration: 'none' }}>
+            <Link href="/astrology?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.85rem', textDecoration: 'none' }}>
               + New Consultation
             </Link>
             {status === 'authenticated' && (
