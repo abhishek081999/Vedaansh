@@ -35,11 +35,12 @@ const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').
 const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
 const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
 const JaiminiPanel = dynamic(() => import('@/components/ui/JaiminiPanel'), { ssr: false })
+const AstroDetailsPanel = dynamic(() => import('@/components/ui/AstroDetailsPanel').then(m => m.AstroDetailsPanel), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
-import type { ChartOutput, Rashi, ChartSettings } from '@/types/astrology'
-import { DEFAULT_SETTINGS, NAKSHATRA_NAMES as NAK_NAMES } from '@/types/astrology'
+import type { ChartOutput, GrahaId, Rashi, ChartSettings } from '@/types/astrology'
+import { DEFAULT_SETTINGS, GRAHA_NAMES, NAKSHATRA_NAMES as NAK_NAMES } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { PlanetDetailCard } from '@/components/ui/PlanetDetailCard'
 import { getGraNakPositions, getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
@@ -273,6 +274,34 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
   )
 }
 
+function DashboardMetricChip({
+  label,
+  value,
+  sub,
+  valueColor = 'var(--teal)',
+}: {
+  label: string
+  value: string | number
+  sub?: string
+  valueColor?: string
+}) {
+  return (
+    <div
+      className="card"
+      style={{
+        padding: '0.65rem 0.85rem',
+        background: 'var(--surface-2)',
+        border: '1px solid var(--border-bright)',
+        textAlign: 'center',
+      }}
+    >
+      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{label}</div>
+      <div style={{ fontSize: '1.05rem', fontWeight: 800, color: valueColor }}>{value}</div>
+      {sub ? <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{sub}</div> : null}
+    </div>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────
 //  Main Page
 // ─────────────────────────────────────────────────────────────
@@ -305,6 +334,60 @@ function HomeContent() {
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
+  const [dashExpandAv, setDashExpandAv] = useState(false)
+  const [dashExpandShad, setDashExpandShad] = useState(false)
+  const [dashExpandVim, setDashExpandVim] = useState(false)
+
+  const dashboardAshtakSummary = useMemo(() => {
+    if (!chart?.ashtakavarga) return null
+    const ascRashi = chart.lagnas.ascRashi ?? 1
+    const sav = chart.ashtakavarga.sav
+    const houses = sav.map((val, i) => {
+      const rashi = ((ascRashi - 1 + i) % 12) + 1
+      return { house: i + 1, val, rashi: rashi as Rashi }
+    })
+    const sorted = [...houses].sort((a, b) => b.val - a.val)
+    return {
+      savTotal: chart.ashtakavarga.savTotal,
+      avg: (chart.ashtakavarga.savTotal / 12).toFixed(1),
+      highest: sorted[0],
+      lowest: sorted[sorted.length - 1],
+    }
+  }, [chart])
+
+  const dashboardShadbalaSummary = useMemo(() => {
+    if (!chart?.shadbala) return null
+    const { strongest, weakest, planets } = chart.shadbala
+    const core: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
+    const sn = GRAHA_NAMES[strongest as GrahaId] ?? strongest
+    const wn = GRAHA_NAMES[weakest as GrahaId] ?? weakest
+    const ratios = core.map((id) => planets[id]?.ratio).filter((r): r is number => typeof r === 'number')
+    const meanRatio = ratios.length ? (ratios.reduce((a, b) => a + b, 0) / ratios.length).toFixed(2) : '—'
+    return {
+      strongestLabel: sn,
+      weakestLabel: wn,
+      strongTotal: planets[strongest]?.total.toFixed(2) ?? '—',
+      weakTotal: planets[weakest]?.total.toFixed(2) ?? '—',
+      meanRatio,
+    }
+  }, [chart])
+
+  const dashboardVimsopakaSummary = useMemo(() => {
+    if (!chart?.vimsopaka?.planets) return null
+    const v = chart.vimsopaka
+    const board = v.leaderboard?.length ? v.leaderboard : []
+    const top3 = board.slice(0, 3)
+    const strongScore = v.planets[v.strongest]?.shodasvarga
+    const weakScore = v.planets[v.weakest]?.shodasvarga
+    return {
+      strongest: GRAHA_NAMES[v.strongest as GrahaId] ?? v.strongest,
+      weakest: GRAHA_NAMES[v.weakest as GrahaId] ?? v.weakest,
+      strongScore: strongScore != null ? strongScore.toFixed(2) : '—',
+      weakScore: weakScore != null ? weakScore.toFixed(2) : '—',
+      avg: v.insights?.averageShodasvarga != null ? v.insights.averageShodasvarga.toFixed(2) : null,
+      top3,
+    }
+  }, [chart])
 
   const handleAcgPlanetsChange = React.useCallback((planets: Set<any>, parans: any[], rawNatal?: any[]) => {
     setSelectedAcgPlanets(prev => {
@@ -891,6 +974,12 @@ function HomeContent() {
                      </div>
                   )}
 
+                  {activeTab === 'astro-details' && (
+                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                      <AstroDetailsPanel chart={chart} />
+                    </div>
+                  )}
+
                   {activeTab === 'yogas' && (
                      <div className="card fade-up" style={{ padding: '1.25rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Graha Yogas</h3>
@@ -1040,27 +1129,150 @@ function HomeContent() {
                     order: 3 // Extended details always last
                   }}>
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Ashtakavarga Grid</h3>
-                        {chart.ashtakavarga 
-                          ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
-                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Aṣṭakavarga data unavailable.</p>
-                        }
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Ashtakavarga Grid</h3>
+                          {chart.ashtakavarga ? (
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setDashExpandAv((e) => !e)}
+                              style={{ fontSize: '0.72rem' }}
+                            >
+                              {dashExpandAv ? 'Show less' : 'Show more'}
+                            </button>
+                          ) : null}
+                        </div>
+                        {!chart.ashtakavarga ? (
+                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Aṣṭakavarga data unavailable.</p>
+                        ) : dashExpandAv ? (
+                          <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
+                        ) : dashboardAshtakSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.65rem' }}>
+                              <DashboardMetricChip label="SAV total" value={dashboardAshtakSummary.savTotal} sub="Typical ~337" />
+                              <DashboardMetricChip label="Avg / sign" value={dashboardAshtakSummary.avg} sub="Bindus per house" valueColor="var(--text-gold)" />
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                              <span style={{ color: 'var(--teal)', fontWeight: 700 }}>Peak:</span>{' '}
+                              H{dashboardAshtakSummary.highest.house} ({RASHI_SHORT[dashboardAshtakSummary.highest.rashi]}) —{' '}
+                              {dashboardAshtakSummary.highest.val} bindus ·{' '}
+                              <span style={{ color: 'var(--rose)', fontWeight: 700 }}>Low:</span> H{dashboardAshtakSummary.lowest.house} (
+                              {RASHI_SHORT[dashboardAshtakSummary.lowest.rashi]}) — {dashboardAshtakSummary.lowest.val}
+                            </p>
+                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              Samudaya (SAV) combines all graha contributions. Open full view for BAV, chart styles, and tables.
+                            </p>
+                          </div>
+                        ) : null}
                     </div>
 
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Planetary Strengths (Shadbala)</h3>
-                        {chart.shadbala 
-                          ? <ShadbalaTable shadbala={chart.shadbala} hideDetails={true} preferClassicCharts={true} />
-                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Shadbala data unavailable.</p>
-                        }
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Classic Multi-Chart View</h3>
+                          {chart.shadbala ? (
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setDashExpandShad((e) => !e)}
+                              style={{ fontSize: '0.72rem' }}
+                            >
+                              {dashExpandShad ? 'Show less' : 'Show more'}
+                            </button>
+                          ) : null}
+                        </div>
+                        {!chart.shadbala ? (
+                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Shadbala data unavailable.</p>
+                        ) : dashExpandShad ? (
+                          <ShadbalaTable shadbala={chart.shadbala} classicMultiChartOnly />
+                        ) : dashboardShadbalaSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.65rem' }}>
+                              <DashboardMetricChip
+                                label="Strongest"
+                                value={`${dashboardShadbalaSummary.strongestLabel} · ${dashboardShadbalaSummary.strongTotal} R`}
+                                sub="Ṣaḍbala total (rupas)"
+                              />
+                              <DashboardMetricChip
+                                label="Weakest"
+                                value={`${dashboardShadbalaSummary.weakestLabel} · ${dashboardShadbalaSummary.weakTotal} R`}
+                                sub="Ṣaḍbala total (rupas)"
+                                valueColor="var(--rose)"
+                              />
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                              Mean strength ratio (7 grahas): <strong style={{ fontFamily: 'var(--font-mono)' }}>{dashboardShadbalaSummary.meanRatio}×</strong> vs required minimum.
+                            </p>
+                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              Expand for per-metric mini charts (Sthāna, Kāla, Dig, Cheshta, Drik, totals).
+                            </p>
+                          </div>
+                        ) : null}
                     </div>
 
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Viṁśopaka Bala (16 Vargas)</h3>
-                        {chart.vimsopaka 
-                          ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
-                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Viṁśopaka data unavailable.</p>
-                        }
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Viṁśopaka Bala (16 Vargas)</h3>
+                          {chart.vimsopaka ? (
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setDashExpandVim((e) => !e)}
+                              style={{ fontSize: '0.72rem' }}
+                            >
+                              {dashExpandVim ? 'Show less' : 'Show more'}
+                            </button>
+                          ) : null}
+                        </div>
+                        {!chart.vimsopaka ? (
+                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Viṁśopaka data unavailable.</p>
+                        ) : dashExpandVim ? (
+                          <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
+                        ) : dashboardVimsopakaSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.65rem' }}>
+                              <DashboardMetricChip
+                                label="Leader (16 vargas)"
+                                value={`${dashboardVimsopakaSummary.strongest}`}
+                                sub={`${dashboardVimsopakaSummary.strongScore} / 20`}
+                              />
+                              <DashboardMetricChip
+                                label="Lowest"
+                                value={`${dashboardVimsopakaSummary.weakest}`}
+                                sub={`${dashboardVimsopakaSummary.weakScore} / 20`}
+                                valueColor="var(--rose)"
+                              />
+                              {dashboardVimsopakaSummary.avg ? (
+                                <DashboardMetricChip label="Chart average" value={dashboardVimsopakaSummary.avg} sub="Mean · 16-varga" valueColor="var(--text-gold)" />
+                              ) : null}
+                            </div>
+                            {dashboardVimsopakaSummary.top3.length > 0 ? (
+                              <div>
+                                <div className="label-caps" style={{ marginBottom: '0.35rem', fontSize: '0.6rem' }}>Top 3</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                  {dashboardVimsopakaSummary.top3.map((row) => (
+                                    <span
+                                      key={row.id}
+                                      style={{
+                                        fontSize: '0.78rem',
+                                        padding: '0.35rem 0.55rem',
+                                        borderRadius: 'var(--r-sm)',
+                                        border: '1px solid var(--border)',
+                                        background: 'var(--surface-2)',
+                                        fontFamily: 'var(--font-mono)',
+                                      }}
+                                    >
+                                      #{row.rank} {GRAHA_NAMES[row.id as GrahaId] ?? row.id}{' '}
+                                      <span style={{ color: 'var(--teal)' }}>{row.score.toFixed(2)}</span>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              Full panel includes heatmaps, dignity matrix, schemes (ṣaḍ/sapta/daśa/ṣoḍaśa), and remedies.
+                            </p>
+                          </div>
+                        ) : null}
                     </div>
 
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>

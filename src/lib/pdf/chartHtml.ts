@@ -9,6 +9,16 @@ import {
   GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT, NAKSHATRA_NAMES, NAKSHATRA_SHORT, RASHI_SANSKRIT, GRAHA_SANSKRIT
 } from '@/types/astrology'
 import { getNakshatraCharacteristics, getNavtaraChakra } from '@/lib/engine/nakshatraAdvanced'
+import { getVarnaName, getVashyaName, getGanaName, getNadiName } from '@/lib/engine/ashtakoot'
+import {
+  approxIndianEras,
+  formatSiderealLongitude,
+  getBhriguBinduLon,
+  getInduLagnaRashi,
+  getNakshatraPaya,
+  getPadaNamingSyllable,
+  getRashiTatva,
+} from '@/lib/engine/astroDetailsDerived'
 import { SIGN_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
 import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL } from '@/lib/engine/sarvatobhadra'
 import type { PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
@@ -376,6 +386,150 @@ function buildVargaGrid(chart: ChartOutput): string {
     </div>
   `).join('')
   return `<div class="varga-grid">${items}</div>`
+}
+
+function buildAstroDetailsHtml(chart: ChartOutput): string {
+  const moon = chart.grahas.find(g => g.id === 'Mo')
+  const rahu = chart.grahas.find(g => g.id === 'Ra')
+  const sun = chart.grahas.find(g => g.id === 'Su')
+  const ketu = chart.grahas.find(g => g.id === 'Ke')
+  if (!moon) {
+    return '<p class="small-meta">Moon data required for complete natal astro details.</p>'
+  }
+
+  const chars = getNakshatraCharacteristics(moon.nakshatraIndex, moon.pada)
+  const moonNak1 = moon.nakshatraIndex + 1
+  const induRashi = getInduLagnaRashi(moon.rashi)
+  const bhriguLon = rahu ? getBhriguBinduLon(moon.totalDegree, rahu.totalDegree) : null
+  const bhriguFmt = bhriguLon != null ? formatSiderealLongitude(bhriguLon) : null
+  const eras = approxIndianEras(chart.meta.birthDate)
+
+  const ascLordMap: Record<Rashi, GrahaId> = {
+    1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
+    7: 'Ve', 8: 'Ma', 9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju',
+  }
+  const ascLord = ascLordMap[chart.lagnas.ascRashi]
+
+  let dayNight = '—'
+  try {
+    const t = `${chart.meta.birthDate}T${chart.meta.birthTime || '12:00'}`
+    const birth = new Date(t)
+    const sr = new Date(chart.panchang.sunrise)
+    const ss = new Date(chart.panchang.sunset)
+    if (!Number.isNaN(birth.getTime())) {
+      dayNight = birth >= sr && birth <= ss ? 'Day (Sun above horizon)' : 'Night'
+    }
+  } catch { /* ignore */ }
+
+  const fmtLon = (lon: number) => {
+    const f = formatSiderealLongitude(lon)
+    return `${RASHI_NAMES[f.rashi]} ${f.degInSign.toFixed(2)}°`
+  }
+
+  const fmtShortTime = (d: Date | string) => {
+    const x = new Date(d)
+    return Number.isNaN(x.getTime()) ? 'N/A' : x.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const beeja = chart.upagrahas?.['Beeja Sphuta']
+  const kshetra = chart.upagrahas?.['Kshetra Sphuta']
+
+  const detailTable = (title: string, rows: [string, string][]) => `
+    <h4 style="margin: 1.1rem 0 0.45rem; color:${THEME.primary}; font-size: 0.92rem; font-weight: 800">${title}</h4>
+    <table class="data-table" style="margin-bottom: 0.35rem">
+      ${rows.map(([k, v]) => `
+        <tr>
+          <td style="font-weight:700;background:${THEME.surface};width:36%">${escapeHtml(k)}</td>
+          <td>${escapeHtml(v)}</td>
+        </tr>`).join('')}
+    </table>
+  `
+
+  const yogiRow: [string, string][] = chart.yogiPoint
+    ? [[`Yogi / Sahayogi / Avayogi`, `${GRAHA_NAMES[chart.yogiPoint.yogiGraha]} / ${GRAHA_NAMES[chart.yogiPoint.sahayogiGraha]} / ${GRAHA_NAMES[chart.yogiPoint.avayogiGraha]}`]]
+    : []
+
+  const bhriguStr = bhriguFmt && bhriguLon != null
+    ? `${RASHI_NAMES[bhriguFmt.rashi]} ${bhriguFmt.degInSign.toFixed(2)}° · ${bhriguLon.toFixed(4)}° sidereal`
+    : '—'
+
+  return `
+    <p style="font-size: 11px; color: ${THEME.muted}; margin-bottom: 1rem; line-height: 1.5">
+      Full natal summary: birth data, lagna, Moon nakṣatra attributes, pañcāṅga, special lagnas, and derived points (Indu Lagna, Bhrigu Bindu, eras approximate).
+    </p>
+    ${detailTable('Birth data', [
+      ['Name', chart.meta.name || '—'],
+      ['Date', chart.meta.birthDate],
+      ['Time', chart.meta.birthTime || '—'],
+      ['Place', chart.meta.birthPlace || '—'],
+      ['Timezone', chart.meta.timezone],
+      ['Coordinates', `${chart.meta.latitude.toFixed(4)}°, ${chart.meta.longitude.toFixed(4)}°`],
+      ['Ayanāṃśa', `${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(4)}°`],
+      ['Julian Day', chart.meta.julianDay.toFixed(5)],
+    ])}
+    ${detailTable('Lagna & signs', [
+      ['Ascendant', `${RASHI_NAMES[chart.lagnas.ascRashi]} (${RASHI_SANSKRIT[chart.lagnas.ascRashi]})`],
+      ['Ascendant (degree)', `${RASHI_NAMES[chart.lagnas.ascRashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(2)}°`],
+      ['Ascendant lord', GRAHA_NAMES[ascLord]],
+      ['Moon sign', `${RASHI_NAMES[moon.rashi]} · ${RASHI_SANSKRIT[moon.rashi]}`],
+      ['Moon rāśi tatva', getRashiTatva(moon.rashi)],
+    ])}
+    ${detailTable('Nakṣatra (Moon)', [
+      ['Nakṣatra', `${moon.nakshatraName} (${moon.pada} pada)`],
+      ['Nakṣatra lord', GRAHA_NAMES[chars.lord]],
+      ['Deity', chars.deity],
+      ['Symbol', chars.symbol],
+      ['Varṇa (nakṣatra)', chars.varna],
+      ['Varṇa (rāśi · koota)', getVarnaName(moon.rashi)],
+      ['Vaśya (rāśi · koota)', getVashyaName(moon.rashi)],
+      ['Yoni', chars.yoni],
+      ['Gaṇa', `${chars.gana} · koota: ${getGanaName(moonNak1)}`],
+      ['Nāḍī (nakṣatra)', chars.nadi],
+      ['Nāḍī (koota)', getNadiName(moonNak1)],
+      ['Śakti', chars.shakti],
+      ['Nature', chars.nature],
+      ['Paya (from pada)', getNakshatraPaya(moon.pada)],
+      ['Name sound (pada)', getPadaNamingSyllable(moon.nakshatraIndex, moon.pada)],
+    ])}
+    ${detailTable('Pañcāṅga (natal)', [
+      ['Vāra (weekday)', `${chart.panchang.vara.name} · lord ${GRAHA_NAMES[chart.panchang.vara.lord]}`],
+      ['Tithi', `${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30)`],
+      ['Pakṣa', chart.panchang.tithi.paksha === 'shukla' ? 'Śukla (waxing)' : 'Kṛṣṇa (waning)'],
+      ['Tithi lord', String(chart.panchang.tithi.lord)],
+      ['Yoga', chart.panchang.yoga.name],
+      ['Karaṇa', chart.panchang.karana.name],
+      ['Sunrise', fmtShortTime(chart.panchang.sunrise)],
+      ['Sunset', fmtShortTime(chart.panchang.sunset)],
+      ['Day / night birth', dayNight],
+      ['Amānta / Pūrṇimānta', 'Lunar month naming varies by tradition; tithi & pakṣa follow astronomical calculation.'],
+    ])}
+    ${detailTable('Hindu eras (approx.)', [
+      ['Śaka Samvat', `~ ${eras.shaka}`],
+      ['Vikram Samvat', `~ ${eras.vikram}`],
+      ['Note', eras.note],
+    ])}
+    ${detailTable('Special lagnas & points', [
+      ['Āruḍha Lagna (AL)', chart.arudhas.AL ? RASHI_NAMES[chart.arudhas.AL] : '—'],
+      ['Indu Lagna', `${RASHI_NAMES[induRashi]} · ${RASHI_SANSKRIT[induRashi]}`],
+      ['Bhrigu Bindu', bhriguStr],
+      ...yogiRow,
+      ['Hora Lagna', fmtLon(chart.lagnas.horaLagna)],
+      ['Ghati Lagna', fmtLon(chart.lagnas.ghatiLagna)],
+      ['Bhava Lagna', fmtLon(chart.lagnas.bhavaLagna)],
+      ['Praṇapada', fmtLon(chart.lagnas.pranapada)],
+      ['Śrī Lagna', fmtLon(chart.lagnas.sriLagna)],
+      ['Varṇada Lagna', fmtLon(chart.lagnas.varnadaLagna)],
+      ...(beeja ? [[`Bīja Sphuta`, `${beeja.rashiName} ${beeja.degree.toFixed(2)}°`]] as [string, string][] : []),
+      ...(kshetra ? [[`Kṣetra Sphuta`, `${kshetra.rashiName} ${kshetra.degree.toFixed(2)}°`]] as [string, string][] : []),
+    ])}
+    ${(() => {
+      const sunRows: [string, string][] = []
+      if (sun) sunRows.push(['Sun', `${RASHI_NAMES[sun.rashi]} · ${fmtLon(sun.totalDegree)}`])
+      if (rahu) sunRows.push(['Rāhu', `${RASHI_NAMES[rahu.rashi]} · ${fmtLon(rahu.totalDegree)}`])
+      if (ketu) sunRows.push(['Ketu', `${RASHI_NAMES[ketu.rashi]} · ${fmtLon(ketu.totalDegree)}`])
+      return sunRows.length ? detailTable('Sun & nodes', sunRows) : ''
+    })()}
+  `
 }
 
 function buildSpecialLagnas(chart: ChartOutput): string {
@@ -789,7 +943,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
 
 <div class="print-bar no-print">
   <div style="font-weight: 800">${brandName} Intelligence System</div>
-  <button onclick="window.print()">Export Complete Portfolio (25 Pages)</button>
+  <button onclick="window.print()">Export Complete Portfolio (~22 Pages)</button>
 </div>
 
 <!-- PAGE 1: COVER -->
@@ -822,24 +976,25 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   ${SectionHeader('00', 'Catalogue of Wisdom', 'Intelligence Index')}
   <div style="margin-top: 3rem">
     <div class="toc-item"><span>01. The Incarnation Snapshot (Natal Data)</span> <span>03</span></div>
-    <div class="toc-item"><span>02. Planetary Positions & Dignities</span> <span>04</span></div>
-    <div class="toc-item"><span>03. The Divine Matrix (Shodashvarga)</span> <span>05</span></div>
-    <div class="toc-item"><span>04. Planetary Psychology (Sun, Moon, Mars)</span> <span>06</span></div>
-    <div class="toc-item"><span>05. The Intellect & Flow (Merc, Jup, Ven)</span> <span>07</span></div>
-    <div class="toc-item"><span>06. Shadows & Structure (Sat, Rahu, Ketu)</span> <span>08</span></div>
-    <div class="toc-item"><span>07. House Potency (Bhava Bala Analysis)</span> <span>09</span></div>
-    <div class="toc-item"><span>08. Nakshatra: The Secret Power of Luna</span> <span>10</span></div>
-    <div class="toc-item"><span>09. Yoga: The Celestial Combinations</span> <span>11</span></div>
-    <div class="toc-item"><span>10. Quantum Strength (Shadbala Analysis)</span> <span>12</span></div>
-    <div class="toc-item"><span>11. Ashtakavarga: The 8-Fold Net</span> <span>13</span></div>
-    <div class="toc-item"><span>12. Jaimini Karakas & Arudhas</span> <span>14</span></div>
-    <div class="toc-item"><span>13. KP System: The Minute Subdivision</span> <span>15</span></div>
-    <div class="toc-item"><span>14. Sarvatobhadra Chakra (Vedha Grid)</span> <span>16</span></div>
-    <div class="toc-item"><span>15. Timeline of Fate (Vimshottari Overview)</span> <span>17</span></div>
-    <div class="toc-item"><span>16. Current Sub-Period Focus</span> <span>18</span></div>
-    <div class="toc-item"><span>17. Astro-Vastu Architectural Alignment</span> <span>19</span></div>
-    <div class="toc-item"><span>18. Global Resonance (Astrocartography)</span> <span>20</span></div>
-    <div class="toc-item"><span>19. Synthesis & Next Steps</span> <span>21</span></div>
+    <div class="toc-item"><span>01b. Complete Natal Astro Details</span> <span>04</span></div>
+    <div class="toc-item"><span>02. Planetary Positions & Dignities</span> <span>05</span></div>
+    <div class="toc-item"><span>03. The Divine Matrix (Shodashvarga)</span> <span>06</span></div>
+    <div class="toc-item"><span>04. Planetary Psychology (Sun, Moon, Mars)</span> <span>07</span></div>
+    <div class="toc-item"><span>05. The Intellect & Flow (Merc, Jup, Ven)</span> <span>08</span></div>
+    <div class="toc-item"><span>06. Shadows & Structure (Sat, Rahu, Ketu)</span> <span>09</span></div>
+    <div class="toc-item"><span>07. House Potency (Bhava Bala Analysis)</span> <span>10</span></div>
+    <div class="toc-item"><span>08. Nakshatra: The Secret Power of Luna</span> <span>11</span></div>
+    <div class="toc-item"><span>09. Yoga: The Celestial Combinations</span> <span>12</span></div>
+    <div class="toc-item"><span>10. Quantum Strength (Shadbala Analysis)</span> <span>13</span></div>
+    <div class="toc-item"><span>11. Ashtakavarga: The 8-Fold Net</span> <span>14</span></div>
+    <div class="toc-item"><span>12. Jaimini Karakas & Arudhas</span> <span>15</span></div>
+    <div class="toc-item"><span>13. KP System: The Minute Subdivision</span> <span>16</span></div>
+    <div class="toc-item"><span>14. Sarvatobhadra Chakra (Vedha Grid)</span> <span>17</span></div>
+    <div class="toc-item"><span>15. Timeline of Fate (Vimshottari Overview)</span> <span>18</span></div>
+    <div class="toc-item"><span>16. Current Sub-Period Focus</span> <span>19</span></div>
+    <div class="toc-item"><span>17. Astro-Vastu Architectural Alignment</span> <span>20</span></div>
+    <div class="toc-item"><span>18. Global Resonance (Astrocartography)</span> <span>21</span></div>
+    <div class="toc-item"><span>19. Synthesis & Next Steps</span> <span>22</span></div>
   </div>
   ${PageFooter(2, meta.name)}
 </div>
@@ -886,7 +1041,14 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   ${PageFooter(3, meta.name)}
 </div>
 
-<!-- PAGE 4: PLANETARY POSITIONS -->
+<!-- PAGE 4: NATAL ASTRO DETAILS (full) -->
+<div class="page">
+  ${SectionHeader('01b', 'Natal Astro Details', 'Complete Summary')}
+  ${buildAstroDetailsHtml(chart)}
+  ${PageFooter(4, meta.name)}
+</div>
+
+<!-- PAGE 5: PLANETARY POSITIONS -->
 <div class="page">
   ${SectionHeader('02', 'The Celestial Cabinet', 'Planetary Longitudes')}
   <table class="data-table">
@@ -922,10 +1084,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   
   <h3 class="section-badge" style="margin-top: 2rem">Special Points & Lagnas</h3>
   ${buildSpecialLagnas(chart)}
-  ${PageFooter(4, meta.name)}
+  ${PageFooter(5, meta.name)}
 </div>
 
-<!-- PAGE 5: DIVISIONAL CHARTS -->
+<!-- PAGE 6: DIVISIONAL CHARTS -->
 <div class="page">
   ${SectionHeader('03', 'The Divine Matrix', 'Shodashvarga Summary')}
   <p style="margin-bottom: 2rem; color: ${THEME.muted}">In Vedic astrology, divisional charts provide microscopic insights into specific areas of life like wealth, siblings, children, and career.</p>
@@ -934,41 +1096,41 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <h4 style="color:${THEME.accent}">The Varga Intelligence</h4>
     <p style="font-size: 11px">D2 (Hora) for Wealth, D3 (Drekkana) for Siblings/Initiative, D7 (Saptamsha) for Lineage, D9 (Navamsha) for Internal Strength/Marriage, D10 (Dashamsha) for Mahat Phala (Great Success).</p>
   </div>
-  ${PageFooter(5, meta.name)}
+  ${PageFooter(6, meta.name)}
 </div>
 
-<!-- PAGE 6: INTERPRETATIONS 1 -->
+<!-- PAGE 7: INTERPRETATIONS 1 -->
 <div class="page">
   ${SectionHeader('04', 'Planetary Psychology', 'Luminaries & Drive')}
   <p style="margin-bottom: 2rem">The Sun, Moon, and Mars represent your core self, emotional nature, and drive for action.</p>
   ${buildPlanetInterpretations(chart, ['Su', 'Mo', 'Ma'])}
-  ${PageFooter(6, meta.name)}
+  ${PageFooter(7, meta.name)}
 </div>
 
-<!-- PAGE 7: INTERPRETATIONS 2 -->
+<!-- PAGE 8: INTERPRETATIONS 2 -->
 <div class="page">
   ${SectionHeader('05', 'The Intellect & Flow', 'Communication & Wisdom')}
   <p style="margin-bottom: 2rem">Mercury, Jupiter, and Venus govern your intelligence, wisdom, and aesthetic preferences.</p>
   ${buildPlanetInterpretations(chart, ['Me', 'Ju', 'Ve'])}
-  ${PageFooter(7, meta.name)}
-</div>
-
-<!-- PAGE 8: INTERPRETATIONS 3 -->
-<div class="page">
-  ${SectionHeader('06', 'Shadows & Structure', 'Discipline & Innovation')}
-  ${buildPlanetInterpretations(chart, ['Sa', 'Ra', 'Ke'])}
   ${PageFooter(8, meta.name)}
 </div>
 
-<!-- PAGE 9: BHAVA BALA -->
+<!-- PAGE 9: INTERPRETATIONS 3 -->
+<div class="page">
+  ${SectionHeader('06', 'Shadows & Structure', 'Discipline & Innovation')}
+  ${buildPlanetInterpretations(chart, ['Sa', 'Ra', 'Ke'])}
+  ${PageFooter(9, meta.name)}
+</div>
+
+<!-- PAGE 10: BHAVA BALA -->
 <div class="page">
   ${SectionHeader('07', 'House Potency', 'Bhava Bala Analysis')}
   <p style="margin-bottom: 2rem">Analysis of the 12 houses to determine which areas of life (career, wealth, health) are naturally supported by cosmic geometry.</p>
   ${buildBhavaBalaSection(chart)}
-  ${PageFooter(9, meta.name)}
+  ${PageFooter(10, meta.name)}
 </div>
 
-<!-- PAGE 10: NAKSHATRA ANALYSIS -->
+<!-- PAGE 11: NAKSHATRA ANALYSIS -->
 <div class="page">
   ${SectionHeader('08', 'Lunar Mansions', 'Nakshatra Characteristics')}
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem">
@@ -1001,10 +1163,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       </div>
     `).join('')}
   </div>
-  ${PageFooter(10, meta.name)}
+  ${PageFooter(11, meta.name)}
 </div>
 
-<!-- PAGE 11: YOGAS -->
+<!-- PAGE 12: YOGAS -->
 <div class="page">
   ${SectionHeader('09', 'Celestial Combinations', 'The Yoga Analysis')}
   <p style="margin-bottom: 2rem">Personalized detection of major and minor yogas that define wealth, status, and health.</p>
@@ -1021,10 +1183,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       `).join('') || '<tr><td colspan="4">No major yogas detect in this configuration.</td></tr>'}
     </tbody>
   </table>
-  ${PageFooter(11, meta.name)}
+  ${PageFooter(12, meta.name)}
 </div>
 
-<!-- PAGE 12: SHADBALA -->
+<!-- PAGE 13: SHADBALA -->
 <div class="page">
   ${SectionHeader('10', 'Quantum Strength', 'Shadbala Analysis')}
   <p style="margin-bottom: 2rem">Shadbala calculates six strength streams in rupas. Values below include both aggregate rupas and shashtiamsa totals for accurate interpretation.</p>
@@ -1078,10 +1240,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       A ratio above 1.00 means the graha crosses its traditional minimum required bala.
     </div>
   </div>
-  ${PageFooter(12, meta.name)}
+  ${PageFooter(13, meta.name)}
 </div>
 
-<!-- PAGE 13: ASHTAKAVARGA -->
+<!-- PAGE 14: ASHTAKAVARGA -->
 <div class="page">
   ${SectionHeader('11', 'The 8-Fold Net', 'Ashtakavarga BAV/SAV')}
   <p style="margin-bottom: 2rem">Ashtakavarga helps in predicting the results of transits and the general strength of the 12 signs for you.</p>
@@ -1097,10 +1259,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         <p style="font-size: 11px">Check individiual BAV tables for specific life areas (e.g., Jupiter for children/wealth, Saturn for obstacles).</p>
     </div>
   </div>
-  ${PageFooter(13, meta.name)}
+  ${PageFooter(14, meta.name)}
 </div>
 
-<!-- PAGE 14: JAIMINI ASTROLOGY -->
+<!-- PAGE 15: JAIMINI ASTROLOGY -->
 <div class="page">
   ${SectionHeader('12', 'Secret of Karakas', 'Jaimini System Analysis')}
   <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem">
@@ -1128,10 +1290,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         </table>
     </div>
   </div>
-  ${PageFooter(14, meta.name)}
+  ${PageFooter(15, meta.name)}
 </div>
 
-<!-- PAGE 15: KP SYSTEM -->
+<!-- PAGE 16: KP SYSTEM -->
 <div class="page">
   ${SectionHeader('13', 'The Exact Point', 'Krishnamurti Paddhati (KP)')}
   <p style="margin-bottom: 2rem">KP System focuses on Sub-Lords to give precise "Yes/No" answers and timing for life events.</p>
@@ -1147,10 +1309,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         <div><strong>Moon Star Lord:</strong> ${chart.kp?.rulingPlanets.moonStarLord}</div>
     </div>
   </div>
-  ${PageFooter(15, meta.name)}
+  ${PageFooter(16, meta.name)}
 </div>
 
-<!-- PAGE 16: SARVATOBHADRA CHAKRA -->
+<!-- PAGE 17: SARVATOBHADRA CHAKRA -->
 <div class="page">
   ${SectionHeader('14', 'The Fortress of Light', 'Sarvatobhadra Chakra Analysis')}
   <p style="margin-bottom: 2rem">The "Auspicious on All Sides" grid reveals transgenerational patterns and precise timing for global recognition.</p>
@@ -1166,10 +1328,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         <p style="font-size: 12px">Current dasha lord <strong>${GRAHA_NAMES[chart.dashas.vimshottari[0].lord as GrahaId]}</strong> forms a protective shield in your social network.</p>
     </div>
   </div>
-  ${PageFooter(16, meta.name)}
+  ${PageFooter(17, meta.name)}
 </div>
 
-<!-- PAGE 17: DASHA OVERVIEW -->
+<!-- PAGE 18: DASHA OVERVIEW -->
 <div class="page">
   ${SectionHeader('15', 'Temporal Evolution', 'Vimshottari Dasha Overview')}
   <p style="margin-bottom: 2rem">Planetary periods show the unfolding of karma over time. Each period brings the themes of the planet into the forefront.</p>
@@ -1187,10 +1349,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       }).join('')}
     </tbody>
   </table>
-  ${PageFooter(17, meta.name)}
+  ${PageFooter(18, meta.name)}
 </div>
 
-<!-- PAGE 18: CURRENT DASHA -->
+<!-- PAGE 19: CURRENT DASHA -->
 <div class="page">
   ${SectionHeader('16', 'Present Influence', 'Active Sub-Period (Antar)')}
   ${buildCurrentDashaFocus(chart)}
@@ -1213,10 +1375,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       })()}
     </tbody>
   </table>
-  ${PageFooter(18, meta.name)}
+  ${PageFooter(19, meta.name)}
 </div>
 
-<!-- PAGE 19: ASTRO VASTU -->
+<!-- PAGE 20: ASTRO VASTU -->
 <div class="page">
   ${SectionHeader('17', 'Sacred Space', 'Astro-Vastu Alignment')}
   <div style="background:${THEME.surface}; border-radius: 4px; overflow: hidden; border: 1px solid ${THEME.border}; margin-top: 2rem">
@@ -1254,10 +1416,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         <p style="font-size: 12px">Minimize water elements in the <strong>SOUTH-EAST</strong> to prevent emotional drains on finance.</p>
     </div>
   </div>
-  ${PageFooter(19, meta.name)}
+  ${PageFooter(20, meta.name)}
 </div>
 
-<!-- PAGE 20: ASTROCARTOGRAPHY -->
+<!-- PAGE 21: ASTROCARTOGRAPHY -->
 <div class="page">
   ${SectionHeader('18', 'Global Resonance', 'Astrocartography Resonance')}
   <p style="margin-bottom: 2rem">Mapping your planetary power spots reveals where Earth's geographical energy amplifies your destiny.</p>
@@ -1278,10 +1440,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       <h4 style="margin-bottom: 10px">The Relocation Secret</h4>
       <p style="font-size: 13px">Moving to a location where your strong planets (ex: Exalted Sun) hit the MC line can instantly reset your status trajectory.</p>
   </div>
-  ${PageFooter(20, meta.name)}
+  ${PageFooter(21, meta.name)}
 </div>
 
-<!-- PAGE 21: SYNTHESIS -->
+<!-- PAGE 22: SYNTHESIS -->
 <div class="page">
   ${SectionHeader('19', 'The Life Synthesis', 'Report Summary')}
   <p style="margin-bottom: 3rem; font-size: 1.15rem; line-height: 1.8; font-style: italic; border-bottom: 1px solid ${THEME.accentLight}; padding-bottom: 20px">
@@ -1331,7 +1493,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <div style="font-weight: 900; letter-spacing: 2px">OM TAT SAT</div>
     <div style="font-size: 10px; margin-top: 10px">Vedaansh Jyotish Master Dossier • Professional Edition</div>
   </div>
-  ${PageFooter(21, meta.name)}
+  ${PageFooter(22, meta.name)}
 </div>
 
 </body>

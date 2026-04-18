@@ -42,6 +42,7 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
   {
     label: 'Core Analysis',
     tabs: [
+      { id: 'astro-details', label: 'Astro Details', icon: '📋', path: ASTROLOGY_ROUTE },
       { id: 'planets',   label: 'Planets',     icon: '✦', path: ASTROLOGY_ROUTE },
       { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: ASTROLOGY_ROUTE },
       { id: 'house',     label: 'House',       icon: '🏠', path: ASTROLOGY_ROUTE },
