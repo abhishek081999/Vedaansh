@@ -19,9 +19,9 @@ const contentSecurityPolicy = [
   "font-src 'self' data: https:",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // ffmpeg.wasm loads core from unpkg and needs wasm compile (Chrome)
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://unpkg.com${isDev ? " 'unsafe-eval'" : ''}`,
-  `connect-src 'self' https:${isDev ? ' http: ws: wss:' : ''}`,
-  "frame-src 'self' https:",
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://unpkg.com https://checkout.razorpay.com${isDev ? " 'unsafe-eval'" : ''}`,
+  `connect-src 'self' https: https://api.razorpay.com https://checkout.razorpay.com${isDev ? ' http: ws: wss:' : ''}`,
+  "frame-src 'self' https: https://api.razorpay.com https://checkout.razorpay.com",
   ...(isDev ? [] : ['upgrade-insecure-requests']),
 ].join('; ')
 
