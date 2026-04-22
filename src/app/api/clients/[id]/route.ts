@@ -42,6 +42,20 @@ const NoteSchema = z.object({
   status:   z.enum(['suggested', 'started', 'completed', 'abandoned']).optional(),
 })
 
+async function ensurePlatinum(userId: string): Promise<NextResponse | null> {
+  const user = await User.findById(userId).select('plan planExpiresAt').lean() as any
+  const plan = user?.plan ?? 'free'
+  const expiry = user?.planExpiresAt
+  const isExpiredPaidPlan = plan !== 'free' && expiry && new Date(expiry) < new Date()
+  if (plan !== 'platinum' || isExpiredPaidPlan) {
+    return NextResponse.json(
+      { success: false, error: 'Platinum plan required', code: 'PLATINUM_REQUIRED', upgradeRequired: true },
+      { status: 403 },
+    )
+  }
+  return null
+}
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await auth()
@@ -49,6 +63,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
     await connectDB()
+    const gate = await ensurePlatinum(userId)
+    if (gate) return gate
+
     const client = await Client.findOne({ _id: params.id, userId }).lean()
     if (!client) return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 })
 
@@ -70,6 +87,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!parsed.success) return NextResponse.json({ success: false, error: 'Invalid input' }, { status: 400 })
 
     await connectDB()
+    const gate = await ensurePlatinum(userId)
+    if (gate) return gate
+
     const { remedyAction, remedyId, remedyStatus, ...rest } = parsed.data
 
     let client;
@@ -117,6 +137,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!parsed.success) return NextResponse.json({ success: false, error: 'Invalid input' }, { status: 400 })
 
     await connectDB()
+    const gate = await ensurePlatinum(userId)
+    if (gate) return gate
+
     const { type, content, category, title, description, status } = parsed.data
 
     let update = {}
@@ -154,6 +177,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
     await connectDB()
+    const gate = await ensurePlatinum(userId)
+    if (gate) return gate
+
     const client = await Client.findOneAndDelete({ _id: params.id, userId })
     if (!client) return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 })
 

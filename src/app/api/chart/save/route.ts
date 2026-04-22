@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  POST /api/chart/save
 //  Saves a calculated chart to MongoDB for the logged-in user.
-//  Enforces per-plan chart limits: Free=3, Gold=1008, Platinum=∞
+//  Enforces per-plan chart limits: Free=10, Gold=200, Platinum=∞
 //  Returns { success, chartId, slug }
 // ─────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from 'next/server'
@@ -12,15 +12,9 @@ import { Chart } from '@/lib/db/models/Chart'
 import { User }  from '@/lib/db/models/User'
 import crypto from 'crypto'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { getChartSaveLimit, getEffectivePlan } from '@/lib/subscription/entitlements'
 
 export const runtime = 'nodejs'
-
-// ── Per-plan chart save limits ────────────────────────────────
-const CHART_LIMITS: Record<string, number> = {
-  free: 10,
-  gold: 200,
-  platinum: Infinity,
-}
 
 const SaveSchema = z.object({
   name:       z.string().min(1).max(100),
@@ -56,18 +50,9 @@ export async function POST(req: NextRequest) {
 
     // ── Plan-based limit check ────────────────────────────────
     if (userId) {
-      const user  = await User.findById(userId).select('plan planExpiresAt').lean()
-      const plan  = (user as any)?.plan ?? 'free'
-
-      // Check planExpiresAt — downgrade to free if subscription lapsed
-      const effectivePlan = (() => {
-        if (plan === 'free') return 'free'
-        const expiry = (user as any)?.planExpiresAt
-        if (expiry && new Date(expiry) < new Date()) return 'free'
-        return plan
-      })()
-
-      const limit = CHART_LIMITS[effectivePlan] ?? 3
+      const user = await User.findById(userId).select('plan planExpiresAt').lean() as any
+      const effectivePlan = getEffectivePlan(user?.plan, user?.planExpiresAt)
+      const limit = getChartSaveLimit(user?.plan, user?.planExpiresAt)
 
       if (isFinite(limit)) {
         const count = await Chart.countDocuments({ userId })

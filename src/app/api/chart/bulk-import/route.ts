@@ -13,14 +13,9 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import { User }  from '@/lib/db/models/User'
+import { getChartSaveLimit, getEffectivePlan } from '@/lib/subscription/entitlements'
 
 export const runtime = 'nodejs'
-
-const PLAN_LIMITS: Record<string, number> = {
-  free: 3,
-  gold: 1008,
-  platinum: Infinity,
-}
 
 // Accepted column aliases (case-insensitive, trimmed)
 const COL = {
@@ -132,10 +127,8 @@ export async function POST(req: NextRequest) {
   await connectDB()
 
   const user = await User.findById(userId).select('plan planExpiresAt').lean() as any
-  const rawPlan: string = user?.plan ?? 'free'
-  const expiry = user?.planExpiresAt
-  const effectivePlan = (rawPlan !== 'free' && expiry && new Date(expiry) < new Date()) ? 'free' : rawPlan
-  const limit = PLAN_LIMITS[effectivePlan] ?? 3
+  const effectivePlan = getEffectivePlan(user?.plan, user?.planExpiresAt)
+  const limit = getChartSaveLimit(user?.plan, user?.planExpiresAt)
 
   let existing = await Chart.countDocuments({ userId })
   const slots = isFinite(limit) ? limit - existing : Infinity
