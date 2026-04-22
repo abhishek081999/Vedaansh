@@ -3,7 +3,7 @@
 //  POST /api/chart/send-email
 //
 //  Sends the Jyotish Master Dossier (HTML attachment) to a client.
-//  Tier: Gold+
+//  Tier: Platinum only
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -31,9 +31,9 @@ export async function POST(req: NextRequest) {
     const session = await auth()
     const plan = (session?.user as any)?.plan ?? 'free'
 
-    if (plan === 'free') {
+    if (plan !== 'platinum') {
       return NextResponse.json(
-        { error: 'Email delivery requires Gold or Platinum plan.', upgradeRequired: true },
+        { error: 'Email delivery requires Platinum plan.', upgradeRequired: true },
         { status: 403 }
       )
     }
