@@ -613,12 +613,12 @@ export const PLAN_LIMITS: Record<UserPlan, { charts: number; vargas: string[]; d
     dashas: ['vimshottari'],
   },
   gold: {
-    charts: 1008,
+    charts: 200,
     vargas: ['all'],
     dashas: ['vimshottari','ashtottari'],
   },
   platinum: {
-    charts: 10008,
+    charts: Infinity,
     vargas: ['all'],  // all 41 schemes
     dashas: ['all'],  // all 30+ systems
   },

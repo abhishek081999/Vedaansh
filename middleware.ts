@@ -27,13 +27,13 @@ const PROTECTED_API = [
   '/api/research',
 ]
 
-// Routes requiring Velā+ plan
-const VELA_ROUTES = ['/muhurta']
-const VELA_API    = ['/api/muhurta', '/api/chart/export']
+// Routes requiring Gold+ plan
+const GOLD_ROUTES = ['/muhurta']
+const GOLD_API    = ['/api/muhurta', '/api/chart/export']
 
-// Routes requiring Horā plan
-const HORA_ROUTES  = ['/research']
-const HORA_API     = ['/api/research']
+// Routes requiring Platinum plan
+const PLATINUM_ROUTES  = ['/research']
+const PLATINUM_API     = ['/api/research']
 
 export default auth((req: NextRequest & { auth: any }) => {
   const { pathname } = req.nextUrl
@@ -56,25 +56,25 @@ export default auth((req: NextRequest & { auth: any }) => {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // ── Velā API gating ───────────────────────────────────────
-  const isVelaApi = VELA_API.some((p) => pathname.startsWith(p))
-  if (isVelaApi && session?.user) {
-    const plan = session.user.plan ?? 'kala'
-    if (plan === 'kala') {
+  // ── Gold API gating ───────────────────────────────────────
+  const isGoldApi = GOLD_API.some((p) => pathname.startsWith(p))
+  if (isGoldApi && session?.user) {
+    const plan = session.user.plan ?? 'free'
+    if (plan === 'free') {
       return NextResponse.json(
-        { error: 'This feature requires Velā or Horā plan', upgradeRequired: true },
+        { error: 'This feature requires Gold or Platinum plan', upgradeRequired: true },
         { status: 403 },
       )
     }
   }
 
-  // ── Horā API gating ───────────────────────────────────────
-  const isHoraApi = HORA_API.some((p) => pathname.startsWith(p))
-  if (isHoraApi && session?.user) {
-    const plan = session.user.plan ?? 'kala'
-    if (plan !== 'hora') {
+  // ── Platinum API gating ───────────────────────────────────
+  const isPlatinumApi = PLATINUM_API.some((p) => pathname.startsWith(p))
+  if (isPlatinumApi && session?.user) {
+    const plan = session.user.plan ?? 'free'
+    if (plan !== 'platinum') {
       return NextResponse.json(
-        { error: 'This feature requires Horā plan', upgradeRequired: true },
+        { error: 'This feature requires Platinum plan', upgradeRequired: true },
         { status: 403 },
       )
     }
@@ -88,22 +88,22 @@ export default auth((req: NextRequest & { auth: any }) => {
     return NextResponse.redirect(loginUrl)
   }
 
-  // ── Velā page gating ──────────────────────────────────────
-  const isVelaPage = VELA_ROUTES.some((p) => pathname.startsWith(p))
-  if (isVelaPage && session?.user) {
-    const plan = session.user.plan ?? 'kala'
-    if (plan === 'kala') {
-      const upgradeUrl = new URL('/account?upgrade=vela', req.url)
+  // ── Gold page gating ──────────────────────────────────────
+  const isGoldPage = GOLD_ROUTES.some((p) => pathname.startsWith(p))
+  if (isGoldPage && session?.user) {
+    const plan = session.user.plan ?? 'free'
+    if (plan === 'free') {
+      const upgradeUrl = new URL('/account?upgrade=gold', req.url)
       return NextResponse.redirect(upgradeUrl)
     }
   }
 
-  // ── Horā page gating ──────────────────────────────────────
-  const isHoraPage = HORA_ROUTES.some((p) => pathname.startsWith(p))
-  if (isHoraPage && session?.user) {
-    const plan = session.user.plan ?? 'kala'
-    if (plan !== 'hora') {
-      const upgradeUrl = new URL('/account?upgrade=hora', req.url)
+  // ── Platinum page gating ──────────────────────────────────
+  const isPlatinumPage = PLATINUM_ROUTES.some((p) => pathname.startsWith(p))
+  if (isPlatinumPage && session?.user) {
+    const plan = session.user.plan ?? 'free'
+    if (plan !== 'platinum') {
+      const upgradeUrl = new URL('/account?upgrade=platinum', req.url)
       return NextResponse.redirect(upgradeUrl)
     }
   }
