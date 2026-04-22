@@ -44,7 +44,6 @@ const FEATURES = {
       '✓ Save up to 200 charts in your library',
       '✓ Professional PDF & HTML exports',
       '✓ Bulk Data Import (CSV/JSON)',
-      '✓ Email chart reports to clients',
       '✓ Muhūrta routes and API access',
       '✓ Deeper Dasha depth than Free',
     ],
@@ -52,17 +51,19 @@ const FEATURES = {
   platinum: {
     name: 'Platinum',
     subtitle: 'For professionals',
-    price: { monthly: 700, yearly: 8400 },
+    price: { monthly: 350, yearly: 3840 },
     color: 'var(--teal)',
     border: 'rgba(78,205,196,0.50)',
     bg: 'rgba(78,205,196,0.08)',
     badge: 'Premium',
     features: [
       '✓ Everything in Gold',
+      '✓ Yearly plan: ₹320/month billed annually',
       '✓ White-labeling: Use your own brand/logo on shares',
       '✓ Client Management Dashboard',
       '✓ Bulk ZIP export for saved chart collections',
       '✓ Brand personalization in exports and email reports',
+      '✓ Email chart reports to clients',
       '✓ Research routes and API access',
     ],
   },
@@ -215,7 +216,7 @@ export default function PricingPage() {
             }}>
               {b === 'monthly' ? 'Monthly' : 'Yearly'}
               {b === 'yearly' && (
-                <span style={{ marginLeft: 6, fontSize: '0.68rem', color: 'var(--teal)', fontWeight: 700 }}>Save up to 30%</span>
+                <span style={{ marginLeft: 6, fontSize: '0.68rem', color: 'var(--teal)', fontWeight: 700 }}>Best value</span>
               )}
             </button>
           ))}
@@ -283,7 +284,9 @@ export default function PricingPage() {
                 </div>
                 {billing === 'yearly' && price > 0 && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
-                    ₹{tier.price.yearly}/year — save ₹{(tier.price.monthly * 12) - tier.price.yearly}
+                    {key === 'platinum'
+                      ? `₹${tier.price.yearly}/year — ₹320/month billed yearly`
+                      : `₹${tier.price.yearly}/year — save ₹${(tier.price.monthly * 12) - tier.price.yearly}`}
                   </div>
                 )}
 

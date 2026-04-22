@@ -18,7 +18,7 @@ interface Props {
 export function EmailChartButton({ chart, compact = false, style }: Props) {
   const { data: session } = useSession()
   const plan = (session?.user as any)?.plan ?? 'free'
-  const isFree = plan === 'free'
+  const requiresUpgrade = plan !== 'platinum'
 
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail]   = useState('')
@@ -71,8 +71,8 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
   }
 
   const handleToggle = () => {
-    if (isFree) {
-      window.location.href = '/pricing?highlight=gold'
+    if (requiresUpgrade) {
+      window.location.href = '/pricing?highlight=platinum'
       return
     }
     setIsOpen(!isOpen)
@@ -85,16 +85,16 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
       <button
         onClick={handleToggle}
         disabled={loading}
-        title={isFree ? 'Email delivery requires Gold plan' : `Email dossier to client`}
+        title={requiresUpgrade ? 'Email delivery requires Platinum plan' : `Email dossier to client`}
         style={{
           display:        'inline-flex',
           alignItems:     'center',
           gap:            6,
           padding:        compact ? '5px 10px' : '7px 16px',
           borderRadius:   'var(--r-sm, 6px)',
-          border:         `1px solid ${isFree ? 'var(--border-soft)' : 'var(--teal-soft, #4ecdc480)'}`,
-          background:     isFree ? 'transparent' : 'rgba(78,205,196,0.08)',
-          color:          isFree ? 'var(--text-muted)' : 'var(--teal, #4ecdc4)',
+          border:         `1px solid ${requiresUpgrade ? 'var(--border-soft)' : 'var(--teal-soft, #4ecdc480)'}`,
+          background:     requiresUpgrade ? 'transparent' : 'rgba(78,205,196,0.08)',
+          color:          requiresUpgrade ? 'var(--text-muted)' : 'var(--teal, #4ecdc4)',
           cursor:         'pointer',
           fontSize:       compact ? '0.7rem' : '0.8rem',
           fontWeight:     600,
@@ -103,7 +103,7 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
           whiteSpace:     'nowrap',
         }}
       >
-        {isFree ? '🔒 ' : '✉️ '}
+        {requiresUpgrade ? '🔒 ' : '✉️ '}
         {compact ? 'Email' : 'Email to Client'}
       </button>
 

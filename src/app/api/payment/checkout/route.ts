@@ -27,7 +27,7 @@ function getRazorpay(): Razorpay {
 // synced with src/app/pricing/page.tsx
 const PLAN_PRICES = {
   gold: { monthly: 17500, yearly: 180000 },
-  platinum: { monthly: 70000, yearly: 840000 },
+  platinum: { monthly: 35000, yearly: 384000 },
 } as const
 
 // ── Input schema ──────────────────────────────────────────────
