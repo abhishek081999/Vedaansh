@@ -1,9 +1,11 @@
 'use client'
 // src/app/pricing/page.tsx — Subscription tiers
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+
+let razorpayLoadPromise: Promise<void> | null = null
 
 const FEATURES = {
   free: {
@@ -86,6 +88,11 @@ export default function PricingPage() {
 
   const currentPlan = (session?.user as any)?.plan ?? 'free'
 
+  useEffect(() => {
+    // Warm up SDK after first render so checkout opens faster and more reliably.
+    void ensureRazorpayScript()
+  }, [])
+
   // ── Razorpay checkout ────────────────────────────────────────
   async function handleSubscribe(planKey: 'gold' | 'platinum') {
     if (!session) {
@@ -106,7 +113,7 @@ export default function PricingPage() {
       if (!data.success) throw new Error(data.error ?? 'Order creation failed')
 
       // 2. Load Razorpay script if not already present
-      await loadRazorpayScript()
+      await ensureRazorpayScript()
 
       // 3. Open Razorpay modal
       const rzp = new (window as any).Razorpay({
@@ -148,17 +155,6 @@ export default function PricingPage() {
       setCheckoutError(err instanceof Error ? err.message : 'Payment failed. Please try again.')
       setCheckoutLoading(null)
     }
-  }
-
-  function loadRazorpayScript(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if ((window as any).Razorpay) { resolve(); return }
-      const script = document.createElement('script')
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-      script.onload = () => resolve()
-      script.onerror = () => reject(new Error('Failed to load Razorpay SDK'))
-      document.head.appendChild(script)
-    })
   }
 
   return (
@@ -444,4 +440,62 @@ export default function PricingPage() {
       </footer>
     </div>
   )
+}
+
+function ensureRazorpayScript(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve()
+  if ((window as any).Razorpay) return Promise.resolve()
+  if (razorpayLoadPromise) return razorpayLoadPromise
+
+  razorpayLoadPromise = new Promise((resolve, reject) => {
+    const existingScript = document.querySelector<HTMLScriptElement>('script[data-razorpay-checkout="1"]')
+    if (existingScript) {
+      const done = () => {
+        existingScript.removeEventListener('load', done)
+        existingScript.removeEventListener('error', fail)
+        if ((window as any).Razorpay) {
+          resolve()
+          return
+        }
+        razorpayLoadPromise = null
+        reject(new Error('Failed to load Razorpay SDK'))
+      }
+      const fail = () => {
+        existingScript.removeEventListener('load', done)
+        existingScript.removeEventListener('error', fail)
+        razorpayLoadPromise = null
+        reject(new Error('Failed to load Razorpay SDK'))
+      }
+
+      existingScript.addEventListener('load', done, { once: true })
+      existingScript.addEventListener('error', fail, { once: true })
+
+      // If script has already finished loading, resolve immediately.
+      if ((existingScript as any).readyState === 'complete' || (window as any).Razorpay) {
+        done()
+      }
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    script.setAttribute('data-razorpay-checkout', '1')
+    script.onload = () => {
+      if ((window as any).Razorpay) {
+        resolve()
+        return
+      }
+      razorpayLoadPromise = null
+      reject(new Error('Failed to load Razorpay SDK'))
+    }
+    script.onerror = () => {
+      razorpayLoadPromise = null
+      script.remove()
+      reject(new Error('Failed to load Razorpay SDK'))
+    }
+    document.head.appendChild(script)
+  })
+
+  return razorpayLoadPromise
 }
