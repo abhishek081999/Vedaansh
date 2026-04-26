@@ -1197,9 +1197,9 @@ export function SBCAdvancedPanel({ grid, transitRaw, natalGrahas, analysis, tith
 
             {/* Classical explanation */}
             <div style={{ marginTop:'1.25rem', padding:'0.875rem 1rem', background:'rgba(139,92,246,0.05)', border:'1px solid rgba(139,92,246,0.18)', borderRadius:12, fontSize:'0.7rem', color:'var(--text-secondary)', lineHeight:1.65 }}>
-              <strong style={{ color:'#a78bfa' }}>📖 About Vedha Pairs:</strong> In Sarvatobhadra, each nakshatra has traditional "enemy" nakshatras — placing a planet in one affects the other. The grid-based vedha (row + column crossing) is the primary mechanism used in this tool. Classical texts also list specific named vedha pairs based on phonetic harmony, deity relationships, and geometric grid positions.
+              <strong style={{ color:'#a78bfa' }}>📖 About Vedha Pairs:</strong> In Sarvatobhadra, each nakshatra has traditional &quot;enemy&quot; nakshatras — placing a planet in one affects the other. The grid-based vedha (row + column crossing) is the primary mechanism used in this tool. Classical texts also list specific named vedha pairs based on phonetic harmony, deity relationships, and geometric grid positions.
               <br/><br/>
-              <strong style={{ color:'#a78bfa' }}>How to Use:</strong> If your birth nakshatra appears in a vedha pair's "partner" column, and a transit malefic occupies that partner star — you are experiencing active vedha. Plan accordingly by avoiding major new actions.
+              <strong style={{ color:'#a78bfa' }}>How to Use:</strong> If your birth nakshatra appears in a vedha pair&apos;s &quot;partner&quot; column, and a transit malefic occupies that partner star — you are experiencing active vedha. Plan accordingly by avoiding major new actions.
             </div>
           </div>
         )}

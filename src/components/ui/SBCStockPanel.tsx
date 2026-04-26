@@ -443,7 +443,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
         }}>
           <SignalDots level={signal.level} color={signal.color} />
           <div>
-            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today's Signal</div>
+            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today&apos;s Signal</div>
             <div style={{ fontSize: '0.88rem', fontWeight: 900, color: signal.color }}>{signal.level}</div>
           </div>
         </div>
@@ -583,7 +583,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
               {/* Today snapshot */}
               <div style={{ background: 'var(--surface-2)', borderRadius: 12, padding: '0.875rem', marginTop: '0.25rem' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Today's Snapshot</div>
+                <div style={{ fontWeight: 700, fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Today&apos;s Snapshot</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                   <div style={{ padding: '3px 10px', borderRadius: 20, background: `${todayPlan.color}15`, border: `1px solid ${todayPlan.color}35`, fontSize: '0.68rem', fontWeight: 700, color: todayPlan.color }}>
                     {todayPlan.icon} {todayPlan.day} · {todayPlan.planet} Day
@@ -651,7 +651,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
             <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 12 }}>
               <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.5rem' }}>📊 How to Use This Table</div>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.75rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                <div><strong style={{ color: 'var(--teal)' }}>Positive Vedha</strong><br/>Check the "Financial Pulse" tab. Planets with bullish vedha → BUY their sectors with full confidence.</div>
+                <div><strong style={{ color: 'var(--teal)' }}>Positive Vedha</strong><br/>Check the &quot;Financial Pulse&quot; tab. Planets with bullish vedha → BUY their sectors with full confidence.</div>
                 <div><strong style={{ color: 'var(--rose)' }}>Malefic Vedha</strong><br/>Planets listed as bearish → AVOID or SHORT their sectors. Exit any existing positions in those stocks.</div>
                 <div><strong style={{ color: 'var(--text-gold)' }}>Weekly Rotation</strong><br/>Every Sunday: identify top 2 positive planets → overweight their sectors. Underweight afflicted planet sectors.</div>
               </div>
@@ -721,7 +721,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
         {activeTab === 'nakshatras' && (
           <div>
             <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>27 Nakshatra Trading Guide</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Track Moon's daily nakshatra — buy that lord's sector stocks</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Track Moon&apos;s daily nakshatra — buy that lord&apos;s sector stocks</div>
 
             {/* Current moon highlight */}
             {moonNak && (
