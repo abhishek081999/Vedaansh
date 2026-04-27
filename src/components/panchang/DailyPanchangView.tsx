@@ -37,7 +37,7 @@ export interface PanchangApiData {
   tithi: { number: number; name: string; paksha: string; lord: string; percent: number }
   nakshatra: { index: number; name: string; pada: number; lord: string; degree: number }
   sunNakshatra: { index: number; name: string; pada: number; lord: string }
-  yoga: { number: number; name: string; quality: string; percent: number; number: number }
+  yoga: { number: number; name: string; quality: string; percent: number }
   karana: { number: number; name: string; type: string; isBhadra: boolean }
   sunrise: string
   sunset: string

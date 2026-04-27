@@ -221,7 +221,7 @@ function MajorKundaliStrip({
     runningRahu ? todayPanchang?.rahuKalam.end : undefined,
     runningGulika ? todayPanchang?.gulikaKalam.end : undefined,
     runningYamaganda ? todayPanchang?.yamaganda.end : undefined,
-  ].filter((v): v is Date | string => Boolean(v))
+  ].filter((v): v is Date => Boolean(v))
   const nextChangeMs = nextChangeCandidates.length
     ? Math.min(...nextChangeCandidates.map((v) => new Date(v).getTime()))
     : null
