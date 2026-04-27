@@ -1,10 +1,9 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { startOfHour, addHours } from 'date-fns'
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
-import { BarChart3, Eye, EyeOff } from 'lucide-react'
 import type { PanchangDayTimeline, TimelineSegment } from '@/lib/panchang/day-timeline'
 import styles from './PanchangTimelineStrip.module.css'
 
@@ -131,7 +130,6 @@ function TrackBackdrop({
   sunsetIso,
 }: {
   dayNightStyle: CSSProperties
-  /** Dashed guides for this row only — use segment end times so lines match block edges */
   interiorLineTimes: string[]
   srPct: number
   ssPct: number
@@ -264,8 +262,6 @@ export function PanchangTimelineStrip({
   timeline: PanchangDayTimeline
   tz: string
 }) {
-  const [visible, setVisible] = useState(true)
-
   const w0 = useMemo(() => new Date(timeline.windowStart).getTime(), [timeline.windowStart])
   const w1 = useMemo(() => new Date(timeline.windowEnd).getTime(), [timeline.windowEnd])
 
@@ -286,178 +282,145 @@ export function PanchangTimelineStrip({
 
   const hinduDayActive = isNowBetween(timeline.windowStart, timeline.windowEnd)
 
-  if (!visible) {
-    return (
-      <div className={styles.wrap}>
-        <div className={styles.header}>
-          <div>
-            <h2 className={styles.title}>Limb timeline</h2>
-            <p className={styles.sub}>Sunrise → next sunrise. Hidden.</p>
-          </div>
-          <button type="button" className={styles.toggle} onClick={() => setVisible(true)}>
-            <Eye className="w-4 h-4" aria-hidden />
-            Show
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className={styles.wrap}>
-      <div className={styles.header}>
-        <div>
-          <h2 className={styles.title}>Limb timeline</h2>
-          <p className={styles.sub}>
-            One block per continuous limb (duplicate labels are merged). Dotted lines match that row’s
-            changes only. Short slices show a dot — hover for the name. “Now” is a subtle teal edge.
-          </p>
-        </div>
-        <button type="button" className={styles.toggle} onClick={() => setVisible(false)} aria-pressed="true">
-          <EyeOff className="w-4 h-4" aria-hidden />
-          Hide strip
-        </button>
-      </div>
-
-      <div className={styles.body}>
-        <div className={styles.inner}>
-          <div className={styles.row}>
-            <div className={styles.rowLabel}>
-              <BarChart3 className="w-4 h-4" style={{ opacity: 0.65 }} aria-hidden />
-            </div>
-            <div className={`${styles.trackShell} ${styles.trackShellRuler}`}>
-              <TrackBackdrop
-                dayNightStyle={dayNightStyle}
-                interiorLineTimes={[]}
-                srPct={srPct}
-                ssPct={ssPct}
-                w0={w0}
-                w1={w1}
-                tz={tz}
-                sunriseIso={timeline.sunrise}
-                sunsetIso={timeline.sunset}
-              />
-              <div className={styles.rulerBottom}>
-                {hourTicks.map((ht) => (
-                  <span
-                    key={ht.toISOString()}
-                    className={styles.hourTick}
-                    style={{ left: `${pctBetween(ht.toISOString(), w0, w1)}%` }}
-                  />
-                ))}
-              </div>
-              <div className={styles.rulerTop}>
-                {rulerTopLabels.map((item) =>
-                  item.variant === 'hour' ? (
-                    <span key={item.key} className={styles.hourLabel} style={{ left: `${item.pct}%` }}>
-                      {item.label}
-                    </span>
-                  ) : (
-                    <span
-                      key={item.key}
-                      className={`${styles.eventChip} ${item.variant === 'sr' ? styles.eventChipSun : styles.eventChipMoon}`}
-                      style={{ left: `${item.pct}%` }}
-                      title={item.variant === 'sr' ? 'Sunrise' : 'Sunset'}
-                    >
-                      <span className={styles.eventIcon} aria-hidden>
-                        {item.variant === 'sr' ? '☀' : '🌇'}
-                      </span>
-                      {item.label}
-                    </span>
-                  ),
-                )}
-              </div>
-            </div>
+    <div className={styles.body}>
+      <div className={styles.inner}>
+        <div className={styles.row}>
+          <div className={styles.rowLabel}>
+            {/* Empty for ruler alignment */}
           </div>
-
-          <LimbRow
-            label="Tithi"
-            segments={timeline.tithi}
-            w0={w0}
-            w1={w1}
-            dayNightStyle={dayNightStyle}
-            srPct={srPct}
-            ssPct={ssPct}
-            tz={tz}
-            sunriseIso={timeline.sunrise}
-            sunsetIso={timeline.sunset}
-          />
-          <LimbRow
-            label="Nakṣatra"
-            segments={timeline.nakshatra}
-            w0={w0}
-            w1={w1}
-            dayNightStyle={dayNightStyle}
-            srPct={srPct}
-            ssPct={ssPct}
-            tz={tz}
-            sunriseIso={timeline.sunrise}
-            sunsetIso={timeline.sunset}
-          />
-          <LimbRow
-            label="Yoga"
-            segments={timeline.yoga}
-            w0={w0}
-            w1={w1}
-            dayNightStyle={dayNightStyle}
-            srPct={srPct}
-            ssPct={ssPct}
-            tz={tz}
-            sunriseIso={timeline.sunrise}
-            sunsetIso={timeline.sunset}
-          />
-          <LimbRow
-            label="Karaṇa"
-            segments={timeline.karana}
-            w0={w0}
-            w1={w1}
-            dayNightStyle={dayNightStyle}
-            srPct={srPct}
-            ssPct={ssPct}
-            tz={tz}
-            sunriseIso={timeline.sunrise}
-            sunsetIso={timeline.sunset}
-            warnActive={(seg, active) => active && seg.sub === 'Bhadra'}
-          />
-
-          <div className={`${styles.row} ${styles.varaRow}`}>
-            <div className={styles.rowLabel}>Vāra</div>
-            <div className={styles.trackShell}>
-              <TrackBackdrop
-                dayNightStyle={dayNightStyle}
-                interiorLineTimes={[]}
-                srPct={srPct}
-                ssPct={ssPct}
-                w0={w0}
-                w1={w1}
-                tz={tz}
-                sunriseIso={timeline.sunrise}
-                sunsetIso={timeline.sunset}
-              />
-              <div className={styles.segments}>
-                <div
-                  className={`${styles.segment} ${hinduDayActive ? styles.varaHighlight : ''}`}
-                  style={{ width: '100%' }}
-                  title={`${timeline.vara.sanskrit} (${timeline.vara.name})`}
-                >
-                  <span className={styles.segmentLabel}>
-                    {timeline.vara.sanskrit} ({timeline.vara.name})
+          <div className={`${styles.trackShell} ${styles.trackShellRuler}`}>
+            <TrackBackdrop
+              dayNightStyle={dayNightStyle}
+              interiorLineTimes={[]}
+              srPct={srPct}
+              ssPct={ssPct}
+              w0={w0}
+              w1={w1}
+              tz={tz}
+              sunriseIso={timeline.sunrise}
+              sunsetIso={timeline.sunset}
+            />
+            <div className={styles.rulerBottom}>
+              {hourTicks.map((ht) => (
+                <span
+                  key={ht.toISOString()}
+                  className={styles.hourTick}
+                  style={{ left: `${pctBetween(ht.toISOString(), w0, w1)}%` }}
+                />
+              ))}
+            </div>
+            <div className={styles.rulerTop}>
+              {rulerTopLabels.map((item) =>
+                item.variant === 'hour' ? (
+                  <span key={item.key} className={styles.hourLabel} style={{ left: `${item.pct}%` }}>
+                    {item.label}
                   </span>
-                  <span className={styles.segmentSub}>whole Hindu day</span>
-                </div>
+                ) : (
+                  <span
+                    key={item.key}
+                    className={`${styles.eventChip} ${item.variant === 'sr' ? styles.eventChipSun : styles.eventChipMoon}`}
+                    style={{ left: `${item.pct}%` }}
+                    title={item.variant === 'sr' ? 'Sunrise' : 'Sunset'}
+                  >
+                    <span className={styles.eventIcon} aria-hidden>
+                      {item.variant === 'sr' ? '☀' : '🌇'}
+                    </span>
+                    {item.label}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+
+        <LimbRow
+          label="Tithi"
+          segments={timeline.tithi}
+          w0={w0}
+          w1={w1}
+          dayNightStyle={dayNightStyle}
+          srPct={srPct}
+          ssPct={ssPct}
+          tz={tz}
+          sunriseIso={timeline.sunrise}
+          sunsetIso={timeline.sunset}
+        />
+        <LimbRow
+          label="Nakṣatra"
+          segments={timeline.nakshatra}
+          w0={w0}
+          w1={w1}
+          dayNightStyle={dayNightStyle}
+          srPct={srPct}
+          ssPct={ssPct}
+          tz={tz}
+          sunriseIso={timeline.sunrise}
+          sunsetIso={timeline.sunset}
+        />
+        <LimbRow
+          label="Yoga"
+          segments={timeline.yoga}
+          w0={w0}
+          w1={w1}
+          dayNightStyle={dayNightStyle}
+          srPct={srPct}
+          ssPct={ssPct}
+          tz={tz}
+          sunriseIso={timeline.sunrise}
+          sunsetIso={timeline.sunset}
+        />
+        <LimbRow
+          label="Karaṇa"
+          segments={timeline.karana}
+          w0={w0}
+          w1={w1}
+          dayNightStyle={dayNightStyle}
+          srPct={srPct}
+          ssPct={ssPct}
+          tz={tz}
+          sunriseIso={timeline.sunrise}
+          sunsetIso={timeline.sunset}
+          warnActive={(seg, active) => active && seg.sub === 'Bhadra'}
+        />
+
+        <div className={`${styles.row} ${styles.varaRow}`}>
+          <div className={styles.rowLabel}>Vāra</div>
+          <div className={styles.trackShell}>
+            <TrackBackdrop
+              dayNightStyle={dayNightStyle}
+              interiorLineTimes={[]}
+              srPct={srPct}
+              ssPct={ssPct}
+              w0={w0}
+              w1={w1}
+              tz={tz}
+              sunriseIso={timeline.sunrise}
+              sunsetIso={timeline.sunset}
+            />
+            <div className={styles.segments}>
+              <div
+                className={`${styles.segment} ${hinduDayActive ? styles.varaHighlight : ''}`}
+                style={{ width: '100%' }}
+                title={`${timeline.vara.sanskrit} (${timeline.vara.name})`}
+              >
+                <span className={styles.segmentLabel}>
+                  {timeline.vara.sanskrit} ({timeline.vara.name})
+                </span>
+                <span className={styles.segmentSub}>whole Hindu day</span>
               </div>
             </div>
           </div>
+        </div>
 
-          <div className={styles.legend}>
-            <span>
-              <span className={styles.swatchDay} aria-hidden /> Softer daylight wash
-            </span>
-            <span>
-              <span className={styles.swatchNight} aria-hidden /> Night wash
-            </span>
-            <span>Narrow slice = dot + hover</span>
-          </div>
+        <div className={styles.legend}>
+          <span>
+            <span className={styles.swatchDay} aria-hidden /> Softer daylight wash
+          </span>
+          <span>
+            <span className={styles.swatchNight} aria-hidden /> Night wash
+          </span>
+          <span>Narrow slice = dot + hover</span>
         </div>
       </div>
     </div>

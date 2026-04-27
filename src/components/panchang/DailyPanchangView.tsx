@@ -15,7 +15,6 @@ export interface PanchangApiData {
   date: string
   location: { lat: number; lng: number; tz: string }
   ayanamsha?: string
-  /** Present on fresh API responses; derived client-side from longitudes if missing (e.g. old cache). */
   sunRashi?: {
     rashi: number
     en: string
@@ -38,7 +37,7 @@ export interface PanchangApiData {
   tithi: { number: number; name: string; paksha: string; lord: string; percent: number }
   nakshatra: { index: number; name: string; pada: number; lord: string; degree: number }
   sunNakshatra: { index: number; name: string; pada: number; lord: string }
-  yoga: { number: number; name: string; quality: string; percent: number }
+  yoga: { number: number; name: string; quality: string; percent: number; number: number }
   karana: { number: number; name: string; type: string; isBhadra: boolean }
   sunrise: string
   sunset: string
@@ -87,9 +86,7 @@ export interface PanchangApiData {
   riktaTithi?: { active: boolean; detail: string }
   durMuhurat?: Array<{ start: string; end: string }>
   godhuliMuhurat?: { start: string; end: string }
-  /** Sunrise → next-sunrise limb segments (API v7+). */
   timeline?: PanchangDayTimeline
-  /** Present when API called with birthNak=0–26 */
   personalBala?: {
     birthNak: number
     birthNakName: string
@@ -116,17 +113,6 @@ export interface PanchangApiData {
   }
 }
 
-const GRAHA_COLOR: Record<string, string> = {
-  Su: '#e8a730', Mo: '#b0c8e0', Ma: '#e05050',
-  Me: '#50c878', Ju: '#f5d06e', Ve: '#f0a0c0',
-  Sa: '#9988cc', Ra: '#9b59b6', Ke: '#e67e22',
-}
-
-const GRAHA_SYMBOL: Record<string, string> = {
-  Su: '☀', Mo: '☽', Ma: '♂', Me: '☿',
-  Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋',
-}
-
 function fmtTime(iso: string, tz: string): string {
   return new Intl.DateTimeFormat('en-IN', {
     timeZone: tz,
@@ -145,173 +131,20 @@ function isNow(start: string, end: string): boolean {
   return now >= new Date(start).getTime() && now <= new Date(end).getTime()
 }
 
-function LimbCard({
-  titleSa,
-  titleEn,
-  value,
-  detail,
-  accent = 'gold',
-}: {
-  titleSa: string
-  titleEn: string
-  value: string
-  detail: string
-  accent?: 'gold' | 'teal' | 'rose' | 'slate'
-}) {
-  const accentVar =
-    accent === 'gold' ? 'var(--text-gold)' :
-    accent === 'teal' ? 'var(--teal)' :
-    accent === 'rose' ? 'var(--rose)' :
-    'var(--text-secondary)'
-
-  return (
-    <div className={styles.limbCard}>
-      <div
-        aria-hidden
-        className={styles.limbAccentBar}
-        style={{ background: `linear-gradient(90deg, transparent, ${accentVar}, transparent)` }}
-      />
-      <div className={styles.limbContent}>
-        <div className={styles.limbLabel} style={{ color: accentVar }}>
-          {titleSa}
-        </div>
-        <div className={styles.limbSub}>{titleEn}</div>
-        <div className={styles.limbValue}>{value}</div>
-        <div className={styles.limbDetail}>{detail}</div>
-      </div>
-    </div>
-  )
-}
-
-function MuhurtaRow({
-  label,
-  start,
-  end,
-  tz,
-  tone,
-}: {
-  label: string
-  start: string
-  end: string
-  tz: string
-  tone: 'warn' | 'caution' | 'good'
-}) {
-  const active = isNow(start, end)
-  const bg =
-    tone === 'good' ? 'rgba(78,205,196,0.07)' :
-    tone === 'warn' ? 'rgba(224,123,142,0.07)' :
-    'rgba(245,158,66,0.07)'
-  const border =
-    tone === 'good' ? 'rgba(78,205,196,0.22)' :
-    tone === 'warn' ? 'rgba(224,123,142,0.22)' :
-    'rgba(245,158,66,0.22)'
-  const labelCol =
-    tone === 'good' ? 'var(--teal)' :
-    tone === 'warn' ? 'var(--rose)' :
-    'var(--amber)'
-
-  return (
-    <tr style={{ background: active ? `${bg}cc` : bg, borderBottom: `1px solid var(--border-soft)` }}>
-      <td style={{ padding: '0.65rem 0.85rem', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.82rem', color: labelCol }}>
-        {label}{active && <span style={{ marginLeft: 8, fontSize: '0.7rem', fontStyle: 'italic', opacity: 0.85 }}>now</span>}
-      </td>
-      <td style={{ padding: '0.65rem 0.85rem', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-        {fmtTime(start, tz)} – {fmtTime(end, tz)}
-      </td>
-      <td style={{ padding: '0.65rem 0.85rem', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-        {durationMin(start, end)} min
-      </td>
-    </tr>
-  )
-}
-
-type HoraEntry = NonNullable<PanchangApiData['horaTable']>[number]
-
-function HoraRow({ hora, tz }: { hora: HoraEntry; tz: string }) {
-  const active = isNow(hora.start, hora.end)
-  const col = GRAHA_COLOR[hora.lord] ?? '#888'
-  const name =
-    hora.lord === 'Su' ? 'Sun' : hora.lord === 'Mo' ? 'Moon' :
-    hora.lord === 'Ma' ? 'Mars' : hora.lord === 'Me' ? 'Mercury' :
-    hora.lord === 'Ju' ? 'Jupiter' : hora.lord === 'Ve' ? 'Venus' :
-    hora.lord === 'Sa' ? 'Saturn' : hora.lord
-
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-      padding: '0.48rem 0.75rem',
-      background: active ? `${col}14` : 'transparent',
-      borderLeft: `3px solid ${active ? col : 'transparent'}`,
-      borderRadius: '0 var(--r-sm) var(--r-sm) 0',
-    }}>
-      <span style={{ fontSize: '1.05rem', width: 22, textAlign: 'center' }}>{GRAHA_SYMBOL[hora.lord] ?? hora.lord}</span>
-      <div style={{ flex: 1 }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: active ? col : 'var(--text-primary)', fontSize: '0.88rem' }}>
-          {name}
-        </span>
-        {active && <span style={{ marginLeft: 8, fontSize: '0.68rem', fontStyle: 'italic', color: col }}>current</span>}
-      </div>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-        {fmtTime(hora.start, tz)} – {fmtTime(hora.end, tz)}
-      </div>
-      <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: hora.isDaytime ? 'var(--amber)' : 'var(--accent)', opacity: 0.75, minWidth: 36 }}>
-        {hora.isDaytime ? 'Day' : 'Night'}
-      </div>
-    </div>
-  )
-}
-
-function TithiProgress({ percent, paksha }: { percent: number; paksha: string }) {
-  const isShukla = paksha === 'shukla'
-  return (
-    <div style={{ marginTop: '0.5rem' }}>
-      <div style={{ height: 4, borderRadius: 99, background: 'var(--surface-3)', overflow: 'hidden' }}>
-        <div style={{
-          height: '100%',
-          width: `${Math.min(100, percent)}%`,
-          background: isShukla
-            ? 'linear-gradient(90deg, var(--gold-dim), var(--gold-light))'
-            : 'linear-gradient(90deg, var(--accent-dim, #4a4080), var(--accent))',
-          borderRadius: 99,
-          transition: 'width 0.6s ease',
-        }} />
-      </div>
-      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
-        {percent.toFixed(1)}% of tithi elapsed
-      </div>
-    </div>
-  )
-}
-
-function chogQualityClass(q: string): string {
-  if (q === 'good') return styles.chogGood
-  if (q === 'mixed') return styles.chogMixed
-  return styles.chogAvoid
-}
-
 export function DailyPanchangView({ data }: { data: PanchangApiData }) {
   const tz = data.location.tz
-  const [horaOpen, setHoraOpen] = useState(true)
-  const [planetsOpen, setPlanetsOpen] = useState(true)
-  const [chogOpen, setChogOpen] = useState(true)
+  const [horaOpen, setHoraOpen] = useState(false)
+  const [planetsOpen, setPlanetsOpen] = useState(false)
+  const [chogOpen, setChogOpen] = useState(false)
   const [panchakaOpen, setPanchakaOpen] = useState(false)
+  const [vizTab, setVizTab] = useState<'wheel' | 'timeline'>('timeline')
 
   const sunRashi = data.sunRashi ?? rashiBlockFromLongitude(data.sunLongitudeSidereal ?? 0)
   const moonRashi = data.moonRashi ?? rashiBlockFromLongitude(data.moonLongitudeSidereal ?? 0)
-  const horaRows = data.horaTable ?? []
 
   const dayLengthMin = useMemo(() => {
     return Math.round((new Date(data.sunset).getTime() - new Date(data.sunrise).getTime()) / 60_000)
   }, [data.sunrise, data.sunset])
-
-  const yogaQ = data.yoga?.quality ?? 'neutral'
-
-  const riktaInfo = data.riktaTithi ?? {
-    active: isRiktaTithi(data.tithi.number),
-    detail: riktaTithiDescription(),
-  }
 
   const elongDisplay = useMemo(() => {
     if (data.lunarElongationDeg != null) return data.lunarElongationDeg
@@ -320,512 +153,205 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
     return ((m - s) % 360 + 360) % 360
   }, [data.lunarElongationDeg, data.moonLongitudeSidereal, data.sunLongitudeSidereal])
 
+  const riktaInfo = data.riktaTithi ?? {
+    active: isRiktaTithi(data.tithi.number),
+    detail: riktaTithiDescription(),
+  }
+
   return (
     <div className={styles.root}>
-      {/* Hero — fixed light-on-dark copy (never use --text-primary here) */}
-      <header className={styles.hero}>
-        <div className={styles.heroPattern} />
-        <div className={styles.heroInner}>
-          <div className={styles.heroKicker}>Hindu almanac</div>
-          <h1 className={styles.heroTitle}>
-            Pañcāṅga <span className={styles.heroTitleMuted}>— five limbs of time</span>
-          </h1>
-          <p className={styles.heroBody}>
-            Sidereal longitudes, lunar day, yoga, karaṇa, and muhūrta windows for your chosen place — computed with Swiss Ephemeris, in the spirit of detailed printed and online pañcāṅgas.
-          </p>
+      {/* Quick Summary Header */}
+      <div className={styles.quickHeader}>
+        <div className={styles.dateLocationRow}>
+          <div className={styles.dateDisplay}>{new Date(data.date + 'T12:00:00Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}</div>
+          <div className={styles.locationDisplay}>
+            <span>📍 {data.location.lat.toFixed(2)}, {data.location.lng.toFixed(2)}</span>
+            <span>({tz})</span>
+          </div>
         </div>
-      </header>
 
-      <PanchangViz
-        sunLon={data.sunLongitudeSidereal ?? 0}
-        moonLon={data.moonLongitudeSidereal ?? 0}
-        elongDeg={elongDisplay}
-        nakIndex={data.nakshatra.index}
-        tithiPercent={data.tithi.percent}
-        paksha={data.tithi.paksha}
-        yogaPercent={data.yoga.percent}
-        yogaNumber={data.yoga.number}
-        sunrise={data.sunrise}
-        sunset={data.sunset}
-        tz={tz}
-        dateStr={data.date}
-      />
+        {/* The Five Limbs - Ultra Compact */}
+        <div className={styles.limbsGrid}>
+          <CompactLimbCard 
+            label="Tithi" 
+            value={data.tithi.name} 
+            sub={`${data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} · Lord ${data.tithi.lord}`}
+            percent={data.tithi.percent}
+            isRikta={riktaInfo.active}
+            riktaDetail={riktaInfo.detail}
+          />
+          <CompactLimbCard 
+            label="Nakshatra" 
+            value={data.nakshatra.name} 
+            sub={`Pada ${data.nakshatra.pada} · Lord ${data.nakshatra.lord}`}
+            percent={(data.nakshatra.degree / 13.33) * 100}
+          />
+          <CompactLimbCard 
+            label="Yoga" 
+            value={data.yoga.name} 
+            sub={`${data.yoga.quality} · ${data.yoga.percent.toFixed(0)}%`}
+            percent={data.yoga.percent}
+            quality={data.yoga.quality}
+          />
+          <CompactLimbCard 
+            label="Karana" 
+            value={data.karana.name} 
+            sub={data.karana.type}
+            isBhadra={data.karana.isBhadra}
+          />
+          <CompactLimbCard 
+            label="Vara" 
+            value={data.vara.name} 
+            sub={data.vara.sanskrit}
+          />
+        </div>
+      </div>
 
-      {data.timeline && <PanchangTimelineStrip timeline={data.timeline} tz={tz} />}
+      {/* Daily Cycle - Visual Strip */}
+      <div className={styles.cycleStrip}>
+        <CycleItem icon="🌅" label="Sunrise" value={fmtTime(data.sunrise, tz)} />
+        <CycleItem icon="🌇" label="Sunset" value={fmtTime(data.sunset, tz)} />
+        <CycleItem icon="🌙" label="Moonrise" value={data.moonrise ? fmtTime(data.moonrise, tz) : '—'} />
+        <CycleItem icon="🌑" label="Moonset" value={data.moonset ? fmtTime(data.moonset, tz) : '—'} />
+        <CycleItem icon="⏱" label="Day Length" value={`${Math.floor(dayLengthMin / 60)}h ${dayLengthMin % 60}m`} />
+      </div>
 
-      {/* Ephemeris strip */}
-      <section className={styles.ephemeris}>
-        <div>
-          <div className={styles.ephemerisLabel}>Julian day (UT)</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{(data.julianDay ?? 0).toFixed(5)}</div>
+      {/* Muhurtas - Good vs Bad Grid */}
+      <section className={styles.muhurtaSection}>
+        <div className={styles.sectionHeading}>Important Timings</div>
+        <div className={styles.muhurtaGrid}>
+          <MuhurtaCard label="Abhijit" start={data.abhijitMuhurta?.start} end={data.abhijitMuhurta?.end} tz={tz} tone="good" />
+          <MuhurtaCard label="Rahu Kalam" start={data.rahuKalam.start} end={data.rahuKalam.end} tz={tz} tone="bad" />
+          <MuhurtaCard label="Gulika Kalam" start={data.gulikaKalam.start} end={data.gulikaKalam.end} tz={tz} tone="bad" />
+          <MuhurtaCard label="Yamaganda" start={data.yamaganda.start} end={data.yamaganda.end} tz={tz} tone="neutral" />
+          {data.brahmaMuhurta && <MuhurtaCard label="Brahma Muhurta" start={data.brahmaMuhurta.start} end={data.brahmaMuhurta.end} tz={tz} tone="good" />}
+          {data.godhuliMuhurat && <MuhurtaCard label="Godhuli" start={data.godhuliMuhurat.start} end={data.godhuliMuhurat.end} tz={tz} tone="good" />}
         </div>
-        <div>
-          <div className={styles.ephemerisLabel}>Ayanāṃśa</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.92rem', color: 'var(--text-secondary)' }}>{(data.ayanamsha ?? 'lahiri').replace(/_/g, ' ')}</div>
-        </div>
-        <div>
-          <div className={styles.ephemerisLabel}>Sūrya — Rāśi</div>
-          <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-            <span style={{ color: '#e8a730' }}>☀</span>{' '}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{sunRashi.sa}</span>
-            <span style={{ color: 'var(--text-muted)', marginLeft: 6, fontSize: '0.8rem' }}>({sunRashi.en})</span>
-          </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
-            {sunRashi.dmsInSign} in sign
-            {formatLongitudeDMS(data.sunLongitudeSidereal ?? 0) !== sunRashi.dmsInSign && (
-              <> · λ {formatLongitudeDMS(data.sunLongitudeSidereal ?? 0)}</>
-            )}
-          </div>
-        </div>
-        <div>
-          <div className={styles.ephemerisLabel}>Chandra — Rāśi</div>
-          <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-            <span style={{ color: '#b0c8e0' }}>☽</span>{' '}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{moonRashi.sa}</span>
-            <span style={{ color: 'var(--text-muted)', marginLeft: 6, fontSize: '0.8rem' }}>({moonRashi.en})</span>
-          </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
-            {moonRashi.dmsInSign} in sign
-            {formatLongitudeDMS(data.moonLongitudeSidereal ?? 0) !== moonRashi.dmsInSign && (
-              <> · λ {formatLongitudeDMS(data.moonLongitudeSidereal ?? 0)}</>
-            )}
-          </div>
-        </div>
-        {data.lunarElongationDeg != null && (
-          <div>
-            <div className={styles.ephemerisLabel}>Moon–Sun elongation</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
-              {data.lunarElongationDeg.toFixed(2)}°
-            </div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.35 }}>
-              Sidereal separation (lunar phase geometry). 0° ≈ new moon; 180° ≈ full moon.
-            </div>
-          </div>
-        )}
       </section>
 
+      {/* Personalized Bala (if available) */}
       {data.personalBala && (
-        <section className={styles.personalBalaWrap}>
-          <div className={styles.sectionHeading}>Tārā & Chandra bala (your Moon)</div>
-          <p className={styles.advNote} style={{ marginTop: 0 }}>
-            Compared to your <strong>birth nakṣatra</strong> (and natal Moon sign — exact or estimated from the star). Transit uses today’s Moon from this pañcāṅga.
-          </p>
-          <div className={styles.personalBalaGrid}>
-            <div className={styles.personalBalaCard}>
-              <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>Tārā bala</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.05rem', color: data.personalBala.tara.favorable ? 'var(--teal)' : 'var(--rose)' }}>
-                {data.personalBala.tara.nameSa} <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.85rem' }}>({data.personalBala.tara.nameEn})</span>
-              </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.45 }}>
-                Distance {data.personalBala.tara.distance}/27 from birth star → tāra {data.personalBala.tara.taraIndex}/9. {data.personalBala.tara.hint}
-              </div>
-            </div>
-            <div className={styles.personalBalaCard}>
-              <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>Chandra bala</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.05rem', color: data.personalBala.chandra.favorable ? 'var(--teal)' : 'var(--rose)' }}>
-                House {data.personalBala.chandra.houseFromNatalMoon} from natal Moon
-              </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.45 }}>
-                Natal Moon: {data.personalBala.chandra.birthRashi.sa} ({data.personalBala.chandra.birthRashi.en})
-                {data.personalBala.chandra.usedApproxRashi && ' · rāśi estimated from nakṣatra'}
-                <br />
-                Transit Moon: {data.personalBala.chandra.transitRashi.sa} ({data.personalBala.chandra.transitRashi.en})
-                <br />
-                {data.personalBala.chandra.hint}
-              </div>
-            </div>
+        <section>
+          <div className={styles.sectionHeading}>Your Personal Bala</div>
+          <div className={styles.chogGrid}>
+             <div className={styles.limbCard} style={{ borderColor: data.personalBala.tara.favorable ? 'var(--teal)' : 'var(--rose)' }}>
+                <div className={styles.limbLabel}>Tara Bala <span style={{ color: data.personalBala.tara.favorable ? 'var(--teal)' : 'var(--rose)' }}>{data.personalBala.tara.favorable ? '✓' : '✗'}</span></div>
+                <div className={styles.limbValue}>{data.personalBala.tara.nameSa}</div>
+                <div className={styles.limbSub}>{data.personalBala.tara.hint}</div>
+             </div>
+             <div className={styles.limbCard} style={{ borderColor: data.personalBala.chandra.favorable ? 'var(--teal)' : 'var(--rose)' }}>
+                <div className={styles.limbLabel}>Chandra Bala <span style={{ color: data.personalBala.chandra.favorable ? 'var(--teal)' : 'var(--rose)' }}>{data.personalBala.chandra.favorable ? '✓' : '✗'}</span></div>
+                <div className={styles.limbValue}>House {data.personalBala.chandra.houseFromNatalMoon}</div>
+                <div className={styles.limbSub}>{data.personalBala.chandra.hint}</div>
+             </div>
           </div>
         </section>
       )}
 
-      {data.calendarContext && (
-        <section className={styles.calendarStrip}>
-          <div className={styles.calendarCell}>
-            <div className={styles.calendarLabel}>Saura māsa</div>
-            <div className={styles.calendarValue}>{data.calendarContext.sauraMasa}</div>
-          </div>
-          <div className={styles.calendarCell}>
-            <div className={styles.calendarLabel}>Ṛtu (season)</div>
-            <div className={styles.calendarValue}>
-              {data.calendarContext.rituSa} <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.82rem' }}>({data.calendarContext.rituEn})</span>
-            </div>
-          </div>
-          <div className={styles.calendarCell}>
-            <div className={styles.calendarLabel}>Ayana</div>
-            <div className={styles.calendarValue}>
-              {data.calendarContext.ayanaSa}
-            </div>
-          </div>
-          <div className={styles.calendarCell}>
-            <div className={styles.calendarLabel}>Saṃvatsara (approx.)</div>
-            <div className={styles.calendarValue}>{data.calendarContext.samvatsara}</div>
-          </div>
-          <div className={styles.calendarCell}>
-            <div className={styles.calendarLabel}>Śaka · Vikrama (approx.)</div>
-            <div className={styles.calendarValue} style={{ fontSize: '0.85rem' }}>
-              {data.calendarContext.shakaYear} · {data.calendarContext.vikramSamvat}
-            </div>
-          </div>
-          <p className={styles.calendarHint}>
-            Saura month and seasons follow the Sun’s sidereal rāśi. Śaka / Vikrama years are rough civil mappings; traditional reckoning varies by region and school.
-          </p>
-        </section>
-      )}
-
-      {/* Sun / moon / day length */}
-      <section className={styles.timingGrid}>
-        {[
-          { icon: '🌅', label: 'Sunrise', time: data.sunrise, color: '#d97706' },
-          { icon: '🌇', label: 'Sunset', time: data.sunset, color: '#c2416c' },
-          { icon: '🌙', label: 'Moonrise', time: data.moonrise, color: '#7c9cbf', emptyTitle: 'No moonrise during this calendar day at this location (polar days or ephemeris edge case).' },
-          { icon: '🌑', label: 'Moonset', time: data.moonset, color: '#94a3b8', emptyTitle: 'No moonset during this calendar day at this location.' },
-        ].map(({ icon, label, time, color, emptyTitle }) => (
-          <div key={label} className={styles.timingCell}>
-            <div style={{ fontSize: '1.35rem', marginBottom: 4 }}>{icon}</div>
-            <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>{label}</div>
-            <div
-              title={!time && emptyTitle ? emptyTitle : undefined}
-              className={styles.timingValue}
-              style={{ color: time ? color : 'var(--text-muted)' }}
-            >
-              {time ? fmtTime(time, tz) : '—'}
-            </div>
-          </div>
-        ))}
-        <div
-          className={styles.timingCell}
-          style={{
-            border: '1px solid rgba(180, 134, 0, 0.28)',
-            background: 'linear-gradient(180deg, rgba(180, 134, 0, 0.09), var(--surface-2))',
-          }}
-        >
-          <div style={{ fontSize: '1.35rem', marginBottom: 4 }}>⏱</div>
-          <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Day length</div>
-          <div className={styles.timingValue} style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-            {Math.floor(dayLengthMin / 60)}h {dayLengthMin % 60}m
-          </div>
-        </div>
-      </section>
-
-      {/* Pañca aṅga */}
-      <section>
-        <div className={styles.sectionHeading}>Pañca aṅga — the five limbs</div>
-        <div className={styles.fiveGrid}>
-          <LimbCard
-            titleSa="Vāra"
-            titleEn="Weekday & its lord"
-            value={data.vara?.name ?? '—'}
-            detail={[data.vara?.sanskrit, `planetary lord ${data.vara?.lord ?? '—'}`].filter(Boolean).join(' · ')}
-            accent="gold"
-          />
-          <div className={styles.limbCard}>
-            <div className={styles.limbAccentBar} style={{ background: 'linear-gradient(90deg, transparent, var(--text-gold), transparent)' }} />
-            <div className={styles.limbContent}>
-              <div className={styles.limbLabel} style={{ color: 'var(--text-gold)' }}>Tithi</div>
-              <div className={styles.limbSub}>Lunar day · {data.tithi.number}/30</div>
-              <div className={styles.limbValue}>{data.tithi?.name ?? '—'}</div>
-              <div className={styles.limbDetail}>
-                {data.tithi.paksha === 'shukla' ? 'Śukla pakṣa (waxing)' : 'Kṛṣṇa pakṣa (waning)'} · lord {data.tithi.lord}
-              </div>
-              <TithiProgress percent={data.tithi.percent} paksha={data.tithi.paksha} />
-              {riktaInfo.active && (
-                <div
-                  style={{
-                    marginTop: '0.65rem',
-                    padding: '0.5rem 0.6rem',
-                    borderRadius: 'var(--r-sm)',
-                    border: '1px solid rgba(225, 29, 72, 0.28)',
-                    background: 'rgba(225, 29, 72, 0.06)',
-                    fontSize: '0.72rem',
-                    lineHeight: 1.45,
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  <strong style={{ color: 'var(--rose)' }}>Ṛkta tithi</strong> — {riktaInfo.detail}
-                </div>
-              )}
-            </div>
-          </div>
-          <LimbCard
-            titleSa="Nakṣatra"
-            titleEn="Moon’s lunar mansion"
-            value={data.nakshatra?.name ?? '—'}
-            detail={`Pada ${data.nakshatra?.pada ?? '—'} · ${data.nakshatra?.lord ?? '—'} · ${(data.nakshatra?.degree ?? 0).toFixed(2)}° within nakṣatra`}
-            accent="gold"
-          />
-          <div
-            className={styles.limbCard}
-            style={{
-              borderColor: yogaQ === 'auspicious' ? 'rgba(13, 148, 136, 0.35)' : yogaQ === 'inauspicious' ? 'rgba(225, 29, 72, 0.35)' : undefined,
-            }}
+      {/* Visualization Tab Toggle */}
+      <section className={styles.vizContainer}>
+        <div className={styles.vizTabs}>
+          <button 
+            className={`${styles.vizTabBtn} ${vizTab === 'timeline' ? styles.vizTabBtnActive : ''}`}
+            onClick={() => setVizTab('timeline')}
           >
-            <div
-              className={styles.limbAccentBar}
-              style={{
-                background: `linear-gradient(90deg, transparent, ${yogaQ === 'auspicious' ? 'var(--teal)' : yogaQ === 'inauspicious' ? 'var(--rose)' : 'var(--text-muted)'}, transparent)`,
-              }}
+            📊 Timeline View
+          </button>
+          <button 
+            className={`${styles.vizTabBtn} ${vizTab === 'wheel' ? styles.vizTabBtnActive : ''}`}
+            onClick={() => setVizTab('wheel')}
+          >
+            🎡 Sky Wheel
+          </button>
+        </div>
+
+        <div className={styles.vizContent}>
+          {vizTab === 'timeline' && data.timeline && (
+            <PanchangTimelineStrip timeline={data.timeline} tz={tz} />
+          )}
+          {vizTab === 'wheel' && (
+            <PanchangViz
+              sunLon={data.sunLongitudeSidereal ?? 0}
+              moonLon={data.moonLongitudeSidereal ?? 0}
+              elongDeg={elongDisplay}
+              nakIndex={data.nakshatra.index}
+              tithiPercent={data.tithi.percent}
+              paksha={data.tithi.paksha}
+              yogaPercent={data.yoga.percent}
+              yogaNumber={data.yoga.number}
+              sunrise={data.sunrise}
+              sunset={data.sunset}
+              tz={tz}
+              dateStr={data.date}
             />
-            <div className={styles.limbContent}>
-              <div
-                className={styles.limbLabel}
-                style={{ color: yogaQ === 'auspicious' ? 'var(--teal)' : yogaQ === 'inauspicious' ? 'var(--rose)' : 'var(--text-muted)' }}
-              >
-                Yoga
-              </div>
-              <div className={styles.limbSub}>Luni-solar combination · {data.yoga.number}/27</div>
-              <div
-                className={styles.limbValue}
-                style={
-                  yogaQ === 'auspicious'
-                    ? { color: 'var(--teal)' }
-                    : yogaQ === 'inauspicious'
-                      ? { color: 'var(--rose)' }
-                      : undefined
-                }
-              >
-                {data.yoga?.name ?? '—'}
-              </div>
-              <div className={styles.limbDetail}>
-                {yogaQ} · {(data.yoga.percent ?? 0).toFixed(1)}% elapsed
-              </div>
-            </div>
-          </div>
-          <LimbCard
-            titleSa="Karaṇa"
-            titleEn="Half of a tithi"
-            value={data.karana?.name ?? '—'}
-            detail={data.karana?.isBhadra ? 'Bhadra — traditionally avoid auspicious beginnings' : `${data.karana?.type ?? ''}`}
-            accent={data.karana?.isBhadra ? 'rose' : 'slate'}
-          />
-        </div>
-      </section>
-
-      {/* Nakṣatra of luminaries */}
-      <section className={styles.nakshatraGrid}>
-        <div className={styles.nakshatraCardSun}>
-          <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#b8860b', fontFamily: 'var(--font-display)', marginBottom: 6 }}>Sūrya nakṣatra</div>
-          <div className={styles.limbValue} style={{ fontSize: '1.12rem' }}>{data.sunNakshatra.name}</div>
-          <div className={styles.limbDetail} style={{ marginTop: 6 }}>Pada {data.sunNakshatra.pada} · lord {data.sunNakshatra.lord}</div>
-        </div>
-        <div className={styles.nakshatraCardMoon}>
-          <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#64748b', fontFamily: 'var(--font-display)', marginBottom: 6 }}>Chandra nakṣatra</div>
-          <div className={styles.limbValue} style={{ fontSize: '1.12rem' }}>{data.nakshatra.name}</div>
-          <div className={styles.limbDetail} style={{ marginTop: 6 }}>Pada {data.nakshatra.pada} · lord {data.nakshatra.lord}</div>
-        </div>
-      </section>
-
-      {(data.brahmaMuhurta || data.limbEnds) && (
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.85rem' }}>
-          {data.brahmaMuhurta && (
-            <div style={{ padding: '1rem 1.15rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
-              <div className={styles.sectionHeading} style={{ marginBottom: '0.5rem' }}>Brahmā muhūrta</div>
-              <p className={styles.advNote} style={{ marginBottom: '0.5rem' }}>
-                Early-morning sāttvic window (common rule: ~96–48 minutes before local sunrise; traditions vary).
-              </p>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                {fmtTime(data.brahmaMuhurta.start, tz)} — {fmtTime(data.brahmaMuhurta.end, tz)}
-              </div>
-            </div>
           )}
-          {data.limbEnds && (
-            <div style={{ padding: '1rem 1.15rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
-              <div className={styles.sectionHeading} style={{ marginBottom: '0.5rem' }}>Next limb changes (approx.)</div>
-              <p className={styles.advNote} style={{ marginBottom: '0.5rem' }}>
-                Times when the current tithi, Moon’s nakṣatra, or yoga yields to the next, from ephemeris search at your ayanāṃśa.
-              </p>
-              <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-                <li><strong>Tithi:</strong>{' '}{data.limbEnds.tithi ? fmtTime(data.limbEnds.tithi, tz) : '—'}</li>
-                <li><strong>Nakṣatra:</strong>{' '}{data.limbEnds.nakshatra ? fmtTime(data.limbEnds.nakshatra, tz) : '—'}</li>
-                <li><strong>Yoga:</strong>{' '}{data.limbEnds.yoga ? fmtTime(data.limbEnds.yoga, tz) : '—'}</li>
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Muhūrta table */}
-      <section>
-        <div className={styles.sectionHeading}>Inauspicious & special muhūrta</div>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 0.75rem', maxWidth: 720, lineHeight: 1.5 }}>
-          Rāhu / Gulikā / Yamagaṇḍa are avoided for new undertakings; Abhijit is a brief favourable window around local solar noon. Dur muhūrta uses the 6th and 10th of fifteen equal daytime divisions (common North Indian convention). Gōdhūli is taken here as ~24 minutes before sunset.
-        </p>
-        <div className={styles.muhurtaTableWrap}>
-          <table className={styles.muhurtaTable}>
-            <thead>
-              <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-                <th style={{ textAlign: 'left', padding: '0.55rem 0.85rem', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Muhūrta</th>
-                <th style={{ textAlign: 'left', padding: '0.55rem 0.85rem', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Local time ({tz})</th>
-                <th style={{ textAlign: 'right', padding: '0.55rem 0.85rem', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Length</th>
-              </tr>
-            </thead>
-            <tbody>
-              <MuhurtaRow label="Rāhu kālam" start={data.rahuKalam.start} end={data.rahuKalam.end} tz={tz} tone="warn" />
-              <MuhurtaRow label="Gulikā kālam" start={data.gulikaKalam.start} end={data.gulikaKalam.end} tz={tz} tone="warn" />
-              <MuhurtaRow label="Yamagaṇḍa" start={data.yamaganda.start} end={data.yamaganda.end} tz={tz} tone="caution" />
-              {data.abhijitMuhurta && (
-                <MuhurtaRow label="Abhijit (auspicious)" start={data.abhijitMuhurta.start} end={data.abhijitMuhurta.end} tz={tz} tone="good" />
-              )}
-              {data.durMuhurat?.[0] && (
-                <MuhurtaRow label="Dur muhūrta (1st)" start={data.durMuhurat[0].start} end={data.durMuhurat[0].end} tz={tz} tone="warn" />
-              )}
-              {data.durMuhurat?.[1] && (
-                <MuhurtaRow label="Dur muhūrta (2nd)" start={data.durMuhurat[1].start} end={data.durMuhurat[1].end} tz={tz} tone="warn" />
-              )}
-              {data.godhuliMuhurat && (
-                <MuhurtaRow label="Gōdhūli (twilight)" start={data.godhuliMuhurat.start} end={data.godhuliMuhurat.end} tz={tz} tone="good" />
-              )}
-            </tbody>
-          </table>
         </div>
       </section>
 
-      <section>
-        <button type="button" className={styles.disclosureBtn} onClick={() => setPanchakaOpen(o => !o)}>
-          <span className={styles.chev} style={{ transform: panchakaOpen ? 'rotate(90deg)' : 'none' }}>▶</span>
-          Pañcaka — fivefold cautions (reference)
-        </button>
-        <p className={styles.advNote}>
-          Full Pañcaka timing uses lineage-specific nakṣatra–tithi–vāra tables (often in printed almanacs). We do not auto-flag Pañcaka “risk” here; use the glossary below and your teacher’s rules.
-        </p>
-        {panchakaOpen && (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            {PANCHAKA_GLOSSARY.map((row) => (
-              <div
-                key={row.sa}
-                style={{
-                  padding: '0.65rem 0.85rem',
-                  borderRadius: 'var(--r-md)',
-                  border: '1px solid var(--border)',
-                  background: 'var(--surface-1)',
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.88rem' }}>
-                  {row.sa} <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.8rem' }}>({row.en})</span>
-                </div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.45 }}>{row.hint}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {data.planets && data.planets.length > 0 && (
-        <section>
-          <button type="button" className={styles.disclosureBtn} onClick={() => setPlanetsOpen(o => !o)}>
-            <span className={styles.chev} style={{ transform: planetsOpen ? 'rotate(90deg)' : 'none' }}>▶</span>
-            Sidereal grahas — rāśi & motion
-          </button>
-          {planetsOpen && (
-            <div className={styles.dataTableWrap}>
-              <table className={styles.dataTable}>
-                <thead>
-                  <tr>
-                    <th>Graha</th>
-                    <th>Rāśi</th>
-                    <th>° in sign</th>
-                    <th>λ (sid.)</th>
-                    <th>Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.planets.map((p) => (
-                    <tr key={p.id}>
-                      <td style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{p.sa}</td>
-                      <td>{p.rashiSa} <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>({p.rashiEn})</span></td>
-                      <td className={styles.mono}>{p.degInSign.toFixed(2)}°</td>
-                      <td className={styles.mono}>{p.longitude.toFixed(4)}°</td>
-                      <td style={{ fontSize: '0.75rem' }}>
-                        {p.retro && <span style={{ color: 'var(--rose)' }}>Retro </span>}
-                        {p.combust && <span style={{ color: 'var(--amber)' }}>Combust</span>}
-                        {!p.retro && !p.combust && '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      )}
-
-      {data.choghadiya && data.choghadiya.day.length > 0 && (
-        <section>
-          <button type="button" className={styles.disclosureBtn} onClick={() => setChogOpen(o => !o)}>
-            <span className={styles.chev} style={{ transform: chogOpen ? 'rotate(90deg)' : 'none' }}>▶</span>
-            Choghadiya — day & night
-          </button>
-          <p className={styles.advNote}>
-            Eight divisions from sunrise→sunset and sunset→next sunrise. Labh, Amrit, and Shubh are commonly chosen for beginnings; Rog, Kaal, and Udveg are often avoided (North Indian convention).
-          </p>
-          {chogOpen && (
+        <CollapsibleSection title="Choghadiya (Day & Night)" open={chogOpen} onToggle={() => setChogOpen(!chogOpen)}>
+          {data.choghadiya && (
             <div className={styles.chogGrid}>
               {(['day', 'night'] as const).map((part) => (
                 <div key={part} className={styles.chogBlock}>
-                  <div className={styles.chogBlockTitle}>{part === 'day' ? 'Day (sunrise–sunset)' : 'Night (sunset–next sunrise)'}</div>
-                  {data.choghadiya![part].map((slot, i) => {
-                    const active = isNow(slot.start, slot.end)
-                    return (
-                      <div key={i} className={`${styles.chogRow} ${active ? styles.chogRowActive : ''}`}>
-                        <span>
-                          <span className={chogQualityClass(slot.quality)}>{slot.name}</span>
-                          {active && <span style={{ marginLeft: 8, fontSize: '0.65rem', fontStyle: 'italic', color: 'var(--text-gold)' }}>now</span>}
-                        </span>
-                        <span className={styles.mono} style={{ color: 'var(--text-muted)' }}>
-                          {fmtTime(slot.start, tz)} – {fmtTime(slot.end, tz)}
-                        </span>
-                      </div>
-                    )
-                  })}
+                  <div className={styles.chogBlockTitle}>{part}</div>
+                  {data.choghadiya![part].map((slot, i) => (
+                    <div key={i} className={`${styles.chogRow} ${isNow(slot.start, slot.end) ? styles.chogRowActive : ''}`}>
+                      <span className={slot.quality === 'good' ? styles.chogGood : slot.quality === 'mixed' ? styles.chogMixed : styles.chogAvoid}>
+                        {slot.name}
+                      </span>
+                      <span className={styles.mono}>{fmtTime(slot.start, tz)}</span>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
           )}
-        </section>
-      )}
+        </CollapsibleSection>
 
-      {/* Horā */}
-      <section>
-        <button
-          type="button"
-          onClick={() => setHoraOpen(o => !o)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-display)',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: 'var(--text-muted)',
-            marginBottom: horaOpen ? '0.75rem' : 0,
-            padding: 0,
-          }}
-        >
-          <span style={{ display: 'inline-block', transform: horaOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', fontSize: '0.65rem' }}>▶</span>
-          Horā table — {horaRows.length} horās ({tz})
-        </button>
-        {horaOpen && (
-          <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
-            <div className={styles.horaHeadRow}>
-              {['Day horās', 'Night horās'].map(label => (
-                <div key={label} style={{ padding: '0.5rem 0.85rem', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', borderRight: label === 'Day horās' ? '1px solid var(--border-soft)' : 'none' }}>
-                  {label}
-                </div>
-              ))}
+        <CollapsibleSection title="Graha Positions (Sidereal)" open={planetsOpen} onToggle={() => setPlanetsOpen(!planetsOpen)}>
+          <div className={styles.ephemeris} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}>
+            {data.planets?.map(p => (
+              <div key={p.id} style={{ textAlign: 'center' }}>
+                <div className={styles.ephemerisLabel}>{p.sa}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{p.rashiSa}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.degInSign.toFixed(2)}°</div>
+              </div>
+            ))}
+          </div>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Hora Table" open={horaOpen} onToggle={() => setHoraOpen(!horaOpen)}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+            {data.horaTable?.map((h, i) => (
+              <div key={i} style={{ padding: '0.5rem', borderRadius: '4px', background: isNow(h.start, h.end) ? 'rgba(201,168,76,0.1)' : 'var(--surface-2)', border: isNow(h.start, h.end) ? '1px solid var(--text-gold)' : '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700 }}>{h.lord} {isNow(h.start, h.end) && '✨'}</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{fmtTime(h.start, tz)}</div>
+              </div>
+            ))}
+          </div>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Advanced Ephemeris & Calendar" open={panchakaOpen} onToggle={() => setPanchakaOpen(!panchakaOpen)}>
+          <div className={styles.ephemeris}>
+            <div>
+              <div className={styles.ephemerisLabel}>Saura Masa</div>
+              <div>{data.calendarContext?.sauraMasa}</div>
             </div>
-            <div className={styles.horaColumns}>
-              <div style={{ borderRight: '1px solid var(--border-soft)' }}>{horaRows.filter(h => h.isDaytime).map((h, i) => <HoraRow key={`d-${i}`} hora={h} tz={tz} />)}</div>
-              <div>{horaRows.filter(h => !h.isDaytime).map((h, i) => <HoraRow key={`n-${i}`} hora={h} tz={tz} />)}</div>
+            <div>
+              <div className={styles.ephemerisLabel}>Ayana</div>
+              <div>{data.calendarContext?.ayanaSa}</div>
+            </div>
+            <div>
+              <div className={styles.ephemerisLabel}>Shaka Year</div>
+              <div>{data.calendarContext?.shakaYear}</div>
+            </div>
+            <div>
+              <div className={styles.ephemerisLabel}>Ayanamsha</div>
+              <div style={{ fontSize: '0.75rem' }}>{data.ayanamsha}</div>
             </div>
           </div>
-        )}
-      </section>
-
-      <footer style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.25rem', borderTop: '1px solid var(--border-soft)', marginTop: 4 }}>
+        </CollapsibleSection>
+      <footer style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between', paddingTop: '1.5rem', borderTop: '1px solid var(--border-soft)', marginTop: '2rem' }}>
         <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: 520, lineHeight: 1.5 }}>
           Times follow the selected timezone. Almanac quality matches classical five-limb structure; exact edge times may differ slightly from other software due to ayanāṃśa and rise/set models.
         </p>
@@ -843,6 +369,101 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
           Monthly calendar →
         </Link>
       </footer>
+    </div>
+  )
+}
+
+interface CompactLimbCardProps {
+  label: string
+  value: string
+  sub?: string
+  percent?: number
+  isRikta?: boolean
+  riktaDetail?: string
+  isBhadra?: boolean
+  quality?: string
+}
+
+function CompactLimbCard({ label, value, sub, percent, isRikta, riktaDetail, isBhadra, quality }: CompactLimbCardProps) {
+  return (
+    <div className={styles.limbCard}>
+      <div className={styles.limbAccent} style={quality === 'inauspicious' || isRikta || isBhadra ? { background: 'var(--rose)' } : quality === 'auspicious' ? { background: 'var(--teal)' } : {}} />
+      <div className={styles.limbLabel}>
+        {label}
+        {isRikta && <span style={{ color: 'var(--rose)', fontSize: '0.55rem' }}>⚠️ RIKTA</span>}
+        {isBhadra && <span style={{ color: 'var(--rose)', fontSize: '0.55rem' }}>⚠️ BHADRA</span>}
+      </div>
+      <div className={styles.limbValue}>{value}</div>
+      <div className={styles.limbSub}>{sub}</div>
+      {percent !== undefined && (
+        <div className={styles.progressBar}>
+          <div className={styles.progressFill} style={{ width: `${percent}%`, background: quality === 'inauspicious' ? 'var(--rose)' : quality === 'auspicious' ? 'var(--teal)' : 'var(--text-gold)' }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface CycleItemProps {
+  icon: string
+  label: string
+  value: string
+}
+
+function CycleItem({ icon, label, value }: CycleItemProps) {
+  return (
+    <div className={styles.cycleItem}>
+      <span className={styles.cycleIcon}>{icon}</span>
+      <span className={styles.cycleLabel}>{label}</span>
+      <span className={styles.cycleValue}>{value}</span>
+    </div>
+  )
+}
+
+interface MuhurtaCardProps {
+  label: string
+  start?: string
+  end?: string
+  tz: string
+  tone: 'good' | 'bad' | 'neutral'
+}
+
+function MuhurtaCard({ label, start, end, tz, tone }: MuhurtaCardProps) {
+  if (!start || !end) return null
+  const active = isNow(start, end)
+  const statusClass = tone === 'good' ? styles.statusGood : tone === 'bad' ? styles.statusBad : styles.statusNeutral
+  
+  return (
+    <div className={`${styles.muhurtaCard} ${active ? styles.muhurtaCardActive : ''}`}>
+      <div className={styles.muhurtaInfo}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className={`${styles.statusIndicator} ${statusClass}`} />
+          <span className={styles.muhurtaName}>{label}</span>
+        </div>
+        <span className={styles.muhurtaTime}>{fmtTime(start, tz)} – {fmtTime(end, tz)}</span>
+      </div>
+      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+        {durationMin(start, end)} min
+      </div>
+    </div>
+  )
+}
+
+interface CollapsibleSectionProps {
+  title: string
+  children: React.ReactNode
+  open: boolean
+  onToggle: () => void
+}
+
+function CollapsibleSection({ title, children, open, onToggle }: CollapsibleSectionProps) {
+  return (
+    <div style={{ marginBottom: '0.5rem' }}>
+      <button className={styles.disclosureBtn} onClick={onToggle}>
+        <span>{title}</span>
+        <span>{open ? '−' : '+'}</span>
+      </button>
+      {open && <div className={styles.disclosureContent}>{children}</div>}
     </div>
   )
 }

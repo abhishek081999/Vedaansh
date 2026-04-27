@@ -1,526 +1,469 @@
-/* Pañcāṅga daily view — readable on all themes, classic ledger feel */
+/* Pañcāṅga daily view — Modern, Compact, Premium */
 
 .root {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 1.25rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  color: var(--text-primary);
+  overflow-x: hidden;
+  width: 100%;
 }
 
-/* Hero: always light text on dark band (never tie to --text-primary) */
-.hero {
+/* Quick Summary Header */
+.quickHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border-radius: var(--r-xl);
+  background: linear-gradient(135deg, rgba(201, 168, 76, 0.1), rgba(201, 168, 76, 0.02));
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.dateLocationRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.dateDisplay {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 5vw, 1.65rem);
+  font-weight: 700;
+  color: var(--text-gold);
+}
+
+.locationDisplay {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* The Five Limbs - Compact Cards */
+.limbsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.limbCard {
   position: relative;
-  padding: clamp(1.35rem, 3.2vw, 2rem);
+  padding: 1rem;
   border-radius: var(--r-lg);
-  border: 1px solid rgba(201, 168, 76, 0.28);
-  background: linear-gradient(
-    155deg,
-    #2a2318 0%,
-    #1a1510 38%,
-    #0f0d0a 100%
-  );
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
   overflow: hidden;
 }
 
-.heroPattern {
-  position: absolute;
-  inset: 0;
-  opacity: 0.06;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a84c' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-
-.heroInner {
-  position: relative;
-  z-index: 1;
-}
-
-.heroKicker {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #d4a84b;
-  margin-bottom: 0.45rem;
-}
-
-.heroTitle {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3.2vw, 2.05rem);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #faf6f0;
-  line-height: 1.2;
-}
-
-.heroTitleMuted {
-  font-weight: 400;
-  opacity: 0.88;
-}
-
-.heroBody {
-  margin: 0.75rem 0 0;
-  max-width: 34rem;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: rgba(250, 246, 240, 0.82);
-}
-
-/* Ephemeris “ledger” strip */
-.ephemeris {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
-  padding: 1.15rem 1.25rem;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--surface-1) 0%, var(--surface-2) 100%);
-  box-shadow: var(--shadow-card);
-}
-
-.ephemerisLabel {
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 0.35rem;
-}
-
-/* Limb cards — explicit body text color (fixes invisible values when theme vars clash) */
-.limbCard {
-  position: relative;
-  border-radius: var(--r-lg);
-  padding: 1.2rem 1.25rem;
-  min-height: 132px;
-  border: 1px solid var(--border);
-  background: linear-gradient(165deg, var(--surface-1) 0%, var(--surface-2) 100%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
-}
-
-:global([data-theme='light']) .limbCard,
-:global([data-theme='classic']) .limbCard {
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+.limbCard:hover {
+  border-color: var(--text-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .limbLabel {
-  font-size: 0.62rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin-bottom: 0.35rem;
-  font-family: var(--font-display);
-}
-
-.limbSub {
-  font-size: 0.68rem;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
-  font-family: var(--font-display);
-  font-style: italic;
   margin-bottom: 0.5rem;
-  line-height: 1.35;
+  display: flex;
+  justify-content: space-between;
 }
 
 .limbValue {
-  font-size: 1.28rem;
-  font-weight: 600;
-  line-height: 1.25;
   font-family: var(--font-display);
-  letter-spacing: 0.01em;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
 }
 
-/* Critical: high contrast for main reading line */
-:global([data-theme='light']) .limbValue,
-:global([data-theme='classic']) .limbValue {
-  color: #0f172a;
-}
-
-:global([data-theme='dark']) .limbValue {
-  color: #f1f5f9;
-}
-
-.limbDetail {
-  font-size: 0.8rem;
+.limbSub {
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin-top: 0.5rem;
-  line-height: 1.45;
+  margin-top: 0.25rem;
 }
 
-.limbAccentBar {
+.limbAccent {
   position: absolute;
   top: 0;
-  left: 1rem;
-  right: 1rem;
-  height: 2px;
-  border-radius: 2px;
-  opacity: 0.5;
-  z-index: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--text-gold);
+  opacity: 0.6;
 }
 
-.limbContent {
-  position: relative;
-  z-index: 1;
-}
-
-.sectionHeading {
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 0.9rem;
-}
-
-.timingGrid {
+/* Sun & Moon Cycle Strip */
+.cycleStrip {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 0.75rem;
-  align-items: stretch;
+  background: var(--surface-2);
+  padding: 1rem;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
 }
 
-.timingCell {
+.cycleItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  padding: 1rem 0.65rem;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--surface-1), var(--surface-2));
 }
 
-.timingValue {
-  font-family: var(--font-mono);
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin-top: 0.35rem;
-}
-
-:global([data-theme='light']) .timingValue,
-:global([data-theme='classic']) .timingValue {
-  color: #0f172a;
-}
-
-:global([data-theme='dark']) .timingValue {
-  color: #e2e8f0;
-}
-
-.fiveGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.85rem;
-}
-
-@media (min-width: 1100px) {
-  .fiveGrid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-/* Advanced: Hindu calendar strip */
-.calendarStrip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 0.65rem;
-  padding: 1rem 1.1rem;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--surface-2), var(--surface-1));
-}
-
-.calendarCell {
-  min-width: 0;
-}
-
-.calendarLabel {
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+.cycleIcon {
+  font-size: 1.25rem;
   margin-bottom: 0.25rem;
 }
 
-.calendarValue {
-  font-family: var(--font-display);
-  font-size: 0.92rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-:global([data-theme='light']) .calendarValue,
-:global([data-theme='classic']) .calendarValue {
-  color: #0f172a;
-}
-
-:global([data-theme='dark']) .calendarValue {
-  color: #f1f5f9;
-}
-
-.calendarHint {
-  font-size: 0.68rem;
+.cycleLabel {
+  font-size: 0.6rem;
+  text-transform: uppercase;
   color: var(--text-muted);
-  margin-top: 0.35rem;
-  line-height: 1.4;
-  grid-column: 1 / -1;
+  font-weight: 700;
 }
 
-/* Data tables */
-.dataTableWrap {
+.cycleValue {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Muhurta Grid - Focus on Good vs Bad */
+.muhurtaSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.muhurtaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.muhurtaCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
   border-radius: var(--r-md);
+  background: var(--surface-1);
   border: 1px solid var(--border);
-  overflow: hidden;
+}
+
+.muhurtaInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.muhurtaName {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.muhurtaTime {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Visualization Tabs */
+.vizContainer {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.vizTabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  align-self: center;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  max-width: 100%;
+}
+
+.vizTabBtn {
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--r-lg);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  letter-spacing: 0.02em;
+}
+
+.vizTabBtnActive {
+  background: var(--surface-1);
+  color: var(--text-gold);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--border);
+  border-color: var(--border-soft);
+  text-shadow: 0 0 8px rgba(201, 168, 76, 0.3);
+}
+
+.vizTabBtn:hover:not(.vizTabBtnActive) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.vizContent {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.statusIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.statusGood { background-color: var(--teal); box-shadow: 0 0 8px var(--teal); }
+.statusBad { background-color: var(--rose); box-shadow: 0 0 8px var(--rose); }
+.statusNeutral { background-color: var(--amber); box-shadow: 0 0 8px var(--amber); }
+
+.muhurtaCardActive {
+  border-color: var(--text-gold);
+  background: rgba(201, 168, 76, 0.05);
+  position: relative;
+}
+
+.muhurtaCardActive::after {
+  content: 'NOW';
+  position: absolute;
+  right: 1rem;
+  top: -0.5rem;
+  background: var(--text-gold);
+  color: #000;
+  font-size: 0.5rem;
+  font-weight: 900;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+/* Collapsible Section */
+.disclosureBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.disclosureBtn:hover {
+  background: var(--surface-3);
+}
+
+.disclosureContent {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--r-md) var(--r-md);
   background: var(--surface-1);
 }
 
-.dataTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.8rem;
+/* Progress Bars */
+.progressBar {
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.5rem;
 }
 
-.dataTable th {
-  text-align: left;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+.progressFill {
+  height: 100%;
+  background: var(--text-gold);
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .quickHeader {
+    padding: 1rem;
+  }
+  
+  .limbsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+  
+  .muhurtaGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .limbsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .cycleStrip {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .vizTabBtn {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+    gap: 0.35rem;
+  }
+  
+  .limbCard {
+    padding: 0.75rem;
+  }
+  
+  .limbValue {
+    font-size: 1rem;
+  }
+  
+  .vizContainer {
+    margin-top: 1.5rem;
+    width: 100%;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 420px) {
+  .limbsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dateLocationRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .dateDisplay {
+    font-size: 1.15rem;
+  }
+  
+  .chogGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cycleStrip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sectionHeading {
   font-family: var(--font-display);
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.dataTable td {
-  padding: 0.45rem 0.75rem;
-  border-bottom: 1px solid var(--border-soft);
-  color: var(--text-secondary);
+.sectionHeading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 
-.dataTable tr:last-child td {
-  border-bottom: none;
+/* Legacy styles for safety or parts I haven't fully refactored yet */
+.ephemeris {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
 }
 
-.mono {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
+.ephemerisLabel {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
 }
 
 .chogGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
 }
 
 .chogBlock {
-  border-radius: var(--r-md);
   border: 1px solid var(--border);
+  border-radius: var(--r-md);
   overflow: hidden;
-  background: var(--surface-1);
 }
 
 .chogBlockTitle {
-  padding: 0.45rem 0.75rem;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  font-family: var(--font-display);
+  padding: 0.5rem 0.75rem;
   background: var(--surface-2);
-  border-bottom: 1px solid var(--border-soft);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .chogRow {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.38rem 0.75rem;
-  border-bottom: 1px solid var(--border-soft);
-  font-size: 0.78rem;
-}
-
-.chogRow:last-child {
-  border-bottom: none;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--border-soft);
+  font-size: 0.8rem;
 }
 
 .chogRowActive {
-  background: rgba(201, 168, 76, 0.08);
+  background: rgba(201, 168, 76, 0.1);
 }
 
-.chogGood {
-  color: #0d9488;
-  font-weight: 600;
-}
-
-.chogMixed {
-  color: #64748b;
-}
-
-.chogAvoid {
-  color: #be123c;
-  font-weight: 600;
-}
+.chogGood { color: var(--teal); font-weight: 600; }
+.chogMixed { color: var(--text-muted); }
+.chogAvoid { color: var(--rose); font-weight: 600; }
 
 .advNote {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin: 0 0 0.65rem;
-  line-height: 1.5;
-  max-width: 52rem;
-}
-
-.disclosureBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 0;
-  margin-bottom: 0.65rem;
-}
-
-.chev {
-  display: inline-block;
-  font-size: 0.65rem;
-  transition: transform 0.15s;
-}
-
-.personalBalaWrap {
-  padding: 1.1rem 1.2rem;
-  border-radius: var(--r-lg);
-  border: 1px solid rgba(13, 148, 136, 0.28);
-  background: linear-gradient(165deg, rgba(13, 148, 136, 0.07), var(--surface-1));
-}
-
-.personalBalaGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 0.85rem;
-}
-
-.personalBalaCard {
-  padding: 0.85rem 1rem;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: var(--surface-1);
-  min-width: 0;
-}
-
-.nakshatraGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 0.75rem;
-}
-
-.nakshatraCardSun,
-.nakshatraCardMoon {
-  padding: 1rem 1.15rem;
-  border-radius: var(--r-md);
-  min-width: 0;
-}
-
-.nakshatraCardSun {
-  border: 1px solid rgba(232, 167, 48, 0.28);
-  background: linear-gradient(165deg, rgba(232, 167, 48, 0.08), var(--surface-1));
-}
-
-.nakshatraCardMoon {
-  border: 1px solid rgba(124, 156, 191, 0.35);
-  background: linear-gradient(165deg, rgba(124, 156, 191, 0.1), var(--surface-1));
-}
-
-.muhurtaTableWrap {
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  overflow-x: auto;
-  background: var(--surface-1);
-}
-
-.muhurtaTable {
-  width: 100%;
-  min-width: 560px;
-  border-collapse: collapse;
-}
-
-.horaHeadRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.horaColumns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-@media (max-width: 720px) {
-  .root {
-    gap: 1.25rem;
-  }
-
-  .hero {
-    padding: 1rem 0.95rem;
-  }
-
-  .heroBody {
-    font-size: 0.82rem;
-    line-height: 1.5;
-  }
-
-  .ephemeris,
-  .calendarStrip {
-    padding: 0.85rem 0.9rem;
-  }
-
-  .limbCard {
-    padding: 0.95rem;
-    min-height: 116px;
-  }
-
-  .limbValue {
-    font-size: 1.1rem;
-  }
-
-  .dataTableWrap {
-    overflow-x: auto;
-  }
-
-  .dataTable {
-    min-width: 560px;
-  }
-
-  .chogRow {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.3rem;
-  }
-
-  .horaHeadRow,
-  .horaColumns {
-    grid-template-columns: 1fr;
-  }
-
-  .personalBalaWrap {
-    padding: 0.9rem;
-  }
-
-  .personalBalaGrid,
-  .nakshatraGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .personalBalaCard,
-  .nakshatraCardSun,
-  .nakshatraCardMoon {
-    padding: 0.85rem 0.9rem;
-  }
+  font-style: italic;
+  margin-top: 0.5rem;
 }

@@ -58,15 +58,17 @@
 .svgWrap {
   position: relative;
   width: 100%;
-  max-width: min(100%, 420px);
+  max-width: min(100vw - 3rem, 400px);
   margin: 0 auto;
-  aspect-ratio: 1;
+  aspect-ratio: 1 / 1;
+  display: block;
 }
 
 .svgWrap svg {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
+  max-width: 100%;
 }
 
 /* Gentle animations */

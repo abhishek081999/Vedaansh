@@ -167,6 +167,134 @@ function DashboardMetricChip({
   )
 }
 
+function getCurrentMahaDasha(chart: ChartOutput): string {
+  const now = Date.now()
+  const mahaNodes = (chart.dashas.vimshottari ?? []).filter((n) => n.level === 1)
+  const current =
+    mahaNodes.find((n) => n.isCurrent) ??
+    mahaNodes.find((n) => {
+      const start = new Date(n.start).getTime()
+      const end = new Date(n.end).getTime()
+      return now >= start && now <= end
+    }) ??
+    mahaNodes[0]
+
+  if (!current) return '—'
+  return `${GRAHA_NAMES[current.lord as GrahaId] ?? current.lord} Mahadasha`
+}
+
+function isNowSlot(start?: Date | string, end?: Date | string): boolean {
+  if (!start || !end) return false
+  const now = Date.now()
+  const s = new Date(start).getTime()
+  const e = new Date(end).getTime()
+  return Number.isFinite(s) && Number.isFinite(e) && now >= s && now <= e
+}
+
+function fmtClock(value: Date | string | number, tz: string): string {
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: tz,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date(value))
+}
+
+function MajorKundaliStrip({
+  chart,
+  todayPanchang,
+}: {
+  chart: ChartOutput
+  todayPanchang: import('@/types/astrology').PanchangData | null
+}) {
+  const moon = chart.grahas.find((g) => g.id === 'Mo')
+  const sun = chart.grahas.find((g) => g.id === 'Su')
+  const ak = chart.karakas?.AK ? (GRAHA_NAMES[chart.karakas.AK] ?? chart.karakas.AK) : '—'
+  const liveHora = todayPanchang?.horaTable?.find((h) => isNowSlot(h.start, h.end))
+  const runningRahu = todayPanchang && isNowSlot(todayPanchang.rahuKalam.start, todayPanchang.rahuKalam.end)
+  const runningGulika = todayPanchang && isNowSlot(todayPanchang.gulikaKalam.start, todayPanchang.gulikaKalam.end)
+  const runningYamaganda = todayPanchang && isNowSlot(todayPanchang.yamaganda.start, todayPanchang.yamaganda.end)
+  const runningTag = runningRahu ? 'Rahu Kalam' : runningGulika ? 'Gulika Kalam' : runningYamaganda ? 'Yamaganda' : 'Auspicious'
+
+  const nextChangeCandidates = [
+    liveHora?.end,
+    runningRahu ? todayPanchang?.rahuKalam.end : undefined,
+    runningGulika ? todayPanchang?.gulikaKalam.end : undefined,
+    runningYamaganda ? todayPanchang?.yamaganda.end : undefined,
+  ].filter((v): v is Date | string => Boolean(v))
+  const nextChangeMs = nextChangeCandidates.length
+    ? Math.min(...nextChangeCandidates.map((v) => new Date(v).getTime()))
+    : null
+  const leftMs = nextChangeMs ? Math.max(0, nextChangeMs - Date.now()) : null
+  const countdown = leftMs != null
+    ? `${Math.floor(leftMs / 60_000)}m ${Math.floor((leftMs % 60_000) / 1000)}s`
+    : null
+
+  const natalPanchang = [
+    `Vara ${chart.panchang.vara.name}`,
+    `Tithi ${chart.panchang.tithi.name} (${chart.panchang.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'})`,
+    `Nak ${chart.panchang.nakshatra.name}`,
+    `Yoga ${chart.panchang.yoga.name}`,
+    `Karana ${chart.panchang.karana.name}`,
+  ].join(' · ')
+  const livePanchang = todayPanchang
+    ? [
+      `Vara ${todayPanchang.vara.name}`,
+      `Tithi ${todayPanchang.tithi.name} (${todayPanchang.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'})`,
+      `Nak ${todayPanchang.nakshatra.name}`,
+      `Yoga ${todayPanchang.yoga.name}`,
+      `Karana ${todayPanchang.karana.name}`,
+    ].join(' · ')
+    : 'Loading live panchang...'
+  const items = [
+    { label: 'Lagna', value: `${RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
+    { label: 'Moon', value: moon ? `${RASHI_NAMES[moon.rashi]} · ${moon.nakshatraName}` : '—' },
+    { label: 'Sun', value: sun ? `${RASHI_NAMES[sun.rashi]} ${sun.degree.toFixed(1)}°` : '—' },
+    { label: 'AK', value: ak },
+    { label: 'Maha', value: getCurrentMahaDasha(chart) },
+    { label: 'Natal Panchang', value: natalPanchang },
+    { label: 'Live Panchang', value: livePanchang },
+  ]
+
+  return (
+    <div
+      className="fade-up"
+      style={{
+        marginTop: '0.45rem',
+        marginBottom: '0.65rem',
+        padding: '0.42rem 0.55rem',
+        borderRadius: 'var(--r-sm)',
+        border: '1px solid var(--border-soft)',
+        background: 'color-mix(in oklab, var(--surface-2) 82%, var(--surface-1) 18%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        overflowX: 'auto',
+      }}
+    >
+      <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.09em', color: 'var(--text-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+        Kundali Snapshot
+      </span>
+      {items.map((item, idx) => (
+        <React.Fragment key={item.label}>
+          <span style={{ whiteSpace: 'nowrap', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+            <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
+              {item.label === 'Live Panchang' ? (
+                <>
+                  <span style={{ color: 'var(--rose)' }}>Live</span>
+                  <span style={{ marginLeft: 3 }}>Panchang</span>
+                </>
+              ) : item.label}
+            </span>
+            <span style={{ marginLeft: 4, fontWeight: 600, color: 'var(--text-primary)' }}>{item.value}</span>
+          </span>
+          {idx < items.length - 1 && <span style={{ color: 'var(--border-bright)' }}>|</span>}
+        </React.Fragment>
+      ))}
+    </div>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────
 //  Main Page
 // ─────────────────────────────────────────────────────────────
@@ -1153,6 +1281,10 @@ function HomeContent() {
                   <button onClick={() => { setChart(null); setIsFormOpen(true) }} className="btn btn-primary btn-sm">+ New</button>
               </div>
             </div>
+
+            {activeTab === 'dashboard' && (
+              <MajorKundaliStrip chart={chart} todayPanchang={todayPanchang} />
+            )}
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
             {(activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'kp-stellar') && (
