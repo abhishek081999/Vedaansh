@@ -64,7 +64,7 @@ export function ChakraSelector({
   tithiNumber  = 1,
   varaNumber   = 0,
   defaultStyle = 'north',
-  size         = 480,
+  size         = 560,
   userPlan     = 'free',
   transitGrahas = [],
   comparisonGrahas = [],
@@ -94,7 +94,7 @@ export function ChakraSelector({
   const [planetScale,   setPlanetScale]   = useState(1.05)
   const [arudhaScale,   setArudhaScale]   = useState(1.20)
   const [infoScale,     setInfoScale]     = useState(0.80)
-  const [chartScale,    setChartScale]    = useState(1.10)
+  const [chartScale,    setChartScale]    = useState(1.25)
 
   const [lagnaSource,   setLagnaSource]   = useState('natal')
   
@@ -108,14 +108,14 @@ export function ChakraSelector({
   // Use smaller scale on mobile initially
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      setChartScale(0.9)
+      setChartScale(1.05)
     }
   }, [])
 
   // Adjust chart scale when sidenav opens/closes on desktop
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
-      setChartScale(isSidenavOpen ? 1.10 : 0.90)
+      setChartScale(isSidenavOpen ? 1.20 : 1.00)
     }
   }, [isSidenavOpen])
 
@@ -530,7 +530,7 @@ function ScaleSlider({ label, value, onChange }: { label: string, value: number,
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', width: '60px' }}>{label}</span>
       <input 
-        type="range" min="0.6" max="1.8" step="0.05" 
+        type="range" min="0.7" max="2.4" step="0.05" 
         value={value} 
         onChange={e => onChange(parseFloat(e.target.value))}
         style={{ width: '70px', accentColor: 'var(--gold)' }}
