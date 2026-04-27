@@ -1,8 +1,4 @@
 .wrap {
-  border-radius: var(--r-lg);
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--surface-1) 0%, var(--surface-2) 100%);
-  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
@@ -54,12 +50,18 @@
 }
 
 .body {
-  padding: 0.65rem 0.75rem 0.9rem;
+  position: relative;
+  width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0.25rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .inner {
-  min-width: 560px;
+  display: flex;
+  flex-direction: column;
+  min-width: 900px;
 }
 
 .row {
@@ -68,6 +70,12 @@
   align-items: stretch;
   gap: 0.35rem;
   margin-top: 0.28rem;
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+  }
 }
 
 .row:first-of-type {
@@ -86,6 +94,13 @@
   text-align: right;
   padding: 0.2rem 0.15rem 0.2rem 0;
   line-height: 1.25;
+}
+
+@media (max-width: 640px) {
+  .rowLabel {
+    font-size: 0.45rem;
+    letter-spacing: 0.02em;
+  }
 }
 
 .trackShell {
