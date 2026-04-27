@@ -64,9 +64,16 @@ function todayIST(): string {
 }
 
 function fmtDate(d: string): string {
-  return new Date(d + 'T12:00:00').toLocaleDateString('en-IN', {
-    weekday: 'short', day: 'numeric', month: 'long', year: 'numeric',
-  })
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  }).formatToParts(new Date(d + 'T12:00:00'))
+
+  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]))
+  return `${map.weekday}, ${map.day} ${map.month} ${map.year}`
 }
 
 const PLANET_NAME: Record<string, string> = {
@@ -203,7 +210,7 @@ export default function SBCPage() {
   const [showTransits,  setShowTransits]  = useState(true)
   const [selectedCell,  setSelectedCell]  = useState<SBCCell | null>(null)
   const [queryName,     setQueryName]     = useState('')
-  const [gridSize,      setGridSize]      = useState(600)
+  const [gridSize,      setGridSize]      = useState(700)
   const [fontScale,     setFontScale]     = useState(1.5)
   const [fontWeight,    setFontWeight]    = useState(600)
   const [rightTab,      setRightTab]      = useState<RightTab>('pulse')
@@ -223,8 +230,8 @@ export default function SBCPage() {
   }, [])
 
   useEffect(() => {
-    if (isMobile) setGridSize(Math.min(window.innerWidth - 48, 480))
-    else           setGridSize(600)
+    if (isMobile) setGridSize(Math.min(window.innerWidth - 36, 560))
+    else           setGridSize(700)
   }, [isMobile])
 
   // Fetch transits
@@ -505,7 +512,7 @@ export default function SBCPage() {
                 <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                   <div>
                     <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Size: {gridSize}px</div>
-                    <input type="range" min="300" max="760" value={gridSize} onChange={e => setGridSize(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--gold)' }} />
+                    <input type="range" min="360" max="980" value={gridSize} onChange={e => setGridSize(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--gold)' }} />
                   </div>
                   <div>
                     <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Text scale: {fontScale.toFixed(1)}×</div>
@@ -846,8 +853,10 @@ export default function SBCPage() {
           ═══════════════════════════════════════════════════════ */}
       <section style={{
         maxWidth: 1500, width: '100%', margin: '0 auto',
-        padding: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
         paddingTop: 0,
+        paddingRight: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
+        paddingBottom: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
+        paddingLeft: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
       }}>
         <div className="card" style={{ padding: '1.5rem', borderTop: '3px solid var(--gold-faint)' }}>
 
@@ -1080,8 +1089,10 @@ export default function SBCPage() {
           ═══════════════════════════════════════════════════════ */}
       <section style={{
         maxWidth: 1500, width: '100%', margin: '0 auto',
-        padding: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
         paddingTop: 0,
+        paddingRight: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
+        paddingBottom: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
+        paddingLeft: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
       }}>
         <SBCAdvancedPanel
           grid={grid}
@@ -1099,8 +1110,10 @@ export default function SBCPage() {
           ═══════════════════════════════════════════════════════ */}
       <section style={{
         maxWidth: 1500, width: '100%', margin: '0 auto',
-        padding: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
         paddingTop: 0,
+        paddingRight: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
+        paddingBottom: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
+        paddingLeft: isMobile ? '1rem' : 'clamp(1rem,2.5vw,1.75rem)',
       }}>
         <SBCStockPanel
           pulse={pulse ?? null}

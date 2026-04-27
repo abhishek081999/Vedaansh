@@ -485,7 +485,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
         {/* ════ LIVE SIGNAL ════ */}
         {activeTab === 'signal' && (
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
 
             {/* Main signal card */}
             <div style={{ background: `${signal.color}0a`, border: `2px solid ${signal.color}35`, borderRadius: 16, padding: '1.5rem' }}>
@@ -615,7 +615,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
             <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Planet → Market Sector → Stocks</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>When a planet is positive in SBC vedha, buy its sector. When afflicted, avoid it.</div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
               {PLANET_SECTORS.map(ps => {
                 const isPos = pulse?.bullish?.some(b => b.toLowerCase().includes(ps.name.toLowerCase()))
                 const isNeg = pulse?.bearish?.some(b => b.toLowerCase().includes(ps.name.toLowerCase()))
@@ -650,7 +650,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
             {/* Connection explained */}
             <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 12 }}>
               <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.5rem' }}>📊 How to Use This Table</div>
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.75rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
                 <div><strong style={{ color: 'var(--teal)' }}>Positive Vedha</strong><br/>Check the &quot;Financial Pulse&quot; tab. Planets with bullish vedha → BUY their sectors with full confidence.</div>
                 <div><strong style={{ color: 'var(--rose)' }}>Malefic Vedha</strong><br/>Planets listed as bearish → AVOID or SHORT their sectors. Exit any existing positions in those stocks.</div>
                 <div><strong style={{ color: 'var(--text-gold)' }}>Weekly Rotation</strong><br/>Every Sunday: identify top 2 positive planets → overweight their sectors. Underweight afflicted planet sectors.</div>
@@ -661,7 +661,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
         {/* ════ DAILY PLAN ════ */}
         {activeTab === 'daily' && (
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
 
             {/* Step-by-step morning ritual */}
             <div>
@@ -788,7 +788,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>Each market hour is ruled by a different planet. Trade its sector during that hora.</div>
 
             {/* Market hours mapping */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
               <div style={{ background: 'var(--surface-2)', borderRadius: 12, padding: '1rem' }}>
                 <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Market Hours</div>
                 {[
@@ -849,7 +849,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
             <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>5 Core Astro-Trading Strategies</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>Each strategy based on a different SBC principle — use the one that fits your style</div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
               {STRATEGIES.map(s => (
                 <div key={s.id} style={{
                   background: 'var(--surface-2)', borderRadius: 14,
@@ -944,7 +944,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
             </div>
 
             {/* All 4 portfolio plans */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.875rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.875rem' }}>
               {PORTFOLIO_PLANS.map(plan => (
                 <div key={plan.planet} style={{ background: 'var(--surface-2)', borderRadius: 12, border: `1px solid ${plan.color}25`, padding: '0.875rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem' }}>
@@ -962,7 +962,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
             {/* Jupiter sign guide */}
             <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(218,165,32,0.06)', border: '1px solid rgba(218,165,32,0.2)', borderRadius: 12 }}>
               <div style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-gold)', marginBottom: '0.65rem' }}>♃ Jupiter Sign = Bull Sector (Annual Guide)</div>
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '0.4rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.4rem' }}>
                 {[
                   ['Aries','Defense/Sports'],['Taurus','Banking/Finance'],['Gemini','IT/Telecom'],['Cancer','FMCG/Real Estate'],
                   ['Leo','Govt/PSU'],['Virgo','Healthcare'],['Libra','Luxury/Auto'],['Scorpio','Research/Mining'],

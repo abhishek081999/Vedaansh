@@ -33,7 +33,7 @@ export interface SBCGrahaInput {
 //  Types
 // ─────────────────────────────────────────────────────────────
 
-export type SBCCellType = 'nakshatra' | 'rashi' | 'vara' | 'vowel' | 'consonant' | 'center' | 'empty'
+export type SBCCellType = 'nakshatra' | 'rashi' | 'vara' | 'vowel' | 'consonant' | 'anga' | 'center' | 'empty'
 
 export interface SBCCell {
   type:             SBCCellType
@@ -95,99 +95,132 @@ export interface SBCAnalysis {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * [row, col] for each nakshatra 0-26, placed clockwise from top-left:
- *   Top row (→): 0-8   (Ashwini → Ashlesha)
- *   Right col (↓): 9-16 (Magha → Anuradha)  — rows 1-8
- *   Bottom row (←): 17-24 (Jyeshtha → PurvaBhadra) — cols 7-0
- *   Left col (↑): 25-26 (UttaraBhadra, Revati) — rows 7-6
- *   Remaining left cells [1,0]-[5,0] carry Sanskrit vowels
+ * [row, col] for each nakshatra 0-26 (Ashwini..Revati) in classical
+ * Sarvatobhadra perimeter order as commonly drawn:
+ *   Top row (→): 23..27, 1, 2
+ *   Right col (↓): 3..9
+ *   Bottom row (←): 10..16
+ *   Left col (↑): 17,18,19,20,21,Abhijit,22
+ *
+ * Abhijit is handled as a dedicated perimeter cell in buildSBCGrid()
+ * and is intentionally not part of this 0-26 map.
  */
 export const SBC_NAK_POS: [number, number][] = [
-  [0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8], // 0-8
-  [1,8],[2,8],[3,8],[4,8],[5,8],[6,8],[7,8],[8,8],        // 9-16
-  [8,7],[8,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],        // 17-24
-  [7,0],[6,0],                                             // 25-26
+  [0, 6], //  0 Ashwini
+  [0, 7], //  1 Bharani
+  [1, 8], //  2 Krittika
+  [2, 8], //  3 Rohini
+  [3, 8], //  4 Mrigashira
+  [4, 8], //  5 Ardra
+  [5, 8], //  6 Punarvasu
+  [6, 8], //  7 Pushya
+  [7, 8], //  8 Ashlesha
+  [8, 7], //  9 Magha
+  [8, 6], // 10 Purva Phalguni
+  [8, 5], // 11 Uttara Phalguni
+  [8, 4], // 12 Hasta
+  [8, 3], // 13 Chitra
+  [8, 2], // 14 Swati
+  [8, 1], // 15 Vishakha
+  [7, 0], // 16 Anuradha
+  [6, 0], // 17 Jyeshtha
+  [5, 0], // 18 Moola
+  [4, 0], // 19 Purva Ashadha
+  [3, 0], // 20 Uttara Ashadha
+  [1, 0], // 21 Shravana
+  [0, 1], // 22 Dhanishtha
+  [0, 2], // 23 Shatabhisha
+  [0, 3], // 24 Purva Bhadrapada
+  [0, 4], // 25 Uttara Bhadrapada
+  [0, 5], // 26 Revati
 ]
 
-/** rashiIndex (1-12) → [row, col] in the interior */
+/** rashiIndex (1-12) → [row, col] in the interior (classical SBC layout variant) */
 export const SBC_RASHI_POS: Record<number, [number, number]> = {
-  1:  [2,4],   // Mesha   (Aries)
-  2:  [4,6],   // Vrishabha (Taurus)
-  3:  [6,4],   // Mithuna (Gemini)
-  4:  [4,2],   // Karka   (Cancer)
-  5:  [2,6],   // Simha   (Leo)
-  6:  [6,6],   // Kanya   (Virgo)
-  7:  [6,2],   // Tula    (Libra)
-  8:  [2,2],   // Vrishchika (Scorpio)
-  9:  [3,5],   // Dhanu   (Sagittarius)
-  10: [5,5],   // Makara  (Capricorn)
-  11: [5,3],   // Kumbha  (Aquarius)
-  12: [3,3],   // Meena   (Pisces)
+  1:  [5,2],   // Aries
+  2:  [3,6],   // Taurus
+  3:  [4,6],   // Gemini
+  4:  [5,6],   // Cancer
+  5:  [6,5],   // Leo
+  6:  [6,4],   // Virgo
+  7:  [6,3],   // Libra
+  8:  [2,5],   // Scorpio
+  9:  [2,4],   // Sagittarius
+  10: [2,3],   // Capricorn
+  11: [3,2],   // Aquarius
+  12: [4,2],   // Pisces
 }
 
 const RASHI_LABEL: Record<number, string> = {
-  1:'Meṣa', 2:'Vṛṣ', 3:'Mit', 4:'Kar',
-  5:'Siṃ', 6:'Kan', 7:'Tulā', 8:'Vṛś',
-  9:'Dha', 10:'Mak', 11:'Kum', 12:'Mīn',
+  1:'Ar', 2:'Ta', 3:'Ge', 4:'Cn',
+  5:'Le', 6:'Vi', 7:'Li', 8:'Sc',
+  9:'Sg', 10:'Cp', 11:'Aq', 12:'Pi',
 }
+
+const NAK_SHORT: string[] = [
+  'Aśw', 'Bha', 'Kṛt', 'Roh', 'Mṛg', 'Ārd', 'Pun',
+  'Puṣ', 'Āśl', 'Mag', 'PPh', 'UPh', 'Has', 'Cit',
+  'Swā', 'Viś', 'Anu', 'Jye', 'Mūl', 'PĀṣ', 'UĀṣ',
+  'Śra', 'Dha', 'Śat', 'PBh', 'UBh', 'Rev',
+]
 
 /**
  * Interior cell definitions — varas, vowels, consonants.
  * Key = "row,col"
  */
 const INTERIOR: Record<string, Pick<SBCCell, 'type' | 'label' | 'sublabel' | 'varaLord' | 'bodyPart'>> = {
-  '1,1': { type: 'vara',      label: 'Ravi',   sublabel: 'Sun·Day',     varaLord: 'Su' },
-  '1,2': { type: 'vowel',     label: 'अ',      bodyPart: 'Head' },
-  '1,3': { type: 'vowel',     label: 'आ',      bodyPart: 'Face' },
-  '1,4': { type: 'vara',      label: 'Guru',   sublabel: 'Thu·Day',     varaLord: 'Ju' },
-  '1,5': { type: 'vowel',     label: 'इ',      bodyPart: 'Right Eye' },
-  '1,6': { type: 'vowel',     label: 'ई',      bodyPart: 'Left Eye' },
-  '1,7': { type: 'vara',      label: 'Śani',   sublabel: 'Sat·Day',     varaLord: 'Sa' },
+  '1,1': { type: 'vowel',     label: 'ṝ ॠ' },
+  '1,2': { type: 'consonant', label: 'g ग' },
+  '1,3': { type: 'consonant', label: 's स\nśa श' },
+  '1,4': { type: 'consonant', label: 'd द\njh झ\nth थ\nñ ञ' },
+  '1,5': { type: 'consonant', label: 'c च' },
+  '1,6': { type: 'consonant', label: 'l ल' },
+  '1,7': { type: 'vowel',     label: 'u उ' },
 
-  '2,1': { type: 'vowel',     label: 'उ',      bodyPart: 'Right Ear' },
-  '2,3': { type: 'vowel',     label: 'ऊ',      bodyPart: 'Left Ear' },
-  '2,5': { type: 'vowel',     label: 'ए',      bodyPart: 'Nostrils' },
-  '2,7': { type: 'vowel',     label: 'ऐ',      bodyPart: 'Cheeks' },
+  '2,1': { type: 'consonant', label: 'kh ख\nṣ ष' },
+  '2,2': { type: 'vowel',     label: 'ai ऐ' },
+  '2,6': { type: 'vowel',     label: 'lṛ लृ' },
+  '2,7': { type: 'consonant', label: 'a अ' },
 
-  '3,1': { type: 'vowel',     label: 'ओ',      bodyPart: 'Lips' },
-  '3,2': { type: 'consonant', label: 'क',      bodyPart: 'Neck' },
-  '3,4': { type: 'consonant', label: 'ख',      bodyPart: 'Throat' },
-  '3,6': { type: 'consonant', label: 'ग',      bodyPart: 'Collar Bone' },
-  '3,7': { type: 'vowel',     label: 'औ',      bodyPart: 'Chin' },
+  '3,1': { type: 'consonant', label: 'j ज\ny य' },
+  '3,3': { type: 'vowel',     label: 'aḥ अः' },
+  '3,4': { type: 'anga',      label: 'Ṛkta\n4 9 14\nFr' },
+  '3,5': { type: 'vowel',     label: 'o ओ' },
+  '3,7': { type: 'consonant', label: 'v व\nb ब' },
 
-  '4,1': { type: 'vara',      label: 'Śukra',  sublabel: 'Fri·Day',     varaLord: 'Ve' },
-  '4,3': { type: 'consonant', label: 'घ',      bodyPart: 'Right Shoulder' },
-  '4,4': { type: 'center',    label: 'SBC',    sublabel: 'Sarvatobhadra' },
-  '4,5': { type: 'consonant', label: 'ङ',      bodyPart: 'Left Shoulder' },
-  '4,7': { type: 'vara',      label: 'Budha',  sublabel: 'Wed·Day',     varaLord: 'Me' },
+  '4,1': { type: 'consonant', label: 'bh भ\ndh ध\nph फ\nḍh ढ' },
+  '4,3': { type: 'anga',      label: 'Jāya\n3 8 13\nTh' },
+  '4,4': { type: 'anga',      label: 'Pūrṇa\n5 10 15\nSa' },
+  '4,5': { type: 'anga',      label: 'Nanda\n1 6 11\nSu Tu' },
+  '4,7': { type: 'consonant', label: 'k क\nc च\ngh घ\nṅ ङ' },
 
-  '5,1': { type: 'vowel',     label: 'अं',     bodyPart: 'Right Arm' },
-  '5,2': { type: 'consonant', label: 'च',      bodyPart: 'Left Arm' },
-  '5,4': { type: 'consonant', label: 'छ',      bodyPart: 'Right Hand' },
-  '5,6': { type: 'consonant', label: 'ज',      bodyPart: 'Left Hand' },
-  '5,7': { type: 'vowel',     label: 'अः',     bodyPart: 'Fingers' },
+  '5,1': { type: 'consonant', label: 'y य\nj ज' },
+  '5,3': { type: 'vowel',     label: 'aṃ अं' },
+  '5,4': { type: 'anga',      label: 'Bhadra\n2 7 12\nMo We' },
+  '5,5': { type: 'vowel',     label: 'au औ' },
+  '5,7': { type: 'consonant', label: 'h ह' },
 
-  '6,1': { type: 'consonant', label: 'झ',      bodyPart: 'Chest' },
-  '6,3': { type: 'consonant', label: 'ञ',      bodyPart: 'Right Breast' },
-  '6,5': { type: 'consonant', label: 'ट',      bodyPart: 'Left Breast' },
-  '6,7': { type: 'consonant', label: 'ठ',      bodyPart: 'Stomach' },
+  '6,1': { type: 'consonant', label: 'n न' },
+  '6,2': { type: 'vowel',     label: 'e ए' },
+  '6,6': { type: 'vowel',     label: 'lṝ लॄ' },
+  '6,7': { type: 'consonant', label: 'ḍ ड' },
 
-  '7,1': { type: 'vara',      label: 'Maṅgal', sublabel: 'Tue·Day',     varaLord: 'Ma' },
-  '7,2': { type: 'consonant', label: 'ड',      bodyPart: 'Right Thigh' },
-  '7,3': { type: 'consonant', label: 'ढ',      bodyPart: 'Left Thigh' },
-  '7,4': { type: 'vara',      label: 'Soma',   sublabel: 'Mon·Day',     varaLord: 'Mo' },
-  '7,5': { type: 'consonant', label: 'ण',      bodyPart: 'Knees' },
-  '7,6': { type: 'consonant', label: 'त',      bodyPart: 'Calves' },
-  '7,7': { type: 'consonant', label: 'थ',      bodyPart: 'Feet' },
+  '7,1': { type: 'vowel',     label: 'ṛ ऋ' },
+  '7,2': { type: 'consonant', label: 't त' },
+  '7,3': { type: 'consonant', label: 'r र' },
+  '7,4': { type: 'consonant', label: 'p प\nṣ ष\nṇ ण\nṭh ठ' },
+  '7,5': { type: 'consonant', label: 'ṭ ट' },
+  '7,6': { type: 'consonant', label: 'm म' },
+  '7,7': { type: 'vowel',     label: 'ū ऊ' },
 }
 
-/** Left-column vowel cells that are not nakshatras */
-const LEFT_COL: Record<string, Pick<SBCCell, 'type' | 'label' | 'bodyPart'>> = {
-  '1,0': { type: 'vowel', label: 'ऋ', bodyPart: 'Forehead' },
-  '2,0': { type: 'vowel', label: 'ॠ', bodyPart: 'Eyes (both)' },
-  '3,0': { type: 'vowel', label: 'ळ', bodyPart: 'Nose' },
-  '4,0': { type: 'vowel', label: 'ए', bodyPart: 'Ears' },
-  '5,0': { type: 'vowel', label: 'ऐ', bodyPart: 'Mouth (lips)' },
+/** Corner vowels and Abhijit marker on the outer perimeter */
+const PERIMETER_SPECIAL: Record<string, Pick<SBCCell, 'type' | 'label' | 'sublabel'>> = {
+  '0,0': { type: 'vowel',     label: 'ई ī' },
+  '0,8': { type: 'vowel',     label: 'a अ' },
+  '8,0': { type: 'vowel',     label: 'i इ' },
+  '8,8': { type: 'vowel',     label: 'ā आ' },
+  '2,0': { type: 'nakshatra', label: '00 Abh', sublabel: 'Abhijit' },
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -211,7 +244,8 @@ export function buildSBCGrid(): SBCCell[][] {
       type:            'nakshatra',
       row:             r,
       col:             c,
-      label:           NAKSHATRA_NAMES[i],
+      label:           `${String(i + 1).padStart(2, '0')} ${NAK_SHORT[i]}`,
+      sublabel:        NAKSHATRA_NAMES[i],
       nakshatraIndex:  i,
     }
   })
@@ -237,8 +271,8 @@ export function buildSBCGrid(): SBCCell[][] {
     }
   })
 
-  // Place left-column vowels (non-nakshatra perimeter cells)
-  Object.entries(LEFT_COL).forEach(([key, data]) => {
+  // Place corner vowels + Abhijit perimeter marker
+  Object.entries(PERIMETER_SPECIAL).forEach(([key, data]) => {
     const [r, c] = key.split(',').map(Number)
     if (grid[r][c].type === 'empty') {
       grid[r][c] = { row: r, col: c, ...data }

@@ -69,6 +69,7 @@ function cellTextColor(type: string): string {
     vara:      'var(--sbc-vara-txt)',
     vowel:     'var(--sbc-vowel-txt)',
     consonant: 'var(--sbc-cons-txt)',
+    anga:      'var(--text-primary)',
     center:    'var(--sbc-center-txt)',
     empty:     'var(--text-muted)',
   }
@@ -257,6 +258,8 @@ export function SarvatobhadraChakra({
             const type        = cell.type
             const isBirth     = k === birthKey
             const isName      = k === nameKey
+            const labelLines  = cell.label.split('\n').filter(Boolean)
+            const isDenseConsonant = type === 'consonant' && labelLines.length >= 4
 
             return (
               <div
@@ -301,7 +304,8 @@ export function SarvatobhadraChakra({
                     <>
                       <div style={{
                         fontSize: type === 'vowel' || type === 'consonant'
-                          ? `${fs * 1.45}px`
+                          ? `${fs * (isDenseConsonant ? 0.88 : 1.25)}px`
+                          : type === 'anga' ? `${fs * 0.84}px`
                           : type === 'center' ? `${fs * 0.88}px`
                           : `${fs * 1.1}px`,
                         fontWeight,
@@ -309,9 +313,26 @@ export function SarvatobhadraChakra({
                         fontFamily: type === 'vowel' || type === 'consonant'
                           ? '"Noto Sans Devanagari", "Mangal", "Devanagari", serif'
                           : 'var(--font-display)',
-                        lineHeight: 1.15,
+                        lineHeight: isDenseConsonant ? 1.05 : 1.15,
+                        width: '100%',
                       }}>
-                        {cell.label}
+                        {isDenseConsonant ? (
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '1px 4px',
+                            justifyItems: 'center',
+                            alignItems: 'center',
+                          }}>
+                            {labelLines.map((line, idx) => (
+                              <span key={idx} style={{ display: 'block', whiteSpace: 'nowrap' }}>{line}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          labelLines.map((line, idx) => (
+                            <span key={idx} style={{ display: 'block' }}>{line}</span>
+                          ))
+                        )}
                       </div>
                       {cell.sublabel && type === 'vara' && (
                         <div style={{
