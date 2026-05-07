@@ -400,6 +400,13 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
     e.preventDefault()
     if (!name.trim()) { setError('Please enter a name'); return }
     if (!date) { setError('Please enter birth date'); return }
+    const dParts = date.split('-')
+    const isNeg = date.startsWith('-') && dParts.length > 3
+    const yVal = isNeg ? '-' + dParts[1] : dParts[0]
+    if (!yVal || isNaN(parseInt(yVal))) {
+      setError('Please enter a valid birth year')
+      return
+    }
     if (lat === null || lng === null) { 
       setError('Please select a location or enter coordinates manually'); 
       return 
@@ -415,23 +422,34 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
 
   // ── Date Part Handlers ────────────────────────────────────
 
-  const handleDatePartChange = (part: 'y' | 'm' | 'd', val: number) => {
-    if (isNaN(val)) return
-    const parts = date.split('-')
-    let y = parseInt(parts[0]) || 2000
-    let m = parseInt(parts[1]) || 1
-    let d = parseInt(parts[2]) || 1
+  const handleDatePartChange = (part: 'y' | 'm' | 'd', val: string | number) => {
+    const dParts = date.split('-')
+    const isNeg = date.startsWith('-') && dParts.length > 3
+    let y = isNeg ? '-' + dParts[1] : dParts[0]
+    let m = dParts[isNeg ? 2 : 1] || '01'
+    let d = dParts[isNeg ? 3 : 2] || '01'
     
-    if (part === 'y') y = val
-    else if (part === 'm') m = val
-    else if (part === 'd') d = val
+    if (part === 'y') {
+      y = val.toString()
+    } else if (part === 'm') {
+      m = String(val).padStart(2, '0')
+    } else if (part === 'd') {
+      d = String(val).padStart(2, '0')
+    }
 
     // Validate day count for the month (e.g. Feb 31 -> Feb 28/29)
-    const maxDays = new Date(y, m, 0).getDate()
-    if (d > maxDays) d = maxDays
+    // Only validate if we have a valid year and month
+    const yInt = parseInt(y)
+    const mInt = parseInt(m)
+    let dInt = parseInt(d)
+    
+    if (!isNaN(yInt) && !isNaN(mInt)) {
+      const maxDays = new Date(yInt, mInt, 0).getDate()
+      if (dInt > maxDays) dInt = maxDays
+      d = String(dInt).padStart(2, '0')
+    }
 
-    const dStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-    setDate(dStr)
+    setDate(`${y}-${m}-${d}`)
   }
 
   const handleTimePartChange = (part: 'h' | 'm' | 's' | 'p', val: string | number) => {
@@ -508,6 +526,12 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
 
   // ── Render ────────────────────────────────────────────────
 
+  const dParts = date.split('-')
+  const isNeg = date.startsWith('-') && dParts.length > 3
+  const yVal = isNeg ? '-' + dParts[1] : dParts[0]
+  const mVal = parseInt(dParts[isNeg ? 2 : 1]) || 1
+  const dVal = parseInt(dParts[isNeg ? 3 : 2]) || 1
+
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', overflow: 'visible' }}>
       
@@ -548,8 +572,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
             overflow: 'hidden'
           }}>
             <select
-              value={parseInt(date.split('-')[2]) || 1}
-              onChange={(e) => handleDatePartChange('d', parseInt(e.target.value))}
+              value={dVal}
+              onChange={(e) => handleDatePartChange('d', e.target.value)}
               style={{ 
                 width: isMobile ? '38px' : '48px', background: 'transparent', border: 'none', 
                 padding: isMobile ? '0 0 0 6px' : '0 4px', fontSize: '0.9rem', color: 'var(--text-primary)',
@@ -562,8 +586,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
             </select>
             <div style={{ width: '1px', height: '16px', background: 'var(--border-soft)', opacity: 0.6 }} />
             <select
-              value={parseInt(date.split('-')[1]) || 1}
-              onChange={(e) => handleDatePartChange('m', parseInt(e.target.value))}
+              value={mVal}
+              onChange={(e) => handleDatePartChange('m', e.target.value)}
               style={{ 
                 flex: 1, background: 'transparent', border: 'none', 
                 padding: '0 4px', fontSize: '0.9rem', color: 'var(--text-primary)',
@@ -580,8 +604,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
             <div style={{ width: '1px', height: '16px', background: 'var(--border-soft)', opacity: 0.6 }} />
             <input
               type="number"
-              value={date.split('-')[0]}
-              onChange={(e) => handleDatePartChange('y', parseInt(e.target.value))}
+              value={yVal}
+              onChange={(e) => handleDatePartChange('y', e.target.value)}
               style={{ 
                 width: isMobile ? '48px' : '65px', background: 'transparent', border: 'none', 
                 padding: isMobile ? '0 6px 0 2px' : '0 8px', fontSize: '0.9rem', color: 'var(--text-primary)',
