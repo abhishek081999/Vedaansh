@@ -341,7 +341,17 @@ function MajorKundaliStrip({
       `Karana ${todayPanchang.karana.name}`,
     ].join(' · ')
     : 'Loading live panchang...'
+  const [y, mm, dd] = chart.meta.birthDate.split('-')
+  const formattedDOB = `${dd} ${mm} ${y}`
+  
+  const [h, min] = chart.meta.birthTime.split(':').map(Number)
+  const ampm = h >= 12 ? 'pm' : 'am'
+  const formattedTime = `${h % 12 || 12}:${String(min).padStart(2, '0')} ${ampm}`
+
   const items = [
+    { label: 'Name', value: chart.meta.name },
+    { label: 'DOB', value: formattedDOB },
+    { label: 'Time', value: formattedTime },
     { label: 'Lagna', value: `${RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
     { label: 'Moon', value: moon ? `${RASHI_NAMES[moon.rashi]} · ${moon.nakshatraName}` : '—' },
     { label: 'Sun', value: sun ? `${RASHI_NAMES[sun.rashi]} ${sun.degree.toFixed(1)}°` : '—' },
@@ -1177,10 +1187,10 @@ function HomeContent() {
     if (cardId === 'summary') {
       return (
         <div className="panel fade-up">
-          <div className="panel-header">
-            <span>Today&apos;s Timeline</span>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>☽ {dashboardChart.panchang.nakshatra.name}</span>
+          <div className="panel-header" style={{ flexWrap: 'wrap', gap: '0.5rem', padding: '0.5rem 0.65rem' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Today&apos;s Timeline</span>
+            <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>
+              <span className="hide-mobile" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--text-muted)', opacity: 0.8 }}>☽ {dashboardChart.panchang.nakshatra.name}</span>
               <select
                 value={dashaSystem}
                 onChange={(e) => setDashaSystem(e.target.value as any)}
@@ -1193,7 +1203,7 @@ function HomeContent() {
               </select>
             </div>
           </div>
-          <div style={{ padding: '0.5rem', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.5rem' }}>
+          <div className="timeline-dashboard-grid">
             <div>
               {(() => {
                 const nodes = dashaSystem === 'vimshottari'
@@ -1298,7 +1308,14 @@ function HomeContent() {
               >
                 <span className="name-primary">{chart.meta.name}</span>
                 <span className="name-sep hide-mobile">·</span>
-                <span className="name-detail hide-mobile">{chart.meta.birthDate} {chart.meta.birthTime}</span>
+                <span className="name-detail hide-mobile">
+                  {(() => {
+                    const [y, mm, dd] = chart.meta.birthDate.split('-')
+                    const [h, min] = chart.meta.birthTime.split(':').map(Number)
+                    const ampm = h >= 12 ? 'pm' : 'am'
+                    return `${dd} ${mm} ${y} · ${h % 12 || 12}:${String(min).padStart(2, '0')} ${ampm}`
+                  })()}
+                </span>
                 <span className="name-sep hide-mobile">·</span>
                 <span className="name-detail hide-mobile" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chart.meta.birthPlace}</span>
                 <span className="name-sep hide-mobile">·</span>

@@ -1566,10 +1566,42 @@ select.input {
   }
 }
 
+/* ── Collapsed Sidenav Layout Adjustments ── */
+@media (min-width: 1024px) {
+  .main-content[data-sidenav-open="false"] .chart-layout-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 35vw) !important;
+    gap: 1.5rem !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .main-content[data-sidenav-open="false"] .chart-layout-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(400px, 35vw) !important;
+  }
+}
+
 /* Ultra-wide desktops cap right rail size */
 @media (min-width: 1920px) {
   .chart-layout-grid {
     grid-template-columns: minmax(0, 1fr) minmax(320px, 480px) !important;
+  }
+  .main-content[data-sidenav-open="false"] .chart-layout-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(440px, 35vw) !important;
+  }
+}
+
+.timeline-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 0.75rem;
+  padding: 0.6rem;
+}
+
+@media (max-width: 640px) {
+  .timeline-dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+    padding: 0.45rem !important;
   }
 }
 

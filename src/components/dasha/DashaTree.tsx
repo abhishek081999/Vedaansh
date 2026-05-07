@@ -40,9 +40,13 @@ function toDate(d: Date | string): Date {
   return d instanceof Date ? d : new Date(d)
 }
 
-function fmtDateCompact(d: Date | string) {
+function fmtDateCompact(d: Date | string, isMobile = false) {
   const date = toDate(d)
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  if (isMobile) {
+    // Just date, no time on mobile
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  }
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
     + ' ' + date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
@@ -54,6 +58,15 @@ function fmtDate(d: Date | string) {
 export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate: Date }) {
   const [activePath, setActivePath] = useState<DashaNode[]>([])
   const [currentPath, setCurrentPath] = useState<DashaNode[]>([])
+  const [isMobile, setIsMobile] = useState(false)
+  const [showTimeOnMobile, setShowTimeOnMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     const path: DashaNode[] = []
@@ -71,6 +84,12 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
     const last = activePath[activePath.length - 1]
     return last.children.length > 0 ? last.children : [last]
   }, [nodes, activePath])
+
+  const currentLevel = currentList[0]?.level ?? 1
+  const baseSize = isMobile ? 0.8 : 0.85
+  // Decrease font size by 0.04rem for each level deep, minimum 0.68rem
+  const rowFontSize = `${Math.max(0.68, baseSize - (currentLevel - 1) * 0.045)}rem`
+  const dateFontSize = `${Math.max(0.64, (baseSize - (currentLevel - 1) * 0.045) * 0.95)}rem`
 
   const currentMahaNode = activePath[0] ?? nodes.find(n => n.isCurrent) ?? nodes[0]
   const birthMahaNode = nodes[0]
@@ -97,7 +116,7 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
     ? 'var(--teal)' : navtara?.quality === 'inauspicious' ? 'var(--rose)' : 'var(--amber)'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.78rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.9rem' }}>
 
       {/* ── Compact header bar ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', paddingBottom: '0.3rem', borderBottom: '1px solid var(--border-soft)' }}>
@@ -106,7 +125,7 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
           {currentMahaNode && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap' }}>
               <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>MD</span>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-gold)' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-gold)' }}>
                 {GRAHA_NAME[currentMahaNode.lord] ?? currentMahaNode.lord}
               </span>
             </span>
@@ -117,18 +136,34 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
           )}
           {/* Full current dasha code */}
           {fullCurrentCode && (
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', fontWeight: 700, color: 'var(--teal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', fontWeight: 700, color: 'var(--teal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {fullCurrentCode}
             </span>
           )}
           {/* Tara badge */}
           {navtara && (
-            <span style={{ fontSize: '0.58rem', fontWeight: 700, padding: '1px 5px', borderRadius: 3, border: `1px solid ${navtaraColor}`, color: navtaraColor, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '1px 5px', borderRadius: 3, border: `1px solid ${navtaraColor}`, color: navtaraColor, whiteSpace: 'nowrap' }}>
               Tara·{navtara.num} {navtara.name}
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0, alignItems: 'center' }}>
+          {isMobile && (
+            <button
+              type="button"
+              onClick={() => setShowTimeOnMobile(!showTimeOnMobile)}
+              style={{
+                border: showTimeOnMobile ? '1px solid var(--gold)' : '1px solid var(--border-soft)',
+                background: showTimeOnMobile ? 'var(--gold-faint)' : 'transparent',
+                color: showTimeOnMobile ? 'var(--text-gold)' : 'var(--text-muted)',
+                borderRadius: 4, padding: '0.1rem 0.35rem', fontSize: '0.6rem', cursor: 'pointer',
+                fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px'
+              }}
+              title="Show time on mobile"
+            >
+              🕒 {showTimeOnMobile ? 'Time ON' : 'Time'}
+            </button>
+          )}
           {activePath.length > 0 && (
             <button type="button" onClick={() => setActivePath(activePath.slice(0, -1))}
               style={{ border: '1px solid var(--border-soft)', background: 'transparent', color: 'var(--text-muted)', borderRadius: 4, padding: '0.1rem 0.4rem', fontSize: '0.62rem', cursor: 'pointer' }}>
@@ -170,69 +205,76 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
       )}
 
       {/* ── Dasha rows ── */}
-      <div style={{ borderRadius: 6, border: '1px solid var(--border-soft)', overflow: 'hidden', background: 'var(--surface-1)' }}>
-        {currentList.map((node, idx) => {
-          const hasChildren = node.children?.length > 0
-          const color = GRAHA_COLOR[node.lord] ?? 'var(--text-muted)'
-          // Highlight the actual running period at every depth (MD → AD → PD → …)
-          const isActiveRow = !!node.isCurrent
-          return (
-            <button
-              key={`${node.lord}-${node.start}-${idx}`}
-              type="button"
-              onClick={() => hasChildren && handleNavigate(node, activePath.length)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                textAlign: 'left', border: 'none',
-                borderBottom: idx === currentList.length - 1 ? 'none' : '1px solid var(--border-soft)',
-                padding: '0.3rem 0.55rem',
-                background: isActiveRow ? 'rgba(78,205,196,0.09)' : 'transparent',
-                cursor: hasChildren ? 'pointer' : 'default',
-                borderLeft: isActiveRow ? `2px solid var(--teal)` : `2px solid transparent`,
-              }}
-            >
-              {/* Planet color dot */}
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
-              {/* Code */}
-              <span style={{
-                fontFamily: 'var(--font-mono)', fontSize: '0.7rem',
-                fontWeight: isActiveRow ? 800 : 500,
-                color: isActiveRow ? 'var(--teal)' : 'var(--text-primary)',
-                whiteSpace: 'nowrap', minWidth: '2.2rem',
-              }}>
-                {codePathForNode(node)}
-              </span>
-              {/* Name */}
-              <span style={{
-                fontSize: '0.68rem',
-                flex: 1,
-                fontWeight: isActiveRow ? 700 : 400,
-                color: isActiveRow ? 'var(--text-primary)' : 'var(--text-muted)',
-              }}>
-                {node.label || GRAHA_NAME[node.lord] || node.lord}
-              </span>
-              {/* Date */}
-              <span style={{
-                fontFamily: 'var(--font-mono)', fontSize: '0.6rem',
-                fontWeight: isActiveRow ? 600 : 400,
-                color: isActiveRow ? 'var(--text-secondary)' : 'var(--text-muted)',
-                whiteSpace: 'nowrap', flexShrink: 0,
-              }}>
-                {fmtDateCompact(node.start)}
-              </span>
-              {isActiveRow && (
-                <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--teal)', whiteSpace: 'nowrap' }}>●</span>
-              )}
-              {hasChildren && (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>›</span>
-              )}
-            </button>
-          )
-        })}
+      <div style={{
+        borderRadius: 6, border: '1px solid var(--border-soft)',
+        overflow: 'hidden', background: 'var(--surface-1)',
+        overflowX: (isMobile && showTimeOnMobile) ? 'auto' : 'hidden'
+      }}>
+        <div style={{ minWidth: (isMobile && showTimeOnMobile) ? '380px' : 'auto' }}>
+          {currentList.map((node, idx) => {
+            const hasChildren = node.children?.length > 0
+            const color = GRAHA_COLOR[node.lord] ?? 'var(--text-muted)'
+            // Highlight the actual running period at every depth (MD → AD → PD → …)
+            const isActiveRow = !!node.isCurrent
+            return (
+              <button
+                key={`${node.lord}-${node.start}-${idx}`}
+                type="button"
+                onClick={() => hasChildren && handleNavigate(node, activePath.length)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: isMobile ? '0.35rem' : '0.5rem',
+                  textAlign: 'left', border: 'none',
+                  borderBottom: idx === currentList.length - 1 ? 'none' : '1px solid var(--border-soft)',
+                  padding: isMobile ? '0.25rem 0.4rem' : '0.3rem 0.55rem',
+                  background: isActiveRow ? 'rgba(78,205,196,0.09)' : 'transparent',
+                  cursor: hasChildren ? 'pointer' : 'default',
+                  borderLeft: isActiveRow ? `2px solid var(--teal)` : `2px solid transparent`,
+                }}
+              >
+                {/* Planet color dot */}
+                <span style={{ width: isMobile ? 4 : 6, height: isMobile ? 4 : 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                {/* Code */}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: rowFontSize,
+                  fontWeight: isActiveRow ? 800 : 500,
+                  color: isActiveRow ? 'var(--teal)' : 'var(--text-primary)',
+                  whiteSpace: 'nowrap', minWidth: isMobile ? '2rem' : '2.8rem',
+                }}>
+                  {codePathForNode(node)}
+                </span>
+                {/* Name */}
+                <span style={{
+                  fontSize: rowFontSize,
+                  flex: 1,
+                  fontWeight: isActiveRow ? 700 : 400,
+                  color: isActiveRow ? 'var(--text-primary)' : 'var(--text-muted)',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                }}>
+                  {node.label || GRAHA_NAME[node.lord] || node.lord}
+                </span>
+                {/* Date */}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: dateFontSize,
+                  fontWeight: isActiveRow ? 600 : 400,
+                  color: isActiveRow ? 'var(--text-secondary)' : 'var(--text-muted)',
+                  whiteSpace: 'nowrap', flexShrink: 0,
+                }}>
+                  {fmtDateCompact(node.start, isMobile && !showTimeOnMobile)}
+                </span>
+                {isActiveRow && (
+                  <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--teal)', whiteSpace: 'nowrap' }}>●</span>
+                )}
+                {hasChildren && (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>›</span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* ── Birth note ── */}
-      <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', opacity: 0.7 }}>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', opacity: 0.8 }}>
         Born: {fmtDate(birthDate)} · Cycle: {fmtDate(nodes[0]?.start)}
       </div>
     </div>
