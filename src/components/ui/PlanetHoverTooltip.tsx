@@ -191,12 +191,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
               <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.pushkara.type?.replace('_', ' ')}</span>
             </div>
           )}
-          {planet.mrityuBhaga?.isMrityuBhaga && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ fontSize: '0.6rem', background: 'rgba(251,146,60,0.1)', color: '#fb923c', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(251,146,60,0.3)', fontWeight: 700 }}>🔱 MRITYU BHAGA</span>
-              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.mrityuBhaga.severity} severity</span>
-            </div>
-          )}
+
           {planet.yuddha?.isWarring && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <span style={{ fontSize: '0.6rem', background: 'rgba(129,140,248,0.12)', color: '#818cf8', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(129,140,248,0.35)', fontWeight: 700 }}>⚔ YUDDHA</span>

@@ -96,19 +96,20 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
             return (
               <div key={h} style={{
                 display: 'flex', alignItems: 'flex-start', gap: '0.45rem',
-                padding: '0.28rem 0.55rem',
+                padding: '0.35rem 0.55rem',
                 borderBottom: idx === activeHouses.length - 1 ? 'none' : '1px solid var(--border-soft)',
-                borderLeft: `2px solid ${accentColor}`,
+                borderLeft: `3px solid ${accentColor}`,
                 background: 'transparent',
               }}>
                 {/* House number badge */}
                 <span style={{
-                  flexShrink: 0, minWidth: '1.4rem', height: '1.4rem',
-                  borderRadius: 4, background: 'var(--surface-2)',
+                  flexShrink: 0, minWidth: '1.6rem', height: '1.6rem',
+                  borderRadius: 6, background: 'var(--surface-2)',
                   border: '1px solid var(--border-soft)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'var(--font-mono)', fontWeight: 700,
-                  fontSize: '0.65rem', color: 'var(--text-gold)',
+                  fontFamily: 'var(--font-mono)', fontWeight: 800,
+                  fontSize: '0.75rem', color: 'var(--text-gold)',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                 }}>
                   {h}
                 </span>

@@ -222,6 +222,23 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     ? (lagnas?.ascRashi || 1)
     : ((vargaLagnas && vargaLagnas[selectedVarga]) || (lagnas?.ascRashi || 1))
 
+  const moonNakIdx = useMemo(() => {
+    const m = grahas.find(g => g.id === 'Mo')
+    return m ? m.nakshatraIndex : null
+  }, [grahas])
+
+  const NAVTARA_MAP: Record<number, { label: string; color: string }> = {
+    0: { label: 'Janma',   color: 'var(--text-muted)' },
+    1: { label: 'Sampat',  color: 'var(--teal)' },
+    2: { label: 'Vipat',   color: 'var(--rose)' },
+    3: { label: 'Kshema',  color: 'var(--teal)' },
+    4: { label: 'Pratyari',color: 'var(--rose)' },
+    5: { label: 'Sādhaka', color: 'var(--teal)' },
+    6: { label: 'Vadha',   color: 'var(--rose)' },
+    7: { label: 'Mitra',   color: 'var(--teal)' },
+    8: { label: 'Ati-Mitra', color: 'var(--gold)' },
+  }
+
   return (
     <div style={{ width: '100%', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-soft)', overflow: 'hidden' }}>
 
@@ -350,8 +367,23 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                     <b>{deg}°</b>{String(min).padStart(2,'0')}′{String(sec).padStart(2,'0')}″
                   </td>
                   {/* Nakshatra */}
-                  <td style={{ textAlign: 'center', fontSize: '0.72rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    <b title={nak.name}>{nak.name}</b> <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>({nak.pada})</span>
+                  <td style={{ textAlign: 'center', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div>
+                        <b title={nak.name}>{nak.name}</b> <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>({nak.pada})</span>
+                      </div>
+                      {(() => {
+                        if (moonNakIdx === null || !isMainPlanet) return null
+                        const currentNakIdx = Math.floor(b.totalDeg / (360 / 27)) % 27
+                        const distance = (currentNakIdx - moonNakIdx + 27) % 27
+                        const nt = NAVTARA_MAP[distance % 9]
+                        return (
+                          <div style={{ fontSize: '0.52rem', fontWeight: 800, textTransform: 'uppercase', color: nt.color, letterSpacing: '0.05em', marginTop: 1 }}>
+                            {nt.label}
+                          </div>
+                        )
+                      })()}
+                    </div>
                   </td>
                   {/* Rashi · D9 */}
                   <td style={{ textAlign: 'center', fontSize: '0.72rem' }}>
@@ -398,7 +430,6 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
           { code: 'C', label: 'Combust',     bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
           { code: 'G', label: 'Gandanta',    bg: 'rgba(244,63,94,0.1)',   color: '#fb7185',  border: 'rgba(244,63,94,0.3)'   },
           { code: 'P', label: 'Pushkara',    bg: 'rgba(78,205,196,0.1)',  color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
-          { code: 'M', label: 'Mrityu Bh.', bg: 'rgba(251,146,60,0.1)',  color: '#fb923c',  border: 'rgba(251,146,60,0.3)'  },
           { code: 'Y', label: 'Yuddha',      bg: 'rgba(129,140,248,0.1)', color: '#818cf8',  border: 'rgba(129,140,248,0.3)' },
         ].map(({ code, label, bg, color, border }) => (
           <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>

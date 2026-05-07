@@ -106,8 +106,16 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
       {/* ── Birth + Panchang merged ── */}
       <Sec title="Birth data &amp; Pañcāṅga">
         <Row label="Name"    value={chart.meta.name || '—'} />
-        <Row label="Date"    value={chart.meta.birthDate} />
-        <Row label="Time"    value={chart.meta.birthTime || '—'} />
+        <Row label="Date" value={(() => {
+          const [y, m, d] = chart.meta.birthDate.split('-')
+          return `${d} ${m} ${y}`
+        })()} />
+        <Row label="Time" value={(() => {
+          if (!chart.meta.birthTime) return '—'
+          const [h, min] = chart.meta.birthTime.split(':').map(Number)
+          const ampm = h >= 12 ? 'pm' : 'am'
+          return `${h % 12 || 12}:${String(min).padStart(2, '0')} ${ampm}`
+        })()} />
         <Row label="Vāra"    value={`${chart.panchang.vara.name} · ${GRAHA_NAMES[chart.panchang.vara.lord]}`} />
         <Row label="Tithi"   value={`${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30) · ${chart.panchang.tithi.paksha === 'shukla' ? 'Śukla' : 'Kṛṣṇa'}`} />
         <Row label="Nakṣatra" value={`${moon.nakshatraName} · Pada ${moon.pada}`} />

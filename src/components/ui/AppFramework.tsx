@@ -858,6 +858,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           ref={mainRef}
           onScroll={handleScroll}
           className="main-content"
+          data-sidenav-open={isSidenavOpen}
           style={{
             flex: 1, display: 'flex', flexDirection: 'column', position: 'relative',
             zIndex: isFormOpen ? 1200 : 1, overflowY: 'auto', overflowX: 'hidden', minWidth: 0,

@@ -293,22 +293,7 @@ export function ConditionBadges({ graha }: { graha: GrahaData }) {
     )
   }
   
-  if (graha.mrityuBhaga?.isMrityuBhaga) {
-    const color = COLORS.mrityu[graha.mrityuBhaga.severity as keyof typeof COLORS.mrityu] || COLORS.mrityu.wide
-    badges.push(
-      <span key="mrityu" style={{
-        fontSize: '0.55rem',
-        background: color.bg,
-        color: color.text,
-        padding: '1px 4px',
-        borderRadius: 3,
-        border: `1px solid ${color.border}`,
-        fontWeight: 600,
-      }}>
-        M
-      </span>
-    )
-  }
+
   
   if (graha.yuddha?.isWarring && (graha.id === 'Me' || graha.id === 'Ve')) {
     const isWinner = graha.yuddha.winner === graha.id
