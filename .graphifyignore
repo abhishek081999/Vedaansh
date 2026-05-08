@@ -1,0 +1,43 @@
+# ── Build & dependency output ────────────────────────────────
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+# ── Graphify own output (avoid circular self-analysis) ───────
+graphify-out/
+
+# ── Ephemeris binary data files ───────────────────────────────
+ephe/
+
+# ── Database & large data ────────────────────────────────────
+src/lib/atlas/*.db
+src/lib/atlas/*.db-shm
+src/lib/atlas/*.db-wal
+scripts/allCountries.txt
+
+# ── Logs & temp ──────────────────────────────────────────────
+*.log
+*.tmp
+scratch/
+
+# ── TypeScript build cache ────────────────────────────────────
+*.tsbuildinfo
+
+# ── Remotion bundle (generated video assets) ─────────────────
+public/workbox-*.js
+public/sw.js
+
+# ── Test snapshots / fixtures ────────────────────────────────
+**/__snapshots__/
+
+# ── OS / editor noise ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── Environment files ────────────────────────────────────────
+.env
+.env.*
