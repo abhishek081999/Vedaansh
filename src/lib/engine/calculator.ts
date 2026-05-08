@@ -234,6 +234,7 @@ function dashaDepthForPlan(plan: UserPlan): number {
 export async function calculateChart(
   input: CalculateChartInput,
   plan: UserPlan = 'free',
+  options: { dashaDepth?: number } = {}
 ): Promise<ChartOutput> { // eslint-disable-line
   const settings = input.settings ?? DEFAULT_SETTINGS
   const birthUtc = parseBirthUtc(input.utcDate, input.utcTime)
@@ -455,7 +456,7 @@ export async function calculateChart(
   })
 
   // Dashas
-  const dashaDepth = dashaDepthForPlan(plan)
+  const dashaDepth = options.dashaDepth ?? dashaDepthForPlan(plan)
   const vimshottari = calcVimshottari(moon.lonSidereal, birthUtc, dashaDepth)
 
   // Panchang
