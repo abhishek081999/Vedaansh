@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
             longitude:  sc.longitude,
             timezone:   sc.timezone,
             settings:   (sc.settings || {}) as ChartSettings,
-          }, 'platinum')
+          }, 'platinum', { dashaDepth: 4 })
 
           // Generate HTML dossier
           const html = generateChartHTML(chartData, branding as any)
@@ -109,6 +109,10 @@ export async function POST(req: NextRequest) {
           console.error(`[bulk-export] Error processing chart ${sc._id}:`, err)
         }
       }))
+
+      if (typeof (global as any).gc === 'function') {
+        ;(global as any).gc()
+      }
     }
 
     // 4. Generate ZIP binary
