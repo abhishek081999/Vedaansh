@@ -18,6 +18,7 @@ import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { PLAN_PRICES } from '@/lib/subscription/pricing'
 
 export const runtime = 'nodejs'
 
@@ -27,10 +28,7 @@ const VerifySchema = z.object({
   signature: z.string().min(1),
 })
 
-const PLAN_PRICES = {
-  gold: { monthly: 17500, yearly: 180000 },
-  platinum: { monthly: 35000, yearly: 384000 },
-} as const
+// synced with src/app/pricing/page.tsx (via shared lib)
 
 function addInterval(date: Date, interval: 'monthly' | 'yearly'): Date {
   const d = new Date(date)
@@ -102,7 +100,7 @@ export async function POST(req: NextRequest) {
 
     const now    = new Date()
     const expiry = addInterval(now, interval)
-    const amount = PLAN_PRICES[plan][interval]
+    const amount = PLAN_PRICES[plan][interval === 'monthly' ? 'monthlyPaise' : 'yearlyPaise']
     if (payment.amount !== amount) {
       return NextResponse.json({ success: false, error: 'Amount mismatch' }, { status: 400 })
     }

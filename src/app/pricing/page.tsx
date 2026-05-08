@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { PLAN_PRICES } from '@/lib/subscription/pricing'
 
 let razorpayLoadPromise: Promise<void> | null = null
 
@@ -19,54 +20,59 @@ const FEATURES = {
     badge: null,
     features: [
       '✓ Unlimited chart calculations',
-      '✓ All 41 varga divisional charts',
-      '✓ Dasha analysis with standard depth',
-      '✓ Shadbala & Viṁśopaka planetary strength',
-      '✓ Aṣṭakavarga (SAV + BAV) & Āruḍha Lagnas',
-      '✓ Automatic detection of 100+ Graha Yogas',
-      '✓ Daily Pañcāṅga tools',
-      '✓ Solar Return (Varṣaphal) analysis',
-      '✓ Basic Relationship Compatibility & Comparison',
-      '✓ Nakshatra Suite: Navtara, Remedies & Analysis',
-      '✓ Interpretation Layer: Headlines & Key Insights',
-      '✓ Transit Overlays on Rashi & Houses',
-      '✓ Save up to 20 consultation records',
-      '✓ Public chart sharing with links',
+      '✓ Shodasha Vargas (16 main charts)',
+      '✓ Vimshottari & Yogini Dashas (L4)',
+      '✓ Shadbala, Vimsopaka & Bhava Bala',
+      '✓ Aṣṭakavarga, Arudhas & Chara Karakas',
+      '✓ 100+ Graha Yogas detected',
+      '✓ Daily Pañcāṅga & Muhūrta tools',
+      '✓ Relationship Compatibility (Ashtakoot)',
+      '✓ Solar Return (Tajika/Varṣaphal)',
+      '✓ Interpretation Layer: Key Insights',
+      '✓ KP System (Cusps & Significators)',
+      '✓ Save up to 20 charts in library',
     ],
   },
   gold: {
     name: 'Gold',
     subtitle: 'For serious students',
-    price: { monthly: 175, yearly: 1800 },
+    price: { 
+      monthly: PLAN_PRICES.gold.monthly, 
+      yearly: PLAN_PRICES.gold.yearly 
+    },
     color: 'var(--accent)',
     border: 'rgba(139,124,246,0.50)',
     bg: 'rgba(139,124,246,0.08)',
     badge: 'Most Popular',
     features: [
       '✓ Everything in Free',
-      '✓ Save up to 200 charts in your library',
+      '✓ Ashtottari & Chara (Jaimini) Dashas',
+      '✓ Extended Dasha Depth (L6)',
       '✓ Professional PDF & HTML exports',
       '✓ Bulk Data Import (CSV/JSON)',
-      '✓ Muhūrta routes and API access',
-      '✓ Deeper Dasha depth than Free',
+      '✓ Save up to 200 charts in library',
+      '✓ Muhūrta advanced routes & API',
     ],
   },
   platinum: {
     name: 'Platinum',
     subtitle: 'For professionals',
-    price: { monthly: 350, yearly: 3840 },
+    price: { 
+      monthly: PLAN_PRICES.platinum.monthly, 
+      yearly: PLAN_PRICES.platinum.yearly 
+    },
     color: 'var(--teal)',
     border: 'rgba(78,205,196,0.50)',
     bg: 'rgba(78,205,196,0.08)',
     badge: 'Premium',
     features: [
       '✓ Everything in Gold',
-      '✓ Yearly plan: ₹320/month billed annually',
-      '✓ White-labeling: Use your own brand/logo on shares',
-      '✓ Client Management Dashboard',
-      '✓ Bulk ZIP export for saved chart collections',
-      '✓ Brand personalization in exports and email reports',
+      '✓ Full 41 Varga Suite (All Divisions)',
+      '✓ White-labeling: Custom brand & logo',
       '✓ Email chart reports to clients',
+      '✓ Unlimited chart library',
+      '✓ Client Management Dashboard',
+      '✓ Bulk ZIP export for collections',
       '✓ Research routes and API access',
     ],
   },
@@ -75,9 +81,7 @@ const FEATURES = {
 const FAQ = [
   { q: 'Is Free really free forever?', a: 'Yes. The Free tier is permanently free with no credit card required. We believe core Jyotish tools should be accessible to everyone.' },
   { q: 'What payment methods are accepted?', a: 'We accept all major credit/debit cards, UPI, net banking, and wallets via Razorpay. International cards also accepted.' },
-  { q: 'Can I cancel anytime?', a: 'Yes, subscriptions can be cancelled at any time. Your access continues until the end of the billing period.' },
   { q: 'Do you offer discounts?', a: 'Promotional and educational discounts may be offered occasionally. Contact support for current eligibility and terms.' },
-  { q: 'Do you offer refunds?', a: 'Refunds are handled according to our active billing and refund policy. Contact support with your order details for assistance.' },
 ]
 
 export default function PricingPage() {
@@ -88,6 +92,7 @@ export default function PricingPage() {
   const [checkoutError,  setCheckoutError]  = useState<string | null>(null)
 
   const currentPlan = (session?.user as any)?.plan ?? 'free'
+  const PLAN_RANK: Record<string, number> = { free: 0, gold: 1, platinum: 2 }
 
   useEffect(() => {
     // Warm up SDK after first render so checkout opens faster and more reliably.
@@ -282,7 +287,7 @@ export default function PricingPage() {
                 {billing === 'yearly' && price > 0 && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
                     {key === 'platinum'
-                      ? `₹${tier.price.yearly}/year — ₹320/month billed yearly`
+                      ? `₹${tier.price.yearly}/year — ₹${Math.round(tier.price.yearly / 12)}/month billed yearly`
                       : `₹${tier.price.yearly}/year — save ₹${(tier.price.monthly * 12) - tier.price.yearly}`}
                   </div>
                 )}
@@ -308,14 +313,15 @@ export default function PricingPage() {
                   }}>
                     Get Started Free →
                   </Link>
-                ) : currentPlan === key ? (
+                ) : PLAN_RANK[currentPlan] > PLAN_RANK[key] ? (
                   <div style={{
-                    display: 'block', padding: '0.65rem 1rem', textAlign: 'center',
-                    background: 'var(--surface-3)', borderRadius: 'var(--r-md)',
+                    padding: '0.6rem 1rem', textAlign: 'center',
+                    background: 'var(--surface-3)', border: '1px solid var(--border-soft)',
+                    borderRadius: 'var(--r-md)',
                     fontFamily: 'var(--font-display)', fontSize: '0.85rem',
                     fontWeight: 600, color: 'var(--text-muted)',
                   }}>
-                    ✓ Current plan
+                    ✓ Included in your plan
                   </div>
                 ) : (
                   <>
@@ -367,8 +373,6 @@ export default function PricingPage() {
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           {[
             { icon: '🔒', text: 'Secure payments via Razorpay' },
-            { icon: '↩', text: '7-day money-back guarantee' },
-            { icon: '❌', text: 'Cancel anytime, no lock-in' },
             { icon: <Image src="/veda-icon.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />, text: 'Swiss Ephemeris precision' },
           ].map(({ icon, text }) => (
             <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
