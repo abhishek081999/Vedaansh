@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Process in small batches to avoid overwhelming the engine or memory
-    const batchSize = 5
+    const batchSize = 2; // Reduced from 5 to avoid OOM on Render free tier
     for (let i = 0; i < savedCharts.length; i += batchSize) {
       const batch = savedCharts.slice(i, i + batchSize)
       await Promise.all(batch.map(async (sc) => {
