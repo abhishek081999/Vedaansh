@@ -27,6 +27,7 @@ const contentSecurityPolicy = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  productionBrowserSourceMaps: false,
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Allow native addons like sweph

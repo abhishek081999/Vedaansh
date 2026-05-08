@@ -5,6 +5,7 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { PLAN_PRICES } from '@/lib/subscription/pricing'
 
 export const runtime = 'nodejs'
 
@@ -23,12 +24,7 @@ function getRazorpay(): Razorpay {
   return rzp
 }
 
-// ── Plan → amount map (paise = 1/100 of rupee) ───────────────
-// synced with src/app/pricing/page.tsx
-const PLAN_PRICES = {
-  gold: { monthly: 17500, yearly: 180000 },
-  platinum: { monthly: 35000, yearly: 384000 },
-} as const
+// synced with src/app/pricing/page.tsx (via shared lib)
 
 // ── Input schema ──────────────────────────────────────────────
 
@@ -62,7 +58,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { plan, interval } = parsed.data
-    const amountPaise = PLAN_PRICES[plan][interval]
+    const amountPaise = PLAN_PRICES[plan][interval === 'monthly' ? 'monthlyPaise' : 'yearlyPaise']
 
     await connectDB()
 

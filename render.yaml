@@ -13,6 +13,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=450
 
       - key: NEXT_PUBLIC_APP_URL
         value: https://vedaansh.com
