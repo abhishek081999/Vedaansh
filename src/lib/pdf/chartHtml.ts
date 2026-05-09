@@ -1478,8 +1478,8 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       if (!moon) return ''
       const items = getNakshatraCharacteristics(moon.nakshatraIndex, moon.pada)
       return [
-        { l: 'Quality', v: items.quality }, { l: 'Yoni', v: items.yoni }, { l: 'Gana', v: items.gana },
-        { l: 'Nadi', v: items.nadi }, { l: 'Tattva', v: items.tattva }, { l: 'Caste', v: items.varna }
+        { l: 'Nature', v: items.nature }, { l: 'Yoni', v: items.yoni }, { l: 'Gana', v: items.gana },
+        { l: 'Nadi', v: items.nadi }, { l: 'Deity', v: items.deity }, { l: 'Caste', v: items.varna }
       ].map(it => `
         <div style="padding: 12px; border: 1px solid ${THEME.border}; border-radius: 8px; background: #fff">
           <div style="font-size: 8px; color: ${THEME.muted}; text-transform: uppercase; font-weight: 800">${it.l}</div>
@@ -1493,8 +1493,8 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px">
     ${getNavtaraChakra(chart.panchang.nakshatra.index).slice(0, 18).map(t => `
       <div style="padding: 10px; background: ${t.quality === 'auspicious' ? '#f0f9ff' : t.quality === 'inauspicious' ? '#fff1f2' : '#f8fafc'}; border: 1px solid ${THEME.border}; border-radius: 6px; font-size: 10px">
-        <div style="color: ${THEME.secondary}; font-weight: 900; margin-bottom: 2px">${t.type}</div>
-        <div style="font-size: 9px; opacity: 0.8">${t.planet}</div>
+        <div style="color: ${THEME.secondary}; font-weight: 900; margin-bottom: 2px">${t.tara}</div>
+        <div style="font-size: 9px; opacity: 0.8">${t.nakshatraName}</div>
       </div>
     `).join('')}
   </div>
@@ -1506,12 +1506,12 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   ${SectionHeader('11', 'Yoga', 'Celestial Combinations')}
   <p style="margin-bottom: 2rem">Yogas are the "formulas" of destiny — specific planetary alignments that produce extraordinary results.</p>
   <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem">
-    ${chart.yogas.slice(0, 8).map(y => `
-      <div style="padding: 15px; border-left: 3px solid ${y.type==='positive'?THEME.emerald:THEME.rose}; background: #fff; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.03)">
+    ${chart.yogas?.slice(0, 8).map(y => `
+      <div style="padding: 15px; border-left: 3px solid ${y.category==='malefic'?THEME.rose:THEME.emerald}; background: #fff; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.03)">
         <h4 style="color: ${THEME.primary}; font-family: 'Cormorant Garamond', serif; font-size: 0.95rem">${y.name}</h4>
         <p style="font-size: 10px; line-height: 1.5; margin-top: 6px; color: ${THEME.text}">${y.description}</p>
       </div>
-    `).join('')}
+    `).join('') || ''}
   </div>
   ${PageFooter(15, meta.name)}
 </div>
