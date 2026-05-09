@@ -19,9 +19,9 @@ function durationMin(start: Date | string, end: Date | string): number {
 }
 
 /**
- * Birth-time pañcāṅga — matches the visual language of the daily almanac page, scaled for side panels.
+ * Birth-time panchang — matches the visual language of the daily almanac page, scaled for side panels.
  */
-export function NatalPanchangPanel({ p, title = 'Natal Pañcāṅga' }: { p: P; title?: string }) {
+export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; title?: string }) {
   const tz = p.location.tz
   const pakLabel = p.tithi.paksha === 'shukla' ? 'Śukla pakṣa' : 'Kṛṣṇa pakṣa'
 
@@ -42,7 +42,7 @@ export function NatalPanchangPanel({ p, title = 'Natal Pañcāṅga' }: { p: P; 
           background: 'linear-gradient(145deg, rgba(201,168,76,0.08) 0%, rgba(15,18,28,0.5) 100%)',
         }}
       >
-        <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-gold)', marginBottom: 4 }}>Pañcāṅga</div>
+        <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-gold)', marginBottom: 4 }}>Panchang</div>
         <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h3>
         <p style={{ margin: '0.45rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
           Tithi, nakṣatra, yoga, karaṇa and vāra at birth — the classical five limbs for this chart.
@@ -133,7 +133,7 @@ export function NatalPanchangPanel({ p, title = 'Natal Pañcāṅga' }: { p: P; 
 
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-gold)', textDecoration: 'none' }}>
-          Open daily pañcāṅga →
+          Open daily panchang →
         </Link>
       </div>
     </div>

@@ -50,7 +50,7 @@ const HERO_SLIDES: HeroSlide[] = [
     id: 'panchang',
     kicker: 'Daily Panchang',
     title: 'Today’s tithi, nakṣatra, muhūrta',
-    desc: 'Pañcāṅga signals and day-level timing at a glance.',
+    desc: 'Panchang signals and day-level timing at a glance.',
     accent: '#2f9e8f',
     bullets: ['Rahu Kaal & yogas', 'Day factors'],
     cta: { label: 'Open Panchang', href: '/panchang' },

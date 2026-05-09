@@ -25,7 +25,7 @@ const FEATURES = {
       '✓ Shadbala, Vimsopaka & Bhava Bala',
       '✓ Aṣṭakavarga, Arudhas & Chara Karakas',
       '✓ 100+ Graha Yogas detected',
-      '✓ Daily Pañcāṅga & Muhūrta tools',
+      '✓ Daily Panchang & Muhūrta tools',
       '✓ Relationship Compatibility (Ashtakoot)',
       '✓ Solar Return (Tajika/Varṣaphal)',
       '✓ Interpretation Layer: Key Insights',

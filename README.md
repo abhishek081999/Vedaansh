@@ -44,7 +44,7 @@ A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScr
 | **Viṁśopaka Bala** | Four classical systems: Ṣaḍvarga, Saptavarga, Daśavarga, Shoḍaśvarga |
 | **Aṣṭakavarga** | SAV total grid + BAV grids for all 7 planets, color-coded |
 | **Graha Yogas** | 6 categories: Pancha Mahapurusha, Raja, Dhana, Viparita, Special, Lunar |
-| **Pañcāṅga** | Tithi, Vara, Nakshatra, Yoga, Karana, Rahu Kalam, Gulika, Abhijit, Hora table |
+| **Panchang** | Tithi, Vara, Nakshatra, Yoga, Karana, Rahu Kalam, Gulika, Abhijit, Hora table |
 | **Monthly Calendar** | Full month grid — all days with Tithi/Nakshatra/Yoga/Bhadra; click for detail |
 | **Muhūrta Finder** | 7 purposes; date range up to 60 days; A/B/C/D grade; auspicious windows |
 | **Varṣaphal** | Solar Return — year picker, exact return moment UTC, full chart display |

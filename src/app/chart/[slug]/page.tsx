@@ -56,7 +56,7 @@ const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'shadbala',label: 'Ṣaḍbala',  emoji: '⚖' },
   { id: 'bhava-bala', label: 'Bhāva Bala', emoji: '⌗' },
   { id: 'vimsopaka',label: 'Viṁśopaka',emoji: '⑳' },
-  { id: 'panchang',label: 'Pañcāṅga', emoji: '📅' },
+  { id: 'panchang',label: 'Panchang', emoji: '📅' },
   { id: 'arudhas', label: 'Āruḍhas',  emoji: '☯' },
 ]
 
@@ -225,7 +225,7 @@ export default function PublicChartPage() {
         </Link>
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
-            Pañcāṅga
+            Panchang
           </Link>
           <Link href="/" className="btn btn-primary btn-sm" style={{ fontSize: '0.82rem' }}>
             + New Chart
@@ -421,7 +421,7 @@ export default function PublicChartPage() {
 
               {tab === 'panchang' && (
                 <div className="card">
-                  <div className="label-caps" style={{ marginBottom: '1rem' }}>Natal Pañcāṅga</div>
+                  <div className="label-caps" style={{ marginBottom: '1rem' }}>Natal Panchang</div>
                   <NatalPanchangPanel p={chart.panchang} />
                 </div>
               )}
@@ -467,7 +467,7 @@ export default function PublicChartPage() {
                 Explore your own chart
               </div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1rem' }}>
-                Free forever — all varga charts, Dasha tree, Āruḍhas & Pañcāṅga
+                Free forever — all varga charts, Dasha tree, Āruḍhas & Panchang
               </div>
               <Link href="/" className="btn btn-primary">
                 Calculate My Chart →

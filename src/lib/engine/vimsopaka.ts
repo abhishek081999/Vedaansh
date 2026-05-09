@@ -210,8 +210,9 @@ const SHODASVARGA: [string, number][] = [
 
 function computeVargaRashi(longitude: number, varga: string): { rashi: number; degree: number } {
   const lon = ((longitude % 360) + 360) % 360
+  if (isNaN(lon)) return { rashi: 1, degree: 0 }
   const rashiSize = 30
-  const baseRashi = Math.floor(lon / rashiSize) + 1
+  const baseRashi = Math.min(12, Math.max(1, Math.floor(lon / rashiSize) + 1))
   const deg = lon % rashiSize
   switch (varga) {
     case 'D1': return { rashi: baseRashi, degree: deg }

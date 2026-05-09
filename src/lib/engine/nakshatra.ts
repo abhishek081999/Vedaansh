@@ -30,16 +30,27 @@ export interface NakshatraResult {
  */
 export function getNakshatra(lonSidereal: number): NakshatraResult {
   const normalized = ((lonSidereal % 360) + 360) % 360
-  const index      = Math.floor(normalized / NAKSHATRA_SPAN)
-  const degreeInNak = normalized % NAKSHATRA_SPAN
-  const pada       = Math.floor(degreeInNak / PADA_SPAN) + 1
+  
+  // Guard against NaN
+  if (isNaN(normalized)) {
+    return {
+      index: 0, name: 'Ashwini', shortName: 'Ash', pada: 1, lord: 'Ke',
+      degreeInNak: 0, exactDegree: 0
+    }
+  }
 
+  const rawIndex = Math.floor(normalized / NAKSHATRA_SPAN)
+  const index    = Math.min(26, Math.max(0, rawIndex))
+  const degreeInNak = normalized % NAKSHATRA_SPAN
+  const pada       = Math.min(4, Math.floor(degreeInNak / PADA_SPAN) + 1)
+
+  const name = NAKSHATRA_NAMES[index] || 'Ashwini'
   return {
     index,
-    name:        NAKSHATRA_NAMES[index],
-    shortName:   NAKSHATRA_NAMES[index].substring(0, 3),
+    name,
+    shortName:   name.substring(0, 3),
     pada,
-    lord:        NAKSHATRA_LORDS[index],
+    lord:        NAKSHATRA_LORDS[index] || 'Ke',
     degreeInNak,
     exactDegree: normalized,
   }
@@ -79,8 +90,12 @@ export function getTithi(
   let diff = moonLonSidereal - sunLonSidereal
   diff     = ((diff % 360) + 360) % 360
 
-  const tithiIndex  = Math.floor(diff / TITHI_SPAN)   // 0–29
-  const tithiNumber = tithiIndex + 1                   // 1–30
+  if (isNaN(diff)) {
+    return { number: 1, name: 'Pratipada', paksha: 'shukla', lord: 'Agni', percent: 0 }
+  }
+
+  const tithiIndex  = Math.min(29, Math.floor(diff / TITHI_SPAN))   // 0–29
+  const tithiNumber = tithiIndex + 1                               // 1–30
   const percent     = (diff % TITHI_SPAN) / TITHI_SPAN * 100
 
   const paksha      = tithiIndex < 15 ? 'shukla' : 'krishna'
@@ -88,9 +103,9 @@ export function getTithi(
 
   return {
     number:  tithiNumber,
-    name:    tithiIndex === 14 ? 'Purnima' : tithiIndex === 29 ? 'Amavasya' : TITHI_NAMES[nameIndex],
+    name:    tithiIndex === 14 ? 'Purnima' : tithiIndex === 29 ? 'Amavasya' : TITHI_NAMES[nameIndex] || 'Pratipada',
     paksha,
-    lord:    TITHI_LORDS[tithiIndex],
+    lord:    TITHI_LORDS[tithiIndex] || 'Agni',
     percent,
   }
 }
@@ -134,8 +149,13 @@ export function getYoga(
   moonLonSidereal: number,
 ): YogaResult {
   const sum   = (sunLonSidereal + moonLonSidereal) % 360
-  const index = Math.floor(sum / YOGA_SPAN)
-  const name  = YOGA_NAMES[index]
+  
+  if (isNaN(sum)) {
+    return { number: 1, name: 'Vishkambha', quality: 'inauspicious', percent: 0 }
+  }
+
+  const index = Math.min(26, Math.floor(sum / YOGA_SPAN))
+  const name  = YOGA_NAMES[index] || 'Vishkambha'
 
   return {
     number:  index + 1,
@@ -174,7 +194,11 @@ export function getKarana(
   let diff = moonLonSidereal - sunLonSidereal
   diff     = ((diff % 360) + 360) % 360
 
-  const karanaIndex = Math.floor(diff / 6)  // each Karana = 6°
+  if (isNaN(diff)) {
+    return { number: 1, name: 'Kimstughna', type: 'fixed', isBhadra: false }
+  }
+
+  const karanaIndex = Math.min(59, Math.floor(diff / 6))  // each Karana = 6°
 
   let name: string
   let type: 'fixed' | 'movable'
@@ -186,12 +210,12 @@ export function getKarana(
   } else if (karanaIndex >= 57) {
     // Last 3 Karanas — fixed
     const fixedIndex = karanaIndex - 57 + 1
-    name = FIXED_KARANAS[fixedIndex] || 'Shakuni'
+    name = FIXED_KARANAS[fixedIndex] || FIXED_KARANAS[0]
     type = 'fixed'
   } else {
     // Movable Karanas (repeat)
     const movableIndex = (karanaIndex - 1) % 7
-    name = MOVABLE_KARANAS[movableIndex]
+    name = MOVABLE_KARANAS[movableIndex] || MOVABLE_KARANAS[0]
     type = 'movable'
   }
 

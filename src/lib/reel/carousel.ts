@@ -1,4 +1,4 @@
-/** Multi-slide carousel export for dense pañcāṅga templates (full 1080×1920 per slide). */
+/** Multi-slide carousel export for dense panchang templates (full 1080×1920 per slide). */
 
 export function getCarouselSlideCount(reelType: string): number {
   switch (reelType) {

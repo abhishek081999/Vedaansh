@@ -52,7 +52,8 @@ export function getKPStellar(longitude: number): StellarPosition {
   const signLord = SIGN_LORDS[rashi]
   
   // 2. Star Lord
-  const nakIdx = Math.floor(normLon / (360 / 27))
+  const rawNakIdx = Math.floor(normLon / (360 / 27))
+  const nakIdx = isNaN(rawNakIdx) ? 0 : rawNakIdx
   const starLord = NAKSHATRA_LORDS[nakIdx % 27]
   
   // 3. Sub Lord

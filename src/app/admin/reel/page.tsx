@@ -85,7 +85,7 @@ const TEMPLATE_PREVIEW_STYLE: Record<
 
 const TEMPLATE_ONBOARD: Record<ReelType, { blurb: string }> = {
   panchang_full: {
-    blurb: 'Full-day snapshot: pañcāṅga limbs, sunrise/moon, inauspicious bands, graha strip, and a Choghadiya teaser — best for daily “what is today” reels.',
+    blurb: 'Full-day snapshot: panchang limbs, sunrise/moon, inauspicious bands, graha strip, and a Choghadiya teaser — best for daily “what is today” reels.',
   },
   muhurta: {
     blurb: 'Timing-first reel: Brahma, Abhijit, Godhuli, Dur, Horā table, and auspicious Choghadiya — ideal for “best windows today” posts.',

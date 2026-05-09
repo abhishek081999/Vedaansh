@@ -137,7 +137,7 @@ export function PanchangViz({
   }, [dayProgress])
 
   return (
-    <section className={styles.wrap} aria-label="Pañcāṅga sky diagram">
+    <section className={styles.wrap} aria-label="Panchang sky diagram">
       <div className={styles.body}>
         <div className={styles.svgWrap}>
           <svg key={dateStr} viewBox="0 0 400 400" role="img" aria-label="Sidereal ecliptic wheel with Sun and Moon">

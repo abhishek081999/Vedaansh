@@ -26,7 +26,7 @@ const jsonLd = {
   '@type':    'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home',             item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Pañcāṅga',         item: `${BASE_URL}/panchang` },
+    { '@type': 'ListItem', position: 2, name: 'Panchang',         item: `${BASE_URL}/panchang` },
     { '@type': 'ListItem', position: 3, name: 'Monthly Calendar', item: `${BASE_URL}/panchang/calendar` },
   ],
 }

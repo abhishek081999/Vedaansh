@@ -1,5 +1,5 @@
 /**
- * Extra muhūrta-style windows used on many North Indian / online pañcāṅgas.
+ * Extra muhūrta-style windows used on many North Indian / online panchangs.
  * Rules are approximate; regional āgamas and printed calendars may differ.
  */
 

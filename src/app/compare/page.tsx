@@ -432,7 +432,7 @@ function CompareContent() {
                     {(view === 'panchang' || view === 'all') && (
                       <div className="card fade-up" style={{ padding: '1.25rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Natal Panchang</h3>
-                        <NatalPanchangPanel p={chart.panchang} title="Natal Pañcāṅga" />
+                        <NatalPanchangPanel p={chart.panchang} title="Natal Panchang" />
                       </div>
                     )}
                   </div>
