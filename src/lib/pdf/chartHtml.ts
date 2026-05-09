@@ -29,19 +29,21 @@ interface Branding {
   brandLogo?: string | null
 }
 
-// ── Colors & Theme ────────────────────────────────────────────
+// ── Colors & Theme — Traditional Vedic Kundali ───────────────
 const THEME = {
-  primary: '#8c1c13', // Deep Vedic Maroon
-  secondary: '#78350f', // Sandalwood Brown
-  accent:    '#b45309', // Burnished Gold
-  accentLight:'#fef3c7',
-  border:    '#d7d1ba', // Aged Parchment Border
-  text:      '#2d2a26', // Scripture Ink
-  muted:     '#78716c',
-  bg:        '#fdfaf3', // Parchment Background
-  surface:   '#f7f3e8',
-  emerald:   '#166534',
-  rose:      '#991b1b',
+  primary:    '#9b1b30', // Kumkum Vermillion
+  secondary:  '#6b3a0a', // Sandalwood Deep
+  accent:     '#c77d1a', // Saffron / Haldi Gold
+  accentLight:'#fdf0d5', // Light Saffron Wash
+  border:     '#c4a97d', // Aged Palm-Leaf Edge
+  text:       '#1a1208', // Lamp-Black Ink
+  muted:      '#6d5d4b', // Faded Manuscript
+  bg:         '#faf5e4', // Bhojpatra / Palm-Leaf
+  surface:    '#f2ead2', // Inner Parchment
+  emerald:    '#1a6334', // Panna / Emerald
+  rose:       '#8b1a1a', // Sindoor Red
+  saffron:    '#e8751a', // Deep Saffron
+  temple:     '#d4a24e', // Temple Gold
 }
 
 // ── Icons (SVG Paths) ─────────────────────────────────────────
@@ -376,11 +378,11 @@ function buildChartSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
 function PageFooter(pageNo: number, name: string): string {
   return `
     <div class="footer">
-      <div style="display:flex; align-items:center; gap:10px">
-        <span style="opacity:0.3; color:${THEME.accent}">${ICONS.om}</span>
-        <span>Deep Intelligence Report • ${name} • Confidential</span>
+      <div style="display:flex; align-items:center; gap:8px">
+        <span style="opacity:0.4; color:${THEME.temple}; font-family:'Noto Serif Devanagari',serif; font-size:0.8rem">ॐ</span>
+        <span>Kundali Report • ${name} • गोपनीय</span>
       </div>
-      <div>Page ${pageNo}</div>
+      <div style="color:${THEME.temple}">पृ. ${pageNo}</div>
     </div>`
 }
 
@@ -391,7 +393,7 @@ function SectionHeader(num: string, title: string, subtitle?: string): string {
         <div class="section-badge">${subtitle || 'Vedaansh Premium'}</div>
         <h2 class="section-title"><span>${num}</span> ${title}</h2>
       </div>
-      <div style="color:${THEME.accent}; opacity:0.25">${ICONS.om}</div>
+      <div style="color:${THEME.temple}; opacity:0.2; font-family:'Noto Serif Devanagari',serif; font-size:2.5rem; line-height:1">ॐ</div>
     </div>
   `
 }
@@ -409,7 +411,7 @@ function buildVargaGrid(chart: ChartOutput): string {
   return `<div class="varga-grid">${items}</div>`
 }
 
-function buildAstroDetailsHtml(chart: ChartOutput): string {
+function buildAstroDetailsHtml(chart: ChartOutput): { part1: string; part2: string } | string {
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const rahu = chart.grahas.find(g => g.id === 'Ra')
   const sun = chart.grahas.find(g => g.id === 'Su')
@@ -456,8 +458,8 @@ function buildAstroDetailsHtml(chart: ChartOutput): string {
   const kshetra = chart.upagrahas?.['Kshetra Sphuta']
 
   const detailTable = (title: string, rows: [string, string][]) => `
-    <h4 style="margin: 1.1rem 0 0.45rem; color:${THEME.primary}; font-size: 0.92rem; font-weight: 800">${title}</h4>
-    <table class="data-table" style="margin-bottom: 0.35rem">
+    <h4 style="margin: 0.5rem 0 0.2rem; color:${THEME.primary}; font-size: 0.85rem; font-weight: 800">${title}</h4>
+    <table class="data-table" style="margin-bottom: 0.2rem">
       ${rows.map(([k, v]) => `
         <tr>
           <td style="font-weight:700;background:${THEME.surface};width:36%">${escapeHtml(k)}</td>
@@ -471,86 +473,93 @@ function buildAstroDetailsHtml(chart: ChartOutput): string {
     : []
 
   const bhriguStr = bhriguFmt && bhriguLon != null
-    ? `${RASHI_NAMES[bhriguFmt.rashi]} ${bhriguFmt.degInSign.toFixed(2)}° · ${bhriguLon.toFixed(4)}° sidereal`
+    ? `${RASHI_NAMES[bhriguFmt.rashi]} ${bhriguFmt.degInSign.toFixed(2)}°`
     : '—'
 
-  return `
-    <p style="font-size: 11px; color: ${THEME.muted}; margin-bottom: 1rem; line-height: 1.5">
-      Full natal summary: birth data, lagna, Moon nakṣatra attributes, pañcāṅga, special lagnas, and derived points (Indu Lagna, Bhrigu Bindu, eras approximate).
-    </p>
-    ${detailTable('Birth data', [
-      ['Name', chart.meta.name || '—'],
-      ['Date', chart.meta.birthDate],
-      ['Time', chart.meta.birthTime || '—'],
-      ['Place', chart.meta.birthPlace || '—'],
-      ['Timezone', chart.meta.timezone],
-      ['Coordinates', `${chart.meta.latitude.toFixed(4)}°, ${chart.meta.longitude.toFixed(4)}°`],
-      ['Ayanāṃśa', `${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(4)}°`],
-      ['Julian Day', chart.meta.julianDay.toFixed(5)],
-    ])}
-    ${detailTable('Lagna & signs', [
-      ['Ascendant', `${RASHI_NAMES[chart.lagnas.ascRashi]} (${RASHI_SANSKRIT[chart.lagnas.ascRashi]})`],
-      ['Ascendant (degree)', `${RASHI_NAMES[chart.lagnas.ascRashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(2)}°`],
-      ['Ascendant lord', GRAHA_NAMES[ascLord]],
-      ['Moon sign', `${RASHI_NAMES[moon.rashi]} · ${RASHI_SANSKRIT[moon.rashi]}`],
-      ['Moon rāśi tatva', getRashiTatva(moon.rashi)],
-    ])}
-    ${detailTable('Nakṣatra (Moon)', [
-      ['Nakṣatra', `${moon.nakshatraName} (${moon.pada} pada)`],
-      ['Nakṣatra lord', GRAHA_NAMES[chars.lord]],
-      ['Deity', chars.deity],
-      ['Symbol', chars.symbol],
-      ['Varṇa (nakṣatra)', chars.varna],
-      ['Varṇa (rāśi · koota)', getVarnaName(moon.rashi)],
-      ['Vaśya (rāśi · koota)', getVashyaName(moon.rashi)],
-      ['Yoni', chars.yoni],
-      ['Gaṇa', `${chars.gana} · koota: ${getGanaName(moonNak1)}`],
-      ['Nāḍī (nakṣatra)', chars.nadi],
-      ['Nāḍī (koota)', getNadiName(moonNak1)],
-      ['Śakti', chars.shakti],
-      ['Nature', chars.nature],
-      ['Paya (from pada)', getNakshatraPaya(moon.pada)],
-      ['Name sound (pada)', getPadaNamingSyllable(moon.nakshatraIndex, moon.pada)],
-    ])}
-    ${detailTable('Pañcāṅga (natal)', [
-      ['Vāra (weekday)', `${chart.panchang.vara.name} · lord ${GRAHA_NAMES[chart.panchang.vara.lord]}`],
-      ['Tithi', `${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30)`],
-      ['Pakṣa', chart.panchang.tithi.paksha === 'shukla' ? 'Śukla (waxing)' : 'Kṛṣṇa (waning)'],
-      ['Tithi lord', String(chart.panchang.tithi.lord)],
-      ['Yoga', chart.panchang.yoga.name],
-      ['Karaṇa', chart.panchang.karana.name],
-      ['Sunrise', fmtShortTime(chart.panchang.sunrise)],
-      ['Sunset', fmtShortTime(chart.panchang.sunset)],
-      ['Day / night birth', dayNight],
-      ['Amānta / Pūrṇimānta', 'Lunar month naming varies by tradition; tithi & pakṣa follow astronomical calculation.'],
-    ])}
-    ${detailTable('Hindu eras (approx.)', [
-      ['Śaka Samvat', `~ ${eras.shaka}`],
-      ['Vikram Samvat', `~ ${eras.vikram}`],
-      ['Note', eras.note],
-    ])}
-    ${detailTable('Special lagnas & points', [
-      ['Āruḍha Lagna (AL)', chart.arudhas.AL ? RASHI_NAMES[chart.arudhas.AL] : '—'],
-      ['Indu Lagna', `${RASHI_NAMES[induRashi]} · ${RASHI_SANSKRIT[induRashi]}`],
-      ['Bhrigu Bindu', bhriguStr],
-      ...yogiRow,
-      ['Hora Lagna', fmtLon(chart.lagnas.horaLagna)],
-      ['Ghati Lagna', fmtLon(chart.lagnas.ghatiLagna)],
-      ['Bhava Lagna', fmtLon(chart.lagnas.bhavaLagna)],
-      ['Praṇapada', fmtLon(chart.lagnas.pranapada)],
-      ['Śrī Lagna', fmtLon(chart.lagnas.sriLagna)],
-      ['Varṇada Lagna', fmtLon(chart.lagnas.varnadaLagna)],
-      ...(beeja ? [[`Bīja Sphuta`, `${beeja.rashiName} ${beeja.degree.toFixed(2)}°`]] as [string, string][] : []),
-      ...(kshetra ? [[`Kṣetra Sphuta`, `${kshetra.rashiName} ${kshetra.degree.toFixed(2)}°`]] as [string, string][] : []),
-    ])}
-    ${(() => {
-      const sunRows: [string, string][] = []
-      if (sun) sunRows.push(['Sun', `${RASHI_NAMES[sun.rashi]} · ${fmtLon(sun.totalDegree)}`])
-      if (rahu) sunRows.push(['Rāhu', `${RASHI_NAMES[rahu.rashi]} · ${fmtLon(rahu.totalDegree)}`])
-      if (ketu) sunRows.push(['Ketu', `${RASHI_NAMES[ketu.rashi]} · ${fmtLon(ketu.totalDegree)}`])
-      return sunRows.length ? detailTable('Sun & nodes', sunRows) : ''
-    })()}
-  `
+  return {
+    part1: `
+      <p style="font-size: 9.5px; color: ${THEME.muted}; margin-bottom: 0.4rem; line-height: 1.3">
+        Natal summary part I: birth data, lagna, and Moon nakṣatra attributes.
+      </p>
+      ${detailTable('Birth data', [
+        ['Name', chart.meta.name || '—'],
+        ['Date', chart.meta.birthDate],
+        ['Time', chart.meta.birthTime || '—'],
+        ['Place', chart.meta.birthPlace || '—'],
+        ['Timezone', chart.meta.timezone],
+        ['Coordinates', `${chart.meta.latitude.toFixed(4)}°, ${chart.meta.longitude.toFixed(4)}°`],
+        ['Ayanāṃśa', `${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(4)}°`],
+        ['Julian Day', chart.meta.julianDay.toFixed(5)],
+      ])}
+      ${detailTable('Lagna & signs', [
+        ['Ascendant', `${RASHI_NAMES[chart.lagnas.ascRashi]} (${RASHI_SANSKRIT[chart.lagnas.ascRashi]})`],
+        ['Ascendant (degree)', `${RASHI_NAMES[chart.lagnas.ascRashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(2)}°`],
+        ['Ascendant lord', GRAHA_NAMES[ascLord]],
+        ['Moon sign', `${RASHI_NAMES[moon.rashi]} · ${RASHI_SANSKRIT[moon.rashi]}`],
+        ['Moon rāśi tatva', getRashiTatva(moon.rashi)],
+      ])}
+      ${detailTable('Nakṣatra (Moon)', [
+        ['Nakṣatra', `${moon.nakshatraName} (${moon.pada} pada)`],
+        ['Nakṣatra lord', GRAHA_NAMES[chars.lord]],
+        ['Deity', chars.deity],
+        ['Symbol', chars.symbol],
+        ['Varṇa (nakṣatra)', chars.varna],
+        ['Varṇa (rāśi · koota)', getVarnaName(moon.rashi)],
+        ['Vaśya (rāśi · koota)', getVashyaName(moon.rashi)],
+        ['Yoni', chars.yoni],
+        ['Gaṇa', `${chars.gana} · koota: ${getGanaName(moonNak1)}`],
+        ['Nāḍī (nakṣatra)', chars.nadi],
+        ['Nāḍī (koota)', getNadiName(moonNak1)],
+        ['Śakti', chars.shakti],
+        ['Nature', chars.nature],
+        ['Paya (from pada)', getNakshatraPaya(moon.pada)],
+        ['Name sound (pada)', getPadaNamingSyllable(moon.nakshatraIndex, moon.pada)],
+      ])}
+    `,
+    part2: `
+      <p style="font-size: 10px; color: ${THEME.muted}; margin-bottom: 0.8rem; line-height: 1.4">
+        Natal summary part II: Panchang, special lagnas, and derived points.
+      </p>
+      ${detailTable('Panchang (natal)', [
+        ['Vāra (weekday)', `${chart.panchang.vara.name} · lord ${GRAHA_NAMES[chart.panchang.vara.lord]}`],
+        ['Tithi', `${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30)`],
+        ['Pakṣa', chart.panchang.tithi.paksha === 'shukla' ? 'Śukla (waxing)' : 'Kṛṣṇa (waning)'],
+        ['Tithi lord', String(chart.panchang.tithi.lord)],
+        ['Yoga', chart.panchang.yoga.name],
+        ['Karaṇa', chart.panchang.karana.name],
+        ['Sunrise', fmtShortTime(chart.panchang.sunrise)],
+        ['Sunset', fmtShortTime(chart.panchang.sunset)],
+        ['Day / night birth', dayNight],
+        ['Amānta / Pūrṇimānta', 'Lunar month naming varies by tradition.'],
+      ])}
+      ${detailTable('Hindu eras (approx.)', [
+        ['Śaka Samvat', `~ ${eras.shaka}`],
+        ['Vikram Samvat', `~ ${eras.vikram}`],
+        ['Note', eras.note],
+      ])}
+      ${detailTable('Special lagnas & points', [
+        ['Āruḍha Lagna (AL)', chart.arudhas.AL ? RASHI_NAMES[chart.arudhas.AL] : '—'],
+        ['Indu Lagna', `${RASHI_NAMES[induRashi]} · ${RASHI_SANSKRIT[induRashi]}`],
+        ['Bhrigu Bindu', bhriguStr],
+        ...yogiRow,
+        ['Hora Lagna', fmtLon(chart.lagnas.horaLagna)],
+        ['Ghati Lagna', fmtLon(chart.lagnas.ghatiLagna)],
+        ['Bhava Lagna', fmtLon(chart.lagnas.bhavaLagna)],
+        ['Praṇapada', fmtLon(chart.lagnas.pranapada)],
+        ['Śrī Lagna', fmtLon(chart.lagnas.sriLagna)],
+        ['Varṇada Lagna', fmtLon(chart.lagnas.varnadaLagna)],
+        ...(beeja ? [[`Bīja Sphuta`, `${beeja.rashiName} ${beeja.degree.toFixed(2)}°`]] as [string, string][] : []),
+        ...(kshetra ? [[`Kṣetra Sphuta`, `${kshetra.rashiName} ${kshetra.degree.toFixed(2)}°`]] as [string, string][] : []),
+      ])}
+      ${(() => {
+        const sunRows: [string, string][] = []
+        if (sun) sunRows.push(['Sun', `${RASHI_NAMES[sun.rashi]} · ${fmtLon(sun.totalDegree)}`])
+        if (rahu) sunRows.push(['Rāhu', `${RASHI_NAMES[rahu.rashi]} · ${fmtLon(rahu.totalDegree)}`])
+        if (ketu) sunRows.push(['Ketu', `${RASHI_NAMES[ketu.rashi]} · ${fmtLon(ketu.totalDegree)}`])
+        return sunRows.length ? detailTable('Sun & nodes', sunRows) : ''
+      })()}
+    `
+  }
 }
 
 function buildSpecialLagnas(chart: ChartOutput): string {
@@ -882,206 +891,330 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
 <head>
   <meta charset="UTF-8">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { 
-      background: #f1f5f9; 
+      background: ${THEME.surface}; 
       -webkit-print-color-adjust: exact !important; 
       print-color-adjust: exact !important;
     }
-    body { font-family: 'Outfit', sans-serif; font-size: 12px; color: ${THEME.text}; line-height: 1.6; }
+    body { font-family: 'Outfit', 'Noto Serif Devanagari', sans-serif; font-size: 12px; color: ${THEME.text}; line-height: 1.65; }
     
-    @page {
-      size: A4;
-      margin: 0;
+    @page { size: A4; margin: 0; }
+
+    /* ── Ornamental Border Pattern (CSS only) ── */
+    .page {
+      position: relative; overflow: hidden;
+    }
+    .page::before {
+      content: 'ॐ';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Noto Serif Devanagari', serif;
+      font-size: 14rem; color: ${THEME.temple}; z-index: 0;
+      opacity: 0.04; pointer-events: none;
+    }
+    .page::after {
+      content: '';
+      position: absolute; inset: 0.7cm;
+      border: 3px double ${THEME.temple};
+      pointer-events: none; z-index: 10; opacity: 0.5;
     }
 
     @media print {
       body { background: white !important; }
       .no-print { display: none !important; }
       .page { 
-        width: 210mm;
-        height: 297mm;
+        width: 210mm; height: 297mm;
         page-break-after: always; 
-        padding: 1.5cm 2cm; 
+        padding: 1.6cm 2cm; 
         background: ${THEME.bg} !important; 
-        box-shadow: none !important; 
-        margin: 0 !important; 
-        border:none !important; 
-        position: relative; 
-        overflow: hidden; 
-      }
-      .page::before { 
-        content: 'ॐ'; 
-        position: absolute; 
-        top: 50%; 
-        left: 50%; 
-        transform: translate(-50%, -50%); 
-        font-size: 12rem; 
-        color: ${THEME.border}; 
-        z-index: -1; 
-        opacity: 0.1; 
-        pointer-events: none; 
-      }
-      .page::after {
-        content: '';
-        position: absolute;
-        inset: 0.8cm;
-        border: 2px solid ${THEME.border};
-        border-radius: 4px;
-        pointer-events: none;
-        z-index: 10;
-        opacity: 0.4;
+        box-shadow: none !important; margin: 0 !important; border: none !important;
       }
       .page:last-child { page-break-after: avoid; }
-      
-      table, tr, td, .card, .interp-block { 
-        page-break-inside: avoid !important; 
-        break-inside: avoid !important; 
-      }
+      table, tr, td, .card, .interp-block { page-break-inside: avoid !important; break-inside: avoid !important; }
     }
 
     @media screen {
       .page { 
-        width: 21cm; 
-        min-height: 29.7cm; 
-        margin: 40px auto; 
-        padding: 2cm; 
-        background: #fff; 
-        box-shadow: 0 20px 60px rgba(0,0,0,0.1); 
-        border-radius: 4px; 
-        position: relative; 
-        border: 1px solid #eee; 
+        width: 21cm; min-height: 29.7cm; margin: 40px auto; padding: 2cm; 
+        background: ${THEME.bg}; 
+        box-shadow: 0 8px 40px rgba(100,70,30,0.12), 0 2px 8px rgba(100,70,30,0.08); 
+        border: 1px solid ${THEME.border};
       }
-      .page::before { content: 'ॐ'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12rem; color: #f8fafc; z-index: -1; opacity: 0.5; pointer-events: none; }
     }
 
-    /* Aesthetics */
-    .print-bar { position: sticky; top:0; z-index: 999; background: ${THEME.primary}; color: #fff; padding: 12px 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .print-bar button { background: ${THEME.accent}; color:#fff; border:none; padding: 10px 24px; border-radius: 30px; font-weight:700; cursor:pointer; font-family:inherit; }
+    /* ── Print Bar ── */
+    .print-bar { 
+      position: sticky; top:0; z-index: 999; 
+      background: linear-gradient(135deg, ${THEME.primary} 0%, #6b1222 100%); 
+      color: #fff; padding: 14px 2rem; 
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 3px solid ${THEME.temple};
+    }
+    .print-bar button { 
+      background: linear-gradient(135deg, ${THEME.accent}, ${THEME.temple}); 
+      color: #fff; border: none; padding: 10px 28px; border-radius: 4px; 
+      font-weight: 700; cursor: pointer; font-family: inherit; 
+      letter-spacing: 0.5px; text-transform: uppercase; font-size: 11px;
+    }
 
-    .title-page { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; border: 20px solid ${THEME.surface}; }
-    .main-title { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 700; color: ${THEME.primary}; margin: 1rem 0; letter-spacing: -2px; }
-    .sub-title { font-size: 1.25rem; font-weight: 600; color: ${THEME.accent}; text-transform: uppercase; letter-spacing: 0.4em; }
+    /* ── Cover Page ── */
+    .title-page { 
+      display: flex; flex-direction: column; align-items: center; justify-content: center; 
+      height: 100%; text-align: center; 
+      background: radial-gradient(ellipse at center, ${THEME.bg} 0%, ${THEME.surface} 70%);
+    }
+    .title-page::after {
+      border: 3px double ${THEME.primary} !important;
+      box-shadow: inset 0 0 0 6px ${THEME.bg}, inset 0 0 0 8px ${THEME.temple};
+    }
+    .main-title { 
+      font-family: 'Cormorant Garamond', 'Noto Serif Devanagari', serif; 
+      font-size: 3.2rem; font-weight: 700; color: ${THEME.primary}; 
+      margin: 1rem 0; letter-spacing: 1px;
+    }
+    .sub-title { 
+      font-size: 1.1rem; font-weight: 700; color: ${THEME.accent}; 
+      text-transform: uppercase; letter-spacing: 0.5em;
+      border-top: 2px solid ${THEME.temple}; border-bottom: 2px solid ${THEME.temple};
+      padding: 8px 30px; margin-top: 0.5rem;
+    }
     
-    .section-badge { display: inline-block; background: ${THEME.accentLight}; color: ${THEME.accent}; padding: 4px 12px; border-radius: 4px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border: 1px solid #f5deb3; }
-    .section-title { font-family: 'Playfair Display', serif; font-size: 2rem; color: ${THEME.primary}; margin-bottom: 1.4rem; font-weight: 700; border-bottom: 2px solid ${THEME.accentLight}; padding-bottom: 10px; }
-    .section-title span { color: ${THEME.accent}; font-family: 'Outfit', sans-serif; font-size: 1.2rem; vertical-align: middle; margin-right: 15px; opacity: 0.5; }
+    /* ── Section Headers (Temple Mandapa style) ── */
+    .section-badge { 
+      display: inline-block; 
+      background: linear-gradient(135deg, ${THEME.accentLight} 0%, #fce8c0 100%); 
+      color: ${THEME.secondary}; padding: 5px 14px; 
+      font-size: 9px; font-weight: 900; text-transform: uppercase; 
+      letter-spacing: 2.5px; margin-bottom: 10px; 
+      border: 1px solid ${THEME.temple}; border-radius: 0;
+    }
+    .section-title { 
+      font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; 
+      color: ${THEME.primary}; margin-bottom: 0.5rem; font-weight: 700; 
+      border-bottom: 3px double ${THEME.temple}; padding-bottom: 6px;
+      position: relative;
+    }
+    .section-title span { 
+      color: ${THEME.temple}; font-family: 'Outfit', sans-serif; 
+      font-size: 1rem; vertical-align: middle; margin-right: 12px; opacity: 0.6;
+    }
 
-    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; break-inside: avoid; }
-    .data-table th { text-align: left; padding: 10px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid ${THEME.primary}; color: ${THEME.primary}; letter-spacing: 0.8px; }
-    .data-table td { padding: 9px 10px; border-bottom: 1px solid ${THEME.border}; font-size: 11px; vertical-align: top; }
-    .data-table tbody tr:nth-child(even) { background: #fffcf6; }
+    /* ── Data Tables (Manuscript style) ── */
+    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 0.6rem; break-inside: avoid; }
+    .data-table th { 
+      text-align: left; padding: 6px 10px; font-size: 8.5px; text-transform: uppercase; 
+      background: linear-gradient(to right, ${THEME.primary}, #7a1528);
+      color: ${THEME.accentLight}; letter-spacing: 0.8px; font-weight: 700;
+      border-bottom: 2px solid ${THEME.temple};
+    }
+    .data-table td { 
+      padding: 3px 10px; border-bottom: 1px solid ${THEME.border}; 
+      font-size: 10px; vertical-align: top; 
+    }
+    .data-table tbody tr:nth-child(even) { background: ${THEME.accentLight}44; }
+    .data-table tbody tr:hover { background: ${THEME.accentLight}88; }
+
     .shadbala-table { table-layout: fixed; width: 100%; }
-    .shadbala-table th,
-    .shadbala-table td { padding: 6px 4px; font-size: 9px; }
+    .shadbala-table th, .shadbala-table td { padding: 6px 4px; font-size: 9px; }
     .shadbala-table th { letter-spacing: 0.2px; white-space: normal; line-height: 1.15; text-transform: uppercase; }
     .shadbala-table td { white-space: normal; word-break: break-word; line-height: 1.2; hyphens: auto; }
-    .shadbala-table th:first-child,
-    .shadbala-table td:first-child { font-weight: 800; }
+    .shadbala-table th:first-child, .shadbala-table td:first-child { font-weight: 800; }
 
     .av-table { width: 100%; border-collapse: collapse; text-align: center; font-family: monospace; break-inside: avoid; }
-    .av-table th { padding: 8px; border: 1px solid ${THEME.border}; background: ${THEME.surface}; }
-    .av-table td { padding: 8px; border: 1px solid ${THEME.border}; }
+    .av-table th { padding: 8px; border: 1px solid ${THEME.border}; background: ${THEME.surface}; color: ${THEME.primary}; font-weight: 800; }
+    .av-table td { padding: 7px; border: 1px solid ${THEME.border}; }
 
+    /* ── Varga Grid ── */
     .varga-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
-    .varga-card { border: 1px solid ${THEME.border}; padding: 8px; border-radius: 4px; text-align: center; background: ${THEME.surface}; }
-    .varga-title { font-weight: 800; font-size: 10px; margin-bottom: 5px; color: ${THEME.primary}; text-transform: uppercase; }
+    .varga-card { 
+      border: 2px double ${THEME.temple}; padding: 10px; text-align: center; 
+      background: ${THEME.bg};
+    }
+    .varga-title { 
+      font-weight: 800; font-size: 10px; margin-bottom: 6px; 
+      color: ${THEME.primary}; text-transform: uppercase; letter-spacing: 1px;
+      font-family: 'Cormorant Garamond', serif;
+    }
 
-    .interp-block { margin-bottom: 2.5rem; padding-left: 20px; border-left: 1px solid ${THEME.border}; }
-    .interp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .dignity-tag { font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; }
-    .interp-text { font-size: 14px; color: ${THEME.text}; line-height: 1.8; margin-bottom: 10px; }
-    .interp-meta { font-size: 11px; color: ${THEME.muted}; font-weight: 600; }
+    /* ── Interpretations ── */
+    .interp-block { 
+      margin-bottom: 1.5rem; padding: 12px 18px; 
+      border-left: 4px solid ${THEME.temple}; 
+      background: linear-gradient(to right, ${THEME.accentLight}44, transparent);
+    }
+    .interp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .dignity-tag { 
+      font-size: 9px; font-weight: 900; padding: 3px 10px; 
+      text-transform: uppercase; letter-spacing: 1px; 
+      border: 1px solid ${THEME.temple}; background: ${THEME.accentLight};
+      color: ${THEME.secondary};
+    }
+    .interp-text { font-size: 13px; color: ${THEME.text}; line-height: 1.8; margin-bottom: 8px; }
+    .interp-meta { font-size: 10px; color: ${THEME.muted}; font-weight: 600; font-style: italic; }
 
+    /* ── Dasha Cards ── */
     .dasha-focus { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; margin: 2rem 0; }
-    .focus-card { padding: 25px; border-radius: 15px; background: ${THEME.surface}; border: 1px solid ${THEME.border}; }
-    .focus-card.active { background: ${THEME.primary}; color: #fff; }
-    .focus-card label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.7; }
-    .focus-card .value { font-size: 2rem; font-weight: 900; margin: 10px 0; }
-    .focus-card .period { font-size: 14px; opacity: 0.9; }
+    .focus-card { 
+      padding: 24px; background: ${THEME.bg}; 
+      border: 2px double ${THEME.temple}; 
+    }
+    .focus-card.active { 
+      background: linear-gradient(135deg, ${THEME.primary} 0%, #6b1222 100%); 
+      color: #fff; border-color: ${THEME.temple};
+    }
+    .focus-card label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.7; letter-spacing: 1px; }
+    .focus-card .value { font-size: 1.8rem; font-weight: 900; margin: 10px 0; font-family: 'Cormorant Garamond', serif; }
+    .focus-card .period { font-size: 13px; opacity: 0.9; }
 
-    .footer { position: absolute; bottom: 1cm; left: 2cm; right: 2cm; border-top: 1px solid ${THEME.border}; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: ${THEME.muted}; font-weight: 600; text-transform: uppercase; }
+    /* ── Footer (Colophon) ── */
+    .footer { 
+      position: absolute; bottom: 0.6cm; left: 2cm; right: 2cm; 
+      border-top: 2px double ${THEME.temple}; padding-top: 8px; 
+      display: flex; justify-content: space-between; align-items: center; 
+      font-size: 8.5px; color: ${THEME.muted}; font-weight: 600; 
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
     .footer svg { width: 14px; height: 14px; }
     
-    .toc-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px dotted ${THEME.border}; color: ${THEME.primary}; font-size: 1.1rem; }
+    /* ── TOC ── */
+    .toc-item { 
+      display: flex; justify-content: space-between; 
+      padding: 5px 0; border-bottom: 1px dotted ${THEME.temple}; 
+      color: ${THEME.text}; font-size: 0.85rem;
+      font-family: 'Cormorant Garamond', serif;
+    }
+    .toc-item span:first-child { font-weight: 600; }
+    .toc-item span:last-child { color: ${THEME.accent}; font-weight: 700; }
     
-    .vedic-border { border: 2px double ${THEME.accent}; padding: 10px; border-radius: 4px; position: relative; }
-    .vedic-ornament { position: absolute; color: ${THEME.accent}; opacity: 0.4; }
-    .trad-panel { background: #fffdf8; border: 1px solid ${THEME.border}; border-left: 4px solid ${THEME.accent}; border-radius: 8px; padding: 14px; }
-    .small-meta { font-size: 10px; color: ${THEME.muted}; text-transform: uppercase; letter-spacing: 0.8px; }
-    .mini-charts-wrap { width: 100%; border:1px solid ${THEME.border}; border-radius:10px; background:${THEME.surface}; padding:10px; overflow:hidden; }
+    /* ── Traditional Panels ── */
+    .vedic-border { border: 3px double ${THEME.temple}; padding: 12px; position: relative; }
+    .trad-panel { 
+      background: ${THEME.bg}; border: 1px solid ${THEME.border}; 
+      border-left: 4px solid ${THEME.saffron}; padding: 14px; 
+    }
+    .small-meta { font-size: 9px; color: ${THEME.muted}; text-transform: uppercase; letter-spacing: 1.2px; }
+
+    /* ── Mini Charts ── */
+    .mini-charts-wrap { width: 100%; border: 2px double ${THEME.temple}; background:${THEME.bg}; padding:12px; overflow:hidden; }
     .mini-charts-grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:8px; width:100%; }
-    .mini-chart-card { border:1px solid ${THEME.border}; border-radius:6px; background:#fff; padding:6px; min-width:0; }
-    .mini-chart-title { text-align:center; font-size:9px; font-weight:800; color:${THEME.secondary}; margin-bottom:4px; }
+    .mini-chart-card { border:1px solid ${THEME.border}; background:${THEME.bg}; padding:6px; min-width:0; }
+    .mini-chart-title { text-align:center; font-size:8px; font-weight:800; color:${THEME.primary}; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px; }
     .mini-chart-grid { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:2px; align-items:end; min-height:64px; }
+
+    /* ── Sanskrit Ornament Utility ── */
+    .sanskrit-ornament { 
+      font-family: 'Noto Serif Devanagari', serif; 
+      color: ${THEME.temple}; opacity: 0.2; 
+      font-size: 2rem; line-height: 1; 
+    }
   </style>
 </head>
 <body>
 
 <div class="print-bar no-print">
-  <div style="font-weight: 800">${brandName} Intelligence System</div>
-  <button onclick="window.print()">Export Complete Portfolio (~22 Pages)</button>
+  <div style="display:flex; align-items:center; gap:12px">
+    <span style="font-family:'Noto Serif Devanagari',serif; font-size:1.1rem; opacity:0.7">ॐ</span>
+    <span style="font-weight:800; letter-spacing:1px">${brandName} — ज्योतिष विश्लेषण</span>
+  </div>
+  <button onclick="window.print()">⬇ Export Kundali Report (~22 Pages)</button>
 </div>
 
 <!-- PAGE 1: COVER -->
 <div class="page title-page">
-  <div style="position:absolute; top: 1cm; left: 1cm; color: ${THEME.accent}; opacity:0.15">${ICONS.swastik}</div>
-  <div style="position:absolute; top: 1cm; right: 1cm; color: ${THEME.accent}; opacity:0.15">${ICONS.swastik}</div>
+  <!-- Corner Ornaments -->
+  <div style="position:absolute; top:1.2cm; left:1.2cm; color:${THEME.temple}; opacity:0.25; font-size:2.5rem">${ICONS.swastik}</div>
+  <div style="position:absolute; top:1.2cm; right:1.2cm; color:${THEME.temple}; opacity:0.25; font-size:2.5rem">${ICONS.swastik}</div>
+  <div style="position:absolute; bottom:2.5cm; left:1.2cm; color:${THEME.temple}; opacity:0.25; font-size:2.5rem; transform:rotate(180deg)">${ICONS.swastik}</div>
+  <div style="position:absolute; bottom:2.5cm; right:1.2cm; color:${THEME.temple}; opacity:0.25; font-size:2.5rem; transform:rotate(180deg)">${ICONS.swastik}</div>
 
-  <div class="header-logo" style="text-align:center; display: flex; justify-content: center; margin-bottom: 2rem;">${brandLogo}</div>
-  ${brandName.toUpperCase().includes('VEDAANSH') ? `<div style="text-align:center; color: ${THEME.accent}; font-weight: 800; font-size: 1.1rem; margin-top: 0.5rem; letter-spacing: 0.1em;">॥ श्री गणेशाय नमः ॥</div>` : ''}
-  <div style="margin: 1.5rem auto; width: 80px; height: 3px; background: ${THEME.secondary}; opacity: 0.6;"></div>
-  <div style="font-size: 1.1rem; color: ${THEME.secondary}; text-transform: uppercase; letter-spacing: 0.6em; margin-bottom: 1rem; text-align:center; font-family: 'Playfair Display', serif">Aura of the Divine Path</div>
-  <h1 class="main-title" style="text-align:center; font-family: 'Playfair Display', serif; font-size: 3.5rem">${meta.name}</h1>
-  <div class="sub-title" style="text-align:center">Jyotish Master Dossier</div>
+  <!-- Sanskrit Invocation -->
+  <div style="font-family:'Noto Serif Devanagari',serif; color:${THEME.primary}; font-size:1.4rem; font-weight:700; letter-spacing:0.15em; opacity:0.9">
+    ॥ श्री गणेशाय नमः ॥
+  </div>
   
-  <div style="margin-top: 3rem; color: ${THEME.accent}; opacity: 0.4; text-align:center">${ICONS.om}</div>
+  <!-- Saffron Divider -->
+  <div style="margin:1.2rem auto; display:flex; align-items:center; gap:12px; justify-content:center">
+    <div style="width:60px; height:2px; background:linear-gradient(to right, transparent, ${THEME.temple})"></div>
+    <div style="color:${THEME.temple}; font-size:1.2rem">${ICONS.om}</div>
+    <div style="width:60px; height:2px; background:linear-gradient(to left, transparent, ${THEME.temple})"></div>
+  </div>
+
+  <!-- Brand Logo -->
+  <div style="text-align:center; display:flex; justify-content:center; margin:1.5rem 0">${brandLogo}</div>
   
-  <div style="margin: 4rem auto; font-family: 'Playfair Display', serif; font-style: italic; color: ${THEME.secondary}; max-width: 500px; text-align:center; line-height: 1.8; border-top: 1px dotted ${THEME.border}; border-bottom: 1px dotted ${THEME.border}; padding: 20px 0">
-    "The soul is the same in all living creatures, although the body of each is different."
+  <!-- Subtitle Line -->
+  <div style="font-family:'Noto Serif Devanagari',serif; font-size:0.95rem; color:${THEME.secondary}; text-transform:uppercase; letter-spacing:0.5em; margin-bottom:0.8rem; opacity:0.7">
+    वैदिक ज्योतिष प्रतिवेदन
+  </div>
+  <div style="font-family:'Cormorant Garamond',serif; font-size:1rem; color:${THEME.muted}; text-transform:uppercase; letter-spacing:0.4em; margin-bottom:2rem">
+    Vedic Jyotish Report
+  </div>
+  
+  <!-- Name -->
+  <h1 class="main-title" style="text-align:center; font-size:3.2rem; border-top:2px solid ${THEME.temple}; border-bottom:2px solid ${THEME.temple}; padding:15px 40px; margin:0.5rem 0">${meta.name}</h1>
+  <div class="sub-title" style="text-align:center; border:none; margin-top:1rem">Kundali Master Dossier</div>
+  
+  <!-- Sacred OM -->
+  <div style="margin-top:2.5rem; color:${THEME.temple}; opacity:0.15; text-align:center; font-size:5rem; font-family:'Noto Serif Devanagari',serif">ॐ</div>
+  
+  <!-- Shloka Quote -->
+  <div style="margin:2rem auto; max-width:480px; text-align:center; position:relative; padding:20px 30px">
+    <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(to right, transparent, ${THEME.temple}, transparent)"></div>
+    <div style="font-family:'Noto Serif Devanagari',serif; font-size:1rem; color:${THEME.primary}; line-height:1.8; margin-bottom:8px">
+      यदा यदा हि धर्मस्य ग्लानिर्भवति भारत।
+    </div>
+    <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:0.85rem; color:${THEME.muted}; line-height:1.6">
+      "Whenever there is a decline of dharma, O Bhārata, the cosmic order restores balance."
+    </div>
+    <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(to right, transparent, ${THEME.temple}, transparent)"></div>
   </div>
 
   <div class="footer" style="border:none">
-    <div>Calculated on ${new Date().toLocaleDateString('en-US', { dateStyle:'long' })}</div>
-    <div style="color:${THEME.accent}">${ICONS.om}</div>
-    <div>${brandName} Platinum Edition</div>
+    <div>Computed on ${new Date().toLocaleDateString('en-US', { dateStyle:'long' })}</div>
+    <div style="color:${THEME.temple}; font-family:'Noto Serif Devanagari',serif; font-size:0.9rem">☉</div>
+    <div>${brandName} — Premium Edition</div>
   </div>
 </div>
 
 <!-- PAGE 2: TABLE OF CONTENTS -->
 <div class="page">
-  ${SectionHeader('00', 'Catalogue of Wisdom', 'Intelligence Index')}
-  <div style="margin-top: 3rem">
-    <div class="toc-item"><span>01. The Incarnation Snapshot (Natal Data)</span> <span>03</span></div>
-    <div class="toc-item"><span>01b. Complete Natal Astro Details</span> <span>04</span></div>
-    <div class="toc-item"><span>02. Planetary Positions & Dignities</span> <span>05</span></div>
-    <div class="toc-item"><span>03. The Divine Matrix (Shodashvarga)</span> <span>06</span></div>
-    <div class="toc-item"><span>04. Planetary Psychology (Sun, Moon, Mars)</span> <span>07</span></div>
-    <div class="toc-item"><span>05. The Intellect & Flow (Merc, Jup, Ven)</span> <span>08</span></div>
-    <div class="toc-item"><span>06. Shadows & Structure (Sat, Rahu, Ketu)</span> <span>09</span></div>
-    <div class="toc-item"><span>07. House Potency (Bhava Bala Analysis)</span> <span>10</span></div>
-    <div class="toc-item"><span>08. Nakshatra: The Secret Power of Luna</span> <span>11</span></div>
-    <div class="toc-item"><span>09. Yoga: The Celestial Combinations</span> <span>12</span></div>
-    <div class="toc-item"><span>10. Quantum Strength (Shadbala Analysis)</span> <span>13</span></div>
-    <div class="toc-item"><span>11. Ashtakavarga: The 8-Fold Net</span> <span>14</span></div>
-    <div class="toc-item"><span>12. Jaimini Karakas & Arudhas</span> <span>15</span></div>
-    <div class="toc-item"><span>13. KP System: The Minute Subdivision</span> <span>16</span></div>
-    <div class="toc-item"><span>14. Sarvatobhadra Chakra (Vedha Grid)</span> <span>17</span></div>
-    <div class="toc-item"><span>15. Timeline of Fate (Vimshottari Overview)</span> <span>18</span></div>
-    <div class="toc-item"><span>16. Current Sub-Period Focus</span> <span>19</span></div>
-    <div class="toc-item"><span>17. Astro-Vastu Architectural Alignment</span> <span>20</span></div>
-    <div class="toc-item"><span>18. Global Resonance (Astrocartography)</span> <span>21</span></div>
-    <div class="toc-item"><span>19. Synthesis & Next Steps</span> <span>22</span></div>
+  <div style="text-align:center; margin-bottom:0.5rem">
+    <div style="font-family:'Noto Serif Devanagari',serif; color:${THEME.temple}; font-size:1rem; opacity:0.6">विषय सूची</div>
+  </div>
+  ${SectionHeader('00', 'Viṣaya Sūcī', 'Table of Contents')}
+  <div style="margin-top: 0.8rem; border: 2px double ${THEME.temple}; padding: 0.6rem">
+    <div class="toc-item"><span>✦ 01. Janma Kuṇḍalī — Birth Chart & Natal Data</span> <span>03</span></div>
+    <div class="toc-item"><span>✦ 01b. Complete Natal Astro Details (Part I)</span> <span>04</span></div>
+    <div class="toc-item"><span>✦ 01c. Complete Natal Astro Details (Part II)</span> <span>05</span></div>
+    <div class="toc-item"><span>✦ 02. Graha Sthiti — Planetary Positions & Dignities</span> <span>06</span></div>
+    <div class="toc-item"><span>✦ 03. Viṃśottarī Daśā — Timeline of Karma</span> <span>07</span></div>
+    <div class="toc-item"><span>✦ 04. Vartamāna Antardaśā — Current Period</span> <span>08</span></div>
+    <div class="toc-item"><span>✦ 05. Ṣoḍaśavarga — The 16 Divisional Charts</span> <span>09</span></div>
+    <div class="toc-item"><span>✦ 06. Graha Mānasikā — Sun, Moon & Mars</span> <span>10</span></div>
+    <div class="toc-item"><span>✦ 07. Buddhi & Jñāna — Mercury, Jupiter & Venus</span> <span>11</span></div>
+    <div class="toc-item"><span>✦ 08. Chāyā Graha — Saturn, Rahu & Ketu</span> <span>12</span></div>
+    <div class="toc-item"><span>✦ 09. Bhāva Bala — House Potency Analysis</span> <span>13</span></div>
+    <div class="toc-item"><span>✦ 10. Nakṣatra — Lunar Mansion Analysis</span> <span>14</span></div>
+    <div class="toc-item"><span>✦ 11. Yoga — Celestial Combinations</span> <span>15</span></div>
+    <div class="toc-item"><span>✦ 12. Ṣaḍbala — Six-Fold Strength Analysis</span> <span>16</span></div>
+    <div class="toc-item"><span>✦ 13. Aṣṭakavarga — The 8-Fold Transit Grid</span> <span>17</span></div>
+    <div class="toc-item"><span>✦ 14. Jaiminī Kārakāḥ & Ārūḍha Padas</span> <span>18</span></div>
+    <div class="toc-item"><span>✦ 15. KP Paddhati — Krishnamurti System</span> <span>19</span></div>
+    <div class="toc-item"><span>✦ 16. Sarvatobhadra Chakra — Vedha Grid</span> <span>20</span></div>
+    <div class="toc-item"><span>✦ 17. Jyotiṣa-Vāstu — Directional Alignment</span> <span>21</span></div>
+    <div class="toc-item"><span>✦ 18. Deśāntara Phala — Astrocartography</span> <span>22</span></div>
+    <div class="toc-item"><span>✦ 19. Samāhāra — Synthesis & Guidance</span> <span>23</span></div>
   </div>
   ${PageFooter(2, meta.name)}
 </div>
 
 <!-- PAGE 3: BIRTH DATA -->
 <div class="page">
-  ${SectionHeader('01', 'Incarnation Blueprint', 'Birth Archetype')}
-  <table class="data-table" style="margin-top: 2rem">
+  ${SectionHeader('01', 'Janma Kuṇḍalī', 'Birth Chart & Natal Data')}
+  <table class="data-table" style="margin-top: 1rem">
     <tr><td style="font-weight:700;background:${THEME.surface}">Name of Native</td><td>${meta.name}</td><td style="font-weight:700;background:${THEME.surface}">Gender</td><td>Not Specified</td></tr>
     <tr><td style="font-weight:700;background:${THEME.surface}">Birth Date</td><td>${new Date(meta.birthDate).toDateString()}</td><td style="font-weight:700;background:${THEME.surface}">Birth Time</td><td>${meta.birthTime}</td></tr>
     <tr><td style="font-weight:700;background:${THEME.surface}">Birth Place</td><td colspan="3">${meta.birthPlace}</td></tr>
@@ -1090,46 +1223,60 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <tr><td style="font-weight:700;background:${THEME.surface}">Node Mode</td><td>${meta.settings.nodeMode}</td><td style="font-weight:700;background:${THEME.surface}">Calculated At</td><td>${formatDateTime(meta.calculatedAt)}</td></tr>
   </table>
   
-  <div style="display:flex; gap: 1rem; margin-top: 3rem; width: 100%">
-    <div style="flex:1; border: 1px solid ${THEME.border}; border-radius: 4px; padding: 15px; text-align: center; background: ${THEME.surface}">
-        <div style="font-weight:900; font-size: 11px; color: ${THEME.accent}; text-transform: uppercase; margin-bottom: 15px">Natal Chart (D1)</div>
-        ${buildChartSVG(chart, 'D1', 260)}
+  <div style="display:flex; gap:1rem; margin-top:1rem; width:100%">
+    <div style="flex:1; border:2px double ${THEME.temple}; padding:10px; text-align:center; background:${THEME.bg}">
+        <div style="font-weight:900; font-size:9px; color:${THEME.primary}; text-transform:uppercase; margin-bottom:8px; letter-spacing:1px; font-family:'Cormorant Garamond',serif">राशि चक्र — Natal Chart (D1)</div>
+        ${buildChartSVG(chart, 'D1', 230)}
     </div>
-    <div style="flex:1; border: 1px solid ${THEME.border}; border-radius: 4px; padding: 15px; text-align: center; background: ${THEME.surface}">
-        <div style="font-weight:900; font-size: 11px; color: ${THEME.accent}; text-transform: uppercase; margin-bottom: 15px">Navamsha (D9)</div>
-        ${buildChartSVG(chart, 'D9', 260)}
+    <div style="flex:1; border:2px double ${THEME.temple}; padding:10px; text-align:center; background:${THEME.bg}">
+        <div style="font-weight:900; font-size:9px; color:${THEME.primary}; text-transform:uppercase; margin-bottom:8px; letter-spacing:1px; font-family:'Cormorant Garamond',serif">नवांश — Navamsha (D9)</div>
+        ${buildChartSVG(chart, 'D9', 230)}
     </div>
   </div>
   
-  <div style="margin-top: 3rem; background: ${THEME.surface}; padding: 25px; border-radius: 15px">
-    <h3 style="margin-bottom: 10px; color: ${THEME.primary}">Sacred Panchanga</h3>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size:11px">
-        <div><strong>Day Lord (Vara):</strong> ${chart.panchang.vara.name}</div>
-        <div><strong>Tithi:</strong> ${chart.panchang.tithi.name} (${chart.panchang.tithi.paksha})</div>
-        <div><strong>Nakshatra:</strong> ${chart.panchang.nakshatra.name}</div>
-        <div><strong>Yoga:</strong> ${chart.panchang.yoga.name}</div>
-        <div><strong>Karana:</strong> ${chart.panchang.karana.name}</div>
-        <div><strong>Sunrise:</strong> ${formatDateTime(chart.panchang.sunrise)}</div>
-        <div><strong>Sunset:</strong> ${formatDateTime(chart.panchang.sunset)}</div>
-        <div><strong>Rahu Kalam:</strong> ${formatDateTime(chart.panchang.rahuKalam?.start)} - ${formatDateTime(chart.panchang.rahuKalam?.end)}</div>
-        <div><strong>Yamaganda:</strong> ${formatDateTime(chart.panchang.yamaganda?.start)} - ${formatDateTime(chart.panchang.yamaganda?.end)}</div>
-        <div><strong>Gulika Kalam:</strong> ${formatDateTime(chart.panchang.gulikaKalam?.start)} - ${formatDateTime(chart.panchang.gulikaKalam?.end)}</div>
-        <div><strong>Abhijit Muhurta:</strong> ${chart.panchang.abhijitMuhurta ? `${formatDateTime(chart.panchang.abhijitMuhurta.start)} - ${formatDateTime(chart.panchang.abhijitMuhurta.end)}` : 'N/A'}</div>
+  <div style="margin-top:1rem; background:${THEME.bg}; padding:15px; border:2px double ${THEME.temple}; position:relative">
+    <div style="position:absolute; top:-10px; left:20px; background:${THEME.bg}; padding:0 8px; font-family:'Noto Serif Devanagari',serif; font-size:0.75rem; color:${THEME.temple}">पञ्चाङ्ग</div>
+    <h3 style="margin-bottom:8px; color:${THEME.primary}; font-family:'Cormorant Garamond',serif; font-size:1.05rem">Janma Panchang</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; font-size:11px">
+        <div><strong style="color:${THEME.secondary}">Vara (वार):</strong> ${chart.panchang.vara.name}</div>
+        <div><strong style="color:${THEME.secondary}">Tithi (तिथि):</strong> ${chart.panchang.tithi.name} (${chart.panchang.tithi.paksha})</div>
+        <div><strong style="color:${THEME.secondary}">Nakshatra (नक्षत्र):</strong> ${chart.panchang.nakshatra.name}</div>
+        <div><strong style="color:${THEME.secondary}">Yoga (योग):</strong> ${chart.panchang.yoga.name}</div>
+        <div><strong style="color:${THEME.secondary}">Karana (करण):</strong> ${chart.panchang.karana.name}</div>
+        <div><strong style="color:${THEME.secondary}">Sunrise (सूर्योदय):</strong> ${formatDateTime(chart.panchang.sunrise)}</div>
+        <div><strong style="color:${THEME.secondary}">Sunset (सूर्यास्त):</strong> ${formatDateTime(chart.panchang.sunset)}</div>
+        <div><strong style="color:${THEME.secondary}">Rahu Kalam:</strong> ${formatDateTime(chart.panchang.rahuKalam?.start)} – ${formatDateTime(chart.panchang.rahuKalam?.end)}</div>
+        <div><strong style="color:${THEME.secondary}">Yamaganda:</strong> ${formatDateTime(chart.panchang.yamaganda?.start)} – ${formatDateTime(chart.panchang.yamaganda?.end)}</div>
+        <div><strong style="color:${THEME.secondary}">Gulika Kalam:</strong> ${formatDateTime(chart.panchang.gulikaKalam?.start)} – ${formatDateTime(chart.panchang.gulikaKalam?.end)}</div>
+        <div style="grid-column:span 2"><strong style="color:${THEME.secondary}">Abhijit Muhurta:</strong> ${chart.panchang.abhijitMuhurta ? `${formatDateTime(chart.panchang.abhijitMuhurta.start)} – ${formatDateTime(chart.panchang.abhijitMuhurta.end)}` : 'N/A'}</div>
     </div>
   </div>
   ${PageFooter(3, meta.name)}
 </div>
 
-<!-- PAGE 4: NATAL ASTRO DETAILS (full) -->
+<!-- PAGE 4: NATAL ASTRO DETAILS (Part I) -->
 <div class="page">
-  ${SectionHeader('01b', 'Natal Astro Details', 'Complete Summary')}
-  ${buildAstroDetailsHtml(chart)}
+  ${SectionHeader('01b', 'Natal Astro Details', 'Summary Part I')}
+  ${(() => {
+    const astro = buildAstroDetailsHtml(chart);
+    return typeof astro === 'string' ? astro : astro.part1;
+  })()}
   ${PageFooter(4, meta.name)}
+</div>
+
+<!-- PAGE 4b: NATAL ASTRO DETAILS (Part II) -->
+<div class="page">
+  ${SectionHeader('01c', 'Natal Astro Details', 'Summary Part II')}
+  ${(() => {
+    const astro = buildAstroDetailsHtml(chart);
+    return typeof astro === 'string' ? '' : astro.part2;
+  })()}
+  ${PageFooter(5, meta.name)}
 </div>
 
 <!-- PAGE 5: PLANETARY POSITIONS -->
 <div class="page">
-  ${SectionHeader('02', 'The Celestial Cabinet', 'Planetary Longitudes')}
+  ${SectionHeader('02', 'Graha Sthiti', 'Planetary Positions & Dignities')}
   <table class="data-table">
     <thead>
       <tr>
@@ -1161,15 +1308,62 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     </tbody>
   </table>
   
-  <h3 class="section-badge" style="margin-top: 2rem">Special Points & Lagnas</h3>
+  <h3 class="section-badge" style="margin-top: 1rem">Special Points & Lagnas</h3>
   ${buildSpecialLagnas(chart)}
-  ${PageFooter(5, meta.name)}
+  ${PageFooter(6, meta.name)}
 </div>
 
-<!-- PAGE 6: DIVISIONAL CHARTS -->
+<!-- PAGE 7: DASHA OVERVIEW -->
 <div class="page">
-  ${SectionHeader('03', 'The Divine Matrix', 'Shodashvarga Summary')}
-  <p style="margin-bottom: 2rem; color: ${THEME.muted}">In Vedic astrology, divisional charts provide microscopic insights into specific areas of life like wealth, siblings, children, and career.</p>
+  ${SectionHeader('03', 'Viṃśottarī Daśā', 'Timeline of Karma')}
+  <p style="margin-bottom: 2rem">Each Mahādaśā activates the karmic portfolio of its ruling Graha. The active period shapes destiny’s unfolding.</p>
+  <table class="data-table">
+    <thead><tr><th>Mahadasha</th><th>Start Date</th><th>End Date</th><th>Status</th></tr></thead>
+    <tbody>
+      ${chart.dashas.vimshottari.map(m => {
+        const isCurrent = new Date() >= new Date(m.start) && new Date() <= new Date(m.end)
+        return `<tr style="${isCurrent?'background:#fffbeb;font-weight:900':''}">
+          <td>${GRAHA_NAMES[m.lord as GrahaId]}</td>
+          <td>${new Date(m.start).toDateString()}</td>
+          <td>${new Date(m.end).toDateString()}</td>
+          <td>${isCurrent?'ACTIVE':''}</td>
+        </tr>`
+      }).join('')}
+    </tbody>
+  </table>
+  ${PageFooter(7, meta.name)}
+</div>
+
+<!-- PAGE 8: CURRENT DASHA -->
+<div class="page">
+  ${SectionHeader('04', 'Vartamāna Daśā', 'Active Sub-Period')}
+  ${buildCurrentDashaFocus(chart)}
+  
+  <h3 class="section-badge" style="margin-top: 1.5rem">Upcoming Antardashas</h3>
+  <table class="data-table">
+    <thead><tr><th>Planet</th><th>Starts On</th><th>Ends On</th><th>Nature</th></tr></thead>
+    <tbody>
+      ${(() => {
+        const now = new Date()
+        const maha = chart.dashas.vimshottari.find(m => now >= new Date(m.start) && now <= new Date(m.end))
+        return maha?.children.slice(0, 10).map(a => `
+          <tr>
+            <td style="font-weight:700">${GRAHA_NAMES[a.lord as GrahaId]}</td>
+            <td>${new Date(a.start).toLocaleDateString()}</td>
+            <td>${new Date(a.end).toLocaleDateString()}</td>
+            <td>Sub-Period</td>
+          </tr>
+        `).join('') || ''
+      })()}
+    </tbody>
+  </table>
+  ${PageFooter(8, meta.name)}
+</div>
+
+<!-- PAGE 9: DIVISIONAL CHARTS -->
+<div class="page">
+  ${SectionHeader('05', 'Ṣoḍaśavarga', 'The 16 Divisional Charts')}
+  <p style="margin-bottom: 2rem; color: ${THEME.muted}">Divisional charts (Vargas) reveal deeper layers of destiny — wealth, marriage, career, and spiritual evolution.</p>
   ${buildVargaGrid(chart)}
   <div style="margin-top: 3rem; padding: 20px; border: 1px solid ${THEME.accentLight}; background: ${THEME.surface}; border-radius: 12px">
     <h4 style="color:${THEME.accent}">The Varga Intelligence</h4>
@@ -1180,30 +1374,30 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
 
 <!-- PAGE 7: INTERPRETATIONS 1 -->
 <div class="page">
-  ${SectionHeader('04', 'Planetary Psychology', 'Luminaries & Drive')}
-  <p style="margin-bottom: 2rem">The Sun, Moon, and Mars represent your core self, emotional nature, and drive for action.</p>
+  ${SectionHeader('04', 'Graha Mānasikā', 'Sun, Moon & Mars')}
+  <p style="margin-bottom: 2rem">Sūrya, Chandra and Maṅgala — your Ātmā (soul), Manas (mind), and Vīrya (courage).</p>
   ${buildPlanetInterpretations(chart, ['Su', 'Mo', 'Ma'])}
   ${PageFooter(7, meta.name)}
 </div>
 
 <!-- PAGE 8: INTERPRETATIONS 2 -->
 <div class="page">
-  ${SectionHeader('05', 'The Intellect & Flow', 'Communication & Wisdom')}
-  <p style="margin-bottom: 2rem">Mercury, Jupiter, and Venus govern your intelligence, wisdom, and aesthetic preferences.</p>
+  ${SectionHeader('05', 'Buddhi & Jñāna', 'Mercury, Jupiter & Venus')}
+  <p style="margin-bottom: 2rem">Budha, Guru and Śukra — the triad governing intellect, wisdom, and beauty.</p>
   ${buildPlanetInterpretations(chart, ['Me', 'Ju', 'Ve'])}
   ${PageFooter(8, meta.name)}
 </div>
 
 <!-- PAGE 9: INTERPRETATIONS 3 -->
 <div class="page">
-  ${SectionHeader('06', 'Shadows & Structure', 'Discipline & Innovation')}
+  ${SectionHeader('06', 'Chāyā Graha', 'Saturn, Rāhu & Ketu')}
   ${buildPlanetInterpretations(chart, ['Sa', 'Ra', 'Ke'])}
   ${PageFooter(9, meta.name)}
 </div>
 
 <!-- PAGE 10: BHAVA BALA -->
 <div class="page">
-  ${SectionHeader('07', 'House Potency', 'Bhava Bala Analysis')}
+  ${SectionHeader('07', 'Bhāva Bala', 'House Potency Analysis')}
   <p style="margin-bottom: 2rem">Analysis of the 12 houses to determine which areas of life (career, wealth, health) are naturally supported by cosmic geometry.</p>
   ${buildBhavaBalaSection(chart)}
   ${PageFooter(10, meta.name)}
@@ -1211,16 +1405,16 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
 
 <!-- PAGE 11: NAKSHATRA ANALYSIS -->
 <div class="page">
-  ${SectionHeader('08', 'Lunar Mansions', 'Nakshatra Characteristics')}
+  ${SectionHeader('08', 'Nakṣatra Vimarśa', 'Lunar Mansion Analysis')}
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem">
     ${[chart.grahas.find(g => g.id === 'Mo'), { id:'Lagna', name:'Ascendant', nakshatraIndex: Math.floor(chart.lagnas.ascDegree/(360/27)), pada: 1 }].map(entry => {
       if (!entry) return ''
       const chars = getNakshatraCharacteristics(entry.nakshatraIndex, (entry as any).pada)
       return `
-        <div style="background:${THEME.surface}; padding: 25px; border-radius: 20px; border: 1px solid ${THEME.border}">
-          <div style="font-weight:900; font-size: 1.5rem; color: ${THEME.primary}; margin-bottom: 20px">${entry.name} star: ${chars.name}</div>
-          <p style="margin-bottom: 1.5rem"><strong>Deity:</strong> ${chars.deity} • <strong>Lord:</strong> ${chars.lord}</p>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px">
+        <div style="background:${THEME.surface}; padding: 15px; border-radius: 12px; border: 1px solid ${THEME.border}">
+          <div style="font-weight:900; font-size: 1.1rem; color: ${THEME.primary}; margin-bottom: 12px">${entry.name} star: ${chars.name}</div>
+          <p style="margin-bottom: 0.8rem; font-size: 10.5px"><strong>Deity:</strong> ${chars.deity} • <strong>Lord:</strong> ${chars.lord}</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 10px">
             <div><strong>Gana:</strong> ${chars.gana}</div>
             <div><strong>Yoni:</strong> ${chars.yoni}</div>
             <div><strong>Nadi:</strong> ${chars.nadi}</div>
@@ -1233,7 +1427,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     }).join('')}
   </div>
   
-  <h3 class="section-badge" style="margin-top: 3rem">Navtara Chakra (Planetary Strength Grid)</h3>
+  <h3 class="section-badge" style="margin-top: 1.5rem">Navtara Chakra (Planetary Strength Grid)</h3>
   <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px">
     ${getNavtaraChakra(chart.panchang.nakshatra.index).slice(0, 18).map(t => `
       <div style="padding: 10px; background: ${t.quality === 'auspicious' ? '#f0f9ff' : t.quality === 'inauspicious' ? '#fff1f2' : '#f8fafc'}; border: 1px solid ${THEME.border}; border-radius: 6px; font-size: 10px">
@@ -1242,12 +1436,12 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       </div>
     `).join('')}
   </div>
-  ${PageFooter(11, meta.name)}
+  ${PageFooter(12, meta.name)}
 </div>
 
 <!-- PAGE 12: YOGAS -->
 <div class="page">
-  ${SectionHeader('09', 'Celestial Combinations', 'The Yoga Analysis')}
+  ${SectionHeader('09', 'Yoga Vimarśa', 'Celestial Combinations')}
   <p style="margin-bottom: 2rem">Personalized detection of major and minor yogas that define wealth, status, and health.</p>
   <table class="data-table">
     <thead><tr><th>Yoga Name</th><th>Category</th><th>Strength</th><th>Effect</th></tr></thead>
@@ -1262,93 +1456,116 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       `).join('') || '<tr><td colspan="4">No major yogas detect in this configuration.</td></tr>'}
     </tbody>
   </table>
-  ${PageFooter(12, meta.name)}
-</div>
-
-<!-- PAGE 13: SHADBALA -->
-<div class="page">
-  ${SectionHeader('10', 'Quantum Strength', 'Shadbala Analysis')}
-  <p style="margin-bottom: 2rem">Shadbala calculates six strength streams in rupas. Values below include both aggregate rupas and shashtiamsa totals for accurate interpretation.</p>
-  <table class="data-table shadbala-table">
-    <colgroup>
-      <col style="width:10%">
-      <col style="width:7%">
-      <col style="width:6%">
-      <col style="width:6%">
-      <col style="width:7%">
-      <col style="width:9%">
-      <col style="width:7%">
-      <col style="width:8%">
-      <col style="width:8%">
-      <col style="width:8%">
-      <col style="width:7%">
-      <col style="width:7%">
-    </colgroup>
-    <thead><tr><th>Planet</th><th>Sthana</th><th>Dig</th><th>Kala</th><th>Chesta</th><th>Naisargika</th><th>Drik</th><th>Total (Rupa)</th><th>Total (Sh)</th><th>Required</th><th>Ratio</th><th>Status</th></tr></thead>
-    <tbody>
-      ${availableShadbalaIds.map(id => {
-        const pb = chart.shadbala.planets[id]
-        if (!pb) return ''
-        return `
-          <tr>
-            <td style="font-weight:700">${GRAHA_NAMES[id as GrahaId]}</td>
-            <td>${pb.sthanaBala.toFixed(2)}</td>
-            <td>${pb.digBala.toFixed(2)}</td>
-            <td>${pb.kalaBala.toFixed(2)}</td>
-            <td>${pb.chestaBala.toFixed(2)}</td>
-            <td>${pb.naisargikaBala.toFixed(2)}</td>
-            <td>${pb.drikBala.toFixed(2)}</td>
-            <td style="font-weight:900">${pb.total.toFixed(2)}</td>
-            <td>${pb.totalShash.toFixed(1)}</td>
-            <td>${pb.required.toFixed(2)}</td>
-            <td>${pb.ratio.toFixed(2)}x</td>
-            <td style="color:${pb.isStrong?THEME.emerald:THEME.rose};font-weight:800">${(pb.qualityBand || (pb.isStrong ? 'strong' : 'weak')).toUpperCase()}</td>
-          </tr>`
-      }).join('') || '<tr><td colspan="12">Shadbala data unavailable.</td></tr>'}
-    </tbody>
-  </table>
-  
-  ${buildShadbalaMiniCharts(chart)}
-  <div class="trad-panel" style="margin-top: 2.2rem">
-    <div class="small-meta">Canonical Reading</div>
-    <div style="margin-top:6px">
-      Strongest Graha: <strong>${GRAHA_NAMES[strongestId as GrahaId] || strongestId}</strong> |
-      Weakest Graha: <strong>${GRAHA_NAMES[weakestId as GrahaId] || weakestId}</strong>
-    </div>
-    <div style="margin-top:4px">
-      Chart profile: <strong>${(chart.shadbala?.generatedProfile || 'balanced').toUpperCase()}</strong> |
-      Mean ratio: <strong>${(chart.shadbala?.averageRatio || 0).toFixed(2)}x</strong>
-    </div>
-    <div style="margin-top:6px; font-size:11px; color:${THEME.muted}">
-      A ratio above 1.00 means the graha crosses its traditional minimum required bala.
-    </div>
-  </div>
   ${PageFooter(13, meta.name)}
 </div>
 
-<!-- PAGE 14: ASHTAKAVARGA -->
+<!-- PAGE 13: BHAVA BALA -->
 <div class="page">
-  ${SectionHeader('11', 'The 8-Fold Net', 'Ashtakavarga BAV/SAV')}
+  ${SectionHeader('09', 'Bhāva Bala', 'House Potency Analysis')}
+  <p style="margin-bottom: 2rem">House strength (Bhāva Bala) determines which areas of life — wealth, career, health — will yield the most fruit with the least effort.</p>
+  ${buildBhavaBalaSection(chart)}
+  ${PageFooter(13, meta.name)}
+</div>
+
+<!-- PAGE 14: NAKSHATRA -->
+<div class="page">
+  ${SectionHeader('10', 'Nakṣatra', 'Lunar Mansion Analysis')}
+  <p style="margin-bottom: 2rem; color: ${THEME.muted}">Your birth Nakṣatra reveals the cosmic frequency of your mind and the hidden talents of your personality.</p>
+  
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px">
+    ${(() => {
+      const moon = chart.grahas.find(g => g.id === 'Mo')
+      if (!moon) return ''
+      const items = getNakshatraCharacteristics(moon.nakshatraIndex, moon.pada)
+      return [
+        { l: 'Quality', v: items.quality }, { l: 'Yoni', v: items.yoni }, { l: 'Gana', v: items.gana },
+        { l: 'Nadi', v: items.nadi }, { l: 'Tattva', v: items.tattva }, { l: 'Caste', v: items.varna }
+      ].map(it => `
+        <div style="padding: 12px; border: 1px solid ${THEME.border}; border-radius: 8px; background: #fff">
+          <div style="font-size: 8px; color: ${THEME.muted}; text-transform: uppercase; font-weight: 800">${it.l}</div>
+          <div style="font-size: 11px; font-weight: 700; color: ${THEME.primary}; margin-top: 4px">${it.v}</div>
+        </div>
+      `).join('')
+    })()}
+  </div>
+  
+  <h3 class="section-badge" style="margin-top: 1.5rem">Navtara Chakra (Planetary Strength Grid)</h3>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px">
+    ${getNavtaraChakra(chart.panchang.nakshatra.index).slice(0, 18).map(t => `
+      <div style="padding: 10px; background: ${t.quality === 'auspicious' ? '#f0f9ff' : t.quality === 'inauspicious' ? '#fff1f2' : '#f8fafc'}; border: 1px solid ${THEME.border}; border-radius: 6px; font-size: 10px">
+        <div style="color: ${THEME.secondary}; font-weight: 900; margin-bottom: 2px">${t.type}</div>
+        <div style="font-size: 9px; opacity: 0.8">${t.planet}</div>
+      </div>
+    `).join('')}
+  </div>
+  ${PageFooter(14, meta.name)}
+</div>
+
+<!-- PAGE 15: YOGAS -->
+<div class="page">
+  ${SectionHeader('11', 'Yoga', 'Celestial Combinations')}
+  <p style="margin-bottom: 2rem">Yogas are the "formulas" of destiny — specific planetary alignments that produce extraordinary results.</p>
+  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem">
+    ${chart.yogas.slice(0, 8).map(y => `
+      <div style="padding: 15px; border-left: 3px solid ${y.type==='positive'?THEME.emerald:THEME.rose}; background: #fff; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.03)">
+        <h4 style="color: ${THEME.primary}; font-family: 'Cormorant Garamond', serif; font-size: 0.95rem">${y.name}</h4>
+        <p style="font-size: 10px; line-height: 1.5; margin-top: 6px; color: ${THEME.text}">${y.description}</p>
+      </div>
+    `).join('')}
+  </div>
+  ${PageFooter(15, meta.name)}
+</div>
+
+<!-- PAGE 16: SHADBALA -->
+<div class="page">
+  ${SectionHeader('12', 'Ṣaḍbala', 'Six-Fold Strength Analysis')}
+  <p style="margin-bottom: 2rem">Shadbala calculations reveal the absolute computational power of your planets. Values are displayed in rupas.</p>
+  <table class="data-table">
+    <thead><tr><th>Planet</th><th>Sthana</th><th>Dig</th><th>Kala</th><th>Chesta</th><th>Naisargika</th><th>Drik</th><th>Total</th><th>Status</th></tr></thead>
+    <tbody>
+      ${Object.keys(chart.shadbala.planets).map(id => {
+        const pb = chart.shadbala.planets[id]
+        return `<tr>
+          <td style="font-weight:700">${GRAHA_NAMES[id as GrahaId]}</td>
+          <td>${pb.sthanaBala.toFixed(2)}</td>
+          <td>${pb.digBala.toFixed(2)}</td>
+          <td>${pb.kalaBala.toFixed(2)}</td>
+          <td>${pb.chestaBala.toFixed(2)}</td>
+          <td>${pb.naisargikaBala.toFixed(2)}</td>
+          <td>${pb.drikBala.toFixed(2)}</td>
+          <td style="font-weight:900">${pb.total.toFixed(2)}</td>
+          <td style="color:${pb.isStrong?THEME.emerald:THEME.rose}">${pb.isStrong?'Strong':'Weak'}</td>
+        </tr>`
+      }).join('')}
+    </tbody>
+  </table>
+  ${buildShadbalaMiniCharts(chart)}
+  ${PageFooter(16, meta.name)}
+</div>
+
+<!-- PAGE 17: ASHTAKAVARGA -->
+<div class="page">
+  ${SectionHeader('13', 'Aṣṭakavarga', 'The 8-Fold Transit Grid')}
   <p style="margin-bottom: 2rem">Ashtakavarga helps in predicting the results of transits and the general strength of the 12 signs for you.</p>
   ${buildAVMatrix(chart)}
   
-  <div style="margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
+  <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
     <div style="border:1px solid ${THEME.border}; padding: 20px; border-radius: 12px">
         <h4 style="margin-bottom: 10px">Sign Resistance</h4>
         <p style="font-size: 11px">Signs with > 28 SAV points are highly supportive. Focus major activity when Moon or Sun transits these signs.</p>
     </div>
     <div style="border:1px solid ${THEME.border}; padding: 20px; border-radius: 12px">
-        <h4 style="margin-bottom: 10px">Planet Contribution</h4>
-        <p style="font-size: 11px">Check individiual BAV tables for specific life areas (e.g., Jupiter for children/wealth, Saturn for obstacles).</p>
+        <h4 style="margin-bottom: 10px">Transit Intelligence</h4>
+        <p style="font-size: 11px">A planet transiting through a sign where it has > 5 bindus will deliver highly positive results regardless of dasha.</p>
     </div>
   </div>
-  ${PageFooter(14, meta.name)}
+  ${PageFooter(17, meta.name)}
 </div>
 
-<!-- PAGE 15: JAIMINI ASTROLOGY -->
+<!-- PAGE 18: JAIMINI -->
 <div class="page">
-  ${SectionHeader('12', 'Secret of Karakas', 'Jaimini System Analysis')}
-  <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem">
+  ${SectionHeader('14', 'Jaiminī Kārakāḥ & Ārūḍha Padas', 'The Secret Indicators')}
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem">
     <div>
         <h3 class="section-badge">Chara Karakas</h3>
         <table class="data-table">
@@ -1373,16 +1590,16 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         </table>
     </div>
   </div>
-  ${PageFooter(15, meta.name)}
+  ${PageFooter(18, meta.name)}
 </div>
 
-<!-- PAGE 16: KP SYSTEM -->
+<!-- PAGE 19: KP SYSTEM -->
 <div class="page">
-  ${SectionHeader('13', 'The Exact Point', 'Krishnamurti Paddhati (KP)')}
+  ${SectionHeader('15', 'KP Paddhati', 'Krishnamurti System')}
   <p style="margin-bottom: 2rem">KP System focuses on Sub-Lords to give precise "Yes/No" answers and timing for life events.</p>
   ${buildKPSection(chart)}
   
-  <div style="margin-top: 3rem; background: ${THEME.primary}; color: #fff; padding: 25px; border-radius: 15px">
+  <div style="margin-top: 1.5rem; background: ${THEME.primary}; color: #fff; padding: 25px; border-radius: 15px">
     <h3 style="margin-bottom: 15px; color: ${THEME.accentLight}">Ruling Planets (Current)</h3>
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; font-size: 12px">
         <div><strong>Day Lord:</strong> ${chart.kp?.rulingPlanets.dayLord}</div>
@@ -1392,16 +1609,16 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         <div><strong>Moon Star Lord:</strong> ${chart.kp?.rulingPlanets.moonStarLord}</div>
     </div>
   </div>
-  ${PageFooter(16, meta.name)}
+  ${PageFooter(19, meta.name)}
 </div>
 
-<!-- PAGE 17: SARVATOBHADRA CHAKRA -->
+<!-- PAGE 20: SARVATOBHADRA CHAKRA -->
 <div class="page">
-  ${SectionHeader('14', 'The Fortress of Light', 'Sarvatobhadra Chakra Analysis')}
+  ${SectionHeader('16', 'Sarvatobhadra Chakra', 'The Vedha Grid')}
   <p style="margin-bottom: 2rem">The "Auspicious on All Sides" grid reveals transgenerational patterns and precise timing for global recognition.</p>
   ${buildSBCSection(chart)}
   
-  <div style="margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
+  <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
     <div class="card">
         <div class="card-title">Akshara (Letter resonance)</div>
         <p style="font-size: 12px">Your name letters resonate most with the <strong>${chart.panchang.nakshatra.name}</strong> sector of the sky, bringing fortune in academic pursuits.</p>
@@ -1411,62 +1628,15 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         <p style="font-size: 12px">Current dasha lord <strong>${GRAHA_NAMES[chart.dashas.vimshottari[0].lord as GrahaId]}</strong> forms a protective shield in your social network.</p>
     </div>
   </div>
-  ${PageFooter(17, meta.name)}
-</div>
-
-<!-- PAGE 18: DASHA OVERVIEW -->
-<div class="page">
-  ${SectionHeader('15', 'Temporal Evolution', 'Vimshottari Dasha Overview')}
-  <p style="margin-bottom: 2rem">Planetary periods show the unfolding of karma over time. Each period brings the themes of the planet into the forefront.</p>
-  <table class="data-table">
-    <thead><tr><th>Mahadasha</th><th>Start Date</th><th>End Date</th><th>Status</th></tr></thead>
-    <tbody>
-      ${chart.dashas.vimshottari.map(m => {
-        const isCurrent = new Date() >= new Date(m.start) && new Date() <= new Date(m.end)
-        return `<tr style="${isCurrent?'background:#fffbeb;font-weight:900':''}">
-          <td>${GRAHA_NAMES[m.lord as GrahaId]}</td>
-          <td>${new Date(m.start).toDateString()}</td>
-          <td>${new Date(m.end).toDateString()}</td>
-          <td>${isCurrent?'ACTIVE':''}</td>
-        </tr>`
-      }).join('')}
-    </tbody>
-  </table>
-  ${PageFooter(18, meta.name)}
-</div>
-
-<!-- PAGE 19: CURRENT DASHA -->
-<div class="page">
-  ${SectionHeader('16', 'Present Influence', 'Active Sub-Period (Antar)')}
-  ${buildCurrentDashaFocus(chart)}
-  
-  <h3 class="section-badge" style="margin-top: 3rem">Upcoming Antardashas</h3>
-  <table class="data-table">
-    <thead><tr><th>Planet</th><th>Starts On</th><th>Ends On</th><th>Nature</th></tr></thead>
-    <tbody>
-      ${(() => {
-        const now = new Date()
-        const maha = chart.dashas.vimshottari.find(m => now >= new Date(m.start) && now <= new Date(m.end))
-        return maha?.children.slice(0, 10).map(a => `
-          <tr>
-            <td style="font-weight:700">${GRAHA_NAMES[a.lord as GrahaId]}</td>
-            <td>${new Date(a.start).toLocaleDateString()}</td>
-            <td>${new Date(a.end).toLocaleDateString()}</td>
-            <td>Sub-Period</td>
-          </tr>
-        `).join('') || ''
-      })()}
-    </tbody>
-  </table>
-  ${PageFooter(19, meta.name)}
+  ${PageFooter(20, meta.name)}
 </div>
 
 <!-- PAGE 20: ASTRO VASTU -->
 <div class="page">
-  ${SectionHeader('17', 'Sacred Space', 'Astro-Vastu Alignment')}
+  ${SectionHeader('17', 'Jyotiṣa-Vāstu', 'Directional Alignment')}
   <div style="background:${THEME.surface}; border-radius: 4px; overflow: hidden; border: 1px solid ${THEME.border}; margin-top: 2rem">
     <div style="padding: 30px">
-        <h4 style="margin-bottom: 20px; font-family: 'Playfair Display', serif">Directional Planetary Potency</h4>
+        <h4 style="margin-bottom: 20px; font-family: 'Cormorant Garamond', serif">Directional Planetary Potency</h4>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px">
             ${[
                 { d: 'North', l: 'Me', at: 'Career' }, { d: 'NE', l: 'Ju', at: 'Wisdom' }, 
@@ -1489,25 +1659,25 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     </div>
   </div>
   
-  <div style="margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
+  <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
     <div style="padding: 20px; border-left: 4px solid ${THEME.emerald}; background: ${THEME.surface}; border-radius: 2px">
-        <h4 style="margin-bottom: 10px; font-family: 'Playfair Display', serif">Enhancement Zone</h4>
+        <h4 style="margin-bottom: 10px; font-family: 'Cormorant Garamond', serif">Enhancement Zone</h4>
         <p style="font-size: 12px">Orient your wealth-earning activities toward the <strong>NORTH</strong> to align with your Mercury strength.</p>
     </div>
     <div style="padding: 20px; border-left: 4px solid ${THEME.rose}; background: ${THEME.surface}; border-radius: 2px">
-        <h4 style="margin-bottom: 10px; font-family: 'Playfair Display', serif">Remedial Direction</h4>
+        <h4 style="margin-bottom: 10px; font-family: 'Cormorant Garamond', serif">Remedial Direction</h4>
         <p style="font-size: 12px">Minimize water elements in the <strong>SOUTH-EAST</strong> to prevent emotional drains on finance.</p>
     </div>
   </div>
-  ${PageFooter(20, meta.name)}
+  ${PageFooter(21, meta.name)}
 </div>
 
 <!-- PAGE 21: ASTROCARTOGRAPHY -->
 <div class="page">
-  ${SectionHeader('18', 'Global Resonance', 'Astrocartography Resonance')}
+  ${SectionHeader('18', 'Deśāntara Phala', 'Astrocartography')}
   <p style="margin-bottom: 2rem">Mapping your planetary power spots reveals where Earth's geographical energy amplifies your destiny.</p>
   <div style="padding: 30px; border: 1px solid ${THEME.border}; border-radius: 4px; background: #fff">
-    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif">Global Power Points</h3>
+    <h3 style="margin-bottom: 20px; font-family: 'Cormorant Garamond', serif">Global Power Points</h3>
     <table class="data-table">
         <thead><tr><th>Zone</th><th>Resonance Line</th><th>Energy manifestation</th><th>Score</th></tr></thead>
         <tbody>
@@ -1519,64 +1689,71 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     </table>
   </div>
   
-  <div style="margin-top: 3rem; padding: 25px; background: ${THEME.surface}; border: 1px dashed ${THEME.accent}">
+  <div style="margin-top: 1.5rem; padding: 25px; background: ${THEME.surface}; border: 1px dashed ${THEME.accent}">
       <h4 style="margin-bottom: 10px">The Relocation Secret</h4>
       <p style="font-size: 13px">Moving to a location where your strong planets (ex: Exalted Sun) hit the MC line can instantly reset your status trajectory.</p>
   </div>
-  ${PageFooter(21, meta.name)}
+  ${PageFooter(22, meta.name)}
 </div>
 
 <!-- PAGE 22: SYNTHESIS -->
 <div class="page">
-  ${SectionHeader('19', 'The Life Synthesis', 'Report Summary')}
-  <p style="margin-bottom: 3rem; font-size: 1.15rem; line-height: 1.8; font-style: italic; border-bottom: 1px solid ${THEME.accentLight}; padding-bottom: 20px">
-    "${escapeHtml(chart.interpretation.headline)}"
-  </p>
+  ${SectionHeader('19', 'Samāhāra', 'Life Synthesis & Guidance')}
+  <div style="border-left:4px solid ${THEME.temple}; padding:15px 20px; margin-bottom:2rem; background:linear-gradient(to right, ${THEME.accentLight}44, transparent)">
+    <p style="font-size:1.1rem; line-height:1.8; font-style:italic; font-family:'Cormorant Garamond',serif; color:${THEME.primary}">
+      "${escapeHtml(chart.interpretation.headline)}"
+    </p>
+  </div>
   
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem">
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:2.5rem">
     <div>
-        <h3 class="section-badge" style="background:${THEME.emerald}11; color:${THEME.emerald}">Core Strengths</h3>
-        <div style="margin-top: 1rem">
+        <h3 class="section-badge" style="background:${THEME.emerald}15; color:${THEME.emerald}; border-color:${THEME.emerald}">Bala (शक्ति) — Strengths</h3>
+        <div style="margin-top:1rem">
             ${chart.interpretation.strengths.slice(0, 3).map(i => `
-                <div style="margin-bottom: 1.5rem">
-                    <div style="font-weight: 800; color: ${THEME.primary}">${i.title}</div>
-                    <div style="font-size: 12px; margin-top: 4px">${i.message}</div>
+                <div style="margin-bottom:1.2rem; padding-left:12px; border-left:2px solid ${THEME.emerald}44">
+                    <div style="font-weight:800; color:${THEME.primary}; font-family:'Cormorant Garamond',serif">${i.title}</div>
+                    <div style="font-size:11px; margin-top:4px; line-height:1.6">${i.message}</div>
                 </div>
             `).join('')}
         </div>
     </div>
     <div>
-        <h3 class="section-badge" style="background:${THEME.rose}11; color:${THEME.rose}">Karmic Cautions</h3>
-        <div style="margin-top: 1rem">
+        <h3 class="section-badge" style="background:${THEME.rose}15; color:${THEME.rose}; border-color:${THEME.rose}">Karma Chetāvanī — Cautions</h3>
+        <div style="margin-top:1rem">
             ${chart.interpretation.cautions.slice(0, 3).map(i => `
-                <div style="margin-bottom: 1.5rem">
-                    <div style="font-weight: 800; color: ${THEME.primary}">${i.title}</div>
-                    <div style="font-size: 12px; margin-top: 4px">${i.message}</div>
+                <div style="margin-bottom:1.2rem; padding-left:12px; border-left:2px solid ${THEME.rose}44">
+                    <div style="font-weight:800; color:${THEME.primary}; font-family:'Cormorant Garamond',serif">${i.title}</div>
+                    <div style="font-size:11px; margin-top:4px; line-height:1.6">${i.message}</div>
                 </div>
             `).join('')}
         </div>
     </div>
   </div>
 
-  <div style="margin-top: 4rem; background: ${THEME.surface}; padding: 35px; border-radius: 20px; border: 1px solid ${THEME.accentLight}; position: relative; overflow: hidden">
-    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.05; transform: rotate(-15deg)">${ICONS.om}</div>
-    <h3 style="margin-bottom: 1.5rem; color: ${THEME.secondary}; font-family: 'Playfair Display', serif">Strategic Next Steps</h3>
-    <ul style="list-style: none; padding: 0">
+  <div style="margin-top:1.5rem; background:${THEME.bg}; padding:25px; border:2px double ${THEME.temple}; position:relative; overflow:hidden">
+    <div style="position:absolute; right:-15px; bottom:-15px; opacity:0.06; font-family:'Noto Serif Devanagari',serif; font-size:6rem; color:${THEME.temple}">OM</div>
+    <h3 style="margin-bottom:1.2rem; color:${THEME.primary}; font-family:'Cormorant Garamond',serif; font-size:1.1rem">उपाय — Strategic Guidance</h3>
+    <ul style="list-style:none; padding:0">
         ${chart.interpretation.topInsights.flatMap(i => i.actions || []).slice(0, 5).map(action => `
-            <li style="margin-bottom: 1rem; display: flex; gap: 15px; font-size: 13px">
-                <span style="color:${THEME.accent}; font-weight: 900">✦</span>
+            <li style="margin-bottom:0.8rem; display:flex; gap:12px; font-size:12px; line-height:1.6">
+                <span style="color:${THEME.temple}; font-weight:900; font-family:'Noto Serif Devanagari',serif">•</span>
                 <span>${action}</span>
             </li>
         `).join('')}
     </ul>
   </div>
 
-  <div style="margin-top: 5rem; text-align: center; color: ${THEME.muted}">
-    <div style="font-size: 40px; margin-bottom: 10px">${ICONS.swastik}</div>
-    <div style="font-weight: 900; letter-spacing: 2px">OM TAT SAT</div>
-    <div style="font-size: 10px; margin-top: 10px">Vedaansh Jyotish Master Dossier • Professional Edition</div>
+  <!-- Colophon -->
+  <div style="margin-top:1.5rem; text-align:center; color:${THEME.muted}">
+    <div style="font-family:'Noto Serif Devanagari',serif; font-size:1.8rem; color:${THEME.temple}; opacity:0.5; margin-bottom:8px">ओम्</div>
+    <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:6px">
+      <div style="width:40px; height:1px; background:${THEME.temple}"></div>
+      <div style="font-weight:900; letter-spacing:3px; font-size:0.7rem; color:${THEME.secondary}">OM TAT SAT</div>
+      <div style="width:40px; height:1px; background:${THEME.temple}"></div>
+    </div>
+    <div style="font-size:9px; margin-top:8px; letter-spacing:1px">${brandName} Kundali Master Dossier • वेदांश Professional Edition</div>
   </div>
-  ${PageFooter(22, meta.name)}
+  ${PageFooter(23, meta.name)}
 </div>
 
 </body>
