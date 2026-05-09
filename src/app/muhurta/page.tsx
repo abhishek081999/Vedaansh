@@ -213,7 +213,7 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
             color: 'var(--text-gold)', textDecoration: 'none',
             fontFamily: 'var(--font-display)', fontWeight: 600,
           }}>
-            Full Pañcāṅga for this day →
+            Full Panchang for this day →
           </Link>
         </div>
       )}

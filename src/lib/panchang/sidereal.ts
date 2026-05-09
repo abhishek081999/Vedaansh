@@ -1,4 +1,4 @@
-// Sidereal longitude → rāśi (sign) metadata for Pañcāṅga display
+// Sidereal longitude → rāśi (sign) metadata for Panchang display
 import type { Rashi } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
 

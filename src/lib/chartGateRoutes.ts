@@ -1,6 +1,6 @@
 /**
  * Routes that should not trigger the birth-details drawer when no chart is loaded.
- * Pañcāṅga / calendar: optional defaults on-page.
+ * Panchang / calendar: optional defaults on-page.
  * Compare (/compare): collects Chart A & B on the page itself.
  */
 export function routeAllowsWithoutChart(hrefOrPath: string): boolean {

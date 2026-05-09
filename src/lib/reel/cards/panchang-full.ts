@@ -639,7 +639,7 @@ export function drawPanchangFullCard(
   rowY += 36
   ctx.font = '17px sans-serif'
   ctx.fillStyle = colors.sub
-  ctx.fillText('Pañcāṅga varies by location & siddhānta — verify for muhūrta decisions.', 540, rowY)
+  ctx.fillText('Panchang varies by location & siddhānta — verify for muhūrta decisions.', 540, rowY)
   rowY += 36
   ctx.fillText(truncate(settings.ctaLine, 72), 540, rowY)
   rowY += 48

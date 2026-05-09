@@ -104,7 +104,7 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', fontSize: '0.72rem', paddingBottom: '0.5rem' }}>
 
       {/* ── Birth + Panchang merged ── */}
-      <Sec title="Birth data &amp; Pañcāṅga">
+      <Sec title="Birth data &amp; Panchang">
         <Row label="Name"    value={chart.meta.name || '—'} />
         <Row label="Date" value={(() => {
           const [y, m, d] = chart.meta.birthDate.split('-')

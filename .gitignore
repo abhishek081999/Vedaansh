@@ -32,7 +32,10 @@ scratch/
 
 # TypeScript cache
 *.tsbuildinfo
-e p h e / * . s e 1  
+
+# Swiss Ephemeris binary data
+ephe/*.se1
+ephe/*.se
  
 # SQLite atlas database (seeded locally)
 src/lib/atlas/*.db
@@ -41,3 +44,6 @@ src/lib/atlas/*.db-wal
 
 # Large data files
 scripts/allCountries.txt
+
+# Graphify knowledge graph output (local only)
+graphify-out/

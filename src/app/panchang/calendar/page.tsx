@@ -245,7 +245,7 @@ function DayDetail({ data, date }: { data: DayData; date: string }) {
           marginTop: '0.25rem',
         }}
       >
-        Full Pañcāṅga →
+        Full Panchang →
       </Link>
     </div>
   )
@@ -326,7 +326,7 @@ export default function MonthlyPanchangPage() {
           </Link>
           <span style={{ color: 'var(--border)', fontSize: '1rem' }}>|</span>
           <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
-            Daily Pañcāṅga
+            Daily Panchang
           </Link>
         </div>
         <ThemeToggle />
@@ -503,7 +503,7 @@ export default function MonthlyPanchangPage() {
         textAlign: 'center', color: 'var(--text-muted)',
         fontFamily: 'var(--font-display)', fontSize: '0.8rem',
       }}>
-        Vedic Pañcāṅga · Powered by <span style={{ color: 'var(--text-gold)' }}>Swiss Ephemeris</span>
+        Vedic Panchang · Powered by <span style={{ color: 'var(--text-gold)' }}>Swiss Ephemeris</span>
         {' '}· {location.name} · Lahiri ayanamsha
       </footer>
     </div>

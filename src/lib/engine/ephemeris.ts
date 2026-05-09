@@ -85,12 +85,18 @@ export function degreeInSign(lon: number): number {
 }
 
 export function nakshatraOf(lon: number): number {
-  return Math.floor(((lon % 360) + 360) % 360 / (360 / 27))
+  const normalized = ((lon % 360) + 360) % 360
+  if (isNaN(normalized)) return 0
+  const index = Math.floor(normalized / (360 / 27))
+  return Math.min(26, Math.max(0, index))
 }
 
 export function padaOf(lon: number): number {
+  const normalized = ((lon % 360) + 360) % 360
+  if (isNaN(normalized)) return 1
   const nak = 360 / 27
-  return Math.floor(((lon % 360) + 360) % 360 % nak / (nak / 4)) + 1
+  const pada = Math.floor((normalized % nak) / (nak / 4)) + 1
+  return Math.min(4, Math.max(1, pada))
 }
 
 export function ketuLongitude(rahuLon: number): number {

@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
 export const metadata: Metadata = {
-  title:       'Daily Pañcāṅga — Vedic Calendar',
+  title:       'Daily Panchang — Vedic Calendar',
   description: 'Free daily Vedic Panchang: Tithi, Vara, Nakshatra, Yoga, Karana, Rahu Kalam, Gulika & Abhijit Muhurta. Real sunrise/sunset via Swiss Ephemeris.',
   alternates:  { canonical: `${BASE_URL}/panchang` },
   openGraph: {
-    title:       'Daily Pañcāṅga — Vedaansh',
+    title:       'Daily Panchang — Vedaansh',
     description: 'Free daily Vedic Panchang with astronomical sunrise, Rahu Kalam, Nakshatra & Hora table.',
     url:         `${BASE_URL}/panchang`,
     type:        'website',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card:        'summary_large_image',
-    title:       'Daily Pañcāṅga — Vedaansh',
+    title:       'Daily Panchang — Vedaansh',
     description: 'Tithi, Nakshatra, Yoga, Karana, Rahu Kalam & Hora table — free every day.',
     images:      ['/og-default.png'],
   },
@@ -25,7 +25,7 @@ const jsonLd = {
   '@type':    'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home',     item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Pañcāṅga', item: `${BASE_URL}/panchang` },
+    { '@type': 'ListItem', position: 2, name: 'Panchang', item: `${BASE_URL}/panchang` },
   ],
 }
 

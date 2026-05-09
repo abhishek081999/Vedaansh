@@ -13,7 +13,7 @@ const FEATURES = [
   { label: 'Free Vedic Birth Chart (Kundali)',        desc: 'Full Lagna, Moon & Sun charts with house lords' },
   { label: 'All 41 Varga (Divisional) Charts',        desc: 'D1 through D60 via Swiss Ephemeris' },
   { label: 'Vimshottari & Yogini Dasha',              desc: 'Antardasha & Pratyantardasha precision timelines' },
-  { label: 'Daily Pañcāṅga',                          desc: 'Tithi, Nakshatra, Yoga, Karana, Rahu Kalam' },
+  { label: 'Daily Panchang',                          desc: 'Tithi, Nakshatra, Yoga, Karana, Rahu Kalam' },
   { label: 'Ashtakavarga & Shadbala',                 desc: 'Bindus, Rekhas, planetary strength tables' },
   { label: 'Jaimini Astrology',                       desc: 'Atmakaraka, Chara Dasha, Arudha Lagnas' },
   { label: 'KP Stellar Astrology',                    desc: 'Sub-lord system with cuspal interlinks' },

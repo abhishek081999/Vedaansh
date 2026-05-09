@@ -61,7 +61,7 @@ export const SAMVATSARA_NAMES = [
 
 /**
  * Saṃvatsara index 0–59 from Gregorian year (aligned to common Sūrya Siddhānta–style civil mapping).
- * Not a substitute for pañcāṅga śaka/vikrama reckoning.
+ * Not a substitute for panchang śaka/vikrama reckoning.
  */
 export function samvatsaraIndexForYear(ceYear: number): number {
   return ((ceYear - 1987) % 60 + 60) % 60

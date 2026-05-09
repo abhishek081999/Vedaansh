@@ -12,16 +12,21 @@
 const norm = (lon: number) => ((lon % 360) + 360) % 360
 
 /** Sign 1–12 from longitude */
-export const signOf = (lon: number): number =>
-  Math.floor(norm(lon) / 30) + 1
+export const signOf = (lon: number): number => {
+  const normalized = norm(lon)
+  if (isNaN(normalized)) return 1
+  return Math.min(12, Math.max(1, Math.floor(normalized / 30) + 1))
+}
 
 /** Degree within sign (0–30) */
 export const degInSign = (lon: number): number =>
   norm(lon) % 30
 
 /** Cycle sign: mod12, always 1–12 */
-export const mod12 = (n: number): number =>
-  ((((n - 1) % 12) + 12) % 12) + 1
+export const mod12 = (n: number): number => {
+  if (isNaN(n)) return 1
+  return ((((Math.floor(n) - 1) % 12) + 12) % 12) + 1
+}
 
 /** Is sign odd (1,3,5,7,9,11)? */
 const isOdd = (sign: number): boolean => sign % 2 === 1

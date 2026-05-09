@@ -70,13 +70,13 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
   {
     label: 'Calculations',
     tabs: [
-      { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: ASTROLOGY_ROUTE },
+      { id: 'panchang',  label: 'Natal Panchang', icon: '📅', path: ASTROLOGY_ROUTE },
     ]
   }
 ]
 
 const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'daily-panchang',   label: 'Daily Pañcāṅga',        icon: '📅', path: '/panchang' },
+  { id: 'daily-panchang',   label: 'Daily Panchang',        icon: '📅', path: '/panchang' },
   { id: 'monthly-panchang', label: 'Monthly Calendar',       icon: '🗓', path: '/panchang/calendar' },
 ]
 
@@ -417,7 +417,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             Dashboard
           </Link>
           <nav className="hide-mobile" style={{ display: 'flex', gap: '1.25rem' }}>
-            <Link href="/panchang" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Pañcāṅga</Link>
+            <Link href="/panchang" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Panchang</Link>
             <Link href="/sbc"      style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>SBC</Link>
             <Link href="/my/charts" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Library</Link>
           </nav>
@@ -825,7 +825,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.48rem' }}>
                 <span style={{ fontSize: '0.92rem', opacity: 0.55 }} aria-hidden>📅</span>
-                <span>Pañcāṅga</span>
+                <span>Panchang</span>
               </div>
               <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isPanchangOpen ? '▲' : '▼'}</span>
             </button>

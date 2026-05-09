@@ -551,7 +551,7 @@ export default function ReelVideoPage() {
               fontSize: 14,
             }}
           >
-            <option value="contain">Contain — full chart visible (recommended for pañcāṅga)</option>
+            <option value="contain">Contain — full chart visible (recommended for panchang)</option>
             <option value="cover">Cover — full bleed (lifestyle / photo reels)</option>
           </select>
         </label>
