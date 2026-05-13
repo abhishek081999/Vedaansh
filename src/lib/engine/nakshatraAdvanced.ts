@@ -422,42 +422,41 @@ export interface NakCompatibility {
 }
 
 export function getNakCompatibility(nak1: number, nak2: number): NakCompatibility {
-  // Tara from nak1's perspective
+  // Use unified Ashtakoot logic for consistency
+  // nak1 and nak2 are 0-indexed (0-26)
+  
+  // Tara
   const diff1 = (nak2 - nak1 + 27) % 27
-  const taraIdx = diff1 % 9
-  const taraName = TARA_NAMES[taraIdx]
-  const taraScoreMap: Record<string, number> = {
-    'Janma': 1, 'Sampat': 3, 'Vipat': 0, 'Kshema': 3, 'Pratyari': 0,
-    'Sadhaka': 2, 'Vadha': 0, 'Mitra': 3, 'Ati-Mitra': 3,
-  }
-  const taraScore = taraScoreMap[taraName] ?? 1
+  const taraIdx = (diff1 + 1) % 9
+  const taraName = TARA_NAMES[taraIdx - 1] || 'Janma'
+  const isBad = (r: number) => r === 3 || r === 5 || r === 7;
+  const taraScore = isBad(taraIdx) ? 0 : 3;
 
-  // Gana compatibility
+  // Gana
   const g1 = NAKSHATRA_GANA[nak1], g2 = NAKSHATRA_GANA[nak2]
   let ganaScore = 0
-  if (g1 === g2) ganaScore = 3
-  else if ((g1 === 'Deva' && g2 === 'Manushya') || (g1 === 'Manushya' && g2 === 'Deva')) ganaScore = 2
-  else if ((g1 === 'Deva' && g2 === 'Rakshasa') || (g1 === 'Rakshasa' && g2 === 'Deva')) ganaScore = 0
-  else ganaScore = 1
+  if (g1 === g2) ganaScore = 6
+  else if ((g1 === 'Deva' && g2 === 'Manushya') || (g1 === 'Manushya' && g2 === 'Deva')) ganaScore = 5
+  else if (g1 === 'Deva' && g2 === 'Rakshasa') ganaScore = 1
+  else ganaScore = 0
 
   // Nadi (same nadi = dosha)
   const nadiMatch = NAKSHATRA_NADI[nak1] === NAKSHATRA_NADI[nak2]
-  const nadiScore = nadiMatch ? 0 : 3
+  const nadiScore = nadiMatch ? 0 : 8
 
   // Yoni
   const y1 = NAKSHATRA_YONI[nak1], y2 = NAKSHATRA_YONI[nak2]
-  const hostileYonis: [string, string][] = [
-    ['Cow','Tiger'],['Horse','Buffalo'],['Dog','Hare'],
-    ['Serpent','Mongoose'],['Monkey','Elephant'],['Goat','Deer'],
-    ['Cat','Rat'],
+  const enemies = [
+    ['Horse', 'Buffalo'], ['Elephant', 'Lion'], ['Goat', 'Monkey'],
+    ['Serpent', 'Mongoose'], ['Dog', 'Hare'], ['Cat', 'Rat'], ['Cow', 'Tiger']
   ]
   let yoniScore = 2
   if (y1 === y2) yoniScore = 4
-  else if (hostileYonis.some(p => (p[0]===y1&&p[1]===y2)||(p[1]===y1&&p[0]===y2))) yoniScore = 0
+  else if (enemies.some(p => (p[0] === y1 && p[1] === y2) || (p[1] === y1 && p[0] === y2))) yoniScore = 0
 
-  // Total (max 13), mapped to 0-100
+  // Total (max 21 for these 4 factors), mapped to 0-100
   const total = taraScore + ganaScore + nadiScore + yoniScore
-  const score = Math.round((total / 13) * 100)
+  const score = Math.round((total / 21) * 100)
 
   const summary: NakCompatibility['summary'] =
     score >= 80 ? 'Excellent' :
@@ -466,7 +465,7 @@ export function getNakCompatibility(nak1: number, nak2: number): NakCompatibilit
     score >= 20 ? 'Poor' : 'Incompatible'
 
   return {
-    score, taraScore, ganaScore, nadiScore, yoniScore,
+    score, taraScore, ganaScore: Math.round(ganaScore / 2), nadiScore, yoniScore,
     taraName, ganaMatch: g1 === g2, nadiMatch, summary,
   }
 }

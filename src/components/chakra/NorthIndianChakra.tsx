@@ -645,12 +645,12 @@ export function NorthIndianChakra({
 
             {/* ── Comparison planet overlay (Synastry) ── */}
             {hasComparison && cPlanetsInSelf.map((cg, ci) => {
-               const cFont = S * 0.024 * fontScale * planetScale
+               const cFont = S * 0.026 * fontScale * planetScale
                const col = ci % 2
                const row = Math.floor(ci / 2)
                
-               // Offset from bottom, above transits if they exist
-               const vBase = hasTransits ? 0.75 : 0.90
+               // Position partner planets in the LOWER-RIGHT of the house, away from natal planets
+               const vBase = hasTransits ? 0.68 : 0.78
                const ty = plAreaTop + plAreaH * vBase + (row * cFont * 1.1)
 
                const cSpan =
@@ -658,35 +658,40 @@ export function NorthIndianChakra({
                  [leftX + PAD, rightX - PAD]
                const [cx0, cx1] = cSpan
                const cw = cx1 - cx0
-               const cPad = Math.max(S * 0.005, cFont * 0.48, cw * 0.03)
+               const cPad = Math.max(S * 0.005, cFont * 0.5, cw * 0.04)
+               
                let cxN: number
+               // Push to the right if possible
                if (cPlanetsInSelf.length > 1) {
-                 cxN = cx0 + cw * (col === 0 ? 0.28 : 0.72)
+                 cxN = cx0 + cw * (col === 0 ? 0.45 : 0.85)
                } else {
-                 cxN = (cx0 + cx1) / 2
+                 cxN = cx0 + cw * 0.75
                }
+               
                if (cx0 + cPad < cx1 - cPad) cxN = clamp(cxN, cx0 + cPad, cx1 - cPad)
                else cxN = (cx0 + cx1) / 2
 
-               const cSub = Math.max(6, Math.round(cFont * 0.48))
+               const cSub = Math.max(7, Math.round(cFont * 0.5))
                return (
-                <g key={`compare-${cg.id}-${ci}`}>
+                <g key={`compare-${cg.id}-${ci}`} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))' }}>
                   <text
                     x={cxN}
                     y={ty}
                     textAnchor="middle"
                     dominantBaseline="middle"
                     fontSize={Math.round(cFont)}
-                    fontWeight={800}
-                    fontFamily="var(--font-mono)"
-                    fill={cg.isRetro ? 'var(--rose)' : 'var(--text-gold)'}
+                    fontWeight={900}
+                    fontFamily="var(--font-chart-planets)"
+                    fill={cg.isRetro ? 'var(--rose)' : 'var(--gold)'}
                   >
                     <tspan>{cg.id}</tspan>
                     {cg.isRetro && (
                       <tspan fontSize={cSub} baselineShift="super">℞</tspan>
                     )}
-                    {showDegrees ? <tspan>{Math.floor(cg.degree)}</tspan> : null}
+                    {showDegrees ? <tspan fontSize={cSub} dy={cFont*0.2}>{` ${Math.floor(cg.degree)}°`}</tspan> : null}
                   </text>
+                  {/* Subtle marker to indicate Partner planet */}
+                  <circle cx={cxN + cFont*0.6} cy={ty - cFont*0.4} r={2} fill="var(--gold)" opacity={0.8} />
                 </g>
                )
             })}
