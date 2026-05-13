@@ -16,6 +16,11 @@ export function getVashyaName(sign: number) {
   return 'Insect';
 }
 
+export function getRashiName(sign: number) {
+  const names = ['Unknown', 'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+  return names[sign] || 'Unknown';
+}
+
 export function getTaraName(fromNak: number, toNak: number) {
   const diff = ((toNak - fromNak + 27) % 27) + 1;
   const rem = diff % 9;
@@ -175,7 +180,7 @@ export function calculateAshtakoot(boyNak: number, boySign: number, girlNak: num
     yoni: { points: yoni, max: 4, p1: getYoniName(boyNak), p2: getYoniName(girlNak) },
     maitri: { points: maitri, max: 5, p1: getLord(boySign), p2: getLord(girlSign) },
     gana: { points: gana, max: 6, p1: getGanaName(boyNak), p2: getGanaName(girlNak) },
-    bhakoot: { points: bhakoot, max: 7 },
+    bhakoot: { points: bhakoot, max: 7, p1: getRashiName(boySign), p2: getRashiName(girlSign) },
     nadi: { points: nadi, max: 8, p1: getNadiName(boyNak), p2: getNadiName(girlNak) },
     total: varna + vashya + tara + yoni + maitri + gana + bhakoot + nadi
   };

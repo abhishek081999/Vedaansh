@@ -406,7 +406,7 @@ function CompareContent() {
                         { k: 'Yoni', d: 'Physical Bond', s: ashtakootScore.yoni, icon: '🧬' },
                         { k: 'Maitri', d: 'Mental Harmony', s: ashtakootScore.maitri, icon: '🧠' },
                         { k: 'Gana', d: 'Temperament', s: ashtakootScore.gana, icon: '🎭' },
-                        { k: 'Bhakoot', d: 'Emotional Growth', s: ashtakootScore.bhakoot, icon: '🌊', b: rn(signOf(chartA.grahas.find(g => g.id === 'Mo')?.totalDegree ?? 0)), g: rn(signOf(chartB.grahas.find(g => g.id === 'Mo')?.totalDegree ?? 0)) },
+                        { k: 'Bhakoot', d: 'Emotional Growth', s: ashtakootScore.bhakoot, icon: '🌊' },
                         { k: 'Nadi', d: 'Genetic Health', s: ashtakootScore.nadi, icon: '🩸' },
                       ].map((r, i) => (
                         <tr key={r.k} style={{ borderBottom: '1px solid var(--border-soft)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
@@ -419,8 +419,8 @@ function CompareContent() {
                               </div>
                             </div>
                           </td>
-                          <td style={{ padding: '1rem' }}><span style={{ color: 'var(--text-gold)', fontWeight: 600, fontSize: '0.9rem' }}>{r.s.p1 || r.b}</span></td>
-                          <td style={{ padding: '1rem' }}><span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.9rem' }}>{r.s.p2 || r.g}</span></td>
+                          <td style={{ padding: '1rem' }}><span style={{ color: 'var(--text-gold)', fontWeight: 600, fontSize: '0.9rem' }}>{r.s.p1}</span></td>
+                          <td style={{ padding: '1rem' }}><span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.9rem' }}>{r.s.p2}</span></td>
                           <td style={{ padding: '1rem' }}>
                              <div style={{ height: 6, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden', width: '100%' }}>
                                 <div style={{ height: '100%', width: `${(r.s.points / r.s.max) * 100}%`, background: r.s.points === 0 ? 'var(--rose)' : r.s.points === r.s.max ? 'var(--teal)' : 'var(--text-gold)', borderRadius: 3 }} />
