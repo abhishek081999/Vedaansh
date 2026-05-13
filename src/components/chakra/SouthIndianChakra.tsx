@@ -481,24 +481,25 @@ export function SouthIndianChakra({
         const cy = row * cell + cell * 0.85
         const cFont = cell * 0.115 * fontScale * planetScale
         return cPlanets.map((cg, ci) => {
-          const cFs = Math.round(cFont * 0.85)
-          const cSub = Math.max(6, Math.round(cFs * 0.48))
+          const cFs = Math.round(cFont * 0.95)
+          const cSub = Math.max(7, Math.round(cFs * 0.5))
           return (
-          <text
-            key={`compare-s-${cg.id}-${ci}`}
-            x={cx + (cPlanets.length > 1 && ci % 2 === 1 ? cell * 0.18 : cPlanets.length > 1 ? -cell * 0.18 : 0)}
-            y={cy + Math.floor(ci / 2) * cFont * 1.5}
-            textAnchor="middle" dominantBaseline="middle"
-            fontSize={cFs}
-            fontWeight={800}
-            fontFamily="var(--font-mono)"
-            fill={cg.isRetro ? 'var(--rose)' : 'var(--text-gold)'}
-            style={{ filter: 'drop-shadow(0 0 3px rgba(184,134,11,0.3))' }}
-          >
-            <tspan>{cg.id}</tspan>
-            {cg.isRetro && <tspan fontSize={cSub} baselineShift="super">℞</tspan>}
-            {showDegrees ? <tspan>{` ${Math.floor(cg.degree)}°`}</tspan> : null}
-          </text>
+          <g key={`compare-s-${cg.id}-${ci}`} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}>
+            <text
+              x={cx + (cPlanets.length > 1 && ci % 2 === 1 ? cell * 0.18 : cPlanets.length > 1 ? -cell * 0.18 : 0)}
+              y={cy + Math.floor(ci / 2) * cFont * 1.5}
+              textAnchor="middle" dominantBaseline="middle"
+              fontSize={cFs}
+              fontWeight={900}
+              fontFamily="var(--font-chart-planets)"
+              fill={cg.isRetro ? 'var(--rose)' : 'var(--gold)'}
+            >
+              <tspan>{cg.id}</tspan>
+              {cg.isRetro && <tspan fontSize={cSub} baselineShift="super">℞</tspan>}
+              {showDegrees ? <tspan fontSize={cSub*0.9} dy={cFs*0.2}>{` ${Math.floor(cg.degree)}°`}</tspan> : null}
+            </text>
+            <circle cx={cx + (cPlanets.length > 1 && ci % 2 === 1 ? cell * 0.18 : cPlanets.length > 1 ? -cell * 0.18 : 0) + cFs*0.6} cy={cy - cFs*0.4} r={1.5} fill="var(--gold)" />
+          </g>
         )})
       })}
 
