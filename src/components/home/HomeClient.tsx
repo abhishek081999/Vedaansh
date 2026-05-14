@@ -719,11 +719,11 @@ function HomeContent() {
 
   // 2. Open form if 'new=true' is in URL
   useEffect(() => {
-    if (searchParams.get('new') === 'true') {
+    if (searchParams.get('new') === 'true' && !isFormOpen && !chart) {
       setIsFormOpen(true)
       setChart(null)
     }
-  }, [searchParams, setChart, setIsFormOpen])
+  }, [searchParams, setChart, setIsFormOpen, chart]) // Removed isFormOpen from deps to avoid auto-reopen loop
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
@@ -830,9 +830,21 @@ function HomeContent() {
   const tithiNumber  = chart?.panchang.tithi.number ?? 1
   const varaNumber   = chart?.panchang.vara.number  ?? 0
 
+  const closeDrawer = React.useCallback(() => {
+    setIsFormOpen(false)
+    setPendingDestination(null)
+    if (searchParams.get('new') === 'true') {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('new')
+      const p = params.toString()
+      router.replace(p ? `?${p}` : window.location.pathname, { scroll: false })
+    }
+  }, [searchParams, router, setIsFormOpen, setPendingDestination])
+
   const openAstrologyApp = React.useCallback(() => {
+    setIsFormOpen(true)
     router.push('/astrology?new=true')
-  }, [router])
+  }, [router, setIsFormOpen])
 
   const openSectionWithChartGate = React.useCallback((href: string, e?: React.MouseEvent<HTMLElement>) => {
     if (routeAllowsWithoutChart(href)) {
@@ -2541,10 +2553,7 @@ function HomeContent() {
           opacity: isFormOpen ? 1 : 0, pointerEvents: isFormOpen ? 'auto' : 'none',
           transition: 'opacity 0.3s ease'
         }}
-        onClick={() => {
-          setIsFormOpen(false)
-          setPendingDestination(null)
-        }}
+        onClick={closeDrawer}
       />
       <div className="form-drawer" style={{ 
         position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 1101, 
@@ -2565,10 +2574,7 @@ function HomeContent() {
              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', letterSpacing: '0.05em' }}>Janma Kāla Entry</span>
           </div>
           <button 
-            onClick={() => {
-              setIsFormOpen(false)
-              setPendingDestination(null)
-            }}
+            onClick={closeDrawer}
             style={{ 
               background: 'var(--surface-3)', 
               border: '1px solid var(--border-soft)', 
@@ -2612,6 +2618,7 @@ function HomeContent() {
                   latitude: chart.meta.latitude,
                   longitude: chart.meta.longitude,
                   timezone: chart.meta.timezone,
+                  gender: chart.meta.gender,
                   settings: { 
                     ...userPrefs, 
                     ...chart.meta.settings,
@@ -2619,6 +2626,7 @@ function HomeContent() {
                   },
                 } : (defaultChart ? {
                   ...defaultChart,
+                  gender: (defaultChart as any).gender || 'male',
                   settings: {
                     ...defaultChart.settings,
                     karakaScheme: (defaultChart.settings?.karakaScheme === 8) ? 7 : (defaultChart.settings?.karakaScheme || 7)

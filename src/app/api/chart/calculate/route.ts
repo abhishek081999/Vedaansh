@@ -38,6 +38,7 @@ const ChartInputSchema = z.object({
   latitude:  z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   timezone:  z.string().min(1, 'Timezone is required'),  // IANA e.g. 'Asia/Kolkata'
+  gender:    z.enum(['male', 'female', 'other']).default('male'),
   settings:  SettingsSchema.default({}),
   prashnaNumber: z.number().min(1).max(249).optional(),
 })
@@ -172,6 +173,7 @@ export async function POST(req: NextRequest) {
           birthTime:  input.birthTime,
           birthPlace: input.birthPlace,
           timezone:   input.timezone,
+          gender:     input.gender,
           calculatedAt: new Date(),
         }
       }
@@ -193,6 +195,7 @@ export async function POST(req: NextRequest) {
           latitude:   input.latitude,
           longitude:  input.longitude,
           timezone:   input.timezone,
+          gender:     input.gender,
           settings:   input.settings as ChartSettings,
           prashnaNumber: input.prashnaNumber,
         },

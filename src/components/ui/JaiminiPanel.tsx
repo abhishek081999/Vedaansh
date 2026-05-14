@@ -4,7 +4,7 @@ import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, Das
 import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS } from '@/lib/engine/karakas'
 import { DashaTree } from '@/components/dasha/DashaTree'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Minus, Type, Scaling } from 'lucide-react'
+import { Plus, Minus, Type, Scaling, Maximize } from 'lucide-react'
 
 interface JaiminiPanelProps {
   chart: ChartOutput
@@ -469,6 +469,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const [vizMode, setVizMode] = useState<'drishti' | 'argala' | 'both'>('drishti');
   const [arScale, setArScale] = useState(1.0);
   const [plScale, setPlScale] = useState(1.0);
+  const [chartScale, setChartScale] = useState(1.0);
   const [isMobile, setIsMobile] = useState(false);
   const [isTinyMobile, setIsTinyMobile] = useState(false);
 
@@ -688,8 +689,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           {/* ── Visual Scale Controls ── */}
           <div style={{ 
             display: 'flex', 
-            gap: isTinyMobile ? '0.5rem' : '1.25rem', 
-            padding: '0.4rem 0.75rem', 
+            gap: isTinyMobile ? '0.5rem' : '1rem', 
+            padding: '0.4rem 0.6rem', 
             background: 'var(--surface-2)', 
             border: '1px solid var(--border-soft)',
             borderRadius: '10px',
@@ -697,12 +698,25 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             justifyContent: 'center',
             flexWrap: 'wrap'
           }}>
+            {/* Chart Size */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Maximize size={isTinyMobile ? 12 : 14} style={{ color: 'var(--gold)' }} />
+              {!isTinyMobile && <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Chart</span>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button onClick={() => setChartScale(s => Math.max(0.5, s - 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={10}/></button>
+                <span style={{ minWidth: '2.1rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{Math.round(chartScale * 100)}%</span>
+                <button onClick={() => setChartScale(s => Math.min(2.0, s + 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={10}/></button>
+              </div>
+            </div>
+
+            <div style={{ width: '1px', height: '14px', background: 'var(--border-soft)' }} />
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <Scaling size={isTinyMobile ? 12 : 14} style={{ color: 'var(--text-primary)' }} />
               {!isTinyMobile && <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Arudha</span>}
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <button onClick={() => setArScale(s => Math.max(0.6, s - 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={10}/></button>
-                <span style={{ minWidth: '2.2rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{Math.round(arScale * 100)}%</span>
+                <span style={{ minWidth: '2.1rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{Math.round(arScale * 100)}%</span>
                 <button onClick={() => setArScale(s => Math.min(2.5, s + 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={10}/></button>
               </div>
             </div>
@@ -714,13 +728,20 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               {!isTinyMobile && <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Planet</span>}
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <button onClick={() => setPlScale(s => Math.max(0.6, s - 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={10}/></button>
-                <span style={{ minWidth: '2.2rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{Math.round(plScale * 100)}%</span>
+                <span style={{ minWidth: '2.1rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{Math.round(plScale * 100)}%</span>
                 <button onClick={() => setPlScale(s => Math.min(2.5, s + 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={10}/></button>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            padding: '1rem',
+            transform: `scale(${chartScale})`,
+            transformOrigin: 'top center',
+            marginBottom: `${(chartScale - 1) * 400}px` // Push following content down
+          }}>
             {chartStyle === 'south' ? (
               <JaiminiAspectChart 
                 ascRashi={currentAsc} 

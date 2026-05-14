@@ -3,6 +3,10 @@
 //  Core domain types — used across the entire platform
 // ─────────────────────────────────────────────────────────────
 
+// ── Gender ───────────────────────────────────────────────────
+
+export type Gender = 'male' | 'female' | 'other'
+
 // ── Grahas (Planets) ─────────────────────────────────────────
 
 export type GrahaId = 'Su' | 'Mo' | 'Ma' | 'Me' | 'Ju' | 'Ve' | 'Sa' | 'Ra' | 'Ke' | 'Ur' | 'Ne' | 'Pl'
@@ -427,6 +431,7 @@ export interface ChartOutput {
     latitude:  number
     longitude: number
     timezone:  string
+    gender:    Gender
     settings:  ChartSettings
     calculatedAt: Date
     ayanamshaValue: number

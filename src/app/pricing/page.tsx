@@ -184,25 +184,57 @@ export default function PricingPage() {
         </div>
       </header>
 
-      <main style={{ flex: 1, maxWidth: 1100, width: '100%', margin: '0 auto', padding: 'clamp(2rem,5vw,4rem) clamp(1rem,3vw,2rem)', display: 'flex', flexDirection: 'column', gap: '3rem', alignItems: 'center' }}>
+      <main style={{ 
+        flex: 1, 
+        maxWidth: 1100, 
+        width: '100%', 
+        margin: '0 auto', 
+        padding: 'clamp(1rem,4vw,2rem)', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: 'clamp(1.25rem, 4vw, 2.25rem)', 
+        alignItems: 'center' 
+      }}>
 
-        {/* Hero */}
-        <div style={{ textAlign: 'center', maxWidth: 600 }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-gold)', fontFamily: 'var(--font-display)', marginBottom: '0.75rem' }}>
+        {/* Hero & Icon - Combined for compactness */}
+        <div style={{ textAlign: 'center', maxWidth: 700, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Image src="/veda-icon.png" alt="Vedaansh" width={54} height={54} style={{ objectFit: 'contain', opacity: 0.8, marginBottom: '0.75rem' }} />
+          
+          <div style={{ 
+            fontSize: '0.65rem', 
+            fontWeight: 800, 
+            letterSpacing: '0.2em', 
+            textTransform: 'uppercase', 
+            color: 'var(--text-gold)', 
+            fontFamily: 'var(--font-display)', 
+            marginBottom: '0.4rem',
+            opacity: 0.9
+          }}>
             Simple, transparent pricing
           </div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,5vw,3rem)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.15, margin: '0 0 1rem 0' }}>
-            Professional Jyotiṣa.<br />
-            <span style={{ color: 'var(--text-gold)' }}>Free to start.</span>
+          
+          <h1 style={{ 
+            fontFamily: 'var(--font-display)', 
+            fontSize: 'clamp(1.6rem,5vw,2.4rem)', 
+            fontWeight: 800, 
+            color: 'var(--text-primary)', 
+            lineHeight: 1.05, 
+            margin: '0 0 0.6rem 0',
+            letterSpacing: '-0.02em'
+          }}>
+            Professional Jyotiṣa. <span style={{ color: 'var(--text-gold)' }}>Free to start.</span>
           </h1>
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-            Swiss Ephemeris precision for every chart. All core features free forever on the Free tier.
+          
+          <p style={{ 
+            fontFamily: 'var(--font-display)', 
+            fontSize: '0.92rem', 
+            color: 'var(--text-secondary)', 
+            lineHeight: 1.45, 
+            margin: 0,
+            maxWidth: '480px'
+          }}>
+            Swiss Ephemeris precision for every chart. All core features free forever.
           </p>
-        </div>
-
-        {/* Brand Icon Hero */}
-        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-          <Image src="/veda-icon.png" alt="Vedaansh" width={80} height={80} style={{ objectFit: 'contain' }} />
         </div>
 
         {/* Billing toggle */}
