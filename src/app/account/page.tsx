@@ -250,7 +250,7 @@ function AccountContent() {
               defaultChartStyle:  'south',
               defaultHouseSystem: 'whole_sign',
               defaultNodeMode:    'mean',
-              karakaScheme:       8,
+              karakaScheme:       7,
               showDegrees:        false,
               showNakshatra:      false,
               showKaraka:         false,

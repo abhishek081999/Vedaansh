@@ -1024,8 +1024,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               <select className="input" value={settings.karakaScheme}
                 onChange={(e) => setSettings((s) => ({ ...s, karakaScheme: Number(e.target.value) as 7 | 8 }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
-                <option value={8}>8 Karakas (standard)</option>
-                <option value={7}>7 Karakas</option>
+                <option value={7}>7 Karakas (default)</option>
+                <option value={8}>8 Karakas</option>
               </select>
             </div>
             <div>

@@ -99,6 +99,7 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
               vargaLagnas={chart.vargaLagnas} 
               lagnas={chart.lagnas} 
               upagrahas={chart.upagrahas} 
+              arudhas={chart.arudhas}
             />
           </div>
         </div>

@@ -67,7 +67,7 @@ export interface CharaKarakaResult {
  */
 export function calcCharaKarakas(
   grahas: Array<{ id: GrahaId; lonSidereal: number; degree: number }>,
-  scheme: 7 | 8 = 8,
+  scheme: 7 | 8 = 7,
 ): CharaKarakaResult {
   const eligible = scheme === 8 ? ELIGIBLE_8 : ELIGIBLE_7
   const roles    = scheme === 8 ? ROLES_8    : ROLES_7

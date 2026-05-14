@@ -236,7 +236,7 @@ export const DEFAULT_SETTINGS: ChartSettings = {
   ayanamsha:    'lahiri',
   houseSystem:  'whole_sign',
   nodeMode:     'true',
-  karakaScheme: 8,
+  karakaScheme: 7,
   gulikaMode:   'phaladipika',
   chartStyle:   'north',
   showDegrees:  false,
