@@ -574,7 +574,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   const jaiminiYogas = detectJaiminiYogas();
 
-  const tabs = [
+  const tabs: { id: 'essence' | 'arudhas' | 'dashas'; label: string; icon: string }[] = [
     { id: 'essence', label: 'Soul Architecture', icon: '💠' },
     { id: 'arudhas', label: 'Arudha Landscape', icon: '🏔️' },
     { id: 'dashas',  label: 'Timing & Dashas',  icon: '⏳' },
@@ -960,8 +960,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     <div style={{ padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.65rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Arudha Pada Matrix</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', background: 'var(--border-soft)' }}>
                       {Array.from({ length: 12 }, (_, i) => {
-                        const key = `A${i + 1 === 1 ? 'L' : i + 1}`;
-                        const rashi = arudhas[key === 'AL' ? 'AL' : key] as Rashi;
+                        const key = i + 1 === 1 ? 'AL' : `A${i + 1}`;
+                        const rashi = arudhas[key as keyof ArudhaData] as Rashi;
                         return (
                           <div key={key} style={{ padding: '0.75rem', background: 'var(--surface-1)', textAlign: 'center', cursor: 'pointer' }} onClick={() => setSelectedAspectSign(rashi)}>
                             <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 900 }}>{key}</div>
