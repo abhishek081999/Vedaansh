@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation'
 import type { ChartOutput, ChartSettings, Gender } from '@/types/astrology'
 import { DEFAULT_SETTINGS } from '@/types/astrology'
 import { parseCoordinate } from '@/lib/atlas/coords'
+import { useSession } from 'next-auth/react'
 
 // ── Delhi defaults ────────────────────────────────────────────
 
@@ -72,7 +73,9 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   const { date: todayDate, time: nowTime } = nowIST()
   const searchParams = useSearchParams()
 
+  const { data: session } = useSession()
   const [name, setName] = useState(initialData?.name || initialName)
+  const [saveToLibrary, setSaveToLibrary] = useState(false)
   const [date, setDate] = useState(initialData?.birthDate || todayDate)
   const [time, setTime] = useState(initialData?.birthTime || nowTime)
   const [place, setPlace] = useState(initialData?.birthPlace || DELHI_DEFAULT.place)
@@ -393,6 +396,30 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         setError(json.error ?? 'Calculation failed')
         return
       }
+
+      // If "Save to Library" is checked and user is logged in, save it
+      if (saveToLibrary && session?.user) {
+        try {
+          await fetch('/api/chart/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: nameVal.trim() || 'Natal Chart',
+              birthDate: dateVal,
+              birthTime: safeTime,
+              birthPlace: placeVal,
+              latitude: latVal,
+              longitude: lngVal,
+              timezone: tzVal,
+              gender: genderVal,
+              settings: settingsVal,
+            }),
+          })
+        } catch (e) {
+          console.error('Failed to auto-save chart:', e)
+        }
+      }
+
       onResult(json.data)
     } catch {
       setError('Network error — please try again')
@@ -1031,6 +1058,20 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           </div>
         )}
       </div>
+
+      {/* Save to library checkbox */}
+      {session && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }} onClick={() => setSaveToLibrary(!saveToLibrary)}>
+          <input 
+            type="checkbox" 
+            checked={saveToLibrary} 
+            onChange={(e) => setSaveToLibrary(e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
+            style={{ cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Save this chart to my library</span>
+        </div>
+      )}
 
       {/* Error */}
       {error && (

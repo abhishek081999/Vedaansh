@@ -18,6 +18,7 @@ export interface IChart extends Document {
   latitude:  number
   longitude: number
   timezone:  string   // IANA timezone e.g. "Asia/Kolkata"
+  gender:    string   // "male" | "female" | "other"
   settings:  ChartSettings
   isPublic:  boolean
   isPersonal:boolean   // true = user's own birth chart
@@ -39,6 +40,7 @@ const ChartSchema = new Schema<IChart>({
   latitude:  { type: Number, required: true, min: -90,  max: 90 },
   longitude: { type: Number, required: true, min: -180, max: 180 },
   timezone:  { type: String, required: true },
+  gender:    { type: String, enum: ['male', 'female', 'other'], default: 'male' },
   settings:  { type: Schema.Types.Mixed, required: true },
   isPublic:  { type: Boolean, default: false },
   isPersonal:{ type: Boolean, default: false, index: true },
