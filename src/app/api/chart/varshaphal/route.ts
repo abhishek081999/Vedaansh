@@ -21,6 +21,7 @@ const Schema = z.object({
   birthPlace:       z.string(),
   settings:         z.record(z.unknown()),
   natalName:        z.string().optional(),
+  gender:           z.enum(['male', 'female', 'other']).default('male'),
 })
 
 export async function POST(req: NextRequest) {
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid input' }, { status: 400 })
     }
 
-    const { natalSunSidereal, returnYear, latitude, longitude, timezone, birthPlace, settings, natalName } = parsed.data
+    const { natalSunSidereal, returnYear, latitude, longitude, timezone, birthPlace, settings, natalName, gender } = parsed.data
     const ayanamsha = (settings as any).ayanamsha ?? 'lahiri'
 
     // 1. Find the exact JD of Solar Return
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
         latitude,
         longitude,
         timezone:   'UTC',
+        gender,
         settings:   settings as unknown as ChartSettings,
       },
       'platinum',   // compute all features

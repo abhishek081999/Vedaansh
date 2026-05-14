@@ -166,7 +166,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       
       if (tzone) {
         setTz(tzone)
-        setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, g, settings), 150)
+        setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, gender, settings), 150)
       } else {
         // If coords provided but no TZ, we MUST resolve it first to avoid UTC bug
         fetch(`/api/atlas/search?lat=${lt}&lng=${lg}`)
@@ -174,11 +174,11 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           .then(data => {
             const resolvedTz = data.results?.[0]?.timezone || 'Asia/Kolkata' // Default to IST if all else fails
             setTz(resolvedTz)
-            submitChart(n, d, t, pl, lt, lg, resolvedTz, g, settings)
+            submitChart(n, d, t, pl, lt, lg, resolvedTz, gender, settings)
           })
           .catch(() => {
             setTz('Asia/Kolkata')
-            submitChart(n, d, t, pl, lt, lg, 'Asia/Kolkata', g, settings)
+            submitChart(n, d, t, pl, lt, lg, 'Asia/Kolkata', gender, settings)
           })
       }
     } else if (autoSubmit && initialData) {
