@@ -3,6 +3,10 @@
 //  Core domain types — used across the entire platform
 // ─────────────────────────────────────────────────────────────
 
+// ── Gender ───────────────────────────────────────────────────
+
+export type Gender = 'male' | 'female' | 'other'
+
 // ── Grahas (Planets) ─────────────────────────────────────────
 
 export type GrahaId = 'Su' | 'Mo' | 'Ma' | 'Me' | 'Ju' | 'Ve' | 'Sa' | 'Ra' | 'Ke' | 'Ur' | 'Ne' | 'Pl'
@@ -236,7 +240,7 @@ export const DEFAULT_SETTINGS: ChartSettings = {
   ayanamsha:    'lahiri',
   houseSystem:  'whole_sign',
   nodeMode:     'true',
-  karakaScheme: 8,
+  karakaScheme: 7,
   gulikaMode:   'phaladipika',
   chartStyle:   'north',
   showDegrees:  false,
@@ -427,6 +431,7 @@ export interface ChartOutput {
     latitude:  number
     longitude: number
     timezone:  string
+    gender:    Gender
     settings:  ChartSettings
     calculatedAt: Date
     ayanamshaValue: number

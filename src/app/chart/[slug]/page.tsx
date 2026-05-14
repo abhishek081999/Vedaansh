@@ -383,6 +383,7 @@ export default function PublicChartPage() {
                     upagrahas={chart.upagrahas}
                     activeVarga={activeVarga}
                     onVargaChange={setActiveVarga}
+                    arudhas={chart.arudhas}
                   />
                 </div>
               )}

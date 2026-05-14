@@ -55,6 +55,7 @@ import {
   type UserPlan,
   type YuddhaResult,
   type UpagrahaData,
+  type Gender,
 } from '@/types/astrology'
 import { checkGandanta } from './gandanta'
 import { checkPushkara } from './pushkara'
@@ -89,6 +90,7 @@ export interface CalculateChartInput {
   latitude: number
   longitude: number
   timezone: string
+  gender: Gender
   settings?: ChartSettings
   prashnaNumber?: number // KP Horary 1-249
 }
@@ -479,7 +481,7 @@ export async function calculateChart(
     meta: {
       name: input.name, birthDate: input.birthDate, birthTime: input.birthTime,
       birthPlace: input.birthPlace, latitude: input.latitude, longitude: input.longitude,
-      timezone: input.timezone, settings, calculatedAt: new Date(),
+      timezone: input.timezone, gender: input.gender, settings, calculatedAt: new Date(),
       ayanamshaValue: ayanamshaVal, julianDay: jd,
     },
     grahas,

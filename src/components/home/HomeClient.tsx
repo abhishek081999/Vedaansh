@@ -661,7 +661,7 @@ function HomeContent() {
                 ...(prefs.defaultAyanamsha    ? { ayanamsha:    prefs.defaultAyanamsha    } : {}),
                 ...(prefs.defaultHouseSystem  ? { houseSystem:  prefs.defaultHouseSystem  } : {}),
                 ...(prefs.defaultNodeMode     ? { nodeMode:     prefs.defaultNodeMode     } : {}),
-                ...(prefs.karakaScheme        ? { karakaScheme: prefs.karakaScheme        } : {}),
+                karakaScheme: (prefs.karakaScheme === 8) ? 7 : (prefs.karakaScheme || 7),
                 ...(prefs.showDegrees   != null ? { showDegrees:  prefs.showDegrees   } : {}),
                 ...(prefs.showNakshatra != null ? { showNakshatra:prefs.showNakshatra } : {}),
                 ...(prefs.showKaraka    != null ? { showKaraka:   prefs.showKaraka    } : {}),
@@ -693,7 +693,7 @@ function HomeContent() {
                 ...(prefs.defaultChartStyle   ? { chartStyle:   prefs.defaultChartStyle   } : {}),
                 ...(prefs.defaultHouseSystem  ? { houseSystem:  prefs.defaultHouseSystem  } : {}),
                 ...(prefs.defaultNodeMode     ? { nodeMode:     prefs.defaultNodeMode     } : {}),
-                ...(prefs.karakaScheme        ? { karakaScheme: prefs.karakaScheme        } : {}),
+                karakaScheme: (prefs.karakaScheme === 8) ? 7 : (prefs.karakaScheme || 7),
                 ...(prefs.showDegrees   != null ? { showDegrees:  prefs.showDegrees   } : {}),
                 ...(prefs.showNakshatra != null ? { showNakshatra:prefs.showNakshatra } : {}),
                 ...(prefs.showKaraka    != null ? { showKaraka:   prefs.showKaraka    } : {}),
@@ -719,11 +719,11 @@ function HomeContent() {
 
   // 2. Open form if 'new=true' is in URL
   useEffect(() => {
-    if (searchParams.get('new') === 'true') {
+    if (searchParams.get('new') === 'true' && !isFormOpen && !chart) {
       setIsFormOpen(true)
       setChart(null)
     }
-  }, [searchParams, setChart, setIsFormOpen])
+  }, [searchParams, setChart, setIsFormOpen, chart]) // Removed isFormOpen from deps to avoid auto-reopen loop
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
@@ -830,9 +830,21 @@ function HomeContent() {
   const tithiNumber  = chart?.panchang.tithi.number ?? 1
   const varaNumber   = chart?.panchang.vara.number  ?? 0
 
+  const closeDrawer = React.useCallback(() => {
+    setIsFormOpen(false)
+    setPendingDestination(null)
+    if (searchParams.get('new') === 'true') {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('new')
+      const p = params.toString()
+      router.replace(p ? `?${p}` : window.location.pathname, { scroll: false })
+    }
+  }, [searchParams, router, setIsFormOpen, setPendingDestination])
+
   const openAstrologyApp = React.useCallback(() => {
+    setIsFormOpen(true)
     router.push('/astrology?new=true')
-  }, [router])
+  }, [router, setIsFormOpen])
 
   const openSectionWithChartGate = React.useCallback((href: string, e?: React.MouseEvent<HTMLElement>) => {
     if (routeAllowsWithoutChart(href)) {
@@ -1120,6 +1132,7 @@ function HomeContent() {
                 upagrahas={dashboardChart.upagrahas}
                 activeVarga={activeVarga}
                 onVargaChange={setActiveVarga}
+                arudhas={dashboardChart.arudhas}
                 limited={!expandGraha}
               />
             </div>
@@ -1682,11 +1695,22 @@ function HomeContent() {
                       )}
 
                       {mobileDashTab === 'planetary' && (
-                        <GrahaTable
-                          grahas={chart.grahas} vargas={chart.vargas} vargaLagnas={chart.vargaLagnas}
-                          lagnas={chart.lagnas} upagrahas={chart.upagrahas}
-                          activeVarga={activeVarga} onVargaChange={setActiveVarga} limited={!expandGraha}
-                        />
+                        <div className="panel">
+                          <div className="panel-header">
+                            <span>Planetary Details</span>
+                            <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.72rem', padding: '0.2rem 0.45rem', fontFamily: 'var(--font-body)' }} onClick={() => setExpandGraha(!expandGraha)}>
+                              {expandGraha ? '▴ Less' : '▾ More'}
+                            </button>
+                          </div>
+                          <div style={{ padding: '0.4rem 0' }}>
+                            <GrahaTable
+                              grahas={chart.grahas} vargas={chart.vargas} vargaLagnas={chart.vargaLagnas}
+                              lagnas={chart.lagnas} upagrahas={chart.upagrahas}
+                              activeVarga={activeVarga} onVargaChange={setActiveVarga} 
+                              arudhas={chart.arudhas} limited={!expandGraha}
+                            />
+                          </div>
+                        </div>
                       )}
 
                       {mobileDashTab === 'dashas' && (
@@ -2529,10 +2553,7 @@ function HomeContent() {
           opacity: isFormOpen ? 1 : 0, pointerEvents: isFormOpen ? 'auto' : 'none',
           transition: 'opacity 0.3s ease'
         }}
-        onClick={() => {
-          setIsFormOpen(false)
-          setPendingDestination(null)
-        }}
+        onClick={closeDrawer}
       />
       <div className="form-drawer" style={{ 
         position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 1101, 
@@ -2553,10 +2574,7 @@ function HomeContent() {
              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', letterSpacing: '0.05em' }}>Janma Kāla Entry</span>
           </div>
           <button 
-            onClick={() => {
-              setIsFormOpen(false)
-              setPendingDestination(null)
-            }}
+            onClick={closeDrawer}
             style={{ 
               background: 'var(--surface-3)', 
               border: '1px solid var(--border-soft)', 
@@ -2600,8 +2618,20 @@ function HomeContent() {
                   latitude: chart.meta.latitude,
                   longitude: chart.meta.longitude,
                   timezone: chart.meta.timezone,
-                  settings: { ...userPrefs, ...chart.meta.settings },
-                } : (defaultChart || undefined)}
+                  gender: chart.meta.gender,
+                  settings: { 
+                    ...userPrefs, 
+                    ...chart.meta.settings,
+                    karakaScheme: (chart.meta.settings?.karakaScheme === 8 || userPrefs.karakaScheme === 8) ? 7 : (chart.meta.settings?.karakaScheme || 7)
+                  },
+                } : (defaultChart ? {
+                  ...defaultChart,
+                  gender: (defaultChart as any).gender || 'male',
+                  settings: {
+                    ...defaultChart.settings,
+                    karakaScheme: (defaultChart.settings?.karakaScheme === 8) ? 7 : (defaultChart.settings?.karakaScheme || 7)
+                  }
+                } : undefined)}
               />
             )}
            {chart && <ChartSummary chart={chart} />}

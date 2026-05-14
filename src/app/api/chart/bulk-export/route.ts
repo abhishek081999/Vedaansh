@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
             latitude:   sc.latitude,
             longitude:  sc.longitude,
             timezone:   sc.timezone,
+            gender:     (sc as any).gender || 'male',
             settings:   (sc.settings || {}) as ChartSettings,
           }, 'platinum', { dashaDepth: 4 })
 

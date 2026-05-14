@@ -42,7 +42,9 @@
   --gold: #c9a84c;
   --gold-light: #e2c97e;
   --gold-dim: #8a6f2e;
+  --gold-soft: rgba(201, 168, 76, 0.72);
   --gold-faint: rgba(201, 168, 76, 0.08);
+  --surface-gold-soft: rgba(201, 168, 76, 0.12);
 
   /* Accent (chakra violet) */
   --accent: #8b7cf6;
@@ -51,7 +53,9 @@
 
   /* Status */
   --rose: #e07b8e;
+  --rose-soft: rgba(224, 123, 142, 0.72);
   --teal: #4ecdc4;
+  --teal-soft: rgba(78, 205, 196, 0.72);
   --amber: #f59e42;
 
   /* Dignity / Placements */
@@ -179,7 +183,9 @@
   --gold: #b48600;
   --gold-light: #d97706;  /* amber-600 */
   --gold-dim: #92400e;
+  --gold-soft: rgba(180, 134, 0, 0.65);
   --gold-faint: rgba(217, 119, 6, 0.08);
+  --surface-gold-soft: rgba(180, 134, 0, 0.08);
 
   /* Secondary Accents */
   --accent: #6366f1;
@@ -188,7 +194,9 @@
 
   /* Status */
   --rose: #e11d48;
+  --rose-soft: rgba(225, 29, 72, 0.72);
   --teal: #0d9488;
+  --teal-soft: rgba(13, 148, 136, 0.72);
   --amber: #d97706;
 
   /* Dignity */
@@ -305,7 +313,9 @@
   --gold: #b45309;
   --gold-light: #f59e0b;
   --gold-dim: #78350f;
+  --gold-soft: rgba(166, 124, 0, 0.65);
   --gold-faint: rgba(245, 158, 11, 0.08);
+  --surface-gold-soft: rgba(166, 124, 0, 0.08);
 
   /* Secondary Accents (Deep Maroon) */
   --accent: #991b1b;
@@ -314,7 +324,9 @@
 
   /* Status */
   --rose: #92182b;
+  --rose-soft: rgba(146, 24, 43, 0.72);
   --teal: #14645e;
+  --teal-soft: rgba(20, 100, 94, 0.72);
   --amber: #92400e;
 
   /* Dignity */

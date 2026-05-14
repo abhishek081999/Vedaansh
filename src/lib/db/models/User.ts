@@ -72,7 +72,7 @@ const UserPreferencesSchema = new Schema<IUserPreferences>({
   defaultChartStyle:  { type: String, default: 'south' },
   defaultHouseSystem: { type: String, default: 'whole_sign' },
   defaultNodeMode:    { type: String, default: 'mean' },
-  karakaScheme:       { type: Number, default: 8 },
+  karakaScheme:       { type: Number, default: 7 },
   language:           { type: String, default: 'en' },
   showDegrees:        { type: Boolean, default: true },
   showNakshatra:      { type: Boolean, default: false },

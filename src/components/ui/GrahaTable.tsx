@@ -119,13 +119,14 @@ interface GrahaTableProps {
   vargaLagnas?: Record<string, Rashi>
   activeVarga?: string
   onVargaChange?: (v: string) => void
+  arudhas?:   any
 }
 
 
 
 // ── Component ────────────────────────────────────────────
 
-export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, activeVarga, onVargaChange }: GrahaTableProps) {
+export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, activeVarga, onVargaChange, arudhas }: GrahaTableProps) {
   const { language } = useAppLayout()
   const isSa = language === 'sa'
   const [selectedVarga, setSelectedVarga] = React.useState<string>(activeVarga || 'D1')
@@ -147,9 +148,43 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
   // 2. Prepare the bodies list for the table
   const bodies = useMemo(() => {
     const list: BodyInfo[] = []
-    const mainIds = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
     
-    // Filter and map the planets for the current varga
+    // 1. Handle Lagnas (Ascendants) - Now on top
+    if (selectedVarga === 'D1' && lagnas) {
+      const items = [
+          { name: 'Lagna',              deg: lagnas.ascDegree    },
+          ...(arudhas && arudhas.AL ? [
+            { name: 'Arudha Lagna (AL)', deg: (arudhas.AL - 1) * 30 + (lagnas.ascDegree % 30) }
+          ] : []),
+          ...(!limited ? [
+            { name: 'BH (Bhāva)',       deg: lagnas.bhavaLagna   },
+            { name: 'HL (Hora)',        deg: lagnas.horaLagna    },
+            { name: 'GL (Ghaṭi)',       deg: lagnas.ghatiLagna   },
+            { name: 'PP (Prāṇapada)',   deg: lagnas.pranapada    },
+            { name: 'SL (Śrī)',         deg: lagnas.sriLagna     },
+            { name: 'VL (Varṇada)',     deg: lagnas.varnadaLagna },
+          ] : []),
+        ]
+
+      items.forEach(l => {
+        if (l.deg !== undefined && l.deg !== 0) {
+          list.push({ name: l.name, totalDeg: l.deg, color: 'var(--text-gold)' })
+        }
+      })
+    } else if (lagnas) {
+      // Find the specific Varga Lagna rashi
+      const vLagnaRashi = (vargaLagnas && vargaLagnas[selectedVarga]) || lagnas.ascRashi || 1
+      const vPosition = getVargaPosition(lagnas.ascDegree, selectedVarga as any)
+      
+      list.push({ 
+        name: `Lagna (${selectedVarga})`, 
+        totalDeg: vPosition ? vPosition.totalDegree : (vLagnaRashi - 1) * 30,
+        color: 'var(--text-gold)' 
+      })
+    }
+
+    // 2. Filter and map the planets for the current varga
+    const mainIds = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
     const displayGrahas = (vargas && vargas[selectedVarga]) || vargas?.D1 || []
 
     displayGrahas
@@ -168,37 +203,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         })
       })
 
-    // Handle Lagnas (Ascendants)
-    if (selectedVarga === 'D1' && lagnas) {
-      const items = [
-        { name: 'Lagna',              deg: lagnas.ascDegree    },
-        ...(!limited ? [
-          { name: 'BH (Bhāva)',       deg: lagnas.bhavaLagna   },
-          { name: 'HL (Hora)',        deg: lagnas.horaLagna    },
-          { name: 'GL (Ghaṭi)',       deg: lagnas.ghatiLagna   },
-          { name: 'PP (Prāṇapada)',   deg: lagnas.pranapada    },
-          { name: 'SL (Śrī)',         deg: lagnas.sriLagna     },
-          { name: 'VL (Varṇada)',     deg: lagnas.varnadaLagna },
-        ] : []),
-      ]
-      items.forEach(l => {
-        if (l.deg !== undefined && l.deg !== 0) {
-          list.push({ name: l.name, totalDeg: l.deg, color: 'var(--text-gold)' })
-        }
-      })
-    } else if (lagnas) {
-      // Find the specific Varga Lagna rashi
-      const vLagnaRashi = (vargaLagnas && vargaLagnas[selectedVarga]) || lagnas.ascRashi || 1
-      const vPosition = getVargaPosition(lagnas.ascDegree, selectedVarga as any)
-      
-      list.push({ 
-        name: `Lagna (${selectedVarga})`, 
-        totalDeg: vPosition ? vPosition.totalDegree : (vLagnaRashi - 1) * 30,
-        color: 'var(--text-gold)' 
-      })
-    }
-
-    // Upagrahas only in D1
+    // 3. Upagrahas only in D1 (at the bottom)
     if (upagrahas && !limited && selectedVarga === 'D1') {
       Object.values(upagrahas).forEach(d => {
         list.push({ name: d.name, totalDeg: d.lonSidereal, color: 'var(--text-secondary)' })

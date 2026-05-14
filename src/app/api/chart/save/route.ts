@@ -24,6 +24,7 @@ const SaveSchema = z.object({
   latitude:   z.number(),
   longitude:  z.number(),
   timezone:   z.string(),
+  gender:     z.enum(['male', 'female', 'other']).default('male'),
   settings:   z.record(z.unknown()),
   isPublic:   z.boolean().default(false),
   isPersonal: z.boolean().default(false),
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     await connectDB()
 
-    const { name, birthDate, birthTime, birthPlace, latitude, longitude, timezone, settings, isPublic, isPersonal } = parsed.data
+    const { name, birthDate, birthTime, birthPlace, latitude, longitude, timezone, gender, settings, isPublic, isPersonal } = parsed.data
 
     const userId = session?.user?.id
 
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
       latitude,
       longitude,
       timezone,
+      gender,
       settings,
       isPublic,
       isPersonal,

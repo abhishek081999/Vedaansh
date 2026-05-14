@@ -289,7 +289,7 @@ describe('Full calculator integration', () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const r = await calculateChart({
       name:'Test', birthDate:'2000-01-01', birthTime:'12:00:00', utcDate:'2000-01-01', utcTime:'12:00:00',
-      birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC',
+      birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC', gender: 'male',
     }, 'free')
     expect(r.grahas).toHaveLength(9)
     expect(r.lagnas.ascRashi).toBeGreaterThanOrEqual(1)
@@ -301,7 +301,7 @@ describe('Full calculator integration', () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const r = await calculateChart({
       name:'Test', birthDate:'1990-06-15', birthTime:'14:00:00', utcDate:'1990-06-15', utcTime:'14:00:00',
-      birthPlace:'Delhi', latitude:28.6139, longitude:77.209, timezone:'UTC',
+      birthPlace:'Delhi', latitude:28.6139, longitude:77.209, timezone:'UTC', gender: 'male',
     }, 'free')
     const valid = ['exalted','moolatrikona','own','neutral','debilitated']
     for (const g of r.grahas) expect(valid).toContain(g.dignity)
@@ -311,7 +311,7 @@ describe('Full calculator integration', () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const r = await calculateChart({
       name:'Test', birthDate:'1985-04-15', birthTime:'06:00:00', utcDate:'1985-04-15', utcTime:'06:00:00',
-      birthPlace:'Chennai', latitude:13.0827, longitude:80.2707, timezone:'UTC',
+      birthPlace:'Chennai', latitude:13.0827, longitude:80.2707, timezone:'UTC', gender: 'male',
     }, 'free')
     const roles = ['AK','AmK','BK','MK','PK','PiK','GK','DK']
     const roled = r.grahas.filter((g) => g.charaKaraka !== null)
@@ -328,7 +328,8 @@ describe('Full calculator integration', () => {
       birthTime:'12:00:00', 
       utcDate: '1995-06-15', 
       utcTime:'12:00:00',
-      birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC' 
+      birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC',
+      gender: 'male' as const,
     }
     const free = await calculateChart(input, 'free')
     const gold = await calculateChart(input, 'gold')
@@ -364,7 +365,7 @@ describe('Full calculator integration', () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const r = await calculateChart({
       name:'Test', birthDate:'1980-01-01', birthTime:'12:00:00', utcDate:'1980-01-01', utcTime:'12:00:00',
-      birthPlace:'Kolkata', latitude:22.5726, longitude:88.3639, timezone:'UTC',
+      birthPlace:'Kolkata', latitude:22.5726, longitude:88.3639, timezone:'UTC', gender: 'male',
     }, 'free')
     expect(r.dashas.vimshottari).toHaveLength(9)
     const yrs = r.dashas.vimshottari.reduce((s,d) => s + d.durationMs/(365.25*24*3600*1000), 0)

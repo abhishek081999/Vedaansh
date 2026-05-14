@@ -7,9 +7,10 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import type { ChartOutput, ChartSettings } from '@/types/astrology'
+import type { ChartOutput, ChartSettings, Gender } from '@/types/astrology'
 import { DEFAULT_SETTINGS } from '@/types/astrology'
 import { parseCoordinate } from '@/lib/atlas/coords'
+import { useSession } from 'next-auth/react'
 
 // ── Delhi defaults ────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ interface BirthFormProps {
   initialName?: string
   initialData?: {
     name: string; birthDate: string; birthTime: string; birthPlace: string
-    latitude: number; longitude: number; timezone: string; settings?: ChartSettings
+    latitude: number; longitude: number; timezone: string; gender?: Gender; settings?: ChartSettings
   }
 }
 
@@ -72,13 +73,16 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   const { date: todayDate, time: nowTime } = nowIST()
   const searchParams = useSearchParams()
 
+  const { data: session } = useSession()
   const [name, setName] = useState(initialData?.name || initialName)
+  const [saveToLibrary, setSaveToLibrary] = useState(false)
   const [date, setDate] = useState(initialData?.birthDate || todayDate)
   const [time, setTime] = useState(initialData?.birthTime || nowTime)
   const [place, setPlace] = useState(initialData?.birthPlace || DELHI_DEFAULT.place)
   const [lat, setLat] = useState<number | null>(initialData?.latitude ?? DELHI_DEFAULT.lat)
   const [lng, setLng] = useState<number | null>(initialData?.longitude ?? DELHI_DEFAULT.lng)
   const [tz, setTz] = useState(initialData?.timezone || DELHI_DEFAULT.tz)
+  const [gender, setGender] = useState<Gender>(initialData?.gender || 'male')
   const [settings, setSettings] = useState<ChartSettings>(initialData?.settings || DEFAULT_SETTINGS)
 
   const [locationResults, setLocationResults] = useState<LocationResult[]>([])
@@ -141,6 +145,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
     const pLat = searchParams.get('lat')
     const pLng = searchParams.get('lng')
     const pTz = searchParams.get('tz')
+    const pGender = searchParams.get('gender') as Gender | null
 
     if (pName && pDate && pTime && pLat && pLng) {
       didAutoSubmit.current = true
@@ -161,7 +166,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       
       if (tzone) {
         setTz(tzone)
-        setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, settings), 150)
+        setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, gender, settings), 150)
       } else {
         // If coords provided but no TZ, we MUST resolve it first to avoid UTC bug
         fetch(`/api/atlas/search?lat=${lt}&lng=${lg}`)
@@ -169,17 +174,19 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           .then(data => {
             const resolvedTz = data.results?.[0]?.timezone || 'Asia/Kolkata' // Default to IST if all else fails
             setTz(resolvedTz)
-            submitChart(n, d, t, pl, lt, lg, resolvedTz, settings)
+            submitChart(n, d, t, pl, lt, lg, resolvedTz, gender, settings)
           })
           .catch(() => {
             setTz('Asia/Kolkata')
-            submitChart(n, d, t, pl, lt, lg, 'Asia/Kolkata', settings)
+            submitChart(n, d, t, pl, lt, lg, 'Asia/Kolkata', gender, settings)
           })
       }
     } else if (autoSubmit && initialData) {
       didAutoSubmit.current = true
       const resolvedTz = initialData.timezone || 'Asia/Kolkata'
+      const g = initialData.gender || 'male'
       setTz(resolvedTz)
+      setGender(g)
       setTimeout(() => submitChart(
         initialData.name,
         initialData.birthDate,
@@ -188,11 +195,13 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         initialData.latitude,
         initialData.longitude,
         resolvedTz,
+        g,
         initialData.settings || DEFAULT_SETTINGS
       ), 150)
     } else if (autoSubmit) {
       didAutoSubmit.current = true
       setTz(DELHI_DEFAULT.tz)
+      setGender('male')
       setTimeout(() => submitChart(
         DELHI_DEFAULT.name,
         todayDate,
@@ -201,6 +210,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         DELHI_DEFAULT.lat,
         DELHI_DEFAULT.lng,
         DELHI_DEFAULT.tz,
+        'male',
         DEFAULT_SETTINGS,
       ), 150)
     }
@@ -356,7 +366,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   async function submitChart(
     nameVal: string, dateVal: string, timeVal: string,
     placeVal: string, latVal: number, lngVal: number,
-    tzVal: string, settingsVal: ChartSettings,
+    tzVal: string, genderVal: Gender, settingsVal: ChartSettings,
   ) {
     setError(null)
     setLoading(true)
@@ -375,6 +385,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           latitude: latVal,
           longitude: lngVal,
           timezone: tzVal,
+          gender: genderVal,
           settings: settingsVal,
           _t: Date.now(), // Cache buster to force re-calculation
         }),
@@ -385,6 +396,30 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         setError(json.error ?? 'Calculation failed')
         return
       }
+
+      // If "Save to Library" is checked and user is logged in, save it
+      if (saveToLibrary && session?.user) {
+        try {
+          await fetch('/api/chart/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: nameVal.trim() || 'Natal Chart',
+              birthDate: dateVal,
+              birthTime: safeTime,
+              birthPlace: placeVal,
+              latitude: latVal,
+              longitude: lngVal,
+              timezone: tzVal,
+              gender: genderVal,
+              settings: settingsVal,
+            }),
+          })
+        } catch (e) {
+          console.error('Failed to auto-save chart:', e)
+        }
+      }
+
       onResult(json.data)
     } catch {
       setError('Network error — please try again')
@@ -417,7 +452,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       ? `Manual (${lat.toFixed(4)}, ${lng.toFixed(4)})` 
       : place
 
-    await submitChart(name, date, time, finalPlace, lat, lng, tz, settings)
+    await submitChart(name, date, time, finalPlace, lat, lng, tz, gender, settings)
   }
 
   // ── Date Part Handlers ────────────────────────────────────
@@ -483,18 +518,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
     setTime(t)
   }
 
-  // Format time for input display (HH:MM:SS)
-  const formatTimeForInput = (timeStr: string) => {
-    if (!timeStr) return '00:00:00'
-    const parts = timeStr.split(':')
-    if (parts.length === 2) {
-      return `${parts[0]}:${parts[1]}:00`
-    }
-    if (parts.length >= 3) {
-      return `${parts[0]}:${parts[1]}:${parts[2]}`
-    }
-    return timeStr
-  }
+
 
   // Handle time input change (supports HH:MM, HH:MM:SS, and step values)
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -508,21 +532,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
 
   // ── Incremental Time Adjusters ───────────────────────────
 
-  const adjustTime = (minutes: number) => {
-    const current = new Date(`${date}T${formatTimeForInput(time)}`)
-    if (isNaN(current.getTime())) return
-    current.setMinutes(current.getMinutes() + minutes)
-    
-    const yyyy = current.getFullYear()
-    const mm = String(current.getMonth() + 1).padStart(2, '0')
-    const dd = String(current.getDate()).padStart(2, '0')
-    const hh = String(current.getHours()).padStart(2, '0')
-    const mins = String(current.getMinutes()).padStart(2, '0')
-    const ss = String(current.getSeconds()).padStart(2, '0')
-    
-    setDate(`${yyyy}-${mm}-${dd}`)
-    setTime(`${hh}:${mins}:${ss}`)
-  }
+
 
   // ── Render ────────────────────────────────────────────────
 
@@ -538,24 +548,72 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
 
 
 
-      {/* Name Field */}
-      <div style={{ width: '100%' }}>
-        <label className="field-label" style={{ marginBottom: '0.15rem' }}>Name / Label</label>
-        <input
-          className="input"
-          type="text"
-          placeholder="e.g. Ravi Kumar"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          autoComplete="off"
-          style={{ width: '100%', boxSizing: 'border-box' }}
-        />
+      {/* Name & Gender Row */}
+      <div style={{ 
+        display: 'flex', 
+        gap: isMobile ? '0.5rem' : '0.75rem', 
+        width: '100%',
+        alignItems: 'flex-end'
+      }}>
+        {/* Name Field */}
+        <div style={{ flex: 1 }}>
+          <label className="field-label" style={{ marginBottom: '0.15rem' }}>Name / Label</label>
+          <input
+            className="input"
+            type="text"
+            placeholder="e.g. Ravi Kumar"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="off"
+            style={{ width: '100%', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        {/* Gender Selection (Compact) */}
+        <div style={{ width: isMobile ? 100 : 120, flexShrink: 0 }}>
+          <label className="field-label" style={{ marginBottom: '0.15rem' }}>Gender</label>
+          <div style={{ 
+            display: 'flex', 
+            gap: '2px',
+            background: 'var(--surface-2)',
+            padding: '2px',
+            borderRadius: 'var(--r-md)',
+            border: '1px solid var(--border-soft)',
+            height: '38px',
+            alignItems: 'stretch',
+            boxSizing: 'border-box'
+          }}>
+            {(['male', 'female', 'other'] as const).map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setGender(g)}
+                title={g}
+                style={{
+                  flex: 1,
+                  borderRadius: 'var(--r-sm)',
+                  border: 'none',
+                  background: gender === g ? 'var(--text-gold)' : 'transparent',
+                  color: gender === g ? '#000' : 'var(--text-secondary)',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  padding: 0
+                }}
+              >
+                {g === 'male' ? 'M' : g === 'female' ? 'F' : 'O'}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Date + Time section */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr 1.15fr' : '1fr 1.1fr', 
+        gridTemplateColumns: isMobile ? '1.15fr 1fr' : '1.1fr 1fr', 
         gap: isMobile ? '0.65rem' : '1.25rem', 
         width: '100%' 
       }}>
@@ -706,47 +764,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         </div>
       </div>
 
-      {/* Time Adjuster Stepper */}
-      <div style={{
-        display: 'flex', gap: '0.25rem', justifyContent: 'center', width: '100%',
-        marginTop: '-0.45rem', marginBottom: '0.2rem', flexWrap: 'nowrap'
-      }}>
-        {[
-          { label: '-1d', val: -1440 },
-          { label: '-1h', val: -60 },
-          { label: '-1m', val: -1 },
-          { label: '+1m', val: 1 },
-          { label: '+1h', val: 60 },
-          { label: '+1d', val: 1440 },
-        ].map(btn => (
-          <button
-            key={btn.label}
-            type="button"
-            onClick={() => adjustTime(btn.val)}
-            disabled={loading}
-            style={{
-              flex: '1',
-              padding: '0.2rem 0',
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border-soft)',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '0.65rem',
-              color: 'var(--text-secondary)',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontFamily: 'var(--font-mono)',
-              minWidth: '32px'
-            }}
-            onMouseEnter={e => {
-              if (!loading) e.currentTarget.style.borderColor = 'var(--border-bright)'
-            }}
-            onMouseLeave={e => {
-              if (!loading) e.currentTarget.style.borderColor = 'var(--border-soft)'
-            }}
-          >
-            {btn.label}
-          </button>
-        ))}
-      </div>
+
 
       {/* Location Field with autocomplete */}
       <div style={{ position: 'relative', width: '100%' }} ref={dropdownRef}>
@@ -1024,8 +1042,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               <select className="input" value={settings.karakaScheme}
                 onChange={(e) => setSettings((s) => ({ ...s, karakaScheme: Number(e.target.value) as 7 | 8 }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
-                <option value={8}>8 Karakas (standard)</option>
-                <option value={7}>7 Karakas</option>
+                <option value={7}>7 Karakas (default)</option>
+                <option value={8}>8 Karakas</option>
               </select>
             </div>
             <div>
@@ -1040,6 +1058,20 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           </div>
         )}
       </div>
+
+      {/* Save to library checkbox */}
+      {session && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }} onClick={() => setSaveToLibrary(!saveToLibrary)}>
+          <input 
+            type="checkbox" 
+            checked={saveToLibrary} 
+            onChange={(e) => setSaveToLibrary(e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
+            style={{ cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Save this chart to my library</span>
+        </div>
+      )}
 
       {/* Error */}
       {error && (

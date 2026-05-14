@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
     'Ayanamsha':     c.settings?.ayanamsha    ?? 'lahiri',
     'House System':  c.settings?.houseSystem  ?? 'whole_sign',
     'Node Mode':     c.settings?.nodeMode     ?? 'true',
-    'Karaka Scheme': c.settings?.karakaScheme ?? 8,
+    'Karaka Scheme': c.settings?.karakaScheme ?? 7,
     // Meta
     'Saved At':      c.createdAt ? new Date(c.createdAt).toLocaleString('en-IN') : '',
   }))

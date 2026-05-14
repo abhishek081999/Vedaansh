@@ -400,7 +400,7 @@ export function NorthIndianChakra({
             + (showNakshatra ? degFont * 0.95 : 0)
         }
 
-        const aFont = Math.round(Math.min(plFont * 0.82, S * 0.028) * arudhaScale)
+        const aFont = Math.round(Math.min(plFont * 0.95, S * 0.032) * arudhaScale)
 
         const tPlanetsInSelf = tByHouse[h] ?? []
         const cPlanetsInSelf = cByHouse[h] ?? []
@@ -550,8 +550,8 @@ export function NorthIndianChakra({
               const baseY = plBlockTopY + totalPlH + aFont * 0.7
 
               const chunks = []
-              for (let i = 0; i < aList.length; i += 3) {
-                chunks.push(aList.slice(i, i + 3).map(k => ARUDHA_LABEL[k] ?? k).join(' · '))
+              for (let i = 0; i < aList.length; i += 2) {
+                chunks.push(aList.slice(i, i + 2).map(k => ARUDHA_LABEL[k] ?? k).join(' · '))
               }
 
               return chunks.map((textStr, ci) => {
@@ -573,9 +573,10 @@ export function NorthIndianChakra({
                   fontFamily="var(--font-chart-planets)"
                   fontStyle="italic"
                   fontWeight="var(--fw-bold)"
-                  fill="var(--text-gold)"
+                  fill="var(--gold-light)"
                   textAnchor="middle"
                   dominantBaseline="middle"
+                  style={{ fill: 'var(--gold-light)' }}
                 >
                   {textStr}
                 </text>

@@ -1,207 +1,207 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/dasha/chara.ts
 //  Chara Dasha — Jaimini's sign-based dasha system
-//  Reference: Jaimini Sutras, BPHS Ch. 41,
-//             K.N. Rao's "Jaimini's Chara Dasha"
-//
-//  Rules:
-//  1. Dashas are of 12 rashis (signs), each 1–12 years long
-//  2. Duration of each sign = lord's distance from the sign
-//     (with adjustments for exaltation/debilitation)
-//  3. Sequence direction: odd signs run forward, even signs backward
-//  4. Start from Lagna sign (most common variant)
+//  Reference: K.N. Rao's "Jaimini's Chara Dasha"
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaData, LagnaData, DashaNode } from '@/types/astrology'
 
-// ── Sign lords (standard) ─────────────────────────────────────
 const SIGN_LORD: Record<number, string> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
   7: 'Ve', 8: 'Ma', 9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju',
 }
 
-// Chara sign lords (Jaimini variant — Ra/Ke swap roles for Sc/Aq)
-const CHARA_LORD: Record<number, string> = {
-  1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
-  7: 'Ve', 8: 'Ke', 9: 'Ju', 10: 'Sa', 11: 'Ra', 12: 'Ju',
-}
-
-// Exaltation sign for each planet
 const EXALT_SIGN: Record<string, number> = {
   Su: 1, Mo: 2, Ma: 10, Me: 6, Ju: 4, Ve: 12, Sa: 7, Ra: 3, Ke: 9,
 }
 
-// Debilitation sign
 const DEBIL_SIGN: Record<string, number> = {
   Su: 7, Mo: 8, Ma: 4, Me: 12, Ju: 10, Ve: 6, Sa: 1, Ra: 9, Ke: 3,
 }
 
-// ── Rashi of a planet ─────────────────────────────────────────
-function rashiOf(g: GrahaData): number {
+function getRashi(g: GrahaData): number {
   return Math.floor(((g.totalDegree % 360) + 360) % 360 / 30) + 1
 }
 
-function degreeInSign(g: GrahaData): number {
-  return ((g.totalDegree % 360) + 360) % 360 % 30
-}
-
-// ── Duration of a sign's dasha ────────────────────────────────
-//  Rule: lord's distance from the sign (in signs, 1–12)
-//  Adjustments:
-//   - If lord is in its own sign: use 12
-//   - If lord is exalted: add 1
-//   - If lord is debilitated: subtract 1
-//   - Min = 1, Max = 12
-
-function charaDuration(sign: number, grahas: GrahaData[]): number {
-  const lord     = CHARA_LORD[sign] ?? SIGN_LORD[sign] ?? 'Su'
-  const lordData = grahas.find(g => g.id === lord)
-  if (!lordData) return 6   // fallback
-
-  const lordRashi = rashiOf(lordData)
-
-  // Distance from sign to lord (in sign direction)
-  let dist = ((lordRashi - sign + 12) % 12) + 1  // 1–12
-
-  // Jaimini rule: if lord is in the sign itself (dist=12 means same sign)
-  if (dist === 12 && lordRashi === sign) dist = 12
-
-  // Adjustment for exaltation
-  const exSign = EXALT_SIGN[lord]
-  if (exSign && lordRashi === exSign) dist = Math.min(12, dist + 1)
-
-  // Adjustment for debilitation
-  const deSign = DEBIL_SIGN[lord]
-  if (deSign && lordRashi === deSign) dist = Math.max(1, dist - 1)
-
-  return Math.max(1, Math.min(12, dist))
-}
-
-// ── Sub-dasha (Antardasha) ────────────────────────────────────
-// Same rules as Maha but within the Maha period
-// Sequence starts from the same Maha sign
-
-function buildSubDashas(
-  mahaSigns:   number[],
-  parentStart: Date,
-  parentEnd:   Date,
-  parentMs:    number,
-  currentLevel:number,
-  maxDepth:    number,
-  grahas:      GrahaData[],
-  now:         number,
-): DashaNode[] {
-  const durations = mahaSigns.map(s => charaDuration(s, grahas))
-  const totalDur  = durations.reduce((a, b) => a + b, 0)
-
-  const nodes: DashaNode[] = []
-  let cursor = parentStart.getTime()
-
-  for (let i = 0; i < mahaSigns.length; i++) {
-    const sign = mahaSigns[i]
-    const frac = durations[i] / totalDur
-    const durationMs = parentMs * frac
-    const s    = new Date(cursor)
-    const e    = new Date(cursor + durationMs)
-    const isCurrent = now >= cursor && now < (cursor + durationMs)
-
-    const shouldGoDeeper = currentLevel < maxDepth && (currentLevel <= 3 || isCurrent)
-
-    nodes.push({
-      lord:       SIGN_LORD[sign] ?? 'Su',
-      label:      `${RASHI_NAMES[sign]} (H${sign})`,
-      start:      s,
-      end:        e,
-      durationMs: durationMs,
-      level:      currentLevel,
-      isCurrent,
-      children:   shouldGoDeeper
-        ? buildSubDashas(buildSequence(sign), s, e, durationMs, currentLevel + 1, maxDepth, grahas, now)
-        : [],
-    })
-    cursor += durationMs
-  }
-  return nodes
-}
-
-// ── Rashi names for display ───────────────────────────────────
-function buildSequence(startSign: number): number[] {
+/**
+ * K.N. Rao Method: Determine sign sequence based on Lagna classification
+ * Savya (Direct): Aries (1), Leo (5), Virgo (6), Libra (7), Aquarius (11), Pisces (12)
+ * Apasavya (Indirect): Taurus (2), Gemini (3), Cancer (4), Scorpio (8), Sagittarius (9), Capricorn (10)
+ */
+function getMahaSequence(lagna: number): number[] {
+  const isSavya = [1, 5, 6, 7, 11, 12].includes(lagna)
   const seq: number[] = []
-  const isOdd = (s: number) => s % 2 === 1
-  if (isOdd(startSign)) {
-    for (let s = startSign; s <= 12; s++) seq.push(s)
-    for (let s = 1; s < startSign; s++) seq.push(s)
+  if (isSavya) {
+    for (let i = 0; i < 12; i++) seq.push(((lagna + i - 1) % 12) + 1)
   } else {
-    for (let s = startSign; s >= 1; s--) seq.push(s)
-    for (let s = 12; s > startSign; s--) seq.push(s)
+    for (let i = 0; i < 12; i++) seq.push(((lagna - i - 1 + 12) % 12) + 1)
   }
   return seq
 }
 
-// Rashi names for display
+/**
+ * Counting Direction for Duration (K.N. Rao Savya/Apasavya Signs)
+ * Forward (Savya): 1, 2, 3, 7, 8, 9 (Ar, Ta, Ge, Li, Sc, Sg)
+ * Backward (Apasavya): 4, 5, 6, 10, 11, 12 (Ca, Le, Vi, Cp, Aq, Pi)
+ */
+function isForward(sign: number): boolean {
+  return [1, 2, 3, 7, 8, 9].includes(sign)
+}
+
+function calculateDistance(from: number, to: number, forward: boolean): number {
+  if (forward) {
+    return ((to - from + 12) % 12) + 1
+  } else {
+    return ((from - to + 12) % 12) + 1
+  }
+}
+
+/**
+ * Chara Dasha Duration Calculation
+ * Rule: Count to lord, subtract 1. If 0, then 12.
+ */
+function getDuration(sign: number, grahas: GrahaData[]): number {
+  const forward = isForward(sign)
+  
+  // Dual Lord Logic (Sc/Aq)
+  let lordId = SIGN_LORD[sign]
+  if (sign === 8 || sign === 11) {
+    const mainLordId = SIGN_LORD[sign]
+    const extraLordId = sign === 8 ? 'Ke' : 'Ra'
+    const mainLord = grahas.find(g => g.id === mainLordId)
+    const extraLord = grahas.find(g => g.id === extraLordId)
+    
+    if (mainLord && extraLord) {
+      const rM = getRashi(mainLord)
+      const rE = getRashi(extraLord)
+      
+      // If one in sign and other not, use other
+      if (rM === sign && rE !== sign) lordId = extraLordId
+      else if (rE === sign && rM !== sign) lordId = mainLordId
+      // If both in sign, 12 years (handled later)
+      else if (rM === sign && rE === sign) lordId = mainLordId 
+      else {
+        // Strength comparison (Count planets in lord's sign)
+        const nMain = grahas.filter(g => getRashi(g) === rM && g.id !== mainLordId).length
+        const nExtra = grahas.filter(g => getRashi(g) === rE && g.id !== extraLordId).length
+        if (nMain > nExtra) lordId = mainLordId
+        else if (nExtra > nMain) lordId = extraLordId
+        else {
+          const degM = (mainLord.totalDegree % 30)
+          const degE = (extraLord.totalDegree % 30)
+          lordId = degM >= degE ? mainLordId : extraLordId
+        }
+      }
+    }
+  }
+
+  const lord = grahas.find(g => g.id === lordId)
+  if (!lord) return 7
+
+  const lordRashi = getRashi(lord)
+  
+  // Own sign check
+  if (lordRashi === sign) {
+    // K.N. Rao rule: If dual lords, and one in sign, we check the other. 
+    // If both in sign, or single lord in sign, it's 12.
+    return 12
+  }
+
+  const dist = calculateDistance(sign, lordRashi, forward)
+  let years = dist - 1
+  if (years === 0) years = 12 // Lord in 12th from sign in direction? dist would be 12.
+  
+  return years
+}
+
+/**
+ * Antardasha Sequence: Same direction as Maha but start sign is moved to the end.
+ */
+function buildAntarSequence(mahaSign: number): number[] {
+  const isSavya = [1, 5, 6, 7, 11, 12].includes(mahaSign)
+  const seq: number[] = []
+  if (isSavya) {
+    // 1 -> 2,3,4...12,1
+    for (let i = 1; i < 12; i++) seq.push(((mahaSign + i - 1) % 12) + 1)
+    seq.push(mahaSign)
+  } else {
+    // 2 -> 1,12,11...3,2
+    for (let i = 1; i < 12; i++) seq.push(((mahaSign - i - 1 + 12) % 12) + 1)
+    seq.push(mahaSign)
+  }
+  return seq
+}
+
+function buildSubDashas(
+  mahaSign: number,
+  parentStart: Date,
+  parentMs: number,
+  level: number,
+  maxDepth: number,
+  grahas: GrahaData[],
+  now: number,
+): DashaNode[] {
+  const sequence = buildAntarSequence(mahaSign)
+  const durationMsPerSign = parentMs / 12
+  const nodes: DashaNode[] = []
+  let cursor = parentStart.getTime()
+
+  for (const sign of sequence) {
+    const s = new Date(cursor)
+    const e = new Date(cursor + durationMsPerSign)
+    const isCurrent = now >= s.getTime() && now < e.getTime()
+
+    nodes.push({
+      lord: SIGN_LORD[sign],
+      label: `${RASHI_NAMES[sign]}`,
+      start: s,
+      end: e,
+      durationMs: durationMsPerSign,
+      level,
+      isCurrent,
+      children: (level < maxDepth && isCurrent) 
+        ? buildSubDashas(sign, s, durationMsPerSign, level + 1, maxDepth, grahas, now)
+        : []
+    })
+    cursor += durationMsPerSign
+  }
+  return nodes
+}
+
 const RASHI_NAMES: Record<number, string> = {
   1:'Aries', 2:'Taurus', 3:'Gemini', 4:'Cancer', 5:'Leo', 6:'Virgo',
   7:'Libra', 8:'Scorpio', 9:'Sagittarius', 10:'Capricorn', 11:'Aquarius', 12:'Pisces',
 }
 
-// ── Main Chara Dasha calculator ───────────────────────────────
-
 export function calcCharaDasha(
-  grahas:    GrahaData[],
-  lagnas:    LagnaData,
+  grahas: GrahaData[],
+  lagnas: LagnaData,
   birthDate: Date,
-  depth:     number = 2,
+  depth: number = 2,
 ): DashaNode[] {
-  const ascRashi = lagnas.ascRashi ?? 1
-
-  // Determine starting sign (Lagna sign)
-  // Determine sequence direction:
-  //  - Odd signs (1,3,5,7,9,11): forward (Ar,Ge,Le,Li,Sg,Aq)
-  //  - Even signs (2,4,6,8,10,12): backward (Ta,Ca,Vi,Sc,Cp,Pi)
-  const isOdd = (s: number) => s % 2 === 1
-
-  const sequence = buildSequence(ascRashi)
-
-  // Calculate durations
-  const durations = sequence.map(s => charaDuration(s, grahas))
-
-  // Birth balance: calculate remaining portion of first sign dasha
-  // Based on degree of Lagna within its sign (0-30°)
-  // More traversed = less remaining
-  const lagnaDegreInSign = lagnas.ascDegreeInRashi ?? 0  // 0-30
-  const birthBalance = Math.max(0.1, 1 - (lagnaDegreInSign / 30))
-  const firstDurYears = durations[0] * birthBalance
-
+  const ascRashi = lagnas.ascRashi || 1
+  const sequence = getMahaSequence(ascRashi)
+  const now = Date.now()
   const nodes: DashaNode[] = []
   let cursor = new Date(birthDate)
-  const now  = Date.now()
 
-  for (let i = 0; i < sequence.length; i++) {
-    const sign  = sequence[i]
-    const years = i === 0 ? firstDurYears : durations[i]
-    const ms    = years * 365.25 * 24 * 60 * 60 * 1000
+  for (const sign of sequence) {
+    const years = getDuration(sign, grahas)
+    const ms = years * 365.2425 * 24 * 60 * 60 * 1000
     const start = new Date(cursor)
-    const end   = new Date(cursor.getTime() + ms)
-
-    // Build antardasha sequence for this maha.
-    // Per Jaimini: antardasha starts from the sign IMMEDIATELY FOLLOWING
-    // the maha sign in that sign's own sequence direction, wrapping around.
-    const nextSign = sequence[(i + 1) % sequence.length]
-    const antarSeq = buildSequence(nextSign)
+    const end = new Date(cursor.getTime() + ms)
+    const isCurrent = now >= start.getTime() && now < end.getTime()
 
     nodes.push({
-      lord:       SIGN_LORD[sign] ?? 'Su',
-      label:      `${RASHI_NAMES[sign]} (${years} yr)`,
+      lord: SIGN_LORD[sign],
+      label: `${RASHI_NAMES[sign]} (${years}y)`,
       start,
       end,
       durationMs: ms,
-      level:      1,
-      isCurrent:  now >= start.getTime() && now < end.getTime(),
-      children:   depth > 1
-        ? buildSubDashas(antarSeq, start, end, ms, 2, depth, grahas, now)
-        : [],
+      level: 1,
+      isCurrent,
+      children: depth > 1 ? buildSubDashas(sign, start, ms, 2, depth, grahas, now) : []
     })
-
     cursor = end
   }
 

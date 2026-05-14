@@ -21,7 +21,7 @@ const SettingsSchema = z.object({
   ayanamsha:    z.enum(['lahiri','true_chitra','true_revati','true_pushya','raman','usha_shashi','yukteshwar']).default('lahiri'),
   houseSystem:  z.enum(['whole_sign','placidus','equal','bhava_chalita']).default('whole_sign'),
   nodeMode:     z.enum(['mean','true']).default('mean'),
-  karakaScheme: z.union([z.literal(7), z.literal(8)]).default(8),
+  karakaScheme: z.union([z.literal(7), z.literal(8)]).default(7),
   gulikaMode:   z.enum(['begin','middle','end','phaladipika']).default('phaladipika'),
   chartStyle:   z.enum(['south','north','circle','bhava','bhava_chalita','sarvatobhadra']).default('south'),
   showDegrees:  z.boolean().default(true),
@@ -38,6 +38,7 @@ const ChartInputSchema = z.object({
   latitude:  z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   timezone:  z.string().min(1, 'Timezone is required'),  // IANA e.g. 'Asia/Kolkata'
+  gender:    z.enum(['male', 'female', 'other']).default('male'),
   settings:  SettingsSchema.default({}),
   prashnaNumber: z.number().min(1).max(249).optional(),
 })
@@ -172,6 +173,7 @@ export async function POST(req: NextRequest) {
           birthTime:  input.birthTime,
           birthPlace: input.birthPlace,
           timezone:   input.timezone,
+          gender:     input.gender,
           calculatedAt: new Date(),
         }
       }
@@ -193,6 +195,7 @@ export async function POST(req: NextRequest) {
           latitude:   input.latitude,
           longitude:  input.longitude,
           timezone:   input.timezone,
+          gender:     input.gender,
           settings:   input.settings as ChartSettings,
           prashnaNumber: input.prashnaNumber,
         },
