@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType } from '@/types/astrology'
+import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData } from '@/types/astrology'
 import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS } from '@/lib/engine/karakas'
 import { DashaTree } from '@/components/dasha/DashaTree'
 import { motion, AnimatePresence } from 'framer-motion'
