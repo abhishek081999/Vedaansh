@@ -723,7 +723,8 @@ function HomeContent() {
       setIsFormOpen(true)
       setChart(null)
     }
-  }, [searchParams, setChart, setIsFormOpen, chart]) // Removed isFormOpen from deps to avoid auto-reopen loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, setChart, setIsFormOpen, chart]) 
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return

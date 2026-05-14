@@ -211,7 +211,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     }
 
     return list
-  }, [currentVargaGrahas, selectedVarga, lagnas, upagrahas, vargaLagnas, isSa, limited])
+  }, [currentVargaGrahas, selectedVarga, lagnas, upagrahas, vargaLagnas, isSa, limited, arudhas, vargas])
 
   const vargaOptions = vargas ? Object.keys(vargas)
     .filter(opt => SHODASHA_VARGAS.includes(opt as any) || opt === 'D1' || opt === 'Chalit')
