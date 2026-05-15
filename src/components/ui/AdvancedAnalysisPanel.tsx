@@ -19,8 +19,7 @@ const COLORS = {
     near: { bg: 'rgba(245,158,66,0.12)', border: 'rgba(245,158,66,0.35)', text: 'var(--amber)' },
   },
   pushkara: {
-    bhaga: { bg: 'rgba(78,205,196,0.12)', border: 'rgba(78,205,196,0.4)', text: 'var(--teal)' },
-    navamsha: { bg: 'rgba(129,140,248,0.12)', border: 'rgba(129,140,248,0.4)', text: '#818cf8' },
+    navamsha: { bg: 'rgba(78,205,196,0.12)', border: 'rgba(78,205,196,0.4)', text: 'var(--teal)' },
   },
   mrityu: {
     exact: { bg: 'rgba(224,123,142,0.2)', border: 'rgba(224,123,142,0.5)', text: 'var(--rose)' },
@@ -74,10 +73,8 @@ function GandantaBadge({ gandanta }: { gandanta: GrahaData['gandanta'] }) {
 function PushkaraBadge({ pushkara }: { pushkara: GrahaData['pushkara'] }) {
   if (!pushkara.isPushkara) return null
   
-  const colors = pushkara.type === 'pushkara_bhaga' ? COLORS.pushkara.bhaga : COLORS.pushkara.navamsha
-  const label = pushkara.type === 'pushkara_bhaga' 
-    ? `Puṣkara Bhāga (Zone ${pushkara.zone})` 
-    : 'Puṣkara Navāṃśa'
+  const colors = COLORS.pushkara.navamsha
+  const label = 'Puṣkara Navāṃśa'
   
   return (
     <div style={{
@@ -277,7 +274,7 @@ export function ConditionBadges({ graha }: { graha: GrahaData }) {
   }
   
   if (graha.pushkara?.isPushkara) {
-    const color = graha.pushkara.type === 'pushkara_bhaga' ? COLORS.pushkara.bhaga : COLORS.pushkara.navamsha
+    const color = COLORS.pushkara.navamsha
     badges.push(
       <span key="pushkara" style={{
         fontSize: '0.55rem',

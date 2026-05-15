@@ -434,7 +434,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         {[
           { code: 'C', label: 'Combust',     bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
           { code: 'G', label: 'Gandanta',    bg: 'rgba(244,63,94,0.1)',   color: '#fb7185',  border: 'rgba(244,63,94,0.3)'   },
-          { code: 'P', label: 'Pushkara',    bg: 'rgba(78,205,196,0.1)',  color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
+          { code: 'P', label: 'Puṣkara Navāṃśa', bg: 'rgba(78,205,196,0.1)', color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
           { code: 'Y', label: 'Yuddha',      bg: 'rgba(129,140,248,0.1)', color: '#818cf8',  border: 'rgba(129,140,248,0.3)' },
         ].map(({ code, label, bg, color, border }) => (
           <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>

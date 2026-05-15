@@ -267,8 +267,8 @@ function specialConditionInsights(grahas: GrahaData[], houseByGrahaId: Map<Graha
     }
     if (g.pushkara?.isPushkara) {
       insights.push(makeInsight({
-        title: `${g.name} in Pushkara zone`,
-        message: `${g.name} falls in ${g.pushkara.type === 'pushkara_bhaga' ? 'Pushkara Bhaga' : 'Pushkara Navamsha'}, improving grace and recovery potential. It supports ${house ? `your ${houseLabel(house)} (House ${house})` : 'this life area'}.`,
+        title: `${g.name} in Pushkara Navamsha`,
+        message: `${g.name} falls in Pushkara Navamsha, improving grace and recovery potential. It supports ${house ? `your ${houseLabel(house)} (House ${house})` : 'this life area'}.`,
         tone: 'supportive',
         category: 'strength',
         priority: 84,
