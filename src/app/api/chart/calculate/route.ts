@@ -118,10 +118,21 @@ function localToUTC(date: string, time: string, tz: string): { utcDate: string; 
   }
 }
 
-// ── Route handler ─────────────────────────────────────────────
+import { applyRouteSecurity } from '@/lib/security/route'
 
 export async function POST(req: NextRequest) {
   try {
+    // 0. Security & Rate Limiting
+    const securityBlocked = await applyRouteSecurity(req, {
+      rateLimit: {
+        bucket: 'chart_calculate',
+        limit: 20, // 20 charts per minute
+        windowSeconds: 60,
+        message: 'Calculation rate limit exceeded. Please wait a moment.'
+      }
+    })
+    if (securityBlocked) return securityBlocked
+
     // Parse body
     const body = await req.json().catch(() => null)
     if (!body) {
@@ -153,13 +164,13 @@ export async function POST(req: NextRequest) {
       input.prashnaNumber || 0,
     )
 
-    // Parallelize session check and cache lookup to reduce total latency
+    // Parallelize session check and cache lookup
     const [session, cached] = await Promise.all([
       auth(),
-      null // redis.get(cacheKey) - Bypassing cache to reflect Shadbala logic changes
+      redis.get(cacheKey)
     ])
 
-    const cachedChart = null as any // parseCachedChart(cached)
+    const cachedChart = parseCachedChart(cached)
 
     if (cachedChart && hasVimsopakaData(cachedChart) && hasAdvancedFeatures(cachedChart)) {
       // Overwrite name, place, etc. from input — these don't affect calculation

@@ -28,6 +28,10 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
   const [search, setSearch] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<'charts' | 'clients'>('charts')
+  const [showFilters, setShowFilters] = useState(false)
+  const [filterGender, setFilterGender] = useState('all')
+  const [filterStartDate, setFilterStartDate] = useState('')
+  const [filterEndDate, setFilterEndDate] = useState('')
 
   const userPlan = (session?.user as any)?.plan ?? 'free'
 
@@ -60,14 +64,30 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
   }, [userPlan])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (search.length >= 2 || filterGender !== 'all' || filterStartDate || filterEndDate) {
+      const delay = setTimeout(() => {
+        const params = new URLSearchParams({
+          q: search,
+          gender: filterGender,
+          startDate: filterStartDate,
+          endDate: filterEndDate
+        })
+        setLoading(true)
+        fetch(`/api/chart/search?${params.toString()}`)
+          .then(r => r.json())
+          .then(json => {
+            if (json.success) setCharts(json.charts)
+          })
+          .finally(() => setLoading(false))
+      }, 500)
+      return () => clearTimeout(delay)
+    } else {
+      fetchData()
+    }
+  }, [search, filterGender, filterStartDate, filterEndDate, fetchData])
 
   const currentList = tab === 'charts' ? charts : clients
-  const filtered = currentList.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.birthPlace.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = currentList
 
   return (
     <div style={{
@@ -107,18 +127,71 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
           </div>
         )}
 
-        <div style={{ padding: '1rem', background: 'var(--surface-1)' }}>
-          <div style={{ position: 'relative' }}>
-            <input 
-              className="input"
-              placeholder={`Search ${tab === 'charts' ? 'saved charts' : 'clients'}...`}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{ width: '100%', paddingLeft: '2.5rem', borderRadius: 'var(--r-md)' }}
-              autoFocus
-            />
-            <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>🔍</span>
+        <div style={{ padding: '1rem', background: 'var(--surface-1)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ position: 'relative', display: 'flex', gap: '0.5rem' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input 
+                className="input"
+                placeholder={`Search ${tab === 'charts' ? 'name or place' : 'clients'}...`}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{ width: '100%', paddingLeft: '2.5rem', borderRadius: 'var(--r-md)' }}
+                autoFocus
+              />
+              <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>🔍</span>
+            </div>
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                padding: '0 0.75rem', borderRadius: 'var(--r-md)', background: showFilters ? 'var(--gold-faint)' : 'var(--surface-3)',
+                border: `1px solid ${showFilters ? 'var(--gold-soft)' : 'var(--border-soft)'}`,
+                color: showFilters ? 'var(--gold)' : 'var(--text-muted)', cursor: 'pointer'
+              }}
+            >
+              FILTERS
+            </button>
           </div>
+
+          {showFilters && (
+            <div className="fade-up" style={{ 
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', padding: '0.75rem',
+              background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <label style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Gender</label>
+                <select 
+                  value={filterGender} 
+                  onChange={e => setFilterGender(e.target.value)}
+                  className="input"
+                  style={{ fontSize: '0.75rem', padding: '0.35rem' }}
+                >
+                  <option value="all">All Genders</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <label style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Date Range</label>
+                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  <input 
+                    type="date" 
+                    value={filterStartDate}
+                    onChange={e => setFilterStartDate(e.target.value)}
+                    className="input"
+                    style={{ flex: 1, fontSize: '0.7rem', padding: '0.25rem' }}
+                  />
+                  <input 
+                    type="date" 
+                    value={filterEndDate}
+                    onChange={e => setFilterEndDate(e.target.value)}
+                    className="input"
+                    style={{ flex: 1, fontSize: '0.7rem', padding: '0.25rem' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 1rem 1.25rem' }}>

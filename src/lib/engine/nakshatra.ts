@@ -44,7 +44,10 @@ export function getNakshatra(lonSidereal: number): NakshatraResult {
   const degreeInNak = normalized % NAKSHATRA_SPAN
   const pada       = Math.min(4, Math.floor(degreeInNak / PADA_SPAN) + 1)
 
-  const name = NAKSHATRA_NAMES[index] || 'Ashwini'
+  // Defensive lookup: ensure we always have a string before calling substring
+  const lookupName = NAKSHATRA_NAMES[index]
+  const name = (typeof lookupName === 'string' && lookupName.length > 0) ? lookupName : 'Ashwini'
+  
   return {
     index,
     name,

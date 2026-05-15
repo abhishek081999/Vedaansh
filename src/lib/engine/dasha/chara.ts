@@ -132,6 +132,16 @@ function buildAntarSequence(mahaSign: number): number[] {
   return seq
 }
 
+const RASHI_SHORT: Record<number, string> = {
+  1:'Ar', 2:'Ta', 3:'Ge', 4:'Cn', 5:'Le', 6:'Vi',
+  7:'Li', 8:'Sc', 9:'Sg', 10:'Cp', 11:'Aq', 12:'Pi',
+}
+
+const RASHI_NAMES: Record<number, string> = {
+  1:'Aries', 2:'Taurus', 3:'Gemini', 4:'Cancer', 5:'Leo', 6:'Virgo',
+  7:'Libra', 8:'Scorpio', 9:'Sagittarius', 10:'Capricorn', 11:'Aquarius', 12:'Pisces',
+}
+
 function buildSubDashas(
   mahaSign: number,
   parentStart: Date,
@@ -152,7 +162,7 @@ function buildSubDashas(
     const isCurrent = now >= s.getTime() && now < e.getTime()
 
     nodes.push({
-      lord: SIGN_LORD[sign],
+      lord: RASHI_SHORT[sign] || 'Ar',
       label: `${RASHI_NAMES[sign]}`,
       start: s,
       end: e,
@@ -166,11 +176,6 @@ function buildSubDashas(
     cursor += durationMsPerSign
   }
   return nodes
-}
-
-const RASHI_NAMES: Record<number, string> = {
-  1:'Aries', 2:'Taurus', 3:'Gemini', 4:'Cancer', 5:'Leo', 6:'Virgo',
-  7:'Libra', 8:'Scorpio', 9:'Sagittarius', 10:'Capricorn', 11:'Aquarius', 12:'Pisces',
 }
 
 export function calcCharaDasha(
@@ -193,7 +198,7 @@ export function calcCharaDasha(
     const isCurrent = now >= start.getTime() && now < end.getTime()
 
     nodes.push({
-      lord: SIGN_LORD[sign],
+      lord: RASHI_SHORT[sign] || 'Ar',
       label: `${RASHI_NAMES[sign]} (${years}y)`,
       start,
       end,
