@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData } from '@/types/astrology'
+import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData } from '@/types/astrology'
 import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS } from '@/lib/engine/karakas'
 import { DashaTree } from '@/components/dasha/DashaTree'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -125,7 +125,7 @@ export function JaiminiAspectChart({
   vizMode?: 'drishti' | 'argala' | 'both';
   arScale?: number;
   plScale?: number;
-  karakas?: Record<string, string>;
+  karakas?: Partial<KarakaData>;
 }) {
   const cell = 100
   const size = 400
@@ -298,7 +298,7 @@ export function JaiminiAspectChartNorth({
   vizMode?: 'drishti' | 'argala' | 'both';
   arScale?: number;
   plScale?: number;
-  karakas?: Record<string, string>;
+  karakas?: Partial<KarakaData>;
 }) {
   const S = 400
   const Q = S / 4, M = S / 2
