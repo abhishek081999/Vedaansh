@@ -5,88 +5,59 @@
 // ─────────────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest'
-import { checkPushkara, PUSHKARA_DEGREES, PUSHKARA_NAVAMSHA } from '@/lib/engine/pushkara'
+import { checkPushkara, PUSHKARA_NAVAMSHA } from '@/lib/engine/pushkara'
 import { checkMrityuBhaga, MRITYU_BHAGA_DEGREES, MRITYU_BHAGA_ALT, checkMrityuBhagaBoth } from '@/lib/engine/mrityuBhaga'
 import { calculateYogiPoint, isConjunctYogiPoint, getPlanetsAtYogiPoints, calculateYogiWealthScore } from '@/lib/engine/yogiPoint'
 
 // ── Puṣkara Aṃśa Tests ───────────────────────────────────────
 
 describe('Puṣkara Aṃśa Detection', () => {
-  describe('Pushkara Bhaga (Degree Zones)', () => {
-    it('Should detect Pushkara in Aries zone 1 (11°20\'-13°20\')', () => {
-      // 12° Aries = 12° total longitude
-      const result = checkPushkara(12)
-      expect(result.isPushkara).toBe(true)
-      expect(result.type).toBe('pushkara_bhaga')
-      expect(result.zone).toBe(1)
-      expect(result.rashi).toBe(1)
+  describe('Pushkara Navamsha', () => {
+    it('Should detect Pushkara Navamsha for Aries (7th and 9th navamsha)', () => {
+      // Aries: 7th (20°00′-23°20′) and 9th (26°40′-30°00′)
+      
+      const res7 = checkPushkara(21) // 21° Aries = 7th navamsha
+      expect(res7.isPushkara).toBe(true)
+      expect(res7.navamsha).toBe(7)
+      expect(res7.isPushkaraNavamsha).toBe(true)
+
+      const res9 = checkPushkara(28) // 28° Aries = 9th navamsha
+      expect(res9.isPushkara).toBe(true)
+      expect(res9.navamsha).toBe(9)
     })
 
-    it('Should detect Pushkara in Aries zone 2 (23°20\'-25°20\')', () => {
-      // 24° Aries = 24° total longitude
-      const result = checkPushkara(24)
-      expect(result.isPushkara).toBe(true)
-      expect(result.type).toBe('pushkara_bhaga')
-      expect(result.zone).toBe(2)
-      expect(result.rashi).toBe(1)
+    it('Should detect Pushkara Navamsha for Leo (7th and 9th navamsha)', () => {
+      // Leo starts at 120°. 7th navamsha = 120 + 20 = 140°
+      const result = checkPushkara(141) // 21° Leo
+      expect(result.rashi).toBe(5)
+      expect(result.navamsha).toBe(7)
+      expect(result.isPushkaraNavamsha).toBe(true)
     })
 
-    it('Should detect Pushkara in Taurus zone 1 (7°20\'-9°20\')', () => {
-      // 37.5° = 7.5° Taurus (30 + 7.5)
-      const result = checkPushkara(37.5)
-      expect(result.isPushkara).toBe(true)
-      expect(result.type).toBe('pushkara_bhaga')
-      expect(result.rashi).toBe(2)
+    it('Should detect Pushkara Navamsha for Cancer (1st and 3rd navamsha)', () => {
+      // Cancer starts at 90°. 1st navamsha = 90-93.33. 3rd = 96.66-100.
+      const res1 = checkPushkara(91) // 1° Cancer
+      expect(res1.navamsha).toBe(1)
+      expect(res1.isPushkaraNavamsha).toBe(true)
+
+      const res3 = checkPushkara(98) // 8° Cancer
+      expect(res3.navamsha).toBe(3)
+      expect(res3.isPushkaraNavamsha).toBe(true)
     })
 
     it('Should NOT detect Pushkara outside zones', () => {
-      // 5° Aries = not in any Pushkara zone
+      // 5° Aries = 2nd navamsha, not Pushkara for Aries
       const result = checkPushkara(5)
       expect(result.isPushkara).toBe(false)
       expect(result.type).toBe(null)
     })
-
-    it('Should NOT detect Pushkara at 15° Aries', () => {
-      // 15° Aries = between the two zones
-      const result = checkPushkara(15)
-      expect(result.isPushkara).toBe(false)
-    })
   })
 
-  describe('Pushkara Navamsha', () => {
-    it('Should detect Pushkara Navamsha for Aries (4th navamsha)', () => {
-      // 4th navamsha = 10°-13°20' in Aries
-      // 11° Aries is in 4th navamsha
-      const result = checkPushkara(11)
-      expect(result.navamsha).toBe(4)
-      // Note: 11° is also in Pushkara Bhaga zone 1
-      expect(result.isPushkaraNavamsha).toBe(true)
-    })
-
-    it('Should detect Pushkara Navamsha for Leo (1st navamsha)', () => {
-      // Leo starts at 120°, 1st navamsha = 0°-3°20'
-      // 121° = 1° Leo, which is in 1st navamsha
-      const result = checkPushkara(121)
-      expect(result.rashi).toBe(5)
-      expect(result.navamsha).toBe(1)
-      // 1st navamsha is Pushkara for Leo
-      expect(result.isPushkaraNavamsha).toBe(true)
-    })
-  })
-
-  describe('All Signs Have Pushkara Zones', () => {
-    it('Should have Pushkara zones defined for all 12 signs', () => {
-      for (let rashi = 1; rashi <= 12; rashi++) {
-        expect(PUSHKARA_DEGREES[rashi as 1|2|3|4|5|6|7|8|9|10|11|12]).toBeDefined()
-        expect(PUSHKARA_DEGREES[rashi as 1|2|3|4|5|6|7|8|9|10|11|12].zone1).toHaveLength(2)
-        expect(PUSHKARA_DEGREES[rashi as 1|2|3|4|5|6|7|8|9|10|11|12].zone2).toHaveLength(2)
-      }
-    })
-
+  describe('All Signs Have Pushkara Navamshas', () => {
     it('Should have Pushkara navamshas defined for all 12 signs', () => {
       for (let rashi = 1; rashi <= 12; rashi++) {
         expect(PUSHKARA_NAVAMSHA[rashi as 1|2|3|4|5|6|7|8|9|10|11|12]).toBeDefined()
-        expect(PUSHKARA_NAVAMSHA[rashi as 1|2|3|4|5|6|7|8|9|10|11|12].length).toBeGreaterThan(0)
+        expect(PUSHKARA_NAVAMSHA[rashi as 1|2|3|4|5|6|7|8|9|10|11|12].length).toBe(2)
       }
     })
   })
