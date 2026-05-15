@@ -161,19 +161,17 @@ export interface YuddhaResult {
   orb: number  // Max orb for war (1°)
 }
 
-// ── Puṣkara Aṃśa (Auspicious Degrees) ──────────────────────────
+// ── Puṣkara Navāṃśa (Auspicious Navamsha) ───────────────────────
 
-export type PushkaraType = 'pushkara_bhaga' | 'pushkara_navamsha'
+export type PushkaraType = 'pushkara_navamsha'
 
 export interface PushkaraResult {
   isPushkara: boolean
   type: PushkaraType | null
-  zone: 1 | 2 | null
   rashi: Rashi
   degreeInSign: number
   navamsha: number
   isPushkaraNavamsha: boolean
-  distanceFromCenter: number | null
   remedy: string | null
 }
 
@@ -285,7 +283,7 @@ export interface GrahaData {
   charaKaraka:  string | null
   gandanta:     GandantaResult    // Karmic knot detection
   yuddha:       YuddhaResult      // Planetary war status
-  pushkara:     PushkaraResult    // Auspicious degrees
+  pushkara:     PushkaraResult    // Auspicious Navamsha
   declination?: number
   mrityuBhaga:  MrityuBhagaResult // Death-inflicting degrees
   kp?: {
@@ -418,6 +416,7 @@ export interface KarakaData {
   GK:  GrahaId   // Gnatikaraka
   DK:  GrahaId   // Darakaraka
   PiK: GrahaId | null  // Putrikaraka (8-scheme only)
+  [key: string]: GrahaId | KarakaScheme | null | undefined;
 }
 
 // ── Full Chart Output ────────────────────────────────────────

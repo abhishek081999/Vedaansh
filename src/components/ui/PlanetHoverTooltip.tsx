@@ -188,7 +188,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
           {planet.pushkara?.isPushkara && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <span style={{ fontSize: '0.6rem', background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(78,205,196,0.3)', fontWeight: 700 }}>✦ PUSHKARA</span>
-              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.pushkara.type?.replace('_', ' ')}</span>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>Navāṃśa</span>
             </div>
           )}
 

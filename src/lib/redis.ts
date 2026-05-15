@@ -259,8 +259,8 @@ export function chartCacheKey(
   gulikaMode: string,
   prashnaNumber: number = 0,
 ): string {
-  // Added v12: prefix for refined Jaimini colors and Arudha bluish tone
-  return `v12:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
+  // Added v13: corrected Pushkara Navamsha indices and cleaned up Bhaga artifacts
+  return `v13:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 
 export function panchangCacheKey(

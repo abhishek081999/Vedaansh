@@ -77,19 +77,30 @@ function JaiminiSnapshot({ chart, isTinyMobile }: { chart: ChartOutput, isTinyMo
 
       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: '0.3rem' }}>LAGNA <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{RASHI_SHORT[lagnas.ascRashi]}</span></div>
-        <div style={{ display: 'flex', gap: '0.3rem' }}>AK <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{GRAHA_NAMES[akId as GrahaId]}</span></div>
+        <div style={{ display: 'flex', gap: '0.3rem' }}>
+          AK <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>
+            {GRAHA_NAMES[akId as GrahaId]}
+            {chart.grahas.find(g => g.id === akId)?.isRetro && <span style={{ color: 'var(--dig-retro)', marginLeft: '2px', fontSize: '0.6rem' }}>(R)</span>}
+          </span>
+        </div>
         <div style={{ display: 'flex', gap: '0.3rem' }}>SWANSHA <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{karakansha ? RASHI_SHORT[karakansha] : '-'}</span></div>
       </div>
 
       <div style={{ width: '1px', height: '1.2rem', background: 'var(--border-soft)', flexShrink: 0 }} />
 
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexShrink: 0 }}>
-        {karakaPairs.slice(1).map(k => (
-          <div key={k.id} style={{ display: 'flex', gap: '0.2rem', fontSize: '0.65rem' }}>
-            <span>{k.id}</span>
-            <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{k.val}</span>
-          </div>
-        ))}
+        {karakaPairs.slice(1).map(k => {
+          const isRetro = chart.grahas.find(g => g.id === k.val)?.isRetro;
+          return (
+            <div key={k.id} style={{ display: 'flex', gap: '0.2rem', fontSize: '0.65rem' }}>
+              <span>{k.id}</span>
+              <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
+                {k.val}
+                {isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.55rem' }}>ᴿ</span>}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       <div style={{ width: '1px', height: '1.2rem', background: 'var(--border-soft)', flexShrink: 0 }} />
@@ -241,8 +252,11 @@ export function JaiminiAspectChart({
                     }}
                   >
                     {g.id}
+                    {g.isRetro && (
+                      <tspan dx="1" dy="-6" fontSize={10 * plScaleVal} fill="var(--dig-retro)" fontWeight="900">ᴿ</tspan>
+                    )}
                     {revKaraka[g.id] && (
-                      <tspan dx="2" dy="-5" fontSize={7 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
+                      <tspan dx={g.isRetro ? "1" : "2"} dy={g.isRetro ? "0" : "-5"} fontSize={7 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
                         {revKaraka[g.id]}
                       </tspan>
                     )}
@@ -471,8 +485,11 @@ export function JaiminiAspectChartNorth({
                       }}
                     >
                       {g.id}
+                      {g.isRetro && (
+                        <tspan dx="1" dy="-6" fontSize={10 * plScaleVal} fill="var(--dig-retro)" fontWeight="900">ᴿ</tspan>
+                      )}
                       {revKaraka[g.id] && (
-                        <tspan dx="2" dy="-5" fontSize={7 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
+                        <tspan dx={g.isRetro ? "1" : "2"} dy={g.isRetro ? "0" : "-5"} fontSize={7 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
                           {revKaraka[g.id]}
                         </tspan>
                       )}
@@ -626,7 +643,6 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   const akGid = karakas.AK;
   const karakamshaRashi = getNavamshaRashi(akGid);
-  const karakaEntries = Object.entries(karakas).filter(([k]) => k !== 'scheme') as [keyof typeof KARAKA_NAMES_8, GrahaId | null][];
 
   const detectJaiminiYogas = () => {
     const yogas: { name: string; desc: string; strength: string }[] = [];
@@ -1084,7 +1100,10 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>AK:</span>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--text-primary)' }}>{akGid}</span>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--text-primary)' }}>{akGid}</span>
+                        {chart.grahas.find(p => p.id === akGid)?.isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.6rem', fontWeight: 900 }}>ᴿ</span>}
+                      </div>
                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>({RASHI_SHORT[karakamshaRashi]})</span>
                     </div>
                     <div style={{ width: '1px', background: 'var(--border-soft)', height: '1rem' }} />
@@ -1129,7 +1148,10 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                             <tr key={g.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                               <td style={{ padding: '0.4rem 0.5rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                  <span style={{ fontWeight: 900, color: g.isRetro ? 'var(--retro)' : 'inherit' }}>{g.id}</span>
+                                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '1px' }}>
+                                    <span style={{ fontWeight: 900, color: g.isRetro ? 'var(--dig-retro)' : 'inherit' }}>{g.id}</span>
+                                    {g.isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.6rem', fontWeight: 900 }}>ᴿ</span>}
+                                  </div>
                                   {ck && <span style={{ fontSize: '0.55rem', fontWeight: 900, background: 'var(--surface-3)', padding: '1px 3px', borderRadius: '3px', opacity: 0.7 }}>{ck}</span>}
                                   {g.isCombust && <span style={{ fontSize: '0.55rem', fontWeight: 900, border: '1px solid var(--combust)', color: 'var(--combust)', padding: '0px 2px', borderRadius: '3px' }}>C</span>}
                                   {g.pushkara?.isPushkara && <span style={{ fontSize: '0.55rem', fontWeight: 900, border: '1px solid var(--teal)', color: 'var(--teal)', padding: '0px 2px', borderRadius: '3px' }}>P</span>}
@@ -1251,7 +1273,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                 <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap' }}>
                                   {s.occupants.map(o => (
                                     <span key={o.id} style={{ fontSize: '0.65rem', color: o.isBlocked ? 'var(--text-muted)' : 'var(--text-primary)' }}>
-                                      {o.id}<sub style={{ fontSize: '0.5rem' }}>Q{o.quarter}</sub>
+                                      {o.id}{chart.grahas.find(p => p.id === o.id)?.isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.5rem' }}>ᴿ</span>}<sub style={{ fontSize: '0.5rem' }}>Q{o.quarter}</sub>
                                     </span>
                                   ))}
                                 </div>
