@@ -55,25 +55,25 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
   const roundedLng = lng.toFixed(2)
   const cacheKey = `tz:${roundedLat},${roundedLng}`
   
-  // 1. Try Redis cache
-  try {
-    const cached = await redis.get<string>(cacheKey)
-    if (cached) {
-      // Fix for previously mis-cached Nepal locations
-      const isNepal = (lat > 26.3 && lat < 30.5 && lng > 80.0 && lng < 88.5)
-      if (isNepal && (cached === 'Asia/Kolkata' || cached === 'UTC')) return 'Asia/Kathmandu'
-      return cached
-    }
-  } catch (e) {
-    console.error('[tz] Redis lookup failed:', e)
-  }
-
-  // 2. Check for concurrent pending requests to avoid "Cache Stampede"
+  // 1. Check for concurrent pending requests to avoid "Cache Stampede"
+  // We do this BEFORE Redis to prevent multiple simultaneous Redis hits for the same key
   if (pendingTzLookups.has(cacheKey)) {
     return pendingTzLookups.get(cacheKey)!
   }
 
   const lookupPromise = (async () => {
+    // 2. Try Redis cache
+    try {
+      const cached = await redis.get<string>(cacheKey)
+      if (cached) {
+        // Fix for previously mis-cached Nepal locations
+        const isNepal = (lat > 26.3 && lat < 30.5 && lng > 80.0 && lng < 88.5)
+        if (isNepal && (cached === 'Asia/Kolkata' || cached === 'UTC')) return 'Asia/Kathmandu'
+        return cached
+      }
+    } catch (e) {
+      console.error('[tz] Redis lookup failed:', e)
+    }
     try {
       // 3. Query BigDataCloud reverse geocode API (free tier)
       // Use fixed precision to avoid malformed URL issues with very long floats
@@ -168,8 +168,21 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
   }
 }
 
+import { applyRouteSecurity } from '@/lib/security/route'
+
 // ── Route Handler ─────────────────────────────────────────────
 export async function GET(req: NextRequest) {
+  // 0. Security & Rate Limiting
+  const securityBlocked = await applyRouteSecurity(req, {
+    rateLimit: {
+      bucket: 'atlas_search',
+      limit: 50, // 50 searches per minute is generous for genuine users
+      windowSeconds: 60,
+      message: 'Too many location searches. Please slow down.'
+    }
+  })
+  if (securityBlocked) return securityBlocked
+
   const q = req.nextUrl.searchParams.get('q')?.trim()
   const latParam = req.nextUrl.searchParams.get('lat')
   const lngParam = req.nextUrl.searchParams.get('lng')

@@ -19,6 +19,12 @@ const COMPRESSION_PREFIX = 'cz:' // Compressed Zlib
 
 let _redis: Redis | null = null
 
+// L1 In-memory cache for high-frequency, stable lookups (Timezones/Atlas)
+// This prevents "Cache Stampede" during Redis connection flickers
+const L1_CACHE = new Map<string, { value: any; expires: number }>()
+const L1_MAX_SIZE = 500
+const L1_DEFAULT_TTL = 300_000 // 5 minutes in-memory is safe for stable geo data
+
 function getRedis(): Redis | null {
   if (_redis) return _redis
 
@@ -32,10 +38,20 @@ function getRedis(): Redis | null {
     token,
     retry: {
       retries: 5,
-      backoff: (retryCount) => Math.min(Math.exp(retryCount) * 50, 2000),
+      backoff: (retryCount) => Math.min(Math.exp(retryCount) * 50, 3000),
     },
   })
   return _redis
+}
+
+/**
+ * Clean up L1 cache if it grows too large (very basic LRU)
+ */
+function pruneL1() {
+  if (L1_CACHE.size > L1_MAX_SIZE) {
+    const firstKey = L1_CACHE.keys().next().value
+    if (firstKey) L1_CACHE.delete(firstKey)
+  }
 }
 
 // ── Typed wrapper with fallback ───────────────────────────────
@@ -45,6 +61,14 @@ export const redis = {
    * Get a cached value. Returns null if key missing or Redis unavailable.
    */
   async get<T = unknown>(key: string): Promise<T | null> {
+    // 1. Try L1 Memory Cache first (for geo/tz data)
+    if (key.startsWith('tz:') || key.startsWith('atlas:')) {
+      const entry = L1_CACHE.get(key)
+      if (entry && entry.expires > Date.now()) {
+        return entry.value as T
+      }
+    }
+
     try {
       const client = getRedis()
       if (!client) return null
@@ -52,26 +76,42 @@ export const redis = {
       const raw = await client.get<unknown>(key)
       if (!raw) return null
 
+      let result: T | null = null
+
       // Handle decompression
       if (typeof raw === 'string' && raw.startsWith(COMPRESSION_PREFIX)) {
         try {
           const compressedData = Buffer.from(raw.slice(COMPRESSION_PREFIX.length), 'base64')
           const decompressed = await gunzip(compressedData)
-          return JSON.parse(decompressed.toString()) as T
+          result = JSON.parse(decompressed.toString()) as T
         } catch (decompErr) {
           console.error('[redis.get] Decompression failed:', decompErr)
           return null
         }
+      } else {
+        result = raw as T
       }
 
-      return raw as T
+      // 2. Populate L1 Cache if successful (stable keys only)
+      if (result && (key.startsWith('tz:') || key.startsWith('atlas:'))) {
+        pruneL1()
+        L1_CACHE.set(key, { value: result, expires: Date.now() + L1_DEFAULT_TTL })
+      }
+
+      return result
     } catch (err) {
       if (typeof err === 'object' && err !== null) {
         const msg = (err as any).message || ''
+        const isTransient = msg.includes('refused') || 
+                            msg.includes('failed') || 
+                            msg.includes('terminated') || 
+                            msg.includes('timeout')
+        
         if (msg.includes('quota exceeded')) return null
-        if (msg.includes('terminated') || msg.includes('timeout')) {
-          // These are common in transient network issues or large payloads
-          console.warn(`[redis.get] ${msg} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
+        
+        if (isTransient) {
+          // Log transient errors as warnings with less noise
+          console.warn(`[redis.get] Network issue: ${msg.split(',')[0]} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
           return null
         }
       }
@@ -89,6 +129,12 @@ export const redis = {
       const client = getRedis()
       if (!client) return
       
+      // Update L1 Cache immediately for local consistency
+      if (key.startsWith('tz:') || key.startsWith('atlas:')) {
+        pruneL1()
+        L1_CACHE.set(key, { value, expires: Date.now() + L1_DEFAULT_TTL })
+      }
+
       // Enforce JSON serialization
       let serializedValue = typeof value === 'string' ? value : JSON.stringify(value)
       
@@ -110,9 +156,15 @@ export const redis = {
     } catch (err) {
       if (typeof err === 'object' && err !== null) {
         const msg = (err as any).message || ''
+        const isTransient = msg.includes('refused') || 
+                            msg.includes('failed') || 
+                            msg.includes('terminated') || 
+                            msg.includes('timeout')
+
         if (msg.includes('quota exceeded')) return
-        if (msg.includes('terminated') || msg.includes('timeout')) {
-          console.warn(`[redis.set] ${msg} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
+        
+        if (isTransient) {
+          console.warn(`[redis.set] Network issue: ${msg.split(',')[0]} (Key: ${key.split(':').slice(0, 2).join(':')}...)`)
           return
         }
       }
@@ -207,8 +259,8 @@ export function chartCacheKey(
   gulikaMode: string,
   prashnaNumber: number = 0,
 ): string {
-  // Added v9: prefix for Prashna seed support
-  return `v9:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
+  // Added v12: prefix for refined Jaimini colors and Arudha bluish tone
+  return `v12:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 
 export function panchangCacheKey(

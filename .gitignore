@@ -33,9 +33,10 @@ scratch/
 # TypeScript cache
 *.tsbuildinfo
 
-# Swiss Ephemeris binary data
-ephe/*.se1
-ephe/*.se
+# Swiss Ephemeris binary data (Keep these in repo for deployment)
+!ephe/*.se1
+!ephe/*.se
+
  
 # SQLite atlas database (seeded locally)
 src/lib/atlas/*.db

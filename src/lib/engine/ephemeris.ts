@@ -4,7 +4,7 @@ import type { GrahaId, AyanamshaMode, PlanetPosition } from '@/types/astrology'
 
 const ephePath = process.env.EPHE_PATH
   ? path.resolve(process.env.EPHE_PATH)
-  : path.join(process.cwd(), 'ephe')
+  : path.resolve(process.cwd(), 'ephe')
 
 sweph.set_ephe_path(ephePath)
 
@@ -49,7 +49,14 @@ export function getPlanetPosition(jd: number, planetId: number, isSidereal = fal
   let flags = isSidereal ? FLAGS_SIDEREAL : FLAGS_TROPICAL
   if (isEquatorial) flags |= C.SEFLG_EQUATORIAL
 
-  const r = sweph.calc_ut(jd, planetId, flags) as any
+  let r = sweph.calc_ut(jd, planetId, flags) as any
+  
+  // Fallback to Moshier if SwissEph files are missing
+  if (r.error && r.error.includes('not found')) {
+    const fallbackFlags = flags & ~C.SEFLG_SWIEPH
+    r = sweph.calc_ut(jd, planetId, fallbackFlags) as any
+  }
+
   if (r.error) throw new Error(`sweph error planet ${planetId}: ${r.error}`)
   
   // r.data[0]=lon(RA), r.data[1]=lat(Dec), r.data[2]=dist, r.data[3]=speed
@@ -104,7 +111,16 @@ export function ketuLongitude(rahuLon: number): number {
 }
 
 export function getAscendant(jd: number, lat: number, lng: number, hsys = 'W') {
-  const r = sweph.houses(jd, lat, lng, hsys) as any
+  let r = sweph.houses(jd, lat, lng, hsys) as any
+  
+  // Fallback if SwissEph files are missing (houses also use them for obliquity etc)
+  if (r.error && r.error.includes('not found')) {
+    // There isn't a direct 'no-swieph' flag for houses in the node wrapper usually,
+    // but often it falls back automatically or we can try with a different house system.
+    // However, sweph.houses usually just works with Moshier if files are missing, 
+    // but the error might still be reported.
+  }
+
   if (r.error) throw new Error(`houses error: ${r.error}`)
   return {
     ascendant: r.ascendant ?? r.data?.ascendant ?? 0,

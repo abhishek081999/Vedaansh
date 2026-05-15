@@ -405,6 +405,11 @@ export default function MyChartsPage() {
   const [tmplDownloading,  setTmplDownloading]  = useState(false)
   const [selectedIds,      setSelectedIds]      = useState<string[]>([])
   const [defaultChartId,   setDefaultChartId]   = useState<string | null>(null)
+  const [showFilters,      setShowFilters]      = useState(false)
+  const [filterGender,     setFilterGender]     = useState('all')
+  const [filterStartDate,  setFilterStartDate]  = useState('')
+  const [filterEndDate,    setFilterEndDate]    = useState('')
+  const [isSearching,      setIsSearching]      = useState(false)
 
   const userPlan = (session?.user as any)?.plan ?? 'free'
 
@@ -494,11 +499,24 @@ export default function MyChartsPage() {
     }
   }
 
-  const fetchCharts = useCallback(async (p: number) => {
+  const fetchCharts = useCallback(async (p: number, queryParams: any = {}) => {
     setLoading(true)
     setError(null)
     try {
-      const res  = await fetch(`/api/chart/list?page=${p}&limit=20`)
+      const isSearchActive = search.length >= 2 || filterGender !== 'all' || filterStartDate || filterEndDate
+      const baseApi = isSearchActive ? '/api/chart/search' : '/api/chart/list'
+      
+      const params = new URLSearchParams({
+        page: p.toString(),
+        limit: '24',
+        q: search,
+        gender: filterGender,
+        startDate: filterStartDate,
+        endDate: filterEndDate,
+        ...queryParams
+      })
+
+      const res  = await fetch(`${baseApi}?${params.toString()}`)
       const json = await res.json()
       if (res.status === 401) {
         router.push('/login?callbackUrl=/my/charts')
@@ -508,20 +526,40 @@ export default function MyChartsPage() {
       setCharts(json.charts)
       setPag(json.pagination)
 
-      // Fetch default chart ID
-      const defRes = await fetch('/api/user/default-chart')
-      const defJson = await defRes.json()
-      if (defJson.success) {
-        setDefaultChartId(defJson.defaultChartId)
+      // Only fetch default on initial load
+      if (!defaultChartId) {
+        const defRes = await fetch('/api/user/default-chart')
+        const defJson = await defRes.json()
+        if (defJson.success) {
+          setDefaultChartId(defJson.defaultChartId)
+        }
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load')
     } finally {
       setLoading(false)
+      setIsSearching(false)
     }
-  }, [router])
+  }, [router, search, filterGender, filterStartDate, filterEndDate, defaultChartId])
 
-  useEffect(() => { fetchCharts(page) }, [page, fetchCharts])
+  // Initial load + Pagination
+  useEffect(() => { 
+    if (search.length < 2 && filterGender === 'all' && !filterStartDate && !filterEndDate) {
+      fetchCharts(page) 
+    }
+  }, [page, fetchCharts, search, filterGender, filterStartDate, filterEndDate])
+
+  // Debounced Search
+  useEffect(() => {
+    if (search.length >= 2 || filterGender !== 'all' || filterStartDate || filterEndDate) {
+      setIsSearching(true)
+      const delay = setTimeout(() => {
+        setPage(1)
+        fetchCharts(1)
+      }, 500)
+      return () => clearTimeout(delay)
+    }
+  }, [search, filterGender, filterStartDate, filterEndDate, fetchCharts])
 
   function handleLoad(chart: SavedChart) {
     setChart(null) // Clear old state immediately
@@ -552,10 +590,6 @@ export default function MyChartsPage() {
     }
   }
 
-  const filtered = charts.filter((c: SavedChart) =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.birthPlace.toLowerCase().includes(search.toLowerCase())
-  )
 
   return (
     <main style={{ maxWidth: 1000, width: '100%', margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -573,63 +607,110 @@ export default function MyChartsPage() {
         )}
       </div>
 
-      <div className="charts-toolbar">
-        <input
-          className="input"
-          placeholder="Search by name or place…"
-          value={search}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-          style={{ flex: 1, minWidth: 200 }}
-        />
-        {/* Export all charts as XLSX */}
-        {(pag?.total ?? 0) > 0 && (
-          <button
-            id="export-all-xlsx-btn"
-            onClick={handleExportAll}
-            disabled={exporting}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+        {/* Primary Toolbar */}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '300px', position: 'relative' }}>
+            <input
+              className="input"
+              placeholder="Search by name, place, or notes..."
+              value={search}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+              style={{ width: '100%', paddingLeft: '2.75rem', height: '46px', borderRadius: 'var(--r-lg)', background: 'var(--surface-1)' }}
+            />
+            <div style={{ position: 'absolute', left: '1.1rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '1.2rem' }}>
+              {isSearching ? <div className="spin-loader" style={{ width: 18, height: 18, borderWidth: 2 }} /> : '🔍'}
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setShowFilters(!showFilters)}
             className="btn btn-ghost"
             style={{
-              whiteSpace: 'nowrap',
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              opacity: exporting ? 0.6 : 1,
+              height: '46px', padding: '0 1.25rem', borderRadius: 'var(--r-lg)', 
+              background: showFilters ? 'var(--gold-faint)' : 'var(--surface-2)',
+              border: `1px solid ${showFilters ? 'var(--gold-soft)' : 'var(--border-soft)'}`,
+              color: showFilters ? 'var(--gold)' : 'var(--text-primary)', 
+              fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.08em'
             }}
-            title={`Export all ${pag?.total} charts as XLSX`}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            {exporting ? 'Exporting…' : 'Export XLSX'}
+            {showFilters ? '✕ CLOSE' : '⚙ FILTERS'}
           </button>
-        )}
-        {/* Download blank template */}
-        <button
-          id="download-template-btn"
-          onClick={handleDownloadTemplate}
-          disabled={tmplDownloading}
-          className="btn btn-ghost"
-          style={{
-            whiteSpace: 'nowrap',
-            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-            opacity: tmplDownloading ? 0.6 : 1,
-            borderColor: 'rgba(201,168,76,0.35)',
-            color: 'var(--gold)',
-          }}
-          title="Download XLSX template to fill and import"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          {tmplDownloading ? 'Downloading…' : '⬇ Template'}
-        </button>
-        <BulkImport onImportComplete={() => fetchCharts(page)} />
-        <Link href="/" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }}>
-          + New Chart
-        </Link>
+        </div>
+
+        {/* Action Buttons Row */}
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          {(pag?.total ?? 0) > 0 && (
+            <button
+              onClick={handleExportAll}
+              disabled={exporting}
+              className="btn btn-ghost btn-sm"
+              style={{ height: '36px', fontSize: '0.7rem', color: 'var(--text-secondary)' }}
+            >
+              Export XLSX
+            </button>
+          )}
+          <button
+            id="download-template-btn"
+            onClick={handleDownloadTemplate}
+            disabled={tmplDownloading}
+            className="btn btn-ghost btn-sm"
+            style={{ height: '36px', fontSize: '0.7rem', color: 'var(--gold-soft)' }}
+          >
+            ⬇ Template
+          </button>
+          <BulkImport onImportComplete={() => fetchCharts(page)} />
+          <div style={{ flex: 1 }} />
+          <Link href="/" className="btn btn-primary" style={{ height: '40px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: 800, borderRadius: 'var(--r-md)' }}>
+            + NEW CHART
+          </Link>
+        </div>
       </div>
+
+      {showFilters && (
+        <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '1.5rem', animation: 'fadeIn 0.3s ease-out' }}>
+          <div style={{ 
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', padding: '1.5rem',
+            background: 'var(--surface-2)', borderRadius: 'var(--r-lg)', border: '1px solid var(--border-soft)',
+            boxShadow: 'var(--shadow-md)', width: '95%', maxWidth: '850px'
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Gender</label>
+              <select 
+                value={filterGender} 
+                onChange={e => setFilterGender(e.target.value)}
+                className="input"
+                style={{ fontSize: '0.8rem', padding: '0.5rem', borderRadius: 'var(--r-md)', height: '40px' }}
+              >
+                <option value="all">All Genders</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date From</label>
+              <input 
+                type="date" 
+                value={filterStartDate}
+                onChange={e => setFilterStartDate(e.target.value)}
+                className="input"
+                style={{ fontSize: '0.8rem', padding: '0.5rem', borderRadius: 'var(--r-md)', height: '40px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date To</label>
+              <input 
+                type="date" 
+                value={filterEndDate}
+                onChange={e => setFilterEndDate(e.target.value)}
+                className="input"
+                style={{ fontSize: '0.8rem', padding: '0.5rem', borderRadius: 'var(--r-md)', height: '40px' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
@@ -653,13 +734,13 @@ export default function MyChartsPage() {
         </div>
       )}
 
-      {!loading && !error && filtered.length === 0 && (
+      {!loading && !error && charts.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
           <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
             <Image src="/veda-icon.png" alt="Vedaansh" width={64} height={64} style={{ objectFit: 'contain', opacity: 0.8 }} />
           </div>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-            {search ? 'No charts match your search' : 'No saved charts yet'}
+            {(search || filterGender !== 'all' || filterStartDate || filterEndDate) ? 'No charts match your search filters' : 'No saved charts yet'}
           </p>
           <Link href="/" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
             Calculate a Chart
@@ -667,9 +748,9 @@ export default function MyChartsPage() {
         </div>
       )}
 
-      {!loading && filtered.length > 0 && (
+      {!loading && charts.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.85rem' }}>
-          {filtered.map((chart) => (
+          {charts.map((chart) => (
             <ChartCard 
               key={chart._id} 
               chart={chart} 
@@ -714,6 +795,10 @@ export default function MyChartsPage() {
         @keyframes fadeUp {
           from { opacity: 0; transform: translate(-50%, 20px); }
           to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}</style>
 

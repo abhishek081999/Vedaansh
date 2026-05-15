@@ -1,10 +1,11 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData } from '@/types/astrology'
+import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData } from '@/types/astrology'
 import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS } from '@/lib/engine/karakas'
 import { DashaTree } from '@/components/dasha/DashaTree'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Minus, Type, Scaling, Maximize } from 'lucide-react'
+import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X } from 'lucide-react'
+import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 
 interface JaiminiPanelProps {
   chart: ChartOutput
@@ -111,7 +112,8 @@ export function JaiminiAspectChart({
   argalaData = [],
   vizMode = 'drishti',
   arScale = 1.0,
-  plScale = 1.0
+  plScale = 1.0,
+  karakas = {}
 }: { 
   ascRashi: Rashi; 
   grahas: any[];
@@ -123,11 +125,18 @@ export function JaiminiAspectChart({
   vizMode?: 'drishti' | 'argala' | 'both';
   arScale?: number;
   plScale?: number;
+  karakas?: Partial<KarakaData>;
 }) {
   const cell = 100
   const size = 400
   const arScaleVal = arScale || 1.0;
   const plScaleVal = plScale || 1.0;
+
+  // Create reverse map: { 'Su': 'AK', 'Mo': 'AmK', ... }
+  const revKaraka: Record<string, string> = {};
+  Object.entries(karakas).forEach(([k, gid]) => {
+    if (gid && typeof gid === 'string') revKaraka[gid] = k;
+  });
   
   const SIGN_CELLS: Record<number, [number, number]> = {
     12: [0, 0], 1: [0, 1], 2: [0, 2],  3: [0, 3],
@@ -154,7 +163,7 @@ export function JaiminiAspectChart({
           </radialGradient>
         </defs>
         <rect width={size} height={size} fill="url(#cosmic-glow)" />
-        <rect width={size} height={size} fill="none" stroke="var(--border-soft)" strokeWidth="0.5" />
+        <rect width={size} height={size} fill="none" stroke="var(--gold-dim)" strokeWidth="1.5" />
 
         {Object.entries(SIGN_CELLS).map(([signStr, [row, col]]) => {
           const sign = Number(signStr) as Rashi
@@ -178,8 +187,8 @@ export function JaiminiAspectChart({
           else if (isAspected) fillColor = "rgba(78,205,196,0.08)";
 
           const strokeColor = isSelected ? 'var(--gold)' : 
-                             (vizMode === 'argala') ? (isArgala ? 'var(--teal)' : isVirodha ? 'var(--combust)' : 'var(--border-soft)') :
-                             (isAspected ? 'var(--teal-soft)' : 'var(--border-soft)');
+                             (vizMode === 'argala') ? (isArgala ? 'var(--teal)' : isVirodha ? 'var(--combust)' : 'var(--gold-dim)') :
+                             (isAspected ? 'var(--teal-soft)' : 'var(--gold-dim)');
 
           return (
             <g key={sign} onClick={() => onSelectSign(sign)} style={{ cursor: 'pointer' }}>
@@ -187,7 +196,7 @@ export function JaiminiAspectChart({
                 x={x + 3} y={y + 3} width={cell - 6} height={cell - 6} 
                 fill={fillColor}
                 stroke={strokeColor}
-                strokeWidth={isSelected ? 3 : 1}
+                strokeWidth={isSelected ? 3 : 1.2}
                 rx={12}
                 animate={isSelected ? { strokeOpacity: [1, 0.4, 1] } : {}}
                 transition={{ duration: 2, repeat: Infinity }}
@@ -221,12 +230,22 @@ export function JaiminiAspectChart({
                     x={(occupants.length > 1 ? (i % 2 === 0 ? -14 : 14) : 0)} 
                     y={Math.floor(i / 2) * 15 * plScaleVal - (occupants.length > 2 ? 10 * plScaleVal : 0)}
                     textAnchor="middle" 
-                    fontSize={13 * plScaleVal} 
+                    fontSize={16 * plScaleVal} 
                     fontWeight="900"
-                    fill={isAspected ? 'var(--teal)' : 'var(--text-primary)'}
-                    style={{ filter: isSelected ? 'drop-shadow(0 0 8px var(--gold))' : isAspected ? 'drop-shadow(0 0 4px var(--teal))' : 'none' }}
+                    style={{ 
+                      fill: grahaChartFill(g.id),
+                      stroke: isSelected ? 'var(--gold)' : isAspected ? 'var(--teal)' : 'none',
+                      strokeWidth: isSelected || isAspected ? '1.2px' : '0',
+                      paintOrder: 'stroke',
+                      filter: 'none'
+                    }}
                   >
                     {g.id}
+                    {revKaraka[g.id] && (
+                      <tspan dx="2" dy="-5" fontSize={7 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
+                        {revKaraka[g.id]}
+                      </tspan>
+                    )}
                   </text>
                 ))}
               </g>
@@ -236,8 +255,8 @@ export function JaiminiAspectChart({
                 textAnchor="middle" 
                 fontSize={9 * arScaleVal} 
                 fontWeight="900" 
-                fill="var(--gold-light)"
-                style={{ fill: 'var(--gold-light)' }}
+                fill="#818cf8"
+                style={{ fill: '#818cf8' }}
                 fontStyle="italic"
               >
                 {(() => {
@@ -266,7 +285,8 @@ export function JaiminiAspectChartNorth({
   argalaData = [],
   vizMode = 'drishti',
   arScale = 1.0,
-  plScale = 1.0
+  plScale = 1.0,
+  karakas = {}
 }: { 
   ascRashi: Rashi; 
   grahas: any[];
@@ -278,11 +298,18 @@ export function JaiminiAspectChartNorth({
   vizMode?: 'drishti' | 'argala' | 'both';
   arScale?: number;
   plScale?: number;
+  karakas?: Partial<KarakaData>;
 }) {
   const S = 400
   const Q = S / 4, M = S / 2
   const arScaleVal = arScale || 1.0;
   const plScaleVal = plScale || 1.0;
+
+  // Create reverse map
+  const revKaraka: Record<string, string> = {};
+  Object.entries(karakas).forEach(([k, gid]) => {
+    if (gid && typeof gid === 'string') revKaraka[gid] = k;
+  });
 
   const arudhaMap: Record<number, string[]> = {}
   Object.entries(arudhas).forEach(([k, r]) => {
@@ -338,7 +365,7 @@ export function JaiminiAspectChartNorth({
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem' }}>
       <svg viewBox="-10 -10 420 420" width={S} height={S} style={{ maxWidth: '100%', height: 'auto', overflow: 'visible' }}>
         {/* ── Chart Skeleton ── */}
-        <g stroke="var(--border-soft)" strokeWidth="1" fill="none">
+        <g stroke="var(--gold-dim)" strokeWidth="1.2" fill="none">
           <rect x="0" y="0" width={S} height={S} />
           <line x1="0" y1="0" x2={S} y2={S} />
           <line x1={S} y1="0" x2="0" y2={S} />
@@ -378,7 +405,7 @@ export function JaiminiAspectChartNorth({
                 points={pts}
                 fill={fillColor}
                 stroke={strokeColor}
-                strokeWidth={isSelected ? 3 : 1}
+                strokeWidth={isSelected ? 3 : 1.2}
                 animate={isSelected ? { strokeOpacity: [1, 0.4, 1] } : {}}
                 transition={{ duration: 2, repeat: Infinity }}
               />
@@ -428,7 +455,28 @@ export function JaiminiAspectChartNorth({
                   const row = n > 2 ? Math.floor(idx / 2) : idx
                   const xSh = n > 2 ? (col === 0 ? -18 : 18) : 0
                   return (
-                    <text key={g.id} x={xSh} y={row * 15 * plScaleVal - (n>2 ? 10 * plScaleVal : 0)} textAnchor="middle" fontSize={13 * plScaleVal} fontWeight="900" fill={isAspected ? 'var(--teal)' : 'var(--text-primary)'} style={{ filter: isSelected ? 'drop-shadow(0 0 8px var(--gold))' : isAspected ? 'drop-shadow(0 0 4px var(--teal))' : 'none' }}>{g.id}</text>
+                    <text 
+                      key={g.id} 
+                      x={xSh} 
+                      y={row * 15 * plScaleVal - (n>2 ? 10 * plScaleVal : 0)} 
+                      textAnchor="middle" 
+                      fontSize={16 * plScaleVal} 
+                      fontWeight="900" 
+                      style={{ 
+                        fill: grahaChartFill(g.id),
+                        stroke: isSelected ? 'var(--gold)' : isAspected ? 'var(--teal)' : 'none',
+                        strokeWidth: isSelected || isAspected ? '1.2px' : '0',
+                        paintOrder: 'stroke',
+                        filter: 'none'
+                      }}
+                    >
+                      {g.id}
+                      {revKaraka[g.id] && (
+                        <tspan dx="2" dy="-5" fontSize={7 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
+                          {revKaraka[g.id]}
+                        </tspan>
+                      )}
+                    </text>
                   )
                 })}
               </g>
@@ -442,10 +490,10 @@ export function JaiminiAspectChartNorth({
                     y={cy + arOffY + (idx * 11 * arScaleVal)} 
                     fontSize={10 * arScaleVal} 
                     fontWeight="900" 
-                    fill="var(--gold-light)" 
+                    fill="#818cf8" 
                     textAnchor="middle" 
                     fontStyle="italic" 
-                    style={{ letterSpacing: '0.05em', fill: 'var(--gold-light)' }}
+                    style={{ letterSpacing: '0.05em', fill: '#818cf8' }}
                   >
                     {row}
                   </text>
@@ -466,6 +514,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const [selectedAspectSign, setSelectedAspectSign] = useState<Rashi | null>(null);
   const [chartStyle, setChartStyle] = useState<'south' | 'north'>('north');
   const [activeVarga, setActiveVarga] = useState<string>('D1');
+  const [activeLagnaRef, setActiveLagnaRef] = useState<'natal' | 'AL' | 'KL' | 'dasha' | 'house'>('natal');
+  const [rotationHouse, setRotationHouse] = useState<number>(1);
+  const [showSettings, setShowSettings] = useState(false);
   const [vizMode, setVizMode] = useState<'drishti' | 'argala' | 'both'>('drishti');
   const [arScale, setArScale] = useState(1.0);
   const [plScale, setPlScale] = useState(1.0);
@@ -475,8 +526,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   useEffect(() => {
     const check = () => {
-      setIsMobile(window.innerWidth < 1024);
-      setIsTinyMobile(window.innerWidth < 480);
+      const mobile = window.innerWidth < 1024;
+      const tiny = window.innerWidth < 480;
+      setIsMobile(mobile);
+      setIsTinyMobile(tiny);
+      // Auto-scale up for mobile if not already set
+      if (tiny) setChartScale(1.15);
+      else if (mobile) setChartScale(1.1);
     };
     check();
     window.addEventListener('resize', check);
@@ -484,7 +540,33 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   }, []);
 
   const currentGrahas = vargas[activeVarga] || grahas;
-  const currentAsc = (chart.vargaLagnas?.[activeVarga] || lagnas.ascRashi) as Rashi;
+  
+  // Lagna Rotation Logic
+  const getRotatedLagna = (): Rashi => {
+    if (activeLagnaRef === 'AL') return arudhas.AL as Rashi;
+    if (activeLagnaRef === 'KL') {
+      const akId = karakas.AK;
+      const d9 = vargas['D9'];
+      const akNav = d9?.find(g => g.id === akId);
+      return (akNav?.rashi || 1) as Rashi;
+    }
+    if (activeLagnaRef === 'dasha') {
+      const currentDashaNode = chart.dashas.chara.find(n => n.isCurrent);
+      if (currentDashaNode) {
+        // Find Rashi index from the short name (Sg, Ar, etc.)
+        const short = currentDashaNode.lord;
+        const entry = Object.entries(RASHI_SHORT).find(([_, val]) => val === short);
+        if (entry) return Number(entry[0]) as Rashi;
+      }
+    }
+    if (activeLagnaRef === 'house') {
+      const natalAsc = (chart.vargaLagnas?.[activeVarga] || lagnas.ascRashi) as Rashi;
+      return (((natalAsc + rotationHouse - 2) % 12) + 1) as Rashi;
+    }
+    return (chart.vargaLagnas?.[activeVarga] || lagnas.ascRashi) as Rashi;
+  };
+
+  const currentAsc = getRotatedLagna();
 
   const getQuarter = (deg: number) => Math.floor((deg % 30) / 7.5) + 1;
   const isOppositeQuarter = (q1: number, q2: number) => (q1 + q2) === 5;
@@ -686,61 +768,175 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             </div>
           </div>
 
-          {/* ── Visual Scale Controls ── */}
-          <div style={{ 
-            display: 'flex', 
-            gap: isTinyMobile ? '0.5rem' : '1rem', 
-            padding: '0.4rem 0.6rem', 
-            background: 'var(--surface-2)', 
-            border: '1px solid var(--border-soft)',
-            borderRadius: '10px',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexWrap: 'wrap'
-          }}>
-            {/* Chart Size */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Maximize size={isTinyMobile ? 12 : 14} style={{ color: 'var(--gold)' }} />
-              {!isTinyMobile && <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Chart</span>}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button onClick={() => setChartScale(s => Math.max(0.5, s - 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={10}/></button>
-                <span style={{ minWidth: '2.1rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{Math.round(chartScale * 100)}%</span>
-                <button onClick={() => setChartScale(s => Math.min(2.0, s + 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={10}/></button>
+          {/* ── Visual Scale Controls — COMPACT main view ── */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap', rowGap: '0.5rem' }}>
+             <button
+                onClick={() => setShowSettings(s => !s)}
+                className="btn-secondary"
+                style={{ 
+                  padding: isTinyMobile ? '2px 8px' : '4px 10px', 
+                  fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem', 
+                  borderRadius: '6px', fontWeight: 800,
+                  background: showSettings ? 'var(--gold-faint)' : 'var(--surface-3)',
+                  color: showSettings ? 'var(--gold)' : 'var(--text-primary)',
+                  border: showSettings ? '1px solid var(--gold-soft)' : '1px solid var(--border-soft)'
+                }}
+              >
+                <Settings size={isTinyMobile ? 12 : 14} />
+                {isTinyMobile ? 'SET' : 'SETTINGS'}
+              </button>
+              <div style={{ width: '1px', background: 'var(--border-soft)', margin: '0 0.15rem' }} />
+              <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+                {['natal', 'AL', 'KL', 'dasha', 'house'].map(ref => (
+                  <button
+                    key={ref}
+                    onClick={() => setActiveLagnaRef(ref as any)}
+                    style={{
+                      padding: isTinyMobile ? '2px 5px' : '4px 8px', 
+                      fontSize: '0.6rem', fontWeight: 900, borderRadius: '4px',
+                      background: activeLagnaRef === ref ? 'var(--gold-faint)' : 'var(--surface-3)',
+                      color: activeLagnaRef === ref ? 'var(--gold)' : 'var(--text-muted)',
+                      border: activeLagnaRef === ref ? '1px solid var(--gold-soft)' : '1px solid transparent',
+                      cursor: 'pointer', textTransform: 'uppercase'
+                    }}
+                  >
+                    {ref === 'house' ? `H${rotationHouse}` : ref}
+                  </button>
+                ))}
               </div>
-            </div>
-
-            <div style={{ width: '1px', height: '14px', background: 'var(--border-soft)' }} />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Scaling size={isTinyMobile ? 12 : 14} style={{ color: 'var(--text-primary)' }} />
-              {!isTinyMobile && <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Arudha</span>}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button onClick={() => setArScale(s => Math.max(0.6, s - 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={10}/></button>
-                <span style={{ minWidth: '2.1rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{Math.round(arScale * 100)}%</span>
-                <button onClick={() => setArScale(s => Math.min(2.5, s + 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={10}/></button>
-              </div>
-            </div>
-
-            <div style={{ width: '1px', height: '14px', background: 'var(--border-soft)' }} />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Type size={isTinyMobile ? 12 : 14} style={{ color: 'var(--text-primary)' }} />
-              {!isTinyMobile && <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Planet</span>}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button onClick={() => setPlScale(s => Math.max(0.6, s - 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={10}/></button>
-                <span style={{ minWidth: '2.1rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{Math.round(plScale * 100)}%</span>
-                <button onClick={() => setPlScale(s => Math.min(2.5, s + 0.1))} style={{ width: 22, height: 22, borderRadius: '4px', background: 'var(--surface-4)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={10}/></button>
-              </div>
-            </div>
           </div>
+
+          <AnimatePresence>
+            {showSettings && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                style={{ overflow: 'hidden', marginBottom: '1rem' }}
+              >
+                <div
+                  className="card-glass"
+                  style={{
+                    padding: '1.25rem', borderRadius: 'var(--r-lg)', background: 'var(--surface-1)',
+                    border: '1px solid var(--gold-soft)', display: 'flex', flexDirection: 'column', gap: '1.25rem'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <Settings size={18} style={{ color: 'var(--gold)' }} />
+                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800 }}>Chart Configuration</h3>
+                    </div>
+                    <button onClick={() => setShowSettings(false)} className="btn-sm btn-ghost" style={{ padding: '2px 8px' }}>CLOSE</button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem' }}>
+                    {/* Lagna Rotation */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                        <RotateCw size={12} />
+                        Lagna Reference
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+                        {[
+                          { id: 'natal', label: 'Janma', sub: 'Birth' },
+                          { id: 'AL',    label: 'Arudha', sub: 'Social' },
+                          { id: 'KL',    label: 'Karakamsha', sub: 'Soul' },
+                          { id: 'dasha', label: 'Dasha', sub: 'Time' },
+                          { id: 'house', label: `House ${rotationHouse}`, sub: 'Manual' }
+                        ].map(ref => (
+                          <button
+                            key={ref.id}
+                            onClick={() => setActiveLagnaRef(ref.id as any)}
+                            style={{
+                              padding: '0.5rem', borderRadius: '6px', textAlign: 'left',
+                              background: activeLagnaRef === ref.id ? 'var(--gold-faint)' : 'var(--surface-2)',
+                              border: `1px solid ${activeLagnaRef === ref.id ? 'var(--gold-soft)' : 'var(--border-soft)'}`,
+                              color: activeLagnaRef === ref.id ? 'var(--gold)' : 'var(--text-primary)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <div style={{ fontSize: '0.75rem', fontWeight: 800 }}>{ref.label}</div>
+                            <div style={{ fontSize: '0.55rem', opacity: 0.6 }}>{ref.sub}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                       {/* Varga Selector */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Varga Chart</div>
+                        <select
+                          value={activeVarga}
+                          onChange={(e) => setActiveVarga(e.target.value)}
+                          className="input"
+                          style={{ fontSize: '0.8rem', padding: '0.4rem' }}
+                        >
+                          {['D1', 'D9', 'D10', 'D60', 'D7', 'D2', 'D3', 'D4', 'D12', 'D16', 'D20', 'D24', 'D30'].map(v => (
+                            <option key={v} value={v}>{v} — {v === 'D1' ? 'Rashi' : v === 'D9' ? 'Navamsha' : v === 'D10' ? 'Dasamsha' : v}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Manual House Selector */}
+                      {activeLagnaRef === 'house' && (
+                        <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.5rem', background: 'var(--surface-2)', borderRadius: '6px', border: '1px solid var(--gold-soft)' }}>
+                           <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase' }}>Reference House</div>
+                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' }}>
+                              {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
+                                <button
+                                  key={h}
+                                  onClick={() => setRotationHouse(h)}
+                                  style={{
+                                    padding: '4px 0', fontSize: '0.65rem', fontWeight: 900, borderRadius: '4px',
+                                    background: rotationHouse === h ? 'var(--gold)' : 'var(--surface-3)',
+                                    color: rotationHouse === h ? 'var(--surface-1)' : 'var(--text-primary)',
+                                    border: 'none', cursor: 'pointer'
+                                  }}
+                                >
+                                  {h}
+                                </button>
+                              ))}
+                           </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Scaling Controls */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1rem', borderTop: '1px solid var(--border-soft)', paddingTop: '1rem' }}>
+                     {[
+                       { id: 'chart', label: 'Zoom', val: chartScale, set: setChartScale, icon: <Maximize size={14}/>, min: 0.5, max: 2.0 },
+                       { id: 'arudha', label: 'Arudha', val: arScale, set: setArScale, icon: <Scaling size={14}/>, min: 0.6, max: 2.5 },
+                       { id: 'planet', label: 'Planet', val: plScale, set: setPlScale, icon: <Type size={14}/>, min: 0.6, max: 2.5 }
+                     ].map(s => (
+                       <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ color: 'var(--gold)' }}>{s.icon}</span>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>{s.label}</div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <button onClick={() => s.set(v => Math.max(s.min, v - 0.1))} style={{ width: 24, height: 24, borderRadius: '4px', background: 'var(--surface-3)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}><Minus size={10}/></button>
+                            <span style={{ minWidth: '2.2rem', textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{Math.round(s.val * 100)}%</span>
+                            <button onClick={() => s.set(v => Math.min(s.max, v + 0.1))} style={{ width: 24, height: 24, borderRadius: '4px', background: 'var(--surface-3)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}><Plus size={10}/></button>
+                          </div>
+                       </div>
+                     ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div style={{ 
             display: 'flex', 
             justifyContent: 'center', 
-            padding: '1rem',
+            padding: isTinyMobile ? '0.25rem' : '1rem',
             transform: `scale(${chartScale})`,
             transformOrigin: 'top center',
-            marginBottom: `${(chartScale - 1) * 400}px` // Push following content down
+            marginBottom: `${(chartScale - 1) * 400}px`,
+            width: '100%',
+            overflow: 'visible'
           }}>
             {chartStyle === 'south' ? (
               <JaiminiAspectChart 
@@ -754,6 +950,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                 vizMode={vizMode}
                 arScale={arScale}
                 plScale={plScale}
+                karakas={karakas}
               />
             ) : (
               <JaiminiAspectChartNorth 
@@ -767,6 +964,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                 vizMode={vizMode}
                 arScale={arScale}
                 plScale={plScale}
+                karakas={karakas}
               />
             )}
           </div>
@@ -977,18 +1175,25 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               {activeTab === 'arudhas' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   {/* Arudha Padas Matrix */}
-                  <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
-                    <div style={{ padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.65rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Arudha Pada Matrix</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', background: 'var(--border-soft)' }}>
-                      {Array.from({ length: 12 }, (_, i) => {
-                        const key = i + 1 === 1 ? 'AL' : `A${i + 1}`;
-                        const rashi = arudhas[key as keyof ArudhaData] as Rashi;
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Arudha Pada Matrix</h3>
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
+                      gap: '0.75rem' 
+                    }}>
+                      {Object.entries(ARUDHA_LABELS).map(([key, info]) => {
+                        const rashi = arudhas[key as keyof ArudhaData];
                         return (
-                          <div key={key} style={{ padding: '0.75rem', background: 'var(--surface-1)', textAlign: 'center', cursor: 'pointer' }} onClick={() => setSelectedAspectSign(rashi)}>
-                            <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 900 }}>{key}</div>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--text-gold)' }}>{RASHI_SHORT[rashi]}</div>
+                          <div key={key} className="card-glass" style={{ 
+                            padding: '0.75rem', borderRadius: '10px', background: 'var(--surface-1)', border: '1px solid var(--border-soft)',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem'
+                          }}>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)' }}>{key}</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--gold)' }}>{rashi ? RASHI_SHORT[rashi as Rashi] : '-'}</div>
+                            {!isTinyMobile && <div style={{ fontSize: '0.55rem', opacity: 0.6, textAlign: 'center' }}>{info.label}</div>}
                           </div>
-                        );
+                        )
                       })}
                     </div>
                   </div>
@@ -1024,49 +1229,52 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         ))}
                       </div>
                     </div>
-                    <div style={{ overflowX: 'auto' }}>
+                    <div className="scrollbar-hide" style={{ overflowX: 'auto', borderRadius: '10px', border: '1px solid var(--border-soft)' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
-                        <thead>
-                          <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-soft)' }}>
-                            <th style={{ textAlign: 'left', padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.6rem', fontWeight: 900 }}>HOUSE</th>
-                            <th style={{ textAlign: 'left', padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.6rem', fontWeight: 900 }}>ARGALA SOURCE</th>
-                            <th style={{ textAlign: 'left', padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.6rem', fontWeight: 900 }}>OBSTRUCTION</th>
-                            <th style={{ textAlign: 'right', padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.6rem', fontWeight: 900 }}>STATUS</th>
+                        <thead style={{ background: 'var(--surface-3)', textAlign: 'left' }}>
+                          <tr>
+                            <th style={{ padding: '0.75rem' }}>HOUSE</th>
+                            <th style={{ padding: '0.75rem' }}>ARGALA</th>
+                            {!isTinyMobile && <th style={{ padding: '0.75rem' }}>OBSTRUCTION</th>}
+                            <th style={{ padding: '0.75rem' }}>STATUS</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {getArgalaIntervention(selectedAspectSign || currentAsc).map(a => (
-                            <tr key={a.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                              <td style={{ padding: '0.75rem 1rem' }}>
-                                <div style={{ fontWeight: 900, color: 'var(--text-primary)' }}>{a.id}</div>
-                                <div style={{ fontSize: '0.55rem', color: 'var(--text-secondary)', fontWeight: 700 }}>{a.label}</div>
+                          {getArgalaIntervention(selectedAspectSign || currentAsc).map(s => (
+                            <tr key={s.id} style={{ borderTop: '1px solid var(--border-soft)' }}>
+                              <td style={{ padding: '0.75rem' }}>
+                                <div style={{ fontWeight: 800 }}>{s.id} House</div>
+                                <div style={{ fontSize: '0.6rem', opacity: 0.6 }}>{s.label}</div>
                               </td>
-                              <td style={{ padding: '0.75rem 1rem' }}>
-                                <div style={{ fontWeight: 800, color: 'var(--teal)', fontSize: '0.8rem' }}>{RASHI_SHORT[a.aSign]}</div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '2px' }}>
-                                  {a.occupants.map(o => (
-                                    <span key={o.id} style={{ fontSize: '0.65rem', fontWeight: 900, color: o.isBlocked ? 'var(--combust)' : 'var(--teal)' }}>{o.id}<sub style={{ fontSize: '0.4rem', opacity: 0.5 }}>Q{o.quarter}</sub></span>
+                              <td style={{ padding: '0.75rem' }}>
+                                <div style={{ color: 'var(--teal)', fontWeight: 800 }}>{RASHI_SHORT[s.aSign]}</div>
+                                <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap' }}>
+                                  {s.occupants.map(o => (
+                                    <span key={o.id} style={{ fontSize: '0.65rem', color: o.isBlocked ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                                      {o.id}<sub style={{ fontSize: '0.5rem' }}>Q{o.quarter}</sub>
+                                    </span>
                                   ))}
-                                  {a.occupants.length === 0 && <span style={{ opacity: 0.2 }}>Empty</span>}
                                 </div>
                               </td>
-                              <td style={{ padding: '0.75rem 1rem' }}>
-                                <div style={{ fontWeight: 800, color: 'var(--combust)', fontSize: '0.8rem' }}>{RASHI_SHORT[a.vSign]}</div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '2px' }}>
-                                  {currentGrahas.filter(g => g.rashi === a.vSign).map(g => (
-                                    <span key={g.id} style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--combust)' }}>{g.id}<sub style={{ fontSize: '0.4rem', opacity: 0.5 }}>Q{getQuarter(g.degree)}</sub></span>
-                                  ))}
-                                  {currentGrahas.filter(g => g.rashi === a.vSign).length === 0 && <span style={{ opacity: 0.2 }}>None</span>}
-                                </div>
-                              </td>
-                              <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
-                                {a.isArgalaActive ? (
-                                  <span style={{ color: 'var(--teal)', fontWeight: 900, fontSize: '0.6rem', border: '1px solid var(--teal)', padding: '1px 4px', borderRadius: '3px' }}>SUCCESS</span>
-                                ) : a.occupants.length > 0 ? (
-                                  <span style={{ color: 'var(--combust)', fontWeight: 900, fontSize: '0.6rem', border: '1px solid var(--combust)', padding: '1px 4px', borderRadius: '3px' }}>BLOCKED</span>
-                                ) : (
-                                  <span style={{ opacity: 0.2, fontWeight: 900 }}>—</span>
-                                )}
+                              {!isTinyMobile && (
+                                <td style={{ padding: '0.75rem' }}>
+                                  <div style={{ color: 'var(--combust)', fontWeight: 800 }}>{RASHI_SHORT[s.vSign]}</div>
+                                  <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap' }}>
+                                    {s.occupants.flatMap(o => o.blockerIds).filter((v, i, a) => a.indexOf(v) === i).map(bid => (
+                                      <span key={bid} style={{ fontSize: '0.65rem' }}>{bid}</span>
+                                    ))}
+                                    {s.occupants.every(o => !o.isBlocked) && <span style={{ fontSize: '0.65rem', opacity: 0.4 }}>None</span>}
+                                  </div>
+                                </td>
+                              )}
+                              <td style={{ padding: '0.75rem' }}>
+                                <span style={{ 
+                                  padding: '2px 6px', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 900,
+                                  background: s.isArgalaActive ? 'var(--teal-soft)' : 'var(--surface-3)',
+                                  color: s.isArgalaActive ? 'var(--teal)' : 'var(--text-muted)'
+                                }}>
+                                  {s.isArgalaActive ? 'SUCCESS' : s.occupants.length > 0 ? 'BLOCKED' : 'EMPTY'}
+                                </span>
                               </td>
                             </tr>
                           ))}
@@ -1128,5 +1336,6 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     </div>
   )
 }
+
 
 export default JaiminiPanel
