@@ -18,7 +18,10 @@ import { calcHouses } from '@/lib/engine/houses';
 import { getChoghadiya, getMuhurtaPanchaka } from '@/lib/engine/muhurtaAdvanced';
 import { getHoraLord } from '@/lib/engine/nakshatra';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
+
   let lastStage = 'initialization';
   try {
     const { searchParams } = new URL(req.url);

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
@@ -365,10 +366,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             }}
             style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}
           >
-            <img 
+            <Image 
               src="/veda-icon.png" 
               alt="Vedaansh Logo"
-              style={{ width: 34, height: 34, objectFit: 'contain' }}
+              width={34}
+              height={34}
+              style={{ objectFit: 'contain' }}
             />
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
               <span 
@@ -489,10 +492,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', minWidth: 0, flex: 1 }}
               >
-                <img
+                <Image
                   src="/veda-icon.png"
                   alt="Vedaansh Logo"
-                  style={{ width: 34, height: 34, objectFit: 'contain' }}
+                  width={34}
+                  height={34}
+                  style={{ objectFit: 'contain' }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05, minWidth: 0 }}>
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.12rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.04em' }}>Vedaansh</span>
