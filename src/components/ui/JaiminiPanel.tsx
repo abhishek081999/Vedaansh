@@ -1,8 +1,9 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData } from '@/types/astrology'
-import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS, FIXED_HOUSE_SIGNIFICATORS } from '@/lib/engine/karakas'
+import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData, NAKSHATRA_NAMES } from '@/types/astrology'
+import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
 import { DashaTree } from '@/components/dasha/DashaTree'
+import { calculateGatewaySigns } from '@/lib/engine/jaimini'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X } from 'lucide-react'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
@@ -28,7 +29,11 @@ const ARUDHA_LABELS: Record<string, { label: string; desc: string; icon: string 
 }
 
 function JaiminiSnapshot({ chart, isTinyMobile }: { chart: ChartOutput, isTinyMobile: boolean }) {
-  const { meta, karakas, arudhas, vargas, lagnas, panchang } = chart;
+  const { meta, arudhas, vargas, lagnas, panchang, grahas } = chart;
+  const karakas = calcCharaKarakas(
+    grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
+    7
+  );
   const akId = karakas.AK;
   const d9 = vargas['D9'];
   const akNavamsha = d9?.find(g => g.id === akId);
@@ -526,8 +531,21 @@ export function JaiminiAspectChartNorth({
 }
 
 function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
-  const { karakas, arudhas, grahas, vargas, lagnas } = chart;
-  const [activeTab, setActiveTab] = useState<'essence' | 'arudhas' | 'dashas' | 'info'>('essence');
+  const { arudhas, grahas, vargas, lagnas, jaiminiBala, jaiminiTrinity } = chart;
+  const karakas = calcCharaKarakas(
+    grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
+    7
+  );
+  const [activeTab, setActiveTab] = useState<'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info'>('essence');
+  
+  // Gateway calculation
+  const currentDashaNode = chart.dashas?.chara?.find((n: any) => n.isCurrent);
+  let dwaraRashi: Rashi | null = null;
+  if (currentDashaNode) {
+    const entry = Object.entries(RASHI_SHORT).find(([_, val]) => val === currentDashaNode.lord);
+    if (entry) dwaraRashi = Number(entry[0]) as Rashi;
+  }
+  const gateways = dwaraRashi ? calculateGatewaySigns(lagnas.ascRashi as Rashi, dwaraRashi) : null;
   const [selectedAspectSign, setSelectedAspectSign] = useState<Rashi | null>(null);
   const [chartStyle, setChartStyle] = useState<'south' | 'north'>('north');
   const [activeVarga, setActiveVarga] = useState<string>('D1');
@@ -673,11 +691,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   const jaiminiYogas = detectJaiminiYogas();
 
-  const tabs: { id: 'essence' | 'arudhas' | 'dashas' | 'info'; label: string; icon: string }[] = [
+  const tabs: { id: 'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info'; label: string; icon: string }[] = [
     { id: 'essence', label: 'Soul Architecture', icon: '💠' },
     { id: 'arudhas', label: 'Arudha Landscape', icon: '🏔️' },
     { id: 'dashas',  label: 'Timing & Dashas',  icon: '⏳' },
     { id: 'info',    label: 'Info Reference',   icon: '⚖️' },
+    { id: 'intelligence', label: 'Intelligence', icon: '🧠' },
   ];
 
   const argalaInterventions = selectedAspectSign ? getArgalaIntervention(selectedAspectSign) : [];
@@ -1131,10 +1150,57 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         </tr>
                       </thead>
                       <tbody>
-                        {currentGrahas.map((g) => {
-                          if (['Ur', 'Ne', 'Pl'].includes(g.id)) return null;
-                          const ck = Object.entries(karakas).find(([k, gid]) => gid === g.id)?.[0];
-                          const d9Rashi = getNavamshaRashi(g.id);
+                        {(() => {
+                          const lagnaDeg = lagnas.ascDegree;
+                          const alDeg = ((arudhas.AL - 1) * 30) + (lagnas.ascDegree % 30);
+                          
+                          const getNakInfo = (totalDeg: number) => {
+                            const idx = Math.floor(totalDeg / (360/27)) % 27;
+                            const degInNak = totalDeg % (360/27);
+                            const pada = Math.floor(degInNak / (360/27/4)) + 1;
+                            return { name: NAKSHATRA_NAMES[idx], pada, index: idx };
+                          };
+
+                          const getNavRashi = (totalDeg: number): Rashi => {
+                            return (Math.floor((totalDeg % 360) / (30/9)) % 12 + 1) as Rashi;
+                          };
+
+                          const lagnaNak = getNakInfo(lagnaDeg);
+                          const alNak = getNakInfo(alDeg);
+
+                          const displayBodies = [
+                            { 
+                              id: 'Lg', 
+                              degree: lagnaDeg % 30, 
+                              rashi: lagnas.ascRashi, 
+                              nakshatraName: lagnaNak.name, 
+                              pada: lagnaNak.pada, 
+                              nakshatraIndex: lagnaNak.index,
+                              isRetro: false,
+                              isCombust: false,
+                              pushkara: { isPushkara: false } as any
+                            },
+                            { 
+                              id: 'AL', 
+                              degree: alDeg % 30, 
+                              rashi: arudhas.AL, 
+                              nakshatraName: alNak.name, 
+                              pada: alNak.pada, 
+                              nakshatraIndex: alNak.index,
+                              isRetro: false,
+                              isCombust: false,
+                              pushkara: { isPushkara: false } as any
+                            },
+                            ...currentGrahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
+                          ];
+
+                          return displayBodies.map((g) => {
+                            const ck = Object.entries(karakas).find(([k, gid]) => gid === g.id)?.[0];
+                            const d9Rashi = (g.id === 'Lg') 
+                              ? (chart.vargaLagnas?.['D9'] || getNavRashi(lagnaDeg))
+                              : (g.id === 'AL')
+                                ? getNavRashi(alDeg)
+                                : getNavamshaRashi(g.id as GrahaId);
                           
                           // Tara Calculation
                           const moon = currentGrahas.find(gr => gr.id === 'Mo');
@@ -1178,7 +1244,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               </td>
                             </tr>
                           );
-                        })}
+                        });
+                      })()}
                       </tbody>
                     </table>
                   </div>
@@ -1592,6 +1659,261 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         
                         <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', fontStyle: 'italic' }}>
                           Kartari shows what kind of <strong style={{ color: 'var(--text-primary)' }}>pressure</strong> you face.
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'intelligence' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  
+                  {/* ── Jaimini Trinity (The Three Pillars) ── */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                    {[
+                      { 
+                        title: 'Brahma', 
+                        subtitle: 'Creator', 
+                        data: jaiminiTrinity?.brahma, 
+                        icon: '🕉️', 
+                        color: 'var(--gold)',
+                        desc: 'Events trigger'
+                      },
+                      { 
+                        title: 'Maheshwara', 
+                        subtitle: 'Transformer', 
+                        data: jaiminiTrinity?.maheshwara, 
+                        icon: '🔱', 
+                        color: '#818cf8',
+                        desc: 'Life changes'
+                      },
+                      { 
+                        title: 'Rudra', 
+                        subtitle: 'Destroyer', 
+                        data: jaiminiTrinity?.rudra, 
+                        icon: '👁️', 
+                        color: 'var(--combust)',
+                        desc: 'Crisis/Endings'
+                      }
+                    ].map((t, idx) => (
+                      <div key={idx} className="card-glass" style={{ 
+                        padding: '0.75rem 1rem', 
+                        background: 'var(--surface-1)', 
+                        border: `1px solid var(--border-soft)`,
+                        borderTop: `3px solid ${t.color}`,
+                        borderRadius: '12px',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '1rem',
+                        transition: 'all 0.3s ease'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: t.color, textTransform: 'uppercase' }}>{t.subtitle}</div>
+                          <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text-primary)' }}>{t.title}</div>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{t.desc}</div>
+                        </div>
+                        <div style={{ 
+                          padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '60px'
+                        }}>
+                          <span style={{ fontSize: '0.5rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '1px' }}>ID</span>
+                          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: t.color }}>{t.data?.id || '?'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* ── Jaimini Special Lagnas & Gateways ── */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 0.8fr', gap: '0.75rem' }}>
+                    
+                    {/* Special Lagnas Card */}
+                    <div className="card-glass" style={{ padding: '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
+                      <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '0.7rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        Special Lagnas
+                      </h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                        <div style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
+                          <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--teal)', marginBottom: '0.2rem' }}>HORA (HL)</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <span style={{ fontSize: '1rem', fontWeight: 900 }}>{RASHI_SHORT[Math.floor(lagnas.horaLagna / 30) + 1 as Rashi]}</span>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{Math.floor(lagnas.horaLagna % 30)}°</span>
+                          </div>
+                        </div>
+                        <div style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
+                          <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--gold)', marginBottom: '0.2rem' }}>GHATIKA (GL)</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <span style={{ fontSize: '1rem', fontWeight: 900 }}>{RASHI_SHORT[Math.floor(lagnas.ghatiLagna / 30) + 1 as Rashi]}</span>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{Math.floor(lagnas.ghatiLagna % 30)}°</span>
+                          </div>
+                        </div>
+                        <div style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
+                          <div style={{ fontSize: '0.55rem', fontWeight: 800, color: '#818cf8', marginBottom: '0.2rem' }}>VARNADA (VL)</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <span style={{ fontSize: '1rem', fontWeight: 900 }}>{RASHI_SHORT[Math.floor(lagnas.varnadaLagna / 30) + 1 as Rashi]}</span>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{Math.floor(lagnas.varnadaLagna % 30)}°</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Gateway Signs Card */}
+                    <div className="card-glass" style={{ padding: '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
+                      <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '0.7rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        Gateways
+                      </h3>
+                      {gateways ? (
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <div style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'rgba(52, 211, 153, 0.04)', border: '1px solid rgba(52, 211, 153, 0.15)' }}>
+                            <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--teal)', marginBottom: '0.1rem' }}>DWARA</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{RASHI_SHORT[gateways.dwara]}</div>
+                          </div>
+                          <div style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'rgba(244, 63, 94, 0.04)', border: '1px solid rgba(244, 63, 94, 0.15)' }}>
+                            <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--combust)', marginBottom: '0.1rem' }}>BAHYA</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{RASHI_SHORT[gateways.bahya]}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ padding: '0.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.65rem' }}>No active dasha</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ── Planetary Strength Breakdown ── */}
+                  <div className="card-glass" style={{ padding: '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        Strength Breakdown (Bala)
+                      </h3>
+                      <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)' }}>Values in Jaimini Units</div>
+                    </div>
+
+                    <div className="scrollbar-hide" style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                        <thead style={{ background: 'var(--surface-3)', textAlign: 'left' }}>
+                          <tr>
+                            <th style={{ padding: '0.75rem', borderRadius: '8px 0 0 8px' }}>PLANET</th>
+                            <th style={{ padding: '0.75rem' }}>DIGNITY</th>
+                            <th style={{ padding: '0.75rem' }}>KARAKA</th>
+                            <th style={{ padding: '0.75rem' }}>KARTARI</th>
+                            <th style={{ padding: '0.75rem', textAlign: 'right', borderRadius: '0 8px 8px 0' }}>TOTAL</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {grahas.map((g) => {
+                            const bala = (jaiminiBala?.planets as any)?.[g.id];
+                            if (!bala) return null;
+                            return (
+                              <tr key={g.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                                <td style={{ padding: '1rem 0.75rem' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{ fontWeight: 900, color: 'var(--text-primary)' }}>{g.id}</span>
+                                    <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>{GRAHA_NAMES[g.id as GrahaId]}</span>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '1rem 0.75rem' }}>
+                                  <div style={{ fontWeight: 800, color: 'var(--gold)' }}>{bala.placementBala}</div>
+                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.placementDetails} in {RASHI_SHORT[g.rashi]}</div>
+                                </td>
+                                <td style={{ padding: '1rem 0.75rem' }}>
+                                  <div style={{ fontWeight: 800, color: 'var(--teal)' }}>{bala.karakaBala}</div>
+                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.karakaRole}</div>
+                                </td>
+                                <td style={{ padding: '1rem 0.75rem' }}>
+                                  <div style={{ fontWeight: 800, color: bala.kartariBala > 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
+                                    {bala.kartariBala > 0 ? `+${bala.kartariBala}` : '0'}
+                                  </div>
+                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.kartariBala > 0 ? 'Active' : 'No Hems'}</div>
+                                </td>
+                                <td style={{ padding: '1rem 0.75rem', textAlign: 'right' }}>
+                                  <div style={{ 
+                                    display: 'inline-block', padding: '4px 10px', borderRadius: '6px', 
+                                    background: 'var(--surface-3)', fontWeight: 900, color: 'var(--text-primary)',
+                                    border: '1px solid var(--border-soft)', fontSize: '0.85rem'
+                                  }}>
+                                    {bala.total}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* ── Sign & House Strength ── */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr', gap: '1.25rem' }}>
+                    
+                    {/* Rashi Bala */}
+                    <div className="card-glass" style={{ padding: '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '16px' }}>
+                      <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '0.85rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        Sign Strength (Rashi Bala)
+                      </h3>
+                      <div className="scrollbar-hide" style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
+                          <thead style={{ background: 'var(--surface-2)', textAlign: 'left' }}>
+                            <tr>
+                              <th style={{ padding: '0.6rem' }}>RASHI</th>
+                              <th style={{ padding: '0.6rem' }}>TYPE</th>
+                              <th style={{ padding: '0.6rem' }}>KARAKAS</th>
+                              <th style={{ padding: '0.6rem' }}>ASPECTS</th>
+                              <th style={{ padding: '0.6rem', textAlign: 'right' }}>TOTAL</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[1,2,3,4,5,6,7,8,9,10,11,12].map((r) => {
+                              const bala = (jaiminiBala?.rashis as any)?.[r];
+                              if (!bala) return null;
+                              return (
+                                <tr key={r} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                                  <td style={{ padding: '0.75rem 0.6rem', fontWeight: 900 }}>{RASHI_SHORT[r as Rashi]}</td>
+                                  <td style={{ padding: '0.75rem 0.6rem', opacity: 0.8 }}>{bala.typeBala}</td>
+                                  <td style={{ padding: '0.75rem 0.6rem', color: 'var(--teal)', fontWeight: 700 }}>+{bala.karakaBala}</td>
+                                  <td style={{ padding: '0.75rem 0.6rem', color: 'var(--gold)', fontWeight: 700 }}>+{bala.aspectBala}</td>
+                                  <td style={{ padding: '0.75rem 0.6rem', textAlign: 'right', fontWeight: 900, color: 'var(--text-primary)' }}>{bala.total}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* House Strength */}
+                    <div className="card-glass" style={{ padding: '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '16px' }}>
+                      <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '0.85rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        House Class (Sthana)
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {[
+                          { label: 'Kendra', houses: '1, 4, 7, 10', val: 60, color: 'var(--gold)' },
+                          { label: 'Panaphara', houses: '2, 5, 8, 11', val: 30, color: 'var(--teal)' },
+                          { label: 'Apoklima', houses: '3, 6, 9, 12', val: 15, color: 'var(--text-muted)' }
+                        ].map((h, idx) => (
+                          <div key={idx} style={{ 
+                            padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', 
+                            border: '1px solid var(--border-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                          }}>
+                            <div>
+                              <div style={{ fontSize: '0.8rem', fontWeight: 900, color: h.color }}>{h.label}</div>
+                              <div style={{ fontSize: '0.6rem', opacity: 0.6 }}>Houses: {h.houses}</div>
+                            </div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: h.color }}>{h.val}</div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div style={{ 
+                        marginTop: '1.5rem', padding: '1rem', borderRadius: '12px', 
+                        background: 'rgba(201,168,76,0.05)', border: '1px dashed var(--gold-soft)'
+                      }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Quick Tip</div>
+                        <div style={{ fontSize: '0.7rem', lineHeight: 1.6, color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                          Planets in Kendra (1,4,7,10) have the maximum power to manifest physical events in Jaimini.
                         </div>
                       </div>
                     </div>

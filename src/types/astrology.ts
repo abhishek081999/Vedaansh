@@ -451,6 +451,8 @@ export interface ChartOutput {
   ashtakavarga?: AshtakavargaResult
   yogas?:        YogaResult[]
   interpretation: ChartInterpretation
+  jaiminiBala?:  import('@/lib/engine/jaimini/bala').JaiminiBalaResult
+  jaiminiTrinity?: import('@/lib/engine/jaimini/trinity').JaiminiTrinity
   kp?: {
     significators: KPSignificatorResult
     cusps:         KPCuspalInterlink[]
