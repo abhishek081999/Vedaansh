@@ -135,6 +135,24 @@ export const NAISARGIKA_KARAKAS: Record<string, GrahaId> = {
   sorrow:       'Sa',
 }
 
+/**
+ * Jaimini Fixed House Significators (Sthira Karakas)
+ */
+export const FIXED_HOUSE_SIGNIFICATORS: Record<number, { planet: GrahaId; label: string }> = {
+  1:  { planet: 'Su', label: 'Sun (Surya)' },
+  2:  { planet: 'Ju', label: 'Jupiter (Guru)' },
+  3:  { planet: 'Ma', label: 'Mars (Mangal)' },
+  4:  { planet: 'Mo', label: 'Moon (Chandra)' },
+  5:  { planet: 'Ju', label: 'Jupiter (Guru)' },
+  6:  { planet: 'Ma', label: 'Mars (Mangal)' },
+  7:  { planet: 'Ve', label: 'Venus (Shukra)' },
+  8:  { planet: 'Sa', label: 'Saturn (Shani)' },
+  9:  { planet: 'Ju', label: 'Jupiter (Guru)' },
+  10: { planet: 'Me', label: 'Mercury (Budha)' },
+  11: { planet: 'Ju', label: 'Jupiter (Guru)' },
+  12: { planet: 'Sa', label: 'Saturn (Shani)' },
+}
+
 // ── Karaka descriptions for UI ────────────────────────────────
 
 export const KARAKA_DESCRIPTIONS: Record<KarakaRole8, string> = {
