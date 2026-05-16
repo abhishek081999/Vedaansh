@@ -1,0 +1,417 @@
+'use client'
+// ─────────────────────────────────────────────────────────────
+//  src/app/chart/[slug]/PublicChartClient.tsx
+//  Client-side interactive part of the public chart page.
+//  Receives pre-calculated data from the server.
+// ─────────────────────────────────────────────────────────────
+
+import { useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import dynamic from 'next/dynamic'
+
+import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
+import { GrahaTable }    from '@/components/ui/GrahaTable'
+import { DashaTree }     from '@/components/dasha/DashaTree'
+import { ShadbalaTable }    from '@/components/ui/ShadbalaTable'
+import { VimsopakaBalaPanel } from '@/components/ui/VimsopakaBalaPanel'
+import { InterpretationPanel } from '@/components/ui/InterpretationPanel'
+import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
+import { ThemeToggle }      from '@/components/ui/ThemeToggle'
+
+const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').then(m => m.BhavaBalaTable), { ssr: false })
+
+import type { ChartOutput, Rashi } from '@/types/astrology'
+import { RASHI_NAMES }      from '@/types/astrology'
+
+// ── Types ─────────────────────────────────────────────────────
+
+interface SavedChart {
+  name:       string
+  birthDate:  string
+  birthTime:  string
+  birthPlace: string
+  latitude:   number
+  longitude:  number
+  timezone:   string
+  settings:   Record<string, unknown>
+  slug:       string
+  createdAt:  string
+}
+
+interface Branding {
+  brandName: string | null
+  brandLogo: string | null
+}
+
+type Tab = 'chart' | 'planets' | 'interpretation' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'bhava-bala' | 'vimsopaka'
+
+const TABS: { id: Tab; label: string; emoji: string }[] = [
+  { id: 'chart',   label: 'Chart',    emoji: '◯' },
+  { id: 'planets', label: 'Planets',  emoji: '✦' },
+  { id: 'interpretation', label: 'Interpretation', emoji: '✧' },
+  { id: 'dasha',   label: 'Daśā',     emoji: '⏳' },
+  { id: 'shadbala',label: 'Ṣaḍbala',  emoji: '⚖' },
+  { id: 'bhava-bala', label: 'Bhāva Bala', emoji: '⌗' },
+  { id: 'vimsopaka',label: 'Viṁśopaka',emoji: '⑳' },
+  { id: 'panchang',label: 'Panchang', emoji: '📅' },
+  { id: 'arudhas', label: 'Āruḍhas',  emoji: '☯' },
+]
+
+// ── Helpers ───────────────────────────────────────────────────
+
+const WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+const MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+function fmtDate(str: string): string {
+  const d = new Date(str + 'T12:00:00Z')
+  return `${WEEKDAYS[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+}
+
+function fmtTime(str: string): string {
+  const [h, m] = str.split(':').map(Number)
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${ampm}`
+}
+
+// ── Arudha Panel ──────────────────────────────────────────────
+
+function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
+  const items = [
+    { key: 'AL',  label: 'Āruḍha Lagna',   desc: 'Image of self' },
+    { key: 'A2',  label: 'Dhana Pada',      desc: 'Wealth' },
+    { key: 'A3',  label: 'Vikrama Pada',    desc: 'Courage' },
+    { key: 'A4',  label: 'Matri Pada',      desc: 'Home & mother' },
+    { key: 'A5',  label: 'Mantra Pada',     desc: 'Intellect' },
+    { key: 'A6',  label: 'Roga Pada',       desc: 'Enemies & debts' },
+    { key: 'A7',  label: 'Dara Pada',       desc: 'Spouse' },
+    { key: 'A8',  label: 'Mrityu Pada',     desc: 'Longevity' },
+    { key: 'A9',  label: 'Pitri Pada',      desc: 'Father & fortune' },
+    { key: 'A10', label: 'Karma Pada',      desc: 'Career' },
+    { key: 'A11', label: 'Labha Pada',      desc: 'Gains' },
+    { key: 'UL',  label: 'Upapada Lagna',   desc: 'Marriage' },
+  ]
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.55rem' }}>
+      {items.map(({ key, label, desc }) => {
+        const dataKey = key === 'UL' ? 'A12' : key
+        const rashi = (arudhas as unknown as Record<string, number>)[dataKey]
+        if (!rashi) return null
+        return (
+          <div key={key} style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '0.6rem 0.9rem',
+            background: key === 'AL' ? 'rgba(201,168,76,0.08)' : 'var(--surface-2)',
+            border: `1px solid ${key === 'AL' ? 'var(--border-bright)' : 'var(--border)'}`,
+            borderRadius: 'var(--r-md)',
+          }}>
+            <div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: key === 'AL' ? 'var(--text-gold)' : 'var(--text-muted)', letterSpacing: '0.06em', fontFamily: 'var(--font-display)' }}>{key}</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>{label}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>{desc}</div>
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-display)', fontSize: '0.95rem', fontWeight: 600,
+              color: key === 'AL' ? 'var(--text-gold)' : 'var(--text-secondary)',
+              textAlign: 'right', minWidth: 60,
+            }}>
+              {RASHI_NAMES[rashi as keyof typeof RASHI_NAMES] ?? rashi}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Main Page ─────────────────────────────────────────────────
+
+export function PublicChartClient({ 
+  chart, 
+  saved, 
+  branding 
+}: { 
+  chart: ChartOutput; 
+  saved: SavedChart; 
+  branding: Branding | null 
+}) {
+  const [tab,     setTab]     = useState<Tab>('chart')
+  const [tabKey,  setTabKey]  = useState(0)
+  const [activeVarga, setActiveVarga] = useState<string>('D1')
+
+  function switchTab(t: Tab) { setTab(t); setTabKey(k => k + 1) }
+
+  const ascRashi: Rashi = chart.lagnas.ascDegree
+    ? ((Math.ceil(((chart.lagnas.ascDegree % 360) + 360) % 360 / 30) || 1) as Rashi)
+    : 1
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
+
+      {/* ── Header ─────────────────────────────────────────── */}
+      <header style={{
+        padding: '0 2rem', height: '3.75rem',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 50,
+        background: 'var(--header-bg)', borderBottom: '1px solid var(--border-soft)',
+      }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
+          {branding?.brandLogo ? (
+            <Image 
+              src={branding.brandLogo} 
+              alt={branding.brandName || 'Brand'} 
+              style={{ height: '1.8rem', width: 'auto' }} 
+              height={28}
+              width={100}
+              unoptimized
+            />
+          ) : (
+            <>
+              <Image src="/veda-icon.png" alt="Vedaansh" width={24} height={24} style={{ objectFit: 'contain' }} />
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-gold)' }}>
+                Vedaansh
+              </span>
+            </>
+          )}
+          {branding?.brandName && !branding?.brandLogo && (
+             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>
+               {branding.brandName}
+             </span>
+          )}
+        </Link>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+            Panchang
+          </Link>
+          <Link href="/?new=true" className="btn btn-primary btn-sm" style={{ fontSize: '0.82rem' }}>
+            + New Chart
+          </Link>
+          <ThemeToggle />
+        </nav>
+      </header>
+
+      <main style={{ flex: 1, maxWidth: 1200, width: '100%', margin: '0 auto', padding: 'clamp(1rem, 3vw, 2rem)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+        {/* Person header */}
+        <div className="fade-up" style={{
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          gap: '1rem', flexWrap: 'wrap',
+          padding: '1.25rem 1.5rem',
+          background: 'var(--surface-1)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--r-lg)',
+        }}>
+          <div>
+            <h1 style={{
+              fontFamily: 'var(--font-display)', fontSize: 'clamp(1.5rem, 4vw, 2.2rem)',
+              fontWeight: 600, color: 'var(--text-primary)',
+              margin: 0, marginBottom: '0.4rem',
+            }}>
+              {saved.name}
+            </h1>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              <span suppressHydrationWarning style={{ fontFamily: 'var(--font-mono)' }}>
+                {fmtDate(saved.birthDate)} · {fmtTime(saved.birthTime.slice(0, 5))}
+              </span>
+              <span>📍 {saved.birthPlace}</span>
+              <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>{saved.timezone}</span>
+            </div>
+          </div>
+
+          {/* Key chart facts */}
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            {[
+              { label: 'Ascendant', value: RASHI_NAMES[ascRashi] },
+              { label: 'Ayanamsha', value: `${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(2)}°` },
+            ].map(({ label, value }) => (
+              <div key={label} style={{
+                padding: '0.5rem 0.85rem',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--r-md)',
+                textAlign: 'center',
+              }}>
+                <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>{label}</div>
+                <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-display)', marginTop: 2 }}>{value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Public badge */}
+        {branding?.brandName ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{
+              padding: '0.2rem 0.65rem',
+              background: 'rgba(201,168,76,0.10)', border: '1px solid rgba(201,168,76,0.30)',
+              borderRadius: 99, fontSize: '0.72rem', fontWeight: 700,
+              letterSpacing: '0.07em', textTransform: 'uppercase',
+              color: 'var(--gold)', fontFamily: 'var(--font-display)',
+            }}>
+              💎 Verified Consultant
+            </span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
+              Prepared for you by <strong>{branding.brandName}</strong>
+            </span>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{
+              padding: '0.2rem 0.65rem',
+              background: 'rgba(78,205,196,0.10)', border: '1px solid rgba(78,205,196,0.30)',
+              borderRadius: 99, fontSize: '0.72rem', fontWeight: 700,
+              letterSpacing: '0.07em', textTransform: 'uppercase',
+              color: 'var(--teal)', fontFamily: 'var(--font-display)',
+            }}>
+              🔗 Public Chart
+            </span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
+              Shared via Vedaansh · Calculate your own chart free
+            </span>
+          </div>
+        )}
+
+        {/* Tab bar */}
+        <div className="tab-bar">
+          {TABS.map(({ id, label, emoji }) => (
+            <button
+              key={id}
+              className={`tab-btn${tab === id ? ' active' : ''}`}
+              onClick={() => switchTab(id)}
+            >
+              <span style={{ marginRight: '0.35rem', opacity: 0.75 }}>{emoji}</span>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab panels */}
+        <div key={tabKey} className="fade-up">
+          {tab === 'chart' && (
+            <VargaSwitcher
+              vargas={chart.vargas}
+              vargaLagnas={chart.vargaLagnas}
+              ascRashi={ascRashi ?? 1}
+              lagnas={chart.lagnas}
+              arudhas={chart.arudhas}
+              userPlan="free"
+              onActiveVargaChange={setActiveVarga}
+              moonNakIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0}
+            />
+          )}
+
+          {tab === 'planets' && (
+            <div className="card">
+              <GrahaTable 
+                grahas={chart.grahas} 
+                vargas={chart.vargas} 
+                vargaLagnas={chart.vargaLagnas}
+                lagnas={chart.lagnas}
+                upagrahas={chart.upagrahas}
+                activeVarga={activeVarga}
+                onVargaChange={setActiveVarga}
+                arudhas={chart.arudhas}
+              />
+            </div>
+          )}
+
+          {tab === 'interpretation' && (
+            <div className="card">
+              <div className="label-caps" style={{ marginBottom: '0.85rem' }}>
+                Interpretation Layer
+              </div>
+              {chart.interpretation ? (
+                <InterpretationPanel interpretation={chart.interpretation} />
+              ) : (
+                <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  Interpretation Layer is unavailable for this chart.
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'arudhas' && (
+            <div className="card">
+              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Bhāva Āruḍhas</div>
+              <ArudhaPanel arudhas={chart.arudhas} />
+            </div>
+          )}
+
+          {tab === 'dasha' && (
+            <div className="card">
+              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Viṁśottarī Daśā</div>
+              <DashaTree
+                nodes={chart.dashas.vimshottari ?? []}
+                birthDate={new Date(chart.meta.birthDate)}
+              />
+            </div>
+          )}
+
+          {tab === 'panchang' && (
+            <div className="card">
+              <div className="label-caps" style={{ marginBottom: '1rem' }}>Natal Panchang</div>
+              <NatalPanchangPanel p={chart.panchang} />
+            </div>
+          )}
+
+          {tab === 'shadbala' && (
+            <div className="card">
+              <div className="label-caps" style={{ marginBottom: '1rem' }}>Ṣaḍbala — Six-fold Strength</div>
+              <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts />
+            </div>
+          )}
+
+          {tab === 'bhava-bala' && (
+            <div className="card">
+              <div className="label-caps" style={{ marginBottom: '1rem' }}>Bhāva Bala — House Strength</div>
+              {chart.bhavaBala ? (
+                <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
+              ) : (
+                <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  Bhava Bala is unavailable for this chart.
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'vimsopaka' && (
+            <div className="card" style={{ padding: '0.1rem' }}>
+              {chart.vimsopaka
+                ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} />
+                : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '1.25rem' }}>Viṁśopaka data unavailable.</div>
+              }
+            </div>
+          )}
+        </div>
+
+        {/* Footer CTA */}
+        <div style={{
+          padding: '1.5rem', textAlign: 'center',
+          background: 'linear-gradient(135deg, rgba(201,168,76,0.06), rgba(139,124,246,0.06))',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--r-lg)',
+        }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
+            Explore your own chart
+          </div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1rem' }}>
+            Free forever — all varga charts, Dasha tree, Āruḍhas & Panchang
+          </div>
+          <Link href="/?new=true" className="btn btn-primary">
+            Calculate My Chart →
+          </Link>
+        </div>
+      </main>
+
+      <footer style={{
+        padding: '1rem 2rem', borderTop: '1px solid var(--border-soft)',
+        textAlign: 'center', color: 'var(--text-muted)',
+        fontFamily: 'var(--font-display)', fontSize: '0.8rem',
+      }}>
+        Powered by <span style={{ color: 'var(--text-gold)' }}>Swiss Ephemeris</span>
+        {' '}· Free forever ·{' '}
+        <Link href="/" style={{ color: 'var(--text-gold)', textDecoration: 'none' }}>Vedaansh</Link>
+      </footer>
+    </div>
+  )
+}

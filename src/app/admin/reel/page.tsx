@@ -3,7 +3,7 @@
 import type { CSSProperties } from 'react'
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import NextImage from 'next/image'
 import { useRouter } from 'next/navigation'
 import { getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { PanchangApiData } from '@/types/reel-panchang'
@@ -218,7 +218,7 @@ function TemplateHeroCard({ st, mode }: { st: SelectedTemplateSnapshot; mode: 's
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Image src="/veda-icon.png" alt="Veda icon" width={18} height={18} style={{ borderRadius: 4 }} />
+              <NextImage src="/veda-icon.png" alt="Veda icon" width={18} height={18} style={{ borderRadius: 4 }} />
               <span style={{ fontSize: 10, color: '#fff', opacity: 0.92, fontWeight: 600 }}>
                 {st.meta.icon} Preview
               </span>
@@ -968,7 +968,7 @@ export default function ReelPage() {
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <Image src="/veda-icon.png" alt="Veda icon" width={16} height={16} style={{ borderRadius: 4 }} />
+                            <NextImage src="/veda-icon.png" alt="Veda icon" width={16} height={16} style={{ borderRadius: 4 }} />
                             <span style={{ fontSize: 10, color: '#fff', opacity: 0.9 }}>{t.icon} {t.label.split(' ')[0]}</span>
                           </div>
                           <div
