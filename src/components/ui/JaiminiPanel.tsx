@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData } from '@/types/astrology'
-import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS } from '@/lib/engine/karakas'
+import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS, FIXED_HOUSE_SIGNIFICATORS } from '@/lib/engine/karakas'
 import { DashaTree } from '@/components/dasha/DashaTree'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X } from 'lucide-react'
@@ -527,7 +527,7 @@ export function JaiminiAspectChartNorth({
 
 function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const { karakas, arudhas, grahas, vargas, lagnas } = chart;
-  const [activeTab, setActiveTab] = useState<'essence' | 'arudhas' | 'dashas'>('essence');
+  const [activeTab, setActiveTab] = useState<'essence' | 'arudhas' | 'dashas' | 'info'>('essence');
   const [selectedAspectSign, setSelectedAspectSign] = useState<Rashi | null>(null);
   const [chartStyle, setChartStyle] = useState<'south' | 'north'>('north');
   const [activeVarga, setActiveVarga] = useState<string>('D1');
@@ -673,10 +673,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   const jaiminiYogas = detectJaiminiYogas();
 
-  const tabs: { id: 'essence' | 'arudhas' | 'dashas'; label: string; icon: string }[] = [
+  const tabs: { id: 'essence' | 'arudhas' | 'dashas' | 'info'; label: string; icon: string }[] = [
     { id: 'essence', label: 'Soul Architecture', icon: '💠' },
     { id: 'arudhas', label: 'Arudha Landscape', icon: '🏔️' },
     { id: 'dashas',  label: 'Timing & Dashas',  icon: '⏳' },
+    { id: 'info',    label: 'Info Reference',   icon: '⚖️' },
   ];
 
   const argalaInterventions = selectedAspectSign ? getArgalaIntervention(selectedAspectSign) : [];
@@ -1191,6 +1192,44 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       </table>
                     </div>
                   )}
+
+                  {/* Fixed Significators Table */}
+                  <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '8px', overflow: 'hidden' }}>
+                    <div style={{ padding: '0.4rem', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', textAlign: 'center', textTransform: 'uppercase' }}>
+                      Fixed Significators (Sthira Karakas)
+                    </div>
+                    <div className="scrollbar-hide" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--border-soft)', background: 'var(--surface-2)' }}>
+                            <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', fontSize: '0.55rem', fontWeight: 900, opacity: 0.5 }}>HOUSE</th>
+                            <th style={{ textAlign: 'right', padding: '0.4rem 0.5rem', fontSize: '0.55rem', fontWeight: 900, opacity: 0.5 }}>SIGNIFICATOR (PLANET)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(FIXED_HOUSE_SIGNIFICATORS).map(([house, data]) => (
+                            <tr key={house} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                              <td style={{ padding: '0.4rem 0.5rem', fontWeight: 800 }}>{house}{house === '1' ? 'st' : house === '2' ? 'nd' : house === '3' ? 'rd' : 'th'} House</td>
+                              <td style={{ padding: '0.4rem 0.5rem', textAlign: 'right', fontWeight: 900, color: 'var(--text-gold)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{data.label}</span>
+                                  <span style={{ 
+                                    fontSize: '0.7rem', 
+                                    fontWeight: 900,
+                                    color: grahaChartFill(data.planet), 
+                                    background: 'var(--surface-3)', 
+                                    padding: '2px 6px', 
+                                    borderRadius: '4px',
+                                    border: `1px solid ${grahaChartFill(data.planet)}20`
+                                  }}>{data.planet}</span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -1339,6 +1378,215 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         </tbody>
                       </table>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'info' && (
+                <div className="scrollbar-hide" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '2rem' }}>
+                  
+                  {/* Header Title for the section */}
+                  <div style={{ textAlign: 'center', padding: '1rem', borderBottom: '1px solid var(--border-soft)', marginBottom: '0.5rem' }}>
+                    <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Planetary Strength (Graha Bala) in Jaimini</h2>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem' }}>
+                    
+                    {/* Planet's Dignity Strength */}
+                    <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
+                      <div style={{ padding: '0.75rem', background: 'rgba(255,215,0,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>
+                        Planet's Dignity → Strength Units
+                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                        <tbody>
+                          {[
+                            { label: 'Exalted (Uchcha)', val: 60 },
+                            { label: 'Moolatrikona', val: 45 },
+                            { label: 'Own Sign (Swakshetra)', val: 30 },
+                            { label: 'Friendly Sign', val: 22.5 },
+                            { label: 'Neutral Sign', val: 15 },
+                            { label: 'Enemy Sign', val: 7.5 },
+                            { label: 'Debilitated', val: 3.75 }
+                          ].map((item, idx) => (
+                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                              <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600 }}>{item.label}</td>
+                              <td style={{ padding: '0.6rem 0.75rem', textAlign: 'right', fontWeight: 900, color: 'var(--text-gold)' }}>{item.val}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Chara Karaka Strength */}
+                    <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
+                      <div style={{ padding: '0.75rem', background: 'rgba(45,212,191,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: 'var(--teal)', textTransform: 'uppercase' }}>
+                        Chara Karaka Strength
+                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                        <tbody>
+                          {[
+                            { label: 'Atma Karaka', val: 60 },
+                            { label: 'Amatya Karaka', val: 45 },
+                            { label: 'Bhratru Karaka', val: 30 },
+                            { label: 'Matru Karaka', val: 22.5 },
+                            { label: 'Putra Karaka', val: 15 },
+                            { label: 'Gnati Karaka', val: 7.5 },
+                            { label: 'Dara Karaka', val: 3.75 }
+                          ].map((item, idx) => (
+                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                              <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600 }}>{item.label}</td>
+                              <td style={{ padding: '0.6rem 0.75rem', textAlign: 'right', fontWeight: 900, color: 'var(--teal)' }}>{item.val}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Sign & House Strength Combined */}
+                    <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
+                      <div style={{ padding: '0.75rem', background: 'rgba(129,140,248,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: '#818cf8', textTransform: 'uppercase' }}>
+                        Sign / Rashi Strength
+                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                        <tbody>
+                          {[
+                            { label: 'Dual (Dvisbhava)', val: '60', desc: 'Highest – adaptability + intelligence' },
+                            { label: 'Fixed (Sthira)', val: '30', desc: 'Stability' },
+                            { label: 'Movable (Chara)', val: '15', desc: 'Dynamic but unstable' }
+                          ].map((item, idx) => (
+                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                              <td style={{ padding: '0.6rem 0.75rem' }}>
+                                <div style={{ fontWeight: 600 }}>{item.label}</div>
+                                <div style={{ fontSize: '0.6rem', opacity: 0.6, fontStyle: 'italic' }}>{item.desc}</div>
+                              </td>
+                              <td style={{ padding: '0.6rem 0.75rem', textAlign: 'right', fontWeight: 900, color: '#818cf8' }}>{item.val}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      
+                      <div style={{ padding: '0.6rem 0.75rem', fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', borderTop: '1px solid var(--border-soft)', background: 'rgba(129,140,248,0.02)' }}>
+                        House Strength (Sthana Bala)
+                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                        <tbody>
+                          {[
+                            { label: 'Kendra (1, 4, 7, 10)', val: 60 },
+                            { label: 'Panapara (2, 5, 8, 11)', val: 30 },
+                            { label: 'Apoklima (3, 6, 9, 12)', val: 15 }
+                          ].map((item, idx) => (
+                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                              <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600 }}>{item.label}</td>
+                              <td style={{ padding: '0.6rem 0.75rem', textAlign: 'right', fontWeight: 900, color: '#818cf8' }}>{item.val}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Occupancy & Aspect Strength Combined */}
+                    <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
+                      <div style={{ padding: '0.75rem', background: 'rgba(239,68,68,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: 'var(--combust)', textTransform: 'uppercase' }}>
+                        Number of Planets → Sthana Bala
+                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                        <tbody>
+                          {[
+                            { label: '1 planet', val: '60 units' },
+                            { label: '2 planets', val: '75 units' },
+                            { label: '3 planets', val: '90 units' },
+                            { label: 'More planets', val: 'Even Higher' }
+                          ].map((item, idx) => (
+                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                              <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600 }}>{item.label}</td>
+                              <td style={{ padding: '0.6rem 0.75rem', textAlign: 'right', fontWeight: 900, color: 'var(--combust)' }}>{item.val}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
+                      <div style={{ padding: '0.6rem 0.75rem', fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', borderTop: '1px solid var(--border-soft)', background: 'rgba(239,68,68,0.02)' }}>
+                        Aspect Strength
+                      </div>
+                      <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {[
+                          { label: 'Jupiter aspects a sign', val: '+60 units' },
+                          { label: 'Mercury aspects a sign', val: '+60 units' },
+                          { label: 'Sign Lord aspects', val: '+60 units' }
+                        ].map((item, idx) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                            <span style={{ fontWeight: 600 }}>{item.label}</span>
+                            <span style={{ fontWeight: 900, color: 'var(--combust)' }}>{item.val}</span>
+                          </div>
+                        ))}
+                        <div style={{ 
+                          marginTop: '0.4rem', padding: '0.5rem', borderRadius: '6px', background: 'rgba(239,68,68,0.1)', 
+                          border: '1px dashed var(--combust)', textAlign: 'center' 
+                        }}>
+                          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--combust)', textTransform: 'uppercase' }}>Maximum Synergy</div>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--text-primary)' }}>180 units (All three together)</div>
+                          <div style={{ fontSize: '0.55rem', fontWeight: 700, color: 'var(--combust)', marginTop: '2px' }}>VERY POWERFUL</div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Bonus Strength Logic Section */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem' }}>
+                    
+                    {/* Odd Sign Logic */}
+                    <div className="card-glass" style={{ padding: '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', top: 0, right: 0, padding: '1rem', opacity: 0.05, fontSize: '3rem' }}>⚡</div>
+                      <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Odd Sign (Vishama Rashi)
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div style={{ fontSize: '0.75rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
+                          If an <strong style={{ color: 'var(--gold)' }}>odd sign's lord</strong> is connected with a malefic, it gains <strong style={{ color: 'var(--gold)' }}>Extra Strength</strong>.
+                        </div>
+                        <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'rgba(201,168,76,0.05)', borderLeft: '3px solid var(--gold)' }}>
+                          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', marginBottom: '0.2rem', textTransform: 'uppercase' }}>Reason</div>
+                          <div style={{ fontSize: '0.7rem', fontStyle: 'italic', color: 'var(--text-secondary)' }}>
+                            Odd sign activates energy; malefic triggers action → Creates <strong style={{ color: 'var(--text-primary)' }}>strength through struggle</strong>.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Kartari Logic */}
+                    <div className="card-glass" style={{ padding: '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', top: 0, right: 0, padding: '1rem', opacity: 0.05, fontSize: '3rem' }}>✂️</div>
+                      <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: 900, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Kartari (Scissors Yoga)
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ fontSize: '0.75rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
+                          Planet is <strong style={{ color: 'var(--teal)' }}>hemmed in</strong> between planets in 2nd and 12th from it.
+                        </div>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--teal-faint)', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--teal-soft)' }}>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800 }}>Odd Sign + Kartari</span>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--teal)' }}>+60 Bonus Points</span>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                          <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid var(--border-soft)' }}>
+                            <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--teal)', marginBottom: '0.2rem' }}>POSITIVE</div>
+                            <div style={{ fontSize: '0.65rem' }}>Growth under pressure</div>
+                          </div>
+                          <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid var(--border-soft)' }}>
+                            <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--combust)', marginBottom: '0.2rem' }}>NEGATIVE</div>
+                            <div style={{ fontSize: '0.65rem' }}>Struggle and stress</div>
+                          </div>
+                        </div>
+                        
+                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', fontStyle: 'italic' }}>
+                          Kartari shows what kind of <strong style={{ color: 'var(--text-primary)' }}>pressure</strong> you face.
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               )}

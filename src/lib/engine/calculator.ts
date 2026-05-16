@@ -520,9 +520,7 @@ export async function calculateChart(
       ashtottari: (plan === 'gold' || plan === 'platinum') 
         ? calcAshtottari(moon.lonSidereal, birthUtc, dashaDepth) 
         : [],
-      chara: (plan === 'gold' || plan === 'platinum') 
-        ? calcCharaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)) 
-        : [],
+      chara: calcCharaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
       narayana: [], tithi_ashtottari: [], naisargika: [],
     },
     panchang: {
