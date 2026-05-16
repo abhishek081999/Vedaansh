@@ -661,7 +661,7 @@ export default function MyChartsPage() {
           </button>
           <BulkImport onImportComplete={() => fetchCharts(page)} />
           <div style={{ flex: 1 }} />
-          <Link href="/" className="btn btn-primary" style={{ height: '40px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: 800, borderRadius: 'var(--r-md)' }}>
+          <Link href="/?new=true" className="btn btn-primary" style={{ height: '40px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: 800, borderRadius: 'var(--r-md)' }}>
             + NEW CHART
           </Link>
         </div>
@@ -742,7 +742,7 @@ export default function MyChartsPage() {
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
             {(search || filterGender !== 'all' || filterStartDate || filterEndDate) ? 'No charts match your search filters' : 'No saved charts yet'}
           </p>
-          <Link href="/" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
+          <Link href="/?new=true" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
             Calculate a Chart
           </Link>
         </div>

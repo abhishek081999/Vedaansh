@@ -719,12 +719,12 @@ function HomeContent() {
 
   // 2. Open form if 'new=true' is in URL
   useEffect(() => {
-    if (searchParams.get('new') === 'true' && !isFormOpen && !chart) {
+    if (searchParams.get('new') === 'true' && !isFormOpen) {
       setIsFormOpen(true)
       setChart(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, setChart, setIsFormOpen, chart]) 
+  }, [searchParams, setIsFormOpen, setChart]) 
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
@@ -2595,7 +2595,7 @@ function HomeContent() {
                 Optimization: Render BirthForm immediately if query params are present (from "My Charts" or deep links).
                 Don't wait for the background user/me fetch to finish.
             */}
-            {(status === 'unauthenticated' || !fetchingDefault || !!searchParams.get('name')) && (
+            {(status === 'unauthenticated' || !fetchingDefault || !!searchParams.get('name') || !!searchParams.get('new')) && (
               <BirthForm
                 onResult={(data) => { 
                   setChart(data);
