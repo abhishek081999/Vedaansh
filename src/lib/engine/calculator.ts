@@ -7,6 +7,8 @@
 
 import { calculateVimsopaka } from './vimsopaka'
 import { calculateShadbala } from './shadbala'
+import { calculateJaiminiBala } from './jaimini/bala'
+import { calculateJaiminiTrinity } from './jaimini/trinity'
 import type { ShadbalaResult } from '@/types/astrology'
 import { getSunriseSunset } from './sunrise'
 import {
@@ -261,7 +263,7 @@ export async function calculateChart(
   // Karakas — stamp roles onto grahas
   const karakas = calcCharaKarakas(
     grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
-    settings.karakaScheme,
+    7, // Forced 7-karaka scheme as per Jaimini standards
   )
   for (const g of grahas) {
     g.charaKaraka = karakas.roleOf[g.id] ?? null
@@ -284,9 +286,9 @@ export async function calculateChart(
 
   // ── Special Lagnas (computed once, reused in lagnas + shadbala) ──────────
   const hoursFromSunrise = (birthUtc.getTime() - sunrise.getTime()) / 3600000
-  const horaLagnaVal  = ((sun.totalDegree + hoursFromSunrise * 60)  % 360 + 360) % 360
-  const ghatiLagnaVal = ((sun.totalDegree + hoursFromSunrise * 150) % 360 + 360) % 360
-  const bhavaLagnaVal = ((sun.totalDegree + hoursFromSunrise * 30)  % 360 + 360) % 360
+  const horaLagnaVal  = ((sun.totalDegree + hoursFromSunrise * 30)  % 360 + 360) % 360
+  const ghatiLagnaVal = ((sun.totalDegree + hoursFromSunrise * 75) % 360 + 360) % 360
+  const bhavaLagnaVal = ((sun.totalDegree + hoursFromSunrise * 15)  % 360 + 360) % 360
 
   // Pranapada (BPHS): Sun + (ghatis from sunrise × 30°/ghati)
   const ghatiFromSunrise = hoursFromSunrise * 2.5  // 1 hr = 2.5 ghatis
@@ -296,11 +298,30 @@ export async function calculateChart(
   const moonNavamshaIdx = Math.floor((moon.totalDegree % 30) / (30 / 9)) // 0-8
   const sriLagnaVal = ((houses.ascendantSidereal + moonNavamshaIdx * 30) % 360 + 360) % 360
 
-  // Varnada Lagna (BPHS): based on Asc sign parity + Hora Lagna sign
-  const hlSign = Math.floor(horaLagnaVal / 30) + 1 // 1-12
-  const varnadaVal = houses.ascRashi % 2 === 1
-    ? ((((houses.ascRashi - 1 + hlSign - 1) % 12) * 30 + 15) % 360 + 360) % 360
-    : (((((houses.ascRashi - 1 - (hlSign - 1)) % 12 + 12) % 12) * 30 + 15) % 360 + 360) % 360
+  // Varnada Lagna (BPHS): Precise Parasari method
+  const hlSign = Math.floor(horaLagnaVal / 30) + 1
+  const l1 = houses.ascRashi
+  const h1 = hlSign
+  
+  // Step 1 & 2: Counts (Odd: from Aries, Even: from Pisces reverse)
+  const c1 = l1 % 2 !== 0 ? l1 : (13 - l1)
+  const c2 = h1 % 2 !== 0 ? h1 : (13 - h1)
+  
+  // Step 3: Add/Subtract based on parity match
+  // Rule: Same parity (both odd or both even signs) -> ADD. Different -> SUBTRACT.
+  let v = (l1 % 2 === h1 % 2) ? (c1 + c2) : (c1 - c2)
+  
+  // Step 4: Normalize 1-12
+  v = ((v - 1) % 12 + 12) % 12 + 1
+  
+  // Step 5: Resultant Sign
+  // If Lagna is odd: Count forward from Aries
+  // If Lagna is even: Count forward from Pisces
+  const varnadaSign = l1 % 2 !== 0 
+    ? v 
+    : (((12 + (v - 1) - 1) % 12) + 1)
+  
+  const varnadaVal = ((varnadaSign - 1) * 30 + 15) // Sign midpoint
 
   const lagnaData = {
     ascDegree:        houses.ascendantSidereal,
@@ -577,6 +598,8 @@ export async function calculateChart(
       cusps:         calculateKPCusps(houses),
       rulingPlanets: calculateRulingPlanets(jd, input.latitude, input.longitude, ayanamshaVal)
     },
+    jaiminiBala: calculateJaiminiBala({ grahas, karakas, lagnas: lagnaData }),
+    jaiminiTrinity: calculateJaiminiTrinity({ grahas, karakas, lagnas: lagnaData }),
     interpretation,
   }
 }

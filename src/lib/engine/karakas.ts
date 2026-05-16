@@ -52,6 +52,7 @@ export interface CharaKarakaResult {
   PiK: GrahaId | null   // Only in 8-karaka scheme
   // Reverse map: graha → its karaka role
   roleOf: Record<GrahaId, string | null>
+  [key: string]: any;
 }
 
 // ── Main calculator ───────────────────────────────────────────

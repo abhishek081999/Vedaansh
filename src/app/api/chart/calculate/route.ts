@@ -90,7 +90,10 @@ function hasAdvancedFeatures(chartData: any): boolean {
   // Check for Upagrahas and Beeja/Kshetra Sphuta
   const hasUpagrahas = !!chartData.upagrahas && Object.keys(chartData.upagrahas).length >= 7
 
-  return hasGrahaFeatures && hasYogiPoint && hasInterpretation && hasBhavaBala && hasVargaAdvanced && hasUpagrahas
+  // Check for Jaimini Intelligence (Bala and Trinity) - Version 2
+  const hasJaimini = !!chartData.jaiminiBala && !!chartData.jaiminiTrinity && chartData.jaiminiBala.version === 2
+
+  return hasGrahaFeatures && hasYogiPoint && hasInterpretation && hasBhavaBala && hasVargaAdvanced && hasUpagrahas && hasJaimini
 }
 
 // ── Timezone conversion ───────────────────────────────────────
