@@ -1395,7 +1395,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* Planet's Dignity Strength */}
                     <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
                       <div style={{ padding: '0.75rem', background: 'rgba(255,215,0,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>
-                        Planet's Dignity → Strength Units
+                        Planet&apos;s Dignity → Strength Units
                       </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                         <tbody>
@@ -1543,7 +1543,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       </h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         <div style={{ fontSize: '0.75rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
-                          If an <strong style={{ color: 'var(--gold)' }}>odd sign's lord</strong> is connected with a malefic, it gains <strong style={{ color: 'var(--gold)' }}>Extra Strength</strong>.
+                          If an <strong style={{ color: 'var(--gold)' }}>odd sign&apos;s lord</strong> is connected with a malefic, it gains <strong style={{ color: 'var(--gold)' }}>Extra Strength</strong>.
                         </div>
                         <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'rgba(201,168,76,0.05)', borderLeft: '3px solid var(--gold)' }}>
                           <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', marginBottom: '0.2rem', textTransform: 'uppercase' }}>Reason</div>
