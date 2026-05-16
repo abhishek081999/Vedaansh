@@ -24,6 +24,8 @@ import { GRAHA_NAMES, RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
 import type { GrahaId, AyanamshaMode } from '@/types/astrology'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 
 const GRAHAS_TO_CALC: Array<Exclude<GrahaId, 'Ke' | 'Ur' | 'Ne' | 'Pl'>> = [
   'Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra',
