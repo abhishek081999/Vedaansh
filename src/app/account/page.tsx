@@ -288,7 +288,7 @@ function AccountContent() {
   const quickLinks = useMemo(() => {
     const items: Array<{ href?: string; icon: string; label: string; sub: string }> = [
       { href: '/my/charts', icon: '📂', label: 'My Charts', sub: 'Saved library' },
-      { href: '/', icon: '✦', label: 'New chart', sub: 'Home calculator' },
+      { href: '/?new=true', icon: '✦', label: 'New chart', sub: 'Home calculator' },
       { href: '/panchang', icon: '📅', label: 'Panchang', sub: 'Daily calendar' },
       { href: '/muhurta', icon: '⏱', label: 'Muhūrta', sub: 'Good timings' },
     ]

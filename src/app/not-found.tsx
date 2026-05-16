@@ -50,7 +50,7 @@ export default function NotFound() {
       </div>
 
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '0.5rem' }}>
-        <Link href="/" style={{
+        <Link href="/?new=true" style={{
           padding: '0.6rem 1.5rem',
           background: 'var(--gold, #c9a84c)',
           color: 'var(--text-on-gold, #0e0e18)',

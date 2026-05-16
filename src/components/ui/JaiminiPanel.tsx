@@ -46,68 +46,68 @@ function JaiminiSnapshot({ chart, isTinyMobile }: { chart: ChartOutput, isTinyMo
 
   return (
     <div className="card-glass scrollbar-hide" style={{ 
-      padding: '0.6rem 1rem', 
+      padding: '0.5rem 0.75rem', 
       borderRadius: 'var(--r-lg)', 
       background: 'var(--surface-1)', 
       border: '1px solid var(--border-soft)',
       boxShadow: 'var(--shadow-card)',
-      marginBottom: '1rem',
+      marginBottom: '0.75rem',
       fontSize: '0.7rem',
       display: 'flex',
       alignItems: 'center',
-      gap: '0.75rem',
+      gap: isTinyMobile ? '0.5rem' : '0.75rem',
       flexWrap: 'nowrap',
       overflowX: 'auto',
       WebkitOverflowScrolling: 'touch',
       whiteSpace: 'nowrap',
       color: 'var(--text-muted)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-        <span style={{ fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.65rem' }}>Snapshot</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+        <span style={{ fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.6rem' }}>Snapshot</span>
       </div>
       
-      <div style={{ width: '1px', height: '1.2rem', background: 'var(--border-soft)', flexShrink: 0 }} />
+      <div style={{ width: '1px', height: '1rem', background: 'var(--border-soft)', flexShrink: 0 }} />
       
-      <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: '0.3rem' }}>NAME <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{meta.name}</span></div>
-        {!isTinyMobile && <div style={{ display: 'flex', gap: '0.3rem' }}>DOB <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{meta.birthDate}</span></div>}
+      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '0.2rem' }}>NAME <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{meta.name}</span></div>
+        {!isTinyMobile && <div style={{ display: 'flex', gap: '0.2rem' }}>DOB <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{meta.birthDate}</span></div>}
       </div>
 
-      <div style={{ width: '1px', height: '1.2rem', background: 'var(--border-soft)', flexShrink: 0 }} />
+      <div style={{ width: '1px', height: '1rem', background: 'var(--border-soft)', flexShrink: 0 }} />
 
-      <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: '0.3rem' }}>LAGNA <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{RASHI_SHORT[lagnas.ascRashi]}</span></div>
-        <div style={{ display: 'flex', gap: '0.3rem' }}>
+      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '0.2rem' }}>LAGNA <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{RASHI_SHORT[lagnas.ascRashi]}</span></div>
+        <div style={{ display: 'flex', gap: '0.2rem' }}>
           AK <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>
             {GRAHA_NAMES[akId as GrahaId]}
-            {chart.grahas.find(g => g.id === akId)?.isRetro && <span style={{ color: 'var(--dig-retro)', marginLeft: '2px', fontSize: '0.6rem' }}>(R)</span>}
+            {chart.grahas.find(g => g.id === akId)?.isRetro && <span style={{ color: 'var(--dig-retro)', marginLeft: '1px', fontSize: '0.55rem' }}>(R)</span>}
           </span>
         </div>
-        <div style={{ display: 'flex', gap: '0.3rem' }}>SWANSHA <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{karakansha ? RASHI_SHORT[karakansha] : '-'}</span></div>
+        <div style={{ display: 'flex', gap: '0.2rem' }}>SWANSHA <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{karakansha ? RASHI_SHORT[karakansha] : '-'}</span></div>
       </div>
 
-      <div style={{ width: '1px', height: '1.2rem', background: 'var(--border-soft)', flexShrink: 0 }} />
+      <div style={{ width: '1px', height: '1rem', background: 'var(--border-soft)', flexShrink: 0 }} />
 
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
         {karakaPairs.slice(1).map(k => {
           const isRetro = chart.grahas.find(g => g.id === k.val)?.isRetro;
           return (
-            <div key={k.id} style={{ display: 'flex', gap: '0.2rem', fontSize: '0.65rem' }}>
+            <div key={k.id} style={{ display: 'flex', gap: '0.15rem', fontSize: '0.6rem' }}>
               <span>{k.id}</span>
               <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
                 {k.val}
-                {isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.55rem' }}>ᴿ</span>}
+                {isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.5rem' }}>ᴿ</span>}
               </span>
             </div>
           );
         })}
       </div>
 
-      <div style={{ width: '1px', height: '1.2rem', background: 'var(--border-soft)', flexShrink: 0 }} />
+      <div style={{ width: '1px', height: '1rem', background: 'var(--border-soft)', flexShrink: 0 }} />
 
-      <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: '0.3rem' }}>AL <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{RASHI_SHORT[arudhas.AL]}</span></div>
-        <div style={{ display: 'flex', gap: '0.3rem' }}>UL <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{RASHI_SHORT[arudhas.A12]}</span></div>
+      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '0.2rem' }}>AL <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{RASHI_SHORT[arudhas.AL]}</span></div>
+        <div style={{ display: 'flex', gap: '0.2rem' }}>UL <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{RASHI_SHORT[arudhas.A12]}</span></div>
       </div>
     </div>
   )
@@ -684,11 +684,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   return (
     <div className="fade-up" style={{ 
-      display: 'flex', flexDirection: 'column', gap: '1rem', 
-      padding: isTinyMobile ? '0.5rem' : isMobile ? '0.75rem' : '1.25rem', 
-      background: 'var(--surface-2)',
+      display: 'flex', flexDirection: 'column', gap: isTinyMobile ? '0.75rem' : '1rem', 
+      padding: isTinyMobile ? '0.25rem' : isMobile ? '0.75rem' : '1.25rem', 
+      background: isTinyMobile ? 'transparent' : 'var(--surface-2)',
       borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)',
-      border: '1px solid var(--border-soft)',
+      border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
       color: 'var(--text-primary)',
       minWidth: 0
     }}>
@@ -704,41 +704,50 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
         
         {/* LEFT COLUMN: Hero Visualization (HUD) */}
         <section className="card-glass" style={{ 
-          padding: isTinyMobile ? '0.75rem' : isMobile ? '1rem' : '1.5rem', 
+          padding: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.5rem', 
           borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)', 
           background: 'var(--surface-1)', 
-          border: '1px solid var(--border-soft)',
-          boxShadow: 'var(--shadow-card)',
+          border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
+          boxShadow: isTinyMobile ? 'none' : 'var(--shadow-card)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1rem',
+          gap: isTinyMobile ? '0.75rem' : '1rem',
           minWidth: 0
         }}>
-          <div style={{ display: 'flex', flexDirection: isTinyMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isTinyMobile ? 'stretch' : 'flex-start', gap: '0.75rem' }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isTinyMobile ? '1.1rem' : isMobile ? '1.2rem' : '1.5rem', fontWeight: 800, color: 'var(--text-gold)' }}>
-                  Jaimini
-                </h1>
-                {isTinyMobile && (
-                  <button
-                    onClick={() => setChartStyle(s => s === 'south' ? 'north' : 'south')}
-                    style={{
-                      width: 28, height: 28, borderRadius: '4px', background: 'var(--surface-3)',
-                      color: 'var(--gold)', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem'
-                    }}
-                  >
-                    {chartStyle === 'south' ? 'S' : 'N'}
-                  </button>
-                )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isTinyMobile ? '1.1rem' : isMobile ? '1.2rem' : '1.5rem', fontWeight: 800, color: 'var(--text-gold)' }}>
+                Jaimini
+              </h1>
+              <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                <button
+                  onClick={() => setChartStyle(s => s === 'south' ? 'north' : 'south')}
+                  style={{
+                    width: 28, height: 28, borderRadius: '4px', background: 'var(--surface-3)',
+                    color: 'var(--gold)', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem'
+                  }}
+                >
+                  {chartStyle === 'south' ? 'S' : 'N'}
+                </button>
               </div>
-              <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.35rem', marginTop: '0.25rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            </div>
+
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: isTinyMobile ? 'column' : 'row', 
+              gap: '0.75rem', 
+              alignItems: isTinyMobile ? 'stretch' : 'center',
+              justifyContent: 'space-between'
+            }}>
+              {/* Viz Mode Controls */}
+              <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 {['drishti', 'argala', 'both'].map(m => (
                   <button
                     key={m}
                     onClick={() => setVizMode(m as any)}
                     style={{
-                      padding: '2px 6px', fontSize: '0.6rem', fontWeight: 900, borderRadius: '4px',
+                      flex: isTinyMobile ? 1 : 'none',
+                      padding: '4px 8px', fontSize: '0.6rem', fontWeight: 900, borderRadius: '4px',
                       background: vizMode === m ? 'var(--gold-faint)' : 'var(--surface-3)',
                       color: vizMode === m ? 'var(--gold)' : 'var(--text-muted)',
                       border: `1px solid ${vizMode === m ? 'var(--gold-soft)' : 'transparent'}`,
@@ -749,10 +758,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   </button>
                 ))}
               </div>
-            </div>
 
-            <div style={{ display: 'flex', gap: '0.35rem', justifyContent: isTinyMobile ? 'space-between' : 'flex-end', alignItems: 'center' }}>
-              <div style={{ display: 'flex', gap: '0.35rem' }}>
+              {/* Varga Controls */}
+              <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 {['D1', 'D9', 'D10', 'D60'].map(v => (
                   <button
                     key={v}
@@ -768,59 +776,56 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   </button>
                 ))}
               </div>
-              {!isTinyMobile && (
-                <>
-                  <div style={{ width: '1px', background: 'var(--border-soft)', height: '1.5rem', margin: '0 0.25rem' }} />
-                  <button
-                    onClick={() => setChartStyle(s => s === 'south' ? 'north' : 'south')}
-                    style={{
-                      width: 28, height: 28, borderRadius: '4px', background: 'var(--surface-3)',
-                      color: 'var(--gold)', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem'
-                    }}
-                  >
-                    {chartStyle === 'south' ? 'S' : 'N'}
-                  </button>
-                </>
-              )}
             </div>
-          </div>
 
-          {/* ── Visual Scale Controls — COMPACT main view ── */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap', rowGap: '0.5rem' }}>
-             <button
+            {/* Reference & Settings Row */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '0.5rem', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              padding: isTinyMobile ? '0.2rem' : '0.4rem',
+              background: isTinyMobile ? 'transparent' : 'var(--surface-2)',
+              borderRadius: '8px',
+              border: isTinyMobile ? 'none' : '1px solid var(--border-soft)'
+            }}>
+              <button
                 onClick={() => setShowSettings(s => !s)}
-                className="btn-secondary"
                 style={{ 
-                  padding: isTinyMobile ? '2px 8px' : '4px 10px', 
+                  padding: '4px 10px', 
                   fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem', 
                   borderRadius: '6px', fontWeight: 800,
                   background: showSettings ? 'var(--gold-faint)' : 'var(--surface-3)',
                   color: showSettings ? 'var(--gold)' : 'var(--text-primary)',
-                  border: showSettings ? '1px solid var(--gold-soft)' : '1px solid var(--border-soft)'
+                  border: showSettings ? '1px solid var(--gold-soft)' : '1px solid var(--border-soft)',
+                  cursor: 'pointer'
                 }}
               >
-                <Settings size={isTinyMobile ? 12 : 14} />
+                <Settings size={14} />
                 {isTinyMobile ? 'SET' : 'SETTINGS'}
               </button>
-              <div style={{ width: '1px', background: 'var(--border-soft)', margin: '0 0.15rem' }} />
-              <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <div style={{ width: '1px', background: 'var(--border-soft)', height: '1.2rem' }} />
+              <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 {['natal', 'AL', 'KL', 'dasha', 'house'].map(ref => (
                   <button
                     key={ref}
                     onClick={() => setActiveLagnaRef(ref as any)}
                     style={{
-                      padding: isTinyMobile ? '2px 5px' : '4px 8px', 
+                      padding: '4px 8px', 
                       fontSize: '0.6rem', fontWeight: 900, borderRadius: '4px',
                       background: activeLagnaRef === ref ? 'var(--gold-faint)' : 'var(--surface-3)',
                       color: activeLagnaRef === ref ? 'var(--gold)' : 'var(--text-muted)',
                       border: activeLagnaRef === ref ? '1px solid var(--gold-soft)' : '1px solid transparent',
-                      cursor: 'pointer', textTransform: 'uppercase'
+                      cursor: 'pointer', textTransform: 'uppercase',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {ref === 'house' ? `H${rotationHouse}` : ref}
                   </button>
                 ))}
               </div>
+            </div>
           </div>
 
           <AnimatePresence>
@@ -831,13 +836,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                 exit={{ height: 0, opacity: 0 }}
                 style={{ overflow: 'hidden', marginBottom: '1rem' }}
               >
-                <div
-                  className="card-glass"
-                  style={{
-                    padding: '1.25rem', borderRadius: 'var(--r-lg)', background: 'var(--surface-1)',
-                    border: '1px solid var(--gold-soft)', display: 'flex', flexDirection: 'column', gap: '1.25rem'
-                  }}
-                >
+                  <div
+                    className="card-glass"
+                    style={{
+                      padding: isTinyMobile ? '0.75rem' : '1.25rem', borderRadius: 'var(--r-lg)', background: 'var(--surface-1)',
+                      border: isTinyMobile ? 'none' : '1px solid var(--gold-soft)', display: 'flex', flexDirection: 'column', gap: isTinyMobile ? '0.75rem' : '1.25rem'
+                    }}
+                  >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                       <Settings size={18} style={{ color: 'var(--gold)' }} />
@@ -1049,11 +1054,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
         {/* RIGHT COLUMN: Data Command Center */}
         <section className="card-glass" style={{ 
-          padding: isMobile ? '1rem' : '1.25rem', 
+          padding: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.25rem', 
           borderRadius: 'var(--r-xl)', 
           background: 'var(--surface-1)', 
-          border: '1px solid var(--border-soft)',
-          boxShadow: 'var(--shadow-card)',
+          border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
+          boxShadow: isTinyMobile ? 'none' : 'var(--shadow-card)',
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem'
@@ -1116,13 +1121,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
                   {/* High-Tech Micro-Details Table */}
                   <div style={{ overflowX: 'auto', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '8px' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isTinyMobile ? '0.65rem' : '0.75rem' }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-soft)', background: 'var(--surface-2)' }}>
                           <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>BODY</th>
-                          <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>DEG &apos; &quot;</th>
-                          <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>NAKSHATRA</th>
-                          <th style={{ textAlign: 'right', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>RASHI·D9</th>
+                          {!isTinyMobile && <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>DEG &apos; &quot;</th>}
+                          <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>{isTinyMobile ? 'NK' : 'NAKSHATRA'}</th>
+                          <th style={{ textAlign: 'right', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>{isTinyMobile ? 'R·D9' : 'RASHI·D9'}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1154,11 +1159,15 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                     {g.isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.6rem', fontWeight: 900 }}>ᴿ</span>}
                                   </div>
                                   {ck && <span style={{ fontSize: '0.55rem', fontWeight: 900, background: 'var(--surface-3)', padding: '1px 3px', borderRadius: '3px', opacity: 0.7 }}>{ck}</span>}
-                                  {g.isCombust && <span style={{ fontSize: '0.55rem', fontWeight: 900, border: '1px solid var(--combust)', color: 'var(--combust)', padding: '0px 2px', borderRadius: '3px' }}>C</span>}
-                                  {g.pushkara?.isPushkara && <span style={{ fontSize: '0.55rem', fontWeight: 900, border: '1px solid var(--teal)', color: 'var(--teal)', padding: '0px 2px', borderRadius: '3px' }}>P</span>}
+                                  {!isTinyMobile && (
+                                    <>
+                                      {g.isCombust && <span style={{ fontSize: '0.55rem', fontWeight: 900, border: '1px solid var(--combust)', color: 'var(--combust)', padding: '0px 2px', borderRadius: '3px' }}>C</span>}
+                                      {g.pushkara?.isPushkara && <span style={{ fontSize: '0.55rem', fontWeight: 900, border: '1px solid var(--teal)', color: 'var(--teal)', padding: '0px 2px', borderRadius: '3px' }}>P</span>}
+                                    </>
+                                  )}
                                 </div>
                               </td>
-                              <td style={{ padding: '0.4rem 0.5rem', fontFamily: 'monospace', fontWeight: 700 }}>{formatDMS(g.degree)}</td>
+                              {!isTinyMobile && <td style={{ padding: '0.4rem 0.5rem', fontFamily: 'monospace', fontWeight: 700 }}>{formatDMS(g.degree)}</td>}
                               <td style={{ padding: '0.4rem 0.5rem' }}>
                                 <div style={{ fontWeight: 800 }}>{g.nakshatraName} <span style={{ opacity: 0.5, fontWeight: 400 }}>({g.pada})</span></div>
                                 <div style={{ fontSize: '0.55rem', fontWeight: 900, color: taraColor, letterSpacing: '0.05em' }}>{tara}</div>
@@ -1251,7 +1260,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem'
                           }}>
                             <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)' }}>{key}</div>
-                            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--gold)' }}>{rashi ? RASHI_SHORT[rashi as Rashi] : '-'}</div>
+                            <div style={{ fontSize: isTinyMobile ? '0.9rem' : '1.1rem', fontWeight: 900, color: 'var(--gold)' }}>{rashi ? RASHI_SHORT[rashi as Rashi] : '-'}</div>
                             {!isTinyMobile && <div style={{ fontSize: '0.55rem', opacity: 0.6, textAlign: 'center' }}>{info.label}</div>}
                           </div>
                         )
@@ -1395,7 +1404,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     {/* Planet's Dignity Strength */}
                     <div className="card-glass" style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
                       <div style={{ padding: '0.75rem', background: 'rgba(255,215,0,0.05)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.7rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>
-                        Planet's Dignity → Strength Units
+                        Planet&apos;s Dignity → Strength Units
                       </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                         <tbody>
@@ -1543,7 +1552,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       </h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         <div style={{ fontSize: '0.75rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
-                          If an <strong style={{ color: 'var(--gold)' }}>odd sign's lord</strong> is connected with a malefic, it gains <strong style={{ color: 'var(--gold)' }}>Extra Strength</strong>.
+                          If an <strong style={{ color: 'var(--gold)' }}>odd sign&apos;s lord</strong> is connected with a malefic, it gains <strong style={{ color: 'var(--gold)' }}>Extra Strength</strong>.
                         </div>
                         <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'rgba(201,168,76,0.05)', borderLeft: '3px solid var(--gold)' }}>
                           <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', marginBottom: '0.2rem', textTransform: 'uppercase' }}>Reason</div>

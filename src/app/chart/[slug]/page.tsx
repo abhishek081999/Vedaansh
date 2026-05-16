@@ -227,7 +227,7 @@ export default function PublicChartPage() {
           <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
             Panchang
           </Link>
-          <Link href="/" className="btn btn-primary btn-sm" style={{ fontSize: '0.82rem' }}>
+          <Link href="/?new=true" className="btn btn-primary btn-sm" style={{ fontSize: '0.82rem' }}>
             + New Chart
           </Link>
           <ThemeToggle />
@@ -258,7 +258,7 @@ export default function PublicChartPage() {
             <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1.5rem' }}>
               This chart is private or the link has expired.
             </p>
-            <Link href="/" className="btn btn-primary">Calculate a Chart</Link>
+            <Link href="/?new=true" className="btn btn-primary">Calculate a Chart</Link>
           </div>
         )}
 
@@ -470,7 +470,7 @@ export default function PublicChartPage() {
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1rem' }}>
                 Free forever — all varga charts, Dasha tree, Āruḍhas & Panchang
               </div>
-              <Link href="/" className="btn btn-primary">
+              <Link href="/?new=true" className="btn btn-primary">
                 Calculate My Chart →
               </Link>
             </div>
