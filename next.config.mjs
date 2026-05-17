@@ -38,6 +38,7 @@ const nextConfig = {
 
   experimental: {
     serverComponentsExternalPackages: ['sweph'],
+    isrMemoryCacheSize: 0,
   },
   transpilePackages: ['next-auth', 'remotion', '@remotion/player'],
 
