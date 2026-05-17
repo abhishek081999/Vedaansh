@@ -42,6 +42,11 @@ const pendingTzLookups = new Map<string, Promise<string>>();
  * Results cached in Redis for 7 days.
  */
 async function fetchTimezone(lat: number, lng: number): Promise<string> {
+  // Validate coordinates to prevent 400 Bad Requests on absurd fallback data
+  if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return 'UTC'
+  }
+
   // Pre-emptive check for India/Nepal (95% of use cases)
   const isNepal = (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
   const isIndia = !isNepal && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
@@ -192,6 +197,10 @@ export async function GET(req: NextRequest) {
     try {
       const lat = parseFloat(latParam)
       const lng = parseFloat(lngParam)
+      
+      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return NextResponse.json({ error: 'Invalid coordinates' }, { status: 400 })
+      }
       const roundedLat = lat.toFixed(2)
       const roundedLng = lng.toFixed(2)
       const reverseCacheKey = `atlas:reverse:${roundedLat},${roundedLng}`
@@ -209,6 +218,10 @@ export async function GET(req: NextRequest) {
         next: { revalidate: 604800 }
       })
       
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(`BigDataCloud API error ${res.status}: ${text.slice(0, 100)}`)
+      }
       const data = await res.json()
 
       const result: LocationResult = {
@@ -252,13 +265,39 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Fetch from Photon (OpenStreetMap based)
-    // We prioritize limiting search results to keep the TZ lookup overhead low
-    const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10`
-    const photonRes = await fetch(photonUrl)
-    const photonData = await photonRes.json()
+    let features: PhotonFeature[] = []
 
-    const features: PhotonFeature[] = photonData.features || []
+    try {
+      const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10`
+      const photonRes = await fetch(photonUrl)
+      if (!photonRes.ok) {
+        const text = await photonRes.text()
+        throw new Error(`Photon API error ${photonRes.status}: ${text.slice(0, 100)}`)
+      }
+      const photonData = await photonRes.json()
+      features = photonData.features || []
+    } catch (primaryErr) {
+      console.warn('[atlas/search] Primary geocoder failed, falling back...', primaryErr)
+      // Fallback to Nominatim
+      const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=10`
+      const nomRes = await fetch(nomUrl, { headers: { 'User-Agent': 'VedaanshAstrology/1.0' } })
+      
+      if (!nomRes.ok) {
+        const text = await nomRes.text()
+        throw new Error(`Fallback API error ${nomRes.status}: ${text.slice(0, 100)}`)
+      }
+      const nomData = await nomRes.json()
+      
+      // Convert Nominatim format to Photon format
+      features = nomData.map((item: any) => ({
+        geometry: { coordinates: [parseFloat(item.lon), parseFloat(item.lat)] },
+        properties: {
+          name: item.name,
+          city: item.type === 'city' ? item.name : undefined,
+          country: item.display_name.split(',').pop()?.trim()
+        }
+      }))
+    }
 
     // Map features to our standard interface + Parallel TZ Lookup
     const results: LocationResult[] = await Promise.all(

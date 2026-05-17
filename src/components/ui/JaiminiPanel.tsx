@@ -1699,7 +1699,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       }
                     ].map((t, idx) => (
                       <div key={idx} className="card-glass" style={{ 
-                        padding: '0.75rem 1rem', 
+                        padding: isTinyMobile ? '0.5rem 0.75rem' : '0.75rem 1rem', 
                         background: 'var(--surface-1)', 
                         border: `1px solid var(--border-soft)`,
                         borderTop: `3px solid ${t.color}`,
@@ -1731,11 +1731,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 0.8fr', gap: '0.75rem' }}>
                     
                     {/* Special Lagnas Card */}
-                    <div className="card-glass" style={{ padding: '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
+                    <div className="card-glass" style={{ padding: isTinyMobile ? '0.5rem' : '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
                       <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '0.7rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         Special Lagnas
                       </h3>
-                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: isTinyMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.5rem' }}>
                         <div style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
                           <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--teal)', marginBottom: '0.2rem' }}>HORA (HL)</div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -1761,7 +1761,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     </div>
 
                     {/* Gateway Signs Card */}
-                    <div className="card-glass" style={{ padding: '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
+                    <div className="card-glass" style={{ padding: isTinyMobile ? '0.5rem' : '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
                       <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '0.7rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         Gateways
                       </h3>
@@ -1783,7 +1783,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   </div>
 
                   {/* ── Planetary Strength Breakdown ── */}
-                  <div className="card-glass" style={{ padding: '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
+                  <div className="card-glass" style={{ padding: isTinyMobile ? '0.5rem' : '0.75rem 1rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                       <h3 style={{ margin: 0, fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         Strength Breakdown (Bala)
@@ -1791,15 +1791,15 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)' }}>Values in Jaimini Units</div>
                     </div>
 
-                    <div className="scrollbar-hide" style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                    <div className="scrollbar-hide" style={{ overflowX: 'auto', margin: isTinyMobile ? '0 -0.5rem' : '0', padding: isTinyMobile ? '0 0.5rem' : '0' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isTinyMobile ? '0.65rem' : '0.75rem' }}>
                         <thead style={{ background: 'var(--surface-3)', textAlign: 'left' }}>
                           <tr>
-                            <th style={{ padding: '0.75rem', borderRadius: '8px 0 0 8px' }}>PLANET</th>
-                            <th style={{ padding: '0.75rem' }}>DIGNITY</th>
-                            <th style={{ padding: '0.75rem' }}>KARAKA</th>
-                            <th style={{ padding: '0.75rem' }}>KARTARI</th>
-                            <th style={{ padding: '0.75rem', textAlign: 'right', borderRadius: '0 8px 8px 0' }}>TOTAL</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem', borderRadius: '8px 0 0 8px' }}>PLANET</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>DIGNITY</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>KARAKA</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>KARTARI</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem', textAlign: 'right', borderRadius: '0 8px 8px 0' }}>TOTAL</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1808,31 +1808,31 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                             if (!bala) return null;
                             return (
                               <tr key={g.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                                <td style={{ padding: '1rem 0.75rem' }}>
+                                <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ fontWeight: 900, color: 'var(--text-primary)' }}>{g.id}</span>
-                                    <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>{GRAHA_NAMES[g.id as GrahaId]}</span>
+                                    {!isTinyMobile && <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>{GRAHA_NAMES[g.id as GrahaId]}</span>}
                                   </div>
                                 </td>
-                                <td style={{ padding: '1rem 0.75rem' }}>
+                                <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
                                   <div style={{ fontWeight: 800, color: 'var(--gold)' }}>{bala.placementBala}</div>
                                   <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.placementDetails} in {RASHI_SHORT[g.rashi]}</div>
                                 </td>
-                                <td style={{ padding: '1rem 0.75rem' }}>
+                                <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
                                   <div style={{ fontWeight: 800, color: 'var(--teal)' }}>{bala.karakaBala}</div>
                                   <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.karakaRole}</div>
                                 </td>
-                                <td style={{ padding: '1rem 0.75rem' }}>
+                                <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
                                   <div style={{ fontWeight: 800, color: bala.kartariBala > 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
                                     {bala.kartariBala > 0 ? `+${bala.kartariBala}` : '0'}
                                   </div>
                                   <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.kartariBala > 0 ? 'Active' : 'No Hems'}</div>
                                 </td>
-                                <td style={{ padding: '1rem 0.75rem', textAlign: 'right' }}>
+                                <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem', textAlign: 'right' }}>
                                   <div style={{ 
-                                    display: 'inline-block', padding: '4px 10px', borderRadius: '6px', 
+                                    display: 'inline-block', padding: isTinyMobile ? '3px 6px' : '4px 10px', borderRadius: '6px', 
                                     background: 'var(--surface-3)', fontWeight: 900, color: 'var(--text-primary)',
-                                    border: '1px solid var(--border-soft)', fontSize: '0.85rem'
+                                    border: '1px solid var(--border-soft)', fontSize: isTinyMobile ? '0.75rem' : '0.85rem'
                                   }}>
                                     {bala.total}
                                   </div>
@@ -1849,19 +1849,19 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr', gap: '1.25rem' }}>
                     
                     {/* Rashi Bala */}
-                    <div className="card-glass" style={{ padding: '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '16px' }}>
+                    <div className="card-glass" style={{ padding: isTinyMobile ? '0.75rem' : '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '16px' }}>
                       <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '0.85rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         Sign Strength (Rashi Bala)
                       </h3>
-                      <div className="scrollbar-hide" style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
+                      <div className="scrollbar-hide" style={{ overflowX: 'auto', margin: isTinyMobile ? '0 -0.75rem' : '0', padding: isTinyMobile ? '0 0.75rem' : '0' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isTinyMobile ? '0.65rem' : '0.7rem' }}>
                           <thead style={{ background: 'var(--surface-2)', textAlign: 'left' }}>
                             <tr>
-                              <th style={{ padding: '0.6rem' }}>RASHI</th>
-                              <th style={{ padding: '0.6rem' }}>TYPE</th>
-                              <th style={{ padding: '0.6rem' }}>KARAKAS</th>
-                              <th style={{ padding: '0.6rem' }}>ASPECTS</th>
-                              <th style={{ padding: '0.6rem', textAlign: 'right' }}>TOTAL</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>RASHI</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>TYPE</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>KARAKAS</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>ASPECTS</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem', textAlign: 'right' }}>TOTAL</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1870,11 +1870,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               if (!bala) return null;
                               return (
                                 <tr key={r} style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                                  <td style={{ padding: '0.75rem 0.6rem', fontWeight: 900 }}>{RASHI_SHORT[r as Rashi]}</td>
-                                  <td style={{ padding: '0.75rem 0.6rem', opacity: 0.8 }}>{bala.typeBala}</td>
-                                  <td style={{ padding: '0.75rem 0.6rem', color: 'var(--teal)', fontWeight: 700 }}>+{bala.karakaBala}</td>
-                                  <td style={{ padding: '0.75rem 0.6rem', color: 'var(--gold)', fontWeight: 700 }}>+{bala.aspectBala}</td>
-                                  <td style={{ padding: '0.75rem 0.6rem', textAlign: 'right', fontWeight: 900, color: 'var(--text-primary)' }}>{bala.total}</td>
+                                  <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', fontWeight: 900 }}>{RASHI_SHORT[r as Rashi]}</td>
+                                  <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', opacity: 0.8 }}>{bala.typeBala}</td>
+                                  <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', color: 'var(--teal)', fontWeight: 700 }}>+{bala.karakaBala}</td>
+                                  <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', color: 'var(--gold)', fontWeight: 700 }}>+{bala.aspectBala}</td>
+                                  <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', textAlign: 'right', fontWeight: 900, color: 'var(--text-primary)' }}>{bala.total}</td>
                                 </tr>
                               );
                             })}
@@ -1884,7 +1884,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     </div>
 
                     {/* House Strength */}
-                    <div className="card-glass" style={{ padding: '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '16px' }}>
+                    <div className="card-glass" style={{ padding: isTinyMobile ? '0.75rem' : '1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '16px' }}>
                       <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '0.85rem', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         House Class (Sthana)
                       </h3>
@@ -1895,14 +1895,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           { label: 'Apoklima', houses: '3, 6, 9, 12', val: 15, color: 'var(--text-muted)' }
                         ].map((h, idx) => (
                           <div key={idx} style={{ 
-                            padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', 
+                            padding: isTinyMobile ? '0.75rem' : '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', 
                             border: '1px solid var(--border-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                           }}>
                             <div>
-                              <div style={{ fontSize: '0.8rem', fontWeight: 900, color: h.color }}>{h.label}</div>
-                              <div style={{ fontSize: '0.6rem', opacity: 0.6 }}>Houses: {h.houses}</div>
+                              <div style={{ fontSize: isTinyMobile ? '0.75rem' : '0.8rem', fontWeight: 900, color: h.color }}>{h.label}</div>
+                              <div style={{ fontSize: isTinyMobile ? '0.55rem' : '0.6rem', opacity: 0.6 }}>Houses: {h.houses}</div>
                             </div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: h.color }}>{h.val}</div>
+                            <div style={{ fontSize: isTinyMobile ? '1rem' : '1.25rem', fontWeight: 900, color: h.color }}>{h.val}</div>
                           </div>
                         ))}
                       </div>
