@@ -36,9 +36,9 @@ const nextConfig = {
     return config
   },
 
+  cacheMaxMemorySize: 0, // Disable ISR memory cache to prevent OOM
   experimental: {
     serverComponentsExternalPackages: ['sweph'],
-    isrMemoryCacheSize: 0,
     // Reduce Webpack workers to prevent OOM on memory-constrained platforms like Render Free Tier
     cpus: 1,
     memoryBasedWorkersCount: true,

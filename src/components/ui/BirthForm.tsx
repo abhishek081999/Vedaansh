@@ -847,33 +847,20 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               />
 
               {/* Dropdown moved here to be relative to input */}
-              {searchOpen && locationResults.length > 0 && isMobile && (
-                <div
-                  onClick={() => setSearchOpen(false)}
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0,0,0,0.35)',
-                    zIndex: 1200,
-                  }}
-                />
-              )}
-
               {searchOpen && locationResults.length > 0 && (
                 <div style={{
-                  position: isMobile ? 'fixed' : 'absolute',
-                  zIndex: isMobile ? 1201 : 100,
-                  width: isMobile ? 'auto' : '100%',
-                  top: isMobile ? 'auto' : '100%',
-                  left: isMobile ? '12px' : 'auto',
-                  right: isMobile ? '12px' : 'auto',
-                  bottom: isMobile ? '12px' : 'auto',
-                  marginTop: isMobile ? 0 : '6px',
+                  position: 'absolute',
+                  zIndex: 1201,
+                  width: '100%',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  marginTop: '6px',
                   background: 'var(--surface-2)',
                   border: '1px solid var(--border-bright)',
                   borderRadius: 12,
                   boxShadow: '0 12px 30px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1)',
-                  maxHeight: isMobile ? 'min(55vh, 420px)' : 300,
+                  maxHeight: isMobile ? 250 : 300,
                   overflowY: 'auto',
                   boxSizing: 'border-box',
                   animation: 'fadeUp 0.2s ease-out'
