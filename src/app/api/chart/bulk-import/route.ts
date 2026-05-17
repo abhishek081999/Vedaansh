@@ -114,6 +114,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Only .xlsx / .xls / .csv files are supported' }, { status: 400 })
   }
 
+  // Prevent OOM issues on Render free tier (512MB RAM)
+  const MAX_FILE_SIZE = 500 * 1024 // 500 KB
+  if (file.size > MAX_FILE_SIZE) {
+    return NextResponse.json({ success: false, error: 'File size exceeds the 500KB limit' }, { status: 400 })
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer())
   const wb = XLSX.read(buffer, { type: 'buffer', cellDates: false })
   const ws = wb.Sheets[wb.SheetNames[0]]

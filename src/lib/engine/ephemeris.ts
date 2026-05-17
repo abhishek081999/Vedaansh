@@ -153,3 +153,14 @@ export function dateToJD(date: Date): number {
     date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600,
   )
 }
+
+/**
+ * Free Swiss Ephemeris memory buffers.
+ * Useful on memory-constrained environments (like Render Free Tier) 
+ * to prevent OOM errors when calculating multiple charts.
+ */
+export function cleanupEphemeris(): void {
+  if (typeof sweph.close === 'function') {
+    sweph.close()
+  }
+}

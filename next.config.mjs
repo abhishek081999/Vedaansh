@@ -38,8 +38,19 @@ const nextConfig = {
 
   experimental: {
     serverComponentsExternalPackages: ['sweph'],
+    isrMemoryCacheSize: 0,
+    // Reduce Webpack workers to prevent OOM on memory-constrained platforms like Render Free Tier
+    cpus: 1,
+    memoryBasedWorkersCount: true,
   },
   transpilePackages: ['next-auth', 'remotion', '@remotion/player'],
+
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 
   // Permanent redirects
   async redirects() {

@@ -22,6 +22,7 @@ import {
   signOf,
   toSidereal,
   NODE_IDS,
+  cleanupEphemeris,
 } from '@/lib/engine/ephemeris'
 import { calcHouses, planetHouse } from '@/lib/engine/houses'
 import { calcAllBhavaArudhas, calcGrahaArudhas } from '@/lib/engine/arudhas'
@@ -240,10 +241,11 @@ export async function calculateChart(
   plan: UserPlan = 'free',
   options: { dashaDepth?: number } = {}
 ): Promise<ChartOutput> { // eslint-disable-line
-  const settings = input.settings ?? DEFAULT_SETTINGS
-  const birthUtc = parseBirthUtc(input.utcDate, input.utcTime)
-  const jd = dateToJD(birthUtc)
-  const ayanamshaVal = getAyanamsha(jd, settings.ayanamsha)
+  try {
+    const settings = input.settings ?? DEFAULT_SETTINGS
+    const birthUtc = parseBirthUtc(input.utcDate, input.utcTime)
+    const jd = dateToJD(birthUtc)
+    const ayanamshaVal = getAyanamsha(jd, settings.ayanamsha)
 
   // Grahas
   // Optimization: getPlanetPosition is expensive. We'll pass it into buildGrahas
@@ -601,5 +603,8 @@ export async function calculateChart(
     jaiminiBala: calculateJaiminiBala({ grahas, karakas, lagnas: lagnaData }),
     jaiminiTrinity: calculateJaiminiTrinity({ grahas, karakas, lagnas: lagnaData }),
     interpretation,
+  }
+  } finally {
+    cleanupEphemeris()
   }
 }
