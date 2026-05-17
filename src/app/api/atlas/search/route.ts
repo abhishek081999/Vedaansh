@@ -277,26 +277,49 @@ export async function GET(req: NextRequest) {
       const photonData = await photonRes.json()
       features = photonData.features || []
     } catch (primaryErr) {
-      console.warn('[atlas/search] Primary geocoder failed, falling back...', primaryErr)
-      // Fallback to Nominatim
-      const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=10`
-      const nomRes = await fetch(nomUrl, { headers: { 'User-Agent': 'VedaanshAstrology/1.0' } })
+      console.warn('[atlas/search] Primary geocoder failed, falling back...', primaryErr instanceof Error ? primaryErr.message : primaryErr)
       
-      if (!nomRes.ok) {
-        const text = await nomRes.text()
-        throw new Error(`Fallback API error ${nomRes.status}: ${text.slice(0, 100)}`)
-      }
-      const nomData = await nomRes.json()
-      
-      // Convert Nominatim format to Photon format
-      features = nomData.map((item: any) => ({
-        geometry: { coordinates: [parseFloat(item.lon), parseFloat(item.lat)] },
-        properties: {
-          name: item.name,
-          city: item.type === 'city' ? item.name : undefined,
-          country: item.display_name.split(',').pop()?.trim()
+      try {
+        // Fallback 1: Open-Meteo
+        const meteoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=10&format=json`
+        const meteoRes = await fetch(meteoUrl)
+        if (!meteoRes.ok) {
+          const text = await meteoRes.text()
+          throw new Error(`Open-Meteo API error ${meteoRes.status}: ${text.slice(0, 100)}`)
         }
-      }))
+        const meteoData = await meteoRes.json()
+        features = (meteoData.results || []).map((item: any) => ({
+          geometry: { coordinates: [item.longitude, item.latitude] },
+          properties: {
+            name: item.name,
+            state: item.admin1,
+            country: item.country,
+            // Custom property to pass timezone down
+            _timezone: item.timezone
+          }
+        }))
+      } catch (secondaryErr) {
+        console.warn('[atlas/search] Open-Meteo geocoder failed, falling back to Nominatim...', secondaryErr instanceof Error ? secondaryErr.message : secondaryErr)
+        // Fallback 2: Nominatim
+        const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=10`
+        const nomRes = await fetch(nomUrl, { headers: { 'User-Agent': 'VedaanshAstrology/1.0' } })
+        
+        if (!nomRes.ok) {
+          const text = await nomRes.text()
+          throw new Error(`Fallback API error ${nomRes.status}: ${text.slice(0, 100)}`)
+        }
+        const nomData = await nomRes.json()
+        
+        // Convert Nominatim format to Photon format
+        features = nomData.map((item: any) => ({
+          geometry: { coordinates: [parseFloat(item.lon), parseFloat(item.lat)] },
+          properties: {
+            name: item.name,
+            city: item.type === 'city' ? item.name : undefined,
+            country: item.display_name?.split(',').pop()?.trim()
+          }
+        }))
+      }
     }
 
     // Map features to our standard interface + Parallel TZ Lookup
@@ -309,14 +332,16 @@ export async function GET(req: NextRequest) {
         const admin1  = feat.properties.state || ''
 
         // ── Optimization: Assign TZ directly for major regions ──
-        let timezone = ''
-        if (country === 'India') {
-          timezone = 'Asia/Kolkata'
-        } else if (country === 'Nepal') {
-          timezone = 'Asia/Kathmandu'
-        } else {
-          // Only hit the API/Redis for other countries
-          timezone = await fetchTimezone(lat, lng)
+        let timezone = (feat.properties as any)._timezone || ''
+        if (!timezone) {
+          if (country === 'India') {
+            timezone = 'Asia/Kolkata'
+          } else if (country === 'Nepal') {
+            timezone = 'Asia/Kathmandu'
+          } else {
+            // Only hit the API/Redis for other countries
+            timezone = await fetchTimezone(lat, lng)
+          }
         }
         
         // Bounding box safety within search results mapping
@@ -353,7 +378,7 @@ export async function GET(req: NextRequest) {
       },
     )
   } catch (err) {
-    console.error('[atlas/search] Error:', err)
+    console.error('[atlas/search] Error:', err instanceof Error ? err.message : err)
     return NextResponse.json({ results: [] })
   }
 }
