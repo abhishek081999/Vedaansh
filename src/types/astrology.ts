@@ -321,9 +321,12 @@ export interface LagnaData {
   horaLagna:    number
   ghatiLagna:   number
   bhavaLagna:   number
+  vighatiLagna: number
   pranapada:    number
   sriLagna:     number
   varnadaLagna: number
+  induLagna:    number
+  bhriguBindu:  number
 
   cusps:        number[]
 }

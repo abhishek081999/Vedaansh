@@ -7,6 +7,7 @@ import { calculateGatewaySigns } from '@/lib/engine/jaimini'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X } from 'lucide-react'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
+import { calcBhriguBinduLon, calcInduLagna } from '@/lib/engine/astroDetailsDerived'
 
 interface JaiminiPanelProps {
   chart: ChartOutput
@@ -1153,8 +1154,18 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         {(() => {
                           const lagnaDeg = lagnas.ascDegree;
                           const alDeg = ((arudhas.AL - 1) * 30) + (lagnas.ascDegree % 30);
-                          
+                          const plDeg = lagnas.pranapada;
+                          const moonG = currentGrahas.find(gr => gr.id === 'Mo');
+                          const rahuG = currentGrahas.find(gr => gr.id === 'Ra');
+                          const ilDeg = Number.isFinite(lagnas.induLagna)
+                            ? lagnas.induLagna
+                            : (moonG ? calcInduLagna(moonG.totalDegree, moonG.rashi, lagnas.ascRashi) : 0);
+                          const bbDeg = Number.isFinite(lagnas.bhriguBindu)
+                            ? lagnas.bhriguBindu
+                            : (moonG && rahuG ? calcBhriguBinduLon(moonG.totalDegree, rahuG.totalDegree) : 0);
+
                           const getNakInfo = (totalDeg: number) => {
+                            if (!Number.isFinite(totalDeg)) return { name: '—', pada: 1, index: 0 };
                             const idx = Math.floor(totalDeg / (360/27)) % 27;
                             const degInNak = totalDeg % (360/27);
                             const pada = Math.floor(degInNak / (360/27/4)) + 1;
@@ -1167,6 +1178,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
                           const lagnaNak = getNakInfo(lagnaDeg);
                           const alNak = getNakInfo(alDeg);
+                          const plNak = getNakInfo(plDeg);
+                          const ilNak = getNakInfo(ilDeg);
+                          const bbNak = getNakInfo(bbDeg);
 
                           const displayBodies = [
                             { 
@@ -1191,16 +1205,51 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               isCombust: false,
                               pushkara: { isPushkara: false } as any
                             },
+                            { 
+                              id: 'Pranapada Lagna', 
+                              degree: plDeg % 30, 
+                              rashi: Math.floor(plDeg / 30) + 1 as Rashi, 
+                              nakshatraName: plNak.name, 
+                              pada: plNak.pada, 
+                              nakshatraIndex: plNak.index,
+                              isRetro: false,
+                              isCombust: false,
+                              pushkara: { isPushkara: false } as any
+                            },
+                            { 
+                              id: 'Indu Lagna', 
+                              degree: ilDeg % 30, 
+                              rashi: Math.floor(ilDeg / 30) + 1 as Rashi, 
+                              nakshatraName: ilNak.name, 
+                              pada: ilNak.pada, 
+                              nakshatraIndex: ilNak.index,
+                              isRetro: false,
+                              isCombust: false,
+                              pushkara: { isPushkara: false } as any
+                            },
+                            { 
+                              id: 'Bhrigu Bindu', 
+                              degree: bbDeg % 30, 
+                              rashi: Math.floor(bbDeg / 30) + 1 as Rashi, 
+                              nakshatraName: bbNak.name, 
+                              pada: bbNak.pada, 
+                              nakshatraIndex: bbNak.index,
+                              isRetro: false,
+                              isCombust: false,
+                              pushkara: { isPushkara: false } as any
+                            },
                             ...currentGrahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
                           ];
 
                           return displayBodies.map((g) => {
                             const ck = Object.entries(karakas).find(([k, gid]) => gid === g.id)?.[0];
-                            const d9Rashi = (g.id === 'Lg') 
-                              ? (chart.vargaLagnas?.['D9'] || getNavRashi(lagnaDeg))
-                              : (g.id === 'AL')
-                                ? getNavRashi(alDeg)
-                                : getNavamshaRashi(g.id as GrahaId);
+                            let d9Rashi: Rashi;
+                            if (g.id === 'Lg') d9Rashi = chart.vargaLagnas?.['D9'] || getNavRashi(lagnaDeg);
+                            else if (g.id === 'AL') d9Rashi = getNavRashi(alDeg);
+                            else if (g.id === 'Pranapada Lagna') d9Rashi = getNavRashi(plDeg);
+                            else if (g.id === 'Indu Lagna') d9Rashi = getNavRashi(ilDeg);
+                            else if (g.id === 'Bhrigu Bindu') d9Rashi = getNavRashi(bbDeg);
+                            else d9Rashi = getNavamshaRashi(g.id as GrahaId);
                           
                           // Tara Calculation
                           const moon = currentGrahas.find(gr => gr.id === 'Mo');

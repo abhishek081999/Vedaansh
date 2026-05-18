@@ -1,6 +1,14 @@
 'use client'
-import React, { createContext, useContext, useState, Dispatch, SetStateAction } from 'react'
+import React, { createContext, useContext, useState, useCallback, Dispatch, SetStateAction } from 'react'
 import type { ChartOutput } from '@/types/astrology'
+import { hydrateSpecialLagnas } from '@/lib/engine/astroDetailsDerived'
+
+function withHydratedLagnas(chart: ChartOutput | null): ChartOutput | null {
+  if (!chart?.lagnas || !chart.grahas?.length) return chart
+  const lagnas = hydrateSpecialLagnas(chart.lagnas, chart.grahas)
+  if (lagnas === chart.lagnas) return chart
+  return { ...chart, lagnas }
+}
 
 interface ChartContextType {
   chart: ChartOutput | null
@@ -14,9 +22,13 @@ interface ChartContextType {
 const ChartContext = createContext<ChartContextType | undefined>(undefined)
 
 export function ChartProvider({ children }: { children: React.ReactNode }) {
-  const [chart, setChart] = useState<ChartOutput | null>(null)
+  const [chart, setChartState] = useState<ChartOutput | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [pendingDestination, setPendingDestination] = useState<string | null>(null)
+
+  const setChart: Dispatch<SetStateAction<ChartOutput | null>> = useCallback((action) => {
+    setChartState(prev => withHydratedLagnas(typeof action === 'function' ? action(prev) : action))
+  }, [])
 
   return (
     <ChartContext.Provider

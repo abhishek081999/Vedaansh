@@ -2,14 +2,15 @@
 
 import React, { useMemo } from 'react'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
+import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT, RASHI_SANSKRIT } from '@/types/astrology'
+import { getNakshatra } from '@/lib/engine/nakshatra'
 import { getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
+import { getVargaPosition } from '@/lib/engine/vargas'
 import { getVarnaName, getVashyaName, getGanaName, getNadiName } from '@/lib/engine/ashtakoot'
 import {
   approxIndianEras,
   formatSiderealLongitude,
   getBhriguBinduLon,
-  getInduLagnaRashi,
   getNakshatraPaya,
   getPadaNamingSyllable,
   getRashiTatva,
@@ -62,7 +63,6 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
     return getNakshatraCharacteristics(moon.nakshatraIndex, moon.pada)
   }, [moon])
 
-  const induRashi  = moon ? getInduLagnaRashi(moon.rashi) : null
   const bhriguLon  = moon && rahu ? getBhriguBinduLon(moon.totalDegree, rahu.totalDegree) : null
   const bhriguFmt  = bhriguLon != null ? formatSiderealLongitude(bhriguLon) : null
 
@@ -94,6 +94,17 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
     if (lon == null || !Number.isFinite(lon)) return '—'
     const f = formatSiderealLongitude(lon)
     return fmtDeg(f.rashi, f.degInSign)
+  }
+
+  const fmtSpecialLagna = (lon: number | undefined | null): string => {
+    if (lon == null || !Number.isFinite(lon)) return '—'
+    const f = formatSiderealLongitude(lon)
+    const nak = getNakshatra(lon)
+    const nav = getVargaPosition(lon, 'D9')
+    const d = Math.floor(f.degInSign)
+    const m = Math.floor((f.degInSign - d) * 60)
+    const s = ((f.degInSign - d) * 60 - m) * 60
+    return `${d} ${RASHI_SHORT[f.rashi]} ${m}' ${s.toFixed(1)}" · ${nak.shortName} p${nak.pada} · ${RASHI_SHORT[nav.rashi as Rashi]} nav`
   }
 
   if (!moon || !moonChars) {
@@ -155,7 +166,6 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
       {/* ── Special lagnas ── */}
       <Sec title="Special Lagnas &amp; Points">
         <Row label="Āruḍha (AL)"  value={chart.arudhas.AL ? RASHI_NAMES[chart.arudhas.AL] : '—'} />
-        <Row label="Indu Lagna"   value={induRashi ? `${RASHI_NAMES[induRashi]} · ${RASHI_SANSKRIT[induRashi]}` : '—'} />
         {bhriguFmt && bhriguLon != null && (
           <Row label="Bhrigu Bindu" value={`${fmtDeg(bhriguFmt.rashi, bhriguFmt.degInSign)}`} />
         )}
@@ -166,12 +176,14 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
             <Row label="Avayogi"   value={GRAHA_NAMES[chart.yogiPoint.avayogiGraha]} />
           </>
         )}
-        <Row label="Hora Lagna"   value={fmtLon(chart.lagnas.horaLagna)} />
-        <Row label="Ghati Lagna"  value={fmtLon(chart.lagnas.ghatiLagna)} />
-        <Row label="Bhava Lagna"  value={fmtLon(chart.lagnas.bhavaLagna)} />
-        <Row label="Praṇapada"    value={fmtLon(chart.lagnas.pranapada)} />
-        <Row label="Śrī Lagna"    value={fmtLon(chart.lagnas.sriLagna)} />
-        <Row label="Varṇada"      value={fmtLon(chart.lagnas.varnadaLagna)} />
+        <Row label="Bhava Lagna"   value={fmtSpecialLagna(chart.lagnas.bhavaLagna)} />
+        <Row label="Hora Lagna"    value={fmtSpecialLagna(chart.lagnas.horaLagna)} />
+        <Row label="Ghati Lagna"   value={fmtSpecialLagna(chart.lagnas.ghatiLagna)} />
+        <Row label="Vighati Lagna" value={fmtSpecialLagna(chart.lagnas.vighatiLagna)} />
+        <Row label="Varṇada Lagna" value={fmtSpecialLagna(chart.lagnas.varnadaLagna)} />
+        <Row label="Śrī Lagna"     value={fmtSpecialLagna(chart.lagnas.sriLagna)} />
+        <Row label="Praṇapada"     value={fmtSpecialLagna(chart.lagnas.pranapada)} />
+        <Row label="Indu Lagna"    value={fmtSpecialLagna(chart.lagnas.induLagna)} />
         {beeja   && <Row label="Bīja Sphuta"   value={`${beeja.rashiName} ${beeja.degree.toFixed(2)}°`} />}
         {kshetra && <Row label="Kṣetra Sphuta" value={`${kshetra.rashiName} ${kshetra.degree.toFixed(2)}°`} />}
       </Sec>

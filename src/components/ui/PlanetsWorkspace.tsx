@@ -24,19 +24,29 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
     const lagNakPada = Math.floor(((ascDeg % (360 / 27)) / (360 / 27)) * 4) + 1
     const lagChars = getNakshatraCharacteristics(lagNakIdx, lagNakPada)
 
-    const lagPosition = {
-      grahaId: 'As' as any,
-      grahaName: 'Lagna',
-      nakshatraIndex: lagNakIdx,
-      nakshatraName: NAK_NAMES[lagNakIdx],
-      pada: lagNakPada,
-      lord: lagChars.lord,
-      gana: lagChars.gana,
-      deity: lagChars.deity,
-      degree: ascDeg,
+    const createSpecialPos = (id: string, name: string, degree: number) => {
+      const nakIdx = Math.floor(degree / (360 / 27))
+      const nakPada = Math.floor(((degree % (360 / 27)) / (360 / 27)) * 4) + 1
+      const chars = getNakshatraCharacteristics(nakIdx, nakPada)
+      return {
+        grahaId: id as any,
+        grahaName: name,
+        nakshatraIndex: nakIdx,
+        nakshatraName: NAK_NAMES[nakIdx],
+        pada: nakPada,
+        lord: chars.lord,
+        gana: chars.gana,
+        deity: chars.deity,
+        degree: degree,
+      }
     }
 
-    return [lagPosition, ...base].map(p => {
+    const lagPosition = createSpecialPos('As', 'Lagna', ascDeg)
+    const ppPosition = createSpecialPos('PP', 'Prāṇapada Lagna', chart.lagnas.pranapada)
+    const ilPosition = createSpecialPos('IL', 'Indu Lagna', chart.lagnas.induLagna)
+    const bbPosition = createSpecialPos('BB', 'Bhṛgu Bindu', chart.lagnas.bhriguBindu)
+
+    return [lagPosition, ppPosition, ilPosition, bbPosition, ...base].map(p => {
       const full = chart.grahas.find(g => g.id === p.grahaId)
       const shad = chart.shadbala?.planets[p.grahaId]
       return { ...p, ...full, shadbala: shad }

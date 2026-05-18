@@ -129,7 +129,7 @@ describe('Chara Dasha', () => {
     const lagnas = {
       ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
       horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
-      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
       cusps: [],
     }
     const dashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 1)
@@ -142,7 +142,7 @@ describe('Chara Dasha', () => {
     const lagnas = {
       ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 0,
       horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
-      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
       cusps: [], bhavalCusps: [],
     }
     const dashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 1)
@@ -158,7 +158,7 @@ describe('Chara Dasha', () => {
     const lagnas = {
       ascDegree: 30, ascRashi: 2 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
       horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
-      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
       cusps: [],
     }
     const dashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 1)
@@ -172,7 +172,7 @@ describe('Chara Dasha', () => {
     const lagnas = {
       ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 0,
       horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
-      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
       cusps: [], bhavalCusps: [],
     }
     const dashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 2)
@@ -189,7 +189,7 @@ describe('Chara Dasha', () => {
     const lagnas = {
       ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 15, mcDegree: 0,
       horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
-      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
       cusps: [],
     }
     const dashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 2)
@@ -269,8 +269,8 @@ describe('Ashtakavarga', () => {
 
   const lagnas = {
     ascDegree: 15, ascRashi: 1 as Rashi, ascDegreeInRashi: 15, mcDegree: 0,
-    horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
-    pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+    horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0, vighatiLagna: 0,
+    pranapada: 0, sriLagna: 0, varnadaLagna: 0, induLagna: 0, bhriguBindu: 0,
     cusps: [],
   }
 

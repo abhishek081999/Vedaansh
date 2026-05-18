@@ -8,7 +8,7 @@ async function run() {
     await client.connect();
     const db = client.db(process.env.MONGODB_DB_NAME || 'jyotish');
     const users = await db.collection('users').find({}, { projection: { email: 1, name: 1, role: 1 } }).sort({ _id: -1 }).limit(5).toArray();
-    console.log(JSON.stringify(users, null, 2));
+    process.stdout.write(JSON.stringify(users, null, 2) + '\n');
   } finally {
     await client.close();
   }

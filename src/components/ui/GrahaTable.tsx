@@ -157,17 +157,20 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
             { name: 'Arudha Lagna (AL)', deg: (arudhas.AL - 1) * 30 + (lagnas.ascDegree % 30) }
           ] : []),
           ...(!limited ? [
-            { name: 'BH (Bhāva)',       deg: lagnas.bhavaLagna   },
+            { name: 'BL (Bhāva)',       deg: lagnas.bhavaLagna   },
             { name: 'HL (Hora)',        deg: lagnas.horaLagna    },
             { name: 'GL (Ghaṭi)',       deg: lagnas.ghatiLagna   },
-            { name: 'PP (Prāṇapada)',   deg: lagnas.pranapada    },
+            { name: 'VL (Vighati)',     deg: lagnas.vighatiLagna },
+            { name: 'Varṇada',          deg: lagnas.varnadaLagna },
             { name: 'SL (Śrī)',         deg: lagnas.sriLagna     },
-            { name: 'VL (Varṇada)',     deg: lagnas.varnadaLagna },
+            { name: 'PP (Prāṇapada)',   deg: lagnas.pranapada    },
+            { name: 'IL (Indu)',        deg: lagnas.induLagna    },
+            { name: 'BB (Bhṛgu Bindu)', deg: lagnas.bhriguBindu  },
           ] : []),
         ]
 
       items.forEach(l => {
-        if (l.deg !== undefined && l.deg !== 0) {
+        if (Number.isFinite(l.deg)) {
           list.push({ name: l.name, totalDeg: l.deg, color: 'var(--text-gold)' })
         }
       })

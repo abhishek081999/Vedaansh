@@ -1,9 +1,26 @@
 import { describe, it, expect } from 'vitest'
 import { calculateShadbala } from '@/lib/engine/shadbala'
+import { getDrishtiValue } from '@/lib/engine/bhavaBala'
 import { toJulianDay, getPlanetPosition, getAyanamsha, toSidereal, SWISSEPH_IDS, ketuLongitude } from '@/lib/engine/ephemeris'
 import { calcHouses } from '@/lib/engine/houses'
 import { getDignity } from '@/lib/engine/dignity'
 import type { GrahaId, Rashi, LagnaData } from '@/types/astrology'
+
+describe('Sputa Drishti curve (Drik Bala)', () => {
+  it('matches BPHS/Raman piecewise values', () => {
+    expect(getDrishtiValue(45, 0, 'Su')).toBeCloseTo(7.5, 5)
+    expect(getDrishtiValue(90, 0, 'Su')).toBeCloseTo(45, 5)
+    expect(getDrishtiValue(120, 0, 'Su')).toBeCloseTo(30, 5)
+    expect(getDrishtiValue(150, 0, 'Su')).toBeCloseTo(0, 5)
+    expect(getDrishtiValue(180, 0, 'Su')).toBeCloseTo(60, 5)
+    expect(getDrishtiValue(200, 0, 'Su')).toBeCloseTo(50, 5)
+  })
+
+  it('adds Mars 4th/8th special aspects', () => {
+    expect(getDrishtiValue(105, 0, 'Ma')).toBeCloseTo(52.5, 5) // 37.5 + 15
+    expect(getDrishtiValue(225, 0, 'Ma')).toBeCloseTo(52.5, 5)
+  })
+})
 
 describe('Shadbala Engine Baseline', () => {
   const jd = toJulianDay(2000, 1, 1, 12.0)
@@ -56,9 +73,12 @@ describe('Shadbala Engine Baseline', () => {
     horaLagna: 0,
     ghatiLagna: 0,
     bhavaLagna: 0,
+    vighatiLagna: 0,
     pranapada: 0,
     sriLagna: 0,
     varnadaLagna: 0,
+    induLagna: 0,
+    bhriguBindu: 0,
     cusps: houses.cuspsSidereal,
   }
 
@@ -90,5 +110,17 @@ describe('Shadbala Engine Baseline', () => {
     const comp = me.componentShash!
     const sum = comp.sthana + comp.dig + comp.kala + comp.chesta + comp.naisargika + comp.drik
     expect(me.totalShash).toBeCloseTo(sum, 1)
+  })
+
+  it('allows negative net Drik Bala from malefic aspects', () => {
+    const sa = result.planets.Sa
+    expect(sa.details?.drik?.net).toBeDefined()
+    expect(sa.componentShash?.drik).toBe(sa.details?.drik?.net)
+  })
+
+  it('excludes nodes from Drik Bala aspects', () => {
+    const ju = result.planets.Ju
+    expect(ju.details?.drik?.benefic).toBeGreaterThanOrEqual(0)
+    expect(ju.details?.drik?.malefic).toBeGreaterThanOrEqual(0)
   })
 })

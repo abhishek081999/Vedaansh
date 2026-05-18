@@ -114,7 +114,8 @@ function norm(d: number): number {
 //    Malefics (Su, Ma, Sa, waning Mo): −1/4 of value
 //    Nodes (Ra, Ke): excluded
 
-function getDrishtiValue(planetLon: number, bhavaMadhya: number, pid: GrahaId): number {
+/** Sputa drishti strength (0–60 virupas) for a given Drishti Kendra. */
+export function getDrishtiValue(planetLon: number, bhavaMadhya: number, pid: GrahaId): number {
   // DK = aspector − aspected (planet − bhava cusp)
   const dk = norm(planetLon - bhavaMadhya)
   let base = 0
