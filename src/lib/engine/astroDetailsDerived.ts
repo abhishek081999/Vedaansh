@@ -1,37 +1,88 @@
 // Derived values for the Astro Details summary (natal chart).
-import type { GrahaId, Rashi } from '@/types/astrology'
+// Client-safe: no ephemeris / sweph imports.
+import type { GrahaData, GrahaId, LagnaData, Rashi } from '@/types/astrology'
+
+function norm360(deg: number): number {
+  return ((deg % 360) + 360) % 360
+}
 
 const SIGN_LORD: Record<Rashi, GrahaId> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
   7: 'Ve', 8: 'Ma', 9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju',
 }
 
-const VIMSHOTTARI_YEARS: Record<GrahaId, number> = {
-  Ke: 7, Ve: 20, Su: 6, Mo: 10, Ma: 7, Ra: 18, Ju: 16, Sa: 19, Me: 17,
-  Ur: 0, Ne: 0, Pl: 0,
+const INDU_RAYS: Partial<Record<GrahaId, number>> = {
+  Su: 30, Mo: 16, Ma: 6, Me: 8, Ju: 10, Ve: 12, Sa: 1,
 }
 
-/** Indu Lagna sign: sum of Vimśottarī years of lords of houses 1–9 from Moon, mod 12. */
-export function getInduLagnaRashi(moonRashi: Rashi): Rashi {
-  let sum = 0
-  for (let h = 1; h <= 9; h++) {
-    const houseSign = ((((moonRashi + h - 2) % 12) + 12) % 12 + 1) as Rashi
-    const lord = SIGN_LORD[houseSign]
-    sum += VIMSHOTTARI_YEARS[lord] ?? 0
-  }
-  const rem = sum % 12
-  return (rem === 0 ? 12 : rem) as Rashi
+/**
+ * Indu (Dhana) Lagna — Uttara Kalāmṛta / BPHS (Viśeṣa Chandra Yoga):
+ * 1. Add Kala of 9th lord from Lagna + 9th lord from Moon (sign lords).
+ * 2. Remainder ÷ 12 (0 → treat as 12th / previous sign from Moon per Astrobix).
+ * 3. Count that many houses from Moon (Moon’s sign = 1st); keep Moon’s degree in the result sign.
+ */
+export function calcInduLagna(moonLon: number, moonRashi: Rashi, ascRashi: Rashi): number {
+  const ninthFrom = (base: Rashi) => ((((base + 7) % 12) + 12) % 12 + 1) as Rashi
+  const lord1 = SIGN_LORD[ninthFrom(ascRashi)]
+  const lord2 = SIGN_LORD[ninthFrom(moonRashi)]
+  const totalRays = (INDU_RAYS[lord1] ?? 0) + (INDU_RAYS[lord2] ?? 0)
+
+  const remainder = totalRays % 12
+  // Count N houses from Moon (N = remainder); Moon sign is the 1st house counted.
+  const offset =
+    remainder === 0
+      ? -1 // 12th / previous sign from Moon when total is divisible by 12
+      : remainder - 1
+
+  const induSign = ((((moonRashi - 1 + offset) % 12) + 12) % 12 + 1) as Rashi
+  const degInSign = ((moonLon % 30) + 30) % 30
+  return norm360((induSign - 1) * 30 + degInSign)
 }
 
-/** Circular midpoint of two sidereal longitudes (Bhrigu Bindu: Moon–Rāhu midpoint). */
+/** Indu Lagna sign from full longitude (rays of 9th lords — see `calcInduLagna`). */
+export function getInduLagnaRashiFromLon(induLon: number): Rashi {
+  return (Math.floor(((induLon % 360) + 360) % 360 / 30) + 1) as Rashi
+}
+
+/** Indu Lagna sign from Moon/Lagna rashis (approximate if Moon degree unknown). */
+export function getInduLagnaRashi(moonRashi: Rashi, ascRashi: Rashi, moonLon?: number): Rashi {
+  const lon = moonLon ?? (moonRashi - 1) * 30
+  return getInduLagnaRashiFromLon(calcInduLagna(lon, moonRashi, ascRashi))
+}
+
+/** Bhrigu Bindu: midpoint along forward arc from Rāhu to Moon (BPHS / Jaimini tradition). */
+export function calcBhriguBinduLon(moonLon: number, rahuLon: number): number {
+  const distance = norm360(moonLon - rahuLon)
+  return norm360(rahuLon + distance / 2)
+}
+
+/** @deprecated Use calcBhriguBinduLon — kept for callers expecting the old name. */
 export function getBhriguBinduLon(moonLon: number, rahuLon: number): number {
-  let a = ((moonLon % 360) + 360) % 360
-  let b = ((rahuLon % 360) + 360) % 360
-  if (Math.abs(a - b) > 180) {
-    if (a < b) a += 360
-    else b += 360
+  return calcBhriguBinduLon(moonLon, rahuLon)
+}
+
+/**
+ * Recompute Indu Lagna / Bhrigu Bindu from grahas.
+ * Always recalculates when Moon is present so stale Redis/DB cache (old formula) cannot persist.
+ */
+export function hydrateSpecialLagnas(lagnas: LagnaData, grahas: GrahaData[]): LagnaData {
+  const moon = grahas.find(g => g.id === 'Mo')
+  const rahu = grahas.find(g => g.id === 'Ra')
+
+  let induLagna = lagnas.induLagna
+  let bhriguBindu = lagnas.bhriguBindu
+
+  if (moon) {
+    induLagna = calcInduLagna(moon.totalDegree, moon.rashi, lagnas.ascRashi)
   }
-  return (((a + b) / 2) % 360 + 360) % 360
+  if (moon && rahu) {
+    bhriguBindu = calcBhriguBinduLon(moon.totalDegree, rahu.totalDegree)
+  }
+
+  if (induLagna === lagnas.induLagna && bhriguBindu === lagnas.bhriguBindu) {
+    return lagnas
+  }
+  return { ...lagnas, induLagna, bhriguBindu }
 }
 
 const TATVA: Record<number, 'Fire' | 'Earth' | 'Air' | 'Water'> = {

@@ -56,7 +56,7 @@ const J2000_DATE = '2000-01-01T12:00:00Z'
     ascRashi: houses.ascRashi,
     ascDegreeInRashi: houses.ascDegreeInRashi,
     mcDegree: houses.mcSidereal,
-    horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0, pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+    horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0, vighatiLagna: 0, pranapada: 0, sriLagna: 0, varnadaLagna: 0, induLagna: 0, bhriguBindu: 0,
     cusps: houses.cuspsSidereal
   }
   const birthUtc = new Date(J2000_DATE)

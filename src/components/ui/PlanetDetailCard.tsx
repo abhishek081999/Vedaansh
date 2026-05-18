@@ -19,6 +19,7 @@ export const GANA_COL: Record<string,string> = { Deva:'#818cf8', Manushya:'#34d3
 
 export const ICON: Record<string,string> = {
   Su:'☉',Mo:'☽',Ma:'♂',Me:'☿',Ju:'♃',Ve:'♀',Sa:'♄',Ra:'☊',Ke:'☋',Ur:'⛢',Ne:'♆',Pl:'♇',
+  As:'Å', PP:'P', IL:'I', BB:'B'
 }
 
 interface PlanetDetailCardProps {
@@ -29,7 +30,8 @@ interface PlanetDetailCardProps {
 
 export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardProps) {
   const isAsc = p.grahaId === 'As'
-  const taraIdx = isAsc ? 0 : (p.nakshatraIndex - moonNakIdx + 27) % 9
+  const isSpecialPoint = ['As', 'PP', 'IL', 'BB'].includes(p.grahaId)
+  const taraIdx = isSpecialPoint ? 0 : (p.nakshatraIndex - moonNakIdx + 27) % 9
   const taraName = TARA_NAMES[taraIdx]
   const q = TARA_QUALITIES[taraName].quality
   
@@ -70,17 +72,17 @@ export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardPr
       <div style={{padding:'0.85rem',borderBottom:'1px solid var(--border-soft)',display:'flex',justifyContent:'space-between',alignItems:'center',background:'rgba(255,255,255,0.02)'}}>
         <div style={{display:'flex',gap:'0.75rem',alignItems:'center'}}>
           <div style={{width:32,height:32,borderRadius:'50%',background:'var(--surface-3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',border:'1px solid var(--border-soft)'}}>
-            {isAsc ? 'Å' : ICON[p.grahaId]}
+            {ICON[p.grahaId] || p.grahaId.substring(0, 2)}
           </div>
           <div>
             <div style={{fontWeight:700,fontSize:'0.9rem',color:'var(--text-primary)',lineHeight:1.1}}>{p.grahaName || p.id}</div>
-            {!isAsc && <div style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>{GRAHA_SANSKRIT[p.grahaId as GrahaId] || ''}</div>}
+            {!isSpecialPoint && <div style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>{GRAHA_SANSKRIT[p.grahaId as GrahaId] || ''}</div>}
           </div>
         </div>
         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'3px'}}>
           {p.isRetro && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.15)',color:'var(--rose)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.3)'}}>RETROGRADE</span>}
           {p.isCombust && <span style={{fontSize:'0.55rem',background:'rgba(245,158,66,0.15)',color:'var(--amber)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(245,158,66,0.3)'}}>COMBUST</span>}
-          {!isAsc && <span style={{fontSize:'0.6rem',color:digColor,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.05em'}}>{dignityLabel}</span>}
+          {!isSpecialPoint && <span style={{fontSize:'0.6rem',color:digColor,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.05em'}}>{dignityLabel}</span>}
         </div>
       </div>
 
@@ -134,7 +136,7 @@ export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardPr
         </div>
 
         {/* Interpretations Analysis */}
-        {!isAsc && (
+        {!isSpecialPoint && (
           <div style={{padding:'0.75rem',background:'var(--surface-2)',borderRadius:'var(--r-md)',border:'1px solid var(--border-soft)',borderLeft:'3px solid var(--gold)'}}>
              <div style={{fontSize:'0.55rem',color:'var(--text-gold)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:'0.35rem'}}>Analysis</div>
              <div style={{fontSize:'0.72rem',color:'var(--text-primary)',lineHeight:1.5,fontStyle:'italic'}}>

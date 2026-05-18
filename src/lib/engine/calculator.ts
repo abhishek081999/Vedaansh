@@ -80,6 +80,7 @@ import {
   calculateKshetraSphuta,
   buildUpagrahaData
 } from './upagrahas'
+import { calculateSpecialLagnas } from './specialLagnas'
 
 // ── Input ─────────────────────────────────────────────────────
 
@@ -286,56 +287,35 @@ export async function calculateChart(
   const yamaganda = getYamaganda(sunrise, sunset, vara.number)
   const abhijit = getAbhijitMuhurta(sunrise, sunset)
 
-  // ── Special Lagnas (computed once, reused in lagnas + shadbala) ──────────
-  const hoursFromSunrise = (birthUtc.getTime() - sunrise.getTime()) / 3600000
-  const horaLagnaVal  = ((sun.totalDegree + hoursFromSunrise * 30)  % 360 + 360) % 360
-  const ghatiLagnaVal = ((sun.totalDegree + hoursFromSunrise * 75) % 360 + 360) % 360
-  const bhavaLagnaVal = ((sun.totalDegree + hoursFromSunrise * 15)  % 360 + 360) % 360
-
-  // Pranapada (BPHS): Sun + (ghatis from sunrise × 30°/ghati)
-  const ghatiFromSunrise = hoursFromSunrise * 2.5  // 1 hr = 2.5 ghatis
-  const pranapadaVal = ((sun.totalDegree + ghatiFromSunrise * 30) % 360 + 360) % 360
-
-  // Sri Lagna (BPHS): Asc + (Moon's navamsha index within sign × 30°)
-  const moonNavamshaIdx = Math.floor((moon.totalDegree % 30) / (30 / 9)) // 0-8
-  const sriLagnaVal = ((houses.ascendantSidereal + moonNavamshaIdx * 30) % 360 + 360) % 360
-
-  // Varnada Lagna (BPHS): Precise Parasari method
-  const hlSign = Math.floor(horaLagnaVal / 30) + 1
-  const l1 = houses.ascRashi
-  const h1 = hlSign
-  
-  // Step 1 & 2: Counts (Odd: from Aries, Even: from Pisces reverse)
-  const c1 = l1 % 2 !== 0 ? l1 : (13 - l1)
-  const c2 = h1 % 2 !== 0 ? h1 : (13 - h1)
-  
-  // Step 3: Add/Subtract based on parity match
-  // Rule: Same parity (both odd or both even signs) -> ADD. Different -> SUBTRACT.
-  let v = (l1 % 2 === h1 % 2) ? (c1 + c2) : (c1 - c2)
-  
-  // Step 4: Normalize 1-12
-  v = ((v - 1) % 12 + 12) % 12 + 1
-  
-  // Step 5: Resultant Sign
-  // If Lagna is odd: Count forward from Aries
-  // If Lagna is even: Count forward from Pisces
-  const varnadaSign = l1 % 2 !== 0 
-    ? v 
-    : (((12 + (v - 1) - 1) % 12) + 1)
-  
-  const varnadaVal = ((varnadaSign - 1) * 30 + 15) // Sign midpoint
+  // ── Special Lagnas (BPHS; Sun at applicable sunrise) ─────────────────────
+  const special = calculateSpecialLagnas({
+    birthUtc,
+    birthDateStr,
+    lat: input.latitude,
+    lng: input.longitude,
+    tz: input.timezone,
+    ascLon: houses.ascendantSidereal,
+    ascRashi: houses.ascRashi,
+    ascDegreeInRashi: houses.ascDegreeInRashi,
+    moonLon: moon.totalDegree,
+    moonRashi: moon.rashi,
+    rahuLon: grahas.find((g) => g.id === 'Ra')!.totalDegree,
+  })
 
   const lagnaData = {
     ascDegree:        houses.ascendantSidereal,
     ascRashi:         houses.ascRashi,
     ascDegreeInRashi: houses.ascDegreeInRashi,
     mcDegree:         houses.mcSidereal,
-    horaLagna:        horaLagnaVal,
-    ghatiLagna:       ghatiLagnaVal,
-    bhavaLagna:       bhavaLagnaVal,
-    pranapada:        pranapadaVal,
-    sriLagna:         sriLagnaVal,
-    varnadaLagna:     varnadaVal,
+    horaLagna:        special.horaLagna,
+    ghatiLagna:       special.ghatiLagna,
+    bhavaLagna:       special.bhavaLagna,
+    vighatiLagna:     special.vighatiLagna,
+    pranapada:        special.pranapada,
+    sriLagna:         special.sriLagna,
+    varnadaLagna:     special.varnadaLagna,
+    induLagna:        special.induLagna,
+    bhriguBindu:      special.bhriguBindu,
     cusps:            houses.cuspsSidereal,
   }
 
@@ -516,9 +496,12 @@ export async function calculateChart(
       horaLagna:        lagnaData.horaLagna,
       ghatiLagna:       lagnaData.ghatiLagna,
       bhavaLagna:       lagnaData.bhavaLagna,
+      vighatiLagna:     lagnaData.vighatiLagna,
       pranapada:        lagnaData.pranapada,
       sriLagna:         lagnaData.sriLagna,
       varnadaLagna:     lagnaData.varnadaLagna,
+      induLagna:        lagnaData.induLagna,
+      bhriguBindu:      lagnaData.bhriguBindu,
       cusps:            lagnaData.cusps,
     },
     arudhas: {

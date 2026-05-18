@@ -13,7 +13,6 @@
     "typecheck": "tsc --noEmit",
     "test:engine": "vitest run",
     "test:watch": "vitest src/lib/engine",
-    "seed:atlas": "tsx scripts/seed-atlas.ts",
     "remotion:studio": "remotion studio remotion/index.ts",
     "remotion:render": "tsx scripts/render-reel.ts",
     "reel:mp4": "tsx scripts/render-reel.ts"

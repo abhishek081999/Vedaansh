@@ -17,6 +17,7 @@ import {
   EXALTATION_SIGN,
   EXALTATION_DEGREE
 } from './dignity'
+import { getDrishtiValue } from './bhavaBala'
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -423,54 +424,65 @@ function chestaBala(
 }
 
 // ── 6. Drik Bala ────────────────────────────────────────────
+// BPHS Ch.26–27 / B.V. Raman: DK = aspected − aspecting; benefic aspects add,
+// malefic subtract; total ÷ 4. Uses same sputa-drishti curve as bhavaBala.ts.
+
+function isDrigBenefic(
+  graha: GrahaData,
+  sunLon: number,
+  moonLon: number,
+  allGrahas: GrahaData[],
+): boolean {
+  const distSunMoon = norm(moonLon - sunLon)
+
+  if (['Ju', 'Ve'].includes(graha.id)) return true
+  if (['Su', 'Ma', 'Sa'].includes(graha.id)) return false
+
+  if (graha.id === 'Mo') {
+    return distSunMoon >= 90 && distSunMoon <= 270
+  }
+
+  if (graha.id === 'Me') {
+    const maleficIds: GrahaId[] = ['Su', 'Ma', 'Sa', 'Ra', 'Ke']
+    for (const mid of maleficIds) {
+      const malefic = allGrahas.find(gr => gr.id === mid)
+      if (malefic && graha.rashi === malefic.rashi) return false
+    }
+    return true
+  }
+
+  return false
+}
 
 function drikBala(
   g: GrahaData,
   allGrahas: GrahaData[],
   sunLon: number,
+  moonLon: number,
 ): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['drik'] } {
   let bala = 0
   let benefic = 0
   let malefic = 0
+
   for (const other of allGrahas) {
-    if (other.id === g.id) continue
-    const dist = norm(other.totalDegree - g.totalDegree)
-    
-    let pts = 0
-    if (dist >= 30 && dist < 60) pts = (dist - 30) * 0.5
-    else if (dist >= 60 && dist < 90) pts = 15 + (dist - 60)
-    else if (dist >= 90 && dist < 120) pts = 45 - (dist - 90) * 0.5
-    else if (dist >= 120 && dist < 150) pts = 30 - (dist - 120) * 0.5
-    else if (dist >= 150 && dist <= 180) pts = 15 + (dist - 150) * 1.5
-    else if (dist > 180) {
-      const symDist = 360 - dist
-      if (symDist >= 30 && symDist < 60) pts = (symDist - 30) * 0.5
-      else if (symDist >= 60 && symDist < 90) pts = 15 + (symDist - 60)
-      else if (symDist >= 90 && symDist < 120) pts = 45 - (symDist - 90) * 0.5
-      else if (symDist >= 120 && symDist < 150) pts = 30 - (symDist - 120) * 0.5
-      else if (symDist >= 150 && symDist < 180) pts = 15 + (symDist - 150) * 1.5
-    }
-    
-    // Improved Benefic/Malefic logic for Drig Bala
-    let isBenefic = ['Ju', 'Ve'].includes(other.id)
-    if (other.id === 'Mo') {
-      const moonSunDist = norm(other.totalDegree - sunLon)
-      isBenefic = moonSunDist > 72 && moonSunDist < 288 // Shukla 7 to Krishna 7 approx
-    } else if (other.id === 'Me') {
-      isBenefic = !other.isCombust // Approximation
-    }
-    
-    const finalPts = pts / 4
-    if (isBenefic) {
-      benefic += finalPts
-      bala += finalPts
+    if (other.id === g.id || !GRAHA_ORDER.includes(other.id)) continue
+
+    // DK = aspected (g) − aspecting (other); special aspects keyed on aspector
+    const pts = getDrishtiValue(g.totalDegree, other.totalDegree, other.id)
+    if (pts === 0) continue
+
+    const quarter = pts / 4
+    if (isDrigBenefic(other, sunLon, moonLon, allGrahas)) {
+      benefic += quarter
+      bala += quarter
     } else {
-      malefic += finalPts
-      bala -= finalPts
+      malefic += quarter
+      bala -= quarter
     }
   }
+
   return {
-    total: Math.max(0, bala), // Capped at 0 to match JH Mercury/Jupiter behavior
+    total: bala,
     breakdown: { benefic, malefic, net: bala },
   }
 }
@@ -502,7 +514,7 @@ export function calculateShadbala(
     const kalaOut   = kalaBala(g, birthDate, sunrise, sunset, moonLon, sunLon, weekday)
     const chestaOut = chestaBala(g, kalaOut.breakdown?.ayana || 0, kalaOut.breakdown?.paksha || 0)
     const naisar    = NAISARGIKA_SHASH[id] ?? 30
-    const drikOut   = drikBala(g, grahas, sunLon)
+    const drikOut   = drikBala(g, grahas, sunLon, moonLon)
 
     const sthan = sthanOut.total
     const dig = digOut.total

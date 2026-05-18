@@ -14,7 +14,6 @@ import {
   approxIndianEras,
   formatSiderealLongitude,
   getBhriguBinduLon,
-  getInduLagnaRashi,
   getNakshatraPaya,
   getPadaNamingSyllable,
   getRashiTatva,
@@ -422,7 +421,6 @@ function buildAstroDetailsHtml(chart: ChartOutput): { part1: string; part2: stri
 
   const chars = getNakshatraCharacteristics(moon.nakshatraIndex, moon.pada)
   const moonNak1 = moon.nakshatraIndex + 1
-  const induRashi = getInduLagnaRashi(moon.rashi)
   const bhriguLon = rahu ? getBhriguBinduLon(moon.totalDegree, rahu.totalDegree) : null
   const bhriguFmt = bhriguLon != null ? formatSiderealLongitude(bhriguLon) : null
   const eras = approxIndianEras(chart.meta.birthDate)
@@ -539,15 +537,16 @@ function buildAstroDetailsHtml(chart: ChartOutput): { part1: string; part2: stri
       ])}
       ${detailTable('Special lagnas & points', [
         ['Āruḍha Lagna (AL)', chart.arudhas.AL ? RASHI_NAMES[chart.arudhas.AL] : '—'],
-        ['Indu Lagna', `${RASHI_NAMES[induRashi]} · ${RASHI_SANSKRIT[induRashi]}`],
         ['Bhrigu Bindu', bhriguStr],
         ...yogiRow,
+        ['Bhava Lagna', fmtLon(chart.lagnas.bhavaLagna)],
         ['Hora Lagna', fmtLon(chart.lagnas.horaLagna)],
         ['Ghati Lagna', fmtLon(chart.lagnas.ghatiLagna)],
-        ['Bhava Lagna', fmtLon(chart.lagnas.bhavaLagna)],
-        ['Praṇapada', fmtLon(chart.lagnas.pranapada)],
-        ['Śrī Lagna', fmtLon(chart.lagnas.sriLagna)],
+        ['Vighati Lagna', fmtLon(chart.lagnas.vighatiLagna)],
         ['Varṇada Lagna', fmtLon(chart.lagnas.varnadaLagna)],
+        ['Śrī Lagna', fmtLon(chart.lagnas.sriLagna)],
+        ['Praṇapada', fmtLon(chart.lagnas.pranapada)],
+        ['Indu Lagna', fmtLon(chart.lagnas.induLagna)],
         ...(beeja ? [[`Bīja Sphuta`, `${beeja.rashiName} ${beeja.degree.toFixed(2)}°`]] as [string, string][] : []),
         ...(kshetra ? [[`Kṣetra Sphuta`, `${kshetra.rashiName} ${kshetra.degree.toFixed(2)}°`]] as [string, string][] : []),
       ])}
@@ -566,12 +565,14 @@ function buildSpecialLagnas(chart: ChartOutput): string {
   const { lagnas } = chart
   const items = [
     { label: 'Ascendant (Lagna)', val: lagnas.ascDegree },
+    { label: 'Bhava Lagna', val: lagnas.bhavaLagna },
     { label: 'Hora Lagna (Wealth)', val: lagnas.horaLagna },
     { label: 'Ghati Lagna (Power)', val: lagnas.ghatiLagna },
-    { label: 'Bhava Lagna', val: lagnas.bhavaLagna },
-    { label: 'Sri Lagna (Abundance)', val: lagnas.sriLagna },
+    { label: 'Vighati Lagna', val: lagnas.vighatiLagna },
     { label: 'Varnada Lagna', val: lagnas.varnadaLagna },
+    { label: 'Sri Lagna (Abundance)', val: lagnas.sriLagna },
     { label: 'Pranapada', val: lagnas.pranapada },
+    { label: 'Indu Lagna', val: lagnas.induLagna },
   ]
   const rows = items.map(it => `
     <tr>

@@ -9,6 +9,7 @@ import { fromZonedTime } from 'date-fns-tz'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { calculateChart } from '@/lib/engine/calculator'
+import { hydrateSpecialLagnas } from '@/lib/engine/astroDetailsDerived'
 import { redis, chartCacheKey } from '@/lib/redis'
 import type { ChartSettings, UserPlan } from '@/types/astrology'
 
@@ -93,7 +94,17 @@ function hasAdvancedFeatures(chartData: any): boolean {
   // Check for Jaimini Intelligence (Bala and Trinity) - Version 2
   const hasJaimini = !!chartData.jaiminiBala && !!chartData.jaiminiTrinity && chartData.jaiminiBala.version === 2
 
-  return hasGrahaFeatures && hasYogiPoint && hasInterpretation && hasBhavaBala && hasVargaAdvanced && hasUpagrahas && hasJaimini
+  const hasInduBb = Number.isFinite(chartData?.lagnas?.induLagna)
+    && Number.isFinite(chartData?.lagnas?.bhriguBindu)
+
+  return hasGrahaFeatures && hasYogiPoint && hasInterpretation && hasBhavaBala && hasVargaAdvanced && hasUpagrahas && hasJaimini && hasInduBb
+}
+
+function hydrateChartLagnas(chartData: any): any {
+  if (!chartData?.lagnas || !Array.isArray(chartData.grahas)) return chartData
+  const lagnas = hydrateSpecialLagnas(chartData.lagnas, chartData.grahas)
+  if (lagnas === chartData.lagnas) return chartData
+  return { ...chartData, lagnas }
 }
 
 // ── Timezone conversion ───────────────────────────────────────
@@ -178,7 +189,7 @@ export async function POST(req: NextRequest) {
     if (cachedChart && hasVimsopakaData(cachedChart) && hasAdvancedFeatures(cachedChart)) {
       // Overwrite name, place, etc. from input — these don't affect calculation
       // but are stored in meta. We want to return the name from input.
-      const finalData = {
+      const finalData = hydrateChartLagnas({
         ...cachedChart,
         meta: {
           ...cachedChart.meta,
@@ -190,7 +201,7 @@ export async function POST(req: NextRequest) {
           gender:     input.gender,
           calculatedAt: new Date(),
         }
-      }
+      })
       return NextResponse.json({ success: true, data: finalData, fromCache: true })
     }
 
