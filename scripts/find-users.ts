@@ -11,7 +11,7 @@ async function listUsers() {
   }
   await mongoose.connect(uri)
   const users = await User.find({}, 'email name role').sort({ createdAt: -1 }).limit(10)
-  console.log(JSON.stringify(users, null, 2))
+  process.stdout.write(JSON.stringify(users, null, 2) + '\n')
   await mongoose.disconnect()
 }
 
