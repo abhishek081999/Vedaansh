@@ -76,7 +76,9 @@ function fmtTime(str: string): string {
 
 // ── Arudha Panel ──────────────────────────────────────────────
 
-function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
+function ArudhaPanel({ arudhas, arudhasBphs }: { arudhas: ChartOutput['arudhas']; arudhasBphs?: ChartOutput['arudhasBphs'] }) {
+  const [useBphsExceptions, setUseBphsExceptions] = useState(false)
+  const display = useBphsExceptions && arudhasBphs ? arudhasBphs : arudhas
   const items = [
     { key: 'AL',  label: 'Āruḍha Lagna',   desc: 'Image of self' },
     { key: 'A2',  label: 'Dhana Pada',      desc: 'Wealth' },
@@ -92,10 +94,24 @@ function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
     { key: 'UL',  label: 'Upapada Lagna',   desc: 'Marriage' },
   ]
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.55rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+          {useBphsExceptions ? 'BPHS exception-corrected' : 'Raw pada (no exceptions)'}
+        </span>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+          <input
+            type="checkbox"
+            checked={useBphsExceptions}
+            onChange={(e) => setUseBphsExceptions(e.target.checked)}
+          />
+          Apply BPHS exceptions
+        </label>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.55rem' }}>
       {items.map(({ key, label, desc }) => {
         const dataKey = key === 'UL' ? 'A12' : key
-        const rashi = (arudhas as unknown as Record<string, number>)[dataKey]
+        const rashi = (display as unknown as Record<string, number>)[dataKey]
         if (!rashi) return null
         return (
           <div key={key} style={{
@@ -120,6 +136,7 @@ function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
           </div>
         )
       })}
+      </div>
     </div>
   )
 }
@@ -333,7 +350,7 @@ export function PublicChartClient({
           {tab === 'arudhas' && (
             <div className="card">
               <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Bhāva Āruḍhas</div>
-              <ArudhaPanel arudhas={chart.arudhas} />
+              <ArudhaPanel arudhas={chart.arudhas} arudhasBphs={chart.arudhasBphs} />
             </div>
           )}
 

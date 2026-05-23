@@ -69,14 +69,29 @@ const ARUDHA_TOPICS: Record<string, string> = {
   A12: 'Loss · liberation',
 }
 
-function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
+function ArudhaPanel({ arudhas, arudhasBphs }: { arudhas: ChartOutput['arudhas']; arudhasBphs?: ChartOutput['arudhasBphs'] }) {
+  const [useBphsExceptions, setUseBphsExceptions] = useState(false)
+  const display = useBphsExceptions && arudhasBphs ? arudhasBphs : arudhas
   const keys = ['AL','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12'] as const
 
   return (
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', paddingBottom: '0.35rem' }}>
+        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+          {useBphsExceptions ? 'BPHS exception-corrected' : 'Raw pada (no exceptions)'}
+        </span>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+          <input
+            type="checkbox"
+            checked={useBphsExceptions}
+            onChange={(e) => setUseBphsExceptions(e.target.checked)}
+          />
+          Apply BPHS exceptions
+        </label>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.35rem' }}>
         {keys.map((key) => {
-          const rashi = arudhas[key] as Rashi | undefined
+          const rashi = display[key] as Rashi | undefined
           if (!rashi) return null
           const isAL = key === 'AL'
           return (
@@ -102,8 +117,8 @@ function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
         })}
       </div>
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', paddingTop: '0.4rem', borderTop: '1px solid var(--border-soft)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        <span><span style={{ color: 'var(--gold)' }}>A12:</span> {arudhas.A12 ? RASHI_NAMES[arudhas.A12] : '—'} · Upapada</span>
-        <span><span style={{ color: 'var(--gold)' }}>A7:</span> {arudhas.A7 ? RASHI_NAMES[arudhas.A7] : '—'} · Darapada</span>
+        <span><span style={{ color: 'var(--gold)' }}>A12:</span> {display.A12 ? RASHI_NAMES[display.A12] : '—'} · Upapada</span>
+        <span><span style={{ color: 'var(--gold)' }}>A7:</span> {display.A7 ? RASHI_NAMES[display.A7] : '—'} · Darapada</span>
       </div>
     </div>
   )
@@ -1956,7 +1971,7 @@ function HomeContent() {
                   {activeTab === 'arudhas' && (
                      <div className="panel fade-up">
                         <div className="panel-header"><span>Bhāva Āruḍhas</span></div>
-                        <div style={{ padding: '0.5rem 0.65rem' }}><ArudhaPanel arudhas={chart.arudhas} /></div>
+                        <div style={{ padding: '0.5rem 0.65rem' }}><ArudhaPanel arudhas={chart.arudhas} arudhasBphs={chart.arudhasBphs} /></div>
                      </div>
                   )}
 

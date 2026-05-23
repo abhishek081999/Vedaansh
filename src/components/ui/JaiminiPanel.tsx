@@ -1,9 +1,11 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useId } from 'react'
 import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData, NAKSHATRA_NAMES } from '@/types/astrology'
 import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
+import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { DashaTree } from '@/components/dasha/DashaTree'
 import { calculateGatewaySigns } from '@/lib/engine/jaimini'
+import { buildArudhaBundle, pickArudhaSet, countArudhaDifferences, buildArudhaLabelMap } from '@/lib/engine/arudhas'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X } from 'lucide-react'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
@@ -27,6 +29,28 @@ const ARUDHA_LABELS: Record<string, { label: string; desc: string; icon: string 
   A10: { label: 'Rajya Pada',      desc: 'Professional impact', icon: '🏢' },
   A11: { label: 'Labha Pada',      desc: 'Gains & social network', icon: '📈' },
   A12: { label: 'Upapada Lagna',   desc: 'Marriage & devotion', icon: '❤️' },
+}
+
+function ArudhaToggle({
+  label, value, onChange, disabled,
+}: { label: string; value: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => onChange(!value)}
+      style={{
+        padding: '4px 10px', fontSize: '0.6rem', fontWeight: 900, borderRadius: '4px',
+        background: value ? 'var(--gold-faint)' : 'var(--surface-3)',
+        color: value ? 'var(--gold)' : 'var(--text-muted)',
+        border: `1px solid ${value ? 'var(--gold-soft)' : 'transparent'}`,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        textTransform: 'uppercase', opacity: disabled ? 0.45 : 1,
+      }}
+    >
+      {label}
+    </button>
+  )
 }
 
 function JaiminiSnapshot({ chart, isTinyMobile }: { chart: ChartOutput, isTinyMobile: boolean }) {
@@ -126,6 +150,7 @@ export function JaiminiAspectChart({
   selectedSign,
   aspectingSigns,
   arudhas,
+  showArudhas = true,
   argalaData = [],
   vizMode = 'drishti',
   arScale = 1.0,
@@ -137,7 +162,8 @@ export function JaiminiAspectChart({
   onSelectSign: (r: Rashi) => void;
   selectedSign: Rashi | null;
   aspectingSigns: Rashi[];
-  arudhas: any;
+  arudhas: ArudhaData;
+  showArudhas?: boolean;
   argalaData?: any[];
   vizMode?: 'drishti' | 'argala' | 'both';
   arScale?: number;
@@ -148,6 +174,7 @@ export function JaiminiAspectChart({
   const size = 400
   const arScaleVal = arScale || 1.0;
   const plScaleVal = plScale || 1.0;
+  const glowId = useId();
 
   // Create reverse map: { 'Su': 'AK', 'Mo': 'AmK', ... }
   const revKaraka: Record<string, string> = {};
@@ -162,24 +189,21 @@ export function JaiminiAspectChart({
      9: [3, 0], 8: [3, 1], 7: [3, 2],  6: [3, 3],
   }
 
-  const arudhaMap: Record<number, string[]> = {}
-  Object.entries(arudhas).forEach(([k, r]) => {
-    if (typeof r === 'number' && k !== 'grahaArudhas') {
-      if (!arudhaMap[r]) arudhaMap[r] = []
-      arudhaMap[r].push(k === 'A12' ? 'UL' : k)
-    }
-  })
+  const arudhaMap = useMemo(
+    () => buildArudhaLabelMap(arudhas, showArudhas),
+    [arudhas, showArudhas],
+  )
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem' }}>
       <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} style={{ maxWidth: '100%', height: 'auto', overflow: 'visible' }}>
         <defs>
-          <radialGradient id="cosmic-glow" cx="50%" cy="50%" r="50%">
+          <radialGradient id={glowId} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(201,168,76,0.1)" />
             <stop offset="100%" stopColor="transparent" />
           </radialGradient>
         </defs>
-        <rect width={size} height={size} fill="url(#cosmic-glow)" />
+        <rect width={size} height={size} fill={`url(#${glowId})`} />
         <rect width={size} height={size} fill="none" stroke="var(--gold-dim)" strokeWidth="1.5" />
 
         {Object.entries(SIGN_CELLS).map(([signStr, [row, col]]) => {
@@ -262,31 +286,33 @@ export function JaiminiAspectChart({
                       <tspan dx="1" dy="-6" fontSize={10 * plScaleVal} fill="var(--dig-retro)" fontWeight="900">ᴿ</tspan>
                     )}
                     {revKaraka[g.id] && (
-                      <tspan dx={g.isRetro ? "1" : "2"} dy={g.isRetro ? "0" : "-5"} fontSize={7 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
+                      <tspan dx={g.isRetro ? "1" : "2"} dy={g.isRetro ? "0" : "-5"} fontSize={9 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
                         {revKaraka[g.id]}
                       </tspan>
                     )}
                   </text>
                 ))}
               </g>
-              <text 
-                x={x + cell/2} 
-                y={y + cell - 12} 
-                textAnchor="middle" 
-                fontSize={9 * arScaleVal} 
-                fontWeight="900" 
-                fill="#818cf8"
-                style={{ fill: '#818cf8' }}
-                fontStyle="italic"
-              >
-                {(() => {
-                  const rows = []
-                  for (let i = 0; i < arList.length; i += 2) rows.push(arList.slice(i, i + 2).join(' · '))
-                  return rows.map((row, idx) => (
-                    <tspan key={idx} x={x + cell/2} dy={idx === 0 ? 0 : 11 * arScaleVal}>{row}</tspan>
-                  ))
-                })()}
-              </text>
+              {showArudhas && arList.length > 0 && (
+                <text 
+                  x={x + cell/2} 
+                  y={y + cell - 12} 
+                  textAnchor="middle" 
+                  fontSize={11 * arScaleVal} 
+                  fontWeight="900" 
+                  fill="#818cf8"
+                  style={{ fill: '#818cf8' }}
+                  fontStyle="italic"
+                >
+                  {(() => {
+                    const rows = []
+                    for (let i = 0; i < arList.length; i += 2) rows.push(arList.slice(i, i + 2).join(' · '))
+                    return rows.map((row, idx) => (
+                      <tspan key={idx} x={x + cell/2} dy={idx === 0 ? 0 : 11 * arScaleVal}>{row}</tspan>
+                    ))
+                  })()}
+                </text>
+              )}
             </g>
           )
         })}
@@ -302,6 +328,7 @@ export function JaiminiAspectChartNorth({
   selectedSign,
   aspectingSigns,
   arudhas,
+  showArudhas = true,
   argalaData = [],
   vizMode = 'drishti',
   arScale = 1.0,
@@ -313,7 +340,8 @@ export function JaiminiAspectChartNorth({
   onSelectSign: (r: Rashi) => void;
   selectedSign: Rashi | null;
   aspectingSigns: Rashi[];
-  arudhas: any;
+  arudhas: ArudhaData;
+  showArudhas?: boolean;
   argalaData?: any[];
   vizMode?: 'drishti' | 'argala' | 'both';
   arScale?: number;
@@ -331,13 +359,10 @@ export function JaiminiAspectChartNorth({
     if (gid && typeof gid === 'string') revKaraka[gid] = k;
   });
 
-  const arudhaMap: Record<number, string[]> = {}
-  Object.entries(arudhas).forEach(([k, r]) => {
-    if (typeof r === 'number' && k !== 'grahaArudhas') {
-      if (!arudhaMap[r]) arudhaMap[r] = []
-      arudhaMap[r].push(k === 'A12' ? 'UL' : k)
-    }
-  })
+  const arudhaMap = useMemo(
+    () => buildArudhaLabelMap(arudhas, showArudhas),
+    [arudhas, showArudhas],
+  )
 
   const polyPts = (h: number): string => {
     let pts: [number, number][] = []
@@ -495,7 +520,7 @@ export function JaiminiAspectChartNorth({
                         <tspan dx="1" dy="-6" fontSize={10 * plScaleVal} fill="var(--dig-retro)" fontWeight="900">ᴿ</tspan>
                       )}
                       {revKaraka[g.id] && (
-                        <tspan dx={g.isRetro ? "1" : "2"} dy={g.isRetro ? "0" : "-5"} fontSize={7 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
+                        <tspan dx={g.isRetro ? "1" : "2"} dy={g.isRetro ? "0" : "-5"} fontSize={9 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
                           {revKaraka[g.id]}
                         </tspan>
                       )}
@@ -503,7 +528,7 @@ export function JaiminiAspectChartNorth({
                   )
                 })}
               </g>
-              {(() => {
+              {showArudhas && arList.length > 0 && (() => {
                 const rows = []
                 for (let i = 0; i < arList.length; i += 2) rows.push(arList.slice(i, i + 2).join(' · '))
                 return rows.map((row, idx) => (
@@ -511,7 +536,7 @@ export function JaiminiAspectChartNorth({
                     key={idx}
                     x={cx} 
                     y={cy + arOffY + (idx * 11 * arScaleVal)} 
-                    fontSize={10 * arScaleVal} 
+                    fontSize={12 * arScaleVal} 
                     fontWeight="900" 
                     fill="#818cf8" 
                     textAnchor="middle" 
@@ -532,15 +557,27 @@ export function JaiminiAspectChartNorth({
 }
 
 function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
-  const { arudhas, grahas, vargas, lagnas, jaiminiBala, jaiminiTrinity } = chart;
+  const { grahas, vargas, lagnas, jaiminiBala, jaiminiTrinity } = chart;
   const karakas = calcCharaKarakas(
     grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
     7
   );
   const [activeTab, setActiveTab] = useState<'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info'>('essence');
-  
+  const [charaDashaMode, setCharaDashaMode] = useState<'chara' | 'chara_fe'>(
+    chart.meta.gender === 'female' ? 'chara_fe' : 'chara',
+  );
+
+  const charaDashas = useMemo(
+    () => ensureCharaDashas(grahas, lagnas, chart.meta, chart.dashas),
+    [grahas, lagnas, chart.meta.birthDate, chart.meta.birthTime, chart.meta.timezone, chart.dashas?.chara, chart.dashas?.chara_fe],
+  );
+
+  const activeCharaDashas = charaDashaMode === 'chara_fe'
+    ? charaDashas.chara_fe
+    : charaDashas.chara;
+
   // Gateway calculation
-  const currentDashaNode = chart.dashas?.chara?.find((n: any) => n.isCurrent);
+  const currentDashaNode = activeCharaDashas.find((n) => n.isCurrent);
   let dwaraRashi: Rashi | null = null;
   if (currentDashaNode) {
     const entry = Object.entries(RASHI_SHORT).find(([_, val]) => val === currentDashaNode.lord);
@@ -557,6 +594,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const [arScale, setArScale] = useState(1.0);
   const [plScale, setPlScale] = useState(1.0);
   const [chartScale, setChartScale] = useState(1.0);
+  const [showArudhaOverlay, setShowArudhaOverlay] = useState(true);
+  const [arudhaBphsMode, setArudhaBphsMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTinyMobile, setIsTinyMobile] = useState(false);
 
@@ -575,34 +614,76 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  const d1Grahas = grahas;
+  const d9Grahas = vargas['D9'] ?? grahas;
+  const d1AscBase = (chart.vargaLagnas?.D1 ?? lagnas.ascRashi) as Rashi;
+  const d9AscBase = (chart.vargaLagnas?.D9 ?? chart.vargaLagnas?.D1 ?? lagnas.ascRashi) as Rashi;
+
+  const d1GrahaSlimKey = d1Grahas.map((g) => `${g.id}:${g.rashi}`).join('|');
+  const d9GrahaSlimKey = d9Grahas.map((g) => `${g.id}:${g.rashi}`).join('|');
+  const d1GrahaSlim = useMemo(
+    () => d1Grahas.map((g) => ({ id: g.id, rashi: g.rashi as Rashi })),
+    [d1GrahaSlimKey],
+  );
+  const d9GrahaSlim = useMemo(
+    () => d9Grahas.map((g) => ({ id: g.id, rashi: g.rashi as Rashi })),
+    [d9GrahaSlimKey],
+  );
+
+  const d1ArudhaBundle = useMemo(
+    () => buildArudhaBundle(d1AscBase, d1GrahaSlim),
+    [d1AscBase, d1GrahaSlim],
+  );
+
+  const d9ArudhaBundle = useMemo(
+    () => buildArudhaBundle(d9AscBase, d9GrahaSlim),
+    [d9AscBase, d9GrahaSlim],
+  );
+
+  const d1EffectiveArudhas = useMemo(
+    () => pickArudhaSet(d1ArudhaBundle.raw, d1ArudhaBundle.bphs, arudhaBphsMode),
+    [d1ArudhaBundle, arudhaBphsMode],
+  );
+  const d9EffectiveArudhas = useMemo(
+    () => pickArudhaSet(d9ArudhaBundle.raw, d9ArudhaBundle.bphs, arudhaBphsMode),
+    [d9ArudhaBundle, arudhaBphsMode],
+  );
+
+  const d1ArudhaDiffCount = useMemo(
+    () => countArudhaDifferences(d1ArudhaBundle.raw, d1ArudhaBundle.bphs),
+    [d1ArudhaBundle],
+  );
+  const d9ArudhaDiffCount = useMemo(
+    () => countArudhaDifferences(d9ArudhaBundle.raw, d9ArudhaBundle.bphs),
+    [d9ArudhaBundle],
+  );
+
   const currentGrahas = vargas[activeVarga] || grahas;
-  
-  // Lagna Rotation Logic
-  const getRotatedLagna = (): Rashi => {
-    if (activeLagnaRef === 'AL') return arudhas.AL as Rashi;
+
+  const getLagnaForVarga = (varga: 'D1' | 'D9'): Rashi => {
+    const vAsc = (varga === 'D9' ? d9AscBase : d1AscBase) as Rashi;
+    const vArudhas = varga === 'D9' ? d9EffectiveArudhas : d1EffectiveArudhas;
+    if (activeLagnaRef === 'AL') return vArudhas.AL as Rashi;
     if (activeLagnaRef === 'KL') {
       const akId = karakas.AK;
-      const d9 = vargas['D9'];
-      const akNav = d9?.find(g => g.id === akId);
+      const akNav = vargas['D9']?.find(g => g.id === akId);
       return (akNav?.rashi || 1) as Rashi;
     }
     if (activeLagnaRef === 'dasha') {
-      const currentDashaNode = chart.dashas.chara.find(n => n.isCurrent);
+      const currentDashaNode = activeCharaDashas.find(n => n.isCurrent);
       if (currentDashaNode) {
-        // Find Rashi index from the short name (Sg, Ar, etc.)
         const short = currentDashaNode.lord;
         const entry = Object.entries(RASHI_SHORT).find(([_, val]) => val === short);
         if (entry) return Number(entry[0]) as Rashi;
       }
     }
     if (activeLagnaRef === 'house') {
-      const natalAsc = (chart.vargaLagnas?.[activeVarga] || lagnas.ascRashi) as Rashi;
-      return (((natalAsc + rotationHouse - 2) % 12) + 1) as Rashi;
+      return (((vAsc + rotationHouse - 2) % 12) + 1) as Rashi;
     }
-    return (chart.vargaLagnas?.[activeVarga] || lagnas.ascRashi) as Rashi;
+    return vAsc;
   };
 
-  const currentAsc = getRotatedLagna();
+  const currentAsc = getLagnaForVarga(activeVarga === 'D9' ? 'D9' : 'D1');
 
   const getQuarter = (deg: number) => Math.floor((deg % 30) / 7.5) + 1;
   const isOppositeQuarter = (q1: number, q2: number) => (q1 + q2) === 5;
@@ -677,7 +758,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
         });
       }
     }
-    const alRashi = arudhas.AL as Rashi;
+    const alRashi = d1EffectiveArudhas.AL as Rashi;
     const benefics = ['Ju', 'Ve', 'Me'];
     const alBenefics = currentGrahas.filter(g => benefics.includes(g.id) && (g.rashi === alRashi || getRashiDrishti(alRashi).includes(g.rashi)));
     if (alBenefics.length >= 2) {
@@ -695,12 +776,58 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const tabs: { id: 'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info'; label: string; icon: string }[] = [
     { id: 'essence', label: 'Soul Architecture', icon: '💠' },
     { id: 'arudhas', label: 'Arudha Landscape', icon: '🏔️' },
-    { id: 'dashas',  label: 'Timing & Dashas',  icon: '⏳' },
+    { id: 'dashas',  label: 'Dasha',  icon: '⏳' },
     { id: 'info',    label: 'Info Reference',   icon: '⚖️' },
     { id: 'intelligence', label: 'Intelligence', icon: '🧠' },
   ];
 
   const argalaInterventions = selectedAspectSign ? getArgalaIntervention(selectedAspectSign) : [];
+
+  const renderJaiminiChartBlock = (
+    label: string,
+    varga: 'D1' | 'D9',
+    grahasForChart: typeof grahas,
+    chartArudhas: ArudhaData,
+    diffCount: number,
+  ) => {
+    const asc = getLagnaForVarga(varga);
+    const chartKey = `${varga}-${arudhaBphsMode ? 'bphs' : 'raw'}-${showArudhaOverlay ? 'on' : 'off'}`;
+    const chartProps = {
+      ascRashi: asc,
+      grahas: grahasForChart,
+      selectedSign: selectedAspectSign,
+      onSelectSign: setSelectedAspectSign,
+      aspectingSigns: selectedAspectSign ? getRashiDrishti(selectedAspectSign) : [],
+      arudhas: chartArudhas,
+      showArudhas: showArudhaOverlay,
+      argalaData: argalaInterventions,
+      vizMode,
+      arScale,
+      plScale,
+      karakas,
+    };
+    return (
+      <div key={chartKey} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+        <div style={{
+          fontSize: '0.65rem', fontWeight: 900, color: 'var(--gold)',
+          letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.35rem',
+          textAlign: 'center',
+        }}>
+          {label}
+          <span style={{ display: 'block', marginTop: 2, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'none', fontSize: '0.58rem' }}>
+            {showArudhaOverlay
+              ? `${arudhaBphsMode ? 'BPHS corrected' : 'Raw pada'} · AL in ${RASHI_SHORT[chartArudhas.AL]}${diffCount > 0 ? ` · ${diffCount} pada(s) differ with BPHS` : ''}`
+              : 'Āruḍha labels hidden'}
+          </span>
+        </div>
+        {chartStyle === 'south' ? (
+          <JaiminiAspectChart {...chartProps} />
+        ) : (
+          <JaiminiAspectChartNorth {...chartProps} />
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="fade-up" style={{ 
@@ -779,22 +906,15 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                 ))}
               </div>
 
-              {/* Varga Controls */}
-              <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                {['D1', 'D9', 'D10', 'D60'].map(v => (
-                  <button
-                    key={v}
-                    onClick={() => setActiveVarga(v)}
-                    style={{
-                      padding: '4px 8px', fontSize: '0.6rem', fontWeight: 900, borderRadius: '4px',
-                      background: activeVarga === v ? 'var(--accent-glow)' : 'var(--surface-3)',
-                      color: activeVarga === v ? 'var(--accent)' : 'var(--text-muted)',
-                      border: 'none', cursor: 'pointer'
-                    }}
-                  >
-                    {v}
-                  </button>
-                ))}
+              {/* Arudha display */}
+              <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'wrap' }}>
+                <ArudhaToggle label="Āruḍha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
+                <ArudhaToggle
+                  label="BPHS exceptions"
+                  value={arudhaBphsMode}
+                  onChange={setArudhaBphsMode}
+                  disabled={!showArudhaOverlay}
+                />
               </div>
             </div>
 
@@ -972,43 +1092,18 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
           <div style={{ 
             display: 'flex', 
-            justifyContent: 'center', 
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: isTinyMobile ? '0.75rem' : '1.25rem',
             padding: isTinyMobile ? '0.25rem' : '1rem',
             transform: `scale(${chartScale})`,
             transformOrigin: 'top center',
-            marginBottom: `${(chartScale - 1) * 400}px`,
+            marginBottom: `${(chartScale - 1) * 800}px`,
             width: '100%',
             overflow: 'visible'
           }}>
-            {chartStyle === 'south' ? (
-              <JaiminiAspectChart 
-                ascRashi={currentAsc} 
-                grahas={currentGrahas} 
-                selectedSign={selectedAspectSign} 
-                onSelectSign={setSelectedAspectSign} 
-                aspectingSigns={selectedAspectSign ? getRashiDrishti(selectedAspectSign) : []} 
-                arudhas={arudhas} 
-                argalaData={argalaInterventions}
-                vizMode={vizMode}
-                arScale={arScale}
-                plScale={plScale}
-                karakas={karakas}
-              />
-            ) : (
-              <JaiminiAspectChartNorth 
-                ascRashi={currentAsc} 
-                grahas={currentGrahas} 
-                selectedSign={selectedAspectSign} 
-                onSelectSign={setSelectedAspectSign} 
-                aspectingSigns={selectedAspectSign ? getRashiDrishti(selectedAspectSign) : []} 
-                arudhas={arudhas} 
-                argalaData={argalaInterventions}
-                vizMode={vizMode}
-                arScale={arScale}
-                plScale={plScale}
-                karakas={karakas}
-              />
-            )}
+            {renderJaiminiChartBlock('D1 · Rāśi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)}
+            {renderJaiminiChartBlock('D9 · Navāmśa', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)}
           </div>
           
           {selectedAspectSign && (
@@ -1135,7 +1230,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     <div style={{ width: '1px', background: 'var(--border-soft)', height: '1rem' }} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--teal)', textTransform: 'uppercase' }}>AL:</span>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--text-primary)' }}>{RASHI_SHORT[arudhas.AL]}</span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--text-primary)' }}>{RASHI_SHORT[d1EffectiveArudhas.AL]}</span>
                     </div>
                   </div>
 
@@ -1153,7 +1248,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       <tbody>
                         {(() => {
                           const lagnaDeg = lagnas.ascDegree;
-                          const alDeg = ((arudhas.AL - 1) * 30) + (lagnas.ascDegree % 30);
+                          const alDeg = ((d1EffectiveArudhas.AL - 1) * 30) + (lagnas.ascDegree % 30);
                           const plDeg = lagnas.pranapada;
                           const moonG = currentGrahas.find(gr => gr.id === 'Mo');
                           const rahuG = currentGrahas.find(gr => gr.id === 'Ra');
@@ -1182,29 +1277,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           const ilNak = getNakInfo(ilDeg);
                           const bbNak = getNakInfo(bbDeg);
 
-                          const displayBodies = [
-                            { 
-                              id: 'Lg', 
-                              degree: lagnaDeg % 30, 
-                              rashi: lagnas.ascRashi, 
-                              nakshatraName: lagnaNak.name, 
-                              pada: lagnaNak.pada, 
-                              nakshatraIndex: lagnaNak.index,
-                              isRetro: false,
-                              isCombust: false,
-                              pushkara: { isPushkara: false } as any
-                            },
-                            { 
-                              id: 'AL', 
-                              degree: alDeg % 30, 
-                              rashi: arudhas.AL, 
-                              nakshatraName: alNak.name, 
-                              pada: alNak.pada, 
-                              nakshatraIndex: alNak.index,
-                              isRetro: false,
-                              isCombust: false,
-                              pushkara: { isPushkara: false } as any
-                            },
+                          const specialLagnasBelow = [
                             { 
                               id: 'Pranapada Lagna', 
                               degree: plDeg % 30, 
@@ -1238,7 +1311,33 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               isCombust: false,
                               pushkara: { isPushkara: false } as any
                             },
-                            ...currentGrahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
+                          ];
+
+                          const displayBodies = [
+                            { 
+                              id: 'Lg', 
+                              degree: lagnaDeg % 30, 
+                              rashi: lagnas.ascRashi, 
+                              nakshatraName: lagnaNak.name, 
+                              pada: lagnaNak.pada, 
+                              nakshatraIndex: lagnaNak.index,
+                              isRetro: false,
+                              isCombust: false,
+                              pushkara: { isPushkara: false } as any
+                            },
+                            { 
+                              id: 'AL', 
+                              degree: alDeg % 30, 
+                              rashi: d1EffectiveArudhas.AL, 
+                              nakshatraName: alNak.name, 
+                              pada: alNak.pada, 
+                              nakshatraIndex: alNak.index,
+                              isRetro: false,
+                              isCombust: false,
+                              pushkara: { isPushkara: false } as any
+                            },
+                            ...currentGrahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id)),
+                            ...specialLagnasBelow,
                           ];
 
                           return displayBodies.map((g) => {
@@ -1266,7 +1365,15 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           };
 
                           return (
-                            <tr key={g.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                            <tr
+                              key={g.id}
+                              style={{
+                                borderBottom: '1px solid rgba(255,255,255,0.02)',
+                                borderTop: g.id === 'Pranapada Lagna' ? '1px solid var(--border-soft)' : undefined,
+                                background: ['Pranapada Lagna', 'Indu Lagna', 'Bhrigu Bindu'].includes(g.id)
+                                  ? 'rgba(255,255,255,0.015)' : undefined,
+                              }}
+                            >
                               <td style={{ padding: '0.4rem 0.5rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '1px' }}>
@@ -1360,29 +1467,54 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
               {activeTab === 'arudhas' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  {/* Arudha Padas Matrix */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Arudha Pada Matrix</h3>
-                    <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
-                      gap: '0.75rem' 
-                    }}>
-                      {Object.entries(ARUDHA_LABELS).map(([key, info]) => {
-                        const rashi = arudhas[key as keyof ArudhaData];
-                        return (
-                          <div key={key} className="card-glass" style={{ 
-                            padding: '0.75rem', borderRadius: '10px', background: 'var(--surface-1)', border: '1px solid var(--border-soft)',
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem'
-                          }}>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)' }}>{key}</div>
-                            <div style={{ fontSize: isTinyMobile ? '0.9rem' : '1.1rem', fontWeight: 900, color: 'var(--gold)' }}>{rashi ? RASHI_SHORT[rashi as Rashi] : '-'}</div>
-                            {!isTinyMobile && <div style={{ fontSize: '0.55rem', opacity: 0.6, textAlign: 'center' }}>{info.label}</div>}
-                          </div>
-                        )
-                      })}
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <ArudhaToggle label="Āruḍha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
+                    <ArudhaToggle
+                      label="BPHS exceptions"
+                      value={arudhaBphsMode}
+                      onChange={setArudhaBphsMode}
+                      disabled={!showArudhaOverlay}
+                    />
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                      {showArudhaOverlay
+                        ? (arudhaBphsMode
+                          ? `BPHS corrected · D1 AL ${RASHI_SHORT[d1EffectiveArudhas.AL]} · D9 AL ${RASHI_SHORT[d9EffectiveArudhas.AL]}`
+                          : `Raw pada · D1 AL ${RASHI_SHORT[d1EffectiveArudhas.AL]} · D9 AL ${RASHI_SHORT[d9EffectiveArudhas.AL]}`)
+                        : 'Āruḍha labels hidden on charts'}
+                    </span>
                   </div>
+
+                  {(['D1', 'D9'] as const).map((varga) => {
+                    const matrixArudhas = varga === 'D9' ? d9EffectiveArudhas : d1EffectiveArudhas;
+                    return (
+                      <div key={varga} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                          {varga === 'D1' ? 'D1 · Rāśi' : 'D9 · Navāmśa'} Arudha Matrix
+                        </h3>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+                          gap: '0.75rem',
+                        }}>
+                          {Object.entries(ARUDHA_LABELS).map(([key, info]) => {
+                            const rashi = matrixArudhas[key as keyof ArudhaData];
+                            return (
+                              <div key={`${varga}-${key}`} className="card-glass" style={{
+                                padding: '0.75rem', borderRadius: '10px', background: 'var(--surface-1)', border: '1px solid var(--border-soft)',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
+                              }}>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)' }}>{key}</div>
+                                <div style={{ fontSize: isTinyMobile ? '0.9rem' : '1.1rem', fontWeight: 900, color: 'var(--gold)' }}>
+                                  {rashi ? RASHI_SHORT[rashi as Rashi] : '-'}
+                                </div>
+                                {!isTinyMobile && <div style={{ fontSize: '0.55rem', opacity: 0.6, textAlign: 'center' }}>{info.label}</div>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
 
                   {/* Detailed Argala Intelligence Matrix (Dynamic) */}
                   <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
@@ -1396,7 +1528,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       <div style={{ display: 'flex', gap: '0.3rem' }}>
                         {[
                           { id: 'Lg', label: 'Lagna', sign: currentAsc },
-                          { id: 'AL', label: 'AL', sign: arudhas.AL },
+                          { id: 'AL', label: 'AL', sign: d1EffectiveArudhas.AL },
                           { id: 'AK', label: 'AK', sign: currentGrahas.find(g => g.id === karakas.AK)?.rashi }
                         ].map(ref => (
                           <button 
@@ -1974,8 +2106,27 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               {activeTab === 'dashas' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div className="card" style={{ padding: '1rem', background: 'var(--surface-1)' }}>
-                    <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '1rem' }}>Chara Dasha Timeline</div>
-                    <DashaTree nodes={chart.dashas.chara as DashaNode[]} birthDate={new Date(chart.meta.birthDate)} />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>Chara Dasha Timeline</div>
+                      <select
+                        value={charaDashaMode}
+                        onChange={(e) => setCharaDashaMode(e.target.value as 'chara' | 'chara_fe')}
+                        style={{
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          padding: '0.35rem 0.6rem',
+                          borderRadius: '8px',
+                          border: '1px solid var(--border-soft)',
+                          background: 'var(--surface-2)',
+                          color: 'var(--text-primary)',
+                        }}
+                        aria-label="Chara dasha calculation method"
+                      >
+                        <option value="chara">Chara Dasha</option>
+                        <option value="chara_fe">Chara Dasha (FE)</option>
+                      </select>
+                    </div>
+                    <DashaTree nodes={activeCharaDashas as DashaNode[]} birthDate={new Date(chart.meta.birthDate)} />
                   </div>
                 </div>
               )}

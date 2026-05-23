@@ -6,13 +6,14 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { SouthIndianChakra }     from './SouthIndianChakra'
 import { NorthIndianChakra }     from './NorthIndianChakra'
 import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
 import { CircleChakra }          from './CircleChakra'
 
 import type { GrahaData, Rashi, ChartStyle, ArudhaData, LagnaData } from '@/types/astrology'
+import { buildArudhaBundle, pickArudhaSet } from '@/lib/engine/arudhas'
 import { getVargaPosition } from '@/lib/engine/vargas'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
@@ -24,7 +25,8 @@ interface ChakraSelectorProps {
   grahas:       GrahaData[]
   // Panchang data — needed for Sarvatobhadra
   moonNakIndex?: number    // 0–26
-  arudhas?:     ArudhaData  // for Āruḍha overlay
+  arudhas?:     ArudhaData  // for Āruḍha overlay (raw, default)
+  arudhasBphs?: ArudhaData  // BPHS exception-corrected arudhas
   transitGrahas?: GrahaData[]  // transit planet overlay
   comparisonGrahas?: GrahaData[] // partner chart overlay
   tithiNumber?:  number    // 1–30
@@ -61,6 +63,7 @@ export function ChakraSelector({
   lagnas,
   moonNakIndex = 0,
   arudhas,
+  arudhasBphs,
   tithiNumber  = 1,
   varaNumber   = 0,
   defaultStyle = 'north',
@@ -83,6 +86,7 @@ export function ChakraSelector({
   const [showNakshatra, setShowNakshatra] = useState(false)
   const [showKaraka,    setShowKaraka]    = useState(false)
   const [showArudha,    setShowArudha]    = useState(false)
+  const [arudhaBphsMode, setArudhaBphsMode] = useState(false)
   const [showTithi,     setShowTithi]     = useState(true)
   const [showVara,      setShowVara]      = useState(true)
   const [onlyNine,      setOnlyNine]      = useState(true)
@@ -136,6 +140,15 @@ export function ChakraSelector({
 
   const isSBC = style === 'sarvatobhadra'
 
+  const effectiveArudhas = useMemo(() => {
+    if (!arudhas) return undefined
+    const bphsSet = arudhasBphs ?? buildArudhaBundle(
+      ascRashi,
+      grahas.map((g) => ({ id: g.id, rashi: g.rashi })),
+    ).bphs
+    return pickArudhaSet(arudhas, bphsSet, arudhaBphsMode)
+  }, [arudhas, arudhasBphs, arudhaBphsMode, ascRashi, grahas])
+
   const displayGrahas = onlyNine 
     ? grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
     : grahas
@@ -188,7 +201,7 @@ export function ChakraSelector({
       return (su?.rashi || ascRashi) as Rashi
     }
     if (lagnaSource === 'arudha') {
-      return (arudhas?.AL || ascRashi) as Rashi
+      return (effectiveArudhas?.AL || ascRashi) as Rashi
     }
     if (lagnaSource.startsWith('h')) {
       const hNum = parseInt(lagnaSource.substring(1))
@@ -197,7 +210,7 @@ export function ChakraSelector({
       return (((ascRashi - 1 + hNum - 1) % 12) + 1) as Rashi
     }
     return ascRashi
-  }, [ascRashi, lagnaSource, grahas, arudhas])
+  }, [ascRashi, lagnaSource, grahas, effectiveArudhas])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', width: '100%' }}>
@@ -278,7 +291,16 @@ export function ChakraSelector({
                   <Toggle label="Karaka" value={showKaraka} onChange={setShowKaraka} />
                 )}
                 {arudhas && (
-                  <Toggle label="Āruḍha" value={showArudha} onChange={setShowArudha} />
+                  <>
+                    <Toggle label="Āruḍha" value={showArudha} onChange={setShowArudha} />
+                    {showArudha && (
+                      <Toggle
+                        label="BPHS exceptions"
+                        value={arudhaBphsMode}
+                        onChange={setArudhaBphsMode}
+                      />
+                    )}
+                  </>
                 )}
                 {transitGrahas.length > 0 && (
                   <Toggle label="Show Natal" value={showNatal} onChange={setShowNatal} />
@@ -377,7 +399,7 @@ export function ChakraSelector({
           <SouthIndianChakra
             ascRashi={effectiveAscRashi}
             grahas={showNatal ? displayGrahas : []}
-            arudhas={arudhas}
+            arudhas={effectiveArudhas}
             transitGrahas={transitGrahas}
             comparisonGrahas={displayComparison}
             showArudha={showArudha}
@@ -398,7 +420,7 @@ export function ChakraSelector({
           <NorthIndianChakra
             ascRashi={effectiveAscRashi}
             grahas={showNatal ? displayGrahas : []}
-            arudhas={showArudha ? arudhas : undefined}
+            arudhas={showArudha ? effectiveArudhas : undefined}
             transitGrahas={transitGrahas}
             comparisonGrahas={displayComparison}
             size={Math.round(size * chartScale)}
@@ -433,7 +455,7 @@ export function ChakraSelector({
             size={Math.round(size * chartScale)}
             showDegrees={showDegrees} showNakshatra={showNakshatra}
             showKaraka={showKaraka} showArudha={showArudha}
-            arudhas={arudhas} transitGrahas={transitGrahas}
+            arudhas={effectiveArudhas} transitGrahas={transitGrahas}
             comparisonGrahas={displayComparison}
             fontScale={fontScale} planetScale={planetScale}
             lagnas={displayLagnas}

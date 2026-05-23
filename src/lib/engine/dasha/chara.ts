@@ -30,13 +30,35 @@ function getRashi(g: GrahaData): number {
  */
 function getMahaSequence(lagna: number): number[] {
   const isSavya = [1, 5, 6, 7, 11, 12].includes(lagna)
+  return buildSignSequence(lagna, isSavya)
+}
+
+/** Odd Lagna → forward; even Lagna → reverse (female Padakrama). */
+function isLagnaProgressionForward(lagna: number): boolean {
+  return lagna % 2 === 1
+}
+
+/** 4th sign from Lagna: forward if odd Lagna, reverse if even. */
+export function getFourthFromLagna(lagna: number): number {
+  if (isLagnaProgressionForward(lagna)) {
+    return ((lagna + 2) % 12) + 1
+  }
+  return ((lagna - 4 + 12) % 12) + 1
+}
+
+function buildSignSequence(start: number, forward: boolean): number[] {
   const seq: number[] = []
-  if (isSavya) {
-    for (let i = 0; i < 12; i++) seq.push(((lagna + i - 1) % 12) + 1)
+  if (forward) {
+    for (let i = 0; i < 12; i++) seq.push(((start + i - 1) % 12) + 1)
   } else {
-    for (let i = 0; i < 12; i++) seq.push(((lagna - i - 1 + 12) % 12) + 1)
+    for (let i = 0; i < 12; i++) seq.push(((start - i - 1 + 12) % 12) + 1)
   }
   return seq
+}
+
+function getMahaSequenceFemale(lagna: number): number[] {
+  const start = getFourthFromLagna(lagna)
+  return buildSignSequence(start, isLagnaProgressionForward(lagna))
 }
 
 /**
@@ -56,14 +78,7 @@ function calculateDistance(from: number, to: number, forward: boolean): number {
   }
 }
 
-/**
- * Chara Dasha Duration Calculation
- * Rule: Count to lord, subtract 1. If 0, then 12.
- */
-function getDuration(sign: number, grahas: GrahaData[]): number {
-  const forward = isForward(sign)
-  
-  // Dual Lord Logic (Sc/Aq)
+function resolveSignLord(sign: number, grahas: GrahaData[]): string {
   let lordId = SIGN_LORD[sign]
   if (sign === 8 || sign === 11) {
     const mainLordId = SIGN_LORD[sign]
@@ -94,38 +109,60 @@ function getDuration(sign: number, grahas: GrahaData[]): number {
       }
     }
   }
+  return lordId
+}
 
+/**
+ * Chara Dasha Duration Calculation (K.N. Rao / default)
+ * Rule: Count to lord, subtract 1. If 0, then 12.
+ */
+function getDuration(sign: number, grahas: GrahaData[]): number {
+  const forward = isForward(sign)
+  const lordId = resolveSignLord(sign, grahas)
   const lord = grahas.find(g => g.id === lordId)
   if (!lord) return 7
 
   const lordRashi = getRashi(lord)
-  
-  // Own sign check
-  if (lordRashi === sign) {
-    // K.N. Rao rule: If dual lords, and one in sign, we check the other. 
-    // If both in sign, or single lord in sign, it's 12.
-    return 12
-  }
+
+  if (lordRashi === sign) return 12
 
   const dist = calculateDistance(sign, lordRashi, forward)
   let years = dist - 1
-  if (years === 0) years = 12 // Lord in 12th from sign in direction? dist would be 12.
-  
+  if (years === 0) years = 12
+
   return years
+}
+
+/** Female: lord sign number + dasha sign − 1; same sign → 10 years. */
+function getDurationFemale(sign: number, grahas: GrahaData[]): number {
+  const lordId = resolveSignLord(sign, grahas)
+  const lord = grahas.find(g => g.id === lordId)
+  if (!lord) return 7
+
+  const lordRashi = getRashi(lord)
+  if (lordRashi === sign) return 10
+
+  return lordRashi + sign - 1
 }
 
 /**
  * Antardasha Sequence: Same direction as Maha but start sign is moved to the end.
  */
 function buildAntarSequence(mahaSign: number): number[] {
-  const isSavya = [1, 5, 6, 7, 11, 12].includes(mahaSign)
+  const forward = [1, 5, 6, 7, 11, 12].includes(mahaSign)
+  return buildAntarSequenceFromDirection(mahaSign, forward)
+}
+
+function buildAntarSequenceFemale(mahaSign: number, lagna: number): number[] {
+  return buildAntarSequenceFromDirection(mahaSign, isLagnaProgressionForward(lagna))
+}
+
+function buildAntarSequenceFromDirection(mahaSign: number, forward: boolean): number[] {
   const seq: number[] = []
-  if (isSavya) {
-    // 1 -> 2,3,4...12,1
+  if (forward) {
     for (let i = 1; i < 12; i++) seq.push(((mahaSign + i - 1) % 12) + 1)
     seq.push(mahaSign)
   } else {
-    // 2 -> 1,12,11...3,2
     for (let i = 1; i < 12; i++) seq.push(((mahaSign - i - 1 + 12) % 12) + 1)
     seq.push(mahaSign)
   }
@@ -150,8 +187,11 @@ function buildSubDashas(
   maxDepth: number,
   grahas: GrahaData[],
   now: number,
+  lagna?: number,
 ): DashaNode[] {
-  const sequence = buildAntarSequence(mahaSign)
+  const sequence = lagna != null
+    ? buildAntarSequenceFemale(mahaSign, lagna)
+    : buildAntarSequence(mahaSign)
   const durationMsPerSign = parentMs / 12
   const nodes: DashaNode[] = []
   let cursor = parentStart.getTime()
@@ -169,8 +209,8 @@ function buildSubDashas(
       durationMs: durationMsPerSign,
       level,
       isCurrent,
-      children: (level < maxDepth && isCurrent) 
-        ? buildSubDashas(sign, s, durationMsPerSign, level + 1, maxDepth, grahas, now)
+      children: (level < maxDepth && isCurrent)
+        ? buildSubDashas(sign, s, durationMsPerSign, level + 1, maxDepth, grahas, now, lagna)
         : []
     })
     cursor += durationMsPerSign
@@ -178,20 +218,21 @@ function buildSubDashas(
   return nodes
 }
 
-export function calcCharaDasha(
+function calcCharaDashaInternal(
   grahas: GrahaData[],
   lagnas: LagnaData,
   birthDate: Date,
-  depth: number = 2,
+  depth: number,
+  female: boolean,
 ): DashaNode[] {
   const ascRashi = lagnas.ascRashi || 1
-  const sequence = getMahaSequence(ascRashi)
+  const sequence = female ? getMahaSequenceFemale(ascRashi) : getMahaSequence(ascRashi)
   const now = Date.now()
   const nodes: DashaNode[] = []
   let cursor = new Date(birthDate)
 
   for (const sign of sequence) {
-    const years = getDuration(sign, grahas)
+    const years = female ? getDurationFemale(sign, grahas) : getDuration(sign, grahas)
     const ms = years * 365.2425 * 24 * 60 * 60 * 1000
     const start = new Date(cursor)
     const end = new Date(cursor.getTime() + ms)
@@ -205,10 +246,32 @@ export function calcCharaDasha(
       durationMs: ms,
       level: 1,
       isCurrent,
-      children: depth > 1 ? buildSubDashas(sign, start, ms, 2, depth, grahas, now) : []
+      children: depth > 1
+        ? buildSubDashas(sign, start, ms, 2, depth, grahas, now, female ? ascRashi : undefined)
+        : [],
     })
     cursor = end
   }
 
   return nodes
+}
+
+/** K.N. Rao Chara Dasha (default / male charts). */
+export function calcCharaDasha(
+  grahas: GrahaData[],
+  lagnas: LagnaData,
+  birthDate: Date,
+  depth: number = 2,
+): DashaNode[] {
+  return calcCharaDashaInternal(grahas, lagnas, birthDate, depth, false)
+}
+
+/** Female Chara Dasha — 4th from Lagna start, odd/even progression, sign-number years. */
+export function calcCharaDashaFemale(
+  grahas: GrahaData[],
+  lagnas: LagnaData,
+  birthDate: Date,
+  depth: number = 2,
+): DashaNode[] {
+  return calcCharaDashaInternal(grahas, lagnas, birthDate, depth, true)
 }
