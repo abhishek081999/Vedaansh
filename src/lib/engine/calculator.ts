@@ -25,7 +25,7 @@ import {
   cleanupEphemeris,
 } from '@/lib/engine/ephemeris'
 import { calcHouses, planetHouse } from '@/lib/engine/houses'
-import { calcAllBhavaArudhas, calcGrahaArudhas } from '@/lib/engine/arudhas'
+import { buildArudhaBundle } from '@/lib/engine/arudhas'
 import { calcCharaKarakas } from '@/lib/engine/karakas'
 import { getDignity, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignity'
 import {
@@ -37,7 +37,7 @@ import {
 import { calculateAshtakavarga } from './ashtakavarga'
 import { detectYogas }           from './yogas'
 import { calcYoginiDasha }       from './dasha/yogini'
-import { calcCharaDasha }        from './dasha/chara'
+import { calcCharaDasha, calcCharaDashaFemale } from './dasha/chara'
 import { calcAshtottari }        from './dasha/ashtottari'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import {
@@ -272,11 +272,10 @@ export async function calculateChart(
     g.charaKaraka = karakas.roleOf[g.id] ?? null
   }
 
-  // Arudhas
+  // Arudhas — raw (default) + BPHS-corrected
   const ascRashi = houses.ascRashi
   const grahaSlim = grahas.map((g) => ({ id: g.id, rashi: g.rashi }))
-  const bhavaArudhas = calcAllBhavaArudhas(ascRashi, grahaSlim)
-  const grahaArudhas = calcGrahaArudhas(ascRashi, grahaSlim)
+  const { raw: arudhasRaw, bphs: arudhasBphs } = buildArudhaBundle(ascRashi, grahaSlim)
 
   // Real sunrise/sunset via swisseph rise_trans
   const birthDateStr = input.birthDate  // 'YYYY-MM-DD'
@@ -504,15 +503,8 @@ export async function calculateChart(
       bhriguBindu:      lagnaData.bhriguBindu,
       cusps:            lagnaData.cusps,
     },
-    arudhas: {
-      AL: bhavaArudhas.AL, A2: bhavaArudhas.A2,
-      A3: bhavaArudhas.A3, A4: bhavaArudhas.A4,
-      A5: bhavaArudhas.A5, A6: bhavaArudhas.A6,
-      A7: bhavaArudhas.A7, A8: bhavaArudhas.A8,
-      A9: bhavaArudhas.A9, A10: bhavaArudhas.A10,
-      A11: bhavaArudhas.A11, A12: bhavaArudhas.A12,
-      grahaArudhas, suryaArudhas: {}, chandraArudhas: {},
-    },
+    arudhas: arudhasRaw,
+    arudhasBphs,
     karakas: {
       scheme: karakas.scheme,
       AK: karakas.AK, AmK: karakas.AmK, BK: karakas.BK, MK: karakas.MK,
@@ -527,6 +519,7 @@ export async function calculateChart(
         ? calcAshtottari(moon.lonSidereal, birthUtc, dashaDepth) 
         : [],
       chara: calcCharaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
+      chara_fe: calcCharaDashaFemale(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
       narayana: [], tithi_ashtottari: [], naisargika: [],
     },
     panchang: {

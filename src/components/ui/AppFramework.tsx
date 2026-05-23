@@ -114,9 +114,6 @@ const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = 
   { id: 'my-charts',  label: 'My Charts',     icon: '📚', path: '/my/charts' },
 ]
 
-/** Keep in sync with `.sidenav.open + .main-content` in `globals.css` */
-const SIDENAV_WIDTH_PX = 212
-
 export function AppFramework({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
@@ -228,6 +225,32 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const renderAccordion = (
+    label: string,
+    icon: string,
+    isOpen: boolean,
+    onToggle: () => void,
+    children: React.ReactNode,
+    maxHeight = '800px',
+  ) => (
+    <>
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`sidenav-accordion-btn${isOpen ? ' sidenav-accordion-btn--open' : ''}`}
+      >
+        <div className="sidenav-accordion-inner">
+          <span className="sidenav-accordion-icon" aria-hidden>{icon}</span>
+          <span>{label}</span>
+        </div>
+        <span className="sidenav-accordion-chevron" aria-hidden>▼</span>
+      </button>
+      <div className="sidenav-submenu" style={{ maxHeight: isOpen ? maxHeight : 0 }}>
+        {children}
+      </div>
+    </>
+  )
+
   const renderTab = (t: { id: string; label: string; icon: string; path?: string }, isSub?: boolean) => {
     const isCurrentPage = (t.path === pathname)
     const isActive = t.path === ASTROLOGY_ROUTE ? (isCurrentPage && activeTab === t.id) : isCurrentPage
@@ -256,72 +279,22 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       if (window.innerWidth < 1024) setIsSidenavOpen(false)
     }
 
-    const style: React.CSSProperties = {
-      display: 'flex', alignItems: 'center', gap: '0.48rem', padding: '0.36rem 0.5rem',
-      background: isActive ? 'var(--gold-faint)' : 'transparent', 
-      border: 'none',
-      borderLeft: `2px solid ${isActive ? 'var(--gold)' : 'transparent'}`,
-      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-      borderRadius: '0 var(--r-md) var(--r-md) 0', 
-      cursor: 'pointer', 
-      textAlign: 'left',
-      fontFamily: 'var(--font-body)', 
-      fontSize: '0.8rem', 
-      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-      letterSpacing: '0.02em',
-      width: '100%', 
-      textDecoration: 'none',
-      paddingLeft: isSub ? '1.15rem' : '0.52rem',
-      minHeight: 36,
-      position: 'relative',
-      overflow: 'hidden'
-    }
+    const linkClass = [
+      'sidenav-link',
+      isSub ? 'sidenav-link--sub' : '',
+      isActive ? 'sidenav-link--active' : '',
+    ].filter(Boolean).join(' ')
 
     return (
-      <Link 
-        key={t.id} 
-        href={t.path || '/'} 
-        onClick={handleNav} 
-        style={style}
-        onMouseEnter={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.background = 'var(--surface-3)'
-            e.currentTarget.style.paddingLeft = isSub ? '1.28rem' : '0.62rem'
-            e.currentTarget.style.color = 'var(--text-primary)'
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.background = 'transparent'
-            e.currentTarget.style.paddingLeft = isSub ? '1.15rem' : '0.52rem'
-            e.currentTarget.style.color = 'var(--text-secondary)'
-          }
-        }}
+      <Link
+        key={t.id}
+        href={t.path || '/'}
+        onClick={handleNav}
+        className={linkClass}
       >
-         <span style={{ 
-           fontSize: '0.95rem', 
-           lineHeight: 1,
-           opacity: isActive ? 1 : 0.6,
-           transition: 'transform 0.2s',
-           transform: isActive ? 'scale(1.1)' : 'scale(1)',
-           filter: isActive ? 'drop-shadow(0 0 4px var(--gold))' : 'none'
-         }}>
-           {t.icon}
-         </span>
-         <span style={{ 
-           fontWeight: isActive ? 600 : 400,
-           transition: 'all 0.2s',
-           textShadow: isActive ? '0 0 1px rgba(201,168,76,0.2)' : 'none'
-         }}>
-           {t.label}
-         </span>
-         {isActive && (
-           <div style={{
-             position: 'absolute', right: '0.5rem', width: '4px', height: '4px', borderRadius: '50%', background: 'var(--gold)',
-             boxShadow: '0 0 8px var(--gold)',
-             animation: 'pulseGlow 2s infinite'
-           }} />
-         )}
+        <span className="sidenav-link-icon" aria-hidden>{t.icon}</span>
+        <span className="sidenav-link-label">{t.label}</span>
+        {isActive && <span className="sidenav-link-dot" aria-hidden />}
       </Link>
     )
   }
@@ -460,28 +433,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         {/* ── Sidenav (Left Global Sidebar) ───────────────────── */}
         <aside
           className={`sidenav ${isSidenavOpen ? 'open' : ''}`}
-          style={{
-            width: SIDENAV_WIDTH_PX,
-            flexShrink: 0,
-            background: 'var(--surface-2)',
-            borderRight: '1px solid var(--border)',
-            zIndex: 1500,
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            transform: isSidenavOpen ? 'translateX(0)' : 'translateX(-100%)',
-            transition: 'transform 0.32s cubic-bezier(0.16,1,0.3,1)',
-            boxShadow: isSidenavOpen ? '4px 0 24px rgba(0,0,0,0.12)' : 'none',
-            overflowY: 'auto',
-            overscrollBehavior: 'contain',
-          }}
         >
           {/* Logo area */}
-          <div style={{ padding: '0.6rem 0.65rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+          <div className="sidenav-header">
+            <div className="sidenav-header-row">
               <Link
                 href="/home"
                 onClick={() => {
@@ -490,33 +445,25 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                   setActiveTab('dashboard')
                   if (window.innerWidth < 1024) setIsSidenavOpen(false)
                 }}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', minWidth: 0, flex: 1 }}
+                className="sidenav-brand"
               >
                 <Image
                   src="/veda-icon.png"
                   alt="Vedaansh Logo"
-                  width={34}
-                  height={34}
+                  width={36}
+                  height={36}
                   style={{ objectFit: 'contain' }}
                 />
-                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05, minWidth: 0 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.12rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.04em' }}>Vedaansh</span>
-                  <span style={{ fontSize: '0.58rem', color: 'var(--logo-text-sub)', letterSpacing: '0.08em', fontWeight: 600, whiteSpace: 'nowrap', opacity: 0.92 }}>॥ श्री गणेशाय नमः ॥</span>
+                <div className="sidenav-brand-text">
+                  <span className="sidenav-brand-title">Vedaansh</span>
+                  <span className="sidenav-brand-sub">॥ श्री गणेशाय नमः ॥</span>
                 </div>
               </Link>
               <button
                 type="button"
+                className="sidenav-close-btn"
                 aria-label="Close menu"
                 onClick={() => setIsSidenavOpen(false)}
-                style={{
-                  background: 'none', border: '1px solid var(--border-soft)', borderRadius: 6,
-                  width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.72rem', 
-                  transition: 'all 0.15s',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-bright)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-soft)'}
               >
                 ✕
               </button>
@@ -524,129 +471,43 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* User Profile Block */}
-          <div style={{ padding: '0.5rem 0.65rem', borderBottom: '1px solid var(--border-soft)' }}>
+          <div className="sidenav-profile">
             {status === 'loading' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.5 }}>
                 <div style={{ width: 32, height: 32, borderRadius: 'var(--r-md)', background: 'var(--surface-3)', animation: 'pulse 1.5s infinite' }} />
                 <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Syncing...</div>
               </div>
             ) : status === 'authenticated' && session?.user ? (
-              <div ref={profileMenuRef} style={{ position: 'relative' }}>
+              <div ref={profileMenuRef} className="sidenav-profile-wrap">
                 <button
                   type="button"
                   onClick={() => setProfileMenuOpen((v) => !v)}
                   aria-expanded={profileMenuOpen}
                   aria-haspopup="menu"
                   aria-label="Account menu"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    width: '100%',
-                    padding: '0.38rem 0.42rem',
-                    borderRadius: 'var(--r-md)',
-                    transition: 'background 0.15s',
-                    background: profileMenuOpen ? 'var(--surface-3)' : 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    font: 'inherit',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!profileMenuOpen) e.currentTarget.style.background = 'var(--surface-3)'
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!profileMenuOpen) e.currentTarget.style.background = 'transparent'
-                  }}
+                  className="sidenav-profile-btn"
                 >
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 'var(--r-md)',
-                      background: 'var(--gold-faint)',
-                      border: '1px solid var(--gold)',
-                      color: 'var(--text-gold)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 'bold',
-                      fontSize: '0.88rem',
-                      flexShrink: 0,
-                    }}
-                  >
+                  <div className="sidenav-avatar">
                     {session.user.name?.[0] || '★'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        color: 'var(--text-primary)',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
+                    <div className="sidenav-profile-name">
                       {session.user.name || 'Account'}
                     </div>
-                    <div
-                      style={{
-                        color: 'var(--text-gold)',
-                        fontSize: '0.6rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        marginTop: 1,
-                      }}
-                    >
+                    <div className="sidenav-profile-hint">
                       {profileMenuOpen ? 'Close ▴' : 'Account ▾'}
                     </div>
                   </div>
                 </button>
                 {profileMenuOpen && (
-                  <div
-                    role="menu"
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      top: '100%',
-                      marginTop: 6,
-                      padding: '0.35rem',
-                      background: 'var(--surface-1)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--r-md)',
-                      boxShadow: 'var(--shadow-card)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 2,
-                      zIndex: 40,
-                    }}
-                  >
+                  <div role="menu" className="sidenav-profile-menu">
                     <Link
                       href="/account"
                       role="menuitem"
+                      className="sidenav-menu-item"
                       onClick={() => {
                         setProfileMenuOpen(false)
                         if (window.innerWidth < 1024) setIsSidenavOpen(false)
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.45rem',
-                        padding: '0.42rem 0.5rem',
-                        borderRadius: 6,
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        color: 'var(--text-primary)',
-                        textDecoration: 'none',
-                        transition: 'background 0.12s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'var(--surface-3)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent'
                       }}
                     >
                       <span aria-hidden style={{ fontSize: '0.85rem' }}>
@@ -657,33 +518,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                     <button
                       type="button"
                       role="menuitem"
+                      className="sidenav-menu-item sidenav-menu-item--danger"
                       onClick={() => {
                         setProfileMenuOpen(false)
                         setIsSidenavOpen(false)
                         void signOut({ callbackUrl: '/' })
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.45rem',
-                        padding: '0.42rem 0.5rem',
-                        borderRadius: 6,
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        color: 'var(--text-muted)',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        fontFamily: 'inherit',
-                        width: '100%',
-                        transition: 'background 0.12s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(224, 123, 142, 0.12)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent'
                       }}
                     >
                       <span aria-hidden style={{ fontSize: '0.85rem' }}>
@@ -695,15 +534,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 )}
               </div>
             ) : (
-              <Link 
+              <Link
                 href="/login"
+                className="sidenav-signin"
                 onClick={() => { if (window.innerWidth < 1024) setIsSidenavOpen(false) }}
-                style={{ 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                  padding: '0.45rem 0.65rem', background: 'var(--gold-faint)', borderRadius: 'var(--r-md)',
-                  color: 'var(--text-gold)', textDecoration: 'none', fontWeight: 600, fontSize: '0.8rem',
-                  border: '1px solid var(--border)'
-                }}
               >
                 👤 Sign In
               </Link>
@@ -711,148 +545,38 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Navigation */}
-          <nav style={{ flex: 1, padding: '0.35rem 0.4rem 0.5rem', display: 'flex', flexDirection: 'column', gap: '0.08rem' }}>
-            <div className="label-caps" style={{ padding: '0.22rem 0.45rem 0.28rem', fontSize: '0.58rem', opacity: 0.55 }}>Navigation</div>
+          <nav className="sidenav-nav">
+            <div className="sidenav-section-label">Navigation</div>
             {TOP_TABS.map(t => renderTab(t))}
             
-            <button
-              type="button"
-              onClick={toggleAstroOpen}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.36rem 0.48rem',
-                background: 'transparent', border: 'none', borderLeft: '2px solid transparent',
-                color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.8rem', transition: 'all 0.15s',
-                letterSpacing: '0.02em',
-                width: '100%',
-                minHeight: 36,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.48rem' }}>
-                <span style={{ fontSize: '0.92rem', opacity: 0.55 }} aria-hidden>🌌</span>
-                <span>Astrology</span>
-              </div>
-              <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isAstroOpen ? '▲' : '▼'}</span>
-            </button>
-            
-            <div style={{
-              overflow: 'hidden',
-              maxHeight: isAstroOpen ? '1200px' : '0',
-              transition: 'max-height 0.3s ease-in-out',
-              display: 'flex', flexDirection: 'column', gap: '0.1rem'
-            }}>
-              {ASTRO_GROUPS.map((group, gIdx) => (
-                <div key={group.label} style={{ marginTop: gIdx === 0 ? '0' : '0.32rem' }}>
-                  <div style={{ 
-                    fontSize: '0.58rem', 
-                    fontWeight: 700, 
-                    color: 'var(--text-muted)', 
-                    textTransform: 'uppercase', 
-                    letterSpacing: '0.08em',
-                    padding: '0.18rem 0.85rem',
-                    opacity: 0.62
-                  }}>
-                    {group.label}
-                  </div>
+            {renderAccordion('Astrology', '🌌', isAstroOpen, toggleAstroOpen, (
+              ASTRO_GROUPS.map((group, gIdx) => (
+                <div key={group.label} style={{ marginTop: gIdx === 0 ? 0 : '0.2rem' }}>
+                  <div className="sidenav-group-label">{group.label}</div>
                   {group.tabs.map(t => renderTab(t, true))}
                 </div>
-              ))}
-            </div>
+              ))
+            ), '1200px')}
 
-            <button
-              type="button"
-              onClick={toggleAdvancedAstroOpen}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.36rem 0.48rem',
-                background: 'transparent', border: 'none', borderLeft: '2px solid transparent',
-                color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.8rem', transition: 'all 0.15s',
-                letterSpacing: '0.02em',
-                width: '100%',
-                minHeight: 36,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.48rem' }}>
-                <span style={{ fontSize: '0.92rem', opacity: 0.55 }} aria-hidden>⚛</span>
-                <span>Advanced Astrology</span>
-              </div>
-              <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isAdvancedAstroOpen ? '▲' : '▼'}</span>
-            </button>
-            <div style={{
-              overflow: 'hidden',
-              maxHeight: isAdvancedAstroOpen ? '800px' : '0',
-              transition: 'max-height 0.3s ease-in-out',
-              display: 'flex', flexDirection: 'column', gap: '0.1rem'
-            }}>
-              {ADVANCED_ASTRO_TABS.map(t => renderTab(t, true))}
-            </div>
+            {renderAccordion('Advanced Astrology', '⚛', isAdvancedAstroOpen, toggleAdvancedAstroOpen, (
+              ADVANCED_ASTRO_TABS.map(t => renderTab(t, true))
+            ))}
 
-            <button
-              type="button"
-              onClick={toggleNakshatraOpen}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.36rem 0.48rem',
-                background: 'transparent', border: 'none', borderLeft: '2px solid transparent',
-                color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.8rem', transition: 'all 0.15s',
-                letterSpacing: '0.02em',
-                width: '100%',
-                minHeight: 36,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.48rem' }}>
-                <span style={{ fontSize: '0.95rem' }} aria-hidden>🌙</span>
-                <span style={{ fontWeight: 600, letterSpacing: '0.01em' }}>Nakṣatra</span>
-              </div>
-              <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isNakshatraOpen ? '▲' : '▼'}</span>
-            </button>
-            <div style={{
-              overflow: 'hidden',
-              maxHeight: isNakshatraOpen ? '800px' : '0',
-              transition: 'max-height 0.3s ease-in-out',
-              display: 'flex', flexDirection: 'column', gap: '0.1rem'
-            }}>
-              {NAKSHATRA_TABS.map(t => renderTab(t, true))}
-            </div>
+            {renderAccordion('Nakṣatra', '🌙', isNakshatraOpen, toggleNakshatraOpen, (
+              NAKSHATRA_TABS.map(t => renderTab(t, true))
+            ))}
 
-            <button
-              type="button"
-              onClick={togglePanchangOpen}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.36rem 0.48rem',
-                background: 'transparent', border: 'none', borderLeft: '2px solid transparent',
-                color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.8rem', transition: 'all 0.15s',
-                letterSpacing: '0.02em',
-                width: '100%',
-                minHeight: 36,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.48rem' }}>
-                <span style={{ fontSize: '0.92rem', opacity: 0.55 }} aria-hidden>📅</span>
-                <span>Panchang</span>
-              </div>
-              <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isPanchangOpen ? '▲' : '▼'}</span>
-            </button>
-            
-            <div style={{
-              overflow: 'hidden',
-              maxHeight: isPanchangOpen ? '500px' : '0',
-              transition: 'max-height 0.3s ease-in-out',
-              display: 'flex', flexDirection: 'column', gap: '0.1rem'
-            }}>
-              {PANCHANG_TABS.map(t => renderTab(t, true))}
-            </div>
+            {renderAccordion('Panchang', '📅', isPanchangOpen, togglePanchangOpen, (
+              PANCHANG_TABS.map(t => renderTab(t, true))
+            ), '500px')}
 
             {MAIN_TABS.map(t => renderTab(t))}
           </nav>
 
           {/* Bottom Actions */}
-          <div style={{ padding: '0.55rem 0.55rem 0.65rem', borderTop: '1px solid var(--border-soft)', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--gold)', opacity: 0.22, marginBottom: '0.15rem' }}>
-              <div style={{ width: 20, height: 20 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
-            </div>
-            <Link href="/astrology?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.8rem', paddingTop: '0.45rem', paddingBottom: '0.45rem', textDecoration: 'none' }}>
+          <div className="sidenav-footer">
+            <div className="sidenav-footer-om" dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
+            <Link href="/astrology?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}>
               + New Consultation
             </Link>
           </div>

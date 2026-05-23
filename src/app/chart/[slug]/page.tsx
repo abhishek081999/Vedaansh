@@ -9,6 +9,7 @@ import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import { User } from '@/lib/db/models/User'
 import { calculateChart } from '@/lib/engine/calculator'
+import { hydrateCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { redis, chartCacheKey } from '@/lib/redis'
 import { fromZonedTime } from 'date-fns-tz'
 import { PublicChartClient } from './PublicChartClient'
@@ -94,14 +95,14 @@ export default async function PublicChartPage({ params }: { params: { slug: stri
     }
 
     // Ensure metadata in chart matches current request (name might have changed)
-    const finalChart = {
+    const finalChart = hydrateCharaDashas({
       ...chartData,
       meta: {
         ...chartData.meta,
         name: saved.name,
         birthPlace: saved.birthPlace,
-      }
-    }
+      },
+    })
 
     return (
       <PublicChartClient 

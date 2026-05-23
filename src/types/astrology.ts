@@ -379,6 +379,7 @@ export type DashaSystem =
   | 'yogini'
   | 'ashtottari'
   | 'chara'
+  | 'chara_fe'
   | 'narayana'
   | 'tithi_ashtottari'
   | 'naisargika'
@@ -442,6 +443,7 @@ export interface ChartOutput {
   grahas:    GrahaData[]
   lagnas:    LagnaData
   arudhas:   ArudhaData
+  arudhasBphs?: ArudhaData   // BPHS exception-corrected arudhas
   karakas:   KarakaData
   vargas:      Record<string, GrahaData[]>  // D1, D9, D60, etc. — planet rashis per varga
   vargaLagnas: Record<string, Rashi>          // ascendant sign in each varga chart

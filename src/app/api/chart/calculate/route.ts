@@ -10,6 +10,7 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { calculateChart } from '@/lib/engine/calculator'
 import { hydrateSpecialLagnas } from '@/lib/engine/astroDetailsDerived'
+import { hydrateCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { redis, chartCacheKey } from '@/lib/redis'
 import type { ChartSettings, UserPlan } from '@/types/astrology'
 
@@ -103,8 +104,8 @@ function hasAdvancedFeatures(chartData: any): boolean {
 function hydrateChartLagnas(chartData: any): any {
   if (!chartData?.lagnas || !Array.isArray(chartData.grahas)) return chartData
   const lagnas = hydrateSpecialLagnas(chartData.lagnas, chartData.grahas)
-  if (lagnas === chartData.lagnas) return chartData
-  return { ...chartData, lagnas }
+  const withLagnas = lagnas === chartData.lagnas ? chartData : { ...chartData, lagnas }
+  return hydrateCharaDashas(withLagnas)
 }
 
 // ── Timezone conversion ───────────────────────────────────────

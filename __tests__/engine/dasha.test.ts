@@ -14,7 +14,8 @@ import {
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import { calcYoginiDasha } from '@/lib/engine/dasha/yogini'
-import { calcCharaDasha }  from '@/lib/engine/dasha/chara'
+import { calcCharaDasha, calcCharaDashaFemale, getFourthFromLagna } from '@/lib/engine/dasha/chara'
+import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { calcArudha, calcAllBhavaArudhas } from '@/lib/engine/arudhas'
 import { calculateAshtakavarga } from '@/lib/engine/ashtakavarga'
 import type { GrahaData, Rashi } from '@/types/astrology'
@@ -184,6 +185,55 @@ describe('Chara Dasha', () => {
     }
   })
 
+  it('female: Cancer Lagna → 4th reverse = Aries, reverse sequence', () => {
+    expect(getFourthFromLagna(4)).toBe(1) // Cancer even → Aries
+
+    const grahas = makeGrahas({ Ma: 0, Mo: 90 })
+    const lagnas = {
+      ascDegree: 90, ascRashi: 4 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
+      cusps: [],
+    }
+    const dashas = calcCharaDashaFemale(grahas, lagnas, BIRTH_DATE, 1)
+    expect(dashas[0].label).toContain('Aries')
+    expect(dashas[1].label).toContain('Pisces')
+    expect(dashas[2].label).toContain('Aquarius')
+    expect(dashas[3].label).toContain('Capricorn')
+  })
+
+  it('hydrate fills missing chara_fe from grahas', () => {
+    const grahas = makeGrahas({ Ma: 0 })
+    const lagnas = {
+      ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
+      cusps: [],
+    }
+    const meta = {
+      birthDate: '1980-01-01',
+      birthTime: '12:00:00',
+      timezone: 'UTC',
+    } as any
+    const onlyChara = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 1)
+    const { chara, chara_fe } = ensureCharaDashas(grahas, lagnas, meta, { chara: onlyChara })
+    expect(chara).toHaveLength(12)
+    expect(chara_fe).toHaveLength(12)
+  })
+
+  it('female: lord in own dasha sign → 10 years', () => {
+    const grahas = makeGrahas({ Ma: 0 }) // Mars in Aries
+    const lagnas = {
+      ascDegree: 90, ascRashi: 4 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
+      cusps: [],
+    }
+    const dashas = calcCharaDashaFemale(grahas, lagnas, BIRTH_DATE, 1)
+    expect(dashas[0].label).toContain('Aries')
+    expect(dashas[0].label).toContain('10y')
+  })
+
   it('sub-dasha periods sum to maha duration', () => {
     const grahas = makeGrahas({ Ma: 15, Ve: 75, Ju: 260 })
     const lagnas = {
@@ -211,21 +261,21 @@ describe('Arudha Pada edge cases', () => {
   it('result = bhava sign → goes 10 from lord (BPHS correction 1)', () => {
     // If Mars (lord of Aries) is in Aries (same sign), raw result = Aries again
     // Rule: go 10 from lord → Capricorn (sign 10)
-    const result = calcArudha(1 as Rashi, [{ id: 'Ma' as any, rashi: 1 as Rashi }])
+    const result = calcArudha(1 as Rashi, [{ id: 'Ma' as any, rashi: 1 as Rashi }], { applyExceptions: true })
     // dist = 1 (same sign), raw = 1+1-1=1, collision → 10 from Ma in Aries = 10
     expect(result).toBe(10)
   })
 
+  it('raw result can equal bhava sign when exceptions disabled', () => {
+    const result = calcArudha(1 as Rashi, [{ id: 'Ma' as any, rashi: 1 as Rashi }])
+    expect(result).toBe(1)
+  })
+
   it('result = 7th from bhava → goes 10 from lord (BPHS correction 2)', () => {
-    // Mars in Libra (7) from Aries (1) → 7th = Libra = result → correction
-    // dist from Aries to Libra = 7, raw result = Libra (7) + 7 - 1 = 13 → Capricorn (1)
-    // But 7th from Aries = Libra = result → correction: 10 from Mars in Libra = Gemini+9 = 8? 
-    // Actually: 10 from Libra (7) → sign 7+9=16 mod 12 = 4 (Cancer)
-    const result = calcArudha(1 as Rashi, [{ id: 'Ma' as any, rashi: 7 as Rashi }])
-    // dist from Aries(1) to Libra(7) = 7, raw = 7+7-1=13 mod12=1(Aries) → hits bhava → 10 from Libra = 4
-    // OR raw = Capricorn(10), 7th from Aries = Libra, 10≠7 so no correction
-    // Let's just verify it doesn't return 1 (bhava) or 7 (seventh from bhava)
+    const result = calcArudha(1 as Rashi, [{ id: 'Ma' as any, rashi: 7 as Rashi }], { applyExceptions: true })
+    // dist from Aries(1) to Libra(7) = 7, raw = 13 mod12=1(Aries) → BPHS correction → 4th from Aries
     expect(result).not.toBe(1)
+    expect(result).not.toBe(7)
   })
 
   it('all 12 arudhas have valid rashi values (1–12)', () => {

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
-import { calcArudhaOutput } from '@/lib/engine/arudhas'
+import { buildArudhaBundle } from '@/lib/engine/arudhas'
 import { getDashaLordPlacementHouses } from '@/lib/engine/activeHouses'
 import { getVargaPosition } from '@/lib/engine/vargas'
 
@@ -206,12 +206,7 @@ export function VargaSwitcher({
           const meta = VARGA_META.find(v => v.name === name) ?? { name, full:name, topic:'', tier:'free' as const }
           const { grahas, varAscRashi } = chartProps(name)
           
-          const vArudhasRaw = calcArudhaOutput(varAscRashi, grahas)
-          const vArudhas: ArudhaData = {
-            ...vArudhasRaw,
-            suryaArudhas: {},
-            chandraArudhas: {}
-          }
+          const { raw: vArudhas, bphs: vArudhasBphs } = buildArudhaBundle(varAscRashi, grahas)
 
           return (
             <div key={idx} className="fade-up" style={{
@@ -287,7 +282,7 @@ export function VargaSwitcher({
                 <ChakraSelector
                   ascRashi={varAscRashi} grahas={grahas} size={isMobile ? 300 : 440}
                   vargaName={name}
-                  userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={vArudhas}
+                  userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={vArudhas} arudhasBphs={vArudhasBphs}
                   transitGrahas={name === 'D1' ? transitGrahas : []} 
                   comparisonGrahas={comparisonGrahas.length > 0 ? comparisonGrahas.map(g => {
                     const vPos = getVargaPosition(g.totalDegree, name as any)

@@ -1,13 +1,17 @@
 'use client'
-import React, { createContext, useContext, useState, useCallback, Dispatch, SetStateAction } from 'react'
+import React, { createContext, useContext, useState, useCallback, useEffect, Dispatch, SetStateAction } from 'react'
 import type { ChartOutput } from '@/types/astrology'
 import { hydrateSpecialLagnas } from '@/lib/engine/astroDetailsDerived'
+import { hydrateCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 
-function withHydratedLagnas(chart: ChartOutput | null): ChartOutput | null {
-  if (!chart?.lagnas || !chart.grahas?.length) return chart
-  const lagnas = hydrateSpecialLagnas(chart.lagnas, chart.grahas)
-  if (lagnas === chart.lagnas) return chart
-  return { ...chart, lagnas }
+function withHydratedChart(chart: ChartOutput | null): ChartOutput | null {
+  if (!chart?.grahas?.length) return chart
+  let next = chart
+  if (chart.lagnas) {
+    const lagnas = hydrateSpecialLagnas(chart.lagnas, chart.grahas)
+    if (lagnas !== chart.lagnas) next = { ...next, lagnas }
+  }
+  return hydrateCharaDashas(next)
 }
 
 interface ChartContextType {
@@ -27,7 +31,12 @@ export function ChartProvider({ children }: { children: React.ReactNode }) {
   const [pendingDestination, setPendingDestination] = useState<string | null>(null)
 
   const setChart: Dispatch<SetStateAction<ChartOutput | null>> = useCallback((action) => {
-    setChartState(prev => withHydratedLagnas(typeof action === 'function' ? action(prev) : action))
+    setChartState(prev => withHydratedChart(typeof action === 'function' ? action(prev) : action))
+  }, [])
+
+  // Backfill Chara dashas on charts already in memory (e.g. before chara_fe existed)
+  useEffect(() => {
+    setChartState(prev => withHydratedChart(prev))
   }, [])
 
   return (

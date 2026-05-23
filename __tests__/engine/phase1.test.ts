@@ -459,7 +459,7 @@ describe('Arudhas', () => {
     }
   })
 
-  it('Edge case: lord in its own sign — result goes 10 from lord', () => {
+  it('Edge case: lord in its own sign — result goes 10 from lord with BPHS exceptions', () => {
     // Venus (lord of Taurus=2) in Taurus (2)
     // dist(Ta=2, Ve=2) = 1, from Ve(2)+1-1 = 2 = same as bhava → 10 from lord
     // 10 from Ta(2) = 11 (Aquarius)
@@ -467,8 +467,10 @@ describe('Arudhas', () => {
       { id: 'Ve' as GrahaId, rashi: 2 as Rashi },  // Venus in own sign
       ...grahas.filter(g => g.id !== 'Ve'),
     ]
-    const a2 = calcArudha(2 as Rashi, grahasVeInTaurus)
-    expect(a2).toBe(11)  // 10th from Taurus = Aquarius
+    const a2Raw = calcArudha(2 as Rashi, grahasVeInTaurus)
+    expect(a2Raw).toBe(2)  // raw: same sign as bhava
+    const a2Bphs = calcArudha(2 as Rashi, grahasVeInTaurus, { applyExceptions: true })
+    expect(a2Bphs).toBe(11)  // 10th from Taurus = Aquarius
   })
 })
 
