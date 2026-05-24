@@ -2122,8 +2122,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         }}
                         aria-label="Chara dasha calculation method"
                       >
-                        <option value="chara">Chara Dasha</option>
-                        <option value="chara_fe">Chara Dasha (FE)</option>
+                        <option value="chara">Chara Dasha (K.N. Rao)</option>
+                        <option value="chara_fe">Chara Dasha (Rangacharya FE)</option>
                       </select>
                     </div>
                     <DashaTree nodes={activeCharaDashas as DashaNode[]} birthDate={new Date(chart.meta.birthDate)} />
