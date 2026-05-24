@@ -421,6 +421,7 @@ function MajorKundaliStrip({
 
 import { Suspense } from 'react'
 import { LandingHeroCarousel } from '@/components/home/LandingHeroCarousel'
+import { AboutPreview } from '@/components/about/AboutPreview'
 
 /** Query string matches BirthForm URL hydration (`name`, `birthDate`, … `tz`). */
 function buildChartShareUrl(chart: ChartOutput): string {
@@ -2494,6 +2495,8 @@ function HomeContent() {
                 </div>
               </section>
 
+              <AboutPreview onCtaClick={() => trackLandingCta('about_preview_read_more')} />
+
               <section className="card fade-up-4 landing-cta-band" style={{ marginBottom: '1.25rem' }}>
                 <div>
                   <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--text-gold)' }}>Start your journey</div>
@@ -2534,29 +2537,40 @@ function HomeContent() {
           {' '}· Lahiri ayanamsha
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link href="/about" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
+            About
+          </Link>
+          <span style={{ color: 'var(--border-bright)' }}>•</span>
           <a
             href="https://www.instagram.com/vedaanshlife"
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
           >
-            Instagram
+            @vedaanshlife
           </a>
           <span style={{ color: 'var(--border-bright)' }}>•</span>
           <a
-            href="https://www.linkedin.com/in/abhishek-kumar-96a8381a0/"
+            href="https://www.instagram.com/avisekh_hh"
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
           >
-            LinkedIn
+            @avisekh_hh
           </a>
           <span style={{ color: 'var(--border-bright)' }}>•</span>
           <a
             href="mailto:vedaanshlife@gmail.com"
             style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
           >
-            Gmail
+            vedaanshlife@gmail.com
+          </a>
+          <span style={{ color: 'var(--border-bright)' }}>•</span>
+          <a
+            href="mailto:abhishekbhoranj@gmail.com"
+            style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
+          >
+            abhishekbhoranj@gmail.com
           </a>
         </div>
       </footer>

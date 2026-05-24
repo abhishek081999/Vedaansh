@@ -109,6 +109,7 @@ const VEDIC_ICONS = {
 }
 
 const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
+  { id: 'about',      label: 'About',         icon: '🙏', path: '/about' },
   { id: 'clients',    label: 'CRM / Clients', icon: '👥', path: '/clients' },
   { id: 'pricing',    label: 'Pricing',       icon: '💎', path: '/pricing' },
   { id: 'my-charts',  label: 'My Charts',     icon: '📚', path: '/my/charts' },

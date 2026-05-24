@@ -10,6 +10,7 @@ export function routeAllowsWithoutChart(hrefOrPath: string): boolean {
     path.startsWith('/panchang') ||
     path.startsWith('/compare') ||
     path.startsWith('/pricing') ||
+    path.startsWith('/about') ||
     path.startsWith('/clients') ||
     path.startsWith('/my/charts') ||
     path.startsWith('/account')

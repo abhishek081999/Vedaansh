@@ -185,6 +185,36 @@ describe('Chara Dasha', () => {
     }
   })
 
+  it('female: Virgo Lagna (even) → 4th reverse = Gemini, not Virgo', () => {
+    expect(getFourthFromLagna(6)).toBe(3) // Virgo even → Gemini
+
+    const grahas = makeGrahas({ Me: 270 }) // Mercury in Capricorn
+    const lagnas = {
+      ascDegree: 150, ascRashi: 6 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
+      cusps: [],
+    }
+    const femaleDashas = calcCharaDashaFemale(grahas, lagnas, BIRTH_DATE, 1)
+    const maleDashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 1)
+    expect(femaleDashas[0].label).toContain('Gemini')
+    expect(femaleDashas[1].label).toContain('Taurus')
+    expect(maleDashas[0].label).toContain('Virgo') // K.N. Rao starts from Lagna
+  })
+
+  it('female: Taurus dasa, Venus one sign ahead → 1 year (Rangacharya count)', () => {
+    const grahas = makeGrahas({ Ve: 60 }) // Venus in Gemini
+    const lagnas = {
+      ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
+      cusps: [],
+    }
+    const dashas = calcCharaDashaFemale(grahas, lagnas, BIRTH_DATE, 1)
+    const taurus = dashas.find(d => d.label?.startsWith('Taurus'))
+    expect(taurus?.label).toContain('1y')
+  })
+
   it('female: Cancer Lagna → 4th reverse = Aries, reverse sequence', () => {
     expect(getFourthFromLagna(4)).toBe(1) // Cancer even → Aries
 
@@ -232,6 +262,24 @@ describe('Chara Dasha', () => {
     const dashas = calcCharaDashaFemale(grahas, lagnas, BIRTH_DATE, 1)
     expect(dashas[0].label).toContain('Aries')
     expect(dashas[0].label).toContain('10y')
+  })
+
+  it('female: counts Paka→dasa (not lord rashi + sign); max 10 years per period', () => {
+    const grahas = makeGrahas({ Sa: 330 }) // Saturn in Aquarius (sign 11)
+    const lagnas = {
+      ascDegree: 210, ascRashi: 8 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
+      cusps: [],
+    }
+    const dashas = calcCharaDashaFemale(grahas, lagnas, BIRTH_DATE, 1)
+    for (const maha of dashas) {
+      const years = parseInt((maha.label ?? '').match(/\((\d+)y\)/)?.[1] ?? '0', 10)
+      expect(years).toBeGreaterThan(0)
+      expect(years).toBeLessThanOrEqual(10)
+    }
+    const cap = dashas.find(d => d.label?.startsWith('Capricorn'))
+    expect(cap?.label).toContain('2y') // even Cp: Sa in Aq → count 12→10 backward = 3, −1 = 2
   })
 
   it('sub-dasha periods sum to maha duration', () => {

@@ -133,7 +133,10 @@ function getDuration(sign: number, grahas: GrahaData[]): number {
   return years
 }
 
-/** Female: lord sign number + dasha sign − 1; same sign → 10 years. */
+/**
+ * Female (Rangacharya): count from Paka (lord) to dasa sign, inclusive, minus 1.
+ * Odd dasa → forward; even dasa → backward. Same sign or 7th → 10 years; max 10 years.
+ */
 function getDurationFemale(sign: number, grahas: GrahaData[]): number {
   const lordId = resolveSignLord(sign, grahas)
   const lord = grahas.find(g => g.id === lordId)
@@ -142,7 +145,15 @@ function getDurationFemale(sign: number, grahas: GrahaData[]): number {
   const lordRashi = getRashi(lord)
   if (lordRashi === sign) return 10
 
-  return lordRashi + sign - 1
+  const seventhFromDasa = ((sign + 5) % 12) + 1
+  if (lordRashi === seventhFromDasa) return 10
+
+  const forward = sign % 2 === 1
+  const dist = calculateDistance(lordRashi, sign, forward)
+  let years = dist - 1
+  if (years <= 0) years = 10
+
+  return Math.min(years, 10)
 }
 
 /**
@@ -266,7 +277,7 @@ export function calcCharaDasha(
   return calcCharaDashaInternal(grahas, lagnas, birthDate, depth, false)
 }
 
-/** Female Chara Dasha — 4th from Lagna start, odd/even progression, sign-number years. */
+/** Female Chara Dasha (Iranganti Rangacharya) — 4th from Lagna start, Lagna padakrama, Paka→dasa years (max 10). */
 export function calcCharaDashaFemale(
   grahas: GrahaData[],
   lagnas: LagnaData,
