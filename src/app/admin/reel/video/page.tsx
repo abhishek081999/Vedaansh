@@ -43,6 +43,7 @@ export default function ReelVideoPage() {
   const [brandIconFile, setBrandIconFile] = useState<File | null>(null)
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null)
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null)
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0)
   const dragSourceRef = useRef<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [remotionPreset, setRemotionPreset] = useState<ReelPresetId>('vedaDefault')
@@ -81,6 +82,13 @@ export default function ReelVideoPage() {
       return next
     })
   }, [files, seconds])
+
+  useEffect(() => {
+    setActiveSlideIndex((prev) => {
+      if (files.length === 0) return 0
+      return Math.min(prev, files.length - 1)
+    })
+  }, [files.length])
 
   const previewUrls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files])
   useEffect(() => {
@@ -993,7 +1001,7 @@ export default function ReelVideoPage() {
         <>
           <div className={styles.slideToolbar}>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-              Order &amp; duration (drag ⋮⋮ to move)
+              Slides ({files.length}) - order and duration
             </span>
             <button
               type="button"
@@ -1011,11 +1019,47 @@ export default function ReelVideoPage() {
               Set all to {seconds.toFixed(1)}s
             </button>
           </div>
+          <div className={styles.slidePreviewCard}>
+            <div className={styles.slidePreviewMedia}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewUrls[activeSlideIndex]}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            </div>
+            <div className={styles.slidePreviewMeta}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Slide {activeSlideIndex + 1}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                  {(files[activeSlideIndex]?.name ?? '').slice(0, 56)}
+                </div>
+              </div>
+              <div className={styles.slidePreviewNav}>
+                <button
+                  type="button"
+                  onClick={() => setActiveSlideIndex((p) => Math.max(0, p - 1))}
+                  disabled={activeSlideIndex === 0}
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSlideIndex((p) => Math.min(files.length - 1, p + 1))}
+                  disabled={activeSlideIndex === files.length - 1}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
           <div className={styles.slideGrid}>
             {files.map((f, i) => (
               <div
                 key={`${f.name}-${i}-${f.size}`}
-                style={{ display: 'flex', flexDirection: 'column', gap: 6 }}
+                className={`${styles.slideCard} ${activeSlideIndex === i ? styles.slideCardActive : ''}`}
                 onDragOver={(e) => onSlideDragOver(e, i)}
                 onDragLeave={onSlideDragLeave}
                 onDrop={(e) => onSlideDrop(e, i)}
@@ -1025,98 +1069,39 @@ export default function ReelVideoPage() {
                   onDragStart={(e) => onSlideDragStart(e, i)}
                   onDragEnd={onSlideDragEnd}
                   title="Drag to reorder slides"
+                  className={styles.slideDragHandle}
                   style={{
-                    padding: '6px 8px',
-                    borderRadius: 8,
-                    border:
-                      dropTargetIndex === i
-                        ? '2px dashed #6C5CE7'
-                        : '0.5px solid var(--border)',
-                    background:
-                      draggingIndex === i ? 'rgba(108, 92, 231, 0.15)' : 'var(--surface-2)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: 'var(--text-secondary)',
-                    cursor: 'grab',
-                    userSelect: 'none',
-                    textAlign: 'center',
+                    border: dropTargetIndex === i ? '2px dashed #6C5CE7' : undefined,
+                    background: draggingIndex === i ? 'rgba(108, 92, 231, 0.15)' : undefined,
                   }}
                 >
                   ⋮⋮ Drag
                 </div>
                 <div
-                  style={{
-                    position: 'relative',
-                    borderRadius: 10,
-                    overflow: 'hidden',
-                    border: '0.5px solid var(--border)',
-                    aspectRatio: '9 / 16',
-                    background: '#0b1022',
-                    opacity: draggingIndex === i ? 0.55 : 1,
-                  }}
+                  className={styles.slideThumbWrap}
+                  style={{ opacity: draggingIndex === i ? 0.55 : 1 }}
+                  onClick={() => setActiveSlideIndex(i)}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewUrls[i]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      display: 'flex',
-                      gap: 4,
-                      padding: 6,
-                      background: 'linear-gradient(transparent, rgba(0,0,0,0.75))',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => move(i, -1)}
-                      disabled={i === 0}
-                      style={{ flex: 1, fontSize: 11, padding: 4, borderRadius: 6, border: 'none', cursor: 'pointer' }}
-                    >
-                      ↑
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => move(i, 1)}
-                      disabled={i === files.length - 1}
-                      style={{ flex: 1, fontSize: 11, padding: 4, borderRadius: 6, border: 'none', cursor: 'pointer' }}
-                    >
-                      ↓
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeAt(i)}
-                      style={{
-                        flex: 1,
-                        fontSize: 11,
-                        padding: 4,
-                        borderRadius: 6,
-                        border: 'none',
-                        cursor: 'pointer',
-                        background: 'rgba(220,38,38,0.9)',
-                        color: '#fff',
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: 6,
-                      left: 6,
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: '#fff',
-                      background: 'rgba(0,0,0,0.55)',
-                      padding: '2px 6px',
-                      borderRadius: 6,
-                    }}
-                  >
+                  <span className={styles.slideBadge}>
                     {i + 1}
                   </span>
+                </div>
+                <div className={styles.slideActionRow}>
+                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0}>
+                    Up
+                  </button>
+                  <button type="button" onClick={() => move(i, 1)} disabled={i === files.length - 1}>
+                    Down
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeAt(i)}
+                    style={{ background: 'rgba(220,38,38,0.14)', color: '#dc2626', borderColor: 'rgba(220,38,38,0.4)' }}
+                  >
+                    Remove
+                  </button>
                 </div>
                 <label
                   style={{

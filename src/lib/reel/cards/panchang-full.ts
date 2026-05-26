@@ -24,10 +24,19 @@ import { NAK_DEITY, NAK_QUALITY } from '@/lib/reel/nakshatra-metadata'
 
 function sectionLabel(ctx: CanvasRenderingContext2D, colors: ReturnType<typeof getBgColors>, y: number, text: string) {
   ctx.save()
+  const w = Math.min(880, Math.max(320, ctx.measureText(text).width + 46))
+  const x = 540 - w / 2
+  roundRect(ctx, x, y - 22, w, 34, 12)
+  ctx.fillStyle = 'rgba(8,10,24,0.78)'
+  ctx.fill()
+  ctx.strokeStyle = `${colors.accent}66`
+  ctx.lineWidth = 1.1
+  roundRect(ctx, x, y - 22, w, 34, 12)
+  ctx.stroke()
   ctx.textAlign = 'center'
-  ctx.font = 'bold 13px system-ui, sans-serif'
-  ctx.fillStyle = colors.accent
-  ctx.letterSpacing = '0.12em'
+  ctx.font = 'bold 16px system-ui, sans-serif'
+  ctx.fillStyle = '#F5F3FF'
+  ctx.letterSpacing = '0.08em'
   ctx.fillText(text.toUpperCase(), 540, y)
   ctx.letterSpacing = 'normal'
   ctx.restore()
@@ -55,29 +64,29 @@ function drawLimbTile(
   lines: string[],
 ) {
   ctx.save()
-  ctx.fillStyle = `${colors.accent}10`
-  roundRect(ctx, x, y, w, h, 11)
+  ctx.fillStyle = 'rgba(7, 10, 26, 0.84)'
+  roundRect(ctx, x, y, w, h, 14)
   ctx.fill()
-  ctx.strokeStyle = `${colors.accent}32`
-  ctx.lineWidth = 1
-  roundRect(ctx, x, y, w, h, 11)
+  ctx.strokeStyle = `${colors.accent}62`
+  ctx.lineWidth = 1.2
+  roundRect(ctx, x, y, w, h, 14)
   ctx.stroke()
   ctx.restore()
 
   ctx.textAlign = 'center'
-  ctx.font = '13px sans-serif'
-  ctx.fillStyle = colors.sub
-  ctx.fillText(label, x + w / 2, y + 18)
-  ctx.font = 'bold 18px serif'
-  ctx.fillStyle = colors.text
-  ctx.fillText(truncate(value, 13), x + w / 2, y + 42)
-  ctx.font = '12px sans-serif'
-  ctx.fillStyle = `${colors.sub}CC`
-  let ly = y + 62
+  ctx.font = '600 14px sans-serif'
+  ctx.fillStyle = '#D6CCFF'
+  ctx.fillText(label, x + w / 2, y + 24)
+  ctx.font = 'bold 24px serif'
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillText(truncate(value, 16), x + w / 2, y + 56)
+  ctx.font = '14px sans-serif'
+  ctx.fillStyle = '#D1D5DB'
+  let ly = y + 82
   for (const ln of lines) {
     if (!ln) continue
-    ctx.fillText(truncateSafe(ln, 22), x + w / 2, ly)
-    ly += 15
+    ctx.fillText(truncateSafe(ln, 26), x + w / 2, ly)
+    ly += 18
   }
 }
 
@@ -123,7 +132,7 @@ function drawKeyTimeStrip(
   const gap = 10
   const colCount = 3
   const w = (900 - gap * (colCount - 1)) / colCount
-  const rowH = 52
+  const rowH = 62
   if (show.length === 0) return y
 
   show.forEach((s, i) => {
@@ -145,12 +154,12 @@ function drawKeyTimeStrip(
     ctx.stroke()
     ctx.restore()
     ctx.textAlign = 'left'
-    ctx.font = 'bold 14px sans-serif'
+    ctx.font = 'bold 16px sans-serif'
     ctx.fillStyle = s.tone === 'good' ? '#DCFCE7' : s.tone === 'warn' ? '#FECACA' : colors.text
-    ctx.fillText(s.title, x + 10, yy + 22)
-    ctx.font = '13px sans-serif'
+    ctx.fillText(s.title, x + 10, yy + 26)
+    ctx.font = '600 15px sans-serif'
     ctx.fillStyle = s.tone === 'good' ? '#BBF7D0' : s.tone === 'warn' ? '#FEE2E2' : colors.sub
-    ctx.fillText(s.range, x + 10, yy + 40)
+    ctx.fillText(s.range, x + 10, yy + 48)
   })
   const rows = Math.ceil(show.length / 3)
   return y + rows * (rowH + gap) - gap
@@ -161,18 +170,14 @@ function drawPanchangSlideHero(
   colors: ReturnType<typeof getBgColors>,
   settings: ReelSettings,
   vedaIcon: HTMLImageElement | null | undefined,
-  titleSa: string,
   titleEn: string,
 ) {
   ctx.textAlign = 'center'
-  drawLogo(ctx, colors, 88, settings.brandTitle, vedaIcon)
-  ctx.font = 'bold 48px serif'
-  ctx.fillStyle = colors.accent
-  ctx.fillText(titleSa, 540, 188)
-  ctx.font = '22px sans-serif'
-  ctx.fillStyle = colors.sub
-  ctx.fillText(titleEn, 540, 222)
-  drawDivider(ctx, colors, 242, 920)
+  drawLogo(ctx, colors, 96, settings.brandTitle, vedaIcon)
+  ctx.font = '600 30px sans-serif'
+  ctx.fillStyle = '#F8FAFC'
+  ctx.fillText(titleEn, 540, 214)
+  drawDivider(ctx, colors, 248, 920)
 }
 
 export function drawPanchangFullCard(
@@ -232,7 +237,7 @@ export function drawPanchangFullCard(
 
   const boxW = 433
   const boxGap = 14
-  const boxH = 80
+  const boxH = 96
   const drawRashiBox = (x: number, yy: number, title: string, en: string, sa: string, deg: string) => {
     ctx.save()
     ctx.fillStyle = `${colors.accent}0c`
@@ -243,15 +248,15 @@ export function drawPanchangFullCard(
     ctx.stroke()
     ctx.restore()
     ctx.textAlign = 'left'
-    ctx.font = 'bold 14px sans-serif'
-    ctx.fillStyle = colors.accent
+    ctx.font = 'bold 15px sans-serif'
+    ctx.fillStyle = '#E9D5FF'
     ctx.fillText(title, x + 14, yy + 22)
-    ctx.font = 'bold 19px serif'
-    ctx.fillStyle = colors.text
+    ctx.font = 'bold 21px serif'
+    ctx.fillStyle = '#FFFFFF'
     ctx.fillText(truncate(`${en} (${sa})`, 24), x + 14, yy + 46)
-    ctx.font = '13px sans-serif'
-    ctx.fillStyle = colors.sub
-    ctx.fillText(`${deg} in sign`, x + 14, yy + 68)
+    ctx.font = '14px sans-serif'
+    ctx.fillStyle = '#CBD5E1'
+    ctx.fillText(`${deg} in sign`, x + 14, yy + 76)
   }
 
   const drawAvoidRow = (ay: number) => {
@@ -287,55 +292,63 @@ export function drawPanchangFullCard(
     const vy = getReelBodyVerticalOffset(88, blockH)
     ctx.save()
     ctx.translate(0, vy)
-    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'पञ्चाङ्ग', 'Daily Panchang — limbs & calendar')
+    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Daily Panchang — limbs & calendar')
     ctx.textAlign = 'center'
-    ctx.font = 'bold 34px sans-serif'
-    ctx.fillStyle = colors.text
-    ctx.fillText(dateInfo.weekday, 540, 278)
-    ctx.font = '24px sans-serif'
-    ctx.fillStyle = colors.sub
-    ctx.fillText(`${dateInfo.day} ${dateInfo.month} ${dateInfo.year}`, 540, 310)
+    ctx.font = 'bold 42px sans-serif'
+    ctx.fillStyle = '#FFFFFF'
+    ctx.fillText(dateInfo.weekday, 540, 298)
+    ctx.font = '600 28px sans-serif'
+    ctx.fillStyle = '#E2E8F0'
+    ctx.fillText(`${dateInfo.day} ${dateInfo.month} ${dateInfo.year}`, 540, 332)
 
     if (cc) {
-      ctx.font = '17px serif'
-      ctx.fillStyle = colors.accent
+      ctx.font = '600 19px serif'
+      ctx.fillStyle = '#E9D5FF'
       const vs = cc.vikramSamvat != null ? `V.S. ${cc.vikramSamvat}` : ''
       const sh = cc.shakaYear != null ? `Śaka ${cc.shakaYear}` : ''
       const cal1 = [cc.samvatsara, vs, sh].filter(Boolean).join('  ·  ')
-      ctx.fillText(truncateSafe(cal1 || '—', 58), 540, 344)
+      ctx.fillText(truncateSafe(cal1 || '—', 58), 540, 364)
       const masa = data.tithi?.paksha ? `${data.tithi.paksha}` : ''
-      ctx.font = '15px serif'
-      ctx.fillStyle = `${colors.accent}EE`
+      ctx.font = '16px serif'
+      ctx.fillStyle = '#DDD6FE'
       ctx.fillText(
         truncateSafe(
           `${cc.sauraMasa || '—'} ${masa ? `(${masa})` : ''}  ·  ${cc.rituEn || cc.rituSa || ''}  ·  ${cc.ayanaEn || cc.ayanaSa || ''}`,
           58,
         ),
         540,
-        368,
+        388,
       )
     }
 
-    ctx.font = '14px sans-serif'
-    ctx.fillStyle = `${colors.sub}DD`
-    ctx.fillText(truncateSafe(`Ayanāṃśa: ${data.ayanamsha || '—'}  ·  ${data.location?.tz || ''}`, 72), 540, 396)
+    ctx.font = '15px sans-serif'
+    ctx.fillStyle = '#CBD5E1'
+    ctx.fillText(truncateSafe(`Ayanāṃśa: ${data.ayanamsha || '—'}  ·  ${data.location?.tz || ''}`, 72), 540, 424)
 
-    drawDivider(ctx, colors, 416, 920)
+    drawDivider(ctx, colors, 456, 920)
 
-    const gap = 8
-    const cardW = (900 - gap * 4) / 5
-    const startX = 90
-    const rowY = 448
-    const limbH = 112
-    limbSpecs.forEach((item, i) => {
-      const x = startX + i * (cardW + gap)
-      drawLimbTile(ctx, colors, x, rowY, cardW, limbH, item.label, item.value, item.lines)
-    })
+    const topY = 482
+    const topGap = 12
+    const topW = (900 - topGap * 2) / 3
+    const topH = 130
+    for (let i = 0; i < 3; i++) {
+      const x = 90 + i * (topW + topGap)
+      drawLimbTile(ctx, colors, x, topY, topW, topH, limbSpecs[i].label, limbSpecs[i].value, limbSpecs[i].lines)
+    }
+    const bottomY = topY + topH + 14
+    const bottomGap = 12
+    const bottomW = (900 - bottomGap) / 2
+    const bottomH = 130
+    for (let i = 0; i < 2; i++) {
+      const item = limbSpecs[i + 3]
+      const x = 90 + i * (bottomW + bottomGap)
+      drawLimbTile(ctx, colors, x, bottomY, bottomW, bottomH, item.label, item.value, item.lines)
+    }
 
-    drawDivider(ctx, colors, 590, 920)
-    ctx.font = '16px sans-serif'
-    ctx.fillStyle = colors.sub
-    ctx.fillText('Swipe for Sun · Moon, muhūrtas, doṣa periods, Horā & grahas.', 540, 630)
+    drawDivider(ctx, colors, 758, 920)
+    ctx.font = '600 18px sans-serif'
+    ctx.fillStyle = '#E2E8F0'
+    ctx.fillText('Swipe for Sun-Moon, Muhurtas, Dosha periods, Hora and Grahas.', 540, 798)
     ctx.restore()
     drawCarouselSlideBadge(ctx, colors, pageIndex + 1, totalPages)
     drawCarouselCompactFooter(ctx, colors, settings)
@@ -347,19 +360,20 @@ export function drawPanchangFullCard(
     const vy = getReelBodyVerticalOffset(88, 880)
     ctx.save()
     ctx.translate(0, vy)
-    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'पञ्चाङ्ग · II', 'Sun & Moon — luminaries & key muhūrtas')
+    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Sun & Moon — luminaries & key muhūrtas')
     ctx.textAlign = 'center'
-    ctx.font = '20px sans-serif'
-    ctx.fillStyle = colors.sub
-    ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month} ${dateInfo.year}`, 540, 278)
+    ctx.font = '600 24px sans-serif'
+    ctx.fillStyle = '#E2E8F0'
+    ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month} ${dateInfo.year}`, 540, 288)
 
-    let rowY = 318
+    let rowY = 338
     sectionLabel(ctx, colors, rowY, 'Sun & Moon (sidereal)')
     rowY += 28
-    const sunNak =
+    const sunNakLine1 =
       data.sunNakshatra?.name != null
-        ? `Sun nakṣatra: ${data.sunNakshatra.name} · pada ${data.sunNakshatra.pada} · ${data.sunNakshatra.lord}`
+        ? `Sun Nakshatra: ${data.sunNakshatra.name} (Pada ${data.sunNakshatra.pada ?? '—'})`
         : ''
+    const sunNakLine2 = data.sunNakshatra?.lord ? `Sun Nakshatra Lord: ${data.sunNakshatra.lord}` : ''
     drawRashiBox(90, rowY, 'Sun (Sūrya)', data.sunRashi?.en || '—', data.sunRashi?.sa || '—', degFmt(data.sunRashi?.degInSign))
     drawRashiBox(
       90 + boxW + boxGap,
@@ -370,27 +384,48 @@ export function drawPanchangFullCard(
       degFmt(data.moonRashi?.degInSign),
     )
     rowY += boxH + 14
-    ctx.font = '13px sans-serif'
-    ctx.fillStyle = `${colors.sub}CC`
-    if (sunNak) ctx.fillText(truncate(sunNak, 78), 540, rowY)
-    rowY += sunNak ? 28 : 12
+    ctx.font = '15px sans-serif'
+    ctx.fillStyle = '#CBD5E1'
+    if (sunNakLine1) {
+      ctx.fillText(truncate(sunNakLine1, 72), 540, rowY)
+      rowY += 20
+    }
+    if (sunNakLine2) {
+      ctx.fillText(truncate(sunNakLine2, 72), 540, rowY)
+      rowY += 18
+    } else {
+      rowY += 10
+    }
 
     drawDivider(ctx, colors, rowY, 920)
     rowY += 22
-    sectionLabel(ctx, colors, rowY, 'Sunrise · Sunset · Moon')
-    rowY += 28
-    ctx.font = 'bold 30px sans-serif'
-    ctx.fillStyle = colors.text
-    ctx.fillText(`${fmtTime(data.sunrise)}  ·  ${fmtTime(data.sunset)}`, 540, rowY)
-    rowY += 36
-    ctx.font = '18px sans-serif'
-    ctx.fillStyle = colors.sub
-    ctx.fillText(
-      `Moonrise ${data.moonrise ? fmtTime(data.moonrise) : '—'}  ·  Moonset ${data.moonset ? fmtTime(data.moonset) : '—'}`,
-      540,
-      rowY,
-    )
-    rowY += 40
+    sectionLabel(ctx, colors, rowY, 'Sunrise · Sunset')
+    rowY += 24
+    const timeCardY = rowY
+    const timeCardGap = 20
+    const timeCardW = (900 - timeCardGap) / 2
+    const timeCardH = 84
+    const drawTimeCard = (x: number, label: string, value: string) => {
+      ctx.save()
+      ctx.fillStyle = 'rgba(7, 10, 26, 0.84)'
+      roundRect(ctx, x, timeCardY, timeCardW, timeCardH, 12)
+      ctx.fill()
+      ctx.strokeStyle = `${colors.accent}60`
+      ctx.lineWidth = 1.2
+      roundRect(ctx, x, timeCardY, timeCardW, timeCardH, 12)
+      ctx.stroke()
+      ctx.restore()
+      ctx.textAlign = 'center'
+      ctx.font = '700 15px sans-serif'
+      ctx.fillStyle = '#D6CCFF'
+      ctx.fillText(label, x + timeCardW / 2, timeCardY + 28)
+      ctx.font = '800 42px sans-serif'
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillText(value, x + timeCardW / 2, timeCardY + 68)
+    }
+    drawTimeCard(90, 'SUNRISE', fmtTime(data.sunrise))
+    drawTimeCard(90 + timeCardW + timeCardGap, 'SUNSET', fmtTime(data.sunset))
+    rowY += timeCardH + 24
 
     drawDivider(ctx, colors, rowY, 920)
     rowY += 22
@@ -408,9 +443,9 @@ export function drawPanchangFullCard(
     const vy = getReelBodyVerticalOffset(88, 1100)
     ctx.save()
     ctx.translate(0, vy)
-    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'पञ्चाङ्ग · III', 'Doṣa periods & Choghadiya')
-    ctx.font = '20px sans-serif'
-    ctx.fillStyle = colors.sub
+    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Doṣa periods & Choghadiya')
+    ctx.font = '600 24px sans-serif'
+    ctx.fillStyle = '#E2E8F0'
     ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month}`, 540, 278)
 
     let rowY = 318
@@ -437,7 +472,7 @@ export function drawPanchangFullCard(
     drawDivider(ctx, colors, rowY, 920)
     rowY += 22
 
-    const chozDay = data.choghadiya?.day || []
+    const chozDay = (data.choghadiya?.day || []).slice(0, 6)
     if (chozDay.length > 0) {
       sectionLabel(ctx, colors, rowY, 'Choghadiya — day')
       rowY += 28
@@ -445,34 +480,34 @@ export function drawPanchangFullCard(
         const col = i % 2
         const row = Math.floor(i / 2)
         const x = 90 + col * 470
-        const yy = rowY + row * 132
+        const yy = rowY + row * 126
         const colC = CHOGHADIYA_COLORS[slot.name] || colors.accent
         const meaning = CHOGHADIYA_MEANING[slot.name] || ''
         ctx.save()
         ctx.fillStyle = `${colC}18`
-        roundRect(ctx, x, yy, 440, 118, 12)
+        roundRect(ctx, x, yy, 440, 112, 12)
         ctx.strokeStyle = `${colC}55`
         ctx.lineWidth = 1.1
-        roundRect(ctx, x, yy, 440, 118, 12)
+        roundRect(ctx, x, yy, 440, 112, 12)
         ctx.stroke()
         ctx.restore()
         ctx.textAlign = 'left'
-        ctx.font = 'bold 24px sans-serif'
-        ctx.fillStyle = colC
-        ctx.fillText(slot.name, x + 16, yy + 32)
-        ctx.font = '16px sans-serif'
-        ctx.fillStyle = colors.sub
-        ctx.fillText(`${fmtTime(slot.start)} – ${fmtTime(slot.end)} · ${slot.quality}`, x + 16, yy + 58)
+        ctx.font = 'bold 26px sans-serif'
+        ctx.fillStyle = '#FFFFFF'
+        ctx.fillText(slot.name, x + 16, yy + 34)
+        ctx.font = '600 16px sans-serif'
+        ctx.fillStyle = '#E2E8F0'
+        ctx.fillText(`${fmtTime(slot.start)} – ${fmtTime(slot.end)} · ${slot.quality}`, x + 16, yy + 62)
         ctx.font = '14px sans-serif'
-        ctx.fillStyle = `${colors.sub}AA`
-        ctx.fillText(truncate(meaning, 48), x + 16, yy + 84)
+        ctx.fillStyle = '#CBD5E1'
+        ctx.fillText(truncate(meaning, 50), x + 16, yy + 88)
       })
-      rowY += Math.ceil(chozDay.length / 2) * 132 + 8
+      rowY += Math.ceil(chozDay.length / 2) * 126 + 8
     }
 
     drawDivider(ctx, colors, rowY, 920)
     rowY += 22
-    const chozNight = data.choghadiya?.night || []
+    const chozNight = (data.choghadiya?.night || []).slice(0, 4)
     if (chozNight.length > 0) {
       sectionLabel(ctx, colors, rowY, 'Choghadiya — night')
       rowY += 28
@@ -480,23 +515,23 @@ export function drawPanchangFullCard(
         const col = i % 2
         const row = Math.floor(i / 2)
         const x = 90 + col * 470
-        const yy = rowY + row * 96
+        const yy = rowY + row * 92
         const colC = CHOGHADIYA_COLORS[slot.name] || '#94A3B8'
         ctx.save()
         ctx.fillStyle = 'rgba(148,163,184,0.12)'
-        roundRect(ctx, x, yy, 440, 82, 10)
+        roundRect(ctx, x, yy, 440, 78, 10)
         ctx.strokeStyle = `${colC}44`
         ctx.lineWidth = 1
-        roundRect(ctx, x, yy, 440, 82, 10)
+        roundRect(ctx, x, yy, 440, 78, 10)
         ctx.stroke()
         ctx.restore()
         ctx.textAlign = 'left'
-        ctx.font = 'bold 20px sans-serif'
-        ctx.fillStyle = colors.text
-        ctx.fillText(slot.name, x + 14, yy + 30)
-        ctx.font = '15px sans-serif'
-        ctx.fillStyle = colors.sub
-        ctx.fillText(`${fmtTime(slot.start)} – ${fmtTime(slot.end)}`, x + 14, yy + 58)
+        ctx.font = 'bold 22px sans-serif'
+        ctx.fillStyle = '#FFFFFF'
+        ctx.fillText(slot.name, x + 14, yy + 32)
+        ctx.font = '16px sans-serif'
+        ctx.fillStyle = '#CBD5E1'
+        ctx.fillText(`${fmtTime(slot.start)} – ${fmtTime(slot.end)}`, x + 14, yy + 60)
       })
     }
     ctx.restore()
@@ -510,20 +545,20 @@ export function drawPanchangFullCard(
     const vy = getReelBodyVerticalOffset(88, 1050)
     ctx.save()
     ctx.translate(0, vy)
-    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'पञ्चाङ्ग · IV', 'Horā table & nine grahas')
-    ctx.font = '20px sans-serif'
-    ctx.fillStyle = colors.sub
+    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Horā table & nine grahas')
+    ctx.font = '600 24px sans-serif'
+    ctx.fillStyle = '#E2E8F0'
     ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month}`, 540, 278)
 
     let rowY = 318
-    const horasDay = (data.horaTable || []).filter((h) => h.isDaytime)
+    const horasDay = (data.horaTable || []).filter((h) => h.isDaytime).slice(0, 6)
     if (horasDay.length > 0) {
       sectionLabel(ctx, colors, rowY, 'Day Horā (planetary hours)')
       rowY += 28
       const cols = 3
       const hw = 280
       const hg = 20
-      const hh = 46
+      const hh = 60
       const vGap = 7
       horasDay.forEach((h, i) => {
         const col = i % cols
@@ -531,25 +566,25 @@ export function drawPanchangFullCard(
         const x = 90 + col * (hw + hg)
         const yy = rowY + row * (hh + vGap)
         ctx.save()
-        ctx.fillStyle = `${colors.accent}0d`
+        ctx.fillStyle = 'rgba(8,10,24,0.84)'
         roundRect(ctx, x, yy, hw, hh, 9)
-        ctx.strokeStyle = `${colors.accent}28`
+        ctx.strokeStyle = `${colors.accent}66`
         ctx.lineWidth = 1
         roundRect(ctx, x, yy, hw, hh, 9)
         ctx.stroke()
         ctx.restore()
         ctx.textAlign = 'left'
-        ctx.font = 'bold 15px sans-serif'
-        ctx.fillStyle = colors.accent
-        ctx.fillText(h.lord, x + 10, yy + 20)
-        ctx.font = '12px sans-serif'
-        ctx.fillStyle = colors.sub
-        ctx.fillText(`${fmtTime(h.start)} – ${fmtTime(h.end)}`, x + 10, yy + 38)
+        ctx.font = 'bold 20px sans-serif'
+        ctx.fillStyle = '#FFFFFF'
+        ctx.fillText(h.lord, x + 10, yy + 27)
+        ctx.font = '15px sans-serif'
+        ctx.fillStyle = '#CBD5E1'
+        ctx.fillText(`${fmtTime(h.start)} – ${fmtTime(h.end)}`, x + 10, yy + 50)
       })
       rowY += Math.ceil(horasDay.length / cols) * (hh + vGap) + 16
     }
 
-    const horasNight = (data.horaTable || []).filter((h) => !h.isDaytime)
+    const horasNight = (data.horaTable || []).filter((h) => !h.isDaytime).slice(0, 4)
     if (horasNight.length > 0) {
       drawDivider(ctx, colors, rowY, 920)
       rowY += 22
@@ -558,27 +593,27 @@ export function drawPanchangFullCard(
       const ncols = 2
       const nw = 430
       const ng = 20
-      const nh = 44
+      const nh = 56
       horasNight.forEach((h, i) => {
         const col = i % ncols
         const row = Math.floor(i / ncols)
         const x = 90 + col * (nw + ng)
         const yy = rowY + row * (nh + 6)
         ctx.save()
-        ctx.fillStyle = 'rgba(148,163,184,0.12)'
+        ctx.fillStyle = 'rgba(8,10,24,0.82)'
         roundRect(ctx, x, yy, nw, nh, 10)
-        ctx.strokeStyle = 'rgba(148,163,184,0.28)'
+        ctx.strokeStyle = 'rgba(148,163,184,0.5)'
         ctx.lineWidth = 1
         roundRect(ctx, x, yy, nw, nh, 10)
         ctx.stroke()
         ctx.restore()
         ctx.textAlign = 'left'
-        ctx.font = 'bold 16px sans-serif'
-        ctx.fillStyle = colors.text
-        ctx.fillText(h.lord, x + 12, yy + 20)
-        ctx.font = '14px sans-serif'
-        ctx.fillStyle = colors.sub
-        ctx.fillText(`${fmtTime(h.start)} – ${fmtTime(h.end)}`, x + 12, yy + 38)
+        ctx.font = 'bold 18px sans-serif'
+        ctx.fillStyle = '#FFFFFF'
+        ctx.fillText(h.lord, x + 12, yy + 24)
+        ctx.font = '15px sans-serif'
+        ctx.fillStyle = '#CBD5E1'
+        ctx.fillText(`${fmtTime(h.start)} – ${fmtTime(h.end)}`, x + 12, yy + 46)
       })
       rowY += Math.ceil(horasNight.length / ncols) * (nh + 6) + 12
     }
@@ -596,10 +631,10 @@ export function drawPanchangFullCard(
       const x = 90 + col * colW
       const yy = rowY + row * planetRowPitch
       ctx.textAlign = 'left'
-      ctx.font = '15px sans-serif'
+      ctx.font = '17px sans-serif'
       const retro = p.retro ? ' ℞' : ''
       const comb = p.combust ? ' ○' : ''
-      ctx.fillStyle = colors.text
+      ctx.fillStyle = '#F8FAFC'
       const line = `${p.sa} · ${p.rashiSa} ${degFmt(p.degInSign)}${retro}${comb}`
       ctx.fillText(truncate(line, 34), x, yy + 20)
     })
@@ -613,7 +648,7 @@ export function drawPanchangFullCard(
   const vy = getReelBodyVerticalOffset(88, 780)
   ctx.save()
   ctx.translate(0, vy)
-  drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'पञ्चाङ्ग · V', 'Moon nakṣatra — qualities & note')
+  drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Moon nakṣatra — qualities & note')
   ctx.font = '20px sans-serif'
   ctx.fillStyle = colors.sub
   ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month}`, 540, 278)
