@@ -157,8 +157,8 @@
 
 .slideGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 108px), 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+  gap: 14px;
   margin-bottom: 20px;
   width: 100%;
 }
@@ -170,6 +170,119 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
+}
+
+.slidePreviewCard {
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-1);
+  padding: 10px;
+  margin-bottom: 14px;
+}
+
+.slidePreviewMedia {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 0.5px solid var(--border);
+  aspect-ratio: 9 / 16;
+  max-height: min(72vh, 560px);
+  background: #0b1022;
+  margin-bottom: 10px;
+}
+
+.slidePreviewMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 10px;
+}
+
+.slidePreviewNav {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.slidePreviewNav button {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 0.5px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.slidePreviewNav button:disabled {
+  cursor: not-allowed;
+  color: var(--text-tertiary);
+}
+
+.slideCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-1);
+  padding: 8px;
+}
+
+.slideCardActive {
+  border-color: rgba(108, 92, 231, 0.9);
+  box-shadow: 0 0 0 1px rgba(108, 92, 231, 0.35);
+}
+
+.slideDragHandle {
+  padding: 7px 8px;
+  border-radius: 8px;
+  border: 0.5px solid var(--border);
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: grab;
+  user-select: none;
+  text-align: center;
+}
+
+.slideThumbWrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 0.5px solid var(--border);
+  aspect-ratio: 9 / 16;
+  background: #0b1022;
+  cursor: pointer;
+}
+
+.slideBadge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.slideActionRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.slideActionRow button {
+  font-size: 11px;
+  padding: 5px 4px;
+  border-radius: 6px;
+  border: 0.5px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  cursor: pointer;
 }
 
 .exportStack {
