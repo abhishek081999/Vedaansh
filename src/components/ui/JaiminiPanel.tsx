@@ -11,6 +11,33 @@ import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X } fr
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 import { calcBhriguBinduLon, calcInduLagna } from '@/lib/engine/astroDetailsDerived'
 
+/** Crisp chart glyphs — no stroke/filter; house polygon carries drishti highlight. */
+function jaiminiPlanetLabelStyle(gid: string): React.CSSProperties {
+  return { fill: grahaChartFill(gid) }
+}
+
+const JAIMINI_KARAKA_FILL = '#C9A227'
+const JAIMINI_ARUDHA_FILL = '#4338CA'
+
+function jaiminiKarakaTspanProps(plScale: number, hasRetro: boolean) {
+  return {
+    dx: hasRetro ? '1' : '2',
+    dy: hasRetro ? '0' : '-5',
+    fontSize: 10 * plScale,
+    fill: JAIMINI_KARAKA_FILL,
+    fontWeight: 900 as const,
+  }
+}
+
+function jaiminiArudhaStyle(highlighted: boolean, arScale: number): React.CSSProperties {
+  return {
+    fill: highlighted ? '#312E81' : JAIMINI_ARUDHA_FILL,
+    fontWeight: 900,
+    fontSize: `${12 * arScale}px`,
+    letterSpacing: '0.05em',
+  }
+}
+
 interface JaiminiPanelProps {
   chart: ChartOutput
   userPlan?: 'free' | 'gold' | 'platinum'
@@ -220,12 +247,13 @@ export function JaiminiAspectChart({
 
           const occupants = grahas.filter(g => g.rashi === sign)
           const arList = arudhaMap[sign] || []
+          const cellHighlighted = isSelected || isAspected
           
           let fillColor = "rgba(255,255,255,0.02)";
-          if (isSelected) fillColor = "rgba(201,168,76,0.12)";
-          else if (vizMode === 'argala' && isArgala) fillColor = "rgba(45,212,191,0.08)";
-          else if (vizMode === 'argala' && isVirodha) fillColor = "rgba(239,68,68,0.08)";
-          else if (isAspected) fillColor = "rgba(78,205,196,0.08)";
+          if (isSelected) fillColor = "rgba(201,168,76,0.06)";
+          else if (vizMode === 'argala' && isArgala) fillColor = "rgba(45,212,191,0.05)";
+          else if (vizMode === 'argala' && isVirodha) fillColor = "rgba(239,68,68,0.05)";
+          else if (isAspected) fillColor = "rgba(78,205,196,0.05)";
 
           const strokeColor = isSelected ? 'var(--gold)' : 
                              (vizMode === 'argala') ? (isArgala ? 'var(--teal)' : isVirodha ? 'var(--combust)' : 'var(--gold-dim)') :
@@ -273,20 +301,14 @@ export function JaiminiAspectChart({
                     textAnchor="middle" 
                     fontSize={16 * plScaleVal} 
                     fontWeight="900"
-                    style={{ 
-                      fill: grahaChartFill(g.id),
-                      stroke: isSelected ? 'var(--gold)' : isAspected ? 'var(--teal)' : 'none',
-                      strokeWidth: isSelected || isAspected ? '1.2px' : '0',
-                      paintOrder: 'stroke',
-                      filter: 'none'
-                    }}
+                    style={jaiminiPlanetLabelStyle(g.id)}
                   >
                     {g.id}
                     {g.isRetro && (
                       <tspan dx="1" dy="-6" fontSize={10 * plScaleVal} fill="var(--dig-retro)" fontWeight="900">ᴿ</tspan>
                     )}
                     {revKaraka[g.id] && (
-                      <tspan dx={g.isRetro ? "1" : "2"} dy={g.isRetro ? "0" : "-5"} fontSize={9 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
+                      <tspan {...jaiminiKarakaTspanProps(plScaleVal, !!g.isRetro)}>
                         {revKaraka[g.id]}
                       </tspan>
                     )}
@@ -298,11 +320,8 @@ export function JaiminiAspectChart({
                   x={x + cell/2} 
                   y={y + cell - 12} 
                   textAnchor="middle" 
-                  fontSize={11 * arScaleVal} 
-                  fontWeight="900" 
-                  fill="#818cf8"
-                  style={{ fill: '#818cf8' }}
                   fontStyle="italic"
+                  style={jaiminiArudhaStyle(cellHighlighted, arScaleVal)}
                 >
                   {(() => {
                     const rows = []
@@ -435,10 +454,10 @@ export function JaiminiAspectChartNorth({
           const [cx, cy] = getCentroid(h)
           
           let fillColor = "transparent";
-          if (isSelected) fillColor = "rgba(201,168,76,0.12)";
-          else if (vizMode === 'argala' && isArgala) fillColor = "rgba(45,212,191,0.08)";
-          else if (vizMode === 'argala' && isVirodha) fillColor = "rgba(239,68,68,0.08)";
-          else if (isAspected) fillColor = "rgba(78,205,196,0.08)";
+          if (isSelected) fillColor = "rgba(201,168,76,0.06)";
+          else if (vizMode === 'argala' && isArgala) fillColor = "rgba(45,212,191,0.05)";
+          else if (vizMode === 'argala' && isVirodha) fillColor = "rgba(239,68,68,0.05)";
+          else if (isAspected) fillColor = "rgba(78,205,196,0.05)";
 
           const strokeColor = isSelected ? 'var(--gold)' : 
                              (vizMode === 'argala') ? (isArgala ? 'var(--teal)' : isVirodha ? 'var(--combust)' : 'rgba(201,168,76,0.15)') :
@@ -480,8 +499,9 @@ export function JaiminiAspectChartNorth({
           const h = i + 1
           const rashi = getRashiInHouse(h) as Rashi
           const occupants = grahas.filter(g => g.rashi === rashi)
-          const isAspected = aspectingSigns.includes(rashi)
+          const isAspected = aspectingSigns.includes(rashi) && (vizMode === 'drishti' || vizMode === 'both')
           const isSelected = selectedSign === rashi
+          const cellHighlighted = isSelected || isAspected
           const arList = arudhaMap[rashi] || []
           const [cx, cy] = getCentroid(h)
           const isKite = [1, 4, 7, 10].includes(h)
@@ -507,20 +527,14 @@ export function JaiminiAspectChartNorth({
                       textAnchor="middle" 
                       fontSize={16 * plScaleVal} 
                       fontWeight="900" 
-                      style={{ 
-                        fill: grahaChartFill(g.id),
-                        stroke: isSelected ? 'var(--gold)' : isAspected ? 'var(--teal)' : 'none',
-                        strokeWidth: isSelected || isAspected ? '1.2px' : '0',
-                        paintOrder: 'stroke',
-                        filter: 'none'
-                      }}
+                      style={jaiminiPlanetLabelStyle(g.id)}
                     >
                       {g.id}
                       {g.isRetro && (
                         <tspan dx="1" dy="-6" fontSize={10 * plScaleVal} fill="var(--dig-retro)" fontWeight="900">ᴿ</tspan>
                       )}
                       {revKaraka[g.id] && (
-                        <tspan dx={g.isRetro ? "1" : "2"} dy={g.isRetro ? "0" : "-5"} fontSize={9 * plScaleVal} fill="var(--text-gold)" fontWeight="800" opacity="0.9">
+                        <tspan {...jaiminiKarakaTspanProps(plScaleVal, !!g.isRetro)}>
                           {revKaraka[g.id]}
                         </tspan>
                       )}
@@ -536,12 +550,9 @@ export function JaiminiAspectChartNorth({
                     key={idx}
                     x={cx} 
                     y={cy + arOffY + (idx * 11 * arScaleVal)} 
-                    fontSize={12 * arScaleVal} 
-                    fontWeight="900" 
-                    fill="#818cf8" 
                     textAnchor="middle" 
                     fontStyle="italic" 
-                    style={{ letterSpacing: '0.05em', fill: '#818cf8' }}
+                    style={jaiminiArudhaStyle(cellHighlighted, arScaleVal)}
                   >
                     {row}
                   </text>
