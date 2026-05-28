@@ -919,12 +919,12 @@ function buildDashaSystemTable(
 function buildAllDashasPages(chart: ChartOutput): string {
   const systems: Array<{ key: 'vimshottari' | 'ashtottari' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'; label: string }> = [
     { key: 'vimshottari', label: 'Viṁśottarī' },
-    { key: 'ashtottari', label: 'Aṣṭottarī' },
     { key: 'yogini', label: 'Yoginī' },
     { key: 'chara', label: 'Chara (K.N. Rao)' },
     { key: 'chara_fe', label: 'Chara (Rangacharya FE)' },
     { key: 'mandook', label: 'Mandook (K.N. Rao)' },
     { key: 'sthir', label: 'Sthir' },
+    { key: 'ashtottari', label: 'Aṣṭottarī' },
   ]
 
   return systems.map((system, idx) => `
