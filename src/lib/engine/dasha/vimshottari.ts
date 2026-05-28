@@ -25,12 +25,14 @@ export interface VimshottariOptions {
 }
 
 // Sequence of Dasha lords (fixed order)
-export const DASHA_SEQUENCE: GrahaId[] = [
-  'Ke','Ve','Su','Mo','Ma','Ra','Ju','Sa','Me'
-]
+export const DASHA_SEQUENCE = [
+  'Ke','Ve','Su','Mo','Ma','Ra','Ju','Sa','Me',
+] as const satisfies readonly GrahaId[]
+
+export type VimshottariLord = (typeof DASHA_SEQUENCE)[number]
 
 /** Each Viṁśottarī lord’s three nakṣatras (fixed groups; used outside tribhagi progression) */
-export const LORD_TRIBHAGI_NAKSHATRAS: Record<GrahaId, [number, number, number]> = {
+export const LORD_TRIBHAGI_NAKSHATRAS: Record<VimshottariLord, [number, number, number]> = {
   Ke: [0, 9, 18],
   Ve: [1, 10, 19],
   Su: [2, 11, 20],
@@ -68,7 +70,7 @@ export function tribhagiMahaNakshatraIndex(
  * Find the index of a Graha in DASHA_SEQUENCE
  */
 function dashaIndex(lord: GrahaId): number {
-  return DASHA_SEQUENCE.indexOf(lord)
+  return (DASHA_SEQUENCE as readonly GrahaId[]).indexOf(lord)
 }
 
 // ── Main Calculator ───────────────────────────────────────────
