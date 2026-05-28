@@ -118,6 +118,7 @@ export function NakshatraPanel({ chart, initialTab = 'navtara' }: { chart: Chart
               arudhas={chart.arudhas}
               tithiNumber={tithiNum}
               varaNumber={varaNum}
+              showCharaDrishtiControls
               defaultStyle="north"
               size={360} 
             />

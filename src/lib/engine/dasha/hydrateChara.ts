@@ -5,6 +5,7 @@
 import { fromZonedTime } from 'date-fns-tz'
 import type { ChartOutput, DashaNode, GrahaData, LagnaData } from '@/types/astrology'
 import { calcCharaDasha, calcCharaDashaFemale } from './chara'
+import { calcMandookDasha, calcSthirDasha } from './jaimini'
 
 const CHARA_DEPTH = 3
 
@@ -22,8 +23,8 @@ export function ensureCharaDashas(
   grahas: GrahaData[],
   lagnas: LagnaData,
   meta: ChartOutput['meta'],
-  existing?: Partial<Pick<ChartOutput['dashas'], 'chara' | 'chara_fe'>>,
-): { chara: DashaNode[]; chara_fe: DashaNode[] } {
+  existing?: Partial<Pick<ChartOutput['dashas'], 'chara' | 'chara_fe' | 'mandook' | 'sthir'>>,
+): { chara: DashaNode[]; chara_fe: DashaNode[]; mandook: DashaNode[]; sthir: DashaNode[] } {
   const birthUtc = birthUtcFromMeta(meta)
   const chara =
     existing?.chara && existing.chara.length > 0
@@ -33,7 +34,10 @@ export function ensureCharaDashas(
     existing?.chara_fe && existing.chara_fe.length > 0
       ? existing.chara_fe
       : calcCharaDashaFemale(grahas, lagnas, birthUtc, CHARA_DEPTH)
-  return { chara, chara_fe }
+  // Always recompute these three so legacy/cached charts pick up formula fixes.
+  const mandook = calcMandookDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
+  const sthir = calcSthirDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
+  return { chara, chara_fe, mandook, sthir }
 }
 
 export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagnas' | 'meta'> & { dashas?: ChartOutput['dashas'] }>(
@@ -42,9 +46,18 @@ export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagna
   if (!chart.grahas?.length || !chart.lagnas) return chart
 
   const existing = chart.dashas
-  if (existing?.chara?.length && existing?.chara_fe?.length) return chart
+  if (existing?.chara?.length && existing?.chara_fe?.length && existing?.mandook?.length && existing?.sthir?.length) {
+    const recalculated = ensureCharaDashas(chart.grahas, chart.lagnas, chart.meta, existing)
+    return {
+      ...chart,
+      dashas: {
+        ...(existing ?? {}),
+        ...recalculated,
+      } as ChartOutput['dashas'],
+    }
+  }
 
-  const { chara, chara_fe } = ensureCharaDashas(chart.grahas, chart.lagnas, chart.meta, existing)
+  const { chara, chara_fe, mandook, sthir } = ensureCharaDashas(chart.grahas, chart.lagnas, chart.meta, existing)
 
   return {
     ...chart,
@@ -52,6 +65,8 @@ export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagna
       ...(existing ?? {}),
       chara,
       chara_fe,
+      mandook,
+      sthir,
     } as ChartOutput['dashas'],
   }
 }

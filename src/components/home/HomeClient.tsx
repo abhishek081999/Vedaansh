@@ -458,7 +458,7 @@ function HomeContent() {
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
-  const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'yogini' | 'chara'>( 'vimshottari')
+  const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'>('vimshottari')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
   const [activeVarga, setActiveVarga] = useState<string>('D1')
   const [altVimshottari, setAltVimshottari] = useState<import('@/types/astrology').DashaNode[] | null>(null)
@@ -1135,7 +1135,10 @@ function HomeContent() {
                 <option value="vimshottari">Viṁśottarī</option>
                 <option value="ashtottari">Aṣṭottarī</option>
                 <option value="yogini">Yoginī</option>
-                <option value="chara">Chara</option>
+                <option value="chara">Chara (K.N. Rao)</option>
+                <option value="chara_fe">Chara (Rangacharya FE)</option>
+                <option value="mandook">Mandook (K.N. Rao)</option>
+                <option value="sthir">Sthir</option>
               </select>
             )}
           </div>
@@ -1189,6 +1192,9 @@ function HomeContent() {
               {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Aṣṭottarī computation required.</div>)}
               {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <DashaTree nodes={dashboardChart.dashas.yogini} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yoginī computation required.</div>)}
               {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara computation required.</div>)}
+              {dashaSystem === 'chara_fe' && (dashboardChart.dashas.chara_fe?.length ? <DashaTree nodes={dashboardChart.dashas.chara_fe} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara FE computation required.</div>)}
+              {dashaSystem === 'mandook' && (dashboardChart.dashas.mandook?.length ? <DashaTree nodes={dashboardChart.dashas.mandook} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Mandook computation required.</div>)}
+              {dashaSystem === 'sthir' && (dashboardChart.dashas.sthir?.length ? <DashaTree nodes={dashboardChart.dashas.sthir} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Sthir computation required.</div>)}
             </div>
           )}
         </div>
@@ -1229,7 +1235,10 @@ function HomeContent() {
                 <option value="vimshottari">Viṁśottarī</option>
                 <option value="ashtottari">Aṣṭottarī</option>
                 <option value="yogini">Yoginī</option>
-                <option value="chara">Chara</option>
+                <option value="chara">Chara (K.N. Rao)</option>
+                <option value="chara_fe">Chara (Rangacharya FE)</option>
+                <option value="mandook">Mandook (K.N. Rao)</option>
+                <option value="sthir">Sthir</option>
               </select>
             </div>
           </div>
@@ -1739,7 +1748,10 @@ function HomeContent() {
                               <option value="vimshottari">Viṁśottarī</option>
                               <option value="ashtottari">Aṣṭottarī</option>
                               <option value="yogini">Yoginī</option>
-                              <option value="chara">Chara</option>
+                              <option value="chara">Chara (K.N. Rao)</option>
+                              <option value="chara_fe">Chara (Rangacharya FE)</option>
+                              <option value="mandook">Mandook (K.N. Rao)</option>
+                              <option value="sthir">Sthir</option>
                             </select>
                           </div>
                           <div style={{ padding: '0.4rem 0.55rem' }}>
@@ -1899,20 +1911,27 @@ function HomeContent() {
                      <div className="panel fade-up">
                        <div className="panel-header">
                          <span>Daśā Timeline</span>
-                         <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-                           {(['vimshottari','ashtottari','yogini','chara'] as const).map((id) => {
-                             const shortLabel: Record<string,string> = { vimshottari:'Viṁ', ashtottari:'Aṣṭ', yogini:'Yog', chara:'Cha' }
-                             return (
-                               <button key={id} onClick={() => setDashaSystem(id)} style={{
-                                 padding: '0.15rem 0.4rem', fontSize: '0.62rem', fontFamily: 'inherit',
-                                 background: dashaSystem === id ? 'var(--gold-faint)' : 'transparent',
-                                 border: `1px solid ${dashaSystem === id ? 'var(--gold)' : 'var(--border-soft)'}`,
-                                 borderRadius: 3, cursor: 'pointer',
-                                 color: dashaSystem === id ? 'var(--text-gold)' : 'var(--text-muted)',
-                               }}>{shortLabel[id]}</button>
-                             )
-                           })}
-                         </div>
+                        <select
+                          value={dashaSystem}
+                          onChange={(e) => setDashaSystem(e.target.value as any)}
+                          style={{
+                            padding: '0.15rem 0.35rem',
+                            fontSize: '0.62rem',
+                            background: 'var(--surface-3)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--border-soft)',
+                            borderRadius: '3px',
+                            fontFamily: 'inherit',
+                          }}
+                        >
+                          <option value="vimshottari">Viṁśottarī</option>
+                          <option value="ashtottari">Aṣṭottarī</option>
+                          <option value="yogini">Yoginī</option>
+                          <option value="chara">Chara (K.N. Rao)</option>
+                          <option value="chara_fe">Chara (Rangacharya FE)</option>
+                          <option value="mandook">Mandook (K.N. Rao)</option>
+                          <option value="sthir">Sthir</option>
+                        </select>
                        </div>
                        <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                          {dashaSystem === 'vimshottari' && (
@@ -1942,6 +1961,9 @@ function HomeContent() {
                          {dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Aṣṭottarī computation required.</div>)}
                          {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <DashaTree nodes={chart.dashas.yogini} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yoginī computation required.</div>)}
                          {dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara computation required.</div>)}
+                        {dashaSystem === 'chara_fe' && (chart.dashas.chara_fe?.length ? <DashaTree nodes={chart.dashas.chara_fe} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara FE computation required.</div>)}
+                        {dashaSystem === 'mandook' && (chart.dashas.mandook?.length ? <DashaTree nodes={chart.dashas.mandook} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Mandook computation required.</div>)}
+                        {dashaSystem === 'sthir' && (chart.dashas.sthir?.length ? <DashaTree nodes={chart.dashas.sthir} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Sthir computation required.</div>)}
                        </div>
                      </div>
                   )}
@@ -2029,6 +2051,55 @@ function HomeContent() {
                 </div>
                )}
              </div>}  {/* end chart-layout-grid conditional */}
+
+              {/* BOTTOM: Full-width all dashas below chart + sidebar */}
+              {activeTab === 'dasha' && (
+                <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
+                  <div className="panel-header">
+                    <span>All Daśās Available</span>
+                    <ExportPdfButton
+                      chart={chart}
+                      compact
+                      label="Dasha PDF"
+                      title="Download Dasha PDF (includes user details, D1, D9, all dashas)"
+                    />
+                  </div>
+                  <div style={{ padding: '0.5rem 0.65rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
+                    {([
+                      { id: 'vimshottari', label: 'Viṁśottarī', nodes: (vimshottariTara === 'Mo' ? chart.dashas.vimshottari : (altVimshottari ?? chart.dashas.vimshottari)) },
+                      { id: 'ashtottari', label: 'Aṣṭottarī', nodes: chart.dashas.ashtottari ?? [] },
+                      { id: 'yogini', label: 'Yoginī', nodes: chart.dashas.yogini ?? [] },
+                      { id: 'chara', label: 'Chara (K.N. Rao)', nodes: chart.dashas.chara ?? [] },
+                      { id: 'chara_fe', label: 'Chara (Rangacharya FE)', nodes: chart.dashas.chara_fe ?? [] },
+                      { id: 'mandook', label: 'Mandook (K.N. Rao)', nodes: chart.dashas.mandook ?? [] },
+                      { id: 'sthir', label: 'Sthir', nodes: chart.dashas.sthir ?? [] },
+                    ] as const).map((system) => (
+                      <div
+                        key={system.id}
+                        style={{
+                          border: '1px solid var(--border-soft)',
+                          borderRadius: 8,
+                          background: 'var(--surface-1)',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div style={{ padding: '0.4rem 0.55rem', borderBottom: '1px solid var(--border-soft)', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                          {system.label}
+                        </div>
+                        <div style={{ padding: '0.4rem 0.45rem' }}>
+                          {system.nodes.length > 0 ? (
+                            <DashaTree nodes={system.nodes} birthDate={new Date(chart.meta.birthDate)} />
+                          ) : (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '0.55rem', textAlign: 'center' }}>
+                              Not available for this chart.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
                {/* BOTTOM: Full-width Shadbala below charts */}
                {activeTab === 'shadbala' && (

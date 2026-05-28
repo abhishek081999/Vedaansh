@@ -743,6 +743,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               arudhas={chart.arudhas}
               moonNakIndex={chart.panchang?.nakshatra?.index ?? 0}
               tithiNumber={chart.panchang?.tithi?.number ?? 1}
+              showCharaDrishtiControls
               varaNumber={chart.panchang?.vara?.number ?? 0}
               defaultStyle="north"
               size={480}

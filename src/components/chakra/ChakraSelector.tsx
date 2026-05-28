@@ -41,6 +41,9 @@ interface ChakraSelectorProps {
   showSettingsOverride?: boolean
   onToggleSettings?: () => void
   hideInternalSettingsToggle?: boolean
+  interactive?: boolean
+  onHouseSelect?: (house: number) => void
+  showCharaDrishtiControls?: boolean
 }
 
 // ── Style definitions ─────────────────────────────────────────
@@ -77,6 +80,9 @@ export function ChakraSelector({
   showSettingsOverride,
   onToggleSettings,
   hideInternalSettingsToggle = false,
+  interactive = false,
+  onHouseSelect,
+  showCharaDrishtiControls = false,
 }: ChakraSelectorProps) {
   const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle']
   const [style, setStyle] = useState<ChartStyle>(
@@ -105,6 +111,8 @@ export function ChakraSelector({
   )
 
   const [lagnaSource,   setLagnaSource]   = useState('natal')
+  const [enableCharaDrishti, setEnableCharaDrishti] = useState(false)
+  const [selectedHouse, setSelectedHouse] = useState<number | null>(null)
   
   const [showSettings,  setShowSettings]  = useState(false)
   const [showLegend,    setShowLegend]    = useState(true)
@@ -212,6 +220,47 @@ export function ChakraSelector({
     return ascRashi
   }, [ascRashi, lagnaSource, grahas, effectiveArudhas])
 
+  const getSignType = (r: Rashi): 'Movable' | 'Fixed' | 'Dual' => {
+    if ([1, 4, 7, 10].includes(r)) return 'Movable'
+    if ([2, 5, 8, 11].includes(r)) return 'Fixed'
+    return 'Dual'
+  }
+
+  const getRashiDrishtiSigns = (r: Rashi): Rashi[] => {
+    const type = getSignType(r)
+    if (type === 'Movable') {
+      return [2, 5, 8, 11].filter(
+        f => f !== (r === 1 ? 2 : r === 4 ? 5 : r === 7 ? 8 : 11),
+      ) as Rashi[]
+    }
+    if (type === 'Fixed') {
+      return [1, 4, 7, 10].filter(
+        m => m !== (r === 2 ? 1 : r === 5 ? 4 : r === 8 ? 7 : 10),
+      ) as Rashi[]
+    }
+    return [3, 6, 9, 12].filter(d => d !== r) as Rashi[]
+  }
+
+  const charaHighlightHouses = useMemo(() => {
+    if (!showCharaDrishtiControls || !enableCharaDrishti || !selectedHouse) return []
+    const sourceSign = (((effectiveAscRashi - 1) + (selectedHouse - 1)) % 12) + 1 as Rashi
+    const targetSigns = getRashiDrishtiSigns(sourceSign)
+    const targetHouses = targetSigns.map((sign) => ((sign - effectiveAscRashi + 12) % 12) + 1)
+    return [selectedHouse, ...targetHouses]
+  }, [showCharaDrishtiControls, enableCharaDrishti, selectedHouse, effectiveAscRashi])
+
+  const mergedHighlightHouses = useMemo(
+    () => {
+      if (showCharaDrishtiControls && enableCharaDrishti) {
+        return Array.from(new Set(charaHighlightHouses))
+      }
+      return Array.from(new Set(highlightHouses ?? []))
+    },
+    [showCharaDrishtiControls, enableCharaDrishti, highlightHouses, charaHighlightHouses],
+  )
+
+  const isInteractive = interactive || (showCharaDrishtiControls && enableCharaDrishti)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', width: '100%' }}>
 
@@ -306,6 +355,28 @@ export function ChakraSelector({
                   <Toggle label="Show Natal" value={showNatal} onChange={setShowNatal} />
                 )}
                 <Toggle label="Tooltip" value={showTooltip} onChange={setShowTooltip} />
+                {showCharaDrishtiControls && (
+                  <>
+                    <Toggle label="Chara Drishti" value={enableCharaDrishti} onChange={setEnableCharaDrishti} />
+                    {enableCharaDrishti && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedHouse(null)}
+                        style={{
+                          padding: '0.3rem 0.65rem',
+                          fontSize: '0.78rem',
+                          borderRadius: '4px',
+                          border: '1px solid var(--border-soft)',
+                          background: 'transparent',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Clear House
+                      </button>
+                    )}
+                  </>
+                )}
               </>
             )}
             {isSBC && (
@@ -412,8 +483,14 @@ export function ChakraSelector({
             infoScale={infoScale}
             arudhaScale={arudhaScale}
             lagnas={displayLagnas}
-            highlightHouses={highlightHouses}
+            highlightHouses={mergedHighlightHouses}
             showTooltip={showTooltip}
+            interactive={isInteractive}
+            onCellClick={(rashi) => {
+              const house = ((rashi - effectiveAscRashi + 12) % 12) + 1
+              if (showCharaDrishtiControls && enableCharaDrishti) setSelectedHouse(house)
+              onHouseSelect?.(house)
+            }}
           />
         )}
         {style === 'north' && (
@@ -432,8 +509,13 @@ export function ChakraSelector({
             infoScale={infoScale}
             arudhaScale={arudhaScale}
             lagnas={displayLagnas}
-            highlightHouses={highlightHouses}
+            highlightHouses={mergedHighlightHouses}
             showTooltip={showTooltip}
+            interactive={isInteractive}
+            onHouseClick={(house) => {
+              if (showCharaDrishtiControls && enableCharaDrishti) setSelectedHouse(house)
+              onHouseSelect?.(house)
+            }}
           />
         )}
         {style === 'sarvatobhadra' && (

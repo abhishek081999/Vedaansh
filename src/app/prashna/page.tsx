@@ -533,6 +533,7 @@ export default function PrashnaPage() {
                     arudhas={chart.arudhas} lagnas={chart.lagnas} vargaName={varga}
                     defaultStyle={style} size={chartSize} moonNakIndex={chart.panchang.nakshatra.index}
                     tithiNumber={chart.panchang.tithi.number} varaNumber={chart.panchang.vara.number} userPlan="platinum"
+                    showCharaDrishtiControls
                   />
                 </div>
                 {/* Panchang chips */}

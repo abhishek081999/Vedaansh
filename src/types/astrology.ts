@@ -380,6 +380,8 @@ export type DashaSystem =
   | 'ashtottari'
   | 'chara'
   | 'chara_fe'
+  | 'mandook'
+  | 'sthir'
   | 'narayana'
   | 'tithi_ashtottari'
   | 'naisargika'

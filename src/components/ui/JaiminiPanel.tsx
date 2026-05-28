@@ -574,18 +574,39 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     7
   );
   const [activeTab, setActiveTab] = useState<'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info'>('essence');
-  const [charaDashaMode, setCharaDashaMode] = useState<'chara' | 'chara_fe'>(
+  const [charaDashaMode, setCharaDashaMode] = useState<'chara' | 'chara_fe' | 'mandook' | 'sthir'>(
     chart.meta.gender === 'female' ? 'chara_fe' : 'chara',
   );
 
   const charaDashas = useMemo(
     () => ensureCharaDashas(grahas, lagnas, chart.meta, chart.dashas),
-    [grahas, lagnas, chart.meta.birthDate, chart.meta.birthTime, chart.meta.timezone, chart.dashas?.chara, chart.dashas?.chara_fe],
+    [
+      grahas,
+      lagnas,
+      chart.meta.birthDate,
+      chart.meta.birthTime,
+      chart.meta.timezone,
+      chart.dashas?.chara,
+      chart.dashas?.chara_fe,
+      chart.dashas?.mandook,
+      chart.dashas?.sthir,
+    ],
   );
 
-  const activeCharaDashas = charaDashaMode === 'chara_fe'
-    ? charaDashas.chara_fe
-    : charaDashas.chara;
+  const activeCharaDashas = useMemo(() => {
+    switch (charaDashaMode) {
+      case 'chara_fe': return charaDashas.chara_fe
+      case 'mandook': return charaDashas.mandook
+      case 'sthir': return charaDashas.sthir
+      default: return charaDashas.chara
+    }
+  }, [charaDashaMode, charaDashas])
+
+  const dashaTitle = useMemo(() => {
+    if (charaDashaMode === 'mandook') return 'Mandook Dasha Timeline'
+    if (charaDashaMode === 'sthir') return 'Sthir Dasha Timeline'
+    return 'Chara Dasha Timeline'
+  }, [charaDashaMode])
 
   // Gateway calculation
   const currentDashaNode = activeCharaDashas.find((n) => n.isCurrent);
@@ -2118,10 +2139,10 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div className="card" style={{ padding: '1rem', background: 'var(--surface-1)' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>Chara Dasha Timeline</div>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>{dashaTitle}</div>
                       <select
                         value={charaDashaMode}
-                        onChange={(e) => setCharaDashaMode(e.target.value as 'chara' | 'chara_fe')}
+                        onChange={(e) => setCharaDashaMode(e.target.value as 'chara' | 'chara_fe' | 'mandook' | 'sthir')}
                         style={{
                           fontSize: '0.7rem',
                           fontWeight: 700,
@@ -2135,6 +2156,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       >
                         <option value="chara">Chara Dasha (K.N. Rao)</option>
                         <option value="chara_fe">Chara Dasha (Rangacharya FE)</option>
+                        <option value="mandook">Mandook Dasha (K.N. Rao)</option>
+                        <option value="sthir">Sthir Dasha</option>
                       </select>
                     </div>
                     <DashaTree nodes={activeCharaDashas as DashaNode[]} birthDate={new Date(chart.meta.birthDate)} />

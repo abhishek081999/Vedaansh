@@ -15,6 +15,7 @@ import { getNakshatra } from '@/lib/engine/nakshatra'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import { calcYoginiDasha } from '@/lib/engine/dasha/yogini'
 import { calcCharaDasha, calcCharaDashaFemale, getFourthFromLagna } from '@/lib/engine/dasha/chara'
+import { calcMandookDasha, calcSthirDasha } from '@/lib/engine/dasha/jaimini'
 import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { calcArudha, calcAllBhavaArudhas } from '@/lib/engine/arudhas'
 import { calculateAshtakavarga } from '@/lib/engine/ashtakavarga'
@@ -50,22 +51,22 @@ describe('Yogini Dasha', () => {
     expect(years).toBeLessThanOrEqual(108.1)
   })
 
-  it('birth Yogini is correct: Ashwini(0)→Mangala(Mo), Bharani(1)→Pingala(Su)', () => {
-    // Ashwini (nakIndex=0) → yoginiIndex=0 → Mangala (lord: Mo)
+  it('birth Yogini follows standard (nakshatra number + 3) mod 8 mapping', () => {
+    // Ashwini (nak #1): (1+3)%8=4 → Bhramari (lord: Ma)
     const dashAshwini = calcYoginiDasha(0, 0, BIRTH_DATE, 1)
-    expect(dashAshwini[0].lord).toBe('Mo')
+    expect(dashAshwini[0].lord).toBe('Ma')
 
-    // Bharani (nakIndex=1) → yoginiIndex=1 → Pingala (lord: Su)
+    // Bharani (nak #2): (2+3)%8=5 → Bhadrika (lord: Me)
     const dashBharani = calcYoginiDasha(1, 0, BIRTH_DATE, 1)
-    expect(dashBharani[0].lord).toBe('Su')
+    expect(dashBharani[0].lord).toBe('Me')
 
-    // Pushya (nakIndex=7) → yoginiIndex=7 → Sankata (lord: Ra)
+    // Pushya (nak #8): (8+3)%8=3 → Dhanya (lord: Ju)
     const dashPushya = calcYoginiDasha(7, 0, BIRTH_DATE, 1)
-    expect(dashPushya[0].lord).toBe('Ra')
+    expect(dashPushya[0].lord).toBe('Ju')
 
-    // Ashlesha (nakIndex=8) → yoginiIndex=0 → Mangala again (cycle repeats)
+    // Ashlesha (nak #9): (9+3)%8=4 → Bhramari (lord: Ma)
     const dashAshlesha = calcYoginiDasha(8, 0, BIRTH_DATE, 1)
-    expect(dashAshlesha[0].lord).toBe('Mo')
+    expect(dashAshlesha[0].lord).toBe('Ma')
   })
 
   it('birth balance is between 0 and full period duration', () => {
@@ -407,4 +408,79 @@ describe('Ashtakavarga', () => {
       .reduce((s, p) => s + (av.bav[p]?.total ?? 0), 0)
     expect(bavSum).toBeCloseTo(manualSum, 0)
   })
+})
+
+// ── Additional Jaimini Dashas ───────────────────────────────────
+
+describe('Additional Jaimini Dashas', () => {
+  function makeGrahas(positions: Partial<Record<string, number>>): GrahaData[] {
+    const ids = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke']
+    return ids.map(id => ({
+      id: id as any,
+      name: id,
+      lonTropical: 0,
+      lonSidereal: 0,
+      latitude: 0,
+      speed: 1,
+      isRetro: false,
+      isCombust: false,
+      rashi: Math.floor((positions[id] ?? 0) / 30) + 1 as Rashi,
+      rashiName: '',
+      degree: (positions[id] ?? 0) % 30,
+      totalDegree: positions[id] ?? 0,
+      nakshatraIndex: 0,
+      nakshatraName: '',
+      pada: 1,
+      dignity: 'neutral' as any,
+      avastha: { baladi: '', jagradadi: '' },
+      charaKaraka: null,
+      declination: 0,
+      gandanta: { isGandanta: false, type: null, severity: 'none', position: null, distanceFromJunction: null, rashi: 1 as Rashi, nakshatraIndex: 0, degreeInNakshatra: 0 },
+      yuddha: { isWarring: false, planets: [], winner: null, loser: null, degreeDifference: 0, orb: 1 },
+      pushkara: { isPushkara: false, type: null, zone: null, rashi: 1 as Rashi, degreeInSign: 0, navamsha: 1, isPushkaraNavamsha: false, distanceFromCenter: null, remedy: null },
+      mrityuBhaga: { isMrityuBhaga: false, severity: 'none', rashi: 1 as Rashi, degreeInSign: 0, mrityuDegree: 0, distanceFromMrityu: 0, interpretation: null, remedy: null },
+    }))
+  }
+
+  const lagnas = {
+    ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
+    horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+    pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
+    cusps: [],
+  }
+
+  it('mandook starts from asc for odd lagna and frog-jumps by 4th', () => {
+    const grahas = makeGrahas({ Ma: 60, Ve: 150, Me: 180, Ju: 90, Sa: 300 })
+    const d = calcMandookDasha(grahas, lagnas, BIRTH_DATE, 1)
+    expect(d[0].label).toContain('Aries')
+    expect(d[1].label).toContain('Cancer')
+    expect(d[2].label).toContain('Libra')
+    expect(d[3].label).toContain('Capricorn')
+  })
+
+  it('mandook for even lagna starts from 7th and runs reverse frog-jump cycles', () => {
+    const grahas = makeGrahas({ Ma: 15, Ve: 75, Me: 135, Ju: 225, Sa: 285 })
+    const evenLagna = {
+      ...lagnas,
+      ascRashi: 2 as Rashi, // Taurus
+      ascDegree: 30,
+    }
+    const d = calcMandookDasha(grahas, evenLagna, BIRTH_DATE, 1)
+    const seq = d.map((x) => (x.label ?? '').split(' ')[0])
+    expect(seq).toEqual([
+      'Scorpio', 'Leo', 'Taurus', 'Aquarius',
+      'Libra', 'Cancer', 'Aries', 'Capricorn',
+      'Virgo', 'Gemini', 'Pisces', 'Sagittarius',
+    ])
+  })
+
+  it('sthir dasha uses fixed 7/8/9 sign durations', () => {
+    const grahas = makeGrahas({ Ju: 240, Me: 150, Ve: 60, Ma: 0 })
+    const d = calcSthirDasha(grahas, lagnas, BIRTH_DATE, 1)
+    for (const node of d) {
+      const years = parseInt((node.label ?? '').match(/\((\d+)y\)/)?.[1] ?? '0', 10)
+      expect([7, 8, 9]).toContain(years)
+    }
+  })
+
 })
