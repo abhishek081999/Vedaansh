@@ -13,7 +13,7 @@ import {
   SWISSEPH_IDS,
 } from '@/lib/engine/ephemeris'
 import { getNakshatra, getTithi, getYoga, getKarana, getVara } from '@/lib/engine/nakshatra'
-import { calcVimshottari, getCurrentDasha } from '@/lib/engine/dasha/vimshottari'
+import { calcVimshottari, getCurrentDasha, tribhagiMahaNakshatraIndex } from '@/lib/engine/dasha/vimshottari'
 import { NAKSHATRA_LORDS } from '@/types/astrology'
 import { VIMSHOTTARI_YEARS } from '@/lib/engine/dasha/vimshottari'
 
@@ -171,6 +171,29 @@ describe('Vimshottari Dasha', () => {
     expect(dashas[0].children).toHaveLength(9)
     // First Antar should have 9 Pratyantar
     expect(dashas[0].children[0].children).toHaveLength(9)
+  })
+
+  it('Tribhagi variation produces 27 Maha Dashas totaling ~120 years', () => {
+    const moon    = getPlanetPosition(birthJD, SWISSEPH_IDS.Mo)
+    const ayan    = getAyanamsha(birthJD, 'lahiri')
+    const moonSid = toSidereal(moon.longitude, ayan)
+    const dashas  = calcVimshottari(moonSid, birthDate, 1, undefined, { tribhagi: true })
+    expect(dashas).toHaveLength(27)
+    const totalYears = dashas.reduce((sum, d) => sum + d.durationMs / (365.25 * 24 * 60 * 60 * 1000), 0)
+    const nakshatraSpan = 360 / 27
+    const normalized = ((moonSid % 360) + 360) % 360
+    const nakshatraIndex = Math.floor(normalized / nakshatraSpan)
+    const birthLord = NAKSHATRA_LORDS[nakshatraIndex]
+    const traversedFraction = (normalized % nakshatraSpan) / nakshatraSpan
+    expect(totalYears).toBeCloseTo(120, 0)
+    const firstFull = dashas.find((d, i) => i > 0 && d.lord === dashas[0].lord)
+    if (firstFull) {
+      const stdYears = VIMSHOTTARI_YEARS[firstFull.lord] / 3
+      const gotYears = firstFull.durationMs / (365.25 * 24 * 60 * 60 * 1000)
+      expect(gotYears).toBeCloseTo(stdYears, 1)
+    }
+    expect(dashas[0].nakshatraIndex).toBe(nakshatraIndex)
+    expect(dashas[3].nakshatraIndex).toBe(tribhagiMahaNakshatraIndex(nakshatraIndex, 3))
   })
 })
 

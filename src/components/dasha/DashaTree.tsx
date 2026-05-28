@@ -5,6 +5,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import type { DashaNode } from '@/types/astrology'
+import { NAKSHATRA_NAMES, NAKSHATRA_SHORT } from '@/types/astrology'
 
 const GRAHA_NAME: Record<string, string> = {
   Su: 'Sun',  Mo: 'Moon',  Ma: 'Mars', Me: 'Mercury',
@@ -55,7 +56,22 @@ function fmtDate(d: Date | string) {
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate: Date }) {
+function nakshatraDisplay(idx: number, compact = false): string {
+  return compact
+    ? (NAKSHATRA_SHORT[idx] ?? NAKSHATRA_NAMES[idx] ?? '')
+    : (NAKSHATRA_NAMES[idx] ?? NAKSHATRA_SHORT[idx] ?? '')
+}
+
+export function DashaTree({
+  nodes,
+  birthDate,
+  showNakshatra = false,
+}: {
+  nodes: DashaNode[]
+  birthDate: Date
+  /** Tribhagi Viṁśottarī: show linked nakṣatra on mahadasha rows */
+  showNakshatra?: boolean
+}) {
   const [activePath, setActivePath] = useState<DashaNode[]>([])
   const [currentPath, setCurrentPath] = useState<DashaNode[]>([])
   const [isMobile, setIsMobile] = useState(false)
@@ -123,11 +139,16 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0, flexWrap: 'wrap' }}>
           {/* Mahadasha label */}
           {currentMahaNode && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>MD</span>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-gold)' }}>
                 {GRAHA_NAME[currentMahaNode.lord] ?? currentMahaNode.lord}
               </span>
+              {showNakshatra && currentMahaNode.nakshatraIndex != null && (
+                <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--amber)', whiteSpace: 'nowrap' }}>
+                  · {nakshatraDisplay(currentMahaNode.nakshatraIndex)}
+                </span>
+              )}
             </span>
           )}
           {/* Separator */}
@@ -242,15 +263,33 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
                 }}>
                   {codePathForNode(node)}
                 </span>
-                {/* Name */}
+                {/* Name (+ nakṣatra for tribhagi mahadasha) */}
                 <span style={{
                   fontSize: rowFontSize,
                   flex: 1,
                   fontWeight: isActiveRow ? 700 : 400,
                   color: isActiveRow ? 'var(--text-primary)' : 'var(--text-muted)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  minWidth: 0,
                 }}>
-                  {node.label || GRAHA_NAME[node.lord] || node.lord}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {node.label || GRAHA_NAME[node.lord] || node.lord}
+                  </span>
+                  {showNakshatra && node.level === 1 && node.nakshatraIndex != null && (
+                    <span style={{
+                      fontSize: `calc(${rowFontSize} - 0.04rem)`,
+                      fontWeight: 600,
+                      color: isActiveRow ? 'var(--amber)' : 'var(--text-gold)',
+                      flexShrink: 0,
+                    }}>
+                      {nakshatraDisplay(node.nakshatraIndex, isMobile)}
+                    </span>
+                  )}
                 </span>
                 {/* Date */}
                 <span style={{

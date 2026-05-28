@@ -16,17 +16,52 @@ export const VIMSHOTTARI_YEARS: Record<string, number> = {
 
 export const VIMSHOTTARI_TOTAL = 120  // total years
 
+/** One tribhagi segment (120 ÷ 3 = 40 years); each planet’s period is also ÷3 */
+export const VIMSHOTTARI_TRIBHAGI_TOTAL = VIMSHOTTARI_TOTAL / 3
+
+export interface VimshottariOptions {
+  /** Tribhagi: 3×40-year cycles; each mahadasha duration ÷3 (PyJHora-style) */
+  tribhagi?: boolean
+}
+
 // Sequence of Dasha lords (fixed order)
 export const DASHA_SEQUENCE: GrahaId[] = [
   'Ke','Ve','Su','Mo','Ma','Ra','Ju','Sa','Me'
 ]
 
+/** Each Viṁśottarī lord’s three nakṣatras (fixed groups; used outside tribhagi progression) */
+export const LORD_TRIBHAGI_NAKSHATRAS: Record<GrahaId, [number, number, number]> = {
+  Ke: [0, 9, 18],
+  Ve: [1, 10, 19],
+  Su: [2, 11, 20],
+  Mo: [3, 12, 21],
+  Ma: [4, 13, 22],
+  Ra: [5, 14, 23],
+  Ju: [6, 15, 24],
+  Sa: [7, 16, 25],
+  Me: [8, 17, 26],
+}
+
 // ── Helper ────────────────────────────────────────────────────
 
-const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000
+/** Tropical year (legacy default for standard Viṁśottarī) */
+const TROPICAL_YEAR_MS = 365.25 * 24 * 60 * 60 * 1000
+/** Mean sidereal year — PyJHora / JHora default for dasha durations */
+const SIDEREAL_YEAR_MS = 365.256363004 * 24 * 60 * 60 * 1000
 
-function yearsToMs(years: number): number {
-  return years * MS_PER_YEAR
+function yearsToMs(years: number, useSiderealYear: boolean): number {
+  return years * (useSiderealYear ? SIDEREAL_YEAR_MS : TROPICAL_YEAR_MS)
+}
+
+/**
+ * Tribhagi: each mahadasha steps one nakṣatra forward from birth nakṣatra
+ * (Ashwini→…→Revati cycle), matching JHora “Tribhagi variation” lists.
+ */
+export function tribhagiMahaNakshatraIndex(
+  birthNakshatraIndex: number,
+  globalMahaIndex: number,
+): number {
+  return (birthNakshatraIndex + globalMahaIndex) % 27
 }
 
 /**
@@ -45,13 +80,25 @@ function dashaIndex(lord: GrahaId): number {
  * @param birthDate        Date of birth
  * @param depth            How many levels deep (1=Maha only, 6=all levels)
  * @param startTaraGraha   Override start Tara — default is Moon (for Vela+ users)
+ * @param options          tribhagi: divide periods by 3 and repeat the 9-lord cycle thrice
  */
 export function calcVimshottari(
   moonLonSidereal: number,
   birthDate: Date,
   depth: number = 6,
   startTaraGraha?: GrahaId,
+  options: VimshottariOptions = {},
 ): DashaNode[] {
+  const tribhagi = options.tribhagi === true
+  const tribFactor = tribhagi ? 1 / 3 : 1
+  const yearsMap: Record<string, number> = tribhagi
+    ? Object.fromEntries(
+        Object.entries(VIMSHOTTARI_YEARS).map(([k, v]) => [k, v * tribFactor]),
+      )
+    : VIMSHOTTARI_YEARS
+  const cycleTotal = VIMSHOTTARI_TOTAL * tribFactor
+  const cycles = tribhagi ? 3 : 1
+
   // ── Step 1: Find birth Nakshatra and lord ────────────────
   const NAKSHATRA_SPAN = 360 / 27
 
@@ -68,35 +115,51 @@ export function calcVimshottari(
   const traversedFraction = withinNakshatra / NAKSHATRA_SPAN
   const remainingFraction = 1 - traversedFraction
 
-  const balanceYears = remainingFraction * VIMSHOTTARI_YEARS[birthLord]
+  const balanceYears = remainingFraction * yearsMap[birthLord]
+  const useSiderealYear = tribhagi
 
   // ── Step 3: Build Maha Dasha sequence ────────────────────
   const birthLordIdx = dashaIndex(birthLord)
   const nodes: DashaNode[] = []
-  let cursor = birthDate.getTime()
+  const elapsedYears = traversedFraction * yearsMap[birthLord]
+  let cursor = tribhagi
+    ? birthDate.getTime() - yearsToMs(elapsedYears, true)
+    : birthDate.getTime()
   const now  = Date.now()
+  let globalMahaIndex = 0
 
-  for (let i = 0; i < 9; i++) {
-    const lord = DASHA_SEQUENCE[(birthLordIdx + i) % 9]
-    const years = i === 0 ? balanceYears : VIMSHOTTARI_YEARS[lord]
-    const durationMs = yearsToMs(years)
+  for (let cycle = 0; cycle < cycles; cycle++) {
+    for (let i = 0; i < 9; i++) {
+      const lord = DASHA_SEQUENCE[(birthLordIdx + i) % 9]
+      // Tribhagi/JHora: backdated start + full slice per lord; standard: balance on first row only
+      const years = tribhagi
+        ? yearsMap[lord]
+        : (cycle === 0 && i === 0 ? balanceYears : yearsMap[lord])
+      const durationMs = yearsToMs(years, useSiderealYear)
 
-    const start = new Date(cursor)
-    const end   = new Date(cursor + durationMs)
+      const start = new Date(cursor)
+      const end   = new Date(cursor + durationMs)
 
-    nodes.push({
-      lord,
-      start,
-      end,
-      durationMs,
-      level: 1,
-      isCurrent: now >= start.getTime() && now < end.getTime(),
-      children: depth > 1
-        ? buildSubDashas(lord, start, end, durationMs, 2, depth, now)
-        : [],
-    })
+      const nakshatraIdx = tribhagi
+        ? tribhagiMahaNakshatraIndex(nakshatraIndex, globalMahaIndex)
+        : undefined
 
-    cursor += durationMs
+      nodes.push({
+        lord,
+        start,
+        end,
+        durationMs,
+        level: 1,
+        isCurrent: now >= start.getTime() && now < end.getTime(),
+        ...(nakshatraIdx !== undefined ? { nakshatraIndex: nakshatraIdx } : {}),
+        children: depth > 1
+          ? buildSubDashas(lord, start, end, durationMs, 2, depth, now, yearsMap, cycleTotal, useSiderealYear)
+          : [],
+      })
+
+      cursor += durationMs
+      globalMahaIndex++
+    }
   }
 
   return nodes
@@ -114,6 +177,9 @@ function buildSubDashas(
   currentLevel: number,
   maxDepth:   number,
   now:        number,
+  yearsMap:   Record<string, number> = VIMSHOTTARI_YEARS,
+  cycleTotal: number = VIMSHOTTARI_TOTAL,
+  useSiderealYear = false,
 ): DashaNode[] {
   const mahaIdx = dashaIndex(mahaLord)
   const nodes: DashaNode[] = []
@@ -121,7 +187,7 @@ function buildSubDashas(
 
   for (let i = 0; i < 9; i++) {
     const lord      = DASHA_SEQUENCE[(mahaIdx + i) % 9]
-    const fraction  = VIMSHOTTARI_YEARS[lord] / VIMSHOTTARI_TOTAL
+    const fraction  = yearsMap[lord] / cycleTotal
     const durationMs = parentMs * fraction
 
     const start = new Date(cursor)
@@ -140,7 +206,7 @@ function buildSubDashas(
       level: currentLevel,
       isCurrent,
       children: shouldGoDeeper
-        ? buildSubDashas(lord, start, end, durationMs, currentLevel + 1, maxDepth, now)
+        ? buildSubDashas(lord, start, end, durationMs, currentLevel + 1, maxDepth, now, yearsMap, cycleTotal, useSiderealYear)
         : [],
     })
 
@@ -189,8 +255,8 @@ export function getDashaTimeRemaining(node: DashaNode): string {
 
   if (remaining <= 0) return 'Completed'
 
-  const years  = Math.floor(remaining / MS_PER_YEAR)
-  const months = Math.floor((remaining % MS_PER_YEAR) / (30.44 * 24 * 60 * 60 * 1000))
+  const years  = Math.floor(remaining / TROPICAL_YEAR_MS)
+  const months = Math.floor((remaining % TROPICAL_YEAR_MS) / (30.44 * 24 * 60 * 60 * 1000))
   const days   = Math.floor((remaining % (30.44 * 24 * 60 * 60 * 1000)) / (24 * 60 * 60 * 1000))
 
   const parts: string[] = []

@@ -389,6 +389,8 @@ export type DashaSystem =
 export interface DashaNode {
   lord:       string
   label?:     string
+  /** Tribhagi Viṁśottarī: associated nakṣatra (0–26) for this mahadasha segment */
+  nakshatraIndex?: number
   start:      Date
   end:        Date
   durationMs: number
