@@ -1205,12 +1205,12 @@ function HomeContent() {
                 style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}
               >
                 <option value="vimshottari">Viṁśottarī</option>
-                <option value="ashtottari">Aṣṭottarī</option>
                 <option value="yogini">Yoginī</option>
                 <option value="chara">Chara (K.N. Rao)</option>
                 <option value="chara_fe">Chara (Rangacharya FE)</option>
                 <option value="mandook">Mandook (K.N. Rao)</option>
                 <option value="sthir">Sthir</option>
+                <option value="ashtottari">Aṣṭottarī</option>
               </select>
             )}
           </div>
@@ -1285,12 +1285,12 @@ function HomeContent() {
                 style={{ padding: '0.16rem 0.36rem', fontSize: '0.7rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'var(--font-body)', cursor: 'pointer' }}
               >
                 <option value="vimshottari">Viṁśottarī</option>
-                <option value="ashtottari">Aṣṭottarī</option>
                 <option value="yogini">Yoginī</option>
                 <option value="chara">Chara (K.N. Rao)</option>
                 <option value="chara_fe">Chara (Rangacharya FE)</option>
                 <option value="mandook">Mandook (K.N. Rao)</option>
                 <option value="sthir">Sthir</option>
+                <option value="ashtottari">Aṣṭottarī</option>
               </select>
             </div>
           </div>
@@ -1804,12 +1804,12 @@ function HomeContent() {
                             <select value={dashaSystem} onChange={(e) => setDashaSystem(e.target.value as any)}
                               style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}>
                               <option value="vimshottari">Viṁśottarī</option>
-                              <option value="ashtottari">Aṣṭottarī</option>
                               <option value="yogini">Yoginī</option>
                               <option value="chara">Chara (K.N. Rao)</option>
                               <option value="chara_fe">Chara (Rangacharya FE)</option>
                               <option value="mandook">Mandook (K.N. Rao)</option>
                               <option value="sthir">Sthir</option>
+                              <option value="ashtottari">Aṣṭottarī</option>
                             </select>
                           </div>
                           <div style={{ padding: '0.4rem 0.55rem' }}>
@@ -1994,12 +1994,12 @@ function HomeContent() {
                           }}
                         >
                           <option value="vimshottari">Viṁśottarī</option>
-                          <option value="ashtottari">Aṣṭottarī</option>
                           <option value="yogini">Yoginī</option>
                           <option value="chara">Chara (K.N. Rao)</option>
                           <option value="chara_fe">Chara (Rangacharya FE)</option>
                           <option value="mandook">Mandook (K.N. Rao)</option>
                           <option value="sthir">Sthir</option>
+                          <option value="ashtottari">Aṣṭottarī</option>
                         </select>
                        </div>
                        <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -2123,12 +2123,12 @@ function HomeContent() {
                   <div style={{ padding: '0.5rem 0.65rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
                     {([
                       { id: 'vimshottari', label: vimshottariTribhagi ? 'Viṁśottarī (Tribhagi)' : 'Viṁśottarī', nodes: vimshottariNodes },
-                      { id: 'ashtottari', label: 'Aṣṭottarī', nodes: chart.dashas.ashtottari ?? [] },
                       { id: 'yogini', label: 'Yoginī', nodes: chart.dashas.yogini ?? [] },
                       { id: 'chara', label: 'Chara (K.N. Rao)', nodes: chart.dashas.chara ?? [] },
                       { id: 'chara_fe', label: 'Chara (Rangacharya FE)', nodes: chart.dashas.chara_fe ?? [] },
                       { id: 'mandook', label: 'Mandook (K.N. Rao)', nodes: chart.dashas.mandook ?? [] },
                       { id: 'sthir', label: 'Sthir', nodes: chart.dashas.sthir ?? [] },
+                      { id: 'ashtottari', label: 'Aṣṭottarī', nodes: chart.dashas.ashtottari ?? [] },
                     ] as const).map((system) => (
                       <div
                         key={system.id}
