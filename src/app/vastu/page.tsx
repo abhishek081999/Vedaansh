@@ -187,6 +187,7 @@ export default function VastuPage() {
               arudhas={chart.arudhas}
               moonNakIndex={moonNakIndex}
               tithiNumber={tithiNumber}
+              showCharaDrishtiControls
               varaNumber={varaNumber}
               defaultStyle="north"
               size={460}

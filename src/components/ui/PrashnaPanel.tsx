@@ -171,6 +171,7 @@ export function PrashnaPanel({ chart: externalChart }: { chart?: ChartOutput | n
                     lagnas={chart.lagnas}
                     vargaName={varga}
                     defaultStyle={style}
+                    showCharaDrishtiControls
                     size={chartSize}
                     moonNakIndex={chart.panchang.nakshatra.index}
                     tithiNumber={chart.panchang.tithi.number}

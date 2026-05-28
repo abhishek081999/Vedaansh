@@ -99,6 +99,33 @@ function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'gold'|'blue' }
   )
 }
 
+function getSignType(r: Rashi): 'Movable' | 'Fixed' | 'Dual' {
+  if ([1, 4, 7, 10].includes(r)) return 'Movable'
+  if ([2, 5, 8, 11].includes(r)) return 'Fixed'
+  return 'Dual'
+}
+
+function getRashiDrishtiSigns(r: Rashi): Rashi[] {
+  const type = getSignType(r)
+  if (type === 'Movable') {
+    return [2, 5, 8, 11].filter(
+      f => f !== (r === 1 ? 2 : r === 4 ? 5 : r === 7 ? 8 : 11),
+    ) as Rashi[]
+  }
+  if (type === 'Fixed') {
+    return [1, 4, 7, 10].filter(
+      m => m !== (r === 2 ? 1 : r === 5 ? 4 : r === 8 ? 7 : 10),
+    ) as Rashi[]
+  }
+  return [3, 6, 9, 12].filter(d => d !== r) as Rashi[]
+}
+
+function getCharaDrishtiHousesFromHouse(sourceHouse: number, asc: Rashi): number[] {
+  const sourceSign = (((asc - 1) + (sourceHouse - 1)) % 12) + 1 as Rashi
+  const targetSigns = getRashiDrishtiSigns(sourceSign)
+  return targetSigns.map((sign) => ((sign - asc + 12) % 12) + 1)
+}
+
 export function VargaSwitcher({
   vargas, vargaLagnas, ascRashi, arudhas, userPlan='free', lagnas,
   size=500, moonNakIndex=0, tithiNumber=1, varaNumber=0,
@@ -111,6 +138,8 @@ export function VargaSwitcher({
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
   const [chartSettingsOpen, setChartSettingsOpen] = useState<Record<string, boolean>>({})
   const [isMobile, setIsMobile] = useState(false)
+  const [enableCharaDrishti, setEnableCharaDrishti] = useState(false)
+  const [selectedHouseByChart, setSelectedHouseByChart] = useState<Record<string, number | null>>({})
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 1024)
@@ -278,7 +307,55 @@ export function VargaSwitcher({
                 )}
               </div>
 
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={enableCharaDrishti}
+                    onChange={(e) => setEnableCharaDrishti(e.target.checked)}
+                  />
+                  <span style={{ fontSize: '0.7rem', color: enableCharaDrishti ? 'var(--gold)' : 'var(--text-muted)', fontWeight: 700 }}>
+                    Chara Drishti
+                  </span>
+                </label>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
+                    {selectedHouseByChart[name]
+                      ? `Selected House ${selectedHouseByChart[name]}`
+                      : 'Click a house'}
+                  </span>
+                  {selectedHouseByChart[name] ? (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedHouseByChart((prev) => ({ ...prev, [name]: null }))}
+                      style={{
+                        padding: '0.16rem 0.38rem',
+                        fontSize: '0.64rem',
+                        borderRadius: '4px',
+                        border: '1px solid var(--border-soft)',
+                        background: 'transparent',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
               <div style={{ display:'flex', justifyContent:'center', flex: 1 }}>
+                {(() => {
+                  const selectedHouse = selectedHouseByChart[name]
+                  const dashaHouses = chart ? getDashaLordPlacementHouses(chart, grahas, varAscRashi) : []
+                  const charaHouses =
+                    enableCharaDrishti && selectedHouse
+                      ? [selectedHouse, ...getCharaDrishtiHousesFromHouse(selectedHouse, varAscRashi)]
+                      : []
+                  const highlightHouses = enableCharaDrishti
+                    ? Array.from(new Set(charaHouses))
+                    : dashaHouses
+                  return (
                 <ChakraSelector
                   ascRashi={varAscRashi} grahas={grahas} size={isMobile ? 300 : 440}
                   vargaName={name}
@@ -290,13 +367,19 @@ export function VargaSwitcher({
                   }) : []}
                   moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}
-                  highlightHouses={chart ? getDashaLordPlacementHouses(chart, grahas, varAscRashi) : []}
+                  highlightHouses={highlightHouses}
+                  interactive={enableCharaDrishti}
+                  onHouseSelect={(house) =>
+                    setSelectedHouseByChart((prev) => ({ ...prev, [name]: house }))
+                  }
                   showSettingsOverride={Boolean(chartSettingsOpen[name])}
                   onToggleSettings={() =>
                     setChartSettingsOpen((prev) => ({ ...prev, [name]: !prev[name] }))
                   }
                   hideInternalSettingsToggle={!isMobile ? (idx === 0 || idx === 1) : true}
                 />
+                  )
+                })()}
               </div>
 
               {/* Topic hint — compact single line */}

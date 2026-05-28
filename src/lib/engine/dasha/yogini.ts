@@ -34,12 +34,14 @@ const GRAHA_MAP: Record<string, string> = {
 
 const TOTAL_YEARS = 36   // Sum of 1+2+3+4+5+6+7+8
 
-// Each nakshatra maps to a Yogini (BPHS rule: cycle repeats every 8 nakshatras)
-// Ashwini(0)→Mangala, Bharani(1)→Pingala, Krittika(2)→Dhanya,
-// Rohini(3)→Bhramari, Mrigashira(4)→Bhadrika, Ardra(5)→Ulka,
-// Punarvasu(6)→Siddha, Pushya(7)→Sankata, then repeats.
+// Each nakshatra maps to a Yogini using the standard rule:
+// take nakshatra number (1..27), add 3, divide by 8, and use remainder.
+// Remainder mapping: 1→Mangala, 2→Pingala, 3→Dhanya, 4→Bhramari,
+// 5→Bhadrika, 6→Ulka, 7→Siddha, 0→Sankata.
 function yoginiForNakshatra(nakIndex: number): number {
-  return nakIndex % 8
+  const nakNumber = nakIndex + 1
+  // Convert remainder mapping to zero-based YOGINIS array index.
+  return (nakNumber + 2) % 8
 }
 
 // ── Main calculator ───────────────────────────────────────────

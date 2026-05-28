@@ -308,6 +308,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                  arudhas={natalChart.arudhas}
                  tithiNumber={natalChart.panchang.tithi.number}
                  varaNumber={natalChart.panchang.vara.number}
+                 showCharaDrishtiControls
                  defaultStyle="north"
                  size={250} 
               />

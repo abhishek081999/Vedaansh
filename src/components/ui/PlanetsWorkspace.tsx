@@ -74,6 +74,7 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
               tithiNumber={chart.panchang.tithi.number}
               varaNumber={chart.panchang.vara.number}
               defaultStyle="north"
+              showCharaDrishtiControls
               size={320}
             />
           </div>
@@ -93,6 +94,7 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
               moonNakIndex={moonNakIndex}
               defaultStyle="north"
               size={320}
+              showCharaDrishtiControls
             />
           </div>
         </div>
