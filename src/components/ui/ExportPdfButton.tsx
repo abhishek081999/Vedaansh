@@ -14,9 +14,11 @@ interface Props {
   /** compact = icon + short label, default = full label */
   compact?: boolean
   style?: React.CSSProperties
+  label?: string
+  title?: string
 }
 
-export function ExportPdfButton({ chart, compact = false, style }: Props) {
+export function ExportPdfButton({ chart, compact = false, style, label, title }: Props) {
   const { data: session } = useSession()
   const plan = (session?.user as any)?.plan ?? 'free'
   const [loading, setLoading] = useState(false)
@@ -81,7 +83,7 @@ export function ExportPdfButton({ chart, compact = false, style }: Props) {
       <button
         onClick={handleExport}
         disabled={loading}
-        title={isFree ? 'PDF export requires Gold plan' : `Export ${chart.meta.name} as PDF`}
+        title={title ?? (isFree ? 'PDF export requires Gold plan' : `Export ${chart.meta.name} as PDF`)}
         style={{
           display:        'inline-flex',
           alignItems:     'center',
@@ -114,7 +116,7 @@ export function ExportPdfButton({ chart, compact = false, style }: Props) {
         ) : (
           <>
             <span style={{ fontSize: 14 }}>⬇</span>
-            {compact ? 'PDF' : 'Download PDF'}
+            {label ?? (compact ? 'PDF' : 'Download PDF')}
           </>
         )}
       </button>

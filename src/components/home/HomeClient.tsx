@@ -2055,7 +2055,15 @@ function HomeContent() {
               {/* BOTTOM: Full-width all dashas below chart + sidebar */}
               {activeTab === 'dasha' && (
                 <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                  <div className="panel-header"><span>All Daśās Available</span></div>
+                  <div className="panel-header">
+                    <span>All Daśās Available</span>
+                    <ExportPdfButton
+                      chart={chart}
+                      compact
+                      label="Dasha PDF"
+                      title="Download Dasha PDF (includes user details, D1, D9, all dashas)"
+                    />
+                  </div>
                   <div style={{ padding: '0.5rem 0.65rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
                     {([
                       { id: 'vimshottari', label: 'Viṁśottarī', nodes: (vimshottariTara === 'Mo' ? chart.dashas.vimshottari : (altVimshottari ?? chart.dashas.vimshottari)) },

@@ -873,6 +873,70 @@ function buildCurrentDashaFocus(chart: ChartOutput): string {
   `
 }
 
+function formatDashaDate(value?: Date | string): string {
+  if (!value) return 'N/A'
+  const dt = new Date(value)
+  if (Number.isNaN(dt.getTime())) return 'N/A'
+  return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function buildDashaSystemTable(
+  chart: ChartOutput,
+  key: 'vimshottari' | 'ashtottari' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir',
+  label: string,
+): string {
+  const nodes = chart.dashas[key] ?? []
+  if (!nodes.length) {
+    return `
+      <div style="margin-top: 1rem; border: 1px solid ${THEME.border}; border-radius: 10px; padding: 12px; background: #fff;">
+        <div style="font-weight: 800; color: ${THEME.primary}; margin-bottom: 6px;">${label}</div>
+        <div style="font-size: 11px; color: ${THEME.muted};">Not available for this chart.</div>
+      </div>
+    `
+  }
+
+  return `
+    <div style="margin-top: 1rem; border: 1px solid ${THEME.border}; border-radius: 10px; overflow: hidden; background: #fff;">
+      <div style="padding: 8px 12px; font-weight: 800; color: ${THEME.primary}; background: ${THEME.surface}; border-bottom: 1px solid ${THEME.border};">${label}</div>
+      <table class="data-table" style="margin: 0;">
+        <thead><tr><th>Major Period</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+        <tbody>
+          ${nodes.map(n => {
+            const isCurrent = new Date() >= new Date(n.start) && new Date() <= new Date(n.end)
+            return `<tr style="${isCurrent ? 'background:#fffbeb;font-weight:900;' : ''}">
+              <td>${GRAHA_NAMES[n.lord as GrahaId] || n.lord}</td>
+              <td>${formatDashaDate(n.start)}</td>
+              <td>${formatDashaDate(n.end)}</td>
+              <td>${isCurrent ? 'ACTIVE' : ''}</td>
+            </tr>`
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `
+}
+
+function buildAllDashasPages(chart: ChartOutput): string {
+  const systems: Array<{ key: 'vimshottari' | 'ashtottari' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'; label: string }> = [
+    { key: 'vimshottari', label: 'Viṁśottarī' },
+    { key: 'ashtottari', label: 'Aṣṭottarī' },
+    { key: 'yogini', label: 'Yoginī' },
+    { key: 'chara', label: 'Chara (K.N. Rao)' },
+    { key: 'chara_fe', label: 'Chara (Rangacharya FE)' },
+    { key: 'mandook', label: 'Mandook (K.N. Rao)' },
+    { key: 'sthir', label: 'Sthir' },
+  ]
+
+  return systems.map((system, idx) => `
+<div class="page">
+  ${SectionHeader(idx === 0 ? '03' : `03.${idx + 1}`, `Daśā Systems — ${system.label}`, 'All Computed Dashas')}
+  <p style="margin-bottom: 1rem">Complete major-period timeline for ${system.label} daśā.</p>
+  ${buildDashaSystemTable(chart, system.key, system.label)}
+  ${PageFooter(7 + idx, chart.meta.name)}
+</div>
+`).join('')
+}
+
 // ── Main Page Logic ───────────────────────────────────────────
 
 export function generateChartHTML(chart: ChartOutput, branding?: Branding): string {
@@ -965,7 +1029,8 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     .title-page { 
       display: flex; flex-direction: column; align-items: center; justify-content: center; 
       height: 100%; text-align: center; 
-      background: radial-gradient(ellipse at center, ${THEME.bg} 0%, ${THEME.surface} 70%);
+      background-color: ${THEME.bg};
+      background-image: radial-gradient(ellipse at center, ${THEME.bg} 0%, ${THEME.surface} 70%, ${THEME.bg} 100%);
     }
     .title-page::after {
       border: 3px double ${THEME.primary} !important;
@@ -1314,26 +1379,8 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   ${PageFooter(6, meta.name)}
 </div>
 
-<!-- PAGE 7: DASHA OVERVIEW -->
-<div class="page">
-  ${SectionHeader('03', 'Viṃśottarī Daśā', 'Timeline of Karma')}
-  <p style="margin-bottom: 2rem">Each Mahādaśā activates the karmic portfolio of its ruling Graha. The active period shapes destiny’s unfolding.</p>
-  <table class="data-table">
-    <thead><tr><th>Mahadasha</th><th>Start Date</th><th>End Date</th><th>Status</th></tr></thead>
-    <tbody>
-      ${chart.dashas.vimshottari.map(m => {
-        const isCurrent = new Date() >= new Date(m.start) && new Date() <= new Date(m.end)
-        return `<tr style="${isCurrent?'background:#fffbeb;font-weight:900':''}">
-          <td>${GRAHA_NAMES[m.lord as GrahaId]}</td>
-          <td>${new Date(m.start).toDateString()}</td>
-          <td>${new Date(m.end).toDateString()}</td>
-          <td>${isCurrent?'ACTIVE':''}</td>
-        </tr>`
-      }).join('')}
-    </tbody>
-  </table>
-  ${PageFooter(7, meta.name)}
-</div>
+<!-- DASHA PAGES -->
+${buildAllDashasPages(chart)}
 
 <!-- PAGE 8: CURRENT DASHA -->
 <div class="page">
