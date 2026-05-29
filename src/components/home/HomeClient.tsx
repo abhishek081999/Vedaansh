@@ -932,7 +932,7 @@ function HomeContent() {
 
   const openAstrologyApp = React.useCallback(() => {
     setIsFormOpen(true)
-    router.push('/astrology?new=true')
+    router.push('/?new=true')
   }, [router, setIsFormOpen])
 
   const openSectionWithChartGate = React.useCallback((href: string, e?: React.MouseEvent<HTMLElement>) => {
@@ -940,24 +940,24 @@ function HomeContent() {
       return
     }
 
-    const isAstrologyTarget = href.startsWith('/astrology')
+    const isAstrologyTarget = href === '/' || href.startsWith('/?')
     if (!chart && !isAstrologyTarget) {
       e?.preventDefault()
       setPendingDestination(href)
       setIsFormOpen(true)
-      router.push('/astrology?new=true')
+      router.push('/?new=true')
       return
     }
     if (!chart && isAstrologyTarget) {
       e?.preventDefault()
       setIsFormOpen(true)
-      router.push('/astrology?new=true')
+      router.push('/?new=true')
     }
   }, [chart, router, setIsFormOpen, setPendingDestination])
 
   const openMyDefaultChart = React.useCallback(async () => {
     if (!defaultChart) {
-      router.push('/astrology?new=true')
+      router.push('/?new=true')
       return
     }
     setLoading(true)
@@ -974,7 +974,7 @@ function HomeContent() {
       const json = await res.json()
       if (json.success) {
         setChart(json.data)
-        router.push('/astrology')
+        router.push('/')
       }
     } catch (error) {
       console.error('Default chart load failed', error)
@@ -1001,7 +1001,7 @@ function HomeContent() {
       title: 'Astrology',
       subtitle: 'Dashboard',
       text: 'Complete kundali, varga, dasha, and interpretation workspace in one focused view.',
-      href: '/astrology',
+      href: '/',
       ctaName: 'major_sections_astrology',
       icon: '🧿',
     },

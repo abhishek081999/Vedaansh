@@ -57,12 +57,22 @@ const nextConfig = {
     return [
       {
         source:      '/asrology',
-        destination: '/astrology',
+        destination: '/',
         permanent:   true,
       },
       {
         source:      '/asrology/:path*',
-        destination: '/astrology/:path*',
+        destination: '/',
+        permanent:   true,
+      },
+      {
+        source:      '/astrology',
+        destination: '/',
+        permanent:   true,
+      },
+      {
+        source:      '/astrology/:path*',
+        destination: '/',
         permanent:   true,
       },
       {

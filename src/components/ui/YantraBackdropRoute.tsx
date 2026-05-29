@@ -8,13 +8,11 @@ const BODY_CLASS = 'yantra-backdrop'
 
 function pathShowsYantra(pathname: string | null): boolean {
   if (!pathname) return false
-  if (pathname === '/') return true
-  if (pathname === '/astrology') return true
-  return false
+  return pathname === '/'
 }
 
 /**
- * Enables the Sri Yantra page backdrop only on home (`/`) and astrology dashboard (`/astrology`).
+ * Enables the Sri Yantra page backdrop on the home chart dashboard (`/`).
  * Dark theme still hides the layer via CSS (`[data-theme='dark']`).
  */
 export function YantraBackdropRoute() {

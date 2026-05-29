@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { SeoIntro } from '@/components/seo/SeoIntro'
+import { PANCHANG_SEO } from '@/lib/seo/intro-content'
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
 export const metadata: Metadata = {
@@ -32,6 +34,7 @@ const jsonLd = {
 export default function PanchangLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <SeoIntro {...PANCHANG_SEO} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

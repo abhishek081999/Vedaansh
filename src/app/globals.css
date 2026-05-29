@@ -470,7 +470,7 @@ body {
 /* ── Vedic Assets ───────────────────────────────────────────── */
 
 /*
- * Sri Yantra backdrop — only on home `/` and dashboard `/astrology`.
+ * Sri Yantra backdrop — only on home chart dashboard `/`.
  * Class `yantra-backdrop` is toggled by YantraBackdropRoute.tsx.
  * Dark theme: never show (see `[data-theme='dark']` rule below).
  */

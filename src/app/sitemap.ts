@@ -6,6 +6,9 @@ import { Chart } from '@/lib/db/models/Chart'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
+/** Nakshatra tab slugs — keep in sync with nakshatra/[tab]/layout.tsx TAB_META */
+const NAKSHATRA_TABS = ['overview', 'compatibility', 'remedies', 'transits', 'muhurta'] as const
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
@@ -87,6 +90,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority:        0.6,
     },
+    {
+      url:             `${BASE_URL}/about`,
+      lastModified:    new Date(),
+      changeFrequency: 'monthly',
+      priority:        0.55,
+    },
+    ...NAKSHATRA_TABS.map((tab) => ({
+      url:             `${BASE_URL}/nakshatra/${tab}`,
+      lastModified:    new Date(),
+      changeFrequency: 'weekly' as const,
+      priority:        0.75,
+    })),
   ]
 
   // Public chart pages

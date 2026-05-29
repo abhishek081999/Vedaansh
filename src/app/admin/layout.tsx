@@ -4,7 +4,13 @@
 //  Includes authentication guard and admin sidebar.
 // ─────────────────────────────────────────────────────────────
 
+import type { Metadata } from 'next'
 import React from 'react'
+
+export const metadata: Metadata = {
+  title:  'Admin — Vedaansh',
+  robots: { index: false, follow: false },
+}
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
