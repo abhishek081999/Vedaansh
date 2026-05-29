@@ -110,7 +110,7 @@ export function LandingHeroCarousel({
 
   const quickLinks = useMemo(
     () => [
-      { label: 'Astrology', href: '/astrology?new=true' },
+      { label: 'Astrology', href: '/?new=true' },
       { label: 'Prashna', href: '/prashna' },
       { label: 'Panchang', href: '/panchang' },
       { label: 'Calendar', href: '/panchang/calendar' },
@@ -175,11 +175,11 @@ export function LandingHeroCarousel({
                   </button>
                 ) : (
                   <Link
-                    href={slide.cta.href ?? '/astrology?new=true'}
+                    href={slide.cta.href ?? '/?new=true'}
                     className="btn btn-primary landing-hero-carousel-primary"
                     onClick={(e) => {
                       trackLandingCta(`hero_${slide.id}_cta`)
-                      withChartGate(slide.cta.href ?? '/astrology?new=true', e as unknown as MouseEvent<HTMLElement>)
+                      withChartGate(slide.cta.href ?? '/?new=true', e as unknown as MouseEvent<HTMLElement>)
                     }}
                     style={{ textDecoration: 'none' }}
                   >

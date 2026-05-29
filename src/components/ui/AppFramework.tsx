@@ -23,7 +23,7 @@ const progressKeyframes = `
 }
 `;
 
-const ASTROLOGY_ROUTE = '/astrology'
+const ASTROLOGY_ROUTE = '/'
 
 const TOP_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'dashboard', label: 'Dashboard',   icon: '◫', path: ASTROLOGY_ROUTE },
@@ -268,7 +268,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         e.preventDefault()
         setPendingDestination(t.path)
         setIsFormOpen(true)
-        router.push('/astrology?new=true')
+        router.push('/?new=true')
       } else if (isAstrologyTab && !chart) {
         setIsFormOpen(true)
       }
@@ -332,7 +332,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </button>
           
           <Link
-            href="/home"
+            href="/"
             onClick={() => {
               setChart(null)
               setIsFormOpen(false)
@@ -368,7 +368,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         {/* Right: Actions */}
         <div className="app-header-right">
           <Link
-            href="/astrology"
+            href="/"
             onClick={() => {
               setActiveTab('dashboard')
               if (window.innerWidth < 1024) setIsSidenavOpen(false)
@@ -439,7 +439,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           <div className="sidenav-header">
             <div className="sidenav-header-row">
               <Link
-                href="/home"
+                href="/"
                 onClick={() => {
                   setChart(null)
                   setIsFormOpen(false)
@@ -577,7 +577,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           {/* Bottom Actions */}
           <div className="sidenav-footer">
             <div className="sidenav-footer-om" dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
-            <Link href="/astrology?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}>
+            <Link href="/?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}>
               + New Consultation
             </Link>
           </div>

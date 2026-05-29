@@ -117,6 +117,14 @@ export const metadata: Metadata = {
     },
   },
 
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
+
   // ── App metadata ────────────────────────────────────────────
   applicationName: 'Vedaansh',
   category:        'astrology',
@@ -152,11 +160,6 @@ const jsonLdWebSite = {
   name:          'Vedaansh',
   url:            BASE_URL,
   description:   'Free Vedic astrology platform — birth charts, Dasha, 41 vargas, Panchang.',
-  potentialAction: {
-    '@type':       'SearchAction',
-    target:        { '@type': 'EntryPoint', urlTemplate: `${BASE_URL}/?q={search_term_string}` },
-    'query-input': 'required name=search_term_string',
-  },
 }
 
 const jsonLdWebApp = {
