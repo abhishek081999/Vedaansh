@@ -1,72 +1,74 @@
 // ─────────────────────────────────────────────────────────────
-//  src/app/api/admin/stats/route.ts
 //  GET /api/admin/stats
 //  Admin-only analytics and system health metrics.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Chart } from '@/lib/db/models/Chart'
+import { Subscription } from '@/lib/db/models/Subscription'
+import { getEffectivePlan } from '@/lib/subscription/entitlements'
+import { requireAdmin } from '@/lib/admin/auth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
-    const session = await auth()
-    const user = session?.user as any
-
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 })
+    const admin = await requireAdmin()
+    if (!admin) {
+      return NextResponse.json({ success: false, error: 'Unauthorized. Admin access required.' }, { status: 403 })
     }
 
     await connectDB()
 
-    // Aggregate stats
     const [
       totalUsers,
       totalCharts,
-      planCounts,
+      activeSubscriptions,
+      usersForDistribution,
       recentUsers,
-      recentCharts
+      recentCharts,
     ] = await Promise.all([
       User.countDocuments(),
       Chart.countDocuments(),
-      User.aggregate([
-        { $group: { _id: '$plan', count: { $sum: 1 } } }
-      ]),
-      User.find().sort({ createdAt: -1 }).limit(5).select('name email plan createdAt').lean(),
-      Chart.find().sort({ createdAt: -1 }).limit(5).select('name birthPlace createdAt').lean()
+      Subscription.countDocuments({ status: 'active' }),
+      User.find().select('plan planExpiresAt').lean(),
+      User.find().sort({ createdAt: -1 }).limit(5).select('name email plan planExpiresAt createdAt').lean(),
+      Chart.find().sort({ createdAt: -1 }).limit(5).select('name birthPlace createdAt').lean(),
     ])
+
+    const distribution = { free: 0, gold: 0, platinum: 0 }
+    for (const u of usersForDistribution) {
+      const effective = getEffectivePlan(u.plan, u.planExpiresAt)
+      distribution[effective]++
+    }
 
     const stats = {
       overview: {
         totalUsers,
         totalCharts,
-        activeSubscriptions: planCounts.filter(p => p._id !== 'free').reduce((acc, p) => acc + p.count, 0)
+        activeSubscriptions,
       },
-      distribution: planCounts.reduce((acc: any, p) => {
-        acc[p._id] = p.count
-        return acc
-      }, {}),
+      distribution,
       recentActivities: {
-        users: recentUsers,
-        charts: recentCharts
+        users: recentUsers.map(u => ({
+          ...u,
+          plan: getEffectivePlan(u.plan, u.planExpiresAt),
+        })),
+        charts: recentCharts,
       },
       system: {
         nodeVersion: process.version,
-        memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024, // in MB
-        uptime: process.uptime()
-      }
+        memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024,
+        uptime: process.uptime(),
+      },
     }
 
     return NextResponse.json({ success: true, stats })
-
   } catch (err) {
     console.error('[admin/stats] Error:', err)
-    return NextResponse.json({ error: 'Failed to fetch admin stats.' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to fetch admin stats.' }, { status: 500 })
   }
 }

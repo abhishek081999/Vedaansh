@@ -13,7 +13,6 @@ export const metadata: Metadata = {
 }
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
-import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AdminShellClient } from '@/components/admin/AdminShellClient'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

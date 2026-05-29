@@ -1,41 +1,58 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Subscription } from '@/lib/db/models/Subscription'
+import { requireAdmin } from '@/lib/admin/auth'
+import { parsePaginationParams, paginationMeta } from '@/lib/admin/pagination'
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth()
-    if ((session?.user as any)?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    const admin = await requireAdmin()
+    if (!admin) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })
     }
 
-    await connectDB()
-    const subscriptions = await Subscription.find()
-      .populate('userId', 'name email')
-      .sort({ createdAt: -1 })
-      .lean()
+    const { page, limit, skip } = parsePaginationParams(req.nextUrl.searchParams)
+    const status = req.nextUrl.searchParams.get('status')?.trim() || ''
+    const plan = req.nextUrl.searchParams.get('plan')?.trim() || ''
 
-    // Calculate MRR (Monthly Recurring Revenue) roughly
-    const active = subscriptions.filter(s => s.status === 'active')
-    const mrr = active.reduce((acc, s) => {
+    const filter: Record<string, unknown> = {}
+    if (status) filter.status = status
+    if (plan) filter.plan = plan
+
+    await connectDB()
+
+    const activeFilter = { ...filter, status: 'active' }
+    const [subscriptions, total, activeSubscriptions] = await Promise.all([
+      Subscription.find(filter)
+        .populate('userId', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Subscription.countDocuments(filter),
+      Subscription.find(activeFilter).select('amount interval').lean(),
+    ])
+
+    const mrrEstimate = activeSubscriptions.reduce((acc, s) => {
       const monthlyAmount = s.interval === 'yearly' ? s.amount / 12 : s.amount
-      // Normalize to a single currency for estimation (e.g., INR)
-      // This is a simplification
-      return acc + (monthlyAmount / 100) // Convert paise/cents to units
+      return acc + monthlyAmount / 100
     }, 0)
 
-    return NextResponse.json({ 
-      success: true, 
+    const totalActiveAmount = activeSubscriptions.reduce((acc, s) => acc + s.amount, 0)
+
+    return NextResponse.json({
+      success: true,
       revenue: {
-        totalSubscriptions: subscriptions.length,
-        activeSubscriptions: active.length,
-        mrrEstimate: mrr,
-        subscriptions
-      }
+        totalSubscriptions: total,
+        activeSubscriptions: activeSubscriptions.length,
+        mrrEstimate,
+        activeSubscriptionValueInr: Math.round(totalActiveAmount / 100),
+        subscriptions,
+        pagination: paginationMeta(page, limit, total),
+      },
     })
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to fetch revenue stats' }, { status: 500 })
+    console.error('[admin/revenue] GET', err)
+    return NextResponse.json({ success: false, error: 'Failed to fetch revenue stats' }, { status: 500 })
   }
 }

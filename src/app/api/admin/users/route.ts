@@ -1,10 +1,18 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { z } from 'zod'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
-import { z } from 'zod'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { requireAdmin } from '@/lib/admin/auth'
+import { logAdminAction } from '@/lib/admin/audit'
+import { canChangeUserRole } from '@/lib/admin/guards'
+import { parsePaginationParams, paginationMeta } from '@/lib/admin/pagination'
+import {
+  buildUserListPipeline,
+  enrichUserRow,
+  formatUserSummary,
+  parseUserListFilters,
+} from '@/lib/admin/users-query'
 
 const AdminUserUpdatesSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
@@ -24,41 +32,104 @@ const PatchSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth()
-    if ((session?.user as any)?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    const admin = await requireAdmin()
+    if (!admin) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })
     }
 
+    const { page, limit, skip } = parsePaginationParams(req.nextUrl.searchParams)
+    const filters = parseUserListFilters(req.nextUrl.searchParams, skip, limit)
+
     await connectDB()
-    const users = await User.find().sort({ createdAt: -1 }).select('-passwordHash').lean()
-    return NextResponse.json({ success: true, users })
+    const [result] = await User.aggregate(buildUserListPipeline(filters))
+    const users = (result?.data || []).map(enrichUserRow)
+    const total = result?.metadata?.[0]?.total ?? 0
+    const summary = formatUserSummary(result || {})
+
+    return NextResponse.json({
+      success: true,
+      users,
+      summary,
+      pagination: paginationMeta(page, limit, total),
+    })
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
+    console.error('[admin/users] GET', err)
+    return NextResponse.json({ success: false, error: 'Failed to fetch users' }, { status: 500 })
   }
 }
 
 export async function PATCH(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    const blockedResponse = await applyRouteSecurity(req, {
+      requireSameOrigin: true,
+      rateLimit: { bucket: 'admin-mutate', limit: 60, windowSeconds: 60, message: 'Too many admin requests.' },
+    })
     if (blockedResponse) return blockedResponse
 
-    const session = await auth()
-    if ((session?.user as any)?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    const admin = await requireAdmin()
+    if (!admin) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })
     }
 
     const parsed = PatchSchema.safeParse(await req.json())
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 })
     }
 
     const { userId, updates } = parsed.data
     await connectDB()
-    const user = await User.findByIdAndUpdate(userId, { $set: updates }, { new: true })
+
+    const existing = await User.findById(userId).select('role email').lean() as { role: 'user' | 'admin'; email?: string } | null
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
+    }
+
+    const updatePayload = { ...updates }
+
+    if (updatePayload.email && updatePayload.email.toLowerCase() !== existing.email?.toLowerCase()) {
+      const duplicate = await User.findOne({
+        email: updatePayload.email.toLowerCase(),
+        _id: { $ne: userId },
+      }).select('_id').lean()
+      if (duplicate) {
+        return NextResponse.json({ success: false, error: 'Email already in use' }, { status: 409 })
+      }
+      updatePayload.email = updatePayload.email.toLowerCase()
+    }
+
+    if (updatePayload.role) {
+      const adminCount = await User.countDocuments({ role: 'admin' })
+      const guard = canChangeUserRole({
+        actorId: admin.user.id,
+        targetId: userId,
+        targetCurrentRole: existing.role,
+        newRole: updatePayload.role,
+        adminCount,
+      })
+      if (!guard.ok) {
+        return NextResponse.json({ success: false, error: guard.error }, { status: 400 })
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(userId, { $set: updatePayload }, { new: true })
       .select('-passwordHash')
       .lean()
-    return NextResponse.json({ success: true, user })
+
+    await logAdminAction({
+      adminId: admin.user.id,
+      adminEmail: admin.user.email,
+      action: 'user.update',
+      targetType: 'user',
+      targetId: userId,
+      metadata: { updates: updatePayload },
+    })
+
+    return NextResponse.json({
+      success: true,
+      user: user ? enrichUserRow(user as { plan?: string; planExpiresAt?: Date | string | null }) : user,
+    })
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
+    console.error('[admin/users] PATCH', err)
+    return NextResponse.json({ success: false, error: 'Failed to update user' }, { status: 500 })
   }
 }

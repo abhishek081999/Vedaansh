@@ -1,230 +1,336 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+
+import React, { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { AdminMessage } from '@/components/admin/AdminMessage'
+import { AdminPagination } from '@/components/admin/AdminPagination'
+
+type UserRow = {
+  _id: string
+  name: string
+  email: string
+  role: 'user' | 'admin'
+  plan: 'free' | 'gold' | 'platinum'
+  effectivePlan: 'free' | 'gold' | 'platinum'
+  planExpiresAt?: string | null
+  emailVerified?: string | null
+  chartCount?: number
+  hasActiveSubscription?: boolean
+  createdAt: string
+}
+
+type Summary = {
+  total: number
+  admins: number
+  byEffectivePlan: { free: number; gold: number; platinum: number }
+}
+
+const selectStyle: React.CSSProperties = {
+  background: 'var(--surface-1)',
+  border: '1px solid var(--border)',
+  borderRadius: 8,
+  padding: '0.55rem 0.7rem',
+  color: 'var(--text-primary)',
+  fontSize: '0.82rem',
+}
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<any[]>([])
+  const router = useRouter()
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [summary, setSummary] = useState<Summary | null>(null)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [roleFilter, setRoleFilter] = useState('')
+  const [planFilter, setPlanFilter] = useState('')
+  const [sort, setSort] = useState('createdAt')
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 })
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024)
     checkMobile()
     window.addEventListener('resize', checkMobile)
-    fetch('/api/admin/users')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) setUsers(data.users)
-        setLoading(false)
-      })
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  const toggleAdmin = async (userId: string, currentRole: string) => {
-    const nextRole = currentRole === 'admin' ? 'user' : 'admin'
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [search])
+
+  const loadUsers = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: '50', sort })
+      if (debouncedSearch) params.set('search', debouncedSearch)
+      if (roleFilter) params.set('role', roleFilter)
+      if (planFilter) params.set('effectivePlan', planFilter)
+      const res = await fetch(`/api/admin/users?${params}`)
+      const data = await res.json()
+      if (data.success) {
+        setUsers(data.users)
+        setSummary(data.summary)
+        setPagination(data.pagination)
+      } else {
+        setError(data.error || 'Failed to load users')
+      }
+    } catch {
+      setError('Network error')
+    } finally {
+      setLoading(false)
+    }
+  }, [page, debouncedSearch, roleFilter, planFilter, sort])
+
+  useEffect(() => { void loadUsers() }, [loadUsers])
+
+  const patchUser = async (userId: string, updates: Record<string, unknown>) => {
+    setMessage(null)
+    setError(null)
     const res = await fetch('/api/admin/users', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, updates: { role: nextRole } })
+      body: JSON.stringify({ userId, updates }),
     })
-    if (res.ok) {
-      setUsers(users.map(u => u._id === userId ? { ...u, role: nextRole } : u))
+    const json = await res.json()
+    if (res.ok && json.success) {
+      await loadUsers()
+      setMessage('User updated.')
+      return true
     }
+    setError(json.error || 'Update failed')
+    return false
   }
 
-  const filtered = users.filter(u => 
-    u.name?.toLowerCase().includes(search.toLowerCase()) || 
-    u.email?.toLowerCase().includes(search.toLowerCase())
-  )
+  const toggleAdmin = async (user: UserRow) => {
+    const nextRole = user.role === 'admin' ? 'user' : 'admin'
+    const label = nextRole === 'admin' ? 'grant admin privileges to' : 'revoke admin privileges from'
+    if (!window.confirm(`Are you sure you want to ${label} ${user.name}?`)) return
+    await patchUser(user._id, { role: nextRole })
+  }
 
-  if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '10rem 0' }}>
-      <div className="spinner" style={{ width: 40, height: 40, border: '3px solid var(--border)', borderTopColor: 'var(--gold)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-      <style jsx>{` @keyframes spin { to { transform: rotate(360deg); } } `}</style>
-    </div>
-  )
+  const changePlan = async (user: UserRow, plan: UserRow['plan']) => {
+    if (plan === user.plan) return
+    const updates: Record<string, unknown> = { plan }
+    if (plan === 'free') {
+      updates.planExpiresAt = null
+    } else if (!user.planExpiresAt) {
+      const expiry = new Date()
+      expiry.setMonth(expiry.getMonth() + (plan === 'gold' ? 1 : 1))
+      updates.planExpiresAt = expiry.toISOString()
+    }
+    if (!window.confirm(`Change ${user.name}'s plan to ${plan}?`)) return
+    await patchUser(user._id, updates)
+  }
+
+  function exportCsv() {
+    const rows = ['name,email,role,stored_plan,effective_plan,plan_expires,charts,verified,joined']
+    for (const u of users) {
+      rows.push([
+        escapeCsv(u.name),
+        escapeCsv(u.email),
+        u.role,
+        u.plan,
+        u.effectivePlan,
+        u.planExpiresAt ? new Date(u.planExpiresAt).toISOString().slice(0, 10) : '',
+        String(u.chartCount ?? 0),
+        u.emailVerified ? 'yes' : 'no',
+        new Date(u.createdAt).toISOString().slice(0, 10),
+      ].join(','))
+    }
+    downloadCsv(rows.join('\n'), `users-page-${page}-${new Date().toISOString().slice(0, 10)}.csv`)
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      
-      {/* ── Header Area ──────────────────────────────────────── */}
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: isMobile ? 'column' : 'row',
-        justifyContent: 'space-between', 
-        alignItems: isMobile ? 'flex-start' : 'center', 
-        gap: '1rem' 
-      }}>
+      <AdminMessage message={message} type="success" onDismiss={() => setMessage(null)} />
+      <AdminMessage message={error} type="error" onDismiss={() => setError(null)} />
+
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-            User Management
-          </h1>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-            Manage permissions, plans, and system access for {users.length} unique accounts.
+          <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: 800, margin: 0 }}>User Management</h1>
+          <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            Search, filter, and manage {pagination.total} accounts on this view.
           </p>
         </div>
-        
-        <div style={{ position: 'relative', width: isMobile ? '100%' : '300px' }}>
-          <span style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
-          <input 
-            type="text"
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.7rem 1rem 0.7rem 2.5rem',
-              background: 'var(--surface-1)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--r-md)',
-              color: 'var(--text-primary)',
-              fontSize: '0.85rem',
-              outline: 'none',
-              transition: 'all 0.2s'
-            }}
-            onFocus={(e) => e.target.style.borderColor = 'var(--gold)'}
-            onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
-          />
-        </div>
+        <button type="button" className="btn btn-secondary" onClick={exportCsv} disabled={users.length === 0}>
+          Export page CSV
+        </button>
       </div>
 
-      {/* ── Users Table ─────────────────────────────────────── */}
-      <div style={{ 
-        background: 'var(--surface-1)', 
-        border: '1px solid var(--border)', 
-        borderRadius: 'var(--r-xl)',
-        overflow: 'hidden',
-        boxShadow: 'var(--shadow-card)'
-      }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
-            <thead>
-              <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-                {[
-                  { label: 'Identified User', width: '35%' },
-                  { label: 'Access Plan', width: '15%' },
-                  { label: 'System Role', width: '15%' },
-                  { label: 'Joined Date', width: '15%' },
-                  { label: 'Executive Actions', width: '20%', align: 'right' }
-                ].map((th, i) => (
-                  <th key={i} style={{ 
-                    width: th.width,
-                    padding: '1.1rem 1.5rem', 
-                    textAlign: (th.align as any) || 'left',
-                    fontSize: '0.65rem',
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    color: 'var(--text-muted)'
-                  }}>
-                    {th.label}
-                  </th>
+      {summary && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem' }}>
+          <StatChip label="Total" value={summary.total} />
+          <StatChip label="Admins" value={summary.admins} color="var(--rose)" />
+          <StatChip label="Free" value={summary.byEffectivePlan.free} />
+          <StatChip label="Gold" value={summary.byEffectivePlan.gold} color="var(--gold)" />
+          <StatChip label="Platinum" value={summary.byEffectivePlan.platinum} color="var(--accent)" />
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
+        <input
+          type="text"
+          placeholder="Search name or email…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ ...selectStyle, flex: '1 1 220px', minWidth: 200 }}
+        />
+        <select value={roleFilter} onChange={e => { setRoleFilter(e.target.value); setPage(1) }} style={selectStyle}>
+          <option value="">All roles</option>
+          <option value="user">Users</option>
+          <option value="admin">Admins</option>
+        </select>
+        <select value={planFilter} onChange={e => { setPlanFilter(e.target.value); setPage(1) }} style={selectStyle}>
+          <option value="">All plans (effective)</option>
+          <option value="free">Free</option>
+          <option value="gold">Gold</option>
+          <option value="platinum">Platinum</option>
+        </select>
+        <select value={sort} onChange={e => setSort(e.target.value)} style={selectStyle}>
+          <option value="createdAt">Newest first</option>
+          <option value="name">Name A–Z</option>
+          <option value="plan">Plan</option>
+          <option value="chartCount">Most charts</option>
+        </select>
+      </div>
+
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', overflow: 'hidden' }}>
+        {loading && users.length === 0 ? (
+          <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading users…</div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1040 }}>
+              <thead>
+                <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+                  {['User', 'Plan', 'Expires', 'Charts', 'Role', 'Joined', 'Actions'].map(label => (
+                    <th key={label} style={{ padding: '1rem 1.25rem', textAlign: 'left', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u, i) => (
+                  <tr
+                    key={u._id}
+                    style={{ borderBottom: i === users.length - 1 ? 'none' : '1px solid var(--border-soft)', cursor: 'pointer' }}
+                    onClick={() => router.push(`/admin/users/${u._id}`)}
+                  >
+                    <td style={{ padding: '1rem 1.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ fontWeight: 700 }}>{u.name}</div>
+                        {u.emailVerified && <span title="Email verified" style={{ fontSize: '0.7rem' }}>✓</span>}
+                        {u.hasActiveSubscription && <span title="Active Razorpay sub" style={{ fontSize: '0.65rem', color: 'var(--teal)' }}>SUB</span>}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{u.email}</div>
+                    </td>
+                    <td style={{ padding: '1rem 1.25rem' }} onClick={e => e.stopPropagation()}>
+                      <PlanBadge plan={u.effectivePlan} stored={u.plan} />
+                      <select
+                        value={u.plan}
+                        onChange={e => void changePlan(u, e.target.value as UserRow['plan'])}
+                        style={{ ...selectStyle, marginTop: '0.35rem', padding: '0.25rem 0.4rem', fontSize: '0.72rem', display: 'block' }}
+                      >
+                        <option value="free">free</option>
+                        <option value="gold">gold</option>
+                        <option value="platinum">platinum</option>
+                      </select>
+                    </td>
+                    <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      {u.planExpiresAt ? new Date(u.planExpiresAt).toLocaleDateString() : '—'}
+                    </td>
+                    <td style={{ padding: '1rem 1.25rem', fontWeight: 600 }}>{u.chartCount ?? 0}</td>
+                    <td style={{ padding: '1rem 1.25rem' }}>
+                      <RoleBadge role={u.role} />
+                    </td>
+                    <td style={{ padding: '1rem 1.25rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                      {new Date(u.createdAt).toLocaleDateString()}
+                    </td>
+                    <td style={{ padding: '1rem 1.25rem' }} onClick={e => e.stopPropagation()}>
+                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        <button type="button" className="btn btn-secondary" style={{ fontSize: '0.72rem', padding: '0.3rem 0.5rem' }} onClick={() => void toggleAdmin(u)}>
+                          {u.role === 'admin' ? 'Revoke' : 'Admin'}
+                        </button>
+                        <button type="button" className="btn btn-secondary" style={{ fontSize: '0.72rem', padding: '0.3rem 0.5rem' }} onClick={() => router.push(`/admin/users/${u._id}`)}>
+                          Open
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((u, i) => (
-                <tr 
-                  key={u._id} 
-                  className="user-row"
-                  style={{ 
-                    borderBottom: i === filtered.length - 1 ? 'none' : '1px solid var(--border-soft)',
-                    transition: 'all 0.15s'
-                  }}
-                >
-                  <td style={{ padding: '1rem 1.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                      <div style={{ 
-                        width: 40, height: 40, borderRadius: 'var(--r-md)', 
-                        background: u.role === 'admin' ? 'var(--rose-faint)' : 'var(--gold-faint)', 
-                        color: u.role === 'admin' ? 'var(--rose)' : 'var(--gold)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem',
-                        boxShadow: 'inset 0 0 0 1px currentColor'
-                      }}>
-                        {u.name?.[0].toUpperCase()}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{u.name}</div>
-                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>{u.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  
-                  <td style={{ padding: '1rem 1.5rem' }}>
-                    <span style={{ 
-                      padding: '0.3rem 0.6rem', borderRadius: 6, fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase',
-                      background: u.plan === 'platinum' ? 'var(--accent-faint)' : u.plan === 'gold' ? 'var(--gold-faint)' : 'var(--surface-3)',
-                      color: u.plan === 'platinum' ? 'var(--accent)' : u.plan === 'gold' ? 'var(--gold)' : 'var(--text-secondary)',
-                      border: `1px solid currentColor`
-                    }}>
-                      {u.plan}
-                    </span>
-                  </td>
-
-                  <td style={{ padding: '1rem 1.5rem' }}>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: u.role === 'admin' ? 'var(--rose)' : 'var(--text-muted)' }}></span>
-                       <span style={{ fontSize: '0.85rem', color: u.role === 'admin' ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: u.role === 'admin' ? 700 : 400 }}>
-                         {u.role}
-                       </span>
-                     </div>
-                  </td>
-
-                  <td style={{ padding: '1rem 1.5rem', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
-                    {new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </td>
-
-                  <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                      <button 
-                        onClick={() => toggleAdmin(u._id, u.role)}
-                        title={u.role === 'admin' ? 'Revoke Admin Privileges' : 'Grant Admin Privileges'}
-                        style={{
-                          width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border)',
-                          background: 'var(--surface-1)', cursor: 'pointer', transition: 'all 0.15s',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: u.role === 'admin' ? 'var(--rose)' : 'var(--text-muted)'
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-1)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-                      >
-                        {u.role === 'admin' ? '🚫' : '🛡️'}
-                      </button>
-                      <button 
-                        title="View Full Profile"
-                        style={{
-                          width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border)',
-                          background: 'var(--surface-1)', cursor: 'pointer', transition: 'all 0.15s',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-1)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-                      >
-                        👁️
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={5} style={{ padding: '5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔦</div>
-                    <div style={{ fontWeight: 600 }}>No users found matching &quot;{search}&quot;</div>
-                    <div style={{ fontSize: '0.8rem' }}>Try adjusting your search criteria</div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                {!loading && users.length === 0 && (
+                  <tr><td colSpan={7} style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>No users match your filters</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      <style jsx>{`
-        .user-row:hover {
-          background: rgba(var(--gold-rgb, 201, 168, 76), 0.04);
-        }
-      `}</style>
+      <AdminPagination page={pagination.page} totalPages={pagination.totalPages} total={pagination.total} onPageChange={setPage} isMobile={isMobile} />
     </div>
   )
+}
+
+function StatChip({ label, value, color }: { label: string; value: number; color?: string }) {
+  return (
+    <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '0.75rem 1rem' }}>
+      <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{label}</div>
+      <div style={{ fontSize: '1.2rem', fontWeight: 800, color: color || 'var(--text-primary)' }}>{value}</div>
+    </div>
+  )
+}
+
+function PlanBadge({ plan, stored }: { plan: string; stored: string }) {
+  const colors: Record<string, string> = { free: 'var(--text-muted)', gold: 'var(--gold)', platinum: 'var(--accent)' }
+  return (
+    <span style={{
+      padding: '0.2rem 0.45rem',
+      borderRadius: 6,
+      fontSize: '0.68rem',
+      fontWeight: 800,
+      textTransform: 'uppercase',
+      color: colors[plan] || 'var(--text-secondary)',
+      border: `1px solid ${colors[plan] || 'var(--border)'}`,
+    }}>
+      {plan}{stored !== plan ? ` (${stored})` : ''}
+    </span>
+  )
+}
+
+function RoleBadge({ role }: { role: string }) {
+  return (
+    <span style={{
+      padding: '0.2rem 0.45rem',
+      borderRadius: 6,
+      fontSize: '0.68rem',
+      fontWeight: 700,
+      color: role === 'admin' ? 'var(--rose)' : 'var(--text-muted)',
+      background: role === 'admin' ? 'rgba(255,100,100,0.08)' : 'var(--surface-2)',
+    }}>
+      {role}
+    </span>
+  )
+}
+
+function escapeCsv(value: string) {
+  return `"${String(value).replace(/"/g, '""')}"`
+}
+
+function downloadCsv(content: string, filename: string) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }

@@ -18,7 +18,7 @@ import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { applyRouteSecurity } from '@/lib/security/route'
-import { PLAN_PRICES } from '@/lib/subscription/pricing'
+import { BillingConfig } from '@/lib/db/models/BillingConfig'
 
 export const runtime = 'nodejs'
 
@@ -100,9 +100,29 @@ export async function POST(req: NextRequest) {
 
     const now    = new Date()
     const expiry = addInterval(now, interval)
-    const amount = PLAN_PRICES[plan][interval === 'monthly' ? 'monthlyPaise' : 'yearlyPaise']
-    if (payment.amount !== amount) {
+    const expectedBaseAmount = Number(payment.notes?.baseAmount || 0)
+    const expectedDiscountAmount = Number(payment.notes?.discountAmount || 0)
+    const expectedFinalAmount = Number(payment.notes?.finalAmount || 0)
+    const couponCode = (payment.notes?.couponCode || '').trim().toUpperCase()
+
+    if (!Number.isFinite(expectedBaseAmount) || !Number.isFinite(expectedDiscountAmount) || !Number.isFinite(expectedFinalAmount)) {
+      return NextResponse.json({ success: false, error: 'Invalid amount metadata' }, { status: 400 })
+    }
+    if (expectedBaseAmount < 1 || expectedDiscountAmount < 0 || expectedFinalAmount < 0) {
+      return NextResponse.json({ success: false, error: 'Invalid amount values' }, { status: 400 })
+    }
+    if (expectedFinalAmount !== expectedBaseAmount - expectedDiscountAmount) {
+      return NextResponse.json({ success: false, error: 'Corrupted discount metadata' }, { status: 400 })
+    }
+    if (payment.amount !== expectedFinalAmount) {
       return NextResponse.json({ success: false, error: 'Amount mismatch' }, { status: 400 })
+    }
+
+    const existing = await Subscription.findOne({ providerSubscriptionId: paymentId }).lean() as {
+      currentPeriodEnd: Date
+    } | null
+    if (existing) {
+      return NextResponse.json({ success: true, plan, expiresAt: existing.currentPeriodEnd })
     }
 
     // Upsert subscription record
@@ -121,12 +141,16 @@ export async function POST(req: NextRequest) {
           currentPeriodStart:     now,
           currentPeriodEnd:       expiry,
           cancelAtPeriodEnd:      false,
-          amount,
+          amount:                 expectedFinalAmount,
           currency:               'INR',
         },
         $push: {
           events: {
-            $each: [{ type: 'payment.verified', payload: { paymentId, orderId }, receivedAt: now }],
+            $each: [{
+              type: 'payment.verified',
+              payload: { paymentId, orderId, couponCode, baseAmount: expectedBaseAmount, discountAmount: expectedDiscountAmount },
+              receivedAt: now,
+            }],
             $slice: -10,
           },
         },
@@ -139,6 +163,13 @@ export async function POST(req: NextRequest) {
       plan,
       planExpiresAt: expiry,
     })
+
+    if (couponCode) {
+      await BillingConfig.updateOne(
+        { key: 'default', 'coupons.code': couponCode },
+        { $inc: { 'coupons.$.redeemedCount': 1 } },
+      )
+    }
 
     return NextResponse.json({ success: true, plan, expiresAt: expiry })
 
