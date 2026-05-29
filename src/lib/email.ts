@@ -156,3 +156,72 @@ export async function sendChartEmail(toEmail: string, chartName: string, htmlCon
   }).then(res => ({ success: !res.error, ...res }))
     .catch(err => ({ success: false, error: err }))
 }
+
+export function isEmailConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY)
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+const BROADCAST_BATCH_SIZE = 50
+
+export async function sendAdminBroadcastEmails(params: {
+  recipients: string[]
+  subject: string
+  message: string
+}): Promise<{ sent: number; failed: number; errors: string[] }> {
+  if (!isEmailConfigured()) {
+    return {
+      sent: 0,
+      failed: params.recipients.length,
+      errors: ['RESEND_API_KEY is not configured'],
+    }
+  }
+
+  if (params.recipients.length === 0) {
+    return { sent: 0, failed: 0, errors: [] }
+  }
+
+  const html = createLayout(`
+    <h2 style="color: #111827; margin-top: 0;">${escapeHtml(params.subject)}</h2>
+    <div style="font-size: 16px; color: #4b5563; white-space: pre-wrap; line-height: 1.6;">${escapeHtml(params.message)}</div>
+    <p style="font-size: 14px; color: #9ca3af; margin-top: 32px;">You received this announcement from ${appName}.</p>
+  `)
+
+  let sent = 0
+  let failed = 0
+  const errors: string[] = []
+
+  for (let i = 0; i < params.recipients.length; i += BROADCAST_BATCH_SIZE) {
+    const chunk = params.recipients.slice(i, i + BROADCAST_BATCH_SIZE)
+    try {
+      const result = await resend.batch.send(
+        chunk.map(to => ({
+          from: `${appName} <${fromEmail}>`,
+          to: [to],
+          subject: params.subject,
+          html,
+        })),
+      )
+
+      if (result.error) {
+        failed += chunk.length
+        errors.push(String((result.error as { message?: string }).message || result.error))
+      } else {
+        sent += chunk.length
+      }
+    } catch (err) {
+      failed += chunk.length
+      errors.push(String(err))
+    }
+  }
+
+  return { sent, failed, errors }
+}
+

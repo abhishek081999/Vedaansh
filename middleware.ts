@@ -35,9 +35,33 @@ const GOLD_API    = ['/api/muhurta', '/api/chart/export']
 const PLATINUM_ROUTES  = ['/research']
 const PLATINUM_API     = ['/api/research']
 
+// Admin-only routes (defense in depth — layout also guards pages)
+const ADMIN_ROUTES = ['/admin']
+const ADMIN_API    = ['/api/admin']
+
 export default auth((req: NextRequest & { auth: any }) => {
   const { pathname } = req.nextUrl
   const session      = req.auth
+
+  // ── Admin route protection ────────────────────────────────
+  const isAdminPage = ADMIN_ROUTES.some((p) => pathname.startsWith(p))
+  const isAdminApi  = ADMIN_API.some((p) => pathname.startsWith(p))
+  if (isAdminPage || isAdminApi) {
+    if (!session?.user) {
+      if (isAdminApi) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      const loginUrl = new URL('/login', req.url)
+      loginUrl.searchParams.set('callbackUrl', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+    if (session.user.role !== 'admin') {
+      if (isAdminApi) {
+        return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 })
+      }
+      return NextResponse.redirect(new URL('/', req.url))
+    }
+  }
 
   // ── API route protection ──────────────────────────────────
   const isProtectedApi = PROTECTED_API.some((p) => pathname.startsWith(p))

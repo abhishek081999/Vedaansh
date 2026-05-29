@@ -4,8 +4,9 @@ import Razorpay from 'razorpay'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
+import { Subscription } from '@/lib/db/models/Subscription'
 import { applyRouteSecurity } from '@/lib/security/route'
-import { PLAN_PRICES } from '@/lib/subscription/pricing'
+import { areOffersEnabled, getApplicableCoupon, getOrCreateBillingConfig, computeDiscount } from '@/lib/subscription/billing-config'
 
 export const runtime = 'nodejs'
 
@@ -31,6 +32,7 @@ function getRazorpay(): Razorpay {
 const CheckoutSchema = z.object({
   plan:     z.enum(['gold', 'platinum']),
   interval: z.enum(['monthly', 'yearly']),
+  couponCode: z.string().trim().max(50).optional(),
 })
 
 // ── Route handler ─────────────────────────────────────────────
@@ -57,16 +59,27 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { plan, interval } = parsed.data
-    const amountPaise = PLAN_PRICES[plan][interval === 'monthly' ? 'monthlyPaise' : 'yearlyPaise']
-
     await connectDB()
+    const { plan, interval, couponCode } = parsed.data
+    const billingConfig = await getOrCreateBillingConfig()
+    const amountPaise = billingConfig.prices[plan][interval === 'monthly' ? 'monthlyPaise' : 'yearlyPaise']
 
     // Get or create Razorpay customer for this user
     const user = await User.findById(session.user.id)
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
+    const hasAnySubscription = await Subscription.exists({ userId: session.user.id })
+    const coupon = areOffersEnabled(billingConfig)
+      ? getApplicableCoupon(
+          billingConfig.coupons,
+          couponCode,
+          plan,
+          interval,
+          { email: user.email, isNewUser: !hasAnySubscription },
+        )
+      : null
+    const { discountPaise, finalAmountPaise } = computeDiscount(amountPaise, coupon)
 
     const razorpay = getRazorpay()
 
@@ -89,25 +102,37 @@ export async function POST(req: NextRequest) {
 
     // Create a one-time order
     const order = await razorpay.orders.create({
-      amount:   amountPaise,
+      amount:   finalAmountPaise,
       currency: 'INR',
       notes: {
         userId:   session.user.id,
         plan,
         interval,
         email:    user.email,
+        couponCode: coupon?.code ?? '',
+        baseAmount: String(amountPaise),
+        discountAmount: String(discountPaise),
+        finalAmount: String(finalAmountPaise),
       },
     })
 
     return NextResponse.json({
       success:    true,
       orderId:    order.id,
-      amount:     amountPaise,
+      amount:     finalAmountPaise,
       currency:   'INR',
       keyId:      process.env.RAZORPAY_KEY_ID,
       planLabel:  plan === 'gold' ? 'Gold' : 'Platinum',
       userName:   user.name,
       userEmail:  user.email,
+      coupon: coupon ? {
+        code: coupon.code,
+        type: coupon.type,
+        value: coupon.value,
+        discountPaise,
+        baseAmountPaise: amountPaise,
+        finalAmountPaise,
+      } : null,
     })
 
   } catch (err) {

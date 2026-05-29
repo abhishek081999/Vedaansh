@@ -9,8 +9,10 @@ export function AdminSidebar({ user, onClose }: { user: any, onClose?: () => voi
   const links = [
     { href: '/admin', icon: '📊', label: 'Dashboard' },
     { href: '/admin/users', icon: '👥', label: 'Users' },
+    { href: '/admin/billing', icon: '🏷️', label: 'Billing' },
     { href: '/admin/charts', icon: '📚', label: 'Charts' },
     { href: '/admin/revenue', icon: '💰', label: 'Revenue' },
+    { href: '/admin/audit', icon: '🛡️', label: 'Audit Log' },
     { href: '/admin/reel', icon: '🎬', label: 'Reel Generator' },
     { href: '/admin/reel/video', icon: '🎞️', label: 'Reel Video' },
   ]
@@ -37,7 +39,7 @@ export function AdminSidebar({ user, onClose }: { user: any, onClose?: () => voi
 
         <nav style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           {links.map(link => {
-            const isActive = pathname === link.href
+            const isActive = pathname === link.href || (link.href !== '/admin' && pathname.startsWith(`${link.href}/`))
             return (
               <Link 
                 key={link.href}

@@ -1,15 +1,15 @@
 export const PLAN_PRICES = {
   gold: {
-    monthly: 99,
-    yearly: 999,
-    monthlyPaise: 9900,
-    yearlyPaise: 99900,
+    monthly: 134,
+    yearly: 1349,
+    monthlyPaise: 13400,
+    yearlyPaise: 134900,
   },
   platinum: {
-    monthly: 199,
-    yearly: 1999,
-    monthlyPaise: 19900,
-    yearlyPaise: 199900,
+    monthly: 269,
+    yearly: 2699,
+    monthlyPaise: 26900,
+    yearlyPaise: 269900,
   },
 } as const
 

@@ -90,6 +90,15 @@ export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)  // plan key being loaded
   const [checkoutError,  setCheckoutError]  = useState<string | null>(null)
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string
+    description: string
+    discounts: Record<string, { valid: boolean; discountPaise: number; finalAmountPaise: number }>
+  } | null>(null)
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [runtimePrices, setRuntimePrices] = useState(PLAN_PRICES)
 
   const currentPlan = (session?.user as any)?.plan ?? 'free'
   const PLAN_RANK: Record<string, number> = { free: 0, gold: 1, platinum: 2 }
@@ -97,7 +106,90 @@ export default function PricingPage() {
   useEffect(() => {
     // Warm up SDK after first render so checkout opens faster and more reliably.
     void ensureRazorpayScript()
+
+    fetch('/api/subscription/pricing')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.prices) {
+          setRuntimePrices(json.prices)
+        }
+      })
+      .catch(() => {})
   }, [])
+
+  async function applyCoupon() {
+    const code = couponCode.trim()
+    if (!code) {
+      setCouponMessage({ type: 'error', text: 'Enter a coupon code first.' })
+      return
+    }
+
+    setCouponLoading(true)
+    setCouponMessage(null)
+
+    try {
+      const res = await fetch('/api/subscription/coupon/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ couponCode: code, interval: billing }),
+      })
+      const data = await res.json().catch(() => ({ success: false, error: 'Could not validate coupon.' }))
+      if (!data.success) {
+        setAppliedCoupon(null)
+        setCouponMessage({ type: 'error', text: data.error ?? 'Invalid coupon code' })
+        return
+      }
+
+      setAppliedCoupon({
+        code: data.coupon.code,
+        description: data.coupon.description,
+        discounts: data.discounts,
+      })
+      setCouponCode(data.coupon.code)
+      setCouponMessage({ type: 'success', text: `Coupon "${data.coupon.code}" applied.` })
+    } catch {
+      setCouponMessage({ type: 'error', text: 'Could not validate coupon. Try again.' })
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponMessage(null)
+  }
+
+  useEffect(() => {
+    if (!appliedCoupon) return
+    const code = appliedCoupon.code
+    setAppliedCoupon(null)
+    setCouponMessage(null)
+    if (!code) return
+
+    void (async () => {
+      setCouponLoading(true)
+      try {
+        const res = await fetch('/api/subscription/coupon/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ couponCode: code, interval: billing }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          setAppliedCoupon({
+            code: data.coupon.code,
+            description: data.coupon.description,
+            discounts: data.discounts,
+          })
+          setCouponMessage({ type: 'success', text: `Coupon "${data.coupon.code}" applied.` })
+        }
+      } finally {
+        setCouponLoading(false)
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billing])
 
   // ── Razorpay checkout ────────────────────────────────────────
   async function handleSubscribe(planKey: 'gold' | 'platinum') {
@@ -113,7 +205,11 @@ export default function PricingPage() {
       const res = await fetch('/api/payment/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planKey, interval: billing }),
+        body: JSON.stringify({
+          plan: planKey,
+          interval: billing,
+          couponCode: appliedCoupon?.code || couponCode.trim() || undefined,
+        }),
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error ?? 'Order creation failed')
@@ -256,12 +352,111 @@ export default function PricingPage() {
           ))}
         </div>
 
+        <div style={{ width: '100%', maxWidth: 480, display: 'grid', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => {
+                setCouponCode(e.target.value.toUpperCase())
+                if (appliedCoupon) setAppliedCoupon(null)
+                setCouponMessage(null)
+              }}
+              onKeyDown={(e) => { if (e.key === 'Enter') void applyCoupon() }}
+              placeholder="Have a coupon? Enter code"
+              disabled={couponLoading}
+              style={{
+                flex: 1,
+                border: `1px solid ${appliedCoupon ? 'var(--teal)' : 'var(--border)'}`,
+                borderRadius: 'var(--r-md)',
+                background: 'var(--surface-1)',
+                color: 'var(--text-primary)',
+                padding: '0.7rem 0.9rem',
+                fontFamily: 'var(--font-display)',
+                fontSize: '0.85rem',
+              }}
+            />
+            {appliedCoupon ? (
+              <button
+                type="button"
+                onClick={removeCoupon}
+                style={{
+                  padding: '0.7rem 1rem',
+                  borderRadius: 'var(--r-md)',
+                  border: '1px solid var(--border)',
+                  background: 'var(--surface-2)',
+                  color: 'var(--text-secondary)',
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void applyCoupon()}
+                disabled={couponLoading || !couponCode.trim()}
+                style={{
+                  padding: '0.7rem 1.1rem',
+                  borderRadius: 'var(--r-md)',
+                  border: 'none',
+                  background: 'var(--text-gold)',
+                  color: '#fff',
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: couponLoading || !couponCode.trim() ? 'not-allowed' : 'pointer',
+                  opacity: couponLoading || !couponCode.trim() ? 0.65 : 1,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {couponLoading ? 'Applying…' : 'Apply'}
+              </button>
+            )}
+          </div>
+          {couponMessage && (
+            <p style={{
+              margin: 0,
+              fontSize: '0.78rem',
+              fontFamily: 'var(--font-display)',
+              color: couponMessage.type === 'success' ? 'var(--teal)' : 'var(--text-danger)',
+            }}>
+              {couponMessage.text}
+            </p>
+          )}
+          {appliedCoupon?.description && (
+            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
+              {appliedCoupon.description}
+            </p>
+          )}
+        </div>
+
         {/* Tier cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem', width: '100%' }}>
           {(Object.entries(FEATURES) as [string, typeof FEATURES.free][]).map(([key, tier]) => {
             const isCurrent = currentPlan === key
-            const price = tier.price[billing as 'monthly' | 'yearly']
+            const dynamicPrice = key === 'gold'
+              ? runtimePrices.gold
+              : key === 'platinum'
+                ? runtimePrices.platinum
+                : tier.price
+            const price = dynamicPrice[billing as 'monthly' | 'yearly']
             const isGold = key === 'gold'
+            const planDiscount = (key === 'gold' || key === 'platinum') && appliedCoupon?.discounts[key]?.valid
+              ? appliedCoupon.discounts[key]
+              : null
+            const displayMonthly = planDiscount
+              ? Math.round((planDiscount.finalAmountPaise / 100) / (billing === 'yearly' ? 12 : 1))
+              : billing === 'yearly'
+                ? Math.round(dynamicPrice.yearly / 12)
+                : dynamicPrice.monthly
+            const originalMonthly = billing === 'yearly'
+              ? Math.round(dynamicPrice.yearly / 12)
+              : dynamicPrice.monthly
 
             return (
               <div key={key} style={{
@@ -299,16 +494,21 @@ export default function PricingPage() {
                 </div>
 
                 {/* Price */}
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', minHeight: '3.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', minHeight: '3.5rem', flexWrap: 'wrap' }}>
                   {price === 0 ? (
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                       Free
                     </span>
                   ) : (
                     <>
+                      {planDiscount && (
+                        <span style={{ fontSize: '0.95rem', color: 'var(--text-muted)', textDecoration: 'line-through', marginRight: '0.25rem' }}>
+                          ₹{originalMonthly}
+                        </span>
+                      )}
                       <span style={{ fontSize: '1rem', color: 'var(--text-muted)', alignSelf: 'flex-start', marginTop: 8 }}>₹</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {billing === 'yearly' ? Math.round(tier.price.yearly / 12) : tier.price.monthly}
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 700, color: planDiscount ? 'var(--teal)' : 'var(--text-primary)' }}>
+                        {displayMonthly}
                       </span>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
                         /month
@@ -316,11 +516,17 @@ export default function PricingPage() {
                     </>
                   )}
                 </div>
-                {billing === 'yearly' && price > 0 && (
+                {planDiscount && price > 0 && (
+                  <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
+                    Coupon applied — save ₹{Math.round(planDiscount.discountPaise / 100)}
+                    {billing === 'yearly' ? '/year' : '/month'}
+                  </div>
+                )}
+                {billing === 'yearly' && price > 0 && !planDiscount && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
                     {key === 'platinum'
-                      ? `₹${tier.price.yearly}/year — ₹${Math.round(tier.price.yearly / 12)}/month billed yearly`
-                      : `₹${tier.price.yearly}/year — save ₹${(tier.price.monthly * 12) - tier.price.yearly}`}
+                      ? `₹${dynamicPrice.yearly}/year — ₹${Math.round(dynamicPrice.yearly / 12)}/month billed yearly`
+                      : `₹${dynamicPrice.yearly}/year — save ₹${(dynamicPrice.monthly * 12) - dynamicPrice.yearly}`}
                   </div>
                 )}
 
