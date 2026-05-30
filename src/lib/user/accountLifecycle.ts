@@ -127,7 +127,17 @@ export async function buildUserDataExport(userId: string) {
   const [user, charts, clients, subscriptions] = await Promise.all([
     User.findById(userId)
       .select('-passwordHash -verificationToken -verificationExpires')
-      .lean() as Record<string, unknown> | null,
+      .lean() as Promise<{
+      email: string
+      name: string
+      plan: string
+      planExpiresAt: Date | null
+      preferences: unknown
+      brandName?: string | null
+      brandLogo?: string | null
+      createdAt: Date
+      updatedAt: Date
+    } | null>,
     Chart.find({ userId: userObjectId })
       .select('-cachedDataId')
       .lean(),
@@ -137,30 +147,18 @@ export async function buildUserDataExport(userId: string) {
 
   if (!user) return null
 
-  const u = user as {
-    email: string
-    name: string
-    plan: string
-    planExpiresAt: Date | null
-    preferences: unknown
-    brandName?: string | null
-    brandLogo?: string | null
-    createdAt: Date
-    updatedAt: Date
-  }
-
   return {
     exportedAt: new Date().toISOString(),
     user: {
-      email: u.email,
-      name: u.name,
-      plan: u.plan,
-      planExpiresAt: u.planExpiresAt,
-      preferences: u.preferences,
-      brandName: u.brandName,
-      brandLogo: u.brandLogo,
-      createdAt: u.createdAt,
-      updatedAt: u.updatedAt,
+      email: user.email,
+      name: user.name,
+      plan: user.plan,
+      planExpiresAt: user.planExpiresAt,
+      preferences: user.preferences,
+      brandName: user.brandName,
+      brandLogo: user.brandLogo,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     },
     charts,
     clients,
