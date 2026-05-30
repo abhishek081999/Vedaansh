@@ -83,6 +83,9 @@ export interface KrishneeyamInput {
   aroodhaRashi: Rashi | null  // The sign querist physically touches (null = use Lagna)
   category: PrashnaCategory
   bodyTouchPart?: string      // Mushti/Body-touch indicator
+  /** Count houses from this sign instead of Udaya (e.g. Jaimini Arudha Lagna) */
+  houseReferenceRashi?: Rashi
+  houseReferenceType?: 'udaya' | 'arudha'
 }
 
 export interface KrishneeyamResult {
@@ -96,6 +99,13 @@ export interface KrishneeyamResult {
   signTypeResult: 'good' | 'bad' | 'neutral'
   aroodhaUdayaRelation: string
   aroodhaUdayaResult: 'good' | 'bad'
+  /** Label for Aroodha vs reference lagna row (Udaya or AL) */
+  aroodhaRelationLabel: string
+  /** Sign used for core indicators (asc type, mukha, planets in lagna, chathra house) */
+  coreLagnaRashi: Rashi
+  /** Which lagna houses / timing / rashmi are counted from */
+  houseReference: { type: 'udaya' | 'arudha'; rashi: Rashi; label: string }
+  planetHousesFromReference: { id: GrahaId; name: string; house: number }[]
   chhatraRashi: Rashi
   chhatraIsObstacle: boolean
   planetInAscendantEffect: string
@@ -1611,10 +1621,24 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     sunRashi, sunDegreeFull, moonRashi, moonDegreeFull,
     moonDignity, moonIsRetro, moonIsCombust,
     grahas, tithiNumber, tithiPaksha, varaDayNumber, nakshatraIndex,
-    aroodhaRashi: aroodhaInput, category, bodyTouchPart
+    aroodhaRashi: aroodhaInput, category, bodyTouchPart,
+    houseReferenceRashi: houseRefInput, houseReferenceType: houseRefTypeInput,
   } = input
 
   const aroodha = aroodhaInput ?? lagnaRashi
+  const houseLagna = houseRefInput ?? lagnaRashi
+  const houseRefType: 'udaya' | 'arudha' =
+    houseRefTypeInput ?? (houseLagna !== lagnaRashi ? 'arudha' : 'udaya')
+  const houseReference = {
+    type: houseRefType,
+    rashi: houseLagna as Rashi,
+    label: houseRefType === 'arudha'
+      ? `Arudha Lagna — ${RASHI_NAMES[houseLagna]}`
+      : `Udaya Lagna — ${RASHI_NAMES[lagnaRashi]}`,
+  }
+  const planetHousesFromReference = grahas
+    .filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
+    .map(g => ({ id: g.id, name: g.name, house: getPlanetHouse(g.rashi, houseLagna) }))
   const rules: string[] = []
   const details: string[] = []
   const remedies: string[] = []
@@ -1622,93 +1646,102 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   let positive = 0, negative = 0, total = 0
   const scorecard: KrishneeyamResult['scorecard'] = []
 
+  // Core indicators follow the selected house reference (Udaya or Arudha Lagna)
+  const coreRashi = houseLagna as Rashi
+  const coreRefShort = houseRefType === 'arudha' ? 'AL' : 'Udaya'
+  const coreRefName = houseRefType === 'arudha' ? 'Arudha Lagna' : 'Udaya Lagna'
+  const coreDegreeInSign = houseRefType === 'arudha' && coreRashi !== lagnaRashi ? 15 : lagnaSignDegree
+  const aroodhaRelationLabel = houseRefType === 'arudha' ? 'Aroodha–AL' : 'Aroodha–Udaya'
+
+  const planetsInUdayaAsc = grahas.filter(g => g.rashi === lagnaRashi && !['Ur','Ne','Pl'].includes(g.id))
+
   // ── 1. Ascendant Type Analysis [Ch1, St17-18] ─────────────────────────────
-  const odayaInfo = getOdayaType(lagnaRashi)
+  const odayaInfo = getOdayaType(coreRashi)
   total++
   if (odayaInfo.verdict === 'good') positive++
   else if (odayaInfo.verdict === 'bad') negative++
-  scorecard.push({ label: 'Ascendant Type', result: odayaInfo.verdict === 'good' ? 'good' : odayaInfo.verdict === 'bad' ? 'bad' : 'neutral', detail: `${odayaInfo.label} — ${RASHI_NAMES[lagnaRashi]}`, weight: 1 })
+  scorecard.push({ label: `Ascendant Type (${coreRefShort})`, result: odayaInfo.verdict === 'good' ? 'good' : odayaInfo.verdict === 'bad' ? 'bad' : 'neutral', detail: `${odayaInfo.label} — ${RASHI_NAMES[coreRashi]}`, weight: 1 })
 
-  const planetsInAsc = grahas.filter(g => g.rashi === lagnaRashi && !['Ur','Ne','Pl'].includes(g.id))
+  const planetsInCoreAsc = grahas.filter(g => g.rashi === coreRashi && !['Ur','Ne','Pl'].includes(g.id))
   let planetInAscendantEffect = ''
-  if (planetsInAsc.length > 0) {
-    const ascPlanet = planetsInAsc[0]
+  if (planetsInCoreAsc.length > 0) {
+    const ascPlanet = planetsInCoreAsc[0]
     const isBen = isBenefic(ascPlanet.id, ascPlanet.isCombust)
-    planetInAscendantEffect = `${ascPlanet.name} in ascendant → ${isBen ? 'Beneficial (overrides sign-type result)' : 'Malefic in ascendant — creates obstacle'}`
+    planetInAscendantEffect = `${ascPlanet.name} in ${coreRefName} (${RASHI_NAMES[coreRashi]}) → ${isBen ? 'Beneficial (overrides sign-type result)' : 'Malefic in lagna — creates obstacle'}`
     if (isBen) { positive++; total++ } else { negative++; total++ }
-    scorecard.push({ label: 'Planet in Ascendant', result: isBen ? 'good' : 'bad', detail: `${ascPlanet.name} — ${isBen ? 'benefic, favorable override' : 'malefic, creates obstacle'}`, weight: 1 })
-    rules.push(`[Ch1:18] ${ascPlanet.name} in ascendant (${isBen ? 'benefic' : 'malefic'}) overrides sign-type result`)
-    // Special: Ketu in ascendant [Ch21, St3]
+    scorecard.push({ label: `Planet in ${coreRefShort}`, result: isBen ? 'good' : 'bad', detail: `${ascPlanet.name} — ${isBen ? 'benefic, favorable override' : 'malefic, creates obstacle'}`, weight: 1 })
+    rules.push(`[Ch1:18] ${ascPlanet.name} in ${coreRefName} (${isBen ? 'benefic' : 'malefic'}) overrides sign-type result`)
     if (ascPlanet.id === 'Ke') {
       const ketuSign = getKetuSignLord(sunRashi)
-      details.push(`[Ch21:2] Ketu's dynamic sign lord: ${RASHI_NAMES[ketuSign]}. Ketu in ascendant — check associations for specific outcomes.`)
+      details.push(`[Ch21:2] Ketu's dynamic sign lord: ${RASHI_NAMES[ketuSign]}. Ketu in ${coreRefName} — check associations for specific outcomes.`)
     }
-    // Ch22: Rahu in ascendant — detailed results
     if (ascPlanet.id === 'Ra') {
-      const rahuBenAspects = grahas.filter(g => isBenefic(g.id, g.isCombust) && hasAspect(g, lagnaRashi))
-      const rahuMalAspects = grahas.filter(g => !isBenefic(g.id, g.isCombust) && hasAspect(g, lagnaRashi) && !['Ur','Ne','Pl'].includes(g.id))
-      details.push(`[Ch22] Rahu in ascendant: causes hidden enemies, foreign matters, and complex situations. Results delayed by 6-18 months.`)
+      const rahuBenAspects = grahas.filter(g => isBenefic(g.id, g.isCombust) && hasAspect(g, coreRashi))
+      const rahuMalAspects = grahas.filter(g => !isBenefic(g.id, g.isCombust) && hasAspect(g, coreRashi) && !['Ur','Ne','Pl'].includes(g.id))
+      details.push(`[Ch22] Rahu in ${coreRefName}: hidden enemies, foreign matters, delays of 6–18 months.`)
       if (rahuBenAspects.length > 0) details.push(`[Ch22] Benefics (${rahuBenAspects.map(g=>g.name).join(', ')}) aspect Rahu → hidden helpers; unexpected resolution possible.`)
-      if (rahuMalAspects.length > 0) details.push(`[Ch22] Malefics (${rahuMalAspects.map(g=>g.name).join(', ')}) aspect Rahu in ascendant → betrayal or deception by close associate.`)
+      if (rahuMalAspects.length > 0) details.push(`[Ch22] Malefics (${rahuMalAspects.map(g=>g.name).join(', ')}) aspect Rahu → betrayal or deception.`)
     }
   } else {
-    planetInAscendantEffect = `No planet in ascendant — sign type determines result`
+    planetInAscendantEffect = `No planet in ${coreRefName} — sign type determines result`
   }
-  rules.push(`[Ch1:17-18] Ascendant ${RASHI_NAMES[lagnaRashi]} is ${odayaInfo.label} → ${odayaInfo.verdict.toUpperCase()}`)
+  rules.push(`[Ch1:17-18] ${coreRefName} ${RASHI_NAMES[coreRashi]} is ${odayaInfo.label} → ${odayaInfo.verdict.toUpperCase()}`)
 
   // ── 2. Mukha Type [Ch3, St15-16] ─────────────────────────────────────────
-  const mukhaInfo = getMukhaType(lagnaRashi, sunRashi)
+  const mukhaInfo = getMukhaType(coreRashi, sunRashi)
   total++
   if (mukhaInfo.verdict === 'good') positive++
   else if (mukhaInfo.verdict === 'bad') negative++
-  scorecard.push({ label: 'Sign Mukha (Face)', result: mukhaInfo.verdict === 'good' ? 'good' : mukhaInfo.verdict === 'bad' ? 'bad' : 'neutral', detail: mukhaInfo.label, weight: 1 })
-  rules.push(`[Ch3:15-16] ${mukhaInfo.label} → ${mukhaInfo.verdict.toUpperCase()}`)
+  scorecard.push({ label: `Sign Mukha (${coreRefShort})`, result: mukhaInfo.verdict === 'good' ? 'good' : mukhaInfo.verdict === 'bad' ? 'bad' : 'neutral', detail: `${mukhaInfo.label} · ${RASHI_NAMES[coreRashi]}`, weight: 1 })
+  rules.push(`[Ch3:15-16] ${coreRefName} ${mukhaInfo.label} → ${mukhaInfo.verdict.toUpperCase()}`)
 
-  // ── 3. Aroodha-Udaya Relationship [Ch11, St21] ───────────────────────────
-  const aroodhaRel = getAroodhaUdayaRelation(aroodha, lagnaRashi)
+  // ── 3. Aroodha–Reference relationship [Ch11, St21] ─────────────────────────
+  const aroodhaRel = getAroodhaUdayaRelation(aroodha, coreRashi)
+  const aroodhaRelDescription = houseRefType === 'arudha'
+    ? aroodhaRel.description.replace(/\bUdaya\b/g, 'Arudha Lagna')
+    : aroodhaRel.description
   total++
   if (aroodhaRel.result === 'good') positive++
   else negative++
-  scorecard.push({ label: 'Aroodha–Udaya', result: aroodhaRel.result === 'good' ? 'good' : 'bad', detail: `${RASHI_NAMES[aroodha]} & ${RASHI_NAMES[lagnaRashi]} — ${aroodhaRel.relationship}`, weight: 1 })
-  rules.push(`[Ch11:21] Aroodha(${RASHI_NAMES[aroodha]})-Udaya(${RASHI_NAMES[lagnaRashi]}) = ${aroodhaRel.relationship} → ${aroodhaRel.result.toUpperCase()}`)
-  details.push(aroodhaRel.description)
+  scorecard.push({ label: aroodhaRelationLabel, result: aroodhaRel.result === 'good' ? 'good' : 'bad', detail: `${RASHI_NAMES[aroodha]} & ${RASHI_NAMES[coreRashi]} — ${aroodhaRel.relationship}`, weight: 1 })
+  rules.push(`[Ch11:21] Aroodha(${RASHI_NAMES[aroodha]})-${coreRefShort}(${RASHI_NAMES[coreRashi]}) = ${aroodhaRel.relationship} → ${aroodhaRel.result.toUpperCase()}`)
+  details.push(aroodhaRelDescription)
 
   // ── 4. Chathra Rasi [Ch11, St21] ─────────────────────────────────────────
-  const chhatraRashi = getChhatraRasi(aroodha, lagnaRashi, sunRashi) as Rashi
+  const chhatraRashi = getChhatraRasi(aroodha, coreRashi, sunRashi) as Rashi
   const veedhiRasi = getVeedhiRasi(sunRashi)
-  const chhatraHouseFromLagna = getPlanetHouse(chhatraRashi, lagnaRashi)
-  const chhatraIsObstacle = [6, 8, 12].includes(chhatraHouseFromLagna)
+  const chhatraHouseFromRef = getPlanetHouse(chhatraRashi, coreRashi)
+  const chhatraIsObstacle = [6, 8, 12].includes(chhatraHouseFromRef)
   if (chhatraIsObstacle) {
     negative++; total++
-    scorecard.push({ label: 'Chathra Rasi', result: 'bad', detail: `${RASHI_NAMES[chhatraRashi]} in H${chhatraHouseFromLagna} — obstacle (6/8/12)`, weight: 1 })
-    rules.push(`[Ch11:21] Chathra Rasi (${RASHI_NAMES[chhatraRashi]}) in house ${chhatraHouseFromLagna} (6/8/12) → Obstacle`)
-    details.push(`Veedhi Rasi: ${RASHI_NAMES[veedhiRasi]}. Chathra Rasi ${RASHI_NAMES[chhatraRashi]} (house ${chhatraHouseFromLagna}) creates an obstacle.`)
+    scorecard.push({ label: 'Chathra Rasi', result: 'bad', detail: `${RASHI_NAMES[chhatraRashi]} in H${chhatraHouseFromRef} from ${coreRefShort} — obstacle (6/8/12)`, weight: 1 })
+    rules.push(`[Ch11:21] Chathra Rasi (${RASHI_NAMES[chhatraRashi]}) in house ${chhatraHouseFromRef} from ${coreRefShort} (6/8/12) → Obstacle`)
+    details.push(`Veedhi Rasi: ${RASHI_NAMES[veedhiRasi]}. Chathra ${RASHI_NAMES[chhatraRashi]} in H${chhatraHouseFromRef} from ${coreRefName} creates an obstacle.`)
   } else {
     positive++; total++
-    scorecard.push({ label: 'Chathra Rasi', result: 'good', detail: `${RASHI_NAMES[chhatraRashi]} in H${chhatraHouseFromLagna} — favorable`, weight: 1 })
-    rules.push(`[Ch11:21] Chathra Rasi (${RASHI_NAMES[chhatraRashi]}) in house ${chhatraHouseFromLagna} → Favorable`)
-    details.push(`Veedhi Rasi: ${RASHI_NAMES[veedhiRasi]}. Chathra Rasi ${RASHI_NAMES[chhatraRashi]} is favorable.`)
+    scorecard.push({ label: 'Chathra Rasi', result: 'good', detail: `${RASHI_NAMES[chhatraRashi]} in H${chhatraHouseFromRef} from ${coreRefShort} — favorable`, weight: 1 })
+    rules.push(`[Ch11:21] Chathra Rasi (${RASHI_NAMES[chhatraRashi]}) in house ${chhatraHouseFromRef} from ${coreRefShort} → Favorable`)
+    details.push(`Veedhi Rasi: ${RASHI_NAMES[veedhiRasi]}. Chathra ${RASHI_NAMES[chhatraRashi]} is favorable from ${coreRefName}.`)
   }
 
   // ── 5. Trimsamsha Analysis [Ch7, St3-4] ──────────────────────────────────
-  const trimsamshaLord = getTrimsamshaLord(lagnaRashi, lagnaSignDegree)
+  const trimsamshaLord = getTrimsamshaLord(coreRashi, coreDegreeInSign)
   const trimsamshaTheme = TRIMSHAMSHA_TOPIC[trimsamshaLord] ?? 'General matters'
-  trimsamshaTopics.push(`Trimsamsha lord: ${trimsamshaLord} → ${trimsamshaTheme} [Ch7:3-4]`)
+  trimsamshaTopics.push(`Trimsamsha lord (${coreRefShort}): ${trimsamshaLord} → ${trimsamshaTheme} [Ch7:3-4]`)
 
-  // Check if benefics aspect ascendant from their Trimsamsha [Ch7, St3]
-  const ascAspectors = grahas.filter(g => hasAspect(g, lagnaRashi) && !['Ur','Ne','Pl'].includes(g.id))
+  const ascAspectors = grahas.filter(g => hasAspect(g, coreRashi) && !['Ur','Ne','Pl'].includes(g.id))
   for (const asp of ascAspectors) {
-    const aspTrimsLord = getTrimsamshaLord(asp.rashi, lagnaSignDegree)
+    const aspTrimsLord = getTrimsamshaLord(asp.rashi, coreDegreeInSign)
     if (aspTrimsLord === asp.id) {
       const topic = TRIMSHAMSHA_TOPIC[asp.id] ?? 'General'
       trimsamshaTopics.push(`[Ch7:4] ${asp.name} aspects from own Trimsamsha → Query is ${topic}`)
     }
   }
-  rules.push(`[Ch7:3] Ascendant Trimsamsha lord: ${trimsamshaLord} → ${trimsamshaTheme}`)
+  rules.push(`[Ch7:3] ${coreRefName} Trimsamsha lord: ${trimsamshaLord} → ${trimsamshaTheme}`)
 
   // ── 6. Moon Analysis ──────────────────────────────────────────────────────
   const moonGood = !moonIsCombust && !['debilitated', 'enemy', 'great_enemy'].includes(moonDignity)
-  const moonHouse = getPlanetHouse(moonRashi, lagnaRashi)
+  const moonHouse = getPlanetHouse(moonRashi, houseLagna)
   total++
   if (moonGood) {
     positive++
@@ -1757,7 +1790,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   // ── 9. Jupiter Analysis ───────────────────────────────────────────────────
   const jupiter = grahas.find(g => g.id === 'Ju')
   if (jupiter) {
-    const jupHouse = getPlanetHouse(jupiter.rashi, lagnaRashi)
+    const jupHouse = getPlanetHouse(jupiter.rashi, houseLagna)
     const jupInKendra = [1, 4, 7, 10].includes(jupHouse)
     const jupInTrikona = [1, 5, 9].includes(jupHouse)
     if (jupInKendra || jupInTrikona) {
@@ -1775,7 +1808,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   // ── 10. Saturn Analysis ──────────────────────────────────────────────────
   const saturn = grahas.find(g => g.id === 'Sa')
   if (saturn) {
-    const satHouse = getPlanetHouse(saturn.rashi, lagnaRashi)
+    const satHouse = getPlanetHouse(saturn.rashi, houseLagna)
     if (satHouse === 8) {
       negative++; total++
       rules.push(`[Ch4:9] Saturn in 8th house → Negative (Dhurudhura, obstacles to longevity)`)
@@ -1797,7 +1830,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   // ── 11. Mars Analysis ────────────────────────────────────────────────────
   const mars = grahas.find(g => g.id === 'Ma')
   if (mars) {
-    const marsHouse = getPlanetHouse(mars.rashi, lagnaRashi)
+    const marsHouse = getPlanetHouse(mars.rashi, houseLagna)
     if (marsHouse === 8) {
       negative++; total++
       rules.push(`[Ch7:15] Mars in 8th house → Fear of harm, obstacles`)
@@ -1809,7 +1842,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   }
 
   // ── 12. Rashmi Score [Ch31] ───────────────────────────────────────────────
-  const rashmiResult = calculateRashmis(grahas, lagnaRashi)
+  const rashmiResult = calculateRashmis(grahas, houseLagna)
   const rashmiScore = rashmiResult.score
   // Strong rashmi (>1500) is favorable
   if (rashmiScore > 1500) { positive++; total++ }
@@ -1825,7 +1858,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   }
 
   // ── 14. Ch8: Planet-in-quarter effects ────────────────────────────────────
-  const quarterEffects = analyzeHouseQuarterEffects(grahas, lagnaRashi)
+  const quarterEffects = analyzeHouseQuarterEffects(grahas, houseLagna)
   for (const qe of quarterEffects) {
     details.push(qe)
     rules.push(qe)
@@ -1849,17 +1882,17 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   details.push(`[Ch3:2] Thief entry direction: ${thiefEntry}`)
 
   // ── NEW: Ch1 — Planet physical features (dominant planet in ascendant) ─────
-  const ascPlanetsForFeature = grahas.filter(g => g.rashi === lagnaRashi && !['Ur','Ne','Pl'].includes(g.id))
-  const featurePlanet = ascPlanetsForFeature[0] ?? grahas.find(g => g.id === SIGN_LORDS[lagnaRashi])
+  const ascPlanetsForFeature = grahas.filter(g => g.rashi === coreRashi && !['Ur','Ne','Pl'].includes(g.id))
+  const featurePlanet = ascPlanetsForFeature[0] ?? grahas.find(g => g.id === SIGN_LORDS[coreRashi])
   const planetPhysicalFeatures = featurePlanet ? PLANET_PHYSICAL_FEATURES[featurePlanet.id] ?? 'Mixed features' : 'Mixed features'
   details.push(`[Ch1:22-29] Physical features (from ${featurePlanet?.name ?? 'Asc Lord'}): ${planetPhysicalFeatures}`)
 
   // ── NEW: Ch1 — Querist's Guna ──────────────────────────────────────────────
-  const queristGuna = analyzeQueristGuna(grahas, lagnaRashi)
+  const queristGuna = analyzeQueristGuna(grahas, coreRashi)
   details.push(`[Ch1:33] Querist's Guna: ${queristGuna}`)
 
   // ── NEW: Ch4 — Moon Yoga (Sunapha/Anapha/Dhurudhura) ─────────────────────
-  const moonYogaResult = analyzeMoonYogas(grahas, moonRashi, lagnaRashi)
+  const moonYogaResult = analyzeMoonYogas(grahas, moonRashi, houseLagna)
   details.push(`[Ch4:7-9] Moon Yoga: ${moonYogaResult.name} — ${moonYogaResult.result}`)
   if (moonYogaResult.yoga === 'dhurudhura' && moonYogaResult.result.includes('⚠️')) {
     rules.push(moonYogaResult.result)
@@ -1867,17 +1900,18 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   }
 
   // ── NEW: Ch5 — Past/Present/Future ────────────────────────────────────────
-  const pastPresentFuture = analyzePastPresentFuture(grahas, lagnaRashi)
-  details.push(`[Ch5:7] Past planets (H9-12): ${pastPresentFuture.past.join(', ') || 'none'}`)
-  details.push(`[Ch5:7] Present planets (H1-4): ${pastPresentFuture.present.join(', ') || 'none'}`)
-  details.push(`[Ch5:7] Future planets (H5-8): ${pastPresentFuture.future.join(', ') || 'none'}`)
+  const pastPresentFuture = analyzePastPresentFuture(grahas, houseLagna)
+  const refTag = houseRefType === 'arudha' ? ' (from AL)' : ''
+  details.push(`[Ch5:7] Past planets (H9-12)${refTag}: ${pastPresentFuture.past.join(', ') || 'none'}`)
+  details.push(`[Ch5:7] Present planets (H1-4)${refTag}: ${pastPresentFuture.present.join(', ') || 'none'}`)
+  details.push(`[Ch5:7] Future planets (H5-8)${refTag}: ${pastPresentFuture.future.join(', ') || 'none'}`)
 
   // ── NEW: Ch4 — Dry/Wet for water query ────────────────────────────────────
   const dryWetAnalysis = analyzeDryWet(grahas, lagnaRashi)
   details.push(dryWetAnalysis)
 
   // ── NEW: Ch2 — Time-based strength ────────────────────────────────────────
-  const timeStrengthNotes = analyzeTimeStrength(grahas, tithiPaksha, varaDayNumber, lagnaRashi)
+  const timeStrengthNotes = analyzeTimeStrength(grahas, tithiPaksha, varaDayNumber, houseLagna)
 
   // ── NEW: Ch3 — Five elements of subject ───────────────────────────────────
   const dominantPlanet = featurePlanet
@@ -1893,7 +1927,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   details.push(`[Ch5:3] Location of matter: ${signPlace}`)
 
   // ── NEW: Ch1 — Body parts affected by malefics ────────────────────────────
-  const bodyPartsAffected = analyzeBodyPartAffected(grahas, lagnaRashi)
+  const bodyPartsAffected = analyzeBodyPartAffected(grahas, houseLagna)
   for (const bp of bodyPartsAffected) {
     details.push(bp)
   }
@@ -1937,7 +1971,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
 
     // [Ch26, St4] Detailed recovery rules
     const ascBeneficSign = !MALEFICS.has(SIGN_LORDS[lagnaRashi])
-    if (ascBeneficSign && planetsInAsc.length > 0 && isBenefic(planetsInAsc[0].id, planetsInAsc[0].isCombust) && ascAspectedByBenefics.length > 0) {
+    if (ascBeneficSign && planetsInUdayaAsc.length > 0 && isBenefic(planetsInUdayaAsc[0].id, planetsInUdayaAsc[0].isCombust) && ascAspectedByBenefics.length > 0) {
       positive += 3; total += 3
       rules.push(`[Ch26:4] Benefic sign + benefic in ascendant + benefic aspect → IMMEDIATE FULL RECOVERY`)
       details.push('Most favorable: Lost property will be regained immediately.')
@@ -1950,7 +1984,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
       rules.push(`[Ch26:4] Malefics (${ascAspectedByMalefics.map(g=>g.name).join(', ')}) dominate → Property NOT easily recovered`)
     }
     // [Ch26, St4] Malefic sign + benefic occupant + malefic aspect → partly recovered after long time
-    if (!ascBeneficSign && planetsInAsc.length > 0 && isBenefic(planetsInAsc[0].id) && ascAspectedByMalefics.length > 0) {
+    if (!ascBeneficSign && planetsInUdayaAsc.length > 0 && isBenefic(planetsInUdayaAsc[0].id) && ascAspectedByMalefics.length > 0) {
       details.push('[Ch26:4] Malefic sign + benefic occupant + malefic aspect → Property partly recovered after very long time')
     }
 
@@ -1985,7 +2019,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     else details.push('[Ch3:16] Thiryangmukha → Article is at GROUND LEVEL or on the side')
 
     // Nature of article by sign [Ch9, St1] + detailed by sign [Ch28-29]
-    subjectMaterial = getLostArticleBySign(lagnaRashi, planetsInAsc)
+    subjectMaterial = getLostArticleBySign(lagnaRashi, planetsInUdayaAsc)
     rules.push(`[Ch9:1 + Ch28-29] ${getSignType(lagnaRashi)} sign: ${subjectMaterial}`)
 
     // Container [Ch25, St12]
@@ -1995,7 +2029,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     }
 
     // Place where hidden [Ch15, St9-10 + Ch25]
-    const aspPlanet7th = grahas.find(g => getPlanetHouse(g.rashi, lagnaRashi) === 7 && !['Ur','Ne','Pl'].includes(g.id))
+    const aspPlanet7th = grahas.find(g => getPlanetHouse(g.rashi, houseLagna) === 7 && !['Ur','Ne','Pl'].includes(g.id))
     if (aspPlanet7th) {
       const hiddenPlaces: Partial<Record<GrahaId, string>> = {
         Ve: 'Bed or bedroom', Ju: 'Chest or suspended in air', Sa: 'Utensil store / worn-out vessel',
@@ -2020,12 +2054,12 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     let nameLetterExplanation = ''
     let thiefLocation = ''
 
-    if (planetsInAsc.length > 0) {
-      const thievePlanet = planetsInAsc[0]
+    if (planetsInUdayaAsc.length > 0) {
+      const thievePlanet = planetsInUdayaAsc[0]
       thiefCaste = PLANET_CASTE[thievePlanet.id]
       thiefColor = PLANET_COLORS[thievePlanet.id]
       thiefFeatures = PLANET_FEATURES[thievePlanet.id]
-      const thiefHouseFromSignificator = getPlanetHouse(thievePlanet.rashi, lagnaRashi)
+      const thiefHouseFromSignificator = getPlanetHouse(thievePlanet.rashi, houseLagna)
       const relationMap: Record<number, string> = {
         1: 'The querist themselves', 2: 'Family member',
         3: 'A brother/sibling', 4: 'Mother or maternal relative',
@@ -2076,7 +2110,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
 
   if (category === 'health') {
     // ── Health Analysis [Ch13] ────────────────────────────────────────────
-    const dayOfStart = `Disease likely started ${moonHouse} day(s) before query (Moon is in house ${moonHouse} from Lagna) [Ch13:4]`
+    const dayOfStart = `Disease likely started ${moonHouse} day(s) before query (Moon is in house ${moonHouse} from ${houseReference.label}) [Ch13:4]`
     const ascType = getSignType(lagnaRashi)
     const curability = ascType === 'movable' ? 'Curable — Movable ascendant (recovery expected)'
       : ascType === 'fixed' ? 'Difficult to cure — Fixed ascendant (chronic/stubborn)'
@@ -2104,7 +2138,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
 
     // Curability from Sun in 12th [Ch7, St6]
     const sun = grahas.find(g => g.id === 'Su')
-    if (sun && getPlanetHouse(sun.rashi, lagnaRashi) === 12) {
+    if (sun && getPlanetHouse(sun.rashi, houseLagna) === 12) {
       details.push('[Ch7:6] Sun in 12th house → Risk of right eye blindness / vision issues')
     }
 
@@ -2136,15 +2170,15 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     details.push(`[Ch13:7] Place of death: ${placeOfDeath} | Cause: ${causeOfDeath}`)
 
     // Benefics in 6th/8th → recovery
-    const benIn68 = grahas.filter(g => isBenefic(g.id, g.isCombust) && (getPlanetHouse(g.rashi, lagnaRashi) === 6 || getPlanetHouse(g.rashi, lagnaRashi) === 8))
+    const benIn68 = grahas.filter(g => isBenefic(g.id, g.isCombust) && (getPlanetHouse(g.rashi, houseLagna) === 6 || getPlanetHouse(g.rashi, houseLagna) === 8))
     if (benIn68.length > 0) {
       positive++; total++
       rules.push(`[Ch13:5] Benefics (${benIn68.map(g=>g.name).join(', ')}) in 6th/8th → Disease will be cured`)
     }
     // Malefics in 6th can deform that limb [Ch7, St12]
-    const malIn6 = grahas.find(g => !isBenefic(g.id) && getPlanetHouse(g.rashi, lagnaRashi) === 6)
+    const malIn6 = grahas.find(g => !isBenefic(g.id) && getPlanetHouse(g.rashi, houseLagna) === 6)
     if (malIn6) {
-      const benInKendraTrikona = grahas.some(g => isBenefic(g.id, g.isCombust) && [1,4,5,7,9,10].includes(getPlanetHouse(g.rashi, lagnaRashi)))
+      const benInKendraTrikona = grahas.some(g => isBenefic(g.id, g.isCombust) && [1,4,5,7,9,10].includes(getPlanetHouse(g.rashi, houseLagna)))
       if (!benInKendraTrikona) {
         details.push(`[Ch7:12] Malefic ${malIn6.name} in 6th + no benefic in Kendra/Trikona → Deformity or disease in that limb`)
       }
@@ -2203,7 +2237,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     rules.push(`[Ch5:1] Travel return: ${travelUnit}-based timing (${ascType} sign)`)
 
     // Mode of return [Ch14, St11]
-    const h9Planet = grahas.find(g => getPlanetHouse(g.rashi, lagnaRashi) === 9)
+    const h9Planet = grahas.find(g => getPlanetHouse(g.rashi, houseLagna) === 9)
     if (h9Planet) {
       const returnModes: Record<string, string> = {
         movable: 'horse back or four-wheel vehicle', fixed: 'on foot (walking)',
@@ -2226,15 +2260,15 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
 
   if (category === 'house_query') {
     // ── House Query [Ch15] ────────────────────────────────────────────────
-    const planetsIn7th = grahas.filter(g => getPlanetHouse(g.rashi, lagnaRashi) === 7 && !['Ur','Ne','Pl'].includes(g.id))
-    const relevantPlanet = planetsInAsc[0] ?? planetsIn7th[0]
+    const planetsIn7th = grahas.filter(g => getPlanetHouse(g.rashi, houseLagna) === 7 && !['Ur','Ne','Pl'].includes(g.id))
+    const relevantPlanet = planetsInUdayaAsc[0] ?? planetsIn7th[0]
     const houseNature = relevantPlanet
       ? `${PLANET_HOUSE_NATURE[relevantPlanet.id]} (from ${relevantPlanet.name} in ${planetsIn7th.includes(relevantPlanet) ? '7th' : '1st'})`
       : `Nature from ascendant sign ${RASHI_NAMES[lagnaRashi]}`
     const altHouseNature = relevantPlanet ? PLANET_HOUSE_ALT[relevantPlanet.id] : ''
 
     // Treasure query [Ch15, St7]
-    const hasTreasure = grahas.some(g => isBenefic(g.id, g.isCombust) && [1,4,7,10,11].includes(getPlanetHouse(g.rashi, lagnaRashi)))
+    const hasTreasure = grahas.some(g => isBenefic(g.id, g.isCombust) && [1,4,7,10,11].includes(getPlanetHouse(g.rashi, houseLagna)))
       ? 'YES — Benefics in quadrant/11th → Treasure exists in the house'
       : 'NO — No benefics in quadrant → No hidden treasure indicated'
 
@@ -2266,7 +2300,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     // Remedy based on house [Ch19, St3]
     let spiritRemedy = 'General puja and propitiation recommended'
     if (spiritPlanet) {
-      const spHouse = getPlanetHouse(spiritPlanet.rashi, lagnaRashi)
+      const spHouse = getPlanetHouse(spiritPlanet.rashi, houseLagna)
       if (spHouse === 1) spiritRemedy = `Make an idol of ${spiritDeity} in silver/gold and donate it as a gift`
       else if (spHouse === 7) spiritRemedy = `Please ${spiritDeity} with dance and music offerings`
       else if (spHouse === 8) spiritRemedy = `Perform sacrifice and worship (Homa) for ${spiritDeity}`
@@ -2344,15 +2378,15 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     if (WATERY_SIGNS.has(lagnaRashi)) foodType = 'Fluid food with watery items'
 
     // Taste from planet
-    const planetInAscForFood = planetsInAsc[0]
+    const planetInAscForFood = planetsInUdayaAsc[0]
     const taste = planetInAscForFood ? PLANET_TASTES_1[planetInAscForFood.id] : PLANET_TASTES_2[ascLordId]
 
     food = { quality: foodQuality, type: foodType, taste: `${taste} (planet signification)` }
     rules.push(`[Ch16:3] ${isBenefic(ascLordId) ? 'Benefic' : 'Malefic'} ascendant lord → ${foodQuality}`)
     details.push(`[Ch16:1-2] Taste: ${taste}`)
-    if (planetsInAsc.length > 0) {
-      const produce = PLANET_PRODUCE[planetsInAsc[0].id]
-      if (produce) details.push(`[Ch16:9] Food item: ${produce} (from ${planetsInAsc[0].name})`)
+    if (planetsInUdayaAsc.length > 0) {
+      const produce = PLANET_PRODUCE[planetsInUdayaAsc[0].id]
+      if (produce) details.push(`[Ch16:9] Food item: ${produce} (from ${planetsInUdayaAsc[0].name})`)
     }
   }
 
@@ -2366,7 +2400,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   details.push(navamsaSignification)
 
   // ── 15. Timing Calculation [Ch5, Ch8] ────────────────────────────────────
-  const sigId = getSignificatorForCategory(category, grahas, lagnaRashi)
+  const sigId = getSignificatorForCategory(category, grahas, houseLagna)
   const sigPlanet = grahas.find(g => g.id === sigId)
   const timingBase = PLANET_TIMING[sigId]
   const ascType = getSignType(lagnaRashi)
@@ -2407,7 +2441,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
 
   // ── 17. Favorable Direction ───────────────────────────────────────────────
   const strongPlanetInKendra = grahas
-    .filter(g => !['Ur','Ne','Pl'].includes(g.id) && [1,4,7,10].includes(getPlanetHouse(g.rashi, lagnaRashi)))
+    .filter(g => !['Ur','Ne','Pl'].includes(g.id) && [1,4,7,10].includes(getPlanetHouse(g.rashi, houseLagna)))
     .sort((a, b) => {
       const rankA = ['exalted','moolatrikona','own'].includes(a.dignity) ? 3 : ['friend','great_friend'].includes(a.dignity) ? 2 : 1
       const rankB = ['exalted','moolatrikona','own'].includes(b.dignity) ? 3 : ['friend','great_friend'].includes(b.dignity) ? 2 : 1
@@ -2422,19 +2456,19 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     const saturn = grahas.find(g => g.id === 'Sa')
     const jupiter = grahas.find(g => g.id === 'Ju')
     const mercury = grahas.find(g => g.id === 'Me')
-    const sixthLord = SIGN_LORDS[((lagnaRashi + 4) % 12 + 1) as Rashi]
+    const sixthLord = SIGN_LORDS[((houseLagna + 4) % 12 + 1) as Rashi]
     const sixthLordGraha = grahas.find(g => g.id === sixthLord || g.name === sixthLord)
-    const sixthHousePlanets = grahas.filter(g => getPlanetHouse(g.rashi, lagnaRashi) === 6 && !['Ur','Ne','Pl'].includes(g.id))
+    const sixthHousePlanets = grahas.filter(g => getPlanetHouse(g.rashi, houseLagna) === 6 && !['Ur','Ne','Pl'].includes(g.id))
     const q6Lord = sixthLordGraha
-    const queristStrong = (moonGood ? 1 : 0) + (q6Lord && isBenefic(q6Lord.id, q6Lord.isCombust) ? 1 : 0) + (jupiter && getPlanetHouse(jupiter.rashi, lagnaRashi) === 1 ? 1 : 0)
+    const queristStrong = (moonGood ? 1 : 0) + (q6Lord && isBenefic(q6Lord.id, q6Lord.isCombust) ? 1 : 0) + (jupiter && getPlanetHouse(jupiter.rashi, houseLagna) === 1 ? 1 : 0)
     const opponentStrong = sixthHousePlanets.filter(g => !isBenefic(g.id, g.isCombust)).length
     const jupGood = jupiter && ['exalted','moolatrikona','own','great_friend','friend'].includes(jupiter.dignity)
-    const satDelay = saturn && [1,6,7].includes(getPlanetHouse(saturn.rashi, lagnaRashi))
+    const satDelay = saturn && [1,6,7].includes(getPlanetHouse(saturn.rashi, houseLagna))
     const outcome = queristStrong > opponentStrong
       ? (jupGood ? 'Querist wins decisively — Jupiter strong' : 'Querist likely wins')
       : opponentStrong > 1 ? 'Outcome unfavorable — opponents have strong 6th house'
       : 'Compromise / settlement likely'
-    const legalTiming = satDelay ? 'Prolonged — Saturn delays; expect 1-3 years' : mars && getPlanetHouse(mars.rashi, lagnaRashi) === 6 ? 'Aggressive timeline — Mars in 6th, action within months' : 'Normal legal timeline'
+    const legalTiming = satDelay ? 'Prolonged — Saturn delays; expect 1-3 years' : mars && getPlanetHouse(mars.rashi, houseLagna) === 6 ? 'Aggressive timeline — Mars in 6th, action within months' : 'Normal legal timeline'
     const keyPlanet = jupiter ? `Jupiter (${RASHI_NAMES[jupiter.rashi]}, ${jupiter.dignity})` : mercury ? `Mercury (${RASHI_NAMES[mercury.rashi]})` : 'Saturn'
     lawsuit = {
       queristStrength: queristStrong >= 2 ? 'Strong' : queristStrong === 1 ? 'Moderate' : 'Weak',
@@ -2451,8 +2485,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     const mercury = grahas.find(g => g.id === 'Me')
     const jupiter = grahas.find(g => g.id === 'Ju')
     const moon = grahas.find(g => g.id === 'Mo')
-    const fifthHousePlanets = grahas.filter(g => getPlanetHouse(g.rashi, lagnaRashi) === 5 && !['Ur','Ne','Pl'].includes(g.id))
-    const fifthLordSign = ((lagnaRashi + 3) % 12 + 1) as Rashi
+    const fifthHousePlanets = grahas.filter(g => getPlanetHouse(g.rashi, houseLagna) === 5 && !['Ur','Ne','Pl'].includes(g.id))
+    const fifthLordSign = ((houseLagna + 3) % 12 + 1) as Rashi
     const fifthLordId = SIGN_LORDS[fifthLordSign]
     const fifthLordGraha = grahas.find(g => g.id === fifthLordId)
     const merGood = mercury && !mercury.isCombust && !['debilitated','enemy','great_enemy'].includes(mercury.dignity)
@@ -2470,7 +2504,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   }
 
   // ── 18c. Rahu in Ascendant (Ch22) — global result ─────────────────────
-  const rahuInAscGraha = planetsInAsc.find(g => g.id === 'Ra')
+  const rahuInAscGraha = planetsInCoreAsc.find(g => g.id === 'Ra')
   const rahuInAscendant = rahuInAscGraha
     ? (() => {
         const benAsp = grahas.filter(g => isBenefic(g.id, g.isCombust) && hasAspect(g, lagnaRashi) && g.id !== 'Ra')
@@ -2513,12 +2547,16 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
 
   return {
     verdict, headline, confidence,
-    ascendantType: odayaInfo.label,
+    ascendantType: `${odayaInfo.label} · ${RASHI_NAMES[coreRashi]}`,
     ascendantTypeResult: odayaInfo.verdict,
-    signType: mukhaInfo.label,
+    signType: `${mukhaInfo.label} · ${RASHI_NAMES[coreRashi]}`,
     signTypeResult: mukhaInfo.verdict,
-    aroodhaUdayaRelation: `${aroodhaRel.relationship} (${aroodhaRel.result})`,
+    aroodhaUdayaRelation: `${aroodhaRel.relationship} (${aroodhaRel.result}) — ${RASHI_NAMES[aroodha]} / ${RASHI_NAMES[coreRashi]}`,
     aroodhaUdayaResult: aroodhaRel.result,
+    aroodhaRelationLabel,
+    coreLagnaRashi: coreRashi,
+    houseReference,
+    planetHousesFromReference,
     chhatraRashi, chhatraIsObstacle,
     planetInAscendantEffect, bodyTouchResult,
     rashmiScore, rashmiSummary,

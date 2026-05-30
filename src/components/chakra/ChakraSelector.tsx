@@ -44,6 +44,10 @@ interface ChakraSelectorProps {
   interactive?: boolean
   onHouseSelect?: (house: number) => void
   showCharaDrishtiControls?: boolean
+  /** Initial lagna source for house numbering (natal | chandra | surya | arudha | h1–h12) */
+  initialLagnaSource?: string
+  /** Show Āruḍha pada labels on chart by default */
+  defaultShowArudha?: boolean
 }
 
 // ── Style definitions ─────────────────────────────────────────
@@ -83,6 +87,8 @@ export function ChakraSelector({
   interactive = false,
   onHouseSelect,
   showCharaDrishtiControls = false,
+  initialLagnaSource = 'natal',
+  defaultShowArudha = false,
 }: ChakraSelectorProps) {
   const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle']
   const [style, setStyle] = useState<ChartStyle>(
@@ -91,7 +97,7 @@ export function ChakraSelector({
   const [showDegrees,   setShowDegrees]   = useState(false)
   const [showNakshatra, setShowNakshatra] = useState(false)
   const [showKaraka,    setShowKaraka]    = useState(false)
-  const [showArudha,    setShowArudha]    = useState(false)
+  const [showArudha,    setShowArudha]    = useState(defaultShowArudha)
   const [arudhaBphsMode, setArudhaBphsMode] = useState(false)
   const [showTithi,     setShowTithi]     = useState(true)
   const [showVara,      setShowVara]      = useState(true)
@@ -110,10 +116,14 @@ export function ChakraSelector({
     typeof window !== 'undefined' && window.innerWidth < 1024 ? 1.0 : 1.20
   )
 
-  const [lagnaSource,   setLagnaSource]   = useState('natal')
+  const [lagnaSource,   setLagnaSource]   = useState(initialLagnaSource)
   const [enableCharaDrishti, setEnableCharaDrishti] = useState(false)
   const [selectedHouse, setSelectedHouse] = useState<number | null>(null)
-  
+
+  useEffect(() => {
+    setLagnaSource(initialLagnaSource)
+  }, [initialLagnaSource])
+
   const [showSettings,  setShowSettings]  = useState(false)
   const [showLegend,    setShowLegend]    = useState(true)
   const resolvedShowSettings = showSettingsOverride ?? showSettings
