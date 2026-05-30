@@ -685,6 +685,8 @@ export default function PricingPage() {
           <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</Link>
           <span style={{ opacity: 0.4 }}>·</span>
           <Link href="/refund" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Refunds</Link>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Support</Link>
         </div>
         Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa Platform</span> · All prices in INR · GST applicable
       </footer>

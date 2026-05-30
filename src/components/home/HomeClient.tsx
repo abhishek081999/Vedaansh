@@ -2684,6 +2684,10 @@ function HomeContent() {
             Refunds
           </Link>
           <span style={{ color: 'var(--border-bright)' }}>•</span>
+          <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
+            Support
+          </Link>
+          <span style={{ color: 'var(--border-bright)' }}>•</span>
           <a
             href="https://www.instagram.com/vedaanshlife"
             target="_blank"

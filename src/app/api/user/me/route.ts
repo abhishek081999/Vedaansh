@@ -21,11 +21,17 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await User.findById(session.user.id).select('-passwordHash').lean()
-    
-    if (!user) {
+    const userDoc = await User.findById(session.user.id).select('+passwordHash').lean() as {
+      passwordHash?: string | null
+      [key: string]: unknown
+    } | null
+
+    if (!userDoc) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
+
+    const hasPassword = Boolean(userDoc.passwordHash)
+    const { passwordHash: _omit, ...user } = userDoc
 
     let personalChartRaw = null
     if ((user as any).defaultChartId) {
@@ -39,6 +45,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       user,
+      hasPassword,
       personalChart: personalChart ? {
         name:       personalChart.name,
         birthDate:  personalChart.birthDate,

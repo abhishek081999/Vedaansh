@@ -114,6 +114,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly',
       priority:        0.4,
     },
+    {
+      url:             `${BASE_URL}/support`,
+      lastModified:    new Date(),
+      changeFrequency: 'monthly',
+      priority:        0.45,
+    },
     ...NAKSHATRA_TABS.map((tab) => ({
       url:             `${BASE_URL}/nakshatra/${tab}`,
       lastModified:    new Date(),

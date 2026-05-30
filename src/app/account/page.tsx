@@ -4,7 +4,7 @@
 //  User account page with editable preferences
 // ─────────────────────────────────────────────────────────────
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link                    from 'next/link'
@@ -190,8 +190,27 @@ function AccountContent() {
   const [saved,         setSaved]         = useState(false)
   const [prefsDirty,    setPrefsDirty]    = useState(false)
   const [upgradeMsg,    setUpgradeMsg]    = useState<string | null>(null)
+  const [billingInfo,   setBillingInfo]   = useState<{
+    plan: string
+    planExpiresAt: string | null
+    subscription: {
+      plan: string
+      interval: string
+      currentPeriodEnd: string
+      cancelAtPeriodEnd: boolean
+      amountPaise: number
+    } | null
+  } | null>(null)
+  const [billingLoading, setBillingLoading] = useState(false)
+  const [cancelLoading,  setCancelLoading]  = useState(false)
+  const [exportLoading,  setExportLoading]  = useState(false)
+  const [deletePhrase,   setDeletePhrase]   = useState('')
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteLoading,  setDeleteLoading]  = useState(false)
+  const [deleteError,    setDeleteError]    = useState<string | null>(null)
+  const [hasPassword,    setHasPassword]    = useState(false)
 
-  type AccountTabId = 'profile' | 'branding' | 'birth' | 'preferences'
+  type AccountTabId = 'profile' | 'branding' | 'birth' | 'preferences' | 'billing'
   const [activeTab, setActiveTab] = useState<AccountTabId>('profile')
 
   const accountTabs = useMemo(() => {
@@ -204,9 +223,26 @@ function AccountContent() {
     tabs.push(
       { id: 'birth', label: 'My birth details', icon: '🌙' },
       { id: 'preferences', label: 'Chart preferences', icon: '⚙' },
+      { id: 'billing', label: 'Billing & privacy', icon: '🔒' },
     )
     return tabs
   }, [user?.plan])
+
+  const loadBilling = useCallback(() => {
+    setBillingLoading(true)
+    fetch('/api/user/subscription')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setBillingInfo({
+            plan: data.plan,
+            planExpiresAt: data.planExpiresAt,
+            subscription: data.subscription,
+          })
+        }
+      })
+      .finally(() => setBillingLoading(false))
+  }, [])
 
   useEffect(() => {
     const ids = accountTabs.map((t) => t.id)
@@ -236,16 +272,19 @@ function AccountContent() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      fetch('/api/user/me')
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            setUser(data.user)
-            setName(data.user.name ?? '')
-            setBrandName(data.user.brandName ?? '')
-            setBrandLogo(data.user.brandLogo ?? '')
-            setPersonalChart(data.personalChart)
-            setPrefs(data.user.preferences ?? {
+      Promise.all([
+        fetch('/api/user/me').then((r) => r.json()),
+        fetch('/api/user/subscription').then((r) => r.json()),
+      ])
+        .then(([meData, subData]) => {
+          if (meData.success) {
+            setUser(meData.user)
+            setName(meData.user.name ?? '')
+            setBrandName(meData.user.brandName ?? '')
+            setBrandLogo(meData.user.brandLogo ?? '')
+            setPersonalChart(meData.personalChart)
+            setHasPassword(Boolean(meData.hasPassword))
+            setPrefs(meData.user.preferences ?? {
               defaultAyanamsha:   'lahiri',
               defaultChartStyle:  'south',
               defaultHouseSystem: 'whole_sign',
@@ -256,12 +295,84 @@ function AccountContent() {
               showKaraka:         false,
             })
           }
+          if (subData.success) {
+            setBillingInfo({
+              plan: subData.plan,
+              planExpiresAt: subData.planExpiresAt,
+              subscription: subData.subscription,
+            })
+          }
         })
         .finally(() => setLoading(false))
     } else if (status === 'unauthenticated') {
       router.push('/login')
     }
   }, [status, router])
+
+  async function cancelRenewal() {
+    if (!confirm('Cancel renewal? You keep paid access until the end of your current billing period.')) return
+    setCancelLoading(true)
+    try {
+      const res = await fetch('/api/user/subscription/cancel', { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        loadBilling()
+      } else {
+        alert(data.error ?? 'Could not cancel renewal')
+      }
+    } finally {
+      setCancelLoading(false)
+    }
+  }
+
+  async function downloadExport() {
+    setExportLoading(true)
+    try {
+      const res = await fetch('/api/user/export')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        alert(err.error ?? 'Export failed')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `vedaansh-export-${Date.now()}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  async function deleteAccount() {
+    setDeleteError(null)
+    if (deletePhrase !== 'DELETE') {
+      setDeleteError('Type DELETE exactly to confirm')
+      return
+    }
+    if (!confirm('Permanently delete your account and all saved charts? This cannot be undone.')) return
+    setDeleteLoading(true)
+    try {
+      const res = await fetch('/api/user/account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          confirmPhrase: 'DELETE',
+          password: deletePassword || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!data.success) {
+        setDeleteError(data.error ?? 'Deletion failed')
+        return
+      }
+      await signOut({ callbackUrl: '/' })
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
   function updatePref<K extends keyof UserPrefs>(key: K, value: UserPrefs[K]) {
     setPrefs(p => p ? { ...p, [key]: value } : p)
@@ -794,6 +905,174 @@ function AccountContent() {
             {activeTab === 'preferences' && !prefs && (
               <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading preferences…</div>
             )}
+
+            {activeTab === 'billing' && (
+              <div role="tabpanel" id="account-panel-billing" aria-labelledby="account-tab-billing">
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 1.25rem', fontFamily: 'var(--font-display)' }}>
+                  Manage your plan, export data, or delete your account (required for app store compliance).
+                </p>
+
+                <section
+                  style={{
+                    marginBottom: '1.25rem',
+                    padding: '1rem',
+                    borderRadius: 'var(--r-md)',
+                    border: '1px solid var(--border-soft)',
+                    background: 'color-mix(in oklab, var(--surface-2) 90%, var(--surface-1) 10%)',
+                  }}
+                >
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', margin: '0 0 0.65rem' }}>
+                    Subscription
+                  </h3>
+                  {billingLoading && !billingInfo ? (
+                    <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading…</p>
+                  ) : (
+                    <>
+                      <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        Current plan:{' '}
+                        <strong style={{ color: 'var(--text-primary)', textTransform: 'capitalize' }}>
+                          {billingInfo?.plan ?? user?.plan ?? 'free'}
+                        </strong>
+                        {(billingInfo?.planExpiresAt || user?.planExpiresAt) && billingInfo?.plan !== 'free' && user?.plan !== 'free' && (
+                          <>
+                            {' '}
+                            · access until{' '}
+                            {new Date(billingInfo?.planExpiresAt ?? user?.planExpiresAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </>
+                        )}
+                      </p>
+                      {billingInfo?.subscription && (
+                        <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          {billingInfo.subscription.interval === 'yearly' ? 'Annual' : 'Monthly'}{' '}
+                          {billingInfo.subscription.plan} · ₹
+                          {(billingInfo.subscription.amountPaise / 100).toLocaleString('en-IN')}
+                          {billingInfo.subscription.cancelAtPeriodEnd ? (
+                            <span style={{ color: 'var(--teal)', marginLeft: 8 }}>· Renewal cancelled</span>
+                          ) : null}
+                        </p>
+                      )}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {user?.plan === 'free' ? (
+                          <Link href="/pricing" className="btn btn-primary btn-sm">
+                            View plans
+                          </Link>
+                        ) : billingInfo?.subscription && !billingInfo.subscription.cancelAtPeriodEnd ? (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            disabled={cancelLoading}
+                            onClick={cancelRenewal}
+                          >
+                            {cancelLoading ? 'Cancelling…' : 'Cancel renewal'}
+                          </button>
+                        ) : null}
+                        <Link href="/refund" className="btn btn-ghost btn-sm" style={{ textDecoration: 'none' }}>
+                          Refund policy
+                        </Link>
+                        <Link href="/support" className="btn btn-ghost btn-sm" style={{ textDecoration: 'none' }}>
+                          Support
+                        </Link>
+                      </div>
+                      <p style={{ margin: '0.75rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                        Cancelling renewal stops future charges. You keep paid features until the period you already paid for ends.
+                        Vedaansh bills via Razorpay when you choose to renew from Pricing.
+                      </p>
+                    </>
+                  )}
+                </section>
+
+                <section
+                  style={{
+                    marginBottom: '1.25rem',
+                    padding: '1rem',
+                    borderRadius: 'var(--r-md)',
+                    border: '1px solid var(--border-soft)',
+                  }}
+                >
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', margin: '0 0 0.5rem' }}>
+                    Download my data
+                  </h3>
+                  <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                    JSON export of your profile, saved charts, clients, and subscription history.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    disabled={exportLoading}
+                    onClick={downloadExport}
+                  >
+                    {exportLoading ? 'Preparing…' : 'Download JSON'}
+                  </button>
+                </section>
+
+                <section
+                  style={{
+                    padding: '1rem',
+                    borderRadius: 'var(--r-md)',
+                    border: '1px solid rgba(224,123,142,0.28)',
+                    background: 'rgba(224,123,142,0.05)',
+                  }}
+                >
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', margin: '0 0 0.5rem', color: 'var(--rose)' }}>
+                    Delete account
+                  </h3>
+                  <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                    Permanently removes your account, saved charts, and client records. This cannot be undone.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxWidth: 360 }}>
+                    <div>
+                      <label className="field-label">Type DELETE to confirm</label>
+                      <input
+                        className="input"
+                        value={deletePhrase}
+                        onChange={(e) => setDeletePhrase(e.target.value)}
+                        placeholder="DELETE"
+                        autoComplete="off"
+                        style={{ marginTop: '0.35rem', width: '100%' }}
+                      />
+                    </div>
+                    {hasPassword && (
+                      <div>
+                        <label className="field-label">Password</label>
+                        <input
+                          className="input"
+                          type="password"
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                          autoComplete="current-password"
+                          style={{ marginTop: '0.35rem', width: '100%' }}
+                        />
+                      </div>
+                    )}
+                    {deleteError && (
+                      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--rose)' }}>{deleteError}</p>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      disabled={deleteLoading || deletePhrase !== 'DELETE'}
+                      onClick={deleteAccount}
+                      style={{
+                        alignSelf: 'flex-start',
+                        background: 'rgba(224,123,142,0.15)',
+                        border: '1px solid rgba(224,123,142,0.4)',
+                        color: 'var(--rose)',
+                      }}
+                    >
+                      {deleteLoading ? 'Deleting…' : 'Delete my account permanently'}
+                    </button>
+                  </div>
+                  <p style={{ margin: '0.75rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                    See also{' '}
+                    <Link href="/privacy" style={{ color: 'var(--gold)' }}>Privacy Policy</Link>
+                  </p>
+                </section>
+              </div>
+            )}
           </div>
         </section>
 
@@ -801,6 +1080,10 @@ function AccountContent() {
 
       <footer style={{ padding: '1.5rem 2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontSize: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
         Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa</span> Platform
+        {' · '}
+        <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Support</Link>
+        {' · '}
+        <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</Link>
       </footer>
     </div>
   )

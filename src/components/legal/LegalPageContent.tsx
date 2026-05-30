@@ -106,6 +106,9 @@ export function LegalPageContent({ page }: { page: LegalPageData }) {
         }}
         aria-label="Related legal pages"
       >
+        <Link href="/support" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          Support
+        </Link>
         {LEGAL_NAV_LINKS.map((link) => (
           <Link
             key={link.href}

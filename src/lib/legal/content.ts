@@ -133,7 +133,8 @@ export const PRIVACY_PAGE: LegalPageData = {
     {
       title: '4. Retention & Security',
       paragraphs: [
-        'We retain account and chart data while your account is active and for a reasonable period afterward for backups, legal compliance, and dispute resolution. You may request deletion of your account subject to legal retention requirements.',
+        'We retain account and chart data while your account is active and for a reasonable period afterward for backups, legal compliance, and dispute resolution.',
+        'You can delete your account at any time from Account → Billing & privacy (type DELETE to confirm). Deletion removes your profile, saved charts, client records, and subscription records from our active systems, subject to legal retention requirements (e.g. payment records we must keep for tax or fraud prevention).',
         'We use industry-standard measures such as HTTPS, access controls, and hashed passwords. No online service can guarantee absolute security; please use a strong, unique password.',
       ],
     },
@@ -146,7 +147,8 @@ export const PRIVACY_PAGE: LegalPageData = {
     {
       title: '6. Your Rights',
       paragraphs: [
-        'Depending on applicable law (including India’s Digital Personal Data Protection Act where it applies to you), you may request access, correction, or deletion of personal data, or withdraw consent for optional processing. Contact us at the emails below; we will respond within a reasonable timeframe.',
+        'Depending on applicable law (including India’s Digital Personal Data Protection Act where it applies to you), you may request access, correction, or deletion of personal data, or withdraw consent for optional processing.',
+        'In the app: export a copy of your data (Account → Billing & privacy → Download my data) or delete your account in the same section. You can also email us at the addresses below; we will respond within a reasonable timeframe.',
       ],
     },
     {
