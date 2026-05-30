@@ -2,7 +2,11 @@
 // src/components/ui/NakshatraPanel.tsx
 // Full-page Nakshatra workspace: D1 chart (left) + 8-tab analysis (right)
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
+import { createPortal } from 'react-dom'
+import {
+  Info, Compass, Calendar, Zap, Flame, Star, Link2, Heart,
+} from 'lucide-react'
 import {
   getNakshatraCharacteristics, getNavtaraChakra, checkPanchaka,
   getGraNakPositions, getNakCompatibility, TARA_QUALITIES, TARA_NAMES,
@@ -23,7 +27,8 @@ const RATING_COL: Record<string,string> = {
 }
 
 // ── Sub-tabs ──────────────────────────────────────────────────
-type SubTab='overview'|'navtara'|'bestdays'|'muhurta'|'panchaka'|'planet'|'compat'|'remedies'
+export type NakshatraSubTab = 'overview' | 'navtara' | 'bestdays' | 'muhurta' | 'panchaka' | 'planet' | 'compat' | 'remedies'
+type SubTab = NakshatraSubTab
 const TABS: {id:SubTab;label:string;icon:string}[] = [
   {id:'navtara',  label:'Navtara',    icon:'🔯'},
   {id:'bestdays', label:'Best Days',  icon:'📅'},
@@ -34,15 +39,42 @@ const TABS: {id:SubTab;label:string;icon:string}[] = [
   {id:'remedies', label:'Remedies',   icon:'🙏'},
 ]
 
-// ── Main ─────────────────────────────────────────────────────
-export function NakshatraPanel({ chart, initialTab = 'navtara' }: { chart: ChartOutput; initialTab?: SubTab }) {
-  const [subTab, setSubTab] = useState<SubTab>(initialTab === 'overview' ? 'navtara' : initialTab)
+const MOBILE_TABS: { id: SubTab; icon: typeof Info; label: string }[] = [
+  { id: 'overview', icon: Info, label: 'Overview' },
+  { id: 'navtara', icon: Compass, label: 'Navtara' },
+  { id: 'bestdays', icon: Calendar, label: 'Days' },
+  { id: 'muhurta', icon: Zap, label: 'Muhurta' },
+  { id: 'panchaka', icon: Flame, label: 'Panchaka' },
+  { id: 'planet', icon: Star, label: 'Planets' },
+  { id: 'compat', icon: Link2, label: 'Compat' },
+  { id: 'remedies', icon: Heart, label: 'Remedy' },
+]
 
-  React.useEffect(() => {
-    if (initialTab) {
-      setSubTab(initialTab === 'overview' ? 'navtara' : initialTab)
+// ── Main ─────────────────────────────────────────────────────
+export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: ChartOutput; initialTab?: SubTab }) {
+  const [subTab, setSubTab] = useState<SubTab>(initialTab)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  useEffect(() => {
+    if (!initialTab) return
+    if (initialTab === 'overview') {
+      setSubTab(isMobile ? 'overview' : 'navtara')
+    } else {
+      setSubTab(initialTab)
     }
-  }, [initialTab])
+  }, [initialTab, isMobile])
+
+  useEffect(() => {
+    if (!isMobile) return
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [subTab, isMobile])
 
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const birthNakIdx = moon?.nakshatraIndex ?? 0
@@ -85,8 +117,11 @@ export function NakshatraPanel({ chart, initialTab = 'navtara' }: { chart: Chart
   const tithiNum   = chart.panchang.tithi.number
   const varaNum    = chart.panchang.vara.number
 
+  const showOverview = !isMobile || subTab === 'overview'
+  const tabForContent: SubTab = subTab === 'overview' ? 'navtara' : subTab
+
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'1.5rem'}}>
+    <div style={{display:'flex',flexDirection:'column',gap:'1.5rem', paddingBottom: isMobile ? '6rem' : undefined}}>
 
       {/* ── Header strip ── */}
       <div style={{display:'flex',alignItems:'center',gap:'1rem',flexWrap:'wrap',padding:'1rem 1.25rem',background:'linear-gradient(135deg,rgba(139,124,246,.12) 0%,rgba(201,168,76,.08) 100%)',border:'1px solid rgba(139,124,246,.2)',borderRadius:'var(--r-md)'}}>
@@ -102,11 +137,11 @@ export function NakshatraPanel({ chart, initialTab = 'navtara' }: { chart: Chart
         </div>
       </div>
 
-      {/* ── Two-column layout: chart + permanent overview ── */}
-      <div style={{display:'flex',gap:'1.5rem',alignItems:'flex-start',flexWrap:'wrap'}}>
+      {/* ── Two-column layout: chart always visible + tab content ── */}
+      <div style={{display:'flex',gap:'1.5rem',alignItems:'flex-start',flexDirection: isMobile ? 'column' : 'row', flexWrap: isMobile ? 'nowrap' : 'wrap'}}>
 
-        {/* LEFT: D1 Chart */}
-        <div style={{ flex: '1 1 480px', maxWidth: '520px', display: 'flex', justifyContent: 'center' }}>
+        {/* LEFT: D1 Chart — always visible on mobile */}
+        <div style={{ flex: '1 1 480px', maxWidth: isMobile ? '100%' : '520px', display: 'flex', justifyContent: 'center' }}>
           <div className="card" style={{ padding: '1rem', width: '100%' }}>
             <div style={{fontSize:'0.62rem',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--text-muted)',marginBottom:'0.6rem'}}>
               D1 · Rashi Chart — Janma Lagna
@@ -130,13 +165,17 @@ export function NakshatraPanel({ chart, initialTab = 'navtara' }: { chart: Chart
           </div>
         </div>
 
-        {/* RIGHT: Permanent Overview Analysis + Tabs */}
-        <div style={{flex:'1 1 400px',width: '100%', minWidth:320,display:'flex',flexDirection:'column',gap:'1.25rem'}}>
+        {/* RIGHT: Overview + analysis tabs */}
+        <div style={{flex:'1 1 400px',width: '100%', minWidth: isMobile ? 0 : 320,display:'flex',flexDirection:'column',gap:'1.25rem'}}>
+          {showOverview && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
              <div className="label-caps" style={{ fontSize: '0.65rem', color: 'var(--text-gold)', marginBottom: '0.25rem' }}>Janma Nakshatra Overview</div>
              <OverviewTab chars={chars} />
           </div>
+          )}
 
+          {!isMobile && (
+          <>
           <div style={{ height: '1px', background: 'var(--border-soft)', margin: '0.5rem 0' }} />
 
           {/* BOTTOM: Analysis Tabs (Dynamic content) */}
@@ -159,19 +198,117 @@ export function NakshatraPanel({ chart, initialTab = 'navtara' }: { chart: Chart
             </div>
 
             {/* Tab content */}
-            <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
-              {subTab==='navtara'   && <NavtaraTab navtara={navtara} birthNakIdx={birthNakIdx} />}
-              {subTab==='bestdays'  && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
-              {subTab==='muhurta'   && <MuhurtaTab nakIdx={birthNakIdx} />}
-              {subTab==='panchaka'  && <PanchakaTab grahas={chart.grahas} />}
-              {subTab==='planet'    && <PlanetTab positions={planetPos} chart={chart} moonNakIdx={birthNakIdx} />}
-              {subTab==='compat'    && <CompatTab birthNakIdx={birthNakIdx} />}
-              {subTab==='remedies'  && <RemediesTab remedy={remedy} nakIdx={birthNakIdx} />}
-            </div>
+            <TabContent
+              subTab={tabForContent}
+              navtara={navtara}
+              birthNakIdx={birthNakIdx}
+              moonLon={moonLon}
+              chart={chart}
+              planetPos={planetPos}
+              remedy={remedy}
+            />
           </div>
+          </>
+          )}
+
+          {isMobile && subTab !== 'overview' && (
+            <TabContent
+              subTab={subTab}
+              navtara={navtara}
+              birthNakIdx={birthNakIdx}
+              moonLon={moonLon}
+              chart={chart}
+              planetPos={planetPos}
+              remedy={remedy}
+            />
+          )}
         </div>
 
       </div>
+
+      {isMobile && typeof document !== 'undefined' && createPortal(
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'var(--surface-1)',
+          borderTop: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'stretch',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}>
+          {MOBILE_TABS.map(({ id, icon: Icon, label }) => {
+            const active = subTab === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setSubTab(id)}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: '0.2rem', padding: '0.6rem 0.08rem 0.4rem',
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  color: active ? 'var(--accent)' : 'var(--text-muted)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                  minWidth: 0,
+                }}
+              >
+                {active && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '20%', right: '20%',
+                    height: 2, background: 'var(--accent)',
+                    boxShadow: '0 0 10px var(--accent)',
+                    borderRadius: '0 0 2px 2px',
+                  }} />
+                )}
+                <Icon size={16} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
+                <span style={{
+                  fontSize: '0.5rem',
+                  fontWeight: active ? 700 : 500,
+                  letterSpacing: '0.02em',
+                  whiteSpace: 'nowrap',
+                  marginTop: '0.1rem',
+                }}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </div>,
+        document.body
+      )}
+    </div>
+  )
+}
+
+function TabContent({
+  subTab,
+  navtara,
+  birthNakIdx,
+  moonLon,
+  chart,
+  planetPos,
+  remedy,
+}: {
+  subTab: SubTab
+  navtara: ReturnType<typeof getNavtaraChakra>
+  birthNakIdx: number
+  moonLon: number
+  chart: ChartOutput
+  planetPos: ReturnType<typeof getGraNakPositions> extends (infer _A)[] ? any[] : any[]
+  remedy: (typeof NAKSHATRA_REMEDIES)[number]
+}) {
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
+      {subTab==='navtara'   && <NavtaraTab navtara={navtara} birthNakIdx={birthNakIdx} />}
+      {subTab==='bestdays'  && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
+      {subTab==='muhurta'   && <MuhurtaTab nakIdx={birthNakIdx} />}
+      {subTab==='panchaka'  && <PanchakaTab grahas={chart.grahas} />}
+      {subTab==='planet'    && <PlanetTab positions={planetPos} chart={chart} moonNakIdx={birthNakIdx} />}
+      {subTab==='compat'    && <CompatTab birthNakIdx={birthNakIdx} />}
+      {subTab==='remedies'  && <RemediesTab remedy={remedy} nakIdx={birthNakIdx} />}
     </div>
   )
 }

@@ -1,5 +1,7 @@
 'use client'
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
+import { CircleDot, Compass, BookOpen, Gem, Eye, Home, Zap } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, GRAHA_NAMES } from '@/types/astrology'
@@ -538,16 +540,23 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
   const [activeTab, setActiveTab]     = useState<TabId>('compass')
   const [isMobile, setIsMobile]       = useState(false)
   const [isSmall,  setIsSmall]        = useState(false)
+  const [isMobileNav, setIsMobileNav] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const check = () => {
       setIsMobile(window.innerWidth < 768)
       setIsSmall(window.innerWidth < 480)
+      setIsMobileNav(window.innerWidth < 1024)
     }
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
+
+  useEffect(() => {
+    if (!isMobileNav) return
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [activeTab, isMobileNav])
 
   const activeZones = mode === '16' ? ZONES_16 : ZONES_8
   const sectorAngle = mode === '16' ? 22.5 : 45
@@ -660,11 +669,21 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
     { id: 'remedies', label: 'Remedies & Yantras',  icon: '⚡' },
   ]
 
+  const mobileTabs = [
+    { id: 'chart' as const, icon: CircleDot, label: 'Chart' },
+    { id: 'compass' as const, icon: Compass, label: 'Compass' },
+    { id: 'bhavas' as const, icon: BookOpen, label: 'Bhavas' },
+    { id: 'mandala' as const, icon: Gem, label: 'Mandala' },
+    { id: 'doshas' as const, icon: Eye, label: 'Doshas' },
+    { id: 'rooms' as const, icon: Home, label: 'Rooms' },
+    { id: 'remedies' as const, icon: Zap, label: 'Remedy' },
+  ]
+
   /* ══════════════════════════════════════════════════════════════
      RENDER
      ══════════════════════════════════════════════════════════════ */
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', color: 'var(--text-primary)' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', color: 'var(--text-primary)', paddingBottom: isMobileNav ? '6rem' : undefined }}>
 
       {/* ── HERO HEADER ────────────────────────────────────────── */}
       <section className="vastu-hero-header">
@@ -720,14 +739,16 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       </section>
 
       {/* ── TAB NAVIGATION ─────────────────────────────────────── */}
-      <nav style={{ display: 'flex', borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`vastu-tab-btn${activeTab === tab.id ? ' vastu-tab-active' : ''}`}>
-            <span style={{ fontSize: '1rem' }}>{tab.icon}</span>
-            {!isMobile && <span>{tab.label}</span>}
-          </button>
-        ))}
-      </nav>
+      {!isMobileNav && (
+        <nav style={{ display: 'flex', borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
+          {tabs.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`vastu-tab-btn${activeTab === tab.id ? ' vastu-tab-active' : ''}`}>
+              <span style={{ fontSize: '1rem' }}>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
 
       {/* ══════════════════════════════════════════════════════════
           TAB: LAGNA CHART
@@ -2174,6 +2195,60 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       <div style={{ padding: '0.85rem 1.2rem', background: 'rgba(201,168,76,0.04)', borderRadius: 'var(--r-md)', border: '1px dashed var(--border-bright)', fontSize: '0.76rem', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.55 }}>
         ℹ️ This analysis uses your natal planetary longitudes for directional correlation. For full Vastu Shanti, consult a qualified Vastu practitioner to physically survey the property with compass and floor plan. Digital analysis provides directional tendencies; on-site measurement gives exact door positions and marma locations.
       </div>
+
+      {isMobileNav && typeof document !== 'undefined' && createPortal(
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'var(--surface-1)',
+          borderTop: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'stretch',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}>
+          {mobileTabs.map(({ id, icon: Icon, label }) => {
+            const active = activeTab === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setActiveTab(id)}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: '0.2rem', padding: '0.6rem 0.1rem 0.4rem',
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  color: active ? 'var(--accent)' : 'var(--text-muted)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                  minWidth: 0,
+                }}
+              >
+                {active && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '20%', right: '20%',
+                    height: 2, background: 'var(--accent)',
+                    boxShadow: '0 0 10px var(--accent)',
+                    borderRadius: '0 0 2px 2px',
+                  }} />
+                )}
+                <Icon size={17} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
+                <span style={{
+                  fontSize: '0.52rem',
+                  fontWeight: active ? 700 : 500,
+                  letterSpacing: '0.02em',
+                  whiteSpace: 'nowrap',
+                  marginTop: '0.1rem',
+                }}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

@@ -1,12 +1,17 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import { useChart } from '@/components/providers/ChartProvider'
 import Link from 'next/link'
+import { Globe, Map, Sparkles, BookOpen } from 'lucide-react'
+import type { ACGAnalysisTab } from '@/components/ui/AstroCartographyAnalysis'
 
 const AstroCartographyMap = dynamic(() => import('@/components/ui/AstroCartographyMap'), { ssr: false })
 const AstroCartographyAnalysis = dynamic(() => import('@/components/ui/AstroCartographyAnalysis').then(m => m.AstroCartographyAnalysis), { ssr: false })
+
+type MobileView = 'map' | ACGAnalysisTab
 
 export default function ACGPage() {
   const { chart } = useChart()
@@ -14,19 +19,37 @@ export default function ACGPage() {
   const [activeParans, setActiveParans] = useState<any[]>([])
   const [natalData, setNatalData] = useState<any[]>([])
   const [isMobile, setIsMobile] = useState(false)
+  const [mobileView, setMobileView] = useState<MobileView>('map')
 
-  React.useEffect(() => {
+  useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  useEffect(() => {
+    if (!isMobile) return
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [mobileView, isMobile])
+
   const handlePlanetsChange = useCallback((planets: Set<any>, parans: any[], rawNatal?: any[]) => {
     setSelectedPlanets(planets)
     setActiveParans(parans)
     if (rawNatal) setNatalData(rawNatal)
   }, [])
+
+  const mobileTabs = [
+    { id: 'map' as const, icon: Map, label: 'Map' },
+    { id: 'cities' as const, icon: Globe, label: 'Cities' },
+    { id: 'parans' as const, icon: Sparkles, label: 'Cross' },
+    { id: 'guide' as const, icon: BookOpen, label: 'Guide' },
+  ]
+
+  const analysisTab: ACGAnalysisTab =
+    mobileView === 'cities' || mobileView === 'parans' || mobileView === 'guide'
+      ? mobileView
+      : 'cities'
 
   if (!chart) {
     return (
@@ -50,12 +73,16 @@ export default function ACGPage() {
     )
   }
 
+  const showMap = !isMobile || mobileView === 'map'
+  const showAnalysis = !isMobile || mobileView !== 'map'
+
   return (
     <div className="fade-up" style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       gap: isMobile ? '1rem' : '2rem', 
       padding: isMobile ? '1rem' : '2.5rem',
+      paddingBottom: isMobile ? '6rem' : undefined,
       position: 'relative'
     }}>
       {/* Background Decor */}
@@ -108,60 +135,115 @@ export default function ACGPage() {
         gap: isMobile ? '1.5rem' : '2.5rem', 
         alignItems: 'start' 
       }}>
-        <div className="card glass" style={{ 
-          padding: '0.35rem', 
-          overflow: 'hidden', 
-          height: isMobile ? '600px' : '820px', 
-          border: '1px solid var(--border-bright)',
-          boxShadow: 'var(--shadow-lift)',
-          position: 'relative'
-        }}>
-          <AstroCartographyMap 
-            jd={chart.meta.julianDay} 
-            birthCoords={[chart.meta.latitude, chart.meta.longitude]} 
-            onVisiblePlanetsChange={handlePlanetsChange}
-          />
-        </div>
-        <aside 
-          className="acg-side-scroll"
-          style={{ 
-            position: isMobile ? 'static' : 'sticky', 
-            top: '2.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.5rem',
-            maxHeight: isMobile ? 'none' : 'calc(100vh - 5rem)',
-            overflowY: isMobile ? 'visible' : 'auto',
-            paddingRight: isMobile ? 0 : '0.5rem'
-          }}
-        >
-          <style dangerouslySetInnerHTML={{ __html: `
-            .acg-side-scroll::-webkit-scrollbar { width: 4px; }
-            .acg-side-scroll::-webkit-scrollbar-track { background: transparent; }
-            .acg-side-scroll::-webkit-scrollbar-thumb { background: var(--gold-faint); border-radius: 10px; }
-          ` }} />
-          <AstroCartographyAnalysis 
-            visiblePlanets={selectedPlanets} 
-            parans={activeParans}
-            natalData={natalData}
-          />
-          
-          <div className="card-gold" style={{ padding: '1.1rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-            <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>💡</span>
-            <div>
-              <p style={{ margin: 0, color: 'var(--text-on-gold)', fontWeight: 700, fontSize: '0.82rem' }}>Relocation Intelligence</p>
-              <p style={{ margin: '0.3rem 0 0', color: 'var(--text-on-gold)', opacity: 0.82, fontSize: '0.73rem', lineHeight: 1.45 }}>
-                Click anywhere on the map to instantly see your relocated Ascendant, nearest planetary line, and life-area interpretation for that location.
-              </p>
-            </div>
+        {showMap && (
+          <div className="card glass" style={{ 
+            padding: '0.35rem', 
+            overflow: 'hidden', 
+            height: isMobile ? 'calc(100dvh - 220px)' : '820px',
+            minHeight: isMobile ? '480px' : undefined,
+            border: '1px solid var(--border-bright)',
+            boxShadow: 'var(--shadow-lift)',
+            position: 'relative'
+          }}>
+            <AstroCartographyMap 
+              jd={chart.meta.julianDay} 
+              birthCoords={[chart.meta.latitude, chart.meta.longitude]} 
+              onVisiblePlanetsChange={handlePlanetsChange}
+            />
           </div>
-        </aside>
+        )}
+        {showAnalysis && (
+          <aside 
+            className="acg-side-scroll"
+            style={{ 
+              position: isMobile ? 'static' : 'sticky', 
+              top: '2.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+              maxHeight: isMobile ? 'none' : 'calc(100vh - 5rem)',
+              overflowY: isMobile ? 'visible' : 'auto',
+              paddingRight: isMobile ? 0 : '0.5rem'
+            }}
+          >
+            <style dangerouslySetInnerHTML={{ __html: `
+              .acg-side-scroll::-webkit-scrollbar { width: 4px; }
+              .acg-side-scroll::-webkit-scrollbar-track { background: transparent; }
+              .acg-side-scroll::-webkit-scrollbar-thumb { background: var(--gold-faint); border-radius: 10px; }
+            ` }} />
+            <AstroCartographyAnalysis 
+              visiblePlanets={selectedPlanets} 
+              parans={activeParans}
+              natalData={natalData}
+              activeTab={isMobile ? analysisTab : undefined}
+              onTabChange={isMobile ? (tab) => setMobileView(tab) : undefined}
+              hideTabBar={isMobile}
+            />
+            
+            <div className="card-gold" style={{ padding: '1.1rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>💡</span>
+              <div>
+                <p style={{ margin: 0, color: 'var(--text-on-gold)', fontWeight: 700, fontSize: '0.82rem' }}>Relocation Intelligence</p>
+                <p style={{ margin: '0.3rem 0 0', color: 'var(--text-on-gold)', opacity: 0.82, fontSize: '0.73rem', lineHeight: 1.45 }}>
+                  Click anywhere on the map to instantly see your relocated Ascendant, nearest planetary line, and life-area interpretation for that location.
+                </p>
+              </div>
+            </div>
+          </aside>
+        )}
       </main>
 
-      {isMobile && (
-        <footer style={{ marginTop: '1rem', padding: '1rem', textAlign: 'center', opacity: 0.6 }}>
-           <p className="label-caps" style={{ fontSize: '0.6rem' }}>© Vedaansh Relocation Suite</p>
-        </footer>
+      {isMobile && typeof document !== 'undefined' && createPortal(
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'var(--surface-1)',
+          borderTop: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'stretch',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}>
+          {mobileTabs.map(({ id, icon: Icon, label }) => {
+            const active = mobileView === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setMobileView(id)}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: '0.2rem', padding: '0.6rem 0.15rem 0.4rem',
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  color: active ? 'var(--accent)' : 'var(--text-muted)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                }}
+              >
+                {active && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '20%', right: '20%',
+                    height: 2, background: 'var(--accent)',
+                    boxShadow: '0 0 10px var(--accent)',
+                    borderRadius: '0 0 2px 2px',
+                  }} />
+                )}
+                <Icon size={18} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
+                <span style={{
+                  fontSize: '0.58rem',
+                  fontWeight: active ? 700 : 500,
+                  letterSpacing: '0.02em',
+                  whiteSpace: 'nowrap',
+                  marginTop: '0.1rem',
+                }}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </div>,
+        document.body
       )}
     </div>
   )
@@ -175,4 +257,3 @@ function StatItem({ label, value }: { label: string, value: number | string }) {
         </div>
     )
 }
-

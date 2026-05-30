@@ -97,9 +97,17 @@ interface ACGLineData {
   asCurve: [number, number][][]; dsCurve: [number, number][][];
 }
 interface ACGParan { p1: GrahaId; p2: GrahaId; lat: number; lon: number; type?: string }
-interface Props { visiblePlanets: Set<GrahaId>; parans: ACGParan[]; natalData?: ACGLineData[] }
+interface Props {
+  visiblePlanets: Set<GrahaId>
+  parans: ACGParan[]
+  natalData?: ACGLineData[]
+  activeTab?: Tab
+  onTabChange?: (tab: Tab) => void
+  hideTabBar?: boolean
+}
 
-type Tab      = 'cities' | 'parans' | 'guide'
+export type ACGAnalysisTab = 'cities' | 'parans' | 'guide'
+type Tab = ACGAnalysisTab
 type LifeArea = 'all' | 'career' | 'love' | 'home' | 'identity'
 
 const ANGLE_MAP: Record<LifeArea, string[]> = {
@@ -119,9 +127,14 @@ const ANGLE_META: Record<string, { label: string; icon: string; desc: string }> 
 
 // ─── Main Component ──────────────────────────────────────────
 
-export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData }: Props) {
+export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData, activeTab, onTabChange, hideTabBar = false }: Props) {
   const planets = Array.from(visiblePlanets)
-  const [tab, setTab]           = useState<Tab>('cities')
+  const [internalTab, setInternalTab] = useState<Tab>('cities')
+  const tab = activeTab ?? internalTab
+  const setTab = (next: Tab) => {
+    if (onTabChange) onTabChange(next)
+    else setInternalTab(next)
+  }
   const [lifeArea, setLifeArea] = useState<LifeArea>('all')
   const [expandedCity, setExpandedCity] = useState<number | null>(null)
 
@@ -174,30 +187,31 @@ export function AstroCartographyAnalysis({ visiblePlanets, parans, natalData }: 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-      {/* Tab bar */}
-      <div style={{ display: 'flex', gap: '3px', background: 'var(--surface-2)', padding: '3px', borderRadius: '12px' }}>
-        {([
-          ['cities', '🌐', 'Top Cities'],
-          ['parans', '✨', 'Crossings'],
-          ['guide',  '📖', 'Guide'],
-        ] as [Tab, string, string][]).map(([t, icon, label]) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              flex: 1, padding: '7px 6px', borderRadius: '9px',
-              background: tab === t ? 'var(--surface-0)' : 'transparent',
-              border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
-              color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
-              display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center',
-              boxShadow: tab === t ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-              transition: 'all 0.2s',
-            }}
-          >
-            <span>{icon}</span><span>{label}</span>
-          </button>
-        ))}
-      </div>
+      {!hideTabBar && (
+        <div style={{ display: 'flex', gap: '3px', background: 'var(--surface-2)', padding: '3px', borderRadius: '12px' }}>
+          {([
+            ['cities', '🌐', 'Top Cities'],
+            ['parans', '✨', 'Crossings'],
+            ['guide',  '📖', 'Guide'],
+          ] as [Tab, string, string][]).map(([t, icon, label]) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                flex: 1, padding: '7px 6px', borderRadius: '9px',
+                background: tab === t ? 'var(--surface-0)' : 'transparent',
+                border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
+                color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
+                display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center',
+                boxShadow: tab === t ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                transition: 'all 0.2s',
+              }}
+            >
+              <span>{icon}</span><span>{label}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── Cities Tab ─────────────────────────────────────── */}
       {tab === 'cities' && (

@@ -13,7 +13,7 @@ import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BirthForm }     from '@/components/ui/BirthForm'
-import { Sparkles, Info, Clock, Moon, Zap, Star } from 'lucide-react'
+import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3 } from 'lucide-react'
 
 // Dynamic imports for heavy tab-specific components
 const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').then(m => m.VarshaphalPanel), { ssr: false })
@@ -513,7 +513,7 @@ function VimshottariDashaBlock({
 function HomeContent() {
   const { data: session, status } = useSession()
   const { chart, setChart, isFormOpen, setIsFormOpen, pendingDestination, setPendingDestination } = useChart()
-  const { activeTab } = useAppLayout()
+  const { activeTab, setActiveTab } = useAppLayout()
   
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
@@ -566,6 +566,14 @@ function HomeContent() {
   const [mobileDashCategory, setMobileDashCategory] = useState<'astrology' | 'panchang' | 'nakshatra' | 'advanced'>('astrology')
   const [mobileDashTab, setMobileDashTab] = useState<'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'>('astro')
   const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('ashtakavarga')
+  type MobileStrengthSubTab = 'ashtakavarga' | 'shadbala' | 'bhava' | 'vimsopaka'
+  const STRENGTH_ANALYTICS_TABS = ['ashtakavarga', 'shadbala', 'bhava-bala', 'vimsopaka'] as const
+  const MOBILE_STRENGTH_TABS = [
+    { id: 'ashtakavarga' as const, icon: Grid3x3, label: 'Aṣṭaka' },
+    { id: 'shadbala' as const, icon: Scale, label: 'Ṣaḍbala' },
+    { id: 'bhava' as const, icon: Home, label: 'Bhāva' },
+    { id: 'vimsopaka' as const, icon: BarChart3, label: 'Viṁśo' },
+  ]
   const mobileDashboardCategories = [
     { id: 'astrology', label: 'Astrology' },
     { id: 'panchang', label: 'Panchang' },
@@ -624,6 +632,38 @@ function HomeContent() {
     const main = document.querySelector('.main-content')
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' })
   }, [mobileDashTab, isMobile])
+
+  const isStrengthAnalyticsTab = (STRENGTH_ANALYTICS_TABS as readonly string[]).includes(activeTab)
+  const showStrengthSubNav = isMobile && !!chart && (
+    (activeTab === 'dashboard' && mobileDashTab === 'strengths') ||
+    isStrengthAnalyticsTab
+  )
+  const showMainDashBottomNav = isMobile && !!chart && activeTab === 'dashboard'
+  const strengthSubNavStacked = showMainDashBottomNav && mobileDashTab === 'strengths'
+
+  const activeStrengthSubTab: MobileStrengthSubTab = useMemo(() => {
+    if (activeTab === 'ashtakavarga') return 'ashtakavarga'
+    if (activeTab === 'shadbala') return 'shadbala'
+    if (activeTab === 'bhava-bala') return 'bhava'
+    if (activeTab === 'vimsopaka') return 'vimsopaka'
+    return mobileStrengthTab
+  }, [activeTab, mobileStrengthTab])
+
+  const handleStrengthSubTab = (id: MobileStrengthSubTab) => {
+    if (activeTab === 'dashboard') {
+      setMobileStrengthTab(id)
+    } else {
+      const map = { ashtakavarga: 'ashtakavarga', shadbala: 'shadbala', bhava: 'bhava-bala', vimsopaka: 'vimsopaka' } as const
+      setActiveTab(map[id])
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    if (!isMobile || !showStrengthSubNav) return
+    const main = document.querySelector('.main-content')
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [activeStrengthSubTab, isMobile, showStrengthSubNav])
 
 
   const dashboardAshtakSummary = useMemo(() => {
@@ -1386,7 +1426,7 @@ function HomeContent() {
           </div>
         </div>
       ) : chart ? (
-         <div className="fade-up" style={{ minWidth: 0 }}>
+         <div className="fade-up" style={{ minWidth: 0, paddingBottom: showStrengthSubNav && activeTab !== 'dashboard' ? '6rem' : undefined }}>
             
             {/* Compact Header Strip */}
             <div className="chart-header-row" style={isMobile ? { position: 'relative' } : undefined}>
@@ -1768,7 +1808,7 @@ function HomeContent() {
 
                   {/* ── MOBILE DASHBOARD CONTENT ─────────────────────── */}
                   {activeTab === 'dashboard' && isMobile && (
-                    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingBottom: '6rem' }}>
+                    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingBottom: mobileDashTab === 'strengths' ? '9rem' : '6rem' }}>
 
                       {/* ── Tab content ── */}
                       {mobileDashTab === 'astro' && (
@@ -1890,20 +1930,6 @@ function HomeContent() {
 
                       {mobileDashTab === 'strengths' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          {/* Sub-tabs */}
-                          <div style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                            {([
-                              { id: 'ashtakavarga', label: 'Aṣṭaka' },
-                              { id: 'shadbala', label: 'Ṣaḍbala' },
-                              { id: 'bhava', label: 'Bhāva' },
-                              { id: 'vimsopaka', label: 'Viṁśopaka' },
-                            ] as const).map(({ id, label }) => (
-                              <button key={id} type="button" onClick={() => setMobileStrengthTab(id)}
-                                style={{ whiteSpace: 'nowrap', padding: '0.3rem 0.7rem', fontSize: '0.65rem', fontWeight: 700, borderRadius: 999, cursor: 'pointer', border: mobileStrengthTab === id ? '1.5px solid var(--gold)' : '1px solid var(--border-soft)', background: mobileStrengthTab === id ? 'var(--gold-faint)' : 'var(--surface-2)', color: mobileStrengthTab === id ? 'var(--text-gold)' : 'var(--text-muted)' }}>
-                                {label}
-                              </button>
-                            ))}
-                          </div>
                           <div className="panel">
                             <div style={{ padding: '0.4rem 0.55rem' }}>
                               {mobileStrengthTab === 'shadbala' && (
@@ -2815,8 +2841,61 @@ function HomeContent() {
         </div>
       </div>
 
+      {/* ── Mobile Strength & Analytics sub-nav — stacked above main dash nav when on Strength tab ── */}
+      {showStrengthSubNav && typeof document !== 'undefined' && createPortal(
+        <div style={{
+          position: 'fixed',
+          bottom: strengthSubNavStacked ? 'calc(3.75rem + env(safe-area-inset-bottom, 0px))' : 0,
+          left: 0, right: 0, zIndex: 9998,
+          background: 'var(--surface-1)',
+          borderTop: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'stretch',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
+          paddingBottom: strengthSubNavStacked ? '0.35rem' : 'max(env(safe-area-inset-bottom), 0.5rem)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}>
+          {MOBILE_STRENGTH_TABS.map(({ id, icon: Icon, label }) => {
+            const active = activeStrengthSubTab === id
+            return (
+              <button key={id} type="button"
+                onClick={() => handleStrengthSubTab(id)}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: '0.2rem', padding: '0.55rem 0.08rem 0.35rem',
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  color: active ? 'var(--accent)' : 'var(--text-muted)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative', minWidth: 0,
+                }}>
+                {active && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '20%', right: '20%',
+                    height: 2, background: 'var(--accent)',
+                    boxShadow: '0 0 10px var(--accent)',
+                    borderRadius: '0 0 2px 2px',
+                  }} />
+                )}
+                <Icon size={16} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
+                <span style={{
+                  fontSize: '0.5rem',
+                  fontWeight: active ? 700 : 500,
+                  letterSpacing: '0.02em',
+                  whiteSpace: 'nowrap',
+                  marginTop: '0.1rem',
+                }}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </div>,
+        document.body
+      )}
+
       {/* ── Mobile bottom tab bar — rendered via portal to escape transform contexts ── */}
-      {chart && isMobile && activeTab === 'dashboard' && typeof document !== 'undefined' && createPortal(
+      {showMainDashBottomNav && typeof document !== 'undefined' && createPortal(
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
           background: 'var(--surface-1)',
