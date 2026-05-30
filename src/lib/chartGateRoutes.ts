@@ -11,6 +11,9 @@ export function routeAllowsWithoutChart(hrefOrPath: string): boolean {
     path.startsWith('/compare') ||
     path.startsWith('/pricing') ||
     path.startsWith('/about') ||
+    path.startsWith('/terms') ||
+    path.startsWith('/privacy') ||
+    path.startsWith('/refund') ||
     path.startsWith('/clients') ||
     path.startsWith('/my/charts') ||
     path.startsWith('/account')

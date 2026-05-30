@@ -2672,6 +2672,18 @@ function HomeContent() {
             About
           </Link>
           <span style={{ color: 'var(--border-bright)' }}>•</span>
+          <Link href="/terms" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
+            Terms
+          </Link>
+          <span style={{ color: 'var(--border-bright)' }}>•</span>
+          <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
+            Privacy
+          </Link>
+          <span style={{ color: 'var(--border-bright)' }}>•</span>
+          <Link href="/refund" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
+            Refunds
+          </Link>
+          <span style={{ color: 'var(--border-bright)' }}>•</span>
           <a
             href="https://www.instagram.com/vedaanshlife"
             target="_blank"

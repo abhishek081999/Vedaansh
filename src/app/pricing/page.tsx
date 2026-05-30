@@ -679,6 +679,13 @@ export default function PricingPage() {
       </main>
 
       <footer style={{ padding: '1.5rem 2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontSize: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
+        <div style={{ marginBottom: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+          <Link href="/terms" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</Link>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</Link>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <Link href="/refund" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Refunds</Link>
+        </div>
         Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa Platform</span> · All prices in INR · GST applicable
       </footer>
     </div>
