@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect, useMemo, useId } from 'react'
+import { createPortal } from 'react-dom'
 import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData, NAKSHATRA_NAMES } from '@/types/astrology'
 import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
 import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
@@ -7,7 +8,7 @@ import { DashaTree } from '@/components/dasha/DashaTree'
 import { calculateGatewaySigns } from '@/lib/engine/jaimini'
 import { buildArudhaBundle, pickArudhaSet, countArudhaDifferences, buildArudhaLabelMap } from '@/lib/engine/arudhas'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X } from 'lucide-react'
+import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X, Gem, Mountain, Clock, Scale, Brain } from 'lucide-react'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 import { calcBhriguBinduLon, calcInduLagna } from '@/lib/engine/astroDetailsDerived'
 
@@ -630,6 +631,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const [arudhaBphsMode, setArudhaBphsMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTinyMobile, setIsTinyMobile] = useState(false);
+  const [mobileChartVarga, setMobileChartVarga] = useState<'D1' | 'D9'>('D1');
 
   useEffect(() => {
     const check = () => {
@@ -645,6 +647,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab, isMobile]);
 
   const d1Grahas = grahas;
   const d9Grahas = vargas['D9'] ?? grahas;
@@ -805,12 +812,22 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   const jaiminiYogas = detectJaiminiYogas();
 
-  const tabs: { id: 'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info'; label: string; icon: string }[] = [
+  type JaiminiTabId = 'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info';
+
+  const tabs: { id: JaiminiTabId; label: string; icon: string }[] = [
     { id: 'essence', label: 'Soul Architecture', icon: '💠' },
     { id: 'arudhas', label: 'Arudha Landscape', icon: '🏔️' },
     { id: 'dashas',  label: 'Dasha',  icon: '⏳' },
     { id: 'info',    label: 'Info Reference',   icon: '⚖️' },
     { id: 'intelligence', label: 'Intelligence', icon: '🧠' },
+  ];
+
+  const mobileTabs = [
+    { id: 'essence' as const, icon: Gem, label: 'Essence' },
+    { id: 'arudhas' as const, icon: Mountain, label: 'Arudhas' },
+    { id: 'dashas' as const, icon: Clock, label: 'Dasha' },
+    { id: 'info' as const, icon: Scale, label: 'Info' },
+    { id: 'intelligence' as const, icon: Brain, label: 'Intel' },
   ];
 
   const argalaInterventions = selectedAspectSign ? getArgalaIntervention(selectedAspectSign) : [];
@@ -865,6 +882,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     <div className="fade-up" style={{ 
       display: 'flex', flexDirection: 'column', gap: isTinyMobile ? '0.75rem' : '1rem', 
       padding: isTinyMobile ? '0.25rem' : isMobile ? '0.75rem' : '1.25rem', 
+      paddingBottom: isMobile ? '6rem' : undefined,
       background: isTinyMobile ? 'transparent' : 'var(--surface-2)',
       borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)',
       border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
@@ -1122,6 +1140,48 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             )}
           </AnimatePresence>
 
+          {isMobile && (
+            <div style={{
+              display: 'flex',
+              gap: '0.35rem',
+              padding: '0.25rem',
+              background: 'var(--surface-2)',
+              borderRadius: '10px',
+              border: '1px solid var(--border-soft)',
+            }}>
+              {([
+                { id: 'D1' as const, label: 'D1', sub: 'Rāśi' },
+                { id: 'D9' as const, label: 'D9', sub: 'Navāmśa' },
+              ]).map(({ id, label, sub }) => {
+                const active = mobileChartVarga === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setMobileChartVarga(id)}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.1rem',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: active ? '1px solid var(--gold-soft)' : '1px solid transparent',
+                      background: active ? 'var(--gold-faint)' : 'transparent',
+                      color: active ? 'var(--gold)' : 'var(--text-muted)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.04em' }}>{label}</span>
+                    <span style={{ fontSize: '0.55rem', fontWeight: 600, opacity: active ? 0.85 : 0.65 }}>{sub}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <div style={{ 
             display: 'flex', 
             flexDirection: 'column',
@@ -1134,8 +1194,16 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             width: '100%',
             overflow: 'visible'
           }}>
-            {renderJaiminiChartBlock('D1 · Rāśi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)}
-            {renderJaiminiChartBlock('D9 · Navāmśa', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)}
+            {isMobile ? (
+              mobileChartVarga === 'D1'
+                ? renderJaiminiChartBlock('D1 · Rāśi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)
+                : renderJaiminiChartBlock('D9 · Navāmśa', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)
+            ) : (
+              <>
+                {renderJaiminiChartBlock('D1 · Rāśi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)}
+                {renderJaiminiChartBlock('D9 · Navāmśa', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)}
+              </>
+            )}
           </div>
           
           {selectedAspectSign && (
@@ -1210,30 +1278,32 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           flexDirection: 'column',
           gap: '1rem'
         }}>
-          <nav className="scrollbar-hide" style={{ 
-            display: 'flex', gap: '0.25rem', overflowX: 'auto', padding: '0.25rem',
-            background: 'var(--surface-2)', borderRadius: '10px', border: '1px solid var(--border-soft)',
-            WebkitOverflowScrolling: 'touch',
-          }}>
-            {tabs.map(t => (
-              <button 
-                key={t.id} 
-                onClick={() => setActiveTab(t.id)}
-                style={{ 
-                  whiteSpace: 'nowrap', padding: isTinyMobile ? '0.4rem 0.6rem' : '0.5rem 0.75rem', borderRadius: '8px',
-                  background: activeTab === t.id ? 'var(--surface-1)' : 'transparent',
-                  color: activeTab === t.id ? 'var(--gold)' : 'var(--text-muted)',
-                  border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: isTinyMobile ? '0.65rem' : '0.75rem',
-                  display: 'flex', alignItems: 'center', gap: '0.4rem',
-                  boxShadow: activeTab === t.id ? 'var(--shadow-card)' : 'none'
-                }}
-              >
-                <span style={{ fontSize: isTinyMobile ? '0.8rem' : '1rem' }}>{t.icon}</span>
-                {(!isTinyMobile || activeTab === t.id) && t.label.split(' ')[0]}
-              </button>
-            ))}
-          </nav>
+          {!isMobile && (
+            <nav className="scrollbar-hide" style={{ 
+              display: 'flex', gap: '0.25rem', overflowX: 'auto', padding: '0.25rem',
+              background: 'var(--surface-2)', borderRadius: '10px', border: '1px solid var(--border-soft)',
+              WebkitOverflowScrolling: 'touch',
+            }}>
+              {tabs.map(t => (
+                <button 
+                  key={t.id} 
+                  onClick={() => setActiveTab(t.id)}
+                  style={{ 
+                    whiteSpace: 'nowrap', padding: '0.5rem 0.75rem', borderRadius: '8px',
+                    background: activeTab === t.id ? 'var(--surface-1)' : 'transparent',
+                    color: activeTab === t.id ? 'var(--gold)' : 'var(--text-muted)',
+                    border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.75rem',
+                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                    boxShadow: activeTab === t.id ? 'var(--shadow-card)' : 'none'
+                  }}
+                >
+                  <span style={{ fontSize: '1rem' }}>{t.icon}</span>
+                  {t.label.split(' ')[0]}
+                </button>
+              ))}
+            </nav>
+          )}
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -2168,6 +2238,59 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           </AnimatePresence>
         </section>
       </div>
+
+      {isMobile && typeof document !== 'undefined' && createPortal(
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'var(--surface-1)',
+          borderTop: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'stretch',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}>
+          {mobileTabs.map(({ id, icon: Icon, label }) => {
+            const active = activeTab === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setActiveTab(id)}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: '0.2rem', padding: '0.6rem 0.15rem 0.4rem',
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  color: active ? 'var(--accent)' : 'var(--text-muted)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                }}
+              >
+                {active && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '20%', right: '20%',
+                    height: 2, background: 'var(--accent)',
+                    boxShadow: '0 0 10px var(--accent)',
+                    borderRadius: '0 0 2px 2px',
+                  }} />
+                )}
+                <Icon size={18} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
+                <span style={{
+                  fontSize: '0.58rem',
+                  fontWeight: active ? 700 : 500,
+                  letterSpacing: '0.02em',
+                  whiteSpace: 'nowrap',
+                  marginTop: '0.1rem',
+                }}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

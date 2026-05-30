@@ -48,3 +48,10 @@ scripts/allCountries.txt
 
 # Graphify knowledge graph output (local only)
 graphify-out/
+
+# Local business / planning docs (not for repo)
+docs/90_DAY_CHECKLIST.md
+docs/APP_CATALOG.md
+docs/BUSINESS_PLAN.md
+docs/INFRA_COST_PLAN.md
+src/components/legal/LegalDocument.tsx

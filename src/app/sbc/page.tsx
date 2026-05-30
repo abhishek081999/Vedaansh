@@ -15,8 +15,12 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
+import {
+  Grid3X3, TrendingUp, Globe, Flame, Zap, Heart, Pill, Sparkles, LineChart,
+} from 'lucide-react'
 import { ThemeToggle }     from '@/components/ui/ThemeToggle'
 import { useChart }        from '@/components/providers/ChartProvider'
 import { SarvatobhadraChakra } from '@/components/ui/SarvatobhadraChakra'
@@ -166,6 +170,11 @@ function MuhurtaCard({ event }: { event: MuhurtaEvent }) {
 }
 
 type RightTab = 'pulse' | 'life' | 'muhurta' | 'remedies' | 'activations' | 'body'
+type MobileView = 'grid' | RightTab | 'advisor' | 'market'
+
+function isRightTabView(view: MobileView): view is RightTab {
+  return view !== 'grid' && view !== 'advisor' && view !== 'market'
+}
 
 // ─── Life Advisor sub-components ──────────────────────────────
 
@@ -236,6 +245,7 @@ export default function SBCPage() {
   const [rightTab,      setRightTab]      = useState<RightTab>('pulse')
   const [lifeTab,       setLifeTab]       = useState<LifeAreaKey>('wealth')
   const [isMobile,      setIsMobile]      = useState(false)
+  const [mobileView,    setMobileView]    = useState<MobileView>('grid')
   const [showControls,  setShowControls]  = useState(false)
 
   // Life Advisor state
@@ -253,6 +263,11 @@ export default function SBCPage() {
     if (isMobile) setGridSize(Math.min(window.innerWidth - 36, 560))
     else           setGridSize(700)
   }, [isMobile])
+
+  useEffect(() => {
+    if (!isMobile) return
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [mobileView, isMobile])
 
   // Fetch transits
   const fetchTransits = useCallback(async (date: string) => {
@@ -365,10 +380,34 @@ export default function SBCPage() {
     ['remedies',    '💊', 'Remedies'],
   ]
 
+  const mobileTabs = [
+    { id: 'grid' as const, icon: Grid3X3, label: 'Grid' },
+    { id: 'pulse' as const, icon: TrendingUp, label: 'Pulse' },
+    { id: 'life' as const, icon: Globe, label: 'Life' },
+    { id: 'muhurta' as const, icon: Flame, label: 'Muhurta' },
+    { id: 'activations' as const, icon: Zap, label: 'Vedha' },
+    { id: 'body' as const, icon: Heart, label: 'Body' },
+    { id: 'remedies' as const, icon: Pill, label: 'Fix' },
+    { id: 'advisor' as const, icon: Sparkles, label: 'Guide' },
+    { id: 'market' as const, icon: LineChart, label: 'More' },
+  ]
+
+  const showLeftPanel = !isMobile || mobileView === 'grid'
+  const showGridDetails = !isMobile || mobileView === 'grid'
+  const showRightSection = !isMobile || isRightTabView(mobileView)
+  const showAdvisorSection = !isMobile || mobileView === 'advisor'
+  const showExtendedSection = !isMobile || mobileView === 'market'
+  const activeRightTab: RightTab = isMobile && isRightTabView(mobileView) ? mobileView : rightTab
+
+  const handleMobileTab = (id: MobileView) => {
+    setMobileView(id)
+    if (isRightTabView(id)) setRightTab(id)
+  }
+
   // ─── Render ───────────────────────────────────────────────
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)', paddingBottom: isMobile ? '6rem' : undefined }}>
 
       {/* ── Header ── */}
       <header style={{
@@ -428,6 +467,7 @@ export default function SBCPage() {
         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1.25rem', alignItems: 'start' }}>
 
           {/* ── LEFT PANEL ── */}
+          {showLeftPanel && (
           <div style={{ width: isMobile ? '100%' : 255, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
 
             {/* Transit date */}
@@ -567,8 +607,9 @@ export default function SBCPage() {
               </div>
             )}
           </div>
+          )}
 
-          {/* ── CENTER COLUMN ── */}
+          {/* ── CENTER COLUMN — grid always visible on mobile ── */}
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
 
             {loading && (
@@ -595,7 +636,7 @@ export default function SBCPage() {
             </div>
 
             {/* Selected cell detail */}
-            {selectedCell && (
+            {showGridDetails && selectedCell && (
               <div className="card fade-up" style={{ width: '100%', padding: '1.25rem', border: '1px solid var(--gold)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
                   <div>
@@ -651,7 +692,7 @@ export default function SBCPage() {
             )}
 
             {/* Transit position table */}
-            {transitRaw.length > 0 && (
+            {showGridDetails && transitRaw.length > 0 && (
               <div className="card" style={{ width: '100%', padding: '1.1rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Transit Planets — {fmtDate(transitDate)}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '0.5rem' }}>
@@ -675,12 +716,23 @@ export default function SBCPage() {
                 </div>
               </div>
             )}
+
+            {isMobile && showGridDetails && (
+              <div className="card" style={{ width: '100%', padding: '0.875rem', background: 'rgba(139,124,246,0.04)', border: '1px solid rgba(139,124,246,0.12)' }}>
+                <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--accent)', fontSize: '0.58rem' }}>How to Read</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                  Tap cells to reveal <b>Vedha lines</b>. <b>⭐ Gold border</b> = your birth star. <b>✦ symbol</b> = diagonal-aspect planet. Pink highlight = malefic pressure.
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── RIGHT PANEL ── */}
+          {showRightSection && (
           <div style={{ width: isMobile ? '100%' : 275, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
 
             {/* Tab selector */}
+            {!isMobile && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, background: 'var(--surface-2)', padding: 3, borderRadius: 12 }}>
               {RIGHT_TABS.map(([id, icon, label]) => (
                 <button
@@ -700,9 +752,10 @@ export default function SBCPage() {
                 </button>
               ))}
             </div>
+            )}
 
             {/* Tab: Financial Pulse */}
-            {rightTab === 'pulse' && (
+            {activeRightTab === 'pulse' && (
               <div className="card" style={{ padding: '1.1rem', border: pulse ? `1px solid ${pulseColor}38` : '1px solid var(--border)' }}>
                 <div className="label-caps" style={{ marginBottom: '0.875rem' }}>💰 Financial Pulse</div>
                 {pulse ? <PulseMeter pulse={pulse} /> : <div style={{ opacity: 0.5, fontSize: '0.8rem' }}>Calculation pending…</div>}
@@ -710,7 +763,7 @@ export default function SBCPage() {
             )}
 
             {/* Tab: Life Areas */}
-            {rightTab === 'life' && (
+            {activeRightTab === 'life' && (
               <div className="card" style={{ padding: '1.1rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.75rem' }}>🌐 Life Area Analysis</div>
 
@@ -756,7 +809,7 @@ export default function SBCPage() {
             )}
 
             {/* Tab: Muhurta */}
-            {rightTab === 'muhurta' && (
+            {activeRightTab === 'muhurta' && (
               <div className="card" style={{ padding: '1.1rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.875rem' }}>🪔 Muhurta Guide — {fmtDate(transitDate).split(',').slice(0, 1)}</div>
                 {tithi && (
@@ -775,7 +828,7 @@ export default function SBCPage() {
             )}
 
             {/* Tab: Vedha Activations */}
-            {rightTab === 'activations' && (
+            {activeRightTab === 'activations' && (
               <div className="card" style={{ padding: '1.1rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.75rem' }}>⚡ Natal Activations via Vedha</div>
                 {analysis?.activations?.length ? (
@@ -794,7 +847,7 @@ export default function SBCPage() {
             )}
 
             {/* Tab: Body Alerts */}
-            {rightTab === 'body' && (
+            {activeRightTab === 'body' && (
               <div className="card" style={{ padding: '1.1rem' }}>
                 <div className="label-caps" style={{ color: 'var(--rose)', marginBottom: '0.75rem' }}>🫀 Body-Part Afflictions</div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.65rem', lineHeight: 1.4 }}>
@@ -817,7 +870,7 @@ export default function SBCPage() {
             )}
 
             {/* Tab: Remedies */}
-            {rightTab === 'remedies' && (
+            {activeRightTab === 'remedies' && (
               <div className="card" style={{ padding: '1.1rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.75rem' }}>💊 Vedic Remedies</div>
 
@@ -856,14 +909,17 @@ export default function SBCPage() {
               </div>
             )}
 
-            {/* Reading guide */}
+            {/* Reading guide — desktop right panel */}
+            {!isMobile && (
             <div className="card" style={{ padding: '0.875rem', background: 'rgba(139,124,246,0.04)', border: '1px solid rgba(139,124,246,0.12)' }}>
               <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--accent)', fontSize: '0.58rem' }}>How to Read</div>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
                 Hover cells to reveal <b>Vedha lines</b>. <b>⭐ Gold border</b> = your birth star. <b>✦ symbol</b> on a cell = diagonal-aspect planet present. Pink highlight = malefic pressure on natal position.
               </div>
             </div>
+            )}
           </div>
+          )}
 
         </div>
       </main>
@@ -871,6 +927,7 @@ export default function SBCPage() {
       {/* ═══════════════════════════════════════════════════════
            LIFE ADVISOR — Full-width section below the grid
           ═══════════════════════════════════════════════════════ */}
+      {showAdvisorSection && (
       <section style={{
         maxWidth: 1500, width: '100%', margin: '0 auto',
         paddingTop: 0,
@@ -1103,10 +1160,12 @@ export default function SBCPage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════
            ADVANCED ANALYSIS ENGINE — Full-width section
           ═══════════════════════════════════════════════════════ */}
+      {showExtendedSection && (
       <section style={{
         maxWidth: 1500, width: '100%', margin: '0 auto',
         paddingTop: 0,
@@ -1124,10 +1183,9 @@ export default function SBCPage() {
           isMobile={isMobile}
         />
       </section>
+      )}
 
-      {/* ═══════════════════════════════════════════════════════
-           STOCK MARKET & TRADING — Full-width section
-          ═══════════════════════════════════════════════════════ */}
+      {showExtendedSection && (
       <section style={{
         maxWidth: 1500, width: '100%', margin: '0 auto',
         paddingTop: 0,
@@ -1143,6 +1201,61 @@ export default function SBCPage() {
           analysis={analysis ?? null}
         />
       </section>
+      )}
+
+      {isMobile && typeof document !== 'undefined' && createPortal(
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'var(--surface-1)',
+          borderTop: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'stretch',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}>
+          {mobileTabs.map(({ id, icon: Icon, label }) => {
+            const active = mobileView === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => handleMobileTab(id)}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: '0.2rem', padding: '0.6rem 0.08rem 0.4rem',
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  color: active ? 'var(--accent)' : 'var(--text-muted)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                  minWidth: 0,
+                }}
+              >
+                {active && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '20%', right: '20%',
+                    height: 2, background: 'var(--accent)',
+                    boxShadow: '0 0 10px var(--accent)',
+                    borderRadius: '0 0 2px 2px',
+                  }} />
+                )}
+                <Icon size={16} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
+                <span style={{
+                  fontSize: '0.5rem',
+                  fontWeight: active ? 700 : 500,
+                  letterSpacing: '0.02em',
+                  whiteSpace: 'nowrap',
+                  marginTop: '0.1rem',
+                }}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </div>,
+        document.body
+      )}
 
       <footer style={{ padding: '1.25rem', textAlign: 'center', opacity: 0.45, fontSize: '0.72rem', borderTop: '1px solid var(--border-soft)' }}>
         Sarvatobhadra Chakra · Classical Vedic Analysis · <span style={{ color: 'var(--text-gold)' }}>Vedaansh Platform</span>

@@ -1,7 +1,7 @@
 # 🪐 Vedaansh — Vedic Jyotish Platform
 
 > **Next.js 14 · TypeScript · MongoDB · Mongoose · NextAuth.js v5 · sweph**  
-> **Free · Gold (₹99/mo · ₹999/yr) · Platinum (₹199/mo · ₹1,999/yr)**
+> **Free · Gold (₹134/mo · ₹1,349/yr) · Platinum (₹269/mo · ₹2,699/yr)**
 
 A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScript. The platform provides arc-second-accurate ephemeris calculations, multiple Dasha systems, divisional charts, Ashtakavarga, Shadbala, Muhurta finding, interactive SVG chakra renderers — all powered by the Swiss Ephemeris C library via the `swisseph` npm package.
 

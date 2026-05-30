@@ -145,7 +145,15 @@ export default function SignupPage() {
                   </div>
 
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                    By joining, you agree to our Terms and Privacy Policy.
+                    By joining, you agree to our{' '}
+                    <Link href="/terms" style={{ color: 'var(--gold)', textDecoration: 'none' }}>
+                      Terms
+                    </Link>{' '}
+                    and{' '}
+                    <Link href="/privacy" style={{ color: 'var(--gold)', textDecoration: 'none' }}>
+                      Privacy Policy
+                    </Link>
+                    .
                   </div>
 
                   <button
