@@ -5,11 +5,12 @@
  * Based on "Krishneeyam" by Sri Krishna Acharya (~11th c. AD)
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import { formatInTimeZone } from 'date-fns-tz'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
-import type { ChartOutput, ChartStyle } from '@/types/astrology'
+import type { ChartOutput, ChartStyle, Rashi } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { getKPSubLord } from '@/lib/engine/nakshatraAdvanced'
 import {
@@ -21,6 +22,8 @@ import {
 } from '@/lib/engine/krishneeyam'
 
 type KPMode = 'vedic' | 'kp' | 'krishneeyam'
+type HouseReference = 'udaya' | 'arudha'
+type AroodhaMode = 'auto_lagna' | 'auto_al' | 'manual'
 
 const CATEGORY_LABELS: Record<PrashnaCategory, string> = {
   yes_no: 'Yes / No', when: 'When', what: 'What', who: 'Who (Thief)',
@@ -38,6 +41,13 @@ const CATEGORY_ICONS: Record<PrashnaCategory, string> = {
 }
 
 const RASHI_OPTIONS = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `${i + 1}. ${RASHI_NAMES[i + 1]}` }))
+
+function formatCaptureDateTime(date: Date, tz: string) {
+  return {
+    birthDate: formatInTimeZone(date, tz, 'yyyy-MM-dd'),
+    birthTime: formatInTimeZone(date, tz, 'HH:mm:ss'),
+  }
+}
 
 const BODY_PARTS = [
   { value: '', label: '— Not specified —' },
@@ -159,11 +169,15 @@ export default function PrashnaPage() {
   const [mode, setMode] = useState<KPMode>('krishneeyam')
   const [kpNumber, setKpNumber] = useState<number | ''>('')
   const [category, setCategory] = useState<PrashnaCategory>('yes_no')
+  const [houseReference, setHouseReference] = useState<HouseReference>('udaya')
+  const [aroodhaMode, setAroodhaMode] = useState<AroodhaMode>('auto_lagna')
   const [aroodha, setAroodha] = useState<number | ''>('')
   const [questionText, setQuestionText] = useState('')
   const [bodyTouch, setBodyTouch] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const savedHistoryIdRef = useRef<string | null>(null)
 
   // Load history on mount
   useEffect(() => {
@@ -175,7 +189,10 @@ export default function PrashnaPage() {
   }, [])
 
   const saveToHistory = useCallback((entry: HistoryEntry) => {
+    if (savedHistoryIdRef.current === entry.id) return
+    savedHistoryIdRef.current = entry.id
     setHistory(prev => {
+      if (prev.some(h => h.id === entry.id)) return prev
       const next = [entry, ...prev].slice(0, 50) // keep last 50
       try { localStorage.setItem('prashna_history', JSON.stringify(next)) } catch { /* ignore */ }
       return next
@@ -211,14 +228,16 @@ export default function PrashnaPage() {
 
   const calculateChart = useCallback(async (targetDate: Date) => {
     setLoading(true)
+    setError(null)
+    const { birthDate, birthTime } = formatCaptureDateTime(targetDate, location.tz)
     try {
       const res = await fetch('/api/chart/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: 'Prashna Chart',
-          birthDate: targetDate.toISOString().split('T')[0],
-          birthTime: targetDate.toTimeString().split(' ')[0],
+          birthDate,
+          birthTime,
           birthPlace: location.name,
           latitude: location.lat, longitude: location.lng, timezone: location.tz,
           prashnaNumber: kpNumber === '' ? undefined : kpNumber,
@@ -226,21 +245,59 @@ export default function PrashnaPage() {
         })
       })
       const json = await res.json()
-      if (json.success) setChart(json.data)
-    } catch (err) { console.error('Prashna error:', err) }
-    finally { setLoading(false) }
+      if (json.success) {
+        setChart(json.data)
+      } else {
+        setError(json.error ?? 'Chart calculation failed')
+        setFrozen(false)
+        setFrozenAt(null)
+        setElapsed(0)
+        savedHistoryIdRef.current = null
+      }
+    } catch (err) {
+      console.error('Prashna error:', err)
+      setError('Network error — please try again')
+      setFrozen(false)
+      setFrozenAt(null)
+      setElapsed(0)
+      savedHistoryIdRef.current = null
+    } finally { setLoading(false) }
   }, [location, kpNumber])
 
   const handleAction = () => {
-    if (frozen) { setFrozen(false); setChart(null); setFrozenAt(null); setElapsed(0) }
-    else { setFrozen(true); setFrozenAt(now); setElapsed(0); calculateChart(now) }
+    if (frozen) {
+      setFrozen(false)
+      setChart(null)
+      setFrozenAt(null)
+      setElapsed(0)
+      setError(null)
+      savedHistoryIdRef.current = null
+    } else {
+      const captured = new Date()
+      setFrozen(true)
+      setFrozenAt(captured)
+      setElapsed(0)
+      calculateChart(captured)
+    }
   }
+
+  const arudhaLagnaRashi = chart?.arudhas?.AL
+
+  const resolvedAroodhaRashi = useMemo((): Rashi | null => {
+    if (!chart) return null
+    if (aroodhaMode === 'manual') return aroodha === '' ? null : Number(aroodha) as Rashi
+    if (aroodhaMode === 'auto_al' && arudhaLagnaRashi) return arudhaLagnaRashi
+    return chart.lagnas.ascRashi
+  }, [chart, aroodhaMode, aroodha, arudhaLagnaRashi])
 
   const krishneeyamResult = useMemo((): KrishneeyamResult | null => {
     if (!chart || mode !== 'krishneeyam') return null
     const sun = chart.grahas.find(g => g.id === 'Su')
     const moon = chart.grahas.find(g => g.id === 'Mo')
     if (!sun || !moon) return null
+    const houseRefRashi = houseReference === 'arudha' && arudhaLagnaRashi
+      ? arudhaLagnaRashi
+      : chart.lagnas.ascRashi
     return runKrishneeyamPrashna({
       lagnaRashi: chart.lagnas.ascRashi, lagnaDegreeFull: chart.lagnas.ascDegree,
       lagnaSignDegree: chart.lagnas.ascDegree % 30,
@@ -250,10 +307,14 @@ export default function PrashnaPage() {
       grahas: chart.grahas, tithiNumber: chart.panchang.tithi.number,
       tithiPaksha: chart.panchang.tithi.paksha as 'shukla' | 'krishna',
       varaDayNumber: chart.panchang.vara.number, nakshatraIndex: chart.panchang.nakshatra.index,
-      aroodhaRashi: aroodha === '' ? null : aroodha as number as 1,
+      aroodhaRashi: resolvedAroodhaRashi,
       category, bodyTouchPart: bodyTouch || undefined,
+      houseReferenceRashi: houseRefRashi,
+      houseReferenceType: houseReference,
     })
-  }, [chart, mode, aroodha, category, bodyTouch])
+  }, [chart, mode, resolvedAroodhaRashi, category, bodyTouch, houseReference, arudhaLagnaRashi])
+
+  const chartLagnaSource = houseReference === 'arudha' ? 'arudha' : 'natal'
 
   const rulingPlanets = useMemo(() => {
     if (!chart) return []
@@ -371,7 +432,7 @@ export default function PrashnaPage() {
               value={questionText} onChange={e => setQuestionText(e.target.value)} disabled={frozen}
               style={{ flex: 1, minWidth: 180, fontSize: '0.82rem' }} />
             {/* Location */}
-            <div style={{ flexShrink: 0 }}>
+            <div style={{ flexShrink: 0, opacity: frozen ? 0.55 : 1, pointerEvents: frozen ? 'none' : 'auto' }}>
               <LocationPicker value={location} onChange={setLocation} label="Location" />
             </div>
             {/* Action */}
@@ -384,11 +445,39 @@ export default function PrashnaPage() {
 
           {/* Row 2: Categories + Aroodha + Body Touch (Krishneeyam only) */}
           {mode === 'krishneeyam' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {/* House reference: Udaya vs Arudha Lagna */}
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', padding: '0.55rem 0.7rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
+                <div style={{ flex: '1 1 140px' }}>
+                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>House reference (Krishneeyam)</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                    Udaya = rising lagna · AL = Arudha Lagna (public/maya). Ascendant type stays on Udaya; houses & timing follow your choice.
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                  {([
+                    { id: 'udaya' as const, label: 'Udaya Lagna', sub: chart ? RASHI_NAMES[chart.lagnas.ascRashi] : '—' },
+                    { id: 'arudha' as const, label: 'Arudha Lagna', sub: chart && arudhaLagnaRashi ? RASHI_NAMES[arudhaLagnaRashi] : '—' },
+                  ]).map(ref => (
+                    <button key={ref.id} type="button" disabled={frozen} onClick={() => setHouseReference(ref.id)}
+                      style={{
+                        border: houseReference === ref.id ? '2px solid var(--gold)' : '1px solid var(--border-soft)',
+                        borderRadius: 8, padding: '0.4rem 0.65rem', cursor: frozen ? 'not-allowed' : 'pointer',
+                        background: houseReference === ref.id ? 'var(--gold-faint)' : 'var(--surface-1)',
+                        minWidth: 108, textAlign: 'left',
+                      }}>
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: houseReference === ref.id ? 'var(--gold)' : 'var(--text-secondary)' }}>{ref.label}</div>
+                      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{ref.sub}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
               {/* Category picker */}
               <div style={{ flex: 1, minWidth: 320 }}>
                 <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>Query Category</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '4px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : 'repeat(8, 1fr)', gap: '4px' }}>
                   {(Object.keys(CATEGORY_LABELS) as PrashnaCategory[]).map(cat => (
                     <button key={cat} onClick={() => setCategory(cat)} disabled={frozen}
                       title={CATEGORY_LABELS[cat]}
@@ -408,16 +497,30 @@ export default function PrashnaPage() {
                 </div>
               </div>
 
-              {/* Aroodha + Body Touch */}
+              {/* Aroodha (Sparsha) + Body Touch */}
               <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                <div style={{ minWidth: 155 }}>
-                  <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>Aroodha Rashi</label>
-                  <select className="input" value={aroodha} disabled={frozen}
-                    onChange={e => setAroodha(e.target.value === '' ? '' : Number(e.target.value))}>
-                    <option value="">Auto (= Lagna)</option>
-                    {RASHI_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                <div style={{ minWidth: 175 }}>
+                  <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>Aroodha (Sparsha)</label>
+                  <select className="input" value={aroodhaMode} disabled={frozen}
+                    onChange={e => {
+                      const m = e.target.value as AroodhaMode
+                      setAroodhaMode(m)
+                      if (m !== 'manual') setAroodha('')
+                    }}>
+                    <option value="auto_lagna">Same as Udaya Lagna</option>
+                    <option value="auto_al">Same as Arudha Lagna (AL)</option>
+                    <option value="manual">Manual — sign touched / faced</option>
                   </select>
-                  <p style={{ fontSize: '0.56rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>Sign querist physically touches</p>
+                  {aroodhaMode === 'manual' && (
+                    <select className="input" value={aroodha} disabled={frozen} style={{ marginTop: 4 }}
+                      onChange={e => setAroodha(e.target.value === '' ? '' : Number(e.target.value))}>
+                      <option value="">Select sign…</option>
+                      {RASHI_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                    </select>
+                  )}
+                  <p style={{ fontSize: '0.56rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+                    {aroodhaMode === 'manual' ? 'Ch11: sign body touches while asking' : resolvedAroodhaRashi && chart ? `Using ${RASHI_NAMES[resolvedAroodhaRashi]}` : 'Krishneeyam sparsha sign (not Jaimini AL)'}
+                  </p>
                 </div>
                 <div style={{ minWidth: 155 }}>
                   <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 3 }}>Body Touch</label>
@@ -428,12 +531,19 @@ export default function PrashnaPage() {
                 </div>
               </div>
             </div>
+            </div>
           )}
 
           {/* Frozen timestamp */}
           {frozen && chart && (
             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
               🔴 Frozen at <strong style={{ color: 'var(--rose)' }}>{chart.meta?.birthDate} {chart.meta?.birthTime}</strong>
+              {' · '}{location.name}
+            </div>
+          )}
+          {error && (
+            <div style={{ fontSize: '0.75rem', color: 'var(--rose)', padding: '0.5rem 0.65rem', background: 'var(--rose)12', borderRadius: 8, border: '1px solid var(--rose)' }}>
+              {error}
             </div>
           )}
         </div>
@@ -477,12 +587,12 @@ export default function PrashnaPage() {
               <h2 style={{ fontFamily: 'var(--font-display)', opacity: 0.9, margin: '0 0 0.5rem' }}>Awaiting the Question</h2>
               <p style={{ opacity: 0.6, lineHeight: 1.7, fontSize: '0.85rem', margin: 0 }}>
                 Clear your mind and focus on your question.<br />
-                {mode === 'krishneeyam' && 'Choose the Aroodha (sign you face), body touch, and query category. '}
+                {mode === 'krishneeyam' && 'Pick house reference (Udaya or Arudha Lagna), Aroodha sparsha, body touch, and category. '}
                 When ready, press <strong>Capture Moment</strong>.
               </p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-              {['📿 Aroodha', '👤 Body Touch', '🗂 Category', '⚡ Capture'].map((step, i) => (
+              {['🔭 Lagna ref', '📿 Aroodha', '👤 Touch', '🗂 Category', '⚡ Capture'].map((step, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                   <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700 }}>{i + 1}</span>
                   {step}
@@ -534,16 +644,20 @@ export default function PrashnaPage() {
                     defaultStyle={style} size={chartSize} moonNakIndex={chart.panchang.nakshatra.index}
                     tithiNumber={chart.panchang.tithi.number} varaNumber={chart.panchang.vara.number} userPlan="platinum"
                     showCharaDrishtiControls
+                    initialLagnaSource={chartLagnaSource}
+                    defaultShowArudha
                   />
                 </div>
                 {/* Panchang chips */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem', marginTop: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem', marginTop: '0.75rem' }} className="prashna-panchang-grid">
                   {[
                     { label: 'Tithi', value: chart.panchang.tithi.name },
                     { label: 'Nakshatra', value: chart.panchang.nakshatra.name },
                     { label: 'Yoga', value: chart.panchang.yoga.name },
                     { label: 'Vara', value: chart.panchang.vara.name },
-                    { label: 'Ascendant', value: `${RASHI_NAMES[chart.lagnas.ascRashi]} ${Math.floor(chart.lagnas.ascDegree % 30)}°` },
+                    { label: 'Udaya Lagna', value: `${RASHI_NAMES[chart.lagnas.ascRashi]} ${Math.floor(chart.lagnas.ascDegree % 30)}°` },
+                    { label: 'Arudha Lagna', value: arudhaLagnaRashi ? RASHI_NAMES[arudhaLagnaRashi] : '—' },
+                    { label: 'Aroodha (Sparsha)', value: resolvedAroodhaRashi ? RASHI_NAMES[resolvedAroodhaRashi] : '—' },
                     { label: 'Paksha', value: chart.panchang.tithi.paksha === 'shukla' ? '☀️ Shukla' : '🌑 Krishna' },
                   ].map(c => (
                     <div key={c.label} style={{ background: 'var(--surface-2)', borderRadius: 6, padding: '0.35rem 0.5rem', border: '1px solid var(--border-soft)' }}>
@@ -561,14 +675,15 @@ export default function PrashnaPage() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--border)', opacity: 0.6 }}>
-                        {['Planet', 'Sign', 'Nakshatra', 'Dignity', 'H', 'Notes'].map(h => (
+                        {['Planet', 'Sign', 'Nakshatra', 'Dignity', `H (${houseReference === 'arudha' ? 'AL' : 'Lagna'})`, 'Notes'].map(h => (
                           <th key={h} style={{ padding: '0.4rem 0.35rem', textAlign: 'left', fontWeight: 600, fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {chart.grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id)).map(g => {
-                        const h = ((g.rashi - chart.lagnas.ascRashi + 12) % 12) + 1
+                        const refRashi = houseReference === 'arudha' && arudhaLagnaRashi ? arudhaLagnaRashi : chart.lagnas.ascRashi
+                        const h = ((g.rashi - refRashi + 12) % 12) + 1
                         const dignityColor = ['exalted', 'moolatrikona', 'own'].includes(g.dignity) ? 'var(--teal)' : ['debilitated', 'great_enemy', 'enemy'].includes(g.dignity) ? 'var(--rose)' : 'var(--text-secondary)'
                         return (
                           <tr key={g.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
@@ -647,18 +762,41 @@ export default function PrashnaPage() {
                       </div>
                     </div>
 
+                    {/* House reference banner */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', padding: '0.5rem 0.75rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Reading</span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--gold)' }}>{r.houseReference.label}</span>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>·</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                        Udaya {RASHI_NAMES[chart.lagnas.ascRashi]}
+                        {arudhaLagnaRashi ? ` · AL ${RASHI_NAMES[arudhaLagnaRashi]}` : ''}
+                        {resolvedAroodhaRashi ? ` · Sparsha ${RASHI_NAMES[resolvedAroodhaRashi]}` : ''}
+                      </span>
+                    </div>
+
                     {/* ═ CORE INDICATORS GRID ══════════════════════════════ */}
-                    <SectionCard title="Core Astrological Indicators" icon="🔭" accent="var(--teal)">
+                    <SectionCard title={`Core Astrological Indicators · ${r.houseReference.type === 'arudha' ? 'Arudha Lagna' : 'Udaya Lagna'}`} icon="🔭" accent="var(--teal)">
+                      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '0 0 0.5rem', lineHeight: 1.45 }}>
+                        Computed from <strong style={{ color: 'var(--gold)' }}>{RASHI_NAMES[r.coreLagnaRashi]}</strong>
+                        {r.houseReference.type === 'arudha' ? ' (AL)' : ' (rising)'} — switches when you change house reference above.
+                      </p>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.4rem', marginBottom: '0.5rem' }}>
                         <Chip label="Ascendant Type" value={r.ascendantType} color={r.ascendantTypeResult === 'good' ? 'var(--teal)' : r.ascendantTypeResult === 'bad' ? 'var(--rose)' : 'var(--gold)'} />
                         <Chip label="Sign Mukha" value={r.signType} color={r.signTypeResult === 'good' ? 'var(--teal)' : r.signTypeResult === 'bad' ? 'var(--rose)' : 'var(--gold)'} />
-                        <Chip label="Aroodha-Udaya" value={r.aroodhaUdayaRelation.split(' (')[0]} color={r.aroodhaUdayaResult === 'good' ? 'var(--teal)' : 'var(--rose)'} />
+                        <Chip label={r.aroodhaRelationLabel} value={r.aroodhaUdayaRelation.split(' — ')[0]} color={r.aroodhaUdayaResult === 'good' ? 'var(--teal)' : 'var(--rose)'} />
                         <Chip label="Chathra Rasi" value={`${RASHI_NAMES[r.chhatraRashi]} ${r.chhatraIsObstacle ? '⚠ Obstacle' : '✅ Favorable'}`} color={r.chhatraIsObstacle ? 'var(--rose)' : 'var(--teal)'} />
                       </div>
                       <IndicatorRow label="Ascendant" value={r.ascendantType} ok={r.ascendantTypeResult === 'good'} />
                       <IndicatorRow label="Sign Mukha" value={r.signType} ok={r.signTypeResult === 'good'} />
-                      <IndicatorRow label="Aroodha-Udaya" value={r.aroodhaUdayaRelation} ok={r.aroodhaUdayaResult === 'good'} />
-                      <IndicatorRow label="Chathra Rasi" value={`${RASHI_NAMES[r.chhatraRashi]} — ${r.chhatraIsObstacle ? 'Obstacle (6/8/12 from Lagna)' : 'Favorable'}`} ok={!r.chhatraIsObstacle} />
+                      <IndicatorRow label={r.aroodhaRelationLabel} value={r.aroodhaUdayaRelation} ok={r.aroodhaUdayaResult === 'good'} />
+                      <IndicatorRow label="Chathra Rasi" value={`${RASHI_NAMES[r.chhatraRashi]} — ${r.chhatraIsObstacle ? `Obstacle (6/8/12 from ${r.houseReference.type === 'arudha' ? 'AL' : 'Udaya'})` : 'Favorable'}`} ok={!r.chhatraIsObstacle} />
+                      <IndicatorRow label="Udaya Lagna" value={RASHI_NAMES[chart.lagnas.ascRashi]} ok={null} />
+                      {arudhaLagnaRashi && (
+                        <IndicatorRow label="Arudha Lagna (AL)" value={RASHI_NAMES[arudhaLagnaRashi]} ok={null} />
+                      )}
+                      {resolvedAroodhaRashi && (
+                        <IndicatorRow label="Aroodha (Sparsha)" value={RASHI_NAMES[resolvedAroodhaRashi]} ok={null} />
+                      )}
                       {r.bodyTouchResult && (
                         <div style={{ marginTop: '0.5rem', padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6, fontSize: '0.72rem', color: 'var(--gold)' }}>
                           ✋ <strong>Mushti Prashna (Body Touch):</strong> {r.bodyTouchResult}
@@ -669,6 +807,18 @@ export default function PrashnaPage() {
                           🪐 <strong>Planet in Ascendant:</strong> {r.planetInAscendantEffect}
                         </div>
                       )}
+                    </SectionCard>
+
+                    {/* Planet houses from selected reference */}
+                    <SectionCard title={`Planetary Houses (${r.houseReference.type === 'arudha' ? 'from AL' : 'from Udaya'})`} icon="🏠" accent="var(--gold)">
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.3rem', fontSize: '0.68rem' }}>
+                        {r.planetHousesFromReference.map(ph => (
+                          <div key={ph.id} style={{ padding: '0.3rem 0.45rem', background: 'var(--surface-2)', borderRadius: 5, display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{ph.name}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>H{ph.house}</span>
+                          </div>
+                        ))}
+                      </div>
                     </SectionCard>
 
                     {/* ═ DREKKANA + ELEMENTS 2-col ══════════════════════════ */}
@@ -745,7 +895,9 @@ export default function PrashnaPage() {
                         </div>
                         {/* Past/Present/Future */}
                         <div style={{ padding: '0.5rem 0.75rem', background: 'var(--surface-2)', borderRadius: 7 }}>
-                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Past · Present · Future</div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+                            Past · Present · Future <span style={{ color: 'var(--gold)' }}>(from {r.houseReference.type === 'arudha' ? 'AL' : 'Udaya'})</span>
+                          </div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.3rem', fontSize: '0.68rem' }}>
                             <div style={{ padding: '0.35rem', background: 'var(--surface-3)', borderRadius: 5, textAlign: 'center' }}>
                               <div style={{ color: 'var(--text-muted)', marginBottom: 3 }}>PAST (H9-12)</div>
@@ -1043,7 +1195,10 @@ export default function PrashnaPage() {
                           `Rashmi Score: ${r.rashmiScore}`,
                           ``,
                           `CORE INDICATORS`,
-                          `Ascendant: ${RASHI_NAMES[chart.lagnas.ascRashi]} · ${r.ascendantType}`,
+                          `House reference: ${r.houseReference.label}`,
+                          `Udaya: ${RASHI_NAMES[chart.lagnas.ascRashi]} · ${r.ascendantType}`,
+                          arudhaLagnaRashi ? `Arudha Lagna: ${RASHI_NAMES[arudhaLagnaRashi]}` : '',
+                          resolvedAroodhaRashi ? `Aroodha (Sparsha): ${RASHI_NAMES[resolvedAroodhaRashi]}` : '',
                           `Sign Mukha: ${r.signType}`,
                           `Aroodha-Udaya: ${r.aroodhaUdayaRelation}`,
                           `Chathra Rasi: ${RASHI_NAMES[r.chhatraRashi]} (${r.chhatraIsObstacle ? 'Obstacle' : 'Favorable'})`,
