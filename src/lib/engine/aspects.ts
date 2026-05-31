@@ -8,7 +8,7 @@ import type { GrahaId } from '@/types/astrology'
  * Mars (Ma): 4, 8
  * Jupiter (Ju): 5, 9
  * Saturn (Sa): 3, 10
- * Rahu/Ketu: 5, 9 (standard KP/Modern Vedic)
+ * Rahu/Ketu: none (classical Parashari — nodes do not cast drishti)
  */
 export const GRAHA_ASPECTS: Record<GrahaId, number[]> = {
   Su: [7],
@@ -18,8 +18,8 @@ export const GRAHA_ASPECTS: Record<GrahaId, number[]> = {
   Ju: [5, 7, 9],
   Ve: [7],
   Sa: [3, 7, 10],
-  Ra: [5, 7, 9],
-  Ke: [5, 7, 9],
+  Ra: [],
+  Ke: [],
   Ur: [7],
   Ne: [7],
   Pl: [7]
