@@ -229,7 +229,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
       )}
 
       {/* ── Aspects ── */}
-      {planet.house && (
+      {planet.house && getAspectedHouses(id as GrahaId, planet.house).length > 0 && (
         <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))' }}>
           <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>Planetary Aspects (Dṛṣṭi)</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
