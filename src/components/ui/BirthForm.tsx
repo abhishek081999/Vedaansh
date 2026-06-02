@@ -594,7 +594,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
                   borderRadius: 'var(--r-sm)',
                   border: 'none',
                   background: gender === g ? 'var(--text-gold)' : 'transparent',
-                  color: gender === g ? '#000' : 'var(--text-secondary)',
+                  color: gender === g ? 'var(--text-on-gold)' : 'var(--text-secondary)',
                   fontSize: '0.72rem',
                   fontWeight: 800,
                   textTransform: 'uppercase',

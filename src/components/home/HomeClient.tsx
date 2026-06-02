@@ -378,14 +378,13 @@ function MajorKundaliStrip({
 
   return (
     <div
-      className="fade-up"
+      className="fade-up kundali-snapshot-strip"
       style={{
         marginTop: '0.45rem',
         marginBottom: '0.65rem',
         padding: '0.42rem 0.55rem',
         borderRadius: 'var(--r-sm)',
         border: '1px solid var(--border-soft)',
-        background: 'color-mix(in oklab, var(--surface-2) 82%, var(--surface-1) 18%)',
         display: 'flex',
         alignItems: 'center',
         gap: '0.5rem',
@@ -421,6 +420,7 @@ function MajorKundaliStrip({
 
 import { Suspense } from 'react'
 import { LandingHeroCarousel } from '@/components/home/LandingHeroCarousel'
+import { LandingReveal } from '@/components/home/LandingReveal'
 import { AboutPreview } from '@/components/about/AboutPreview'
 
 /** Query string matches BirthForm URL hydration (`name`, `birthDate`, … `tz`). */
@@ -1040,7 +1040,7 @@ function HomeContent() {
     {
       title: 'Astrology',
       subtitle: 'Dashboard',
-      text: 'Complete kundali, varga, dasha, and interpretation workspace in one focused view.',
+      text: 'Kundali, vargas, dasha, and interpretation.',
       href: '/',
       ctaName: 'major_sections_astrology',
       icon: '🧿',
@@ -1048,7 +1048,7 @@ function HomeContent() {
     {
       title: 'Prashna',
       subtitle: 'Query',
-      text: 'Get focused question-based guidance through Prashna-oriented interpretation flow.',
+      text: 'Guidance for specific questions.',
       href: '/prashna',
       ctaName: 'major_sections_prashna',
       icon: '🎯',
@@ -1056,7 +1056,7 @@ function HomeContent() {
     {
       title: 'Panchang',
       subtitle: 'Daily',
-      text: 'Check tithi, nakshatra, yoga, karana, and live day timing from one section.',
+      text: 'Tithi, nakshatra, yoga, and karana.',
       href: '/panchang',
       ctaName: 'major_sections_panchang',
       icon: '🕉️',
@@ -1064,7 +1064,7 @@ function HomeContent() {
     {
       title: 'Calendar',
       subtitle: 'Monthly',
-      text: 'Scan month-level Vedic timing windows for events, rituals, travel, and launch planning.',
+      text: 'Month-level Vedic timing windows.',
       href: '/panchang/calendar',
       ctaName: 'major_sections_calendar',
       icon: '🗓️',
@@ -1072,7 +1072,7 @@ function HomeContent() {
     {
       title: 'Nakshatra',
       subtitle: 'Lunar',
-      text: 'Explore nakshatra-focused insights and details for deeper day-by-day understanding.',
+      text: 'Nakshatra insights day by day.',
       href: '/nakshatra',
       ctaName: 'major_sections_nakshatra',
       icon: '✨',
@@ -1080,7 +1080,7 @@ function HomeContent() {
     {
       title: 'Jaimini Astrology',
       subtitle: 'Advanced',
-      text: 'Apply Jaimini principles with focused tools for deeper karmic and life-direction reading.',
+      text: 'Jaimini charts and life direction.',
       href: '/jaimini',
       ctaName: 'major_sections_jaimini',
       icon: '🔮',
@@ -1088,7 +1088,7 @@ function HomeContent() {
     {
       title: 'Astro Vastu',
       subtitle: 'Space',
-      text: 'Blend Vastu guidance with astrology signals for home and workplace harmony.',
+      text: 'Vastu aligned with your chart.',
       href: '/vastu',
       ctaName: 'major_sections_astro_vastu',
       icon: '🏠',
@@ -1096,7 +1096,7 @@ function HomeContent() {
     {
       title: 'AstroCartography',
       subtitle: 'Location',
-      text: 'Discover geography-based planetary influence for relocation, travel, and opportunities.',
+      text: 'Planetary lines for travel and moves.',
       href: '/acg',
       ctaName: 'major_sections_astrocartography',
       icon: '🌍',
@@ -1104,7 +1104,7 @@ function HomeContent() {
     {
       title: 'Sarvatobhadra Chakra',
       subtitle: 'Classical',
-      text: 'Access traditional S.B. Chakra style timing and influence mapping for advanced study.',
+      text: 'Traditional S.B. Chakra timing.',
       href: '/sbc',
       ctaName: 'major_sections_sarvatobhadra',
       icon: '🌀',
@@ -1112,7 +1112,7 @@ function HomeContent() {
     {
       title: 'Muhurta Finder',
       subtitle: 'Timing',
-      text: 'Find auspicious windows for important actions with practical muhurta support.',
+      text: 'Auspicious windows for key actions.',
       href: '/muhurta',
       ctaName: 'major_sections_muhurta_finder',
       icon: '🕒',
@@ -1418,7 +1418,7 @@ function HomeContent() {
   return (
     <div className="main-responsive-padding" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       {loading ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', padding: '6rem 2rem', minHeight: '60vh' }}>
+        <div key="home-loading" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', padding: '6rem 2rem', minHeight: '60vh' }}>
           <div className="spin-loader" style={{ width: 56, height: 56, border: '4px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%', borderLeftColor: 'transparent' }} />
           <div style={{ textAlign: 'center' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--text-gold)', margin: '0 0 0.5rem 0', fontWeight: 500 }}>Recalculating Karma…</h2>
@@ -1426,7 +1426,7 @@ function HomeContent() {
           </div>
         </div>
       ) : chart ? (
-         <div className="fade-up" style={{ minWidth: 0, paddingBottom: showStrengthSubNav && activeTab !== 'dashboard' ? '6rem' : undefined }}>
+         <div key="home-chart" className="fade-up" style={{ minWidth: 0, paddingBottom: showStrengthSubNav && activeTab !== 'dashboard' ? '6rem' : undefined }}>
             
             {/* Compact Header Strip */}
             <div className="chart-header-row" style={isMobile ? { position: 'relative' } : undefined}>
@@ -2557,9 +2557,15 @@ function HomeContent() {
                )}
              </div>
       ) : (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: 'clamp(1rem, 2.5vw, 2rem)' }}>
+        <div key="home-landing" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: 'clamp(1rem, 2.5vw, 2rem)' }}>
           {!isFormOpen && (
             <div className="fade-in landing-shell" style={{ width: '100%', maxWidth: 1240 }}>
+              <div className="landing-ambient" aria-hidden="true">
+                <span className="landing-ambient-orb landing-ambient-orb--gold" />
+                <span className="landing-ambient-orb landing-ambient-orb--maroon" />
+                <span className="landing-ambient-orb landing-ambient-orb--violet" />
+              </div>
+
               <LandingHeroCarousel
                 trackLandingCta={trackLandingCta}
                 onOpenAstrology={openAstrologyApp}
@@ -2568,14 +2574,14 @@ function HomeContent() {
                 withChartGate={openSectionWithChartGate}
               />
 
-              <section className="card landing-major-sections fade-up-1" style={{ marginBottom: '1.25rem', padding: '1.2rem' }}>
+              <LandingReveal as="section" className="card landing-major-sections" style={{ marginBottom: '1.25rem', padding: '1.2rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Major sections</div>
                 <h3 style={{ margin: '0 0 0.45rem 0' }}>Move quickly across all core Vedaansh journeys</h3>
                 <p style={{ margin: '0 0 0.9rem 0', color: 'var(--text-secondary)', maxWidth: 900 }}>
-                  Astrology, Prashna, Panchang, and Calendar are now surfaced first so users can start from the exact intent.
+                  Jump straight to the journey you need.
                 </p>
-                <div className="landing-major-sections-grid">
-                  {landingMajorSections.map((section) => (
+                <div className="landing-major-sections-grid landing-reveal-stagger">
+                  {landingMajorSections.map((section, idx) => (
                     <Link
                       key={section.title}
                       href={section.href}
@@ -2583,48 +2589,36 @@ function HomeContent() {
                         trackLandingCta(section.ctaName)
                         openSectionWithChartGate(section.href, e)
                       }}
-                      className="landing-portal-card"
-                      style={{
-                        textDecoration: 'none',
-                        border: '1px solid var(--border-soft)',
-                        borderRadius: 'var(--r-lg)',
-                        padding: '0.95rem',
-                      }}
+                      className="stat-chip landing-major-section-card"
+                      style={{ ['--stagger-i' as string]: idx }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
-                        <span style={{ fontSize: '1.1rem' }}>{section.icon}</span>
-                        <span className="badge badge-gold">{section.subtitle}</span>
-                      </div>
-                      <h4 style={{ margin: '0 0 0.35rem 0', fontSize: '1.02rem' }}>{section.title}</h4>
-                      <p style={{ margin: 0, fontSize: '0.86rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
-                        {section.text}
-                      </p>
+                      <span className="stat-value">{section.title}</span>
+                      <span className="stat-sub">{section.text}</span>
                     </Link>
                   ))}
                 </div>
-              </section>
+              </LandingReveal>
 
-              <section className="card fade-up-2 landing-vedic-gallery" style={{ marginBottom: '1.25rem' }}>
+              <LandingReveal as="section" className="card landing-vedic-gallery" style={{ marginBottom: '1.25rem' }} delay={60}>
                 <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Vedic visuals</div>
                 <h3 style={{ margin: '0 0 0.65rem 0' }}>A spiritual aesthetic inspired by sages, scriptures, and sacred timing</h3>
-                <div className="landing-vedic-gallery-grid">
-                  {vedicVisuals.map((item) => (
-                    <article key={item.title} className="landing-vedic-gallery-card">
-                      <div className="landing-vedic-gallery-icon">{item.icon}</div>
-                      <h4 style={{ margin: '0 0 0.35rem 0' }}>{item.title}</h4>
-                      <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.88rem' }}>{item.text}</p>
+                <div className="landing-vedic-gallery-grid landing-reveal-stagger">
+                  {vedicVisuals.map((item, idx) => (
+                    <article key={item.title} className="stat-chip stat-chip-display" style={{ ['--stagger-i' as string]: idx }}>
+                      <span className="stat-value">{item.title}</span>
+                      <span className="stat-sub">{item.text}</span>
                     </article>
                   ))}
                 </div>
-              </section>
+              </LandingReveal>
 
-              <section className="card fade-up-1" style={{ marginBottom: '1.25rem', border: '1px solid var(--border-bright)', padding: '1.25rem' }}>
+              <LandingReveal as="section" className="card landing-fresh-section" style={{ marginBottom: '1.25rem', border: '1px solid var(--border-bright)', padding: '1.25rem' }} delay={80}>
                 <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Why this feels fresh</div>
                 <h3 style={{ margin: '0 0 0.75rem 0' }}>Relevant information first, deep tooling always one click away</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                  {landingFeaturePillars.map((item) => (
-                    <div key={item.title} className="stat-chip">
-                      <span className="stat-value" style={{ fontSize: '0.95rem' }}>{item.title}</span>
+                <div className="landing-feature-grid landing-reveal-stagger">
+                  {landingFeaturePillars.map((item, idx) => (
+                    <div key={item.title} className="stat-chip stat-chip-display" style={{ ['--stagger-i' as string]: idx }}>
+                      <span className="stat-value">{item.title}</span>
                       <span className="stat-sub">{item.detail}</span>
                     </div>
                   ))}
@@ -2632,29 +2626,33 @@ function HomeContent() {
                 <div className="landing-marquee" style={{ marginTop: '0.95rem' }}>
                   <div className="landing-marquee-track">
                     {[...trustedBy, ...trustedBy].map((item, idx) => (
-                      <span key={`${item}-${idx}`} className="landing-trusted-pill">{item}</span>
+                      <span key={`${item}-${idx}`} className="stat-chip stat-chip-display landing-trusted-pill">
+                        <span className="stat-value">{item}</span>
+                      </span>
                     ))}
                   </div>
                 </div>
-              </section>
+              </LandingReveal>
 
-              <section className="card fade-up-2 landing-flow-card" style={{ marginBottom: '1.25rem' }}>
+              <LandingReveal as="section" className="card landing-flow-card" style={{ marginBottom: '1.25rem' }} delay={100}>
                 <div className="label-caps" style={{ marginBottom: '0.6rem' }}>How it flows</div>
                 <h3 style={{ margin: '0 0 0.65rem 0' }}>From birth data to confident life direction in minutes</h3>
-                <div className="landing-flow-grid">
-                  {landingJourney.map((item) => (
-                    <article key={item.step} className="landing-flow-item">
-                      <span className="badge badge-gold">{item.step}</span>
-                      <h4 style={{ margin: '0.65rem 0 0.35rem 0', fontSize: '1rem' }}>{item.title}</h4>
-                      <p style={{ margin: 0, fontSize: '0.88rem' }}>{item.text}</p>
+                <div className="landing-flow-grid landing-reveal-stagger landing-flow-grid--animated">
+                  {landingJourney.map((item, idx) => (
+                    <article key={item.step} className="stat-chip stat-chip-display landing-flow-item" style={{ ['--stagger-i' as string]: idx }}>
+                      <span className="stat-label">{item.step}</span>
+                      <span className="stat-value">{item.title}</span>
+                      <span className="stat-sub">{item.text}</span>
                     </article>
                   ))}
                 </div>
-              </section>
+              </LandingReveal>
 
-              <AboutPreview onCtaClick={() => trackLandingCta('about_preview_read_more')} />
+              <LandingReveal delay={120}>
+                <AboutPreview onCtaClick={() => trackLandingCta('about_preview_read_more')} />
+              </LandingReveal>
 
-              <section className="card fade-up-4 landing-cta-band" style={{ marginBottom: '1.25rem' }}>
+              <LandingReveal as="section" className="card landing-cta-band" style={{ marginBottom: '1.25rem' }} delay={140}>
                 <div>
                   <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--text-gold)' }}>Start your journey</div>
                   <h3 style={{ margin: 0 }}>Open your Vedic command center now</h3>
@@ -2662,15 +2660,15 @@ function HomeContent() {
                     Start with your chart, then move into Prashna, Panchang, and Calendar planning in one coherent workflow.
                   </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.7rem', flexWrap: 'wrap' }}>
-                  <button onClick={() => { trackLandingCta('cta_band_start_now'); openAstrologyApp() }} className="btn btn-primary">
+                <div className="landing-cta-band-actions">
+                  <button onClick={() => { trackLandingCta('cta_band_start_now'); openAstrologyApp() }} className="btn btn-primary landing-cta-band-primary">
                     Open Astrology App
                   </button>
                   <Link href="/prashna" onClick={() => trackLandingCta('cta_band_open_prashna')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
                     Open Prashna
                   </Link>
                 </div>
-              </section>
+              </LandingReveal>
 
               <div className="landing-sticky-mobile-cta">
                 <button onClick={() => { trackLandingCta('sticky_mobile_start'); openAstrologyApp() }} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>

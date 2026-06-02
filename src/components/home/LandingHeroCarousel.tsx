@@ -133,7 +133,7 @@ export function LandingHeroCarousel({
 
   return (
     <section
-      className={`card landing-hero-carousel ${paused ? 'is-paused' : ''} ${reducedMotion ? 'reduced-motion' : ''}`}
+      className={`card landing-hero-carousel fade-up ${paused ? 'is-paused' : ''} ${reducedMotion ? 'reduced-motion' : ''}`}
       style={{ marginBottom: '1rem', ['--hero-auto-ms' as string]: `${AUTO_MS}ms`, ['--hero-accent' as string]: slide.accent }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -155,7 +155,11 @@ export function LandingHeroCarousel({
         </div>
 
         <div className="landing-hero-carousel-stage">
-          <article className="landing-hero-carousel-slide is-active" style={{ ['--slide-accent' as string]: slide.accent }}>
+          <article
+            key={slide.id}
+            className="landing-hero-carousel-slide is-active"
+            style={{ ['--slide-accent' as string]: slide.accent }}
+          >
             <div className="landing-hero-carousel-slide-bg" />
             <div className="landing-hero-carousel-copy">
               <p className="landing-hero-carousel-kicker">{slide.kicker}</p>
@@ -190,7 +194,7 @@ export function LandingHeroCarousel({
             </div>
 
             <aside className="landing-hero-vedic-art">
-              <div className="landing-hero-vedic-art-symbol">{slide.visual.emoji}</div>
+              <div className="landing-hero-vedic-art-symbol landing-hero-vedic-art-symbol--pulse">{slide.visual.emoji}</div>
               <h3>{slide.visual.title}</h3>
               <p>{slide.visual.text}</p>
             </aside>

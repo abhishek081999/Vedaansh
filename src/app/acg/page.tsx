@@ -76,13 +76,18 @@ export default function ACGPage() {
   const showMap = !isMobile || mobileView === 'map'
   const showAnalysis = !isMobile || mobileView !== 'map'
 
+  const pagePad = isMobile ? '1rem' : '2.5rem'
+  const pagePadBottom = isMobile ? '6rem' : pagePad
+
   return (
     <div className="fade-up" style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       gap: isMobile ? '1rem' : '2rem', 
-      padding: isMobile ? '1rem' : '2.5rem',
-      paddingBottom: isMobile ? '6rem' : undefined,
+      paddingTop: pagePad,
+      paddingLeft: pagePad,
+      paddingRight: pagePad,
+      paddingBottom: pagePadBottom,
       position: 'relative'
     }}>
       {/* Background Decor */}

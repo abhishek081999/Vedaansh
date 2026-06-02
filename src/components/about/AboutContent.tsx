@@ -5,10 +5,11 @@ import Link from 'next/link'
 import {
   ABOUT_VISION,
   ABOUT_DEVELOPER,
-  ABOUT_GURU,
   ABOUT_SPECIAL_THANKS,
-  ABOUT_CONTACT,
+  ABOUT_CREATOR_CONTACT,
+  ABOUT_VEDAANSH_CONTACT,
 } from '@/lib/about/content'
+import { textWithNameHighlight } from '@/components/about/highlightName'
 
 const sectionStyle: React.CSSProperties = {
   marginBottom: '1.5rem',
@@ -87,101 +88,74 @@ export function AboutContent({ compact = false }: { compact?: boolean }) {
         </p>
         {ABOUT_DEVELOPER.paragraphs.map((p, i) => (
           <p key={i} style={{ margin: '0 0 0.75rem', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-            {p}
+            {textWithNameHighlight(p)}
           </p>
         ))}
       </section>
 
-      {/* Guru */}
-      <section className="card" style={sectionStyle}>
-        <div className="label-caps" style={{ marginBottom: '0.45rem' }}>Our Guru</div>
-        <h2 style={{ margin: '0 0 0.2rem', fontSize: '1.35rem', fontFamily: 'var(--font-display)' }}>
-          {ABOUT_GURU.name}
-        </h2>
-        <p style={{ margin: '0 0 0.35rem', color: 'var(--text-gold)', fontSize: '0.85rem', fontWeight: 600 }}>
-          {ABOUT_GURU.honorific}
+      {/* Acknowledgement */}
+      <section
+        className="card"
+        style={{
+          ...sectionStyle,
+          padding: '1rem 1.15rem',
+          borderLeft: '3px solid var(--text-gold)',
+          background: 'color-mix(in oklab, var(--gold-faint, rgba(197, 160, 89, 0.1)) 55%, var(--surface-1) 45%)',
+        }}
+      >
+        <div className="label-caps" style={{ marginBottom: '0.4rem' }}>Special thanks</div>
+        <p style={{ margin: 0, lineHeight: 1.65, color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
+          {textWithNameHighlight(ABOUT_SPECIAL_THANKS.text)}
         </p>
-        <p style={{ margin: '0 0 0.85rem', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-          {ABOUT_GURU.experienceLabel} of Vedic Astrology & spiritual practice
-        </p>
-        {ABOUT_GURU.paragraphs.map((p, i) => (
-          <p key={i} style={{ margin: '0 0 0.75rem', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-            {p}
-          </p>
-        ))}
-        <blockquote
-          style={{
-            margin: '1rem 0 0',
-            padding: '0.85rem 1rem',
-            borderLeft: '3px solid var(--text-gold)',
-            background: 'rgba(201, 168, 76, 0.06)',
-            borderRadius: '0 8px 8px 0',
-            fontStyle: 'italic',
-            color: 'var(--text-primary)',
-            lineHeight: 1.65,
-            fontSize: '0.92rem',
-          }}
-        >
-          {ABOUT_GURU.gratitude}
-        </blockquote>
-      </section>
-
-      {/* Special thanks */}
-      <section className="card" style={sectionStyle}>
-        <div className="label-caps" style={{ marginBottom: '0.65rem' }}>{ABOUT_SPECIAL_THANKS.title}</div>
-        {ABOUT_SPECIAL_THANKS.entries.map((entry) => (
-          <div key={entry.name} style={{ marginBottom: '0.85rem' }}>
-            <h2 style={{ margin: '0 0 0.2rem', fontSize: '1.15rem', fontFamily: 'var(--font-display)' }}>
-              {entry.name}
-            </h2>
-            <p style={{ margin: '0 0 0.5rem', color: 'var(--text-gold)', fontSize: '0.85rem', fontWeight: 600 }}>
-              {entry.org}
-            </p>
-            <p style={{ margin: 0, lineHeight: 1.7, color: 'var(--text-secondary)' }}>{entry.note}</p>
-          </div>
-        ))}
       </section>
 
       {/* Contact */}
       <section className="card" style={sectionStyle}>
-        <div className="label-caps" style={{ marginBottom: '0.65rem' }}>Connect With Us</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+        <div className="label-caps" style={{ marginBottom: '0.65rem' }}>Connect with us</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
+            <p style={{ margin: '0 0 0.65rem', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+              {ABOUT_CREATOR_CONTACT.name} · {ABOUT_CREATOR_CONTACT.roleLabel}
+            </p>
             <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.95rem', color: 'var(--text-gold)' }}>Email</h3>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {ABOUT_CONTACT.emails.map((e) => (
-                <li key={e.address}>
-                  <a
-                    href={`mailto:${e.address}`}
-                    style={{ color: 'var(--text-primary)', textDecoration: 'none', fontSize: '0.92rem' }}
-                  >
-                    <span style={{ color: 'var(--text-muted)', marginRight: '0.35rem' }}>{e.label}:</span>
-                    {e.address}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <a
+              href={`mailto:${ABOUT_CREATOR_CONTACT.email}`}
+              style={{ color: 'var(--text-primary)', textDecoration: 'none', fontSize: '0.92rem', fontWeight: 500 }}
+            >
+              {ABOUT_CREATOR_CONTACT.email}
+            </a>
+            <h3 style={{ margin: '0.85rem 0 0.5rem', fontSize: '0.95rem', color: 'var(--text-gold)' }}>Instagram</h3>
+            <a
+              href={ABOUT_CREATOR_CONTACT.instagram.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary"
+              style={{ textDecoration: 'none', fontSize: '0.85rem', padding: '0.45rem 0.85rem', display: 'inline-flex' }}
+            >
+              @{ABOUT_CREATOR_CONTACT.instagram.handle}
+            </a>
           </div>
-          <div>
-            <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.95rem', color: 'var(--text-gold)' }}>Instagram</h3>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: '0.65rem' }}>
-              {ABOUT_CONTACT.instagram.map((ig) => (
-                <li key={ig.handle}>
-                  <a
-                    href={ig.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-secondary"
-                    style={{ textDecoration: 'none', fontSize: '0.85rem', padding: '0.45rem 0.85rem' }}
-                  >
-                    @{ig.handle}
-                    <span style={{ color: 'var(--text-muted)', marginLeft: '0.35rem', fontSize: '0.75rem' }}>
-                      ({ig.label})
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <div style={{ borderTop: '1px solid var(--border-soft)', paddingTop: '1.1rem' }}>
+            <p style={{ margin: '0 0 0.65rem', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+              {ABOUT_VEDAANSH_CONTACT.label}
+            </p>
+            <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.95rem', color: 'var(--text-gold)' }}>Email</h3>
+            <a
+              href={`mailto:${ABOUT_VEDAANSH_CONTACT.email}`}
+              style={{ color: 'var(--text-primary)', textDecoration: 'none', fontSize: '0.92rem', fontWeight: 500 }}
+            >
+              {ABOUT_VEDAANSH_CONTACT.email}
+            </a>
+            <h3 style={{ margin: '0.85rem 0 0.5rem', fontSize: '0.95rem', color: 'var(--text-gold)' }}>Instagram</h3>
+            <a
+              href={ABOUT_VEDAANSH_CONTACT.instagram.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary"
+              style={{ textDecoration: 'none', fontSize: '0.85rem', padding: '0.45rem 0.85rem', display: 'inline-flex' }}
+            >
+              @{ABOUT_VEDAANSH_CONTACT.instagram.handle}
+            </a>
           </div>
         </div>
       </section>
