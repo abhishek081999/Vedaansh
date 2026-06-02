@@ -6,7 +6,6 @@ import {
   ABOUT_VISION,
   ABOUT_DEVELOPER,
   ABOUT_GURU,
-  ABOUT_SPECIAL_THANKS,
   ABOUT_CONTACT,
 } from '@/lib/about/content'
 
@@ -124,22 +123,6 @@ export function AboutContent({ compact = false }: { compact?: boolean }) {
         >
           {ABOUT_GURU.gratitude}
         </blockquote>
-      </section>
-
-      {/* Special thanks */}
-      <section className="card" style={sectionStyle}>
-        <div className="label-caps" style={{ marginBottom: '0.65rem' }}>{ABOUT_SPECIAL_THANKS.title}</div>
-        {ABOUT_SPECIAL_THANKS.entries.map((entry) => (
-          <div key={entry.name} style={{ marginBottom: '0.85rem' }}>
-            <h2 style={{ margin: '0 0 0.2rem', fontSize: '1.15rem', fontFamily: 'var(--font-display)' }}>
-              {entry.name}
-            </h2>
-            <p style={{ margin: '0 0 0.5rem', color: 'var(--text-gold)', fontSize: '0.85rem', fontWeight: 600 }}>
-              {entry.org}
-            </p>
-            <p style={{ margin: 0, lineHeight: 1.7, color: 'var(--text-secondary)' }}>{entry.note}</p>
-          </div>
-        ))}
       </section>
 
       {/* Contact */}

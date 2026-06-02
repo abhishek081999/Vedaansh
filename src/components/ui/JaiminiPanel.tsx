@@ -103,10 +103,9 @@ function JaiminiSnapshot({ chart, isTinyMobile }: { chart: ChartOutput, isTinyMo
   ];
 
   return (
-    <div className="card-glass scrollbar-hide" style={{ 
+    <div className="jaimini-snapshot-strip card-glass scrollbar-hide" style={{ 
       padding: '0.5rem 0.75rem', 
       borderRadius: 'var(--r-lg)', 
-      background: 'var(--surface-1)', 
       border: '1px solid var(--border-soft)',
       boxShadow: 'var(--shadow-card)',
       marginBottom: '0.75rem',

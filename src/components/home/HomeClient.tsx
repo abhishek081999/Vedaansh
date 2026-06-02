@@ -378,14 +378,13 @@ function MajorKundaliStrip({
 
   return (
     <div
-      className="fade-up"
+      className="fade-up kundali-snapshot-strip"
       style={{
         marginTop: '0.45rem',
         marginBottom: '0.65rem',
         padding: '0.42rem 0.55rem',
         borderRadius: 'var(--r-sm)',
         border: '1px solid var(--border-soft)',
-        background: 'color-mix(in oklab, var(--surface-2) 82%, var(--surface-1) 18%)',
         display: 'flex',
         alignItems: 'center',
         gap: '0.5rem',
@@ -1040,7 +1039,7 @@ function HomeContent() {
     {
       title: 'Astrology',
       subtitle: 'Dashboard',
-      text: 'Complete kundali, varga, dasha, and interpretation workspace in one focused view.',
+      text: 'Kundali, vargas, dasha, and interpretation.',
       href: '/',
       ctaName: 'major_sections_astrology',
       icon: '🧿',
@@ -1048,7 +1047,7 @@ function HomeContent() {
     {
       title: 'Prashna',
       subtitle: 'Query',
-      text: 'Get focused question-based guidance through Prashna-oriented interpretation flow.',
+      text: 'Guidance for specific questions.',
       href: '/prashna',
       ctaName: 'major_sections_prashna',
       icon: '🎯',
@@ -1056,7 +1055,7 @@ function HomeContent() {
     {
       title: 'Panchang',
       subtitle: 'Daily',
-      text: 'Check tithi, nakshatra, yoga, karana, and live day timing from one section.',
+      text: 'Tithi, nakshatra, yoga, and karana.',
       href: '/panchang',
       ctaName: 'major_sections_panchang',
       icon: '🕉️',
@@ -1064,7 +1063,7 @@ function HomeContent() {
     {
       title: 'Calendar',
       subtitle: 'Monthly',
-      text: 'Scan month-level Vedic timing windows for events, rituals, travel, and launch planning.',
+      text: 'Month-level Vedic timing windows.',
       href: '/panchang/calendar',
       ctaName: 'major_sections_calendar',
       icon: '🗓️',
@@ -1072,7 +1071,7 @@ function HomeContent() {
     {
       title: 'Nakshatra',
       subtitle: 'Lunar',
-      text: 'Explore nakshatra-focused insights and details for deeper day-by-day understanding.',
+      text: 'Nakshatra insights day by day.',
       href: '/nakshatra',
       ctaName: 'major_sections_nakshatra',
       icon: '✨',
@@ -1080,7 +1079,7 @@ function HomeContent() {
     {
       title: 'Jaimini Astrology',
       subtitle: 'Advanced',
-      text: 'Apply Jaimini principles with focused tools for deeper karmic and life-direction reading.',
+      text: 'Jaimini charts and life direction.',
       href: '/jaimini',
       ctaName: 'major_sections_jaimini',
       icon: '🔮',
@@ -1088,7 +1087,7 @@ function HomeContent() {
     {
       title: 'Astro Vastu',
       subtitle: 'Space',
-      text: 'Blend Vastu guidance with astrology signals for home and workplace harmony.',
+      text: 'Vastu aligned with your chart.',
       href: '/vastu',
       ctaName: 'major_sections_astro_vastu',
       icon: '🏠',
@@ -1096,7 +1095,7 @@ function HomeContent() {
     {
       title: 'AstroCartography',
       subtitle: 'Location',
-      text: 'Discover geography-based planetary influence for relocation, travel, and opportunities.',
+      text: 'Planetary lines for travel and moves.',
       href: '/acg',
       ctaName: 'major_sections_astrocartography',
       icon: '🌍',
@@ -1104,7 +1103,7 @@ function HomeContent() {
     {
       title: 'Sarvatobhadra Chakra',
       subtitle: 'Classical',
-      text: 'Access traditional S.B. Chakra style timing and influence mapping for advanced study.',
+      text: 'Traditional S.B. Chakra timing.',
       href: '/sbc',
       ctaName: 'major_sections_sarvatobhadra',
       icon: '🌀',
@@ -1112,7 +1111,7 @@ function HomeContent() {
     {
       title: 'Muhurta Finder',
       subtitle: 'Timing',
-      text: 'Find auspicious windows for important actions with practical muhurta support.',
+      text: 'Auspicious windows for key actions.',
       href: '/muhurta',
       ctaName: 'major_sections_muhurta_finder',
       icon: '🕒',
@@ -2572,7 +2571,7 @@ function HomeContent() {
                 <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Major sections</div>
                 <h3 style={{ margin: '0 0 0.45rem 0' }}>Move quickly across all core Vedaansh journeys</h3>
                 <p style={{ margin: '0 0 0.9rem 0', color: 'var(--text-secondary)', maxWidth: 900 }}>
-                  Astrology, Prashna, Panchang, and Calendar are now surfaced first so users can start from the exact intent.
+                  Jump straight to the journey you need.
                 </p>
                 <div className="landing-major-sections-grid">
                   {landingMajorSections.map((section) => (
@@ -2583,22 +2582,10 @@ function HomeContent() {
                         trackLandingCta(section.ctaName)
                         openSectionWithChartGate(section.href, e)
                       }}
-                      className="landing-portal-card"
-                      style={{
-                        textDecoration: 'none',
-                        border: '1px solid var(--border-soft)',
-                        borderRadius: 'var(--r-lg)',
-                        padding: '0.95rem',
-                      }}
+                      className="stat-chip landing-major-section-card"
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
-                        <span style={{ fontSize: '1.1rem' }}>{section.icon}</span>
-                        <span className="badge badge-gold">{section.subtitle}</span>
-                      </div>
-                      <h4 style={{ margin: '0 0 0.35rem 0', fontSize: '1.02rem' }}>{section.title}</h4>
-                      <p style={{ margin: 0, fontSize: '0.86rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
-                        {section.text}
-                      </p>
+                      <span className="stat-value">{section.title}</span>
+                      <span className="stat-sub">{section.text}</span>
                     </Link>
                   ))}
                 </div>
@@ -2609,10 +2596,9 @@ function HomeContent() {
                 <h3 style={{ margin: '0 0 0.65rem 0' }}>A spiritual aesthetic inspired by sages, scriptures, and sacred timing</h3>
                 <div className="landing-vedic-gallery-grid">
                   {vedicVisuals.map((item) => (
-                    <article key={item.title} className="landing-vedic-gallery-card">
-                      <div className="landing-vedic-gallery-icon">{item.icon}</div>
-                      <h4 style={{ margin: '0 0 0.35rem 0' }}>{item.title}</h4>
-                      <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.88rem' }}>{item.text}</p>
+                    <article key={item.title} className="stat-chip">
+                      <span className="stat-value">{item.title}</span>
+                      <span className="stat-sub">{item.text}</span>
                     </article>
                   ))}
                 </div>
@@ -2621,10 +2607,10 @@ function HomeContent() {
               <section className="card fade-up-1" style={{ marginBottom: '1.25rem', border: '1px solid var(--border-bright)', padding: '1.25rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Why this feels fresh</div>
                 <h3 style={{ margin: '0 0 0.75rem 0' }}>Relevant information first, deep tooling always one click away</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                <div className="landing-feature-grid">
                   {landingFeaturePillars.map((item) => (
                     <div key={item.title} className="stat-chip">
-                      <span className="stat-value" style={{ fontSize: '0.95rem' }}>{item.title}</span>
+                      <span className="stat-value">{item.title}</span>
                       <span className="stat-sub">{item.detail}</span>
                     </div>
                   ))}
@@ -2632,7 +2618,9 @@ function HomeContent() {
                 <div className="landing-marquee" style={{ marginTop: '0.95rem' }}>
                   <div className="landing-marquee-track">
                     {[...trustedBy, ...trustedBy].map((item, idx) => (
-                      <span key={`${item}-${idx}`} className="landing-trusted-pill">{item}</span>
+                      <span key={`${item}-${idx}`} className="stat-chip landing-trusted-pill">
+                        <span className="stat-value">{item}</span>
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -2643,10 +2631,10 @@ function HomeContent() {
                 <h3 style={{ margin: '0 0 0.65rem 0' }}>From birth data to confident life direction in minutes</h3>
                 <div className="landing-flow-grid">
                   {landingJourney.map((item) => (
-                    <article key={item.step} className="landing-flow-item">
-                      <span className="badge badge-gold">{item.step}</span>
-                      <h4 style={{ margin: '0.65rem 0 0.35rem 0', fontSize: '1rem' }}>{item.title}</h4>
-                      <p style={{ margin: 0, fontSize: '0.88rem' }}>{item.text}</p>
+                    <article key={item.step} className="stat-chip landing-flow-item">
+                      <span className="stat-label">{item.step}</span>
+                      <span className="stat-value">{item.title}</span>
+                      <span className="stat-sub">{item.text}</span>
                     </article>
                   ))}
                 </div>

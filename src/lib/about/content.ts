@@ -34,17 +34,6 @@ export const ABOUT_GURU = {
     'With deep gratitude and reverence — वन्दना — to Sameer Bhatnagar ji, whose guidance lights this path. May his blessings continue to inspire every seeker who uses Vedaansh.',
 } as const
 
-export const ABOUT_SPECIAL_THANKS = {
-  title: 'Special Thanks',
-  entries: [
-    {
-      name: 'Ojaswani Sharma',
-      org: 'Ojas Astro',
-      note: 'Heartfelt thanks to Ojaswani Sharma and Ojas Astro for their support, encouragement, and contribution to the Vedaansh journey.',
-    },
-  ],
-} as const
-
 export const ABOUT_CONTACT = {
   emails: [
     { label: 'Abhishek Kumar', address: 'abhishekbhoranj@gmail.com' },
