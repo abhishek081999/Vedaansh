@@ -877,11 +877,16 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     );
   };
 
+  const panelPad = isTinyMobile ? '0.25rem' : isMobile ? '0.75rem' : '1.25rem'
+  const panelPadBottom = isMobile ? '6rem' : panelPad
+
   return (
     <div className="fade-up" style={{ 
       display: 'flex', flexDirection: 'column', gap: isTinyMobile ? '0.75rem' : '1rem', 
-      padding: isTinyMobile ? '0.25rem' : isMobile ? '0.75rem' : '1.25rem', 
-      paddingBottom: isMobile ? '6rem' : undefined,
+      paddingTop: panelPad,
+      paddingLeft: panelPad,
+      paddingRight: panelPad,
+      paddingBottom: panelPadBottom,
       background: isTinyMobile ? 'transparent' : 'var(--surface-2)',
       borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)',
       border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
