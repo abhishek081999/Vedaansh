@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
+import { abuseLimits } from '@/lib/security/rateLimitPolicy'
 import { requireAdmin } from '@/lib/admin/auth'
 import { logAdminAction } from '@/lib/admin/audit'
 import { getBroadcastRecipientEmails } from '@/lib/admin/broadcast'
@@ -16,7 +17,13 @@ export async function POST(req: NextRequest) {
   try {
     const blockedResponse = await guardRoute(req, {
       ...routeSecurityPresets.adminMutate(),
-      rateLimit: { bucket: 'admin-mutate', limit: 10, windowSeconds: 300, message: 'Too many broadcast attempts.' },
+      rateLimit: {
+        bucket: 'admin-mutate',
+        limit: abuseLimits.adminBroadcastPerFiveMin,
+        windowSeconds: 5 * 60,
+        strict: true,
+        message: 'Too many broadcast attempts.',
+      },
     })
     if (blockedResponse) return blockedResponse
 

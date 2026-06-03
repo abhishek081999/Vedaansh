@@ -16,7 +16,7 @@ describe('routeSecurityPresets', () => {
 
   it('webhook allows high volume', () => {
     const preset = routeSecurityPresets.webhook()
-    expect(preset.rateLimit?.limit).toBe(200)
+    expect(preset.rateLimit?.limit).toBe(500)
     expect(preset.rateLimit?.bucket).toBe('webhook')
   })
 

@@ -234,6 +234,11 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
     try {
       const res = await fetch(`/api/atlas/search?q=${encodeURIComponent(query)}`)
       const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? 'Location search failed')
+        setLocationResults([])
+        return
+      }
       let results = data.results ?? []
       
       // Client-side fix: If any result still says UTC but is in SAARC region, fix it
@@ -334,7 +339,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         setSearchOpen(true)
     }
 
-    searchTimer.current = setTimeout(() => searchLocations(val), 75)
+    searchTimer.current = setTimeout(() => searchLocations(val), 400)
   }
 
   const selectLocation = (loc: LocationResult) => {

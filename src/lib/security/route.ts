@@ -9,6 +9,8 @@ export type RouteRateLimitConfig = {
   limit: number
   windowSeconds: number
   message?: string
+  keySuffix?: string
+  strict?: boolean
 }
 
 export type RouteSecurityOptions = {

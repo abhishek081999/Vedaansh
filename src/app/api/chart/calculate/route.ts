@@ -136,6 +136,7 @@ function localToUTC(date: string, time: string, tz: string): { utcDate: string; 
 import { CHART_JSON_BODY_BYTES } from '@/lib/security/bodyLimit'
 import { applyRouteSecurity } from '@/lib/security/route'
 import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
+import { rateLimitMessages, RATE_LIMIT_WINDOWS, userLimits } from '@/lib/security/rateLimitPolicy'
 
 export async function POST(req: NextRequest) {
   try {
@@ -148,9 +149,12 @@ export async function POST(req: NextRequest) {
       maxBodyBytes: CHART_JSON_BODY_BYTES,
       rateLimit: {
         bucket: isAuthenticated ? 'chart_calculate_auth' : 'chart_calculate_anon',
-        limit: isAuthenticated ? 20 : 5,
-        windowSeconds: 60,
-        message: 'Calculation rate limit exceeded. Please wait a moment.',
+        limit: isAuthenticated
+          ? userLimits.chartCalculateAuthPerMinute
+          : userLimits.chartCalculateAnonPerMinute,
+        windowSeconds: RATE_LIMIT_WINDOWS.minute,
+        keySuffix: isAuthenticated ? session!.user!.id : undefined,
+        message: rateLimitMessages.chartCalculate,
       },
     })
     if (securityBlocked) return securityBlocked

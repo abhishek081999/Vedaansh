@@ -6,6 +6,7 @@
 
 import { auth } from '@/auth'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { abuseLimits, rateLimitMessages, RATE_LIMIT_WINDOWS } from '@/lib/security/rateLimitPolicy'
 import { logSecurityEvent } from '@/lib/security/events'
 import { withDocumentCsp } from '@/lib/security/csp'
 import { NextResponse } from 'next/server'
@@ -77,9 +78,10 @@ export default auth(async (req: NextRequest & { auth: any }) => {
     const blocked = await applyRouteSecurity(req, {
       rateLimit: {
         bucket: 'auth-signin',
-        limit: 20,
-        windowSeconds: 15 * 60,
-        message: 'Too many sign-in attempts. Please try again later.',
+        limit: abuseLimits.authSigninPerQuarterHour,
+        windowSeconds: RATE_LIMIT_WINDOWS.quarterHour,
+        strict: true,
+        message: rateLimitMessages.authSignin,
       },
     })
     if (blocked) {
