@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { requireAdmin } from '@/lib/admin/auth'
 import { logAdminAction } from '@/lib/admin/audit'
 import { getBroadcastRecipientEmails } from '@/lib/admin/broadcast'
@@ -14,8 +14,8 @@ const BroadcastSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, {
-      requireSameOrigin: true,
+    const blockedResponse = await guardRoute(req, {
+      ...routeSecurityPresets.adminMutate(),
       rateLimit: { bucket: 'admin-mutate', limit: 10, windowSeconds: 300, message: 'Too many broadcast attempts.' },
     })
     if (blockedResponse) return blockedResponse

@@ -3,21 +3,14 @@ import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 import { MongoClient } from 'mongodb'
 import { hashOneTimeToken } from '@/lib/security/tokens'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
 
 export async function GET(req: Request) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, {
-      rateLimit: {
-        bucket: 'auth-verify-email',
-        limit: 30,
-        windowSeconds: 15 * 60,
-        message: 'Too many verification attempts. Please try again later.',
-      },
-    })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.authVerifyEmail())
     if (blockedResponse) return blockedResponse
 
     const { searchParams } = new URL(req.url)

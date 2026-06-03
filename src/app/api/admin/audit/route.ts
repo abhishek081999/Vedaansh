@@ -4,9 +4,13 @@ import { AdminAuditLog } from '@/lib/db/models/AdminAuditLog'
 import { requireAdmin } from '@/lib/admin/auth'
 import { parsePaginationParams, paginationMeta } from '@/lib/admin/pagination'
 import { regexFromSearch } from '@/lib/security/sanitize'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.adminRead())
+    if (blocked) return blocked
+
     const admin = await requireAdmin()
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })

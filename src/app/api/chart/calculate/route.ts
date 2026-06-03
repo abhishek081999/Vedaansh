@@ -133,6 +133,7 @@ function localToUTC(date: string, time: string, tz: string): { utcDate: string; 
   }
 }
 
+import { CHART_JSON_BODY_BYTES } from '@/lib/security/bodyLimit'
 import { applyRouteSecurity } from '@/lib/security/route'
 import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
 
@@ -144,6 +145,7 @@ export async function POST(req: NextRequest) {
     // 0. Security & Rate Limiting (stricter for anonymous IPs)
     const securityBlocked = await applyRouteSecurity(req, {
       requireSameOrigin: true,
+      maxBodyBytes: CHART_JSON_BODY_BYTES,
       rateLimit: {
         bucket: isAuthenticated ? 'chart_calculate_auth' : 'chart_calculate_anon',
         limit: isAuthenticated ? 20 : 5,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { requireAdmin } from '@/lib/admin/auth'
 import { logAdminAction } from '@/lib/admin/audit'
 import { canChangeUserRole } from '@/lib/admin/guards'
@@ -32,6 +32,9 @@ const PatchSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.adminRead())
+    if (blocked) return blocked
+
     const admin = await requireAdmin()
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })
@@ -60,10 +63,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, {
-      requireSameOrigin: true,
-      rateLimit: { bucket: 'admin-mutate', limit: 60, windowSeconds: 60, message: 'Too many admin requests.' },
-    })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.adminMutate())
     if (blockedResponse) return blockedResponse
 
     const admin = await requireAdmin()

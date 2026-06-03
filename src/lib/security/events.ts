@@ -7,6 +7,7 @@ export type SecurityEventName =
   | 'payment_verify_failed'
   | 'auth_signin_rate_limited'
   | 'login_account_locked'
+  | 'body_too_large'
 
 export function logSecurityEvent(
   event: SecurityEventName,

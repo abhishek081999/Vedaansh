@@ -10,12 +10,16 @@ import { Chart } from '@/lib/db/models/Chart'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { getEffectivePlan } from '@/lib/subscription/entitlements'
 import { requireAdmin } from '@/lib/admin/auth'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.adminRead())
+    if (blocked) return blocked
+
     const admin = await requireAdmin()
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized. Admin access required.' }, { status: 403 })

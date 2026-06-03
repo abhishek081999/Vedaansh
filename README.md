@@ -26,7 +26,7 @@ A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScr
 | Video / Reels | Remotion 4 + canvas reel cards | 4.0 |
 | Email | Resend | 3.2 |
 | Testing | Vitest | 1.6 |
-| Deploy | Render (`render.yaml`) | Node ≥ 20 |
+| Deploy | Render (`render.yaml`) | Node ≥ 20 — see [docs/SECURITY_DEPLOY.md](docs/SECURITY_DEPLOY.md) |
 
 ---
 

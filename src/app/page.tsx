@@ -1,13 +1,8 @@
 // src/app/page.tsx — server component
 // Renders a crawlable SEO hero above the client chart app.
 // Google indexes the hero; users get the full interactive app.
-import dynamic from 'next/dynamic'
-import Image   from 'next/image'
-
-const HomeClient = dynamic(
-  () => import('@/components/home/HomeClient').then(m => m.default ?? m),
-  { ssr: false }
-)
+import Image from 'next/image'
+import HomeClientDynamic from '@/components/home/HomeClientDynamic'
 
 const FEATURES = [
   { label: 'Free Vedic Birth Chart (Kundali)',        desc: 'Full Lagna, Moon & Sun charts with house lords' },
@@ -65,7 +60,7 @@ export default function Page() {
       </section>
 
       {/* ── Full interactive chart app ── */}
-      <HomeClient />
+      <HomeClientDynamic />
     </>
   )
 }

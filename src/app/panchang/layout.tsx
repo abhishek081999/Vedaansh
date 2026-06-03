@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { PANCHANG_SEO } from '@/lib/seo/intro-content'
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
@@ -31,14 +32,11 @@ const jsonLd = {
   ],
 }
 
-export default function PanchangLayout({ children }: { children: React.ReactNode }) {
+export default async function PanchangLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <SeoIntro {...PANCHANG_SEO} />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
       {children}
     </>
   )

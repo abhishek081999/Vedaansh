@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AdminMessage } from '@/components/admin/AdminMessage'
@@ -18,7 +18,12 @@ type ChartRow = {
   createdAt: string
 }
 
-export default function AdminUserDetailPage({ params }: { params: { id: string } }) {
+export default function AdminUserDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = use(params)
   const router = useRouter()
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -39,7 +44,7 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/admin/users/${params.id}`)
+      const res = await fetch(`/api/admin/users/${id}`)
       const json = await res.json()
       if (json.success) {
         setData(json)
@@ -64,7 +69,7 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
     }
   }
 
-  useEffect(() => { void load() }, [params.id])
+  useEffect(() => { void load() }, [id])
 
   async function save(updates?: Partial<typeof form>) {
     const payload = { ...form, ...updates }
@@ -76,7 +81,7 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: params.id,
+          userId: id,
           updates: {
             name: payload.name,
             email: payload.email,

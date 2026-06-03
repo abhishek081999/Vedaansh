@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { redis } from '@/lib/redis'
 import { requireAdmin } from '@/lib/admin/auth'
 import { logAdminAction } from '@/lib/admin/audit'
@@ -17,8 +17,8 @@ const PREFIX_MAP = {
 
 export async function POST(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, {
-      requireSameOrigin: true,
+    const blockedResponse = await guardRoute(req, {
+      ...routeSecurityPresets.adminMutate(),
       rateLimit: { bucket: 'admin-mutate', limit: 20, windowSeconds: 60, message: 'Too many admin requests.' },
     })
     if (blockedResponse) return blockedResponse
@@ -73,8 +73,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.adminRead())
+    if (blocked) return blocked
+
     const admin = await requireAdmin()
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })

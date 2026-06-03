@@ -17,7 +17,7 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { BillingConfig } from '@/lib/db/models/BillingConfig'
 import { logSecurityEvent } from '@/lib/security/events'
 import { redactForLog } from '@/lib/security/safeLog'
@@ -41,7 +41,7 @@ function addInterval(date: Date, interval: 'monthly' | 'yearly'): Date {
 
 export async function POST(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.paymentVerify())
     if (blockedResponse) return blockedResponse
 
     const session = await auth()
