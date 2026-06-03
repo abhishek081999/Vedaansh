@@ -43,9 +43,8 @@ jobs:
       - name: Security preflight
         run: npm run security:preflight
 
-      - name: Dependency audit (report only)
+      - name: Dependency audit (production deps)
         run: npm run security:audit
-        continue-on-error: true
 
       - name: Trigger Render Deploy
         run: |
@@ -85,9 +84,8 @@ jobs:
       - name: Security preflight
         run: npm run security:preflight
 
-      - name: Dependency audit (report only)
+      - name: Dependency audit (production deps)
         run: npm run security:audit
-        continue-on-error: true
 
       - name: Done — pull on your dev machine
         run: |

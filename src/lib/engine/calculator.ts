@@ -242,7 +242,7 @@ export async function calculateChart(
   input: CalculateChartInput,
   plan: UserPlan = 'free',
   options: { dashaDepth?: number } = {}
-): Promise<ChartOutput> { // eslint-disable-line
+): Promise<ChartOutput> {
   try {
     const settings = input.settings ?? DEFAULT_SETTINGS
     const birthUtc = parseBirthUtc(input.utcDate, input.utcTime)

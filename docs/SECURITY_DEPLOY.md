@@ -24,7 +24,8 @@ Staging: `CSRF_TRUSTED_ORIGINS=https://dev.vedaansh.com` if using a second origi
 npm ci
 npm run typecheck
 npm run security:preflight   # 34 security unit tests
-npm run security:audit       # dependency CVE report (may exit non-zero)
+npm run security:audit       # production deps only (must pass in CI)
+npm run security:audit:dev   # optional full tree including devDependencies
 npm run build
 ```
 
