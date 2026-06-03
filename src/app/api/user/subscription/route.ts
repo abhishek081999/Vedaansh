@@ -3,9 +3,13 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { getActiveSubscription } from '@/lib/user/accountLifecycle'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.userRead())
+    if (blocked) return blocked
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })

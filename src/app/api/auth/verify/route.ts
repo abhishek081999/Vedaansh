@@ -14,6 +14,7 @@ const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
 export async function POST(req: Request) {
   try {
     const blockedResponse = await applyRouteSecurity(req, {
+      requireSameOrigin: true,
       rateLimit: {
         bucket: 'auth-verify',
         limit: 30,

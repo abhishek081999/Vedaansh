@@ -12,6 +12,7 @@ import crypto from 'crypto'
 import { sendVerificationEmail } from '@/lib/email'
 import { hashOneTimeToken } from '@/lib/security/tokens'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { validatePassword } from '@/lib/security/passwordPolicy'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
@@ -19,12 +20,13 @@ const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
 const SignupSchema = z.object({
   name:     z.string().min(2, 'Name must be at least 2 characters'),
   email:    z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string().min(12, 'Password must be at least 12 characters'),
 })
 
 export async function POST(req: Request) {
   try {
     const blockedResponse = await applyRouteSecurity(req, {
+      requireSameOrigin: true,
       rateLimit: {
         bucket: 'auth-signup',
         limit: 10,
@@ -43,6 +45,11 @@ export async function POST(req: Request) {
     }
 
     const { name, email, password } = parsed.data
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      return NextResponse.json({ success: false, error: passwordError }, { status: 400 })
+    }
+
     const pwHash = await bcrypt.hash(password, 12)
     const verificationToken = crypto.randomBytes(32).toString('hex')
     const verificationTokenHash = hashOneTimeToken(verificationToken)

@@ -34,8 +34,18 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Lint
+        run: npm run lint
+
       - name: Run engine tests
         run: npm run test:engine
+
+      - name: Security unit tests
+        run: npm run security:check
+
+      - name: Dependency audit (report only)
+        run: npm run security:audit
+        continue-on-error: true
 
       - name: Trigger Render Deploy
         run: |
@@ -66,8 +76,18 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Lint
+        run: npm run lint
+
       - name: Run engine tests
         run: npm run test:engine
+
+      - name: Security unit tests
+        run: npm run security:check
+
+      - name: Dependency audit (report only)
+        run: npm run security:audit
+        continue-on-error: true
 
       - name: Done — pull on your dev machine
         run: |

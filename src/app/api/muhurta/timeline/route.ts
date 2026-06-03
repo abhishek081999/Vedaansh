@@ -1,5 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { requirePlanGate } from '@/lib/security/planAccess';
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets';
 import { getSunriseSunset } from '@/lib/engine/sunrise';
 import { 
   getVara, 
@@ -21,6 +23,16 @@ import { getHoraLord } from '@/lib/engine/nakshatra';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  const blocked = await guardRoute(req, routeSecurityPresets.muhurtaRead())
+  if (blocked) return blocked
+
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const planBlocked = await requirePlanGate(session.user.id, 'gold')
+  if (planBlocked) return planBlocked
 
   let lastStage = 'initialization';
   try {

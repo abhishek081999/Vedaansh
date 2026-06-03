@@ -8,12 +8,14 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
+import { MAX_XLSX_IMPORT_ROWS, readWorkbookFromBuffer } from '@/lib/security/xlsx'
 import crypto from 'crypto'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import { User }  from '@/lib/db/models/User'
 import { getChartSaveLimit, getEffectivePlan } from '@/lib/subscription/entitlements'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 
@@ -91,6 +93,9 @@ interface RowResult {
 }
 
 export async function POST(req: NextRequest) {
+  const blocked = await guardRoute(req, routeSecurityPresets.chartImport())
+  if (blocked) return blocked
+
   // ── Auth ──────────────────────────────────────────────────
   const session = await auth()
   if (!session?.user?.id) {
@@ -121,9 +126,16 @@ export async function POST(req: NextRequest) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer())
-  const wb = XLSX.read(buffer, { type: 'buffer', cellDates: false })
+  const wb = readWorkbookFromBuffer(buffer)
   const ws = wb.Sheets[wb.SheetNames[0]]
   const rawRows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(ws, { defval: null })
+
+  if (rawRows.length > MAX_XLSX_IMPORT_ROWS) {
+    return NextResponse.json(
+      { success: false, error: `Maximum ${MAX_XLSX_IMPORT_ROWS} rows per import.` },
+      { status: 400 },
+    )
+  }
 
   if (!rawRows.length) {
     return NextResponse.json({ success: false, error: 'The sheet appears to be empty' }, { status: 400 })

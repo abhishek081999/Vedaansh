@@ -134,17 +134,22 @@ function localToUTC(date: string, time: string, tz: string): { utcDate: string; 
 }
 
 import { applyRouteSecurity } from '@/lib/security/route'
+import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
 
 export async function POST(req: NextRequest) {
   try {
-    // 0. Security & Rate Limiting
+    const session = await auth()
+    const isAuthenticated = Boolean(session?.user?.id)
+
+    // 0. Security & Rate Limiting (stricter for anonymous IPs)
     const securityBlocked = await applyRouteSecurity(req, {
+      requireSameOrigin: true,
       rateLimit: {
-        bucket: 'chart_calculate',
-        limit: 20, // 20 charts per minute
+        bucket: isAuthenticated ? 'chart_calculate_auth' : 'chart_calculate_anon',
+        limit: isAuthenticated ? 20 : 5,
         windowSeconds: 60,
-        message: 'Calculation rate limit exceeded. Please wait a moment.'
-      }
+        message: 'Calculation rate limit exceeded. Please wait a moment.',
+      },
     })
     if (securityBlocked) return securityBlocked
 
@@ -179,11 +184,7 @@ export async function POST(req: NextRequest) {
       input.prashnaNumber || 0,
     )
 
-    // Parallelize session check and cache lookup
-    const [session, cached] = await Promise.all([
-      auth(),
-      redis.get(cacheKey)
-    ])
+    const cached = await redis.get(cacheKey)
 
     const cachedChart = parseCachedChart(cached)
 
@@ -206,7 +207,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, data: finalData, fromCache: true })
     }
 
-    const plan: UserPlan = (session?.user as any)?.plan ?? 'free'
+    const plan: UserPlan = session?.user?.id
+      ? (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
+      : 'free'
 
     // Run calculation and connect DB (for warming) in parallel
     const [chartData] = await Promise.all([

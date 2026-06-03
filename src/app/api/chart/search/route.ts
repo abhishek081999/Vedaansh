@@ -7,51 +7,51 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
+import { regexFromSearch } from '@/lib/security/sanitize'
+import { chartSearchQuerySchema } from '@/lib/security/validation'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.chartRead())
+    if (blocked) return blocked
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 })
     }
 
-    const { searchParams } = req.nextUrl
-    const q         = searchParams.get('q')?.trim()
-    const gender    = searchParams.get('gender')
-    const startDate = searchParams.get('startDate') // YYYY-MM-DD
-    const endDate   = searchParams.get('endDate')   // YYYY-MM-DD
-    const year      = searchParams.get('year')
-    const page      = Math.max(1, parseInt(searchParams.get('page')  ?? '1'))
-    const limit     = Math.min(100, parseInt(searchParams.get('limit') ?? '24'))
-    const skip      = (page - 1) * limit
+    const parsedQuery = chartSearchQuerySchema.safeParse(Object.fromEntries(req.nextUrl.searchParams))
+    if (!parsedQuery.success) {
+      return NextResponse.json({ success: false, error: 'Invalid search parameters' }, { status: 400 })
+    }
+
+    const { q, gender, startDate, endDate, year, page, limit } = parsedQuery.data
+    const skip = (page - 1) * limit
 
     await connectDB()
 
-    const query: any = { userId: session.user.id }
+    const query: Record<string, unknown> = { userId: session.user.id }
 
-    // 1. Text Search (Fuzzy-ish regex)
-    if (q) {
-      query.$or = [
-        { name: { $regex: q, $options: 'i' } },
-        { birthPlace: { $regex: q, $options: 'i' } }
-      ]
+    const textRegex = q ? regexFromSearch(q) : null
+    if (textRegex) {
+      query.$or = [{ name: textRegex }, { birthPlace: textRegex }]
     }
 
-    // 2. Gender Filter
     if (gender && gender !== 'all') {
       query.gender = gender
     }
 
-    // 3. Date Range
     if (startDate || endDate) {
-      query.birthDate = {}
-      if (startDate) query.birthDate.$gte = startDate
-      if (endDate)   query.birthDate.$lte = endDate
+      const birthDate: Record<string, string> = {}
+      if (startDate) birthDate.$gte = startDate
+      if (endDate) birthDate.$lte = endDate
+      query.birthDate = birthDate
     } else if (year) {
-      query.birthDate = { $regex: `^${year}` }
+      query.birthDate = { $gte: `${year}-01-01`, $lte: `${year}-12-31` }
     }
 
     const [charts, total] = await Promise.all([

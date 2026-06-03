@@ -9,18 +9,20 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { hashOneTimeToken } from '@/lib/security/tokens'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { validatePassword } from '@/lib/security/passwordPolicy'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
 
 const Schema = z.object({
   token:    z.string().min(1),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string().min(12, 'Password must be at least 12 characters'),
 })
 
 export async function POST(req: Request) {
   try {
     const blockedResponse = await applyRouteSecurity(req, {
+      requireSameOrigin: true,
       rateLimit: {
         bucket: 'auth-reset-password',
         limit: 12,
@@ -39,6 +41,11 @@ export async function POST(req: Request) {
     }
 
     const { token, password } = parsed.data
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      return NextResponse.json({ success: false, error: passwordError }, { status: 400 })
+    }
+
     const tokenHash = hashOneTimeToken(token)
 
     const client = new MongoClient(mongoUri)

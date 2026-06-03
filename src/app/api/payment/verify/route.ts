@@ -19,6 +19,8 @@ import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { applyRouteSecurity } from '@/lib/security/route'
 import { BillingConfig } from '@/lib/db/models/BillingConfig'
+import { logSecurityEvent } from '@/lib/security/events'
+import { redactForLog } from '@/lib/security/safeLog'
 
 export const runtime = 'nodejs'
 
@@ -65,7 +67,7 @@ export async function POST(req: NextRequest) {
       .digest('hex')
 
     if (expectedSig !== signature) {
-      console.warn('[payment/verify] Signature mismatch', { orderId, paymentId })
+      logSecurityEvent('payment_verify_failed', redactForLog({ reason: 'signature_mismatch', orderId, paymentId }))
       return NextResponse.json({ success: false, error: 'Payment verification failed' }, { status: 400 })
     }
 

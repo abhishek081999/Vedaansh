@@ -1,5 +1,6 @@
 import type { PipelineStage } from 'mongoose'
 import { getEffectivePlan } from '@/lib/subscription/entitlements'
+import { regexFromSearch } from '@/lib/security/sanitize'
 
 export type UserListSort = 'createdAt' | 'name' | 'plan' | 'chartCount'
 export type UserListFilters = {
@@ -15,8 +16,8 @@ export type UserListFilters = {
 
 export function buildUserMatchStage(filters: Pick<UserListFilters, 'search' | 'role' | 'plan'>) {
   const match: Record<string, unknown> = {}
-  if (filters.search?.trim()) {
-    const regex = { $regex: filters.search.trim(), $options: 'i' }
+  const regex = filters.search ? regexFromSearch(filters.search) : null
+  if (regex) {
     match.$or = [{ name: regex }, { email: regex }]
   }
   if (filters.role) match.role = filters.role

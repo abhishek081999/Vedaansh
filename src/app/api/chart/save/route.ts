@@ -11,7 +11,7 @@ import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import { User }  from '@/lib/db/models/User'
 import crypto from 'crypto'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { getChartSaveLimit, getEffectivePlan } from '@/lib/subscription/entitlements'
 
 export const runtime = 'nodejs'
@@ -32,7 +32,7 @@ const SaveSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.chartWrite())
     if (blockedResponse) return blockedResponse
 
     const session = await auth()

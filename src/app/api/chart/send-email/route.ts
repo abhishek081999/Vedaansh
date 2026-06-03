@@ -12,6 +12,7 @@ import { generateChartHTML } from '@/lib/pdf/chartHtml'
 import { sendChartEmail } from '@/lib/email'
 import type { ChartOutput } from '@/types/astrology'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { requirePlanGate } from '@/lib/security/planAccess'
 
 export const runtime = 'nodejs'
 
@@ -29,14 +30,12 @@ export async function POST(req: NextRequest) {
     if (blockedResponse) return blockedResponse
 
     const session = await auth()
-    const plan = (session?.user as any)?.plan ?? 'free'
-
-    if (plan !== 'platinum') {
-      return NextResponse.json(
-        { error: 'Email delivery requires Platinum plan.', upgradeRequired: true },
-        { status: 403 }
-      )
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const planBlocked = await requirePlanGate(session.user.id, 'platinum')
+    if (planBlocked) return planBlocked
 
     const { chart, targetEmail } = await req.json().catch(() => ({}))
 

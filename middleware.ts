@@ -5,6 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { auth } from '@/auth'
+import { applyRouteSecurity } from '@/lib/security/route'
+import { logSecurityEvent } from '@/lib/security/events'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -17,14 +19,29 @@ const PROTECTED_ROUTES = [
   '/account',
 ]
 
-// API routes that require authentication
+// API routes that require authentication (defense in depth with per-route checks)
 const PROTECTED_API = [
   '/api/chart/save',
   '/api/chart/delete',
+  '/api/chart/list',
+  '/api/chart/search',
+  '/api/chart/notes',
+  '/api/chart/bulk-import',
+  '/api/chart/bulk-export',
+  '/api/chart/export-xlsx',
+  '/api/chart/toggle-public',
+  '/api/chart/send-email',
+  '/api/chart/template',
+  '/api/chart/relocate',
+  '/api/chart/astrocartography',
+  '/api/chart/varshaphal',
   '/api/user',
   '/api/subscription',
   '/api/muhurta',
   '/api/research',
+  '/api/clients',
+  '/api/payment/checkout',
+  '/api/payment/verify',
 ]
 
 // Routes requiring Gold+ plan
@@ -39,9 +56,36 @@ const PLATINUM_API     = ['/api/research']
 const ADMIN_ROUTES = ['/admin']
 const ADMIN_API    = ['/api/admin']
 
-export default auth((req: NextRequest & { auth: any }) => {
+export default auth(async (req: NextRequest & { auth: any }) => {
   const { pathname } = req.nextUrl
   const session      = req.auth
+
+  // ── Brute-force guard on NextAuth POST endpoints ──────────
+  const AUTH_POST_RATE_LIMIT_EXCLUDED = [
+    '/api/auth/signup',
+    '/api/auth/forgot-password',
+    '/api/auth/reset-password',
+    '/api/auth/verify',
+  ]
+  const shouldRateLimitAuthPost =
+    req.method === 'POST' &&
+    pathname.startsWith('/api/auth/') &&
+    !AUTH_POST_RATE_LIMIT_EXCLUDED.some((p) => pathname.startsWith(p))
+
+  if (shouldRateLimitAuthPost) {
+    const blocked = await applyRouteSecurity(req, {
+      rateLimit: {
+        bucket: 'auth-signin',
+        limit: 20,
+        windowSeconds: 15 * 60,
+        message: 'Too many sign-in attempts. Please try again later.',
+      },
+    })
+    if (blocked) {
+      logSecurityEvent('auth_signin_rate_limited', { path: pathname })
+      return blocked
+    }
+  }
 
   // ── Admin route protection ────────────────────────────────
   const isAdminPage = ADMIN_ROUTES.some((p) => pathname.startsWith(p))

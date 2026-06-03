@@ -1,6 +1,11 @@
 # Dependencies
 node_modules/
 
+# Serwist (generated at build)
+public/sw.js
+public/sw.js.map
+public/swe-worker*
+
 # Build output
 .next/
 out/

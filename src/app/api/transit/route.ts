@@ -5,8 +5,12 @@
 
 import { NextResponse } from 'next/server'
 import { calculatePersonalTransits, getCurrentTransitPositions } from '@/lib/engine/transits'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export async function GET(request: Request) {
+  const blocked = await guardRoute(request, routeSecurityPresets.publicEphemeris())
+  if (blocked) return blocked
+
   const { searchParams } = new URL(request.url)
   const ascRashi = parseInt(searchParams.get('ascRashi') || '1')
   const months   = parseInt(searchParams.get('months') || '12')

@@ -7,13 +7,13 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart, ChartCache } from '@/lib/db/models/Chart'
 import { User } from '@/lib/db/models/User'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 
 export async function DELETE(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.chartWrite())
     if (blockedResponse) return blockedResponse
 
     const session = await auth()

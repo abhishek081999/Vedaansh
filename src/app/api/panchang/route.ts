@@ -44,6 +44,7 @@ import {
   getRahuKalam, getGulikaKalam, getYamaganda, getAbhijitMuhurta,
   getHoraTable,
 } from '@/lib/engine/nakshatra'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -95,6 +96,9 @@ function mergePersonalBala(
 
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.publicEphemeris())
+    if (blocked) return blocked
+
     const params = Object.fromEntries(req.nextUrl.searchParams)
     const query  = QuerySchema.safeParse(params)
 

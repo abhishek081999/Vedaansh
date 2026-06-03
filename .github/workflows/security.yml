@@ -1,0 +1,43 @@
+name: Security
+
+on:
+  pull_request:
+    branches: [main, dev]
+  schedule:
+    # Weekly Monday 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  security:
+    name: Security gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Security unit tests
+        run: npm run security:check
+
+      - name: Engine tests
+        run: npm run test:engine
+
+      - name: Dependency audit
+        run: npm run security:audit
+        continue-on-error: true

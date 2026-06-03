@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { enforceRateLimit } from '@/lib/security/rateLimit'
 import { isSameOriginRequest } from '@/lib/security/origin'
+import { logSecurityEvent } from '@/lib/security/events'
 
 export type RouteRateLimitConfig = {
   bucket: string
@@ -25,7 +26,11 @@ export async function applyRouteSecurity(
   options: RouteSecurityOptions,
   rateLimitFn: RateLimitFn = enforceRateLimit,
 ): Promise<NextResponse | null> {
-  if (options.requireSameOrigin && !isSameOriginRequest(request)) {
+  if (options.requireSameOrigin && !isSameOriginRequest(request, { strict: true })) {
+    logSecurityEvent('csrf_blocked', {
+      path: new URL(request.url).pathname,
+      method: request.method,
+    })
     return NextResponse.json({ success: false, error: 'Forbidden origin' }, { status: 403 })
   }
 
@@ -33,6 +38,12 @@ export async function applyRouteSecurity(
 
   const rate = await rateLimitFn(request, options.rateLimit)
   if (rate.allowed) return null
+
+  logSecurityEvent('rate_limit_exceeded', {
+    path: new URL(request.url).pathname,
+    method: request.method,
+    bucket: options.rateLimit.bucket,
+  })
 
   return NextResponse.json(
     { success: false, error: options.rateLimit.message ?? 'Too many requests. Please try again later.' },

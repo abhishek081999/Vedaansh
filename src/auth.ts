@@ -11,6 +11,12 @@ import { MongoDBAdapter } from '@auth/mongodb-adapter'
 import { MongoClient, ServerApiVersion } from 'mongodb'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import {
+  clearFailedLogin,
+  isLoginLocked,
+  recordFailedLogin,
+} from '@/lib/security/loginThrottle'
+import { logSecurityEvent } from '@/lib/security/events'
 
 // ── MongoDB client for adapter (separate from Mongoose) ───────
 // NextAuth adapter needs raw MongoClient, not Mongoose
@@ -63,6 +69,11 @@ async function verifyCredentials(
 
   const { email, password } = parsed.data
 
+  if (await isLoginLocked(email)) {
+    logSecurityEvent('login_account_locked', { emailDomain: email.split('@')[1] ?? 'unknown' })
+    return null
+  }
+
   try {
     // Use raw MongoClient to look up user
     const client = await clientPromise
@@ -79,7 +90,12 @@ async function verifyCredentials(
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash)
-    if (!valid) return null
+    if (!valid) {
+      await recordFailedLogin(email)
+      return null
+    }
+
+    await clearFailedLogin(email)
 
     return {
       id:    user._id.toString(),
@@ -128,6 +144,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: 'jwt',   // JWT sessions work better with Credentials provider
     maxAge:   30 * 24 * 60 * 60,  // 30 days
+  },
+
+  cookies: {
+    sessionToken: {
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
 
   callbacks: {

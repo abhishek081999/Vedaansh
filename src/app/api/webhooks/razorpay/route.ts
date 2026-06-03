@@ -5,6 +5,8 @@ import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { sendWelcomeEmail } from '@/lib/email'
 import { redis } from '@/lib/redis'
+import { logSecurityEvent } from '@/lib/security/events'
+import { redactForLog } from '@/lib/security/safeLog'
 
 export const runtime = 'nodejs'
 
@@ -15,6 +17,7 @@ function verifyWebhookSignature(body: string, signature: string, secret: string)
     .createHmac('sha256', secret)
     .update(body)
     .digest('hex')
+  if (expected.length !== signature.length) return false
   return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
 }
 
@@ -98,14 +101,15 @@ export async function POST(req: NextRequest) {
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
   if (!webhookSecret) {
     console.error('[webhook/razorpay] RAZORPAY_WEBHOOK_SECRET not set')
-    return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 })
+    const status = process.env.NODE_ENV === 'production' ? 503 : 500
+    return NextResponse.json({ error: 'Webhook secret not configured' }, { status })
   }
 
   const rawBody  = await req.text()
   const signature = req.headers.get('x-razorpay-signature') ?? ''
 
   if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
-    console.warn('[webhook/razorpay] Invalid signature')
+    logSecurityEvent('webhook_signature_invalid', { provider: 'razorpay' })
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
@@ -133,7 +137,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true })
 
   } catch (err) {
-    console.error(`[webhook/razorpay] Handler error:`, err)
+    console.error('[webhook/razorpay] Handler error:', redactForLog({
+      event: event.event,
+      message: err instanceof Error ? err.message : 'unknown',
+    }))
     return NextResponse.json({ error: 'Handler failed' }, { status: 500 })
   }
 }

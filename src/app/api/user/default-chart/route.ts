@@ -3,6 +3,8 @@ import { auth } from '@/auth'
 import { User } from '@/lib/db/models/User'
 import { Chart } from '@/lib/db/models/Chart'
 import dbConnect from '@/lib/db/mongodb'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
+import { defaultChartBodySchema } from '@/lib/security/validation'
 
 /**
  * Update the user's default chart
@@ -11,15 +13,20 @@ import dbConnect from '@/lib/db/mongodb'
  */
 export async function POST(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.userWrite())
+    if (blocked) return blocked
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { chartId } = await req.json()
-    if (!chartId) {
-      return NextResponse.json({ success: false, error: 'Chart ID required' }, { status: 400 })
+    const body = await req.json().catch(() => null)
+    const parsed = defaultChartBodySchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: 'Invalid chart ID' }, { status: 400 })
     }
+    const { chartId } = parsed.data
 
     await dbConnect()
 
@@ -49,6 +56,9 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.userRead())
+    if (blocked) return blocked
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })

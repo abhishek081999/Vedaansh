@@ -16,21 +16,24 @@ import { User } from '@/lib/db/models/User'
 import { calculateChart } from '@/lib/engine/calculator'
 import { generateChartHTML } from '@/lib/pdf/chartHtml'
 import JSZip from 'jszip'
+import { requirePlanGate } from '@/lib/security/planAccess'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import type { ChartSettings, UserPlan } from '@/types/astrology'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth()
-    const plan = (session?.user as any)?.plan ?? 'free'
+    const blocked = await guardRoute(req, routeSecurityPresets.chartHeavy())
+    if (blocked) return blocked
 
-    if (plan !== 'platinum') {
-      return NextResponse.json(
-        { error: 'Bulk ZIP export is a Platinum-exclusive feature.', upgradeRequired: true },
-        { status: 403 }
-      )
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const planBlocked = await requirePlanGate(session.user.id, 'platinum')
+    if (planBlocked) return planBlocked
 
     const { chartIds } = await req.json().catch(() => ({}))
     if (!Array.isArray(chartIds) || chartIds.length === 0) {

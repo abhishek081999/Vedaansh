@@ -6,10 +6,14 @@
 
 import { NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 
-export async function GET() {
+export async function GET(req: Request) {
+  const blocked = await guardRoute(req, routeSecurityPresets.chartRead())
+  if (blocked) return blocked
+
   const headers = [
     'Name',
     'Birth Date',
