@@ -7,14 +7,14 @@ import {
 import { applyRouteSecurity, type RouteSecurityOptions } from '@/lib/security/route'
 import { abuseLimits, rateLimitMessages, RATE_LIMIT_WINDOWS, userLimits } from '@/lib/security/rateLimitPolicy'
 
-const read = (bucket: string, limit: number, windowSeconds = RATE_LIMIT_WINDOWS.minute): RouteSecurityOptions => ({
+const read = (bucket: string, limit: number, windowSeconds: number = RATE_LIMIT_WINDOWS.minute): RouteSecurityOptions => ({
   rateLimit: { bucket, limit, windowSeconds },
 })
 
 const write = (
   bucket: string,
   limit: number,
-  windowSeconds = RATE_LIMIT_WINDOWS.minute,
+  windowSeconds: number = RATE_LIMIT_WINDOWS.minute,
   maxBodyBytes = DEFAULT_JSON_BODY_BYTES,
 ): RouteSecurityOptions => ({
   requireSameOrigin: true,
