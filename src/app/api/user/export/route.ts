@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { abuseLimits, RATE_LIMIT_WINDOWS } from '@/lib/security/rateLimitPolicy'
 import { buildUserDataExport } from '@/lib/user/accountLifecycle'
 
 export async function GET(req: Request) {
   try {
     const blockedResponse = await applyRouteSecurity(req, {
-      rateLimit: { bucket: 'user-export', limit: 10, windowSeconds: 3600 },
+      rateLimit: {
+        bucket: 'user-export',
+        limit: abuseLimits.userExportPerHour,
+        windowSeconds: RATE_LIMIT_WINDOWS.hour,
+        strict: true,
+      },
     })
     if (blockedResponse) return blockedResponse
 

@@ -82,6 +82,10 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
     try {
       const res  = await fetch(`/api/atlas/search?q=${encodeURIComponent(q)}`)
       const data = await res.json()
+      if (!res.ok) {
+        setResults([])
+        return
+      }
       setResults(data.results ?? [])
       setOpen(true)
     } catch { setResults([]) }
@@ -91,7 +95,7 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
   function handleInput(val: string) {
     setQuery(val)
     if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => search(val), 220)
+    timer.current = setTimeout(() => search(val), 400)
   }
 
   function handleSelect(r: AtlasResult) {

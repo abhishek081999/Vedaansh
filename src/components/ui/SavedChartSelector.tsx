@@ -66,12 +66,12 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
   useEffect(() => {
     if (search.length >= 2 || filterGender !== 'all' || filterStartDate || filterEndDate) {
       const delay = setTimeout(() => {
-        const params = new URLSearchParams({
-          q: search,
-          gender: filterGender,
-          startDate: filterStartDate,
-          endDate: filterEndDate
-        })
+        const params = new URLSearchParams()
+        const q = search.trim()
+        if (q) params.set('q', q)
+        if (filterGender !== 'all') params.set('gender', filterGender)
+        if (filterStartDate) params.set('startDate', filterStartDate)
+        if (filterEndDate) params.set('endDate', filterEndDate)
         setLoading(true)
         fetch(`/api/chart/search?${params.toString()}`)
           .then(r => r.json())

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
+import { abuseLimits } from '@/lib/security/rateLimitPolicy'
 import { redis } from '@/lib/redis'
 import { requireAdmin } from '@/lib/admin/auth'
 import { logAdminAction } from '@/lib/admin/audit'
@@ -19,7 +20,13 @@ export async function POST(req: NextRequest) {
   try {
     const blockedResponse = await guardRoute(req, {
       ...routeSecurityPresets.adminMutate(),
-      rateLimit: { bucket: 'admin-mutate', limit: 20, windowSeconds: 60, message: 'Too many admin requests.' },
+      rateLimit: {
+        bucket: 'admin-mutate',
+        limit: abuseLimits.adminCleanupPerMinute,
+        windowSeconds: 60,
+        strict: true,
+        message: 'Too many admin requests.',
+      },
     })
     if (blockedResponse) return blockedResponse
 

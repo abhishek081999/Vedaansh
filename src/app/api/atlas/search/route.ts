@@ -174,20 +174,22 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
 }
 
 import { applyRouteSecurity } from '@/lib/security/route'
+import { rateLimitMessages, RATE_LIMIT_WINDOWS, userLimits } from '@/lib/security/rateLimitPolicy'
+
+const ATLAS_RATE_LIMIT = {
+  bucket: 'atlas_search',
+  limit: userLimits.atlasSearchPerMinute,
+  windowSeconds: RATE_LIMIT_WINDOWS.minute,
+  message: rateLimitMessages.atlas,
+} as const
+
+async function blockIfAtlasRateLimited(req: NextRequest) {
+  const securityBlocked = await applyRouteSecurity(req, { rateLimit: ATLAS_RATE_LIMIT })
+  return securityBlocked
+}
 
 // ── Route Handler ─────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  // 0. Security & Rate Limiting
-  const securityBlocked = await applyRouteSecurity(req, {
-    rateLimit: {
-      bucket: 'atlas_search',
-      limit: 50, // 50 searches per minute is generous for genuine users
-      windowSeconds: 60,
-      message: 'Too many location searches. Please slow down.'
-    }
-  })
-  if (securityBlocked) return securityBlocked
-
   const q = req.nextUrl.searchParams.get('q')?.trim()
   const latParam = req.nextUrl.searchParams.get('lat')
   const lngParam = req.nextUrl.searchParams.get('lng')
@@ -205,11 +207,14 @@ export async function GET(req: NextRequest) {
       const roundedLng = lng.toFixed(2)
       const reverseCacheKey = `atlas:reverse:${roundedLat},${roundedLng}`
 
-      // Try Redis first
+      // Cached reverse lookups are cheap — do not count against rate limit
       const cached = await redis.get<LocationResult>(reverseCacheKey)
       if (cached) {
         return NextResponse.json({ results: [cached], fromCache: true })
       }
+
+      const securityBlocked = await blockIfAtlasRateLimited(req)
+      if (securityBlocked) return securityBlocked
       
       // Use fetchTimezone but it will likely hit our pre-emptive India/Nepal logic or Redis
       const tz = await fetchTimezone(lat, lng)
@@ -263,6 +268,9 @@ export async function GET(req: NextRequest) {
     }
     // If we have 'UTC' results, continue to fresh fetch to fix them
   }
+
+  const securityBlocked = await blockIfAtlasRateLimited(req)
+  if (securityBlocked) return securityBlocked
 
   try {
     let features: PhotonFeature[] = []

@@ -13,6 +13,7 @@ import { sendChartEmail } from '@/lib/email'
 import type { ChartOutput } from '@/types/astrology'
 import { applyRouteSecurity } from '@/lib/security/route'
 import { requirePlanGate } from '@/lib/security/planAccess'
+import { abuseLimits, rateLimitMessages, RATE_LIMIT_WINDOWS } from '@/lib/security/rateLimitPolicy'
 
 export const runtime = 'nodejs'
 
@@ -22,9 +23,9 @@ export async function POST(req: NextRequest) {
       requireSameOrigin: true,
       rateLimit: {
         bucket: 'chart-send-email',
-        limit: 20,
-        windowSeconds: 15 * 60,
-        message: 'Too many email requests. Please try again later.',
+        limit: abuseLimits.chartSendEmailPerQuarterHour,
+        windowSeconds: RATE_LIMIT_WINDOWS.quarterHour,
+        message: rateLimitMessages.generic,
       },
     })
     if (blockedResponse) return blockedResponse

@@ -6,7 +6,7 @@ Use this before merging to `main` or after rotating secrets. CI already runs `np
 
 | Variable | Why |
 |----------|-----|
-| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | Rate limits and login lockout **fail closed** in production without Redis |
+| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | Enables rate limits for abuse protection; **app flows fail open** if Redis is down (strict auth/delete paths still need Redis in production) |
 | `AUTH_SECRET` | NextAuth session signing (rotate after incidents) |
 | `AUTH_URL` | Must be `https://vedaansh.com` in production |
 | `RAZORPAY_WEBHOOK_SECRET` | Webhooks return **503** if missing in production |
@@ -51,7 +51,7 @@ Filter production logs for:
 
 | Event | Meaning |
 |-------|---------|
-| `rate_limit_exceeded` | Abuse or aggressive client; tune limits if false positives |
+| `rate_limit_exceeded` | Rare for normal users; tune `src/lib/security/rateLimitPolicy.ts` if needed |
 | `csrf_blocked` | Cross-origin POST without valid Origin/Referer |
 | `body_too_large` | Oversized payload rejected (413) |
 | `webhook_signature_invalid` | Bad Razorpay webhook call |

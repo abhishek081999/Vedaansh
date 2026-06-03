@@ -509,12 +509,13 @@ export default function MyChartsPage() {
       const params = new URLSearchParams({
         page: p.toString(),
         limit: '24',
-        q: search,
-        gender: filterGender,
-        startDate: filterStartDate,
-        endDate: filterEndDate,
-        ...queryParams
+        ...queryParams,
       })
+      const q = search.trim()
+      if (q) params.set('q', q)
+      if (filterGender !== 'all') params.set('gender', filterGender)
+      if (filterStartDate) params.set('startDate', filterStartDate)
+      if (filterEndDate) params.set('endDate', filterEndDate)
 
       const res  = await fetch(`${baseApi}?${params.toString()}`)
       const json = await res.json()

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/auth'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { abuseLimits, rateLimitMessages, RATE_LIMIT_WINDOWS } from '@/lib/security/rateLimitPolicy'
 import {
   deleteUserAccount,
   verifyAccountDeletionPassword,
@@ -18,7 +19,13 @@ export async function DELETE(req: NextRequest) {
   try {
     const blockedResponse = await applyRouteSecurity(req, {
       requireSameOrigin: true,
-      rateLimit: { bucket: 'user-delete', limit: 5, windowSeconds: 3600, message: 'Too many deletion attempts.' },
+      rateLimit: {
+        bucket: 'user-delete',
+        limit: abuseLimits.userDeletePerHour,
+        windowSeconds: RATE_LIMIT_WINDOWS.hour,
+        strict: true,
+        message: rateLimitMessages.generic,
+      },
     })
     if (blockedResponse) return blockedResponse
 
