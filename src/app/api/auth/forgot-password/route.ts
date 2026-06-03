@@ -9,7 +9,7 @@ import crypto from 'crypto'
 import { z } from 'zod'
 import { sendPasswordResetEmail } from '@/lib/email'
 import { hashOneTimeToken } from '@/lib/security/tokens'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
@@ -20,15 +20,7 @@ const Schema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, {
-      requireSameOrigin: true,
-      rateLimit: {
-        bucket: 'auth-forgot-password',
-        limit: 8,
-        windowSeconds: 15 * 60,
-        message: 'Too many requests. Please try again later.',
-      },
-    })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.authForgotPassword())
     if (blockedResponse) return blockedResponse
 
     const body   = await req.json()

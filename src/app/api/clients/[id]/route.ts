@@ -47,8 +47,12 @@ async function ensurePlatinum(userId: string): Promise<NextResponse | null> {
   return requirePlanGate(userId, 'platinum')
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
+    const { id } = await params
     const blocked = await guardRoute(req, routeSecurityPresets.clientsRead())
     if (blocked) return blocked
 
@@ -60,7 +64,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const gate = await ensurePlatinum(userId)
     if (gate) return gate
 
-    const client = await Client.findOne({ _id: params.id, userId }).lean()
+    const client = await Client.findOne({ _id: id, userId }).lean()
     if (!client) return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 })
 
     return NextResponse.json({ success: true, client })
@@ -70,8 +74,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
+    const { id } = await params
     const blocked = await guardRoute(req, routeSecurityPresets.clientsWrite())
     if (blocked) return blocked
 
@@ -92,13 +100,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     let client;
     if (remedyAction === 'update' && remedyId && remedyStatus) {
       client = await Client.findOneAndUpdate(
-        { _id: params.id, userId, 'remedies._id': remedyId },
+        { _id: id, userId, 'remedies._id': remedyId },
         { $set: { 'remedies.$.status': remedyStatus } },
         { new: true }
       )
     } else if (remedyAction === 'delete' && remedyId) {
       client = await Client.findOneAndUpdate(
-        { _id: params.id, userId },
+        { _id: id, userId },
         { $pull: { remedies: { _id: remedyId } } },
         { new: true }
       )
@@ -107,7 +115,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         rest.birthTime = `${rest.birthTime}:00`
       }
       client = await Client.findOneAndUpdate(
-        { _id: params.id, userId },
+        { _id: id, userId },
         { $set: rest },
         { new: true }
       )
@@ -122,9 +130,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   // Logic for adding a note
   try {
+    const { id } = await params
     const blocked = await guardRoute(req, routeSecurityPresets.clientsWrite())
     if (blocked) return blocked
 
@@ -156,7 +168,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     const client = await Client.findOneAndUpdate(
-      { _id: params.id, userId },
+      { _id: id, userId },
       update,
       { new: true }
     )
@@ -170,8 +182,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
+    const { id } = await params
     const blocked = await guardRoute(req, routeSecurityPresets.clientsWrite())
     if (blocked) return blocked
 
@@ -183,7 +199,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const gate = await ensurePlatinum(userId)
     if (gate) return gate
 
-    const client = await Client.findOneAndDelete({ _id: params.id, userId })
+    const client = await Client.findOneAndDelete({ _id: id, userId })
     if (!client) return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 })
 
     return NextResponse.json({ success: true })

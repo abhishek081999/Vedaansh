@@ -3,9 +3,13 @@ import connectDB from '@/lib/db/mongodb'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { requireAdmin } from '@/lib/admin/auth'
 import { parsePaginationParams, paginationMeta } from '@/lib/admin/pagination'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.adminRead())
+    if (blocked) return blocked
+
     const admin = await requireAdmin()
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })

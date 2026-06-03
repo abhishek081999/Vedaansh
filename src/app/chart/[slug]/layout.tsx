@@ -2,24 +2,27 @@
 // Server component — exports generateMetadata for SEO
 // The actual page is a client component (page.tsx)
 import type { Metadata } from 'next'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { generateChartMetadata } from './metadata'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
 export async function generateMetadata(
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
-  return generateChartMetadata(params.slug)
+  const { slug } = await params
+  return generateChartMetadata(slug)
 }
 
-export default function ChartLayout({
+export default async function ChartLayout({
   children,
   params,
 }: {
   children: React.ReactNode
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
-  const url = `${BASE_URL}/chart/${params.slug}`
+  const { slug } = await params
+  const url = `${BASE_URL}/chart/${slug}`
 
   const breadcrumb = {
     '@context': 'https://schema.org',
@@ -42,8 +45,8 @@ export default function ChartLayout({
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePage) }} />
+      <JsonLd data={breadcrumb} />
+      <JsonLd data={profilePage} />
       {children}
     </>
   )

@@ -10,12 +10,17 @@ export const contentType = 'image/png'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
-export default async function OGImage({ params }: { params: { slug: string } }) {
+export default async function OGImage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vedaansh.com'
   
   try {
     await connectDB()
-    const chartRaw = await Chart.findOne({ slug: params.slug, isPublic: true })
+    const chartRaw = await Chart.findOne({ slug, isPublic: true })
       .select('name birthDate birthPlace').lean()
 
     if (!chartRaw) throw new Error('Not found')

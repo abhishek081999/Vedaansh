@@ -2,19 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db/mongodb'
 import { Chart, ChartCache } from '@/lib/db/models/Chart'
 import { User } from '@/lib/db/models/User'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { requireAdmin } from '@/lib/admin/auth'
 import { logAdminAction } from '@/lib/admin/audit'
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, {
-      requireSameOrigin: true,
-      rateLimit: { bucket: 'admin-mutate', limit: 60, windowSeconds: 60, message: 'Too many admin requests.' },
-    })
+    const { id } = await params
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.adminMutate())
     if (blockedResponse) return blockedResponse
 
     const admin = await requireAdmin()
@@ -23,7 +21,7 @@ export async function DELETE(
     }
 
     await connectDB()
-    const chart = await Chart.findById(params.id).select('cachedDataId userId name').lean() as {
+    const chart = await Chart.findById(id).select('cachedDataId userId name').lean() as {
       cachedDataId?: string | null
       userId?: unknown
       name?: string
@@ -33,12 +31,12 @@ export async function DELETE(
     }
 
     await Promise.all([
-      Chart.deleteOne({ _id: params.id }),
+      Chart.deleteOne({ _id: id }),
       chart.cachedDataId
         ? ChartCache.deleteOne({ _id: chart.cachedDataId })
         : Promise.resolve(),
       User.updateMany(
-        { defaultChartId: params.id },
+        { defaultChartId: id },
         { $set: { defaultChartId: null } },
       ),
     ])
@@ -48,7 +46,7 @@ export async function DELETE(
       adminEmail: admin.user.email,
       action: 'chart.delete',
       targetType: 'chart',
-      targetId: params.id,
+      targetId: id,
       metadata: { name: chart.name, userId: String(chart.userId) },
     })
 

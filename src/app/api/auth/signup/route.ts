@@ -11,7 +11,7 @@ import { z } from 'zod'
 import crypto from 'crypto'
 import { sendVerificationEmail } from '@/lib/email'
 import { hashOneTimeToken } from '@/lib/security/tokens'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { validatePassword } from '@/lib/security/passwordPolicy'
 
 const mongoUri = process.env.MONGODB_URI!
@@ -25,15 +25,7 @@ const SignupSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, {
-      requireSameOrigin: true,
-      rateLimit: {
-        bucket: 'auth-signup',
-        limit: 10,
-        windowSeconds: 15 * 60,
-        message: 'Too many signup attempts. Please try again later.',
-      },
-    })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.authSignup())
     if (blockedResponse) return blockedResponse
 
     const body   = await req.json()

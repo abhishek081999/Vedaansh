@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { getOrCreateBillingConfig } from '@/lib/subscription/billing-config'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { requireAdmin } from '@/lib/admin/auth'
 import { logAdminAction } from '@/lib/admin/audit'
@@ -55,8 +55,11 @@ function getWeekStart(date: Date): Date {
   return d
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.adminRead())
+    if (blocked) return blocked
+
     const admin = await requireAdmin()
     if (!admin) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })
 
@@ -142,10 +145,7 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, {
-      requireSameOrigin: true,
-      rateLimit: { bucket: 'admin-mutate', limit: 60, windowSeconds: 60, message: 'Too many admin requests.' },
-    })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.adminMutate())
     if (blockedResponse) return blockedResponse
 
     const admin = await requireAdmin()

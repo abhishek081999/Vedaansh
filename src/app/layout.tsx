@@ -1,5 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from 'next'
+import { headers } from 'next/headers'
+import Script from 'next/script'
 import { Playfair_Display, Inter, Outfit, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider }      from '@/components/providers/SessionProvider'
@@ -191,16 +193,25 @@ const jsonLdOrg = {
   sameAs:     ['https://twitter.com/vedaansh'],
 }
 
+// CSP nonces: middleware sets x-nonce; headers() opts this layout into dynamic SSR.
+
 // ── Root Layout ───────────────────────────────────────────────
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') ?? ''
+
   return (
     <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Google Analytics 4 */}
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
-        <script dangerouslySetInnerHTML={{ __html: gaScript }} />
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+          nonce={nonce}
+        />
+        <Script id="ga-init" strategy="afterInteractive" nonce={nonce}>
+          {gaScript}
+        </Script>
         <link rel="icon" type="image/png" href="/veda-icon.png" sizes="any" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="shortcut icon" href="/favicon.ico" />
@@ -209,17 +220,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Vedaansh" />
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
         />
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebApp) }}
         />
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrg) }}
         />
       </head>

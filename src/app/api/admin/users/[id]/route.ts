@@ -6,19 +6,24 @@ import { Subscription } from '@/lib/db/models/Subscription'
 import { requireAdmin } from '@/lib/admin/auth'
 import { enrichUserRow } from '@/lib/admin/users-query'
 import { getChartSaveLimit } from '@/lib/subscription/entitlements'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.adminRead())
+    if (blocked) return blocked
+
+    const { id } = await params
     const admin = await requireAdmin()
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })
     }
 
     await connectDB()
-    const user = await User.findById(params.id).select('-passwordHash').lean() as {
+    const user = await User.findById(id).select('-passwordHash').lean() as {
       plan?: string
       planExpiresAt?: Date | string | null
       devices?: unknown[]
@@ -33,14 +38,14 @@ export async function GET(
     const chartLimit = getChartSaveLimit(user.plan, user.planExpiresAt)
 
     const [chartCount, recentCharts, subscriptions, activeSubscription] = await Promise.all([
-      Chart.countDocuments({ userId: params.id }),
-      Chart.find({ userId: params.id })
+      Chart.countDocuments({ userId: id }),
+      Chart.find({ userId: id })
         .sort({ createdAt: -1 })
         .limit(10)
         .select('name birthDate birthTime birthPlace latitude longitude timezone slug createdAt')
         .lean(),
-      Subscription.find({ userId: params.id }).sort({ createdAt: -1 }).lean(),
-      Subscription.findOne({ userId: params.id, status: 'active' }).lean(),
+      Subscription.find({ userId: id }).sort({ createdAt: -1 }).lean(),
+      Subscription.findOne({ userId: id, status: 'active' }).lean(),
     ])
 
     return NextResponse.json({

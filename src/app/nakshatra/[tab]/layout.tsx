@@ -31,10 +31,11 @@ const DEFAULT_META = {
 }
 
 export async function generateMetadata(
-  { params }: { params: { tab: string } }
+  { params }: { params: Promise<{ tab: string }> }
 ): Promise<Metadata> {
-  const meta = TAB_META[params.tab] ?? DEFAULT_META
-  const url  = `${BASE_URL}/nakshatra/${params.tab}`
+  const { tab } = await params
+  const meta = TAB_META[tab] ?? DEFAULT_META
+  const url  = `${BASE_URL}/nakshatra/${tab}`
 
   return {
     title:       meta.title,

@@ -1,21 +1,24 @@
 // ─────────────────────────────────────────────────────────────
-//  src/app/api/health/route.ts
-//  GET /api/health
-//  Used by Render for health checks
+//  GET /api/health — Render / uptime probes (minimal disclosure)
 // ─────────────────────────────────────────────────────────────
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const blocked = await guardRoute(req, routeSecurityPresets.health())
+  if (blocked) return blocked
+
   return NextResponse.json(
+    { status: 'ok' },
     {
-      status: 'ok',
-      app: 'Vedaansh',
-      timestamp: new Date().toISOString(),
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
     },
-    { status: 200 }
   )
 }

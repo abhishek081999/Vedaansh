@@ -4,9 +4,13 @@ import { Chart } from '@/lib/db/models/Chart'
 import { requireAdmin } from '@/lib/admin/auth'
 import { parsePaginationParams, paginationMeta } from '@/lib/admin/pagination'
 import { buildChartSearchFilter } from '@/lib/admin/chart-search'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.adminRead())
+    if (blocked) return blocked
+
     const admin = await requireAdmin()
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })

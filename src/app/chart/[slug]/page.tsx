@@ -36,8 +36,12 @@ function localToUTC(date: string, time: string, tz: string): { utcDate: string; 
 
 // ── Page ──────────────────────────────────────────────────────
 
-export default async function PublicChartPage({ params }: { params: { slug: string } }) {
-  const { slug } = params
+export default async function PublicChartPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
 
   try {
     await connectDB()

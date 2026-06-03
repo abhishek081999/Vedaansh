@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { rejectOversizedBody } from '@/lib/security/bodyLimit'
 import { enforceRateLimit } from '@/lib/security/rateLimit'
 import { isSameOriginRequest } from '@/lib/security/origin'
 import { logSecurityEvent } from '@/lib/security/events'
@@ -13,6 +14,8 @@ export type RouteRateLimitConfig = {
 export type RouteSecurityOptions = {
   requireSameOrigin?: boolean
   rateLimit?: RouteRateLimitConfig
+  /** Reject when Content-Length exceeds this (bytes). */
+  maxBodyBytes?: number
 }
 
 type RateLimitFn = typeof enforceRateLimit
@@ -26,6 +29,18 @@ export async function applyRouteSecurity(
   options: RouteSecurityOptions,
   rateLimitFn: RateLimitFn = enforceRateLimit,
 ): Promise<NextResponse | null> {
+  if (options.maxBodyBytes != null) {
+    const tooLarge = rejectOversizedBody(request, options.maxBodyBytes)
+    if (tooLarge) {
+      logSecurityEvent('body_too_large', {
+        path: new URL(request.url).pathname,
+        method: request.method,
+        maxBytes: options.maxBodyBytes,
+      })
+      return tooLarge
+    }
+  }
+
   if (options.requireSameOrigin && !isSameOriginRequest(request, { strict: true })) {
     logSecurityEvent('csrf_blocked', {
       path: new URL(request.url).pathname,

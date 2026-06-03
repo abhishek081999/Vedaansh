@@ -7,6 +7,7 @@
 import { auth } from '@/auth'
 import { applyRouteSecurity } from '@/lib/security/route'
 import { logSecurityEvent } from '@/lib/security/events'
+import { withDocumentCsp } from '@/lib/security/csp'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -165,7 +166,7 @@ export default auth(async (req: NextRequest & { auth: any }) => {
     }
   }
 
-  return NextResponse.next()
+  return withDocumentCsp(req, pathname)
 })
 
 export const config = {

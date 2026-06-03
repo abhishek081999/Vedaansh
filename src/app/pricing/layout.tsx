@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { JsonLd } from '@/components/seo/JsonLd'
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
 export const metadata: Metadata = {
@@ -29,13 +30,10 @@ const jsonLd = {
   ],
 }
 
-export default function PricingLayout({ children }: { children: React.ReactNode }) {
+export default async function PricingLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
       {children}
     </>
   )

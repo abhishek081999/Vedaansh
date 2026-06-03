@@ -7,6 +7,7 @@ import { sendWelcomeEmail } from '@/lib/email'
 import { redis } from '@/lib/redis'
 import { logSecurityEvent } from '@/lib/security/events'
 import { redactForLog } from '@/lib/security/safeLog'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 
@@ -98,6 +99,9 @@ async function handlePaymentCaptured(payload: any) {
 // ── Main route handler ─────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const blocked = await guardRoute(req, routeSecurityPresets.webhook())
+  if (blocked) return blocked
+
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
   if (!webhookSecret) {
     console.error('[webhook/razorpay] RAZORPAY_WEBHOOK_SECRET not set')

@@ -31,6 +31,24 @@ describe('applyRouteSecurity', () => {
     expect(res).toBeNull()
   })
 
+  it('returns 413 when body exceeds maxBodyBytes', async () => {
+    const req = new Request('https://vedaansh.com/api/chart/calculate', {
+      method: 'POST',
+      headers: {
+        origin: 'https://vedaansh.com',
+        'Content-Length': '500000',
+      },
+    })
+
+    const res = await applyRouteSecurity(req, {
+      requireSameOrigin: true,
+      maxBodyBytes: 1024,
+    })
+
+    expect(res).not.toBeNull()
+    expect(res?.status).toBe(413)
+  })
+
   it('returns 429 with standard headers when rate limit blocks', async () => {
     const req = new Request('https://vedaansh.com/api/auth/signup', { method: 'POST' })
     const mockLimiter = async () => ({

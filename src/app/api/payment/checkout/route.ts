@@ -5,7 +5,7 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { areOffersEnabled, getApplicableCoupon, getOrCreateBillingConfig, computeDiscount } from '@/lib/subscription/billing-config'
 
 export const runtime = 'nodejs'
@@ -39,7 +39,7 @@ const CheckoutSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.paymentCheckout())
     if (blockedResponse) return blockedResponse
 
     const session = await auth()
