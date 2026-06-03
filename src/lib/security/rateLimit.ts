@@ -33,13 +33,30 @@ function getClientIp(request: Request): string {
   return 'unknown'
 }
 
+function unavailableResult(config: RateLimitConfig): RateLimitResult {
+  return {
+    allowed: false,
+    limit: config.limit,
+    remaining: 0,
+    retryAfterSeconds: 60,
+  }
+}
+
+function isProductionEnv(): boolean {
+  return process.env.NODE_ENV === 'production'
+}
+
 export async function enforceRateLimit(
   request: Request,
   config: RateLimitConfig,
 ): Promise<RateLimitResult> {
   const client = getRedisClient()
-  // Fail-open when Redis is not configured, to preserve availability in dev/self-host.
+  // Production requires Redis so expensive endpoints cannot be abused unbounded.
   if (!client) {
+    if (isProductionEnv()) {
+      console.error('[rate-limit] UPSTASH_REDIS_* required in production')
+      return unavailableResult(config)
+    }
     return {
       allowed: true,
       limit: config.limit,
@@ -65,7 +82,8 @@ export async function enforceRateLimit(
       retryAfterSeconds: ttl,
     }
   } catch (err) {
-    console.warn('[rate-limit] fallback due to error:', err)
+    console.warn('[rate-limit] error:', err)
+    if (isProductionEnv()) return unavailableResult(config)
     return {
       allowed: true,
       limit: config.limit,

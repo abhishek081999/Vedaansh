@@ -21,6 +21,7 @@ const Schema = z.object({
 export async function POST(req: Request) {
   try {
     const blockedResponse = await applyRouteSecurity(req, {
+      requireSameOrigin: true,
       rateLimit: {
         bucket: 'auth-forgot-password',
         limit: 8,

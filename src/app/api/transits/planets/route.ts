@@ -22,6 +22,7 @@ import { getNakshatra } from '@/lib/engine/nakshatra'
 import { getDignity }   from '@/lib/engine/dignity'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
 import type { GrahaId, AyanamshaMode } from '@/types/astrology'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -36,6 +37,9 @@ type TransitGraha = { id: GrahaId; name: string; lonSidereal: number; rashi: num
 
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.publicEphemeris())
+    if (blocked) return blocked
+
     const sp = new URL(req.url).searchParams
     const dateStr  = sp.get('date') ?? new Date().toISOString().split('T')[0]
     const ayanMode = (sp.get('ayanamsha') ?? 'lahiri') as AyanamshaMode

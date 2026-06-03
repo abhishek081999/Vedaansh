@@ -13,6 +13,14 @@ describe('applyRouteSecurity', () => {
     expect(res?.status).toBe(403)
   })
 
+  it('blocks same-origin requests when Origin/Referer headers are missing', async () => {
+    const req = new Request('https://vedaansh.com/api/chart/save', { method: 'POST' })
+
+    const res = await applyRouteSecurity(req, { requireSameOrigin: true })
+    expect(res).not.toBeNull()
+    expect(res?.status).toBe(403)
+  })
+
   it('allows same-origin requests when same-origin is required', async () => {
     const req = new Request('https://vedaansh.com/api/chart/save', {
       method: 'POST',

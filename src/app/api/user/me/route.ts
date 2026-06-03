@@ -8,9 +8,14 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Chart } from '@/lib/db/models/Chart'
+import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.userRead())
+    if (blocked) return blocked
+
     // Parallelize session check and DB connection
     const [session] = await Promise.all([
       auth(),
@@ -67,6 +72,9 @@ export async function GET() {
 // ── PATCH — update preferences ────────────────────────────────
 export async function PATCH(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.userWrite())
+    if (blocked) return blocked
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -93,10 +101,10 @@ export async function PATCH(req: NextRequest) {
     }
 
     await connectDB()
-    const user = await User.findById(session.user.id).select('plan').lean()
-    
-    // Allow brand updates for Platinum users
-    if ((user as any)?.plan === 'platinum') {
+    const effectivePlan = await getEffectivePlanForUserId(session.user.id)
+
+    // Allow brand updates for Platinum users (DB-backed plan)
+    if (effectivePlan === 'platinum') {
       if ('brandName' in body) update['brandName'] = body.brandName?.trim().slice(0, 100) || null
       if ('brandLogo' in body) update['brandLogo'] = body.brandLogo?.trim() || null
     }

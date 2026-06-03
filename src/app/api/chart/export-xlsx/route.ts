@@ -10,6 +10,7 @@ import * as XLSX from 'xlsx'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 
@@ -27,6 +28,9 @@ function fmtTime(t: string) {
 }
 
 export async function GET(req: NextRequest) {
+  const blocked = await guardRoute(req, routeSecurityPresets.chartRead())
+  if (blocked) return blocked
+
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 })

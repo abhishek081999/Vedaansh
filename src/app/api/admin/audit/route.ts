@@ -3,6 +3,7 @@ import connectDB from '@/lib/db/mongodb'
 import { AdminAuditLog } from '@/lib/db/models/AdminAuditLog'
 import { requireAdmin } from '@/lib/admin/auth'
 import { parsePaginationParams, paginationMeta } from '@/lib/admin/pagination'
+import { regexFromSearch } from '@/lib/security/sanitize'
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,7 +16,8 @@ export async function GET(req: NextRequest) {
     const action = req.nextUrl.searchParams.get('action')?.trim() || ''
 
     const filter: Record<string, unknown> = {}
-    if (action) filter.action = { $regex: action, $options: 'i' }
+    const actionRegex = action ? regexFromSearch(action.slice(0, 100)) : null
+    if (actionRegex) filter.action = actionRegex
 
     await connectDB()
     const [logs, total] = await Promise.all([

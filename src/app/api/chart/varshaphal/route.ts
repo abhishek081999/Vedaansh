@@ -9,6 +9,7 @@ import { findSolarReturnJD, jdToDate } from '@/lib/engine/varshaphal'
 import { calculateChart } from '@/lib/engine/calculator'
 import { getMunthaRashi, getTajikaYogas } from '@/lib/engine/tajika'
 import type { ChartSettings, Rashi } from '@/types/astrology'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 
@@ -26,6 +27,9 @@ const Schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.chartHeavy())
+    if (blocked) return blocked
+
     const body   = await req.json()
     const parsed = Schema.safeParse(body)
     if (!parsed.success) {

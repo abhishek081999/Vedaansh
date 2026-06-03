@@ -8,13 +8,13 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import crypto from 'crypto'
-import { applyRouteSecurity } from '@/lib/security/route'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
-    const blockedResponse = await applyRouteSecurity(req, { requireSameOrigin: true })
+    const blockedResponse = await guardRoute(req, routeSecurityPresets.chartWrite())
     if (blockedResponse) return blockedResponse
 
     const session = await auth()

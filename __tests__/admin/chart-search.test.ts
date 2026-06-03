@@ -32,8 +32,8 @@ describe('buildChartSearchFilter', () => {
     const filter = await buildChartSearchFilter('alice@example.com')
     expect(filter).toEqual({
       $or: [
-        { name: { $regex: 'alice@example.com', $options: 'i' } },
-        { birthPlace: { $regex: 'alice@example.com', $options: 'i' } },
+        { name: { $regex: 'alice@example\\.com', $options: 'i' } },
+        { birthPlace: { $regex: 'alice@example\\.com', $options: 'i' } },
         { userId: { $in: [userId] } },
       ],
     })

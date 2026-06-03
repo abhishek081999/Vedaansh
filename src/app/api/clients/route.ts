@@ -9,7 +9,9 @@ import { z } from 'zod'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Client } from '@/lib/db/models/Client'
-import { User } from '@/lib/db/models/User'
+import { requirePlanGate } from '@/lib/security/planAccess'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
+import { regexFromSearch } from '@/lib/security/sanitize'
 import { getPlanetPosition, dateToJD, getAyanamsha, SWISSEPH_IDS } from '@/lib/engine/ephemeris'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 
@@ -33,29 +35,30 @@ const ClientInputSchema = z.object({
 // ── GET: List all clients for the consultant ──────────────────
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.clientsRead())
+    if (blocked) return blocked
+
     const session = await auth()
     const userId  = session?.user?.id
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const planBlocked = await requirePlanGate(userId, 'platinum')
+    if (planBlocked) return planBlocked
+
     await connectDB()
-    
-    // Platinum Check
-    const user = await User.findById(userId).select('plan').lean()
-    if ((user as any)?.plan !== 'platinum') {
-      return NextResponse.json({ success: false, error: 'CRM requires Platinum tier' }, { status: 403 })
-    }
 
     const { searchParams } = new URL(req.url)
-    const query = searchParams.get('q') || ''
-    const filter: any = { userId }
-    
-    if (query) {
+    const query = (searchParams.get('q') || '').trim().slice(0, 200)
+    const filter: Record<string, unknown> = { userId }
+
+    const textRegex = regexFromSearch(query)
+    if (textRegex) {
       filter.$or = [
-        { name: { $regex: query, $options: 'i' } },
-        { email: { $regex: query, $options: 'i' } },
-        { tags: { $in: [new RegExp(query, 'i')] } }
+        { name: textRegex },
+        { email: textRegex },
+        { tags: textRegex },
       ]
     }
 
@@ -123,6 +126,9 @@ export async function GET(req: NextRequest) {
 // ── POST: Create new client ───────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.clientsWrite())
+    if (blocked) return blocked
+
     const session = await auth()
     const userId  = session?.user?.id
     if (!userId) {
@@ -135,13 +141,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid input', details: parsed.error.format() }, { status: 400 })
     }
 
-    await connectDB()
+    const planBlocked = await requirePlanGate(userId, 'platinum')
+    if (planBlocked) return planBlocked
 
-    // Platinum Check
-    const user = await User.findById(userId).select('plan').lean()
-    if ((user as any)?.plan !== 'platinum') {
-      return NextResponse.json({ success: false, error: 'CRM requires Platinum tier' }, { status: 403 })
-    }
+    await connectDB()
 
     const clientData = {
       ...parsed.data,

@@ -7,12 +7,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import { User } from '@/lib/db/models/User'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.publicEphemeris())
+    if (blocked) return blocked
+
     const slug = req.nextUrl.searchParams.get('slug')
     if (!slug) {
       return NextResponse.json({ success: false, error: 'Missing slug' }, { status: 400 })

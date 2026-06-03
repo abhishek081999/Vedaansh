@@ -12,6 +12,10 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test:engine": "vitest run",
+    "test:security": "vitest run __tests__/security",
+    "security:check": "npm run test:security",
+    "security:audit": "npm audit --audit-level=high",
+    "security:audit:summary": "npm audit",
     "test:watch": "vitest src/lib/engine",
     "remotion:studio": "remotion studio remotion/index.ts",
     "remotion:render": "tsx scripts/render-reel.ts",
@@ -41,9 +45,9 @@
     "lucide-react": "^0.378.0",
     "mongodb": "^6.21.0",
     "mongoose": "^8.4.0",
-    "next": "14.2.5",
+    "next": "14.2.35",
     "next-auth": "^5.0.0-beta.25",
-    "razorpay": "^2.9.2",
+    "razorpay": "^2.9.6",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-leaflet": "^4.2.1",
@@ -55,7 +59,7 @@
     "tailwind-merge": "^2.3.0",
     "typescript": "^5.4.5",
     "tz-lookup": "^6.1.25",
-    "xlsx": "^0.18.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^3.23.8",
     "zustand": "^4.5.2"
   },
@@ -72,10 +76,13 @@
     "@vitest/ui": "^1.6.0",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.5",
+    "eslint-config-next": "14.2.35",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
     "tsx": "^4.11.0",
     "vitest": "^1.6.0"
+  },
+  "overrides": {
+    "axios": "1.17.0"
   }
 }

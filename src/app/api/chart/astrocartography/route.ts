@@ -6,11 +6,14 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { calculateACG } from '@/lib/engine/astrocartography'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
+  const blocked = await guardRoute(req, routeSecurityPresets.publicEphemeris())
+  if (blocked) return blocked
 
   try {
     const { searchParams } = new URL(req.url)

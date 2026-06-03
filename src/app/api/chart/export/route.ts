@@ -12,26 +12,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { generateChartHTML } from '@/lib/pdf/chartHtml'
+import { getEffectivePlanForUserId, requirePlanGate } from '@/lib/security/planAccess'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import type { ChartOutput } from '@/types/astrology'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.chartHeavy())
+    if (blocked) return blocked
+
     // ── Auth check ────────────────────────────────────────────
     const session = await auth()
-    const plan = (session?.user as any)?.plan ?? 'free'
-
-    if (plan === 'free') {
-      return NextResponse.json(
-        {
-          error: 'PDF export requires Gold or Platinum plan.',
-          upgradeRequired: true,
-          upgradeUrl: '/pricing',
-        },
-        { status: 403 },
-      )
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const planBlocked = await requirePlanGate(session.user.id, 'gold')
+    if (planBlocked) return planBlocked
 
     // ── Parse body ────────────────────────────────────────────
     const body = await req.json().catch(() => null)
@@ -43,19 +42,18 @@ export async function POST(req: NextRequest) {
     }
 
     const chart = body as ChartOutput
-    const userId = session?.user?.id
+    const userId = session.user.id
 
-    // ── Fetch Branding (Platinum Only) ────────────────────────
+    // ── Fetch Branding (Platinum Only, DB-backed plan) ───────
     let branding = null
-    if (userId) {
+    const effectivePlan = await getEffectivePlanForUserId(userId)
+    if (effectivePlan === 'platinum') {
       const { User } = await import('@/lib/db/models/User')
       await (await import('@/lib/db/mongodb')).default()
-      const user = await User.findById(userId).select('plan brandName brandLogo').lean()
-      if ((user as any)?.plan === 'platinum') {
-        branding = {
-          brandName: (user as any).brandName,
-          brandLogo: (user as any).brandLogo
-        }
+      const user = await User.findById(userId).select('brandName brandLogo').lean()
+      branding = {
+        brandName: (user as any)?.brandName,
+        brandLogo: (user as any)?.brandLogo,
       }
     }
 

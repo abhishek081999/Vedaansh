@@ -45,6 +45,14 @@ const nextConfig = {
   },
   transpilePackages: ['next-auth', 'remotion', '@remotion/player'],
 
+  // Block open remote image optimizer SSRF (GHSA-9g9p-9gw9-jx7f)
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
+    ],
+  },
+
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -98,6 +106,7 @@ const nextConfig = {
           { key: 'X-DNS-Prefetch-Control', value: 'off' },
           { key: 'Content-Security-Policy', value: contentSecurityPolicy },
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
+          { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
         ],
       },
     ]

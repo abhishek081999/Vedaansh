@@ -8,7 +8,8 @@ import { z } from 'zod'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Client } from '@/lib/db/models/Client'
-import { User } from '@/lib/db/models/User'
+import { requirePlanGate } from '@/lib/security/planAccess'
+import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export const runtime = 'nodejs'
 
@@ -43,21 +44,14 @@ const NoteSchema = z.object({
 })
 
 async function ensurePlatinum(userId: string): Promise<NextResponse | null> {
-  const user = await User.findById(userId).select('plan planExpiresAt').lean() as any
-  const plan = user?.plan ?? 'free'
-  const expiry = user?.planExpiresAt
-  const isExpiredPaidPlan = plan !== 'free' && expiry && new Date(expiry) < new Date()
-  if (plan !== 'platinum' || isExpiredPaidPlan) {
-    return NextResponse.json(
-      { success: false, error: 'Platinum plan required', code: 'PLATINUM_REQUIRED', upgradeRequired: true },
-      { status: 403 },
-    )
-  }
-  return null
+  return requirePlanGate(userId, 'platinum')
 }
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.clientsRead())
+    if (blocked) return blocked
+
     const session = await auth()
     const userId  = session?.user?.id
     if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -78,6 +72,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.clientsWrite())
+    if (blocked) return blocked
+
     const session = await auth()
     const userId  = session?.user?.id
     if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -128,6 +125,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   // Logic for adding a note
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.clientsWrite())
+    if (blocked) return blocked
+
     const session = await auth()
     const userId  = session?.user?.id
     if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -172,6 +172,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const blocked = await guardRoute(req, routeSecurityPresets.clientsWrite())
+    if (blocked) return blocked
+
     const session = await auth()
     const userId  = session?.user?.id
     if (!userId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })

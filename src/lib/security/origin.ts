@@ -6,7 +6,7 @@
  * - x-forwarded-host (proxy aware)
  * - common app URL envs
  * - optional comma-separated CSRF_TRUSTED_ORIGINS
- * If no Origin/Referer exists (server-to-server clients), it allows the request.
+ * When `strict` is true, requests without Origin/Referer are rejected.
  */
 
 function normalizeHost(host: string): string {
@@ -65,7 +65,12 @@ function buildTrustedHosts(request: Request): Set<string> {
   return trusted
 }
 
-export function isSameOriginRequest(request: Request): boolean {
+type SameOriginOptions = {
+  /** Reject when Origin/Referer headers are missing (browser CSRF hardening). */
+  strict?: boolean
+}
+
+export function isSameOriginRequest(request: Request, options: SameOriginOptions = {}): boolean {
   const trustedHosts = buildTrustedHosts(request)
 
   const origin = request.headers.get('origin')
@@ -80,6 +85,6 @@ export function isSameOriginRequest(request: Request): boolean {
     return Boolean(refererHost && trustedHosts.has(refererHost))
   }
 
-  return true
+  return !options.strict
 }
 

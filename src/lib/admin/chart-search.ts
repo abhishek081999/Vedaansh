@@ -2,12 +2,13 @@ import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import type { FilterQuery } from 'mongoose'
 import type { IChart } from '@/lib/db/models/Chart'
+import { regexFromSearch } from '@/lib/security/sanitize'
 
 export async function buildChartSearchFilter(search: string): Promise<FilterQuery<IChart>> {
-  if (!search.trim()) return {}
+  const regex = regexFromSearch(search)
+  if (!regex) return {}
 
   await connectDB()
-  const regex = { $regex: search.trim(), $options: 'i' }
   const matchingUsers = await User.find({
     $or: [{ name: regex }, { email: regex }],
   }).select('_id').lean() as Array<{ _id: unknown }>
