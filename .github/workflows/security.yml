@@ -38,6 +38,5 @@ jobs:
       - name: Engine tests
         run: npm run test:engine
 
-      - name: Dependency audit
+      - name: Dependency audit (production deps)
         run: npm run security:audit
-        continue-on-error: true
