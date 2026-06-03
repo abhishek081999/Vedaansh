@@ -128,6 +128,11 @@ export const metadata: Metadata = {
   // ── App metadata ────────────────────────────────────────────
   applicationName: 'Vedaansh',
   category:        'astrology',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Vedaansh',
+  },
 
   // ── Icons ────────────────────────────────────────────────────
   icons: {
