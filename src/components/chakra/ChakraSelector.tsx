@@ -18,6 +18,27 @@ import { getVargaPosition } from '@/lib/engine/vargas'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 
+function getSignType(r: Rashi): 'Movable' | 'Fixed' | 'Dual' {
+  if ([1, 4, 7, 10].includes(r)) return 'Movable'
+  if ([2, 5, 8, 11].includes(r)) return 'Fixed'
+  return 'Dual'
+}
+
+function getRashiDrishtiSigns(r: Rashi): Rashi[] {
+  const type = getSignType(r)
+  if (type === 'Movable') {
+    return [2, 5, 8, 11].filter(
+      f => f !== (r === 1 ? 2 : r === 4 ? 5 : r === 7 ? 8 : 11),
+    ) as Rashi[]
+  }
+  if (type === 'Fixed') {
+    return [1, 4, 7, 10].filter(
+      m => m !== (r === 2 ? 1 : r === 5 ? 4 : r === 8 ? 7 : 10),
+    ) as Rashi[]
+  }
+  return [3, 6, 9, 12].filter(d => d !== r) as Rashi[]
+}
+
 // ── Props ─────────────────────────────────────────────────────
 
 interface ChakraSelectorProps {
@@ -229,27 +250,6 @@ export function ChakraSelector({
     }
     return ascRashi
   }, [ascRashi, lagnaSource, grahas, effectiveArudhas])
-
-  const getSignType = (r: Rashi): 'Movable' | 'Fixed' | 'Dual' => {
-    if ([1, 4, 7, 10].includes(r)) return 'Movable'
-    if ([2, 5, 8, 11].includes(r)) return 'Fixed'
-    return 'Dual'
-  }
-
-  const getRashiDrishtiSigns = (r: Rashi): Rashi[] => {
-    const type = getSignType(r)
-    if (type === 'Movable') {
-      return [2, 5, 8, 11].filter(
-        f => f !== (r === 1 ? 2 : r === 4 ? 5 : r === 7 ? 8 : 11),
-      ) as Rashi[]
-    }
-    if (type === 'Fixed') {
-      return [1, 4, 7, 10].filter(
-        m => m !== (r === 2 ? 1 : r === 5 ? 4 : r === 8 ? 7 : 10),
-      ) as Rashi[]
-    }
-    return [3, 6, 9, 12].filter(d => d !== r) as Rashi[]
-  }
 
   const charaHighlightHouses = useMemo(() => {
     if (!showCharaDrishtiControls || !enableCharaDrishti || !selectedHouse) return []

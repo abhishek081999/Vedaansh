@@ -1,6 +1,6 @@
 'use client'
 
-import React, { use, useEffect, useState } from 'react'
+import React, { use, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AdminMessage } from '@/components/admin/AdminMessage'
@@ -40,7 +40,7 @@ export default function AdminUserDetailPage({
     brandLogo: '',
   })
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -67,9 +67,9 @@ export default function AdminUserDetailPage({
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
 
-  useEffect(() => { void load() }, [id])
+  useEffect(() => { void load() }, [load])
 
   async function save(updates?: Partial<typeof form>) {
     const payload = { ...form, ...updates }

@@ -580,17 +580,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   const charaDashas = useMemo(
     () => ensureCharaDashas(grahas, lagnas, chart.meta, chart.dashas),
-    [
-      grahas,
-      lagnas,
-      chart.meta.birthDate,
-      chart.meta.birthTime,
-      chart.meta.timezone,
-      chart.dashas?.chara,
-      chart.dashas?.chara_fe,
-      chart.dashas?.mandook,
-      chart.dashas?.sthir,
-    ],
+    [grahas, lagnas, chart.meta, chart.dashas],
   );
 
   const activeCharaDashas = useMemo(() => {
@@ -657,15 +647,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const d1AscBase = (chart.vargaLagnas?.D1 ?? lagnas.ascRashi) as Rashi;
   const d9AscBase = (chart.vargaLagnas?.D9 ?? chart.vargaLagnas?.D1 ?? lagnas.ascRashi) as Rashi;
 
-  const d1GrahaSlimKey = d1Grahas.map((g) => `${g.id}:${g.rashi}`).join('|');
-  const d9GrahaSlimKey = d9Grahas.map((g) => `${g.id}:${g.rashi}`).join('|');
   const d1GrahaSlim = useMemo(
     () => d1Grahas.map((g) => ({ id: g.id, rashi: g.rashi as Rashi })),
-    [d1GrahaSlimKey],
+    [d1Grahas],
   );
   const d9GrahaSlim = useMemo(
     () => d9Grahas.map((g) => ({ id: g.id, rashi: g.rashi as Rashi })),
-    [d9GrahaSlimKey],
+    [d9Grahas],
   );
 
   const d1ArudhaBundle = useMemo(
