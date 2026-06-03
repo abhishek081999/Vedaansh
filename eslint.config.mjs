@@ -25,6 +25,13 @@ const eslintConfig = [
     ],
   },
   ...compat.extends('next/core-web-vitals'),
+  {
+    // next/og ImageResponse requires raw <img> (next/image is not supported there)
+    files: ['**/opengraph-image.tsx'],
+    rules: {
+      '@next/next/no-img-element': 'off',
+    },
+  },
 ]
 
 export default eslintConfig
