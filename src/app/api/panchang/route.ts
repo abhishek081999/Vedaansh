@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
 
     if (!query.success) {
       return NextResponse.json(
-        { success: false, error: 'Invalid parameters', details: query.error.errors },
+        { success: false, error: 'Invalid parameters', details: query.error.issues },
         { status: 400 },
       )
     }

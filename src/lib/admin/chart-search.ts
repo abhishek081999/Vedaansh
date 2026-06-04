@@ -1,10 +1,10 @@
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
-import type { FilterQuery } from 'mongoose'
+import type { RootFilterQuery } from 'mongoose'
 import type { IChart } from '@/lib/db/models/Chart'
 import { regexFromSearch } from '@/lib/security/sanitize'
 
-export async function buildChartSearchFilter(search: string): Promise<FilterQuery<IChart>> {
+export async function buildChartSearchFilter(search: string): Promise<RootFilterQuery<IChart>> {
   const regex = regexFromSearch(search)
   if (!regex) return {}
 
@@ -13,7 +13,7 @@ export async function buildChartSearchFilter(search: string): Promise<FilterQuer
     $or: [{ name: regex }, { email: regex }],
   }).select('_id').lean() as Array<{ _id: unknown }>
 
-  const orConditions: FilterQuery<IChart>[] = [
+  const orConditions: RootFilterQuery<IChart>[] = [
     { name: regex },
     { birthPlace: regex },
   ]
