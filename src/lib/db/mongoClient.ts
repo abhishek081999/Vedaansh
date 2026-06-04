@@ -18,7 +18,7 @@ declare global {
 
 let cachedResolvedUri: string | null = null
 
-function usePublicDns(): void {
+function setPublicDnsServers(): void {
   dns.setServers([...DNS_SERVERS])
 }
 
@@ -26,7 +26,7 @@ function usePublicDns(): void {
 async function resolveSrvWithRetry(srvName: string, attempts = 6): Promise<dns.SrvRecord[]> {
   let lastErr: unknown
   for (let i = 0; i < attempts; i++) {
-    usePublicDns()
+    setPublicDnsServers()
     try {
       return await dns.promises.resolveSrv(srvName)
     } catch (err) {
