@@ -20,7 +20,7 @@ const Schema = z.object({
   longitude:        z.number().min(-180).max(180),
   timezone:         z.string(),
   birthPlace:       z.string(),
-  settings:         z.record(z.unknown()),
+  settings:         z.record(z.string(), z.unknown()),
   natalName:        z.string().optional(),
   gender:           z.enum(['male', 'female', 'other']).default('male'),
 })

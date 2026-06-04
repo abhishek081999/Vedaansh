@@ -32,6 +32,19 @@ const SettingsSchema = z.object({
   showRetro:    z.boolean().default(true),
 })
 
+const DEFAULT_CHART_SETTINGS = {
+  ayanamsha: 'lahiri',
+  houseSystem: 'whole_sign',
+  nodeMode: 'mean',
+  karakaScheme: 7,
+  gulikaMode: 'phaladipika',
+  chartStyle: 'south',
+  showDegrees: true,
+  showNakshatra: false,
+  showKaraka: false,
+  showRetro: true,
+} as const
+
 const ChartInputSchema = z.object({
   name:      z.string().min(1, 'Name is required').max(100),
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format: YYYY-MM-DD'),
@@ -41,7 +54,7 @@ const ChartInputSchema = z.object({
   longitude: z.number().min(-180).max(180),
   timezone:  z.string().min(1, 'Timezone is required'),  // IANA e.g. 'Asia/Kolkata'
   gender:    z.enum(['male', 'female', 'other']).default('male'),
-  settings:  SettingsSchema.default({}),
+  settings:  SettingsSchema.default(DEFAULT_CHART_SETTINGS),
   prashnaNumber: z.number().min(1).max(249).optional(),
 })
 
@@ -169,7 +182,7 @@ export async function POST(req: NextRequest) {
     const result = ChartInputSchema.safeParse(body)
     if (!result.success) {
       return NextResponse.json(
-        { success: false, error: 'Validation failed', details: result.error.errors },
+        { success: false, error: 'Validation failed', details: result.error.issues },
         { status: 400 },
       )
     }

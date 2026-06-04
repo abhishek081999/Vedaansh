@@ -25,7 +25,7 @@ const SaveSchema = z.object({
   longitude:  z.number(),
   timezone:   z.string(),
   gender:     z.enum(['male', 'female', 'other']).default('male'),
-  settings:   z.record(z.unknown()),
+  settings:   z.record(z.string(), z.unknown()),
   isPublic:   z.boolean().default(false),
   isPersonal: z.boolean().default(false),
 })

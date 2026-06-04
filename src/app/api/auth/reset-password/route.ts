@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { hashOneTimeToken } from '@/lib/security/tokens'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { validatePassword } from '@/lib/security/passwordPolicy'
+import { zodFirstIssueMessage } from '@/lib/validation/zodHelpers'
 
 const mongoUri = process.env.MONGODB_URI!
 const dbName   = process.env.MONGODB_DB_NAME || 'jyotish'
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
     const parsed = Schema.safeParse(body)
 
     if (!parsed.success) {
-      const error = parsed.error.errors[0].message
+      const error = zodFirstIssueMessage(parsed.error)
       return NextResponse.json({ success: false, error }, { status: 400 })
     }
 
