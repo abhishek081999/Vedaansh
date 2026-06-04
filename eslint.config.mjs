@@ -17,6 +17,12 @@ const eslintConfig = [
   },
   ...nextCoreWebVitals,
   {
+    // Bypass react version auto-detection (uses removed context.getFilename() on ESLint 10)
+    settings: {
+      react: { version: '19' },
+    },
+  },
+  {
     rules: {
       // New in eslint-plugin-react-hooks v7 — many existing client effects use this pattern
       'react-hooks/set-state-in-effect': 'off',

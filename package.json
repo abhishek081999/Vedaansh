@@ -9,7 +9,7 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "node scripts/assert-eslint-version.mjs && eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test:engine": "vitest run",
     "test:security": "vitest run __tests__/security",

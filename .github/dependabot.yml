@@ -11,3 +11,7 @@ updates:
         dependency-type: production
       development-dependencies:
         dependency-type: development
+    ignore:
+      # eslint-plugin-react is not compatible with ESLint 10 until upstream ships a fix
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
