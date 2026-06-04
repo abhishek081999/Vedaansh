@@ -1,13 +1,4 @@
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FlatCompat } from '@eslint/eslintrc'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals'
 
 /** @type {import('eslint').Linter.Config[]} */
 const eslintConfig = [
@@ -24,7 +15,17 @@ const eslintConfig = [
       'remotion/**',
     ],
   },
-  ...compat.extends('next/core-web-vitals'),
+  ...nextCoreWebVitals,
+  {
+    rules: {
+      // New in eslint-plugin-react-hooks v7 — many existing client effects use this pattern
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/purity': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/error-boundaries': 'off',
+    },
+  },
   {
     // next/og ImageResponse requires raw <img> (next/image is not supported there)
     files: ['**/opengraph-image.tsx'],

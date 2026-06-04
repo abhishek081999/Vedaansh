@@ -56,8 +56,21 @@ export function buildContentSecurityPolicy(nonce: string, isDev: boolean): strin
   ].join('; ')
 }
 
+function isAppRouterFlightRequest(request: Request): boolean {
+  return (
+    request.headers.get('RSC') === '1' ||
+    request.headers.get('Next-Router-Prefetch') === '1' ||
+    request.headers.get('Next-HMR-Refresh') === '1'
+  )
+}
+
 export function withDocumentCsp(request: Request, pathname: string): NextResponse {
   if (!shouldApplyDocumentCsp(pathname)) {
+    return NextResponse.next()
+  }
+
+  // Do not clone/mutate headers on RSC navigations — breaks Next 16 router-state parsing
+  if (isAppRouterFlightRequest(request)) {
     return NextResponse.next()
   }
 

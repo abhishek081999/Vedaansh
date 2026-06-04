@@ -4,7 +4,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import mongoose from 'mongoose'
-import { getOptionalEnv, getRequiredEnv } from '@/lib/env'
+import { getOptionalEnv } from '@/lib/env'
+import { resolveMongoUri } from '@/lib/db/mongoClient'
 
 // Global cache to prevent multiple connections in development
 // (Next.js hot reload creates new module instances)
@@ -26,7 +27,7 @@ if (!cached) {
  * Returns cached connection if already connected
  */
 export async function connectDB(): Promise<typeof mongoose> {
-  const mongoUri = getRequiredEnv('MONGODB_URI')
+  const mongoUri = await resolveMongoUri()
 
   if (cached.conn) return cached.conn
 

@@ -193,7 +193,7 @@ const jsonLdOrg = {
   sameAs:     ['https://twitter.com/vedaansh'],
 }
 
-// CSP nonces: middleware sets x-nonce; headers() opts this layout into dynamic SSR.
+// CSP nonces: proxy sets x-nonce; headers() opts this layout into dynamic SSR.
 
 // ── Root Layout ───────────────────────────────────────────────
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
