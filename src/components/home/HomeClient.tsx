@@ -12,8 +12,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { BirthForm }     from '@/components/ui/BirthForm'
-import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3 } from 'lucide-react'
+import { BirthForm } from '@/components/ui/BirthForm'
+import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight } from 'lucide-react'
 
 // Dynamic imports for heavy tab-specific components
 const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').then(m => m.VarshaphalPanel), { ssr: false })
@@ -508,6 +508,26 @@ function VimshottariDashaBlock({
       <DashaTree nodes={nodes} birthDate={birthDate} showNakshatra={tribhagi} />
     </div>
   )
+}
+
+const iconMap: Record<string, React.ComponentType<any>> = {
+  Astrology: Sparkles,
+  Prashna: HelpCircle,
+  Panchang: Compass,
+  Calendar: Calendar,
+  Nakshatra: Star,
+  'Jaimini Astrology': Zap,
+  'Astro Vastu': Home,
+  AstroCartography: Globe,
+  'Sarvatobhadra Chakra': Layers,
+  'Muhurta Finder': Clock,
+}
+
+const pillarIconMap: Record<string, React.ComponentType<any>> = {
+  'Kundali Intelligence': Sparkles,
+  'Panchang Timing': Compass,
+  'Prashna Clarity': HelpCircle,
+  'Consultation Ready': Zap,
 }
 
 function HomeContent() {
@@ -2581,21 +2601,30 @@ function HomeContent() {
                   Jump straight to the journey you need.
                 </p>
                 <div className="landing-major-sections-grid landing-reveal-stagger">
-                  {landingMajorSections.map((section, idx) => (
-                    <Link
-                      key={section.title}
-                      href={section.href}
-                      onClick={(e) => {
-                        trackLandingCta(section.ctaName)
-                        openSectionWithChartGate(section.href, e)
-                      }}
-                      className="stat-chip landing-major-section-card"
-                      style={{ ['--stagger-i' as string]: idx }}
-                    >
-                      <span className="stat-value">{section.title}</span>
-                      <span className="stat-sub">{section.text}</span>
-                    </Link>
-                  ))}
+                  {landingMajorSections.map((section, idx) => {
+                    const IconComponent = iconMap[section.title] || Sparkles;
+                    return (
+                      <Link
+                        key={section.title}
+                        href={section.href}
+                        onClick={(e) => {
+                          trackLandingCta(section.ctaName)
+                          openSectionWithChartGate(section.href, e)
+                        }}
+                        className="landing-major-section-card"
+                        style={{ ['--stagger-i' as string]: idx }}
+                      >
+                        <div className="card-icon-wrapper">
+                          <IconComponent size={20} strokeWidth={2} />
+                        </div>
+                        <span className="stat-value">{section.title}</span>
+                        <span className="stat-sub">{section.text}</span>
+                        <span className="card-arrow" aria-hidden="true">
+                          <ArrowRight size={14} strokeWidth={2.5} />
+                        </span>
+                      </Link>
+                    )
+                  })}
                 </div>
               </LandingReveal>
 
@@ -2604,9 +2633,10 @@ function HomeContent() {
                 <h3 style={{ margin: '0 0 0.65rem 0' }}>A spiritual aesthetic inspired by sages, scriptures, and sacred timing</h3>
                 <div className="landing-vedic-gallery-grid landing-reveal-stagger">
                   {vedicVisuals.map((item, idx) => (
-                    <article key={item.title} className="stat-chip stat-chip-display" style={{ ['--stagger-i' as string]: idx }}>
-                      <span className="stat-value">{item.title}</span>
-                      <span className="stat-sub">{item.text}</span>
+                    <article key={item.title} className="stat-chip stat-chip-display" style={{ ['--stagger-i' as string]: idx, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '1.25rem' }}>
+                      <div style={{ fontSize: '1.5rem', marginBottom: '0.65rem' }}>{item.icon}</div>
+                      <span className="stat-value" style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{item.title}</span>
+                      <span className="stat-sub" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.2rem', fontStyle: 'normal' }}>{item.text}</span>
                     </article>
                   ))}
                 </div>
@@ -2616,12 +2646,18 @@ function HomeContent() {
                 <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Why this feels fresh</div>
                 <h3 style={{ margin: '0 0 0.75rem 0' }}>Relevant information first, deep tooling always one click away</h3>
                 <div className="landing-feature-grid landing-reveal-stagger">
-                  {landingFeaturePillars.map((item, idx) => (
-                    <div key={item.title} className="stat-chip stat-chip-display" style={{ ['--stagger-i' as string]: idx }}>
-                      <span className="stat-value">{item.title}</span>
-                      <span className="stat-sub">{item.detail}</span>
-                    </div>
-                  ))}
+                  {landingFeaturePillars.map((item, idx) => {
+                    const PillarIcon = pillarIconMap[item.title] || Sparkles;
+                    return (
+                      <div key={item.title} className="stat-chip stat-chip-display" style={{ ['--stagger-i' as string]: idx, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '1.25rem' }}>
+                        <div style={{ color: 'var(--gold)', marginBottom: '0.65rem' }}>
+                          <PillarIcon size={22} strokeWidth={2} />
+                        </div>
+                        <span className="stat-value" style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{item.title}</span>
+                        <span className="stat-sub" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.2rem', fontStyle: 'normal' }}>{item.detail}</span>
+                      </div>
+                    )
+                  })}
                 </div>
                 <div className="landing-marquee" style={{ marginTop: '0.95rem' }}>
                   <div className="landing-marquee-track">
@@ -2639,10 +2675,10 @@ function HomeContent() {
                 <h3 style={{ margin: '0 0 0.65rem 0' }}>From birth data to confident life direction in minutes</h3>
                 <div className="landing-flow-grid landing-reveal-stagger landing-flow-grid--animated">
                   {landingJourney.map((item, idx) => (
-                    <article key={item.step} className="stat-chip stat-chip-display landing-flow-item" style={{ ['--stagger-i' as string]: idx }}>
-                      <span className="stat-label">{item.step}</span>
-                      <span className="stat-value">{item.title}</span>
-                      <span className="stat-sub">{item.text}</span>
+                    <article key={item.step} className="stat-chip stat-chip-display landing-flow-item" style={{ ['--stagger-i' as string]: idx, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '1.25rem' }}>
+                      <span className="stat-label" style={{ marginBottom: '0.65rem' }}>{item.step}</span>
+                      <span className="stat-value" style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{item.title}</span>
+                      <span className="stat-sub" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.2rem', fontStyle: 'normal' }}>{item.text}</span>
                     </article>
                   ))}
                 </div>

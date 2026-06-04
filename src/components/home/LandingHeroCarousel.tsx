@@ -78,6 +78,218 @@ const HERO_SLIDES: HeroSlide[] = [
   },
 ]
 
+function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg
+        viewBox="0 0 300 300"
+        style={{ width: '100%', height: '100%', transition: 'all 0.5s ease' }}
+        aria-hidden="true"
+      >
+        <defs>
+          <radialGradient id={`glow-${id}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={accent} stopOpacity={0.25} />
+            <stop offset="100%" stopColor={accent} stopOpacity={0} />
+          </radialGradient>
+        </defs>
+
+        {/* Ambient background glow */}
+        <circle cx="150" cy="150" r="120" fill={`url(#glow-${id})`} />
+
+        {/* Outer compass rim */}
+        <circle
+          cx="150"
+          cy="150"
+          r="135"
+          fill="none"
+          stroke={accent}
+          strokeWidth="1.5"
+          strokeOpacity="0.3"
+          style={{ transition: 'stroke 0.5s' }}
+        />
+        
+        {/* Fine degree ticks (Outer ring) - spin clockwise */}
+        <g className="astrolabe-spin-clockwise">
+          {Array.from({ length: 24 }).map((_, i) => {
+            const angle = (i * 360) / 24;
+            const r1 = 127;
+            const r2 = 135;
+            const x1 = 150 + r1 * Math.cos((angle * Math.PI) / 180);
+            const y1 = 150 + r1 * Math.sin((angle * Math.PI) / 180);
+            const x2 = 150 + r2 * Math.cos((angle * Math.PI) / 180);
+            const y2 = 150 + r2 * Math.sin((angle * Math.PI) / 180);
+            return (
+              <line
+                key={i}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke={accent}
+                strokeWidth={i % 6 === 0 ? 1.5 : 0.75}
+                strokeOpacity={i % 6 === 0 ? 0.45 : 0.25}
+                style={{ transition: 'stroke 0.5s' }}
+              />
+            );
+          })}
+        </g>
+
+        {/* Zodiac constellation alignments - static/blinking star map */}
+        <g className="astrolabe-pulse-glow" opacity="0.6">
+          <path
+            d="M 90 90 L 150 60 L 210 90 L 230 150 L 180 220 L 120 220 L 70 150 Z"
+            fill="none"
+            stroke={accent}
+            strokeWidth="0.75"
+            strokeOpacity="0.2"
+            style={{ transition: 'stroke 0.5s' }}
+          />
+          <path
+            d="M 150 60 L 180 220 M 210 90 L 120 220 M 90 90 L 230 150"
+            fill="none"
+            stroke={accent}
+            strokeWidth="0.5"
+            strokeOpacity="0.15"
+            style={{ transition: 'stroke 0.5s' }}
+          />
+        </g>
+
+        {/* Inner concentric ring paths */}
+        <circle
+          cx="150"
+          cy="150"
+          r="105"
+          fill="none"
+          stroke={accent}
+          strokeWidth="1"
+          strokeOpacity="0.18"
+          strokeDasharray="4 4"
+          style={{ transition: 'stroke 0.5s' }}
+        />
+        <circle
+          cx="150"
+          cy="150"
+          r="75"
+          fill="none"
+          stroke={accent}
+          strokeWidth="1.25"
+          strokeOpacity="0.25"
+          style={{ transition: 'stroke 0.5s' }}
+        />
+        <circle
+          cx="150"
+          cy="150"
+          r="45"
+          fill="none"
+          stroke={accent}
+          strokeWidth="1"
+          strokeOpacity="0.15"
+          style={{ transition: 'stroke 0.5s' }}
+        />
+
+        {/* Rotating planetary nodes and aspect line - spins counter-clockwise */}
+        <g className="astrolabe-spin-counter">
+          <line
+            x1="80"
+            y1="110"
+            x2="220"
+            y2="190"
+            stroke={accent}
+            strokeWidth="1"
+            strokeOpacity="0.35"
+            style={{ transition: 'stroke 0.5s' }}
+          />
+          <circle
+            cx="80"
+            cy="110"
+            r="6"
+            className="astrolabe-pulse-glow"
+            fill={accent}
+            style={{ transition: 'fill 0.5s', animationDelay: '0.5s' }}
+          />
+          <circle
+            cx="220"
+            cy="190"
+            r="8"
+            fill={accent}
+            style={{ transition: 'fill 0.5s' }}
+          />
+          <circle
+            cx="220"
+            cy="190"
+            r="13"
+            fill="none"
+            stroke={accent}
+            strokeWidth="0.75"
+            strokeOpacity="0.3"
+            style={{ transition: 'stroke 0.5s' }}
+          />
+          <circle
+            cx="150"
+            cy="45"
+            r="5"
+            fill={accent}
+            style={{ transition: 'fill 0.5s' }}
+          />
+        </g>
+
+        {/* Blinking stars */}
+        <g>
+          <circle cx="105" cy="70" r="1.5" fill="#fff" className="astrolabe-star-blink" style={{ animationDelay: '0.2s' }} />
+          <circle cx="195" cy="65" r="1" fill="#fff" className="astrolabe-star-blink" style={{ animationDelay: '1.2s' }} />
+          <circle cx="235" cy="115" r="2" fill="#fff" className="astrolabe-star-blink" style={{ animationDelay: '0.7s' }} />
+          <circle cx="65" cy="180" r="1.5" fill="#fff" className="astrolabe-star-blink" style={{ animationDelay: '2.1s' }} />
+          <circle cx="115" cy="245" r="1" fill="#fff" className="astrolabe-star-blink" style={{ animationDelay: '1.5s' }} />
+          <circle cx="215" cy="235" r="1.5" fill="#fff" className="astrolabe-star-blink" style={{ animationDelay: '0.4s' }} />
+        </g>
+
+        {/* Center Golden Bindu / Sun */}
+        <circle
+          cx="150"
+          cy="150"
+          r="12"
+          fill={accent}
+          className="astrolabe-pulse-glow"
+          style={{ transition: 'fill 0.5s' }}
+        />
+        <circle
+          cx="150"
+          cy="150"
+          r="18"
+          fill="none"
+          stroke={accent}
+          strokeWidth="1"
+          strokeOpacity="0.4"
+          style={{ transition: 'stroke 0.5s' }}
+        />
+      </svg>
+      
+      <div style={{
+        position: 'absolute',
+        bottom: '0.65rem',
+        left: '0.65rem',
+        right: '0.65rem',
+        textAlign: 'center',
+        background: 'rgba(9, 9, 15, 0.45)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        border: '1px solid rgba(255, 255, 255, 0.06)',
+        borderRadius: '8px',
+        padding: '0.4rem 0.6rem',
+        pointerEvents: 'none'
+      }}>
+        <h4 style={{ margin: 0, fontSize: '0.76rem', fontWeight: 650, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+          <span>{id === 'astrology' ? '🧿' : id === 'prashna' ? '🎯' : id === 'panchang' ? '🕉️' : id === 'calendar' ? '🗓️' : '⚭'}</span>
+          <span>{id === 'astrology' ? 'Kundali Cast' : id === 'prashna' ? 'Prashna Chart' : id === 'panchang' ? 'Panchang Map' : id === 'calendar' ? 'Timing Engine' : 'Sync Engine'}</span>
+        </h4>
+        <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.62rem', color: 'var(--text-secondary)', opacity: 0.85, lineHeight: 1.25 }}>
+          {id === 'astrology' ? 'Full D1–D60 varga tables' : id === 'prashna' ? 'Vedic query lens' : id === 'panchang' ? 'Rahu Kaal & live horoscopy' : id === 'calendar' ? 'Milestones & sacred timing' : '36 guna Ashtakoot compatibility'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function LandingHeroCarousel({
   trackLandingCta,
   onOpenAstrology,
@@ -194,9 +406,14 @@ export function LandingHeroCarousel({
             </div>
 
             <aside className="landing-hero-vedic-art">
-              <div className="landing-hero-vedic-art-symbol landing-hero-vedic-art-symbol--pulse">{slide.visual.emoji}</div>
-              <h3>{slide.visual.title}</h3>
-              <p>{slide.visual.text}</p>
+              <div className="landing-hero-astrolabe-wrapper">
+                <CelestialAstrolabe accent={slide.accent} id={slide.id} />
+              </div>
+              <div className="landing-hero-emoji-box">
+                <div className="landing-hero-vedic-art-symbol landing-hero-vedic-art-symbol--pulse">{slide.visual.emoji}</div>
+                <h3>{slide.visual.title}</h3>
+                <p>{slide.visual.text}</p>
+              </div>
             </aside>
           </article>
         </div>
@@ -223,6 +440,18 @@ export function LandingHeroCarousel({
           </div>
 
           <div className="landing-hero-carousel-footer-links">
+            {showMyChart ? (
+              <button
+                type="button"
+                className="landing-hero-carousel-footer-link"
+                onClick={() => {
+                  trackLandingCta('hero_quick_my_chart')
+                  onOpenMyChart()
+                }}
+              >
+                My Chart
+              </button>
+            ) : null}
             {quickLinks.map((item) => (
               <Link
                 key={item.href}
@@ -236,18 +465,6 @@ export function LandingHeroCarousel({
                 {item.label}
               </Link>
             ))}
-            {showMyChart ? (
-              <button
-                type="button"
-                className="landing-hero-carousel-footer-link"
-                onClick={() => {
-                  trackLandingCta('hero_quick_my_chart')
-                  onOpenMyChart()
-                }}
-              >
-                My Chart
-              </button>
-            ) : null}
           </div>
         </div>
       </div>
