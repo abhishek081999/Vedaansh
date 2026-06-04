@@ -7,9 +7,36 @@
 
 /* Fonts are loaded via next/font/google in layout.tsx — no @import needed */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Scan app + components for utility classes */
+@source "../../src/**/*.{js,ts,jsx,tsx}";
+
+/* Theme tokens → CSS variables (dark/light switch via :root / data-theme) */
+@theme inline {
+  --color-gold: var(--gold);
+  --color-gold-faint: var(--gold-faint);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dim: var(--gold-dim);
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-rose: var(--rose);
+  --color-teal: var(--teal);
+  --color-amber: var(--amber);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-glow: var(--accent-glow);
+  --color-border: var(--border);
+  --color-page: var(--bg-page);
+  --font-display: var(--font-playfair), 'Playfair Display', serif;
+  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
+}
 
 /* ── Dark theme tokens (default) ────────────────────────────── */
 

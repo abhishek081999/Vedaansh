@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
-//  src/middleware.ts
-//  Edge middleware — auth checks + tier-based feature gating
+//  proxy.ts (Next.js 16)
+//  Request proxy — auth checks + tier-based feature gating
 //  Runs before every request on protected routes
 // ─────────────────────────────────────────────────────────────
 
@@ -58,7 +58,22 @@ const PLATINUM_API     = ['/api/research']
 const ADMIN_ROUTES = ['/admin']
 const ADMIN_API    = ['/api/admin']
 
+/** App Router RSC/prefetch — must not rewrite request headers (Next 16 router-state parsing). */
+function isAppRouterFlightRequest(req: NextRequest): boolean {
+  return (
+    req.headers.get('RSC') === '1' ||
+    req.headers.get('Next-Router-Prefetch') === '1' ||
+    req.headers.get('Next-HMR-Refresh') === '1' ||
+    req.nextUrl.searchParams.has('_rsc')
+  )
+}
+
 export default auth(async (req: NextRequest & { auth: any }) => {
+  // Skip proxy for flight requests — auth/CSP run on full document loads only
+  if (isAppRouterFlightRequest(req)) {
+    return NextResponse.next()
+  }
+
   const { pathname } = req.nextUrl
   const session      = req.auth
 

@@ -8,7 +8,8 @@ import NextAuth from 'next-auth'
 import Google      from 'next-auth/providers/google'
 import Credentials from 'next-auth/providers/credentials'
 import { MongoDBAdapter } from '@auth/mongodb-adapter'
-import { MongoClient, ServerApiVersion } from 'mongodb'
+import { MongoClient } from 'mongodb'
+import { getMongoClientPromise } from '@/lib/db/mongoClient'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import {
@@ -18,41 +19,8 @@ import {
 } from '@/lib/security/loginThrottle'
 import { logSecurityEvent } from '@/lib/security/events'
 
-// ── MongoDB client for adapter (separate from Mongoose) ───────
-// NextAuth adapter needs raw MongoClient, not Mongoose
-const mongoUri = process.env.MONGODB_URI!
-
-declare global {
-  var _mongoClientPromise: Promise<MongoClient> | undefined
-}
-
-let clientPromise: Promise<MongoClient>
-
-const mongoClientOpts = {
-  family: 4,
-  serverSelectionTimeoutMS: 10_000,
-  serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true }
-}
-
-if (process.env.NODE_ENV === 'development') {
-  // In dev, reuse the client across hot reloads
-  if (!global._mongoClientPromise) {
-    console.log('[auth/mongodb] Initializing development connection...')
-    const client = new MongoClient(mongoUri, mongoClientOpts)
-    global._mongoClientPromise = client.connect().then(c => {
-       console.log('[auth/mongodb] Connected successfully')
-       return c
-    }).catch(err => {
-       console.error('[auth/mongodb] Connection failed:', err)
-       throw err
-    })
-  }
-  clientPromise = global._mongoClientPromise
-} else {
-  console.log('[auth/mongodb] Initializing production connection...')
-  const client = new MongoClient(mongoUri, mongoClientOpts)
-  clientPromise = client.connect()
-}
+// NextAuth adapter needs raw MongoClient (shared singleton with API routes)
+const clientPromise = getMongoClientPromise()
 
 // ── Credentials validator ─────────────────────────────────────
 

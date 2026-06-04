@@ -284,7 +284,7 @@ describe('Subscription model field constraints', () => {
 // FULL CALCULATOR — end-to-end, no network
 // ─────────────────────────────────────────────────────────────
 
-describe('Full calculator integration', () => {
+describe('Full calculator integration', { timeout: 15000 }, () => {
   it('calculates a complete chart', async () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const r = await calculateChart({

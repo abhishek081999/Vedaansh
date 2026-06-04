@@ -26,7 +26,7 @@ A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScr
 | Video / Reels | Remotion 4 + canvas reel cards | 4.0 |
 | Email | Resend | 3.2 |
 | Testing | Vitest | 1.6 |
-| Deploy | Render (`render.yaml`) | Node ≥ 20 — see [docs/SECURITY_DEPLOY.md](docs/SECURITY_DEPLOY.md) |
+| Deploy | Render (`render.yaml`) | Node ≥ 24 — see [docs/SECURITY_DEPLOY.md](docs/SECURITY_DEPLOY.md) |
 
 ---
 
@@ -371,7 +371,7 @@ cp .env.example .env.local
 
 ## Install & Run
 
-**Requirements:** Node.js ≥ 20 (see `package.json` `engines`).
+**Requirements:** Node.js ≥ 24 (see `package.json` `engines` and `.nvmrc`).
 
 ```bash
 npm install
