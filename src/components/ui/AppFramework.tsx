@@ -320,13 +320,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         <div className="app-header-left">
           <button 
             onClick={() => setIsSidenavOpen((o: boolean) => !o)}
-            style={{
-              width: 36, height: 36, borderRadius: 'var(--r-sm)', background: 'var(--surface-3)', 
-              border: '1px solid var(--border)', color: 'var(--text-primary)', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+            className="app-header-toggler"
+            aria-label="Toggle navigation menu"
           >
             <span style={{ fontSize: '1.25rem' }}>☰</span>
           </button>
@@ -338,30 +333,27 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               setIsFormOpen(false)
               setActiveTab('dashboard')
             }}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}
+            className="app-header-brand"
           >
             <Image 
               src="/veda-icon.png" 
               alt="Vedaansh Logo"
               width={34}
               height={34}
-              style={{ objectFit: 'contain' }}
+              className="app-header-brand-logo"
             />
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-              <span 
-                className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
-                style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.04em' }}
-              >
+            <div className="app-header-brand-text">
+              <span className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}>
                 Vedaansh
               </span>
-              <span style={{ fontSize: '0.55rem', color: 'var(--logo-text-sub)', letterSpacing: '0.05em', fontWeight: 600, opacity: 0.9, whiteSpace: 'nowrap' }}>
+              <span className="app-header-brand-sub">
                 ॥ श्री गणेशाय नमः ॥
               </span>
             </div>
           </Link>
 
           {isOffline && (
-            <div style={{ background: 'var(--rose)', color: '#fff', fontSize: '0.6rem', padding: '2px 8px', borderRadius: 4, fontWeight: 800, letterSpacing: '0.05em' }}>OFFLINE</div>
+            <div className="app-header-offline-badge">OFFLINE</div>
           )}
         </div>
 
@@ -373,32 +365,16 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               setActiveTab('dashboard')
               if (window.innerWidth < 1024) setIsSidenavOpen(false)
             }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0.2rem 0.45rem',
-              borderRadius: '999px',
-              border: '1px solid var(--border-soft)',
-              color: 'var(--header-text-muted)',
-              textDecoration: 'none',
-              fontSize: '0.5rem',
-              fontWeight: 500,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              marginRight: '0.5rem',
-              opacity: 0.7,
-            }}
-            className="show-mobile-only"
+            className="app-header-mobile-dash show-mobile-only"
           >
             Dashboard
           </Link>
-          <nav className="hide-mobile" style={{ display: 'flex', gap: '1.25rem' }}>
-            <Link href="/panchang" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Panchang</Link>
-            <Link href="/sbc"      style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>SBC</Link>
-            <Link href="/my/charts" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Library</Link>
+          <nav className="app-header-nav hide-mobile">
+            <Link href="/panchang">Panchang</Link>
+            <Link href="/sbc">SBC</Link>
+            <Link href="/my/charts">Library</Link>
           </nav>
-          <div className="hide-mobile" style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
+          <div className="app-header-divider hide-mobile" />
           <ThemeToggle />
         </div>
       </header>

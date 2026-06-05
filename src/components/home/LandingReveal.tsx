@@ -9,6 +9,7 @@ type LandingRevealProps = {
   as?: ElementType
   delay?: number
   stagger?: boolean
+  id?: string
 }
 
 export function LandingReveal({
@@ -18,6 +19,7 @@ export function LandingReveal({
   as: Tag = 'div',
   delay = 0,
   stagger = false,
+  id,
 }: LandingRevealProps) {
   const ref = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
@@ -58,6 +60,7 @@ export function LandingReveal({
   return (
     <Tag
       ref={ref}
+      id={id}
       className={classes}
       style={{ ...style, ['--reveal-delay' as string]: `${delay}ms` }}
     >

@@ -49,6 +49,7 @@ import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { PlanetDetailCard } from '@/components/ui/PlanetDetailCard'
 import { getGraNakPositions, getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
 import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
+import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 
 // ─────────────────────────────────────────────────────────────
 //  Arudha Panel
@@ -414,12 +415,40 @@ function MajorKundaliStrip({
   )
 }
 
+const LANDING_STARS = Array.from({ length: 28 }, (_, i) => ({
+  left: `${(i * 37 + 11) % 100}%`,
+  top: `${(i * 23 + 7) % 100}%`,
+  delay: `${(i * 0.31) % 4}s`,
+  dur: `${3 + (i % 5)}s`,
+}))
+
+function VedicDivider() {
+  return (
+    <div className="landing-vedic-divider" aria-hidden="true">
+      <div className="landing-vedic-divider-line" />
+      <svg className="landing-vedic-divider-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5">
+        <circle cx="12" cy="12" r="3.5" fill="var(--gold)" />
+        <path d="M12 2 Q10 7 12 9 Q14 7 12 2 Z" fill="none" />
+        <path d="M12 22 Q10 17 12 15 Q14 17 12 22 Z" fill="none" />
+        <path d="M2 12 Q7 10 9 12 Q7 14 2 12 Z" fill="none" />
+        <path d="M22 12 Q17 10 15 12 Q17 14 22 12 Z" fill="none" />
+        <path d="M5.5 5.5 Q9 7 9 9 Q7 9 5.5 5.5 Z" fill="none" />
+        <path d="M18.5 18.5 Q15 17 15 15 Q17 15 18.5 18.5 Z" fill="none" />
+        <path d="M5.5 19 Q7 15 9 15 Q9 17 5.5 19 Z" fill="none" />
+        <path d="M18.5 5 Q17 9 15 9 Q15 7 18.5 5 Z" fill="none" />
+      </svg>
+      <div className="landing-vedic-divider-line" />
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────
 //  Main Page
 // ─────────────────────────────────────────────────────────────
 
 import { Suspense } from 'react'
-import { LandingHeroCarousel } from '@/components/home/LandingHeroCarousel'
+import { LandingPremiumHero } from '@/components/home/LandingPremiumHero'
+import { LandingStickyMobileCta } from '@/components/home/LandingStickyMobileCta'
 import { LandingReveal } from '@/components/home/LandingReveal'
 import { AboutPreview } from '@/components/about/AboutPreview'
 
@@ -523,17 +552,18 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   'Muhurta Finder': Clock,
 }
 
-const pillarIconMap: Record<string, React.ComponentType<any>> = {
-  'Kundali Intelligence': Sparkles,
-  'Panchang Timing': Compass,
-  'Prashna Clarity': HelpCircle,
-  'Consultation Ready': Zap,
-}
-
 function HomeContent() {
   const { data: session, status } = useSession()
   const { chart, setChart, isFormOpen, setIsFormOpen, pendingDestination, setPendingDestination } = useChart()
   const { activeTab, setActiveTab } = useAppLayout()
+  
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    e.currentTarget.style.setProperty('--mouse-x', `${x}px`)
+    e.currentTarget.style.setProperty('--mouse-y', `${y}px`)
+  }
   
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
@@ -1043,11 +1073,10 @@ function HomeContent() {
     }
   }, [defaultChart, router, setChart, userPrefs])
 
-  const landingFeaturePillars = [
-    { title: 'Kundali Intelligence', detail: 'Accurate chart casting with varga depth and practical interpretation.' },
-    { title: 'Panchang Timing', detail: 'Daily tithi, nakshatra, yoga, karana, and practical muhurta guidance.' },
-    { title: 'Prashna Clarity', detail: 'Focused question workflow for specific life decisions and immediate next steps.' },
-    { title: 'Consultation Ready', detail: 'Built for personal use and practitioner-level consultation workflows.' },
+  const landingWhyVedaansh = [
+    { title: 'Classical Accuracy', detail: 'Swiss Ephemeris precision with Lahiri ayanamsha and full varga depth.', icon: Compass },
+    { title: 'One Workspace', detail: 'Kundali, dashas, Panchang, and Prashna in a single coherent flow.', icon: Layers },
+    { title: 'Consultation Ready', detail: 'Built for practitioners and seekers — interpret, export, and plan.', icon: Star },
   ]
 
   const landingJourney = [
@@ -1139,11 +1168,10 @@ function HomeContent() {
     },
   ]
 
-  const trustedBy = ['Jyotish Practitioners', 'Consultants', 'Learners', 'Seekers', 'Vedic Families', 'Wellness Guides']
-  const vedicVisuals = [
-    { icon: '🧘', title: 'Sage Wisdom', text: 'Timeless rishi insight translated into practical daily guidance.' },
-    { icon: '📜', title: 'Scripture Anchoring', text: 'Classical Jyotish logic with modern readability and flow.' },
-    { icon: '🪔', title: 'Ritual Timing', text: 'Auspicious windows to support meaningful life actions and sankalpa.' },
+  const landingTrustStats = [
+    { value: '41', label: 'Varga charts' },
+    { value: 'Arc-sec', label: 'Ephemeris precision' },
+    { value: 'Free', label: 'Core tools' },
   ]
 
   const landingVariant = searchParams.get('lpv') === 'b' ? 'b' : 'a'
@@ -2577,16 +2605,96 @@ function HomeContent() {
                )}
              </div>
       ) : (
-        <div key="home-landing" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: 'clamp(1rem, 2.5vw, 2rem)' }}>
+        <div key="home-landing" className="landing-page-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
           {!isFormOpen && (
             <div className="fade-in landing-shell" style={{ width: '100%', maxWidth: 1240 }}>
               <div className="landing-ambient" aria-hidden="true">
                 <span className="landing-ambient-orb landing-ambient-orb--gold" />
                 <span className="landing-ambient-orb landing-ambient-orb--maroon" />
                 <span className="landing-ambient-orb landing-ambient-orb--violet" />
+                <span className="landing-ambient-orb landing-ambient-orb--teal" />
+                <div className="landing-stars">
+                  {LANDING_STARS.map((star, i) => (
+                    <span
+                      key={i}
+                      className="landing-star"
+                      style={{
+                        left: star.left,
+                        top: star.top,
+                        ['--star-delay' as string]: star.delay,
+                        ['--star-dur' as string]: star.dur,
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="landing-mandala-container">
+                  <svg className="landing-mandala-svg" viewBox="0 0 500 500" fill="none" stroke="currentColor" strokeWidth="0.8">
+                    <circle cx="250" cy="250" r="235" strokeDasharray="3 3" opacity="0.4" />
+                    <circle cx="250" cy="250" r="210" opacity="0.2" />
+                    <circle cx="250" cy="250" r="185" strokeDasharray="6 3" opacity="0.3" />
+                    <circle cx="250" cy="250" r="150" opacity="0.2" />
+                    <circle cx="250" cy="250" r="120" strokeDasharray="1 4" strokeWidth="1.5" opacity="0.4" />
+                    <circle cx="250" cy="250" r="90" opacity="0.3" />
+                    <circle cx="250" cy="250" r="60" opacity="0.2" />
+                    
+                    {Array.from({ length: 12 }).map((_, idx) => {
+                      const angle = (idx * 360) / 12;
+                      const rad = (angle * Math.PI) / 180;
+                      const x1 = 250 + 60 * Math.cos(rad);
+                      const y1 = 250 + 60 * Math.sin(rad);
+                      const x2 = 250 + 235 * Math.cos(rad);
+                      const y2 = 250 + 235 * Math.sin(rad);
+                      return (
+                        <line key={idx} x1={x1} y1={y1} x2={x2} y2={y2} opacity="0.15" />
+                      );
+                    })}
+
+                    {Array.from({ length: 24 }).map((_, idx) => {
+                      const angle = (idx * 360) / 24;
+                      const rad = (angle * Math.PI) / 180;
+                      const x = 250 + 210 * Math.cos(rad);
+                      const y = 250 + 210 * Math.sin(rad);
+                      const cp1x = 250 + 225 * Math.cos(rad - 0.08);
+                      const cp1y = 250 + 225 * Math.sin(rad - 0.08);
+                      const cp2x = 250 + 225 * Math.cos(rad + 0.08);
+                      const cp2y = 250 + 225 * Math.sin(rad + 0.08);
+                      return (
+                        <path key={idx} d={`M 250 250 Q ${cp1x} ${cp1y} ${x} ${y} Q ${cp2x} ${cp2y} 250 250 Z`} opacity="0.08" />
+                      );
+                    })}
+
+                    {Array.from({ length: 12 }).map((_, idx) => {
+                      const angle = (idx * 360) / 12 + 15;
+                      const rad = (angle * Math.PI) / 180;
+                      const x = 250 + 150 * Math.cos(rad);
+                      const y = 250 + 150 * Math.sin(rad);
+                      const cp1x = 250 + 165 * Math.cos(rad - 0.12);
+                      const cp1y = 250 + 165 * Math.sin(rad - 0.12);
+                      const cp2x = 250 + 165 * Math.cos(rad + 0.12);
+                      const cp2y = 250 + 165 * Math.sin(rad + 0.12);
+                      return (
+                        <path key={idx} d={`M 250 250 Q ${cp1x} ${cp1y} ${x} ${y} Q ${cp2x} ${cp2y} 250 250 Z`} opacity="0.12" />
+                      );
+                    })}
+
+                    {Array.from({ length: 8 }).map((_, idx) => {
+                      const angle = (idx * 360) / 8 + 30;
+                      const rad = (angle * Math.PI) / 180;
+                      const x = 250 + 90 * Math.cos(rad);
+                      const y = 250 + 90 * Math.sin(rad);
+                      const cp1x = 250 + 100 * Math.cos(rad - 0.18);
+                      const cp1y = 250 + 100 * Math.sin(rad - 0.18);
+                      const cp2x = 250 + 100 * Math.cos(rad + 0.18);
+                      const cp2y = 250 + 100 * Math.sin(rad + 0.18);
+                      return (
+                        <path key={idx} d={`M 250 250 Q ${cp1x} ${cp1y} ${x} ${y} Q ${cp2x} ${cp2y} 250 250 Z`} opacity="0.18" />
+                      );
+                    })}
+                  </svg>
+                </div>
               </div>
 
-              <LandingHeroCarousel
+              <LandingPremiumHero
                 trackLandingCta={trackLandingCta}
                 onOpenAstrology={openAstrologyApp}
                 onOpenMyChart={openMyDefaultChart}
@@ -2594,106 +2702,108 @@ function HomeContent() {
                 withChartGate={openSectionWithChartGate}
               />
 
-              <LandingReveal as="section" className="card landing-major-sections" style={{ marginBottom: '1.25rem', padding: '1.2rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Major sections</div>
-                <h3 style={{ margin: '0 0 0.45rem 0' }}>Move quickly across all core Vedaansh journeys</h3>
-                <p style={{ margin: '0 0 0.9rem 0', color: 'var(--text-secondary)', maxWidth: 900 }}>
-                  Jump straight to the journey you need.
-                </p>
-                <div className="landing-major-sections-grid landing-reveal-stagger">
-                  {landingMajorSections.map((section, idx) => {
-                    const IconComponent = iconMap[section.title] || Sparkles;
-                    return (
-                      <Link
-                        key={section.title}
-                        href={section.href}
-                        onClick={(e) => {
-                          trackLandingCta(section.ctaName)
-                          openSectionWithChartGate(section.href, e)
-                        }}
-                        className="landing-major-section-card"
-                        style={{ ['--stagger-i' as string]: idx }}
-                      >
-                        <div className="card-icon-wrapper">
-                          <IconComponent size={20} strokeWidth={2} />
-                        </div>
-                        <span className="stat-value">{section.title}</span>
-                        <span className="stat-sub">{section.text}</span>
-                        <span className="card-arrow" aria-hidden="true">
-                          <ArrowRight size={14} strokeWidth={2.5} />
-                        </span>
-                      </Link>
-                    )
-                  })}
+              <LandingReveal as="section" className="landing-section-row landing-section-row--gold landing-major-sections">
+                <div className="landing-section-row-content">
+                  <VedicSectionHeader
+                    kicker="Explore"
+                    title="Every core Vedaansh journey"
+                    description="Jump straight to the tool you need."
+                    theme="gold"
+                  />
+                  <div className="landing-major-sections-grid landing-reveal-stagger">
+                    {landingMajorSections.map((section, idx) => {
+                      const IconComponent = iconMap[section.title] || Sparkles;
+                      return (
+                        <Link
+                          key={section.title}
+                          href={section.href}
+                          onClick={(e) => {
+                            trackLandingCta(section.ctaName)
+                            openSectionWithChartGate(section.href, e)
+                          }}
+                          onMouseMove={handleMouseMove}
+                          className="landing-major-section-card landing-premium-card"
+                          style={{ ['--stagger-i' as string]: idx }}
+                        >
+                          <div className="card-icon-wrapper">
+                            <IconComponent size={20} strokeWidth={2} />
+                          </div>
+                          <span className="stat-value">{section.title}</span>
+                          <span className="stat-sub">{section.text}</span>
+                          <span className="card-arrow" aria-hidden="true">
+                            <ArrowRight size={14} strokeWidth={2.5} />
+                          </span>
+                        </Link>
+                      )
+                    })}
+                  </div>
                 </div>
               </LandingReveal>
 
-              <LandingReveal as="section" className="card landing-vedic-gallery" style={{ marginBottom: '1.25rem' }} delay={60}>
-                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Vedic visuals</div>
-                <h3 style={{ margin: '0 0 0.65rem 0' }}>A spiritual aesthetic inspired by sages, scriptures, and sacred timing</h3>
-                <div className="landing-vedic-gallery-grid landing-reveal-stagger">
-                  {vedicVisuals.map((item, idx) => (
-                    <article key={item.title} className="stat-chip stat-chip-display" style={{ ['--stagger-i' as string]: idx, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '1.25rem' }}>
-                      <div style={{ fontSize: '1.5rem', marginBottom: '0.65rem' }}>{item.icon}</div>
-                      <span className="stat-value" style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{item.title}</span>
-                      <span className="stat-sub" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.2rem', fontStyle: 'normal' }}>{item.text}</span>
-                    </article>
-                  ))}
-                </div>
-              </LandingReveal>
-
-              <LandingReveal as="section" className="card landing-fresh-section" style={{ marginBottom: '1.25rem', border: '1px solid var(--border-bright)', padding: '1.25rem' }} delay={80}>
-                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Why this feels fresh</div>
-                <h3 style={{ margin: '0 0 0.75rem 0' }}>Relevant information first, deep tooling always one click away</h3>
-                <div className="landing-feature-grid landing-reveal-stagger">
-                  {landingFeaturePillars.map((item, idx) => {
-                    const PillarIcon = pillarIconMap[item.title] || Sparkles;
-                    return (
-                      <div key={item.title} className="stat-chip stat-chip-display" style={{ ['--stagger-i' as string]: idx, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '1.25rem' }}>
-                        <div style={{ color: 'var(--gold)', marginBottom: '0.65rem' }}>
-                          <PillarIcon size={22} strokeWidth={2} />
-                        </div>
-                        <span className="stat-value" style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{item.title}</span>
-                        <span className="stat-sub" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.2rem', fontStyle: 'normal' }}>{item.detail}</span>
+              <LandingReveal as="section" className="landing-section-row landing-section-row--gold" delay={60}>
+                <div className="landing-section-row-content">
+                  <VedicSectionHeader
+                    kicker="Why Vedaansh"
+                    title="Classical depth with modern clarity"
+                    description="Relevant information first — deep tooling always one click away."
+                    theme="gold"
+                  />
+                  <div className="landing-premium-pillars landing-reveal-stagger">
+                    {landingWhyVedaansh.map((item, idx) => {
+                      const PillarIcon = item.icon;
+                      return (
+                        <article key={item.title} className="landing-premium-pillar" style={{ ['--stagger-i' as string]: idx }}>
+                          <div className="landing-premium-pillar-icon">
+                            <PillarIcon size={22} strokeWidth={1.75} />
+                          </div>
+                          <h4 className="landing-premium-pillar-title">{item.title}</h4>
+                          <p className="landing-premium-pillar-desc">{item.detail}</p>
+                        </article>
+                      )
+                    })}
+                  </div>
+                  <div className="landing-trust-bar">
+                    {landingTrustStats.map((stat) => (
+                      <div key={stat.label} className="landing-trust-stat">
+                        <span className="landing-trust-stat-value">{stat.value}</span>
+                        <span className="landing-trust-stat-label">{stat.label}</span>
                       </div>
-                    )
-                  })}
-                </div>
-                <div className="landing-marquee" style={{ marginTop: '0.95rem' }}>
-                  <div className="landing-marquee-track">
-                    {[...trustedBy, ...trustedBy].map((item, idx) => (
-                      <span key={`${item}-${idx}`} className="stat-chip stat-chip-display landing-trusted-pill">
-                        <span className="stat-value">{item}</span>
-                      </span>
                     ))}
                   </div>
                 </div>
               </LandingReveal>
 
-              <LandingReveal as="section" className="card landing-flow-card" style={{ marginBottom: '1.25rem' }} delay={100}>
-                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>How it flows</div>
-                <h3 style={{ margin: '0 0 0.65rem 0' }}>From birth data to confident life direction in minutes</h3>
-                <div className="landing-flow-grid landing-reveal-stagger landing-flow-grid--animated">
-                  {landingJourney.map((item, idx) => (
-                    <article key={item.step} className="stat-chip stat-chip-display landing-flow-item" style={{ ['--stagger-i' as string]: idx, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '1.25rem' }}>
-                      <span className="stat-label" style={{ marginBottom: '0.65rem' }}>{item.step}</span>
-                      <span className="stat-value" style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{item.title}</span>
-                      <span className="stat-sub" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.2rem', fontStyle: 'normal' }}>{item.text}</span>
-                    </article>
-                  ))}
+              <LandingReveal as="section" className="landing-section-row landing-section-row--gold landing-flow-card" delay={80}>
+                <div className="landing-section-row-content">
+                  <VedicSectionHeader
+                    kicker="How it works"
+                    title="From birth data to confident direction"
+                    theme="gold"
+                  />
+                  <div className="landing-flow-grid landing-reveal-stagger landing-flow-grid--animated">
+                    {landingJourney.map((item, idx) => (
+                      <article key={item.step} className="landing-premium-pillar landing-flow-step" style={{ ['--stagger-i' as string]: idx }}>
+                        <span className="landing-flow-step-num">{item.step}</span>
+                        <h4 className="landing-premium-pillar-title">{item.title}</h4>
+                        <p className="landing-premium-pillar-desc">{item.text}</p>
+                      </article>
+                    ))}
+                  </div>
                 </div>
               </LandingReveal>
 
-              <LandingReveal delay={120}>
+              <VedicDivider />
+
+              <LandingReveal delay={100}>
                 <AboutPreview onCtaClick={() => trackLandingCta('about_preview_read_more')} />
               </LandingReveal>
 
-              <LandingReveal as="section" className="card landing-cta-band" style={{ marginBottom: '1.25rem' }} delay={140}>
+              <LandingReveal as="section" id="landing-cta-band" className="landing-cta-band landing-premium-cta" delay={120}>
                 <div>
-                  <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--text-gold)' }}>Start your journey</div>
-                  <h3 style={{ margin: 0 }}>Open your Vedic command center now</h3>
-                  <p style={{ margin: '0.45rem 0 0 0', maxWidth: 760 }}>
-                    Start with your chart, then move into Prashna, Panchang, and Calendar planning in one coherent workflow.
+                  <div className="label-caps landing-premium-cta-kicker">Start your journey</div>
+                  <h3 className="landing-premium-cta-title">Open your Vedic command center</h3>
+                  <p className="landing-premium-cta-desc">
+                    Start with your chart, then move into Prashna, Panchang, and calendar planning in one workflow.
                   </p>
                 </div>
                 <div className="landing-cta-band-actions">
@@ -2706,18 +2816,19 @@ function HomeContent() {
                 </div>
               </LandingReveal>
 
-              <div className="landing-sticky-mobile-cta">
-                <button onClick={() => { trackLandingCta('sticky_mobile_start'); openAstrologyApp() }} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  ✦ Start Astrology App
-                </button>
-              </div>
+              <LandingStickyMobileCta
+                onClick={() => {
+                  trackLandingCta('sticky_mobile_start')
+                  openAstrologyApp()
+                }}
+              />
             </div>
           )}
         </div>
       )}
 
       {/* Footer inside main area */}
-      <footer style={{
+      <footer className="landing-site-footer" style={{
         marginTop: 'auto', paddingTop: '2rem', paddingBottom: '1rem',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)'
