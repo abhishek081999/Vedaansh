@@ -91,10 +91,15 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
             <stop offset="0%" stopColor={accent} stopOpacity={0.25} />
             <stop offset="100%" stopColor={accent} stopOpacity={0} />
           </radialGradient>
+          <linearGradient id={`gold-metallic-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffe484" />
+            <stop offset="50%" stopColor="#c9a84c" />
+            <stop offset="100%" stopColor="#8a6f2e" />
+          </linearGradient>
         </defs>
 
         {/* Ambient background glow */}
-        <circle cx="150" cy="150" r="120" fill={`url(#glow-${id})`} />
+        <circle cx="150" cy="150" r="120" fill={`url(#glow-${id})`} className="astrolabe-ambient-glow" />
 
         {/* Outer compass rim */}
         <circle
@@ -102,9 +107,9 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
           cy="150"
           r="135"
           fill="none"
-          stroke={accent}
+          stroke={`url(#gold-metallic-${id})`}
           strokeWidth="1.5"
-          strokeOpacity="0.3"
+          strokeOpacity="0.4"
           style={{ transition: 'stroke 0.5s' }}
         />
         
@@ -127,7 +132,7 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
                 y2={y2}
                 stroke={accent}
                 strokeWidth={i % 6 === 0 ? 1.5 : 0.75}
-                strokeOpacity={i % 6 === 0 ? 0.45 : 0.25}
+                strokeOpacity={i % 6 === 0 ? 0.55 : 0.3}
                 style={{ transition: 'stroke 0.5s' }}
               />
             );
@@ -141,7 +146,7 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
             fill="none"
             stroke={accent}
             strokeWidth="0.75"
-            strokeOpacity="0.2"
+            strokeOpacity="0.25"
             style={{ transition: 'stroke 0.5s' }}
           />
           <path
@@ -149,7 +154,7 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
             fill="none"
             stroke={accent}
             strokeWidth="0.5"
-            strokeOpacity="0.15"
+            strokeOpacity="0.2"
             style={{ transition: 'stroke 0.5s' }}
           />
         </g>
@@ -160,9 +165,9 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
           cy="150"
           r="105"
           fill="none"
-          stroke={accent}
+          stroke={`url(#gold-metallic-${id})`}
           strokeWidth="1"
-          strokeOpacity="0.18"
+          strokeOpacity="0.25"
           strokeDasharray="4 4"
           style={{ transition: 'stroke 0.5s' }}
         />
@@ -173,7 +178,7 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
           fill="none"
           stroke={accent}
           strokeWidth="1.25"
-          strokeOpacity="0.25"
+          strokeOpacity="0.3"
           style={{ transition: 'stroke 0.5s' }}
         />
         <circle
@@ -181,9 +186,9 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
           cy="150"
           r="45"
           fill="none"
-          stroke={accent}
+          stroke={`url(#gold-metallic-${id})`}
           strokeWidth="1"
-          strokeOpacity="0.15"
+          strokeOpacity="0.22"
           style={{ transition: 'stroke 0.5s' }}
         />
 
@@ -196,7 +201,7 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
             y2="190"
             stroke={accent}
             strokeWidth="1"
-            strokeOpacity="0.35"
+            strokeOpacity="0.45"
             style={{ transition: 'stroke 0.5s' }}
           />
           <circle
@@ -211,7 +216,7 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
             cx="220"
             cy="190"
             r="8"
-            fill={accent}
+            fill={`url(#gold-metallic-${id})`}
             style={{ transition: 'fill 0.5s' }}
           />
           <circle
@@ -221,7 +226,7 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
             fill="none"
             stroke={accent}
             strokeWidth="0.75"
-            strokeOpacity="0.3"
+            strokeOpacity="0.4"
             style={{ transition: 'stroke 0.5s' }}
           />
           <circle
@@ -243,46 +248,51 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
           <circle cx="215" cy="235" r="1.5" fill="#fff" className="astrolabe-star-blink" style={{ animationDelay: '0.4s' }} />
         </g>
 
-        {/* Center Golden Bindu / Sun */}
-        <circle
-          cx="150"
-          cy="150"
-          r="12"
-          fill={accent}
-          className="astrolabe-pulse-glow"
-          style={{ transition: 'fill 0.5s' }}
-        />
-        <circle
-          cx="150"
-          cy="150"
-          r="18"
-          fill="none"
-          stroke={accent}
-          strokeWidth="1"
-          strokeOpacity="0.4"
-          style={{ transition: 'stroke 0.5s' }}
-        />
+        {/* Vedic Lotus Motif in the center */}
+        <g className="astrolabe-pulse-glow" style={{ transformOrigin: '150px 150px' }}>
+          {/* Inner Bindu (Center Point of cosmic energy) */}
+          <circle cx="150" cy="150" r="7" fill={`url(#gold-metallic-${id})`} />
+          <circle cx="150" cy="150" r="11" fill="none" stroke={`url(#gold-metallic-${id})`} strokeWidth="0.75" strokeOpacity="0.5" />
+          
+          {/* 8 Lotus Petals radiating outward */}
+          {Array.from({ length: 8 }).map((_, idx) => {
+            const angle = (idx * 360) / 8;
+            const rad = (angle * Math.PI) / 180;
+            const x = 150 + 15 * Math.cos(rad);
+            const y = 150 + 15 * Math.sin(rad);
+            const cp1x = 150 + 18 * Math.cos(rad - 0.22);
+            const cp1y = 150 + 18 * Math.sin(rad - 0.22);
+            const cp2x = 150 + 18 * Math.cos(rad + 0.22);
+            const cp2y = 150 + 18 * Math.sin(rad + 0.22);
+            return (
+              <path
+                key={idx}
+                d={`M 150 150 Q ${cp1x} ${cp1y} ${x} ${y} Q ${cp2x} ${cp2y} 150 150 Z`}
+                fill={`url(#gold-metallic-${id})`}
+                opacity="0.8"
+              />
+            );
+          })}
+        </g>
       </svg>
       
+      {/* Arched Vedic Overlay text box */}
       <div style={{
         position: 'absolute',
-        bottom: '0.65rem',
-        left: '0.65rem',
-        right: '0.65rem',
+        bottom: '0.5rem',
+        left: '0.5rem',
+        right: '0.5rem',
         textAlign: 'center',
-        background: 'rgba(9, 9, 15, 0.45)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        border: '1px solid rgba(255, 255, 255, 0.06)',
-        borderRadius: '8px',
-        padding: '0.4rem 0.6rem',
-        pointerEvents: 'none'
+        background: 'transparent',
+        padding: '0.25rem',
+        pointerEvents: 'none',
+        textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
       }}>
-        <h4 style={{ margin: 0, fontSize: '0.76rem', fontWeight: 650, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+        <h4 style={{ margin: 0, fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
           <span>{id === 'astrology' ? '🧿' : id === 'prashna' ? '🎯' : id === 'panchang' ? '🕉️' : id === 'calendar' ? '🗓️' : '⚭'}</span>
           <span>{id === 'astrology' ? 'Kundali Cast' : id === 'prashna' ? 'Prashna Chart' : id === 'panchang' ? 'Panchang Map' : id === 'calendar' ? 'Timing Engine' : 'Sync Engine'}</span>
         </h4>
-        <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.62rem', color: 'var(--text-secondary)', opacity: 0.85, lineHeight: 1.25 }}>
+        <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.64rem', color: 'var(--text-secondary)', opacity: 0.9, lineHeight: 1.3 }}>
           {id === 'astrology' ? 'Full D1–D60 varga tables' : id === 'prashna' ? 'Vedic query lens' : id === 'panchang' ? 'Rahu Kaal & live horoscopy' : id === 'calendar' ? 'Milestones & sacred timing' : '36 guna Ashtakoot compatibility'}
         </p>
       </div>
@@ -298,6 +308,7 @@ export function LandingHeroCarousel({
   withChartGate,
 }: LandingHeroCarouselProps) {
   const [active, setActive] = useState(0)
+  const [prevActive, setPrevActive] = useState(0)
   const [paused, setPaused] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
 
@@ -313,12 +324,23 @@ export function LandingHeroCarousel({
   useEffect(() => {
     if (reducedMotion || paused) return
     const timer = window.setInterval(() => {
-      setActive((prev) => (prev + 1) % HERO_SLIDES.length)
+      setActive((prev) => {
+        const next = (prev + 1) % HERO_SLIDES.length
+        setPrevActive(prev)
+        return next
+      })
     }, AUTO_MS)
     return () => window.clearInterval(timer)
   }, [paused, reducedMotion])
 
   const slide = HERO_SLIDES[active]
+
+  const directionClass = (() => {
+    if (active === prevActive) return ''
+    if (active === 0 && prevActive === HERO_SLIDES.length - 1) return 'slide-from-right'
+    if (active === HERO_SLIDES.length - 1 && prevActive === 0) return 'slide-from-left'
+    return active > prevActive ? 'slide-from-right' : 'slide-from-left'
+  })()
 
   const quickLinks = useMemo(
     () => [
@@ -369,7 +391,7 @@ export function LandingHeroCarousel({
         <div className="landing-hero-carousel-stage">
           <article
             key={slide.id}
-            className="landing-hero-carousel-slide is-active"
+            className={`landing-hero-carousel-slide is-active ${directionClass}`}
             style={{ ['--slide-accent' as string]: slide.accent }}
           >
             <div className="landing-hero-carousel-slide-bg" />
@@ -428,6 +450,7 @@ export function LandingHeroCarousel({
                 aria-selected={idx === active}
                 className={`landing-hero-carousel-tab ${idx === active ? 'is-active' : ''}`}
                 onClick={() => {
+                  setPrevActive(active)
                   setActive(idx)
                   trackLandingCta(`hero_tab_${item.id}`)
                 }}
