@@ -2,8 +2,8 @@
 //  src/app/api/chart/export/route.ts
 //  GET /api/chart/export
 //
-//  Accepts a full ChartOutput as POST body (JSON) and returns
-//  a print-ready HTML document.
+//  Accepts chart meta (birth details) as POST body and returns
+//  a print-ready HTML document. Recalculates server-side.
 //
 //  Tier: Gold+ (gated in middleware + checked here)
 //  Usage: open in new tab → browser prints to PDF
@@ -11,10 +11,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { resolveChartForExport } from '@/lib/chart/resolveChartForExport'
 import { generateChartHTML } from '@/lib/pdf/chartHtml'
 import { getEffectivePlanForUserId, requirePlanGate } from '@/lib/security/planAccess'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
-import type { ChartOutput } from '@/types/astrology'
 
 export const runtime = 'nodejs'
 
@@ -32,21 +32,20 @@ export async function POST(req: NextRequest) {
     const planBlocked = await requirePlanGate(session.user.id, 'gold')
     if (planBlocked) return planBlocked
 
-    // ── Parse body ────────────────────────────────────────────
+    // ── Parse body (slim meta preferred; legacy full ChartOutput still accepted) ──
     const body = await req.json().catch(() => null)
-    if (!body || !body.meta || !body.grahas) {
+    const userId = session.user.id
+    const effectivePlan = await getEffectivePlanForUserId(userId)
+    const chart = await resolveChartForExport(body, effectivePlan)
+    if (!chart) {
       return NextResponse.json(
         { error: 'Invalid chart data.' },
         { status: 400 },
       )
     }
 
-    const chart = body as ChartOutput
-    const userId = session.user.id
-
     // ── Fetch Branding (Platinum Only, DB-backed plan) ───────
     let branding = null
-    const effectivePlan = await getEffectivePlanForUserId(userId)
     if (effectivePlan === 'platinum') {
       const { User } = await import('@/lib/db/models/User')
       await (await import('@/lib/db/mongodb')).default()

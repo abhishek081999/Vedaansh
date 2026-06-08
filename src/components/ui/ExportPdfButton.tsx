@@ -38,7 +38,7 @@ export function ExportPdfButton({ chart, compact = false, style, label, title }:
       const res = await fetch('/api/chart/export', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(chart),
+        body:    JSON.stringify({ meta: chart.meta }),
       })
 
       if (!res.ok) {
