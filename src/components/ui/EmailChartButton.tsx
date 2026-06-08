@@ -49,7 +49,7 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
       const res = await fetch('/api/chart/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chart, targetEmail: email }),
+        body: JSON.stringify({ chart: { meta: chart.meta }, targetEmail: email }),
       })
 
       const data = await res.json()

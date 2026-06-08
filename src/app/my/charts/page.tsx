@@ -24,6 +24,7 @@ interface SavedChart {
   latitude:   number
   longitude:  number
   timezone:   string
+  gender?:    'male' | 'female' | 'other'
   settings:   Record<string, unknown>
   isPublic:   boolean
   isPersonal: boolean
@@ -80,29 +81,22 @@ function ChartCard({
   async function handleExportPdf() {
     setExporting(true)
     try {
-      // Step 1: recalculate the chart
-      const calcRes = await fetch('/api/chart/calculate', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name:       chart.name,
-          birthDate:  chart.birthDate,
-          birthTime:  chart.birthTime,
-          birthPlace: chart.birthPlace,
-          latitude:   chart.latitude,
-          longitude:  chart.longitude,
-          timezone:   chart.timezone,
-          settings:   chart.settings,
-        }),
-      })
-      const calcJson = await calcRes.json()
-      if (!calcJson.success) throw new Error('Calculation failed')
-
-      // Step 2: export to HTML
       const exportRes = await fetch('/api/chart/export', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(calcJson.data),
+        body: JSON.stringify({
+          meta: {
+            name:       chart.name,
+            birthDate:  chart.birthDate,
+            birthTime:  chart.birthTime,
+            birthPlace: chart.birthPlace,
+            latitude:   chart.latitude,
+            longitude:  chart.longitude,
+            timezone:   chart.timezone,
+            gender:     chart.gender,
+            settings:   chart.settings,
+          },
+        }),
       })
       if (!exportRes.ok) {
         const err = await exportRes.json().catch(() => ({}))
