@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = session?.user?.id
-    const effectivePlan = await getEffectivePlanForUserId(userId!)
+    const effectivePlan = (await getEffectivePlanForUserId(userId!)) ?? 'free'
     const resolvedChart = await resolveChartForExport(
       chart?.meta ? { meta: chart.meta, grahas: chart.grahas } : chart,
       effectivePlan,

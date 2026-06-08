@@ -24,6 +24,7 @@ interface SavedChart {
   latitude:   number
   longitude:  number
   timezone:   string
+  gender?:    'male' | 'female' | 'other'
   settings:   Record<string, unknown>
   isPublic:   boolean
   isPersonal: boolean

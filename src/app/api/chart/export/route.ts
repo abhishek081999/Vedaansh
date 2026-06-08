@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     // ── Parse body (slim meta preferred; legacy full ChartOutput still accepted) ──
     const body = await req.json().catch(() => null)
     const userId = session.user.id
-    const effectivePlan = await getEffectivePlanForUserId(userId)
+    const effectivePlan = (await getEffectivePlanForUserId(userId)) ?? 'free'
     const chart = await resolveChartForExport(body, effectivePlan)
     if (!chart) {
       return NextResponse.json(
