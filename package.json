@@ -67,14 +67,14 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@remotion/bundler": "^4.0.448",
-    "@remotion/cli": "^4.0.448",
+    "@remotion/bundler": "^4.0.474",
+    "@remotion/cli": "^4.0.474",
     "@remotion/renderer": "^4.0.448",
     "@types/bcryptjs": "^2.4.6",
-    "@types/jszip": "^3.4.0",
+    "@types/jszip": "^3.4.1",
     "@types/leaflet": "^1.9.21",
-    "@types/node": "^24.0.0",
-    "@types/react": "19.2.16",
+    "@types/node": "^25.9.2",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitest/ui": "^4.1.8",
     "@eslint/eslintrc": "^3.3.1",
@@ -94,7 +94,7 @@
     "eslint": "9.39.4",
     "zod": "3.25.76",
     "mongoose": "8.24.0",
-    "@types/react": "19.2.16",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3"
   }
 }
