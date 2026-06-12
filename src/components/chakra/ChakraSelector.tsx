@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/chakra/ChakraSelector.tsx
 //  Unified chart container — style picker + config toggles
-//  Supports all 4 Kāla-tier styles:
+//  Supports all 4 Kala-tier styles:
 //    North Indian  |  South Indian  |  Sarvatobhadra
 // ─────────────────────────────────────────────────────────────
 'use client'
@@ -46,7 +46,7 @@ interface ChakraSelectorProps {
   grahas:       GrahaData[]
   // Panchang data — needed for Sarvatobhadra
   moonNakIndex?: number    // 0–26
-  arudhas?:     ArudhaData  // for Āruḍha overlay (raw, default)
+  arudhas?:     ArudhaData  // for Arudha overlay (raw, default)
   arudhasBphs?: ArudhaData  // BPHS exception-corrected arudhas
   transitGrahas?: GrahaData[]  // transit planet overlay
   comparisonGrahas?: GrahaData[] // partner chart overlay
@@ -67,7 +67,7 @@ interface ChakraSelectorProps {
   showCharaDrishtiControls?: boolean
   /** Initial lagna source for house numbering (natal | chandra | surya | arudha | h1–h12) */
   initialLagnaSource?: string
-  /** Show Āruḍha pada labels on chart by default */
+  /** Show Arudha pada labels on chart by default */
   defaultShowArudha?: boolean
 }
 
@@ -351,7 +351,7 @@ export function ChakraSelector({
                 )}
                 {arudhas && (
                   <>
-                    <Toggle label="Āruḍha" value={showArudha} onChange={setShowArudha} />
+                    <Toggle label="Arudha" value={showArudha} onChange={setShowArudha} />
                     {showArudha && (
                       <Toggle
                         label="BPHS exceptions"
@@ -469,7 +469,7 @@ export function ChakraSelector({
             <ScaleSlider label="Base Scale" value={fontScale} onChange={setFontScale} />
             <ScaleSlider label="Planets" value={planetScale} onChange={setPlanetScale} />
             <ScaleSlider label="Details" value={infoScale} onChange={setInfoScale} />
-            <ScaleSlider label="Āruḍha" value={arudhaScale} onChange={setArudhaScale} />
+            <ScaleSlider label="Arudha" value={arudhaScale} onChange={setArudhaScale} />
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    src/app/globals.css
-   Design System — Jyotiṣa Platform
+   Design System — Jyotisha Platform
    Two themes: [data-theme="dark"] (default) · [data-theme="light"]
    Palette: Indigo cosmos / Sandalwood parchment
    ═══════════════════════════════════════════════════════════════ */
@@ -5394,7 +5394,7 @@ select.input {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Viṁśopaka UI System (Premium) ───────────────────────────── */
+/* ── Vimsopaka UI System (Premium) ───────────────────────────── */
 
 .vp-card {
   background: var(--surface-1);

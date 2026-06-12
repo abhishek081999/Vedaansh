@@ -16,7 +16,7 @@ const ARC_R = 88
 
 const LIVE_MS = 30_000
 
-/** 0° Meṣa at top; longitude increases clockwise on the wheel. */
+/** 0° Mesha at top; longitude increases clockwise on the wheel. */
 function pos(lonDeg: number, r: number): { x: number; y: number } {
   const lon = ((lonDeg % 360) + 360) % 360
   const rad = ((90 - lon) * Math.PI) / 180
@@ -312,20 +312,20 @@ export function PanchangViz({
           <div className={styles.legendRow}>
             <span className={styles.dot} style={{ background: '#e8a730' }} />
             <span>
-              <strong>Sūrya</strong> & <strong>Chandra</strong> on the ecliptic (sidereal λ, your ayanāṃśa).
+              <strong>Surya</strong> & <strong>Chandra</strong> on the ecliptic (sidereal λ, your ayanamsha).
             </span>
           </div>
           <div className={styles.legendRow}>
             <span className={styles.dot} style={{ background: arcColor }} />
             <span>
               Arc = Moon–Sun separation → <strong>tithi</strong> ({tithiPercent.toFixed(0)}% through this lunar day;{' '}
-              {shukla ? 'śukla' : 'kṛṣṇa'}).
+              {shukla ? 'shukla' : 'krishna'}).
             </span>
           </div>
           <div className={styles.legendRow}>
             <span className={styles.dot} style={{ background: 'rgba(201,168,76,0.55)' }} />
             <span>
-              Wide gold band = this <strong>nakṣatra</strong> segment (1/27 of the circle).
+              Wide gold band = this <strong>nakshatra</strong> segment (1/27 of the circle).
             </span>
           </div>
           <div className={styles.legendRow}>

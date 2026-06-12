@@ -1,4 +1,4 @@
-// Regression: Tribhagi Viṁśottarī vs JHora — 19 Aug 1999, 10:00, Bhoranj HP
+// Regression: Tribhagi Vimshottari vs JHora — 19 Aug 1999, 10:00, Bhoranj HP
 import { describe, it, expect } from 'vitest'
 import { fromZonedTime } from 'date-fns-tz'
 import {
@@ -44,7 +44,7 @@ describe('Tribhagi — Bhoranj 19 Aug 1999', () => {
   const dashas = calcVimshottari(moonSid, birth, 1, undefined, { tribhagi: true })
 
   it('birth nakshatra is Vishakha (Jupiter dasha)', () => {
-    expect(moonNak.name).toMatch(/Vishakha|Viś/i)
+    expect(moonNak.name).toMatch(/Vishakha|Vish/i)
     expect(moonNak.lord).toBe('Ju')
   })
 

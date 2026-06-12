@@ -1,5 +1,5 @@
 /**
- * Sidereal longitudes and rāśi for all classical grahas (for panchang summary).
+ * Sidereal longitudes and rashi for all classical grahas (for panchang summary).
  */
 
 import type { AyanamshaMode, GrahaId } from '@/types/astrology'

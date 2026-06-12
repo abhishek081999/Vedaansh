@@ -347,7 +347,7 @@ export function PanchangTimelineStrip({
           sunsetIso={timeline.sunset}
         />
         <LimbRow
-          label="Nakṣatra"
+          label="Nakshatra"
           segments={timeline.nakshatra}
           w0={w0}
           w1={w1}
@@ -371,7 +371,7 @@ export function PanchangTimelineStrip({
           sunsetIso={timeline.sunset}
         />
         <LimbRow
-          label="Karaṇa"
+          label="Karana"
           segments={timeline.karana}
           w0={w0}
           w1={w1}
@@ -385,7 +385,7 @@ export function PanchangTimelineStrip({
         />
 
         <div className={`${styles.row} ${styles.varaRow}`}>
-          <div className={styles.rowLabel}>Vāra</div>
+          <div className={styles.rowLabel}>Vara</div>
           <div className={styles.trackShell}>
             <TrackBackdrop
               dayNightStyle={dayNightStyle}

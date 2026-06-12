@@ -80,9 +80,9 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
         paddingBottom: '1.25rem'
       }}>
         <div>
-          <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.4rem', fontSize: '0.65rem' }}>House & Bhāva Workspace</div>
+          <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.4rem', fontSize: '0.65rem' }}>House & Bhava Workspace</div>
           <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-            Bhāva Analysis
+            Bhava Analysis
           </h2>
           <p style={{ margin: '0.5rem 0 0', fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '600px', lineHeight: 1.5 }}>
             Explore house starting points (cusps), planetary occupation, and cyclical house progressions (BCP).
@@ -137,7 +137,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
         width: 'fit-content'
       }}>
         {[
-          { id: 'analysis', label: 'Bhāva Analysis', icon: '🔍' },
+          { id: 'analysis', label: 'Bhava Analysis', icon: '🔍' },
           { id: 'progression', label: 'House Progression (BCP)', icon: '⏳' }
         ].map(t => (
           <button
@@ -226,7 +226,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                       {h.houseNum}
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>House / Bhāva</div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>House / Bhava</div>
                       <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {RASHI_NAMES[h.rashi]} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>Cusp</span>
                       </div>
@@ -289,17 +289,17 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
           </div>
 
           <div style={{ marginTop: '2rem' }}>
-            <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Detailed Bhāva Table</h3>
+            <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Detailed Bhava Table</h3>
             <div className="card" style={{ padding: 0, overflowX: 'auto', background: 'var(--surface-1)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border-soft)' }}>
                     <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>H#</th>
-                    <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Bhāva Start</th>
+                    <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Bhava Start</th>
                     <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Cusp (Mid)</th>
-                    <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Bhāva End</th>
-                    <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Nakṣatra</th>
-                    <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Rāśi (Lord)</th>
+                    <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Bhava End</th>
+                    <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Nakshatra</th>
+                    <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Rashi (Lord)</th>
                     <th style={{ padding: '0.85rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.65rem' }}>Occupants</th>
                   </tr>
                 </thead>

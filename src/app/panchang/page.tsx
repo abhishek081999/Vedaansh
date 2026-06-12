@@ -26,9 +26,9 @@ export default function PanchangPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [location, setLocation] = useState<LocationValue>(getSavedLocation)
-  /** '' = do not send — no personal Tārā/Chandra bala */
+  /** '' = do not send — no personal Tara/Chandra bala */
   const [birthNakSel, setBirthNakSel] = useState<string>('')
-  /** '' = auto-estimate natal Moon rāśi from nakṣatra middle */
+  /** '' = auto-estimate natal Moon rashi from nakshatra middle */
   const [birthMoonSel, setBirthMoonSel] = useState<string>('')
 
   const fetchPanchang = useCallback(async (d: string) => {
@@ -121,7 +121,7 @@ export default function PanchangPage() {
               onChange={e => setBirthNakSel(e.target.value)}
               className={pageStyles.select}
             >
-              <option value="">— Birth nakṣatra (optional) —</option>
+              <option value="">— Birth nakshatra (optional) —</option>
               {NAKSHATRA_NAMES.map((name, i) => (
                 <option key={name} value={i}>{name}</option>
               ))}
@@ -132,7 +132,7 @@ export default function PanchangPage() {
               disabled={birthNakSel === ''}
               className={pageStyles.select}
             >
-              <option value="">Auto rāśi</option>
+              <option value="">Auto rashi</option>
               {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as Rashi[]).map((r) => (
                 <option key={r} value={r}>{RASHI_NAMES[r]}</option>
               ))}

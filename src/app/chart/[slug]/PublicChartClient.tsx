@@ -50,12 +50,12 @@ const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'chart',   label: 'Chart',    emoji: '◯' },
   { id: 'planets', label: 'Planets',  emoji: '✦' },
   { id: 'interpretation', label: 'Interpretation', emoji: '✧' },
-  { id: 'dasha',   label: 'Daśā',     emoji: '⏳' },
-  { id: 'shadbala',label: 'Ṣaḍbala',  emoji: '⚖' },
-  { id: 'bhava-bala', label: 'Bhāva Bala', emoji: '⌗' },
-  { id: 'vimsopaka',label: 'Viṁśopaka',emoji: '⑳' },
+  { id: 'dasha',   label: 'Dasha',     emoji: '⏳' },
+  { id: 'shadbala',label: 'Shadbala',  emoji: '⚖' },
+  { id: 'bhava-bala', label: 'Bhava Bala', emoji: '⌗' },
+  { id: 'vimsopaka',label: 'Vimsopaka',emoji: '⑳' },
   { id: 'panchang',label: 'Panchang', emoji: '📅' },
-  { id: 'arudhas', label: 'Āruḍhas',  emoji: '☯' },
+  { id: 'arudhas', label: 'Arudhas',  emoji: '☯' },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -80,7 +80,7 @@ function ArudhaPanel({ arudhas, arudhasBphs }: { arudhas: ChartOutput['arudhas']
   const [useBphsExceptions, setUseBphsExceptions] = useState(false)
   const display = useBphsExceptions && arudhasBphs ? arudhasBphs : arudhas
   const items = [
-    { key: 'AL',  label: 'Āruḍha Lagna',   desc: 'Image of self' },
+    { key: 'AL',  label: 'Arudha Lagna',   desc: 'Image of self' },
     { key: 'A2',  label: 'Dhana Pada',      desc: 'Wealth' },
     { key: 'A3',  label: 'Vikrama Pada',    desc: 'Courage' },
     { key: 'A4',  label: 'Matri Pada',      desc: 'Home & mother' },
@@ -349,14 +349,14 @@ export function PublicChartClient({
 
           {tab === 'arudhas' && (
             <div className="card">
-              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Bhāva Āruḍhas</div>
+              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Bhava Arudhas</div>
               <ArudhaPanel arudhas={chart.arudhas} arudhasBphs={chart.arudhasBphs} />
             </div>
           )}
 
           {tab === 'dasha' && (
             <div className="card">
-              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Viṁśottarī Daśā</div>
+              <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Vimshottari Dasha</div>
               <DashaTree
                 nodes={chart.dashas.vimshottari ?? []}
                 birthDate={new Date(chart.meta.birthDate)}
@@ -373,14 +373,14 @@ export function PublicChartClient({
 
           {tab === 'shadbala' && (
             <div className="card">
-              <div className="label-caps" style={{ marginBottom: '1rem' }}>Ṣaḍbala — Six-fold Strength</div>
+              <div className="label-caps" style={{ marginBottom: '1rem' }}>Shadbala — Six-fold Strength</div>
               <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts />
             </div>
           )}
 
           {tab === 'bhava-bala' && (
             <div className="card">
-              <div className="label-caps" style={{ marginBottom: '1rem' }}>Bhāva Bala — House Strength</div>
+              <div className="label-caps" style={{ marginBottom: '1rem' }}>Bhava Bala — House Strength</div>
               {chart.bhavaBala ? (
                 <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
               ) : (
@@ -395,7 +395,7 @@ export function PublicChartClient({
             <div className="card" style={{ padding: '0.1rem' }}>
               {chart.vimsopaka
                 ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} />
-                : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '1.25rem' }}>Viṁśopaka data unavailable.</div>
+                : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '1.25rem' }}>Vimsopaka data unavailable.</div>
               }
             </div>
           )}
@@ -412,7 +412,7 @@ export function PublicChartClient({
             Explore your own chart
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1rem' }}>
-            Free forever — all varga charts, Dasha tree, Āruḍhas & Panchang
+            Free forever — all varga charts, Dasha tree, Arudhas & Panchang
           </div>
           <Link href="/?new=true" className="btn btn-primary">
             Calculate My Chart →

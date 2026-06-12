@@ -57,7 +57,7 @@ export default function VastuPage() {
           </h2>
 
           <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: 1.7, fontSize: '1rem' }}>
-            Astro-Vāstu maps your natal planetary positions across the 16 cosmic directions of your living space using Mahavastu principles.
+            Astro-Vastu maps your natal planetary positions across the 16 cosmic directions of your living space using Mahavastu principles.
             We need your birth details to generate your personalized spatial analysis.
           </p>
 
@@ -229,7 +229,7 @@ export default function VastuPage() {
           Vedic Directional Wisdom
         </h3>
         <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.7, margin: 0 }}>
-          Astro-Vāstu bridges the micro-cosmos (your horoscope) and the macro-cosmos (your environment).
+          Astro-Vastu bridges the micro-cosmos (your horoscope) and the macro-cosmos (your environment).
           By balancing the Pancha Bhutas based on your strongest and weakest planets, you create a
           resonance that amplifies prosperity and well-being. The 45 Devatas of the Vastu Purusha Mandala
           represent specific psychographic energies that can be harmonized through conscious spatial design.

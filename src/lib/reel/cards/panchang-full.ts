@@ -99,7 +99,7 @@ function drawKeyTimeStrip(
   const slots: { title: string; range: string; tone: 'good' | 'neutral' | 'warn' }[] = []
   if (data.brahmaMuhurta?.start) {
     slots.push({
-      title: 'Brahma Muhūrta',
+      title: 'Brahma Muhurta',
       range: `${fmtTime(data.brahmaMuhurta.start)} – ${fmtTime(data.brahmaMuhurta.end)}`,
       tone: 'good',
     })
@@ -113,7 +113,7 @@ function drawKeyTimeStrip(
   }
   if (data.godhuliMuhurat?.start) {
     slots.push({
-      title: 'Godhuli / Sandhyā',
+      title: 'Godhuli / Sandhya',
       range: `${fmtTime(data.godhuliMuhurat.start)} – ${fmtTime(data.godhuliMuhurat.end)}`,
       tone: 'neutral',
     })
@@ -121,7 +121,7 @@ function drawKeyTimeStrip(
   const durs = (data.durMuhurat || []).slice(0, 2)
   durs.forEach((dm, i) => {
     slots.push({
-      title: i === 0 ? 'Dur Muhūrta' : 'Dur II',
+      title: i === 0 ? 'Dur Muhurta' : 'Dur II',
       range: `${fmtTime(dm.start)} – ${fmtTime(dm.end)}`,
       tone: 'warn',
     })
@@ -209,7 +209,7 @@ export function drawPanchangFullCard(
       ],
     },
     {
-      label: 'Nakṣatra',
+      label: 'Nakshatra',
       value: data.nakshatra?.name || '—',
       lines: [
         `until ${nEnd}`,
@@ -224,12 +224,12 @@ export function drawPanchangFullCard(
       lines: [`until ${yEnd}`, [data.yoga?.quality, yogaPct].filter(Boolean).join(' · ')],
     },
     {
-      label: 'Karaṇa',
+      label: 'Karana',
       value: data.karana?.name || '—',
       lines: [[data.karana?.type, data.karana?.isBhadra ? 'Bhadra' : ''].filter(Boolean).join(' · ')],
     },
     {
-      label: 'Vāra',
+      label: 'Vara',
       value: data.vara?.name || '—',
       lines: [[data.vara?.sanskrit, `lord ${data.vara?.lord || ''}`].filter(Boolean).join(' · ')],
     },
@@ -280,9 +280,9 @@ export function drawPanchangFullCard(
       ctx.fillStyle = '#FEE2E2'
       ctx.fillText(`${fmtTime(start)} – ${fmtTime(end)}`, x + aw / 2, ay + 48)
     }
-    drawAvoidMini(ax0, 'Rāhu Kāla', data.rahuKalam?.start, data.rahuKalam?.end)
-    drawAvoidMini(ax0 + aw + ag, 'Gulika Kāla', data.gulikaKalam?.start, data.gulikaKalam?.end)
-    drawAvoidMini(ax0 + 2 * (aw + ag), 'Yamagaṇḍa', data.yamaganda?.start, data.yamaganda?.end)
+    drawAvoidMini(ax0, 'Rahu Kala', data.rahuKalam?.start, data.rahuKalam?.end)
+    drawAvoidMini(ax0 + aw + ag, 'Gulika Kala', data.gulikaKalam?.start, data.gulikaKalam?.end)
+    drawAvoidMini(ax0 + 2 * (aw + ag), 'Yamaganda', data.yamaganda?.start, data.yamaganda?.end)
   }
 
   if (pageIndex === 0) {
@@ -305,7 +305,7 @@ export function drawPanchangFullCard(
       ctx.font = '600 19px serif'
       ctx.fillStyle = '#E9D5FF'
       const vs = cc.vikramSamvat != null ? `V.S. ${cc.vikramSamvat}` : ''
-      const sh = cc.shakaYear != null ? `Śaka ${cc.shakaYear}` : ''
+      const sh = cc.shakaYear != null ? `Shaka ${cc.shakaYear}` : ''
       const cal1 = [cc.samvatsara, vs, sh].filter(Boolean).join('  ·  ')
       ctx.fillText(truncateSafe(cal1 || '—', 58), 540, 364)
       const masa = data.tithi?.paksha ? `${data.tithi.paksha}` : ''
@@ -323,7 +323,7 @@ export function drawPanchangFullCard(
 
     ctx.font = '15px sans-serif'
     ctx.fillStyle = '#CBD5E1'
-    ctx.fillText(truncateSafe(`Ayanāṃśa: ${data.ayanamsha || '—'}  ·  ${data.location?.tz || ''}`, 72), 540, 424)
+    ctx.fillText(truncateSafe(`Ayanamsha: ${data.ayanamsha || '—'}  ·  ${data.location?.tz || ''}`, 72), 540, 424)
 
     drawDivider(ctx, colors, 456, 920)
 
@@ -360,7 +360,7 @@ export function drawPanchangFullCard(
     const vy = getReelBodyVerticalOffset(88, 880)
     ctx.save()
     ctx.translate(0, vy)
-    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Sun & Moon — luminaries & key muhūrtas')
+    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Sun & Moon — luminaries & key muhurtas')
     ctx.textAlign = 'center'
     ctx.font = '600 24px sans-serif'
     ctx.fillStyle = '#E2E8F0'
@@ -374,7 +374,7 @@ export function drawPanchangFullCard(
         ? `Sun Nakshatra: ${data.sunNakshatra.name} (Pada ${data.sunNakshatra.pada ?? '—'})`
         : ''
     const sunNakLine2 = data.sunNakshatra?.lord ? `Sun Nakshatra Lord: ${data.sunNakshatra.lord}` : ''
-    drawRashiBox(90, rowY, 'Sun (Sūrya)', data.sunRashi?.en || '—', data.sunRashi?.sa || '—', degFmt(data.sunRashi?.degInSign))
+    drawRashiBox(90, rowY, 'Sun (Surya)', data.sunRashi?.en || '—', data.sunRashi?.sa || '—', degFmt(data.sunRashi?.degInSign))
     drawRashiBox(
       90 + boxW + boxGap,
       rowY,
@@ -429,7 +429,7 @@ export function drawPanchangFullCard(
 
     drawDivider(ctx, colors, rowY, 920)
     rowY += 22
-    sectionLabel(ctx, colors, rowY, 'Key muhūrtas')
+    sectionLabel(ctx, colors, rowY, 'Key muhurtas')
     rowY += 28
     rowY = drawKeyTimeStrip(ctx, colors, rowY, data) + 16
     ctx.restore()
@@ -443,7 +443,7 @@ export function drawPanchangFullCard(
     const vy = getReelBodyVerticalOffset(88, 1100)
     ctx.save()
     ctx.translate(0, vy)
-    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Doṣa periods & Choghadiya')
+    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Dosha periods & Choghadiya')
     ctx.font = '600 24px sans-serif'
     ctx.fillStyle = '#E2E8F0'
     ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month}`, 540, 278)
@@ -545,7 +545,7 @@ export function drawPanchangFullCard(
     const vy = getReelBodyVerticalOffset(88, 1050)
     ctx.save()
     ctx.translate(0, vy)
-    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Horā table & nine grahas')
+    drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Hora table & nine grahas')
     ctx.font = '600 24px sans-serif'
     ctx.fillStyle = '#E2E8F0'
     ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month}`, 540, 278)
@@ -553,7 +553,7 @@ export function drawPanchangFullCard(
     let rowY = 318
     const horasDay = (data.horaTable || []).filter((h) => h.isDaytime).slice(0, 6)
     if (horasDay.length > 0) {
-      sectionLabel(ctx, colors, rowY, 'Day Horā (planetary hours)')
+      sectionLabel(ctx, colors, rowY, 'Day Hora (planetary hours)')
       rowY += 28
       const cols = 3
       const hw = 280
@@ -588,7 +588,7 @@ export function drawPanchangFullCard(
     if (horasNight.length > 0) {
       drawDivider(ctx, colors, rowY, 920)
       rowY += 22
-      sectionLabel(ctx, colors, rowY, 'Night Horā')
+      sectionLabel(ctx, colors, rowY, 'Night Hora')
       rowY += 28
       const ncols = 2
       const nw = 430
@@ -648,14 +648,14 @@ export function drawPanchangFullCard(
   const vy = getReelBodyVerticalOffset(88, 780)
   ctx.save()
   ctx.translate(0, vy)
-  drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Moon nakṣatra — qualities & note')
+  drawPanchangSlideHero(ctx, colors, settings, vedaIcon, 'Moon nakshatra — qualities & note')
   ctx.font = '20px sans-serif'
   ctx.fillStyle = colors.sub
   ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month}`, 540, 278)
 
   const nakIdx = data.nakshatra?.index ?? 0
   let rowY = 330
-  sectionLabel(ctx, colors, rowY, 'Moon nakṣatra — qualities')
+  sectionLabel(ctx, colors, rowY, 'Moon nakshatra — qualities')
   rowY += 28
   ctx.textAlign = 'center'
   ctx.font = 'bold 28px serif'
@@ -665,7 +665,7 @@ export function drawPanchangFullCard(
   ctx.font = '17px sans-serif'
   ctx.fillStyle = colors.sub
   ctx.fillText(
-    truncate(`Devatā: ${NAK_DEITY[nakIdx] || '—'}  ·  Guṇa: ${NAK_QUALITY[nakIdx] || '—'}  ·  Lord: ${data.nakshatra?.lord || '—'}`, 68),
+    truncate(`Devata: ${NAK_DEITY[nakIdx] || '—'}  ·  Guna: ${NAK_QUALITY[nakIdx] || '—'}  ·  Lord: ${data.nakshatra?.lord || '—'}`, 68),
     540,
     rowY,
   )
@@ -674,7 +674,7 @@ export function drawPanchangFullCard(
   rowY += 36
   ctx.font = '17px sans-serif'
   ctx.fillStyle = colors.sub
-  ctx.fillText('Panchang varies by location & siddhānta — verify for muhūrta decisions.', 540, rowY)
+  ctx.fillText('Panchang varies by location & siddhanta — verify for muhurta decisions.', 540, rowY)
   rowY += 36
   ctx.fillText(truncate(settings.ctaLine, 72), 540, rowY)
   rowY += 48

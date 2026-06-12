@@ -158,10 +158,10 @@ const RASHI_LABEL: Record<number, string> = {
 }
 
 const NAK_SHORT: string[] = [
-  'Aśw', 'Bha', 'Kṛt', 'Roh', 'Mṛg', 'Ārd', 'Pun',
-  'Puṣ', 'Āśl', 'Mag', 'PPh', 'UPh', 'Has', 'Cit',
-  'Swā', 'Viś', 'Anu', 'Jye', 'Mūl', 'PĀṣ', 'UĀṣ',
-  'Śra', 'Dha', 'Śat', 'PBh', 'UBh', 'Rev',
+  'Ashw', 'Bha', 'Krit', 'Roh', 'Mrig', 'Ard', 'Pun',
+  'Push', 'Ashl', 'Mag', 'PPh', 'UPh', 'Has', 'Cit',
+  'Swa', 'Vish', 'Anu', 'Jye', 'Mul', 'PAsh', 'UAsh',
+  'Shra', 'Dha', 'Shat', 'PBh', 'UBh', 'Rev',
 ]
 
 /**
@@ -169,57 +169,57 @@ const NAK_SHORT: string[] = [
  * Key = "row,col"
  */
 const INTERIOR: Record<string, Pick<SBCCell, 'type' | 'label' | 'sublabel' | 'varaLord' | 'bodyPart'>> = {
-  '1,1': { type: 'vowel',     label: 'ṝ ॠ' },
+  '1,1': { type: 'vowel',     label: 'ri ॠ' },
   '1,2': { type: 'consonant', label: 'g ग' },
-  '1,3': { type: 'consonant', label: 's स\nśa श' },
-  '1,4': { type: 'consonant', label: 'd द\njh झ\nth थ\nñ ञ' },
+  '1,3': { type: 'consonant', label: 's स\nsha श' },
+  '1,4': { type: 'consonant', label: 'd द\njh झ\nth थ\nn ञ' },
   '1,5': { type: 'consonant', label: 'c च' },
   '1,6': { type: 'consonant', label: 'l ल' },
   '1,7': { type: 'vowel',     label: 'u उ' },
 
-  '2,1': { type: 'consonant', label: 'kh ख\nṣ ष' },
+  '2,1': { type: 'consonant', label: 'kh ख\nsh ष' },
   '2,2': { type: 'vowel',     label: 'ai ऐ' },
-  '2,6': { type: 'vowel',     label: 'lṛ लृ' },
+  '2,6': { type: 'vowel',     label: 'lri लृ' },
   '2,7': { type: 'consonant', label: 'a अ' },
 
   '3,1': { type: 'consonant', label: 'j ज\ny य' },
-  '3,3': { type: 'vowel',     label: 'aḥ अः' },
-  '3,4': { type: 'anga',      label: 'Ṛkta\n4 9 14\nFr' },
+  '3,3': { type: 'vowel',     label: 'ah अः' },
+  '3,4': { type: 'anga',      label: 'Rikta\n4 9 14\nFr' },
   '3,5': { type: 'vowel',     label: 'o ओ' },
   '3,7': { type: 'consonant', label: 'v व\nb ब' },
 
-  '4,1': { type: 'consonant', label: 'bh भ\ndh ध\nph फ\nḍh ढ' },
-  '4,3': { type: 'anga',      label: 'Jāya\n3 8 13\nTh' },
-  '4,4': { type: 'anga',      label: 'Pūrṇa\n5 10 15\nSa' },
+  '4,1': { type: 'consonant', label: 'bh भ\ndh ध\nph फ\ndh ढ' },
+  '4,3': { type: 'anga',      label: 'Jaya\n3 8 13\nTh' },
+  '4,4': { type: 'anga',      label: 'Purna\n5 10 15\nSa' },
   '4,5': { type: 'anga',      label: 'Nanda\n1 6 11\nSu Tu' },
-  '4,7': { type: 'consonant', label: 'k क\nc च\ngh घ\nṅ ङ' },
+  '4,7': { type: 'consonant', label: 'k क\nc च\ngh घ\nng ङ' },
 
   '5,1': { type: 'consonant', label: 'y य\nj ज' },
-  '5,3': { type: 'vowel',     label: 'aṃ अं' },
+  '5,3': { type: 'vowel',     label: 'am अं' },
   '5,4': { type: 'anga',      label: 'Bhadra\n2 7 12\nMo We' },
   '5,5': { type: 'vowel',     label: 'au औ' },
   '5,7': { type: 'consonant', label: 'h ह' },
 
   '6,1': { type: 'consonant', label: 'n न' },
   '6,2': { type: 'vowel',     label: 'e ए' },
-  '6,6': { type: 'vowel',     label: 'lṝ लॄ' },
-  '6,7': { type: 'consonant', label: 'ḍ ड' },
+  '6,6': { type: 'vowel',     label: 'lri लॄ' },
+  '6,7': { type: 'consonant', label: 'd ड' },
 
-  '7,1': { type: 'vowel',     label: 'ṛ ऋ' },
+  '7,1': { type: 'vowel',     label: 'ri ऋ' },
   '7,2': { type: 'consonant', label: 't त' },
   '7,3': { type: 'consonant', label: 'r र' },
-  '7,4': { type: 'consonant', label: 'p प\nṣ ष\nṇ ण\nṭh ठ' },
-  '7,5': { type: 'consonant', label: 'ṭ ट' },
+  '7,4': { type: 'consonant', label: 'p प\nsh ष\nn ण\nth ठ' },
+  '7,5': { type: 'consonant', label: 't ट' },
   '7,6': { type: 'consonant', label: 'm म' },
-  '7,7': { type: 'vowel',     label: 'ū ऊ' },
+  '7,7': { type: 'vowel',     label: 'u ऊ' },
 }
 
 /** Corner vowels and Abhijit marker on the outer perimeter */
 const PERIMETER_SPECIAL: Record<string, Pick<SBCCell, 'type' | 'label' | 'sublabel'>> = {
-  '0,0': { type: 'vowel',     label: 'ई ī' },
+  '0,0': { type: 'vowel',     label: 'ई i' },
   '0,8': { type: 'vowel',     label: 'a अ' },
   '8,0': { type: 'vowel',     label: 'i इ' },
-  '8,8': { type: 'vowel',     label: 'ā आ' },
+  '8,8': { type: 'vowel',     label: 'a आ' },
   '2,0': { type: 'nakshatra', label: '00 Abh', sublabel: 'Abhijit' },
 }
 

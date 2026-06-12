@@ -42,9 +42,9 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
     }
 
     const lagPosition = createSpecialPos('As', 'Lagna', ascDeg)
-    const ppPosition = createSpecialPos('PP', 'Prāṇapada Lagna', chart.lagnas.pranapada)
+    const ppPosition = createSpecialPos('PP', 'Pranapada Lagna', chart.lagnas.pranapada)
     const ilPosition = createSpecialPos('IL', 'Indu Lagna', chart.lagnas.induLagna)
-    const bbPosition = createSpecialPos('BB', 'Bhṛgu Bindu', chart.lagnas.bhriguBindu)
+    const bbPosition = createSpecialPos('BB', 'Bhrigu Bindu', chart.lagnas.bhriguBindu)
 
     return [lagPosition, ppPosition, ilPosition, bbPosition, ...base].map(p => {
       const full = chart.grahas.find(g => g.id === p.grahaId)
@@ -84,7 +84,7 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
         <div style={{ flex: '1 1 320px', maxWidth: '420px' }}>
           <div className="card" style={{ padding: '0.75rem' }}>
             <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-              D9 · Navāmśa Chart
+              D9 · Navamsha Chart
             </div>
             <ChakraSelector
               ascRashi={chart.vargaLagnas?.D9 ?? 1}

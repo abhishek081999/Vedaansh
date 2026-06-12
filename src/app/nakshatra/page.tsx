@@ -19,7 +19,7 @@ export default function NakshatraPage() {
         gap: '1.5rem', padding: '6rem 2rem', textAlign: 'center' 
       }}>
         <div style={{ fontSize: '3rem', opacity: 0.5 }}>🌙</div>
-        <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-gold)', fontWeight: 500 }}>Nakṣatra Intelligence</h2>
+        <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-gold)', fontWeight: 500 }}>Nakshatra Intelligence</h2>
         <p style={{ color: 'var(--text-muted)', maxWidth: 450, fontSize: '0.95rem' }}>
           Please load or create a birth chart to access personalized nakshatra analysis, including Navtara, Muhurta compatibility, and remedies.
         </p>

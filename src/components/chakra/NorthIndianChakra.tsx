@@ -543,7 +543,7 @@ export function NorthIndianChakra({
               )
             })}
 
-            {/* ── Āruḍha labels ── */}
+            {/* ── Arudha labels ── */}
             {(() => {
               if (!aList.length) return null
 

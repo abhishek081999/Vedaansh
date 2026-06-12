@@ -131,19 +131,19 @@ function buildGrahas(
     const deg = degreeInSign(lonSidereal)
     const dignity = getDignity(id, rashi, deg)
 
-    // Bālādi avastha (Odd/Even signs)
+    // Baladi avastha (Odd/Even signs)
     let baladi = ''
     const isOdd = rashi % 2 !== 0
     if (isOdd) {
-      if (deg < 6) baladi = 'Bāla'; else if (deg < 12) baladi = 'Kumāra'; else if (deg < 18) baladi = 'Yuva'; else if (deg < 24) baladi = 'Vṛddha'; else baladi = 'Mṛta'
+      if (deg < 6) baladi = 'Bala'; else if (deg < 12) baladi = 'Kumara'; else if (deg < 18) baladi = 'Yuva'; else if (deg < 24) baladi = 'Vriddha'; else baladi = 'Mrita'
     } else {
-      if (deg < 6) baladi = 'Mṛta'; else if (deg < 12) baladi = 'Vṛddha'; else if (deg < 18) baladi = 'Yuva'; else if (deg < 24) baladi = 'Kumāra'; else baladi = 'Bāla'
+      if (deg < 6) baladi = 'Mrita'; else if (deg < 12) baladi = 'Vriddha'; else if (deg < 18) baladi = 'Yuva'; else if (deg < 24) baladi = 'Kumara'; else baladi = 'Bala'
     }
 
-    // Jāgradadi avastha
-    let jagradadi = (dignity === 'exalted' || dignity === 'own') ? 'Jāgrat'
+    // Jagradadi avastha
+    let jagradadi = (dignity === 'exalted' || dignity === 'own') ? 'Jagrat'
       : (dignity === 'neutral' || dignity === 'friend') ? 'Swapna'
-        : 'Suṣupti'
+        : 'Sushupti'
 
     return {
       id,
@@ -193,9 +193,9 @@ function buildGrahas(
 
   let kBaladi = ''
   if (ketuRashi % 2 !== 0) {
-    if (ketuDeg < 6) kBaladi = 'Bāla'; else if (ketuDeg < 12) kBaladi = 'Kumāra'; else if (ketuDeg < 18) kBaladi = 'Yuva'; else if (ketuDeg < 24) kBaladi = 'Vṛddha'; else kBaladi = 'Mṛta'
+    if (ketuDeg < 6) kBaladi = 'Bala'; else if (ketuDeg < 12) kBaladi = 'Kumara'; else if (ketuDeg < 18) kBaladi = 'Yuva'; else if (ketuDeg < 24) kBaladi = 'Vriddha'; else kBaladi = 'Mrita'
   } else {
-    if (ketuDeg < 6) kBaladi = 'Mṛta'; else if (ketuDeg < 12) kBaladi = 'Vṛddha'; else if (ketuDeg < 18) kBaladi = 'Yuva'; else if (ketuDeg < 24) kBaladi = 'Kumāra'; else kBaladi = 'Bāla'
+    if (ketuDeg < 6) kBaladi = 'Mrita'; else if (ketuDeg < 12) kBaladi = 'Vriddha'; else if (ketuDeg < 18) kBaladi = 'Yuva'; else if (ketuDeg < 24) kBaladi = 'Kumara'; else kBaladi = 'Bala'
   }
 
   grahas.push({
@@ -214,7 +214,7 @@ function buildGrahas(
     nakshatraName: ketuNak.name,
     pada: ketuNak.pada,
     dignity: kDig,
-    avastha: { baladi: kBaladi, jagradadi: (kDig === 'exalted' || kDig === 'own') ? 'Jāgrat' : 'Swapna' },
+    avastha: { baladi: kBaladi, jagradadi: (kDig === 'exalted' || kDig === 'own') ? 'Jagrat' : 'Swapna' },
     charaKaraka: null,
     kp: getKPStellar(ketuLonSid),
     gandanta: checkGandanta(ketuLonSid),
@@ -342,11 +342,11 @@ export async function calculateChart(
       const isOdd = vRashi % 2 !== 0
       const vDeg = pos.degree
       if (isOdd) {
-        if (vDeg < 6) vBaladi = 'Bāla'; else if (vDeg < 12) vBaladi = 'Kumāra'; else if (vDeg < 18) vBaladi = 'Yuva'; else if (vDeg < 24) vBaladi = 'Vṛddha'; else vBaladi = 'Mṛta'
+        if (vDeg < 6) vBaladi = 'Bala'; else if (vDeg < 12) vBaladi = 'Kumara'; else if (vDeg < 18) vBaladi = 'Yuva'; else if (vDeg < 24) vBaladi = 'Vriddha'; else vBaladi = 'Mrita'
       } else {
-        if (vDeg < 6) vBaladi = 'Mṛta'; else if (vDeg < 12) vBaladi = 'Vṛddha'; else if (vDeg < 18) vBaladi = 'Yuva'; else if (vDeg < 24) vBaladi = 'Kumāra'; else vBaladi = 'Bāla'
+        if (vDeg < 6) vBaladi = 'Mrita'; else if (vDeg < 12) vBaladi = 'Vriddha'; else if (vDeg < 18) vBaladi = 'Yuva'; else if (vDeg < 24) vBaladi = 'Kumara'; else vBaladi = 'Bala'
       }
-      const vJagradadi = (vDignity === 'exalted' || vDignity === 'own') ? 'Jāgrat' : (vDignity === 'neutral' || vDignity === 'friend') ? 'Swapna' : 'Suṣupti'
+      const vJagradadi = (vDignity === 'exalted' || vDignity === 'own') ? 'Jagrat' : (vDignity === 'neutral' || vDignity === 'friend') ? 'Swapna' : 'Sushupti'
 
       // Return optimized object (don't spread the whole natal g if not needed)
       return { 

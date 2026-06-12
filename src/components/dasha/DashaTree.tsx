@@ -69,7 +69,7 @@ export function DashaTree({
 }: {
   nodes: DashaNode[]
   birthDate: Date
-  /** Tribhagi Viṁśottarī: show linked nakṣatra on mahadasha rows */
+  /** Tribhagi Vimshottari: show linked nakshatra on mahadasha rows */
   showNakshatra?: boolean
 }) {
   const [activePath, setActivePath] = useState<DashaNode[]>([])
@@ -263,7 +263,7 @@ export function DashaTree({
                 }}>
                   {codePathForNode(node)}
                 </span>
-                {/* Name (+ nakṣatra for tribhagi mahadasha) */}
+                {/* Name (+ nakshatra for tribhagi mahadasha) */}
                 <span style={{
                   fontSize: rowFontSize,
                   flex: 1,

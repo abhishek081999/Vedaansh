@@ -288,7 +288,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                  Generate Solar Return for <strong>{year}</strong>
               </div>
               <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: 400, lineHeight: 1.6 }}>
-                 Compare your Janma Kundalī (right) with the upcoming Solar Return energies for {year}.
+                 Compare your Janma Kundali (right) with the upcoming Solar Return energies for {year}.
               </p>
               <button 
                 onClick={calculate} 

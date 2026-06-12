@@ -221,7 +221,7 @@ export function analyzeMuhurta(
     case 'MARRIAGE':
       if (['Rohini', 'Mrigashira', 'Magha', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Mula', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati'].includes(panchang.nakshatra.name)) {
         score += 25;
-        factors.push('Classical Vivāha Nakshatra');
+        factors.push('Classical Vivaha Nakshatra');
       }
       if ([2, 3, 5, 7, 10, 11, 13].includes(panchang.tithi.number % 15 || 15)) {
         score += 15;

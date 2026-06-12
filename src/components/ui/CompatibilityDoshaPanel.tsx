@@ -109,7 +109,7 @@ function PapeSamyaComparison({ p1, p2, nameA, nameB }: { p1: any; p2: any; nameA
 
   return (
     <div className="card" style={{ padding: '1.5rem' }}>
-      <div className="label-caps" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Pāpe-Sāmya (Malefic Balance)</div>
+      <div className="label-caps" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Pape-Samya (Malefic Balance)</div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         

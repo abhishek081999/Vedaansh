@@ -1,6 +1,6 @@
 /**
- * Extra muhūrta-style windows used on many North Indian / online panchangs.
- * Rules are approximate; regional āgamas and printed calendars may differ.
+ * Extra muhurta-style windows used on many North Indian / online panchangs.
+ * Rules are approximate; regional agamas and printed calendars may differ.
  */
 
 export interface TimeWindow {
@@ -9,8 +9,8 @@ export interface TimeWindow {
 }
 
 /**
- * Divide sunrise→sunset into 15 equal parts (≈ “day muhūrtas”).
- * Dur muhūrta: commonly the 6th and 10th segments (0-based: indices 5 and 9).
+ * Divide sunrise→sunset into 15 equal parts (≈ “day muhurtas”).
+ * Dur muhurta: commonly the 6th and 10th segments (0-based: indices 5 and 9).
  */
 export function getDurMuhurat(sunrise: Date, sunset: Date): [TimeWindow, TimeWindow] {
   const ms = sunset.getTime() - sunrise.getTime()
@@ -28,7 +28,7 @@ export function getDurMuhurat(sunrise: Date, sunset: Date): [TimeWindow, TimeWin
 }
 
 /**
- * Gōdhūli — “cow-dust” twilight: often taken as the ~24 minutes before local sunset.
+ * Godhuli — “cow-dust” twilight: often taken as the ~24 minutes before local sunset.
  */
 export function getGodhuliMuhurat(sunset: Date, minutesBefore = 24): TimeWindow {
   const end = sunset.getTime()
@@ -38,11 +38,11 @@ export function getGodhuliMuhurat(sunset: Date, minutesBefore = 24): TimeWindow 
   }
 }
 
-/** Rikta tithis: Chaturthī, Navamī, Chaturdaśī in each fortnight → lunar days 4,9,14,19,24,29. */
+/** Rikta tithis: Chaturthi, Navami, Chaturdashi in each fortnight → lunar days 4,9,14,19,24,29. */
 export function isRiktaTithi(tithiNumber1to30: number): boolean {
   return [4, 9, 14, 19, 24, 29].includes(tithiNumber1to30)
 }
 
 export function riktaTithiDescription(): string {
-  return 'Ṛkta tithi (Chaturthī, Navamī, Chaturdaśī in śukla and kṛṣṇa pakṣa): classically “empty” for lasting foundations; fine for routine acts in many traditions.'
+  return 'Rikta tithi (Chaturthi, Navami, Chaturdashi in shukla and krishna paksha): classically “empty” for lasting foundations; fine for routine acts in many traditions.'
 }

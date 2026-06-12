@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-//  Special Lagnas (BPHS Ch.5, Ch.3 Prāṇapada, PVR Śrī Lagna, Indu / Dhana Lagna)
+//  Special Lagnas (BPHS Ch.5, Ch.3 Pranapada, PVR Shri Lagna, Indu / Dhana Lagna)
 //  Sun longitude is always at the applicable local sunrise (not birth-time Sun).
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -104,19 +104,19 @@ export function calcGhatiLagna(sunLonAtSunrise: number, ghatis: number, vighatik
   return norm360(sunLonAtSunrise + offset)
 }
 
-/** Vighati Lagna (JHora / Surya-siddhānta rate): Sun + (vighatikas ÷ 5) in degrees. */
+/** Vighati Lagna (JHora / Surya-siddhanta rate): Sun + (vighatikas ÷ 5) in degrees. */
 export function calcVighatiLagna(sunLonAtSunrise: number, vighatikas: number): number {
   return norm360(sunLonAtSunrise + vighatikas / 5)
 }
 
-/** BPHS Ch.3 — Prāṇapada: (vighatikas ÷ 15) mod 12 signs + modality add to sunrise Sun. */
+/** BPHS Ch.3 — Pranapada: (vighatikas ÷ 15) mod 12 signs + modality add to sunrise Sun. */
 export function calcPranapada(sunLonAtSunrise: number, vighatikas: number): number {
   const signSpan = ((vighatikas / 15) % 12) * 30
   const sunSign = Math.floor(sunLonAtSunrise / 30) + 1
   return norm360(sunLonAtSunrise + signSpan + modalityOffset(sunSign))
 }
 
-/** PVR / BPHS Śrī Lagna: Lagna + (Moon's nakṣatra fraction × 360°). */
+/** PVR / BPHS Shri Lagna: Lagna + (Moon's nakshatra fraction × 360°). */
 export function calcSriLagna(ascLon: number, moonLon: number): number {
   const nak = getNakshatra(moonLon)
   const span = 360 / 27
@@ -124,7 +124,7 @@ export function calcSriLagna(ascLon: number, moonLon: number): number {
   return norm360(ascLon + fraction * 360)
 }
 
-/** BPHS Ch.5 Varṇada sign; longitude keeps natal Lagna's degree in the resultant sign. */
+/** BPHS Ch.5 Varnada sign; longitude keeps natal Lagna's degree in the resultant sign. */
 export function calcVarnadaLagna(
   ascRashi: Rashi,
   ascDegreeInRashi: number,

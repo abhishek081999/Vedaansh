@@ -23,12 +23,12 @@ function durationMin(start: Date | string, end: Date | string): number {
  */
 export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; title?: string }) {
   const tz = p.location.tz
-  const pakLabel = p.tithi.paksha === 'shukla' ? 'Śukla pakṣa' : 'Kṛṣṇa pakṣa'
+  const pakLabel = p.tithi.paksha === 'shukla' ? 'Shukla paksha' : 'Krishna paksha'
 
   const muhurtas: { label: string; times: { start: Date; end: Date }; tone: 'warn' | 'caution' | 'good' }[] = [
-    { label: 'Rāhu kālam', times: p.rahuKalam, tone: 'warn' },
-    { label: 'Gulikā kālam', times: p.gulikaKalam, tone: 'warn' },
-    { label: 'Yamagaṇḍa', times: p.yamaganda, tone: 'caution' },
+    { label: 'Rahu kalam', times: p.rahuKalam, tone: 'warn' },
+    { label: 'Gulika kalam', times: p.gulikaKalam, tone: 'warn' },
+    { label: 'Yamaganda', times: p.yamaganda, tone: 'caution' },
     ...(p.abhijitMuhurta ? [{ label: 'Abhijit', times: p.abhijitMuhurta, tone: 'good' as const }] : []),
   ]
 
@@ -45,13 +45,13 @@ export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; titl
         <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-gold)', marginBottom: 4 }}>Panchang</div>
         <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h3>
         <p style={{ margin: '0.45rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Tithi, nakṣatra, yoga, karaṇa and vāra at birth — the classical five limbs for this chart.
+          Tithi, nakshatra, yoga, karana and vara at birth — the classical five limbs for this chart.
         </p>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(158px, 1fr))', gap: '0.65rem' }}>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Vāra</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Vara</div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.vara.name}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Lord {p.vara.lord}</div>
         </div>
@@ -61,7 +61,7 @@ export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; titl
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{pakLabel} · lord {p.tithi.lord}</div>
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Nakṣatra</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Nakshatra</div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.nakshatra.name}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Pada {p.nakshatra.pada} · {p.nakshatra.lord}</div>
         </div>
@@ -71,7 +71,7 @@ export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; titl
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>#{p.yoga.number} / 27</div>
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Karaṇa</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Karana</div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.karana.name}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>#{p.karana.number}</div>
         </div>
@@ -89,7 +89,7 @@ export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; titl
       </div>
 
       <div>
-        <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Muhūrta (birth day)</div>
+        <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Muhurta (birth day)</div>
         <div style={{ borderRadius: 'var(--r-md)', border: '1px solid var(--border)', overflow: 'hidden', background: 'var(--surface-1)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -126,8 +126,8 @@ export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; titl
 
       {p.horaTable.length > 0 && (
         <div>
-          <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Horā</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{p.horaTable.length} horās computed for birth sunrise/sunset.</div>
+          <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Hora</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{p.horaTable.length} horas computed for birth sunrise/sunset.</div>
         </div>
       )}
 

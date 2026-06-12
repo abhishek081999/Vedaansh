@@ -35,7 +35,7 @@ const isOdd = (sign: number): boolean => sign % 2 === 1
 const part = (lon: number, n: number): number =>
   Math.floor(degInSign(lon) / (30 / n))
 
-// ── Tier 1 — Core Vargas (Kāla: D1, D9, D60) ─────────────────
+// ── Tier 1 — Core Vargas (Kala: D1, D9, D60) ─────────────────
 
 /** D1 — Rashi (direct) */
 export const D1 = (lon: number): number => signOf(lon)
@@ -66,7 +66,7 @@ export const D60 = (lon: number): number => {
   return mod12(sign + p)
 }
 
-// ── Tier 2 — Velā Vargas (D1–D60 standard set) ───────────────
+// ── Tier 2 — Vela Vargas (D1–D60 standard set) ───────────────
 
 /** D2 — Hora (Parashara: Sun's hora=Leo=5, Moon's hora=Cancer=4) */
 export const D2 = (lon: number): number => {
@@ -189,7 +189,7 @@ export const D45 = (lon: number): number => {
   return mod12(9 + p)                        // Air/Water → Sagittarius
 }
 
-// ── Tier 3 — Horā Vargas (41 total) ──────────────────────────
+// ── Tier 3 — Hora Vargas (41 total) ──────────────────────────
 
 /** D2 — Parivritti Dvaya (reverse alternating) */
 export const D2_Parivritti = (lon: number): number => {

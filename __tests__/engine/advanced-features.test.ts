@@ -1,6 +1,6 @@
 // __tests__/engine/advanced-features.test.ts
 // ─────────────────────────────────────────────────────────────
-//  Tests for Puṣkara, Mṛtyu Bhāga, and Yogi Point
+//  Tests for Pushkara, Mrityu Bhaga, and Yogi Point
 //  RUN: npm run test:engine
 // ─────────────────────────────────────────────────────────────
 
@@ -9,9 +9,9 @@ import { checkPushkara, PUSHKARA_NAVAMSHA } from '@/lib/engine/pushkara'
 import { checkMrityuBhaga, MRITYU_BHAGA_DEGREES, MRITYU_BHAGA_ALT, checkMrityuBhagaBoth } from '@/lib/engine/mrityuBhaga'
 import { calculateYogiPoint, isConjunctYogiPoint, getPlanetsAtYogiPoints, calculateYogiWealthScore } from '@/lib/engine/yogiPoint'
 
-// ── Puṣkara Aṃśa Tests ───────────────────────────────────────
+// ── Pushkara Amsha Tests ───────────────────────────────────────
 
-describe('Puṣkara Aṃśa Detection', () => {
+describe('Pushkara Amsha Detection', () => {
   describe('Pushkara Navamsha', () => {
     it('Should detect Pushkara Navamsha for Aries (7th and 9th navamsha)', () => {
       // Aries: 7th (20°00′-23°20′) and 9th (26°40′-30°00′)
@@ -63,10 +63,10 @@ describe('Puṣkara Aṃśa Detection', () => {
   })
 })
 
-// ── Mṛtyu Bhāga Tests ─────────────────────────────────────────
+// ── Mrityu Bhaga Tests ─────────────────────────────────────────
 
-describe('Mṛtyu Bhāga Detection', () => {
-  describe('Primary Mṛtyu Bhāga', () => {
+describe('Mrityu Bhaga Detection', () => {
+  describe('Primary Mrityu Bhaga', () => {
     it('Should detect exact Mrityu Bhaga at 19° Aries', () => {
       const result = checkMrityuBhaga(19) // 19° Aries
       expect(result.isMrityuBhaga).toBe(true)
@@ -119,7 +119,7 @@ describe('Mṛtyu Bhāga Detection', () => {
     })
   })
 
-  describe('Alternative Mṛtyu Bhāga', () => {
+  describe('Alternative Mrityu Bhaga', () => {
     it('Should use alternative degrees when specified', () => {
       // Primary: 19° Aries, Alt: 10° Aries
       const primary = checkMrityuBhaga(19, false)
@@ -137,7 +137,7 @@ describe('Mṛtyu Bhāga Detection', () => {
     })
   })
 
-  describe('All Signs Have Mrityu Bhāga', () => {
+  describe('All Signs Have Mrityu Bhaga', () => {
     it('Should have Mrityu Bhaga degrees defined for all 12 signs', () => {
       for (let rashi = 1; rashi <= 12; rashi++) {
         expect(MRITYU_BHAGA_DEGREES[rashi as 1|2|3|4|5|6|7|8|9|10|11|12]).toBeDefined()

@@ -35,7 +35,7 @@ const createLayout = (content: string) => `
       
       <!-- Footer -->
       <div style="padding: 32px; background-color: #f9fafb; text-align: center; border-top: 1px solid #e5e7eb;">
-        <p style="margin: 0; color: #6b7280; font-size: 14px;">© 2026 ${appName} · Professional Jyotiṣa Platform</p>
+        <p style="margin: 0; color: #6b7280; font-size: 14px;">© 2026 ${appName} · Professional Jyotisha Platform</p>
         <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: 12px;">Providing precise Vedic insights through ancient wisdom and modern technology.</p>
       </div>
     </div>

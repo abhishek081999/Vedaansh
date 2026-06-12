@@ -52,12 +52,12 @@ interface MuhurtaResult {
 
 // ── Purpose definitions ───────────────────────────────────────
 const PURPOSES = [
-  { id: 'MARRIAGE',    label: 'Marriage / Vivāha',       icon: '💍' },
+  { id: 'MARRIAGE',    label: 'Marriage / Vivaha',       icon: '💍' },
   { id: 'BUSINESS',    label: 'Business Start',           icon: '💼' },
   { id: 'TRAVEL',      label: 'Travel / Journey',         icon: '✈️' },
-  { id: 'EDUCATION',   label: 'Education / Vidyārambha',  icon: '📚' },
+  { id: 'EDUCATION',   label: 'Education / Vidyarambha',  icon: '📚' },
   { id: 'HEALTH',      label: 'Medical / Surgery',        icon: '🏥' },
-  { id: 'REAL_ESTATE', label: 'Property / Gṛhapravesh',  icon: '🏠' },
+  { id: 'REAL_ESTATE', label: 'Property / Grihapravesh',  icon: '🏠' },
   { id: 'GENERAL',     label: 'General Auspicious',       icon: '✨' },
 ]
 
@@ -318,7 +318,7 @@ export default function MuhurtaPage() {
 
       <main className="muhurta-main">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 800, color: 'var(--text-gold)', margin: 0 }}>Muhūrta Intelligence</h1>
+           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 800, color: 'var(--text-gold)', margin: 0 }}>Muhurta Intelligence</h1>
         </div>
         
         {/* Advanced Personal Timeline */}
@@ -373,7 +373,7 @@ export default function MuhurtaPage() {
             <LocationPicker value={location} onChange={setLocation} label="📍 Location" />
           </div>
           <button onClick={findMuhurta} disabled={loading} className="btn btn-primary muhurta-find-btn" style={{ alignSelf: 'flex-start', padding: '0.6rem 1.5rem' }}>
-            {loading ? <><span className="spin-loader" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} /> Searching…</> : '🔍 Find Muhūrta'}
+            {loading ? <><span className="spin-loader" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} /> Searching…</> : '🔍 Find Muhurta'}
           </button>
         </div>
         {loading && (

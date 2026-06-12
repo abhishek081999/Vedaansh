@@ -65,7 +65,7 @@ export function DashaInterpretationPanel({ nodes, grahas }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
        <div className="card" style={{ padding: '1.5rem', background: `linear-gradient(135deg, var(--surface-1) 0%, rgba(201,168,76,0.05) 100%)`, border: '1px solid var(--gold-faint)' }}>
-          <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '1rem' }}>Active Mahādashā Narrative</div>
+          <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '1rem' }}>Active Mahadasha Narrative</div>
           <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
              <div style={{ width: 64, height: 64, borderRadius: '12px', background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', border: '1px solid var(--border-soft)', flexShrink: 0 }}>
                {mahadasha.lord === 'Su' ? '☀️' : mahadasha.lord === 'Mo' ? '🌙' : mahadasha.lord === 'Ma' ? '🔥' : mahadasha.lord === 'Ju' ? '💎' : '🪐'}
@@ -80,7 +80,7 @@ export function DashaInterpretationPanel({ nodes, grahas }: Props) {
        {antardasha && (
          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
             <div className="card" style={{ padding: '1.25rem' }}>
-               <div className="label-caps" style={{ fontSize: '0.65rem', color: 'var(--teal)' }}>Antardashā Focus</div>
+               <div className="label-caps" style={{ fontSize: '0.65rem', color: 'var(--teal)' }}>Antardasha Focus</div>
                <h4 style={{ margin: '0.5rem 0', fontSize: '1.05rem', color: 'var(--text-primary)' }}>{aData?.title}</h4>
                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                  Under the broad umbrella of {mData?.title}, {antardasha.lord} brings a refined focus to <strong>{aData?.focus}</strong>.

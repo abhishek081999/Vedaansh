@@ -30,8 +30,8 @@ const PLANET_SYMBOLS: Record<string, string> = {
 }
 
 const PLANET_VEDIC: Record<string, string> = {
-  Su: 'Sūrya', Mo: 'Chandra', Ma: 'Maṅgala', Me: 'Budha',
-  Ju: 'Guru', Ve: 'Śukra', Sa: 'Śani', Ra: 'Rāhu', Ke: 'Ketu',
+  Su: 'Surya', Mo: 'Chandra', Ma: 'Mangala', Me: 'Budha',
+  Ju: 'Guru', Ve: 'Shukra', Sa: 'Shani', Ra: 'Rahu', Ke: 'Ketu',
 }
 
 const DIGNITY_COLORS: Record<string, string> = {
@@ -47,15 +47,15 @@ const DIGNITY_COLORS: Record<string, string> = {
 }
 
 const KEYWORD_MAP: Record<string, string[]> = {
-  Su: ['Ātmā · Soul', 'Father', 'Authority', 'Vitality', 'Government'],
+  Su: ['Atma · Soul', 'Father', 'Authority', 'Vitality', 'Government'],
   Mo: ['Mind · Manas', 'Mother', 'Emotions', 'Intuition', 'Public'],
   Ma: ['Energy · Tejas', 'Courage', 'Siblings', 'Land', 'Warrior'],
   Me: ['Intellect · Buddhi', 'Speech', 'Commerce', 'Mathematics', 'Youth'],
-  Ju: ['Wisdom · Jñāna', 'Children', 'Dharma', 'Guru', 'Expansion'],
-  Ve: ['Beauty · Śṛṅgāra', 'Spouse', 'Luxury', 'Art', 'Desires'],
-  Sa: ['Karma · Kāla', 'Longevity', 'Service', 'Discipline', 'Masses'],
-  Ra: ['Desire · Kāma', 'Foreign', 'Innovation', 'Obsession', 'Illusion'],
-  Ke: ['Liberation · Mokṣa', 'Spirituality', 'Detachment', 'Past Lives', 'Research'],
+  Ju: ['Wisdom · Jnana', 'Children', 'Dharma', 'Guru', 'Expansion'],
+  Ve: ['Beauty · Shringara', 'Spouse', 'Luxury', 'Art', 'Desires'],
+  Sa: ['Karma · Kala', 'Longevity', 'Service', 'Discipline', 'Masses'],
+  Ra: ['Desire · Kama', 'Foreign', 'Innovation', 'Obsession', 'Illusion'],
+  Ke: ['Liberation · Moksha', 'Spirituality', 'Detachment', 'Past Lives', 'Research'],
 }
 
 // ── Tooltip content builder ───────────────────────────────────
@@ -188,7 +188,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
           {planet.pushkara?.isPushkara && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <span style={{ fontSize: '0.6rem', background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(78,205,196,0.3)', fontWeight: 700 }}>✦ PUSHKARA</span>
-              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>Navāṃśa</span>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>Navamsha</span>
             </div>
           )}
 
@@ -231,7 +231,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
       {/* ── Aspects ── */}
       {planet.house && getAspectedHouses(id as GrahaId, planet.house).length > 0 && (
         <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))' }}>
-          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>Planetary Aspects (Dṛṣṭi)</div>
+          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>Planetary Aspects (Drishti)</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {getAspectedHouses(id as GrahaId, planet.house).map((h, i) => {
               const rawAspect = GRAHA_ASPECTS[id as GrahaId]?.[i] || 7

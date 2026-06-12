@@ -76,10 +76,10 @@ export function drawTransitSkyCard(
   ctx.font = '18px sans-serif'
   ctx.fillStyle = `${colors.sub}DD`
   const ay = formatAyanamshaMode(skyMeta?.ayanamshaMode)
-  ctx.fillText(`${dateInfo.weekday} · ${dateStr}${ay ? ` · ${ay} ayanāṃśa` : ''}`, 540, 248)
+  ctx.fillText(`${dateInfo.weekday} · ${dateStr}${ay ? ` · ${ay} ayanamsha` : ''}`, 540, 248)
 
   drawDivider(ctx, colors, 268, 920)
-  sectionLabel(ctx, colors, 286, 'Nine grahas · sign · nakṣatra · dignity')
+  sectionLabel(ctx, colors, 286, 'Nine grahas · sign · nakshatra · dignity')
   ctx.textAlign = 'center'
 
   const sorted = sortNavagrahas(grahas).slice(0, 9)
@@ -155,7 +155,7 @@ export function drawTransitSkyCard(
   ctx.textAlign = 'center'
   ctx.font = '17px sans-serif'
   ctx.fillStyle = colors.sub
-  ctx.fillText('Noon ephemeris (UTC chart time) · sidereal longitudes · Rāhu/Ketu mean nodes', 540, gridBottom + 62)
+  ctx.fillText('Noon ephemeris (UTC chart time) · sidereal longitudes · Rahu/Ketu mean nodes', 540, gridBottom + 62)
   ctx.font = '15px sans-serif'
   ctx.fillStyle = `${colors.sub}BB`
   ctx.fillText(settings.ctaLine, 540, gridBottom + 92)

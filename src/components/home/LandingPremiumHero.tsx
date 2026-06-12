@@ -47,10 +47,10 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'panchang',
     kicker: 'Daily Panchang',
-    title: 'Today’s tithi, nakṣatra, muhūrta',
+    title: 'Today’s tithi, nakshatra, muhurta',
     desc: 'Panchang signals and day-level timing at a glance.',
     accent: '#2f9e8f',
-    bullets: ['Rahu Kaal & yogas', 'Day factors'],
+    bullets: ['Rahu Kalam & yogas', 'Day factors'],
     cta: { label: 'Open Panchang', href: '/panchang' },
   },
   {
@@ -65,7 +65,7 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'compare',
     kicker: 'Kundali Matching',
-    title: 'Match two charts — Aṣṭakūṭa & more',
+    title: 'Match two charts — Ashtakoot & more',
     desc: 'Ashtakoot scoring, dosha checks, and side-by-side charts without loading a saved natal first.',
     accent: '#c084fc',
     bullets: ['36-point Guna Milan', 'Dual birth forms'],

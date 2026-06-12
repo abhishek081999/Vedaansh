@@ -427,7 +427,7 @@ export default function SBCPage() {
           )}
         </div>
         <nav style={{ display: 'flex', gap: '0.875rem', alignItems: 'center' }}>
-          {!isMobile && <Link href="/muhurta" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Muhūrta</Link>}
+          {!isMobile && <Link href="/muhurta" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Muhurta</Link>}
           <ThemeToggle />
         </nav>
       </header>

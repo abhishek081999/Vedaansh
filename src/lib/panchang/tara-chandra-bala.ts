@@ -1,12 +1,12 @@
 /**
- * Tārā bala (nakṣatra cycle from birth star) and Chandra bala (Moon’s sign from natal Moon sign).
- * Rules follow common North Indian / Drik-style muhūrta summaries; lineages differ on edge cases.
+ * Tara bala (nakshatra cycle from birth star) and Chandra bala (Moon’s sign from natal Moon sign).
+ * Rules follow common North Indian / Drik-style muhurta summaries; lineages differ on edge cases.
  */
 
 import { NAKSHATRA_NAMES, RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
 import type { Rashi } from '@/types/astrology'
 
-/** Nine tāras in order for distance mod 9 (1 = Janma … 9 = Atimītra). */
+/** Nine taras in order for distance mod 9 (1 = Janma … 9 = Atimitra). */
 export const TARA_NAMES_EN = [
   'Janma',
   'Sampat',
@@ -23,21 +23,21 @@ export const TARA_NAMES_SA = [
   'Janma',
   'Sampat',
   'Vipat',
-  'Kṣema',
+  'Kshema',
   'Pratyak',
-  'Sādhana',
+  'Sadhana',
   'Naidhana',
   'Mitra',
-  'Atimītra',
+  'Atimitra',
 ] as const
 
-/** Favourable for beginnings in many muhūrta manuals: Sampat, Kshema, Sadhana, Mitra, Ati-mitra. */
+/** Favourable for beginnings in many muhurta manuals: Sampat, Kshema, Sadhana, Mitra, Ati-mitra. */
 const TARA_FAVORABLE = new Set([2, 4, 6, 8, 9])
 
 /** Chandra bala: Moon favourable in these whole-sign positions from natal Moon. */
 const CHANDRA_FAVORABLE_HOUSES = new Set([1, 3, 6, 10, 11])
 
-/** Middle-longitude of nakṣatra → approximate natal Moon rāśi if user only knows the star. */
+/** Middle-longitude of nakshatra → approximate natal Moon rashi if user only knows the star. */
 export function approxMoonRashiFromNakshatra(nakIndex: number): Rashi {
   const span = 360 / 27
   const midLon = nakIndex * span + span / 2
@@ -46,9 +46,9 @@ export function approxMoonRashiFromNakshatra(nakIndex: number): Rashi {
 }
 
 export interface TaraBalaResult {
-  /** Steps along the 27-nakṣatra circle from birth to transit (1–27). */
+  /** Steps along the 27-nakshatra circle from birth to transit (1–27). */
   distance: number
-  /** 1–9 tāra type. */
+  /** 1–9 tara type. */
   taraIndex: number
   nameSa: string
   nameEn: string
@@ -62,7 +62,7 @@ export function computeTaraBala(birthNakIndex: number, transitNakIndex: number):
   const favorable = TARA_FAVORABLE.has(taraNumber)
   const hint = favorable
     ? 'Generally considered supportive for auspicious work in many almanacs.'
-    : 'Often avoided for major beginnings in classical muhūrta lists; routine activity is fine for many users.'
+    : 'Often avoided for major beginnings in classical muhurta lists; routine activity is fine for many users.'
 
   return {
     distance: d,
@@ -92,8 +92,8 @@ export function computeChandraBala(
   const houseFromNatalMoon = ((transitMoonRashi - birthMoonRashi + 12) % 12) + 1
   const favorable = CHANDRA_FAVORABLE_HOUSES.has(houseFromNatalMoon)
   const hint = usedApproxRashi
-    ? 'Natal Moon sign was estimated from the middle of your birth nakṣatra; for precision, set your birth Moon rāśi from the chart.'
-    : 'Uses your stated natal Moon rāśi. Favourable houses 1, 3, 6, 10, 11 from natal Moon are common in Drik-style summaries.'
+    ? 'Natal Moon sign was estimated from the middle of your birth nakshatra; for precision, set your birth Moon rashi from the chart.'
+    : 'Uses your stated natal Moon rashi. Favourable houses 1, 3, 6, 10, 11 from natal Moon are common in Drik-style summaries.'
 
   return {
     birthMoonRashi,

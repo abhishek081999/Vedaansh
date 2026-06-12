@@ -157,12 +157,12 @@ export const FIXED_HOUSE_SIGNIFICATORS: Record<number, { planet: GrahaId; label:
 // ── Karaka descriptions for UI ────────────────────────────────
 
 export const KARAKA_DESCRIPTIONS: Record<KarakaRole8, string> = {
-  AK:  'Ātmakāraka — Soul, self, the most important indicator',
-  AmK: 'Amātyakāraka — Career, counsel, what sustains the soul',
-  BK:  'Bhrātṛkāraka — Siblings, courage, effort',
-  MK:  'Mātṛkāraka — Mother, emotional nurturing, property',
-  PK:  'Pitṛkāraka — Father, teachers, authority',
-  PiK: 'Putrikāraka — Children, creativity, speculation',
-  GK:  'Gnātikāraka — Relatives, obstacles, disease',
-  DK:  'Dārakāraka — Spouse, partnerships, desires',
+  AK:  'Atmakaraka — Soul, self, the most important indicator',
+  AmK: 'Amatyakaraka — Career, counsel, what sustains the soul',
+  BK:  'Bhratrikaraka — Siblings, courage, effort',
+  MK:  'Matrikaraka — Mother, emotional nurturing, property',
+  PK:  'Pitrikaraka — Father, teachers, authority',
+  PiK: 'Putrikaraka — Children, creativity, speculation',
+  GK:  'Gnatikaraka — Relatives, obstacles, disease',
+  DK:  'Darakaraka — Spouse, partnerships, desires',
 }

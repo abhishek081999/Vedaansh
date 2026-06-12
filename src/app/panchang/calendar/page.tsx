@@ -194,10 +194,10 @@ function DayDetail({ data, date }: { data: DayData; date: string }) {
 
   const items = [
     { icon: '☀',  label: 'Vara',      value: `${data.vara.name}`,          sub: `Lord: ${data.vara.lord}` },
-    { icon: '🌙', label: 'Tithi',     value: data.tithi.name,               sub: data.tithi.paksha === 'shukla' ? 'Śukla Pakṣa' : 'Kṛṣṇa Pakṣa' },
+    { icon: '🌙', label: 'Tithi',     value: data.tithi.name,               sub: data.tithi.paksha === 'shukla' ? 'Shukla Paksha' : 'Krishna Paksha' },
     { icon: '⭐', label: 'Nakshatra', value: data.nakshatra.name,           sub: `Pada ${data.nakshatra.pada} · ${data.nakshatra.lord}` },
     { icon: '☯',  label: 'Yoga',      value: data.yoga.name,                sub: data.yoga.quality },
-    { icon: '✦',  label: 'Karaṇa',   value: data.karana.name,              sub: data.karana.isBhadra ? '⚠ Bhadra' : '' },
+    { icon: '✦',  label: 'Karana',   value: data.karana.name,              sub: data.karana.isBhadra ? '⚠ Bhadra' : '' },
     { icon: '🌅', label: 'Sunrise',   value: fmtTime(data.sunrise),         sub: '' },
     { icon: '🌇', label: 'Sunset',    value: fmtTime(data.sunset),          sub: '' },
   ]

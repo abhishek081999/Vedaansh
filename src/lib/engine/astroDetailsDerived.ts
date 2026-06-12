@@ -16,7 +16,7 @@ const INDU_RAYS: Partial<Record<GrahaId, number>> = {
 }
 
 /**
- * Indu (Dhana) Lagna — Uttara Kalāmṛta / BPHS (Viśeṣa Chandra Yoga):
+ * Indu (Dhana) Lagna — Uttara Kalamrita / BPHS (Vishesha Chandra Yoga):
  * 1. Add Kala of 9th lord from Lagna + 9th lord from Moon (sign lords).
  * 2. Remainder ÷ 12 (0 → treat as 12th / previous sign from Moon per Astrobix).
  * 3. Count that many houses from Moon (Moon’s sign = 1st); keep Moon’s degree in the result sign.
@@ -50,7 +50,7 @@ export function getInduLagnaRashi(moonRashi: Rashi, ascRashi: Rashi, moonLon?: n
   return getInduLagnaRashiFromLon(calcInduLagna(lon, moonRashi, ascRashi))
 }
 
-/** Bhrigu Bindu: midpoint along forward arc from Rāhu to Moon (BPHS / Jaimini tradition). */
+/** Bhrigu Bindu: midpoint along forward arc from Rahu to Moon (BPHS / Jaimini tradition). */
 export function calcBhriguBinduLon(moonLon: number, rahuLon: number): number {
   const distance = norm360(moonLon - rahuLon)
   return norm360(rahuLon + distance / 2)
@@ -95,15 +95,15 @@ export function getRashiTatva(rashi: Rashi): 'Fire' | 'Earth' | 'Air' | 'Water' 
   return TATVA[rashi] ?? 'Fire'
 }
 
-/** Paya from birth Nakṣatra pada (1–4): Gold → Silver → Copper → Iron. */
-export function getNakshatraPaya(pada: number): 'Swarna (Gold)' | 'Rajata (Silver)' | 'Tāmra (Copper)' | 'Lauha (Iron)' {
+/** Paya from birth Nakshatra pada (1–4): Gold → Silver → Copper → Iron. */
+export function getNakshatraPaya(pada: number): 'Swarna (Gold)' | 'Rajata (Silver)' | 'Tamra (Copper)' | 'Lauha (Iron)' {
   const p = ((pada - 1) % 4 + 4) % 4
-  return (['Swarna (Gold)', 'Rajata (Silver)', 'Tāmra (Copper)', 'Lauha (Iron)'] as const)[p]
+  return (['Swarna (Gold)', 'Rajata (Silver)', 'Tamra (Copper)', 'Lauha (Iron)'] as const)[p]
 }
 
 /**
  * Starting syllables for naming (one lead sound per pada; traditions vary slightly).
- * Index: nakṣatra 0–26, pada 1–4.
+ * Index: nakshatra 0–26, pada 1–4.
  */
 const PADA_SOUNDS: string[][] = [
   ['Chu', 'Che', 'Cho', 'La'],
@@ -111,14 +111,14 @@ const PADA_SOUNDS: string[][] = [
   ['A', 'I', 'U', 'E'],
   ['O', 'Va', 'Vi', 'Vu'],
   ['Ve', 'Vo', 'Ka', 'Ke'],
-  ['Ku', 'Gha', 'ṅa', 'Chha'],
+  ['Ku', 'Gha', 'nga', 'Chha'],
   ['Ke', 'Ko', 'Ha', 'Hi'],
   ['Hu', 'He', 'Ho', 'Da'],
   ['Di', 'Du', 'De', 'Do'],
   ['Ma', 'Mi', 'Mu', 'Me'],
   ['Mo', 'Ta', 'Ti', 'Tu'],
   ['Te', 'To', 'Pa', 'Pi'],
-  ['Pu', 'Sha', 'Na', 'ṭha'],
+  ['Pu', 'Sha', 'Na', 'tha'],
   ['Pe', 'Po', 'Ra', 'Ri'],
   ['Ru', 'Re', 'Ro', 'Ta'],
   ['Ti', 'Tu', 'Te', 'To'],
@@ -131,7 +131,7 @@ const PADA_SOUNDS: string[][] = [
   ['Khu', 'Khe', 'Kho', 'Ga'],
   ['Go', 'Sa', 'Si', 'Su'],
   ['Se', 'So', 'Da', 'Di'],
-  ['Du', 'Tha', 'Jha', 'ṇa'],
+  ['Du', 'Tha', 'Jha', 'na'],
   ['De', 'Do', 'Cha', 'Chi'],
 ]
 
@@ -141,20 +141,20 @@ export function getPadaNamingSyllable(nakshatraIndex: number, pada: number): str
   return PADA_SOUNDS[i]?.[p] ?? '—'
 }
 
-/** Rough Śaka / Vikrama years from civil date (Gregorian); regional lunar-year boundaries differ. */
+/** Rough Shaka / Vikrama years from civil date (Gregorian); regional lunar-year boundaries differ. */
 export function approxIndianEras(isoDate: string): { shaka: number; vikram: number; note: string } {
   const d = new Date(`${isoDate}T12:00:00`)
   const y = d.getFullYear()
   const m = d.getMonth()
   const day = d.getDate()
-  // Śaka generally aligned ~22 Mar; use as a simple split.
+  // Shaka generally aligned ~22 Mar; use as a simple split.
   const afterYearStart = m > 2 || (m === 2 && day >= 22)
   const shaka = (afterYearStart ? y - 78 : y - 79)
   const vikram = shaka + 135
   return {
     shaka,
     vikram,
-    note: 'Approximate civil correlation; exact Hindu lunar year depends on region (Amānta/Pūrṇimānta).',
+    note: 'Approximate civil correlation; exact Hindu lunar year depends on region (Amanta/Purnimanta).',
   }
 }
 

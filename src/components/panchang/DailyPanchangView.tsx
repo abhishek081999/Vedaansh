@@ -353,7 +353,7 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
         </CollapsibleSection>
       <footer style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between', paddingTop: '1.5rem', borderTop: '1px solid var(--border-soft)', marginTop: '2rem' }}>
         <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: 520, lineHeight: 1.5 }}>
-          Times follow the selected timezone. Almanac quality matches classical five-limb structure; exact edge times may differ slightly from other software due to ayanāṃśa and rise/set models.
+          Times follow the selected timezone. Almanac quality matches classical five-limb structure; exact edge times may differ slightly from other software due to ayanamsha and rise/set models.
         </p>
         <Link
           href="/panchang/calendar"

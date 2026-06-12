@@ -249,7 +249,7 @@ export function BhavaBalaVisuals({ bhavaBala, chart }: { bhavaBala: BhavaBalaRes
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.5rem' }}>Bhāva Bala Analysis</div>
+            <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.5rem' }}>Bhava Bala Analysis</div>
             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
               <div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>Strongest</div>

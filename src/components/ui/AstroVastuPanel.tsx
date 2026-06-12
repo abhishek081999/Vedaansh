@@ -94,71 +94,71 @@ const DEITY_MAP = [
   { id: 'jaya',          name: 'Jaya',           x: 1, y: 7, w: 1, h: 1, ang: [180,225],inner: true },
   { id: 'mitra',         name: 'Mitra',          x: 1, y: 3, w: 1, h: 3, ang: [270,315],inner: true },
   { id: 'rudra',         name: 'Rudra',          x: 1, y: 2, w: 1, h: 1, ang: [270,315],inner: true },
-  { id: 'rajayakshma',   name: 'Rājapaksha',     x: 1, y: 1, w: 1, h: 1, ang: [270,315],inner: true },
+  { id: 'rajayakshma',   name: 'Rajapaksha',     x: 1, y: 1, w: 1, h: 1, ang: [270,315],inner: true },
   { id: 'prithvi_dhara', name: 'Prithvi-dhara',  x: 3, y: 1, w: 3, h: 1, ang: [0,45],   inner: true },
   { id: 'brahma',        name: 'BRAHMA',         x: 3, y: 3, w: 3, h: 3, ang: [0,360],  center: true },
 ]
 
 /* Deity Descriptions (scriptural + traditional) ─────────────────── */
 const DEITY_DESC: Record<string, { desc: string; mantra: string; quality: string }> = {
-  brahma:        { desc: 'The Absolute Creator — ruler of the Central Brahma Sthana. All 44 other deities radiate from this sacred center. A pure center amplifies every zone.', mantra: 'Oṃ Brahmane Namaḥ', quality: 'Creation, Consciousness, Cosmic Order' },
-  shikhi:        { desc: 'The fire of creative impulse. Represents the spark of new ideas and pure inspiration from the cosmic ether.', mantra: 'Oṃ Shikhine Namaḥ', quality: 'Creativity, New Ideas, Inspiration' },
-  parjanya:      { desc: 'The rain-giver deity. Brings fertility, sustenance, and the blessing of abundant rainfall into one\'s endeavors.', mantra: 'Oṃ Parjanyāya Namaḥ', quality: 'Fertility, Abundance, Life Force' },
-  jayant:        { desc: 'The Victor — son of Indra. Activates this door position for assured victory and success in all competitive endeavors.', mantra: 'Oṃ Jayantāya Namaḥ', quality: 'Victory, Success, Achievement' },
-  indra:         { desc: 'The King of Devas — ruler of the cardinal East direction. Bestows authority, management power, and royal patronage.', mantra: 'Oṃ Indrāya Namaḥ', quality: 'Authority, Management, Kingship' },
-  surya:         { desc: 'Solar consciousness — governs integrity, visibility, and life-force. The Sun deity establishes social connectivity and health.', mantra: 'Oṃ Sūryāya Namaḥ', quality: 'Health, Recognition, Solar Power' },
-  satya:         { desc: 'The deity of Truth. Activates goodwill, social reputation, and alignment with dharmic principles in all dealings.', mantra: 'Oṃ Satyāya Namaḥ', quality: 'Truth, Reputation, Social Goodwill' },
-  bhrisha:       { desc: 'The deity of concentrated focus. Enables precision, intellectual clarity, and masterful execution of tasks.', mantra: 'Oṃ Bhṛśāya Namaḥ', quality: 'Focus, Precision, Intellectual Power' },
-  antariksh:     { desc: 'The Inner Space deity — governs the bridge between physical and metaphysical realms. Opens pathways for spiritual realization.', mantra: 'Oṃ Antarikṣāya Namaḥ', quality: 'Spiritual Awareness, Inner Space, Subtle Perception' },
-  agni:          { desc: 'The sacred Fire deity at the SE corner. Governs all transformative processes — digestion, metabolism, and financial flow.', mantra: 'Oṃ Agnaye Namaḥ', quality: 'Fire, Transformation, Cash Flow' },
-  pusha:         { desc: 'The Nourisher — a solar deity who governs sustenance, progressive growth, and the ability to nourish all beings.', mantra: 'Oṃ Pūṣṇe Namaḥ', quality: 'Nourishment, Steady Growth, Provision' },
-  vitatha:       { desc: 'The deity of versatility and creative performance. Activates skill in marketing, performance arts, and adaptability.', mantra: 'Oṃ Vitathāya Namaḥ', quality: 'Versatility, Performance, Marketing' },
-  grihakshat:    { desc: 'The Household Manager — establishes clear boundaries, domestic order, and the energy of responsible governance.', mantra: 'Oṃ Gṛhakṣatāya Namaḥ', quality: 'Household Order, Boundaries, Management' },
-  yama:          { desc: 'The Dharma-keeper and Lord of Death. As a door deity this position is avoided; as a zone it tests karmic alignment and justice.', mantra: 'Oṃ Yamāya Namaḥ', quality: 'Dharma, Justice, Karmic Law' },
-  gandharv:      { desc: 'The Cosmic Musician of the heavens. This zone brings bliss, entertainment, artistic talent, and the energy of divine play.', mantra: 'Oṃ Gandharvāya Namaḥ', quality: 'Bliss, Arts, Entertainment, Relaxation' },
-  bhringraj:     { desc: 'The Great Discriminator. Governs the art of analytical thinking, sorting what serves from what must be released.', mantra: 'Oṃ Bhṛṅgarājāya Namaḥ', quality: 'Analysis, Discrimination, Clarity' },
-  mrigha:        { desc: 'The Seeker — the eternal spiritual hunger for knowledge, truth, and discovery. Activates curiosity and research ability.', mantra: 'Oṃ Mṛgāya Namaḥ', quality: 'Knowledge Seeking, Curiosity, Research' },
-  pitru:         { desc: 'The Ancestor Portal. Connects with lineage energy, ancestral blessings, and the deep roots of generational karma.', mantra: 'Oṃ Pitṛbhyo Namaḥ', quality: 'Ancestry, Stability, Lineage Blessings' },
-  dauvarik:      { desc: 'The Divine Gatekeeper. Filters energies, people, and opportunities that enter one\'s life and sphere of influence.', mantra: 'Oṃ Dauvarikāya Namaḥ', quality: 'Filtering, Protection, Access Control' },
-  sugriv:        { desc: 'The Supportive Friend. Represents the power of strategic alliances, networking, and mutually beneficial relationships.', mantra: 'Oṃ Sugrīvāya Namaḥ', quality: 'Support, Networking, Strategic Alliances' },
-  pushpadant:    { desc: 'The Blossoming Deity of financial abundance. This is one of the most auspicious entrance positions for business growth.', mantra: 'Oṃ Puṣpadantāya Namaḥ', quality: 'Financial Growth, Business Success, Abundance' },
-  varun:         { desc: 'Lord of Cosmic Waters — governs all contracts, promises, and righteous agreements. The deity of divine law and water.', mantra: 'Oṃ Varuṇāya Namaḥ', quality: 'Contracts, Promises, Water, Divine Law' },
-  asur:          { desc: 'The deity of hidden depths and shadow energy. Represents secrecy, internal strength, and dealing with the unseen.', mantra: 'Oṃ Asurāya Namaḥ', quality: 'Secrecy, Internal Strength, Shadow Work' },
-  shosh:         { desc: 'The Great Purifier who dries out stagnation, depression, and inertia. Powerful healing energy for removing blocks.', mantra: 'Oṃ Śoṣāya Namaḥ', quality: 'Purification, Anti-stagnation, Depression Clearing' },
-  papiyaksha:    { desc: 'The accumulation deity — represents unresolved karmic residue and mental blocks. Purification is needed in this zone.', mantra: 'Oṃ Pāpīyakṣāya Namaḥ', quality: 'Karmic Clearing, Mental Block Release' },
-  roga:          { desc: 'The Healing Deity — where sickness is acknowledged, faced, and transformed. As entrance, avoided; as healing zone, beneficial.', mantra: 'Oṃ Rogāya Namaḥ', quality: 'Healing, Disease Transformation, Vitality' },
-  naga:          { desc: 'The Serpent Deity of connectivity and kundalini energy. Governs the desire to reach out and weave connections.', mantra: 'Oṃ Nāgāya Namaḥ', quality: 'Connection, Kundalini, Serpentine Wisdom' },
-  mukhya:        { desc: 'The Main Force — provides clarity of life direction and purpose. One of the auspicious western entrance positions.', mantra: 'Oṃ Mukhyāya Namaḥ', quality: 'Life Purpose, Direction, Clarity' },
-  bhallat:       { desc: 'The Abundance Deity — bestows robust financial gains, physical health, and overflowing material prosperity.', mantra: 'Oṃ Bhallaṭāya Namaḥ', quality: 'Material Abundance, Health, Financial Gains' },
-  soma:          { desc: 'The Moon deity — the divine nectar (Amrita). Brings deep refreshment, emotional nourishment, and blissful contentment.', mantra: 'Oṃ Somāya Namaḥ', quality: 'Moon Energy, Emotional Nourishment, Bliss' },
-  bhujag:        { desc: 'The Endurance deity — governs mental stamina, persistence through challenges, and serpentine wisdom of the west.', mantra: 'Oṃ Bhujagāya Namaḥ', quality: 'Mental Stamina, Endurance, Persistence' },
-  aditi:         { desc: 'The Mother of Gods — Aditi is the boundless cosmic mother who offers divine protection and unconditional security.', mantra: 'Oṃ Aditaye Namaḥ', quality: 'Divine Protection, Security, Boundless Love' },
-  diti:          { desc: 'The Splitter — the power of conscious discernment, healthy separation, and the ability to make empowered choices.', mantra: 'Oṃ Ditaye Namaḥ', quality: 'Discernment, Separation, Empowered Choice' },
-  apah:          { desc: 'The Healing Water deity — governs immunity, emotional purification, and the restoration of subtle body health.', mantra: 'Oṃ Adbhyaḥ Namaḥ', quality: 'Immunity, Emotional Healing, Purification' },
-  apah_vatsa:    { desc: 'The divine carrier — transforms ideas from potential into manifestation through sustained and dedicated action.', mantra: 'Oṃ Apāṃ Vatsāya Namaḥ', quality: 'Manifestation, Carrying Ideas to Reality' },
-  aryama:        { desc: 'The Noble Deity — patron of righteous marriage, sacred contracts, and mutually empowering support structures.', mantra: 'Oṃ Aryamṇe Namaḥ', quality: 'Marriage, Sacred Contracts, Noble Support' },
-  savita:        { desc: 'The Divine Stimulator — ignites new projects, initiates fresh cycles, and provides the solar force of new beginnings.', mantra: 'Oṃ Savitre Namaḥ', quality: 'New Beginnings, Project Initiation, Solar Start' },
-  savitra:       { desc: 'The Divine Radiator — spreads awareness, light, and righteous influence outward into the world and community.', mantra: 'Oṃ Sāvitrāya Namaḥ', quality: 'Spreading Awareness, Influence, Radiance' },
-  vivaswan:      { desc: 'The Expansive Sun deity — governs social reach, public growth, and the expansion of one\'s sphere of influence.', mantra: 'Oṃ Vivasvate Namaḥ', quality: 'Social Expansion, Public Growth, Community' },
-  indra_inner:   { desc: 'Inner executive power — the internal Indra that manages inner affairs with decisive authority and clear judgment.', mantra: 'Oṃ Indrāya Namaḥ', quality: 'Executive Power, Inner Authority, Decision-making' },
-  jaya:          { desc: 'The Mastery deity — bestows the energy of skill mastery, craft excellence, and the achievement of technical perfection.', mantra: 'Oṃ Jayāya Namaḥ', quality: 'Skill Mastery, Craft Excellence, Achievement' },
-  mitra:         { desc: 'The Universal Friend — governs peaceful diplomacy, cooperative relationships, and the art of harmonious co-existence.', mantra: 'Oṃ Mitrāya Namaḥ', quality: 'Universal Friendship, Peace, Harmonious Relations' },
-  rudra:         { desc: 'The Transformer — the healing-destroyer aspect of Shiva. Breaks old patterns and initiates profound purification.', mantra: 'Oṃ Rudrāya Namaḥ', quality: 'Transformation, Pattern Breaking, Purification' },
-  rajayakshma:   { desc: 'The Consumption deity — governs the enjoyment of royal pleasures, luxury experiences, and the refinement of taste.', mantra: 'Oṃ Rājayakṣmāya Namaḥ', quality: 'Luxury, Refined Pleasures, Royal Enjoyment' },
-  prithvi_dhara: { desc: 'The Foundation deity — governs structural stability, earth energy, and the solid grounding that supports all endeavors.', mantra: 'Oṃ Pṛthvīdhārāya Namaḥ', quality: 'Foundation, Structural Stability, Earth Energy' },
+  brahma:        { desc: 'The Absolute Creator — ruler of the Central Brahma Sthana. All 44 other deities radiate from this sacred center. A pure center amplifies every zone.', mantra: 'Om Brahmane Namah', quality: 'Creation, Consciousness, Cosmic Order' },
+  shikhi:        { desc: 'The fire of creative impulse. Represents the spark of new ideas and pure inspiration from the cosmic ether.', mantra: 'Om Shikhine Namah', quality: 'Creativity, New Ideas, Inspiration' },
+  parjanya:      { desc: 'The rain-giver deity. Brings fertility, sustenance, and the blessing of abundant rainfall into one\'s endeavors.', mantra: 'Om Parjanyaya Namah', quality: 'Fertility, Abundance, Life Force' },
+  jayant:        { desc: 'The Victor — son of Indra. Activates this door position for assured victory and success in all competitive endeavors.', mantra: 'Om Jayantaya Namah', quality: 'Victory, Success, Achievement' },
+  indra:         { desc: 'The King of Devas — ruler of the cardinal East direction. Bestows authority, management power, and royal patronage.', mantra: 'Om Indraya Namah', quality: 'Authority, Management, Kingship' },
+  surya:         { desc: 'Solar consciousness — governs integrity, visibility, and life-force. The Sun deity establishes social connectivity and health.', mantra: 'Om Suryaya Namah', quality: 'Health, Recognition, Solar Power' },
+  satya:         { desc: 'The deity of Truth. Activates goodwill, social reputation, and alignment with dharmic principles in all dealings.', mantra: 'Om Satyaya Namah', quality: 'Truth, Reputation, Social Goodwill' },
+  bhrisha:       { desc: 'The deity of concentrated focus. Enables precision, intellectual clarity, and masterful execution of tasks.', mantra: 'Om Bhrishaya Namah', quality: 'Focus, Precision, Intellectual Power' },
+  antariksh:     { desc: 'The Inner Space deity — governs the bridge between physical and metaphysical realms. Opens pathways for spiritual realization.', mantra: 'Om Antarikshaya Namah', quality: 'Spiritual Awareness, Inner Space, Subtle Perception' },
+  agni:          { desc: 'The sacred Fire deity at the SE corner. Governs all transformative processes — digestion, metabolism, and financial flow.', mantra: 'Om Agnaye Namah', quality: 'Fire, Transformation, Cash Flow' },
+  pusha:         { desc: 'The Nourisher — a solar deity who governs sustenance, progressive growth, and the ability to nourish all beings.', mantra: 'Om Pushne Namah', quality: 'Nourishment, Steady Growth, Provision' },
+  vitatha:       { desc: 'The deity of versatility and creative performance. Activates skill in marketing, performance arts, and adaptability.', mantra: 'Om Vitathaya Namah', quality: 'Versatility, Performance, Marketing' },
+  grihakshat:    { desc: 'The Household Manager — establishes clear boundaries, domestic order, and the energy of responsible governance.', mantra: 'Om Grihakshataya Namah', quality: 'Household Order, Boundaries, Management' },
+  yama:          { desc: 'The Dharma-keeper and Lord of Death. As a door deity this position is avoided; as a zone it tests karmic alignment and justice.', mantra: 'Om Yamaya Namah', quality: 'Dharma, Justice, Karmic Law' },
+  gandharv:      { desc: 'The Cosmic Musician of the heavens. This zone brings bliss, entertainment, artistic talent, and the energy of divine play.', mantra: 'Om Gandharvaya Namah', quality: 'Bliss, Arts, Entertainment, Relaxation' },
+  bhringraj:     { desc: 'The Great Discriminator. Governs the art of analytical thinking, sorting what serves from what must be released.', mantra: 'Om Bhringgarajaya Namah', quality: 'Analysis, Discrimination, Clarity' },
+  mrigha:        { desc: 'The Seeker — the eternal spiritual hunger for knowledge, truth, and discovery. Activates curiosity and research ability.', mantra: 'Om Mrigaya Namah', quality: 'Knowledge Seeking, Curiosity, Research' },
+  pitru:         { desc: 'The Ancestor Portal. Connects with lineage energy, ancestral blessings, and the deep roots of generational karma.', mantra: 'Om Pitribhyo Namah', quality: 'Ancestry, Stability, Lineage Blessings' },
+  dauvarik:      { desc: 'The Divine Gatekeeper. Filters energies, people, and opportunities that enter one\'s life and sphere of influence.', mantra: 'Om Dauvarikaya Namah', quality: 'Filtering, Protection, Access Control' },
+  sugriv:        { desc: 'The Supportive Friend. Represents the power of strategic alliances, networking, and mutually beneficial relationships.', mantra: 'Om Sugrivaya Namah', quality: 'Support, Networking, Strategic Alliances' },
+  pushpadant:    { desc: 'The Blossoming Deity of financial abundance. This is one of the most auspicious entrance positions for business growth.', mantra: 'Om Pushpadantaya Namah', quality: 'Financial Growth, Business Success, Abundance' },
+  varun:         { desc: 'Lord of Cosmic Waters — governs all contracts, promises, and righteous agreements. The deity of divine law and water.', mantra: 'Om Varunaya Namah', quality: 'Contracts, Promises, Water, Divine Law' },
+  asur:          { desc: 'The deity of hidden depths and shadow energy. Represents secrecy, internal strength, and dealing with the unseen.', mantra: 'Om Asuraya Namah', quality: 'Secrecy, Internal Strength, Shadow Work' },
+  shosh:         { desc: 'The Great Purifier who dries out stagnation, depression, and inertia. Powerful healing energy for removing blocks.', mantra: 'Om Shoshaya Namah', quality: 'Purification, Anti-stagnation, Depression Clearing' },
+  papiyaksha:    { desc: 'The accumulation deity — represents unresolved karmic residue and mental blocks. Purification is needed in this zone.', mantra: 'Om Papiyakshaya Namah', quality: 'Karmic Clearing, Mental Block Release' },
+  roga:          { desc: 'The Healing Deity — where sickness is acknowledged, faced, and transformed. As entrance, avoided; as healing zone, beneficial.', mantra: 'Om Rogaya Namah', quality: 'Healing, Disease Transformation, Vitality' },
+  naga:          { desc: 'The Serpent Deity of connectivity and kundalini energy. Governs the desire to reach out and weave connections.', mantra: 'Om Nagaya Namah', quality: 'Connection, Kundalini, Serpentine Wisdom' },
+  mukhya:        { desc: 'The Main Force — provides clarity of life direction and purpose. One of the auspicious western entrance positions.', mantra: 'Om Mukhyaya Namah', quality: 'Life Purpose, Direction, Clarity' },
+  bhallat:       { desc: 'The Abundance Deity — bestows robust financial gains, physical health, and overflowing material prosperity.', mantra: 'Om Bhallataya Namah', quality: 'Material Abundance, Health, Financial Gains' },
+  soma:          { desc: 'The Moon deity — the divine nectar (Amrita). Brings deep refreshment, emotional nourishment, and blissful contentment.', mantra: 'Om Somaya Namah', quality: 'Moon Energy, Emotional Nourishment, Bliss' },
+  bhujag:        { desc: 'The Endurance deity — governs mental stamina, persistence through challenges, and serpentine wisdom of the west.', mantra: 'Om Bhujagaya Namah', quality: 'Mental Stamina, Endurance, Persistence' },
+  aditi:         { desc: 'The Mother of Gods — Aditi is the boundless cosmic mother who offers divine protection and unconditional security.', mantra: 'Om Aditaye Namah', quality: 'Divine Protection, Security, Boundless Love' },
+  diti:          { desc: 'The Splitter — the power of conscious discernment, healthy separation, and the ability to make empowered choices.', mantra: 'Om Ditaye Namah', quality: 'Discernment, Separation, Empowered Choice' },
+  apah:          { desc: 'The Healing Water deity — governs immunity, emotional purification, and the restoration of subtle body health.', mantra: 'Om Adbhyah Namah', quality: 'Immunity, Emotional Healing, Purification' },
+  apah_vatsa:    { desc: 'The divine carrier — transforms ideas from potential into manifestation through sustained and dedicated action.', mantra: 'Om Apam Vatsaya Namah', quality: 'Manifestation, Carrying Ideas to Reality' },
+  aryama:        { desc: 'The Noble Deity — patron of righteous marriage, sacred contracts, and mutually empowering support structures.', mantra: 'Om Aryamne Namah', quality: 'Marriage, Sacred Contracts, Noble Support' },
+  savita:        { desc: 'The Divine Stimulator — ignites new projects, initiates fresh cycles, and provides the solar force of new beginnings.', mantra: 'Om Savitre Namah', quality: 'New Beginnings, Project Initiation, Solar Start' },
+  savitra:       { desc: 'The Divine Radiator — spreads awareness, light, and righteous influence outward into the world and community.', mantra: 'Om Savitraya Namah', quality: 'Spreading Awareness, Influence, Radiance' },
+  vivaswan:      { desc: 'The Expansive Sun deity — governs social reach, public growth, and the expansion of one\'s sphere of influence.', mantra: 'Om Vivasvate Namah', quality: 'Social Expansion, Public Growth, Community' },
+  indra_inner:   { desc: 'Inner executive power — the internal Indra that manages inner affairs with decisive authority and clear judgment.', mantra: 'Om Indraya Namah', quality: 'Executive Power, Inner Authority, Decision-making' },
+  jaya:          { desc: 'The Mastery deity — bestows the energy of skill mastery, craft excellence, and the achievement of technical perfection.', mantra: 'Om Jayaya Namah', quality: 'Skill Mastery, Craft Excellence, Achievement' },
+  mitra:         { desc: 'The Universal Friend — governs peaceful diplomacy, cooperative relationships, and the art of harmonious co-existence.', mantra: 'Om Mitraya Namah', quality: 'Universal Friendship, Peace, Harmonious Relations' },
+  rudra:         { desc: 'The Transformer — the healing-destroyer aspect of Shiva. Breaks old patterns and initiates profound purification.', mantra: 'Om Rudraya Namah', quality: 'Transformation, Pattern Breaking, Purification' },
+  rajayakshma:   { desc: 'The Consumption deity — governs the enjoyment of royal pleasures, luxury experiences, and the refinement of taste.', mantra: 'Om Rajayakshmaya Namah', quality: 'Luxury, Refined Pleasures, Royal Enjoyment' },
+  prithvi_dhara: { desc: 'The Foundation deity — governs structural stability, earth energy, and the solid grounding that supports all endeavors.', mantra: 'Om Prithvidharaya Namah', quality: 'Foundation, Structural Stability, Earth Energy' },
 }
 
 /* Navagraha — Vedic 9-planet directional zones ──────────────────── */
 const NAVAGRAHA_ZONES = [
-  { planet: 'Su', name: 'Sūrya (Sun)',     dir: 'E',   en: 'East',       qual: 'Authority, health, social recognition, leadership', color: '#FF8C00', remedy: 'Copper Surya Yantra, Red flowers, Wheat offering', mantra: 'Oṃ Hrāṃ Hrīṃ Hraum Sah Sūryāya Namaḥ' },
-  { planet: 'Mo', name: 'Chandra (Moon)',  dir: 'NW',  en: 'North-West', qual: 'Emotions, mind, relationships, fluidity, intuition', color: '#C0C0C0', remedy: 'Silver Moon Yantra, White flowers, Rice offering',  mantra: 'Oṃ Śrāṃ Śrīṃ Śraum Sah Chandrāya Namaḥ' },
-  { planet: 'Ma', name: 'Maṅgala (Mars)',  dir: 'S',   en: 'South',      qual: 'Courage, property, brothers, energy, assertion',     color: '#DC143C', remedy: 'Copper Mangal Yantra, Red lentils, Triangular items', mantra: 'Oṃ Krāṃ Krīṃ Kraum Sah Bhaum Namaḥ' },
-  { planet: 'Me', name: 'Budha (Mercury)', dir: 'N',   en: 'North',      qual: 'Business, communication, intellect, commerce',        color: '#228B22', remedy: 'Green Emerald, Copper Mercury Yantra, Green gram',   mantra: 'Oṃ Brāṃ Brīṃ Braum Sah Budhāya Namaḥ' },
-  { planet: 'Ju', name: 'Guru (Jupiter)',  dir: 'NE',  en: 'North-East', qual: 'Wisdom, children, spiritual growth, expansion',       color: '#DAA520', remedy: 'Gold Jupiter Yantra, Yellow sapphire, Turmeric',     mantra: 'Oṃ Grāṃ Grīṃ Graum Sah Guruve Namaḥ' },
-  { planet: 'Ve', name: 'Śukra (Venus)',   dir: 'SE',  en: 'South-East', qual: 'Wealth, beauty, luxury, relationships, arts',         color: '#FF69B4', remedy: 'Silver Venus Yantra, White flowers, Sugar offering',  mantra: 'Oṃ Drāṃ Drīṃ Draum Sah Śukrāya Namaḥ' },
-  { planet: 'Sa', name: 'Śani (Saturn)',   dir: 'W',   en: 'West',       qual: 'Discipline, longevity, service, karma, patience',     color: '#4169E1', remedy: 'Iron Shani Yantra, Blue sapphire, Sesame seeds',      mantra: 'Oṃ Prāṃ Prīṃ Praum Sah Śanaye Namaḥ' },
-  { planet: 'Ra', name: 'Rāhu',            dir: 'SW',  en: 'South-West', qual: 'Material ambition, foreign, technology, illusion',    color: '#800080', remedy: 'Lead Rahu Yantra, Coconut, Hassonite Garnet',         mantra: 'Oṃ Bhrāṃ Bhrīṃ Bhraum Sah Rāhave Namaḥ' },
-  { planet: 'Ke', name: 'Ketu',            dir: 'NNE', en: 'North-NE',   qual: 'Spirituality, liberation, past karma, occult',        color: '#808080', remedy: 'Iron Ketu Yantra, Cat\'s Eye, Sesame & black items',   mantra: 'Oṃ Srāṃ Srīṃ Sraum Sah Ketave Namaḥ' },
+  { planet: 'Su', name: 'Surya (Sun)',     dir: 'E',   en: 'East',       qual: 'Authority, health, social recognition, leadership', color: '#FF8C00', remedy: 'Copper Surya Yantra, Red flowers, Wheat offering', mantra: 'Om Hram Hrim Hraum Sah Suryaya Namah' },
+  { planet: 'Mo', name: 'Chandra (Moon)',  dir: 'NW',  en: 'North-West', qual: 'Emotions, mind, relationships, fluidity, intuition', color: '#C0C0C0', remedy: 'Silver Moon Yantra, White flowers, Rice offering',  mantra: 'Om Shram Shrim Shraum Sah Chandraya Namah' },
+  { planet: 'Ma', name: 'Mangala (Mars)',  dir: 'S',   en: 'South',      qual: 'Courage, property, brothers, energy, assertion',     color: '#DC143C', remedy: 'Copper Mangal Yantra, Red lentils, Triangular items', mantra: 'Om Kram Krim Kraum Sah Bhaum Namah' },
+  { planet: 'Me', name: 'Budha (Mercury)', dir: 'N',   en: 'North',      qual: 'Business, communication, intellect, commerce',        color: '#228B22', remedy: 'Green Emerald, Copper Mercury Yantra, Green gram',   mantra: 'Om Bram Brim Braum Sah Budhaya Namah' },
+  { planet: 'Ju', name: 'Guru (Jupiter)',  dir: 'NE',  en: 'North-East', qual: 'Wisdom, children, spiritual growth, expansion',       color: '#DAA520', remedy: 'Gold Jupiter Yantra, Yellow sapphire, Turmeric',     mantra: 'Om Gram Grim Graum Sah Guruve Namah' },
+  { planet: 'Ve', name: 'Shukra (Venus)',   dir: 'SE',  en: 'South-East', qual: 'Wealth, beauty, luxury, relationships, arts',         color: '#FF69B4', remedy: 'Silver Venus Yantra, White flowers, Sugar offering',  mantra: 'Om Dram Drim Draum Sah Shukraya Namah' },
+  { planet: 'Sa', name: 'Shani (Saturn)',   dir: 'W',   en: 'West',       qual: 'Discipline, longevity, service, karma, patience',     color: '#4169E1', remedy: 'Iron Shani Yantra, Blue sapphire, Sesame seeds',      mantra: 'Om Pram Prim Praum Sah Shanaye Namah' },
+  { planet: 'Ra', name: 'Rahu',            dir: 'SW',  en: 'South-West', qual: 'Material ambition, foreign, technology, illusion',    color: '#800080', remedy: 'Lead Rahu Yantra, Coconut, Hassonite Garnet',         mantra: 'Om Bhram Bhrim Bhraum Sah Rahave Namah' },
+  { planet: 'Ke', name: 'Ketu',            dir: 'NNE', en: 'North-NE',   qual: 'Spirituality, liberation, past karma, occult',        color: '#808080', remedy: 'Iron Ketu Yantra, Cat\'s Eye, Sesame & black items',   mantra: 'Om Sram Srim Sraum Sah Ketave Namah' },
 ]
 
 /* Vastu Doshas — from Manasara, Mayamata, Vishwakarma Prakash ───── */
@@ -280,8 +280,8 @@ const METAL_REMEDIES = [
 /* Plant Vastu (Vastu Vriksha Shastra) ───────────────────────────── */
 const VASTU_PLANTS = [
   { plant: 'Tulsi (Ocimum sanctum)',  zone: 'N, NE, E',  benefit: 'Purifies 200m radius, divine Vishnu blessing, enhances Ishan wisdom energy', avoid: 'SW, S — diminishes earth element' },
-  { plant: 'Banana (Kadalī)',         zone: 'NE',         benefit: 'Jupiter (Guru) energy, auspiciousness, fertility, puja blessing', avoid: 'SE, S — reduces fire confidence' },
-  { plant: 'Coconut (Śrīphala)',      zone: 'N, NW',      benefit: 'Kubera tree of prosperity, auspiciousness, brings Lakshmi into home', avoid: 'SW center — blocks earth stability' },
+  { plant: 'Banana (Kadali)',         zone: 'NE',         benefit: 'Jupiter (Guru) energy, auspiciousness, fertility, puja blessing', avoid: 'SE, S — reduces fire confidence' },
+  { plant: 'Coconut (Shriphala)',      zone: 'N, NW',      benefit: 'Kubera tree of prosperity, auspiciousness, brings Lakshmi into home', avoid: 'SW center — blocks earth stability' },
   { plant: 'Neem (Azadirachta)',      zone: 'NW, W',      benefit: 'Purifies air, removes Vayu dosha, powerful antibacterial spiritual aura', avoid: 'NE, N — blocks water and wisdom energy' },
   { plant: 'Ashoka (Saraca asoca)',   zone: 'E, SE',      benefit: 'Sun energy, removes grief (a-shoka), auspicious for couples, solar power', avoid: 'NW, N — wrong element for water zones' },
   { plant: 'Bamboo (Lucky)',          zone: 'E, SE',      benefit: 'Rapid growth, strength, absorbs electromagnetic negativity', avoid: 'SW — creates instability in earth zone' },
@@ -310,23 +310,23 @@ const PANCHA_BHUTAS = [
 
 /* Prana Vayu — 5 life force currents mapped to zones ────────────── */
 const PRANA_VAYU_MAP = [
-  { vayu: 'Prāṇa Vāyu',  dir: 'NE, NNE', func: 'Inward & upward force. Governs intake — breath, food, knowledge, perception. Life force entry point.', color: '#f59e0b' },
-  { vayu: 'Apāna Vāyu',  dir: 'SE, ESE, WSW', func: 'Downward & outward force. Governs elimination, disposal, letting go. Exit of waste energy.', color: '#ef4444' },
-  { vayu: 'Samāna Vāyu', dir: 'S, SSW, SW', func: 'Equalizing force. Governs digestion, assimilation, balance between intake and output.', color: '#d97706' },
-  { vayu: 'Udāna Vāyu',  dir: 'N, WNW, NW', func: 'Upward force. Governs speech, expression, growth, ascent, evolution, and consciousness uplift.', color: '#3b82f6' },
-  { vayu: 'Vyāna Vāyu',  dir: 'E, ENE, W', func: 'Pervasive force. Governs circulation, distribution, expansion throughout the entire space.', color: '#10b981' },
+  { vayu: 'Prana Vayu',  dir: 'NE, NNE', func: 'Inward & upward force. Governs intake — breath, food, knowledge, perception. Life force entry point.', color: '#f59e0b' },
+  { vayu: 'Apana Vayu',  dir: 'SE, ESE, WSW', func: 'Downward & outward force. Governs elimination, disposal, letting go. Exit of waste energy.', color: '#ef4444' },
+  { vayu: 'Samana Vayu', dir: 'S, SSW, SW', func: 'Equalizing force. Governs digestion, assimilation, balance between intake and output.', color: '#d97706' },
+  { vayu: 'Udana Vayu',  dir: 'N, WNW, NW', func: 'Upward force. Governs speech, expression, growth, ascent, evolution, and consciousness uplift.', color: '#3b82f6' },
+  { vayu: 'Vyana Vayu',  dir: 'E, ENE, W', func: 'Pervasive force. Governs circulation, distribution, expansion throughout the entire space.', color: '#10b981' },
 ]
 
 /* Ashta Dikpalas — 8 Directional Guardians ─────────────────────── */
 const DIKPALAS = [
-  { dir: 'N',  deity: 'Kubera',   power: 'Wealth, Treasury',    weapon: 'Gadā (mace)', mount: 'Man (human)', color: '#f59e0b', puja: 'Monday' },
-  { dir: 'NE', deity: 'Īśāna',   power: 'Wisdom, Divine Grace', weapon: 'Triśūla',    mount: 'Bull (Nandi)', color: '#8b5cf6', puja: 'Monday' },
-  { dir: 'E',  deity: 'Indra',   power: 'Rain, Sovereignty',    weapon: 'Vajra',      mount: 'Airāvata (elephant)', color: '#DAA520', puja: 'Thursday' },
-  { dir: 'SE', deity: 'Agni',    power: 'Fire, Transformation', weapon: 'Śakti',      mount: 'Ram (meṣa)',  color: '#ef4444', puja: 'Tuesday' },
-  { dir: 'S',  deity: 'Yama',    power: 'Dharma, Death',        weapon: 'Daṇḍa',      mount: 'Buffalo',     color: '#1f2937', puja: 'Saturday' },
-  { dir: 'SW', deity: 'Nirṛiti', power: 'Dissolution, Stability',weapon: 'Khaḍga',    mount: 'Corpse/Lion', color: '#7c3aed', puja: 'Saturday' },
-  { dir: 'W',  deity: 'Varuṇa',  power: 'Water, Cosmic Law',    weapon: 'Pāśa (lasso)',mount: 'Makara (crocodile)', color: '#3b82f6', puja: 'Friday' },
-  { dir: 'NW', deity: 'Vāyu',   power: 'Wind, Speed',          weapon: 'Dhvaja (flag)',mount: 'Deer (mṛga)', color: '#10b981', puja: 'Wednesday' },
+  { dir: 'N',  deity: 'Kubera',   power: 'Wealth, Treasury',    weapon: 'Gada (mace)', mount: 'Man (human)', color: '#f59e0b', puja: 'Monday' },
+  { dir: 'NE', deity: 'Ishana',   power: 'Wisdom, Divine Grace', weapon: 'Trishula',    mount: 'Bull (Nandi)', color: '#8b5cf6', puja: 'Monday' },
+  { dir: 'E',  deity: 'Indra',   power: 'Rain, Sovereignty',    weapon: 'Vajra',      mount: 'Airavata (elephant)', color: '#DAA520', puja: 'Thursday' },
+  { dir: 'SE', deity: 'Agni',    power: 'Fire, Transformation', weapon: 'Shakti',      mount: 'Ram (mesha)',  color: '#ef4444', puja: 'Tuesday' },
+  { dir: 'S',  deity: 'Yama',    power: 'Dharma, Death',        weapon: 'Danda',      mount: 'Buffalo',     color: '#1f2937', puja: 'Saturday' },
+  { dir: 'SW', deity: 'Nirriiti', power: 'Dissolution, Stability',weapon: 'Khadga',    mount: 'Corpse/Lion', color: '#7c3aed', puja: 'Saturday' },
+  { dir: 'W',  deity: 'Varuna',  power: 'Water, Cosmic Law',    weapon: 'Pasha (lasso)',mount: 'Makara (crocodile)', color: '#3b82f6', puja: 'Friday' },
+  { dir: 'NW', deity: 'Vayu',   power: 'Wind, Speed',          weapon: 'Dhvaja (flag)',mount: 'Deer (mriga)', color: '#10b981', puja: 'Wednesday' },
 ]
 
 /* ─── Helpers ─────────────────────────────────────────────────────── */
@@ -472,7 +472,7 @@ const PLANET_PROFILES: Record<string, { vastuDir: string; element: string; color
     strengths: ['Technology success', 'Foreign connections', 'Material ambitions', 'Photography/Media'],
     weaknesses: ['Deception and illusion', 'Addictive tendencies', 'Instability if uncontrolled'],
     spatial: 'SW zone (Rahu-Earth) must be kept heavy and grounded. Main entrance never in SW. Master bedroom here for house owner is acceptable.',
-    remedy: 'Hessonite Garnet (Gomed), Lead Rahu yantra in SW, Saturday or Rahu Kaal puja, Rahu mantra' },
+    remedy: 'Hessonite Garnet (Gomed), Lead Rahu yantra in SW, Saturday or Rahu Kalam puja, Rahu mantra' },
   Ke: { vastuDir: 'NNE', element: 'Fire/Ether', color: '#a78bfa',
     core: 'Liberation/Moksha — detachment, spiritual liberation, research, past lives, isolation, healing',
     health: 'Mental health, isolation, mystical diseases, neurological conditions',
@@ -695,10 +695,10 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               <div className="vastu-icon-ring">☸</div>
               <div>
                 <div style={{ fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-gold)', fontWeight: 700, marginBottom: '0.15rem' }}>
-                  Mahāvāstu · Jyotiṣa Vidyā
+                  Mahavastu · Jyotisha Vidya
                 </div>
                 <h1 style={{ margin: 0, fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', fontWeight: 300, fontFamily: 'var(--font-display)', lineHeight: 1.1 }}>
-                  Advanced Astro-Vāstu
+                  Advanced Astro-Vastu
                 </h1>
               </div>
             </div>
@@ -755,7 +755,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
           ══════════════════════════════════════════════════════════ */}
       {activeTab === 'chart' && (
         <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <SectionTitle icon="🔵" title="Lagna Kundali" subtitle="Natal birth chart — use alongside the directional analysis for a complete Astro-Vāstu reading" />
+          <SectionTitle icon="🔵" title="Lagna Kundali" subtitle="Natal birth chart — use alongside the directional analysis for a complete Astro-Vastu reading" />
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <ChakraSelector
               ascRashi={chart.lagnas.ascRashi}
@@ -876,7 +876,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                 <circle cx="100" cy="100" r="20" fill="url(#brahmaGrad)" />
                 <circle cx="100" cy="100" r="20" fill="var(--surface-1)" stroke="var(--gold)" strokeWidth="1.2" />
                 <text x="100" y="97"  textAnchor="middle" fill="var(--text-gold)" fontSize="4.5" fontWeight="800" transform="rotate(90 100 100)">BRAHM</text>
-                <text x="100" y="106" textAnchor="middle" fill="var(--text-muted)" fontSize="3.2"              transform="rotate(90 100 100)">STHĀN</text>
+                <text x="100" y="106" textAnchor="middle" fill="var(--text-muted)" fontSize="3.2"              transform="rotate(90 100 100)">STHAN</text>
               </svg>
 
               {/* Planet overlays */}
@@ -902,7 +902,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                       <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Zone Analysis</div>
                       <h2 style={{ margin: 0, color: sc, fontSize: '1.6rem', fontFamily: 'var(--font-display)', lineHeight: 1.1 }}>{z.name}</h2>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '0.2rem' }}>
-                        {ELEM_ICON[z.element]} {z.element} (Pancha Bhuta) · Prana: {z.prana} Vāyu
+                        {ELEM_ICON[z.element]} {z.element} (Pancha Bhuta) · Prana: {z.prana} Vayu
                       </div>
                     </div>
                     <button onClick={() => setSelectedZone(null)} style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.35rem 0.7rem', fontSize: '0.8rem', fontFamily: 'inherit' }}>✕</button>
@@ -919,7 +919,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
                     {[
                       { l: 'Quality',      v: z.quality },
-                      { l: 'Prana Vayu',   v: z.prana + ' Vāyu' },
+                      { l: 'Prana Vayu',   v: z.prana + ' Vayu' },
                       { l: 'Element',      v: `${ELEM_ICON[z.element]} ${z.element}` },
                       { l: 'Deity Lord',   v: GRAHA_NAMES[z.ruling as GrahaId] },
                     ].map(item => (
@@ -1041,7 +1041,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
 
             {/* 32 Dwara legend */}
             <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-              {[{q:'best',c:'var(--teal)',l:'Śubha (Auspicious)'},{q:'good',c:'var(--gold)',l:'Madhyama (Good)'},{q:'average',c:'var(--text-muted)',l:'Sāmānya (Average)'},{q:'bad',c:'var(--rose)',l:'Aśubha (Avoid)'}].map(x => (
+              {[{q:'best',c:'var(--teal)',l:'Shubha (Auspicious)'},{q:'good',c:'var(--gold)',l:'Madhyama (Good)'},{q:'average',c:'var(--text-muted)',l:'Samanya (Average)'},{q:'bad',c:'var(--rose)',l:'Ashubha (Avoid)'}].map(x => (
                 <span key={x.q} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.67rem', color: 'var(--text-muted)' }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: x.c, display: 'inline-block' }} />{x.l}
                 </span>
@@ -1068,8 +1068,8 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{ padding: '3px 10px', background: 'var(--gold-faint)', color: 'var(--text-gold)', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', border: '1px solid var(--border-bright)' }}>Devatā Detail</span>
-                      {dwaraQ && <span style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 700, border: `1px solid ${dwaraColor}`, color: dwaraColor }}>32 Dwara: {dwaraQ === 'best' ? 'Śubha' : dwaraQ === 'good' ? 'Madhyama' : dwaraQ === 'bad' ? 'Aśubha' : 'Sāmānya'}</span>}
+                      <span style={{ padding: '3px 10px', background: 'var(--gold-faint)', color: 'var(--text-gold)', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', border: '1px solid var(--border-bright)' }}>Devata Detail</span>
+                      {dwaraQ && <span style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 700, border: `1px solid ${dwaraColor}`, color: dwaraColor }}>32 Dwara: {dwaraQ === 'best' ? 'Shubha' : dwaraQ === 'good' ? 'Madhyama' : dwaraQ === 'bad' ? 'Ashubha' : 'Samanya'}</span>}
                     </div>
                     <button onClick={() => setSelectedDeity(null)} style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.3rem 0.65rem', fontSize: '0.8rem', fontFamily: 'inherit' }}>✕</button>
                   </div>
@@ -1078,13 +1078,13 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                     <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.75rem', lineHeight: 1.1, fontWeight: 400 }}>{displayName}</h2>
                     {info && <div style={{ fontSize: '0.72rem', color: 'var(--text-gold)', marginTop: '0.3rem' }}>{info.quality}</div>}
                     <p style={{ marginTop: '0.65rem', fontSize: '0.86rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-                      {info?.desc || 'A vital energy field in the Vāstu Maṇḍala representing specific cosmic attributes.'}
+                      {info?.desc || 'A vital energy field in the Vastu Mandala representing specific cosmic attributes.'}
                     </p>
                   </div>
 
                   {info?.mantra && (
                     <div style={{ padding: '0.85rem', background: 'var(--gold-faint)', borderRadius: '10px', border: '1px solid var(--border-bright)' }}>
-                      <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>Bīja Mantra for Activation</div>
+                      <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>Bija Mantra for Activation</div>
                       <div style={{ fontFamily: 'var(--font-display)', color: 'var(--text-gold)', fontSize: '0.9rem' }}>{info.mantra}</div>
                     </div>
                   )}
@@ -1194,7 +1194,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
 
           {/* Panchabhutas Analysis */}
           <div className="card" style={{ padding: '1.75rem' }}>
-            <SectionTitle icon="🌐" title="Pancha Bhūta — Five Element Balance" subtitle="The five cosmic elements and their directional zones from Vedic cosmology" />
+            <SectionTitle icon="🌐" title="Pancha Bhuta — Five Element Balance" subtitle="The five cosmic elements and their directional zones from Vedic cosmology" />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
               {PANCHA_BHUTAS.map(b => {
                 const zoneScores = analysis.filter(z => b.zones.some(bz => z.id === bz || z.id.startsWith(bz)))
@@ -1380,7 +1380,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* Ashta Dikpalas */}
               <div className="card" style={{ padding: '1.75rem' }}>
-                <SectionTitle icon="🛡️" title="Aṣṭa Dikpālas" subtitle="Eight directional guardians — from Agni Purana & Vastu Shastra" />
+                <SectionTitle icon="🛡️" title="Ashta Dikpalas" subtitle="Eight directional guardians — from Agni Purana & Vastu Shastra" />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.55rem' }}>
                   {DIKPALAS.map(d => (
                     <div key={d.dir} style={{ padding: '0.7rem 0.8rem', background: 'var(--surface-2)', borderRadius: '8px', border: `1px solid ${d.color}33`, borderLeft: `3px solid ${d.color}` }}>
@@ -1499,7 +1499,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
 
           {/* Metal Remedies */}
           <div className="card" style={{ padding: '1.75rem' }}>
-            <SectionTitle icon="⚙️" title="Dhātu Vastu — Metal & Element Remedies" subtitle="Correct metals for each direction — from Vastu Shastra Dhatu Prakarana" />
+            <SectionTitle icon="⚙️" title="Dhatu Vastu — Metal & Element Remedies" subtitle="Correct metals for each direction — from Vastu Shastra Dhatu Prakarana" />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.7rem' }}>
               {METAL_REMEDIES.map(m => {
                 const z = analysis.find(a => a.id === m.dir)
@@ -2187,7 +2187,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
 
         <div className="divider" style={{ margin: '2rem 0', opacity: 0.2 }} />
         <p style={{ textAlign: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
-          Advanced Astro-Vāstu Engine · Sources: Manasara · Mayamata · Brihat Samhita · Vishwakarma Prakash · Samarangana Sutradhara · Mahavastu<br/>
+          Advanced Astro-Vastu Engine · Sources: Manasara · Mayamata · Brihat Samhita · Vishwakarma Prakash · Samarangana Sutradhara · Mahavastu<br/>
           Align property compass with Magnetic North for accurate remedial deployment
         </p>
       </section>

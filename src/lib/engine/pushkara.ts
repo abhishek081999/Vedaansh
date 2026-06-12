@@ -1,15 +1,15 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/pushkara.ts
-//  Puṣkara Navāṃśa - Auspicious Navamsha for Remedies
+//  Pushkara Navamsha - Auspicious Navamsha for Remedies
 //  Source: Brihat Parashara Hora Shastra, Deva Keralam
 // ─────────────────────────────────────────────────────────────
 
 import type { Rashi, PushkaraResult } from '@/types/astrology'
 
 /**
- * Puṣkara Navāṃśa (Auspicious Navamsha)
+ * Pushkara Navamsha (Auspicious Navamsha)
  * 
- * Puṣkara means "lotus" - these are highly auspicious divisions in each sign
+ * Pushkara means "lotus" - these are highly auspicious divisions in each sign
  * where remedies and spiritual practices are 1000x more effective.
  * 
  * Planets transiting or placed in these Navamshas:
@@ -18,7 +18,7 @@ import type { Rashi, PushkaraResult } from '@/types/astrology'
  * - Good for starting auspicious activities
  */
 
-// Puṣkara Navāṃśa for each sign (which navamsha is auspicious)
+// Pushkara Navamsha for each sign (which navamsha is auspicious)
 // These are the navamsha numbers (1-9) that are Pushkara navamshas
 export const PUSHKARA_NAVAMSHA: Record<Rashi, number[]> = {
   1:  [7, 9],    // Aries: 7th (20°00′-23°20′) and 9th (26°40′-30°00′)
@@ -36,7 +36,7 @@ export const PUSHKARA_NAVAMSHA: Record<Rashi, number[]> = {
 }
 
 /**
- * Check if a planet is in Puṣkara Navāṃśa
+ * Check if a planet is in Pushkara Navamsha
  * 
  * @param lonSidereal - Sidereal longitude of the planet
  * @returns PushkaraResult with navamsha info
@@ -51,7 +51,7 @@ export function checkPushkara(lonSidereal: number): PushkaraResult {
   
   const pushkaraNav = PUSHKARA_NAVAMSHA[rashi]
   
-  // Check if in Puṣkara Navāṃśa
+  // Check if in Pushkara Navamsha
   const inPushkaraNavamsha = pushkaraNav.includes(navamsha)
   
   if (inPushkaraNavamsha) {
@@ -78,7 +78,7 @@ export function checkPushkara(lonSidereal: number): PushkaraResult {
 }
 
 /**
- * Check Puṣkara for all grahas
+ * Check Pushkara for all grahas
  */
 export function checkAllPushkara(
   grahas: Array<{ id: string; lonSidereal: number }>,

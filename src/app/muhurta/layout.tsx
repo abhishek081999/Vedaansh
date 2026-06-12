@@ -2,19 +2,19 @@ import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { MUHURTA_SEO } from '@/lib/seo/intro-content'
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
+import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
-  title:       'Muhurta — Auspicious Time Selector',
-  description: 'Find the perfect Muhurta for weddings, business launches & important events. Vedic Panchang analysis: Tithi, Nakshatra, Yoga, Karana, Rahu Kalam & personal Dasha compatibility.',
-  alternates:  { canonical: `${BASE_URL}/muhurta` },
+  title:       'Muhurta Finder — Auspicious Time & Shubh Muhurat',
+  description: 'Free Muhurta finder for weddings, griha pravesh, travel, and business. Scores days by Tithi, Nakshatra, Yoga, Karana, Rahu Kalam, and personal Tara/Chandra Bala.',
+  alternates:  { canonical: `${SITE_URL}/muhurta` },
   keywords:    ['Muhurta', 'auspicious time', 'Vedic election astrology', 'wedding Muhurta', 'Shubh Muhurta', 'Rahu Kalam', 'Tithi', 'Nakshatra timing'],
   openGraph: {
     title:       'Muhurta — Auspicious Time Selector | Vedaansh',
     description: 'Tithi, Nakshatra, Yoga, Karana & personal Dasha analysis to find your perfect auspicious time.',
-    url:         `${BASE_URL}/muhurta`,
+    url:         `${SITE_URL}/muhurta`,
     type:        'website',
-    images:      [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Muhurta — Vedaansh' }],
+    images:      ogImages('Muhurta — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
@@ -24,14 +24,10 @@ export const metadata: Metadata = {
   },
 }
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type':    'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home',    item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Muhurta', item: `${BASE_URL}/muhurta` },
-  ],
-}
+const jsonLd = breadcrumbJsonLd([
+  { name: 'Home', path: '/' },
+  { name: 'Muhurta', path: '/muhurta' },
+])
 
 export default async function MuhurtaLayout({ children }: { children: React.ReactNode }) {
   return (

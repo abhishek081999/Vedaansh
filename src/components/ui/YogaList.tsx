@@ -9,11 +9,11 @@ import type { YogaResult, YogaCategory } from '@/types/astrology'
 import { Crown, Gem, Sparkles, Moon, Anchor, Sword, ArrowLeftRight, Star, Info, Zap } from 'lucide-react'
 
 const CATEGORY_CONFIG: Record<YogaCategory, { label: string; color: string; bg: string; icon: any }> = {
-  mahapurusha: { label: 'Pancha Mahāpuruṣa', color: '#e2c97e', bg: 'rgba(201,168,76,0.10)', icon: Star },
-  raja:        { label: 'Rāja Yoga',          color: '#f59e42', bg: 'rgba(245,158,66,0.10)',  icon: Crown },
+  mahapurusha: { label: 'Pancha Mahapurusha', color: '#e2c97e', bg: 'rgba(201,168,76,0.10)', icon: Star },
+  raja:        { label: 'Raja Yoga',          color: '#f59e42', bg: 'rgba(245,158,66,0.10)',  icon: Crown },
   dhana:       { label: 'Dhana Yoga',         color: '#4ecdc4', bg: 'rgba(78,205,196,0.10)',  icon: Gem },
   special:     { label: 'Special Yoga',       color: '#8b7cf6', bg: 'rgba(139,124,246,0.10)', icon: Sparkles },
-  viparita:    { label: 'Viparīta Rāja',      color: '#f0a0c0', bg: 'rgba(240,160,192,0.10)', icon: Zap },
+  viparita:    { label: 'Viparita Raja',      color: '#f0a0c0', bg: 'rgba(240,160,192,0.10)', icon: Zap },
   lunar:       { label: 'Lunar Yoga',         color: '#b0c8e0', bg: 'rgba(176,200,224,0.10)', icon: Moon },
   nabhasa:     { label: 'Nabhasa Yoga',       color: '#76c7c0', bg: 'rgba(118,199,192,0.10)', icon: Anchor },
   malefic:     { label: 'Malefic Yoga',       color: '#e07b8e', bg: 'rgba(224,123,142,0.10)', icon: Sword },

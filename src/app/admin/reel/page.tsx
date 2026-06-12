@@ -89,22 +89,22 @@ const TEMPLATE_ONBOARD: Record<ReelType, { blurb: string }> = {
     blurb: 'Full-day snapshot: panchang limbs, sunrise/moon, inauspicious bands, graha strip, and a Choghadiya teaser — best for daily “what is today” reels.',
   },
   muhurta: {
-    blurb: 'Timing-first reel: Brahma, Abhijit, Godhuli, Dur, Horā table, and auspicious Choghadiya — ideal for “best windows today” posts.',
+    blurb: 'Timing-first reel: Brahma, Abhijit, Godhuli, Dur, Hora table, and auspicious Choghadiya — ideal for “best windows today” posts.',
   },
   nakshatra: {
-    blurb: 'Moon nakṣatra deep-dive with symbol, devatā, nature, limb end, and cautions — strong for educational + devotional shorts.',
+    blurb: 'Moon nakshatra deep-dive with symbol, devata, nature, limb end, and cautions — strong for educational + devotional shorts.',
   },
   choghadiya: {
     blurb: 'Full day + night Choghadiya grid with quality cues — perfect for planners and local-audience timing content.',
   },
   transit_sky: {
-    blurb: 'Nine-graha sidereal snapshot (sign, nakṣatra, dignity, retro) — great for “sky today” explainers without a birth chart.',
+    blurb: 'Nine-graha sidereal snapshot (sign, nakshatra, dignity, retro) — great for “sky today” explainers without a birth chart.',
   },
   transit_weekly: {
     blurb: 'Slow-mover highlights for a chosen week vs your Lagna — use when you want transit drama without a full chart read.',
   },
   rashi_forecast: {
-    blurb: 'Hybrid weekly outlook: a one-line rāśi hook plus filtered transit blurbs for that ascendant — shareable horoscope-style.',
+    blurb: 'Hybrid weekly outlook: a one-line rashi hook plus filtered transit blurbs for that ascendant — shareable horoscope-style.',
   },
   festival: {
     blurb: 'Fully manual festival or eclipse card: you control copy and timings. Optional tithi assist from loaded Panchang.',
@@ -801,11 +801,11 @@ export default function ReelPage() {
       needs.push({ label: 'Graha positions loaded', ok: Boolean(skyGrahas && skyGrahas.length > 0 && !skyLoading) })
     } else if (reelType === 'transit_weekly') {
       needs.push({ label: `Week locked (${weekLabel})`, ok: Boolean(weekMonday) })
-      needs.push({ label: `Lagna rāśi set (${lagnaRashi} · ${RASHI_NAMES[lagnaRashi]})`, ok: true })
+      needs.push({ label: `Lagna rashi set (${lagnaRashi} · ${RASHI_NAMES[lagnaRashi]})`, ok: true })
       needs.push({ label: 'Transit timeline loaded', ok: transitEvents !== null && !transitLoading })
     } else if (reelType === 'rashi_forecast') {
       needs.push({ label: `Week locked (${weekLabel})`, ok: Boolean(weekMonday) })
-      needs.push({ label: `Forecast rāśi (${forecastRashi} · ${RASHI_NAMES[forecastRashi]})`, ok: true })
+      needs.push({ label: `Forecast rashi (${forecastRashi} · ${RASHI_NAMES[forecastRashi]})`, ok: true })
       needs.push({ label: 'Transit timeline loaded', ok: transitEvents !== null && !transitLoading })
     } else {
       needs.push({ label: 'Date + saved location feed Panchang API', ok: Boolean(date) })
@@ -1050,7 +1050,7 @@ export default function ReelPage() {
               <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{weekLabel}</div>
               {reelType === 'transit_weekly' && (
                 <label style={{ display: 'block', marginTop: 10, fontSize: 12, color: 'var(--color-text-secondary)' }}>
-                  Lagna rāśi (1–12)
+                  Lagna rashi (1–12)
                   <input
                     type="number"
                     min={1}
@@ -1071,7 +1071,7 @@ export default function ReelPage() {
               )}
               {reelType === 'rashi_forecast' && (
                 <label style={{ display: 'block', marginTop: 10, fontSize: 12, color: 'var(--color-text-secondary)' }}>
-                  Forecast rāśi (1–12)
+                  Forecast rashi (1–12)
                   <input
                     type="number"
                     min={1}

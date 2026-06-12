@@ -157,15 +157,15 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
             { name: 'Arudha Lagna (AL)', deg: (arudhas.AL - 1) * 30 + (lagnas.ascDegree % 30) }
           ] : []),
           ...(!limited ? [
-            { name: 'BL (Bhāva)',       deg: lagnas.bhavaLagna   },
+            { name: 'BL (Bhava)',       deg: lagnas.bhavaLagna   },
             { name: 'HL (Hora)',        deg: lagnas.horaLagna    },
-            { name: 'GL (Ghaṭi)',       deg: lagnas.ghatiLagna   },
+            { name: 'GL (Ghati)',       deg: lagnas.ghatiLagna   },
             { name: 'VL (Vighati)',     deg: lagnas.vighatiLagna },
-            { name: 'Varṇada',          deg: lagnas.varnadaLagna },
-            { name: 'SL (Śrī)',         deg: lagnas.sriLagna     },
-            { name: 'PP (Prāṇapada)',   deg: lagnas.pranapada    },
+            { name: 'Varnada',          deg: lagnas.varnadaLagna },
+            { name: 'SL (Shri)',         deg: lagnas.sriLagna     },
+            { name: 'PP (Pranapada)',   deg: lagnas.pranapada    },
             { name: 'IL (Indu)',        deg: lagnas.induLagna    },
-            { name: 'BB (Bhṛgu Bindu)', deg: lagnas.bhriguBindu  },
+            { name: 'BB (Bhrigu Bindu)', deg: lagnas.bhriguBindu  },
           ] : []),
         ]
 
@@ -241,7 +241,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     2: { label: 'Vipat',   color: 'var(--rose)' },
     3: { label: 'Kshema',  color: 'var(--teal)' },
     4: { label: 'Pratyari',color: 'var(--rose)' },
-    5: { label: 'Sādhaka', color: 'var(--teal)' },
+    5: { label: 'Sadhaka', color: 'var(--teal)' },
     6: { label: 'Vadha',   color: 'var(--rose)' },
     7: { label: 'Mitra',   color: 'var(--teal)' },
     8: { label: 'Ati-Mitra', color: 'var(--gold)' },
@@ -316,7 +316,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
 
           <thead>
             <tr style={{ background: 'var(--surface-2)', borderBottom: '2px solid var(--primary-brand)' }}>
-              {['Body', 'Deg ′ ″', 'Nakshatra', selectedVarga === 'D1' ? 'Rashi·D9' : 'Natal→Varga', 'Dignity', 'Avasthā'].map((h, idx) => (
+              {['Body', 'Deg ′ ″', 'Nakshatra', selectedVarga === 'D1' ? 'Rashi·D9' : 'Natal→Varga', 'Dignity', 'Avastha'].map((h, idx) => (
                 <th key={h} style={{
                   padding: '0.25rem 0.45rem', color: 'var(--primary-brand)', fontSize: '0.55rem', fontWeight: 800,
                   letterSpacing: '0.08em', textTransform: 'uppercase', textAlign: idx === 0 ? 'left' : 'center',
@@ -437,7 +437,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         {[
           { code: 'C', label: 'Combust',     bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
           { code: 'G', label: 'Gandanta',    bg: 'rgba(244,63,94,0.1)',   color: '#fb7185',  border: 'rgba(244,63,94,0.3)'   },
-          { code: 'P', label: 'Puṣkara Navāṃśa', bg: 'rgba(78,205,196,0.1)', color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
+          { code: 'P', label: 'Pushkara Navamsha', bg: 'rgba(78,205,196,0.1)', color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
           { code: 'Y', label: 'Yuddha',      bg: 'rgba(129,140,248,0.1)', color: '#818cf8',  border: 'rgba(129,140,248,0.3)' },
         ].map(({ code, label, bg, color, border }) => (
           <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>

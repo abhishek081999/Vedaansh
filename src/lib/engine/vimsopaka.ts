@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/vimsopaka.ts
-//  Viṁśopaka Bala — Twenty-point Strength (BPHS Standard)
+//  Vimsopaka Bala — Twenty-point Strength (BPHS Standard)
 //  Ref: Brihat Parashara Hora Shastra, Chapter 27
 // ─────────────────────────────────────────────────────────────
 
@@ -145,7 +145,7 @@ function getDignity(id: GrahaId, rashi: Rashi, degree: number): Dignity {
   return 'neutral'
 }
 
-// ── Viṁśopaka Bala Logic ───────────────────────────────────────
+// ── Vimsopaka Bala Logic ───────────────────────────────────────
 
 export interface VimsopakaPlanet {
   id: string
