@@ -261,7 +261,7 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
               </div>
               <div style={{ height: 1, background: 'var(--border-soft)', margin: '0.25rem 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Rāśi:</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Rashi:</span>
                 <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-gold)' }}>
                   {SIGN_SYMBOLS[currentHouseDetails?.signIndex || 1]} {currentHouseDetails?.signName}
                 </span>

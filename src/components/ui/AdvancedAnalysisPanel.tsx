@@ -74,7 +74,7 @@ function PushkaraBadge({ pushkara }: { pushkara: GrahaData['pushkara'] }) {
   if (!pushkara.isPushkara) return null
   
   const colors = COLORS.pushkara.navamsha
-  const label = 'Puṣkara Navāṃśa'
+  const label = 'Pushkara Navamsha'
   
   return (
     <div style={{
@@ -114,7 +114,7 @@ function MrityuBadge({ mrityuBhaga }: { mrityuBhaga: GrahaData['mrityuBhaga'] })
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
         <span style={{ fontSize: '0.7rem', fontWeight: 700, color: colors.text }}>
-          🔱 Mṛtyu Bhāga
+          🔱 Mrityu Bhaga
         </span>
         <span style={{ fontSize: '0.55rem', color: colors.text, opacity: 0.8 }}>
           {mrityuBhaga.severity.toUpperCase()}

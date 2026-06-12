@@ -7,7 +7,7 @@ const RASHI_LORD: Record<number, GrahaId> = {
 }
 
 /**
- * Houses where the current Vimśottari Mahādasha and Antardaśā lords sit (physical placement only).
+ * Houses where the current Vimshottari Mahadasha and Antardasha lords sit (physical placement only).
  * Used to tint chart cells — no sign-lordship, transit moon, or age progression.
  */
 export function getDashaLordPlacementHouses(

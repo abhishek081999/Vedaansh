@@ -1290,7 +1290,7 @@ export function analyzeDeathSymptoms(grahas: GrahaData[], lagnaRashi: number, la
 }
 
 /**
- * Ch1: Get Krishneeyam Drekkana lord (unique system, differs from Parasara) [Ch1:6-7]
+ * Ch1: Get Krishneeyam Drekkana lord (unique system, differs from Parashara) [Ch1:6-7]
  * Drekkana is 10° division of a sign. Lord is based on the group of signs.
  */
 export function getKrishneeyamDrekkanaLord(rashi: number, degreeInSign: number): GrahaId {
@@ -1868,13 +1868,13 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   const drekkanaLordId = getKrishneeyamDrekkanaLord(lagnaRashi, lagnaSignDegree)
   const drekkanaParts = getDrekkanaBodyPart(lagnaSignDegree)
   const drekkanaAnalysis = {
-    lord: `${drekkanaLordId} [Krishneeyam Ch1:6-7] — Different from Parasara system`,
+    lord: `${drekkanaLordId} [Krishneeyam Ch1:6-7] — Different from Parashara system`,
     bodyPart: drekkanaParts.bodyPart,
     rightSide: drekkanaParts.right,
     leftSide: drekkanaParts.left,
     seventhSign: drekkanaParts.seventh,
   }
-  rules.push(`[Ch1:6-7] Krishneeyam Drekkana lord of ascendant: ${drekkanaLordId} (not Parasara system)`)
+  rules.push(`[Ch1:6-7] Krishneeyam Drekkana lord of ascendant: ${drekkanaLordId} (not Parashara system)`)
   rules.push(`[Ch1:11-12] Ascendant in ${lagnaSignDegree.toFixed(1)}° → Body part: ${drekkanaParts.bodyPart}`)
 
   // ── NEW: Ch3 — Thief entry direction ──────────────────────────────────────

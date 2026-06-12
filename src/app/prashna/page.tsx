@@ -825,7 +825,7 @@ export default function PrashnaPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
                       {/* Drekkana */}
                       <SectionCard title="Drekkana Analysis" icon="🔺" accent="var(--teal)">
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Krishneeyam system (differs from Parasara)</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Krishneeyam system (differs from Parashara)</div>
                         <div style={{ fontWeight: 700, color: 'var(--gold)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Lord: {r.drekkanaAnalysis.lord.split(' [')[0]}</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.72rem' }}>
                           <div>Body Part: <strong style={{ color: 'var(--accent)' }}>{r.drekkanaAnalysis.bodyPart}</strong></div>

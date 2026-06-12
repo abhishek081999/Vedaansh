@@ -1,4 +1,4 @@
-// Sidereal longitude → rāśi (sign) metadata for Panchang display
+// Sidereal longitude → rashi (sign) metadata for Panchang display
 import type { Rashi } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
 
@@ -45,7 +45,7 @@ export function formatDegreesInSign(degInSign: number): string {
   return `${d}° ${String(m).padStart(2, '0')}′ ${String(s).padStart(2, '0')}″`
 }
 
-/** Full UI block for Sun/Moon rāśi (matches /api/panchang JSON when present). */
+/** Full UI block for Sun/Moon rashi (matches /api/panchang JSON when present). */
 export function rashiBlockFromLongitude(lonSidereal: number): {
   rashi: number
   en: string

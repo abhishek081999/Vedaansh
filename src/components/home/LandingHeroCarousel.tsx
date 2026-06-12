@@ -49,10 +49,10 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'panchang',
     kicker: 'Daily Panchang',
-    title: 'Today’s tithi, nakṣatra, muhūrta',
+    title: 'Today’s tithi, nakshatra, muhurta',
     desc: 'Panchang signals and day-level timing at a glance.',
     accent: '#2f9e8f',
-    bullets: ['Rahu Kaal & yogas', 'Day factors'],
+    bullets: ['Rahu Kalam & yogas', 'Day factors'],
     cta: { label: 'Open Panchang', href: '/panchang' },
     visual: { emoji: '🕉️', title: 'Daily rhythm', text: 'Align actions with the day.' },
   },
@@ -69,7 +69,7 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'compare',
     kicker: 'Kundali Matching',
-    title: 'Match two charts — Aṣṭakūṭa & more',
+    title: 'Match two charts — Ashtakoot & more',
     desc: 'Ashtakoot scoring, dosha checks, and side-by-side charts without loading a saved natal first.',
     accent: '#c084fc',
     bullets: ['36-point Guna Milan', 'Dual birth forms'],
@@ -293,7 +293,7 @@ function CelestialAstrolabe({ accent, id }: { accent: string; id: string }) {
           <span>{id === 'astrology' ? 'Kundali Cast' : id === 'prashna' ? 'Prashna Chart' : id === 'panchang' ? 'Panchang Map' : id === 'calendar' ? 'Timing Engine' : 'Sync Engine'}</span>
         </h4>
         <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.64rem', color: 'var(--text-secondary)', opacity: 0.9, lineHeight: 1.3 }}>
-          {id === 'astrology' ? 'Full D1–D60 varga tables' : id === 'prashna' ? 'Vedic query lens' : id === 'panchang' ? 'Rahu Kaal & live horoscopy' : id === 'calendar' ? 'Milestones & sacred timing' : '36 guna Ashtakoot compatibility'}
+          {id === 'astrology' ? 'Full D1–D60 varga tables' : id === 'prashna' ? 'Vedic query lens' : id === 'panchang' ? 'Rahu Kalam & Hora timings' : id === 'calendar' ? 'Milestones & sacred timing' : '36-point Guna Milan compatibility'}
         </p>
       </div>
     </div>

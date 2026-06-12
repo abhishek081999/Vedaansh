@@ -351,7 +351,7 @@ export function CircleChakra({
         )
       })}
 
-      {/* ── Āruḍha overlay ───────────────────────────────────── */}
+      {/* ── Arudha overlay ───────────────────────────────────── */}
       {showArudha && arudhas && (
         (['AL','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12'] as const).map(key => {
           const rashi = arudhas[key] as Rashi

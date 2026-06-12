@@ -27,7 +27,7 @@ export async function generateChartMetadata(slug: string): Promise<Metadata> {
     const place = (chart as any).birthPlace as string
 
     const title       = `${name} — Vedic Birth Chart`
-    const description = `Vedic Jyotish chart for ${name}, born ${date}${place ? ` in ${place}` : ''}. Includes Rashi chart, Navamsha, Dasha, Āruḍhas & Panchang.`
+    const description = `Vedic Jyotish chart for ${name}, born ${date}${place ? ` in ${place}` : ''}. Includes Rashi chart, Navamsha, Dasha, Arudhas & Panchang.`
     const url         = `${BASE_URL}/chart/${slug}`
     const ogImage     = `${BASE_URL}/chart/${slug}/opengraph-image`
 

@@ -256,7 +256,7 @@ export function SouthIndianChakra({
             )
           : cell * 0.16
 
-        // Tie planet / degree font to row height so many grahas in one rāśi still fit
+        // Tie planet / degree font to row height so many grahas in one rashi still fit
         const grahaFont = Math.round(Math.min(fs.graha, lineH * (linesPerGraha > 1 ? 0.42 : 0.88)))
         const degreeFont = Math.round(Math.min(fs.degree, lineH * 0.38))
 
@@ -411,7 +411,7 @@ export function SouthIndianChakra({
               )
             })}
 
-            {/* ── Āruḍhas — italic amber, below planets ── */}
+            {/* ── Arudhas — italic amber, below planets ── */}
             {(() => {
               if (!cellArudhas.length) return null
 

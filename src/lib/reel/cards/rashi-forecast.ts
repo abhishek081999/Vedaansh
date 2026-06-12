@@ -37,7 +37,7 @@ export function drawRashiForecastCard(
   drawLogo(ctx, colors, 96, settings.brandTitle, vedaIcon)
   ctx.font = 'bold 54px serif'
   ctx.fillStyle = colors.accent
-  ctx.fillText('Rāśi Outlook', 540, 200)
+  ctx.fillText('Rashi Outlook', 540, 200)
   ctx.font = 'bold 36px sans-serif'
   ctx.fillStyle = colors.text
   ctx.fillText(rashiName, 540, 258)

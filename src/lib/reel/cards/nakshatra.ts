@@ -37,7 +37,7 @@ function degFmt(n: number | undefined): string {
   return `${n.toFixed(1)}°`
 }
 
-const PADA_PURUSHARTHA = ['Dharma', 'Artha', 'Kāma', 'Mokṣa'] as const
+const PADA_PURUSHARTHA = ['Dharma', 'Artha', 'Kama', 'Moksha'] as const
 
 const NAK_HERO_TOP = 88
 
@@ -76,10 +76,10 @@ export function drawNakshatraCard(
     drawDivider(ctx, colors, 176, 920)
     ctx.font = 'bold 60px serif'
     ctx.fillStyle = nakColor
-    ctx.fillText(truncate(data.nakshatra?.name || 'Nakṣatra', 14), 540, 248)
+    ctx.fillText(truncate(data.nakshatra?.name || 'Nakshatra', 14), 540, 248)
     ctx.font = '20px sans-serif'
     ctx.fillStyle = colors.sub
-    ctx.fillText('Moon’s lunar mansion (janma rāśi’s finer slice)', 540, 288)
+    ctx.fillText('Moon’s lunar mansion (janma rashi’s finer slice)', 540, 288)
     ctx.save()
     ctx.fillStyle = `${nakColor}22`
     roundRect(ctx, 120, 304, 840, 52, 18)
@@ -93,7 +93,7 @@ export function drawNakshatraCard(
     const lord = data.nakshatra?.lord || '—'
     const moonR = data.moonRashi?.en || '—'
     const moonDeg = degFmt(data.moonRashi?.degInSign)
-    ctx.fillText(`Lunar day ${nakIdx + 1} of 27  ·  Pada ${pada} of 4  ·  Vimśottari lord: ${lord}`, 540, 330)
+    ctx.fillText(`Lunar day ${nakIdx + 1} of 27  ·  Pada ${pada} of 4  ·  Vimshottari lord: ${lord}`, 540, 330)
     ctx.font = '15px sans-serif'
     ctx.fillStyle = `${colors.sub}EE`
     ctx.fillText(`Moon in ${moonR} (${data.moonRashi?.sa || '—'}) at ${moonDeg} in sign`, 540, 354)
@@ -102,7 +102,7 @@ export function drawNakshatraCard(
     ctx.fillStyle = colors.sub
     const panchangStrip = [
       data.tithi?.name ? `${data.tithi.name} (${data.tithi.paksha || '—'})` : '',
-      data.vara?.name ? `Vāra: ${data.vara.name}` : '',
+      data.vara?.name ? `Vara: ${data.vara.name}` : '',
       data.tithi?.lord ? `Tithi lord: ${data.tithi.lord}` : '',
     ]
       .filter(Boolean)
@@ -112,7 +112,7 @@ export function drawNakshatraCard(
       ctx.font = '13px sans-serif'
       ctx.fillStyle = `${colors.sub}BB`
       ctx.fillText(
-        `Sun nakṣatra: ${data.sunNakshatra.name} · pada ${data.sunNakshatra.pada} · lord ${data.sunNakshatra.lord}`,
+        `Sun nakshatra: ${data.sunNakshatra.name} · pada ${data.sunNakshatra.pada} · lord ${data.sunNakshatra.lord}`,
         540,
         438,
       )
@@ -139,7 +139,7 @@ export function drawNakshatraCard(
     ctx.fillText(`Symbol: ${truncate(NAK_SYMBOL[nakIdx] || '—', 42)}`, 540, 820)
     ctx.font = '17px sans-serif'
     ctx.fillStyle = colors.sub
-    ctx.fillText('Swipe for attributes, flavour, and doṣa times.', 540, 860)
+    ctx.fillText('Swipe for attributes, flavour, and dosha times.', 540, 860)
     ctx.restore()
     drawCarouselSlideBadge(ctx, colors, pageIndex + 1, totalPages)
     drawCarouselCompactFooter(ctx, colors, settings)
@@ -154,15 +154,15 @@ export function drawNakshatraCard(
     drawNakshatraSlideLogo(ctx, colors, settings, vedaIcon)
     ctx.font = '22px sans-serif'
     ctx.fillStyle = nakColor
-    ctx.fillText(truncate(data.nakshatra?.name || 'Nakṣatra', 18), 540, 168)
+    ctx.fillText(truncate(data.nakshatra?.name || 'Nakshatra', 18), 540, 168)
     drawDivider(ctx, colors, 196, 920)
     sectionLabel(ctx, colors, 224, 'Core attributes')
     const nakEnd = fmtTime(data.limbEnds?.nakshatra ?? undefined)
     const tiles = [
-      { k: 'Devatā', v: NAK_DEITY[nakIdx] || '—' },
-      { k: 'Nature (guṇa)', v: NAK_QUALITY[nakIdx] || '—' },
+      { k: 'Devata', v: NAK_DEITY[nakIdx] || '—' },
+      { k: 'Nature (guna)', v: NAK_QUALITY[nakIdx] || '—' },
       {
-        k: 'Vimśottari tārā',
+        k: 'Vimshottari tara',
         v: vimLord ? `${GRAHA_SANSKRIT[vimLord] || vimLord} (${vimLord})` : '—',
       },
       { k: 'Until (change)', v: nakEnd },
@@ -203,7 +203,7 @@ export function drawNakshatraCard(
     ctx.fillStyle = colors.sub
     wrapText(
       ctx,
-      `Full chart work still needs lagna, daśā, and transits — this card highlights the Moon’s field only.`,
+      `Full chart work still needs lagna, dasha, and transits — this card highlights the Moon’s field only.`,
       540,
       510,
       920,
@@ -223,7 +223,7 @@ export function drawNakshatraCard(
     drawNakshatraSlideLogo(ctx, colors, settings, vedaIcon)
     ctx.font = '22px sans-serif'
     ctx.fillStyle = nakColor
-    ctx.fillText(truncate(data.nakshatra?.name || 'Nakṣatra', 18), 540, 168)
+    ctx.fillText(truncate(data.nakshatra?.name || 'Nakshatra', 18), 540, 168)
     drawDivider(ctx, colors, 196, 920)
     sectionLabel(ctx, colors, 224, 'Favourable flavour today')
     ctx.save()
@@ -241,9 +241,9 @@ export function drawNakshatraCard(
     drawDivider(ctx, colors, 498, 920)
     sectionLabel(ctx, colors, 526, 'Times to ease intensity')
     const avoid = [
-      { label: 'Rāhu Kāla', start: data.rahuKalam?.start, end: data.rahuKalam?.end },
-      { label: 'Yamagaṇḍa', start: data.yamaganda?.start, end: data.yamaganda?.end },
-      { label: 'Gulika Kāla', start: data.gulikaKalam?.start, end: data.gulikaKalam?.end },
+      { label: 'Rahu Kala', start: data.rahuKalam?.start, end: data.rahuKalam?.end },
+      { label: 'Yamaganda', start: data.yamaganda?.start, end: data.yamaganda?.end },
+      { label: 'Gulika Kala', start: data.gulikaKalam?.start, end: data.gulikaKalam?.end },
     ]
     const aw = 292
     const ag = 12
@@ -280,17 +280,17 @@ export function drawNakshatraCard(
   drawNakshatraSlideLogo(ctx, colors, settings, vedaIcon)
   ctx.font = '22px sans-serif'
   ctx.fillStyle = nakColor
-  ctx.fillText(truncate(data.nakshatra?.name || 'Nakṣatra', 18), 540, 168)
+  ctx.fillText(truncate(data.nakshatra?.name || 'Nakshatra', 18), 540, 168)
   drawDivider(ctx, colors, 196, 920)
   ctx.font = '200px serif'
   ctx.fillStyle = `${nakColor}0C`
   ctx.fillText(`${nakIdx + 1}`, 540, 520)
   ctx.font = '20px sans-serif'
   ctx.fillStyle = colors.text
-  ctx.fillText(`Nakṣatra ${nakIdx + 1} of 27`, 540, 620)
+  ctx.fillText(`Nakshatra ${nakIdx + 1} of 27`, 540, 620)
   ctx.font = '18px sans-serif'
   ctx.fillStyle = colors.sub
-  ctx.fillText('Use nakṣatra with tithi, vāra, and muhūrta for fine electional work.', 540, 700)
+  ctx.fillText('Use nakshatra with tithi, vara, and muhurta for fine electional work.', 540, 700)
   ctx.font = '16px sans-serif'
   ctx.fillStyle = `${colors.sub}CC`
   ctx.fillText(truncate(settings.ctaLine, 72), 540, 742)

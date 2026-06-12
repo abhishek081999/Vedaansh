@@ -619,10 +619,10 @@ function HomeContent() {
   type MobileStrengthSubTab = 'ashtakavarga' | 'shadbala' | 'bhava' | 'vimsopaka'
   const STRENGTH_ANALYTICS_TABS = ['ashtakavarga', 'shadbala', 'bhava-bala', 'vimsopaka'] as const
   const MOBILE_STRENGTH_TABS = [
-    { id: 'ashtakavarga' as const, icon: Grid3x3, label: 'Aṣṭaka' },
-    { id: 'shadbala' as const, icon: Scale, label: 'Ṣaḍbala' },
-    { id: 'bhava' as const, icon: Home, label: 'Bhāva' },
-    { id: 'vimsopaka' as const, icon: BarChart3, label: 'Viṁśo' },
+    { id: 'ashtakavarga' as const, icon: Grid3x3, label: 'Ashtaka' },
+    { id: 'shadbala' as const, icon: Scale, label: 'Shadbala' },
+    { id: 'bhava' as const, icon: Home, label: 'Bhava' },
+    { id: 'vimsopaka' as const, icon: BarChart3, label: 'Vimsho' },
   ]
   const mobileDashboardCategories = [
     { id: 'astrology', label: 'Astrology' },
@@ -1292,13 +1292,13 @@ function HomeContent() {
                 onChange={(e) => setDashaSystem(e.target.value as any)}
                 style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}
               >
-                <option value="vimshottari">Viṁśottarī</option>
-                <option value="yogini">Yoginī</option>
+                <option value="vimshottari">Vimshottari</option>
+                <option value="yogini">Yogini</option>
                 <option value="chara">Chara (K.N. Rao)</option>
                 <option value="chara_fe">Chara (Rangacharya FE)</option>
                 <option value="mandook">Mandook (K.N. Rao)</option>
                 <option value="sthir">Sthir</option>
-                <option value="ashtottari">Aṣṭottarī</option>
+                <option value="ashtottari">Ashtottari</option>
               </select>
             )}
           </div>
@@ -1329,8 +1329,8 @@ function HomeContent() {
                   onTribhagi={setVimshottariTribhagi}
                 />
               )}
-              {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Aṣṭottarī computation required.</div>)}
-              {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <DashaTree nodes={dashboardChart.dashas.yogini} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yoginī computation required.</div>)}
+              {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Ashtottari computation required.</div>)}
+              {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <DashaTree nodes={dashboardChart.dashas.yogini} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yogini computation required.</div>)}
               {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara computation required.</div>)}
               {dashaSystem === 'chara_fe' && (dashboardChart.dashas.chara_fe?.length ? <DashaTree nodes={dashboardChart.dashas.chara_fe} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara FE computation required.</div>)}
               {dashaSystem === 'mandook' && (dashboardChart.dashas.mandook?.length ? <DashaTree nodes={dashboardChart.dashas.mandook} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Mandook computation required.</div>)}
@@ -1372,13 +1372,13 @@ function HomeContent() {
                 onChange={(e) => setDashaSystem(e.target.value as any)}
                 style={{ padding: '0.16rem 0.36rem', fontSize: '0.7rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'var(--font-body)', cursor: 'pointer' }}
               >
-                <option value="vimshottari">Viṁśottarī</option>
-                <option value="yogini">Yoginī</option>
+                <option value="vimshottari">Vimshottari</option>
+                <option value="yogini">Yogini</option>
                 <option value="chara">Chara (K.N. Rao)</option>
                 <option value="chara_fe">Chara (Rangacharya FE)</option>
                 <option value="mandook">Mandook (K.N. Rao)</option>
                 <option value="sthir">Sthir</option>
-                <option value="ashtottari">Aṣṭottarī</option>
+                <option value="ashtottari">Ashtottari</option>
               </select>
             </div>
           </div>
@@ -1891,13 +1891,13 @@ function HomeContent() {
                             <span>Dasha Timeline</span>
                             <select value={dashaSystem} onChange={(e) => setDashaSystem(e.target.value as any)}
                               style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}>
-                              <option value="vimshottari">Viṁśottarī</option>
-                              <option value="yogini">Yoginī</option>
+                              <option value="vimshottari">Vimshottari</option>
+                              <option value="yogini">Yogini</option>
                               <option value="chara">Chara (K.N. Rao)</option>
                               <option value="chara_fe">Chara (Rangacharya FE)</option>
                               <option value="mandook">Mandook (K.N. Rao)</option>
                               <option value="sthir">Sthir</option>
-                              <option value="ashtottari">Aṣṭottarī</option>
+                              <option value="ashtottari">Ashtottari</option>
                             </select>
                           </div>
                           <div style={{ padding: '0.4rem 0.55rem' }}>
@@ -2053,7 +2053,7 @@ function HomeContent() {
                   {activeTab === 'dasha' && (
                      <div className="panel fade-up">
                        <div className="panel-header">
-                         <span>Daśā Timeline</span>
+                         <span>Dasha Timeline</span>
                         <select
                           value={dashaSystem}
                           onChange={(e) => setDashaSystem(e.target.value as any)}
@@ -2067,13 +2067,13 @@ function HomeContent() {
                             fontFamily: 'inherit',
                           }}
                         >
-                          <option value="vimshottari">Viṁśottarī</option>
-                          <option value="yogini">Yoginī</option>
+                          <option value="vimshottari">Vimshottari</option>
+                          <option value="yogini">Yogini</option>
                           <option value="chara">Chara (K.N. Rao)</option>
                           <option value="chara_fe">Chara (Rangacharya FE)</option>
                           <option value="mandook">Mandook (K.N. Rao)</option>
                           <option value="sthir">Sthir</option>
-                          <option value="ashtottari">Aṣṭottarī</option>
+                          <option value="ashtottari">Ashtottari</option>
                         </select>
                        </div>
                        <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -2088,8 +2088,8 @@ function HomeContent() {
                              onTribhagi={setVimshottariTribhagi}
                            />
                          )}
-                         {dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Aṣṭottarī computation required.</div>)}
-                         {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <DashaTree nodes={chart.dashas.yogini} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yoginī computation required.</div>)}
+                         {dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Ashtottari computation required.</div>)}
+                         {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <DashaTree nodes={chart.dashas.yogini} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yogini computation required.</div>)}
                          {dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara computation required.</div>)}
                         {dashaSystem === 'chara_fe' && (chart.dashas.chara_fe?.length ? <DashaTree nodes={chart.dashas.chara_fe} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara FE computation required.</div>)}
                         {dashaSystem === 'mandook' && (chart.dashas.mandook?.length ? <DashaTree nodes={chart.dashas.mandook} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Mandook computation required.</div>)}
@@ -2123,14 +2123,14 @@ function HomeContent() {
 
                   {activeTab === 'arudhas' && (
                      <div className="panel fade-up">
-                        <div className="panel-header"><span>Bhāva Āruḍhas</span></div>
+                        <div className="panel-header"><span>Bhava Arudhas</span></div>
                         <div style={{ padding: '0.5rem 0.65rem' }}><ArudhaPanel arudhas={chart.arudhas} arudhasBphs={chart.arudhasBphs} /></div>
                      </div>
                   )}
 
                   {activeTab === 'shadbala' && (
                     <div className="panel fade-up">
-                      <div className="panel-header"><span>Ṣaḍbala</span></div>
+                      <div className="panel-header"><span>Shadbala</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}>
                         {chart.shadbala
                           ? <ShadbalaTable shadbala={chart.shadbala} hideDetails={true} preferClassicCharts={true} variant="widget" />
@@ -2141,7 +2141,7 @@ function HomeContent() {
 
                    {activeTab === 'bhava-bala' && (
                     <div className="panel fade-up">
-                      <div className="panel-header"><span>Bhāva Bala</span></div>
+                      <div className="panel-header"><span>Bhava Bala</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}>
                         {chart.bhavaBala ? (
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -2161,7 +2161,7 @@ function HomeContent() {
 
                   {activeTab === 'vimsopaka' && (
                     <div className="panel fade-up">
-                      <div className="panel-header"><span>Viṁśopaka</span></div>
+                      <div className="panel-header"><span>Vimsopaka</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}>
                         {chart.vimsopaka ? (
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -2186,7 +2186,7 @@ function HomeContent() {
               {activeTab === 'dasha' && (
                 <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
                   <div className="panel-header">
-                    <span>All Daśās Available</span>
+                    <span>All Dashas Available</span>
                     <ExportPdfButton
                       chart={chart}
                       compact
@@ -2196,13 +2196,13 @@ function HomeContent() {
                   </div>
                   <div style={{ padding: '0.5rem 0.65rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
                     {([
-                      { id: 'vimshottari', label: vimshottariTribhagi ? 'Viṁśottarī (Tribhagi)' : 'Viṁśottarī', nodes: vimshottariNodes },
-                      { id: 'yogini', label: 'Yoginī', nodes: chart.dashas.yogini ?? [] },
+                      { id: 'vimshottari', label: vimshottariTribhagi ? 'Vimshottari (Tribhagi)' : 'Vimshottari', nodes: vimshottariNodes },
+                      { id: 'yogini', label: 'Yogini', nodes: chart.dashas.yogini ?? [] },
                       { id: 'chara', label: 'Chara (K.N. Rao)', nodes: chart.dashas.chara ?? [] },
                       { id: 'chara_fe', label: 'Chara (Rangacharya FE)', nodes: chart.dashas.chara_fe ?? [] },
                       { id: 'mandook', label: 'Mandook (K.N. Rao)', nodes: chart.dashas.mandook ?? [] },
                       { id: 'sthir', label: 'Sthir', nodes: chart.dashas.sthir ?? [] },
-                      { id: 'ashtottari', label: 'Aṣṭottarī', nodes: chart.dashas.ashtottari ?? [] },
+                      { id: 'ashtottari', label: 'Ashtottari', nodes: chart.dashas.ashtottari ?? [] },
                     ] as const).map((system) => (
                       <div
                         key={system.id}
@@ -2238,7 +2238,7 @@ function HomeContent() {
                {/* BOTTOM: Full-width Shadbala below charts */}
                {activeTab === 'shadbala' && (
                  <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                   <div className="panel-header"><span>Ṣaḍbala Strength</span></div>
+                   <div className="panel-header"><span>Shadbala Strength</span></div>
                    <div style={{ padding: '0.5rem 0.65rem' }}>
                      {chart.shadbala ? <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts={true} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Shadbala.</div>}
                    </div>
@@ -2248,7 +2248,7 @@ function HomeContent() {
                {/* BOTTOM: Full-width Bhava Bala below charts */}
                {activeTab === 'bhava-bala' && (
                  <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                   <div className="panel-header"><span>Bhāva Bala — House Strength</span></div>
+                   <div className="panel-header"><span>Bhava Bala — House Strength</span></div>
                    <div style={{ padding: '0.5rem 0.65rem' }}>
                      {chart.bhavaBala ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Bhava Bala.</div>}
                    </div>
@@ -2258,9 +2258,9 @@ function HomeContent() {
                 {/* BOTTOM: Full-width Ashtakavarga below charts */}
                 {activeTab === 'ashtakavarga' && (
                   <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                    <div className="panel-header"><span>Aṣṭakavarga Intelligence</span></div>
+                    <div className="panel-header"><span>Ashtakavarga Intelligence</span></div>
                     <div style={{ padding: '0.5rem 0.65rem' }}>
-                     {chart.ashtakavarga ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Aṣṭakavarga.</div>}
+                     {chart.ashtakavarga ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</div>}
                     </div>
                   </div>
                 )}
@@ -2268,8 +2268,8 @@ function HomeContent() {
                 {/* BOTTOM: Full-width Vimsopaka below charts */}
                 {activeTab === 'vimsopaka' && (
                   <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                    <div className="panel-header"><span>Viṁśopaka Bala</span></div>
-                    {chart.vimsopaka ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.75rem', fontSize: '0.78rem' }}>Viṁśopaka data unavailable — recalculate chart.</div>}
+                    <div className="panel-header"><span>Vimsopaka Bala</span></div>
+                    {chart.vimsopaka ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.75rem', fontSize: '0.78rem' }}>Vimsopaka data unavailable — recalculate chart.</div>}
                   </div>
                 )}
 
@@ -2360,7 +2360,7 @@ function HomeContent() {
                     {/* ── Shadbala ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandShad ? '1 / -1' : undefined }}>
                       <div className="panel-header">
-                        <span>Ṣaḍbala</span>
+                        <span>Shadbala</span>
                         {chart.shadbala && <button type="button" onClick={() => setDashExpandShad(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandShad ? '▴' : '▾ Full'}</button>}
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
@@ -2411,7 +2411,7 @@ function HomeContent() {
                     {/* ── Vimsopaka ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandVim ? '1 / -1' : undefined }}>
                       <div className="panel-header">
-                        <span>Viṁśopaka (16 Vargas)</span>
+                        <span>Vimsopaka (16 Vargas)</span>
                         {chart.vimsopaka && <button type="button" onClick={() => setDashExpandVim(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandVim ? '▴' : '▾ Full'}</button>}
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
@@ -2480,7 +2480,7 @@ function HomeContent() {
                     {/* ── Bhava Bala ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandBhava ? '1 / -1' : undefined }}>
                       <div className="panel-header">
-                        <span>Bhāva Bala</span>
+                        <span>Bhava Bala</span>
                         {chart.bhavaBala && <button type="button" onClick={() => setDashExpandBhava(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandBhava ? '▴' : '▾ Full'}</button>}
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
@@ -2548,11 +2548,11 @@ function HomeContent() {
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
                             {[
-                              { label: 'Vāra',     value: `${chart.panchang.vara.name} · lord ${GRAHA_NAMES[chart.panchang.vara.lord as GrahaId] ?? chart.panchang.vara.lord}` },
-                              { label: 'Tithi',    value: `${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30) · ${chart.panchang.tithi.paksha === 'shukla' ? 'Śukla' : 'Kṛṣṇa'}` },
-                              { label: 'Nakṣatra', value: `${chart.panchang.nakshatra.name} · Pada ${chart.panchang.nakshatra.pada}` },
+                              { label: 'Vara',     value: `${chart.panchang.vara.name} · lord ${GRAHA_NAMES[chart.panchang.vara.lord as GrahaId] ?? chart.panchang.vara.lord}` },
+                              { label: 'Tithi',    value: `${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30) · ${chart.panchang.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'}` },
+                              { label: 'Nakshatra', value: `${chart.panchang.nakshatra.name} · Pada ${chart.panchang.nakshatra.pada}` },
                               { label: 'Yoga',     value: chart.panchang.yoga.name },
-                              { label: 'Karaṇa',  value: chart.panchang.karana.name },
+                              { label: 'Karana',  value: chart.panchang.karana.name },
                               { label: 'Sunrise',  value: new Date(chart.panchang.sunrise).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) },
                             ].map(({ label, value }) => (
                               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '0.18rem 0', borderBottom: '1px solid var(--border-soft)', gap: '0.5rem' }}>
@@ -2919,7 +2919,7 @@ function HomeContent() {
         }}>
           <div>
              <h2 style={{ fontSize: '1.4rem', margin: '0 0 0.2rem 0', fontFamily: 'var(--font-display)', color: 'var(--text-gold)', fontWeight: 600 }}>Birth Details</h2>
-             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', letterSpacing: '0.05em' }}>Janma Kāla Entry</span>
+             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', letterSpacing: '0.05em' }}>Janma Kala Entry</span>
           </div>
           <button 
             onClick={closeDrawer}

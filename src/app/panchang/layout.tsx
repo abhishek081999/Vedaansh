@@ -2,18 +2,19 @@ import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { PANCHANG_SEO } from '@/lib/seo/intro-content'
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
+import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
-  title:       'Daily Panchang — Vedic Calendar',
+  title:       'Free Daily Panchang — Tithi, Nakshatra & Rahu Kalam',
   description: 'Free daily Vedic Panchang: Tithi, Vara, Nakshatra, Yoga, Karana, Rahu Kalam, Gulika & Abhijit Muhurta. Real sunrise/sunset via Swiss Ephemeris.',
-  alternates:  { canonical: `${BASE_URL}/panchang` },
+  alternates:  { canonical: `${SITE_URL}/panchang` },
+  keywords:    ['Panchang', 'daily panchang', 'Tithi', 'Nakshatra', 'Rahu Kalam', 'Abhijit Muhurta', 'Hora table', 'Vedic calendar', 'Hindu panchang'],
   openGraph: {
     title:       'Daily Panchang — Vedaansh',
     description: 'Free daily Vedic Panchang with astronomical sunrise, Rahu Kalam, Nakshatra & Hora table.',
-    url:         `${BASE_URL}/panchang`,
+    url:         `${SITE_URL}/panchang`,
     type:        'website',
-    images:      [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Daily Panchang — Vedaansh' }],
+    images:      ogImages('Daily Panchang — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
@@ -23,14 +24,10 @@ export const metadata: Metadata = {
   },
 }
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type':    'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home',     item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Panchang', item: `${BASE_URL}/panchang` },
-  ],
-}
+const jsonLd = breadcrumbJsonLd([
+  { name: 'Home', path: '/' },
+  { name: 'Panchang', path: '/panchang' },
+])
 
 export default async function PanchangLayout({ children }: { children: React.ReactNode }) {
   return (

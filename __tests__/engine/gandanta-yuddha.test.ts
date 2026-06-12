@@ -14,7 +14,7 @@ import type { GandantaResult, YuddhaResult } from '@/types/astrology'
 // ── Gandanta Tests ────────────────────────────────────────────
 
 describe('Gandanta Detection', () => {
-  describe('Revatī-Aśvinī Gandanta (Pisces → Aries)', () => {
+  describe('Revati-Ashvini Gandanta (Pisces → Aries)', () => {
     it('Should detect exact gandanta at 0° Aries', () => {
       const result = checkGandanta(0) // 0° Aries
       expect(result.isGandanta).toBe(true)
@@ -56,7 +56,7 @@ describe('Gandanta Detection', () => {
     })
   })
 
-  describe('Āśleṣā-Maghā Gandanta (Cancer → Leo)', () => {
+  describe('Ashlesha-Magha Gandanta (Cancer → Leo)', () => {
     it('Should detect exact gandanta at 0° Leo (120°)', () => {
       const result = checkGandanta(120) // 0° Leo
       expect(result.isGandanta).toBe(true)
@@ -79,7 +79,7 @@ describe('Gandanta Detection', () => {
     })
   })
 
-  describe('Jyeṣṭhā-Mūla Gandanta (Scorpio → Sagittarius)', () => {
+  describe('Jyeshtha-Mula Gandanta (Scorpio → Sagittarius)', () => {
     it('Should detect exact gandanta at 0° Sagittarius (240°)', () => {
       const result = checkGandanta(240) // 0° Sagittarius
       expect(result.isGandanta).toBe(true)
@@ -117,20 +117,20 @@ describe('Gandanta Detection', () => {
   describe('Gandanta Descriptions', () => {
     it('Should return description for revati-ashwini', () => {
       const desc = getGandantaDescription('revati-ashwini')
-      expect(desc.name).toContain('Revatī')
+      expect(desc.name).toContain('Revati')
       expect(desc.sanskrit).toBeTruthy()
       expect(desc.remedy).toBeTruthy()
     })
 
     it('Should return description for ashlesha-magha', () => {
       const desc = getGandantaDescription('ashlesha-magha')
-      expect(desc.name).toContain('Āśleṣā')
+      expect(desc.name).toContain('Ashlesha')
       expect(desc.significance).toBeTruthy()
     })
 
     it('Should return description for jyeshtha-mula', () => {
       const desc = getGandantaDescription('jyeshtha-mula')
-      expect(desc.name).toContain('Jyeṣṭhā')
+      expect(desc.name).toContain('Jyeshtha')
       expect(desc.meaning).toBeTruthy()
     })
   })

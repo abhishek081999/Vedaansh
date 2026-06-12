@@ -127,15 +127,15 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
           const ampm = h >= 12 ? 'pm' : 'am'
           return `${h % 12 || 12}:${String(min).padStart(2, '0')} ${ampm}`
         })()} />
-        <Row label="Vāra"    value={`${chart.panchang.vara.name} · ${GRAHA_NAMES[chart.panchang.vara.lord]}`} />
-        <Row label="Tithi"   value={`${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30) · ${chart.panchang.tithi.paksha === 'shukla' ? 'Śukla' : 'Kṛṣṇa'}`} />
-        <Row label="Nakṣatra" value={`${moon.nakshatraName} · Pada ${moon.pada}`} />
+        <Row label="Vara"    value={`${chart.panchang.vara.name} · ${GRAHA_NAMES[chart.panchang.vara.lord]}`} />
+        <Row label="Tithi"   value={`${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30) · ${chart.panchang.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'}`} />
+        <Row label="Nakshatra" value={`${moon.nakshatraName} · Pada ${moon.pada}`} />
         <Row label="Yoga"    value={chart.panchang.yoga.name} />
-        <Row label="Karaṇa"  value={chart.panchang.karana.name} />
+        <Row label="Karana"  value={chart.panchang.karana.name} />
         <Row label="Sunrise / Sunset" value={`${fmtTime(chart.panchang.sunrise)} / ${fmtTime(chart.panchang.sunset)} (${dayNight})`} />
         <Row label="Place"   value={chart.meta.birthPlace || '—'} />
         <Row label="Coords"  value={`${chart.meta.latitude.toFixed(3)}°, ${chart.meta.longitude.toFixed(3)}°`} />
-        <Row label="Ayanāṃśa" value={`${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(3)}°`} />
+        <Row label="Ayanamsha" value={`${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(3)}°`} />
       </Sec>
 
       {/* ── Lagna & signs ── */}
@@ -148,24 +148,24 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
       </Sec>
 
       {/* ── Nakshatra details ── */}
-      <Sec title="Nakṣatra (Moon)">
+      <Sec title="Nakshatra (Moon)">
         <Row label="Lord"    value={GRAHA_NAMES[moonChars.lord]} />
         <Row label="Deity"   value={moonChars.deity} />
         <Row label="Symbol"  value={moonChars.symbol} />
-        <Row label="Gaṇa"    value={`${moonChars.gana} · koota: ${getGanaName(moonNak1)}`} />
+        <Row label="Gana"    value={`${moonChars.gana} · koota: ${getGanaName(moonNak1)}`} />
         <Row label="Yoni"    value={moonChars.yoni} />
-        <Row label="Nāḍī"    value={`${moonChars.nadi} · koota: ${getNadiName(moonNak1)}`} />
-        <Row label="Varṇa"   value={`${moonChars.varna} · rāśi: ${getVarnaName(moon.rashi)}`} />
-        <Row label="Vaśya"   value={getVashyaName(moon.rashi)} />
-        <Row label="Śakti"   value={moonChars.shakti} />
+        <Row label="Nadi"    value={`${moonChars.nadi} · koota: ${getNadiName(moonNak1)}`} />
+        <Row label="Varna"   value={`${moonChars.varna} · rashi: ${getVarnaName(moon.rashi)}`} />
+        <Row label="Vashya"   value={getVashyaName(moon.rashi)} />
+        <Row label="Shakti"   value={moonChars.shakti} />
         <Row label="Nature"  value={moonChars.nature} />
         <Row label="Paya"    value={getNakshatraPaya(moon.pada)} />
-        <Row label="Nāma syllable" value={getPadaNamingSyllable(moon.nakshatraIndex, moon.pada)} />
+        <Row label="Nama syllable" value={getPadaNamingSyllable(moon.nakshatraIndex, moon.pada)} />
       </Sec>
 
       {/* ── Special lagnas ── */}
       <Sec title="Special Lagnas &amp; Points">
-        <Row label="Āruḍha (AL)"  value={chart.arudhas.AL ? RASHI_NAMES[chart.arudhas.AL] : '—'} />
+        <Row label="Arudha (AL)"  value={chart.arudhas.AL ? RASHI_NAMES[chart.arudhas.AL] : '—'} />
         {bhriguFmt && bhriguLon != null && (
           <Row label="Bhrigu Bindu" value={`${fmtDeg(bhriguFmt.rashi, bhriguFmt.degInSign)}`} />
         )}
@@ -180,22 +180,22 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
         <Row label="Hora Lagna"    value={fmtSpecialLagna(chart.lagnas.horaLagna)} />
         <Row label="Ghati Lagna"   value={fmtSpecialLagna(chart.lagnas.ghatiLagna)} />
         <Row label="Vighati Lagna" value={fmtSpecialLagna(chart.lagnas.vighatiLagna)} />
-        <Row label="Varṇada Lagna" value={fmtSpecialLagna(chart.lagnas.varnadaLagna)} />
-        <Row label="Śrī Lagna"     value={fmtSpecialLagna(chart.lagnas.sriLagna)} />
-        <Row label="Praṇapada"     value={fmtSpecialLagna(chart.lagnas.pranapada)} />
+        <Row label="Varnada Lagna" value={fmtSpecialLagna(chart.lagnas.varnadaLagna)} />
+        <Row label="Shri Lagna"     value={fmtSpecialLagna(chart.lagnas.sriLagna)} />
+        <Row label="Pranapada"     value={fmtSpecialLagna(chart.lagnas.pranapada)} />
         <Row label="Indu Lagna"    value={fmtSpecialLagna(chart.lagnas.induLagna)} />
-        {beeja   && <Row label="Bīja Sphuta"   value={`${beeja.rashiName} ${beeja.degree.toFixed(2)}°`} />}
-        {kshetra && <Row label="Kṣetra Sphuta" value={`${kshetra.rashiName} ${kshetra.degree.toFixed(2)}°`} />}
+        {beeja   && <Row label="Bija Sphuta"   value={`${beeja.rashiName} ${beeja.degree.toFixed(2)}°`} />}
+        {kshetra && <Row label="Kshetra Sphuta" value={`${kshetra.rashiName} ${kshetra.degree.toFixed(2)}°`} />}
       </Sec>
 
       {/* ── Nodes & eras ── */}
       <Sec title="Nodes &amp; Hindu Eras">
-        {rahu && <Row label="Rāhu" value={`${RASHI_NAMES[rahu.rashi]} · ${fmtDeg(rahu.rashi, rahu.degree)}`} />}
+        {rahu && <Row label="Rahu" value={`${RASHI_NAMES[rahu.rashi]} · ${fmtDeg(rahu.rashi, rahu.degree)}`} />}
         {chart.grahas.find(g => g.id === 'Ke') && (() => {
           const k = chart.grahas.find(g => g.id === 'Ke')!
           return <Row label="Ketu" value={`${RASHI_NAMES[k.rashi]} · ${fmtDeg(k.rashi, k.degree)}`} />
         })()}
-        <Row label="Śaka Samvat"   value={`~ ${eras.shaka}`} />
+        <Row label="Shaka Samvat"   value={`~ ${eras.shaka}`} />
         <Row label="Vikram Samvat" value={`~ ${eras.vikram}`} />
       </Sec>
 

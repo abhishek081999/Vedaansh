@@ -29,12 +29,12 @@ const PLANET_COLOR: Record<string, string> = {
 }
 
 const COMPONENTS = [
-  { key: 'sthanaBala',     label: 'Sthāna',   full: 'Positional Strength' },
+  { key: 'sthanaBala',     label: 'Sthana',   full: 'Positional Strength' },
   { key: 'digBala',        label: 'Dik',       full: 'Directional Strength' },
-  { key: 'kalaBala',       label: 'Kāla',      full: 'Temporal Strength' },
-  { key: 'chestaBala',     label: 'Cheṣṭā',   full: 'Motional Strength' },
+  { key: 'kalaBala',       label: 'Kala',      full: 'Temporal Strength' },
+  { key: 'chestaBala',     label: 'Cheshta',   full: 'Motional Strength' },
   { key: 'naisargikaBala', label: 'Naisargik', full: 'Natural Strength' },
-  { key: 'drikBala',       label: 'Dṛk',       full: 'Aspectual Strength' },
+  { key: 'drikBala',       label: 'Drik',       full: 'Aspectual Strength' },
 ]
 
 const ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
@@ -324,7 +324,7 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
 
       <div style={{ textAlign: 'center', paddingTop: '1rem', borderTop: '1px solid var(--border-soft)' }}>
         <p style={{ fontSize: '0.75rem', fontStyle: 'italic', margin: 0 }}>
-          Visualized using the Ṣaṭkalā methodology. 1 Rupa = 60 Shashtiamsas. 
+          Visualized using the Shatkala methodology. 1 Rupa = 60 Shashtiamsas. 
           Radar shows relative distribution across Sthana, Dig, Kala, Chesta, Naisargika, and Drik Balas.
         </p>
       </div>

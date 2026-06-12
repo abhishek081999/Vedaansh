@@ -789,7 +789,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     const alBenefics = currentGrahas.filter(g => benefics.includes(g.id) && (g.rashi === alRashi || getRashiDrishti(alRashi).includes(g.rashi)));
     if (alBenefics.length >= 2) {
       yogas.push({
-        name: 'Arudha Subha Yoga',
+        name: 'Arudha Shubha Yoga',
         desc: 'Multiple benefics influence the Arudha Lagna, creating a successful public image.',
         strength: 'High'
       });
@@ -853,7 +853,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           <span style={{ display: 'block', marginTop: 2, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'none', fontSize: '0.58rem' }}>
             {showArudhaOverlay
               ? `${arudhaBphsMode ? 'BPHS corrected' : 'Raw pada'} · AL in ${RASHI_SHORT[chartArudhas.AL]}${diffCount > 0 ? ` · ${diffCount} pada(s) differ with BPHS` : ''}`
-              : 'Āruḍha labels hidden'}
+              : 'Arudha labels hidden'}
           </span>
         </div>
         {chartStyle === 'south' ? (
@@ -950,7 +950,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
               {/* Arudha display */}
               <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'wrap' }}>
-                <ArudhaToggle label="Āruḍha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
+                <ArudhaToggle label="Arudha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
                 <ArudhaToggle
                   label="BPHS exceptions"
                   value={arudhaBphsMode}
@@ -1142,8 +1142,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               border: '1px solid var(--border-soft)',
             }}>
               {([
-                { id: 'D1' as const, label: 'D1', sub: 'Rāśi' },
-                { id: 'D9' as const, label: 'D9', sub: 'Navāmśa' },
+                { id: 'D1' as const, label: 'D1', sub: 'Rashi' },
+                { id: 'D9' as const, label: 'D9', sub: 'Navamsha' },
               ]).map(({ id, label, sub }) => {
                 const active = mobileChartVarga === id;
                 return (
@@ -1188,12 +1188,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           }}>
             {isMobile ? (
               mobileChartVarga === 'D1'
-                ? renderJaiminiChartBlock('D1 · Rāśi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)
-                : renderJaiminiChartBlock('D9 · Navāmśa', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)
+                ? renderJaiminiChartBlock('D1 · Rashi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)
+                : renderJaiminiChartBlock('D9 · Navamsha', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)
             ) : (
               <>
-                {renderJaiminiChartBlock('D1 · Rāśi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)}
-                {renderJaiminiChartBlock('D9 · Navāmśa', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)}
+                {renderJaiminiChartBlock('D1 · Rashi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)}
+                {renderJaiminiChartBlock('D9 · Navamsha', 'D9', d9Grahas, d9EffectiveArudhas, d9ArudhaDiffCount)}
               </>
             )}
           </div>
@@ -1214,7 +1214,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                 {/* Sign Aspects Layer */}
                 {(vizMode === 'drishti' || vizMode === 'both') && (
                   <div>
-                    <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 900, marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rāśi Dṛṣṭi (Aspects):</div>
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 900, marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rashi Drishti (Aspects):</div>
                     <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
                       {getRashiDrishti(selectedAspectSign).map(a => (
                         <span key={a} style={{ padding: '1px 6px', background: 'var(--surface-3)', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700 }}>{RASHI_SHORT[a]}</span>
@@ -1504,7 +1504,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   {jaiminiYogas.length > 0 && (
                     <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '8px', overflow: 'hidden' }}>
                       <div style={{ padding: '0.4rem', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', textAlign: 'center', textTransform: 'uppercase' }}>
-                        Principal Rājayogas
+                        Principal Rajayogas
                       </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
                         <tbody>
@@ -1562,7 +1562,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               {activeTab === 'arudhas' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <ArudhaToggle label="Āruḍha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
+                    <ArudhaToggle label="Arudha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
                     <ArudhaToggle
                       label="BPHS exceptions"
                       value={arudhaBphsMode}
@@ -1574,7 +1574,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         ? (arudhaBphsMode
                           ? `BPHS corrected · D1 AL ${RASHI_SHORT[d1EffectiveArudhas.AL]} · D9 AL ${RASHI_SHORT[d9EffectiveArudhas.AL]}`
                           : `Raw pada · D1 AL ${RASHI_SHORT[d1EffectiveArudhas.AL]} · D9 AL ${RASHI_SHORT[d9EffectiveArudhas.AL]}`)
-                        : 'Āruḍha labels hidden on charts'}
+                        : 'Arudha labels hidden on charts'}
                     </span>
                   </div>
 
@@ -1583,7 +1583,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     return (
                       <div key={varga} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                          {varga === 'D1' ? 'D1 · Rāśi' : 'D9 · Navāmśa'} Arudha Matrix
+                          {varga === 'D1' ? 'D1 · Rashi' : 'D9 · Navamsha'} Arudha Matrix
                         </h3>
                         <div style={{
                           display: 'grid',

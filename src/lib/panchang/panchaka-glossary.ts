@@ -1,13 +1,13 @@
 /**
- * Reference copy for UI — Pañcaka nomenclature varies widely by region and school.
+ * Reference copy for UI — Pancaka nomenclature varies widely by region and school.
  * Not used for automated “risk” scoring here.
  */
 
 export const PANCHAKA_GLOSSARY = [
   {
-    sa: 'Mṛtyu',
+    sa: 'Mrityu',
     en: 'Mortality',
-    hint: 'Often tied to specific nakṣatra–tithi–vāra triplets in travel / house-start rules.',
+    hint: 'Often tied to specific nakshatra–tithi–vara triplets in travel / house-start rules.',
   },
   {
     sa: 'Agni',
@@ -15,7 +15,7 @@ export const PANCHAKA_GLOSSARY = [
     hint: 'Heat / dispute imagery in classical cautions; tables differ.',
   },
   {
-    sa: 'Rāja',
+    sa: 'Raja',
     en: 'Royal / binding',
     hint: 'Sometimes linked to authority or obligations; not a single universal formula.',
   },

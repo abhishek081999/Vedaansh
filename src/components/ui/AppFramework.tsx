@@ -46,7 +46,7 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
     tabs: [
       { id: 'astro-details', label: 'Astro Details', icon: '📋', path: ASTROLOGY_ROUTE },
       { id: 'planets',   label: 'Planets',     icon: '✦', path: ASTROLOGY_ROUTE },
-      { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: ASTROLOGY_ROUTE },
+      { id: 'dasha',     label: 'Dasha',        icon: '⏳', path: ASTROLOGY_ROUTE },
       { id: 'house',     label: 'House',       icon: '🏠', path: ASTROLOGY_ROUTE },
       { id: 'yogas',     label: 'Yogas',       icon: '✧', path: ASTROLOGY_ROUTE },
       { id: 'kp-stellar', label: 'Stellar (KP)', icon: '⭐', path: ASTROLOGY_ROUTE },
@@ -62,10 +62,10 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
   {
     label: 'Strength & Analytics',
     tabs: [
-      { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: ASTROLOGY_ROUTE },
-      { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: ASTROLOGY_ROUTE },
-      { id: 'bhava-bala', label: 'Bhāva Bala',   icon: '⌗', path: ASTROLOGY_ROUTE },
-      { id: 'vimsopaka',  label: 'Viṁśopaka',    icon: '⑳', path: ASTROLOGY_ROUTE },
+      { id: 'ashtakavarga', label: 'Ashtakavarga',  icon: '⬡', path: ASTROLOGY_ROUTE },
+      { id: 'shadbala',  label: 'Shadbala',      icon: '⚖', path: ASTROLOGY_ROUTE },
+      { id: 'bhava-bala', label: 'Bhava Bala',   icon: '⌗', path: ASTROLOGY_ROUTE },
+      { id: 'vimsopaka',  label: 'Vimsopaka',    icon: '⑳', path: ASTROLOGY_ROUTE },
     ]
   },
   {
@@ -539,7 +539,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               ADVANCED_ASTRO_TABS.map(t => renderTab(t, true))
             ))}
 
-            {renderAccordion('Nakṣatra', '🌙', isNakshatraOpen, toggleNakshatraOpen, (
+            {renderAccordion('Nakshatra', '🌙', isNakshatraOpen, toggleNakshatraOpen, (
               NAKSHATRA_TABS.map(t => renderTab(t, true))
             ))}
 

@@ -14,9 +14,9 @@ import type { Rashi, GandantaResult, GandantaType } from '@/types/astrology'
  * past-life karma that needs to be resolved in this lifetime.
  * 
  * Three Gandanta Junctions:
- * 1. Revatī → Aśvinī (Pisces → Aries) - 0° Aries
- * 2. Āśleṣā → Maghā (Cancer → Leo) - 0° Leo  
- * 3. Jyeṣṭhā → Mūla (Scorpio → Sagittarius) - 0° Sagittarius
+ * 1. Revati → Ashvini (Pisces → Aries) - 0° Aries
+ * 2. Ashlesha → Magha (Cancer → Leo) - 0° Leo  
+ * 3. Jyeshtha → Mula (Scorpio → Sagittarius) - 0° Sagittarius
  */
 
 // Gandanta junction definitions
@@ -192,21 +192,21 @@ export function getGandantaDescription(type: GandantaType): {
 } {
   const descriptions = {
     'revati-ashwini': {
-      name: 'Revatī-Aśvinī Gandanta',
+      name: 'Revati-Ashvini Gandanta',
       sanskrit: 'रेवत्याश्विनी गन्धान्त',
       meaning: 'The Knot of Transition',
       significance: 'Represents the soul\'s journey from the spiritual realm (Pisces) to physical incarnation (Aries). Past life karma related to endings and new beginnings.',
       remedy: 'Worship Lord Ganesha for removing obstacles. Perform ancestral rites (pitru tarpana) on Amavasya.',
     },
     'ashlesha-magha': {
-      name: 'Āśleṣā-Maghā Gandanta',
+      name: 'Ashlesha-Magha Gandanta',
       sanskrit: 'आश्लेषामघा गन्धान्त',
       meaning: 'The Knot of Power',
       significance: 'Represents transformation from emotional attachment (Cancer) to spiritual authority (Leo). Past life karma related to family, authority, and self-expression.',
       remedy: 'Worship Lord Shiva or the Sun God (Surya). Perform charity on Sundays. Recite Aditya Hridayam.',
     },
     'jyeshtha-mula': {
-      name: 'Jyeṣṭhā-Mūla Gandanta',
+      name: 'Jyeshtha-Mula Gandanta',
       sanskrit: 'ज्येष्ठामूल गन्धान्त',
       meaning: 'The Knot of Destruction',
       significance: 'Represents the journey from emotional intensity (Scorpio) to spiritual wisdom (Sagittarius). Past life karma related to transformation, occult, and hidden matters.',

@@ -1,26 +1,40 @@
 import type { Metadata } from 'next'
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { SeoIntro } from '@/components/seo/SeoIntro'
+import { COMPARE_SEO } from '@/lib/seo/intro-content'
+import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
-  title:       'Chart Comparison & Synastry — Vedaansh',
-  description: 'Compare two Vedic birth charts side-by-side. Ashtakoot compatibility scoring, Dosha analysis, Guna Milan & synastry overlays for relationships and compatibility.',
-  alternates:  { canonical: `${BASE_URL}/compare` },
-  keywords:    ['Kundali matching', 'synastry', 'chart comparison', 'Ashtakoot', 'Guna Milan', 'compatibility', 'Dosha', 'Vedic compatibility'],
+  title:       'Free Kundali Matching — Ashtakoot Guna Milan',
+  description: 'Free Kundali matching with 36-point Ashtakoot Guna Milan, Mangal Dosha checks, and side-by-side Vedic chart comparison. No login required.',
+  alternates:  { canonical: `${SITE_URL}/compare` },
+  keywords:    ['Kundali matching', 'free kundali matching', 'Ashtakoot', 'Guna Milan', 'synastry', 'chart comparison', 'Mangal Dosha', 'Vedic compatibility', 'marriage matching'],
   openGraph: {
-    title:       'Chart Comparison & Kundali Matching — Vedaansh',
-    description: 'Compare two Vedic charts: Ashtakoot compatibility, Dosha analysis & synastry overlays.',
-    url:         `${BASE_URL}/compare`,
+    title:       'Free Kundali Matching — Ashtakoot Guna Milan | Vedaansh',
+    description: '36-point Ashtakoot scoring, dosha analysis, and dual birth-chart comparison — free.',
+    url:         `${SITE_URL}/compare`,
     type:        'website',
-    images:      [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Chart Comparison — Vedaansh' }],
+    images:      ogImages('Kundali Matching — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
-    title:       'Chart Comparison & Kundali Matching — Vedaansh',
-    description: 'Ashtakoot compatibility, Dosha analysis & synastry overlays for two Vedic charts.',
+    title:       'Free Kundali Matching — Ashtakoot Guna Milan | Vedaansh',
+    description: '36-point Ashtakoot scoring, dosha analysis, and dual birth-chart comparison — free.',
     images:      ['/og-default.png'],
   },
 }
 
-export default function CompareLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+const jsonLd = breadcrumbJsonLd([
+  { name: 'Home', path: '/' },
+  { name: 'Kundali Matching', path: '/compare' },
+])
+
+export default async function CompareLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <SeoIntro {...COMPARE_SEO} />
+      <JsonLd data={jsonLd} />
+      {children}
+    </>
+  )
 }

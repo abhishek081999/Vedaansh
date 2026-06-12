@@ -31,7 +31,7 @@ export const DASHA_SEQUENCE = [
 
 export type VimshottariLord = (typeof DASHA_SEQUENCE)[number]
 
-/** Each Viṁśottarī lord’s three nakṣatras (fixed groups; used outside tribhagi progression) */
+/** Each Vimshottari lord’s three nakshatras (fixed groups; used outside tribhagi progression) */
 export const LORD_TRIBHAGI_NAKSHATRAS: Record<VimshottariLord, [number, number, number]> = {
   Ke: [0, 9, 18],
   Ve: [1, 10, 19],
@@ -46,7 +46,7 @@ export const LORD_TRIBHAGI_NAKSHATRAS: Record<VimshottariLord, [number, number, 
 
 // ── Helper ────────────────────────────────────────────────────
 
-/** Tropical year (legacy default for standard Viṁśottarī) */
+/** Tropical year (legacy default for standard Vimshottari) */
 const TROPICAL_YEAR_MS = 365.25 * 24 * 60 * 60 * 1000
 /** Mean sidereal year — PyJHora / JHora default for dasha durations */
 const SIDEREAL_YEAR_MS = 365.256363004 * 24 * 60 * 60 * 1000
@@ -56,7 +56,7 @@ function yearsToMs(years: number, useSiderealYear: boolean): number {
 }
 
 /**
- * Tribhagi: each mahadasha steps one nakṣatra forward from birth nakṣatra
+ * Tribhagi: each mahadasha steps one nakshatra forward from birth nakshatra
  * (Ashwini→…→Revati cycle), matching JHora “Tribhagi variation” lists.
  */
 export function tribhagiMahaNakshatraIndex(

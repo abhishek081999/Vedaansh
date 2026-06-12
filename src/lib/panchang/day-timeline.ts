@@ -1,6 +1,6 @@
 /**
  * Limb timeline between local sunrise and next sunrise (Hindu civil day style).
- * Boundaries = union of tithi, nakṣatra, yoga, and karaṇa changes from ephemeris search.
+ * Boundaries = union of tithi, nakshatra, yoga, and karana changes from ephemeris search.
  */
 
 import type { AyanamshaMode } from '@/types/astrology'
@@ -31,7 +31,7 @@ export interface TimelineSegment {
   start: string
   end: string
   label: string
-  /** e.g. pakṣa for tithi */
+  /** e.g. paksha for tithi */
   sub?: string
 }
 
@@ -153,7 +153,7 @@ export function buildPanchangDayTimeline(
   const tithi = mergeAdjacentSameLimb(
     buildSegments(boundaries, mode, (sun, moon) => {
       const t = getTithi(moon, sun)
-      return { label: t.name, sub: t.paksha === 'shukla' ? 'Śukla' : 'Kṛṣṇa' }
+      return { label: t.name, sub: t.paksha === 'shukla' ? 'Shukla' : 'Krishna' }
     }),
   )
   const nakshatra = mergeAdjacentSameLimb(

@@ -1039,7 +1039,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               </select>
             </div>
             <div>
-              <label className="field-label">Rāhu / Ketu nodes</label>
+              <label className="field-label">Rahu / Ketu nodes</label>
               <select className="input" value={settings.nodeMode}
                 onChange={(e) => setSettings((s) => ({ ...s, nodeMode: e.target.value as any }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>

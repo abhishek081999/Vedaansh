@@ -301,7 +301,7 @@ export async function GET(req: NextRequest) {
       timeline,
     }
 
-    // Cache for 24 hours (personal Tārā/Chandra bala is merged per-request, not stored)
+    // Cache for 24 hours (personal Tara/Chandra bala is merged per-request, not stored)
     await redis.set(cacheKey, panchang, CACHE_TTL.PANCHANG)
 
     const data = mergePersonalBala(panchang as Record<string, unknown>, birthNak, birthMoonRashi)

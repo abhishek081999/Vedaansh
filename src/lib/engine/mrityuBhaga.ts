@@ -1,13 +1,13 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/mrityuBhaga.ts
-//  Mṛtyu Bhāga - Death-Inflicting Degrees
+//  Mrityu Bhaga - Death-Inflicting Degrees
 //  Source: Phaladipika, Sarvartha Chintamani
 // ─────────────────────────────────────────────────────────────
 
 import type { Rashi, MrityuBhagaResult } from '@/types/astrology'
 
 /**
- * Mṛtyu Bhāga (Death Degrees)
+ * Mrityu Bhaga (Death Degrees)
  * 
  * These are specific degrees in each sign that have a connection to
  * death, transformation, and major life changes. Planets at these
@@ -17,14 +17,14 @@ import type { Rashi, MrityuBhagaResult } from '@/types/astrology'
  * - Near-death experiences
  * - Major life transitions
  * 
- * The term "Mṛtyu" means death, but in Vedic astrology it often
+ * The term "Mrityu" means death, but in Vedic astrology it often
  * refers to transformation and spiritual rebirth rather than
  * physical death.
  * 
  * Source: Phaladipika Chapter 4, Sarvartha Chintamani
  */
 
-// Mṛtyu Bhāga degrees for each sign
+// Mrityu Bhaga degrees for each sign
 // These are the exact degrees considered inauspicious for health/longevity
 export const MRITYU_BHAGA_DEGREES: Record<Rashi, number> = {
   1:  19,   // Aries: 19°
@@ -41,7 +41,7 @@ export const MRITYU_BHAGA_DEGREES: Record<Rashi, number> = {
   12: 7,    // Pisces: 7°
 }
 
-// Alternative Mṛtyu Bhāga from different texts (Sarvartha Chintamani)
+// Alternative Mrityu Bhaga from different texts (Sarvartha Chintamani)
 export const MRITYU_BHAGA_ALT: Record<Rashi, number> = {
   1:  10,   // Aries
   2:  22,   // Taurus
@@ -57,13 +57,13 @@ export const MRITYU_BHAGA_ALT: Record<Rashi, number> = {
   12: 10,   // Pisces
 }
 
-// Orbs for Mṛtyu Bhāga detection
+// Orbs for Mrityu Bhaga detection
 const MRITYU_ORB_EXACT = 0.5   // Within 0.5° is exact
 const MRITYU_ORB_NEAR = 1.5    // Within 1.5° is near
 const MRITYU_ORB_WIDE = 3.0    // Within 3° is wide
 
 /**
- * Check if a planet is in Mṛtyu Bhāga
+ * Check if a planet is in Mrityu Bhaga
  * 
  * @param lonSidereal - Sidereal longitude of the planet
  * @param useAlt - Use alternative degrees from Sarvartha Chintamani
@@ -91,7 +91,7 @@ export function checkMrityuBhaga(
       degreeInSign,
       mrityuDegree,
       distanceFromMrityu: distance,
-      interpretation: 'Planet is at exact Mṛtyu Bhāga degree. This indicates significant transformation potential and health sensitivity. Strong spiritual practices and remedies are recommended.',
+      interpretation: 'Planet is at exact Mrityu Bhaga degree. This indicates significant transformation potential and health sensitivity. Strong spiritual practices and remedies are recommended.',
       remedy: 'Worship Lord Shiva or Mrityunjaya. Recite Maha Mrityunjaya Mantra. Perform Rudra Abhishekam.',
     }
   }
@@ -104,7 +104,7 @@ export function checkMrityuBhaga(
       degreeInSign,
       mrityuDegree,
       distanceFromMrityu: distance,
-      interpretation: 'Planet is near Mṛtyu Bhāga degree. Indicates potential for transformation and health awareness.',
+      interpretation: 'Planet is near Mrityu Bhaga degree. Indicates potential for transformation and health awareness.',
       remedy: 'Regular prayers and health awareness. Consider Mrityunjaya Japa.',
     }
   }
@@ -117,7 +117,7 @@ export function checkMrityuBhaga(
       degreeInSign,
       mrityuDegree,
       distanceFromMrityu: distance,
-      interpretation: 'Planet is in the wider Mṛtyu Bhāga zone. Minor health awareness suggested.',
+      interpretation: 'Planet is in the wider Mrityu Bhaga zone. Minor health awareness suggested.',
       remedy: 'Maintain good health practices. Regular meditation.',
     }
   }
@@ -135,7 +135,7 @@ export function checkMrityuBhaga(
 }
 
 /**
- * Check both Mṛtyu Bhāga systems
+ * Check both Mrityu Bhaga systems
  */
 export function checkMrityuBhagaBoth(lonSidereal: number): {
   primary: MrityuBhagaResult
@@ -148,7 +148,7 @@ export function checkMrityuBhagaBoth(lonSidereal: number): {
 }
 
 /**
- * Check Mṛtyu Bhāga for all grahas
+ * Check Mrityu Bhaga for all grahas
  */
 export function checkAllMrityuBhaga(
   grahas: Array<{ id: string; lonSidereal: number }>,
@@ -161,7 +161,7 @@ export function checkAllMrityuBhaga(
 }
 
 /**
- * Get planets in Mṛtyu Bhāga from a chart
+ * Get planets in Mrityu Bhaga from a chart
  */
 export function getPlanetsInMrityuBhaga(
   grahas: Array<{ id: string; lonSidereal: number }>,

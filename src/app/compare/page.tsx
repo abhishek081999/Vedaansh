@@ -348,7 +348,7 @@ function CompareContent() {
             {/* View Tabs */}
             <div className="no-print" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
               {([
-                ['ashtakoot', '🎎 Aṣṭakūṭa (36 Point)'],
+                ['ashtakoot', '🎎 Ashtakoot (36 Point)'],
                 ['doshas', '⚔️ Dosha Analysis'],
                 ['compat', '🔮 Aura Affinity'],
                 ['charts', '◯ Side-by-Side'],

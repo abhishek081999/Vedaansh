@@ -38,10 +38,10 @@ const VARGA_LABELS: Record<string, string> = {
 }
 
 const SCHEMES = [
-  { id: 'shodasvarga', label: 'Shoḍaśa (16)', short: '16V' },
-  { id: 'dashavarga',  label: 'Daśa (10)',    short: '10V' },
+  { id: 'shodasvarga', label: 'Shodasha (16)', short: '16V' },
+  { id: 'dashavarga',  label: 'Dasha (10)',    short: '10V' },
   { id: 'saptavarga',  label: 'Sapta (7)',    short: '7V'  },
-  { id: 'shadvarga',   label: 'Ṣaḍ (6)',      short: '6V'  },
+  { id: 'shadvarga',   label: 'Shad (6)',      short: '6V'  },
 ] as const
 
 type SchemeId = (typeof SCHEMES)[number]['id']
@@ -198,7 +198,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
   if (!vimsopaka?.planets) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-        Viṁśopaka data unavailable.
+        Vimsopaka data unavailable.
       </div>
     )
   }
@@ -214,7 +214,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
       <div className="vp-card vp-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Crown size={16} style={{ color: 'var(--gold)' }} />
-          <span className="vp-caps">Viṁśopaka Bala</span>
+          <span className="vp-caps">Vimsopaka Bala</span>
           <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>BPHS — 20-Point Strength</span>
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
@@ -333,7 +333,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
 
           {/* All varga contributions */}
           <div className="vp-caps" style={{ marginBottom: '0.4rem' }}>
-            Shoḍaśa Contributions
+            Shodasha Contributions
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', maxHeight: 260, overflowY: 'auto' }}>
             {sortedContributions.map(([varga, val]) => {
@@ -439,7 +439,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
         >
           <div className="vp-caps" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <Palette size={12} style={{ color: 'var(--accent)' }} />
-            Dignity Heatmap — Shoḍaśa Vargas
+            Dignity Heatmap — Shodasha Vargas
           </div>
           {showMatrix ? <ChevronUp size={14} style={{ color: 'var(--text-muted)' }} /> : <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />}
         </button>
@@ -590,7 +590,7 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
             <strong style={{ color: 'var(--text-secondary)' }}>Formula: </strong>
             Score = Σ [ (dignity_pts / 20) × varga_weight ] for each varga.
             Max score per scheme = 20 (planet exalted in all charts).
-            Weights: Shoḍaśa sums to 20 across 16 vargas; other schemes likewise.
+            Weights: Shodasha sums to 20 across 16 vargas; other schemes likewise.
           </div>
         </div>
       </div>

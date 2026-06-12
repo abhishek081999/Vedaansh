@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
+const BASE_URL = SITE_URL
 
 const TAB_META: Record<string, { title: string; description: string }> = {
   overview: {
@@ -41,12 +43,13 @@ export async function generateMetadata(
     title:       meta.title,
     description: meta.description,
     alternates:  { canonical: url },
+    keywords:    ['Nakshatra', tab, 'Vedic astrology', 'birth star', 'Janma Nakshatra', 'Swiss Ephemeris'],
     openGraph: {
       title:       `${meta.title} | Vedaansh`,
       description: meta.description,
       url,
       type:        'website',
-      images:      [{ url: '/og-default.png', width: 1200, height: 630, alt: meta.title }],
+      images:      ogImages(meta.title),
     },
     twitter: {
       card:        'summary_large_image',
@@ -57,6 +60,25 @@ export async function generateMetadata(
   }
 }
 
-export default function NakshatraTabLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+export default async function NakshatraTabLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ tab: string }>
+}) {
+  const { tab } = await params
+  const tabLabel = TAB_META[tab]?.title.split('—')[0].trim() ?? 'Nakshatra'
+  const jsonLd = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Nakshatra', path: '/nakshatra' },
+    { name: tabLabel, path: `/nakshatra/${tab}` },
+  ])
+
+  return (
+    <>
+      <JsonLd data={jsonLd} />
+      {children}
+    </>
+  )
 }

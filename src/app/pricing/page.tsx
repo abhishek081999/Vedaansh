@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { PLAN_PRICES } from '@/lib/subscription/pricing'
+import { PRICING_FAQ } from '@/lib/seo/intro-content'
 
 let razorpayLoadPromise: Promise<void> | null = null
 
@@ -20,14 +21,14 @@ const FEATURES = {
     badge: null,
     features: [
       '✓ Unlimited chart calculations',
-      '✓ Shodasha Vargas (16 main charts)',
+      '✓ Shodashavarga (16 divisional charts)',
       '✓ Vimshottari & Yogini Dashas (L4)',
       '✓ Shadbala, Vimsopaka & Bhava Bala',
-      '✓ Aṣṭakavarga, Arudhas & Chara Karakas',
+      '✓ Ashtakavarga, Arudhas & Chara Karakas',
       '✓ 100+ Graha Yogas detected',
-      '✓ Daily Panchang & Muhūrta tools',
+      '✓ Daily Panchang & Muhurta tools',
       '✓ Relationship Compatibility (Ashtakoot)',
-      '✓ Solar Return (Tajika/Varṣaphal)',
+      '✓ Solar Return (Tajika/Varshaphal)',
       '✓ Interpretation Layer: Key Insights',
       '✓ KP System (Cusps & Significators)',
       '✓ Save up to 20 charts in library',
@@ -51,7 +52,7 @@ const FEATURES = {
       '✓ Professional PDF & HTML exports',
       '✓ Bulk Data Import (CSV/JSON)',
       '✓ Save up to 200 charts in library',
-      '✓ Muhūrta advanced routes & API',
+      '✓ Muhurta advanced routes & API',
     ],
   },
   platinum: {
@@ -78,11 +79,7 @@ const FEATURES = {
   },
 }
 
-const FAQ = [
-  { q: 'Is Free really free forever?', a: 'Yes. The Free tier is permanently free with no credit card required. We believe core Jyotish tools should be accessible to everyone.' },
-  { q: 'What payment methods are accepted?', a: 'We accept all major credit/debit cards, UPI, net banking, and wallets via Razorpay. International cards also accepted.' },
-  { q: 'Do you offer discounts?', a: 'Promotional and educational discounts may be offered occasionally. Contact support for current eligibility and terms.' },
-]
+const FAQ = [...PRICING_FAQ]
 
 export default function PricingPage() {
   const { data: session } = useSession()
@@ -318,7 +315,7 @@ export default function PricingPage() {
             margin: '0 0 0.6rem 0',
             letterSpacing: '-0.02em'
           }}>
-            Professional Jyotiṣa. <span style={{ color: 'var(--text-gold)' }}>Free to start.</span>
+            Professional Jyotisha. <span style={{ color: 'var(--text-gold)' }}>Free to start.</span>
           </h1>
           
           <p style={{ 
@@ -688,7 +685,7 @@ export default function PricingPage() {
           <span style={{ opacity: 0.4 }}>·</span>
           <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Support</Link>
         </div>
-        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa Platform</span> · All prices in INR · GST applicable
+        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotisha Platform</span> · All prices in INR · GST applicable
       </footer>
     </div>
   )

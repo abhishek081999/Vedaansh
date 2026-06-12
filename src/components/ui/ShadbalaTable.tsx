@@ -176,7 +176,7 @@ export function ShadbalaTable({
   if (variant === 'widget') {
     return (
       <div className="card" style={{ padding: '0.8rem' }}>
-        <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Ṣaḍbala Snapshot</div>
+        <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Shadbala Snapshot</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: '0.45rem' }}>
           <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)', padding: '0.45rem' }}>
             <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Strongest</div>

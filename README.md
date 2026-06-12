@@ -39,17 +39,17 @@ A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScr
 | **Chart Styles** | North Indian (default), South Indian, Sarvatobhadra — all with Transit Overlay |
 | **Grahas** | All 9 Navagraha with DMS degrees, nakshatra, pada, dignity, combustion, avastha |
 | **Vargas** | D1–D60; all 41 varga schemes in engine (D1–D150) |
-| **Dasha Systems** | Vimshottarī (120yr, 6 levels: Maha→Deha), Yoginī (36yr), Chara/Jaimini, Aṣṭottarī |
-| **Āruḍhas** | All 12 Bhava Arudhas (AL–A12) + Upapada Lagna |
-| **Ṣaḍbala** | All 6 components with visual bars + Rupa totals + Strong/Weak badge |
-| **Viṁśopaka Bala** | Four classical systems: Ṣaḍvarga, Saptavarga, Daśavarga, Shoḍaśvarga |
-| **Aṣṭakavarga** | SAV total grid + BAV grids for all 7 planets, color-coded |
+| **Dasha Systems** | Vimshottari (120yr, 6 levels: Maha→Deha), Yogini (36yr), Chara/Jaimini, Ashtottari |
+| **Arudhas** | All 12 Bhava Arudhas (AL–A12) + Upapada Lagna |
+| **Shadbala** | All 6 components with visual bars + Rupa totals + Strong/Weak badge |
+| **Vimshopaka Bala** | Four classical systems: Shadvarga, Saptavarga, Dashavarga, Shodashvarga |
+| **Ashtakavarga** | SAV total grid + BAV grids for all 7 planets, color-coded |
 | **Graha Yogas** | 6 categories: Pancha Mahapurusha, Raja, Dhana, Viparita, Special, Lunar |
 | **Panchang** | Tithi, Vara, Nakshatra, Yoga, Karana, Rahu Kalam, Gulika, Abhijit, Hora table |
 | **Monthly Calendar** | Full month grid — all days with Tithi/Nakshatra/Yoga/Bhadra; click for detail |
-| **Panchang timings** | Choghadiya, Rāhu Kālam, Gulika, Abhijit, Hora — on daily Panchang |
-| **Muhūrta Finder** | Gold+ — 7 purposes; date range up to 60 days; graded auspicious windows |
-| **Varṣaphal** | Solar Return — year picker, exact return moment UTC, full chart display |
+| **Panchang timings** | Choghadiya, Rahu Kalam, Gulika, Abhijit, Hora — on daily Panchang |
+| **Muhurta Finder** | Gold+ — 7 purposes; date range up to 60 days; graded auspicious windows |
+| **Varshaphal** | Solar Return — year picker, exact return moment UTC, full chart display |
 | **Transit Overlay** | Toggle + date picker; current planets overlaid on natal chart |
 | **Chart Comparison** | Side-by-side charts + compatibility analysis + 36-point Ashtakoot Gun Milan |
 | **Public Sharing** | Toggle public → unique URL + dynamic Open Graph image + SEO metadata |
@@ -73,12 +73,12 @@ Everything in Free, plus:
 |---|---|
 | **Chart Library** | Save up to 200 charts |
 | **PDF & HTML Export** | Print-quality chart export with full planetary table + Dasha tree |
-| **Dasha Precision** | Start Vimshottarī from Ascendant or any planet as reference point |
-| **Full Aṣṭakūṭa** | 36-point Gun Milan compatibility matching |
+| **Dasha Precision** | Start Vimshottari from Ascendant or any planet as reference point |
+| **Full Ashtakuta** | 36-point Gun Milan compatibility matching |
 | **Chart Notes & Tags** | Annotations + tagging for organization |
 | **Bulk Import** | XLSX batch import for chart collections |
-| **Advanced Muhūrta** | Extended filtering by Graha hora, Tara, and Panchaka |
-| **Muhūrta Finder** | Full `/muhurta` workspace + `/api/muhurta` timeline (middleware-gated) |
+| **Advanced Muhurta** | Extended filtering by Graha hora, Tara, and Panchaka |
+| **Muhurta Finder** | Full `/muhurta` workspace + `/api/muhurta` timeline (middleware-gated) |
 
 ### Platinum — ₹199/month or ₹1,999/year ✅ Live
 
@@ -137,7 +137,7 @@ All engine modules are pure TypeScript functions (no side effects). Given the sa
 | `karakas.ts` | ✅ | Chara Karakas — 7-karaka and 8-karaka schemes (Ke=Scorpio, Ra=Aquarius) |
 | `dignity.ts` | ✅ | Exaltation, debilitation, moolatrikona, own, friend, neutral, enemy |
 | `shadbala.ts` | ✅ | All 6 components: Sthana, Dig, Kala, Chesta, Naisargika, Drik Bala — returns Rupas |
-| `vimsopaka.ts` | ✅ | Vimsopaka Bala — four classical systems: Ṣaḍvarga, Saptavarga, Daśavarga, Shoḍaśvarga |
+| `vimsopaka.ts` | ✅ | Vimsopaka Bala — four classical systems: Shadvarga, Saptavarga, Dashavarga, Shodashvarga |
 | `ashtakavarga.ts` | ✅ | Full BPHS bindu tables — SAV totals + BAV grids for all 7 planets |
 | `yogas.ts` | ✅ | 6 categories: Pancha Mahapurusha, Raja, Dhana, Viparita, Special, Lunar |
 | `ashtakoot.ts` | ✅ | 36-point Gun Milan: Varna, Vashya, Tara, Yoni, Maitri, Gana, Bhakoot, Nadi |
@@ -420,7 +420,7 @@ Tolerances: ±0.005° for longitudes, ±1 day for Dasha dates, exact match for s
 | 4 — Free Tier Launch | ✅ Complete | Free tier live at vedaansh.com |
 | 5 — Gold Features | ✅ Complete | Razorpay, PDF export, bulk import, multi-device sync |
 | 6 — Platinum Launch | ✅ Complete | Nakshatra workspace, 41 vargas in UI, both paid tiers live |
-| 7 — Horā Core | ✅ Complete | Bhava Bala, Client CRM, White-label, Email Charts |
+| 7 — Hora Core | ✅ Complete | Bhava Bala, Client CRM, White-label, Email Charts |
 | 8 — Scale + Polish | ✅ Complete | Astrocartography, Admin Dashboard, PWA, i18n (partial) |
 | 9 — Elite Analysis | ✅ Complete | Interactive Aspects, Prashna Professional, CRM v2 |
 | 10 — Sarvatobhadra & Ecosystem | ✅ Complete | SBC, Vastu, Jaimini, KP Engine, Reel studio, Upagrahas |
@@ -447,5 +447,5 @@ Private project — all rights reserved.
 
 ---
 
-*Jyotiṣa — The Eye of the Vedas*  
+*Jyotisha — The Eye of the Vedas*  
 *v2.6.0 · May 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*

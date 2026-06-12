@@ -263,7 +263,7 @@ function checkSpecialYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[]
   if (su && me && inSameHouse(su, me, ascDeg)) {
     const h = getHouse(su, ascDeg)
     yogas.push({
-      name:        'Budhāditya Yoga',
+      name:        'Budhaditya Yoga',
       sanskrit:    'बुधादित्य योग',
       category:    'special',
       strength:    me.isRetro ? 'weak' : 'strong',
@@ -283,7 +283,7 @@ function checkSpecialYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[]
         (isKendra(veH) || isTrikon(veH)) &&
         (isKendra(meH) || isTrikon(meH))) {
       yogas.push({
-        name:        'Sarasvatī Yoga',
+        name:        'Sarasvati Yoga',
         sanskrit:    'सरस्वती योग',
         category:    'special',
         strength:    'strong',
@@ -299,7 +299,7 @@ function checkSpecialYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[]
   if (mo && ma && inSameHouse(mo, ma, ascDeg)) {
     const h = getHouse(mo, ascDeg)
     yogas.push({
-      name:        'Chandra-Maṅgala Yoga',
+      name:        'Chandra-Mangala Yoga',
       sanskrit:    'चन्द्र-मङ्गल योग',
       category:    'dhana',
       strength:    'moderate',
@@ -360,7 +360,7 @@ function checkSpecialYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[]
 
     if (in2ndFromSun.length > 0 && in12thFromSun.length > 0) {
       yogas.push({
-        name:        'Ubhayacharī Yoga',
+        name:        'Ubhayachari Yoga',
         sanskrit:    'उभयचारी योग',
         category:    'special',
         strength:    'strong',
@@ -487,7 +487,7 @@ function checkLunarYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
   // Durudhara — planets in both 2nd and 12th from Moon
   if (in2ndFromMoon.length > 0 && in12thFromMoon.length > 0) {
     yogas.push({
-      name:        'Durudharā Yoga',
+      name:        'Durudhara Yoga',
       sanskrit:    'दुरुधरा योग',
       category:    'lunar',
       strength:    'strong',
@@ -498,7 +498,7 @@ function checkLunarYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
     })
   }
 
-  // 4. Śakaṭa Yoga — Moon in 6, 8, 12 from Jupiter
+  // 4. Shakata Yoga — Moon in 6, 8, 12 from Jupiter
   const ju = grahas.find(g => g.id === 'Ju')
   if (mo && ju) {
     const moH = getHouse(mo, ascDeg)
@@ -506,7 +506,7 @@ function checkLunarYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
     const diff = ((moH - juH + 12) % 12) + 1
     if ([6, 8, 12].includes(diff)) {
       yogas.push({
-        name:        'Śakaṭa Yoga',
+        name:        'Shakata Yoga',
         sanskrit:    'शकट योग',
         category:    'malefic',
         strength:    isKendra(moH) ? 'weak' : 'strong',
@@ -626,7 +626,7 @@ function checkKartari(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
 
     if (isShubha) {
       yogas.push({
-        name:        'Śubha Kartarī Yoga',
+        name:        'Shubha Kartari Yoga',
         sanskrit:    'शुभ कर्तरी योग',
         category:    'special',
         strength:    'strong',
@@ -637,7 +637,7 @@ function checkKartari(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
       })
     } else if (isPapa) {
       yogas.push({
-        name:        'Pāpa Kartarī Yoga',
+        name:        'Papa Kartari Yoga',
         sanskrit:    'पाप कर्तरी योग',
         category:    'malefic',
         strength:    'strong',

@@ -18,9 +18,9 @@ export const GRAHA_NAMES: Record<GrahaId, string> = {
 }
 
 export const GRAHA_SANSKRIT: Record<GrahaId, string> = {
-  Su: 'Sūrya', Mo: 'Chandra', Ma: 'Maṅgala', Me: 'Budha',
-  Ju: 'Guru',  Ve: 'Śukra',   Sa: 'Śani',    Ra: 'Rāhu', Ke: 'Ketu',
-  Ur: 'Aruṇa', Ne: 'Varuṇa', Pl: 'Yama',
+  Su: 'Surya', Mo: 'Chandra', Ma: 'Mangala', Me: 'Budha',
+  Ju: 'Guru',  Ve: 'Shukra',   Sa: 'Shani',    Ra: 'Rahu', Ke: 'Ketu',
+  Ur: 'Aruna', Ne: 'Varuna', Pl: 'Yama',
 }
 
 // ── Rashi (Signs) ────────────────────────────────────────────
@@ -34,9 +34,9 @@ export const RASHI_NAMES: Record<Rashi, string> = {
 }
 
 export const RASHI_SANSKRIT: Record<Rashi, string> = {
-  1:'Meṣa', 2:'Vṛṣabha', 3:'Mithuna', 4:'Karka',
-  5:'Siṃha', 6:'Kanyā', 7:'Tulā', 8:'Vṛścika',
-  9:'Dhanu', 10:'Makara', 11:'Kumbha', 12:'Mīna',
+  1:'Mesha', 2:'Vrishabha', 3:'Mithuna', 4:'Karka',
+  5:'Simha', 6:'Kanya', 7:'Tula', 8:'Vrishcika',
+  9:'Dhanu', 10:'Makara', 11:'Kumbha', 12:'Mina',
 }
 
 export const RASHI_SHORT: Record<Rashi, string> = {
@@ -59,11 +59,11 @@ export const NAKSHATRA_NAMES: string[] = [
 ]
 
 export const NAKSHATRA_SHORT: string[] = [
-  'Aśw', 'Bha', 'Kṛt', 'Roh', 'Mṛg',
-  'Ārd', 'Pun', 'Puṣ', 'Āśl', 'Mag',
-  'PPh', 'UPh', 'Has', 'Cit', 'Swā',
-  'Viś', 'Anu', 'Jye', 'Mūl', 'PAṣ',
-  'UAṣ', 'Śra', 'Dha', 'Śat', 'PBh',
+  'Ashw', 'Bha', 'Krit', 'Roh', 'Mrig',
+  'Ard', 'Pun', 'Push', 'Ashl', 'Mag',
+  'PPh', 'UPh', 'Has', 'Cit', 'Swa',
+  'Vish', 'Anu', 'Jye', 'Mul', 'PAsh',
+  'UAsh', 'Shra', 'Dha', 'Shat', 'PBh',
   'UBh', 'Rev',
 ]
 
@@ -161,7 +161,7 @@ export interface YuddhaResult {
   orb: number  // Max orb for war (1°)
 }
 
-// ── Puṣkara Navāṃśa (Auspicious Navamsha) ───────────────────────
+// ── Pushkara Navamsha (Auspicious Navamsha) ───────────────────────
 
 export type PushkaraType = 'pushkara_navamsha'
 
@@ -175,7 +175,7 @@ export interface PushkaraResult {
   remedy: string | null
 }
 
-// ── Mṛtyu Bhāga (Death Degrees) ────────────────────────────────
+// ── Mrityu Bhaga (Death Degrees) ────────────────────────────────
 
 export type MrityuSeverity = 'exact' | 'near' | 'wide' | 'none'
 
@@ -389,7 +389,7 @@ export type DashaSystem =
 export interface DashaNode {
   lord:       string
   label?:     string
-  /** Tribhagi Viṁśottarī: associated nakṣatra (0–26) for this mahadasha segment */
+  /** Tribhagi Vimshottari: associated nakshatra (0–26) for this mahadasha segment */
   nakshatraIndex?: number
   start:      Date
   end:        Date

@@ -142,7 +142,7 @@ export default function ForgotPasswordPage() {
         padding: '1.5rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)',
         fontFamily: 'var(--font-display)', letterSpacing: '0.02em',
       }}>
-        Jyotiṣa · The Eye of the Vedas
+        Jyotisha · The Eye of the Vedas
       </footer>
     </div>
   )

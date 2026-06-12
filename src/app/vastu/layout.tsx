@@ -1,26 +1,40 @@
 import type { Metadata } from 'next'
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { SeoIntro } from '@/components/seo/SeoIntro'
+import { VASTU_SEO } from '@/lib/seo/intro-content'
+import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
-  title:       'Vāstu Śāstra — Directional Astrology',
-  description: 'Vedic Vastu analysis using your birth chart: planetary directions, Vastu Dosha identification, remedies & directional strength (Digbala) from your Kundali.',
-  alternates:  { canonical: `${BASE_URL}/vastu` },
-  keywords:    ['Vastu Shastra', 'Vastu astrology', 'Digbala', 'directional strength', 'Vastu Dosha', 'planetary directions', 'Jyotish Vastu'],
+  title:       'Vastu Shastra — Directional Astrology from Kundali',
+  description: 'Vedic Vastu analysis from your birth chart: planetary directions, Dig Bala, Vastu Dosha identification, room guidance, and remedies.',
+  alternates:  { canonical: `${SITE_URL}/vastu` },
+  keywords:    ['Vastu Shastra', 'Vastu astrology', 'Dig Bala', 'Digbala', 'directional strength', 'Vastu Dosha', 'planetary directions', 'Jyotish Vastu', 'Astro Vastu'],
   openGraph: {
-    title:       'Vāstu Śāstra — Directional Astrology | Vedaansh',
-    description: 'Planetary directions, Digbala & Vastu Dosha analysis from your Vedic birth chart.',
-    url:         `${BASE_URL}/vastu`,
+    title:       'Vastu Shastra — Directional Astrology | Vedaansh',
+    description: 'Planetary directions, Dig Bala & Vastu Dosha analysis from your Vedic birth chart.',
+    url:         `${SITE_URL}/vastu`,
     type:        'website',
-    images:      [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Vastu Shastra — Vedaansh' }],
+    images:      ogImages('Vastu Shastra — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
-    title:       'Vāstu Śāstra — Directional Astrology | Vedaansh',
-    description: 'Planetary directions, Digbala & Vastu Dosha analysis from your Vedic birth chart.',
+    title:       'Vastu Shastra — Directional Astrology | Vedaansh',
+    description: 'Planetary directions, Dig Bala & Vastu Dosha analysis from your Vedic birth chart.',
     images:      ['/og-default.png'],
   },
 }
 
-export default function VastuLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+const jsonLd = breadcrumbJsonLd([
+  { name: 'Home', path: '/' },
+  { name: 'Vastu', path: '/vastu' },
+])
+
+export default async function VastuLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <SeoIntro {...VASTU_SEO} />
+      <JsonLd data={jsonLd} />
+      {children}
+    </>
+  )
 }

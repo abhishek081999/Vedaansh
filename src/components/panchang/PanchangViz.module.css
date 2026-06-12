@@ -201,7 +201,7 @@
   margin-bottom: 0.35rem;
 }
 
-/* Rāśī abbreviations drawn after thick arcs — halo keeps them readable */
+/* Rashi abbreviations drawn after thick arcs — halo keeps them readable */
 .zodiacText {
   fill: var(--text-muted);
   font-size: 9px;

@@ -401,7 +401,7 @@ function AccountContent() {
       { href: '/my/charts', icon: '📂', label: 'My Charts', sub: 'Saved library' },
       { href: '/?new=true', icon: '✦', label: 'New chart', sub: 'Home calculator' },
       { href: '/panchang', icon: '📅', label: 'Panchang', sub: 'Daily calendar' },
-      { href: '/muhurta', icon: '⏱', label: 'Muhūrta', sub: 'Good timings' },
+      { href: '/muhurta', icon: '⏱', label: 'Muhurta', sub: 'Good timings' },
     ]
     if (user?.plan === 'free') {
       items.push({ href: '/pricing', icon: '💎', label: 'Upgrade', sub: 'Gold & Platinum' })
@@ -1079,7 +1079,7 @@ function AccountContent() {
       </main>
 
       <footer style={{ padding: '1.5rem 2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontSize: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
-        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa</span> Platform
+        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotisha</span> Platform
         {' · '}
         <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Support</Link>
         {' · '}

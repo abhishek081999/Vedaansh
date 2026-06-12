@@ -9,6 +9,7 @@ import { AppLayoutProvider } from '@/components/providers/LayoutProvider'
 import { ChartProvider }     from '@/components/providers/ChartProvider'
 import { AppFramework }      from '@/components/ui/AppFramework'
 import { YantraBackdropRoute } from '@/components/ui/YantraBackdropRoute'
+import { SITE_URL } from '@/lib/seo/site'
 
 // ── Fonts (next/font — zero layout shift, self-hosted) ────────
 const playfair = Playfair_Display({
@@ -49,7 +50,7 @@ gtag('config', '${GA_ID}', { page_path: window.location.pathname });
 // ── Prevent theme flash ───────────────────────────────────────
 const themeScript = `(function(){try{var t=localStorage.getItem('jyotish-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':t==='dark'?'dark':'classic')}catch(e){}})();`
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
+const BASE_URL = SITE_URL
 
 // ── Root metadata ─────────────────────────────────────────────
 export const metadata: Metadata = {
@@ -57,17 +58,17 @@ export const metadata: Metadata = {
 
   title: {
     template: '%s — Vedaansh',
-    default:  'Vedaansh — Free Vedic Astrology & Jyotiṣa Platform',
+    default:  'Vedaansh — Free Vedic Astrology & Jyotisha Platform',
   },
 
   description:
-    'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, all 41 varga charts, Panchang & Āruḍhas. Arc-second accuracy via Swiss Ephemeris. No login required.',
+    'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, all 41 varga charts, Panchang & Arudhas. Arc-second accuracy via Swiss Ephemeris. No login required.',
 
   keywords: [
-    'Vedic astrology', 'Jyotish', 'kundali', 'birth chart', 'free horoscope',
+    'Vedic astrology', 'Jyotish', 'Jyotisha', 'kundali', 'free kundali', 'birth chart', 'free horoscope',
     'Vimshottari Dasha', 'Navamsha', 'D9 chart', 'Panchang', 'Arudha Lagna',
-    'Rahu Kalam', 'Nakshatra', 'Swiss Ephemeris', 'Vedaansh',
-    'Lahiri ayanamsha', 'divisional charts', 'varga charts',
+    'Rahu Kalam', 'Nakshatra', 'Muhurta', 'Kundali matching', 'Ashtakoot',
+    'Swiss Ephemeris', 'Vedaansh', 'Lahiri ayanamsha', 'divisional charts', 'varga charts',
   ],
 
   authors:  [{ name: 'Vedaansh' }],
@@ -165,32 +166,57 @@ const jsonLdWebSite = {
   '@context':    'https://schema.org',
   '@type':       'WebSite',
   name:          'Vedaansh',
-  url:            BASE_URL,
+  url:           BASE_URL,
+  inLanguage:    'en-IN',
   description:   'Free Vedic astrology platform — birth charts, Dasha, 41 vargas, Panchang.',
+  publisher:     { '@type': 'Organization', name: 'Vedaansh', url: BASE_URL },
 }
 
 const jsonLdWebApp = {
-  '@context':       'https://schema.org',
-  '@type':          'WebApplication',
-  name:             'Vedaansh',
-  url:               BASE_URL,
+  '@context':          'https://schema.org',
+  '@type':             'WebApplication',
+  name:                'Vedaansh',
+  url:                 BASE_URL,
+  inLanguage:          'en-IN',
   applicationCategory: 'LifestyleApplication',
-  operatingSystem:  'All',
+  operatingSystem:     'All',
+  browserRequirements: 'Requires JavaScript',
   offers: {
-    '@type':    'Offer',
-    price:      '0',
-    priceCurrency: 'INR',
+    '@type':         'Offer',
+    price:           '0',
+    priceCurrency:   'INR',
+    availability:    'https://schema.org/InStock',
   },
-  description: 'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, all 41 varga charts, Panchang & Āruḍhas with arc-second Swiss Ephemeris accuracy.',
+  description: 'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, all 41 varga charts, Panchang & Arudhas with arc-second Swiss Ephemeris accuracy.',
+  featureList: [
+    'Free Vedic birth chart (Kundali)',
+    'Vimshottari and Yogini Dasha',
+    '41 varga divisional charts',
+    'Daily Panchang and Muhurta',
+    'Ashtakoot Kundali matching',
+    'Nakshatra analysis and remedies',
+    'Jaimini Chara Dasha and Karakas',
+    'Prashna Krishneeyam horary',
+  ],
 }
 
 const jsonLdOrg = {
   '@context': 'https://schema.org',
   '@type':    'Organization',
   name:       'Vedaansh',
-  url:         BASE_URL,
+  url:        BASE_URL,
   logo:       `${BASE_URL}/veda-icon.png`,
-  sameAs:     ['https://twitter.com/vedaansh'],
+  email:      'vedaanshlife@gmail.com',
+  sameAs:     [
+    'https://twitter.com/vedaansh',
+    'https://www.instagram.com/vedaanshlife',
+  ],
+  contactPoint: {
+    '@type':             'ContactPoint',
+    email:               'vedaanshlife@gmail.com',
+    contactType:         'customer support',
+    availableLanguage:   ['English', 'Hindi'],
+  },
 }
 
 // CSP nonces: proxy sets x-nonce; headers() opts this layout into dynamic SSR.
@@ -200,7 +226,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get('x-nonce') ?? ''
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en-IN" suppressHydrationWarning className={`${playfair.variable} ${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

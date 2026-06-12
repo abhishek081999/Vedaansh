@@ -1,5 +1,5 @@
 /**
- * Find next change times for tithi, nakṣatra, and yoga by bisection on Julian day (UT).
+ * Find next change times for tithi, nakshatra, and yoga by bisection on Julian day (UT).
  */
 
 import type { AyanamshaMode } from '@/types/astrology'
@@ -86,7 +86,7 @@ export function findNextYogaEnd(jdStart: number, mode: AyanamshaMode): Date | nu
   }, 2.5)
 }
 
-/** Next karaṇa change (~6° elongation); bracket up to ~1.5 civil days. */
+/** Next karana change (~6° elongation); bracket up to ~1.5 civil days. */
 export function findNextKaranaEnd(jdStart: number, mode: AyanamshaMode): Date | null {
   return bisectNextChange(jdStart, mode, (jd) => {
     const { sun, moon } = siderealPair(jd, mode)

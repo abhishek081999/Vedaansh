@@ -68,12 +68,12 @@ export const NAKSHATRA_VARNA: string[] = [
 
 /** Shakti (power/purpose) */
 export const NAKSHATRA_SHAKTI: string[] = [
-  'Shīghra Shakti (to heal quickly)','Yama Shakti (to remove the life, take away)','Shikha Shakti (to give heat and light)',
-  'Rohana Shakti (ability to grow)','Prīṇana Shakti (to give fulfillment)',
+  'Shighra Shakti (to heal quickly)','Yama Shakti (to remove the life, take away)','Shikha Shakti (to give heat and light)',
+  'Rohana Shakti (ability to grow)','Prinana Shakti (to give fulfillment)',
   'Yatana Shakti (to make achievements with effort)','Punargamana Shakti (to restore)',
   'Vardhanashakti (to nourish)','Vishleshana Shakti (to destroy and separate)',
   'Kshobhana Shakti (to leave)',
-  'Prīti Shakti (to enjoy)','Chhardana Shakti (to give brightness, to shine)',
+  'Priti Shakti (to enjoy)','Chhardana Shakti (to give brightness, to shine)',
   'Sarva Shakti (power of giving everything)','Tvashti Shakti (to transform)',
   'Pradhvamsa Shakti (to scatter like wind)',
   'Vyapana Shakti (to spread, pervade)','Radhana Shakti (to worship, adhere)',

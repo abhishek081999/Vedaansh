@@ -234,7 +234,7 @@ export function getKarana(
 
 const VARA_NAMES   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 const VARA_LORDS: GrahaId[] = ['Su','Mo','Ma','Me','Ju','Ve','Sa']
-const VARA_SANSKRIT = ['Ravivāra','Somavāra','Maṅgalavāra','Budhavāra','Guruvāra','Śukravāra','Śanivāra']
+const VARA_SANSKRIT = ['Ravivara','Somavara','Mangalavara','Budhavara','Guruvara','Shukravara','Shanivara']
 
 export interface VaraResult {
   number:   number   // 0=Sun, 1=Mon, ..., 6=Sat

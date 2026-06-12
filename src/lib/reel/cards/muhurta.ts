@@ -143,7 +143,7 @@ function buildMuhurtaSlots(data: PanchangApiData): Slot[] {
   }
   if (data.godhuliMuhurat) {
     slots.push({
-      title: 'Godhuli / Sandhyā',
+      title: 'Godhuli / Sandhya',
       time: `${fmtTime(data.godhuliMuhurat.start)} – ${fmtTime(data.godhuliMuhurat.end)}`,
       hint: 'Twilight — light worship & transitions',
       tone: 'neutral',
@@ -178,7 +178,7 @@ export function drawMuhurtaCard(
   const cardH = 96
 
   const panchangSub = [
-    data.vara?.name ? `Vāra: ${data.vara.name}` : '',
+    data.vara?.name ? `Vara: ${data.vara.name}` : '',
     data.tithi?.name ? `Tithi: ${data.tithi.name}` : '',
     data.tithi?.paksha ? `(${data.tithi.paksha})` : '',
   ]
@@ -190,7 +190,7 @@ export function drawMuhurtaCard(
     const vy = getReelBodyVerticalOffset(88, 560)
     ctx.save()
     ctx.translate(0, vy)
-    drawMuhurtaSlideHero(ctx, colors, settings, vedaIcon, 'आज का मुहूर्त · I', 'Key windows — first muhūrtas')
+    drawMuhurtaSlideHero(ctx, colors, settings, vedaIcon, 'आज का मुहूर्त · I', 'Key windows — first muhurtas')
     ctx.font = 'bold 30px sans-serif'
     ctx.fillStyle = colors.text
     ctx.fillText(`${dateInfo.weekday}`, 540, 278)
@@ -230,7 +230,7 @@ export function drawMuhurtaCard(
     const vy = getReelBodyVerticalOffset(88, 620)
     ctx.save()
     ctx.translate(0, vy)
-    drawMuhurtaSlideHero(ctx, colors, settings, vedaIcon, 'मुहूर्त · II', 'More muhūrtas & doṣa periods')
+    drawMuhurtaSlideHero(ctx, colors, settings, vedaIcon, 'मुहूर्त · II', 'More muhurtas & dosha periods')
     ctx.font = '18px sans-serif'
     ctx.fillStyle = colors.sub
     ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month}`, 540, 278)
@@ -241,7 +241,7 @@ export function drawMuhurtaCard(
     if (page1.length === 0) {
       ctx.font = '18px sans-serif'
       ctx.fillStyle = colors.sub
-      ctx.fillText('No additional muhūrta rows in this dataset.', 540, rowY + 40)
+      ctx.fillText('No additional muhurta rows in this dataset.', 540, rowY + 40)
       rowY += 80
     } else {
       for (let i = 0; i < page1.length; i += 2) {
@@ -262,9 +262,9 @@ export function drawMuhurtaCard(
     const aw = 280
     const ag = 15
     const ax0 = 90
-    drawAvoidMini(ctx, colors, ax0, rowY, aw, 'Rāhu Kāla', data.rahuKalam?.start, data.rahuKalam?.end)
-    drawAvoidMini(ctx, colors, ax0 + aw + ag, rowY, aw, 'Gulika Kāla', data.gulikaKalam?.start, data.gulikaKalam?.end)
-    drawAvoidMini(ctx, colors, ax0 + 2 * (aw + ag), rowY, aw, 'Yamagaṇḍa', data.yamaganda?.start, data.yamaganda?.end)
+    drawAvoidMini(ctx, colors, ax0, rowY, aw, 'Rahu Kala', data.rahuKalam?.start, data.rahuKalam?.end)
+    drawAvoidMini(ctx, colors, ax0 + aw + ag, rowY, aw, 'Gulika Kala', data.gulikaKalam?.start, data.gulikaKalam?.end)
+    drawAvoidMini(ctx, colors, ax0 + 2 * (aw + ag), rowY, aw, 'Yamaganda', data.yamaganda?.start, data.yamaganda?.end)
     ctx.restore()
     drawCarouselSlideBadge(ctx, colors, pageIndex + 1, totalPages)
     drawCarouselCompactFooter(ctx, colors, settings)
@@ -276,7 +276,7 @@ export function drawMuhurtaCard(
     const vy = getReelBodyVerticalOffset(88, 1000)
     ctx.save()
     ctx.translate(0, vy)
-    drawMuhurtaSlideHero(ctx, colors, settings, vedaIcon, 'मुहूर्त · III', 'Horā — day & night')
+    drawMuhurtaSlideHero(ctx, colors, settings, vedaIcon, 'मुहूर्त · III', 'Hora — day & night')
     ctx.font = '18px sans-serif'
     ctx.fillStyle = colors.sub
     ctx.fillText(`${dateInfo.weekday}, ${dateInfo.day} ${dateInfo.month}`, 540, 278)
@@ -288,7 +288,7 @@ export function drawMuhurtaCard(
     const hg = 20
     const hh = 48
     const maxH = 12
-    sectionLabel(ctx, colors, rowY, 'Day Horā (planetary hours)')
+    sectionLabel(ctx, colors, rowY, 'Day Hora (planetary hours)')
     rowY += 28
     horasDay.slice(0, maxH).forEach((h, i) => {
       const col = i % cols
@@ -317,7 +317,7 @@ export function drawMuhurtaCard(
     if (horasNight.length > 0) {
       drawDivider(ctx, colors, rowY, 920)
       rowY += 22
-      sectionLabel(ctx, colors, rowY, 'Night Horā')
+      sectionLabel(ctx, colors, rowY, 'Night Hora')
       rowY += 28
       const ncols = 2
       const nw = 430
@@ -403,7 +403,7 @@ export function drawMuhurtaCard(
   ctx.textAlign = 'center'
   ctx.font = '18px sans-serif'
   ctx.fillStyle = colors.sub
-  ctx.fillText('Use Brahma / Abhijit for sādhanā & beginnings; avoid Dur & Rāhu kāla for important starts.', 540, rowY)
+  ctx.fillText('Use Brahma / Abhijit for sadhana & beginnings; avoid Dur & Rahu kala for important starts.', 540, rowY)
   ctx.fillText(settings.ctaLine, 540, rowY + 36)
   rowY += 80
   drawDivider(ctx, colors, rowY, 920)
