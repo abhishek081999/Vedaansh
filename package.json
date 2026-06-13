@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
-    "start": "next start",
+    "start": "node --max-old-space-size=450 --expose-gc ./node_modules/next/dist/bin/next start",
     "lint": "node scripts/assert-eslint-version.mjs && eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test:engine": "vitest run",

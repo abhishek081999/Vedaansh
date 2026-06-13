@@ -14,6 +14,33 @@ const gunzip = promisify(zlib.gunzip)
 
 const COMPRESSION_THRESHOLD = 128 * 1024 // 128KB
 const COMPRESSION_PREFIX = 'cz:' // Compressed Zlib
+const CHART_CACHE_KEY_PREFIX = 'v14:chart:'
+
+// Chart payloads are ~4MB JSON each; serialize/compress one at a time to avoid OOM.
+let chartCacheWriteQueue: Promise<void> = Promise.resolve()
+
+function enqueueChartCacheWrite(task: () => Promise<void>): Promise<void> {
+  const run = chartCacheWriteQueue.then(task, task)
+  chartCacheWriteQueue = run.catch(() => {})
+  return run
+}
+
+function maybeGcAfterLargeWrite(): void {
+  const gc = (globalThis as { gc?: () => void }).gc
+  if (gc) gc()
+}
+
+async function compressJsonPayload(json: string, key: string): Promise<string> {
+  const originalSize = json.length
+  const compressed = await gzip(Buffer.from(json, 'utf8'))
+  const serialized = COMPRESSION_PREFIX + compressed.toString('base64')
+  if (originalSize > 512 * 1024) {
+    console.info(
+      `[redis.set] Compressed large payload for ${key}: ${(originalSize / 1024).toFixed(1)}KB -> ${(serialized.length / 1024).toFixed(1)}KB`,
+    )
+  }
+  return serialized
+}
 
 // ── Client ────────────────────────────────────────────────────
 
@@ -125,6 +152,14 @@ export const redis = {
    * Default TTL is 30 days to prevent permanent DB growth on free tiers.
    */
   async set(key: string, value: unknown, ttlSeconds: number = 2_592_000): Promise<void> {
+    const write = () => this._setImpl(key, value, ttlSeconds)
+    if (key.startsWith(CHART_CACHE_KEY_PREFIX)) {
+      return enqueueChartCacheWrite(write)
+    }
+    return write()
+  },
+
+  async _setImpl(key: string, value: unknown, ttlSeconds: number): Promise<void> {
     try {
       const client = getRedis()
       if (!client) return
@@ -135,24 +170,22 @@ export const redis = {
         L1_CACHE.set(key, { value, expires: Date.now() + L1_DEFAULT_TTL })
       }
 
-      // Enforce JSON serialization
       let serializedValue = typeof value === 'string' ? value : JSON.stringify(value)
-      
-      // Compression for large payloads
-      if (serializedValue.length > COMPRESSION_THRESHOLD) {
+      const isLarge = serializedValue.length > COMPRESSION_THRESHOLD
+
+      if (isLarge) {
         try {
-          const originalSize = serializedValue.length
-          const compressed = await gzip(Buffer.from(serializedValue))
-          serializedValue = COMPRESSION_PREFIX + compressed.toString('base64')
-          
-          console.info(`[redis.set] Compressed large payload for ${key}: ${(originalSize / 1024).toFixed(1)}KB -> ${(serializedValue.length / 1024).toFixed(1)}KB`)
+          serializedValue = await compressJsonPayload(serializedValue, key)
         } catch (compErr) {
           console.error('[redis.set] Compression failed:', compErr)
-          // Fallback to uncompressed
         }
       }
 
       await client.set(key, serializedValue, { ex: ttlSeconds })
+
+      if (isLarge && key.startsWith(CHART_CACHE_KEY_PREFIX)) {
+        maybeGcAfterLargeWrite()
+      }
     } catch (err) {
       if (typeof err === 'object' && err !== null) {
         const msg = (err as any).message || ''
@@ -170,6 +203,13 @@ export const redis = {
       }
       console.warn('[redis.set] error:', err)
     }
+  },
+
+  /** Fire-and-forget chart cache write (serialized via chart cache queue). */
+  cacheChart(key: string, value: unknown, ttlSeconds: number = 86_400): void {
+    void this.set(key, value, ttlSeconds).catch((err) => {
+      console.error('[redis.cacheChart] cache write failed:', err)
+    })
   },
 
   /**

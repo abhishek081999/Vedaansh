@@ -236,6 +236,25 @@ function dashaDepthForPlan(plan: UserPlan): number {
   return plan === 'free' ? 4 : 6
 }
 
+const MAX_CONCURRENT_CHART_CALC = 3
+let chartCalcActive = 0
+const chartCalcWaiters: Array<() => void> = []
+
+async function acquireChartCalc(): Promise<void> {
+  if (chartCalcActive < MAX_CONCURRENT_CHART_CALC) {
+    chartCalcActive++
+    return
+  }
+  await new Promise<void>((resolve) => chartCalcWaiters.push(resolve))
+  chartCalcActive++
+}
+
+function releaseChartCalc(): void {
+  chartCalcActive--
+  const next = chartCalcWaiters.shift()
+  if (next) next()
+}
+
 // ── Main export ───────────────────────────────────────────────
 
 export async function calculateChart(
@@ -243,7 +262,9 @@ export async function calculateChart(
   plan: UserPlan = 'free',
   options: { dashaDepth?: number } = {}
 ): Promise<ChartOutput> {
+  await acquireChartCalc()
   try {
+    try {
     const settings = input.settings ?? DEFAULT_SETTINGS
     const birthUtc = parseBirthUtc(input.utcDate, input.utcTime)
     const jd = dateToJD(birthUtc)
@@ -583,7 +604,10 @@ export async function calculateChart(
     jaiminiTrinity: calculateJaiminiTrinity({ grahas, karakas, lagnas: lagnaData }),
     interpretation,
   }
+    } finally {
+      cleanupEphemeris()
+    }
   } finally {
-    cleanupEphemeris()
+    releaseChartCalc()
   }
 }

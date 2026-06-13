@@ -253,10 +253,7 @@ export async function POST(req: NextRequest) {
     ])
 
     // Cache result — don't await so the user gets the results immediately 🚀
-    // (Upstash Redis over HTTP adds ~100-200ms which we can shave off here)
-    redis.set(cacheKey, chartData, 86_400).catch(err => {
-      console.error('[redis.set] cache write failed (background):', err)
-    })
+    redis.cacheChart(cacheKey, chartData)
 
     return NextResponse.json({ success: true, data: chartData, fromCache: false })
 
