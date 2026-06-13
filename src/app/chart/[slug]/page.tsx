@@ -95,7 +95,7 @@ export default async function PublicChartPage({
       }, (owner as any)?.plan || 'free')
 
       // Background cache fill
-      redis.set(cacheKey, chartData, 86_400).catch(() => {})
+      redis.cacheChart(cacheKey, chartData)
     }
 
     // Ensure metadata in chart matches current request (name might have changed)
