@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import NextImage from 'next/image'
 import { useRouter } from 'next/navigation'
+import { Spinner } from '@/components/ui/primitives/Spinner'
 import { getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { PanchangApiData } from '@/types/reel-panchang'
 import type { TransitEvent } from '@/lib/engine/transits'
@@ -1513,14 +1514,17 @@ export default function ReelPage() {
                   position: 'absolute',
                   inset: 0,
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  gap: '0.75rem',
                   background: 'rgba(0,0,0,0.35)',
                   color: '#fff',
                   fontSize: 14,
                   zIndex: 1,
                 }}
               >
+                <Spinner size={32} label="Loading preview" style={{ borderColor: 'rgba(255,255,255,0.25)', borderTopColor: '#fff' }} />
                 Loading…
               </div>
             ) : null}

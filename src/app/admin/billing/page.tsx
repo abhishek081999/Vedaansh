@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 type Coupon = {
   code: string
@@ -139,7 +140,11 @@ export default function AdminBillingPage() {
   }
 
   if (loading || !data) {
-    return <div style={{ color: 'var(--text-muted)' }}>Loading billing controls...</div>
+    return (
+      <div style={{ padding: '3rem 0', textAlign: 'center' }}>
+        <VedaanshLoader message="Loading billing controls…" />
+      </div>
+    )
   }
 
   return (

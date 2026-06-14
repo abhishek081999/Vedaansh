@@ -8,6 +8,7 @@ export default defineConfig({
     include: [
       'src/lib/engine/**/*.test.ts',
       '__tests__/**/*.test.ts',
+      '__tests__/**/*.test.tsx',
     ],
   },
   resolve: {

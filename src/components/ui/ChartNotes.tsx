@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { format } from 'date-fns'
-import { Trash2, Plus, Loader2, MessageSquare } from 'lucide-react'
+import { Trash2, Plus, MessageSquare } from 'lucide-react'
+import { Spinner } from '@/components/ui/primitives/Spinner'
 
 interface Note {
   _id: string
@@ -93,9 +94,9 @@ export function ChartNotes({ chartId }: { chartId: string }) {
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[0.8rem] text-muted animate-pulse py-4 justify-center bg-surface-1/30 rounded border border-dashed border-border/40">
-          <Loader2 className="w-4 h-4 animate-spin text-gold" />
-          <span>Syncing celestial notes...</span>
+        <div className="flex items-center gap-2 text-[0.8rem] text-muted py-4 justify-center bg-surface-1/30 rounded border border-dashed border-border/40">
+          <Spinner size={16} label="Syncing celestial notes" />
+          <span>Syncing celestial notes…</span>
         </div>
       ) : notes.length === 0 ? (
         <div className="text-[0.8rem] text-muted italic opacity-60 py-8 text-center bg-surface-1/20 rounded border border-dashed border-border/40">
@@ -140,7 +141,7 @@ export function ChartNotes({ chartId }: { chartId: string }) {
           className="btn btn-primary h-auto py-1.5 px-3 disabled:opacity-30 self-end transition-all hover:scale-105 active:scale-95"
           title="Add Note (Cmd/Ctrl + Enter)"
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          {saving ? <Spinner size={16} label="Saving note" /> : <Plus className="w-4 h-4" />}
         </button>
       </div>
       <div className="text-[0.6rem] text-muted text-right opacity-40">

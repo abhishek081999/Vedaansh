@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { ChartOutput, ChartStyle, Rashi } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { getKPSubLord } from '@/lib/engine/nakshatraAdvanced'
 import {
   runKrishneeyamPrashna,
@@ -604,12 +605,11 @@ export default function PrashnaPage() {
 
         {/* ── Loading ───────────────────────────────────────────────────────────── */}
         {loading && (
-          <div style={{ height: '55vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-1)', borderRadius: 14, border: '1px solid var(--gold-faint)', gap: '2rem' }}>
-            <div className="oracle-spinner" />
-            <div style={{ textAlign: 'center' }}>
-              <h2 style={{ color: 'var(--text-gold)', letterSpacing: '0.12em', textTransform: 'uppercase', fontSize: '1.1rem', margin: '0 0 0.5rem' }}>Consulting the Heavens</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>Casting Prashna Kundali · Applying 524 Krishneeyam verses…</p>
-            </div>
+          <div style={{ height: '55vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-1)', borderRadius: 14, border: '1px solid var(--gold-faint)', gap: '1rem' }}>
+            <VedaanshLoader size={48} message="Consulting the Heavens" />
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0, textAlign: 'center' }}>
+              Casting Prashna Kundali · Applying 524 Krishneeyam verses…
+            </p>
           </div>
         )}
 
@@ -1255,14 +1255,6 @@ export default function PrashnaPage() {
       </main>
 
       <style>{`
-        .oracle-spinner {
-          width: 48px; height: 48px;
-          border: 3px solid var(--border);
-          border-top: 3px solid var(--gold);
-          border-radius: 50%;
-          animation: spin 1.2s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes pulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.4); }
           50% { box-shadow: 0 0 0 14px rgba(201,168,76,0); }

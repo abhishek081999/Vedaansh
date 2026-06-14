@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AdminMessage } from '@/components/admin/AdminMessage'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -91,7 +92,13 @@ export default function AdminPage() {
     }
   }
 
-  if (loading) return <div style={{ color: 'var(--text-muted)', padding: '2rem', textAlign: 'center' }}>Loading system telemetry...</div>
+  if (loading) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <VedaanshLoader message="Loading system telemetry…" />
+      </div>
+    )
+  }
   if (error && !stats) return <div style={{ color: 'var(--rose)', padding: '2rem', textAlign: 'center' }}>Error: {error}</div>
 
   return (

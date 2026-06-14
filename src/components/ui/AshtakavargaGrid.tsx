@@ -6,6 +6,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { Spinner } from '@/components/ui/primitives/Spinner'
 import type { AshtakavargaResult } from '@/lib/engine/ashtakavarga'
 import { RASHI_SHORT } from '@/types/astrology'
 import type { GrahaData } from '@/types/astrology'
@@ -471,7 +472,10 @@ function AshtakavargaInterpretation({
       <div className="card" style={{ padding: '0.85rem' }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.45rem' }}>Next 30 Days Windows</div>
         {forecastLoading ? (
-          <div style={{ fontSize: '0.78rem', color: COLOR.secondary }}>Calculating windows...</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.78rem', color: COLOR.secondary }}>
+            <Spinner size={18} label="Calculating windows" />
+            Calculating windows...
+          </div>
         ) : !forecastRows ? (
           <div style={{ fontSize: '0.78rem', color: COLOR.secondary }}>Forecast unavailable right now.</div>
         ) : (

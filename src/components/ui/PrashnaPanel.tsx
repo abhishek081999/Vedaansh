@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { ChartOutput, ChartStyle, GrahaId } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { getKPSubLord } from '@/lib/engine/nakshatraAdvanced'
 
 type PrashnaType = 'vedic' | 'kp' | 'kerala'
@@ -152,7 +153,9 @@ export function PrashnaPanel({ chart: externalChart }: { chart?: ChartOutput | n
         </div>
 
         {loading ? (
-          <div style={{ padding: '4rem', textAlign: 'center' }}><div className="spin-loader" style={{ margin: '0 auto' }} /><p>Consulting the Oracle...</p></div>
+          <div style={{ padding: '4rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+            <VedaanshLoader size={40} message="Consulting the Oracle…" />
+          </div>
         ) : chart ? (
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '2rem' }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

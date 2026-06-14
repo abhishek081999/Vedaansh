@@ -9,6 +9,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link                    from 'next/link'
 import { ThemeToggle }         from '@/components/ui/ThemeToggle'
+import { VedaanshLoader }      from '@/components/ui/primitives/VedaanshLoader'
 
 // ── Types ─────────────────────────────────────────────────────
 interface UserPrefs {
@@ -925,7 +926,7 @@ function AccountContent() {
                     Subscription
                   </h3>
                   {billingLoading && !billingInfo ? (
-                    <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading…</p>
+                    <VedaanshLoader message="Loading subscription…" size={28} />
                   ) : (
                     <>
                       <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -1093,7 +1094,7 @@ export default function AccountPage() {
   return (
     <Suspense fallback={
        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-          <div className="spin-loader" style={{ width: 40, height: 40, border: '3px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%' }} />
+          <VedaanshLoader />
        </div>
     }>
       <AccountContent />

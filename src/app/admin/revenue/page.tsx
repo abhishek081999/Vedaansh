@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { AdminMessage } from '@/components/admin/AdminMessage'
 import { AdminPagination } from '@/components/admin/AdminPagination'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 export default function AdminRevenuePage() {
   const [data, setData] = useState<any>(null)
@@ -50,7 +51,13 @@ export default function AdminRevenuePage() {
     downloadCsv(rows.join('\n'), `revenue-${new Date().toISOString().slice(0, 10)}.csv`)
   }
 
-  if (loading && !data) return <div style={{ color: 'var(--text-muted)' }}>Calculating financials…</div>
+  if (loading && !data) {
+    return (
+      <div style={{ padding: '3rem 0', textAlign: 'center' }}>
+        <VedaanshLoader message="Calculating financials…" />
+      </div>
+    )
+  }
   if (!data) return <div style={{ color: 'var(--rose)' }}>{error || 'No revenue data'}</div>
 
   return (

@@ -1,0 +1,40 @@
+---
+description: Vedic astrology engine conventions — ephemeris, sidereal math, types, module boundaries
+globs: src/lib/engine/**
+alwaysApply: false
+---
+
+# Astrology Engine Conventions
+
+Engine code is pure calculation logic. `calculator.ts` orchestrates; sub-modules stay focused.
+
+## Boundaries
+
+- **No** React, Next.js, MongoDB, Redis, or `next-auth` imports in `src/lib/engine/**`
+- **Yes** Swiss Ephemeris via `@/lib/engine/ephemeris`, types from `@/types/astrology`
+
+## Calculation patterns
+
+- Convert to Julian Day (`dateToJD` / `toJulianDay`) before planet positions
+- Apply ayanamsha: `getAyanamsha(jd, settings.ayanamsha)` then `toSidereal(lon, ayan)`
+- Use `GrahaId` codes (`Su`, `Mo`, `Ma`, `Me`, `Ju`, `Ve`, `Sa`, `Ra`, `Ke`) — not full planet names in logic
+- Use `Rashi` as `1|2|...|12`; use `RASHI_NAMES` / `GRAHA_NAMES` only for display strings
+- Reuse `getPlanetPosition` results — avoid redundant sweph calls (see `buildGrahas` in `calculator.ts`)
+
+## Plan-gated output
+
+Varga and feature tiers come from `FREE_VARGAS`, `GOLD_VARGAS`, `ALL_VARGAS` in `vargas.ts`. Gate at orchestration (`calculateChart`) or API layer — not scattered `if (plan)` in low-level math.
+
+## Module style
+
+```typescript
+// File header: path + purpose (+ classical source when relevant)
+import type { GrahaData, GrahaId, Rashi } from '@/types/astrology'
+import { getPlanetPosition, toSidereal, SWISSEPH_IDS } from '@/lib/engine/ephemeris'
+
+export function myCalc(jd: number, ayanamsha: number): SomeResult { ... }
+```
+
+## Tests
+
+Engine tests live in `__tests__/engine/**`. Test pure functions with Vitest; avoid importing routes, Redis, or mongoose in engine unit tests (Windows segfault risk).
