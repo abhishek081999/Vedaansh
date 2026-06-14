@@ -241,6 +241,16 @@ export function LandingPremiumHero({
               </button>
             ))}
           </div>
+
+          <div className="landing-hero-carousel-footer-links">
+            <Link
+              href="/install"
+              className="landing-hero-carousel-footer-link"
+              onClick={() => trackLandingCta('hero_quick_install_app')}
+            >
+              Install App
+            </Link>
+          </div>
         </div>
       </div>
     </section>

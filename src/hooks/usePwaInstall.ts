@@ -6,6 +6,7 @@ import {
   isPwaInstallDismissed,
   isStandaloneDisplay,
 } from '@/lib/pwa/install'
+import { isMobileInstallEligible } from '@/lib/pwa/installGuide'
 
 export interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -15,13 +16,23 @@ export interface BeforeInstallPromptEvent extends Event {
 export function usePwaInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(false)
 
   useEffect(() => {
     if (isStandaloneDisplay() || isPwaInstallDismissed()) return
 
+    const mobileEligible = isMobileInstallEligible(
+      navigator.userAgent,
+      navigator.maxTouchPoints,
+    )
+
     const onBeforeInstall = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
+      setVisible(true)
+    }
+
+    if (mobileEligible) {
       setVisible(true)
     }
 
@@ -30,7 +41,10 @@ export function usePwaInstall() {
   }, [])
 
   const install = useCallback(async () => {
-    if (!deferredPrompt) return
+    if (!deferredPrompt) {
+      setGuideOpen(true)
+      return
+    }
     await deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
     setDeferredPrompt(null)
@@ -44,7 +58,19 @@ export function usePwaInstall() {
     dismissPwaInstallPrompt()
     setVisible(false)
     setDeferredPrompt(null)
+    setGuideOpen(false)
   }, [])
 
-  return { canInstall: !!deferredPrompt, visible, install, dismiss }
+  const openGuide = useCallback(() => setGuideOpen(true), [])
+  const closeGuide = useCallback(() => setGuideOpen(false), [])
+
+  return {
+    canInstall: !!deferredPrompt,
+    visible,
+    guideOpen,
+    install,
+    dismiss,
+    openGuide,
+    closeGuide,
+  }
 }

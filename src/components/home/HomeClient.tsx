@@ -12,7 +12,7 @@ import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BirthForm } from '@/components/ui/BirthForm'
-import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight } from 'lucide-react'
+import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download } from 'lucide-react'
 
 // Dynamic imports for heavy tab-specific components
 const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').then(m => m.VarshaphalPanel), { ssr: false })
@@ -442,6 +442,7 @@ import { LandingPremiumHero } from '@/components/home/LandingPremiumHero'
 import { LandingStickyMobileCta } from '@/components/home/LandingStickyMobileCta'
 import { LandingReveal } from '@/components/home/LandingReveal'
 import { AboutPreview } from '@/components/about/AboutPreview'
+import { PwaInstallGuide } from '@/components/ui/PwaInstallGuide'
 
 /** Query string matches BirthForm URL hydration (`name`, `birthDate`, … `tz`). */
 function buildChartShareUrl(chart: ChartOutput): string {
@@ -541,6 +542,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   AstroCartography: Globe,
   'Sarvatobhadra Chakra': Layers,
   'Muhurta Finder': Clock,
+  'Install App': Download,
 }
 
 function HomeContent() {
@@ -1106,6 +1108,14 @@ function HomeContent() {
       href: '/muhurta',
       ctaName: 'major_sections_muhurta_finder',
       icon: '🕒',
+    },
+    {
+      title: 'Install App',
+      subtitle: 'Mobile',
+      text: 'Add Vedaansh to your home screen.',
+      href: '/install',
+      ctaName: 'major_sections_install_app',
+      icon: '📲',
     },
   ]
 
@@ -2633,6 +2643,20 @@ function HomeContent() {
 
               <LandingVedicDivider />
 
+              <LandingReveal as="section" className="landing-section-row landing-section-row--gold" delay={90}>
+                <div className="landing-section-row-content">
+                  <VedicSectionHeader
+                    kicker="Mobile"
+                    title="Install Vedaansh"
+                    description="Add to your home screen — works like an app."
+                    theme="gold"
+                  />
+                  <div className="card" style={{ marginTop: '1rem' }}>
+                    <PwaInstallGuide compact />
+                  </div>
+                </div>
+              </LandingReveal>
+
               <LandingReveal delay={100}>
                 <AboutPreview onCtaClick={() => trackLandingCta('about_preview_read_more')} />
               </LandingReveal>
@@ -2651,6 +2675,9 @@ function HomeContent() {
                   </button>
                   <Link href="/prashna" onClick={() => trackLandingCta('cta_band_open_prashna')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
                     Open Prashna
+                  </Link>
+                  <Link href="/install" onClick={() => trackLandingCta('cta_band_install_app')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
+                    Install App
                   </Link>
                 </div>
               </LandingReveal>

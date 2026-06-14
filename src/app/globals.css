@@ -2571,6 +2571,181 @@ select.input {
   background: var(--surface-2);
 }
 
+.pwa-install-banner-link {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0.25rem 0.35rem;
+  white-space: nowrap;
+}
+
+.pwa-install-banner-link:hover {
+  color: var(--text-gold);
+}
+
+.pwa-install-guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pwa-install-guide--compact {
+  gap: var(--space-3);
+}
+
+.pwa-install-play-callout {
+  padding: var(--space-3);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-soft);
+  background: color-mix(in oklab, var(--gold-faint, rgba(197, 160, 89, 0.1)) 40%, var(--surface-2) 60%);
+}
+
+.pwa-install-play-note {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.pwa-install-play-note strong {
+  color: var(--text-gold);
+}
+
+.pwa-install-play-callout-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 0.5rem;
+  color: var(--text-gold);
+}
+
+.pwa-install-play-callout-head strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.pwa-install-coming-soon {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-1);
+}
+
+.pwa-install-play-callout p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.pwa-install-guide-section + .pwa-install-guide-section {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-soft);
+}
+
+.pwa-install-guide-heading {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text-gold);
+}
+
+.pwa-install-guide-note {
+  margin: -0.35rem 0 var(--space-3);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.pwa-install-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pwa-install-step {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.pwa-install-step-num {
+  flex-shrink: 0;
+  width: 1.65rem;
+  height: 1.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-gold);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+}
+
+.pwa-install-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pwa-install-step-body strong {
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.pwa-install-step-body span {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.pwa-install-step-text {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text);
+  padding-top: 0.15rem;
+}
+
+.pwa-install-guide-footer {
+  margin: var(--space-4) 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.pwa-install-guide-footer-link {
+  color: var(--text-gold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .pwa-install-banner-inner {
+    flex-wrap: wrap;
+  }
+
+  .pwa-install-banner-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
 /* Right components */
 .app-header-right {
   display: flex;

@@ -35,6 +35,7 @@ import {
   UsersRound,
   Zap,
   Info,
+  Download,
 } from 'lucide-react'
 
 export const SIDENAV_WIDTH_PX = 240
@@ -121,6 +122,7 @@ export const ADVANCED_ASTRO_TABS: NavTab[] = [
 ]
 
 export const MAIN_TABS: NavTab[] = [
+  { id: 'install', label: 'Install App', icon: Download, path: '/install' },
   { id: 'about', label: 'About', icon: Info, path: '/about' },
   { id: 'clients', label: 'CRM / Clients', icon: UsersRound, path: '/clients' },
   { id: 'pricing', label: 'Pricing', icon: Gem, path: '/pricing' },
