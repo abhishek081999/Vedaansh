@@ -1,7 +1,8 @@
 import React from 'react'
 import Link from 'next/link'
 
-const LEGAL_LINKS = [
+const FOOTER_LINKS = [
+  { href: '/install', label: 'Install App' },
   { href: '/terms', label: 'Terms' },
   { href: '/privacy', label: 'Privacy' },
   { href: '/refund', label: 'Refund' },
@@ -25,7 +26,7 @@ export function SiteFooter({ variant = 'default' }: { variant?: 'default' | 'min
         }}
       >
         <nav aria-label="Legal and support" style={{ marginBottom: '0.5rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          {LEGAL_LINKS.map((link) => (
+          {FOOTER_LINKS.map((link) => (
             <Link key={link.href} href={link.href} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
               {link.label}
             </Link>
@@ -59,7 +60,7 @@ export function SiteFooter({ variant = 'default' }: { variant?: 'default' | 'min
         {' '}· Lahiri ayanamsha
       </span>
       <nav aria-label="Legal and support" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-        {LEGAL_LINKS.map((link, i) => (
+        {FOOTER_LINKS.map((link, i) => (
           <React.Fragment key={link.href}>
             {i > 0 ? <span style={{ color: 'var(--border-bright)' }} aria-hidden>•</span> : null}
             <Link href={link.href} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>

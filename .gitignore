@@ -60,7 +60,8 @@ android-twa/app/
 android-twa/.gradle/
 android-twa/build/
 android-twa/local.properties
-android-twa/*.apk
+android-twa/vedaansh-release.apk
+android-twa/app-release-aligned.apk
 android-twa/*.aab
 android-twa/gradle/
 android-twa/gradlew

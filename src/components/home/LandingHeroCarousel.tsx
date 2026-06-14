@@ -349,6 +349,7 @@ export function LandingHeroCarousel({
       { label: 'Panchang', href: '/panchang' },
       { label: 'Calendar', href: '/panchang/calendar' },
       { label: 'Kundali Matching', href: '/compare' },
+      { label: 'Install App', href: '/install' },
     ],
     [],
   )
