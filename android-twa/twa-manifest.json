@@ -4,23 +4,24 @@
   "name": "Vedaansh Jyotish",
   "launcherName": "Vedaansh",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "themeColor": "#0B0B14",
   "themeColorDark": "#0B0B14",
   "navigationColor": "#0B0B14",
   "navigationColorDark": "#0B0B14",
-  "navigationDividerColor": "#00000000",
-  "navigationDividerColorDark": "#00000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
   "backgroundColor": "#0B0B14",
   "enableNotifications": false,
-  "enableSiteSettingsShortcut": true,
   "startUrl": "/",
   "iconUrl": "https://vedaansh.com/icons/icon-512x512.png",
   "maskableIconUrl": "https://vedaansh.com/icons/icon-512x512.png",
   "splashScreenFadeOutDuration": 300,
-  "appVersionCode": 1,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
   "appVersionName": "1.0.0",
-  "minSdkVersion": 21,
+  "appVersionCode": 3,
   "shortcuts": [
     {
       "name": "New Chart",
@@ -35,12 +36,9 @@
       "chosenIconUrl": "https://vedaansh.com/icons/icon-192x192.png"
     }
   ],
-  "signingKey": {
-    "path": "./android.keystore",
-    "alias": "android"
-  },
-  "fingerprints": [],
-  "additionalTrustedOrigins": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://vedaansh.com/manifest.json",
+  "fallbackType": "customtabs",
   "features": {
     "locationDelegation": {
       "enabled": false
@@ -56,9 +54,14 @@
   "alphaDependencies": {
     "enabled": false
   },
-  "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://vedaansh.com/manifest.json",
+  "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fallbackType": "customtabs"
+  "minSdkVersion": 21,
+  "orientation": "portrait-primary",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "displayOverride": [],
+  "appVersion": "1.0.0"
 }
