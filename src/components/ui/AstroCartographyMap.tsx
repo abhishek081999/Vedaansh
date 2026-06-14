@@ -5,6 +5,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { ACG_INTERPRETATIONS } from '@/lib/engine/astroInterpretation'
 
 const COLORS: Record<string, string> = {
@@ -126,7 +127,12 @@ function ClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void
 
 function MapController({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null> }) {
   const map = useMap()
-  useEffect(() => { mapRef.current = map }, [map, mapRef])
+  useEffect(() => {
+    mapRef.current = map
+    return () => {
+      mapRef.current = null
+    }
+  }, [map, mapRef])
   return null
 }
 
@@ -144,6 +150,8 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
   const [transitData, setTransitData] = useState<ACGLineData[]>([])
   const [natalParans, setNatalParans] = useState<ACGParan[]>([])
   const [loading, setLoading]         = useState(true)
+  const [mapReady, setMapReady]         = useState(false)
+  const [mapSessionKey]                 = useState(() => `acg-${Date.now()}-${Math.random().toString(36).slice(2)}`)
   const [visiblePlanets, setVisiblePlanets] = useState<Set<GrahaId>>(new Set(['Su', 'Mo', 'Ju', 'Ve']))
   const [viewMode, setViewMode]       = useState<'natal' | 'transit' | 'both'>('natal')
   const [mapTheme, setMapTheme]       = useState<'dark' | 'light'>('light')
@@ -156,6 +164,11 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
   const mapRef = useRef<L.Map | null>(null)
   const birthLat = birthCoords?.[0]
   const birthLng = birthCoords?.[1]
+
+  // Leaflet requires a browser DOM; defer map mount until after hydration.
+  useEffect(() => {
+    setMapReady(true)
+  }, [])
 
   // ── Responsive ──
   useEffect(() => {
@@ -254,17 +267,8 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
   const opacity  = lineStyle === 'vivid' ? 0.9 : 0.45
   const panelBg  = isDark ? 'rgba(8,8,22,0.94)'     : 'rgba(255,255,255,0.97)'
   const panelBdr = isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.09)'
+  const showMap  = mapReady && !loading
 
-  // ── Loading ──
-  if (loading) return (
-    <div style={{ height: '100%', background: 'var(--surface-1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.875rem', color: 'var(--gold)' }}>
-      <div style={{ fontSize: '2.5rem', animation: 'acg-spin 4s linear infinite' }}>🌍</div>
-      <div style={{ fontSize: '0.875rem', fontWeight: 700, letterSpacing: '0.04em' }}>Calculating Planetary Vectors…</div>
-      <style>{`@keyframes acg-spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }`}</style>
-    </div>
-  )
-
-  // ── Relocation drawer data ──
   const ascDeg    = relocationStats?.relocatedAsc ?? 0
   const rashiIdx  = ((Math.floor(ascDeg / 30) + 1) as Rashi)
   const rashiName = RASHI_NAMES[rashiIdx] ?? '—'
@@ -478,9 +482,21 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
           </div>
         )}
 
+        {/* ── Loading overlay (keep map mounted once initialized) ── */}
+        {!showMap && (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 1200,
+            background: 'var(--surface-1)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <VedaanshLoader size={48} message="Calculating Planetary Vectors…" />
+          </div>
+        )}
+
         {/* ── Leaflet Map ── */}
+        {showMap && (
         <MapContainer
-          key={`${birthCoords?.[0]}-${birthCoords?.[1]}-${natalJd}`}
+          key={mapSessionKey}
           center={birthCoords ?? [20, 0]}
           zoom={2}
           zoomControl={false}
@@ -554,8 +570,10 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
             </CircleMarker>
           )}
         </MapContainer>
+        )}
 
         {/* ── Bottom Legend Bar ── */}
+        {showMap && (
         <div style={{
           position: 'absolute', bottom: isMobile ? 6 : 10,
           left: '50%', transform: 'translateX(-50%)',
@@ -582,6 +600,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Global styles for Leaflet tooltips + glyph icons */}

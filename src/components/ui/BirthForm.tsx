@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import React, { useState, useRef, useCallback, useEffect } from 'react'
+import React, { useState, useRef, useCallback, useEffect, useId } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { ChartOutput, ChartSettings, Gender } from '@/types/astrology'
 import { DEFAULT_SETTINGS } from '@/types/astrology'
@@ -70,6 +70,23 @@ interface BirthFormProps {
 // ── Component ────────────────────────────────────────────────
 
 export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName = 'Transit', initialData }: BirthFormProps) {
+  const fieldId = useId()
+  const ids = {
+    name: `${fieldId}-name`,
+    gender: `${fieldId}-gender`,
+    date: `${fieldId}-date`,
+    time: `${fieldId}-time`,
+    place: `${fieldId}-place`,
+    lat: `${fieldId}-lat`,
+    lng: `${fieldId}-lng`,
+    tz: `${fieldId}-tz`,
+    ayanamsha: `${fieldId}-ayanamsha`,
+    houseSystem: `${fieldId}-house`,
+    karaka: `${fieldId}-karaka`,
+    nodes: `${fieldId}-nodes`,
+    saveLibrary: `${fieldId}-save`,
+  }
+
   const { date: todayDate, time: nowTime } = nowIST()
   const searchParams = useSearchParams()
 
@@ -562,8 +579,9 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       }}>
         {/* Name Field */}
         <div style={{ flex: 1 }}>
-          <label className="field-label" style={{ marginBottom: '0.15rem' }}>Name / Label</label>
+          <label className="field-label" htmlFor={ids.name} style={{ marginBottom: '0.15rem' }}>Name / Label</label>
           <input
+            id={ids.name}
             className="input"
             type="text"
             placeholder="e.g. Ravi Kumar"
@@ -576,9 +594,12 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
 
         {/* Gender Selection (Compact) */}
         <div style={{ width: isMobile ? 100 : 120, flexShrink: 0 }}>
-          <label className="field-label" style={{ marginBottom: '0.15rem' }}>Gender</label>
-          <div style={{ 
-            display: 'flex', 
+          <span id={ids.gender} className="field-label" style={{ marginBottom: '0.15rem', display: 'block' }}>Gender</span>
+          <div
+            role="group"
+            aria-labelledby={ids.gender}
+            style={{
+            display: 'flex',
             gap: '2px',
             background: 'var(--surface-2)',
             padding: '2px',
@@ -624,9 +645,13 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       }}>
         {/* Date Field */}
         <div style={{ width: '100%', minWidth: 0 }}>
-          <label className="field-label" style={{ marginBottom: '0.25rem' }}>Date</label>
-          <div style={{ 
-            display: 'flex', 
+          <label className="field-label" htmlFor={ids.date} style={{ marginBottom: '0.25rem' }}>Date</label>
+          <div
+            id={ids.date}
+            role="group"
+            aria-label="Birth date"
+            style={{
+            display: 'flex',
             alignItems: 'center',
             background: 'var(--surface-2)',
             border: '1px solid var(--border-soft)',
@@ -681,7 +706,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         {/* Time Field - Same Pill Design */}
         <div style={{ width: '100%', minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-            <label className="field-label" style={{ marginBottom: 0 }}>Time</label>
+            <label className="field-label" htmlFor={ids.time} style={{ marginBottom: 0 }}>Time</label>
             <button
               type="button"
               onClick={setToNow}
@@ -695,8 +720,12 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               Now ↺
             </button>
           </div>
-          <div style={{ 
-            display: 'flex', 
+          <div
+            id={ids.time}
+            role="group"
+            aria-label="Birth time"
+            style={{
+            display: 'flex',
             alignItems: 'center',
             background: 'var(--surface-2)',
             border: '1px solid var(--border-soft)',
@@ -773,7 +802,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
 
       {/* Location Field with autocomplete */}
       <div style={{ position: 'relative', width: '100%' }} ref={dropdownRef}>
-        <label className="field-label" style={{ marginBottom: '0.15rem', display: 'flex', alignItems: 'center' }}>
+        <label className="field-label" htmlFor={ids.place} style={{ marginBottom: '0.15rem', display: 'flex', alignItems: 'center' }}>
           Place
           {searching && (
             <span style={{ marginLeft: 8, fontSize: '0.62rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
@@ -815,8 +844,9 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', animation: 'fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) both' }}>
              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Latitude (-90 to 90)</label>
-                  <input 
+                  <label htmlFor={ids.lat} style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Latitude (-90 to 90)</label>
+                  <input
+                    id={ids.lat}
                     type="text" placeholder="e.g. 28:02 or 28.0333" 
                     className="input" style={{ width: '100%' }}
                     value={lat ?? ''} 
@@ -824,8 +854,9 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Longitude (-180 to 180)</label>
-                  <input 
+                  <label htmlFor={ids.lng} style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Longitude (-180 to 180)</label>
+                  <input
+                    id={ids.lng}
                     type="text" placeholder="e.g. 73:31 or 73.5167" 
                     className="input" style={{ width: '100%' }}
                     value={lng ?? ''} 
@@ -838,6 +869,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           <>
             <div style={{ position: 'relative' }}>
               <input
+                id={ids.place}
                 className="input"
                 type="text"
                 placeholder="City, Country"
@@ -924,7 +956,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         {/* Unified Timezone Selection */}
         <div style={{ marginTop: '0.65rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.15rem' }}>
-            <label className="field-label" style={{ marginBottom: 0 }}>Timezone (IANA)</label>
+            <label className="field-label" htmlFor={ids.tz} style={{ marginBottom: 0 }}>Timezone (IANA)</label>
             {manualMode && (
               <button 
                 type="button" 
@@ -940,8 +972,9 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
             )}
           </div>
           <div style={{ position: 'relative' }}>
-            <input 
-              type="text" 
+            <input
+              id={ids.tz}
+              type="text"
               placeholder="Search e.g. Asia/Kolkata" 
               className="input" 
               style={{ width: '100%', boxSizing: 'border-box', cursor: 'pointer' }}
@@ -1006,8 +1039,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
             animation: 'fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) both',
           }}>
             <div>
-              <label className="field-label">Ayanamsha</label>
-              <select className="input" value={settings.ayanamsha}
+              <label className="field-label" htmlFor={ids.ayanamsha}>Ayanamsha</label>
+              <select id={ids.ayanamsha} className="input" value={settings.ayanamsha}
                 onChange={(e) => setSettings((s) => ({ ...s, ayanamsha: e.target.value as any }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
                 <option value="lahiri">Lahiri (default)</option>
@@ -1019,8 +1052,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               </select>
             </div>
             <div>
-              <label className="field-label">House system</label>
-              <select className="input" value={settings.houseSystem}
+              <label className="field-label" htmlFor={ids.houseSystem}>House system</label>
+              <select id={ids.houseSystem} className="input" value={settings.houseSystem}
                 onChange={(e) => setSettings((s) => ({ ...s, houseSystem: e.target.value as any }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
                 <option value="whole_sign">Whole Sign</option>
@@ -1030,8 +1063,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               </select>
             </div>
             <div>
-              <label className="field-label">Karaka scheme</label>
-              <select className="input" value={settings.karakaScheme}
+              <label className="field-label" htmlFor={ids.karaka}>Karaka scheme</label>
+              <select id={ids.karaka} className="input" value={settings.karakaScheme}
                 onChange={(e) => setSettings((s) => ({ ...s, karakaScheme: Number(e.target.value) as 7 | 8 }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
                 <option value={7}>7 Karakas (default)</option>
@@ -1039,8 +1072,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               </select>
             </div>
             <div>
-              <label className="field-label">Rahu / Ketu nodes</label>
-              <select className="input" value={settings.nodeMode}
+              <label className="field-label" htmlFor={ids.nodes}>Rahu / Ketu nodes</label>
+              <select id={ids.nodes} className="input" value={settings.nodeMode}
                 onChange={(e) => setSettings((s) => ({ ...s, nodeMode: e.target.value as any }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
                 <option value="mean">Mean nodes</option>
@@ -1053,21 +1086,23 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
 
       {/* Save to library checkbox */}
       {session && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }} onClick={() => setSaveToLibrary(!saveToLibrary)}>
-          <input 
-            type="checkbox" 
-            checked={saveToLibrary} 
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }}>
+          <input
+            id={ids.saveLibrary}
+            type="checkbox"
+            checked={saveToLibrary}
             onChange={(e) => setSaveToLibrary(e.target.checked)}
-            onClick={(e) => e.stopPropagation()}
             style={{ cursor: 'pointer' }}
           />
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Save this chart to my library</span>
+          <label htmlFor={ids.saveLibrary} style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer' }}>
+            Save this chart to my library
+          </label>
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div style={{
+        <div role="alert" style={{
           padding: '0.7rem 1rem',
           background: 'rgba(212,120,138,0.1)',
           border: '1px solid rgba(212,120,138,0.3)',

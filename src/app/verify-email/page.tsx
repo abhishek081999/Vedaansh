@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 import { Suspense } from 'react'
 
@@ -73,7 +74,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-          <div className="spin-loader" style={{ width: 32, height: 32, border: '3px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%' }} />
+          <VedaanshLoader />
        </div>
     }>
       <VerifyEmailContent />

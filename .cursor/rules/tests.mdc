@@ -1,0 +1,36 @@
+---
+description: Vitest test conventions — engine purity, security routes, fixtures
+globs: __tests__/**
+alwaysApply: false
+---
+
+# Test Conventions
+
+Stack: **Vitest** (`describe` / `it` / `expect`).
+
+## Engine tests (`__tests__/engine/**`)
+
+- Test **pure logic only** — ephemeris, vargas, nakshatra, dasha, cache-key helpers
+- Do **not** import `@upstash/redis`, `mongoose`, `next-auth`, or API routes (native deps can segfault on Windows in Vitest)
+- Inline small helpers instead of pulling in infra modules when testing key formats
+- Use `__tests__/fixtures/reference_charts.json` for golden/reference chart data
+
+## Security tests (`__tests__/security/**`)
+
+- Cover rate limits, body limits, sanitization, plan access, IP helpers
+- Mirror production config from `@/lib/security/*`
+
+## Assertions
+
+- Prefer deterministic checks (exact JD, rashi, nakshatra index) over loose floating comparisons
+- When comparing degrees, use tolerance only where ephemeris precision requires it
+
+## Naming
+
+```typescript
+describe('Cache key helpers', () => {
+  it('chartCacheKey differs by ayanamsha', () => { ... })
+})
+```
+
+Run: `npm test` or target a file with `npx vitest run __tests__/engine/phase2.test.ts`

@@ -1,0 +1,43 @@
+---
+description: Next.js App Router API route conventions — security, auth, validation, responses
+globs: src/app/api/**
+alwaysApply: false
+---
+
+# API Route Conventions
+
+Vedaansh API routes live in `src/app/api/**/route.ts`. Follow existing patterns in sibling routes.
+
+## Handler structure
+
+1. **Security first** — block before parsing body:
+   - Prefer `guardRoute(req, routeSecurityPresets.*())` from `@/lib/security/presets`
+   - Or `applyRouteSecurity(req, {...})` from `@/lib/security/route` for custom limits
+   - Add a new preset in `presets.ts` instead of duplicating rate-limit config inline
+
+2. **Auth** — `const session = await auth()`; return `401` when `session?.user?.id` is missing for protected routes
+
+3. **Plan gates** — `requirePlanGate(userId, 'gold' | 'platinum')` from `@/lib/security/planAccess` for paid features
+
+4. **Validate input** — Zod `safeParse`; return `400` with `{ success: false, error, details: result.error.issues }`
+
+5. **DB** — `await connectDB()` before Mongoose calls; scope queries to `session.user.id`
+
+6. **Errors** — wrap in `try/catch`; log `console.error('[route/name]', err)`; return `{ success: false, error: '...' }` with `500`
+
+## Response shape
+
+```typescript
+// Success
+return NextResponse.json({ success: true, data })
+
+// Failure
+return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 })
+```
+
+## Do not
+
+- Skip `guardRoute` / `applyRouteSecurity` on new endpoints
+- Return raw stack traces or internal errors to clients
+- Import React or UI code into API routes
+- Hardcode rate limits — use `routeSecurityPresets` or `rateLimitPolicy` constants

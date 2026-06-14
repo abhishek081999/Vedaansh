@@ -7,6 +7,7 @@
 import React, { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
@@ -226,7 +227,11 @@ export default function ResetPasswordPage() {
       }}>
         <div className="fade-up" style={{ width: '100%', maxWidth: 420 }}>
           <div className="card" style={{ padding: '2.5rem 2rem' }}>
-            <Suspense fallback={<p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</p>}>
+            <Suspense fallback={
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}>
+                <VedaanshLoader />
+              </div>
+            }>
               <ResetPasswordForm />
             </Suspense>
           </div>

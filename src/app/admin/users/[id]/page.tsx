@@ -4,6 +4,7 @@ import React, { use, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AdminMessage } from '@/components/admin/AdminMessage'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 type ChartRow = {
   _id: string
@@ -132,7 +133,13 @@ export default function AdminUserDetailPage({
     router.push(`/?${q.toString()}`)
   }
 
-  if (loading) return <div style={{ color: 'var(--text-muted)' }}>Loading user profile…</div>
+  if (loading) {
+    return (
+      <div style={{ padding: '3rem 0', textAlign: 'center' }}>
+        <VedaanshLoader message="Loading user profile…" />
+      </div>
+    )
+  }
   if (!data) return <div style={{ color: 'var(--rose)' }}>{error || 'User not found'}</div>
 
   const user = data.user

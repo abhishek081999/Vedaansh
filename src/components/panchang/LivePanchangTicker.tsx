@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import styles from './LivePanchangTicker.module.css'
+import { Spinner } from '@/components/ui/primitives/Spinner'
 import type { PanchangApiData } from './DailyPanchangView'
 
 interface Props {
@@ -45,10 +46,10 @@ export function LivePanchangTicker({ data, loading, locationName }: Props) {
       <div className={styles.tickerContainer}>
         <div className={styles.tickerContent}>
           <div className={styles.liveIndicator}>
-            <span className={styles.liveDot} />
-            <span className={styles.liveText}>SYNCING...</span>
+            <Spinner size={14} label="Syncing panchang" />
+            <span className={styles.liveText}>Syncing…</span>
           </div>
-          <div className={styles.tickerItem}>Loading celestial pulse...</div>
+          <div className={styles.tickerItem}>Loading celestial pulse…</div>
         </div>
       </div>
     )

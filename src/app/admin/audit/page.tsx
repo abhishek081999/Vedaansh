@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { AdminMessage } from '@/components/admin/AdminMessage'
 import { AdminPagination } from '@/components/admin/AdminPagination'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 export default function AdminAuditPage() {
   const [logs, setLogs] = useState<any[]>([])
@@ -58,7 +59,9 @@ export default function AdminAuditPage() {
 
       <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
         {loading && logs.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading audit events…</div>
+          <div style={{ padding: '3rem', textAlign: 'center' }}>
+            <VedaanshLoader message="Loading audit events…" />
+          </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AdminMessage } from '@/components/admin/AdminMessage'
 import { AdminPagination } from '@/components/admin/AdminPagination'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 type UserRow = {
   _id: string
@@ -204,7 +205,9 @@ export default function AdminUsersPage() {
 
       <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', overflow: 'hidden' }}>
         {loading && users.length === 0 ? (
-          <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading users…</div>
+          <div style={{ padding: '4rem', textAlign: 'center' }}>
+            <VedaanshLoader message="Loading users…" />
+          </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1040 }}>

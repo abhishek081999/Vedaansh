@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AdminMessage } from '@/components/admin/AdminMessage'
 import { AdminPagination } from '@/components/admin/AdminPagination'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 type ChartRow = {
   _id: string
@@ -107,7 +108,11 @@ export default function AdminChartsPage() {
   }
 
   if (loading && charts.length === 0) {
-    return <div style={{ color: 'var(--text-muted)', padding: '5rem 0', textAlign: 'center' }}>Loading charts…</div>
+    return (
+      <div style={{ padding: '5rem 0', textAlign: 'center' }}>
+        <VedaanshLoader message="Loading charts…" />
+      </div>
+    )
   }
 
   return (

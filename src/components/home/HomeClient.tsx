@@ -7,7 +7,6 @@
 
 import dynamic from 'next/dynamic'
 import React, { useState, useEffect, useMemo } from 'react'
-import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
@@ -50,6 +49,24 @@ import { PlanetDetailCard } from '@/components/ui/PlanetDetailCard'
 import { getGraNakPositions, getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
 import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
+import { LandingShell, LandingVedicDivider } from '@/components/home/LandingShell'
+import { ChartFormDrawer } from '@/components/home/ChartFormDrawer'
+import { MobileDashboardNav, type MobileDashTab, type MobileStrengthSubTab } from '@/components/home/MobileDashboardNav'
+import { SiteFooter } from '@/components/ui/layout/SiteFooter'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+import { ChartContextBar, PanelShell } from '@/components/ui/patterns'
+import {
+  isFlushPaddingChartTab,
+  isFullWidthChartTab,
+  isStrengthAnalyticsTab,
+} from '@/lib/ui/chartTabRegistry'
+
+const MOBILE_STRENGTH_TABS = [
+  { id: 'ashtakavarga' as const, icon: Grid3x3, label: 'Ashtaka' },
+  { id: 'shadbala' as const, icon: Scale, label: 'Shadbala' },
+  { id: 'bhava' as const, icon: Home, label: 'Bhava' },
+  { id: 'vimsopaka' as const, icon: BarChart3, label: 'Vimsho' },
+]
 
 // ─────────────────────────────────────────────────────────────
 //  Arudha Panel
@@ -415,38 +432,12 @@ function MajorKundaliStrip({
   )
 }
 
-const LANDING_STARS = Array.from({ length: 28 }, (_, i) => ({
-  left: `${(i * 37 + 11) % 100}%`,
-  top: `${(i * 23 + 7) % 100}%`,
-  delay: `${(i * 0.31) % 4}s`,
-  dur: `${3 + (i % 5)}s`,
-}))
-
-function VedicDivider() {
-  return (
-    <div className="landing-vedic-divider" aria-hidden="true">
-      <div className="landing-vedic-divider-line" />
-      <svg className="landing-vedic-divider-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5">
-        <circle cx="12" cy="12" r="3.5" fill="var(--gold)" />
-        <path d="M12 2 Q10 7 12 9 Q14 7 12 2 Z" fill="none" />
-        <path d="M12 22 Q10 17 12 15 Q14 17 12 22 Z" fill="none" />
-        <path d="M2 12 Q7 10 9 12 Q7 14 2 12 Z" fill="none" />
-        <path d="M22 12 Q17 10 15 12 Q17 14 22 12 Z" fill="none" />
-        <path d="M5.5 5.5 Q9 7 9 9 Q7 9 5.5 5.5 Z" fill="none" />
-        <path d="M18.5 18.5 Q15 17 15 15 Q17 15 18.5 18.5 Z" fill="none" />
-        <path d="M5.5 19 Q7 15 9 15 Q9 17 5.5 19 Z" fill="none" />
-        <path d="M18.5 5 Q17 9 15 9 Q15 7 18.5 5 Z" fill="none" />
-      </svg>
-      <div className="landing-vedic-divider-line" />
-    </div>
-  );
-}
-
 // ─────────────────────────────────────────────────────────────
 //  Main Page
 // ─────────────────────────────────────────────────────────────
 
 import { Suspense } from 'react'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { LandingPremiumHero } from '@/components/home/LandingPremiumHero'
 import { LandingStickyMobileCta } from '@/components/home/LandingStickyMobileCta'
 import { LandingReveal } from '@/components/home/LandingReveal'
@@ -616,58 +607,8 @@ function HomeContent() {
   const [mobileDashCategory, setMobileDashCategory] = useState<'astrology' | 'panchang' | 'nakshatra' | 'advanced'>('astrology')
   const [mobileDashTab, setMobileDashTab] = useState<'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'>('astro')
   const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('ashtakavarga')
-  type MobileStrengthSubTab = 'ashtakavarga' | 'shadbala' | 'bhava' | 'vimsopaka'
-  const STRENGTH_ANALYTICS_TABS = ['ashtakavarga', 'shadbala', 'bhava-bala', 'vimsopaka'] as const
-  const MOBILE_STRENGTH_TABS = [
-    { id: 'ashtakavarga' as const, icon: Grid3x3, label: 'Ashtaka' },
-    { id: 'shadbala' as const, icon: Scale, label: 'Shadbala' },
-    { id: 'bhava' as const, icon: Home, label: 'Bhava' },
-    { id: 'vimsopaka' as const, icon: BarChart3, label: 'Vimsho' },
-  ]
-  const mobileDashboardCategories = [
-    { id: 'astrology', label: 'Astrology' },
-    { id: 'panchang', label: 'Panchang' },
-    { id: 'nakshatra', label: 'Nakshatra' },
-    { id: 'advanced', label: 'Advanced Astrology' },
-  ] as const
-  const mobileDashboardOptions = {
-    astrology: [
-      { id: 'astro', label: 'Astro Details' },
-      { id: 'planetary', label: 'Planetary Details' },
-      { id: 'dashas', label: 'Dashas' },
-      { id: 'today', label: 'Today Glance' },
-      { id: 'panchang', label: 'Natal Panchang' },
-      { id: 'strengths', label: 'Strengths' },
-      { id: 'yogas', label: 'Graha Yogas' },
-    ],
-    panchang: [
-      { id: 'daily-panchang', label: 'Daily Panchang', path: '/panchang' },
-      { id: 'monthly-panchang', label: 'Monthly Calendar', path: '/panchang/calendar' },
-    ],
-    nakshatra: [
-      { id: 'nakshatra-overview', label: 'Overview', path: '/nakshatra/overview' },
-      { id: 'nakshatra-navtara', label: 'Navtara', path: '/nakshatra/navtara' },
-      { id: 'nakshatra-bestdays', label: 'Best Days', path: '/nakshatra/bestdays' },
-      { id: 'nakshatra-muhurta', label: 'Muhurta', path: '/nakshatra/muhurta' },
-      { id: 'nakshatra-panchaka', label: 'Panchaka', path: '/nakshatra/panchaka' },
-      { id: 'nakshatra-planet', label: 'Planet', path: '/nakshatra/planet' },
-      { id: 'nakshatra-compat', label: 'Compat', path: '/nakshatra/compat' },
-      { id: 'nakshatra-remedies', label: 'Remedies', path: '/nakshatra/remedies' },
-    ],
-    advanced: [
-      { id: 'jaimini', label: 'Jaimini Astrology', path: '/jaimini' },
-      { id: 'astro-vastu', label: 'Astro Vastu', path: '/vastu' },
-      { id: 'astro-carto', label: 'AstroCartography', path: '/acg' },
-      { id: 'sbc', label: 'Sarvatobhadra Chakra', path: '/sbc' },
-      { id: 'muhurta', label: 'Muhurta Finder', path: '/muhurta' },
-      { id: 'prashna', label: 'Prashna', path: '/prashna' },
-      { id: 'compare', label: 'Kundali Matching', path: '/compare' },
-      { id: 'roadmap', label: 'Cosmic Roadmap', path: '/roadmap' },
-      { id: 'transit-scrubber', label: 'Time Scrubber', path: '/scrubber' },
-    ],
-  } as const
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1024)
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
@@ -683,10 +624,10 @@ function HomeContent() {
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' })
   }, [mobileDashTab, isMobile])
 
-  const isStrengthAnalyticsTab = (STRENGTH_ANALYTICS_TABS as readonly string[]).includes(activeTab)
+  const isStrengthAnalyticsTabActive = isStrengthAnalyticsTab(activeTab)
   const showStrengthSubNav = isMobile && !!chart && (
     (activeTab === 'dashboard' && mobileDashTab === 'strengths') ||
-    isStrengthAnalyticsTab
+    isStrengthAnalyticsTabActive
   )
   const showMainDashBottomNav = isMobile && !!chart && activeTab === 'dashboard'
   const strengthSubNavStacked = showMainDashBottomNav && mobileDashTab === 'strengths'
@@ -1478,36 +1419,15 @@ function HomeContent() {
             
             {/* Compact Header Strip */}
             <div className="chart-header-row" style={isMobile ? { position: 'relative' } : undefined}>
-              <div
-                className="chart-name-strip"
-                style={
-                  isMobile
-                    ? {
-                        paddingRight:
-                          status === 'authenticated'
-                            ? 'calc(5 * 34px + 4 * 0.4rem + 0.75rem)'
-                            : 'calc(3 * 34px + 2 * 0.4rem + 0.75rem)',
-                      }
-                    : undefined
+              <ChartContextBar
+                chart={chart}
+                isMobile={isMobile}
+                mobileReserveRight={
+                  status === 'authenticated'
+                    ? 'calc(5 * 34px + 4 * 0.4rem + 0.75rem)'
+                    : 'calc(3 * 34px + 2 * 0.4rem + 0.75rem)'
                 }
-              >
-                <span className="name-primary">{chart.meta.name}</span>
-                <span className="name-sep hide-mobile">·</span>
-                <span className="name-detail hide-mobile">
-                  {(() => {
-                    const [y, mm, dd] = chart.meta.birthDate.split('-')
-                    const [h, min] = chart.meta.birthTime.split(':').map(Number)
-                    const ampm = h >= 12 ? 'pm' : 'am'
-                    return `${dd} ${mm} ${y} · ${h % 12 || 12}:${String(min).padStart(2, '0')} ${ampm}`
-                  })()}
-                </span>
-                <span className="name-sep hide-mobile">·</span>
-                <span className="name-detail hide-mobile" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chart.meta.birthPlace}</span>
-                <span className="name-sep hide-mobile">·</span>
-                <span className="name-asc hide-mobile">
-                  {RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} {chart.lagnas.ascDegreeInRashi.toFixed(1)}°
-                </span>
-              </div>
+              />
 
               {isMobile && (
                 <div
@@ -1807,8 +1727,11 @@ function HomeContent() {
             )}
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'kp-stellar') && (
-              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '' : 'panel'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '0' : '0.65rem', width: '100%' }}>
+            {isFullWidthChartTab(activeTab) && (
+              <div
+                className={`${isFlushPaddingChartTab(activeTab) ? '' : 'panel'} fade-up`}
+                style={{ padding: isFlushPaddingChartTab(activeTab) ? '0' : '0.65rem', width: '100%' }}
+              >
                 {activeTab === 'planets' ? (
                     <PlanetsWorkspace chart={chart} />
                   ) : activeTab === 'house' ? (
@@ -1824,7 +1747,7 @@ function HomeContent() {
             )}
 
              {/* Responsive: Dominant CHART | Tab Analysis — hidden when full-width workspace active */}
-             {activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && activeTab !== 'kp-stellar' && <div className="chart-layout-grid">
+             {!isFullWidthChartTab(activeTab) && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '1 1 460px', 
@@ -1860,10 +1783,9 @@ function HomeContent() {
 
                       {/* ── Tab content ── */}
                       {mobileDashTab === 'astro' && (
-                        <div className="panel">
-                          <div className="panel-header"><span>Astro Details</span></div>
-                          <div style={{ padding: '0.4rem 0.55rem' }}><AstroDetailsPanel chart={chart} /></div>
-                        </div>
+                        <PanelShell title="Astro Details" padding="sm">
+                          <AstroDetailsPanel chart={chart} />
+                        </PanelShell>
                       )}
 
                       {mobileDashTab === 'planetary' && (
@@ -2607,93 +2529,7 @@ function HomeContent() {
       ) : (
         <div key="home-landing" className="landing-page-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
           {!isFormOpen && (
-            <div className="fade-in landing-shell" style={{ width: '100%', maxWidth: 1240 }}>
-              <div className="landing-ambient" aria-hidden="true">
-                <span className="landing-ambient-orb landing-ambient-orb--gold" />
-                <span className="landing-ambient-orb landing-ambient-orb--maroon" />
-                <span className="landing-ambient-orb landing-ambient-orb--violet" />
-                <span className="landing-ambient-orb landing-ambient-orb--teal" />
-                <div className="landing-stars">
-                  {LANDING_STARS.map((star, i) => (
-                    <span
-                      key={i}
-                      className="landing-star"
-                      style={{
-                        left: star.left,
-                        top: star.top,
-                        ['--star-delay' as string]: star.delay,
-                        ['--star-dur' as string]: star.dur,
-                      }}
-                    />
-                  ))}
-                </div>
-                <div className="landing-mandala-container">
-                  <svg className="landing-mandala-svg" viewBox="0 0 500 500" fill="none" stroke="currentColor" strokeWidth="0.8">
-                    <circle cx="250" cy="250" r="235" strokeDasharray="3 3" opacity="0.4" />
-                    <circle cx="250" cy="250" r="210" opacity="0.2" />
-                    <circle cx="250" cy="250" r="185" strokeDasharray="6 3" opacity="0.3" />
-                    <circle cx="250" cy="250" r="150" opacity="0.2" />
-                    <circle cx="250" cy="250" r="120" strokeDasharray="1 4" strokeWidth="1.5" opacity="0.4" />
-                    <circle cx="250" cy="250" r="90" opacity="0.3" />
-                    <circle cx="250" cy="250" r="60" opacity="0.2" />
-                    
-                    {Array.from({ length: 12 }).map((_, idx) => {
-                      const angle = (idx * 360) / 12;
-                      const rad = (angle * Math.PI) / 180;
-                      const x1 = 250 + 60 * Math.cos(rad);
-                      const y1 = 250 + 60 * Math.sin(rad);
-                      const x2 = 250 + 235 * Math.cos(rad);
-                      const y2 = 250 + 235 * Math.sin(rad);
-                      return (
-                        <line key={idx} x1={x1} y1={y1} x2={x2} y2={y2} opacity="0.15" />
-                      );
-                    })}
-
-                    {Array.from({ length: 24 }).map((_, idx) => {
-                      const angle = (idx * 360) / 24;
-                      const rad = (angle * Math.PI) / 180;
-                      const x = 250 + 210 * Math.cos(rad);
-                      const y = 250 + 210 * Math.sin(rad);
-                      const cp1x = 250 + 225 * Math.cos(rad - 0.08);
-                      const cp1y = 250 + 225 * Math.sin(rad - 0.08);
-                      const cp2x = 250 + 225 * Math.cos(rad + 0.08);
-                      const cp2y = 250 + 225 * Math.sin(rad + 0.08);
-                      return (
-                        <path key={idx} d={`M 250 250 Q ${cp1x} ${cp1y} ${x} ${y} Q ${cp2x} ${cp2y} 250 250 Z`} opacity="0.08" />
-                      );
-                    })}
-
-                    {Array.from({ length: 12 }).map((_, idx) => {
-                      const angle = (idx * 360) / 12 + 15;
-                      const rad = (angle * Math.PI) / 180;
-                      const x = 250 + 150 * Math.cos(rad);
-                      const y = 250 + 150 * Math.sin(rad);
-                      const cp1x = 250 + 165 * Math.cos(rad - 0.12);
-                      const cp1y = 250 + 165 * Math.sin(rad - 0.12);
-                      const cp2x = 250 + 165 * Math.cos(rad + 0.12);
-                      const cp2y = 250 + 165 * Math.sin(rad + 0.12);
-                      return (
-                        <path key={idx} d={`M 250 250 Q ${cp1x} ${cp1y} ${x} ${y} Q ${cp2x} ${cp2y} 250 250 Z`} opacity="0.12" />
-                      );
-                    })}
-
-                    {Array.from({ length: 8 }).map((_, idx) => {
-                      const angle = (idx * 360) / 8 + 30;
-                      const rad = (angle * Math.PI) / 180;
-                      const x = 250 + 90 * Math.cos(rad);
-                      const y = 250 + 90 * Math.sin(rad);
-                      const cp1x = 250 + 100 * Math.cos(rad - 0.18);
-                      const cp1y = 250 + 100 * Math.sin(rad - 0.18);
-                      const cp2x = 250 + 100 * Math.cos(rad + 0.18);
-                      const cp2y = 250 + 100 * Math.sin(rad + 0.18);
-                      return (
-                        <path key={idx} d={`M 250 250 Q ${cp1x} ${cp1y} ${x} ${y} Q ${cp2x} ${cp2y} 250 250 Z`} opacity="0.18" />
-                      );
-                    })}
-                  </svg>
-                </div>
-              </div>
-
+            <LandingShell>
               <LandingPremiumHero
                 trackLandingCta={trackLandingCta}
                 onOpenAstrology={openAstrologyApp}
@@ -2728,8 +2564,11 @@ function HomeContent() {
                           <div className="card-icon-wrapper">
                             <IconComponent size={20} strokeWidth={2} />
                           </div>
-                          <span className="stat-value">{section.title}</span>
-                          <span className="stat-sub">{section.text}</span>
+                          <div className="card-body">
+                            {section.subtitle && <span className="card-kicker">{section.subtitle}</span>}
+                            <span className="stat-value">{section.title}</span>
+                            <span className="stat-sub">{section.text}</span>
+                          </div>
                           <span className="card-arrow" aria-hidden="true">
                             <ArrowRight size={14} strokeWidth={2.5} />
                           </span>
@@ -2792,7 +2631,7 @@ function HomeContent() {
                 </div>
               </LandingReveal>
 
-              <VedicDivider />
+              <LandingVedicDivider />
 
               <LandingReveal delay={100}>
                 <AboutPreview onCtaClick={() => trackLandingCta('about_preview_read_more')} />
@@ -2822,126 +2661,16 @@ function HomeContent() {
                   openAstrologyApp()
                 }}
               />
-            </div>
+            </LandingShell>
           )}
         </div>
       )}
 
-      {/* Footer inside main area */}
-      <footer className="landing-site-footer" style={{
-        marginTop: 'auto', paddingTop: '2rem', paddingBottom: '1rem',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)'
-      }}>
-        <span>
-          Powered by{' '}
-          <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>Swiss Ephemeris</span>
-          {' '}· Lahiri ayanamsha
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Link href="/about" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-            About
-          </Link>
-          <span style={{ color: 'var(--border-bright)' }}>•</span>
-          <Link href="/terms" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-            Terms
-          </Link>
-          <span style={{ color: 'var(--border-bright)' }}>•</span>
-          <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-            Privacy
-          </Link>
-          <span style={{ color: 'var(--border-bright)' }}>•</span>
-          <Link href="/refund" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-            Refunds
-          </Link>
-          <span style={{ color: 'var(--border-bright)' }}>•</span>
-          <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-            Support
-          </Link>
-          <span style={{ color: 'var(--border-bright)' }}>•</span>
-          <a
-            href="https://www.instagram.com/vedaanshlife"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
-          >
-            @vedaanshlife
-          </a>
-          <span style={{ color: 'var(--border-bright)' }}>•</span>
-          <a
-            href="https://www.instagram.com/avisekh_hh"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
-          >
-            @avisekh_hh
-          </a>
-          <span style={{ color: 'var(--border-bright)' }}>•</span>
-          <a
-            href="mailto:vedaanshlife@gmail.com"
-            style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
-          >
-            vedaanshlife@gmail.com
-          </a>
-          <span style={{ color: 'var(--border-bright)' }}>•</span>
-          <a
-            href="mailto:abhishekbhoranj@gmail.com"
-            style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
-          >
-            abhishekbhoranj@gmail.com
-          </a>
-        </div>
-      </footer>
+      <SiteFooter />
 
-      {/* ── Fixed Drawer for Birth Details Form ──────────────── */}
-      <div 
-        style={{
-          position: 'fixed', inset: 0, zIndex: 1100,
-          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
-          opacity: isFormOpen ? 1 : 0, pointerEvents: isFormOpen ? 'auto' : 'none',
-          transition: 'opacity 0.3s ease'
-        }}
-        onClick={closeDrawer}
-      />
-      <div className="form-drawer" style={{ 
-        position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 1101, 
-        boxShadow: '-8px 0 32px rgba(0,0,0,0.4)',
-        background: 'var(--surface-1)',
-        display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--border-bright)',
-        transform: isFormOpen ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-        width: 450, // Default width for desktop (overridden by class on mobile)
-      }}>
-        <div className="form-drawer-header" style={{
-          padding: '1.5rem', borderBottom: '1px solid var(--border)',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: 'var(--surface-2)'
-        }}>
-          <div>
-             <h2 style={{ fontSize: '1.4rem', margin: '0 0 0.2rem 0', fontFamily: 'var(--font-display)', color: 'var(--text-gold)', fontWeight: 600 }}>Birth Details</h2>
-             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', letterSpacing: '0.05em' }}>Janma Kala Entry</span>
-          </div>
-          <button 
-            onClick={closeDrawer}
-            style={{ 
-              background: 'var(--surface-3)', 
-              border: '1px solid var(--border-soft)', 
-              width: 32, height: 32, borderRadius: '50%', 
-              fontSize: '1rem', cursor: 'pointer', color: 'var(--text-primary)', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', 
-              transition: 'all 0.2s',
-              zIndex: 10
-            }}
-          >
-            ✕
-          </button>
-        </div>
-        
-        <div className="form-drawer-body" style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
-            {/* 
-                Optimization: Render BirthForm immediately if query params are present (from "My Charts" or deep links).
-                Don't wait for the background user/me fetch to finish.
-            */}
+      <ChartFormDrawer open={isFormOpen} onClose={closeDrawer}
+        summary={chart ? <ChartSummary chart={chart} /> : undefined}
+      >
             {(status === 'unauthenticated' || !fetchingDefault || !!searchParams.get('name') || !!searchParams.get('new')) && (
               <BirthForm
                 onResult={(data) => { 
@@ -2982,123 +2711,18 @@ function HomeContent() {
                 } : undefined)}
               />
             )}
-           {chart && <ChartSummary chart={chart} />}
-        </div>
-      </div>
+      </ChartFormDrawer>
 
-      {/* ── Mobile Strength & Analytics sub-nav — stacked above main dash nav when on Strength tab ── */}
-      {showStrengthSubNav && typeof document !== 'undefined' && createPortal(
-        <div style={{
-          position: 'fixed',
-          bottom: strengthSubNavStacked ? 'calc(3.75rem + env(safe-area-inset-bottom, 0px))' : 0,
-          left: 0, right: 0, zIndex: 9998,
-          background: 'var(--surface-1)',
-          borderTop: '1px solid var(--border-soft)',
-          display: 'flex', alignItems: 'stretch',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
-          paddingBottom: strengthSubNavStacked ? '0.35rem' : 'max(env(safe-area-inset-bottom), 0.5rem)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        }}>
-          {MOBILE_STRENGTH_TABS.map(({ id, icon: Icon, label }) => {
-            const active = activeStrengthSubTab === id
-            return (
-              <button key={id} type="button"
-                onClick={() => handleStrengthSubTab(id)}
-                style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: '0.2rem', padding: '0.55rem 0.08rem 0.35rem',
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  color: active ? 'var(--accent)' : 'var(--text-muted)',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative', minWidth: 0,
-                }}>
-                {active && (
-                  <div style={{
-                    position: 'absolute', top: 0, left: '20%', right: '20%',
-                    height: 2, background: 'var(--accent)',
-                    boxShadow: '0 0 10px var(--accent)',
-                    borderRadius: '0 0 2px 2px',
-                  }} />
-                )}
-                <Icon size={16} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
-                <span style={{
-                  fontSize: '0.5rem',
-                  fontWeight: active ? 700 : 500,
-                  letterSpacing: '0.02em',
-                  whiteSpace: 'nowrap',
-                  marginTop: '0.1rem',
-                }}>
-                  {label}
-                </span>
-              </button>
-            )
-          })}
-        </div>,
-        document.body
-      )}
-
-      {/* ── Mobile bottom tab bar — rendered via portal to escape transform contexts ── */}
-      {showMainDashBottomNav && typeof document !== 'undefined' && createPortal(
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
-          background: 'var(--surface-1)',
-          borderTop: '1px solid var(--border-soft)',
-          display: 'flex', alignItems: 'stretch',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
-          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        }}>
-          {([
-            { id: 'planetary', icon: Sparkles, label: 'Planets'  },
-            { id: 'astro',     icon: Info,     label: 'Details'  },
-            { id: 'dashas',    icon: Clock,    label: 'Dasha'    },
-            { id: 'today',     icon: Moon,     label: 'Today'    },
-            { id: 'strengths', icon: Zap,      label: 'Strength' },
-            { id: 'yogas',     icon: Star,     label: 'Yogas'    },
-          ] as const).map(({ id, icon: Icon, label }) => {
-            const active = mobileDashTab === id
-            return (
-              <button key={id} type="button"
-                onClick={() => {
-                  setMobileDashTab(id as typeof mobileDashTab);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: '0.2rem', padding: '0.6rem 0.15rem 0.4rem',
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  color: active ? 'var(--accent)' : 'var(--text-muted)',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative',
-                }}>
-                {active && (
-                  <div style={{
-                    position: 'absolute', top: 0, left: '20%', right: '20%',
-                    height: 2, background: 'var(--accent)',
-                    boxShadow: '0 0 10px var(--accent)',
-                    borderRadius: '0 0 2px 2px'
-                  }} />
-                )}
-                <Icon size={18} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
-                <span style={{ 
-                  fontSize: '0.58rem', 
-                  fontWeight: active ? 700 : 500, 
-                  letterSpacing: '0.02em', 
-                  whiteSpace: 'nowrap',
-                  marginTop: '0.1rem'
-                }}>
-                  {label}
-                </span>
-              </button>
-            )
-          })}
-        </div>,
-        document.body
-      )}
+      <MobileDashboardNav
+        showMainNav={showMainDashBottomNav}
+        showStrengthSubNav={showStrengthSubNav}
+        strengthSubNavStacked={strengthSubNavStacked}
+        mobileDashTab={mobileDashTab}
+        activeStrengthSubTab={activeStrengthSubTab}
+        strengthTabs={MOBILE_STRENGTH_TABS}
+        onDashTabChange={(tab) => setMobileDashTab(tab)}
+        onStrengthSubTabChange={handleStrengthSubTab}
+      />
 
     </div>
   )
@@ -3108,7 +2732,7 @@ export default function HomePage() {
   return (
     <Suspense fallback={
        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-          <div className="spin-loader" style={{ width: 40, height: 40, border: '3px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%' }} />
+          <VedaanshLoader />
        </div>
     }>
       <HomeContent />

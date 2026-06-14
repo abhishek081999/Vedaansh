@@ -12,6 +12,7 @@ import {
   Zap,
   AlertTriangle
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/primitives/Spinner'
 import { MuhurtaDiagnostics } from './MuhurtaDiagnostics';
 
 interface TimelineDataPoint {
@@ -99,7 +100,10 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
 
       <div style={{ position: 'relative', height: isMobile ? '120px' : '160px', marginBottom: '1.5rem', background: 'var(--surface-0)', borderRadius: 'var(--r-md)', padding: isMobile ? '1rem 0.75rem' : '1.25rem' }}>
         {loading ? (
-          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>Syncing with planetary grid...</div>
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+            <Spinner size={28} label="Syncing with planetary grid" />
+            Syncing with planetary grid...
+          </div>
         ) : (
           <div style={{ height: '100%', display: 'flex', alignItems: 'flex-end', gap: isMobile ? '2px' : '4px' }}>
             {activeData.map((d, i) => (

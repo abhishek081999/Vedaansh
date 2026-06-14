@@ -17,6 +17,8 @@ import { calculateAshtakoot, getLord } from '@/lib/engine/ashtakoot'
 import { CompatibilityDoshaPanel } from '@/components/ui/CompatibilityDoshaPanel'
 import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
 import { SavedChartSelector } from '@/components/ui/SavedChartSelector'
+import { Suspense } from 'react'
+import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 // ── Compatibility Logic ───────────────────────────────────────
 interface CompatItem { label: string; score: number; reason: string; level: 'good' | 'neutral' | 'bad' }
@@ -110,8 +112,6 @@ const GRAHA_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 const GRAHA_SYM: Record<string, string> = { Su: '☀', Mo: '☽', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋' }
 
 type View = 'compat' | 'doshas' | 'ashtakoot' | 'charts' | 'overlay' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'all'
-
-import { Suspense } from 'react'
 
 function CompareContent() {
   const { data: session } = useSession()
@@ -573,7 +573,7 @@ export default function ComparePage() {
   return (
     <Suspense fallback={
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <div className="spin-loader" style={{ width: 40, height: 40, border: '3px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%' }} />
+        <VedaanshLoader />
       </div>
     }>
       <CompareContent />

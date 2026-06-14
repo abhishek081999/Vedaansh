@@ -1,0 +1,70 @@
+---
+description: React component conventions — client boundaries, theming, plan gating, astrology UI
+globs: src/components/**
+alwaysApply: false
+---
+
+# React Component Conventions
+
+## Client vs server
+
+- Add `'use client'` at the top when using `useState`, `useEffect`, `useMemo`, or browser APIs
+- Keep server components free of hooks unless the file is explicitly client-only
+
+## Imports and types
+
+- Domain types from `@/types/astrology` (`GrahaId`, `Rashi`, `ChartOutput`, `ShadbalaResult`, etc.)
+- Engine result types from their module when needed (e.g. `VimsopakaBalaResult` from `@/lib/engine/vimsopaka`)
+- Icons from `lucide-react` in app chrome (sidenav, headers, actions) — not emoji
+
+## Theming
+
+Use existing CSS variables — do not introduce one-off hex palettes:
+
+- `var(--gold)`, `var(--gold-faint)`
+- `var(--surface-2)`, `var(--border-soft)`, `var(--border)`
+- `var(--text-muted)`, `var(--font-chart-planets)`
+- Spacing: `var(--space-1)` … `var(--space-10)`
+- Radius: `var(--r-sm)` … `var(--r-2xl)`
+- Z-index: `var(--z-drawer)`, `var(--z-modal)`, etc.
+
+Prefer production primitives from `@/components/ui/primitives` (`Button`, `Field`, `Card`, `Alert`, `Drawer`, `Modal`, `Spinner`, `Skeleton`, `EmptyState`) before ad-hoc markup.
+
+Prefer composed patterns from `@/components/ui/patterns` (`PanelShell`, `PlanGate`, `ChartContextBar`) for analysis panels and chart chrome.
+
+Match inline-style patterns in `ChakraSelector.tsx` and panel components only when patterns do not fit. Use co-located `*.module.css` for larger layouts (panchang, reel admin).
+
+Breakpoints: import from `@/lib/ui/breakpoints` (`BREAKPOINTS.lg` = 1024) — do not use magic numbers.
+
+## Navigation & tab config
+
+- Sidenav tabs: `@/lib/ui/navConfig` — do not duplicate tab arrays in components
+- Chart dashboard tabs / layout rules: `@/lib/ui/chartTabRegistry` (`isFullWidthChartTab`, `STRENGTH_ANALYTICS_TABS`, etc.)
+
+## Plan gating in UI
+
+Pass `userPlan?: 'free' | 'gold' | 'platinum'` as a prop. Use `<PlanGate required="gold" userPlan={userPlan}>` for locked sections — enforce access on the API too via `requirePlanGate()`.
+
+## Panel anatomy
+
+Every analysis panel should handle four states via `PanelShell`:
+
+1. **Loading** — `loading` prop → skeleton
+2. **Empty** — `empty` prop → `EmptyState`
+3. **Error** — `error` prop → `Alert`
+4. **Content** — children
+
+## Performance
+
+- `useMemo` for derived chart/visual data
+- Keep planet order arrays as module constants (`ORDER = ['Su', 'Mo', ...]`)
+- Files > 400 lines: split by section or extract hooks/registries
+
+## File header
+
+```typescript
+// ─────────────────────────────────────────────────────────────
+//  src/components/ui/MyPanel.tsx
+//  Short description of what this panel shows
+// ─────────────────────────────────────────────────────────────
+```
