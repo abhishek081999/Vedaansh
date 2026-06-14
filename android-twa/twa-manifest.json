@@ -1,0 +1,64 @@
+{
+  "packageId": "com.vedaansh.app",
+  "host": "vedaansh.com",
+  "name": "Vedaansh Jyotish",
+  "launcherName": "Vedaansh",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "themeColor": "#0B0B14",
+  "themeColorDark": "#0B0B14",
+  "navigationColor": "#0B0B14",
+  "navigationColorDark": "#0B0B14",
+  "navigationDividerColor": "#00000000",
+  "navigationDividerColorDark": "#00000000",
+  "backgroundColor": "#0B0B14",
+  "enableNotifications": false,
+  "enableSiteSettingsShortcut": true,
+  "startUrl": "/",
+  "iconUrl": "https://vedaansh.com/icons/icon-512x512.png",
+  "maskableIconUrl": "https://vedaansh.com/icons/icon-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "minSdkVersion": 21,
+  "shortcuts": [
+    {
+      "name": "New Chart",
+      "shortName": "New Chart",
+      "url": "/?new=true",
+      "chosenIconUrl": "https://vedaansh.com/icons/icon-192x192.png"
+    },
+    {
+      "name": "Daily Panchang",
+      "shortName": "Panchang",
+      "url": "/panchang",
+      "chosenIconUrl": "https://vedaansh.com/icons/icon-192x192.png"
+    }
+  ],
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    },
+    "firstRunFlag": {
+      "enabled": true,
+      "queryParameterName": "from_twa"
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://vedaansh.com/manifest.json",
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fallbackType": "customtabs"
+}

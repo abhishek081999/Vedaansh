@@ -54,6 +54,23 @@ scripts/allCountries.txt
 # Graphify knowledge graph output (local only)
 graphify-out/
 
+# Android TWA (Bubblewrap) — generated + secrets
+android-twa/android.keystore
+android-twa/app/
+android-twa/.gradle/
+android-twa/build/
+android-twa/local.properties
+android-twa/*.apk
+android-twa/*.aab
+android-twa/gradle/
+android-twa/gradlew
+android-twa/gradlew.bat
+android-twa/settings.gradle
+android-twa/build.gradle
+android-twa/gradle.properties
+android-twa/manifest-checksum.txt
+android-twa/store_icon.png
+
 # Local business / planning docs (not for repo)
 docs/90_DAY_CHECKLIST.md
 docs/APP_CATALOG.md

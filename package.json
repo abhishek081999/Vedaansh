@@ -22,7 +22,11 @@
     "remotion:studio": "remotion studio remotion/index.ts",
     "remotion:render": "tsx scripts/render-reel.ts",
     "reel:mp4": "tsx scripts/render-reel.ts",
-    "test:mongo": "node scripts/test-mongo-connection.mjs"
+    "test:mongo": "node scripts/test-mongo-connection.mjs",
+    "android:update": "npx --yes @bubblewrap/cli update --manifest=android-twa",
+    "android:build": "npx --yes @bubblewrap/cli build --manifest=android-twa --skipPwaValidation",
+    "android:apk": "powershell -ExecutionPolicy Bypass -File scripts/android-twa-build.ps1",
+    "android:fingerprint": "npx --yes @bubblewrap/cli fingerprint list --manifest=android-twa"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.2",
