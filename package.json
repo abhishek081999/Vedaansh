@@ -26,7 +26,7 @@
     "android:update": "npx --yes @bubblewrap/cli update --manifest=android-twa",
     "android:build": "npx --yes @bubblewrap/cli build --manifest=android-twa --skipPwaValidation",
     "android:apk": "powershell -ExecutionPolicy Bypass -File scripts/android-twa-build.ps1",
-    "android:fingerprint": "npx --yes @bubblewrap/cli fingerprint list --manifest=android-twa"
+    "android:fingerprint": "powershell -ExecutionPolicy Bypass -File scripts/android-fingerprint.ps1"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.2",
