@@ -27,6 +27,7 @@ import {
   type NavTab,
 } from '@/lib/ui/navConfig'
 import { routeAllowsWithoutChart } from '@/lib/chartGateRoutes'
+import { PwaInstallBanner } from '@/components/ui/PwaInstallBanner'
 
 // ── Navigation Progress Bar Animation ──
 const progressKeyframes = `
@@ -553,6 +554,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </button>
         </main>
       </div>
+
+      <PwaInstallBanner />
     </div>
   )
 }
