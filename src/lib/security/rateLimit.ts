@@ -105,7 +105,27 @@ export async function enforceRateLimit(
       retryAfterSeconds: ttl,
     }
   } catch (err) {
-    console.warn('[rate-limit] error:', err)
+    const msg = (typeof err === 'object' && err !== null ? (err as { message?: string }).message : '') || ''
+
+    // Redis at capacity (free-tier quota) — cannot enforce limits. Fail open quietly
+    // for non-strict buckets so we don't spam stack traces on every request.
+    if (msg.includes('quota exceeded')) {
+      if (config.strict && isProductionEnv()) return denyResult(config)
+      return allowResult(config)
+    }
+
+    const isTransient =
+      msg.includes('refused') ||
+      msg.includes('failed') ||
+      msg.includes('terminated') ||
+      msg.includes('timeout')
+
+    if (isTransient) {
+      console.warn(`[rate-limit] Network issue: ${msg.split(',')[0]} (bucket: ${config.bucket})`)
+    } else {
+      console.warn('[rate-limit] error:', err)
+    }
+
     if (config.strict && isProductionEnv()) return denyResult(config)
     return allowResult(config)
   }
