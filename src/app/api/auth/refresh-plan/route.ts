@@ -9,6 +9,7 @@
 
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
@@ -29,23 +30,18 @@ export async function GET(req: Request) {
     await connectDB()
 
     const user = await User.findById(session.user.id)
-      .select('plan planExpiresAt')
-      .lean() as { plan: string; planExpiresAt: Date | null } | null
+      .select('planExpiresAt')
+      .lean() as { planExpiresAt: Date | null } | null
 
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
 
-    // Check if plan has expired — downgrade to free if so
-    const effectivePlan = (() => {
-      if (user.plan === 'free') return 'free'
-      if (user.planExpiresAt && new Date(user.planExpiresAt) < new Date()) return 'free'
-      return user.plan
-    })()
+    const effectivePlan = await getEffectivePlanForUserId(session.user.id)
 
     return NextResponse.json({
       success: true,
-      plan:    effectivePlan,
+      plan:    effectivePlan ?? 'free',
       expiresAt: user.planExpiresAt,
     })
   } catch (err) {

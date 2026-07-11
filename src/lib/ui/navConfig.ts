@@ -55,6 +55,7 @@ export interface NavGroup {
 
 export const TOP_TABS: NavTab[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: ASTROLOGY_HOME_PATH },
+  { id: 'my-charts', label: 'My Charts', icon: Library, path: '/my/charts' },
 ]
 
 export const NAKSHATRA_TABS: NavTab[] = [
@@ -126,7 +127,6 @@ export const MAIN_TABS: NavTab[] = [
   { id: 'about', label: 'About', icon: Info, path: '/about' },
   { id: 'clients', label: 'CRM / Clients', icon: UsersRound, path: '/clients' },
   { id: 'pricing', label: 'Pricing', icon: Gem, path: '/pricing' },
-  { id: 'my-charts', label: 'My Charts', icon: Library, path: '/my/charts' },
 ]
 
 export const SIDENAV_ACCORDIONS = {

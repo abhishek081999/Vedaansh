@@ -804,7 +804,7 @@ function AccountContent() {
                       className="btn btn-primary btn-sm"
                       style={{ justifyContent: 'center', textAlign: 'center', alignSelf: 'flex-start' }}
                     >
-                      Open My Chart
+                      Open Own Chart
                     </Link>
                   </div>
                 ) : (
