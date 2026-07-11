@@ -97,11 +97,10 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
   const [name, setName] = useState(initialData?.name || initialName)
   const [saveToLibrary, setSaveToLibrary] = useState(false)
   const [saveTags, setSaveTags] = useState<string[]>(initialTags)
-  const initialTagsKey = JSON.stringify(initialTags)
 
   useEffect(() => {
-    setSaveTags(JSON.parse(initialTagsKey) as string[])
-  }, [initialTagsKey])
+    setSaveTags(initialTags)
+  }, [initialTags.join('|')])
   const [date, setDate] = useState(initialData?.birthDate || todayDate)
   const [time, setTime] = useState(initialData?.birthTime || nowTime)
   const [place, setPlace] = useState(initialData?.birthPlace || DELHI_DEFAULT.place)

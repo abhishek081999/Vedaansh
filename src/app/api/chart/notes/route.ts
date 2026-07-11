@@ -87,7 +87,7 @@ export async function DELETE(req: Request) {
     const chart = await Chart.findOne({ _id: chartId, userId: session.user.id })
     if (!chart) return NextResponse.json({ success: false, error: 'Chart not found' }, { status: 404 })
 
-    chart.notes = chart.notes.filter((n) => n._id?.toString() !== noteId)
+    chart.notes = chart.notes.filter((n: { _id?: { toString(): string } }) => n._id?.toString() !== noteId)
     await chart.save()
 
     return NextResponse.json({ success: true, notes: chart.notes })
@@ -95,4 +95,4 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ success: false, error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 })
   }
 }
-
+
