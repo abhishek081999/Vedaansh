@@ -571,6 +571,8 @@ function HomeContent() {
   const [acgNatalData, setAcgNatalData] = useState<any[]>([])
   const searchParams = useSearchParams()
   const router = useRouter()
+  const savedChartId = searchParams.get('chartId')
+  const isSavedChart = Boolean(savedChartId && status === 'authenticated')
 
   const [loading,    setLoading]    = useState(false)
   const [saving,     setSaving]     = useState(false)
@@ -841,24 +843,38 @@ function HomeContent() {
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
     setSaving(true)
+    const payload = {
+      name:       chart.meta.name,
+      birthDate:  chart.meta.birthDate,
+      birthTime:  chart.meta.birthTime,
+      birthPlace: chart.meta.birthPlace,
+      latitude:   chart.meta.latitude,
+      longitude:  chart.meta.longitude,
+      timezone:   chart.meta.timezone,
+      gender:     chart.meta.gender,
+      settings:   chart.meta.settings,
+      isPersonal: type === 'personal',
+      tags:       chartTags,
+    }
     try {
-      const res = await fetch('/api/chart/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name:       chart.meta.name,
-          birthDate:  chart.meta.birthDate,
-          birthTime:  chart.meta.birthTime,
-          birthPlace: chart.meta.birthPlace,
-          latitude:   chart.meta.latitude,
-          longitude:  chart.meta.longitude,
-          timezone:   chart.meta.timezone,
-          settings:   chart.meta.settings,
-          isPersonal: type === 'personal',
-          tags:       chartTags,
-        })
-      })
+      const res = isSavedChart
+        ? await fetch(`/api/chart/${savedChartId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+        : await fetch('/api/chart/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
       if (res.ok) {
+        const json = await res.json().catch(() => ({}))
+        if (!isSavedChart && json.chartId) {
+          const params = new URLSearchParams(searchParams.toString())
+          params.set('chartId', json.chartId)
+          router.replace(`?${params.toString()}`, { scroll: false })
+        }
         setSaveDone(true)
         setTimeout(() => setSaveDone(false), 4000)
       }
@@ -868,6 +884,13 @@ function HomeContent() {
       setSaving(false)
     }
   }
+
+  const startNewChart = React.useCallback(() => {
+    setChart(null)
+    setChartTags([])
+    setIsFormOpen(true)
+    router.push('/?new=true')
+  }, [router, setChart, setIsFormOpen])
 
   async function handleSaveToCRM() {
     if (!chart || crmSaving) return
@@ -1525,7 +1548,7 @@ function HomeContent() {
                       type="button"
                       onClick={() => handleSave('regular')}
                       disabled={saving || saveDone}
-                      aria-label="Save chart"
+                      aria-label={isSavedChart ? 'Update saved chart' : 'Save chart'}
                       style={{
                         width: 34,
                         height: 34,
@@ -1681,7 +1704,7 @@ function HomeContent() {
                         className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}
                         style={{ width: '100%', justifyContent: 'center' }}
                       >
-                        {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
+                        {saving ? 'Saving…' : saveDone ? '✓ Updated' : isSavedChart ? 'Update Chart' : '+ Save Chart'}
                       </button>
                     )}
                     {status === 'authenticated' && (
@@ -1724,8 +1747,7 @@ function HomeContent() {
                     <button
                       onClick={() => {
                         setMobileHeaderMenuOpen(false)
-                        setChart(null)
-                        setIsFormOpen(true)
+                        startNewChart()
                       }}
                       className="btn btn-primary btn-sm"
                       style={{
@@ -1745,7 +1767,7 @@ function HomeContent() {
               <div className="chart-actions-compact" style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                   {status === 'authenticated' && (
                     <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
-                      {saving ? '…' : saveDone ? '✓ Saved' : '+ Save'}
+                      {saving ? '…' : saveDone ? '✓' : isSavedChart ? 'Update' : '+ Save'}
                     </button>
                   )}
                   {status === 'authenticated' && (
@@ -1771,7 +1793,7 @@ function HomeContent() {
                   <ExportPdfButton chart={chart} compact />
                   <EmailChartButton chart={chart} compact />
                   <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm">✎</button>
-                  <button onClick={() => { setChart(null); setIsFormOpen(true) }} className="btn btn-primary btn-sm">+ New</button>
+                  <button onClick={startNewChart} className="btn btn-primary btn-sm">+ New</button>
               </div>
             </div>
 
@@ -2793,8 +2815,20 @@ function HomeContent() {
       >
             {(status === 'unauthenticated' || !fetchingDefault || !!searchParams.get('name') || !!searchParams.get('new')) && (
               <BirthForm
-                onResult={(data) => { 
-                  setChart(data);
+                onResult={(data) => {
+                  setChart(data)
+                  if (savedChartId) {
+                    const params = new URLSearchParams(searchParams.toString())
+                    params.set('name', data.meta.name)
+                    params.set('birthDate', data.meta.birthDate)
+                    params.set('birthTime', data.meta.birthTime)
+                    params.set('birthPlace', data.meta.birthPlace)
+                    params.set('lat', String(data.meta.latitude))
+                    params.set('lng', String(data.meta.longitude))
+                    params.set('tz', data.meta.timezone)
+                    params.set('chartId', savedChartId)
+                    router.replace(`?${params.toString()}`, { scroll: false })
+                  }
                   setTimeout(() => {
                     setIsFormOpen(false)
                     if (pendingDestination) {
@@ -2802,11 +2836,12 @@ function HomeContent() {
                       setPendingDestination(null)
                       router.push(destination)
                     }
-                  }, 300);
+                  }, 300)
                 }}
                 onLoading={setLoading}
                 onSaveTagsChange={setChartTags}
                 initialTags={chartTags}
+                savedChartId={savedChartId}
                 autoSubmit={!!searchParams.get('name')}
                 initialName="Natal Chart"
                 initialData={chart ? {
