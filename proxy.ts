@@ -6,6 +6,7 @@
 
 import { auth } from '@/auth'
 import { applyRouteSecurity } from '@/lib/security/route'
+import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
 import { abuseLimits, rateLimitMessages, RATE_LIMIT_WINDOWS } from '@/lib/security/rateLimitPolicy'
 import { logSecurityEvent } from '@/lib/security/events'
 import { withDocumentCsp } from '@/lib/security/csp'
@@ -133,8 +134,8 @@ export default auth(async (req: NextRequest & { auth: any }) => {
 
   // ── Gold API gating ───────────────────────────────────────
   const isGoldApi = GOLD_API.some((p) => pathname.startsWith(p))
-  if (isGoldApi && session?.user) {
-    const plan = session.user.plan ?? 'free'
+  if (isGoldApi && session?.user?.id) {
+    const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan === 'free') {
       return NextResponse.json(
         { error: 'This feature requires Gold or Platinum plan', upgradeRequired: true },
@@ -145,8 +146,8 @@ export default auth(async (req: NextRequest & { auth: any }) => {
 
   // ── Platinum API gating ───────────────────────────────────
   const isPlatinumApi = PLATINUM_API.some((p) => pathname.startsWith(p))
-  if (isPlatinumApi && session?.user) {
-    const plan = session.user.plan ?? 'free'
+  if (isPlatinumApi && session?.user?.id) {
+    const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan !== 'platinum') {
       return NextResponse.json(
         { error: 'This feature requires Platinum plan', upgradeRequired: true },
@@ -165,8 +166,8 @@ export default auth(async (req: NextRequest & { auth: any }) => {
 
   // ── Gold page gating ──────────────────────────────────────
   const isGoldPage = GOLD_ROUTES.some((p) => pathname.startsWith(p))
-  if (isGoldPage && session?.user) {
-    const plan = session.user.plan ?? 'free'
+  if (isGoldPage && session?.user?.id) {
+    const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan === 'free') {
       const upgradeUrl = new URL('/account?upgrade=gold', req.url)
       return NextResponse.redirect(upgradeUrl)
@@ -175,8 +176,8 @@ export default auth(async (req: NextRequest & { auth: any }) => {
 
   // ── Platinum page gating ──────────────────────────────────
   const isPlatinumPage = PLATINUM_ROUTES.some((p) => pathname.startsWith(p))
-  if (isPlatinumPage && session?.user) {
-    const plan = session.user.plan ?? 'free'
+  if (isPlatinumPage && session?.user?.id) {
+    const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan !== 'platinum') {
       const upgradeUrl = new URL('/account?upgrade=platinum', req.url)
       return NextResponse.redirect(upgradeUrl)

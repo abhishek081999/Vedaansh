@@ -12,7 +12,7 @@ import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BirthForm } from '@/components/ui/BirthForm'
-import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download } from 'lucide-react'
+import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library } from 'lucide-react'
 
 // Dynamic imports for heavy tab-specific components
 const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').then(m => m.VarshaphalPanel), { ssr: false })
@@ -308,7 +308,7 @@ function getCurrentMahaDasha(chart: ChartOutput): string {
     mahaNodes[0]
 
   if (!current) return '—'
-  return `${GRAHA_NAMES[current.lord as GrahaId] ?? current.lord} Mahadasha`
+  return `${GRAHA_NAMES[current.lord as GrahaId] ?? current.lord} mahadasha`
 }
 
 function isNowSlot(start?: Date | string, end?: Date | string): boolean {
@@ -376,20 +376,14 @@ function MajorKundaliStrip({
     : 'Loading live panchang...'
   const [y, mm, dd] = chart.meta.birthDate.split('-')
   const formattedDOB = `${dd} ${mm} ${y}`
-  
-  const [h, min] = chart.meta.birthTime.split(':').map(Number)
-  const ampm = h >= 12 ? 'pm' : 'am'
-  const formattedTime = `${h % 12 || 12}:${String(min).padStart(2, '0')} ${ampm}`
 
-  const items = [
-    { label: 'Name', value: chart.meta.name },
+  const items: { label: string; value: string; hideLabel?: boolean }[] = [
     { label: 'DOB', value: formattedDOB },
-    { label: 'Time', value: formattedTime },
     { label: 'Lagna', value: `${RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
     { label: 'Moon', value: moon ? `${RASHI_NAMES[moon.rashi]} · ${moon.nakshatraName}` : '—' },
     { label: 'Sun', value: sun ? `${RASHI_NAMES[sun.rashi]} ${sun.degree.toFixed(1)}°` : '—' },
     { label: 'AK', value: ak },
-    { label: 'Maha', value: getCurrentMahaDasha(chart) },
+    { label: '', value: getCurrentMahaDasha(chart), hideLabel: true },
     { label: 'Natal Panchang', value: natalPanchang },
     { label: 'Live Panchang', value: livePanchang },
   ]
@@ -409,21 +403,20 @@ function MajorKundaliStrip({
         overflowX: 'auto',
       }}
     >
-      <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.09em', color: 'var(--text-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-        Kundali Snapshot
-      </span>
       {items.map((item, idx) => (
-        <React.Fragment key={item.label}>
+        <React.Fragment key={item.label || `item-${idx}`}>
           <span style={{ whiteSpace: 'nowrap', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-            <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
-              {item.label === 'Live Panchang' ? (
-                <>
-                  <span style={{ color: 'var(--rose)' }}>Live</span>
-                  <span style={{ marginLeft: 3 }}>Panchang</span>
-                </>
-              ) : item.label}
-            </span>
-            <span style={{ marginLeft: 4, fontWeight: 600, color: 'var(--text-primary)' }}>{item.value}</span>
+            {!item.hideLabel && (
+              <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
+                {item.label === 'Live Panchang' ? (
+                  <>
+                    <span style={{ color: 'var(--rose)' }}>Live</span>
+                    <span style={{ marginLeft: 3 }}>Panchang</span>
+                  </>
+                ) : item.label}
+              </span>
+            )}
+            <span style={{ marginLeft: item.hideLabel ? 0 : 4, fontWeight: 600, color: 'var(--text-primary)' }}>{item.value}</span>
           </span>
           {idx < items.length - 1 && <span style={{ color: 'var(--border-bright)' }}>|</span>}
         </React.Fragment>
@@ -543,6 +536,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   'Sarvatobhadra Chakra': Layers,
   'Muhurta Finder': Clock,
   'Install App': Download,
+  'My Charts': Library,
 }
 
 function HomeContent() {
@@ -748,6 +742,7 @@ function HomeContent() {
     activeTab === 'astro-details' ||
     activeTab === 'yogas' ||
     activeTab === 'arudhas' ||
+    activeTab === 'ashtakavarga' ||
     activeTab === 'shadbala' ||
     activeTab === 'bhava-bala' ||
     activeTab === 'vimsopaka'
@@ -1155,6 +1150,14 @@ function HomeContent() {
       href: '/install',
       ctaName: 'major_sections_install_app',
       icon: '📲',
+    },
+    {
+      title: 'My Charts',
+      subtitle: 'Library',
+      text: 'Open saved charts from your account.',
+      href: '/my/charts',
+      ctaName: 'major_sections_my_charts',
+      icon: '📚',
     },
   ]
 
@@ -2100,6 +2103,48 @@ function HomeContent() {
                      </div>
                   )}
 
+                  {activeTab === 'ashtakavarga' && (
+                    <div className="panel fade-up">
+                      <div className="panel-header"><span>Sarvashtakvarga</span></div>
+                      <div style={{ padding: '0.5rem 0.65rem' }}>
+                        {!chart.ashtakavarga ? (
+                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</p>
+                        ) : dashboardAshtakSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
+                            <DashboardSavChart
+                              sav={chart.ashtakavarga.sav}
+                              ascRashi={chart.lagnas.ascRashi ?? 1}
+                              size={280}
+                            />
+                            <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.35rem' }}>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.35rem 0.45rem' }}>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>SAV Total</div>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--text-gold)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                                  {dashboardAshtakSummary.savTotal}
+                                  <span style={{ marginLeft: 4, fontSize: '0.58rem', fontWeight: 600, color: 'var(--text-muted)' }}>{dashboardAshtakSummary.avg}/sign</span>
+                                </div>
+                              </div>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.35rem 0.45rem' }}>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Strong Sign</div>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--teal)', fontWeight: 800 }}>
+                                  {RASHI_SHORT[dashboardAshtakSummary.highest.sign]}
+                                  <span style={{ marginLeft: 4, fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 600 }}>({dashboardAshtakSummary.highest.val})</span>
+                                </div>
+                              </div>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.35rem 0.45rem', gridColumn: '1 / -1' }}>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Weak Sign</div>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--rose)', fontWeight: 800 }}>
+                                  {RASHI_SHORT[dashboardAshtakSummary.lowest.sign]}
+                                  <span style={{ marginLeft: 4, fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 600 }}>({dashboardAshtakSummary.lowest.val})</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+
                   {activeTab === 'shadbala' && (
                     <div className="panel fade-up">
                       <div className="panel-header"><span>Shadbala</span></div>
@@ -2585,6 +2630,7 @@ function HomeContent() {
                 onOpenAstrology={openAstrologyApp}
                 onOpenMyChart={openMyDefaultChart}
                 showMyChart={status === 'authenticated' && !!defaultChart}
+                showMyCharts={status === 'authenticated'}
                 withChartGate={openSectionWithChartGate}
               />
 
@@ -2597,34 +2643,36 @@ function HomeContent() {
                     theme="gold"
                   />
                   <div className="landing-major-sections-grid landing-reveal-stagger">
-                    {landingMajorSections.map((section, idx) => {
-                      const IconComponent = iconMap[section.title] || Sparkles;
-                      return (
-                        <Link
-                          key={section.title}
-                          href={section.href}
-                          onClick={(e) => {
-                            trackLandingCta(section.ctaName)
-                            openSectionWithChartGate(section.href, e)
-                          }}
-                          onMouseMove={handleMouseMove}
-                          className="landing-major-section-card landing-premium-card"
-                          style={{ ['--stagger-i' as string]: idx }}
-                        >
-                          <div className="card-icon-wrapper">
-                            <IconComponent size={20} strokeWidth={2} />
-                          </div>
-                          <div className="card-body">
-                            {section.subtitle && <span className="card-kicker">{section.subtitle}</span>}
-                            <span className="stat-value">{section.title}</span>
-                            <span className="stat-sub">{section.text}</span>
-                          </div>
-                          <span className="card-arrow" aria-hidden="true">
-                            <ArrowRight size={14} strokeWidth={2.5} />
-                          </span>
-                        </Link>
-                      )
-                    })}
+                    {landingMajorSections
+                      .filter((section) => section.title !== 'My Charts' || status === 'authenticated')
+                      .map((section, idx) => {
+                        const IconComponent = iconMap[section.title] || Sparkles;
+                        return (
+                          <Link
+                            key={section.title}
+                            href={section.href}
+                            onClick={(e) => {
+                              trackLandingCta(section.ctaName)
+                              openSectionWithChartGate(section.href, e)
+                            }}
+                            onMouseMove={handleMouseMove}
+                            className="landing-major-section-card landing-premium-card"
+                            style={{ ['--stagger-i' as string]: idx }}
+                          >
+                            <div className="card-icon-wrapper">
+                              <IconComponent size={20} strokeWidth={2} />
+                            </div>
+                            <div className="card-body">
+                              {section.subtitle && <span className="card-kicker">{section.subtitle}</span>}
+                              <span className="stat-value">{section.title}</span>
+                              <span className="stat-sub">{section.text}</span>
+                            </div>
+                            <span className="card-arrow" aria-hidden="true">
+                              <ArrowRight size={14} strokeWidth={2.5} />
+                            </span>
+                          </Link>
+                        )
+                      })}
                   </div>
                 </div>
               </LandingReveal>
@@ -2719,6 +2767,11 @@ function HomeContent() {
                   <Link href="/install" onClick={() => trackLandingCta('cta_band_install_app')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
                     Install App
                   </Link>
+                  {status === 'authenticated' && (
+                    <Link href="/my/charts" onClick={() => trackLandingCta('cta_band_my_charts')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
+                      My Charts
+                    </Link>
+                  )}
                 </div>
               </LandingReveal>
 

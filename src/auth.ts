@@ -18,6 +18,7 @@ import {
   recordFailedLogin,
 } from '@/lib/security/loginThrottle'
 import { logSecurityEvent } from '@/lib/security/events'
+import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
 
 // NextAuth adapter needs raw MongoClient (shared singleton with API routes)
 const clientPromise = getMongoClientPromise()
@@ -146,6 +147,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (session?.role) token.role = session.role
       }
 
+      // Keep JWT plan aligned with MongoDB (admin upgrades, webhooks, expiry)
+      const userId = (token.id as string | undefined) ?? token.sub
+      if (userId) {
+        const lastSync = typeof token.planSyncedAt === 'number' ? token.planSyncedAt : 0
+        const shouldSync = trigger === 'update' || Date.now() - lastSync > 60_000
+        if (shouldSync) {
+          try {
+            const effectivePlan = await getEffectivePlanForUserId(userId)
+            if (effectivePlan) {
+              token.plan = effectivePlan
+              token.planSyncedAt = Date.now()
+            }
+          } catch (err) {
+            console.error('[auth] plan sync error:', err)
+          }
+        }
+      }
+
       return token
     },
 
@@ -210,5 +229,6 @@ declare module 'next-auth' {
     role: 'user' | 'admin'
     plan: 'free' | 'gold' | 'platinum'
     id:   string
+    planSyncedAt?: number
   }
 }

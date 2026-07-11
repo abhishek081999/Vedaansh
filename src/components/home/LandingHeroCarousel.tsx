@@ -20,6 +20,7 @@ type LandingHeroCarouselProps = {
   onOpenAstrology: () => void
   onOpenMyChart: () => void
   showMyChart: boolean
+  showMyCharts: boolean
   withChartGate: (href: string, e?: MouseEvent<HTMLElement>) => void
 }
 
@@ -305,6 +306,7 @@ export function LandingHeroCarousel({
   onOpenAstrology,
   onOpenMyChart,
   showMyChart,
+  showMyCharts,
   withChartGate,
 }: LandingHeroCarouselProps) {
   const [active, setActive] = useState(0)
@@ -469,12 +471,21 @@ export function LandingHeroCarousel({
                 type="button"
                 className="landing-hero-carousel-footer-link"
                 onClick={() => {
-                  trackLandingCta('hero_quick_my_chart')
+                  trackLandingCta('hero_quick_own_chart')
                   onOpenMyChart()
                 }}
               >
-                My Chart
+                Own Chart
               </button>
+            ) : null}
+            {showMyCharts ? (
+              <Link
+                href="/my/charts"
+                className="landing-hero-carousel-footer-link"
+                onClick={() => trackLandingCta('hero_quick_my_charts')}
+              >
+                My Charts
+              </Link>
             ) : null}
             {quickLinks.map((item) => (
               <Link

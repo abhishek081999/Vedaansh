@@ -118,14 +118,22 @@ export default function AdminUsersPage() {
   }
 
   const changePlan = async (user: UserRow, plan: UserRow['plan']) => {
-    if (plan === user.plan) return
+    if (plan === user.plan) {
+      const expiry = user.planExpiresAt ? new Date(user.planExpiresAt) : null
+      const expired = plan !== 'free' && (!expiry || expiry < new Date())
+      if (!expired) return
+    }
     const updates: Record<string, unknown> = { plan }
     if (plan === 'free') {
       updates.planExpiresAt = null
-    } else if (!user.planExpiresAt) {
-      const expiry = new Date()
-      expiry.setMonth(expiry.getMonth() + (plan === 'gold' ? 1 : 1))
-      updates.planExpiresAt = expiry.toISOString()
+    } else {
+      const expiry = user.planExpiresAt ? new Date(user.planExpiresAt) : null
+      const needsNewExpiry = !expiry || expiry < new Date() || plan !== user.plan
+      if (needsNewExpiry) {
+        const newExpiry = new Date()
+        newExpiry.setMonth(newExpiry.getMonth() + 1)
+        updates.planExpiresAt = newExpiry.toISOString()
+      }
     }
     if (!window.confirm(`Change ${user.name}'s plan to ${plan}?`)) return
     await patchUser(user._id, updates)

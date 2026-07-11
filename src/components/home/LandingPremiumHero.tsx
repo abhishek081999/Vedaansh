@@ -20,6 +20,7 @@ type LandingPremiumHeroProps = {
   onOpenAstrology: () => void
   onOpenMyChart: () => void
   showMyChart: boolean
+  showMyCharts: boolean
   withChartGate: (href: string, e?: MouseEvent<HTMLElement>) => void
 }
 
@@ -78,6 +79,7 @@ export function LandingPremiumHero({
   onOpenAstrology,
   onOpenMyChart,
   showMyChart,
+  showMyCharts,
   withChartGate,
 }: LandingPremiumHeroProps) {
   const [active, setActive] = useState(0)
@@ -196,12 +198,22 @@ export function LandingPremiumHero({
                     type="button"
                     className="btn btn-ghost landing-premium-hero-ghost"
                     onClick={() => {
-                      trackLandingCta('hero_quick_my_chart')
+                      trackLandingCta('hero_quick_own_chart')
                       onOpenMyChart()
                     }}
                   >
-                    My Chart
+                    Own Chart
                   </button>
+                ) : null}
+                {showMyCharts && slide.id === 'astrology' ? (
+                  <Link
+                    href="/my/charts"
+                    className="btn btn-ghost landing-premium-hero-ghost"
+                    onClick={() => trackLandingCta('hero_quick_my_charts')}
+                    style={{ textDecoration: 'none' }}
+                  >
+                    My Charts
+                  </Link>
                 ) : null}
               </div>
 
@@ -250,6 +262,15 @@ export function LandingPremiumHero({
             >
               Install App
             </Link>
+            {showMyCharts ? (
+              <Link
+                href="/my/charts"
+                className="landing-hero-carousel-footer-link"
+                onClick={() => trackLandingCta('hero_footer_my_charts')}
+              >
+                My Charts
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>
