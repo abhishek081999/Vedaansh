@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
       user,
       hasPassword,
       personalChart: personalChart ? {
+        chartId:    personalChart._id?.toString(),
         name:       personalChart.name,
         birthDate:  personalChart.birthDate,
         birthTime:  personalChart.birthTime,
@@ -60,6 +61,7 @@ export async function GET(req: NextRequest) {
         longitude:  personalChart.longitude,
         timezone:   personalChart.timezone,
         settings:   personalChart.settings,
+        tags:       Array.isArray(personalChart.tags) ? personalChart.tags : [],
       } : null,
     })
 

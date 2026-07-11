@@ -11,6 +11,7 @@ import type { ChartOutput, ChartSettings, Gender } from '@/types/astrology'
 import { DEFAULT_SETTINGS } from '@/types/astrology'
 import { parseCoordinate } from '@/lib/atlas/coords'
 import { useSession } from 'next-auth/react'
+import { ChartTagsInput } from '@/components/ui/ChartTagsInput'
 
 // ── Delhi defaults ────────────────────────────────────────────
 
@@ -60,6 +61,8 @@ interface BirthFormProps {
   onResult: (data: ChartOutput) => void
   onLoading?: (loading: boolean) => void
   autoSubmit?: boolean   // calculate immediately on mount with defaults
+  onSaveTagsChange?: (tags: string[]) => void
+  initialTags?: string[]
   initialName?: string
   initialData?: {
     name: string; birthDate: string; birthTime: string; birthPlace: string
@@ -69,7 +72,7 @@ interface BirthFormProps {
 
 // ── Component ────────────────────────────────────────────────
 
-export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName = 'Transit', initialData }: BirthFormProps) {
+export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsChange, initialTags = [], initialName = 'Transit', initialData }: BirthFormProps) {
   const fieldId = useId()
   const ids = {
     name: `${fieldId}-name`,
@@ -93,6 +96,11 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   const { data: session } = useSession()
   const [name, setName] = useState(initialData?.name || initialName)
   const [saveToLibrary, setSaveToLibrary] = useState(false)
+  const [saveTags, setSaveTags] = useState<string[]>(initialTags)
+
+  useEffect(() => {
+    setSaveTags(initialTags)
+  }, [initialTags])
   const [date, setDate] = useState(initialData?.birthDate || todayDate)
   const [time, setTime] = useState(initialData?.birthTime || nowTime)
   const [place, setPlace] = useState(initialData?.birthPlace || DELHI_DEFAULT.place)
@@ -435,6 +443,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               timezone: tzVal,
               gender: genderVal,
               settings: settingsVal,
+              tags: saveTags,
             }),
           })
         } catch (e) {
@@ -1086,17 +1095,29 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
 
       {/* Save to library checkbox */}
       {session && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }}>
-          <input
-            id={ids.saveLibrary}
-            type="checkbox"
-            checked={saveToLibrary}
-            onChange={(e) => setSaveToLibrary(e.target.checked)}
-            style={{ cursor: 'pointer' }}
-          />
-          <label htmlFor={ids.saveLibrary} style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer' }}>
-            Save this chart to my library
-          </label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }}>
+            <input
+              id={ids.saveLibrary}
+              type="checkbox"
+              checked={saveToLibrary}
+              onChange={(e) => setSaveToLibrary(e.target.checked)}
+              style={{ cursor: 'pointer' }}
+            />
+            <label htmlFor={ids.saveLibrary} style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer' }}>
+              Save this chart to my library
+            </label>
+          </div>
+          {saveToLibrary && (
+            <ChartTagsInput
+              tags={saveTags}
+              onChange={(next) => {
+                setSaveTags(next)
+                onSaveTagsChange?.(next)
+              }}
+              compact
+            />
+          )}
         </div>
       )}
 

@@ -94,7 +94,7 @@ export const MOBILE_DASHBOARD_OPTIONS = {
     { id: 'prashna', label: 'Prashna', path: '/prashna' },
     { id: 'compare', label: 'Kundali Matching', path: '/compare' },
     { id: 'roadmap', label: 'Cosmic Roadmap', path: '/roadmap' },
-    { id: 'transit-scrubber', label: 'Time Scrubber', path: '/scrubber' },
+    { id: 'transit-scrubber', label: 'Transit', path: '/scrubber' },
   ],
 } as const
 

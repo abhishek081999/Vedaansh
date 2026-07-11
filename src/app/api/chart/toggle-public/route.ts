@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
       nextSlug = crypto.randomBytes(12).toString('hex')
     }
 
-    chart.isPublicSource = nextIsPublic // Just being safe with internal field if any
     chart.isPublic = nextIsPublic
     chart.slug     = nextSlug
     await chart.save()

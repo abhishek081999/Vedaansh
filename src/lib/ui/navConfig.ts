@@ -118,7 +118,7 @@ export const ADVANCED_ASTRO_TABS: NavTab[] = [
   { id: 'prashna', label: 'Prashna', icon: Target, path: '/prashna' },
   { id: 'compare', label: 'Kundali Matching', icon: HeartHandshake, path: '/compare' },
   { id: 'roadmap', label: 'Cosmic Roadmap', icon: Route, path: '/roadmap' },
-  { id: 'transit-scrubber', label: 'Time Scrubber', icon: Timer, path: '/scrubber' },
+  { id: 'transit-scrubber', label: 'Transit', icon: Timer, path: '/scrubber' },
 ]
 
 export const MAIN_TABS: NavTab[] = [

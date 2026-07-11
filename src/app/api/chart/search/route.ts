@@ -10,6 +10,7 @@ import { Chart } from '@/lib/db/models/Chart'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { regexFromSearch } from '@/lib/security/sanitize'
 import { chartSearchQuerySchema } from '@/lib/security/validation'
+import { normalizeTags } from '@/lib/chart/tags'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid search parameters' }, { status: 400 })
     }
 
-    const { q, gender, startDate, endDate, year, page, limit } = parsedQuery.data
+    const { q, gender, startDate, endDate, year, tag, page, limit } = parsedQuery.data
     const skip = (page - 1) * limit
 
     await connectDB()
@@ -37,8 +38,24 @@ export async function GET(req: NextRequest) {
     const query: Record<string, unknown> = { userId: session.user.id }
 
     const textRegex = q ? regexFromSearch(q) : null
-    if (textRegex) {
-      query.$or = [{ name: textRegex }, { birthPlace: textRegex }]
+    if (textRegex && q) {
+      const orClauses: Record<string, unknown>[] = [
+        { name: textRegex },
+        { birthPlace: textRegex },
+        { tags: textRegex },
+        { 'notes.content': textRegex },
+      ]
+      const stripped = q.trim().replace(/^#+/, '')
+      if (stripped && stripped !== q.trim()) {
+        const tagRegex = regexFromSearch(stripped)
+        if (tagRegex) orClauses.push({ tags: tagRegex })
+      }
+      query.$or = orClauses
+    }
+
+    if (tag) {
+      const [normalized] = normalizeTags([tag])
+      if (normalized) query.tags = normalized
     }
 
     if (gender && gender !== 'all') {
@@ -59,7 +76,7 @@ export async function GET(req: NextRequest) {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .select('name birthDate birthTime birthPlace latitude longitude timezone gender settings isPersonal createdAt')
+        .select('name birthDate birthTime birthPlace latitude longitude timezone gender settings isPersonal tags createdAt')
         .lean(),
       Chart.countDocuments(query)
     ])
@@ -67,7 +84,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       success: true,
       count: charts.length,
-      charts,
+      charts: charts.map((c) => ({
+        ...c,
+        tags: Array.isArray(c.tags) ? c.tags : [],
+      })),
       pagination: { page, limit, total, pages: Math.ceil(total / limit) }
     })
   } catch (err) {

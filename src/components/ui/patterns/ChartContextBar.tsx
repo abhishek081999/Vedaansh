@@ -7,10 +7,12 @@
 import React from 'react'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
+import { formatTagLabel } from '@/lib/chart/tags'
 import { cn } from '@/lib/ui/cn'
 
 export interface ChartContextBarProps {
   chart: ChartOutput
+  tags?: string[]
   isMobile?: boolean
   /** CSS length for right padding when mobile action icons overlay the strip */
   mobileReserveRight?: string
@@ -27,6 +29,7 @@ function formatBirthDateTime(birthDate: string, birthTime: string): string {
 
 export function ChartContextBar({
   chart,
+  tags = [],
   isMobile = false,
   mobileReserveRight,
   actions,
@@ -55,6 +58,35 @@ export function ChartContextBar({
       <span className="name-asc hide-mobile">
         {RASHI_NAMES[ascRashi]} {chart.lagnas.ascDegreeInRashi.toFixed(1)}°
       </span>
+      {tags.length > 0 && (
+        <span
+          className="chart-context-tags"
+          style={{
+            flexBasis: '100%',
+            display: 'flex',
+            gap: '0.35rem',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            marginTop: isMobile ? '0.1rem' : '-0.1rem',
+          }}
+        >
+          {tags.map(t => (
+            <span
+              key={t}
+              className="badge"
+              style={{
+                fontSize: '0.62rem',
+                padding: '0.1rem 0.45rem',
+                background: 'rgba(201,168,76,0.06)',
+                color: 'var(--gold)',
+                border: '1px solid rgba(201,168,76,0.12)',
+              }}
+            >
+              {formatTagLabel(t)}
+            </span>
+          ))}
+        </span>
+      )}
       {actions}
     </div>
   )

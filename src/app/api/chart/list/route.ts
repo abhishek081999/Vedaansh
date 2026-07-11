@@ -34,14 +34,17 @@ export async function GET(req: NextRequest) {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .select('name birthDate birthTime birthPlace latitude longitude timezone gender settings isPublic isPersonal slug views lastViewedAt createdAt')
+        .select('name birthDate birthTime birthPlace latitude longitude timezone gender settings isPublic isPersonal slug views lastViewedAt tags createdAt')
         .lean(),
       Chart.countDocuments({ userId: session.user.id }),
     ])
 
     return NextResponse.json({
       success: true,
-      charts,
+      charts: charts.map((c) => ({
+        ...c,
+        tags: Array.isArray(c.tags) ? c.tags : [],
+      })),
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     })
   } catch (err) {

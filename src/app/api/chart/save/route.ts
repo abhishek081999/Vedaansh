@@ -13,6 +13,7 @@ import { User }  from '@/lib/db/models/User'
 import crypto from 'crypto'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { getChartSaveLimit, getEffectivePlan } from '@/lib/subscription/entitlements'
+import { chartTagsSchema, normalizeTags } from '@/lib/chart/tags'
 
 export const runtime = 'nodejs'
 
@@ -28,6 +29,7 @@ const SaveSchema = z.object({
   settings:   z.record(z.string(), z.unknown()),
   isPublic:   z.boolean().default(false),
   isPersonal: z.boolean().default(false),
+  tags:       chartTagsSchema,
 })
 
 export async function POST(req: NextRequest) {
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     await connectDB()
 
-    const { name, birthDate, birthTime, birthPlace, latitude, longitude, timezone, gender, settings, isPublic, isPersonal } = parsed.data
+    const { name, birthDate, birthTime, birthPlace, latitude, longitude, timezone, gender, settings, isPublic, isPersonal, tags } = parsed.data
 
     const userId = session?.user?.id
 
@@ -93,6 +95,7 @@ export async function POST(req: NextRequest) {
       isPublic,
       isPersonal,
       slug,
+      tags: normalizeTags(tags ?? []),
     })
 
     return NextResponse.json({
