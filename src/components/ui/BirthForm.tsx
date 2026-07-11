@@ -100,7 +100,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
 
   useEffect(() => {
     setSaveTags(initialTags)
-  }, [initialTags.join('|')])
+  }, [initialTags])
   const [date, setDate] = useState(initialData?.birthDate || todayDate)
   const [time, setTime] = useState(initialData?.birthTime || nowTime)
   const [place, setPlace] = useState(initialData?.birthPlace || DELHI_DEFAULT.place)
