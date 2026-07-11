@@ -23,7 +23,7 @@ export interface IChart extends Document {
   isPublic:  boolean
   isPersonal:boolean   // true = user's own birth chart
   slug:      string | null   // for public sharing
-  notes:     Array<{ content: string; createdAt: Date }>
+  notes:     Array<{ _id?: Types.ObjectId; content: string; createdAt: Date }>
   tags:      string[]
   views:        number
   lastViewedAt: Date | null
