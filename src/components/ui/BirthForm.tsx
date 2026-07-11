@@ -64,6 +64,7 @@ interface BirthFormProps {
   onSaveTagsChange?: (tags: string[]) => void
   initialTags?: string[]
   initialName?: string
+  savedChartId?: string | null
   initialData?: {
     name: string; birthDate: string; birthTime: string; birthPlace: string
     latitude: number; longitude: number; timezone: string; gender?: Gender; settings?: ChartSettings
@@ -72,7 +73,7 @@ interface BirthFormProps {
 
 // ── Component ────────────────────────────────────────────────
 
-export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsChange, initialTags = [], initialName = 'Transit', initialData }: BirthFormProps) {
+export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsChange, initialTags = [], initialName = 'Transit', savedChartId = null, initialData }: BirthFormProps) {
   const fieldId = useId()
   const ids = {
     name: `${fieldId}-name`,
@@ -427,25 +428,34 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
         return
       }
 
-      // If "Save to Library" is checked and user is logged in, save it
+      // If "Save to Library" is checked and user is logged in, save or update
       if (saveToLibrary && session?.user) {
+        const payload = {
+          name: nameVal.trim() || 'Natal Chart',
+          birthDate: dateVal,
+          birthTime: safeTime,
+          birthPlace: placeVal,
+          latitude: latVal,
+          longitude: lngVal,
+          timezone: tzVal,
+          gender: genderVal,
+          settings: settingsVal,
+          tags: saveTags,
+        }
         try {
-          await fetch('/api/chart/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: nameVal.trim() || 'Natal Chart',
-              birthDate: dateVal,
-              birthTime: safeTime,
-              birthPlace: placeVal,
-              latitude: latVal,
-              longitude: lngVal,
-              timezone: tzVal,
-              gender: genderVal,
-              settings: settingsVal,
-              tags: saveTags,
-            }),
-          })
+          if (savedChartId) {
+            await fetch(`/api/chart/${savedChartId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            })
+          } else {
+            await fetch('/api/chart/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            })
+          }
         } catch (e) {
           console.error('Failed to auto-save chart:', e)
         }
