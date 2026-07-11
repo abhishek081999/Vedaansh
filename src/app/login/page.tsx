@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
@@ -34,9 +34,16 @@ function LoginContent() {
         callbackUrl,
       })
 
-      if (result?.error) {
-        setError('Invalid email or password')
+      if (!result?.ok || result?.error) {
+        if (result?.error === 'CredentialsSignin') {
+          setError('Invalid email or password')
+        } else if (result?.error === 'MissingCSRF') {
+          setError('Session expired. Refresh the page and try again.')
+        } else {
+          setError(result?.error ?? 'Sign in failed. Please try again.')
+        }
       } else {
+        await getSession()
         router.push(callbackUrl)
         router.refresh()
       }

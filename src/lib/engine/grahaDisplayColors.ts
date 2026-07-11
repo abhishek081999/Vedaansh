@@ -3,17 +3,17 @@ import type { GrahaId } from '@/types/astrology'
 
 export const GRAHA_DISPLAY_COLOR: Record<GrahaId, string> = {
   Su: '#FF8C00',
-  Mo: '#A8C8E8',
-  Ma: '#E84040',
-  Me: '#48C774',
-  Ju: '#FFD700',
-  Ve: '#FF69B4',
-  Sa: '#8B9DC3',
-  Ra: '#8B4513',
-  Ke: '#9B59B6',
-  Ur: '#00CED1',
-  Ne: '#4169E1',
-  Pl: '#800000',
+  Mo: '#8EB8E8',
+  Ma: '#E83838',
+  Me: '#38B868',
+  Ju: '#F09800',
+  Ve: '#FF55A8',
+  Sa: '#7290C8',
+  Ra: '#A0522D',
+  Ke: '#A040C8',
+  Ur: '#00C4C8',
+  Ne: '#3A62D8',
+  Pl: '#8B0000',
 }
 
 /** SVG / chart text: each planet has a fixed color; AS uses lagna accent. */

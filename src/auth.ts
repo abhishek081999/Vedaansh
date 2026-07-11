@@ -81,10 +81,16 @@ async function verifyCredentials(
 
 // ── NextAuth configuration ────────────────────────────────────
 
+const isProduction = process.env.NODE_ENV === 'production'
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: MongoDBAdapter(clientPromise, {
     databaseName: process.env.MONGODB_DB_NAME || 'jyotish',
   }),
+
+  // AUTH_URL may point at production while running `next dev` on localhost.
+  // Auth.js then infers HTTPS and emits Secure cookies that http://localhost cannot store.
+  useSecureCookies: isProduction,
 
   providers: [
     Google({
@@ -120,7 +126,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: isProduction,
       },
     },
   },

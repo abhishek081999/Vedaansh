@@ -7,6 +7,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { ChartNotes } from '@/components/ui/ChartNotes'
+import { ChartTagsInput } from '@/components/ui/ChartTagsInput'
+import { formatTagLabel } from '@/lib/chart/tags'
 import { BulkImport } from '@/components/ui/BulkImport'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -31,10 +33,11 @@ interface SavedChart {
   slug:       string | null
   views:      number
   lastViewedAt: string | null
+  tags?:      string[]
   createdAt:  string
 }
 
-type ChartUpdate = Partial<Pick<SavedChart, 'isPublic' | 'slug'>>
+type ChartUpdate = Partial<Pick<SavedChart, 'isPublic' | 'slug' | 'tags'>>
 
 interface Pagination {
   page: number; limit: number; total: number; pages: number
@@ -76,6 +79,8 @@ function ChartCard({
   const [deleting,   setDeleting]   = useState(false)
   const [toggling,   setToggling]   = useState(false)
   const [showNotes,  setShowNotes]  = useState(false)
+  const [showTags,   setShowTags]   = useState(false)
+  const [savingTags, setSavingTags] = useState(false)
   const [exporting,  setExporting]  = useState(false)
 
   async function handleExportPdf() {
@@ -167,6 +172,28 @@ function ChartCard({
     }
   }
 
+  async function handleTagsChange(nextTags: string[]) {
+    setSavingTags(true)
+    try {
+      const res = await fetch(`/api/chart/${chart._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tags: nextTags }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        onUpdate(chart._id, { tags: json.chart?.tags ?? nextTags })
+      } else {
+        alert(json.error || 'Failed to save hashtags')
+      }
+    } catch (e) {
+      console.error('Failed to update tags', e)
+      alert('Failed to save hashtags. Please try again.')
+    } finally {
+      setSavingTags(false)
+    }
+  }
+
   return (
     <div style={{
       background: 'var(--surface-1)',
@@ -252,6 +279,27 @@ function ChartCard({
         fontFamily: 'var(--font-mono)', marginTop: 2,
       }}>
         Saved {fmtSaved(chart.createdAt)}
+      </div>
+
+      <div style={{
+        display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center',
+        marginTop: '0.25rem', minHeight: 22,
+      }}>
+        {(chart.tags?.length ?? 0) > 0 ? (
+          chart.tags!.map(t => (
+            <span key={t} className="badge" style={{
+              fontSize: '0.62rem', padding: '0.1rem 0.45rem',
+              background: 'rgba(201,168,76,0.06)', color: 'var(--gold)',
+              border: '1px solid rgba(201,168,76,0.12)',
+            }}>
+              {formatTagLabel(t)}
+            </span>
+          ))
+        ) : (
+          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            No hashtags yet
+          </span>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
@@ -343,6 +391,25 @@ function ChartCard({
           {deleting ? '…' : confirmDel ? 'Confirm?' : '🗑'}
         </button>
 
+        {/* Tags toggle */}
+        <button
+          onClick={() => setShowTags(n => !n)}
+          title="Add or edit hashtags"
+          style={{
+            padding: '0.3rem 0.65rem',
+            background: showTags ? 'rgba(201,168,76,0.12)' : 'var(--surface-2)',
+            border: `1px solid ${showTags ? 'rgba(201,168,76,0.35)' : 'var(--border)'}`,
+            borderRadius: 'var(--r-md)',
+            fontSize: '0.78rem',
+            color: showTags ? 'var(--gold)' : 'var(--text-muted)',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            fontWeight: 600,
+          }}
+        >
+          {savingTags ? '…' : '# Tags'}
+        </button>
+
         {/* Notes toggle */}
         <button
           onClick={() => setShowNotes(n => !n)}
@@ -361,6 +428,21 @@ function ChartCard({
           ✏
         </button>
       </div>
+
+      {/* Tags panel */}
+      {showTags && (
+        <div style={{
+          marginTop: '0.5rem',
+          borderTop: '1px solid var(--border-soft)',
+          paddingTop: '0.75rem',
+        }}>
+          <ChartTagsInput
+            tags={chart.tags ?? []}
+            onChange={handleTagsChange}
+            compact
+          />
+        </div>
+      )}
 
       {/* Notes panel */}
       {showNotes && (
@@ -403,6 +485,7 @@ export default function MyChartsPage() {
   const [filterGender,     setFilterGender]     = useState('all')
   const [filterStartDate,  setFilterStartDate]  = useState('')
   const [filterEndDate,    setFilterEndDate]    = useState('')
+  const [filterTag,        setFilterTag]        = useState('')
   const [isSearching,      setIsSearching]      = useState(false)
 
   const userPlan = (session?.user as any)?.plan ?? 'free'
@@ -497,7 +580,7 @@ export default function MyChartsPage() {
     setLoading(true)
     setError(null)
     try {
-      const isSearchActive = search.length >= 2 || filterGender !== 'all' || filterStartDate || filterEndDate
+      const isSearchActive = search.length >= 2 || filterGender !== 'all' || filterStartDate || filterEndDate || filterTag
       const baseApi = isSearchActive ? '/api/chart/search' : '/api/chart/list'
       
       const params = new URLSearchParams({
@@ -510,6 +593,7 @@ export default function MyChartsPage() {
       if (filterGender !== 'all') params.set('gender', filterGender)
       if (filterStartDate) params.set('startDate', filterStartDate)
       if (filterEndDate) params.set('endDate', filterEndDate)
+      if (filterTag) params.set('tag', filterTag)
 
       const res  = await fetch(`${baseApi}?${params.toString()}`)
       const json = await res.json()
@@ -518,7 +602,11 @@ export default function MyChartsPage() {
         return
       }
       if (!json.success) throw new Error(json.error)
-      setCharts(json.charts)
+      setCharts((json.charts ?? []).map((c: SavedChart & { _id?: string }) => ({
+        ...c,
+        _id: String(c._id),
+        tags: Array.isArray(c.tags) ? c.tags : [],
+      })))
       setPag(json.pagination)
 
       // Only fetch default on initial load
@@ -535,18 +623,26 @@ export default function MyChartsPage() {
       setLoading(false)
       setIsSearching(false)
     }
-  }, [router, search, filterGender, filterStartDate, filterEndDate, defaultChartId])
+  }, [router, search, filterGender, filterStartDate, filterEndDate, filterTag, defaultChartId])
+
+  const allTags = React.useMemo(() => {
+    const set = new Set<string>()
+    for (const c of charts) {
+      for (const t of c.tags ?? []) set.add(t)
+    }
+    return [...set].sort()
+  }, [charts])
 
   // Initial load + Pagination
   useEffect(() => { 
-    if (search.length < 2 && filterGender === 'all' && !filterStartDate && !filterEndDate) {
+    if (search.length < 2 && filterGender === 'all' && !filterStartDate && !filterEndDate && !filterTag) {
       fetchCharts(page) 
     }
-  }, [page, fetchCharts, search, filterGender, filterStartDate, filterEndDate])
+  }, [page, fetchCharts, search, filterGender, filterStartDate, filterEndDate, filterTag])
 
   // Debounced Search
   useEffect(() => {
-    if (search.length >= 2 || filterGender !== 'all' || filterStartDate || filterEndDate) {
+    if (search.length >= 2 || filterGender !== 'all' || filterStartDate || filterEndDate || filterTag) {
       setIsSearching(true)
       const delay = setTimeout(() => {
         setPage(1)
@@ -554,7 +650,7 @@ export default function MyChartsPage() {
       }, 500)
       return () => clearTimeout(delay)
     }
-  }, [search, filterGender, filterStartDate, filterEndDate, fetchCharts])
+  }, [search, filterGender, filterStartDate, filterEndDate, filterTag, fetchCharts])
 
   function handleLoad(chart: SavedChart) {
     setChart(null) // Clear old state immediately
@@ -567,6 +663,7 @@ export default function MyChartsPage() {
       lat:        chart.latitude.toString(),
       lng:        chart.longitude.toString(),
       tz:         chart.timezone,
+      chartId:    chart._id,
     })
     router.push(`/?${params.toString()}`)
   }
@@ -608,7 +705,7 @@ export default function MyChartsPage() {
           <div style={{ flex: 1, minWidth: '300px', position: 'relative' }}>
             <input
               className="input"
-              placeholder="Search by name, place, or notes..."
+              placeholder="Search by name, place, hashtag, or notes..."
               value={search}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               style={{ width: '100%', paddingLeft: '2.75rem', height: '46px', borderRadius: 'var(--r-lg)', background: 'var(--surface-1)' }}
@@ -632,6 +729,41 @@ export default function MyChartsPage() {
             {showFilters ? '✕ CLOSE' : '⚙ FILTERS'}
           </button>
         </div>
+
+        {allTags.length > 0 && (
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Hashtags:</span>
+            <button
+              type="button"
+              onClick={() => setFilterTag('')}
+              className="badge"
+              style={{
+                fontSize: '0.62rem', cursor: 'pointer',
+                background: !filterTag ? 'var(--gold-faint)' : 'var(--surface-2)',
+                color: !filterTag ? 'var(--gold)' : 'var(--text-muted)',
+                border: `1px solid ${!filterTag ? 'var(--gold-soft)' : 'var(--border-soft)'}`,
+              }}
+            >
+              All
+            </button>
+            {allTags.map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setFilterTag(filterTag === t ? '' : t)}
+                className="badge"
+                style={{
+                  fontSize: '0.62rem', cursor: 'pointer',
+                  background: filterTag === t ? 'var(--gold-faint)' : 'rgba(201,168,76,0.06)',
+                  color: filterTag === t ? 'var(--gold)' : 'var(--text-secondary)',
+                  border: `1px solid ${filterTag === t ? 'var(--gold-soft)' : 'rgba(201,168,76,0.12)'}`,
+                }}
+              >
+                {formatTagLabel(t)}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Action Buttons Row */}
         <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>

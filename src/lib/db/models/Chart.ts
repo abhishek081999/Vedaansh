@@ -24,6 +24,7 @@ export interface IChart extends Document {
   isPersonal:boolean   // true = user's own birth chart
   slug:      string | null   // for public sharing
   notes:     Array<{ content: string; createdAt: Date }>
+  tags:      string[]
   views:        number
   lastViewedAt: Date | null
   cachedDataId: Types.ObjectId | null
@@ -49,6 +50,7 @@ const ChartSchema = new Schema<IChart>({
     content:   { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
   }],
+  tags: { type: [{ type: String, trim: true }], default: [] },
   views:        { type: Number, default: 0 },
   lastViewedAt: { type: Date,   default: null },
   cachedDataId: { type: Schema.Types.ObjectId, ref: 'ChartCache', default: null },
@@ -58,9 +60,16 @@ const ChartSchema = new Schema<IChart>({
 
 ChartSchema.index({ userId: 1, isPersonal: 1 })
 ChartSchema.index({ userId: 1, createdAt: -1 })
+ChartSchema.index({ userId: 1, tags: 1 })
 ChartSchema.index({ isPublic: 1, createdAt: -1 })
+ChartSchema.index({ name: 'text', birthPlace: 'text', tags: 'text' })
 
-export const Chart = models.Chart || model<IChart>('Chart', ChartSchema)
+// Hot-reload: re-register so new schema fields (e.g. tags) are not dropped on cached model
+if (models.Chart) {
+  delete models.Chart
+}
+
+export const Chart = model<IChart>('Chart', ChartSchema)
 
 // ── ChartCache Model ──────────────────────────────────────────
 // Stores all calculated data — separate from Chart to keep Chart lean

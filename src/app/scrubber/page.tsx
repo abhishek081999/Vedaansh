@@ -27,7 +27,7 @@ export default function ScrubberPage() {
           <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>⏳</div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--text-gold)', marginBottom: '1rem' }}>Birth Data Required</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: 1.6 }}>
-            The Time Scrubber allows you to fast-forward your life cycles. We need your natal chart as the foundation for this analysis.
+            Transit lets you shift through time and see how planets move against your natal chart. Enter your birth details to get started.
           </p>
           <Link href="/?new=true" className="btn btn-primary" style={{ padding: '0.75rem 2rem', textDecoration: 'none' }}>
             Enter Birth Details
@@ -38,25 +38,21 @@ export default function ScrubberPage() {
   }
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '2.5rem', padding: isMobile ? '1rem' : '2rem', maxWidth: 1200, margin: '0 auto' }}>
-      <header>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-          <span className="badge-accent">Interactive Engine</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-gold)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>4D Transit Analysis</span>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '1.75rem', padding: isMobile ? '1rem' : '1.5rem 2rem 3rem', maxWidth: 1100, margin: '0 auto', width: '100%' }}>
+      <header style={{ paddingBottom: '0.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.45rem', flexWrap: 'wrap' }}>
+          <span className="badge-accent" style={{ fontSize: '0.65rem' }}>Interactive</span>
+          <span style={{ fontSize: '0.68rem', color: 'var(--text-gold)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Natal overlay</span>
         </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.6rem' : '2.5rem', fontWeight: 800, margin: 0, lineHeight: 1.1 }}>
-          Planetary Time Scrubber
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.55rem' : '2.1rem', fontWeight: 700, margin: 0, lineHeight: 1.15, color: 'var(--text-primary)' }}>
+          Planetary Transit
         </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.6rem', maxWidth: '800px', fontSize: isMobile ? '0.9rem' : '1.1rem' }}>
-          Shift through time to visualize precisely how transiting planets interact with your natal placements.
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', maxWidth: 640, fontSize: isMobile ? '0.88rem' : '0.95rem', lineHeight: 1.55, marginBottom: 0 }}>
+          Set any date and time to see transiting planets against your natal chart. Time uses your birth timezone.
         </p>
       </header>
 
-      <div className="card" style={{ padding: isMobile ? '1rem' : '2.5rem' }}>
-        <TransitScrubber natalChart={chart} onTransitChange={setTransitGrahas} />
-      </div>
-
-      <div style={{ height: '4rem' }} />
+      <TransitScrubber natalChart={chart} onTransitChange={setTransitGrahas} />
     </div>
   )
 }

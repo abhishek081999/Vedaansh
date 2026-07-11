@@ -213,13 +213,13 @@
   --fw-medium: 500;
   --fw-bold: 600;
 
-  /* Surfaces: Warm parchment — premium spiritual aesthetic */
-  --bg-page: #faf7f2;
-  --surface-0: #faf7f2;
-  --surface-1: #fffdf9;
-  --surface-2: #f5f0e8;
-  --surface-3: #ebe4d8;
-  --surface-4: #d9d0c0;
+  /* Surfaces: Warm parchment — apricot tint */
+  --bg-page: #faf3e4;
+  --surface-0: #faf3e4;
+  --surface-1: #fffaf0;
+  --surface-2: #f5ead8;
+  --surface-3: #ebe0cc;
+  --surface-4: #d9ccb4;
 
   /* Primary Accent: Professional minimal indigo */
   --primary-brand: #4f46e5; /* indigo-600 */
@@ -228,13 +228,13 @@
   --header-text-muted: #64748b;
   --header-border: #e2e8f0;
 
-  /* Gold: Refined modern bronze */
-  --gold: #b48600;
-  --gold-light: #d97706;  /* amber-600 */
-  --gold-dim: #92400e;
-  --gold-soft: rgba(180, 134, 0, 0.65);
-  --gold-faint: rgba(217, 119, 6, 0.08);
-  --surface-gold-soft: rgba(180, 134, 0, 0.08);
+  /* Gold: amber-orange bronze */
+  --gold: #d47a28;
+  --gold-light: #e89238;
+  --gold-dim: #b05818;
+  --gold-soft: rgba(212, 122, 40, 0.68);
+  --gold-faint: rgba(212, 122, 40, 0.09);
+  --surface-gold-soft: rgba(212, 122, 40, 0.09);
 
   /* Secondary Accents */
   --accent: #6366f1;
@@ -355,65 +355,65 @@
   --fw-medium: 600;
   --fw-bold: 700;
 
-  /* Surfaces: Report cover — cream parchment (#FDF6E3 / #F5F1E1) */
-  --bg-page: #fdf6e3;
-  --surface-0: #fdf6e3;
-  --surface-1: #fffef9;
-  --surface-2: #f5f1e1;
-  --surface-3: #ebe6d4;
-  --surface-4: #ddd6c0;
+  /* Surfaces: warm apricot parchment */
+  --bg-page: #fdf0cc;
+  --surface-0: #fdf0cc;
+  --surface-1: #fff8ee;
+  --surface-2: #f5e6c8;
+  --surface-3: #ebdcc0;
+  --surface-4: #ddceae;
 
-  /* Primary: deep maroon headings & borders (#6A1B1B) */
-  --primary-brand: #6a1b1b;
-  --header-bg: rgba(253, 246, 227, 0.94);
-  --header-text: #6a1b1b;
-  --header-text-muted: #8b5a52;
-  --header-border: #c5a059;
+  /* Primary: deep maroon headings & borders */
+  --primary-brand: #751515;
+  --header-bg: rgba(253, 240, 204, 0.94);
+  --header-text: #751515;
+  --header-text-muted: #a85838;
+  --header-border: #d47a28;
 
-  /* Gold: muted manuscript gold (#C5A059) */
-  --gold: #c5a059;
-  --gold-light: #d4b06a;
-  --gold-dim: #9a7a3e;
-  --gold-soft: rgba(197, 160, 89, 0.65);
-  --gold-faint: rgba(197, 160, 89, 0.1);
-  --surface-gold-soft: rgba(197, 160, 89, 0.08);
+  /* Gold: amber-orange manuscript accent */
+  --gold: #d47a28;
+  --gold-light: #e89238;
+  --gold-dim: #b05818;
+  --gold-soft: rgba(212, 122, 40, 0.68);
+  --gold-faint: rgba(212, 122, 40, 0.11);
+  --surface-gold-soft: rgba(212, 122, 40, 0.09);
 
   /* Secondary accents — maroon family */
-  --accent: #6a1b1b;
-  --accent-dim: #5c1616;
-  --accent-glow: rgba(106, 27, 27, 0.12);
+  --accent: #751515;
+  --accent-dim: #661212;
+  --accent-glow: rgba(117, 21, 21, 0.14);
 
   /* Status */
-  --rose: #92182b;
-  --rose-soft: rgba(146, 24, 43, 0.72);
-  --teal: #14645e;
-  --teal-soft: rgba(20, 100, 94, 0.72);
-  --amber: #92400e;
+  --rose: #a01328;
+  --rose-soft: rgba(160, 19, 40, 0.74);
+  --teal: #126e68;
+  --teal-soft: rgba(18, 110, 104, 0.74);
+  --amber: #c05810;
 
   /* Dignity */
-  --dig-retro: #92182b;
-  --dig-exalted: #14645e;
-  --dig-moola: #8a6300;
-  --dig-own: #6a1b1b;
-  --dig-neutral: #5c4a42;
-  --dig-debilitate: #8b7d72;
+  --dig-retro: #a01328;
+  --dig-exalted: #126e68;
+  --dig-moola: #c06810;
+  --dig-own: #751515;
+  --dig-neutral: #5c4038;
+  --dig-debilitate: #8b7060;
 
   /* Text: maroon ink on cream */
-  --text-primary: #3d1414;
-  --text-secondary: #5c2020;
-  --text-muted: #7a6358;
-  --text-gold: #9a7a3e;
-  --text-on-gold: #fdf6e3;
+  --text-primary: #3a0e0e;
+  --text-secondary: #5a1818;
+  --text-muted: #8a6048;
+  --text-gold: #b05818;
+  --text-on-gold: #fff8ee;
 
   /* Borders: thin double-line maroon feel */
-  --border: rgba(106, 27, 27, 0.18);
-  --border-soft: rgba(106, 27, 27, 0.08);
-  --border-bright: rgba(106, 27, 27, 0.32);
-  --border-accent: rgba(197, 160, 89, 0.35);
+  --border: rgba(117, 21, 21, 0.2);
+  --border-soft: rgba(117, 21, 21, 0.09);
+  --border-bright: rgba(117, 21, 21, 0.34);
+  --border-accent: rgba(212, 122, 40, 0.4);
 
   /* Shadows */
-  --glow-gold: 0 0 20px rgba(197, 160, 89, 0.14);
-  --glow-gold-sm: rgba(197, 160, 89, 0.16);
+  --glow-gold: 0 0 20px rgba(212, 122, 40, 0.18);
+  --glow-gold-sm: rgba(212, 122, 40, 0.2);
   --glow-accent: 0 0 20px rgba(74, 64, 128, 0.14);
   --shadow-deep: 0 10px 40px rgba(0, 0, 0, 0.12);
   --shadow-card: 0 2px 14px rgba(0, 0, 0, 0.06);
@@ -421,22 +421,23 @@
 
   /* Background gradient */
   --bg-gradient:
-    radial-gradient(circle at 50% -20%, rgba(106, 27, 27, 0.04) 0%, transparent 70%),
+    radial-gradient(circle at 50% -20%, rgba(212, 122, 40, 0.07) 0%, transparent 65%),
+    radial-gradient(circle at 85% 100%, rgba(117, 21, 21, 0.04) 0%, transparent 50%),
     var(--bg-page);
 
-  --scrollbar-track: #f5f1e1;
-  --scrollbar-thumb: #c5a059;
+  --scrollbar-track: #f5e6c8;
+  --scrollbar-thumb: #d47a28;
   /* Chart specific labels */
-  --chart-sign-green: #2d5a27;
-  --chart-label-muted: rgba(106, 27, 27, 0.35);
+  --chart-sign-green: #256622;
+  --chart-label-muted: rgba(117, 21, 21, 0.38);
 
   /* ── Sarvatobhadra Chakra cell colours (classic) ── */
   --sbc-nak-bg:   rgba(74, 64, 128, 0.14);
   --sbc-nak-vdh:  rgba(74, 64, 128, 0.26);
   --sbc-nak-txt:  #2e2260;
-  --sbc-rashi-bg: rgba(197, 160, 89, 0.12);
-  --sbc-rashi-vdh:rgba(197, 160, 89, 0.24);
-  --sbc-rashi-txt:#7a5c18;
+  --sbc-rashi-bg: rgba(212, 122, 40, 0.12);
+  --sbc-rashi-vdh:rgba(212, 122, 40, 0.24);
+  --sbc-rashi-txt:#8a5018;
   --sbc-vara-bg:  rgba(106, 27, 27, 0.10);
   --sbc-vara-vdh: rgba(106, 27, 27, 0.20);
   --sbc-vara-txt: #6a1b1b;
@@ -446,42 +447,42 @@
   --sbc-cons-bg:  rgba(80, 70, 50, 0.08);
   --sbc-cons-vdh: rgba(80, 70, 50, 0.16);
   --sbc-cons-txt: #4a4030;
-  --sbc-center-bg:rgba(197, 160, 89, 0.16);
-  --sbc-center-txt:#7a5c18;
-  --sbc-empty-bg: rgba(253, 246, 227, 0.90);
-  --sbc-grid-bg:  rgba(253, 246, 227, 0.99);
+  --sbc-center-bg:rgba(212, 122, 40, 0.16);
+  --sbc-center-txt:#8a5018;
+  --sbc-empty-bg: rgba(253, 240, 204, 0.90);
+  --sbc-grid-bg:  rgba(253, 240, 204, 0.99);
   --sbc-grid-bdr: rgba(106, 27, 27, 0.22);
-  --sbc-hov-bdr:  rgba(197, 160, 89, 0.80);
-  --sbc-hov-shd:  0 0 12px rgba(197, 160, 89, 0.28);
+  --sbc-hov-bdr:  rgba(212, 122, 40, 0.80);
+  --sbc-hov-shd:  0 0 12px rgba(212, 122, 40, 0.28);
   --sbc-act-bdr:  rgba(106, 27, 27, 0.55);
   --sbc-act-shd:  0 0 8px rgba(106, 27, 27, 0.18);
-  --sbc-vdh-bdr:  rgba(197, 160, 89, 0.22);
-  --sbc-center-bdr:rgba(197, 160, 89, 0.50);
+  --sbc-vdh-bdr:  rgba(212, 122, 40, 0.22);
+  --sbc-center-bdr:rgba(212, 122, 40, 0.50);
 
   /* Branding — report cover maroon + gold */
-  --logo-bg: #fdf6e3;
-  --logo-border: #c5a059;
-  --logo-gradient: linear-gradient(to bottom, #fdf6e3, #f5f1e1);
-  --logo-text-title: #6a1b1b;
-  --logo-text-sub: #c5a059;
+  --logo-bg: #fdf0cc;
+  --logo-border: #d47a28;
+  --logo-gradient: linear-gradient(to bottom, #fdf0cc, #f5e6c8);
+  --logo-text-title: #751515;
+  --logo-text-sub: #d47a28;
 
   /* Parchment yantra stack — :root also matches <html>, so without this classic inherited the dark stack from the default block */
   --vedic-yantra-stack:
-    radial-gradient(ellipse 125% 88% at 50% 44%, rgba(253, 246, 227, 0.08) 0%, rgba(245, 241, 225, 0.5) 50%, rgba(235, 230, 212, 0.9) 100%),
-    linear-gradient(165deg, rgba(253, 246, 227, 0.5) 0%, rgba(245, 241, 225, 0.94) 100%),
+    radial-gradient(ellipse 125% 88% at 50% 44%, rgba(253, 240, 204, 0.08) 0%, rgba(245, 230, 200, 0.5) 50%, rgba(235, 218, 188, 0.9) 100%),
+    linear-gradient(165deg, rgba(253, 240, 204, 0.5) 0%, rgba(245, 230, 200, 0.94) 100%),
     var(--vedic-yantra-image);
 
   /* Section differentiation colors (Classic theme) */
-  --section-gold: #c5a059;
-  --section-gold-gradient: linear-gradient(135deg, #e3c186 0%, #9a7a3e 100%);
+  --section-gold: #d47a28;
+  --section-gold-gradient: linear-gradient(135deg, #f0a040 0%, #b05818 100%);
   --section-violet: #6d28d9;
   --section-violet-gradient: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
-  --section-teal: #14645e;
-  --section-teal-gradient: linear-gradient(135deg, #115e59 0%, #134e4a 100%);
-  --section-rose: #92182b;
-  --section-rose-gradient: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
-  --section-bronze: #6a1b1b;
-  --section-bronze-gradient: linear-gradient(135deg, #881337 0%, #4c0519 100%);
+  --section-teal: #126e68;
+  --section-teal-gradient: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  --section-rose: #a01328;
+  --section-rose-gradient: linear-gradient(135deg, #c41e3a 0%, #7f1d1d 100%);
+  --section-bronze: #751515;
+  --section-bronze-gradient: linear-gradient(135deg, #991b1b 0%, #4c0519 100%);
 }
 
 /* ── Typography constants ───────────────────────────────────── */
@@ -608,9 +609,9 @@ html:not([data-theme='dark']) body.yantra-backdrop::before {
 /* Match specificity of `html:not([data-theme='dark'])` so warm classic layers actually apply */
 html[data-theme='classic'] body.yantra-backdrop::before {
   background-image:
-    url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20l5-5-5-5-5 5 5 5zm0-20l5 5-5 5-5-5 5-5zm0 40l5-5-5-5-5 5 5 5zM0 20l5-5-5-5-5 5 5 5zm40 0l5-5-5-5-5 5 5 5z' fill='%23c5a059' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse 88% 60% at 50% 44%, rgba(253, 246, 227, 0.05) 0%, rgba(245, 241, 225, 0.58) 52%, rgba(235, 230, 212, 0.93) 100%),
-    linear-gradient(165deg, rgba(253, 246, 227, 0.42) 0%, rgba(245, 241, 225, 0.86) 100%),
+    url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20l5-5-5-5-5 5 5 5zm0-20l5 5-5 5-5-5 5-5zm0 40l5-5-5-5-5 5 5 5zM0 20l5-5-5-5-5 5 5 5zm40 0l5-5-5-5-5 5 5 5z' fill='%23d47a28' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 88% 60% at 50% 44%, rgba(253, 240, 204, 0.05) 0%, rgba(245, 230, 200, 0.58) 52%, rgba(235, 218, 188, 0.93) 100%),
+    linear-gradient(165deg, rgba(253, 240, 204, 0.42) 0%, rgba(245, 230, 200, 0.86) 100%),
     var(--vedic-yantra-image);
   background-size: 40px 40px, cover, cover, 100% auto;
   background-position: 0 0, center, center, 50% 48%;
@@ -1629,11 +1630,11 @@ select.input {
 }
 
 [data-theme="classic"] .sidenav {
-  background: rgba(253, 246, 227, 0.82) !important;
-  backdrop-filter: blur(20px) saturate(1.2) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.2) !important;
-  border-right-color: rgba(197, 160, 89, 0.2) !important;
-  --sidenav-link-active-bg: linear-gradient(90deg, rgba(197, 160, 89, 0.1) 0%, rgba(197, 160, 89, 0.02) 100%);
+  background: rgba(253, 240, 204, 0.82) !important;
+  backdrop-filter: blur(20px) saturate(1.35) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.35) !important;
+  border-right-color: rgba(212, 122, 40, 0.24) !important;
+  --sidenav-link-active-bg: linear-gradient(90deg, rgba(212, 122, 40, 0.12) 0%, rgba(212, 122, 40, 0.02) 100%);
 }
 
 .sidenav.open {
@@ -2388,11 +2389,20 @@ select.input {
 }
 
 [data-theme="classic"] .app-header {
-  border-image: linear-gradient(to right, rgba(106, 27, 27, 0.05), rgba(197, 160, 89, 0.45) 50%, rgba(106, 27, 27, 0.05)) 1;
-  background: rgba(253, 246, 227, 0.78) !important;
-  backdrop-filter: blur(20px) saturate(1.2) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.2) !important;
-  box-shadow: 0 4px 30px rgba(106, 27, 27, 0.04);
+  border-image: linear-gradient(to right, rgba(117, 21, 21, 0.06), rgba(212, 122, 40, 0.52) 50%, rgba(117, 21, 21, 0.06)) 1;
+  background: rgba(253, 240, 204, 0.78) !important;
+  backdrop-filter: blur(20px) saturate(1.35) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.35) !important;
+  box-shadow: 0 4px 30px rgba(117, 21, 21, 0.05);
+}
+
+[data-theme="classic"] .btn-primary {
+  background: linear-gradient(135deg, #b86020 0%, var(--gold) 58%, #f0a848 100%);
+  box-shadow: 0 2px 16px rgba(212, 122, 40, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="classic"] .btn-primary:hover {
+  box-shadow: 0 6px 28px rgba(212, 122, 40, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* Left components */

@@ -132,7 +132,7 @@ export function SavedChartSelector({ onSelect, onClose }: SavedChartSelectorProp
             <div style={{ position: 'relative', flex: 1 }}>
               <input 
                 className="input"
-                placeholder={`Search ${tab === 'charts' ? 'name or place' : 'clients'}...`}
+                placeholder={`Search ${tab === 'charts' ? 'name, place, or hashtag' : 'clients'}...`}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 style={{ width: '100%', paddingLeft: '2.5rem', borderRadius: 'var(--r-md)' }}

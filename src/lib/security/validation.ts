@@ -31,6 +31,7 @@ export const chartSearchQuerySchema = z.object({
     emptyQueryToUndefined,
     z.string().regex(/^\d{4}$/).optional(),
   ),
+  tag: z.preprocess(emptyQueryToUndefined, z.string().trim().max(50).optional()),
   page: z.coerce.number().int().min(1).max(10_000).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(24),
 })

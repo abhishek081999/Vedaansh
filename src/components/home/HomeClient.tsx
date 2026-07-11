@@ -581,6 +581,7 @@ function HomeContent() {
   const [loading,    setLoading]    = useState(false)
   const [saving,     setSaving]     = useState(false)
   const [saveDone,   setSaveDone]   = useState(false)
+  const [chartTags,  setChartTags]  = useState<string[]>([])
   const [shareCopied, setShareCopied] = useState(false)
   const [crmSaving,  setCrmSaving]  = useState(false)
   const [crmDone,    setCrmDone]    = useState(false)
@@ -859,6 +860,7 @@ function HomeContent() {
           timezone:   chart.meta.timezone,
           settings:   chart.meta.settings,
           isPersonal: type === 'personal',
+          tags:       chartTags,
         })
       })
       if (res.ok) {
@@ -963,6 +965,40 @@ function HomeContent() {
     }
   }, [searchParams, router, setIsFormOpen, setPendingDestination])
 
+  // Load hashtags when opening a saved chart from My Charts (chartId in URL)
+  useEffect(() => {
+    const chartId = searchParams.get('chartId')
+    if (!chartId || status !== 'authenticated') return
+
+    let cancelled = false
+    fetch(`/api/chart/${chartId}`)
+      .then(r => r.json())
+      .then(json => {
+        if (!cancelled && json.success && Array.isArray(json.chart?.tags)) {
+          setChartTags(json.chart.tags)
+        }
+      })
+      .catch(() => {})
+
+    return () => { cancelled = true }
+  }, [searchParams, status])
+
+  // Hashtags from default / personal chart profile
+  useEffect(() => {
+    if (searchParams.get('chartId')) return
+    if (searchParams.get('new') === 'true') {
+      setChartTags([])
+      return
+    }
+    if (searchParams.get('name')) {
+      setChartTags([])
+      return
+    }
+    if (Array.isArray(defaultChart?.tags)) {
+      setChartTags(defaultChart.tags)
+    }
+  }, [defaultChart, searchParams])
+
   const openAstrologyApp = React.useCallback(() => {
     setIsFormOpen(true)
     router.push('/?new=true')
@@ -1007,6 +1043,9 @@ function HomeContent() {
       const json = await res.json()
       if (json.success) {
         setChart(json.data)
+        if (Array.isArray(defaultChart?.tags)) {
+          setChartTags(defaultChart.tags)
+        }
         router.push('/')
       }
     } catch (error) {
@@ -1431,6 +1470,7 @@ function HomeContent() {
             <div className="chart-header-row" style={isMobile ? { position: 'relative' } : undefined}>
               <ChartContextBar
                 chart={chart}
+                tags={chartTags}
                 isMobile={isMobile}
                 mobileReserveRight={
                   status === 'authenticated'
@@ -2712,6 +2752,8 @@ function HomeContent() {
                   }, 300);
                 }}
                 onLoading={setLoading}
+                onSaveTagsChange={setChartTags}
+                initialTags={chartTags}
                 autoSubmit={!!searchParams.get('name')}
                 initialName="Natal Chart"
                 initialData={chart ? {
