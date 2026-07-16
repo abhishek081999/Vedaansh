@@ -40,8 +40,8 @@ function g(id: string, rashi: number): GrahaData {
     },
     yuddha: { isWarring: false, planets: [], winner: null, loser: null, degreeDifference: 0, orb: 1 },
     pushkara: {
-      isPushkara: false, type: null, zone: null, rashi: 1 as Rashi, degreeInSign: 0,
-      navamsha: 1, isPushkaraNavamsha: false, distanceFromCenter: null, remedy: null,
+      isPushkara: false, type: null, rashi: 1 as Rashi, degreeInSign: 0,
+      navamsha: 1, isPushkaraNavamsha: false, remedy: null,
     },
     mrityuBhaga: {
       isMrityuBhaga: false, severity: 'none', rashi: 1 as Rashi, degreeInSign: 0,

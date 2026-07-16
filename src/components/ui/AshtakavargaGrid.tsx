@@ -7,10 +7,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { Spinner } from '@/components/ui/primitives/Spinner'
-import type { AshtakavargaResult } from '@/lib/engine/ashtakavarga'
 import { toHousesFromLagna } from '@/lib/engine/ashtakavarga'
 import { RASHI_SHORT } from '@/types/astrology'
-import type { GrahaData, Rashi } from '@/types/astrology'
+import type { AshtakavargaResult, GrahaData, Rashi } from '@/types/astrology'
 
 const PLANET_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
 const PLANET_NAMES: Record<(typeof PLANET_ORDER)[number], string> = {

@@ -7,15 +7,18 @@
 //  Validated against PVR Chart 7 (BAV/SAV totals 337).
 // ─────────────────────────────────────────────────────────────
 
-import type { GrahaData, LagnaData, Rashi } from '@/types/astrology'
+import type {
+  AshtakavargaResult,
+  GrahaData,
+  LagnaData,
+  PlanetBAV,
+  Rashi,
+} from '@/types/astrology'
 
-// ── Types ─────────────────────────────────────────────────────
+export type { AshtakavargaResult, PlanetBAV }
 
-export interface PlanetBAV {
-  planet: string
-  bindus: number[]       // indexed by rashi (Aries=0 … Pisces=11)
-  total:  number
-}
+/** Fresh calculation always includes Sodhya / Prastara fields. */
+export type CalculatedAshtakavargaResult = Required<AshtakavargaResult>
 
 /** Prastara: which of the 8 contributors gave a bindu in each sign */
 export interface PrastaraBAV {
@@ -29,19 +32,6 @@ export interface SodhyaPinda {
   rasiPinda:  number
   grahaPinda: number
   sodhyaPinda: number
-}
-
-export interface AshtakavargaResult {
-  bav:       Record<string, PlanetBAV>
-  sav:       number[]
-  savTotal:  number
-  bavReduced: Record<string, PlanetBAV>
-  /** Sodhita SAV = sum of reduced planet BAVs (JHora style; no Mandala on SAV) */
-  savReduced: number[]
-  savReducedTotal: number
-  rekhas: number[]
-  prastara: Record<string, PrastaraBAV>
-  sodhyaPindas: Record<string, SodhyaPinda>
 }
 
 /** Classical BAV totals (checksum) — same in JHora */
@@ -359,7 +349,7 @@ function computeSodhyaPindas(
 export function calculateAshtakavarga(
   grahas: GrahaData[],
   lagnas: LagnaData,
-): AshtakavargaResult {
+): CalculatedAshtakavargaResult {
   const ascRashi = (lagnas.ascRashi ?? 1) as Rashi
   const contributors = buildContributors(grahas, ascRashi)
   const occupied = occupiedSigns(grahas)
