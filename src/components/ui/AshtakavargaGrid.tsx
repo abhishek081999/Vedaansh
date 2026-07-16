@@ -7,9 +7,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { Spinner } from '@/components/ui/primitives/Spinner'
-import type { AshtakavargaResult } from '@/lib/engine/ashtakavarga'
+import { toHousesFromLagna } from '@/lib/engine/ashtakavarga'
 import { RASHI_SHORT } from '@/types/astrology'
-import type { GrahaData } from '@/types/astrology'
+import type { AshtakavargaResult, GrahaData, Rashi } from '@/types/astrology'
 
 const PLANET_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
 const PLANET_NAMES: Record<(typeof PLANET_ORDER)[number], string> = {
@@ -20,6 +20,26 @@ const PLANET_NAMES: Record<(typeof PLANET_ORDER)[number], string> = {
   Ju: 'Jupiter',
   Ve: 'Venus',
   Sa: 'Saturn',
+}
+
+function rashiLabel(i: number): string {
+  return RASHI_SHORT[(i + 1) as Rashi] ?? String(i + 1)
+}
+
+/** Prefer reduced tables when present (new charts); fall back for saved charts. */
+function bavBindus(av: AshtakavargaResult, planet: string, reduced: boolean): number[] {
+  if (reduced && av.bavReduced?.[planet]?.bindus) return av.bavReduced[planet].bindus
+  return av.bav[planet]?.bindus ?? Array(12).fill(0)
+}
+
+function bavTotal(av: AshtakavargaResult, planet: string, reduced: boolean): number {
+  if (reduced && av.bavReduced?.[planet]) return av.bavReduced[planet].total
+  return av.bav[planet]?.total ?? 0
+}
+
+function savValues(av: AshtakavargaResult, reduced: boolean): number[] {
+  if (reduced && av.savReduced) return av.savReduced
+  return av.sav
 }
 
 const COLOR = {
@@ -137,64 +157,133 @@ function NorthIndianAshtakavargaChart({
   )
 }
 
-function BAVTable({ ashtakavarga }: { ashtakavarga: AshtakavargaResult }) {
-  const rashiTotals = useMemo(
-    () => Array.from({ length: 12 }, (_, i) => PLANET_ORDER.reduce((sum, p) => sum + (ashtakavarga.bav[p]?.bindus[i] ?? 0), 0)),
-    [ashtakavarga],
-  )
-  const ascDerived = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, i) =>
-        PLANET_ORDER.reduce((sum, p) => sum + (ashtakavarga.bav[p].bindus[i] >= 4 ? 1 : 0), 0),
-      ),
-    [ashtakavarga],
-  )
-  const ascTotal = useMemo(() => ascDerived.reduce((sum, v) => sum + v, 0), [ascDerived])
+function BAVTable({
+  ashtakavarga,
+  reduced,
+  ascRashi,
+  columnMode,
+}: {
+  ashtakavarga: AshtakavargaResult
+  reduced: boolean
+  ascRashi: number
+  /** 'rasi' = Aries→Pisces (absolute); 'house' = H1–H12 from Lagna (JHora table style) */
+  columnMode: 'rasi' | 'house'
+}) {
+  const savRaw = savValues(ashtakavarga, reduced)
+  const sav = columnMode === 'house' ? toHousesFromLagna(savRaw, ascRashi) : savRaw
+  const savTotal = reduced
+    ? (ashtakavarga.savReducedTotal ?? savRaw.reduce((a, b) => a + b, 0))
+    : ashtakavarga.savTotal
+  const lagnaRaw = bavBindus(ashtakavarga, 'As', reduced)
+  const lagnaBindus = columnMode === 'house' ? toHousesFromLagna(lagnaRaw, ascRashi) : lagnaRaw
+  const lagnaTotal = bavTotal(ashtakavarga, 'As', reduced)
+  const hasLagna = Boolean(ashtakavarga.bav.As)
+
+  const colLabel = (i: number) => {
+    if (columnMode === 'house') {
+      const rashi = ((ascRashi - 1 + i) % 12) + 1
+      return `H${i + 1}\n${RASHI_SHORT[rashi as Rashi]}`
+    }
+    return rashiLabel(i)
+  }
 
   return (
     <div className="card no-scrollbar" style={{ overflowX: 'auto', padding: '0.65rem' }}>
+      <div style={{ fontSize: '0.68rem', color: COLOR.muted, marginBottom: '0.45rem' }}>
+        {columnMode === 'house'
+          ? 'Columns = houses from Lagna (JHora style). Values are the same sign-based bindus.'
+          : 'Columns = absolute signs Aries→Pisces.'}
+        {reduced ? ' Sodhita (reduced) bindus.' : ' Raw JHora/Parasara bindus (SAV = 337).'}
+      </div>
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760, fontSize: 'clamp(0.72rem, 2.4vw, 0.92rem)' }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border)' }}>
-            <th style={{ textAlign: 'left', padding: '0.4rem', position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>Signs</th>
+            <th style={{ textAlign: 'left', padding: '0.4rem', position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>Graha</th>
             {Array.from({ length: 12 }, (_, i) => (
-              <th key={i} style={{ textAlign: 'center', padding: '0.4rem', minWidth: 42 }}>
-                {i + 1}
+              <th key={i} style={{ textAlign: 'center', padding: '0.4rem', minWidth: 42, whiteSpace: 'pre-line', lineHeight: 1.2, fontSize: '0.68rem' }}>
+                {colLabel(i)}
               </th>
             ))}
             <th style={{ textAlign: 'center', padding: '0.4rem', minWidth: 46 }}>Tot</th>
           </tr>
         </thead>
         <tbody>
-          {PLANET_ORDER.map((p) => (
-            <tr key={p} style={{ borderBottom: '1px solid var(--border-soft)' }}>
-              <td style={{ padding: '0.4rem', fontWeight: 700, position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>{p}</td>
-              {ashtakavarga.bav[p].bindus.map((v, i) => (
-                <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, false), fontWeight: 700 }}>
+          {PLANET_ORDER.map((p) => {
+            const raw = bavBindus(ashtakavarga, p, reduced)
+            const bindus = columnMode === 'house' ? toHousesFromLagna(raw, ascRashi) : raw
+            return (
+              <tr key={p} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                <td style={{ padding: '0.4rem', fontWeight: 700, position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>{p}</td>
+                {bindus.map((v, i) => (
+                  <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, reduced), fontWeight: 700 }}>
+                    {v}
+                  </td>
+                ))}
+                <td style={{ textAlign: 'center', padding: '0.4rem', color: COLOR.blue, fontWeight: 800 }}>{bavTotal(ashtakavarga, p, reduced)}</td>
+              </tr>
+            )
+          })}
+          <tr>
+            <td style={{ padding: '0.4rem', fontWeight: 800, color: 'var(--text-gold)', position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>SAV</td>
+            {sav.map((v, i) => (
+              <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, !reduced), fontWeight: 800 }}>
+                {v}
+              </td>
+            ))}
+            <td style={{ textAlign: 'center', padding: '0.4rem', color: COLOR.teal, fontWeight: 900 }}>{savTotal}</td>
+          </tr>
+          {hasLagna ? (
+            <tr>
+              <td style={{ padding: '0.4rem', fontWeight: 800, position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>As</td>
+              {lagnaBindus.map((v, i) => (
+                <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, reduced), fontWeight: 700 }}>
                   {v}
                 </td>
               ))}
-            <td style={{ textAlign: 'center', padding: '0.4rem', color: COLOR.blue, fontWeight: 800 }}>{ashtakavarga.bav[p].total}</td>
+              <td style={{ textAlign: 'center', padding: '0.4rem', color: COLOR.blue, fontWeight: 800 }}>{lagnaTotal}</td>
             </tr>
-          ))}
-          <tr>
-            <td style={{ padding: '0.4rem', fontWeight: 800, color: 'var(--text-gold)', position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>Tot</td>
-            {rashiTotals.map((v, i) => (
-              <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, true), fontWeight: 800 }}>
-                {v}
-              </td>
-            ))}
-            <td style={{ textAlign: 'center', padding: '0.4rem', color: COLOR.teal, fontWeight: 900 }}>{ashtakavarga.savTotal}</td>
+          ) : null}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function SodhyaPindaTable({ ashtakavarga }: { ashtakavarga: AshtakavargaResult }) {
+  if (!ashtakavarga.sodhyaPindas) {
+    return (
+      <div className="card" style={{ padding: '0.8rem', color: COLOR.muted, fontSize: '0.78rem' }}>
+        Recalculate the chart to load Sodhya Pindas (JHora).
+      </div>
+    )
+  }
+  return (
+    <div className="card no-scrollbar" style={{ overflowX: 'auto', padding: '0.65rem' }}>
+      <div style={{ fontSize: '0.78rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.4rem' }}>Sodhya Pindas</div>
+      <div style={{ fontSize: '0.66rem', color: COLOR.muted, marginBottom: '0.45rem' }}>
+        From Sodhita BAV × Rasi/Graha gunakara (same method as Jagannatha Hora).
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 420, fontSize: '0.78rem' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid var(--border)' }}>
+            <th style={{ textAlign: 'left', padding: '0.35rem' }}>Graha</th>
+            <th style={{ textAlign: 'center', padding: '0.35rem' }}>Rasi Pinda</th>
+            <th style={{ textAlign: 'center', padding: '0.35rem' }}>Graha Pinda</th>
+            <th style={{ textAlign: 'center', padding: '0.35rem' }}>Sodhya Pinda</th>
           </tr>
-          <tr>
-            <td style={{ padding: '0.4rem', fontWeight: 800, position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>As</td>
-            {ascDerived.map((v, i) => (
-              <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, false), fontWeight: 700 }}>
-                {v}
-              </td>
-            ))}
-            <td style={{ textAlign: 'center', padding: '0.4rem', color: COLOR.blue, fontWeight: 800 }}>{ascTotal}</td>
-          </tr>
+        </thead>
+        <tbody>
+          {PLANET_ORDER.map((p) => {
+            const row = ashtakavarga.sodhyaPindas![p]
+            return (
+              <tr key={p} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                <td style={{ padding: '0.35rem', fontWeight: 700 }}>{p}</td>
+                <td style={{ textAlign: 'center', padding: '0.35rem' }}>{row.rasiPinda}</td>
+                <td style={{ textAlign: 'center', padding: '0.35rem' }}>{row.grahaPinda}</td>
+                <td style={{ textAlign: 'center', padding: '0.35rem', color: COLOR.teal, fontWeight: 800 }}>{row.sodhyaPinda}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
@@ -204,31 +293,30 @@ function BAVTable({ ashtakavarga }: { ashtakavarga: AshtakavargaResult }) {
 function ClassicalNinePanels({
   ashtakavarga,
   ascRashi,
+  reduced,
 }: {
   ashtakavarga: AshtakavargaResult
   ascRashi: number
+  reduced: boolean
 }) {
-  const ascDerived = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, i) =>
-        PLANET_ORDER.reduce((sum, p) => sum + (ashtakavarga.bav[p].bindus[i] >= 4 ? 1 : 0), 0),
-      ),
-    [ashtakavarga],
-  )
+  const lagnaValues = bavBindus(ashtakavarga, 'As', reduced)
+  const hasLagna = Boolean(ashtakavarga.bav.As)
+  const ascName = RASHI_SHORT[ascRashi as Rashi] ?? String(ascRashi)
 
   const items: Array<{ key: string; title: string; values: number[] }> = [
-    { key: 'SAV', title: 'SAV', values: ashtakavarga.sav },
-    { key: 'As', title: 'As', values: ascDerived },
-    ...PLANET_ORDER.map((p) => ({ key: p, title: p, values: ashtakavarga.bav[p].bindus })),
+    { key: 'SAV', title: 'SAV', values: savValues(ashtakavarga, reduced) },
+    ...(hasLagna ? [{ key: 'As', title: 'As', values: lagnaValues }] : []),
+    ...PLANET_ORDER.map((p) => ({ key: p, title: p, values: bavBindus(ashtakavarga, p, reduced) })),
   ]
 
   return (
     <div className="card" style={{ padding: '1rem' }}>
       <div style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.25rem', color: COLOR.primary }}>
-        D-1 of the Natal Chart
+        D-1 Ashtakavarga Charts
       </div>
       <div style={{ fontSize: '0.78rem', color: COLOR.secondary, marginBottom: '1rem' }}>
-        Bhinna Ashtakavarga (BAV) with reference to Virgo. Positions in D-1 are highlighted.
+        Sign-based Bhinna Ashtakavarga (JHora/Parasara) oriented from Ascendant ({ascName}).
+        {reduced ? ' Sodhita figures.' : ' Raw bindus.'}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem' }}>
         {items.map((item) => (
@@ -243,9 +331,15 @@ function ClassicalNinePanels({
           </div>
         ))}
       </div>
-      <div style={{ marginTop: '0.65rem', color: COLOR.muted, fontSize: '0.68rem' }}>
-        As = derived ascendant support index (count of planets giving 4+ bindus per sign).
-      </div>
+      {hasLagna ? (
+        <div style={{ marginTop: '0.65rem', color: COLOR.muted, fontSize: '0.68rem' }}>
+          As = classical Lagna Ashtakavarga (49 bindus), not included in SAV 337.
+        </div>
+      ) : (
+        <div style={{ marginTop: '0.65rem', color: COLOR.muted, fontSize: '0.68rem' }}>
+          Recalculate the chart to load classical Lagna Ashtakavarga and Sodhya figures.
+        </div>
+      )}
     </div>
   )
 }
@@ -514,117 +608,143 @@ export function AshtakavargaGrid({
 }) {
   const [tab, setTab] = useState<'sav' | 'bav' | 'table' | 'interpretation'>('sav')
   const [selected, setSelected] = useState<(typeof PLANET_ORDER)[number]>('Su')
+  const hasReduced = Boolean(ashtakavarga.savReduced && ashtakavarga.bavReduced)
+  const [reduced, setReduced] = useState(false)
+  /** Default house-from-Lagna to match JHora table reading */
+  const [columnMode, setColumnMode] = useState<'rasi' | 'house'>('house')
 
+  const activeSav = savValues(ashtakavarga, reduced)
   const strongestSav = useMemo(() => {
     let idx = 0
-    for (let i = 1; i < ashtakavarga.sav.length; i++) {
-      if (ashtakavarga.sav[i] > ashtakavarga.sav[idx]) idx = i
+    for (let i = 1; i < activeSav.length; i++) {
+      if (activeSav[i] > activeSav[idx]) idx = i
     }
-    return idx + 1
-  }, [ashtakavarga.sav])
+    return (idx + 1) as Rashi
+  }, [activeSav])
+
+  const tabBtn = (id: typeof tab, label: string) => (
+    <button
+      type="button"
+      onClick={() => setTab(id)}
+      style={{
+        border: '1px solid var(--border)',
+        background: tab === id ? 'var(--gold-faint)' : 'var(--surface-1)',
+        color: tab === id ? 'var(--text-gold)' : 'var(--text-secondary)',
+        borderRadius: 'var(--r-md)',
+        padding: '0.5rem 0.45rem',
+        cursor: 'pointer',
+        fontWeight: 700,
+        fontSize: 'clamp(0.74rem, 2.8vw, 0.88rem)',
+        lineHeight: 1.2,
+        minHeight: 44,
+        whiteSpace: 'normal',
+        textAlign: 'center',
+      }}
+    >
+      {label}
+    </button>
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
       <div className="card" style={{ padding: '0.75rem', display: 'flex', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.45rem', width: '100%' }}>
-          <button
-            type="button"
-            onClick={() => setTab('sav')}
-            style={{
-              border: '1px solid var(--border)',
-              background: tab === 'sav' ? 'var(--gold-faint)' : 'var(--surface-1)',
-              color: tab === 'sav' ? 'var(--text-gold)' : 'var(--text-secondary)',
-              borderRadius: 'var(--r-md)',
-              padding: '0.5rem 0.45rem',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: 'clamp(0.74rem, 2.8vw, 0.88rem)',
-              lineHeight: 1.2,
-              minHeight: 44,
-              whiteSpace: 'normal',
-              textAlign: 'center',
-            }}
-          >
-            Sarva-Ashtakavarga
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('bav')}
-            style={{
-              border: '1px solid var(--border)',
-              background: tab === 'bav' ? 'var(--gold-faint)' : 'var(--surface-1)',
-              color: tab === 'bav' ? 'var(--text-gold)' : 'var(--text-secondary)',
-              borderRadius: 'var(--r-md)',
-              padding: '0.5rem 0.45rem',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: 'clamp(0.74rem, 2.8vw, 0.88rem)',
-              lineHeight: 1.2,
-              minHeight: 44,
-              whiteSpace: 'normal',
-              textAlign: 'center',
-            }}
-          >
-            Bhinna-Ashtakavarga
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('table')}
-            style={{
-              border: '1px solid var(--border)',
-              background: tab === 'table' ? 'var(--gold-faint)' : 'var(--surface-1)',
-              color: tab === 'table' ? 'var(--text-gold)' : 'var(--text-secondary)',
-              borderRadius: 'var(--r-md)',
-              padding: '0.5rem 0.45rem',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: 'clamp(0.74rem, 2.8vw, 0.88rem)',
-              lineHeight: 1.2,
-              minHeight: 44,
-              whiteSpace: 'normal',
-              textAlign: 'center',
-            }}
-          >
-            Table
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('interpretation')}
-            style={{
-              border: '1px solid var(--border)',
-              background: tab === 'interpretation' ? 'var(--gold-faint)' : 'var(--surface-1)',
-              color: tab === 'interpretation' ? 'var(--text-gold)' : 'var(--text-secondary)',
-              borderRadius: 'var(--r-md)',
-              padding: '0.5rem 0.45rem',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: 'clamp(0.74rem, 2.8vw, 0.88rem)',
-              lineHeight: 1.2,
-              minHeight: 44,
-              whiteSpace: 'normal',
-              textAlign: 'center',
-            }}
-          >
-            Interpretation
-          </button>
+          {tabBtn('sav', 'Sarva-Ashtakavarga')}
+          {tabBtn('bav', 'Bhinna-Ashtakavarga')}
+          {tabBtn('table', 'Table')}
+          {tabBtn('interpretation', 'Interpretation')}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem 1rem', color: COLOR.muted, fontSize: '0.75rem', flexWrap: 'wrap', width: '100%' }}>
-          <span>SAV Total: <b style={{ color: COLOR.teal }}>{ashtakavarga.savTotal}</b></span>
-          <span>Strongest Sign: <b style={{ color: COLOR.blue }}>{strongestSav}</b></span>
-          <span>Asc: <b style={{ color: COLOR.gold }}>{RASHI_SHORT[ascRashi as keyof typeof RASHI_SHORT]}</b></span>
+          <span>SAV Total: <b style={{ color: COLOR.teal }}>{reduced ? (ashtakavarga.savReducedTotal ?? activeSav.reduce((a, b) => a + b, 0)) : ashtakavarga.savTotal}</b></span>
+          <span>Strongest: <b style={{ color: COLOR.blue }}>{RASHI_SHORT[strongestSav]} ({activeSav[strongestSav - 1]})</b></span>
+          <span>Asc: <b style={{ color: COLOR.gold }}>{RASHI_SHORT[ascRashi as Rashi]}</b></span>
+          <span style={{ display: 'inline-flex', gap: '0.35rem', marginLeft: 'auto', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => setColumnMode('house')}
+              style={{
+                border: '1px solid var(--border)',
+                background: columnMode === 'house' ? 'var(--gold-faint)' : 'var(--surface-1)',
+                color: columnMode === 'house' ? 'var(--text-gold)' : 'var(--text-muted)',
+                borderRadius: 'var(--r-sm)',
+                padding: '0.28rem 0.55rem',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '0.68rem',
+              }}
+            >
+              From Lagna
+            </button>
+            <button
+              type="button"
+              onClick={() => setColumnMode('rasi')}
+              style={{
+                border: '1px solid var(--border)',
+                background: columnMode === 'rasi' ? 'var(--gold-faint)' : 'var(--surface-1)',
+                color: columnMode === 'rasi' ? 'var(--text-gold)' : 'var(--text-muted)',
+                borderRadius: 'var(--r-sm)',
+                padding: '0.28rem 0.55rem',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '0.68rem',
+              }}
+            >
+              Aries→Pisces
+            </button>
+            {hasReduced ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setReduced(false)}
+                  style={{
+                    border: '1px solid var(--border)',
+                    background: !reduced ? 'var(--gold-faint)' : 'var(--surface-1)',
+                    color: !reduced ? 'var(--text-gold)' : 'var(--text-muted)',
+                    borderRadius: 'var(--r-sm)',
+                    padding: '0.28rem 0.55rem',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                    fontSize: '0.68rem',
+                  }}
+                >
+                  Raw (337)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReduced(true)}
+                  style={{
+                    border: '1px solid var(--border)',
+                    background: reduced ? 'var(--gold-faint)' : 'var(--surface-1)',
+                    color: reduced ? 'var(--text-gold)' : 'var(--text-muted)',
+                    borderRadius: 'var(--r-sm)',
+                    padding: '0.28rem 0.55rem',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                    fontSize: '0.68rem',
+                  }}
+                >
+                  Sodhya
+                </button>
+              </>
+            ) : null}
+          </span>
+        </div>
+        <div style={{ width: '100%', fontSize: '0.66rem', color: COLOR.muted }}>
+          Engine: Jagannatha Hora / Parasara (Santhanam) bindu tables — match JHora when ayanamsha & planet signs match.
         </div>
       </div>
 
       {tab === 'sav' ? (
         <>
-          <ClassicalNinePanels ashtakavarga={ashtakavarga} ascRashi={ascRashi} />
+          <ClassicalNinePanels ashtakavarga={ashtakavarga} ascRashi={ascRashi} reduced={reduced} />
           <NorthIndianAshtakavargaChart
-            valuesByRashi={ashtakavarga.sav}
+            valuesByRashi={activeSav}
             ascRashi={ascRashi}
-            title="Sarva-Ashtakavarga (D-1, sign-based)"
+            title={reduced ? 'Sarva-Ashtakavarga (Sodhita)' : 'Sarva-Ashtakavarga (JHora raw)'}
             size={320}
           />
-          <BAVTable ashtakavarga={ashtakavarga} />
+          <BAVTable ashtakavarga={ashtakavarga} reduced={reduced} ascRashi={ascRashi} columnMode={columnMode} />
+          <SodhyaPindaTable ashtakavarga={ashtakavarga} />
         </>
       ) : tab === 'bav' ? (
         <>
@@ -653,23 +773,26 @@ export function AshtakavargaGrid({
           </div>
 
           <NorthIndianAshtakavargaChart
-            valuesByRashi={ashtakavarga.bav[selected].bindus}
+            valuesByRashi={bavBindus(ashtakavarga, selected, reduced)}
             ascRashi={ascRashi}
-            title={`${PLANET_NAMES[selected]} BAV (sign-based)`}
+            title={`${PLANET_NAMES[selected]} BAV (${reduced ? 'Sodhya' : 'raw'}, sign-based)`}
             size={320}
           />
 
           <div className="card" style={{ padding: '0.85rem', color: COLOR.secondary, fontSize: '0.8rem' }}>
-            {PLANET_NAMES[selected]} contributes <b style={{ color: COLOR.blue }}>{ashtakavarga.bav[selected].total}</b> bindus in total.
-            Values are rendered by sign and projected in D-1 North chart using your Ascendant as orientation.
+            {PLANET_NAMES[selected]} has <b style={{ color: COLOR.blue }}>{bavTotal(ashtakavarga, selected, reduced)}</b>
+            {reduced ? ' reduced' : ''} bindus
+            {!reduced ? ` (classical total ${ashtakavarga.bav[selected].total})` : ''}.
+            Values are by absolute sign, shown in the North Indian chart from your Ascendant.
           </div>
         </>
       ) : tab === 'table' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div className="card" style={{ padding: '0.8rem', color: COLOR.secondary, fontSize: '0.78rem' }}>
-            Full Ashtakavarga matrix view for quick reading on mobile. Swipe horizontally to see all signs.
+            Full Ashtakavarga matrix (JHora method). Use “From Lagna” to mirror JHora’s house columns.
           </div>
-          <BAVTable ashtakavarga={ashtakavarga} />
+          <BAVTable ashtakavarga={ashtakavarga} reduced={reduced} ascRashi={ascRashi} columnMode={columnMode} />
+          <SodhyaPindaTable ashtakavarga={ashtakavarga} />
         </div>
       ) : (
         <AshtakavargaInterpretation ashtakavarga={ashtakavarga} transitGrahas={transitGrahas} ayanamsha={ayanamsha} />

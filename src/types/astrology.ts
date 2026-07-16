@@ -525,9 +525,26 @@ export interface PlanetBAV {
 }
 
 export interface AshtakavargaResult {
-  bav:      Record<string, PlanetBAV>
-  sav:      number[]
-  savTotal: number
+  bav:             Record<string, PlanetBAV>
+  sav:             number[]
+  savTotal:        number
+  /** Present on newly calculated charts; Trikona → Ekadhipatya reduced BAV */
+  bavReduced?:     Record<string, PlanetBAV>
+  /** Sodhita SAV = sum of reduced planet BAVs (JHora) */
+  savReduced?:     number[]
+  savReducedTotal?: number
+  /** Rekhas = 56 − SAV bindus per sign */
+  rekhas?:         number[]
+  prastara?:       Record<string, {
+    planet: string
+    byContributor: Record<string, number[]>
+  }>
+  sodhyaPindas?:   Record<string, {
+    planet: string
+    rasiPinda: number
+    grahaPinda: number
+    sodhyaPinda: number
+  }>
 }
 
 // ── Shadbala ─────────────────────────────────────────────────
