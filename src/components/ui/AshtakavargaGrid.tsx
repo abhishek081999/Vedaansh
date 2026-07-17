@@ -7,9 +7,11 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { Spinner } from '@/components/ui/primitives/Spinner'
+import { AshtakavargaAdvancedInsights } from '@/components/ui/AshtakavargaAdvancedInsights'
 import { toHousesFromLagna } from '@/lib/engine/ashtakavarga'
-import { RASHI_SHORT } from '@/types/astrology'
-import type { AshtakavargaResult, GrahaData, Rashi } from '@/types/astrology'
+import { bavTransitQuality, estimateDashaResultPercent } from '@/lib/engine/ashtakavargaInsights'
+import { RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
+import type { AshtakavargaResult, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 
 const PLANET_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
 const PLANET_NAMES: Record<(typeof PLANET_ORDER)[number], string> = {
@@ -348,10 +350,16 @@ function AshtakavargaInterpretation({
   ashtakavarga,
   transitGrahas,
   ayanamsha,
+  dashaLord,
+  grahas,
+  ascRashi,
 }: {
   ashtakavarga: AshtakavargaResult
   transitGrahas?: GrahaData[]
   ayanamsha?: string
+  dashaLord?: string
+  grahas?: GrahaData[]
+  ascRashi?: number
 }) {
   const [forecastRows, setForecastRows] = useState<Array<{ date: string; score: number; tag: 'best' | 'good' | 'caution' }> | null>(null)
   const [forecastLoading, setForecastLoading] = useState(false)
@@ -395,6 +403,29 @@ function AshtakavargaInterpretation({
     return { top3, low3, planetFocus, guidance }
   }, [ashtakavarga])
 
+  const dashaHouseInsight = useMemo(() => {
+    if (!dashaLord || !grahas?.length || !ascRashi) return null
+    const lord = dashaLord as GrahaId
+    if (!(PLANET_ORDER as readonly string[]).includes(lord)) return null
+    const natal = grahas.find((g) => g.id === lord)
+    if (!natal?.rashi) return null
+    const house = ((natal.rashi - ascRashi + 12) % 12) + 1
+    const houseSav = toHousesFromLagna(ashtakavarga.sav, ascRashi)
+    const sav = houseSav[house - 1] ?? 0
+    const bav = ashtakavarga.bav[lord]?.bindus[natal.rashi - 1] ?? 0
+    const resultPct = estimateDashaResultPercent(sav)
+    const bavQuality = bavTransitQuality(bav)
+    return {
+      lord,
+      house,
+      sign: natal.rashi,
+      sav,
+      bav,
+      resultPct,
+      bavQuality,
+    }
+  }, [dashaLord, grahas, ascRashi, ashtakavarga])
+
   const transitActivation = useMemo(() => {
     if (!transitGrahas?.length) return null
 
@@ -408,6 +439,7 @@ function AshtakavargaInterpretation({
       const sav = ashtakavarga.sav[sign - 1] ?? 0
       const score = Math.round((bav / 8) * 55 + (sav / 40) * 45)
       const band = score >= 72 ? 'high' : score >= 55 ? 'moderate' : 'low'
+      const bavQuality = bavTransitQuality(bav)
       return {
         planet: p,
         available: true as const,
@@ -416,6 +448,7 @@ function AshtakavargaInterpretation({
         sav,
         score,
         band,
+        bavQuality,
       }
     })
 
@@ -530,8 +563,27 @@ function AshtakavargaInterpretation({
         </div>
       </div>
 
+      {dashaHouseInsight ? (
+        <div className="card" style={{ padding: '0.85rem' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.45rem' }}>
+            Dasha × House Strength
+          </div>
+          <div style={{ fontSize: '0.78rem', color: COLOR.secondary, lineHeight: 1.5 }}>
+            <b style={{ color: COLOR.primary }}>{GRAHA_NAMES[dashaHouseInsight.lord] ?? dashaHouseInsight.lord}</b>
+            {' '}mahadasha lord sits in natal H{dashaHouseInsight.house}
+            {' '}({RASHI_SHORT[dashaHouseInsight.sign as Rashi]}) with SAV <b style={{ color: COLOR.blue }}>{dashaHouseInsight.sav}</b>
+            {' '}→ estimated expression ~<b style={{ color: COLOR.teal }}>{dashaHouseInsight.resultPct}%</b> of significations.
+            {' '}BAV of lord in that sign: <b>{dashaHouseInsight.bav}</b> ({dashaHouseInsight.bavQuality}
+            {dashaHouseInsight.bavQuality === 'excellent' ? ' — 6–7 class strength' : dashaHouseInsight.bav >= 4 ? ' — 4+ acceptable' : ' — weak confirmation'}).
+          </div>
+        </div>
+      ) : null}
+
       <div className="card" style={{ padding: '0.85rem' }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.45rem' }}>Transit Activation (Current)</div>
+        <div style={{ fontSize: '0.66rem', color: COLOR.muted, marginBottom: '0.45rem', lineHeight: 1.4 }}>
+          Confirm with Bhinnashtakavarga: 4+ average, 6–7 excellent. Best when SAV of the transit sign is also strong and dasha supports.
+        </div>
         {!transitActivation ? (
           <div style={{ fontSize: '0.78rem', color: COLOR.secondary }}>
             Transit data not available in this context.
@@ -547,6 +599,7 @@ function AshtakavargaInterpretation({
                 )
               }
               const bandColor = row.band === 'high' ? COLOR.teal : row.band === 'moderate' ? COLOR.gold : COLOR.rose
+              const qColor = row.bavQuality === 'excellent' ? COLOR.teal : row.bavQuality === 'average' ? COLOR.blue : COLOR.rose
               return (
                 <div key={row.planet} style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.5rem 0.55rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.22rem' }}>
@@ -555,6 +608,9 @@ function AshtakavargaInterpretation({
                   </div>
                   <div style={{ fontSize: '0.68rem', color: COLOR.secondary, lineHeight: 1.4 }}>
                     Sign: {RASHI_SHORT[row.sign as keyof typeof RASHI_SHORT]} · BAV {row.bav} · SAV {row.sav}
+                  </div>
+                  <div style={{ fontSize: '0.64rem', color: qColor, fontWeight: 700, marginTop: 2, textTransform: 'capitalize' }}>
+                    BAV {row.bavQuality}
                   </div>
                 </div>
               )
@@ -600,13 +656,21 @@ export function AshtakavargaGrid({
   ascRashi,
   transitGrahas,
   ayanamsha,
+  grahas,
+  janmaNakshatraIndex,
+  dashaLord,
 }: {
   ashtakavarga: AshtakavargaResult
   ascRashi: number
   transitGrahas?: GrahaData[]
   ayanamsha?: string
+  grahas?: GrahaData[]
+  /** 0–26 Moon birth nakshatra index */
+  janmaNakshatraIndex?: number
+  /** Current Vimshottari mahadasha lord (GrahaId) */
+  dashaLord?: string
 }) {
-  const [tab, setTab] = useState<'sav' | 'bav' | 'table' | 'interpretation'>('sav')
+  const [tab, setTab] = useState<'sav' | 'bav' | 'table' | 'advanced' | 'interpretation'>('sav')
   const [selected, setSelected] = useState<(typeof PLANET_ORDER)[number]>('Su')
   const hasReduced = Boolean(ashtakavarga.savReduced && ashtakavarga.bavReduced)
   const [reduced, setReduced] = useState(false)
@@ -648,10 +712,11 @@ export function AshtakavargaGrid({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
       <div className="card" style={{ padding: '0.75rem', display: 'flex', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.45rem', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.45rem', width: '100%' }}>
           {tabBtn('sav', 'Sarva-Ashtakavarga')}
           {tabBtn('bav', 'Bhinna-Ashtakavarga')}
           {tabBtn('table', 'Table')}
+          {tabBtn('advanced', 'Advanced Insights')}
           {tabBtn('interpretation', 'Interpretation')}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem 1rem', color: COLOR.muted, fontSize: '0.75rem', flexWrap: 'wrap', width: '100%' }}>
@@ -794,8 +859,22 @@ export function AshtakavargaGrid({
           <BAVTable ashtakavarga={ashtakavarga} reduced={reduced} ascRashi={ascRashi} columnMode={columnMode} />
           <SodhyaPindaTable ashtakavarga={ashtakavarga} />
         </div>
+      ) : tab === 'advanced' ? (
+        <AshtakavargaAdvancedInsights
+          ashtakavarga={ashtakavarga}
+          ascRashi={ascRashi}
+          grahas={grahas}
+          janmaNakshatraIndex={janmaNakshatraIndex}
+        />
       ) : (
-        <AshtakavargaInterpretation ashtakavarga={ashtakavarga} transitGrahas={transitGrahas} ayanamsha={ayanamsha} />
+        <AshtakavargaInterpretation
+          ashtakavarga={ashtakavarga}
+          transitGrahas={transitGrahas}
+          ayanamsha={ayanamsha}
+          dashaLord={dashaLord}
+          grahas={grahas}
+          ascRashi={ascRashi}
+        />
       )}
     </div>
   )

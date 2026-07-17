@@ -295,7 +295,7 @@ function DashboardMetricChip({
   )
 }
 
-function getCurrentMahaDasha(chart: ChartOutput): string {
+function getCurrentMahaDashaLord(chart: ChartOutput): GrahaId | null {
   const now = Date.now()
   const mahaNodes = (chart.dashas.vimshottari ?? []).filter((n) => n.level === 1)
   const current =
@@ -307,8 +307,14 @@ function getCurrentMahaDasha(chart: ChartOutput): string {
     }) ??
     mahaNodes[0]
 
-  if (!current) return '—'
-  return `${GRAHA_NAMES[current.lord as GrahaId] ?? current.lord} mahadasha`
+  if (!current?.lord) return null
+  return current.lord as GrahaId
+}
+
+function getCurrentMahaDasha(chart: ChartOutput): string {
+  const lord = getCurrentMahaDashaLord(chart)
+  if (!lord) return '—'
+  return `${GRAHA_NAMES[lord] ?? lord} mahadasha`
 }
 
 function isNowSlot(start?: Date | string, end?: Date | string): boolean {
@@ -1994,7 +2000,7 @@ function HomeContent() {
                               )}
                               {mobileStrengthTab === 'ashtakavarga' && (
                                 chart.ashtakavarga
-                                  ? <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} /></div>
+                                  ? <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /></div>
                                   : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
                               )}
                             </div>
@@ -2299,7 +2305,7 @@ function HomeContent() {
                   <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
                     <div className="panel-header"><span>Ashtakavarga Intelligence</span></div>
                     <div style={{ padding: '0.5rem 0.65rem' }}>
-                     {chart.ashtakavarga ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</div>}
+                     {chart.ashtakavarga ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</div>}
                     </div>
                   </div>
                 )}
@@ -2332,7 +2338,7 @@ function HomeContent() {
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
                         {!chart.ashtakavarga ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
-                        : dashExpandAv ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} />
+                        : dashExpandAv ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} />
                         : dashboardAshtakSummary ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                             <div
