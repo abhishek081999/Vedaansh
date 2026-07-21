@@ -177,7 +177,56 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
   )
 }
 
-function DashboardSavChart({ sav, ascRashi, size = 220 }: { sav: number[]; ascRashi: number; size?: number }) {
+const DASHBOARD_AV_PLANETS = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
+type DashboardAvView = 'sav' | (typeof DASHBOARD_AV_PLANETS)[number]
+
+const DASHBOARD_AV_SELECT_STYLE: React.CSSProperties = {
+  padding: '0.15rem 0.35rem',
+  fontSize: '0.62rem',
+  background: 'var(--surface-3)',
+  color: 'var(--text-primary)',
+  border: '1px solid var(--border-soft)',
+  borderRadius: '3px',
+  fontFamily: 'inherit',
+  maxWidth: '100%',
+}
+
+function DashboardAvViewSelect({
+  value,
+  onChange,
+}: {
+  value: DashboardAvView
+  onChange: (v: DashboardAvView) => void
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as DashboardAvView)}
+      aria-label="Ashtakavarga view"
+      style={DASHBOARD_AV_SELECT_STYLE}
+    >
+      <option value="sav">Sarvashtakavarga</option>
+      {DASHBOARD_AV_PLANETS.map((p) => (
+        <option key={p} value={p}>
+          {GRAHA_NAMES[p] ?? p} BAV
+        </option>
+      ))}
+    </select>
+  )
+}
+
+function DashboardSavChart({
+  sav,
+  ascRashi,
+  size = 220,
+  mode = 'sav',
+}: {
+  sav: number[]
+  ascRashi: number
+  size?: number
+  /** SAV uses 24–32+ bands; BAV uses 0–8 class bands */
+  mode?: 'sav' | 'bav'
+}) {
   const CHART_COLOR = {
     teal: 'var(--teal, #4fd1c5)',
     blue: 'var(--blue, #60a5fa)',
@@ -190,7 +239,6 @@ function DashboardSavChart({ sav, ascRashi, size = 220 }: { sav: number[]; ascRa
   const S = size
   const Q = S / 4
   const M = S / 2
-  const maxSav = Math.max(...sav, 1)
 
   const polyPts = (h: number): [number, number][] => {
     switch (h) {
@@ -215,7 +263,13 @@ function DashboardSavChart({ sav, ascRashi, size = 220 }: { sav: number[]; ascRa
     y: pts.reduce((sum, p) => sum + p[1], 0) / pts.length,
   })
 
-  const colorForSav = (v: number) => {
+  const colorForValue = (v: number) => {
+    if (mode === 'bav') {
+      if (v >= 6) return CHART_COLOR.teal
+      if (v >= 4) return CHART_COLOR.blue
+      if (v >= 3) return CHART_COLOR.gold
+      return CHART_COLOR.rose
+    }
     if (v >= 32) return CHART_COLOR.teal
     if (v >= 28) return CHART_COLOR.blue
     if (v >= 24) return CHART_COLOR.gold
@@ -244,7 +298,7 @@ function DashboardSavChart({ sav, ascRashi, size = 220 }: { sav: number[]; ascRa
               dominantBaseline="middle"
               fontSize={S * 0.095}
               fontWeight={800}
-              fill={colorForSav(val)}
+              fill={colorForValue(val)}
             >
               {val}
             </text>
@@ -591,6 +645,7 @@ function HomeContent() {
   const [fetchingDefault, setFetchingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
   const [dashExpandAv, setDashExpandAv] = useState(false)
+  const [dashboardAvView, setDashboardAvView] = useState<DashboardAvView>('sav')
   const [dashExpandShad, setDashExpandShad] = useState(false)
   const [dashExpandBhava, setDashExpandBhava] = useState(false)
   const [dashExpandVim, setDashExpandVim] = useState(false)
@@ -664,16 +719,28 @@ function HomeContent() {
 
   const dashboardAshtakSummary = useMemo(() => {
     if (!chart?.ashtakavarga) return null
-    const sav = chart.ashtakavarga.sav
-    const signs = sav.map((val, i) => ({ sign: (i + 1) as Rashi, val }))
+    const isSav = dashboardAvView === 'sav'
+    const values = isSav
+      ? chart.ashtakavarga.sav
+      : (chart.ashtakavarga.bav[dashboardAvView]?.bindus ?? Array(12).fill(0))
+    const total = isSav
+      ? chart.ashtakavarga.savTotal
+      : (chart.ashtakavarga.bav[dashboardAvView]?.total ?? values.reduce((a, b) => a + b, 0))
+    const signs = values.map((val, i) => ({ sign: (i + 1) as Rashi, val }))
     const sorted = [...signs].sort((a, b) => b.val - a.val)
+    const planetName = isSav ? null : (GRAHA_NAMES[dashboardAvView as GrahaId] ?? dashboardAvView)
     return {
-      savTotal: chart.ashtakavarga.savTotal,
-      avg: (chart.ashtakavarga.savTotal / 12).toFixed(1),
+      isSav,
+      mode: (isSav ? 'sav' : 'bav') as 'sav' | 'bav',
+      values,
+      title: isSav ? 'Sarvashtakavarga' : `${planetName} BAV`,
+      totalLabel: isSav ? 'SAV Total' : 'BAV Total',
+      total,
+      avg: (total / 12).toFixed(1),
       highest: sorted[0],
       lowest: sorted[sorted.length - 1],
     }
-  }, [chart])
+  }, [chart, dashboardAvView])
 
   const dashboardShadbalaSummary = useMemo(() => {
     if (!chart?.shadbala) return null
@@ -2000,7 +2067,7 @@ function HomeContent() {
                               )}
                               {mobileStrengthTab === 'ashtakavarga' && (
                                 chart.ashtakavarga
-                                  ? <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /></div>
+                                  ? <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><AshtakavargaGrid userPlan={userPlan} ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /></div>
                                   : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
                               )}
                             </div>
@@ -2133,22 +2200,28 @@ function HomeContent() {
 
                   {activeTab === 'ashtakavarga' && (
                     <div className="panel fade-up">
-                      <div className="panel-header"><span>Sarvashtakvarga</span></div>
+                      <div className="panel-header">
+                        <span>{dashboardAshtakSummary?.title ?? 'Ashtakavarga'}</span>
+                        {chart.ashtakavarga ? (
+                          <DashboardAvViewSelect value={dashboardAvView} onChange={setDashboardAvView} />
+                        ) : null}
+                      </div>
                       <div style={{ padding: '0.5rem 0.65rem' }}>
                         {!chart.ashtakavarga ? (
                           <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</p>
                         ) : dashboardAshtakSummary ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
                             <DashboardSavChart
-                              sav={chart.ashtakavarga.sav}
+                              sav={dashboardAshtakSummary.values}
                               ascRashi={chart.lagnas.ascRashi ?? 1}
                               size={280}
+                              mode={dashboardAshtakSummary.mode}
                             />
                             <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.35rem' }}>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.35rem 0.45rem' }}>
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>SAV Total</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{dashboardAshtakSummary.totalLabel}</div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text-gold)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                                  {dashboardAshtakSummary.savTotal}
+                                  {dashboardAshtakSummary.total}
                                   <span style={{ marginLeft: 4, fontSize: '0.58rem', fontWeight: 600, color: 'var(--text-muted)' }}>{dashboardAshtakSummary.avg}/sign</span>
                                 </div>
                               </div>
@@ -2305,7 +2378,7 @@ function HomeContent() {
                   <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
                     <div className="panel-header"><span>Ashtakavarga Intelligence</span></div>
                     <div style={{ padding: '0.5rem 0.65rem' }}>
-                     {chart.ashtakavarga ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</div>}
+                     {chart.ashtakavarga ? <AshtakavargaGrid userPlan={userPlan} ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</div>}
                     </div>
                   </div>
                 )}
@@ -2334,11 +2407,16 @@ function HomeContent() {
                     <div className="panel fade-up" style={{ gridColumn: dashExpandAv ? '1 / -1' : undefined }}>
                       <div className="panel-header">
                         <span>Ashtakavarga</span>
-                        {chart.ashtakavarga && <button type="button" onClick={() => setDashExpandAv(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandAv ? '▴' : '▾ Full'}</button>}
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                          {chart.ashtakavarga && !dashExpandAv ? (
+                            <DashboardAvViewSelect value={dashboardAvView} onChange={setDashboardAvView} />
+                          ) : null}
+                          {chart.ashtakavarga && <button type="button" onClick={() => setDashExpandAv(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandAv ? '▴' : '▾ Full'}</button>}
+                        </div>
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
                         {!chart.ashtakavarga ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
-                        : dashExpandAv ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} />
+                        : dashExpandAv ? <AshtakavargaGrid userPlan={userPlan} ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} />
                         : dashboardAshtakSummary ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                             <div
@@ -2355,10 +2433,10 @@ function HomeContent() {
                             >
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                 <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                  Sarva-Ashtakavarga
+                                  {dashboardAshtakSummary.title}
                                 </div>
                                 <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-gold)', fontFamily: 'var(--font-mono)' }}>
-                                  {dashboardAshtakSummary.savTotal}
+                                  {dashboardAshtakSummary.total}
                                   <span style={{ marginLeft: 4, fontSize: '0.62rem', fontWeight: 600, color: 'var(--text-muted)' }}>total · {dashboardAshtakSummary.avg}/sign</span>
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.14rem', fontSize: '0.62rem' }}>
@@ -2380,13 +2458,17 @@ function HomeContent() {
                                   padding: '0.2rem',
                                 }}
                               >
-                                <DashboardSavChart sav={chart.ashtakavarga.sav} ascRashi={chart.lagnas.ascRashi ?? 1} />
+                                <DashboardSavChart
+                                  sav={dashboardAshtakSummary.values}
+                                  ascRashi={chart.lagnas.ascRashi ?? 1}
+                                  mode={dashboardAshtakSummary.mode}
+                                />
                               </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(70px, 1fr))', gap: '0.35rem' }}>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>SAV Total</div>
-                                <div style={{ fontSize: '0.82rem', color: 'var(--text-gold)', fontWeight: 800 }}>{dashboardAshtakSummary.savTotal}</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{dashboardAshtakSummary.totalLabel}</div>
+                                <div style={{ fontSize: '0.82rem', color: 'var(--text-gold)', fontWeight: 800 }}>{dashboardAshtakSummary.total}</div>
                               </div>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Strong Sign</div>

@@ -533,6 +533,9 @@ export interface AshtakavargaResult {
   /** Sodhita SAV = sum of reduced planet BAVs (JHora) */
   savReduced?:     number[]
   savReducedTotal?: number
+  /** Mandala → Trikona → Ekadhipatya on raw SAV (alternate school path) */
+  savMandalaReduced?: number[]
+  savMandalaReducedTotal?: number
   /** Rekhas = 56 − SAV bindus per sign */
   rekhas?:         number[]
   prastara?:       Record<string, {

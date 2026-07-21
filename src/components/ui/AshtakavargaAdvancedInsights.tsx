@@ -27,6 +27,7 @@ import {
 } from '@/lib/engine/ashtakavargaInsights'
 import type { AshtakavargaResult, GrahaData, GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import styles from '@/components/ui/AshtakavargaWorkspace.module.css'
 
 type SubTab = 'overview' | 'structure' | 'houses' | 'bhava' | 'timing'
 
@@ -328,7 +329,7 @@ function DirectionCompass({
 function HouseHeatStrip({ ratings }: { ratings: AshtakavargaInsights['houseRatings'] }) {
   const max = Math.max(...ratings.map((r) => r.bindus), 1)
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gap: 4 }}>
+    <div className={styles.heatStrip}>
       {ratings.map((h) => {
         const intensity = Math.max(0.18, h.bindus / max)
         return (
@@ -517,13 +518,8 @@ export function AshtakavargaAdvancedInsights({
       </div>
 
       {/* Sub-nav */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-          gap: '0.4rem',
-        }}
-      >
+      <div className={styles.subTabScroll}>
+        <div className={styles.subTabRow}>
         {SUB_TABS.map((t) => {
           const on = subTab === t.id
           return (
@@ -531,27 +527,14 @@ export function AshtakavargaAdvancedInsights({
               key={t.id}
               type="button"
               onClick={() => setSubTab(t.id)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.35rem',
-                minHeight: 42,
-                borderRadius: 'var(--r-md)',
-                border: `1px solid ${on ? 'var(--gold)' : 'var(--border)'}`,
-                background: on ? 'var(--gold-faint)' : 'var(--surface-1)',
-                color: on ? 'var(--text-gold)' : 'var(--text-secondary)',
-                fontWeight: 700,
-                fontSize: '0.72rem',
-                cursor: 'pointer',
-                padding: '0.4rem 0.5rem',
-              }}
+              className={`${styles.subTabBtn} ${on ? styles.subTabBtnActive : ''}`}
             >
               {t.icon}
               {t.label}
             </button>
           )
         })}
+        </div>
       </div>
 
       {subTab === 'overview' ? (
