@@ -356,6 +356,7 @@ function CompareContent() {
                 ['planets', '✦ Positions'],
                 ['dasha', '⏳ Dasha'],
                 ['panchang', '📅 Panchang'],
+                ['ashtakavarga', '✦ Ashtakavarga'],
                 ['all', '🖨 Print All'],
               ] as [View, string][]).map(([id, label]) => (
                 <button 
@@ -544,6 +545,27 @@ function CompareContent() {
             )}
 
             {/* Other detailed views */}
+            {(view === 'ashtakavarga' || view === 'all') && chartA.ashtakavarga && chartB.ashtakavarga && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+                {[chartA, chartB].map((chart, i) => (
+                  <div key={i} className="card" style={{ padding: '0.75rem' }}>
+                    <div style={{ textAlign: 'center', fontWeight: 800, color: i === 0 ? 'var(--text-gold)' : 'var(--accent)', marginBottom: '0.75rem' }}>
+                      {chart.meta.name} — SAV {chart.ashtakavarga!.savTotal}
+                    </div>
+                    <AshtakavargaGrid
+                      userPlan={userPlan}
+                      ashtakavarga={chart.ashtakavarga!}
+                      ascRashi={chart.lagnas.ascRashi ?? 1}
+                      grahas={chart.grahas}
+                      transitGrahas={chart.grahas}
+                      ayanamsha={chart.meta.settings.ayanamsha}
+                      janmaNakshatraIndex={chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
             {(['dasha', 'panchang'].includes(view) || view === 'all') && (
                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
                   {[chartA, chartB].map((chart, i) => (
@@ -580,3 +602,4 @@ export default function ComparePage() {
     </Suspense>
   )
 }
+

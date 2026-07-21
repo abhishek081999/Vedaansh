@@ -483,10 +483,11 @@ export function estimateDashaResultPercent(savBindus: number): number {
   return Math.max(10, Math.round((savBindus / 15) * 30))
 }
 
-export function bavTransitQuality(bavPoints: number): 'weak' | 'average' | 'good' | 'excellent' {
+/** Class thresholds: under 4 weak, 4 borderline, 5 good, 6+ excellent. */
+export function bavTransitQuality(bavPoints: number): 'weak' | 'borderline' | 'good' | 'excellent' {
   if (bavPoints >= 6) return 'excellent'
-  if (bavPoints >= 4) return 'average'
-  if (bavPoints >= 2) return 'weak'
+  if (bavPoints >= 5) return 'good'
+  if (bavPoints === 4) return 'borderline'
   return 'weak'
 }
 

@@ -7,14 +7,28 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { Spinner } from '@/components/ui/primitives/Spinner'
+import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { AshtakavargaAdvancedInsights } from '@/components/ui/AshtakavargaAdvancedInsights'
+import { BhinnashtakavargaGuide } from '@/components/ui/BhinnashtakavargaGuide'
+import {
+  KakshyaTimeline,
+  PrastaraTable,
+  RekhasView,
+  SodhyaGuidePanel,
+} from '@/components/ui/AshtakavargaExtendedPanels'
 import { toHousesFromLagna } from '@/lib/engine/ashtakavarga'
 import { bavTransitQuality, estimateDashaResultPercent } from '@/lib/engine/ashtakavargaInsights'
 import { RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
-import type { AshtakavargaResult, GrahaData, GrahaId, Rashi } from '@/types/astrology'
+import type { AshtakavargaResult, GrahaData, GrahaId, Rashi, UserPlan } from '@/types/astrology'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { MEDIA_QUERIES } from '@/lib/ui/breakpoints'
+import styles from '@/components/ui/AshtakavargaWorkspace.module.css'
 
 const PLANET_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
-const PLANET_NAMES: Record<(typeof PLANET_ORDER)[number], string> = {
+const BAV_PLANET_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'As'] as const
+type BavPlanet = (typeof BAV_PLANET_ORDER)[number]
+type ReductionMode = 'raw' | 'sodhya' | 'mandala'
+const PLANET_NAMES: Record<BavPlanet, string> = {
   Su: 'Sun',
   Mo: 'Moon',
   Ma: 'Mars',
@@ -22,6 +36,7 @@ const PLANET_NAMES: Record<(typeof PLANET_ORDER)[number], string> = {
   Ju: 'Jupiter',
   Ve: 'Venus',
   Sa: 'Saturn',
+  As: 'Lagna',
 }
 
 function rashiLabel(i: number): string {
@@ -29,19 +44,26 @@ function rashiLabel(i: number): string {
 }
 
 /** Prefer reduced tables when present (new charts); fall back for saved charts. */
-function bavBindus(av: AshtakavargaResult, planet: string, reduced: boolean): number[] {
-  if (reduced && av.bavReduced?.[planet]?.bindus) return av.bavReduced[planet].bindus
+function bavBindus(av: AshtakavargaResult, planet: string, mode: ReductionMode): number[] {
+  if (mode === 'sodhya' && av.bavReduced?.[planet]?.bindus) return av.bavReduced[planet].bindus
   return av.bav[planet]?.bindus ?? Array(12).fill(0)
 }
 
-function bavTotal(av: AshtakavargaResult, planet: string, reduced: boolean): number {
-  if (reduced && av.bavReduced?.[planet]) return av.bavReduced[planet].total
+function bavTotal(av: AshtakavargaResult, planet: string, mode: ReductionMode): number {
+  if (mode === 'sodhya' && av.bavReduced?.[planet]) return av.bavReduced[planet].total
   return av.bav[planet]?.total ?? 0
 }
 
-function savValues(av: AshtakavargaResult, reduced: boolean): number[] {
-  if (reduced && av.savReduced) return av.savReduced
+function savValues(av: AshtakavargaResult, mode: ReductionMode): number[] {
+  if (mode === 'mandala' && av.savMandalaReduced) return av.savMandalaReduced
+  if (mode === 'sodhya' && av.savReduced) return av.savReduced
   return av.sav
+}
+
+function savTotalValue(av: AshtakavargaResult, mode: ReductionMode, activeSav: number[]): number {
+  if (mode === 'mandala') return av.savMandalaReducedTotal ?? activeSav.reduce((a, b) => a + b, 0)
+  if (mode === 'sodhya') return av.savReducedTotal ?? activeSav.reduce((a, b) => a + b, 0)
+  return av.savTotal
 }
 
 const COLOR = {
@@ -108,12 +130,9 @@ function NorthIndianAshtakavargaChart({
   })
 
   return (
-    <div className="card" style={{ padding: '1rem', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
-      {title ? <div style={{ fontSize: '0.8rem', marginBottom: '0.75rem', fontWeight: 700, color: COLOR.secondary }}>{title}</div> : null}
-      <svg
-        viewBox={`0 0 ${S} ${S}`}
-        style={{ display: 'block', margin: '0 auto', width: 'min(100%, 340px)', height: 'auto', aspectRatio: '1 / 1' }}
-      >
+    <div className={`card ${styles.chartCard}`}>
+      {title ? <div className={styles.chartTitle}>{title}</div> : null}
+      <svg viewBox={`0 0 ${S} ${S}`} className={styles.chartSvg}>
         {Array.from({ length: 12 }, (_, i) => i + 1).map((houseNo) => {
           const pts = polyPts(houseNo)
           const pos = centroid(pts)
@@ -161,24 +180,21 @@ function NorthIndianAshtakavargaChart({
 
 function BAVTable({
   ashtakavarga,
-  reduced,
+  mode,
   ascRashi,
   columnMode,
 }: {
   ashtakavarga: AshtakavargaResult
-  reduced: boolean
+  mode: ReductionMode
   ascRashi: number
-  /** 'rasi' = Aries→Pisces (absolute); 'house' = H1–H12 from Lagna (JHora table style) */
   columnMode: 'rasi' | 'house'
 }) {
-  const savRaw = savValues(ashtakavarga, reduced)
+  const savRaw = savValues(ashtakavarga, mode)
   const sav = columnMode === 'house' ? toHousesFromLagna(savRaw, ascRashi) : savRaw
-  const savTotal = reduced
-    ? (ashtakavarga.savReducedTotal ?? savRaw.reduce((a, b) => a + b, 0))
-    : ashtakavarga.savTotal
-  const lagnaRaw = bavBindus(ashtakavarga, 'As', reduced)
+  const savTotal = savTotalValue(ashtakavarga, mode, savRaw)
+  const lagnaRaw = bavBindus(ashtakavarga, 'As', mode)
   const lagnaBindus = columnMode === 'house' ? toHousesFromLagna(lagnaRaw, ascRashi) : lagnaRaw
-  const lagnaTotal = bavTotal(ashtakavarga, 'As', reduced)
+  const lagnaTotal = bavTotal(ashtakavarga, 'As', mode)
   const hasLagna = Boolean(ashtakavarga.bav.As)
 
   const colLabel = (i: number) => {
@@ -189,15 +205,22 @@ function BAVTable({
     return rashiLabel(i)
   }
 
+  const modeNote = mode === 'sodhya'
+    ? ' Sodhita (Trikona + Ekadhipatya) bindus.'
+    : mode === 'mandala'
+      ? ' Mandala → Trikona → Ekadhipatya on SAV.'
+      : ' Raw JHora/Parasara bindus (SAV = 337).'
+
   return (
-    <div className="card no-scrollbar" style={{ overflowX: 'auto', padding: '0.65rem' }}>
+    <div className={`card no-scrollbar ${styles.tableWrap}`}>
+      <div className={styles.tableHint}>Swipe horizontally to see all columns</div>
       <div style={{ fontSize: '0.68rem', color: COLOR.muted, marginBottom: '0.45rem' }}>
         {columnMode === 'house'
           ? 'Columns = houses from Lagna (JHora style). Values are the same sign-based bindus.'
           : 'Columns = absolute signs Aries→Pisces.'}
-        {reduced ? ' Sodhita (reduced) bindus.' : ' Raw JHora/Parasara bindus (SAV = 337).'}
+        {modeNote}
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760, fontSize: 'clamp(0.72rem, 2.4vw, 0.92rem)' }}>
+      <table className={styles.dataTable}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border)' }}>
             <th style={{ textAlign: 'left', padding: '0.4rem', position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>Graha</th>
@@ -211,24 +234,24 @@ function BAVTable({
         </thead>
         <tbody>
           {PLANET_ORDER.map((p) => {
-            const raw = bavBindus(ashtakavarga, p, reduced)
+            const raw = bavBindus(ashtakavarga, p, mode)
             const bindus = columnMode === 'house' ? toHousesFromLagna(raw, ascRashi) : raw
             return (
               <tr key={p} style={{ borderBottom: '1px solid var(--border-soft)' }}>
                 <td style={{ padding: '0.4rem', fontWeight: 700, position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>{p}</td>
                 {bindus.map((v, i) => (
-                  <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, reduced), fontWeight: 700 }}>
+                  <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, mode !== 'raw'), fontWeight: 700 }}>
                     {v}
                   </td>
                 ))}
-                <td style={{ textAlign: 'center', padding: '0.4rem', color: COLOR.blue, fontWeight: 800 }}>{bavTotal(ashtakavarga, p, reduced)}</td>
+                <td style={{ textAlign: 'center', padding: '0.4rem', color: COLOR.blue, fontWeight: 800 }}>{bavTotal(ashtakavarga, p, mode)}</td>
               </tr>
             )
           })}
           <tr>
             <td style={{ padding: '0.4rem', fontWeight: 800, color: 'var(--text-gold)', position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>SAV</td>
             {sav.map((v, i) => (
-              <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, !reduced), fontWeight: 800 }}>
+              <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, mode === 'raw'), fontWeight: 800 }}>
                 {v}
               </td>
             ))}
@@ -238,7 +261,7 @@ function BAVTable({
             <tr>
               <td style={{ padding: '0.4rem', fontWeight: 800, position: 'sticky', left: 0, background: 'var(--surface-1)', zIndex: 1 }}>As</td>
               {lagnaBindus.map((v, i) => (
-                <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, reduced), fontWeight: 700 }}>
+                <td key={i} style={{ textAlign: 'center', padding: '0.35rem', color: binduColor(v, mode !== 'raw'), fontWeight: 700 }}>
                   {v}
                 </td>
               ))}
@@ -295,20 +318,20 @@ function SodhyaPindaTable({ ashtakavarga }: { ashtakavarga: AshtakavargaResult }
 function ClassicalNinePanels({
   ashtakavarga,
   ascRashi,
-  reduced,
+  mode,
 }: {
   ashtakavarga: AshtakavargaResult
   ascRashi: number
-  reduced: boolean
+  mode: ReductionMode
 }) {
-  const lagnaValues = bavBindus(ashtakavarga, 'As', reduced)
+  const lagnaValues = bavBindus(ashtakavarga, 'As', mode)
   const hasLagna = Boolean(ashtakavarga.bav.As)
   const ascName = RASHI_SHORT[ascRashi as Rashi] ?? String(ascRashi)
 
   const items: Array<{ key: string; title: string; values: number[] }> = [
-    { key: 'SAV', title: 'SAV', values: savValues(ashtakavarga, reduced) },
+    { key: 'SAV', title: 'SAV', values: savValues(ashtakavarga, mode) },
     ...(hasLagna ? [{ key: 'As', title: 'As', values: lagnaValues }] : []),
-    ...PLANET_ORDER.map((p) => ({ key: p, title: p, values: bavBindus(ashtakavarga, p, reduced) })),
+    ...PLANET_ORDER.map((p) => ({ key: p, title: p, values: bavBindus(ashtakavarga, p, mode) })),
   ]
 
   return (
@@ -318,11 +341,11 @@ function ClassicalNinePanels({
       </div>
       <div style={{ fontSize: '0.78rem', color: COLOR.secondary, marginBottom: '1rem' }}>
         Sign-based Bhinna Ashtakavarga (JHora/Parasara) oriented from Ascendant ({ascName}).
-        {reduced ? ' Sodhita figures.' : ' Raw bindus.'}
+        {mode === 'sodhya' ? ' Sodhita figures.' : mode === 'mandala' ? ' Mandala-reduced SAV.' : ' Raw bindus.'}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem' }}>
+      <div className={styles.nineGrid}>
         {items.map((item) => (
-          <div key={item.key} style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '0.65rem', background: 'var(--surface-1)' }}>
+          <div key={item.key} className={styles.panelCard}>
             <div style={{ textAlign: 'center', fontWeight: 800, color: COLOR.gold, marginBottom: '0.5rem' }}>{item.title}</div>
             <NorthIndianAshtakavargaChart
               valuesByRashi={item.values}
@@ -517,7 +540,7 @@ function AshtakavargaInterpretation({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div className="card" style={{ padding: '0.85rem' }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.45rem' }}>Interpretation Highlights</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.45rem' }}>
+        <div className={styles.cardGrid}>
           <div style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.55rem' }}>
             <div style={{ fontSize: '0.66rem', color: COLOR.muted, marginBottom: '0.2rem' }}>Top SAV Signs</div>
             <div style={{ fontSize: '0.78rem', color: COLOR.secondary, lineHeight: 1.5 }}>
@@ -535,7 +558,7 @@ function AshtakavargaInterpretation({
 
       <div className="card" style={{ padding: '0.85rem' }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.45rem' }}>Planet-wise BAV Focus</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.45rem' }}>
+        <div className={styles.cardGrid}>
           {insights.planetFocus.map((p) => (
             <div key={p.planet} style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.5rem 0.55rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
@@ -574,7 +597,13 @@ function AshtakavargaInterpretation({
             {' '}({RASHI_SHORT[dashaHouseInsight.sign as Rashi]}) with SAV <b style={{ color: COLOR.blue }}>{dashaHouseInsight.sav}</b>
             {' '}→ estimated expression ~<b style={{ color: COLOR.teal }}>{dashaHouseInsight.resultPct}%</b> of significations.
             {' '}BAV of lord in that sign: <b>{dashaHouseInsight.bav}</b> ({dashaHouseInsight.bavQuality}
-            {dashaHouseInsight.bavQuality === 'excellent' ? ' — 6–7 class strength' : dashaHouseInsight.bav >= 4 ? ' — 4+ acceptable' : ' — weak confirmation'}).
+            {dashaHouseInsight.bavQuality === 'excellent'
+              ? ' — 6+ class strength'
+              : dashaHouseInsight.bavQuality === 'good'
+                ? ' — good (5)'
+                : dashaHouseInsight.bavQuality === 'borderline'
+                  ? ' — minimum acceptable (4)'
+                  : ' — weak confirmation'}).
           </div>
         </div>
       ) : null}
@@ -582,14 +611,14 @@ function AshtakavargaInterpretation({
       <div className="card" style={{ padding: '0.85rem' }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 800, color: COLOR.gold, marginBottom: '0.45rem' }}>Transit Activation (Current)</div>
         <div style={{ fontSize: '0.66rem', color: COLOR.muted, marginBottom: '0.45rem', lineHeight: 1.4 }}>
-          Confirm with Bhinnashtakavarga: 4+ average, 6–7 excellent. Best when SAV of the transit sign is also strong and dasha supports.
+          Confirm with Bhinnashtakavarga: under 4 weak, 4 borderline, 5 good, 6+ excellent. Best when SAV of the transit sign is also strong and dasha supports.
         </div>
         {!transitActivation ? (
           <div style={{ fontSize: '0.78rem', color: COLOR.secondary }}>
             Transit data not available in this context.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: '0.45rem' }}>
+          <div className={styles.cardGrid}>
             {transitActivation.map((row) => {
               if (!row.available) {
                 return (
@@ -599,7 +628,11 @@ function AshtakavargaInterpretation({
                 )
               }
               const bandColor = row.band === 'high' ? COLOR.teal : row.band === 'moderate' ? COLOR.gold : COLOR.rose
-              const qColor = row.bavQuality === 'excellent' ? COLOR.teal : row.bavQuality === 'average' ? COLOR.blue : COLOR.rose
+                  const qColor = row.bavQuality === 'excellent' || row.bavQuality === 'good'
+                    ? COLOR.teal
+                    : row.bavQuality === 'borderline'
+                      ? COLOR.blue
+                      : COLOR.rose
               return (
                 <div key={row.planet} style={{ border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.5rem 0.55rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.22rem' }}>
@@ -629,7 +662,7 @@ function AshtakavargaInterpretation({
         ) : !forecastRows ? (
           <div style={{ fontSize: '0.78rem', color: COLOR.secondary }}>Forecast unavailable right now.</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: '0.42rem' }}>
+          <div className={styles.statGrid}>
             {forecastRows.map((row) => {
               const c = row.tag === 'best' ? COLOR.teal : row.tag === 'good' ? COLOR.gold : COLOR.rose
               return (
@@ -651,6 +684,21 @@ function AshtakavargaInterpretation({
   )
 }
 
+type AvTab = 'sav' | 'bav' | 'table' | 'prastara' | 'rekhas' | 'advanced' | 'sodhya' | 'bavGuide' | 'interpretation' | 'kakshya'
+
+const TAB_LABELS: Record<AvTab, { short: string; full: string }> = {
+  sav: { short: 'SAV', full: 'Sarva-Ashtakavarga' },
+  bav: { short: 'BAV', full: 'Bhinna-Ashtakavarga' },
+  table: { short: 'Table', full: 'Table' },
+  prastara: { short: 'Prastara', full: 'Prastara' },
+  rekhas: { short: 'Rekhas', full: 'Rekhas' },
+  advanced: { short: 'Advanced', full: 'Advanced' },
+  sodhya: { short: 'Sodhya', full: 'Sodhya Guide' },
+  bavGuide: { short: 'Guide', full: 'BAV Guide' },
+  interpretation: { short: 'Interp.', full: 'Interpretation' },
+  kakshya: { short: 'Kakshya', full: 'Kakshya' },
+}
+
 export function AshtakavargaGrid({
   ashtakavarga,
   ascRashi,
@@ -659,6 +707,7 @@ export function AshtakavargaGrid({
   grahas,
   janmaNakshatraIndex,
   dashaLord,
+  userPlan = 'free',
 }: {
   ashtakavarga: AshtakavargaResult
   ascRashi: number
@@ -669,15 +718,17 @@ export function AshtakavargaGrid({
   janmaNakshatraIndex?: number
   /** Current Vimshottari mahadasha lord (GrahaId) */
   dashaLord?: string
+  userPlan?: UserPlan
 }) {
-  const [tab, setTab] = useState<'sav' | 'bav' | 'table' | 'advanced' | 'interpretation'>('sav')
-  const [selected, setSelected] = useState<(typeof PLANET_ORDER)[number]>('Su')
+  const [tab, setTab] = useState<AvTab>('sav')
+  const isMobile = useMediaQuery(MEDIA_QUERIES.md)
+  const [selected, setSelected] = useState<BavPlanet>('Su')
   const hasReduced = Boolean(ashtakavarga.savReduced && ashtakavarga.bavReduced)
-  const [reduced, setReduced] = useState(false)
-  /** Default house-from-Lagna to match JHora table reading */
+  const hasMandala = Boolean(ashtakavarga.savMandalaReduced)
+  const [mode, setMode] = useState<ReductionMode>('raw')
   const [columnMode, setColumnMode] = useState<'rasi' | 'house'>('house')
 
-  const activeSav = savValues(ashtakavarga, reduced)
+  const activeSav = savValues(ashtakavarga, mode)
   const strongestSav = useMemo(() => {
     let idx = 0
     for (let i = 1; i < activeSav.length; i++) {
@@ -686,150 +737,82 @@ export function AshtakavargaGrid({
     return (idx + 1) as Rashi
   }, [activeSav])
 
-  const tabBtn = (id: typeof tab, label: string) => (
+  const tabBtn = (id: AvTab) => (
     <button
       type="button"
       onClick={() => setTab(id)}
-      style={{
-        border: '1px solid var(--border)',
-        background: tab === id ? 'var(--gold-faint)' : 'var(--surface-1)',
-        color: tab === id ? 'var(--text-gold)' : 'var(--text-secondary)',
-        borderRadius: 'var(--r-md)',
-        padding: '0.5rem 0.45rem',
-        cursor: 'pointer',
-        fontWeight: 700,
-        fontSize: 'clamp(0.74rem, 2.8vw, 0.88rem)',
-        lineHeight: 1.2,
-        minHeight: 44,
-        whiteSpace: 'normal',
-        textAlign: 'center',
-      }}
+      className={`${styles.tabBtn} ${tab === id ? styles.tabBtnActive : ''}`}
     >
+      {isMobile ? TAB_LABELS[id].short : TAB_LABELS[id].full}
+    </button>
+  )
+
+  const chipBtn = (active: boolean, onClick: () => void, label: string) => (
+    <button type="button" onClick={onClick} className={`${styles.chipBtn} ${active ? styles.chipBtnActive : ''}`}>
       {label}
     </button>
   )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
-      <div className="card" style={{ padding: '0.75rem', display: 'flex', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.45rem', width: '100%' }}>
-          {tabBtn('sav', 'Sarva-Ashtakavarga')}
-          {tabBtn('bav', 'Bhinna-Ashtakavarga')}
-          {tabBtn('table', 'Table')}
-          {tabBtn('advanced', 'Advanced Insights')}
-          {tabBtn('interpretation', 'Interpretation')}
+    <div className={styles.workspace}>
+      <div className={`card ${styles.toolbar}`}>
+        <div className={styles.tabScroll}>
+          <div className={styles.tabRow}>
+            {tabBtn('sav')}
+            {tabBtn('bav')}
+            {tabBtn('table')}
+            {tabBtn('prastara')}
+            {tabBtn('rekhas')}
+            {tabBtn('advanced')}
+            {tabBtn('sodhya')}
+            {tabBtn('bavGuide')}
+            {tabBtn('interpretation')}
+            {tabBtn('kakshya')}
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem 1rem', color: COLOR.muted, fontSize: '0.75rem', flexWrap: 'wrap', width: '100%' }}>
-          <span>SAV Total: <b style={{ color: COLOR.teal }}>{reduced ? (ashtakavarga.savReducedTotal ?? activeSav.reduce((a, b) => a + b, 0)) : ashtakavarga.savTotal}</b></span>
+        <div className={styles.statsRow}>
+          <div className={styles.statsChips}>
+            <span>SAV Total: <b style={{ color: COLOR.teal }}>{savTotalValue(ashtakavarga, mode, activeSav)}</b></span>
           <span>Strongest: <b style={{ color: COLOR.blue }}>{RASHI_SHORT[strongestSav]} ({activeSav[strongestSav - 1]})</b></span>
           <span>Asc: <b style={{ color: COLOR.gold }}>{RASHI_SHORT[ascRashi as Rashi]}</b></span>
-          <span style={{ display: 'inline-flex', gap: '0.35rem', marginLeft: 'auto', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => setColumnMode('house')}
-              style={{
-                border: '1px solid var(--border)',
-                background: columnMode === 'house' ? 'var(--gold-faint)' : 'var(--surface-1)',
-                color: columnMode === 'house' ? 'var(--text-gold)' : 'var(--text-muted)',
-                borderRadius: 'var(--r-sm)',
-                padding: '0.28rem 0.55rem',
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '0.68rem',
-              }}
-            >
-              From Lagna
-            </button>
-            <button
-              type="button"
-              onClick={() => setColumnMode('rasi')}
-              style={{
-                border: '1px solid var(--border)',
-                background: columnMode === 'rasi' ? 'var(--gold-faint)' : 'var(--surface-1)',
-                color: columnMode === 'rasi' ? 'var(--text-gold)' : 'var(--text-muted)',
-                borderRadius: 'var(--r-sm)',
-                padding: '0.28rem 0.55rem',
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '0.68rem',
-              }}
-            >
-              Aries→Pisces
-            </button>
+          </div>
+          <div className={styles.controls}>
+            {chipBtn(columnMode === 'house', () => setColumnMode('house'), 'From Lagna')}
+            {chipBtn(columnMode === 'rasi', () => setColumnMode('rasi'), 'Aries→Pisces')}
             {hasReduced ? (
               <>
-                <button
-                  type="button"
-                  onClick={() => setReduced(false)}
-                  style={{
-                    border: '1px solid var(--border)',
-                    background: !reduced ? 'var(--gold-faint)' : 'var(--surface-1)',
-                    color: !reduced ? 'var(--text-gold)' : 'var(--text-muted)',
-                    borderRadius: 'var(--r-sm)',
-                    padding: '0.28rem 0.55rem',
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.68rem',
-                  }}
-                >
-                  Raw (337)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReduced(true)}
-                  style={{
-                    border: '1px solid var(--border)',
-                    background: reduced ? 'var(--gold-faint)' : 'var(--surface-1)',
-                    color: reduced ? 'var(--text-gold)' : 'var(--text-muted)',
-                    borderRadius: 'var(--r-sm)',
-                    padding: '0.28rem 0.55rem',
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.68rem',
-                  }}
-                >
-                  Sodhya
-                </button>
+                {chipBtn(mode === 'raw', () => setMode('raw'), 'Raw (337)')}
+                {chipBtn(mode === 'sodhya', () => setMode('sodhya'), 'Sodhya')}
               </>
             ) : null}
-          </span>
-        </div>
-        <div style={{ width: '100%', fontSize: '0.66rem', color: COLOR.muted }}>
-          Engine: Jagannatha Hora / Parasara (Santhanam) bindu tables — match JHora when ayanamsha & planet signs match.
+            {hasMandala ? chipBtn(mode === 'mandala', () => setMode('mandala'), 'Mandala') : null}
+          </div>
         </div>
       </div>
 
+
       {tab === 'sav' ? (
         <>
-          <ClassicalNinePanels ashtakavarga={ashtakavarga} ascRashi={ascRashi} reduced={reduced} />
+          <ClassicalNinePanels ashtakavarga={ashtakavarga} ascRashi={ascRashi} mode={mode} />
           <NorthIndianAshtakavargaChart
             valuesByRashi={activeSav}
             ascRashi={ascRashi}
-            title={reduced ? 'Sarva-Ashtakavarga (Sodhita)' : 'Sarva-Ashtakavarga (JHora raw)'}
+            title={mode === 'raw' ? 'Sarva-Ashtakavarga (JHora raw)' : mode === 'sodhya' ? 'Sarva-Ashtakavarga (Sodhita)' : 'Sarva-Ashtakavarga (Mandala)'}
             size={320}
           />
-          <BAVTable ashtakavarga={ashtakavarga} reduced={reduced} ascRashi={ascRashi} columnMode={columnMode} />
+          <BAVTable ashtakavarga={ashtakavarga} mode={mode} ascRashi={ascRashi} columnMode={columnMode} />
           <SodhyaPindaTable ashtakavarga={ashtakavarga} />
         </>
       ) : tab === 'bav' ? (
         <>
-          <div className="card" style={{ padding: '0.75rem', overflowX: 'auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(56px, 1fr))', gap: '0.35rem', minWidth: 430 }}>
-              {PLANET_ORDER.map((p) => (
+          <div className="card" style={{ padding: '0.75rem' }}>
+            <div className={styles.planetGrid}>
+              {BAV_PLANET_ORDER.map((p) => (
                 <button
                   type="button"
                   key={p}
                   onClick={() => setSelected(p)}
-                  style={{
-                    border: '1px solid var(--border)',
-                    background: selected === p ? 'var(--surface-3)' : 'var(--surface-1)',
-                    color: selected === p ? 'var(--text-primary)' : 'var(--text-muted)',
-                    borderRadius: 'var(--r-md)',
-                    padding: '0.5rem 0.4rem',
-                    cursor: 'pointer',
-                    fontWeight: selected === p ? 800 : 600,
-                    fontSize: '0.75rem',
-                  }}
+                  className={`${styles.planetBtn} ${selected === p ? styles.planetBtnActive : ''}`}
                 >
                   {p}
                 </button>
@@ -838,16 +821,15 @@ export function AshtakavargaGrid({
           </div>
 
           <NorthIndianAshtakavargaChart
-            valuesByRashi={bavBindus(ashtakavarga, selected, reduced)}
+            valuesByRashi={bavBindus(ashtakavarga, selected, mode)}
             ascRashi={ascRashi}
-            title={`${PLANET_NAMES[selected]} BAV (${reduced ? 'Sodhya' : 'raw'}, sign-based)`}
+            title={`${PLANET_NAMES[selected]} BAV (${mode === 'raw' ? 'raw' : mode}, sign-based)`}
             size={320}
           />
 
           <div className="card" style={{ padding: '0.85rem', color: COLOR.secondary, fontSize: '0.8rem' }}>
-            {PLANET_NAMES[selected]} has <b style={{ color: COLOR.blue }}>{bavTotal(ashtakavarga, selected, reduced)}</b>
-            {reduced ? ' reduced' : ''} bindus
-            {!reduced ? ` (classical total ${ashtakavarga.bav[selected].total})` : ''}.
+            {PLANET_NAMES[selected]} has <b style={{ color: COLOR.blue }}>{bavTotal(ashtakavarga, selected, mode)}</b> bindus
+            {selected === 'As' ? ' (Lagna BAV, not in SAV 337).' : mode === 'raw' ? ` (classical total ${ashtakavarga.bav[selected]?.total ?? 0}).` : '.'}
             Values are by absolute sign, shown in the North Indian chart from your Ascendant.
           </div>
         </>
@@ -856,26 +838,54 @@ export function AshtakavargaGrid({
           <div className="card" style={{ padding: '0.8rem', color: COLOR.secondary, fontSize: '0.78rem' }}>
             Full Ashtakavarga matrix (JHora method). Use “From Lagna” to mirror JHora’s house columns.
           </div>
-          <BAVTable ashtakavarga={ashtakavarga} reduced={reduced} ascRashi={ascRashi} columnMode={columnMode} />
+          <BAVTable ashtakavarga={ashtakavarga} mode={mode} ascRashi={ascRashi} columnMode={columnMode} />
           <SodhyaPindaTable ashtakavarga={ashtakavarga} />
         </div>
+      ) : tab === 'prastara' ? (
+        <PrastaraTable ashtakavarga={ashtakavarga} ascRashi={ascRashi} columnMode={columnMode} />
+      ) : tab === 'rekhas' ? (
+        <RekhasView ashtakavarga={ashtakavarga} ascRashi={ascRashi} NorthIndianChart={NorthIndianAshtakavargaChart} />
       ) : tab === 'advanced' ? (
-        <AshtakavargaAdvancedInsights
-          ashtakavarga={ashtakavarga}
-          ascRashi={ascRashi}
-          grahas={grahas}
-          janmaNakshatraIndex={janmaNakshatraIndex}
-        />
-      ) : (
-        <AshtakavargaInterpretation
-          ashtakavarga={ashtakavarga}
-          transitGrahas={transitGrahas}
-          ayanamsha={ayanamsha}
-          dashaLord={dashaLord}
-          grahas={grahas}
-          ascRashi={ascRashi}
-        />
-      )}
+        <PlanGate userPlan={userPlan} required="gold" featureName="Advanced Ashtakavarga">
+          <AshtakavargaAdvancedInsights
+            ashtakavarga={ashtakavarga}
+            ascRashi={ascRashi}
+            grahas={grahas}
+            janmaNakshatraIndex={janmaNakshatraIndex}
+          />
+        </PlanGate>
+      ) : tab === 'sodhya' ? (
+        <PlanGate userPlan={userPlan} required="gold" featureName="Sodhya Pinda Guide">
+          <SodhyaGuidePanel ashtakavarga={ashtakavarga} />
+        </PlanGate>
+      ) : tab === 'bavGuide' ? (
+        <PlanGate userPlan={userPlan} required="gold" featureName="BAV Guide">
+          <BhinnashtakavargaGuide
+            ashtakavarga={ashtakavarga}
+            ascRashi={ascRashi}
+            grahas={grahas}
+            transitGrahas={transitGrahas}
+            dashaLord={dashaLord}
+            janmaNakshatraIndex={janmaNakshatraIndex}
+            ayanamsha={ayanamsha}
+          />
+        </PlanGate>
+      ) : tab === 'kakshya' ? (
+        <PlanGate userPlan={userPlan} required="gold" featureName="Kakshya Timeline">
+          <KakshyaTimeline ashtakavarga={ashtakavarga} transitGrahas={transitGrahas} ayanamsha={ayanamsha} />
+        </PlanGate>
+      ) : tab === 'interpretation' ? (
+        <PlanGate userPlan={userPlan} required="gold" featureName="Ashtakavarga Interpretation">
+          <AshtakavargaInterpretation
+            ashtakavarga={ashtakavarga}
+            transitGrahas={transitGrahas}
+            ayanamsha={ayanamsha}
+            dashaLord={dashaLord}
+            grahas={grahas}
+            ascRashi={ascRashi}
+          />
+        </PlanGate>
+      ) : null}
     </div>
   )
 }

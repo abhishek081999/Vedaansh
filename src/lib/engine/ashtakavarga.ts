@@ -42,6 +42,9 @@ export const BAV_TOTALS: Record<string, number> = {
 const PLANETS = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
 const CONTRIBUTORS = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'As'] as const
 
+/** 8 BAV contributors (for Prastara / Kakshya UI). */
+export const ASHTAKAVARGA_CONTRIBUTORS = CONTRIBUTORS
+
 // ── JHora / PyJHora benefic tables (Parasara–Santhanam) ───────
 // BENEFIC_POSITIONS[target][contributor] = relative houses (1–12)
 
@@ -376,6 +379,9 @@ export function calculateAshtakavarga(
     for (let i = 0; i < 12; i++) savReduced[i] += bavReduced[planet].bindus[i]
   }
 
+  // Alternate Mandala path: Mandala → Trikona → Ekadhipatya on raw SAV
+  const savMandalaReduced = reduceSAV(sav, occupied)
+
   return {
     bav,
     sav,
@@ -383,6 +389,8 @@ export function calculateAshtakavarga(
     bavReduced,
     savReduced,
     savReducedTotal: sumBindus(savReduced),
+    savMandalaReduced,
+    savMandalaReducedTotal: sumBindus(savMandalaReduced),
     rekhas: sav.map((v) => 56 - v),
     prastara,
     sodhyaPindas: computeSodhyaPindas(bavReduced, grahas),

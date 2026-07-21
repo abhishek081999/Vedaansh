@@ -7,9 +7,16 @@ import { describe, it, expect } from 'vitest'
 import {
   calculateAshtakavarga,
   applyTrikonaSodhana,
+  applyEkadhipatyaSodhana,
   toHousesFromLagna,
   BAV_TOTALS,
 } from '@/lib/engine/ashtakavarga'
+import {
+  kakshyaIndexFromDegree,
+  kakshyaLordFromDegree,
+  resolveKakshyaPosition,
+} from '@/lib/engine/ashtakavargaKakshya'
+import { analyzeSodhyaPindas } from '@/lib/engine/ashtakavargaSodhyaGuide'
 import type { GrahaData, LagnaData, Rashi } from '@/types/astrology'
 
 function g(id: string, rashi: number): GrahaData {
@@ -159,5 +166,54 @@ describe('Ashtakavarga — JHora / PVR Chart 7', () => {
       for (let i = 0; i < 12; i++) manual[i] += av.bavReduced[p].bindus[i]
     }
     expect(av.savReduced).toEqual(manual)
+  })
+
+  it('mandala SAV reduction is computed', () => {
+    expect(av.savMandalaReduced).toHaveLength(12)
+    expect(av.savMandalaReducedTotal).toBeGreaterThan(0)
+    expect(av.savMandalaReducedTotal).not.toBe(av.savTotal)
+  })
+
+  it('ekadhipatya: both signs empty and equal zeros both', () => {
+    const input = Array(12).fill(0)
+    input[0] = 4 // Aries
+    input[7] = 4 // Scorpio (Mars pair)
+    const out = applyEkadhipatyaSodhana(input, new Set())
+    expect(out[0]).toBe(0)
+    expect(out[7]).toBe(0)
+  })
+
+  it('ekadhipatya: occupied sign keeps higher when other empty', () => {
+    const input = Array(12).fill(0)
+    input[0] = 5 // Aries occupied
+    input[7] = 3 // Scorpio empty
+    const out = applyEkadhipatyaSodhana(input, new Set([1]))
+    expect(out[0]).toBe(5)
+    expect(out[7]).toBe(0)
+  })
+
+  it('sodhya pinda golden values for Chart 7', () => {
+    const guide = analyzeSodhyaPindas(av)
+    expect(guide).not.toBeNull()
+    expect(av.sodhyaPindas.Su).toEqual({ planet: 'Su', rasiPinda: 147, grahaPinda: 81, sodhyaPinda: 228 })
+    expect(av.sodhyaPindas.Mo).toEqual({ planet: 'Mo', rasiPinda: 78, grahaPinda: 55, sodhyaPinda: 133 })
+    expect(av.sodhyaPindas.Ma).toEqual({ planet: 'Ma', rasiPinda: 55, grahaPinda: 43, sodhyaPinda: 98 })
+    expect(av.sodhyaPindas.Me).toEqual({ planet: 'Me', rasiPinda: 99, grahaPinda: 33, sodhyaPinda: 132 })
+    expect(av.sodhyaPindas.Ju).toEqual({ planet: 'Ju', rasiPinda: 93, grahaPinda: 56, sodhyaPinda: 149 })
+    expect(av.sodhyaPindas.Ve).toEqual({ planet: 'Ve', rasiPinda: 154, grahaPinda: 54, sodhyaPinda: 208 })
+    expect(av.sodhyaPindas.Sa).toEqual({ planet: 'Sa', rasiPinda: 158, grahaPinda: 63, sodhyaPinda: 221 })
+  })
+
+  it('kakshya index and lord from degree', () => {
+    expect(kakshyaIndexFromDegree(0)).toBe(0)
+    expect(kakshyaLordFromDegree(0)).toBe('Sa')
+    expect(kakshyaIndexFromDegree(3.75)).toBe(1)
+    expect(kakshyaLordFromDegree(3.75)).toBe('Ju')
+  })
+
+  it('kakshya position uses prastara bindu flag', () => {
+    const pos = resolveKakshyaPosition(av, 'Su', 1, 0)
+    expect(pos.kakshyaLord).toBe('Sa')
+    expect(typeof pos.hasBindu).toBe('boolean')
   })
 })

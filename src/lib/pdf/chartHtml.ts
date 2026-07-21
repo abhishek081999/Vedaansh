@@ -608,20 +608,46 @@ function buildPlanetInterpretations(chart: ChartOutput, group: string[]): string
 function buildAVMatrix(chart: ChartOutput): string {
   if (!chart.ashtakavarga) return '<p>Ashtakavarga data missing.</p>'
   const planets = ['Su','Mo','Ma','Me','Ju','Ve','Sa']
-  
-  const header = `<tr><th>Sign</th>${planets.map(p => `<th>${p}</th>`).join('')}<th>SAV</th></tr>`
+  const av = chart.ashtakavarga
+
+  const header = `<tr><th>Sign</th>${planets.map(p => `<th>${p}</th>`).join('')}<th>SAV</th><th>Rekha</th></tr>`
   let rows = ''
   for (let r = 1; r <= 12; r++) {
     let cells = ''
     planets.forEach(p => {
-      const val = chart.ashtakavarga?.bav[p]?.bindus[r-1] ?? 0
+      const val = av.bav[p]?.bindus[r-1] ?? 0
       cells += `<td>${val}</td>`
     })
-    const sav = chart.ashtakavarga.sav[r-1] || 0
-    rows += `<tr><td style="font-weight:700">${RASHI_SHORT[r as Rashi]}</td>${cells}<td style="background:${THEME.accentLight};font-weight:800">${sav}</td></tr>`
+    const sav = av.sav[r-1] || 0
+    const rekha = av.rekhas?.[r - 1] ?? (56 - sav)
+    rows += `<tr><td style="font-weight:700">${RASHI_SHORT[r as Rashi]}</td>${cells}<td style="background:${THEME.accentLight};font-weight:800">${sav}</td><td>${rekha}</td></tr>`
   }
-  
-  return `<table class="av-table"><thead>${header}</thead><tbody>${rows}</tbody></table>`
+
+  const ranked = av.sav.map((val, i) => ({ sign: i + 1, val })).sort((a, b) => b.val - a.val)
+  const top3 = ranked.slice(0, 3).map((x) => `${RASHI_SHORT[x.sign as Rashi]} (${x.val})`).join(', ')
+  const low3 = ranked.slice(-3).map((x) => `${RASHI_SHORT[x.sign as Rashi]} (${x.val})`).join(', ')
+
+  let sodhyaBlock = ''
+  if (av.sodhyaPindas) {
+    const pindaRows = planets.map((p) => {
+      const row = av.sodhyaPindas![p]
+      return `<tr><td>${p}</td><td>${row.rasiPinda}</td><td>${row.grahaPinda}</td><td style="font-weight:800">${row.sodhyaPinda}</td></tr>`
+    }).join('')
+    sodhyaBlock = `
+      <h4 style="margin:1.25rem 0 0.5rem">Sodhya Pindas</h4>
+      <table class="av-table"><thead><tr><th>Graha</th><th>Rasi</th><th>Graha</th><th>Total</th></tr></thead><tbody>${pindaRows}</tbody></table>
+    `
+  }
+
+  return `
+    <table class="av-table"><thead>${header}</thead><tbody>${rows}</tbody></table>
+    <div style="margin-top:1rem;font-size:11px;line-height:1.6">
+      <p><b>Strong signs:</b> ${top3}</p>
+      <p><b>Weak signs:</b> ${low3}</p>
+      <p>SAV total: <b>${av.savTotal}</b>${av.savReducedTotal ? ` · Sodhita SAV: <b>${av.savReducedTotal}</b>` : ''}</p>
+    </div>
+    ${sodhyaBlock}
+  `
 }
 
 function buildKPSection(chart: ChartOutput): string {
