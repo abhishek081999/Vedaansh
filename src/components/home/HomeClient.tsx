@@ -391,9 +391,11 @@ function fmtClock(value: Date | string | number, tz: string): string {
 function MajorKundaliStrip({
   chart,
   todayPanchang,
+  isMobile = false,
 }: {
   chart: ChartOutput
   todayPanchang: import('@/types/astrology').PanchangData | null
+  isMobile?: boolean
 }) {
   const moon = chart.grahas.find((g) => g.id === 'Mo')
   const sun = chart.grahas.find((g) => g.id === 'Su')
@@ -435,10 +437,25 @@ function MajorKundaliStrip({
     ].join(' · ')
     : 'Loading live panchang...'
   const [y, mm, dd] = chart.meta.birthDate.split('-')
-  const formattedDOB = `${dd} ${mm} ${y}`
+  const [bh, bmin] = chart.meta.birthTime.split(':').map(Number)
+  const bAmpm = bh >= 12 ? 'pm' : 'am'
+  const formattedTime = `${bh % 12 || 12}:${String(bmin).padStart(2, '0')} ${bAmpm}`
+  const formattedDOB = `${dd} ${mm} ${y} · ${formattedTime} · ${chart.meta.birthPlace}`
 
+  // Completed years; running age = year of life currently in progress
+  const birthDateObj = new Date(Number(y), Number(mm) - 1, Number(dd))
+  const now = new Date()
+  let completedAge = now.getFullYear() - birthDateObj.getFullYear()
+  const monthDiff = now.getMonth() - birthDateObj.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDateObj.getDate())) {
+    completedAge--
+  }
+  const runningAge = Math.max(0, completedAge) + 1
+
+  // DOB only on mobile — large screens already show date/time/place in ChartContextBar
   const items: { label: string; value: string; hideLabel?: boolean }[] = [
-    { label: 'DOB', value: formattedDOB },
+    ...(isMobile ? [{ label: 'DOB', value: formattedDOB }] : []),
+    { label: 'Age', value: String(runningAge) },
     { label: 'Lagna', value: `${RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
     { label: 'Moon', value: moon ? `${RASHI_NAMES[moon.rashi]} · ${moon.nakshatraName}` : '—' },
     { label: 'Sun', value: sun ? `${RASHI_NAMES[sun.rashi]} ${sun.degree.toFixed(1)}°` : '—' },
@@ -1871,7 +1888,7 @@ function HomeContent() {
             </div>
 
             {activeTab === 'dashboard' && (
-              <MajorKundaliStrip chart={chart} todayPanchang={todayPanchang} />
+              <MajorKundaliStrip chart={chart} todayPanchang={todayPanchang} isMobile={isMobile} />
             )}
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
