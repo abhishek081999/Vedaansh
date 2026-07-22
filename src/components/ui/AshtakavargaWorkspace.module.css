@@ -42,35 +42,22 @@
   padding-bottom: 2px;
 }
 
-@media (min-width: 900px) {
-  .tabRow {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    width: 100%;
-    flex-wrap: wrap;
-  }
-}
-
-@media (min-width: 1200px) {
-  .tabRow {
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-  }
-}
-
 .tabBtn {
   flex: 0 0 auto;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  padding: 0.45rem 0.55rem;
+  padding: 0.45rem 0.7rem;
   cursor: pointer;
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   line-height: 1.2;
   min-height: 40px;
   white-space: nowrap;
   text-align: center;
   background: var(--surface-1);
   color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tabBtnActive {
@@ -170,18 +157,26 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 @media (min-width: 640px) {
   .nineGrid {
-    grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.75rem;
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 900px) {
   .nineGrid {
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .nineGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
@@ -191,6 +186,7 @@
   padding: 0.5rem;
   background: var(--surface-1);
   min-width: 0;
+  overflow: hidden;
 }
 
 @media (min-width: 640px) {
@@ -336,14 +332,15 @@
 .chartSvg {
   display: block;
   margin: 0 auto;
-  width: min(100%, 300px);
+  width: 100%;
+  max-width: 300px;
   height: auto;
   aspect-ratio: 1 / 1;
 }
 
 @media (min-width: 640px) {
   .chartSvg {
-    width: min(100%, 340px);
+    max-width: 340px;
   }
 }
 
