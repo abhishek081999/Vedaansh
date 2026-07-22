@@ -472,6 +472,7 @@ export async function calculateChart(
     sunset,
     moon.totalDegree,
     sun.totalDegree,
+    { jd, ayanamsha: ayanamshaVal },
   ) as ShadbalaResult)
   const interpretation = buildChartInterpretation({
     grahas,

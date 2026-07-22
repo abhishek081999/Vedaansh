@@ -18,6 +18,7 @@ import {
   EXALTATION_DEGREE
 } from './dignity'
 import { getDrishtiValue } from './bhavaBala'
+import { getPlanetPosition, SWISSEPH_IDS } from './ephemeris'
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -61,6 +62,57 @@ function norm(d: number) { return ((d % 360) + 360) % 360 }
 function degDiff(a: number, b: number): number {
   const d = Math.abs(norm(a - b))
   return d > 180 ? 360 - d : d
+}
+
+/** Fold an angular difference to the 0–180° range. */
+function fold180(d: number): number {
+  const x = norm(d)
+  return x > 180 ? 360 - x : x
+}
+
+/**
+ * Cheshta Kendra (motional / "effort" arc) for the five star-planets.
+ * BPHS Ch.27: Cheshta Kendra = Seeghrocca − mean planet, folded to 0–180°.
+ *   • Superior grahas (Ma, Ju, Sa): Seeghrocca = Sun; kendra ≈ Sun − planet
+ *     (geocentric elongation → max at opposition where the planet is retrograde).
+ *   • Inferior grahas (Me, Ve): Seeghrocca = planet's own heliocentric longitude,
+ *     mean planet = Sun; kendra ≈ heliocentric planet − Sun.
+ * Frame cancels in the difference, so tropical longitudes are used throughout.
+ * Cheshta Bala = Cheshta Kendra ÷ 3 (0–60 shashtiamsas).
+ */
+export function computeChestaKendras(jd: number): Partial<Record<GrahaId, number>> {
+  const sunTropical = getPlanetPosition(jd, SWISSEPH_IDS.Su).longitude
+  const kendras: Partial<Record<GrahaId, number>> = {}
+
+  for (const id of ['Ma', 'Ju', 'Sa'] as GrahaId[]) {
+    const p = getPlanetPosition(jd, SWISSEPH_IDS[id as Exclude<GrahaId, 'Ke'>]).longitude
+    kendras[id] = fold180(sunTropical - p)
+  }
+  for (const id of ['Me', 'Ve'] as GrahaId[]) {
+    const helio = getPlanetPosition(jd, SWISSEPH_IDS[id as Exclude<GrahaId, 'Ke'>], false, false, true).longitude
+    kendras[id] = fold180(helio - sunTropical)
+  }
+  return kendras
+}
+
+/**
+ * Weekday-lord index (0=Sun … 6=Sat, indexing GRAHA_ORDER) of the day on which
+ * the Sun most recently entered the target sidereal longitude before `jd`.
+ * Used for Abda (year) and Masa (month) balas. Refines a mean-motion guess with
+ * a few Newton steps against the real ephemeris so the Sankranti day is exact.
+ */
+function sankrantiWeekday(jd: number, targetSidLon: number, ayanamsha: number): number {
+  const sunSid = (t: number) => norm(getPlanetPosition(t, SWISSEPH_IDS.Su).longitude - ayanamsha)
+
+  // Initial guess: current offset from target at mean solar speed (~0.9856°/day).
+  let t = jd - fold180(sunSid(jd) - targetSidLon) / 0.9856
+  for (let i = 0; i < 6; i++) {
+    let err = norm(sunSid(t) - targetSidLon)
+    if (err > 180) err -= 360
+    if (Math.abs(err) < 1e-5) break
+    t -= err / 0.9856
+  }
+  return (Math.floor(t + 1.5) % 7 + 7) % 7
 }
 
 /**
@@ -214,12 +266,14 @@ function digBala(
 
 function kalaBala(
   g: GrahaData,
+  allGrahas: GrahaData[],
   birthDate: Date,
   sunrise: Date,
   sunset: Date,
   moonLon: number,
   sunLon: number,
   weekday: number,
+  sankranti?: { maasaLord: GrahaId; varshaLord: GrahaId },
 ): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['kala'] } {
   const birthMs = birthDate.getTime()
   // Add a 30-minute safety buffer to match JH daytime boundary
@@ -251,32 +305,30 @@ function kalaBala(
   
   let natho = (g.id === 'Me') ? 60 : (1 - distFromPeak / (12 * 3600000)) * 60
 
-  // Paksha Bala (0-60)
+  // Paksha Bala
+  // Benefic value = (Moon–Sun elongation folded to 0–180°) ÷ 3  → 0..60.
   const distSunMoon = norm(moonLon - sunLon)
-  
-  // Mercury is benefic unless associated with malefics (Sun, Mars, Saturn)
-  // Standard BPHS: Mercury with Sun (Krura) is malefic for Paksha Bala.
-  // Proximity within 15 degrees is the standard for association in Shadbala.
-  const isMeWithSun = g.id === 'Me' && degDiff(g.totalDegree, sunLon) < 15
-  
-  // BPHS: Moon is benefic from Shukla 8 (90 deg) to Krishna 8 (270 deg)
-  const isBeneficNature = (['Ju', 'Ve'].includes(g.id)) || 
-                          (g.id === 'Mo' && distSunMoon >= 90 && distSunMoon <= 270) ||
-                          (g.id === 'Me' && !isMeWithSun)
-  
-  let paksha = 0
-  const distFromSun = distSunMoon > 180 ? 360 - distSunMoon : distSunMoon
-  const rawPaksha = distFromSun / 3
-  
-  if (isBeneficNature) {
-    paksha = rawPaksha
+  const elongation = distSunMoon > 180 ? 360 - distSunMoon : distSunMoon
+  const beneficPaksha = elongation / 3
+
+  // Mercury is benefic for Paksha unless conjunct (same sign) a malefic.
+  const isMeWithMalefic =
+    g.id === 'Me' &&
+    (['Su', 'Ma', 'Sa', 'Ra', 'Ke'] as GrahaId[]).some(
+      mid => allGrahas.find(gr => gr.id === mid)?.rashi === g.rashi,
+    )
+  const isBeneficNature = ['Ju', 'Ve'].includes(g.id) || (g.id === 'Me' && !isMeWithMalefic)
+
+  let paksha: number
+  if (g.id === 'Mo') {
+    // BPHS: Moon takes the benefic value and it is always doubled (0..120).
+    paksha = Math.min(120, beneficPaksha * 2)
+  } else if (isBeneficNature) {
+    paksha = beneficPaksha
   } else {
-    paksha = 60 - rawPaksha
+    paksha = 60 - beneficPaksha
   }
-  if (paksha > 60) paksha = 60
   if (paksha < 0) paksha = 0
-  // BPHS Sloka 11: Moon's Paksha Bala is always doubled
-  if (g.id === 'Mo') paksha = Math.min(60, paksha * 2)
 
   // Tribhaga Bala
   let tribhaga = 0
@@ -308,11 +360,9 @@ function kalaBala(
   const tribhagaLord = isDaytime ? dayLords[p] : nightLords[p]
   
   if (g.id === 'Ju') {
+    // Jupiter always receives full Tribhaga Bala.
     tribhaga = 60
   } else if (g.id === tribhagaLord) {
-    tribhaga = 60
-  } else if (isDaytime && g.id === 'Me') {
-    // Mercury is often granted daytime strength in Tribhaga logic
     tribhaga = 60
   }
 
@@ -347,27 +397,32 @@ function kalaBala(
   } else if (['Mo', 'Sa'].includes(g.id)) {
     ayana = ((24 - dec) / 48) * 60
   } else {
-    ayana = 30 + Math.abs(dec)
+    // Mercury: gains in either direction of declination.
+    ayana = ((24 + Math.abs(dec)) / 48) * 60
   }
   if (ayana > 60) ayana = 60
   if (ayana < 0) ayana = 0
-  // BPHS Sloka 17: Sun's Ayana Bala is always doubled
-  if (g.id === 'Su') ayana = Math.min(60, ayana * 2)
+  // BPHS Sloka 17: Sun's Ayana Bala is always doubled (may exceed 60, up to ~120,
+  // exactly as the Moon's Paksha Bala is doubled).
+  if (g.id === 'Su') ayana = Math.min(120, ayana * 2)
 
-  // Varsha Lord (15 points) and Maasa Lord (30 points)
-  // Approximate Sankranti (Sun entry into sign)
-  const daysSinceSankranti = (sunLon % 30) / 0.9856
-  const maasaDate = new Date(birthMs - daysSinceSankranti * 86400000)
-  const maasaJD = (maasaDate.getTime() / 86400000) + 2440587.5
-  const maasaWeekday = (Math.floor(maasaJD + 1.5) % 7 + 0) % 7
-  const maasaLord = GRAHA_ORDER[maasaWeekday]
+  // Masa Bala (30 pts) → lord of the weekday the solar MONTH began (Sankranti)
+  // Abda/Varsha Bala (15 pts) → lord of the weekday the solar YEAR began (Mesha Sankranti)
+  let maasaLord: GrahaId
+  let varshaLord: GrahaId
+  if (sankranti) {
+    maasaLord = sankranti.maasaLord
+    varshaLord = sankranti.varshaLord
+  } else {
+    // Fallback approximation (mean solar speed) when no ephemeris jd is supplied.
+    const maasaDate = new Date(birthMs - ((sunLon % 30) / 0.9856) * 86400000)
+    const maasaJD = (maasaDate.getTime() / 86400000) + 2440587.5
+    maasaLord = GRAHA_ORDER[(Math.floor(maasaJD + 1.5) % 7 + 7) % 7]
+    const varshaDate = new Date(birthMs - (sunLon / 0.9856) * 86400000)
+    const varshaJD = (varshaDate.getTime() / 86400000) + 2440587.5
+    varshaLord = GRAHA_ORDER[(Math.floor(varshaJD + 1.5) % 7 + 7) % 7]
+  }
   const maasa = (maasaLord === g.id) ? 30 : 0
-
-  const daysSinceMesa = sunLon / 0.9856
-  const varshaDate = new Date(birthMs - daysSinceMesa * 86400000)
-  const varshaJD = (varshaDate.getTime() / 86400000) + 2440587.5
-  const varshaWeekday = (Math.floor(varshaJD + 1.5) % 7 + 0) % 7
-  const varshaLord = GRAHA_ORDER[varshaWeekday]
   const varsha = (varshaLord === g.id) ? 15 : 0
 
   return {
@@ -381,6 +436,7 @@ function kalaBala(
       maasa,
       varsha,
       ayana,
+      yuddha: 0, // applied post-hoc in applyYuddhaBala once all planets are known
       isDayBirth: isDaytime,
     },
   }
@@ -392,7 +448,9 @@ function chestaBala(
   g: GrahaData,
   ayanaBala: number,
   pakshaBala: number,
+  chestaKendra?: number,
 ): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['chesta'] } {
+  // BPHS: Sun's Cheshta Bala = its Ayana Bala; Moon's = its Paksha Bala.
   if (g.id === 'Su') return { total: ayanaBala, breakdown: { method: 'sun_ayana', speedAbs: ayanaBala, meanSpeed: ayanaBala } }
   if (g.id === 'Mo') return { total: pakshaBala, breakdown: { method: 'moon_paksha', speedAbs: pakshaBala, meanSpeed: pakshaBala } }
 
@@ -401,7 +459,17 @@ function chestaBala(
     Ma: 0.524, Me: 1.383, Ju: 0.083, Ve: 1.200, Sa: 0.034,
   }
   const mean = MEAN_SPEED[g.id] ?? 1
-  
+
+  // Preferred: true Cheshta Kendra ÷ 3 (matches JHora / Parashara's Light).
+  if (chestaKendra != null && Number.isFinite(chestaKendra)) {
+    const kendra = fold180(chestaKendra)
+    return {
+      total: kendra / 3,
+      breakdown: { method: 'chesta_kendra', speedAbs: speed, meanSpeed: mean, chestaKendra: +kendra.toFixed(3) },
+    }
+  }
+
+  // Fallback (no ephemeris jd supplied, e.g. isolated unit tests): speed banding.
   let total = 0
   if (g.isRetro) {
     total = 60 // Vakra
@@ -487,6 +555,61 @@ function drikBala(
   }
 }
 
+// ── Yuddha Bala (Planetary War) ───────────────────────────────
+
+// Standard disc diameters (Bimba, arc-seconds) used for Yuddha Bala.
+const DISC_DIAMETER: Record<string, number> = {
+  Ju: 190.4, Sa: 158.0, Ve: 16.6, Ma: 9.4, Me: 6.6,
+}
+const WAR_PLANETS: GrahaId[] = ['Ma', 'Me', 'Ju', 'Ve', 'Sa']
+
+/** Re-derive a planet's Kala/total fields after shifting its Kala Bala by `deltaShash`. */
+function shiftKala(p: ShadbalaPlanet, deltaShash: number): void {
+  const kalaShash = (p.componentShash?.kala ?? p.kalaBala * 60) + deltaShash
+  if (p.componentShash) p.componentShash.kala = +kalaShash.toFixed(3)
+  p.kalaBala = +(kalaShash / 60).toFixed(3)
+  if (p.details?.kala) p.details.kala.yuddha = +(((p.details.kala.yuddha ?? 0) + deltaShash)).toFixed(3)
+
+  const totalShash = p.totalShash + deltaShash
+  p.totalShash = +totalShash.toFixed(1)
+  p.total = +(totalShash / 60).toFixed(3)
+  p.ratio = +(p.total / p.required).toFixed(3)
+  p.isStrong = p.ratio >= 1.0
+  p.qualityBand = ratioBand(p.ratio)
+  p.interpretation = ratioInterpretation(p.ratio)
+}
+
+function applyYuddhaBala(planets: Record<string, ShadbalaPlanet>, grahas: GrahaData[]): void {
+  // Snapshot pre-yuddha totals so multiple wars compare against the same baseline.
+  const preTotal: Record<string, number> = {}
+  for (const id of WAR_PLANETS) if (planets[id]) preTotal[id] = planets[id].totalShash
+
+  for (let i = 0; i < WAR_PLANETS.length; i++) {
+    for (let j = i + 1; j < WAR_PLANETS.length; j++) {
+      const idA = WAR_PLANETS[i]
+      const idB = WAR_PLANETS[j]
+      const a = grahas.find(g => g.id === idA)
+      const b = grahas.find(g => g.id === idB)
+      if (!a || !b || !planets[idA] || !planets[idB]) continue
+      if (degDiff(a.totalDegree, b.totalDegree) >= 1) continue // not at war
+
+      // Victor = lesser longitude (wrap-aware).
+      let d = norm(a.totalDegree) - norm(b.totalDegree)
+      if (d > 180) d -= 360
+      if (d < -180) d += 360
+      const winnerId = d > 0 ? idB : idA
+      const loserId = winnerId === idA ? idB : idA
+
+      const discDiff = Math.abs(DISC_DIAMETER[idA] - DISC_DIAMETER[idB])
+      if (discDiff === 0) continue
+      const correction = Math.abs(preTotal[winnerId] - preTotal[loserId]) / discDiff
+
+      shiftKala(planets[winnerId], correction)
+      shiftKala(planets[loserId], -correction)
+    }
+  }
+}
+
 // ── Main Calculator ───────────────────────────────────────────
 
 export function calculateShadbala(
@@ -497,13 +620,34 @@ export function calculateShadbala(
   sunset:    Date,
   moonLon:   number,
   sunLon:    number,
+  opts?:     { jd?: number; ayanamsha?: number },
 ): ShadbalaResult {
   const planets: Record<string, ShadbalaPlanet> = {}
   const ascSign = lagnas.ascRashi
-  
+
   const jd = (birthDate.getTime() / 86400000) + 2440587.5
   const weekdayRaw = (Math.floor(jd + 1.5) % 7) // 0=Sun
   const weekday = birthDate.getTime() < sunrise.getTime() ? (weekdayRaw + 6) % 7 : weekdayRaw
+
+  // Ephemeris-backed refinements (matches JHora / Parashara's Light when supplied):
+  //   • true Cheshta Kendra per planet
+  //   • exact Sankranti weekday-lords for Masa / Abda balas
+  let chestaKendras: Partial<Record<GrahaId, number>> = {}
+  let sankranti: { maasaLord: GrahaId; varshaLord: GrahaId } | undefined
+  if (opts?.jd != null) {
+    try {
+      chestaKendras = computeChestaKendras(opts.jd)
+    } catch { /* fall back to speed banding */ }
+    if (opts.ayanamsha != null) {
+      try {
+        const monthStart = Math.floor(norm(sunLon) / 30) * 30
+        sankranti = {
+          maasaLord: GRAHA_ORDER[sankrantiWeekday(opts.jd, monthStart, opts.ayanamsha)],
+          varshaLord: GRAHA_ORDER[sankrantiWeekday(opts.jd, 0, opts.ayanamsha)],
+        }
+      } catch { /* fall back to mean-motion approximation */ }
+    }
+  }
 
   for (const id of GRAHA_ORDER) {
     const g = grahas.find(gr => gr.id === id)
@@ -511,8 +655,8 @@ export function calculateShadbala(
 
     const sthanOut  = sthanaBala(g, grahas, ascSign)
     const digOut    = digBala(g, lagnas.ascDegree, lagnas.mcDegree || 0)
-    const kalaOut   = kalaBala(g, birthDate, sunrise, sunset, moonLon, sunLon, weekday)
-    const chestaOut = chestaBala(g, kalaOut.breakdown?.ayana || 0, kalaOut.breakdown?.paksha || 0)
+    const kalaOut   = kalaBala(g, grahas, birthDate, sunrise, sunset, moonLon, sunLon, weekday, sankranti)
+    const chestaOut = chestaBala(g, kalaOut.breakdown?.ayana || 0, kalaOut.breakdown?.paksha || 0, chestaKendras[id])
     const naisar    = NAISARGIKA_SHASH[id] ?? 30
     const drikOut   = drikBala(g, grahas, sunLon, moonLon)
 
@@ -571,12 +715,16 @@ export function calculateShadbala(
           maasa: +(kalaOut.breakdown?.maasa ?? 0).toFixed(3),
           varsha: +(kalaOut.breakdown?.varsha ?? 0).toFixed(3),
           ayana: +(kalaOut.breakdown?.ayana ?? 0).toFixed(3),
+          yuddha: 0,
           isDayBirth: Boolean(kalaOut.breakdown?.isDayBirth),
         },
         chesta: {
           method: chestaOut.breakdown?.method ?? 'speed_ratio',
           speedAbs: +(chestaOut.breakdown?.speedAbs ?? 0).toFixed(4),
           meanSpeed: +(chestaOut.breakdown?.meanSpeed ?? 0).toFixed(4),
+          ...(chestaOut.breakdown?.chestaKendra != null
+            ? { chestaKendra: +chestaOut.breakdown.chestaKendra.toFixed(3) }
+            : {}),
         },
         drik: {
           benefic: +(drikOut.breakdown?.benefic ?? 0).toFixed(3),
@@ -586,6 +734,13 @@ export function calculateShadbala(
       },
     }
   }
+
+  // ── Yuddha Bala (Planetary War) ──────────────────────────────
+  // BPHS / B.V. Raman: when two Tara grahas (Ma, Me, Ju, Ve, Sa) are within 1°,
+  // the planet with the LESSER longitude is the victor. Correction =
+  //   |ΔShadbala (all six balas, pre-yuddha)| ÷ |Δdisc diameter|
+  // added to the victor's Kala Bala, subtracted from the vanquished's.
+  applyYuddhaBala(planets, grahas)
 
   const sorted   = Object.values(planets).sort((a, b) => b.total - a.total)
   const strongest = sorted[0]?.id  ?? 'Su'
