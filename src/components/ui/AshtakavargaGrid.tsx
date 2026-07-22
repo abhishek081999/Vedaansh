@@ -20,8 +20,6 @@ import { toHousesFromLagna } from '@/lib/engine/ashtakavarga'
 import { bavTransitQuality, estimateDashaResultPercent } from '@/lib/engine/ashtakavargaInsights'
 import { RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
 import type { AshtakavargaResult, GrahaData, GrahaId, Rashi, UserPlan } from '@/types/astrology'
-import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { MEDIA_QUERIES } from '@/lib/ui/breakpoints'
 import styles from '@/components/ui/AshtakavargaWorkspace.module.css'
 
 const PLANET_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
@@ -330,8 +328,8 @@ function ClassicalNinePanels({
 
   const items: Array<{ key: string; title: string; values: number[] }> = [
     { key: 'SAV', title: 'SAV', values: savValues(ashtakavarga, mode) },
-    ...(hasLagna ? [{ key: 'As', title: 'As', values: lagnaValues }] : []),
-    ...PLANET_ORDER.map((p) => ({ key: p, title: p, values: bavBindus(ashtakavarga, p, mode) })),
+    ...(hasLagna ? [{ key: 'As', title: 'As BAV', values: lagnaValues }] : []),
+    ...PLANET_ORDER.map((p) => ({ key: p, title: `${p} BAV`, values: bavBindus(ashtakavarga, p, mode) })),
   ]
 
   return (
@@ -358,7 +356,7 @@ function ClassicalNinePanels({
       </div>
       {hasLagna ? (
         <div style={{ marginTop: '0.65rem', color: COLOR.muted, fontSize: '0.68rem' }}>
-          As = classical Lagna Ashtakavarga (49 bindus), not included in SAV 337.
+          As BAV = classical Lagna Ashtakavarga (49 bindus), not included in SAV 337.
         </div>
       ) : (
         <div style={{ marginTop: '0.65rem', color: COLOR.muted, fontSize: '0.68rem' }}>
@@ -686,17 +684,17 @@ function AshtakavargaInterpretation({
 
 type AvTab = 'sav' | 'bav' | 'table' | 'prastara' | 'rekhas' | 'advanced' | 'sodhya' | 'bavGuide' | 'interpretation' | 'kakshya'
 
-const TAB_LABELS: Record<AvTab, { short: string; full: string }> = {
-  sav: { short: 'SAV', full: 'Sarva-Ashtakavarga' },
-  bav: { short: 'BAV', full: 'Bhinna-Ashtakavarga' },
-  table: { short: 'Table', full: 'Table' },
-  prastara: { short: 'Prastara', full: 'Prastara' },
-  rekhas: { short: 'Rekhas', full: 'Rekhas' },
-  advanced: { short: 'Advanced', full: 'Advanced' },
-  sodhya: { short: 'Sodhya', full: 'Sodhya Guide' },
-  bavGuide: { short: 'Guide', full: 'BAV Guide' },
-  interpretation: { short: 'Interp.', full: 'Interpretation' },
-  kakshya: { short: 'Kakshya', full: 'Kakshya' },
+const TAB_LABELS: Record<AvTab, { label: string; title: string }> = {
+  sav: { label: 'SAV', title: 'Sarva-Ashtakavarga' },
+  bav: { label: 'BAV', title: 'Bhinna-Ashtakavarga' },
+  table: { label: 'Table', title: 'Table' },
+  prastara: { label: 'Prastara', title: 'Prastara' },
+  rekhas: { label: 'Rekhas', title: 'Rekhas' },
+  advanced: { label: 'Advanced', title: 'Advanced' },
+  sodhya: { label: 'Sodhya', title: 'Sodhya Guide' },
+  bavGuide: { label: 'BAV Guide', title: 'BAV Guide' },
+  interpretation: { label: 'Interp.', title: 'Interpretation' },
+  kakshya: { label: 'Kakshya', title: 'Kakshya' },
 }
 
 export function AshtakavargaGrid({
@@ -721,7 +719,6 @@ export function AshtakavargaGrid({
   userPlan?: UserPlan
 }) {
   const [tab, setTab] = useState<AvTab>('sav')
-  const isMobile = useMediaQuery(MEDIA_QUERIES.md)
   const [selected, setSelected] = useState<BavPlanet>('Su')
   const hasReduced = Boolean(ashtakavarga.savReduced && ashtakavarga.bavReduced)
   const hasMandala = Boolean(ashtakavarga.savMandalaReduced)
@@ -740,10 +737,12 @@ export function AshtakavargaGrid({
   const tabBtn = (id: AvTab) => (
     <button
       type="button"
+      title={TAB_LABELS[id].title}
+      aria-label={TAB_LABELS[id].title}
       onClick={() => setTab(id)}
       className={`${styles.tabBtn} ${tab === id ? styles.tabBtnActive : ''}`}
     >
-      {isMobile ? TAB_LABELS[id].short : TAB_LABELS[id].full}
+      {TAB_LABELS[id].label}
     </button>
   )
 
