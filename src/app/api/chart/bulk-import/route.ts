@@ -217,7 +217,7 @@ export async function POST(req: NextRequest) {
 
     const isPublic   = coerceBool(mapped.isPublic)
     const isPersonal = coerceBool(mapped.isPersonal)
-    const slug       = isPublic ? crypto.randomBytes(5).toString('hex') : null
+    const slug = isPublic ? crypto.randomBytes(5).toString('hex') : undefined
 
     try {
       const chart = await Chart.create({
@@ -235,7 +235,7 @@ export async function POST(req: NextRequest) {
         slug,
       })
 
-      results.push({ row: rowNum, name, status: 'success', message: 'Imported', chartId: chart._id.toString() })
+      results.push({ row: rowNum, name, status: 'success', message: 'Imported', chartId: String(chart._id) })
       successCount++
       importedSoFar++
     } catch (err: any) {
