@@ -97,6 +97,143 @@ function ClassicMetricCharts({ planets }: { planets: Record<string, ShadbalaPlan
   )
 }
 
+// ── Parashara's Light-style worksheet (all balas in Shashtiamsas) ──────────────
+// Classical minimum requirement per individual bala (Virupas / Shashtiamsas).
+const COMPONENT_MIN_SHASH = { sthana: 165, dig: 35, kala: 112, chesta: 50, ayana: 30 }
+
+const SH = (v?: number) => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
+
+type WkRow =
+  | { kind: 'section'; label: string }
+  | { kind: 'item'; label: string; get: (p: ShadbalaPlanet) => number }
+  | { kind: 'subtotal'; label: string; get: (p: ShadbalaPlanet) => number }
+
+type SummaryRow = { label: string; get: (p: ShadbalaPlanet) => number; fmt: (n: number) => string; strong?: boolean }
+
+function PLWorksheet({ planets }: { planets: Record<string, ShadbalaPlanet> }) {
+  const rows: WkRow[] = [
+    { kind: 'section', label: 'Sthana (Positional) Bala' },
+    { kind: 'item', label: 'Ochcha Bala', get: (p) => SH(p.details?.sthana?.uccha) },
+    { kind: 'item', label: 'Sapta-vargaja Bala', get: (p) => SH(p.details?.sthana?.saptavargaja) },
+    { kind: 'item', label: 'Ojhayugma Bala', get: (p) => SH(p.details?.sthana?.ojhayugma) },
+    { kind: 'item', label: 'Kendradi Bala', get: (p) => SH(p.details?.sthana?.kendradi) },
+    { kind: 'item', label: 'Drekkana Bala', get: (p) => SH(p.details?.sthana?.drekkana) },
+    { kind: 'subtotal', label: '1. Sthana Bala', get: (p) => SH(p.componentShash?.sthana) },
+    { kind: 'subtotal', label: '2. Dig Bala', get: (p) => SH(p.componentShash?.dig) },
+    { kind: 'section', label: 'Kaala (Temporal) Bala' },
+    { kind: 'item', label: 'Nata-Unnata Bala', get: (p) => SH(p.details?.kala?.natha) },
+    { kind: 'item', label: 'Paksha Bala', get: (p) => SH(p.details?.kala?.paksha) },
+    { kind: 'item', label: 'Tri-Bhaga Bala', get: (p) => SH(p.details?.kala?.tribhaga) },
+    { kind: 'item', label: 'Varsha (Abda) Bala', get: (p) => SH(p.details?.kala?.varsha) },
+    { kind: 'item', label: 'Maasa Bala', get: (p) => SH(p.details?.kala?.maasa) },
+    { kind: 'item', label: 'Vaara Bala', get: (p) => SH(p.details?.kala?.vaara) },
+    { kind: 'item', label: 'Hora Bala', get: (p) => SH(p.details?.kala?.hora) },
+    { kind: 'item', label: 'Ayana Bala', get: (p) => SH(p.details?.kala?.ayana) },
+    { kind: 'item', label: 'Yuddha Bala', get: (p) => SH(p.details?.kala?.yuddha) },
+    { kind: 'subtotal', label: '3. Kaala Bala', get: (p) => SH(p.componentShash?.kala) },
+    { kind: 'subtotal', label: '4. Chesta Bala', get: (p) => SH(p.componentShash?.chesta) },
+    { kind: 'subtotal', label: '5. Naisargika Bala', get: (p) => SH(p.componentShash?.naisargika) },
+    { kind: 'subtotal', label: '6. Drig Bala', get: (p) => SH(p.componentShash?.drik) },
+  ]
+
+  const summary: SummaryRow[] = [
+    { label: 'Total Shadbala', get: (p) => SH(p.totalShash), fmt: (n) => n.toFixed(2), strong: true },
+    { label: 'Shadbala in Rupas', get: (p) => SH(p.total), fmt: (n) => n.toFixed(2), strong: true },
+    { label: 'Minimum requirements', get: (p) => SH(p.required) * 60, fmt: (n) => n.toFixed(0) },
+    { label: '% of required', get: (p) => SH(p.ratio), fmt: (n) => n.toFixed(2) },
+    { label: 'Sthana Bala % req.', get: (p) => SH(p.componentShash?.sthana) / COMPONENT_MIN_SHASH.sthana, fmt: (n) => n.toFixed(2) },
+    { label: 'Dig Bala % req.', get: (p) => SH(p.componentShash?.dig) / COMPONENT_MIN_SHASH.dig, fmt: (n) => n.toFixed(2) },
+    { label: 'Kaala Bala % req.', get: (p) => SH(p.componentShash?.kala) / COMPONENT_MIN_SHASH.kala, fmt: (n) => n.toFixed(2) },
+    { label: 'Chesta Bala % req.', get: (p) => SH(p.componentShash?.chesta) / COMPONENT_MIN_SHASH.chesta, fmt: (n) => n.toFixed(2) },
+    { label: 'Ayana Bala % req.', get: (p) => SH(p.details?.kala?.ayana) / COMPONENT_MIN_SHASH.ayana, fmt: (n) => n.toFixed(2) },
+  ]
+
+  const cell = (v: number, opts?: { strong?: boolean }) => (
+    <td
+      style={{
+        textAlign: 'center',
+        padding: '0.28rem 0.3rem',
+        fontFamily: 'var(--font-mono)',
+        fontWeight: opts?.strong ? 700 : 500,
+        color: v < 0 ? 'var(--rose)' : opts?.strong ? 'var(--text-primary)' : 'var(--text-secondary)',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {v.toFixed(2)}
+    </td>
+  )
+
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem', minWidth: 640 }}>
+        <thead>
+          <tr style={{ borderBottom: '2px solid var(--border-bright)' }}>
+            <th style={{ textAlign: 'left', padding: '0.35rem 0.45rem', position: 'sticky', left: 0, background: 'var(--surface-1)' }}>Bala (Shashtiamsas)</th>
+            {ORDER.map((id) => (
+              <th key={id} style={{ textAlign: 'center', padding: '0.35rem 0.3rem', color: 'var(--text-gold)', fontWeight: 700 }}>
+                {PLANET_NAMES[id]}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => {
+            if (row.kind === 'section') {
+              return (
+                <tr key={`sec-${i}`}>
+                  <td colSpan={8} style={{ padding: '0.3rem 0.45rem', fontWeight: 700, fontSize: '0.68rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-gold)', background: 'var(--surface-2)', borderTop: '1px solid var(--border)' }}>
+                    {row.label}
+                  </td>
+                </tr>
+              )
+            }
+            const isSub = row.kind === 'subtotal'
+            return (
+              <tr key={`${row.label}-${i}`} style={{ borderBottom: '1px solid var(--border-soft)', background: isSub ? 'var(--surface-2)' : 'transparent' }}>
+                <td style={{ padding: '0.28rem 0.45rem', paddingLeft: isSub ? '0.45rem' : '1rem', fontWeight: isSub ? 700 : 500, color: isSub ? 'var(--text-primary)' : 'var(--text-muted)', position: 'sticky', left: 0, background: isSub ? 'var(--surface-2)' : 'var(--surface-1)' }}>
+                  {row.label}
+                </td>
+                {ORDER.map((id) => {
+                  const p = planets[id]
+                  const v = p ? row.get(p) : 0
+                  return cell(v, { strong: isSub })
+                })}
+              </tr>
+            )
+          })}
+
+          <tr>
+            <td colSpan={8} style={{ padding: '0.15rem' }} />
+          </tr>
+
+          {summary.map((row, i) => (
+            <tr key={`sum-${i}`} style={{ borderBottom: '1px solid var(--border-soft)', background: row.strong ? 'var(--surface-2)' : 'transparent' }}>
+              <td style={{ padding: '0.28rem 0.45rem', fontWeight: row.strong ? 700 : 600, color: row.strong ? 'var(--text-primary)' : 'var(--text-secondary)', position: 'sticky', left: 0, background: row.strong ? 'var(--surface-2)' : 'var(--surface-1)' }}>
+                {row.label}
+              </td>
+              {ORDER.map((id) => {
+                const p = planets[id]
+                const v = p ? row.get(p) : 0
+                const isReqRatio = row.label.includes('%') || row.label.includes('required')
+                const color = isReqRatio && v < 1 ? 'var(--rose)' : row.strong ? 'var(--text-primary)' : 'var(--text-secondary)'
+                return (
+                  <td key={`${row.label}-${id}`} style={{ textAlign: 'center', padding: '0.28rem 0.3rem', fontFamily: 'var(--font-mono)', fontWeight: row.strong ? 700 : 500, color, whiteSpace: 'nowrap' }}>
+                    {row.fmt(v)}
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div style={{ marginTop: '0.5rem', fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+        Values in Shashtiamsas (1 Rupa = 60). Minimum required per bala — Sthana 165, Dig 35, Kaala 112, Chesta 50, Ayana 30.
+        A ratio below 1.00 (shown in red) means the planet/bala is under the classical requirement.
+      </div>
+    </div>
+  )
+}
+
 function PolarHex({
   planet,
 }: {
@@ -159,6 +296,7 @@ export function ShadbalaTable({
   const [viewMode, setViewMode] = useState<ViewMode>(preferClassicCharts ? 'classic' : 'modern')
   const [active, setActive] = useState<PlanetCode>('Su')
   const [chartView, setChartView] = useState<'component' | 'classic_graphs'>(preferClassicCharts ? 'classic_graphs' : 'component')
+  const [matrixView, setMatrixView] = useState<'worksheet' | 'rupas'>('worksheet')
   const planets = shadbala.planets
 
   const ranked = useMemo(
@@ -279,7 +417,33 @@ export function ShadbalaTable({
       )}
 
       <div className="card" style={{ padding: '0.8rem' }}>
-        <div className="label-caps" style={{ marginBottom: '0.45rem' }}>Classical matrix (Rupas)</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.55rem' }}>
+          <div className="label-caps">
+            {matrixView === 'worksheet' ? 'Shadbala Worksheet · Parashara (Shashtiamsas)' : 'Classical matrix (Rupas)'}
+          </div>
+          <div style={{ display: 'inline-flex', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', overflow: 'hidden' }}>
+            {(['worksheet', 'rupas'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMatrixView(m)}
+                style={{
+                  padding: '0.28rem 0.6rem',
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: 'none',
+                  background: matrixView === m ? 'var(--surface-3)' : 'transparent',
+                  color: matrixView === m ? 'var(--text-gold)' : 'var(--text-muted)',
+                }}
+              >
+                {m === 'worksheet' ? 'Full worksheet' : 'Rupas summary'}
+              </button>
+            ))}
+          </div>
+        </div>
+        {matrixView === 'worksheet' ? (
+          <PLWorksheet planets={planets} />
+        ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
             <thead>
@@ -320,6 +484,7 @@ export function ShadbalaTable({
             </tbody>
           </table>
         </div>
+        )}
       </div>
 
       {!hideDetails && (

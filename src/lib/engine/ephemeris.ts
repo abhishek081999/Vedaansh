@@ -45,9 +45,10 @@ export function localToUT(hour: number, min: number, sec: number, utcOffset: num
   return (hour + min / 60 + sec / 3600) - utcOffset
 }
 
-export function getPlanetPosition(jd: number, planetId: number, isSidereal = false, isEquatorial = false): PlanetPosition {
+export function getPlanetPosition(jd: number, planetId: number, isSidereal = false, isEquatorial = false, isHeliocentric = false): PlanetPosition {
   let flags = isSidereal ? FLAGS_SIDEREAL : FLAGS_TROPICAL
   if (isEquatorial) flags |= C.SEFLG_EQUATORIAL
+  if (isHeliocentric) flags |= C.SEFLG_HELCTR
 
   let r = sweph.calc_ut(jd, planetId, flags) as any
   

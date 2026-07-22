@@ -596,12 +596,14 @@ export interface ShadbalaPlanet {
         maasa: number
         varsha: number
         ayana: number
+        yuddha: number
         isDayBirth: boolean
       }
     chesta?: {
-      method: 'retrograde' | 'luminary_constant' | 'speed_ratio' | 'sun_ayana' | 'moon_paksha'
+      method: 'retrograde' | 'luminary_constant' | 'speed_ratio' | 'sun_ayana' | 'moon_paksha' | 'chesta_kendra'
       speedAbs: number
       meanSpeed: number
+      chestaKendra?: number
     }
     drik?: {
       benefic: number
