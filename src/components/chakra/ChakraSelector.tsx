@@ -17,6 +17,7 @@ import { buildArudhaBundle, pickArudhaSet } from '@/lib/engine/arudhas'
 import { getVargaPosition } from '@/lib/engine/vargas'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
+import { useChartStyleOptional } from '@/components/providers/ChartStyleProvider'
 
 function getSignType(r: Rashi): 'Movable' | 'Fixed' | 'Dual' {
   if ([1, 4, 7, 10].includes(r)) return 'Movable'
@@ -112,9 +113,14 @@ export function ChakraSelector({
   defaultShowArudha = false,
 }: ChakraSelectorProps) {
   const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle']
-  const [style, setStyle] = useState<ChartStyle>(
+  // Global chart-style store — changing style in any chart applies everywhere.
+  // Falls back to local state when rendered outside the provider.
+  const globalStyle = useChartStyleOptional()
+  const [localStyle, setLocalStyle] = useState<ChartStyle>(
     VALID_STYLES.includes(defaultStyle as ChartStyle) ? defaultStyle as ChartStyle : 'north'
   )
+  const style: ChartStyle = globalStyle ? globalStyle.chartStyle : localStyle
+  const setStyle = globalStyle ? globalStyle.setChartStyle : setLocalStyle
   const [showDegrees,   setShowDegrees]   = useState(false)
   const [showNakshatra, setShowNakshatra] = useState(false)
   const [showKaraka,    setShowKaraka]    = useState(false)
