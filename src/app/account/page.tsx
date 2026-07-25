@@ -10,6 +10,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link                    from 'next/link'
 import { ThemeToggle }         from '@/components/ui/ThemeToggle'
 import { VedaanshLoader }      from '@/components/ui/primitives/VedaanshLoader'
+import { useChartStyle }       from '@/components/providers/ChartStyleProvider'
+import type { ChartStyle }     from '@/types/astrology'
 
 // ── Types ─────────────────────────────────────────────────────
 interface UserPrefs {
@@ -40,6 +42,8 @@ const AYANAMSHA_OPTIONS = [
 const CHART_STYLE_OPTIONS = [
   { value: 'north', label: 'North Indian' },
   { value: 'south', label: 'South Indian' },
+  { value: 'circle', label: 'Circle Wheel' },
+  { value: 'sarvatobhadra', label: 'Sarvatobhadra' },
 ]
 
 const HOUSE_OPTIONS = [
@@ -180,6 +184,7 @@ function AccountContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  const { setChartStyle } = useChartStyle()
   const [user,          setUser]          = useState<any>(null)
   const [personalChart, setPersonalChart] = useState<PersonalChart | null>(null)
   const [prefs,         setPrefs]         = useState<UserPrefs | null>(null)
@@ -844,7 +849,7 @@ function AccountContent() {
                     label="Chart Style"
                     value={prefs.defaultChartStyle}
                     options={CHART_STYLE_OPTIONS}
-                    onChange={(v) => updatePref('defaultChartStyle', v)}
+                    onChange={(v) => { updatePref('defaultChartStyle', v); setChartStyle(v as ChartStyle) }}
                   />
                   <PrefSelect
                     label="House System"

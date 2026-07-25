@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { ChartOutput, ChartStyle, Rashi } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
+import { useChartStyle } from '@/components/providers/ChartStyleProvider'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { getKPSubLord } from '@/lib/engine/nakshatraAdvanced'
 import {
@@ -161,7 +162,7 @@ export default function PrashnaPage() {
   const [location, setLocation] = useState<LocationValue>(getSavedLocation)
   const [chart, setChart] = useState<ChartOutput | null>(null)
   const [loading, setLoading] = useState(false)
-  const [style, setStyle] = useState<ChartStyle>('north')
+  const { chartStyle: style, setChartStyle: setStyle } = useChartStyle()
   const [varga, setVarga] = useState<'D1' | 'D9'>('D1')
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)

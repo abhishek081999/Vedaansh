@@ -7,6 +7,7 @@ import './globals.css'
 import { AuthProvider }      from '@/components/providers/SessionProvider'
 import { AppLayoutProvider } from '@/components/providers/LayoutProvider'
 import { ChartProvider }     from '@/components/providers/ChartProvider'
+import { ChartStyleProvider } from '@/components/providers/ChartStyleProvider'
 import { AppFramework }      from '@/components/ui/AppFramework'
 import { YantraBackdropRoute } from '@/components/ui/YantraBackdropRoute'
 import { SITE_URL } from '@/lib/seo/site'
@@ -267,10 +268,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AuthProvider>
           <AppLayoutProvider>
             <ChartProvider>
-              <YantraBackdropRoute />
-              <AppFramework>
-                {children}
-              </AppFramework>
+              <ChartStyleProvider>
+                <YantraBackdropRoute />
+                <AppFramework>
+                  {children}
+                </AppFramework>
+              </ChartStyleProvider>
             </ChartProvider>
           </AppLayoutProvider>
         </AuthProvider>

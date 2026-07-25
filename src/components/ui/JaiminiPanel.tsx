@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X, Gem, Mountain, Clock, Scale, Brain } from 'lucide-react'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 import { calcBhriguBinduLon, calcInduLagna } from '@/lib/engine/astroDetailsDerived'
+import { useChartStyle } from '@/components/providers/ChartStyleProvider'
 
 /** Crisp chart glyphs — no stroke/filter; house polygon carries drishti highlight. */
 function jaiminiPlanetLabelStyle(gid: string): React.CSSProperties {
@@ -607,7 +608,10 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   }
   const gateways = dwaraRashi ? calculateGatewaySigns(lagnas.ascRashi as Rashi, dwaraRashi) : null;
   const [selectedAspectSign, setSelectedAspectSign] = useState<Rashi | null>(null);
-  const [chartStyle, setChartStyle] = useState<'south' | 'north'>('north');
+  // Global chart-style store — Jaimini renderers support north/south only,
+  // so any non-south global style maps to north here.
+  const { chartStyle: globalChartStyle, setChartStyle: setGlobalChartStyle } = useChartStyle();
+  const chartStyle: 'south' | 'north' = globalChartStyle === 'south' ? 'south' : 'north';
   const [activeVarga, setActiveVarga] = useState<string>('D1');
   const [activeLagnaRef, setActiveLagnaRef] = useState<'natal' | 'AL' | 'KL' | 'dasha' | 'house'>('natal');
   const [rotationHouse, setRotationHouse] = useState<number>(1);
@@ -910,7 +914,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               </h1>
               <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
                 <button
-                  onClick={() => setChartStyle(s => s === 'south' ? 'north' : 'south')}
+                  onClick={() => setGlobalChartStyle(chartStyle === 'south' ? 'north' : 'south')}
                   style={{
                     width: 28, height: 28, borderRadius: '4px', background: 'var(--surface-3)',
                     color: 'var(--gold)', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem'
