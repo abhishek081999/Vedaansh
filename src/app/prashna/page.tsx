@@ -22,8 +22,14 @@ import {
   type PrashnaCategory,
   type KrishneeyamResult,
 } from '@/lib/engine/krishneeyam'
+import {
+  runSatpanchasikaPrashna,
+  TOPIC_LABELS as SAT_TOPIC_LABELS,
+  type SatpanchasikaTopic,
+  type SatpanchasikaResult,
+} from '@/lib/engine/satpanchasika'
 
-type KPMode = 'vedic' | 'kp' | 'krishneeyam'
+type KPMode = 'vedic' | 'kp' | 'krishneeyam' | 'satpanchasika'
 type HouseReference = 'udaya' | 'arudha'
 type AroodhaMode = 'auto_lagna' | 'auto_al' | 'manual'
 
@@ -40,6 +46,54 @@ const CATEGORY_ICONS: Record<PrashnaCategory, string> = {
   health: '🏥', travel: '✈️', pregnancy: '👶', marriage: '💍',
   house_query: '🏠', spirit: '👁️', intercourse: '🌹', food: '🍽️',
   lawsuit: '⚖️', exam: '🎓', general: '🌟',
+}
+
+const SAT_TOPIC_ICONS: Record<SatpanchasikaTopic, string> = {
+  general: '🌟', change_place: '🔀', home_property: '🏠', going_abroad: '✈️',
+  return_person: '🔙', lost_object: '💎', object_nature: '🔍', arrival_departure: '🚶',
+  victory_defeat: '🏆', reconciliation: '🤝', wealth_position: '💰', illness_recovery: '🏥',
+  theft: '🕵️', child_gender: '👶', marriage: '💍', pregnancy: '🤰', rain: '🌧️',
+  query_subject: '❓', person_abroad: '🌍', benefit_woman: '👩', character: '🎭',
+}
+
+const SAT_TOPIC_ORDER: SatpanchasikaTopic[] = [
+  'general', 'change_place', 'home_property', 'going_abroad', 'return_person',
+  'arrival_departure', 'lost_object', 'object_nature', 'theft', 'victory_defeat',
+  'reconciliation', 'wealth_position', 'illness_recovery', 'marriage', 'child_gender',
+  'pregnancy', 'rain', 'query_subject', 'person_abroad', 'benefit_woman', 'character',
+]
+
+// Keyword → topic map for the question auto-suggest chip (first match wins by order)
+const SAT_TOPIC_KEYWORDS: Array<[SatpanchasikaTopic, RegExp]> = [
+  ['marriage', /\b(marry|marriage|wedding|spouse|betroth|alliance|match)\b/i],
+  ['child_gender', /\b(boy|girl|son|daughter|child|gender|baby)\b/i],
+  ['pregnancy', /\b(pregnan|conceive|conception|childbirth|expecting)\b/i],
+  ['theft', /\b(stolen|steal|thief|robber|burgl|theft)\b/i],
+  ['lost_object', /\b(lost|missing|misplaced|find my|where is my|recover)\b/i],
+  ['object_nature', /\b(what is|nature of|which object|what object|inside|contents)\b/i],
+  ['illness_recovery', /\b(ill|sick|disease|health|recover|cure|patient|surgery|operation)\b/i],
+  ['wealth_position', /\b(money|wealth|rich|loan|debt|finance|income|profit|job|promotion|salary|position)\b/i],
+  ['victory_defeat', /\b(win|victory|defeat|lose|lawsuit|court|dispute|litigation|competition|election|match|enemy|war|fight)\b/i],
+  ['reconciliation', /\b(reconcil|reunite|patch up|make up|partnership|friend again|quarrel)\b/i],
+  ['going_abroad', /\b(abroad|foreign|overseas|emigrat|visa|relocat|migrate)\b/i],
+  ['person_abroad', /\b(person abroad|one abroad|traveller|traveler|away person|absent)\b/i],
+  ['return_person', /\b(return|come back|back home|when will .* come|coming back)\b/i],
+  ['arrival_departure', /\b(arrive|arrival|reach|when .* arrive|depart|leaving|coming)\b/i],
+  ['change_place', /\b(change place|transfer|move house|shift|relocat|new place|fall from)\b/i],
+  ['home_property', /\b(house|home|property|land|plot|real estate|flat|apartment|buy .* home)\b/i],
+  ['rain', /\b(rain|monsoon|weather|drought|crops|harvest)\b/i],
+  ['benefit_woman', /\b(woman|lady|female|girlfriend|wife .* benefit|from her)\b/i],
+  ['character', /\b(character|nature of person|trustworthy|honest|faithful|type of person|age of)\b/i],
+]
+
+/** Best-guess topic from the free-text question, or null if nothing matches. */
+function suggestSatTopic(question: string): SatpanchasikaTopic | null {
+  const q = question.trim()
+  if (q.length < 3) return null
+  for (const [topic, re] of SAT_TOPIC_KEYWORDS) {
+    if (re.test(q)) return topic
+  }
+  return null
 }
 
 const RASHI_OPTIONS = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `${i + 1}. ${RASHI_NAMES[i + 1]}` }))
@@ -171,6 +225,8 @@ export default function PrashnaPage() {
   const [mode, setMode] = useState<KPMode>('krishneeyam')
   const [kpNumber, setKpNumber] = useState<number | ''>('')
   const [category, setCategory] = useState<PrashnaCategory>('yes_no')
+  const [satTopic, setSatTopic] = useState<SatpanchasikaTopic>('general')
+  const [isRainySeason, setIsRainySeason] = useState(false)
   const [houseReference, setHouseReference] = useState<HouseReference>('udaya')
   const [aroodhaMode, setAroodhaMode] = useState<AroodhaMode>('auto_lagna')
   const [aroodha, setAroodha] = useState<number | ''>('')
@@ -316,6 +372,29 @@ export default function PrashnaPage() {
     })
   }, [chart, mode, resolvedAroodhaRashi, category, bodyTouch, houseReference, arudhaLagnaRashi])
 
+  const satpanchasikaResult = useMemo((): SatpanchasikaResult | null => {
+    if (!chart || mode !== 'satpanchasika') return null
+    const sun = chart.grahas.find(g => g.id === 'Su')
+    const moon = chart.grahas.find(g => g.id === 'Mo')
+    if (!sun || !moon) return null
+    return runSatpanchasikaPrashna({
+      lagnaRashi: chart.lagnas.ascRashi,
+      lagnaSignDegree: chart.lagnas.ascDegree % 30,
+      sunRashi: sun.rashi, sunDegreeFull: sun.totalDegree,
+      moonRashi: moon.rashi, moonDegreeFull: moon.totalDegree,
+      moonDignity: moon.dignity, moonIsCombust: moon.isCombust,
+      grahas: chart.grahas,
+      navamsaLagnaRashi: chart.vargaLagnas['D9'],
+      navamsaGrahas: chart.vargas['D9'],
+      drekkanaLagnaRashi: chart.vargaLagnas['D3'],
+      tithiNumber: chart.panchang.tithi.number,
+      tithiPaksha: chart.panchang.tithi.paksha as 'shukla' | 'krishna',
+      isRainySeason,
+      topic: satTopic,
+      question: questionText || undefined,
+    })
+  }, [chart, mode, satTopic, isRainySeason, questionText])
+
   const chartLagnaSource = houseReference === 'arudha' ? 'arudha' : 'natal'
 
   const rulingPlanets = useMemo(() => {
@@ -351,6 +430,22 @@ export default function PrashnaPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [krishneeyamResult])
 
+  useEffect(() => {
+    if (!satpanchasikaResult || !frozen || !frozenAt) return
+    const entry: HistoryEntry = {
+      id: frozenAt.toISOString(),
+      question: questionText ? `[${satpanchasikaResult.topicLabel}] ${questionText}` : satpanchasikaResult.topicLabel,
+      category: 'general',
+      verdict: satpanchasikaResult.verdict,
+      confidence: satpanchasikaResult.confidence,
+      headline: satpanchasikaResult.headline,
+      location: location.name,
+      ts: frozenAt.getTime(),
+    }
+    saveToHistory(entry)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [satpanchasikaResult])
+
   const formatElapsed = (sec: number) => {
     if (sec < 60) return `${sec}s`
     if (sec < 3600) return `${Math.floor(sec/60)}m ${sec%60}s`
@@ -384,9 +479,15 @@ export default function PrashnaPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <h1 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, letterSpacing: '0.04em' }}>PRASHNA</h1>
-              <span style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 999, background: 'var(--gold-faint)', color: 'var(--gold)', fontWeight: 700, border: '1px solid var(--gold-dim)' }}>KRISHNEEYAM</span>
+              <span style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 999, background: 'var(--gold-faint)', color: 'var(--gold)', fontWeight: 700, border: '1px solid var(--gold-dim)' }}>
+                {mode === 'satpanchasika' ? 'SATPANCHASIKA' : mode === 'kp' ? 'KP' : mode === 'vedic' ? 'VEDIC' : 'KRISHNEEYAM'}
+              </span>
             </div>
-            <p style={{ margin: 0, fontSize: '0.63rem', color: 'var(--text-muted)' }}>Kerala Horary Astrology · Sri Krishna Acharya (~11th c. AD)</p>
+            <p style={{ margin: 0, fontSize: '0.63rem', color: 'var(--text-muted)' }}>
+              {mode === 'satpanchasika'
+                ? 'Indian Horary Astrology · Prithuyasas, son of Varahamihira (~6th c. AD)'
+                : 'Kerala Horary Astrology · Sri Krishna Acharya (~11th c. AD)'}
+            </p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -417,11 +518,11 @@ export default function PrashnaPage() {
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             {/* Mode */}
             <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-              {(['krishneeyam', 'vedic', 'kp'] as KPMode[]).map(m => (
+              {(['krishneeyam', 'satpanchasika', 'vedic', 'kp'] as KPMode[]).map(m => (
                 <button key={m} onClick={() => setMode(m)} disabled={frozen}
                   className={`btn btn-sm ${mode === m ? 'btn-primary' : 'btn-ghost'}`}
                   style={{ fontSize: '0.68rem', fontWeight: mode === m ? 700 : 400, whiteSpace: 'nowrap' }}>
-                  {m === 'krishneeyam' ? '🔮 Kerala' : m === 'kp' ? '⭐ KP' : '🕉 Vedic'}
+                  {m === 'krishneeyam' ? '🔮 Kerala' : m === 'satpanchasika' ? '📜 Satpanchasika' : m === 'kp' ? '⭐ KP' : '🕉 Vedic'}
                 </button>
               ))}
             </div>
@@ -536,6 +637,47 @@ export default function PrashnaPage() {
             </div>
           )}
 
+          {/* Row 2b: Satpanchasika topic picker */}
+          {mode === 'satpanchasika' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Query Topic <span style={{ color: 'var(--gold)' }}>· Shatpanchasika of Prithuyasas (56 verses)</span>
+              </div>
+              {(() => {
+                const suggested = suggestSatTopic(questionText)
+                if (!suggested || suggested === satTopic) return null
+                return (
+                  <button onClick={() => setSatTopic(suggested)} disabled={frozen}
+                    style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.6rem', borderRadius: 999, border: '1px solid var(--gold)', background: 'var(--gold-faint)', color: 'var(--gold)', fontSize: '0.68rem', fontWeight: 600, cursor: frozen ? 'not-allowed' : 'pointer' }}>
+                    💡 Suggested from your question: {SAT_TOPIC_ICONS[suggested]} {SAT_TOPIC_LABELS[suggested].split(' (')[0]} — tap to select
+                  </button>
+                )
+              })()}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : 'repeat(10, 1fr)', gap: '4px' }}>
+                {SAT_TOPIC_ORDER.map(t => (
+                  <button key={t} onClick={() => setSatTopic(t)} disabled={frozen} title={SAT_TOPIC_LABELS[t]}
+                    style={{
+                      border: satTopic === t ? '2px solid var(--gold)' : '1px solid var(--border-soft)',
+                      borderRadius: 7, padding: '0.3rem 0.15rem',
+                      background: satTopic === t ? 'var(--gold-faint)' : 'var(--surface-2)',
+                      cursor: frozen ? 'not-allowed' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                    }}>
+                    <span style={{ fontSize: '1rem' }}>{SAT_TOPIC_ICONS[t]}</span>
+                    <span style={{ fontSize: '0.46rem', color: satTopic === t ? 'var(--gold)' : 'var(--text-muted)', fontWeight: 600, lineHeight: 1.15, textAlign: 'center' }}>
+                      {SAT_TOPIC_LABELS[t].split(' (')[0]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {satTopic === 'rain' && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                  <input type="checkbox" checked={isRainySeason} disabled={frozen} onChange={e => setIsRainySeason(e.target.checked)} />
+                  It is currently the rainy season (Varsha) — Ch7 rules apply strongly
+                </label>
+              )}
+            </div>
+          )}
+
           {/* Frozen timestamp */}
           {frozen && chart && (
             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
@@ -590,6 +732,7 @@ export default function PrashnaPage() {
               <p style={{ opacity: 0.6, lineHeight: 1.7, fontSize: '0.85rem', margin: 0 }}>
                 Clear your mind and focus on your question.<br />
                 {mode === 'krishneeyam' && 'Pick house reference (Udaya or Arudha Lagna), Aroodha sparsha, body touch, and category. '}
+                {mode === 'satpanchasika' && 'Pick your query topic from the Shatpanchasika of Prithuyasas. '}
                 When ready, press <strong>Capture Moment</strong>.
               </p>
             </div>
@@ -609,7 +752,7 @@ export default function PrashnaPage() {
           <div style={{ height: '55vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-1)', borderRadius: 14, border: '1px solid var(--gold-faint)', gap: '1rem' }}>
             <VedaanshLoader size={48} message="Consulting the Heavens" />
             <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0, textAlign: 'center' }}>
-              Casting Prashna Kundali · Applying 524 Krishneeyam verses…
+              Casting Prashna Kundali · {mode === 'satpanchasika' ? 'Applying 56 Shatpanchasika verses…' : 'Applying 524 Krishneeyam verses…'}
             </p>
           </div>
         )}
@@ -1236,8 +1379,211 @@ export default function PrashnaPage() {
                 )
               })()}
 
+              {/* ── Satpanchasika Oracle ─────────────────────────────────────── */}
+              {mode === 'satpanchasika' && satpanchasikaResult && (() => {
+                const r = satpanchasikaResult
+                const vColor = r.verdict === 'YES' ? 'var(--teal)' : r.verdict === 'NO' ? 'var(--rose)' : r.verdict === 'DELAYED' ? 'var(--amber)' : 'var(--gold)'
+                const toneColor = (t?: 'good' | 'bad' | 'neutral') => t === 'good' ? 'var(--teal)' : t === 'bad' ? 'var(--rose)' : 'var(--text-secondary)'
+                const bhavaColor = (v: 'good' | 'bad' | 'mixed') => v === 'good' ? 'var(--teal)' : v === 'bad' ? 'var(--rose)' : 'var(--gold)'
+                const quartet = [
+                  { key: 'Chyuti', sub: 'Change / 1st', b: r.chyuti },
+                  { key: 'Vriddhi', sub: 'Growth / 4th', b: r.vriddhi },
+                  { key: 'Pravasa', sub: 'Departure / 10th', b: r.pravasa },
+                  { key: 'Nivritti', sub: 'Return / 7th', b: r.nivritti },
+                ]
+                return (
+                  <>
+                    {/* VERDICT BANNER */}
+                    <div style={{ borderRadius: 12, border: `2px solid ${vColor}`, background: `${vColor}0d`, overflow: 'hidden' }}>
+                      <div style={{ height: 4, background: `linear-gradient(90deg, ${vColor}, ${vColor}60)` }} />
+                      <div style={{ padding: '1rem 1.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.6rem', color: vColor, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
+                              📜 Satpanchasika · {SAT_TOPIC_ICONS[r.topic]} {r.topicLabel}
+                            </div>
+                            <h2 style={{ fontSize: isMobile ? '1.2rem' : '1.4rem', margin: '0 0 0.25rem', color: vColor, fontFamily: 'var(--font-display)', lineHeight: 1.25 }}>
+                              {r.headline}
+                            </h2>
+                            {questionText && <p style={{ fontSize: '0.78rem', opacity: 0.7, fontStyle: 'italic', margin: '0 0 0.5rem' }}>&quot;{questionText}&quot;</p>}
+                          </div>
+                          <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: vColor, lineHeight: 1, fontFamily: 'var(--font-display)' }}>{r.verdict}</div>
+                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 2 }}>Verdict</div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
+                          <div style={{ flex: 1, height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${r.confidence}%`, background: `linear-gradient(90deg, ${vColor}80, ${vColor})`, borderRadius: 4, transition: 'width 0.6s ease' }} />
+                          </div>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: vColor, flexShrink: 0 }}>{r.confidence}% confidence</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ASCENDANT SUMMARY */}
+                    <SectionCard title="Ascendant Assessment" icon="🔭" accent="var(--teal)">
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.4rem' }}>
+                        <Chip label="Rising Sign" value={`${r.ascendant.signName} (${r.ascendant.motion})`} />
+                        <Chip label="Rising Type" value={r.ascendant.risingLabel} color={r.ascendant.risingVerdict === 'good' ? 'var(--teal)' : r.ascendant.risingVerdict === 'bad' ? 'var(--rose)' : 'var(--gold)'} />
+                        <Chip label="Moon Phase" value={r.ascendant.moonBright ? 'Bright / strong' : 'Waning / weak'} color={r.ascendant.moonBright ? 'var(--teal)' : 'var(--amber)'} />
+                        <Chip label="Benefic in Lagna" value={r.ascendant.beneficInLagna ? 'Yes' : 'No'} color={r.ascendant.beneficInLagna ? 'var(--teal)' : 'var(--text-muted)'} />
+                      </div>
+                      <div style={{ marginTop: '0.5rem', padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                        {r.ascendant.note}
+                      </div>
+                    </SectionCard>
+
+                    {/* THE QUARTET — Chyuti / Vriddhi / Pravasa / Nivritti */}
+                    <SectionCard title="The Four Pillars (Ch1 V2) — Chyuti · Vriddhi · Pravasa · Nivritti" icon="🏛️" accent="var(--gold)">
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '0.4rem' }}>
+                        {quartet.map(q => (
+                          <div key={q.key} style={{ padding: '0.5rem', background: 'var(--surface-2)', borderRadius: 7, borderTop: `3px solid ${bhavaColor(q.b.verdict)}` }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 800, color: bhavaColor(q.b.verdict) }}>{q.key}</div>
+                            <div style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>{q.sub}</div>
+                            <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>{q.b.signName}</div>
+                            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{q.b.motion}</div>
+                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: bhavaColor(q.b.verdict), marginTop: 3 }}>{q.b.verdict.toUpperCase()}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </SectionCard>
+
+                    {/* SIGNIFICATOR & STRENGTH */}
+                    {r.significator && (
+                      <SectionCard title={`Significator & Strength (House ${r.significator.topicHouse})`} icon="🎯" accent={r.significator.strength === 'Strong' ? 'var(--teal)' : r.significator.strength === 'Weak' ? 'var(--rose)' : 'var(--gold)'}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.4rem' }}>
+                          <Chip label="Topic House" value={`${r.significator.topicHouse}th — ${r.significator.houseSignName}`} />
+                          <Chip label="House Lord" value={`${r.significator.houseLordName} (in ${r.significator.lordHouse}th)`} />
+                          <Chip label="Natural Karaka" value={r.significator.karakaName} />
+                          <Chip label="Strength" value={r.significator.strength} color={r.significator.strength === 'Strong' ? 'var(--teal)' : r.significator.strength === 'Weak' ? 'var(--rose)' : 'var(--gold)'} />
+                        </div>
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <BulletList items={r.significator.notes} />
+                        </div>
+                      </SectionCard>
+                    )}
+
+                    {/* TIMING */}
+                    {r.timing && (
+                      <SectionCard title="Timing" icon="⏰" accent="var(--amber)">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                          <div style={{ textAlign: 'center', padding: '0.5rem', background: 'var(--surface-2)', borderRadius: 7 }}>
+                            <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Method</div>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--gold)' }}>{r.timing.method}</div>
+                          </div>
+                          {r.timing.months != null && (
+                            <div style={{ textAlign: 'center', padding: '0.5rem', background: 'var(--surface-2)', borderRadius: 7 }}>
+                              <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Approx.</div>
+                              <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--teal)' }}>{r.timing.months} mo</div>
+                            </div>
+                          )}
+                          {r.timing.days != null && (
+                            <div style={{ textAlign: 'center', padding: '0.5rem', background: 'var(--surface-2)', borderRadius: 7 }}>
+                              <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Approx.</div>
+                              <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--teal)' }}>{r.timing.days} d</div>
+                            </div>
+                          )}
+                          <div style={{ textAlign: 'center', padding: '0.5rem', background: 'var(--surface-2)', borderRadius: 7 }}>
+                            <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Significator</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--gold)' }}>{r.timing.significator}</div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.timing.description}</div>
+                      </SectionCard>
+                    )}
+
+                    {/* TOPIC SECTIONS */}
+                    {r.sections.map(sec => (
+                      <SectionCard key={sec.id} title={sec.title} icon={sec.icon} accent="var(--gold)">
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          {sec.rows.map((row, i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0', borderBottom: i < sec.rows.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', flexShrink: 0 }}>{row.label}</span>
+                              <span style={{ fontSize: '0.73rem', fontWeight: 600, color: toneColor(row.tone), textAlign: 'right' }}>{row.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {sec.notes && sec.notes.length > 0 && (
+                          <div style={{ marginTop: '0.5rem' }}>
+                            <BulletList items={sec.notes} />
+                          </div>
+                        )}
+                      </SectionCard>
+                    ))}
+
+                    {/* SCORECARD */}
+                    <Collapsible id="sat_scorecard" title={`Score Breakdown (${r.scorecard.filter(s => s.result === 'good').length}✅ / ${r.scorecard.filter(s => s.result === 'bad').length}❌ of ${r.scorecard.length} checks)`} icon="📊" accent="var(--teal)">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        {r.scorecard.map((item, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', background: 'var(--surface-2)', borderRadius: 6, border: `1px solid ${item.result === 'good' ? 'var(--teal)30' : item.result === 'bad' ? 'var(--rose)30' : 'var(--border-soft)'}` }}>
+                            <span style={{ fontSize: '1rem', flexShrink: 0 }}>{item.result === 'good' ? '✅' : item.result === 'bad' ? '❌' : '〰️'}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: '0.72rem', fontWeight: 600, color: item.result === 'good' ? 'var(--teal)' : item.result === 'bad' ? 'var(--rose)' : 'var(--gold)' }}>{item.label} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>×{item.weight}</span></div>
+                              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{item.detail}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Collapsible>
+
+                    {/* RULES */}
+                    <Collapsible id="sat_rules" title={`Rules Applied (${r.rules.length} Shatpanchasika verses)`} icon="📜" accent="var(--teal)">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        {r.rules.map((rule, i) => (
+                          <div key={i} style={{ display: 'flex', gap: '0.4rem', fontSize: '0.7rem', lineHeight: 1.5, padding: '0.3rem 0', borderBottom: '1px solid var(--border-soft)' }}>
+                            <span style={{ color: 'var(--gold)', flexShrink: 0, fontSize: '0.65rem', marginTop: 1 }}>◆</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>{rule}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </Collapsible>
+
+                    {/* DETAILS */}
+                    <Collapsible id="sat_details" title={`Engine Details (${r.details.length} notes)`} icon="🔬" accent="var(--text-muted)">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        {r.details.map((d, i) => (
+                          <p key={i} style={{ margin: 0, fontSize: '0.68rem', lineHeight: 1.6, borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.25rem', color: 'var(--text-muted)' }}>• {d}</p>
+                        ))}
+                      </div>
+                    </Collapsible>
+
+                    {/* REMEDIES */}
+                    {r.remedies.length > 0 && (
+                      <SectionCard title="Remedies & Prescriptions" icon="🕯️" accent="var(--gold)">
+                        <BulletList items={r.remedies.map(rem => `🕯️ ${rem}`)} />
+                      </SectionCard>
+                    )}
+
+                    {/* COPY */}
+                    <button
+                      style={{ padding: '0.65rem 1rem', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-secondary)', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 600 }}
+                      onClick={() => {
+                        const lines = [
+                          `SHATPANCHASIKA PRASHNA ANALYSIS`,
+                          `=`.repeat(40),
+                          questionText ? `Question: "${questionText}"` : '',
+                          `Topic: ${r.topicLabel}`,
+                          `Verdict: ${r.headline} (${r.confidence}% confidence)`,
+                          ``,
+                          `ASCENDANT: ${r.ascendant.signName} · ${r.ascendant.risingLabel} · ${r.ascendant.motion}`,
+                          `Four Pillars — Chyuti: ${r.chyuti.verdict} | Vriddhi: ${r.vriddhi.verdict} | Pravasa: ${r.pravasa.verdict} | Nivritti: ${r.nivritti.verdict}`,
+                          r.significator ? `\nSIGNIFICATOR\nHouse ${r.significator.topicHouse} lord ${r.significator.houseLordName} & karaka ${r.significator.karakaName} → ${r.significator.strength}` : '',
+                          r.timing ? `\nTIMING\n${r.timing.description}` : '',
+                          ...r.sections.map(sec => `\n${sec.title.toUpperCase()}\n${sec.rows.map(row => `  ${row.label}: ${row.value}`).join('\n')}`),
+                          `\nRULES APPLIED\n${r.rules.map(rule => `• ${rule}`).join('\n')}`,
+                          r.remedies.length ? `\nREMEDIES\n${r.remedies.map(rem => `• ${rem}`).join('\n')}` : '',
+                        ].filter(Boolean).join('\n')
+                        navigator.clipboard.writeText(lines)
+                      }}>
+                      📋 Copy Full Analysis to Clipboard
+                    </button>
+                  </>
+                )
+              })()}
+
               {/* KP / Vedic Mode */}
-              {mode !== 'krishneeyam' && (
+              {(mode === 'kp' || mode === 'vedic') && (
                 <>
                   <div className="card">
                     <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Ruling Planets (KP)</h3>
