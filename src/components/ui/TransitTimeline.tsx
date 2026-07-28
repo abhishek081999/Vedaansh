@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId } from '@/types/astrology'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 
 interface TransitEvent {
   planetId:    GrahaId
@@ -43,7 +44,7 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 900)
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)

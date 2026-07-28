@@ -5,6 +5,7 @@ import type { ChartOutput, ChartStyle, GrahaId } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { getKPSubLord } from '@/lib/engine/nakshatraAdvanced'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 
 type PrashnaType = 'vedic' | 'kp' | 'kerala'
 type QuestionCategory = 'general' | 'career' | 'marriage' | 'finance' | 'travel' | 'health' | 'education'
@@ -39,7 +40,7 @@ export function PrashnaPanel({ chart: externalChart }: { chart?: ChartOutput | n
 
   useEffect(() => {
     const check = () => {
-      const mobile = window.innerWidth < 1100
+      const mobile = window.innerWidth < BREAKPOINTS.lg
       setIsMobile(mobile)
       setChartSize(mobile ? Math.min(window.innerWidth - 40, 420) : 480)
     }

@@ -135,6 +135,9 @@ export function MobileDashboardNav({
               borderTop: '1px solid var(--border-soft)',
               display: 'flex',
               alignItems: 'stretch',
+              overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              scrollSnapType: 'x mandatory',
               boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
               paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
               backdropFilter: 'blur(10px)',
@@ -154,19 +157,21 @@ export function MobileDashboardNav({
                     window.scrollTo({ top: 0, behavior: 'smooth' })
                   }}
                   style={{
-                    flex: 1,
+                    flex: '1 0 auto',
+                    minWidth: '3.5rem',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.2rem',
-                    padding: '0.6rem 0.15rem 0.4rem',
+                    padding: '0.6rem 0.35rem 0.4rem',
                     border: 'none',
                     background: 'none',
                     cursor: 'pointer',
                     color: active ? 'var(--accent)' : 'var(--text-muted)',
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                     position: 'relative',
+                    scrollSnapAlign: 'center',
                   }}
                 >
                   {active && (

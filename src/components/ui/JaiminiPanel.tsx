@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useMemo, useId } from 'react'
+import React, { useState, useEffect, useMemo, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData, NAKSHATRA_NAMES } from '@/types/astrology'
 import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
@@ -12,6 +12,7 @@ import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X, Gem
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 import { calcBhriguBinduLon, calcInduLagna } from '@/lib/engine/astroDetailsDerived'
 import { useChartStyle } from '@/components/providers/ChartStyleProvider'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 
 /** Crisp chart glyphs — no stroke/filter; house polygon carries drishti highlight. */
 function jaiminiPlanetLabelStyle(gid: string): React.CSSProperties {
@@ -119,6 +120,10 @@ function JaiminiSnapshot({ chart, isTinyMobile }: { chart: ChartOutput, isTinyMo
       WebkitOverflowScrolling: 'touch',
       whiteSpace: 'nowrap',
       color: 'var(--text-muted)',
+      width: '100%',
+      maxWidth: '100%',
+      minWidth: 0,
+      boxSizing: 'border-box',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
         <span style={{ fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.6rem' }}>Snapshot</span>
@@ -223,8 +228,8 @@ export function JaiminiAspectChart({
   )
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem' }}>
-      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} style={{ maxWidth: '100%', height: 'auto', overflow: 'visible' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+      <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="auto" style={{ maxWidth: size, width: '100%', height: 'auto', overflow: 'visible', display: 'block' }}>
         <defs>
           <radialGradient id={glowId} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(201,168,76,0.1)" />
@@ -427,8 +432,8 @@ export function JaiminiAspectChartNorth({
   const getRashiInHouse = (h: number) => ((ascRashi + h - 2) % 12) + 1
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem' }}>
-      <svg viewBox="-10 -10 420 420" width={S} height={S} style={{ maxWidth: '100%', height: 'auto', overflow: 'visible' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+      <svg viewBox="-10 -10 420 420" width="100%" height="auto" style={{ maxWidth: S, width: '100%', height: 'auto', overflow: 'visible', display: 'block' }}>
         {/* ── Chart Skeleton ── */}
         <g stroke="var(--gold-dim)" strokeWidth="1.2" fill="none">
           <rect x="0" y="0" width={S} height={S} />
@@ -622,23 +627,31 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const [chartScale, setChartScale] = useState(1.0);
   const [showArudhaOverlay, setShowArudhaOverlay] = useState(true);
   const [arudhaBphsMode, setArudhaBphsMode] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
   const [isTinyMobile, setIsTinyMobile] = useState(false);
   const [mobileChartVarga, setMobileChartVarga] = useState<'D1' | 'D9'>('D1');
+  const panelRef = useRef<HTMLDivElement>(null);
 
+  // Stack/compact based on actual panel width (accounts for open sidenav), not viewport alone.
   useEffect(() => {
-    const check = () => {
-      const mobile = window.innerWidth < 1024;
-      const tiny = window.innerWidth < 480;
-      setIsMobile(mobile);
+    const el = panelRef.current;
+    if (!el) return;
+
+    const apply = (width: number) => {
+      const stack = width < 960;
+      const tiny = width < BREAKPOINTS.xs;
+      setIsMobile(stack);
       setIsTinyMobile(tiny);
-      // Auto-scale up for mobile if not already set
-      if (tiny) setChartScale(1.15);
-      else if (mobile) setChartScale(1.1);
     };
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
+
+    apply(el.getBoundingClientRect().width);
+
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width;
+      if (typeof w === 'number') apply(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   useEffect(() => {
@@ -832,6 +845,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   ) => {
     const asc = getLagnaForVarga(varga);
     const chartKey = `${varga}-${arudhaBphsMode ? 'bphs' : 'raw'}-${showArudhaOverlay ? 'on' : 'off'}`;
+    const chartMaxPx = Math.round(400 * Math.min(Math.max(chartScale, 0.5), 1.35));
     const chartProps = {
       ascRashi: asc,
       grahas: grahasForChart,
@@ -847,7 +861,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
       karakas,
     };
     return (
-      <div key={chartKey} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+      <div key={chartKey} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: chartMaxPx, minWidth: 0 }}>
         <div style={{
           fontSize: '0.65rem', fontWeight: 900, color: 'var(--gold)',
           letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.35rem',
@@ -873,7 +887,10 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const panelPadBottom = isMobile ? '6rem' : panelPad
 
   return (
-    <div className="fade-up" style={{ 
+    <div
+      ref={panelRef}
+      className="fade-up jaimini-panel"
+      style={{ 
       display: 'flex', flexDirection: 'column', gap: isTinyMobile ? '0.75rem' : '1rem', 
       paddingTop: panelPad,
       paddingLeft: panelPad,
@@ -883,16 +900,22 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
       borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)',
       border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
       color: 'var(--text-primary)',
-      minWidth: 0
+      minWidth: 0,
+      maxWidth: '100%',
+      width: '100%',
+      overflow: 'hidden',
+      boxSizing: 'border-box',
     }}>
       <JaiminiSnapshot chart={chart} isTinyMobile={isTinyMobile} />
       
       {/* ── Main Dashboard Grid ── */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr', 
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.05fr) minmax(0, 0.95fr)', 
         gap: '1.25rem',
-        alignItems: 'start'
+        alignItems: 'start',
+        width: '100%',
+        minWidth: 0,
       }}>
         
         {/* LEFT COLUMN: Hero Visualization (HUD) */}
@@ -1183,12 +1206,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             flexDirection: 'column',
             alignItems: 'center',
             gap: isTinyMobile ? '0.75rem' : '1.25rem',
-            padding: isTinyMobile ? '0.25rem' : '1rem',
-            transform: `scale(${chartScale})`,
-            transformOrigin: 'top center',
-            marginBottom: `${(chartScale - 1) * 800}px`,
+            padding: isTinyMobile ? '0.25rem' : '0.5rem',
             width: '100%',
-            overflow: 'visible'
+            maxWidth: '100%',
+            minWidth: 0,
+            overflow: 'hidden',
+            boxSizing: 'border-box',
           }}>
             {isMobile ? (
               mobileChartVarga === 'D1'
@@ -1272,7 +1295,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           boxShadow: isTinyMobile ? 'none' : 'var(--shadow-card)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1rem'
+          gap: '1rem',
+          minWidth: 0,
+          maxWidth: '100%',
+          overflow: 'hidden',
+          boxSizing: 'border-box',
         }}>
           {!isMobile && (
             <nav className="scrollbar-hide" style={{ 
@@ -1333,8 +1360,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   </div>
 
                   {/* High-Tech Micro-Details Table */}
-                  <div style={{ overflowX: 'auto', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '8px' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isTinyMobile ? '0.65rem' : '0.75rem' }}>
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '8px', maxWidth: '100%', minWidth: 0 }}>
+                    <table style={{ width: '100%', minWidth: isMobile ? 420 : 0, borderCollapse: 'collapse', fontSize: isTinyMobile ? '0.65rem' : '0.75rem' }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-soft)', background: 'var(--surface-2)' }}>
                           <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>BODY</th>

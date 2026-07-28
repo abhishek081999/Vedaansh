@@ -378,7 +378,7 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
         <h3 className="label-caps" style={{ color: 'var(--text-gold)', fontSize: '0.75rem', margin: 0 }}>House Signification Reference</h3>
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', 
           gap: '1rem' 
         }}>
           {HOUSE_INFO.map(info => (

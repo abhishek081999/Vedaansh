@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useChart } from '@/components/providers/ChartProvider'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import Link from 'next/link'
 import type { GrahaData } from '@/types/astrology'
 
@@ -14,7 +15,7 @@ export default function ScrubberPage() {
   const [isMobile, setIsMobile] = useState(false)
 
   React.useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1000)
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)

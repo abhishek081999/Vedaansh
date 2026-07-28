@@ -276,8 +276,16 @@ function DashboardSavChart({
     return CHART_COLOR.rose
   }
 
+  // Inset stroke so the outer border is not clipped by overflow:hidden parents
+  const pad = 1
+  const view = S + pad * 2
+
   return (
-    <svg viewBox={`0 0 ${S} ${S}`} style={{ display: 'block', width: 'min(100%, 260px)', height: 'auto', margin: '0 auto' }}>
+    <svg
+      viewBox={`${-pad} ${-pad} ${view} ${view}`}
+      style={{ display: 'block', width: '100%', height: 'auto', maxWidth: S, margin: '0 auto' }}
+      overflow="visible"
+    >
       {Array.from({ length: 12 }, (_, i) => i + 1).map((houseNo) => {
         const pts = polyPts(houseNo)
         const pos = centroid(pts)
@@ -315,7 +323,7 @@ function DashboardSavChart({
           </g>
         )
       })}
-      <rect width={S} height={S} fill="none" stroke={CHART_COLOR.border} strokeWidth="1" />
+      <rect x={0} y={0} width={S} height={S} fill="none" stroke={CHART_COLOR.border} strokeWidth="1" />
       <text x={S * 0.5} y={S * 0.47} textAnchor="middle" fontSize={S * 0.08} fill={CHART_COLOR.muted} fontWeight={700}>
         {ascRashi}
       </text>
@@ -660,6 +668,8 @@ function HomeContent() {
   const [crmDone,    setCrmDone]    = useState(false)
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
+  const [birthFormKey, setBirthFormKey] = useState(0)
+  const [freshNewChart, setFreshNewChart] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
   const [dashExpandAv, setDashExpandAv] = useState(false)
   const [dashboardAvView, setDashboardAvView] = useState<DashboardAvView>('sav')
@@ -680,20 +690,24 @@ function HomeContent() {
   const [draggingDashboardCard, setDraggingDashboardCard] = useState<'summary' | 'cosmic' | 'planetary' | 'astronomical' | null>(null)
 
   const [isMobile, setIsMobile] = useState(false)
+  const [isPhone, setIsPhone] = useState(false)
   const [mobileHeaderMenuOpen, setMobileHeaderMenuOpen] = useState(false)
   const [mobileDashCategory, setMobileDashCategory] = useState<'astrology' | 'panchang' | 'nakshatra' | 'advanced'>('astrology')
   const [mobileDashTab, setMobileDashTab] = useState<'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'>('astro')
   const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('ashtakavarga')
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
+    const check = () => {
+      setIsMobile(window.innerWidth < BREAKPOINTS.lg)
+      setIsPhone(window.innerWidth < BREAKPOINTS.md)
+    }
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
 
   useEffect(() => {
-    if (!isMobile && mobileHeaderMenuOpen) setMobileHeaderMenuOpen(false)
-  }, [isMobile, mobileHeaderMenuOpen])
+    if (!isPhone && mobileHeaderMenuOpen) setMobileHeaderMenuOpen(false)
+  }, [isPhone, mobileHeaderMenuOpen])
 
   useEffect(() => {
     if (!isMobile) return
@@ -924,11 +938,14 @@ function HomeContent() {
   // 2. Open form if 'new=true' is in URL
   useEffect(() => {
     if (searchParams.get('new') === 'true' && !isFormOpen) {
-      setIsFormOpen(true)
       setChart(null)
+      setChartTags([])
+      setFreshNewChart(true)
+      setBirthFormKey((k) => k + 1)
+      setIsFormOpen(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, setIsFormOpen, setChart]) 
+  }, [searchParams, setIsFormOpen, setChart])
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
@@ -978,6 +995,8 @@ function HomeContent() {
   const startNewChart = React.useCallback(() => {
     setChart(null)
     setChartTags([])
+    setFreshNewChart(true)
+    setBirthFormKey((k) => k + 1)
     setIsFormOpen(true)
     router.push('/?new=true')
   }, [router, setChart, setIsFormOpen])
@@ -1064,6 +1083,7 @@ function HomeContent() {
 
   const closeDrawer = React.useCallback(() => {
     setIsFormOpen(false)
+    setFreshNewChart(false)
     setPendingDestination(null)
     if (searchParams.get('new') === 'true') {
       const params = new URLSearchParams(searchParams.toString())
@@ -1108,9 +1128,13 @@ function HomeContent() {
   }, [defaultChart, searchParams])
 
   const openAstrologyApp = React.useCallback(() => {
+    setChart(null)
+    setChartTags([])
+    setFreshNewChart(true)
+    setBirthFormKey((k) => k + 1)
     setIsFormOpen(true)
     router.push('/?new=true')
-  }, [router, setIsFormOpen])
+  }, [router, setChart, setIsFormOpen])
 
   const openSectionWithChartGate = React.useCallback((href: string, e?: React.MouseEvent<HTMLElement>) => {
     if (routeAllowsWithoutChart(href)) {
@@ -1121,16 +1145,24 @@ function HomeContent() {
     if (!chart && !isAstrologyTarget) {
       e?.preventDefault()
       setPendingDestination(href)
+      setChart(null)
+      setChartTags([])
+      setFreshNewChart(true)
+      setBirthFormKey((k) => k + 1)
       setIsFormOpen(true)
       router.push('/?new=true')
       return
     }
     if (!chart && isAstrologyTarget) {
       e?.preventDefault()
+      setChart(null)
+      setChartTags([])
+      setFreshNewChart(true)
+      setBirthFormKey((k) => k + 1)
       setIsFormOpen(true)
       router.push('/?new=true')
     }
-  }, [chart, router, setIsFormOpen, setPendingDestination])
+  }, [chart, router, setChart, setIsFormOpen, setPendingDestination])
 
   const openMyDefaultChart = React.useCallback(async () => {
     if (!defaultChart) {
@@ -1583,11 +1615,11 @@ function HomeContent() {
          <div key="home-chart" className="fade-up" style={{ minWidth: 0, paddingBottom: showStrengthSubNav && activeTab !== 'dashboard' ? '6rem' : undefined }}>
             
             {/* Compact Header Strip */}
-            <div className="chart-header-row" style={isMobile ? { position: 'relative' } : undefined}>
+            <div className="chart-header-row" style={isPhone ? { position: 'relative' } : undefined}>
               <ChartContextBar
                 chart={chart}
                 tags={chartTags}
-                isMobile={isMobile}
+                isMobile={isPhone}
                 mobileReserveRight={
                   status === 'authenticated'
                     ? 'calc(5 * 34px + 4 * 0.4rem + 0.75rem)'
@@ -1595,7 +1627,7 @@ function HomeContent() {
                 }
               />
 
-              {isMobile && (
+              {isPhone && (
                 <div
                   style={{
                     position: 'absolute',
@@ -1735,7 +1767,7 @@ function HomeContent() {
                   </button>
                 </div>
               )}
-              {isMobile && mobileHeaderMenuOpen && (
+              {isPhone && mobileHeaderMenuOpen && (
                 <>
                   <button
                     type="button"
@@ -1854,7 +1886,7 @@ function HomeContent() {
                 </>
               )}
 
-              <div className="chart-actions-compact" style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+              <div className="chart-actions-compact" style={{ display: isPhone ? 'none' : 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                   {status === 'authenticated' && (
                     <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
                       {saving ? '…' : saveDone ? '✓' : isSavedChart ? 'Update' : '+ Save'}
@@ -2227,13 +2259,15 @@ function HomeContent() {
                         {!chart.ashtakavarga ? (
                           <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</p>
                         ) : dashboardAshtakSummary ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
-                            <DashboardSavChart
-                              sav={dashboardAshtakSummary.values}
-                              ascRashi={chart.lagnas.ascRashi ?? 1}
-                              size={280}
-                              mode={dashboardAshtakSummary.mode}
-                            />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', minWidth: 0, width: '100%' }}>
+                            <div style={{ width: '100%', maxWidth: 280, minWidth: 0 }}>
+                              <DashboardSavChart
+                                sav={dashboardAshtakSummary.values}
+                                ascRashi={chart.lagnas.ascRashi ?? 1}
+                                size={280}
+                                mode={dashboardAshtakSummary.mode}
+                              />
+                            </div>
                             <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.35rem' }}>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.35rem 0.45rem' }}>
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{dashboardAshtakSummary.totalLabel}</div>
@@ -2435,65 +2469,67 @@ function HomeContent() {
                         {!chart.ashtakavarga ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
                         : dashExpandAv ? <AshtakavargaGrid userPlan={userPlan} ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} />
                         : dashboardAshtakSummary ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: 0 }}>
                             <div
                               style={{
-                                display: 'grid',
-                                gridTemplateColumns: '1fr auto',
-                                gap: '0.6rem',
+                                display: 'flex',
+                                flexDirection: 'column',
                                 alignItems: 'center',
-                                padding: '0.35rem',
+                                gap: '0.3rem',
+                                padding: '0.4rem',
                                 border: '1px solid var(--border-soft)',
                                 borderRadius: 'var(--r-sm)',
                                 background: 'var(--surface-1)',
+                                minWidth: 0,
+                                boxSizing: 'border-box',
                               }}
                             >
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                  {dashboardAshtakSummary.title}
-                                </div>
-                                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-gold)', fontFamily: 'var(--font-mono)' }}>
-                                  {dashboardAshtakSummary.total}
-                                  <span style={{ marginLeft: 4, fontSize: '0.62rem', fontWeight: 600, color: 'var(--text-muted)' }}>total · {dashboardAshtakSummary.avg}/sign</span>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.14rem', fontSize: '0.62rem' }}>
-                                  <span style={{ color: 'var(--teal)' }}>
-                                    Strongest: {RASHI_SHORT[dashboardAshtakSummary.highest.sign]} ({dashboardAshtakSummary.highest.val})
-                                  </span>
-                                  <span style={{ color: 'var(--rose)' }}>
-                                    Weakest: {RASHI_SHORT[dashboardAshtakSummary.lowest.sign]} ({dashboardAshtakSummary.lowest.val})
-                                  </span>
-                                </div>
+                              <div style={{
+                                width: '100%',
+                                fontSize: '0.62rem',
+                                color: 'var(--text-muted)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.08em',
+                                textAlign: 'center',
+                              }}>
+                                {dashboardAshtakSummary.title}
                               </div>
-                              <div
-                                style={{
-                                  width: 170,
-                                  maxWidth: '42vw',
-                                  border: '1px solid var(--border-soft)',
-                                  borderRadius: 'var(--r-sm)',
-                                  background: 'var(--surface-1)',
-                                  padding: '0.2rem',
-                                }}
-                              >
+                              <div style={{
+                                width: '100%',
+                                maxWidth: 148,
+                                margin: '0 auto',
+                                minWidth: 0,
+                                boxSizing: 'border-box',
+                              }}>
                                 <DashboardSavChart
                                   sav={dashboardAshtakSummary.values}
                                   ascRashi={chart.lagnas.ascRashi ?? 1}
+                                  size={180}
                                   mode={dashboardAshtakSummary.mode}
                                 />
                               </div>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(70px, 1fr))', gap: '0.35rem' }}>
-                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.35rem' }}>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box', minWidth: 0 }}>
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{dashboardAshtakSummary.totalLabel}</div>
-                                <div style={{ fontSize: '0.82rem', color: 'var(--text-gold)', fontWeight: 800 }}>{dashboardAshtakSummary.total}</div>
+                                <div style={{ fontSize: '0.82rem', color: 'var(--text-gold)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                                  {dashboardAshtakSummary.total}
+                                  <span style={{ marginLeft: 3, fontSize: '0.54rem', fontWeight: 600, color: 'var(--text-muted)' }}>{dashboardAshtakSummary.avg}/sign</span>
+                                </div>
                               </div>
-                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box', minWidth: 0 }}>
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Strong Sign</div>
-                                <div style={{ fontSize: '0.82rem', color: 'var(--teal)', fontWeight: 800 }}>{RASHI_SHORT[dashboardAshtakSummary.highest.sign]}</div>
+                                <div style={{ fontSize: '0.82rem', color: 'var(--teal)', fontWeight: 800 }}>
+                                  {RASHI_SHORT[dashboardAshtakSummary.highest.sign]}
+                                  <span style={{ marginLeft: 3, fontSize: '0.54rem', color: 'var(--text-muted)', fontWeight: 600 }}>({dashboardAshtakSummary.highest.val})</span>
+                                </div>
                               </div>
-                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box', minWidth: 0 }}>
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Weak Sign</div>
-                                <div style={{ fontSize: '0.82rem', color: 'var(--rose)', fontWeight: 800 }}>{RASHI_SHORT[dashboardAshtakSummary.lowest.sign]}</div>
+                                <div style={{ fontSize: '0.82rem', color: 'var(--rose)', fontWeight: 800 }}>
+                                  {RASHI_SHORT[dashboardAshtakSummary.lowest.sign]}
+                                  <span style={{ marginLeft: 3, fontSize: '0.54rem', color: 'var(--text-muted)', fontWeight: 600 }}>({dashboardAshtakSummary.lowest.val})</span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -2918,10 +2954,12 @@ function HomeContent() {
       <ChartFormDrawer open={isFormOpen} onClose={closeDrawer}
         summary={chart ? <ChartSummary chart={chart} /> : undefined}
       >
-            {(status === 'unauthenticated' || !fetchingDefault || !!searchParams.get('name') || !!searchParams.get('new')) && (
+            {(status === 'unauthenticated' || !fetchingDefault || !!searchParams.get('name') || !!searchParams.get('new') || freshNewChart) && (
               <BirthForm
+                key={freshNewChart || searchParams.get('new') === 'true' ? `new-${birthFormKey}` : `edit-${savedChartId || birthFormKey}`}
                 onResult={(data) => {
                   setChart(data)
+                  setFreshNewChart(false)
                   if (savedChartId) {
                     const params = new URLSearchParams(searchParams.toString())
                     params.set('name', data.meta.name)
@@ -2948,8 +2986,11 @@ function HomeContent() {
                 initialTags={chartTags}
                 savedChartId={savedChartId}
                 autoSubmit={!!searchParams.get('name')}
-                initialName="Natal Chart"
-                initialData={chart ? {
+                initialName="Untitled"
+                initialData={
+                  freshNewChart || searchParams.get('new') === 'true'
+                    ? undefined
+                    : chart ? {
                   name: chart.meta.name,
                   birthDate: chart.meta.birthDate,
                   birthTime: chart.meta.birthTime,
@@ -2970,7 +3011,8 @@ function HomeContent() {
                     ...defaultChart.settings,
                     karakaScheme: (defaultChart.settings?.karakaScheme === 8) ? 7 : (defaultChart.settings?.karakaScheme || 7)
                   }
-                } : undefined)}
+                } : undefined)
+                }
               />
             )}
       </ChartFormDrawer>

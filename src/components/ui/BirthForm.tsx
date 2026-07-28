@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/BirthForm.tsx
 //  Birth data entry form with location autocomplete
-//  Defaults: Delhi · current date/time · Asia/Kolkata
+//  Defaults: Untitled · Delhi · current date/time · Asia/Kolkata
 // ─────────────────────────────────────────────────────────────
 'use client'
 
@@ -73,7 +73,7 @@ interface BirthFormProps {
 
 // ── Component ────────────────────────────────────────────────
 
-export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsChange, initialTags = [], initialName = 'Transit', savedChartId = null, initialData }: BirthFormProps) {
+export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsChange, initialTags = [], initialName = 'Untitled', savedChartId = null, initialData }: BirthFormProps) {
   const fieldId = useId()
   const ids = {
     name: `${fieldId}-name`,

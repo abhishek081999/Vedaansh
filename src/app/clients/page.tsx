@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import Link from 'next/link'
 import { BirthForm } from '@/components/ui/BirthForm'
 
@@ -65,7 +66,7 @@ function ClientCard({
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1000)
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
@@ -461,7 +462,7 @@ export default function ClientsPage() {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1100)
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)

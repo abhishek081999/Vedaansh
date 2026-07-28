@@ -25,7 +25,7 @@
 .nowCard {
   display: flex;
   align-items: center;
-  min-width: 300px;
+  min-width: min(100%, 300px);
   max-width: 560px;
   padding: 0.2rem 0.45rem;
   border-radius: 8px;

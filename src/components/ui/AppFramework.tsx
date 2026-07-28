@@ -278,7 +278,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               className="app-header-brand-logo"
             />
             <div className="app-header-brand-text">
-              <span className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}>
+              <span className="fade-in logo-title-header">
                 Vedaansh
               </span>
               <span className="app-header-brand-sub">
@@ -302,7 +302,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             }}
             className="app-header-mobile-dash show-mobile-only"
           >
-            Dashboard
+            Dash
           </Link>
           <nav className="app-header-nav hide-mobile">
             <Link href="/panchang">Panchang</Link>
