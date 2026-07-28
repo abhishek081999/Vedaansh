@@ -656,8 +656,7 @@ function HomeContent() {
   const [acgNatalData, setAcgNatalData] = useState<any[]>([])
   const searchParams = useSearchParams()
   const router = useRouter()
-  const savedChartId = searchParams.get('chartId')
-  const isSavedChart = Boolean(savedChartId && status === 'authenticated')
+  const urlChartId = searchParams.get('chartId')
 
   const [loading,    setLoading]    = useState(false)
   const [saving,     setSaving]     = useState(false)
@@ -670,6 +669,21 @@ function HomeContent() {
   const [fetchingDefault, setFetchingDefault] = useState(false)
   const [birthFormKey, setBirthFormKey] = useState(0)
   const [freshNewChart, setFreshNewChart] = useState(false)
+
+  // Own Chart loads without ?chartId= — still treat it as a library chart when birth data matches
+  const isNewChartSession = freshNewChart || searchParams.get('new') === 'true'
+  const matchesOwnChart = Boolean(
+    !isNewChartSession &&
+    !urlChartId &&
+    chart &&
+    defaultChart?.chartId &&
+    chart.meta.birthDate === defaultChart.birthDate &&
+    chart.meta.birthTime === defaultChart.birthTime &&
+    Number(chart.meta.latitude) === Number(defaultChart.latitude) &&
+    Number(chart.meta.longitude) === Number(defaultChart.longitude),
+  )
+  const savedChartId = urlChartId || (matchesOwnChart ? String(defaultChart.chartId) : null)
+  const isSavedChart = Boolean(savedChartId && status === 'authenticated')
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
   const [dashExpandAv, setDashExpandAv] = useState(false)
   const [dashboardAvView, setDashboardAvView] = useState<DashboardAvView>('sav')
@@ -1183,10 +1197,22 @@ function HomeContent() {
       const json = await res.json()
       if (json.success) {
         setChart(json.data)
+        setFreshNewChart(false)
         if (Array.isArray(defaultChart?.tags)) {
           setChartTags(defaultChart.tags)
         }
-        router.push('/')
+        // Keep chartId in URL so edit form / save treat this as a library chart
+        const params = new URLSearchParams({
+          name: String(defaultChart.name ?? json.data.meta.name ?? ''),
+          birthDate: String(defaultChart.birthDate ?? json.data.meta.birthDate),
+          birthTime: String(defaultChart.birthTime ?? json.data.meta.birthTime),
+          birthPlace: String(defaultChart.birthPlace ?? json.data.meta.birthPlace),
+          lat: String(defaultChart.latitude ?? json.data.meta.latitude),
+          lng: String(defaultChart.longitude ?? json.data.meta.longitude),
+          tz: String(defaultChart.timezone ?? json.data.meta.timezone),
+        })
+        if (defaultChart.chartId) params.set('chartId', String(defaultChart.chartId))
+        router.push(`/?${params.toString()}`)
       }
     } catch (error) {
       console.error('Default chart load failed', error)
