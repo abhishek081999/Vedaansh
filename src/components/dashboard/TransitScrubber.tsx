@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, useId } from 'react'
 import dynamic from 'next/dynamic'
 import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
 import { RASHI_SHORT } from '@/types/astrology'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import styles from './transit-scrubber.module.css'
 import { TransitDetailsPanels } from './TransitDetailsPanels'
 import { TransitInsightsPanels } from './TransitInsightsPanels'
@@ -103,7 +104,7 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
   const timeSliderMinutes = timeToMinutes(targetTime)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1000)
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)

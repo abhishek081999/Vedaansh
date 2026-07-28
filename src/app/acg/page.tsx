@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import { useChart } from '@/components/providers/ChartProvider'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import Link from 'next/link'
 import { Globe, Map, Sparkles, BookOpen } from 'lucide-react'
 import type { ACGAnalysisTab } from '@/components/ui/AstroCartographyAnalysis'
@@ -22,7 +23,7 @@ export default function ACGPage() {
   const [mobileView, setMobileView] = useState<MobileView>('map')
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    const checkMobile = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)

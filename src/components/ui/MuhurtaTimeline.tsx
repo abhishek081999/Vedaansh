@@ -13,6 +13,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/primitives/Spinner'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { MuhurtaDiagnostics } from './MuhurtaDiagnostics';
 
 interface TimelineDataPoint {
@@ -41,7 +42,7 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   React.useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 900);
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);

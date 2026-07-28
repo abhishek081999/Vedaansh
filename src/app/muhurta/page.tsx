@@ -14,6 +14,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import { calcTaraBala, calcChandraBala } from '@/lib/engine/muhurtaPersonal'
@@ -241,7 +242,7 @@ export default function MuhurtaPage() {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1100)
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)

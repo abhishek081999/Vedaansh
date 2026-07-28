@@ -1,5 +1,5 @@
 .main {
-  maxWidth: 1000px;
+  max-width: 1000px;
   width: 100%;
   margin: 0 auto;
   padding: clamp(1rem, 4vw, 2.5rem) clamp(0.75rem, 3vw, 1.5rem);
@@ -66,12 +66,12 @@
 
 .dateInput {
   padding: 0.5rem 0.75rem;
-  borderRadius: var(--r-md);
+  border-radius: var(--r-md);
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text-primary);
-  fontFamily: var(--font-mono);
-  fontSize: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
   outline: none;
   flex: 1 1 auto;
 }
@@ -85,64 +85,64 @@
 .navButton {
   background: var(--surface-2);
   border: 1px solid var(--border);
-  borderRadius: var(--r-md);
+  border-radius: var(--r-md);
   padding: 0.5rem 0.75rem;
   cursor: pointer;
   color: var(--text-secondary);
-  fontSize: 0.9rem;
+  font-size: 0.9rem;
 }
 
 .todayButton {
   background: rgba(201,168,76,0.1);
   border: 1px solid rgba(201,168,76,0.2);
-  borderRadius: var(--r-md);
+  border-radius: var(--r-md);
   padding: 0.5rem 1rem;
   cursor: pointer;
   color: var(--text-gold);
-  fontSize: 0.85rem;
-  fontWeight: 600;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .select {
   flex: 1;
-  minWidth: 160px;
+  min-width: 160px;
   padding: 0.4rem 0.5rem;
-  borderRadius: var(--r-sm);
+  border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text-primary);
-  fontSize: 0.8rem;
+  font-size: 0.8rem;
 }
 
 .natalButton {
   padding: 0.4rem 0.75rem;
-  fontSize: 0.75rem;
-  fontWeight: 600;
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
-  borderRadius: var(--r-sm);
+  border-radius: var(--r-sm);
   border: 1px solid rgba(201,168,76,0.2);
   background: rgba(201,168,76,0.05);
   color: var(--text-gold);
 }
 
 .loadingContainer {
-  textAlign: center;
+  text-align: center;
   padding: 4rem 0;
 }
 
 .loadingText {
-  fontFamily: var(--font-display);
-  fontStyle: italic;
+  font-family: var(--font-display);
+  font-style: italic;
   color: var(--text-muted);
 }
 
 .errorMessage {
   padding: 1rem;
-  borderRadius: var(--r-md);
+  border-radius: var(--r-md);
   background: rgba(224,123,142,0.1);
   border: 1px solid rgba(224,123,142,0.2);
   color: var(--rose);
-  textAlign: center;
+  text-align: center;
 }
 
 @media (max-width: 640px) {
@@ -150,16 +150,16 @@
     padding: 1rem 0.75rem;
     gap: 1.25rem;
   }
-  
+
   .selectorCard {
     padding: 1rem;
     gap: 1rem;
   }
-  
+
   .datePickerGroup {
     width: 100%;
   }
-  
+
   .locationGroup {
     flex: 1 1 100%;
   }
@@ -180,5 +180,10 @@
   .navButton, .todayButton {
     flex: 1;
     text-align: center;
+  }
+
+  .select {
+    min-width: 0;
+    width: 100%;
   }
 }

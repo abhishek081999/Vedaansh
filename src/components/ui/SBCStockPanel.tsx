@@ -485,7 +485,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
         {/* ════ LIVE SIGNAL ════ */}
         {activeTab === 'signal' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1.5rem' }}>
 
             {/* Main signal card */}
             <div style={{ background: `${signal.color}0a`, border: `2px solid ${signal.color}35`, borderRadius: 16, padding: '1.5rem' }}>
@@ -661,7 +661,7 @@ export function SBCStockPanel({ pulse, tithi, transitDate, transitRaw, analysis 
 
         {/* ════ DAILY PLAN ════ */}
         {activeTab === 'daily' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1.5rem' }}>
 
             {/* Step-by-step morning ritual */}
             <div>

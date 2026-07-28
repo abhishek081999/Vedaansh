@@ -346,7 +346,7 @@ function CompareContent() {
             )}
 
             {/* View Tabs */}
-            <div className="no-print" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+            <div className="compare-tabs no-print" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
               {([
                 ['ashtakoot', '🎎 Ashtakoot (36 Point)'],
                 ['doshas', '⚔️ Dosha Analysis'],
@@ -477,7 +477,7 @@ function CompareContent() {
 
             {/* Charts View */}
             {(view === 'charts' || view === 'all') && (
-              <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+              <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
                 <div>
                    <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-gold)', fontWeight: 800 }}>{chartA.meta.name}</h3>
                    <VargaSwitcher vargas={chartA.vargas} vargaLagnas={chartA.vargaLagnas ?? {}} ascRashi={chartA.lagnas.ascRashi} lagnas={chartA.lagnas} arudhas={chartA.arudhas} userPlan={userPlan} direction="column" />
@@ -546,7 +546,7 @@ function CompareContent() {
 
             {/* Other detailed views */}
             {(view === 'ashtakavarga' || view === 'all') && chartA.ashtakavarga && chartB.ashtakavarga && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1.5rem' }}>
                 {[chartA, chartB].map((chart, i) => (
                   <div key={i} className="card" style={{ padding: '0.75rem' }}>
                     <div style={{ textAlign: 'center', fontWeight: 800, color: i === 0 ? 'var(--text-gold)' : 'var(--accent)', marginBottom: '0.75rem' }}>
@@ -567,7 +567,7 @@ function CompareContent() {
             )}
 
             {(['dasha', 'panchang'].includes(view) || view === 'all') && (
-               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
                   {[chartA, chartB].map((chart, i) => (
                     <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                        <div style={{ textAlign: 'center', fontWeight: 800, color: i === 0 ? 'var(--text-gold)' : 'var(--accent)' }}>{chart.meta.name}</div>

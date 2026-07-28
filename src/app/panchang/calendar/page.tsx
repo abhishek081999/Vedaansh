@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 
@@ -81,7 +82,7 @@ function dateStr(year: number, month: number, day: number): string {
 
 // ── Day cell ──────────────────────────────────────────────────
 function DayCell({
-  date, day, isToday, data, onClick, selected,
+  date, day, isToday, data, onClick, selected, compact = false,
 }: {
   key?:     string
   date:     string
@@ -90,6 +91,7 @@ function DayCell({
   data:     DayData | 'loading' | 'error' | undefined
   onClick:  () => void
   selected: boolean
+  compact?: boolean
 }) {
   const isLoading = data === 'loading'
   const isError   = data === 'error'
@@ -101,7 +103,7 @@ function DayCell({
     <div
       onClick={onClick}
       style={{
-        minHeight: 90,
+        minHeight: compact ? 64 : 90,
         background: selected
           ? 'rgba(139,124,246,0.15)'
           : isToday
@@ -110,7 +112,7 @@ function DayCell({
         border: `1px solid ${selected ? 'rgba(139,124,246,0.50)' : isToday ? 'rgba(201,168,76,0.45)' : 'var(--border-soft)'}`,
         borderTop: `3px solid ${isLoading || isError ? 'var(--border)' : varaCol}`,
         borderRadius: 'var(--r-sm)',
-        padding: '0.35rem 0.4rem',
+        padding: compact ? '0.25rem 0.2rem' : '0.35rem 0.4rem',
         cursor: 'pointer',
         transition: 'border-color 0.15s, background 0.15s',
         display: 'flex',
@@ -143,7 +145,7 @@ function DayCell({
         <>
           {/* Tithi */}
           <div style={{
-            fontSize: '0.65rem', fontWeight: 600,
+            fontSize: compact ? '0.55rem' : '0.65rem', fontWeight: 600,
             fontFamily: 'var(--font-display)',
             color: d.tithi.paksha === 'shukla' ? 'var(--text-gold)' : 'var(--text-muted)',
             lineHeight: 1.2,
@@ -151,34 +153,38 @@ function DayCell({
           }}>
             <span>{PAKSHA_SYMBOL[d.tithi.paksha]}</span>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {d.tithi.name}
+              {compact ? d.tithi.name.slice(0, 6) : d.tithi.name}
             </span>
           </div>
 
-          {/* Nakshatra */}
-          <div style={{
-            fontSize: '0.6rem', color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-display)', fontStyle: 'italic',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            ⭐ {d.nakshatra.name} P{d.nakshatra.pada}
-          </div>
+          {!compact && (
+            <>
+              {/* Nakshatra */}
+              <div style={{
+                fontSize: '0.6rem', color: 'var(--text-secondary)',
+                fontFamily: 'var(--font-display)', fontStyle: 'italic',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                ⭐ {d.nakshatra.name} P{d.nakshatra.pada}
+              </div>
 
-          {/* Yoga */}
-          <div style={{
-            fontSize: '0.58rem', color: d.yoga.quality === 'auspicious'
-              ? 'var(--teal)' : d.yoga.quality === 'inauspicious'
-              ? 'var(--rose)' : 'var(--text-muted)',
-            fontFamily: 'var(--font-display)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            ☯ {d.yoga.name}
-          </div>
+              {/* Yoga */}
+              <div style={{
+                fontSize: '0.58rem', color: d.yoga.quality === 'auspicious'
+                  ? 'var(--teal)' : d.yoga.quality === 'inauspicious'
+                  ? 'var(--rose)' : 'var(--text-muted)',
+                fontFamily: 'var(--font-display)',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                ☯ {d.yoga.name}
+              </div>
+            </>
+          )}
 
           {/* Bhadra warning */}
           {d.karana.isBhadra && (
-            <div style={{ fontSize: '0.55rem', color: 'var(--rose)', fontWeight: 700 }}>
-              ⚠ Bhadra
+            <div style={{ fontSize: compact ? '0.5rem' : '0.55rem', color: 'var(--rose)', fontWeight: 700 }}>
+              ⚠{compact ? '' : ' Bhadra'}
             </div>
           )}
         </>
@@ -262,9 +268,17 @@ export default function MonthlyPanchangPage() {
   const [month,    setMonth]    = useState(todayMonth)
   const [dayMap,   setDayMap]   = useState<DayMap>({})
   const [selected, setSelected] = useState<string | null>(today)
+  const [isCompact, setIsCompact] = useState(false)
   const fetchQueue = useRef<Set<string>>(new Set())
 
   const [location, setLocation] = useState<LocationValue>(getSavedLocation)
+
+  useEffect(() => {
+    const check = () => setIsCompact(window.innerWidth < BREAKPOINTS.md)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   // Fetch a single day
   const fetchDay = useCallback(async (date: string) => {
@@ -314,38 +328,41 @@ export default function MonthlyPanchangPage() {
 
       {/* Header */}
       <header style={{
-        padding: '0 2rem', height: '3.75rem',
+        padding: isCompact ? '0 0.85rem' : '0 2rem', height: '3.75rem',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 50,
         background: 'var(--header-bg)', borderBottom: '1px solid var(--border-soft)',
+        gap: '0.5rem',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '0.5rem' : '1rem', minWidth: 0, overflow: 'hidden' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', flexShrink: 0 }}>
             <Image src="/veda-icon.png" alt="Vedaansh" width={22} height={22} style={{ objectFit: 'contain' }} />
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
+            {!isCompact && (
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
+            )}
           </Link>
-          <span style={{ color: 'var(--border)', fontSize: '1rem' }}>|</span>
-          <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+          {!isCompact && <span style={{ color: 'var(--border)', fontSize: '1rem' }}>|</span>}
+          <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: isCompact ? '0.8rem' : '0.9rem', color: 'var(--text-secondary)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
             Daily Panchang
           </Link>
         </div>
         <ThemeToggle />
       </header>
 
-      <main style={{ flex: 1, maxWidth: 1100, width: '100%', margin: '0 auto', padding: 'clamp(1rem,3vw,2rem)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <main style={{ flex: 1, maxWidth: 1100, width: '100%', margin: '0 auto', padding: 'clamp(0.75rem,3vw,2rem)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
         {/* Month navigator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
           <button onClick={prevMonth} style={{
             background: 'var(--surface-2)', border: '1px solid var(--border)',
-            borderRadius: 'var(--r-md)', padding: '0.4rem 0.9rem',
+            borderRadius: 'var(--r-md)', padding: isCompact ? '0.35rem 0.65rem' : '0.4rem 0.9rem',
             cursor: 'pointer', color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-display)', fontSize: '1rem',
-          }}>← Prev</button>
+            fontFamily: 'var(--font-display)', fontSize: isCompact ? '0.85rem' : '1rem',
+          }}>{isCompact ? '←' : '← Prev'}</button>
 
-          <div style={{ flex: 1, textAlign: 'center' }}>
+          <div style={{ flex: '1 1 140px', textAlign: 'center', minWidth: 0 }}>
             <h1 style={{
-              fontFamily: 'var(--font-display)', fontSize: 'clamp(1.2rem, 3vw, 1.75rem)',
+              fontFamily: 'var(--font-display)', fontSize: 'clamp(1.1rem, 3vw, 1.75rem)',
               fontWeight: 600, color: 'var(--text-primary)', margin: 0,
             }}>
               {MONTHS[month]} {year}
@@ -362,10 +379,10 @@ export default function MonthlyPanchangPage() {
 
           <button onClick={nextMonth} style={{
             background: 'var(--surface-2)', border: '1px solid var(--border)',
-            borderRadius: 'var(--r-md)', padding: '0.4rem 0.9rem',
+            borderRadius: 'var(--r-md)', padding: isCompact ? '0.35rem 0.65rem' : '0.4rem 0.9rem',
             cursor: 'pointer', color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-display)', fontSize: '1rem',
-          }}>Next →</button>
+            fontFamily: 'var(--font-display)', fontSize: isCompact ? '0.85rem' : '1rem',
+          }}>{isCompact ? '→' : 'Next →'}</button>
 
           {(year !== todayYear || month !== todayMonth) && (
             <button onClick={() => { setYear(todayYear); setMonth(todayMonth); setSelected(today) }} style={{
@@ -377,34 +394,35 @@ export default function MonthlyPanchangPage() {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap', flexDirection: isCompact ? 'column' : 'row' }}>
 
           {/* Calendar grid */}
-          <div style={{ flex: '1 1 600px', minWidth: 0 }}>
+          <div style={{ flex: isCompact ? '1 1 100%' : '1 1 600px', minWidth: 0, width: isCompact ? '100%' : undefined, overflowX: isCompact ? 'auto' : undefined, WebkitOverflowScrolling: 'touch' }}>
             {/* Weekday headers */}
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)',
-              gap: 4, marginBottom: 4,
+              gap: isCompact ? 2 : 4, marginBottom: 4,
+              minWidth: isCompact ? 280 : undefined,
             }}>
               {WEEKDAYS.map((d, i) => (
                 <div key={d} style={{
                   textAlign: 'center',
-                  fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.07em',
+                  fontSize: isCompact ? '0.58rem' : '0.68rem', fontWeight: 700, letterSpacing: '0.07em',
                   textTransform: 'uppercase',
                   color: i === 0 ? 'var(--rose)' : i === 6 ? 'var(--accent)' : 'var(--text-muted)',
                   fontFamily: 'var(--font-display)',
                   padding: '0.3rem 0',
                 }}>
-                  {d}
+                  {isCompact ? d.slice(0, 2) : d}
                 </div>
               ))}
             </div>
 
             {/* Day grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isCompact ? 2 : 4, minWidth: isCompact ? 280 : undefined }}>
               {/* Empty cells before first day */}
               {Array.from({ length: firstDay }, (_, i) => (
-                <div key={`empty-${i}`} style={{ minHeight: 90 }} />
+                <div key={`empty-${i}`} style={{ minHeight: isCompact ? 64 : 90 }} />
               ))}
 
               {/* Day cells */}
@@ -419,6 +437,7 @@ export default function MonthlyPanchangPage() {
                     isToday={date === today}
                     data={dayMap[date]}
                     selected={selected === date}
+                    compact={isCompact}
                     onClick={() => setSelected(date === selected ? null : date)}
                   />
                 )
@@ -427,7 +446,13 @@ export default function MonthlyPanchangPage() {
           </div>
 
           {/* Detail panel */}
-          <div style={{ flex: '0 0 220px', minWidth: 200, position: 'sticky', top: '5rem' }}>
+          <div style={{
+            flex: isCompact ? '1 1 100%' : '0 0 220px',
+            minWidth: isCompact ? 0 : 200,
+            width: isCompact ? '100%' : undefined,
+            position: isCompact ? 'static' : 'sticky',
+            top: '5rem',
+          }}>
             {/* Legend */}
             <div style={{
               background: 'var(--surface-2)', border: '1px solid var(--border)',

@@ -22,6 +22,7 @@ import {
   Grid3X3, TrendingUp, Globe, Flame, Zap, Heart, Pill, Sparkles, LineChart,
 } from 'lucide-react'
 import { ThemeToggle }     from '@/components/ui/ThemeToggle'
+import { BREAKPOINTS }     from '@/lib/ui/breakpoints'
 import { useChart }        from '@/components/providers/ChartProvider'
 import { SarvatobhadraChakra } from '@/components/ui/SarvatobhadraChakra'
 import { SBCStockPanel }    from '@/components/ui/SBCStockPanel'
@@ -254,13 +255,13 @@ export default function SBCPage() {
   const [expandedUC,    setExpandedUC]    = useState<string | null>(null)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1100)
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check(); window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
 
   useEffect(() => {
-    if (isMobile) setGridSize(Math.min(window.innerWidth - 36, 560))
+    if (isMobile) setGridSize(Math.min(window.innerWidth - 32, 560))
     else           setGridSize(700)
   }, [isMobile])
 

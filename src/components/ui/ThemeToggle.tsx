@@ -56,21 +56,10 @@ export function ThemeToggle() {
   return (
     <button
       id="theme-toggle-btn"
+      className="theme-toggle-btn"
       onClick={toggle}
       aria-label={`Switch to ${label} theme`}
       title={`Switch to ${label} theme`}
-      style={{
-        background: 'var(--surface-3)',
-        border: '1px solid var(--border)',
-        borderRadius: '99px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.35rem',
-        padding: '0.35rem 0.75rem',
-        transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s',
-        color: 'var(--text-secondary)',
-      }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = 'var(--border-bright)'
         e.currentTarget.style.boxShadow = '0 0 12px var(--glow-gold-sm)'
@@ -80,21 +69,13 @@ export function ThemeToggle() {
         e.currentTarget.style.boxShadow = 'none'
       }}
     >
-      <span style={{
-        display: 'inline-block',
-        transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s',
-        transform,
-        fontSize: '1rem',
-        lineHeight: 1,
-      }}>
+      <span
+        className="theme-toggle-icon"
+        style={{ transform }}
+      >
         {icon}
       </span>
-      <span style={{
-        fontSize: '0.72rem',
-        fontFamily: 'var(--font-display)',
-        letterSpacing: '0.06em',
-        textTransform: 'uppercase',
-      }}>
+      <span className="theme-toggle-label">
         {label}
       </span>
     </button>
