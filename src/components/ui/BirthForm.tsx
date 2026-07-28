@@ -96,12 +96,17 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
 
   const { data: session } = useSession()
   const [name, setName] = useState(initialData?.name || initialName)
-  const [saveToLibrary, setSaveToLibrary] = useState(false)
+  // Pre-check when editing an already-saved library chart
+  const [saveToLibrary, setSaveToLibrary] = useState(!!savedChartId)
   const [saveTags, setSaveTags] = useState<string[]>(initialTags)
 
   useEffect(() => {
     setSaveTags(initialTags)
   }, [initialTags])
+
+  useEffect(() => {
+    if (savedChartId) setSaveToLibrary(true)
+  }, [savedChartId])
   const [date, setDate] = useState(initialData?.birthDate || todayDate)
   const [time, setTime] = useState(initialData?.birthTime || nowTime)
   const [place, setPlace] = useState(initialData?.birthPlace || DELHI_DEFAULT.place)
