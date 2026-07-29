@@ -27,7 +27,7 @@ import {
   EXALTATION_SIGN, DEBILITATION_SIGN, OWN_SIGNS, MOOLATRIKONA_SIGN,
 } from '@/lib/engine/dignity'
 import { getNakshatra, getTithi, getVara, getYoga } from '@/lib/engine/nakshatra'
-import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
+import { calcVimshottari, expandVimshottariNode } from '@/lib/engine/dasha/vimshottari'
 import type { GrahaId, Rashi } from '@/types/astrology'
 
 // ── Test constants ────────────────────────────────────────────
@@ -718,6 +718,20 @@ describe('Vimshottari Dasha — extended', () => {
     const currentPratyantar = currentAntar.children.find(d => d.isCurrent)!
     const currentSukshma = currentPratyantar.children.find(d => d.isCurrent)!
     expect(currentSukshma.children).toHaveLength(9)
+  })
+
+  it('expandVimshottariNode fills Prana/Deha for non-current lords', () => {
+    const dashas = calcVimshottari(moonSid, birthDate, 6)
+    const otherMaha = dashas.find(d => !d.isCurrent)!
+    const sukshma = otherMaha.children[0].children[0].children[0]
+    expect(sukshma.level).toBe(4)
+    expect(sukshma.children).toHaveLength(0)
+    const prana = expandVimshottariNode(sukshma, 5)
+    expect(prana).toHaveLength(9)
+    expect(prana[0].level).toBe(5)
+    const deha = expandVimshottariNode(prana[0], 6)
+    expect(deha).toHaveLength(9)
+    expect(deha[0].level).toBe(6)
   })
 
   it('All 9 Maha Dasha lords are distinct', () => {

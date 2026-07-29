@@ -168,6 +168,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
 
   useEffect(() => {
     if (didAutoSubmit.current) return
+    // Blank "new chart" session — never hydrate/submit from leftover URL birth params
+    if (searchParams.get('new') === 'true') return
 
     const pName = searchParams.get('name')
     const pDate = searchParams.get('birthDate')

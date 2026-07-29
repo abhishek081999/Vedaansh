@@ -3,9 +3,10 @@
 //  src/components/dasha/DashaTree.tsx  — Compact flat layout
 // ─────────────────────────────────────────────────────────────
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import type { DashaNode } from '@/types/astrology'
 import { NAKSHATRA_NAMES, NAKSHATRA_SHORT } from '@/types/astrology'
+import { expandVimshottariNode } from '@/lib/engine/dasha/vimshottari'
 
 const GRAHA_NAME: Record<string, string> = {
   Su: 'Sun',  Mo: 'Moon',  Ma: 'Mars', Me: 'Mercury',
@@ -62,20 +63,33 @@ function nakshatraDisplay(idx: number, compact = false): string {
     : (NAKSHATRA_NAMES[idx] ?? NAKSHATRA_SHORT[idx] ?? '')
 }
 
+function dashaNodeKey(n: DashaNode): string {
+  const t = n.start instanceof Date ? n.start.getTime() : new Date(n.start).getTime()
+  return `${n.level}:${n.lord}:${t}`
+}
+
 export function DashaTree({
   nodes,
   birthDate,
   showNakshatra = false,
+  /** 1=Maha … 6=Deha. Free=4; Gold/Platinum Vimshottari=6 (lazy-expands non-current Prana/Deha). */
+  maxDepth = 4,
+  /** Pass true when viewing Tribhagi Vimshottari so lazy sub-periods use ÷3 year map. */
+  tribhagi = false,
 }: {
   nodes: DashaNode[]
   birthDate: Date
   /** Tribhagi Vimshottari: show linked nakshatra on mahadasha rows */
   showNakshatra?: boolean
+  maxDepth?: number
+  tribhagi?: boolean
 }) {
   const [activePath, setActivePath] = useState<DashaNode[]>([])
   const [currentPath, setCurrentPath] = useState<DashaNode[]>([])
   const [isMobile, setIsMobile] = useState(false)
   const [showTimeOnMobile, setShowTimeOnMobile] = useState(false)
+  /** Lazily computed children for pruned non-current branches (levels 5–6). */
+  const [lazyChildren, setLazyChildren] = useState<Record<string, DashaNode[]>>({})
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640)
@@ -93,13 +107,31 @@ export function DashaTree({
     }
     setActivePath([])   // default: show root MD list; use "Current" button to drill down
     setCurrentPath(path)
+    setLazyChildren({})
   }, [nodes])
+
+  const resolveChildren = useCallback((node: DashaNode): DashaNode[] => {
+    if (node.children?.length) return node.children
+    return lazyChildren[dashaNodeKey(node)] ?? []
+  }, [lazyChildren])
+
+  const ensureChildren = useCallback((node: DashaNode): DashaNode[] => {
+    const existing = resolveChildren(node)
+    if (existing.length > 0) return existing
+    if (node.level >= maxDepth) return []
+    const built = expandVimshottariNode(node, Math.min(node.level + 1, maxDepth), { tribhagi })
+    if (built.length > 0) {
+      setLazyChildren(prev => ({ ...prev, [dashaNodeKey(node)]: built }))
+    }
+    return built
+  }, [resolveChildren, maxDepth, tribhagi])
 
   const currentList = useMemo(() => {
     if (activePath.length === 0) return nodes
     const last = activePath[activePath.length - 1]
-    return last.children.length > 0 ? last.children : [last]
-  }, [nodes, activePath])
+    const kids = resolveChildren(last)
+    return kids.length > 0 ? kids : [last]
+  }, [nodes, activePath, resolveChildren])
 
   const currentLevel = currentList[0]?.level ?? 1
   const baseSize = isMobile ? 0.8 : 0.85
@@ -120,9 +152,14 @@ export function DashaTree({
 
   const fullCurrentCode = currentPath.map(n => n.lord).join('/')
 
+  function canExpand(node: DashaNode): boolean {
+    return resolveChildren(node).length > 0 || node.level < maxDepth
+  }
+
   function handleNavigate(node: DashaNode, depth: number) {
     if (depth < activePath.length) { setActivePath(activePath.slice(0, depth + 1)); return }
-    if (node.children?.length) setActivePath([...activePath, node])
+    const kids = ensureChildren(node)
+    if (kids.length) setActivePath([...activePath, { ...node, children: kids }])
   }
 
   const codePathForNode = (node: DashaNode) =>
@@ -233,7 +270,7 @@ export function DashaTree({
       }}>
         <div style={{ minWidth: (isMobile && showTimeOnMobile) ? '380px' : 'auto' }}>
           {currentList.map((node, idx) => {
-            const hasChildren = node.children?.length > 0
+            const expandable = canExpand(node)
             const color = GRAHA_COLOR[node.lord] ?? 'var(--text-muted)'
             // Highlight the actual running period at every depth (MD → AD → PD → …)
             const isActiveRow = !!node.isCurrent
@@ -241,14 +278,14 @@ export function DashaTree({
               <button
                 key={`${node.lord}-${node.start}-${idx}`}
                 type="button"
-                onClick={() => hasChildren && handleNavigate(node, activePath.length)}
+                onClick={() => expandable && handleNavigate(node, activePath.length)}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: isMobile ? '0.35rem' : '0.5rem',
                   textAlign: 'left', border: 'none',
                   borderBottom: idx === currentList.length - 1 ? 'none' : '1px solid var(--border-soft)',
                   padding: isMobile ? '0.25rem 0.4rem' : '0.3rem 0.55rem',
                   background: isActiveRow ? 'rgba(78,205,196,0.09)' : 'transparent',
-                  cursor: hasChildren ? 'pointer' : 'default',
+                  cursor: expandable ? 'pointer' : 'default',
                   borderLeft: isActiveRow ? `2px solid var(--teal)` : `2px solid transparent`,
                 }}
               >
@@ -303,7 +340,7 @@ export function DashaTree({
                 {isActiveRow && (
                   <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--teal)', whiteSpace: 'nowrap' }}>●</span>
                 )}
-                {hasChildren && (
+                {expandable && (
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>›</span>
                 )}
               </button>

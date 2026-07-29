@@ -22,6 +22,34 @@ export const VIMSHOTTARI_TRIBHAGI_TOTAL = VIMSHOTTARI_TOTAL / 3
 export interface VimshottariOptions {
   /** Tribhagi: 3×40-year cycles; each mahadasha duration ÷3 (PyJHora-style) */
   tribhagi?: boolean
+  /**
+   * When true, build every branch to `depth` (no current-period pruning).
+   * Default false: levels 5–6 (Prana/Deha) only on the running branch — keeps JSON ~1MB.
+   * Prefer {@link expandVimshottariNode} for on-demand drill-down in the UI.
+   */
+  expandAllBranches?: boolean
+}
+
+/** Year map / cycle total for standard or Tribhagi Vimshottari (for lazy UI expansion). */
+export function vimshottariYearParams(tribhagi = false): {
+  yearsMap: Record<string, number>
+  cycleTotal: number
+  useSiderealYear: boolean
+} {
+  if (!tribhagi) {
+    return {
+      yearsMap: VIMSHOTTARI_YEARS,
+      cycleTotal: VIMSHOTTARI_TOTAL,
+      useSiderealYear: false,
+    }
+  }
+  return {
+    yearsMap: Object.fromEntries(
+      Object.entries(VIMSHOTTARI_YEARS).map(([k, v]) => [k, v / 3]),
+    ),
+    cycleTotal: VIMSHOTTARI_TRIBHAGI_TOTAL,
+    useSiderealYear: true,
+  }
 }
 
 // Sequence of Dasha lords (fixed order)
@@ -92,13 +120,8 @@ export function calcVimshottari(
   options: VimshottariOptions = {},
 ): DashaNode[] {
   const tribhagi = options.tribhagi === true
-  const tribFactor = tribhagi ? 1 / 3 : 1
-  const yearsMap: Record<string, number> = tribhagi
-    ? Object.fromEntries(
-        Object.entries(VIMSHOTTARI_YEARS).map(([k, v]) => [k, v * tribFactor]),
-      )
-    : VIMSHOTTARI_YEARS
-  const cycleTotal = VIMSHOTTARI_TOTAL * tribFactor
+  const expandAllBranches = options.expandAllBranches === true
+  const { yearsMap, cycleTotal, useSiderealYear } = vimshottariYearParams(tribhagi)
   const cycles = tribhagi ? 3 : 1
 
   // ── Step 1: Find birth Nakshatra and lord ────────────────
@@ -118,7 +141,6 @@ export function calcVimshottari(
   const remainingFraction = 1 - traversedFraction
 
   const balanceYears = remainingFraction * yearsMap[birthLord]
-  const useSiderealYear = tribhagi
 
   // ── Step 3: Build Maha Dasha sequence ────────────────────
   const birthLordIdx = dashaIndex(birthLord)
@@ -155,7 +177,10 @@ export function calcVimshottari(
         isCurrent: now >= start.getTime() && now < end.getTime(),
         ...(nakshatraIdx !== undefined ? { nakshatraIndex: nakshatraIdx } : {}),
         children: depth > 1
-          ? buildSubDashas(lord, start, end, durationMs, 2, depth, now, yearsMap, cycleTotal, useSiderealYear)
+          ? buildSubDashas(
+              lord, start, end, durationMs, 2, depth, now,
+              yearsMap, cycleTotal, useSiderealYear, expandAllBranches,
+            )
           : [],
       })
 
@@ -165,6 +190,38 @@ export function calcVimshottari(
   }
 
   return nodes
+}
+
+/**
+ * Lazily build the next sub-period level(s) under a parent node.
+ * Used by the UI so Gold/Platinum can drill any lord to Prana/Deha without
+ * embedding the full ~600k-node tree in the chart API response.
+ *
+ * @param parent   Node to expand (e.g. a Sukshma with empty children)
+ * @param toDepth  Absolute max level to build (inclusive). Default: one level below parent.
+ */
+export function expandVimshottariNode(
+  parent: DashaNode,
+  toDepth: number = parent.level + 1,
+  options: { tribhagi?: boolean; now?: number } = {},
+): DashaNode[] {
+  if (parent.level >= toDepth) return []
+  const { yearsMap, cycleTotal, useSiderealYear } = vimshottariYearParams(options.tribhagi === true)
+  const start = parent.start instanceof Date ? parent.start : new Date(parent.start)
+  const end = parent.end instanceof Date ? parent.end : new Date(parent.end)
+  return buildSubDashas(
+    parent.lord as GrahaId,
+    start,
+    end,
+    parent.durationMs,
+    parent.level + 1,
+    toDepth,
+    options.now ?? Date.now(),
+    yearsMap,
+    cycleTotal,
+    useSiderealYear,
+    true, // expand this branch fully to toDepth
+  )
 }
 
 /**
@@ -182,6 +239,7 @@ function buildSubDashas(
   yearsMap:   Record<string, number> = VIMSHOTTARI_YEARS,
   cycleTotal: number = VIMSHOTTARI_TOTAL,
   useSiderealYear = false,
+  expandAllBranches = false,
 ): DashaNode[] {
   const mahaIdx = dashaIndex(mahaLord)
   const nodes: DashaNode[] = []
@@ -196,9 +254,12 @@ function buildSubDashas(
     const end   = new Date(cursor + durationMs)
     const isCurrent = now >= cursor && now < cursor + durationMs
 
-    // Optimization: For levels deeper than 4 (Sukshma), only calculate sub-periods 
-    // for the CURRENT branch to avoid exponential JSON growth (~10MB down to ~1MB).
-    const shouldGoDeeper = currentLevel < maxDepth && (currentLevel <= 3 || isCurrent)
+    // Optimization: For levels deeper than 4 (Sukshma), only calculate sub-periods
+    // for the CURRENT branch to avoid exponential JSON growth (~88MB → ~1MB).
+    // expandAllBranches (or lazy expandVimshottariNode) fills non-current paths on demand.
+    const shouldGoDeeper =
+      currentLevel < maxDepth &&
+      (expandAllBranches || currentLevel <= 3 || isCurrent)
 
     nodes.push({
       lord,
@@ -208,7 +269,10 @@ function buildSubDashas(
       level: currentLevel,
       isCurrent,
       children: shouldGoDeeper
-        ? buildSubDashas(lord, start, end, durationMs, currentLevel + 1, maxDepth, now, yearsMap, cycleTotal, useSiderealYear)
+        ? buildSubDashas(
+            lord, start, end, durationMs, currentLevel + 1, maxDepth, now,
+            yearsMap, cycleTotal, useSiderealYear, expandAllBranches,
+          )
         : [],
     })
 
