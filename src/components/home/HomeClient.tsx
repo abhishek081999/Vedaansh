@@ -965,7 +965,6 @@ function HomeContent() {
     setFreshNewChart(true)
     setBirthFormKey((k) => k + 1)
     setIsFormOpen(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNewUrl, setIsFormOpen, setChart])
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
