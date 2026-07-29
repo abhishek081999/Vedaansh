@@ -349,16 +349,35 @@ describe('Full calculator integration', { timeout: 15000 }, () => {
       expect(currentSukshma.children.length).toBeGreaterThan(0) // Level 5 (Prana) exists for current
     }
     
-    // Non-current periods at depth 4 (Sukshma) should be empty
+    // Non-current periods at depth 4 (Sukshma) are pruned in the API payload,
+    // but expandVimshottariNode fills Prana/Deha on demand for any lord.
     const otherMaha = gold.dashas.vimshottari.find(m => !m.isCurrent)!
     const otherAntar = otherMaha.children[0]
     const otherPratyantar = otherAntar.children[0]
     const otherSukshma = otherPratyantar.children[0]
-    expect(otherSukshma.children).toHaveLength(0) // Level 5 (Prana) pruned for non-current
+    expect(otherSukshma.children).toHaveLength(0) // Level 5 pruned in payload
+
+    const { expandVimshottariNode } = await import('@/lib/engine/dasha/vimshottari')
+    const prana = expandVimshottariNode(otherSukshma, 5)
+    expect(prana).toHaveLength(9)
+    const deha = expandVimshottariNode(prana[0], 6)
+    expect(deha).toHaveLength(9)
     
     // Free plan should be shallow even for current
     const freeMaha = free.dashas.vimshottari.find(m => m.isCurrent)!
     expect(freeMaha.children[0].children[0].children[0].children).toHaveLength(0)
+  })
+
+  it('expandAllBranches builds Prana for every Sukshma lord', async () => {
+    const { calcVimshottari } = await import('@/lib/engine/dasha/vimshottari')
+    // Fixed lon/date so tree shape is deterministic without full chart calc
+    const nodes = calcVimshottari(120, new Date('1995-06-15T12:00:00Z'), 5, undefined, {
+      expandAllBranches: true,
+    })
+    const nonCurrent = nodes.find(m => !m.isCurrent)!
+    const sukshma = nonCurrent.children[0].children[0].children[0]
+    expect(sukshma.level).toBe(4)
+    expect(sukshma.children).toHaveLength(9) // Prana present on non-current when expandAllBranches
   })
 
   it('Vimshottari has 9 periods summing ~120 years', async () => {

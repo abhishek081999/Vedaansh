@@ -604,7 +604,13 @@ function VimshottariDashaBlock({
         <button type="button" onClick={() => onTribhagi(false)} style={chipStyle(!tribhagi)}>Standard</button>
         <button type="button" onClick={() => onTribhagi(true)} style={chipStyle(tribhagi)} title="Tribhagi: each period ÷3, full sequence repeated 3× (40+40+40 years)">Tribhagi</button>
       </div>
-      <DashaTree nodes={nodes} birthDate={birthDate} showNakshatra={tribhagi} />
+      <DashaTree
+        nodes={nodes}
+        birthDate={birthDate}
+        showNakshatra={tribhagi}
+        tribhagi={tribhagi}
+        maxDepth={userPlan === 'free' ? 4 : 6}
+      />
     </div>
   )
 }
@@ -949,17 +955,18 @@ function HomeContent() {
     }
   }, [chart, activeTab, todayPanchang])
 
-  // 2. Open form if 'new=true' is in URL
+  // 2. Open blank form once URL is clean (?new=true) — avoids BirthForm
+  // auto-submitting leftover name/birthDate/lat/lng from a saved chart URL.
+  const isNewUrl = searchParams.get('new') === 'true'
   useEffect(() => {
-    if (searchParams.get('new') === 'true' && !isFormOpen) {
-      setChart(null)
-      setChartTags([])
-      setFreshNewChart(true)
-      setBirthFormKey((k) => k + 1)
-      setIsFormOpen(true)
-    }
+    if (!isNewUrl) return
+    setChart(null)
+    setChartTags([])
+    setFreshNewChart(true)
+    setBirthFormKey((k) => k + 1)
+    setIsFormOpen(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, setIsFormOpen, setChart])
+  }, [isNewUrl, setIsFormOpen, setChart])
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
@@ -1007,13 +1014,19 @@ function HomeContent() {
   }
 
   const startNewChart = React.useCallback(() => {
-    setChart(null)
-    setChartTags([])
-    setFreshNewChart(true)
-    setBirthFormKey((k) => k + 1)
-    setIsFormOpen(true)
+    // Navigate to a clean URL first so BirthForm never sees saved-chart query
+    // params (name/birthDate/…). Opening the form before that remounts the form
+    // against the old URL and auto-submits — chart "reloads" instead of going blank.
+    if (searchParams.get('new') === 'true') {
+      setChart(null)
+      setChartTags([])
+      setFreshNewChart(true)
+      setBirthFormKey((k) => k + 1)
+      setIsFormOpen(true)
+      return
+    }
     router.push('/?new=true')
-  }, [router, setChart, setIsFormOpen])
+  }, [router, searchParams, setChart, setIsFormOpen])
 
   async function handleSaveToCRM() {
     if (!chart || crmSaving) return
@@ -1142,13 +1155,16 @@ function HomeContent() {
   }, [defaultChart, searchParams])
 
   const openAstrologyApp = React.useCallback(() => {
-    setChart(null)
-    setChartTags([])
-    setFreshNewChart(true)
-    setBirthFormKey((k) => k + 1)
-    setIsFormOpen(true)
+    if (searchParams.get('new') === 'true') {
+      setChart(null)
+      setChartTags([])
+      setFreshNewChart(true)
+      setBirthFormKey((k) => k + 1)
+      setIsFormOpen(true)
+      return
+    }
     router.push('/?new=true')
-  }, [router, setChart, setIsFormOpen])
+  }, [router, searchParams, setChart, setIsFormOpen])
 
   const openSectionWithChartGate = React.useCallback((href: string, e?: React.MouseEvent<HTMLElement>) => {
     if (routeAllowsWithoutChart(href)) {
@@ -1159,24 +1175,30 @@ function HomeContent() {
     if (!chart && !isAstrologyTarget) {
       e?.preventDefault()
       setPendingDestination(href)
-      setChart(null)
-      setChartTags([])
-      setFreshNewChart(true)
-      setBirthFormKey((k) => k + 1)
-      setIsFormOpen(true)
-      router.push('/?new=true')
+      if (searchParams.get('new') === 'true') {
+        setChart(null)
+        setChartTags([])
+        setFreshNewChart(true)
+        setBirthFormKey((k) => k + 1)
+        setIsFormOpen(true)
+      } else {
+        router.push('/?new=true')
+      }
       return
     }
     if (!chart && isAstrologyTarget) {
       e?.preventDefault()
-      setChart(null)
-      setChartTags([])
-      setFreshNewChart(true)
-      setBirthFormKey((k) => k + 1)
-      setIsFormOpen(true)
-      router.push('/?new=true')
+      if (searchParams.get('new') === 'true') {
+        setChart(null)
+        setChartTags([])
+        setFreshNewChart(true)
+        setBirthFormKey((k) => k + 1)
+        setIsFormOpen(true)
+      } else {
+        router.push('/?new=true')
+      }
     }
-  }, [chart, router, setChart, setIsFormOpen, setPendingDestination])
+  }, [chart, router, searchParams, setChart, setIsFormOpen, setPendingDestination])
 
   const openMyDefaultChart = React.useCallback(async () => {
     if (!defaultChart) {
@@ -1558,6 +1580,8 @@ function HomeContent() {
                     nodes={nodes}
                     birthDate={new Date(dashboardChart.meta.birthDate)}
                     showNakshatra={dashaSystem === 'vimshottari' && vimshottariTribhagi}
+                    tribhagi={dashaSystem === 'vimshottari' && vimshottariTribhagi}
+                    maxDepth={dashaSystem === 'vimshottari' && userPlan !== 'free' ? 6 : 4}
                   />
                 )
               })()}
@@ -2417,6 +2441,8 @@ function HomeContent() {
                               nodes={system.nodes}
                               birthDate={new Date(chart.meta.birthDate)}
                               showNakshatra={system.id === 'vimshottari' && vimshottariTribhagi}
+                              tribhagi={system.id === 'vimshottari' && vimshottariTribhagi}
+                              maxDepth={system.id === 'vimshottari' && userPlan !== 'free' ? 6 : 4}
                             />
                           ) : (
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '0.55rem', textAlign: 'center' }}>
@@ -2986,18 +3012,21 @@ function HomeContent() {
                 onResult={(data) => {
                   setChart(data)
                   setFreshNewChart(false)
+                  const params = new URLSearchParams(searchParams.toString())
+                  params.delete('new')
+                  params.set('name', data.meta.name)
+                  params.set('birthDate', data.meta.birthDate)
+                  params.set('birthTime', data.meta.birthTime)
+                  params.set('birthPlace', data.meta.birthPlace)
+                  params.set('lat', String(data.meta.latitude))
+                  params.set('lng', String(data.meta.longitude))
+                  params.set('tz', data.meta.timezone)
                   if (savedChartId) {
-                    const params = new URLSearchParams(searchParams.toString())
-                    params.set('name', data.meta.name)
-                    params.set('birthDate', data.meta.birthDate)
-                    params.set('birthTime', data.meta.birthTime)
-                    params.set('birthPlace', data.meta.birthPlace)
-                    params.set('lat', String(data.meta.latitude))
-                    params.set('lng', String(data.meta.longitude))
-                    params.set('tz', data.meta.timezone)
                     params.set('chartId', savedChartId)
-                    router.replace(`?${params.toString()}`, { scroll: false })
+                  } else {
+                    params.delete('chartId')
                   }
+                  router.replace(`?${params.toString()}`, { scroll: false })
                   setTimeout(() => {
                     setIsFormOpen(false)
                     if (pendingDestination) {

@@ -571,7 +571,7 @@ function CompareContent() {
                   {[chartA, chartB].map((chart, i) => (
                     <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                        <div style={{ textAlign: 'center', fontWeight: 800, color: i === 0 ? 'var(--text-gold)' : 'var(--accent)' }}>{chart.meta.name}</div>
-                       {view === 'dasha' && <div className="card" style={{ padding: '1.5rem' }}><DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} /></div>}
+                       {view === 'dasha' && <div className="card" style={{ padding: '1.5rem' }}><DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} maxDepth={userPlan === 'free' ? 4 : 6} /></div>}
                        {view === 'panchang' && <div className="card" style={{ padding: '1.5rem' }}><NatalPanchangPanel p={chart.panchang} title="Natal Panchang" /></div>}
                     </div>
                   ))}
