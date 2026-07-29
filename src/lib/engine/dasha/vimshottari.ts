@@ -210,7 +210,7 @@ export function expandVimshottariNode(
   const start = parent.start instanceof Date ? parent.start : new Date(parent.start)
   const end = parent.end instanceof Date ? parent.end : new Date(parent.end)
   return buildSubDashas(
-    parent.lord,
+    parent.lord as GrahaId,
     start,
     end,
     parent.durationMs,
