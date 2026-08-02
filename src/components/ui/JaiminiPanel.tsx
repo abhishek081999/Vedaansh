@@ -631,7 +631,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const [isTinyMobile, setIsTinyMobile] = useState(false);
   const [mobileChartVarga, setMobileChartVarga] = useState<'D1' | 'D9'>('D1');
   const panelRef = useRef<HTMLDivElement>(null);
-  const tabContentRef = useRef<HTMLSectionElement>(null);
+  const tabContentRef = useRef<HTMLDivElement>(null);
   const skipMobileTabScrollRef = useRef(true);
 
   // Stack/compact based on actual panel width (accounts for open sidenav), not viewport alone.
@@ -1310,11 +1310,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
         </section>
 
         {/* RIGHT COLUMN: Data Command Center */}
-        <section
+        <div
           ref={tabContentRef}
           className="card-glass"
           style={{ 
-          padding: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.25rem', 
+          paddingTop: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.25rem',
+          paddingLeft: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.25rem',
+          paddingRight: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.25rem',
+          paddingBottom: isMobile ? '1.25rem' : (isTinyMobile ? '0.5rem' : '1.25rem'),
           borderRadius: 'var(--r-xl)', 
           background: 'var(--surface-1)', 
           border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
@@ -1327,7 +1330,6 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           boxSizing: 'border-box',
           scrollMarginBottom: isMobile ? '5.5rem' : undefined,
           scrollMarginTop: isMobile ? '0.5rem' : undefined,
-          paddingBottom: isMobile ? '1.25rem' : undefined,
         }}>
           {isMobile && (
             <h2 style={{
@@ -2299,7 +2301,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               )}
             </motion.div>
           </AnimatePresence>
-        </section>
+        </div>
       </div>
 
       {isMobile && typeof document !== 'undefined' && createPortal(
