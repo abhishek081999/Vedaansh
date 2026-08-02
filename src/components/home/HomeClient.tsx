@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import dynamic from 'next/dynamic'
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
@@ -715,6 +715,36 @@ function HomeContent() {
   const [mobileDashCategory, setMobileDashCategory] = useState<'astrology' | 'panchang' | 'nakshatra' | 'advanced'>('astrology')
   const [mobileDashTab, setMobileDashTab] = useState<'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'>('astro')
   const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('ashtakavarga')
+  const mobileDashContentRef = useRef<HTMLDivElement>(null)
+  const analysisPanelRef = useRef<HTMLDivElement>(null)
+  const skipMobileDashScrollRef = useRef(true)
+  const skipStrengthScrollRef = useRef(true)
+
+  const scrollElementIntoMain = (el: HTMLElement | null) => {
+    if (!el) return
+    const main = document.getElementById('main-content')
+    if (main) {
+      const mainRect = main.getBoundingClientRect()
+      const elRect = el.getBoundingClientRect()
+      const top = elRect.top - mainRect.top + main.scrollTop - 8
+      main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  const scrollDashContentIntoView = () => {
+    scrollElementIntoMain(mobileDashContentRef.current)
+  }
+
+  const scrollAnalysisIntoView = () => {
+    const el =
+      activeTab === 'dashboard'
+        ? mobileDashContentRef.current
+        : analysisPanelRef.current
+    scrollElementIntoMain(el)
+  }
+
   useEffect(() => {
     const check = () => {
       setIsMobile(window.innerWidth < BREAKPOINTS.lg)
@@ -729,11 +759,16 @@ function HomeContent() {
     if (!isPhone && mobileHeaderMenuOpen) setMobileHeaderMenuOpen(false)
   }, [isPhone, mobileHeaderMenuOpen])
 
+  // Chart stays on top; bottom-bar tabs scroll the panel below into view (not page top).
   useEffect(() => {
-    if (!isMobile) return
-    const main = document.querySelector('.main-content')
-    if (main) main.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [mobileDashTab, isMobile])
+    if (!isMobile || activeTab !== 'dashboard') return
+    if (skipMobileDashScrollRef.current) {
+      skipMobileDashScrollRef.current = false
+      return
+    }
+    const id = window.requestAnimationFrame(() => scrollDashContentIntoView())
+    return () => window.cancelAnimationFrame(id)
+  }, [mobileDashTab, isMobile, activeTab])
 
   const isStrengthAnalyticsTabActive = isStrengthAnalyticsTab(activeTab)
   const showStrengthSubNav = isMobile && !!chart && (
@@ -758,14 +793,17 @@ function HomeContent() {
       const map = { ashtakavarga: 'ashtakavarga', shadbala: 'shadbala', bhava: 'bhava-bala', vimsopaka: 'vimsopaka' } as const
       setActiveTab(map[id])
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   useEffect(() => {
     if (!isMobile || !showStrengthSubNav) return
-    const main = document.querySelector('.main-content')
-    if (main) main.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [activeStrengthSubTab, isMobile, showStrengthSubNav])
+    if (skipStrengthScrollRef.current) {
+      skipStrengthScrollRef.current = false
+      return
+    }
+    const id = window.requestAnimationFrame(() => scrollAnalysisIntoView())
+    return () => window.cancelAnimationFrame(id)
+  }, [activeStrengthSubTab, isMobile, showStrengthSubNav, activeTab])
 
 
   const dashboardAshtakSummary = useMemo(() => {
@@ -2025,7 +2063,18 @@ function HomeContent() {
 
                   {/* ── MOBILE DASHBOARD CONTENT ─────────────────────── */}
                   {activeTab === 'dashboard' && isMobile && (
-                    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingBottom: mobileDashTab === 'strengths' ? '9rem' : '6rem' }}>
+                    <div
+                      ref={mobileDashContentRef}
+                      className="fade-up"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        paddingBottom: mobileDashTab === 'strengths' ? '9rem' : '6rem',
+                        scrollMarginTop: '0.5rem',
+                        scrollMarginBottom: mobileDashTab === 'strengths' ? '9rem' : '5.5rem',
+                      }}
+                    >
 
                       {/* ── Tab content ── */}
                       {mobileDashTab === 'astro' && (
@@ -2200,12 +2249,17 @@ function HomeContent() {
 
                {/* RIGHT: Active Tab Content (Sidebar Analysis) — hidden on mobile dashboard */}
               {!(isMobile && activeTab === 'dashboard') && showSecondaryAnalysisColumn && (
-               <div className="sticky-desktop" style={{ 
+               <div
+                 ref={analysisPanelRef}
+                 className="sticky-desktop"
+                 style={{ 
                  flex: `1 1 420px`, 
                  minWidth: `min(100%, 360px)`,
                  display: 'flex', flexDirection: 'column', 
                  gap: '0.75rem', 
-                 order: 2 
+                 order: 2,
+                 scrollMarginTop: '0.5rem',
+                 scrollMarginBottom: showStrengthSubNav ? '6rem' : undefined,
                }}>
                   {activeTab === 'dashboard' && !isMobile && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -3080,6 +3134,8 @@ function HomeContent() {
         strengthTabs={MOBILE_STRENGTH_TABS}
         onDashTabChange={(tab) => setMobileDashTab(tab)}
         onStrengthSubTabChange={handleStrengthSubTab}
+        onScrollToDashContent={scrollDashContentIntoView}
+        onScrollToStrengthContent={scrollAnalysisIntoView}
       />
 
     </div>

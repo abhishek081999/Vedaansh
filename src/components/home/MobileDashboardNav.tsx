@@ -26,6 +26,9 @@ export interface MobileDashboardNavProps {
   strengthTabs: { id: MobileStrengthSubTab; icon: LucideIcon; label: string }[]
   onDashTabChange: (tab: MobileDashTab) => void
   onStrengthSubTabChange: (tab: MobileStrengthSubTab) => void
+  /** Scroll chart-below panel into view (re-tap of active tab). */
+  onScrollToDashContent?: () => void
+  onScrollToStrengthContent?: () => void
 }
 
 export function MobileDashboardNav({
@@ -37,6 +40,8 @@ export function MobileDashboardNav({
   strengthTabs,
   onDashTabChange,
   onStrengthSubTabChange,
+  onScrollToDashContent,
+  onScrollToStrengthContent,
 }: MobileDashboardNavProps) {
   if (typeof document === 'undefined') return null
 
@@ -70,7 +75,13 @@ export function MobileDashboardNav({
                   type="button"
                   aria-current={active ? 'page' : undefined}
                   aria-label={label}
-                  onClick={() => onStrengthSubTabChange(id)}
+                  onClick={() => {
+                    if (active) {
+                      onScrollToStrengthContent?.()
+                    } else {
+                      onStrengthSubTabChange(id)
+                    }
+                  }}
                   style={{
                     flex: 1,
                     display: 'flex',
@@ -153,8 +164,11 @@ export function MobileDashboardNav({
                   aria-current={active ? 'page' : undefined}
                   aria-label={label}
                   onClick={() => {
-                    onDashTabChange(id)
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                    if (active) {
+                      onScrollToDashContent?.()
+                    } else {
+                      onDashTabChange(id)
+                    }
                   }}
                   style={{
                     flex: '1 0 auto',

@@ -631,6 +631,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const [isTinyMobile, setIsTinyMobile] = useState(false);
   const [mobileChartVarga, setMobileChartVarga] = useState<'D1' | 'D9'>('D1');
   const panelRef = useRef<HTMLDivElement>(null);
+  const tabContentRef = useRef<HTMLSectionElement>(null);
+  const skipMobileTabScrollRef = useRef(true);
 
   // Stack/compact based on actual panel width (accounts for open sidenav), not viewport alone.
   useEffect(() => {
@@ -654,9 +656,31 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     return () => ro.disconnect();
   }, []);
 
+  // Mobile: chart stays on top; bottom-bar tabs scroll the selected panel into view below it.
+  // Scroll #main-content (not window) — that is the app scroll container.
+  const scrollTabContentIntoView = () => {
+    const el = tabContentRef.current;
+    if (!el) return;
+
+    const main = document.getElementById('main-content');
+    if (main) {
+      const mainRect = main.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const top = elRect.top - mainRect.top + main.scrollTop - 8;
+      main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   useEffect(() => {
     if (!isMobile) return;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (skipMobileTabScrollRef.current) {
+      skipMobileTabScrollRef.current = false;
+      return;
+    }
+    const id = window.requestAnimationFrame(() => scrollTabContentIntoView());
+    return () => window.cancelAnimationFrame(id);
   }, [activeTab, isMobile]);
 
   const d1Grahas = grahas;
@@ -903,7 +927,6 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
       minWidth: 0,
       maxWidth: '100%',
       width: '100%',
-      overflow: 'hidden',
       boxSizing: 'border-box',
     }}>
       <JaiminiSnapshot chart={chart} isTinyMobile={isTinyMobile} />
@@ -928,7 +951,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           display: 'flex',
           flexDirection: 'column',
           gap: isTinyMobile ? '0.75rem' : '1rem',
-          minWidth: 0
+          minWidth: 0,
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1210,7 +1233,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             width: '100%',
             maxWidth: '100%',
             minWidth: 0,
-            overflow: 'hidden',
+            touchAction: 'pan-y',
             boxSizing: 'border-box',
           }}>
             {isMobile ? (
@@ -1287,7 +1310,10 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
         </section>
 
         {/* RIGHT COLUMN: Data Command Center */}
-        <section className="card-glass" style={{ 
+        <section
+          ref={tabContentRef}
+          className="card-glass"
+          style={{ 
           padding: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.25rem', 
           borderRadius: 'var(--r-xl)', 
           background: 'var(--surface-1)', 
@@ -1298,9 +1324,23 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           gap: '1rem',
           minWidth: 0,
           maxWidth: '100%',
-          overflow: 'hidden',
           boxSizing: 'border-box',
+          scrollMarginBottom: isMobile ? '5.5rem' : undefined,
+          scrollMarginTop: isMobile ? '0.5rem' : undefined,
+          paddingBottom: isMobile ? '1.25rem' : undefined,
         }}>
+          {isMobile && (
+            <h2 style={{
+              margin: 0,
+              fontFamily: 'var(--font-display)',
+              fontSize: isTinyMobile ? '1rem' : '1.1rem',
+              fontWeight: 800,
+              color: 'var(--text-gold)',
+              letterSpacing: '0.02em',
+            }}>
+              {tabs.find(t => t.id === activeTab)?.label ?? 'Jaimini'}
+            </h2>
+          )}
           {!isMobile && (
             <nav className="scrollbar-hide" style={{ 
               display: 'flex', gap: '0.25rem', overflowX: 'auto', padding: '0.25rem',
@@ -2279,7 +2319,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               <button
                 key={id}
                 type="button"
-                onClick={() => setActiveTab(id)}
+                onClick={() => {
+                  setActiveTab(id)
+                  // Re-tap of active tab still jumps below the chart
+                  if (activeTab === id) {
+                    window.requestAnimationFrame(() => scrollTabContentIntoView())
+                  }
+                }}
                 style={{
                   flex: 1, display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center',

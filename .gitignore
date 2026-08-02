@@ -61,6 +61,7 @@ android-twa/.gradle/
 android-twa/build/
 android-twa/local.properties
 android-twa/vedaansh-release.apk
+android-twa/vedaansh-release.aab
 android-twa/app-release-aligned.apk
 android-twa/*.aab
 android-twa/gradle/

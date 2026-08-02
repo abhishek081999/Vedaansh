@@ -88,6 +88,36 @@ function Stop-GradleDaemons {
   }
 }
 
+# Bubblewrap 1.24.x still templates targetSdkVersion 35 (Play requires 36 from Aug 31 2026).
+# Patch after every `bubblewrap update` until upstream ships the bump (PR #1050).
+function Set-TargetSdk36 {
+  $appGradle = Join-Path $TwaDir "app\build.gradle"
+  if (-not (Test-Path $appGradle)) {
+    Write-Host "app\build.gradle missing after bubblewrap update." -ForegroundColor Yellow
+    exit 1
+  }
+
+  $gradle = Get-Content $appGradle -Raw
+  $updated = $gradle -replace 'targetSdkVersion\s+\d+', 'targetSdkVersion 36'
+  $updated = $updated -replace 'compileSdkVersion\s+\d+', 'compileSdkVersion 36'
+
+  if ($updated -notmatch 'targetSdkVersion\s+36') {
+    Write-Host "Failed to set targetSdkVersion 36 in app\build.gradle" -ForegroundColor Yellow
+    exit 1
+  }
+
+  $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+  [System.IO.File]::WriteAllText($appGradle, $updated, $utf8NoBom)
+  Write-Host "Patched app\build.gradle -> compileSdk/targetSdk 36 (Play API requirement)" -ForegroundColor Green
+}
+
+function Get-ManifestVersions {
+  $json = Get-Content $ManifestFile -Raw | ConvertFrom-Json
+  $versionName = if ($json.appVersionName) { $json.appVersionName } elseif ($json.appVersion) { $json.appVersion } else { "1.0.0" }
+  $versionCode = if ($json.appVersionCode) { [int]$json.appVersionCode } else { 1 }
+  return @{ Name = $versionName; Code = $versionCode }
+}
+
 Set-Location $TwaDir
 
 Write-Host "== Vedaansh Android APK build ==" -ForegroundColor Cyan
@@ -125,15 +155,19 @@ if (-not (Test-Path $ManifestFile)) {
   exit 1
 }
 
-Write-Host ""
-Write-Host "Step 1/3: Sync Android project (bubblewrap update)..." -ForegroundColor Cyan
-npx --yes @bubblewrap/cli update --manifest="twa-manifest.json" --appVersionName="1.0.0"
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+$versions = Get-ManifestVersions
+Write-Host "App version: $($versions.Name) (versionCode $($versions.Code))"
 
 Write-Host ""
-Write-Host "Step 2/3: Compile APK (Gradle, may take several minutes)..." -ForegroundColor Cyan
+Write-Host "Step 1/4: Sync Android project (bubblewrap update)..." -ForegroundColor Cyan
+npx --yes @bubblewrap/cli update --manifest="twa-manifest.json" --appVersionName="$($versions.Name)"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Set-TargetSdk36
+
+Write-Host ""
+Write-Host "Step 2/4: Compile APK + AAB (Gradle, may take several minutes)..." -ForegroundColor Cyan
 Stop-GradleDaemons
-& .\gradlew.bat --no-daemon clean assembleRelease
+& .\gradlew.bat --no-daemon clean assembleRelease bundleRelease
 if ($LASTEXITCODE -ne 0) {
   Write-Host ""
   Write-Host "Gradle build failed. If you see EBUSY / file locked:" -ForegroundColor Yellow
@@ -144,8 +178,14 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $unsignedApk = Join-Path $TwaDir "app\build\outputs\apk\release\app-release-unsigned.apk"
+$unsignedAab = Join-Path $TwaDir "app\build\outputs\bundle\release\app-release.aab"
+$signedAab = Join-Path $TwaDir "vedaansh-release.aab"
 if (-not (Test-Path $unsignedApk)) {
   Write-Host "Gradle finished but unsigned APK not found." -ForegroundColor Yellow
+  exit 1
+}
+if (-not (Test-Path $unsignedAab)) {
+  Write-Host "Gradle finished but unsigned AAB not found." -ForegroundColor Yellow
   exit 1
 }
 
@@ -160,7 +200,7 @@ $apksigner = Join-Path $buildToolsBin "apksigner.bat"
 $alignedApk = Join-Path $TwaDir "app-release-aligned.apk"
 
 Write-Host ""
-Write-Host "Step 3/3: Sign APK..." -ForegroundColor Cyan
+Write-Host "Step 3/4: Sign APK..." -ForegroundColor Cyan
 $password = Get-KeystorePassword
 
 & $zipalign -f -p 4 $unsignedApk $alignedApk
@@ -188,10 +228,26 @@ if ($LASTEXITCODE -ne 0) {
 Remove-Item $alignedApk -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host "APK ready (install this on your phone):" -ForegroundColor Green
+Write-Host "Step 4/4: Sign AAB for Play Console..." -ForegroundColor Cyan
+Copy-Item $unsignedAab $signedAab -Force
+& jarsigner -keystore $Keystore `
+  -storepass $password `
+  -keypass $password `
+  $signedAab `
+  android
+if ($LASTEXITCODE -ne 0) {
+  Write-Host "AAB signing failed." -ForegroundColor Yellow
+  exit $LASTEXITCODE
+}
+
+Write-Host ""
+Write-Host "Play Console upload (preferred):" -ForegroundColor Green
+Write-Host $signedAab
+Write-Host ""
+Write-Host "APK ready (sideload / testing):" -ForegroundColor Green
 Write-Host $SignedApk
 Write-Host ""
-Write-Host "Unsigned build artifact:" -ForegroundColor DarkGray
-Write-Host $unsignedApk
+Write-Host "Verify targetSdk before upload:" -ForegroundColor DarkGray
+Write-Host "  aapt dump badging `"$SignedApk`" | findstr targetSdk"
 Write-Host ""
 Write-Host "Fingerprint for Render: npm run android:fingerprint"
