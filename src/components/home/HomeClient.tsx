@@ -630,6 +630,20 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   'My Charts': Library,
 }
 
+/** Scroll a panel into view inside the app main scroller (not window). */
+function scrollElementIntoMain(el: HTMLElement | null) {
+  if (!el) return
+  const main = document.getElementById('main-content')
+  if (main) {
+    const mainRect = main.getBoundingClientRect()
+    const elRect = el.getBoundingClientRect()
+    const top = elRect.top - mainRect.top + main.scrollTop - 8
+    main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+  } else {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
 function HomeContent() {
   const { data: session, status } = useSession()
   const { chart, setChart, isFormOpen, setIsFormOpen, pendingDestination, setPendingDestination } = useChart()
@@ -720,31 +734,6 @@ function HomeContent() {
   const skipMobileDashScrollRef = useRef(true)
   const skipStrengthScrollRef = useRef(true)
 
-  const scrollElementIntoMain = (el: HTMLElement | null) => {
-    if (!el) return
-    const main = document.getElementById('main-content')
-    if (main) {
-      const mainRect = main.getBoundingClientRect()
-      const elRect = el.getBoundingClientRect()
-      const top = elRect.top - mainRect.top + main.scrollTop - 8
-      main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
-    } else {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
-
-  const scrollDashContentIntoView = () => {
-    scrollElementIntoMain(mobileDashContentRef.current)
-  }
-
-  const scrollAnalysisIntoView = () => {
-    const el =
-      activeTab === 'dashboard'
-        ? mobileDashContentRef.current
-        : analysisPanelRef.current
-    scrollElementIntoMain(el)
-  }
-
   useEffect(() => {
     const check = () => {
       setIsMobile(window.innerWidth < BREAKPOINTS.lg)
@@ -766,7 +755,9 @@ function HomeContent() {
       skipMobileDashScrollRef.current = false
       return
     }
-    const id = window.requestAnimationFrame(() => scrollDashContentIntoView())
+    const id = window.requestAnimationFrame(() => {
+      scrollElementIntoMain(mobileDashContentRef.current)
+    })
     return () => window.cancelAnimationFrame(id)
   }, [mobileDashTab, isMobile, activeTab])
 
@@ -801,7 +792,13 @@ function HomeContent() {
       skipStrengthScrollRef.current = false
       return
     }
-    const id = window.requestAnimationFrame(() => scrollAnalysisIntoView())
+    const id = window.requestAnimationFrame(() => {
+      const el =
+        activeTab === 'dashboard'
+          ? mobileDashContentRef.current
+          : analysisPanelRef.current
+      scrollElementIntoMain(el)
+    })
     return () => window.cancelAnimationFrame(id)
   }, [activeStrengthSubTab, isMobile, showStrengthSubNav, activeTab])
 
@@ -3134,8 +3131,14 @@ function HomeContent() {
         strengthTabs={MOBILE_STRENGTH_TABS}
         onDashTabChange={(tab) => setMobileDashTab(tab)}
         onStrengthSubTabChange={handleStrengthSubTab}
-        onScrollToDashContent={scrollDashContentIntoView}
-        onScrollToStrengthContent={scrollAnalysisIntoView}
+        onScrollToDashContent={() => scrollElementIntoMain(mobileDashContentRef.current)}
+        onScrollToStrengthContent={() => {
+          const el =
+            activeTab === 'dashboard'
+              ? mobileDashContentRef.current
+              : analysisPanelRef.current
+          scrollElementIntoMain(el)
+        }}
       />
 
     </div>

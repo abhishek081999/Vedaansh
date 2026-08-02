@@ -658,28 +658,25 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   // Mobile: chart stays on top; bottom-bar tabs scroll the selected panel into view below it.
   // Scroll #main-content (not window) — that is the app scroll container.
-  const scrollTabContentIntoView = () => {
-    const el = tabContentRef.current;
-    if (!el) return;
-
-    const main = document.getElementById('main-content');
-    if (main) {
-      const mainRect = main.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      const top = elRect.top - mainRect.top + main.scrollTop - 8;
-      main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-    } else {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   useEffect(() => {
     if (!isMobile) return;
     if (skipMobileTabScrollRef.current) {
       skipMobileTabScrollRef.current = false;
       return;
     }
-    const id = window.requestAnimationFrame(() => scrollTabContentIntoView());
+    const id = window.requestAnimationFrame(() => {
+      const el = tabContentRef.current;
+      if (!el) return;
+      const main = document.getElementById('main-content');
+      if (main) {
+        const mainRect = main.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const top = elRect.top - mainRect.top + main.scrollTop - 8;
+        main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
     return () => window.cancelAnimationFrame(id);
   }, [activeTab, isMobile]);
 
@@ -2325,7 +2322,19 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   setActiveTab(id)
                   // Re-tap of active tab still jumps below the chart
                   if (activeTab === id) {
-                    window.requestAnimationFrame(() => scrollTabContentIntoView())
+                    window.requestAnimationFrame(() => {
+                      const el = tabContentRef.current
+                      if (!el) return
+                      const main = document.getElementById('main-content')
+                      if (main) {
+                        const mainRect = main.getBoundingClientRect()
+                        const elRect = el.getBoundingClientRect()
+                        const top = elRect.top - mainRect.top + main.scrollTop - 8
+                        main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+                      } else {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      }
+                    })
                   }
                 }}
                 style={{
