@@ -250,7 +250,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       )}
       
       {/* ── Top Global Header ────────────────────────────────── */}
-      <header className="app-header">
+      <header className="app-header" data-sidenav-open={isSidenavOpen ? 'true' : 'false'}>
         {/* Left: Toggler + Brand */}
         <div className="app-header-left">
           <button 
@@ -330,12 +330,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           }} />
         </div>
 
-        {/* ── Mobile overlay backdrop ─────────── */}
+        {/* ── Mobile overlay backdrop (above header, below sidenav) ─────────── */}
         {isSidenavOpen && (
           <div
             onClick={() => setIsSidenavOpen(false)}
             style={{
-              position: 'fixed', inset: 0, zIndex: 49,
+              position: 'fixed', inset: 0, zIndex: 1400,
               background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)',
             }}
             className="sidenav-mobile-overlay"

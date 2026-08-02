@@ -196,7 +196,11 @@ function PLWorksheet({ planets }: { planets: Record<string, ShadbalaPlanet> }) {
                 {ORDER.map((id) => {
                   const p = planets[id]
                   const v = p ? row.get(p) : 0
-                  return cell(v, { strong: isSub })
+                  return (
+                    <React.Fragment key={id}>
+                      {cell(v, { strong: isSub })}
+                    </React.Fragment>
+                  )
                 })}
               </tr>
             )
