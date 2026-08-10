@@ -7,11 +7,11 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { formatInTimeZone } from 'date-fns-tz'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { ChartOutput, ChartStyle, Rashi } from '@/types/astrology'
-import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { useChartStyle } from '@/components/providers/ChartStyleProvider'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { getKPSubLord } from '@/lib/engine/nakshatraAdvanced'
@@ -28,6 +28,11 @@ import {
   type SatpanchasikaTopic,
   type SatpanchasikaResult,
 } from '@/lib/engine/satpanchasika'
+
+const ChakraSelector = dynamic(
+  () => import('@/components/chakra/ChakraSelector').then(m => m.ChakraSelector),
+  { ssr: false },
+)
 
 type KPMode = 'vedic' | 'kp' | 'krishneeyam' | 'satpanchasika'
 type HouseReference = 'udaya' | 'arudha'

@@ -5,7 +5,7 @@ const withSerwist = withSerwistInit({
   swDest: 'public/sw.js',
   disable: process.env.NODE_ENV === 'development',
   register: true,
-  reloadOnOnline: true,
+  reloadOnOnline: false,
 })
 
 /** @type {import('next').NextConfig} */
@@ -25,6 +25,7 @@ const nextConfig = {
     // Reduce Webpack workers to prevent OOM on memory-constrained platforms like Render Free Tier
     cpus: 1,
     memoryBasedWorkersCount: true,
+    optimizePackageImports: ['lucide-react', 'date-fns', 'date-fns-tz'],
   },
   transpilePackages: ['next-auth', 'remotion', '@remotion/player'],
 

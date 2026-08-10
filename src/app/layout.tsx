@@ -15,14 +15,14 @@ import { SITE_URL } from '@/lib/seo/site'
 // ── Fonts (next/font — zero layout shift, self-hosted) ────────
 const playfair = Playfair_Display({
   subsets:  ['latin'],
-  weight:   ['400', '500', '600', '700', '800', '900'],
+  weight:   ['400', '600', '700', '800'],
   style:    ['normal', 'italic'],
   variable: '--font-playfair',
   display:  'swap',
 })
 const inter = Inter({
   subsets:  ['latin'],
-  weight:   ['300', '400', '500', '600', '700'],
+  weight:   ['400', '500', '600', '700'],
   variable: '--font-inter',
   display:  'swap',
 })
@@ -34,7 +34,7 @@ const outfit = Outfit({
 })
 const jetbrainsMono = JetBrains_Mono({
   subsets:  ['latin'],
-  weight:   ['300', '400'],
+  weight:   ['400'],
   variable: '--font-jetbrains-mono',
   display:  'swap',
 })
@@ -229,14 +229,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en-IN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${playfair.variable} ${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           nonce={nonce}
         />
-        <Script id="ga-init" strategy="afterInteractive" nonce={nonce}>
+        <Script id="ga-init" strategy="lazyOnload" nonce={nonce}>
           {gaScript}
         </Script>
         <link rel="icon" type="image/png" href="/veda-icon.png" sizes="any" />
