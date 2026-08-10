@@ -177,154 +177,155 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
     setTargetTime(prev => shiftMinutes(prev, delta))
   }
 
+  const chartSize = isMobile
+    ? (typeof window !== 'undefined' ? Math.min(window.innerWidth - 32, 420) : 360)
+    : 520
+
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-      {/* Date / time controls */}
-      <section className={styles.panel}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-          <div>
-            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-gold)', marginBottom: '0.25rem' }}>
-              Transit moment
-            </div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.1rem' : '1.35rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-              {formatDisplayDate(targetDate)}
-              <span style={{ color: 'var(--text-muted)', fontWeight: 400, margin: '0 0.35rem' }}>at</span>
-              {formatDisplayTime(targetTime)}
-              <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.85em', marginLeft: '0.25rem' }}>
-                ({timeForInput(targetTime)})
-              </span>
-            </div>
-          </div>
-          {offsetDays !== 0 && (
-            <span className={`${styles.offsetChip} ${offsetDays > 0 ? styles.offsetChipFuture : styles.offsetChipPast}`}>
-              {offsetDays > 0 ? `+${offsetDays}` : offsetDays} days from today
-            </span>
-          )}
-        </div>
-
-        <div className={styles.datetimeRow}>
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor={`${fieldId}-date`}>Date</label>
-            <input
-              id={`${fieldId}-date`}
-              type="date"
-              className={styles.datetimeInput}
-              value={targetDate}
-              onChange={e => setTargetDate(e.target.value)}
-            />
-          </div>
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor={`${fieldId}-time`}>Time</label>
-            <input
-              id={`${fieldId}-time`}
-              type="time"
-              step={60}
-              className={styles.datetimeInput}
-              value={timeForInput(targetTime)}
-              onChange={e => setTargetTime(normalizeTime(e.target.value))}
-            />
-          </div>
-          <div className={`${styles.fieldGroup} ${styles.tzBadge}`}>
-            <span className={styles.fieldLabel}>Timezone</span>
-            <span className={styles.tzValue} title={tz}>{tz}</span>
-          </div>
-        </div>
-
-        <div className={styles.scrubberBlock}>
-          <span className={styles.scrubberBlockLabel}>Date scrubber</span>
-          <div className={styles.scrubberRow}>
-            <div className={styles.stepGroup}>
-              <button type="button" onClick={() => shiftMonths(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>-1 Month</button>
-              <button type="button" onClick={() => shiftDays(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>-1 Day</button>
-              <button type="button" onClick={() => shiftDays(1)} className={`btn btn-ghost ${styles.stepBtn}`}>+1 Day</button>
-              <button type="button" onClick={() => shiftMonths(1)} className={`btn btn-ghost ${styles.stepBtn}`}>+1 Month</button>
-            </div>
-
-            <div className={styles.sliderWrap}>
-              <input
-                type="range"
-                className={styles.rangeInput}
-                min={-365}
-                max={365}
-                value={sliderValue}
-                onChange={e => handleSlider(parseInt(e.target.value, 10))}
-                aria-label="Shift transit date relative to today"
-              />
-              <div className={styles.rangeLabels}>
-                <span>-1 Year</span>
-                <span>Today</span>
-                <span>+1 Year</span>
+      <div className={styles.workspace}>
+        {/* Compact sticky controls */}
+        <div className={styles.controlsCol}>
+          <section className={styles.panel}>
+            <div className={styles.momentHeader}>
+              <div>
+                <div className={styles.momentLabel}>Transit moment</div>
+                <div className={styles.momentValue}>
+                  {formatDisplayDate(targetDate)}
+                  <span style={{ color: 'var(--text-muted)', fontWeight: 400, margin: '0 0.3rem' }}>at</span>
+                  {formatDisplayTime(targetTime)}
+                </div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '0.15rem' }} title={tz}>
+                  {tz}
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.scrubberDivider} />
-
-        <div className={styles.scrubberBlock}>
-          <span className={styles.scrubberBlockLabel}>24-hour time scrubber</span>
-          <div className={styles.timeScrubberRow}>
-            <div className={styles.stepGroup}>
-              <button type="button" onClick={() => shiftHours(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>-1 Hour</button>
-              <button type="button" onClick={() => shiftTimeMinutes(-15)} className={`btn btn-ghost ${styles.stepBtn}`}>-15 min</button>
-              <button type="button" onClick={() => shiftTimeMinutes(15)} className={`btn btn-ghost ${styles.stepBtn}`}>+15 min</button>
-              <button type="button" onClick={() => shiftHours(1)} className={`btn btn-ghost ${styles.stepBtn}`}>+1 Hour</button>
+              {offsetDays !== 0 && (
+                <span className={`${styles.offsetChip} ${offsetDays > 0 ? styles.offsetChipFuture : styles.offsetChipPast}`}>
+                  {offsetDays > 0 ? `+${offsetDays}` : offsetDays}d
+                </span>
+              )}
             </div>
 
-            <div className={styles.timeSliderWrap}>
-              <input
-                type="range"
-                className={styles.timeRangeInput}
-                min={0}
-                max={1439}
-                step={1}
-                value={timeSliderMinutes}
-                onChange={e => handleTimeSlider(parseInt(e.target.value, 10))}
-                aria-label="Scrub time through the day"
-              />
-              <div className={styles.rangeLabels}>
-                <span>00:00</span>
-                <span>06:00</span>
-                <span>12:00</span>
-                <span>18:00</span>
-                <span>23:59</span>
+            <div className={styles.datetimeRow}>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel} htmlFor={`${fieldId}-date`}>Date</label>
+                <input
+                  id={`${fieldId}-date`}
+                  type="date"
+                  className={styles.datetimeInput}
+                  value={targetDate}
+                  onChange={e => setTargetDate(e.target.value)}
+                />
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel} htmlFor={`${fieldId}-time`}>Time</label>
+                <input
+                  id={`${fieldId}-time`}
+                  type="time"
+                  step={60}
+                  className={styles.datetimeInput}
+                  value={timeForInput(targetTime)}
+                  onChange={e => setTargetTime(normalizeTime(e.target.value))}
+                />
+              </div>
+              <div className={styles.nowBtnInline}>
+                <button type="button" onClick={resetToNow} className={`btn btn-primary ${styles.nowBtn}`}>
+                  Now
+                </button>
               </div>
             </div>
 
-            <button type="button" onClick={resetToNow} className={`btn btn-primary ${styles.nowBtn}`}>
-              Now
-            </button>
-          </div>
+            <div className={styles.scrubberBlock}>
+              <span className={styles.scrubberBlockLabel}>Date</span>
+              <div className={styles.scrubberRow}>
+                <div className={styles.stepGroup}>
+                  <button type="button" onClick={() => shiftMonths(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>-1mo</button>
+                  <button type="button" onClick={() => shiftDays(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>-1d</button>
+                  <button type="button" onClick={() => shiftDays(1)} className={`btn btn-ghost ${styles.stepBtn}`}>+1d</button>
+                  <button type="button" onClick={() => shiftMonths(1)} className={`btn btn-ghost ${styles.stepBtn}`}>+1mo</button>
+                </div>
+                <div className={styles.sliderWrap}>
+                  <input
+                    type="range"
+                    className={styles.rangeInput}
+                    min={-365}
+                    max={365}
+                    value={sliderValue}
+                    onChange={e => handleSlider(parseInt(e.target.value, 10))}
+                    aria-label="Shift transit date relative to today"
+                  />
+                  <div className={styles.rangeLabels}>
+                    <span>-1y</span>
+                    <span>Today</span>
+                    <span>+1y</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.scrubberDivider} />
+
+            <div className={styles.scrubberBlock}>
+              <span className={styles.scrubberBlockLabel}>Time</span>
+              <div className={styles.timeScrubberRow}>
+                <div className={styles.stepGroup}>
+                  <button type="button" onClick={() => shiftHours(-1)} className={`btn btn-ghost ${styles.stepBtn}`}>-1h</button>
+                  <button type="button" onClick={() => shiftTimeMinutes(-15)} className={`btn btn-ghost ${styles.stepBtn}`}>-15m</button>
+                  <button type="button" onClick={() => shiftTimeMinutes(15)} className={`btn btn-ghost ${styles.stepBtn}`}>+15m</button>
+                  <button type="button" onClick={() => shiftHours(1)} className={`btn btn-ghost ${styles.stepBtn}`}>+1h</button>
+                </div>
+                <div className={styles.timeSliderWrap}>
+                  <input
+                    type="range"
+                    className={styles.timeRangeInput}
+                    min={0}
+                    max={1439}
+                    step={1}
+                    value={timeSliderMinutes}
+                    onChange={e => handleTimeSlider(parseInt(e.target.value, 10))}
+                    aria-label="Scrub time through the day"
+                  />
+                  <div className={styles.rangeLabels}>
+                    <span>00</span>
+                    <span>06</span>
+                    <span>12</span>
+                    <span>18</span>
+                    <span>24</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {loading && (
+              <div className={styles.loadingRow}>
+                <span className="spin-loader" style={{ width: 12, height: 12, borderWidth: 2 }} />
+                Calculating…
+              </div>
+            )}
+            {error && (
+              <p role="alert" style={{ margin: 0, fontSize: '0.75rem', color: 'var(--rose)', textAlign: 'center' }}>{error}</p>
+            )}
+          </section>
         </div>
 
-        {loading && (
-          <div className={styles.loadingRow}>
-            <span className="spin-loader" style={{ width: 14, height: 14, borderWidth: 2 }} />
-            Calculating transits…
+        {/* Chart beside controls on desktop */}
+        <section className={styles.chartCol}>
+          <div style={{ width: '100%' }}>
+            <VargaSwitcher
+              vargas={natalChart.vargas}
+              vargaLagnas={natalChart.vargaLagnas ?? {}}
+              ascRashi={natalChart.lagnas.ascRashi}
+              lagnas={natalChart.lagnas}
+              arudhas={natalChart.arudhas}
+              transitGrahas={transitData ?? undefined}
+              chart={natalChart}
+              size={chartSize}
+              direction={isMobile ? 'column' : 'grid'}
+            />
           </div>
-        )}
-        {error && (
-          <p role="alert" style={{ margin: 0, fontSize: '0.82rem', color: 'var(--rose)', textAlign: 'center' }}>{error}</p>
-        )}
-      </section>
-
-      {/* Chart */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
-        <div style={{ maxWidth: 700, width: '100%' }}>
-          <VargaSwitcher
-            vargas={natalChart.vargas}
-            vargaLagnas={natalChart.vargaLagnas ?? {}}
-            ascRashi={natalChart.lagnas.ascRashi}
-            lagnas={natalChart.lagnas}
-            arudhas={natalChart.arudhas}
-            transitGrahas={transitData ?? undefined}
-            chart={natalChart}
-            size={isMobile ? (typeof window !== 'undefined' ? window.innerWidth - 40 : 360) : 600}
-            direction="column"
-          />
-        </div>
-      </section>
+        </section>
+      </div>
 
       <TransitDetailsPanels
         natalChart={natalChart}
