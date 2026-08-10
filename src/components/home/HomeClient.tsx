@@ -1549,12 +1549,12 @@ function HomeContent() {
                   onTribhagi={setVimshottariTribhagi}
                 />
               )}
-              {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Ashtottari computation required.</div>)}
-              {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <DashaTree nodes={dashboardChart.dashas.yogini} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yogini computation required.</div>)}
-              {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara computation required.</div>)}
-              {dashaSystem === 'chara_fe' && (dashboardChart.dashas.chara_fe?.length ? <DashaTree nodes={dashboardChart.dashas.chara_fe} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara FE computation required.</div>)}
-              {dashaSystem === 'mandook' && (dashboardChart.dashas.mandook?.length ? <DashaTree nodes={dashboardChart.dashas.mandook} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Mandook computation required.</div>)}
-              {dashaSystem === 'sthir' && (dashboardChart.dashas.sthir?.length ? <DashaTree nodes={dashboardChart.dashas.sthir} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Sthir computation required.</div>)}
+              {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Ashtottari computation required.</div>)}
+              {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <DashaTree nodes={dashboardChart.dashas.yogini} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yogini computation required.</div>)}
+              {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara computation required.</div>)}
+              {dashaSystem === 'chara_fe' && (dashboardChart.dashas.chara_fe?.length ? <DashaTree nodes={dashboardChart.dashas.chara_fe} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara FE computation required.</div>)}
+              {dashaSystem === 'mandook' && (dashboardChart.dashas.mandook?.length ? <DashaTree nodes={dashboardChart.dashas.mandook} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Mandook computation required.</div>)}
+              {dashaSystem === 'sthir' && (dashboardChart.dashas.sthir?.length ? <DashaTree nodes={dashboardChart.dashas.sthir} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Sthir computation required.</div>)}
             </div>
           )}
         </div>
@@ -1615,7 +1615,7 @@ function HomeContent() {
                     birthDate={new Date(dashboardChart.meta.birthDate)}
                     showNakshatra={dashaSystem === 'vimshottari' && vimshottariTribhagi}
                     tribhagi={dashaSystem === 'vimshottari' && vimshottariTribhagi}
-                    maxDepth={dashaSystem === 'vimshottari' && userPlan !== 'free' ? 6 : 4}
+                    maxDepth={dashaSystem === 'vimshottari' ? (userPlan !== 'free' ? 6 : 4) : 3}
                   />
                 )
               })()}
@@ -2492,7 +2492,7 @@ function HomeContent() {
                               birthDate={new Date(chart.meta.birthDate)}
                               showNakshatra={system.id === 'vimshottari' && vimshottariTribhagi}
                               tribhagi={system.id === 'vimshottari' && vimshottariTribhagi}
-                              maxDepth={system.id === 'vimshottari' && userPlan !== 'free' ? 6 : 4}
+                              maxDepth={system.id === 'vimshottari' ? (userPlan !== 'free' ? 6 : 4) : 3}
                             />
                           ) : (
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '0.55rem', textAlign: 'center' }}>
@@ -3090,7 +3090,7 @@ function HomeContent() {
                 onSaveTagsChange={setChartTags}
                 initialTags={chartTags}
                 savedChartId={savedChartId}
-                autoSubmit={!!searchParams.get('name')}
+                autoSubmit={!!searchParams.get('name') && !chartMatchesSearchParams(chart, searchParams)}
                 initialName="Untitled"
                 initialData={
                   freshNewChart || searchParams.get('new') === 'true'
@@ -3145,13 +3145,43 @@ function HomeContent() {
   )
 }
 
+/** True when the in-memory chart already matches URL birth params (skip re-calc). */
+function chartMatchesSearchParams(
+  chart: import('@/types/astrology').ChartOutput | null,
+  params: URLSearchParams,
+): boolean {
+  if (!chart) return false
+  const name = params.get('name')
+  const birthDate = params.get('birthDate')
+  const birthTime = params.get('birthTime')
+  const lat = params.get('lat')
+  const lng = params.get('lng')
+  if (!name || !birthDate || !birthTime || lat == null || lng == null) return false
+
+  const norm = (t: string) => (/^\d{2}:\d{2}:\d{2}$/.test(t) ? t : `${t}:00`)
+  return (
+    chart.meta.name === name &&
+    chart.meta.birthDate === birthDate &&
+    norm(chart.meta.birthTime) === norm(birthTime) &&
+    Math.abs(chart.meta.latitude - Number(lat)) < 1e-4 &&
+    Math.abs(chart.meta.longitude - Number(lng)) < 1e-4
+  )
+}
+
+function HomeSuspenseFallback() {
+  const { chart } = useChart()
+  // Chart already hydrated (e.g. Open Chart calc-first) — avoid a second spinner.
+  if (chart) return null
+  return (
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+      <VedaanshLoader />
+    </div>
+  )
+}
+
 export default function HomePage() {
   return (
-    <Suspense fallback={
-       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-          <VedaanshLoader />
-       </div>
-    }>
+    <Suspense fallback={<HomeSuspenseFallback />}>
       <HomeContent />
     </Suspense>
   )

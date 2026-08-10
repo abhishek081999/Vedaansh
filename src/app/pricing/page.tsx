@@ -22,7 +22,7 @@ const FEATURES = {
     features: [
       '✓ Unlimited chart calculations',
       '✓ Shodashavarga (16 divisional charts)',
-      '✓ Vimshottari & Yogini Dashas (L4)',
+      '✓ Vimshottari (L4) & Yogini Dashas (L3)',
       '✓ Shadbala, Vimsopaka & Bhava Bala',
       '✓ Ashtakavarga, Arudhas & Chara Karakas',
       '✓ 100+ Graha Yogas detected',
@@ -48,7 +48,7 @@ const FEATURES = {
     features: [
       '✓ Everything in Free',
       '✓ Ashtottari & Chara (Jaimini) Dashas',
-      '✓ Extended Dasha Depth (L6)',
+      '✓ Extended Vimshottari Depth (L6)',
       '✓ Professional PDF & HTML exports',
       '✓ Bulk Data Import (CSV/JSON)',
       '✓ Save up to 200 charts in library',

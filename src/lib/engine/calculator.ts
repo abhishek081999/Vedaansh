@@ -537,9 +537,10 @@ export async function calculateChart(
     vargaLagnas,
     dashas: {
       vimshottari,
-      yogini: calcYoginiDasha(moonNak.index, moonNak.degreeInNak, birthUtc, Math.min(dashaDepth, 4)),
-      ashtottari: (plan === 'gold' || plan === 'platinum') 
-        ? calcAshtottari(moon.lonSidereal, birthUtc, dashaDepth) 
+      // Non-Vimshottari systems: Maha → Antar → Pratyantar only (3 levels)
+      yogini: calcYoginiDasha(moonNak.index, moonNak.degreeInNak, birthUtc, Math.min(dashaDepth, 3)),
+      ashtottari: (plan === 'gold' || plan === 'platinum')
+        ? calcAshtottari(moon.lonSidereal, birthUtc, Math.min(dashaDepth, 3))
         : [],
       chara: calcCharaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
       chara_fe: calcCharaDashaFemale(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),

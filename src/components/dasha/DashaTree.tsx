@@ -72,7 +72,7 @@ export function DashaTree({
   nodes,
   birthDate,
   showNakshatra = false,
-  /** 1=Maha … 6=Deha. Free=4; Gold/Platinum Vimshottari=6 (lazy-expands non-current Prana/Deha). */
+  /** 1=Maha … 6=Deha. Vimshottari: Free=4, Gold/Platinum=6. Other dasha systems: 3. */
   maxDepth = 4,
   /** Pass true when viewing Tribhagi Vimshottari so lazy sub-periods use ÷3 year map. */
   tribhagi = false,

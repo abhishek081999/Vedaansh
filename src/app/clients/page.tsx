@@ -593,19 +593,41 @@ export default function ClientsPage() {
     return [...clients].sort((a,b) => (b.lastSessionAt || '0') > (a.lastSessionAt || '0') ? 1 : -1).slice(0, 5)
   }, [clients])
 
-  function handleOpenClient(c: Client) {
-    setChart(null)
+  async function handleOpenClient(c: Client) {
     setActiveTab('dashboard')
-    const params = new URLSearchParams({
-      name:       c.name,
-      birthDate:  c.birthDate,
-      birthTime:  c.birthTime,
-      birthPlace: c.birthPlace,
-      lat:        c.latitude.toString(),
-      lng:        c.longitude.toString(),
-      tz:         c.timezone,
-    })
-    router.push(`/?${params.toString()}`)
+    try {
+      const res = await fetch('/api/chart/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: c.name,
+          birthDate: c.birthDate,
+          birthTime: c.birthTime,
+          birthPlace: c.birthPlace,
+          latitude: c.latitude,
+          longitude: c.longitude,
+          timezone: c.timezone,
+          gender: 'male',
+          _t: Date.now(),
+        }),
+      })
+      const json = await res.json()
+      if (!json.success) return
+
+      setChart(json.data)
+      const params = new URLSearchParams({
+        name:       c.name,
+        birthDate:  c.birthDate,
+        birthTime:  c.birthTime,
+        birthPlace: c.birthPlace,
+        lat:        c.latitude.toString(),
+        lng:        c.longitude.toString(),
+        tz:         c.timezone,
+      })
+      router.push(`/?${params.toString()}`)
+    } catch (e) {
+      console.error('Open client chart failed', e)
+    }
   }
 
   if (error === 'PLATINUM_REQUIRED') {
