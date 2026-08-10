@@ -320,23 +320,29 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         <div aria-hidden style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
           <div style={{
             position: 'absolute', width: 600, height: 600, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(139,124,246,0.12) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, var(--orb-1) 0%, transparent 70%)',
             top: '-200px', left: '30%', animation: 'orb-drift 18s ease-in-out infinite',
           }} />
           <div style={{
             position: 'absolute', width: 400, height: 400, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(201,168,76,0.09) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, var(--orb-2) 0%, transparent 70%)',
             bottom: '-100px', right: '10%', animation: 'orb-drift 22s ease-in-out infinite reverse',
           }} />
         </div>
 
-        {/* ── Mobile overlay backdrop (above header, below sidenav) ─────────── */}
+        {/* ── Mobile overlay backdrop (below header, under sidenav) ─────────── */}
         {isSidenavOpen && (
           <div
             onClick={() => setIsSidenavOpen(false)}
             style={{
-              position: 'fixed', inset: 0, zIndex: 1400,
-              background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)',
+              position: 'fixed',
+              top: 'var(--app-header-height)',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 1400,
+              background: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(2px)',
             }}
             className="sidenav-mobile-overlay"
           />

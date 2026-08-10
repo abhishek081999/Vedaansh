@@ -228,8 +228,14 @@ export function JaiminiAspectChart({
   )
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-      <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="auto" style={{ maxWidth: size, width: '100%', height: 'auto', overflow: 'visible', display: 'block' }}>
+    <div className="jaimini-chart-frame" style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        width="100%"
+        height="auto"
+        aria-label="Jaimini south Indian chart"
+        style={{ maxWidth: '100%', width: '100%', height: 'auto', overflow: 'visible', display: 'block' }}
+      >
         <defs>
           <radialGradient id={glowId} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(201,168,76,0.1)" />
@@ -432,8 +438,14 @@ export function JaiminiAspectChartNorth({
   const getRashiInHouse = (h: number) => ((ascRashi + h - 2) % 12) + 1
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-      <svg viewBox="-10 -10 420 420" width="100%" height="auto" style={{ maxWidth: S, width: '100%', height: 'auto', overflow: 'visible', display: 'block' }}>
+    <div className="jaimini-chart-frame" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+      <svg
+        viewBox="-10 -10 420 420"
+        width="100%"
+        height="auto"
+        aria-label="Jaimini north Indian chart"
+        style={{ maxWidth: '100%', width: '100%', height: 'auto', overflow: 'visible', display: 'block' }}
+      >
         {/* ── Chart Skeleton ── */}
         <g stroke="var(--gold-dim)" strokeWidth="1.2" fill="none">
           <rect x="0" y="0" width={S} height={S} />
@@ -656,6 +668,16 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     return () => ro.disconnect();
   }, []);
 
+  // Mobile: fill width + slightly larger glyphs (matches main kundali defaults).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.innerWidth < 1024) {
+      setChartScale(1.0);
+      setPlScale(1.2);
+      setArScale(1.25);
+    }
+  }, []);
+
   // Mobile: chart stays on top; bottom-bar tabs scroll the selected panel into view below it.
   // Scroll #main-content (not window) — that is the app scroll container.
   useEffect(() => {
@@ -866,7 +888,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   ) => {
     const asc = getLagnaForVarga(varga);
     const chartKey = `${varga}-${arudhaBphsMode ? 'bphs' : 'raw'}-${showArudhaOverlay ? 'on' : 'off'}`;
-    const chartMaxPx = Math.round(400 * Math.min(Math.max(chartScale, 0.5), 1.35));
+    const scale = Math.min(Math.max(chartScale, 0.5), 2.0);
+    // Mobile: use full panel width. Desktop: allow zoom around a 520px base.
+    const chartMaxPx = isMobile ? undefined : Math.round(520 * scale);
     const chartProps = {
       ascRashi: asc,
       grahas: grahasForChart,
@@ -882,7 +906,18 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
       karakas,
     };
     return (
-      <div key={chartKey} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: chartMaxPx, minWidth: 0 }}>
+      <div
+        key={chartKey}
+        className="jaimini-chart-block"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          width: '100%',
+          maxWidth: chartMaxPx ?? '100%',
+          minWidth: 0,
+        }}
+      >
         <div style={{
           fontSize: '0.65rem', fontWeight: 900, color: 'var(--gold)',
           letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.35rem',
@@ -1221,12 +1256,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             </div>
           )}
 
-          <div style={{ 
+          <div
+            className="jaimini-chart-wrap"
+            style={{ 
             display: 'flex', 
             flexDirection: 'column',
-            alignItems: 'center',
+            alignItems: 'stretch',
             gap: isTinyMobile ? '0.75rem' : '1.25rem',
-            padding: isTinyMobile ? '0.25rem' : '0.5rem',
+            padding: isTinyMobile ? '0' : isMobile ? '0.15rem' : '0.5rem',
             width: '100%',
             maxWidth: '100%',
             minWidth: 0,

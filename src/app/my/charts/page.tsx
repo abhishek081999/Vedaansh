@@ -64,11 +64,12 @@ function fmtSaved(iso: string): string {
 }
 
 function ChartCard({
-  chart, isSelected, isDefault, toggleSelection, onLoad, onDelete, onUpdate, onSetDefault,
+  chart, isSelected, isDefault, isOpening, toggleSelection, onLoad, onDelete, onUpdate, onSetDefault,
 }: {
   chart: SavedChart
   isSelected:    boolean
   isDefault:     boolean
+  isOpening:     boolean
   toggleSelection: (id: string) => void
   onLoad:        (c: SavedChart) => void
   onDelete:      (id: string) => void | Promise<void>
@@ -305,10 +306,11 @@ function ChartCard({
       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
         <button
           onClick={() => onLoad(chart)}
+          disabled={isOpening}
           className="btn btn-primary btn-sm"
-          style={{ flex: 1, minWidth: 100, justifyContent: 'center', fontSize: '0.82rem' }}
+          style={{ flex: 1, minWidth: 100, justifyContent: 'center', fontSize: '0.82rem', opacity: isOpening ? 0.7 : 1 }}
         >
-          Open Chart
+          {isOpening ? 'Opening…' : 'Open Chart'}
         </button>
 
         {/* Export PDF */}
@@ -487,6 +489,7 @@ export default function MyChartsPage() {
   const [filterEndDate,    setFilterEndDate]    = useState('')
   const [filterTag,        setFilterTag]        = useState('')
   const [isSearching,      setIsSearching]      = useState(false)
+  const [openingId,        setOpeningId]        = useState<string | null>(null)
 
   const userPlan = (session?.user as any)?.plan ?? 'free'
 
@@ -652,20 +655,47 @@ export default function MyChartsPage() {
     }
   }, [search, filterGender, filterStartDate, filterEndDate, filterTag, fetchCharts])
 
-  function handleLoad(chart: SavedChart) {
-    setChart(null) // Clear old state immediately
+  async function handleLoad(saved: SavedChart) {
+    // Calculate once here so home does not re-run BirthForm autoSubmit (double loader).
+    setOpeningId(saved._id)
     setActiveTab('dashboard')
-    const params = new URLSearchParams({
-      name:       chart.name,
-      birthDate:  chart.birthDate,
-      birthTime:  chart.birthTime,
-      birthPlace: chart.birthPlace,
-      lat:        chart.latitude.toString(),
-      lng:        chart.longitude.toString(),
-      tz:         chart.timezone,
-      chartId:    chart._id,
-    })
-    router.push(`/?${params.toString()}`)
+    try {
+      const res = await fetch('/api/chart/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: saved.name,
+          birthDate: saved.birthDate,
+          birthTime: saved.birthTime,
+          birthPlace: saved.birthPlace,
+          latitude: saved.latitude,
+          longitude: saved.longitude,
+          timezone: saved.timezone,
+          gender: saved.gender || 'male',
+          settings: saved.settings,
+          _t: Date.now(),
+        }),
+      })
+      const json = await res.json()
+      if (!json.success) return
+
+      setChart(json.data)
+      const params = new URLSearchParams({
+        name:       saved.name,
+        birthDate:  saved.birthDate,
+        birthTime:  saved.birthTime,
+        birthPlace: saved.birthPlace,
+        lat:        saved.latitude.toString(),
+        lng:        saved.longitude.toString(),
+        tz:         saved.timezone,
+        chartId:    saved._id,
+      })
+      router.push(`/?${params.toString()}`)
+    } catch (e) {
+      console.error('Open chart failed', e)
+    } finally {
+      setOpeningId(null)
+    }
   }
 
   function handleUpdate(id: string, update: ChartUpdate) {
@@ -883,6 +913,7 @@ export default function MyChartsPage() {
               chart={chart} 
               isSelected={selectedIds.includes(chart._id)}
               isDefault={defaultChartId === chart._id}
+              isOpening={openingId === chart._id}
               toggleSelection={toggleSelection}
               onLoad={handleLoad} 
               onDelete={handleDelete} 
