@@ -39,17 +39,13 @@ export default function ScrubberPage() {
   }
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '1.75rem', padding: isMobile ? '1rem' : '1.5rem 2rem 3rem', maxWidth: 1100, margin: '0 auto', width: '100%' }}>
-      <header style={{ paddingBottom: '0.25rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.45rem', flexWrap: 'wrap' }}>
-          <span className="badge-accent" style={{ fontSize: '0.65rem' }}>Interactive</span>
-          <span style={{ fontSize: '0.68rem', color: 'var(--text-gold)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Natal overlay</span>
-        </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.55rem' : '2.1rem', fontWeight: 700, margin: 0, lineHeight: 1.15, color: 'var(--text-primary)' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.85rem' : '1rem', padding: isMobile ? '0.85rem' : '1rem 1.5rem 2.5rem', maxWidth: 1280, margin: '0 auto', width: '100%' }}>
+      <header style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0.5rem 0.85rem' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.35rem' : '1.65rem', fontWeight: 700, margin: 0, lineHeight: 1.2, color: 'var(--text-primary)' }}>
           Planetary Transit
         </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', maxWidth: 640, fontSize: isMobile ? '0.88rem' : '0.95rem', lineHeight: 1.55, marginBottom: 0 }}>
-          Set any date and time to see transiting planets against your natal chart. Time uses your birth timezone.
+        <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.8rem', lineHeight: 1.4 }}>
+          Scrub date &amp; time against your natal chart
         </p>
       </header>
 
