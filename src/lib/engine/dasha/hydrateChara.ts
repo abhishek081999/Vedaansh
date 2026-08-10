@@ -46,15 +46,9 @@ export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagna
   if (!chart.grahas?.length || !chart.lagnas) return chart
 
   const existing = chart.dashas
+  // Skip client recompute when all systems are present (server calculate already ran formulas).
   if (existing?.chara?.length && existing?.chara_fe?.length && existing?.mandook?.length && existing?.sthir?.length) {
-    const recalculated = ensureCharaDashas(chart.grahas, chart.lagnas, chart.meta, existing)
-    return {
-      ...chart,
-      dashas: {
-        ...(existing ?? {}),
-        ...recalculated,
-      } as ChartOutput['dashas'],
-    }
+    return chart
   }
 
   const { chara, chara_fe, mandook, sthir } = ensureCharaDashas(chart.grahas, chart.lagnas, chart.meta, existing)

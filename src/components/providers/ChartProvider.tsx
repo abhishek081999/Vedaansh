@@ -1,11 +1,20 @@
 'use client'
-import React, { createContext, useContext, useState, useCallback, useEffect, Dispatch, SetStateAction } from 'react'
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, Dispatch, SetStateAction } from 'react'
 import type { ChartOutput } from '@/types/astrology'
-import { hydrateSpecialLagnas } from '@/lib/engine/astroDetailsDerived'
-import { hydrateCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 
-function withHydratedChart(chart: ChartOutput | null): ChartOutput | null {
-  if (!chart?.grahas?.length) return chart
+function hasCompleteClientHydration(chart: ChartOutput): boolean {
+  const d = chart.dashas
+  const hasDashas = !!(d?.chara?.length && d?.chara_fe?.length && d?.mandook?.length && d?.sthir?.length)
+  const hasLagnas = Number.isFinite(chart.lagnas?.induLagna) && Number.isFinite(chart.lagnas?.bhriguBindu)
+  return hasDashas && hasLagnas
+}
+
+async function hydrateChartAsync(chart: ChartOutput): Promise<ChartOutput> {
+  if (!chart.grahas?.length) return chart
+  const [{ hydrateSpecialLagnas }, { hydrateCharaDashas }] = await Promise.all([
+    import('@/lib/engine/astroDetailsDerived'),
+    import('@/lib/engine/dasha/hydrateChara'),
+  ])
   let next = chart
   if (chart.lagnas) {
     const lagnas = hydrateSpecialLagnas(chart.lagnas, chart.grahas)
@@ -29,14 +38,36 @@ export function ChartProvider({ children }: { children: React.ReactNode }) {
   const [chart, setChartState] = useState<ChartOutput | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [pendingDestination, setPendingDestination] = useState<string | null>(null)
+  const hydrateGen = useRef(0)
 
   const setChart: Dispatch<SetStateAction<ChartOutput | null>> = useCallback((action) => {
-    setChartState(prev => withHydratedChart(typeof action === 'function' ? action(prev) : action))
+    setChartState(prev => {
+      const next = typeof action === 'function' ? action(prev) : action
+      if (!next?.grahas?.length) return next
+
+      // Fresh API charts already include dashas + special lagnas — paint immediately.
+      if (hasCompleteClientHydration(next)) return next
+
+      const gen = ++hydrateGen.current
+      void hydrateChartAsync(next).then((hydrated) => {
+        if (gen !== hydrateGen.current) return
+        setChartState(hydrated)
+      })
+      return next
+    })
   }, [])
 
-  // Backfill Chara dashas on charts already in memory (e.g. before chara_fe existed)
+  // Backfill legacy in-memory charts once (lazy engine import — not on every route's critical path)
   useEffect(() => {
-    setChartState(prev => withHydratedChart(prev))
+    setChartState(prev => {
+      if (!prev?.grahas?.length || hasCompleteClientHydration(prev)) return prev
+      const gen = ++hydrateGen.current
+      void hydrateChartAsync(prev).then((hydrated) => {
+        if (gen !== hydrateGen.current) return
+        setChartState(hydrated)
+      })
+      return prev
+    })
   }, [])
 
   return (

@@ -181,7 +181,6 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
     const pGender = searchParams.get('gender') as Gender | null
 
     if (pName && pDate && pTime && pLat && pLng) {
-      didAutoSubmit.current = true
       const n = pName
       const d = pDate
       const t = pTime
@@ -189,6 +188,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
       const lt = parseFloat(pLat)
       const lg = parseFloat(pLng)
       const tzone = pTz || '' // Start empty if not provided from URL
+      const g = pGender || gender
 
       setName(n)
       setDate(d)
@@ -196,10 +196,20 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
       setPlace(pl)
       setLat(lt)
       setLng(lg)
-      
+      if (pGender) setGender(pGender)
+
+      // Prefill only when chart is already hydrated (Open Chart / prior calc).
+      // Recalc only when parent asks via autoSubmit.
+      if (!autoSubmit) {
+        didAutoSubmit.current = true
+        if (tzone) setTz(tzone)
+        return
+      }
+
+      didAutoSubmit.current = true
       if (tzone) {
         setTz(tzone)
-        setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, gender, settings), 150)
+        setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, g, settings), 150)
       } else {
         // If coords provided but no TZ, we MUST resolve it first to avoid UTC bug
         fetch(`/api/atlas/search?lat=${lt}&lng=${lg}`)
@@ -207,11 +217,11 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
           .then(data => {
             const resolvedTz = data.results?.[0]?.timezone || 'Asia/Kolkata' // Default to IST if all else fails
             setTz(resolvedTz)
-            submitChart(n, d, t, pl, lt, lg, resolvedTz, gender, settings)
+            submitChart(n, d, t, pl, lt, lg, resolvedTz, g, settings)
           })
           .catch(() => {
             setTz('Asia/Kolkata')
-            submitChart(n, d, t, pl, lt, lg, 'Asia/Kolkata', gender, settings)
+            submitChart(n, d, t, pl, lt, lg, 'Asia/Kolkata', g, settings)
           })
       }
     } else if (autoSubmit && initialData) {
@@ -406,6 +416,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
     placeVal: string, latVal: number, lngVal: number,
     tzVal: string, genderVal: Gender, settingsVal: ChartSettings,
   ) {
+    // Prevent URL-param effect from re-POSTing after button submit → router.replace
+    didAutoSubmit.current = true
     setError(null)
     setLoading(true)
     onLoading?.(true)
@@ -425,7 +437,6 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
           timezone: tzVal,
           gender: genderVal,
           settings: settingsVal,
-          _t: Date.now(), // Cache buster to force re-calculation
         }),
       })
 

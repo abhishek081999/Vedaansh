@@ -673,7 +673,6 @@ export default function MyChartsPage() {
           timezone: saved.timezone,
           gender: saved.gender || 'male',
           settings: saved.settings,
-          _t: Date.now(),
         }),
       })
       const json = await res.json()

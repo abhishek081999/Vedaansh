@@ -18,15 +18,13 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import {
   Grid3X3, TrendingUp, Globe, Flame, Zap, Heart, Pill, Sparkles, LineChart,
 } from 'lucide-react'
 import { ThemeToggle }     from '@/components/ui/ThemeToggle'
 import { BREAKPOINTS }     from '@/lib/ui/breakpoints'
 import { useChart }        from '@/components/providers/ChartProvider'
-import { SarvatobhadraChakra } from '@/components/ui/SarvatobhadraChakra'
-import { SBCStockPanel }    from '@/components/ui/SBCStockPanel'
-import { SBCAdvancedPanel } from '@/components/ui/SBCAdvancedPanel'
 import {
   getSBCGrid,
   getPlanetsOnSBC,
@@ -61,6 +59,10 @@ import {
   type UseCaseVerdict,
   type CategorySummary,
 } from '@/lib/engine/sbcUseCases'
+
+const SarvatobhadraChakra = dynamic(() => import('@/components/ui/SarvatobhadraChakra').then(m => m.SarvatobhadraChakra), { ssr: false })
+const SBCStockPanel = dynamic(() => import('@/components/ui/SBCStockPanel').then(m => m.SBCStockPanel), { ssr: false })
+const SBCAdvancedPanel = dynamic(() => import('@/components/ui/SBCAdvancedPanel').then(m => m.SBCAdvancedPanel), { ssr: false })
 
 // ─── Utils ────────────────────────────────────────────────────
 

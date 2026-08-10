@@ -3,22 +3,24 @@
 import { useState, useMemo } from 'react'
 import React from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { BirthForm } from '@/components/ui/BirthForm'
 import { useSession } from 'next-auth/react'
-import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
-import { DashaTree } from '@/components/dasha/DashaTree'
-import { AshtakavargaGrid } from '@/components/ui/AshtakavargaGrid'
-import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
-import { YogaList } from '@/components/ui/YogaList'
 import type { ChartOutput, GrahaData } from '@/types/astrology'
 import { RASHI_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
 import { calculateAshtakoot, getLord } from '@/lib/engine/ashtakoot'
-import { CompatibilityDoshaPanel } from '@/components/ui/CompatibilityDoshaPanel'
-import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
-import { SavedChartSelector } from '@/components/ui/SavedChartSelector'
 import { Suspense } from 'react'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
+
+const BirthForm = dynamic(() => import('@/components/ui/BirthForm').then(m => m.BirthForm), { ssr: false })
+const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
+const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
+const AshtakavargaGrid = dynamic(() => import('@/components/ui/AshtakavargaGrid').then(m => m.AshtakavargaGrid), { ssr: false })
+const ShadbalaTable = dynamic(() => import('@/components/ui/ShadbalaTable').then(m => m.ShadbalaTable), { ssr: false })
+const YogaList = dynamic(() => import('@/components/ui/YogaList').then(m => m.YogaList), { ssr: false })
+const CompatibilityDoshaPanel = dynamic(() => import('@/components/ui/CompatibilityDoshaPanel').then(m => m.CompatibilityDoshaPanel), { ssr: false })
+const NatalPanchangPanel = dynamic(() => import('@/components/panchang/NatalPanchangPanel').then(m => m.NatalPanchangPanel), { ssr: false })
+const SavedChartSelector = dynamic(() => import('@/components/ui/SavedChartSelector').then(m => m.SavedChartSelector), { ssr: false })
 
 // ── Compatibility Logic ───────────────────────────────────────
 interface CompatItem { label: string; score: number; reason: string; level: 'good' | 'neutral' | 'bad' }

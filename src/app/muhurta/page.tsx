@@ -13,13 +13,18 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import { calcTaraBala, calcChandraBala } from '@/lib/engine/muhurtaPersonal'
-import { MuhurtaTimeline } from '@/components/ui/MuhurtaTimeline'
 import { analyzeMuhurta, type MuhurtaActivity } from '@/lib/engine/muhurtaAnalysis'
+
+const MuhurtaTimeline = dynamic(
+  () => import('@/components/ui/MuhurtaTimeline').then(m => m.MuhurtaTimeline),
+  { ssr: false },
+)
 
 // ── Types ─────────────────────────────────────────────────────
 interface DayPanchang {

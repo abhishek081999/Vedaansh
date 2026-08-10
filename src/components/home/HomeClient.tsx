@@ -11,10 +11,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { BirthForm } from '@/components/ui/BirthForm'
 import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library } from 'lucide-react'
 
 // Dynamic imports for heavy tab-specific components
+const BirthForm = dynamic(() => import('@/components/ui/BirthForm').then(m => m.BirthForm), { ssr: false })
 const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').then(m => m.VarshaphalPanel), { ssr: false })
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
 const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
@@ -38,6 +38,12 @@ const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').
 const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
 const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
 const AstroDetailsPanel = dynamic(() => import('@/components/ui/AstroDetailsPanel').then(m => m.AstroDetailsPanel), { ssr: false })
+const PlanetDetailCard = dynamic(() => import('@/components/ui/PlanetDetailCard').then(m => m.PlanetDetailCard), { ssr: false })
+const NatalPanchangPanel = dynamic(() => import('@/components/panchang/NatalPanchangPanel').then(m => m.NatalPanchangPanel), { ssr: false })
+const LandingPremiumHero = dynamic(() => import('@/components/home/LandingPremiumHero').then(m => m.LandingPremiumHero), { ssr: false })
+const LandingStickyMobileCta = dynamic(() => import('@/components/home/LandingStickyMobileCta').then(m => m.LandingStickyMobileCta), { ssr: false })
+const AboutPreview = dynamic(() => import('@/components/about/AboutPreview').then(m => m.AboutPreview), { ssr: false })
+const PwaInstallGuide = dynamic(() => import('@/components/ui/PwaInstallGuide').then(m => m.PwaInstallGuide), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
@@ -45,9 +51,6 @@ import { routeAllowsWithoutChart } from '@/lib/chartGateRoutes'
 import type { ChartOutput, GrahaId, Rashi, ChartSettings } from '@/types/astrology'
 import { DEFAULT_SETTINGS, GRAHA_NAMES, NAKSHATRA_NAMES as NAK_NAMES } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
-import { PlanetDetailCard } from '@/components/ui/PlanetDetailCard'
-import { getGraNakPositions, getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
-import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 import { LandingShell, LandingVedicDivider } from '@/components/home/LandingShell'
 import { ChartFormDrawer } from '@/components/home/ChartFormDrawer'
@@ -516,11 +519,7 @@ function MajorKundaliStrip({
 
 import { Suspense } from 'react'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
-import { LandingPremiumHero } from '@/components/home/LandingPremiumHero'
-import { LandingStickyMobileCta } from '@/components/home/LandingStickyMobileCta'
 import { LandingReveal } from '@/components/home/LandingReveal'
-import { AboutPreview } from '@/components/about/AboutPreview'
-import { PwaInstallGuide } from '@/components/ui/PwaInstallGuide'
 
 /** Query string matches BirthForm URL hydration (`name`, `birthDate`, … `tz`). */
 function buildChartShareUrl(chart: ChartOutput): string {
@@ -3086,7 +3085,11 @@ function HomeContent() {
                     }
                   }, 300)
                 }}
-                onLoading={setLoading}
+                onLoading={(isLoading) => {
+                  // Avoid full-page "Recalculating…" when chart already matches URL (Open Chart path).
+                  if (isLoading && chartMatchesSearchParams(chart, searchParams)) return
+                  setLoading(isLoading)
+                }}
                 onSaveTagsChange={setChartTags}
                 initialTags={chartTags}
                 savedChartId={savedChartId}
