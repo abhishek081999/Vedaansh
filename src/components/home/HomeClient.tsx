@@ -11,7 +11,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library } from 'lucide-react'
+import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown } from 'lucide-react'
 
 // Dynamic imports for heavy tab-specific components
 const BirthForm = dynamic(() => import('@/components/ui/BirthForm').then(m => m.BirthForm), { ssr: false })
@@ -724,7 +724,7 @@ function HomeContent() {
 
   const [isMobile, setIsMobile] = useState(false)
   const [isPhone, setIsPhone] = useState(false)
-  const [mobileHeaderMenuOpen, setMobileHeaderMenuOpen] = useState(false)
+  const [mobileChartActionsOpen, setMobileChartActionsOpen] = useState(false)
   const [mobileDashCategory, setMobileDashCategory] = useState<'astrology' | 'panchang' | 'nakshatra' | 'advanced'>('astrology')
   const [mobileDashTab, setMobileDashTab] = useState<'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'>('astro')
   const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('ashtakavarga')
@@ -744,8 +744,24 @@ function HomeContent() {
   }, [])
 
   useEffect(() => {
-    if (!isPhone && mobileHeaderMenuOpen) setMobileHeaderMenuOpen(false)
-  }, [isPhone, mobileHeaderMenuOpen])
+    try {
+      setMobileChartActionsOpen(localStorage.getItem('vedaansh-mobile-chart-actions') === 'true')
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const toggleMobileChartActions = () => {
+    setMobileChartActionsOpen((open) => {
+      const next = !open
+      try {
+        localStorage.setItem('vedaansh-mobile-chart-actions', String(next))
+      } catch {
+        /* ignore */
+      }
+      return next
+    })
+  }
 
   // Chart stays on top; bottom-bar tabs scroll the panel below into view (not page top).
   useEffect(() => {
@@ -1703,43 +1719,32 @@ function HomeContent() {
                 chart={chart}
                 tags={chartTags}
                 isMobile={isPhone}
-                mobileReserveRight={
-                  status === 'authenticated'
-                    ? 'calc(5 * 34px + 4 * 0.4rem + 0.75rem)'
-                    : 'calc(3 * 34px + 2 * 0.4rem + 0.75rem)'
-                }
+                mobileReserveRight={isPhone ? '2.5rem' : undefined}
               />
 
               {isPhone && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    zIndex: 5,
-                    display: 'flex',
-                    gap: '0.4rem',
-                    alignItems: 'center',
-                  }}
+                <button
+                  type="button"
+                  className="chart-mobile-actions-toggle"
+                  aria-expanded={mobileChartActionsOpen}
+                  aria-label={mobileChartActionsOpen ? 'Hide chart actions' : 'Show chart actions'}
+                  onClick={toggleMobileChartActions}
                 >
+                  <ChevronDown size={16} strokeWidth={2.25} aria-hidden />
+                </button>
+              )}
+              {isPhone && mobileChartActionsOpen && (
+                <div className="chart-mobile-actions-row">
                   <button
                     type="button"
                     onClick={() => handleCopyShareLink()}
                     aria-label={shareCopied ? 'Link copied' : 'Copy link to this chart'}
                     title={shareCopied ? 'Copied!' : 'Copy link — free, no login required'}
+                    className="chart-mobile-action-btn"
                     style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 8,
-                      border: `1px solid ${shareCopied ? 'var(--accent)' : 'var(--border-soft)'}`,
-                      background: shareCopied ? 'rgba(34,197,94,0.1)' : 'var(--surface-2)',
-                      color: shareCopied ? 'var(--accent)' : 'var(--text-primary)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      transition: 'all 0.2s',
+                      borderColor: shareCopied ? 'var(--accent)' : undefined,
+                      background: shareCopied ? 'rgba(34,197,94,0.1)' : undefined,
+                      color: shareCopied ? 'var(--accent)' : undefined,
                     }}
                   >
                     {shareCopied ? (
@@ -1754,20 +1759,11 @@ function HomeContent() {
                       onClick={() => handleSave('regular')}
                       disabled={saving || saveDone}
                       aria-label={isSavedChart ? 'Update saved chart' : 'Save chart'}
+                      className="chart-mobile-action-btn"
                       style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 8,
-                        border: `1px solid ${saveDone ? 'var(--accent)' : 'var(--border-soft)'}`,
-                        background: saveDone ? 'rgba(34,197,94,0.1)' : 'var(--surface-2)',
-                        color: saveDone ? 'var(--accent)' : 'var(--text-primary)',
-                        fontSize: '1rem',
-                        lineHeight: 1,
-                        cursor: saving || saveDone ? 'default' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s',
+                        borderColor: saveDone ? 'var(--accent)' : undefined,
+                        background: saveDone ? 'rgba(34,197,94,0.1)' : undefined,
+                        color: saveDone ? 'var(--accent)' : undefined,
                       }}
                     >
                       {saving ? (
@@ -1787,19 +1783,7 @@ function HomeContent() {
                     type="button"
                     onClick={() => setIsFormOpen(true)}
                     aria-label="Edit birth details"
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 8,
-                      border: '1px solid var(--border-soft)',
-                      background: 'var(--surface-2)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
+                    className="chart-mobile-action-btn"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -1809,164 +1793,33 @@ function HomeContent() {
                   {status === 'authenticated' && (
                     <Link
                       href="/my/charts"
-                      aria-label="My charts library"
-                      style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 8,
-                        border: '1px solid var(--border-soft)',
-                        background: 'var(--surface-2)',
-                        color: 'var(--text-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        textDecoration: 'none',
-                      }}
+                      className="btn btn-secondary btn-sm"
+                      style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                      </svg>
+                      My Charts
                     </Link>
+                  )}
+                  <ExportPdfButton chart={chart} compact />
+                  <EmailChartButton chart={chart} compact />
+                  {status === 'authenticated' && userPlan === 'platinum' && (
+                    <button
+                      type="button"
+                      onClick={handleSaveToCRM}
+                      disabled={crmSaving || crmDone}
+                      className="btn btn-secondary btn-sm"
+                      style={{ borderColor: 'var(--gold)', color: crmDone ? 'var(--text-muted)' : 'var(--gold)' }}
+                    >
+                      {crmSaving ? '…' : crmDone ? '✓ CRM' : 'CRM'}
+                    </button>
                   )}
                   <button
                     type="button"
-                    onClick={() => setMobileHeaderMenuOpen((s) => !s)}
-                    aria-label="Open chart actions"
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 8,
-                      border: '1px solid var(--border-soft)',
-                      background: 'var(--surface-2)',
-                      color: 'var(--text-primary)',
-                      fontSize: '1.15rem',
-                      lineHeight: 1,
-                      cursor: 'pointer',
-                    }}
+                    onClick={startNewChart}
+                    className="btn btn-primary btn-sm"
                   >
-                    ⋮
+                    + New
                   </button>
                 </div>
-              )}
-              {isPhone && mobileHeaderMenuOpen && (
-                <>
-                  <button
-                    type="button"
-                    aria-label="Close actions menu"
-                    onClick={() => setMobileHeaderMenuOpen(false)}
-                    style={{
-                      position: 'fixed',
-                      inset: 0,
-                      zIndex: 40,
-                      border: 'none',
-                      background: 'rgba(0,0,0,0.22)',
-                      padding: 0,
-                      cursor: 'pointer',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'fixed',
-                      top: 76,
-                      right: 16,
-                      zIndex: 41,
-                      width: 220,
-                      background: 'var(--surface-1)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--r-md)',
-                      boxShadow: 'var(--shadow-card)',
-                      padding: '0.55rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.45rem',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileHeaderMenuOpen(false)
-                        void handleCopyShareLink()
-                      }}
-                      className="btn btn-secondary btn-sm"
-                      style={{
-                        width: '100%',
-                        justifyContent: 'center',
-                        gap: '0.35rem',
-                      }}
-                    >
-                      <span style={{ display: 'inline-flex', alignItems: 'center' }} aria-hidden><ShareLinkIcon /></span>
-                      {shareCopied ? 'Copied link' : 'Copy chart link'}
-                    </button>
-                    {status === 'authenticated' && (
-                      <button
-                        onClick={() => {
-                          setMobileHeaderMenuOpen(false)
-                          handleSave('regular')
-                        }}
-                        disabled={saving || saveDone}
-                        className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {saving ? 'Saving…' : saveDone ? '✓ Updated' : isSavedChart ? 'Update Chart' : '+ Save Chart'}
-                      </button>
-                    )}
-                    {status === 'authenticated' && (
-                      <Link
-                        href="/my/charts"
-                        onClick={() => setMobileHeaderMenuOpen(false)}
-                        className="btn btn-secondary btn-sm"
-                        style={{
-                          width: '100%',
-                          justifyContent: 'center',
-                          textDecoration: 'none',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.35rem',
-                        }}
-                      >
-                        <span aria-hidden>📚</span> My Charts
-                      </Link>
-                    )}
-                    <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
-                      <ExportPdfButton chart={chart} compact />
-                      <EmailChartButton chart={chart} compact />
-                    </div>
-                    <button
-                      onClick={() => {
-                        setMobileHeaderMenuOpen(false)
-                        setIsFormOpen(true)
-                      }}
-                      className="btn btn-secondary btn-sm"
-                      style={{
-                        width: '100%',
-                        justifyContent: 'center',
-                        background: 'var(--surface-3)',
-                        color: 'var(--text-primary)',
-                        border: '1px solid var(--border-bright)',
-                      }}
-                    >
-                      ✎ Edit Details
-                    </button>
-                    <button
-                      onClick={() => {
-                        setMobileHeaderMenuOpen(false)
-                        startNewChart()
-                      }}
-                      className="btn btn-primary btn-sm"
-                      style={{
-                        width: '100%',
-                        justifyContent: 'center',
-                        background: 'var(--gold-faint)',
-                        color: 'var(--text-gold)',
-                        border: '1px solid var(--gold)',
-                      }}
-                    >
-                      + New Chart
-                    </button>
-                  </div>
-                </>
               )}
 
               <div className="chart-actions-compact" style={{ display: isPhone ? 'none' : 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>

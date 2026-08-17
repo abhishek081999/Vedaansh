@@ -14,7 +14,7 @@ import { NavIcon } from '@/components/ui/layout/NavIcon'
 import { isAuthRoute } from '@/lib/ui/authRoutes'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import type { LucideIcon } from 'lucide-react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, LogOut, User } from 'lucide-react'
 import {
   ADVANCED_ASTRO_TABS,
   ASTRO_GROUPS,
@@ -24,6 +24,7 @@ import {
   PANCHANG_TABS,
   SIDENAV_ACCORDIONS,
   TOP_TABS,
+  type NavGroup,
   type NavTab,
 } from '@/lib/ui/navConfig'
 import { routeAllowsWithoutChart } from '@/lib/chartGateRoutes'
@@ -45,6 +46,25 @@ const progressKeyframes = `
 
 const SIDENAV_OM_SVG = `<svg viewBox="0 0 100 100" fill="currentColor"><path d="M52.3,47.2c0.2,2,1.3,4,3.2,5.2c1.9,1.1,4.3,1.4,6.4,1.1c2-0.3,3.8-1.2,5.3-2.6c1.5-1.4,2.5-3.3,2.8-5.3 c0.3-2,0-4-1.1-5.7c-1.1-1.7-2.9-2.9-4.8-3.4c1.1-0.2,2.3-0.5,3.4-1c1.1-0.6,2.1-1.3,2.9-2.2c0.8-0.9,1.5-2,1.8-3.3 c0.4-1.3,0.4-2.7,0-4c-0.4-1.3-1.1-2.4-2-3.4c-1-0.9-2.2-1.6-3.6-2c-1.4-0.4-2.9-0.5-4.3-0.2c-1.4,0.3-2.8,1-3.9,1.9 c-1.1-0.9-2.4-1.6-3.8-1.9c-1.4-0.3-2.9-0.2-4.3,0.2c-1.4,0.4-2.7,1.1-3.6,2c-1,0.9-1.6,2.1-2,3.4c-0.4,1.3-0.4,2.7-0,4 c0.4,1.3,1,2.4,1.8,3.3c0.8,0.9,1.8,1.7,2.9,2.2c1.1,0.6,2.3,0.8,3.4,1c-2,0.5-3.8,1.7-4.8,3.4c-1.1,1.7-1.4,3.7-1.1,5.7 C50,44,50.8,45.8,52.3,47.2z M65.7,21.5c1.3,0.3,2.5,1,3.4,2c0.9,1,1.4,2.3,1.6,3.6c0.2,1.4,0,2.8-0.7,4.1 c-0.6,1.4-1.7,2.5-3.1,3.1c1.3,0.6,2.4,1.7,3,3.1c0.7,1.3,0.9,2.8,0.7,4.1c-0.2,1.4-0.7,2.6-1.6,3.6c-0.9,1-2,1.7-3.4,2 c-1.3,0.3-2.7,0.2-4-0.2c-1.4-0.4-2.4-1.2-3.2-2.3c-0.8-1-1.1-2.4-1.1-3.8c0-1.4,0.4-2.8,1.2-3.8c0.8-1.1,1.8-1.8,3.1-2.3 c-1.3-0.4-2.3-1.2-3.1-2.3c-0.7-1.1-1.1-2.4-1.1-3.8c0-1.4,0.3-2.7,1.1-3.8c0.8-1.1,1.8-1.9,3.1-2.3C63,21.3,64.4,21.3,65.7,21.5z"/></svg>`;
 
+const ASTRO_GROUP_STORAGE_KEY = 'astro-group-nav-expanded'
+
+function defaultAstroGroupOpen(): Record<string, boolean> {
+  return Object.fromEntries(ASTRO_GROUPS.map((g) => [g.id, g.id === 'core-analysis']))
+}
+
+function loadAstroGroupOpen(): Record<string, boolean> {
+  if (typeof window === 'undefined') return defaultAstroGroupOpen()
+  try {
+    const saved = localStorage.getItem(ASTRO_GROUP_STORAGE_KEY)
+    if (!saved) return defaultAstroGroupOpen()
+    const parsed = JSON.parse(saved) as Record<string, boolean>
+    const defaults = defaultAstroGroupOpen()
+    return { ...defaults, ...parsed }
+  } catch {
+    return defaultAstroGroupOpen()
+  }
+}
+
 export function AppFramework({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
@@ -52,6 +72,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab, language, setLanguage } = useAppLayout()
   const { chart, isFormOpen, setIsFormOpen, setChart, setPendingDestination } = useChart()
   const [isAstroOpen, setIsAstroOpen] = useState(true)
+  const [astroGroupOpen, setAstroGroupOpen] = useState<Record<string, boolean>>(defaultAstroGroupOpen)
   const [isAdvancedAstroOpen, setIsAdvancedAstroOpen] = useState(false)
   const [isPanchangOpen, setIsPanchangOpen] = useState(false)
   const [isNakshatraOpen, setIsNakshatraOpen] = useState(false)
@@ -59,22 +80,31 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const [isOffline, setIsOffline] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [headerProfileOpen, setHeaderProfileOpen] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
   const profileMenuRef = useRef<HTMLDivElement>(null)
+  const headerProfileRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!isSidenavOpen) setProfileMenuOpen(false)
   }, [isSidenavOpen])
 
   useEffect(() => {
-    if (!profileMenuOpen) return
+    if (!profileMenuOpen && !headerProfileOpen) return
     const onDoc = (e: MouseEvent) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
         setProfileMenuOpen(false)
+      }
+      if (headerProfileRef.current && !headerProfileRef.current.contains(target)) {
+        setHeaderProfileOpen(false)
       }
     }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setProfileMenuOpen(false)
+      if (e.key === 'Escape') {
+        setProfileMenuOpen(false)
+        setHeaderProfileOpen(false)
+      }
     }
     document.addEventListener('mousedown', onDoc)
     document.addEventListener('keydown', onKey)
@@ -82,7 +112,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       document.removeEventListener('mousedown', onDoc)
       document.removeEventListener('keydown', onKey)
     }
-  }, [profileMenuOpen])
+  }, [profileMenuOpen, headerProfileOpen])
 
   useEffect(() => {
     setIsNavigating(false)
@@ -102,6 +132,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     if (savedN !== null) {
       setIsNakshatraOpen(savedN === 'true')
     }
+    setAstroGroupOpen(loadAstroGroupOpen())
 
     // PWA: Monitor online/offline status
     setIsOffline(!navigator.onLine)
@@ -114,6 +145,27 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       window.removeEventListener('offline', onOffline)
     }
   }, [pathname])
+
+  useEffect(() => {
+    if (pathname !== ASTROLOGY_HOME_PATH) return
+    const activeGroup = ASTRO_GROUPS.find((g) => g.tabs.some((t) => t.id === activeTab))
+    if (!activeGroup) return
+    setAstroGroupOpen((prev) => {
+      if (prev[activeGroup.id]) return prev
+      const next = { ...prev, [activeGroup.id]: true }
+      localStorage.setItem(ASTRO_GROUP_STORAGE_KEY, JSON.stringify(next))
+      return next
+    })
+    setIsAstroOpen(true)
+  }, [activeTab, pathname])
+
+  const toggleAstroGroup = (groupId: string) => {
+    setAstroGroupOpen((prev) => {
+      const next = { ...prev, [groupId]: !prev[groupId] }
+      localStorage.setItem(ASTRO_GROUP_STORAGE_KEY, JSON.stringify(next))
+      return next
+    })
+  }
 
   const toggleAstroOpen = () => {
     setIsAstroOpen(prev => {
@@ -154,6 +206,33 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
 
   const scrollToTop = () => {
     mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const headerPrimaryTabs = TOP_TABS
+  const pricingTab = MAIN_TABS.find((tab) => tab.id === 'pricing')
+  const astroTabIds = ASTRO_GROUPS.flatMap((group) => group.tabs.map((tab) => tab.id))
+  const isAstroHeaderActive = pathname === ASTROLOGY_HOME_PATH && astroTabIds.includes(activeTab)
+
+  const renderGroupAccordion = (group: NavGroup) => {
+    const isOpen = astroGroupOpen[group.id] ?? false
+    const maxHeight = `${group.tabs.length * 42 + 8}px`
+
+    return (
+      <div key={group.id} className="sidenav-nested-group">
+        <button
+          type="button"
+          onClick={() => toggleAstroGroup(group.id)}
+          className={`sidenav-group-accordion-btn${isOpen ? ' sidenav-group-accordion-btn--open' : ''}`}
+          aria-expanded={isOpen}
+        >
+          <span className="sidenav-group-accordion-label">{group.label}</span>
+          <ChevronDown className="sidenav-group-accordion-chevron" size={12} strokeWidth={2} aria-hidden />
+        </button>
+        <div className="sidenav-submenu sidenav-submenu--nested" style={{ maxHeight: isOpen ? maxHeight : 0 }}>
+          {group.tabs.map((t) => renderTab(t, true))}
+        </div>
+      </div>
+    )
   }
 
   const renderAccordion = (
@@ -230,6 +309,133 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     )
   }
 
+  const renderHeaderTabLink = (t: NavTab, className = 'app-header-nav-link') => {
+    const isMenuLink = className === 'app-header-menu-link'
+    const isCurrentPage = t.path === pathname
+    const isActive = t.path === ASTROLOGY_HOME_PATH
+      ? (isCurrentPage && activeTab === t.id)
+      : isCurrentPage
+
+    const handleNav = (e: React.MouseEvent) => {
+      const isAstrologyTab = t.path === ASTROLOGY_HOME_PATH || !t.path
+
+      if (t.path !== pathname) {
+        setIsNavigating(true)
+      }
+
+      if (!chart && t.path && !isAstrologyTab && !routeAllowsWithoutChart(t.path)) {
+        e.preventDefault()
+        setPendingDestination(t.path)
+        setIsFormOpen(true)
+        router.push('/?new=true')
+      } else if (isAstrologyTab && !chart) {
+        setIsFormOpen(true)
+      }
+
+      setActiveTab(t.id)
+      mainRef.current?.scrollTo({ top: 0, behavior: 'auto' })
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' })
+    }
+
+    return (
+      <Link
+        key={t.id}
+        href={t.path || '/'}
+        onClick={handleNav}
+        className={`${className}${isActive ? ` ${className}--active` : ''}`}
+      >
+        {isMenuLink ? <NavIcon icon={t.icon} className="app-header-menu-icon" /> : null}
+        <span>{t.label}</span>
+      </Link>
+    )
+  }
+
+  const renderHeaderDropdown = (
+    label: string,
+    children: React.ReactNode,
+    options: { active?: boolean; align?: 'left' | 'right'; wide?: boolean } = {},
+  ) => (
+    <div className={`app-header-dropdown${options.align === 'right' ? ' app-header-dropdown--right' : ''}`}>
+      <button
+        type="button"
+        className={`app-header-nav-link app-header-dropdown-trigger${options.active ? ' app-header-nav-link--active' : ''}`}
+        aria-haspopup="true"
+      >
+        <span>{label}</span>
+        <ChevronDown className="app-header-dropdown-chevron" size={13} strokeWidth={2.25} aria-hidden />
+      </button>
+      <div className={`app-header-dropdown-panel${options.wide ? ' app-header-dropdown-panel--wide' : ''}`}>
+        {children}
+      </div>
+    </div>
+  )
+
+  const renderHeaderProfile = () => {
+    if (status === 'loading') {
+      return (
+        <div className="app-header-profile app-header-profile--loading">
+          <Spinner size={18} label="Syncing session" />
+        </div>
+      )
+    }
+
+    if (status === 'authenticated' && session?.user) {
+      return (
+        <div ref={headerProfileRef} className="app-header-profile">
+          <button
+            type="button"
+            className="app-header-profile-btn"
+            aria-expanded={headerProfileOpen}
+            aria-haspopup="menu"
+            aria-label="Account menu"
+            onClick={() => setHeaderProfileOpen((open) => !open)}
+          >
+            <div className="app-header-avatar">
+              {session.user.name?.[0] || 'A'}
+            </div>
+            <div className="app-header-profile-meta">
+              <span className="app-header-profile-name">{session.user.name || 'Account'}</span>
+              <span className="app-header-profile-hint">Account</span>
+            </div>
+            <ChevronDown className="app-header-profile-chevron" size={14} strokeWidth={2.25} aria-hidden />
+          </button>
+          {headerProfileOpen && (
+            <div role="menu" className="app-header-profile-menu">
+              <Link
+                href="/account"
+                role="menuitem"
+                className="app-header-profile-item"
+                onClick={() => setHeaderProfileOpen(false)}
+              >
+                <User size={15} strokeWidth={2} aria-hidden />
+                Profile
+              </Link>
+              <button
+                type="button"
+                role="menuitem"
+                className="app-header-profile-item app-header-profile-item--danger"
+                onClick={() => {
+                  setHeaderProfileOpen(false)
+                  void signOut({ callbackUrl: '/' })
+                }}
+              >
+                <LogOut size={15} strokeWidth={2} aria-hidden />
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    return (
+      <Link href="/login" className="app-header-signin">
+        <User size={15} strokeWidth={2} aria-hidden />
+        <span className="app-header-signin-label">Sign in</span>
+      </Link>
+    )
+  }
+
   if (isAuthRoute(pathname)) {
     return <AuthLayout>{children}</AuthLayout>
   }
@@ -273,8 +479,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <Image 
               src="/veda-icon.png" 
               alt="Vedaansh Logo"
-              width={34}
-              height={34}
+              width={30}
+              height={30}
               className="app-header-brand-logo"
             />
             <div className="app-header-brand-text">
@@ -292,7 +498,46 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        {/* Right: Actions */}
+        <nav className="app-header-nav hide-mobile" aria-label="Primary">
+          {headerPrimaryTabs.map((tab) => renderHeaderTabLink(tab))}
+          {renderHeaderDropdown(
+            SIDENAV_ACCORDIONS.astrology.headerLabel,
+            <div className="app-header-mega-menu">
+              {ASTRO_GROUPS.map((group) => (
+                <div key={group.id} className="app-header-menu-group">
+                  <div className="app-header-menu-group-title">{group.label}</div>
+                  <div className="app-header-menu-group-links">
+                    {group.tabs.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
+                  </div>
+                </div>
+              ))}
+            </div>,
+            { active: isAstroHeaderActive, wide: true },
+          )}
+          {renderHeaderDropdown(
+            SIDENAV_ACCORDIONS.advanced.headerLabel,
+            <div className="app-header-menu-list app-header-menu-list--split">
+              {ADVANCED_ASTRO_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
+            </div>,
+            { active: ADVANCED_ASTRO_TABS.some((tab) => tab.path === pathname), align: 'right' },
+          )}
+          {renderHeaderDropdown(
+            SIDENAV_ACCORDIONS.nakshatra.headerLabel,
+            <div className="app-header-menu-list app-header-menu-list--split">
+              {NAKSHATRA_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
+            </div>,
+            { active: NAKSHATRA_TABS.some((tab) => tab.path === pathname), align: 'right' },
+          )}
+          {renderHeaderDropdown(
+            SIDENAV_ACCORDIONS.panchang.headerLabel,
+            <div className="app-header-menu-list">
+              {PANCHANG_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
+            </div>,
+            { active: PANCHANG_TABS.some((tab) => tab.path === pathname), align: 'right' },
+          )}
+          {pricingTab ? renderHeaderTabLink(pricingTab) : null}
+        </nav>
+
         <div className="app-header-right">
           <Link
             href="/"
@@ -304,13 +549,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           >
             Dash
           </Link>
-          <nav className="app-header-nav hide-mobile">
-            <Link href="/panchang">Panchang</Link>
-            <Link href="/sbc">SBC</Link>
-            <Link href="/my/charts">Library</Link>
-          </nav>
-          <div className="app-header-divider hide-mobile" />
           <ThemeToggle />
+          {renderHeaderProfile()}
         </div>
       </header>
 
@@ -468,12 +708,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             {TOP_TABS.map(t => renderTab(t))}
             
             {renderAccordion(SIDENAV_ACCORDIONS.astrology.label, SIDENAV_ACCORDIONS.astrology.icon, isAstroOpen, toggleAstroOpen, (
-              ASTRO_GROUPS.map((group, gIdx) => (
-                <div key={group.label} style={{ marginTop: gIdx === 0 ? 0 : '0.2rem' }}>
-                  <div className="sidenav-group-label">{group.label}</div>
-                  {group.tabs.map(t => renderTab(t, true))}
-                </div>
-              ))
+              ASTRO_GROUPS.map((group) => renderGroupAccordion(group))
             ), '1200px')}
 
             {renderAccordion(SIDENAV_ACCORDIONS.advanced.label, SIDENAV_ACCORDIONS.advanced.icon, isAdvancedAstroOpen, toggleAdvancedAstroOpen, (

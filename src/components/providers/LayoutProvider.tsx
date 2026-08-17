@@ -1,5 +1,6 @@
 'use client'
 import React, { createContext, useContext, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 
 interface AppLayoutContextType {
   isSidenavOpen: boolean
@@ -13,13 +14,12 @@ interface AppLayoutContextType {
 const AppLayoutContext = createContext<AppLayoutContextType | undefined>(undefined)
 
 export function AppLayoutProvider({ children }: { children: React.ReactNode }) {
-  const [isSidenavOpen, setIsSidenavOpen] = useState(true)
+  const [isSidenavOpen, setIsSidenavOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [language, setLanguage] = useState<'en' | 'sa'>('en')
 
-  // Auto-close on small screens initially
   useEffect(() => {
-    if (window.innerWidth < 1024) {
+    if (window.innerWidth < BREAKPOINTS.lg) {
       setIsSidenavOpen(false)
     }
     const saved = localStorage.getItem('vedaansh-lang')
