@@ -14,7 +14,7 @@ import { NavIcon } from '@/components/ui/layout/NavIcon'
 import { isAuthRoute } from '@/lib/ui/authRoutes'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import type { LucideIcon } from 'lucide-react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, LogOut, User } from 'lucide-react'
 import {
   ADVANCED_ASTRO_TABS,
   ASTRO_GROUPS,
@@ -80,22 +80,31 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const [isOffline, setIsOffline] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [headerProfileOpen, setHeaderProfileOpen] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
   const profileMenuRef = useRef<HTMLDivElement>(null)
+  const headerProfileRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!isSidenavOpen) setProfileMenuOpen(false)
   }, [isSidenavOpen])
 
   useEffect(() => {
-    if (!profileMenuOpen) return
+    if (!profileMenuOpen && !headerProfileOpen) return
     const onDoc = (e: MouseEvent) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
         setProfileMenuOpen(false)
+      }
+      if (headerProfileRef.current && !headerProfileRef.current.contains(target)) {
+        setHeaderProfileOpen(false)
       }
     }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setProfileMenuOpen(false)
+      if (e.key === 'Escape') {
+        setProfileMenuOpen(false)
+        setHeaderProfileOpen(false)
+      }
     }
     document.addEventListener('mousedown', onDoc)
     document.addEventListener('keydown', onKey)
@@ -103,7 +112,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       document.removeEventListener('mousedown', onDoc)
       document.removeEventListener('keydown', onKey)
     }
-  }, [profileMenuOpen])
+  }, [profileMenuOpen, headerProfileOpen])
 
   useEffect(() => {
     setIsNavigating(false)
@@ -361,6 +370,72 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     </div>
   )
 
+  const renderHeaderProfile = () => {
+    if (status === 'loading') {
+      return (
+        <div className="app-header-profile app-header-profile--loading">
+          <Spinner size={18} label="Syncing session" />
+        </div>
+      )
+    }
+
+    if (status === 'authenticated' && session?.user) {
+      return (
+        <div ref={headerProfileRef} className="app-header-profile">
+          <button
+            type="button"
+            className="app-header-profile-btn"
+            aria-expanded={headerProfileOpen}
+            aria-haspopup="menu"
+            aria-label="Account menu"
+            onClick={() => setHeaderProfileOpen((open) => !open)}
+          >
+            <div className="app-header-avatar">
+              {session.user.name?.[0] || 'A'}
+            </div>
+            <div className="app-header-profile-meta">
+              <span className="app-header-profile-name">{session.user.name || 'Account'}</span>
+              <span className="app-header-profile-hint">Account</span>
+            </div>
+            <ChevronDown className="app-header-profile-chevron" size={14} strokeWidth={2.25} aria-hidden />
+          </button>
+          {headerProfileOpen && (
+            <div role="menu" className="app-header-profile-menu">
+              <Link
+                href="/account"
+                role="menuitem"
+                className="app-header-profile-item"
+                onClick={() => setHeaderProfileOpen(false)}
+              >
+                <User size={15} strokeWidth={2} aria-hidden />
+                Profile
+              </Link>
+              <button
+                type="button"
+                role="menuitem"
+                className="app-header-profile-item app-header-profile-item--danger"
+                onClick={() => {
+                  setHeaderProfileOpen(false)
+                  void signOut({ callbackUrl: '/' })
+                }}
+              >
+                <LogOut size={15} strokeWidth={2} aria-hidden />
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    return (
+      <Link href="/login" className="app-header-signin">
+        <User size={15} strokeWidth={2} aria-hidden />
+        <span className="app-header-signin-label">Sign in</span>
+      </Link>
+    )
+  }
+
   if (isAuthRoute(pathname)) {
     return <AuthLayout>{children}</AuthLayout>
   }
@@ -475,6 +550,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             Dash
           </Link>
           <ThemeToggle />
+          {renderHeaderProfile()}
         </div>
       </header>
 
