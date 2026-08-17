@@ -49,6 +49,7 @@ export interface NavTab {
 }
 
 export interface NavGroup {
+  id: string
   label: string
   tabs: NavTab[]
 }
@@ -71,6 +72,14 @@ export const NAKSHATRA_TABS: NavTab[] = [
 
 export const ASTRO_GROUPS: NavGroup[] = [
   {
+    id: 'transit',
+    label: 'Transit',
+    tabs: [
+      { id: 'transit-scrubber', label: 'Transit', icon: Timer, path: '/scrubber' },
+    ],
+  },
+  {
+    id: 'core-analysis',
     label: 'Core Analysis',
     tabs: [
       { id: 'astro-details', label: 'Astro Details', icon: ClipboardList, path: ASTROLOGY_HOME_PATH },
@@ -83,12 +92,14 @@ export const ASTRO_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'predictive-timing',
     label: 'Predictive Timing',
     tabs: [
       { id: 'varshaphal', label: 'Solar Return (Varshfal)', icon: Sun, path: ASTROLOGY_HOME_PATH },
     ],
   },
   {
+    id: 'strength-analytics',
     label: 'Strength & Analytics',
     tabs: [
       { id: 'ashtakavarga', label: 'Ashtakavarga', icon: Hexagon, path: ASTROLOGY_HOME_PATH },
@@ -98,6 +109,7 @@ export const ASTRO_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'calculations',
     label: 'Calculations',
     tabs: [
       { id: 'panchang', label: 'Natal Panchang', icon: Calendar, path: ASTROLOGY_HOME_PATH },
@@ -130,8 +142,8 @@ export const MAIN_TABS: NavTab[] = [
 ]
 
 export const SIDENAV_ACCORDIONS = {
-  astrology: { label: 'Astrology', icon: Sparkles },
-  advanced: { label: 'Advanced Astrology', icon: Orbit },
-  nakshatra: { label: 'Nakshatra', icon: Moon },
-  panchang: { label: 'Panchang', icon: Sunrise },
+  astrology: { label: 'Astrology', headerLabel: 'Astrology', icon: Sparkles },
+  advanced: { label: 'Advanced Astrology', headerLabel: 'Advanced', icon: Orbit },
+  nakshatra: { label: 'Nakshatra', headerLabel: 'Nakshatra', icon: Moon },
+  panchang: { label: 'Panchang', headerLabel: 'Panchang', icon: Sunrise },
 } as const
