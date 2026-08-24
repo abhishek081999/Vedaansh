@@ -155,7 +155,7 @@ export function drawTransitSkyCard(
   ctx.textAlign = 'center'
   ctx.font = '17px sans-serif'
   ctx.fillStyle = colors.sub
-  ctx.fillText('Noon ephemeris (UTC chart time) · sidereal longitudes · Rahu/Ketu mean nodes', 540, gridBottom + 62)
+  ctx.fillText('Noon ephemeris (UTC chart time) · sidereal longitudes · Rahu/Ketu true nodes', 540, gridBottom + 62)
   ctx.font = '15px sans-serif'
   ctx.fillStyle = `${colors.sub}BB`
   ctx.fillText(settings.ctaLine, 540, gridBottom + 92)

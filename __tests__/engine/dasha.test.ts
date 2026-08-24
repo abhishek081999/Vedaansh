@@ -13,6 +13,7 @@ import {
 } from '@/lib/engine/ephemeris'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
+import { getDashaPathAt, isDashaRunning } from '@/lib/engine/dasha/current'
 import { calcYoginiDasha } from '@/lib/engine/dasha/yogini'
 import { calcCharaDasha, calcCharaDashaFemale, getFourthFromLagna } from '@/lib/engine/dasha/chara'
 import { calcMandookDasha, calcSthirDasha } from '@/lib/engine/dasha/jaimini'
@@ -483,4 +484,19 @@ describe('Additional Jaimini Dashas', () => {
     }
   })
 
+})
+
+describe('Dasha path at a given moment', () => {
+  it('selects the mahadasha covering as-of, not baked isCurrent', () => {
+    const moonSid = getMoonSid()
+    const dashas = calcVimshottari(moonSid, BIRTH_DATE, 1)
+    const later = dashas[2]
+    const asOf = new Date(new Date(later.start).getTime() + 86_400_000)
+    later.isCurrent = false
+    dashas[0].isCurrent = true
+
+    expect(isDashaRunning(later, asOf.getTime())).toBe(true)
+    expect(isDashaRunning(dashas[0], asOf.getTime())).toBe(false)
+    expect(getDashaPathAt(dashas, asOf.getTime())[0]?.lord).toBe(later.lord)
+  })
 })

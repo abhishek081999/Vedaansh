@@ -7,6 +7,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import type { DashaNode } from '@/types/astrology'
 import { NAKSHATRA_NAMES, NAKSHATRA_SHORT } from '@/types/astrology'
 import { expandVimshottariNode } from '@/lib/engine/dasha/vimshottari'
+import { isDashaRunning, getDashaPathAt } from '@/lib/engine/dasha/current'
 
 const GRAHA_NAME: Record<string, string> = {
   Su: 'Sun',  Mo: 'Moon',  Ma: 'Mars', Me: 'Mercury',
@@ -76,6 +77,8 @@ export function DashaTree({
   maxDepth = 4,
   /** Pass true when viewing Tribhagi Vimshottari so lazy sub-periods use ÷3 year map. */
   tribhagi = false,
+  /** Highlight the period running at this instant (transit moment). Defaults to now. */
+  asOf,
 }: {
   nodes: DashaNode[]
   birthDate: Date
@@ -83,6 +86,7 @@ export function DashaTree({
   showNakshatra?: boolean
   maxDepth?: number
   tribhagi?: boolean
+  asOf?: Date
 }) {
   const [activePath, setActivePath] = useState<DashaNode[]>([])
   const [currentPath, setCurrentPath] = useState<DashaNode[]>([])
@@ -90,6 +94,7 @@ export function DashaTree({
   const [showTimeOnMobile, setShowTimeOnMobile] = useState(false)
   /** Lazily computed children for pruned non-current branches (levels 5–6). */
   const [lazyChildren, setLazyChildren] = useState<Record<string, DashaNode[]>>({})
+  const asOfMs = asOf?.getTime()
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640)
@@ -99,16 +104,11 @@ export function DashaTree({
   }, [])
 
   useEffect(() => {
-    const path: DashaNode[] = []
-    let current = nodes.find(n => n.isCurrent)
-    while (current) {
-      path.push(current)
-      current = current.children.find(c => c.isCurrent)
-    }
+    const now = asOfMs ?? Date.now()
     setActivePath([])   // default: show root MD list; use "Current" button to drill down
-    setCurrentPath(path)
+    setCurrentPath(getDashaPathAt(nodes, now))
     setLazyChildren({})
-  }, [nodes])
+  }, [nodes, asOfMs])
 
   const resolveChildren = useCallback((node: DashaNode): DashaNode[] => {
     if (node.children?.length) return node.children
@@ -119,12 +119,15 @@ export function DashaTree({
     const existing = resolveChildren(node)
     if (existing.length > 0) return existing
     if (node.level >= maxDepth) return []
-    const built = expandVimshottariNode(node, Math.min(node.level + 1, maxDepth), { tribhagi })
+    const built = expandVimshottariNode(node, Math.min(node.level + 1, maxDepth), {
+      tribhagi,
+      now: asOfMs ?? Date.now(),
+    })
     if (built.length > 0) {
       setLazyChildren(prev => ({ ...prev, [dashaNodeKey(node)]: built }))
     }
     return built
-  }, [resolveChildren, maxDepth, tribhagi])
+  }, [resolveChildren, maxDepth, tribhagi, asOfMs])
 
   const currentList = useMemo(() => {
     if (activePath.length === 0) return nodes
@@ -139,7 +142,8 @@ export function DashaTree({
   const rowFontSize = `${Math.max(0.68, baseSize - (currentLevel - 1) * 0.045)}rem`
   const dateFontSize = `${Math.max(0.64, (baseSize - (currentLevel - 1) * 0.045) * 0.95)}rem`
 
-  const currentMahaNode = activePath[0] ?? nodes.find(n => n.isCurrent) ?? nodes[0]
+  const highlightMs = asOfMs ?? Date.now()
+  const currentMahaNode = activePath[0] ?? nodes.find(n => isDashaRunning(n, highlightMs)) ?? nodes[0]
   const birthMahaNode = nodes[0]
 
   const navtara = useMemo(() => {
@@ -231,7 +235,7 @@ export function DashaTree({
           {currentPath.length > 0 && (
             <button type="button" onClick={() => setActivePath(currentPath)}
               style={{ border: '1px solid rgba(78,205,196,0.35)', background: 'rgba(78,205,196,0.08)', color: 'var(--teal)', borderRadius: 4, padding: '0.1rem 0.4rem', fontSize: '0.62rem', cursor: 'pointer' }}>
-              Current
+              {asOf ? 'At moment' : 'Current'}
             </button>
           )}
           {activePath.length > 0 && (
@@ -273,7 +277,7 @@ export function DashaTree({
             const expandable = canExpand(node)
             const color = GRAHA_COLOR[node.lord] ?? 'var(--text-muted)'
             // Highlight the actual running period at every depth (MD → AD → PD → …)
-            const isActiveRow = !!node.isCurrent
+            const isActiveRow = isDashaRunning(node, highlightMs)
             return (
               <button
                 key={`${node.lord}-${node.start}-${idx}`}
