@@ -69,7 +69,7 @@ export default async function PublicChartPage({
       utcDate, utcTime,
       saved.latitude, saved.longitude,
       saved.settings?.ayanamsha    || 'lahiri',
-      saved.settings?.nodeMode     || 'mean',
+      saved.settings?.nodeMode     || 'true',
       saved.settings?.houseSystem  || 'whole_sign',
       saved.settings?.karakaScheme || 7,
       saved.settings?.gulikaMode   || 'phaladipika',

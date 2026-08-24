@@ -2,14 +2,26 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useId } from 'react'
 import dynamic from 'next/dynamic'
-import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
+import type { ChartOutput, DashaSystem, GrahaData, Rashi } from '@/types/astrology'
 import { RASHI_SHORT } from '@/types/astrology'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+import { fromZonedTime } from 'date-fns-tz'
 import styles from './transit-scrubber.module.css'
 import { TransitDetailsPanels } from './TransitDetailsPanels'
 import { TransitInsightsPanels } from './TransitInsightsPanels'
 
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
+const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
+
+const TRANSIT_DASHA_SYSTEMS: { id: DashaSystem; label: string }[] = [
+  { id: 'vimshottari', label: 'Vimshottari' },
+  { id: 'yogini', label: 'Yogini' },
+  { id: 'chara', label: 'Chara (K.N. Rao)' },
+  { id: 'chara_fe', label: 'Chara (Rangacharya FE)' },
+  { id: 'mandook', label: 'Mandook (K.N. Rao)' },
+  { id: 'sthir', label: 'Sthir' },
+  { id: 'ashtottari', label: 'Ashtottari' },
+]
 
 interface TransitScrubberProps {
   natalChart: ChartOutput
@@ -97,6 +109,7 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
   const [transitChart, setTransitChart] = useState<ChartOutput | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [dashaSystem, setDashaSystem] = useState<DashaSystem>('vimshottari')
 
   const today = useMemo(() => nowInTimezone(tz).date, [tz])
   const offsetDays = useMemo(() => daysBetween(today, targetDate), [today, targetDate])
@@ -176,6 +189,16 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
   const shiftTimeMinutes = (delta: number) => {
     setTargetTime(prev => shiftMinutes(prev, delta))
   }
+
+  const asOf = useMemo(() => {
+    try {
+      return fromZonedTime(`${targetDate}T${normalizeTime(targetTime)}`, tz)
+    } catch {
+      return new Date(`${targetDate}T${normalizeTime(targetTime)}`)
+    }
+  }, [targetDate, targetTime, tz])
+
+  const dashaNodes = natalChart.dashas[dashaSystem] ?? []
 
   const chartSize = isMobile
     ? (typeof window !== 'undefined' ? Math.min(window.innerWidth - 32, 420) : 360)
@@ -333,10 +356,44 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
         targetDate={targetDate}
         targetTime={targetTime}
         timezone={tz}
+        asOf={asOf}
         formatDisplayDate={formatDisplayDate}
         formatDisplayTime={formatDisplayTime}
         timeForInput={timeForInput}
       />
+
+      <section className={styles.dashaSection}>
+        <div className={styles.dashaSectionHeader}>
+          <div>
+            <h3 className={styles.dashaSectionTitle}>Dasha at this moment</h3>
+            <p className={styles.dashaSectionHint}>
+              Natal periods highlighted for {formatDisplayDate(targetDate)} at {formatDisplayTime(targetTime)}
+            </p>
+          </div>
+          <select
+            className={styles.dashaSelect}
+            value={dashaSystem}
+            onChange={e => setDashaSystem(e.target.value as DashaSystem)}
+            aria-label="Dasha system"
+          >
+            {TRANSIT_DASHA_SYSTEMS.map(s => (
+              <option key={s.id} value={s.id}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+        {dashaNodes.length > 0 ? (
+          <DashaTree
+            nodes={dashaNodes}
+            birthDate={new Date(natalChart.meta.birthDate)}
+            asOf={asOf}
+            maxDepth={dashaSystem === 'vimshottari' ? 4 : 3}
+          />
+        ) : (
+          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+            Recalculate the natal chart to load this dasha system.
+          </p>
+        )}
+      </section>
 
       <TransitInsightsPanels natalChart={natalChart} transitChart={transitChart} />
 

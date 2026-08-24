@@ -473,6 +473,50 @@
   margin-left: 0.15rem;
 }
 
+.dashaSection {
+  padding: 1.1rem 1.25rem;
+  background: var(--surface-1);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dashaSectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.dashaSectionTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-gold);
+  font-family: var(--font-display);
+}
+
+.dashaSectionHint {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.dashaSelect {
+  padding: 0.2rem 0.45rem;
+  font-size: 0.72rem;
+  background: var(--surface-3);
+  color: var(--text-primary);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
 .insightsSection {
   display: flex;
   flex-direction: column;

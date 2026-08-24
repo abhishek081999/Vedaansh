@@ -71,7 +71,7 @@ const UserPreferencesSchema = new Schema<IUserPreferences>({
   defaultAyanamsha:   { type: String, default: 'lahiri' },
   defaultChartStyle:  { type: String, default: 'south' },
   defaultHouseSystem: { type: String, default: 'whole_sign' },
-  defaultNodeMode:    { type: String, default: 'mean' },
+  defaultNodeMode:    { type: String, default: 'true' },
   karakaScheme:       { type: Number, default: 7 },
   language:           { type: String, default: 'en' },
   showDegrees:        { type: Boolean, default: true },

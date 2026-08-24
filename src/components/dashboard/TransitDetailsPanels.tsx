@@ -4,6 +4,7 @@ import React from 'react'
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { analyzeTransitMoment, type PositionVerdict } from '@/lib/engine/transitMomentAnalysis'
+import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import styles from './transit-scrubber.module.css'
 
 const VERDICT_LABEL: Record<PositionVerdict, string> = {
@@ -55,6 +56,7 @@ interface TransitDetailsPanelsProps {
   targetDate: string
   targetTime: string
   timezone: string
+  asOf: Date
   formatDisplayDate: (d: string) => string
   formatDisplayTime: (t: string) => string
   timeForInput: (t: string) => string
@@ -66,6 +68,7 @@ export function TransitDetailsPanels({
   targetDate,
   targetTime,
   timezone,
+  asOf,
   formatDisplayDate,
   formatDisplayTime,
   timeForInput,
@@ -82,6 +85,13 @@ export function TransitDetailsPanels({
 
   const natalAsc = natalChart.lagnas.ascRashi
   const transitAsc = transitChart?.lagnas.ascRashi
+  const vimshottariAtMoment = React.useMemo(
+    () => getDashaPathAt(natalChart.dashas.vimshottari ?? [], asOf.getTime()),
+    [natalChart.dashas.vimshottari, asOf],
+  )
+  const vimshottariLabel = vimshottariAtMoment.length
+    ? vimshottariAtMoment.map(n => GRAHA_NAMES[n.lord as GrahaId] ?? n.lord).join(' / ')
+    : '—'
 
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -106,6 +116,7 @@ export function TransitDetailsPanels({
           {natalSun && (
             <DetailRow label="Sun" value={`${RASHI_NAMES[natalSun.rashi]} ${fmtDeg(natalSun.degree)}`} />
           )}
+          <DetailRow label="Vimshottari" value={vimshottariLabel} />
         </div>
 
         {/* Transit */}
