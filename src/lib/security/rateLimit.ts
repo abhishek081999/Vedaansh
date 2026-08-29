@@ -5,7 +5,10 @@ export type RateLimitConfig = {
   limit: number
   windowSeconds: number
   keySuffix?: string
-  /** When true, block if Redis is missing or errors (auth / destructive actions only). */
+  /**
+   * When true, log loudly if Redis is missing or unhealthy.
+   * Traffic is still allowed — fail-closed here bricks login and password reset.
+   */
   strict?: boolean
 }
 
@@ -56,17 +59,13 @@ function allowResult(config: RateLimitConfig): RateLimitResult {
   }
 }
 
-function denyResult(config: RateLimitConfig, retryAfterSeconds = 60): RateLimitResult {
-  return {
-    allowed: false,
-    limit: config.limit,
-    remaining: 0,
-    retryAfterSeconds,
-  }
-}
-
 function isProductionEnv(): boolean {
   return process.env.NODE_ENV === 'production'
+}
+
+function warnStrictUnavailable(bucket: string, reason: string): void {
+  if (!isProductionEnv()) return
+  console.error(`[rate-limit] ${reason} (bucket: ${bucket}). Failing open so auth recovery stays available.`)
 }
 
 export async function enforceRateLimit(
@@ -82,9 +81,8 @@ export async function enforceRateLimit(
 
   const client = getRedisClient()
   if (!client) {
-    if (config.strict && isProductionEnv()) {
-      console.error('[rate-limit] UPSTASH_REDIS_* required for strict bucket:', config.bucket)
-      return denyResult(config)
+    if (config.strict) {
+      warnStrictUnavailable(config.bucket, 'UPSTASH_REDIS_* is not configured')
     }
     return allowResult(config)
   }
@@ -107,10 +105,12 @@ export async function enforceRateLimit(
   } catch (err) {
     const msg = (typeof err === 'object' && err !== null ? (err as { message?: string }).message : '') || ''
 
-    // Redis at capacity (free-tier quota) — cannot enforce limits. Fail open quietly
-    // for non-strict buckets so we don't spam stack traces on every request.
+    // Redis at capacity (free-tier quota) — cannot enforce limits. Fail open so
+    // password reset / sign-in are not bricked for every user.
     if (msg.includes('quota exceeded')) {
-      if (config.strict && isProductionEnv()) return denyResult(config)
+      if (config.strict) {
+        warnStrictUnavailable(config.bucket, 'Redis quota exceeded')
+      }
       return allowResult(config)
     }
 
@@ -126,7 +126,9 @@ export async function enforceRateLimit(
       console.warn('[rate-limit] error:', err)
     }
 
-    if (config.strict && isProductionEnv()) return denyResult(config)
+    if (config.strict) {
+      warnStrictUnavailable(config.bucket, 'Redis request failed')
+    }
     return allowResult(config)
   }
 }

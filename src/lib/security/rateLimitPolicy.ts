@@ -50,4 +50,5 @@ export const rateLimitMessages = {
   atlas: 'Location search is busy — please pause for a few seconds.',
   chartCalculate: 'Chart calculation is busy — please wait a few seconds.',
   authSignin: 'Too many sign-in attempts. Please try again in a few minutes.',
+  authForgotPassword: 'Too many password reset requests. Please try again in a few minutes.',
 } as const

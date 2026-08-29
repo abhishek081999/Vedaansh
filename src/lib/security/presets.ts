@@ -58,7 +58,7 @@ export const routeSecurityPresets = {
       limit: abuseLimits.authForgotPasswordPerQuarterHour,
       windowSeconds: RATE_LIMIT_WINDOWS.quarterHour,
       strict: true,
-      message: rateLimitMessages.generic,
+      message: rateLimitMessages.authForgotPassword,
     },
   }),
   authResetPassword: (): RouteSecurityOptions => ({

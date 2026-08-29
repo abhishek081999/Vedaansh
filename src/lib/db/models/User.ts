@@ -45,6 +45,9 @@ export interface IUser extends Document {
   emailVerified:  Date | null
   verificationToken: string | null
   verificationExpires: Date | null
+  resetToken: string | null
+  resetTokenExpires: Date | null
+  resetRequestedAt: Date | null
 
   // Device management (max 3 per Vela/Hora)
   devices: IUserDevice[]
@@ -100,6 +103,9 @@ const UserSchema = new Schema<IUser>({
   emailVerified:  { type: Date,   default: null },
   verificationToken:   { type: String, default: null },
   verificationExpires: { type: Date,   default: null },
+  resetToken:          { type: String, default: null, select: false },
+  resetTokenExpires:   { type: Date,   default: null, select: false },
+  resetRequestedAt:    { type: Date,   default: null },
 
   devices: { type: [UserDeviceSchema], default: [] },
 

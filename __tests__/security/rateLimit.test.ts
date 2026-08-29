@@ -25,24 +25,24 @@ describe('enforceRateLimit', () => {
     expect(result.allowed).toBe(true)
   })
 
-  it('blocks strict buckets in production when Redis is not configured', async () => {
+  it('allows strict buckets in production when Redis is not configured', async () => {
     vi.stubEnv('NODE_ENV', 'production')
     delete process.env.UPSTASH_REDIS_REST_URL
     delete process.env.UPSTASH_REDIS_REST_TOKEN
 
     const result = await enforceRateLimit(
-      new Request('https://vedaansh.com/api/auth/signin', {
+      new Request('https://vedaansh.com/api/auth/forgot-password', {
         headers: { 'x-forwarded-for': '198.51.100.1' },
       }),
       {
-        bucket: 'auth-signin',
-        limit: 40,
+        bucket: 'auth-forgot-password',
+        limit: 15,
         windowSeconds: 900,
         strict: true,
       },
     )
 
-    expect(result.allowed).toBe(false)
+    expect(result.allowed).toBe(true)
   })
 
   it('allows requests when client IP cannot be determined', async () => {
