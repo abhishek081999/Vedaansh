@@ -6,7 +6,7 @@ Use this before merging to `main` or after rotating secrets. CI already runs `np
 
 | Variable | Why |
 |----------|-----|
-| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | Enables rate limits for abuse protection; **app flows fail open** if Redis is down (strict auth/delete paths still need Redis in production) |
+| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | Enables rate limits for abuse protection; **all paths fail open** if Redis is missing, over quota, or down (strict buckets log an error so the gap is visible) |
 | `AUTH_SECRET` | NextAuth session signing (rotate after incidents) |
 | `AUTH_URL` | Must be `https://vedaansh.com` in production |
 | `RAZORPAY_WEBHOOK_SECRET` | Webhooks return **503** if missing in production |

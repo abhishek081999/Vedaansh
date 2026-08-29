@@ -32,49 +32,45 @@ export async function POST(req: Request) {
 
     const { email } = parsed.data
     const lowerEmail = email.toLowerCase()
+    const genericSuccess = {
+      success: true as const,
+      message: 'If that email exists, a reset link has been sent.',
+    }
 
     const client = new MongoClient(mongoUri)
     await client.connect()
-    const db    = client.db(dbName)
-    const users = db.collection('users')
+    try {
+      const users = client.db(dbName).collection('users')
+      const user = await users.findOne(
+        { email: lowerEmail },
+        { projection: { _id: 1, email: 1, passwordHash: 1, resetRequestedAt: 1 } }
+      )
 
-    const user = await users.findOne(
-      { email: lowerEmail },
-      { projection: { _id: 1, email: 1, passwordHash: 1 } }
-    )
+      // Always return success to prevent user enumeration
+      if (!user || !user.passwordHash) {
+        return NextResponse.json(genericSuccess)
+      }
 
-    await client.close()
+      const lastRequestedAt = user.resetRequestedAt ? new Date(user.resetRequestedAt as string | Date) : null
+      const cooldownMs = 2 * 60 * 1000
+      if (lastRequestedAt && !Number.isNaN(lastRequestedAt.getTime()) && Date.now() - lastRequestedAt.getTime() < cooldownMs) {
+        return NextResponse.json(genericSuccess)
+      }
 
-    // Always return success to prevent user enumeration
-    if (!user || !user.passwordHash) {
-      return NextResponse.json({
-        success: true,
-        message: 'If that email exists, a reset link has been sent.',
-      })
+      const token = crypto.randomBytes(32).toString('hex')
+      const tokenHash = hashOneTimeToken(token)
+      const expires = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+
+      await users.updateOne(
+        { email: lowerEmail },
+        { $set: { resetToken: tokenHash, resetTokenExpires: expires, resetRequestedAt: new Date() } }
+      )
+
+      await sendPasswordResetEmail(lowerEmail, token)
+      return NextResponse.json(genericSuccess)
+    } finally {
+      await client.close()
     }
-
-    // Generate token
-    const token   = crypto.randomBytes(32).toString('hex')
-    const tokenHash = hashOneTimeToken(token)
-    const expires = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
-
-    // Store token in DB
-    const client2 = new MongoClient(mongoUri)
-    await client2.connect()
-    const db2 = client2.db(dbName)
-    await db2.collection('users').updateOne(
-      { email: lowerEmail },
-      { $set: { resetToken: tokenHash, resetTokenExpires: expires } }
-    )
-    await client2.close()
-
-    // Send email
-    await sendPasswordResetEmail(lowerEmail, token)
-
-    return NextResponse.json({
-      success: true,
-      message: 'If that email exists, a reset link has been sent.',
-    })
 
   } catch (err) {
     console.error('[forgot-password] error:', err)

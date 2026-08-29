@@ -31,4 +31,12 @@ describe('routeSecurityPresets', () => {
     expect(preset.maxBodyBytes).toBe(32 * 1024)
     expect(preset.rateLimit?.bucket).toBe('auth-signup')
   })
+
+  it('authForgotPassword uses a dedicated cooldown message', () => {
+    const preset = routeSecurityPresets.authForgotPassword()
+    expect(preset.rateLimit?.bucket).toBe('auth-forgot-password')
+    expect(preset.rateLimit?.message).toBe(
+      'Too many password reset requests. Please try again in a few minutes.',
+    )
+  })
 })

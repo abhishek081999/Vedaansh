@@ -71,7 +71,7 @@ npm run remotion:studio  # Reel video editor
 Copy `.env.example` → `.env.local`. Critical vars:
 
 - `MONGODB_URI`, `AUTH_SECRET`, `AUTH_URL`
-- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (required in prod for rate limits)
+- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (enables rate limits; auth fails open if Redis is down)
 - `EPHE_PATH=./ephe`
 - `RAZORPAY_*`, `RESEND_API_KEY`
 
