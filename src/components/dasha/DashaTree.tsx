@@ -45,6 +45,7 @@ function toDate(d: Date | string): Date {
 
 function fmtDateCompact(d: Date | string, isMobile = false) {
   const date = toDate(d)
+  if (!Number.isFinite(date.getTime())) return '—'
   if (isMobile) {
     // Just date, no time on mobile
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })
@@ -55,6 +56,7 @@ function fmtDateCompact(d: Date | string, isMobile = false) {
 
 function fmtDate(d: Date | string) {
   const date = toDate(d)
+  if (!Number.isFinite(date.getTime())) return '—'
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
@@ -77,6 +79,8 @@ export function DashaTree({
   maxDepth = 4,
   /** Pass true when viewing Tribhagi Vimshottari so lazy sub-periods use ÷3 year map. */
   tribhagi = false,
+  /** When false, only use precomputed node.children (sign-based dashas: Chara, Yogini, etc.). */
+  lazyExpand = true,
   /** Highlight the period running at this instant (transit moment). Defaults to now. */
   asOf,
 }: {
@@ -86,6 +90,7 @@ export function DashaTree({
   showNakshatra?: boolean
   maxDepth?: number
   tribhagi?: boolean
+  lazyExpand?: boolean
   asOf?: Date
 }) {
   const [activePath, setActivePath] = useState<DashaNode[]>([])
@@ -108,7 +113,7 @@ export function DashaTree({
     setActivePath([])   // default: show root MD list; use "Current" button to drill down
     setCurrentPath(getDashaPathAt(nodes, now))
     setLazyChildren({})
-  }, [nodes, asOfMs])
+  }, [nodes, asOfMs, lazyExpand, maxDepth])
 
   const resolveChildren = useCallback((node: DashaNode): DashaNode[] => {
     if (node.children?.length) return node.children
@@ -118,7 +123,7 @@ export function DashaTree({
   const ensureChildren = useCallback((node: DashaNode): DashaNode[] => {
     const existing = resolveChildren(node)
     if (existing.length > 0) return existing
-    if (node.level >= maxDepth) return []
+    if (!lazyExpand || node.level >= maxDepth) return []
     const built = expandVimshottariNode(node, Math.min(node.level + 1, maxDepth), {
       tribhagi,
       now: asOfMs ?? Date.now(),
@@ -127,7 +132,7 @@ export function DashaTree({
       setLazyChildren(prev => ({ ...prev, [dashaNodeKey(node)]: built }))
     }
     return built
-  }, [resolveChildren, maxDepth, tribhagi, asOfMs])
+  }, [resolveChildren, lazyExpand, maxDepth, tribhagi, asOfMs])
 
   const currentList = useMemo(() => {
     if (activePath.length === 0) return nodes
@@ -157,11 +162,14 @@ export function DashaTree({
   const fullCurrentCode = currentPath.map(n => n.lord).join('/')
 
   function canExpand(node: DashaNode): boolean {
-    return resolveChildren(node).length > 0 || node.level < maxDepth
+    if (resolveChildren(node).length > 0) return true
+    if (!lazyExpand) return false
+    return node.level < maxDepth
   }
 
   function handleNavigate(node: DashaNode, depth: number) {
     if (depth < activePath.length) { setActivePath(activePath.slice(0, depth + 1)); return }
+    if (node.level >= maxDepth) return
     const kids = ensureChildren(node)
     if (kids.length) setActivePath([...activePath, { ...node, children: kids }])
   }
