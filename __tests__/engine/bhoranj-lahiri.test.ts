@@ -35,7 +35,7 @@ describe('Bhoranj 19 Aug 1999 — Lahiri sidereal (JHora-style)', () => {
         ayanamsha: 'lahiri',
         houseSystem: 'whole_sign',
         nodeMode: 'true',
-        karakaScheme: '7',
+        karakaScheme: 7,
         gulikaMode: 'phaladipika',
         chartStyle: 'north',
         showDegrees: true,
