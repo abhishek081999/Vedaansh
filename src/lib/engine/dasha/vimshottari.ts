@@ -40,7 +40,7 @@ export function vimshottariYearParams(tribhagi = false): {
     return {
       yearsMap: VIMSHOTTARI_YEARS,
       cycleTotal: VIMSHOTTARI_TOTAL,
-      useSiderealYear: false,
+      useSiderealYear: true, // JHora / PyJHora default (mean sidereal year)
     }
   }
   return {
@@ -74,13 +74,17 @@ export const LORD_TRIBHAGI_NAKSHATRAS: Record<VimshottariLord, [number, number, 
 
 // ── Helper ────────────────────────────────────────────────────
 
-/** Tropical year (legacy default for standard Vimshottari) */
+/** Tropical year (legacy / display helpers) */
 const TROPICAL_YEAR_MS = 365.25 * 24 * 60 * 60 * 1000
-/** Mean sidereal year — PyJHora / JHora default for dasha durations */
+/** Mean sidereal year — JHora / PyJHora default for dasha durations */
 const SIDEREAL_YEAR_MS = 365.256363004 * 24 * 60 * 60 * 1000
 
+function activeYearMs(useSiderealYear: boolean): number {
+  return useSiderealYear ? SIDEREAL_YEAR_MS : TROPICAL_YEAR_MS
+}
+
 function yearsToMs(years: number, useSiderealYear: boolean): number {
-  return years * (useSiderealYear ? SIDEREAL_YEAR_MS : TROPICAL_YEAR_MS)
+  return years * activeYearMs(useSiderealYear)
 }
 
 /**

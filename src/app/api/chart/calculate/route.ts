@@ -22,7 +22,7 @@ export const runtime = 'nodejs'
 const SettingsSchema = z.object({
   ayanamsha:    z.enum(['lahiri','true_chitra','true_revati','true_pushya','raman','usha_shashi','yukteshwar']).default('lahiri'),
   houseSystem:  z.enum(['whole_sign','placidus','equal','bhava_chalita']).default('whole_sign'),
-  nodeMode:     z.enum(['mean','true']).default('mean'),
+  nodeMode:     z.enum(['mean','true']).default('true'),
   karakaScheme: z.union([z.literal(7), z.literal(8)]).default(7),
   gulikaMode:   z.enum(['begin','middle','end','phaladipika']).default('phaladipika'),
   chartStyle:   z.enum(['south','north','circle','bhava','bhava_chalita','sarvatobhadra']).default('south'),
@@ -35,7 +35,7 @@ const SettingsSchema = z.object({
 const DEFAULT_CHART_SETTINGS = {
   ayanamsha: 'lahiri',
   houseSystem: 'whole_sign',
-  nodeMode: 'mean',
+  nodeMode: 'true',
   karakaScheme: 7,
   gulikaMode: 'phaladipika',
   chartStyle: 'south',

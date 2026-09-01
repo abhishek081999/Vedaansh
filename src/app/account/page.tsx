@@ -294,7 +294,7 @@ function AccountContent() {
               defaultAyanamsha:   'lahiri',
               defaultChartStyle:  'south',
               defaultHouseSystem: 'whole_sign',
-              defaultNodeMode:    'mean',
+              defaultNodeMode:    'true',
               karakaScheme:       7,
               showDegrees:        false,
               showNakshatra:      false,

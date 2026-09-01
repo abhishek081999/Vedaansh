@@ -14,6 +14,7 @@ import {
   SWISSEPH_IDS,
   NODE_IDS,
   getAyanamsha,
+  toSidereal,
   ketuLongitude,
   signOf,
   degreeInSign,
@@ -52,8 +53,8 @@ export async function GET(req: NextRequest) {
 
     const grahas: TransitGraha[] = GRAHAS_TO_CALC.map(id => {
       const swId  = id === 'Ra' ? NODE_IDS['mean'] : SWISSEPH_IDS[id]
-      const pos   = getPlanetPosition(jd, swId, true)   // sidereal=true
-      const lonSid = ((pos.longitude % 360) + 360) % 360
+      const pos   = getPlanetPosition(jd, swId, false)
+      const lonSid = toSidereal(pos.longitude, ayan)
       const nak    = getNakshatra(lonSid)
       const rashi  = signOf(lonSid)
       const deg    = degreeInSign(lonSid)

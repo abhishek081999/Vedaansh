@@ -12,6 +12,7 @@ import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown } from 'lucide-react'
+import { birthUtcFromMeta } from '@/lib/engine/dasha/hydrateChara'
 
 // Dynamic imports for heavy tab-specific components
 const BirthForm = dynamic(() => import('@/components/ui/BirthForm').then(m => m.BirthForm), { ssr: false })
@@ -553,6 +554,7 @@ const VIMSHOTTARI_TARA_IDS = ['Mo', 'As', 'Su', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'R
 function VimshottariDashaBlock({
   nodes,
   birthDate,
+  timezone,
   tara,
   tribhagi,
   userPlan,
@@ -561,6 +563,7 @@ function VimshottariDashaBlock({
 }: {
   nodes: import('@/types/astrology').DashaNode[]
   birthDate: Date
+  timezone?: string
   tara: string
   tribhagi: boolean
   userPlan: 'free' | 'gold' | 'platinum'
@@ -606,6 +609,7 @@ function VimshottariDashaBlock({
       <DashaTree
         nodes={nodes}
         birthDate={birthDate}
+        timezone={timezone}
         showNakshatra={tribhagi}
         tribhagi={tribhagi}
         maxDepth={userPlan === 'free' ? 4 : 6}
@@ -1146,7 +1150,7 @@ function HomeContent() {
     }
     if (refLon === null) { setAltVimshottari(null); return }
     import('@/lib/engine/dasha/vimshottari').then(({ calcVimshottari }) => {
-      const nodes = calcVimshottari(refLon!, new Date(chart.meta.birthDate), 6, undefined, {
+      const nodes = calcVimshottari(refLon!, birthUtcFromMeta(chart.meta), 6, undefined, {
         tribhagi: vimshottariTribhagi,
       })
       setAltVimshottari(nodes)
@@ -1556,7 +1560,8 @@ function HomeContent() {
               {dashaSystem === 'vimshottari' && (
                 <VimshottariDashaBlock
                   nodes={vimshottariNodes}
-                  birthDate={new Date(dashboardChart.meta.birthDate)}
+                  birthDate={birthUtcFromMeta(dashboardChart.meta)}
+                  timezone={dashboardChart.meta.timezone}
                   tara={vimshottariTara}
                   tribhagi={vimshottariTribhagi}
                   userPlan={userPlan}
@@ -1972,7 +1977,8 @@ function HomeContent() {
                                 return (
                                   <VimshottariDashaBlock
                                     nodes={vimshottariNodes}
-                                    birthDate={new Date(chart.meta.birthDate)}
+                                    birthDate={birthUtcFromMeta(chart.meta)}
+                                    timezone={chart.meta.timezone}
                                     tara={vimshottariTara}
                                     tribhagi={vimshottariTribhagi}
                                     userPlan={userPlan}
@@ -2151,7 +2157,8 @@ function HomeContent() {
                          {dashaSystem === 'vimshottari' && (
                            <VimshottariDashaBlock
                              nodes={vimshottariNodes}
-                             birthDate={new Date(chart.meta.birthDate)}
+                             birthDate={birthUtcFromMeta(chart.meta)}
+                             timezone={chart.meta.timezone}
                              tara={vimshottariTara}
                              tribhagi={vimshottariTribhagi}
                              userPlan={userPlan}
