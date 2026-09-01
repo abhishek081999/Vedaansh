@@ -45,6 +45,24 @@ export function localToUT(hour: number, min: number, sec: number, utcOffset: num
   return (hour + min / 60 + sec / 3600) - utcOffset
 }
 
+/**
+ * Sidereal position via tropical longitude minus ayanamsha.
+ * Matches houses, panchang, and JHora-style Lahiri (not SEFLG_SIDEREAL alone).
+ */
+export function getPlanetPositionSidereal(
+  jd: number,
+  planetId: number,
+  ayanamsha: number,
+  isEquatorial = false,
+  isHeliocentric = false,
+): PlanetPosition {
+  const trop = getPlanetPosition(jd, planetId, false, isEquatorial, isHeliocentric)
+  return {
+    ...trop,
+    longitude: toSidereal(trop.longitude, ayanamsha),
+  }
+}
+
 export function getPlanetPosition(jd: number, planetId: number, isSidereal = false, isEquatorial = false, isHeliocentric = false): PlanetPosition {
   let flags = isSidereal ? FLAGS_SIDEREAL : FLAGS_TROPICAL
   if (isEquatorial) flags |= C.SEFLG_EQUATORIAL

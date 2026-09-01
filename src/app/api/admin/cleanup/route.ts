@@ -11,7 +11,7 @@ const CleanupSchema = z.object({
 })
 
 const PREFIX_MAP = {
-  chart: 'v14:chart:',
+  chart: 'v15:chart:',
   panchang: 'panchang:',
   atlas: 'atlas:',
 } as const

@@ -43,21 +43,29 @@ function toDate(d: Date | string): Date {
   return d instanceof Date ? d : new Date(d)
 }
 
-function fmtDateCompact(d: Date | string, isMobile = false) {
+function fmtDateCompact(d: Date | string, timezone?: string, isMobile = false) {
   const date = toDate(d)
   if (!Number.isFinite(date.getTime())) return '—'
+  const tz = timezone || undefined
   if (isMobile) {
-    // Just date, no time on mobile
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit', month: '2-digit', year: '2-digit', timeZone: tz,
+    })
   }
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
-    + ' ' + date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+  return date.toLocaleDateString('en-GB', {
+    day: '2-digit', month: '2-digit', year: 'numeric', timeZone: tz,
+  })
+    + ' ' + date.toLocaleTimeString('en-IN', {
+      hour: '2-digit', minute: '2-digit', hour12: true, timeZone: tz,
+    })
 }
 
-function fmtDate(d: Date | string) {
+function fmtDate(d: Date | string, timezone?: string) {
   const date = toDate(d)
   if (!Number.isFinite(date.getTime())) return '—'
-  return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
+  return date.toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'long', year: 'numeric', timeZone: timezone || undefined,
+  })
 }
 
 function nakshatraDisplay(idx: number, compact = false): string {
@@ -83,6 +91,8 @@ export function DashaTree({
   lazyExpand = true,
   /** Highlight the period running at this instant (transit moment). Defaults to now. */
   asOf,
+  /** IANA timezone for dasha date display (e.g. Asia/Kolkata). Defaults to browser local. */
+  timezone,
 }: {
   nodes: DashaNode[]
   birthDate: Date
@@ -92,6 +102,7 @@ export function DashaTree({
   tribhagi?: boolean
   lazyExpand?: boolean
   asOf?: Date
+  timezone?: string
 }) {
   const [activePath, setActivePath] = useState<DashaNode[]>([])
   const [currentPath, setCurrentPath] = useState<DashaNode[]>([])
@@ -347,7 +358,7 @@ export function DashaTree({
                   color: isActiveRow ? 'var(--text-secondary)' : 'var(--text-muted)',
                   whiteSpace: 'nowrap', flexShrink: 0,
                 }}>
-                  {fmtDateCompact(node.start, isMobile && !showTimeOnMobile)}
+                  {fmtDateCompact(node.start, timezone, isMobile && !showTimeOnMobile)}
                 </span>
                 {isActiveRow && (
                   <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--teal)', whiteSpace: 'nowrap' }}>●</span>
@@ -363,7 +374,7 @@ export function DashaTree({
 
       {/* ── Birth note ── */}
       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', opacity: 0.8 }}>
-        Born: {fmtDate(birthDate)} · Cycle: {fmtDate(nodes[0]?.start)}
+        Born: {fmtDate(birthDate, timezone)} · Cycle: {fmtDate(nodes[0]?.start, timezone)}
       </div>
     </div>
   )

@@ -14,7 +14,7 @@ const gunzip = promisify(zlib.gunzip)
 
 const COMPRESSION_THRESHOLD = 128 * 1024 // 128KB
 const COMPRESSION_PREFIX = 'cz:' // Compressed Zlib
-const CHART_CACHE_KEY_PREFIX = 'v14:chart:'
+const CHART_CACHE_KEY_PREFIX = 'v15:chart:'
 
 // Chart payloads are ~4MB JSON each; serialize/compress one at a time to avoid OOM.
 let chartCacheWriteQueue: Promise<void> = Promise.resolve()
@@ -299,8 +299,8 @@ export function chartCacheKey(
   gulikaMode: string,
   prashnaNumber: number = 0,
 ): string {
-  // Added v14: Yogini Dasha start mapping formula updated (nakshatra+3 mod 8)
-  return `v14:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
+  // v15: Lahiri sidereal via tropical−ayanamsha; Vimshottari sidereal year (JHora)
+  return `v15:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 
 export function panchangCacheKey(

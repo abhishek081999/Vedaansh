@@ -9,7 +9,7 @@ import { calcMandookDasha, calcSthirDasha } from './jaimini'
 
 const CHARA_DEPTH = 3
 
-function birthUtcFromMeta(meta: ChartOutput['meta']): Date {
+export function birthUtcFromMeta(meta: Pick<ChartOutput['meta'], 'birthDate' | 'birthTime' | 'timezone'>): Date {
   const rawTime = meta.birthTime?.trim() || '12:00'
   const time = /^\d{2}:\d{2}:\d{2}$/.test(rawTime)
     ? rawTime

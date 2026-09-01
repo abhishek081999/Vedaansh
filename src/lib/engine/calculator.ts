@@ -112,20 +112,22 @@ function buildGrahas(
   ayanamsha: number,
   sunPos: { longitude: number; latitude: number; speed: number; isRetro: boolean },
   sunPosEquat: { latitude: number },
-  nodeMode: 'mean' | 'true' = 'mean',
+  nodeMode: 'mean' | 'true' = 'true',
 ): GrahaData[] {
   const order: Array<Exclude<GrahaId, 'Ke'>> = [
     'Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra'
   ]
 
-  const sunSidLon = sunPos.longitude
+  const sunSidLon = toSidereal(sunPos.longitude, ayanamsha)
 
   // First pass: calculate all positions without gandanta/yuddha
   const tempGrahas = order.map((id) => {
     // Reuse sunPos if id is 'Su'
-    const pos = id === 'Su' ? sunPos : getPlanetPosition(jd, id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id], true)
-    
-    const lonSidereal = pos.longitude
+    const pos = id === 'Su'
+      ? sunPos
+      : getPlanetPosition(jd, id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id], false)
+
+    const lonSidereal = toSidereal(pos.longitude, ayanamsha)
     const nak = getNakshatra(lonSidereal)
     const rashi = signOf(lonSidereal) as Rashi
     const deg = degreeInSign(lonSidereal)
@@ -273,7 +275,7 @@ export async function calculateChart(
   // Grahas
   // Optimization: getPlanetPosition is expensive. We'll pass it into buildGrahas
   // to avoid redundant calls for 'Su' which is needed for combustion.
-  const sunPos = getPlanetPosition(jd, SWISSEPH_IDS.Su, true)
+  const sunPos = getPlanetPosition(jd, SWISSEPH_IDS.Su, false)
   const sunPosEquat = getPlanetPosition(jd, SWISSEPH_IDS.Su, false, true)
   const grahas = buildGrahas(jd, ayanamshaVal, sunPos, sunPosEquat, settings.nodeMode)
   const moon = grahas.find((g) => g.id === 'Mo')!
@@ -315,6 +317,7 @@ export async function calculateChart(
     lat: input.latitude,
     lng: input.longitude,
     tz: input.timezone,
+    ayanamshaMode: settings.ayanamsha,
     ascLon: houses.ascendantSidereal,
     ascRashi: houses.ascRashi,
     ascDegreeInRashi: houses.ascDegreeInRashi,
