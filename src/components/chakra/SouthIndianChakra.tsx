@@ -351,7 +351,7 @@ export function SouthIndianChakra({
               const yPos  = y + cell * 0.28 + pRow * lineH * linesPerGraha
               
               const color = grahaChartFill(g.id)
-              const subMarkFs = Math.max(8, Math.round(grahaFont * 0.55))
+              const subMarkFs = Math.max(8, Math.round(grahaFont * 0.50))
               const deg   = showDegrees
                 ? ` ${Math.floor(g.degree)}°${String(Math.floor((g.degree % 1) * 60)).padStart(2,'0')}'`
                 : ''
@@ -378,10 +378,10 @@ export function SouthIndianChakra({
                   >
                     <tspan>{g.id}</tspan>
                     {g.isRetro && (
-                      <tspan fontSize={subMarkFs} baselineShift="super">ᴿ</tspan>
+                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">R</tspan>
                     )}
                     {g.isCombust && (
-                      <tspan fontSize={subMarkFs} baselineShift="super">ᶜ</tspan>
+                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">C</tspan>
                     )}
                   </text>
                   {(showDegrees || showKaraka) && (

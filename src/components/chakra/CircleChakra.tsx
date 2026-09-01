@@ -282,7 +282,7 @@ export function CircleChakra({
               const rOff = (pi - (n - 1) / 2) * radSpread
               const [px, py] = polar(cx, cy, pZone + rOff, mid)
               const col   = grahaChartFill(g.id)
-              const subPf = Math.max(8, Math.round(pfThis * 0.55))
+              const subPf = Math.max(8, Math.round(pfThis * 0.50))
               const baseLbl = GRAHA_SHORT[g.id] ?? g.id
               return (
                 <g 
@@ -302,10 +302,10 @@ export function CircleChakra({
                   >
                     <tspan>{baseLbl}</tspan>
                     {g.isRetro && (
-                      <tspan fontSize={subPf} baselineShift="super">ᴿ</tspan>
+                      <tspan fontSize={subPf} fontWeight="700" baselineShift="0.28em">R</tspan>
                     )}
                     {g.isCombust && (
-                      <tspan fontSize={subPf} baselineShift="super">ᶜ</tspan>
+                      <tspan fontSize={subPf} fontWeight="700" baselineShift="0.28em">C</tspan>
                     )}
                     {showDegrees ? <tspan>{` ${Math.floor(g.degree)}°`}</tspan> : null}
                   </text>

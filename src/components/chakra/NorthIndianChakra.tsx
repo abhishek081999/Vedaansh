@@ -479,7 +479,7 @@ export function NorthIndianChakra({
               }
 
               const fillCol = grahaChartFill(g.id)
-              const subMarkFs = Math.max(8, Math.round(plFont * 0.55))
+              const subMarkFs = Math.max(8, Math.round(plFont * 0.50))
               const deg = showDegrees
                 ? `${Math.floor(g.degree)}°${String(Math.floor((g.degree % 1) * 60)).padStart(2, '0')}'`
                 : ''
@@ -506,10 +506,10 @@ export function NorthIndianChakra({
                   >
                     <tspan>{g.id}</tspan>
                     {g.isRetro && (
-                      <tspan fontSize={subMarkFs} baselineShift="super">ᴿ</tspan>
+                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">R</tspan>
                     )}
                     {g.isCombust && (
-                      <tspan fontSize={subMarkFs} baselineShift="super">ᶜ</tspan>
+                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">C</tspan>
                     )}
                     {kar ? <tspan>{` [${kar}]`}</tspan> : null}
                   </text>

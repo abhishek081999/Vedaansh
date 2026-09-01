@@ -2,14 +2,23 @@
 import React, { useState, useEffect, useMemo, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData, NAKSHATRA_NAMES } from '@/types/astrology'
-import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
+import { KARAKA_NAMES_7, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
 import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { DashaTree } from '@/components/dasha/DashaTree'
 import { calculateGatewaySigns } from '@/lib/engine/jaimini'
 import { buildArudhaBundle, pickArudhaSet, countArudhaDifferences, buildArudhaLabelMap } from '@/lib/engine/arudhas'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw, Check, X, Gem, Mountain, Clock, Scale, Brain } from 'lucide-react'
+import {
+  Plus, Minus, Type, Scaling, Maximize, Settings, RotateCw,
+  Gem, Mountain, Clock, Scale, Brain,
+  User, Coins, Swords, Home, Palette, Shield, Heart, Hourglass,
+  Sparkles, Building2, TrendingUp, HeartHandshake,
+  Flame, Eye,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
+import { cn } from '@/lib/ui/cn'
+import styles from './JaiminiPanel.module.css'
 import { calcBhriguBinduLon, calcInduLagna } from '@/lib/engine/astroDetailsDerived'
 import { useChartStyle } from '@/components/providers/ChartStyleProvider'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
@@ -46,19 +55,54 @@ interface JaiminiPanelProps {
   userPlan?: 'free' | 'gold' | 'platinum'
 }
 
-const ARUDHA_LABELS: Record<string, { label: string; desc: string; icon: string }> = {
-  AL:  { label: 'Arudha Lagna',   desc: 'Worldly persona & status', icon: '👤' },
-  A2:  { label: 'Dhana Pada',      desc: 'Wealth & family sustainability', icon: '💰' },
-  A3:  { label: 'Bhratru Pada',    desc: 'Talents & courage', icon: '⚔️' },
-  A4:  { label: 'Matru Pada',      desc: 'Comforts & inner self', icon: '🏠' },
-  A5:  { label: 'Mantra Pada',     desc: 'Fame & creative power', icon: '🎨' },
-  A6:  { label: 'Shatru Pada',     desc: 'Service & competition', icon: '🛡️' },
-  A7:  { label: 'Dara Pada',       desc: 'Partnerships & business', icon: '💍' },
-  A8:  { label: 'Mrityu Pada',     desc: 'Crisis & longevity', icon: '⏳' },
-  A9:  { label: 'Bhagya Pada',     desc: 'Fortune & spiritual path', icon: '🕉️' },
-  A10: { label: 'Rajya Pada',      desc: 'Professional impact', icon: '🏢' },
-  A11: { label: 'Labha Pada',      desc: 'Gains & social network', icon: '📈' },
-  A12: { label: 'Upapada Lagna',   desc: 'Marriage & devotion', icon: '❤️' },
+const ARUDHA_LABELS: Record<string, { label: string; desc: string; Icon: LucideIcon }> = {
+  AL:  { label: 'Arudha Lagna',   desc: 'Worldly persona & status', Icon: User },
+  A2:  { label: 'Dhana Pada',      desc: 'Wealth & family sustainability', Icon: Coins },
+  A3:  { label: 'Bhratru Pada',    desc: 'Talents & courage', Icon: Swords },
+  A4:  { label: 'Matru Pada',      desc: 'Comforts & inner self', Icon: Home },
+  A5:  { label: 'Mantra Pada',     desc: 'Fame & creative power', Icon: Palette },
+  A6:  { label: 'Shatru Pada',     desc: 'Service & competition', Icon: Shield },
+  A7:  { label: 'Dara Pada',       desc: 'Partnerships & business', Icon: Heart },
+  A8:  { label: 'Mrityu Pada',     desc: 'Crisis & longevity', Icon: Hourglass },
+  A9:  { label: 'Bhagya Pada',     desc: 'Fortune & spiritual path', Icon: Sparkles },
+  A10: { label: 'Rajya Pada',      desc: 'Professional impact', Icon: Building2 },
+  A11: { label: 'Labha Pada',      desc: 'Gains & social network', Icon: TrendingUp },
+  A12: { label: 'Upapada Lagna',   desc: 'Marriage & devotion', Icon: HeartHandshake },
+}
+
+const KARAKA_ROLES: { key: keyof KarakaData; short: string; name: string }[] = [
+  { key: 'AK',  short: 'AK',  name: KARAKA_NAMES_7.AK },
+  { key: 'AmK', short: 'AmK', name: KARAKA_NAMES_7.AmK },
+  { key: 'BK',  short: 'BK',  name: KARAKA_NAMES_7.BK },
+  { key: 'MK',  short: 'MK',  name: KARAKA_NAMES_7.MK },
+  { key: 'PK',  short: 'PK',  name: KARAKA_NAMES_7.PK },
+  { key: 'GK',  short: 'GK',  name: KARAKA_NAMES_7.GK },
+  { key: 'DK',  short: 'DK',  name: KARAKA_NAMES_7.DK },
+]
+
+function segClass(active: boolean) {
+  return cn(styles.segBtn, active && styles.segBtnActive)
+}
+
+function SectionCard({
+  title,
+  children,
+  scrollY,
+  className,
+}: {
+  title: string
+  children: React.ReactNode
+  scrollY?: boolean
+  className?: string
+}) {
+  return (
+    <div className={cn(styles.sectionCard, className)}>
+      <div className={styles.sectionHeader}>{title}</div>
+      <div className={scrollY ? styles.sectionBodyScroll : styles.sectionBody}>
+        {children}
+      </div>
+    </div>
+  )
 }
 
 function ArudhaToggle({
@@ -69,14 +113,7 @@ function ArudhaToggle({
       type="button"
       disabled={disabled}
       onClick={() => onChange(!value)}
-      style={{
-        padding: '4px 10px', fontSize: '0.6rem', fontWeight: 900, borderRadius: '4px',
-        background: value ? 'var(--gold-faint)' : 'var(--surface-3)',
-        color: value ? 'var(--gold)' : 'var(--text-muted)',
-        border: `1px solid ${value ? 'var(--gold-soft)' : 'transparent'}`,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        textTransform: 'uppercase', opacity: disabled ? 0.45 : 1,
-      }}
+      className={segClass(value)}
     >
       {label}
     </button>
@@ -84,7 +121,7 @@ function ArudhaToggle({
 }
 
 function JaiminiSnapshot({ chart, isTinyMobile }: { chart: ChartOutput, isTinyMobile: boolean }) {
-  const { meta, arudhas, vargas, lagnas, panchang, grahas } = chart;
+  const { meta, arudhas, vargas, lagnas, grahas } = chart;
   const karakas = calcCharaKarakas(
     grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
     7
@@ -94,83 +131,66 @@ function JaiminiSnapshot({ chart, isTinyMobile }: { chart: ChartOutput, isTinyMo
   const akNavamsha = d9?.find(g => g.id === akId);
   const karakansha = akNavamsha ? akNavamsha.rashi : null;
 
-  const karakaPairs = [
-    { id: 'AK',  val: karakas.AK },
-    { id: 'AmK', val: karakas.AmK },
-    { id: 'BK',  val: karakas.BK },
-    { id: 'MK',  val: karakas.MK },
-    { id: 'PK',  val: karakas.PK },
-    { id: 'GK',  val: karakas.GK },
-    { id: 'DK',  val: karakas.DK },
-  ];
-
   return (
-    <div className="jaimini-snapshot-strip card-glass scrollbar-hide" style={{ 
-      padding: '0.5rem 0.75rem', 
-      borderRadius: 'var(--r-lg)', 
-      border: '1px solid var(--border-soft)',
-      boxShadow: 'var(--shadow-card)',
-      marginBottom: '0.75rem',
-      fontSize: '0.7rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: isTinyMobile ? '0.5rem' : '0.75rem',
-      flexWrap: 'nowrap',
-      overflowX: 'auto',
-      WebkitOverflowScrolling: 'touch',
-      whiteSpace: 'nowrap',
-      color: 'var(--text-muted)',
-      width: '100%',
-      maxWidth: '100%',
-      minWidth: 0,
-      boxSizing: 'border-box',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-        <span style={{ fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.6rem' }}>Snapshot</span>
-      </div>
-      
-      <div style={{ width: '1px', height: '1rem', background: 'var(--border-soft)', flexShrink: 0 }} />
-      
-      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: '0.2rem' }}>NAME <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{meta.name}</span></div>
-        {!isTinyMobile && <div style={{ display: 'flex', gap: '0.2rem' }}>DOB <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{meta.birthDate}</span></div>}
+    <div className={cn('jaimini-snapshot-strip', styles.snapshot)}>
+      <span className={styles.snapshotLabel}>Jaimini</span>
+
+      <div className={styles.snapshotChip}>
+        <span className={styles.snapshotChipKey}>Name</span>
+        <span className={styles.snapshotChipVal}>{meta.name}</span>
       </div>
 
-      <div style={{ width: '1px', height: '1rem', background: 'var(--border-soft)', flexShrink: 0 }} />
-
-      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: '0.2rem' }}>LAGNA <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{RASHI_SHORT[lagnas.ascRashi]}</span></div>
-        <div style={{ display: 'flex', gap: '0.2rem' }}>
-          AK <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>
-            {GRAHA_NAMES[akId as GrahaId]}
-            {chart.grahas.find(g => g.id === akId)?.isRetro && <span style={{ color: 'var(--dig-retro)', marginLeft: '1px', fontSize: '0.55rem' }}>(R)</span>}
-          </span>
+      {!isTinyMobile && (
+        <div className={styles.snapshotChip}>
+          <span className={styles.snapshotChipKey}>DOB</span>
+          <span className={styles.snapshotChipVal}>{meta.birthDate}</span>
         </div>
-        <div style={{ display: 'flex', gap: '0.2rem' }}>SWANSHA <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{karakansha ? RASHI_SHORT[karakansha] : '-'}</span></div>
+      )}
+
+      <div className={styles.snapshotChipGold}>
+        <span className={styles.snapshotChipKey}>AK</span>
+        <span className={styles.snapshotChipValGold}>
+          {GRAHA_NAMES[akId as GrahaId]}
+          {chart.grahas.find(g => g.id === akId)?.isRetro && (
+            <span style={{ color: 'var(--dig-retro)', marginLeft: 2, fontSize: '0.55rem' }}>R</span>
+          )}
+        </span>
       </div>
 
-      <div style={{ width: '1px', height: '1rem', background: 'var(--border-soft)', flexShrink: 0 }} />
+      <div className={styles.snapshotChip}>
+        <span className={styles.snapshotChipKey}>Swansha</span>
+        <span className={styles.snapshotChipValGold}>{karakansha ? RASHI_SHORT[karakansha] : '—'}</span>
+      </div>
 
-      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
-        {karakaPairs.slice(1).map(k => {
-          const isRetro = chart.grahas.find(g => g.id === k.val)?.isRetro;
+      <div className={styles.snapshotChip}>
+        <span className={styles.snapshotChipKey}>Lagna</span>
+        <span className={styles.snapshotChipVal}>{RASHI_SHORT[lagnas.ascRashi]}</span>
+      </div>
+
+      <div className={styles.snapshotKarakaRow}>
+        {KARAKA_ROLES.slice(1).map((k) => {
+          const val = karakas[k.key];
+          const isRetro = chart.grahas.find(g => g.id === val)?.isRetro;
           return (
-            <div key={k.id} style={{ display: 'flex', gap: '0.15rem', fontSize: '0.6rem' }}>
-              <span>{k.id}</span>
-              <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
-                {k.val}
-                {isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.5rem' }}>ᴿ</span>}
+            <div key={k.short} className={styles.snapshotKaraka} title={k.name}>
+              <span className={styles.snapshotKarakaKey}>{k.short}</span>
+              <span className={styles.snapshotKarakaVal}>
+                {val}
+                {isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.48rem' }}>R</span>}
               </span>
             </div>
           );
         })}
       </div>
 
-      <div style={{ width: '1px', height: '1rem', background: 'var(--border-soft)', flexShrink: 0 }} />
+      <div className={styles.snapshotChipGold}>
+        <span className={styles.snapshotChipKey}>AL</span>
+        <span className={styles.snapshotChipValGold}>{RASHI_SHORT[arudhas.AL]}</span>
+      </div>
 
-      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: '0.2rem' }}>AL <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{RASHI_SHORT[arudhas.AL]}</span></div>
-        <div style={{ display: 'flex', gap: '0.2rem' }}>UL <span style={{ fontWeight: 800, color: 'var(--text-gold)' }}>{RASHI_SHORT[arudhas.A12]}</span></div>
+      <div className={styles.snapshotChipGold}>
+        <span className={styles.snapshotChipKey}>UL</span>
+        <span className={styles.snapshotChipValGold}>{RASHI_SHORT[arudhas.A12]}</span>
       </div>
     </div>
   )
@@ -861,12 +881,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   type JaiminiTabId = 'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info';
 
-  const tabs: { id: JaiminiTabId; label: string; icon: string }[] = [
-    { id: 'essence', label: 'Soul Architecture', icon: '💠' },
-    { id: 'arudhas', label: 'Arudha Landscape', icon: '🏔️' },
-    { id: 'dashas',  label: 'Dasha',  icon: '⏳' },
-    { id: 'info',    label: 'Info Reference',   icon: '⚖️' },
-    { id: 'intelligence', label: 'Intelligence', icon: '🧠' },
+  const tabs: { id: JaiminiTabId; label: string; short: string; Icon: LucideIcon }[] = [
+    { id: 'essence', label: 'Soul Architecture', short: 'Soul', Icon: Gem },
+    { id: 'arudhas', label: 'Arudha Landscape', short: 'Arudhas', Icon: Mountain },
+    { id: 'dashas',  label: 'Chara Dasha', short: 'Dasha', Icon: Clock },
+    { id: 'info',    label: 'Info Reference', short: 'Info', Icon: Scale },
+    { id: 'intelligence', label: 'Intelligence', short: 'Intel', Icon: Brain },
   ];
 
   const mobileTabs = [
@@ -918,13 +938,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           minWidth: 0,
         }}
       >
-        <div style={{
-          fontSize: '0.65rem', fontWeight: 900, color: 'var(--gold)',
-          letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.35rem',
-          textAlign: 'center',
-        }}>
+        <div className={styles.chartLabel}>
           {label}
-          <span style={{ display: 'block', marginTop: 2, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'none', fontSize: '0.58rem' }}>
+          <span className={styles.chartLabelSub}>
             {showArudhaOverlay
               ? `${arudhaBphsMode ? 'BPHS corrected' : 'Raw pada'} · AL in ${RASHI_SHORT[chartArudhas.AL]}${diffCount > 0 ? ` · ${diffCount} pada(s) differ with BPHS` : ''}`
               : 'Arudha labels hidden'}
@@ -939,157 +955,72 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     );
   };
 
-  const panelPad = isTinyMobile ? '0.25rem' : isMobile ? '0.75rem' : '1.25rem'
-  const panelPadBottom = isMobile ? '6rem' : panelPad
+  const panelPad = isTinyMobile ? '0.35rem' : isMobile ? '0.75rem' : '1.25rem'
 
   return (
     <div
       ref={panelRef}
-      className="fade-up jaimini-panel"
-      style={{ 
-      display: 'flex', flexDirection: 'column', gap: isTinyMobile ? '0.75rem' : '1rem', 
-      paddingTop: panelPad,
-      paddingLeft: panelPad,
-      paddingRight: panelPad,
-      paddingBottom: panelPadBottom,
-      background: isTinyMobile ? 'transparent' : 'var(--surface-2)',
-      borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)',
-      border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
-      color: 'var(--text-primary)',
-      minWidth: 0,
-      maxWidth: '100%',
-      width: '100%',
-      boxSizing: 'border-box',
-    }}>
+      className={cn('fade-up jaimini-panel', styles.root)}
+      style={{
+        paddingBottom: isMobile ? '6rem' : undefined,
+      }}
+    >
       <JaiminiSnapshot chart={chart} isTinyMobile={isTinyMobile} />
-      
-      {/* ── Main Dashboard Grid ── */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.05fr) minmax(0, 0.95fr)', 
-        gap: '1.25rem',
-        alignItems: 'start',
-        width: '100%',
-        minWidth: 0,
-      }}>
-        
-        {/* LEFT COLUMN: Hero Visualization (HUD) */}
-        <section className="card-glass" style={{ 
-          padding: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.5rem', 
-          borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)', 
-          background: 'var(--surface-1)', 
+
+      <div className={styles.mainGrid}>
+        <section className={cn('card-glass', styles.colChart)} style={{
+          padding: panelPad,
+          borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)',
+          background: 'var(--surface-1)',
           border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
           boxShadow: isTinyMobile ? 'none' : 'var(--shadow-card)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: isTinyMobile ? '0.75rem' : '1rem',
-          minWidth: 0,
         }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isTinyMobile ? '1.1rem' : isMobile ? '1.2rem' : '1.5rem', fontWeight: 800, color: 'var(--text-gold)' }}>
-                Jaimini
-              </h1>
-              <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-                <button
-                  onClick={() => setGlobalChartStyle(chartStyle === 'south' ? 'north' : 'south')}
-                  style={{
-                    width: 28, height: 28, borderRadius: '4px', background: 'var(--surface-3)',
-                    color: 'var(--gold)', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem'
-                  }}
-                >
-                  {chartStyle === 'south' ? 'S' : 'N'}
+          <div className={styles.headerRow}>
+            <div>
+              <h1 className={styles.pageTitle}>Jaimini Astrology</h1>
+              <p className={styles.pageSubtitle}>Chara Karakas · Arudha Padas · Rashi Drishti</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setGlobalChartStyle(chartStyle === 'south' ? 'north' : 'south')}
+              className={styles.styleToggle}
+              aria-label={`Switch to ${chartStyle === 'south' ? 'north' : 'south'} Indian chart`}
+            >
+              {chartStyle === 'south' ? 'S' : 'N'}
+            </button>
+          </div>
+
+          <div className={styles.controlsRow}>
+            <div className={cn(styles.segGroup, 'scrollbar-hide')}>
+              {(['drishti', 'argala', 'both'] as const).map(m => (
+                <button key={m} type="button" onClick={() => setVizMode(m)} className={segClass(vizMode === m)}>
+                  {m}
                 </button>
-              </div>
+              ))}
             </div>
+            <ArudhaToggle label="Arudha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
+            <ArudhaToggle label="BPHS" value={arudhaBphsMode} onChange={setArudhaBphsMode} disabled={!showArudhaOverlay} />
+            <button
+              type="button"
+              onClick={() => setShowSettings(s => !s)}
+              className={cn(styles.settingsBtn, showSettings && styles.settingsBtnActive)}
+            >
+              <Settings size={14} />
+              {isTinyMobile ? 'Set' : 'Settings'}
+            </button>
+          </div>
 
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: isTinyMobile ? 'column' : 'row', 
-              gap: '0.75rem', 
-              alignItems: isTinyMobile ? 'stretch' : 'center',
-              justifyContent: 'space-between'
-            }}>
-              {/* Viz Mode Controls */}
-              <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                {['drishti', 'argala', 'both'].map(m => (
-                  <button
-                    key={m}
-                    onClick={() => setVizMode(m as any)}
-                    style={{
-                      flex: isTinyMobile ? 1 : 'none',
-                      padding: '4px 8px', fontSize: '0.6rem', fontWeight: 900, borderRadius: '4px',
-                      background: vizMode === m ? 'var(--gold-faint)' : 'var(--surface-3)',
-                      color: vizMode === m ? 'var(--gold)' : 'var(--text-muted)',
-                      border: `1px solid ${vizMode === m ? 'var(--gold-soft)' : 'transparent'}`,
-                      cursor: 'pointer', textTransform: 'uppercase'
-                    }}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-
-              {/* Arudha display */}
-              <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'wrap' }}>
-                <ArudhaToggle label="Arudha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
-                <ArudhaToggle
-                  label="BPHS exceptions"
-                  value={arudhaBphsMode}
-                  onChange={setArudhaBphsMode}
-                  disabled={!showArudhaOverlay}
-                />
-              </div>
-            </div>
-
-            {/* Reference & Settings Row */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '0.5rem', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              padding: isTinyMobile ? '0.2rem' : '0.4rem',
-              background: isTinyMobile ? 'transparent' : 'var(--surface-2)',
-              borderRadius: '8px',
-              border: isTinyMobile ? 'none' : '1px solid var(--border-soft)'
-            }}>
+          <div className={cn(styles.segGroup, 'scrollbar-hide')}>
+            {(['natal', 'AL', 'KL', 'dasha', 'house'] as const).map(ref => (
               <button
-                onClick={() => setShowSettings(s => !s)}
-                style={{ 
-                  padding: '4px 10px', 
-                  fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem', 
-                  borderRadius: '6px', fontWeight: 800,
-                  background: showSettings ? 'var(--gold-faint)' : 'var(--surface-3)',
-                  color: showSettings ? 'var(--gold)' : 'var(--text-primary)',
-                  border: showSettings ? '1px solid var(--gold-soft)' : '1px solid var(--border-soft)',
-                  cursor: 'pointer'
-                }}
+                key={ref}
+                type="button"
+                onClick={() => setActiveLagnaRef(ref)}
+                className={segClass(activeLagnaRef === ref)}
               >
-                <Settings size={14} />
-                {isTinyMobile ? 'SET' : 'SETTINGS'}
+                {ref === 'house' ? `H${rotationHouse}` : ref}
               </button>
-              <div style={{ width: '1px', background: 'var(--border-soft)', height: '1.2rem' }} />
-              <div className="scrollbar-hide" style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                {['natal', 'AL', 'KL', 'dasha', 'house'].map(ref => (
-                  <button
-                    key={ref}
-                    onClick={() => setActiveLagnaRef(ref as any)}
-                    style={{
-                      padding: '4px 8px', 
-                      fontSize: '0.6rem', fontWeight: 900, borderRadius: '4px',
-                      background: activeLagnaRef === ref ? 'var(--gold-faint)' : 'var(--surface-3)',
-                      color: activeLagnaRef === ref ? 'var(--gold)' : 'var(--text-muted)',
-                      border: activeLagnaRef === ref ? '1px solid var(--gold-soft)' : '1px solid transparent',
-                      cursor: 'pointer', textTransform: 'uppercase',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {ref === 'house' ? `H${rotationHouse}` : ref}
-                  </button>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
 
           <AnimatePresence>
@@ -1100,19 +1031,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                 exit={{ height: 0, opacity: 0 }}
                 style={{ overflow: 'hidden', marginBottom: '1rem' }}
               >
-                  <div
-                    className="card-glass"
-                    style={{
-                      padding: isTinyMobile ? '0.75rem' : '1.25rem', borderRadius: 'var(--r-lg)', background: 'var(--surface-1)',
-                      border: isTinyMobile ? 'none' : '1px solid var(--gold-soft)', display: 'flex', flexDirection: 'column', gap: isTinyMobile ? '0.75rem' : '1.25rem'
-                    }}
-                  >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <div className={styles.settingsPanel}>
+                  <div className={styles.settingsHeader}>
+                    <div className={styles.settingsTitle}>
                       <Settings size={18} style={{ color: 'var(--gold)' }} />
-                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800 }}>Chart Configuration</h3>
+                      Chart Configuration
                     </div>
-                    <button onClick={() => setShowSettings(false)} className="btn-sm btn-ghost" style={{ padding: '2px 8px' }}>CLOSE</button>
+                    <button type="button" onClick={() => setShowSettings(false)} className="btn-sm btn-ghost" style={{ padding: '2px 8px' }}>Close</button>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem' }}>
@@ -1215,14 +1140,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           </AnimatePresence>
 
           {isMobile && (
-            <div style={{
-              display: 'flex',
-              gap: '0.35rem',
-              padding: '0.25rem',
-              background: 'var(--surface-2)',
-              borderRadius: '10px',
-              border: '1px solid var(--border-soft)',
-            }}>
+            <div className={styles.vargaToggle}>
               {([
                 { id: 'D1' as const, label: 'D1', sub: 'Rashi' },
                 { id: 'D9' as const, label: 'D9', sub: 'Navamsha' },
@@ -1233,43 +1151,17 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     key={id}
                     type="button"
                     onClick={() => setMobileChartVarga(id)}
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.1rem',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '8px',
-                      border: active ? '1px solid var(--gold-soft)' : '1px solid transparent',
-                      background: active ? 'var(--gold-faint)' : 'transparent',
-                      color: active ? 'var(--gold)' : 'var(--text-muted)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
+                    className={cn(styles.vargaBtn, active && styles.vargaBtnActive)}
                   >
-                    <span style={{ fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.04em' }}>{label}</span>
-                    <span style={{ fontSize: '0.55rem', fontWeight: 600, opacity: active ? 0.85 : 0.65 }}>{sub}</span>
+                    <span className={styles.vargaBtnLabel}>{label}</span>
+                    <span className={styles.vargaBtnSub}>{sub}</span>
                   </button>
                 );
               })}
             </div>
           )}
 
-          <div
-            className="jaimini-chart-wrap"
-            style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            alignItems: 'stretch',
-            gap: isTinyMobile ? '0.75rem' : '1.25rem',
-            padding: isTinyMobile ? '0' : isMobile ? '0.15rem' : '0.5rem',
-            width: '100%',
-            maxWidth: '100%',
-            minWidth: 0,
-            touchAction: 'pan-y',
-            boxSizing: 'border-box',
-          }}>
+          <div className={cn('jaimini-chart-wrap', styles.chartStage)}>
             {isMobile ? (
               mobileChartVarga === 'D1'
                 ? renderJaiminiChartBlock('D1 · Rashi', 'D1', d1Grahas, d1EffectiveArudhas, d1ArudhaDiffCount)
@@ -1283,40 +1175,37 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           </div>
           
           {selectedAspectSign && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="card-glass" 
-              style={{ padding: '1rem', border: '1px solid var(--teal-soft)', background: 'rgba(45,212,191,0.05)', borderRadius: '12px' }}
+              className={styles.aspectPanel}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-gold)' }}>{RASHI_NAMES[selectedAspectSign]} Ref</div>
-                <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--teal)', textTransform: 'uppercase' }}>Analysis Layer: {vizMode}</div>
+              <div className={styles.aspectHeader}>
+                <div className={styles.aspectTitle}>{RASHI_NAMES[selectedAspectSign]}</div>
+                <span className={styles.aspectBadge}>Layer: {vizMode}</span>
               </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {/* Sign Aspects Layer */}
+
+              <div className={styles.aspectSection}>
                 {(vizMode === 'drishti' || vizMode === 'both') && (
                   <div>
-                    <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 900, marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rashi Drishti (Aspects):</div>
-                    <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                    <div className={styles.aspectSectionLabel}>Rashi Drishti</div>
+                    <div className={styles.aspectChips}>
                       {getRashiDrishti(selectedAspectSign).map(a => (
-                        <span key={a} style={{ padding: '1px 6px', background: 'var(--surface-3)', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700 }}>{RASHI_SHORT[a]}</span>
+                        <span key={a} className={styles.aspectChip}>{RASHI_SHORT[a]}</span>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Argala Layer */}
                 {(vizMode === 'argala' || vizMode === 'both') && (
                   <div>
-                    <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 900, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Argala (Intervention):</div>
+                    <div className={styles.aspectSectionLabel}>Argala Intervention</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       {argalaInterventions.map(a => (
-                        <div key={a.id} style={{ fontSize: '0.75rem', padding: '0.4rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                            <span style={{ fontWeight: 800, color: 'var(--teal)' }}>{a.id} House ({RASHI_SHORT[a.aSign]})</span>
-                            <span style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 700 }}>{a.label}</span>
+                        <div key={a.id} className={styles.argalaRow}>
+                          <div className={styles.argalaRowHeader}>
+                            <span className={styles.argalaHouse}>{a.id} House · {RASHI_SHORT[a.aSign]}</span>
+                            <span className={styles.argalaTheme}>{a.label}</span>
                           </div>
                           {a.occupants.length > 0 ? (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
@@ -1326,13 +1215,15 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                   <span style={{ fontSize: '0.55rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Q{occ.quarter}</span>
                                   {occ.isBlocked && (
                                     <span style={{ fontSize: '0.55rem', color: 'var(--combust)', fontWeight: 800 }}>
-                                      [Blocked by {occ.blockerIds.join(',')}]
+                                      blocked by {occ.blockerIds.join(', ')}
                                     </span>
                                   )}
                                 </div>
                               ))}
                             </div>
-                          ) : <span style={{ color: 'var(--text-secondary)', fontSize: '0.65rem', fontStyle: 'italic' }}>Empty (No Influence)</span>}
+                          ) : (
+                            <span style={{ color: 'var(--text-secondary)', fontSize: '0.65rem', fontStyle: 'italic' }}>No planetary influence</span>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -1343,62 +1234,35 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           )}
         </section>
 
-        {/* RIGHT COLUMN: Data Command Center */}
+        {/* RIGHT: Analysis panels */}
         <div
           ref={tabContentRef}
-          className="card-glass"
-          style={{ 
-          paddingTop: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.25rem',
-          paddingLeft: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.25rem',
-          paddingRight: isTinyMobile ? '0.5rem' : isMobile ? '1rem' : '1.25rem',
-          paddingBottom: isMobile ? '1.25rem' : (isTinyMobile ? '0.5rem' : '1.25rem'),
-          borderRadius: 'var(--r-xl)', 
-          background: 'var(--surface-1)', 
-          border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
-          boxShadow: isTinyMobile ? 'none' : 'var(--shadow-card)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-          minWidth: 0,
-          maxWidth: '100%',
-          boxSizing: 'border-box',
-          scrollMarginBottom: isMobile ? '5.5rem' : undefined,
-          scrollMarginTop: isMobile ? '0.5rem' : undefined,
-        }}>
+          className={cn('card-glass', styles.colData)}
+          style={{
+            padding: panelPad,
+            borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)',
+            background: 'var(--surface-1)',
+            border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
+            boxShadow: isTinyMobile ? 'none' : 'var(--shadow-card)',
+          }}
+        >
           {isMobile && (
-            <h2 style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: isTinyMobile ? '1rem' : '1.1rem',
-              fontWeight: 800,
-              color: 'var(--text-gold)',
-              letterSpacing: '0.02em',
-            }}>
+            <h2 className={styles.mobileTitle}>
               {tabs.find(t => t.id === activeTab)?.label ?? 'Jaimini'}
             </h2>
           )}
           {!isMobile && (
-            <nav className="scrollbar-hide" style={{ 
-              display: 'flex', gap: '0.25rem', overflowX: 'auto', padding: '0.25rem',
-              background: 'var(--surface-2)', borderRadius: '10px', border: '1px solid var(--border-soft)',
-              WebkitOverflowScrolling: 'touch',
-            }}>
+            <nav className={cn(styles.tabNav, 'scrollbar-hide')}>
               {tabs.map(t => (
-                <button 
-                  key={t.id} 
+                <button
+                  key={t.id}
+                  type="button"
                   onClick={() => setActiveTab(t.id)}
-                  style={{ 
-                    whiteSpace: 'nowrap', padding: '0.5rem 0.75rem', borderRadius: '8px',
-                    background: activeTab === t.id ? 'var(--surface-1)' : 'transparent',
-                    color: activeTab === t.id ? 'var(--gold)' : 'var(--text-muted)',
-                    border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.75rem',
-                    display: 'flex', alignItems: 'center', gap: '0.4rem',
-                    boxShadow: activeTab === t.id ? 'var(--shadow-card)' : 'none'
-                  }}
+                  className={cn(styles.tabBtn, activeTab === t.id && styles.tabBtnActive)}
+                  title={t.label}
                 >
-                  <span style={{ fontSize: '1rem' }}>{t.icon}</span>
-                  {t.label.split(' ')[0]}
+                  <t.Icon size={15} strokeWidth={activeTab === t.id ? 2.25 : 2} />
+                  {t.short}
                 </button>
               ))}
             </nav>
@@ -1411,39 +1275,64 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              style={{ minHeight: '400px' }}
+              className={styles.tabContent}
             >
               {activeTab === 'essence' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {/* Ultra-Compact Status Bar */}
-                  <div style={{ 
-                    display: 'flex', flexWrap: 'wrap', gap: '0.75rem', padding: '0.6rem 1rem', 
-                    background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: '8px' 
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>AK:</span>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--text-primary)' }}>{akGid}</span>
-                        {chart.grahas.find(p => p.id === akGid)?.isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.6rem', fontWeight: 900 }}>ᴿ</span>}
+                <div className={styles.tabStack}>
+                  <div className={styles.karakaGrid}>
+                    {KARAKA_ROLES.map((role) => {
+                      const planetId = karakas[role.key];
+                      const planet = currentGrahas.find(g => g.id === planetId);
+                      const isAk = role.key === 'AK';
+                      return (
+                        <div
+                          key={role.key}
+                          className={isAk ? styles.karakaCardAk : styles.karakaCard}
+                          title={role.name}
+                        >
+                          <span className={styles.karakaRole}>{role.short}</span>
+                          <span className={styles.karakaPlanet} style={{ color: grahaChartFill(planetId) }}>
+                            {planetId}
+                            {planet?.isRetro && (
+                              <span style={{ color: 'var(--dig-retro)', fontSize: '0.55rem', marginLeft: 1 }}>R</span>
+                            )}
+                          </span>
+                          <span className={styles.karakaSign}>
+                            {planet ? RASHI_SHORT[planet.rashi] : '—'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className={styles.statusBar}>
+                    <div className={styles.statusItem}>
+                      <span className={styles.statusKey} style={{ color: 'var(--text-gold)' }}>AK</span>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                        <span className={styles.statusVal}>{akGid}</span>
+                        {chart.grahas.find(p => p.id === akGid)?.isRetro && (
+                          <span style={{ color: 'var(--dig-retro)', fontSize: '0.6rem', fontWeight: 900 }}>R</span>
+                        )}
                       </div>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>({RASHI_SHORT[karakamshaRashi]})</span>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                        ({RASHI_SHORT[karakamshaRashi]})
+                      </span>
                     </div>
-                    <div style={{ width: '1px', background: 'var(--border-soft)', height: '1rem' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--teal)', textTransform: 'uppercase' }}>AL:</span>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--text-primary)' }}>{RASHI_SHORT[d1EffectiveArudhas.AL]}</span>
+                    <div className={styles.statusDivider} />
+                    <div className={styles.statusItem}>
+                      <span className={styles.statusKey} style={{ color: 'var(--teal)' }}>AL</span>
+                      <span className={styles.statusVal}>{RASHI_SHORT[d1EffectiveArudhas.AL]}</span>
                     </div>
                   </div>
 
-                  {/* High-Tech Micro-Details Table */}
-                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '8px', maxWidth: '100%', minWidth: 0 }}>
-                    <table style={{ width: '100%', minWidth: isMobile ? 420 : 0, borderCollapse: 'collapse', fontSize: isTinyMobile ? '0.65rem' : '0.75rem' }}>
+                  <SectionCard title="Planetary & Special Lagnas">
+                    <table className={styles.dataTable} style={{ minWidth: isMobile ? 420 : undefined }}>
                       <thead>
-                        <tr style={{ borderBottom: '1px solid var(--border-soft)', background: 'var(--surface-2)' }}>
-                          <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>BODY</th>
-                          {!isTinyMobile && <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>DEG &apos; &quot;</th>}
-                          <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>{isTinyMobile ? 'NK' : 'NAKSHATRA'}</th>
-                          <th style={{ textAlign: 'right', padding: '0.5rem', fontSize: '0.6rem', fontWeight: 900, opacity: 0.5 }}>{isTinyMobile ? 'R·D9' : 'RASHI·D9'}</th>
+                        <tr>
+                          <th>Body</th>
+                          {!isTinyMobile && <th>Deg &apos; &quot;</th>}
+                          <th>{isTinyMobile ? 'Nak' : 'Nakshatra'}</th>
+                          <th style={{ textAlign: 'right' }}>{isTinyMobile ? 'R·D9' : 'Rashi·D9'}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1568,12 +1457,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           return (
                             <tr
                               key={g.id}
-                              style={{
-                                borderBottom: '1px solid rgba(255,255,255,0.02)',
-                                borderTop: g.id === 'Pranapada Lagna' ? '1px solid var(--border-soft)' : undefined,
-                                background: ['Pranapada Lagna', 'Indu Lagna', 'Bhrigu Bindu'].includes(g.id)
-                                  ? 'rgba(255,255,255,0.015)' : undefined,
-                              }}
+                              className={['Pranapada Lagna', 'Indu Lagna', 'Bhrigu Bindu'].includes(g.id) ? styles.rowSpecial : undefined}
                             >
                               <td style={{ padding: '0.4rem 0.5rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -1605,69 +1489,58 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       })()}
                       </tbody>
                     </table>
-                  </div>
+                  </SectionCard>
 
-                  {/* Compact Raja Yoga Table */}
                   {jaiminiYogas.length > 0 && (
-                    <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '8px', overflow: 'hidden' }}>
-                      <div style={{ padding: '0.4rem', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', textAlign: 'center', textTransform: 'uppercase' }}>
-                        Principal Rajayogas
-                      </div>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
+                    <SectionCard title="Principal Rajayogas">
+                      <table className={styles.dataTable}>
                         <tbody>
                           {jaiminiYogas.map((yoga, k) => (
-                            <tr key={k} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                              <td style={{ padding: '0.4rem 0.5rem', fontWeight: 900, color: 'var(--text-gold)' }}>{yoga.name}</td>
-                              <td style={{ padding: '0.4rem 0.5rem', textAlign: 'right', fontWeight: 900, color: 'var(--gold)', fontSize: '0.6rem' }}>{yoga.strength}</td>
+                            <tr key={k}>
+                              <td style={{ fontWeight: 900, color: 'var(--text-gold)' }}>{yoga.name}</td>
+                              <td style={{ textAlign: 'right', fontWeight: 900, color: 'var(--gold)', fontSize: '0.68rem' }}>{yoga.strength}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
-                    </div>
+                    </SectionCard>
                   )}
 
-                  {/* Fixed Significators Table */}
-                  <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '8px', overflow: 'hidden' }}>
-                    <div style={{ padding: '0.4rem', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-soft)', fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', textAlign: 'center', textTransform: 'uppercase' }}>
-                      Fixed Significators (Sthira Karakas)
-                    </div>
-                    <div className="scrollbar-hide" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
-                        <thead>
-                          <tr style={{ borderBottom: '1px solid var(--border-soft)', background: 'var(--surface-2)' }}>
-                            <th style={{ textAlign: 'left', padding: '0.4rem 0.5rem', fontSize: '0.55rem', fontWeight: 900, opacity: 0.5 }}>HOUSE</th>
-                            <th style={{ textAlign: 'right', padding: '0.4rem 0.5rem', fontSize: '0.55rem', fontWeight: 900, opacity: 0.5 }}>SIGNIFICATOR (PLANET)</th>
+                  <SectionCard title="Fixed Significators (Sthira Karakas)" scrollY>
+                    <table className={styles.dataTable}>
+                      <thead>
+                        <tr>
+                          <th>House</th>
+                          <th style={{ textAlign: 'right' }}>Significator</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(FIXED_HOUSE_SIGNIFICATORS).map(([house, data]) => (
+                          <tr key={house}>
+                            <td style={{ fontWeight: 800 }}>
+                              {house}{house === '1' ? 'st' : house === '2' ? 'nd' : house === '3' ? 'rd' : 'th'} House
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{data.label}</span>
+                                <span
+                                  className={styles.planetBadge}
+                                  style={{ color: grahaChartFill(data.planet), borderColor: `${grahaChartFill(data.planet)}33` }}
+                                >
+                                  {data.planet}
+                                </span>
+                              </div>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {Object.entries(FIXED_HOUSE_SIGNIFICATORS).map(([house, data]) => (
-                            <tr key={house} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                              <td style={{ padding: '0.4rem 0.5rem', fontWeight: 800 }}>{house}{house === '1' ? 'st' : house === '2' ? 'nd' : house === '3' ? 'rd' : 'th'} House</td>
-                              <td style={{ padding: '0.4rem 0.5rem', textAlign: 'right', fontWeight: 900, color: 'var(--text-gold)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{data.label}</span>
-                                  <span style={{ 
-                                    fontSize: '0.7rem', 
-                                    fontWeight: 900,
-                                    color: grahaChartFill(data.planet), 
-                                    background: 'var(--surface-3)', 
-                                    padding: '2px 6px', 
-                                    borderRadius: '4px',
-                                    border: `1px solid ${grahaChartFill(data.planet)}20`
-                                  }}>{data.planet}</span>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                        ))}
+                      </tbody>
+                    </table>
+                  </SectionCard>
                 </div>
               )}
 
               {activeTab === 'arudhas' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className={styles.tabStack}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <ArudhaToggle label="Arudha" value={showArudhaOverlay} onChange={setShowArudhaOverlay} />
                     <ArudhaToggle
@@ -1689,26 +1562,25 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     const matrixArudhas = varga === 'D9' ? d9EffectiveArudhas : d1EffectiveArudhas;
                     return (
                       <div key={varga} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        <h3 className={styles.sectionTitle}>
                           {varga === 'D1' ? 'D1 · Rashi' : 'D9 · Navamsha'} Arudha Matrix
                         </h3>
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-                          gap: '0.75rem',
-                        }}>
+                        <div className={styles.arudhaGrid}>
                           {Object.entries(ARUDHA_LABELS).map(([key, info]) => {
                             const rashi = matrixArudhas[key as keyof ArudhaData];
+                            const { Icon } = info;
                             return (
-                              <div key={`${varga}-${key}`} className="card-glass" style={{
-                                padding: '0.75rem', borderRadius: '10px', background: 'var(--surface-1)', border: '1px solid var(--border-soft)',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
-                              }}>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)' }}>{key}</div>
-                                <div style={{ fontSize: isTinyMobile ? '0.9rem' : '1.1rem', fontWeight: 900, color: 'var(--gold)' }}>
-                                  {rashi ? RASHI_SHORT[rashi as Rashi] : '-'}
+                              <div key={`${varga}-${key}`} className={styles.arudhaCard}>
+                                <div className={styles.arudhaIcon}>
+                                  <Icon size={14} strokeWidth={2.25} />
                                 </div>
-                                {!isTinyMobile && <div style={{ fontSize: '0.55rem', opacity: 0.6, textAlign: 'center' }}>{info.label}</div>}
+                                <div className={styles.arudhaKey}>{key}</div>
+                                <div className={styles.arudhaRashi}>
+                                  {rashi ? RASHI_SHORT[rashi as Rashi] : '—'}
+                                </div>
+                                {!isTinyMobile && (
+                                  <div className={styles.arudhaLabel}>{info.label}</div>
+                                )}
                               </div>
                             );
                           })}
@@ -2050,16 +1922,16 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               )}
 
               {activeTab === 'intelligence' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div className={styles.tabStack}>
                   
                   {/* ── Jaimini Trinity (The Three Pillars) ── */}
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                  <div className={styles.trinityGrid}>
                     {[
                       { 
                         title: 'Brahma', 
                         subtitle: 'Creator', 
                         data: jaiminiTrinity?.brahma, 
-                        icon: '🕉️', 
+                        Icon: Sparkles, 
                         color: 'var(--gold)',
                         desc: 'Events trigger'
                       },
@@ -2067,7 +1939,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         title: 'Maheshwara', 
                         subtitle: 'Transformer', 
                         data: jaiminiTrinity?.maheshwara, 
-                        icon: '🔱', 
+                        Icon: Flame, 
                         color: '#818cf8',
                         desc: 'Life changes'
                       },
@@ -2075,35 +1947,25 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         title: 'Rudra', 
                         subtitle: 'Destroyer', 
                         data: jaiminiTrinity?.rudra, 
-                        icon: '👁️', 
+                        Icon: Eye, 
                         color: 'var(--combust)',
                         desc: 'Crisis/Endings'
                       }
                     ].map((t, idx) => (
-                      <div key={idx} className="card-glass" style={{ 
-                        padding: isTinyMobile ? '0.5rem 0.75rem' : '0.75rem 1rem', 
-                        background: 'var(--surface-1)', 
-                        border: `1px solid var(--border-soft)`,
-                        borderTop: `3px solid ${t.color}`,
-                        borderRadius: '12px',
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '1rem',
-                        transition: 'all 0.3s ease'
-                      }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: t.color, textTransform: 'uppercase' }}>{t.subtitle}</div>
-                          <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text-primary)' }}>{t.title}</div>
-                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{t.desc}</div>
+                      <div key={idx} className={styles.trinityCard} style={{ borderTop: `3px solid ${t.color}` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+                          <div className={styles.trinityIcon} style={{ color: t.color }}>
+                            <t.Icon size={16} strokeWidth={2.25} />
+                          </div>
+                          <div className={styles.trinityMeta}>
+                            <div className={styles.trinitySubtitle} style={{ color: t.color }}>{t.subtitle}</div>
+                            <div className={styles.trinityTitle}>{t.title}</div>
+                            <div className={styles.trinityDesc}>{t.desc}</div>
+                          </div>
                         </div>
-                        <div style={{ 
-                          padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)',
-                          display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '60px'
-                        }}>
-                          <span style={{ fontSize: '0.5rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '1px' }}>ID</span>
-                          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: t.color }}>{t.data?.id || '?'}</span>
+                        <div className={styles.trinityId}>
+                          <span className={styles.trinityIdLabel}>ID</span>
+                          <span className={styles.trinityIdVal} style={{ color: t.color }}>{t.data?.id || '?'}</span>
                         </div>
                       </div>
                     ))}
@@ -2305,22 +2167,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               )}
 
               {activeTab === 'dashas' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div className="card" style={{ padding: '1rem', background: 'var(--surface-1)' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--gold)', textTransform: 'uppercase' }}>{dashaTitle}</div>
+                <div className={styles.tabStack}>
+                  <div className={styles.dashaCard}>
+                    <div className={styles.dashaHeader}>
+                      <div className={styles.dashaTitle}>{dashaTitle}</div>
                       <select
                         value={charaDashaMode}
                         onChange={(e) => setCharaDashaMode(e.target.value as 'chara' | 'chara_fe' | 'mandook' | 'sthir')}
-                        style={{
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          padding: '0.35rem 0.6rem',
-                          borderRadius: '8px',
-                          border: '1px solid var(--border-soft)',
-                          background: 'var(--surface-2)',
-                          color: 'var(--text-primary)',
-                        }}
+                        className={styles.dashaSelect}
                         aria-label="Chara dasha calculation method"
                       >
                         <option value="chara">Chara Dasha (K.N. Rao)</option>
@@ -2329,7 +2183,14 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         <option value="sthir">Sthir Dasha</option>
                       </select>
                     </div>
-                    <DashaTree nodes={activeCharaDashas as DashaNode[]} birthDate={new Date(chart.meta.birthDate)} />
+                    <div className={styles.dashaBody}>
+                      <DashaTree
+                        nodes={activeCharaDashas as DashaNode[]}
+                        birthDate={new Date(chart.meta.birthDate)}
+                        maxDepth={3}
+                        lazyExpand={false}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -2339,16 +2200,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
       </div>
 
       {isMobile && typeof document !== 'undefined' && createPortal(
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
-          background: 'var(--surface-1)',
-          borderTop: '1px solid var(--border-soft)',
-          display: 'flex', alignItems: 'stretch',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
-          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        }}>
+        <div className={styles.mobileNav}>
           {mobileTabs.map(({ id, icon: Icon, label }) => {
             const active = activeTab === id
             return (
@@ -2357,7 +2209,6 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                 type="button"
                 onClick={() => {
                   setActiveTab(id)
-                  // Re-tap of active tab still jumps below the chart
                   if (activeTab === id) {
                     window.requestAnimationFrame(() => {
                       const el = tabContentRef.current
@@ -2374,32 +2225,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     })
                   }
                 }}
-                style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: '0.2rem', padding: '0.6rem 0.15rem 0.4rem',
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  color: active ? 'var(--accent)' : 'var(--text-muted)',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative',
-                }}
+                className={cn(styles.mobileNavBtn, active && styles.mobileNavBtnActive)}
               >
-                {active && (
-                  <div style={{
-                    position: 'absolute', top: 0, left: '20%', right: '20%',
-                    height: 2, background: 'var(--accent)',
-                    boxShadow: '0 0 10px var(--accent)',
-                    borderRadius: '0 0 2px 2px',
-                  }} />
-                )}
+                {active && <div className={styles.mobileNavIndicator} />}
                 <Icon size={18} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
-                <span style={{
-                  fontSize: '0.58rem',
-                  fontWeight: active ? 700 : 500,
-                  letterSpacing: '0.02em',
-                  whiteSpace: 'nowrap',
-                  marginTop: '0.1rem',
-                }}>
+                <span className={cn(styles.mobileNavLabel, active && styles.mobileNavLabelActive)}>
                   {label}
                 </span>
               </button>

@@ -2523,11 +2523,17 @@ select.input {
   scroll-snap-type: x proximity;
   max-width: 100%;
   min-width: 0;
+  margin-bottom: 0.75rem;
 }
 
 .jaimini-panel {
   max-width: 100%;
   min-width: 0;
+}
+
+.jaimini-page {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .jaimini-chart-block,
@@ -2558,11 +2564,6 @@ select.input {
 }
 
 @media (max-width: 480px) {
-  .jaimini-panel {
-    padding-left: 0.35rem !important;
-    padding-right: 0.35rem !important;
-  }
-
   .jaimini-panel .card-glass:has(.jaimini-chart-wrap) {
     padding-left: 0.25rem !important;
     padding-right: 0.25rem !important;
