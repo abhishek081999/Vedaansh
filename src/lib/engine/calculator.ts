@@ -30,7 +30,7 @@ import { calcCharaKarakas } from '@/lib/engine/karakas'
 import { getDignity, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignity'
 import {
   VARGA_FUNCTIONS,
-  FREE_VARGAS, GOLD_VARGAS, ALL_VARGAS, SHODASHA_VARGAS,
+  PLATINUM_VARGAS,
   getVargaPosition,
   type VargaName,
 } from '@/lib/engine/vargas'
@@ -229,9 +229,10 @@ function buildGrahas(
   return grahas
 }
 
-function vargaNamesForPlan(plan: UserPlan): VargaName[] {
-  if (plan === 'platinum') return ALL_VARGAS
-  return SHODASHA_VARGAS
+function vargaNamesForPlan(_plan: UserPlan): VargaName[] {
+  // Always compute the full 41-suite so shared Redis cache can serve Platinum.
+  // Free/Gold responses are stripped in the API layer.
+  return PLATINUM_VARGAS
 }
 
 function dashaDepthForPlan(plan: UserPlan): number {

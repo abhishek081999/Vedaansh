@@ -666,7 +666,7 @@ function HomeContent() {
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'>('vimshottari')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
   const [vimshottariTribhagi, setVimshottariTribhagi] = useState(false)
-  const [activeVarga, setActiveVarga] = useState<string>('D1')
+  const [chartActiveVarga, setChartActiveVarga] = useState<string>('D1')
   const [altVimshottari, setAltVimshottari] = useState<import('@/types/astrology').DashaNode[] | null>(null)
 
   const vimshottariNodes = useMemo(() => {
@@ -1481,15 +1481,38 @@ function HomeContent() {
     if (cardId === 'planetary') {
       return (
         <div className="panel fade-up">
-          <div className="panel-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span>Planetary Details</span>
-              <div style={{ display: 'inline-flex', gap: '0.22rem', marginLeft: '0.35rem' }}>
+          <div
+            className="panel-header"
+            style={{
+              flexWrap: 'wrap',
+              gap: '0.45rem',
+              rowGap: '0.4rem',
+              alignItems: 'center',
+            }}
+          >
+            <span style={{ flexShrink: 0 }}>Planetary Details</span>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                marginLeft: 'auto',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div
+                role="tablist"
+                aria-label="Planetary detail view"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.28rem' }}
+              >
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={planetaryDetailTab === 'planets'}
                   onClick={() => setPlanetaryDetailTab('planets')}
                   style={{
-                    padding: '0.12rem 0.45rem',
+                    height: 26,
+                    padding: '0 0.55rem',
                     fontSize: '0.64rem',
                     borderRadius: 999,
                     border: `1px solid ${planetaryDetailTab === 'planets' ? 'var(--gold)' : 'var(--border-soft)'}`,
@@ -1498,15 +1521,19 @@ function HomeContent() {
                     cursor: 'pointer',
                     fontFamily: 'var(--font-body)',
                     fontWeight: planetaryDetailTab === 'planets' ? 700 : 500,
+                    lineHeight: 1,
                   }}
                 >
                   Planets
                 </button>
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={planetaryDetailTab === 'dasha'}
                   onClick={() => setPlanetaryDetailTab('dasha')}
                   style={{
-                    padding: '0.12rem 0.45rem',
+                    height: 26,
+                    padding: '0 0.55rem',
                     fontSize: '0.64rem',
                     borderRadius: 999,
                     border: `1px solid ${planetaryDetailTab === 'dasha' ? 'var(--gold)' : 'var(--border-soft)'}`,
@@ -1515,31 +1542,54 @@ function HomeContent() {
                     cursor: 'pointer',
                     fontFamily: 'var(--font-body)',
                     fontWeight: planetaryDetailTab === 'dasha' ? 700 : 500,
+                    lineHeight: 1,
                   }}
                 >
                   Dasha
                 </button>
               </div>
+              {planetaryDetailTab === 'planets' ? (
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{
+                    height: 26,
+                    fontSize: '0.64rem',
+                    padding: '0 0.5rem',
+                    fontFamily: 'var(--font-body)',
+                    lineHeight: 1,
+                  }}
+                  onClick={() => setExpandGraha(!expandGraha)}
+                >
+                  {expandGraha ? '▴ Less' : '▾ More'}
+                </button>
+              ) : (
+                <select
+                  value={dashaSystem}
+                  onChange={(e) => setDashaSystem(e.target.value as any)}
+                  aria-label="Dasha system"
+                  style={{
+                    height: 26,
+                    padding: '0 0.45rem',
+                    fontSize: '0.64rem',
+                    background: 'var(--surface-3)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-soft)',
+                    borderRadius: 999,
+                    fontFamily: 'var(--font-body)',
+                    lineHeight: 1,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="vimshottari">Vimshottari</option>
+                  <option value="yogini">Yogini</option>
+                  <option value="chara">Chara (K.N. Rao)</option>
+                  <option value="chara_fe">Chara (Rangacharya FE)</option>
+                  <option value="mandook">Mandook (K.N. Rao)</option>
+                  <option value="sthir">Sthir</option>
+                  <option value="ashtottari">Ashtottari</option>
+                </select>
+              )}
             </div>
-            {planetaryDetailTab === 'planets' ? (
-              <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.72rem', padding: '0.2rem 0.45rem', fontFamily: 'var(--font-body)' }} onClick={() => setExpandGraha(!expandGraha)}>
-                {expandGraha ? '▴ Less' : '▾ More'}
-              </button>
-            ) : (
-              <select
-                value={dashaSystem}
-                onChange={(e) => setDashaSystem(e.target.value as any)}
-                style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}
-              >
-                <option value="vimshottari">Vimshottari</option>
-                <option value="yogini">Yogini</option>
-                <option value="chara">Chara (K.N. Rao)</option>
-                <option value="chara_fe">Chara (Rangacharya FE)</option>
-                <option value="mandook">Mandook (K.N. Rao)</option>
-                <option value="sthir">Sthir</option>
-                <option value="ashtottari">Ashtottari</option>
-              </select>
-            )}
           </div>
           {planetaryDetailTab === 'planets' ? (
             <div style={{ padding: '0.4rem 0' }}>
@@ -1549,8 +1599,6 @@ function HomeContent() {
                 vargaLagnas={dashboardChart.vargaLagnas}
                 lagnas={dashboardChart.lagnas}
                 upagrahas={dashboardChart.upagrahas}
-                activeVarga={activeVarga}
-                onVargaChange={setActiveVarga}
                 arudhas={dashboardChart.arudhas}
                 limited={!expandGraha}
               />
@@ -1906,9 +1954,9 @@ function HomeContent() {
                      moonNakIndex={moonNakIndex}
                      tithiNumber={tithiNumber}
                      varaNumber={varaNumber}
-                     onActiveVargaChange={setActiveVarga}
-                     mobileSelectedVarga={activeVarga}
-                     onMobileSelectedVargaChange={setActiveVarga}
+                     onActiveVargaChange={setChartActiveVarga}
+                     mobileSelectedVarga={chartActiveVarga}
+                     onMobileSelectedVargaChange={setChartActiveVarga}
                      hideMobileSelector={isMobile}
                      transitGrahas={transitGrahas ?? undefined}
                      chart={chart}
@@ -1949,7 +1997,6 @@ function HomeContent() {
                             <GrahaTable
                               grahas={chart.grahas} vargas={chart.vargas} vargaLagnas={chart.vargaLagnas}
                               lagnas={chart.lagnas} upagrahas={chart.upagrahas}
-                              activeVarga={activeVarga} onVargaChange={setActiveVarga} 
                               arudhas={chart.arudhas} limited={!expandGraha}
                             />
                           </div>
@@ -2129,19 +2176,27 @@ function HomeContent() {
 
                   {activeTab === 'dasha' && (
                      <div className="panel fade-up">
-                       <div className="panel-header">
+                       <div
+                         className="panel-header"
+                         style={{ flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}
+                       >
                          <span>Dasha Timeline</span>
                         <select
                           value={dashaSystem}
                           onChange={(e) => setDashaSystem(e.target.value as any)}
+                          aria-label="Dasha system"
                           style={{
-                            padding: '0.15rem 0.35rem',
-                            fontSize: '0.62rem',
+                            height: 26,
+                            marginLeft: 'auto',
+                            padding: '0 0.45rem',
+                            fontSize: '0.64rem',
                             background: 'var(--surface-3)',
                             color: 'var(--text-primary)',
                             border: '1px solid var(--border-soft)',
-                            borderRadius: '3px',
-                            fontFamily: 'inherit',
+                            borderRadius: 999,
+                            fontFamily: 'var(--font-body)',
+                            lineHeight: 1,
+                            cursor: 'pointer',
                           }}
                         >
                           <option value="vimshottari">Vimshottari</option>

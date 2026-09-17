@@ -11,6 +11,7 @@ import { User } from '@/lib/db/models/User'
 import { calculateChart } from '@/lib/engine/calculator'
 import { hydrateCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { redis, chartCacheKey } from '@/lib/redis'
+import { filterChartVargasForPlan } from '@/lib/engine/vargas'
 import { fromZonedTime } from 'date-fns-tz'
 import { PublicChartClient } from './PublicChartClient'
 import { generateChartMetadata } from './metadata'
@@ -108,9 +109,12 @@ export default async function PublicChartPage({
       },
     })
 
+    // Public viewers get free-tier vargas only (full suite stays in Redis for Platinum owners)
+    const publicChart = filterChartVargasForPlan(finalChart, 'free')
+
     return (
       <PublicChartClient 
-        chart={finalChart} 
+        chart={publicChart} 
         saved={saved} 
         branding={branding} 
       />

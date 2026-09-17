@@ -12,6 +12,7 @@ import { calculateChart } from '@/lib/engine/calculator'
 import { hydrateSpecialLagnas } from '@/lib/engine/astroDetailsDerived'
 import { hydrateCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { redis, chartCacheKey } from '@/lib/redis'
+import { filterChartVargasForPlan } from '@/lib/engine/vargas'
 import type { ChartSettings, UserPlan } from '@/types/astrology'
 
 // Force Node.js runtime — sweph is a native C addon, incompatible with Edge
@@ -111,7 +112,11 @@ function hasAdvancedFeatures(chartData: any): boolean {
   const hasInduBb = Number.isFinite(chartData?.lagnas?.induLagna)
     && Number.isFinite(chartData?.lagnas?.bhriguBindu)
 
-  return hasGrahaFeatures && hasYogiPoint && hasInterpretation && hasBhavaBala && hasVargaAdvanced && hasUpagrahas && hasJaimini && hasInduBb
+  // Full 41-suite cached charts include extended divisions (e.g. D5 / D81)
+  const vargaKeys = chartData?.vargas ? Object.keys(chartData.vargas) : []
+  const hasFullVargaSuite = vargaKeys.length >= 40
+
+  return hasGrahaFeatures && hasYogiPoint && hasInterpretation && hasBhavaBala && hasVargaAdvanced && hasUpagrahas && hasJaimini && hasInduBb && hasFullVargaSuite
 }
 
 function hydrateChartLagnas(chartData: any): any {
@@ -203,6 +208,10 @@ export async function POST(req: NextRequest) {
       input.prashnaNumber || 0,
     )
 
+    const plan: UserPlan = session?.user?.id
+      ? (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
+      : 'free'
+
     const cached = await redis.get(cacheKey)
 
     const cachedChart = parseCachedChart(cached)
@@ -223,12 +232,12 @@ export async function POST(req: NextRequest) {
           calculatedAt: new Date(),
         }
       })
-      return NextResponse.json({ success: true, data: finalData, fromCache: true })
+      return NextResponse.json({
+        success: true,
+        data: filterChartVargasForPlan(finalData, plan),
+        fromCache: true,
+      })
     }
-
-    const plan: UserPlan = session?.user?.id
-      ? (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
-      : 'free'
 
     // Run calculation and connect DB (for warming) in parallel
     const [chartData] = await Promise.all([
@@ -252,10 +261,14 @@ export async function POST(req: NextRequest) {
       connectDB() 
     ])
 
-    // Cache result — don't await so the user gets the results immediately 🚀
+    // Cache full suite — don't await so the user gets the results immediately
     redis.cacheChart(cacheKey, chartData)
 
-    return NextResponse.json({ success: true, data: chartData, fromCache: false })
+    return NextResponse.json({
+      success: true,
+      data: filterChartVargasForPlan(chartData, plan),
+      fromCache: false,
+    })
 
   } catch (err) {
     console.error('[chart/calculate] Unhandled error:', err)

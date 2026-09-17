@@ -5,30 +5,11 @@ import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
 import { buildArudhaBundle } from '@/lib/engine/arudhas'
 import { getDashaLordPlacementHouses } from '@/lib/engine/activeHouses'
-import { getVargaPosition } from '@/lib/engine/vargas'
+import { getVargaPosition, VARGA_UI_LIST } from '@/lib/engine/vargas'
 
 interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'gold'|'platinum' }
 
-const VARGA_META: VargaMeta[] = [
-  { name:'D1',  full:'Rashi',           topic:'Lagna chart — personality, body, overall life',        tier:'free' },
-  { name:'Chalit', full:'Bhava Chalit', topic:'House positions — actual house placements (Sripati)', tier:'free' },
-  { name:'D9',  full:'Navamsha',        topic:'Marriage, Destiny — Marriage, Destiny & Inner self',   tier:'free' },
-  { name:'D60', full:'Shastyamsha',     topic:'Past-life karma — karmic influences, soul evolution',  tier:'free' },
-  { name:'D2',  full:'Hora',            topic:'Wealth & assets — income, Sun Hora and Moon Hora',     tier:'free' },
-  { name:'D3',  full:'Drekkana',        topic:'Siblings — relationships, talents, abilities',         tier:'free' },
-  { name:'D4',  full:'Chaturthamsha',   topic:'Home & property — dwelling, ancestral property',       tier:'free' },
-  { name:'D7',  full:'Saptamsha',       topic:'Children — progeny, offspring, influence',             tier:'free' },
-  { name:'D10', full:'Dasamsha',        topic:'Career — profession, achievements, reputation',        tier:'free' },
-  { name:'D12', full:'Dwadasamsha',     topic:'Parents — relationship with parents, their influence', tier:'free' },
-  { name:'D16', full:'Shodasamsha',     topic:'Vehicles & comforts — transport, luxuries',            tier:'free' },
-  { name:'D20', full:'Vimsamsha',       topic:'Spirituality — religious actions, devotion',           tier:'free' },
-  { name:'D24', full:'Chaturvimsamsha', topic:'Education — learning, academic achievements',          tier:'free' },
-  { name:'D27', full:'Saptvimsamsha',  topic:'Innate strength — inherent qualities, talents',        tier:'free' },
-  { name:'D30', full:'Trimsamsha',      topic:'Obstacles — negative influences, karmic challenges',   tier:'free' },
-  { name:'D40', full:'Khavedamsha',     topic:'Life events and mother — auspicious or inauspicious',  tier:'free' },
-  { name:'D45', full:'Akshavedamsha',   topic:'All life matters and father — comprehensive',          tier:'free' },
-  { name:'D81', full:'Navamsha D81',    topic:'Detailed karmic analysis — sub-divisions of D9',      tier:'free' },
-]
+const VARGA_META: VargaMeta[] = VARGA_UI_LIST
 
 const VARGA_SHORT_LABEL: Record<string, string> = {
   D1: 'Rashi',
@@ -36,11 +17,53 @@ const VARGA_SHORT_LABEL: Record<string, string> = {
   D10: 'Dasamsha',
   D7: 'Saptamsha',
   D60: 'Shastyamsha',
+  D5: 'Panchamsha',
+  D6: 'Shashthamsha',
+  D8: 'Ashtamsha',
+  D81: 'Navanavamsha',
 }
 
 function planLevel(plan: UserPlan) { return plan==='platinum'?2:plan==='gold'?1:0 }
 function tierLevel(tier: VargaMeta['tier']) { return tier==='platinum'?2:tier==='gold'?1:0 }
 function isUnlocked(meta: VargaMeta, plan: UserPlan) { return planLevel(plan)>=tierLevel(meta.tier) }
+
+function hasVargaData(name: string, vargas: Record<string, GrahaData[]>) {
+  return name === 'D1' || name in vargas
+}
+
+function VargaOptions({
+  available,
+  plan,
+  vargas,
+  short = false,
+}: {
+  available: VargaMeta[]
+  plan: UserPlan
+  vargas: Record<string, GrahaData[]>
+  short?: boolean
+}) {
+  const core = available.filter(v => v.tier === 'free')
+  const extended = available.filter(v => v.tier !== 'free')
+  const renderOpt = (v: VargaMeta) => {
+    const unlocked = isUnlocked(v, plan)
+    const ready = hasVargaData(v.name, vargas)
+    const label = short
+      ? `${v.name} · ${VARGA_SHORT_LABEL[v.name] ?? v.full}`
+      : `${v.name} · ${v.full}`
+    const suffix = !unlocked ? ' (Platinum)' : !ready ? ' (recalculate)' : ''
+    return (
+      <option key={v.name} value={v.name} disabled={!unlocked || !ready}>
+        {label}{suffix}
+      </option>
+    )
+  }
+  return (
+    <>
+      <optgroup label="Core charts">{core.map(renderOpt)}</optgroup>
+      <optgroup label="Extended & variants (Platinum)">{extended.map(renderOpt)}</optgroup>
+    </>
+  )
+}
 
 interface Props {
   vargas: Record<string,GrahaData[]>; vargaLagnas: Record<string,Rashi>
@@ -88,14 +111,64 @@ function UpgradeNudge({ plan }: { plan: UserPlan }) {
 function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'gold'|'blue' }) {
   const isGold = accent === 'gold'
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:'0.4rem' }}>
-      <span style={{ fontFamily:'var(--font-mono)', fontSize:'0.78rem', fontWeight:700, color:isGold?'var(--gold)':'var(--accent)' }}>
+    <div style={{ display:'flex', alignItems:'center', gap:'0.4rem', minWidth: 0, overflow: 'hidden' }}>
+      <span style={{ fontFamily:'var(--font-mono)', fontSize:'0.78rem', fontWeight:700, color:isGold?'var(--gold)':'var(--accent)', flexShrink: 0 }}>
         {meta.name}
       </span>
-      <span style={{ fontSize:'0.84rem', color:'var(--text-muted)', fontStyle:'italic' }}>
+      <span style={{ fontSize:'0.78rem', color:'var(--text-muted)', fontStyle:'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {meta.full}
       </span>
     </div>
+  )
+}
+
+const selectStyleBase: React.CSSProperties = {
+  padding: '0.2rem 0.45rem',
+  fontSize: '0.72rem',
+  background: 'var(--surface-2)',
+  color: 'var(--text-primary)',
+  border: '1px solid var(--border-soft)',
+  borderRadius: '4px',
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+  maxWidth: '100%',
+  minWidth: 0,
+}
+
+function SettingsBtn({
+  open,
+  onClick,
+  label,
+}: {
+  open: boolean
+  onClick: () => void
+  label?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Chart settings"
+      title={open ? 'Hide chart settings' : 'Chart settings'}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.25rem',
+        flexShrink: 0,
+        height: 28,
+        minWidth: 28,
+        padding: label ? '0 0.5rem' : 0,
+        borderRadius: 4,
+        border: '1px solid var(--border-soft)',
+        background: open ? 'var(--gold-faint)' : 'transparent',
+        color: open ? 'var(--gold)' : 'var(--text-muted)',
+        cursor: 'pointer',
+        fontSize: label ? '0.72rem' : '0.75rem',
+      }}
+    >
+      ⚙{label ? (open ? ' Hide' : ' Settings') : null}
+    </button>
   )
 }
 
@@ -148,10 +221,12 @@ export function VargaSwitcher({
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  const available = VARGA_META.filter(v => v.name in vargas || v.tier==='free')
+  const available = VARGA_META
 
   function handleClick(meta: VargaMeta) {
     if (!isUnlocked(meta, userPlan)) { window.location.href='/pricing'; return }
+    // Platinum-only charts need calculated data; nudge recalculate if missing
+    if (!(meta.name in vargas) && meta.name !== 'D1') return
     const name = meta.name
     
     if (isMobile) {
@@ -204,7 +279,7 @@ export function VargaSwitcher({
           padding: '0.4rem 0.6rem', background: 'var(--surface-2)',
           border: '1px solid var(--border-soft)', borderRadius: '6px',
         }}>
-          <select 
+            <select 
             value={mobileSelectedVarga || chartsToDisplay[0]} 
             onChange={(e) => {
               const meta = VARGA_META.find(v => v.name === e.target.value)
@@ -216,11 +291,7 @@ export function VargaSwitcher({
               borderRadius: '4px', fontSize: '0.82rem', fontFamily: 'inherit'
             }}
           >
-            {available.map(v => (
-              <option key={v.name} value={v.name}>
-                {v.name} — {v.full} {!isUnlocked(v, userPlan) ? '🔒' : ''}
-              </option>
-            ))}
+            <VargaOptions available={available} plan={userPlan} vargas={vargas} />
           </select>
         </div>
       ) : null}
@@ -245,69 +316,56 @@ export function VargaSwitcher({
               borderRadius: 'var(--r-sm)',
               display: 'flex', flexDirection: 'column'
             }}>
-              {/* Chart header row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem', paddingBottom: '0.3rem', borderBottom: '1px solid var(--border-soft)' }}>
-                <ChartLabel meta={meta} accent={idx===0 ? 'gold' : 'blue'} />
-                
-                {!isMobile && idx === 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setChartSettingsOpen((prev) => ({ ...prev, [name]: !prev[name] }))}
+              {/* Chart header row — label OR select, never both (avoids overlap) */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.3rem',
+                paddingBottom: '0.3rem',
+                borderBottom: '1px solid var(--border-soft)',
+                minWidth: 0,
+              }}>
+                {isMobile || idx === 1 ? (
+                  <select
+                    value={name}
+                    onChange={(e) => {
+                      const m = VARGA_META.find(v => v.name === e.target.value)
+                      if (m) handleClick(m)
+                    }}
+                    aria-label="Select divisional chart"
                     style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                      padding: '0.22rem 0.5rem', fontSize: '0.72rem', borderRadius: '4px',
-                      border: '1px solid var(--border-soft)',
-                      background: chartSettingsOpen[name] ? 'var(--gold-faint)' : 'transparent',
-                      color: chartSettingsOpen[name] ? 'var(--gold)' : 'var(--text-muted)',
-                      cursor: 'pointer',
+                      ...selectStyleBase,
+                      flex: 1,
+                      borderColor: idx === 0 ? 'rgba(201,168,76,0.45)' : 'var(--accent)',
+                      color: idx === 0 ? 'var(--gold)' : 'var(--accent)',
+                      fontWeight: 700,
+                      fontFamily: 'var(--font-mono)',
                     }}
                   >
-                    ⚙ {chartSettingsOpen[name] ? 'Hide' : 'Settings'}
-                  </button>
+                    <VargaOptions available={available} plan={userPlan} vargas={vargas} short={isMobile} />
+                  </select>
+                ) : (
+                  <ChartLabel meta={meta} accent="gold" />
                 )}
 
-                {isMobile && (
-                  <div style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <select
-                      value={name}
-                      onChange={(e) => { const m = VARGA_META.find(v => v.name === e.target.value); if (m) handleClick(m) }}
-                      style={{ padding: '0.2rem 0.35rem', fontSize: '0.72rem', background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: 4, fontFamily: 'inherit', maxWidth: 130 }}
-                    >
-                      {available.map(v => (
-                        <option key={v.name} value={v.name} disabled={!isUnlocked(v, userPlan)}>
-                          {v.name} — {VARGA_SHORT_LABEL[v.name] ?? v.full}
-                        </option>
-                      ))}
-                    </select>
-                    <button type="button" onClick={() => setChartSettingsOpen((prev) => ({ ...prev, [name]: !prev[name] }))}
-                      aria-label="Chart settings"
-                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 4, border: '1px solid var(--border-soft)', background: chartSettingsOpen[name] ? 'var(--gold-faint)' : 'transparent', color: chartSettingsOpen[name] ? 'var(--gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem' }}
-                    >⚙</button>
-                  </div>
-                )}
-
-                {!isMobile && idx === 1 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <select 
-                      value={name} 
-                      onChange={(e) => { const m = VARGA_META.find(v => v.name === e.target.value); if (m) handleClick(m) }}
-                      style={{ padding: '0.18rem 0.4rem', fontSize: '0.7rem', background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '4px', fontFamily: 'inherit', cursor: 'pointer', minWidth: '130px' }}
-                    >
-                      {available.map(v => (
-                        <option key={v.name} value={v.name} disabled={!isUnlocked(v, userPlan)}>
-                          {v.name} {v.full} {!isUnlocked(v, userPlan) ? '🔒' : ''}
-                        </option>
-                      ))}
-                    </select>
-                    <button type="button" onClick={() => setChartSettingsOpen((prev) => ({ ...prev, [name]: !prev[name] }))}
-                      title={chartSettingsOpen[name] ? 'Hide chart settings' : 'Chart settings'}
-                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 4, border: '1px solid var(--border-soft)', background: chartSettingsOpen[name] ? 'var(--gold-faint)' : 'transparent', color: chartSettingsOpen[name] ? 'var(--gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem' }}
-                    >⚙</button>
-                  </div>
-                )}
+                <SettingsBtn
+                  open={Boolean(chartSettingsOpen[name])}
+                  onClick={() => setChartSettingsOpen((prev) => ({ ...prev, [name]: !prev[name] }))}
+                  label={!isMobile && idx === 0}
+                />
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.4rem',
+                marginBottom: '0.35rem',
+                flexWrap: 'wrap',
+                minHeight: 22,
+              }}>
                 <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', userSelect: 'none' }}>
                   <input
                     type="checkbox"

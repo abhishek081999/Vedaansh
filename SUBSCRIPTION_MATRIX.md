@@ -5,6 +5,7 @@ Source-of-truth summary for **enforced** feature access by plan. Prices: see `sr
 | Feature | Free | Gold | Platinum | Enforced In |
 | --- | --- | --- | --- | --- |
 | Core chart calculation | Yes | Yes | Yes | `src/app/api/chart/calculate/route.ts` |
+| Varga charts | 16 Shodashavarga | 16 Shodashavarga | Full 41-suite | `src/lib/engine/vargas.ts` (`PLATINUM_VARGAS`), `VargaSwitcher`, `filterChartVargasForPlan` |
 | Save charts (library limit) | 20 | 200 | Unlimited | `src/lib/subscription/entitlements.ts`, `src/app/api/chart/save/route.ts`, `src/app/api/chart/bulk-import/route.ts` |
 | Public chart share links | Yes | Yes | Yes | `src/app/api/chart/public/route.ts`, `src/app/api/chart/toggle-public/route.ts` |
 | Chart library search | Yes | Yes | Yes | `src/app/api/chart/search/route.ts` |
