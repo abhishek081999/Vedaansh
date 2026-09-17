@@ -16,7 +16,7 @@ import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/Plane
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { ConditionBadges } from '@/components/ui/AdvancedAnalysisPanel'
-import { VARGA_META, getVargaPosition, SHODASHA_VARGAS } from '@/lib/engine/vargas'
+import { VARGA_META, getVargaPosition, PLATINUM_VARGAS } from '@/lib/engine/vargas'
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -117,8 +117,8 @@ interface GrahaTableProps {
   limited?:   boolean
   vargas?:      Record<string, GrahaData[]>
   vargaLagnas?: Record<string, Rashi>
-  activeVarga?: string
-  onVargaChange?: (v: string) => void
+  /** Initial varga only — not kept in sync with chart switcher */
+  defaultVarga?: string
   arudhas?:   any
 }
 
@@ -126,10 +126,11 @@ interface GrahaTableProps {
 
 // ── Component ────────────────────────────────────────────
 
-export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, activeVarga, onVargaChange, arudhas }: GrahaTableProps) {
+export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, defaultVarga = 'D1', arudhas }: GrahaTableProps) {
   const { language } = useAppLayout()
   const isSa = language === 'sa'
-  const [selectedVarga, setSelectedVarga] = React.useState<string>(activeVarga || 'D1')
+  // Independent of VargaSwitcher — only changes via this table's own dropdown
+  const [selectedVarga, setSelectedVarga] = React.useState<string>(defaultVarga)
   const [showWideColumns, setShowWideColumns] = useState(true)
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -217,9 +218,14 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
   }, [selectedVarga, lagnas, upagrahas, vargaLagnas, isSa, limited, arudhas, vargas])
 
   const vargaOptions = vargas ? Object.keys(vargas)
-    .filter(opt => SHODASHA_VARGAS.includes(opt as any) || opt === 'D1' || opt === 'Chalit')
     .sort((a, b) => {
-      if (a === 'Chalit') return -1; if (b === 'Chalit') return 1;
+      if (a === 'Chalit') return -1; if (b === 'Chalit') return 1
+      const order = PLATINUM_VARGAS as string[]
+      const ia = order.indexOf(a)
+      const ib = order.indexOf(b)
+      if (ia >= 0 && ib >= 0) return ia - ib
+      if (ia >= 0) return -1
+      if (ib >= 0) return 1
       const numA = parseInt(a.replace(/\D/g, '') || '0', 10)
       const numB = parseInt(b.replace(/\D/g, '') || '0', 10)
       return numA - numB || a.localeCompare(b)

@@ -92,11 +92,39 @@ export const D4 = (lon: number): number => {
   return mod12(sign + p * 3)
 }
 
+/** D5 — Panchamsha (fame, authority)
+ *  5 parts of 6°. Odd signs from Aries; even signs from Libra.
+ */
+export const D5 = (lon: number): number => {
+  const sign = signOf(lon)
+  const p = part(lon, 5)  // 0–4
+  return isOdd(sign) ? mod12(1 + p) : mod12(7 + p)
+}
+
+/** D6 — Shashthamsha (health, enemies, debts)
+ *  6 parts of 5°. Odd from own sign; even from 7th.
+ */
+export const D6 = (lon: number): number => {
+  const sign = signOf(lon)
+  const p = part(lon, 6)  // 0–5
+  return isOdd(sign) ? mod12(sign + p) : mod12(sign + 6 + p)
+}
+
 /** D7 — Saptamsha (children and grandchildren) */
 export const D7 = (lon: number): number => {
   const sign = signOf(lon)
   const p = part(lon, 7)  // 0–6
   return isOdd(sign) ? mod12(sign + p) : mod12(sign + p + 6)
+}
+
+/** D8 — Ashtamsha (longevity, unexpected events)
+ *  8 parts of 3°45'. Movable→Aries, Fixed→Leo, Dual→Sagittarius.
+ */
+export const D8 = (lon: number): number => {
+  const sign = signOf(lon)
+  const p = part(lon, 8)  // 0–7
+  const base = [1, 5, 9][(sign - 1) % 3]
+  return mod12(base + p)
 }
 
 /** D10 — Dashamsha (career, status, profession) */
@@ -354,7 +382,7 @@ export const D150 = (lon: number): number => {
 // ── Registry ───────────────────────────────────────────────────
 
 export type VargaName =
-  | 'D1' | 'D2' | 'D3' | 'D4' | 'D7' | 'D9' | 'D10' | 'D12'
+  | 'D1' | 'D2' | 'D3' | 'D4' | 'D5' | 'D6' | 'D7' | 'D8' | 'D9' | 'D10' | 'D12'
   | 'D16' | 'D20' | 'D24' | 'D27' | 'D30' | 'D40' | 'D45' | 'D60'
   | 'D2_Parivritti' | 'D2_Kasinath' | 'D2_Samasaptama'
   | 'D2_Somanath' | 'D2_Raman'
@@ -367,7 +395,7 @@ export type VargaName =
   | 'Chalit'
 
 export const VARGA_FUNCTIONS: Record<VargaName, (lon: number) => number> = {
-  D1, D2, D3, D4, D7, D9, D10, D12,
+  D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D12,
   D16, D20, D24, D27, D30, D40, D45, D60,
   D2_Parivritti, D2_Kasinath, D2_Samasaptama, D2_Somanath, D2_Raman,
   D3_Jagannath, D3_Somanath, D3_Nadi,
@@ -385,18 +413,58 @@ export const SHODASHA_VARGAS: VargaName[] = [
   'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60'
 ]
 
-// All 41 supported varga variants
+/** Extra divisions + classical variants beyond Shodashavarga (25) → 16+25 = 41 */
+export const EXTENDED_VARGAS: VargaName[] = [
+  'D5', 'D6', 'D8',
+  'D2_Parivritti', 'D2_Kasinath', 'D2_Samasaptama', 'D2_Somanath', 'D2_Raman',
+  'D3_Jagannath', 'D3_Somanath', 'D3_Nadi',
+  'D4_Parivritti',
+  'D9_Pada', 'D9_Nadi', 'D9_Somanatha',
+  'D12_Ganaamsha', 'D24_Paravidya', 'D30_Venkatesa',
+  'D60_Nadi', 'D81', 'D81_Nadi',
+  'D108_Guru', 'D108_Shukra', 'D144', 'D150',
+]
+
+// Full Platinum suite — exactly 41 divisional schemes (Chalit is a house chart, not counted)
+export const PLATINUM_VARGAS: VargaName[] = [...SHODASHA_VARGAS, ...EXTENDED_VARGAS]
+
+// All registry keys including Chalit (for getVargaPosition / tests)
 export const ADVANCED_VARGAS: VargaName[] = Object.keys(VARGA_FUNCTIONS) as VargaName[]
 
-// Default set for calculation — restricted to Shodashavarga to avoid clutter
+// Default set for free/gold calculation responses
 export const FREE_VARGAS: VargaName[] = SHODASHA_VARGAS
-
-// Tier vargas (maintained for type compatibility)
 export const GOLD_VARGAS = SHODASHA_VARGAS
-export const PLATINUM_VARGAS = SHODASHA_VARGAS
 
-// ALL_VARGAS should contain all 41 schemes for the engine/tests
-export const ALL_VARGAS = ADVANCED_VARGAS
+// Engine / tests: full 41 schemes (no Chalit)
+export const ALL_VARGAS: VargaName[] = PLATINUM_VARGAS
+
+/** Vargas included in free/gold API responses (+ Chalit added by calculator) */
+export const FREE_RESPONSE_VARGAS: ReadonlySet<string> = new Set<string>([
+  ...SHODASHA_VARGAS,
+  'Chalit',
+])
+
+/** Strip Platinum-only vargas from a chart payload for free/gold plans. */
+export function filterChartVargasForPlan<T extends {
+  vargas?: Record<string, unknown>
+  vargaLagnas?: Record<string, unknown>
+}>(chart: T, plan: 'free' | 'gold' | 'platinum'): T {
+  if (plan === 'platinum' || !chart?.vargas) return chart
+
+  const vargas: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(chart.vargas)) {
+    if (FREE_RESPONSE_VARGAS.has(key)) vargas[key] = value
+  }
+
+  const vargaLagnas: Record<string, unknown> = {}
+  if (chart.vargaLagnas) {
+    for (const [key, value] of Object.entries(chart.vargaLagnas)) {
+      if (FREE_RESPONSE_VARGAS.has(key)) vargaLagnas[key] = value
+    }
+  }
+
+  return { ...chart, vargas, vargaLagnas }
+}
 
 /**
  * Calculate all requested varga signs for a planet
@@ -458,23 +526,61 @@ export function getVargaPosition(lon: number, vname: VargaName): VargaPosition {
 }
 
 /**
- * Human-readable varga metadata
+ * Human-readable varga metadata (UI + gating)
  */
 export const VARGA_META: Record<string, { full: string; topic: string; tier: 'free' | 'gold' | 'platinum' }> = {
-  D1:  { full: 'Rashi',            topic: 'Body, overall life',         tier: 'free' },
-  D2:  { full: 'Hora',             topic: 'Wealth',                     tier: 'free' },
-  D3:  { full: 'Drekkana',         topic: 'Siblings, courage',          tier: 'free' },
-  D4:  { full: 'Chaturthamsha',    topic: 'Property, home',             tier: 'free' },
-  D7:  { full: 'Saptamsha',        topic: 'Children',                   tier: 'free' },
-  D9:  { full: 'Navamsha',         topic: 'Spouse, dharma, inner self', tier: 'free' },
-  D10: { full: 'Dashamsha',        topic: 'Career, profession',         tier: 'free' },
-  D12: { full: 'Dwadashamsha',     topic: 'Parents',                    tier: 'free' },
-  D16: { full: 'Shodashamsha',     topic: 'Vehicles, comforts',         tier: 'free' },
-  D20: { full: 'Vimshamsha',       topic: 'Spiritual progress',         tier: 'free' },
-  D24: { full: 'Chaturvimshamsha', topic: 'Education, knowledge',       tier: 'free' },
-  D27: { full: 'Bhamsha',          topic: 'Strength, vitality',         tier: 'free' },
-  D30: { full: 'Trimshamsha',      topic: 'Evils, health problems',     tier: 'free' },
-  D40: { full: 'Khavedamsha',      topic: 'Auspicious effects',         tier: 'free' },
-  D45: { full: 'Akshavedamsha',    topic: 'General well-being',         tier: 'free' },
-  D60: { full: 'Shashtiamsha',     topic: 'Past karma, overall',        tier: 'free' },
+  D1:  { full: 'Rashi',               topic: 'Lagna chart — personality, body, overall life',        tier: 'free' },
+  Chalit: { full: 'Bhava Chalit',     topic: 'House positions — actual house placements (Sripati)', tier: 'free' },
+  D2:  { full: 'Hora',                topic: 'Wealth & assets — income, Sun/Moon Hora',              tier: 'free' },
+  D3:  { full: 'Drekkana',            topic: 'Siblings — relationships, talents, abilities',         tier: 'free' },
+  D4:  { full: 'Chaturthamsha',       topic: 'Home & property — dwelling, ancestral property',       tier: 'free' },
+  D5:  { full: 'Panchamsha',          topic: 'Fame & authority — recognition, status',               tier: 'platinum' },
+  D6:  { full: 'Shashthamsha',        topic: 'Health & enemies — debts, disputes, service',          tier: 'platinum' },
+  D7:  { full: 'Saptamsha',           topic: 'Children — progeny, offspring, influence',             tier: 'free' },
+  D8:  { full: 'Ashtamsha',           topic: 'Longevity — unexpected events, crises',                tier: 'platinum' },
+  D9:  { full: 'Navamsha',            topic: 'Marriage, Destiny — Marriage, Destiny & Inner self',   tier: 'free' },
+  D10: { full: 'Dasamsha',            topic: 'Career — profession, achievements, reputation',        tier: 'free' },
+  D12: { full: 'Dwadasamsha',         topic: 'Parents — relationship with parents, their influence', tier: 'free' },
+  D16: { full: 'Shodasamsha',         topic: 'Vehicles & comforts — transport, luxuries',            tier: 'free' },
+  D20: { full: 'Vimsamsha',           topic: 'Spirituality — religious actions, devotion',           tier: 'free' },
+  D24: { full: 'Chaturvimsamsha',     topic: 'Education — learning, academic achievements',          tier: 'free' },
+  D27: { full: 'Saptvimsamsha',       topic: 'Innate strength — inherent qualities, talents',        tier: 'free' },
+  D30: { full: 'Trimsamsha',          topic: 'Obstacles — negative influences, karmic challenges',   tier: 'free' },
+  D40: { full: 'Khavedamsha',         topic: 'Life events and mother — auspicious or inauspicious',  tier: 'free' },
+  D45: { full: 'Akshavedamsha',       topic: 'All life matters and father — comprehensive',          tier: 'free' },
+  D60: { full: 'Shastyamsha',         topic: 'Past-life karma — karmic influences, soul evolution',  tier: 'free' },
+  D2_Parivritti:  { full: 'Hora (Parivritti)',     topic: 'Wealth — Parivritti Dvaya Hora scheme',           tier: 'platinum' },
+  D2_Kasinath:    { full: 'Hora (Kasinath)',       topic: 'Wealth — Kasinath Hora scheme',                   tier: 'platinum' },
+  D2_Samasaptama: { full: 'Hora (Samasaptama)',    topic: 'Wealth — Samasaptama Hora scheme',                tier: 'platinum' },
+  D2_Somanath:    { full: 'Hora (Somanath)',       topic: 'Wealth — Somanath Moon-based Hora',               tier: 'platinum' },
+  D2_Raman:       { full: 'Hora (Raman)',          topic: 'Wealth — Raman Hora scheme',                      tier: 'platinum' },
+  D3_Jagannath:   { full: 'Drekkana (Jagannath)',  topic: 'Siblings — Jagannath Drekkana',                   tier: 'platinum' },
+  D3_Somanath:    { full: 'Drekkana (Somanath)',   topic: 'Siblings — Somanath Drekkana',                    tier: 'platinum' },
+  D3_Nadi:        { full: 'Drekkana (Nadi)',       topic: 'Siblings — Nadi Drekkana',                        tier: 'platinum' },
+  D4_Parivritti:  { full: 'Chaturthamsha (Parivritti)', topic: 'Property — Parivritti Chaturthamsha',        tier: 'platinum' },
+  D9_Pada:        { full: 'Navamsha (Pada)',       topic: 'Destiny — nakshatra-pada Navamsha',               tier: 'platinum' },
+  D9_Nadi:        { full: 'Navamsha (Nadi)',       topic: 'Destiny — Nadi Navamsha',                         tier: 'platinum' },
+  D9_Somanatha:   { full: 'Navamsha (Somanatha)',  topic: 'Destiny — Somanatha Navamsha',                    tier: 'platinum' },
+  D12_Ganaamsha:  { full: 'Dwadasamsha (Gana)',    topic: 'Parents — Ganaamsha variant',                     tier: 'platinum' },
+  D24_Paravidya:  { full: 'Siddhamsha (Paravidya)', topic: 'Education — Paravidya higher-learning variant',  tier: 'platinum' },
+  D30_Venkatesa:  { full: 'Trimsamsha (Venkatesa)', topic: 'Obstacles — Venkatesa Trimshamsha',              tier: 'platinum' },
+  D60_Nadi:       { full: 'Shastyamsha (Nadi)',    topic: 'Karma — Nadi Shashtiamsha',                       tier: 'platinum' },
+  D81:            { full: 'Navanavamsha',          topic: 'Detailed karmic analysis — Navamsha of Navamsha', tier: 'platinum' },
+  D81_Nadi:       { full: 'Navanavamsha (Nadi)',   topic: 'Detailed karma — Nadi D81',                       tier: 'platinum' },
+  D108_Guru:      { full: 'Ashtottaramsha (Guru)', topic: 'Fine division — Jupiter-based D108',              tier: 'platinum' },
+  D108_Shukra:    { full: 'Ashtottaramsha (Shukra)', topic: 'Fine division — Venus-based D108',              tier: 'platinum' },
+  D144:           { full: 'Dwadashdwadashamsha',   topic: 'Fine division — D12 of D12',                      tier: 'platinum' },
+  D150:           { full: 'Nadiamsha',             topic: 'Nadi timing — Panchadeshamsha',                   tier: 'platinum' },
 }
+
+/** Ordered list for chart switchers — Chalit + full 41 suite */
+export const VARGA_UI_LIST: Array<{ name: string; full: string; topic: string; tier: 'free' | 'gold' | 'platinum' }> = [
+  { name: 'D1', ...VARGA_META.D1 },
+  { name: 'Chalit', ...VARGA_META.Chalit },
+  ...PLATINUM_VARGAS.filter((n) => n !== 'D1').map((name) => ({
+    name,
+    full: VARGA_META[name]?.full ?? name,
+    topic: VARGA_META[name]?.topic ?? '',
+    tier: VARGA_META[name]?.tier ?? 'platinum',
+  })),
+]

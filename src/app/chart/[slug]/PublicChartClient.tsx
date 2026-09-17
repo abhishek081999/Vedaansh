@@ -154,7 +154,6 @@ export function PublicChartClient({
 }) {
   const [tab,     setTab]     = useState<Tab>('chart')
   const [tabKey,  setTabKey]  = useState(0)
-  const [activeVarga, setActiveVarga] = useState<string>('D1')
 
   function switchTab(t: Tab) { setTab(t); setTabKey(k => k + 1) }
 
@@ -312,7 +311,6 @@ export function PublicChartClient({
               lagnas={chart.lagnas}
               arudhas={chart.arudhas}
               userPlan="free"
-              onActiveVargaChange={setActiveVarga}
               moonNakIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0}
             />
           )}
@@ -325,8 +323,6 @@ export function PublicChartClient({
                 vargaLagnas={chart.vargaLagnas}
                 lagnas={chart.lagnas}
                 upagrahas={chart.upagrahas}
-                activeVarga={activeVarga}
-                onVargaChange={setActiveVarga}
                 arudhas={chart.arudhas}
               />
             </div>
