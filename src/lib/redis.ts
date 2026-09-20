@@ -299,8 +299,8 @@ export function chartCacheKey(
   gulikaMode: string,
   prashnaNumber: number = 0,
 ): string {
-  // v16: always cache full 41-varga suite; API strips for free/gold
-  return `v16:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
+  // v17: yoga detection uses whole-sign houses (Parashari); bust v16 caches
+  return `v17:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}:${karakaScheme}:${gulikaMode}:${prashnaNumber}`
 }
 
 export function panchangCacheKey(
