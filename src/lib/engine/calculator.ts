@@ -25,6 +25,7 @@ import {
   cleanupEphemeris,
 } from '@/lib/engine/ephemeris'
 import { calcHouses, planetHouse } from '@/lib/engine/houses'
+import { calcSripatiBhava, planetInSripatiHouse } from '@/lib/engine/sripatiBhava'
 import { buildArudhaBundle } from '@/lib/engine/arudhas'
 import { calcCharaKarakas } from '@/lib/engine/karakas'
 import { getDignity, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignity'
@@ -75,11 +76,12 @@ import {
   getKPSeedDegree
 } from './kpEngine'
 import {
-  calculateGulikaMaandi,
+  calculateGulikaMaandiOffsets,
+  resolveUpagrahaTimeContext,
   calculateNonLuminous,
-  calculateBeejaSphuta,   
+  calculateBeejaSphuta,
   calculateKshetraSphuta,
-  buildUpagrahaData
+  buildUpagrahaData,
 } from './upagrahas'
 import { calculateSpecialLagnas } from './specialLagnas'
 
@@ -413,45 +415,12 @@ export async function calculateChart(
     vargaLagnas[vname] = ascPos.rashi as Rashi
   }
 
-  // ── Chalit Chart (Bhava Chalit) ─────────────────────────────
-  // Standard Sripati system: Ascendant is 1st House Midpoint, MC is 10th House Midpoint.
-  // Quadrants are trisected to find intermediate house midpoints.
-  const asc = houses.ascendantSidereal
-  const mc = houses.mcSidereal
-  const dsc = (asc + 180) % 360
-  const ic = (mc + 180) % 360
-
-  const mps: number[] = new Array(12)
-  mps[0] = asc; mps[3] = ic; mps[6] = dsc; mps[9] = mc
-
-  // Trisect Quadrants
-  const q1Len = (ic - asc + 360) % 360;  mps[1] = (asc + q1Len/3) % 360;  mps[2] = (asc + 2*q1Len/3) % 360
-  const q2Len = (dsc - ic + 360) % 360;  mps[4] = (ic + q2Len/3) % 360;   mps[5] = (ic + 2*q2Len/3) % 360
-  const q3Len = (mc - dsc + 360) % 360;  mps[7] = (dsc + q3Len/3) % 360;  mps[8] = (dsc + 2*q3Len/3) % 360
-  const q4Len = (asc - mc + 360) % 360;  mps[10] = (mc + q4Len/3) % 360;  mps[11] = (mc + 2*q4Len/3) % 360
-
-  // Calculate Sandhis (boundaries between midpoints)
-  const sandhis: number[] = []
-  for (let i = 0; i < 12; i++) {
-    const c1 = mps[i]
-    const c2 = mps[(i + 1) % 12]
-    let mid = (c1 + c2) / 2
-    if (c2 < c1) mid = ((c1 + c2 + 360) / 2) % 360
-    sandhis.push(mid)
-  }
+  // ── Chalit Chart (Bhava Chalit / Sripati) ───────────────────
+  // Asc = 1st madhya, MC = Dasham Madhya; sandhis = junctions between madhyas.
+  const sripati = calcSripatiBhava(houses.ascendantSidereal, houses.mcSidereal)
 
   const chalitBodies = grahas.map(g => {
-    const lon = g.lonSidereal
-    let house = 1
-    for (let i = 0; i < 12; i++) {
-      const sStart = sandhis[(i + 11) % 12]
-      const sEnd   = sandhis[i]
-      if (sEnd > sStart) {
-        if (lon >= sStart && lon < sEnd) { house = i + 1; break }
-      } else {
-        if (lon >= sStart || lon < sEnd) { house = i + 1; break }
-      }
-    }
+    const house = planetInSripatiHouse(g.lonSidereal, sripati.sandhis)
     const syntheticRashi = (((houses.ascRashi - 1) + (house - 1)) % 12) + 1 as Rashi
     return {
       ...g,
@@ -530,6 +499,14 @@ export async function calculateChart(
       bhriguBindu:      lagnaData.bhriguBindu,
       cusps:            lagnaData.cusps,
     },
+    sripati: {
+      lagnaMadhya:     sripati.lagnaMadhya,
+      dashamMadhya:    sripati.dashamMadhya,
+      saptamaMadhya:   sripati.saptamaMadhya,
+      chaturthaMadhya: sripati.chaturthaMadhya,
+      madhyas:         sripati.madhyas,
+      sandhis:         sripati.sandhis,
+    },
     arudhas: arudhasRaw,
     arudhasBphs,
     karakas: {
@@ -564,23 +541,32 @@ export async function calculateChart(
       rahuKalam, gulikaKalam, yamaganda, abhijitMuhurta: abhijit, horaTable: [],
     },
     upagrahas: (() => {
-      const isDayVal = birthUtc.getTime() >= sunrise.getTime() && birthUtc.getTime() <= sunset.getTime()
-      const gmOffsets = calculateGulikaMaandi(jd, sunrise, sunset, isDayVal, vara.number, houses.ascendantSidereal)
-      
-      const gDate = new Date((isDayVal ? sunrise : sunset).getTime() + gmOffsets.gulika)
-      const mDate = new Date((isDayVal ? sunrise : sunset).getTime() + gmOffsets.maandi)
-      
+      // Day/night window + weekday for Gulika/Maandi (handles pre-sunrise night)
+      const ctx = resolveUpagrahaTimeContext(
+        birthUtc,
+        birthDateStr,
+        input.latitude,
+        input.longitude,
+        input.timezone,
+        sunrise,
+        sunset,
+      )
+      const gm = calculateGulikaMaandiOffsets(ctx.periodDurationMs, ctx.dayVara, ctx.isDay)
+      const gDate = new Date(ctx.periodStart.getTime() + gm.gulikaMs)
+      const mDate = new Date(ctx.periodStart.getTime() + gm.maandiMs)
+
       const hG = calcHouses(dateToJD(gDate), input.latitude, input.longitude, settings.ayanamsha, settings.houseSystem)
       const hM = calcHouses(dateToJD(mDate), input.latitude, input.longitude, settings.ayanamsha, settings.houseSystem)
 
-      const nl = calculateNonLuminous(sun.totalDegree)
-      
+      // Aprakasha grahas from sidereal Sun (BPHS: +133°20′ chain)
+      const nl = calculateNonLuminous(sun.lonSidereal)
+
       const vLon = grahas.find(g => g.id === 'Ve')?.lonSidereal ?? 0
       const jLon = grahas.find(g => g.id === 'Ju')?.lonSidereal ?? 0
       const mLon = grahas.find(g => g.id === 'Ma')?.lonSidereal ?? 0
-      
-      const beeja = calculateBeejaSphuta(sun.totalDegree, vLon, jLon)
-      const kshetra = calculateKshetraSphuta(moon.totalDegree, mLon, jLon)
+
+      const beeja = calculateBeejaSphuta(sun.lonSidereal, vLon, jLon)
+      const kshetra = calculateKshetraSphuta(moon.lonSidereal, mLon, jLon)
 
       const res: Record<string, UpagrahaData> = {
         Gulika: buildUpagrahaData('Gulika', hG.ascendantSidereal),
