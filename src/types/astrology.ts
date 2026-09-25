@@ -315,7 +315,7 @@ export interface LagnaData {
   ascDegree:    number   // Sidereal degree 0–360
   ascRashi:     Rashi
   ascDegreeInRashi: number  // 0–30
-  mcDegree?:     number   // Sidereal degree 0–360
+  mcDegree?:     number   // Sidereal degree 0–360 (Dasham Madhya)
 
   // Special Lagnas
   horaLagna:    number
@@ -329,6 +329,18 @@ export interface LagnaData {
   bhriguBindu:  number
 
   cusps:        number[]
+}
+
+/** Sripati Bhava Madhya / Sandhi (Asc = H1 madhya, MC = H10 madhya) */
+export interface SripatiBhavaData {
+  lagnaMadhya:     number
+  dashamMadhya:    number
+  saptamaMadhya:   number
+  chaturthaMadhya: number
+  /** Index 0 = house 1 … 11 = house 12 */
+  madhyas:  number[]
+  /** Index i = sandhi after house i+1 (end of that bhava) */
+  sandhis:  number[]
 }
 
 // ── Nakshatra Info ───────────────────────────────────────────
@@ -446,6 +458,8 @@ export interface ChartOutput {
   }
   grahas:    GrahaData[]
   lagnas:    LagnaData
+  /** Sripati Bhava Madhya / Sandhi / Dasham Madhya */
+  sripati?:  SripatiBhavaData
   arudhas:   ArudhaData
   arudhasBphs?: ArudhaData   // BPHS exception-corrected arudhas
   karakas:   KarakaData
