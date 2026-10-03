@@ -10,6 +10,7 @@ import { getNakshatra } from '@/lib/engine/nakshatra'
 import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
 import { getAspectedHouses } from '@/lib/engine/aspects'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
+import { getMarakaBadhakaFlags, marakaBadhakaTags } from '@/lib/engine/marakaBadhaka'
 
 const SIGN_ELEMENT: Record<number, string> = {
   1:'fire',2:'earth',3:'air',4:'water',5:'fire',6:'earth',
@@ -83,12 +84,16 @@ export function CircleChakra({
     setMousePos({ x: e.clientX, y: e.clientY })
     if (hoverTimer.current) clearTimeout(hoverTimer.current)
     hoverTimer.current = setTimeout(() => {
+      const mb = getMarakaBadhakaFlags(ascRashi, g.id)
       setHoveredPlanet({
         id: g.id,
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
         isCombust: g.isCombust,
+        isMaraka: mb.isMaraka,
+        isBadhaka: mb.isBadhaka,
+        marakaCancelledByTrikona: mb.marakaCancelledByTrikona,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
@@ -112,12 +117,16 @@ export function CircleChakra({
       setHoveredPlanet(null)
     } else {
       setMousePos({ x: e.touches[0].clientX, y: e.touches[0].clientY })
+      const mb = getMarakaBadhakaFlags(ascRashi, g.id)
       setHoveredPlanet({
         id: g.id,
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
         isCombust: g.isCombust,
+        isMaraka: mb.isMaraka,
+        isBadhaka: mb.isBadhaka,
+        marakaCancelledByTrikona: mb.marakaCancelledByTrikona,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
@@ -284,6 +293,7 @@ export function CircleChakra({
               const col   = grahaChartFill(g.id)
               const subPf = Math.max(8, Math.round(pfThis * 0.50))
               const baseLbl = GRAHA_SHORT[g.id] ?? g.id
+              const mbTags = marakaBadhakaTags(ascRashi, g.id)
               return (
                 <g 
                   key={g.id}
@@ -307,6 +317,15 @@ export function CircleChakra({
                     {g.isCombust && (
                       <tspan fontSize={subPf} fontWeight="700" baselineShift="0.28em">C</tspan>
                     )}
+                    {mbTags.map(t => (
+                      <tspan
+                        key={t}
+                        fontSize={subPf}
+                        fontWeight="700"
+                        baselineShift="0.28em"
+                        fill={t === 'M' ? 'var(--rose)' : '#c9842a'}
+                      >{t}</tspan>
+                    ))}
                     {showDegrees ? <tspan>{` ${Math.floor(g.degree)}°`}</tspan> : null}
                   </text>
                   {showNakshatra && (

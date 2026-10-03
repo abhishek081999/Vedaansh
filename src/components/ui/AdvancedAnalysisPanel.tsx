@@ -237,10 +237,18 @@ export function AdvancedAnalysisPanel({ grahas }: AdvancedAnalysisPanelProps) {
   )
 }
 
-// Export a compact badge row for GrahaTable
-export function ConditionBadges({ graha }: { graha: GrahaData }) {
+// Export a compact badge row for GrahaTable (C/G/P/Y + optional M/B like Pushkara)
+export function ConditionBadges({
+  graha,
+  isMaraka,
+  isBadhaka,
+}: {
+  graha?: GrahaData | null
+  isMaraka?: boolean
+  isBadhaka?: boolean
+}) {
   const badges: React.ReactNode[] = []
-  if (graha.isCombust) {
+  if (graha?.isCombust) {
     badges.push(
       <span key="combust" style={{
         fontSize: '0.55rem',
@@ -255,8 +263,40 @@ export function ConditionBadges({ graha }: { graha: GrahaData }) {
       </span>
     )
   }
+
+  if (isMaraka) {
+    badges.push(
+      <span key="maraka" style={{
+        fontSize: '0.55rem',
+        background: 'rgba(224,123,142,0.12)',
+        color: 'var(--rose)',
+        padding: '1px 4px',
+        borderRadius: 3,
+        border: '1px solid rgba(224,123,142,0.35)',
+        fontWeight: 700,
+      }} title="Maraka (2nd/7th lord)">
+        M
+      </span>
+    )
+  }
+
+  if (isBadhaka) {
+    badges.push(
+      <span key="badhaka" style={{
+        fontSize: '0.55rem',
+        background: 'rgba(201,132,42,0.12)',
+        color: '#c9842a',
+        padding: '1px 4px',
+        borderRadius: 3,
+        border: '1px solid rgba(201,132,42,0.35)',
+        fontWeight: 700,
+      }} title="Badhaka (Bādhakeśa)">
+        B
+      </span>
+    )
+  }
   
-  if (graha.gandanta?.isGandanta) {
+  if (graha?.gandanta?.isGandanta) {
     const color = graha.gandanta.severity === 'exact' ? COLORS.gandanta.exact : COLORS.gandanta.near
     badges.push(
       <span key="gandanta" style={{
@@ -273,7 +313,7 @@ export function ConditionBadges({ graha }: { graha: GrahaData }) {
     )
   }
   
-  if (graha.pushkara?.isPushkara) {
+  if (graha?.pushkara?.isPushkara) {
     const color = COLORS.pushkara.navamsha
     badges.push(
       <span key="pushkara" style={{
@@ -289,10 +329,8 @@ export function ConditionBadges({ graha }: { graha: GrahaData }) {
       </span>
     )
   }
-  
 
-  
-  if (graha.yuddha?.isWarring && (graha.id === 'Me' || graha.id === 'Ve')) {
+  if (graha?.yuddha?.isWarring && (graha.id === 'Me' || graha.id === 'Ve')) {
     const isWinner = graha.yuddha.winner === graha.id
     const color = isWinner ? COLORS.yuddha.winner : COLORS.yuddha.loser
     badges.push(

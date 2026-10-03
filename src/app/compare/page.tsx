@@ -1,15 +1,13 @@
 'use client'
 // src/app/compare/page.tsx — Professional Kundali Matching & Comparison
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback, Suspense } from 'react'
 import React from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput, GrahaData } from '@/types/astrology'
 import { RASHI_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
 import { calculateAshtakoot, getLord } from '@/lib/engine/ashtakoot'
-import { Suspense } from 'react'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 const BirthForm = dynamic(() => import('@/components/ui/BirthForm').then(m => m.BirthForm), { ssr: false })
@@ -20,7 +18,30 @@ const ShadbalaTable = dynamic(() => import('@/components/ui/ShadbalaTable').then
 const YogaList = dynamic(() => import('@/components/ui/YogaList').then(m => m.YogaList), { ssr: false })
 const CompatibilityDoshaPanel = dynamic(() => import('@/components/ui/CompatibilityDoshaPanel').then(m => m.CompatibilityDoshaPanel), { ssr: false })
 const NatalPanchangPanel = dynamic(() => import('@/components/panchang/NatalPanchangPanel').then(m => m.NatalPanchangPanel), { ssr: false })
-const SavedChartSelector = dynamic(() => import('@/components/ui/SavedChartSelector').then(m => m.SavedChartSelector), { ssr: false })
+const SavedChartSelector = dynamic(
+  () => import('@/components/ui/SavedChartSelector').then(m => m.SavedChartSelector),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        role="status"
+        aria-label="Loading chart library"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 3000,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div className="spin-loader" style={{ width: 36, height: 36, borderTopColor: 'var(--gold)' }} />
+      </div>
+    ),
+  },
+)
 
 // ── Compatibility Logic ───────────────────────────────────────
 interface CompatItem { label: string; score: number; reason: string; level: 'good' | 'neutral' | 'bad' }
@@ -124,6 +145,66 @@ function CompareContent() {
   const [view, setView] = useState<View>('ashtakoot')
   const [selectorFor, setSelectorFor] = useState<'a' | 'b' | null>(null)
   const [loadingChart, setLoadingChart] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const selectorForRef = useRef<'a' | 'b' | null>(null)
+
+  const openSelector = useCallback((who: 'a' | 'b') => {
+    selectorForRef.current = who
+    setLoadError(null)
+    setSelectorFor(who)
+  }, [])
+
+  const closeSelector = useCallback(() => {
+    selectorForRef.current = null
+    setSelectorFor(null)
+  }, [])
+
+  const handleSelectSaved = useCallback(async (c: {
+    name: string
+    birthDate: string
+    birthTime: string
+    birthPlace: string
+    latitude: number
+    longitude: number
+    timezone: string
+  }) => {
+    const who = selectorForRef.current
+    setLoadingChart(true)
+    setLoadError(null)
+    closeSelector()
+    try {
+      const res = await fetch('/api/chart/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: c.name,
+          birthDate: c.birthDate,
+          birthTime: c.birthTime,
+          birthPlace: c.birthPlace,
+          latitude: c.latitude,
+          longitude: c.longitude,
+          timezone: c.timezone,
+        }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        if (who === 'a') {
+          setChartA(json.data)
+          setStep('b')
+        } else if (who === 'b') {
+          setChartB(json.data)
+          setStep('done')
+        }
+      } else {
+        setLoadError(json.error || 'Failed to load chart')
+      }
+    } catch (e) {
+      console.error('Failed to load chart', e)
+      setLoadError('Network error — please try again')
+    } finally {
+      setLoadingChart(false)
+    }
+  }, [closeSelector])
 
   const items = useMemo(() => chartA && chartB ? getCompatibility(chartA, chartB) : [], [chartA, chartB])
   
@@ -162,43 +243,11 @@ function CompareContent() {
           </div>
         </div>
 
-        {/* Saved Chart Selector Modal */}
+        {/* Saved Chart Selector Modal — portaled; loading fallback covers chunk delay */}
         {selectorFor && (
-          <SavedChartSelector 
-            onClose={() => setSelectorFor(null)}
-            onSelect={async (c) => {
-              setLoadingChart(true)
-              try {
-                const res = await fetch('/api/chart/calculate', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    name: c.name,
-                    birthDate: c.birthDate,
-                    birthTime: c.birthTime,
-                    birthPlace: c.birthPlace,
-                    latitude: c.latitude,
-                    longitude: c.longitude,
-                    timezone: c.timezone
-                  })
-                })
-                const json = await res.json()
-                if (json.success) {
-                  if (selectorFor === 'a') {
-                    setChartA(json.data)
-                    setStep('b')
-                  } else {
-                    setChartB(json.data)
-                    setStep('done')
-                  }
-                }
-              } catch (e) {
-                console.error('Failed to load chart', e)
-              } finally {
-                setLoadingChart(false)
-                setSelectorFor(null)
-              }
-            }}
+          <SavedChartSelector
+            onClose={closeSelector}
+            onSelect={handleSelectSaved}
           />
         )}
 
@@ -212,9 +261,15 @@ function CompareContent() {
                    <div className="spin-loader" style={{ width: 30, height: 30 }} />
                 </div>
               )}
+              {loadError && (
+                <div role="alert" style={{ marginBottom: '1rem', padding: '0.65rem 0.85rem', background: 'rgba(212,120,138,0.1)', border: '1px solid rgba(212,120,138,0.3)', borderRadius: 8, color: 'var(--rose)', fontSize: '0.8rem' }}>
+                  {loadError}
+                </div>
+              )}
               <div style={{ marginBottom: '1.5rem' }}>
                 <button 
-                  onClick={() => setSelectorFor('a')}
+                  type="button"
+                  onClick={() => openSelector('a')}
                   className="btn btn-secondary w-full"
                   style={{ width: '100%', justifyContent: 'center', gap: '0.5rem', borderStyle: 'dashed' }}
                 >
@@ -247,9 +302,15 @@ function CompareContent() {
                    <div className="spin-loader" style={{ width: 30, height: 30 }} />
                 </div>
               )}
+              {loadError && (
+                <div role="alert" style={{ marginBottom: '1rem', padding: '0.65rem 0.85rem', background: 'rgba(212,120,138,0.1)', border: '1px solid rgba(212,120,138,0.3)', borderRadius: 8, color: 'var(--rose)', fontSize: '0.8rem' }}>
+                  {loadError}
+                </div>
+              )}
               <div style={{ marginBottom: '1.5rem' }}>
                 <button 
-                  onClick={() => setSelectorFor('b')}
+                  type="button"
+                  onClick={() => openSelector('b')}
                   className="btn btn-secondary w-full"
                   style={{ width: '100%', justifyContent: 'center', gap: '0.5rem', borderStyle: 'dashed' }}
                 >

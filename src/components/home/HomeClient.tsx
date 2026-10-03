@@ -647,9 +647,27 @@ function scrollElementIntoMain(el: HTMLElement | null) {
   }
 }
 
+/**
+ * Survives HomeContent Suspense remounts while `?new=true` is still in the URL.
+ * Without this, a successful calculate can be wiped: setChart(data) → router.replace
+ * suspends/remounts → isNewUrl effect runs again → setChart(null) → landing instead of dashboard.
+ */
+let newUrlSessionHandled = false
+/** Set when calculate succeeds; blocks remount from re-opening the blank form. */
+let newUrlResultCommitted = false
+
 function HomeContent() {
   const { data: session, status } = useSession()
-  const { chart, setChart, isFormOpen, setIsFormOpen, pendingDestination, setPendingDestination } = useChart()
+  const {
+    chart,
+    setChart,
+    isFormOpen,
+    setIsFormOpen,
+    pendingDestination,
+    setPendingDestination,
+    skipUrlHydration,
+    setSkipUrlHydration,
+  } = useChart()
   const { activeTab, setActiveTab } = useAppLayout()
   
   const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -1011,15 +1029,34 @@ function HomeContent() {
 
   // 2. Open blank form once URL is clean (?new=true) — avoids BirthForm
   // auto-submitting leftover name/birthDate/lat/lng from a saved chart URL.
+  // Only clear chart on the first entry into ?new=true for this URL session.
+  // Remounts (useSearchParams Suspense) must not wipe a chart just calculated.
   const isNewUrl = searchParams.get('new') === 'true'
+  const hasBirthUrl = !!searchParams.get('name')
   useEffect(() => {
-    if (!isNewUrl) return
-    setChart(null)
-    setChartTags([])
-    setFreshNewChart(true)
-    setBirthFormKey((k) => k + 1)
+    if (!isNewUrl) {
+      newUrlSessionHandled = false
+      newUrlResultCommitted = false
+      return
+    }
+    // Calculate already succeeded; wait for router to drop ?new= — do not reset UI.
+    if (newUrlResultCommitted) return
+    if (!newUrlSessionHandled) {
+      newUrlSessionHandled = true
+      setChart(null)
+      setChartTags([])
+      setFreshNewChart(true)
+      setBirthFormKey((k) => k + 1)
+    }
     setIsFormOpen(true)
   }, [isNewUrl, setIsFormOpen, setChart])
+
+  // Brand/logo cleared chart → allow URL auto-hydrate again only after params are gone.
+  useEffect(() => {
+    if (!hasBirthUrl && !isNewUrl && skipUrlHydration) {
+      setSkipUrlHydration(false)
+    }
+  }, [hasBirthUrl, isNewUrl, skipUrlHydration, setSkipUrlHydration])
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
@@ -1070,7 +1107,9 @@ function HomeContent() {
     // Navigate to a clean URL first so BirthForm never sees saved-chart query
     // params (name/birthDate/…). Opening the form before that remounts the form
     // against the old URL and auto-submits — chart "reloads" instead of going blank.
+    newUrlResultCommitted = false
     if (searchParams.get('new') === 'true') {
+      newUrlSessionHandled = true
       setChart(null)
       setChartTags([])
       setFreshNewChart(true)
@@ -1165,6 +1204,7 @@ function HomeContent() {
     setIsFormOpen(false)
     setFreshNewChart(false)
     setPendingDestination(null)
+    newUrlResultCommitted = false
     if (searchParams.get('new') === 'true') {
       const params = new URLSearchParams(searchParams.toString())
       params.delete('new')
@@ -1208,7 +1248,9 @@ function HomeContent() {
   }, [defaultChart, searchParams])
 
   const openAstrologyApp = React.useCallback(() => {
+    newUrlResultCommitted = false
     if (searchParams.get('new') === 'true') {
+      newUrlSessionHandled = true
       setChart(null)
       setChartTags([])
       setFreshNewChart(true)
@@ -1228,7 +1270,9 @@ function HomeContent() {
     if (!chart && !isAstrologyTarget) {
       e?.preventDefault()
       setPendingDestination(href)
+      newUrlResultCommitted = false
       if (searchParams.get('new') === 'true') {
+        newUrlSessionHandled = true
         setChart(null)
         setChartTags([])
         setFreshNewChart(true)
@@ -1241,7 +1285,9 @@ function HomeContent() {
     }
     if (!chart && isAstrologyTarget) {
       e?.preventDefault()
+      newUrlResultCommitted = false
       if (searchParams.get('new') === 'true') {
+        newUrlSessionHandled = true
         setChart(null)
         setChartTags([])
         setFreshNewChart(true)
@@ -2974,8 +3020,16 @@ function HomeContent() {
               <BirthForm
                 key={freshNewChart || searchParams.get('new') === 'true' ? `new-${birthFormKey}` : `edit-${savedChartId || birthFormKey}`}
                 onResult={(data) => {
+                  // Commit chart before URL sync so dashboard can render even if
+                  // replace suspends HomeContent before searchParams update.
+                  newUrlResultCommitted = true
+                  setSkipUrlHydration(false)
                   setChart(data)
                   setFreshNewChart(false)
+                  setLoading(false)
+                  setActiveTab('dashboard')
+                  setIsFormOpen(false)
+
                   const params = new URLSearchParams(searchParams.toString())
                   params.delete('new')
                   params.set('name', data.meta.name)
@@ -2990,15 +3044,19 @@ function HomeContent() {
                   } else {
                     params.delete('chartId')
                   }
-                  router.replace(`?${params.toString()}`, { scroll: false })
-                  setTimeout(() => {
-                    setIsFormOpen(false)
-                    if (pendingDestination) {
-                      const destination = pendingDestination
-                      setPendingDestination(null)
-                      router.push(destination)
-                    }
-                  }, 300)
+                  const qs = `?${params.toString()}`
+                  // Keep address bar in sync immediately; Next router may lag and
+                  // briefly remount while still seeing ?new=true.
+                  if (typeof window !== 'undefined') {
+                    window.history.replaceState(window.history.state, '', `/${qs}`)
+                  }
+                  router.replace(qs, { scroll: false })
+
+                  if (pendingDestination) {
+                    const destination = pendingDestination
+                    setPendingDestination(null)
+                    router.push(destination)
+                  }
                 }}
                 onLoading={(isLoading) => {
                   // Avoid full-page "Recalculating…" when chart already matches URL (Open Chart path).
@@ -3008,7 +3066,11 @@ function HomeContent() {
                 onSaveTagsChange={setChartTags}
                 initialTags={chartTags}
                 savedChartId={savedChartId}
-                autoSubmit={!!searchParams.get('name') && !chartMatchesSearchParams(chart, searchParams)}
+                autoSubmit={
+                  !skipUrlHydration &&
+                  !!searchParams.get('name') &&
+                  !chartMatchesSearchParams(chart, searchParams)
+                }
                 initialName="Untitled"
                 initialData={
                   freshNewChart || searchParams.get('new') === 'true'

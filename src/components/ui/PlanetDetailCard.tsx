@@ -8,6 +8,7 @@ import {
   SIGN_INTERPRETATIONS, NAKSHATRA_INTERPRETATIONS, DIGNITY_INTERPRETATIONS 
 } from '@/lib/engine/interpretations'
 import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
+import { getMarakaBadhakaFlags } from '@/lib/engine/marakaBadhaka'
 
 export const QC = {
   auspicious:   { bg:'rgba(78,205,196,.08)',  border:'rgba(78,205,196,.3)',  text:'var(--teal)' },
@@ -57,6 +58,8 @@ export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardPr
     p.dignity === 'own' ? 'var(--gold)' : 
     p.dignity === 'moolatrikona' ? '#c084fc' : 'var(--text-muted)'
 
+  const mb = !isSpecialPoint ? getMarakaBadhakaFlags(ascRashi as Rashi, p.grahaId) : null
+
   return (
     <div className="card" style={{
       padding:'0',
@@ -82,6 +85,9 @@ export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardPr
         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'3px'}}>
           {p.isRetro && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.15)',color:'var(--rose)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.3)'}}>RETROGRADE</span>}
           {p.isCombust && <span style={{fontSize:'0.55rem',background:'rgba(245,158,66,0.15)',color:'var(--amber)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(245,158,66,0.3)'}}>COMBUST</span>}
+          {mb?.isMaraka && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.15)',color:'var(--rose)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.3)'}}>M · MARAKA</span>}
+          {mb?.marakaCancelledByTrikona && !mb?.isMaraka && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.08)',color:'var(--text-muted)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.2)'}} title={`Owns H${mb.marakaOf.join('+')} but also H${mb.trikonaOf.join('+')}`}>M∅ · TRIKONA</span>}
+          {mb?.isBadhaka && <span style={{fontSize:'0.55rem',background:'rgba(201,132,42,0.15)',color:'#c9842a',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(201,132,42,0.35)'}}>B · BADHAKA</span>}
           {!isSpecialPoint && <span style={{fontSize:'0.6rem',color:digColor,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.05em'}}>{dignityLabel}</span>}
         </div>
       </div>

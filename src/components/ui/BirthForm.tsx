@@ -71,9 +71,16 @@ interface BirthFormProps {
   }
 }
 
+/** Stable default — inline `= []` is a new array every render and infinite-loops the sync effect. */
+const EMPTY_TAGS: string[] = []
+
+function tagsEqual(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((t, i) => t === b[i])
+}
+
 // ── Component ────────────────────────────────────────────────
 
-export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsChange, initialTags = [], initialName = 'Untitled', savedChartId = null, initialData }: BirthFormProps) {
+export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsChange, initialTags = EMPTY_TAGS, initialName = 'Untitled', savedChartId = null, initialData }: BirthFormProps) {
   const fieldId = useId()
   const ids = {
     name: `${fieldId}-name`,
@@ -99,10 +106,13 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
   // Pre-check when editing an already-saved library chart
   const [saveToLibrary, setSaveToLibrary] = useState(!!savedChartId)
   const [saveTags, setSaveTags] = useState<string[]>(initialTags)
+  // Content key — parent may pass a new array ref with the same tags every render
+  const initialTagsKey = JSON.stringify(initialTags)
 
   useEffect(() => {
-    setSaveTags(initialTags)
-  }, [initialTags])
+    const next = JSON.parse(initialTagsKey) as string[]
+    setSaveTags((prev) => (tagsEqual(prev, next) ? prev : next))
+  }, [initialTagsKey])
 
   useEffect(() => {
     if (savedChartId) setSaveToLibrary(true)
@@ -112,6 +122,13 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
   const [place, setPlace] = useState(initialData?.birthPlace || DELHI_DEFAULT.place)
   const [lat, setLat] = useState<number | null>(initialData?.latitude ?? DELHI_DEFAULT.lat)
   const [lng, setLng] = useState<number | null>(initialData?.longitude ?? DELHI_DEFAULT.lng)
+  // String mirrors so typing "28." / "73.5" is not collapsed by number parse on every keystroke
+  const [latInput, setLatInput] = useState(
+    String(initialData?.latitude ?? DELHI_DEFAULT.lat),
+  )
+  const [lngInput, setLngInput] = useState(
+    String(initialData?.longitude ?? DELHI_DEFAULT.lng),
+  )
   const [tz, setTz] = useState(initialData?.timezone || DELHI_DEFAULT.tz)
   const [gender, setGender] = useState<Gender>(initialData?.gender || 'male')
   const [settings, setSettings] = useState<ChartSettings>(initialData?.settings || DEFAULT_SETTINGS)
@@ -124,6 +141,56 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [manualMode, setManualMode] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+
+  const applyLat = (n: number | null) => {
+    setLat(n)
+    setLatInput(n == null || !Number.isFinite(n) ? '' : String(n))
+  }
+  const applyLng = (n: number | null) => {
+    setLng(n)
+    setLngInput(n == null || !Number.isFinite(n) ? '' : String(n))
+  }
+
+  /** Keep free-form text while typing; only commit a number when the value looks complete. */
+  const handleCoordTyping = (axis: 'lat' | 'lng', raw: string) => {
+    // Digits, one optional leading minus, decimal / DMS separators
+    if (raw !== '' && !/^-?[\d.:\s°'"]*$/.test(raw)) return
+    if (axis === 'lat') setLatInput(raw)
+    else setLngInput(raw)
+
+    const trimmed = raw.trim()
+    if (trimmed === '') {
+      if (axis === 'lat') setLat(null)
+      else setLng(null)
+      return
+    }
+    // Incomplete: "-", "28.", "28:", "28°" — keep string, don't rewrite the field
+    if (
+      trimmed === '-' ||
+      trimmed === '.' ||
+      trimmed === '-.' ||
+      /[-.:\s°'"]$/.test(trimmed)
+    ) {
+      return
+    }
+    const n = parseCoordinate(trimmed)
+    if (!Number.isFinite(n)) return
+    if (axis === 'lat') setLat(n)
+    else setLng(n)
+  }
+
+  const commitCoordInput = (axis: 'lat' | 'lng') => {
+    const raw = (axis === 'lat' ? latInput : lngInput).trim()
+    if (!raw || raw === '-' || raw === '.' || raw === '-.') {
+      if (axis === 'lat') applyLat(null)
+      else applyLng(null)
+      return
+    }
+    const n = parseCoordinate(raw)
+    if (!Number.isFinite(n)) return
+    if (axis === 'lat') setLat(n)
+    else setLng(n)
+  }
   
   // Timezone list for manual entry
   // Initialized with fallback list to avoid hydration mismatch between server/client
@@ -194,8 +261,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
       setDate(d)
       setTime(t)
       setPlace(pl)
-      setLat(lt)
-      setLng(lg)
+      applyLat(lt)
+      applyLng(lg)
       if (pGender) setGender(pGender)
 
       // Prefill only when chart is already hydrated (Open Chart / prior calc).
@@ -319,8 +386,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude: lt, longitude: lg } = pos.coords
-        setLat(lt)
-        setLng(lg)
+        applyLat(lt)
+        applyLng(lg)
         // Reverse geocode via atlas search (approximate)
         try {
           const res = await fetch(`/api/atlas/search?lat=${lt}&lng=${lg}`)
@@ -343,18 +410,24 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
   }
 
   const resolveTimezoneFromCoords = async () => {
-    if (lat === null || lng === null) return
+    const latVal = manualMode ? parseCoordinate(latInput.trim()) : lat
+    const lngVal = manualMode ? parseCoordinate(lngInput.trim()) : lng
+    if (latVal === null || lngVal === null || !Number.isFinite(latVal) || !Number.isFinite(lngVal)) return
+    if (manualMode) {
+      setLat(latVal)
+      setLng(lngVal)
+    }
     setSearching(true)
     try {
-      const res = await fetch(`/api/atlas/search?lat=${lat}&lng=${lng}`)
+      const res = await fetch(`/api/atlas/search?lat=${latVal}&lng=${lngVal}`)
       const data = await res.json()
       if (data.results?.[0]?.timezone) {
         let resolvedTz = data.results[0].timezone
         // Client-side fix for UTC fallback in SAARC
         if (resolvedTz === 'UTC') {
           const loc = data.results[0]
-          const isNepal = loc.country === 'Nepal' || (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
-          const isIndia = !isNepal && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+          const isNepal = loc.country === 'Nepal' || (latVal > 26.0 && latVal < 30.5 && lngVal > 80.0 && lngVal < 88.5)
+          const isIndia = !isNepal && (latVal > 6.7 && latVal < 37.5 && lngVal > 68.1 && lngVal < 97.4)
           if (isNepal) resolvedTz = 'Asia/Kathmandu'
           else if (isIndia) resolvedTz = 'Asia/Kolkata'
         }
@@ -372,7 +445,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
 
   const handlePlaceChange = (val: string) => {
     setPlace(val)
-    setLat(null); setLng(null)
+    applyLat(null)
+    applyLng(null)
     if (searchTimer.current) clearTimeout(searchTimer.current)
     
     // If it's in cache, show it immediately
@@ -387,8 +461,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
 
   const selectLocation = (loc: LocationResult) => {
     setPlace(`${loc.name}${loc.admin1 ? ', ' + loc.admin1 : ''}, ${loc.country}`)
-    setLat(loc.latitude)
-    setLng(loc.longitude)
+    applyLat(loc.latitude)
+    applyLng(loc.longitude)
     setTz(loc.timezone)
     setLocationResults([])
     setSearchOpen(false)
@@ -501,17 +575,36 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
       setError('Please enter a valid birth year')
       return
     }
-    if (lat === null || lng === null) { 
-      setError('Please select a location or enter coordinates manually'); 
-      return 
+    let latVal = lat
+    let lngVal = lng
+    if (manualMode) {
+      const parsedLat = parseCoordinate(latInput.trim())
+      const parsedLng = parseCoordinate(lngInput.trim())
+      if (!latInput.trim() || !lngInput.trim() || !Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) {
+        setError('Please enter valid latitude and longitude')
+        return
+      }
+      if (parsedLat < -90 || parsedLat > 90 || parsedLng < -180 || parsedLng > 180) {
+        setError('Latitude must be -90…90 and longitude -180…180')
+        return
+      }
+      latVal = parsedLat
+      lngVal = parsedLng
+      setLat(parsedLat)
+      setLng(parsedLng)
+    }
+
+    if (latVal === null || lngVal === null) {
+      setError('Please select a location or enter coordinates manually')
+      return
     }
 
     // If in manual mode, use the coordinates as the place name
-    const finalPlace = manualMode 
-      ? `Manual (${lat.toFixed(4)}, ${lng.toFixed(4)})` 
+    const finalPlace = manualMode
+      ? `Manual (${latVal.toFixed(4)}, ${lngVal.toFixed(4)})`
       : place
 
-    await submitChart(name, date, time, finalPlace, lat, lng, tz, gender, settings)
+    await submitChart(name, date, time, finalPlace, latVal, lngVal, tz, gender, settings)
   }
 
   // ── Date Part Handlers ────────────────────────────────────
@@ -884,20 +977,28 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                   <label htmlFor={ids.lat} style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Latitude (-90 to 90)</label>
                   <input
                     id={ids.lat}
-                    type="text" placeholder="e.g. 28:02 or 28.0333" 
-                    className="input" style={{ width: '100%' }}
-                    value={lat ?? ''} 
-                    onChange={e => setLat(parseCoordinate(e.target.value))}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="e.g. 28:02 or 28.0333"
+                    className="input"
+                    style={{ width: '100%' }}
+                    value={latInput}
+                    onChange={e => handleCoordTyping('lat', e.target.value)}
+                    onBlur={() => commitCoordInput('lat')}
                   />
                 </div>
                 <div>
                   <label htmlFor={ids.lng} style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Longitude (-180 to 180)</label>
                   <input
                     id={ids.lng}
-                    type="text" placeholder="e.g. 73:31 or 73.5167" 
-                    className="input" style={{ width: '100%' }}
-                    value={lng ?? ''} 
-                    onChange={e => setLng(parseCoordinate(e.target.value))}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="e.g. 73:31 or 73.5167"
+                    className="input"
+                    style={{ width: '100%' }}
+                    value={lngInput}
+                    onChange={e => handleCoordTyping('lng', e.target.value)}
+                    onBlur={() => commitCoordInput('lng')}
                   />
                 </div>
              </div>

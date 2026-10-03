@@ -66,6 +66,10 @@ export interface PlanetTooltipData {
   totalDeg: number
   isRetro?: boolean
   isCombust?: boolean
+  isMaraka?: boolean
+  isBadhaka?: boolean
+  /** Owns 2/7 but also 5/9 — maraka cancelled by trikona */
+  marakaCancelledByTrikona?: boolean
   dignity?: string
   nakshatraIndex?: number
   nakshatraName?: string
@@ -164,6 +168,9 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
             {planet.dignity && <span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', color: dignityColor, background: `${dignityColor}18`, padding: '1px 5px', borderRadius: 3, border: `1px solid ${dignityColor}33` }}>{planet.dignity.replace('_', ' ')}</span>}
             {planet.isRetro && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(248,113,113,0.3)' }}>℞ Retro</span>}
             {planet.isCombust && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(245,158,11,0.3)' }}>☉ Combust</span>}
+            {planet.isMaraka && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#e07b8e', background: 'rgba(224,123,142,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(224,123,142,0.3)' }}>M Maraka</span>}
+            {planet.marakaCancelledByTrikona && !planet.isMaraka && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--text-muted)', background: 'rgba(224,123,142,0.06)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(224,123,142,0.2)' }} title="2nd/7th lordship cancelled by 5th/9th">M∅ Trikona</span>}
+            {planet.isBadhaka && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#c9842a', background: 'rgba(201,132,42,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(201,132,42,0.35)' }}>B Badhaka</span>}
           </div>
         </div>
         {isMobile && (

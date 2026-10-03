@@ -30,6 +30,14 @@ interface ChartContextType {
   setIsFormOpen: Dispatch<SetStateAction<boolean>>
   pendingDestination: string | null
   setPendingDestination: Dispatch<SetStateAction<string | null>>
+  /**
+   * When true, home BirthForm must not auto-submit from leftover URL birth params
+   * (brand/logo → landing). Cleared once the URL is clean again.
+   */
+  skipUrlHydration: boolean
+  setSkipUrlHydration: (skip: boolean) => void
+  /** Clear chart/form and block URL re-hydration so the landing page can show. */
+  clearToLanding: () => void
 }
 
 const ChartContext = createContext<ChartContextType | undefined>(undefined)
@@ -38,6 +46,7 @@ export function ChartProvider({ children }: { children: React.ReactNode }) {
   const [chart, setChartState] = useState<ChartOutput | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [pendingDestination, setPendingDestination] = useState<string | null>(null)
+  const [skipUrlHydration, setSkipUrlHydration] = useState(false)
   const hydrateGen = useRef(0)
 
   const setChart: Dispatch<SetStateAction<ChartOutput | null>> = useCallback((action) => {
@@ -55,6 +64,14 @@ export function ChartProvider({ children }: { children: React.ReactNode }) {
       })
       return next
     })
+  }, [])
+
+  const clearToLanding = useCallback(() => {
+    setSkipUrlHydration(true)
+    setPendingDestination(null)
+    setIsFormOpen(false)
+    setChartState(null)
+    hydrateGen.current += 1 // cancel in-flight client hydration
   }, [])
 
   // Backfill legacy in-memory charts once (lazy engine import — not on every route's critical path)
@@ -79,6 +96,9 @@ export function ChartProvider({ children }: { children: React.ReactNode }) {
         setIsFormOpen,
         pendingDestination,
         setPendingDestination,
+        skipUrlHydration,
+        setSkipUrlHydration,
+        clearToLanding,
       }}
     >
       {children}

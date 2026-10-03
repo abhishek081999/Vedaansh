@@ -18,6 +18,7 @@ import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/Plane
 import { getAspectedHouses } from '@/lib/engine/aspects'
 import type { GrahaId } from '@/types/astrology'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
+import { getMarakaBadhakaFlags, marakaBadhakaTags } from '@/lib/engine/marakaBadhaka'
 
 // ── Fixed sign → [row, col] in 4×4 grid ──────────────────────
 
@@ -118,12 +119,16 @@ export function SouthIndianChakra({
     setMousePos({ x: e.clientX, y: e.clientY })
     if (hoverTimer.current) clearTimeout(hoverTimer.current)
     hoverTimer.current = setTimeout(() => {
+      const mb = getMarakaBadhakaFlags(ascRashi, g.id)
       setHoveredPlanet({
         id: g.id,
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
         isCombust: g.isCombust,
+        isMaraka: mb.isMaraka,
+        isBadhaka: mb.isBadhaka,
+        marakaCancelledByTrikona: mb.marakaCancelledByTrikona,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
@@ -147,12 +152,16 @@ export function SouthIndianChakra({
       setHoveredPlanet(null)
     } else {
       setMousePos({ x: e.touches[0].clientX, y: e.touches[0].clientY })
+      const mb = getMarakaBadhakaFlags(ascRashi, g.id)
       setHoveredPlanet({
         id: g.id,
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
         isCombust: g.isCombust,
+        isMaraka: mb.isMaraka,
+        isBadhaka: mb.isBadhaka,
+        marakaCancelledByTrikona: mb.marakaCancelledByTrikona,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
@@ -356,6 +365,7 @@ export function SouthIndianChakra({
                 ? ` ${Math.floor(g.degree)}°${String(Math.floor((g.degree % 1) * 60)).padStart(2,'0')}'`
                 : ''
               const kar   = showKaraka && g.charaKaraka ? ` [${g.charaKaraka}]` : ''
+              const mbTags = marakaBadhakaTags(ascRashi, g.id)
 
               return (
                 <g 
@@ -383,6 +393,15 @@ export function SouthIndianChakra({
                     {g.isCombust && (
                       <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">C</tspan>
                     )}
+                    {mbTags.map(t => (
+                      <tspan
+                        key={t}
+                        fontSize={subMarkFs}
+                        fontWeight="700"
+                        baselineShift="0.28em"
+                        fill={t === 'M' ? 'var(--rose)' : '#c9842a'}
+                      >{t}</tspan>
+                    ))}
                   </text>
                   {(showDegrees || showKaraka) && (
                     <text
