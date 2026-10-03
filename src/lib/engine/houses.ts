@@ -6,7 +6,7 @@
 
 import sweph from 'sweph'
 import { getAyanamsha, toSidereal, signOf, degreeInSign } from '@/lib/engine/ephemeris'
-import type { AyanamshaMode, HouseSystem, Rashi } from '@/types/astrology'
+import type { AyanamshaMode, GrahaId, HouseSystem, Rashi } from '@/types/astrology'
 
 // ── House system codes for sweph ─────────────────────────────
 const HOUSE_SYSTEM_CODES: Record<HouseSystem, string> = {
@@ -178,9 +178,9 @@ export function wholeSignHouseSign(ascRashi: Rashi, house: number): Rashi {
  * Get the lord of a house (Whole Sign)
  * Returns the ruling planet of the sign in that house
  */
-export function houseSignLord(ascRashi: Rashi, house: number): string {
+export function houseSignLord(ascRashi: Rashi, house: number): GrahaId {
   const sign = wholeSignHouseSign(ascRashi, house)
-  const SIGN_LORDS: Record<number, string> = {
+  const SIGN_LORDS: Record<number, GrahaId> = {
     1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
     7: 'Ve', 8: 'Ma', 9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju',
   }

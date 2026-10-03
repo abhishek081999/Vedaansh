@@ -10,8 +10,8 @@ export function parseCoordinate(val: string): number {
   if (!val) return 0
   const clean = val.trim()
   
-  // Try simple float first (must contain a dot and no colon/space/degree)
-  if (/^-?\d+\.\d+$/.test(clean) && !/[\s:°'"]/.test(clean)) {
+  // Simple decimal (allow trailing dot while typing: "28." → 28)
+  if (/^-?\d+(\.\d*)?$/.test(clean) && !/[\s:°'"]/.test(clean)) {
     return parseFloat(clean)
   }
 

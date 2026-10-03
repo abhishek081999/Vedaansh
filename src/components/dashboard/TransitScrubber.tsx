@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useId } from 'react'
 import dynamic from 'next/dynamic'
-import type { ChartOutput, DashaSystem, GrahaData, Rashi } from '@/types/astrology'
-import { RASHI_SHORT } from '@/types/astrology'
+import type { ChartOutput, DashaSystem, GrahaData, GrahaId, Rashi } from '@/types/astrology'
+import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { fromZonedTime } from 'date-fns-tz'
+import { getDashaPathAt } from '@/lib/engine/dasha/current'
+import { DASHA_LEVEL_SHORT } from '@/lib/engine/dasha/vimshottari'
 import styles from './transit-scrubber.module.css'
 import { TransitDetailsPanels } from './TransitDetailsPanels'
 import { TransitInsightsPanels } from './TransitInsightsPanels'
@@ -96,6 +98,17 @@ function formatDisplayTime(t: string): string {
   const ampm = h >= 12 ? 'PM' : 'AM'
   const h12 = h % 12 || 12
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
+function formatDashaEnd(value: Date | string, tz: string): string {
+  const d = value instanceof Date ? value : new Date(value)
+  if (!Number.isFinite(d.getTime())) return '—'
+  return d.toLocaleString('en-IN', {
+    timeZone: tz,
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubberProps) {
@@ -199,6 +212,13 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
   }, [targetDate, targetTime, tz])
 
   const dashaNodes = natalChart.dashas[dashaSystem] ?? []
+  const activeDashaPath = useMemo(
+    () => getDashaPathAt(dashaNodes, asOf.getTime()),
+    [dashaNodes, asOf],
+  )
+  const activeDashaDeepest = activeDashaPath[activeDashaPath.length - 1] ?? null
+  const dashaSystemLabel =
+    TRANSIT_DASHA_SYSTEMS.find(s => s.id === dashaSystem)?.label ?? dashaSystem
 
   const chartSize = isMobile
     ? (typeof window !== 'undefined' ? Math.min(window.innerWidth - 32, 420) : 360)
@@ -320,6 +340,54 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
               </div>
             </div>
 
+            <div className={styles.scrubberDivider} />
+
+            <div className={styles.activeDashaBlock}>
+              <div className={styles.activeDashaHeader}>
+                <span className={styles.scrubberBlockLabel}>Active dasha</span>
+                <select
+                  className={styles.dashaSelectCompact}
+                  value={dashaSystem}
+                  onChange={e => setDashaSystem(e.target.value as DashaSystem)}
+                  aria-label="Dasha system for active period"
+                >
+                  {TRANSIT_DASHA_SYSTEMS.map(s => (
+                    <option key={s.id} value={s.id}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
+              {activeDashaPath.length > 0 ? (
+                <>
+                  <div className={styles.activeDashaPath} aria-live="polite">
+                    {activeDashaPath.slice(0, 4).map((node, i) => (
+                      <React.Fragment key={`${node.level}-${node.lord}-${String(node.start)}`}>
+                        {i > 0 && <span className={styles.activeDashaSep} aria-hidden>/</span>}
+                        <span className={styles.activeDashaChip}>
+                          <span className={styles.activeDashaLevel}>
+                            {DASHA_LEVEL_SHORT[node.level] || `L${node.level}`}
+                          </span>
+                          {GRAHA_NAMES[node.lord as GrahaId] ?? node.lord}
+                        </span>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  {activeDashaDeepest && (
+                    <div className={styles.activeDashaMeta}>
+                      {dashaSystemLabel}
+                      <span aria-hidden> · </span>
+                      until {formatDashaEnd(activeDashaDeepest.end, tz)}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className={styles.activeDashaEmpty}>
+                  {dashaNodes.length
+                    ? 'No running period at this moment'
+                    : 'Recalculate natal chart to load dashas'}
+                </p>
+              )}
+            </div>
+
             {loading && (
               <div className={styles.loadingRow}>
                 <span className="spin-loader" style={{ width: 12, height: 12, borderWidth: 2 }} />
@@ -367,19 +435,9 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
           <div>
             <h3 className={styles.dashaSectionTitle}>Dasha at this moment</h3>
             <p className={styles.dashaSectionHint}>
-              Natal periods highlighted for {formatDisplayDate(targetDate)} at {formatDisplayTime(targetTime)}
+              {dashaSystemLabel} · natal periods highlighted for {formatDisplayDate(targetDate)} at {formatDisplayTime(targetTime)}
             </p>
           </div>
-          <select
-            className={styles.dashaSelect}
-            value={dashaSystem}
-            onChange={e => setDashaSystem(e.target.value as DashaSystem)}
-            aria-label="Dasha system"
-          >
-            {TRANSIT_DASHA_SYSTEMS.map(s => (
-              <option key={s.id} value={s.id}>{s.label}</option>
-            ))}
-          </select>
         </div>
         {dashaNodes.length > 0 ? (
           <DashaTree

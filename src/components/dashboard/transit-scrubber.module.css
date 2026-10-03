@@ -473,6 +473,85 @@
   margin-left: 0.15rem;
 }
 
+.activeDashaBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.55rem 0.65rem;
+  background: var(--gold-faint);
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  border-radius: var(--r-md);
+}
+
+.activeDashaHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dashaSelectCompact {
+  max-width: 58%;
+  padding: 0.15rem 0.35rem;
+  font-size: 0.65rem;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.activeDashaPath {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.35rem;
+}
+
+.activeDashaSep {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.activeDashaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.activeDashaLevel {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+  font-family: var(--font-mono);
+}
+
+.activeDashaMeta {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  line-height: 1.35;
+}
+
+.activeDashaEmpty {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
 .dashaSection {
   padding: 1.1rem 1.25rem;
   background: var(--surface-1);

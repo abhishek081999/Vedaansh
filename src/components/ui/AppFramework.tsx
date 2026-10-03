@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -70,7 +70,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab, language, setLanguage } = useAppLayout()
-  const { chart, isFormOpen, setIsFormOpen, setChart, setPendingDestination } = useChart()
+  const { chart, isFormOpen, setIsFormOpen, setChart, setPendingDestination, clearToLanding } = useChart()
   const [isAstroOpen, setIsAstroOpen] = useState(true)
   const [astroGroupOpen, setAstroGroupOpen] = useState<Record<string, boolean>>(defaultAstroGroupOpen)
   const [isAdvancedAstroOpen, setIsAdvancedAstroOpen] = useState(false)
@@ -84,6 +84,21 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const mainRef = useRef<HTMLElement>(null)
   const profileMenuRef = useRef<HTMLDivElement>(null)
   const headerProfileRef = useRef<HTMLDivElement>(null)
+
+  /** Brand / logo → always land on clean home (not a sticky chart URL). */
+  const goHome = useCallback((e?: React.MouseEvent) => {
+    e?.preventDefault()
+    clearToLanding()
+    setActiveTab('dashboard')
+    if (typeof window !== 'undefined' && window.innerWidth < BREAKPOINTS.lg) {
+      setIsSidenavOpen(false)
+    }
+    // Sync-clear query params so BirthForm cannot auto-submit the old chart back.
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(window.history.state, '', '/')
+    }
+    router.replace('/')
+  }, [clearToLanding, router, setActiveTab, setIsSidenavOpen])
 
   useEffect(() => {
     if (!isSidenavOpen) setProfileMenuOpen(false)
@@ -469,11 +484,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           
           <Link
             href="/"
-            onClick={() => {
-              setChart(null)
-              setIsFormOpen(false)
-              setActiveTab('dashboard')
-            }}
+            onClick={goHome}
             className="app-header-brand"
           >
             <Image 
@@ -597,12 +608,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <div className="sidenav-header-row">
               <Link
                 href="/"
-                onClick={() => {
-                  setChart(null)
-                  setIsFormOpen(false)
-                  setActiveTab('dashboard')
-                  if (window.innerWidth < BREAKPOINTS.lg) setIsSidenavOpen(false)
-                }}
+                onClick={goHome}
                 className="sidenav-brand"
               >
                 <Image

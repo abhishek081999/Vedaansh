@@ -17,6 +17,7 @@ import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/Plane
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { ConditionBadges } from '@/components/ui/AdvancedAnalysisPanel'
 import { VARGA_META, getVargaPosition, PLATINUM_VARGAS } from '@/lib/engine/vargas'
+import { getMarakaBadhakaFlags } from '@/lib/engine/marakaBadhaka'
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -340,6 +341,9 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
               const nav = getNav(b.totalDeg)
               const natalGraha = b.id ? grahas.find(g => g.id === b.id) : undefined
               const isMainPlanet = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'].includes(b.id as string)
+              const mb = isMainPlanet && b.id
+                ? getMarakaBadhakaFlags(currentLagnaRashi as Rashi, String(b.id))
+                : null
 
               return (
                 <tr key={`${b.name}-${i}`} style={{ borderBottom: '1px solid var(--border-soft)', background: i % 2 === 0 ? 'rgba(0,0,0,0.012)' : 'transparent' }}>
@@ -361,6 +365,9 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                               nakshatraIndex: Math.floor(b.totalDeg / (360/27)) % 27,
                               charaKaraka: b.karaka ?? undefined,
                               isCombust: natalGraha.isCombust,
+                              isMaraka: mb?.isMaraka,
+                              isBadhaka: mb?.isBadhaka,
+                              marakaCancelledByTrikona: mb?.marakaCancelledByTrikona,
                               gandanta: b.conditions?.gandanta,
                               pushkara: b.conditions?.pushkara,
                               mrityuBhaga: b.conditions?.mrityuBhaga,
@@ -373,7 +380,13 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                         {b.name}{b.isRetro && <sup style={{ fontSize: '0.5rem', marginLeft: 1 }}>℞</sup>}
                       </span>
                       {b.karaka && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 2px', background: 'var(--surface-3)', borderRadius: 2 }}>{b.karaka}</span>}
-                      {b.conditions && <ConditionBadges graha={b.conditions} />}
+                      {(b.conditions || mb?.isMaraka || mb?.isBadhaka) && (
+                        <ConditionBadges
+                          graha={b.conditions}
+                          isMaraka={mb?.isMaraka}
+                          isBadhaka={mb?.isBadhaka}
+                        />
+                      )}
                     </div>
                   </td>
                   {/* Degree — single line */}
@@ -442,6 +455,8 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       <div style={{ padding: '0.28rem 0.7rem', background: 'var(--surface-2)', borderTop: '1px solid var(--border-soft)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
         {[
           { code: 'C', label: 'Combust',     bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
+          { code: 'M', label: 'Maraka',      bg: 'rgba(224,123,142,0.12)', color: 'var(--rose)', border: 'rgba(224,123,142,0.35)' },
+          { code: 'B', label: 'Badhaka',     bg: 'rgba(201,132,42,0.12)', color: '#c9842a', border: 'rgba(201,132,42,0.35)' },
           { code: 'G', label: 'Gandanta',    bg: 'rgba(244,63,94,0.1)',   color: '#fb7185',  border: 'rgba(244,63,94,0.3)'   },
           { code: 'P', label: 'Pushkara Navamsha', bg: 'rgba(78,205,196,0.1)', color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
           { code: 'Y', label: 'Yuddha',      bg: 'rgba(129,140,248,0.1)', color: '#818cf8',  border: 'rgba(129,140,248,0.3)' },
