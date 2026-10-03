@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useId } from 'react'
 import dynamic from 'next/dynamic'
-import type { ChartOutput, DashaSystem, GrahaData, GrahaId, Rashi } from '@/types/astrology'
+import type { ChartOutput, DashaNode, DashaSystem, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { fromZonedTime } from 'date-fns-tz'
@@ -24,6 +24,8 @@ const TRANSIT_DASHA_SYSTEMS: { id: DashaSystem; label: string }[] = [
   { id: 'sthir', label: 'Sthir' },
   { id: 'ashtottari', label: 'Ashtottari' },
 ]
+
+const EMPTY_DASHA_NODES: DashaNode[] = []
 
 interface TransitScrubberProps {
   natalChart: ChartOutput
@@ -211,7 +213,10 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
     }
   }, [targetDate, targetTime, tz])
 
-  const dashaNodes = natalChart.dashas[dashaSystem] ?? []
+  const dashaNodes = useMemo(
+    () => natalChart.dashas[dashaSystem] ?? EMPTY_DASHA_NODES,
+    [natalChart.dashas, dashaSystem],
+  )
   const activeDashaPath = useMemo(
     () => getDashaPathAt(dashaNodes, asOf.getTime()),
     [dashaNodes, asOf],
