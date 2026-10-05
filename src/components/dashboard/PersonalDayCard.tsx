@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
 import { getTithiDayMeta, formatTithiWeatherLine } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta, formatKaranaWeatherLine } from '@/lib/engine/karanaMeta'
+import { getYogaMeta, formatYogaWeatherLine } from '@/lib/engine/yogaMeta'
 import type { PanchangData } from '@/types/astrology'
 
 interface PersonalDayCardProps {
@@ -33,6 +34,9 @@ export function PersonalDayCard({
   const [todayKaranaName, setTodayKaranaName] = useState<string | null>(
     todayPanchang?.karana?.name ?? null,
   )
+  const [todayYogaName, setTodayYogaName] = useState<string | null>(
+    todayPanchang?.yoga?.name ?? null,
+  )
   const [loading, setLoading] = useState(!todayPanchang)
 
   useEffect(() => {
@@ -40,6 +44,7 @@ export function PersonalDayCard({
       setTodayNak({ index: todayPanchang.nakshatra.index, name: todayPanchang.nakshatra.name })
       setTodayTithiNum(todayPanchang.tithi.number)
       setTodayKaranaName(todayPanchang.karana.name)
+      setTodayYogaName(todayPanchang.yoga.name)
       setLoading(false)
       return
     }
@@ -53,6 +58,7 @@ export function PersonalDayCard({
           setTodayNak({ index: json.nakshatra.index, name: json.nakshatra.name })
           if (typeof json.tithi?.number === 'number') setTodayTithiNum(json.tithi.number)
           if (typeof json.karana?.name === 'string') setTodayKaranaName(json.karana.name)
+          if (typeof json.yoga?.name === 'string') setTodayYogaName(json.yoga.name)
           setLoading(false)
           return
         }
@@ -64,6 +70,7 @@ export function PersonalDayCard({
           setTodayNak({ index: json.data.nakshatra.index, name: json.data.nakshatra.name })
           if (typeof json.data.tithi?.number === 'number') setTodayTithiNum(json.data.tithi.number)
           if (typeof json.data.karana?.name === 'string') setTodayKaranaName(json.data.karana.name)
+          if (typeof json.data.yoga?.name === 'string') setTodayYogaName(json.data.yoga.name)
           try { sessionStorage.setItem(cacheKey, JSON.stringify(json.data)) } catch {}
         }
       } catch (err) {
@@ -118,6 +125,13 @@ export function PersonalDayCard({
 
   const karanaMeta = todayKaranaName ? getKaranaMeta(todayKaranaName) : null
   const karanaAccent = karanaMeta?.isBhadra ? 'var(--rose)' : 'var(--gold)'
+  const yogaMeta = todayYogaName ? getYogaMeta(todayYogaName) : null
+  const yogaAccent = yogaMeta
+    ? (yogaMeta.quality === 'auspicious' ? 'var(--teal)' : yogaMeta.quality === 'inauspicious' ? 'var(--rose)' : 'var(--gold)')
+    : accentColor
+  const yogaQualityLabel = yogaMeta
+    ? (yogaMeta.quality === 'auspicious' ? 'Shubh' : yogaMeta.quality === 'inauspicious' ? 'Ashubh' : 'Neutral')
+    : null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.72rem' }}>
@@ -211,6 +225,50 @@ export function PersonalDayCard({
           </div>
           <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
             {tithiMeta.temperament}
+          </div>
+        </div>
+      )}
+
+      {/* ── Today’s yoga ── */}
+      {yogaMeta && (
+        <div style={{
+          padding: '0.35rem 0.45rem',
+          background: yogaMeta.quality === 'inauspicious' ? 'rgba(244,63,94,0.06)' : 'var(--surface-3)',
+          borderRadius: 4,
+          border: `1px solid ${yogaMeta.quality === 'inauspicious' ? 'rgba(244,63,94,0.28)' : 'var(--border-soft)'}`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.22rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              Yoga
+            </span>
+            <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
+              {yogaMeta.name}
+            </strong>
+            <span style={{
+              fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
+              borderRadius: 3, border: `1px solid ${yogaAccent}`,
+              color: yogaAccent, letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              {yogaQualityLabel}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+            {yogaMeta.meaning} · Best for: {yogaMeta.bestFor}
+          </div>
+          <div style={{
+            borderLeft: `2px solid ${yogaAccent}`,
+            paddingLeft: '0.4rem',
+            fontSize: '0.65rem',
+            color: 'var(--text-secondary)',
+            lineHeight: 1.4,
+          }}>
+            {formatYogaWeatherLine(yogaMeta)}
+          </div>
+          <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
+            Challenge: {yogaMeta.challenge}
           </div>
         </div>
       )}

@@ -7,6 +7,7 @@ import { PANCHAKA_GLOSSARY } from '@/lib/panchang/panchaka-glossary'
 import { isRiktaTithi, riktaTithiDescription } from '@/lib/panchang/muhurta-extra'
 import { getTithiDayMeta } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta } from '@/lib/engine/karanaMeta'
+import { getYogaMeta } from '@/lib/engine/yogaMeta'
 import type { PanchangDayTimeline } from '@/lib/panchang/day-timeline'
 import styles from './DailyPanchangView.module.css'
 import { PanchangViz } from './PanchangViz'
@@ -161,6 +162,7 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
   }
   const tithiMeta = getTithiDayMeta(data.tithi.number)
   const karanaMeta = getKaranaMeta(data.karana.name)
+  const yogaMeta = getYogaMeta(data.yoga.name)
 
   return (
     <div className={styles.root}>
@@ -193,7 +195,9 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
           <CompactLimbCard 
             label="Yoga" 
             value={data.yoga.name} 
-            sub={`${data.yoga.quality} · ${data.yoga.percent.toFixed(0)}%`}
+            sub={yogaMeta
+              ? `${yogaMeta.quality} · ${yogaMeta.meaning}`
+              : `${data.yoga.quality} · ${data.yoga.percent.toFixed(0)}%`}
             percent={data.yoga.percent}
             quality={data.yoga.quality}
           />
