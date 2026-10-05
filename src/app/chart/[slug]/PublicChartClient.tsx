@@ -363,7 +363,7 @@ export function PublicChartClient({
           {tab === 'panchang' && (
             <div className="card">
               <div className="label-caps" style={{ marginBottom: '1rem' }}>Natal Panchang</div>
-              <NatalPanchangPanel p={chart.panchang} />
+              <NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} />
             </div>
           )}
 

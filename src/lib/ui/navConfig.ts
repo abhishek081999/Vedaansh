@@ -5,8 +5,10 @@
 
 import type { LucideIcon } from 'lucide-react'
 import {
+  Activity,
   BarChart3,
   BookOpen,
+  Briefcase,
   Calendar,
   CalendarDays,
   ClipboardList,
@@ -23,6 +25,7 @@ import {
   LayoutDashboard,
   Library,
   Moon,
+  NotebookText,
   Orbit,
   Route,
   Scale,
@@ -68,6 +71,8 @@ export const NAKSHATRA_TABS: NavTab[] = [
   { id: 'nakshatra-planet', label: 'Planet', icon: Star, path: '/nakshatra/planet' },
   { id: 'nakshatra-compat', label: 'Compat', icon: HeartHandshake, path: '/nakshatra/compat' },
   { id: 'nakshatra-remedies', label: 'Remedies', icon: Sparkles, path: '/nakshatra/remedies' },
+  { id: 'nakshatra-profession', label: 'Profession', icon: Briefcase, path: '/nakshatra/profession' },
+  { id: 'nakshatra-medical', label: 'Medical', icon: Activity, path: '/nakshatra/medical' },
 ]
 
 export const ASTRO_GROUPS: NavGroup[] = [
@@ -85,6 +90,7 @@ export const ASTRO_GROUPS: NavGroup[] = [
       { id: 'astro-details', label: 'Astro Details', icon: ClipboardList, path: ASTROLOGY_HOME_PATH },
       { id: 'planets', label: 'Planets', icon: Sparkles, path: ASTROLOGY_HOME_PATH },
       { id: 'dasha', label: 'Dasha', icon: Hourglass, path: ASTROLOGY_HOME_PATH },
+      { id: 'dasha-interpretation', label: 'Dasha Interpretation', icon: NotebookText, path: ASTROLOGY_HOME_PATH },
       { id: 'house', label: 'House', icon: Home, path: ASTROLOGY_HOME_PATH },
       { id: 'yogas', label: 'Yogas', icon: Star, path: ASTROLOGY_HOME_PATH },
       { id: 'kp-stellar', label: 'Stellar (KP)', icon: Crosshair, path: ASTROLOGY_HOME_PATH },

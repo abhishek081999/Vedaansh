@@ -5,6 +5,13 @@ import { useMemo, useState } from 'react'
 import { formatLongitudeDMS, rashiBlockFromLongitude } from '@/lib/panchang/sidereal'
 import { PANCHAKA_GLOSSARY } from '@/lib/panchang/panchaka-glossary'
 import { isRiktaTithi, riktaTithiDescription } from '@/lib/panchang/muhurta-extra'
+import { getTithiDayMeta } from '@/lib/engine/tithiMeta'
+import { getKaranaMeta } from '@/lib/engine/karanaMeta'
+import { getYogaMeta } from '@/lib/engine/yogaMeta'
+import { getNakshatraMuhurtaMeta, getAbhijitWindow } from '@/lib/engine/nakshatraMuhurta'
+import { getVaarMeta } from '@/lib/engine/vaarMeta'
+import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
+import { SanskarasReference } from '@/components/panchang/SanskarasReference'
 import type { PanchangDayTimeline } from '@/lib/panchang/day-timeline'
 import styles from './DailyPanchangView.module.css'
 import { PanchangViz } from './PanchangViz'
@@ -157,6 +164,12 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
     active: isRiktaTithi(data.tithi.number),
     detail: riktaTithiDescription(),
   }
+  const tithiMeta = getTithiDayMeta(data.tithi.number)
+  const karanaMeta = getKaranaMeta(data.karana.name)
+  const yogaMeta = getYogaMeta(data.yoga.name)
+  const nakMeta = getNakshatraMuhurtaMeta(data.nakshatra.index, data.nakshatra.pada)
+  const abhijit = getAbhijitWindow(data.moonLongitudeSidereal)
+  const vaarMeta = getVaarMeta(data.vara.number)
 
   return (
     <div className={styles.root}>
@@ -175,34 +188,38 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
           <CompactLimbCard 
             label="Tithi" 
             value={data.tithi.name} 
-            sub={`${data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} · Lord ${data.tithi.lord}`}
+            sub={`${data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} · ${tithiMeta.group.id} · ${tithiMeta.group.elementLabel}`}
             percent={data.tithi.percent}
             isRikta={riktaInfo.active}
             riktaDetail={riktaInfo.detail}
           />
           <CompactLimbCard 
             label="Nakshatra" 
-            value={data.nakshatra.name} 
-            sub={`Pada ${data.nakshatra.pada} · Lord ${data.nakshatra.lord}`}
+            value={abhijit.active ? `${data.nakshatra.name} · Abhijit` : data.nakshatra.name} 
+            sub={`${nakMeta.group.id} · ${nakMeta.mukha.id} · Pada ${data.nakshatra.pada}`}
             percent={(data.nakshatra.degree / 13.33) * 100}
           />
           <CompactLimbCard 
             label="Yoga" 
             value={data.yoga.name} 
-            sub={`${data.yoga.quality} · ${data.yoga.percent.toFixed(0)}%`}
+            sub={yogaMeta
+              ? `${yogaMeta.quality} · ${yogaMeta.meaning}`
+              : `${data.yoga.quality} · ${data.yoga.percent.toFixed(0)}%`}
             percent={data.yoga.percent}
             quality={data.yoga.quality}
           />
           <CompactLimbCard 
             label="Karana" 
             value={data.karana.name} 
-            sub={data.karana.type}
-            isBhadra={data.karana.isBhadra}
+            sub={karanaMeta
+              ? `${karanaMeta.typeLabel} · ${karanaMeta.meaning}${karanaMeta.isBhadra ? ' · Bhadra' : ''}`
+              : data.karana.type}
+            isBhadra={data.karana.isBhadra || karanaMeta?.isBhadra}
           />
           <CompactLimbCard 
             label="Vara" 
             value={data.vara.name} 
-            sub={data.vara.sanskrit}
+            sub={`${vaarMeta.sanskrit} · ${vaarMeta.lordName} · ${vaarMeta.nature}`}
           />
         </div>
       </div>
@@ -226,6 +243,12 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
           <MuhurtaCard label="Yamaganda" start={data.yamaganda.start} end={data.yamaganda.end} tz={tz} tone="neutral" />
           {data.brahmaMuhurta && <MuhurtaCard label="Brahma Muhurta" start={data.brahmaMuhurta.start} end={data.brahmaMuhurta.end} tz={tz} tone="good" />}
           {data.godhuliMuhurat && <MuhurtaCard label="Godhuli" start={data.godhuliMuhurat.start} end={data.godhuliMuhurat.end} tz={tz} tone="good" />}
+        </div>
+        <div style={{ marginTop: '0.75rem' }}>
+          <DinmanMuhurtaStrip sunrise={data.sunrise} sunset={data.sunset} tz={tz} />
+        </div>
+        <div style={{ marginTop: '0.75rem' }}>
+          <SanskarasReference />
         </div>
       </section>
 

@@ -3,6 +3,8 @@
  * Rules are approximate; regional agamas and printed calendars may differ.
  */
 
+import { isRiktaTithiNumber } from '@/lib/engine/tithiMeta'
+
 export interface TimeWindow {
   start: Date
   end: Date
@@ -40,7 +42,7 @@ export function getGodhuliMuhurat(sunset: Date, minutesBefore = 24): TimeWindow 
 
 /** Rikta tithis: Chaturthi, Navami, Chaturdashi in each fortnight → lunar days 4,9,14,19,24,29. */
 export function isRiktaTithi(tithiNumber1to30: number): boolean {
-  return [4, 9, 14, 19, 24, 29].includes(tithiNumber1to30)
+  return isRiktaTithiNumber(tithiNumber1to30)
 }
 
 export function riktaTithiDescription(): string {

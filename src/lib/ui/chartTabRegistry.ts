@@ -8,6 +8,7 @@ export type ChartTabId =
   | 'astro-details'
   | 'planets'
   | 'dasha'
+  | 'dasha-interpretation'
   | 'house'
   | 'yogas'
   | 'kp-stellar'
@@ -84,6 +85,8 @@ export const MOBILE_DASHBOARD_OPTIONS = {
     { id: 'nakshatra-planet', label: 'Planet', path: '/nakshatra/planet' },
     { id: 'nakshatra-compat', label: 'Compat', path: '/nakshatra/compat' },
     { id: 'nakshatra-remedies', label: 'Remedies', path: '/nakshatra/remedies' },
+    { id: 'nakshatra-profession', label: 'Profession', path: '/nakshatra/profession' },
+    { id: 'nakshatra-medical', label: 'Medical', path: '/nakshatra/medical' },
   ],
   advanced: [
     { id: 'jaimini', label: 'Jaimini Astrology', path: '/jaimini' },

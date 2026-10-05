@@ -1,130 +1,200 @@
-
 /**
  * src/lib/engine/muhurtaAnalysis.ts
  * Logic for scoring specific activities based on Panchanga and planetary transits.
  */
 
-import { NakshatraResult, TithiResult, YogaResult, KaranaResult, VaraResult } from './nakshatra';
-import { GrahaId } from '@/types/astrology';
+import { NakshatraResult, TithiResult, YogaResult, KaranaResult, VaraResult } from './nakshatra'
+import { GrahaId } from '@/types/astrology'
 
-export type MuhurtaActivity = 
-  | 'BUSINESS' 
-  | 'TRAVEL' 
-  | 'REAL_ESTATE' 
-  | 'RELATIONSHIP' 
-  | 'HEALTH' 
+export type MuhurtaActivity =
+  | 'BUSINESS'
+  | 'TRAVEL'
+  | 'REAL_ESTATE'
+  | 'RELATIONSHIP'
+  | 'HEALTH'
   | 'SPIRITUAL'
   | 'MARRIAGE'
   | 'EDUCATION'
-  | 'GENERAL';
+  | 'GENERAL'
 
-export type ChoghadiyaType = 'Amrit' | 'Shubh' | 'Labh' | 'Chala' | 'Rog' | 'Kaal' | 'Udveg';
+/** Canonical activity IDs — use across day-finder UI, timeline UI, and API. */
+export const MUHURTA_ACTIVITIES: readonly MuhurtaActivity[] = [
+  'BUSINESS',
+  'TRAVEL',
+  'REAL_ESTATE',
+  'RELATIONSHIP',
+  'HEALTH',
+  'SPIRITUAL',
+  'MARRIAGE',
+  'EDUCATION',
+  'GENERAL',
+] as const
+
+export const MUHURTA_ACTIVITY_LABELS: Record<MuhurtaActivity, string> = {
+  BUSINESS: 'Business',
+  TRAVEL: 'Travel',
+  REAL_ESTATE: 'Property',
+  RELATIONSHIP: 'Relationship',
+  HEALTH: 'Wellness',
+  SPIRITUAL: 'Spiritual',
+  MARRIAGE: 'Marriage',
+  EDUCATION: 'Education',
+  GENERAL: 'General',
+}
+
+export type ChoghadiyaType = 'Amrit' | 'Shubh' | 'Labh' | 'Chala' | 'Rog' | 'Kaal' | 'Udveg'
 
 export interface MuhurtaScore {
-  score: number; // 0-100
-  label: 'Excellent' | 'Good' | 'Neutral' | 'Challenging' | 'Avoid';
-  factors: string[];
+  score: number // 0-100
+  label: 'Excellent' | 'Good' | 'Neutral' | 'Challenging' | 'Avoid'
+  factors: string[]
   diagnostics?: {
-    choghadiya?: { type: string; quality: string };
-    panchaka?: { label: string; isAuspicious: boolean; remainder: number };
-    taraBala?: { name: string; score: number };
-    chandraBala?: { house: number; isFavorable: boolean };
+    choghadiya?: { type: string; quality: string }
+    panchaka?: { label: string; isAuspicious: boolean; remainder: number }
+    taraBala?: { name: string; score: number; favorable: boolean }
+    chandraBala?: { house: number; isFavorable: boolean; isChallenging: boolean }
+    lagna?: { rashi: number; fit: 'good' | 'avoid' | 'neutral'; note: string }
+    gandanta?: { active: boolean; severity: string }
+    tyajya?: boolean
+    grahan?: { active: boolean; type: string | null }
+    dasha?: { maha: string; antar?: string; fit: string }
+    sav?: { bindus: number; lagna: number }
   }
 }
 
 export function analyzeMuhurta(
   activity: MuhurtaActivity,
   panchang: {
-    tithi: TithiResult;
-    nakshatra: NakshatraResult;
-    yoga: YogaResult;
-    karana: KaranaResult;
-    vara: VaraResult;
-    isRahuKalam: boolean;
-    isGulikaKalam: boolean;
-    isYamaganda: boolean;
-    isAbhijit: boolean;
-    horaLord?: GrahaId;
-    choghadiya?: { type: ChoghadiyaType; quality: 'Good' | 'Neutral' | 'Bad' };
-    panchaka?: { isAuspicious: boolean; label: string; remainder: number };
+    tithi: TithiResult
+    nakshatra: NakshatraResult
+    yoga: YogaResult
+    karana: KaranaResult
+    vara: VaraResult
+    isRahuKalam: boolean
+    isGulikaKalam: boolean
+    isYamaganda: boolean
+    isAbhijit: boolean
+    horaLord?: GrahaId
+    choghadiya?: { type: ChoghadiyaType; quality: 'Good' | 'Neutral' | 'Bad' }
+    panchaka?: { isAuspicious: boolean; label: string; remainder: number }
   },
-  natal: { moonNak: number; moonSign: number }
+  natal: { moonNak: number; moonSign: number },
 ): MuhurtaScore {
-  let score = 50; // Base score
-  const factors: string[] = [];
-  const diag: NonNullable<MuhurtaScore['diagnostics']> = {};
+  let score = 50 // Base score
+  const factors: string[] = []
+  const diag: NonNullable<MuhurtaScore['diagnostics']> = {}
 
   // --- Common Factors (Universal) ---
   if (panchang.isRahuKalam) {
-    score -= 30;
-    factors.push('Rahu Kalam (Negative)');
+    score -= 30
+    factors.push('Rahu Kalam (Negative)')
   }
   if (panchang.isGulikaKalam) {
-    score -= 15;
-    factors.push('Gulika Kalam (Negative)');
+    score -= 15
+    factors.push('Gulika Kalam (Negative)')
+  }
+  if (panchang.isYamaganda) {
+    score -= 20
+    factors.push('Yamaganda (Negative)')
   }
   if (panchang.isAbhijit && activity !== 'TRAVEL') {
-    score += 20;
-    factors.push('Abhijit Muhurta (Highly Auspicious)');
+    score += 20
+    factors.push('Abhijit Muhurta (Highly Auspicious)')
+  }
+
+  // --- Yoga quality (Sun+Moon yoga from panchang) ---
+  if (panchang.yoga.quality === 'auspicious') {
+    score += 10
+    factors.push(`Yoga: ${panchang.yoga.name} (Auspicious)`)
+  } else if (panchang.yoga.quality === 'inauspicious') {
+    score -= 15
+    factors.push(`Yoga: ${panchang.yoga.name} (Inauspicious)`)
+  } else {
+    factors.push(`Yoga: ${panchang.yoga.name} (Neutral)`)
+  }
+
+  // --- Karana / Bhadra (Vishti) ---
+  if (panchang.karana.isBhadra) {
+    score -= 25
+    factors.push('Karana: Bhadra / Vishti (Avoid lasting acts)')
+  } else if (panchang.karana.type === 'fixed') {
+    score -= 5
+    factors.push(`Karana: ${panchang.karana.name} (Fixed — mild caution)`)
+  } else {
+    factors.push(`Karana: ${panchang.karana.name}`)
   }
 
   // --- Tara Bala (Natal Alignment) ---
-  const diff = ((panchang.nakshatra.index - natal.moonNak + 27) % 27) + 1;
-  const tara = diff % 9 || 9;
-  const taraScores: Record<number, { score: number; name: string }> = {
-    1: { score: 0,   name: 'Janma' },
-    2: { score: 20,  name: 'Sampat (Wealth)' },
-    3: { score: -20, name: 'Vipat (Danger)' },
-    4: { score: 15,  name: 'Kshem (Safety)' },
-    5: { score: -15, name: 'Pratyari (Obstacles)' },
-    6: { score: 20,  name: 'Sadhaka (Success)' },
-    7: { score: -25, name: 'Vadha (Destruction)' },
-    8: { score: 10,  name: 'Mitra (Friend)' },
-    9: { score: 15,  name: 'Ati-Mitra (Best Friend)' },
-  };
-  score += taraScores[tara].score;
-  factors.push(`Tara Bala: ${taraScores[tara].name}`);
-  diag.taraBala = { name: taraScores[tara].name, score: taraScores[tara].score };
+  const diff = ((panchang.nakshatra.index - natal.moonNak + 27) % 27) + 1
+  const tara = diff % 9 || 9
+  const taraScores: Record<number, { score: number; name: string; favorable: boolean }> = {
+    1: { score: 0, name: 'Janma', favorable: false },
+    2: { score: 20, name: 'Sampat (Wealth)', favorable: true },
+    3: { score: -20, name: 'Vipat (Danger)', favorable: false },
+    4: { score: 15, name: 'Kshem (Safety)', favorable: true },
+    5: { score: -15, name: 'Pratyari (Obstacles)', favorable: false },
+    6: { score: 20, name: 'Sadhaka (Success)', favorable: true },
+    7: { score: -25, name: 'Vadha (Destruction)', favorable: false },
+    8: { score: 10, name: 'Mitra (Friend)', favorable: true },
+    9: { score: 15, name: 'Ati-Mitra (Best Friend)', favorable: true },
+  }
+  score += taraScores[tara].score
+  factors.push(`Tara Bala: ${taraScores[tara].name}`)
+  diag.taraBala = {
+    name: taraScores[tara].name,
+    score: taraScores[tara].score,
+    favorable: taraScores[tara].favorable,
+  }
 
   // --- Chandra Bala (Moon Sign Alignment) ---
-  const transitSign = Math.floor(panchang.nakshatra.exactDegree / 30) + 1;
-  const dist = ((transitSign - natal.moonSign + 12) % 12) + 1;
-  // Favorable: 1, 3, 6, 7, 10, 11 from natal moon
-  const favorableDist = [1, 3, 6, 7, 10, 11];
-  const isChandraFavorable = favorableDist.includes(dist);
-  diag.chandraBala = { house: dist, isFavorable: isChandraFavorable };
+  // Favourable houses 1, 3, 6, 10, 11 from natal Moon (Drik-style; house 7 omitted — see tara-chandra-bala.ts)
+  const transitSign = Math.floor(panchang.nakshatra.exactDegree / 30) + 1
+  const dist = ((transitSign - natal.moonSign + 12) % 12) + 1
+  const favorableDist = [1, 3, 6, 10, 11]
+  const challengingDist = [4, 8, 12]
+  const isChandraFavorable = favorableDist.includes(dist)
+  const isChandraChallenging = challengingDist.includes(dist)
+  diag.chandraBala = {
+    house: dist,
+    isFavorable: isChandraFavorable,
+    isChallenging: isChandraChallenging,
+  }
 
   if (isChandraFavorable) {
-    score += 15;
-    factors.push(`Chandra Bala: ${dist}th House (Favorable)`);
-  } else if ([4, 8, 12].includes(dist)) {
-    score -= 20;
-    factors.push(`Chandra Bala: ${dist}th House (Challenging)`);
+    score += 15
+    factors.push(`Chandra Bala: ${dist}th House (Favorable)`)
+  } else if (isChandraChallenging) {
+    score -= 20
+    factors.push(`Chandra Bala: ${dist}th House (Challenging)`)
   } else {
-    factors.push(`Chandra Bala: ${dist}th House (Neutral)`);
+    factors.push(`Chandra Bala: ${dist}th House (Neutral)`)
   }
 
   // --- Choghadiya ---
   if (panchang.choghadiya) {
     if (panchang.choghadiya.quality === 'Good') {
-      score += 15;
-      factors.push(`Choghadiya: ${panchang.choghadiya.type} (Good)`);
+      score += 15
+      factors.push(`Choghadiya: ${panchang.choghadiya.type} (Good)`)
     } else if (panchang.choghadiya.quality === 'Bad') {
-      score -= 20;
-      factors.push(`Choghadiya: ${panchang.choghadiya.type} (Bad)`);
+      score -= 20
+      factors.push(`Choghadiya: ${panchang.choghadiya.type} (Bad)`)
     }
-    diag.choghadiya = { type: panchang.choghadiya.type, quality: panchang.choghadiya.quality };
+    diag.choghadiya = { type: panchang.choghadiya.type, quality: panchang.choghadiya.quality }
   }
 
   // --- Panchaka ---
   if (panchang.panchaka) {
     if (!panchang.panchaka.isAuspicious) {
-      score -= 15;
-      factors.push(`Panchaka: ${panchang.panchaka.label}`);
+      score -= 15
+      factors.push(`Panchaka: ${panchang.panchaka.label}`)
     } else {
-      factors.push(`Panchaka: Shubh`);
+      factors.push('Panchaka: Shubh')
     }
-    diag.panchaka = { label: panchang.panchaka.label, isAuspicious: panchang.panchaka.isAuspicious, remainder: panchang.panchaka.remainder };
+    diag.panchaka = {
+      label: panchang.panchaka.label,
+      isAuspicious: panchang.panchaka.isAuspicious,
+      remainder: panchang.panchaka.remainder,
+    }
   }
 
   // --- Hora ---
@@ -139,10 +209,10 @@ export function analyzeMuhurta(
       MARRIAGE: ['Ve', 'Ju'],
       EDUCATION: ['Ju', 'Me'],
       GENERAL: ['Ju', 'Mo'],
-    };
+    }
     if (horaTargets[activity].includes(panchang.horaLord)) {
-      score += 10;
-      factors.push(`Auspicious Hora: ${panchang.horaLord}`);
+      score += 10
+      factors.push(`Auspicious Hora: ${panchang.horaLord}`)
     }
   }
 

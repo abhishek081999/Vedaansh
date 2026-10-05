@@ -33,17 +33,21 @@ export function calcTaraBala(natalNakIndex: number, transitNakIndex: number) {
 export function calcChandraBala(natalSign: number, transitSign: number) {
   const pos = ((transitSign - natalSign + 12) % 12) + 1;
   
-  // 1, 3, 6, 7, 10, 11 are considered auspicious positions from Natal Moon
-  const goodPositions = [1, 3, 6, 7, 10, 11];
-  const veryBadPositions = [4, 8, 12];
-  
-  const isGood = goodPositions.includes(pos);
-  const isVeryBad = veryBadPositions.includes(pos);
+  // Favourable houses 1, 3, 6, 10, 11 from natal Moon (aligned with tara-chandra-bala.ts / Drik-style)
+  const goodPositions = [1, 3, 6, 10, 11]
+  const veryBadPositions = [4, 8, 12]
+
+  const isGood = goodPositions.includes(pos)
+  const isVeryBad = veryBadPositions.includes(pos)
 
   return {
     position: pos,
-    quality: isGood ? 'good' : isVeryBad ? 'bad' : 'avg' as 'good' | 'bad' | 'avg',
+    quality: (isGood ? 'good' : isVeryBad ? 'bad' : 'avg') as 'good' | 'bad' | 'avg',
     score: isGood ? 100 : isVeryBad ? 0 : 50,
-    desc: isGood ? 'Moon is in a favorable position from your birth sign.' : isVeryBad ? 'Moon is in a sensitive/challenging position.' : 'Moon is in a neutral position.'
-  };
+    desc: isGood
+      ? 'Moon is in a favorable position from your birth sign.'
+      : isVeryBad
+        ? 'Moon is in a sensitive/challenging position.'
+        : 'Moon is in a neutral position.',
+  }
 }
