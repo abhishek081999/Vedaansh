@@ -20,6 +20,8 @@ const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
 const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
 const YoginiInterpretationPanel = dynamic(() => import('@/components/dasha/YoginiInterpretationPanel').then(m => m.YoginiInterpretationPanel), { ssr: false })
+const VimshottariInterpretationPanel = dynamic(() => import('@/components/dasha/DashaInterpretationPanel').then(m => m.VimshottariInterpretationPanel), { ssr: false })
+const DashaInterpretationTeaserFromChart = dynamic(() => import('@/components/dasha/DashaInterpretationTeaser').then(m => m.DashaInterpretationTeaserFromChart), { ssr: false })
 const PersonalDayCard = dynamic(() => import('@/components/dashboard/PersonalDayCard').then(m => m.PersonalDayCard), { ssr: false })
 const GrahaTable = dynamic(() => import('@/components/ui/GrahaTable').then(m => m.GrahaTable), { ssr: false })
 const AshtakavargaGrid = dynamic(() => import('@/components/ui/AshtakavargaGrid').then(m => m.AshtakavargaGrid), { ssr: false })
@@ -630,7 +632,6 @@ function YoginiDashaBlock({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <DashaTree nodes={nodes} birthDate={birthDate} timezone={timezone} maxDepth={3} />
-      <YoginiInterpretationPanel nodes={nodes} />
     </div>
   )
 }
@@ -1753,6 +1754,13 @@ function HomeContent() {
             </div>
             <div>
               <ActiveHousesCard chart={dashboardChart} transitMoonLon={todayPanchang?.moonLongitudeSidereal} />
+              <div style={{ marginTop: '0.55rem' }}>
+                <DashaInterpretationTeaserFromChart
+                  chart={dashboardChart}
+                  nodes={vimshottariNodes}
+                  onOpenFull={() => setActiveTab('dasha-interpretation')}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1996,11 +2004,15 @@ function HomeContent() {
             )}
 
              {/* Responsive: Dominant CHART | Tab Analysis — hidden when full-width workspace active */}
-             {!isFullWidthChartTab(activeTab) && <div className="chart-layout-grid">
+             {!isFullWidthChartTab(activeTab) && <div
+               className="chart-layout-grid"
+               style={activeTab === 'dasha-interpretation' ? { gridTemplateColumns: '1fr' } : undefined}
+             >
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
-                 flex: '1 1 460px', 
-                 minWidth: 'min(100%, 380px)', 
+                 flex: activeTab === 'dasha-interpretation' ? '1 1 100%' : '1 1 460px', 
+                 minWidth: activeTab === 'dasha-interpretation' ? '100%' : 'min(100%, 380px)', 
+                 maxWidth: activeTab === 'dasha-interpretation' ? '100%' : undefined,
                  display: 'flex', 
                  flexDirection: 'column', 
                  gap: '0.75rem',
@@ -2025,6 +2037,77 @@ function HomeContent() {
                      chart={chart}
                      transitMoonLon={todayPanchang?.moonLongitudeSidereal}
                   />
+
+                  {activeTab === 'dasha-interpretation' && (
+                    <div className="panel fade-up" ref={analysisPanelRef}>
+                      <div
+                        className="panel-header"
+                        style={{ flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}
+                      >
+                        <span>Dasha Interpretation</span>
+                        <select
+                          value={dashaSystem === 'yogini' ? 'yogini' : 'vimshottari'}
+                          onChange={(e) => setDashaSystem(e.target.value as 'vimshottari' | 'yogini')}
+                          aria-label="Interpretation dasha system"
+                          style={{
+                            height: 26,
+                            marginLeft: 'auto',
+                            padding: '0 0.45rem',
+                            fontSize: '0.64rem',
+                            background: 'var(--surface-3)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--border-soft)',
+                            borderRadius: 999,
+                            fontFamily: 'var(--font-body)',
+                            lineHeight: 1,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <option value="vimshottari">Vimshottari</option>
+                          <option value="yogini">Yogini</option>
+                        </select>
+                      </div>
+                      <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {dashaSystem === 'yogini' ? (
+                          chart.dashas.yogini?.length ? (
+                            <>
+                              <YoginiDashaBlock
+                                nodes={chart.dashas.yogini}
+                                birthDate={birthUtcFromMeta(chart.meta)}
+                                timezone={chart.meta.timezone}
+                              />
+                              <YoginiInterpretationPanel nodes={chart.dashas.yogini} />
+                            </>
+                          ) : (
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>
+                              Yogini computation required.
+                            </div>
+                          )
+                        ) : (
+                          <>
+                            <VimshottariDashaBlock
+                              nodes={vimshottariNodes}
+                              birthDate={birthUtcFromMeta(chart.meta)}
+                              timezone={chart.meta.timezone}
+                              tara={vimshottariTara}
+                              tribhagi={vimshottariTribhagi}
+                              userPlan={userPlan}
+                              onTara={setVimshottariTara}
+                              onTribhagi={setVimshottariTribhagi}
+                            />
+                            <VimshottariInterpretationPanel
+                              nodes={vimshottariNodes}
+                              grahas={chart.grahas}
+                              ascRashi={chart.lagnas.ascRashi}
+                              shadbala={chart.shadbala}
+                              ashtakavarga={chart.ashtakavarga}
+                              navamshaGrahas={chart.vargas?.D9}
+                            />
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* ── MOBILE DASHBOARD CONTENT ─────────────────────── */}
                   {activeTab === 'dashboard' && isMobile && (
@@ -2134,6 +2217,16 @@ function HomeContent() {
                             <div className="panel-header"><span>Active Houses</span></div>
                             <div style={{ padding: '0.4rem 0.55rem' }}>
                               <ActiveHousesCard chart={chart} transitMoonLon={todayPanchang?.moonLongitudeSidereal} />
+                            </div>
+                          </div>
+                          <div className="panel">
+                            <div className="panel-header"><span>Dasha Insight</span></div>
+                            <div style={{ padding: '0.4rem 0.55rem' }}>
+                              <DashaInterpretationTeaserFromChart
+                                chart={chart}
+                                nodes={vimshottariNodes}
+                                onOpenFull={() => setActiveTab('dasha-interpretation')}
+                              />
                             </div>
                           </div>
                           <div className="panel">

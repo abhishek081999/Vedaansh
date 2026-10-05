@@ -20,6 +20,8 @@ import {
 } from '@/lib/engine/astroDetailsDerived'
 import { SIGN_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
 import { getYoginiInterpretation } from '@/lib/engine/dasha/yoginiInterpretations'
+import { getVimshottariInterpretation } from '@/lib/engine/dasha/vimshottariInterpretations'
+import { analyzeVimshottariPeriod } from '@/lib/engine/dasha/vimshottariAnalysis'
 import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL, nameToNakshatra, DIAGONAL_PLANETS } from '@/lib/engine/sarvatobhadra'
 import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
 import type { PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
@@ -939,7 +941,21 @@ function buildDashaSystemTable(
     ? getYoginiInterpretation(current.lord)
     : null
 
-  const interpretationBlock = currentInterp ? `
+  const vimInterp = key === 'vimshottari' && current
+    ? getVimshottariInterpretation(current.lord)
+    : null
+  const vimAnalysis = key === 'vimshottari' && chart.dashas.vimshottari?.length
+    ? analyzeVimshottariPeriod({
+        nodes: chart.dashas.vimshottari,
+        ascRashi: chart.lagnas.ascRashi,
+        grahas: chart.grahas,
+        shadbala: chart.shadbala,
+        ashtakavarga: chart.ashtakavarga,
+        navamshaGrahas: chart.vargas?.D9,
+      })
+    : null
+
+  const yoginiInterpretationBlock = currentInterp ? `
     <div style="margin-top: 0.85rem; border: 1px solid ${THEME.border}; border-radius: 10px; padding: 12px; background: #fffbeb;">
       <div style="font-weight: 800; color: ${THEME.primary}; margin-bottom: 6px;">
         Active Yogini — ${currentInterp.name} (${GRAHA_NAMES[currentInterp.lord as GrahaId] || currentInterp.lord})
@@ -962,6 +978,47 @@ function buildDashaSystemTable(
       </div>
     </div>
   ` : ''
+
+  const flagLine = vimAnalysis?.flags?.length
+    ? vimAnalysis.flags.map(f => f.label).join(' · ')
+    : ''
+  const vimInterpretationBlock = vimInterp ? `
+    <div style="margin-top: 0.85rem; border: 1px solid ${THEME.border}; border-radius: 10px; padding: 12px; background: #fffbeb;">
+      <div style="font-weight: 800; color: ${THEME.primary}; margin-bottom: 6px;">
+        Active Vimshottari — ${vimInterp.title} (${GRAHA_NAMES[vimInterp.lord as GrahaId] || vimInterp.lord})
+      </div>
+      <div style="font-size: 11px; color: ${THEME.muted}; margin-bottom: 4px;">
+        ${vimInterp.years} yr · ${vimInterp.nature} · ${vimInterp.keyTheme}
+      </div>
+      ${vimAnalysis ? `
+      <div style="font-size: 12px; font-weight: 600; line-height: 1.45; margin-bottom: 4px;">
+        ${vimAnalysis.insight.headline}
+      </div>
+      <ul style="font-size: 12px; line-height: 1.45; margin: 0 0 6px 1.1rem; padding: 0;">
+        ${vimAnalysis.insight.bullets.map(b => `<li>${b}</li>`).join('')}
+      </ul>
+      ${vimAnalysis.insight.watch ? `<div style="font-size: 11px; color: #9a3412; margin-bottom: 4px;">Watch: ${vimAnalysis.insight.watch}</div>` : ''}
+      <div style="font-size: 11px; color: ${THEME.muted}; margin-bottom: 4px;">
+        Mix: Favorable ${vimAnalysis.favorableShare}% · Neutral ${vimAnalysis.neutralShare}% · Challenging ${vimAnalysis.challengingShare}%
+      </div>` : ''}
+      ${flagLine ? `<div style="font-size: 11px; margin-bottom: 4px;"><strong>Flags:</strong> ${flagLine}</div>` : ''}
+      <div style="font-size: 12px; line-height: 1.5;">
+        <strong>Positive:</strong> ${vimInterp.primaryPositive}. ${vimInterp.secondaryBenefits}.
+      </div>
+      <div style="font-size: 12px; line-height: 1.5; margin-top: 4px;">
+        <strong>Mind:</strong> ${vimInterp.psychologicalState}.
+      </div>
+      ${vimInterp.negativeEffects || vimInterp.healthCaution ? `
+      <div style="font-size: 12px; line-height: 1.5; margin-top: 4px;">
+        <strong>Caution:</strong> ${[vimInterp.negativeEffects, vimInterp.healthCaution].filter(Boolean).join('. ')}.
+      </div>` : ''}
+      <div style="font-size: 11px; color: ${THEME.muted}; margin-top: 6px; line-height: 1.4;">
+        Educational overlay — mixed results; maraka means hardship pressure, not a life-ending forecast. Health notes are not medical advice.
+      </div>
+    </div>
+  ` : ''
+
+  const interpretationBlock = yoginiInterpretationBlock || vimInterpretationBlock
 
   return `
     <div style="margin-top: 1rem; border: 1px solid ${THEME.border}; border-radius: 10px; overflow: hidden; background: #fff;">

@@ -8,6 +8,7 @@ export type ChartTabId =
   | 'astro-details'
   | 'planets'
   | 'dasha'
+  | 'dasha-interpretation'
   | 'house'
   | 'yogas'
   | 'kp-stellar'

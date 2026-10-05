@@ -1,27 +1,273 @@
 'use client'
+// ─────────────────────────────────────────────────────────────
+//  src/components/dasha/DashaInterpretationPanel.tsx
+//  Active Vimshottari MD/AD narrative + chart-conditioned flags
+// ─────────────────────────────────────────────────────────────
 
-import React, { useMemo } from 'react'
-import { DashaNode, GrahaData } from '@/types/astrology'
+import React, { useMemo, useState } from 'react'
+import type {
+  AshtakavargaResult,
+  DashaNode,
+  GrahaData,
+  Rashi,
+  ShadbalaResult,
+} from '@/types/astrology'
+import { GRAHA_NAMES } from '@/types/astrology'
+import {
+  analyzeVimshottariPeriod,
+  type VimshottariFlag,
+  type VimshottariPeriodAnalysis,
+} from '@/lib/engine/dasha/vimshottariAnalysis'
+import {
+  getVimshottariAntarHint,
+  getVimshottariInterpretation,
+  isBeneficVimNature,
+  isMaleficVimNature,
+  VIMSHOTTARI_RESULT_HIERARCHY,
+  type VimshottariInterpretation,
+  type VimshottariNature,
+} from '@/lib/engine/dasha/vimshottariInterpretations'
 
-interface Props {
+export interface VimshottariInterpretationPanelProps {
   nodes: DashaNode[]
   grahas: GrahaData[]
+  ascRashi: Rashi
+  shadbala?: ShadbalaResult | null
+  ashtakavarga?: AshtakavargaResult | null
+  navamshaGrahas?: GrahaData[] | null
 }
 
-const DASHA_KARAKAS: Record<string, { title: string; focus: string; description: string }> = {
-  Su: { title: 'The Royal Sovereign', focus: 'Self, Authority, Power', description: 'Sun periods bring focus to ones soul purpose, leadership, and public reputation. It is a time for "shining" and stepping into authority.' },
-  Mo: { title: 'The Emotional Ocean', focus: 'Mind, Comfort, Nurturing', description: 'Moon periods emphasize emotional growth, residential changes, and connection with family or public. Focus shifts to inner security.' },
-  Ma: { title: 'The Dynamic Warrior', focus: 'Energy, Courage, Ambition', description: 'Mars periods are high-energy times for taking initiative, technical pursuits, or property matters. Avoid impulsive conflicts.' },
-  Me: { title: 'The Intellectual Messenger', focus: 'Learning, Commerce, Intellect', description: 'Mercury periods foster communication, education, business growth, and analytical skills. A busy time for the mind.' },
-  Ju: { title: 'The Great Benevolent', focus: 'Expansion, Wisdom, Wealth', description: 'Jupiter periods are typically the most expansive, bringing spiritual wisdom, children, wealth, and favorable opportunities.' },
-  Ve: { title: 'The Artist of Life', focus: 'Luxury, Love, Creativity', description: 'Venus periods focus on relationships, artistic endeavors, comforts, and sensory pleasures. A time for building harmony.' },
-  Sa: { title: 'The Lord of Karma', focus: 'Structure, Discipline, Endurance', description: 'Saturn periods demand hard work, patience, and structural reorganization. It is a maturing process of long-term stability.' },
-  Ra: { title: 'The Ambitious Shadow', focus: 'Innovation, Obsession, Materialism', description: 'Rahu periods bring sudden changes, high material ambition, and non-traditional paths. Both intense gains and chaos are possible.' },
-  Ke: { title: 'The Spiritual Liberator', focus: 'Detachment, Insight, Spirituality', description: 'Ketu periods focus on spiritual liberation, research, and detaching from worldly bonds. It is a "monk-like" phase of deep insight.' }
+function natureColor(nature: VimshottariNature): string {
+  if (nature === 'Highly Benefic' || nature === 'Benefic') return 'var(--teal)'
+  if (nature === 'Mixed') return 'var(--gold)'
+  return 'var(--rose)'
 }
 
-export function DashaInterpretationPanel({ nodes, grahas }: Props) {
-  // Find current active path
+function natureBg(nature: VimshottariNature): string {
+  if (isBeneficVimNature(nature)) return 'rgba(78,205,196,0.08)'
+  if (nature === 'Mixed') return 'var(--gold-faint)'
+  return 'rgba(224,123,142,0.08)'
+}
+
+function flagToneColor(tone: VimshottariFlag['tone']): string {
+  if (tone === 'supportive') return 'var(--teal)'
+  if (tone === 'caution') return 'var(--rose)'
+  if (tone === 'mixed') return 'var(--gold)'
+  return 'var(--text-muted)'
+}
+
+function flagToneBg(tone: VimshottariFlag['tone']): string {
+  if (tone === 'supportive') return 'rgba(78,205,196,0.1)'
+  if (tone === 'caution') return 'rgba(224,123,142,0.1)'
+  if (tone === 'mixed') return 'var(--gold-faint)'
+  return 'var(--surface-3)'
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+      <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{title}</div>
+      {children}
+    </div>
+  )
+}
+
+function Line({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+      <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{label}: </span>
+      {value}
+    </div>
+  )
+}
+
+function MixBar({ analysis }: { analysis: VimshottariPeriodAnalysis }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', background: 'var(--surface-3)' }}>
+        <div style={{ width: `${analysis.favorableShare}%`, background: 'var(--teal)' }} title={`Favorable ${analysis.favorableShare}%`} />
+        <div style={{ width: `${analysis.neutralShare}%`, background: 'var(--gold)' }} title={`Neutral ${analysis.neutralShare}%`} />
+        <div style={{ width: `${analysis.challengingShare}%`, background: 'var(--rose)' }} title={`Challenging ${analysis.challengingShare}%`} />
+      </div>
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+        <span style={{ color: 'var(--teal)' }}>Favorable {analysis.favorableShare}%</span>
+        <span style={{ color: 'var(--gold)' }}>Neutral {analysis.neutralShare}%</span>
+        <span style={{ color: 'var(--rose)' }}>Challenging {analysis.challengingShare}%</span>
+      </div>
+    </div>
+  )
+}
+
+function PlanetCard({
+  data,
+  levelLabel,
+  snapLine,
+  antarHint,
+  defaultExpanded = false,
+}: {
+  data: VimshottariInterpretation
+  levelLabel: string
+  snapLine?: string | null
+  antarHint?: string | null
+  defaultExpanded?: boolean
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded)
+  const planet = GRAHA_NAMES[data.lord] ?? data.lord
+  const borderColor = isMaleficVimNature(data.nature)
+    ? 'var(--rose)'
+    : isBeneficVimNature(data.nature)
+      ? 'var(--teal)'
+      : 'var(--gold-faint)'
+
+  return (
+    <div
+      className="card"
+      style={{
+        padding: 0,
+        overflow: 'hidden',
+        border: `1px solid ${borderColor}`,
+        background: `linear-gradient(135deg, var(--surface-1) 0%, ${natureBg(data.nature)} 100%)`,
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setExpanded(v => !v)}
+        aria-expanded={expanded}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: '0.75rem',
+          padding: '0.85rem 1rem',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+          fontFamily: 'inherit',
+          color: 'inherit',
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="label-caps" style={{ color: natureColor(data.nature), marginBottom: '0.3rem' }}>
+            {levelLabel}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <h3 style={{ margin: 0, fontSize: '1.05rem', fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
+              {data.title}
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500, marginLeft: '0.35rem' }}>
+                ({planet})
+              </span>
+            </h3>
+            <span
+              style={{
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: natureColor(data.nature),
+                background: natureBg(data.nature),
+                border: `1px solid ${natureColor(data.nature)}`,
+                borderRadius: 4,
+                padding: '0.15rem 0.4rem',
+              }}
+            >
+              {data.nature}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4, fontWeight: 600 }}>
+            {data.years} {data.years === 1 ? 'Year' : 'Years'} · {data.keyTheme}
+          </div>
+          {snapLine && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 4 }}>{snapLine}</div>
+          )}
+          {!expanded && (
+            <p style={{ margin: '0.45rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+              {data.primaryPositive}
+            </p>
+          )}
+        </div>
+        <span
+          style={{
+            flexShrink: 0,
+            fontSize: '0.65rem',
+            fontWeight: 600,
+            color: 'var(--text-muted)',
+            paddingTop: 2,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {expanded ? '▴ Less' : '▾ More'}
+        </span>
+      </button>
+
+      {expanded && (
+        <div
+          style={{
+            padding: '0 1rem 1rem',
+            borderTop: '1px solid var(--border-soft)',
+            paddingTop: '0.85rem',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '0.85rem',
+          }}
+        >
+          <Section title="Positive Effects">
+            <Line label="Primary" value={data.primaryPositive} />
+            <Line label="Secondary" value={data.secondaryBenefits} />
+          </Section>
+          <Section title="Mind & Phases">
+            <Line label="State" value={data.psychologicalState} />
+            <Line label="Start" value={data.phaseStart} />
+            <Line label="Middle" value={data.phaseMiddle} />
+            <Line label="End" value={data.phaseEnd} />
+          </Section>
+          <Section title="Risks & Caution">
+            {data.negativeEffects
+              ? <Line label="Negatives" value={data.negativeEffects} />
+              : <div style={{ fontSize: '0.82rem', color: 'var(--teal)' }}>Few classical negatives when well placed.</div>}
+            {data.healthCaution && <Line label="Health" value={data.healthCaution} />}
+          </Section>
+          <Section title="Life events">
+            <Line label="Themes" value={data.lifeEvents} />
+            {antarHint && <Line label="This Antar" value={antarHint} />}
+          </Section>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function snapLabel(analysis: VimshottariPeriodAnalysis, which: 'maha' | 'antar'): string | null {
+  const s = which === 'maha' ? analysis.mahadasha : analysis.antardasha
+  if (!s) return null
+  const bits: string[] = []
+  if (s.housesRuled.length) bits.push(`Rules H${s.housesRuled.join(', H')}`)
+  if (s.house != null) bits.push(`placed H${s.house}`)
+  if (s.dignity) bits.push(s.dignity)
+  if (s.shadbalaBand) bits.push(`Shadbala ${s.shadbalaBand}`)
+  if (s.bavBindus != null) bits.push(`BAV ${s.bavBindus}`)
+  if (s.arohiniKind === 'arohini') bits.push('Arohini')
+  if (s.arohiniKind === 'avarohini') bits.push('Avarohini')
+  if (s.isRetro) bits.push('Retro')
+  if (s.isYogakaraka) bits.push('Yogakaraka')
+  if (s.isMaraka) bits.push('Maraka hardship')
+  return bits.length ? bits.join(' · ') : null
+}
+
+/** @deprecated Prefer VimshottariInterpretationPanel — alias kept for clarity */
+export function DashaInterpretationPanel(props: VimshottariInterpretationPanelProps) {
+  return <VimshottariInterpretationPanel {...props} />
+}
+
+export function VimshottariInterpretationPanel({
+  nodes,
+  grahas,
+  ascRashi,
+  shadbala,
+  ashtakavarga,
+  navamshaGrahas,
+}: VimshottariInterpretationPanelProps) {
   const activePath = useMemo(() => {
     const path: DashaNode[] = []
     let current = nodes.find(n => n.isCurrent)
@@ -32,75 +278,123 @@ export function DashaInterpretationPanel({ nodes, grahas }: Props) {
     return path
   }, [nodes])
 
+  const analysis = useMemo(
+    () => analyzeVimshottariPeriod({
+      nodes,
+      ascRashi,
+      grahas,
+      shadbala,
+      ashtakavarga,
+      navamshaGrahas,
+    }),
+    [nodes, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas],
+  )
+
   if (activePath.length < 1) return null
 
-  const mahadasha = activePath[0]
-  const antardasha = activePath[1]
-  
-  const mData = DASHA_KARAKAS[mahadasha.lord]
-  const aData = antardasha ? DASHA_KARAKAS[antardasha.lord] : null
+  const maha = getVimshottariInterpretation(activePath[0].lord)
+  const antar = activePath[1] ? getVimshottariInterpretation(activePath[1].lord) : null
+  if (!maha) return null
 
-  // Calculate relationship between lords (6/8, 2/12, etc.)
-  const getRelation = (l1: string, l2: string) => {
-    const g1 = grahas.find(g => g.id === l1)
-    const g2 = grahas.find(g => g.id === l2)
-    if (!g1 || !g2) return null
-    
-    const h1 = g1.rashi
-    const h2 = g2.rashi
-    const diff = ((h2 - h1 + 12) % 12) + 1
-    
-    if (diff === 1) return 'Conjoined (1/1)'
-    if (diff === 7) return 'Opposing (1/7)'
-    if (diff === 6 || diff === 8) return 'Challenging (6/8 Shadashtaka)'
-    if (diff === 2 || diff === 12) return 'Adjustment (2/12 Dwir-dwadasa)'
-    if (diff === 5 || diff === 9) return 'Supportive (5/9 Trikona)'
-    if (diff === 4 || diff === 10) return 'Functional (4/10 Kendra)'
-    if (diff === 3 || diff === 11) return 'Growth (3/11 Upachaya)'
-    return null
-  }
-
-  const relation = antardasha ? getRelation(mahadasha.lord, antardasha.lord) : null
+  const antarHint = activePath[1]
+    ? getVimshottariAntarHint(activePath[0].lord, activePath[1].lord)
+    : null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-       <div className="card" style={{ padding: '1.5rem', background: `linear-gradient(135deg, var(--surface-1) 0%, rgba(201,168,76,0.05) 100%)`, border: '1px solid var(--gold-faint)' }}>
-          <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '1rem' }}>Active Mahadasha Narrative</div>
-          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-             <div style={{ width: 64, height: 64, borderRadius: '12px', background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', border: '1px solid var(--border-soft)', flexShrink: 0 }}>
-               {mahadasha.lord === 'Su' ? '☀️' : mahadasha.lord === 'Mo' ? '🌙' : mahadasha.lord === 'Ma' ? '🔥' : mahadasha.lord === 'Ju' ? '💎' : '🪐'}
-             </div>
-             <div style={{ flex: 1, minWidth: 250 }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', fontFamily: 'var(--font-display)' }}>{mData?.title}</h3>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginTop: 4 }}>Focus: {mData?.focus}</div>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginTop: '0.75rem' }}>{mData?.description}</p>
-             </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+      <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', padding: '0 0.15rem' }}>
+        Vimshottari Interpretation
+      </div>
+
+      {analysis && (
+        <div
+          className="card"
+          style={{
+            padding: '0.85rem 1rem',
+            border: '1px solid var(--gold-faint)',
+            background: 'linear-gradient(135deg, var(--surface-1) 0%, rgba(201,168,76,0.06) 100%)',
+          }}
+        >
+          <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '0.35rem' }}>
+            {analysis.insight.headline}
           </div>
-       </div>
-       {antardasha && (
-         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-            <div className="card" style={{ padding: '1.25rem' }}>
-               <div className="label-caps" style={{ fontSize: '0.65rem', color: 'var(--teal)' }}>Antardasha Focus</div>
-               <h4 style={{ margin: '0.5rem 0', fontSize: '1.05rem', color: 'var(--text-primary)' }}>{aData?.title}</h4>
-               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                 Under the broad umbrella of {mData?.title}, {antardasha.lord} brings a refined focus to <strong>{aData?.focus}</strong>.
-                 {relation && <span style={{ display: 'block', marginTop: '0.5rem', fontWeight: 600, color: 'var(--text-gold)' }}>Relationship: {relation}</span>}
-               </p>
+          <ul style={{ margin: '0 0 0.65rem', paddingLeft: '1.1rem', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+            {analysis.insight.bullets.map((b, i) => (
+              <li key={i}>{b}</li>
+            ))}
+          </ul>
+          {analysis.insight.watch && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--rose)', marginBottom: '0.65rem', lineHeight: 1.4 }}>
+              Watch: {analysis.insight.watch}
             </div>
-            <div className="card" style={{ padding: '1.25rem' }}>
-               <div className="label-caps" style={{ fontSize: '0.65rem' }}>Strategic Advice</div>
-               <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {relation?.includes('Challenging') ? (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--rose)', background: 'var(--rose-faint)', padding: '8px', borderRadius: '4px' }}>⚠ Lords are in a 6/8 stance. Expect some friction or hidden challenges. Exercise patience.</div>
-                  ) : relation?.includes('Supportive') ? (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--teal)', background: 'var(--teal-faint)', padding: '8px', borderRadius: '4px' }}>✓ Lords are in harmony (Trine). Efforts will yield smoother results during this sub-period.</div>
-                  ) : (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Focus on maintaining the momentum of the current Mahadasha while allowing the {antardasha.lord} energy to guide your micro-decisions.</div>
-                  )}
-               </div>
+          )}
+          <MixBar analysis={analysis} />
+          {(analysis.lagnaSpecialNote || analysis.yogakarakaNote) && (
+            <div style={{ marginTop: '0.65rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+              {analysis.yogakarakaNote && (
+                <div><span style={{ color: 'var(--text-gold)', fontWeight: 600 }}>Yogakaraka: </span>{analysis.yogakarakaNote}</div>
+              )}
+              {analysis.lagnaSpecialNote && (
+                <div style={{ marginTop: 4 }}>{analysis.lagnaSpecialNote}</div>
+              )}
             </div>
-         </div>
-       )}
+          )}
+          {analysis.flags.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: '0.75rem' }}>
+              {analysis.flags.map(f => (
+                <span
+                  key={f.id}
+                  title={f.detail}
+                  style={{
+                    fontSize: '0.62rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.03em',
+                    textTransform: 'uppercase',
+                    color: flagToneColor(f.tone),
+                    background: flagToneBg(f.tone),
+                    border: `1px solid ${flagToneColor(f.tone)}`,
+                    borderRadius: 4,
+                    padding: '0.2rem 0.45rem',
+                    cursor: 'help',
+                  }}
+                >
+                  {f.label}
+                </span>
+              ))}
+            </div>
+          )}
+          {analysis.flags.some(f => f.tone === 'caution') && (
+            <ul style={{ margin: '0.65rem 0 0', paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+              {analysis.flags.filter(f => f.tone === 'caution').slice(0, 4).map(f => (
+                <li key={`d-${f.id}`}>{f.detail}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      <PlanetCard
+        data={maha}
+        levelLabel="Active Mahadasha"
+        snapLine={analysis ? snapLabel(analysis, 'maha') : null}
+        defaultExpanded={false}
+      />
+      {antar && (
+        <PlanetCard
+          data={antar}
+          levelLabel="Active Antardasha"
+          snapLine={analysis ? snapLabel(analysis, 'antar') : null}
+          antarHint={antarHint}
+        />
+      )}
+
+      <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.4, padding: '0 0.15rem' }}>
+        {VIMSHOTTARI_RESULT_HIERARCHY}
+      </p>
+      <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.4, padding: '0 0.15rem' }}>
+        Educational timing overlay — every dasha mixes supportive, neutral, and challenging themes.
+        Health notes are soft cautions, not medical advice. Maraka means hardship pressure, not a life-ending forecast.
+      </p>
     </div>
   )
 }
