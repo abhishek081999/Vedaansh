@@ -19,6 +19,7 @@ import {
   getRashiTatva,
 } from '@/lib/engine/astroDetailsDerived'
 import { SIGN_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
+import { getYoginiInterpretation } from '@/lib/engine/dasha/yoginiInterpretations'
 import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL, nameToNakshatra, DIAGONAL_PLANETS } from '@/lib/engine/sarvatobhadra'
 import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
 import type { PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
@@ -921,6 +922,47 @@ function buildDashaSystemTable(
     `
   }
 
+  const periodLabel = (n: { lord: string; label?: string }) => {
+    if (key === 'yogini') {
+      const yi = getYoginiInterpretation(n.lord)
+      if (yi) return `${yi.name} (${GRAHA_NAMES[n.lord as GrahaId] || n.lord})`
+      return n.label || GRAHA_NAMES[n.lord as GrahaId] || n.lord
+    }
+    return GRAHA_NAMES[n.lord as GrahaId] || n.lord
+  }
+
+  const current = nodes.find(n => {
+    const now = Date.now()
+    return now >= new Date(n.start).getTime() && now < new Date(n.end).getTime()
+  })
+  const currentInterp = key === 'yogini' && current
+    ? getYoginiInterpretation(current.lord)
+    : null
+
+  const interpretationBlock = currentInterp ? `
+    <div style="margin-top: 0.85rem; border: 1px solid ${THEME.border}; border-radius: 10px; padding: 12px; background: #fffbeb;">
+      <div style="font-weight: 800; color: ${THEME.primary}; margin-bottom: 6px;">
+        Active Yogini — ${currentInterp.name} (${GRAHA_NAMES[currentInterp.lord as GrahaId] || currentInterp.lord})
+      </div>
+      <div style="font-size: 11px; color: ${THEME.muted}; margin-bottom: 4px;">
+        ${currentInterp.years} yr · ${currentInterp.nature} · ${currentInterp.keyTheme}
+      </div>
+      <div style="font-size: 12px; line-height: 1.5;">
+        <strong>Positive:</strong> ${currentInterp.primaryPositive}. ${currentInterp.secondaryBenefits}.
+      </div>
+      <div style="font-size: 12px; line-height: 1.5; margin-top: 4px;">
+        <strong>Mind:</strong> ${currentInterp.psychologicalState}. ${currentInterp.mentalActivation}.
+      </div>
+      ${currentInterp.negativeEffects || currentInterp.otherRisks ? `
+      <div style="font-size: 12px; line-height: 1.5; margin-top: 4px;">
+        <strong>Caution:</strong> ${[currentInterp.negativeEffects, currentInterp.otherRisks].filter(Boolean).join('. ')}.
+      </div>` : ''}
+      <div style="font-size: 12px; line-height: 1.5; margin-top: 4px;">
+        <strong>Triggers:</strong> ${currentInterp.primaryTriggers}. ${currentInterp.lifeEvents}.
+      </div>
+    </div>
+  ` : ''
+
   return `
     <div style="margin-top: 1rem; border: 1px solid ${THEME.border}; border-radius: 10px; overflow: hidden; background: #fff;">
       <div style="padding: 8px 12px; font-weight: 800; color: ${THEME.primary}; background: ${THEME.surface}; border-bottom: 1px solid ${THEME.border};">${label}</div>
@@ -930,7 +972,7 @@ function buildDashaSystemTable(
           ${nodes.map(n => {
             const isCurrent = new Date() >= new Date(n.start) && new Date() <= new Date(n.end)
             return `<tr style="${isCurrent ? 'background:#fffbeb;font-weight:900;' : ''}">
-              <td>${GRAHA_NAMES[n.lord as GrahaId] || n.lord}</td>
+              <td>${periodLabel(n)}</td>
               <td>${formatDashaDate(n.start)}</td>
               <td>${formatDashaDate(n.end)}</td>
               <td>${isCurrent ? 'ACTIVE' : ''}</td>
@@ -939,6 +981,7 @@ function buildDashaSystemTable(
         </tbody>
       </table>
     </div>
+    ${interpretationBlock}
   `
 }
 

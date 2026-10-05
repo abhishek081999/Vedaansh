@@ -15,6 +15,11 @@ import { getNakshatra } from '@/lib/engine/nakshatra'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import { getDashaPathAt, isDashaRunning } from '@/lib/engine/dasha/current'
 import { calcYoginiDasha } from '@/lib/engine/dasha/yogini'
+import {
+  getYoginiInterpretation,
+  isBeneficNature,
+  isMaleficNature,
+} from '@/lib/engine/dasha/yoginiInterpretations'
 import { calcCharaDasha, calcCharaDashaFemale, getFourthFromLagna } from '@/lib/engine/dasha/chara'
 import { calcMandookDasha, calcSthirDasha } from '@/lib/engine/dasha/jaimini'
 import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
@@ -91,6 +96,35 @@ describe('Yogini Dasha', () => {
       const childSum = maha.children.reduce((s, c) => s + c.durationMs, 0)
       expect(childSum).toBeCloseTo(maha.durationMs, -3)  // within 1 second
     }
+  })
+
+  it('labels use classical Yogini names', () => {
+    const dashas = calcYoginiDasha(0, 0, BIRTH_DATE, 1)
+    expect(dashas[0].label).toMatch(/^Bhramari \(Mars\)$/)
+    const byLord = Object.fromEntries(dashas.map(d => [d.lord, d.label]))
+    expect(byLord.Su).toBe('Pingala (Sun)')
+    expect(byLord.Ra).toBe('Sankata (Rahu)')
+  })
+})
+
+describe('Yogini Interpretations', () => {
+  it('covers all 8 Yogini lords with expected durations', () => {
+    const lords = ['Mo', 'Su', 'Ju', 'Ma', 'Me', 'Sa', 'Ve', 'Ra'] as const
+    const years = [1, 2, 3, 4, 5, 6, 7, 8]
+    lords.forEach((lord, i) => {
+      const interp = getYoginiInterpretation(lord)
+      expect(interp).not.toBeNull()
+      expect(interp!.years).toBe(years[i])
+      expect(interp!.keyTheme.length).toBeGreaterThan(0)
+      expect(interp!.primaryPositive.length).toBeGreaterThan(0)
+    })
+  })
+
+  it('maps Siddha as highly benefic and Sankata as highly malefic', () => {
+    expect(getYoginiInterpretation('Ve')?.nature).toBe('Highly Benefic')
+    expect(getYoginiInterpretation('Ra')?.nature).toBe('Highly Malefic')
+    expect(isBeneficNature('Highly Benefic')).toBe(true)
+    expect(isMaleficNature('Highly Malefic')).toBe(true)
   })
 })
 

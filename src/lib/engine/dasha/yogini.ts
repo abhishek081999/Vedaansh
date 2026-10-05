@@ -18,13 +18,13 @@ interface Yogini {
 
 const YOGINIS: Yogini[] = [
   { name: 'Mangala',  lord: 'Mo', years: 1 },
-  { name: 'Pinggala',  lord: 'Su', years: 2 },
+  { name: 'Pingala',  lord: 'Su', years: 2 },
   { name: 'Dhanya',   lord: 'Ju', years: 3 },
   { name: 'Bhramari', lord: 'Ma', years: 4 },
   { name: 'Bhadrika', lord: 'Me', years: 5 },
   { name: 'Ulka',     lord: 'Sa', years: 6 },
   { name: 'Siddha',   lord: 'Ve', years: 7 },
-  { name: 'Sangkata',  lord: 'Ra', years: 8 },
+  { name: 'Sankata',  lord: 'Ra', years: 8 },
 ]
 
 const GRAHA_MAP: Record<string, string> = {

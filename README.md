@@ -170,6 +170,7 @@ All engine modules are pure TypeScript functions (no side effects). Given the sa
 | `calculator.ts` | ✅ | Main orchestrator — all engines wired, returns `ChartOutput` |
 | `dasha/vimshottari.ts` | ✅ | 120yr cycle, 6-level tree (Maha→Antar→Pratyantar→Sukshma→Prana→Deha) |
 | `dasha/yogini.ts` | ✅ | 36yr, 8 Yoginis, birth balance from Moon nakshatra position |
+| `dasha/yoginiInterpretations.ts` | ✅ | Period meanings: nature, themes, mind, risks, triggers |
 | `dasha/chara.ts` | ✅ | Jaimini sign dasha, forward/reverse per parity, birth balance from Lagna degree |
 | `dasha/ashtottari.ts` | ✅ | 108yr conditional Dasha — active for Krishna paksha births outside Rahu nakshatra |
 

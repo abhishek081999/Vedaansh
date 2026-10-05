@@ -19,7 +19,7 @@ const BirthForm = dynamic(() => import('@/components/ui/BirthForm').then(m => m.
 const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').then(m => m.VarshaphalPanel), { ssr: false })
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
 const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
-const DashaInterpretationPanel = dynamic(() => import('@/components/dasha/DashaInterpretationPanel').then(m => m.DashaInterpretationPanel), { ssr: false })
+const YoginiInterpretationPanel = dynamic(() => import('@/components/dasha/YoginiInterpretationPanel').then(m => m.YoginiInterpretationPanel), { ssr: false })
 const PersonalDayCard = dynamic(() => import('@/components/dashboard/PersonalDayCard').then(m => m.PersonalDayCard), { ssr: false })
 const GrahaTable = dynamic(() => import('@/components/ui/GrahaTable').then(m => m.GrahaTable), { ssr: false })
 const AshtakavargaGrid = dynamic(() => import('@/components/ui/AshtakavargaGrid').then(m => m.AshtakavargaGrid), { ssr: false })
@@ -614,6 +614,23 @@ function VimshottariDashaBlock({
         tribhagi={tribhagi}
         maxDepth={userPlan === 'free' ? 4 : 6}
       />
+    </div>
+  )
+}
+
+function YoginiDashaBlock({
+  nodes,
+  birthDate,
+  timezone,
+}: {
+  nodes: import('@/types/astrology').DashaNode[]
+  birthDate: Date
+  timezone?: string
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <DashaTree nodes={nodes} birthDate={birthDate} timezone={timezone} maxDepth={3} />
+      <YoginiInterpretationPanel nodes={nodes} />
     </div>
   )
 }
@@ -1664,7 +1681,7 @@ function HomeContent() {
                 />
               )}
               {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Ashtottari computation required.</div>)}
-              {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <DashaTree nodes={dashboardChart.dashas.yogini} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yogini computation required.</div>)}
+              {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <YoginiDashaBlock nodes={dashboardChart.dashas.yogini} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yogini computation required.</div>)}
               {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara computation required.</div>)}
               {dashaSystem === 'chara_fe' && (dashboardChart.dashas.chara_fe?.length ? <DashaTree nodes={dashboardChart.dashas.chara_fe} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara FE computation required.</div>)}
               {dashaSystem === 'mandook' && (dashboardChart.dashas.mandook?.length ? <DashaTree nodes={dashboardChart.dashas.mandook} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Mandook computation required.</div>)}
@@ -2080,6 +2097,17 @@ function HomeContent() {
                                   />
                                 )
                               }
+                              if (dashaSystem === 'yogini') {
+                                const yoginiNodes = chart.dashas.yogini ?? []
+                                if (!yoginiNodes.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
+                                return (
+                                  <YoginiDashaBlock
+                                    nodes={yoginiNodes}
+                                    birthDate={birthUtcFromMeta(chart.meta)}
+                                    timezone={chart.meta.timezone}
+                                  />
+                                )
+                              }
                               const nodes = chart.dashas[dashaSystem] ?? []
                               if (!nodes?.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
                               return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
@@ -2268,7 +2296,7 @@ function HomeContent() {
                            />
                          )}
                          {dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Ashtottari computation required.</div>)}
-                         {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <DashaTree nodes={chart.dashas.yogini} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yogini computation required.</div>)}
+                         {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <YoginiDashaBlock nodes={chart.dashas.yogini} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yogini computation required.</div>)}
                          {dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara computation required.</div>)}
                         {dashaSystem === 'chara_fe' && (chart.dashas.chara_fe?.length ? <DashaTree nodes={chart.dashas.chara_fe} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara FE computation required.</div>)}
                         {dashaSystem === 'mandook' && (chart.dashas.mandook?.length ? <DashaTree nodes={chart.dashas.mandook} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Mandook computation required.</div>)}
@@ -2447,13 +2475,21 @@ function HomeContent() {
                         </div>
                         <div style={{ padding: '0.4rem 0.45rem' }}>
                           {system.nodes.length > 0 ? (
-                            <DashaTree
-                              nodes={system.nodes}
-                              birthDate={new Date(chart.meta.birthDate)}
-                              showNakshatra={system.id === 'vimshottari' && vimshottariTribhagi}
-                              tribhagi={system.id === 'vimshottari' && vimshottariTribhagi}
-                              maxDepth={system.id === 'vimshottari' ? (userPlan !== 'free' ? 6 : 4) : 3}
-                            />
+                            system.id === 'yogini' ? (
+                              <YoginiDashaBlock
+                                nodes={system.nodes}
+                                birthDate={birthUtcFromMeta(chart.meta)}
+                                timezone={chart.meta.timezone}
+                              />
+                            ) : (
+                              <DashaTree
+                                nodes={system.nodes}
+                                birthDate={new Date(chart.meta.birthDate)}
+                                showNakshatra={system.id === 'vimshottari' && vimshottariTribhagi}
+                                tribhagi={system.id === 'vimshottari' && vimshottariTribhagi}
+                                maxDepth={system.id === 'vimshottari' ? (userPlan !== 'free' ? 6 : 4) : 3}
+                              />
+                            )
                           ) : (
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '0.55rem', textAlign: 'center' }}>
                               Not available for this chart.
