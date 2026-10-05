@@ -85,6 +85,7 @@ export const MOBILE_DASHBOARD_OPTIONS = {
     { id: 'nakshatra-compat', label: 'Compat', path: '/nakshatra/compat' },
     { id: 'nakshatra-remedies', label: 'Remedies', path: '/nakshatra/remedies' },
     { id: 'nakshatra-profession', label: 'Profession', path: '/nakshatra/profession' },
+    { id: 'nakshatra-medical', label: 'Medical', path: '/nakshatra/medical' },
   ],
   advanced: [
     { id: 'jaimini', label: 'Jaimini Astrology', path: '/jaimini' },

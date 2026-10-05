@@ -5,6 +5,7 @@
 
 import type { LucideIcon } from 'lucide-react'
 import {
+  Activity,
   BarChart3,
   BookOpen,
   Briefcase,
@@ -70,6 +71,7 @@ export const NAKSHATRA_TABS: NavTab[] = [
   { id: 'nakshatra-compat', label: 'Compat', icon: HeartHandshake, path: '/nakshatra/compat' },
   { id: 'nakshatra-remedies', label: 'Remedies', icon: Sparkles, path: '/nakshatra/remedies' },
   { id: 'nakshatra-profession', label: 'Profession', icon: Briefcase, path: '/nakshatra/profession' },
+  { id: 'nakshatra-medical', label: 'Medical', icon: Activity, path: '/nakshatra/medical' },
 ]
 
 export const ASTRO_GROUPS: NavGroup[] = [
