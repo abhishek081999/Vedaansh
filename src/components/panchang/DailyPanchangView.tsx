@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { formatLongitudeDMS, rashiBlockFromLongitude } from '@/lib/panchang/sidereal'
 import { PANCHAKA_GLOSSARY } from '@/lib/panchang/panchaka-glossary'
 import { isRiktaTithi, riktaTithiDescription } from '@/lib/panchang/muhurta-extra'
+import { getTithiDayMeta } from '@/lib/engine/tithiMeta'
 import type { PanchangDayTimeline } from '@/lib/panchang/day-timeline'
 import styles from './DailyPanchangView.module.css'
 import { PanchangViz } from './PanchangViz'
@@ -157,6 +158,7 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
     active: isRiktaTithi(data.tithi.number),
     detail: riktaTithiDescription(),
   }
+  const tithiMeta = getTithiDayMeta(data.tithi.number)
 
   return (
     <div className={styles.root}>
@@ -175,7 +177,7 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
           <CompactLimbCard 
             label="Tithi" 
             value={data.tithi.name} 
-            sub={`${data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} · Lord ${data.tithi.lord}`}
+            sub={`${data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} · ${tithiMeta.group.id} · ${tithiMeta.group.elementLabel}`}
             percent={data.tithi.percent}
             isRikta={riktaInfo.active}
             riktaDetail={riktaInfo.detail}

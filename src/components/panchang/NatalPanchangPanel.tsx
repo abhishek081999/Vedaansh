@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import type { ChartOutput } from '@/types/astrology'
+import { getTithiDayMeta, getTithiMoonCombo } from '@/lib/engine/tithiMeta'
+import type { ChartOutput, Rashi } from '@/types/astrology'
 
 type P = ChartOutput['panchang']
 
@@ -21,9 +22,22 @@ function durationMin(start: Date | string, end: Date | string): number {
 /**
  * Birth-time panchang — matches the visual language of the daily almanac page, scaled for side panels.
  */
-export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; title?: string }) {
+export function NatalPanchangPanel({
+  p,
+  title = 'Natal Panchang',
+  moonRashi,
+}: {
+  p: P
+  title?: string
+  /** Birth Moon rashi (1–12) for tithi × Moon combination */
+  moonRashi?: Rashi | null
+}) {
   const tz = p.location.tz
   const pakLabel = p.tithi.paksha === 'shukla' ? 'Shukla paksha' : 'Krishna paksha'
+  const tithiMeta = getTithiDayMeta(p.tithi.number)
+  const tithiNatureColor = tithiMeta.group.nature === 'shubh' ? 'var(--teal)' : 'var(--rose)'
+  const moonCombo = getTithiMoonCombo(p.tithi.number, moonRashi)
+  const comboAccent = moonCombo.moonMatchesAffinity ? 'var(--teal)' : 'var(--gold)'
 
   const muhurtas: { label: string; times: { start: Date; end: Date }; tone: 'warn' | 'caution' | 'good' }[] = [
     { label: 'Rahu kalam', times: p.rahuKalam, tone: 'warn' },
@@ -59,6 +73,21 @@ export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; titl
           <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Tithi</div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.tithi.name}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{pakLabel} · lord {p.tithi.lord}</div>
+          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: 6, alignItems: 'center' }}>
+            <span style={{
+              fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px', borderRadius: 3,
+              border: `1px solid ${tithiNatureColor}`, color: tithiNatureColor,
+              letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              {tithiMeta.group.id}
+            </span>
+            <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
+              {tithiMeta.group.elementLabel} · {tithiMeta.group.meaning}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.35 }}>
+            {tithiMeta.group.peopleTraits}
+          </div>
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Nakshatra</div>
@@ -74,6 +103,55 @@ export function NatalPanchangPanel({ p, title = 'Natal Panchang' }: { p: P; titl
           <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Karana</div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.karana.name}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>#{p.karana.number}</div>
+        </div>
+      </div>
+
+      {/* Tithi × Moon affinity */}
+      <div style={{
+        padding: '0.9rem 1rem',
+        borderRadius: 'var(--r-md)',
+        border: `1px solid ${moonCombo.moonMatchesAffinity ? 'rgba(20,184,166,0.35)' : 'var(--border)'}`,
+        background: moonCombo.moonMatchesAffinity ? 'rgba(20,184,166,0.06)' : 'var(--surface-2)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '0.45rem' }}>
+          <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)' }}>Tithi × Moon</div>
+          {moonCombo.moonMatchesAffinity && (
+            <span style={{
+              fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px', borderRadius: 3,
+              border: `1px solid ${comboAccent}`, color: comboAccent,
+              letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              Affinity match
+            </span>
+          )}
+        </div>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
+          {moonCombo.tithiName}
+          {' · '}
+          {moonCombo.groupId}
+          {' · '}
+          Affinity {moonCombo.affinityRashiName}
+          {moonCombo.birthMoonRashiName ? ` · Birth Moon ${moonCombo.birthMoonRashiName}` : ''}
+        </div>
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '0.45rem' }}>
+          {moonCombo.note}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Positive tendency</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{moonCombo.positiveTendency}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Watch (traditional)</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{moonCombo.healthSensitivity}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Element</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{moonCombo.elementLabel}</div>
+          </div>
+        </div>
+        <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '0.5rem', opacity: 0.8, lineHeight: 1.35 }}>
+          Traditional sensitivity notes — not medical advice.
         </div>
       </div>
 

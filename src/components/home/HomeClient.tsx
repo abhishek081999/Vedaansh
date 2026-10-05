@@ -2137,7 +2137,7 @@ function HomeContent() {
                       {mobileDashTab === 'panchang' && (
                         <div className="panel">
                           <div className="panel-header"><span>Natal Panchang</span></div>
-                          <div style={{ padding: '0.4rem 0.55rem' }}><NatalPanchangPanel p={chart.panchang} /></div>
+                          <div style={{ padding: '0.4rem 0.55rem' }}><NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} /></div>
                         </div>
                       )}
 
@@ -2280,7 +2280,7 @@ function HomeContent() {
                   {activeTab === 'panchang' && (
                      <div className="panel fade-up">
                         <div className="panel-header"><span>Natal Panchang</span></div>
-                        <div style={{ padding: '0.5rem 0.65rem' }}><NatalPanchangPanel p={chart.panchang} /></div>
+                        <div style={{ padding: '0.5rem 0.65rem' }}><NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} /></div>
                      </div>
                   )}
 
@@ -2786,7 +2786,7 @@ function HomeContent() {
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
                         {dashExpandPanchang ? (
-                          <NatalPanchangPanel p={chart.panchang} />
+                          <NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} />
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
                             {[

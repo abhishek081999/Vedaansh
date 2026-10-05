@@ -3,7 +3,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
-import { NAKSHATRA_NAMES, PanchangData } from '@/types/astrology'
+import { getTithiDayMeta, formatTithiWeatherLine } from '@/lib/engine/tithiMeta'
+import type { PanchangData } from '@/types/astrology'
 
 interface PersonalDayCardProps {
   birthMoonNakIdx: number
@@ -25,11 +26,15 @@ export function PersonalDayCard({
   birthDate
 }: PersonalDayCardProps) {
   const [todayNak, setTodayNak] = useState<{ index: number; name: string } | null>(null)
+  const [todayTithiNum, setTodayTithiNum] = useState<number | null>(
+    todayPanchang?.tithi?.number ?? null,
+  )
   const [loading, setLoading] = useState(!todayPanchang)
 
   useEffect(() => {
     if (todayPanchang) {
       setTodayNak({ index: todayPanchang.nakshatra.index, name: todayPanchang.nakshatra.name })
+      setTodayTithiNum(todayPanchang.tithi.number)
       setLoading(false)
       return
     }
@@ -41,6 +46,7 @@ export function PersonalDayCard({
         if (cached) {
           const json = JSON.parse(cached)
           setTodayNak({ index: json.nakshatra.index, name: json.nakshatra.name })
+          if (typeof json.tithi?.number === 'number') setTodayTithiNum(json.tithi.number)
           setLoading(false)
           return
         }
@@ -50,6 +56,7 @@ export function PersonalDayCard({
         const json = await res.json()
         if (json.success) {
           setTodayNak({ index: json.data.nakshatra.index, name: json.data.nakshatra.name })
+          if (typeof json.data.tithi?.number === 'number') setTodayTithiNum(json.data.tithi.number)
           try { sessionStorage.setItem(cacheKey, JSON.stringify(json.data)) } catch {}
         }
       } catch (err) {
@@ -92,11 +99,21 @@ export function PersonalDayCard({
   const bcpYear = age + 1
   const bcpHouse = ((bcpYear - 1) % 12) + 1
 
+  const tithiMeta = todayTithiNum != null ? getTithiDayMeta(todayTithiNum) : null
+  const tithiAccent = tithiMeta
+    ? (tithiMeta.group.nature === 'shubh' ? 'var(--teal)' : 'var(--rose)')
+    : accentColor
+  const pakshaLabel = todayPanchang?.tithi?.paksha === 'krishna'
+    ? 'Krishna'
+    : todayPanchang?.tithi?.paksha === 'shukla'
+      ? 'Shukla'
+      : null
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.72rem' }}>
 
       {/* ── Status row ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
         <span style={{
           fontSize: '0.6rem', fontWeight: 700, padding: '1px 7px',
           borderRadius: 3, border: `1px solid ${accentColor}`,
@@ -130,6 +147,63 @@ export function PersonalDayCard({
       }}>
         {q.recommendation}
       </div>
+
+      {/* ── Today’s tithi group ── */}
+      {tithiMeta && (
+        <div style={{
+          marginTop: '0.15rem',
+          padding: '0.35rem 0.45rem',
+          background: 'var(--surface-3)',
+          borderRadius: 4,
+          border: '1px solid var(--border-soft)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.22rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              Tithi
+            </span>
+            <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
+              {tithiMeta.name}
+              {pakshaLabel ? ` · ${pakshaLabel}` : ''}
+            </strong>
+            <span style={{
+              fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
+              borderRadius: 3, border: `1px solid ${tithiAccent}`,
+              color: tithiAccent, letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              {tithiMeta.group.id}
+            </span>
+            <span style={{
+              fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
+              borderRadius: 3,
+              background: tithiMeta.group.nature === 'shubh' ? 'rgba(20,184,166,0.12)' : 'rgba(244,63,94,0.12)',
+              color: tithiAccent,
+              letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              {tithiMeta.group.nature === 'shubh' ? 'Shubh' : 'Ashubh'}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+            {tithiMeta.group.elementLabel} · {tithiMeta.group.meaning}
+            {' · '}Deity {tithiMeta.deity}
+            {' · '}Best for: {tithiMeta.bestFor}
+          </div>
+          <div style={{
+            borderLeft: `2px solid ${tithiAccent}`,
+            paddingLeft: '0.4rem',
+            fontSize: '0.65rem',
+            color: 'var(--text-secondary)',
+            lineHeight: 1.4,
+          }}>
+            {formatTithiWeatherLine(tithiMeta)}
+          </div>
+          <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
+            {tithiMeta.temperament}
+          </div>
+        </div>
+      )}
 
       {/* ── Birth moon note ── */}
       <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.75 }}>
