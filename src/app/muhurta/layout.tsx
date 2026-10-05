@@ -6,7 +6,7 @@ import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   title:       'Muhurta Finder — Auspicious Time & Shubh Muhurat',
-  description: 'Free Muhurta finder for weddings, griha pravesh, travel, and business. Scores days by Tithi, Nakshatra, Yoga, Karana, Rahu Kalam, and personal Tara/Chandra Bala.',
+  description: 'Gold Muhurta finder for weddings, griha pravesh, travel, and business. Scores days by Tithi, Nakshatra, Yoga, Karana, Rahu Kalam, and personal Tara/Chandra Bala.',
   alternates:  { canonical: `${SITE_URL}/muhurta` },
   keywords:    ['Muhurta', 'auspicious time', 'Vedic election astrology', 'wedding Muhurta', 'Shubh Muhurta', 'Rahu Kalam', 'Tithi', 'Nakshatra timing'],
   openGraph: {

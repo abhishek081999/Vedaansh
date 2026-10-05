@@ -28,6 +28,8 @@ interface Props {
   onChange:      (loc: LocationValue) => void
   label?:        string
   birthLocation?: LocationValue | null
+  /** If true and value is still the Delhi default with no saved override, request GPS once. */
+  autoGeolocate?: boolean
 }
 
 export const DELHI_DEFAULT: LocationValue = {
@@ -49,7 +51,7 @@ function saveLocation(loc: LocationValue) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(loc)) } catch {}
 }
 
-export function LocationPicker({ value, onChange, label = 'Location', birthLocation }: Props) {
+export function LocationPicker({ value, onChange, label = 'Location', birthLocation, autoGeolocate }: Props) {
   const [query,      setQuery]      = useState(value.name)
   const [results,    setResults]    = useState<AtlasResult[]>([])
   const [open,       setOpen]       = useState(false)
@@ -58,8 +60,21 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
   const [isMobile, setIsMobile] = useState(false)
   const timer   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const didAutoGeo = useRef(false)
 
   useEffect(() => { setQuery(value.name) }, [value.name])
+
+  useEffect(() => {
+    if (!autoGeolocate || didAutoGeo.current) return
+    if (typeof window === 'undefined') return
+    // Only auto-geo when user has never saved a location (still default Delhi)
+    try {
+      if (localStorage.getItem(LS_KEY)) return
+    } catch { return }
+    didAutoGeo.current = true
+    handleGeolocate()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, [autoGeolocate])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 640)
@@ -119,7 +134,11 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
         try {
           const res  = await fetch(`/api/atlas/search?lat=${lat.toFixed(4)}&lng=${lng.toFixed(4)}`)
           const data = await res.json()
-          if (data.results?.length > 0) { handleSelect(data.results[0]); return }
+          if (data.results?.length > 0) {
+            handleSelect(data.results[0])
+            setGeoLoading(false)
+            return
+          }
         } catch {}
         const loc: LocationValue = {
           lat, lng,
