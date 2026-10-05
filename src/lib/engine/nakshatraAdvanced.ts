@@ -133,13 +133,13 @@ export interface TaraQuality {
 }
 
 export const TARA_QUALITIES: Record<TaraName, { quality: 'auspicious' | 'inauspicious' | 'neutral'; meaning: string; recommendation: string }> = {
-  'Janma':    { quality: 'neutral',     meaning: 'Birth star – mixed results, intense energy',         recommendation: 'Caution for new beginnings; spiritual activity favoured' },
+  'Janma':    { quality: 'neutral',     meaning: 'Birth star – mixed results, intense energy',         recommendation: 'Caution for new beginnings; if unavoidable, donate vegetables' },
   'Sampat':   { quality: 'auspicious',  meaning: 'Star of wealth and prosperity',                      recommendation: 'Excellent for financial and material pursuits' },
-  'Vipat':    { quality: 'inauspicious',meaning: 'Star of danger and obstacles',                       recommendation: 'Avoid travel, major decisions, or risky ventures' },
+  'Vipat':    { quality: 'inauspicious',meaning: 'Star of danger and obstacles',                       recommendation: 'Avoid travel and major risks; if unavoidable, donate jaggery (gur)' },
   'Kshema':   { quality: 'auspicious',  meaning: 'Star of comfort and well-being',                     recommendation: 'Ideal for health, family, and nurturing activities' },
-  'Pratyari': { quality: 'inauspicious',meaning: 'Star of enmity and opposition',                      recommendation: 'Be alert for adversaries; avoid confrontations' },
+  'Pratyari': { quality: 'inauspicious',meaning: 'Star of enmity and opposition',                      recommendation: 'Avoid confrontations; if unavoidable, donate salt' },
   'Sadhaka':  { quality: 'auspicious',  meaning: 'Star of achievement and success',                    recommendation: 'Best for creative work, skills, and accomplishments' },
-  'Vadha':    { quality: 'inauspicious',meaning: 'Star of destruction and endings',                    recommendation: 'Highly inauspicious; postpone important matters' },
+  'Vadha':    { quality: 'inauspicious',meaning: 'Star of destruction and endings',                    recommendation: 'Postpone important matters; if unavoidable, donate gold' },
   'Mitra':    { quality: 'auspicious',  meaning: 'Star of friendship and allies',                      recommendation: 'Excellent for partnerships, networking, social matters' },
   'Ati-Mitra':{ quality: 'auspicious',  meaning: 'Star of best friend — highly auspicious',            recommendation: 'Most favourable; ideal for all auspicious activities' },
 }

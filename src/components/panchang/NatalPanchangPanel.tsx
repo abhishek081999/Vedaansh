@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { getTithiDayMeta, getTithiMoonCombo } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta } from '@/lib/engine/karanaMeta'
 import { getYogaMeta } from '@/lib/engine/yogaMeta'
+import { getNakshatraMuhurtaMeta } from '@/lib/engine/nakshatraMuhurta'
+import { SanskarasReference } from '@/components/panchang/SanskarasReference'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 
 type P = ChartOutput['panchang']
@@ -49,6 +51,12 @@ export function NatalPanchangPanel({
   const yogaQualityLabel = yogaMeta
     ? (yogaMeta.quality === 'auspicious' ? 'Shubh' : yogaMeta.quality === 'inauspicious' ? 'Ashubh' : 'Neutral')
     : null
+  const nakMeta = getNakshatraMuhurtaMeta(p.nakshatra.index, p.nakshatra.pada)
+  const nakAccent = nakMeta.group.id === 'Ugra' || nakMeta.group.id === 'Tikshna'
+    ? 'var(--rose)'
+    : nakMeta.group.id === 'Dhruva' || nakMeta.group.id === 'Mridu' || nakMeta.group.id === 'Laghu'
+      ? 'var(--teal)'
+      : 'var(--gold)'
 
   const muhurtas: { label: string; times: { start: Date; end: Date }; tone: 'warn' | 'caution' | 'good' }[] = [
     { label: 'Rahu kalam', times: p.rahuKalam, tone: 'warn' },
@@ -104,6 +112,18 @@ export function NatalPanchangPanel({
           <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Nakshatra</div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.nakshatra.name}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Pada {p.nakshatra.pada} · {p.nakshatra.lord}</div>
+          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: 6, alignItems: 'center' }}>
+            <span style={{
+              fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px', borderRadius: 3,
+              border: `1px solid ${nakAccent}`, color: nakAccent,
+              letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              {nakMeta.group.id}
+            </span>
+            <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
+              {nakMeta.mukha.label} · {nakMeta.chars.gana}
+            </span>
+          </div>
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Yoga</div>
@@ -152,6 +172,45 @@ export function NatalPanchangPanel({
               <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Deity {karanaMeta.deity}</span>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Birth nakshatra muhurta nature */}
+      <div style={{
+        padding: '0.9rem 1rem',
+        borderRadius: 'var(--r-md)',
+        border: '1px solid var(--border)',
+        background: 'var(--surface-2)',
+      }}>
+        <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)', marginBottom: '0.45rem' }}>
+          Nakshatra energy · Muhurta
+        </div>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+          {nakMeta.name} · {nakMeta.group.label} · {nakMeta.mukha.label}
+        </div>
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '0.55rem' }}>
+          {nakMeta.basicEnergy}
+        </div>
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.4, marginBottom: '0.55rem' }}>
+          {nakMeta.fallEffect}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Group energy</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{nakMeta.group.energy}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Good for (muhurta)</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{nakMeta.group.goodFor}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Mukha</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{nakMeta.mukha.meaning} — {nakMeta.mukha.goodFor}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Deity · Yoni</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{nakMeta.chars.deity} · {nakMeta.chars.yoni}</div>
+          </div>
         </div>
       </div>
 
@@ -330,6 +389,8 @@ export function NatalPanchangPanel({
           <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{p.horaTable.length} horas computed for birth sunrise/sunset.</div>
         </div>
       )}
+
+      <SanskarasReference />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-gold)', textDecoration: 'none' }}>

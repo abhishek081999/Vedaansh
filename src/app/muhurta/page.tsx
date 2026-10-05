@@ -16,6 +16,8 @@ import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import { MuhurtaNowStrip } from '@/components/ui/MuhurtaNowStrip'
+import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
+import { SanskarasReference } from '@/components/panchang/SanskarasReference'
 import { calcTaraBala, calcChandraBala } from '@/lib/engine/muhurtaPersonal'
 import {
   analyzeMuhurta,
@@ -635,6 +637,15 @@ export default function MuhurtaPage() {
           loading={timelineLoading}
           avoidNow={avoidNowLabels}
         />
+
+        {results[0]?.panchang?.sunrise && results[0]?.panchang?.sunset && (
+          <DinmanMuhurtaStrip
+            sunrise={results[0].panchang.sunrise}
+            sunset={results[0].panchang.sunset}
+          />
+        )}
+
+        <SanskarasReference />
 
         <section>
           <MuhurtaTimeline

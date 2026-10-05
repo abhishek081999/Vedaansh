@@ -8,6 +8,9 @@ import { isRiktaTithi, riktaTithiDescription } from '@/lib/panchang/muhurta-extr
 import { getTithiDayMeta } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta } from '@/lib/engine/karanaMeta'
 import { getYogaMeta } from '@/lib/engine/yogaMeta'
+import { getNakshatraMuhurtaMeta, getAbhijitWindow } from '@/lib/engine/nakshatraMuhurta'
+import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
+import { SanskarasReference } from '@/components/panchang/SanskarasReference'
 import type { PanchangDayTimeline } from '@/lib/panchang/day-timeline'
 import styles from './DailyPanchangView.module.css'
 import { PanchangViz } from './PanchangViz'
@@ -163,6 +166,8 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
   const tithiMeta = getTithiDayMeta(data.tithi.number)
   const karanaMeta = getKaranaMeta(data.karana.name)
   const yogaMeta = getYogaMeta(data.yoga.name)
+  const nakMeta = getNakshatraMuhurtaMeta(data.nakshatra.index, data.nakshatra.pada)
+  const abhijit = getAbhijitWindow(data.moonLongitudeSidereal)
 
   return (
     <div className={styles.root}>
@@ -188,8 +193,8 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
           />
           <CompactLimbCard 
             label="Nakshatra" 
-            value={data.nakshatra.name} 
-            sub={`Pada ${data.nakshatra.pada} · Lord ${data.nakshatra.lord}`}
+            value={abhijit.active ? `${data.nakshatra.name} · Abhijit` : data.nakshatra.name} 
+            sub={`${nakMeta.group.id} · ${nakMeta.mukha.id} · Pada ${data.nakshatra.pada}`}
             percent={(data.nakshatra.degree / 13.33) * 100}
           />
           <CompactLimbCard 
@@ -236,6 +241,12 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
           <MuhurtaCard label="Yamaganda" start={data.yamaganda.start} end={data.yamaganda.end} tz={tz} tone="neutral" />
           {data.brahmaMuhurta && <MuhurtaCard label="Brahma Muhurta" start={data.brahmaMuhurta.start} end={data.brahmaMuhurta.end} tz={tz} tone="good" />}
           {data.godhuliMuhurat && <MuhurtaCard label="Godhuli" start={data.godhuliMuhurat.start} end={data.godhuliMuhurat.end} tz={tz} tone="good" />}
+        </div>
+        <div style={{ marginTop: '0.75rem' }}>
+          <DinmanMuhurtaStrip sunrise={data.sunrise} sunset={data.sunset} tz={tz} />
+        </div>
+        <div style={{ marginTop: '0.75rem' }}>
+          <SanskarasReference />
         </div>
       </section>
 

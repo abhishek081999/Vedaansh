@@ -6,6 +6,14 @@ import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
 import { getTithiDayMeta, formatTithiWeatherLine } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta, formatKaranaWeatherLine } from '@/lib/engine/karanaMeta'
 import { getYogaMeta, formatYogaWeatherLine } from '@/lib/engine/yogaMeta'
+import {
+  getNakshatraMuhurtaMeta,
+  formatNakshatraWeatherLine,
+  getAshwiniYogaNotes,
+  getAbhijitWindow,
+  ASHWINI_ACTIVITY_HINT,
+} from '@/lib/engine/nakshatraMuhurta'
+import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
 import type { PanchangData } from '@/types/astrology'
 
 interface PersonalDayCardProps {
@@ -133,6 +141,17 @@ export function PersonalDayCard({
     ? (yogaMeta.quality === 'auspicious' ? 'Shubh' : yogaMeta.quality === 'inauspicious' ? 'Ashubh' : 'Neutral')
     : null
 
+  const nakMeta = getNakshatraMuhurtaMeta(todayNak.index, todayPanchang?.nakshatra?.pada ?? 1)
+  const abhijit = getAbhijitWindow(todayPanchang?.moonLongitudeSidereal)
+  const ashwiniNotes = todayPanchang?.vara != null
+    ? getAshwiniYogaNotes(todayNak.index, todayPanchang.vara.number, todayTithiNum)
+    : []
+  const nakAccent = nakMeta.group.id === 'Ugra' || nakMeta.group.id === 'Tikshna'
+    ? 'var(--rose)'
+    : nakMeta.group.id === 'Dhruva' || nakMeta.group.id === 'Mridu' || nakMeta.group.id === 'Laghu'
+      ? 'var(--teal)'
+      : 'var(--gold)'
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.72rem' }}>
 
@@ -170,6 +189,78 @@ export function PersonalDayCard({
         lineHeight: 1.4,
       }}>
         {q.recommendation}
+      </div>
+
+      {/* ── Today’s nakshatra muhurta ── */}
+      <div style={{
+        marginTop: '0.15rem',
+        padding: '0.35rem 0.45rem',
+        background: 'var(--surface-3)',
+        borderRadius: 4,
+        border: '1px solid var(--border-soft)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.22rem',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+            Nakshatra
+          </span>
+          <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
+            {nakMeta.name}
+            {abhijit.active ? ' · Abhijit' : ''}
+          </strong>
+          <span style={{
+            fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
+            borderRadius: 3, border: `1px solid ${nakAccent}`,
+            color: nakAccent, letterSpacing: '0.04em', textTransform: 'uppercase',
+          }}>
+            {nakMeta.group.id}
+          </span>
+          <span style={{
+            fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
+            borderRadius: 3, border: '1px solid var(--border-soft)',
+            color: 'var(--text-muted)', letterSpacing: '0.04em', textTransform: 'uppercase',
+          }}>
+            {nakMeta.mukha.id}
+          </span>
+        </div>
+          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+            {nakMeta.basicEnergy}
+          </div>
+          <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
+            {nakMeta.fallEffect}
+          </div>
+        <div style={{
+          borderLeft: `2px solid ${nakAccent}`,
+          paddingLeft: '0.4rem',
+          fontSize: '0.65rem',
+          color: 'var(--text-secondary)',
+          lineHeight: 1.4,
+        }}>
+          {abhijit.active
+            ? abhijit.note
+            : formatNakshatraWeatherLine(nakMeta)}
+        </div>
+        <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
+          Mukha: {nakMeta.mukha.meaning} — {nakMeta.mukha.goodFor}
+        </div>
+        {ashwiniNotes.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginTop: '0.1rem' }}>
+            {ashwiniNotes.map((n) => (
+              <div key={n.id} style={{
+                fontSize: '0.58rem',
+                color: n.quality === 'inauspicious' ? 'var(--rose)' : n.quality === 'caution' ? 'var(--gold)' : 'var(--teal)',
+                lineHeight: 1.35,
+              }}>
+                <strong>{n.label}:</strong> {n.detail}
+              </div>
+            ))}
+            <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
+              Favour: {ASHWINI_ACTIVITY_HINT.favour}. Avoid: {ASHWINI_ACTIVITY_HINT.avoid}.
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Today’s tithi group ── */}
@@ -324,6 +415,15 @@ export function PersonalDayCard({
             Challenge: {karanaMeta.challenge}
           </div>
         </div>
+      )}
+
+      {/* ── Dinman / Ratriman backup windows ── */}
+      {todayPanchang?.sunrise && todayPanchang?.sunset && (
+        <DinmanMuhurtaStrip
+          sunrise={todayPanchang.sunrise}
+          sunset={todayPanchang.sunset}
+          tz={todayPanchang.location?.tz ?? timezone}
+        />
       )}
 
       {/* ── Birth moon note ── */}
