@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { getTithiDayMeta, getTithiMoonCombo } from '@/lib/engine/tithiMeta'
+import { getKaranaMeta } from '@/lib/engine/karanaMeta'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 
 type P = ChartOutput['panchang']
@@ -38,6 +39,8 @@ export function NatalPanchangPanel({
   const tithiNatureColor = tithiMeta.group.nature === 'shubh' ? 'var(--teal)' : 'var(--rose)'
   const moonCombo = getTithiMoonCombo(p.tithi.number, moonRashi)
   const comboAccent = moonCombo.moonMatchesAffinity ? 'var(--teal)' : 'var(--gold)'
+  const karanaMeta = getKaranaMeta(p.karana.name)
+  const karanaAccent = karanaMeta?.isBhadra ? 'var(--rose)' : 'var(--gold)'
 
   const muhurtas: { label: string; times: { start: Date; end: Date }; tone: 'warn' | 'caution' | 'good' }[] = [
     { label: 'Rahu kalam', times: p.rahuKalam, tone: 'warn' },
@@ -102,9 +105,71 @@ export function NatalPanchangPanel({
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Karana</div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.karana.name}</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>#{p.karana.number}</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
+            #{p.karana.number}
+            {karanaMeta ? ` · ${karanaMeta.typeLabel} · ${karanaMeta.meaning}` : ''}
+          </div>
+          {karanaMeta && (
+            <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: 6, alignItems: 'center' }}>
+              <span style={{
+                fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px', borderRadius: 3,
+                border: `1px solid ${karanaAccent}`, color: karanaAccent,
+                letterSpacing: '0.04em', textTransform: 'uppercase',
+              }}>
+                {karanaMeta.typeLabel}
+              </span>
+              {karanaMeta.isBhadra && (
+                <span style={{
+                  fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px', borderRadius: 3,
+                  background: 'rgba(244,63,94,0.12)', color: 'var(--rose)',
+                  letterSpacing: '0.04em', textTransform: 'uppercase',
+                }}>
+                  Bhadra
+                </span>
+              )}
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Deity {karanaMeta.deity}</span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Birth karana characteristics */}
+      {karanaMeta && (
+        <div style={{
+          padding: '0.9rem 1rem',
+          borderRadius: 'var(--r-md)',
+          border: `1px solid ${karanaMeta.isBhadra ? 'rgba(244,63,94,0.35)' : 'var(--border)'}`,
+          background: karanaMeta.isBhadra ? 'rgba(244,63,94,0.06)' : 'var(--surface-2)',
+        }}>
+          <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)', marginBottom: '0.45rem' }}>
+            Karana nature
+          </div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+            {karanaMeta.name} · {karanaMeta.meaning}
+          </div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '0.55rem' }}>
+            {karanaMeta.nature}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
+            <div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Strengths</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{karanaMeta.positiveTraits}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Challenge</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{karanaMeta.challenge}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Career</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{karanaMeta.career}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Remedy</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{karanaMeta.remedy}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tithi × Moon affinity */}
       <div style={{

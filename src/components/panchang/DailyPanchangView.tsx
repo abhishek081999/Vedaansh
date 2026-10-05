@@ -6,6 +6,7 @@ import { formatLongitudeDMS, rashiBlockFromLongitude } from '@/lib/panchang/side
 import { PANCHAKA_GLOSSARY } from '@/lib/panchang/panchaka-glossary'
 import { isRiktaTithi, riktaTithiDescription } from '@/lib/panchang/muhurta-extra'
 import { getTithiDayMeta } from '@/lib/engine/tithiMeta'
+import { getKaranaMeta } from '@/lib/engine/karanaMeta'
 import type { PanchangDayTimeline } from '@/lib/panchang/day-timeline'
 import styles from './DailyPanchangView.module.css'
 import { PanchangViz } from './PanchangViz'
@@ -159,6 +160,7 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
     detail: riktaTithiDescription(),
   }
   const tithiMeta = getTithiDayMeta(data.tithi.number)
+  const karanaMeta = getKaranaMeta(data.karana.name)
 
   return (
     <div className={styles.root}>
@@ -198,8 +200,10 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
           <CompactLimbCard 
             label="Karana" 
             value={data.karana.name} 
-            sub={data.karana.type}
-            isBhadra={data.karana.isBhadra}
+            sub={karanaMeta
+              ? `${karanaMeta.typeLabel} · ${karanaMeta.meaning}${karanaMeta.isBhadra ? ' · Bhadra' : ''}`
+              : data.karana.type}
+            isBhadra={data.karana.isBhadra || karanaMeta?.isBhadra}
           />
           <CompactLimbCard 
             label="Vara" 

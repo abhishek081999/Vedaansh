@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react'
 import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
 import { getTithiDayMeta, formatTithiWeatherLine } from '@/lib/engine/tithiMeta'
+import { getKaranaMeta, formatKaranaWeatherLine } from '@/lib/engine/karanaMeta'
 import type { PanchangData } from '@/types/astrology'
 
 interface PersonalDayCardProps {
@@ -29,12 +30,16 @@ export function PersonalDayCard({
   const [todayTithiNum, setTodayTithiNum] = useState<number | null>(
     todayPanchang?.tithi?.number ?? null,
   )
+  const [todayKaranaName, setTodayKaranaName] = useState<string | null>(
+    todayPanchang?.karana?.name ?? null,
+  )
   const [loading, setLoading] = useState(!todayPanchang)
 
   useEffect(() => {
     if (todayPanchang) {
       setTodayNak({ index: todayPanchang.nakshatra.index, name: todayPanchang.nakshatra.name })
       setTodayTithiNum(todayPanchang.tithi.number)
+      setTodayKaranaName(todayPanchang.karana.name)
       setLoading(false)
       return
     }
@@ -47,6 +52,7 @@ export function PersonalDayCard({
           const json = JSON.parse(cached)
           setTodayNak({ index: json.nakshatra.index, name: json.nakshatra.name })
           if (typeof json.tithi?.number === 'number') setTodayTithiNum(json.tithi.number)
+          if (typeof json.karana?.name === 'string') setTodayKaranaName(json.karana.name)
           setLoading(false)
           return
         }
@@ -57,6 +63,7 @@ export function PersonalDayCard({
         if (json.success) {
           setTodayNak({ index: json.data.nakshatra.index, name: json.data.nakshatra.name })
           if (typeof json.data.tithi?.number === 'number') setTodayTithiNum(json.data.tithi.number)
+          if (typeof json.data.karana?.name === 'string') setTodayKaranaName(json.data.karana.name)
           try { sessionStorage.setItem(cacheKey, JSON.stringify(json.data)) } catch {}
         }
       } catch (err) {
@@ -108,6 +115,9 @@ export function PersonalDayCard({
     : todayPanchang?.tithi?.paksha === 'shukla'
       ? 'Shukla'
       : null
+
+  const karanaMeta = todayKaranaName ? getKaranaMeta(todayKaranaName) : null
+  const karanaAccent = karanaMeta?.isBhadra ? 'var(--rose)' : 'var(--gold)'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.72rem' }}>
@@ -201,6 +211,59 @@ export function PersonalDayCard({
           </div>
           <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
             {tithiMeta.temperament}
+          </div>
+        </div>
+      )}
+
+      {/* ── Today’s karana ── */}
+      {karanaMeta && (
+        <div style={{
+          padding: '0.35rem 0.45rem',
+          background: karanaMeta.isBhadra ? 'rgba(244,63,94,0.06)' : 'var(--surface-3)',
+          borderRadius: 4,
+          border: `1px solid ${karanaMeta.isBhadra ? 'rgba(244,63,94,0.28)' : 'var(--border-soft)'}`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.22rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              Karana
+            </span>
+            <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
+              {karanaMeta.name}
+            </strong>
+            <span style={{
+              fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
+              borderRadius: 3, border: `1px solid ${karanaAccent}`,
+              color: karanaAccent, letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              {karanaMeta.typeLabel}
+            </span>
+            {karanaMeta.isBhadra && (
+              <span style={{
+                fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
+                borderRadius: 3, background: 'rgba(244,63,94,0.12)',
+                color: 'var(--rose)', letterSpacing: '0.04em', textTransform: 'uppercase',
+              }}>
+                Bhadra
+              </span>
+            )}
+          </div>
+          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+            {karanaMeta.meaning} · Deity {karanaMeta.deity} · {karanaMeta.career}
+          </div>
+          <div style={{
+            borderLeft: `2px solid ${karanaAccent}`,
+            paddingLeft: '0.4rem',
+            fontSize: '0.65rem',
+            color: 'var(--text-secondary)',
+            lineHeight: 1.4,
+          }}>
+            {formatKaranaWeatherLine(karanaMeta)}
+          </div>
+          <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
+            Challenge: {karanaMeta.challenge}
           </div>
         </div>
       )}
