@@ -7,6 +7,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   BarChart3,
   BookOpen,
+  Briefcase,
   Calendar,
   CalendarDays,
   ClipboardList,
@@ -68,6 +69,7 @@ export const NAKSHATRA_TABS: NavTab[] = [
   { id: 'nakshatra-planet', label: 'Planet', icon: Star, path: '/nakshatra/planet' },
   { id: 'nakshatra-compat', label: 'Compat', icon: HeartHandshake, path: '/nakshatra/compat' },
   { id: 'nakshatra-remedies', label: 'Remedies', icon: Sparkles, path: '/nakshatra/remedies' },
+  { id: 'nakshatra-profession', label: 'Profession', icon: Briefcase, path: '/nakshatra/profession' },
 ]
 
 export const ASTRO_GROUPS: NavGroup[] = [
