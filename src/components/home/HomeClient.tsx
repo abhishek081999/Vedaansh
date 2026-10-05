@@ -1788,6 +1788,17 @@ function HomeContent() {
             birthDate={dashboardChart.meta.birthDate}
           />
 
+          {vimshottariNodes?.length > 0 && (
+            <>
+              <div style={{ borderTop: '1px solid var(--border-soft)' }} />
+              <DashaInterpretationTeaserFromChart
+                chart={dashboardChart}
+                nodes={vimshottariNodes}
+                onOpenFull={() => setActiveTab('dasha-interpretation')}
+              />
+            </>
+          )}
+
           {/* Divider */}
           <div style={{ borderTop: '1px solid var(--border-soft)' }} />
 
@@ -2150,51 +2161,78 @@ function HomeContent() {
                       )}
 
                       {mobileDashTab === 'dashas' && (
-                        <div className="panel">
-                          <div className="panel-header">
-                            <span>Dasha Timeline</span>
-                            <select value={dashaSystem} onChange={(e) => setDashaSystem(e.target.value as any)}
-                              style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}>
-                              <option value="vimshottari">Vimshottari</option>
-                              <option value="yogini">Yogini</option>
-                              <option value="chara">Chara (K.N. Rao)</option>
-                              <option value="chara_fe">Chara (Rangacharya FE)</option>
-                              <option value="mandook">Mandook (K.N. Rao)</option>
-                              <option value="sthir">Sthir</option>
-                              <option value="ashtottari">Ashtottari</option>
-                            </select>
-                          </div>
-                          <div style={{ padding: '0.4rem 0.55rem' }}>
-                            {(() => {
-                              if (dashaSystem === 'vimshottari') {
-                                return (
-                                  <VimshottariDashaBlock
-                                    nodes={vimshottariNodes}
-                                    birthDate={birthUtcFromMeta(chart.meta)}
-                                    timezone={chart.meta.timezone}
-                                    tara={vimshottariTara}
-                                    tribhagi={vimshottariTribhagi}
-                                    userPlan={userPlan}
-                                    onTara={setVimshottariTara}
-                                    onTribhagi={setVimshottariTribhagi}
-                                  />
-                                )
-                              }
-                              if (dashaSystem === 'yogini') {
-                                const yoginiNodes = chart.dashas.yogini ?? []
-                                if (!yoginiNodes.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
-                                return (
-                                  <YoginiDashaBlock
-                                    nodes={yoginiNodes}
-                                    birthDate={birthUtcFromMeta(chart.meta)}
-                                    timezone={chart.meta.timezone}
-                                  />
-                                )
-                              }
-                              const nodes = chart.dashas[dashaSystem] ?? []
-                              if (!nodes?.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
-                              return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
-                            })()}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {dashaSystem === 'vimshottari' && vimshottariNodes?.length > 0 && (
+                            <DashaInterpretationTeaserFromChart
+                              chart={chart}
+                              nodes={vimshottariNodes}
+                              onOpenFull={() => setActiveTab('dasha-interpretation')}
+                            />
+                          )}
+                          {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ?? 0) > 0 && (
+                            <div className="panel">
+                              <div className="panel-header">
+                                <span>Yogini Interpretation</span>
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ fontSize: '0.62rem', padding: '0.15rem 0.45rem' }}
+                                  onClick={() => setActiveTab('dasha-interpretation')}
+                                >
+                                  Full →
+                                </button>
+                              </div>
+                              <div style={{ padding: '0.4rem 0.55rem' }}>
+                                <YoginiInterpretationPanel nodes={chart.dashas.yogini!} />
+                              </div>
+                            </div>
+                          )}
+                          <div className="panel">
+                            <div className="panel-header">
+                              <span>Dasha Timeline</span>
+                              <select value={dashaSystem} onChange={(e) => setDashaSystem(e.target.value as any)}
+                                style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}>
+                                <option value="vimshottari">Vimshottari</option>
+                                <option value="yogini">Yogini</option>
+                                <option value="chara">Chara (K.N. Rao)</option>
+                                <option value="chara_fe">Chara (Rangacharya FE)</option>
+                                <option value="mandook">Mandook (K.N. Rao)</option>
+                                <option value="sthir">Sthir</option>
+                                <option value="ashtottari">Ashtottari</option>
+                              </select>
+                            </div>
+                            <div style={{ padding: '0.4rem 0.55rem' }}>
+                              {(() => {
+                                if (dashaSystem === 'vimshottari') {
+                                  return (
+                                    <VimshottariDashaBlock
+                                      nodes={vimshottariNodes}
+                                      birthDate={birthUtcFromMeta(chart.meta)}
+                                      timezone={chart.meta.timezone}
+                                      tara={vimshottariTara}
+                                      tribhagi={vimshottariTribhagi}
+                                      userPlan={userPlan}
+                                      onTara={setVimshottariTara}
+                                      onTribhagi={setVimshottariTribhagi}
+                                    />
+                                  )
+                                }
+                                if (dashaSystem === 'yogini') {
+                                  const yoginiNodes = chart.dashas.yogini ?? []
+                                  if (!yoginiNodes.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
+                                  return (
+                                    <YoginiDashaBlock
+                                      nodes={yoginiNodes}
+                                      birthDate={birthUtcFromMeta(chart.meta)}
+                                      timezone={chart.meta.timezone}
+                                    />
+                                  )
+                                }
+                                const nodes = chart.dashas[dashaSystem] ?? []
+                                if (!nodes?.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
+                                return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
+                              })()}
+                            </div>
                           </div>
                         </div>
                       )}
@@ -2219,16 +2257,11 @@ function HomeContent() {
                               <ActiveHousesCard chart={chart} transitMoonLon={todayPanchang?.moonLongitudeSidereal} />
                             </div>
                           </div>
-                          <div className="panel">
-                            <div className="panel-header"><span>Dasha Insight</span></div>
-                            <div style={{ padding: '0.4rem 0.55rem' }}>
-                              <DashaInterpretationTeaserFromChart
-                                chart={chart}
-                                nodes={vimshottariNodes}
-                                onOpenFull={() => setActiveTab('dasha-interpretation')}
-                              />
-                            </div>
-                          </div>
+                          <DashaInterpretationTeaserFromChart
+                            chart={chart}
+                            nodes={vimshottariNodes}
+                            onOpenFull={() => setActiveTab('dasha-interpretation')}
+                          />
                           <div className="panel">
                             <div className="panel-header"><span>Daily Suitability</span></div>
                             <div style={{ padding: '0.4rem 0.55rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
