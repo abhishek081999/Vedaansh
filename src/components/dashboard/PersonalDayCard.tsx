@@ -14,6 +14,7 @@ import {
   ASHWINI_ACTIVITY_HINT,
 } from '@/lib/engine/nakshatraMuhurta'
 import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
+import { getVaarMeta, formatVaarWeatherLine, getCurrentHora } from '@/lib/engine/vaarMeta'
 import type { PanchangData } from '@/types/astrology'
 
 interface PersonalDayCardProps {
@@ -152,6 +153,11 @@ export function PersonalDayCard({
       ? 'var(--teal)'
       : 'var(--gold)'
 
+  const vaarMeta = todayPanchang?.vara != null ? getVaarMeta(todayPanchang.vara.number) : null
+  const currentHora = todayPanchang?.horaTable?.length
+    ? getCurrentHora(todayPanchang.horaTable)
+    : null
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.72rem' }}>
 
@@ -190,6 +196,65 @@ export function PersonalDayCard({
       }}>
         {q.recommendation}
       </div>
+
+      {/* ── Today’s vaar ── */}
+      {vaarMeta && (
+        <div style={{
+          marginTop: '0.15rem',
+          padding: '0.35rem 0.45rem',
+          background: 'var(--surface-3)',
+          borderRadius: 4,
+          border: '1px solid var(--border-soft)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.22rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              Vaar
+            </span>
+            <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
+              {vaarMeta.name}
+            </strong>
+            <span style={{
+              fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
+              borderRadius: 3, border: '1px solid var(--gold)',
+              color: 'var(--text-gold)', letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              {vaarMeta.lordName}
+            </span>
+            <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>
+              {vaarMeta.sanskrit}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+            {vaarMeta.nature} · Best for: {vaarMeta.bestFor}
+          </div>
+          <div style={{
+            borderLeft: '2px solid var(--gold)',
+            paddingLeft: '0.4rem',
+            fontSize: '0.65rem',
+            color: 'var(--text-secondary)',
+            lineHeight: 1.4,
+          }}>
+            {formatVaarWeatherLine(vaarMeta)}
+          </div>
+          {currentHora && (
+            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+              Now hora: <strong style={{ color: 'var(--text-primary)' }}>{currentHora.lordName}</strong>
+              {' — '}{currentHora.purposeHint}
+            </div>
+          )}
+          <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.3 }}>
+            {vaarMeta.strengthenNaks.length > 0 && (
+              <>Vaar Pati gains in {vaarMeta.strengthenNaks.join(', ')}. </>
+            )}
+            {vaarMeta.weakenNaks.length > 0 && (
+              <>Caution if in {vaarMeta.weakenNaks.join(', ')}.</>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Today’s nakshatra muhurta ── */}
       <div style={{

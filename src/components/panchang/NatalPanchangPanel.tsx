@@ -5,6 +5,7 @@ import { getTithiDayMeta, getTithiMoonCombo } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta } from '@/lib/engine/karanaMeta'
 import { getYogaMeta } from '@/lib/engine/yogaMeta'
 import { getNakshatraMuhurtaMeta } from '@/lib/engine/nakshatraMuhurta'
+import { getVaarMeta } from '@/lib/engine/vaarMeta'
 import { SanskarasReference } from '@/components/panchang/SanskarasReference'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 
@@ -57,6 +58,7 @@ export function NatalPanchangPanel({
     : nakMeta.group.id === 'Dhruva' || nakMeta.group.id === 'Mridu' || nakMeta.group.id === 'Laghu'
       ? 'var(--teal)'
       : 'var(--gold)'
+  const vaarMeta = getVaarMeta(p.vara.number)
 
   const muhurtas: { label: string; times: { start: Date; end: Date }; tone: 'warn' | 'caution' | 'good' }[] = [
     { label: 'Rahu kalam', times: p.rahuKalam, tone: 'warn' },
@@ -86,7 +88,12 @@ export function NatalPanchangPanel({
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Vara</div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>{p.vara.name}</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Lord {p.vara.lord}</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
+            {vaarMeta.sanskrit} · Vaar Pati {vaarMeta.lordName}
+          </div>
+          <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.35 }}>
+            {vaarMeta.nature}
+          </div>
         </div>
         <div style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Tithi</div>
@@ -172,6 +179,45 @@ export function NatalPanchangPanel({
               <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Deity {karanaMeta.deity}</span>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Birth vaar nature */}
+      <div style={{
+        padding: '0.9rem 1rem',
+        borderRadius: 'var(--r-md)',
+        border: '1px solid var(--border)',
+        background: 'var(--surface-2)',
+      }}>
+        <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)', marginBottom: '0.45rem' }}>
+          Vaar · Hora notes
+        </div>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+          {vaarMeta.name} · {vaarMeta.lordName}
+        </div>
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '0.55rem' }}>
+          {vaarMeta.dayGuidance} Best for: {vaarMeta.bestFor}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.55rem' }}>
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Challenge</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{vaarMeta.challenge}</div>
+          </div>
+          {vaarMeta.strengthenNaks.length > 0 && (
+            <div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Vaar Pati gains in</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>{vaarMeta.strengthenNaks.join(', ')}</div>
+            </div>
+          )}
+          {vaarMeta.weakenNaks.length > 0 && (
+            <div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Vaar Pati caution in</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{vaarMeta.weakenNaks.join(', ')}</div>
+            </div>
+          )}
+        </div>
+        <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '0.5rem', opacity: 0.85, lineHeight: 1.35 }}>
+          Strengthen/weaken lists apply to the Vaar Pati planet’s nakshatra in the chart — not Moon’s janma nakshatra. First hora of the day = Vaar Pati; hora of the day-lord repeats at hours 1, 8, 15, 22.
         </div>
       </div>
 

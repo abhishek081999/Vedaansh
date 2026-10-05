@@ -9,6 +9,7 @@ import { getTithiDayMeta } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta } from '@/lib/engine/karanaMeta'
 import { getYogaMeta } from '@/lib/engine/yogaMeta'
 import { getNakshatraMuhurtaMeta, getAbhijitWindow } from '@/lib/engine/nakshatraMuhurta'
+import { getVaarMeta } from '@/lib/engine/vaarMeta'
 import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
 import { SanskarasReference } from '@/components/panchang/SanskarasReference'
 import type { PanchangDayTimeline } from '@/lib/panchang/day-timeline'
@@ -168,6 +169,7 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
   const yogaMeta = getYogaMeta(data.yoga.name)
   const nakMeta = getNakshatraMuhurtaMeta(data.nakshatra.index, data.nakshatra.pada)
   const abhijit = getAbhijitWindow(data.moonLongitudeSidereal)
+  const vaarMeta = getVaarMeta(data.vara.number)
 
   return (
     <div className={styles.root}>
@@ -217,7 +219,7 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
           <CompactLimbCard 
             label="Vara" 
             value={data.vara.name} 
-            sub={data.vara.sanskrit}
+            sub={`${vaarMeta.sanskrit} · ${vaarMeta.lordName} · ${vaarMeta.nature}`}
           />
         </div>
       </div>
