@@ -97,6 +97,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId:     process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      // Same email signed up with password then Google → link instead of OAuthAccountNotLinked.
+      // Safe for Google: emails are provider-verified.
+      allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
           prompt: 'consent',

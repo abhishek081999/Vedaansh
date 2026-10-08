@@ -61,7 +61,7 @@
     "react-leaflet": "^5.0.0",
     "remotion": "^4.0.448",
     "resend": "^3.2.0",
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
     "stripe": "^15.10.0",
     "sweph": "^2.10.3-5",
     "tailwind-merge": "^3.3.1",
@@ -94,7 +94,8 @@
   },
   "overrides": {
     "axios": "1.20.0",
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2",
     "form-data": ">=4.0.6",
     "esbuild": ">=0.25.0",
     "postcss": "8.5.23",

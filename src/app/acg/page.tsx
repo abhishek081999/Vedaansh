@@ -1,13 +1,13 @@
 'use client'
 
 import React, { useState, useCallback, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import { useChart } from '@/components/providers/ChartProvider'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import Link from 'next/link'
 import { Globe, Map, Sparkles, BookOpen } from 'lucide-react'
 import type { ACGAnalysisTab } from '@/components/ui/AstroCartographyAnalysis'
+import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 
 const AstroCartographyMap = dynamic(() => import('@/components/ui/AstroCartographyMap'), { ssr: false })
 const AstroCartographyAnalysis = dynamic(() => import('@/components/ui/AstroCartographyAnalysis').then(m => m.AstroCartographyAnalysis), { ssr: false })
@@ -199,57 +199,17 @@ export default function ACGPage() {
         )}
       </main>
 
-      {isMobile && typeof document !== 'undefined' && createPortal(
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
-          background: 'var(--surface-1)',
-          borderTop: '1px solid var(--border-soft)',
-          display: 'flex', alignItems: 'stretch',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
-          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        }}>
-          {mobileTabs.map(({ id, icon: Icon, label }) => {
-            const active = mobileView === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setMobileView(id)}
-                style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: '0.2rem', padding: '0.6rem 0.15rem 0.4rem',
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  color: active ? 'var(--accent)' : 'var(--text-muted)',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative',
-                }}
-              >
-                {active && (
-                  <div style={{
-                    position: 'absolute', top: 0, left: '20%', right: '20%',
-                    height: 2, background: 'var(--accent)',
-                    boxShadow: '0 0 10px var(--accent)',
-                    borderRadius: '0 0 2px 2px',
-                  }} />
-                )}
-                <Icon size={18} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
-                <span style={{
-                  fontSize: '0.58rem',
-                  fontWeight: active ? 700 : 500,
-                  letterSpacing: '0.02em',
-                  whiteSpace: 'nowrap',
-                  marginTop: '0.1rem',
-                }}>
-                  {label}
-                </span>
-              </button>
-            )
-          })}
-        </div>,
-        document.body
+      {isMobile && (
+        <MobileBottomNavShell
+          ariaLabel="Astrocartography sections"
+          tabs={mobileTabs.map(({ id, icon, label }) => ({
+            id,
+            icon,
+            label,
+            active: mobileView === id,
+            onClick: () => setMobileView(id),
+          }))}
+        />
       )}
     </div>
   )

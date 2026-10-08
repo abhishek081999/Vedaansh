@@ -2282,6 +2282,11 @@ select.input {
     margin-left: 0 !important;
   }
 
+  /* Space for AppFramework global Dashboard bottom tab */
+  .main-content[data-mobile-global-nav='true'] {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
   .hide-mobile {
      display: none !important;
   }
@@ -6114,7 +6119,7 @@ select.input {
     left: 0.75rem;
     right: 0.75rem;
     transform: none;
-    bottom: 0.75rem;
+    bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
     padding: 0.65rem 0.75rem;
     gap: 0.75rem;
     align-items: stretch;

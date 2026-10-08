@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { Layers, Home, Star } from 'lucide-react'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
+import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 
 interface KPStellarPanelProps {
   chart: ChartOutput
@@ -100,57 +100,18 @@ export function KPStellarPanel({ chart }: KPStellarPanelProps) {
       {activeSubTab === 'cusps' && <CuspalInterlinks cusps={cusps} isMobile={isMobile} />}
       {activeSubTab === 'rp' && <RulingPlanetsView rp={rulingPlanets} isMobile={isMobile} />}
 
-      {isMobile && typeof document !== 'undefined' && createPortal(
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
-          background: 'var(--surface-1)',
-          borderTop: '1px solid var(--border-soft)',
-          display: 'flex', alignItems: 'stretch',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
-          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        }}>
-          {MOBILE_TABS.map(({ id, icon: Icon, label }) => {
-            const active = activeSubTab === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setActiveSubTab(id)}
-                style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: '0.2rem', padding: '0.6rem 0.15rem 0.4rem',
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  color: active ? 'var(--accent)' : 'var(--text-muted)',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative',
-                }}
-              >
-                {active && (
-                  <div style={{
-                    position: 'absolute', top: 0, left: '20%', right: '20%',
-                    height: 2, background: 'var(--accent)',
-                    boxShadow: '0 0 10px var(--accent)',
-                    borderRadius: '0 0 2px 2px',
-                  }} />
-                )}
-                <Icon size={18} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
-                <span style={{
-                  fontSize: '0.58rem',
-                  fontWeight: active ? 700 : 500,
-                  letterSpacing: '0.02em',
-                  whiteSpace: 'nowrap',
-                  marginTop: '0.1rem',
-                }}>
-                  {label}
-                </span>
-              </button>
-            )
-          })}
-        </div>,
-        document.body
+      {isMobile && (
+        <MobileBottomNavShell
+          ariaLabel="KP Stellar sections"
+          dashboardSameRoute
+          tabs={MOBILE_TABS.map(({ id, icon, label }) => ({
+            id,
+            icon,
+            label,
+            active: activeSubTab === id,
+            onClick: () => setActiveSubTab(id),
+          }))}
+        />
       )}
     </div>
   )

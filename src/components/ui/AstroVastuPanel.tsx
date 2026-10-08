@@ -1,10 +1,10 @@
 'use client'
 import React, { useMemo, useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { CircleDot, Compass, BookOpen, Gem, Eye, Home, Zap } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, GRAHA_NAMES } from '@/types/astrology'
+import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 
 const ChakraSelector = dynamic(
   () => import('@/components/chakra/ChakraSelector').then(m => m.ChakraSelector),
@@ -2196,58 +2196,18 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
         ℹ️ This analysis uses your natal planetary longitudes for directional correlation. For full Vastu Shanti, consult a qualified Vastu practitioner to physically survey the property with compass and floor plan. Digital analysis provides directional tendencies; on-site measurement gives exact door positions and marma locations.
       </div>
 
-      {isMobileNav && typeof document !== 'undefined' && createPortal(
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
-          background: 'var(--surface-1)',
-          borderTop: '1px solid var(--border-soft)',
-          display: 'flex', alignItems: 'stretch',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
-          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        }}>
-          {mobileTabs.map(({ id, icon: Icon, label }) => {
-            const active = activeTab === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setActiveTab(id)}
-                style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: '0.2rem', padding: '0.6rem 0.1rem 0.4rem',
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  color: active ? 'var(--accent)' : 'var(--text-muted)',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative',
-                  minWidth: 0,
-                }}
-              >
-                {active && (
-                  <div style={{
-                    position: 'absolute', top: 0, left: '20%', right: '20%',
-                    height: 2, background: 'var(--accent)',
-                    boxShadow: '0 0 10px var(--accent)',
-                    borderRadius: '0 0 2px 2px',
-                  }} />
-                )}
-                <Icon size={17} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
-                <span style={{
-                  fontSize: '0.52rem',
-                  fontWeight: active ? 700 : 500,
-                  letterSpacing: '0.02em',
-                  whiteSpace: 'nowrap',
-                  marginTop: '0.1rem',
-                }}>
-                  {label}
-                </span>
-              </button>
-            )
-          })}
-        </div>,
-        document.body
+      {isMobileNav && (
+        <MobileBottomNavShell
+          ariaLabel="Astro Vastu sections"
+          compact
+          tabs={mobileTabs.map(({ id, icon, label }) => ({
+            id,
+            icon,
+            label,
+            active: activeTab === id,
+            onClick: () => setActiveTab(id),
+          }))}
+        />
       )}
     </div>
   )

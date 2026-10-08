@@ -29,6 +29,7 @@ import {
 } from '@/lib/ui/navConfig'
 import { routeAllowsWithoutChart } from '@/lib/chartGateRoutes'
 import { PwaInstallBanner } from '@/components/ui/PwaInstallBanner'
+import { MobileGlobalBottomNav, useMobileGlobalBottomNavActive } from '@/components/ui/MobileGlobalBottomNav'
 
 // ── Navigation Progress Bar Animation ──
 const progressKeyframes = `
@@ -84,6 +85,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const mainRef = useRef<HTMLElement>(null)
   const profileMenuRef = useRef<HTMLDivElement>(null)
   const headerProfileRef = useRef<HTMLDivElement>(null)
+  const showGlobalMobileNav = useMobileGlobalBottomNavActive()
 
   /** Brand / logo → always land on clean home (not a sticky chart URL). */
   const goHome = useCallback((e?: React.MouseEvent) => {
@@ -749,6 +751,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           onScroll={handleScroll}
           className="main-content"
           data-sidenav-open={isSidenavOpen}
+          data-mobile-global-nav={showGlobalMobileNav ? 'true' : undefined}
           style={{
             flex: 1, display: 'flex', flexDirection: 'column', position: 'relative',
             zIndex: isFormOpen ? 1200 : 1, overflowY: 'auto', overflowX: 'hidden', minWidth: 0,
@@ -769,7 +772,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             aria-label="Scroll to top"
             style={{
               position: 'fixed',
-              bottom: '2rem',
+              bottom: showGlobalMobileNav ? 'calc(5rem + env(safe-area-inset-bottom, 0px))' : '2rem',
               right: '2rem',
               width: '44px',
               height: '44px',
@@ -802,6 +805,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
+      <MobileGlobalBottomNav />
       <PwaInstallBanner />
     </div>
   )

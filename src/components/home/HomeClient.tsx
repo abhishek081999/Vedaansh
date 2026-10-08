@@ -766,12 +766,14 @@ function HomeContent() {
   const [isPhone, setIsPhone] = useState(false)
   const [mobileChartActionsOpen, setMobileChartActionsOpen] = useState(false)
   const [mobileDashCategory, setMobileDashCategory] = useState<'astrology' | 'panchang' | 'nakshatra' | 'advanced'>('astrology')
-  const [mobileDashTab, setMobileDashTab] = useState<'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'>('astro')
+  const [mobileDashTab, setMobileDashTab] = useState<MobileDashTab>('overview')
   const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('ashtakavarga')
   const mobileDashContentRef = useRef<HTMLDivElement>(null)
   const analysisPanelRef = useRef<HTMLDivElement>(null)
   const skipMobileDashScrollRef = useRef(true)
   const skipStrengthScrollRef = useRef(true)
+  const prevActiveTabRef = useRef(activeTab)
+  const skipOverviewResetRef = useRef(false)
 
   useEffect(() => {
     const check = () => {
@@ -821,8 +823,29 @@ function HomeContent() {
     (activeTab === 'dashboard' && mobileDashTab === 'strengths') ||
     isStrengthAnalyticsTabActive
   )
-  const showMainDashBottomNav = isMobile && !!chart && activeTab === 'dashboard'
-  const strengthSubNavStacked = showMainDashBottomNav && mobileDashTab === 'strengths'
+  // KP has its own mobile bottom bar (with Dashboard link); avoid stacking two bars.
+  const showMainDashBottomNav = isMobile && !!chart && activeTab !== 'kp-stellar'
+  const strengthSubNavStacked = showMainDashBottomNav && showStrengthSubNav
+  const highlightedDashTab: MobileDashTab | null =
+    activeTab === 'dashboard' ? mobileDashTab : null
+
+  const handleDashTabChange = (tab: MobileDashTab) => {
+    skipOverviewResetRef.current = true
+    setActiveTab('dashboard')
+    setMobileDashTab(tab)
+  }
+
+  // Sidenav / KP Dashboard link → land on overview (not a stale section tab).
+  useEffect(() => {
+    const prev = prevActiveTabRef.current
+    prevActiveTabRef.current = activeTab
+    if (activeTab !== 'dashboard' || prev === 'dashboard') return
+    if (skipOverviewResetRef.current) {
+      skipOverviewResetRef.current = false
+      return
+    }
+    setMobileDashTab('overview')
+  }, [activeTab])
 
   const activeStrengthSubTab: MobileStrengthSubTab = useMemo(() => {
     if (activeTab === 'ashtakavarga') return 'ashtakavarga'
@@ -1846,7 +1869,7 @@ function HomeContent() {
           </div>
         </div>
       ) : chart ? (
-         <div key="home-chart" className="fade-up" style={{ minWidth: 0, paddingBottom: showStrengthSubNav && activeTab !== 'dashboard' ? '6rem' : undefined }}>
+         <div key="home-chart" className="fade-up" style={{ minWidth: 0, paddingBottom: showMainDashBottomNav ? (showStrengthSubNav ? '9rem' : '6rem') : undefined }}>
             
             {/* Compact Header Strip */}
             <div className="chart-header-row" style={isPhone ? { position: 'relative' } : undefined}>
@@ -2136,6 +2159,16 @@ function HomeContent() {
                     >
 
                       {/* ── Tab content ── */}
+                      {mobileDashTab === 'overview' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {desktopDashboardCardOrder.map((cardId) => (
+                            <div key={cardId}>
+                              {renderDesktopDashboardCard(cardId, chart)}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       {mobileDashTab === 'astro' && (
                         <PanelShell title="Astro Details" padding="sm">
                           <AstroDetailsPanel chart={chart} />
@@ -3269,9 +3302,10 @@ function HomeContent() {
         showStrengthSubNav={showStrengthSubNav}
         strengthSubNavStacked={strengthSubNavStacked}
         mobileDashTab={mobileDashTab}
+        highlightedDashTab={highlightedDashTab}
         activeStrengthSubTab={activeStrengthSubTab}
         strengthTabs={MOBILE_STRENGTH_TABS}
-        onDashTabChange={(tab) => setMobileDashTab(tab)}
+        onDashTabChange={handleDashTabChange}
         onStrengthSubTabChange={handleStrengthSubTab}
         onScrollToDashContent={() => scrollElementIntoMain(mobileDashContentRef.current)}
         onScrollToStrengthContent={() => {
