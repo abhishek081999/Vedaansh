@@ -665,6 +665,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const tabContentRef = useRef<HTMLDivElement>(null);
   const skipMobileTabScrollRef = useRef(true);
+  /** Bumped on re-tap of the active mobile tab to re-run scroll-into-view without reading refs in render. */
+  const [mobileScrollNonce, setMobileScrollNonce] = useState(0);
 
   // Stack/compact based on actual panel width (accounts for open sidenav), not viewport alone.
   useEffect(() => {
@@ -720,7 +722,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
       }
     });
     return () => window.cancelAnimationFrame(id);
-  }, [activeTab, isMobile]);
+  }, [activeTab, isMobile, mobileScrollNonce]);
 
   const d1Grahas = grahas;
   const d9Grahas = vargas['D9'] ?? grahas;
@@ -2209,22 +2211,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             label,
             active: activeTab === id,
             onClick: () => {
-              setActiveTab(id)
-              if (activeTab === id) {
-                window.requestAnimationFrame(() => {
-                  const el = tabContentRef.current
-                  if (!el) return
-                  const main = document.getElementById('main-content')
-                  if (main) {
-                    const mainRect = main.getBoundingClientRect()
-                    const elRect = el.getBoundingClientRect()
-                    const top = elRect.top - mainRect.top + main.scrollTop - 8
-                    main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
-                  } else {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }
-                })
-              }
+              if (activeTab === id) setMobileScrollNonce((n) => n + 1)
+              else setActiveTab(id)
             },
           }))}
         />
