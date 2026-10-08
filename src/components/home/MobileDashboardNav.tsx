@@ -3,12 +3,13 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
 import type { LucideIcon } from 'lucide-react'
-import { Sparkles, Info, Clock, Moon, Zap, Star } from 'lucide-react'
+import { LayoutDashboard, Sparkles, Info, Clock, Moon, Zap, Star } from 'lucide-react'
 
-export type MobileDashTab = 'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'
+export type MobileDashTab = 'overview' | 'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'
 export type MobileStrengthSubTab = 'ashtakavarga' | 'shadbala' | 'bhava' | 'vimsopaka'
 
 const MAIN_TABS: { id: MobileDashTab; icon: LucideIcon; label: string }[] = [
+  { id: 'overview', icon: LayoutDashboard, label: 'Dashboard' },
   { id: 'planetary', icon: Sparkles, label: 'Planets' },
   { id: 'astro', icon: Info, label: 'Details' },
   { id: 'dashas', icon: Clock, label: 'Dasha' },
@@ -21,7 +22,13 @@ export interface MobileDashboardNavProps {
   showMainNav: boolean
   showStrengthSubNav: boolean
   strengthSubNavStacked: boolean
+  /** Currently selected section; used for re-tap scroll. */
   mobileDashTab: MobileDashTab
+  /**
+   * Which main-nav item is highlighted. Null when the user is on a non-dashboard
+   * chart tab (House, KP, etc.) so no section looks selected.
+   */
+  highlightedDashTab: MobileDashTab | null
   activeStrengthSubTab: MobileStrengthSubTab
   strengthTabs: { id: MobileStrengthSubTab; icon: LucideIcon; label: string }[]
   onDashTabChange: (tab: MobileDashTab) => void
@@ -36,6 +43,7 @@ export function MobileDashboardNav({
   showStrengthSubNav,
   strengthSubNavStacked,
   mobileDashTab,
+  highlightedDashTab,
   activeStrengthSubTab,
   strengthTabs,
   onDashTabChange,
@@ -156,7 +164,7 @@ export function MobileDashboardNav({
             }}
           >
             {MAIN_TABS.map(({ id, icon: Icon, label }) => {
-              const active = mobileDashTab === id
+              const active = highlightedDashTab === id
               return (
                 <button
                   key={id}
@@ -164,7 +172,7 @@ export function MobileDashboardNav({
                   aria-current={active ? 'page' : undefined}
                   aria-label={label}
                   onClick={() => {
-                    if (active) {
+                    if (active && mobileDashTab === id) {
                       onScrollToDashContent?.()
                     } else {
                       onDashTabChange(id)

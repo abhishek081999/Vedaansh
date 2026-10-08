@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect, useMemo, useId, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT, GrahaId as GrahaIdType, ArudhaData, KarakaData, NAKSHATRA_NAMES } from '@/types/astrology'
+import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 import { KARAKA_NAMES_7, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
 import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { DashaTree } from '@/components/dasha/DashaTree'
@@ -2199,44 +2199,35 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
         </div>
       </div>
 
-      {isMobile && typeof document !== 'undefined' && createPortal(
-        <div className={styles.mobileNav}>
-          {mobileTabs.map(({ id, icon: Icon, label }) => {
-            const active = activeTab === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  setActiveTab(id)
-                  if (activeTab === id) {
-                    window.requestAnimationFrame(() => {
-                      const el = tabContentRef.current
-                      if (!el) return
-                      const main = document.getElementById('main-content')
-                      if (main) {
-                        const mainRect = main.getBoundingClientRect()
-                        const elRect = el.getBoundingClientRect()
-                        const top = elRect.top - mainRect.top + main.scrollTop - 8
-                        main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
-                      } else {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                      }
-                    })
+      {isMobile && (
+        <MobileBottomNavShell
+          ariaLabel="Jaimini sections"
+          compact
+          tabs={mobileTabs.map(({ id, icon, label }) => ({
+            id,
+            icon,
+            label,
+            active: activeTab === id,
+            onClick: () => {
+              setActiveTab(id)
+              if (activeTab === id) {
+                window.requestAnimationFrame(() => {
+                  const el = tabContentRef.current
+                  if (!el) return
+                  const main = document.getElementById('main-content')
+                  if (main) {
+                    const mainRect = main.getBoundingClientRect()
+                    const elRect = el.getBoundingClientRect()
+                    const top = elRect.top - mainRect.top + main.scrollTop - 8
+                    main.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+                  } else {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
                   }
-                }}
-                className={cn(styles.mobileNavBtn, active && styles.mobileNavBtnActive)}
-              >
-                {active && <div className={styles.mobileNavIndicator} />}
-                <Icon size={18} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
-                <span className={cn(styles.mobileNavLabel, active && styles.mobileNavLabelActive)}>
-                  {label}
-                </span>
-              </button>
-            )
-          })}
-        </div>,
-        document.body
+                })
+              }
+            },
+          }))}
+        />
       )}
     </div>
   )

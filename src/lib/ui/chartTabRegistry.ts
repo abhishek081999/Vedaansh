@@ -47,6 +47,7 @@ export const STRENGTH_ANALYTICS_TABS = [
 export type StrengthAnalyticsTabId = (typeof STRENGTH_ANALYTICS_TABS)[number]
 
 export type MobileDashTabId =
+  | 'overview'
   | 'astro'
   | 'planetary'
   | 'dashas'

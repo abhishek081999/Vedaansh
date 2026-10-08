@@ -241,7 +241,10 @@ function dashaDepthForPlan(plan: UserPlan): number {
   return plan === 'free' ? 4 : 6
 }
 
-const MAX_CONCURRENT_CHART_CALC = 3
+// Render free (~512MB) OOMs when 2–3 full charts (~2MB JSON + sweph buffers) overlap.
+const MAX_CONCURRENT_CHART_CALC = process.env.CHART_CALC_CONCURRENCY
+  ? Math.max(1, Number(process.env.CHART_CALC_CONCURRENCY) || 1)
+  : 1
 let chartCalcActive = 0
 const chartCalcWaiters: Array<() => void> = []
 

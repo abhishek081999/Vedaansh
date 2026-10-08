@@ -69,12 +69,14 @@ Filter production logs for:
 
 Security changes add **negligible** runtime RAM (Redis is external).
 
-Heavy paths (unchanged):
+Heavy paths:
 
-- `/api/chart/calculate` (Swiss Ephemeris)
+- `/api/chart/calculate` (Swiss Ephemeris) — **serialized to 1 concurrent calc** by default (`CHART_CALC_CONCURRENCY`)
+- Chart Redis writes (~2MB JSON → gzip) are **queued** so multiple compressions cannot peak RAM
+- After each calc, `cleanupEphemeris()` calls `swe_close()` then **re-sets** `EPHE_PATH` (close alone clears the path and forces slow Moshier fallback)
 - `/api/chart/bulk-export` (batched, low concurrency)
 
-`NODE_OPTIONS=--max-old-space-size=450` in `render.yaml` is intentional headroom.
+`NODE_OPTIONS=--max-old-space-size=450` in `render.yaml` is intentional headroom on free tier. If OOMs continue under traffic, upgrade the Render plan rather than raising the heap above instance RAM.
 
 ## 7. What is enforced in code
 

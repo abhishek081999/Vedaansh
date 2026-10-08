@@ -14,9 +14,12 @@ const gunzip = promisify(zlib.gunzip)
 
 const COMPRESSION_THRESHOLD = 128 * 1024 // 128KB
 const COMPRESSION_PREFIX = 'cz:' // Compressed Zlib
-const CHART_CACHE_KEY_PREFIX = 'v15:chart:'
+/** Match current + legacy chart cache keys (v15/v18/…). Must stay in sync with chartCacheKey(). */
+function isChartCacheKey(key: string): boolean {
+  return key.includes(':chart:')
+}
 
-// Chart payloads are ~4MB JSON each; serialize/compress one at a time to avoid OOM.
+// Chart payloads are ~2MB JSON each; serialize/compress one at a time to avoid OOM.
 let chartCacheWriteQueue: Promise<void> = Promise.resolve()
 
 function enqueueChartCacheWrite(task: () => Promise<void>): Promise<void> {
@@ -153,7 +156,7 @@ export const redis = {
    */
   async set(key: string, value: unknown, ttlSeconds: number = 2_592_000): Promise<void> {
     const write = () => this._setImpl(key, value, ttlSeconds)
-    if (key.startsWith(CHART_CACHE_KEY_PREFIX)) {
+    if (isChartCacheKey(key)) {
       return enqueueChartCacheWrite(write)
     }
     return write()
@@ -183,7 +186,9 @@ export const redis = {
 
       await client.set(key, serializedValue, { ex: ttlSeconds })
 
-      if (isLarge && key.startsWith(CHART_CACHE_KEY_PREFIX)) {
+      if (isLarge && isChartCacheKey(key)) {
+        // Drop the huge uncompressed string before optional GC.
+        serializedValue = ''
         maybeGcAfterLargeWrite()
       }
     } catch (err) {

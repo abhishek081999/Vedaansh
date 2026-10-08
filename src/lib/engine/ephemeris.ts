@@ -1,4 +1,5 @@
 import sweph from 'sweph'
+import fs from 'fs'
 import path from 'path'
 import type { GrahaId, AyanamshaMode, PlanetPosition } from '@/types/astrology'
 
@@ -7,6 +8,17 @@ const ephePath = process.env.EPHE_PATH
   : path.resolve(process.cwd(), 'ephe')
 
 sweph.set_ephe_path(ephePath)
+
+// One-time visibility on Render/OOM incidents when sepl_*.se1 is missing from the deploy tree.
+try {
+  const needed = ['sepl_18.se1', 'semo_18.se1', 'seas_18.se1']
+  const missing = needed.filter((f) => !fs.existsSync(path.join(ephePath, f)))
+  if (missing.length) {
+    console.warn(`[ephemeris] Missing SwissEph files in ${ephePath}: ${missing.join(', ')} — using Moshier fallback (slower, more RAM)`)
+  }
+} catch {
+  /* ignore fs errors during module init */
+}
 
 const C = sweph.constants
 
@@ -63,21 +75,28 @@ export function getPlanetPositionSidereal(
   }
 }
 
+function hasPlanetCalcData(r: { data?: unknown }): boolean {
+  return Array.isArray(r?.data) && r.data.length >= 4 && Number.isFinite(Number(r.data[0]))
+}
+
 export function getPlanetPosition(jd: number, planetId: number, isSidereal = false, isEquatorial = false, isHeliocentric = false): PlanetPosition {
   let flags = isSidereal ? FLAGS_SIDEREAL : FLAGS_TROPICAL
   if (isEquatorial) flags |= C.SEFLG_EQUATORIAL
   if (isHeliocentric) flags |= C.SEFLG_HELCTR
 
   let r = sweph.calc_ut(jd, planetId, flags) as any
-  
-  // Fallback to Moshier if SwissEph files are missing
-  if (r.error && r.error.includes('not found')) {
+
+  // SwissEph may return coordinates AND a "file not found … using Moshier" warning.
+  // Only fall back / throw when we do not have usable data.
+  if (!hasPlanetCalcData(r) && typeof r?.error === 'string' && r.error.includes('not found')) {
     const fallbackFlags = flags & ~C.SEFLG_SWIEPH
     r = sweph.calc_ut(jd, planetId, fallbackFlags) as any
   }
 
-  if (r.error) throw new Error(`sweph error planet ${planetId}: ${r.error}`)
-  
+  if (!hasPlanetCalcData(r)) {
+    throw new Error(`sweph error planet ${planetId}: ${r?.error || 'no position data'}`)
+  }
+
   // r.data[0]=lon(RA), r.data[1]=lat(Dec), r.data[2]=dist, r.data[3]=speed
   const lon   = r.data[0]
   const lat   = r.data[1]
@@ -175,11 +194,15 @@ export function dateToJD(date: Date): number {
 
 /**
  * Free Swiss Ephemeris memory buffers.
- * Useful on memory-constrained environments (like Render Free Tier) 
+ * Useful on memory-constrained environments (like Render Free Tier)
  * to prevent OOM errors when calculating multiple charts.
+ *
+ * swe_close() resets ephe path — must re-set it or later charts miss sepl_*.se1
+ * and fall back to slow Moshier (or throw on warning strings).
  */
 export function cleanupEphemeris(): void {
   if (typeof sweph.close === 'function') {
     sweph.close()
   }
+  sweph.set_ephe_path(ephePath)
 }
