@@ -17,9 +17,17 @@ function LoginContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(
-    errorParam === 'CredentialsSignin' ? 'Invalid email or password' : null,
-  )
+  const [error, setError] = useState<string | null>(() => {
+    if (errorParam === 'CredentialsSignin') return 'Invalid email or password'
+    if (errorParam === 'OAuthAccountNotLinked') {
+      return 'This email already has a password account. Sign in with email and password, or use the same Google account that matches that email.'
+    }
+    if (errorParam === 'OAuthCallback' || errorParam === 'OAuthSignin') {
+      return 'Google sign-in failed. Please try again.'
+    }
+    if (errorParam) return 'Sign in failed. Please try again.'
+    return null
+  })
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
