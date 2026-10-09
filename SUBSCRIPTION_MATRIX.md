@@ -17,6 +17,12 @@ Source-of-truth summary for **enforced** feature access by plan. Prices: see `sr
 | Client CRM item ops (GET/PATCH/POST/DELETE) | No | No | Yes | `src/app/api/clients/[id]/route.ts` |
 | White-label brand fields | No | No | Yes | `src/app/api/user/me/route.ts`, `src/app/api/chart/public/route.ts`, export/email branding |
 | Muhurta pages/APIs | No | Yes | Yes | `proxy.ts` (`/muhurta`, `/api/muhurta`) |
+| Vimshottari MD/AD full interpretation (“More”) | Teaser only | Yes | Yes | UI: `DashaInterpretationPanel` (`userPlan` / Gold+) |
+| Cosmic Weather full guidance | Labels + short lines | Yes | Yes | UI: `PersonalDayCard` (`userPlan` / Gold+) |
+| Astro Vastu full analysis | Chart + compass preview | Yes | Yes | UI: `AstroVastuPanel` (`userPlan` / Gold+) |
+| Sarvatobhadra Chakra full | Birth star + grid | Yes | Yes | UI: `sbc/page` (`userPlan` / Gold+) |
+| Nakshatra Profession full | Indicators + blueprint teaser | Yes | Yes | UI: `NakshatraProfessionTab` (Gold+) |
+| Nakshatra Medical full | Indicators + constitution teaser | Yes | Yes | UI: `NakshatraMedicalTab` (Gold+) |
 | Research pages/APIs | No | No | Yes | `proxy.ts` (`/research`, `/api/research`) — routes reserved, UI not shipped |
 
 \*Bulk import is available to any authenticated user until the plan’s chart save cap is reached.

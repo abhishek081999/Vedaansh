@@ -18,13 +18,17 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
+import { useSession } from 'next-auth/react'
 import {
-  Grid3X3, TrendingUp, Globe, Flame, Zap, Heart, Pill, Sparkles, LineChart,
+  Grid3X3, TrendingUp, Globe, Flame, Zap, Heart, Pill, Sparkles, LineChart, Lock,
 } from 'lucide-react'
 import { ThemeToggle }     from '@/components/ui/ThemeToggle'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
+import { Button }          from '@/components/ui/primitives/Button'
 import { BREAKPOINTS }     from '@/lib/ui/breakpoints'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { useChart }        from '@/components/providers/ChartProvider'
+import type { UserPlan }   from '@/types/astrology'
 import {
   getSBCGrid,
   getPlanetsOnSBC,
@@ -231,6 +235,10 @@ function ScoreRing({ score }: { score: number }) {
 
 export default function SBCPage() {
   const { chart }  = useChart()
+  const { data: session } = useSession()
+  const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
+  const canUseSbc = planMeetsUiGate(userPlan, 'gold')
+  const showFull = canUseSbc
   const grid       = useMemo(() => getSBCGrid(), [])
 
   // State
@@ -395,11 +403,12 @@ export default function SBCPage() {
     { id: 'market' as const, icon: LineChart, label: 'More' },
   ]
 
-  const showLeftPanel = !isMobile || mobileView === 'grid'
-  const showGridDetails = !isMobile || mobileView === 'grid'
-  const showRightSection = !isMobile || isRightTabView(mobileView)
-  const showAdvisorSection = !isMobile || mobileView === 'advisor'
-  const showExtendedSection = !isMobile || mobileView === 'market'
+  const showLeftPanel = showFull && (!isMobile || mobileView === 'grid')
+  const showGridDetails = showFull && (!isMobile || mobileView === 'grid')
+  const showRightSection = showFull && (!isMobile || isRightTabView(mobileView))
+  const showAdvisorSection = showFull && (!isMobile || mobileView === 'advisor')
+  const showExtendedSection = showFull && (!isMobile || mobileView === 'market')
+  const showFreeBirthCard = !showFull
   const activeRightTab: RightTab = isMobile && isRightTabView(mobileView) ? mobileView : rightTab
 
   const handleMobileTab = (id: MobileView) => {
@@ -466,8 +475,48 @@ export default function SBCPage() {
           </div>
         </div>
 
+        {!showFull && (
+          <div style={{
+            padding: '0.75rem 1rem',
+            background: 'var(--surface-3)',
+            borderRadius: 'var(--r-md)',
+            border: '1px solid var(--gold-faint)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '0.55rem',
+          }}>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+              <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
+              Free preview: birth star + chakra grid. Vedha analysis, life areas, muhurta, remedies, and Life Advisor require Gold.
+            </div>
+            <Link href="/pricing" style={{ textDecoration: 'none' }}>
+              <Button variant="primary" size="sm">View plans</Button>
+            </Link>
+          </div>
+        )}
+
         {/* ── Three-column layout ── */}
         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1.25rem', alignItems: 'start' }}>
+
+          {showFreeBirthCard && (
+            <div style={{ width: isMobile ? '100%' : 255, flexShrink: 0 }}>
+              <div className="card" style={{ padding: '1rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.65rem' }}>Birth Star</div>
+                {birthNakIdx !== undefined ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', borderRadius: 10, background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.25)' }}>
+                    <span style={{ fontSize: '1rem' }}>⭐</span>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--gold)' }}>{NAKSHATRA_NAMES[birthNakIdx]}</div>
+                      <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Moon&apos;s Janma Nakshatra</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Load a chart to see birth star</div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* ── LEFT PANEL ── */}
           {showLeftPanel && (
@@ -627,14 +676,14 @@ export default function SBCPage() {
               <SarvatobhadraChakra
                 grid={grid}
                 natalPlanets={natalOnGrid}
-                transitPlanets={transitOnGrid}
-                onCellClick={setSelectedCell}
+                transitPlanets={showFull && showTransits ? transitOnGrid : []}
+                onCellClick={showFull ? setSelectedCell : undefined}
                 size={gridSize}
                 fontScale={fontScale}
                 fontWeight={fontWeight}
                 birthNakshatraIndex={birthNakIdx}
-                nameNakshatraIndex={nameNakIdx}
-                showDiagonalVedha={true}
+                nameNakshatraIndex={showFull ? nameNakIdx : undefined}
+                showDiagonalVedha={showFull}
               />
             </div>
 
@@ -930,7 +979,7 @@ export default function SBCPage() {
       {/* ═══════════════════════════════════════════════════════
            LIFE ADVISOR — Full-width section below the grid
           ═══════════════════════════════════════════════════════ */}
-      {showAdvisorSection && (
+      {canUseSbc && showAdvisorSection && (
       <section style={{
         maxWidth: 1500, width: '100%', margin: '0 auto',
         paddingTop: 0,
@@ -1168,7 +1217,7 @@ export default function SBCPage() {
       {/* ═══════════════════════════════════════════════════════
            ADVANCED ANALYSIS ENGINE — Full-width section
           ═══════════════════════════════════════════════════════ */}
-      {showExtendedSection && (
+      {canUseSbc && showExtendedSection && (
       <section style={{
         maxWidth: 1500, width: '100%', margin: '0 auto',
         paddingTop: 0,
@@ -1188,7 +1237,7 @@ export default function SBCPage() {
       </section>
       )}
 
-      {showExtendedSection && (
+      {canUseSbc && showExtendedSection && (
       <section style={{
         maxWidth: 1500, width: '100%', margin: '0 auto',
         paddingTop: 0,
@@ -1206,7 +1255,7 @@ export default function SBCPage() {
       </section>
       )}
 
-      {isMobile && (
+      {canUseSbc && isMobile && (
         <MobileBottomNavShell
           ariaLabel="Sarvatobhadra sections"
           compact

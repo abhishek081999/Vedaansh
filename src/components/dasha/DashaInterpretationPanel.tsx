@@ -5,12 +5,15 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import Link from 'next/link'
+import { Lock } from 'lucide-react'
 import type {
   AshtakavargaResult,
   DashaNode,
   GrahaData,
   Rashi,
   ShadbalaResult,
+  UserPlan,
 } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
 import {
@@ -27,6 +30,8 @@ import {
   type VimshottariInterpretation,
   type VimshottariNature,
 } from '@/lib/engine/dasha/vimshottariInterpretations'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { Button } from '@/components/ui/primitives/Button'
 
 export interface VimshottariInterpretationPanelProps {
   nodes: DashaNode[]
@@ -35,6 +40,8 @@ export interface VimshottariInterpretationPanelProps {
   shadbala?: ShadbalaResult | null
   ashtakavarga?: AshtakavargaResult | null
   navamshaGrahas?: GrahaData[] | null
+  /** Detailed "More" interpretation is Gold+ */
+  userPlan?: UserPlan
 }
 
 function natureColor(nature: VimshottariNature): string {
@@ -104,14 +111,16 @@ function PlanetCard({
   snapLine,
   antarHint,
   defaultExpanded = false,
+  canExpandDetails,
 }: {
   data: VimshottariInterpretation
   levelLabel: string
   snapLine?: string | null
   antarHint?: string | null
   defaultExpanded?: boolean
+  canExpandDetails: boolean
 }) {
-  const [expanded, setExpanded] = useState(defaultExpanded)
+  const [expanded, setExpanded] = useState(defaultExpanded && canExpandDetails)
   const planet = GRAHA_NAMES[data.lord] ?? data.lord
   const borderColor = isMaleficVimNature(data.nature)
     ? 'var(--rose)'
@@ -190,6 +199,9 @@ function PlanetCard({
         <span
           style={{
             flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
             fontSize: '0.65rem',
             fontWeight: 600,
             color: 'var(--text-muted)',
@@ -197,42 +209,64 @@ function PlanetCard({
             whiteSpace: 'nowrap',
           }}
         >
+          {!canExpandDetails && !expanded && <Lock size={12} aria-hidden />}
           {expanded ? '▴ Less' : '▾ More'}
         </span>
       </button>
 
       {expanded && (
-        <div
-          style={{
-            padding: '0 1rem 1rem',
-            borderTop: '1px solid var(--border-soft)',
-            paddingTop: '0.85rem',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '0.85rem',
-          }}
-        >
-          <Section title="Positive Effects">
-            <Line label="Primary" value={data.primaryPositive} />
-            <Line label="Secondary" value={data.secondaryBenefits} />
-          </Section>
-          <Section title="Mind & Phases">
-            <Line label="State" value={data.psychologicalState} />
-            <Line label="Start" value={data.phaseStart} />
-            <Line label="Middle" value={data.phaseMiddle} />
-            <Line label="End" value={data.phaseEnd} />
-          </Section>
-          <Section title="Risks & Caution">
-            {data.negativeEffects
-              ? <Line label="Negatives" value={data.negativeEffects} />
-              : <div style={{ fontSize: '0.82rem', color: 'var(--teal)' }}>Few classical negatives when well placed.</div>}
-            {data.healthCaution && <Line label="Health" value={data.healthCaution} />}
-          </Section>
-          <Section title="Life events">
-            <Line label="Themes" value={data.lifeEvents} />
-            {antarHint && <Line label="This Antar" value={antarHint} />}
-          </Section>
-        </div>
+        canExpandDetails ? (
+          <div
+            style={{
+              padding: '0 1rem 1rem',
+              borderTop: '1px solid var(--border-soft)',
+              paddingTop: '0.85rem',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '0.85rem',
+            }}
+          >
+            <Section title="Positive Effects">
+              <Line label="Primary" value={data.primaryPositive} />
+              <Line label="Secondary" value={data.secondaryBenefits} />
+            </Section>
+            <Section title="Mind & Phases">
+              <Line label="State" value={data.psychologicalState} />
+              <Line label="Start" value={data.phaseStart} />
+              <Line label="Middle" value={data.phaseMiddle} />
+              <Line label="End" value={data.phaseEnd} />
+            </Section>
+            <Section title="Risks & Caution">
+              {data.negativeEffects
+                ? <Line label="Negatives" value={data.negativeEffects} />
+                : <div style={{ fontSize: '0.82rem', color: 'var(--teal)' }}>Few classical negatives when well placed.</div>}
+              {data.healthCaution && <Line label="Health" value={data.healthCaution} />}
+            </Section>
+            <Section title="Life events">
+              <Line label="Themes" value={data.lifeEvents} />
+              {antarHint && <Line label="This Antar" value={antarHint} />}
+            </Section>
+          </div>
+        ) : (
+          <div
+            style={{
+              padding: '0.85rem 1rem 1rem',
+              borderTop: '1px solid var(--border-soft)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '0.55rem',
+            }}
+          >
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+              <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
+              Full mahadasha / antardasha interpretation requires Gold.
+            </div>
+            <Link href="/pricing" style={{ textDecoration: 'none' }}>
+              <Button variant="primary" size="sm">View plans</Button>
+            </Link>
+          </div>
+        )
       )}
     </div>
   )
@@ -267,7 +301,10 @@ export function VimshottariInterpretationPanel({
   shadbala,
   ashtakavarga,
   navamshaGrahas,
+  userPlan = 'free',
 }: VimshottariInterpretationPanelProps) {
+  const canExpandDetails = planMeetsUiGate(userPlan, 'gold')
+
   const activePath = useMemo(() => {
     const path: DashaNode[] = []
     let current = nodes.find(n => n.isCurrent)
@@ -378,6 +415,7 @@ export function VimshottariInterpretationPanel({
         levelLabel="Active Mahadasha"
         snapLine={analysis ? snapLabel(analysis, 'maha') : null}
         defaultExpanded={false}
+        canExpandDetails={canExpandDetails}
       />
       {antar && (
         <PlanetCard
@@ -385,6 +423,7 @@ export function VimshottariInterpretationPanel({
           levelLabel="Active Antardasha"
           snapLine={analysis ? snapLabel(analysis, 'antar') : null}
           antarHint={antarHint}
+          canExpandDetails={canExpandDetails}
         />
       )}
 

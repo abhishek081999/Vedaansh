@@ -1809,6 +1809,7 @@ function HomeContent() {
             timezone={dashboardChart.meta.timezone}
             todayPanchang={todayPanchang}
             birthDate={dashboardChart.meta.birthDate}
+            userPlan={userPlan}
           />
 
           {vimshottariNodes?.length > 0 && (
@@ -2136,6 +2137,7 @@ function HomeContent() {
                               shadbala={chart.shadbala}
                               ashtakavarga={chart.ashtakavarga}
                               navamshaGrahas={chart.vargas?.D9}
+                              userPlan={userPlan}
                             />
                           </>
                         )}
@@ -2281,6 +2283,7 @@ function HomeContent() {
                                 latitude={chart.meta.latitude} longitude={chart.meta.longitude}
                                 timezone={chart.meta.timezone} todayPanchang={todayPanchang}
                                 birthDate={chart.meta.birthDate}
+                                userPlan={userPlan}
                               />
                             </div>
                           </div>
