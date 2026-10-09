@@ -23,6 +23,7 @@ Source-of-truth summary for **enforced** feature access by plan. Prices: see `sr
 | Sarvatobhadra Chakra full | Birth star + grid | Yes | Yes | UI: `sbc/page` (`userPlan` / Gold+) |
 | Nakshatra Profession full | Indicators + blueprint teaser | Yes | Yes | UI: `NakshatraProfessionTab` (Gold+) |
 | Nakshatra Medical full | Indicators + constitution teaser | Yes | Yes | UI: `NakshatraMedicalTab` (Gold+) |
+| Prashna Kerala / Vedic / KP | Satpanchasika only | Yes | Yes | UI: `prashna/page` (Gold+) |
 | Research pages/APIs | No | No | Yes | `proxy.ts` (`/research`, `/api/research`) — routes reserved, UI not shipped |
 
 \*Bulk import is available to any authenticated user until the plan’s chart save cap is reached.
