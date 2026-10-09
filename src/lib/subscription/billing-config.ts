@@ -8,12 +8,39 @@ export function defaultPrices() {
   }
 }
 
+/** Prior list prices — bump stored BillingConfig when it still matches any of these defaults. */
+const PREVIOUS_LIST_PRICES = [
+  // Original list (before monthly +25%)
+  {
+    gold: { monthly: 134, yearly: 1349 },
+    platinum: { monthly: 269, yearly: 2699 },
+  },
+  // After monthly +25%, before yearly +7%
+  {
+    gold: { monthly: 168, yearly: 1349 },
+    platinum: { monthly: 336, yearly: 2699 },
+  },
+] as const
+
+function matchesPreviousListPrices(prices: IBillingConfig['prices']): boolean {
+  return PREVIOUS_LIST_PRICES.some(prev => (
+    prices.gold.monthly === prev.gold.monthly
+    && prices.gold.yearly === prev.gold.yearly
+    && prices.platinum.monthly === prev.platinum.monthly
+    && prices.platinum.yearly === prev.platinum.yearly
+  ))
+}
+
 export async function getOrCreateBillingConfig(): Promise<IBillingConfig> {
   const existing = await BillingConfig.findOne({ key: 'default' })
   if (existing) {
     let changed = false
     if (existing.offersEnabled === undefined || existing.offersEnabled === null) {
       existing.offersEnabled = true
+      changed = true
+    }
+    if (matchesPreviousListPrices(existing.prices)) {
+      existing.prices = defaultPrices()
       changed = true
     }
     for (const coupon of existing.coupons || []) {
