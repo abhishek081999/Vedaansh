@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo } from 'react'
+import { Lock } from 'lucide-react'
 import type {
   AshtakavargaResult,
   ChartOutput,
@@ -12,10 +13,12 @@ import type {
   GrahaData,
   Rashi,
   ShadbalaResult,
+  UserPlan,
 } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
 import { analyzeVimshottariPeriod } from '@/lib/engine/dasha/vimshottariAnalysis'
 import { getVimshottariInterpretation } from '@/lib/engine/dasha/vimshottariInterpretations'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
 
 export interface DashaInterpretationTeaserProps {
   nodes: DashaNode[]
@@ -25,6 +28,7 @@ export interface DashaInterpretationTeaserProps {
   ashtakavarga?: AshtakavargaResult | null
   navamshaGrahas?: GrahaData[] | null
   onOpenFull: () => void
+  userPlan?: UserPlan
 }
 
 /** Convenience wrapper from a full chart. */
@@ -32,10 +36,12 @@ export function DashaInterpretationTeaserFromChart({
   chart,
   nodes,
   onOpenFull,
+  userPlan = 'free',
 }: {
   chart: ChartOutput
   nodes: DashaNode[]
   onOpenFull: () => void
+  userPlan?: UserPlan
 }) {
   return (
     <DashaInterpretationTeaser
@@ -46,6 +52,7 @@ export function DashaInterpretationTeaserFromChart({
       ashtakavarga={chart.ashtakavarga}
       navamshaGrahas={chart.vargas?.D9}
       onOpenFull={onOpenFull}
+      userPlan={userPlan}
     />
   )
 }
@@ -58,7 +65,10 @@ export function DashaInterpretationTeaser({
   ashtakavarga,
   navamshaGrahas,
   onOpenFull,
+  userPlan = 'free',
 }: DashaInterpretationTeaserProps) {
+  const canShowFull = planMeetsUiGate(userPlan, 'gold')
+
   const { analysis, mahaTitle, antarLord } = useMemo(() => {
     const path: DashaNode[] = []
     let cur = nodes.find(n => n.isCurrent)
@@ -129,7 +139,7 @@ export function DashaInterpretationTeaser({
           className="btn btn-secondary btn-sm"
           style={{ flexShrink: 0, fontSize: '0.65rem', whiteSpace: 'nowrap' }}
         >
-          Full reading →
+          {canShowFull ? 'Full reading →' : 'Details →'}
         </button>
       </div>
 
@@ -137,18 +147,28 @@ export function DashaInterpretationTeaser({
         {insight.headline}
       </p>
 
-      <ul style={{ margin: 0, paddingLeft: '1.05rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {insight.bullets.map((b, i) => (
-          <li key={i} style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-            {b}
-          </li>
-        ))}
-      </ul>
+      {canShowFull ? (
+        <>
+          <ul style={{ margin: 0, paddingLeft: '1.05rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {insight.bullets.map((b, i) => (
+              <li key={i} style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                {b}
+              </li>
+            ))}
+          </ul>
 
-      {insight.watch && (
-        <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--rose)', lineHeight: 1.35 }}>
-          Watch: {insight.watch}
-        </p>
+          {insight.watch && (
+            <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--rose)', lineHeight: 1.35 }}>
+              Watch: {insight.watch}
+            </p>
+          )}
+        </>
+      ) : (
+        insight.bullets[0] && (
+          <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+            {insight.bullets[0]}
+          </p>
+        )
       )}
 
       <div style={{ display: 'flex', height: 5, borderRadius: 3, overflow: 'hidden', background: 'var(--surface-3)' }}>
@@ -159,6 +179,13 @@ export function DashaInterpretationTeaser({
       <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
         {analysis.favorableShare}% fav · {analysis.neutralShare}% neu · {analysis.challengingShare}% challenge
       </div>
+
+      {!canShowFull && (
+        <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Lock size={11} aria-hidden />
+          Full bullets, watch notes & period reading on Gold
+        </div>
+      )}
     </div>
   )
 }

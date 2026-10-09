@@ -5,10 +5,14 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
-import { Briefcase, Layers, Network, Compass } from 'lucide-react'
-import type { ChartOutput, GrahaId } from '@/types/astrology'
+import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import { Briefcase, Layers, Network, Compass, Lock } from 'lucide-react'
+import type { ChartOutput, GrahaId, UserPlan } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { GANA_COL } from '@/components/ui/PlanetDetailCard'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { Button } from '@/components/ui/primitives/Button'
 import {
   ASHWINI_PADA_DETAILS,
   ARIES_PADA_COMPARISON,
@@ -40,6 +44,8 @@ const SECTIONS: { id: Section; label: string; Icon: typeof Briefcase }[] = [
   { id: 'reference', label: 'Reference', Icon: Layers },
 ]
 
+const FREE_SECTIONS = new Set<Section>(['profile'])
+
 const PRIORITY_COL: Record<string, string> = {
   PRIMARY: 'var(--gold)',
   SECONDARY: '#818cf8',
@@ -50,11 +56,18 @@ export function NakshatraProfessionTab({
   chart,
   birthNakIdx,
   birthNakPada,
+  userPlan: userPlanProp,
 }: {
   chart: ChartOutput
   birthNakIdx: number
   birthNakPada: number
+  userPlan?: UserPlan
 }) {
+  const { data: session } = useSession()
+  const userPlan = (userPlanProp
+    ?? ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free')) as UserPlan
+  const showFull = planMeetsUiGate(userPlan, 'gold')
+
   const [section, setSection] = useState<Section>('profile')
   const [browseIdx, setBrowseIdx] = useState(birthNakIdx)
 
@@ -68,8 +81,35 @@ export function NakshatraProfessionTab({
   const moonPadaStyle = PADA_CAREER_STYLES[moonPadaRashi]
   const primary = indicators[0]
 
+  const visibleSections = showFull ? SECTIONS : SECTIONS.filter(s => FREE_SECTIONS.has(s.id))
+  const selectSection = (id: Section) => {
+    if (!showFull && !FREE_SECTIONS.has(id)) return
+    setSection(id)
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {!showFull && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          background: 'var(--surface-3)',
+          borderRadius: 'var(--r-md)',
+          border: '1px solid var(--gold-faint)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '0.55rem',
+        }}>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+            <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
+            Free preview: career indicators + blueprint summary. Formula, groups, combos, and full reference require Gold.
+          </div>
+          <Link href="/pricing" style={{ textDecoration: 'none' }}>
+            <Button variant="primary" size="sm">View plans</Button>
+          </Link>
+        </div>
+      )}
+
       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>
         Profession nakshatra map — career blueprint from 10th lord, fulfillment from Moon, and unconventional path from Rahu.
       </p>
@@ -82,11 +122,11 @@ export function NakshatraProfessionTab({
           padding: 4, border: '1px solid var(--border-soft)', overflowX: 'auto',
         }}
       >
-        {SECTIONS.map(({ id, label, Icon }) => (
+        {visibleSections.map(({ id, label, Icon }) => (
           <button
             key={id}
             type="button"
-            onClick={() => setSection(id)}
+            onClick={() => selectSection(id)}
             style={{
               flex: '1 1 auto', padding: '0.4rem 0.55rem',
               background: section === id ? 'var(--surface-1)' : 'transparent',
@@ -101,6 +141,14 @@ export function NakshatraProfessionTab({
             <span style={{ whiteSpace: 'nowrap' }}>{label}</span>
           </button>
         ))}
+        {!showFull && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4, padding: '0.4rem 0.55rem',
+            fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap',
+          }}>
+            <Lock size={11} aria-hidden /> More on Gold
+          </span>
+        )}
       </div>
 
       {section === 'profile' && (
@@ -116,12 +164,13 @@ export function NakshatraProfessionTab({
           browseIdx={browseIdx}
           setBrowseIdx={setBrowseIdx}
           browseProfile={browseProfile}
+          showFull={showFull}
         />
       )}
 
-      {section === 'formula' && <FormulaSection formula={formula} indicators={indicators} />}
-      {section === 'groups' && <GroupsSection birthNakIdx={birthNakIdx} />}
-      {section === 'reference' && <ReferenceSection />}
+      {showFull && section === 'formula' && <FormulaSection formula={formula} indicators={indicators} />}
+      {showFull && section === 'groups' && <GroupsSection birthNakIdx={birthNakIdx} />}
+      {showFull && section === 'reference' && <ReferenceSection />}
     </div>
   )
 }
@@ -138,6 +187,7 @@ function ProfileSection({
   browseIdx,
   setBrowseIdx,
   browseProfile,
+  showFull,
 }: {
   indicators: CareerIndicatorResult[]
   moonProfile: NakshatraProfessionProfile
@@ -150,6 +200,7 @@ function ProfileSection({
   browseIdx: number
   setBrowseIdx: (n: number) => void
   browseProfile: NakshatraProfessionProfile
+  showFull: boolean
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -158,11 +209,11 @@ function ProfileSection({
           <button
             key={ind.key}
             type="button"
-            onClick={() => setBrowseIdx(ind.nakshatraIndex)}
+            onClick={() => showFull && setBrowseIdx(ind.nakshatraIndex)}
             style={{
               textAlign: 'left', padding: '0.75rem',
               background: 'var(--surface-2)', border: `1px solid ${PRIORITY_COL[ind.priority]}44`,
-              borderRadius: 'var(--r-md)', cursor: 'pointer',
+              borderRadius: 'var(--r-md)', cursor: showFull ? 'pointer' : 'default',
             }}
           >
             <div style={{ fontSize: '0.55rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: PRIORITY_COL[ind.priority], fontWeight: 700, marginBottom: 4 }}>
@@ -185,84 +236,101 @@ function ProfileSection({
         profile={primary.profile}
         pada={primary.pada}
         padaRashi={primary.padaRashi}
+        compact={!showFull}
       />
 
-      <ProfessionCard
-        title="Fulfillment Signature"
-        subtitle={`Moon in ${moonProfile.name} Pada ${birthNakPada}`}
-        accent="#818cf8"
-        profile={moonProfile}
-        pada={birthNakPada}
-        padaRashi={moonPadaRashi}
-      />
+      {showFull ? (
+        <>
+          <ProfessionCard
+            title="Fulfillment Signature"
+            subtitle={`Moon in ${moonProfile.name} Pada ${birthNakPada}`}
+            accent="#818cf8"
+            profile={moonProfile}
+            pada={birthNakPada}
+            padaRashi={moonPadaRashi}
+          />
 
-      <div style={{ padding: '0.85rem', background: 'var(--gold-faint)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)' }}>
-        <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
-          Pada execution · {RASHI_NAMES[moonPadaRashi]}
-        </div>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-gold)', marginBottom: 4 }}>
-          {moonPadaStyle.energy}
-        </div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-          {moonPadaStyle.executionStyle}. Examples: {moonPadaStyle.exampleProfessions}
-        </div>
-      </div>
-
-      {moonGroup && (
-        <div style={{ padding: '0.85rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
-          <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)', marginBottom: 4 }}>
-            Functional group · {moonGroup.label}
-          </div>
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: 600 }}>{moonGroup.coreFunction}</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{moonGroup.bestEnvironments}</div>
-        </div>
-      )}
-
-      <GanaPitfallCard gana={moonProfile.gana} />
-
-      {matchingCombos.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-          <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
-            Active planet × nakshatra career combos in this chart
-          </div>
-          {matchingCombos.map(c => (
-            <div key={`${c.planet}-${c.nakshatraIndex}`} style={{ padding: '0.7rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
-              <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.8rem' }}>
-                {GRAHA_NAMES[c.planet]} in {NAKSHATRA_NAMES[c.nakshatraIndex]}
-              </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 3 }}>{c.expression}</div>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{c.notes}</div>
+          <div style={{ padding: '0.85rem', background: 'var(--gold-faint)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)' }}>
+            <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
+              Pada execution · {RASHI_NAMES[moonPadaRashi]}
             </div>
-          ))}
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-gold)', marginBottom: 4 }}>
+              {moonPadaStyle.energy}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+              {moonPadaStyle.executionStyle}. Examples: {moonPadaStyle.exampleProfessions}
+            </div>
+          </div>
+
+          {moonGroup && (
+            <div style={{ padding: '0.85rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
+              <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)', marginBottom: 4 }}>
+                Functional group · {moonGroup.label}
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: 600 }}>{moonGroup.coreFunction}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{moonGroup.bestEnvironments}</div>
+            </div>
+          )}
+
+          <GanaPitfallCard gana={moonProfile.gana} />
+
+          {matchingCombos.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
+                Active planet × nakshatra career combos in this chart
+              </div>
+              {matchingCombos.map(c => (
+                <div key={`${c.planet}-${c.nakshatraIndex}`} style={{ padding: '0.7rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.8rem' }}>
+                    {GRAHA_NAMES[c.planet]} in {NAKSHATRA_NAMES[c.nakshatraIndex]}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 3 }}>{c.expression}</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{c.notes}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
+                Browse all profession nakshatras
+              </div>
+              <select
+                value={browseIdx}
+                onChange={e => setBrowseIdx(Number(e.target.value))}
+                style={{
+                  background: 'var(--surface-3)', color: 'var(--text-primary)',
+                  border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)',
+                  padding: '0.3rem 0.5rem', fontSize: '0.72rem',
+                }}
+              >
+                {NAKSHATRA_PROFESSIONS.map(p => (
+                  <option key={p.index} value={p.index}>{p.index + 1}. {p.name}</option>
+                ))}
+              </select>
+            </div>
+            <ProfessionCard
+              title={browseProfile.name}
+              subtitle={`Lord ${GRAHA_NAMES[browseProfile.lord]} · ${browseProfile.signs} · ${browseProfile.gana}`}
+              accent="var(--teal)"
+              profile={browseProfile}
+            />
+          </div>
+        </>
+      ) : (
+        <div style={{
+          padding: '0.85rem 1rem',
+          background: 'var(--surface-2)',
+          borderRadius: 'var(--r-md)',
+          border: '1px solid var(--border-soft)',
+          fontSize: '0.78rem',
+          color: 'var(--text-muted)',
+          lineHeight: 1.45,
+        }}>
+          Fulfillment signature, pada execution, combos, and full nakshatra browser unlock on Gold.
         </div>
       )}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
-            Browse all profession nakshatras
-          </div>
-          <select
-            value={browseIdx}
-            onChange={e => setBrowseIdx(Number(e.target.value))}
-            style={{
-              background: 'var(--surface-3)', color: 'var(--text-primary)',
-              border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)',
-              padding: '0.3rem 0.5rem', fontSize: '0.72rem',
-            }}
-          >
-            {NAKSHATRA_PROFESSIONS.map(p => (
-              <option key={p.index} value={p.index}>{p.index + 1}. {p.name}</option>
-            ))}
-          </select>
-        </div>
-        <ProfessionCard
-          title={browseProfile.name}
-          subtitle={`Lord ${GRAHA_NAMES[browseProfile.lord]} · ${browseProfile.signs} · ${browseProfile.gana}`}
-          accent="var(--teal)"
-          profile={browseProfile}
-        />
-      </div>
     </div>
   )
 }
@@ -274,6 +342,7 @@ function ProfessionCard({
   profile,
   pada,
   padaRashi,
+  compact = false,
 }: {
   title: string
   subtitle: string
@@ -281,6 +350,7 @@ function ProfessionCard({
   profile: NakshatraProfessionProfile
   pada?: number
   padaRashi?: keyof typeof PADA_CAREER_STYLES
+  compact?: boolean
 }) {
   const rows = [
     { label: 'Core Meaning', value: profile.coreMeaning },
@@ -300,25 +370,32 @@ function ProfessionCard({
           </div>
         )}
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.7rem' }}>
-        {profile.careerFields.map(f => (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: compact ? 0 : '0.7rem' }}>
+        {(compact ? profile.careerFields.slice(0, 4) : profile.careerFields).map(f => (
           <span key={f} style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: `${accent}18`, color: 'var(--text-primary)', border: `1px solid ${accent}33` }}>
             {f}
           </span>
         ))}
+        {compact && profile.careerFields.length > 4 && (
+          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>+{profile.careerFields.length - 4} more</span>
+        )}
       </div>
-      <div style={{ display: 'grid', gap: '0.4rem' }}>
-        {rows.map(r => (
-          <div key={r.label} style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '0.4rem', fontSize: '0.74rem' }}>
-            <span style={{ color: 'var(--text-muted)' }}>{r.label}</span>
-            <span style={{ color: 'var(--text-secondary)', lineHeight: 1.45 }}>{r.value}</span>
+      {!compact && (
+        <>
+          <div style={{ display: 'grid', gap: '0.4rem' }}>
+            {rows.map(r => (
+              <div key={r.label} style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '0.4rem', fontSize: '0.74rem' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{r.label}</span>
+                <span style={{ color: 'var(--text-secondary)', lineHeight: 1.45 }}>{r.value}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div style={{ marginTop: '0.65rem', fontSize: '0.7rem' }}>
-        Gana · <span style={{ color: GANA_COL[profile.gana], fontWeight: 600 }}>{profile.gana}</span>
-        {' · '}Lord · <span style={{ color: 'var(--text-gold)' }}>{GRAHA_NAMES[profile.lord]}</span>
-      </div>
+          <div style={{ marginTop: '0.65rem', fontSize: '0.7rem' }}>
+            Gana · <span style={{ color: GANA_COL[profile.gana], fontWeight: 600 }}>{profile.gana}</span>
+            {' · '}Lord · <span style={{ color: 'var(--text-gold)' }}>{GRAHA_NAMES[profile.lord]}</span>
+          </div>
+        </>
+      )}
     </div>
   )
 }

@@ -2,6 +2,8 @@
 // src/components/dashboard/PersonalDayCard.tsx — Compact inline layout
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Lock } from 'lucide-react'
 import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
 import { getTithiDayMeta, formatTithiWeatherLine } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta, formatKaranaWeatherLine } from '@/lib/engine/karanaMeta'
@@ -15,7 +17,9 @@ import {
 } from '@/lib/engine/nakshatraMuhurta'
 import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
 import { getVaarMeta, formatVaarWeatherLine, getCurrentHora } from '@/lib/engine/vaarMeta'
-import type { PanchangData } from '@/types/astrology'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { Button } from '@/components/ui/primitives/Button'
+import type { PanchangData, UserPlan } from '@/types/astrology'
 
 interface PersonalDayCardProps {
   birthMoonNakIdx: number
@@ -25,6 +29,8 @@ interface PersonalDayCardProps {
   timezone:        string
   todayPanchang?:  PanchangData | null
   birthDate:       string
+  /** Full interpretation lines / hora / dinman — Gold+ */
+  userPlan?: UserPlan
 }
 
 export function PersonalDayCard({
@@ -34,8 +40,10 @@ export function PersonalDayCard({
   longitude,
   timezone,
   todayPanchang,
-  birthDate
+  birthDate,
+  userPlan = 'free',
 }: PersonalDayCardProps) {
+  const showFull = planMeetsUiGate(userPlan, 'gold')
   const [todayNak, setTodayNak] = useState<{ index: number; name: string } | null>(null)
   const [todayTithiNum, setTodayTithiNum] = useState<number | null>(
     todayPanchang?.tithi?.number ?? null,
@@ -161,6 +169,27 @@ export function PersonalDayCard({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.72rem' }}>
 
+      {!showFull && (
+        <div style={{
+          padding: '0.45rem 0.5rem',
+          background: 'var(--surface-3)',
+          borderRadius: 4,
+          border: '1px solid var(--gold-faint)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '0.45rem',
+        }}>
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+            <Lock size={13} aria-hidden style={{ verticalAlign: '-2px', marginRight: 5 }} />
+            Full cosmic weather guidance (hora, muhurta windows, caveats) requires Gold.
+          </div>
+          <Link href="/pricing" style={{ textDecoration: 'none' }}>
+            <Button variant="primary" size="sm">View plans</Button>
+          </Link>
+        </div>
+      )}
+
       {/* ── Status row ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
         <span style={{
@@ -230,29 +259,33 @@ export function PersonalDayCard({
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
             {vaarMeta.nature} · Best for: {vaarMeta.bestFor}
           </div>
-          <div style={{
-            borderLeft: '2px solid var(--gold)',
-            paddingLeft: '0.4rem',
-            fontSize: '0.65rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.4,
-          }}>
-            {formatVaarWeatherLine(vaarMeta)}
-          </div>
-          {currentHora && (
-            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
-              Now hora: <strong style={{ color: 'var(--text-primary)' }}>{currentHora.lordName}</strong>
-              {' — '}{currentHora.purposeHint}
-            </div>
+          {showFull && (
+            <>
+              <div style={{
+                borderLeft: '2px solid var(--gold)',
+                paddingLeft: '0.4rem',
+                fontSize: '0.65rem',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.4,
+              }}>
+                {formatVaarWeatherLine(vaarMeta)}
+              </div>
+              {currentHora && (
+                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+                  Now hora: <strong style={{ color: 'var(--text-primary)' }}>{currentHora.lordName}</strong>
+                  {' — '}{currentHora.purposeHint}
+                </div>
+              )}
+              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.3 }}>
+                {vaarMeta.strengthenNaks.length > 0 && (
+                  <>Vaar Pati gains in {vaarMeta.strengthenNaks.join(', ')}. </>
+                )}
+                {vaarMeta.weakenNaks.length > 0 && (
+                  <>Caution if in {vaarMeta.weakenNaks.join(', ')}.</>
+                )}
+              </div>
+            </>
           )}
-          <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.3 }}>
-            {vaarMeta.strengthenNaks.length > 0 && (
-              <>Vaar Pati gains in {vaarMeta.strengthenNaks.join(', ')}. </>
-            )}
-            {vaarMeta.weakenNaks.length > 0 && (
-              <>Caution if in {vaarMeta.weakenNaks.join(', ')}.</>
-            )}
-          </div>
         </div>
       )}
 
@@ -293,39 +326,43 @@ export function PersonalDayCard({
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
             {nakMeta.basicEnergy}
           </div>
-          <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
-            {nakMeta.fallEffect}
-          </div>
-        <div style={{
-          borderLeft: `2px solid ${nakAccent}`,
-          paddingLeft: '0.4rem',
-          fontSize: '0.65rem',
-          color: 'var(--text-secondary)',
-          lineHeight: 1.4,
-        }}>
-          {abhijit.active
-            ? abhijit.note
-            : formatNakshatraWeatherLine(nakMeta)}
-        </div>
-        <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
-          Mukha: {nakMeta.mukha.meaning} — {nakMeta.mukha.goodFor}
-        </div>
-        {ashwiniNotes.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginTop: '0.1rem' }}>
-            {ashwiniNotes.map((n) => (
-              <div key={n.id} style={{
-                fontSize: '0.58rem',
-                color: n.quality === 'inauspicious' ? 'var(--rose)' : n.quality === 'caution' ? 'var(--gold)' : 'var(--teal)',
-                lineHeight: 1.35,
-              }}>
-                <strong>{n.label}:</strong> {n.detail}
+          {showFull && (
+            <>
+              <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
+                {nakMeta.fallEffect}
               </div>
-            ))}
-            <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
-              Favour: {ASHWINI_ACTIVITY_HINT.favour}. Avoid: {ASHWINI_ACTIVITY_HINT.avoid}.
-            </div>
-          </div>
-        )}
+              <div style={{
+                borderLeft: `2px solid ${nakAccent}`,
+                paddingLeft: '0.4rem',
+                fontSize: '0.65rem',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.4,
+              }}>
+                {abhijit.active
+                  ? abhijit.note
+                  : formatNakshatraWeatherLine(nakMeta)}
+              </div>
+              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
+                Mukha: {nakMeta.mukha.meaning} — {nakMeta.mukha.goodFor}
+              </div>
+              {ashwiniNotes.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginTop: '0.1rem' }}>
+                  {ashwiniNotes.map((n) => (
+                    <div key={n.id} style={{
+                      fontSize: '0.58rem',
+                      color: n.quality === 'inauspicious' ? 'var(--rose)' : n.quality === 'caution' ? 'var(--gold)' : 'var(--teal)',
+                      lineHeight: 1.35,
+                    }}>
+                      <strong>{n.label}:</strong> {n.detail}
+                    </div>
+                  ))}
+                  <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                    Favour: {ASHWINI_ACTIVITY_HINT.favour}. Avoid: {ASHWINI_ACTIVITY_HINT.avoid}.
+                  </div>
+                </div>
+              )}
+            </>
+          )}
       </div>
 
       {/* ── Today’s tithi group ── */}
@@ -367,21 +404,29 @@ export function PersonalDayCard({
           </div>
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
             {tithiMeta.group.elementLabel} · {tithiMeta.group.meaning}
-            {' · '}Deity {tithiMeta.deity}
-            {' · '}Best for: {tithiMeta.bestFor}
+            {showFull && (
+              <>
+                {' · '}Deity {tithiMeta.deity}
+                {' · '}Best for: {tithiMeta.bestFor}
+              </>
+            )}
           </div>
-          <div style={{
-            borderLeft: `2px solid ${tithiAccent}`,
-            paddingLeft: '0.4rem',
-            fontSize: '0.65rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.4,
-          }}>
-            {formatTithiWeatherLine(tithiMeta)}
-          </div>
-          <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
-            {tithiMeta.temperament}
-          </div>
+          {showFull && (
+            <>
+              <div style={{
+                borderLeft: `2px solid ${tithiAccent}`,
+                paddingLeft: '0.4rem',
+                fontSize: '0.65rem',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.4,
+              }}>
+                {formatTithiWeatherLine(tithiMeta)}
+              </div>
+              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
+                {tithiMeta.temperament}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -412,20 +457,24 @@ export function PersonalDayCard({
             </span>
           </div>
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
-            {yogaMeta.meaning} · Best for: {yogaMeta.bestFor}
+            {yogaMeta.meaning}{showFull ? ` · Best for: ${yogaMeta.bestFor}` : ''}
           </div>
-          <div style={{
-            borderLeft: `2px solid ${yogaAccent}`,
-            paddingLeft: '0.4rem',
-            fontSize: '0.65rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.4,
-          }}>
-            {formatYogaWeatherLine(yogaMeta)}
-          </div>
-          <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
-            Challenge: {yogaMeta.challenge}
-          </div>
+          {showFull && (
+            <>
+              <div style={{
+                borderLeft: `2px solid ${yogaAccent}`,
+                paddingLeft: '0.4rem',
+                fontSize: '0.65rem',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.4,
+              }}>
+                {formatYogaWeatherLine(yogaMeta)}
+              </div>
+              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
+                Challenge: {yogaMeta.challenge}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -465,25 +514,30 @@ export function PersonalDayCard({
             )}
           </div>
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
-            {karanaMeta.meaning} · Deity {karanaMeta.deity} · {karanaMeta.career}
+            {karanaMeta.meaning}
+            {showFull ? ` · Deity ${karanaMeta.deity} · ${karanaMeta.career}` : ''}
           </div>
-          <div style={{
-            borderLeft: `2px solid ${karanaAccent}`,
-            paddingLeft: '0.4rem',
-            fontSize: '0.65rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.4,
-          }}>
-            {formatKaranaWeatherLine(karanaMeta)}
-          </div>
-          <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
-            Challenge: {karanaMeta.challenge}
-          </div>
+          {showFull && (
+            <>
+              <div style={{
+                borderLeft: `2px solid ${karanaAccent}`,
+                paddingLeft: '0.4rem',
+                fontSize: '0.65rem',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.4,
+              }}>
+                {formatKaranaWeatherLine(karanaMeta)}
+              </div>
+              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
+                Challenge: {karanaMeta.challenge}
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* ── Dinman / Ratriman backup windows ── */}
-      {todayPanchang?.sunrise && todayPanchang?.sunset && (
+      {showFull && todayPanchang?.sunrise && todayPanchang?.sunset && (
         <DinmanMuhurtaStrip
           sunrise={todayPanchang.sunrise}
           sunset={todayPanchang.sunset}

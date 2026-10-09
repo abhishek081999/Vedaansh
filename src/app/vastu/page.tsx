@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
+import { useSession } from 'next-auth/react'
 import { useChart } from '@/components/providers/ChartProvider'
 import Link from 'next/link'
+import type { UserPlan } from '@/types/astrology'
 
 const AstroVastuPanel = dynamic(
   () => import('@/components/ui/AstroVastuPanel').then(m => m.AstroVastuPanel),
@@ -29,6 +31,8 @@ const RASHI_NAMES: Record<number, string> = {
 
 export default function VastuPage() {
   const { chart } = useChart()
+  const { data: session } = useSession()
+  const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
   const [chartExpanded, setChartExpanded] = useState(false)
 
   if (!chart) {
@@ -216,25 +220,27 @@ export default function VastuPage() {
         )}
       </div>
 
-      <AstroVastuPanel chart={chart} />
+      <AstroVastuPanel chart={chart} userPlan={userPlan} />
 
-      <footer style={{
-        marginTop: '2rem',
-        padding: 'clamp(1.25rem, 4vw, 2rem)',
-        background: 'var(--surface-2)',
-        borderRadius: 'var(--r-md)',
-        border: '1px solid var(--border-soft)',
-      }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--text-gold)', marginBottom: '0.75rem', fontWeight: 400 }}>
-          Vedic Directional Wisdom
-        </h3>
-        <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.7, margin: 0 }}>
-          Astro-Vastu bridges the micro-cosmos (your horoscope) and the macro-cosmos (your environment).
-          By balancing the Pancha Bhutas based on your strongest and weakest planets, you create a
-          resonance that amplifies prosperity and well-being. The 45 Devatas of the Vastu Purusha Mandala
-          represent specific psychographic energies that can be harmonized through conscious spatial design.
-        </p>
-      </footer>
+      {userPlan !== 'free' && (
+        <footer style={{
+          marginTop: '2rem',
+          padding: 'clamp(1.25rem, 4vw, 2rem)',
+          background: 'var(--surface-2)',
+          borderRadius: 'var(--r-md)',
+          border: '1px solid var(--border-soft)',
+        }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--text-gold)', marginBottom: '0.75rem', fontWeight: 400 }}>
+            Vedic Directional Wisdom
+          </h3>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.7, margin: 0 }}>
+            Astro-Vastu bridges the micro-cosmos (your horoscope) and the macro-cosmos (your environment).
+            By balancing the Pancha Bhutas based on your strongest and weakest planets, you create a
+            resonance that amplifies prosperity and well-being. The 45 Devatas of the Vastu Purusha Mandala
+            represent specific psychographic energies that can be harmonized through conscious spatial design.
+          </p>
+        </footer>
+      )}
     </div>
   )
 }

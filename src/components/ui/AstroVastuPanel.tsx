@@ -1,17 +1,26 @@
 'use client'
 import React, { useMemo, useState, useEffect } from 'react'
-import { CircleDot, Compass, BookOpen, Gem, Eye, Home, Zap } from 'lucide-react'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
+import { CircleDot, Compass, BookOpen, Gem, Eye, Home, Zap, Lock } from 'lucide-react'
+import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { RASHI_NAMES, GRAHA_NAMES } from '@/types/astrology'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { Button } from '@/components/ui/primitives/Button'
 
 const ChakraSelector = dynamic(
   () => import('@/components/chakra/ChakraSelector').then(m => m.ChakraSelector),
   { ssr: false }
 )
 
-interface AstroVastuPanelProps { chart: ChartOutput }
+interface AstroVastuPanelProps {
+  chart: ChartOutput
+  /** Full tabs / remedies / reports — Gold+ */
+  userPlan?: UserPlan
+}
+
+const FREE_VASTU_TABS = new Set<string>(['chart', 'compass'])
 
 /* ══════════════════════════════════════════════════════════════════
    VEDIC VASTU DATA — Sources: Manasara, Mayamata, Brihat Samhita,
@@ -532,8 +541,9 @@ function SectionTitle({ icon, title, subtitle, color = 'var(--text-gold)' }: { i
 /* ══════════════════════════════════════════════════════════════════
    MAIN COMPONENT
    ══════════════════════════════════════════════════════════════════ */
-export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
+export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelProps) {
   const { grahas } = chart
+  const showFull = planMeetsUiGate(userPlan, 'gold')
   const [mode, setMode]               = useState<'8' | '16'>('16')
   const [selectedZone, setSelectedZone]   = useState<string | null>(null)
   const [selectedDeity, setSelectedDeity] = useState<string | null>(null)
@@ -541,6 +551,11 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
   const [isMobile, setIsMobile]       = useState(false)
   const [isSmall,  setIsSmall]        = useState(false)
   const [isMobileNav, setIsMobileNav] = useState(false)
+
+  const selectTab = (id: TabId) => {
+    if (!showFull && !FREE_VASTU_TABS.has(id)) return
+    setActiveTab(id)
+  }
 
   useEffect(() => {
     const check = () => {
@@ -682,8 +697,32 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
   /* ══════════════════════════════════════════════════════════════
      RENDER
      ══════════════════════════════════════════════════════════════ */
+  const visibleTabs = showFull ? tabs : tabs.filter(t => FREE_VASTU_TABS.has(t.id))
+  const visibleMobileTabs = showFull ? mobileTabs : mobileTabs.filter(t => FREE_VASTU_TABS.has(t.id))
+
   return (
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', color: 'var(--text-primary)', paddingBottom: isMobileNav ? '6rem' : undefined }}>
+
+      {!showFull && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          background: 'var(--surface-3)',
+          borderRadius: 'var(--r-md)',
+          border: '1px solid var(--gold-faint)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '0.55rem',
+        }}>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+            <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
+            Free preview: chart + compass overview. Bhava Vastu, mandala, doshas, rooms, and remedies require Gold.
+          </div>
+          <Link href="/pricing" style={{ textDecoration: 'none' }}>
+            <Button variant="primary" size="sm">View plans</Button>
+          </Link>
+        </div>
+      )}
 
       {/* ── HERO HEADER ────────────────────────────────────────── */}
       <section className="vastu-hero-header">
@@ -741,12 +780,20 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       {/* ── TAB NAVIGATION ─────────────────────────────────────── */}
       {!isMobileNav && (
         <nav style={{ display: 'flex', borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
-          {tabs.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`vastu-tab-btn${activeTab === tab.id ? ' vastu-tab-active' : ''}`}>
+          {visibleTabs.map(tab => (
+            <button key={tab.id} onClick={() => selectTab(tab.id)} className={`vastu-tab-btn${activeTab === tab.id ? ' vastu-tab-active' : ''}`}>
               <span style={{ fontSize: '1rem' }}>{tab.icon}</span>
               <span>{tab.label}</span>
             </button>
           ))}
+          {!showFull && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0.65rem 1rem',
+              fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap',
+            }}>
+              <Lock size={12} aria-hidden /> More tabs on Gold
+            </span>
+          )}
         </nav>
       )}
 
@@ -2162,50 +2209,73 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
         </div>
       )}
 
-      {/* ══ PROPERTY SUMMARY (always visible) ═══════════════════ */}
-      <section className="card-gold" style={{ padding: isMobile ? '1.5rem' : '2.5rem', borderRadius: 'var(--r-lg, 16px)', marginTop: '0.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '2rem', flexDirection: isMobile ? 'column' : 'row', gap: '1rem' }}>
-          <div>
-            <h2 style={{ margin: '0 0 0.25rem', fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.4rem' : '1.9rem', fontWeight: 300 }}>Property Potential Report</h2>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Synthesized from Manasara · Mayamata · Brihat Samhita · Mahavastu</div>
-          </div>
-          <div className="badge badge-gold" style={{ padding: isMobile ? '6px 14px' : '10px 22px', fontSize: isMobile ? '0.88rem' : '1rem' }}>Overall Grade: {grade}</div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: isMobile ? '1.5rem' : '2.5rem' }}>
-          {[
-            { label: 'Primary Strength', color: 'var(--teal)', content: `The <strong>${bestZone.name}</strong> zone leads at ${bestZone.score}%, creating natural resonance for <strong>${bestZone.quality.split(',')[0].toLowerCase()}</strong>. Harness this Power Corridor actively.` },
-            { label: 'Primary Weakness', color: 'var(--rose)', content: `The <strong>${worstZone.name}</strong> zone shows depletion at ${worstZone.score}%, potentially manifesting as challenges in <strong>${worstZone.quality.split(',')[0].toLowerCase()}</strong>. Priority remedy zone.` },
-            { label: 'Key Recommendation', color: 'var(--text-gold)', content: `Activate the <strong>${bestEntrance.name}</strong> entrance and balance <strong>${ELEM_ICON[dominantElement]} ${dominantElement}</strong> element. Perform ${GRAHA_NAMES[worstZone.ruling as GrahaId]} Graha Shanti for maximum spatial alignment.` },
-          ].map((item, idx) => (
-            <div key={item.label} style={{ borderRight: isMobile || idx === 2 ? 'none' : '1px solid rgba(201,168,76,0.2)', paddingRight: isMobile || idx === 2 ? 0 : '2.5rem', borderBottom: isMobile && idx < 2 ? '1px solid rgba(201,168,76,0.1)' : 'none', paddingBottom: isMobile && idx < 2 ? '1.5rem' : 0 }}>
-              <h4 style={{ textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: '0.12em', marginBottom: '0.75rem', color: item.color }}>{item.label}</h4>
-              <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 300, lineHeight: 1.65 }} dangerouslySetInnerHTML={{ __html: item.content }} />
+      {/* ══ PROPERTY SUMMARY ════════════════════════════════════ */}
+      {showFull ? (
+        <>
+          <section className="card-gold" style={{ padding: isMobile ? '1.5rem' : '2.5rem', borderRadius: 'var(--r-lg, 16px)', marginTop: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '2rem', flexDirection: isMobile ? 'column' : 'row', gap: '1rem' }}>
+              <div>
+                <h2 style={{ margin: '0 0 0.25rem', fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.4rem' : '1.9rem', fontWeight: 300 }}>Property Potential Report</h2>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Synthesized from Manasara · Mayamata · Brihat Samhita · Mahavastu</div>
+              </div>
+              <div className="badge badge-gold" style={{ padding: isMobile ? '6px 14px' : '10px 22px', fontSize: isMobile ? '0.88rem' : '1rem' }}>Overall Grade: {grade}</div>
             </div>
-          ))}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: isMobile ? '1.5rem' : '2.5rem' }}>
+              {[
+                { label: 'Primary Strength', color: 'var(--teal)', content: `The <strong>${bestZone.name}</strong> zone leads at ${bestZone.score}%, creating natural resonance for <strong>${bestZone.quality.split(',')[0].toLowerCase()}</strong>. Harness this Power Corridor actively.` },
+                { label: 'Primary Weakness', color: 'var(--rose)', content: `The <strong>${worstZone.name}</strong> zone shows depletion at ${worstZone.score}%, potentially manifesting as challenges in <strong>${worstZone.quality.split(',')[0].toLowerCase()}</strong>. Priority remedy zone.` },
+                { label: 'Key Recommendation', color: 'var(--text-gold)', content: `Activate the <strong>${bestEntrance.name}</strong> entrance and balance <strong>${ELEM_ICON[dominantElement]} ${dominantElement}</strong> element. Perform ${GRAHA_NAMES[worstZone.ruling as GrahaId]} Graha Shanti for maximum spatial alignment.` },
+              ].map((item, idx) => (
+                <div key={item.label} style={{ borderRight: isMobile || idx === 2 ? 'none' : '1px solid rgba(201,168,76,0.2)', paddingRight: isMobile || idx === 2 ? 0 : '2.5rem', borderBottom: isMobile && idx < 2 ? '1px solid rgba(201,168,76,0.1)' : 'none', paddingBottom: isMobile && idx < 2 ? '1.5rem' : 0 }}>
+                  <h4 style={{ textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: '0.12em', marginBottom: '0.75rem', color: item.color }}>{item.label}</h4>
+                  <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 300, lineHeight: 1.65 }} dangerouslySetInnerHTML={{ __html: item.content }} />
+                </div>
+              ))}
+            </div>
+
+            <div className="divider" style={{ margin: '2rem 0', opacity: 0.2 }} />
+            <p style={{ textAlign: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
+              Advanced Astro-Vastu Engine · Sources: Manasara · Mayamata · Brihat Samhita · Vishwakarma Prakash · Samarangana Sutradhara · Mahavastu<br/>
+              Align property compass with Magnetic North for accurate remedial deployment
+            </p>
+          </section>
+
+          <div style={{ padding: '0.85rem 1.2rem', background: 'rgba(201,168,76,0.04)', borderRadius: 'var(--r-md)', border: '1px dashed var(--border-bright)', fontSize: '0.76rem', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.55 }}>
+            ℹ️ This analysis uses your natal planetary longitudes for directional correlation. For full Vastu Shanti, consult a qualified Vastu practitioner to physically survey the property with compass and floor plan. Digital analysis provides directional tendencies; on-site measurement gives exact door positions and marma locations.
+          </div>
+        </>
+      ) : (
+        <div style={{
+          padding: '1rem 1.15rem',
+          background: 'var(--surface-2)',
+          borderRadius: 'var(--r-md)',
+          border: '1px solid var(--border-soft)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.75rem',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+            Overall grade <strong style={{ color: 'var(--text-gold)' }}>{grade}</strong> · full property report, doshas &amp; remedies on Gold
+          </div>
+          <Link href="/pricing" style={{ textDecoration: 'none' }}>
+            <Button variant="secondary" size="sm">Unlock report</Button>
+          </Link>
         </div>
-
-        <div className="divider" style={{ margin: '2rem 0', opacity: 0.2 }} />
-        <p style={{ textAlign: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
-          Advanced Astro-Vastu Engine · Sources: Manasara · Mayamata · Brihat Samhita · Vishwakarma Prakash · Samarangana Sutradhara · Mahavastu<br/>
-          Align property compass with Magnetic North for accurate remedial deployment
-        </p>
-      </section>
-
-      <div style={{ padding: '0.85rem 1.2rem', background: 'rgba(201,168,76,0.04)', borderRadius: 'var(--r-md)', border: '1px dashed var(--border-bright)', fontSize: '0.76rem', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.55 }}>
-        ℹ️ This analysis uses your natal planetary longitudes for directional correlation. For full Vastu Shanti, consult a qualified Vastu practitioner to physically survey the property with compass and floor plan. Digital analysis provides directional tendencies; on-site measurement gives exact door positions and marma locations.
-      </div>
+      )}
 
       {isMobileNav && (
         <MobileBottomNavShell
           ariaLabel="Astro Vastu sections"
           compact
-          tabs={mobileTabs.map(({ id, icon, label }) => ({
+          tabs={visibleMobileTabs.map(({ id, icon, label }) => ({
             id,
             icon,
             label,
             active: activeTab === id,
-            onClick: () => setActiveTab(id),
+            onClick: () => selectTab(id),
           }))}
         />
       )}

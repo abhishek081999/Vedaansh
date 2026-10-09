@@ -5,9 +5,13 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
-import { Activity, BookOpen, Layers, Thermometer } from 'lucide-react'
-import type { ChartOutput, GrahaId } from '@/types/astrology'
+import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import { Activity, BookOpen, Layers, Thermometer, Lock } from 'lucide-react'
+import type { ChartOutput, GrahaId, UserPlan } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { Button } from '@/components/ui/primitives/Button'
 import {
   DOSHA_COL,
   MEDICAL_DOSHA_INFO,
@@ -29,6 +33,8 @@ const SECTIONS: { id: Section; label: string; Icon: typeof Activity }[] = [
   { id: 'reference', label: 'Reference', Icon: BookOpen },
 ]
 
+const FREE_SECTIONS = new Set<Section>(['profile'])
+
 const PRIORITY_COL: Record<string, string> = {
   PRIMARY: 'var(--gold)',
   SECONDARY: '#818cf8',
@@ -38,10 +44,17 @@ const PRIORITY_COL: Record<string, string> = {
 export function NakshatraMedicalTab({
   chart,
   birthNakIdx,
+  userPlan: userPlanProp,
 }: {
   chart: ChartOutput
   birthNakIdx: number
+  userPlan?: UserPlan
 }) {
+  const { data: session } = useSession()
+  const userPlan = (userPlanProp
+    ?? ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free')) as UserPlan
+  const showFull = planMeetsUiGate(userPlan, 'gold')
+
   const [section, setSection] = useState<Section>('profile')
   const [browseIdx, setBrowseIdx] = useState(birthNakIdx)
 
@@ -50,8 +63,35 @@ export function NakshatraMedicalTab({
   const afflictions = useMemo(() => getAfflictedMedicalHits(chart), [chart])
   const browseProfile = useMemo(() => getNakshatraMedical(browseIdx), [browseIdx])
 
+  const visibleSections = showFull ? SECTIONS : SECTIONS.filter(s => FREE_SECTIONS.has(s.id))
+  const selectSection = (id: Section) => {
+    if (!showFull && !FREE_SECTIONS.has(id)) return
+    setSection(id)
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {!showFull && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          background: 'var(--surface-3)',
+          borderRadius: 'var(--r-md)',
+          border: '1px solid var(--gold-faint)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '0.55rem',
+        }}>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+            <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
+            Free preview: medical indicators + constitution summary. Dosha map, body map, afflictions, and full reference require Gold.
+          </div>
+          <Link href="/pricing" style={{ textDecoration: 'none' }}>
+            <Button variant="primary" size="sm">View plans</Button>
+          </Link>
+        </div>
+      )}
+
       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>
         Medical nakshatra map — constitution from Moon, disease blueprint from 6th lord, body vessel from Lagna. Educational reference only; not a medical diagnosis.
       </p>
@@ -64,11 +104,11 @@ export function NakshatraMedicalTab({
           padding: 4, border: '1px solid var(--border-soft)', overflowX: 'auto',
         }}
       >
-        {SECTIONS.map(({ id, label, Icon }) => (
+        {visibleSections.map(({ id, label, Icon }) => (
           <button
             key={id}
             type="button"
-            onClick={() => setSection(id)}
+            onClick={() => selectSection(id)}
             style={{
               flex: '1 1 auto', padding: '0.4rem 0.55rem',
               background: section === id ? 'var(--surface-1)' : 'transparent',
@@ -83,6 +123,14 @@ export function NakshatraMedicalTab({
             <span style={{ whiteSpace: 'nowrap' }}>{label}</span>
           </button>
         ))}
+        {!showFull && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4, padding: '0.4rem 0.55rem',
+            fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap',
+          }}>
+            <Lock size={11} aria-hidden /> More on Gold
+          </span>
+        )}
       </div>
 
       {section === 'profile' && (
@@ -93,11 +141,12 @@ export function NakshatraMedicalTab({
           browseIdx={browseIdx}
           setBrowseIdx={setBrowseIdx}
           browseProfile={browseProfile}
+          showFull={showFull}
         />
       )}
-      {section === 'dosha' && <DoshaSection birthNakIdx={birthNakIdx} moonProfile={moonProfile} />}
-      {section === 'body' && <BodyMapSection birthNakIdx={birthNakIdx} indicators={indicators} />}
-      {section === 'reference' && <ReferenceSection />}
+      {showFull && section === 'dosha' && <DoshaSection birthNakIdx={birthNakIdx} moonProfile={moonProfile} />}
+      {showFull && section === 'body' && <BodyMapSection birthNakIdx={birthNakIdx} indicators={indicators} />}
+      {showFull && section === 'reference' && <ReferenceSection />}
     </div>
   )
 }
@@ -109,6 +158,7 @@ function ProfileSection({
   browseIdx,
   setBrowseIdx,
   browseProfile,
+  showFull,
 }: {
   indicators: MedicalIndicatorResult[]
   moonProfile: NakshatraMedicalProfile
@@ -116,6 +166,7 @@ function ProfileSection({
   browseIdx: number
   setBrowseIdx: (n: number) => void
   browseProfile: NakshatraMedicalProfile
+  showFull: boolean
 }) {
   const sixth = indicators[1]
   const lagna = indicators[2]
@@ -127,11 +178,11 @@ function ProfileSection({
           <button
             key={ind.key}
             type="button"
-            onClick={() => setBrowseIdx(ind.nakshatraIndex)}
+            onClick={() => showFull && setBrowseIdx(ind.nakshatraIndex)}
             style={{
               textAlign: 'left', padding: '0.75rem',
               background: 'var(--surface-2)', border: `1px solid ${PRIORITY_COL[ind.priority]}44`,
-              borderRadius: 'var(--r-md)', cursor: 'pointer',
+              borderRadius: 'var(--r-md)', cursor: showFull ? 'pointer' : 'default',
             }}
           >
             <div style={{ fontSize: '0.55rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: PRIORITY_COL[ind.priority], fontWeight: 700, marginBottom: 4 }}>
@@ -152,79 +203,96 @@ function ProfileSection({
         subtitle={`Moon in ${moonProfile.name} · ${moonProfile.deity}`}
         accent="var(--gold)"
         profile={moonProfile}
+        compact={!showFull}
       />
 
-      <MedicalCard
-        title="Disease Blueprint"
-        subtitle={`6th Lord ${sixth.planetName} in ${sixth.nakshatraName}`}
-        accent="#818cf8"
-        profile={sixth.profile}
-      />
+      {showFull ? (
+        <>
+          <MedicalCard
+            title="Disease Blueprint"
+            subtitle={`6th Lord ${sixth.planetName} in ${sixth.nakshatraName}`}
+            accent="#818cf8"
+            profile={sixth.profile}
+          />
 
-      <MedicalCard
-        title="Body Vessel"
-        subtitle={`Lagna in ${lagna.nakshatraName}`}
-        accent="#34d399"
-        profile={lagna.profile}
-      />
+          <MedicalCard
+            title="Body Vessel"
+            subtitle={`Lagna in ${lagna.nakshatraName}`}
+            accent="#34d399"
+            profile={lagna.profile}
+          />
 
-      <div style={{ padding: '0.85rem', background: 'rgba(248,113,113,.06)', border: '1px solid rgba(248,113,113,.22)', borderRadius: 'var(--r-md)' }}>
-        <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: DOSHA_COL[moonProfile.dosha], fontWeight: 700, marginBottom: 4 }}>
-          Disease nature · {moonProfile.dosha}
-        </div>
-        <div style={{ fontSize: '0.78rem', color: 'var(--text-primary)', marginBottom: 4 }}>{moonProfile.diseaseNature}</div>
-        {moonProfile.keyTrigger && (
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Key trigger: {moonProfile.keyTrigger}</div>
-        )}
-      </div>
-
-      {afflictions.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-          <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
-            Malefic / nodal medical hits in this chart
-          </div>
-          {afflictions.map(a => (
-            <div key={a.grahaId} style={{ padding: '0.7rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
-              <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.8rem' }}>
-                {a.grahaName} in {NAKSHATRA_NAMES[a.nakshatraIndex]}
-                {' · '}
-                <span style={{ color: DOSHA_COL[a.profile.dosha] }}>{a.profile.dosha}</span>
-              </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 3 }}>
-                Watch: {a.profile.primaryDiseases.slice(0, 4).join(', ')}
-              </div>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{a.profile.diseaseNature}</div>
+          <div style={{ padding: '0.85rem', background: 'rgba(248,113,113,.06)', border: '1px solid rgba(248,113,113,.22)', borderRadius: 'var(--r-md)' }}>
+            <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: DOSHA_COL[moonProfile.dosha], fontWeight: 700, marginBottom: 4 }}>
+              Disease nature · {moonProfile.dosha}
             </div>
-          ))}
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-primary)', marginBottom: 4 }}>{moonProfile.diseaseNature}</div>
+            {moonProfile.keyTrigger && (
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Key trigger: {moonProfile.keyTrigger}</div>
+            )}
+          </div>
+
+          {afflictions.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
+                Malefic / nodal medical hits in this chart
+              </div>
+              {afflictions.map(a => (
+                <div key={a.grahaId} style={{ padding: '0.7rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.8rem' }}>
+                    {a.grahaName} in {NAKSHATRA_NAMES[a.nakshatraIndex]}
+                    {' · '}
+                    <span style={{ color: DOSHA_COL[a.profile.dosha] }}>{a.profile.dosha}</span>
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 3 }}>
+                    Watch: {a.profile.primaryDiseases.slice(0, 4).join(', ')}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{a.profile.diseaseNature}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
+                Browse all medical nakshatras
+              </div>
+              <select
+                value={browseIdx}
+                onChange={e => setBrowseIdx(Number(e.target.value))}
+                style={{
+                  background: 'var(--surface-3)', color: 'var(--text-primary)',
+                  border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)',
+                  padding: '0.3rem 0.5rem', fontSize: '0.72rem',
+                }}
+              >
+                {NAKSHATRA_MEDICAL.map(p => (
+                  <option key={p.index} value={p.index}>{p.index + 1}. {p.name}</option>
+                ))}
+              </select>
+            </div>
+            <MedicalCard
+              title={browseProfile.name}
+              subtitle={`Lord ${GRAHA_NAMES[browseProfile.lord]} · ${browseProfile.signs} · ${browseProfile.deity}`}
+              accent="var(--teal)"
+              profile={browseProfile}
+            />
+          </div>
+        </>
+      ) : (
+        <div style={{
+          padding: '0.85rem 1rem',
+          background: 'var(--surface-2)',
+          borderRadius: 'var(--r-md)',
+          border: '1px solid var(--border-soft)',
+          fontSize: '0.78rem',
+          color: 'var(--text-muted)',
+          lineHeight: 1.45,
+        }}>
+          Disease blueprint, body vessel, afflictions, and full medical browser unlock on Gold.
         </div>
       )}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
-            Browse all medical nakshatras
-          </div>
-          <select
-            value={browseIdx}
-            onChange={e => setBrowseIdx(Number(e.target.value))}
-            style={{
-              background: 'var(--surface-3)', color: 'var(--text-primary)',
-              border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)',
-              padding: '0.3rem 0.5rem', fontSize: '0.72rem',
-            }}
-          >
-            {NAKSHATRA_MEDICAL.map(p => (
-              <option key={p.index} value={p.index}>{p.index + 1}. {p.name}</option>
-            ))}
-          </select>
-        </div>
-        <MedicalCard
-          title={browseProfile.name}
-          subtitle={`Lord ${GRAHA_NAMES[browseProfile.lord]} · ${browseProfile.signs} · ${browseProfile.deity}`}
-          accent="var(--teal)"
-          profile={browseProfile}
-        />
-      </div>
     </div>
   )
 }
@@ -234,15 +302,17 @@ function MedicalCard({
   subtitle,
   accent,
   profile,
+  compact = false,
 }: {
   title: string
   subtitle: string
   accent: string
   profile: NakshatraMedicalProfile
+  compact?: boolean
 }) {
   return (
     <div style={{ padding: '1rem', background: 'var(--surface-2)', border: `1px solid ${accent}33`, borderRadius: 'var(--r-md)', borderLeft: `3px solid ${accent}` }}>
-      <div style={{ marginBottom: '0.65rem' }}>
+      <div style={{ marginBottom: compact ? 0 : '0.65rem' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 600 }}>{title}</div>
         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>{subtitle}</div>
         <div style={{ fontSize: '0.68rem', marginTop: 4 }}>
@@ -251,16 +321,20 @@ function MedicalCard({
         </div>
       </div>
 
-      <TagRow label="Primary diseases" items={profile.primaryDiseases} color={accent} />
-      <TagRow label="Also watch" items={profile.additionalDiseases} color="var(--text-muted)" />
+      {!compact && (
+        <>
+          <TagRow label="Primary diseases" items={profile.primaryDiseases} color={accent} />
+          <TagRow label="Also watch" items={profile.additionalDiseases} color="var(--text-muted)" />
 
-      <div style={{ display: 'grid', gap: '0.4rem', marginTop: '0.65rem' }}>
-        <InfoRow label="External" value={profile.externalBodyParts.join(', ')} />
-        <InfoRow label="Internal" value={profile.internalOrgans.join(', ')} />
-        <InfoRow label="Systems" value={profile.glandsSystems.join(', ')} />
-        <InfoRow label="Nature" value={profile.diseaseNature} />
-        <InfoRow label="Healing" value={profile.karmicHealing} />
-      </div>
+          <div style={{ display: 'grid', gap: '0.4rem', marginTop: '0.65rem' }}>
+            <InfoRow label="External" value={profile.externalBodyParts.join(', ')} />
+            <InfoRow label="Internal" value={profile.internalOrgans.join(', ')} />
+            <InfoRow label="Systems" value={profile.glandsSystems.join(', ')} />
+            <InfoRow label="Nature" value={profile.diseaseNature} />
+            <InfoRow label="Healing" value={profile.karmicHealing} />
+          </div>
+        </>
+      )}
     </div>
   )
 }
