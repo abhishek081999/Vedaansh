@@ -8,12 +8,16 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
+import { useSession } from 'next-auth/react'
+import { Lock } from 'lucide-react'
 import { formatInTimeZone } from 'date-fns-tz'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
-import type { ChartOutput, ChartStyle, Rashi } from '@/types/astrology'
+import type { ChartOutput, ChartStyle, Rashi, UserPlan } from '@/types/astrology'
 import { useChartStyle } from '@/components/providers/ChartStyleProvider'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { Button } from '@/components/ui/primitives/Button'
 import { getKPSubLord } from '@/lib/engine/nakshatraAdvanced'
 import {
   runKrishneeyamPrashna,
@@ -37,6 +41,16 @@ const ChakraSelector = dynamic(
 type KPMode = 'vedic' | 'kp' | 'krishneeyam' | 'satpanchasika'
 type HouseReference = 'udaya' | 'arudha'
 type AroodhaMode = 'auto_lagna' | 'auto_al' | 'manual'
+
+/** Free plan may use Satpanchasika only; Kerala / Vedic / KP require Gold+. */
+const PAID_PRASHNA_MODES = new Set<KPMode>(['krishneeyam', 'vedic', 'kp'])
+
+const MODE_LABEL: Record<KPMode, string> = {
+  satpanchasika: 'Satpanchasika',
+  krishneeyam: 'Kerala',
+  vedic: 'Vedic',
+  kp: 'KP',
+}
 
 const CATEGORY_LABELS: Record<PrashnaCategory, string> = {
   yes_no: 'Yes / No', when: 'When', what: 'What', who: 'Who (Thief)',
@@ -214,6 +228,10 @@ interface HistoryEntry {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function PrashnaPage() {
+  const { data: session } = useSession()
+  const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
+  const canUsePaidModes = planMeetsUiGate(userPlan, 'gold')
+
   const [now, setNow] = useState(new Date())
   const [frozen, setFrozen] = useState(false)
   const [frozenAt, setFrozenAt] = useState<Date | null>(null)
@@ -227,7 +245,8 @@ export default function PrashnaPage() {
   const [isMobile, setIsMobile] = useState(false)
   const [chartSize, setChartSize] = useState(420)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['core', 'timing', 'category']))
-  const [mode, setMode] = useState<KPMode>('krishneeyam')
+  const [mode, setMode] = useState<KPMode>('satpanchasika')
+  const modeLocked = !canUsePaidModes && PAID_PRASHNA_MODES.has(mode)
   const [kpNumber, setKpNumber] = useState<number | ''>('')
   const [category, setCategory] = useState<PrashnaCategory>('yes_no')
   const [satTopic, setSatTopic] = useState<SatpanchasikaTopic>('general')
@@ -336,12 +355,18 @@ export default function PrashnaPage() {
       setError(null)
       savedHistoryIdRef.current = null
     } else {
+      if (modeLocked) return
       const captured = new Date()
       setFrozen(true)
       setFrozenAt(captured)
       setElapsed(0)
       calculateChart(captured)
     }
+  }
+
+  const selectMode = (m: KPMode) => {
+    if (frozen) return
+    setMode(m)
   }
 
   const arudhaLagnaRashi = chart?.arudhas?.AL
@@ -522,37 +547,67 @@ export default function PrashnaPage() {
           {/* Row 1: Mode + Question + Location + Action */}
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             {/* Mode */}
-            <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-              {(['krishneeyam', 'satpanchasika', 'vedic', 'kp'] as KPMode[]).map(m => (
-                <button key={m} onClick={() => setMode(m)} disabled={frozen}
-                  className={`btn btn-sm ${mode === m ? 'btn-primary' : 'btn-ghost'}`}
-                  style={{ fontSize: '0.68rem', fontWeight: mode === m ? 700 : 400, whiteSpace: 'nowrap' }}>
-                  {m === 'krishneeyam' ? '🔮 Kerala' : m === 'satpanchasika' ? '📜 Satpanchasika' : m === 'kp' ? '⭐ KP' : '🕉 Vedic'}
-                </button>
-              ))}
+            <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap' }}>
+              {(['satpanchasika', 'krishneeyam', 'vedic', 'kp'] as KPMode[]).map(m => {
+                const locked = !canUsePaidModes && PAID_PRASHNA_MODES.has(m)
+                return (
+                  <button key={m} onClick={() => selectMode(m)} disabled={frozen}
+                    className={`btn btn-sm ${mode === m ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{
+                      fontSize: '0.68rem', fontWeight: mode === m ? 700 : 400, whiteSpace: 'nowrap',
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      opacity: locked && mode !== m ? 0.85 : 1,
+                    }}>
+                    {locked && <Lock size={11} aria-hidden />}
+                    {m === 'krishneeyam' ? '🔮 Kerala' : m === 'satpanchasika' ? '📜 Satpanchasika' : m === 'kp' ? '⭐ KP' : '🕉 Vedic'}
+                  </button>
+                )
+              })}
             </div>
-            {mode === 'kp' && (
+            {mode === 'kp' && !modeLocked && (
               <input type="number" className="input" placeholder="KP Number (1-249)" value={kpNumber} style={{ width: 160 }}
                 onChange={e => setKpNumber(e.target.value === '' ? '' : Number(e.target.value))} disabled={frozen} />
             )}
             {/* Question */}
             <input type="text" className="input" placeholder="✍️ Your question (optional)…"
-              value={questionText} onChange={e => setQuestionText(e.target.value)} disabled={frozen}
+              value={questionText} onChange={e => setQuestionText(e.target.value)} disabled={frozen || modeLocked}
               style={{ flex: 1, minWidth: 180, fontSize: '0.82rem' }} />
             {/* Location */}
-            <div style={{ flexShrink: 0, opacity: frozen ? 0.55 : 1, pointerEvents: frozen ? 'none' : 'auto' }}>
+            <div style={{ flexShrink: 0, opacity: frozen || modeLocked ? 0.55 : 1, pointerEvents: frozen || modeLocked ? 'none' : 'auto' }}>
               <LocationPicker value={location} onChange={setLocation} label="Location" />
             </div>
             {/* Action */}
             <button onClick={handleAction}
               className={`btn ${frozen ? 'btn-secondary' : 'btn-primary'}`}
-              style={{ height: 40, fontSize: '0.88rem', fontWeight: 700, letterSpacing: '0.04em', flexShrink: 0, whiteSpace: 'nowrap' }}>
+              disabled={!frozen && modeLocked}
+              style={{ height: 40, fontSize: '0.88rem', fontWeight: 700, letterSpacing: '0.04em', flexShrink: 0, whiteSpace: 'nowrap', opacity: !frozen && modeLocked ? 0.55 : 1 }}>
               {frozen ? '↺ New Reading' : '⚡ Capture Moment'}
             </button>
           </div>
 
+          {modeLocked && (
+            <div style={{
+              padding: '0.85rem 1rem',
+              background: 'var(--surface-3)',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid var(--gold-faint)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '0.55rem',
+            }}>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
+                {MODE_LABEL[mode]} Prashna requires Gold. Free includes Satpanchasika only.
+              </div>
+              <Link href="/pricing" style={{ textDecoration: 'none' }}>
+                <Button variant="primary" size="sm">View plans</Button>
+              </Link>
+            </div>
+          )}
+
           {/* Row 2: Categories + Aroodha + Body Touch (Krishneeyam only) */}
-          {mode === 'krishneeyam' && (
+          {mode === 'krishneeyam' && !modeLocked && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               {/* House reference: Udaya vs Arudha Lagna */}
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', padding: '0.55rem 0.7rem', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border-soft)' }}>
@@ -729,7 +784,7 @@ export default function PrashnaPage() {
         )}
 
         {/* ── Await state ──────────────────────────────────────────────────────── */}
-        {!frozen && !loading && (
+        {!frozen && !loading && !modeLocked && (
           <div style={{ height: '42vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-0)', borderRadius: 14, border: '1px dashed var(--border)', gap: '1.5rem' }}>
             <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'var(--gold-faint)', border: '2px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', animation: 'pulse 3s ease-in-out infinite' }}>🧿</div>
             <div style={{ textAlign: 'center', maxWidth: 500 }}>
@@ -742,7 +797,10 @@ export default function PrashnaPage() {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-              {['🔭 Lagna ref', '📿 Aroodha', '👤 Touch', '🗂 Category', '⚡ Capture'].map((step, i) => (
+              {(mode === 'satpanchasika'
+                ? ['📜 Topic', '✍️ Question', '📍 Location', '⚡ Capture']
+                : ['🔭 Lagna ref', '📿 Aroodha', '👤 Touch', '🗂 Category', '⚡ Capture']
+              ).map((step, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                   <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700 }}>{i + 1}</span>
                   {step}
