@@ -104,17 +104,16 @@ const SIGN_LORD: Record<number, GrahaId> = {
   9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju',
 }
 
-/** First pada navamsa rashi index (0=Aries) for each nakshatra 0–26 */
-const NAK_PADA1_RASHI0: Record<number, number> = {
-  0: 0, 1: 0, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4, 9: 5,
-  10: 5, 11: 6, 12: 7, 13: 7, 14: 8, 15: 9, 16: 9, 17: 10, 18: 11, 19: 11,
-  20: 0, 21: 1, 22: 2, 23: 2, 24: 3, 25: 4, 26: 4,
-}
-
+/**
+ * Navamsa (D9) rashi for a nakshatra pada.
+ * Each nakshatra spans 4 consecutive navamsas starting at (nak × 4) in the
+ * 108-navamsa cycle from Aries — so pada 1 of Ashwini/Bharani/Krittika is
+ * Aries/Leo/Sagittarius, then the pattern repeats every 3 nakshatras.
+ */
 export function getPadaRashi(nakshatraIndex: number, pada: number): Rashi {
-  const base = NAK_PADA1_RASHI0[nakshatraIndex] ?? 0
+  const nak = ((nakshatraIndex % 27) + 27) % 27
   const p = Math.min(4, Math.max(1, pada))
-  return ((((base + p - 1) % 12) + 12) % 12) + 1 as Rashi
+  return ((((nak * 4) + (p - 1)) % 12) + 12) % 12 + 1 as Rashi
 }
 
 function rashiOfHouse(house: number, ascRashi: Rashi): Rashi {

@@ -32,6 +32,7 @@ const ShadbalaVisuals = dynamic(() => import('@/components/ui/ShadbalaVisuals').
 const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').then(m => m.BhavaBalaTable), { ssr: false })
 const VimsopakaBalaPanel = dynamic(() => import('@/components/ui/VimsopakaBalaPanel').then(m => m.VimsopakaBalaPanel), { ssr: false })
 const PlanetsWorkspace = dynamic(() => import('@/components/ui/PlanetsWorkspace').then(m => m.PlanetsWorkspace), { ssr: false })
+const NavamshaWorkspace = dynamic(() => import('@/components/ui/NavamshaWorkspace').then(m => m.NavamshaWorkspace), { ssr: false })
 const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
 const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
 const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => m.HousePanel), { ssr: false })
@@ -2026,6 +2027,8 @@ function HomeContent() {
               >
                 {activeTab === 'planets' ? (
                     <PlanetsWorkspace chart={chart} />
+                  ) : activeTab === 'navamsha' ? (
+                    <NavamshaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'house' ? (
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (

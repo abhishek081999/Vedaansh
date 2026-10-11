@@ -7,6 +7,7 @@ export type ChartTabId =
   | 'dashboard'
   | 'astro-details'
   | 'planets'
+  | 'navamsha'
   | 'dasha'
   | 'dasha-interpretation'
   | 'house'
@@ -25,6 +26,7 @@ export type ChartTabId =
 export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
   'varshaphal',
   'planets',
+  'navamsha',
   'house',
   'interpretation',
   'kp-stellar',
@@ -33,6 +35,7 @@ export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
 /** Tabs with flush padding (no panel wrapper padding). */
 export const FLUSH_PADDING_CHART_TABS: readonly ChartTabId[] = [
   'planets',
+  'navamsha',
   'house',
   'kp-stellar',
 ]

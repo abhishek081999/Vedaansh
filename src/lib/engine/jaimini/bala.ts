@@ -1,6 +1,7 @@
 import type { GrahaId, Rashi, ChartOutput, GrahaData } from '@/types/astrology'
 import { NATURAL_FRIENDS, NATURAL_ENEMIES, OWN_SIGNS, MOOLATRIKONA_SIGN, MOOLATRIKONA_RANGE, EXALTATION_SIGN, DEBILITATION_SIGN } from '../dignity'
 import { calcCharaKarakas } from '../karakas'
+import { getRashiDrishti } from './aspects'
 
 export interface JaiminiPlanetBala {
   id: GrahaId
@@ -182,32 +183,6 @@ function getRashiLord(r: Rashi): GrahaId {
   if (r === 9 || r === 12) return 'Ju'
   if (r === 10 || r === 11) return 'Sa'
   return 'Su'
-}
-
-function getSignType(r: Rashi): 'Movable' | 'Fixed' | 'Dual' {
-  if ([1, 4, 7, 10].includes(r)) return 'Movable'
-  if ([2, 5, 8, 11].includes(r)) return 'Fixed'
-  return 'Dual'
-}
-
-function getRashiDrishti(r: Rashi): Rashi[] {
-  const type = getSignType(r)
-  const all: Rashi[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-  if (type === 'Movable') {
-    // Movable aspects all Fixed except the adjacent one
-    const fixed: Rashi[] = [2, 5, 8, 11]
-    const adjacent = (r === 1) ? 2 : (r === 4) ? 5 : (r === 7) ? 8 : 11
-    return fixed.filter(f => f !== adjacent) as Rashi[]
-  }
-  if (type === 'Fixed') {
-    // Fixed aspects all Movable except the adjacent one
-    const movable: Rashi[] = [1, 4, 7, 10]
-    const adjacent = (r === 2) ? 1 : (r === 5) ? 4 : (r === 8) ? 7 : 10
-    return movable.filter(m => m !== adjacent) as Rashi[]
-  }
-  // Dual aspects all other Dual signs
-  const dual: Rashi[] = [3, 6, 9, 12]
-  return dual.filter(d => d !== r) as Rashi[]
 }
 
 function calculateKartariBala(g: GrahaData, allGrahas: GrahaData[]): number {

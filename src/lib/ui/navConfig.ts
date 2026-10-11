@@ -89,6 +89,7 @@ export const ASTRO_GROUPS: NavGroup[] = [
     tabs: [
       { id: 'astro-details', label: 'Astro Details', icon: ClipboardList, path: ASTROLOGY_HOME_PATH },
       { id: 'planets', label: 'Planets', icon: Sparkles, path: ASTROLOGY_HOME_PATH },
+      { id: 'navamsha', label: 'Navamsha (D9)', icon: Orbit, path: ASTROLOGY_HOME_PATH },
       { id: 'dasha', label: 'Dasha', icon: Hourglass, path: ASTROLOGY_HOME_PATH },
       { id: 'dasha-interpretation', label: 'Dasha Interpretation', icon: NotebookText, path: ASTROLOGY_HOME_PATH },
       { id: 'house', label: 'House', icon: Home, path: ASTROLOGY_HOME_PATH },
