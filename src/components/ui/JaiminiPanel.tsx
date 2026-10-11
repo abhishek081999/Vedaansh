@@ -5,7 +5,7 @@ import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 import { KARAKA_NAMES_7, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
 import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
 import { DashaTree } from '@/components/dasha/DashaTree'
-import { calculateGatewaySigns } from '@/lib/engine/jaimini'
+import { calculateGatewaySigns, getRashiDrishti } from '@/lib/engine/jaimini'
 import { buildArudhaBundle, pickArudhaSet, countArudhaDifferences, buildArudhaLabelMap } from '@/lib/engine/arudhas'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -15,6 +15,7 @@ import {
   Sparkles, Building2, TrendingUp, HeartHandshake,
   Flame, Eye,
 } from 'lucide-react'
+import { JaiminiMarriageSection } from '@/components/ui/JaiminiMarriageSection'
 import type { LucideIcon } from 'lucide-react'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 import { cn } from '@/lib/ui/cn'
@@ -611,7 +612,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
     7
   );
-  const [activeTab, setActiveTab] = useState<'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info'>('essence');
+  const [activeTab, setActiveTab] = useState<'essence' | 'intelligence' | 'arudhas' | 'marriage' | 'dashas' | 'info'>('essence');
   const [charaDashaMode, setCharaDashaMode] = useState<'chara' | 'chara_fe' | 'mandook' | 'sthir'>(
     chart.meta.gender === 'female' ? 'chara_fe' : 'chara',
   );
@@ -796,19 +797,6 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const getQuarter = (deg: number) => Math.floor((deg % 30) / 7.5) + 1;
   const isOppositeQuarter = (q1: number, q2: number) => (q1 + q2) === 5;
 
-  const getSignType = (r: Rashi) => {
-    if ([1, 4, 7, 10].includes(r)) return 'Movable';
-    if ([2, 5, 8, 11].includes(r)) return 'Fixed';
-    return 'Dual';
-  };
-
-  const getRashiDrishti = (r: Rashi): Rashi[] => {
-    const type = getSignType(r);
-    if (type === 'Movable') return [2, 5, 8, 11].filter(f => f !== (r === 1 ? 2 : r === 4 ? 5 : r === 7 ? 8 : 11)) as Rashi[];
-    if (type === 'Fixed') return [1, 4, 7, 10].filter(m => m !== (r === 2 ? 1 : r === 5 ? 4 : r === 8 ? 7 : 10)) as Rashi[];
-    return [3, 6, 9, 12].filter(d => d !== r) as Rashi[];
-  };
-
   const getArgalaIntervention = (sign: Rashi) => {
     const getSignAt = (s: Rashi, offset: number): Rashi => (((s + offset - 2) % 12) + 1) as Rashi;
     
@@ -881,11 +869,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   const jaiminiYogas = detectJaiminiYogas();
 
-  type JaiminiTabId = 'essence' | 'intelligence' | 'arudhas' | 'dashas' | 'info';
+  type JaiminiTabId = 'essence' | 'intelligence' | 'arudhas' | 'marriage' | 'dashas' | 'info';
 
   const tabs: { id: JaiminiTabId; label: string; short: string; Icon: LucideIcon }[] = [
     { id: 'essence', label: 'Soul Architecture', short: 'Soul', Icon: Gem },
     { id: 'arudhas', label: 'Arudha Landscape', short: 'Arudhas', Icon: Mountain },
+    { id: 'marriage', label: 'Marriage & Relationship', short: 'Marriage', Icon: HeartHandshake },
     { id: 'dashas',  label: 'Chara Dasha', short: 'Dasha', Icon: Clock },
     { id: 'info',    label: 'Info Reference', short: 'Info', Icon: Scale },
     { id: 'intelligence', label: 'Intelligence', short: 'Intel', Icon: Brain },
@@ -894,6 +883,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const mobileTabs = [
     { id: 'essence' as const, icon: Gem, label: 'Essence' },
     { id: 'arudhas' as const, icon: Mountain, label: 'Arudhas' },
+    { id: 'marriage' as const, icon: HeartHandshake, label: 'Marriage' },
     { id: 'dashas' as const, icon: Clock, label: 'Dasha' },
     { id: 'info' as const, icon: Scale, label: 'Info' },
     { id: 'intelligence' as const, icon: Brain, label: 'Intel' },
@@ -2165,6 +2155,12 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     </div>
 
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'marriage' && (
+                <div className={styles.tabStack}>
+                  <JaiminiMarriageSection chart={chart} />
                 </div>
               )}
 
