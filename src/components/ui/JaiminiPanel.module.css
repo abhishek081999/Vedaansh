@@ -676,9 +676,24 @@
   border: 1px solid var(--border-soft);
   border-radius: 12px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.trinityBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.trinityReason {
+  margin: 0;
+  font-size: 0.58rem;
+  line-height: 1.45;
+  color: var(--text-muted);
 }
 
 .trinityIcon {
@@ -690,6 +705,10 @@
   border-radius: 8px;
   background: var(--surface-2);
   flex-shrink: 0;
+}
+
+.trinityMeta {
+  min-width: 0;
 }
 
 .trinitySubtitle {
@@ -727,6 +746,15 @@
 .trinityIdVal {
   font-size: 1rem;
   font-weight: 900;
+  display: block;
+}
+
+.trinityIdName {
+  display: block;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
 }
 
 /* Dasha */
