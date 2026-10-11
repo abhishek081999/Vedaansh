@@ -660,7 +660,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const [chartScale, setChartScale] = useState(1.0);
   const [showArudhaOverlay, setShowArudhaOverlay] = useState(true);
   const [arudhaBphsMode, setArudhaBphsMode] = useState(false);
-  const [isMobile, setIsMobile] = useState(true);
+  // Start false so we don't portal MobileBottomNavShell before layout measure
+  // (true→false remount + AnimatePresence was causing removeChild crashes on React 19).
+  const [isMobile, setIsMobile] = useState(false);
   const [isTinyMobile, setIsTinyMobile] = useState(false);
   const [mobileChartVarga, setMobileChartVarga] = useState<'D1' | 'D9'>('D1');
   const panelRef = useRef<HTMLDivElement>(null);
@@ -1260,14 +1262,9 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             </nav>
           )}
 
-          <AnimatePresence mode="wait">
-            <motion.div
+          <div
               key={activeTab}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
-              className={styles.tabContent}
+              className={cn(styles.tabContent, 'fade-up')}
             >
               {activeTab === 'essence' && (
                 <div className={styles.tabStack}>
@@ -1929,11 +1926,11 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       },
                       { 
                         title: 'Maheshwara', 
-                        subtitle: 'Transformer', 
+                        subtitle: 'Liberator', 
                         data: jaiminiTrinity?.maheshwara, 
                         Icon: Flame, 
                         color: '#818cf8',
-                        desc: 'Life changes'
+                        desc: 'Karmic completion'
                       },
                       { 
                         title: 'Rudra', 
@@ -1941,26 +1938,40 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         data: jaiminiTrinity?.rudra, 
                         Icon: Eye, 
                         color: 'var(--combust)',
-                        desc: 'Crisis/Endings'
+                        desc: 'Crisis / endings'
                       }
-                    ].map((t, idx) => (
-                      <div key={idx} className={styles.trinityCard} style={{ borderTop: `3px solid ${t.color}` }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
-                          <div className={styles.trinityIcon} style={{ color: t.color }}>
-                            <t.Icon size={16} strokeWidth={2.25} />
+                    ].map((t) => {
+                      const planetId = t.data?.id as GrahaId | null | undefined
+                      const planetName = planetId ? GRAHA_NAMES[planetId] : null
+                      return (
+                      <div key={t.title} className={styles.trinityCard} style={{ borderTop: `3px solid ${t.color}` }}>
+                        <div className={styles.trinityBody}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+                            <div className={styles.trinityIcon} style={{ color: t.color }}>
+                              <t.Icon size={16} strokeWidth={2.25} />
+                            </div>
+                            <div className={styles.trinityMeta}>
+                              <div className={styles.trinitySubtitle} style={{ color: t.color }}>{t.subtitle}</div>
+                              <div className={styles.trinityTitle}>{t.title}</div>
+                              <div className={styles.trinityDesc}>{t.desc}</div>
+                            </div>
                           </div>
-                          <div className={styles.trinityMeta}>
-                            <div className={styles.trinitySubtitle} style={{ color: t.color }}>{t.subtitle}</div>
-                            <div className={styles.trinityTitle}>{t.title}</div>
-                            <div className={styles.trinityDesc}>{t.desc}</div>
-                          </div>
+                          {t.data?.reason && (
+                            <p className={styles.trinityReason}>{t.data.reason}</p>
+                          )}
                         </div>
                         <div className={styles.trinityId}>
-                          <span className={styles.trinityIdLabel}>ID</span>
-                          <span className={styles.trinityIdVal} style={{ color: t.color }}>{t.data?.id || '?'}</span>
+                          <span className={styles.trinityIdLabel}>Planet</span>
+                          <span className={styles.trinityIdVal} style={{ color: t.color }}>
+                            {planetId || '?'}
+                          </span>
+                          {planetName && (
+                            <span className={styles.trinityIdName}>{planetName}</span>
+                          )}
                         </div>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
 
                   {/* ── Jaimini Special Lagnas & Gateways ── */}
@@ -1972,27 +1983,24 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         Special Lagnas
                       </h3>
                       <div style={{ display: 'grid', gridTemplateColumns: isTinyMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.5rem' }}>
-                        <div style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
-                          <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--teal)', marginBottom: '0.2rem' }}>HORA (HL)</div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <span style={{ fontSize: '1rem', fontWeight: 900 }}>{RASHI_SHORT[Math.floor(lagnas.horaLagna / 30) + 1 as Rashi]}</span>
-                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{Math.floor(lagnas.horaLagna % 30)}°</span>
-                          </div>
-                        </div>
-                        <div style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
-                          <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--gold)', marginBottom: '0.2rem' }}>GHATIKA (GL)</div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <span style={{ fontSize: '1rem', fontWeight: 900 }}>{RASHI_SHORT[Math.floor(lagnas.ghatiLagna / 30) + 1 as Rashi]}</span>
-                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{Math.floor(lagnas.ghatiLagna % 30)}°</span>
-                          </div>
-                        </div>
-                        <div style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
-                          <div style={{ fontSize: '0.55rem', fontWeight: 800, color: '#818cf8', marginBottom: '0.2rem' }}>VARNADA (VL)</div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <span style={{ fontSize: '1rem', fontWeight: 900 }}>{RASHI_SHORT[Math.floor(lagnas.varnadaLagna / 30) + 1 as Rashi]}</span>
-                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{Math.floor(lagnas.varnadaLagna % 30)}°</span>
-                          </div>
-                        </div>
+                        {([
+                          { key: 'HL', label: 'HORA (HL)', color: 'var(--teal)', lon: lagnas.horaLagna },
+                          { key: 'GL', label: 'GHATIKA (GL)', color: 'var(--gold)', lon: lagnas.ghatiLagna },
+                          { key: 'VL', label: 'VARNADA (VL)', color: '#818cf8', lon: lagnas.varnadaLagna },
+                        ] as const).map((sl) => {
+                          const ok = Number.isFinite(sl.lon)
+                          const rashi = ok ? ((Math.floor(sl.lon / 30) % 12) + 1) as Rashi : null
+                          const deg = ok ? Math.floor(sl.lon % 30) : null
+                          return (
+                            <div key={sl.key} style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
+                              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: sl.color, marginBottom: '0.2rem' }}>{sl.label}</div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                <span style={{ fontSize: '1rem', fontWeight: 900 }}>{rashi ? RASHI_SHORT[rashi] : '—'}</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{deg != null ? `${deg}°` : 'n/a'}</span>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
 
@@ -2002,15 +2010,24 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         Gateways
                       </h3>
                       {gateways ? (
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <div style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'rgba(52, 211, 153, 0.04)', border: '1px solid rgba(52, 211, 153, 0.15)' }}>
-                            <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--teal)', marginBottom: '0.1rem' }}>DWARA</div>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{RASHI_SHORT[gateways.dwara]}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <div style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'rgba(52, 211, 153, 0.04)', border: '1px solid rgba(52, 211, 153, 0.15)' }}>
+                              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--teal)', marginBottom: '0.1rem' }}>DWARA</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{RASHI_SHORT[gateways.dwara]}</div>
+                              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>{RASHI_NAMES[gateways.dwara]}</div>
+                            </div>
+                            <div style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'rgba(244, 63, 94, 0.04)', border: '1px solid rgba(244, 63, 94, 0.15)' }}>
+                              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--combust)', marginBottom: '0.1rem' }}>BAHYA</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{RASHI_SHORT[gateways.bahya]}</div>
+                              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>{RASHI_NAMES[gateways.bahya]}</div>
+                            </div>
                           </div>
-                          <div style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', background: 'rgba(244, 63, 94, 0.04)', border: '1px solid rgba(244, 63, 94, 0.15)' }}>
-                            <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--combust)', marginBottom: '0.1rem' }}>BAHYA</div>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{RASHI_SHORT[gateways.bahya]}</div>
-                          </div>
+                          {currentDashaNode && (
+                            <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>
+                              Active {dashaTitle.replace(' Timeline', '')}: {currentDashaNode.label || currentDashaNode.lord}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div style={{ padding: '0.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.65rem' }}>No active dasha</div>
@@ -2192,8 +2209,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                   </div>
                 </div>
               )}
-            </motion.div>
-          </AnimatePresence>
+          </div>
         </div>
       </div>
 

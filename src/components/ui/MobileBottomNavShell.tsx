@@ -5,7 +5,7 @@
 //  Shared fixed mobile bottom tab bar + optional Dashboard link
 // ─────────────────────────────────────────────────────────────
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import type { LucideIcon } from 'lucide-react'
@@ -44,8 +44,14 @@ export function MobileBottomNavShell({
 }: MobileBottomNavShellProps) {
   const router = useRouter()
   const { setActiveTab } = useAppLayout()
+  const [mounted, setMounted] = useState(false)
 
-  if (typeof document === 'undefined') return null
+  useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
+
+  if (!mounted || typeof document === 'undefined') return null
 
   const goDashboard = () => {
     setActiveTab('dashboard')
