@@ -6,7 +6,7 @@ import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   title:       'Free Kundali Matching — Ashtakoot Guna Milan',
-  description: 'Free Kundali matching with 36-point Ashtakoot Guna Milan, Mangal Dosha checks, and side-by-side Vedic chart comparison. No login required.',
+  description: 'Free Kundali matching with 36-point Ashtakoot Guna Milan, dosha exceptions, Venus–Mars chemistry, house-affliction matching, and Mangal Dosha checks. No login required.',
   alternates:  { canonical: `${SITE_URL}/compare` },
   keywords:    ['Kundali matching', 'free kundali matching', 'Ashtakoot', 'Guna Milan', 'synastry', 'chart comparison', 'Mangal Dosha', 'Vedic compatibility', 'marriage matching'],
   openGraph: {
