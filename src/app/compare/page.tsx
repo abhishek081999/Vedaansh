@@ -7,7 +7,8 @@ import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput, GrahaData } from '@/types/astrology'
 import { RASHI_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
-import { calculateAshtakoot, getLord } from '@/lib/engine/ashtakoot'
+import { calculateAshtakoot, type GanaSchool } from '@/lib/engine/ashtakoot'
+import type { MilanRole } from '@/lib/engine/milanSuite'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 const BirthForm = dynamic(() => import('@/components/ui/BirthForm').then(m => m.BirthForm), { ssr: false })
@@ -17,6 +18,8 @@ const AshtakavargaGrid = dynamic(() => import('@/components/ui/AshtakavargaGrid'
 const ShadbalaTable = dynamic(() => import('@/components/ui/ShadbalaTable').then(m => m.ShadbalaTable), { ssr: false })
 const YogaList = dynamic(() => import('@/components/ui/YogaList').then(m => m.YogaList), { ssr: false })
 const CompatibilityDoshaPanel = dynamic(() => import('@/components/ui/CompatibilityDoshaPanel').then(m => m.CompatibilityDoshaPanel), { ssr: false })
+const MilanDeepAnalysisPanel = dynamic(() => import('@/components/ui/MilanDeepAnalysisPanel').then(m => m.MilanDeepAnalysisPanel), { ssr: false })
+const MilanExpandPanel = dynamic(() => import('@/components/ui/MilanExpandPanel').then(m => m.MilanExpandPanel), { ssr: false })
 const NatalPanchangPanel = dynamic(() => import('@/components/panchang/NatalPanchangPanel').then(m => m.NatalPanchangPanel), { ssr: false })
 const SavedChartSelector = dynamic(
   () => import('@/components/ui/SavedChartSelector').then(m => m.SavedChartSelector),
@@ -125,16 +128,25 @@ function getCompatibility(a: ChartOutput, b: ChartOutput): CompatItem[] {
 }
 
 function getVerdict(score: number) {
-  if (score >= 28) return { label: 'Excellent Match', sub: 'Ideal for a long-lasting and prosperous union.', color: 'var(--teal)', icon: '✨' }
-  if (score >= 21) return { label: 'Good Match', sub: 'Strong compatibility with minor areas for adjustment.', color: 'var(--text-gold)', icon: '⭐' }
-  if (score >= 18) return { label: 'Average Match', sub: 'Acceptable compatibility, requires conscious effort in some areas.', color: 'var(--accent)', icon: '✓' }
-  return { label: 'Challenging Match', sub: 'Significant differences detected. Astrological remedies or careful consideration advised.', color: 'var(--rose)', icon: '⚠️' }
+  // Classical band is 18–32; above 32 some traditions refuse as “too similar”
+  if (score > 32) {
+    return {
+      label: 'Excellent (Very High)',
+      sub: 'Over 32 gunas — mainstream reads this as excellent; some paramparas caution “too similar.” Still verify Venus–Mars spark.',
+      color: 'var(--teal)',
+      icon: '◇',
+    }
+  }
+  if (score >= 28) return { label: 'Excellent Match', sub: 'Strong Stage-1 guna score. Still verify Venus–Mars chemistry and longevity — gunas alone are incomplete.', color: 'var(--teal)', icon: '✦' }
+  if (score >= 21) return { label: 'Good Match', sub: 'Within the classical 18–32 window with solid cohesion. Review dosha exceptions and Stage 3 chemistry.', color: 'var(--text-gold)', icon: '★' }
+  if (score >= 18) return { label: 'Average Match', sub: 'Meets traditional minimum (18). Conscious effort needed; karmic bonds can outweigh low–mid gunas.', color: 'var(--accent)', icon: '✓' }
+  return { label: 'Below Traditional Minimum', sub: 'Under 18 gunas — classically refused, yet low-guna marriages often thrive via strong planetary karma. Stage 2–3 is essential.', color: 'var(--rose)', icon: '!' }
 }
 
 const GRAHA_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 const GRAHA_SYM: Record<string, string> = { Su: '☀', Mo: '☽', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋' }
 
-type View = 'compat' | 'doshas' | 'ashtakoot' | 'charts' | 'overlay' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'all'
+type View = 'compat' | 'doshas' | 'ashtakoot' | 'milan' | 'expand' | 'charts' | 'overlay' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'all'
 
 function CompareContent() {
   const { data: session } = useSession()
@@ -143,6 +155,9 @@ function CompareContent() {
   const [chartA, setChartA] = useState<ChartOutput | null>(null)
   const [chartB, setChartB] = useState<ChartOutput | null>(null)
   const [view, setView] = useState<View>('ashtakoot')
+  const [roleA, setRoleA] = useState<MilanRole>('boy')
+  const [roleB, setRoleB] = useState<MilanRole>('girl')
+  const [ganaSchool, setGanaSchool] = useState<GanaSchool>('classical')
   const [selectorFor, setSelectorFor] = useState<'a' | 'b' | null>(null)
   const [loadingChart, setLoadingChart] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -209,18 +224,33 @@ function CompareContent() {
   const items = useMemo(() => chartA && chartB ? getCompatibility(chartA, chartB) : [], [chartA, chartB])
   
   const ashtakootScore = useMemo(() => {
-    if (!chartA || !chartB) return null;
-    const aMo = chartA.grahas.find(g => g.id === 'Mo');
-    const bMo = chartB.grahas.find(g => g.id === 'Mo');
-    if (!aMo || !bMo) return null;
-    
-    const aNak = Math.floor(aMo.totalDegree / (360 / 27)) + 1;
-    const bNak = Math.floor(bMo.totalDegree / (360 / 27)) + 1;
-    const aSign = signOf(aMo.totalDegree);
-    const bSign = signOf(bMo.totalDegree);
-    
-    return calculateAshtakoot(aNak, aSign, bNak, bSign);
-  }, [chartA, chartB]);
+    if (!chartA || !chartB) return null
+    const aMo = chartA.grahas.find(g => g.id === 'Mo')
+    const bMo = chartB.grahas.find(g => g.id === 'Mo')
+    if (!aMo || !bMo) return null
+
+    const aNak = (aMo.nakshatraIndex >= 0 ? aMo.nakshatraIndex : Math.floor(aMo.totalDegree / (360 / 27))) + 1
+    const bNak = (bMo.nakshatraIndex >= 0 ? bMo.nakshatraIndex : Math.floor(bMo.totalDegree / (360 / 27))) + 1
+    const aSign = aMo.rashi || signOf(aMo.totalDegree)
+    const bSign = bMo.rashi || signOf(bMo.totalDegree)
+
+    // Directional Ashtakoot: boy first, girl second
+    const boyFirst = roleA === 'boy'
+    const boyMo = boyFirst ? aMo : bMo
+    const girlMo = boyFirst ? bMo : aMo
+    const boyNak = boyFirst ? aNak : bNak
+    const girlNak = boyFirst ? bNak : aNak
+    const boySign = boyFirst ? aSign : bSign
+    const girlSign = boyFirst ? bSign : aSign
+
+    return calculateAshtakoot(boyNak, boySign, girlNak, girlSign, {
+      boyMoonDegree: boyMo.totalDegree,
+      girlMoonDegree: girlMo.totalDegree,
+      boyPada: boyMo.pada,
+      girlPada: girlMo.pada,
+      ganaSchool,
+    })
+  }, [chartA, chartB, roleA, ganaSchool])
 
   const verdict = useMemo(() => ashtakootScore ? getVerdict(ashtakootScore.total) : null, [ashtakootScore]);
 
@@ -378,49 +408,58 @@ function CompareContent() {
                 </div>
               </div>
 
-              <div style={{ maxWidth: 500 }}>
+              <div style={{ maxWidth: 560 }}>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>{verdict.icon} {verdict.label}</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.5 }}>{verdict.sub}</p>
+                <p style={{ margin: '0.75rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {ashtakootScore.eligibility.label} · Stage 1 of 3 — open <strong style={{ color: 'var(--text-gold)' }}>Deep Milan</strong> for D1/D9 + Venus–Mars.
+                </p>
               </div>
             </div>
 
             {/* Match Insights Summary */}
-            {step === 'done' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
-                <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--teal)' }}>
-                  <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--teal)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>💎 Relationship Strengths</h4>
-                  <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {ashtakootScore.nadi.points > 0 && <li><strong>Genetic Harmony:</strong> Nadi match indicates strong biological compatibility and healthy progeny.</li>}
-                    {ashtakootScore.maitri.points >= 3 && <li><strong>Mutual Understanding:</strong> Good Lordship relationship suggests mental alignment and friendship.</li>}
-                    {ashtakootScore.gana.points >= 5 && <li><strong>Temperamental Balance:</strong> Matching temperaments ensure fewer daily frictions.</li>}
-                    {ashtakootScore.total >= 18 && <li><strong>Soul Connection:</strong> Overall score suggests a stable foundation for a long-term bond.</li>}
-                  </ul>
-                </div>
-                <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--rose)' }}>
-                  <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--rose)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🕯️ Areas for Awareness</h4>
-                  <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {ashtakootScore.bhakoot.points === 0 && <li><strong>Bhakoot Dosha:</strong> Potential for emotional distance; focus on open communication and joint growth.</li>}
-                    {ashtakootScore.nadi.points === 0 && <li><strong>Nadi Dosha:</strong> May impact physical health or lineage; consult for specific remedial measures.</li>}
-                    {ashtakootScore.maitri.points < 3 && <li><strong>Mental Friction:</strong> Different mindsets require conscious effort to appreciate each other&apos;s perspective.</li>}
-                    {ashtakootScore.total < 18 && <li><strong>Energy Mismatch:</strong> Requires extra dedication and possibly traditional rituals to harmonize energies.</li>}
-                  </ul>
-                </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
+              <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--teal)' }}>
+                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--teal)' }}>Relationship strengths</h4>
+                <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {ashtakootScore.nadi.points > 0 && <li><strong>Nadi / prana:</strong> Different nadi — complementary life-force and healthier progeny outlook.</li>}
+                  {ashtakootScore.maitri.points >= 3 && <li><strong>Graha Maitri:</strong> {ashtakootScore.maitri.insight}</li>}
+                  {ashtakootScore.gana.points >= 5 && <li><strong>Gana temperament:</strong> {ashtakootScore.gana.insight}</li>}
+                  {ashtakootScore.yoni.points >= 3 && <li><strong>Yoni affinity:</strong> {ashtakootScore.yoni.insight}</li>}
+                  {ashtakootScore.eligibility.traditionallyAccepted && <li><strong>Eligibility band:</strong> Score sits in the classical 18–32 window.</li>}
+                  {ashtakootScore.bhakoot.points === 7 && ashtakootScore.bhakoot.notes?.some(n => n.includes('cancelled')) && (
+                    <li><strong>Bhakoot exception:</strong> Apparent dosha cancelled by friendly lords / direction rule.</li>
+                  )}
+                </ul>
               </div>
-            )}
+              <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--rose)' }}>
+                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--rose)' }}>Areas for awareness</h4>
+                <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {ashtakootScore.bhakoot.points === 0 && <li><strong>Bhakoot:</strong> {ashtakootScore.bhakoot.insight} Life-direction friction possible.</li>}
+                  {ashtakootScore.nadi.dosha && <li><strong>Nadi Dosha:</strong> Same pranic type — check cancellation notes; traditionally watched for progeny.</li>}
+                  {ashtakootScore.maitri.points < 3 && <li><strong>Mental friction:</strong> {ashtakootScore.maitri.insight}</li>}
+                  {ashtakootScore.vashya.points === 0 && <li><strong>Vashya imbalance:</strong> {ashtakootScore.vashya.insight}</li>}
+                  {ashtakootScore.total < 18 && <li><strong>Low gunas:</strong> Mechanical score is weak — prioritize Stage 2–3 karmic & planetary chemistry.</li>}
+                  {ashtakootScore.total > 32 && <li><strong>Too similar:</strong> Some lineages refuse above 32; verify individuality and Mars–Venus spark.</li>}
+                </ul>
+              </div>
+            </div>
 
             {/* View Tabs */}
             <div className="compare-tabs no-print" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
               {([
-                ['ashtakoot', '🎎 Ashtakoot (36 Point)'],
-                ['doshas', '⚔️ Dosha Analysis'],
-                ['compat', '🔮 Aura Affinity'],
-                ['charts', '◯ Side-by-Side'],
-                ['overlay', '⚭ Overlay View'],
-                ['planets', '✦ Positions'],
-                ['dasha', '⏳ Dasha'],
-                ['panchang', '📅 Panchang'],
-                ['ashtakavarga', '✦ Ashtakavarga'],
-                ['all', '🖨 Print All'],
+                ['ashtakoot', 'Ashtakoot (36)'],
+                ['milan', 'Deep Milan'],
+                ['expand', 'Porutham + Timing'],
+                ['doshas', 'Dosha Analysis'],
+                ['compat', 'Aura Affinity'],
+                ['charts', 'Side-by-Side'],
+                ['overlay', 'Overlay View'],
+                ['planets', 'Positions'],
+                ['dasha', 'Dasha'],
+                ['panchang', 'Panchang'],
+                ['ashtakavarga', 'Ashtakavarga'],
+                ['all', 'Print All'],
               ] as [View, string][]).map(([id, label]) => (
                 <button 
                   key={id} 
@@ -450,38 +489,39 @@ function CompareContent() {
               <div className="card fade-up" style={{ padding: '0', overflow: 'hidden' }}>
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
                   <h3 className="label-caps" style={{ margin: 0, fontSize: '0.75rem' }}>Detailed Guna Milan Analysis</h3>
+                  <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {ashtakootScore.layers.psychology}
+                  </p>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
                       <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-                        <th style={{ padding: '1rem', fontSize: '0.7rem', color: 'var(--text-muted)', width: '25%' }}>KOOTA (FACTOR)</th>
+                        <th style={{ padding: '1rem', fontSize: '0.7rem', color: 'var(--text-muted)', width: '28%' }}>KOOTA</th>
                         <th style={{ padding: '1rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>PERSON 1</th>
                         <th style={{ padding: '1rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>PERSON 2</th>
-                        <th style={{ padding: '1rem', fontSize: '0.7rem', color: 'var(--text-muted)', width: '20%' }}>STRENGTH</th>
+                        <th style={{ padding: '1rem', fontSize: '0.7rem', color: 'var(--text-muted)', width: '18%' }}>STRENGTH</th>
                         <th style={{ padding: '1rem', fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'right' }}>SCORE</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        { k: 'Varna', d: 'Ego & Soul Level', s: ashtakootScore.varna, icon: '🕉️' },
-                        { k: 'Vashya', d: 'Mutual Control', s: ashtakootScore.vashya, icon: '🤝' },
-                        { k: 'Tara', d: 'Destiny & Health', s: ashtakootScore.tara, icon: '⭐' },
-                        { k: 'Yoni', d: 'Physical Bond', s: ashtakootScore.yoni, icon: '🧬' },
-                        { k: 'Maitri', d: 'Mental Harmony', s: ashtakootScore.maitri, icon: '🧠' },
-                        { k: 'Gana', d: 'Temperament', s: ashtakootScore.gana, icon: '🎭' },
-                        { k: 'Bhakoot', d: 'Emotional Growth', s: ashtakootScore.bhakoot, icon: '🌊' },
-                        { k: 'Nadi', d: 'Genetic Health', s: ashtakootScore.nadi, icon: '🩸' },
+                        { k: 'Varna', d: ashtakootScore.varna.meaning, s: ashtakootScore.varna },
+                        { k: 'Vashya', d: ashtakootScore.vashya.meaning, s: ashtakootScore.vashya },
+                        { k: 'Tara', d: ashtakootScore.tara.meaning, s: ashtakootScore.tara },
+                        { k: 'Yoni', d: ashtakootScore.yoni.meaning, s: ashtakootScore.yoni },
+                        { k: 'Maitri', d: ashtakootScore.maitri.meaning, s: ashtakootScore.maitri },
+                        { k: 'Gana', d: ashtakootScore.gana.meaning, s: ashtakootScore.gana },
+                        { k: 'Bhakoot', d: ashtakootScore.bhakoot.meaning, s: ashtakootScore.bhakoot },
+                        { k: 'Nadi', d: ashtakootScore.nadi.meaning, s: ashtakootScore.nadi },
                       ].map((r, i) => (
                         <tr key={r.k} style={{ borderBottom: '1px solid var(--border-soft)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
                           <td style={{ padding: '1.25rem 1rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                              <span style={{ fontSize: '1.2rem' }}>{r.icon}</span>
-                              <div>
-                                <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.k}</div>
-                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{r.d}</div>
-                              </div>
-                            </div>
+                            <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.k}</div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{r.d}</div>
+                            {r.s.notes && r.s.notes[0] && (
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-gold)', marginTop: 4, lineHeight: 1.35 }}>{r.s.notes[0]}</div>
+                            )}
                           </td>
                           <td style={{ padding: '1rem' }}><span style={{ color: 'var(--text-gold)', fontWeight: 600, fontSize: '0.9rem' }}>{r.s.p1}</span></td>
                           <td style={{ padding: '1rem' }}><span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.9rem' }}>{r.s.p2}</span></td>
@@ -500,6 +540,29 @@ function CompareContent() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            )}
+
+            {/* Deep Milan — Stage 2/3 */}
+            {(view === 'milan' || view === 'all') && (
+              <div className="fade-up">
+                <MilanDeepAnalysisPanel chartA={chartA} chartB={chartB} ashtakoot={ashtakootScore} />
+              </div>
+            )}
+
+            {/* Porutham + Timing + PDF + History */}
+            {(view === 'expand' || view === 'all') && (
+              <div className="fade-up">
+                <MilanExpandPanel
+                  chartA={chartA}
+                  chartB={chartB}
+                  ashtakoot={ashtakootScore}
+                  roleA={roleA}
+                  roleB={roleB}
+                  ganaSchool={ganaSchool}
+                  onRoleChange={(a, b) => { setRoleA(a); setRoleB(b) }}
+                  onGanaSchoolChange={setGanaSchool}
+                />
               </div>
             )}
 
@@ -648,7 +711,7 @@ function CompareContent() {
       {/* Footer Branding */}
       <footer style={{ marginTop: 'auto', padding: '3rem 0', textAlign: 'center', borderTop: '1px solid var(--border-soft)', opacity: 0.6 }}>
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.2em' }}>VEDAANSH PRECISION ASTROLOGY ENGINE</div>
-        <div style={{ fontSize: '0.65rem', color: 'var(--text-gold)', marginTop: '0.5rem' }}>SWISS EPHEMERIS · ASHTAKOOT MILAN 2.0</div>
+        <div style={{ fontSize: '0.65rem', color: 'var(--text-gold)', marginTop: '0.5rem' }}>SWISS EPHEMERIS · ASHTAKOOT + DEEP MILAN (3-STAGE)</div>
       </footer>
     </div>
   )
