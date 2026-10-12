@@ -602,6 +602,12 @@
   gap: 1.25rem;
 }
 
+.navtaraMoonCard {
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--r-lg);
+  border: 1px solid;
+}
+
 .momentBanner {
   padding: 1.15rem 1.35rem;
   border-radius: var(--r-lg);

@@ -11,6 +11,7 @@ import { DASHA_LEVEL_SHORT } from '@/lib/engine/dasha/vimshottari'
 import styles from './transit-scrubber.module.css'
 import { TransitDetailsPanels } from './TransitDetailsPanels'
 import { TransitInsightsPanels } from './TransitInsightsPanels'
+import { TransitNavtaraPanel } from './TransitNavtaraPanel'
 
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
 const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
@@ -457,6 +458,8 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
           </p>
         )}
       </section>
+
+      <TransitNavtaraPanel natalChart={natalChart} transitChart={transitChart} asOf={asOf} />
 
       <TransitInsightsPanels natalChart={natalChart} transitChart={transitChart} />
 

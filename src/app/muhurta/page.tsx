@@ -18,7 +18,7 @@ import { LocationPicker, getSavedLocation, type LocationValue } from '@/componen
 import { MuhurtaNowStrip } from '@/components/ui/MuhurtaNowStrip'
 import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
 import { SanskarasReference } from '@/components/panchang/SanskarasReference'
-import { calcTaraBala, calcChandraBala } from '@/lib/engine/muhurtaPersonal'
+import { calcTaraBala, calcChandraBala, checkPersonalMuhurtaBooking } from '@/lib/engine/muhurtaPersonal'
 import {
   analyzeMuhurta,
   MUHURTA_ACTIVITIES,
@@ -73,6 +73,7 @@ interface MuhurtaResult {
   personal?: {
     taraBala: { name: string; score: number; desc: string }
     chandraBala: { position: number; score: number; desc: string }
+    navtaraBooking?: { verdict: string; advice: string; isHardTara: boolean }
   }
 }
 
@@ -200,6 +201,7 @@ function scorePanchang(
   const tara = calcTaraBala(natal.moonNak, p.nakshatra.index)
   const transitSign = Math.floor(moonLon / 30) + 1
   const chandra = calcChandraBala(natal.moonSign, transitSign)
+  const booking = checkPersonalMuhurtaBooking(natal.moonNak, p.nakshatra.index, 'this muhurta')
 
   return {
     date: p.date,
@@ -212,6 +214,11 @@ function scorePanchang(
     personal: {
       taraBala: { name: tara.name, score: tara.score, desc: tara.desc },
       chandraBala: { position: chandra.position, score: chandra.score, desc: chandra.desc },
+      navtaraBooking: {
+        verdict: booking.verdict,
+        advice: booking.advice,
+        isHardTara: booking.isHardTara,
+      },
     },
   }
 }
@@ -293,6 +300,23 @@ function ResultCard({ result }: { result: MuhurtaResult }) {
                 </div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{result.personal.chandraBala.desc}</div>
               </div>
+            </div>
+          )}
+          {result.personal?.navtaraBooking && (
+            <div style={{
+              padding: '0.55rem 0.65rem',
+              borderRadius: 6,
+              background: result.personal.navtaraBooking.isHardTara ? 'rgba(244,63,94,.08)' : 'rgba(45,212,191,.08)',
+              border: `1px solid ${result.personal.navtaraBooking.isHardTara ? 'rgba(244,63,94,.3)' : 'rgba(45,212,191,.3)'}`,
+              fontSize: '0.72rem',
+              lineHeight: 1.45,
+              color: 'var(--text-secondary)',
+            }}>
+              <strong style={{ color: result.personal.navtaraBooking.isHardTara ? 'var(--rose)' : 'var(--teal)' }}>
+                Navtara booking · {result.personal.navtaraBooking.verdict}
+              </strong>
+              {' — '}
+              {result.personal.navtaraBooking.advice}
             </div>
           )}
           <div style={{ borderTop: '1px solid var(--border-soft)', paddingTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: 2 }}>

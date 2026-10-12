@@ -30,8 +30,8 @@ const TAB_META: Record<string, { title: string; description: string }> = {
     description: 'Garuda, Naga, Deva, Rakshasa, Pitru, Marut, Agni, Soma, Vaishya & Pashu mandals: how constellation groups hold nakshatras and reshape planetary signification.',
   },
   navtara: {
-    title:       'Navtara — Nine Tara Groups from Birth Star',
-    description: 'Navtara Chakra from your Janma Nakshatra: Janma, Sampat, Vipat, Kshema and the remaining tara qualities for timing and compatibility.',
+    title:       'Navtara Predictions — Nine Tara Decision Windows',
+    description: 'Navtara Chakra with dasha-linked prediction: Janma–Ati-Mitra groups, natal planet result capacity, current MD/AD experience nature, and decision windows. Confirm events with dasha + gochara.',
   },
 }
 

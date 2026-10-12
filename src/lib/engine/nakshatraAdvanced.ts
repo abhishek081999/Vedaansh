@@ -133,15 +133,15 @@ export interface TaraQuality {
 }
 
 export const TARA_QUALITIES: Record<TaraName, { quality: 'auspicious' | 'inauspicious' | 'neutral'; meaning: string; recommendation: string }> = {
-  'Janma':    { quality: 'neutral',     meaning: 'Birth star – mixed results, intense energy',         recommendation: 'Caution for new beginnings; if unavoidable, donate vegetables' },
-  'Sampat':   { quality: 'auspicious',  meaning: 'Star of wealth and prosperity',                      recommendation: 'Excellent for financial and material pursuits' },
-  'Vipat':    { quality: 'inauspicious',meaning: 'Star of danger and obstacles',                       recommendation: 'Avoid travel and major risks; if unavoidable, donate jaggery (gur)' },
-  'Kshema':   { quality: 'auspicious',  meaning: 'Star of comfort and well-being',                     recommendation: 'Ideal for health, family, and nurturing activities' },
-  'Pratyari': { quality: 'inauspicious',meaning: 'Star of enmity and opposition',                      recommendation: 'Avoid confrontations; if unavoidable, donate salt' },
-  'Sadhaka':  { quality: 'auspicious',  meaning: 'Star of achievement and success',                    recommendation: 'Best for creative work, skills, and accomplishments' },
-  'Vadha':    { quality: 'inauspicious',meaning: 'Star of destruction and endings',                    recommendation: 'Postpone important matters; if unavoidable, donate gold' },
-  'Mitra':    { quality: 'auspicious',  meaning: 'Star of friendship and allies',                      recommendation: 'Excellent for partnerships, networking, social matters' },
-  'Ati-Mitra':{ quality: 'auspicious',  meaning: 'Star of best friend — highly auspicious',            recommendation: 'Most favourable; ideal for all auspicious activities' },
+  'Janma':    { quality: 'neutral',     meaning: 'Birth star — body/soul growth and baseline nature',   recommendation: 'Act in line with your nature; caution on forced new personas' },
+  'Sampat':   { quality: 'auspicious',  meaning: 'Star of wealth, opportunity, and gains',              recommendation: 'Excellent for financial and material pursuits' },
+  'Vipat':    { quality: 'inauspicious',meaning: 'Star of crisis, struggle, and stubborn pressure',     recommendation: 'Avoid travel and major risks; do not force proving yourself' },
+  'Kshema':   { quality: 'auspicious',  meaning: 'Star of protection and solutions (often via hardship)', recommendation: 'Ideal for healing, repair, and consolidating gains' },
+  'Pratyari': { quality: 'inauspicious',meaning: 'Star of opposition — speak less, listen more',        recommendation: 'Avoid confrontations; where you talk, you can get stuck' },
+  'Sadhaka':  { quality: 'auspicious',  meaning: 'Star of achievement and transformation',              recommendation: 'Best for skills, career moves, and committed change' },
+  'Vadha':    { quality: 'inauspicious',meaning: 'Star of loss and release (not literal death)',        recommendation: 'Let go; postpone ego-driven starts; complete endings cleanly' },
+  'Mitra':    { quality: 'auspicious',  meaning: 'Star of friendship, allies, and support',             recommendation: 'Excellent for partnerships, networking, social matters' },
+  'Ati-Mitra':{ quality: 'auspicious',  meaning: 'Star of grace — watch over-control after wins',       recommendation: 'Most favourable; stay humble; avoid over-controlling outcomes' },
 }
 
 /**

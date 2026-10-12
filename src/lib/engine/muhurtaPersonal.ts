@@ -3,6 +3,8 @@
  * Personalized Muhurta Logic: Tara Bala and Chandra Bala
  */
 
+import { checkMuhurtaNavtara } from '@/lib/engine/navtaraPrediction'
+
 /**
  * Tara Bala (Strength of Constellation)
  * Based on the distance from the Natal Moon's Nakshatra to the Transit Moon's Nakshatra.
@@ -24,6 +26,24 @@ export function calcTaraBala(natalNakIndex: number, transitNakIndex: number) {
   };
 
   return metadata[tara];
+}
+
+/**
+ * Booking gate using Navtara hard taras (Vipat / Pratyari / Vadha).
+ * Prefer this before signing agreements, vehicle delivery, renovation start, etc.
+ */
+export function checkPersonalMuhurtaBooking(
+  natalMoonNak: number,
+  dayMoonNak: number,
+  activityLabel?: string,
+) {
+  const nav = checkMuhurtaNavtara(natalMoonNak, dayMoonNak, activityLabel)
+  const tara = calcTaraBala(natalMoonNak, dayMoonNak)
+  return {
+    ...nav,
+    taraBala: tara,
+    favorable: nav.verdict === 'favourable',
+  }
 }
 
 /**
