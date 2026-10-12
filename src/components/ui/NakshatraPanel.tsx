@@ -10,12 +10,14 @@ import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 import { NakshatraProfessionTab } from '@/components/ui/NakshatraProfessionTab'
 import { NakshatraMedicalTab } from '@/components/ui/NakshatraMedicalTab'
 import { NakshatraTaramandalTab } from '@/components/ui/NakshatraTaramandalTab'
+import { NakshatraNavtaraTab } from '@/components/ui/NakshatraNavtaraTab'
 import {
-  getNakshatraCharacteristics, getNavtaraChakra, checkPanchaka,
+  getNakshatraCharacteristics, checkPanchaka,
   getGraNakPositions, getNakCompatibility, TARA_QUALITIES, TARA_NAMES,
   NAKSHATRA_GANA, NAKSHATRA_NADI, NAKSHATRA_YONI,
-  type TaraName, type NakshatraCharacteristics,
+  type NakshatraCharacteristics,
 } from '@/lib/engine/nakshatraAdvanced'
+import { getRelationshipNavtara } from '@/lib/engine/navtaraPrediction'
 import {
   getMonthlyForecast, getNakshatraMuhurtaRating, NAKSHATRA_REMEDIES,
   type DayForecast, type ActivityType,
@@ -91,7 +93,6 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
   const moonLon = moon?.lonSidereal ?? 0
 
   const chars    = useMemo(() => getNakshatraCharacteristics(birthNakIdx, birthNakPada), [birthNakIdx, birthNakPada])
-  const navtara  = useMemo(() => getNavtaraChakra(birthNakIdx), [birthNakIdx])
 
   const planetPos = useMemo(() => {
     // 9 planets
@@ -209,7 +210,6 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
             {/* Tab content */}
             <TabContent
               subTab={tabForContent}
-              navtara={navtara}
               birthNakIdx={birthNakIdx}
               birthNakPada={birthNakPada}
               moonLon={moonLon}
@@ -224,7 +224,6 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
           {isMobile && subTab !== 'overview' && (
             <TabContent
               subTab={subTab}
-              navtara={navtara}
               birthNakIdx={birthNakIdx}
               birthNakPada={birthNakPada}
               moonLon={moonLon}
@@ -256,7 +255,6 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
 
 function TabContent({
   subTab,
-  navtara,
   birthNakIdx,
   birthNakPada,
   moonLon,
@@ -265,7 +263,6 @@ function TabContent({
   remedy,
 }: {
   subTab: SubTab
-  navtara: ReturnType<typeof getNavtaraChakra>
   birthNakIdx: number
   birthNakPada: number
   moonLon: number
@@ -275,7 +272,7 @@ function TabContent({
 }) {
   return (
     <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
-      {subTab==='navtara'     && <NavtaraTab navtara={navtara} birthNakIdx={birthNakIdx} />}
+      {subTab==='navtara'     && <NakshatraNavtaraTab chart={chart} birthNakIdx={birthNakIdx} />}
       {subTab==='taramandal'  && <NakshatraTaramandalTab chart={chart} />}
       {subTab==='bestdays'    && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
       {subTab==='muhurta'     && <MuhurtaTab nakIdx={birthNakIdx} />}
@@ -336,44 +333,6 @@ function PadaMap({nakIdx,pada}:{nakIdx:number;pada:number}) {
           {p===pada&&<div style={{width:4,height:4,borderRadius:'50%',background:'var(--gold)',margin:'0.3rem auto 0'}}/>}
         </div>
       ))}
-    </div>
-  )
-}
-
-// ── Navtara ───────────────────────────────────────────────────
-function NavtaraTab({navtara,birthNakIdx}:{navtara:ReturnType<typeof getNavtaraChakra>;birthNakIdx:number}) {
-  const groups = useMemo(()=>{
-    const g: Record<string,typeof navtara>={}
-    navtara.forEach(n=>{if(!g[n.tara])g[n.tara]=[]; g[n.tara].push(n)})
-    return g
-  },[navtara])
-  return (
-    <div style={{display:'flex',flexDirection:'column',gap:'0.55rem'}}>
-      <p style={{fontSize:'0.75rem',color:'var(--text-muted)',fontStyle:'italic',margin:0,lineHeight:1.6}}>All 27 Nakshatras categorised into 9 Tara groups from birth Nakshatra ({NAK_NAMES[birthNakIdx]}).</p>
-      {(TARA_NAMES as TaraName[]).map((tara,idx)=>{
-        const group=groups[tara]||[]
-        const q=TARA_QUALITIES[tara]
-        const c=QC[q.quality]
-        return (
-          <div key={tara} style={{padding:'0.75rem',background:c.bg,border:`1px solid ${c.border}`,borderRadius:'var(--r-md)',display:'flex',gap:'0.75rem',alignItems:'flex-start'}}>
-            <div style={{width:24,height:24,borderRadius:'50%',background:c.border,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.65rem',fontWeight:700,flexShrink:0,color:'var(--text-primary)'}}>{idx+1}</div>
-            <div style={{flex:1}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.25rem',flexWrap:'wrap',gap:'0.3rem'}}>
-                <span style={{fontFamily:'var(--font-display)',fontWeight:600,fontSize:'0.95rem',color:c.text}}>{tara} Tara</span>
-                <span style={{fontSize:'0.55rem',textTransform:'uppercase',letterSpacing:'.1em',padding:'2px 6px',borderRadius:4,background:c.border,color:c.text,fontWeight:700}}>{q.quality}</span>
-              </div>
-              <div style={{display:'flex',gap:'0.3rem',flexWrap:'wrap',marginBottom:'0.3rem'}}>
-                {group.map(n=>(
-                  <span key={n.nakshatraIndex} style={{fontSize:'0.68rem',padding:'2px 7px',background:'var(--surface-2)',borderRadius:20,color:'var(--text-primary)',border:'1px solid var(--border-soft)',fontWeight:n.nakshatraIndex===birthNakIdx?700:400}}>
-                    {n.nakshatraIndex===birthNakIdx&&'★ '}{n.nakshatraName}
-                  </span>
-                ))}
-              </div>
-              <div style={{fontSize:'0.7rem',color:'var(--text-muted)',lineHeight:1.5}}>{q.recommendation}</div>
-            </div>
-          </div>
-        )
-      })}
     </div>
   )
 }
@@ -646,6 +605,7 @@ function PlanetTab({positions, chart, moonNakIdx}:{positions:any[], chart: Chart
 function CompatTab({birthNakIdx}:{birthNakIdx:number}) {
   const [cmp,setCmp]=useState(0)
   const compat=useMemo(()=>getNakCompatibility(birthNakIdx,cmp),[birthNakIdx,cmp])
+  const relation=useMemo(()=>getRelationshipNavtara(birthNakIdx,cmp,'You','Other'),[birthNakIdx,cmp])
   const SC: Record<string,string>={Excellent:'#4ade80',Good:'#86efac',Average:'#fbbf24',Poor:'#f97316',Incompatible:'#f87171'}
   const miniGrid=useMemo(()=>NAK_NAMES.map((_,i)=>({idx:i,...getNakCompatibility(birthNakIdx,i)})),[birthNakIdx])
   return (
@@ -659,6 +619,11 @@ function CompatTab({birthNakIdx}:{birthNakIdx:number}) {
         <select value={cmp} onChange={e=>setCmp(Number(e.target.value))} style={{padding:'0.6rem 0.7rem',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:'var(--r-md)',color:'var(--text-primary)',fontFamily:'var(--font-display)',fontSize:'0.85rem',cursor:'pointer'}}>
           {NAK_NAMES.map((n,i)=><option key={i} value={i}>{n}</option>)}
         </select>
+      </div>
+      <div style={{padding:'0.85rem 1rem',background:relation.mutualHard?'rgba(244,63,94,.08)':'var(--surface-3)',border:`1px solid ${relation.mutualHard?'rgba(244,63,94,.3)':'var(--border-soft)'}`,borderRadius:'var(--r-md)',fontSize:'0.75rem',lineHeight:1.55,color:'var(--text-secondary)'}}>
+        <div style={{fontWeight:700,color:'var(--text-gold)',marginBottom:4}}>Relationship Navtara</div>
+        <div>You → Other: <strong style={{color:relation.aToB.profile.isHard?'var(--rose)':'var(--teal)'}}>{relation.aToB.tara}</strong> · Other → You: <strong style={{color:relation.bToA.profile.isHard?'var(--rose)':'var(--teal)'}}>{relation.bToA.tara}</strong></div>
+        <div style={{marginTop:4}}>{relation.advice}</div>
       </div>
       <div style={{padding:'1.1rem',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:'var(--r-md)'}}>
         <div style={{textAlign:'center',marginBottom:'1rem'}}>

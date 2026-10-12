@@ -50,7 +50,7 @@ export const NAKSHATRA_SEO: SeoIntroProps = {
   ariaLabel: 'Nakshatra Analysis — Vedaansh',
   h1: 'Nakshatra Analysis — Birth Star, Compatibility & Remedies',
   paragraphs: [
-    'Explore your birth Nakshatra (Janma Nakshatra) with Pada, ruling deity, planet, Gana, Nadi, and symbol. Vedaansh offers Navtara, compatibility scoring, personalized remedies, transit activations, and Nakshatra-based Muhurta guidance.',
+    'Explore your birth Nakshatra (Janma Nakshatra) with Pada, ruling deity, planet, Gana, Nadi, and symbol. Vedaansh offers Navtara predictions (dasha decision windows, natal planet tara capacity), compatibility scoring, personalized remedies, transit activations, and Nakshatra-based Muhurta guidance.',
     'All calculations use Swiss Ephemeris sidereal longitudes with Lahiri ayanamsha for precision aligned with classical Jyotish.',
   ],
   h2: 'Nakshatra tools',
