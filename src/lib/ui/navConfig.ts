@@ -65,6 +65,7 @@ export const TOP_TABS: NavTab[] = [
 export const NAKSHATRA_TABS: NavTab[] = [
   { id: 'nakshatra-overview', label: 'Overview', icon: Star, path: '/nakshatra/overview' },
   { id: 'nakshatra-navtara', label: 'Navtara', icon: Sparkles, path: '/nakshatra/navtara' },
+  { id: 'nakshatra-taramandal', label: 'Taramandal', icon: Orbit, path: '/nakshatra/taramandal' },
   { id: 'nakshatra-bestdays', label: 'Best Days', icon: CalendarDays, path: '/nakshatra/bestdays' },
   { id: 'nakshatra-muhurta', label: 'Muhurta', icon: Zap, path: '/nakshatra/muhurta' },
   { id: 'nakshatra-panchaka', label: 'Panchaka', icon: Target, path: '/nakshatra/panchaka' },

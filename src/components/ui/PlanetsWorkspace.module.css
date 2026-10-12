@@ -1,0 +1,386 @@
+/* Planets workspace — charts, detail cards, energy cycles, insights */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: 0.1rem 0 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .workspace {
+    gap: var(--space-4, 1rem);
+  }
+}
+
+.hero {
+  position: relative;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-xl, 1rem);
+  background:
+    radial-gradient(ellipse 75% 55% at 8% 0%, var(--gold-faint), transparent 55%),
+    radial-gradient(ellipse 65% 50% at 92% 100%, color-mix(in srgb, #818cf8 14%, transparent), transparent 50%),
+    var(--surface-1);
+  padding: 0.85rem 0.9rem 0.95rem;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding: 1.1rem 1.15rem 1.15rem;
+  }
+}
+
+.heroGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, transparent 45%, color-mix(in srgb, var(--gold) 5%, transparent));
+}
+
+.heroTop {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 0.85rem;
+}
+
+.eyebrow {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+  margin: 0 0 0.35rem;
+}
+
+.heroTitle {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.15;
+}
+
+.heroSub {
+  margin: 0.4rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  max-width: 40rem;
+  line-height: 1.45;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.badgeGold {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+  background: var(--gold-faint);
+  color: var(--text-gold);
+}
+
+.badgeTeal {
+  border-color: color-mix(in srgb, var(--teal, #4fd1c5) 40%, var(--border));
+  color: var(--teal, #4fd1c5);
+  background: color-mix(in srgb, var(--teal, #4fd1c5) 10%, transparent);
+}
+
+.badgeRose {
+  border-color: color-mix(in srgb, var(--rose, #e07b8e) 40%, var(--border));
+  color: var(--rose, #e07b8e);
+  background: color-mix(in srgb, var(--rose, #e07b8e) 10%, transparent);
+}
+
+.badgeAmber {
+  border-color: color-mix(in srgb, var(--amber, #f59e42) 40%, var(--border));
+  color: var(--amber, #f59e42);
+  background: color-mix(in srgb, var(--amber, #f59e42) 10%, transparent);
+}
+
+.statGrid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+@media (min-width: 768px) {
+  .statGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.statCard {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+  padding: 0.55rem 0.65rem;
+  min-width: 0;
+}
+
+.statLabel {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.statValue {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statHint {
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabScroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tabRow {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+  width: max-content;
+  min-width: 100%;
+  padding-bottom: 2px;
+}
+
+.tabBtn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.74rem;
+  line-height: 1.2;
+  min-height: 36px;
+  white-space: nowrap;
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.tabBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-bright, var(--border));
+}
+
+.tabBtnActive {
+  background: var(--gold-faint);
+  color: var(--text-gold);
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
+}
+
+.tabCount {
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
+  color: var(--text-gold);
+}
+
+.tabLabelFull {
+  display: none;
+}
+
+.tabLabelShort {
+  display: inline;
+}
+
+@media (min-width: 900px) {
+  .tabLabelFull {
+    display: inline;
+  }
+
+  .tabLabelShort {
+    display: none;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-gold);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.sectionRule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--border-soft), transparent);
+}
+
+.sectionHint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .overviewGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .overviewGrid {
+    grid-template-columns: minmax(280px, 0.9fr) minmax(280px, 0.9fr) minmax(320px, 1.2fr);
+  }
+}
+
+.chartCard {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  padding: 0.7rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chartCard :global(svg),
+.chartCard :global(canvas) {
+  max-width: 100%;
+  height: auto;
+}
+
+.chartLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.chartTitle {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chartAccent {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-gold);
+}
+
+.tableCard {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  padding: 0.85rem 0.9rem;
+  min-width: 0;
+  height: 100%;
+  overflow: auto;
+}
+
+@media (min-width: 1200px) {
+  .tableCard {
+    grid-column: auto;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1199px) {
+  .tableCard {
+    grid-column: 1 / -1;
+  }
+}
+
+.planetGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 1rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.emptyNote {
+  padding: 1.25rem;
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}

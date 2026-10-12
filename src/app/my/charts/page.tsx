@@ -197,21 +197,22 @@ function ChartCard({
 
   return (
     <div style={{
-      background: 'var(--surface-1)',
-      border: '1px solid var(--border)',
+      background: isDefault ? 'rgba(201,168,76,0.06)' : 'var(--surface-1)',
+      border: isDefault ? '1px solid rgba(201,168,76,0.45)' : '1px solid var(--border)',
       borderRadius: 'var(--r-lg)',
       padding: '1.1rem 1.25rem',
       display: 'flex', flexDirection: 'column', gap: '0.5rem',
-      transition: 'border-color 0.15s, box-shadow 0.15s',
+      transition: 'border-color 0.15s, box-shadow 0.15s, background 0.15s',
       cursor: 'default',
+      boxShadow: isDefault ? '0 0 0 1px rgba(201,168,76,0.12)' : 'none',
     }}
     onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-      e.currentTarget.style.borderColor = 'var(--border-bright)'
+      e.currentTarget.style.borderColor = isDefault ? 'rgba(201,168,76,0.65)' : 'var(--border-bright)'
       e.currentTarget.style.boxShadow = 'var(--shadow-card)'
     }}
     onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-      e.currentTarget.style.borderColor = 'var(--border)'
-      e.currentTarget.style.boxShadow = 'none'
+      e.currentTarget.style.borderColor = isDefault ? 'rgba(201,168,76,0.45)' : 'var(--border)'
+      e.currentTarget.style.boxShadow = isDefault ? '0 0 0 1px rgba(201,168,76,0.12)' : 'none'
     }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

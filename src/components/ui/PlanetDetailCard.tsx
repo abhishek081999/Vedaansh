@@ -1,14 +1,19 @@
 'use client'
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   GRAHA_NAMES, GRAHA_SANSKRIT, RASHI_NAMES, 
-  type GrahaId, type Rashi 
+  type GrahaData, type GrahaId, type Rashi, type UserPlan,
 } from '@/types/astrology'
 import { 
   SIGN_INTERPRETATIONS, NAKSHATRA_INTERPRETATIONS, DIGNITY_INTERPRETATIONS 
 } from '@/lib/engine/interpretations'
 import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
 import { getMarakaBadhakaFlags } from '@/lib/engine/marakaBadhaka'
+import { getPlanetEnergyTeaser } from '@/lib/engine/planetaryEnergyCycles'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
+
+/** Free planet cards: only these show a full energy teaser. */
+const FREE_ENERGY_TEASER_IDS = new Set<string>(['Su', 'Sa'])
 
 export const QC = {
   auspicious:   { bg:'rgba(78,205,196,.08)',  border:'rgba(78,205,196,.3)',  text:'var(--teal)' },
@@ -27,9 +32,20 @@ interface PlanetDetailCardProps {
   p: any
   moonNakIdx: number
   ascRashi: number
+  /** Full graha list + birth date enable energy-cycle teaser */
+  grahas?: GrahaData[]
+  birthDate?: string
+  userPlan?: UserPlan
 }
 
-export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardProps) {
+export function PlanetDetailCard({
+  p,
+  moonNakIdx,
+  ascRashi,
+  grahas,
+  birthDate,
+  userPlan = 'free',
+}: PlanetDetailCardProps) {
   const isAsc = p.grahaId === 'As'
   const isSpecialPoint = ['As', 'PP', 'IL', 'BB'].includes(p.grahaId)
   const taraIdx = isSpecialPoint ? 0 : (p.nakshatraIndex - moonNakIdx + 27) % 9
@@ -59,6 +75,13 @@ export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardPr
     p.dignity === 'moolatrikona' ? '#c084fc' : 'var(--text-muted)'
 
   const mb = !isSpecialPoint ? getMarakaBadhakaFlags(ascRashi as Rashi, p.grahaId) : null
+
+  const energyFull = planMeetsUiGate(userPlan, 'gold')
+  const energyTeaser = useMemo(() => {
+    if (isSpecialPoint || !grahas || !birthDate) return null
+    if (!energyFull && !FREE_ENERGY_TEASER_IDS.has(p.grahaId)) return null
+    return getPlanetEnergyTeaser(p.grahaId as GrahaId, grahas, birthDate)
+  }, [isSpecialPoint, grahas, birthDate, p.grahaId, energyFull])
 
   return (
     <div className="card" style={{
@@ -151,6 +174,48 @@ export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardPr
                  {DIGNITY_INTERPRETATIONS[p.dignity || 'neutral']}
                </div>
              </div>
+          </div>
+        )}
+
+        {/* Planetary Energy Cycle teaser */}
+        {energyTeaser && (
+          <div style={{
+            padding: '0.65rem 0.75rem',
+            background: 'rgba(129,140,248,0.06)',
+            borderRadius: 'var(--r-md)',
+            border: '1px solid rgba(129,140,248,0.25)',
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: '0.5rem',
+              marginBottom: '0.3rem',
+            }}>
+              <span style={{
+                fontSize: '0.55rem',
+                color: '#818cf8',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                fontWeight: 700,
+              }}>
+                Energy Cycle
+              </span>
+              <span style={{
+                fontSize: '0.55rem',
+                color: 'var(--text-muted)',
+                textAlign: 'right',
+                lineHeight: 1.3,
+              }}>
+                {energyTeaser.statusLabel}
+              </span>
+            </div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              {energyTeaser.title}
+            </div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: 3, lineHeight: 1.4 }}>
+              {energyTeaser.theme} · {energyTeaser.cyclePeriod}
+            </div>
           </div>
         )}
 
