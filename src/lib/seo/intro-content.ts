@@ -126,6 +126,22 @@ export const VASTU_SEO: SeoIntroProps = {
   ],
 }
 
+export const NUMEROLOGY_SEO: SeoIntroProps = {
+  ariaLabel: 'Vedic Numerology — Vedaansh',
+  h1: 'Vedic Numerology — Predictions, Remedies & Anka Jyotish Calculator',
+  paragraphs: [
+    'Calculate your Moolank, Bhagyank and Chaldean Namank with planetary rulers, then read life-area predictions, maturity number, pinnacles, challenges, number yogas and a full personalized remedy package from Anka Jyotish.',
+    'Explore Vedic and Lo Shu grids, Kua directions, personal year and monthly forecasts, daily Anka muhurta, baby names, business matching, dasha↔number timing, marriage windows, brand/plate scores, nakshatra letter bridge, yantras, Vastu×Kua, and PDF export (Gold).',
+  ],
+  h2: 'Vedic numerology features',
+  bullets: [
+    { label: 'Predictions & dasha', desc: 'Life areas, pinnacles, yogas, and chart-linked Mahadasha number timing' },
+    { label: 'Remedies & yantras', desc: 'Prioritized mantras, gemstones, colours, weekly plan and yantra packs' },
+    { label: 'Advanced tools', desc: 'Baby names, business match, marriage timing, brand/plate, month calendar, Vastu×Kua' },
+    { label: 'Core, grid & cycles', desc: 'Moolank, Bhagyank, Namank, Lo Shu, friendship modes, personal day and PDF report' },
+  ],
+}
+
 export const SBC_SEO: SeoIntroProps = {
   ariaLabel: 'Sarvatobhadra Chakra — Vedaansh',
   h1: 'Sarvatobhadra Chakra — 9×9 Vedic Transit Vedha Grid',

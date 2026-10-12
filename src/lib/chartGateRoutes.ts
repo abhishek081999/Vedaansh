@@ -2,6 +2,7 @@
  * Routes that should not trigger the birth-details drawer when no chart is loaded.
  * Panchang / calendar: optional defaults on-page.
  * Compare (/compare): collects Chart A & B on the page itself.
+ * Numerology (/numerology): collects name + DOB on the page itself.
  */
 export function routeAllowsWithoutChart(hrefOrPath: string): boolean {
   const path = (hrefOrPath.split('?')[0] || '').replace(/\/+$/, '') || '/'
@@ -9,6 +10,7 @@ export function routeAllowsWithoutChart(hrefOrPath: string): boolean {
     path.startsWith('/prashna') ||
     path.startsWith('/panchang') ||
     path.startsWith('/compare') ||
+    path.startsWith('/numerology') ||
     path.startsWith('/pricing') ||
     path.startsWith('/about') ||
     path.startsWith('/install') ||

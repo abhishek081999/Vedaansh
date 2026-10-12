@@ -1503,6 +1503,14 @@ function HomeContent() {
       icon: '🏠',
     },
     {
+      title: 'Vedic Numerology',
+      subtitle: 'Anka Jyotish',
+      text: 'Moolank, Bhagyank, name and grid.',
+      href: '/numerology',
+      ctaName: 'major_sections_numerology',
+      icon: '🔢',
+    },
+    {
       title: 'AstroCartography',
       subtitle: 'Location',
       text: 'Planetary lines for travel and moves.',

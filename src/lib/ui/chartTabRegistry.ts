@@ -100,6 +100,7 @@ export const MOBILE_DASHBOARD_OPTIONS = {
     { id: 'sbc', label: 'Sarvatobhadra Chakra', path: '/sbc' },
     { id: 'muhurta', label: 'Muhurta Finder', path: '/muhurta' },
     { id: 'prashna', label: 'Prashna', path: '/prashna' },
+    { id: 'numerology', label: 'Vedic Numerology', path: '/numerology' },
     { id: 'compare', label: 'Kundali Matching', path: '/compare' },
     { id: 'roadmap', label: 'Cosmic Roadmap', path: '/roadmap' },
     { id: 'transit-scrubber', label: 'Transit', path: '/scrubber' },
