@@ -61,6 +61,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority:        0.75,
     },
     {
+      url:             `${BASE_URL}/numerology`,
+      lastModified:    new Date(),
+      changeFrequency: 'monthly',
+      priority:        0.75,
+    },
+    {
       url:             `${BASE_URL}/acg`,
       lastModified:    new Date(),
       changeFrequency: 'monthly',

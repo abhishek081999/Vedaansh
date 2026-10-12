@@ -130,6 +130,31 @@ export function PersonalDayCard({
   const bcpYear = age + 1
   const bcpHouse = ((bcpYear - 1) % 12) + 1
 
+  // Anka (Vedic numerology) personal day — lightweight digital-root strip
+  const digitSum = (n: number) => {
+    let t = 0
+    for (const ch of String(Math.abs(Math.trunc(n)))) t += Number(ch)
+    return t
+  }
+  const toCore = (n: number) => {
+    let v = Math.abs(Math.trunc(n))
+    while (v > 9) v = digitSum(v)
+    return v
+  }
+  const birthParts = /^(\d{4})-(\d{2})-(\d{2})/.exec(birthDate)
+  let ankaPersonalDay: number | null = null
+  let ankaPower = false
+  if (birthParts) {
+    const by = Number(birthParts[1]), bm = Number(birthParts[2]), bd = Number(birthParts[3])
+    const moolank = toCore(bd)
+    const hadBday = now.getMonth() + 1 > bm || (now.getMonth() + 1 === bm && now.getDate() >= bd)
+    const cycleYear = hadBday ? now.getFullYear() : now.getFullYear() - 1
+    const py = toCore(digitSum(bd) + digitSum(bm) + digitSum(cycleYear))
+    const pm = toCore(py + (now.getMonth() + 1))
+    ankaPersonalDay = toCore(pm + now.getDate())
+    ankaPower = toCore(now.getDate()) === moolank
+  }
+
   const tithiMeta = todayTithiNum != null ? getTithiDayMeta(todayTithiNum) : null
   const tithiAccent = tithiMeta
     ? (tithiMeta.group.nature === 'shubh' ? 'var(--teal)' : 'var(--rose)')
@@ -207,6 +232,21 @@ export function PersonalDayCard({
         }} title={`Bhrigu Chakra Paddhati - Year ${bcpYear}`}>
           BCP: H{bcpHouse}
         </span>
+        {ankaPersonalDay != null && (
+          <Link
+            href="/numerology"
+            title="Open Vedic Numerology"
+            style={{
+              fontSize: '0.6rem', fontWeight: 700, padding: '1px 7px',
+              borderRadius: 3, border: '1px solid var(--border-soft)',
+              background: ankaPower ? 'rgba(20,184,166,0.12)' : 'var(--surface-3)',
+              color: ankaPower ? 'var(--teal)' : 'var(--text-secondary)',
+              letterSpacing: '0.05em', textTransform: 'uppercase', textDecoration: 'none',
+            }}
+          >
+            Anka PD {ankaPersonalDay}{ankaPower ? ' · Power' : ''}
+          </Link>
+        )}
         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
           Tarabala: <strong style={{ color: accentColor }}>{taraName} #{taraIdx + 1}</strong>
         </span>
