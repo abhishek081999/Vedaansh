@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react'
+import { Star } from 'lucide-react'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
 import { formatTagLabel } from '@/lib/chart/tags'
@@ -18,6 +19,11 @@ export interface ChartContextBarProps {
   mobileReserveRight?: string
   actions?: React.ReactNode
   className?: string
+  /** Show star to mark / highlight the user's default (login) chart */
+  showDefaultStar?: boolean
+  isDefaultChart?: boolean
+  defaultStarBusy?: boolean
+  onSetDefault?: () => void
 }
 
 function formatBirthDateTime(birthDate: string, birthTime: string): string {
@@ -34,6 +40,10 @@ export function ChartContextBar({
   mobileReserveRight,
   actions,
   className,
+  showDefaultStar = false,
+  isDefaultChart = false,
+  defaultStarBusy = false,
+  onSetDefault,
 }: ChartContextBarProps) {
   const ascRashi = chart.lagnas.ascRashi as Rashi
 
@@ -42,7 +52,50 @@ export function ChartContextBar({
       className={cn('chart-context-bar chart-name-strip', className)}
       style={isMobile && mobileReserveRight ? { paddingRight: mobileReserveRight } : undefined}
     >
-      <span className="name-primary">{chart.meta.name}</span>
+      <span className="name-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+        {chart.meta.name}
+        {showDefaultStar && onSetDefault && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (!isDefaultChart && !defaultStarBusy) onSetDefault()
+            }}
+            disabled={defaultStarBusy || isDefaultChart}
+            title={isDefaultChart ? 'Default chart (loads on login)' : 'Set as default (load on login)'}
+            aria-label={isDefaultChart ? 'Default chart' : 'Set as default chart'}
+            aria-pressed={isDefaultChart}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: isDefaultChart ? 'rgba(201,168,76,0.12)' : 'transparent',
+              border: isDefaultChart ? '1px solid rgba(201,168,76,0.35)' : '1px solid transparent',
+              borderRadius: 'var(--r-sm)',
+              cursor: isDefaultChart || defaultStarBusy ? 'default' : 'pointer',
+              padding: '0.15rem',
+              color: isDefaultChart ? 'var(--gold)' : 'var(--text-muted)',
+              opacity: defaultStarBusy ? 0.5 : isDefaultChart ? 1 : 0.55,
+              transition: 'color 0.15s, opacity 0.15s, background 0.15s, border-color 0.15s',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              if (!isDefaultChart) e.currentTarget.style.opacity = '1'
+            }}
+            onMouseLeave={(e) => {
+              if (!isDefaultChart) e.currentTarget.style.opacity = '0.55'
+            }}
+          >
+            <Star
+              size={isMobile ? 15 : 16}
+              strokeWidth={2}
+              fill={isDefaultChart ? 'currentColor' : 'none'}
+              aria-hidden
+            />
+          </button>
+        )}
+      </span>
       <span className="name-sep hide-mobile">·</span>
       <span className="name-detail hide-mobile">
         {formatBirthDateTime(chart.meta.birthDate, chart.meta.birthTime)}

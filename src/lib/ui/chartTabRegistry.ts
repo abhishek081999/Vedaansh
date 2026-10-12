@@ -83,6 +83,7 @@ export const MOBILE_DASHBOARD_OPTIONS = {
   nakshatra: [
     { id: 'nakshatra-overview', label: 'Overview', path: '/nakshatra/overview' },
     { id: 'nakshatra-navtara', label: 'Navtara', path: '/nakshatra/navtara' },
+    { id: 'nakshatra-taramandal', label: 'Taramandal', path: '/nakshatra/taramandal' },
     { id: 'nakshatra-bestdays', label: 'Best Days', path: '/nakshatra/bestdays' },
     { id: 'nakshatra-muhurta', label: 'Muhurta', path: '/nakshatra/muhurta' },
     { id: 'nakshatra-panchaka', label: 'Panchaka', path: '/nakshatra/panchaka' },

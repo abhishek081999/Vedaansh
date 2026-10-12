@@ -23,6 +23,10 @@ Source-of-truth summary for **enforced** feature access by plan. Prices: see `sr
 | Sarvatobhadra Chakra full | Birth star + grid | Yes | Yes | UI: `sbc/page` (`userPlan` / Gold+) |
 | Nakshatra Profession full | Indicators + blueprint teaser | Yes | Yes | UI: `NakshatraProfessionTab` (Gold+) |
 | Nakshatra Medical full | Indicators + constitution teaser | Yes | Yes | UI: `NakshatraMedicalTab` (Gold+) |
+| Nakshatra Taramandal | Full (all mandals + chart map) | Yes | Yes | UI: `NakshatraTaramandalTab` |
+| Planetary Energy Cycles | 2-cycle preview (short summary) | Yes | Yes | UI: `PlanetaryEnergyCyclesPanel` / `PlanetsWorkspace` (Gold+) |
+| Moon Kalas & Manas | Active kala + primary manas overview | Full 16 kalas, 7 manas, past-life flags | Full | UI: `MoonKalasManasPanel` / Planets → Moon tab (Gold+) |
+| Sun · 12 Adityas | Primary Aditya + karakatva teaser | Full 12 Adityas, spiritual, afflictions | Full | UI: `SunAdityasPanel` / Planets → Sun tab (Gold+) |
 | Prashna Kerala / Vedic / KP | Satpanchasika only | Yes | Yes | UI: `prashna/page` (Gold+) |
 | Research pages/APIs | No | No | Yes | `proxy.ts` (`/research`, `/api/research`) — routes reserved, UI not shipped |
 

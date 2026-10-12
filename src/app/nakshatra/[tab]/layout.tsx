@@ -25,6 +25,14 @@ const TAB_META: Record<string, { title: string; description: string }> = {
     title:       'Nakshatra Muhurta — Auspicious Star Timings',
     description: 'Nakshatra-based Muhurta guidance: identify auspicious and inauspicious days based on transit Nakshatra and your birth star.',
   },
+  taramandal: {
+    title:       'Taramandal — Nakshatra Constellation Groups',
+    description: 'Garuda, Naga, Deva, Rakshasa, Pitru, Marut, Agni, Soma, Vaishya & Pashu mandals: how constellation groups hold nakshatras and reshape planetary signification.',
+  },
+  navtara: {
+    title:       'Navtara — Nine Tara Groups from Birth Star',
+    description: 'Navtara Chakra from your Janma Nakshatra: Janma, Sampat, Vipat, Kshema and the remaining tara qualities for timing and compatibility.',
+  },
 }
 
 const DEFAULT_META = {

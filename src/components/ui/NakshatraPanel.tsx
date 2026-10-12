@@ -4,11 +4,12 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import {
-  Info, Compass, Calendar, Zap, Flame, Star, Link2, Heart, Briefcase, Activity,
+  Info, Compass, Calendar, Zap, Flame, Star, Link2, Heart, Briefcase, Activity, Orbit,
 } from 'lucide-react'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 import { NakshatraProfessionTab } from '@/components/ui/NakshatraProfessionTab'
 import { NakshatraMedicalTab } from '@/components/ui/NakshatraMedicalTab'
+import { NakshatraTaramandalTab } from '@/components/ui/NakshatraTaramandalTab'
 import {
   getNakshatraCharacteristics, getNavtaraChakra, checkPanchaka,
   getGraNakPositions, getNakCompatibility, TARA_QUALITIES, TARA_NAMES,
@@ -29,23 +30,25 @@ const RATING_COL: Record<string,string> = {
 }
 
 // ── Sub-tabs ──────────────────────────────────────────────────
-export type NakshatraSubTab = 'overview' | 'navtara' | 'bestdays' | 'muhurta' | 'panchaka' | 'planet' | 'compat' | 'remedies' | 'profession' | 'medical'
+export type NakshatraSubTab = 'overview' | 'navtara' | 'taramandal' | 'bestdays' | 'muhurta' | 'panchaka' | 'planet' | 'compat' | 'remedies' | 'profession' | 'medical'
 type SubTab = NakshatraSubTab
 const TABS: {id:SubTab;label:string;icon:string}[] = [
-  {id:'navtara',    label:'Navtara',    icon:'🔯'},
-  {id:'bestdays',   label:'Best Days',  icon:'📅'},
-  {id:'muhurta',    label:'Muhurta',    icon:'⚡'},
-  {id:'panchaka',   label:'Panchaka',   icon:'🔥'},
-  {id:'planet',     label:'Planets',    icon:'✦'},
-  {id:'compat',     label:'Compat',     icon:'🔗'},
-  {id:'remedies',   label:'Remedies',   icon:'🙏'},
-  {id:'profession', label:'Profession', icon:'💼'},
-  {id:'medical',    label:'Medical',    icon:'🏥'},
+  {id:'navtara',     label:'Navtara',     icon:'🔯'},
+  {id:'taramandal',  label:'Taramandal',  icon:'✦'},
+  {id:'bestdays',    label:'Best Days',   icon:'📅'},
+  {id:'muhurta',     label:'Muhurta',     icon:'⚡'},
+  {id:'panchaka',    label:'Panchaka',    icon:'🔥'},
+  {id:'planet',      label:'Planets',     icon:'✦'},
+  {id:'compat',      label:'Compat',      icon:'🔗'},
+  {id:'remedies',    label:'Remedies',    icon:'🙏'},
+  {id:'profession',  label:'Profession',  icon:'💼'},
+  {id:'medical',     label:'Medical',     icon:'🏥'},
 ]
 
 const MOBILE_TABS: { id: SubTab; icon: typeof Info; label: string }[] = [
   { id: 'overview', icon: Info, label: 'Overview' },
   { id: 'navtara', icon: Compass, label: 'Navtara' },
+  { id: 'taramandal', icon: Orbit, label: 'Mandal' },
   { id: 'bestdays', icon: Calendar, label: 'Days' },
   { id: 'muhurta', icon: Zap, label: 'Muhurta' },
   { id: 'panchaka', icon: Flame, label: 'Panchaka' },
@@ -272,15 +275,16 @@ function TabContent({
 }) {
   return (
     <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
-      {subTab==='navtara'    && <NavtaraTab navtara={navtara} birthNakIdx={birthNakIdx} />}
-      {subTab==='bestdays'   && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
-      {subTab==='muhurta'    && <MuhurtaTab nakIdx={birthNakIdx} />}
-      {subTab==='panchaka'   && <PanchakaTab grahas={chart.grahas} />}
-      {subTab==='planet'     && <PlanetTab positions={planetPos} chart={chart} moonNakIdx={birthNakIdx} />}
-      {subTab==='compat'     && <CompatTab birthNakIdx={birthNakIdx} />}
-      {subTab==='remedies'   && <RemediesTab remedy={remedy} nakIdx={birthNakIdx} />}
-      {subTab==='profession' && <NakshatraProfessionTab chart={chart} birthNakIdx={birthNakIdx} birthNakPada={birthNakPada} />}
-      {subTab==='medical'    && <NakshatraMedicalTab chart={chart} birthNakIdx={birthNakIdx} />}
+      {subTab==='navtara'     && <NavtaraTab navtara={navtara} birthNakIdx={birthNakIdx} />}
+      {subTab==='taramandal'  && <NakshatraTaramandalTab chart={chart} />}
+      {subTab==='bestdays'    && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
+      {subTab==='muhurta'     && <MuhurtaTab nakIdx={birthNakIdx} />}
+      {subTab==='panchaka'    && <PanchakaTab grahas={chart.grahas} />}
+      {subTab==='planet'      && <PlanetTab positions={planetPos} chart={chart} moonNakIdx={birthNakIdx} />}
+      {subTab==='compat'      && <CompatTab birthNakIdx={birthNakIdx} />}
+      {subTab==='remedies'    && <RemediesTab remedy={remedy} nakIdx={birthNakIdx} />}
+      {subTab==='profession'  && <NakshatraProfessionTab chart={chart} birthNakIdx={birthNakIdx} birthNakPada={birthNakPada} />}
+      {subTab==='medical'     && <NakshatraMedicalTab chart={chart} birthNakIdx={birthNakIdx} />}
     </div>
   )
 }

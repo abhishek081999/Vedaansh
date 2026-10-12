@@ -744,6 +744,13 @@ function HomeContent() {
   )
   const savedChartId = urlChartId || (matchesOwnChart ? String(defaultChart.chartId) : null)
   const isSavedChart = Boolean(savedChartId && status === 'authenticated')
+  const isDefaultChart = Boolean(
+    status === 'authenticated' &&
+    savedChartId &&
+    defaultChart?.chartId &&
+    String(defaultChart.chartId) === String(savedChartId),
+  )
+  const [settingDefault, setSettingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
   const [dashExpandAv, setDashExpandAv] = useState(false)
   const [dashboardAvView, setDashboardAvView] = useState<DashboardAvView>('sav')
@@ -1100,8 +1107,8 @@ function HomeContent() {
     }
   }, [hasBirthUrl, isNewUrl, skipUrlHydration, setSkipUrlHydration])
 
-  async function handleSave(type: 'regular' | 'personal' = 'regular') {
-    if (!chart || saving) return
+  async function handleSave(type: 'regular' | 'personal' = 'regular'): Promise<string | null> {
+    if (!chart || saving) return savedChartId
     setSaving(true)
     const payload = {
       name:       chart.meta.name,
@@ -1130,18 +1137,60 @@ function HomeContent() {
           })
       if (res.ok) {
         const json = await res.json().catch(() => ({}))
-        if (!isSavedChart && json.chartId) {
+        const nextId = isSavedChart
+          ? String(savedChartId)
+          : (json.chartId ? String(json.chartId) : null)
+        if (!isSavedChart && nextId) {
           const params = new URLSearchParams(searchParams.toString())
-          params.set('chartId', json.chartId)
+          params.set('chartId', nextId)
           router.replace(`?${params.toString()}`, { scroll: false })
         }
         setSaveDone(true)
         setTimeout(() => setSaveDone(false), 4000)
+        return nextId
       }
     } catch (e) {
       console.error('Save failed', e)
     } finally {
       setSaving(false)
+    }
+    return null
+  }
+
+  async function handleSetDefault() {
+    if (!chart || status !== 'authenticated' || settingDefault || isDefaultChart) return
+    setSettingDefault(true)
+    try {
+      let chartId = savedChartId ? String(savedChartId) : null
+      if (!chartId) {
+        chartId = await handleSave('regular')
+      }
+      if (!chartId) return
+
+      const res = await fetch('/api/user/default-chart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chartId }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (json.success) {
+        setDefaultChart({
+          chartId,
+          name: chart.meta.name,
+          birthDate: chart.meta.birthDate,
+          birthTime: chart.meta.birthTime,
+          birthPlace: chart.meta.birthPlace,
+          latitude: chart.meta.latitude,
+          longitude: chart.meta.longitude,
+          timezone: chart.meta.timezone,
+          settings: chart.meta.settings,
+          tags: chartTags,
+        })
+      }
+    } catch (e) {
+      console.error('Failed to set default chart', e)
+    } finally {
+      setSettingDefault(false)
     }
   }
 
@@ -1880,6 +1929,10 @@ function HomeContent() {
                 tags={chartTags}
                 isMobile={isPhone}
                 mobileReserveRight={isPhone ? '2.5rem' : undefined}
+                showDefaultStar={status === 'authenticated'}
+                isDefaultChart={isDefaultChart}
+                defaultStarBusy={settingDefault || saving}
+                onSetDefault={handleSetDefault}
               />
 
               {isPhone && (
@@ -2026,7 +2079,7 @@ function HomeContent() {
                 style={{ padding: isFlushPaddingChartTab(activeTab) ? '0' : '0.65rem', width: '100%' }}
               >
                 {activeTab === 'planets' ? (
-                    <PlanetsWorkspace chart={chart} />
+                    <PlanetsWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'navamsha' ? (
                     <NavamshaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'house' ? (
