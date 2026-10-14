@@ -1,10 +1,10 @@
 ## graphify
 
-This project has a graphify knowledge graph at graphify-out/.
+Optional knowledge-graph tooling. Prefer live code and [`docs/`](../../docs/README.md) when `graphify-out/` is missing or stale.
 
 Rules:
-- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
-- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
-- If the graphify MCP server is active, utilize tools like `query_graph`, `get_node`, and `shortest_path` for precise architecture navigation instead of falling back to `grep`
-- If the MCP server is not active, the CLI equivalents are `graphify query "<question>"`, `graphify path "<A>" "<B>"`, and `graphify explain "<concept>"` — prefer these over grep for cross-module questions
-- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
+- If `graphify-out/GRAPH_REPORT.md` exists, you may use it for high-level architecture orientation
+- If `graphify-out/wiki/index.md` exists, navigate it for wiki-style browsing
+- If the graphify MCP server is active, tools like `query_graph`, `get_node`, and `shortest_path` can help — otherwise use repo search / docs
+- CLI equivalents (when installed): `graphify query`, `graphify path`, `graphify explain`
+- After modifying code, `graphify update .` refreshes the graph if the tool is installed (AST-only)

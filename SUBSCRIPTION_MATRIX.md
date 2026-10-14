@@ -1,6 +1,15 @@
 # Subscription Entitlements Matrix
 
-Source-of-truth summary for **enforced** feature access by plan. Prices: see `src/lib/subscription/pricing.ts` and `/pricing`.
+Source-of-truth summary for **enforced** feature access by plan.
+
+**Default list prices (INR)** from `src/lib/subscription/pricing.ts` (admin `BillingConfig` / `/pricing` may override):
+
+| Plan | Monthly | Yearly |
+|------|---------|--------|
+| Gold | ₹168 | ₹1,443 |
+| Platinum | ₹336 | ₹2,888 |
+
+Canonical plan ids: `free` | `gold` | `platinum`.
 
 | Feature | Free | Gold | Platinum | Enforced In |
 | --- | --- | --- | --- | --- |
