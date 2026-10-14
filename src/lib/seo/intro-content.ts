@@ -1,4 +1,8 @@
-import type { SeoIntroProps } from '@/components/seo/SeoIntro.types'
+import type { SeoIntroProps, SeoRelatedLink } from '@/components/seo/SeoIntro.types'
+
+function guideLink(slug: string, label: string): SeoRelatedLink {
+  return { href: `/guides/${slug}`, label }
+}
 
 export const PANCHANG_SEO: SeoIntroProps = {
   ariaLabel: 'Daily Vedic Panchang — Vedaansh',
@@ -13,6 +17,12 @@ export const PANCHANG_SEO: SeoIntroProps = {
     { label: 'Rahu Kalam & Gulika', desc: 'Inauspicious windows to avoid for new beginnings' },
     { label: 'Hora table', desc: 'Planetary hour divisions for the day' },
     { label: 'Location-aware', desc: 'Atlas search for any city worldwide' },
+  ],
+  relatedLinks: [
+    guideLink('what-is-panchang-tithi-nakshatra', 'What is Panchang?'),
+    guideLink('rahu-kalam-explained', 'Rahu Kalam explained'),
+    guideLink('chandra-bala-tara-bala', 'Chandra Bala & Tara Bala'),
+    { href: '/guides', label: 'All guides' },
   ],
 }
 
@@ -29,6 +39,12 @@ export const PANCHANG_CALENDAR_SEO: SeoIntroProps = {
     { label: 'Per-day detail', desc: 'Drill into transitions and timings' },
     { label: 'IST-aligned', desc: 'Built for Indian festival and muhurta planning' },
   ],
+  relatedLinks: [
+    guideLink('what-is-panchang-tithi-nakshatra', 'What is Panchang?'),
+    guideLink('rahu-kalam-explained', 'Rahu Kalam explained'),
+    { href: '/panchang', label: 'Daily Panchang' },
+  ],
+
 }
 
 export const MUHURTA_SEO: SeoIntroProps = {
@@ -44,6 +60,13 @@ export const MUHURTA_SEO: SeoIntroProps = {
     { label: 'Timeline view', desc: 'See favorable intervals across a date range' },
     { label: 'Classical rules', desc: 'Yoga, Tithi, and Nakshatra filters from Jyotish tradition' },
   ],
+  relatedLinks: [
+    guideLink('muhurta-for-marriage', 'Muhurta for marriage'),
+    guideLink('what-is-panchang-tithi-nakshatra', 'Panchang basics'),
+    guideLink('rahu-kalam-explained', 'Rahu Kalam'),
+    { href: '/guides', label: 'All guides' },
+  ],
+
 }
 
 export const NAKSHATRA_SEO: SeoIntroProps = {
@@ -60,6 +83,13 @@ export const NAKSHATRA_SEO: SeoIntroProps = {
     { label: 'Remedies', desc: 'Mantras, gemstones, colours, and deity worship' },
     { label: 'Transits & Muhurta', desc: 'Planetary activations and auspicious star timings' },
   ],
+  relatedLinks: [
+    guideLink('chandra-bala-tara-bala', 'Tara Bala & Chandra Bala'),
+    guideLink('vimshottari-dasha-explained', 'Vimshottari Dasha'),
+    guideLink('yogini-dasha-explained', 'Yogini Dasha'),
+    { href: '/guides', label: 'All guides' },
+  ],
+
 }
 
 export const COMPARE_SEO: SeoIntroProps = {
@@ -76,6 +106,13 @@ export const COMPARE_SEO: SeoIntroProps = {
     { label: 'Dual charts', desc: 'Side-by-side D1, dasha, and panchang comparison' },
     { label: 'No login required', desc: 'Run compatibility checks instantly for free' },
   ],
+  relatedLinks: [
+    guideLink('ashtakoot-guna-milan-explained', 'Ashtakoot Guna Milan'),
+    guideLink('mangal-dosha-explained', 'Mangal Dosha'),
+    guideLink('what-is-navamsha-d9-chart', 'Navamsha (D9)'),
+    { href: '/guides', label: 'All guides' },
+  ],
+
 }
 
 export const JAIMINI_SEO: SeoIntroProps = {
@@ -92,6 +129,12 @@ export const JAIMINI_SEO: SeoIntroProps = {
     { label: 'Arudha Padas', desc: 'AL and house arudhas on chart overlays' },
     { label: 'Jaimini yogas', desc: 'Argala, gateways, and strength tables' },
   ],
+  relatedLinks: [
+    guideLink('jaimini-atmakaraka-explained', 'Atmakaraka explained'),
+    guideLink('what-is-navamsha-d9-chart', 'Navamsha (D9)'),
+    { href: '/guides', label: 'All guides' },
+  ],
+
 }
 
 export const PRASHNA_SEO: SeoIntroProps = {
@@ -108,6 +151,12 @@ export const PRASHNA_SEO: SeoIntroProps = {
     { label: 'When & Who', desc: 'Event timing and significator analysis' },
     { label: 'Health & travel', desc: 'Category-specific Krishneeyam chapters' },
   ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'What is a Kundali?'),
+    guideLink('lahiri-ayanamsha-explained', 'Lahiri ayanamsha'),
+    { href: '/guides', label: 'All guides' },
+  ],
+
 }
 
 export const VASTU_SEO: SeoIntroProps = {
@@ -124,6 +173,12 @@ export const VASTU_SEO: SeoIntroProps = {
     { label: 'Dosha alerts', desc: 'Directional imbalances tied to chart factors' },
     { label: 'Remedies', desc: 'Classical corrective suggestions per direction' },
   ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'Vedic birth chart'),
+    guideLink('shadbala-explained', 'Shadbala strength'),
+    { href: '/guides', label: 'All guides' },
+  ],
+
 }
 
 export const NUMEROLOGY_SEO: SeoIntroProps = {
@@ -140,6 +195,11 @@ export const NUMEROLOGY_SEO: SeoIntroProps = {
     { label: 'Advanced tools', desc: 'Baby names, business match, marriage timing, brand/plate, month calendar, Vastu×Kua' },
     { label: 'Core, grid & cycles', desc: 'Moolank, Bhagyank, Namank, Lo Shu, friendship modes, personal day and PDF report' },
   ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'Kundali basics'),
+    { href: '/guides', label: 'All Jyotish guides' },
+  ],
+
 }
 
 export const SBC_SEO: SeoIntroProps = {
@@ -156,6 +216,12 @@ export const SBC_SEO: SeoIntroProps = {
     { label: 'Muhurta tab', desc: 'Electional guidance from today\'s transit vedha' },
     { label: 'Prashna use cases', desc: 'Category predictions driven by grid interactions' },
   ],
+  relatedLinks: [
+    guideLink('vimshottari-dasha-explained', 'Vimshottari Dasha'),
+    guideLink('what-is-panchang-tithi-nakshatra', 'Panchang'),
+    { href: '/guides', label: 'All guides' },
+  ],
+
 }
 
 export const ACG_SEO: SeoIntroProps = {
@@ -172,6 +238,12 @@ export const ACG_SEO: SeoIntroProps = {
     { label: 'Relocation strength', desc: 'How a city shifts house and digbala factors' },
     { label: 'Map exploration', desc: 'Compare candidate locations on an interactive map' },
   ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'Birth chart basics'),
+    guideLink('lahiri-ayanamsha-explained', 'Lahiri ayanamsha'),
+    { href: '/guides', label: 'All guides' },
+  ],
+
 }
 
 export const ROADMAP_SEO: SeoIntroProps = {
@@ -188,6 +260,12 @@ export const ROADMAP_SEO: SeoIntroProps = {
     { label: 'Key windows', desc: 'Highlighted periods for caution or opportunity' },
     { label: 'Chart-linked', desc: 'Personalised from your saved or session Kundali' },
   ],
+  relatedLinks: [
+    guideLink('vimshottari-dasha-explained', 'Vimshottari Dasha'),
+    guideLink('ashtakavarga-explained', 'Ashtakavarga'),
+    { href: '/guides', label: 'All guides' },
+  ],
+
 }
 
 export const ABOUT_SEO: SeoIntroProps = {
@@ -204,6 +282,12 @@ export const ABOUT_SEO: SeoIntroProps = {
     { label: 'Classical lineage', desc: 'Parashari, Jaimini, KP, and Kerala Prashna methods' },
     { label: 'Community', desc: 'Platform for learning Vedic culture and Jyotish together' },
   ],
+  relatedLinks: [
+    { href: '/guides', label: 'Jyotish guides' },
+    guideLink('lahiri-ayanamsha-explained', 'Our default ayanamsha'),
+    { href: '/search', label: 'Search the site' },
+  ],
+
 }
 
 export const SUPPORT_SEO: SeoIntroProps = {
@@ -220,6 +304,12 @@ export const SUPPORT_SEO: SeoIntroProps = {
     { label: 'Charts & exports', desc: 'Saved charts, PDF/HTML export, and sharing' },
     { label: 'Technical issues', desc: 'Calculation, Panchang location, or app bugs' },
   ],
+  relatedLinks: [
+    { href: '/guides', label: 'Guides' },
+    { href: '/search', label: 'Search' },
+    { href: '/pricing', label: 'Pricing' },
+  ],
+
 }
 
 /** Homepage SSR section — HomeClient is ssr:false, so this is the crawlable body. */
@@ -242,6 +332,15 @@ export const HOME_SEO: SeoIntroProps = {
     { label: 'KP Stellar Astrology', desc: 'Sub-lord system with cuspal interlinks' },
     { label: 'Kundali Matching (Synastry)', desc: '36-point Ashtakoot compatibility scoring' },
   ],
+  relatedLinks: [
+    guideLink('free-vedic-birth-chart-kundali', 'Free Kundali guide'),
+    guideLink('what-is-navamsha-d9-chart', 'Navamsha (D9)'),
+    guideLink('ashtakoot-guna-milan-explained', 'Kundali matching'),
+    guideLink('vimshottari-dasha-explained', 'Vimshottari Dasha'),
+    { href: '/guides', label: 'All guides' },
+    { href: '/search', label: 'Search' },
+  ],
+
 }
 
 /** FAQ copy shared between homepage JSON-LD and crawlable content. */

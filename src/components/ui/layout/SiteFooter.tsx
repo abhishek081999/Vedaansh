@@ -2,6 +2,8 @@ import React from 'react'
 import Link from 'next/link'
 
 const FOOTER_LINKS = [
+  { href: '/guides', label: 'Guides' },
+  { href: '/search', label: 'Search' },
   { href: '/install', label: 'Install App' },
   { href: '/terms', label: 'Terms' },
   { href: '/privacy', label: 'Privacy' },

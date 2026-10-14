@@ -1,5 +1,6 @@
 // Visible, crawlable intro for tool pages (server component).
 // Prefer h2 when the interactive page already owns the h1.
+import Link from 'next/link'
 import type { SeoIntroProps } from './SeoIntro.types'
 import styles from './SeoIntro.module.css'
 
@@ -13,6 +14,8 @@ export function SeoIntro({
   bullets,
   titleAs = 'h2',
   faq,
+  relatedLinks,
+  relatedTitle = 'Related guides',
 }: SeoIntroProps) {
   const TitleTag = titleAs === 'h1' ? 'h1' : 'h2'
   const SubTag = titleAs === 'h1' ? 'h2' : 'h3'
@@ -37,6 +40,20 @@ export function SeoIntro({
             ))}
           </ul>
         </>
+      )}
+      {relatedLinks && relatedLinks.length > 0 && (
+        <div className={styles.related}>
+          <SubTag className={styles.subtitle}>{relatedTitle}</SubTag>
+          <ul className={styles.relatedList}>
+            {relatedLinks.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className={styles.relatedLink}>
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       {faq && faq.length > 0 && (
         <div className={styles.faq}>

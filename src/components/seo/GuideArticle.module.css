@@ -1,0 +1,235 @@
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wrap {
+  max-width: 42rem;
+  margin: 0 auto;
+  width: 100%;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-gold, var(--gold));
+}
+
+.title {
+  margin: 0.25rem 0 0.75rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.6rem, 4.5vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text-gold, var(--gold));
+}
+
+.lede {
+  margin: 0 0 1.25rem;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.meta {
+  margin: 0 0 1.75rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 2rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: var(--r-md, 8px);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  background: var(--gold-faint, rgba(201, 168, 76, 0.1));
+  color: var(--text-gold, var(--gold));
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.cta:hover {
+  border-color: var(--gold);
+}
+
+.section {
+  margin-bottom: 1.75rem;
+}
+
+.section h2 {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.section p {
+  margin: 0 0 0.85rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.faq {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.faq h2 {
+  margin: 0 0 1rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.15rem;
+  color: var(--text-gold, var(--gold));
+}
+
+.faqItem {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md, 8px);
+}
+
+.faqItem dt {
+  margin: 0 0 0.35rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.faqItem dd {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--text-gold, var(--gold));
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.card {
+  display: block;
+  padding: 1.1rem 1.15rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md, 8px);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.card:hover {
+  border-color: rgba(201, 168, 76, 0.4);
+}
+
+.cardTitle {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cardDesc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.searchForm {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1 1 14rem;
+  min-width: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--r-md, 8px);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.searchBtn {
+  padding: 0.7rem 1.1rem;
+  border-radius: var(--r-md, 8px);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  background: var(--gold-faint, rgba(201, 168, 76, 0.12));
+  color: var(--text-gold, var(--gold));
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.resultMeta {
+  margin: 0 0 0.25rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.empty {
+  padding: 1.25rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md, 8px);
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.relatedSection {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.relatedHeading {
+  margin: 0 0 1rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.15rem;
+  color: var(--text-gold, var(--gold));
+}

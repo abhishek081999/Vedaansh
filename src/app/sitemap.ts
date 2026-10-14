@@ -1,7 +1,8 @@
-// Generates sitemap.xml — static pages + all public charts
+// Generates sitemap.xml — static pages + guides + public charts
 import type { MetadataRoute } from 'next'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
+import { GUIDES } from '@/lib/seo/guides'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
@@ -41,12 +42,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     page('/vastu', 0.7, 'monthly'),
     page('/roadmap', 0.65, 'monthly'),
     page('/pricing', 0.6, 'monthly'),
+    page('/guides', 0.85, 'weekly'),
+    page('/search', 0.5, 'monthly'),
     page('/about', 0.55, 'monthly'),
     page('/support', 0.45, 'monthly'),
     page('/terms', 0.4, 'yearly'),
     page('/privacy', 0.4, 'yearly'),
     page('/refund', 0.4, 'yearly'),
     ...NAKSHATRA_TABS.map((tab) => page(`/nakshatra/${tab}`, 0.75, 'weekly')),
+    ...GUIDES.map((g) =>
+      page(`/guides/${g.slug}`, 0.8, 'monthly', new Date(`${g.updatedAt}T00:00:00.000Z`)),
+    ),
   ]
 
   try {

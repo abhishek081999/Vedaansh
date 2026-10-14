@@ -145,6 +145,7 @@ export const ADVANCED_ASTRO_TABS: NavTab[] = [
 ]
 
 export const MAIN_TABS: NavTab[] = [
+  { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides' },
   { id: 'install', label: 'Install App', icon: Download, path: '/install' },
   { id: 'about', label: 'About', icon: Info, path: '/about' },
   { id: 'clients', label: 'CRM / Clients', icon: UsersRound, path: '/clients' },
