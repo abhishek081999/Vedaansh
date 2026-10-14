@@ -18,7 +18,7 @@ import {
   resolveMilanRoles,
   type MilanRole,
 } from '@/lib/engine/milanSuite'
-import { generateMilanHTML } from '@/lib/pdf/milanHtml'
+import { openMilanPrintPreview, type MilanReportInput } from '@/lib/pdf/milanHtml'
 import {
   loadMilanHistory,
   saveMilanHistoryEntry,
@@ -96,23 +96,24 @@ export function MilanExpandPanel({
   const [history, setHistory] = useState<SavedMilanEntry[]>([])
   useEffect(() => { setHistory(loadMilanHistory()) }, [])
 
-  const openPdf = () => {
-    const html = generateMilanHTML({
-      boyName: roles.boyLabel,
-      girlName: roles.girlLabel,
-      ashtakoot,
-      porutham,
-      deep,
-      manglik,
-      timing,
-      remedies,
-      jaimini,
-    })
-    const w = window.open('', '_blank')
-    if (w) {
-      w.document.write(html)
-      w.document.close()
-    }
+  const reportInput: MilanReportInput = useMemo(() => ({
+    chartA,
+    chartB,
+    boyName: roles.boyLabel,
+    girlName: roles.girlLabel,
+    boyBirth: roles.boyChart.meta.birthDate,
+    girlBirth: roles.girlChart.meta.birthDate,
+    ashtakoot,
+    porutham,
+    deep,
+    manglik,
+    timing,
+    remedies,
+    jaimini,
+  }), [chartA, chartB, roles, ashtakoot, porutham, deep, manglik, timing, remedies, jaimini])
+
+  const openPrintPreview = () => {
+    openMilanPrintPreview(reportInput)
   }
 
   const saveHistory = () => {
@@ -162,7 +163,7 @@ export function MilanExpandPanel({
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button type="button" className="btn btn-secondary" style={{ fontSize: '0.75rem' }} onClick={saveHistory}>Save match</button>
-          <button type="button" className="btn" style={{ fontSize: '0.75rem' }} onClick={openPdf}>PDF report</button>
+          <button type="button" className="btn" style={{ fontSize: '0.75rem' }} onClick={openPrintPreview}>Print All Sections</button>
         </div>
       </div>
 

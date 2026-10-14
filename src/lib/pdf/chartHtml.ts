@@ -370,8 +370,8 @@ function buildSouthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">${cells}</svg>`
 }
 
-function buildChartSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280): string {
-  // Force North Indian Diamond style as per user requirement
+/** North Indian diamond SVG — shared by kundali export and Milan compare print. */
+export function buildChartSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280): string {
   return buildNorthSVG(chart, vargaKey, size)
 }
 
