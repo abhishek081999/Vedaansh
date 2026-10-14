@@ -1,6 +1,6 @@
 # AGENTS.md — Vedaansh
 
-Context for coding agents working in this repo. **Trust live code over README/docs** when they disagree (README versions are often stale).
+Context for coding agents working in this repo. **Trust live code over docs** when they disagree — verify stack in `package.json`, plans in `pricing.ts` / `entitlements.ts`, routes in `src/app/api/`.
 
 ## What this is
 
@@ -44,11 +44,13 @@ __tests__/security/ # Security unit tests
 
 Canonical plan names: `free` | `gold` | `platinum`.
 
-| Plan | Chart saves | Notable gates |
-|------|-------------|---------------|
-| Free | 20 | Core chart, panchang, public share |
-| Gold | 200 | PDF/HTML export, muhurta APIs (`/muhurta`, `/api/muhurta`) |
-| Platinum | Unlimited | Email charts, bulk ZIP, client CRM, white-label branding |
+| Plan | Chart saves | Default price (INR) | Notable gates |
+|------|-------------|---------------------|---------------|
+| Free | 20 | — | Core chart, panchang, public share |
+| Gold | 200 | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`) |
+| Platinum | Unlimited | ₹336/mo · ₹2,888/yr | Email charts, bulk ZIP, client CRM, white-label |
+
+Prices: `src/lib/subscription/pricing.ts` (admin `BillingConfig` may override).
 
 **Enforcement:** `getEffectivePlan()` reads MongoDB (not JWT). API routes use `requirePlanGate()` from `src/lib/security/planAccess.ts`. Full matrix: [`SUBSCRIPTION_MATRIX.md`](./SUBSCRIPTION_MATRIX.md).
 
@@ -107,11 +109,21 @@ Production checklist: `docs/SECURITY_DEPLOY.md`.
 
 - Add React/DB/Redis imports to `src/lib/engine/**`
 - Skip route security on new endpoints
-- Trust README version numbers — check `package.json`
+- Trust README/doc version numbers blindly — check `package.json`
 - Commit `.env` or secrets
 
 ## Further reading
 
+- [`docs/README.md`](./docs/README.md) — documentation index
 - [`README.md`](./README.md) — feature list and engine module inventory
 - [`SUBSCRIPTION_MATRIX.md`](./SUBSCRIPTION_MATRIX.md) — enforced entitlements by plan
+- [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md) — architecture
+- [`docs/API.md`](./docs/API.md) — REST inventory
+- [`docs/DATA_MODEL.md`](./docs/DATA_MODEL.md) — Mongo collections
+- [`docs/PRODUCT.md`](./docs/PRODUCT.md) — product brief
+- [`docs/RUNBOOK.md`](./docs/RUNBOOK.md) — operations
+- [`docs/TESTING.md`](./docs/TESTING.md) — test strategy
 - [`docs/SECURITY_DEPLOY.md`](./docs/SECURITY_DEPLOY.md) — production security
+- [`docs/adr/`](./docs/adr/) — architecture decisions
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — PR / quality bar
+- [`CHANGELOG.md`](./CHANGELOG.md) — release notes

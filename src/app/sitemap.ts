@@ -1,4 +1,3 @@
-// src/app/sitemap.ts
 // Generates sitemap.xml — static pages + all public charts
 import type { MetadataRoute } from 'next'
 import connectDB from '@/lib/db/mongodb'
@@ -6,135 +5,50 @@ import { Chart } from '@/lib/db/models/Chart'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
+/** Bump when marketing/tool copy or structure changes — avoid `new Date()` fake freshness. */
+const CONTENT_REV = new Date('2026-03-14T00:00:00.000Z')
+
 /** Nakshatra tab slugs — keep in sync with nakshatra/[tab]/layout.tsx TAB_META */
 const NAKSHATRA_TABS = ['overview', 'compatibility', 'remedies', 'transits', 'muhurta'] as const
 
+function page(
+  path: string,
+  priority: number,
+  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'],
+  lastModified: Date = CONTENT_REV,
+): MetadataRoute.Sitemap[number] {
+  return {
+    url: `${BASE_URL}${path}`,
+    lastModified,
+    changeFrequency,
+    priority,
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Static pages
   const staticPages: MetadataRoute.Sitemap = [
-    {
-      url:             BASE_URL,
-      lastModified:    new Date(),
-      changeFrequency: 'daily',
-      priority:        1,
-    },
-    {
-      url:             `${BASE_URL}/panchang`,
-      lastModified:    new Date(),
-      changeFrequency: 'daily',
-      priority:        0.9,
-    },
-    {
-      url:             `${BASE_URL}/panchang/calendar`,
-      lastModified:    new Date(),
-      changeFrequency: 'daily',
-      priority:        0.8,
-    },
-    {
-      url:             `${BASE_URL}/nakshatra`,
-      lastModified:    new Date(),
-      changeFrequency: 'weekly',
-      priority:        0.8,
-    },
-    {
-      url:             `${BASE_URL}/muhurta`,
-      lastModified:    new Date(),
-      changeFrequency: 'weekly',
-      priority:        0.8,
-    },
-    {
-      url:             `${BASE_URL}/compare`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.75,
-    },
-    {
-      url:             `${BASE_URL}/jaimini`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.75,
-    },
-    {
-      url:             `${BASE_URL}/prashna`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.75,
-    },
-    {
-      url:             `${BASE_URL}/numerology`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.75,
-    },
-    {
-      url:             `${BASE_URL}/acg`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.7,
-    },
-    {
-      url:             `${BASE_URL}/sbc`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.7,
-    },
-    {
-      url:             `${BASE_URL}/vastu`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.7,
-    },
-    {
-      url:             `${BASE_URL}/roadmap`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.65,
-    },
-    {
-      url:             `${BASE_URL}/pricing`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.6,
-    },
-    {
-      url:             `${BASE_URL}/about`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.55,
-    },
-    {
-      url:             `${BASE_URL}/terms`,
-      lastModified:    new Date(),
-      changeFrequency: 'yearly',
-      priority:        0.4,
-    },
-    {
-      url:             `${BASE_URL}/privacy`,
-      lastModified:    new Date(),
-      changeFrequency: 'yearly',
-      priority:        0.4,
-    },
-    {
-      url:             `${BASE_URL}/refund`,
-      lastModified:    new Date(),
-      changeFrequency: 'yearly',
-      priority:        0.4,
-    },
-    {
-      url:             `${BASE_URL}/support`,
-      lastModified:    new Date(),
-      changeFrequency: 'monthly',
-      priority:        0.45,
-    },
-    ...NAKSHATRA_TABS.map((tab) => ({
-      url:             `${BASE_URL}/nakshatra/${tab}`,
-      lastModified:    new Date(),
-      changeFrequency: 'weekly' as const,
-      priority:        0.75,
-    })),
+    page('/', 1, 'weekly'),
+    page('/panchang', 0.9, 'daily'),
+    page('/panchang/calendar', 0.8, 'daily'),
+    page('/nakshatra', 0.8, 'weekly'),
+    page('/muhurta', 0.8, 'weekly'),
+    page('/compare', 0.75, 'monthly'),
+    page('/jaimini', 0.75, 'monthly'),
+    page('/prashna', 0.75, 'monthly'),
+    page('/numerology', 0.75, 'monthly'),
+    page('/acg', 0.7, 'monthly'),
+    page('/sbc', 0.7, 'monthly'),
+    page('/vastu', 0.7, 'monthly'),
+    page('/roadmap', 0.65, 'monthly'),
+    page('/pricing', 0.6, 'monthly'),
+    page('/about', 0.55, 'monthly'),
+    page('/support', 0.45, 'monthly'),
+    page('/terms', 0.4, 'yearly'),
+    page('/privacy', 0.4, 'yearly'),
+    page('/refund', 0.4, 'yearly'),
+    ...NAKSHATRA_TABS.map((tab) => page(`/nakshatra/${tab}`, 0.75, 'weekly')),
   ]
 
-  // Public chart pages
   try {
     await connectDB()
     const publicCharts = await Chart
@@ -144,9 +58,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .limit(1000)
       .lean()
 
-    const chartPages: MetadataRoute.Sitemap = publicCharts.map((c: any) => ({
+    const chartPages: MetadataRoute.Sitemap = publicCharts.map((c) => ({
       url:             `${BASE_URL}/chart/${c.slug}`,
-      lastModified:    c.updatedAt ?? new Date(),
+      lastModified:    c.updatedAt ?? CONTENT_REV,
       changeFrequency: 'weekly' as const,
       priority:        0.7,
     }))

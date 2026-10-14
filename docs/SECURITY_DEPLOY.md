@@ -23,7 +23,7 @@ Staging: `CSRF_TRUSTED_ORIGINS=https://dev.vedaansh.com` if using a second origi
 ```bash
 npm ci
 npm run typecheck
-npm run security:preflight   # 34 security unit tests
+npm run security:preflight   # Vitest security suite (`__tests__/security`)
 npm run security:audit       # production deps only (must pass in CI)
 npm run security:audit:dev   # optional full tree including devDependencies
 npm run build
@@ -80,9 +80,9 @@ Heavy paths:
 
 ## 7. What is enforced in code
 
-- Middleware: auth gates, tier routes, admin routes, NextAuth POST rate limit, **per-request CSP nonces**
+- `proxy.ts`: auth gates, tier routes, admin routes, NextAuth POST rate limit, **per-request CSP nonces**
 - APIs: same-origin on mutating routes, Redis rate limits, body size caps, plan/admin DB checks
 - Payments: HMAC verify + webhook replay dedupe (6h)
 - Sessions: secure cookies in production, per-email login throttle
 
-See `src/lib/security/` for implementation details.
+See `src/lib/security/` and [`docs/API.md`](./API.md) for implementation details.

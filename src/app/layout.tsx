@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     description:
       'Free Vedic birth charts, Dasha, 41 vargas, Panchang. Swiss Ephemeris precision.',
     images: [{
-      url:    '/og-default.png',
+      url:    '/opengraph-image',
       width:  1200,
       height: 630,
       alt:    'Vedaansh — Vedic Astrology Platform',
@@ -99,7 +99,7 @@ export const metadata: Metadata = {
     site:        '@vedaansh',
     title:       'Vedaansh — Free Vedic Astrology',
     description: 'Free birth charts, Dasha, 41 vargas, Panchang. Swiss Ephemeris precision.',
-    images:      ['/og-default.png'],
+    images:      ['/opengraph-image'],
   },
 
   // ── Canonical & alternates ──────────────────────────────────
@@ -171,6 +171,13 @@ const jsonLdWebSite = {
   inLanguage:    'en-IN',
   description:   'Free Vedic astrology platform — birth charts, Dasha, 41 vargas, Panchang.',
   publisher:     { '@type': 'Organization', name: 'Vedaansh', url: BASE_URL },
+  // Public tool landing pages (no site-wide search results URL yet).
+  hasPart: [
+    { '@type': 'WebPage', name: 'Daily Panchang', url: `${BASE_URL}/panchang` },
+    { '@type': 'WebPage', name: 'Muhurta Finder', url: `${BASE_URL}/muhurta` },
+    { '@type': 'WebPage', name: 'Kundali Matching', url: `${BASE_URL}/compare` },
+    { '@type': 'WebPage', name: 'Nakshatra Analysis', url: `${BASE_URL}/nakshatra` },
+  ],
 }
 
 const jsonLdWebApp = {

@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
+import { SeoIntro } from '@/components/seo/SeoIntro'
+import { ABOUT_SEO } from '@/lib/seo/intro-content'
+import { breadcrumbJsonLd, faqJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   title: 'About — Vision, Team & Guru',
   description:
     'Learn about Vedaansh — a Vedic astrology and community platform. Our vision, creator Abhishek Kumar, and Guru Sameer Bhatnagar Acharya.',
-  alternates: { canonical: `${BASE_URL}/about` },
+  alternates: { canonical: `${SITE_URL}/about` },
   keywords: [
     'Vedaansh',
     'Vedic astrology',
@@ -19,55 +20,46 @@ export const metadata: Metadata = {
     title: 'About Vedaansh',
     description:
       'Vision for Vedic culture, Jyotish, scripture knowledge, and community — plus the team and Guru behind Vedaansh.',
-    url: `${BASE_URL}/about`,
+    url: `${SITE_URL}/about`,
     type: 'website',
-    images: [{ url: '/og-default.png', width: 1200, height: 630, alt: 'About Vedaansh' }],
+    images: routeOgImage('/about', 'About Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
     title:       'About Vedaansh',
     description:
       'Vision for Vedic culture, Jyotish, and community — plus the team and Guru behind Vedaansh.',
-    images:      ['/og-default.png'],
+    images:      [`${SITE_URL}/about/opengraph-image`],
   },
 }
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type':    'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name:    'What is Vedaansh?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text:    'Vedaansh is a free Vedic astrology platform offering birth charts (Kundali), Dasha, 41 varga charts, Panchang, Nakshatra analysis, and Muhurta tools with Swiss Ephemeris precision.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name:    'Is Vedaansh free to use?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text:    'Core chart calculation, Panchang, and many Jyotish tools are free. Optional paid plans add saved charts, exports, and advanced features.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name:    'Which ayanamsha does Vedaansh use?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text:    'Vedaansh uses Lahiri (Chitrapaksha) ayanamsha by default, with Swiss Ephemeris for arc-second accurate planetary positions.',
-      },
-    },
-  ],
-}
+const breadcrumb = breadcrumbJsonLd([
+  { name: 'Home', path: '/' },
+  { name: 'About', path: '/about' },
+])
+
+const faq = faqJsonLd([
+  {
+    q: 'What is Vedaansh?',
+    a: 'Vedaansh is a free Vedic astrology platform offering birth charts (Kundali), Dasha, 41 varga charts, Panchang, Nakshatra analysis, and Muhurta tools with Swiss Ephemeris precision.',
+  },
+  {
+    q: 'Is Vedaansh free to use?',
+    a: 'Core chart calculation, Panchang, and many Jyotish tools are free. Optional paid plans add saved charts, exports, and advanced features.',
+  },
+  {
+    q: 'Which ayanamsha does Vedaansh use?',
+    a: 'Vedaansh uses Lahiri (Chitrapaksha) ayanamsha by default, with Swiss Ephemeris for arc-second accurate planetary positions.',
+  },
+])
 
 export default async function AboutLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <JsonLd data={faqJsonLd} />
+      <JsonLd data={breadcrumb} />
+      <JsonLd data={faq} />
       {children}
+      <SeoIntro {...ABOUT_SEO} />
     </>
   )
 }

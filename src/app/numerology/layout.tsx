@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { NUMEROLOGY_SEO } from '@/lib/seo/intro-content'
-import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
+import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   title:       'Vedic Numerology — Predictions, Remedies & Name Number Calculator',
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
     description: 'Predictions, remedies, advanced tools, daily Anka muhurta and PDF report from Vedic numerology.',
     url:         `${SITE_URL}/numerology`,
     type:        'website',
-    images:      ogImages('Vedic Numerology — Vedaansh'),
+    images:      routeOgImage('/numerology', 'Vedic Numerology — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
     title:       'Vedic Numerology — Full Anka Jyotish Suite | Vedaansh',
     description: 'Predictions, remedies, advanced tools, daily Anka muhurta and PDF report from Vedic numerology.',
-    images:      ['/og-default.png'],
+    images:      [`${SITE_URL}/numerology/opengraph-image`],
   },
 }
 
@@ -32,9 +32,9 @@ const jsonLd = breadcrumbJsonLd([
 export default async function NumerologyLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <SeoIntro {...NUMEROLOGY_SEO} />
       <JsonLd data={jsonLd} />
       {children}
+      <SeoIntro {...NUMEROLOGY_SEO} />
     </>
   )
 }

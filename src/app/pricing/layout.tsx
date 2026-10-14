@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { PRICING_FAQ } from '@/lib/seo/intro-content'
-import { breadcrumbJsonLd, faqJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
+import { breadcrumbJsonLd, faqJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   title:       'Pricing — Free, Gold & Platinum Plans',
@@ -13,13 +13,13 @@ export const metadata: Metadata = {
     description: 'Free Vedic astrology forever. Gold and Platinum plans for exports, full vargas, and professional workflows.',
     url:         `${SITE_URL}/pricing`,
     type:        'website',
-    images:      ogImages('Vedaansh Pricing Plans'),
+    images:      routeOgImage('/pricing', 'Vedaansh Pricing Plans'),
   },
   twitter: {
     card:        'summary_large_image',
     title:       'Pricing — Vedaansh',
     description: 'Free Vedic astrology forever. Gold and Platinum plans for exports, full vargas, and professional workflows.',
-    images:      ['/og-default.png'],
+    images:      [`${SITE_URL}/pricing/opengraph-image`],
   },
 }
 

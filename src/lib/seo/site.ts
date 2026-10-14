@@ -15,8 +15,20 @@ export function absoluteUrl(path: string): string {
   return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`
 }
 
+/** Fallback OG when a route has no `opengraph-image.tsx`. Prefer file-based OG and omit `images` in metadata. */
 export function ogImages(alt: string) {
   return [{ ...OG_DEFAULT, alt }]
+}
+
+/** Route-relative URL for generated `opengraph-image` (resolved via metadataBase). */
+export function routeOgImage(path: string, alt: string) {
+  const base = path === '/' ? '' : `/${path.replace(/^\/|\/$/g, '')}`
+  return [{
+    url:    `${base}/opengraph-image`,
+    width:  1200,
+    height: 630,
+    alt,
+  }]
 }
 
 export function breadcrumbJsonLd(items: { name: string; path: string }[]) {

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { VASTU_SEO } from '@/lib/seo/intro-content'
-import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
+import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   title:       'Vastu Shastra — Directional Astrology from Kundali',
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
     description: 'Planetary directions, Dig Bala & Vastu Dosha analysis from your Vedic birth chart.',
     url:         `${SITE_URL}/vastu`,
     type:        'website',
-    images:      ogImages('Vastu Shastra — Vedaansh'),
+    images:      routeOgImage('/vastu', 'Vastu Shastra — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
     title:       'Vastu Shastra — Directional Astrology | Vedaansh',
     description: 'Planetary directions, Dig Bala & Vastu Dosha analysis from your Vedic birth chart.',
-    images:      ['/og-default.png'],
+    images:      [`${SITE_URL}/vastu/opengraph-image`],
   },
 }
 
@@ -32,9 +32,9 @@ const jsonLd = breadcrumbJsonLd([
 export default async function VastuLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <SeoIntro {...VASTU_SEO} />
       <JsonLd data={jsonLd} />
       {children}
+      <SeoIntro {...VASTU_SEO} />
     </>
   )
 }

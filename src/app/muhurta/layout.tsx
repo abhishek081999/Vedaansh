@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { MUHURTA_SEO } from '@/lib/seo/intro-content'
-import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
+import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   title:       'Muhurta Finder — Auspicious Time & Shubh Muhurat',
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
     description: 'Tithi, Nakshatra, Yoga, Karana & personal Dasha analysis to find your perfect auspicious time.',
     url:         `${SITE_URL}/muhurta`,
     type:        'website',
-    images:      ogImages('Muhurta — Vedaansh'),
+    images:      routeOgImage('/muhurta', 'Muhurta — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
     title:       'Muhurta — Auspicious Time Selector | Vedaansh',
     description: 'Find your perfect auspicious Muhurta using Vedic Panchang & personal Dasha compatibility.',
-    images:      ['/og-default.png'],
+    images:      [`${SITE_URL}/muhurta/opengraph-image`],
   },
 }
 
@@ -32,9 +32,9 @@ const jsonLd = breadcrumbJsonLd([
 export default async function MuhurtaLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <SeoIntro {...MUHURTA_SEO} />
       <JsonLd data={jsonLd} />
       {children}
+      <SeoIntro {...MUHURTA_SEO} />
     </>
   )
 }
