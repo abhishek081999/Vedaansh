@@ -171,13 +171,21 @@ const jsonLdWebSite = {
   inLanguage:    'en-IN',
   description:   'Free Vedic astrology platform — birth charts, Dasha, 41 vargas, Panchang.',
   publisher:     { '@type': 'Organization', name: 'Vedaansh', url: BASE_URL },
-  // Public tool landing pages (no site-wide search results URL yet).
   hasPart: [
     { '@type': 'WebPage', name: 'Daily Panchang', url: `${BASE_URL}/panchang` },
     { '@type': 'WebPage', name: 'Muhurta Finder', url: `${BASE_URL}/muhurta` },
     { '@type': 'WebPage', name: 'Kundali Matching', url: `${BASE_URL}/compare` },
     { '@type': 'WebPage', name: 'Nakshatra Analysis', url: `${BASE_URL}/nakshatra` },
+    { '@type': 'WebPage', name: 'Jyotish Guides', url: `${BASE_URL}/guides` },
   ],
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type':         'EntryPoint',
+      urlTemplate:     `${BASE_URL}/search?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
 }
 
 const jsonLdWebApp = {
