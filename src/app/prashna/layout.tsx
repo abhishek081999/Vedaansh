@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { PRASHNA_SEO } from '@/lib/seo/intro-content'
-import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
+import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   title:       'Prashna — Krishneeyam Kerala Horary Astrology',
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
     description: 'Instant Prashna chart with Krishneeyam rules: Yes/No, When, What, Who, Lost Article, Health & more.',
     url:         `${SITE_URL}/prashna`,
     type:        'website',
-    images:      ogImages('Prashna Kerala Horary Astrology — Vedaansh'),
+    images:      routeOgImage('/prashna', 'Prashna Kerala Horary Astrology — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
     title:       'Prashna — Krishneeyam Kerala Horary | Vedaansh',
     description: 'Instant Prashna chart with traditional Krishneeyam rules for Yes/No, timing, lost articles & more.',
-    images:      ['/og-default.png'],
+    images:      [`${SITE_URL}/prashna/opengraph-image`],
   },
 }
 
@@ -32,9 +32,9 @@ const jsonLd = breadcrumbJsonLd([
 export default async function PrashnaLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <SeoIntro {...PRASHNA_SEO} />
       <JsonLd data={jsonLd} />
       {children}
+      <SeoIntro {...PRASHNA_SEO} />
     </>
   )
 }

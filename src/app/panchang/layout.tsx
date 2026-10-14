@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { PANCHANG_SEO } from '@/lib/seo/intro-content'
-import { breadcrumbJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
+import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   title:       'Free Daily Panchang — Tithi, Nakshatra & Rahu Kalam',
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
     description: 'Free daily Vedic Panchang with astronomical sunrise, Rahu Kalam, Nakshatra & Hora table.',
     url:         `${SITE_URL}/panchang`,
     type:        'website',
-    images:      ogImages('Daily Panchang — Vedaansh'),
+    images:      routeOgImage('/panchang', 'Daily Panchang — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
     title:       'Daily Panchang — Vedaansh',
     description: 'Tithi, Nakshatra, Yoga, Karana, Rahu Kalam & Hora table — free every day.',
-    images:      ['/og-default.png'],
+    images:      [`${SITE_URL}/panchang/opengraph-image`],
   },
 }
 
@@ -32,9 +32,9 @@ const jsonLd = breadcrumbJsonLd([
 export default async function PanchangLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <SeoIntro {...PANCHANG_SEO} />
       <JsonLd data={jsonLd} />
       {children}
+      <SeoIntro {...PANCHANG_SEO} />
     </>
   )
 }

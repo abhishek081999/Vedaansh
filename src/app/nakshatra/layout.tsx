@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { routeOgImage } from '@/lib/seo/site'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { NAKSHATRA_SEO } from '@/lib/seo/intro-content'
@@ -14,13 +15,13 @@ export const metadata: Metadata = {
     description: 'All 27 Nakshatras — Pada, deity, planet, Yogini Dasha & remedies. Swiss Ephemeris accuracy.',
     url:         `${BASE_URL}/nakshatra`,
     type:        'website',
-    images:      [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Nakshatra Analysis — Vedaansh' }],
+    images:      routeOgImage('/nakshatra', 'Nakshatra Analysis — Vedaansh'),
   },
   twitter: {
     card:        'summary_large_image',
     title:       'Nakshatra Analysis — Vedaansh',
     description: 'All 27 Nakshatras — Pada, deity, planet, Yogini Dasha & remedies.',
-    images:      ['/og-default.png'],
+    images:      [`${BASE_URL}/nakshatra/opengraph-image`],
   },
 }
 
@@ -36,9 +37,9 @@ const jsonLd = {
 export default async function NakshatraLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <SeoIntro {...NAKSHATRA_SEO} />
       <JsonLd data={jsonLd} />
       {children}
+      <SeoIntro {...NAKSHATRA_SEO} />
     </>
   )
 }

@@ -1,4 +1,4 @@
-import type { SeoIntroProps } from '@/components/seo/SeoIntro'
+import type { SeoIntroProps } from '@/components/seo/SeoIntro.types'
 
 export const PANCHANG_SEO: SeoIntroProps = {
   ariaLabel: 'Daily Vedic Panchang — Vedaansh',
@@ -155,6 +155,92 @@ export const SBC_SEO: SeoIntroProps = {
     { label: 'Life areas', desc: 'Dhana, health, travel, and social network pulses' },
     { label: 'Muhurta tab', desc: 'Electional guidance from today\'s transit vedha' },
     { label: 'Prashna use cases', desc: 'Category predictions driven by grid interactions' },
+  ],
+}
+
+export const ACG_SEO: SeoIntroProps = {
+  ariaLabel: 'Vedic Astrocartography — Vedaansh',
+  h1: 'Vedic Astrocartography — Planetary Lines & Relocation Strength',
+  paragraphs: [
+    'Find power locations worldwide with Vedic Astrocartography (ACG): planetary angular lines, Parivartana zones, and relocation-chart strength derived from your birth Kundali.',
+    'Vedaansh maps Swiss Ephemeris sidereal positions onto geography so you can compare cities for career, relationships, and spiritual growth with Jyotish locality logic.',
+  ],
+  h2: 'ACG tools',
+  bullets: [
+    { label: 'Planetary lines', desc: 'ASC, MC, DSC, and IC lines for each graha' },
+    { label: 'Parivartana zones', desc: 'Mutual reception corridors between planets' },
+    { label: 'Relocation strength', desc: 'How a city shifts house and digbala factors' },
+    { label: 'Map exploration', desc: 'Compare candidate locations on an interactive map' },
+  ],
+}
+
+export const ROADMAP_SEO: SeoIntroProps = {
+  ariaLabel: 'Personal Transit Roadmap — Vedaansh',
+  h1: 'Personal Vedic Transit Roadmap — Dasha & Graha Windows',
+  paragraphs: [
+    'Visualise upcoming planetary transits, Vimshottari Dasha periods, and key Jyotish timing windows on a personal timeline tied to your birth chart.',
+    'Use the roadmap to plan decisions around Saturn, Jupiter, Rahu–Ketu, and dasha shifts with Swiss Ephemeris accuracy.',
+  ],
+  h2: 'Roadmap highlights',
+  bullets: [
+    { label: 'Transit timeline', desc: 'Major graha ingresses and aspects ahead' },
+    { label: 'Dasha overlay', desc: 'Mahadasha and Antardasha on the same view' },
+    { label: 'Key windows', desc: 'Highlighted periods for caution or opportunity' },
+    { label: 'Chart-linked', desc: 'Personalised from your saved or session Kundali' },
+  ],
+}
+
+export const ABOUT_SEO: SeoIntroProps = {
+  ariaLabel: 'About Vedaansh',
+  h1: 'About Vedaansh — Vedic Astrology Platform',
+  paragraphs: [
+    'Vedaansh is a free Vedic astrology (Jyotish) platform for birth charts, dashas, vargas, Panchang, muhurta, and professional tools — built with Swiss Ephemeris precision for students and practitioners.',
+    'Our vision is accessible Jyotish education and community grounded in classical technique, guided by Guru Sameer Bhatnagar Acharya and created by Abhishek Kumar.',
+  ],
+  h2: 'What we stand for',
+  bullets: [
+    { label: 'Accuracy first', desc: 'Lahiri ayanamsha and arc-second Swiss Ephemeris' },
+    { label: 'Free core tools', desc: 'Kundali, Panchang, and many calculators forever free' },
+    { label: 'Classical lineage', desc: 'Parashari, Jaimini, KP, and Kerala Prashna methods' },
+    { label: 'Community', desc: 'Platform for learning Vedic culture and Jyotish together' },
+  ],
+}
+
+export const SUPPORT_SEO: SeoIntroProps = {
+  ariaLabel: 'Vedaansh Support',
+  h1: 'Vedaansh Support — Billing, Account & Technical Help',
+  paragraphs: [
+    'Contact Vedaansh for billing questions, account access, chart library issues, and technical support. We respond to email requests during business hours India time.',
+    'Include your account email and a short description of the issue so we can resolve subscription, export, or calculation problems quickly.',
+  ],
+  h2: 'How we can help',
+  bullets: [
+    { label: 'Billing & plans', desc: 'Gold/Platinum renewals, invoices, and upgrades' },
+    { label: 'Account access', desc: 'Login, email verification, and password reset' },
+    { label: 'Charts & exports', desc: 'Saved charts, PDF/HTML export, and sharing' },
+    { label: 'Technical issues', desc: 'Calculation, Panchang location, or app bugs' },
+  ],
+}
+
+/** Homepage SSR section — HomeClient is ssr:false, so this is the crawlable body. */
+export const HOME_SEO: SeoIntroProps = {
+  ariaLabel: 'Vedaansh — Free Vedic Astrology Platform',
+  titleAs: 'h1',
+  h1: 'Vedaansh — Free Vedic Astrology & Jyotisha Calculator',
+  paragraphs: [
+    'Calculate your free Vedic birth chart (Kundali) instantly with arc-second accuracy via Swiss Ephemeris. No login required. Includes Vimshottari Dasha, all 41 varga charts, Navamsha (D9), Panchang, Arudha Lagna & Padas, Shadbala, Ashtakavarga and more.',
+    'Vedaansh uses the Swiss Ephemeris library for planetary positions accurate to arc-seconds. Supports Lahiri (Chitrapaksha) ayanamsha. Trusted by astrologers and students across India and worldwide.',
+  ],
+  h2: 'What you get — completely free',
+  bullets: [
+    { label: 'Free Vedic Birth Chart (Kundali)', desc: 'Full Lagna, Moon & Sun charts with house lords' },
+    { label: 'All 41 Varga (Divisional) Charts', desc: 'D1 through D60 via Swiss Ephemeris' },
+    { label: 'Vimshottari & Yogini Dasha', desc: 'Antardasha & Pratyantardasha precision timelines' },
+    { label: 'Daily Panchang', desc: 'Tithi, Nakshatra, Yoga, Karana, Rahu Kalam' },
+    { label: 'Ashtakavarga & Shadbala', desc: 'Bindus, Rekhas, planetary strength tables' },
+    { label: 'Jaimini Astrology', desc: 'Atmakaraka, Chara Dasha, Arudha Lagna & Padas' },
+    { label: 'KP Stellar Astrology', desc: 'Sub-lord system with cuspal interlinks' },
+    { label: 'Kundali Matching (Synastry)', desc: '36-point Ashtakoot compatibility scoring' },
   ],
 }
 
