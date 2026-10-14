@@ -163,6 +163,10 @@ function CompareContent() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const selectorForRef = useRef<'a' | 'b' | null>(null)
 
+  const handleViewChange = useCallback((id: View) => {
+    setView(id)
+  }, [])
+
   const openSelector = useCallback((who: 'a' | 'b') => {
     selectorForRef.current = who
     setLoadError(null)
@@ -254,12 +258,24 @@ function CompareContent() {
 
   const verdict = useMemo(() => ashtakootScore ? getVerdict(ashtakootScore.total) : null, [ashtakootScore]);
 
+  const openMilanPrintPage = useCallback(async () => {
+    if (!chartA || !chartB || !ashtakootScore) return
+    const { openMilanPrintPage: openPage } = await import('@/components/ui/MilanPrintPreview')
+    openPage({
+      chartA,
+      chartB,
+      ashtakoot: ashtakootScore,
+      roleA,
+      roleB,
+    })
+  }, [chartA, chartB, ashtakootScore, roleA, roleB])
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)', paddingBottom: '4rem' }}>
       <main className="compare-main" style={{ maxWidth: 1200, margin: '0 auto', width: '100%', padding: '0 1rem' }}>
         
         {/* Navigation / Steps */}
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
           <div className="compare-steps" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface-1)', padding: '0.5rem 1rem', borderRadius: '99px', border: '1px solid var(--border)' }}>
             {[{ s: 'a', l: 'Person 1', done: step !== 'a' }, { s: 'b', l: 'Person 2', done: step === 'done' }, { s: 'done', l: 'Match Result', done: false }].map(({ s, l, done }, i, arr) => (
               <React.Fragment key={s}>
@@ -415,6 +431,17 @@ function CompareContent() {
                   {ashtakootScore.eligibility.label} · Stage 1 of 3 — open <strong style={{ color: 'var(--text-gold)' }}>Deep Milan</strong> for D1/D9 + Venus–Mars.
                 </p>
               </div>
+
+              <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => void openMilanPrintPage()}
+                  style={{ fontSize: '0.85rem', gap: '0.4rem' }}
+                >
+                  Print All Sections
+                </button>
+              </div>
             </div>
 
             {/* Match Insights Summary */}
@@ -446,7 +473,7 @@ function CompareContent() {
             </div>
 
             {/* View Tabs */}
-            <div className="compare-tabs no-print" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+            <div className="compare-tabs no-print" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
               {([
                 ['ashtakoot', 'Ashtakoot (36)'],
                 ['milan', 'Deep Milan'],
@@ -459,11 +486,11 @@ function CompareContent() {
                 ['dasha', 'Dasha'],
                 ['panchang', 'Panchang'],
                 ['ashtakavarga', 'Ashtakavarga'],
-                ['all', 'Print All'],
+                ['all', 'All Sections'],
               ] as [View, string][]).map(([id, label]) => (
                 <button 
                   key={id} 
-                  onClick={() => setView(id)} 
+                  onClick={() => handleViewChange(id)} 
                   style={{ 
                     whiteSpace: 'nowrap',
                     padding: '0.5rem 1.25rem', 
@@ -482,6 +509,16 @@ function CompareContent() {
                   {label}
                 </button>
               ))}
+              <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => void openMilanPrintPage()}
+                  style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+                >
+                  Print All Sections
+                </button>
+              </div>
             </div>
 
             {/* Ashtakoot Detailed Breakdown */}
@@ -672,9 +709,9 @@ function CompareContent() {
 
             {/* Other detailed views */}
             {(view === 'ashtakavarga' || view === 'all') && chartA.ashtakavarga && chartB.ashtakavarga && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: '1.25rem' }}>
                 {[chartA, chartB].map((chart, i) => (
-                  <div key={i} className="card" style={{ padding: '0.75rem' }}>
+                  <div key={i} className="card" style={{ padding: '0.85rem' }}>
                     <div style={{ textAlign: 'center', fontWeight: 800, color: i === 0 ? 'var(--text-gold)' : 'var(--accent)', marginBottom: '0.75rem' }}>
                       {chart.meta.name} — SAV {chart.ashtakavarga!.savTotal}
                     </div>
@@ -692,13 +729,23 @@ function CompareContent() {
               </div>
             )}
 
-            {(['dasha', 'panchang'].includes(view) || view === 'all') && (
+            {(view === 'dasha' || view === 'all') && (
+               <div className="print-break" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
+                  {[chartA, chartB].map((chart, i) => (
+                    <div key={`dasha-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                       <div style={{ textAlign: 'center', fontWeight: 800, color: i === 0 ? 'var(--text-gold)' : 'var(--accent)' }}>{chart.meta.name} — Dasha</div>
+                       <div className="card" style={{ padding: '1.5rem' }}><DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} maxDepth={userPlan === 'free' ? 4 : 6} /></div>
+                    </div>
+                  ))}
+               </div>
+            )}
+
+            {(view === 'panchang' || view === 'all') && (
                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
                   {[chartA, chartB].map((chart, i) => (
-                    <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                       <div style={{ textAlign: 'center', fontWeight: 800, color: i === 0 ? 'var(--text-gold)' : 'var(--accent)' }}>{chart.meta.name}</div>
-                       {view === 'dasha' && <div className="card" style={{ padding: '1.5rem' }}><DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} maxDepth={userPlan === 'free' ? 4 : 6} /></div>}
-                       {view === 'panchang' && <div className="card" style={{ padding: '1.5rem' }}><NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} title="Natal Panchang" /></div>}
+                    <div key={`panchang-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                       <div style={{ textAlign: 'center', fontWeight: 800, color: i === 0 ? 'var(--text-gold)' : 'var(--accent)' }}>{chart.meta.name} — Panchang</div>
+                       <div className="card" style={{ padding: '1.5rem' }}><NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} title="Natal Panchang" /></div>
                     </div>
                   ))}
                </div>
@@ -709,7 +756,7 @@ function CompareContent() {
       </main>
       
       {/* Footer Branding */}
-      <footer style={{ marginTop: 'auto', padding: '3rem 0', textAlign: 'center', borderTop: '1px solid var(--border-soft)', opacity: 0.6 }}>
+      <footer className="no-print" style={{ marginTop: 'auto', padding: '3rem 0', textAlign: 'center', borderTop: '1px solid var(--border-soft)', opacity: 0.6 }}>
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.2em' }}>VEDAANSH PRECISION ASTROLOGY ENGINE</div>
         <div style={{ fontSize: '0.65rem', color: 'var(--text-gold)', marginTop: '0.5rem' }}>SWISS EPHEMERIS · ASHTAKOOT + DEEP MILAN (3-STAGE)</div>
       </footer>

@@ -151,7 +151,7 @@ function NorthIndianAshtakavargaChart({
                 y={pos.y}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fontSize={S * 0.085}
+                fontSize={S * 0.095}
                 fontWeight={700}
                 fill={c}
               >
@@ -159,9 +159,9 @@ function NorthIndianAshtakavargaChart({
               </text>
               <text
                 x={pos.x}
-                y={pos.y + S * 0.055}
+                y={pos.y + S * 0.058}
                 textAnchor="middle"
-                fontSize={S * 0.028}
+                fontSize={S * 0.032}
                 fill={rashi === ascRashi ? COLOR.accent : COLOR.muted}
                 fontWeight={rashi === ascRashi ? 800 : 600}
               >
@@ -349,7 +349,7 @@ function ClassicalNinePanels({
               valuesByRashi={item.values}
               ascRashi={ascRashi}
               title=""
-              size={190}
+              size={220}
             />
           </div>
         ))}
