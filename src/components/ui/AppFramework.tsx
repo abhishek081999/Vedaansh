@@ -164,8 +164,14 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   }, [pathname])
 
   useEffect(() => {
-    if (pathname !== ASTROLOGY_HOME_PATH) return
-    const activeGroup = ASTRO_GROUPS.find((g) => g.tabs.some((t) => t.id === activeTab))
+    const pathGroup = ASTRO_GROUPS.find((g) =>
+      g.tabs.some((t) => t.path && t.path !== ASTROLOGY_HOME_PATH && pathname === t.path),
+    )
+    const activeGroup =
+      pathGroup ??
+      (pathname === ASTROLOGY_HOME_PATH
+        ? ASTRO_GROUPS.find((g) => g.tabs.some((t) => t.id === activeTab))
+        : undefined)
     if (!activeGroup) return
     setAstroGroupOpen((prev) => {
       if (prev[activeGroup.id]) return prev
@@ -228,7 +234,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const headerPrimaryTabs = TOP_TABS
   const pricingTab = MAIN_TABS.find((tab) => tab.id === 'pricing')
   const astroTabIds = ASTRO_GROUPS.flatMap((group) => group.tabs.map((tab) => tab.id))
-  const isAstroHeaderActive = pathname === ASTROLOGY_HOME_PATH && astroTabIds.includes(activeTab)
+  const isAstroExternalPath = ASTRO_GROUPS.some((group) =>
+    group.tabs.some((tab) => tab.path && tab.path !== ASTROLOGY_HOME_PATH && pathname === tab.path),
+  )
+  const isAstroHeaderActive =
+    (pathname === ASTROLOGY_HOME_PATH && astroTabIds.includes(activeTab)) || isAstroExternalPath
 
   const renderGroupAccordion = (group: NavGroup) => {
     const isOpen = astroGroupOpen[group.id] ?? false

@@ -5,9 +5,15 @@
 
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { GRAHA_NAMES, RASHI_NAMES, type GrahaId } from '@/types/astrology'
+import React, { useState, useEffect, useMemo } from 'react'
+import { GRAHA_NAMES, RASHI_NAMES, type DashaNode, type GrahaId } from '@/types/astrology'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+import {
+  buildTransitDashaOverlay,
+  dashaLordsAt,
+  formatDashaPathAt,
+  type DashaBandSegment,
+} from '@/lib/engine/dasha/transitDashaOverlay'
 
 interface TransitEvent {
   planetId:    GrahaId
@@ -32,9 +38,107 @@ interface TransitPosition {
 
 interface TransitTimelineProps {
   ascRashi: number
+  /** Natal Vimshottari tree — enables MD/AD band overlay on the roadmap. */
+  vimshottari?: DashaNode[]
+  /** Roadmap horizon in months (matches /api/transit). */
+  months?: number
 }
 
-export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
+const BAND_COLORS = [
+  'var(--gold)',
+  'var(--teal)',
+  'var(--amber)',
+  'var(--rose)',
+  '#d986ff',
+  'var(--text-secondary)',
+]
+
+function bandColor(lord: string, index: number): string {
+  const byLord: Record<string, string> = {
+    Su: 'var(--amber)',
+    Mo: 'var(--text-secondary)',
+    Ma: 'var(--rose)',
+    Me: 'var(--teal)',
+    Ju: 'var(--teal)',
+    Ve: '#d986ff',
+    Sa: 'var(--gold)',
+    Ra: 'var(--rose)',
+    Ke: 'var(--amber)',
+  }
+  return byLord[lord] || BAND_COLORS[index % BAND_COLORS.length]
+}
+
+function DashaBandRow({
+  label,
+  segments,
+  isMobile,
+}: {
+  label: string
+  segments: DashaBandSegment[]
+  isMobile: boolean
+}) {
+  if (segments.length === 0) return null
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        {label}
+      </div>
+      <div
+        style={{
+          position: 'relative',
+          height: isMobile ? 28 : 32,
+          borderRadius: 8,
+          background: 'var(--surface-3)',
+          border: '1px solid var(--border-soft)',
+          overflow: 'hidden',
+        }}
+      >
+        {segments.map((seg, i) => {
+          const widthPct = Math.max(0.8, (seg.endFrac - seg.startFrac) * 100)
+          const color = bandColor(seg.lord, i)
+          return (
+            <div
+              key={`${seg.lord}-${seg.start.toISOString()}-${seg.level}`}
+              title={`${seg.lordName}: ${seg.start.toLocaleDateString()} – ${seg.end.toLocaleDateString()}`}
+              style={{
+                position: 'absolute',
+                left: `${seg.startFrac * 100}%`,
+                width: `${widthPct}%`,
+                top: 2,
+                bottom: 2,
+                borderRadius: 6,
+                background: `linear-gradient(90deg, ${color}55, ${color}22)`,
+                border: `1px solid ${color}66`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                padding: '0 4px',
+              }}
+            >
+              {widthPct > (isMobile ? 10 : 6) && (
+                <span
+                  style={{
+                    fontSize: isMobile ? '0.58rem' : '0.65rem',
+                    fontWeight: 800,
+                    color,
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {seg.lordName}
+                </span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export function TransitTimeline({ ascRashi, vimshottari, months = 12 }: TransitTimelineProps) {
   const [events, setEvents] = useState<TransitEvent[]>([])
   const [positions, setPositions] = useState<TransitPosition[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,6 +146,14 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
   const [planetScope, setPlanetScope] = useState<'all_planets' | 'major_planets'>('major_planets')
   const [planetWise, setPlanetWise] = useState<'all' | GrahaId>('all')
   const [isMobile, setIsMobile] = useState(false)
+
+  const dashaOverlay = useMemo(() => {
+    if (!vimshottari?.length) return null
+    const windowStart = new Date()
+    const windowEnd = new Date(windowStart)
+    windowEnd.setMonth(windowEnd.getMonth() + months)
+    return buildTransitDashaOverlay(vimshottari, windowStart, windowEnd)
+  }, [vimshottari, months])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
@@ -53,7 +165,7 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
   useEffect(() => {
     async function fetchTransits() {
       try {
-        const res = await fetch(`/api/transit?ascRashi=${ascRashi}&months=12`)
+        const res = await fetch(`/api/transit?ascRashi=${ascRashi}&months=${months}`)
         const json = await res.json()
         if (json.success) {
           setEvents(json.data)
@@ -66,7 +178,7 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
       }
     }
     fetchTransits()
-  }, [ascRashi])
+  }, [ascRashi, months])
 
   if (loading) {
     return (
@@ -229,6 +341,41 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
         </div>
       </div>
 
+      {dashaOverlay && (
+        <div className="card" style={{ padding: isMobile ? '0.9rem' : '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.5rem', alignItems: 'baseline' }}>
+            <div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                Vimshottari Dasha Overlay
+              </div>
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                Mahadasha and Antardasha across the same {months}-month window as transit ingresses.
+              </p>
+            </div>
+            {dashaOverlay.currentPath.length > 0 && (
+              <div
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  color: 'var(--text-gold)',
+                  background: 'var(--gold-faint)',
+                  border: '1px solid var(--border-soft)',
+                  borderRadius: 8,
+                  padding: '0.35rem 0.65rem',
+                }}
+              >
+                Now · {formatDashaPathAt(vimshottari ?? [], Date.now())}
+              </div>
+            )}
+          </div>
+          <DashaBandRow label="Mahadasha" segments={dashaOverlay.maha} isMobile={isMobile} />
+          <DashaBandRow label="Antardasha" segments={dashaOverlay.antar} isMobile={isMobile} />
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+            Read ingresses against the running MD/AD — same dasha lord as the transit planet often strengthens the theme.
+          </div>
+        </div>
+      )}
+
       <div className="card" style={{ padding: isMobile ? '0.9rem' : '1.2rem' }}>
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 700 }}>
           Current Transit Snapshot (All Planets)
@@ -286,6 +433,12 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
             const month = date.toLocaleString('default', { month: 'short' })
             const day = date.getDate()
             const color = GRAHA_COLORS[ev.planetId] || 'var(--gold)'
+            const dashaAtEvent = vimshottari?.length
+              ? dashaLordsAt(vimshottari, date)
+              : { maha: null, antar: null }
+            const dashaChip = dashaAtEvent.maha
+              ? (dashaAtEvent.antar ? `${dashaAtEvent.maha} / ${dashaAtEvent.antar}` : dashaAtEvent.maha)
+              : null
 
             const PLANET_LABELS: Record<string, string> = {
               Su: 'Surya (Sun)',
@@ -403,7 +556,7 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem 0.75rem', marginBottom: '0.25rem' }}>
                       <span
                         className="badge"
                         style={{
@@ -417,6 +570,21 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
                         {ev.type.replace('_', ' ').toUpperCase()}
                       </span>
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>{planetLabel}</span>
+                      {dashaChip && (
+                        <span
+                          className="badge"
+                          title="Vimshottari MD / AD at this ingress"
+                          style={{
+                            background: 'var(--gold-faint)',
+                            color: 'var(--text-gold)',
+                            fontSize: '0.58rem',
+                            fontWeight: 800,
+                            border: '1px solid var(--border-soft)',
+                          }}
+                        >
+                          DASHA {dashaChip}
+                        </span>
+                      )}
                     </div>
                     <div
                       style={{

@@ -38,6 +38,7 @@ import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL, nameToNakshatra, DIAGONAL_PLANETS } from '@/lib/engine/sarvatobhadra'
 import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
 import type { PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
+import { buildGocharChapterHtml } from '@/lib/pdf/gocharChapter'
 
 interface Branding {
   brandName?: string | null
@@ -1464,7 +1465,8 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <div class="toc-item"><span>✦ 16. Sarvatobhadra Chakra — Vedha Grid</span> <span>20</span></div>
     <div class="toc-item"><span>✦ 17. Jyotisha-Vastu — Directional Alignment</span> <span>21</span></div>
     <div class="toc-item"><span>✦ 18. Deshantara Phala — Astrocartography</span> <span>22</span></div>
-    <div class="toc-item"><span>✦ 19. Samahara — Synthesis & Guidance</span> <span>23</span></div>
+    <div class="toc-item"><span>✦ 19. Gochar Phala — Transits & Timing</span> <span>23</span></div>
+    <div class="toc-item"><span>✦ 20. Samahara — Synthesis & Guidance</span> <span>24</span></div>
   </div>
   ${PageFooter(2, meta.name)}
 </div>
@@ -1944,9 +1946,16 @@ ${buildAllDashasPages(chart)}
   ${PageFooter(22, meta.name)}
 </div>
 
-<!-- PAGE 22: SYNTHESIS -->
+<!-- PAGE 23: GOCHAR -->
 <div class="page">
-  ${SectionHeader('19', 'Samahara', 'Life Synthesis & Guidance')}
+  ${SectionHeader('19', 'Gochar Phala', 'Transits & Timing Windows')}
+  ${buildGocharChapterHtml(chart)}
+  ${PageFooter(23, meta.name)}
+</div>
+
+<!-- PAGE 24: SYNTHESIS -->
+<div class="page">
+  ${SectionHeader('20', 'Samahara', 'Life Synthesis & Guidance')}
   <div style="border-left:4px solid ${THEME.temple}; padding:15px 20px; margin-bottom:2rem; background:linear-gradient(to right, ${THEME.accentLight}44, transparent)">
     <p style="font-size:1.1rem; line-height:1.8; font-style:italic; font-family:'Cormorant Garamond',serif; color:${THEME.primary}">
       "${escapeHtml(chart.interpretation.headline)}"
@@ -2001,7 +2010,7 @@ ${buildAllDashasPages(chart)}
     </div>
     <div style="font-size:9px; margin-top:8px; letter-spacing:1px">${brandName} Kundali Master Dossier • वेदांश Professional Edition</div>
   </div>
-  ${PageFooter(23, meta.name)}
+  ${PageFooter(24, meta.name)}
 </div>
 
 </body>

@@ -7,6 +7,7 @@
 import type { GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import type { TransitPosition } from '@/lib/engine/transits'
+import { hasParasharaAspect } from '@/lib/engine/aspects'
 
 export type GocharHitTone = 'supportive' | 'caution' | 'mixed'
 
@@ -27,20 +28,6 @@ export interface DashaGocharOverlay {
 }
 
 const MAJOR_TRANSIT_LORDS: GrahaId[] = ['Ju', 'Sa', 'Ra', 'Ke']
-
-function signCount(fromRashi: number, toRashi: number): number {
-  return ((toRashi - fromRashi + 12) % 12) + 1
-}
-
-/** Vedic whole-sign aspect (Parashara): 7th all; Ma 4/8; Ju 5/9; Sa 3/10. */
-function hasAspect(sourceSign: Rashi, sourceId: GrahaId, targetSign: Rashi): boolean {
-  const diff = signCount(sourceSign, targetSign)
-  if (diff === 7) return true
-  if (sourceId === 'Ma' && (diff === 4 || diff === 8)) return true
-  if (sourceId === 'Ju' && (diff === 5 || diff === 9)) return true
-  if (sourceId === 'Sa' && (diff === 3 || diff === 10)) return true
-  return false
-}
 
 function toneForMajor(transitLord: GrahaId, house: number): GocharHitTone {
   if (transitLord === 'Ju') {
@@ -143,7 +130,7 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
           label: `${tName} over ${layer} lord`,
           detail: `${tName} transits natal ${lordName} (${layer}) in ${signName} — gochar heats the period lord’s houses.`,
         })
-      } else if (hasAspect(t.sign, t.planetId, natal.rashi)) {
+      } else if (hasParasharaAspect(t.sign, t.planetId, natal.rashi)) {
         push({
           id: `${t.planetId}-asp-${lord}`,
           transitLord: t.planetId,
