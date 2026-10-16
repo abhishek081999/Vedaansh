@@ -103,8 +103,11 @@ export async function POST(req: NextRequest) {
             settings:   (sc.settings || {}) as ChartSettings,
           }, 'platinum', { dashaDepth: 4 })
 
-          // Generate HTML dossier
-          const html = generateChartHTML(chartData, branding as any)
+          // Generate HTML dossier (gochar chapter is Node-only / sweph)
+          const { buildGocharChapterHtml } = await import('@/lib/pdf/gocharChapter')
+          const html = generateChartHTML(chartData, branding as any, {
+            gocharChapterHtml: buildGocharChapterHtml(chartData),
+          })
           
           // Add to ZIP (escaped filename)
           const filename = `${sc.name.replace(/[^a-z0-9]/gi, '_')}.html`

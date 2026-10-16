@@ -56,8 +56,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── Generate HTML ─────────────────────────────────────────
-    const html = generateChartHTML(chart, branding as any)
+    // ── Generate HTML (gochar chapter loaded only on Node — keeps client bundles free of sweph) ──
+    const { buildGocharChapterHtml } = await import('@/lib/pdf/gocharChapter')
+    const html = generateChartHTML(chart, branding as any, {
+      gocharChapterHtml: buildGocharChapterHtml(chart),
+    })
 
     // ── Return as HTML document ───────────────────────────────
     return new NextResponse(html, {

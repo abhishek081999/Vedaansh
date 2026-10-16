@@ -38,11 +38,15 @@ import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL, nameToNakshatra, DIAGONAL_PLANETS } from '@/lib/engine/sarvatobhadra'
 import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
 import type { PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
-import { buildGocharChapterHtml } from '@/lib/pdf/gocharChapter'
 
 interface Branding {
   brandName?: string | null
   brandLogo?: string | null
+}
+
+/** Optional server-only HTML fragments (e.g. gochar chapter — must not import sweph here). */
+export interface ChartHtmlExtras {
+  gocharChapterHtml?: string
 }
 
 // ── Colors & Theme — Traditional Vedic Kundali ───────────────
@@ -1132,7 +1136,15 @@ function buildAllDashasPages(chart: ChartOutput): string {
 
 // ── Main Page Logic ───────────────────────────────────────────
 
-export function generateChartHTML(chart: ChartOutput, branding?: Branding): string {
+export function generateChartHTML(
+  chart: ChartOutput,
+  branding?: Branding,
+  extras?: ChartHtmlExtras,
+): string {
+  const gocharChapterHtml = extras?.gocharChapterHtml?.trim()
+    ? extras.gocharChapterHtml
+    : `<p style="font-size:12px;color:#666">Gochar chapter unavailable in this export.</p>`
+
   const { meta } = chart
   const brandName = branding?.brandName || 'VEDAANSH'
   const brandLogo = branding?.brandLogo 
@@ -1949,7 +1961,7 @@ ${buildAllDashasPages(chart)}
 <!-- PAGE 23: GOCHAR -->
 <div class="page">
   ${SectionHeader('19', 'Gochar Phala', 'Transits & Timing Windows')}
-  ${buildGocharChapterHtml(chart)}
+  ${gocharChapterHtml}
   ${PageFooter(23, meta.name)}
 </div>
 
