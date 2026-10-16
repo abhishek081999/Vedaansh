@@ -33,6 +33,11 @@ import {
   type VimshottariInterpretation,
   type VimshottariNature,
 } from '@/lib/engine/dasha/vimshottariInterpretations'
+import {
+  getVimshottariAntarScriptures,
+  getVimshottariMahaScriptures,
+  type ScripturePassage,
+} from '@/lib/engine/dasha/vimshottariScriptures'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
 
@@ -108,12 +113,42 @@ function MixBar({ analysis }: { analysis: VimshottariPeriodAnalysis }) {
   )
 }
 
+function ScriptureBlock({ passages }: { passages: ScripturePassage[] }) {
+  if (!passages.length) return null
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+      {passages.map((p, i) => (
+        <div
+          key={`${p.source}-${i}`}
+          style={{
+            padding: '0.55rem 0.65rem',
+            background: 'var(--surface-2)',
+            borderRadius: 6,
+            borderLeft: '2px solid var(--gold)',
+          }}
+        >
+          <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-gold)', marginBottom: 4 }}>
+            {p.source}{p.ref ? ` · ${p.ref}` : ''}
+          </div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            {p.text}
+          </div>
+        </div>
+      ))}
+      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.4, fontStyle: 'italic' }}>
+        Educational paraphrases of classical teaching — not verbatim scripture, not predictive certainty.
+      </div>
+    </div>
+  )
+}
+
 function PlanetCard({
   data,
   levelLabel,
   snapLine,
   antarHint,
   durationLabel,
+  scriptures = [],
   isAntar = false,
   defaultExpanded = false,
   canExpandDetails,
@@ -124,6 +159,7 @@ function PlanetCard({
   antarHint?: string | null
   /** Override years display (e.g. antardasha months) */
   durationLabel?: string | null
+  scriptures?: ScripturePassage[]
   isAntar?: boolean
   defaultExpanded?: boolean
   canExpandDetails: boolean
@@ -261,6 +297,13 @@ function PlanetCard({
                 </div>
               )}
             </Section>
+            {scriptures.length > 0 && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <Section title={isAntar ? 'Scriptures · Antardasha' : 'Scriptures · Mahadasha'}>
+                  <ScriptureBlock passages={scriptures} />
+                </Section>
+              </div>
+            )}
           </div>
         ) : (
           <div
@@ -358,6 +401,10 @@ export function VimshottariInterpretationPanel({
   const antarDurationLabel = antarNode
     ? formatVimshottariDurationYears(antarYears)
     : null
+  const mahaScriptures = getVimshottariMahaScriptures(activePath[0].lord)
+  const antarScriptures = antarNode
+    ? getVimshottariAntarScriptures(activePath[0].lord, antarNode.lord)
+    : []
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -436,6 +483,7 @@ export function VimshottariInterpretationPanel({
         data={maha}
         levelLabel="Active Mahadasha"
         snapLine={analysis ? snapLabel(analysis, 'maha') : null}
+        scriptures={mahaScriptures}
         defaultExpanded={false}
         canExpandDetails={canExpandDetails}
       />
@@ -446,6 +494,7 @@ export function VimshottariInterpretationPanel({
           snapLine={analysis ? snapLabel(analysis, 'antar') : null}
           antarHint={antarHint}
           durationLabel={antarDurationLabel}
+          scriptures={antarScriptures}
           isAntar
           canExpandDetails={canExpandDetails}
         />

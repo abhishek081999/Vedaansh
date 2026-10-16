@@ -5,6 +5,10 @@ import {
   getVimshottariAntarHint,
   getVimshottariInterpretation,
 } from '@/lib/engine/dasha/vimshottariInterpretations'
+import {
+  getVimshottariAntarScriptures,
+  getVimshottariMahaScriptures,
+} from '@/lib/engine/dasha/vimshottariScriptures'
 
 describe('buildVimshottariAntarInterpretation', () => {
   it('uses MD–AD pair hint as primary when present (not full mahadasha essay)', () => {
@@ -37,5 +41,26 @@ describe('buildVimshottariAntarInterpretation', () => {
   it('formats short antardasha duration in months', () => {
     expect(formatVimshottariDurationYears(0.5)).toBe('6 Months')
     expect(formatVimshottariDurationYears(6)).toBe('6 Years')
+  })
+})
+
+describe('vimshottari scriptures', () => {
+  it('provides multi-source mahadasha scripture for every dasha lord', () => {
+    for (const lord of ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']) {
+      const passages = getVimshottariMahaScriptures(lord)
+      expect(passages.length).toBeGreaterThanOrEqual(3)
+      expect(passages.some(p => p.source === 'BPHS')).toBe(true)
+      expect(passages.every(p => p.text.length > 40)).toBe(true)
+    }
+  })
+
+  it('returns pair scripture for curated antars and synthesises when missing', () => {
+    const curated = getVimshottariAntarScriptures('Su', 'Mo')
+    expect(curated.some(p => p.source === 'BPHS')).toBe(true)
+    expect(curated[0].text.length).toBeGreaterThan(20)
+
+    const synthesised = getVimshottariAntarScriptures('Ju', 'Ve')
+    expect(synthesised.length).toBeGreaterThanOrEqual(2)
+    expect(synthesised.some(p => /antardasha|Classical rule/i.test(p.text))).toBe(true)
   })
 })
