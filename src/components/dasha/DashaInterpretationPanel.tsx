@@ -4,7 +4,7 @@
 //  Active Vimshottari MD/AD narrative + chart-conditioned flags
 // ─────────────────────────────────────────────────────────────
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import type {
@@ -18,11 +18,17 @@ import type {
 import { GRAHA_NAMES } from '@/types/astrology'
 import {
   analyzeVimshottariPeriod,
+  type LifeAreaActivation,
   type VimshottariFlag,
   type VimshottariPeriodAnalysis,
 } from '@/lib/engine/dasha/vimshottariAnalysis'
 import {
+  analyzeDashaGochar,
+  type DashaGocharOverlay,
+} from '@/lib/engine/dasha/vimshottariGochar'
+import {
   buildVimshottariAntarInterpretation,
+  buildVimshottariPratyantarInterpretation,
   durationMsToYears,
   formatVimshottariDurationYears,
   getVimshottariAntarHint,
@@ -36,8 +42,10 @@ import {
 import {
   getVimshottariAntarScriptures,
   getVimshottariMahaScriptures,
+  getVimshottariPratyantarScriptures,
   type ScripturePassage,
 } from '@/lib/engine/dasha/vimshottariScriptures'
+import type { TransitPosition } from '@/lib/engine/transits'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
 
@@ -330,13 +338,23 @@ function PlanetCard({
   )
 }
 
-function snapLabel(analysis: VimshottariPeriodAnalysis, which: 'maha' | 'antar'): string | null {
-  const s = which === 'maha' ? analysis.mahadasha : analysis.antardasha
+function snapLabel(
+  analysis: VimshottariPeriodAnalysis,
+  which: 'maha' | 'antar' | 'pratya',
+): string | null {
+  const s =
+    which === 'maha'
+      ? analysis.mahadasha
+      : which === 'antar'
+        ? analysis.antardasha
+        : analysis.pratyantardasha
   if (!s) return null
   const bits: string[] = []
   if (s.housesRuled.length) bits.push(`Rules H${s.housesRuled.join(', H')}`)
   if (s.house != null) bits.push(`placed H${s.house}`)
-  if (s.dignity) bits.push(s.dignity)
+  if (s.dignity) bits.push(`D1 ${s.dignity}`)
+  if (s.d9Dignity) bits.push(`D9 ${s.d9Dignity}`)
+  if (s.isVargottama) bits.push('Vargottama')
   if (s.shadbalaBand) bits.push(`Shadbala ${s.shadbalaBand}`)
   if (s.bavBindus != null) bits.push(`BAV ${s.bavBindus}`)
   if (s.arohiniKind === 'arohini') bits.push('Arohini')
@@ -345,6 +363,94 @@ function snapLabel(analysis: VimshottariPeriodAnalysis, which: 'maha' | 'antar')
   if (s.isYogakaraka) bits.push('Yogakaraka')
   if (s.isMaraka) bits.push('Maraka hardship')
   return bits.length ? bits.join(' · ') : null
+}
+
+function lifeAreaColor(strength: LifeAreaActivation['strength']): string {
+  if (strength === 'high') return 'var(--teal)'
+  if (strength === 'medium') return 'var(--gold)'
+  if (strength === 'low') return 'var(--text-secondary)'
+  return 'var(--text-muted)'
+}
+
+function LifeAreaGrid({ areas, headline }: { areas: LifeAreaActivation[]; headline: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{headline}</div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(9.5rem, 1fr))',
+          gap: 6,
+        }}
+      >
+        {areas.map(a => (
+          <div
+            key={a.id}
+            title={a.note}
+            style={{
+              padding: '0.45rem 0.55rem',
+              borderRadius: 6,
+              border: `1px solid ${lifeAreaColor(a.strength)}`,
+              background: a.strength === 'quiet' ? 'var(--surface-2)' : 'var(--surface-1)',
+              opacity: a.strength === 'quiet' ? 0.65 : 1,
+            }}
+          >
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: lifeAreaColor(a.strength) }}>
+              {a.label}
+              <span style={{ fontWeight: 500, marginLeft: 4, textTransform: 'uppercase', fontSize: '0.58rem', letterSpacing: '0.04em' }}>
+                {a.strength}
+              </span>
+            </div>
+            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.35 }}>
+              {a.note}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function GocharBlock({ overlay }: { overlay: DashaGocharOverlay | null }) {
+  if (!overlay) {
+    return (
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+        Loading dasha × gochar…
+      </div>
+    )
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+        {overlay.summary}
+        <span style={{ color: 'var(--text-muted)' }}> · as of {overlay.asOfLabel}</span>
+      </div>
+      {overlay.hits.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {overlay.hits.map(h => (
+            <span
+              key={h.id}
+              title={h.detail}
+              style={{
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.03em',
+                textTransform: 'uppercase',
+                color: flagToneColor(h.tone === 'caution' ? 'caution' : h.tone === 'supportive' ? 'supportive' : 'mixed'),
+                background: flagToneBg(h.tone === 'caution' ? 'caution' : h.tone === 'supportive' ? 'supportive' : 'mixed'),
+                border: `1px solid ${flagToneColor(h.tone === 'caution' ? 'caution' : h.tone === 'supportive' ? 'supportive' : 'mixed')}`,
+                borderRadius: 4,
+                padding: '0.2rem 0.45rem',
+                cursor: 'help',
+              }}
+            >
+              {h.label}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 /** @deprecated Prefer VimshottariInterpretationPanel — alias kept for clarity */
@@ -362,6 +468,7 @@ export function VimshottariInterpretationPanel({
   userPlan = 'free',
 }: VimshottariInterpretationPanelProps) {
   const canExpandDetails = planMeetsUiGate(userPlan, 'gold')
+  const [transitPositions, setTransitPositions] = useState<TransitPosition[] | null>(null)
 
   const activePath = useMemo(() => {
     const path: DashaNode[] = []
@@ -385,12 +492,44 @@ export function VimshottariInterpretationPanel({
     [nodes, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas],
   )
 
+  useEffect(() => {
+    let cancelled = false
+    const asOf = new Date().toISOString().slice(0, 10)
+    fetch(`/api/transit?ascRashi=${ascRashi}&months=1&startDate=${asOf}`)
+      .then(r => r.json())
+      .then((body: { success?: boolean; currentPositions?: TransitPosition[] }) => {
+        if (cancelled) return
+        if (body?.success && Array.isArray(body.currentPositions)) {
+          setTransitPositions(body.currentPositions)
+        } else {
+          setTransitPositions([])
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setTransitPositions([])
+      })
+    return () => { cancelled = true }
+  }, [ascRashi])
+
+  const gochar = useMemo(() => {
+    if (!transitPositions || activePath.length < 1) return null
+    return analyzeDashaGochar({
+      ascRashi,
+      natalGrahas: grahas,
+      mahaLord: activePath[0].lord,
+      antarLord: activePath[1]?.lord ?? null,
+      pratyaLord: activePath[2]?.lord ?? null,
+      transitPositions,
+    })
+  }, [transitPositions, activePath, ascRashi, grahas])
+
   if (activePath.length < 1) return null
 
   const maha = getVimshottariInterpretation(activePath[0].lord)
   if (!maha) return null
 
   const antarNode = activePath[1] ?? null
+  const pratyaNode = activePath[2] ?? null
   const antarHint = antarNode
     ? getVimshottariAntarHint(activePath[0].lord, antarNode.lord)
     : null
@@ -401,9 +540,24 @@ export function VimshottariInterpretationPanel({
   const antarDurationLabel = antarNode
     ? formatVimshottariDurationYears(antarYears)
     : null
+  const pratyaYears = pratyaNode ? durationMsToYears(pratyaNode.durationMs) : 0
+  const pratya = antarNode && pratyaNode
+    ? buildVimshottariPratyantarInterpretation(
+      activePath[0].lord,
+      antarNode.lord,
+      pratyaNode.lord,
+      pratyaYears,
+    )
+    : null
+  const pratyaDurationLabel = pratyaNode
+    ? formatVimshottariDurationYears(pratyaYears)
+    : null
   const mahaScriptures = getVimshottariMahaScriptures(activePath[0].lord)
   const antarScriptures = antarNode
     ? getVimshottariAntarScriptures(activePath[0].lord, antarNode.lord)
+    : []
+  const pratyaScriptures = antarNode && pratyaNode
+    ? getVimshottariPratyantarScriptures(activePath[0].lord, antarNode.lord, pratyaNode.lord)
     : []
 
   return (
@@ -435,6 +589,12 @@ export function VimshottariInterpretationPanel({
             </div>
           )}
           <MixBar analysis={analysis} />
+          {analysis.d9Note && (
+            <div style={{ marginTop: '0.65rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+              <span style={{ color: 'var(--text-gold)', fontWeight: 600 }}>Navamsha: </span>
+              {analysis.d9Note}
+            </div>
+          )}
           {(analysis.lagnaSpecialNote || analysis.yogakarakaNote) && (
             <div style={{ marginTop: '0.65rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
               {analysis.yogakarakaNote && (
@@ -476,6 +636,23 @@ export function VimshottariInterpretationPanel({
               ))}
             </ul>
           )}
+
+          {canExpandDetails && (
+            <>
+              <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-soft)' }}>
+                <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: 6 }}>
+                  Life areas · activated now
+                </div>
+                <LifeAreaGrid areas={analysis.lifeAreas.areas} headline={analysis.lifeAreas.headline} />
+              </div>
+              <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-soft)' }}>
+                <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: 6 }}>
+                  Dasha × Gochar
+                </div>
+                <GocharBlock overlay={gochar} />
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -495,6 +672,17 @@ export function VimshottariInterpretationPanel({
           antarHint={antarHint}
           durationLabel={antarDurationLabel}
           scriptures={antarScriptures}
+          isAntar
+          canExpandDetails={canExpandDetails}
+        />
+      )}
+      {pratya && (
+        <PlanetCard
+          data={pratya}
+          levelLabel="Active Pratyantardasha"
+          snapLine={analysis ? snapLabel(analysis, 'pratya') : null}
+          durationLabel={pratyaDurationLabel}
+          scriptures={pratyaScriptures}
           isAntar
           canExpandDetails={canExpandDetails}
         />

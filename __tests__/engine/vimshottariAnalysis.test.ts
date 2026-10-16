@@ -15,7 +15,9 @@ import {
   relationFromSignCount,
   signCount,
   analyzeVimshottariPeriod,
+  buildLifeAreaActivation,
 } from '@/lib/engine/dasha/vimshottariAnalysis'
+import { analyzeDashaGochar } from '@/lib/engine/dasha/vimshottariGochar'
 import { getLagnaDashaProfile, getYogakaraka, isYogakarakaLord } from '@/lib/engine/dasha/yogakaraka'
 
 function stubGraha(partial: Partial<GrahaData> & { id: string; rashi: Rashi }): GrahaData {
@@ -282,6 +284,65 @@ describe('analyzeVimshottariPeriod', () => {
     expect(result!.flags.some(f => f.id === 'arohini')).toBe(true)
   })
 
+  it('exposes D9 dignity, vargottama, life areas, and pratyantar snapshot', () => {
+    const grahas = [stubGraha({ id: 'Sa', rashi: 10, dignity: 'own' })]
+    const d9 = [stubGraha({ id: 'Sa', rashi: 10, dignity: 'own' })]
+    const pratya: DashaNode = {
+      lord: 'Me',
+      start: new Date('2000-01-01'),
+      end: new Date('2000-03-01'),
+      durationMs: new Date('2000-03-01').getTime() - new Date('2000-01-01').getTime(),
+      level: 3,
+      isCurrent: true,
+      children: [],
+    }
+    const antarNode: DashaNode = {
+      ...antar('Me', true),
+      children: [pratya],
+    }
+    const nodes = [mahaNode('Sa', { isCurrent: true, children: [antarNode] })]
+    const result = analyzeVimshottariPeriod({
+      nodes,
+      ascRashi: 2,
+      grahas,
+      navamshaGrahas: d9,
+    })
+    expect(result!.mahadasha.isVargottama).toBe(true)
+    expect(result!.mahadasha.d9Dignity).toBe('own')
+    expect(result!.flags.some(f => f.id === 'vargottama')).toBe(true)
+    expect(result!.d9Note).toMatch(/vargottama/i)
+    expect(result!.pratyantardasha?.lord).toBe('Me')
+    expect(result!.lifeAreas.areas).toHaveLength(6)
+    expect(result!.lifeAreas.areas.some(a => a.strength !== 'quiet')).toBe(true)
+  })
+
+  it('maps career/money houses into life-area activation', () => {
+    const maha = {
+      lord: 'Sa' as const,
+      house: 10,
+      housesRuled: [9, 10],
+      dignity: 'own',
+      d9Dignity: null,
+      d9House: null,
+      isVargottama: false,
+      isRetro: false,
+      isGandantaEdge: false,
+      shadbalaRatio: null,
+      shadbalaBand: null,
+      bavBindus: null,
+      savBindus: null,
+      resultPercent: null,
+      isMaraka: false,
+      marakaCancelled: false,
+      isYogakaraka: true,
+      arohiniKind: null,
+    }
+    const map = buildLifeAreaActivation(maha, null)
+    const career = map.areas.find(a => a.id === 'career')!
+    expect(career.strength === 'high' || career.strength === 'medium').toBe(true)
+    expect(map.headline).toMatch(/Career/i)
+  })
+
   it('keeps mix shares summing to 100 even with stacked boosts', () => {
     // Strong chart that used to overflow fav+chal past 100
     const grahas = [
@@ -311,5 +372,26 @@ describe('analyzeVimshottariPeriod', () => {
     })
     expect(result!.favorableShare + result!.challengingShare + result!.neutralShare).toBe(100)
     expect(result!.insight.bullets.some(b => /logic vs emotion|overnight/i.test(b))).toBe(true)
+  })
+})
+
+describe('analyzeDashaGochar', () => {
+  it('flags Ju over natal MD lord and lagna', () => {
+    const grahas = [stubGraha({ id: 'Sa', rashi: 10, dignity: 'own' })]
+    const overlay = analyzeDashaGochar({
+      ascRashi: 2,
+      natalGrahas: grahas,
+      mahaLord: 'Sa',
+      antarLord: 'Me',
+      transitPositions: [
+        { planetId: 'Ju', sign: 10, house: 9, nakshatra: 'Uttara', pada: 1, isRetro: false },
+        { planetId: 'Sa', sign: 2, house: 1, nakshatra: 'Krittika', pada: 2, isRetro: false },
+        { planetId: 'Ra', sign: 5, house: 4, nakshatra: 'Magha', pada: 1, isRetro: false },
+        { planetId: 'Ke', sign: 11, house: 10, nakshatra: 'Shatabhisha', pada: 1, isRetro: false },
+      ],
+    })
+    expect(overlay.hits.some(h => h.id === 'Ju-over-Sa')).toBe(true)
+    expect(overlay.hits.some(h => h.id === 'Sa-lagna' || h.label.includes('Lagna'))).toBe(true)
+    expect(overlay.summary.length).toBeGreaterThan(10)
   })
 })

@@ -197,9 +197,14 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
   ],
 }
 
+/** Vimshottari dasha lords — 9×9 = 81 MD–AD pairs. */
+export const VIMSHOTTARI_SCRIPTURE_LORDS = [
+  'Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke',
+] as const
+
 /**
- * High-signal MD–AD pair notes drawn from classical teaching summaries.
- * Not a full 9×9 scripture matrix — gaps fall back to synthesised classical rule.
+ * Full 9×9 MD–AD pair notes (educational paraphrases of classical teaching summaries).
+ * Prefer Phaladeepika / BPHS tone; gaps never reuse a full AD-lord mahadasha essay alone.
  */
 export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = {
   'Su-Su': [
@@ -262,6 +267,10 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   'Mo-Ju': [
     { source: 'Phaladeepika', text: 'Moon–Jupiter antar restores faith and elder support after emotional unrest — counselling and dharmic comfort.' },
   ],
+  'Mo-Ke': [
+    { source: 'BPHS', text: 'Moon–Ketu antar withdraws the mind from ordinary comfort — solitude, research, or sudden emotional accounting.' },
+    { source: 'Phaladeepika', text: 'Detachment from mother/mood habits; unusual dreams or healing paths appear in classical lists (educational only).' },
+  ],
   'Ma-Ma': [
     { source: 'BPHS', text: 'Mars–Mars antar is peak warrior energy — compete, build, travel; channel heat into skill, not quarrels.' },
     { source: 'Phaladeepika', text: 'Self-period of Mars: land, siblings, and courage dominate; wounds of haste if afflicted.' },
@@ -280,6 +289,18 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   ],
   'Ma-Ju': [
     { source: 'Phaladeepika', text: 'Mars–Jupiter antar: dharmic courage — teaching through action; avoid righteous anger.' },
+  ],
+  'Ma-Su': [
+    { source: 'BPHS', text: 'Mars–Sun antar heats authority — courage for leadership roles; quarrels with superiors if both are afflicted.' },
+    { source: 'Phaladeepika', text: 'Command and weapons/tools combine — status through bold effort; ego friction is the classical caution.' },
+  ],
+  'Ma-Mo': [
+    { source: 'BPHS', text: 'Mars–Moon antar drives action through emotion — travel, property effort, and restless mind; cool the temper.' },
+    { source: 'Phaladeepika', text: 'Physical push meets mood swings; mother/home themes can heat up alongside career drive.' },
+  ],
+  'Ma-Ve': [
+    { source: 'Phaladeepika', text: 'Mars–Venus antar mixes desire with drive — romance, vehicles, and competitive charm; impulsiveness in pleasure.' },
+    { source: 'BPHS', text: 'Passion and initiative rise together — classical notes warn against haste in relationships and spending.' },
   ],
   'Ve-Ve': [
     { source: 'BPHS', text: 'Venus–Venus antar sprouts bhoga — strong attraction to comforts and attachments at the opening of Venus MD.' },
@@ -323,6 +344,26 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   'Sa-Ju': [
     { source: 'Laghu Parashari', text: 'Saturn–Jupiter antar: karmic teaching — mentors who demand discipline; wisdom through work.' },
   ],
+  'Sa-Su': [
+    { source: 'BPHS', text: 'Saturn–Sun antar tests ego under hierarchy — authority earns respect slowly through duty.' },
+    { source: 'Laghu Parashari', text: 'Natural enmity of Sun and Saturn often colours this antar with friction before consolidation.' },
+  ],
+  'Sa-Mo': [
+    { source: 'Phaladeepika', text: 'Saturn–Moon antar: emotional coldness then maturity — family duties and mental labour intensify.' },
+    { source: 'BPHS', text: 'Mind under time pressure; patience with mother/dependents is the classical medicine.' },
+  ],
+  'Sa-Ma': [
+    { source: 'Laghu Parashari', text: 'Saturn–Mars antar: effort with friction — physical labour and hard boundaries; pace the body.' },
+    { source: 'BPHS', text: 'Discipline meets drive; long projects move only when haste is dropped.' },
+  ],
+  'Sa-Ve': [
+    { source: 'Phaladeepika', text: 'Saturn–Venus antar: duty vs comfort — relationships mature or end; luxury earned slowly.' },
+    { source: 'Laghu Parashari', text: 'Results of past indulgence arrive as boundaries; lasting alliances survive the test.' },
+  ],
+  'Sa-Ra': [
+    { source: 'BPHS', text: 'Saturn–Rahu antar: slow shadow work — unconventional duties or foreign labour with delays.' },
+    { source: 'Phaladeepika', text: 'Ambition under time; breakthroughs come late and through unusual structures.' },
+  ],
   'Me-Me': [
     { source: 'BPHS', text: 'Mercury–Mercury antar is the mind’s programmer phase — identity and learning questions refresh old patterns.' },
     { source: 'Phaladeepika', text: 'Self-period of Mercury: trade, speech, and study intensify.' },
@@ -339,6 +380,22 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   'Me-Sa': [
     { source: 'Laghu Parashari', text: 'Mercury–Saturn antar grounds dreams — reality test that builds a platform for later harvest.' },
   ],
+  'Me-Su': [
+    { source: 'BPHS', text: 'Mercury–Sun antar puts speech and intellect under the spotlight — petitions, exams, and public writing.' },
+    { source: 'Phaladeepika', text: 'Budha coloured by Surya: clever work for authority; watch ego in debate.' },
+  ],
+  'Me-Mo': [
+    { source: 'BPHS', text: 'Mercury–Moon antar mixes logic with mood — study, trade, and travel of mind; overnight decisions classically advised.' },
+    { source: 'Phaladeepika', text: 'Communications swing with emotion; mother/public themes enter business talk.' },
+  ],
+  'Me-Ma': [
+    { source: 'Phaladeepika', text: 'Mercury–Mars antar executes plans — tech, engineering, sharp negotiations; haste in speech is the caution.' },
+    { source: 'BPHS', text: 'Strategy meets action; documents and tools both move — avoid impulsive contracts.' },
+  ],
+  'Me-Ve': [
+    { source: 'BPHS', text: 'Mercury–Venus antar joins aesthetics with intellect — design, diplomacy, creative commerce.' },
+    { source: 'Phaladeepika', text: 'Thoughts + beauty: collaborations prosper; don’t force pure logic onto feelings.' },
+  ],
   'Ju-Ju': [
     { source: 'BPHS', text: 'Jupiter–Jupiter antar expands faith and teaching; over-optimism needs a budget.' },
     { source: 'Phaladeepika', text: 'Self-period of Jupiter: dharma, counsel, and auspicious growth dominate.' },
@@ -351,6 +408,26 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   ],
   'Ju-Ke': [
     { source: 'BPHS', text: 'Jupiter–Ketu antar: detached wisdom and sudden cuts in over-expansion — spiritual tilt.' },
+  ],
+  'Ju-Su': [
+    { source: 'BPHS', text: 'Jupiter–Sun antar elevates counsel into authority — teaching, law, or guidance under a public banner.' },
+    { source: 'Phaladeepika', text: 'Dharma meets status; honour through wisdom roles if both are strong.' },
+  ],
+  'Ju-Mo': [
+    { source: 'Phaladeepika', text: 'Jupiter–Moon antar softens expansion with care — elder support, emotional wisdom, and family counsel.' },
+    { source: 'BPHS', text: 'Faith and mind align; comfort through mentors and auspicious home themes when well placed.' },
+  ],
+  'Ju-Ma': [
+    { source: 'BPHS', text: 'Jupiter–Mars antar: righteous courage — action guided by ethics; avoid moral warfare.' },
+    { source: 'Phaladeepika', text: 'Teaching through effort; property or competition with a dharmic frame.' },
+  ],
+  'Ju-Me': [
+    { source: 'Phaladeepika', text: 'Jupiter–Mercury antar: publishing, counsel, and intellect in service of a larger purpose.' },
+    { source: 'BPHS', text: 'Wisdom meets speech — students, writers, and advisors prosper when both are dignified.' },
+  ],
+  'Ju-Ve': [
+    { source: 'Phaladeepika', text: 'Jupiter–Venus antar balances enjoyment with dharma — marriage support, arts with ethics, gracious mentors.' },
+    { source: 'BPHS', text: 'Comfort and counsel combine; classical lists favour auspicious ceremonies when age-fit.' },
   ],
   'Ra-Ra': [
     { source: 'BPHS', text: 'Rahu–Rahu antar peaks ambition — verify motives; mid-cycle ego checks are common in teaching summaries.' },
@@ -368,6 +445,22 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   'Ra-Ke': [
     { source: 'BPHS', text: 'Rahu–Ketu antar: shadow axis — abrupt pivots between craving and detachment.' },
   ],
+  'Ra-Su': [
+    { source: 'BPHS', text: 'Rahu–Sun antar: sudden status via unusual routes — fame risk and ego inflation if the Sun is weak.' },
+    { source: 'Phaladeepika', text: 'Shadow on authority — unconventional recognition or scandal pressure; verify before leaping.' },
+  ],
+  'Ra-Mo': [
+    { source: 'Phaladeepika', text: 'Rahu–Moon antar: restless mind and unconventional emotional bonds; distance from family motifs.' },
+    { source: 'BPHS', text: 'Desire amplifies mood; classical advice is ground the nervous system before big moves.' },
+  ],
+  'Ra-Ma': [
+    { source: 'BPHS', text: 'Rahu–Mars antar: high-adrenaline fights or foreign/tech battles — pause before risk.' },
+    { source: 'Phaladeepika', text: 'Sudden courage and conflict; heat on property or siblings themes when afflicted.' },
+  ],
+  'Ra-Me': [
+    { source: 'Phaladeepika', text: 'Rahu–Mercury antar: information overload and digital branding — stay reality-checked.' },
+    { source: 'BPHS', text: 'Speech and networks amplify through unusual channels; verify sources and contracts.' },
+  ],
   'Ke-Ke': [
     { source: 'BPHS', text: 'Ketu–Ketu antar deepens detachment — the period can feel brief; release what no longer fits.' },
     { source: 'Phaladeepika', text: 'Self-period of Ketu: occult insight and sudden accounting themes dominate.' },
@@ -384,6 +477,33 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   'Ke-Ra': [
     { source: 'BPHS', text: 'Ketu–Rahu antar: karmic axis flip — craving returns briefly then drops again.' },
   ],
+  'Ke-Ma': [
+    { source: 'Phaladeepika', text: 'Ketu–Mars antar: sudden action cuts — martial energy without attachment; abrupt property/conflict closure.' },
+    { source: 'BPHS', text: 'Detached courage; classical notes warn of haste without a clear aim.' },
+  ],
+  'Ke-Me': [
+    { source: 'Saravali', text: 'Ketu–Mercury antar: silent or occult intellect — research, coding, or speech withdrawal.' },
+    { source: 'BPHS', text: 'Knowledge without noise; scattered documents if Mercury is afflicted.' },
+  ],
+  'Ke-Ju': [
+    { source: 'BPHS', text: 'Ketu–Jupiter antar: detached wisdom — sudden cuts in over-expansion; spiritual or advisory tilt.' },
+    { source: 'Phaladeepika', text: 'Guru flavour with release — mentors who point inward rather than to status.' },
+  ],
+  'Ke-Sa': [
+    { source: 'Laghu Parashari', text: 'Ketu–Saturn antar: deep restructuring with detachment — isolation can become disciplined solitude.' },
+    { source: 'Phaladeepika', text: 'Slow release of burdens; longevity/structure themes with a moksha colouring.' },
+  ],
+}
+
+/** True when all 81 MD–AD keys exist with at least one passage each. */
+export function hasCompleteAntarScriptureMatrix(): boolean {
+  for (const maha of VIMSHOTTARI_SCRIPTURE_LORDS) {
+    for (const antar of VIMSHOTTARI_SCRIPTURE_LORDS) {
+      const passages = VIMSHOTTARI_ANTAR_SCRIPTURES[`${maha}-${antar}`]
+      if (!passages?.length) return false
+    }
+  }
+  return true
 }
 
 function synthesiseAntarScripture(mahaLord: string, antarLord: string): ScripturePassage[] {
@@ -417,8 +537,30 @@ export function getVimshottariMahaScriptures(lord: string): ScripturePassage[] {
   return VIMSHOTTARI_MAHA_SCRIPTURES[lord] ?? []
 }
 
+/** Short classical hierarchy note for pratyantardasha (finest visible layer). */
+export function getVimshottariPratyantarScriptures(
+  mahaLord: string,
+  antarLord: string,
+  pratyaLord: string,
+): ScripturePassage[] {
+  const mahaName = GRAHA_NAMES[mahaLord as GrahaId] ?? mahaLord
+  const antarName = GRAHA_NAMES[antarLord as GrahaId] ?? antarLord
+  const pratyaName = GRAHA_NAMES[pratyaLord as GrahaId] ?? pratyaLord
+  return [
+    {
+      source: 'BPHS',
+      ref: 'Dasha subdivisions',
+      text: `Pratyantardasha of ${pratyaName} under ${antarName} antardasha within ${mahaName} mahadasha is the fine timer — it does not replace MD or AD. Read ${mahaName} houses first, then ${antarName} colouring, then brief ${pratyaName} events.`,
+    },
+    {
+      source: 'Phaladeepika',
+      text: `${pratyaName} pratyantar lasts only a fraction of the antar — results are sharper and shorter, often felt as specific incidents rather than a whole life chapter.`,
+    },
+  ]
+}
+
 /**
- * Scripture for antardasha: pair-specific passages when curated,
+ * Scripture for antardasha: full 81-pair matrix when present,
  * otherwise classical hierarchy synthesis (never the full AD-lord mahadasha essay alone).
  */
 export function getVimshottariAntarScriptures(mahaLord: string, antarLord: string): ScripturePassage[] {

@@ -351,6 +351,58 @@ export function buildVimshottariAntarInterpretation(
   }
 }
 
+/**
+ * Pratyantardasha narrative — finest of the three visible layers.
+ * Never reuse a full mahadasha essay; colours MD→AD with a short PD note.
+ */
+export function buildVimshottariPratyantarInterpretation(
+  mahaLord: string,
+  antarLord: string,
+  pratyaLord: string,
+  durationYears: number,
+): VimshottariInterpretation | null {
+  const maha = getVimshottariInterpretation(mahaLord)
+  const antar = getVimshottariInterpretation(antarLord)
+  const pratya = getVimshottariInterpretation(pratyaLord)
+  if (!maha || !antar || !pratya) return null
+
+  const mahaName = GRAHA_NAMES[maha.lord] ?? mahaLord
+  const antarName = GRAHA_NAMES[antar.lord] ?? antarLord
+  const pratyaName = GRAHA_NAMES[pratya.lord] ?? pratyaLord
+  const antarHint = getVimshottariAntarHint(mahaLord, antarLord)
+
+  const title = `${pratyaName} Pratyantar · ${antarName}/${mahaName}`
+  const keyTheme = `${pratya.keyTheme} inside ${antarName} antar`
+
+  const primaryPositive =
+    pratyaLord === antarLord && antarLord === mahaLord
+      ? `Peak concentration of ${pratyaName} themes at the MD→AD→PD nest — short, intense colouring of ${maha.keyTheme}.`
+      : `Fine timing: ${pratyaName} pratyantar colours the ${antarName} antar within ${mahaName} mahadasha with ${pratya.keyTheme}.`
+
+  return {
+    lord: pratya.lord,
+    title,
+    years: durationYears > 0 ? durationYears : antar.years / 81,
+    nature: pratya.nature,
+    keyTheme,
+    primaryPositive,
+    secondaryBenefits: antarHint
+      ? `Antar backdrop: ${antarHint} PD flavour: ${pratya.primaryPositive}`
+      : `MD (${mahaName}): ${maha.keyTheme}. AD (${antarName}): ${antar.keyTheme}. PD adds ${pratya.primaryPositive}`,
+    psychologicalState: `Mind briefly mixes ${pratyaName} habits into the ongoing ${antarName}/${mahaName} chapter: ${pratya.psychologicalState}`,
+    negativeEffects: pratya.negativeEffects
+      ? `Pratyantar caution (brief): ${pratya.negativeEffects}`
+      : antar.negativeEffects
+        ? `Watch antar pressure in this PD: ${antar.negativeEffects}`
+        : null,
+    healthCaution: pratya.healthCaution ?? antar.healthCaution ?? maha.healthCaution,
+    lifeEvents: `Short events tilt toward ${pratya.lifeEvents} while ${antarName} antar and ${mahaName} MD continue.`,
+    phaseStart: `Start: ${pratyaName} micro-theme enters under ${antarName}/${mahaName}`,
+    phaseMiddle: `Middle: ${pratya.keyTheme} is most visible in daily timing`,
+    phaseEnd: 'End: next pratyantar reframes the same antardasha',
+  }
+}
+
 export function isBeneficVimNature(nature: VimshottariNature): boolean {
   return nature === 'Benefic' || nature === 'Highly Benefic'
 }

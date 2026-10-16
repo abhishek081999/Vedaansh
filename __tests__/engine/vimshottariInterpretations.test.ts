@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildVimshottariAntarInterpretation,
+  buildVimshottariPratyantarInterpretation,
   formatVimshottariDurationYears,
   getVimshottariAntarHint,
   getVimshottariInterpretation,
@@ -8,6 +9,8 @@ import {
 import {
   getVimshottariAntarScriptures,
   getVimshottariMahaScriptures,
+  hasCompleteAntarScriptureMatrix,
+  VIMSHOTTARI_SCRIPTURE_LORDS,
 } from '@/lib/engine/dasha/vimshottariScriptures'
 
 describe('buildVimshottariAntarInterpretation', () => {
@@ -46,7 +49,7 @@ describe('buildVimshottariAntarInterpretation', () => {
 
 describe('vimshottari scriptures', () => {
   it('provides multi-source mahadasha scripture for every dasha lord', () => {
-    for (const lord of ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']) {
+    for (const lord of VIMSHOTTARI_SCRIPTURE_LORDS) {
       const passages = getVimshottariMahaScriptures(lord)
       expect(passages.length).toBeGreaterThanOrEqual(3)
       expect(passages.some(p => p.source === 'BPHS')).toBe(true)
@@ -54,13 +57,31 @@ describe('vimshottari scriptures', () => {
     }
   })
 
-  it('returns pair scripture for curated antars and synthesises when missing', () => {
-    const curated = getVimshottariAntarScriptures('Su', 'Mo')
-    expect(curated.some(p => p.source === 'BPHS')).toBe(true)
-    expect(curated[0].text.length).toBeGreaterThan(20)
+  it('has a complete 81-pair MD–AD scripture matrix', () => {
+    expect(hasCompleteAntarScriptureMatrix()).toBe(true)
+    for (const maha of VIMSHOTTARI_SCRIPTURE_LORDS) {
+      for (const antar of VIMSHOTTARI_SCRIPTURE_LORDS) {
+        const passages = getVimshottariAntarScriptures(maha, antar)
+        expect(passages.length).toBeGreaterThanOrEqual(1)
+        expect(passages[0].text.length).toBeGreaterThan(20)
+      }
+    }
+  })
 
-    const synthesised = getVimshottariAntarScriptures('Ju', 'Ve')
-    expect(synthesised.length).toBeGreaterThanOrEqual(2)
-    expect(synthesised.some(p => /antardasha|Classical rule/i.test(p.text))).toBe(true)
+  it('returns pair scripture for formerly synthesised pairs without hierarchy fallback', () => {
+    const juVe = getVimshottariAntarScriptures('Ju', 'Ve')
+    expect(juVe.some(p => /Venus|Jupiter|dharma|enjoyment/i.test(p.text))).toBe(true)
+    expect(juVe[0].text).not.toMatch(/Classical rule/)
+  })
+})
+
+describe('buildVimshottariPratyantarInterpretation', () => {
+  it('builds a PD story that does not reuse the full AD mahadasha essay', () => {
+    const pd = buildVimshottariPratyantarInterpretation('Su', 'Mo', 'Ma', 0.04)!
+    const moMaha = getVimshottariInterpretation('Mo')!
+    expect(pd.title).toMatch(/Pratyantar/i)
+    expect(pd.primaryPositive).not.toBe(moMaha.primaryPositive)
+    expect(pd.years).toBe(0.04)
+    expect(pd.keyTheme).toMatch(/Mars|action|courage/i)
   })
 })
