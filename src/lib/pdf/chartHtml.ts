@@ -20,8 +20,21 @@ import {
 } from '@/lib/engine/astroDetailsDerived'
 import { SIGN_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
 import { getYoginiInterpretation } from '@/lib/engine/dasha/yoginiInterpretations'
-import { getVimshottariInterpretation } from '@/lib/engine/dasha/vimshottariInterpretations'
+import {
+  buildVimshottariAntarInterpretation,
+  durationMsToYears,
+  getVimshottariInterpretation,
+} from '@/lib/engine/dasha/vimshottariInterpretations'
 import { analyzeVimshottariPeriod } from '@/lib/engine/dasha/vimshottariAnalysis'
+import {
+  getVimshottariAntarScriptures,
+  getVimshottariMahaScriptures,
+} from '@/lib/engine/dasha/vimshottariScriptures'
+import {
+  buildUpcomingVimshottariTimeline,
+  formatShortDate,
+} from '@/lib/engine/dasha/vimshottariTimeline'
+import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL, nameToNakshatra, DIAGONAL_PLANETS } from '@/lib/engine/sarvatobhadra'
 import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
 import type { PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
@@ -982,6 +995,30 @@ function buildDashaSystemTable(
   const flagLine = vimAnalysis?.flags?.length
     ? vimAnalysis.flags.map(f => f.label).join(' · ')
     : ''
+  const vimPath = key === 'vimshottari' && chart.dashas.vimshottari?.length
+    ? getDashaPathAt(chart.dashas.vimshottari)
+    : []
+  const vimAntarNode = vimPath[1] ?? null
+  const vimAntarInterp = vimAntarNode && vimPath[0]
+    ? buildVimshottariAntarInterpretation(
+      vimPath[0].lord,
+      vimAntarNode.lord,
+      durationMsToYears(vimAntarNode.durationMs),
+    )
+    : null
+  const vimMahaScriptures = vimPath[0]
+    ? getVimshottariMahaScriptures(vimPath[0].lord).slice(0, 2)
+    : []
+  const vimAntarScriptures = vimPath[0] && vimAntarNode
+    ? getVimshottariAntarScriptures(vimPath[0].lord, vimAntarNode.lord).slice(0, 2)
+    : []
+  const vimTimeline = key === 'vimshottari' && chart.dashas.vimshottari?.length
+    ? buildUpcomingVimshottariTimeline(chart.dashas.vimshottari, Date.now(), 5)
+    : null
+  const lifeAreaLine = vimAnalysis?.lifeAreas?.areas
+    ?.filter(a => a.strength === 'high' || a.strength === 'medium')
+    .map(a => a.label)
+    .join(', ')
   const vimInterpretationBlock = vimInterp ? `
     <div style="margin-top: 0.85rem; border: 1px solid ${THEME.border}; border-radius: 10px; padding: 12px; background: #fffbeb;">
       <div style="font-weight: 800; color: ${THEME.primary}; margin-bottom: 6px;">
@@ -1000,7 +1037,12 @@ function buildDashaSystemTable(
       ${vimAnalysis.insight.watch ? `<div style="font-size: 11px; color: #9a3412; margin-bottom: 4px;">Watch: ${vimAnalysis.insight.watch}</div>` : ''}
       <div style="font-size: 11px; color: ${THEME.muted}; margin-bottom: 4px;">
         Mix: Favorable ${vimAnalysis.favorableShare}% · Neutral ${vimAnalysis.neutralShare}% · Challenging ${vimAnalysis.challengingShare}%
-      </div>` : ''}
+      </div>
+      ${vimAnalysis.d9Note ? `<div style="font-size: 11px; margin-bottom: 4px;"><strong>Navamsha:</strong> ${vimAnalysis.d9Note}</div>` : ''}
+      ${vimAnalysis.charaKarakaNote ? `<div style="font-size: 11px; margin-bottom: 4px;"><strong>Chara Karaka:</strong> ${vimAnalysis.charaKarakaNote}</div>` : ''}
+      ${vimAnalysis.dispositorChains ? `<div style="font-size: 11px; margin-bottom: 4px;"><strong>Dispositor:</strong> ${vimAnalysis.dispositorChains.mahadasha.summary}${vimAnalysis.dispositorChains.antardasha ? ` · AD: ${vimAnalysis.dispositorChains.antardasha.summary}` : ''}</div>` : ''}
+      ${lifeAreaLine ? `<div style="font-size: 11px; margin-bottom: 4px;"><strong>Life areas:</strong> ${lifeAreaLine}</div>` : ''}
+      ` : ''}
       ${flagLine ? `<div style="font-size: 11px; margin-bottom: 4px;"><strong>Flags:</strong> ${flagLine}</div>` : ''}
       <div style="font-size: 12px; line-height: 1.5;">
         <strong>Positive:</strong> ${vimInterp.primaryPositive}. ${vimInterp.secondaryBenefits}.
@@ -1012,8 +1054,32 @@ function buildDashaSystemTable(
       <div style="font-size: 12px; line-height: 1.5; margin-top: 4px;">
         <strong>Caution:</strong> ${[vimInterp.negativeEffects, vimInterp.healthCaution].filter(Boolean).join('. ')}.
       </div>` : ''}
+      ${vimAntarInterp ? `
+      <div style="margin-top: 0.65rem; padding-top: 0.55rem; border-top: 1px solid ${THEME.border};">
+        <div style="font-weight: 700; font-size: 12px; margin-bottom: 4px;">Antardasha — ${vimAntarInterp.title}</div>
+        <div style="font-size: 12px; line-height: 1.45;">${vimAntarInterp.primaryPositive}</div>
+      </div>` : ''}
+      ${vimMahaScriptures.length ? `
+      <div style="margin-top: 0.65rem; padding-top: 0.55rem; border-top: 1px solid ${THEME.border};">
+        <div style="font-weight: 700; font-size: 11px; margin-bottom: 4px;">Scriptures · Mahadasha</div>
+        ${vimMahaScriptures.map(p => `<div style="font-size: 11px; line-height: 1.45; margin-bottom: 4px;"><em>${p.source}${p.ref ? ` · ${p.ref}` : ''}:</em> ${p.text}</div>`).join('')}
+      </div>` : ''}
+      ${vimAntarScriptures.length ? `
+      <div style="margin-top: 0.45rem;">
+        <div style="font-weight: 700; font-size: 11px; margin-bottom: 4px;">Scriptures · Antardasha</div>
+        ${vimAntarScriptures.map(p => `<div style="font-size: 11px; line-height: 1.45; margin-bottom: 4px;"><em>${p.source}:</em> ${p.text}</div>`).join('')}
+      </div>` : ''}
+      ${vimTimeline ? `
+      <div style="margin-top: 0.65rem; padding-top: 0.55rem; border-top: 1px solid ${THEME.border};">
+        <div style="font-weight: 700; font-size: 11px; margin-bottom: 4px;">Upcoming timeline</div>
+        <div style="font-size: 11px; color: ${THEME.muted}; margin-bottom: 4px;">${vimTimeline.headline}</div>
+        <ul style="font-size: 11px; line-height: 1.4; margin: 0 0 0 1.1rem; padding: 0;">
+          ${vimTimeline.upcomingAntars.map(a => `<li>${a.label}: ${formatShortDate(a.startIso)} → ${formatShortDate(a.endIso)} (${a.toneLabel})</li>`).join('')}
+          ${vimTimeline.nextMaha ? `<li><strong>${vimTimeline.nextMaha.label}</strong>: from ${formatShortDate(vimTimeline.nextMaha.startIso)}</li>` : ''}
+        </ul>
+      </div>` : ''}
       <div style="font-size: 11px; color: ${THEME.muted}; margin-top: 6px; line-height: 1.4;">
-        Educational overlay — mixed results; maraka means hardship pressure, not a life-ending forecast. Health notes are not medical advice.
+        Educational overlay — mixed results; maraka means hardship pressure, not a life-ending forecast. Health notes are not medical advice. Scripture lines are paraphrases.
       </div>
     </div>
   ` : ''
@@ -1515,19 +1581,27 @@ ${buildAllDashasPages(chart)}
   
   <h3 class="section-badge" style="margin-top: 1.5rem">Upcoming Antardashas</h3>
   <table class="data-table">
-    <thead><tr><th>Planet</th><th>Starts On</th><th>Ends On</th><th>Nature</th></tr></thead>
+    <thead><tr><th>Period</th><th>Starts On</th><th>Ends On</th><th>Tone</th></tr></thead>
     <tbody>
       ${(() => {
-        const now = new Date()
-        const maha = chart.dashas.vimshottari.find(m => now >= new Date(m.start) && now <= new Date(m.end))
-        return maha?.children.slice(0, 10).map(a => `
+        const tl = buildUpcomingVimshottariTimeline(chart.dashas.vimshottari ?? [], Date.now(), 8)
+        const rows = tl.upcomingAntars.map(a => `
           <tr>
-            <td style="font-weight:700">${GRAHA_NAMES[a.lord as GrahaId]}</td>
-            <td>${new Date(a.start).toLocaleDateString()}</td>
-            <td>${new Date(a.end).toLocaleDateString()}</td>
-            <td>Sub-Period</td>
+            <td style="font-weight:700">${a.label}</td>
+            <td>${formatShortDate(a.startIso)}</td>
+            <td>${formatShortDate(a.endIso)}</td>
+            <td>${a.toneLabel}</td>
           </tr>
-        `).join('') || ''
+        `).join('')
+        const mahaRow = tl.nextMaha ? `
+          <tr style="background:#fffbeb;font-weight:800">
+            <td>${tl.nextMaha.label}</td>
+            <td>${formatShortDate(tl.nextMaha.startIso)}</td>
+            <td>${formatShortDate(tl.nextMaha.endIso)}</td>
+            <td>${tl.nextMaha.toneLabel}</td>
+          </tr>` : ''
+        const html = `${rows || ''}${mahaRow}`
+        return html || '<tr><td colspan="4">No upcoming periods in range.</td></tr>'
       })()}
     </tbody>
   </table>

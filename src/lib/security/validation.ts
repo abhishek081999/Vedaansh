@@ -36,9 +36,18 @@ export const chartSearchQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(24),
 })
 
+export const chartNoteDashaTagSchema = z.object({
+  mahaLord: z.string().trim().min(1).max(8),
+  antarLord: z.string().trim().min(1).max(8).optional(),
+  periodStart: z.string().trim().max(40).optional(),
+  periodEnd: z.string().trim().max(40).optional(),
+  eventLabel: z.string().trim().min(1).max(80).optional(),
+})
+
 export const chartNotePostSchema = z.object({
   chartId: objectIdSchema,
   content: z.string().trim().min(1).max(5000),
+  dashaTag: chartNoteDashaTagSchema.optional(),
 })
 
 export const chartNoteDeleteQuerySchema = z.object({

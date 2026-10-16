@@ -2202,6 +2202,7 @@ function HomeContent() {
                               ashtakavarga={chart.ashtakavarga}
                               navamshaGrahas={chart.vargas?.D9}
                               userPlan={userPlan}
+                              chartId={savedChartId}
                             />
                           </>
                         )}

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { auth } from '@/auth'
 import dbConnect from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
+import { requirePlanGate } from '@/lib/security/planAccess'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import {
   chartNoteDeleteQuerySchema,
@@ -49,13 +49,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Invalid input' }, { status: 400 })
     }
 
-    const { chartId, content } = parsed.data
+    const { chartId, content, dashaTag } = parsed.data
+
+    if (dashaTag) {
+      const gated = await requirePlanGate(session.user.id, 'platinum')
+      if (gated) return gated
+    }
 
     await dbConnect()
     const chart = await Chart.findOne({ _id: chartId, userId: session.user.id })
     if (!chart) return NextResponse.json({ success: false, error: 'Chart not found' }, { status: 404 })
 
-    chart.notes.push({ content, createdAt: new Date() })
+    chart.notes.push({
+      content,
+      createdAt: new Date(),
+      ...(dashaTag ? { dashaTag } : {}),
+    })
     await chart.save()
 
     return NextResponse.json({ success: true, notes: chart.notes })

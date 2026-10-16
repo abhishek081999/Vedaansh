@@ -27,6 +27,12 @@ import {
   type DashaGocharOverlay,
 } from '@/lib/engine/dasha/vimshottariGochar'
 import {
+  buildUpcomingVimshottariTimeline,
+  formatShortDate,
+  type UpcomingDashaItem,
+  type VimshottariUpcomingTimeline,
+} from '@/lib/engine/dasha/vimshottariTimeline'
+import {
   buildVimshottariAntarInterpretation,
   buildVimshottariPratyantarInterpretation,
   durationMsToYears,
@@ -49,6 +55,16 @@ import type { TransitPosition } from '@/lib/engine/transits'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
 
+const DASHA_EVENT_LABELS = [
+  'Job change',
+  'Move / home',
+  'Relationship',
+  'Health',
+  'Travel',
+  'Finance',
+  'Other',
+] as const
+
 export interface VimshottariInterpretationPanelProps {
   nodes: DashaNode[]
   grahas: GrahaData[]
@@ -58,6 +74,8 @@ export interface VimshottariInterpretationPanelProps {
   navamshaGrahas?: GrahaData[] | null
   /** Detailed "More" interpretation is Gold+ */
   userPlan?: UserPlan
+  /** Saved chart id — enables Platinum dasha event notes */
+  chartId?: string | null
 }
 
 function natureColor(nature: VimshottariNature): string {
@@ -158,7 +176,7 @@ function PlanetCard({
   durationLabel,
   scriptures = [],
   isAntar = false,
-  defaultExpanded = false,
+  defaultExpanded = true,
   canExpandDetails,
 }: {
   data: VimshottariInterpretation
@@ -172,7 +190,7 @@ function PlanetCard({
   defaultExpanded?: boolean
   canExpandDetails: boolean
 }) {
-  const [expanded, setExpanded] = useState(defaultExpanded && canExpandDetails)
+  const [expanded, setExpanded] = useState(defaultExpanded)
   const planet = GRAHA_NAMES[data.lord] ?? data.lord
   const borderColor = isMaleficVimNature(data.nature)
     ? 'var(--rose)'
@@ -361,8 +379,57 @@ function snapLabel(
   if (s.arohiniKind === 'avarohini') bits.push('Avarohini')
   if (s.isRetro) bits.push('Retro')
   if (s.isYogakaraka) bits.push('Yogakaraka')
+  if (s.charaKaraka) bits.push(s.charaKaraka)
   if (s.isMaraka) bits.push('Maraka hardship')
   return bits.length ? bits.join(' · ') : null
+}
+
+function TimelineBlock({ timeline }: { timeline: VimshottariUpcomingTimeline }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+        {timeline.headline}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {timeline.upcomingAntars.map((item, i) => (
+          <TimelineRow key={`a-${item.lord}-${item.startIso}-${i}`} item={item} />
+        ))}
+        {timeline.nextMaha && (
+          <TimelineRow item={timeline.nextMaha} emphasize />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function TimelineRow({ item, emphasize }: { item: UpcomingDashaItem; emphasize?: boolean }) {
+  const color = flagToneColor(
+    item.tone === 'caution' ? 'caution' : item.tone === 'supportive' ? 'supportive' : 'mixed',
+  )
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '0.35rem 0.65rem',
+        alignItems: 'baseline',
+        fontSize: '0.7rem',
+        lineHeight: 1.4,
+        padding: emphasize ? '0.35rem 0.45rem' : 0,
+        background: emphasize ? 'var(--surface-2)' : 'transparent',
+        borderRadius: emphasize ? 4 : 0,
+      }}
+    >
+      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{item.label}</span>
+      <span style={{ color: 'var(--text-muted)' }}>
+        {formatShortDate(item.startIso)} → {formatShortDate(item.endIso)}
+      </span>
+      <span style={{ color, fontWeight: 600 }}>{item.toneLabel}</span>
+      {item.hint && (
+        <span style={{ color: 'var(--text-secondary)', flexBasis: '100%' }}>{item.hint}</span>
+      )}
+    </div>
+  )
 }
 
 function lifeAreaColor(strength: LifeAreaActivation['strength']): string {
@@ -466,9 +533,15 @@ export function VimshottariInterpretationPanel({
   ashtakavarga,
   navamshaGrahas,
   userPlan = 'free',
+  chartId = null,
 }: VimshottariInterpretationPanelProps) {
   const canExpandDetails = planMeetsUiGate(userPlan, 'gold')
+  const canTagEvents = planMeetsUiGate(userPlan, 'platinum')
   const [transitPositions, setTransitPositions] = useState<TransitPosition[] | null>(null)
+  const [eventLabel, setEventLabel] = useState<string>(DASHA_EVENT_LABELS[0])
+  const [eventNote, setEventNote] = useState('')
+  const [eventSaving, setEventSaving] = useState(false)
+  const [eventMsg, setEventMsg] = useState<string | null>(null)
 
   const activePath = useMemo(() => {
     const path: DashaNode[] = []
@@ -490,6 +563,11 @@ export function VimshottariInterpretationPanel({
       navamshaGrahas,
     }),
     [nodes, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas],
+  )
+
+  const timeline = useMemo(
+    () => buildUpcomingVimshottariTimeline(nodes),
+    [nodes],
   )
 
   useEffect(() => {
@@ -560,6 +638,54 @@ export function VimshottariInterpretationPanel({
     ? getVimshottariPratyantarScriptures(activePath[0].lord, antarNode.lord, pratyaNode.lord)
     : []
 
+  async function saveDashaEvent() {
+    if (!chartId || !canTagEvents || eventSaving) return
+    const text = eventNote.trim()
+    if (!text) {
+      setEventMsg('Add a short note first.')
+      return
+    }
+    setEventSaving(true)
+    setEventMsg(null)
+    const mahaLord = activePath[0].lord
+    const antarLord = antarNode?.lord
+    const periodStart = antarNode
+      ? new Date(antarNode.start).toISOString()
+      : new Date(activePath[0].start).toISOString()
+    const periodEnd = antarNode
+      ? new Date(antarNode.end).toISOString()
+      : new Date(activePath[0].end).toISOString()
+    const content = `[Dasha · ${mahaLord}${antarLord ? `/${antarLord}` : ''} · ${eventLabel}] ${text}`
+    try {
+      const res = await fetch('/api/chart/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chartId,
+          content,
+          dashaTag: {
+            mahaLord,
+            antarLord,
+            periodStart,
+            periodEnd,
+            eventLabel,
+          },
+        }),
+      })
+      const body = await res.json().catch(() => null)
+      if (!res.ok || !body?.success) {
+        setEventMsg(body?.error || 'Could not save note.')
+      } else {
+        setEventNote('')
+        setEventMsg('Saved to chart notes.')
+      }
+    } catch {
+      setEventMsg('Could not save note.')
+    } finally {
+      setEventSaving(false)
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
       <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', padding: '0 0.15rem' }}>
@@ -593,6 +719,12 @@ export function VimshottariInterpretationPanel({
             <div style={{ marginTop: '0.65rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               <span style={{ color: 'var(--text-gold)', fontWeight: 600 }}>Navamsha: </span>
               {analysis.d9Note}
+            </div>
+          )}
+          {analysis.charaKarakaNote && (
+            <div style={{ marginTop: '0.55rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+              <span style={{ color: 'var(--text-gold)', fontWeight: 600 }}>Chara Karaka: </span>
+              {analysis.charaKarakaNote}
             </div>
           )}
           {(analysis.lagnaSpecialNote || analysis.yogakarakaNote) && (
@@ -641,6 +773,26 @@ export function VimshottariInterpretationPanel({
             <>
               <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-soft)' }}>
                 <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: 6 }}>
+                  Upcoming timeline
+                </div>
+                <TimelineBlock timeline={timeline} />
+              </div>
+              <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-soft)' }}>
+                <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: 6 }}>
+                  Dispositor chain · who delivers
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                  <div><span style={{ color: 'var(--text-gold)', fontWeight: 600 }}>MD: </span>{analysis.dispositorChains.mahadasha.summary}</div>
+                  {analysis.dispositorChains.antardasha && (
+                    <div style={{ marginTop: 4 }}>
+                      <span style={{ color: 'var(--text-gold)', fontWeight: 600 }}>AD: </span>
+                      {analysis.dispositorChains.antardasha.summary}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-soft)' }}>
+                <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: 6 }}>
                   Life areas · activated now
                 </div>
                 <LifeAreaGrid areas={analysis.lifeAreas.areas} headline={analysis.lifeAreas.headline} />
@@ -656,12 +808,84 @@ export function VimshottariInterpretationPanel({
         </div>
       )}
 
+      {canTagEvents && (
+        <div
+          className="card"
+          style={{
+            padding: '0.85rem 1rem',
+            border: '1px solid var(--border-soft)',
+            background: 'var(--surface-1)',
+          }}
+        >
+          <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: 6 }}>
+            Event tag · Platinum
+          </div>
+          {!chartId ? (
+            <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+              Save this chart to attach dasha-dated notes, or manage clients in{' '}
+              <Link href="/clients" style={{ color: 'var(--gold)' }}>CRM</Link>.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                Tag against current {activePath[0].lord}
+                {antarNode ? `/${antarNode.lord}` : ''} period
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <select
+                  value={eventLabel}
+                  onChange={e => setEventLabel(e.target.value)}
+                  style={{
+                    fontSize: '0.75rem',
+                    padding: '0.35rem 0.5rem',
+                    borderRadius: 4,
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {DASHA_EVENT_LABELS.map(l => (
+                    <option key={l} value={l}>{l}</option>
+                  ))}
+                </select>
+                <input
+                  value={eventNote}
+                  onChange={e => setEventNote(e.target.value)}
+                  placeholder="What happened / note…"
+                  maxLength={500}
+                  style={{
+                    flex: '1 1 12rem',
+                    fontSize: '0.75rem',
+                    padding: '0.35rem 0.5rem',
+                    borderRadius: 4,
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'inherit',
+                  }}
+                />
+                <Button variant="secondary" size="sm" onClick={() => void saveDashaEvent()} disabled={eventSaving}>
+                  {eventSaving ? 'Saving…' : 'Save note'}
+                </Button>
+              </div>
+              {eventMsg && (
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{eventMsg}</div>
+              )}
+              <Link href="/clients" style={{ fontSize: '0.68rem', color: 'var(--gold)', textDecoration: 'none' }}>
+                Open client CRM →
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+
       <PlanetCard
         data={maha}
         levelLabel="Active Mahadasha"
         snapLine={analysis ? snapLabel(analysis, 'maha') : null}
         scriptures={mahaScriptures}
-        defaultExpanded={false}
+        defaultExpanded
         canExpandDetails={canExpandDetails}
       />
       {antar && (
@@ -673,6 +897,7 @@ export function VimshottariInterpretationPanel({
           durationLabel={antarDurationLabel}
           scriptures={antarScriptures}
           isAntar
+          defaultExpanded
           canExpandDetails={canExpandDetails}
         />
       )}
@@ -684,6 +909,7 @@ export function VimshottariInterpretationPanel({
           durationLabel={pratyaDurationLabel}
           scriptures={pratyaScriptures}
           isAntar
+          defaultExpanded
           canExpandDetails={canExpandDetails}
         />
       )}

@@ -15,9 +15,11 @@ import {
   relationFromSignCount,
   signCount,
   analyzeVimshottariPeriod,
+  buildDispositorChain,
   buildLifeAreaActivation,
 } from '@/lib/engine/dasha/vimshottariAnalysis'
 import { analyzeDashaGochar } from '@/lib/engine/dasha/vimshottariGochar'
+import { buildUpcomingVimshottariTimeline } from '@/lib/engine/dasha/vimshottariTimeline'
 import { getLagnaDashaProfile, getYogakaraka, isYogakarakaLord } from '@/lib/engine/dasha/yogakaraka'
 
 function stubGraha(partial: Partial<GrahaData> & { id: string; rashi: Rashi }): GrahaData {
@@ -284,8 +286,8 @@ describe('analyzeVimshottariPeriod', () => {
     expect(result!.flags.some(f => f.id === 'arohini')).toBe(true)
   })
 
-  it('exposes D9 dignity, vargottama, life areas, and pratyantar snapshot', () => {
-    const grahas = [stubGraha({ id: 'Sa', rashi: 10, dignity: 'own' })]
+  it('exposes D9 dignity, vargottama, life areas, pratyantar, dispositor, and AK', () => {
+    const grahas = [stubGraha({ id: 'Sa', rashi: 10, dignity: 'own', charaKaraka: 'AK', nakshatraIndex: 19 })]
     const d9 = [stubGraha({ id: 'Sa', rashi: 10, dignity: 'own' })]
     const pratya: DashaNode = {
       lord: 'Me',
@@ -314,6 +316,10 @@ describe('analyzeVimshottariPeriod', () => {
     expect(result!.pratyantardasha?.lord).toBe('Me')
     expect(result!.lifeAreas.areas).toHaveLength(6)
     expect(result!.lifeAreas.areas.some(a => a.strength !== 'quiet')).toBe(true)
+    expect(result!.mahadasha.charaKaraka).toBe('AK')
+    expect(result!.charaKarakaNote).toMatch(/Atmakaraka/i)
+    expect(result!.flags.some(f => f.id.startsWith('chara-ak'))).toBe(true)
+    expect(result!.dispositorChains.mahadasha.links.length).toBeGreaterThanOrEqual(2)
   })
 
   it('maps career/money houses into life-area activation', () => {
@@ -336,6 +342,7 @@ describe('analyzeVimshottariPeriod', () => {
       marakaCancelled: false,
       isYogakaraka: true,
       arohiniKind: null,
+      charaKaraka: null,
     }
     const map = buildLifeAreaActivation(maha, null)
     const career = map.areas.find(a => a.id === 'career')!
@@ -372,6 +379,44 @@ describe('analyzeVimshottariPeriod', () => {
     })
     expect(result!.favorableShare + result!.challengingShare + result!.neutralShare).toBe(100)
     expect(result!.insight.bullets.some(b => /logic vs emotion|overnight/i.test(b))).toBe(true)
+  })
+})
+
+describe('buildDispositorChain', () => {
+  it('builds period → sign → nakshatra links', () => {
+    const grahas = [stubGraha({ id: 'Sa', rashi: 10, nakshatraIndex: 19, dignity: 'own' })]
+    const chain = buildDispositorChain('Sa', grahas)
+    expect(chain.links[0].role).toBe('period')
+    expect(chain.links[1].role).toBe('sign')
+    expect(chain.links[1].lord).toBe('Sa') // Capricorn lord
+    expect(chain.links[2].role).toBe('nakshatra')
+    expect(chain.summary).toMatch(/→/)
+  })
+})
+
+describe('buildUpcomingVimshottariTimeline', () => {
+  it('lists remaining antars and next mahadasha', () => {
+    const now = new Date('2000-06-01').getTime()
+    const a1 = antar('Sa', false)
+    a1.start = new Date('2000-01-01')
+    a1.end = new Date('2000-04-01')
+    const a2 = antar('Me', true)
+    a2.start = new Date('2000-04-01')
+    a2.end = new Date('2001-01-01')
+    const a3 = antar('Ke', false)
+    a3.start = new Date('2001-01-01')
+    a3.end = new Date('2001-06-01')
+    const m1 = mahaNode('Sa', { isCurrent: true, children: [a1, a2, a3] })
+    m1.start = new Date('2000-01-01')
+    m1.end = new Date('2007-01-01')
+    const m2 = mahaNode('Me', { isCurrent: false, children: [] })
+    m2.start = new Date('2007-01-01')
+    m2.end = new Date('2024-01-01')
+    const tl = buildUpcomingVimshottariTimeline([m1, m2], now, 4)
+    expect(tl.upcomingAntars.length).toBeGreaterThan(0)
+    expect(tl.upcomingAntars[0].lord).toBe('Me')
+    expect(tl.nextMaha?.lord).toBe('Me')
+    expect(tl.headline.length).toBeGreaterThan(5)
   })
 })
 
