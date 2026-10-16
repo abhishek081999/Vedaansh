@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaId } from '@/types/astrology'
+import { GRAHA_NAMES } from '@/types/astrology'
 import { VIMSHOTTARI_YEARS } from '@/lib/engine/dasha/vimshottari'
 
 export type VimshottariNature =
@@ -259,6 +260,147 @@ export function getVimshottariInterpretation(lord: string): VimshottariInterpret
 
 export function getVimshottariAntarHint(mahaLord: string, antarLord: string): string | null {
   return VIMSHOTTARI_ANTAR_HINTS[`${mahaLord}-${antarLord}`] ?? null
+}
+
+const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000
+
+/** Format antardasha length for UI (months when under ~1.5y). */
+export function formatVimshottariDurationYears(years: number): string {
+  if (!Number.isFinite(years) || years <= 0) return 'Sub-period'
+  if (years < 1.5) {
+    const months = Math.max(1, Math.round(years * 12))
+    return months === 1 ? '1 Month' : `${months} Months`
+  }
+  const rounded = Math.round(years * 10) / 10
+  return `${rounded} ${rounded === 1 ? 'Year' : 'Years'}`
+}
+
+export function durationMsToYears(durationMs: number): number {
+  return durationMs / MS_PER_YEAR
+}
+
+/**
+ * Antardasha narrative — never reuse the full mahadasha essay/years for the AD lord.
+ * Prefer the MD–AD pair hint when present; otherwise synthesise a sub-period colouring of the MD.
+ */
+export function buildVimshottariAntarInterpretation(
+  mahaLord: string,
+  antarLord: string,
+  durationYears: number,
+): VimshottariInterpretation | null {
+  const maha = getVimshottariInterpretation(mahaLord)
+  const antar = getVimshottariInterpretation(antarLord)
+  if (!maha || !antar) return null
+
+  const hint = getVimshottariAntarHint(mahaLord, antarLord)
+  const mahaName = GRAHA_NAMES[maha.lord] ?? mahaLord
+  const antarName = GRAHA_NAMES[antar.lord] ?? antarLord
+  const sameLord = mahaLord === antarLord
+
+  const title = sameLord
+    ? `${antar.title} · Opening Antar`
+    : `${antarName} Antar in ${mahaName} MD`
+
+  const keyTheme = sameLord
+    ? `First colour of ${maha.keyTheme}`
+    : `${antar.keyTheme} colouring ${mahaName} mahadasha`
+
+  const primaryPositive = hint
+    ?? (sameLord
+      ? `This antardasha opens the ${mahaName} mahadasha — early results often echo ${antar.keyTheme}, usually more setup than the full mahadasha harvest.`
+      : `Within ${mahaName}'s mahadasha (${maha.keyTheme}), this ${antarName} antardasha colours timing with ${antar.keyTheme}.`)
+
+  const secondaryBenefits = hint
+    ? `Mahadasha backdrop: ${maha.keyTheme}. Antar planet flavour: ${antar.primaryPositive}`
+    : `Expect ${antar.primaryPositive} as a sub-theme — not the full ${antarName} mahadasha story. MD house/sign results still set the stage.`
+
+  const psychologicalState = sameLord
+    ? `Tone of the new mahadasha arrives — ${antar.psychologicalState}`
+    : `Mind mixes ${mahaName} goals with ${antarName} habits: ${antar.psychologicalState}`
+
+  const negativeEffects = antar.negativeEffects
+    ? `Antar caution (secondary to MD): ${antar.negativeEffects}`
+    : maha.negativeEffects
+      ? `Watch MD pressure during this antar: ${maha.negativeEffects}`
+      : null
+
+  const healthCaution = antar.healthCaution ?? maha.healthCaution
+
+  const lifeEvents = hint
+    ?? `Life events tilt toward ${antar.lifeEvents} while the larger ${mahaName} chapter (${maha.lifeEvents}) continues.`
+
+  return {
+    lord: antar.lord,
+    title,
+    years: durationYears > 0 ? durationYears : antar.years / 9,
+    nature: antar.nature,
+    keyTheme,
+    primaryPositive,
+    secondaryBenefits,
+    psychologicalState,
+    negativeEffects,
+    healthCaution,
+    lifeEvents,
+    phaseStart: sameLord
+      ? 'Opening antar — often a setup / struggle phase that seeds the rest of the mahadasha'
+      : `Start: ${antarName} themes enter under ${mahaName} — notice the shift in pace and focus`,
+    phaseMiddle: hint
+      ? `Peak of this pair: ${hint}`
+      : `Middle: ${antar.keyTheme} is most visible inside the ongoing ${maha.keyTheme}`,
+      phaseEnd: "End: this antar's colour fades; next antardasha reframes the same mahadasha",
+  }
+}
+
+/**
+ * Pratyantardasha narrative — finest of the three visible layers.
+ * Never reuse a full mahadasha essay; colours MD→AD with a short PD note.
+ */
+export function buildVimshottariPratyantarInterpretation(
+  mahaLord: string,
+  antarLord: string,
+  pratyaLord: string,
+  durationYears: number,
+): VimshottariInterpretation | null {
+  const maha = getVimshottariInterpretation(mahaLord)
+  const antar = getVimshottariInterpretation(antarLord)
+  const pratya = getVimshottariInterpretation(pratyaLord)
+  if (!maha || !antar || !pratya) return null
+
+  const mahaName = GRAHA_NAMES[maha.lord] ?? mahaLord
+  const antarName = GRAHA_NAMES[antar.lord] ?? antarLord
+  const pratyaName = GRAHA_NAMES[pratya.lord] ?? pratyaLord
+  const antarHint = getVimshottariAntarHint(mahaLord, antarLord)
+
+  const title = `${pratyaName} Pratyantar · ${antarName}/${mahaName}`
+  const keyTheme = `${pratya.keyTheme} inside ${antarName} antar`
+
+  const primaryPositive =
+    pratyaLord === antarLord && antarLord === mahaLord
+      ? `Peak concentration of ${pratyaName} themes at the MD→AD→PD nest — short, intense colouring of ${maha.keyTheme}.`
+      : `Fine timing: ${pratyaName} pratyantar colours the ${antarName} antar within ${mahaName} mahadasha with ${pratya.keyTheme}.`
+
+  return {
+    lord: pratya.lord,
+    title,
+    years: durationYears > 0 ? durationYears : antar.years / 81,
+    nature: pratya.nature,
+    keyTheme,
+    primaryPositive,
+    secondaryBenefits: antarHint
+      ? `Antar backdrop: ${antarHint} PD flavour: ${pratya.primaryPositive}`
+      : `MD (${mahaName}): ${maha.keyTheme}. AD (${antarName}): ${antar.keyTheme}. PD adds ${pratya.primaryPositive}`,
+    psychologicalState: `Mind briefly mixes ${pratyaName} habits into the ongoing ${antarName}/${mahaName} chapter: ${pratya.psychologicalState}`,
+    negativeEffects: pratya.negativeEffects
+      ? `Pratyantar caution (brief): ${pratya.negativeEffects}`
+      : antar.negativeEffects
+        ? `Watch antar pressure in this PD: ${antar.negativeEffects}`
+        : null,
+    healthCaution: pratya.healthCaution ?? antar.healthCaution ?? maha.healthCaution,
+    lifeEvents: `Short events tilt toward ${pratya.lifeEvents} while ${antarName} antar and ${mahaName} MD continue.`,
+    phaseStart: `Start: ${pratyaName} micro-theme enters under ${antarName}/${mahaName}`,
+    phaseMiddle: `Middle: ${pratya.keyTheme} is most visible in daily timing`,
+    phaseEnd: 'End: next pratyantar reframes the same antardasha',
+  }
 }
 
 export function isBeneficVimNature(nature: VimshottariNature): boolean {

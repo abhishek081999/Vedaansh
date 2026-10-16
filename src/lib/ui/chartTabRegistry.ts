@@ -102,8 +102,12 @@ export const MOBILE_DASHBOARD_OPTIONS = {
     { id: 'prashna', label: 'Prashna', path: '/prashna' },
     { id: 'numerology', label: 'Vedic Numerology', path: '/numerology' },
     { id: 'compare', label: 'Kundali Matching', path: '/compare' },
-    { id: 'roadmap', label: 'Cosmic Roadmap', path: '/roadmap' },
-    { id: 'transit-scrubber', label: 'Transit', path: '/scrubber' },
+    { id: 'transit-roadmap', label: 'Cosmic Roadmap', path: '/transit/roadmap' },
+    { id: 'transit-scrubber', label: 'Live Transit', path: '/transit/scrubber' },
+    { id: 'transit-sade-sati', label: 'Sade Sati', path: '/transit/sade-sati' },
+    { id: 'transit-aspects', label: 'Aspects', path: '/transit/aspects' },
+    { id: 'transit-biwheel', label: 'Bi-wheel', path: '/transit/biwheel' },
+    { id: 'transit-calendar', label: 'Calendar', path: '/transit/calendar' },
   ],
 } as const
 

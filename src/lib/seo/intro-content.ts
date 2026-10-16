@@ -257,12 +257,19 @@ export const ROADMAP_SEO: SeoIntroProps = {
   bullets: [
     { label: 'Transit timeline', desc: 'Major graha ingresses and aspects ahead' },
     { label: 'Dasha overlay', desc: 'Mahadasha and Antardasha on the same view' },
-    { label: 'Key windows', desc: 'Highlighted periods for caution or opportunity' },
-    { label: 'Chart-linked', desc: 'Personalised from your saved or session Kundali' },
+    { label: 'Sade Sati tracker', desc: 'Rising / peak / setting plus Kantaka and Ashtama from Moon' },
+    { label: 'Aspects & multi-transit', desc: 'Ju/Sa/Ra/Ke gochara hits and double/triple windows' },
+    { label: 'Bi-wheel + Moorthy + D9', desc: 'Natal/transit wheel, ingress moorthy, Navamsha gochar' },
+    { label: 'Monthly calendar', desc: 'Personal gochar month grid with printable HTML (Gold+)' },
   ],
   relatedLinks: [
     guideLink('vimshottari-dasha-explained', 'Vimshottari Dasha'),
     guideLink('ashtakavarga-explained', 'Ashtakavarga'),
+    { href: '/transit/sade-sati', label: 'Sade Sati tracker' },
+    { href: '/transit/aspects', label: 'Aspects & multi-transit' },
+    { href: '/transit/biwheel', label: 'Bi-wheel · Moorthy · D9' },
+    { href: '/transit/calendar', label: 'Transit calendar' },
+    { href: '/transit/scrubber', label: 'Live Transit scrubber' },
     { href: '/guides', label: 'All guides' },
   ],
 

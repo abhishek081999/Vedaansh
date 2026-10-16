@@ -82,7 +82,12 @@ export const ASTRO_GROUPS: NavGroup[] = [
     id: 'transit',
     label: 'Transit',
     tabs: [
-      { id: 'transit-scrubber', label: 'Transit', icon: Timer, path: '/scrubber' },
+      { id: 'transit-roadmap', label: 'Cosmic Roadmap', icon: Route, path: '/transit/roadmap' },
+      { id: 'transit-scrubber', label: 'Live Transit', icon: Timer, path: '/transit/scrubber' },
+      { id: 'transit-sade-sati', label: 'Sade Sati', icon: Hourglass, path: '/transit/sade-sati' },
+      { id: 'transit-aspects', label: 'Aspects', icon: Crosshair, path: '/transit/aspects' },
+      { id: 'transit-biwheel', label: 'Bi-wheel', icon: Orbit, path: '/transit/biwheel' },
+      { id: 'transit-calendar', label: 'Calendar', icon: CalendarDays, path: '/transit/calendar' },
     ],
   },
   {
@@ -140,8 +145,6 @@ export const ADVANCED_ASTRO_TABS: NavTab[] = [
   { id: 'prashna', label: 'Prashna', icon: Target, path: '/prashna' },
   { id: 'numerology', label: 'Vedic Numerology', icon: Hash, path: '/numerology' },
   { id: 'compare', label: 'Kundali Matching', icon: HeartHandshake, path: '/compare' },
-  { id: 'roadmap', label: 'Cosmic Roadmap', icon: Route, path: '/roadmap' },
-  { id: 'transit-scrubber', label: 'Transit', icon: Timer, path: '/scrubber' },
 ]
 
 export const MAIN_TABS: NavTab[] = [

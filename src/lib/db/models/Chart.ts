@@ -23,7 +23,19 @@ export interface IChart extends Document {
   isPublic:  boolean
   isPersonal:boolean   // true = user's own birth chart
   slug:      string | null   // for public sharing
-  notes:     Array<{ _id?: Types.ObjectId; content: string; createdAt: Date }>
+  notes:     Array<{
+    _id?: Types.ObjectId
+    content: string
+    createdAt: Date
+    /** Optional Vimshottari event tag (Platinum CRM / dasha journal) */
+    dashaTag?: {
+      mahaLord: string
+      antarLord?: string
+      periodStart?: string
+      periodEnd?: string
+      eventLabel?: string
+    }
+  }>
   tags:      string[]
   views:        number
   lastViewedAt: Date | null
@@ -49,6 +61,13 @@ const ChartSchema = new Schema<IChart>({
   notes: [{
     content:   { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
+    dashaTag: {
+      mahaLord:    { type: String },
+      antarLord:   { type: String },
+      periodStart: { type: String },
+      periodEnd:   { type: String },
+      eventLabel:  { type: String },
+    },
   }],
   tags: { type: [{ type: String, trim: true }], default: [] },
   views:        { type: Number, default: 0 },

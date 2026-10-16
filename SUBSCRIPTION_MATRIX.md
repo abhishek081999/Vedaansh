@@ -18,7 +18,8 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Save charts (library limit) | 20 | 200 | Unlimited | `src/lib/subscription/entitlements.ts`, `src/app/api/chart/save/route.ts`, `src/app/api/chart/bulk-import/route.ts` |
 | Public chart share links | Yes | Yes | Yes | `src/app/api/chart/public/route.ts`, `src/app/api/chart/toggle-public/route.ts` |
 | Chart library search | Yes | Yes | Yes | `src/app/api/chart/search/route.ts` |
-| Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts`, `proxy.ts` (`/api/chart/export`) |
+| Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts`, `proxy.ts` (`/api/chart/export`) — includes Gochar Phala chapter |
+| Transit hub advanced (Sade Sati, Aspects, Bi-wheel, Calendar) | Roadmap + Live Transit only | Yes | Yes | UI: `TransitHub` PlanGate; API: `/api/transit/calendar` (Gold+) |
 | Bulk XLSX import | Yes* | Yes* | Yes* | `src/app/api/chart/bulk-import/route.ts` — subject to save limits, not plan tier in API |
 | Email chart reports | No | No | Yes | `src/app/api/chart/send-email/route.ts` |
 | Bulk ZIP export | No | No | Yes | `src/app/api/chart/bulk-export/route.ts` |

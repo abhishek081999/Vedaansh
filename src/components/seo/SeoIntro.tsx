@@ -35,7 +35,7 @@ export function SeoIntro({
             {bullets.map((b) => (
               <li key={b.label} className={styles.item}>
                 <strong>{b.label}</strong>
-                {b.desc}
+                <span className={styles.desc}>{b.desc}</span>
               </li>
             ))}
           </ul>

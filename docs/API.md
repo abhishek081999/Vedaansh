@@ -120,6 +120,10 @@ Also gated in `proxy.ts` for `/muhurta` and `/api/muhurta`.
 | GET | `/api/health` | no | — | Liveness |
 | GET | `/api/panchang` | no | — | Daily panchang |
 | GET | `/api/transit` | no | — | Transits |
+| GET | `/api/transit/sade-sati` | no | — | Sade Sati / Kantaka / Ashtama from Moon |
+| GET | `/api/transit/aspects` | no | — | Gochara aspects + double/triple windows |
+| GET | `/api/transit/moorthy` | no | — | Ju/Sa Moorthy Nirnaya (ingress weekday) |
+| GET | `/api/transit/calendar` | yes | gold | Monthly gochar calendar (`format=html` printable) |
 | GET | `/api/transits/planets` | no | — | Planet positions |
 | GET | `/api/atlas/search` | no | — | Geocode (Photon / Open-Meteo / Nominatim + Redis) |
 

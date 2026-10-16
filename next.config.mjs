@@ -69,6 +69,16 @@ const nextConfig = {
         destination: '/',
         permanent:   true,
       },
+      {
+        source:      '/roadmap',
+        destination: '/transit/roadmap',
+        permanent:   true,
+      },
+      {
+        source:      '/scrubber',
+        destination: '/transit/scrubber',
+        permanent:   true,
+      },
     ]
   },
 

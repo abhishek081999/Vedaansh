@@ -97,11 +97,11 @@ const TOOL_DOCS: SearchDoc[] = [
     keywords: ['vastu', 'dig bala', 'astro vastu'],
   },
   {
-    title: 'Transit Roadmap',
-    description: 'Personal dasha and transit timeline.',
-    url: '/roadmap',
+    title: 'Transit Hub',
+    description: 'Cosmic Roadmap with Vimshottari dasha overlay and live gochar scrubber.',
+    url: '/transit/roadmap',
     type: 'tool',
-    keywords: ['transit', 'roadmap', 'forecast'],
+    keywords: ['transit', 'roadmap', 'gochar', 'dasha', 'forecast'],
   },
   {
     title: 'Pricing',

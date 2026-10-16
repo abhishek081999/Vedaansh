@@ -1,38 +1,40 @@
-/* Visible, crawlable tool intro — not clipped / not cloaked */
+/* Visible, crawlable tool intro — compact footer-style block, not a second hero */
 .section {
-  margin: var(--space-8, 2rem) auto 0;
-  padding: var(--space-6, 1.5rem) var(--space-5, 1.25rem) var(--space-8, 2rem);
-  max-width: 52rem;
-  border-top: 1px solid var(--border-soft);
+  margin: var(--space-10, 2.5rem) auto 0;
+  padding: var(--space-8, 2rem) var(--space-5, 1.25rem) var(--space-10, 2.5rem);
+  max-width: 48rem;
+  border-top: 1px solid var(--border);
   color: var(--text-secondary);
 }
 
 .title {
   margin: 0 0 var(--space-3, 0.75rem);
   font-family: var(--font-display), Georgia, serif;
-  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+  font-size: clamp(1.2rem, 2.6vw, 1.55rem);
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.28;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 .paragraph {
   margin: 0 0 var(--space-3, 0.75rem);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   line-height: 1.65;
   color: var(--text-secondary);
+  max-width: 42rem;
 }
 
 .paragraph:last-of-type {
-  margin-bottom: var(--space-4, 1rem);
+  margin-bottom: var(--space-2, 0.5rem);
 }
 
 .subtitle {
-  margin: var(--space-5, 1.25rem) 0 var(--space-3, 0.75rem);
+  margin: var(--space-6, 1.5rem) 0 var(--space-3, 0.75rem);
   font-family: var(--font-display), Georgia, serif;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--text-gold, var(--gold));
 }
 
@@ -41,7 +43,8 @@
   padding: 0;
   list-style: none;
   display: grid;
-  gap: var(--space-3, 0.75rem);
+  gap: 0;
+  border-top: 1px solid var(--border);
 }
 
 @media (min-width: 640px) {
@@ -52,24 +55,43 @@
 
 .item {
   margin: 0;
-  padding: var(--space-3, 0.75rem);
-  background: var(--surface-2);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-md, 8px);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--text-secondary);
+  padding: var(--space-3, 0.75rem) var(--space-3, 0.75rem) var(--space-3, 0.75rem)
+    calc(var(--space-3, 0.75rem) + 2px);
+  border-bottom: 1px solid var(--border);
+  border-left: 2px solid transparent;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+@media (min-width: 640px) {
+  .item:nth-child(odd) {
+    border-right: 1px solid var(--border);
+  }
+}
+
+.item:hover {
+  border-left-color: var(--gold);
+  background: var(--gold-faint);
 }
 
 .item strong {
   display: block;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
   color: var(--text-primary);
+  font-size: 0.88rem;
   font-weight: 600;
+  line-height: 1.35;
+}
+
+.desc {
+  display: block;
+  color: var(--text-muted);
 }
 
 .related {
-  margin-top: var(--space-5, 1.25rem);
+  margin-top: var(--space-6, 1.5rem);
 }
 
 .relatedList {
@@ -78,29 +100,37 @@
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 0.85rem;
+  gap: 0.45rem;
 }
 
 .relatedLink {
-  font-size: 0.88rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-gold, var(--gold));
+  color: var(--text-primary);
   text-decoration: none;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.35);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm, 6px);
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .relatedLink:hover {
-  border-bottom-color: var(--gold);
+  color: var(--text-gold, var(--gold));
+  border-color: var(--border-bright);
+  background: var(--gold-faint);
 }
 
 .faq {
-  margin: var(--space-5, 1.25rem) 0 0;
+  margin: var(--space-6, 1.5rem) 0 0;
 }
 
 .faqTitle {
   margin: 0 0 var(--space-3, 0.75rem);
   font-family: var(--font-display), Georgia, serif;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-gold, var(--gold));
 }
@@ -108,27 +138,26 @@
 .faqList {
   margin: 0;
   display: grid;
-  gap: var(--space-3, 0.75rem);
+  gap: 0;
+  border-top: 1px solid var(--border);
 }
 
 .faqItem {
   margin: 0;
-  padding: var(--space-3, 0.75rem);
-  background: var(--surface-2);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-md, 8px);
+  padding: var(--space-3, 0.75rem) 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .faqItem dt {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.3rem;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-primary);
 }
 
 .faqItem dd {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   line-height: 1.55;
   color: var(--text-secondary);
 }

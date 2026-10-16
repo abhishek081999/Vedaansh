@@ -1,5 +1,9 @@
+// ─────────────────────────────────────────────────────────────
+//  src/lib/engine/aspects.ts
+//  Parashara whole-sign drishti helpers (UI + gochar shared)
+// ─────────────────────────────────────────────────────────────
 
-import type { GrahaId } from '@/types/astrology'
+import type { GrahaId, Rashi } from '@/types/astrology'
 
 /**
  * Standard Vedic (Parashari) Aspects
@@ -22,7 +26,7 @@ export const GRAHA_ASPECTS: Record<GrahaId, number[]> = {
   Ke: [],
   Ur: [7],
   Ne: [7],
-  Pl: [7]
+  Pl: [7],
 }
 
 /**
@@ -51,4 +55,37 @@ export function getAspectDescription(a: number): string {
   if (a === 9) return 'Fortune & Grace'
   if (a === 10) return 'Action & Karma'
   return ''
+}
+
+/** Whole-sign house count from `fromRashi` to `toRashi` (1 = same sign). */
+export function wholeSignCount(fromRashi: number, toRashi: number): number {
+  return ((toRashi - fromRashi + 12) % 12) + 1
+}
+
+/**
+ * Vedic whole-sign aspect (Parashara) by sign:
+ * all grahas 7th; Mars 4/8; Jupiter 5/9; Saturn 3/10.
+ * Conjunction (same sign) is NOT an aspect here — check separately.
+ * Nodes: no classical drishti (matches GRAHA_ASPECTS).
+ */
+export function hasParasharaAspect(
+  sourceSign: Rashi,
+  sourceId: GrahaId,
+  targetSign: Rashi,
+): boolean {
+  const diff = wholeSignCount(sourceSign, targetSign)
+  const aspects = GRAHA_ASPECTS[sourceId] ?? [7]
+  return aspects.includes(diff)
+}
+
+export type TransitRelation = 'conjunction' | 'aspect'
+
+export function transitRelationToSign(
+  sourceSign: Rashi,
+  sourceId: GrahaId,
+  targetSign: Rashi,
+): TransitRelation | null {
+  if (sourceSign === targetSign) return 'conjunction'
+  if (hasParasharaAspect(sourceSign, sourceId, targetSign)) return 'aspect'
+  return null
 }

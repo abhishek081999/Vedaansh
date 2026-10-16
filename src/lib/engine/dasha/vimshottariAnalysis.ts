@@ -12,7 +12,9 @@ import type {
   Rashi,
   ShadbalaResult,
 } from '@/types/astrology'
+import { GRAHA_NAMES, NAKSHATRA_LORDS } from '@/types/astrology'
 import { DASHA_SEQUENCE } from '@/lib/engine/dasha/vimshottari'
+import { KARAKA_DESCRIPTIONS, type KarakaRole8 } from '@/lib/engine/karakas'
 import { getMarakaBadhakaFlags } from '@/lib/engine/marakaBadhaka'
 import { estimateDashaResultPercent } from '@/lib/engine/ashtakavargaInsights'
 import {
@@ -63,6 +65,12 @@ export interface VimshottariLordSnapshot {
   /** Bhava numbers (1–12) this graha lords from the lagna */
   housesRuled: number[]
   dignity: string | null
+  /** Dignity in Navamsha (D9) when available */
+  d9Dignity: string | null
+  /** Whole-sign house of the lord in D9 from D9 lagna proxy (D1 lagna used for house count) */
+  d9House: number | null
+  /** Same rashi in D1 and D9 */
+  isVargottama: boolean
   isRetro: boolean
   isGandantaEdge: boolean
   shadbalaRatio: number | null
@@ -75,6 +83,44 @@ export interface VimshottariLordSnapshot {
   isYogakaraka: boolean
   /** Approaching exaltation / debilitation peak within that sign */
   arohiniKind: ArohiniKind
+  /** Chara karaka role when assigned (AK, AmK, DK, …) */
+  charaKaraka: string | null
+}
+
+export interface DispositorLink {
+  lord: GrahaId
+  role: 'period' | 'sign' | 'nakshatra'
+  label: string
+}
+
+export interface DispositorChain {
+  links: DispositorLink[]
+  /** Plain-language delivery chain */
+  summary: string
+}
+
+export type LifeAreaId =
+  | 'career'
+  | 'money'
+  | 'home'
+  | 'relationship'
+  | 'health'
+  | 'learning'
+
+export interface LifeAreaActivation {
+  id: LifeAreaId
+  label: string
+  /** Houses that feed this area */
+  houses: number[]
+  /** How strongly MD/AD activate this area */
+  strength: 'high' | 'medium' | 'low' | 'quiet'
+  note: string
+}
+
+export interface VimshottariLifeAreaMap {
+  areas: LifeAreaActivation[]
+  /** One-line “activated now” */
+  headline: string
 }
 
 export interface VimshottariCrispInsight {
@@ -91,6 +137,7 @@ export interface VimshottariCrispInsight {
 export interface VimshottariPeriodAnalysis {
   mahadasha: VimshottariLordSnapshot
   antardasha: VimshottariLordSnapshot | null
+  pratyantardasha: VimshottariLordSnapshot | null
   relation: MdAdRelation | null
   flags: VimshottariFlag[]
   /** Soft mix — never 100/0; always sums to 100 */
@@ -105,6 +152,17 @@ export interface VimshottariPeriodAnalysis {
   summary: string
   /** Plain-language “what happens in this dasha” */
   insight: VimshottariCrispInsight
+  /** Life-area activation from MD/AD houses */
+  lifeAreas: VimshottariLifeAreaMap
+  /** Short D9 delivery note when navamsha data present */
+  d9Note: string | null
+  /** Sign → nakshatra dispositor chains for MD (and AD when present) */
+  dispositorChains: {
+    mahadasha: DispositorChain
+    antardasha: DispositorChain | null
+  }
+  /** Chara-karaka overlap note for period lords */
+  charaKarakaNote: string | null
 }
 
 export interface AnalyzeVimshottariInput {
@@ -270,9 +328,12 @@ function lordSnapshot(
   grahas: GrahaData[],
   shadbala: ShadbalaResult | null | undefined,
   ashtakavarga: AshtakavargaResult | null | undefined,
+  navamshaGrahas?: GrahaData[] | null,
 ): VimshottariLordSnapshot {
   const g = findGraha(grahas, lord)
+  const d9 = navamshaGrahas?.length ? findGraha(navamshaGrahas, lord) : undefined
   const house = g ? wholeSignHouse(g.rashi, ascRashi) : null
+  const d9House = d9 ? wholeSignHouse(d9.rashi, ascRashi) : null
   const mb = getMarakaBadhakaFlags(ascRashi, lord)
   const sb = shadbala?.planets?.[lord]
   const bav = bavInOccupiedSign(ashtakavarga, lord, g?.rashi)
@@ -282,6 +343,9 @@ function lordSnapshot(
     house,
     housesRuled: housesRuledBy(ascRashi, lord),
     dignity: g?.dignity ?? null,
+    d9Dignity: d9?.dignity ?? null,
+    d9House,
+    isVargottama: !!(g && d9 && g.rashi === d9.rashi),
     isRetro: g?.isRetro ?? false,
     isGandantaEdge: isGandantaEdge(g),
     shadbalaRatio: sb?.ratio ?? null,
@@ -293,7 +357,150 @@ function lordSnapshot(
     marakaCancelled: mb.marakaCancelledByTrikona,
     isYogakaraka: isYogakarakaLord(ascRashi, lord),
     arohiniKind: arohiniKindForGraha(g),
+    charaKaraka: g?.charaKaraka ?? null,
   }
+}
+
+/**
+ * Classical delivery chain: period lord → sign dispositor → nakshatra lord.
+ */
+export function buildDispositorChain(
+  lord: string,
+  grahas: GrahaData[],
+): DispositorChain {
+  const g = findGraha(grahas, lord)
+  const periodName = GRAHA_NAMES[lord as GrahaId] ?? lord
+  const links: DispositorLink[] = [
+    { lord: lord as GrahaId, role: 'period', label: `${periodName} (period lord)` },
+  ]
+
+  if (g) {
+    const signLord = SIGN_LORDS[g.rashi]
+    if (signLord) {
+      const signName = GRAHA_NAMES[signLord] ?? signLord
+      links.push({
+        lord: signLord,
+        role: 'sign',
+        label: `${signName} (sign lord of ${periodName})`,
+      })
+    }
+    const nakLord = NAKSHATRA_LORDS[g.nakshatraIndex] as GrahaId | undefined
+    if (nakLord) {
+      const nakName = GRAHA_NAMES[nakLord] ?? nakLord
+      links.push({
+        lord: nakLord,
+        role: 'nakshatra',
+        label: `${nakName} (nakshatra lord)`,
+      })
+    }
+  }
+
+  const summary = links.length >= 3
+    ? `${links[0].lord} → ${links[1].lord} → ${links[2].lord}: fruit often delivers through the sign and star lords.`
+    : `${periodName} dispositor chain incomplete — placement data missing.`
+
+  return { links, summary }
+}
+
+function buildCharaKarakaNote(
+  mahadasha: VimshottariLordSnapshot,
+  antardasha: VimshottariLordSnapshot | null,
+): string | null {
+  const parts: string[] = []
+  const describe = (snap: VimshottariLordSnapshot, layer: string) => {
+    const role = snap.charaKaraka as KarakaRole8 | null
+    if (!role) return
+    const desc = KARAKA_DESCRIPTIONS[role] ?? role
+    if (role === 'AK') {
+      parts.push(`${layer} lord is Atmakaraka — soul-purpose timing; identity themes intensify.`)
+    } else if (role === 'AmK') {
+      parts.push(`${layer} lord is Amatyakaraka — career/counsel timing is highlighted.`)
+    } else if (role === 'DK') {
+      parts.push(`${layer} lord is Darakaraka — partnership/spouse themes colour this stretch.`)
+    } else {
+      parts.push(`${layer} lord is ${role} (${desc.split('—')[0]?.trim() ?? role}).`)
+    }
+  }
+  describe(mahadasha, 'MD')
+  if (antardasha) describe(antardasha, 'AD')
+  return parts.length ? parts.slice(0, 2).join(' ') : null
+}
+
+const LIFE_AREA_DEFS: Array<{
+  id: LifeAreaId
+  label: string
+  houses: number[]
+}> = [
+  { id: 'career', label: 'Career', houses: [10, 6] },
+  { id: 'money', label: 'Money', houses: [2, 11] },
+  { id: 'home', label: 'Home', houses: [4, 12] },
+  { id: 'relationship', label: 'Relationship', houses: [7, 5] },
+  { id: 'health', label: 'Health', houses: [1, 6, 8] },
+  { id: 'learning', label: 'Learning', houses: [5, 9] },
+]
+
+/**
+ * Map MD/AD owned + occupied houses onto life areas for a simple “activated now” grid.
+ */
+export function buildLifeAreaActivation(
+  mahadasha: VimshottariLordSnapshot,
+  antardasha: VimshottariLordSnapshot | null,
+): VimshottariLifeAreaMap {
+  const scoreHouse = (h: number): number => {
+    let s = 0
+    if (mahadasha.housesRuled.includes(h)) s += 3
+    if (mahadasha.house === h) s += 2
+    if (antardasha?.housesRuled.includes(h)) s += 2
+    if (antardasha?.house === h) s += 1
+    return s
+  }
+
+  const areas: LifeAreaActivation[] = LIFE_AREA_DEFS.map(def => {
+    const houseScores = def.houses.map(h => ({ h, s: scoreHouse(h) }))
+    const total = houseScores.reduce((a, x) => a + x.s, 0)
+    const activeHouses = houseScores.filter(x => x.s > 0).map(x => x.h)
+    const strength: LifeAreaActivation['strength'] =
+      total >= 5 ? 'high' : total >= 3 ? 'medium' : total >= 1 ? 'low' : 'quiet'
+    const themes = activeHouses.map(h => HOUSE_THEME[h] ?? `H${h}`).join('; ')
+    const note =
+      strength === 'quiet'
+        ? 'Quiet this stretch — not a primary activation.'
+        : `Activated via H${activeHouses.join(', H')} — ${themes}.`
+    return { id: def.id, label: def.label, houses: def.houses, strength, note }
+  })
+
+  const hot = areas.filter(a => a.strength === 'high' || a.strength === 'medium')
+  const headline = hot.length
+    ? `Activated now: ${hot.map(a => a.label).join(', ')}.`
+    : 'No single life area dominates — mixed house activation.'
+
+  return { areas, headline }
+}
+
+function buildD9Note(
+  mahadasha: VimshottariLordSnapshot,
+  antardasha: VimshottariLordSnapshot | null,
+): string | null {
+  const parts: string[] = []
+  const describe = (snap: VimshottariLordSnapshot, label: string) => {
+    if (!snap.d9Dignity && !snap.isVargottama) return
+    if (snap.isVargottama) {
+      parts.push(`${label} lord is vargottama — Rasi promise tends to land more fully.`)
+    }
+    if (snap.d9Dignity === 'exalted' || snap.d9Dignity === 'own' || snap.d9Dignity === 'moolatrikona') {
+      parts.push(`${label} strong in D9 (${snap.d9Dignity}) — delivery support even if D1 is mixed.`)
+    } else if (snap.d9Dignity === 'debilitated' || isEnemyDignity(snap.d9Dignity)) {
+      const d1Strong = snap.dignity === 'exalted' || snap.dignity === 'own' || snap.dignity === 'moolatrikona'
+      parts.push(
+        d1Strong
+          ? `${label} strong in D1 but weak in D9 (${snap.d9Dignity}) — results can feel hollow or incomplete.`
+          : `${label} weak in D9 (${snap.d9Dignity}) — expect friction in how results arrive.`,
+      )
+    }
+  }
+  describe(mahadasha, 'MD')
+  if (antardasha) describe(antardasha, 'AD')
+  return parts.length ? parts.slice(0, 2).join(' ') : null
 }
 
 function isEnemyDignity(dignity: string | null | undefined): boolean {
@@ -585,9 +792,13 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
 
   const mahaNode = path[0]
   const antarNode = path[1] ?? null
-  const mahadasha = lordSnapshot(mahaNode.lord, ascRashi, grahas, shadbala, ashtakavarga)
+  const pratyaNode = path[2] ?? null
+  const mahadasha = lordSnapshot(mahaNode.lord, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas)
   const antardasha = antarNode
-    ? lordSnapshot(antarNode.lord, ascRashi, grahas, shadbala, ashtakavarga)
+    ? lordSnapshot(antarNode.lord, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas)
+    : null
+  const pratyantardasha = pratyaNode
+    ? lordSnapshot(pratyaNode.lord, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas)
     : null
 
   const profile = getLagnaDashaProfile(ascRashi)
@@ -679,6 +890,68 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       label: 'Arishta (affliction)',
       tone: 'caution',
       detail: 'Debilitation and/or enemy dignity in D1 or D9 — expect more troubles; not absolute misfortune.',
+    })
+  }
+
+  const akAd = [mahadasha, antardasha].filter(Boolean) as VimshottariLordSnapshot[]
+  for (const snap of akAd) {
+    if (snap.charaKaraka === 'AK') {
+      fav += 4
+      flags.push({
+        id: `chara-ak-${snap.lord}`,
+        label: `${snap.lord} = AK`,
+        tone: 'supportive',
+        detail: 'Atmakaraka period — soul-purpose and self-identity themes are classically emphasised.',
+      })
+    } else if (snap.charaKaraka === 'AmK') {
+      fav += 4
+      flags.push({
+        id: `chara-amk-${snap.lord}`,
+        label: `${snap.lord} = AmK`,
+        tone: 'supportive',
+        detail: 'Amatyakaraka period — career, counsel, and what sustains you are highlighted.',
+      })
+    } else if (snap.charaKaraka === 'DK') {
+      flags.push({
+        id: `chara-dk-${snap.lord}`,
+        label: `${snap.lord} = DK`,
+        tone: 'mixed',
+        detail: 'Darakaraka period — partnership and spouse significations colour timing.',
+      })
+    }
+  }
+
+  if (mahadasha.isVargottama || antardasha?.isVargottama) {
+    fav += 8
+    flags.push({
+      id: 'vargottama',
+      label: 'Vargottama period lord',
+      tone: 'supportive',
+      detail: 'Period lord occupies the same sign in D1 and D9 — classical support for fuller delivery of promise.',
+    })
+  } else if (
+    mahadasha.d9Dignity === 'exalted'
+    || mahadasha.d9Dignity === 'own'
+    || antardasha?.d9Dignity === 'exalted'
+    || antardasha?.d9Dignity === 'own'
+  ) {
+    fav += 6
+    flags.push({
+      id: 'd9-strong',
+      label: 'Strong Navamsha',
+      tone: 'supportive',
+      detail: 'Period lord dignified in D9 — Navamsha strength supports how results materialise.',
+    })
+  } else if (
+    mahadasha.d9Dignity === 'debilitated'
+    || antardasha?.d9Dignity === 'debilitated'
+  ) {
+    chal += 6
+    flags.push({
+      id: 'd9-weak',
+      label: 'Weak Navamsha',
+      tone: 'caution',
+      detail: 'Period lord debilitated in D9 — Rasi promise may arrive hollow or incomplete.',
     })
   }
 
@@ -824,9 +1097,18 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
     antarNode?.lord ?? null,
   )
 
+  const lifeAreas = buildLifeAreaActivation(mahadasha, antardasha)
+  const d9Note = buildD9Note(mahadasha, antardasha)
+  const dispositorChains = {
+    mahadasha: buildDispositorChain(mahaNode.lord, grahas),
+    antardasha: antarNode ? buildDispositorChain(antarNode.lord, grahas) : null,
+  }
+  const charaKarakaNote = buildCharaKarakaNote(mahadasha, antardasha)
+
   return {
     mahadasha,
     antardasha,
+    pratyantardasha,
     relation,
     flags,
     ...mix,
@@ -835,5 +1117,9 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
     marakaNote: profile.marakaNote,
     summary,
     insight,
+    lifeAreas,
+    d9Note,
+    dispositorChains,
+    charaKarakaNote,
   }
 }

@@ -59,6 +59,8 @@ interface Props {
   fontScale?:  number
   planetScale?: number
   showTooltip?: boolean
+  /** Distinct natal (inner) / transit (outer) rings with divider. */
+  biWheel?: boolean
 }
 
 export function CircleChakra({
@@ -68,6 +70,7 @@ export function CircleChakra({
   arudhas, lagnas, transitGrahas = [], comparisonGrahas = [],
   fontScale = 1.0, planetScale = 1.0,
   showTooltip = false,
+  biWheel = false,
 }: Props) {
   const cx = size / 2, cy = size / 2
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
@@ -162,7 +165,10 @@ export function CircleChakra({
   const outerR  = size / 2 - 6
   const signR   = outerR - 28   // sign label ring
   const planetR = signR  - 16   // planet zone outer edge
-  const innerR  = planetR - 56  // inner circle radius
+  const innerR  = biWheel ? planetR - 72 : planetR - 56  // inner circle radius
+  const biDividerR = biWheel ? (innerR + planetR) / 2 + 4 : 0
+  const natalZoneR = biWheel ? innerR + 28 : planetR - 10
+  const transitZoneR = biWheel ? planetR + 6 : planetR + 10
   const bf = 11 * fontScale
   const pf = 11 * planetScale
 
@@ -265,12 +271,38 @@ export function CircleChakra({
         fill="var(--surface-1, #1a1a2a)"
         stroke="var(--border, #555)" strokeWidth={0.8}
       />
+      {biWheel && biDividerR > 0 && (
+        <circle
+          cx={cx} cy={cy} r={biDividerR}
+          fill="none"
+          stroke="var(--gold)"
+          strokeWidth={1}
+          strokeDasharray="3 4"
+          opacity={0.55}
+        />
+      )}
       <text x={cx} y={cy - innerR + 18}
         textAnchor="middle" dominantBaseline="central"
         fontSize={bf - 1} fill="#5b9bd5" fontWeight={700}
       >
         As
       </text>
+      {biWheel && (
+        <>
+          <text x={cx} y={cy - 6}
+            textAnchor="middle" dominantBaseline="central"
+            fontSize={bf - 2} fill="var(--text-muted)" fontWeight={600}
+          >
+            Natal
+          </text>
+          <text x={cx} y={cy + 10}
+            textAnchor="middle" dominantBaseline="central"
+            fontSize={bf - 2} fill="rgba(139,124,246,0.95)" fontWeight={600}
+          >
+            Transit
+          </text>
+        </>
+      )}
 
       {/* ── Planets ──────────────────────────────────────────── */}
       {Array.from({ length: 12 }, (_, i) => {
@@ -279,7 +311,7 @@ export function CircleChakra({
         const transits = tByHouse[h]
         if (!planets.length && !transits.length) return null
         const mid = houseMidDeg(h)
-        const pZone = planetR - 10  // centre of planet zone
+        const pZone = natalZoneR
 
         return (
           <g key={h}>
@@ -287,7 +319,7 @@ export function CircleChakra({
               const n   = planets.length
               const pfThis = Math.max(6 * fontScale, Math.min(pf, pf / Math.sqrt(Math.max(n, 1))))
               // Spread planets radially — stack along spoke, not tangentially
-              const radSpread = Math.min(22, 44 / Math.max(n, 1))
+              const radSpread = Math.min(biWheel ? 16 : 22, (biWheel ? 32 : 44) / Math.max(n, 1))
               const rOff = (pi - (n - 1) / 2) * radSpread
               const [px, py] = polar(cx, cy, pZone + rOff, mid)
               const col   = grahaChartFill(g.id)
@@ -352,15 +384,15 @@ export function CircleChakra({
             {transits.map((g, pi) => {
               const n = transits.length
               const pfT = Math.max(5 * fontScale, Math.min(pf - 2, (pf - 2) / Math.sqrt(Math.max(n, 1))))
-              const radSpread = Math.min(18, 36 / Math.max(n, 1))
+              const radSpread = Math.min(biWheel ? 14 : 18, (biWheel ? 28 : 36) / Math.max(n, 1))
               const rOff = (pi - (n - 1) / 2) * radSpread
-              const [px, py] = polar(cx, cy, planetR + 10 + rOff, mid)
+              const [px, py] = polar(cx, cy, transitZoneR + rOff, mid)
               return (
                 <text key={`t-${g.id}`}
                   x={px} y={py}
                   textAnchor="middle" dominantBaseline="central"
-                  fontSize={pfT} fontWeight={600}
-                  fill="rgba(139,124,246,0.9)"
+                  fontSize={pfT} fontWeight={biWheel ? 700 : 600}
+                  fill="rgba(139,124,246,0.95)"
                 >
                   {GRAHA_SHORT[g.id] ?? g.id}{showDegrees ? ` ${Math.floor(g.degree)}°` : ''}
                 </text>
