@@ -22,6 +22,9 @@ import {
   type VimshottariPeriodAnalysis,
 } from '@/lib/engine/dasha/vimshottariAnalysis'
 import {
+  buildVimshottariAntarInterpretation,
+  durationMsToYears,
+  formatVimshottariDurationYears,
   getVimshottariAntarHint,
   getVimshottariInterpretation,
   isBeneficVimNature,
@@ -110,6 +113,8 @@ function PlanetCard({
   levelLabel,
   snapLine,
   antarHint,
+  durationLabel,
+  isAntar = false,
   defaultExpanded = false,
   canExpandDetails,
 }: {
@@ -117,6 +122,9 @@ function PlanetCard({
   levelLabel: string
   snapLine?: string | null
   antarHint?: string | null
+  /** Override years display (e.g. antardasha months) */
+  durationLabel?: string | null
+  isAntar?: boolean
   defaultExpanded?: boolean
   canExpandDetails: boolean
 }) {
@@ -127,6 +135,8 @@ function PlanetCard({
     : isBeneficVimNature(data.nature)
       ? 'var(--teal)'
       : 'var(--gold-faint)'
+  const durationText = durationLabel
+    ?? `${data.years} ${data.years === 1 ? 'Year' : 'Years'}`
 
   return (
     <div
@@ -185,7 +195,7 @@ function PlanetCard({
             </span>
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4, fontWeight: 600 }}>
-            {data.years} {data.years === 1 ? 'Year' : 'Years'} · {data.keyTheme}
+            {durationText} · {data.keyTheme}
           </div>
           {snapLine && (
             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 4 }}>{snapLine}</div>
@@ -227,10 +237,10 @@ function PlanetCard({
             }}
           >
             <Section title="Positive Effects">
-              <Line label="Primary" value={data.primaryPositive} />
+              <Line label={isAntar ? 'This Antar' : 'Primary'} value={data.primaryPositive} />
               <Line label="Secondary" value={data.secondaryBenefits} />
             </Section>
-            <Section title="Mind & Phases">
+            <Section title={isAntar ? 'Antar Phases' : 'Mind & Phases'}>
               <Line label="State" value={data.psychologicalState} />
               <Line label="Start" value={data.phaseStart} />
               <Line label="Middle" value={data.phaseMiddle} />
@@ -244,7 +254,12 @@ function PlanetCard({
             </Section>
             <Section title="Life events">
               <Line label="Themes" value={data.lifeEvents} />
-              {antarHint && <Line label="This Antar" value={antarHint} />}
+              {antarHint && !isAntar && <Line label="This Antar" value={antarHint} />}
+              {isAntar && (
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4, marginTop: 4 }}>
+                  Sub-period only — does not replace the active mahadasha story.
+                </div>
+              )}
             </Section>
           </div>
         ) : (
@@ -330,11 +345,18 @@ export function VimshottariInterpretationPanel({
   if (activePath.length < 1) return null
 
   const maha = getVimshottariInterpretation(activePath[0].lord)
-  const antar = activePath[1] ? getVimshottariInterpretation(activePath[1].lord) : null
   if (!maha) return null
 
-  const antarHint = activePath[1]
-    ? getVimshottariAntarHint(activePath[0].lord, activePath[1].lord)
+  const antarNode = activePath[1] ?? null
+  const antarHint = antarNode
+    ? getVimshottariAntarHint(activePath[0].lord, antarNode.lord)
+    : null
+  const antarYears = antarNode ? durationMsToYears(antarNode.durationMs) : 0
+  const antar = antarNode
+    ? buildVimshottariAntarInterpretation(activePath[0].lord, antarNode.lord, antarYears)
+    : null
+  const antarDurationLabel = antarNode
+    ? formatVimshottariDurationYears(antarYears)
     : null
 
   return (
@@ -423,6 +445,8 @@ export function VimshottariInterpretationPanel({
           levelLabel="Active Antardasha"
           snapLine={analysis ? snapLabel(analysis, 'antar') : null}
           antarHint={antarHint}
+          durationLabel={antarDurationLabel}
+          isAntar
           canExpandDetails={canExpandDetails}
         />
       )}
