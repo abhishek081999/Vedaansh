@@ -456,6 +456,7 @@ export async function calculateChart(
     yogiPoint,
     houses,
     houseSystem: settings.houseSystem,
+    ascRashi: lagnaData.ascRashi,
   })
 
   // Dashas

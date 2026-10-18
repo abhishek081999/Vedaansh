@@ -8,7 +8,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { GRAHA_NAMES, RASHI_NAMES, NAKSHATRA_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
-import { SIGN_INTERPRETATIONS, NAKSHATRA_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
+import { SIGN_INTERPRETATIONS, NAKSHATRA_INTERPRETATIONS, DIGNITY_INTERPRETATIONS, getPlanetInHouse, getPlanetInSign } from '@/lib/engine/interpretations'
+import { getHouseTheme } from '@/lib/engine/houseInterpretations'
 import { getAspectedHouses, getAspectDescription, GRAHA_ASPECTS } from '@/lib/engine/aspects'
 
 
@@ -95,11 +96,13 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
   const degInSign = totalDeg % 30
   const nakIdx = planet.nakshatraIndex ?? Math.floor(totalDeg / (360 / 27)) % 27
 
-  const signInterp = SIGN_INTERPRETATIONS[id]?.[rashiNum]
+  const signInterp = getPlanetInSign(id, rashiNum, 'summary') || SIGN_INTERPRETATIONS[id]?.[rashiNum]
   const nakInterp = NAKSHATRA_INTERPRETATIONS[nakIdx]
   const dignityInterp = DIGNITY_INTERPRETATIONS[planet.dignity || 'neutral']
   const dignityColor = DIGNITY_COLORS[planet.dignity || 'neutral'] || '#94a3b8'
   const keywords = KEYWORD_MAP[id] || []
+  const houseInterp = planet.house ? getPlanetInHouse(id, planet.house, 'summary') : null
+  const houseTheme = planet.house ? getHouseTheme(planet.house) : null
 
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
@@ -235,6 +238,15 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
         </div>
       )}
 
+      {houseInterp && planet.house ? (
+        <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))' }}>
+          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', marginBottom: '0.3rem' }}>
+            In House {planet.house}{houseTheme ? ` · ${houseTheme.english}` : ''}
+          </div>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary, #bbb5d8)', lineHeight: 1.55, margin: 0 }}>{houseInterp}</p>
+        </div>
+      ) : null}
+
       {/* ── Aspects ── */}
       {planet.house && getAspectedHouses(id as GrahaId, planet.house).length > 0 && (
         <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))' }}>
@@ -242,11 +254,11 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {getAspectedHouses(id as GrahaId, planet.house).map((h, i) => {
               const rawAspect = GRAHA_ASPECTS[id as GrahaId]?.[i] || 7
-              const desc = getAspectDescription(rawAspect)
+              const desc = getAspectDescription(rawAspect, id as GrahaId)
               return (
                 <div key={h} style={{ flex: '1 1 45%', minWidth: '100px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <div style={{ width: 18, height: 18, borderRadius: 4, background: `${col.primary}18`, color: col.primary, border: `1px solid ${col.primary}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800 }}>{h}</div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>{desc}</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>{rawAspect}th · {desc}</div>
                 </div>
               )
             })}

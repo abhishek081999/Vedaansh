@@ -5,7 +5,7 @@ services:
     repo: https://github.com/abhishek081999/Vedaansh
     branch: main
     region: singapore        # closest free region to India
-    plan: free
+    plan: standard           # 1 CPU / 2 GB ($25) — was free 512 MB
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
@@ -16,7 +16,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NODE_OPTIONS
-        value: --max-old-space-size=450 --expose-gc
+        value: --max-old-space-size=1536 --expose-gc
 
       - key: NEXT_PUBLIC_APP_URL
         value: https://vedaansh.com

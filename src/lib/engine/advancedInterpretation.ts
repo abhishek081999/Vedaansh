@@ -4,11 +4,27 @@ import type {
   InterpretationInsight,
   GrahaId,
   HouseSystem,
+  Rashi,
   ShadbalaResult,
   YogiPointResult,
 } from '@/types/astrology'
 import type { HouseData } from './houses'
 import { planetHouse } from './houses'
+import {
+  CLASSICAL_GRAHAS,
+  getHouseTheme,
+  getPlanetInHouse,
+  type ClassicalGrahaId,
+} from './houseInterpretations'
+import { getPlanetInSign, getRashiCoreSummary, getRashiInHouse, getRashiProfile } from './rashiInterpretations'
+import {
+  getDignityClassicalNotes,
+  getHouseClassical,
+  getPlanetInHouseClassicalSummary,
+  getPlanetInSignClassicalSummary,
+  getRashiClassical,
+} from './classicalInterpretations'
+import { getChartLordships } from './lordshipInterpretations'
 
 function makeInsight(input: Omit<InterpretationInsight, 'id'> & { id?: string }): InterpretationInsight {
   return {
@@ -296,6 +312,98 @@ function specialConditionInsights(grahas: GrahaData[], houseByGrahaId: Map<Graha
   return insights
 }
 
+function lagnaRashiInsight(
+  ascRashi: number,
+  lagnaLordNotes: { text: string }[],
+): InterpretationInsight | null {
+  const profile = getRashiProfile(ascRashi)
+  const core = getRashiCoreSummary(ascRashi)
+  const inFirst = getRashiInHouse(ascRashi, 1)
+  if (!profile || !core) return null
+  const classical = getRashiClassical(ascRashi)[0]?.text
+  const houseClassical = getHouseClassical(1)[0]?.text
+  const lordClassical = lagnaLordNotes[0]?.text
+  const messageParts = [
+    inFirst ? `${core} As Lagna: ${inFirst}` : core,
+    classical ? `Classical: ${classical}` : null,
+    houseClassical ? `Bhava: ${houseClassical}` : null,
+    lordClassical ? `Lagna lord: ${lordClassical}` : null,
+  ].filter(Boolean)
+  return makeInsight({
+    title: `Lagna in ${profile.english}`,
+    message: messageParts.join(' '),
+    tone: 'mixed',
+    category: 'summary',
+    priority: 88,
+    relatedGrahas: [profile.lord],
+    house: 1,
+    actions: profile.remedies.slice(0, 2),
+  })
+}
+
+function planetInSignInsights(grahas: GrahaData[]): InterpretationInsight[] {
+  const insights: InterpretationInsight[] = []
+  for (const g of grahas) {
+    if (!(CLASSICAL_GRAHAS as string[]).includes(g.id)) continue
+    const message = getPlanetInSign(g.id, g.rashi, 'summary')
+    if (!message) continue
+    const profile = getRashiProfile(g.rashi)
+    const classical = getPlanetInSignClassicalSummary(g.id, g.rashi)
+    const dignityNote = getDignityClassicalNotes(g.dignity, g.isCombust, g.isRetro, g.id, 'summary')
+      .map((n) => n.text)
+      .slice(0, 2)
+      .join(' ')
+    const base = profile ? `${message} ${profile.english} theme: ${profile.coreSummary}` : message
+    const withClassical = classical ? `${base} Classical: ${classical}` : base
+    insights.push(makeInsight({
+      title: `${g.name} in ${profile?.english ?? `Rashi ${g.rashi}`}`,
+      message: dignityNote ? `${withClassical} ${dignityNote}` : withClassical,
+      tone: 'mixed',
+      category: 'summary',
+      priority: g.id === 'Su' || g.id === 'Mo' ? 76 : 58,
+      relatedGrahas: [g.id],
+    }))
+  }
+  return insights
+}
+
+function planetInHouseInsights(
+  grahas: GrahaData[],
+  houseByGrahaId: Map<GrahaId, number>,
+): InterpretationInsight[] {
+  const insights: InterpretationInsight[] = []
+  for (const g of grahas) {
+    if (!(CLASSICAL_GRAHAS as string[]).includes(g.id)) continue
+    const house = houseByGrahaId.get(g.id)
+    if (!house) continue
+    const message = getPlanetInHouse(g.id as ClassicalGrahaId, house, 'summary')
+    if (!message) continue
+    const theme = getHouseTheme(house)
+    const classical = getPlanetInHouseClassicalSummary(g.id, house)
+    const base = theme
+      ? `${message} This colors ${theme.english.toLowerCase()}.`
+      : message
+    insights.push(makeInsight({
+      title: `${g.name} in House ${house}`,
+      message: classical ? `${base} Classical: ${classical}` : base,
+      tone: 'mixed',
+      category: 'summary',
+      priority: house === 1 || house === 7 || house === 10
+        ? 80
+        : house === 4 || house === 9
+          ? 72
+          : 64,
+      relatedGrahas: [g.id],
+      house,
+      actions: [
+        `Watch how ${g.name} themes show up in House ${house}${theme ? ` (${theme.shortThemes})` : ''}.`,
+        dignityAction(g),
+      ],
+    }))
+  }
+  return insights
+}
+
 function yogiInsight(input: {
   yogi: YogiPointResult
   houses: HouseData
@@ -331,6 +439,7 @@ export function buildChartInterpretation(input: {
   yogiPoint: YogiPointResult
   houses: HouseData
   houseSystem: HouseSystem
+  ascRashi?: number
 }): ChartInterpretation {
   const houseByGrahaId = new Map<GrahaId, number>()
   const useBhava = input.houseSystem === 'bhava_chalita'
@@ -338,8 +447,20 @@ export function buildChartInterpretation(input: {
     houseByGrahaId.set(g.id, planetHouse(g.lonSidereal, input.houses, useBhava))
   }
 
+  // Infer lagna rashi from house cusps if not provided
+  const ascLon = input.houses.cuspsSidereal?.[0] ?? 0
+  const ascRashi = input.ascRashi
+    ?? (((Math.floor((((ascLon % 360) + 360) % 360) / 30) + 1) as number))
+
   // 1. Generate all potential insights
   const special  = specialConditionInsights(input.grahas, houseByGrahaId)
+  const housePlacements = planetInHouseInsights(input.grahas, houseByGrahaId)
+  const signPlacements = planetInSignInsights(input.grahas)
+  const lagnaLordNotes = getChartLordships(
+    ascRashi as Rashi,
+    input.grahas.map((g) => ({ id: g.id, rashi: g.rashi })),
+  ).find((l) => l.isLagnaLord)?.notes ?? []
+  const lagnaSign = lagnaRashiInsight(ascRashi, lagnaLordNotes)
   const strongest = strongestShadbalaInsight({
     shadbala: input.shadbala,
     grahas: input.grahas,
@@ -363,7 +484,10 @@ export function buildChartInterpretation(input: {
 
   if (strongest) insightMap.set(strongest.id, strongest)
   if (weakest) insightMap.set(weakest.id, weakest)
+  if (lagnaSign) insightMap.set(lagnaSign.id, lagnaSign)
   for (const s of special) insightMap.set(s.id, s)
+  for (const h of housePlacements) insightMap.set(h.id, h)
+  for (const s of signPlacements) insightMap.set(s.id, s)
   insightMap.set(summary.id, summary)
 
   const allInsights = Array.from(insightMap.values())
@@ -373,7 +497,7 @@ export function buildChartInterpretation(input: {
   const cautions  = allInsights.filter(i => i.category === 'vulnerability' || (i.tone === 'caution' && i.category !== 'strength')).sort((a, b) => b.priority - a.priority)
   const others    = allInsights.filter(i => i.category === 'special' || i.category === 'summary').sort((a, b) => b.priority - a.priority)
 
-  const topInsights = [...allInsights].sort((a, b) => b.priority - a.priority).slice(0, 6)
+  const topInsights = [...allInsights].sort((a, b) => b.priority - a.priority).slice(0, 8)
 
   return {
     headline: topInsights[0]?.tone === 'caution'

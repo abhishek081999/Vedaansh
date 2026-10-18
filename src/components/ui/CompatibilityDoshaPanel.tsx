@@ -2,7 +2,8 @@
 
 import React, { useMemo } from 'react'
 import { ChartOutput } from '@/types/astrology'
-import { calculateManglik, calculatePapeSamya } from '@/lib/engine/doshas'
+import { calculateManglik, calculatePapeSamya, type ManglikAnalysis } from '@/lib/engine/doshas'
+import { getManglikTeaching } from '@/lib/engine/manglikTeaching'
 
 /**
  * Advanced Relationship & Stability Analysis Suite
@@ -45,57 +46,80 @@ export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutpu
   )
 }
 
-function ManglikCard({ name, analysis }: { name: string; analysis: any }) {
+function ManglikCard({ name, analysis }: { name: string; analysis: ManglikAnalysis }) {
+  const teaching = getManglikTeaching(analysis)
   const intensity = analysis.intensity
-  const isManglik = analysis.isManglik
-  
-  const color = 
-    intensity === 'High' ? 'var(--rose)' : 
-    intensity === 'Low' ? 'var(--amber)' : 
-    'var(--teal)'
+
+  const color =
+    teaching.status === 'present'
+      ? intensity === 'High'
+        ? 'var(--rose)'
+        : 'var(--amber)'
+      : teaching.status === 'cancelled'
+        ? 'var(--amber)'
+        : 'var(--teal)'
+
+  const title =
+    teaching.status === 'present'
+      ? 'Kuja (Manglik) Dosha'
+      : teaching.status === 'cancelled'
+        ? 'Manglik cancelled'
+        : 'Non-Manglik'
 
   return (
-    <div className="card" style={{ 
-      padding: '1.25rem', 
-      border: `1px solid ${intensity !== 'None' ? color : 'var(--border)'}`,
-      background: `linear-gradient(135deg, var(--surface-1) 0%, ${color}05 100%)`
+    <div className="card" style={{
+      padding: '1.25rem',
+      border: `1px solid ${teaching.status === 'not_present' ? 'var(--border)' : color}`,
+      background: `linear-gradient(135deg, var(--surface-1) 0%, ${color}05 100%)`,
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
         <div>
           <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{name}</div>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', color: isManglik ? 'var(--text-primary)' : 'var(--teal)' }}>
-            {isManglik ? 'Kuja (Manglik) Dosha' : 'Non-Manglik'}
+          <h3 style={{ margin: 0, fontSize: '1.1rem', color: teaching.status === 'present' ? 'var(--text-primary)' : 'var(--teal)' }}>
+            {title}
           </h3>
         </div>
-        <div style={{ 
-          padding: '2px 8px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800, 
-          background: `${color}15`, color: color, border: `1px solid ${color}30`
+        <div style={{
+          padding: '2px 8px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800,
+          background: `${color}15`, color, border: `1px solid ${color}30`,
         }}>
-          {intensity.toUpperCase()}
+          {teaching.headline.toUpperCase()}
+          {teaching.status === 'present' && intensity !== 'None' ? ` · ${intensity.toUpperCase()}` : ''}
         </div>
       </div>
 
-      {isManglik ? (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-          Mars is located in the <strong>{analysis.house}th House</strong>. This placement can indicate passionate but intense energy in partnerships. 
-          {intensity === 'High' && ' Classical remedial measures or matching with a Manglik partner is advised.'}
+          {teaching.statusDetail}
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <div style={{ fontSize: '0.82rem', color: 'var(--teal)', fontWeight: 600 }}>
-            {analysis.cancellations.length > 0 ? 'Dosha Cancelled/Neutralized' : 'No affliction present in focal houses.'}
+        {teaching.houseNote ? (
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            {teaching.houseNote}
           </div>
-          {analysis.cancellations.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-              {analysis.cancellations.map((c: string) => (
-                <span key={c} style={{ fontSize: '0.65rem', background: 'var(--teal-faint)', color: 'var(--teal)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--teal)30' }}>
-                  {c}
-                </span>
-              ))}
-            </div>
-          )}
+        ) : null}
+        {teaching.cancellationNotes.length > 0 ? (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+            {teaching.cancellationNotes.map((c) => (
+              <span
+                key={c}
+                style={{
+                  fontSize: '0.65rem',
+                  background: 'var(--teal-faint)',
+                  color: 'var(--teal)',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  border: '1px solid var(--teal)30',
+                }}
+              >
+                {c}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          {teaching.overview}
         </div>
-      )}
+      </div>
     </div>
   )
 }
