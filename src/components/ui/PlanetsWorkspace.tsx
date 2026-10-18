@@ -7,21 +7,38 @@
 import React, { useMemo, useState } from 'react'
 import {
   Activity,
+  Brain,
   Compass,
+  Hourglass,
   Layers,
   Moon as MoonLucide,
   Orbit,
+  Scale,
   Sparkles,
   Star,
   Sun as SunLucide,
+  Swords,
+  Heart,
+  Mountain,
+  Eclipse,
+  CircleDot,
 } from 'lucide-react'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { GrahaTable } from '@/components/ui/GrahaTable'
 import { PlanetDetailCard } from '@/components/ui/PlanetDetailCard'
 import { AdvancedAnalysisPanel } from '@/components/ui/AdvancedAnalysisPanel'
 import { PlanetaryEnergyCyclesPanel } from '@/components/ui/PlanetaryEnergyCyclesPanel'
+import { PlanetaryMaturityGuide } from '@/components/ui/PlanetaryMaturityGuide'
 import { MoonKalasManasPanel } from '@/components/ui/MoonKalasManasPanel'
 import { SunAdityasPanel } from '@/components/ui/SunAdityasPanel'
+import { SunHousesYutiPanel } from '@/components/ui/SunHousesYutiPanel'
+import { MarsAnalysisPanel } from '@/components/ui/MarsAnalysisPanel'
+import { MercuryAnalysisPanel } from '@/components/ui/MercuryAnalysisPanel'
+import { JupiterAnalysisPanel } from '@/components/ui/JupiterAnalysisPanel'
+import { VenusAnalysisPanel } from '@/components/ui/VenusAnalysisPanel'
+import { SaturnAnalysisPanel } from '@/components/ui/SaturnAnalysisPanel'
+import { RahuAnalysisPanel } from '@/components/ui/RahuAnalysisPanel'
+import { KetuAnalysisPanel } from '@/components/ui/KetuAnalysisPanel'
 import { YogiPointPanel } from '@/components/ui/YogiPointPanel'
 import { InterpretationPanel } from '@/components/ui/InterpretationPanel'
 import { getGraNakPositions, getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
@@ -32,7 +49,7 @@ import { cn } from '@/lib/ui/cn'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import styles from './PlanetsWorkspace.module.css'
 
-type TabId = 'overview' | 'details' | 'sun' | 'moon' | 'energy' | 'yogi' | 'insights'
+type TabId = 'overview' | 'details' | 'sun' | 'moon' | 'mars' | 'mercury' | 'jupiter' | 'venus' | 'saturn' | 'rahu' | 'ketu' | 'maturity' | 'energy' | 'yogi' | 'insights'
 
 const TABS: {
   id: TabId
@@ -43,8 +60,16 @@ const TABS: {
 }[] = [
   { id: 'overview', label: 'Overview', shortLabel: 'Overview', Icon: Compass },
   { id: 'details', label: 'Planet Details', shortLabel: 'Details', Icon: Star },
-  { id: 'sun', label: 'Sun · 12 Adityas', shortLabel: 'Sun', Icon: SunLucide },
+  { id: 'sun', label: 'Sun · Adityas & Yuti', shortLabel: 'Sun', Icon: SunLucide },
   { id: 'moon', label: 'Moon · Kalas & Manas', shortLabel: 'Moon', Icon: MoonLucide },
+  { id: 'mars', label: 'Mars · Mangala', shortLabel: 'Mars', Icon: Swords },
+  { id: 'mercury', label: 'Mercury · Budha', shortLabel: 'Mercury', Icon: Brain },
+  { id: 'jupiter', label: 'Jupiter · Guru', shortLabel: 'Jupiter', Icon: Scale },
+  { id: 'venus', label: 'Venus · Shukra', shortLabel: 'Venus', Icon: Heart },
+  { id: 'saturn', label: 'Saturn · Shani', shortLabel: 'Saturn', Icon: Mountain },
+  { id: 'rahu', label: 'Rahu · Rāhu', shortLabel: 'Rahu', Icon: Eclipse },
+  { id: 'ketu', label: 'Ketu · Śikhin', shortLabel: 'Ketu', Icon: CircleDot },
+  { id: 'maturity', label: 'Maturity Ages', shortLabel: 'Maturity', Icon: Hourglass },
   { id: 'energy', label: 'Energy Cycles', shortLabel: 'Energy', Icon: Orbit },
   { id: 'yogi', label: 'Yogi Point', shortLabel: 'Yogi', Icon: Sparkles, optional: true },
   { id: 'insights', label: 'Insights', shortLabel: 'Insights', Icon: Layers },
@@ -106,6 +131,7 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
     const activeEnergy = energy.cycles.filter((c) => c.status === 'active').length
     const sun = classical.find((g) => g.id === 'Su')
     const moon = classical.find((g) => g.id === 'Mo')
+    const mars = classical.find((g) => g.id === 'Ma')
     return {
       retro,
       combust,
@@ -114,6 +140,7 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       activeEnergy,
       sunLabel: sun ? `${RASHI_SHORT[sun.rashi]} ${Math.floor(sun.degree)}°` : '—',
       moonLabel: moon ? NAK_NAMES[moon.nakshatraIndex] : '—',
+      marsLabel: mars ? `${RASHI_SHORT[mars.rashi]} ${Math.floor(mars.degree)}°` : '—',
       lagnaLabel: `${RASHI_NAMES[chart.lagnas.ascRashi]}`,
     }
   }, [classical, chart.shadbala, chart.meta.birthDate, chart.grahas, chart.lagnas.ascRashi])
@@ -137,6 +164,7 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
             <span className={cn(styles.badge, styles.badgeGold)}>Lagna · {stats.lagnaLabel}</span>
             <span className={styles.badge}>Sun · {stats.sunLabel}</span>
             <span className={styles.badge}>Moon · {stats.moonLabel}</span>
+            <span className={styles.badge}>Mars · {stats.marsLabel}</span>
             {stats.retro > 0 && (
               <span className={cn(styles.badge, styles.badgeRose)}>{stats.retro} Retro</span>
             )}
@@ -293,7 +321,7 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
         </section>
       )}
 
-      {/* ── Sun · 12 Adityas ─────────────────────────────────── */}
+      {/* ── Sun · Adityas, houses & yuti ─────────────────────── */}
       {tab === 'sun' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
@@ -306,6 +334,17 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
               : 'Free preview of primary Aditya and core karakatva. Gold unlocks all 12 Adityas, spiritual notes, and afflictions.'}
           </p>
           <SunAdityasPanel chart={chart} userPlan={userPlan} />
+
+          <div className={styles.sectionHead} style={{ marginTop: '1.25rem' }}>
+            <h3 className={styles.sectionTitle}>Sun · Houses & Yuti</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            {energyFull
+              ? 'House-by-house Surya notes plus Sun–Moon (Amavasya), Mars, Mercury, Jupiter, Venus, Saturn, Rahu, and Ketu yuti — natal house and active conjunctions highlighted.'
+              : 'Free preview of natal Sun house teaching and active yuti. Gold unlocks all 12 houses, full yuti catalogue, and remedies.'}
+          </p>
+          <SunHousesYutiPanel chart={chart} userPlan={userPlan} />
         </section>
       )}
 
@@ -322,6 +361,133 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
               : 'Free preview of Paksha Bali, both active kalas (Chandra + Tripura), and primary manas. Gold unlocks foundations, both kala systems, manas, analysis framework, and past-life reference.'}
           </p>
           <MoonKalasManasPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {/* ── Mars · Mangala ───────────────────────────────────── */}
+      {tab === 'mars' && (
+        <section className={styles.section} role="tabpanel">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>Mars · Mangala Analysis</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            {energyFull
+              ? 'Full Mangala teaching: mixed house + rashi + planet interpretations, classical catalogues, upachaya, 4/7/8 aspects, kalas, Mars–Ketu, and remedies — natal items highlighted.'
+              : 'Free preview of natal Mars house, upachaya, and mixed interpretation teaser. Gold unlocks full mixed layers, catalogues, aspects, Mars–Ketu, and remedies.'}
+          </p>
+          <MarsAnalysisPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {/* ── Mercury · Budha ──────────────────────────────────── */}
+      {tab === 'mercury' && (
+        <section className={styles.section} role="tabpanel">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>Mercury · Budha Analysis</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            {energyFull
+              ? 'Full Budha teaching: karakatva, mythology, classical catalogues, house difficulty (9/7/12), combust/vakri gifts & shadows, yuti company, and remedies — natal items highlighted.'
+              : 'Free preview of natal Mercury house, yuti companions, and combust/vakri flags. Gold unlocks karakatva, catalogues, house teaching, conditions, and remedies.'}
+          </p>
+          <MercuryAnalysisPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {/* ── Jupiter · Guru ───────────────────────────────────── */}
+      {tab === 'jupiter' && (
+        <section className={styles.section} role="tabpanel">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>Jupiter · Guru Analysis</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            {energyFull
+              ? 'Full Brihaspati teaching: karakatva, classical catalogues, house delay & dusthana reversal, 5/7/9 aspects, Guru-Chandal/Ketu/Mangal/Shani yogas, kendradhipati, combust/vakri, and remedies — natal items highlighted.'
+              : 'Free preview of natal Jupiter house, aspects, yoga flags, and combust/vakri. Gold unlocks karakatva, catalogues, yogas detail, conditions, and remedies.'}
+          </p>
+          <JupiterAnalysisPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {/* ── Venus · Shukra ───────────────────────────────────── */}
+      {tab === 'venus' && (
+        <section className={styles.section} role="tabpanel">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>Venus · Shukra Analysis</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            {energyFull
+              ? 'Full Shukra teaching: mythology, karakatva, 16 kalas, five stages, dusthana (6/8/12), exalt/debil/vakri/asta, yuti yogas, Yayati arc, and remedies — natal items highlighted.'
+              : 'Free preview of natal Venus house, yuti, dusthana flags, and combust/vakri. Gold unlocks karakatva, 16 kalas, catalogues, yogas, and mythology.'}
+          </p>
+          <VenusAnalysisPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {/* ── Saturn · Shani ───────────────────────────────────── */}
+      {tab === 'saturn' && (
+        <section className={styles.section} role="tabpanel">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>Saturn · Shani Analysis</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            {energyFull
+              ? 'Full Shani teaching: karakatva, Kantak kendras, 3/7/10 aspects, Visha/Shapit yogas, Sade Sati padā, vakri/asta, mythology, and remedies — natal items highlighted.'
+              : 'Free preview of natal Saturn house, Kantak, aspects, and yoga/combust/vakri flags. Gold unlocks karakatva, Sade Sati padā, catalogues, and lore.'}
+          </p>
+          <SaturnAnalysisPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {/* ── Rahu · Rāhu ──────────────────────────────────────── */}
+      {tab === 'rahu' && (
+        <section className={styles.section} role="tabpanel">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>Rahu · Rāhu Analysis</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            {energyFull
+              ? 'Full Rāhu teaching: karakatva, upachaya / Shatru Hantā, Ashta Lakshmi, Angārak & Guru-Chāṇḍāla yogas, nakshatras, mythology, Kāl Sarp clarification, and dasha-vs-transit — natal items highlighted.'
+              : 'Free preview of natal Rahu house, upachaya / Shatru Hantā flags, and active yogas. Gold unlocks karakatva, catalogues, Ashta Lakshmi, and lore.'}
+          </p>
+          <RahuAnalysisPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {/* ── Ketu · Śikhin ────────────────────────────────────── */}
+      {tab === 'ketu' && (
+        <section className={styles.section} role="tabpanel">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>Ketu · Śikhin Analysis</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            {energyFull
+              ? 'Full Ketu teaching: karakatva, dharma/moksha trikon, no-dṛṣṭi axis, MD vs AD, yuti yogas, nakshatras, remedies, and prediction ethics — natal items highlighted.'
+              : 'Free preview of natal Ketu house, dharma/moksha flags, and active yogas. Gold unlocks karakatva, catalogues, MD vs AD, and lore.'}
+          </p>
+          <KetuAnalysisPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {/* ── Maturity Ages ────────────────────────────────────── */}
+      {tab === 'maturity' && (
+        <section className={styles.section} role="tabpanel">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>Planetary Maturity Ages</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            Classical ages when each planet matures, with themes said to strengthen afterward.
+            Static teaching guide — not chart-personalized.
+          </p>
+          <PlanetaryMaturityGuide />
         </section>
       )}
 

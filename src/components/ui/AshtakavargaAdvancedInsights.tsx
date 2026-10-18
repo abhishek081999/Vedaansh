@@ -581,7 +581,7 @@ export function AshtakavargaAdvancedInsights({
           </div>
 
           <div className="card" style={{ padding: '1rem' }}>
-            <SectionHead title="Ashrams" subtitle="1–4 · 4–7 · 7–10 · 10–12" icon={<Layers size={16} />} />
+            <SectionHead title="Ashrams" subtitle="1–4 · 5–8 · 9–11 · 12" icon={<Layers size={16} />} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.5rem' }}>
               {insights.ashrams.map((a) => {
                 const peak = a.id === insights.ashramPeak
@@ -601,11 +601,67 @@ export function AshtakavargaAdvancedInsights({
                     <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: 2 }}>
                       {a.total}
                     </div>
+                    <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                      H{a.houses.join('+')}
+                    </div>
                   </div>
                 )
               })}
             </div>
           </div>
+
+          {insights.houseReadings.length > 0 ? (
+            <div className="card" style={{ padding: '1rem', gridColumn: '1 / -1' }}>
+              <SectionHead
+                title="House comparison readings"
+                subtitle={`Relative to ~${insights.averagePerHouse} SAV average — class Part 4 patterns`}
+                icon={<Scale size={16} />}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {insights.houseReadings.map((r) => {
+                  const tone: 'good' | 'warn' | 'info' =
+                    r.severity === 'critical' || r.severity === 'caution'
+                      ? 'warn'
+                      : r.severity === 'positive'
+                        ? 'good'
+                        : 'info'
+                  return (
+                    <div
+                      key={r.id}
+                      style={{
+                        padding: '0.7rem 0.8rem',
+                        borderRadius: 'var(--r-md)',
+                        border: '1px solid var(--border-soft)',
+                        background: 'var(--surface-2)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
+                        <Badge
+                          tone={tone}
+                          icon={
+                            r.severity === 'caution' || r.severity === 'critical' ? (
+                              <AlertTriangle size={12} />
+                            ) : r.severity === 'positive' ? (
+                              <CheckCircle2 size={12} />
+                            ) : (
+                              <CircleDot size={12} />
+                            )
+                          }
+                          text={r.title}
+                        />
+                        <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
+                          H{r.houses.join(', H')}
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                        {r.detail}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -1013,7 +1069,7 @@ export function AshtakavargaAdvancedInsights({
           >
             <div className="card" style={{ padding: '1rem' }}>
               <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                Saturn challenge age
+                Troubled year (Saturn)
               </div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--rose)', marginTop: 4, lineHeight: 1 }}>
                 {insights.ages.saturnChallengeAge != null ? `~${insights.ages.saturnChallengeAge}` : '—'}
@@ -1024,14 +1080,14 @@ export function AshtakavargaAdvancedInsights({
                       insights.ages.saturnChallengeRaw != null
                         ? ` (= ${insights.ages.saturnChallengeRaw.toFixed(2)})`
                         : ''
-                    }`
+                    } — indicative challenge age`
                   : 'Saturn house unavailable'}
               </p>
             </div>
 
             <div className="card" style={{ padding: '1rem' }}>
               <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                Jupiter + Venus prosperity
+                Prosperous year (Ju + Ve)
               </div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--teal)', marginTop: 4, lineHeight: 1 }}>
                 {insights.ages.jupiterVenusProsperityAge != null
@@ -1044,7 +1100,7 @@ export function AshtakavargaAdvancedInsights({
                       insights.ages.jupiterVenusProsperityRaw != null
                         ? ` (= ${insights.ages.jupiterVenusProsperityRaw.toFixed(2)})`
                         : ''
-                    }`
+                    } — indicative prosperity age`
                   : 'Jupiter / Venus houses unavailable'}
               </p>
             </div>
@@ -1110,11 +1166,12 @@ function Badge({
   icon,
   text,
 }: {
-  tone: 'good' | 'warn'
+  tone: 'good' | 'warn' | 'info'
   icon: React.ReactNode
   text: string
 }) {
-  const color = tone === 'good' ? 'var(--teal)' : 'var(--rose)'
+  const color =
+    tone === 'good' ? 'var(--teal)' : tone === 'warn' ? 'var(--rose)' : 'var(--blue, #60a5fa)'
   return (
     <span
       style={{

@@ -135,4 +135,25 @@ describe('analyzeBhinnashtakavargaGuide', () => {
     const moon = result.planets.find((p) => p.planet === 'Mo')
     expect(moon?.natalFindings.some((f) => f.id === 'mo-fame')).toBe(true)
   })
+
+  it('flags exalted planet with low self-BAV', () => {
+    const ju = Array(12).fill(4)
+    ju[3] = 2 // Cancer — Ju exaltation sign, low BAV
+    const av = makeAv({ Ju: ju })
+    const result = analyzeBhinnashtakavargaGuide({
+      ashtakavarga: av,
+      ascRashi: 1,
+      grahas: [
+        { id: 'Su', rashi: 1 },
+        { id: 'Mo', rashi: 2 },
+        { id: 'Ma', rashi: 3 },
+        { id: 'Me', rashi: 5 },
+        { id: 'Ju', rashi: 4, dignity: 'exalted' },
+        { id: 'Ve', rashi: 6 },
+        { id: 'Sa', rashi: 7 },
+      ],
+    })
+    const juGuide = result.planets.find((p) => p.planet === 'Ju')
+    expect(juGuide?.natalFindings.some((f) => f.id === 'ju-exalt-low-bav')).toBe(true)
+  })
 })

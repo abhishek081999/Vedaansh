@@ -269,6 +269,13 @@ export {
 } from './lordshipInterpretations'
 
 export {
+  mixPlanetPlacement,
+  mixPlanetFromGraha,
+  mixPlanetInHouseCatalogue,
+  mixPlanetInSignCatalogue,
+} from './planetInterpretationMix'
+
+export {
   getChartHouseClassical,
   getLagnaLordClassical,
   getHouseAspectNotes,
