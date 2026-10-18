@@ -14,6 +14,11 @@ import {
   rashiForHouseFromLagna,
 } from '@/lib/engine/rashiInterpretations'
 import {
+  getRashiDeepGuide,
+  RASHI_SHARED_TEACHINGS,
+  type RashiDeepGuide,
+} from '@/lib/engine/rashiDeepGuide'
+import {
   getDignityAwarePlanetInSign,
   getRashiClassical,
 } from '@/lib/engine/classicalInterpretations'
@@ -24,7 +29,7 @@ interface RashiGuideTabProps {
   chart: ChartOutput
 }
 
-type OpenKey = 'lagna' | 'moon' | 'sun' | `h${number}` | `p-${string}`
+type OpenKey = 'lagna' | 'moon' | 'sun' | 'teach' | `h${number}` | `p-${string}`
 
 export function RashiGuideTab({ chart }: RashiGuideTabProps) {
   const [open, setOpen] = useState<OpenKey | null>('lagna')
@@ -44,13 +49,24 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
       const house = (i + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
       const rashi = rashiForHouseFromLagna(ascRashi, house)
       const occupants = classical.filter((g) => wholeSignHouseFromLagna(ascRashi, g.rashi) === house)
-      return { house, rashi, occupants, profile: getRashiProfile(rashi)!, note: getRashiInHouse(rashi, house) }
+      const deep = getRashiDeepGuide(rashi)
+      return {
+        house,
+        rashi,
+        occupants,
+        profile: getRashiProfile(rashi)!,
+        note: getRashiInHouse(rashi, house),
+        deep,
+      }
     })
   }, [ascRashi, classical])
 
   const lagnaProfile = getRashiProfile(ascRashi)!
+  const lagnaDeep = getRashiDeepGuide(ascRashi)
   const moonProfile = moonRashi ? getRashiProfile(moonRashi) : null
+  const moonDeep = moonRashi ? getRashiDeepGuide(moonRashi) : null
   const sunProfile = sunRashi ? getRashiProfile(sunRashi) : null
+  const sunDeep = sunRashi ? getRashiDeepGuide(sunRashi) : null
 
   const toggle = (key: OpenKey) => setOpen((cur) => (cur === key ? null : key))
 
@@ -69,7 +85,8 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
         </div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
           Aries–Pisces notes filtered to this chart: Lagna, Moon, Sun, each house’s sign from Lagna,
-          and planet-in-sign for classical grahas only. Educational reference — not medical advice.
+          planet-in-sign, plus deep teaching (tattva, Kaal Purush, careers, spiritual themes).
+          Educational reference — not medical advice.
         </p>
       </div>
 
@@ -78,15 +95,18 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
         {moonRashi ? <Chip label="Moon sign" value={RASHI_NAMES[moonRashi]} hint={RASHI_SANSKRIT[moonRashi]} /> : null}
         {sunRashi ? <Chip label="Sun sign" value={RASHI_NAMES[sunRashi]} hint={RASHI_SANSKRIT[sunRashi]} /> : null}
         <Chip label="Lagna lord" value={`${GRAHA_NAMES[lagnaProfile.lord]}`} hint={lagnaProfile.lordHindi} />
+        {lagnaDeep ? <Chip label="Keyword" value={lagnaDeep.keyword} hint={`${lagnaDeep.elementEn} · ${lagnaDeep.motionEn}`} /> : null}
+        {lagnaDeep ? <Chip label="Strong time" value={lagnaDeep.strongTime} hint={lagnaDeep.kaalPurushPart} /> : null}
       </div>
 
       {/* Lagna deep dive */}
       <Accordion
         title={`Lagna in ${RASHI_NAMES[ascRashi]}`}
-        subtitle={lagnaProfile.coreSummary}
+        subtitle={lagnaDeep ? `${lagnaDeep.keyword} — ${lagnaProfile.coreSummary}` : lagnaProfile.coreSummary}
         open={open === 'lagna'}
         onToggle={() => toggle('lagna')}
       >
+        {lagnaDeep ? <DeepGuideBlock guide={lagnaDeep} dense={false} /> : null}
         <Bullets title="Core nature" items={lagnaProfile.coreNature} />
         <ClassicalNotesList title="Classical rashi (BPHS & others)" notes={getRashiClassical(ascRashi)} />
         <ClassicalNotesList title="Classical · Lagna lord placement" notes={getLagnaLordClassical(chart)} />
@@ -105,7 +125,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
       {moonProfile && moonRashi && moonRashi !== ascRashi ? (
         <Accordion
           title={`Moon in ${RASHI_NAMES[moonRashi]}`}
-          subtitle={moonProfile.coreSummary}
+          subtitle={moonDeep ? `${moonDeep.keyword} — ${moonProfile.coreSummary}` : moonProfile.coreSummary}
           open={open === 'moon'}
           onToggle={() => toggle('moon')}
         >
@@ -126,6 +146,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
             )}
           />
           <ClassicalNotesList title={`Classical ${RASHI_NAMES[moonRashi]}`} notes={getRashiClassical(moonRashi)} />
+          {moonDeep ? <DeepGuideBlock guide={moonDeep} dense /> : null}
           <Bullets title="Sign essence" items={moonProfile.coreNature.slice(0, 4)} />
           <Bullets title="Remedies" items={moonProfile.remedies.slice(0, 3)} />
         </Accordion>
@@ -134,7 +155,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
       {sunProfile && sunRashi && sunRashi !== ascRashi && sunRashi !== moonRashi ? (
         <Accordion
           title={`Sun in ${RASHI_NAMES[sunRashi]}`}
-          subtitle={sunProfile.coreSummary}
+          subtitle={sunDeep ? `${sunDeep.keyword} — ${sunProfile.coreSummary}` : sunProfile.coreSummary}
           open={open === 'sun'}
           onToggle={() => toggle('sun')}
         >
@@ -155,6 +176,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
             )}
           />
           <ClassicalNotesList title={`Classical ${RASHI_NAMES[sunRashi]}`} notes={getRashiClassical(sunRashi)} />
+          {sunDeep ? <DeepGuideBlock guide={sunDeep} dense /> : null}
           <Bullets title="Sign essence" items={sunProfile.coreNature.slice(0, 4)} />
         </Accordion>
       ) : null}
@@ -210,9 +232,11 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
               key={h.house}
               title={`House ${h.house}: ${RASHI_NAMES[h.rashi]}`}
               subtitle={
-                h.occupants.length
-                  ? `Lord ${GRAHA_NAMES[h.profile.lord]} · ${h.occupants.map((p) => p.id).join(' · ')}`
-                  : `Lord ${GRAHA_NAMES[h.profile.lord]} · empty`
+                h.deep
+                  ? `${h.deep.keyword} · Lord ${GRAHA_NAMES[h.profile.lord]}${h.occupants.length ? ` · ${h.occupants.map((p) => p.id).join(' · ')}` : ''}`
+                  : h.occupants.length
+                    ? `Lord ${GRAHA_NAMES[h.profile.lord]} · ${h.occupants.map((p) => p.id).join(' · ')}`
+                    : `Lord ${GRAHA_NAMES[h.profile.lord]} · empty`
               }
               open={open === key}
               onToggle={() => toggle(key)}
@@ -223,6 +247,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
                   {h.note}
                 </p>
               </div>
+              {h.deep ? <DeepGuideBlock guide={h.deep} dense /> : null}
               <ClassicalNotesList title={`Classical ${RASHI_NAMES[h.rashi]}`} notes={getRashiClassical(h.rashi)} />
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                 {h.profile.coreSummary}
@@ -241,6 +266,135 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
           )
         })}
       </section>
+
+      <Accordion
+        title="Rashi teaching principles"
+        subtitle="Classifications, soul journey, one-keyword method, karma overview"
+        open={open === 'teach'}
+        onToggle={() => toggle('teach')}
+      >
+        {RASHI_SHARED_TEACHINGS.map((block) => (
+          <Bullets key={block.id} title={block.title} items={block.points} />
+        ))}
+      </Accordion>
+    </div>
+  )
+}
+
+function DeepGuideBlock({ guide, dense }: { guide: RashiDeepGuide; dense: boolean }) {
+  const attrChips = [
+    { label: 'Element', value: `${guide.element} (${guide.elementEn})` },
+    { label: 'Motion', value: `${guide.motion} (${guide.motionEn})` },
+    { label: 'Lord', value: guide.lordName },
+    { label: 'Body', value: guide.kaalPurushPart },
+    { label: 'Strong', value: guide.strongTime },
+    { label: 'Active age', value: guide.activationAge },
+  ]
+  if (guide.deity) attrChips.push({ label: 'Deity', value: guide.deity })
+  if (guide.exaltedPlanet) attrChips.push({ label: 'Exalted', value: guide.exaltedPlanet })
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+        {attrChips.map((c) => (
+          <span
+            key={c.label}
+            style={{
+              fontSize: '0.68rem',
+              padding: '0.28rem 0.55rem',
+              borderRadius: 'var(--r-sm)',
+              border: '1px solid var(--border-soft)',
+              background: 'var(--surface-2)',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>{c.label}: </span>
+            {c.value}
+          </span>
+        ))}
+      </div>
+
+      {!dense ? (
+        <>
+          <Bullets title="Symbol & meaning" items={guide.symbolMeaning} />
+          <Bullets title="Spiritual themes" items={guide.spiritual} />
+          <Bullets title="Strengths" items={guide.positiveTraits} />
+          <Bullets title="Watch-outs" items={guide.challengingTraits} />
+          <Bullets title="Behavioral notes" items={guide.behavioralNotes} />
+          <Bullets title="Career fields" items={guide.careers} />
+          <Bullets title="Health themes (educational)" items={guide.healthThemes} />
+          {guide.nakshatras.length ? (
+            <div>
+              <div style={label}>Nakshatras in this rashi</div>
+              <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: 1.55 }}>
+                {guide.nakshatras.map((n) => (
+                  <li key={n.name}>
+                    <strong style={{ color: 'var(--text-primary)' }}>{n.name}</strong> — {n.padas}
+                    {n.lord ? ` · lord ${n.lord}` : ''}
+                    {n.note ? ` · ${n.note}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {guide.compatibility ? (
+            <div style={callout}>
+              <div style={label}>Compatibility (educational)</div>
+              <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                <strong>Best:</strong> {guide.compatibility.best.join('; ')}
+              </p>
+              {guide.compatibility.moderate?.length ? (
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  <strong>Moderate:</strong> {guide.compatibility.moderate.join('; ')}
+                </p>
+              ) : null}
+              {guide.compatibility.low?.length ? (
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  <strong>Low:</strong> {guide.compatibility.low.join('; ')}
+                </p>
+              ) : null}
+              <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                {guide.compatibility.principle}
+              </p>
+            </div>
+          ) : null}
+          {(guide.luckyColors?.length || guide.gemstone) ? (
+            <div style={callout}>
+              <div style={label}>Colors & gemstone</div>
+              {guide.luckyColors?.length ? (
+                <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  Lucky: {guide.luckyColors.join(', ')}
+                  {guide.unluckyColors?.length ? ` · Avoid (traditional): ${guide.unluckyColors.join(', ')}` : ''}
+                </p>
+              ) : null}
+              {guide.gemstone ? (
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{guide.gemstone}</p>
+              ) : null}
+            </div>
+          ) : null}
+          {guide.lordContrast ? (
+            <div style={callout}>
+              <div style={label}>Lord contrast</div>
+              <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                {guide.lordContrast}
+              </p>
+            </div>
+          ) : null}
+          <Bullets title="Practical notes" items={guide.practicalNotes} />
+          {guide.chakraHint ? (
+            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              Chakra / nāḍī hint: {guide.chakraHint}
+            </p>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <Bullets title="Deep keyword notes" items={[...guide.symbolMeaning.slice(0, 2), ...guide.spiritual.slice(0, 2), ...guide.practicalNotes.slice(0, 2)]} />
+          {guide.lordContrast ? (
+            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{guide.lordContrast}</p>
+          ) : null}
+        </>
+      )}
     </div>
   )
 }
