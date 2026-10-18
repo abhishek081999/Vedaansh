@@ -9,6 +9,8 @@ import { getCurrentTransitPositions } from '@/lib/engine/transits'
 import { analyzeSadeSati } from '@/lib/engine/sadeSati'
 import { analyzeMoorthyNirnaya } from '@/lib/engine/moorthyNirnaya'
 import { analyzeTransitAspects } from '@/lib/engine/transitAspects'
+import { getPlanetInHouse } from '@/lib/engine/houseInterpretations'
+import { getPlanetInHouseClassicalSummary } from '@/lib/engine/classicalInterpretations'
 
 function escapeHtml(s: string): string {
   return s
@@ -45,15 +47,21 @@ export function buildGocharChapterHtml(chart: ChartOutput): string {
     months: 12,
   })
 
-  const posRows = positions.map(p => `
+  const posRows = positions.map(p => {
+    const teaching = getPlanetInHouse(p.planetId, p.house, 'summary')
+    const classical = getPlanetInHouseClassicalSummary(p.planetId, p.house)
+    const interp = teaching ?? classical ?? '—'
+    return `
     <tr>
       <td>${GRAHA_NAMES[p.planetId]}</td>
       <td>${RASHI_NAMES[p.sign]}</td>
       <td>H${p.house}</td>
       <td>${p.nakshatra} P${p.pada}</td>
       <td>${p.isRetro ? 'Rx' : 'Direct'}</td>
+      <td style="font-size:10px;line-height:1.4">${escapeHtml(interp)}</td>
     </tr>
-  `).join('')
+  `
+  }).join('')
 
   const moorthyRows = moorthy.map(m => `
     <tr>
@@ -81,7 +89,7 @@ export function buildGocharChapterHtml(chart: ChartOutput): string {
 
   <h3 style="margin: 1rem 0 0.5rem; font-size: 13px">Current transit positions (from Lagna)</h3>
   <table class="data-table">
-    <thead><tr><th>Graha</th><th>Sign</th><th>House</th><th>Nakshatra</th><th>Motion</th></tr></thead>
+    <thead><tr><th>Graha</th><th>Sign</th><th>House</th><th>Nakshatra</th><th>Motion</th><th>Interpretation</th></tr></thead>
     <tbody>${posRows}</tbody>
   </table>
 

@@ -13,6 +13,8 @@ import {
 } from './ephemeris'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
 import { getNakshatra } from './nakshatra'
+import { getPlanetInHouse } from './houseInterpretations'
+import { getPlanetInHouseClassicalSummary } from './classicalInterpretations'
 
 export interface TransitEvent {
   planetId:  GrahaId
@@ -105,12 +107,18 @@ const TRANSIT_INTERPRETATIONS: Record<string, Record<number, string>> = {
 }
 
 function getDetailedInterpretation(pid: GrahaId, house: number, type: string): string {
-  const base = TRANSIT_INTERPRETATIONS[pid]?.[house]
-  if (!base) return `${GRAHA_NAMES[pid]} transits your ${house}${getOrdinal(house)} house.`
+  const teaching = getPlanetInHouse(pid, house, 'summary')
+  const classical = getPlanetInHouseClassicalSummary(pid, house)
+  const legacy = TRANSIT_INTERPRETATIONS[pid]?.[house]
+  const base =
+    teaching
+    ?? classical
+    ?? legacy
+    ?? `${GRAHA_NAMES[pid]} transits your ${house}${getOrdinal(house)} house.`
 
   switch (type) {
     case 'house_change':
-      return `Activation: ${base}`
+      return `Activation (H${house}): ${base}`
     case 'retrograde_start':
       return `Reflection: Pause and review themes of ${base.split('.')[0].toLowerCase()}.`
     case 'retrograde_end':
