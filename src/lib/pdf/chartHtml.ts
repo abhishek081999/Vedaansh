@@ -53,9 +53,10 @@ interface Branding {
   brandLogo?: string | null
 }
 
-/** Optional server-only HTML fragments (e.g. gochar chapter — must not import sweph here). */
+/** Optional HTML fragments (gochar is Node-only / sweph; rashi chapter is pure). */
 export interface ChartHtmlExtras {
   gocharChapterHtml?: string
+  rashiChapterHtml?: string
 }
 
 // ── Colors & Theme — Traditional Vedic Kundali ───────────────
@@ -1186,6 +1187,9 @@ export function generateChartHTML(
   const gocharChapterHtml = extras?.gocharChapterHtml?.trim()
     ? extras.gocharChapterHtml
     : `<p style="font-size:12px;color:#666">Gochar chapter unavailable in this export.</p>`
+  const rashiChapterHtml = extras?.rashiChapterHtml?.trim()
+    ? extras.rashiChapterHtml
+    : `<p style="font-size:12px;color:#666">Rashi chapter unavailable in this export.</p>`
 
   const { meta } = chart
   const brandName = branding?.brandName || 'VEDAANSH'
@@ -2009,16 +2013,23 @@ ${buildAllDashasPages(chart)}
   ${PageFooter(22, meta.name)}
 </div>
 
-<!-- PAGE 23: GOCHAR -->
+<!-- PAGE 23: RASHI DEEP GUIDE -->
 <div class="page">
-  ${SectionHeader('19', 'Gochar Phala', 'Transits & Timing Windows')}
-  ${gocharChapterHtml}
+  ${SectionHeader('19', 'Rashi Tattva', 'Deep Sign Teaching')}
+  ${rashiChapterHtml}
   ${PageFooter(23, meta.name)}
 </div>
 
-<!-- PAGE 24: SYNTHESIS -->
+<!-- PAGE 24: GOCHAR -->
 <div class="page">
-  ${SectionHeader('20', 'Samahara', 'Life Synthesis & Guidance')}
+  ${SectionHeader('20', 'Gochar Phala', 'Transits & Timing Windows')}
+  ${gocharChapterHtml}
+  ${PageFooter(24, meta.name)}
+</div>
+
+<!-- PAGE 25: SYNTHESIS -->
+<div class="page">
+  ${SectionHeader('21', 'Samahara', 'Life Synthesis & Guidance')}
   <div style="border-left:4px solid ${THEME.temple}; padding:15px 20px; margin-bottom:2rem; background:linear-gradient(to right, ${THEME.accentLight}44, transparent)">
     <p style="font-size:1.1rem; line-height:1.8; font-style:italic; font-family:'Cormorant Garamond',serif; color:${THEME.primary}">
       "${escapeHtml(chart.interpretation.headline)}"
@@ -2073,7 +2084,7 @@ ${buildAllDashasPages(chart)}
     </div>
     <div style="font-size:9px; margin-top:8px; letter-spacing:1px">${brandName} Kundali Master Dossier • वेदांश Professional Edition</div>
   </div>
-  ${PageFooter(24, meta.name)}
+  ${PageFooter(25, meta.name)}
 </div>
 
 </body>

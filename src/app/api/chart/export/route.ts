@@ -58,8 +58,10 @@ export async function POST(req: NextRequest) {
 
     // ── Generate HTML (gochar chapter loaded only on Node — keeps client bundles free of sweph) ──
     const { buildGocharChapterHtml } = await import('@/lib/pdf/gocharChapter')
+    const { buildRashiChapterHtml } = await import('@/lib/pdf/rashiChapter')
     const html = generateChartHTML(chart, branding as any, {
       gocharChapterHtml: buildGocharChapterHtml(chart),
+      rashiChapterHtml: buildRashiChapterHtml(chart),
     })
 
     // ── Return as HTML document ───────────────────────────────
