@@ -1,13 +1,15 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import type { ChartOutput } from '@/types/astrology'
-import { GRAHA_NAMES } from '@/types/astrology'
+import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import {
   analyzeTransitMoment,
   type MomentLabel,
+  type PlanetMomentAnalysis,
   type PositionVerdict,
 } from '@/lib/engine/transitMomentAnalysis'
+import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import styles from './transit-scrubber.module.css'
 
 const LABEL_STYLE: Record<MomentLabel, { bg: string; border: string; color: string }> = {
@@ -27,6 +29,69 @@ const VERDICT_STYLE: Record<PositionVerdict, { label: string; className: string 
 function VerdictBadge({ verdict }: { verdict: PositionVerdict }) {
   const v = VERDICT_STYLE[verdict]
   return <span className={`${styles.verdictBadge} ${v.className}`}>{v.label}</span>
+}
+
+function PlanetInterpCard({ p }: { p: PlanetMomentAnalysis }) {
+  const [open, setOpen] = useState(false)
+  const hasClassical =
+    p.houseClassical.length > 0 || p.signClassical.length > 0 || p.dignityClassical.length > 0
+
+  return (
+    <article className={styles.planetCard}>
+      <div className={styles.planetCardHeader}>
+        <span className={styles.planetCardName}>
+          {GRAHA_NAMES[p.planetId]}
+          <span style={{ color: 'var(--text-muted)', fontWeight: 500, marginLeft: '0.3rem' }}>({p.planetId})</span>
+          {p.isRetro && <span className={styles.retroMark}> ℞</span>}
+        </span>
+        <VerdictBadge verdict={p.transitVerdict} />
+      </div>
+      <div className={styles.planetCardMeta}>
+        <span>Natal H{p.natalHouse} · {p.natalDignity}</span>
+        <span>→</span>
+        <span>
+          Gochar H{p.transitHouse} · {RASHI_NAMES[p.transitRashi]} · {p.transitDignity}
+        </span>
+      </div>
+      <p className={styles.planetPrediction}>{p.prediction}</p>
+      {p.teachingSummary ? (
+        <p className={styles.planetTeaching}>
+          <span className={styles.planetTeachingLabel}>Teaching</span>
+          {p.teachingSummary}
+        </p>
+      ) : null}
+      <p className={styles.planetDetail}>{p.detail}</p>
+      <div className={styles.planetVerdictRow}>
+        <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Natal position</span>
+        <VerdictBadge verdict={p.natalVerdict} />
+      </div>
+      {hasClassical ? (
+        <div className={styles.planetClassicalBlock}>
+          <button
+            type="button"
+            className={styles.planetClassicalToggle}
+            onClick={() => setOpen(v => !v)}
+            aria-expanded={open}
+          >
+            {open ? 'Hide classical phalita' : 'Show classical phalita'}
+          </button>
+          {open ? (
+            <div className={styles.planetClassicalBody}>
+              <ClassicalNotesList
+                title={`Classical · ${GRAHA_NAMES[p.planetId]} in H${p.transitHouse} (gochar)`}
+                notes={p.houseClassical}
+              />
+              <ClassicalNotesList
+                title={`Classical · ${GRAHA_NAMES[p.planetId]} in ${RASHI_NAMES[p.transitRashi]}`}
+                notes={p.signClassical}
+              />
+              <ClassicalNotesList title="Dignity / vakri" notes={p.dignityClassical} />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </article>
+  )
 }
 
 interface TransitInsightsPanelsProps {
@@ -125,32 +190,16 @@ export function TransitInsightsPanels({ natalChart, transitChart }: TransitInsig
         </div>
       </div>
 
-      {/* Per-planet predictions */}
+      {/* Per-planet predictions + classical phalita */}
       <div className={styles.predictionsBlock}>
-        <h3 className={styles.compareTitle}>Planet-by-planet predictions</h3>
+        <h3 className={styles.compareTitle}>Planet-by-planet interpretations</h3>
+        <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+          Teaching summaries and classical graha-in-bhava / graha-in-rashi notes for each gochar house from natal lagna.
+          Temporary colouring — weigh with Vimshottari before acting.
+        </p>
         <div className={styles.planetGrid}>
           {analysis.planets.map(p => (
-            <article key={p.planetId} className={styles.planetCard}>
-              <div className={styles.planetCardHeader}>
-                <span className={styles.planetCardName}>
-                  {GRAHA_NAMES[p.planetId]}
-                  <span style={{ color: 'var(--text-muted)', fontWeight: 500, marginLeft: '0.3rem' }}>({p.planetId})</span>
-                  {p.isRetro && <span className={styles.retroMark}> ℞</span>}
-                </span>
-                <VerdictBadge verdict={p.transitVerdict} />
-              </div>
-              <div className={styles.planetCardMeta}>
-                <span>Natal H{p.natalHouse} · {p.natalDignity}</span>
-                <span>→</span>
-                <span>Transit H{p.transitHouse} · {p.transitDignity}</span>
-              </div>
-              <p className={styles.planetPrediction}>{p.prediction}</p>
-              <p className={styles.planetDetail}>{p.detail}</p>
-              <div className={styles.planetVerdictRow}>
-                <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Natal position</span>
-                <VerdictBadge verdict={p.natalVerdict} />
-              </div>
-            </article>
+            <PlanetInterpCard key={p.planetId} p={p} />
           ))}
         </div>
       </div>

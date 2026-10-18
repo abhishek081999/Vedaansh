@@ -14,11 +14,14 @@ import {
   getPlanetInHouse,
   getSignInHouse,
   isClassicalGraha,
+  DELAYED_MARRIAGE_INDICATORS,
+  EARLY_MARRIAGE_INDICATORS,
   LAGNA_LORD_IN_FIRST,
   LAGNA_STRENGTH_CHECKS,
   MARRIAGE_PILLARS,
   RASHI_LORDS,
   THIRD_HOUSE_DASHA_CAUTION,
+  TWELFTH_HOUSE_READING_NOTE,
   wholeSignHouseFromLagna,
   type HouseNumber,
 } from '@/lib/engine/houseInterpretations'
@@ -88,7 +91,10 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
     () => calculateManglik(chart.grahas, [], ascRashi),
     [chart.grahas, ascRashi],
   )
-  const manglikTeaching = useMemo(() => getManglikTeaching(manglikAnalysis), [manglikAnalysis])
+  const manglikTeaching = useMemo(
+    () => getManglikTeaching(manglikAnalysis, chart.grahas, ascRashi),
+    [manglikAnalysis, chart.grahas, ascRashi],
+  )
   const marsRashi = useMemo(() => chart.grahas.find((g) => g.id === 'Ma')?.rashi ?? null, [chart.grahas])
 
   const manglikBadgeColor =
@@ -239,7 +245,25 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
             ))}
           </div>
         ) : null}
-        <p style={{ margin: '0.65rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+        {manglikTeaching.perspectives ? (
+          <div style={{ marginTop: '0.55rem' }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-gold)', marginBottom: '0.25rem' }}>
+              Scope · {manglikTeaching.perspectives.scopeLabel}
+            </div>
+            <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              {manglikTeaching.perspectives.scopeDetail}
+            </p>
+            {manglikTeaching.perspectives.marsVenusConjunctInKuja ? (
+              <p style={{ margin: '0.35rem 0 0', fontSize: '0.72rem', color: 'var(--amber)', lineHeight: 1.5 }}>
+                Mars–Venus together in a Kuja house — high-intensity relating cue.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        <p style={{ margin: '0.55rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          {manglikTeaching.controlNote}
+        </p>
+        <p style={{ margin: '0.45rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
           {manglikTeaching.overview}
         </p>
       </div>
@@ -356,6 +380,15 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                     </div>
                   ) : null}
 
+                  {h.houseNum === 12 ? (
+                    <div style={callout}>
+                      <div style={sectionLabel}>Twelfth-house reading frame</div>
+                      <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                        {TWELFTH_HOUSE_READING_NOTE}
+                      </p>
+                    </div>
+                  ) : null}
+
                   <ClassicalNotesList
                     title="Classical bhava (BPHS & others)"
                     notes={getHouseClassical(h.houseNum)}
@@ -406,14 +439,32 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                   ) : null}
 
                   {h.houseNum === 7 ? (
-                    <div style={callout}>
-                      <div style={sectionLabel}>Marriage reading pillars</div>
-                      <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: 1.55 }}>
-                        {MARRIAGE_PILLARS.map((p) => (
-                          <li key={p}>{p}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    <>
+                      <div style={callout}>
+                        <div style={sectionLabel}>Marriage reading pillars</div>
+                        <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: 1.55 }}>
+                          {MARRIAGE_PILLARS.map((p) => (
+                            <li key={p}>{p}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div style={callout}>
+                        <div style={sectionLabel}>Early marriage cues (yogas)</div>
+                        <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.78rem', lineHeight: 1.55 }}>
+                          {EARLY_MARRIAGE_INDICATORS.map((p) => (
+                            <li key={p}>{p}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div style={callout}>
+                        <div style={sectionLabel}>Delayed marriage cues</div>
+                        <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.78rem', lineHeight: 1.55 }}>
+                          {DELAYED_MARRIAGE_INDICATORS.map((p) => (
+                            <li key={p}>{p}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </>
                   ) : null}
 
                   <div>

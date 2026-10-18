@@ -723,6 +723,59 @@
   line-height: 1.4;
 }
 
+.planetTeaching {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  padding: 0.45rem 0.55rem;
+  background: rgba(212, 175, 55, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: var(--r-sm);
+}
+
+.planetTeachingLabel {
+  display: inline-block;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+  margin-right: 0.4rem;
+}
+
+.planetClassicalBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.15rem;
+}
+
+.planetClassicalToggle {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  color: var(--text-gold);
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.28rem 0.55rem;
+  text-transform: uppercase;
+}
+
+.planetClassicalToggle:hover {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: rgba(212, 175, 55, 0.06);
+}
+
+.planetClassicalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
 .planetVerdictRow {
   display: flex;
   justify-content: space-between;

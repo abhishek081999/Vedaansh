@@ -6,6 +6,13 @@
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
+import {
+  getDignityClassicalNotes,
+  getPlanetInHouseClassical,
+  getPlanetInSignClassical,
+  type ClassicalNote,
+} from '@/lib/engine/classicalInterpretations'
+import { getPlanetInHouse } from '@/lib/engine/houseInterpretations'
 
 export type PositionVerdict = 'good' | 'mixed' | 'caution'
 export type MomentLabel = 'Excellent' | 'Good' | 'Neutral' | 'Challenging' | 'Avoid'
@@ -33,61 +40,6 @@ const HOUSE_THEMES: Record<number, string> = {
   10: 'career, status, and public reputation',
   11: 'gains, networks, and fulfilled desires',
   12: 'loss, solitude, spirituality, and foreign lands',
-}
-
-const TRANSIT_HOUSE_TEXT: Partial<Record<GrahaId, Record<number, string>>> = {
-  Ju: {
-    1: 'Personal growth and confidence expand.',
-    5: 'Creativity, education, and joy are supported.',
-    9: 'Fortune, wisdom, and righteous opportunities open.',
-    10: 'Career recognition and professional growth.',
-    11: 'Gains and social support increase.',
-  },
-  Ve: {
-    1: 'Charm, comfort, and aesthetic uplift.',
-    4: 'Domestic harmony and emotional sweetness.',
-    7: 'Relationships and agreements flourish.',
-    10: 'Public image and creative career benefit.',
-    11: 'Pleasures and social enjoyment.',
-  },
-  Sa: {
-    1: 'Heavy responsibility on identity — pace yourself.',
-    6: 'Discipline in health and overcoming obstacles.',
-    8: 'Karmic tests and deep restructuring.',
-    10: 'Career duties intensify; build long-term structure.',
-    12: 'Withdrawal, closure, and spiritual austerity.',
-  },
-  Ma: {
-    1: 'High energy but impulsive — channel into action.',
-    3: 'Courage and initiative in communication.',
-    6: 'Victory over rivals; watch anger and accidents.',
-    10: 'Ambitious drive; conflict possible at work.',
-  },
-  Ra: {
-    1: 'Restless ambition; unconventional self-image.',
-    7: 'Intense relationship dynamics and surprises.',
-    10: 'Sudden career twists or fame-seeking pressure.',
-  },
-  Ke: {
-    1: 'Detachment from ego; spiritual introspection.',
-    5: 'Letting go of romance/children drama for clarity.',
-    9: 'Spiritual seeking over formal belief.',
-    12: 'Liberation themes; endings and moksha focus.',
-  },
-  Mo: {
-    1: 'Emotional focus on self and mood swings.',
-    4: 'Strong home/mother themes; seek emotional safety.',
-    9: 'Optimistic mind; travel and learning uplift mood.',
-  },
-  Su: {
-    1: 'Vitality and authority highlighted.',
-    10: 'Leadership and visibility in career matters.',
-  },
-  Me: {
-    3: 'Sharp communication and learning.',
-    6: 'Analytical problem-solving excels.',
-    10: 'Business planning and structured thinking.',
-  },
 }
 
 function grahaHouse(rashi: Rashi, ascRashi: Rashi): number {
@@ -172,12 +124,22 @@ export interface PlanetMomentAnalysis {
   planetId: GrahaId
   natalHouse: number
   transitHouse: number
+  transitRashi: Rashi
   natalDignity: string
   transitDignity: string
   natalVerdict: PositionVerdict
   transitVerdict: PositionVerdict
+  /** Gochar framing + teaching summary for the transit house */
   prediction: string
   detail: string
+  /** Class teaching paraphrase (planet-in-house summary) */
+  teachingSummary: string | null
+  /** Classical graha-in-bhava notes for the transit house from lagna */
+  houseClassical: ClassicalNote[]
+  /** Classical graha-in-rashi notes for the transit sign */
+  signClassical: ClassicalNote[]
+  /** Dignity / vakri notes for the transit position */
+  dignityClassical: ClassicalNote[]
   isRetro: boolean
   sameSignAsNatal: boolean
 }
@@ -211,14 +173,18 @@ function buildPlanetPrediction(
   const transitV = combinedVerdict(transit.dignity, pid, transitH)
   const sameSign = natal.rashi === transit.rashi
 
-  const houseText = TRANSIT_HOUSE_TEXT[pid]?.[transitH]
+  const teachingSummary = getPlanetInHouse(pid, transitH, 'summary')
+  const classicalHouseSummary = getPlanetInHouseClassical(pid, transitH)[0]?.text ?? null
+  const houseText =
+    teachingSummary
+    ?? classicalHouseSummary
     ?? `${GRAHA_NAMES[pid]} activates your ${transitH}${ordinal(transitH)} house — themes of ${HOUSE_THEMES[transitH] ?? 'life activity'}.`
 
-  let prediction = houseText
+  let prediction = `Gochar H${transitH} (${RASHI_NAMES[transit.rashi]}): ${houseText}`
   if (sameSign) {
-    prediction = `Return to natal sign (${RASHI_NAMES[natal.rashi]}): karmic completion and renewal cycle for ${GRAHA_NAMES[pid]}. ${houseText}`
+    prediction = `Return to natal sign (${RASHI_NAMES[natal.rashi]}): karmic completion and renewal for ${GRAHA_NAMES[pid]}. ${houseText}`
   } else if (natalH !== transitH) {
-    prediction = `Moves from natal H${natalH} to transit H${transitH}. ${houseText}`
+    prediction = `Moves from natal H${natalH} to gochar H${transitH}. ${houseText}`
   }
 
   if (transit.isRetro) {
@@ -228,18 +194,30 @@ function buildPlanetPrediction(
   const detail = [
     `Natal: ${RASHI_NAMES[natal.rashi]} H${natalH}, ${natal.dignity} — ${DIGNITY_INTERPRETATIONS[natal.dignity]?.split('.')[0] ?? 'average strength'}.`,
     `Transit: ${RASHI_NAMES[transit.rashi]} H${transitH}, ${transit.dignity}${transit.isRetro ? ', retrograde' : ''}.`,
+    'Read as temporary gochar colouring — confirm with dasha before acting.',
   ].join(' ')
 
   return {
     planetId: pid,
     natalHouse: natalH,
     transitHouse: transitH,
+    transitRashi: transit.rashi,
     natalDignity: natal.dignity,
     transitDignity: transit.dignity,
     natalVerdict: natalV,
     transitVerdict: transitV,
     prediction,
     detail,
+    teachingSummary,
+    houseClassical: getPlanetInHouseClassical(pid, transitH),
+    signClassical: getPlanetInSignClassical(pid, transit.rashi),
+    dignityClassical: getDignityClassicalNotes(
+      transit.dignity,
+      transit.isCombust,
+      transit.isRetro,
+      pid,
+      'summary',
+    ),
     isRetro: transit.isRetro,
     sameSignAsNatal: sameSign,
   }
