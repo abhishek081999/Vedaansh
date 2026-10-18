@@ -8,7 +8,16 @@ import type { ChartOutput, Rashi, UpagrahaData } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { calcSripatiBhava, planetInSripatiHouse } from '@/lib/engine/sripatiBhava'
+import {
+  getHouseTheme,
+  getPlanetInHouse,
+  getSignInHouse,
+  LAGNA_LORD_IN_FIRST,
+  wholeSignHouseFromLagna,
+} from '@/lib/engine/houseInterpretations'
 import { HouseProgressionPanel } from './HouseProgressionPanel'
+import { HouseGuideTab } from './HouseGuideTab'
+import { RashiGuideTab } from './RashiGuideTab'
 
 const SIGN_LORDS: Record<number, string> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
@@ -90,9 +99,16 @@ function SummaryChip({
 }
 
 export function HousePanel({ chart }: { chart: ChartOutput }) {
-  const [activeTab, setActiveTab] = useState<'analysis' | 'progression'>('analysis')
+  const [activeTab, setActiveTab] = useState<'analysis' | 'progression' | 'guide' | 'rashi'>('analysis')
   const { lagnas, grahas, meta, upagrahas } = chart
   const houseSystem = meta.settings.houseSystem
+  const ascRashi = lagnas.ascRashi
+  const lagnaLordId = SIGN_LORDS[ascRashi]
+  const lagnaLordInFirst = grahas.some((g) => {
+    if (g.id !== lagnaLordId) return false
+    // Whole-sign lagna lord in H1: planet rashi matches ascendant rashi
+    return wholeSignHouseFromLagna(ascRashi, g.rashi) === 1
+  })
 
   const sripati = useMemo(() => {
     if (chart.sripati?.madhyas?.length === 12 && chart.sripati.sandhis?.length === 12) {
@@ -261,6 +277,8 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
         {[
           { id: 'analysis' as const, label: 'Bhava Analysis' },
           { id: 'progression' as const, label: 'House Progression (BCP)' },
+          { id: 'guide' as const, label: 'House Guide' },
+          { id: 'rashi' as const, label: 'Rashi Guide' },
         ].map((t) => (
           <button
             key={t.id}
@@ -286,6 +304,24 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
 
       {activeTab === 'analysis' ? (
         <>
+          {lagnaLordInFirst ? (
+            <div
+              className="card"
+              style={{
+                padding: '0.9rem 1.1rem',
+                background: 'rgba(201,168,76,0.08)',
+                border: '1px solid var(--border-soft)',
+              }}
+            >
+              <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>
+                Lagna Lord in 1st House ({GRAHA_NAMES[lagnaLordId as keyof typeof GRAHA_NAMES] || lagnaLordId})
+              </div>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {LAGNA_LORD_IN_FIRST}
+              </p>
+            </div>
+          ) : null}
+
           <div
             style={{
               display: 'grid',
@@ -293,7 +329,13 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
               gap: '1.25rem',
             }}
           >
-            {houseData.map((h) => (
+            {houseData.map((h) => {
+              const theme = getHouseTheme(h.houseNum)
+              const signNote = getSignInHouse(h.houseNum, h.rashi)
+              // Whole-sign house for planet summaries (matches lagna-based reading)
+              const wsRashi = (((ascRashi - 1 + h.houseNum - 1) % 12) + 1) as Rashi
+              const wsSignNote = getSignInHouse(h.houseNum, wsRashi)
+              return (
               <div
                 key={h.houseNum}
                 className="card"
@@ -365,12 +407,17 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                           fontWeight: 700,
                         }}
                       >
-                        {h.specialLabel ?? 'Bhava Madhya'}
+                        {theme?.sanskrit ?? h.specialLabel ?? 'Bhava Madhya'}
                       </div>
                       <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {RASHI_NAMES[h.rashi]}{' '}
                         <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>Madhya</span>
                       </div>
+                      {theme ? (
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                          {theme.shortThemes}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
@@ -380,6 +427,25 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                     </div>
                   </div>
                 </div>
+
+                {(wsSignNote || signNote) ? (
+                  <div
+                    style={{
+                      padding: '0.7rem 0.85rem',
+                      background: 'var(--surface-2)',
+                      borderRadius: 'var(--r-md)',
+                      border: '1px solid var(--border-soft)',
+                      borderLeft: '3px solid var(--gold)',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.58rem', color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
+                      {RASHI_NAMES[wsRashi]} in House {h.houseNum}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                      {wsSignNote || signNote}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div
@@ -544,9 +610,38 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                       </>
                     )}
                   </div>
+
+                  {h.planetsInHouse.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginTop: '0.85rem' }}>
+                      {h.planetsInHouse.map((p) => {
+                        const wsHouse = wholeSignHouseFromLagna(ascRashi, p.rashi)
+                        const note = getPlanetInHouse(p.id, wsHouse, 'summary')
+                        if (!note) return null
+                        return (
+                          <div
+                            key={`${p.id}-interp`}
+                            style={{
+                              padding: '0.55rem 0.7rem',
+                              background: 'var(--surface-2)',
+                              borderRadius: 'var(--r-sm)',
+                              border: '1px solid var(--border-soft)',
+                            }}
+                          >
+                            <div style={{ fontSize: '0.58rem', color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.2rem' }}>
+                              {GRAHA_NAMES[p.id] || p.id} in House {wsHouse}
+                            </div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                              {note}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : null}
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
 
           <div style={{ marginTop: '2rem' }}>
@@ -644,8 +739,12 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
             </div>
           </div>
         </>
-      ) : (
+      ) : activeTab === 'progression' ? (
         <HouseProgressionPanel chart={chart} />
+      ) : activeTab === 'guide' ? (
+        <HouseGuideTab chart={chart} />
+      ) : (
+        <RashiGuideTab chart={chart} />
       )}
     </div>
   )

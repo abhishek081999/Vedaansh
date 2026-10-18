@@ -18,7 +18,16 @@ import {
   getPadaNamingSyllable,
   getRashiTatva,
 } from '@/lib/engine/astroDetailsDerived'
-import { SIGN_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
+import {
+  SIGN_INTERPRETATIONS,
+  DIGNITY_INTERPRETATIONS,
+  getPlanetInHouseClassicalSummary,
+  getPlanetInSignClassicalSummary,
+  getDignityClassicalNotes,
+  getVakriAstSummary,
+  buildClassicalPdfBlocks,
+} from '@/lib/engine/interpretations'
+import { wholeSignHouseFromLagna } from '@/lib/engine/houseInterpretations'
 import { getYoginiInterpretation } from '@/lib/engine/dasha/yoginiInterpretations'
 import {
   buildVimshottariAntarInterpretation,
@@ -612,7 +621,15 @@ function buildPlanetInterpretations(chart: ChartOutput, group: string[]): string
     const signInterp = SIGN_INTERPRETATIONS[id]?.[g.rashi] || 'Core energy influence.'
     const digInterp = DIGNITY_INTERPRETATIONS[g.dignity] || ''
     const planetColor = GRAHA_DISPLAY_COLOR[id as GrahaId] ?? THEME.text
-    
+    const house = wholeSignHouseFromLagna(chart.lagnas.ascRashi, g.rashi)
+    const classicalSign = getPlanetInSignClassicalSummary(id, g.rashi)
+    const classicalHouse = getPlanetInHouseClassicalSummary(id, house)
+    const classicalDignity = getDignityClassicalNotes(g.dignity, false)[0]?.text
+    const vakriAst = getVakriAstSummary(id, g.isRetro, g.isCombust)
+    const classicalBits = [classicalSign, classicalHouse, classicalDignity, vakriAst].filter(
+      (x): x is string => Boolean(x),
+    )
+
     return `
       <div class="interp-block">
         <div class="interp-header">
@@ -620,10 +637,35 @@ function buildPlanetInterpretations(chart: ChartOutput, group: string[]): string
           <span class="dignity-tag" style="background:${THEME.surface};color:${THEME.muted};border:1px solid ${THEME.border}">${capitalize(g.dignity)}</span>
         </div>
         <div class="interp-text">${signInterp} ${digInterp}</div>
-        <div class="interp-meta">Nakshatra: ${g.nakshatraName} (${g.pada}) • House: ${((g.rashi - chart.lagnas.ascRashi + 12) % 12) + 1}</div>
+        ${classicalBits.length ? `<div class="interp-text" style="margin-top:6px;font-size:11px;color:${THEME.secondary}"><strong>Classical:</strong> ${classicalBits.map(escapeHtml).join(' ')}</div>` : ''}
+        <div class="interp-meta">Nakshatra: ${g.nakshatraName} (${g.pada}) • House: ${house}</div>
       </div>
     `
   }).join('')
+}
+
+function buildClassicalBhavaSection(chart: ChartOutput): string {
+  const { lagnaLord, houses } = buildClassicalPdfBlocks(chart)
+  const lagnaBlock = lagnaLord.length
+    ? `<div style="margin-bottom:1rem;padding:12px;background:${THEME.accentLight}33;border-left:3px solid ${THEME.temple}">
+        <div style="font-weight:800;font-size:11px;color:${THEME.primary};margin-bottom:4px">Lagna Lord (classical)</div>
+        ${lagnaLord.slice(0, 2).map((n) => `<div style="font-size:11px;line-height:1.55;margin-bottom:4px">${escapeHtml(n.text)}</div>`).join('')}
+      </div>`
+    : ''
+  const rows = houses.map((h) => `
+    <tr>
+      <td style="font-weight:800;color:${THEME.primary};vertical-align:top">H${h.house}</td>
+      <td style="font-size:10px;line-height:1.5">${h.lines.map((l) => escapeHtml(l)).join('<br/>')}</td>
+    </tr>
+  `).join('')
+  return `
+    ${lagnaBlock}
+    <p style="font-size:11px;margin-bottom:0.75rem;color:${THEME.muted}">Educational paraphrases from BPHS / Phaladīpikā tradition — not critical-edition text.</p>
+    <table class="data-table">
+      <thead><tr><th>House</th><th>Classical notes (chart-specific)</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `
 }
 
 function buildAVMatrix(chart: ChartOutput): string {
@@ -1468,6 +1510,7 @@ export function generateChartHTML(
     <div class="toc-item"><span>✦ 07. Buddhi & Jnana — Mercury, Jupiter & Venus</span> <span>11</span></div>
     <div class="toc-item"><span>✦ 08. Chaya Graha — Saturn, Rahu & Ketu</span> <span>12</span></div>
     <div class="toc-item"><span>✦ 09. Bhava Bala — House Potency Analysis</span> <span>13</span></div>
+    <div class="toc-item"><span>✦ 09b. Bhava Classical — House & Lordship Phalita</span> <span>13b</span></div>
     <div class="toc-item"><span>✦ 10. Nakshatra — Lunar Mansion Analysis</span> <span>14</span></div>
     <div class="toc-item"><span>✦ 11. Yoga — Celestial Combinations</span> <span>15</span></div>
     <div class="toc-item"><span>✦ 12. Shadbala — Six-Fold Strength Analysis</span> <span>16</span></div>
@@ -1662,6 +1705,14 @@ ${buildAllDashasPages(chart)}
   ${SectionHeader('07', 'Bhava Bala', 'House Potency Analysis')}
   <p style="margin-bottom: 2rem">Analysis of the 12 houses to determine which areas of life (career, wealth, health) are naturally supported by cosmic geometry.</p>
   ${buildBhavaBalaSection(chart)}
+  ${PageFooter(10, meta.name)}
+</div>
+
+<!-- PAGE 10b: CLASSICAL BHAVA -->
+<div class="page">
+  ${SectionHeader('07b', 'Bhava Classical', 'House & Lordship Phalita')}
+  <p style="margin-bottom: 1rem">Classical house, lordship, occupant, and drishti notes filtered to this chart (whole-sign from Lagna).</p>
+  ${buildClassicalBhavaSection(chart)}
   ${PageFooter(10, meta.name)}
 </div>
 

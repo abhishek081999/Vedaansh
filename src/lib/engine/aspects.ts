@@ -44,9 +44,25 @@ export function getAspectedHouses(planetId: GrahaId, currentHouse: number): numb
 }
 
 /**
- * Get aspected symptoms/tags for the tooltip
+ * Short aspect labels for tooltips.
+ * Prefer planet-aware labels for Ma / Ju / Sa special drishti when `planetId` is set.
  */
-export function getAspectDescription(a: number): string {
+export function getAspectDescription(a: number, planetId?: GrahaId): string {
+  if (planetId === 'Ma') {
+    if (a === 4) return 'Protection / territory'
+    if (a === 7) return 'Partnership / energy'
+    if (a === 8) return 'Eliminates threats (not house itself)'
+  }
+  if (planetId === 'Ju') {
+    if (a === 5) return 'Learning capacity'
+    if (a === 7) return 'Partner counsel'
+    if (a === 9) return 'Blessings / fortune-rise'
+  }
+  if (planetId === 'Sa') {
+    if (a === 3) return 'Thoughtful effort / mental tension'
+    if (a === 7) return 'Relationships / domestic atmosphere'
+    if (a === 10) return 'Karma discipline / honest work'
+  }
   if (a === 3) return 'Effort & Valor'
   if (a === 4) return 'Happiness & Home'
   if (a === 5) return 'Wisdom & Children'

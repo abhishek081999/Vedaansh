@@ -43,13 +43,13 @@ Local Mongo probe: `npm run test:mongo`
 - On some networks/Windows: set `MONGODB_URI_DIRECT` to Atlas standard connection string (see `.env.example`).
 - Atlas IP allowlist must include your IP / Render egress.
 
-### Charts slow or OOM on Render (~512 MB)
+### Charts slow or OOM on Render
 
 | Cause | Mitigation |
 |-------|------------|
 | Concurrent Swiss Ephemeris | Default `CHART_CALC_CONCURRENCY` serializes calc |
 | Large Redis gzip writes | Queued chart-cache writes |
-| Heap vs RAM | `NODE_OPTIONS=--max-old-space-size=450` intentional — upgrade Render plan if OOMs continue |
+| Heap vs RAM | Standard plan: `NODE_OPTIONS=--max-old-space-size=1536` (2 GB). On 512 MB, keep heap ≤450 |
 
 After calc, `cleanupEphemeris()` must re-set `EPHE_PATH` after `swe_close()` or fallback becomes slow Moshier.
 

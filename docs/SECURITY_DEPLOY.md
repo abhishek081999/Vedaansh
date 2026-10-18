@@ -65,7 +65,7 @@ Filter production logs for:
 - Rotate `AUTH_SECRET` and Razorpay secrets on a schedule or after staff changes
 - Run `npm run security:audit` after dependency bumps (CI reports high CVEs; does not block deploy)
 
-## 6. Render memory (~512 MB tier)
+## 6. Render memory (Standard / ~2 GB)
 
 Security changes add **negligible** runtime RAM (Redis is external).
 
@@ -76,7 +76,7 @@ Heavy paths:
 - After each calc, `cleanupEphemeris()` calls `swe_close()` then **re-sets** `EPHE_PATH` (close alone clears the path and forces slow Moshier fallback)
 - `/api/chart/bulk-export` (batched, low concurrency)
 
-`NODE_OPTIONS=--max-old-space-size=450` in `render.yaml` is intentional headroom on free tier. If OOMs continue under traffic, upgrade the Render plan rather than raising the heap above instance RAM.
+`NODE_OPTIONS=--max-old-space-size=1536` in `render.yaml` leaves headroom on the Standard (2 GB) plan. If you drop back to 512 MB, lower the heap (e.g. 450) instead of raising it above instance RAM.
 
 ## 7. What is enforced in code
 

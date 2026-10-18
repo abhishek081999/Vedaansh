@@ -198,3 +198,72 @@ export function getInterpretation(p: any): string {
   
   return signNote ? `${signNote} ${dignityNote}` : nakNote
 }
+
+// Re-export house placement lookups for UI import consistency
+export {
+  getPlanetInHouse,
+  getHouseTheme,
+  getSignInHouse,
+  getKendradhipatiNoteForLagna,
+  wholeSignHouseFromLagna,
+  PLANET_IN_HOUSE_SUMMARY,
+  HOUSE_THEMES,
+  LAGNA_STRENGTH_CHECKS,
+  ANALYSIS_LAGNAS_NOTE,
+  KENDRADHIPATI_NOTE,
+  THIRD_HOUSE_DASHA_CAUTION,
+  MANGLIK_OVERVIEW,
+} from './houseInterpretations'
+
+export {
+  getManglikStatusLabel,
+  getManglikTeaching,
+  type ManglikStatus,
+  type ManglikTeaching,
+} from './manglikTeaching'
+
+export {
+  getRashiProfile,
+  getRashiCoreSummary,
+  getRashiInHouse,
+  getPlanetInSign,
+  rashiForHouseFromLagna,
+} from './rashiInterpretations'
+
+export {
+  getHouseClassical,
+  getRashiClassical,
+  getPlanetInHouseClassical,
+  getPlanetInSignClassical,
+  getPlanetInHouseClassicalSummary,
+  getPlanetInSignClassicalSummary,
+  getDignityClassicalNotes,
+  getDignityAwarePlanetInSign,
+  getAspectClassicalNote,
+  getAspectTeachingText,
+  getSpecialAspectOverview,
+  SPECIAL_ASPECT_OVERVIEWS,
+  CLASSICAL_SOURCE_LABEL,
+} from './classicalInterpretations'
+
+export {
+  getVakriAstNotes,
+  getVakriAstSummary,
+  getMultiVakriNotes,
+  getNatalVsTransitVakriNotes,
+  VAKRI_ACTIVATION_AGE,
+} from './vakriAstInterpretations'
+
+export {
+  getChartLordships,
+  getHouseLordInHouse,
+  getLagnaLordInHouse,
+} from './lordshipInterpretations'
+
+export {
+  getChartHouseClassical,
+  getLagnaLordClassical,
+  getHouseAspectNotes,
+  getChartMultiVakriNotes,
+  buildClassicalPdfBlocks,
+} from './classicalChartAnalysis'
