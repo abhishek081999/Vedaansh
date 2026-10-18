@@ -24,8 +24,10 @@ export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutpu
       
       {/* Manglik Section */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-        <ManglikCard name={nameA} analysis={m1} />
-        {chartB && m2 && <ManglikCard name={nameB} analysis={m2} />}
+        <ManglikCard name={nameA} analysis={m1} grahas={chartA.grahas} ascRashi={chartA.lagnas.ascRashi} />
+        {chartB && m2 && (
+          <ManglikCard name={nameB} analysis={m2} grahas={chartB.grahas} ascRashi={chartB.lagnas.ascRashi} />
+        )}
       </div>
 
       {/* Pape Samya Balance */}
@@ -46,8 +48,18 @@ export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutpu
   )
 }
 
-function ManglikCard({ name, analysis }: { name: string; analysis: ManglikAnalysis }) {
-  const teaching = getManglikTeaching(analysis)
+function ManglikCard({
+  name,
+  analysis,
+  grahas,
+  ascRashi,
+}: {
+  name: string
+  analysis: ManglikAnalysis
+  grahas: ChartOutput['grahas']
+  ascRashi: ChartOutput['lagnas']['ascRashi']
+}) {
+  const teaching = getManglikTeaching(analysis, grahas, ascRashi)
   const intensity = analysis.intensity
 
   const color =
@@ -116,6 +128,14 @@ function ManglikCard({ name, analysis }: { name: string; analysis: ManglikAnalys
             ))}
           </div>
         ) : null}
+        {teaching.perspectives ? (
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            <strong style={{ color: 'var(--text-gold)' }}>Scope:</strong> {teaching.perspectives.scopeLabel}
+          </div>
+        ) : null}
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          {teaching.controlNote}
+        </div>
         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
           {teaching.overview}
         </div>

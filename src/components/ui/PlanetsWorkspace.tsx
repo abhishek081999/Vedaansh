@@ -318,8 +318,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Moon teaching: all 16 kalas, seven manas with remedies, grahan yoga, and past-life combinations — active items highlighted for this chart.'
-              : 'Free preview of active kala and primary manas. Gold unlocks the complete kalas, manas, and past-life reference.'}
+              ? 'Full Moon teaching: Paksha Bali, Chandra + Tripura Sundari 16 kalas, significations, Vedic quotes, eight-step analysis, Neecha Bhanga, seven manas, and past-life / grahan — chart-specific items highlighted.'
+              : 'Free preview of Paksha Bali, both active kalas (Chandra + Tripura), and primary manas. Gold unlocks foundations, both kala systems, manas, analysis framework, and past-life reference.'}
           </p>
           <MoonKalasManasPanel chart={chart} userPlan={userPlan} />
         </section>

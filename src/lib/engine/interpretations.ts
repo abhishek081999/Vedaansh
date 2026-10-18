@@ -213,13 +213,21 @@ export {
   KENDRADHIPATI_NOTE,
   THIRD_HOUSE_DASHA_CAUTION,
   MANGLIK_OVERVIEW,
+  MARS_CONTROL_NOTE,
+  ANSHIK_PURNA_MANGLIK_NOTE,
+  EARLY_MARRIAGE_INDICATORS,
+  DELAYED_MARRIAGE_INDICATORS,
+  TWELFTH_HOUSE_READING_NOTE,
 } from './houseInterpretations'
 
 export {
   getManglikStatusLabel,
   getManglikTeaching,
+  getManglikPerspectives,
   type ManglikStatus,
   type ManglikTeaching,
+  type ManglikPerspectiveFlags,
+  type ManglikScope,
 } from './manglikTeaching'
 
 export {

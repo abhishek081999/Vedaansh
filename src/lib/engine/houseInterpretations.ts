@@ -77,7 +77,37 @@ export const THIRD_HOUSE_DASHA_CAUTION =
 
 /** High-level Manglik overview (not a full cancellation matrix). */
 export const MANGLIK_OVERVIEW =
-  'Mānglik (Kuja) doṣa is commonly noted when Mars occupies houses 1, 4, 7, 8, or 12 from Lagna (some South-Indian schools also weigh the 2nd). It often shows high drive; relationship friction fears are overstated once Mars is own/exalted or after roughly age 28. Always judge the full chart—do not apply remedies blindly.'
+  'Mānglik (Kuja) doṣa is commonly noted when Mars occupies houses 1, 4, 7, 8, or 12 from Lagna (some South-Indian schools also weigh the 2nd). It often shows high drive; relationship friction fears are overstated once Mars is own/exalted or after roughly age 28. Mutual Manglik–Manglik matching and Jupiter/Saturn/Rahu pacification also soften readings. Always judge the full chart—do not apply remedies blindly.'
+
+/** Who can restrain Mars energy in partnership readings (class teaching). */
+export const MARS_CONTROL_NOTE =
+  'Mars carries commander (senāpati) energy—leadership, ego heat, and independence—regardless of gender. Saturn, Rahu, and Jupiter can often restrain or balance Mars; the Sun generally cannot (king gives the general a free hand). Weak Mars often shows as irritation more than open aggression.'
+
+/** Partial vs full Manglik — educational framing from Lagna / Moon / Venus. */
+export const ANSHIK_PURNA_MANGLIK_NOTE =
+  'Aṁśik (partial) Manglik: Mars sits in a Kuja house from only one of Lagna, Moon, or Venus. Pūrṇa (full): from two or three of these perspectives. Full intensity is more psychological pressure when the partner lacks matching Mars, Saturn, or Rahu support—not an automatic life/death prediction.'
+
+/** Soft early-marriage checklist (yogas, not timing engine). */
+export const EARLY_MARRIAGE_INDICATORS: string[] = [
+  'Benefics occupying both Lagna and the 7th (or strongly supporting them)',
+  '2nd and 8th free of heavy malefic load',
+  'Venus not combust; Jupiter/Venus not heavily afflicted or stalled by malefics',
+  'Lagna lord strong (bali); Jupiter near Venus is a classic auspicious cue',
+  '7th lord as a benefic sitting in the 7th, with Lagnesh–Saptamesh within ~3–4° → love/early bond lean (Gāndharva-style cue)',
+]
+
+/** Soft delayed-marriage checklist. */
+export const DELAYED_MARRIAGE_INDICATORS: string[] = [
+  'Malefics or pāpa-kartarī around key marriage houses (1/7 and related)',
+  'Venus combust (asta) or heavily afflicted',
+  'Saturn–Moon close conjunction: emotional self-sufficiency / low marriage urgency (judge degrees)',
+  'Debilitated Venus under Saturn pressure; Sun graha-yuddha touching Lagna or 7th',
+  'Delay often means readiness/filters, not “no marriage”—timing needs dashā study',
+]
+
+/** Soft 12th-house reading frame (class teaching). */
+export const TWELFTH_HOUSE_READING_NOTE =
+  'Twelfth-house planets color sleep, dreams, private expense, foreign/ashram spaces, and mokṣa lean. Class notes also flag hard outcomes when combinations support them—e.g. afflicted Rahu (jail), Rahu+afflicted Moon (mental instability/madness), weak Mars or stressed Ketu (ED). Still read dignity, aspects, and the full chart; for crisis ideation, urge real-world support.'
 
 export function getKendradhipatiNoteForLagna(ascRashi: Rashi): string | null {
   // Dual signs: full dosha teaching applies most clearly
@@ -238,18 +268,19 @@ export const HOUSE_THEMES: Record<HouseNumber, HouseTheme> = {
     house: 7,
     sanskrit: 'Yuvati Bhava',
     english: 'Spouse, partnerships, public image',
-    shortThemes: 'Spouse and partnerships',
+    shortThemes: 'Spouse, contracts, and public relating',
     coreThemes: [
-      'Marriage, spouse & business partners',
-      'Mirror of Lagna — qualities sought in others',
-      'Public dealing, travel & residence change',
-      'Secondary maraka (with 2nd) — full-chart longevity only',
-      'Karmic bonds & path shifts through relating',
-      'Property / life away from birthplace themes',
-      'Read with Venus, 7th lord & D9 Ascendant',
+      'Marriage, spouse & long-term relating',
+      'Business partners, startups & professional contracts',
+      'Foreign travel / travel-linked livelihood themes',
+      'Promotion, transfer & public image through others',
+      'Marital friction, affairs, and whether bonds stabilize',
+      'Mirror of Lagna — qualities sought (and mirrored) in others',
+      'Secondary maraka (with 2nd) — longevity only via full chart',
+      'Read with Venus, 7th lord, Manglik status & D9 Ascendant',
     ],
     intro:
-      'Seventh is partnership and the far point from Lagna—spouse, contracts, and how others complete you. Lagnesh–7th exchange needs support factors; do not assume marriage from that alone.',
+      'Seventh is partnership beyond marriage alone—spouse, business deals, travel contracts, and how others complete you. Same house governs marriage and business partnerships as separate outcomes. Lagnesh–7th exchange needs support factors; exact timing needs dashā work, not yogas alone.',
   },
   8: {
     house: 8,
@@ -323,18 +354,19 @@ export const HOUSE_THEMES: Record<HouseNumber, HouseTheme> = {
     house: 12,
     sanskrit: 'Vyaya Bhava',
     english: 'Expenses, isolation, liberation',
-    shortThemes: 'Expenses, losses, and spirituality',
+    shortThemes: 'Expenses, sleep, foreign, and mokṣa',
     coreThemes: [
-      'Mokṣa, vairāgya & maturity in occult (after 8th learning)',
-      'Expenses, losses, charity & unfulfilled vows',
-      'Foreign lands, hospitals, ashrams & isolation',
-      'Sleep, dreams & bed comfort',
+      'Mokṣa, vairāgya & private spiritual practice (sādhana)',
+      'Expenses, charity, losses & completing unfinished vows',
+      'Foreign lands, hospitals, ashrams, retreats & isolation',
+      'Sleep, dreams, bed comfort (śayyā-sukha) & subconscious',
+      'Behind-the-scenes work, research & hidden enemies',
       'Left eye; private life & confinement themes',
-      'Legal release / court drain when linked to 6th',
+      'Journey from bhoga (enjoyment) toward detachment',
       'Chosen or forced solitude — same house energy',
     ],
     intro:
-      'Twelfth closes the cycle—expenditure, foreign/ashram spaces, sleep, and liberation. Remedies are often about completing vows and aligning the planet’s capacity to “take” 12th energy, not quick fixes.',
+      'Twelfth closes the cycle—expenditure, foreign/ashram spaces, sleep/dreams, and liberation. Planets here color private life and subconscious patterns strongly; dignity and aspects decide whether solitude heals or drains. Judge the whole chart—not one 12th placement alone.',
   },
 }
 
@@ -400,7 +432,7 @@ const FULL: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     9: 'Responsible about temple/duty. Devotee of Lord Ram; Yama–Niyama routines. Father/guru famous, clear, grand-scale. Strong Raja Yoga—aims for top authority; mother is a high-pressure problem solver.',
     10: 'Digbala: political/power desire, pilgrimage-sponsor vibe. Strong benefic Sun: IAS/IPS lean. Leaving jobs without next offer in Sun periods is costly; Sun–Rāhu combo often self-sabotages via ego.',
     11: 'Royal image, parties, helpers, money when strong. As Lagna lord here: split-personality risk (public good / private harsh)—doesn’t take advice easily.',
-    12: 'Wrongdoing in isolation can destroy career/status. Prone to losing watches/umbrellas. Father may face health issues or isolation.',
+    12: 'Private “royal” bedroom lean; dominates personal space; emotional satisfaction via ego-light spirituality. One-man-army service energy that catches the boss’s eye (help or friction). Easy spiritual path; hospital/charity fire. Physical distance from father with emotional attachment; foreign contracts with homesickness. Ego-driven king-desire; eye strain from screens. In Taurus/Gemini/Pisces: boundary risks in private relating—soften, don’t assume.',
   },
   Mo: {
     1: '“Chandravanshi” traits: emotional, sensitive, moody, easily hurt. Highly intuitive; prone to emotional fluctuations and “nazar” sensitivity.',
@@ -414,7 +446,7 @@ const FULL: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     9: 'Benefic Moon: emotional control → progress, dharma without show, writing/healing words, temple emotion. Father “hard shell / soft core.” Afflicted: practice-hopping, sibling jealousy—study pakṣa bala carefully.',
     10: 'Helping nature builds reputation; travel/HR/food industries; foreign travel lean. Moon–Rāhu alone can still earn well (not mere “grahaṇa on karma”). Malefic Moon needs care.',
     11: 'Desires peace, white aesthetics, fancy dining. Emotional networks; may leave projects halfway. Seasonal/irregular income; desires often fulfilled after emotional release. Arts and herbal themes.',
-    12: 'Loneliness and isolation themes. Seeks emotional support more than giving it. Peace in mountains/rivers and meditation. Food and water charity supports mental stability.',
+    12: 'Liquid money flow with mindless/emotional spending and soft donations. Loves sleep; cooling/milky lights by the bed. Comfortable travel. Highly sensitive, fluctuating mind; nurturing; motherly devotion to the divine. Past-life spiritual intuitions hard to decode. Domestic ease often found outside the birth home more than inside it. Therapy/healing/medicine lean when supported. Mokṣa easier with sincere practice; Moon pushes novelty. Kalā cues often cited: kṣamā, puṣṭi, nṛtika (forgiveness, nurture, adaptability).',
   },
   Ma: {
     1: '“Commander” personality: brave, short-tempered, passionate, logical. Heavy responsibility; prone to minor facial injuries or scars.',
@@ -423,12 +455,12 @@ const FULL: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Almost always grants own house/property (even if afflicted). Strong: land, multiple properties, factory if Saturn-linked. Afflicted: theft, fights, domestic heat—still property karma.',
     5: 'Cesarean lean in modern births, high posts, strong digestion. Afflicted: child risk, quarrels; charts may show attraction outside primary bond—counsel boundaries.',
     6: 'Very beneficial fighting spirit in upachaya—defense, contest, surgery recovery drive. Still watch injury and debt from property fights.',
-    7: 'Passionate, assertive partnership style; high drive in relating. Needs conscious tempering of conflict in marriage and business deals.',
+    7: 'Kuja house: aggression, leadership, authority, and independence in relating (all genders). Passion and assertiveness high—space, clear contracts, and tempering of ego heat protect marriage and business deals.',
     8: 'Responsible but fight-prone in-laws (“roaring lion vs barking dog”). Friend-circle fights; marital conflict risk. Blood/cholesterol/surgery themes; ancestral property disputes; people may try to hold the native back.',
     9: 'Practical religion for protection and order; Hanuman, Narasimha, Kartikeya, Ram, Shiva. Strict father/gurus. Kshatriya mindset; managerial command; hot-climate or defense travel. Mother: blood/pain/urinary themes possible.',
     10: 'Digbala south: focused hard work in the right direction. Own/exalted → Ruchaka yoga power with effort. Afflicted: accidents, fire/weapon risk, difficult children dynamics.',
     11: 'Works very well for material gains and competitive networks; loyal-group drive—channel aggression into productive teams.',
-    12: 'Aggression in private life and domestic disputes. Protective; blood-pressure themes. May keep “protection” tools near bed. Peace through intense exertion or land charity.',
+    12: 'Foreign land/export lean; passionate at work with anger that needs energy management (often steadies after ~age 28). Blood-donation/service lean. Wanderer who dislikes sitting alone; long travel loved; abroad may feel smooth then unsettled. Rigid adaptability; over-shielding others can irritate them. Suppressed heat; martial/discipline outlets help. 4th aspect protects siblings themes; 7th reduces open enmity; 8th intensifies partner bond—if Mars is afflicted, class teaching warns of physical aggression toward partner. Can make the native physically weaker while significations stay aggressive; male charts often dominate the spouse. If Mars is weak (māraṇa-kāraka + low ṣaḍbala), class notes link erectile dysfunction (ED). Kālī/devotional warrior lean possible.',
   },
   Me: {
     1: 'Highly communicative, sharp intellect, youthful appearance. Consultant, diplomat, or problem-solver for others.',
@@ -437,12 +469,12 @@ const FULL: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Strong: farm/garden love, arts/music skill, witty finance from home, foreign travel lean. Afflicted: speech that damages domestic peace—guard words at home.',
     5: 'Natural seat for Mercury: math, communication, astrology aptitude, flexible arts/dance when strong. Afflicted: education and focus issues.',
     6: 'Thrives on routines (CA, HR, finance). Neurological sensitivity. Betrayal from trusted people or paperwork debts possible.',
-    7: 'Playful marriages; spouse as sibling/best friend. Needs a partner for travel, hobbies, learning. World sees clever trader/jugaadu energy. Father may have multiple income streams; mother humorous.',
+    7: 'Spouse often from nearby city, relatives, or a common friend (inner-circle Mercury). With Sun nearby: childhood/school/college bond lean. Playful, talkative partner; friendship-like dynamic. Mercury’s fluctuation brings ups and downs—couples often resolve issues with their own viveka when unafflicted.',
     8: 'Humorous but money-focused, gossipy in-laws. School-life relationship issues; hard to voice true feelings. Paperwork/certificate fraud themes. Health dips after bonuses. Caution around insurance/death-related money karma.',
     9: 'Searches new religious ideas; debates orthodoxy. Humorous, talkative father/guru in business/consulting. Competitive; travel for exams/business. Mother: skin themes; may depend on brothers.',
     10: 'Own/exalted → Bhadra yoga: rise via speech/wit—speaker, teacher, comic timing. Afflicted: company feels unpleasant; words taken wrong.',
     11: 'Very beneficial for gains, speech-deals, and multi-stream income; keep ethics clean in paperwork and friendships.',
-    12: 'Avoids calls; hates communicating in isolation. Unorganized routines. Nervous exhaustion or slow metabolism themes. Mother humorous or explores new religions.',
+    12: 'Favorable signs: trader/business focus and research skill. Unfavorable: scattered focus, overthinking, private-life friction. Mid-sentence forgetfulness; feels “I said something wrong” even when silent. Spiritual intuition and behind-the-scenes research; past-life sādhana hints; dreams linked to children/karma themes. Give-and-take with paternal/maternal aunts (buā/māsī)—transactions keep bonds warm. Neurological sensitivity if afflicted; speech insults and hidden enemies when weak.',
   },
   Ju: {
     1: '“Blessed” individual: spiritual, wise, non-jealous, magnetic. Seen as guide or advisor in society.',
@@ -451,12 +483,12 @@ const FULL: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Strong: value-filled childhood, religious prosperous home, pilgrimages, livestock if linked to 4th lord. Afflicted: friction or distance with children—protect progeny bonds.',
     5: 'Strong: theistic, wealthy lean, spiritual. Afflicted: direct pressure on children/separation themes—protect progeny with remedies and care.',
     6: 'Complex: can create hard-to-cure health themes and family disturbance even while giving knowledge; Virgo Jupiter especially separates via work/travel. Bhāvārtha Ratnākara still allows healing results—judge whole chart.',
-    7: 'Good married-life and children lean with spouse-as-guide; also a pull toward boundary-testing attractions with guilt that still protects the marriage on the surface—ethics and honesty required.',
+    7: 'Condition decides everything. Strong/own/exalted Jupiter: philosophical, teacher-like spouse; high tolerance (partner may overlook much). Afflicted/retro/enemy/malefic-aspected: delay, remarriage/prior-family themes, or partnership strain—judge dignity and aspects minutely, not “Jupiter in 7th = always good.”',
     8: 'Prominent, charitable in-laws. May witness hypocrisy in a guru/authority; hidden spiritual visions. Mother spiritual/educated. Breathing/TB/sciatica/heart themes. Helps people near ruin; don’t hide wrongs from guru/father.',
     9: 'Natural 9th kāraka: smooth education, guru early, ancestral blessings, optimistic healer mind. Afflicted/retro: ego of knowledge, weight/liver, superstition—still strong when dignified.',
     10: 'Ethical, spiritual, compassionate karma; helps more than donates (expects some return until true renunciation). Material expectations can divert attention from others’ needs.',
     11: 'Faithful high-level networking; studies risk before investing. Friend of all; trustworthy successful friends. Money arrives when needed; habit of donating a share; gifts gold/jewelry to parents.',
-    12: 'Blessed placement: sound sleep; altar/books/incense in bedroom. Divine protection feel. Respected lucky grandparents. Donate spiritual books regularly.',
+    12: 'Mokṣa-minded; can initiate/guide others when strong; past-guru imprint lean. Analytical—needs proof in spiritual claims. Foreign accounts/spend-heavy money with weak management. Long travel easier (classically noted with Cancer coloring). Self-teacher who tests mentors; solid counsel in illness or legal stress. Badly placed Jupiter can still bless spirituality; well-placed may inflate knowledge-ego and invite one corrective fall. Marriage/bedroom strain rises with malefic aspects. Liver moderation and yoga suit this placement.',
   },
   Ve: {
     1: 'Loves luxury, fashion, fine dining. Beautiful eyes, charming speech, soft nature, refined aesthetic sense.',
@@ -470,7 +502,7 @@ const FULL: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     9: 'Aesthetic devotion—decorating temples, bhajans, fine offerings. Female deities (Lakshmi, Radha, Gauri). Soft-spoken luxurious father; charismatic gurus. Fortune via prosperity/arts; comfortable travel. Mother: water retention/kidney/digestion themes.',
     10: 'Material luxury karma; often leaves studied field for skill work. Afflicted: boundary issues with opposite sex spoil work. Sign-specific marriage/child notes—judge whole chart.',
     11: 'Luxury and lifestyle gains without frantic chasing; opposite-sex/intoxicant caution—soft addiction lean if afflicted (all genders).',
-    12: 'Strong for devotion and private bliss. Heavy spend on luxury, perfume, family. Beautiful grandmother theme. Urinary/kidney/STD risk if afflicted.',
+    12: 'Selfless love lean; popular, passionate, optimistic relating—afflicted Venus may scatter partners. High material desire (brands, romance) with little lasting satisfaction except through sādhana. Comfortable luxury travel. Female signs: female-deity / altar-decoration devotion; advanced private bhakti and nature poetry. Nurturing creative outdoor lean. In Virgo: angry/jealous/unromantic coloring and blame patterns. Soft journey from bhoga toward mokṣa when practice is steady.',
   },
   Sa: {
     1: 'Hardworking but faces delays. Constant effort and discipline; results after struggle or external validation.',
@@ -484,7 +516,7 @@ const FULL: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     9: 'Alone & benefic: karma-yoga, ethical self-made destiny, late exclusive attainments, temple/sadhana after mid-life. Strict father/judge lean. Afflicted: education/travel delays, joint strain—8–10 years extra effort common.',
     10: 'Primary 10th kāraka: minister/judge/IAS lean with slight effort when benefic. Malefic: grinds early life; results after long struggle. Benefic own-sign: fast delivery on honest work.',
     11: 'Mining/construction/logistics/security business lean; few true friends among many; antique-collecting attachment; walks light emotionally to avoid pain.',
-    12: 'Severe sleep deprivation from work pressure or job-loss anxiety. Bedroom feels restrictive. Donate shoes; serve the poor/gurus selflessly.',
+    12: 'Natural 12th kāraka flavor: bhakti/sādhana for long stretches (may hide practice); mokṣa comes through effort. Foreign desire with hard exit/return; pilgrimages feel austere. Introvert, darkness-comfort, lazy sleep-anywhere habit; hard bed preference; foot/toe knocks common. Hard to receive support; hates discrimination; charity initiative with lifelong mental hurdles. Profession: struggle early, spiritual retreats and detachment later. Afflicted: bone/pelvis vigilance—soft medical language only.',
   },
   Ra: {
     1: 'Massive desires and worldly success drive. Speaks without boundaries; outsider feel; better luck networking outside immediate family.',
@@ -493,12 +525,12 @@ const FULL: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Domestic disturbance, early-education delays, desire inflation; female charts—marriage stress possible. Dasha may still grant Ganga/pilgrimage journeys.',
     5: 'Mechanical/engineering aptitude when well placed; malefic influence stresses childbirth—handle progeny matters gently, no fatalism.',
     6: 'Highly competitive edge in 6th (classically favored malefic)—office politics skill; unusual health/sleep; channel obsession away from fraud/debt.',
-    7: 'Intense obsession to marry a specific person; deceit risk in partnerships; complex partners. Learn to give, not only take. Grey public allegations; father’s income unstable. Unusual intimacy patterns.',
+    7: 'Foreign, distant, or culturally different spouse lean (Rahu pulls “elsewhere”). Intense desire/obsession risk; learn reciprocity. Complex partners; ethics and clarity essential. Grey public allegations; father’s income unstable if afflicted.',
     8: 'Political, boastful, fight-prone in-laws over money/property. Live-in/affair/illegal money extremes; boundary-crossing after breakups. Distressed pregnancy for mother. Sudden diseases, seizures, cancer, addictions. Strong for occult/tantra; fraud/bribery/grand-paternal karma disputes.',
     9: 'Good dispositor: unconventional rise, japa/siddhi lean, large following. Poor dispositor: father struggle, guru doubt, education breaks, showy charity. Jupiter aspect can make strong tantra/astrology practitioners. Execution house—not mantra-creation (that’s more Venus/5th).',
     10: 'Alone & not malefic: near rājayoga for material or spiritual path (Mesh/Vṛṣabha/Kumbha strong). Desire discipline essential—unchecked appetite derails rise. Foreign work possible.',
     11: 'Excellent natural kāma house for Rahu—strong dashā gains and desire fulfillment when not wildly malefic; keep legality conscious.',
-    12: 'Obsessed with foreign lands, nightlife, luxury. Internet scams, addictions, fake friends draining money. Oversized bedroom full of electronics.',
+    12: 'Strange/symbolic dreams (snakes, past/future) hard to decode; poor śayyā-sukha or insomnia when combinations support; may also sleep excessively and neglect goals. Knowledge in fragments—needs guidance to avoid confusion; excellent teacher only in thoroughly mastered subjects. Technical mind; extreme desires with limited delivery; impulsive spend. Mixed friend circle; strong intuition; ego-crushing; dharma-fear lean; late-life new spiritual skill hunger. Experimental edges without easy addiction. If Rahu is afflicted: jail / confinement combinations are classically warned. If Moon is also afflicted with this Rahu: class notes warn of mental instability / madness risk—treat as high-alert teaching, still weigh the full chart.',
   },
   Ke: {
     1: 'Introverted, spiritual, few words (that often come true). Detached from worldly gains and family wealth; anxiety themes.',
@@ -507,12 +539,12 @@ const FULL: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Better than Rahu for 4th overall: foreign travel/networking and later career help, yet separation from home comfort and early struggle for domestic ease.',
     5: 'Mantra-siddhi and spiritual accomplishment lean; progeny path often includes at least one pregnancy loss risk—medical care and soft counseling, not certainty language.',
     6: 'Dislikes office politics; prefers independent work. Natural healer. Destroys enemies naturally; debt causes forced detachment.',
-    7: 'Eager to marry then quickly bored. Expect little; live detached (“fakir”) for peace. Needs spiritual, travel-loving partner. World sees anxious/confused vibe. Father’s income delayed into EMIs; mother discards old items. Touch sensitivity; numbness/sugar themes.',
+    7: 'Spouse often from known social circle/vicinity (not far). When Ketu is relatively clean: soulmate / past-life bond feel. Placement stronger than mere aspect. Eager then detached if expectations inflate—spiritual, low-demand partner suits. Touch sensitivity; sugar/numbness themes if afflicted.',
     8: 'Detachment from in-laws; visit anxiety. Inexpressive, suspicious partner; marital disconnect. Conception after intense prayers to Ganesha/Shiva. Insomnia, nerves, piles themes. Senses death; heal via high-altitude spiritual travel (Kailash, Jyotirlingas, mountains).',
     9: 'Mokṣa lean with completed education when dispositor good; fakir-guru after ~48; wanderer travel partly to space from father. Victory flags and self-inquiry (“Who am I?”); may skip routine lamp rituals.',
     10: 'In Mesh/Vṛścika/Vṛṣabha/Kanyā: śatru-hanta office-politics skill. HR/admin with Mercury. Afflicted: incapacity to work—needs autonomy and specialized niches.',
     11: 'Desires solitude; occult/coding/research passion. Dissatisfaction from friends; often works free/donates earnings. Father betrayed by younger brother; maternal uncle hoards cash/electronics. Only ~50% desires fulfilled; spiritual travel desires granted; strong intuition about others’ crises.',
-    12: 'Ultimate Moksha placement. Small feet symbolism; sleep struggles; detached from physical intimacy. Massive sixth sense; drawn to deep isolated spiritual practice.',
+    12: 'Heart-led mokṣa pull with unclear path at first; spiritual ego possible; quick research/intuition (astrology lean). Parallel/past-life dreams; purpose-seeking; comfort-zone attachment while scolding others for it. Tiny close circle; wanderlust without easy foreign settlement. Meditation strength; limb/restlessness themes. Bed pleasures may still be okay (Ketu as victory kāraka), but class notes link cortisol stress → low testosterone → erectile dysfunction (ED). Under extreme stress: identity crisis, “why am I here,” escape urges, and suicidal-thought risk—encourage real support. Retrograde flavor: friction with one relative possible. Mahādasha may revive old vows or self-realization.',
   },
 }
 
@@ -531,7 +563,7 @@ const SUMMARY: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     9: 'Duty-bound faith and strong father/guru figures; aims for leadership roles.',
     10: 'Digbala power/career; don’t quit without next offer in Sun periods.',
     11: 'Royal gains image; as Lagna lord can split public/private faces.',
-    12: 'Private mistakes can hit reputation; father may face distance or health strain.',
+    12: 'Private authority/spiritual isolation; father distance with attachment; foreign with homesickness.',
   },
   Mo: {
     1: 'Sensitive, intuitive, emotionally changeable personality.',
@@ -545,7 +577,7 @@ const SUMMARY: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     9: 'Benefic Moon: dharma progress and healing words; weigh pakṣa bala.',
     10: 'Helping reputation; travel/HR/food careers; Moon–Rāhu can still earn.',
     11: 'Desires comfort and beauty; gains may feel irregular or emotionally paced.',
-    12: 'Needs solitude and restorative places; charity and quiet practice stabilize mood.',
+    12: 'Sensitive spender/sleeper; healing lean; home ease often found outside birth home.',
   },
   Ma: {
     1: 'Brave, decisive, competitive self; temper and minor injury themes.',
@@ -554,12 +586,12 @@ const SUMMARY: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Property almost certain; fights/theft if afflicted—still home karma.',
     5: 'High drive and modern C-section lean; protect children and boundaries.',
     6: 'Strong upachaya fighter—defense/contest; watch injury and property debt.',
-    7: 'Assertive relating style—passion high, conflict needs conscious handling.',
+    7: 'Kuja drive in partnerships—leadership and heat; give space and clear contracts.',
     8: 'High-intensity in-law and property dynamics; transformative pressure.',
     9: 'Practical, protective dharma; strict mentors; warrior/manager mindset.',
     10: 'Digbala focus/hard work; Ruchaka when own/exalted—effort still required.',
     11: 'Strong material/competitive gains through loyal groups.',
-    12: 'Private life needs outlets for heat/aggression; exertion or charity helps.',
+    12: 'Foreign/export heat; weak Mars (māraṇa + low ṣaḍbala) → ED risk per class notes.',
   },
   Me: {
     1: 'Youthful communicator; natural advisor and problem-solver.',
@@ -568,12 +600,12 @@ const SUMMARY: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Garden/arts/home deals when strong; words can break peace if afflicted.',
     5: 'Peak intellect seat—math, astrology, flexible arts when strong.',
     6: 'Thrives in structured service/finance roles; watch trust and paperwork.',
-    7: 'Friendship-like partnerships; playful learning and travel with spouse.',
+    7: 'Nearby/relative/friend spouse lean; playful bond with Mercury-style ups and downs.',
     8: 'Research and paperwork karma; careful communication of true feelings.',
     9: 'Analytical faith explorer; competitive study and teaching/consulting mentors.',
     10: 'Bhadra lean when strong—rise via speech, wit, teaching.',
     11: 'Excellent multi-stream gains and deal networks.',
-    12: 'Quiet retreat from constant talk; nervous system needs rest routines.',
+    12: 'Hidden research/intuition; trade focus if strong; speech scatter if weak.',
   },
   Ju: {
     1: 'Wise, magnetic guide energy; naturally advisory presence.',
@@ -582,12 +614,12 @@ const SUMMARY: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Value-filled home when strong; protect children if afflicted.',
     5: 'Religious wealth lean; protect progeny if afflicted.',
     6: 'Knowledge with stubborn health/family friction—Virgo Ju separates via work.',
-    7: 'Good marriage face with boundary tests and guilt—honesty required.',
+    7: 'Judge Jupiter’s dignity: wise tolerant spouse when strong; strain/delay if afflicted.',
     8: 'Supportive in-laws and hidden spiritual depth; healing others in crisis.',
     9: 'Natural 9th strength—education, gurus, ancestral grace when dignified.',
     10: 'Ethical karma; helps more than pure donation until renunciation.',
     11: 'Trusted networks and timely gains; natural habit of sharing wealth.',
-    12: 'Peaceful sleep and protected spiritual private life; give sacred books.',
+    12: 'Mokṣa guide lean; spend abroad; judge dignity—ego vs true wisdom.',
   },
   Ve: {
     1: 'Charm, aesthetics, and refined comfort shape the personality.',
@@ -601,7 +633,7 @@ const SUMMARY: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     9: 'Devotional aesthetics and prosperous, comfortable fortune path.',
     10: 'Luxury/skill career; watch boundaries if Venus afflicted.',
     11: 'Lifestyle gains with intoxicant/relationship moderation needed.',
-    12: 'Private luxury and devotion; moderation protects health and peace.',
+    12: 'Selfless love and private bhakti; high desire unmet except by sādhana.',
   },
   Sa: {
     1: 'Serious self built through delayed, disciplined effort.',
@@ -615,7 +647,7 @@ const SUMMARY: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     9: 'Karma-yoga self-made destiny when alone & benefic; late exclusive fruits.',
     10: 'Top career kāraka—fast results if benefic; long grind if malefic.',
     11: 'Structure/logistics gains; few true friends; antique-collector lean.',
-    12: 'Sleep and rest suffer under duty pressure; service and charity lighten load.',
+    12: 'Long sādhana, hard foreign exit/return; introvert duty then spiritual retreats.',
   },
   Ra: {
     1: 'Ambition and outsider networking; boundary-pushing self-expression.',
@@ -624,12 +656,12 @@ const SUMMARY: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Domestic/education friction; pilgrimage in dashā still possible.',
     5: 'Engineering aptitude; handle childbirth stress gently if malefic.',
     6: 'Favored malefic in upachaya—competitive edge with unusual stress.',
-    7: 'Intense, complex partnerships—learn reciprocity and clarity.',
+    7: 'Distant/foreign partner lean; intense desire—reciprocity and ethics required.',
     8: 'Powerful occult/research bent with high-intensity in-law and secrecy themes.',
     9: 'Unconventional rise or father/guru doubt by dispositor; japa lean—not mantra authorship.',
     10: 'Near rājayoga if alone & clean; desire discipline essential.',
     11: 'Excellent kāma-house Rahu—strong desire fulfillment in dashā.',
-    12: 'Foreign/luxury pull; protect against online scams and excess.',
+    12: 'Strange dreams; afflicted Rahu → jail lean; + weak Moon → madness risk (class notes).',
   },
   Ke: {
     1: 'Quiet, spiritual, detached self; anxiety with worldly identity.',
@@ -638,12 +670,12 @@ const SUMMARY: Record<ClassicalGrahaId, Record<HouseNumber, string>> = {
     4: 'Foreign lean with home separation struggle—better than Rahu overall.',
     5: 'Mantra strength with progeny path needing medical/emotional care.',
     6: 'Independent healer energy; debt can force abrupt detachment.',
-    7: 'Marriage idealism then detachment—needs spiritual, low-demand partnership.',
+    7: 'Known-circle spouse; clean Ketu can feel soulmate—keep expectations light.',
     8: 'Deep psychic sensitivity; in-law distance; healing through sacred travel.',
     9: 'Mokṣa lean, completed study when supported; fakir-guru after mid-life.',
     10: 'Enemy-cutting politics in key signs; needs autonomy niches.',
     11: 'Solitude over social climbing; spiritual travel desires fulfill more easily.',
-    12: 'Strong moksha orientation; sleep and intimacy detachment with deep intuition.',
+    12: 'Mokṣa pull; cortisol/low-T → ED risk in class notes; stress can trigger escape/suicidal ideation.',
   },
 }
 
