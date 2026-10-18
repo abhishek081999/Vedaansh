@@ -7,8 +7,10 @@ import {
   ageFromBinduSum,
   analyzeAshtakavargaInsights,
   bhavaBhaavam,
+  buildHouseComparisonReadings,
   estimateDashaResultPercent,
   rateBindus,
+  SAV_HOUSE_AVERAGE,
 } from '@/lib/engine/ashtakavargaInsights'
 
 /** House-ordered SAV summing to 337 (transcript-style sample). */
@@ -177,6 +179,46 @@ describe('Ashtakavarga insights — structural analytics', () => {
       janmaNakshatraIndex: 0,
     })
     expect(result.yogas.strongLagna).toBe(true)
+  })
+
+  it('uses non-overlapping ashram blocks (1–4 · 5–8 · 9–11 · 12)', () => {
+    expect(insights.ashrams.map((a) => a.houses)).toEqual([
+      [1, 2, 3, 4],
+      [5, 6, 7, 8],
+      [9, 10, 11],
+      [12],
+    ])
+    expect(insights.ashrams.find((a) => a.id === 'brahmacharya')!.total).toBe(33 + 28 + 26 + 32)
+    expect(insights.ashrams.find((a) => a.id === 'sanyasa')!.total).toBe(26)
+  })
+
+  it('emits house comparison readings and average benchmark', () => {
+    expect(insights.averagePerHouse).toBe(SAV_HOUSE_AVERAGE)
+    expect(insights.deadZones).toEqual([])
+    expect(insights.houseReadings.length).toBeGreaterThan(0)
+    expect(insights.houseReadings.some((r) => r.id === 'low-8th-strong-lagna')).toBe(true)
+    expect(insights.houseReadings.some((r) => r.id === 'weak-key-houses')).toBe(true)
+    expect(insights.houseReadings.some((r) => r.id === 'multiple-strong-houses')).toBe(true)
+  })
+})
+
+describe('House comparison readings', () => {
+  it('flags dead zones, karma-yogi 10th, and effort-exceeds-reward', () => {
+    const sav = [30, 28, 28, 28, 28, 28, 28, 20, 28, 47, 26, 0]
+    // pad conceptually — totals need not be 337 for unit reading tests
+    const readings = buildHouseComparisonReadings(sav)
+    expect(readings.some((r) => r.id === 'dead-zones' && r.houses.includes(12))).toBe(true)
+    expect(readings.some((r) => r.id === 'karma-yogi')).toBe(true)
+    expect(readings.some((r) => r.id === 'effort-exceeds-reward')).toBe(true)
+    expect(readings.some((r) => r.id === 'lagna-vs-8th')).toBe(false) // 20 < 30, so 8th does not overpower
+  })
+
+  it('flags 8th overpowering Lagna', () => {
+    const sav = Array(12).fill(28)
+    sav[0] = 25
+    sav[7] = 32
+    const readings = buildHouseComparisonReadings(sav)
+    expect(readings.some((r) => r.id === 'lagna-vs-8th')).toBe(true)
   })
 })
 

@@ -218,18 +218,71 @@ export const PLANET_IN_HOUSE_CLASSICAL: PHTable = {
   }, (h) => [note('BPHS', `Moon in house ${h}: mind and motherly comfort color that life area—waxing/waning and nakshatra refine results.`)]),
 
   Ma: fillPlanetHouses({
-    1: [note('BPHS', 'Mars in Lagna: courageous, scar-prone, assertive body; Mangal dosha considerations for marriage.'), note('Phaladeepika', 'Energy high; temper needs discipline.')],
-    2: [note('BPHS', 'Mars in 2nd: harsh speech possible, family strife or protective duty; wealth via effort.')],
-    3: [note('BPHS', 'Mars in 3rd: valor, younger siblings, skilled hands; victory after fight.')],
-    4: [note('BPHS', 'Mars in 4th: domestic agitation, property disputes or renovations; mother’s comfort strained.')],
-    5: [note('BPHS', 'Mars in 5th: sharp intellect, passionate romance; children themes need care if afflicted.')],
-    6: [note('BPHS', 'Mars in 6th: strong to defeat enemies and disease; surgical/competitive success.'), note('Saravali', 'Excellent for warriors and litigants when not otherwise ruined.')],
-    7: [note('BPHS', 'Mars in 7th: Kuja/Mangal considerations—strife or passion in marriage; partner assertive.'), note('Phaladeepika', 'Business partnerships need clear contracts.')],
-    8: [note('BPHS', 'Mars in 8th: accidents/surgery vigilance, research courage, inheritance fights.')],
-    9: [note('BPHS', 'Mars in 9th: dharmic fighter, pilgrim warrior; father may be strict/authoritative.')],
-    10: [note('BPHS', 'Mars in 10th: digbala—career ambition, command, technical/military success.')],
-    11: [note('BPHS', 'Mars in 11th: gains through courage and networks; elder sibling energy strong.')],
-    12: [note('BPHS', 'Mars in 12th: expenses, private conflicts, bed comforts strained; spiritual discipline channels heat.'), note('Phaladeepika', 'Foreign land/effort lean; weak Mars (māraṇa-kāraka + low ṣaḍbala) classically linked to erectile dysfunction; afflicted 8th aspect may show partner aggression.')],
+    1: [
+      note('BPHS', 'Mars in Lagna: courageous, scar-prone, assertive body; Mangal doṣa considerations for marriage.'),
+      note('Phaladeepika', 'Energy high; temper needs discipline; commander personality—brave, short-tempered, passionate, logical.'),
+      note('Saravali', 'Marks, cuts, or heat on the head/face are classically watched; responsibility load is heavy.'),
+      note('BrihatJataka', 'Rising Mars gives valor and bilious heat—channel into sports, defense, or technical craft.'),
+    ],
+    2: [
+      note('BPHS', 'Mars in 2nd: harsh speech possible, family strife or protective duty; wealth via effort.'),
+      note('Phaladeepika', 'When strong: tireless family duty and authoritative speech, land/asset lean. Afflicted: abusive speech and quarrels.'),
+      note('Saravali', 'Food and family peace suffer if Mars is hot; disciplined speech restores dhana themes.'),
+    ],
+    3: [
+      note('BPHS', 'Mars in 3rd: valor, younger siblings, skilled hands; victory after fight.'),
+      note('Phaladeepika', 'Upachaya strength—courage, short journeys, sports, and technical hands excel.'),
+      note('Saravali', 'Neighborhood near security/effort themes; fast driving and competitive local energy.'),
+    ],
+    4: [
+      note('BPHS', 'Mars in 4th: domestic agitation, property disputes or renovations; mother’s comfort strained.'),
+      note('Phaladeepika', 'Often grants own house/property even when afflicted; fights, theft, or domestic heat if harsh.'),
+      note('Saravali', 'Land, multiple properties, or factory lean when Saturn supports; still a Kuja house for marriage comfort.'),
+    ],
+    5: [
+      note('BPHS', 'Mars in 5th: sharp intellect, passionate romance; children themes need care if afflicted.'),
+      note('Phaladeepika', 'High posts and strong digestion; modern cesarean lean; protect children and romantic boundaries.'),
+      note('Saravali', 'Love-language can turn combative; ego heat rises in Sun’s natural house.'),
+    ],
+    6: [
+      note('BPHS', 'Mars in 6th: strong to defeat enemies and disease; surgical/competitive success.'),
+      note('Saravali', 'Excellent for warriors and litigants when not otherwise ruined.'),
+      note('Phaladeepika', 'Upachaya fighter—defense, contest, recovery drive; watch injury and property-related debt.'),
+    ],
+    7: [
+      note('BPHS', 'Mars in 7th: Kuja/Mangal considerations—strife or passion in marriage; partner assertive.'),
+      note('Phaladeepika', 'Business partnerships need clear contracts; leadership and independence color relating for all genders.'),
+      note('Saravali', 'Space and tempering of ego heat protect marriage more than fatalistic fear.'),
+      note('BrihatJataka', 'Partner may be bold or martial; mutual Manglik matching and age ~28 soften readings.'),
+    ],
+    8: [
+      note('BPHS', 'Mars in 8th: accidents/surgery vigilance, research courage, inheritance fights.'),
+      note('Phaladeepika', 'Blood/surgery themes, ancestral property disputes, intense in-law dynamics.'),
+      note('Saravali', 'Friend-circle fights and marital conflict risk if afflicted; occult research courage if dignified.'),
+      note('JatakaParijata', 'Sudden upheavals and longevity tests—judge dispositor and aspects, not the house alone.'),
+    ],
+    9: [
+      note('BPHS', 'Mars in 9th: dharmic fighter, pilgrim warrior; father may be strict/authoritative.'),
+      note('Phaladeepika', 'Practical protective religion—Hanuman, Narasimha, Kartikeya, Rāma, Śiva lean; hot-climate or defense travel.'),
+      note('Saravali', 'Kṣatriya managerial command; mother may show blood/pain themes if Mars is harsh.'),
+    ],
+    10: [
+      note('BPHS', 'Mars in 10th: digbala—career ambition, command, technical/military success.'),
+      note('Phaladeepika', 'Focused hard work in the right direction; own/exalted supports Ruchaka-yoga flavor with effort.'),
+      note('Saravali', 'Commander through karma; afflicted Mars here can show accidents, fire/weapon risk, or difficult progeny dynamics.'),
+      note('BrihatJataka', 'Fame through courage and technical mastery when dignity supports.'),
+    ],
+    11: [
+      note('BPHS', 'Mars in 11th: gains through courage and networks; elder sibling energy strong.'),
+      note('Phaladeepika', 'Upachaya gains—competitive networks and loyal-group drive fulfill ambitions.'),
+      note('Saravali', 'Channel aggression into productive teams; elder-sibling help or heat both possible.'),
+    ],
+    12: [
+      note('BPHS', 'Mars in 12th: expenses, private conflicts, bed comforts strained; spiritual discipline channels heat.'),
+      note('Phaladeepika', 'Foreign land/effort lean; weak Mars (māraṇa-kāraka + low ṣaḍbala) classically linked to erectile dysfunction; afflicted 8th aspect may show partner aggression.'),
+      note('Saravali', 'Wanderer who dislikes idle solitude; long travel loved; anger needs martial/discipline outlets—often steadies after ~age 28.'),
+      note('Teaching', '4th aspect can protect sibling themes; 7th may reduce open enmity; 8th intensifies partner bond—read functional nature before harsh conclusions.'),
+    ],
   }, (h) => [note('BPHS', `Mars in house ${h}: courage, conflict, and initiative express through that bhava—aspects and dignity decide whether constructive or harsh.`)]),
 
   Me: fillPlanetHouses({
@@ -377,18 +430,68 @@ export const PLANET_IN_SIGN_CLASSICAL: PSTable = {
   }, (r) => [note('BPHS', `Moon in ${RASHI_EN[r]}: mind absorbs that sign—paksha and nakshatra refine.`)]),
 
   Ma: fillPlanetSigns({
-    1: [note('BPHS', 'Mars in own Aries: raw initiative and valor.')],
-    2: [note('BPHS', 'Mars in Taurus: stubborn drive for resources; slow-burning fight.')],
-    3: [note('BPHS', 'Mars in Gemini: sharp debate, skilled hands, restless courage.')],
-    4: [note('BPHS', 'Mars debilitated in Cancer: emotionalized aggression; protect home peace.'), note('Phaladeepika', 'Impulse needs cooling.')],
-    5: [note('BPHS', 'Mars in Leo: proud warrior energy; passionate creativity/romance.')],
-    6: [note('BPHS', 'Mars in Virgo: precise fighter; service competition; surgical skill.')],
-    7: [note('BPHS', 'Mars in Libra: assertive partnerships; diplomacy under stress.')],
-    8: [note('BPHS', 'Mars in own Scorpio: penetrating research force, controlled intensity.')],
-    9: [note('BPHS', 'Mars in Sagittarius: dharmic fighter; pilgrim-warrior zeal.')],
-    10: [note('BPHS', 'Mars exalted in Capricorn: disciplined ambition, career courage.'), note('Saravali', 'Commander through structure.')],
-    11: [note('BPHS', 'Mars in Aquarius: networked hustle; group courage; tech fight drive.')],
-    12: [note('BPHS', 'Mars in Pisces: private aggression or spiritualized effort; bed/foreign heat.')],
+    1: [
+      note('BPHS', 'Mars in own Aries (mūlatrikoṇa seat): raw initiative and valor.'),
+      note('Phaladeepika', 'Peak courage and initiator heat; tactical execution without hesitation.'),
+      note('Saravali', 'Pioneer fighter—scar/injury vigilance still applies when afflicted.'),
+    ],
+    2: [
+      note('BPHS', 'Mars in Taurus: stubborn drive for resources; slow-burning fight.'),
+      note('Phaladeepika', 'Authoritative, harsh, goal-oriented speech; land and wealth defended stubbornly.'),
+      note('Saravali', 'Persistence wins; sudden rage less than Aries but grudges last longer.'),
+    ],
+    3: [
+      note('BPHS', 'Mars in Gemini: sharp debate, skilled hands, restless courage.'),
+      note('Phaladeepika', 'Logic/debate weaponized; afflicted may bend rules for profit; skin stress watched.'),
+      note('BrihatJataka', 'Technical hands and short-travel courage; dual fronts of effort.'),
+    ],
+    4: [
+      note('BPHS', 'Mars debilitated in Cancer: emotionalized aggression; protect home peace.'),
+      note('Phaladeepika', 'Impulse needs cooling; BP, “want it now,” territorial moods when displeased.'),
+      note('Saravali', 'Nīca Mars softens with nīcabhaṅga, Moon support, or water remedies—do not read as permanent cowardice.'),
+    ],
+    5: [
+      note('BPHS', 'Mars in Leo: proud warrior energy; passionate creativity/romance.'),
+      note('Phaladeepika', 'Courageous defense of status and dharma; dramatic heat in love and children themes.'),
+      note('Saravali', 'Royal commander tone—ego fights if Sun/Mars both harsh.'),
+    ],
+    6: [
+      note('BPHS', 'Mars in Virgo: precise fighter; service competition; surgical skill.'),
+      note('Phaladeepika', 'Analytical contest energy; abusing younger siblings classically linked to land/property fights.'),
+      note('Saravali', 'Excellent for detailed technical war—medicine, engineering, litigation paperwork.'),
+    ],
+    7: [
+      note('BPHS', 'Mars in Libra: assertive partnerships; diplomacy under stress.'),
+      note('Phaladeepika', '“My-way” Mars can destroy diplomacy—hasty relationship decisions; Lakṣmī-Narasimha / sandalwood lore in some teachings.'),
+      note('Saravali', 'Balance warrior heat with partner equality or contracts fracture.'),
+    ],
+    8: [
+      note('BPHS', 'Mars in own Scorpio: penetrating research force, controlled intensity.'),
+      note('Phaladeepika', 'Research/occult drive; fights go underground; surgical and forensic lean.'),
+      note('Saravali', 'Fixed water owns fire—stable surface, volcanic depth; transformation through crisis.'),
+      note('JatakaParijata', 'Co-lord Scorpio themes intensify with Ketu yuti—judge Parāśara (nodes without sign lordship) carefully.'),
+    ],
+    9: [
+      note('BPHS', 'Mars in Sagittarius: dharmic fighter; pilgrim-warrior zeal.'),
+      note('Phaladeepika', 'Protective practical faith; strict father/guru; hot travel for dharma or defense.'),
+      note('Saravali', 'Warrior ethics—will not easily do adharma even under pressure.'),
+    ],
+    10: [
+      note('BPHS', 'Mars exalted in Capricorn: disciplined ambition, career courage.'),
+      note('Saravali', 'Commander through structure—ambition with controlled aggression at work.'),
+      note('Phaladeepika', 'Career engine of the chart when unafflicted; digbala-friendly for karma siddhi.'),
+      note('BrihatJataka', 'Exalted Kuja: lasting status through effort, not mere luck.'),
+    ],
+    11: [
+      note('BPHS', 'Mars in Aquarius: networked hustle; group courage; tech fight drive.'),
+      note('Phaladeepika', 'Aggressive gains through communities, causes, and modern systems.'),
+      note('Saravali', 'Crowd courage—channel into productive networks, not faction wars.'),
+    ],
+    12: [
+      note('BPHS', 'Mars in Pisces: private aggression or spiritualized effort; bed/foreign heat.'),
+      note('Phaladeepika', 'Aggression in isolation/bedroom needs cooling via sādhana and charity.'),
+      note('Saravali', 'Foreign/ashram effort; suppressed heat leaks into sleep and private relating.'),
+    ],
   }, (r) => [note('BPHS', `Mars in ${RASHI_EN[r]}: courage/heat shaped by the sign.`)]),
 
   Me: fillPlanetSigns({

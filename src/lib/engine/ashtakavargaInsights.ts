@@ -57,9 +57,22 @@ export interface YogaFlags {
   strongLagna: boolean
 }
 
+export type HouseReadingSeverity = 'info' | 'positive' | 'caution' | 'critical'
+
+/** Class-style SAV house comparison / pattern reading. */
+export interface HouseComparisonReading {
+  id: string
+  severity: HouseReadingSeverity
+  title: string
+  detail: string
+  houses: number[]
+}
+
 export interface AgeIndicators {
+  /** Troubled / challenge age (Saturn path × 7 ÷ 27). */
   saturnChallengeAge: number | null
   saturnChallengeRaw: number | null
+  /** Prosperous age (Jupiter + Venus house SAV × 7 ÷ 27). */
   jupiterVenusProsperityAge: number | null
   jupiterVenusProsperityRaw: number | null
   saturnHouse: number | null
@@ -122,6 +135,10 @@ export interface AshtakavargaInsights {
   houseSav: number[]
   houseRatings: HouseBinduRating[]
   savTotal: number
+  /** Houses with 0 SAV bindus — classical dead zones. */
+  deadZones: number[]
+  /** Benchmark average (~28) used for house comparisons. */
+  averagePerHouse: number
   internalExternal: InternalExternalAnalysis
   khandas: KhandaAnalysis
   lifeStages: NamedTotal[]
@@ -133,6 +150,8 @@ export interface AshtakavargaInsights {
   yogas: YogaFlags
   ages: AgeIndicators
   promotion: PromotionTiming | null
+  /** Part 4.5-style house comparisons (Lagna vs 8th, 10th vs 11th, etc.). */
+  houseReadings: HouseComparisonReading[]
 }
 
 export interface AshtakavargaInsightsInput {
@@ -172,12 +191,16 @@ const DIRECTIONS = [
   { id: 'north', name: 'North (Uttar)', houses: [4, 8, 12] },
 ] as const
 
+/** Four ashrams from class cheatsheet (non-overlapping house blocks). */
 const ASHRAMS = [
   { id: 'brahmacharya', name: 'Brahmacharya', houses: [1, 2, 3, 4] },
-  { id: 'grihastha', name: 'Grihastha', houses: [4, 5, 6, 7] },
-  { id: 'vanaprastha', name: 'Vanaprastha', houses: [7, 8, 9, 10] },
-  { id: 'sanyasa', name: 'Sanyasa', houses: [10, 11, 12] },
+  { id: 'grihastha', name: 'Grihastha', houses: [5, 6, 7, 8] },
+  { id: 'vanaprastha', name: 'Vanaprastha', houses: [9, 10, 11] },
+  { id: 'sanyasa', name: 'Sanyasa', houses: [12] },
 ] as const
+
+/** Classical SAV average per house (337 ÷ 12 ≈ 28.08). */
+export const SAV_HOUSE_AVERAGE = 28
 
 const BHAVA_ROLES: readonly { role: BhavaRole; roleLabel: string }[] = [
   { role: 'body', roleLabel: 'Body' },
@@ -718,6 +741,154 @@ export function negativeHouseNotes(house: number, bindus: number): string[] {
   return [classical, modern]
 }
 
+/**
+ * Class Part 4.5 house-comparison readings from SAV (relative to ~28 average).
+ * Does not replace Bhava-Bhaavam — use both.
+ */
+export function buildHouseComparisonReadings(
+  houseSav: number[],
+  avg = SAV_HOUSE_AVERAGE,
+): HouseComparisonReading[] {
+  const h = (n: number) => houseSav[n - 1] ?? 0
+  const out: HouseComparisonReading[] = []
+
+  const dead = houseSav
+    .map((v, i) => (v === 0 ? i + 1 : null))
+    .filter((x): x is number => x != null)
+  if (dead.length) {
+    out.push({
+      id: 'dead-zones',
+      severity: 'critical',
+      title: 'Dead zone (0 bindus)',
+      detail: `H${dead.join(', H')} has zero SAV — classical dead zone; remedies rarely revive a zero. Confirm with BAV of planets occupying those signs.`,
+      houses: dead,
+    })
+  }
+
+  const lagna = h(1)
+  const h8 = h(8)
+  if (h8 > lagna) {
+    out.push({
+      id: 'lagna-vs-8th',
+      severity: 'caution',
+      title: '8th overpowers Lagna',
+      detail: `H8 (${h8}) > H1 (${lagna}) — life leans toward unexpected transformation over self-control; the body/self endures events the chart did not “plan”.`,
+      houses: [1, 8],
+    })
+  } else if (h8 <= 23 && lagna >= 30) {
+    out.push({
+      id: 'low-8th-strong-lagna',
+      severity: 'info',
+      title: 'Low 8th with capable Lagna',
+      detail: `H8 (${h8}) is soft while Lagna (${lagna}) is strong — prefers planned life; sudden events stress more, but help arrives (“marte-marte bach jaoge” when Lagna holds).`,
+      houses: [1, 8],
+    })
+  }
+
+  const h10 = h(10)
+  const h11 = h(11)
+  const maxHouse = houseSav.reduce(
+    (best, v, i) => (v > best.v ? { h: i + 1, v } : best),
+    { h: 1, v: -1 },
+  )
+  if (maxHouse.h === 10 && h10 >= avg + 8) {
+    out.push({
+      id: 'karma-yogi',
+      severity: 'positive',
+      title: 'Karma-yogi 10th',
+      detail: `H10 (${h10}) is the chart’s peak SAV — work is the central life theme; even if gains lag, the native rarely steps back from karma.`,
+      houses: [10],
+    })
+  }
+
+  if (h10 >= avg && h11 < avg && h10 - h11 >= 5) {
+    out.push({
+      id: 'effort-exceeds-reward',
+      severity: 'caution',
+      title: 'Effort exceeds reward',
+      detail: `H10 (${h10}) outweighs H11 (${h11}) — “works 10 hours, paid for 8”; recognition/gains lag effort. Check 10th→11th in Bhava-Bhaavam.`,
+      houses: [10, 11],
+    })
+  }
+
+  // Career instability: 8th-from-10th = H5 stronger than 10th body
+  const h5 = h(5)
+  if (h5 > h10 && h5 >= avg && h10 < avg + 5) {
+    out.push({
+      id: 'career-instability',
+      severity: 'caution',
+      title: 'Career change pattern (5th vs 10th)',
+      detail: `H5 (${h5}, 8th-from-10th) ≥ H10 (${h10}) — job changes / inability to settle long in one role more than a hard career break. Jobs may still come (check H3 = 6th-from-10th).`,
+      houses: [5, 10],
+    })
+  }
+
+  const h12 = h(12)
+  if (h12 <= 23) {
+    out.push({
+      id: 'controlled-12th',
+      severity: 'positive',
+      title: 'Controlled expenses / losses',
+      detail: `H12 (${h12}) below average — unplanned outflows tend to stay limited; foreign success is not the primary SAV signal here.`,
+      houses: [12],
+    })
+  } else if (h12 >= 36) {
+    out.push({
+      id: 'strong-12th-foreign',
+      severity: 'positive',
+      title: 'Strong 12th — foreign lean',
+      detail: `H12 (${h12}) is very high — efforts abroad / foreign connections can out-yield homeland results when dasha supports.`,
+      houses: [12],
+    })
+  }
+
+  // Smooth marriage/children flow when Lagna ≈ 5th ≈ 7th
+  const h7 = h(7)
+  const near = (a: number, b: number) => Math.abs(a - b) <= 2
+  if (near(lagna, h5) && near(lagna, h7) && lagna >= 28 && h5 >= 28 && h7 >= 28) {
+    out.push({
+      id: 'smooth-5-7',
+      severity: 'positive',
+      title: 'Lagna ≈ 5th ≈ 7th',
+      detail: `H1 (${lagna}), H5 (${h5}), H7 (${h7}) are close and functional — marriage and children themes tend to flow without major SAV delay.`,
+      houses: [1, 5, 7],
+    })
+  } else if (near(lagna, h5) && lagna >= 28 && h5 >= 28) {
+    out.push({
+      id: 'children-soon',
+      severity: 'info',
+      title: 'Lagna ≈ 5th',
+      detail: `H1 (${lagna}) ≈ H5 (${h5}) — children themes often activate without long delay after partnership (confirm with dasha; don’t over-predict generation-gap from weak 5→4 alone).`,
+      houses: [1, 5],
+    })
+  }
+
+  // Above/below average snapshot for key houses
+  const keyHouses = [1, 2, 4, 5, 7, 9, 10, 11] as const
+  const strongKeys = keyHouses.filter((n) => h(n) >= 30)
+  const weakKeys = keyHouses.filter((n) => h(n) <= 23)
+  if (strongKeys.length >= 3) {
+    out.push({
+      id: 'multiple-strong-houses',
+      severity: 'positive',
+      title: 'Multiple strong material houses',
+      detail: `H${strongKeys.join(', H')} at 30+ — those domains carry clean/auspicious SAV support.`,
+      houses: [...strongKeys],
+    })
+  }
+  if (weakKeys.length) {
+    out.push({
+      id: 'weak-key-houses',
+      severity: 'caution',
+      title: 'Weak key houses (≤23)',
+      detail: `H${weakKeys.join(', H')} are completely weak by class bands — use Bhava-Bhaavam before dismissing the whole domain (e.g. occult from 8th alone).`,
+      houses: [...weakKeys],
+    })
+  }
+
+  return out
+}
+
 export function analyzeAshtakavargaInsights(input: AshtakavargaInsightsInput): AshtakavargaInsights {
   const houseSav = toHousesFromLagna(input.savByRashi, input.ascRashi)
   const savTotal = houseSav.reduce((a, b) => a + b, 0)
@@ -838,10 +1009,18 @@ export function analyzeAshtakavargaInsights(input: AshtakavargaInsightsInput): A
     note: `When Sun or ${tenthLord} (10th lord) transits ${NAKSHATRA_NAMES[targetNakshatraIndex]}, promotion yoga is strong (indicative).`,
   }
 
+  const deadZones = houseSav
+    .map((v, i) => (v === 0 ? i + 1 : null))
+    .filter((x): x is number => x != null)
+
+  const houseReadings = buildHouseComparisonReadings(houseSav, SAV_HOUSE_AVERAGE)
+
   return {
     houseSav,
     houseRatings,
     savTotal,
+    deadZones,
+    averagePerHouse: SAV_HOUSE_AVERAGE,
     internalExternal,
     khandas,
     lifeStages: stages.items,
@@ -853,5 +1032,6 @@ export function analyzeAshtakavargaInsights(input: AshtakavargaInsightsInput): A
     yogas,
     ages,
     promotion,
+    houseReadings,
   }
 }

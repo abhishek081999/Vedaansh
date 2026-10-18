@@ -620,9 +620,8 @@ function saturnNatalFindings(
     })
   }
 
-  const ninthLord = RASHI_LORD[rashiOfHouse(9, ascRashi)]
   const tenthLord = RASHI_LORD[rashiOfHouse(10, ascRashi)]
-  const saRulesFame = ninthLord === 'Sa' || tenthLord === 'Sa'
+  const saLinkedToTenth = tenthLord === 'Sa'
 
   if (house === 10 && bindus >= 2 && bindus <= 3) {
     out.push({
@@ -633,12 +632,14 @@ function saturnNatalFindings(
     })
   }
 
-  if (saRulesFame && [3, 6, 11].includes(house) && bindus >= 1 && bindus <= 3) {
+  // Class rule: Saturn 3+ BAV with 10th-lord connection (incl. Sa as 10th lord)
+  // even in 3/6/11 → king-like living.
+  if (saLinkedToTenth && bindus >= 3 && [3, 6, 10, 11].includes(house)) {
     out.push({
       id: 'sa-king-life',
       severity: 'positive',
-      title: 'Saturn as 9/10 lord with low BAV still king-like',
-      detail: 'If Saturn rules 9th/10th, even 1–3 BAV in 3/6/11 can still give raja-like living — do not over-fear low points alone.',
+      title: 'Saturn–10th link with 3+ BAV',
+      detail: 'Saturn connected to 10th lordship with workable BAV (incl. 3/6/10/11) — raja-like living tendency regardless of house alone. Confirm with full chart.',
     })
   }
 
@@ -757,6 +758,24 @@ function buildPlanetGuide(
       case 'Sa':
         natalFindings = saturnNatalFindings(natalHouse, selfBindus, av, ascRashi, grahas)
         break
+    }
+
+    // Golden rule: exaltation means little without BAV; debilitated + high BAV can still deliver.
+    const dig = g?.dignity
+    if (dig === 'exalted' && selfBindus < 4) {
+      natalFindings.push({
+        id: `${planet.toLowerCase()}-exalt-low-bav`,
+        severity: 'caution',
+        title: 'Exalted but low BAV',
+        detail: `${PLANET_NAMES[planet]} is exalted yet only ${selfBindus} self-BAV — class teaching: exalted with low Ashtakavarga is weaker in dasha/gochar than a debilitated planet with high bindus.`,
+      })
+    } else if (dig === 'debilitated' && selfBindus >= 6) {
+      natalFindings.push({
+        id: `${planet.toLowerCase()}-deb-high-bav`,
+        severity: 'positive',
+        title: 'Debilitated but strong BAV',
+        detail: `${PLANET_NAMES[planet]} is debilitated yet has ${selfBindus} self-BAV — can still deliver strong gochar/dasha results in this sign despite neecha dignity.`,
+      })
     }
   }
 

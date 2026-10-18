@@ -40,6 +40,12 @@ import {
   getPlanetDignityNotes,
 } from '@/lib/engine/classicalChartAnalysis'
 import { ClassicalNotesList } from './ClassicalNotesList'
+import {
+  getNaturalHouseKarakaRows,
+  NATURAL_HOUSE_KARAKAS_NOTE,
+} from '@/lib/engine/naturalHouseKarakas'
+import { getPlanetaryMaturity } from '@/lib/engine/planetaryMaturity'
+import { LagnaSpiritualGuide } from './LagnaSpiritualGuide'
 
 const SIGN_LORDS: Record<number, GrahaId> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
@@ -134,6 +140,89 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
         </p>
       </div>
 
+      {/* Natural house karakas (static teaching) */}
+      <div
+        className="card"
+        style={{
+          padding: '1rem 1.15rem',
+          background: 'var(--surface-2)',
+          border: '1px solid var(--border-soft)',
+        }}
+      >
+        <div
+          style={{
+            fontSize: '0.62rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'var(--text-gold)',
+            fontWeight: 700,
+            marginBottom: '0.4rem',
+          }}
+        >
+          Natural house karakas (Naisargika)
+        </div>
+        <p style={{ margin: '0 0 0.85rem', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+          {NATURAL_HOUSE_KARAKAS_NOTE} Maturity ages link to Planets → Maturity Ages; Jaimini fixed
+          significators live under the Jaimini panel.
+        </p>
+        <div style={{
+          border: '1px solid var(--border-soft)',
+          borderRadius: 'var(--r-md)',
+          overflow: 'hidden',
+        }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '3.5rem minmax(0, 1.4fr) minmax(0, 1.6fr)',
+              gap: '0.5rem',
+              padding: '0.55rem 0.75rem',
+              background: 'var(--surface-3)',
+              fontSize: '0.62rem',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              color: 'var(--text-muted)',
+              borderBottom: '1px solid var(--border-soft)',
+            }}
+          >
+            <span>House</span>
+            <span>Themes</span>
+            <span>Karakas · maturity</span>
+          </div>
+          {getNaturalHouseKarakaRows().map((row) => (
+            <div
+              key={row.house}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '3.5rem minmax(0, 1.4fr) minmax(0, 1.6fr)',
+                gap: '0.5rem',
+                padding: '0.65rem 0.75rem',
+                borderBottom: '1px solid var(--border-soft)',
+                fontSize: '0.78rem',
+                alignItems: 'start',
+              }}
+            >
+              <span style={{ fontWeight: 700, color: 'var(--gold)', fontVariantNumeric: 'tabular-nums' }}>
+                H{row.house}
+              </span>
+              <span style={{ color: 'var(--text-secondary)', lineHeight: 1.45 }}>{row.themes}</span>
+              <span style={{ color: 'var(--text-primary)', lineHeight: 1.45 }}>
+                {row.karakas.map((id, i) => {
+                  const mat = getPlanetaryMaturity(id)
+                  const label = `${GRAHA_NAMES[id]}${mat ? ` (${mat.maturityAge}y)` : ''}`
+                  return (
+                    <React.Fragment key={id}>
+                      {i > 0 ? ', ' : ''}
+                      {label}
+                    </React.Fragment>
+                  )
+                })}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Chart snapshot */}
       <div
         style={{
@@ -160,6 +249,8 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
           />
         ) : null}
       </div>
+
+      <LagnaSpiritualGuide ascRashi={ascRashi} />
 
       <div style={callout}>
         <div style={sectionLabel}>Lagna strength checklist</div>
