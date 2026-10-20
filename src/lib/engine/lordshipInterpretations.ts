@@ -140,7 +140,7 @@ const SPECIAL_LORDSHIP: Partial<Record<string, ClassicalNote[]>> = {
   '9-3': [n('9th lord in 3rd: fortune via spouse support, skills, pilgrimage/travel; self-effort with father’s blessing.', 'BPHS', 'Class teaching')],
   '9-4': [n('9th lord in 4th: father–mother role blend; vehicles/property from father when benefic; childhood teachings become life quotes.', 'BPHS', 'Class teaching')],
   '9-6': [n('9th lord in 6th: judicial/service path (Saturn support for judge); give-and-take hospitality karma.', 'BPHS', 'Class teaching')],
-  '9-7': [n('9th lord in 7th: inter-community marriage lean; rise or fall after marriage by planet quality; abroad after marriage possible.', 'BPHS', 'Class teaching')],
+  '9-7': [n('9th lord in 7th: the partner’s hand on this life — influence after marriage, a rise or a fall by the planet’s quality, an inter-community lean, abroad possible. One placement is not a second marriage and not violence.', 'BPHS', 'Class teaching')],
   '9-8': [n('9th lord in 8th: occult family line, father distance/health; adoption indication if 8↔9 exchange — not automatic.', 'BPHS', 'Class teaching')],
   '9-9': [n('9th lord in 9th: strong luck and travel; father’s profession fruitful if followed; political visibility when supported.', 'BPHS', 'Class teaching')],
   '9-11': [n('9th lord in 11th: family business, influential father; Mercury/Jupiter strong — institution/book building.', 'BPHS', 'Class teaching')],

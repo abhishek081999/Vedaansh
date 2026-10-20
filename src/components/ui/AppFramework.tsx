@@ -14,16 +14,22 @@ import { NavIcon } from '@/components/ui/layout/NavIcon'
 import { isAuthRoute } from '@/lib/ui/authRoutes'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import type { LucideIcon } from 'lucide-react'
-import { ChevronDown, LogOut, User } from 'lucide-react'
+import { ChevronDown, Library, LogOut, User } from 'lucide-react'
 import {
+  ACCOUNT_TABS,
   ADVANCED_ASTRO_TABS,
+  ASTRO_DIRECT_TABS,
   ASTRO_GROUPS,
+  ASTRO_NAV,
   ASTROLOGY_HOME_PATH,
   MAIN_TABS,
+  NAKSHATRA_LINK,
   NAKSHATRA_TABS,
   PANCHANG_TABS,
   SIDENAV_ACCORDIONS,
+  TOOL_TABS,
   TOP_TABS,
+  astroNavTabs,
   type NavGroup,
   type NavTab,
 } from '@/lib/ui/navConfig'
@@ -48,6 +54,26 @@ const progressKeyframes = `
 const SIDENAV_OM_SVG = `<svg viewBox="0 0 100 100" fill="currentColor"><path d="M52.3,47.2c0.2,2,1.3,4,3.2,5.2c1.9,1.1,4.3,1.4,6.4,1.1c2-0.3,3.8-1.2,5.3-2.6c1.5-1.4,2.5-3.3,2.8-5.3 c0.3-2,0-4-1.1-5.7c-1.1-1.7-2.9-2.9-4.8-3.4c1.1-0.2,2.3-0.5,3.4-1c1.1-0.6,2.1-1.3,2.9-2.2c0.8-0.9,1.5-2,1.8-3.3 c0.4-1.3,0.4-2.7,0-4c-0.4-1.3-1.1-2.4-2-3.4c-1-0.9-2.2-1.6-3.6-2c-1.4-0.4-2.9-0.5-4.3-0.2c-1.4,0.3-2.8,1-3.9,1.9 c-1.1-0.9-2.4-1.6-3.8-1.9c-1.4-0.3-2.9-0.2-4.3,0.2c-1.4,0.4-2.7,1.1-3.6,2c-1,0.9-1.6,2.1-2,3.4c-0.4,1.3-0.4,2.7-0,4 c0.4,1.3,1,2.4,1.8,3.3c0.8,0.9,1.8,1.7,2.9,2.2c1.1,0.6,2.3,0.8,3.4,1c-2,0.5-3.8,1.7-4.8,3.4c-1.1,1.7-1.4,3.7-1.1,5.7 C50,44,50.8,45.8,52.3,47.2z M65.7,21.5c1.3,0.3,2.5,1,3.4,2c0.9,1,1.4,2.3,1.6,3.6c0.2,1.4,0,2.8-0.7,4.1 c-0.6,1.4-1.7,2.5-3.1,3.1c1.3,0.6,2.4,1.7,3,3.1c0.7,1.3,0.9,2.8,0.7,4.1c-0.2,1.4-0.7,2.6-1.6,3.6c-0.9,1-2,1.7-3.4,2 c-1.3,0.3-2.7,0.2-4-0.2c-1.4-0.4-2.4-1.2-3.2-2.3c-0.8-1-1.1-2.4-1.1-3.8c0-1.4,0.4-2.8,1.2-3.8c0.8-1.1,1.8-1.8,3.1-2.3 c-1.3-0.4-2.3-1.2-3.1-2.3c-0.7-1.1-1.1-2.4-1.1-3.8c0-1.4,0.3-2.7,1.1-3.8c0.8-1.1,1.8-1.9,3.1-2.3C63,21.3,64.4,21.3,65.7,21.5z"/></svg>`;
 
 const ASTRO_GROUP_STORAGE_KEY = 'astro-group-nav-expanded'
+
+type SidenavSection = 'astrology' | 'advanced' | 'panchang'
+
+const SIDENAV_SECTION_STORAGE: Record<SidenavSection, string> = {
+  astrology: 'astro-nav-expanded',
+  advanced: 'advanced-astro-nav-expanded',
+  panchang: 'panchang-nav-expanded',
+}
+
+function readSidenavSection(section: SidenavSection, fallback: boolean): boolean {
+  const saved = localStorage.getItem(SIDENAV_SECTION_STORAGE[section])
+  if (saved === null) return fallback
+  return saved === 'true'
+}
+
+function persistSidenavSection(open: SidenavSection | null) {
+  ;(Object.keys(SIDENAV_SECTION_STORAGE) as SidenavSection[]).forEach((section) => {
+    localStorage.setItem(SIDENAV_SECTION_STORAGE[section], String(section === open))
+  })
+}
 
 function defaultAstroGroupOpen(): Record<string, boolean> {
   return Object.fromEntries(ASTRO_GROUPS.map((g) => [g.id, g.id === 'core-analysis']))
@@ -76,7 +102,6 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const [astroGroupOpen, setAstroGroupOpen] = useState<Record<string, boolean>>(defaultAstroGroupOpen)
   const [isAdvancedAstroOpen, setIsAdvancedAstroOpen] = useState(false)
   const [isPanchangOpen, setIsPanchangOpen] = useState(false)
-  const [isNakshatraOpen, setIsNakshatraOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
@@ -133,22 +158,13 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setIsNavigating(false)
-    const saved = localStorage.getItem('astro-nav-expanded')
-    if (saved !== null) {
-      setIsAstroOpen(saved === 'true')
-    }
-    const savedAdv = localStorage.getItem('advanced-astro-nav-expanded')
-    if (savedAdv !== null) {
-      setIsAdvancedAstroOpen(savedAdv === 'true')
-    }
-    const savedP = localStorage.getItem('panchang-nav-expanded')
-    if (savedP !== null) {
-      setIsPanchangOpen(savedP === 'true')
-    }
-    const savedN = localStorage.getItem('nakshatra-nav-expanded')
-    if (savedN !== null) {
-      setIsNakshatraOpen(savedN === 'true')
-    }
+    const savedOpen = (['astrology', 'advanced', 'panchang'] as const).find((section) =>
+      readSidenavSection(section, section === 'astrology'),
+    ) ?? null
+    persistSidenavSection(savedOpen)
+    setIsAstroOpen(savedOpen === 'astrology')
+    setIsAdvancedAstroOpen(savedOpen === 'advanced')
+    setIsPanchangOpen(savedOpen === 'panchang')
     setAstroGroupOpen(loadAstroGroupOpen())
 
     // PWA: Monitor online/offline status
@@ -179,7 +195,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       localStorage.setItem(ASTRO_GROUP_STORAGE_KEY, JSON.stringify(next))
       return next
     })
+    persistSidenavSection('astrology')
     setIsAstroOpen(true)
+    setIsAdvancedAstroOpen(false)
+    setIsPanchangOpen(false)
   }, [activeTab, pathname])
 
   const toggleAstroGroup = (groupId: string) => {
@@ -190,36 +209,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     })
   }
 
-  const toggleAstroOpen = () => {
-    setIsAstroOpen(prev => {
-      const next = !prev
-      localStorage.setItem('astro-nav-expanded', String(next))
-      return next
-    })
-  }
-
-  const toggleAdvancedAstroOpen = () => {
-    setIsAdvancedAstroOpen(prev => {
-      const next = !prev
-      localStorage.setItem('advanced-astro-nav-expanded', String(next))
-      return next
-    })
-  }
-
-  const togglePanchangOpen = () => {
-    setIsPanchangOpen(prev => {
-      const next = !prev
-      localStorage.setItem('panchang-nav-expanded', String(next))
-      return next
-    })
-  }
-
-  const toggleNakshatraOpen = () => {
-    setIsNakshatraOpen(prev => {
-      const next = !prev
-      localStorage.setItem('nakshatra-nav-expanded', String(next))
-      return next
-    })
+  const toggleSidenavSection = (section: SidenavSection, isOpen: boolean) => {
+    const next = isOpen ? null : section
+    persistSidenavSection(next)
+    setIsAstroOpen(next === 'astrology')
+    setIsAdvancedAstroOpen(next === 'advanced')
+    setIsPanchangOpen(next === 'panchang')
   }
 
   const handleScroll = (e: React.UIEvent<HTMLElement>) => {
@@ -233,7 +228,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
 
   const headerPrimaryTabs = TOP_TABS
   const pricingTab = MAIN_TABS.find((tab) => tab.id === 'pricing')
-  const astroTabIds = ASTRO_GROUPS.flatMap((group) => group.tabs.map((tab) => tab.id))
+  const astroTabIds = astroNavTabs().map((tab) => tab.id)
   const isAstroExternalPath = ASTRO_GROUPS.some((group) =>
     group.tabs.some((tab) => tab.path && tab.path !== ASTROLOGY_HOME_PATH && pathname === tab.path),
   )
@@ -289,7 +284,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   )
 
   const renderTab = (t: NavTab, isSub?: boolean) => {
-    const isCurrentPage = (t.path === pathname)
+    const path = t.path ?? ''
+    const isCurrentPage = path === pathname || (
+      t.match === 'prefix' && path !== '/' && (pathname === path || pathname.startsWith(`${path}/`))
+    )
     const isActive = t.path === ASTROLOGY_HOME_PATH ? (isCurrentPage && activeTab === t.id) : isCurrentPage
     
     const handleNav = (e: React.MouseEvent) => {
@@ -429,6 +427,15 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           {headerProfileOpen && (
             <div role="menu" className="app-header-profile-menu">
               <Link
+                href="/my/charts"
+                role="menuitem"
+                className="app-header-profile-item"
+                onClick={() => setHeaderProfileOpen(false)}
+              >
+                <Library size={15} strokeWidth={2} aria-hidden />
+                My Charts
+              </Link>
+              <Link
                 href="/account"
                 role="menuitem"
                 className="app-header-profile-item"
@@ -534,6 +541,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                   </div>
                 </div>
               ))}
+              <div className="app-header-menu-group">
+                <div className="app-header-menu-group-title">Readings</div>
+                <div className="app-header-menu-group-links">
+                  {ASTRO_DIRECT_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
+                </div>
+              </div>
             </div>,
             { active: isAstroHeaderActive, wide: true },
           )}
@@ -722,26 +735,28 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
 
           {/* Navigation */}
           <nav className="sidenav-nav">
-            <div className="sidenav-section-label">Navigation</div>
             {TOP_TABS.map(t => renderTab(t))}
-            
-            {renderAccordion(SIDENAV_ACCORDIONS.astrology.label, SIDENAV_ACCORDIONS.astrology.icon, isAstroOpen, toggleAstroOpen, (
-              ASTRO_GROUPS.map((group) => renderGroupAccordion(group))
+
+            {renderAccordion(SIDENAV_ACCORDIONS.astrology.label, SIDENAV_ACCORDIONS.astrology.icon, isAstroOpen, () => toggleSidenavSection('astrology', isAstroOpen), (
+              ASTRO_NAV.map((entry) => (
+                entry.kind === 'group' ? renderGroupAccordion(entry.group) : renderTab(entry.tab, true)
+              ))
             ), '1200px')}
 
-            {renderAccordion(SIDENAV_ACCORDIONS.advanced.label, SIDENAV_ACCORDIONS.advanced.icon, isAdvancedAstroOpen, toggleAdvancedAstroOpen, (
+            {renderAccordion(SIDENAV_ACCORDIONS.advanced.label, SIDENAV_ACCORDIONS.advanced.icon, isAdvancedAstroOpen, () => toggleSidenavSection('advanced', isAdvancedAstroOpen), (
               ADVANCED_ASTRO_TABS.map(t => renderTab(t, true))
             ))}
 
-            {renderAccordion(SIDENAV_ACCORDIONS.nakshatra.label, SIDENAV_ACCORDIONS.nakshatra.icon, isNakshatraOpen, toggleNakshatraOpen, (
-              NAKSHATRA_TABS.map(t => renderTab(t, true))
-            ))}
+            {renderTab(NAKSHATRA_LINK)}
 
-            {renderAccordion(SIDENAV_ACCORDIONS.panchang.label, SIDENAV_ACCORDIONS.panchang.icon, isPanchangOpen, togglePanchangOpen, (
+            {renderAccordion(SIDENAV_ACCORDIONS.panchang.label, SIDENAV_ACCORDIONS.panchang.icon, isPanchangOpen, () => toggleSidenavSection('panchang', isPanchangOpen), (
               PANCHANG_TABS.map(t => renderTab(t, true))
             ), '500px')}
 
-            {MAIN_TABS.map(t => renderTab(t))}
+            <div className="sidenav-section-label">Tools</div>
+            {TOOL_TABS.map(t => renderTab(t))}
+            <div className="sidenav-section-label">Account</div>
+            {ACCOUNT_TABS.map(t => renderTab(t))}
           </nav>
 
           {/* Bottom Actions */}

@@ -167,7 +167,8 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 | Charts | `/chart/[slug]`, calculate, save, public share, notes, relocate, varshaphal, ACG |
 | Panchang | `/panchang`, calendar, transit APIs |
 | Muhurta | `/muhurta` + `/api/muhurta/*` (Gold+) |
-| Compare / Milan | `/compare` — Ashtakoot, Porutham |
+| Compare / Milan | `/compare` — Ashtakoot, Porutham, dosha, charts, dasha, and panchang on Free; match-making, married life, All Sections, and print on Gold+ |
+| Relationship and marriage | Chart tab — D1 and score preview on Free; full reading on Gold+; extended divisionals on Platinum |
 | Jaimini / KP / Prashna | `/jaimini`, `/prashna` |
 | SBC / ACG / Vastu | `/sbc`, `/acg`, `/vastu` |
 | Nakshatra | `/nakshatra/[tab]` |
@@ -244,6 +245,8 @@ Models: `src/lib/db/models/*`.
 | Public share | Yes | Yes | Yes |
 | PDF/HTML export | No | Yes | Yes |
 | Muhurta | No | Yes | Yes |
+| Relationship and marriage | Preview | Full | Full, plus extended divisionals |
+| Kundali Milan match-making and married life | Preview | Full, with All Sections and print | Full, with All Sections and print |
 | Email chart / bulk ZIP | No | No | Yes |
 | Client CRM | No | No | Yes |
 | White-label | No | No | Yes |

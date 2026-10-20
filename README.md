@@ -49,8 +49,8 @@ Canonical plans: `free` | `gold` | `platinum`. Enforcement matrix: [`SUBSCRIPTIO
 | **Dashas** | Vimshottari, Yogini, Chara/Jaimini, Ashtottari |
 | **Strengths** | Arudhas, Shadbala, Vimsopaka, Ashtakavarga, yogas |
 | **Panchang** | Daily + monthly calendar; timings (Choghadiya, Rahu Kalam, etc.) |
-| **Tools** | Compare / Ashtakoot, Prashna (Satpanchasika free), Jaimini, ACG, Vastu preview, Nakshatra lab teasers, Numerology |
-| **Library** | Save up to **20** charts; public share; notes; JHD/SJS import; location search |
+| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, match-making and married-life preview, Prashna (Satpanchasika free), Jaimini, ACG, Vastu preview, Nakshatra lab teasers, Numerology |
+| **Library** | Save up to **20** charts and **20** Kundali Milan matches; public share; notes; JHD/SJS import; location search |
 
 ### Gold — ₹168/month or ₹1,443/year
 
@@ -58,10 +58,10 @@ Everything in Free, plus:
 
 | Feature | Detail |
 |---|---|
-| **Chart library** | Save up to **200** charts |
+| **Chart library** | Save up to **200** charts and **200** Kundali Milan matches |
 | **PDF / HTML export** | `/api/chart/export` (also gated in `proxy.ts`) |
 | **Muhurta** | Full `/muhurta` + `/api/muhurta/*` (Gold+) |
-| **UI depth** | Full dasha “More”, Cosmic Weather, Vastu, SBC, Prashna Kerala/Vedic/KP, Nakshatra profession/medical, planetary panels (see matrix) |
+| **UI depth** | Full dasha “More”, Cosmic Weather, Vastu, SBC, Prashna Kerala/Vedic/KP, Nakshatra profession/medical, planetary panels, relationship and marriage, Kundali Milan match-making, married life, All Sections, and print (see matrix) |
 
 ### Platinum — ₹336/month or ₹2,888/year
 
@@ -70,7 +70,7 @@ Everything in Gold, plus:
 | Feature | Detail |
 |---|---|
 | **Vargas** | Full **41**-suite |
-| **Library** | Unlimited saves |
+| **Library** | Unlimited chart and Kundali Milan saves |
 | **White-label** | `brandName` / `brandLogo` on public share + exports |
 | **Client CRM** | `/clients` + `/api/clients` |
 | **Email charts** | `/api/chart/send-email` |

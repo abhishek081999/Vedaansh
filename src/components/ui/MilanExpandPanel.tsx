@@ -185,7 +185,7 @@ export function MilanExpandPanel({
           South Indian Porutham · {porutham.matchedCount}/10 · {porutham.scoreLabel}
         </h3>
         <p style={{ margin: '0 0 0.85rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>{porutham.summary}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.5rem' }}>
           {porutham.items.map(i => (
             <div key={i.name} style={{
               padding: '0.65rem', borderRadius: 'var(--r-sm)',
@@ -231,7 +231,7 @@ export function MilanExpandPanel({
       <div className="card" style={{ padding: '1.2rem', borderLeft: `4px solid ${TONE[jaimini.tone]}` }}>
         <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>D9 / Jaimini marriage (per chart)</h3>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{jaimini.summary}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.65rem', marginTop: '0.85rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.65rem', marginTop: '0.85rem' }}>
           {[
             { label: roles.boyLabel, a: jaimini.boy },
             { label: roles.girlLabel, a: jaimini.girl },
@@ -257,7 +257,7 @@ export function MilanExpandPanel({
       {/* Vaidhavya catalog */}
       <div className="card" style={{ padding: '1.2rem' }}>
         <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Vaidhavya / Vidhur cue catalog</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.75rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.75rem' }}>
           {[
             { title: `${roles.boyLabel} (Vidhur cues)`, items: vaidBoy },
             { title: `${roles.girlLabel} (Vaidhavya cues)`, items: vaidGirl },

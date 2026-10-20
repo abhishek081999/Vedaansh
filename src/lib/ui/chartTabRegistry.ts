@@ -8,6 +8,7 @@ export type ChartTabId =
   | 'astro-details'
   | 'planets'
   | 'navamsha'
+  | 'relationship'
   | 'dasha'
   | 'dasha-interpretation'
   | 'house'
@@ -27,6 +28,7 @@ export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
   'varshaphal',
   'planets',
   'navamsha',
+  'relationship',
   'house',
   'interpretation',
   'kp-stellar',
@@ -36,6 +38,7 @@ export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
 export const FLUSH_PADDING_CHART_TABS: readonly ChartTabId[] = [
   'planets',
   'navamsha',
+  'relationship',
   'house',
   'kp-stellar',
 ]

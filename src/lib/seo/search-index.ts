@@ -42,10 +42,10 @@ const TOOL_DOCS: SearchDoc[] = [
   },
   {
     title: 'Kundali Matching',
-    description: 'Free Ashtakoot Guna Milan and chart comparison.',
+    description: 'Ashtakoot Guna Milan plus married-life matching: Moon emotion, home, and the 7th lord.',
     url: '/compare',
     type: 'tool',
-    keywords: ['kundali matching', 'ashtakoot', 'guna milan', 'marriage matching'],
+    keywords: ['kundali matching', 'ashtakoot', 'guna milan', 'marriage matching', 'kundali milan', 'married life'],
   },
   {
     title: 'Nakshatra Analysis',
