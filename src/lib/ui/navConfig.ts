@@ -18,6 +18,7 @@ import {
   Globe,
   Grid3x3,
   Hash,
+  Heart,
   HeartHandshake,
   Hexagon,
   Home,
@@ -103,6 +104,13 @@ export const ASTRO_GROUPS: NavGroup[] = [
       { id: 'yogas', label: 'Yogas', icon: Star, path: ASTROLOGY_HOME_PATH },
       { id: 'kp-stellar', label: 'Stellar (KP)', icon: Crosshair, path: ASTROLOGY_HOME_PATH },
       { id: 'interpretation', label: 'Interpretation', icon: BookOpen, path: ASTROLOGY_HOME_PATH },
+    ],
+  },
+  {
+    id: 'relationship',
+    label: 'Relationship',
+    tabs: [
+      { id: 'relationship', label: 'Relationship and Marriage', icon: Heart, path: ASTROLOGY_HOME_PATH },
     ],
   },
   {

@@ -1,6 +1,6 @@
 'use client'
 // src/app/compare/page.tsx — Professional Kundali Matching & Comparison
-import { useState, useMemo, useRef, useCallback, Suspense } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect, Suspense } from 'react'
 import React from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -10,6 +10,7 @@ import { RASHI_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
 import { calculateAshtakoot, type GanaSchool } from '@/lib/engine/ashtakoot'
 import type { MilanRole } from '@/lib/engine/milanSuite'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
 
 const BirthForm = dynamic(() => import('@/components/ui/BirthForm').then(m => m.BirthForm), { ssr: false })
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
@@ -20,6 +21,8 @@ const YogaList = dynamic(() => import('@/components/ui/YogaList').then(m => m.Yo
 const CompatibilityDoshaPanel = dynamic(() => import('@/components/ui/CompatibilityDoshaPanel').then(m => m.CompatibilityDoshaPanel), { ssr: false })
 const MilanDeepAnalysisPanel = dynamic(() => import('@/components/ui/MilanDeepAnalysisPanel').then(m => m.MilanDeepAnalysisPanel), { ssr: false })
 const MilanExpandPanel = dynamic(() => import('@/components/ui/MilanExpandPanel').then(m => m.MilanExpandPanel), { ssr: false })
+const MilanMarriedLifePanel = dynamic(() => import('@/components/ui/MilanMarriedLifePanel').then(m => m.MilanMarriedLifePanel), { ssr: false })
+const MilanMatchMakingPanel = dynamic(() => import('@/components/ui/MilanMatchMakingPanel').then(m => m.MilanMatchMakingPanel), { ssr: false })
 const NatalPanchangPanel = dynamic(() => import('@/components/panchang/NatalPanchangPanel').then(m => m.NatalPanchangPanel), { ssr: false })
 const SavedChartSelector = dynamic(
   () => import('@/components/ui/SavedChartSelector').then(m => m.SavedChartSelector),
@@ -146,11 +149,12 @@ function getVerdict(score: number) {
 const GRAHA_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 const GRAHA_SYM: Record<string, string> = { Su: '☀', Mo: '☽', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋' }
 
-type View = 'compat' | 'doshas' | 'ashtakoot' | 'milan' | 'expand' | 'charts' | 'overlay' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'all'
+type View = 'compat' | 'doshas' | 'ashtakoot' | 'matching' | 'married' | 'milan' | 'expand' | 'charts' | 'overlay' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'all'
 
 function CompareContent() {
   const { data: session } = useSession()
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
+  const fullMilan = planMeetsUiGate(userPlan, 'gold')
   const [step, setStep] = useState<'a' | 'b' | 'done'>('a')
   const [chartA, setChartA] = useState<ChartOutput | null>(null)
   const [chartB, setChartB] = useState<ChartOutput | null>(null)
@@ -164,8 +168,13 @@ function CompareContent() {
   const selectorForRef = useRef<'a' | 'b' | null>(null)
 
   const handleViewChange = useCallback((id: View) => {
+    if (id === 'all' && !fullMilan) return
     setView(id)
-  }, [])
+  }, [fullMilan])
+
+  useEffect(() => {
+    if (view === 'all' && !fullMilan) setView('ashtakoot')
+  }, [view, fullMilan])
 
   const openSelector = useCallback((who: 'a' | 'b') => {
     selectorForRef.current = who
@@ -259,7 +268,7 @@ function CompareContent() {
   const verdict = useMemo(() => ashtakootScore ? getVerdict(ashtakootScore.total) : null, [ashtakootScore]);
 
   const openMilanPrintPage = useCallback(async () => {
-    if (!chartA || !chartB || !ashtakootScore) return
+    if (!fullMilan || !chartA || !chartB || !ashtakootScore) return
     const { openMilanPrintPage: openPage } = await import('@/components/ui/MilanPrintPreview')
     openPage({
       chartA,
@@ -268,7 +277,7 @@ function CompareContent() {
       roleA,
       roleB,
     })
-  }, [chartA, chartB, ashtakootScore, roleA, roleB])
+  }, [fullMilan, chartA, chartB, ashtakootScore, roleA, roleB])
 
   return (
     <div style={{ flex: '1 0 auto', width: '100%', minHeight: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)', paddingBottom: '4rem' }}>
@@ -428,20 +437,22 @@ function CompareContent() {
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>{verdict.icon} {verdict.label}</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.5 }}>{verdict.sub}</p>
                 <p style={{ margin: '0.75rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  {ashtakootScore.eligibility.label} · Stage 1 of 3 — open <strong style={{ color: 'var(--text-gold)' }}>Deep Milan</strong> for D1/D9 + Venus–Mars.
+                  {ashtakootScore.eligibility.label}
                 </p>
               </div>
 
-              <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => void openMilanPrintPage()}
-                  style={{ fontSize: '0.85rem', gap: '0.4rem' }}
-                >
-                  Print All Sections
-                </button>
-              </div>
+              {fullMilan && (
+                <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => void openMilanPrintPage()}
+                    style={{ fontSize: '0.85rem', gap: '0.4rem' }}
+                  >
+                    Print All Sections
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Match Insights Summary */}
@@ -476,6 +487,8 @@ function CompareContent() {
             <div className="compare-tabs no-print" style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
               {([
                 ['ashtakoot', 'Ashtakoot (36)'],
+                ['matching', 'Match-Making'],
+                ['married', 'Married Life'],
                 ['milan', 'Deep Milan'],
                 ['expand', 'Porutham + Timing'],
                 ['doshas', 'Dosha Analysis'],
@@ -486,7 +499,7 @@ function CompareContent() {
                 ['dasha', 'Dasha'],
                 ['panchang', 'Panchang'],
                 ['ashtakavarga', 'Ashtakavarga'],
-                ['all', 'All Sections'],
+                ...(fullMilan ? [['all', 'All Sections'] as [View, string]] : []),
               ] as [View, string][]).map(([id, label]) => (
                 <button 
                   key={id} 
@@ -509,20 +522,22 @@ function CompareContent() {
                   {label}
                 </button>
               ))}
-              <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => void openMilanPrintPage()}
-                  style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
-                >
-                  Print All Sections
-                </button>
-              </div>
+              {fullMilan && (
+                <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => void openMilanPrintPage()}
+                    style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+                  >
+                    Print All Sections
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Ashtakoot Detailed Breakdown */}
-            {(view === 'ashtakoot' || view === 'all') && (
+            {(view === 'ashtakoot' || (view === 'all' && fullMilan)) && (
               <div className="card fade-up" style={{ padding: '0', overflow: 'hidden' }}>
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
                   <h3 className="label-caps" style={{ margin: 0, fontSize: '0.75rem' }}>Detailed Guna Milan Analysis</h3>
@@ -580,15 +595,27 @@ function CompareContent() {
               </div>
             )}
 
+            {(view === 'matching' || (view === 'all' && fullMilan)) && (
+              <div className="fade-up">
+                <MilanMatchMakingPanel chartA={chartA} chartB={chartB} userPlan={userPlan} />
+              </div>
+            )}
+
+            {(view === 'married' || (view === 'all' && fullMilan)) && (
+              <div className="fade-up">
+                <MilanMarriedLifePanel chartA={chartA} chartB={chartB} roleA={roleA} roleB={roleB} userPlan={userPlan} />
+              </div>
+            )}
+
             {/* Deep Milan — Stage 2/3 */}
-            {(view === 'milan' || view === 'all') && (
+            {(view === 'milan' || (view === 'all' && fullMilan)) && (
               <div className="fade-up">
                 <MilanDeepAnalysisPanel chartA={chartA} chartB={chartB} ashtakoot={ashtakootScore} />
               </div>
             )}
 
             {/* Porutham + Timing + PDF + History */}
-            {(view === 'expand' || view === 'all') && (
+            {(view === 'expand' || (view === 'all' && fullMilan)) && (
               <div className="fade-up">
                 <MilanExpandPanel
                   chartA={chartA}
@@ -604,14 +631,14 @@ function CompareContent() {
             )}
 
             {/* Dosha Analysis */}
-            {(view === 'doshas' || view === 'all') && (
+            {(view === 'doshas' || (view === 'all' && fullMilan)) && (
               <div className="fade-up">
                  <CompatibilityDoshaPanel chartA={chartA} chartB={chartB} />
               </div>
             )}
 
             {/* Aura Affinity */}
-            {(view === 'compat' || view === 'all') && (
+            {(view === 'compat' || (view === 'all' && fullMilan)) && (
               <div className="card fade-up" style={{ padding: '2rem' }}>
                 <h3 className="label-caps" style={{ marginBottom: '1.5rem' }}>Aura & Psychological Affinity</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1rem' }}>
@@ -639,7 +666,7 @@ function CompareContent() {
             )}
 
             {/* Charts View */}
-            {(view === 'charts' || view === 'all') && (
+            {(view === 'charts' || (view === 'all' && fullMilan)) && (
               <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
                 <div>
                    <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-gold)', fontWeight: 800 }}>{chartA.meta.name}</h3>
@@ -653,7 +680,7 @@ function CompareContent() {
             )}
 
             {/* Overlay */}
-            {(view === 'overlay' || view === 'all') && (
+            {(view === 'overlay' || (view === 'all' && fullMilan)) && (
                <div className="fade-up card" style={{ padding: '2rem' }}>
                   <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                      <h3 style={{ margin: 0 }}>Synastry Overlay</h3>
@@ -672,7 +699,7 @@ function CompareContent() {
             )}
 
             {/* Planets Table */}
-            {(view === 'planets' || view === 'all') && (
+            {(view === 'planets' || (view === 'all' && fullMilan)) && (
               <div className="card fade-up" style={{ padding: '1.5rem', overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                    <thead>
@@ -708,7 +735,7 @@ function CompareContent() {
             )}
 
             {/* Other detailed views */}
-            {(view === 'ashtakavarga' || view === 'all') && chartA.ashtakavarga && chartB.ashtakavarga && (
+            {(view === 'ashtakavarga' || (view === 'all' && fullMilan)) && chartA.ashtakavarga && chartB.ashtakavarga && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: '1.25rem' }}>
                 {[chartA, chartB].map((chart, i) => (
                   <div key={i} className="card" style={{ padding: '0.85rem' }}>
@@ -729,7 +756,7 @@ function CompareContent() {
               </div>
             )}
 
-            {(view === 'dasha' || view === 'all') && (
+            {(view === 'dasha' || (view === 'all' && fullMilan)) && (
                <div className="print-break" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
                   {[chartA, chartB].map((chart, i) => (
                     <div key={`dasha-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -740,7 +767,7 @@ function CompareContent() {
                </div>
             )}
 
-            {(view === 'panchang' || view === 'all') && (
+            {(view === 'panchang' || (view === 'all' && fullMilan)) && (
                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
                   {[chartA, chartB].map((chart, i) => (
                     <div key={`panchang-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

@@ -31,3 +31,8 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 ## Unreleased
 
 _Document upcoming user-visible changes here before bumping `package.json`._
+
+### Added
+
+- Relationship and marriage on the chart: a short preview on Free, the full reading on Gold and Platinum
+- Kundali Milan match-making and married life: a short preview on Free; the full reading, All Sections, and print on Gold and Platinum

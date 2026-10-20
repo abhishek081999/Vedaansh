@@ -33,6 +33,17 @@ const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').th
 const VimsopakaBalaPanel = dynamic(() => import('@/components/ui/VimsopakaBalaPanel').then(m => m.VimsopakaBalaPanel), { ssr: false })
 const PlanetsWorkspace = dynamic(() => import('@/components/ui/PlanetsWorkspace').then(m => m.PlanetsWorkspace), { ssr: false })
 const NavamshaWorkspace = dynamic(() => import('@/components/ui/NavamshaWorkspace').then(m => m.NavamshaWorkspace), { ssr: false })
+const RelationshipMarriagePanel = dynamic(
+  () => import('@/components/ui/RelationshipMarriagePanel').then(m => m.RelationshipMarriagePanel),
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280, padding: '3rem 1rem' }}>
+        <VedaanshLoader size={44} message="Reading relationship and marriage…" />
+      </div>
+    ),
+  },
+)
 const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
 const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
 const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => m.HousePanel), { ssr: false })
@@ -2090,6 +2101,8 @@ function HomeContent() {
                     <PlanetsWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'navamsha' ? (
                     <NavamshaWorkspace chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'relationship' ? (
+                    <RelationshipMarriagePanel chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'house' ? (
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (

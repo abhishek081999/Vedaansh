@@ -38,6 +38,11 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Moon Kalas & Manas | Active kala + primary manas overview | Full 16 kalas, 7 manas, past-life flags | Full | UI: `MoonKalasManasPanel` / Planets → Moon tab (Gold+) |
 | Sun · 12 Adityas | Primary Aditya + karakatva teaser | Full 12 Adityas, spiritual, afflictions | Full | UI: `SunAdityasPanel` / Planets → Sun tab (Gold+) |
 | Prashna Kerala / Vedic / KP | Satpanchasika only | Yes | Yes | UI: `prashna/page` (Gold+) |
+| Relationship and marriage | D1 lagna chart and five score lines | Full reading | Full reading, plus extended divisionals | UI: `RelationshipMarriagePanel` (`planMeetsUiGate`, Gold+) |
+| Kundali Milan — Ashtakoot, Deep Milan, Porutham, dosha, charts, dasha, panchang | Yes | Yes | Yes | `src/app/compare/page.tsx` |
+| Kundali Milan match-making | Headline, lagna, and summary | Steps, four pillars, division overlay | Same as Gold | UI: `MilanMatchMakingPanel` (Gold+) |
+| Kundali Milan married life | Summary, Moon, 4th, 10th, and five scores | Cross-chart reading, houses, partner, separation, timing | Same as Gold | UI: `MilanMarriedLifePanel` (Gold+) |
+| Kundali Milan All Sections and print | Hidden | Yes | Yes | UI: `compare/page.tsx` (`fullMilan`, Gold+) |
 | Research pages/APIs | No | No | Yes | `proxy.ts` (`/research`, `/api/research`) — routes reserved, UI not shipped |
 
 \*Bulk import is available to any authenticated user until the plan’s chart save cap is reached.
