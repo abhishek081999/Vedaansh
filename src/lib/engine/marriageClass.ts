@@ -352,7 +352,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
   let venusScore = touches(venus, lordId === 'Ve')
   if (d9Venus && capable(d9Venus.dignity) && !d9Venus.isCombust) venusScore += 2
 
-  const ranked: { id: MarriageKind; score: number; title: string; detail: string }[] = [
+  const kinds: { id: MarriageKind; score: number; title: string; detail: string }[] = [
     {
       id: 'physical',
       score: marsScore,
@@ -371,7 +371,8 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
       title: 'A soul marriage',
       detail: 'Venus is the loudest voice, and the Navamsha is where that voice is trusted. Background and appearance matter less than the sense that the bond was already there. Venus still has to be strong in the Navamsha for this to hold.',
     },
-  ].sort((a, b) => b.score - a.score)
+  ]
+  const ranked = [...kinds].sort((a, b) => b.score - a.score)
 
   let kind: MarriageKind = 'open'
   if (ranked[0].score >= 3 && ranked[0].score > ranked[1].score) {

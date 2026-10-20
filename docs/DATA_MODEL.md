@@ -66,6 +66,25 @@ Birth data stored as **strings** for date/time precision (`YYYY-MM-DD`, `HH:MM:S
 
 ---
 
+### KundaliMilan
+
+A saved match. Birth details for both people are stored; the charts are recalculated when the match is opened.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| userId | ObjectId → User | Required |
+| name | string | Default `Person A & Person B` |
+| roleA / roleB | boy \| girl | Ashtakoot direction |
+| ganaSchool | classical \| parampara | |
+| gunaTotal | number | Score at save time, 0–36 |
+| personA / personB | birth details | name, date, time, place, lat, lng, timezone, gender, settings |
+
+**Indexes:** `{ userId, createdAt:-1 }`
+
+Deleted with the user account. Counted on its own save cap (20 / 200 / unlimited), separate from natal charts.
+
+---
+
 ### ChartCache
 
 Separate from Chart so the chart document stays lean. Large `ChartOutput` blobs live here (and separately in Redis for hot calc).

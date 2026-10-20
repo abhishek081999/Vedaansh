@@ -29,12 +29,15 @@ function chart(opts: {
     end: new Date('2038-01-01'),
     durationMs: 1,
     level: 1,
+    isCurrent: false,
     children: [{
       lord: 'Sa',
       start: new Date('2024-01-01'),
       end: new Date('2027-06-01'),
       durationMs: 1,
       level: 2,
+      isCurrent: false,
+      children: [],
     }],
   }
   return {

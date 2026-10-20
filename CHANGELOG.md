@@ -36,3 +36,4 @@ _Document upcoming user-visible changes here before bumping `package.json`._
 
 - Relationship and marriage on the chart: a short preview on Free, the full reading on Gold and Platinum
 - Kundali Milan match-making and married life: a short preview on Free; the full reading, All Sections, and print on Gold and Platinum
+- Save a Kundali Milan from the match result. My Charts has two sections: My Charts and Kundali Milan. Caps match chart saves (20 / 200 / unlimited)

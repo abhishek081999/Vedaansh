@@ -23,6 +23,8 @@ function chart(opts: {
     end: new Date('2040-01-01'),
     durationMs: 1,
     level: 1,
+    isCurrent: false,
+    children: [],
   }
   return {
     meta: { name: opts.name ?? 'Test' },

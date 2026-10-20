@@ -10,6 +10,7 @@ import { ChartNotes } from '@/components/ui/ChartNotes'
 import { ChartTagsInput } from '@/components/ui/ChartTagsInput'
 import { formatTagLabel } from '@/lib/chart/tags'
 import { BulkImport } from '@/components/ui/BulkImport'
+import { SavedMilanLibrary } from '@/components/ui/SavedMilanLibrary'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -491,6 +492,7 @@ export default function MyChartsPage() {
   const [filterTag,        setFilterTag]        = useState('')
   const [isSearching,      setIsSearching]      = useState(false)
   const [openingId,        setOpeningId]        = useState<string | null>(null)
+  const [library,          setLibrary]          = useState<'charts' | 'milan'>('charts')
 
   const userPlan = (session?.user as any)?.plan ?? 'free'
 
@@ -722,13 +724,40 @@ export default function MyChartsPage() {
         }}>
           My Charts
         </h1>
-        {pag && (
+        {library === 'charts' && pag && (
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
             {pag.total} chart{pag.total !== 1 ? 's' : ''} saved
           </div>
         )}
       </div>
 
+      <div style={{ display: 'flex', gap: '0.45rem', marginBottom: '1.25rem' }}>
+        {([
+          ['charts', 'My Charts'],
+          ['milan', 'Kundali Milan'],
+        ] as const).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setLibrary(id)}
+            style={{
+              padding: '0.45rem 0.9rem',
+              borderRadius: 999,
+              border: `1px solid ${library === id ? 'var(--text-gold)' : 'var(--border)'}`,
+              background: library === id ? 'var(--surface-3)' : 'transparent',
+              color: library === id ? 'var(--text-gold)' : 'var(--text-muted)',
+              fontWeight: library === id ? 700 : 500,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {library === 'milan' ? <SavedMilanLibrary /> : (
+      <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
         {/* Primary Toolbar */}
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -960,7 +989,7 @@ export default function MyChartsPage() {
         }
       `}</style>
 
-      {pag && pag.pages > 1 && (
+      {library === 'charts' && pag && pag.pages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem', flexWrap: 'wrap' }}>
           {Array.from({ length: pag.pages }, (_, i) => i + 1).map(p => (
             <button
@@ -980,6 +1009,8 @@ export default function MyChartsPage() {
             </button>
           ))}
         </div>
+      )}
+      </>
       )}
     </main>
   )

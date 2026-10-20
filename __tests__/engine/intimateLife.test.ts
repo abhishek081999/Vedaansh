@@ -9,14 +9,25 @@ function g(id: GrahaId, rashi: Rashi, speed = 1, extra?: Partial<GrahaData>): Gr
   return { id, rashi, dignity: 'neutral', isCombust: false, speed, name: id, ...extra } as GrahaData
 }
 
-function chart(asc: Rashi, grahas: GrahaData[], extra?: Partial<ChartOutput>): ChartOutput {
+function chart(
+  asc: Rashi,
+  grahas: GrahaData[],
+  extra?: {
+    vargas?: Record<string, GrahaData[]>
+    vargaLagnas?: Partial<Record<string, Rashi>>
+    dashas?: { vimshottari: DashaNode[] }
+    meta?: { name: string; gender: 'male' | 'female' | 'other' }
+    upagrahas?: ChartOutput['upagrahas']
+  },
+): ChartOutput {
   return {
-    meta: { name: 'Test', gender: 'other' },
+    meta: { name: 'Test', gender: 'other', ...extra?.meta },
     grahas,
     lagnas: { ascRashi: asc },
-    vargas: {},
-    vargaLagnas: {},
-    ...extra,
+    vargas: extra?.vargas ?? {},
+    vargaLagnas: extra?.vargaLagnas ?? {},
+    dashas: extra?.dashas ?? {},
+    upagrahas: extra?.upagrahas,
   } as ChartOutput
 }
 

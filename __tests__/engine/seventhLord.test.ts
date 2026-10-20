@@ -27,12 +27,15 @@ function chart(opts: {
     end: new Date('2036-01-01'),
     durationMs: 1,
     level: 1,
+    isCurrent: false,
     children: opts.dasha?.ad ? [{
       lord: opts.dasha.ad,
       start: new Date('2024-01-01'),
       end: new Date('2027-06-01'),
       durationMs: 1,
       level: 2,
+      isCurrent: false,
+      children: [],
     }] : [],
   }
   return {

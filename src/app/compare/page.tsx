@@ -5,6 +5,7 @@ import React from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import type { ChartOutput, GrahaData } from '@/types/astrology'
 import { RASHI_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
 import { calculateAshtakoot, type GanaSchool } from '@/lib/engine/ashtakoot'
@@ -130,6 +131,51 @@ function getCompatibility(a: ChartOutput, b: ChartOutput): CompatItem[] {
   return items
 }
 
+const KOOTA_LABELS = {
+  varna: 'Varna',
+  vashya: 'Vashya',
+  tara: 'Tara',
+  yoni: 'Yoni',
+  maitri: 'Graha Maitri',
+  gana: 'Gana',
+  bhakoot: 'Bhakoot',
+  nadi: 'Nadi',
+} as const
+
+function countsAsStrength(key: keyof typeof KOOTA_LABELS, score: ReturnType<typeof calculateAshtakoot>): boolean {
+  if (key === 'nadi') return score.nadi.points > 0
+  if (key === 'maitri') return score.maitri.points >= 3
+  if (key === 'gana') return score.gana.points >= 5
+  if (key === 'yoni') return score.yoni.points >= 3
+  if (key === 'bhakoot') return score.bhakoot.points === 7
+  return false
+}
+
+function awarenessText(key: keyof typeof KOOTA_LABELS, points: number, max: number, insight: string): string {
+  const mark = `${points} of ${max}.`
+  if (key === 'varna') return `${mark} Work and values do not line up between these two.`
+  if (key === 'yoni') return `${mark} Physical affinity is thin. Closeness here is a choice, not an easy instinct.`
+  if (key === 'gana') return `${mark} Temperament does not settle. The two react at different speeds.`
+  return `${mark} ${insight}`
+}
+
+function awarenessItems(score: ReturnType<typeof calculateAshtakoot>) {
+  const items: { id: string; label: string; text: string }[] = (Object.keys(KOOTA_LABELS) as (keyof typeof KOOTA_LABELS)[])
+    .filter(key => score[key].points < score[key].max && !countsAsStrength(key, score))
+    .map(key => ({
+      id: key,
+      label: KOOTA_LABELS[key],
+      text: awarenessText(key, score[key].points, score[key].max, score[key].insight),
+    }))
+  if (score.total < 18) {
+    items.push({ id: 'low', label: 'Low gunas', text: 'The mechanical score is under 18. Read the houses, the 7th lord, and the Navamsha before treating the guna total as the decision.' })
+  }
+  if (score.total > 32) {
+    items.push({ id: 'high', label: 'Very high total', text: 'Some lineages treat a score above 32 as too alike. Check that the two charts still keep a Mars–Venus spark and a separate identity.' })
+  }
+  return items
+}
+
 function getVerdict(score: number) {
   // Classical band is 18–32; above 32 some traditions refuse as “too similar”
   if (score > 32) {
@@ -151,8 +197,24 @@ const GRAHA_SYM: Record<string, string> = { Su: '☀', Mo: '☽', Ma: '♂', Me:
 
 type View = 'compat' | 'doshas' | 'ashtakoot' | 'matching' | 'married' | 'milan' | 'expand' | 'charts' | 'overlay' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'all'
 
+function personPayload(chart: ChartOutput) {
+  return {
+    name: chart.meta.name,
+    birthDate: chart.meta.birthDate,
+    birthTime: chart.meta.birthTime,
+    birthPlace: chart.meta.birthPlace,
+    latitude: chart.meta.latitude,
+    longitude: chart.meta.longitude,
+    timezone: chart.meta.timezone,
+    gender: chart.meta.gender,
+    settings: chart.meta.settings,
+  }
+}
+
 function CompareContent() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const searchParams = useSearchParams()
+  const milanId = searchParams.get('milanId')
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const fullMilan = planMeetsUiGate(userPlan, 'gold')
   const [step, setStep] = useState<'a' | 'b' | 'done'>('a')
@@ -165,6 +227,9 @@ function CompareContent() {
   const [selectorFor, setSelectorFor] = useState<'a' | 'b' | null>(null)
   const [loadingChart, setLoadingChart] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [openingSaved, setOpeningSaved] = useState(false)
+  const [savingMilan, setSavingMilan] = useState(false)
+  const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const selectorForRef = useRef<'a' | 'b' | null>(null)
 
   const handleViewChange = useCallback((id: View) => {
@@ -175,6 +240,48 @@ function CompareContent() {
   useEffect(() => {
     if (view === 'all' && !fullMilan) setView('ashtakoot')
   }, [view, fullMilan])
+
+  useEffect(() => {
+    if (!milanId) return
+    let cancelled = false
+    setOpeningSaved(true)
+    setLoadError(null)
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/milan/${milanId}`)
+        const json = await res.json()
+        if (cancelled) return
+        if (!json.success) {
+          setLoadError(json.error || 'Could not open this Kundali Milan')
+          return
+        }
+        const calc = async (person: Record<string, unknown>) => {
+          const response = await fetch('/api/chart/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(person),
+          })
+          const body = await response.json()
+          if (!body.success) throw new Error(body.error || 'Could not calculate chart')
+          return body.data as ChartOutput
+        }
+        const [a, b] = await Promise.all([calc(json.milan.personA), calc(json.milan.personB)])
+        if (cancelled) return
+        setChartA(a)
+        setChartB(b)
+        setRoleA(json.milan.roleA)
+        setRoleB(json.milan.roleB)
+        setGanaSchool(json.milan.ganaSchool)
+        setStep('done')
+        setSaveMessage('Opened from My Charts')
+      } catch (e) {
+        if (!cancelled) setLoadError(e instanceof Error ? e.message : 'Could not open this Kundali Milan')
+      } finally {
+        if (!cancelled) setOpeningSaved(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [milanId])
 
   const openSelector = useCallback((who: 'a' | 'b') => {
     selectorForRef.current = who
@@ -266,6 +373,42 @@ function CompareContent() {
   }, [chartA, chartB, roleA, ganaSchool])
 
   const verdict = useMemo(() => ashtakootScore ? getVerdict(ashtakootScore.total) : null, [ashtakootScore]);
+  const awareness = useMemo(() => ashtakootScore ? awarenessItems(ashtakootScore) : [], [ashtakootScore])
+
+  const saveMilan = useCallback(async () => {
+    if (!chartA || !chartB || !ashtakootScore) return
+    if (status !== 'authenticated') {
+      setSaveMessage('Sign in to save this match to My Charts.')
+      return
+    }
+    setSavingMilan(true)
+    setSaveMessage(null)
+    try {
+      const res = await fetch('/api/milan/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${chartA.meta.name} & ${chartB.meta.name}`.slice(0, 120),
+          roleA,
+          roleB,
+          ganaSchool,
+          gunaTotal: ashtakootScore.total,
+          personA: personPayload(chartA),
+          personB: personPayload(chartB),
+        }),
+      })
+      const json = await res.json()
+      if (!json.success) {
+        setSaveMessage(json.error || 'Could not save this Kundali Milan')
+        return
+      }
+      setSaveMessage('Saved to My Charts → Kundali Milan')
+    } catch {
+      setSaveMessage('Could not save this Kundali Milan')
+    } finally {
+      setSavingMilan(false)
+    }
+  }, [chartA, chartB, ashtakootScore, status, roleA, roleB, ganaSchool])
 
   const openMilanPrintPage = useCallback(async () => {
     if (!fullMilan || !chartA || !chartB || !ashtakootScore) return
@@ -306,8 +449,14 @@ function CompareContent() {
           />
         )}
 
+        {openingSaved && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 1rem' }}>
+            <VedaanshLoader message="Opening Kundali Milan…" />
+          </div>
+        )}
+
         {/* Input Forms */}
-        {step === 'a' && (
+        {!openingSaved && step === 'a' && (
           <div className="fade-up" style={{ maxWidth: 500, margin: '0 auto' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '2rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>Enter Birth Details of Person 1</h2>
             <div className="card" style={{ padding: '2rem', position: 'relative' }}>
@@ -341,7 +490,7 @@ function CompareContent() {
           </div>
         )}
 
-        {step === 'b' && chartA && (
+        {!openingSaved && step === 'b' && chartA && (
           <div className="fade-up" style={{ maxWidth: 500, margin: '0 auto' }}>
             <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(201,168,76,0.05)', borderRadius: 'var(--r-md)', border: '1px solid rgba(201,168,76,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -441,8 +590,17 @@ function CompareContent() {
                 </p>
               </div>
 
-              {fullMilan && (
-                <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
+              <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '0.6rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => void saveMilan()}
+                  disabled={savingMilan}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  {savingMilan ? 'Saving…' : 'Save Kundali Milan'}
+                </button>
+                {fullMilan && (
                   <button
                     type="button"
                     className="btn"
@@ -451,7 +609,18 @@ function CompareContent() {
                   >
                     Print All Sections
                   </button>
-                </div>
+                )}
+              </div>
+              {saveMessage && (
+                <p className="no-print" style={{ margin: '0.75rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  {saveMessage}{' '}
+                  {status !== 'authenticated' && (
+                    <Link href="/login?callbackUrl=/compare" style={{ color: 'var(--text-gold)' }}>Sign in</Link>
+                  )}
+                  {saveMessage.startsWith('Saved') && (
+                    <Link href="/my/charts" style={{ color: 'var(--text-gold)' }}>Open My Charts</Link>
+                  )}
+                </p>
               )}
             </div>
 
@@ -472,14 +641,17 @@ function CompareContent() {
               </div>
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--rose)' }}>
                 <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--rose)' }}>Areas for awareness</h4>
-                <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {ashtakootScore.bhakoot.points === 0 && <li><strong>Bhakoot:</strong> {ashtakootScore.bhakoot.insight} Life-direction friction possible.</li>}
-                  {ashtakootScore.nadi.dosha && <li><strong>Nadi Dosha:</strong> Same pranic type — check cancellation notes; traditionally watched for progeny.</li>}
-                  {ashtakootScore.maitri.points < 3 && <li><strong>Mental friction:</strong> {ashtakootScore.maitri.insight}</li>}
-                  {ashtakootScore.vashya.points === 0 && <li><strong>Vashya imbalance:</strong> {ashtakootScore.vashya.insight}</li>}
-                  {ashtakootScore.total < 18 && <li><strong>Low gunas:</strong> Mechanical score is weak — prioritize Stage 2–3 karmic & planetary chemistry.</li>}
-                  {ashtakootScore.total > 32 && <li><strong>Too similar:</strong> Some lineages refuse above 32; verify individuality and Mars–Venus spark.</li>}
-                </ul>
+                {awareness.length > 0 ? (
+                  <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {awareness.map(item => (
+                      <li key={item.id}><strong>{item.label}:</strong> {item.text}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    Each of the eight kootas holds its full score. Dosha, Navamsha, and the 7th lord are the next places to read.
+                  </p>
+                )}
               </div>
             </div>
 

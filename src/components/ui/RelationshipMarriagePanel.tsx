@@ -451,7 +451,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
               <NoteCards notes={intimate.timings.filter(n => n.id.startsWith('past-'))} />
             </>
           ) : null}
-          {intimate.timings.some(n => !n.id.startsWith('past-')) ? (
+          {intimate?.timings.some(n => !n.id.startsWith('past-')) ? (
             <>
               <SectionLabel>Open and ahead</SectionLabel>
               <NoteCards notes={intimate.timings.filter(n => !n.id.startsWith('past-'))} />
