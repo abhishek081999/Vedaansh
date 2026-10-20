@@ -51,6 +51,8 @@ export interface NavTab {
   label: string
   icon: LucideIcon
   path?: string
+  /** Active on this path and any route under it. */
+  match?: 'exact' | 'prefix'
 }
 
 export interface NavGroup {
@@ -63,6 +65,15 @@ export const TOP_TABS: NavTab[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: ASTROLOGY_HOME_PATH },
   { id: 'my-charts', label: 'My Charts', icon: Library, path: '/my/charts' },
 ]
+
+/** Sidenav entry. Navtara and the other tools live inside the Nakshatra page. */
+export const NAKSHATRA_LINK: NavTab = {
+  id: 'nakshatra',
+  label: 'Nakshatra',
+  icon: Moon,
+  path: '/nakshatra',
+  match: 'prefix',
+}
 
 export const NAKSHATRA_TABS: NavTab[] = [
   { id: 'nakshatra-overview', label: 'Overview', icon: Star, path: '/nakshatra/overview' },
@@ -78,6 +89,7 @@ export const NAKSHATRA_TABS: NavTab[] = [
   { id: 'nakshatra-medical', label: 'Medical', icon: Activity, path: '/nakshatra/medical' },
 ]
 
+/** Multi-item astrology sections. Single destinations live in ASTRO_DIRECT_TABS. */
 export const ASTRO_GROUPS: NavGroup[] = [
   {
     id: 'transit',
@@ -107,20 +119,6 @@ export const ASTRO_GROUPS: NavGroup[] = [
     ],
   },
   {
-    id: 'relationship',
-    label: 'Relationship',
-    tabs: [
-      { id: 'relationship', label: 'Relationship and Marriage', icon: Heart, path: ASTROLOGY_HOME_PATH },
-    ],
-  },
-  {
-    id: 'predictive-timing',
-    label: 'Predictive Timing',
-    tabs: [
-      { id: 'varshaphal', label: 'Solar Return (Varshfal)', icon: Sun, path: ASTROLOGY_HOME_PATH },
-    ],
-  },
-  {
     id: 'strength-analytics',
     label: 'Strength & Analytics',
     tabs: [
@@ -130,14 +128,44 @@ export const ASTRO_GROUPS: NavGroup[] = [
       { id: 'vimsopaka', label: 'Vimsopaka', icon: BarChart3, path: ASTROLOGY_HOME_PATH },
     ],
   },
-  {
-    id: 'calculations',
-    label: 'Calculations',
-    tabs: [
-      { id: 'panchang', label: 'Natal Panchang', icon: Calendar, path: ASTROLOGY_HOME_PATH },
-    ],
-  },
 ]
+
+/** Chart destinations that do not need their own accordion. */
+export const ASTRO_DIRECT_TABS: NavTab[] = [
+  { id: 'relationship', label: 'Relationship', icon: Heart, path: ASTROLOGY_HOME_PATH },
+  { id: 'varshaphal', label: 'Solar Return', icon: Sun, path: ASTROLOGY_HOME_PATH },
+  { id: 'panchang', label: 'Natal Panchang', icon: Calendar, path: ASTROLOGY_HOME_PATH },
+]
+
+export type AstroNavEntry =
+  | { kind: 'group'; group: NavGroup }
+  | { kind: 'link'; tab: NavTab }
+
+function astroGroup(id: string): NavGroup {
+  const group = ASTRO_GROUPS.find((entry) => entry.id === id)
+  if (!group) throw new Error(`Missing astrology nav group: ${id}`)
+  return group
+}
+
+function astroDirectTab(id: string): NavTab {
+  const tab = ASTRO_DIRECT_TABS.find((entry) => entry.id === id)
+  if (!tab) throw new Error(`Missing astrology nav tab: ${id}`)
+  return tab
+}
+
+/** Sidenav order inside Astrology: groups and direct links interleaved. */
+export const ASTRO_NAV: AstroNavEntry[] = [
+  { kind: 'group', group: astroGroup('transit') },
+  { kind: 'group', group: astroGroup('core-analysis') },
+  { kind: 'group', group: astroGroup('strength-analytics') },
+  { kind: 'link', tab: astroDirectTab('relationship') },
+  { kind: 'link', tab: astroDirectTab('varshaphal') },
+  { kind: 'link', tab: astroDirectTab('panchang') },
+]
+
+export function astroNavTabs(): NavTab[] {
+  return ASTRO_NAV.flatMap((entry) => (entry.kind === 'group' ? entry.group.tabs : [entry.tab]))
+}
 
 export const PANCHANG_TABS: NavTab[] = [
   { id: 'daily-panchang', label: 'Daily Panchang', icon: Calendar, path: '/panchang' },
@@ -155,13 +183,20 @@ export const ADVANCED_ASTRO_TABS: NavTab[] = [
   { id: 'compare', label: 'Kundali Matching', icon: HeartHandshake, path: '/compare' },
 ]
 
-export const MAIN_TABS: NavTab[] = [
+/** Working tools, separate from chart sections. */
+export const TOOL_TABS: NavTab[] = [
   { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides' },
+  { id: 'clients', label: 'CRM / Clients', icon: UsersRound, path: '/clients' },
+]
+
+/** App and account links. */
+export const ACCOUNT_TABS: NavTab[] = [
   { id: 'install', label: 'Install App', icon: Download, path: '/install' },
   { id: 'about', label: 'About', icon: Info, path: '/about' },
-  { id: 'clients', label: 'CRM / Clients', icon: UsersRound, path: '/clients' },
   { id: 'pricing', label: 'Pricing', icon: Gem, path: '/pricing' },
 ]
+
+export const MAIN_TABS: NavTab[] = [...TOOL_TABS, ...ACCOUNT_TABS]
 
 export const SIDENAV_ACCORDIONS = {
   astrology: { label: 'Astrology', headerLabel: 'Astrology', icon: Sparkles },

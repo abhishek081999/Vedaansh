@@ -1927,6 +1927,87 @@ function HomeContent() {
 
   const leftDashboardCards = desktopDashboardCardOrder.slice(0, 2)
   const rightDashboardCards = desktopDashboardCardOrder.slice(2)
+  const phoneQuickActionCount = status === 'authenticated' ? 5 : 3
+  const phoneQuickActions = (
+    <>
+      <button
+        type="button"
+        onClick={() => handleCopyShareLink()}
+        aria-label={shareCopied ? 'Link copied' : 'Copy link to this chart'}
+        title={shareCopied ? 'Copied!' : 'Copy link — free, no login required'}
+        className="chart-mobile-action-btn"
+        style={{
+          borderColor: shareCopied ? 'var(--accent)' : undefined,
+          background: shareCopied ? 'rgba(34,197,94,0.1)' : undefined,
+          color: shareCopied ? 'var(--accent)' : undefined,
+        }}
+      >
+        {shareCopied ? (
+          <span style={{ fontSize: '0.85rem' }}>✓</span>
+        ) : (
+          <ShareLinkIcon />
+        )}
+      </button>
+      {status === 'authenticated' && (
+        <button
+          type="button"
+          onClick={() => handleSave('regular')}
+          disabled={saving || saveDone}
+          aria-label={isSavedChart ? 'Update saved chart' : 'Save chart'}
+          className="chart-mobile-action-btn"
+          style={{
+            borderColor: saveDone ? 'var(--accent)' : undefined,
+            background: saveDone ? 'rgba(34,197,94,0.1)' : undefined,
+            color: saveDone ? 'var(--accent)' : undefined,
+          }}
+        >
+          {saving ? (
+            <span style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.7 }}>…</span>
+          ) : saveDone ? (
+            <span style={{ fontSize: '0.85rem' }}>✓</span>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+          )}
+        </button>
+      )}
+      {status === 'authenticated' && (
+        <Link
+          href="/my/charts"
+          aria-label="My Charts"
+          title="My Charts"
+          className="chart-mobile-action-btn"
+        >
+          <Library size={16} strokeWidth={2} aria-hidden />
+        </Link>
+      )}
+      <button
+        type="button"
+        onClick={() => setIsFormOpen(true)}
+        aria-label="Edit birth details"
+        className="chart-mobile-action-btn"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={startNewChart}
+        aria-label="New chart"
+        className="chart-mobile-action-btn chart-mobile-action-btn--primary"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+    </>
+  )
 
   return (
     <div className="main-responsive-padding" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -1943,11 +2024,14 @@ function HomeContent() {
             
             {/* Compact Header Strip */}
             <div className="chart-header-row" style={isPhone ? { position: 'relative' } : undefined}>
+              <div className={isPhone ? 'chart-header-name-line' : undefined} style={isPhone ? { position: 'relative', width: '100%' } : { flex: '1 1 auto', minWidth: 0 }}>
               <ChartContextBar
                 chart={chart}
                 tags={chartTags}
                 isMobile={isPhone}
-                mobileReserveRight={isPhone ? '2.5rem' : undefined}
+                mobileReserveRight={isPhone
+                  ? (mobileChartActionsOpen ? '2.5rem' : `calc(2.5rem + ${phoneQuickActionCount} * 2.15rem)`)
+                  : undefined}
                 showDefaultStar={status === 'authenticated'}
                 isDefaultChart={isDefaultChart}
                 defaultStarBusy={settingDefault || saving}
@@ -1955,73 +2039,31 @@ function HomeContent() {
               />
 
               {isPhone && (
-                <button
-                  type="button"
-                  className="chart-mobile-actions-toggle"
-                  aria-expanded={mobileChartActionsOpen}
-                  aria-label={mobileChartActionsOpen ? 'Hide chart actions' : 'Show chart actions'}
-                  onClick={toggleMobileChartActions}
-                >
-                  <ChevronDown size={16} strokeWidth={2.25} aria-hidden />
-                </button>
-              )}
-              {isPhone && mobileChartActionsOpen && (
-                <div className="chart-mobile-actions-row">
-                  <button
-                    type="button"
-                    onClick={() => handleCopyShareLink()}
-                    aria-label={shareCopied ? 'Link copied' : 'Copy link to this chart'}
-                    title={shareCopied ? 'Copied!' : 'Copy link — free, no login required'}
-                    className="chart-mobile-action-btn"
-                    style={{
-                      borderColor: shareCopied ? 'var(--accent)' : undefined,
-                      background: shareCopied ? 'rgba(34,197,94,0.1)' : undefined,
-                      color: shareCopied ? 'var(--accent)' : undefined,
-                    }}
-                  >
-                    {shareCopied ? (
-                      <span style={{ fontSize: '0.85rem' }}>✓</span>
-                    ) : (
-                      <ShareLinkIcon />
-                    )}
-                  </button>
-                  {status === 'authenticated' && (
-                    <button
-                      type="button"
-                      onClick={() => handleSave('regular')}
-                      disabled={saving || saveDone}
-                      aria-label={isSavedChart ? 'Update saved chart' : 'Save chart'}
-                      className="chart-mobile-action-btn"
-                      style={{
-                        borderColor: saveDone ? 'var(--accent)' : undefined,
-                        background: saveDone ? 'rgba(34,197,94,0.1)' : undefined,
-                        color: saveDone ? 'var(--accent)' : undefined,
-                      }}
-                    >
-                      {saving ? (
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.7 }}>…</span>
-                      ) : saveDone ? (
-                        <span style={{ fontSize: '0.85rem' }}>✓</span>
-                      ) : (
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                          <polyline points="17 21 17 13 7 13 7 21"/>
-                          <polyline points="7 3 7 8 15 8"/>
-                        </svg>
-                      )}
-                    </button>
+                <div className="chart-mobile-header-tools">
+                  {!mobileChartActionsOpen && (
+                    <div className="chart-mobile-actions-collapsed">
+                      {phoneQuickActions}
+                    </div>
                   )}
                   <button
                     type="button"
-                    onClick={() => setIsFormOpen(true)}
-                    aria-label="Edit birth details"
-                    className="chart-mobile-action-btn"
+                    className="chart-mobile-actions-toggle"
+                    aria-expanded={mobileChartActionsOpen}
+                    aria-label={mobileChartActionsOpen ? 'Hide chart actions' : 'Show chart actions'}
+                    onClick={toggleMobileChartActions}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
+                    <ChevronDown size={16} strokeWidth={2.25} aria-hidden />
                   </button>
+                </div>
+              )}
+              </div>
+              {isPhone && mobileChartActionsOpen && (
+                <div className="chart-mobile-actions-row">
+                  {phoneQuickActions}
+                </div>
+              )}
+              {isPhone && mobileChartActionsOpen && (
+                <div className="chart-mobile-actions-row">
                   {status === 'authenticated' && (
                     <Link
                       href="/my/charts"
@@ -2044,13 +2086,6 @@ function HomeContent() {
                       {crmSaving ? '…' : crmDone ? '✓ CRM' : 'CRM'}
                     </button>
                   )}
-                  <button
-                    type="button"
-                    onClick={startNewChart}
-                    className="btn btn-primary btn-sm"
-                  >
-                    + New
-                  </button>
                 </div>
               )}
 
