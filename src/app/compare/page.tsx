@@ -271,7 +271,7 @@ function CompareContent() {
   }, [chartA, chartB, ashtakootScore, roleA, roleB])
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)', paddingBottom: '4rem' }}>
+    <div style={{ flex: '1 0 auto', width: '100%', minHeight: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)', paddingBottom: '4rem' }}>
       <main className="compare-main" style={{ maxWidth: 1200, margin: '0 auto', width: '100%', padding: '0 1rem' }}>
         
         {/* Navigation / Steps */}
@@ -279,7 +279,7 @@ function CompareContent() {
           <div className="compare-steps" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface-1)', padding: '0.5rem 1rem', borderRadius: '99px', border: '1px solid var(--border)' }}>
             {[{ s: 'a', l: 'Person 1', done: step !== 'a' }, { s: 'b', l: 'Person 2', done: step === 'done' }, { s: 'done', l: 'Match Result', done: false }].map(({ s, l, done }, i, arr) => (
               <React.Fragment key={s}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: step === s ? 'var(--text-gold)' : done ? 'var(--teal)' : 'var(--text-muted)', fontWeight: step === s || done ? 700 : 400, fontSize: '0.8rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0, whiteSpace: 'nowrap', color: step === s ? 'var(--text-gold)' : done ? 'var(--teal)' : 'var(--text-muted)', fontWeight: step === s || done ? 700 : 400, fontSize: '0.8rem' }}>
                   <span style={{ width: 20, height: 20, borderRadius: '50%', background: step === s ? 'var(--gold)' : done ? 'var(--teal)' : 'var(--surface-3)', color: step === s || done ? '#000' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>{done ? '✓' : i + 1}</span>
                   {l}
                 </div>
@@ -395,9 +395,9 @@ function CompareContent() {
               <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, background: verdict.color, opacity: 0.05, filter: 'blur(60px)', borderRadius: '50%' }} />
               <div style={{ position: 'absolute', bottom: -50, left: -50, width: 200, height: 200, background: verdict.color, opacity: 0.05, filter: 'blur(60px)', borderRadius: '50%' }} />
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginBottom: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-gold)' }}>{chartA.meta.name}</div>
+              <div className="compare-score-row">
+                <div className="compare-score-side is-a">
+                  <div className="compare-score-name" style={{ color: 'var(--text-gold)' }}>{chartA.meta.name}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{NAKSHATRA_NAMES[Math.floor((chartA.grahas.find(g => g.id === 'Mo')?.totalDegree ?? 0) / (360 / 27))]}</div>
                 </div>
                 
@@ -418,8 +418,8 @@ function CompareContent() {
                    </div>
                 </div>
 
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--accent)' }}>{chartB.meta.name}</div>
+                <div className="compare-score-side is-b">
+                  <div className="compare-score-name" style={{ color: 'var(--accent)' }}>{chartB.meta.name}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{NAKSHATRA_NAMES[Math.floor((chartB.grahas.find(g => g.id === 'Mo')?.totalDegree ?? 0) / (360 / 27))]}</div>
                 </div>
               </div>
@@ -445,7 +445,7 @@ function CompareContent() {
             </div>
 
             {/* Match Insights Summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.25rem' }}>
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--teal)' }}>
                 <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--teal)' }}>Relationship strengths</h4>
                 <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -473,7 +473,7 @@ function CompareContent() {
             </div>
 
             {/* View Tabs */}
-            <div className="compare-tabs no-print" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
+            <div className="compare-tabs no-print" style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
               {([
                 ['ashtakoot', 'Ashtakoot (36)'],
                 ['milan', 'Deep Milan'],
@@ -614,7 +614,7 @@ function CompareContent() {
             {(view === 'compat' || view === 'all') && (
               <div className="card fade-up" style={{ padding: '2rem' }}>
                 <h3 className="label-caps" style={{ marginBottom: '1.5rem' }}>Aura & Psychological Affinity</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1rem' }}>
                   {items.map((item, i) => (
                     <div key={i} style={{ 
                       padding: '1.25rem', 

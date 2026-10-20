@@ -66,7 +66,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       </div>
 
       {/* Three layers */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.75rem' }}>
         {([
           ['Psychology', ashtakoot.layers.psychology],
           ['Energy', ashtakoot.layers.energy],
@@ -132,7 +132,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       {/* Stage 3 Venus–Mars */}
       <div className="card" style={{ padding: '1.25rem' }}>
         <h3 className="label-caps" style={{ margin: '0 0 1rem', fontSize: '0.72rem' }}>Stage 3 · Venus–Mars chemistry</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.65rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.65rem' }}>
           {deep.stage3.venusMars.map((l, i) => (
             <div
               key={`${l.from}-${l.to}-${i}`}
@@ -208,7 +208,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       </div>
 
       {/* 7th rotation */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.75rem' }}>
         {deep.stage2.seventhRotation.map(r => (
           <div key={r.person} className="card" style={{ padding: '1.1rem' }}>
             <div className="label-caps" style={{ fontSize: '0.6rem' }}>7th-as-Lagna · {r.person}</div>
@@ -231,7 +231,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
         <p style={{ margin: '0 0 1rem', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
           {deep.longevityYogas.summary}
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.75rem' }}>
           {[deep.longevityYogas.personA, deep.longevityYogas.personB].map(y => (
             <div key={`${y.person}-${y.role}`} style={{ padding: '0.9rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -293,7 +293,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       <div className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${TONE[deep.varnamala.tone]}` }}>
         <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>Janma-naam Varnamala</h3>
         <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{deep.varnamala.summary}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.75rem' }}>
           {[deep.varnamala.personA, deep.varnamala.personB].map(p => (
             <div key={p.person} style={{ padding: '0.85rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
               <div style={{ fontWeight: 800 }}>{p.person}</div>
