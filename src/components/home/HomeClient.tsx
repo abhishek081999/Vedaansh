@@ -1974,16 +1974,6 @@ function HomeContent() {
           )}
         </button>
       )}
-      {status === 'authenticated' && (
-        <Link
-          href="/my/charts"
-          aria-label="My Charts"
-          title="My Charts"
-          className="chart-mobile-action-btn"
-        >
-          <Library size={16} strokeWidth={2} aria-hidden />
-        </Link>
-      )}
       <button
         type="button"
         onClick={() => setIsFormOpen(true)}
@@ -2043,6 +2033,16 @@ function HomeContent() {
                   {!mobileChartActionsOpen && (
                     <div className="chart-mobile-actions-collapsed">
                       {phoneQuickActions}
+                      {status === 'authenticated' && (
+                        <Link
+                          href="/my/charts"
+                          aria-label="My Charts"
+                          title="My Charts"
+                          className="chart-mobile-action-btn"
+                        >
+                          <Library size={16} strokeWidth={2} aria-hidden />
+                        </Link>
+                      )}
                     </div>
                   )}
                   <button
