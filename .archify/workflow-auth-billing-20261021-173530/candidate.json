@@ -1,0 +1,67 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Auth and billing workflow",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": ".archify/workflow-auth-billing-20261021-173530/auth-billing-workflow.html",
+    "repository": {
+      "url": "https://github.com/abhishek081999/Vedaansh.git",
+      "revision": "8d492d51322d55515a166cbd347e9fc429570c91",
+      "provider": "github",
+      "link_mode": "web"
+    }
+  },
+  "lanes": [
+    { "id": "user", "label": "User" },
+    { "id": "app", "label": "App / API" },
+    { "id": "pay", "label": "Payments" },
+    { "id": "data", "label": "MongoDB" }
+  ],
+  "phases": [
+    { "id": "auth", "label": "Sign in", "fromCol": 0, "toCol": 1 },
+    { "id": "buy", "label": "Checkout", "fromCol": 2, "toCol": 3 },
+    { "id": "activate", "label": "Activate", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["seeker", "login", "session", "checkout", "razorpay", "verify", "upgrade"],
+  "nodes": [
+    { "id": "seeker", "lane": "user", "col": 0, "type": "external", "label": "Seeker", "sublabel": "browser" },
+    { "id": "login", "lane": "app", "col": 1, "type": "security", "label": "NextAuth", "sublabel": "Google / password", "sources": [{ "path": "src/auth.ts", "line": 96, "end_line": 119, "label": "providers" }] },
+    { "id": "session", "lane": "app", "col": 2, "type": "security", "label": "JWT session", "sublabel": "30-day cookie", "sources": [{ "path": "src/auth.ts", "line": 122, "end_line": 125, "label": "session" }] },
+    { "id": "checkout", "lane": "app", "col": 3, "type": "backend", "label": "payment/checkout", "sublabel": "create order", "sources": [{ "path": "src/app/api/payment/checkout/route.ts", "line": 84, "end_line": 104, "label": "orders" }] },
+    { "id": "razorpay", "lane": "pay", "col": 4, "type": "cloud", "label": "Razorpay modal", "sublabel": "pay INR", "sources": [{ "path": "src/app/api/payment/verify/route.ts", "line": 3, "end_line": 10, "label": "verify path" }] },
+    { "id": "verify", "lane": "app", "col": 5, "type": "security", "label": "payment/verify", "sublabel": "HMAC + upgrade", "sources": [{ "path": "src/app/api/payment/verify/route.ts", "line": 42, "end_line": 72, "label": "HMAC" }] },
+    { "id": "upgrade", "lane": "data", "col": 5, "type": "database", "label": "User.plan", "sublabel": "planExpiresAt", "sources": [{ "path": "src/app/api/payment/verify/route.ts", "line": 1, "end_line": 10, "label": "upgrade" }] },
+    { "id": "userdoc", "lane": "data", "col": 1, "type": "database", "label": "users", "sublabel": "credentials / OAuth", "sources": [{ "path": "src/lib/db/models/User.ts", "line": 92, "end_line": 110, "label": "User" }] },
+    { "id": "fail", "lane": "pay", "col": 5, "type": "security", "label": "Verify fail", "sublabel": "bad signature", "tag": "400" }
+  ],
+  "edges": [
+    { "id": "e1", "from": "seeker", "to": "login", "label": "sign in" },
+    { "id": "e2", "from": "login", "to": "userdoc", "label": "lookup" },
+    { "id": "e3", "from": "login", "to": "session", "label": "JWT", "variant": "emphasis" },
+    { "id": "e4", "from": "session", "to": "checkout", "label": "upgrade" },
+    { "id": "e5", "from": "checkout", "to": "razorpay", "label": "order id", "variant": "emphasis" },
+    { "id": "e6", "from": "razorpay", "to": "verify", "label": "paymentId + sig" },
+    { "id": "e7", "from": "verify", "to": "upgrade", "label": "set gold/platinum", "variant": "emphasis" },
+    { "id": "e8", "from": "verify", "to": "fail", "label": "mismatch", "variant": "security", "role": "error" }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Entitlement truth",
+      "items": [
+        "Activation writes User.plan and planExpiresAt in MongoDB",
+        "proxy.ts and requirePlanGate re-read Mongo — not JWT claims"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Two payment paths",
+      "items": [
+        "Synchronous: /api/payment/verify after the Razorpay modal",
+        "Async: /api/webhooks/razorpay for renewals and retries"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Birth data to chart export",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": ".archify/dataflow-birth-to-export-20261021-173520/birth-to-export-dataflow.html",
+    "repository": {
+      "url": "https://github.com/abhishek081999/Vedaansh.git",
+      "revision": "8d492d51322d55515a166cbd347e9fc429570c91",
+      "provider": "github",
+      "link_mode": "web"
+    }
+  },
+  "stages": [
+    { "label": "Capture" },
+    { "label": "Compute" },
+    { "label": "Persist" },
+    { "label": "Deliver" }
+  ],
+  "nodes": [
+    { "id": "form", "type": "frontend", "label": "Birth form", "sublabel": "date · time · place", "stage": 0, "row": 1, "sources": [{ "path": "src/components/home/HomeClient.tsx", "line": 1, "end_line": 20, "label": "HomeClient" }] },
+    { "id": "calc_api", "type": "backend", "label": "chart/calculate", "sublabel": "Zod + plan", "stage": 1, "row": 1, "sources": [{ "path": "src/app/api/chart/calculate/route.ts", "line": 159, "end_line": 270, "label": "POST" }] },
+    { "id": "engine", "type": "backend", "label": "Jyotish engine", "sublabel": "ChartOutput", "stage": 1, "row": 3, "sources": [{ "path": "src/lib/engine/calculator.ts", "line": 268, "end_line": 286, "label": "calculateChart" }] },
+    { "id": "redis", "type": "database", "label": "Redis cache", "sublabel": "ephemeris key", "stage": 2, "row": 0, "sources": [{ "path": "src/app/api/chart/calculate/route.ts", "line": 215, "end_line": 265, "label": "cache" }] },
+    { "id": "mongo", "type": "database", "label": "charts collection", "sublabel": "save · list", "stage": 2, "row": 2, "sources": [{ "path": "src/app/api/chart/save/route.ts", "line": 37, "end_line": 50, "label": "save" }] },
+    { "id": "pdf", "type": "backend", "label": "PDF export", "sublabel": "Gold+", "stage": 3, "row": 0, "tag": "plan gate", "sources": [{ "path": "proxy.ts", "line": 50, "end_line": 52, "label": "GOLD_API" }] },
+    { "id": "email", "type": "cloud", "label": "Resend email", "sublabel": "authenticated", "stage": 3, "row": 2, "sources": [{ "path": "src/lib/email.ts", "line": 1, "end_line": 8, "label": "Resend" }] },
+    { "id": "crm", "type": "backend", "label": "CRM client", "sublabel": "Platinum", "stage": 3, "row": 4, "tag": "plan gate", "sources": [{ "path": "src/lib/db/models/Client.ts", "line": 23, "end_line": 40, "label": "Client" }] }
+  ],
+  "flows": [
+    { "id": "form-calc", "from": "form", "to": "calc_api", "label": "birth payload", "variant": "emphasis" },
+    { "id": "calc-engine", "from": "calc_api", "to": "engine", "label": "sidereal calc" },
+    { "id": "engine-calc", "from": "engine", "to": "calc_api", "label": "ChartOutput" },
+    { "id": "calc-redis", "from": "calc_api", "to": "redis", "label": "cache write", "variant": "dashed" },
+    { "id": "form-mongo", "from": "form", "to": "mongo", "label": "save chart", "variant": "security" },
+    { "id": "mongo-pdf", "from": "mongo", "to": "pdf", "label": "export input" },
+    { "id": "mongo-email", "from": "mongo", "to": "email", "label": "email payload" },
+    { "id": "mongo-crm", "from": "mongo", "to": "crm", "label": "client record", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Compute vs persist",
+      "items": [
+        "Anonymous users can calculate without saving",
+        "Redis caches full ChartOutput; Mongo stores birth metadata + optional cache id"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Plan gates",
+      "items": [
+        "PDF/export paths require Gold+",
+        "CRM client records require Platinum"
+      ]
+    }
+  ]
+}

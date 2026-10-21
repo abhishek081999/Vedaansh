@@ -1,0 +1,741 @@
+{
+  "schema_version": 1,
+  "diagram_type": "erd",
+  "meta": {
+    "title": "Vedaansh MongoDB schema",
+    "locale": "en",
+    "quality_profile": "standard",
+    "output": ".archify/erd-vedaansh-mongo-20261021-173500/vedaansh-erd.html",
+    "repository": {
+      "url": "https://github.com/abhishek081999/Vedaansh.git",
+      "revision": "8d492d51322d55515a166cbd347e9fc429570c91",
+      "provider": "github",
+      "link_mode": "web"
+    }
+  },
+  "layout": {
+    "mode": "grid",
+    "gapX": 64,
+    "gapY": 36
+  },
+  "entities": [
+    {
+      "id": "users",
+      "label": "users",
+      "tag": "identity",
+      "row": 0,
+      "col": 0,
+      "sources": [
+        {
+          "path": "src/lib/db/models/User.ts",
+          "line": 92,
+          "end_line": 124,
+          "label": "UserSchema"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "key": "uk"
+        },
+        {
+          "name": "name",
+          "type": "String"
+        },
+        {
+          "name": "image",
+          "type": "String?"
+        },
+        {
+          "name": "role",
+          "type": "role enum"
+        },
+        {
+          "name": "plan",
+          "type": "plan enum"
+        },
+        {
+          "name": "planExpiresAt",
+          "type": "Date?"
+        },
+        {
+          "name": "passwordHash",
+          "type": "String?"
+        },
+        {
+          "name": "oauthProvider",
+          "type": "oauth?"
+        },
+        {
+          "name": "oauthId",
+          "type": "String?"
+        },
+        {
+          "name": "emailVerified",
+          "type": "Date?"
+        },
+        {
+          "name": "verificationToken",
+          "type": "String?"
+        },
+        {
+          "name": "verificationExpires",
+          "type": "Date?"
+        },
+        {
+          "name": "resetToken",
+          "type": "String?"
+        },
+        {
+          "name": "resetTokenExpires",
+          "type": "Date?"
+        },
+        {
+          "name": "resetRequestedAt",
+          "type": "Date?"
+        },
+        {
+          "name": "devices",
+          "type": "Embedded[]"
+        },
+        {
+          "name": "preferences",
+          "type": "Embedded"
+        },
+        {
+          "name": "razorpayCustomerId",
+          "type": "String?"
+        },
+        {
+          "name": "stripeCustomerId",
+          "type": "String?"
+        },
+        {
+          "name": "brandName",
+          "type": "String?"
+        },
+        {
+          "name": "brandLogo",
+          "type": "String?"
+        },
+        {
+          "name": "defaultChartId",
+          "type": "ObjectId?",
+          "key": "fk",
+          "references": "charts._id"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date"
+        }
+      ],
+      "width": 260
+    },
+    {
+      "id": "charts",
+      "label": "charts",
+      "tag": "charts",
+      "row": 0,
+      "col": 1,
+      "sources": [
+        {
+          "path": "src/lib/db/models/Chart.ts",
+          "line": 47,
+          "end_line": 84,
+          "label": "ChartSchema"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "userId",
+          "type": "ObjectId?",
+          "key": "fk",
+          "references": "users._id"
+        },
+        {
+          "name": "name",
+          "type": "String"
+        },
+        {
+          "name": "birthDate",
+          "type": "String"
+        },
+        {
+          "name": "birthTime",
+          "type": "String"
+        },
+        {
+          "name": "birthPlace",
+          "type": "String"
+        },
+        {
+          "name": "latitude",
+          "type": "Number"
+        },
+        {
+          "name": "longitude",
+          "type": "Number"
+        },
+        {
+          "name": "timezone",
+          "type": "String"
+        },
+        {
+          "name": "gender",
+          "type": "gender"
+        },
+        {
+          "name": "settings",
+          "type": "Mixed"
+        },
+        {
+          "name": "isPublic",
+          "type": "Boolean"
+        },
+        {
+          "name": "isPersonal",
+          "type": "Boolean"
+        },
+        {
+          "name": "slug",
+          "type": "String?",
+          "key": "uk"
+        },
+        {
+          "name": "notes",
+          "type": "Embedded[]"
+        },
+        {
+          "name": "tags",
+          "type": "String[]"
+        },
+        {
+          "name": "views",
+          "type": "Number"
+        },
+        {
+          "name": "lastViewedAt",
+          "type": "Date?"
+        },
+        {
+          "name": "cachedDataId",
+          "type": "ObjectId?",
+          "key": "fk",
+          "references": "chart_caches._id"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date"
+        }
+      ],
+      "width": 250
+    },
+    {
+      "id": "chart_caches",
+      "label": "chartcaches",
+      "tag": "charts",
+      "row": 1,
+      "col": 1,
+      "sources": [
+        {
+          "path": "src/lib/db/models/Chart.ts",
+          "line": 106,
+          "end_line": 118,
+          "label": "ChartCache"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "chartId",
+          "type": "ObjectId",
+          "key": "fk",
+          "references": "charts._id"
+        },
+        {
+          "name": "ayanamsha",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "Number"
+        },
+        {
+          "name": "data",
+          "type": "Mixed"
+        },
+        {
+          "name": "expiresAt",
+          "type": "Date"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date"
+        }
+      ],
+      "width": 230
+    },
+    {
+      "id": "subscriptions",
+      "label": "subscriptions",
+      "tag": "billing",
+      "row": 0,
+      "col": 2,
+      "sources": [
+        {
+          "path": "src/lib/db/models/Subscription.ts",
+          "line": 56,
+          "end_line": 88,
+          "label": "Subscription"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "userId",
+          "type": "ObjectId",
+          "key": "fk",
+          "references": "users._id"
+        },
+        {
+          "name": "plan",
+          "type": "plan"
+        },
+        {
+          "name": "provider",
+          "type": "provider"
+        },
+        {
+          "name": "providerSubscriptionId",
+          "type": "String",
+          "key": "uk"
+        },
+        {
+          "name": "providerCustomerId",
+          "type": "String"
+        },
+        {
+          "name": "providerPlanId",
+          "type": "String"
+        },
+        {
+          "name": "status",
+          "type": "status enum"
+        },
+        {
+          "name": "interval",
+          "type": "interval"
+        },
+        {
+          "name": "currentPeriodStart",
+          "type": "Date"
+        },
+        {
+          "name": "currentPeriodEnd",
+          "type": "Date"
+        },
+        {
+          "name": "cancelAtPeriodEnd",
+          "type": "Boolean"
+        },
+        {
+          "name": "cancelledAt",
+          "type": "Date?"
+        },
+        {
+          "name": "amount",
+          "type": "Number"
+        },
+        {
+          "name": "currency",
+          "type": "currency"
+        },
+        {
+          "name": "events",
+          "type": "Embedded[]"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date"
+        }
+      ],
+      "width": 270
+    },
+    {
+      "id": "billing_configs",
+      "label": "billingconfigs",
+      "tag": "billing",
+      "row": 1,
+      "col": 2,
+      "sources": [
+        {
+          "path": "src/lib/db/models/BillingConfig.ts",
+          "line": 59,
+          "end_line": 77,
+          "label": "BillingConfig"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "key",
+          "type": "default",
+          "key": "uk"
+        },
+        {
+          "name": "offersEnabled",
+          "type": "Boolean"
+        },
+        {
+          "name": "prices",
+          "type": "Embedded"
+        },
+        {
+          "name": "coupons",
+          "type": "Embedded[]"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date"
+        }
+      ],
+      "width": 230
+    },
+    {
+      "id": "clients",
+      "label": "clients",
+      "tag": "crm",
+      "row": 0,
+      "col": 3,
+      "sources": [
+        {
+          "path": "src/lib/db/models/Client.ts",
+          "line": 59,
+          "end_line": 80,
+          "label": "ClientSchema"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "userId",
+          "type": "ObjectId",
+          "key": "fk",
+          "references": "users._id"
+        },
+        {
+          "name": "name",
+          "type": "String"
+        },
+        {
+          "name": "email",
+          "type": "String?"
+        },
+        {
+          "name": "phone",
+          "type": "String?"
+        },
+        {
+          "name": "gender",
+          "type": "gender"
+        },
+        {
+          "name": "birthDate",
+          "type": "String"
+        },
+        {
+          "name": "birthTime",
+          "type": "String"
+        },
+        {
+          "name": "birthPlace",
+          "type": "String"
+        },
+        {
+          "name": "latitude",
+          "type": "Number"
+        },
+        {
+          "name": "longitude",
+          "type": "Number"
+        },
+        {
+          "name": "timezone",
+          "type": "String"
+        },
+        {
+          "name": "tags",
+          "type": "String[]"
+        },
+        {
+          "name": "notes",
+          "type": "Embedded[]"
+        },
+        {
+          "name": "remedies",
+          "type": "Embedded[]"
+        },
+        {
+          "name": "status",
+          "type": "crm status"
+        },
+        {
+          "name": "lastSessionAt",
+          "type": "Date?"
+        },
+        {
+          "name": "nextSessionAt",
+          "type": "Date?"
+        },
+        {
+          "name": "totalSessions",
+          "type": "Number"
+        },
+        {
+          "name": "preferredSettings",
+          "type": "Mixed?"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date"
+        }
+      ],
+      "width": 280
+    },
+    {
+      "id": "kundali_milans",
+      "label": "kundalimilans",
+      "tag": "crm",
+      "row": 1,
+      "col": 3,
+      "sources": [
+        {
+          "path": "src/lib/db/models/KundaliMilan.ts",
+          "line": 46,
+          "end_line": 57,
+          "label": "KundaliMilan"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "userId",
+          "type": "ObjectId",
+          "key": "fk",
+          "references": "users._id"
+        },
+        {
+          "name": "name",
+          "type": "String"
+        },
+        {
+          "name": "roleA",
+          "type": "role"
+        },
+        {
+          "name": "roleB",
+          "type": "role"
+        },
+        {
+          "name": "ganaSchool",
+          "type": "gana"
+        },
+        {
+          "name": "gunaTotal",
+          "type": "Number"
+        },
+        {
+          "name": "personA",
+          "type": "Embedded"
+        },
+        {
+          "name": "personB",
+          "type": "Embedded"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date"
+        }
+      ],
+      "width": 260
+    },
+    {
+      "id": "admin_audit_logs",
+      "label": "adminauditlogs",
+      "tag": "admin",
+      "row": 0,
+      "col": 4,
+      "sources": [
+        {
+          "path": "src/lib/db/models/AdminAuditLog.ts",
+          "line": 14,
+          "end_line": 25,
+          "label": "AdminAuditLog"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "_id",
+          "type": "ObjectId",
+          "key": "pk"
+        },
+        {
+          "name": "adminId",
+          "type": "ObjectId",
+          "key": "fk",
+          "references": "users._id"
+        },
+        {
+          "name": "adminEmail",
+          "type": "String"
+        },
+        {
+          "name": "action",
+          "type": "String"
+        },
+        {
+          "name": "targetType",
+          "type": "String?"
+        },
+        {
+          "name": "targetId",
+          "type": "String?"
+        },
+        {
+          "name": "metadata",
+          "type": "Mixed"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date"
+        }
+      ],
+      "width": 230
+    }
+  ],
+  "relationships": [
+    {
+      "id": "charts-user",
+      "from": "charts",
+      "to": "users",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "userId"
+    },
+    {
+      "id": "user-default-chart",
+      "from": "users",
+      "to": "charts",
+      "fromCardinality": "one",
+      "toCardinality": "one",
+      "label": "defaultChartId",
+      "fromOptional": true,
+      "toOptional": true
+    },
+    {
+      "id": "chart-cache-ref",
+      "from": "charts",
+      "to": "chart_caches",
+      "fromCardinality": "one",
+      "toCardinality": "one",
+      "label": "cachedDataId",
+      "fromOptional": true,
+      "toOptional": true
+    },
+    {
+      "id": "cache-chart",
+      "from": "chart_caches",
+      "to": "charts",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "chartId"
+    },
+    {
+      "id": "sub-user",
+      "from": "subscriptions",
+      "to": "users",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "userId"
+    },
+    {
+      "id": "client-user",
+      "from": "clients",
+      "to": "users",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "userId"
+    },
+    {
+      "id": "milan-user",
+      "from": "kundali_milans",
+      "to": "users",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "userId"
+    },
+    {
+      "id": "audit-admin",
+      "from": "admin_audit_logs",
+      "to": "users",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "adminId"
+    }
+  ]
+}

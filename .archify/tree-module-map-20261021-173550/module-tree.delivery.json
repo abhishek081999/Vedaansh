@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "98b8e716-e1e8-4365-87ae-ef7b00afea88",
+  "status": "current",
+  "command": "deliver",
+  "type": "tree",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/tree-module-map-20261021-173550/candidate.json",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/tree-module-map-20261021-173550/module-tree.html",
+  "specification": {
+    "sha256": "f9033b745054d37944c8914f772a0c5b54866169b39cd8cd213af20c5fe0d587",
+    "bytes": 2657
+  },
+  "artifact": {
+    "sha256": "426a6b17134f5987f2c8e571f36eea12722e74f5c1ccfb296f4ee18a5c96855c",
+    "bytes": 826026
+  }
+}

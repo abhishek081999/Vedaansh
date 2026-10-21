@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "226d682a-7175-4aaa-a53a-16e60961e809",
+  "status": "current",
+  "command": "deliver",
+  "type": "erd",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/erd-vedaansh-mongo-20261021-173500/candidate.json",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/erd-vedaansh-mongo-20261021-173500/vedaansh-erd.html",
+  "specification": {
+    "sha256": "ec258fb8d61e4c68441845ec4b4e28de9fd1f0332cfa9c4937527795766f31f3",
+    "bytes": 15118
+  },
+  "artifact": {
+    "sha256": "78af8958137393174ae294173bba1db25ef13b21e138a4afab51d30e5ec6377a",
+    "bytes": 887959
+  }
+}
