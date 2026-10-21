@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/candidate.json",
+    "sha256": "4f05bd823e5c81df7e10fe7bf57dfe47cd039b90fc655fb2220300710910749b",
+    "bytes": 7994
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/vedaansh-architecture.html",
+    "sha256": "a3a4a3cea559c62e9088c1106f495813040643fdca77557877c85896e0f91a07",
+    "bytes": 842579
+  },
+  "gates": {
+    "validate": "fail",
+    "deliver": "not-run",
+    "check": "not-run",
+    "browser-check": "not-run"
+  },
+  "failedStage": "validate",
+  "diagnostics": [
+    {
+      "code": "layout/component-overlap",
+      "severity": "error",
+      "message": "Components \"ephe\" and \"razorpay\" are less than 8px apart — move one or shrink its size.\n  \"ephe\" [880, 460, 160, 64]; \"razorpay\" [760, 460, 150, 64]\n  Suggested fix: move \"razorpay\" pos to [1048, 460] (right of \"ephe\") or [760, 532] (below)",
+      "subject": {
+        "diagramType": "architecture",
+        "nodeId": "ephe"
+      },
+      "evidence": {
+        "otherId": "razorpay",
+        "minimumGapPx": 8,
+        "boxes": [
+          {
+            "id": "ephe",
+            "type": "database",
+            "label": "Ephemeris files",
+            "x": 880,
+            "y": 460,
+            "width": 160,
+            "height": 64,
+            "pos": [
+              880,
+              460
+            ]
+          },
+          {
+            "id": "razorpay",
+            "type": "cloud",
+            "label": "Razorpay",
+            "x": 760,
+            "y": 460,
+            "width": 150,
+            "height": 64,
+            "pos": [
+              760,
+              460
+            ]
+          }
+        ]
+      },
+      "supportedFixes": [
+        "move component \"razorpay\" pos to [1048, 460] (right of \"ephe\")",
+        "or move component \"razorpay\" pos to [760, 532] (below)",
+        "or shrink \"ephe\" or \"razorpay\" while keeping every label and sublabel readable"
+      ]
+    },
+    {
+      "code": "composition/label-gap",
+      "severity": "error",
+      "message": "Label \"plan · planExpiresAt\" has only 60px between \"plans\" and \"mongo\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "id": "plans-mongo",
+        "from": "plans",
+        "to": "mongo"
+      },
+      "evidence": {
+        "clearGapPx": 60,
+        "minimumGapPx": 122,
+        "labelWidthPx": 106,
+        "obstacles": [
+          "plans",
+          "mongo"
+        ]
+      },
+      "supportedFixes": [
+        "increase the clear gap between the connected nodes to at least 122px",
+        "reposition the connected nodes together while preserving the full relationship label"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 2,
+    "shown": 2,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/review-2/vedaansh-architecture.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/review-2/vedaansh-architecture.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 288,
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "nextAction": {
+    "action": "edit-in-place",
+    "candidate": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/candidate.json",
+    "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
+    "then": "finalize-once"
+  }
+}

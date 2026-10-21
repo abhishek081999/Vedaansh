@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "93a9c4d0-7dc7-4c22-a3d1-f9c7b7048977",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/sequence-chart-calculate-20261021-173510/candidate.json",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/sequence-chart-calculate-20261021-173510/chart-calculate-sequence.html",
+  "specification": {
+    "sha256": "9a88b4d1a9e644b9fd155a38dbd4938526d8aae360ab4fcd9268fb730fc27f70",
+    "bytes": 4166
+  },
+  "artifact": {
+    "sha256": "db0965ca95b90d9208f1ed045dc1a05c2fe4ba875a6ee5fec2c22f44777b5399",
+    "bytes": 819867
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "65dab63b-08ad-4da4-b95e-fc1255305af1",
+  "status": "current",
+  "command": "deliver",
+  "type": "lifecycle",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/lifecycle-subscription-20261021-173540/candidate.json",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/lifecycle-subscription-20261021-173540/subscription-lifecycle.html",
+  "specification": {
+    "sha256": "d346133e167b2f9354d7737e815090315f77c372e686b98b2e4d041e6d24f13d",
+    "bytes": 3389
+  },
+  "artifact": {
+    "sha256": "ae3d17403bb42db5fbd84d85a7c64a7d47d7d39ae0c5f4a5674978e962b0b81f",
+    "bytes": 821920
+  }
+}

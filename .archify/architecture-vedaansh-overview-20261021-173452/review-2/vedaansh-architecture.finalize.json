@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-10-21T12:08:56.751Z",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/candidate.json",
+    "sha256": "4f05bd823e5c81df7e10fe7bf57dfe47cd039b90fc655fb2220300710910749b",
+    "bytes": 7994
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/vedaansh-architecture.html",
+    "sha256": "a3a4a3cea559c62e9088c1106f495813040643fdca77557877c85896e0f91a07",
+    "bytes": 842579
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/candidate.json",
+        "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/vedaansh-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/apple/Projects/Vedaansh",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "5daa3249-b3ec-487c-9edc-1eee99b22f30",
+        "stage": "render",
+        "type": "architecture",
+        "input": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/candidate.json",
+        "output": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/vedaansh-architecture.html",
+        "error": "Architecture layout validation failed:\n- Components \"ephe\" and \"razorpay\" are less than 8px apart — move one or shrink its size.\n  \"ephe\" [880, 460, 160, 64]; \"razorpay\" [760, 460, 150, 64]\n  Suggested fix: move \"razorpay\" pos to [1048, 460] (right of \"ephe\") or [760, 532] (below)\n- Label \"plan · planExpiresAt\" has only 60px between \"plans\" and \"mongo\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+        "diagnostics": [
+          {
+            "code": "layout/component-overlap",
+            "severity": "error",
+            "message": "Components \"ephe\" and \"razorpay\" are less than 8px apart — move one or shrink its size.\n  \"ephe\" [880, 460, 160, 64]; \"razorpay\" [760, 460, 150, 64]\n  Suggested fix: move \"razorpay\" pos to [1048, 460] (right of \"ephe\") or [760, 532] (below)",
+            "subject": {
+              "diagramType": "architecture",
+              "nodeId": "ephe"
+            },
+            "evidence": {
+              "otherId": "razorpay",
+              "minimumGapPx": 8,
+              "boxes": [
+                {
+                  "id": "ephe",
+                  "type": "database",
+                  "label": "Ephemeris files",
+                  "x": 880,
+                  "y": 460,
+                  "width": 160,
+                  "height": 64,
+                  "pos": [
+                    880,
+                    460
+                  ]
+                },
+                {
+                  "id": "razorpay",
+                  "type": "cloud",
+                  "label": "Razorpay",
+                  "x": 760,
+                  "y": 460,
+                  "width": 150,
+                  "height": 64,
+                  "pos": [
+                    760,
+                    460
+                  ]
+                }
+              ]
+            },
+            "supportedFixes": [
+              "move component \"razorpay\" pos to [1048, 460] (right of \"ephe\")",
+              "or move component \"razorpay\" pos to [760, 532] (below)",
+              "or shrink \"ephe\" or \"razorpay\" while keeping every label and sublabel readable"
+            ]
+          },
+          {
+            "code": "composition/label-gap",
+            "severity": "error",
+            "message": "Label \"plan · planExpiresAt\" has only 60px between \"plans\" and \"mongo\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "id": "plans-mongo",
+              "from": "plans",
+              "to": "mongo"
+            },
+            "evidence": {
+              "clearGapPx": 60,
+              "minimumGapPx": 122,
+              "labelWidthPx": 106,
+              "obstacles": [
+                "plans",
+                "mongo"
+              ]
+            },
+            "supportedFixes": [
+              "increase the clear gap between the connected nodes to at least 122px",
+              "reposition the connected nodes together while preserving the full relationship label"
+            ]
+          }
+        ],
+        "provenance": "failed",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "layout/component-overlap",
+      "severity": "error",
+      "message": "Components \"ephe\" and \"razorpay\" are less than 8px apart — move one or shrink its size.\n  \"ephe\" [880, 460, 160, 64]; \"razorpay\" [760, 460, 150, 64]\n  Suggested fix: move \"razorpay\" pos to [1048, 460] (right of \"ephe\") or [760, 532] (below)",
+      "subject": {
+        "diagramType": "architecture",
+        "nodeId": "ephe"
+      },
+      "evidence": {
+        "otherId": "razorpay",
+        "minimumGapPx": 8,
+        "boxes": [
+          {
+            "id": "ephe",
+            "type": "database",
+            "label": "Ephemeris files",
+            "x": 880,
+            "y": 460,
+            "width": 160,
+            "height": 64,
+            "pos": [
+              880,
+              460
+            ]
+          },
+          {
+            "id": "razorpay",
+            "type": "cloud",
+            "label": "Razorpay",
+            "x": 760,
+            "y": 460,
+            "width": 150,
+            "height": 64,
+            "pos": [
+              760,
+              460
+            ]
+          }
+        ]
+      },
+      "supportedFixes": [
+        "move component \"razorpay\" pos to [1048, 460] (right of \"ephe\")",
+        "or move component \"razorpay\" pos to [760, 532] (below)",
+        "or shrink \"ephe\" or \"razorpay\" while keeping every label and sublabel readable"
+      ]
+    },
+    {
+      "code": "composition/label-gap",
+      "severity": "error",
+      "message": "Label \"plan · planExpiresAt\" has only 60px between \"plans\" and \"mongo\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "id": "plans-mongo",
+        "from": "plans",
+        "to": "mongo"
+      },
+      "evidence": {
+        "clearGapPx": 60,
+        "minimumGapPx": 122,
+        "labelWidthPx": 106,
+        "obstacles": [
+          "plans",
+          "mongo"
+        ]
+      },
+      "supportedFixes": [
+        "increase the clear gap between the connected nodes to at least 122px",
+        "reposition the connected nodes together while preserving the full relationship label"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/review-2/vedaansh-architecture.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/architecture-vedaansh-overview-20261021-173452/review-2/vedaansh-architecture.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-21T12:08:57.039Z",
+  "durationMs": 288,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 3,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Subscription plan lifecycle",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": ".archify/lifecycle-subscription-20261021-173540/subscription-lifecycle.html",
+    "repository": {
+      "url": "https://github.com/abhishek081999/Vedaansh.git",
+      "revision": "8d492d51322d55515a166cbd347e9fc429570c91",
+      "provider": "github",
+      "link_mode": "web"
+    }
+  },
+  "mainPath": ["free", "checkout", "paid", "active"],
+  "states": [
+    { "id": "free", "type": "start", "label": "Free", "sublabel": "default plan", "tag": "20 charts", "step": "01", "sources": [{ "path": "src/lib/subscription/entitlements.ts", "line": 3, "end_line": 16, "label": "limits" }] },
+    { "id": "checkout", "type": "active", "label": "Checkout", "sublabel": "Razorpay order", "tag": "pending", "step": "02", "sources": [{ "path": "src/app/api/payment/checkout/route.ts", "line": 84, "end_line": 104, "label": "order" }] },
+    { "id": "paid", "type": "decision", "label": "Verify payment", "sublabel": "HMAC + fetch", "tag": "gate", "step": "03", "sources": [{ "path": "src/app/api/payment/verify/route.ts", "line": 60, "end_line": 72, "label": "HMAC" }] },
+    { "id": "active", "type": "success", "label": "Gold / Platinum", "sublabel": "planExpiresAt set", "tag": "paid", "step": "04", "sources": [{ "path": "src/lib/db/models/User.ts", "line": 97, "end_line": 99, "label": "plan fields" }] },
+    { "id": "expired", "type": "failure", "label": "Expired → Free", "sublabel": "getEffectivePlan", "tag": "auto", "sources": [{ "path": "src/lib/subscription/entitlements.ts", "line": 9, "end_line": 16, "label": "expiry" }] },
+    { "id": "failed", "type": "failure", "label": "Payment failed", "sublabel": "stay free", "tag": "terminal" },
+    { "id": "renew", "type": "waiting", "label": "Webhook renew", "sublabel": "razorpay webhook", "tag": "async", "sources": [{ "path": "src/app/api/webhooks/razorpay/route.ts", "line": 86, "end_line": 90, "label": "upgrade" }] }
+  ],
+  "transitions": [
+    { "id": "t1", "from": "free", "to": "checkout", "label": "choose Gold/Platinum" },
+    { "id": "t2", "from": "checkout", "to": "paid", "label": "pay in modal" },
+    { "id": "t3", "from": "paid", "to": "active", "label": "verify ok" },
+    { "id": "t4", "from": "paid", "to": "failed", "label": "sig mismatch", "variant": "security" },
+    { "id": "t5", "from": "active", "to": "expired", "label": "planExpiresAt < now", "variant": "dashed" },
+    { "id": "t6", "from": "expired", "to": "free", "label": "effective free", "variant": "emphasis" },
+    { "id": "t7", "from": "active", "to": "renew", "label": "renewal event", "variant": "dashed" },
+    { "id": "t8", "from": "renew", "to": "active", "label": "extend expiry" },
+    { "id": "t9", "from": "checkout", "to": "failed", "label": "abandon", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Effective plan",
+      "items": [
+        "Stored plan may remain gold/platinum after expiry",
+        "getEffectivePlan() returns free when planExpiresAt is past"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "BillingConfig",
+      "items": [
+        "Admin BillingConfig can override default INR prices and coupons",
+        "Checkout reads live prices before creating Razorpay orders"
+      ]
+    }
+  ]
+}
