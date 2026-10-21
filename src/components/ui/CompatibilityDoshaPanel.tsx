@@ -4,17 +4,19 @@ import React, { useMemo } from 'react'
 import { ChartOutput } from '@/types/astrology'
 import { calculateManglik, calculatePapeSamya, type ManglikAnalysis } from '@/lib/engine/doshas'
 import { getManglikTeaching } from '@/lib/engine/manglikTeaching'
+import { analyzeDashaPair } from '@/lib/engine/milanExtras'
 
-/**
- * Advanced Relationship & Stability Analysis Suite
- * Handles: Manglik, Malefic Balance, and soon Dasha Compatibility
- */
+/** Manglik, Pape-Samya, and current/next dasha overlap for a pair. */
 export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutput; chartB?: ChartOutput }) {
   const m1 = useMemo(() => calculateManglik(chartA.grahas, [], chartA.lagnas.ascRashi), [chartA])
   const p1 = useMemo(() => calculatePapeSamya(chartA.grahas, chartA.lagnas.ascRashi), [chartA])
   
   const m2 = useMemo(() => chartB ? calculateManglik(chartB.grahas, [], chartB.lagnas.ascRashi) : null, [chartB])
   const p2 = useMemo(() => chartB ? calculatePapeSamya(chartB.grahas, chartB.lagnas.ascRashi) : null, [chartB])
+  const dashaPair = useMemo(
+    () => (chartB ? analyzeDashaPair(chartA, chartB) : null),
+    [chartA, chartB],
+  )
 
   const nameA = chartA.meta.name
   const nameB = chartB?.meta.name ?? 'Partner'
@@ -36,6 +38,27 @@ export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutpu
           p1={p1} p2={p2} 
           nameA={nameA} nameB={nameB} 
         />
+      )}
+
+      {dashaPair && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <h3 className="label-caps" style={{ margin: '0 0 0.55rem', fontSize: '0.72rem' }}>Dasha compatibility</h3>
+          <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            {dashaPair.summary}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            {dashaPair.findings.slice(0, 6).map((f, i) => (
+              <div key={`${f.title}-${i}`} style={{
+                fontSize: '0.75rem',
+                borderLeft: `3px solid ${f.tone === 'supportive' ? 'var(--teal)' : f.tone === 'caution' ? 'var(--rose)' : 'var(--text-gold)'}`,
+                paddingLeft: '0.65rem',
+              }}>
+                <strong>{f.title}</strong>
+                <div style={{ color: 'var(--text-muted)', marginTop: 2 }}>{f.detail}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       <div style={{ 

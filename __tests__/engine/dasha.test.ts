@@ -221,6 +221,33 @@ describe('Chara Dasha', () => {
     }
   })
 
+  it('depth 3 builds Pratyantar for previous and future antars, not only current', () => {
+    const grahas = makeGrahas({ Ma: 0, Ve: 60 })
+    const lagnas = {
+      ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 0,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0, vighatiLagna: 0, induLagna: 0, bhriguBindu: 0,
+      cusps: [], bhavalCusps: [],
+    }
+    const dashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 3)
+    const pastOrFutureMahas = dashas.filter(m => !m.isCurrent)
+    expect(pastOrFutureMahas.length).toBeGreaterThan(0)
+    for (const maha of pastOrFutureMahas) {
+      expect(maha.children).toHaveLength(12)
+      for (const antar of maha.children) {
+        expect(antar.children).toHaveLength(12)
+        expect(antar.children.every(p => p.level === 3)).toBe(true)
+      }
+    }
+    const currentMaha = dashas.find(m => m.isCurrent)
+    if (currentMaha) {
+      expect(currentMaha.children).toHaveLength(12)
+      for (const antar of currentMaha.children) {
+        expect(antar.children).toHaveLength(12)
+      }
+    }
+  })
+
   it('female: Virgo Lagna (even) → 4th reverse = Gemini, not Virgo', () => {
     expect(getFourthFromLagna(6)).toBe(3) // Virgo even → Gemini
 

@@ -4,7 +4,7 @@
 //  Match reading: emotion, home, mother-in-law, flavor and longevity
 // ─────────────────────────────────────────────────────────────
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { analyzeMilanMarriedLife } from '@/lib/engine/milanMarriedLife'
 import { analyzeJayaBhava, compareJayaBhava } from '@/lib/engine/jayaBhava'
@@ -14,10 +14,40 @@ import { analyzeSeventhLord, compareSeventhLord } from '@/lib/engine/seventhLord
 import { analyzeKarmicDebt, compareKarmicDebt } from '@/lib/engine/karmicDebt'
 import { analyzeVenusJupiterBond, compareVenusJupiterBond } from '@/lib/engine/venusJupiterBond'
 import { analyzeMarriageGochar, compareMarriageGochar } from '@/lib/engine/marriageGochar'
+import { useMarriageGocharWindows } from '@/hooks/useMarriageGocharWindows'
 import { analyzePartnerNature, comparePartnerNature } from '@/lib/engine/partnerNature'
 import { analyzeDivorceEnergy, compareDivorceEnergy } from '@/lib/engine/divorceEnergy'
 import type { MilanRole } from '@/lib/engine/milanSuite'
-import { DivorceEnergySections, JayaSections, KarmicDebtSections, LIFE_TONE, MarriageClassSections, MarriageGocharSections, MarriageHousesSections, NoteCards, PartnerNatureSections, SectionLabel, SeventhLordSections, VenusJupiterSections } from '@/components/ui/marriedLifeUi'
+import { analyzeDualJaiminiMarriage, resolveMilanRoles } from '@/lib/engine/milanSuite'
+import { analyzeClassicalMarriage, compareClassicalMarriage } from '@/lib/engine/classicalMarriage'
+import { analyzeMarriageSynastry } from '@/lib/engine/marriageSynastry'
+import { analyzePairCaseBrief } from '@/lib/engine/marriageCaseBrief'
+import { analyzeIntimateLife } from '@/lib/engine/intimateLife'
+import { analyzeMarriedLife } from '@/lib/engine/marriedLifeAnalysis'
+import { analyzeSeventhAxis, seventhAxisMatch } from '@/lib/engine/seventhAxis'
+import { analyzeMarriageKarma, compareMarriageKarma } from '@/lib/engine/marriageKarma'
+import { analyzeVenusMarriage, compareVenusMarriage } from '@/lib/engine/venusMarriage'
+import { JaiminiMarriageSection } from '@/components/ui/JaiminiMarriageSection'
+import {
+  ClassicalMarriageSections,
+  CaseBriefCard,
+  DivorceEnergySections,
+  IntimateLifeSections,
+  JayaSections,
+  KarmicDebtSections,
+  LIFE_TONE,
+  MarriageClassSections,
+  MarriageGocharSections,
+  MarriageHousesSections,
+  MarriageKarmaSections,
+  NoteCards,
+  PartnerNatureSections,
+  SectionLabel,
+  SeventhLordSections,
+  SynastrySections,
+  VenusJupiterSections,
+  VenusMarriageSections,
+} from '@/components/ui/marriedLifeUi'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 
@@ -31,101 +61,154 @@ interface Props {
 
 export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan = 'free' }: Props) {
   const full = planMeetsUiGate(userPlan, 'gold')
+  const [clientSafe, setClientSafe] = useState(true)
   const bride: 'a' | 'b' | undefined = roleA === 'girl' ? 'a' : roleB === 'girl' ? 'b' : undefined
   const data = useMemo(
     () => analyzeMilanMarriedLife(chartA, chartB, { bride }),
     [chartA, chartB, bride],
   )
+  const roles = useMemo(
+    () => resolveMilanRoles(chartA, chartB, { personA: roleA, personB: roleB }),
+    [chartA, chartB, roleA, roleB],
+  )
+  const nameA = chartA.meta?.name?.trim() || 'Chart A'
+  const nameB = chartB.meta?.name?.trim() || 'Chart B'
+
+  const soloLife = useMemo(() => {
+    if (!full) return null
+    const a = analyzeMarriedLife(chartA)
+    const b = analyzeMarriedLife(chartB)
+    if (!a || !b) return null
+    return { a, b }
+  }, [chartA, chartB, full])
+
+  const axis = useMemo(() => {
+    if (!full) return null
+    const a = analyzeSeventhAxis(chartA)
+    const b = analyzeSeventhAxis(chartB)
+    const match = seventhAxisMatch(chartA, chartB)
+    if (!a && !b && !match) return null
+    return { a, b, match }
+  }, [chartA, chartB, full])
+
   const jaya = useMemo(() => {
+    if (!full) return null
     const a = analyzeJayaBhava(chartA)
     const b = analyzeJayaBhava(chartB)
     if (!a || !b) return null
-    return {
-      a,
-      b,
-      pair: compareJayaBhava(a, b, chartA.meta?.name || 'Chart A', chartB.meta?.name || 'Chart B'),
-    }
-  }, [chartA, chartB])
+    return { a, b, pair: compareJayaBhava(a, b, nameA, nameB) }
+  }, [chartA, chartB, full, nameA, nameB])
   const marriageClass = useMemo(() => {
+    if (!full) return null
     const a = analyzeMarriageClass(chartA)
     const b = analyzeMarriageClass(chartB)
     if (!a || !b) return null
-    return {
-      a,
-      b,
-      pair: compareMarriageClass(a, b, chartA.meta?.name || 'Chart A', chartB.meta?.name || 'Chart B'),
-    }
-  }, [chartA, chartB])
+    return { a, b, pair: compareMarriageClass(a, b, nameA, nameB) }
+  }, [chartA, chartB, full, nameA, nameB])
   const marriageHouses = useMemo(() => {
+    if (!full) return null
     const a = analyzeMarriageHouses(chartA)
     const b = analyzeMarriageHouses(chartB)
     if (!a || !b) return null
-    return {
-      a,
-      b,
-      pair: compareMarriageHouses(a, b, chartA.meta?.name || 'Chart A', chartB.meta?.name || 'Chart B'),
-    }
-  }, [chartA, chartB])
+    return { a, b, pair: compareMarriageHouses(a, b, nameA, nameB) }
+  }, [chartA, chartB, full, nameA, nameB])
   const seventhLord = useMemo(() => {
+    if (!full) return null
     const a = analyzeSeventhLord(chartA)
     const b = analyzeSeventhLord(chartB)
     if (!a || !b) return null
-    return {
-      a,
-      b,
-      pair: compareSeventhLord(a, b, chartA.meta?.name || 'Chart A', chartB.meta?.name || 'Chart B'),
-    }
-  }, [chartA, chartB])
+    return { a, b, pair: compareSeventhLord(a, b, nameA, nameB) }
+  }, [chartA, chartB, full, nameA, nameB])
   const venusJupiter = useMemo(() => {
-    if (!chartA || !chartB) return null
+    if (!full) return null
     const a = analyzeVenusJupiterBond(chartA)
     const b = analyzeVenusJupiterBond(chartB)
     if (!a || !b) return null
-    const nameA = chartA.meta?.name?.trim() || 'Chart A'
-    const nameB = chartB.meta?.name?.trim() || 'Chart B'
     return { a, b, pair: compareVenusJupiterBond(a, b, nameA, nameB) }
-  }, [chartA, chartB])
+  }, [chartA, chartB, full, nameA, nameB])
 
+  const { windows: gocharWindowsA } = useMarriageGocharWindows(chartA.lagnas?.ascRashi, full)
+  const { windows: gocharWindowsB } = useMarriageGocharWindows(chartB.lagnas?.ascRashi, full)
   const marriageGochar = useMemo(() => {
-    if (!chartA || !chartB) return null
-    const a = analyzeMarriageGochar(chartA)
-    const b = analyzeMarriageGochar(chartB)
+    if (!full) return null
+    const a = analyzeMarriageGochar(chartA, { injectWindows: gocharWindowsA })
+    const b = analyzeMarriageGochar(chartB, { injectWindows: gocharWindowsB })
     if (!a || !b) return null
-    const nameA = chartA.meta?.name?.trim() || 'Chart A'
-    const nameB = chartB.meta?.name?.trim() || 'Chart B'
     return { a, b, pair: compareMarriageGochar(a, b, nameA, nameB) }
-  }, [chartA, chartB])
+  }, [chartA, chartB, full, gocharWindowsA, gocharWindowsB, nameA, nameB])
 
   const partnerNature = useMemo(() => {
-    if (!chartA || !chartB) return null
+    if (!full) return null
     const a = analyzePartnerNature(chartA)
     const b = analyzePartnerNature(chartB)
     if (!a || !b) return null
-    const nameA = chartA.meta?.name?.trim() || 'Chart A'
-    const nameB = chartB.meta?.name?.trim() || 'Chart B'
     return { a, b, pair: comparePartnerNature(a, b, nameA, nameB) }
-  }, [chartA, chartB])
+  }, [chartA, chartB, full, nameA, nameB])
 
   const divorceEnergy = useMemo(() => {
-    if (!chartA || !chartB) return null
+    if (!full) return null
     const a = analyzeDivorceEnergy(chartA)
     const b = analyzeDivorceEnergy(chartB)
     if (!a || !b) return null
-    const nameA = chartA.meta?.name?.trim() || 'Chart A'
-    const nameB = chartB.meta?.name?.trim() || 'Chart B'
     return { a, b, pair: compareDivorceEnergy(a, b, nameA, nameB) }
-  }, [chartA, chartB])
+  }, [chartA, chartB, full, nameA, nameB])
 
   const karmicDebt = useMemo(() => {
+    if (!full) return null
     const a = analyzeKarmicDebt(chartA)
     const b = analyzeKarmicDebt(chartB)
     if (!a || !b) return null
-    return {
-      a,
-      b,
-      pair: compareKarmicDebt(a, b, chartA.meta?.name || 'Chart A', chartB.meta?.name || 'Chart B'),
-    }
-  }, [chartA, chartB])
+    return { a, b, pair: compareKarmicDebt(a, b, nameA, nameB) }
+  }, [chartA, chartB, full, nameA, nameB])
+
+  const marriageKarma = useMemo(() => {
+    if (!full) return null
+    const a = analyzeMarriageKarma(chartA)
+    const b = analyzeMarriageKarma(chartB)
+    if (!a || !b) return null
+    return { a, b, pair: compareMarriageKarma(a, b, nameA, nameB) }
+  }, [chartA, chartB, full, nameA, nameB])
+
+  const venusMarriage = useMemo(() => {
+    if (!full) return null
+    const a = analyzeVenusMarriage(chartA)
+    const b = analyzeVenusMarriage(chartB)
+    if (!a || !b) return null
+    return { a, b, pair: compareVenusMarriage(a, b, nameA, nameB) }
+  }, [chartA, chartB, full, nameA, nameB])
+
+  const classical = useMemo(() => {
+    if (!full) return null
+    const a = analyzeClassicalMarriage(chartA)
+    const b = analyzeClassicalMarriage(chartB)
+    if (!a || !b) return null
+    const nameA = chartA.meta?.name?.trim() || 'Chart A'
+    const nameB = chartB.meta?.name?.trim() || 'Chart B'
+    return { a, b, pair: compareClassicalMarriage(a, b, nameA, nameB) }
+  }, [chartA, chartB, full])
+
+  const synastry = useMemo(
+    () => (full ? analyzeMarriageSynastry(chartA, chartB) : null),
+    [chartA, chartB, full],
+  )
+
+  const caseBrief = useMemo(
+    () => (full ? analyzePairCaseBrief(chartA, chartB, { skipGocharScan: true }) : null),
+    [chartA, chartB, full],
+  )
+
+  const jaimini = useMemo(
+    () => (full ? analyzeDualJaiminiMarriage(roles.boyChart, roles.girlChart) : null),
+    [full, roles.boyChart, roles.girlChart],
+  )
+
+  const intimate = useMemo(() => {
+    if (!full) return null
+    const a = analyzeIntimateLife(chartA)
+    const b = analyzeIntimateLife(chartB)
+    if (!a || !b) return null
+    return { a, b }
+  }, [chartA, chartB, full])
 
   if (!data) {
     return (
@@ -138,11 +221,21 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <div className="card" style={{ padding: '1.25rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.45rem', fontSize: '0.72rem' }}>
-          Married life
-        </h3>
-        <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{data.summary}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 className="label-caps" style={{ margin: 0, fontSize: '0.72rem' }}>
+            Married life
+          </h3>
+          {full ? (
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={clientSafe} onChange={e => setClientSafe(e.target.checked)} />
+              Client-safe tone
+            </label>
+          ) : null}
+        </div>
+        <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{data.summary}</p>
       </div>
+
+      {full && caseBrief ? <CaseBriefCard brief={caseBrief} clientSafe={clientSafe} /> : null}
 
       <div className="card" style={{ padding: '1.15rem', borderLeft: `4px solid ${LIFE_TONE[data.moon.tone]}` }}>
         <SectionLabel>Moon signs — emotional compatibility</SectionLabel>
@@ -196,7 +289,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
           <div style={{ minHeight: 96, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
             <div style={{ fontWeight: 700, marginBottom: 6 }}>The rest of married life is on Gold</div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              D1 and D9, the 7th lord, houses, the partner, separation, karmic debt, and timing for both charts.
+              Classical predictions, D1 and D9, the 7th lord, houses, the partner, separation, karmic debt, and timing for both charts.
             </div>
           </div>
         </PlanGate>
@@ -205,150 +298,322 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
       {full && <>
       <div className="card" style={{ padding: '1.15rem' }}>
         <SectionLabel>Cross-chart readings</SectionLabel>
-        <NoteCards notes={data.findings} />
+        <NoteCards notes={data.findings} clientSafe={clientSafe} />
       </div>
+
+      {synastry && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Cross-chart overlay</SectionLabel>
+          <SynastrySections reading={synastry} clientSafe={clientSafe} />
+        </div>
+      )}
+
+      {classical && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Classical predictions — both charts</SectionLabel>
+          {classical.pair.length ? (
+            <div style={{ marginBottom: '0.85rem' }}>
+              <SectionLabel>Remarriage / second-bond synthesis</SectionLabel>
+              <NoteCards notes={classical.pair} clientSafe={clientSafe} />
+            </div>
+          ) : null}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
+            {[{ name: data.nameA, reading: classical.a }, { name: data.nameB, reading: classical.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <ClassicalMarriageSections reading={col.reading} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {jaimini && (
+        <div className="card" style={{ padding: '1.15rem', borderLeft: `4px solid ${LIFE_TONE[jaimini.tone]}` }}>
+          <SectionLabel>Jaimini — both charts</SectionLabel>
+          <p style={{ margin: '0 0 0.85rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{jaimini.summary}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
+            <div>
+              <SectionLabel>{roles.boyLabel}</SectionLabel>
+              <JaiminiMarriageSection chart={roles.boyChart} />
+            </div>
+            <div>
+              <SectionLabel>{roles.girlLabel}</SectionLabel>
+              <JaiminiMarriageSection chart={roles.girlChart} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {intimate && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Intimate life — both charts</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
+            {[{ name: data.nameA, reading: intimate.a }, { name: data.nameB, reading: intimate.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <IntimateLifeSections reading={col.reading} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {axis && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Aries–Libra axis — both charts</SectionLabel>
+          {axis.match ? (
+            <div style={{
+              marginBottom: '0.85rem',
+              padding: '0.75rem 0.85rem',
+              borderLeft: `3px solid ${LIFE_TONE[axis.match.tone]}`,
+              background: 'var(--surface-2)',
+              borderRadius: '0 var(--r-sm) var(--r-sm) 0',
+            }}>
+              <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: 4 }}>{axis.match.mark}</div>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{axis.match.detail}</p>
+            </div>
+          ) : null}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
+            {[
+              { name: data.nameA, reading: axis.a },
+              { name: data.nameB, reading: axis.b },
+            ].map(col => col.reading ? (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <p style={{ margin: '0 0 0.45rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{col.reading.pair.teaches}</p>
+                <NoteCards notes={col.reading.notes} clientSafe={clientSafe} />
+              </div>
+            ) : null)}
+          </div>
+        </div>
+      )}
+
+      {soloLife && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Combinations and planet roles — both charts</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
+            {[{ name: data.nameA, reading: soloLife.a }, { name: data.nameB, reading: soloLife.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <SectionLabel>Venus and marriage combinations</SectionLabel>
+                <NoteCards notes={col.reading.combinations} clientSafe={clientSafe} />
+                <SectionLabel>What each planet is doing</SectionLabel>
+                <NoteCards notes={col.reading.roles} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {soloLife && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Jupiter, Mars, and Saturn — both charts</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
+            {[{ name: data.nameA, reading: soloLife.a }, { name: data.nameB, reading: soloLife.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <SectionLabel>Jupiter</SectionLabel>
+                <NoteCards notes={col.reading.jupiter} clientSafe={clientSafe} />
+                <SectionLabel>Mars and nodes</SectionLabel>
+                <NoteCards notes={col.reading.marsAndNodes} clientSafe={clientSafe} />
+                <SectionLabel>Saturn</SectionLabel>
+                <NoteCards notes={col.reading.saturn} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {jaya && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>BPHS Chapter 19 — seventh house of each chart</SectionLabel>
-          <NoteCards notes={jaya.pair} />
+          <SectionLabel>Seventh house — both charts</SectionLabel>
+          <NoteCards notes={jaya.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: jaya.a }, { name: data.nameB, reading: jaya.b }].map(col => (
               <div key={col.name}>
                 <SectionLabel>{col.name}</SectionLabel>
-                <JayaSections reading={col.reading} showPrinciples={false} />
+                <JayaSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
               </div>
             ))}
           </div>
-          <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{jaya.a.principles}</p>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{jaya.a.principles}</p>
+          ) : null}
         </div>
       )}
 
       {marriageClass && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>D1 and D9 — kind of marriage</SectionLabel>
-          <NoteCards notes={marriageClass.pair} />
+          <NoteCards notes={marriageClass.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: marriageClass.a }, { name: data.nameB, reading: marriageClass.b }].map(col => (
               <div key={col.name}>
                 <SectionLabel>{col.name}</SectionLabel>
-                <MarriageClassSections reading={col.reading} showPrinciples={false} />
+                <MarriageClassSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
               </div>
             ))}
           </div>
-          <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageClass.a.principles}</p>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageClass.a.principles}</p>
+          ) : null}
         </div>
       )}
 
       {marriageHouses && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>Eight houses of the marriage</SectionLabel>
-          <NoteCards notes={marriageHouses.pair} />
+          <NoteCards notes={marriageHouses.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: marriageHouses.a }, { name: data.nameB, reading: marriageHouses.b }].map(col => (
               <div key={col.name}>
                 <SectionLabel>{col.name}</SectionLabel>
-                <MarriageHousesSections reading={col.reading} showPrinciples={false} />
+                <MarriageHousesSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
               </div>
             ))}
           </div>
-          <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageHouses.a.principles}</p>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageHouses.a.principles}</p>
+          ) : null}
         </div>
       )}
 
       {seventhLord && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>7th lord of each chart</SectionLabel>
-          <NoteCards notes={seventhLord.pair} />
+          <NoteCards notes={seventhLord.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: seventhLord.a }, { name: data.nameB, reading: seventhLord.b }].map(col => (
               <div key={col.name}>
                 <SectionLabel>{col.name}</SectionLabel>
-                <SeventhLordSections reading={col.reading} showPrinciples={false} />
+                <SeventhLordSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
               </div>
             ))}
           </div>
-          <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{seventhLord.a.principles}</p>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{seventhLord.a.principles}</p>
+          ) : null}
         </div>
       )}
 
       {venusJupiter && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>Venus and Jupiter — both charts</SectionLabel>
-          <NoteCards notes={venusJupiter.pair} />
+          <NoteCards notes={venusJupiter.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: venusJupiter.a }, { name: data.nameB, reading: venusJupiter.b }].map(col => (
               <div key={col.name}>
                 <SectionLabel>{col.name}</SectionLabel>
-                <VenusJupiterSections reading={col.reading} showPrinciples={false} />
+                <VenusJupiterSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
               </div>
             ))}
           </div>
-          <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{venusJupiter.a.principles}</p>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{venusJupiter.a.principles}</p>
+          ) : null}
+        </div>
+      )}
+
+      {venusMarriage && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Venus bridge — both charts</SectionLabel>
+          <NoteCards notes={venusMarriage.pair} clientSafe={clientSafe} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
+            {[{ name: data.nameA, reading: venusMarriage.a }, { name: data.nameB, reading: venusMarriage.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <VenusMarriageSections reading={col.reading} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {marriageGochar && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>Marriage transit — both charts</SectionLabel>
-          <NoteCards notes={marriageGochar.pair} />
+          <NoteCards notes={marriageGochar.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: marriageGochar.a }, { name: data.nameB, reading: marriageGochar.b }].map(col => (
               <div key={col.name}>
                 <SectionLabel>{col.name}</SectionLabel>
-                <MarriageGocharSections reading={col.reading} showPrinciples={false} />
+                <MarriageGocharSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
               </div>
             ))}
           </div>
-          <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageGochar.a.principles}</p>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageGochar.a.principles}</p>
+          ) : null}
         </div>
       )}
 
       {partnerNature && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>The partner — both charts</SectionLabel>
-          <NoteCards notes={partnerNature.pair} />
+          <NoteCards notes={partnerNature.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: partnerNature.a }, { name: data.nameB, reading: partnerNature.b }].map(col => (
               <div key={col.name}>
                 <SectionLabel>{col.name}</SectionLabel>
-                <PartnerNatureSections reading={col.reading} showPrinciples={false} />
+                <PartnerNatureSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
               </div>
             ))}
           </div>
-          <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{partnerNature.a.principles}</p>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{partnerNature.a.principles}</p>
+          ) : null}
         </div>
       )}
 
       {divorceEnergy && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>Separation — both charts</SectionLabel>
-          <NoteCards notes={divorceEnergy.pair} />
+          <NoteCards notes={divorceEnergy.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: divorceEnergy.a }, { name: data.nameB, reading: divorceEnergy.b }].map(col => (
               <div key={col.name}>
                 <SectionLabel>{col.name}</SectionLabel>
-                <DivorceEnergySections reading={col.reading} showPrinciples={false} />
+                <DivorceEnergySections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
               </div>
             ))}
           </div>
-          <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{divorceEnergy.a.principles}</p>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{divorceEnergy.a.principles}</p>
+          ) : null}
         </div>
       )}
 
       {karmicDebt && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>Karmic debt — both charts</SectionLabel>
-          <NoteCards notes={karmicDebt.pair} />
+          <NoteCards notes={karmicDebt.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: karmicDebt.a }, { name: data.nameB, reading: karmicDebt.b }].map(col => (
               <div key={col.name}>
                 <SectionLabel>{col.name}</SectionLabel>
-                <KarmicDebtSections reading={col.reading} showPrinciples={false} />
+                <KarmicDebtSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
               </div>
             ))}
           </div>
-          <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{karmicDebt.a.principles}</p>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{karmicDebt.a.principles}</p>
+          ) : null}
+        </div>
+      )}
+
+      {marriageKarma && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Marriage debt and karma — both charts</SectionLabel>
+          <NoteCards notes={marriageKarma.pair} clientSafe={clientSafe} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
+            {[{ name: data.nameA, reading: marriageKarma.a }, { name: data.nameB, reading: marriageKarma.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <MarriageKarmaSections reading={col.reading} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

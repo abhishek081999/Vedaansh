@@ -142,8 +142,13 @@ const KOOTA_LABELS = {
   nadi: 'Nadi',
 } as const
 
+function sameNadi(score: ReturnType<typeof calculateAshtakoot>): boolean {
+  return score.nadi.p1 === score.nadi.p2
+}
+
 function countsAsStrength(key: keyof typeof KOOTA_LABELS, score: ReturnType<typeof calculateAshtakoot>): boolean {
-  if (key === 'nadi') return score.nadi.points > 0
+  // Same Nadi is never a strength — even when an exception restores the 8 points.
+  if (key === 'nadi') return score.nadi.points > 0 && !sameNadi(score)
   if (key === 'maitri') return score.maitri.points >= 3
   if (key === 'gana') return score.gana.points >= 5
   if (key === 'yoni') return score.yoni.points >= 3
@@ -161,34 +166,56 @@ function awarenessText(key: keyof typeof KOOTA_LABELS, points: number, max: numb
 
 function awarenessItems(score: ReturnType<typeof calculateAshtakoot>) {
   const items: { id: string; label: string; text: string }[] = (Object.keys(KOOTA_LABELS) as (keyof typeof KOOTA_LABELS)[])
-    .filter(key => score[key].points < score[key].max && !countsAsStrength(key, score))
+    .filter(key => {
+      // Same Nadi handled below with progeny-specific copy (incl. cancelled 8/8).
+      if (key === 'nadi' && sameNadi(score)) return false
+      return score[key].points < score[key].max && !countsAsStrength(key, score)
+    })
     .map(key => ({
       id: key,
       label: KOOTA_LABELS[key],
       text: awarenessText(key, score[key].points, score[key].max, score[key].insight),
     }))
+  if (sameNadi(score)) {
+    items.push({
+      id: 'nadi-same',
+      label: 'Nadi',
+      text:
+        score.nadi.points === 8
+          ? 'Same Nadi with a classical cancellation — points restored, but same Nadi is still treated as a progeny caution by many lineages.'
+          : 'Same Nadi (Nadi Dosha) — traditionally refused for progeny vitality.',
+    })
+  }
   if (score.total < 18) {
     items.push({ id: 'low', label: 'Low gunas', text: 'The mechanical score is under 18. Read the houses, the 7th lord, and the Navamsha before treating the guna total as the decision.' })
   }
   if (score.total > 32) {
-    items.push({ id: 'high', label: 'Very high total', text: 'Some lineages treat a score above 32 as too alike. Check that the two charts still keep a Mars–Venus spark and a separate identity.' })
+    items.push({
+      id: 'high',
+      label: score.total === 36 ? '36/36 total' : 'Very high total',
+      text: 'Many lineages treat a score above 32 as too alike. Confirm Nadi differs and that Mars–Venus spark and separate identity remain.',
+    })
   }
   return items
 }
 
-function getVerdict(score: number) {
-  // Classical band is 18–32; above 32 some traditions refuse as “too similar”
-  if (score > 32) {
+function getVerdict(score: ReturnType<typeof calculateAshtakoot>) {
+  const total = score.total
+  const nadiSame = sameNadi(score)
+  // Classical counselling band is 18–32; above 32 (incl. 36) = caution for over-similarity
+  if (total > 32) {
     return {
-      label: 'Excellent (Very High)',
-      sub: 'Over 32 gunas — mainstream reads this as excellent; some paramparas caution “too similar.” Still verify Venus–Mars spark.',
-      color: 'var(--teal)',
+      label: total === 36 ? '36/36 — Caution' : 'Very High — Caution',
+      sub: nadiSame
+        ? 'Mechanical score is very high, but both charts share the same Nadi — traditionally the gravest koota fault for progeny even when points are restored by exception.'
+        : 'Over 32 gunas — many paramparas treat this as too similar. Confirm Nadi differs and verify Venus–Mars spark.',
+      color: 'var(--text-gold)',
       icon: '◇',
     }
   }
-  if (score >= 28) return { label: 'Excellent Match', sub: 'Strong Stage-1 guna score. Still verify Venus–Mars chemistry and longevity — gunas alone are incomplete.', color: 'var(--teal)', icon: '✦' }
-  if (score >= 21) return { label: 'Good Match', sub: 'Within the classical 18–32 window with solid cohesion. Review dosha exceptions and Stage 3 chemistry.', color: 'var(--text-gold)', icon: '★' }
-  if (score >= 18) return { label: 'Average Match', sub: 'Meets traditional minimum (18). Conscious effort needed; karmic bonds can outweigh low–mid gunas.', color: 'var(--accent)', icon: '✓' }
+  if (total >= 28) return { label: 'Excellent Match', sub: 'Strong Stage-1 guna score. Still verify Venus–Mars chemistry and longevity — gunas alone are incomplete.', color: 'var(--teal)', icon: '✦' }
+  if (total >= 21) return { label: 'Good Match', sub: 'Within the classical 18–32 window with solid cohesion. Review dosha exceptions and Stage 3 chemistry.', color: 'var(--text-gold)', icon: '★' }
+  if (total >= 18) return { label: 'Average Match', sub: 'Meets traditional minimum (18). Conscious effort needed; karmic bonds can outweigh low–mid gunas.', color: 'var(--accent)', icon: '✓' }
   return { label: 'Below Traditional Minimum', sub: 'Under 18 gunas — classically refused, yet low-guna marriages often thrive via strong planetary karma. Stage 2–3 is essential.', color: 'var(--rose)', icon: '!' }
 }
 
@@ -372,7 +399,7 @@ function CompareContent() {
     })
   }, [chartA, chartB, roleA, ganaSchool])
 
-  const verdict = useMemo(() => ashtakootScore ? getVerdict(ashtakootScore.total) : null, [ashtakootScore]);
+  const verdict = useMemo(() => ashtakootScore ? getVerdict(ashtakootScore) : null, [ashtakootScore]);
   const awareness = useMemo(() => ashtakootScore ? awarenessItems(ashtakootScore) : [], [ashtakootScore])
 
   const saveMilan = useCallback(async () => {
@@ -588,6 +615,13 @@ function CompareContent() {
                 <p style={{ margin: '0.75rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   {ashtakootScore.eligibility.label}
                 </p>
+                <p style={{ margin: '0.55rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Pair match only.{' '}
+                  <Link href="/" style={{ color: 'var(--text-gold)', fontWeight: 700 }}>
+                    Open Relationship
+                  </Link>
+                  {' '}on a single chart for the solo marriage reading.
+                </p>
               </div>
 
               <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '0.6rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
@@ -629,11 +663,15 @@ function CompareContent() {
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--teal)' }}>
                 <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--teal)' }}>Relationship strengths</h4>
                 <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {ashtakootScore.nadi.points > 0 && <li><strong>Nadi / prana:</strong> Different nadi — complementary life-force and healthier progeny outlook.</li>}
+                  {ashtakootScore.nadi.points > 0 && !sameNadi(ashtakootScore) && (
+                    <li><strong>Nadi / prana:</strong> Different nadi — complementary life-force and healthier progeny outlook.</li>
+                  )}
                   {ashtakootScore.maitri.points >= 3 && <li><strong>Graha Maitri:</strong> {ashtakootScore.maitri.insight}</li>}
                   {ashtakootScore.gana.points >= 5 && <li><strong>Gana temperament:</strong> {ashtakootScore.gana.insight}</li>}
                   {ashtakootScore.yoni.points >= 3 && <li><strong>Yoni affinity:</strong> {ashtakootScore.yoni.insight}</li>}
-                  {ashtakootScore.eligibility.traditionallyAccepted && <li><strong>Eligibility band:</strong> Score sits in the classical 18–32 window.</li>}
+                  {ashtakootScore.eligibility.band === 'ideal' && (
+                    <li><strong>Eligibility band:</strong> Score sits in the classical 18–32 window.</li>
+                  )}
                   {ashtakootScore.bhakoot.points === 7 && ashtakootScore.bhakoot.notes?.some(n => n.includes('cancelled')) && (
                     <li><strong>Bhakoot exception:</strong> Apparent dosha cancelled by friendly lords / direction rule.</li>
                   )}
@@ -798,6 +836,7 @@ function CompareContent() {
                   ganaSchool={ganaSchool}
                   onRoleChange={(a, b) => { setRoleA(a); setRoleB(b) }}
                   onGanaSchoolChange={setGanaSchool}
+                  userPlan={userPlan}
                 />
               </div>
             )}
@@ -824,8 +863,13 @@ function CompareContent() {
                       alignItems: 'center',
                       gap: '1rem'
                     }}>
-                      <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
-                        {item.level === 'good' ? '🌟' : item.level === 'bad' ? '⚡' : '☯️'}
+                      <div style={{
+                        width: 40, height: 40, borderRadius: '50%', background: 'var(--surface-3)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.04em',
+                        color: item.level === 'good' ? 'var(--teal)' : item.level === 'bad' ? 'var(--rose)' : 'var(--text-gold)',
+                      }}>
+                        {item.level === 'good' ? 'GOOD' : item.level === 'bad' ? 'HARD' : 'MIX'}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.label}</div>

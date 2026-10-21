@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-power-upgrade-20261022-011845/candidate.archify.md",
+    "sha256": "3858e5348e1a275c013b8ddad87db1087e0e16d65342c3ee176a13a8f04f0345",
+    "bytes": 5747
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-power-upgrade-20261022-011845/milan-power-upgrade.html",
+    "sha256": "820122c684c5b472a059f159a8e7a9b84093380b267346abd5d4b38a9eda995b",
+    "bytes": 737980
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-power-upgrade-20261022-011845/milan-power-upgrade.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-power-upgrade-20261022-011845/milan-power-upgrade.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1160,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

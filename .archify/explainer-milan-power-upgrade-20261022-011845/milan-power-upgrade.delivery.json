@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "45f68105-2434-4e25-9e36-1f16e636370a",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-power-upgrade-20261022-011845/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-power-upgrade-20261022-011845/milan-power-upgrade.html",
+  "specification": {
+    "sha256": "3858e5348e1a275c013b8ddad87db1087e0e16d65342c3ee176a13a8f04f0345",
+    "bytes": 5747
+  },
+  "artifact": {
+    "sha256": "820122c684c5b472a059f159a8e7a9b84093380b267346abd5d4b38a9eda995b",
+    "bytes": 737980
+  },
+  "explainer": {
+    "preparedSha256": "5d826173d37f52f16d54727d5c860b091272ff65f8c7e4e40ca0b7f38c30ecbe",
+    "dependencies": [
+      {
+        "kind": "repository",
+        "id": "doshas",
+        "path": "src/lib/engine/doshas.ts",
+        "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+        "sha256": "3808ca103edc2f0dd9110fcbf8bd3bb724f6fdca3a53c580357875501fa585ba",
+        "bytes": 3077
+      },
+      {
+        "kind": "repository",
+        "id": "teaching",
+        "path": "src/lib/engine/manglikTeaching.ts",
+        "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+        "sha256": "5ae716a874d87d10101f112450ed00b41d8ee8c8d90629134bc65801c883b605",
+        "bytes": 7381
+      },
+      {
+        "kind": "repository",
+        "id": "milan-suite",
+        "path": "src/lib/engine/milanSuite.ts",
+        "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+        "sha256": "88aa414cc42021df3abc1e466605dc9cccad337210cf44e173168b397f5d627d",
+        "bytes": 16082
+      },
+      {
+        "kind": "repository",
+        "id": "compare",
+        "path": "src/app/compare/page.tsx",
+        "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+        "sha256": "d56b66ae78a453baaac069cd499df6b8144f33f43625b2d2706b747cda7376d6",
+        "bytes": 51284
+      },
+      {
+        "kind": "repository",
+        "id": "jaimini",
+        "path": "src/lib/engine/jaiminiMarriageAnalysis.ts",
+        "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+        "sha256": "90e86aeac09921f89bd7b783cbb15dd29ce804ddd53f12f037387e0b5311fbe6",
+        "bytes": 40645
+      },
+      {
+        "kind": "repository",
+        "id": "matrix",
+        "path": "SUBSCRIPTION_MATRIX.md",
+        "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+        "sha256": "febcc20d6b21f7d4b0198824211a446c0f1e91773966be32ad479321dec43081",
+        "bytes": 4958
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "power-phases",
+        "inline": true,
+        "sha256": "0861bac714ec32be544412630213425a1062fcfff5a61fd06998b98272d4d28d",
+        "bytes": 1560
+      }
+    ]
+  }
+}

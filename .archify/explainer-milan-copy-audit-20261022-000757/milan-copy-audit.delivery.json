@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "39c0f799-7b74-411b-97e8-7571ddc8c46a",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-copy-audit-20261022-000757/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-copy-audit-20261022-000757/milan-copy-audit.html",
+  "specification": {
+    "sha256": "cb1ef08d90ec45943612bc47daf7322b44b7d95a377fe5874c1caa4b93768bb6",
+    "bytes": 5405
+  },
+  "artifact": {
+    "sha256": "015f9ec2f61c816e95fdf593dccde6ce980979dad18580e77d7c941ec90ac6b9",
+    "bytes": 150663
+  },
+  "explainer": {
+    "preparedSha256": "09e93d328005016c8a618753509e60f3d603913331955b128eebedb68ee89c7b",
+    "dependencies": []
+  }
+}

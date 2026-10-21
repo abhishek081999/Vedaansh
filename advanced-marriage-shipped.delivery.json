@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "8fabfd42-1629-421c-8b44-1755292e1933",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-advanced-marriage-20261022-004300/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/advanced-marriage-shipped.html",
+  "specification": {
+    "sha256": "3f54f674e69ed6c9f1c1d331d4c9ab3dfe4e40f854e49c8534e248d1346f43e4",
+    "bytes": 2662
+  },
+  "artifact": {
+    "sha256": "eeb6918627cc4cfc4e18db3bcb38cdcc9175bc142f026d734840b316da96caa8",
+    "bytes": 512218
+  },
+  "explainer": {
+    "preparedSha256": "0af670158a9c3cf1bfde2bda709b62a0556136c5e2c99f3455e9c9b1b6d9599f",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "marriage-delivery",
+        "inline": true,
+        "sha256": "a9e7844d4dba388d11e813e43e7612a2f90fb1d62a1a7dca34990ffae2b67530",
+        "bytes": 1153
+      }
+    ]
+  }
+}

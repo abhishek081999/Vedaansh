@@ -1,5 +1,5 @@
 // src/lib/engine/jayaBhava.ts
-// BPHS Chapter 19 — Jaya Bhava (7th house) applied to one chart.
+// Jaya Bhava — 7th-house marriage reading applied to one chart.
 // Social types in the shlokas are read as partnership patterns.
 // A single line is a tendency. Events need Navamsha and dasha as well.
 // Pure engine — no React/DB.
@@ -50,7 +50,7 @@ const NATURAL_MA_SA = new Set([2, 4, 5, 7])
 const DIGNIFIED: Dignity[] = ['exalted', 'moolatrikona', 'own']
 
 export const JAYA_PRINCIPLES =
-  'BPHS Chapter 19 reads the 7th as a mirror of the 1st. Dignity of the 7th lord outweighs the house it sits in. A 6th, 8th, or 12th seat is a developmental program — service, transformation, or sacrifice — not a punishment. Venus and Jupiter still have to be read on their own. Confirm a strong line in Navamsha and in dasha before treating it as an event. Ages are relative markers from an era of early marriage; a chart marked early marries earlier than one marked late.'
+  'The 7th is read as a mirror of the 1st. Dignity of the 7th lord outweighs the house it sits in. A 6th, 8th, or 12th seat is a developmental program — service, transformation, or sacrifice — not a punishment. Venus and Jupiter still have to be read on their own. Confirm a strong line in Navamsha and in dasha before treating it as an event. Ages are relative markers from an era of early marriage; a chart marked early marries earlier than one marked late.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -245,7 +245,7 @@ function nurtureLine(id: GrahaId): string | null {
 }
 
 /**
- * Chapter 19 combinations that this chart actually forms.
+ * Seventh-house combinations that this chart actually forms.
  * Returns null when the ascendant is missing.
  */
 export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
@@ -290,7 +290,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       lordNotes.push(note(
         'bphs-19-1',
         'Full happiness through the partner',
-        `${seat}, in ${lord.dignity === 'exalted' ? 'exaltation' : 'its own strength'}. This is Parashara’s benchmark. The partnership can carry intimacy, respect, and a shared direction at the same time. Full happiness here means the two can meet trouble together. It does not mean a life with no trouble.`,
+        `${seat}, in ${lord.dignity === 'exalted' ? 'exaltation' : 'its own strength'}. This is the gold-standard seat for partnership. The bond can carry intimacy, respect, and a shared direction at the same time. Full happiness here means the two can meet trouble together. It does not mean a life with no trouble.`,
         'supportive',
       ))
     } else if (lordDignified && lord.isCombust) {
@@ -354,7 +354,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     lordNotes.push(note(
       'bphs-19-6',
       'Even a strong 7th tends toward more than one bond',
-      `${why} Parashara still calls this many spouses. At full strength it is many possibilities. Whether they become several marriages depends on the rest of the chart. The work is to choose one commitment and let the surplus become depth, not a second household.`,
+      `${why} At full strength this reads as many possibilities in partnership. Whether they become several marriages depends on the rest of the chart. The work is to choose one commitment and let the surplus become depth, not a second household.`,
       'mixed',
     ))
   }
@@ -384,7 +384,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     occupantNotes.push(note(
       'bphs-19-7-frame',
       'A planet in the 7th colors the marriage',
-      'Parashara’s types — the closed bond, the trader’s wit, the teacher’s spouse — are patterns of the relationship. They are not a character verdict on the person who will marry this native. An occupied 7th makes the sexual and social bond less simple. Read the pattern, then check Navamsha.',
+      'The closed bond, the trader’s wit, and the teacher’s spouse are patterns of the relationship. They are not a character verdict on the person who will marry this native. An occupied 7th makes the sexual and social bond less simple. Read the pattern, then check Navamsha.',
       'mixed',
     ))
   }
@@ -435,7 +435,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       dynamicNotes.push(note(
         'bphs-19-11-guard',
         'Mars and Saturn rule this 7th by lagna — do not force the harsh line',
-        'Taurus, Cancer, Leo, and Libra already give the 7th to Mars or Saturn. Parashara’s line about an unbound spouse does not apply from that fact alone. It needs a further affliction: both planets in the 7th, a weak 7th lord, or a second malefic piled on the house.',
+        'Taurus, Cancer, Leo, and Libra already give the 7th to Mars or Saturn. The line about an unbound spouse does not apply from that fact alone. It needs a further affliction: both planets in the 7th, a weak 7th lord, or a second malefic piled on the house.',
         'mixed',
       ))
     } else {
@@ -581,7 +581,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     timingNotes.push(note(
       id,
       title,
-      `Parashara marks this at the ${label} year. Treat the number as an early-marriage-era marker. What travels is the order: this chart ripens ${pair[0] <= 16 ? 'early' : pair[0] <= 22 ? 'on a middling schedule' : 'late'} relative to a chart with a different marker. ${detail}`,
+      `This timing mark sits at the ${label} year. Treat the number as an early-marriage-era marker. What travels is the order: this chart ripens ${pair[0] <= 16 ? 'early' : pair[0] <= 22 ? 'on a middling schedule' : 'late'} relative to a chart with a different marker. ${detail}`,
       tone,
     ))
   }
@@ -721,7 +721,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     timingNotes.unshift(note(
       'bphs-19-timing-frame',
       'How to use these years',
-      'Chapter 19’s ages assume a culture of very early marriage. Keep the sequence and drop the literal birthday. Confirm with the dasha of the 7th lord, Venus, and Jupiter before naming a year.',
+      'These age markers assume a culture of very early marriage. Keep the sequence and drop the literal birthday. Confirm with the dasha of the 7th lord, Venus, and Jupiter before naming a year.',
       'mixed',
     ))
   }
@@ -782,7 +782,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     multiNotes.push(note(
       'bphs-19-40',
       'Three relational chapters',
-      'The Moon is 7th from Venus and Mercury is in the 5th. Parashara times three marriages, at the 10th, 22nd, and 33rd markers: an early innocent bond, a corrective bond, and a bond chosen with some wisdom. They are not always three legal weddings. They can be three distinct eras inside one long marriage, or one marriage plus two bonds that carried the weight of a marriage.',
+      'The Moon is 7th from Venus and Mercury is in the 5th. Three partnership eras are timed at the 10th, 22nd, and 33rd markers: an early innocent bond, a corrective bond, and a bond chosen with some wisdom. They are not always three legal weddings. They can be three distinct eras inside one long marriage, or one marriage plus two bonds that carried the weight of a marriage.',
       'mixed',
     ))
   }
@@ -804,22 +804,22 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
   const gold = dynamicNotes.some(n => n.id === 'bphs-19-14')
   const dusthanaUndignified = lordDusthana && !lordDignified
 
-  let headline = 'Seventh-house reading'
-  if (gold) headline = 'The chapter’s gold-standard partnership'
-  else if (siege) headline = 'The 7th is under a three-part pressure'
+  let headline = 'Marriage-house reading'
+  if (gold) headline = 'A high-standard partnership pattern'
+  else if (siege) headline = 'The marriage house is under three-way pressure'
   else if (lordDignified && !lordWeak) headline = 'Full happiness through the partner is available'
   else if (dusthanaUndignified) headline = 'This marriage is built for development'
-  else if (lordWeak) headline = 'The 7th lord cannot hold the bond in one channel'
+  else if (lordWeak) headline = 'The planet ruling the marriage house cannot hold the bond alone'
 
   const occNames = in7.map(g => gn(g.id))
   const occLine = occNames.length === 0
-    ? 'The 7th is empty, so the lord carries the description.'
+    ? 'The marriage house (7th) is empty, so its ruling planet carries the description.'
     : occNames.length === 1
-      ? `${occNames[0]} occupies the 7th.`
-      : `${occNames.slice(0, -1).join(', ')} and ${occNames[occNames.length - 1]} occupy the 7th.`
+      ? `${occNames[0]} sits in the marriage house (7th).`
+      : `${occNames.slice(0, -1).join(', ')} and ${occNames[occNames.length - 1]} sit in the marriage house (7th).`
   const summary = lord && lordHouse != null
-    ? `${gn(lord.id)} rules ${rn(seventhSign)} in the 7th and sits in the ${ordinal(lordHouse)}${lordDignified ? ', with dignity' : lordWeak ? ', without strength' : ''}. ${occLine}`
-    : 'The 7th lord is not available in this chart.'
+    ? `${gn(lord.id)} rules ${rn(seventhSign)} as the marriage-house (7th) lord and sits in the ${ordinal(lordHouse)}${lordDignified ? ', with dignity' : lordWeak ? ', without strength' : ''}. ${occLine}`
+    : 'The planet ruling the marriage house (7th) is not available in this chart.'
 
   return {
     headline,
@@ -851,7 +851,7 @@ function band(year: number | null): 'early' | 'middle' | 'late' | null {
   return 'late'
 }
 
-/** How the two Chapter 19 readings sit together in a match. */
+/** How the two seventh-house readings sit together in a match. */
 export function compareJayaBhava(
   a: JayaBhavaReading,
   b: JayaBhavaReading,
@@ -910,7 +910,7 @@ export function compareJayaBhava(
     notes.push(note(
       'jaya-pair-strain',
       'Continuity is the work for both',
-      'Both charts carry a Chapter 19 strain line. Separation language still needs Navamsha and dasha. What can be said now is that neither person should expect the marriage to be self-maintaining.',
+      'Both charts carry a strain line on the 7th. Separation language still needs Navamsha and dasha. What can be said now is that neither person should expect the marriage to be self-maintaining.',
       'caution',
     ))
   }
@@ -921,14 +921,14 @@ export function compareJayaBhava(
     notes.push(note(
       'jaya-pair-timing',
       'The marriage clocks do not match',
-      `${nameA}’s earliest Chapter 19 marker is ${bandA}. ${nameB}’s is ${bandB}. The later clock sets the real pace. Pushing the earlier chart produces a wedding the other person is not built for yet.`,
+      `${nameA}’s earliest marriage-timing marker is ${bandA}. ${nameB}’s is ${bandB}. The later clock sets the real pace. Pushing the earlier chart produces a wedding the other person is not built for yet.`,
       'mixed',
     ))
   } else if (bandA && bandB) {
     notes.push(note(
       'jaya-pair-timing-same',
       'The marriage clocks agree',
-      `Both earliest markers sit in the ${bandA} band of the chapter. Relative timing is aligned. The absolute year still has to be read from dasha, with a modern cultural delay.`,
+      `Both earliest markers sit in the ${bandA} band. Relative timing is aligned. The absolute year still has to be read from dasha, with a modern cultural delay.`,
       'supportive',
     ))
   }
@@ -936,7 +936,7 @@ export function compareJayaBhava(
   if (!notes.length) {
     notes.push(note(
       'jaya-pair-plain',
-      'No shared extreme in Chapter 19',
+      'No shared extreme on the seventh',
       `${nameA} and ${nameB} do not share a gold-standard pairing or a shared strain signature. Read each 7th lord on its own, then the cross-chart notes above.`,
       'mixed',
     ))

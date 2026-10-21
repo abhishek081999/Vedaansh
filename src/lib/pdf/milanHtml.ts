@@ -20,6 +20,15 @@ import {
 } from '@/lib/engine/milanSuite'
 import { calculateManglik, calculatePapeSamya } from '@/lib/engine/doshas'
 import { buildChartSVG } from '@/lib/pdf/chartHtml'
+import { analyzeMatchMaking } from '@/lib/engine/matchMaking'
+import { analyzeClassicalMarriage } from '@/lib/engine/classicalMarriage'
+import { analyzeDivorceEnergy } from '@/lib/engine/divorceEnergy'
+import { analyzeMilanMarriedLife } from '@/lib/engine/milanMarriedLife'
+import { analyzeMarriageSynastry } from '@/lib/engine/marriageSynastry'
+import { analyzePairCaseBrief } from '@/lib/engine/marriageCaseBrief'
+import { analyzeVenusJupiterBond, compareVenusJupiterBond } from '@/lib/engine/venusJupiterBond'
+import { analyzePartnerNature, comparePartnerNature } from '@/lib/engine/partnerNature'
+import { analyzeKarmicDebt, compareKarmicDebt } from '@/lib/engine/karmicDebt'
 
 const THEME = {
   primary: '#9b1b30',
@@ -409,6 +418,111 @@ export function generateMilanHTML(input: MilanReportInput): string {
         )
         .join('')
     : ''
+
+  const match = analyzeMatchMaking(chartA, chartB)
+  const matchMakingBlock = match
+    ? `<div class="card" style="margin-bottom:0.75rem">
+         <div style="font-weight:800;color:${THEME.secondary};margin-bottom:0.35rem">${esc(match.headline)}</div>
+         <p style="font-size:11px;color:${THEME.muted};margin:0 0 0.65rem;line-height:1.5">${esc(match.summary)}</p>
+         ${match.pillars.slice(0, 8).map(p => `
+           <div style="margin-bottom:0.45rem;padding-left:0.55rem;border-left:3px solid ${p.tone === 'supportive' ? THEME.emerald : p.tone === 'caution' ? THEME.rose : THEME.temple}">
+             <strong style="font-size:11px">${esc(p.title)}</strong>
+             <span style="font-size:10px;color:${THEME.muted}"> · ${esc(p.mark)}</span>
+             <div style="font-size:10px;color:${THEME.muted};margin-top:2px">${esc(p.detail)}</div>
+           </div>`).join('')}
+         ${match.steps.length ? `
+           <div style="margin-top:0.75rem;padding-top:0.55rem;border-top:1px solid ${THEME.border}">
+             <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted};margin-bottom:0.4rem">Steps</div>
+             ${match.steps.slice(0, 8).map((s, i) => `
+               <div style="font-size:10px;color:${THEME.muted};margin-bottom:0.35rem;line-height:1.4">
+                 <strong style="color:${THEME.text}">${i + 1}. ${esc(s.title)}</strong> — ${esc(s.detail)}
+               </div>`).join('')}
+           </div>` : ''}
+         ${input.deep?.overall ? `<p style="font-size:10px;color:${THEME.muted};margin:0.65rem 0 0"><strong>Deep Milan:</strong> ${esc(input.deep.overall.stageLabel)} — ${esc(input.deep.overall.summary)}</p>` : ''}
+       </div>`
+    : input.deep?.overall
+      ? `<div class="card"><strong>Deep Milan</strong><p style="font-size:11px;color:${THEME.muted};margin:0.35rem 0 0">${esc(input.deep.overall.stageLabel)} — ${esc(input.deep.overall.summary)}</p></div>`
+      : '<p style="color:#6d5d4b;font-size:11px">Match-making summary unavailable.</p>'
+
+  const married = analyzeMilanMarriedLife(chartA, chartB)
+  const classicalA = analyzeClassicalMarriage(chartA)
+  const classicalB = analyzeClassicalMarriage(chartB)
+  const splitA = analyzeDivorceEnergy(chartA)
+  const splitB = analyzeDivorceEnergy(chartB)
+  const syn = analyzeMarriageSynastry(chartA, chartB)
+  const caseBrief = analyzePairCaseBrief(chartA, chartB, { skipGocharScan: true })
+  const veJuA = analyzeVenusJupiterBond(chartA)
+  const veJuB = analyzeVenusJupiterBond(chartB)
+  const veJuPair = veJuA && veJuB ? compareVenusJupiterBond(veJuA, veJuB, chartA.meta.name, chartB.meta.name) : []
+  const partnerA = analyzePartnerNature(chartA)
+  const partnerB = analyzePartnerNature(chartB)
+  const partnerPair = partnerA && partnerB ? comparePartnerNature(partnerA, partnerB, chartA.meta.name, chartB.meta.name) : []
+  const debtA = analyzeKarmicDebt(chartA)
+  const debtB = analyzeKarmicDebt(chartB)
+  const debtPair = debtA && debtB ? compareKarmicDebt(debtA, debtB, chartA.meta.name, chartB.meta.name) : []
+  const noteList = (notes: { title: string; detail: string }[], limit = 4) =>
+    notes.slice(0, limit).map(n => `
+      <div style="margin-bottom:0.35rem;padding-left:0.45rem;border-left:2px solid ${THEME.border}">
+        <strong style="font-size:10px">${esc(n.title)}</strong>
+        <div style="font-size:10px;color:${THEME.muted};line-height:1.4">${esc(n.detail)}</div>
+      </div>`).join('')
+  const marriedLifeBlock = `
+    ${caseBrief ? `<div class="card" style="margin-bottom:0.75rem;border-left:4px solid ${THEME.temple}">
+      <div style="font-weight:800;color:${THEME.secondary};margin-bottom:0.35rem">${esc(caseBrief.headline)}</div>
+      <div style="margin-top:0.4rem">${noteList(caseBrief.bullets, 5)}</div>
+    </div>` : ''}
+    <div class="card" style="margin-bottom:0.75rem">
+      <div style="font-weight:800;color:${THEME.secondary};margin-bottom:0.35rem">Moon pair</div>
+      <p style="font-size:11px;color:${THEME.muted};margin:0;line-height:1.5">
+        ${married ? `${esc(married.moon.signA)} × ${esc(married.moon.signB)} — ${esc(married.moon.detail)}` : 'Moon pair unavailable.'}
+      </p>
+    </div>
+    ${married ? `<div class="card" style="margin-bottom:0.75rem">
+      <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted};margin-bottom:0.4rem">Dimension scores</div>
+      ${married.dimensions.map(d => `
+        <div style="font-size:10px;margin-bottom:0.3rem;color:${THEME.muted}">
+          <strong style="color:${THEME.text}">${esc(d.label)}</strong>
+          — ${esc(married.nameA)} ${d.scoreA} · ${esc(married.nameB)} ${d.scoreB}
+          ${d.note ? ` · ${esc(d.note)}` : ''}
+        </div>`).join('')}
+    </div>` : ''}
+    <div class="two-col" style="align-items:start;margin-bottom:0.75rem">
+      <div class="card">
+        <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted}">${esc(chartA.meta.name)}</div>
+        <p style="font-size:11px;margin:0.35rem 0;font-weight:700">${classicalA ? esc(classicalA.headline) : 'Classical unavailable'}</p>
+        <p style="font-size:10px;color:${THEME.muted};margin:0;line-height:1.45">${classicalA ? esc(classicalA.summary) : ''}</p>
+        <p style="font-size:10px;margin:0.45rem 0 0;color:${splitA?.flags.level === 'held' ? THEME.emerald : THEME.rose}">
+          Separation energy: ${esc(splitA?.flags.level ?? '—')}
+        </p>
+      </div>
+      <div class="card">
+        <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted}">${esc(chartB.meta.name)}</div>
+        <p style="font-size:11px;margin:0.35rem 0;font-weight:700">${classicalB ? esc(classicalB.headline) : 'Classical unavailable'}</p>
+        <p style="font-size:10px;color:${THEME.muted};margin:0;line-height:1.45">${classicalB ? esc(classicalB.summary) : ''}</p>
+        <p style="font-size:10px;margin:0.45rem 0 0;color:${splitB?.flags.level === 'held' ? THEME.emerald : THEME.rose}">
+          Separation energy: ${esc(splitB?.flags.level ?? '—')}
+        </p>
+      </div>
+    </div>
+    ${syn ? `<div class="card" style="margin-bottom:0.75rem"><strong style="color:${THEME.primary}">Cross-chart overlay</strong>
+      <p style="font-size:11px;color:${THEME.muted};margin:0.35rem 0 0;line-height:1.45">${esc(syn.summary)} D9×D9: ${esc(String(syn.flags.d9Score))}.</p></div>` : ''}
+    ${input.jaimini ? `<div class="card" style="margin-bottom:0.75rem">
+      <strong style="color:${THEME.primary}">Jaimini (both)</strong>
+      <p style="font-size:11px;color:${THEME.muted};margin:0.35rem 0 0;line-height:1.45">${esc(input.jaimini.summary)}</p>
+    </div>` : ''}
+    ${veJuPair.length ? `<div class="card" style="margin-bottom:0.75rem">
+      <strong style="color:${THEME.primary}">Venus–Jupiter pair</strong>
+      <div style="margin-top:0.4rem">${noteList(veJuPair)}</div>
+    </div>` : ''}
+    ${partnerPair.length ? `<div class="card" style="margin-bottom:0.75rem">
+      <strong style="color:${THEME.primary}">Partner nature pair</strong>
+      <div style="margin-top:0.4rem">${noteList(partnerPair)}</div>
+    </div>` : ''}
+    ${debtPair.length ? `<div class="card" style="margin-bottom:0.75rem">
+      <strong style="color:${THEME.primary}">Karmic debt pair</strong>
+      <div style="margin-top:0.4rem">${noteList(debtPair)}</div>
+    </div>` : ''}
+  `
 
   const compatCards = compat
     .map(item => {
@@ -829,9 +943,25 @@ export function generateMilanHTML(input: MilanReportInput): string {
   ${nextFooter()}
 </div>
 
-<!-- 12 TIMING + REMEDIES -->
+<!-- 12 MATCH-MAKING -->
 <div class="page">
-  ${sectionBadge('11 · Timing & Remedies')}
+  ${sectionBadge('11 · Match-Making')}
+  <h2 class="section-title">Match-Making Summary</h2>
+  ${matchMakingBlock}
+  ${nextFooter()}
+</div>
+
+<!-- 13 MARRIED LIFE CLASSICAL -->
+<div class="page">
+  ${sectionBadge('12 · Married Life')}
+  <h2 class="section-title">Married Life · Classical Notes</h2>
+  ${marriedLifeBlock}
+  ${nextFooter()}
+</div>
+
+<!-- 14 TIMING + REMEDIES -->
+<div class="page">
+  ${sectionBadge('13 · Timing & Remedies')}
   <h2 class="section-title">Marriage Windows &amp; Upaya</h2>
   ${
     input.timing

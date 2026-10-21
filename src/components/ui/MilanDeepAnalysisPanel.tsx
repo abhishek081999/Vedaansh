@@ -49,7 +49,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
         }}
       >
         <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: '0.35rem' }}>
-          Stage 1 eligibility · 18–32 gunas
+          Stage 1 eligibility · ideal 18–32 · above 32 caution
         </div>
         <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: '0.35rem' }}>
           {ashtakoot.eligibility.label}

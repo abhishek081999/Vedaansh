@@ -191,7 +191,9 @@ function buildSubDashas(
       durationMs: childMs,
       level,
       isCurrent,
-      children: level < maxDepth && isCurrent
+      // Expand every branch to maxDepth (callers cap at 3). Current-only prune
+      // left previous/future Mandook/Sthir periods without Pratyantar children.
+      children: level < maxDepth
         ? buildSubDashas(sign, s, childMs, level + 1, maxDepth, forward, now)
         : [],
     })

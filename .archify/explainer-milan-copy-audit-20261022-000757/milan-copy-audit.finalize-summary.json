@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-copy-audit-20261022-000757/candidate.archify.md",
+    "sha256": "cb1ef08d90ec45943612bc47daf7322b44b7d95a377fe5874c1caa4b93768bb6",
+    "bytes": 5405
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-copy-audit-20261022-000757/milan-copy-audit.html",
+    "sha256": "015f9ec2f61c816e95fdf593dccde6ce980979dad18580e77d7c941ec90ac6b9",
+    "bytes": 150663
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-copy-audit-20261022-000757/milan-copy-audit.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-copy-audit-20261022-000757/milan-copy-audit.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1002,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

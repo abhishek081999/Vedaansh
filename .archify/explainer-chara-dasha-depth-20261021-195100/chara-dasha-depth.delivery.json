@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "874f0e1d-8a16-48e0-98cc-74a88ad6238a",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-chara-dasha-depth-20261021-195100/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-chara-dasha-depth-20261021-195100/chara-dasha-depth.html",
+  "specification": {
+    "sha256": "931019f8a2430cba54657699218557aa95d36b1c8c7de5218461d11e9555f37b",
+    "bytes": 2504
+  },
+  "artifact": {
+    "sha256": "e5ae31572418248e16ae55acd6f342d47d48071c3dc1a34d250bd68dd8ab918b",
+    "bytes": 506896
+  },
+  "explainer": {
+    "preparedSha256": "0257cf3e4f80f4830784b94aff68a7093e5fc2f34d65dd502de50cae046be1e4",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "chara-build",
+        "inline": true,
+        "sha256": "c0cab7ab0a9a5a60dc9e4f46854d5d2e866aaedef80306baad068606a4f7ad56",
+        "bytes": 1165
+      }
+    ]
+  }
+}

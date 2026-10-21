@@ -163,7 +163,7 @@ describe('BPHS chapter 19, seventh house', () => {
     }))!
     expect(ids(reading)).toContain('bphs-19-14')
     expect(reading.flags.goldStandard).toBe(true)
-    expect(reading.headline).toMatch(/gold-standard/i)
+    expect(reading.headline).toMatch(/high-standard|gold-standard/i)
   })
 
   it('reads Moon in the 7th, the lord in the 12th, and a weak significator as need without a mechanism', () => {

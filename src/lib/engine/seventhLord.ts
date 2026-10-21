@@ -235,7 +235,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       },
       7: {
         title: '7th lord in the 7th',
-        detail: `${seat}. Phaladeepika gives a spouse from a good family from this seat, and still gives that when the lord is a malefic. The cost is loneliness in the search: several proposals fall away before one stays.`,
+        detail: `${seat}. A spouse from a good family is indicated from this seat, and that still holds when the lord is a malefic. The cost is loneliness in the search: several proposals fall away before one stays.`,
         tone: isMalefic(lord.id) ? 'mixed' : 'supportive',
       },
       8: {
@@ -376,7 +376,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       combinations.push(note(
         'seventh-remarriage-three',
         'Saturn, Moon, and Mars in the 7th',
-        'Phaladeepika’s remarriage yoga wants all three in the 7th. They are all there. If one had been missing, the yoga would not be read.',
+        'The remarriage yoga wants all three in the 7th. They are all there. If one had been missing, the yoga would not be read.',
         'caution',
       ))
     }
@@ -610,20 +610,20 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
   }
 
   const headline = exchange
-    ? 'The lagna and the 7th have traded lords'
+    ? 'Rising sign and marriage house have traded ruling planets'
     : lordHouse === 4
-      ? 'The 7th lord in the 4th can bring comfort'
+      ? 'Marriage-house lord in the 4th can bring comfort at home'
       : lordHouse === 12
-        ? 'The 7th lord in the 12th opens more than one bond'
+        ? 'Marriage-house lord in the 12th opens more than one bond'
         : band === 'late'
-          ? 'The marriage clock sits in the late band'
+          ? 'The marriage clock sits in the late age band'
           : lord
-            ? `${gn(lord.id)} carries the 7th from the ${ordinal(lordHouse ?? 0)}`
-            : 'The 7th lord is not on this chart'
+            ? `${gn(lord.id)} carries the marriage house from the ${ordinal(lordHouse ?? 0)}`
+            : 'The planet ruling the marriage house is not on this chart'
 
   const summary = lord
-    ? `${gn(lord.id)} rules ${rn(seventh)} and sits in ${rn(lord.rashi)}. ${band === 'open' ? 'The age band is not decisive from the marks on this chart.' : band === 'timely' ? 'The timely band has the stronger count.' : band === 'delayed' ? 'The delayed band has the stronger count.' : 'The late band has the stronger count.'}`
-    : 'Without the 7th lord, the house results cannot be read.'
+    ? `${gn(lord.id)} rules the marriage house (7th) from ${rn(seventh)} and sits in ${rn(lord.rashi)}. ${band === 'open' ? 'The age band is not decisive from the marks on this chart.' : band === 'timely' ? 'The timely age band has the stronger count.' : band === 'delayed' ? 'The delayed age band has the stronger count.' : 'The late age band has the stronger count.'}`
+    : 'Without the planet ruling the marriage house (7th), those house results cannot be read.'
 
   return { headline, summary, principles: SEVENTH_LORD_PRINCIPLES, placement, combinations, timing, flags }
 }

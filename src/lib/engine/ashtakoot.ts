@@ -1,6 +1,6 @@
 // src/lib/engine/ashtakoot.ts
 // 36-point Ashtakoot Milan (Gun Milan) with dosha exceptions,
-// psychological profiles, and eligibility banding (18–32 gunas).
+// psychological profiles, and eligibility banding (ideal 18–32; above 32 = caution).
 
 export type KootaKey =
   | 'varna'
@@ -550,8 +550,11 @@ function buildEligibility(total: number): AshtakootResult['eligibility'] {
   if (total > 32) {
     return {
       band: 'above_ideal',
-      label: 'Very high gunas (caution)',
-      detail: 'Above 32 — mainstream reads this as excellent; some paramparas caution “too similar.” Verify Venus–Mars spark and individuality.',
+      label: total === 36 ? '36/36 gunas (caution)' : 'Very high gunas (caution)',
+      detail:
+        total === 36
+          ? 'Full 36 is mechanically maxed, but many paramparas treat totals above 32 as too similar. Confirm Nadi differs — same Nadi is the gravest koota fault for progeny even when an exception restores points.'
+          : 'Above 32 — some lineages refuse as “too similar.” Confirm Nadi differs and complete D1/D9 plus Venus–Mars Stage 3 before deciding.',
       traditionallyAccepted: true,
     }
   }
@@ -613,10 +616,12 @@ function enrich(
         ? 'Aligned life direction and fortune path (Bhakoot clear).'
         : 'Bhakoot dosha — destiny paths may diverge; check exceptions and Stage 2.'
   } else if (key === 'nadi') {
-    insight =
-      raw.points === 8
-        ? 'Different Nadi — complementary pranic exchange; favourable for progeny vitality.'
-        : 'Same Nadi — check cancellation rules (same rashi / different pada) before declaring dosha.'
+    const sameNadi = raw.p1 === raw.p2
+    insight = sameNadi
+      ? raw.points === 8
+        ? 'Same Nadi with classical cancellation — points restored, but many lineages still caution for progeny vitality.'
+        : 'Same Nadi (Nadi Dosha) — pranic energy not complementary; traditionally refused for progeny.'
+      : 'Different Nadi — complementary pranic exchange; favourable for progeny vitality.'
   }
 
   return {
@@ -679,6 +684,6 @@ export function calculateAshtakoot(
       karma: `Bhakoot and overall guna band reflect shared destiny path — low gunas can still work via strong planetary karma (Stage 2–3).`,
     },
     disclaimer:
-      'Ashtakoot is Moon–Nakshatra only (Stage 1). Charts with 32+ gunas can fail and charts with few gunas can thrive. Complete D1/D9 and Venus–Mars chemistry before marriage decisions.',
+      'Ashtakoot is Moon–Nakshatra only (Stage 1). Totals above 32 (including 36/36) often need caution for over-similarity; same Nadi remains the gravest koota concern even if points are restored. Complete D1/D9 and Venus–Mars chemistry before marriage decisions.',
   }
 }

@@ -47,7 +47,7 @@ function chart(opts: {
 }
 
 function ids(reading: DivorceEnergyReading): string[] {
-  return [...reading.energies, ...reading.triggers].map(n => n.id)
+  return [...reading.energies, ...reading.triggers, ...reading.cancellations].map(n => n.id)
 }
 
 function prose(reading: DivorceEnergyReading): string {

@@ -18,6 +18,10 @@ export interface MarriageClassFlags {
   kind: MarriageKind
   pattern: MarriagePattern
   bond: MarriageBond
+  /** Classical second-bond / remarriage signature present (any gender). */
+  remarriageSignal: boolean
+  /** Several important bonds indicated (not automatically several weddings). */
+  multiplicity: boolean
 }
 
 export interface MarriageClassReading {
@@ -973,6 +977,57 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     ))
   }
 
+  const sun = find(chart.grahas, 'Su')
+  const gender = chart.meta?.gender
+  const touchesSign = (g: GrahaData | undefined, sign: number) =>
+    !!g && (g.rashi === sign || aspects(g, sign))
+
+  let remarriageSignal = pattern === 'second' || pattern === 'divorce'
+  let multiplicity = pattern === 'many'
+
+  const remarriageRefs = [
+    seventh,
+    moon ? signOf(moon.rashi, 7) : null,
+    lord ? signOf(lord.rashi, 7) : null,
+  ].filter((s): s is Rashi => s != null)
+
+  if (remarriageRefs.some(sign => touchesSign(sun, sign) && touchesSign(rahu, sign))) {
+    remarriageSignal = true
+    patternNotes.push(note(
+      'class-remarriage-sun-rahu',
+      'Sun and Rahu on a seventh',
+      gender === 'female'
+        ? 'From the lagna, the Moon, or the 7th lord, a seventh is under both the Sun and Rahu. That is a classical second-bond signature in a woman’s chart. It does not say how the first bond ended.'
+        : 'From the lagna, the Moon, or the 7th lord, a seventh is under both the Sun and Rahu. In a man’s chart this opens a second chapter in partnership — another serious bond or a life rebuilt after the first. It does not name death or divorce.',
+      'caution',
+    ))
+  }
+
+  if (saturn && moon && mars
+    && houseOf(saturn.rashi, asc) === 7
+    && houseOf(moon.rashi, asc) === 7
+    && houseOf(mars.rashi, asc) === 7) {
+    remarriageSignal = true
+    patternNotes.push(note(
+      'class-remarriage-three',
+      'Saturn, Moon, and Mars in the 7th',
+      'All three sit in the 7th. The classical remarriage yoga asks for this stack. If one were missing, it would not be read. The form of any first ending stays unnamed.',
+      'caution',
+    ))
+  }
+
+  if (lordHouse === 12) {
+    multiplicity = true
+    patternNotes.push(note(
+      'class-multiplicity-twelfth',
+      '7th lord in the 12th — more than one opening',
+      'The 7th lord in the 12th opens more than one partnership door: distant bonds, foreign threads, or a second serious chapter. Count openings, not automatic weddings.',
+      'mixed',
+    ))
+  }
+
+  if (manyYoga) multiplicity = true
+
   const headline = pattern === 'linear'
     ? 'This marriage can grow in a straight line'
     : pattern === 'second'
@@ -994,9 +1049,9 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
                     : 'The kind of marriage is still mixed'
 
   const summary = [
-    lord ? `${gn(lord.id)} rules marriage from ${rn(lord.rashi)}.` : '',
+    lord ? `${gn(lord.id)} rules the marriage house (7th) from ${rn(lord.rashi)}.` : '',
     venus ? `Venus is in ${rn(venus.rashi)}${nakName(veNak) ? `, ${nakName(veNak)}` : ''}.` : '',
-    d9Venus ? `In the Navamsha, Venus is ${plainStrength(d9Venus.dignity)}${d9Asc ? `, and the deeper rising sign is ${rn(d9Asc)}` : ''}.` : 'Venus is not available in the Navamsha.',
+    d9Venus ? `In Navamsha (D9, the deeper marriage chart), Venus is ${plainStrength(d9Venus.dignity)}${d9Asc ? `, and the deeper rising sign is ${rn(d9Asc)}` : ''}.` : 'Venus is not available in Navamsha (D9).',
   ].filter(Boolean).join(' ')
 
   return {
@@ -1011,7 +1066,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     nakshatra: nakNotes,
     navamsha: navNotes,
     strain: strainNotes,
-    flags: { kind, pattern, bond },
+    flags: { kind, pattern, bond, remarriageSignal, multiplicity },
   }
 }
 
