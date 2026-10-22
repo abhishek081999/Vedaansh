@@ -116,11 +116,6 @@ export const ASTRO_GROUPS: NavGroup[] = [
       { id: 'astro-details', label: 'Astro Details', icon: ClipboardList, path: ASTROLOGY_HOME_PATH },
       { id: 'planets', label: 'Planets', icon: Sparkles, path: ASTROLOGY_HOME_PATH },
       { id: 'navamsha', label: 'Navamsha (D9)', icon: Orbit, path: ASTROLOGY_HOME_PATH },
-      { id: 'chaturthamsa', label: 'Chaturthamsha (D4)', icon: Building2, path: ASTROLOGY_HOME_PATH },
-      { id: 'dashamsa', label: 'Dashamsha (D10)', icon: Briefcase, path: ASTROLOGY_HOME_PATH },
-      { id: 'dwadashamsha', label: 'Dwadashamsha (D12)', icon: CloudMoon, path: ASTROLOGY_HOME_PATH },
-      { id: 'drekkana', label: 'Drekkana (D3)', icon: Brain, path: ASTROLOGY_HOME_PATH },
-      { id: 'nakshatramsha', label: 'Nakshatramsha (D27)', icon: Waves, path: ASTROLOGY_HOME_PATH },
       { id: 'dasha', label: 'Dasha', icon: Hourglass, path: ASTROLOGY_HOME_PATH },
       { id: 'dasha-interpretation', label: 'Dasha Interpretation', icon: NotebookText, path: ASTROLOGY_HOME_PATH },
       { id: 'house', label: 'House', icon: Home, path: ASTROLOGY_HOME_PATH },
@@ -129,6 +124,17 @@ export const ASTRO_GROUPS: NavGroup[] = [
       { id: 'interpretation', label: 'Interpretation', icon: BookOpen, path: ASTROLOGY_HOME_PATH },
       { id: 'tattva', label: 'Tattva Prediction', icon: Wind, path: ASTROLOGY_HOME_PATH },
       { id: 'naamkaran', label: 'Naamkaran', icon: PenLine, path: ASTROLOGY_HOME_PATH },
+    ],
+  },
+  {
+    id: 'divisional-charts',
+    label: 'Divisional Chart Analysis',
+    tabs: [
+      { id: 'chaturthamsa', label: 'Chaturthamsha (D4)', icon: Building2, path: ASTROLOGY_HOME_PATH },
+      { id: 'dashamsa', label: 'Dashamsha (D10)', icon: Briefcase, path: ASTROLOGY_HOME_PATH },
+      { id: 'dwadashamsha', label: 'Dwadashamsha (D12)', icon: CloudMoon, path: ASTROLOGY_HOME_PATH },
+      { id: 'drekkana', label: 'Drekkana (D3)', icon: Brain, path: ASTROLOGY_HOME_PATH },
+      { id: 'nakshatramsha', label: 'Nakshatramsha (D27)', icon: Waves, path: ASTROLOGY_HOME_PATH },
     ],
   },
   {
@@ -170,6 +176,7 @@ function astroDirectTab(id: string): NavTab {
 export const ASTRO_NAV: AstroNavEntry[] = [
   { kind: 'group', group: astroGroup('transit') },
   { kind: 'group', group: astroGroup('core-analysis') },
+  { kind: 'group', group: astroGroup('divisional-charts') },
   { kind: 'group', group: astroGroup('strength-analytics') },
   { kind: 'link', tab: astroDirectTab('relationship') },
   { kind: 'link', tab: astroDirectTab('varshaphal') },

@@ -741,7 +741,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               ASTRO_NAV.map((entry) => (
                 entry.kind === 'group' ? renderGroupAccordion(entry.group) : renderTab(entry.tab, true)
               ))
-            ), '1200px')}
+            ), '1600px')}
 
             {renderAccordion(SIDENAV_ACCORDIONS.advanced.label, SIDENAV_ACCORDIONS.advanced.icon, isAdvancedAstroOpen, () => toggleSidenavSection('advanced', isAdvancedAstroOpen), (
               ADVANCED_ASTRO_TABS.map(t => renderTab(t, true))
