@@ -16,7 +16,7 @@ A full-featured Vedic astrology (Jyotish) web platform in TypeScript: arc-second
 
 | Layer | Technology | Version (from `package.json`) |
 |---|---|---|
-| Framework | Next.js (App Router) | 16.3.8 |
+| Framework | Next.js (App Router) | 16.4.2 |
 | UI | React | 19.2.7 |
 | Language | TypeScript | ^5.4.5 · Node ≥ 24 |
 | Ephemeris | sweph (Swiss Ephemeris) | ^2.10.3-5 |

@@ -5,7 +5,7 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 ## [2.6.0] — current
 
-**Stack:** Next.js 16.3 · React 19 · Node ≥ 24 · `sweph` · MongoDB/Mongoose · NextAuth v5 · Upstash Redis · Razorpay  
+**Stack:** Next.js 16.4 · React 19 · Node ≥ 24 · `sweph` · MongoDB/Mongoose · NextAuth v5 · Upstash Redis · Razorpay  
 **Default prices (INR):** Gold ₹168/mo · ₹1,443/yr · Platinum ₹336/mo · ₹2,888/yr (`pricing.ts`; BillingConfig may override)
 
 ### Added / live
