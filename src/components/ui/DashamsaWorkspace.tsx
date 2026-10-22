@@ -12,6 +12,7 @@ import {
   HandHeart,
   Layers,
   LifeBuoy,
+  Microscope,
   ScrollText,
   Sparkles,
   Target,
@@ -28,19 +29,22 @@ import {
 import { buildDashamsaClassical } from '@/lib/engine/dashamsaClassical'
 import { buildDashamsaPractical } from '@/lib/engine/dashamsaPractical'
 import { buildDashamsaSynthesis } from '@/lib/engine/dashamsaSynthesis'
+import { buildDashamsaAdvanced } from '@/lib/engine/dashamsaAdvanced'
 import { DashamsaClassicalPanel } from '@/components/ui/DashamsaClassicalPanel'
 import { DashamsaSynthesisPanel } from '@/components/ui/DashamsaSynthesisPanel'
+import { DashamsaAdvancedPanel } from '@/components/ui/DashamsaAdvancedPanel'
 import { RASHI_SHORT } from '@/types/astrology'
 import { cn } from '@/lib/ui/cn'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import styles from './DashamsaWorkspace.module.css'
 
-type TabId = 'energy' | 'classical' | 'synthesis' | 'karma' | 'sectors' | 'pending' | 'bondage' | 'karmaYoga' | 'circuit' | 'survival'
+type TabId = 'energy' | 'classical' | 'synthesis' | 'advanced' | 'karma' | 'sectors' | 'pending' | 'bondage' | 'karmaYoga' | 'circuit' | 'survival'
 
 const TABS: { id: TabId; label: string; shortLabel: string; Icon: LucideIcon }[] = [
   { id: 'energy', label: 'Dashamsha Energy', shortLabel: 'Energy', Icon: Sparkles },
   { id: 'classical', label: 'Classical Śāstra', shortLabel: 'Śāstra', Icon: ScrollText },
   { id: 'synthesis', label: 'Career Synthesis', shortLabel: 'Synth', Icon: Target },
+  { id: 'advanced', label: 'Advanced Technical', shortLabel: 'Adv', Icon: Microscope },
   { id: 'survival', label: 'Survival Practice', shortLabel: 'Survival', Icon: LifeBuoy },
   { id: 'bondage', label: 'Soul Bondage', shortLabel: 'Bondage', Icon: Waypoints },
   { id: 'circuit', label: 'Multi-Varga Circuit', shortLabel: 'Circuit', Icon: GitBranch },
@@ -140,6 +144,12 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
       : null),
     [analysis, classical, chart, transitPositions],
   )
+  const advanced = useMemo(
+    () => (analysis && classical
+      ? buildDashamsaAdvanced(analysis, classical, chart)
+      : null),
+    [analysis, classical, chart],
+  )
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
 
   if (!analysis || !practical) {
@@ -187,6 +197,11 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             {synthesis && (
               <span className={cn(styles.badge, styles.badgeTeal)}>
                 {synthesis.track.id} · A10 {synthesis.a10.rashiShort}
+              </span>
+            )}
+            {advanced && (
+              <span className={cn(styles.badge, styles.badgeTeal)}>
+                Adv {advanced.raja.filter((r) => r.formed).length} links
               </span>
             )}
             <span className={cn(styles.badge, styles.badgeTeal)}>
@@ -304,6 +319,12 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
         synthesis
           ? <DashamsaSynthesisPanel synthesis={synthesis} />
           : <p className={styles.heroSub}>Synthesis needs A10 arudhas plus the Classical Śāstra reading.</p>
+      )}
+
+      {tab === 'advanced' && (
+        advanced
+          ? <DashamsaAdvancedPanel advanced={advanced} />
+          : <p className={styles.heroSub}>Advanced technical needs Dashamsha planets plus the Classical Śāstra reading.</p>
       )}
 
       {tab === 'energy' && (

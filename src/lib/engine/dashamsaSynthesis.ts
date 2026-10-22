@@ -706,10 +706,13 @@ export function buildDashamsaSynthesis(
     ...(analysis.keyLords[1]?.digpala.professions.slice(0, 2) ?? []),
   ]
   const fields = collectFields(classical, chart)
-  for (const f of digpalaFields) {
+  for (const f of new Set(digpalaFields)) {
     const hit = fields.find((x) => x.field === f)
-    if (hit) hit.sources.push('Digpala')
-    else fields.push({ field: f, sources: ['Digpala'] })
+    if (hit) {
+      if (!hit.sources.includes('Digpala')) hit.sources.push('Digpala')
+    } else {
+      fields.push({ field: f, sources: ['Digpala'] })
+    }
   }
   fields.sort((a, b) => b.sources.length - a.sources.length)
 

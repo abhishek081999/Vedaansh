@@ -98,7 +98,7 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
                 <tr key={f.field}>
                   <td className={styles.planetCell}>{f.field}</td>
                   <td>
-                    {f.sources.map((s) => (
+                    {[...new Set(f.sources)].map((s) => (
                       <span key={s} className={styles.pill} style={{ marginRight: 4 }}>{s}</span>
                     ))}
                   </td>

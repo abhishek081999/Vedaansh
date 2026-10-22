@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-adv-tech-20261022-083308/candidate.archify.md",
+    "sha256": "c780f3e61c04a3c7568bfb929bf0326094ee4fc146223a9ccb9bc578e4dca14f",
+    "bytes": 3391
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-adv-tech-20261022-083308/d10-adv-tech.html",
+    "sha256": "1fe34a8a17ee87dab998595239efc207bb3f09827231f3addb71e4bd481b44e6",
+    "bytes": 505572
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-adv-tech-20261022-083308/d10-adv-tech.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-adv-tech-20261022-083308/d10-adv-tech.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1770,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

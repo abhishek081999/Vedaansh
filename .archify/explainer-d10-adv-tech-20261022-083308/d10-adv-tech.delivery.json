@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "9e8ca7d1-9059-4fde-9194-0504e437ae5a",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-adv-tech-20261022-083308/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-adv-tech-20261022-083308/d10-adv-tech.html",
+  "specification": {
+    "sha256": "c780f3e61c04a3c7568bfb929bf0326094ee4fc146223a9ccb9bc578e4dca14f",
+    "bytes": 3391
+  },
+  "artifact": {
+    "sha256": "1fe34a8a17ee87dab998595239efc207bb3f09827231f3addb71e4bd481b44e6",
+    "bytes": 505572
+  },
+  "explainer": {
+    "preparedSha256": "02755e1b872030be6b7da56162181c8abd0236dfb7ab18732cdcf6bdea9ee91f",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "adv-stack",
+        "inline": true,
+        "sha256": "5628f38ff6d9827d80f64139bf566732fa5de9b88c007dc8a7ddc88248fd8371",
+        "bytes": 1105
+      }
+    ]
+  }
+}
