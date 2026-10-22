@@ -5,7 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState, useEffect } from 'react'
-import type { ChartOutput } from '@/types/astrology'
+import Link from 'next/link'
+import type { ChartOutput, UserPlan } from '@/types/astrology'
 import type { AshtakootResult, GanaSchool } from '@/lib/engine/ashtakoot'
 import { calculatePorutham } from '@/lib/engine/porutham'
 import { analyzeMilanDeep } from '@/lib/engine/milanDeepAnalysis'
@@ -18,6 +19,8 @@ import {
   resolveMilanRoles,
   type MilanRole,
 } from '@/lib/engine/milanSuite'
+import { analyzeMarriageGochar } from '@/lib/engine/marriageGochar'
+import { useMarriageGocharWindows } from '@/hooks/useMarriageGocharWindows'
 import { openMilanPrintPreview, type MilanReportInput } from '@/lib/pdf/milanHtml'
 import {
   loadMilanHistory,
@@ -25,6 +28,8 @@ import {
   deleteMilanHistoryEntry,
   type SavedMilanEntry,
 } from '@/lib/milan/milanHistory'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { PlanGate } from '@/components/ui/patterns/PlanGate'
 
 const TONE: Record<string, string> = {
   supportive: 'var(--teal)',
@@ -41,11 +46,14 @@ interface Props {
   ganaSchool: GanaSchool
   onRoleChange: (a: MilanRole, b: MilanRole) => void
   onGanaSchoolChange: (s: GanaSchool) => void
+  userPlan?: UserPlan
 }
 
 export function MilanExpandPanel({
   chartA, chartB, ashtakoot, roleA, roleB, ganaSchool, onRoleChange, onGanaSchoolChange,
+  userPlan = 'free',
 }: Props) {
+  const full = planMeetsUiGate(userPlan, 'gold')
   const roles = useMemo(
     () => resolveMilanRoles(chartA, chartB, { personA: roleA, personB: roleB }),
     [chartA, chartB, roleA, roleB],
@@ -74,6 +82,23 @@ export function MilanExpandPanel({
     () => analyzeMarriageTiming(roles.boyChart, roles.girlChart),
     [roles.boyChart, roles.girlChart],
   )
+  const { windows: gocharWindowsBoy } = useMarriageGocharWindows(roles.boyChart.lagnas?.ascRashi, full)
+  const { windows: gocharWindowsGirl } = useMarriageGocharWindows(roles.girlChart.lagnas?.ascRashi, full)
+  const gocharMuhurta = useMemo(() => {
+    if (!full) return null
+    const a = analyzeMarriageGochar(roles.boyChart, { injectWindows: gocharWindowsBoy })
+    const b = analyzeMarriageGochar(roles.girlChart, { injectWindows: gocharWindowsGirl })
+    const win = a?.muhurtaFrom
+      ? { from: a.muhurtaFrom, to: a.muhurtaTo }
+      : b?.muhurtaFrom
+        ? { from: b.muhurtaFrom, to: b.muhurtaTo }
+        : timing.antarPairs[0]
+          ? { from: timing.antarPairs[0].start, to: timing.antarPairs[0].end }
+          : timing.windows[0]
+            ? { from: timing.windows[0].start, to: timing.windows[0].end }
+            : null
+    return win
+  }, [full, roles.boyChart, roles.girlChart, timing, gocharWindowsBoy, gocharWindowsGirl])
   const jaimini = useMemo(
     () => analyzeDualJaiminiMarriage(roles.boyChart, roles.girlChart),
     [roles.boyChart, roles.girlChart],
@@ -113,6 +138,7 @@ export function MilanExpandPanel({
   }), [chartA, chartB, roles, ashtakoot, porutham, deep, manglik, timing, remedies, jaimini])
 
   const openPrintPreview = () => {
+    if (!full) return
     openMilanPrintPreview(reportInput)
   }
 
@@ -161,11 +187,25 @@ export function MilanExpandPanel({
             <option value="parampara">Parampara (teacher notes)</option>
           </select>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button type="button" className="btn btn-secondary" style={{ fontSize: '0.75rem' }} onClick={saveHistory}>Save match</button>
-          <button type="button" className="btn" style={{ fontSize: '0.75rem' }} onClick={openPrintPreview}>Print All Sections</button>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button type="button" className="btn btn-secondary" style={{ fontSize: '0.75rem' }} onClick={saveHistory}>
+            Save on this device
+          </button>
+          {full ? (
+            <button type="button" className="btn" style={{ fontSize: '0.75rem' }} onClick={openPrintPreview}>
+              Print All Sections
+            </button>
+          ) : (
+            <PlanGate userPlan={userPlan} required="gold" featureName="Milan print">
+              <div style={{ minHeight: 36, minWidth: 120 }} />
+            </PlanGate>
+          )}
         </div>
       </div>
+      <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+        “Save on this device” keeps a score snapshot in this browser only. Use{' '}
+        <strong style={{ color: 'var(--text-secondary)' }}>Save Kundali Milan</strong> in the header to store births in My Charts.
+      </p>
 
       <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
         Directional scoring uses <strong style={{ color: 'var(--text-gold)' }}>{roles.boyLabel}</strong> as Groom and{' '}
@@ -225,6 +265,26 @@ export function MilanExpandPanel({
             </div>
           ))}
         </div>
+        {full && gocharMuhurta?.from ? (
+          <div style={{ marginTop: '0.85rem' }}>
+            <Link
+              href={`/muhurta?from=${encodeURIComponent(gocharMuhurta.from)}${gocharMuhurta.to ? `&to=${encodeURIComponent(gocharMuhurta.to)}` : ''}`}
+              style={{
+                display: 'inline-flex',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                color: 'var(--text-gold)',
+                textDecoration: 'none',
+                padding: '0.45rem 0.75rem',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--r-sm)',
+                background: 'var(--surface-2)',
+              }}
+            >
+              Search muhurta {gocharMuhurta.from}{gocharMuhurta.to ? ` → ${gocharMuhurta.to}` : ''}
+            </Link>
+          </div>
+        ) : null}
       </div>
 
       {/* Jaimini D9 */}
@@ -292,7 +352,10 @@ export function MilanExpandPanel({
       {/* History */}
       {history.length > 0 && (
         <div className="card" style={{ padding: '1.2rem' }}>
-          <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Saved matches (this device)</h3>
+          <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Saved on this device</h3>
+          <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+            Score snapshots only — they do not reopen charts. Use header Save for My Charts.
+          </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
             {history.slice(0, 12).map(h => (
               <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', fontSize: '0.75rem', padding: '0.45rem 0', borderBottom: '1px solid var(--border-soft)' }}>

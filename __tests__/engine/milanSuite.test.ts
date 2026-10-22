@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   analyzeManglikPair,
+  analyzeMarriageTiming,
+  analyzeDualJaiminiMarriage,
   buildMilanRemedies,
   resolveMilanRoles,
   catalogVaidhavyaCues,
@@ -63,5 +65,22 @@ describe('milanSuite', () => {
   it('catalogs vaidhavya cues', () => {
     const c = catalogVaidhavyaCues(chart('X', 'female', 1, 7))
     expect(c.length).toBeGreaterThan(0)
+  })
+
+  it('analyzeMarriageTiming returns summary and window arrays', () => {
+    const boy = chart('Boy', 'male', 1, 2)
+    const girl = chart('Girl', 'female', 5, 2)
+    const t = analyzeMarriageTiming(boy, girl)
+    expect(t.summary.length).toBeGreaterThan(0)
+    expect(Array.isArray(t.windows)).toBe(true)
+    expect(Array.isArray(t.antarPairs)).toBe(true)
+  })
+
+  it('analyzeDualJaiminiMarriage returns tone and summary', () => {
+    const boy = chart('Boy', 'male', 1, 2)
+    const girl = chart('Girl', 'female', 5, 2)
+    const j = analyzeDualJaiminiMarriage(boy, girl)
+    expect(['supportive', 'caution', 'mixed']).toContain(j.tone)
+    expect(j.summary.length).toBeGreaterThan(0)
   })
 })

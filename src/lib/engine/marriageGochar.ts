@@ -1,13 +1,26 @@
 // src/lib/engine/marriageGochar.ts
 // Jupiter–Saturn double transit is a bright chance for marriage only when
 // the running dasha already touches a marriage house, and only inside the
-// years a marriage is possible. The transit date is not computed here.
+// years a marriage is possible. Dated windows are scanned from the sky.
 // Pure engine — no React/DB.
 
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
+import { analyzeSeventhLord, type MarriageAgeBand } from '@/lib/engine/seventhLord'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
+// Sky scan uses Swiss Ephemeris — keep it out of this module so client UI can import safely.
+// Use marriageGocharScan.ts /api/marriage/gochar-windows + injectWindows for dated windows.
+
+export type MarriageTransitKind = 'double-1' | 'double-7' | 'jupiter-lagna'
+
+export interface MarriageTransitWindow {
+  start: string
+  end: string
+  kind: MarriageTransitKind
+  inDasha: boolean
+  inAgeBand: boolean | null
+}
 
 export interface MarriageGocharFlags {
   dashaSupports: boolean | null
@@ -20,7 +33,27 @@ export interface MarriageGocharReading {
   summary: string
   principles: string
   window: MarriedLifeNote[]
+  windows: MarriageTransitWindow[]
+  muhurtaFrom?: string
+  muhurtaTo?: string
   flags: MarriageGocharFlags
+}
+
+export interface MarriageGocharOptions {
+  now?: Date
+  /** Years label when a completed scan found no windows (default 8). */
+  scanYears?: number
+  /**
+   * @deprecated No in-process ephemeris scan — use injectWindows from the API.
+   * Kept so existing callers/tests keep compiling.
+   */
+  skipScan?: boolean
+  /**
+   * Precomputed sky windows (from marriageGocharScan / API / tests).
+   * Pass `[]` after a completed scan with no hits to emit the “no sky window” note.
+   * Omit (undefined) when windows are not available yet.
+   */
+  injectWindows?: Array<Pick<MarriageTransitWindow, 'start' | 'end' | 'kind'> | MarriageTransitWindow>
 }
 
 const SUPPORT = [7, 2, 5, 11, 3, 1, 4, 8]
@@ -30,14 +63,21 @@ const LORDS: Record<number, GrahaId> = {
   7: 'Ve', 8: 'Ma', 9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju',
 }
 
+const AGE_YEARS: Record<MarriageAgeBand, [number, number] | null> = {
+  timely: [21, 28],
+  delayed: [28, 32],
+  late: [35, 55],
+  open: null,
+}
+
 export const MARRIAGE_GOCHAR_PRINCIPLES =
-  'A double transit of Saturn and Jupiter on the 1st or the 7th is one bright chance for marriage. It is not the marriage. Outside the years a marriage is possible, that transit passes. Jupiter’s transit on the lagna alone has coincided with marriage in charts the class studied, and still only when the dasha was already open. The period does not have to be Saturn’s and Jupiter’s. Any period tied to the 7th, 2nd, 5th, 11th, 3rd, 1st, 4th, or 8th can receive the event. Whether marriage is promised is a separate reading. Some marriages exist because a child is due through that union. Jupiter is the significator of life in that question.'
+  'A double transit of Saturn and Jupiter on the 1st or the 7th is one bright chance for marriage. It is not the marriage. Outside the years a marriage is possible, that transit passes. Jupiter’s transit on the lagna alone has coincided with marriage when the dasha was already open. Dated windows are scanned from the sky and then filtered by dasha and age band. They are opportunity ranges, not a guaranteed wedding day.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
 }
 
-function signOf(asc: number, house: number): Rashi {
+function signOfAsc(asc: number, house: number): Rashi {
   return ((((asc - 1 + house - 1) % 12) + 1) as Rashi)
 }
 
@@ -60,21 +100,76 @@ function ordinalHouse(n: number): string {
   return `${n}th`
 }
 
-export function analyzeMarriageGochar(chart: ChartOutput | null | undefined): MarriageGocharReading | null {
+function isoDay(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
+/** Pure classifier for one month’s Ju/Sa houses from natal asc. */
+export function classifyTransitMonth(juHouse: number, saHouse: number): MarriageTransitKind | null {
+  if (juHouse === 1 && saHouse === 1) return 'double-1'
+  if (juHouse === 7 && saHouse === 7) return 'double-7'
+  if (juHouse === 1) return 'jupiter-lagna'
+  return null
+}
+
+export function mergeTransitMonths(
+  months: { ym: string; kind: MarriageTransitKind }[],
+): { start: string; end: string; kind: MarriageTransitKind }[] {
+  if (!months.length) return []
+  const sorted = [...months].sort((a, b) => a.ym.localeCompare(b.ym))
+  const out: { start: string; end: string; kind: MarriageTransitKind }[] = []
+  let cur = { start: `${sorted[0].ym}-01`, end: `${sorted[0].ym}-28`, kind: sorted[0].kind }
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1].ym
+    const [py, pm] = prev.split('-').map(Number)
+    const nextYm = sorted[i].ym
+    const [ny, nm] = nextYm.split('-').map(Number)
+    const contiguous = (ny === py && nm === pm + 1) || (ny === py + 1 && pm === 12 && nm === 1)
+    if (contiguous && sorted[i].kind === cur.kind) {
+      cur.end = `${nextYm}-28`
+    } else {
+      out.push(cur)
+      cur = { start: `${nextYm}-01`, end: `${nextYm}-28`, kind: sorted[i].kind }
+    }
+  }
+  out.push(cur)
+  return out
+}
+
+function overlaps(a0: string, a1: string, b0: string, b1: string): boolean {
+  return a0 <= b1 && b0 <= a1
+}
+
+function birthYear(chart: ChartOutput): number | null {
+  const raw = chart.meta?.birthDate
+  if (!raw) return null
+  const y = Number(String(raw).slice(0, 4))
+  return Number.isFinite(y) && y > 1900 ? y : null
+}
+
+function ageAt(iso: string, by: number): number {
+  return Number(iso.slice(0, 4)) - by
+}
+
+export function analyzeMarriageGochar(
+  chart: ChartOutput | null | undefined,
+  opts: MarriageGocharOptions = {},
+): MarriageGocharReading | null {
   const asc = chart?.lagnas?.ascRashi
   if (!chart || !asc) return null
 
+  const now = opts.now ?? new Date()
   const grahas = chart.grahas ?? []
   const ties = (planet: GrahaData | undefined, house: number): boolean => {
     if (!planet) return false
-    const sign = signOf(asc, house)
+    const sign = signOfAsc(asc, house)
     if (LORDS[sign] === planet.id) return true
     if (planet.rashi === sign) return true
     const lord = find(grahas, LORDS[sign])
     return !!lord && lord.id !== planet.id && lord.rashi === planet.rashi
   }
 
-  const path = chart.dashas?.vimshottari ? getDashaPathAt(chart.dashas.vimshottari) : []
+  const path = chart.dashas?.vimshottari ? getDashaPathAt(chart.dashas.vimshottari, now.getTime()) : []
   const periodGraha = (index: number) => {
     const id = path[index]?.lord
     return id ? find(grahas, id as GrahaId) : undefined
@@ -85,11 +180,11 @@ export function analyzeMarriageGochar(chart: ChartOutput | null | undefined): Ma
   const dashaSupports = path.length ? houses.length > 0 : null
 
   const jupiter = find(grahas, 'Ju')
-  const fifthLord = find(grahas, LORDS[signOf(asc, 5)])
+  const fifthLord = find(grahas, LORDS[signOfAsc(asc, 5)])
   const fifthTied = houses.includes(5)
   const jupiterOnFifth = !!jupiter && (
     houseOf(jupiter.rashi, asc) === 5
-    || jupiter.id === LORDS[signOf(asc, 5)]
+    || jupiter.id === LORDS[signOfAsc(asc, 5)]
     || (!!fifthLord && fifthLord.id !== 'Ju' && fifthLord.rashi === jupiter.rashi)
   )
   const childrenVehicle = fifthTied && jupiterOnFifth
@@ -98,25 +193,82 @@ export function analyzeMarriageGochar(chart: ChartOutput | null | undefined): Ma
   const periodNames = path.slice(0, 2).map(p => gn(p.lord))
   const names = periodNames.filter((name, i) => i === 0 || name !== periodNames[i - 1]).join(' → ')
 
+  const mdStart = path[0] ? isoDay(new Date(path[0].start)) : null
+  const mdEnd = path[0] ? isoDay(new Date(path[0].end)) : null
+  const adStart = path[1] ? isoDay(new Date(path[1].start)) : null
+  const adEnd = path[1] ? isoDay(new Date(path[1].end)) : null
+  const dashaStart = adStart && mdStart ? (adStart > mdStart ? adStart : mdStart) : mdStart
+  const dashaEnd = adEnd && mdEnd ? (adEnd < mdEnd ? adEnd : mdEnd) : mdEnd
+
+  const seventh = analyzeSeventhLord(chart)
+  const band = seventh?.flags.band ?? 'open'
+  const by = birthYear(chart)
+  const ageRange = AGE_YEARS[band]
+
+  // Browser-safe: no ephemeris here. Dated windows come only via injectWindows.
+  const scanned = opts.injectWindows !== undefined
+  const raw = opts.injectWindows?.map(w => ({ start: w.start, end: w.end, kind: w.kind })) ?? []
+
+  const windows: MarriageTransitWindow[] = raw.map(w => {
+    const inDasha = !!(dashaStart && dashaEnd && overlaps(w.start, w.end, dashaStart, dashaEnd))
+    let inAgeBand: boolean | null = null
+    if (by && ageRange) {
+      const midY = ageAt(w.start, by)
+      inAgeBand = midY >= ageRange[0] && midY <= ageRange[1]
+    }
+    return { ...w, inDasha, inAgeBand }
+  })
+
   if (dashaSupports && md) {
     window.push(note(
       'gochar-open',
       'This period can receive a marriage transit',
-      `${names} is tied to ${houses.map(ordinalHouse).join(', ')}. Those are houses the class allows to carry a wedding: the 7th, the family, romance, fulfillment, courage, the self, the home, and the transformation after marriage. A double transit of Saturn and Jupiter on the 1st or the 7th is a bright chance while this period is open, and only inside the years a marriage is possible. Jupiter’s transit on the lagna, without Saturn, has also coincided with marriage when the period was already like this. The transit date is not taken from the birth chart. If the years are wrong, or the period is not this one, the same sky passes with no wedding.`,
+      `Period lords ${names} are tied to ${houses.map(ordinalHouse).join(', ')}. Those houses can carry a wedding. A double transit of Saturn and Jupiter on the rising sign or marriage house (7th) is a bright chance while this period is open. Dated sky windows below are search ranges, not a guaranteed wedding day.`,
       'mixed',
     ))
   } else if (dashaSupports === false && md) {
     window.push(note(
       'gochar-pass',
       'A favorable transit would pass',
-      `${names} is not tied to the 7th, 2nd, 5th, 11th, 3rd, 1st, 4th, or 8th. The class is explicit that a Saturn–Jupiter double transit, and even Jupiter alone on the lagna, does not marry anyone by itself. While this period runs, that sky passes without the event.`,
+      `Period lords ${names} are not tied to houses used to time marriage (1, 2, 3, 4, 5, 7, 8, 11). A Saturn–Jupiter double transit — or Jupiter alone on the rising sign — does not marry anyone by itself. While this period runs, that sky often passes without the event.`,
       'caution',
     ))
   } else {
     window.push(note(
       'gochar-no-period',
       'The period is not on this chart',
-      'A double transit of Saturn and Jupiter on the 1st or the 7th is a bright chance only beside a dasha that already touches marriage. This chart has no running Vimshottari period to test, so the transit cannot be confirmed or dismissed from here.',
+      'A double transit of Saturn and Jupiter on the rising sign or marriage house is a bright chance only beside a dasha period that already touches marriage. This chart has no running period to test.',
+      'mixed',
+    ))
+  }
+
+  if (dashaSupports && windows.length) {
+    const preferred = windows.filter(w => w.inDasha && w.inAgeBand !== false)
+    const list = (preferred.length ? preferred : windows.filter(w => w.inDasha)).slice(0, 4)
+    const show = list.length ? list : windows.slice(0, 3)
+    for (const w of show) {
+      const kindLabel = w.kind === 'double-1'
+        ? 'Jupiter + Saturn on the rising sign'
+        : w.kind === 'double-7'
+          ? 'Jupiter + Saturn on the marriage house (7th)'
+          : 'Jupiter on the rising sign'
+      window.push(note(
+        `gochar-win-${w.start}`,
+        `${kindLabel}: ${w.start} → ${w.end}`,
+        [
+          w.inDasha ? 'Overlaps the open marriage dasha.' : 'Falls outside the current MD/AD span — note only.',
+          w.inAgeBand === true ? `Fits the ${band} age band.` : '',
+          w.inAgeBand === false ? `Sits outside the ${band} age band — weaker priority.` : '',
+          'Use as a muhurta search range, not as a fixed wedding date.',
+        ].filter(Boolean).join(' '),
+        w.inDasha && w.inAgeBand !== false ? 'supportive' : 'mixed',
+      ))
+    }
+  } else if (dashaSupports && !windows.length && scanned) {
+    window.push(note(
+      'gochar-no-sky',
+      'No Jupiter–Saturn marriage sky window in the scan',
+      `No double transit of Jupiter and Saturn on the rising sign or marriage house (or Jupiter alone on the rising sign) was found in the next ${opts.scanYears ?? 8} years. The period can still receive other transits; this filter only names those sky patterns.`,
       'mixed',
     ))
   }
@@ -125,28 +277,34 @@ export function analyzeMarriageGochar(chart: ChartOutput | null | undefined): Ma
     window.push(note(
       'gochar-children',
       'A child can be the reason the marriage is due',
-      `Jupiter, significator of progeny, is on the 5th, and the 5th is in ${names}. The class has seen marriages that exist so a child can be born through that union. This is not a finding that a child is assured. If the person is not yet of an age to marry and is already in a relationship, the same period is a reason for caution: an unplanned pregnancy is how this pattern has shown, and health trouble has followed it.`,
+      `Jupiter, significator of progeny, is on the 5th, and the 5th is in ${names}. Some marriages exist so a child can be born through that union. This is not a finding that a child is assured.`,
       'caution',
     ))
   }
 
+  const preferredWin = windows.find(w => w.inDasha && w.inAgeBand !== false) ?? windows.find(w => w.inDasha) ?? windows[0]
   const headline = dashaSupports
-    ? 'The period is open. A double transit can brighten it'
+    ? preferredWin
+      ? `Period open — next sky window ${preferredWin.start}`
+      : 'The period is open. A double transit can brighten it'
     : dashaSupports === false
       ? 'The period is not open. A double transit would pass'
       : 'Marriage transit cannot be read without the period'
 
   const summary = dashaSupports
-    ? `${names} touches ${houses.map(ordinalHouse).join(', ')}. Saturn and Jupiter together on the 1st or the 7th are a chance in this window, not a date.`
+    ? `Period lords ${names} touch ${houses.map(ordinalHouse).join(', ')}. ${windows.length ? `${windows.length} Jupiter–Saturn sky window(s) scanned.` : 'No Jupiter–Saturn window in this scan.'}`
     : dashaSupports === false
-      ? `${names} does not touch a house the class uses to time marriage.`
-      : 'No Vimshottari period is available to set beside the transit.'
+      ? `Period lords ${names} do not touch a house used to time marriage.`
+      : 'No dasha period is available to set beside the transit.'
 
   return {
     headline,
     summary,
     principles: MARRIAGE_GOCHAR_PRINCIPLES,
     window,
+    windows,
+    muhurtaFrom: preferredWin?.start,
+    muhurtaTo: preferredWin?.end,
     flags: { dashaSupports, houses, childrenVehicle },
   }
 }
@@ -158,10 +316,11 @@ export function compareMarriageGochar(
   nameB: string,
 ): MarriedLifeNote[] {
   if (a.flags.dashaSupports && b.flags.dashaSupports) {
+    const shared = a.windows.find(w => b.windows.some(x => overlaps(w.start, w.end, x.start, x.end) && w.inDasha && x.inDasha))
     return [note(
       'gochar-pair-both',
       'Both periods can receive a marriage transit',
-      `${nameA} and ${nameB} are both in a dasha tied to a marriage house. A double transit of Saturn and Jupiter on the 1st or the 7th is a bright chance for each, still only inside a marriageable age, and still not a date taken from either birth chart.`,
+      `${nameA} and ${nameB} are both in a dasha tied to a marriage house.${shared ? ` Shared sky overlap around ${shared.start} → ${shared.end}.` : ''} Still opportunity ranges, not a fixed wedding day.`,
       'mixed',
     )]
   }
@@ -179,7 +338,7 @@ export function compareMarriageGochar(
     return [note(
       'gochar-pair-pass',
       'Neither period can carry a marriage transit',
-      `${nameA} and ${nameB} are both in dashas that do not touch the houses this class uses. A double transit on the 1st or the 7th would pass for both.`,
+      `${nameA} and ${nameB} are both in dashas that do not touch the houses used for marriage timing.`,
       'caution',
     )]
   }

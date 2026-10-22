@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-sastra-20261022-032535/candidate.archify.md",
+    "sha256": "a5ab17b3d0ff85f0765a0bfd100304742a8b97bcbe9cd0eee824813a1701e082",
+    "bytes": 4326
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-sastra-20261022-032535/d10-sastra.html",
+    "sha256": "2d59d3ffdf07c37c54a99d8588ac5277692614e061dc9556d84a07cea2aa38fb",
+    "bytes": 508310
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-sastra-20261022-032535/d10-sastra.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-sastra-20261022-032535/d10-sastra.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 2081,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

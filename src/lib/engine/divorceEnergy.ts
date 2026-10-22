@@ -19,6 +19,9 @@ export interface DivorceEnergyFlags {
   venus: boolean
   saturn: boolean
   thread: 'Mo' | 'Ve' | 'Sa' | null
+  manglik: boolean
+  manglikCancelled: boolean
+  strainSoftened: boolean
 }
 
 export interface DivorceEnergyReading {
@@ -27,6 +30,8 @@ export interface DivorceEnergyReading {
   principles: string
   energies: MarriedLifeNote[]
   triggers: MarriedLifeNote[]
+  /** Kuja cancellations, benefic softening, remaining-thread dasha. */
+  cancellations: MarriedLifeNote[]
   flags: DivorceEnergyFlags
 }
 
@@ -157,6 +162,78 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
 
   const energies: MarriedLifeNote[] = []
   const triggers: MarriedLifeNote[] = []
+  const cancellations: MarriedLifeNote[] = []
+
+  const manglik = !!mars && [1, 4, 7, 8, 12].includes(houseOf(mars.rashi, asc))
+  let manglikCancelled = false
+  if (manglik && mars) {
+    const marsOwn = mars.dignity === 'own' || mars.dignity === 'moolatrikona' || mars.dignity === 'exalted'
+    const kendraBenefic = grahas.some(g =>
+      (g.id === 'Ju' || g.id === 'Ve' || g.id === 'Mo')
+      && [1, 4, 7, 10].includes(houseOf(g.rashi, asc))
+      && !weak(g, asc, grahas),
+    )
+    const juSeesMars = !!jupiter && (jupiter.rashi === mars.rashi || aspects(jupiter, mars.rashi))
+    if (marsOwn || kendraBenefic || juSeesMars) {
+      manglikCancelled = true
+      cancellations.push(note(
+        'split-kuja-cancel',
+        'Mars heat on marriage houses is softened',
+        [
+          marsOwn ? 'Mars is in its own strength.' : '',
+          kendraBenefic ? 'A capable Moon, Venus, or Jupiter sits in a kendra.' : '',
+          juSeesMars ? 'Jupiter joins or aspects Mars.' : '',
+          'The classical Manglik heat still names conflict and effort. After about twenty-eight that heat fades further. It is not read as an automatic break when these cancellations are present.',
+        ].filter(Boolean).join(' '),
+        'supportive',
+      ))
+    } else {
+      cancellations.push(note(
+        'split-kuja-active',
+        'Mars sits in a marriage-heat house',
+        'Mars is in the 1st, 4th, 7th, 8th, or 12th without the usual softener. The reading is heat, conflict, and delayed ease in the bond — not a dated divorce. After about twenty-eight the same placement is read more lightly.',
+        'mixed',
+      ))
+    }
+  }
+
+  const juOnSeventh = !!jupiter && (jupiter.rashi === seventh || aspects(jupiter, seventh) || (!!lord && jupiter.rashi === lord.rashi))
+  const veOnSeventh = !!venus && !venusDown && (venus.rashi === seventh || aspects(venus, seventh))
+  let strainSoftened = false
+  if ((level === 'strain' || level === 'separation') && (juOnSeventh || veOnSeventh)) {
+    strainSoftened = (juOnSeventh && firm(jupiter, asc, grahas)) || veOnSeventh
+    cancellations.push(note(
+      'split-benefic-soft',
+      'A benefic still touches the marriage',
+      [
+        juOnSeventh && firm(jupiter, asc, grahas) ? 'Jupiter is capable and joins or aspects the 7th or its lord — wisdom and compromise can still land.' : '',
+        juOnSeventh && !firm(jupiter, asc, grahas) ? 'Jupiter touches the 7th, but Jupiter itself is under strain, so the softener is thinner.' : '',
+        veOnSeventh ? 'Venus still capable on the marriage keeps affection available even when another energy is down.' : '',
+        'This softens the tone of the strain. It does not invent a wedding date or erase work that still has to be done.',
+      ].filter(Boolean).join(' '),
+      strainSoftened ? 'supportive' : 'mixed',
+    ))
+  }
+
+  if ((level === 'separation' || level === 'divorce') && thread) {
+    const path = chart.dashas?.vimshottari ? getDashaPathAt(chart.dashas.vimshottari) : []
+    const running = path.slice(0, 3).map(p => p.lord as GrahaId)
+    if (running.includes(thread)) {
+      cancellations.push(note(
+        'split-thread-dasha',
+        `${gn(thread)} still carries the remaining thread in the period`,
+        `${gn(thread)} is running in the current dasha path while the other marriage energies are down. The work is through that planet’s period — feeling, affection, or duty — not through a filing date. This chart is not given a divorce date.`,
+        'mixed',
+      ))
+    } else if (running.length) {
+      cancellations.push(note(
+        'split-thread-waiting',
+        `The remaining thread is ${gn(thread)}, not the current period lords`,
+        `Two energies are down; ${gn(thread)} still holds. The running path is ${running.map(gn).join(' → ')}. When ${gn(thread)} returns in dasha, that is when the class looks for repair — still without naming a court date.`,
+        'mixed',
+      ))
+    }
+  }
 
   const whyMoon = moonOverruled && !moonWeak
     ? 'Saturn or Ketu has taken the Moon over, so the feeling thins even though the Moon is not fallen on its own.'
@@ -293,7 +370,8 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
         ? 'One marriage energy is under strain'
         : 'The three marriage energies are not in a break'
 
-  const summary = `Moon ${moonDown ? 'down' : 'available'}. Venus ${venusDown ? 'down' : 'available'}. Saturn ${saturnDown ? 'down' : 'available'}.`
+  const status = (down: boolean) => (down ? 'under strain' : 'holding')
+  const summary = `Moon (feelings) is ${status(moonDown)}. Venus (attraction) is ${status(venusDown)}. Saturn (duty and staying power) is ${status(saturnDown)}.`
 
   return {
     headline,
@@ -301,7 +379,17 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
     principles: DIVORCE_ENERGY_PRINCIPLES,
     energies,
     triggers,
-    flags: { level, moon: moonDown, venus: venusDown, saturn: saturnDown, thread },
+    cancellations,
+    flags: {
+      level,
+      moon: moonDown,
+      venus: venusDown,
+      saturn: saturnDown,
+      thread,
+      manglik,
+      manglikCancelled,
+      strainSoftened: !!strainSoftened,
+    },
   }
 }
 

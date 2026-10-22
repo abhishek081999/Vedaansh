@@ -40,6 +40,7 @@ export const GUIDES: Guide[] = [
     toolCta: { href: '/', label: 'Calculate free Kundali' },
     relatedSlugs: [
       'what-is-navamsha-d9-chart',
+      'what-is-dashamsha-d10-chart',
       'vimshottari-dasha-explained',
       'what-is-lagna-ascendant',
       'lahiri-ayanamsha-explained',
@@ -130,6 +131,77 @@ export const GUIDES: Guide[] = [
       {
         q: 'Should I read D9 without D1?',
         a: 'No. Treat D9 as a microscope on D1. Start from the birth chart, then confirm strength and relationship themes in Navamsha.',
+      },
+    ],
+  },
+  {
+    slug: 'what-is-dashamsha-d10-chart',
+    title: 'What Is Dashamsha (D10)? Career Divisional Chart Explained',
+    description:
+      'Dashamsha (D10) is the Vedic divisional chart for career, livelihood, status, and professional karma. Learn Digpalas, house meanings, and how to read D10 with D1.',
+    keywords: [
+      'dashamsha',
+      'D10 chart',
+      'dasamsa career',
+      'vedic career astrology',
+      'digpala d10',
+    ],
+    publishedAt: '2026-10-22',
+    updatedAt: '2026-10-22',
+    toolCta: { href: '/', label: 'Open chart & Dashamsha (D10)' },
+    relatedSlugs: [
+      'what-is-navamsha-d9-chart',
+      'free-vedic-birth-chart-kundali',
+      'vimshottari-dasha-explained',
+      'what-is-lagna-ascendant',
+    ],
+    intro: [
+      'Dashamsha (D10 / Dasamsa) divides each 30° Rashi into ten 3° segments. It is the primary varga for career, profession, livelihood, reputation, and work-related karma (mahat phala).',
+      'Classical practice reads D10 with the birth chart: the 10th and 11th lords in Dashamsha, Digpala (direction) deities from Narada Samhita, and current Vimshottari dashas timed against D10 houses.',
+    ],
+    sections: [
+      {
+        heading: 'How Dashamsha is calculated',
+        paragraphs: [
+          'Each sign is split into ten equal 3° parts (groups). For odd signs, counting starts from the planet’s own sign; for even signs, counting starts from the 9th sign from the planet — matching the Swiss Ephemeris / Parashari mapping Vedaansh uses.',
+          'Your D10 Lagna is independent of D1 Lagna. That shift is why two people with similar birth charts can have very different professional trajectories.',
+        ],
+      },
+      {
+        heading: 'Digpalas — prediction, not decoration',
+        paragraphs: [
+          'Narada Samhita assigns ten Digpalas (Indra, Agni, Yama, Rakshasa, Varuna, Vayu, Kubera, Ishana, Brahma, Ananta) to the ten Dashamsha parts. Odd signs run Indra→Ananta; even signs reverse. Each Digpala has an अधिष्ठाता ग्रह, a compass direction for job/transfer/setup, and profession lists (e.g. Yama → lawyers/judges/defense; Kubera → CA/consultants; Varuna → overseas/medical/shipping).',
+          'Classroom prediction order: (1) Digpala of D1 Lagna degree for livelihood direction and foreign themes, (2) Digpala of D10 10th lord for how work karma behaves (Brahma = creation + inner peace; Ananta = wide fame), (3) D10 11th lord and its dasha for awards after public events, (4) D10 8th for ethical vs unethical business track.',
+        ],
+      },
+      {
+        heading: 'Classical rules on the Śāstra tab',
+        paragraphs: [
+          'BPHS assigns Dashamsha to mahatphala: power, status, and deeds of consequence. The Śāstra tab grades that from the D10 lagna lord, the 10th lord’s house, Digbala, Vargottama, and the yogas that are actually formed — Dharma-Karmadhipati, Neecha Bhanga, Viparita, Budha-Aditya.',
+          'Phaladeepika names the livelihood planet from the birth-chart 10th: its lord, planets in it, planets aspecting it, and the Navamsha lord of the 10th lord (Uttara Kalamrita). That planet’s Dashamsha house shows how the profession fruits. Saravali and Brihat Jataka read the 10th sign as movable, fixed, or dual. Jaimini places the Amatyakaraka in D10 as the minister of the chart. Vimshottari of those lords times the result.',
+        ],
+      },
+      {
+        heading: 'Career Synthesis tab',
+        paragraphs: [
+          'The Synthesis tab merges A10 (Rajya Pada / public title), Phaladeepika + Digpala + nakshatra profession fields, job-vs-business track, foreign/transfer score, boss from the D10 10th lord, Vimsopaka D10 strength, Tajika Muntha against D10 houses, current gochara into D10 houses, and dasha windows — then offers a copyable Markdown career brief.',
+        ],
+      },
+      {
+        heading: 'Houses that decide livelihood',
+        paragraphs: [
+          'D10 Lagna = ājīvikā foundation and mental state about work. 2nd = income and how business is expressed. 3rd = innovation and networking. 4th = emotional satisfaction from occupation. 5th = reputation and beneficiaries. 6th = competition and speed-breakers. 7th = partners. 8th = secrets and ethical track. 9th = mentors and right direction. 10th = all work karma and reputation build. 11th = profits and awards. 12th = endings, donations, hidden enmities.',
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: 'Is D10 only for job titles?',
+        a: 'No. It covers livelihood source, professional growth, respect through work, business vs service paths, and career karma — not just a single job label.',
+      },
+      {
+        q: 'Should I read D10 without D1?',
+        a: 'No. Treat D10 as the career microscope on D1. Start from the birth chart’s 10th house and dashas, then refine status and timing in Dashamsha.',
       },
     ],
   },

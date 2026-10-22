@@ -1,0 +1,340 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "startedAt": "2026-10-21T20:49:30.384Z",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/candidate.archify.md",
+    "sha256": "5ac2fc8733915858cd01a0ecd67b3428b5c45c85538b13c6ae6804568c8c8f87",
+    "bytes": 1921
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/d10-three-tabs.html",
+    "sha256": "34e484195b169a949b757186982e47e34abacce0d79b96f1eb6dbc36f15cdfd3",
+    "bytes": 482348
+  },
+  "stages": {
+    "browser-check": {
+      "status": "not-run",
+      "execution": "not-requested"
+    },
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/d10-three-tabs.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/apple/Projects/Vedaansh",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "5ac2fc8733915858cd01a0ecd67b3428b5c45c85538b13c6ae6804568c8c8f87",
+          "bytes": 1921
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 683,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/d10-three-tabs.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/apple/Projects/Vedaansh",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "0d817f68-8f03-4412-a7da-942116e7b84e",
+        "ok": true,
+        "command": "deliver",
+        "type": "explainer",
+        "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/candidate.archify.md",
+        "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/d10-three-tabs.html",
+        "explainer": {
+          "preparedSha256": "418db1639bd19f3fab1b953ae78a09728c9bce7d4a2ed14912b0c07c6caf322d",
+          "dependencies": [
+            {
+              "kind": "diagram-spec",
+              "id": "karma-vert",
+              "inline": true,
+              "sha256": "62ab34d5051511a42df9018edd7e6ae7a191585cd3717c95a80acb336fca9ffe",
+              "bytes": 650
+            }
+          ]
+        },
+        "specification": {
+          "sha256": "5ac2fc8733915858cd01a0ecd67b3428b5c45c85538b13c6ae6804568c8c8f87",
+          "bytes": 1921
+        },
+        "artifact": {
+          "sha256": "34e484195b169a949b757186982e47e34abacce0d79b96f1eb6dbc36f15cdfd3",
+          "bytes": 482348
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 799,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "check",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/d10-three-tabs.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/d10-three-tabs.html",
+        "family": "explainer",
+        "artifact": {
+          "sha256": "34e484195b169a949b757186982e47e34abacce0d79b96f1eb6dbc36f15cdfd3",
+          "bytes": 482348
+        },
+        "checks": [
+          {
+            "name": "explainer_structure",
+            "ok": true,
+            "details": [
+              "34 unique DOM IDs"
+            ]
+          },
+          {
+            "name": "explainer_payload_identity",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "explainer_dependencies",
+            "ok": true,
+            "details": [
+              "1 frozen dependencies"
+            ]
+          },
+          {
+            "name": "explainer_native_diagrams",
+            "ok": true,
+            "details": [
+              "karma-vert: pass"
+            ]
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "issues": [],
+          "nativeDiagrams": [
+            {
+              "id": "karma-vert",
+              "receipt": {
+                "ok": true,
+                "file": "/var/folders/hj/x7njj5vd4_bblfkvgdllrv0m0000gn/T/archify-explainer-check-yPLFn4/child.html",
+                "artifact": {
+                  "sha256": "687253d8a2a551d49de757c322b8e4c1c1d3a6a3bd333f6451baea101ab173f3",
+                  "bytes": 806625
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 128.1,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 8,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 56.4,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "edge",
+                      "id": "body-to-mind-1",
+                      "from": "body",
+                      "to": "mind"
+                    },
+                    "minimumSourceTextPx": 8,
+                    "minimumProjectedTextPx": 8,
+                    "semanticTextCount": 5
+                  },
+                  "issues": []
+                }
+              }
+            }
+          ]
+        },
+        "diagnostics": [],
+        "provenance": "current",
+        "deliveryReceiptId": "0d817f68-8f03-4412-a7da-942116e7b84e"
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/d10-three-tabs.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-three-tabs-20261022-021900/d10-three-tabs.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-10-21T20:49:32.111Z",
+  "durationMs": 1726,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

@@ -13,7 +13,7 @@
 | `npm run test:engine` | `vitest run` — full Vitest suite as configured |
 | `npm run test:security` | Security unit tests only |
 | `npm run security:check` / `security:preflight` | Alias → security tests |
-| `npm run security:audit` | `npm audit --omit=dev --audit-level=high` |
+| `npm run security:audit` | Production dep audit (`scripts/security-audit.mjs`, retries registry timeouts) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint, zero warnings |
 | `npm run test:watch` | Watch engine under `src/lib/engine` |

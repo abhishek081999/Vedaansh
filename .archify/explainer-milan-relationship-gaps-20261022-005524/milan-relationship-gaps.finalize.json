@@ -1,0 +1,570 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "startedAt": "2026-10-21T19:26:25.055Z",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/candidate.archify.md",
+    "sha256": "ba213c0709df362d4bb32a29ce7d963985998c2f161564b3a77dbdb3d333d225",
+    "bytes": 6808
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/milan-relationship-gaps.html",
+    "sha256": "f0c0c95965f51ce1e8ed433696d80772a8fa33f92bdfc151ec01f1a1802ad503",
+    "bytes": 1203526
+  },
+  "stages": {
+    "browser-check": {
+      "status": "not-run",
+      "execution": "not-requested"
+    },
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/milan-relationship-gaps.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/apple/Projects/Vedaansh",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "ba213c0709df362d4bb32a29ce7d963985998c2f161564b3a77dbdb3d333d225",
+          "bytes": 6808
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 1432,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/milan-relationship-gaps.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/apple/Projects/Vedaansh",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "0cd1ecfa-664d-4388-8c74-099a71741faa",
+        "ok": true,
+        "command": "deliver",
+        "type": "explainer",
+        "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/candidate.archify.md",
+        "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/milan-relationship-gaps.html",
+        "explainer": {
+          "preparedSha256": "472b4aeb4e334b8a00f17cd2b2b828a5d6440a6e373e547405cda650f493f891",
+          "dependencies": [
+            {
+              "kind": "repository",
+              "id": "expand-print",
+              "path": "src/components/ui/MilanExpandPanel.tsx",
+              "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+              "sha256": "a5fcb8d4b22e8dbd763bcc462ecee14d2837a49cf478c32ccde07c637c14f5ed",
+              "bytes": 15004
+            },
+            {
+              "kind": "repository",
+              "id": "compare-print",
+              "path": "src/app/compare/page.tsx",
+              "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+              "sha256": "d56b66ae78a453baaac069cd499df6b8144f33f43625b2d2706b747cda7376d6",
+              "bytes": 51284
+            },
+            {
+              "kind": "repository",
+              "id": "compare-save",
+              "path": "src/app/compare/page.tsx",
+              "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+              "sha256": "d56b66ae78a453baaac069cd499df6b8144f33f43625b2d2706b747cda7376d6",
+              "bytes": 51284
+            },
+            {
+              "kind": "repository",
+              "id": "milan-history",
+              "path": "src/lib/milan/milanHistory.ts",
+              "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+              "sha256": "0a5fd4078fc827a61adb68d3c343e53e5478f97f1dccf0bd6ce21530c1386cd4",
+              "bytes": 1422
+            },
+            {
+              "kind": "repository",
+              "id": "print-thin",
+              "path": "src/lib/pdf/milanHtml.ts",
+              "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+              "sha256": "f96764954d8c0aa2bfe381add54afe8e108ad75cd8bec4256bb7c8557a7b7a4b",
+              "bytes": 33987
+            },
+            {
+              "kind": "repository",
+              "id": "matrix",
+              "path": "SUBSCRIPTION_MATRIX.md",
+              "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+              "sha256": "febcc20d6b21f7d4b0198824211a446c0f1e91773966be32ad479321dec43081",
+              "bytes": 4958
+            },
+            {
+              "kind": "repository",
+              "id": "rel-panel",
+              "path": "src/components/ui/RelationshipMarriagePanel.tsx",
+              "revision": "c2992f852345e6e0d996a5ebc323fda95c48d429",
+              "sha256": "f6e2c4be85dc6f2e321f1b34a8e770926cecf08acc388aa9a15aab97be6f94ea",
+              "bytes": 22224
+            },
+            {
+              "kind": "diagram-spec",
+              "id": "milan-rel-map",
+              "inline": true,
+              "sha256": "6af4d4f59e348810969ed9ccaf1a6dd3eee65c9e0fc64ae1ca2bd68ca7cb17f2",
+              "bytes": 1523
+            },
+            {
+              "kind": "diagram-spec",
+              "id": "fix-flow",
+              "inline": true,
+              "sha256": "984be6c28004cd2380cb749189989da3c9e2060410b0928cb236661a1e26a519",
+              "bytes": 1475
+            }
+          ]
+        },
+        "specification": {
+          "sha256": "ba213c0709df362d4bb32a29ce7d963985998c2f161564b3a77dbdb3d333d225",
+          "bytes": 6808
+        },
+        "artifact": {
+          "sha256": "f0c0c95965f51ce1e8ed433696d80772a8fa33f92bdfc151ec01f1a1802ad503",
+          "bytes": 1203526
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 522,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "check",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/milan-relationship-gaps.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/milan-relationship-gaps.html",
+        "family": "explainer",
+        "artifact": {
+          "sha256": "f0c0c95965f51ce1e8ed433696d80772a8fa33f92bdfc151ec01f1a1802ad503",
+          "bytes": 1203526
+        },
+        "checks": [
+          {
+            "name": "explainer_structure",
+            "ok": true,
+            "details": [
+              "80 unique DOM IDs"
+            ]
+          },
+          {
+            "name": "explainer_payload_identity",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "explainer_dependencies",
+            "ok": true,
+            "details": [
+              "9 frozen dependencies"
+            ]
+          },
+          {
+            "name": "explainer_native_diagrams",
+            "ok": true,
+            "details": [
+              "milan-rel-map: pass",
+              "fix-flow: pass"
+            ]
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "issues": [],
+          "nativeDiagrams": [
+            {
+              "id": "milan-rel-map",
+              "receipt": {
+                "ok": true,
+                "file": "/var/folders/hj/x7njj5vd4_bblfkvgdllrv0m0000gn/T/archify-explainer-check-SC3iae/child.html",
+                "artifact": {
+                  "sha256": "8418b4c5b3ea445c8dd44f407c9f5c23b2808bba4a8974c50e93b5fb58b746c4",
+                  "bytes": 817963
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 16,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 8,
+                    "maxBends": 4,
+                    "routesOverSuggestedBends": 2,
+                    "maxStretch": 1.068,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 24,
+                    "minInteriorSegmentPx": 101.8,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "crowdedSides": [
+                      {
+                        "node": "milan",
+                        "label": "Compare / Milan",
+                        "side": "right",
+                        "relationships": 4,
+                        "sidePx": 60,
+                        "neededPx": 74
+                      }
+                    ],
+                    "detours": [
+                      {
+                        "relationship": {
+                          "id": "milan-to-engines-1",
+                          "from": "milan",
+                          "to": "engines",
+                          "label": "pair + dual",
+                          "collectionIndex": 1,
+                          "artifactIndex": 2
+                        },
+                        "bends": 4,
+                        "stretch": 1
+                      },
+                      {
+                        "relationship": {
+                          "id": "milan-to-api-1",
+                          "from": "milan",
+                          "to": "api",
+                          "label": "save / list / id",
+                          "collectionIndex": 5,
+                          "artifactIndex": 6
+                        },
+                        "bends": 3,
+                        "stretch": 1.068
+                      }
+                    ]
+                  },
+                  "leadingSpace": {
+                    "measured": true,
+                    "emptyTopPx": 80,
+                    "emptyTopRatio": 0.104,
+                    "occupiedTop": 80,
+                    "viewBoxTop": 0,
+                    "canvasHeight": 766,
+                    "typicalNodeHeight": 60,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": 7.5,
+                    "requestedTargetMet": true,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "edge",
+                      "id": "rel-to-engines-1",
+                      "from": "rel",
+                      "to": "engines"
+                    },
+                    "minimumSourceTextPx": 8,
+                    "minimumProjectedTextPx": 8,
+                    "semanticTextCount": 14
+                  },
+                  "issues": []
+                }
+              }
+            },
+            {
+              "id": "fix-flow",
+              "receipt": {
+                "ok": true,
+                "file": "/var/folders/hj/x7njj5vd4_bblfkvgdllrv0m0000gn/T/archify-explainer-check-Sp37PU/child.html",
+                "artifact": {
+                  "sha256": "11f102ebabc80a85c3e38db9571a2b54dcf6d6366549b0cc11afa0d0f60d5be6",
+                  "bytes": 812957
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": null,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 8.864818024263432,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 8,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 3,
+                    "shortEndpointSegmentCount": 3,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "node",
+                      "id": "print-gate"
+                    },
+                    "minimumSourceTextPx": 11,
+                    "minimumProjectedTextPx": 8.864818024263432,
+                    "semanticTextCount": 7
+                  },
+                  "issues": []
+                }
+              }
+            }
+          ]
+        },
+        "diagnostics": [],
+        "provenance": "current",
+        "deliveryReceiptId": "0cd1ecfa-664d-4388-8c74-099a71741faa"
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/milan-relationship-gaps.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-milan-relationship-gaps-20261022-005524/milan-relationship-gaps.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-10-21T19:26:27.368Z",
+  "durationMs": 2313,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

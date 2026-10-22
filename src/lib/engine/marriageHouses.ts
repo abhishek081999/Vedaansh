@@ -463,18 +463,18 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   }
 
   const headline = fourthStrained
-    ? 'The 4th house can unsettle the marriage without the 7th’s help'
+    ? 'The home house (4th) can unsettle marriage even when the 7th looks fine'
     : trineBalanced
-      ? 'The 1st, 5th, and 9th can carry a value-based marriage'
+      ? 'Houses 1, 5, and 9 can carry a value-based marriage'
       : relationshipBalanced
         ? 'The relationship houses are the priority, and they will be worked'
         : triangularActive && bindingActive
           ? 'This period both decides a marriage and binds it'
-          : 'The 7th only begins the marriage. Eight houses carry it.'
+          : 'The marriage house (7th) only begins the story. Eight houses carry it.'
 
   const summary = path.length
-    ? `${gn(path[0].lord)} is running. ${triangularActive && bindingActive ? 'Triangular and binding houses are both in the period.' : triangularActive ? 'The decision houses are in the period and the binding houses are not.' : bindingActive ? 'The binding houses are in the period and the decision houses are not.' : 'This period is not carrying both the decision and the binding.'}`
-    : `The 7th is ${rn(seventhSign)}. The period that would activate these houses is not on this chart.`
+    ? `${gn(path[0].lord)} is the running period lord. ${triangularActive && bindingActive ? 'Decision houses and binding houses are both active in this period.' : triangularActive ? 'Decision houses are active; binding houses are not.' : bindingActive ? 'Binding houses are active; decision houses are not.' : 'This period is not carrying both the decision and the binding.'}`
+    : `The marriage house (7th) is ${rn(seventhSign)}. The period that would activate these houses is not on this chart.`
 
   return {
     headline,

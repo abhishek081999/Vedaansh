@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/candidate.archify.md",
+    "sha256": "cbd863e7d76218dd219925a60a96d95ba19fd1565b99c9cb188c60aec5bf2a82",
+    "bytes": 3331
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.html",
+    "sha256": "77a84876e52dd5c3141e03c089e0402fb3a74d3328c069caa349b9aec0b3caab",
+    "bytes": 509375
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [
+    {
+      "code": "explainer/writing-sentence-length",
+      "severity": "warning",
+      "message": "Sentence has 29 reading units, above the configured en limit of 28.",
+      "subject": {
+        "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/candidate.archify.md",
+        "line": 3,
+        "component": "answer"
+      },
+      "evidence": {
+        "reason": "Sentence has 29 reading units, above the configured en limit of 28.",
+        "example": "先查缓存。未命中时再查数据库。 / Check the cache first. Query the database on a miss.",
+        "rule": "sentence-length",
+        "units": 29,
+        "limit": 28
+      },
+      "supportedFixes": [
+        "Split at a logical action or condition boundary while preserving qualifications and causal links."
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1565,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

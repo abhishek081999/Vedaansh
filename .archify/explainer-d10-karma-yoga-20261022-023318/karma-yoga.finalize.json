@@ -1,0 +1,336 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "startedAt": "2026-10-21T21:04:38.844Z",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/candidate.archify.md",
+    "sha256": "b5c711f91731f4f6df1dbeb36ff16dc41ea6603feea9c2caa75056a045d7916a",
+    "bytes": 3216
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/karma-yoga.html",
+    "sha256": "efd24ca683d2ef5dfa0df53daf1500ef2d2bcaacd4edeb08c12b0ea083c99ec4",
+    "bytes": 510704
+  },
+  "stages": {
+    "browser-check": {
+      "status": "not-run",
+      "execution": "not-requested"
+    },
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/karma-yoga.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "b5c711f91731f4f6df1dbeb36ff16dc41ea6603feea9c2caa75056a045d7916a",
+          "bytes": 3216
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 1324,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/karma-yoga.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "d4be1214-5156-40aa-8e96-5318626cd937",
+        "ok": true,
+        "command": "deliver",
+        "type": "explainer",
+        "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/candidate.archify.md",
+        "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/karma-yoga.html",
+        "explainer": {
+          "preparedSha256": "2ea2c9ce0ad7931b52b738df93a633145cc89e31e7960db6353988b7109ca750",
+          "dependencies": [
+            {
+              "kind": "diagram-spec",
+              "id": "dasha-to-event",
+              "inline": true,
+              "sha256": "992471fa8040b266b4e798db8875d7bb6c415bd705d5c47d7910cb3f425496c3",
+              "bytes": 1103
+            }
+          ]
+        },
+        "specification": {
+          "sha256": "b5c711f91731f4f6df1dbeb36ff16dc41ea6603feea9c2caa75056a045d7916a",
+          "bytes": 3216
+        },
+        "artifact": {
+          "sha256": "efd24ca683d2ef5dfa0df53daf1500ef2d2bcaacd4edeb08c12b0ea083c99ec4",
+          "bytes": 510704
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 366,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "check",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/karma-yoga.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/karma-yoga.html",
+        "family": "explainer",
+        "artifact": {
+          "sha256": "efd24ca683d2ef5dfa0df53daf1500ef2d2bcaacd4edeb08c12b0ea083c99ec4",
+          "bytes": 510704
+        },
+        "checks": [
+          {
+            "name": "explainer_structure",
+            "ok": true,
+            "details": [
+              "40 unique DOM IDs"
+            ]
+          },
+          {
+            "name": "explainer_payload_identity",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "explainer_dependencies",
+            "ok": true,
+            "details": [
+              "1 frozen dependencies"
+            ]
+          },
+          {
+            "name": "explainer_native_diagrams",
+            "ok": true,
+            "details": [
+              "dasha-to-event: pass"
+            ]
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "issues": [],
+          "nativeDiagrams": [
+            {
+              "id": "dasha-to-event",
+              "receipt": {
+                "ok": true,
+                "file": "/var/folders/hj/x7njj5vd4_bblfkvgdllrv0m0000gn/T/archify-explainer-check-8b7sqF/child.html",
+                "artifact": {
+                  "sha256": "161069cdbc71a0b6ad031ba65aa7f98cc983de0bdde9808aa324d921833be059",
+                  "bytes": 811499
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 78,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 7.515151515151516,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 46.8,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "edge",
+                      "id": "load-to-place-1",
+                      "from": "load",
+                      "to": "place"
+                    },
+                    "minimumSourceTextPx": 8,
+                    "minimumProjectedTextPx": 7.515151515151516,
+                    "semanticTextCount": 9
+                  },
+                  "issues": []
+                }
+              }
+            }
+          ]
+        },
+        "diagnostics": [],
+        "provenance": "current",
+        "deliveryReceiptId": "d4be1214-5156-40aa-8e96-5318626cd937"
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/karma-yoga.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/karma-yoga.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-10-21T21:04:40.872Z",
+  "durationMs": 2028,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

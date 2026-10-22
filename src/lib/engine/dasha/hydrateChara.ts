@@ -23,18 +23,14 @@ export function ensureCharaDashas(
   grahas: GrahaData[],
   lagnas: LagnaData,
   meta: ChartOutput['meta'],
-  existing?: Partial<Pick<ChartOutput['dashas'], 'chara' | 'chara_fe' | 'mandook' | 'sthir'>>,
+  /** @deprecated Ignored — always recomputed so depth/formula fixes apply. */
+  _existing?: Partial<Pick<ChartOutput['dashas'], 'chara' | 'chara_fe' | 'mandook' | 'sthir'>>,
 ): { chara: DashaNode[]; chara_fe: DashaNode[]; mandook: DashaNode[]; sthir: DashaNode[] } {
   const birthUtc = birthUtcFromMeta(meta)
-  const chara =
-    existing?.chara && existing.chara.length > 0
-      ? existing.chara
-      : calcCharaDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
-  const chara_fe =
-    existing?.chara_fe && existing.chara_fe.length > 0
-      ? existing.chara_fe
-      : calcCharaDashaFemale(grahas, lagnas, birthUtc, CHARA_DEPTH)
-  // Always recompute these three so legacy/cached charts pick up formula fixes.
+  // Always recompute so cached/legacy trees pick up depth and formula fixes
+  // (e.g. full Antar→Pratyantar for previous/future periods, not current-only).
+  const chara = calcCharaDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
+  const chara_fe = calcCharaDashaFemale(grahas, lagnas, birthUtc, CHARA_DEPTH)
   const mandook = calcMandookDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
   const sthir = calcSthirDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
   return { chara, chara_fe, mandook, sthir }
@@ -46,11 +42,6 @@ export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagna
   if (!chart.grahas?.length || !chart.lagnas) return chart
 
   const existing = chart.dashas
-  // Skip client recompute when all systems are present (server calculate already ran formulas).
-  if (existing?.chara?.length && existing?.chara_fe?.length && existing?.mandook?.length && existing?.sthir?.length) {
-    return chart
-  }
-
   const { chara, chara_fe, mandook, sthir } = ensureCharaDashas(chart.grahas, chart.lagnas, chart.meta, existing)
 
   return {

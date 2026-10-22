@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "5c85e1bc-970a-43f7-ad51-6e8b453b95f5",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-relationship-vs-milan-20261021-234457/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-relationship-vs-milan-20261021-234457/relationship-vs-milan.html",
+  "specification": {
+    "sha256": "bb0876cea895672622c239466bed2afffeaac058f4d8c1ae353f372e25ac0af9",
+    "bytes": 4369
+  },
+  "artifact": {
+    "sha256": "e0c7f9353737e76d5758bf6729c733c597b0de40d667e781c7c367f8324b69e7",
+    "bytes": 540344
+  },
+  "explainer": {
+    "preparedSha256": "e7ee402021b3fbfa496feacf01a5e7b88392f3cd310cbe76c3eceac179224203",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "two-surfaces",
+        "inline": true,
+        "sha256": "7e3196a3c759876771b2f9dc6056b5c1a0a7a4d10dff402949c113fb29688bd7",
+        "bytes": 1439
+      }
+    ]
+  }
+}

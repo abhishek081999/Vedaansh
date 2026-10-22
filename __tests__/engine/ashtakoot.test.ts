@@ -133,6 +133,20 @@ describe('calculateAshtakoot core scoring', () => {
     expect(mid.varna.insight).toBeTruthy()
   })
 
+  it('treats 36/36 as caution and keeps same-Nadi caution after cancellation', () => {
+    // Same nakshatra, different rashi → nadi cancelled; engineered max total
+    const r = calculateAshtakoot(1, 2, 1, 10)
+    expect(r.total).toBe(36)
+    expect(r.eligibility.band).toBe('above_ideal')
+    expect(r.eligibility.label).toBe('36/36 gunas (caution)')
+    expect(r.eligibility.label.toLowerCase()).toContain('caution')
+    expect(r.nadi.p1).toBe(r.nadi.p2)
+    expect(r.nadi.points).toBe(8)
+    expect(r.nadi.insight.toLowerCase()).toContain('same nadi')
+    expect(r.nadi.insight.toLowerCase()).toContain('caution')
+    expect(r.eligibility.traditionallyAccepted).toBe(true)
+  })
+
   it('total equals sum of eight kootas', () => {
     const r = calculateAshtakoot(5, 2, 15, 7)
     const sum =

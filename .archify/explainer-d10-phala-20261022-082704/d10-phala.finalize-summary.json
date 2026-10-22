@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-phala-20261022-082704/candidate.archify.md",
+    "sha256": "54edc60a628163a817316ff53e6441a033be07143cb199602d3a9406661b11d6",
+    "bytes": 1673
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-phala-20261022-082704/d10-phala.html",
+    "sha256": "a82e35e1dd325b5782b9478774ed0dff02b13d7cba3f5a375499f2c8ef866b90",
+    "bytes": 124003
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-phala-20261022-082704/d10-phala.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-phala-20261022-082704/d10-phala.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 824,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

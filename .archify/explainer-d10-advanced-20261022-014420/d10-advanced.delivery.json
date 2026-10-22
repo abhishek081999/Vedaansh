@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "18c56f30-7cb1-48ca-9d70-6d5aaacc4a28",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-advanced-20261022-014420/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-advanced-20261022-014420/d10-advanced.html",
+  "specification": {
+    "sha256": "a0bbe950cbfe2e1d96ba0b53233816d1121598e45ce5f22c12326fb340d86bce",
+    "bytes": 3418
+  },
+  "artifact": {
+    "sha256": "9202a907e64ff1fa02f710ed1bac1bc8f321dcbec89095c67e24ebe4ff0cddb2",
+    "bytes": 515943
+  },
+  "explainer": {
+    "preparedSha256": "957dfd0cb55f6f90a7fb2993d97731d6841f084f8ebb60c5af058f6900ad676a",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "d10-protocol",
+        "inline": true,
+        "sha256": "0aaa46b3b2f3ad56029362a6179440fe6ff97295ac89635c895fd967de667312",
+        "bytes": 1111
+      }
+    ]
+  }
+}

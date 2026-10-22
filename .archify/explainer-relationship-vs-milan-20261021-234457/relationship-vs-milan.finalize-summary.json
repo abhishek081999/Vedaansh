@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-relationship-vs-milan-20261021-234457/candidate.archify.md",
+    "sha256": "bb0876cea895672622c239466bed2afffeaac058f4d8c1ae353f372e25ac0af9",
+    "bytes": 4369
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-relationship-vs-milan-20261021-234457/relationship-vs-milan.html",
+    "sha256": "e0c7f9353737e76d5758bf6729c733c597b0de40d667e781c7c367f8324b69e7",
+    "bytes": 540344
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [
+    {
+      "code": "explainer/writing-sentence-length",
+      "severity": "warning",
+      "message": "Sentence has 31 reading units, above the configured en limit of 28.",
+      "subject": {
+        "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-relationship-vs-milan-20261021-234457/candidate.archify.md",
+        "line": 71,
+        "component": "callout",
+        "panelId": "next"
+      },
+      "evidence": {
+        "reason": "Sentence has 31 reading units, above the configured en limit of 28.",
+        "example": "先查缓存。未命中时再查数据库。 / Check the cache first. Query the database on a miss.",
+        "rule": "sentence-length",
+        "units": 31,
+        "limit": 28
+      },
+      "supportedFixes": [
+        "Split at a logical action or condition boundary while preserving qualifications and causal links."
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-relationship-vs-milan-20261021-234457/relationship-vs-milan.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-relationship-vs-milan-20261021-234457/relationship-vs-milan.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1621,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

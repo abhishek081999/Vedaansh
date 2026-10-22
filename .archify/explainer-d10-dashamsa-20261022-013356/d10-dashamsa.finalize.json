@@ -1,0 +1,348 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "startedAt": "2026-10-21T20:04:22.265Z",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/candidate.archify.md",
+    "sha256": "cd89f15c8e5d5a433a2033353507becc621ab53f34c5d44a019dcce9ae5b5dfc",
+    "bytes": 4069
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/d10-dashamsa.html",
+    "sha256": "71bfd7a9167c02e9df530fa525192bf808618c9d60321ead92fa4a38172b3ead",
+    "bytes": 563556
+  },
+  "stages": {
+    "browser-check": {
+      "status": "not-run",
+      "execution": "not-requested"
+    },
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/d10-dashamsa.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/apple/Projects/Vedaansh",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "cd89f15c8e5d5a433a2033353507becc621ab53f34c5d44a019dcce9ae5b5dfc",
+          "bytes": 4069
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 727,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/d10-dashamsa.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/apple/Projects/Vedaansh",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "c44d53d0-99f5-405c-9a39-5eec089a2fce",
+        "ok": true,
+        "command": "deliver",
+        "type": "explainer",
+        "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/candidate.archify.md",
+        "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/d10-dashamsa.html",
+        "explainer": {
+          "preparedSha256": "2feaaca0c1d4d3467683ceae28a5937d6f08d1492d7cc0d9146795208d0b3544",
+          "dependencies": [
+            {
+              "kind": "repository",
+              "id": "vedaansh-varga",
+              "path": "src/lib/engine/vargas.ts",
+              "revision": "56303bbff4674d92a68c1aeecf29a1c199ffe1d5",
+              "sha256": "e27c6443a238359dbe8d21635d22ca5e052379995bcea23573a8fbf7ca733f33",
+              "bytes": 23959
+            },
+            {
+              "kind": "diagram-spec",
+              "id": "d10-calc",
+              "inline": true,
+              "sha256": "b0480623a79c21f28e929b6e030f2061f848ddaf6f270b5b74bdff0e46b9d48a",
+              "bytes": 1255
+            }
+          ]
+        },
+        "specification": {
+          "sha256": "cd89f15c8e5d5a433a2033353507becc621ab53f34c5d44a019dcce9ae5b5dfc",
+          "bytes": 4069
+        },
+        "artifact": {
+          "sha256": "71bfd7a9167c02e9df530fa525192bf808618c9d60321ead92fa4a38172b3ead",
+          "bytes": 563556
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 315,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "check",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/d10-dashamsa.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/d10-dashamsa.html",
+        "family": "explainer",
+        "artifact": {
+          "sha256": "71bfd7a9167c02e9df530fa525192bf808618c9d60321ead92fa4a38172b3ead",
+          "bytes": 563556
+        },
+        "checks": [
+          {
+            "name": "explainer_structure",
+            "ok": true,
+            "details": [
+              "58 unique DOM IDs"
+            ]
+          },
+          {
+            "name": "explainer_payload_identity",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "explainer_dependencies",
+            "ok": true,
+            "details": [
+              "2 frozen dependencies"
+            ]
+          },
+          {
+            "name": "explainer_native_diagrams",
+            "ok": true,
+            "details": [
+              "d10-calc: pass"
+            ]
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "issues": [],
+          "nativeDiagrams": [
+            {
+              "id": "d10-calc",
+              "receipt": {
+                "ok": true,
+                "file": "/var/folders/hj/x7njj5vd4_bblfkvgdllrv0m0000gn/T/archify-explainer-check-ECDsbY/child.html",
+                "artifact": {
+                  "sha256": "0ff34919b133b67985b01753b17a070222bf2277a46af78d5f8bb1a951bb8030",
+                  "bytes": 812502
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 22,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 8,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 8,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 2,
+                    "shortEndpointSegmentCount": 2,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "edge",
+                      "id": "deg-to-part-1",
+                      "from": "deg",
+                      "to": "part"
+                    },
+                    "minimumSourceTextPx": 8,
+                    "minimumProjectedTextPx": 8,
+                    "semanticTextCount": 11
+                  },
+                  "issues": []
+                }
+              }
+            }
+          ]
+        },
+        "diagnostics": [],
+        "provenance": "current",
+        "deliveryReceiptId": "c44d53d0-99f5-405c-9a39-5eec089a2fce"
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/d10-dashamsa.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-dashamsa-20261022-013356/d10-dashamsa.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-10-21T20:04:23.534Z",
+  "durationMs": 1269,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

@@ -24,7 +24,7 @@ Staging: `CSRF_TRUSTED_ORIGINS=https://dev.vedaansh.com` if using a second origi
 npm ci
 npm run typecheck
 npm run security:preflight   # Vitest security suite (`__tests__/security`)
-npm run security:audit       # production deps only (must pass in CI)
+npm run security:audit       # production deps only (must pass in CI; retries npm registry timeouts)
 npm run security:audit:dev   # optional full tree including devDependencies
 npm run build
 ```

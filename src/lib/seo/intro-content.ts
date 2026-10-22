@@ -110,6 +110,7 @@ export const COMPARE_SEO: SeoIntroProps = {
     guideLink('ashtakoot-guna-milan-explained', 'Ashtakoot Guna Milan'),
     guideLink('mangal-dosha-explained', 'Mangal Dosha'),
     guideLink('what-is-navamsha-d9-chart', 'Navamsha (D9)'),
+    guideLink('what-is-dashamsha-d10-chart', 'Dashamsha (D10)'),
     { href: '/guides', label: 'All guides' },
   ],
 
@@ -342,6 +343,7 @@ export const HOME_SEO: SeoIntroProps = {
   relatedLinks: [
     guideLink('free-vedic-birth-chart-kundali', 'Free Kundali guide'),
     guideLink('what-is-navamsha-d9-chart', 'Navamsha (D9)'),
+    guideLink('what-is-dashamsha-d10-chart', 'Dashamsha (D10)'),
     guideLink('ashtakoot-guna-milan-explained', 'Kundali matching'),
     guideLink('vimshottari-dasha-explained', 'Vimshottari Dasha'),
     { href: '/guides', label: 'All guides' },

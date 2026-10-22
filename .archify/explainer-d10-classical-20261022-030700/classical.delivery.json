@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "83c0bafb-c600-4ecc-8a68-1c011f29f2d8",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-classical-20261022-030700/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-classical-20261022-030700/classical.html",
+  "specification": {
+    "sha256": "1add103b500bd6d5e91a066fce22ba069ebbab0d02a4c40b925539f098e30637",
+    "bytes": 2439
+  },
+  "artifact": {
+    "sha256": "2d0df94dbaa1ffd8930f812ed40ec2182c2dba68340dfcdfaadcb189fc143cf5",
+    "bytes": 505089
+  },
+  "explainer": {
+    "preparedSha256": "d8abce4622afe4f6c1e86ac0f86d5b848e3018b457570d9e4f49c4d7c22c9c09",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "classical-pick",
+        "inline": true,
+        "sha256": "3aac0a7540107161cb0a7a94591c0de6ce4237f40d1587b5f906de3ae66d5e11",
+        "bytes": 1220
+      }
+    ]
+  }
+}

@@ -220,9 +220,12 @@ function buildSubDashas(
       durationMs: durationMsPerSign,
       level,
       isCurrent,
-      children: (level < maxDepth && isCurrent)
+      // Full tree to maxDepth (capped at 3 by callers). Do not prune to
+      // current-only — DashaTree uses lazyExpand=false for sign dashas, so
+      // previous/future periods must carry Antar → Pratyantar children too.
+      children: level < maxDepth
         ? buildSubDashas(sign, s, durationMsPerSign, level + 1, maxDepth, grahas, now, lagna)
-        : []
+        : [],
     })
     cursor += durationMsPerSign
   }

@@ -165,21 +165,21 @@ export function analyzeVenusJupiterBond(chart: ChartOutput | null | undefined): 
     scenarioNotes.push(note(
       'vj-venus',
       'Closeness without a common direction',
-      'Venus is strong and Jupiter is weak. Attraction, travel, and physical closeness are real, and the early years look like a complete couple. The class places the turn after those early years, about three: communication thins and the two directions stop being one direction. Romance has become the routine, and there is no shared aim under it. The form of the marriage remains. The substance does not. What used to be a long wait becomes an unwillingness to wait at all.',
+      'Venus is strong and Jupiter is weak. Attraction, travel, and physical closeness are real, and the early years can look like a complete couple. Around year three the turn often shows: talk thins and the two stop sharing one direction. Romance becomes routine with no shared aim under it. The form of the marriage remains; the substance does not. What used to be patience becomes an unwillingness to wait.',
       'caution',
     ))
   } else if (scenario === 'jupiter') {
     scenarioNotes.push(note(
       'vj-jupiter',
       'Duty without the juice of Venus',
-      'Jupiter is strong and Venus is weak. Values, ethics, and responsibility hold. The two can run a household as a team, and the bond does not break for lack of duty. Romance, warmth, and easy physical affection are the missing part. The sentence the class gives the partner is that this is a good spouse and not a romantic one. The life can go looking for warmth outside and then carry guilt, or it can stay and go quiet. A strong Jupiter by itself is not a good marriage.',
+      'Jupiter is strong and Venus is weak. Values, ethics, and responsibility hold. The two can run a household as a team, and the bond does not break for lack of duty. Romance, warmth, and easy physical affection are the missing part. Partners often read as a good spouse, not a romantic one. The life can seek warmth outside and then carry guilt, or stay and go quiet. Strong Jupiter alone is not a warm marriage.',
       'mixed',
     ))
   } else if (scenario === 'both-weak') {
     scenarioNotes.push(note(
       'vj-both-weak',
       'An immature experience of relationship',
-      'Venus and Jupiter are both weak. The class reads a soul still in the nursery of relationship: attraction is fast, expectations are high, disappointment is fast, and patience is thin. The purpose of the marriage was never clear. The stages run from excitement, to “you complete me,” to the illusion breaking, to distance, to either suffering in place or leaving. Love is treated as possession, marriage as a solution, and the partner as the one at fault. Boredom, blame, and regret all arrive quickly. A quick divorce, a series of bonds, or a quiet painful staying are all still open.',
+      'Venus and Jupiter are both weak. The relationship pattern is still early: attraction is fast, expectations are high, disappointment is fast, and patience is thin. The purpose of the marriage was never clear. Stages often run from excitement, to “you complete me,” to the illusion breaking, to distance, then either suffering in place or leaving. Love is treated as possession, marriage as a fix, and the partner as the one at fault. Boredom, blame, and regret arrive quickly. A quick divorce, a series of bonds, or a quiet painful staying are all still open.',
       'caution',
     ))
   } else if (scenario === 'both-strong') {
@@ -213,22 +213,22 @@ export function analyzeVenusJupiterBond(chart: ChartOutput | null | undefined): 
     if (scenario === 'both-weak' && d9Jupiter === 'strong') {
       scenarioNotes.push(note(
         'vj-d9-jupiter',
-        'D9 Jupiter can still mature this',
-        'D1 Venus and D1 Jupiter are weak, so the events stay immature. Jupiter is strong in Navamsha. That strength stays quiet until guidance or practice activates it. When it does, ethics appear, realization comes sooner, and the marriage has a way to survive. D9 does not cancel the D1 events.',
+        'Navamsha Jupiter can still mature this',
+        'In the birth chart Venus and Jupiter are weak, so events stay immature. Jupiter is strong in Navamsha (D9, the deeper marriage chart). That strength stays quiet until guidance or practice activates it. When it does, ethics appear, realization comes sooner, and the marriage has a way to survive. Navamsha does not cancel what the birth chart shows.',
         'mixed',
       ))
     } else if (d9Venus === 'weak' && d9Jupiter === 'weak' && scenario === 'both-strong') {
       scenarioNotes.push(note(
         'vj-d9-immature',
         'The day-to-day is a partnership. The soul account is not',
-        'D1 Venus and Jupiter can carry closeness and depth. In Navamsha both are weak. The lived marriage can look like a true partnership while the soul’s maturity in relationship is still ahead of it.',
+        'In the birth chart Venus and Jupiter can carry closeness and depth. In Navamsha (D9) both are weak. Daily life can look like a true partnership while maturity in relationship is still ahead.',
         'mixed',
       ))
     } else if (scenario === 'jupiter' && d9Jupiter === 'strong' && d9Venus === 'weak') {
       scenarioNotes.push(note(
         'vj-d9-duty',
         'Navamsha repeats the duty without the warmth',
-        'Jupiter remains strong in D9 and Venus remains weak there. The ideal appearance and the missing inner connection are the same story in both charts. A kendra Jupiter in Navamsha does not supply the Venus this marriage lacks.',
+        'Jupiter remains strong in Navamsha (D9) and Venus remains weak there. The polished look and the missing inner connection are the same story in both charts. A strong corner-house Jupiter in Navamsha does not supply the Venus this marriage lacks.',
         'mixed',
       ))
     }
@@ -236,24 +236,24 @@ export function analyzeVenusJupiterBond(chart: ChartOutput | null | undefined): 
 
   const typeCopy: Record<BondPlanet, { title: string; detail: string }> = {
     Ve: {
-      title: 'A Venus-dominant marriage',
-      detail: 'Venus outranks Jupiter, Rahu, Saturn, and the Moon on the 7th, whatever else sits there. The marriage is run by attraction and experience.',
+      title: 'A Venus-led marriage',
+      detail: 'Among Venus, Jupiter, Rahu, Saturn, and the Moon, Venus most clearly steers the marriage house (7th). The bond is run by attraction and lived closeness.',
     },
     Ju: {
-      title: 'A Jupiter-dominant marriage',
-      detail: 'Jupiter outranks the other four on the 7th. The marriage is run by meaning, forgiveness, and a longer view.',
+      title: 'A Jupiter-led marriage',
+      detail: 'Among those five planets on the marriage house (7th), Jupiter leads. The bond is run by meaning, forgiveness, and a longer view.',
     },
     Ra: {
-      title: 'A Rahu-dominant marriage',
-      detail: 'Rahu outranks Venus, Jupiter, Saturn, and the Moon on the marriage. The bond is run by amplification and an unfinished lesson. Rahu is strong where some teaching of the soul is still incomplete.',
+      title: 'A Rahu-led marriage',
+      detail: 'Among those five planets on the marriage house (7th), Rahu leads. The bond is pulled by craving, amplification, and an unfinished lesson.',
     },
     Sa: {
-      title: 'A Saturn-dominant marriage',
-      detail: 'Saturn outranks the other four on the 7th. The marriage is run by duty, delay, and a boundary.',
+      title: 'A Saturn-led marriage',
+      detail: 'Among those five planets on the marriage house (7th), Saturn leads. The bond is run by duty, delay, and a clear boundary.',
     },
     Mo: {
-      title: 'A Moon-dominant marriage',
-      detail: 'The Moon outranks the other four on the 7th. The marriage is run by emotional weather and the need to feel safe.',
+      title: 'A Moon-led marriage',
+      detail: 'Among those five planets on the marriage house (7th), the Moon leads. The bond is run by emotional weather and the need to feel safe.',
     },
   }
   if (dominant) {
@@ -267,8 +267,8 @@ export function analyzeVenusJupiterBond(chart: ChartOutput | null | undefined): 
   if (lagnaLord && lord && lagnaLord.id !== lord.id && nakLord(lagnaLord) === lord.id && nakLord(lord) === lagnaLord.id) {
     scenarioNotes.push(note(
       'vj-nakshatra-exchange',
-      'The lagna lord and the 7th lord exchange nakshatras',
-      `${gn(lagnaLord.id)} sits in a nakshatra of ${gn(lord.id)}, and ${gn(lord.id)} sits in a nakshatra of ${gn(lagnaLord.id)}. Nakshatra exchange is read the way a sign exchange is read: the self and the partner are living inside each other’s stars. The signs may say something else. The stars have already traded.`,
+      'Rising-sign lord and marriage-house lord exchange stars',
+      `${gn(lagnaLord.id)} (rules the rising sign) sits in a nakshatra of ${gn(lord.id)}, and ${gn(lord.id)} (rules the marriage house) sits in a nakshatra of ${gn(lagnaLord.id)}. That star-swap is read like a sign exchange: self and partner live inside each other’s stars, even when the signs say something else.`,
       'mixed',
     ))
   }
@@ -284,7 +284,7 @@ export function analyzeVenusJupiterBond(chart: ChartOutput | null | undefined): 
       support.push(note(
         'vj-moon-support',
         'The Moon can steady the feelings',
-        `The Moon ${ownSign ? 'is in its own ground' : 'is placed'}${waxing ? ', waxing' : ''}${bav ? `, with ${bindu} bindus in its sign` : ''}. Where Venus and Jupiter are out of balance, a Moon like this is the emotional stability the class trusts. Rahu can still pull the mind toward restlessness. The stability is a capacity. It is used when the person is guided to use it.`,
+        `The Moon ${ownSign ? 'is in its own ground' : 'is placed'}${waxing ? ', waxing' : ''}${bav ? `, with ${bindu} ashtakavarga points in its sign` : ''}. Where Venus and Jupiter are out of balance, a Moon like this can steady feelings. Rahu can still pull the mind toward restlessness. Stability is a capacity — used when the person is guided to use it.`,
         'supportive',
       ))
     }
@@ -302,8 +302,8 @@ export function analyzeVenusJupiterBond(chart: ChartOutput | null | undefined): 
   if (problem && d9Jupiter === 'strong' && scenario !== 'both-weak') {
     support.push(note(
       'vj-d9-support',
-      'Jupiter is strong in Navamsha',
-      'D9 Jupiter carries ethics and a later realization. The marriage has a dharmic way to survive once that Jupiter is activated. Activation here is guidance and practice, not a remedy dropped on the chart.',
+      'Jupiter is strong in Navamsha (D9)',
+      'Navamsha Jupiter carries ethics and a later realization. The marriage has a dharmic way to survive once that Jupiter is activated through guidance and practice — not by dropping a single remedy on the chart.',
       'supportive',
     ))
   }
@@ -329,7 +329,9 @@ export function analyzeVenusJupiterBond(chart: ChartOutput | null | undefined): 
           ? 'Venus and Jupiter can make a bond that deepens'
           : 'Venus and Jupiter have not settled into one marriage pattern'
 
-  const summary = `${gn('Ve')} is ${venusW}. ${gn('Ju')} is ${jupiterW}. ${dominant ? `${gn(dominant)} is the planet dominating the 7th among Venus, Jupiter, Rahu, Saturn, and the Moon.` : 'No one of those five dominates the 7th.'}`
+  const summary = dominant
+    ? `Venus (closeness) is ${venusW}. Jupiter (shared meaning) is ${jupiterW}. Among Venus, Jupiter, Rahu, Saturn, and the Moon, ${gn(dominant)} most clearly steers the marriage house (7th).`
+    : `Venus (closeness) is ${venusW}. Jupiter (shared meaning) is ${jupiterW}. None of Venus, Jupiter, Rahu, Saturn, or the Moon clearly leads the marriage house (7th), so the bond has no single driver from that set.`
 
   return {
     headline,
