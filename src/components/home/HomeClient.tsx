@@ -33,7 +33,11 @@ const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').th
 const VimsopakaBalaPanel = dynamic(() => import('@/components/ui/VimsopakaBalaPanel').then(m => m.VimsopakaBalaPanel), { ssr: false })
 const PlanetsWorkspace = dynamic(() => import('@/components/ui/PlanetsWorkspace').then(m => m.PlanetsWorkspace), { ssr: false })
 const NavamshaWorkspace = dynamic(() => import('@/components/ui/NavamshaWorkspace').then(m => m.NavamshaWorkspace), { ssr: false })
+const ChaturthamsaWorkspace = dynamic(() => import('@/components/ui/ChaturthamsaWorkspace').then(m => m.ChaturthamsaWorkspace), { ssr: false })
 const DashamsaWorkspace = dynamic(() => import('@/components/ui/DashamsaWorkspace').then(m => m.DashamsaWorkspace), { ssr: false })
+const DwadashamshaWorkspace = dynamic(() => import('@/components/ui/DwadashamshaWorkspace').then(m => m.DwadashamshaWorkspace), { ssr: false })
+const DrekkanaWorkspace = dynamic(() => import('@/components/ui/DrekkanaWorkspace').then(m => m.DrekkanaWorkspace), { ssr: false })
+const NakshatramshaWorkspace = dynamic(() => import('@/components/ui/NakshatramshaWorkspace').then(m => m.NakshatramshaWorkspace), { ssr: false })
 const RelationshipMarriagePanel = dynamic(
   () => import('@/components/ui/RelationshipMarriagePanel').then(m => m.RelationshipMarriagePanel),
   {
@@ -2138,8 +2142,16 @@ function HomeContent() {
                     <PlanetsWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'navamsha' ? (
                     <NavamshaWorkspace chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'chaturthamsa' ? (
+                    <ChaturthamsaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'dashamsa' ? (
                     <DashamsaWorkspace chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'dwadashamsha' ? (
+                    <DwadashamshaWorkspace chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'drekkana' ? (
+                    <DrekkanaWorkspace chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'nakshatramsha' ? (
+                    <NakshatramshaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'relationship' ? (
                     <RelationshipMarriagePanel chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'house' ? (
