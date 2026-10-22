@@ -2,7 +2,8 @@
 //  src/lib/engine/dashamsaClassical.ts
 //  Dashamsha (D10) — BPHS mahatphala, Phaladeepika livelihood,
 //  Saravali / Brihat Jataka 10th-sign nature, Jaimini AmK,
-//  Uttara Kalamrita navamsha of the 10th lord.
+//  Uttara Kalamrita navamsha of the 10th lord,
+//  plus natal rashi/bhava phala tables applied to D10 placements.
 //  Pure: no React, DB, or network.
 // ─────────────────────────────────────────────────────────────
 
@@ -10,7 +11,21 @@ import type { ChartOutput, Dignity, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { DEBILITATION_SIGN, EXALTATION_SIGN } from '@/lib/engine/dignity'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
-import type { CareerTone, DashamsaAnalysis, DashamsaPlanetRow } from '@/lib/engine/dashamsaAnalysis'
+import {
+  getDignityAwarePlanetInSign,
+  getHouseClassical,
+  getPlanetInHouseClassical,
+  getRashiClassical,
+  type ClassicalNote,
+} from '@/lib/engine/classicalInterpretations'
+import { getPlanetInHouse, getSignInHouse } from '@/lib/engine/houseInterpretations'
+import { getRashiDeepGuide } from '@/lib/engine/rashiDeepGuide'
+import {
+  HOUSE_THEMES_D10,
+  type CareerTone,
+  type DashamsaAnalysis,
+  type DashamsaPlanetRow,
+} from '@/lib/engine/dashamsaAnalysis'
 
 const CLASSICAL: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 const SAPTA: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
@@ -351,9 +366,50 @@ export interface DashamsaClassical {
     source: string
   } | null
   timing: ClassicalTiming[]
+  /** Natal classical tables applied to D10 houses and signs. */
+  phala: DashamsaPhala
   predictions: string[]
   readingOrder: string[]
   sources: string[]
+}
+
+export interface DashamsaPlanetPhala {
+  id: GrahaId
+  name: string
+  d10House: number
+  d10Rashi: Rashi
+  d10RashiName: string
+  priority: boolean
+  role: string | null
+  houseTeaching: string | null
+  houseClassical: ClassicalNote[]
+  signClassical: ClassicalNote[]
+  careerLens: string
+}
+
+export interface DashamsaHousePhala {
+  house: number
+  rashi: Rashi
+  rashiName: string
+  d10Theme: string
+  signInHouse: string | null
+  houseClassical: ClassicalNote[]
+  occupants: string[]
+}
+
+export interface DashamsaPhala {
+  framing: string
+  lagna: {
+    rashi: Rashi
+    rashiName: string
+    keyword: string
+    careers: string[]
+    classical: ClassicalNote[]
+    traits: string[]
+  }
+  keyHouses: DashamsaHousePhala[]
+  priorityPlanets: DashamsaPlanetPhala[]
+  otherPlanets: DashamsaPlanetPhala[]
 }
 
 function houseSign(asc: Rashi, house: number): Rashi {
@@ -678,9 +734,26 @@ export function buildDashamsaClassical(
     live ? live.prediction : timing[0]?.prediction ?? 'Time the 10th lord, the livelihood planet, and the Amatyakaraka with Vimshottari.',
   ]
 
+  const phala = buildPhala(analysis, chart, {
+    lagnaLordId: d10LagnaLord,
+    tenthLordId: d10TenthLord,
+    eleventhLordId: d10EleventhLord,
+    livelihoodId: winner.id,
+    amkId,
+  })
+  if (phala.lagna.careers[0]) {
+    predictions.push(
+      `D10 lagna ${phala.lagna.rashiName} (${phala.lagna.keyword}) careers: ${phala.lagna.careers.slice(0, 3).join('; ')}.`,
+    )
+  }
+  const priorityLens = phala.priorityPlanets[0]
+  if (priorityLens) {
+    predictions.push(`${priorityLens.name} in D10: ${priorityLens.careerLens}`)
+  }
+
   return {
     framing:
-      'BPHS gives Dashamsha for mahatphala — power, status, and deeds of consequence. Phaladeepika names the livelihood from the birth-chart 10th. This tab applies both, then the yogas and the Amatyakaraka, and times them.',
+      'BPHS gives Dashamsha for mahatphala — power, status, and deeds of consequence. Phaladeepika names the livelihood from the birth-chart 10th. This tab applies both, then the yogas and the Amatyakaraka, and times them. Natal rashi and bhava phala tables are also read on the D10 placements.',
     mahatphala: {
       grade,
       gradeLabel: grade === 'mahat' ? 'Mahat' : grade[0]!.toUpperCase() + grade.slice(1),
@@ -725,12 +798,14 @@ export function buildDashamsaClassical(
     luminaries,
     amatyakaraka,
     timing,
+    phala,
     predictions,
     readingOrder: [
       'Confirm D1 first. Dashamsha does not replace the birth chart — BPHS uses it for mahatphala on top of the rashi promise.',
       'Name the Phaladeepika livelihood planet from the four pointers, with the Navamsha lord included when D9 is present.',
       'Read that planet’s Dashamsha house as how the profession fruits.',
       'Read the D10 10th lord’s house (BPHS bhava phala) for the shape of status.',
+      'Apply natal planet-in-house and planet-in-rashi phala to the D10 placements of the career lords.',
       'Note chara, sthira, or dvisvabhava of the D10 10th — changes, one profession, or two tracks.',
       'Keep only the yogas that are formed: Dharma-Karmadhipati, Digbala, Vargottama, Neecha Bhanga, Viparita, Budhaditya, shared 10th/11th lord.',
       'Place the Amatyakaraka in D10. That is the Jaimini minister’s post.',
@@ -742,7 +817,124 @@ export function buildDashamsaClassical(
       'Uttara Kalamrita — Navamsha of the 10th lord for profession',
       'Saravali and Brihat Jataka — movable, fixed, or dual 10th',
       'Jaimini — Amatyakaraka as the career significator',
+      'BPHS / Phaladeepika / Saravali — planet-in-rashi and planet-in-bhava phala applied inside Dashamsha',
     ],
+  }
+}
+
+function buildPhala(
+  analysis: DashamsaAnalysis,
+  chart: ChartOutput,
+  keys: {
+    lagnaLordId: GrahaId
+    tenthLordId: GrahaId
+    eleventhLordId: GrahaId
+    livelihoodId: GrahaId
+    amkId: GrahaId | null
+  },
+): DashamsaPhala {
+  const d1ById = new Map(chart.grahas?.map((g) => [g.id, g]) ?? [])
+  const roleOf = (id: GrahaId): string | null => {
+    const roles: string[] = []
+    if (id === keys.lagnaLordId) roles.push('D10 lagna lord')
+    if (id === keys.tenthLordId) roles.push('D10 10th lord')
+    if (id === keys.eleventhLordId) roles.push('D10 11th lord')
+    if (id === keys.livelihoodId) roles.push('livelihood planet')
+    if (keys.amkId && id === keys.amkId) roles.push('Amatyakaraka')
+    return roles.length ? roles.join(' · ') : null
+  }
+  const priorityIds = new Set<GrahaId>([
+    keys.lagnaLordId,
+    keys.tenthLordId,
+    keys.eleventhLordId,
+    keys.livelihoodId,
+    ...(keys.amkId ? [keys.amkId] : []),
+  ])
+
+  const deep = getRashiDeepGuide(analysis.d10Lagna)
+  const lagna = {
+    rashi: analysis.d10Lagna,
+    rashiName: analysis.d10LagnaName,
+    keyword: deep?.keyword ?? 'livelihood',
+    careers: deep?.careers.slice(0, 8) ?? [],
+    classical: getRashiClassical(analysis.d10Lagna),
+    traits: [
+      ...(deep?.positiveTraits.slice(0, 2) ?? []),
+      ...(deep?.behavioralNotes.slice(0, 1) ?? []),
+    ],
+  }
+
+  const keyHouseNums = [1, 10, 11, 6, 7]
+  const keyHouses: DashamsaHousePhala[] = keyHouseNums.map((house) => {
+    const row = analysis.houses[house - 1]!
+    return {
+      house,
+      rashi: row.rashi,
+      rashiName: row.rashiName,
+      d10Theme: HOUSE_THEMES_D10[house] ?? row.theme,
+      signInHouse: getSignInHouse(house, row.rashi),
+      houseClassical: getHouseClassical(house).slice(0, 2),
+      occupants: row.occupants.map((o) => o.name),
+    }
+  })
+
+  const planetPhalas: DashamsaPlanetPhala[] = analysis.planets
+    .filter((p) => CLASSICAL.includes(p.id))
+    .map((p) => {
+      const natal = d1ById.get(p.id)
+      const houseTeaching = getPlanetInHouse(p.id, p.d10House, 'summary')
+      const houseClassical = getPlanetInHouseClassical(p.id, p.d10House)
+      const signClassical = getDignityAwarePlanetInSign(
+        p.id,
+        p.d10Rashi,
+        p.d10Dignity,
+        natal?.isCombust,
+        natal?.isRetro,
+      )
+      const d10Theme = HOUSE_THEMES_D10[p.d10House] ?? `D10 house ${p.d10House}`
+      const careerLens = [
+        houseTeaching
+          ? `${p.name} in D10 H${p.d10House}: ${houseTeaching}`
+          : `${p.name} in D10 H${p.d10House} (${d10Theme}).`,
+        signClassical[0]
+          ? `In ${p.d10RashiName}: ${signClassical[0].text}`
+          : null,
+      ].filter(Boolean).join(' ')
+
+      return {
+        id: p.id,
+        name: p.name,
+        d10House: p.d10House,
+        d10Rashi: p.d10Rashi,
+        d10RashiName: p.d10RashiName,
+        priority: priorityIds.has(p.id),
+        role: roleOf(p.id),
+        houseTeaching,
+        houseClassical,
+        signClassical,
+        careerLens,
+      }
+    })
+
+  const priorityPlanets = planetPhalas
+    .filter((p) => p.priority)
+    .sort((a, b) => {
+      const rank = (id: GrahaId) =>
+        [keys.tenthLordId, keys.livelihoodId, keys.lagnaLordId, keys.eleventhLordId, keys.amkId]
+          .indexOf(id)
+      const ar = rank(a.id)
+      const br = rank(b.id)
+      return (ar < 0 ? 99 : ar) - (br < 0 ? 99 : br)
+    })
+  const otherPlanets = planetPhalas.filter((p) => !p.priority)
+
+  return {
+    framing:
+      'The same BPHS / Phaladeepika / Saravali planet-in-house and planet-in-rashi tables used on the birth chart are read on Dashamsha placements. House meanings stay career-scoped by the D10 house themes.',
+    lagna,
+    keyHouses,
+    priorityPlanets,
+    otherPlanets,
   }
 }
 

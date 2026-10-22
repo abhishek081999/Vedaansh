@@ -269,6 +269,7 @@ function collectFields(classical: DashamsaClassical, chart: ChartOutput): Profes
     if (!winnerFields.has(f)) add(f, 'Phaladeepika support')
   }
   for (const f of classical.mahatEmphasis.winner.fields.slice(0, 3)) add(f, 'D10 mahatphala')
+  for (const f of classical.phala?.lagna.careers.slice(0, 6) ?? []) add(f, 'D10 lagna rashi')
 
   try {
     const indicators = getCareerIndicators(chart)
@@ -594,6 +595,13 @@ function buildBrief(parts: {
       body: `${parts.classical.mahatphala.headline} (score ${parts.classical.mahatphala.score}). ${parts.classical.tenthLord.prediction}`,
     },
     {
+      heading: 'D10 rashi & planet phala',
+      body: [
+        `Lagna ${parts.classical.phala.lagna.rashiName} (${parts.classical.phala.lagna.keyword}): ${(parts.classical.phala.lagna.careers.slice(0, 4).join('; ') || 'see classical notes')}.`,
+        ...parts.classical.phala.priorityPlanets.slice(0, 3).map((p) => p.careerLens),
+      ].join('\n'),
+    },
+    {
       heading: 'Job vs business',
       body: `${parts.track.headline}\n${parts.track.prediction}`,
     },
@@ -735,6 +743,7 @@ export function buildDashamsaSynthesis(
       'Digpala profession lists',
       'Nakshatra profession engine',
       'D10 mahatphala lord',
+      'D10 lagna rashi careers',
     ],
   }
 

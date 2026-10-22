@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "58c7824e-0a55-4ba7-a5d1-4b8ae3f7b326",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-phala-20261022-082704/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-phala-20261022-082704/d10-phala.html",
+  "specification": {
+    "sha256": "54edc60a628163a817316ff53e6441a033be07143cb199602d3a9406661b11d6",
+    "bytes": 1673
+  },
+  "artifact": {
+    "sha256": "a82e35e1dd325b5782b9478774ed0dff02b13d7cba3f5a375499f2c8ef866b90",
+    "bytes": 124003
+  },
+  "explainer": {
+    "preparedSha256": "85bbf9defea0f6ea57e03a59ac4882bf82ee8bbf349f451ed65653083d1fe511",
+    "dependencies": []
+  }
+}

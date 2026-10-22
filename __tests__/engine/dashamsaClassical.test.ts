@@ -112,6 +112,13 @@ describe('buildDashamsaClassical', () => {
     expect(reading.predictions.length).toBeGreaterThanOrEqual(6)
     expect(reading.luminaries).toHaveLength(2)
     expect(reading.sources.length).toBeGreaterThanOrEqual(4)
+    expect(reading.phala.lagna.rashiName).toBeTruthy()
+    expect(reading.phala.lagna.classical.length).toBeGreaterThan(0)
+    expect(reading.phala.keyHouses.some((h) => h.house === 10)).toBe(true)
+    expect(reading.phala.priorityPlanets.length).toBeGreaterThan(0)
+    expect(reading.phala.priorityPlanets[0]!.houseClassical.length + reading.phala.priorityPlanets[0]!.signClassical.length)
+      .toBeGreaterThan(0)
+    expect(reading.phala.priorityPlanets[0]!.careerLens.length).toBeGreaterThan(20)
   })
 
   it('drops the Navamsha lord when D9 is absent, so Saturn leads livelihood', () => {

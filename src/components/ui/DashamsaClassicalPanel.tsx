@@ -4,9 +4,10 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import type { CareerTone } from '@/lib/engine/dashamsaAnalysis'
-import type { DashamsaClassical } from '@/lib/engine/dashamsaClassical'
+import type { DashamsaClassical, DashamsaPlanetPhala } from '@/lib/engine/dashamsaClassical'
+import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import { cn } from '@/lib/ui/cn'
 import styles from './DashamsaWorkspace.module.css'
 
@@ -29,10 +30,47 @@ function toneClass(tone: CareerTone): string {
   return styles.insightInfo
 }
 
+function PlanetPhalaCard({ p }: { p: DashamsaPlanetPhala }) {
+  const [open, setOpen] = useState(p.priority)
+  return (
+    <article className={cn(styles.insightCard, p.priority ? styles.insightHighlight : styles.insightInfo)}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          all: 'unset',
+          cursor: 'pointer',
+          display: 'block',
+          width: '100%',
+        }}
+      >
+        <h4 className={styles.insightTitle}>
+          {p.name} · D10 H{p.d10House} · {p.d10RashiName}
+          {p.role && <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>{p.role}</span>}
+        </h4>
+        <p className={styles.insightText}>{p.careerLens}</p>
+      </button>
+      {open && (
+        <div style={{ marginTop: '0.65rem' }}>
+          {p.houseTeaching && (
+            <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+              Teaching (house): {p.houseTeaching}
+            </p>
+          )}
+          <ClassicalNotesList title="Planet in D10 house" notes={p.houseClassical} />
+          <div style={{ height: '0.55rem' }} />
+          <ClassicalNotesList title="Planet in D10 rashi" notes={p.signClassical} />
+        </div>
+      )}
+    </article>
+  )
+}
+
 export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClassical }) {
   const formed = classical.yogas.filter((y) => y.formed)
   const quiet = classical.yogas.filter((y) => !y.formed)
-  const { mahatphala, livelihood, mahatEmphasis } = classical
+  const { mahatphala, livelihood, mahatEmphasis, phala } = classical
+  const [showOtherPhala, setShowOtherPhala] = useState(false)
 
   return (
     <>
@@ -200,6 +238,79 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
           </article>
         </Section>
       )}
+
+      <Section title="Rashi & planet phala in D10">
+        <p className={styles.heroSub} style={{ marginBottom: '0.75rem', maxWidth: 'none' }}>
+          {phala.framing}
+        </p>
+        <article className={cn(styles.insightCard, styles.insightHighlight)} style={{ marginBottom: '0.65rem' }}>
+          <h4 className={styles.insightTitle}>
+            D10 Lagna · {phala.lagna.rashiName}
+            <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>{phala.lagna.keyword}</span>
+          </h4>
+          {phala.lagna.careers.length > 0 && (
+            <p className={styles.insightText} style={{ marginBottom: '0.45rem' }}>
+              Careers: {phala.lagna.careers.join(' · ')}
+            </p>
+          )}
+          {phala.lagna.traits.length > 0 && (
+            <p style={{ margin: '0 0 0.45rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+              {phala.lagna.traits.join(' · ')}
+            </p>
+          )}
+          <ClassicalNotesList title="Lagna rashi classical" notes={phala.lagna.classical} />
+        </article>
+
+        <div className={styles.insightGrid} style={{ marginBottom: '0.75rem' }}>
+          {phala.keyHouses.map((h) => (
+            <article key={h.house} className={cn(styles.insightCard, styles.insightInfo)}>
+              <h4 className={styles.insightTitle}>
+                D10 H{h.house} · {h.rashiName}
+              </h4>
+              <p className={styles.insightText}>{h.d10Theme}</p>
+              {h.signInHouse && (
+                <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                  Sign-in-house: {h.signInHouse}
+                </p>
+              )}
+              {h.occupants.length > 0 && (
+                <p style={{ margin: '0.35rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  Occupants: {h.occupants.join(', ')}
+                </p>
+              )}
+              <div style={{ marginTop: '0.45rem' }}>
+                <ClassicalNotesList title="House classical" notes={h.houseClassical} />
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <h4 className={styles.insightTitle} style={{ marginBottom: '0.55rem' }}>Career lords in D10</h4>
+        <div className={styles.insightGrid}>
+          {phala.priorityPlanets.map((p) => (
+            <PlanetPhalaCard key={p.id} p={p} />
+          ))}
+        </div>
+
+        {phala.otherPlanets.length > 0 && (
+          <div style={{ marginTop: '0.85rem' }}>
+            <button
+              type="button"
+              className={styles.tabBtn}
+              onClick={() => setShowOtherPhala((v) => !v)}
+            >
+              {showOtherPhala ? 'Hide' : 'Show'} other planets ({phala.otherPlanets.length})
+            </button>
+            {showOtherPhala && (
+              <div className={styles.insightGrid} style={{ marginTop: '0.65rem' }}>
+                {phala.otherPlanets.map((p) => (
+                  <PlanetPhalaCard key={p.id} p={p} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </Section>
 
       <Section title="When it shows">
         <div className={styles.insightGrid}>
