@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "1df28089-72cf-4b3e-8571-28369977542b",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/bhava-bala-app.html",
+  "specification": {
+    "sha256": "bf07140e4233374f8182794bdd809741491155dbe70b43d5dfb3a0bfac8c3920",
+    "bytes": 4283
+  },
+  "artifact": {
+    "sha256": "1aeb766a2ef21aa79aff586048ec152bfd545b11d84113c56075fdc4dcddbe16",
+    "bytes": 1271756
+  },
+  "explainer": {
+    "preparedSha256": "9c5768fdff6d13d68dbfeadded948e97264596ac4411957759704df988aad5d4",
+    "dependencies": [
+      {
+        "kind": "repository",
+        "id": "nav",
+        "path": "src/lib/ui/navConfig.ts",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "4fe8212531da04a616fb14730565fc140a151a6990fa161f9db6126ed34e0361",
+        "bytes": 8358
+      },
+      {
+        "kind": "repository",
+        "id": "tabs",
+        "path": "src/lib/ui/chartTabRegistry.ts",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "434d4e150ba7aba91ede6f3c0f3479fc6c6c852d112bef3927b5229afe7b35f2",
+        "bytes": 4803
+      },
+      {
+        "kind": "repository",
+        "id": "calc",
+        "path": "src/lib/engine/calculator.ts",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "0651881e0c44a52524b7c818a8620863731498f6a6814139f62f9e8bfcdbcc4b",
+        "bytes": 23660
+      },
+      {
+        "kind": "repository",
+        "id": "engine",
+        "path": "src/lib/engine/bhavaBala.ts",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "b305e8eaf39af9f5d9d2394c3f32d1a19a6471c56bd7d680ee996bc64d7692fb",
+        "bytes": 11179
+      },
+      {
+        "kind": "repository",
+        "id": "ui",
+        "path": "src/components/ui/BhavaBalaVisuals.tsx",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "f0e6e81913eeedcbc2693c18c479559751b8b708f2f01edf8f01f26201d6da53",
+        "bytes": 27536
+      },
+      {
+        "kind": "repository",
+        "id": "types",
+        "path": "src/types/astrology.ts",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "148ab51c9729084135ccab6e29327259ffed3fd553e06aa507fb331efce99a4f",
+        "bytes": 23047
+      },
+      {
+        "kind": "repository",
+        "id": "home",
+        "path": "src/components/home/HomeClient.tsx",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "5d7c7041657c622a87d7473bc518eb363ef3f29cc26c558d1651ebcd3e1eeaf2",
+        "bytes": 176649
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "open-bhava",
+        "inline": true,
+        "sha256": "1a78b0336b683c18ef3c2fe71f8be5cadca28603678a2c9066b8cae15eaa5252",
+        "bytes": 795
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "bhava-math",
+        "inline": true,
+        "sha256": "99d6aab02c259c722e1c4b5c4a3c738d274fec6adb3a65c4de28f4639effe16a",
+        "bytes": 744
+      }
+    ]
+  }
+}

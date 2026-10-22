@@ -1,0 +1,535 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "startedAt": "2026-10-22T05:27:14.303Z",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/candidate.archify.md",
+    "sha256": "bf07140e4233374f8182794bdd809741491155dbe70b43d5dfb3a0bfac8c3920",
+    "bytes": 4283
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/bhava-bala-app.html",
+    "sha256": "1aeb766a2ef21aa79aff586048ec152bfd545b11d84113c56075fdc4dcddbe16",
+    "bytes": 1271756
+  },
+  "stages": {
+    "browser-check": {
+      "status": "not-run",
+      "execution": "not-requested"
+    },
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/bhava-bala-app.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/apple/Projects/Vedaansh",
+        "--writing",
+        "warn",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "bf07140e4233374f8182794bdd809741491155dbe70b43d5dfb3a0bfac8c3920",
+          "bytes": 4283
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 929,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/bhava-bala-app.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/apple/Projects/Vedaansh",
+        "--writing",
+        "warn",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "1df28089-72cf-4b3e-8571-28369977542b",
+        "ok": true,
+        "command": "deliver",
+        "type": "explainer",
+        "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/candidate.archify.md",
+        "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/bhava-bala-app.html",
+        "explainer": {
+          "preparedSha256": "9c5768fdff6d13d68dbfeadded948e97264596ac4411957759704df988aad5d4",
+          "dependencies": [
+            {
+              "kind": "repository",
+              "id": "nav",
+              "path": "src/lib/ui/navConfig.ts",
+              "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+              "sha256": "4fe8212531da04a616fb14730565fc140a151a6990fa161f9db6126ed34e0361",
+              "bytes": 8358
+            },
+            {
+              "kind": "repository",
+              "id": "tabs",
+              "path": "src/lib/ui/chartTabRegistry.ts",
+              "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+              "sha256": "434d4e150ba7aba91ede6f3c0f3479fc6c6c852d112bef3927b5229afe7b35f2",
+              "bytes": 4803
+            },
+            {
+              "kind": "repository",
+              "id": "calc",
+              "path": "src/lib/engine/calculator.ts",
+              "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+              "sha256": "0651881e0c44a52524b7c818a8620863731498f6a6814139f62f9e8bfcdbcc4b",
+              "bytes": 23660
+            },
+            {
+              "kind": "repository",
+              "id": "engine",
+              "path": "src/lib/engine/bhavaBala.ts",
+              "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+              "sha256": "b305e8eaf39af9f5d9d2394c3f32d1a19a6471c56bd7d680ee996bc64d7692fb",
+              "bytes": 11179
+            },
+            {
+              "kind": "repository",
+              "id": "ui",
+              "path": "src/components/ui/BhavaBalaVisuals.tsx",
+              "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+              "sha256": "f0e6e81913eeedcbc2693c18c479559751b8b708f2f01edf8f01f26201d6da53",
+              "bytes": 27536
+            },
+            {
+              "kind": "repository",
+              "id": "types",
+              "path": "src/types/astrology.ts",
+              "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+              "sha256": "148ab51c9729084135ccab6e29327259ffed3fd553e06aa507fb331efce99a4f",
+              "bytes": 23047
+            },
+            {
+              "kind": "repository",
+              "id": "home",
+              "path": "src/components/home/HomeClient.tsx",
+              "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+              "sha256": "5d7c7041657c622a87d7473bc518eb363ef3f29cc26c558d1651ebcd3e1eeaf2",
+              "bytes": 176649
+            },
+            {
+              "kind": "diagram-spec",
+              "id": "open-bhava",
+              "inline": true,
+              "sha256": "1a78b0336b683c18ef3c2fe71f8be5cadca28603678a2c9066b8cae15eaa5252",
+              "bytes": 795
+            },
+            {
+              "kind": "diagram-spec",
+              "id": "bhava-math",
+              "inline": true,
+              "sha256": "99d6aab02c259c722e1c4b5c4a3c738d274fec6adb3a65c4de28f4639effe16a",
+              "bytes": 744
+            }
+          ]
+        },
+        "specification": {
+          "sha256": "bf07140e4233374f8182794bdd809741491155dbe70b43d5dfb3a0bfac8c3920",
+          "bytes": 4283
+        },
+        "artifact": {
+          "sha256": "1aeb766a2ef21aa79aff586048ec152bfd545b11d84113c56075fdc4dcddbe16",
+          "bytes": 1271756
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 409,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "check",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/bhava-bala-app.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/bhava-bala-app.html",
+        "family": "explainer",
+        "artifact": {
+          "sha256": "1aeb766a2ef21aa79aff586048ec152bfd545b11d84113c56075fdc4dcddbe16",
+          "bytes": 1271756
+        },
+        "checks": [
+          {
+            "name": "explainer_structure",
+            "ok": true,
+            "details": [
+              "68 unique DOM IDs"
+            ]
+          },
+          {
+            "name": "explainer_payload_identity",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "explainer_dependencies",
+            "ok": true,
+            "details": [
+              "9 frozen dependencies"
+            ]
+          },
+          {
+            "name": "explainer_native_diagrams",
+            "ok": true,
+            "details": [
+              "open-bhava: pass",
+              "bhava-math: pass"
+            ]
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "issues": [],
+          "nativeDiagrams": [
+            {
+              "id": "open-bhava",
+              "receipt": {
+                "ok": true,
+                "file": "/var/folders/hj/x7njj5vd4_bblfkvgdllrv0m0000gn/T/archify-explainer-check-OB0rqJ/child.html",
+                "artifact": {
+                  "sha256": "00094912145ec315d63de1efbd39f466015f2440288b611282fd586bcbcd7e8f",
+                  "bytes": 808090
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 104,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 7.733887733887734,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 32,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "edge",
+                      "id": "eng-to-panel-1",
+                      "from": "eng",
+                      "to": "panel"
+                    },
+                    "minimumSourceTextPx": 8,
+                    "minimumProjectedTextPx": 7.733887733887734,
+                    "semanticTextCount": 5
+                  },
+                  "issues": []
+                }
+              }
+            },
+            {
+              "id": "bhava-math",
+              "receipt": {
+                "ok": true,
+                "file": "/var/folders/hj/x7njj5vd4_bblfkvgdllrv0m0000gn/T/archify-explainer-check-CPwcIP/child.html",
+                "artifact": {
+                  "sha256": "169e33fd65f7a73cee68573f274999bd01e349cd7dc3b6724ca7d44d634d5e62",
+                  "bytes": 807200
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 96.2,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 8,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 32,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "edge",
+                      "id": "dri-to-tot-1",
+                      "from": "dri",
+                      "to": "tot"
+                    },
+                    "minimumSourceTextPx": 8,
+                    "minimumProjectedTextPx": 8,
+                    "semanticTextCount": 5
+                  },
+                  "issues": []
+                }
+              }
+            }
+          ]
+        },
+        "diagnostics": [],
+        "provenance": "current",
+        "deliveryReceiptId": "1df28089-72cf-4b3e-8571-28369977542b"
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/bhava-bala-app.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-app-20261022-105651/bhava-bala-app.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-10-22T05:27:15.918Z",
+  "durationMs": 1615,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

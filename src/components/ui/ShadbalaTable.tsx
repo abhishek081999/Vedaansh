@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import type { ShadbalaPlanet, ShadbalaResult } from '@/types/astrology'
-import { BarChart3, ScrollText } from 'lucide-react'
+import type { DashaNode, GrahaData, Rashi, ShadbalaPlanet, ShadbalaResult } from '@/types/astrology'
+import { SthanaBalaAnalysisPanel } from '@/components/ui/SthanaBalaAnalysisPanel'
+import { KalaBalaAnalysisPanel } from '@/components/ui/KalaBalaAnalysisPanel'
+import { DigDrigChestaAnalysisPanel } from '@/components/ui/DigDrigChestaAnalysisPanel'
 
 const ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
 type PlanetCode = (typeof ORDER)[number]
@@ -290,12 +292,25 @@ export function ShadbalaTable({
   preferClassicCharts = true,
   classicMultiChartOnly = false,
   variant = 'full',
+  dashaNodes,
+  grahas,
+  ascRashi,
+  showSthanaAnalysis = true,
+  showKalaAnalysis = true,
+  showDigDrigChestaAnalysis = true,
 }: {
   shadbala: ShadbalaResult
   hideDetails?: boolean
   preferClassicCharts?: boolean
   classicMultiChartOnly?: boolean
   variant?: 'full' | 'widget'
+  /** Vimshottari (or other) nodes — used for current/next MD cues. */
+  dashaNodes?: DashaNode[]
+  grahas?: GrahaData[]
+  ascRashi?: Rashi
+  showSthanaAnalysis?: boolean
+  showKalaAnalysis?: boolean
+  showDigDrigChestaAnalysis?: boolean
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>(preferClassicCharts ? 'classic' : 'modern')
   const [active, setActive] = useState<PlanetCode>('Su')
@@ -317,8 +332,8 @@ export function ShadbalaTable({
 
   if (variant === 'widget') {
     return (
-      <div className="card" style={{ padding: '0.8rem' }}>
-        <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Shadbala Snapshot</div>
+      <div className="card" style={{ padding: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+        <div className="label-caps">Shadbala Snapshot</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: '0.45rem' }}>
           <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)', padding: '0.45rem' }}>
             <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Strongest</div>
@@ -333,6 +348,27 @@ export function ShadbalaTable({
             <div style={{ marginTop: '0.15rem', fontWeight: 700 }}>{avgRatio.toFixed(2)}x</div>
           </div>
         </div>
+        {showSthanaAnalysis ? (
+          <SthanaBalaAnalysisPanel shadbala={shadbala} dashaNodes={dashaNodes} grahas={grahas} compact />
+        ) : null}
+        {showKalaAnalysis ? (
+          <KalaBalaAnalysisPanel
+            shadbala={shadbala}
+            dashaNodes={dashaNodes}
+            grahas={grahas}
+            ascRashi={ascRashi}
+            compact
+          />
+        ) : null}
+        {showDigDrigChestaAnalysis ? (
+          <DigDrigChestaAnalysisPanel
+            shadbala={shadbala}
+            dashaNodes={dashaNodes}
+            grahas={grahas}
+            ascRashi={ascRashi}
+            compact
+          />
+        ) : null}
       </div>
     )
   }
@@ -524,6 +560,28 @@ export function ShadbalaTable({
           </div>
         </div>
       )}
+
+      {showSthanaAnalysis ? (
+        <SthanaBalaAnalysisPanel shadbala={shadbala} dashaNodes={dashaNodes} grahas={grahas} />
+      ) : null}
+
+      {showKalaAnalysis ? (
+        <KalaBalaAnalysisPanel
+          shadbala={shadbala}
+          dashaNodes={dashaNodes}
+          grahas={grahas}
+          ascRashi={ascRashi}
+        />
+      ) : null}
+
+      {showDigDrigChestaAnalysis ? (
+        <DigDrigChestaAnalysisPanel
+          shadbala={shadbala}
+          dashaNodes={dashaNodes}
+          grahas={grahas}
+          ascRashi={ascRashi}
+        />
+      ) : null}
     </div>
   )
 }

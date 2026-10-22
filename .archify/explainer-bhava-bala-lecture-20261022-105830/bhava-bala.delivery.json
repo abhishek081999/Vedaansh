@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "74bf7a34-8569-41db-a2e2-616c53baaad1",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-lecture-20261022-105830/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-lecture-20261022-105830/bhava-bala.html",
+  "specification": {
+    "sha256": "fd519edbb23e1ff09a4b0830cb8d02650c1d06978e3b4b91d9859e288b16e844",
+    "bytes": 6100
+  },
+  "artifact": {
+    "sha256": "665006da4c45400666d7e2b15f4abdad91eecc2417c2cce63e5d735872d214ee",
+    "bytes": 965296
+  },
+  "explainer": {
+    "preparedSha256": "64da477e1ea6e44fe482f64fb1f3dcd0796efb0d9cb41558c055940b627d9430",
+    "dependencies": [
+      {
+        "kind": "repository",
+        "id": "engine",
+        "path": "src/lib/engine/bhavaBala.ts",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "b305e8eaf39af9f5d9d2394c3f32d1a19a6471c56bd7d680ee996bc64d7692fb",
+        "bytes": 11179
+      },
+      {
+        "kind": "repository",
+        "id": "ui",
+        "path": "src/components/ui/BhavaBalaVisuals.tsx",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "f0e6e81913eeedcbc2693c18c479559751b8b708f2f01edf8f01f26201d6da53",
+        "bytes": 27536
+      },
+      {
+        "kind": "repository",
+        "id": "nav",
+        "path": "src/lib/ui/navConfig.ts",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "4fe8212531da04a616fb14730565fc140a151a6990fa161f9db6126ed34e0361",
+        "bytes": 8358
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "read-order",
+        "inline": true,
+        "sha256": "794d992bd8068913827eff61a63d329539d5ca48943122dd960f406dcbf69852",
+        "bytes": 622
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "app-check",
+        "inline": true,
+        "sha256": "fdb8784f6850f0ba6f6268dc2801a0bd4834602d3855dddb6d2e06a73340e838",
+        "bytes": 805
+      }
+    ]
+  }
+}

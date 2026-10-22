@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-tattva-prediction-20261022-111038/candidate.archify.md",
+    "sha256": "2db1650dcfcbb96dc9f8e9760afe87938ea4c012834991ecccc3a4b14b50ae8d",
+    "bytes": 9093
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-tattva-prediction-20261022-111038/tattva-prediction.html",
+    "sha256": "b85cd3f0a0f86e96e11141b95cbce761f6834b5fbbc602177adb47d652311640",
+    "bytes": 1176873
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-tattva-prediction-20261022-111038/tattva-prediction.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-tattva-prediction-20261022-111038/tattva-prediction.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1636,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

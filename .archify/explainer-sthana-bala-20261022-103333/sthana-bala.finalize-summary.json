@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-sthana-bala-20261022-103333/candidate.archify.md",
+    "sha256": "dd6de973766d9d6e7328582aeba9358b2d30cafc964bd13bfb70891a186d2dd1",
+    "bytes": 7363
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-sthana-bala-20261022-103333/sthana-bala.html",
+    "sha256": "630d783853238065346c699b0eef844bd96b468975cb28c896a45141c874a4ee",
+    "bytes": 1039417
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-sthana-bala-20261022-103333/sthana-bala.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-sthana-bala-20261022-103333/sthana-bala.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1888,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

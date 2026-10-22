@@ -38,6 +38,7 @@ import {
   Target,
   Timer,
   UsersRound,
+  Wind,
   Zap,
   Info,
   Download,
@@ -117,6 +118,7 @@ export const ASTRO_GROUPS: NavGroup[] = [
       { id: 'yogas', label: 'Yogas', icon: Star, path: ASTROLOGY_HOME_PATH },
       { id: 'kp-stellar', label: 'Stellar (KP)', icon: Crosshair, path: ASTROLOGY_HOME_PATH },
       { id: 'interpretation', label: 'Interpretation', icon: BookOpen, path: ASTROLOGY_HOME_PATH },
+      { id: 'tattva', label: 'Tattva Prediction', icon: Wind, path: ASTROLOGY_HOME_PATH },
     ],
   },
   {

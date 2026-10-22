@@ -20,6 +20,10 @@ import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
 import { ThemeToggle }      from '@/components/ui/ThemeToggle'
 
 const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').then(m => m.BhavaBalaTable), { ssr: false })
+const TattvaPredictionPanel = dynamic(
+  () => import('@/components/ui/TattvaPredictionPanel').then(m => m.TattvaPredictionPanel),
+  { ssr: false },
+)
 
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES }      from '@/types/astrology'
@@ -44,12 +48,13 @@ interface Branding {
   brandLogo: string | null
 }
 
-type Tab = 'chart' | 'planets' | 'interpretation' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'bhava-bala' | 'vimsopaka'
+type Tab = 'chart' | 'planets' | 'interpretation' | 'tattva' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'bhava-bala' | 'vimsopaka'
 
 const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'chart',   label: 'Chart',    emoji: '◯' },
   { id: 'planets', label: 'Planets',  emoji: '✦' },
   { id: 'interpretation', label: 'Interpretation', emoji: '✧' },
+  { id: 'tattva',  label: 'Tattva',   emoji: '◎' },
   { id: 'dasha',   label: 'Dasha',     emoji: '⏳' },
   { id: 'shadbala',label: 'Shadbala',  emoji: '⚖' },
   { id: 'bhava-bala', label: 'Bhava Bala', emoji: '⌗' },
@@ -343,6 +348,15 @@ export function PublicChartClient({
             </div>
           )}
 
+          {tab === 'tattva' && (
+            <div className="card">
+              <div className="label-caps" style={{ marginBottom: '0.85rem' }}>
+                Tattva Prediction · Free teaser
+              </div>
+              <TattvaPredictionPanel chart={chart} userPlan="free" />
+            </div>
+          )}
+
           {tab === 'arudhas' && (
             <div className="card">
               <div className="label-caps" style={{ marginBottom: '0.75rem' }}>Bhava Arudhas</div>
@@ -370,7 +384,13 @@ export function PublicChartClient({
           {tab === 'shadbala' && (
             <div className="card">
               <div className="label-caps" style={{ marginBottom: '1rem' }}>Shadbala — Six-fold Strength</div>
-              <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts />
+              <ShadbalaTable
+                shadbala={chart.shadbala}
+                preferClassicCharts
+                dashaNodes={chart.dashas?.vimshottari}
+                grahas={chart.grahas}
+                ascRashi={chart.lagnas.ascRashi}
+              />
             </div>
           )}
 
