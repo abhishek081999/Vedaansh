@@ -30,6 +30,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Muhurta pages/APIs | No | Yes | Yes | `proxy.ts` (`/muhurta`, `/api/muhurta`) |
 | Vimshottari MD/AD full interpretation (“More”) | Teaser only | Yes | Yes | UI: `DashaInterpretationPanel` (`userPlan` / Gold+) |
 | Tattva Prediction (trikona map, Agni/Artha/Vayu/Moksha, Active/Reactive spice, Moon gate, house×karaka×rashi composer) | Overview teaser (also on public `/chart/[slug]`) | Yes | Yes | UI: `TattvaPredictionPanel` / Core Analysis → Tattva; dasha strip in `DashaInterpretationPanel`; public tab teaser |
+| Naamkaran (classical janma-naam — Moon pada, gender syllable parity, Karakamsha Ishta; Rashi naam and two-name on Gold; Shadbala/Navtara checks) | Moon-pada letter + syllable count | Yes | Yes | UI: `NaamkaranPanel` / Core Analysis → Naamkaran (`planMeetsUiGate`, Gold+) |
 | Cosmic Weather full guidance | Labels + short lines | Yes | Yes | UI: `PersonalDayCard` (`userPlan` / Gold+) |
 | Astro Vastu full analysis | Chart + compass preview | Yes | Yes | UI: `AstroVastuPanel` (`userPlan` / Gold+) |
 | Sarvatobhadra Chakra full | Birth star + grid | Yes | Yes | UI: `sbc/page` (`userPlan` / Gold+) |

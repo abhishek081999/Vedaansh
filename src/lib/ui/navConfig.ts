@@ -34,6 +34,7 @@ import {
   Orbit,
   Route,
   Scale,
+  PenLine,
   Sparkles,
   Star,
   Sun,
@@ -127,6 +128,7 @@ export const ASTRO_GROUPS: NavGroup[] = [
       { id: 'kp-stellar', label: 'Stellar (KP)', icon: Crosshair, path: ASTROLOGY_HOME_PATH },
       { id: 'interpretation', label: 'Interpretation', icon: BookOpen, path: ASTROLOGY_HOME_PATH },
       { id: 'tattva', label: 'Tattva Prediction', icon: Wind, path: ASTROLOGY_HOME_PATH },
+      { id: 'naamkaran', label: 'Naamkaran', icon: PenLine, path: ASTROLOGY_HOME_PATH },
     ],
   },
   {

@@ -49,7 +49,7 @@ Canonical plans: `free` | `gold` | `platinum`. Enforcement matrix: [`SUBSCRIPTIO
 | **Dashas** | Vimshottari, Yogini, Chara/Jaimini, Ashtottari |
 | **Strengths** | Arudhas, Shadbala, Vimsopaka, Ashtakavarga, yogas |
 | **Panchang** | Daily + monthly calendar; timings (Choghadiya, Rahu Kalam, etc.) |
-| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, match-making and married-life preview, Prashna (Satpanchasika free), Jaimini, ACG, Vastu preview, Nakshatra lab teasers, Numerology |
+| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, match-making and married-life preview, Prashna (Satpanchasika free), Jaimini, ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
 | **Library** | Save up to **20** charts and **20** Kundali Milan matches; public share; notes; JHD/SJS import; location search |
 
 ### Gold — ₹168/month or ₹1,443/year
@@ -61,7 +61,7 @@ Everything in Free, plus:
 | **Chart library** | Save up to **200** charts and **200** Kundali Milan matches |
 | **PDF / HTML export** | `/api/chart/export` (also gated in `proxy.ts`) |
 | **Muhurta** | Full `/muhurta` + `/api/muhurta/*` (Gold+) |
-| **UI depth** | Full dasha “More”, Cosmic Weather, Vastu, SBC, Prashna Kerala/Vedic/KP, Nakshatra profession/medical, planetary panels, relationship and marriage, Kundali Milan match-making, married life, All Sections, and print (see matrix) |
+| **UI depth** | Full dasha “More”, Cosmic Weather, Vastu, SBC, Prashna Kerala/Vedic/KP, Nakshatra profession/medical, planetary panels, relationship and marriage, Naamkaran (full), Kundali Milan match-making, married life, All Sections, and print (see matrix) |
 
 ### Platinum — ₹336/month or ₹2,888/year
 
@@ -83,7 +83,7 @@ Bulk XLSX import is available to any authenticated user until the plan save cap 
 
 ## Highlights (v2.6.x)
 
-- Sarvatobhadra Chakra, Prashna, Jaimini, KP significators, Vastu, ACG
+- Sarvatobhadra Chakra, Prashna, Jaimini, KP significators, Vastu, ACG, Naamkaran (name prediction)
 - Reel studio (admin Remotion + canvas cards)
 - Cosmic roadmap `/roadmap` and time scrubber `/scrubber`
 - PWA (Serwist) + Android TWA packaging

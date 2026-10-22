@@ -51,6 +51,7 @@ const RelationshipMarriagePanel = dynamic(
 )
 const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
 const TattvaPredictionPanel = dynamic(() => import('@/components/ui/TattvaPredictionPanel').then(m => m.TattvaPredictionPanel), { ssr: false })
+const NaamkaranPanel = dynamic(() => import('@/components/ui/NaamkaranPanel').then(m => m.NaamkaranPanel), { ssr: false })
 const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
 const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => m.HousePanel), { ssr: false })
 const ActiveHousesCard = dynamic(() => import('@/components/dashboard/ActiveHousesCard').then(m => m.ActiveHousesCard), { ssr: false })
@@ -2160,6 +2161,8 @@ function HomeContent() {
                   <InterpretationPanel interpretation={chart.interpretation} />
                 ) : activeTab === 'tattva' ? (
                   <TattvaPredictionPanel chart={chart} userPlan={userPlan} />
+                ) : activeTab === 'naamkaran' ? (
+                  <NaamkaranPanel chart={chart} userPlan={userPlan} />
                 ) : activeTab === 'kp-stellar' ? (
                   <KPStellarPanel chart={chart} />
                 ) : (
