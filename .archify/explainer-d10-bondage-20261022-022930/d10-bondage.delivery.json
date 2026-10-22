@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "743561e6-9aa4-4378-bee3-efdc3a5be1d9",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-bondage-20261022-022930/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-bondage-20261022-022930/d10-bondage.html",
+  "specification": {
+    "sha256": "8f00fe59f6b90a5b3b4986bf8c9ae05a36b217223bad62b6f3aca0b99b6cbe16",
+    "bytes": 1219
+  },
+  "artifact": {
+    "sha256": "54f57a038c6ffa577b54ceb326e893bbc0d3e62661adf2ba06370bf779013f93",
+    "bytes": 120721
+  },
+  "explainer": {
+    "preparedSha256": "83e4b078b392b750d09393d7d497ac9ca08a2592dfec1f530c486fe23ebeb099",
+    "dependencies": []
+  }
+}

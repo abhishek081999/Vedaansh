@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "d4be1214-5156-40aa-8e96-5318626cd937",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-karma-yoga-20261022-023318/karma-yoga.html",
+  "specification": {
+    "sha256": "b5c711f91731f4f6df1dbeb36ff16dc41ea6603feea9c2caa75056a045d7916a",
+    "bytes": 3216
+  },
+  "artifact": {
+    "sha256": "efd24ca683d2ef5dfa0df53daf1500ef2d2bcaacd4edeb08c12b0ea083c99ec4",
+    "bytes": 510704
+  },
+  "explainer": {
+    "preparedSha256": "2ea2c9ce0ad7931b52b738df93a633145cc89e31e7960db6353988b7109ca750",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "dasha-to-event",
+        "inline": true,
+        "sha256": "992471fa8040b266b4e798db8875d7bb6c415bd705d5c47d7910cb3f425496c3",
+        "bytes": 1103
+      }
+    ]
+  }
+}

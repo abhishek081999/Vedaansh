@@ -1,0 +1,378 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "startedAt": "2026-10-22T02:48:30.703Z",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/candidate.archify.md",
+    "sha256": "cbd863e7d76218dd219925a60a96d95ba19fd1565b99c9cb188c60aec5bf2a82",
+    "bytes": 3331
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.html",
+    "sha256": "77a84876e52dd5c3141e03c089e0402fb3a74d3328c069caa349b9aec0b3caab",
+    "bytes": 509375
+  },
+  "stages": {
+    "browser-check": {
+      "status": "not-run",
+      "execution": "not-requested"
+    },
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "cbd863e7d76218dd219925a60a96d95ba19fd1565b99c9cb188c60aec5bf2a82",
+          "bytes": 3331
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 920,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "explainer",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/candidate.archify.md",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "24502934-3cfa-403b-aee2-159d25eb0097",
+        "ok": true,
+        "command": "deliver",
+        "type": "explainer",
+        "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/candidate.archify.md",
+        "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.html",
+        "explainer": {
+          "preparedSha256": "baf2a7c56171106ef74d4b4abe3fa7f0870af8222633d0fcee52b2c5fc51920f",
+          "dependencies": [
+            {
+              "kind": "diagram-spec",
+              "id": "synth-flow",
+              "inline": true,
+              "sha256": "a50be356ff718a9cabd0ce429efb7e2c2576b5b4c9d7facc73b411179b338f79",
+              "bytes": 1090
+            }
+          ]
+        },
+        "specification": {
+          "sha256": "cbd863e7d76218dd219925a60a96d95ba19fd1565b99c9cb188c60aec5bf2a82",
+          "bytes": 3331
+        },
+        "artifact": {
+          "sha256": "77a84876e52dd5c3141e03c089e0402fb3a74d3328c069caa349b9aec0b3caab",
+          "bytes": 509375
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "diagnostics": [
+          {
+            "code": "explainer/writing-sentence-length",
+            "severity": "warning",
+            "message": "Sentence has 29 reading units, above the configured en limit of 28.",
+            "subject": {
+              "line": 3,
+              "component": "answer",
+              "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/candidate.archify.md"
+            },
+            "evidence": {
+              "rule": "sentence-length",
+              "reason": "Sentence has 29 reading units, above the configured en limit of 28.",
+              "example": "先查缓存。未命中时再查数据库。 / Check the cache first. Query the database on a miss.",
+              "units": 29,
+              "limit": 28
+            },
+            "supportedFixes": [
+              "Split at a logical action or condition boundary while preserving qualifications and causal links."
+            ]
+          }
+        ],
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "stderr": "archify: Sentence has 29 reading units, above the configured en limit of 28."
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 357,
+      "command": [
+        "/Users/apple/.nvm/versions/node/v24.19.0/bin/node",
+        "/Users/apple/.agents/skills/archify/bin/archify.mjs",
+        "check",
+        "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.html",
+        "family": "explainer",
+        "artifact": {
+          "sha256": "77a84876e52dd5c3141e03c089e0402fb3a74d3328c069caa349b9aec0b3caab",
+          "bytes": 509375
+        },
+        "checks": [
+          {
+            "name": "explainer_structure",
+            "ok": true,
+            "details": [
+              "50 unique DOM IDs"
+            ]
+          },
+          {
+            "name": "explainer_payload_identity",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "explainer_dependencies",
+            "ok": true,
+            "details": [
+              "1 frozen dependencies"
+            ]
+          },
+          {
+            "name": "explainer_native_diagrams",
+            "ok": true,
+            "details": [
+              "synth-flow: pass"
+            ]
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "issues": [],
+          "nativeDiagrams": [
+            {
+              "id": "synth-flow",
+              "receipt": {
+                "ok": true,
+                "file": "/var/folders/hj/x7njj5vd4_bblfkvgdllrv0m0000gn/T/archify-explainer-check-Rp8v11/child.html",
+                "artifact": {
+                  "sha256": "5529fb5c9afea8c479bccc9ebd9e88777c6e7b637f7fc146e5266597c05c8934",
+                  "bytes": 810434
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": null,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 11,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 8,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 4,
+                    "shortEndpointSegmentCount": 4,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "node",
+                      "id": "a10"
+                    },
+                    "minimumSourceTextPx": 11,
+                    "minimumProjectedTextPx": 11,
+                    "semanticTextCount": 6
+                  },
+                  "issues": []
+                }
+              }
+            }
+          ]
+        },
+        "diagnostics": [],
+        "provenance": "current",
+        "deliveryReceiptId": "24502934-3cfa-403b-aee2-159d25eb0097"
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "explainer/writing-sentence-length",
+      "severity": "warning",
+      "message": "Sentence has 29 reading units, above the configured en limit of 28.",
+      "subject": {
+        "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/candidate.archify.md",
+        "line": 3,
+        "component": "answer"
+      },
+      "evidence": {
+        "reason": "Sentence has 29 reading units, above the configured en limit of 28.",
+        "example": "先查缓存。未命中时再查数据库。 / Check the cache first. Query the database on a miss.",
+        "rule": "sentence-length",
+        "units": 29,
+        "limit": 28
+      },
+      "supportedFixes": [
+        "Split at a logical action or condition boundary while preserving qualifications and causal links."
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-synthesis-20261022-081731/d10-synthesis.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-10-22T02:48:32.268Z",
+  "durationMs": 1565,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

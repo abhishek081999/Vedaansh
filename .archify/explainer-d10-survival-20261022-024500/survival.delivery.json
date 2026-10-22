@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "fc892cbf-16a8-47df-b5bb-03f3be3ad4dc",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-survival-20261022-024500/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-d10-survival-20261022-024500/survival.html",
+  "specification": {
+    "sha256": "4d0300600d70afa738e3b55502fad62f133a9ab2ff7476b658da8b8405e210c2",
+    "bytes": 2806
+  },
+  "artifact": {
+    "sha256": "7eefbe504957b3a4db88b38ac2701690c6856bb48a76cf46e4c899c18cd61f43",
+    "bytes": 507805
+  },
+  "explainer": {
+    "preparedSha256": "67b8ccb05ca4249a647550155e01cc236771d049de2f6d12321de01566c40724",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "survival-read",
+        "inline": true,
+        "sha256": "801b670cd09f0a4fc389520dc030c5d6cada7253b91d08ce867cf1d7f510971b",
+        "bytes": 1075
+      }
+    ]
+  }
+}
