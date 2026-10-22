@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-20261022-105515/candidate.archify.md",
+    "sha256": "919290f679a8da141cd5b5ca2ebab771dad6b04072884352d5725cbfee3ee0d0",
+    "bytes": 7083
+  },
+  "artifact": {
+    "path": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-20261022-105515/bhava-bala.html",
+    "sha256": "27493ed2d661ea445a0cfde20e30ec285873b00eb3fde469904b022d279b0a63",
+    "bytes": 990607
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-20261022-105515/bhava-bala.finalize.json",
+    "summaryReceipt": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-20261022-105515/bhava-bala.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-21T12:07:30.834Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 2281,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}

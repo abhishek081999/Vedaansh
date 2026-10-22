@@ -16,6 +16,7 @@ export type ChartTabId =
   | 'yogas'
   | 'kp-stellar'
   | 'interpretation'
+  | 'tattva'
   | 'varshaphal'
   | 'ashtakavarga'
   | 'shadbala'
@@ -33,6 +34,7 @@ export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
   'relationship',
   'house',
   'interpretation',
+  'tattva',
   'kp-stellar',
 ]
 

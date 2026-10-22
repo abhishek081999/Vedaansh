@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "479655c5-2584-4d33-9a5a-d8fe6f24174f",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-20261022-105515/candidate.archify.md",
+  "output": "/Users/apple/Projects/Vedaansh/.archify/explainer-bhava-bala-20261022-105515/bhava-bala.html",
+  "specification": {
+    "sha256": "919290f679a8da141cd5b5ca2ebab771dad6b04072884352d5725cbfee3ee0d0",
+    "bytes": 7083
+  },
+  "artifact": {
+    "sha256": "27493ed2d661ea445a0cfde20e30ec285873b00eb3fde469904b022d279b0a63",
+    "bytes": 990607
+  },
+  "explainer": {
+    "preparedSha256": "421622ca2b60cf9fda2cba3b0f478eae285f65e73a733cbbff4762e109fe7131",
+    "dependencies": [
+      {
+        "kind": "repository",
+        "id": "engine",
+        "path": "src/lib/engine/bhavaBala.ts",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "b305e8eaf39af9f5d9d2394c3f32d1a19a6471c56bd7d680ee996bc64d7692fb",
+        "bytes": 11179
+      },
+      {
+        "kind": "repository",
+        "id": "ui",
+        "path": "src/components/ui/BhavaBalaVisuals.tsx",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "f0e6e81913eeedcbc2693c18c479559751b8b708f2f01edf8f01f26201d6da53",
+        "bytes": 27536
+      },
+      {
+        "kind": "repository",
+        "id": "bphs",
+        "path": "src/lib/engine/bhavaBala.ts",
+        "revision": "984ff49984127b7c9f0023b8857db3b51b20df8a",
+        "sha256": "b305e8eaf39af9f5d9d2394c3f32d1a19a6471c56bd7d680ee996bc64d7692fb",
+        "bytes": 11179
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "bhava-parts",
+        "inline": true,
+        "sha256": "d25bed69d5e390b5228b5a9a7935b78b26875827043ad84aef5b3bfad3132e95",
+        "bytes": 758
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "bhava-method",
+        "inline": true,
+        "sha256": "288493fb11b16f4cabb82337316d1c0eeec879ad38d126eacc54289e3ac83127",
+        "bytes": 1116
+      }
+    ]
+  }
+}

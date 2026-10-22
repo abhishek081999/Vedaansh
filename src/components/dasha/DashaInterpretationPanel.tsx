@@ -54,6 +54,8 @@ import {
 import type { TransitPosition } from '@/lib/engine/transits'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
+import { TattvaDashaOverlayStrip } from '@/components/ui/TattvaPredictionPanel'
+import { analyzeTattvaDashaOverlay } from '@/lib/engine/tattvaPrediction'
 
 const DASHA_EVENT_LABELS = [
   'Job change',
@@ -565,6 +567,12 @@ export function VimshottariInterpretationPanel({
     [nodes, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas],
   )
 
+  const tattvaOverlay = useMemo(
+    () => analyzeTattvaDashaOverlay(grahas, nodes),
+    [grahas, nodes],
+  )
+  const moonGuidance = tattvaOverlay?.predictMode === 'guidance'
+
   const timeline = useMemo(
     () => buildUpcomingVimshottariTimeline(nodes),
     [nodes],
@@ -691,6 +699,26 @@ export function VimshottariInterpretationPanel({
       <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', padding: '0 0.15rem' }}>
         Vimshottari Interpretation
       </div>
+
+      <TattvaDashaOverlayStrip grahas={grahas} dashaNodes={nodes} />
+
+      {moonGuidance && (
+        <div
+          style={{
+            padding: '0.65rem 0.75rem',
+            borderRadius: 'var(--r-sm)',
+            border: '1px solid rgba(224,123,142,0.35)',
+            background: 'rgba(224,123,142,0.08)',
+            fontSize: '0.74rem',
+            color: 'var(--text-secondary)',
+            lineHeight: 1.45,
+          }}
+        >
+          <strong style={{ color: 'var(--rose)' }}>Moon period — guidance mode.</strong>{' '}
+          Firm event forecasts are softened. Prefer sadhana / katha; see Tattva Prediction → Remedies.
+          {tattvaOverlay?.remedies[0] ? ` ${tattvaOverlay.remedies[0].text}` : ''}
+        </div>
+      )}
 
       {analysis && (
         <div

@@ -46,6 +46,7 @@ const RelationshipMarriagePanel = dynamic(
   },
 )
 const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
+const TattvaPredictionPanel = dynamic(() => import('@/components/ui/TattvaPredictionPanel').then(m => m.TattvaPredictionPanel), { ssr: false })
 const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
 const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => m.HousePanel), { ssr: false })
 const ActiveHousesCard = dynamic(() => import('@/components/dashboard/ActiveHousesCard').then(m => m.ActiveHousesCard), { ssr: false })
@@ -2145,6 +2146,8 @@ function HomeContent() {
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (
                   <InterpretationPanel interpretation={chart.interpretation} />
+                ) : activeTab === 'tattva' ? (
+                  <TattvaPredictionPanel chart={chart} userPlan={userPlan} />
                 ) : activeTab === 'kp-stellar' ? (
                   <KPStellarPanel chart={chart} />
                 ) : (
@@ -2454,7 +2457,13 @@ function HomeContent() {
                               {mobileStrengthTab === 'shadbala' && (
                                 chart.shadbala ? (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                    <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts={true} />
+                                    <ShadbalaTable
+                                      shadbala={chart.shadbala}
+                                      preferClassicCharts={true}
+                                      dashaNodes={vimshottariNodes}
+                                      grahas={chart.grahas}
+                                      ascRashi={chart.lagnas.ascRashi}
+                                    />
                                   </div>
                                 ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
                               )}
@@ -2668,7 +2677,15 @@ function HomeContent() {
                       <div className="panel-header"><span>Shadbala</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}>
                         {chart.shadbala
-                          ? <ShadbalaTable shadbala={chart.shadbala} hideDetails={true} preferClassicCharts={true} variant="widget" />
+                          ? <ShadbalaTable
+                              shadbala={chart.shadbala}
+                              hideDetails={true}
+                              preferClassicCharts={true}
+                              variant="widget"
+                              dashaNodes={vimshottariNodes}
+                              grahas={chart.grahas}
+                              ascRashi={chart.lagnas.ascRashi}
+                            />
                           : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Shadbala data unavailable.</p>}
                       </div>
                     </div>
@@ -2785,7 +2802,17 @@ function HomeContent() {
                  <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
                    <div className="panel-header"><span>Shadbala Strength</span></div>
                    <div style={{ padding: '0.5rem 0.65rem' }}>
-                     {chart.shadbala ? <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts={true} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Shadbala.</div>}
+                     {chart.shadbala ? (
+                       <ShadbalaTable
+                         shadbala={chart.shadbala}
+                         preferClassicCharts={true}
+                         dashaNodes={vimshottariNodes}
+                         grahas={chart.grahas}
+                         ascRashi={chart.lagnas.ascRashi}
+                       />
+                     ) : (
+                       <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Shadbala.</div>
+                     )}
                    </div>
                  </div>
                )}
@@ -2921,7 +2948,15 @@ function HomeContent() {
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
                         {!chart.shadbala ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
-                        : dashExpandShad ? <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts={true} />
+                        : dashExpandShad ? (
+                          <ShadbalaTable
+                            shadbala={chart.shadbala}
+                            preferClassicCharts={true}
+                            dashaNodes={vimshottariNodes}
+                            grahas={chart.grahas}
+                            ascRashi={chart.lagnas.ascRashi}
+                          />
+                        )
                         : dashboardShadbalaSummary ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(70px, 1fr))', gap: '0.35rem' }}>
