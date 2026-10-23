@@ -65,6 +65,52 @@ export interface CareerField {
   why: string
 }
 
+export type CareerFit = 'good' | 'mixed' | 'poor'
+
+export interface CareerTrackSegment {
+  id: string
+  lord: string
+  level: 'mahadasha' | 'antardasha' | 'pratyantardasha' | 'sookshma'
+  start: string
+  end: string
+  share: number
+  live: boolean
+  fit: CareerFit
+  label: string
+  reason: string
+}
+
+export interface CareerTracker {
+  headline: string
+  nowLabel: string
+  nowShare: number | null
+  mahas: CareerTrackSegment[]
+  antars: CareerTrackSegment[]
+  pratyantars: CareerTrackSegment[]
+  pratyantarNowShare: number | null
+  pratyantarWindow: string
+  sookshmas: CareerTrackSegment[]
+  sookshmaNowShare: number | null
+  sookshmaWindow: string
+}
+
+export interface CareerTransitHit {
+  id: string
+  planet: string
+  house: number
+  signName: string
+  retro: boolean
+  fit: CareerFit
+  label: string
+  reading: string
+}
+
+export interface CareerTransitReading {
+  available: boolean
+  headline: string
+  hits: CareerTransitHit[]
+}
+
 export interface CareerWindow {
   id: string
   title: string
@@ -136,8 +182,64 @@ export interface CareerProfessionAnalysis {
   } | null
   timingHeadline: string
   timing: CareerWindow[]
+  tracker: CareerTracker
   remedies: CareerNote[]
   brief: { plain: string; sections: { heading: string; body: string }[] }
+  advanced: CareerAdvanced
+}
+
+export interface CareerAdvancedNote {
+  id: string
+  title: string
+  answer: string
+  reading: string
+  tone: CareerTone
+}
+
+export interface CareerAdvanced {
+  delivery: {
+    verdict: string
+    reading: string
+    tone: CareerTone
+    votes: CareerAdvancedNote[]
+  }
+  strength: {
+    rows: {
+      id: string
+      planet: string
+      role: string
+      dignity: string
+      shadbala: string | null
+      vimsopaka: string | null
+      reading: string
+      tone: CareerTone
+    }[]
+    houses: {
+      house: number
+      label: string
+      bindus: number | null
+      bhava: string | null
+      reading: string
+      tone: CareerTone
+    }[]
+    closing: string
+  }
+  chain: {
+    steps: { planet: string; signName: string; house: number; reading: string }[]
+    aspects: CareerAdvancedNote[]
+    conditions: CareerAdvancedNote[]
+    closing: string
+  }
+  prosperity: { notes: CareerAdvancedNote[]; closing: string }
+  turns: {
+    headline: string
+    notes: CareerAdvancedNote[]
+    closing: string
+  }
+  ladder: {
+    rows: { varga: string; signName: string; dignity: string; house: number | null; reading: string; tone: CareerTone }[]
+    closing: string
+  }
 }
 
 const SIGN_LORDS: Record<number, GrahaId> = {
@@ -482,6 +584,337 @@ function collectFields(
   return fields.slice(0, 8)
 }
 
+const FIT_LABEL: Record<CareerFit, string> = {
+  good: 'Good for career',
+  mixed: 'Mixed for career',
+  poor: 'Not for career',
+}
+
+interface PeriodCtx {
+  chart: ChartOutput
+  asc: number
+  tenthLordId: GrahaId
+  tenthLord: GrahaData | undefined
+  tenthOccIds: Set<string>
+  livelihood: Set<string>
+  drain: Set<string>
+}
+
+function judgeCareerPeriod(lord: string, ctx: PeriodCtx): { fit: CareerFit; reason: string } {
+  const id = lord as GrahaId
+  const g = CLASSICAL.includes(id) ? findGraha(ctx.chart, id) : undefined
+  const house = g ? wholeSignHouse(g.rashi, ctx.asc) : null
+  let score = 0
+  const bits: string[] = []
+  if (id === ctx.tenthLordId) {
+    score += 3
+    bits.push('rules the 10th')
+  } else if (ctx.livelihood.has(id)) {
+    score += 2
+    bits.push('rules a livelihood house')
+  }
+  if (ctx.tenthOccIds.has(id)) {
+    score += 2
+    bits.push('sits in the 10th')
+  }
+  if (g && ctx.tenthLord && g.id !== ctx.tenthLord.id && linked(g, ctx.tenthLord)) {
+    score += 2
+    bits.push('joins the 10th lord')
+  }
+  if (g && (id === 'Sa' || id === 'Su' || id === 'Me') && holds(g.dignity) && !g.isCombust) {
+    score += 1
+    bits.push('is a strong career karaka')
+  }
+  if (house != null && [1, 2, 6, 9, 10, 11].includes(house) && g && !isWeak(g.dignity) && !g.isCombust) {
+    score += 1
+  }
+  if (house === 8 || house === 12) {
+    score -= 2
+    bits.push(`sits in house ${house}`)
+  }
+  if (g && (g.dignity === 'debilitated' || g.isCombust)) {
+    score -= 1
+    bits.push(g.isCombust ? 'is combust' : 'is debilitated')
+  }
+  if (ctx.drain.has(id) && !ctx.livelihood.has(id) && id !== ctx.tenthLordId) {
+    score -= 2
+    bits.push('rules loss or sudden change')
+  }
+  if (id === 'Ke' && !ctx.tenthOccIds.has(id) && id !== ctx.tenthLordId) {
+    score -= 1
+    bits.push('draws the work inward')
+  }
+  if (id === 'Ra' && house != null && [3, 10, 11].includes(house)) {
+    score += 1
+    bits.push('opens an unusual door')
+  }
+  const fit: CareerFit = score >= 3 ? 'good' : score <= 0 ? 'poor' : 'mixed'
+  const name = gn(id)
+  const reason = bits.length
+    ? `${name} ${bits.join(', ')}. ${FIT_LABEL[fit]}.`
+    : `${name} is off the livelihood houses. ${FIT_LABEL[fit]}.`
+  return { fit, reason }
+}
+
+function toneOfFit(fit: CareerFit): CareerTone {
+  if (fit === 'good') return 'supportive'
+  if (fit === 'poor') return 'caution'
+  return 'mixed'
+}
+
+const EMPTY_TRACKER: CareerTracker = {
+  headline: 'Vimshottari is not on this chart, so the career tracker cannot be drawn.',
+  nowLabel: 'No period',
+  nowShare: null,
+  mahas: [],
+  antars: [],
+  pratyantars: [],
+  pratyantarNowShare: null,
+  pratyantarWindow: '',
+  sookshmas: [],
+  sookshmaNowShare: null,
+  sookshmaWindow: '',
+}
+
+function buildCareerTracker(nodes: DashaNode[], ctx: PeriodCtx, asOf: number): CareerTracker {
+  const past = asOf - 8 * 365 * DAY
+  const horizon = asOf + 24 * 365 * DAY
+  const overlaps = (start: number, end: number) => end > past && start < horizon
+  const mahas = nodes
+    .map(node => ({ node, start: toMs(node.start), end: toMs(node.end) }))
+    .filter(row => Number.isFinite(row.start) && Number.isFinite(row.end) && overlaps(row.start, row.end))
+    .sort((a, b) => a.start - b.start)
+  if (!mahas.length) return EMPTY_TRACKER
+  const rangeStart = mahas[0].start
+  const rangeEnd = mahas[mahas.length - 1].end
+  const span = Math.max(1, rangeEnd - rangeStart)
+  const shareOf = (start: number, end: number) => Math.max(0, ((end - start) / span) * 100)
+  const segment = (
+    node: DashaNode,
+    level: CareerTrackSegment['level'],
+    start: number,
+    end: number,
+    share: number,
+  ): CareerTrackSegment => {
+    const judged = judgeCareerPeriod(node.lord, ctx)
+    return {
+      id: `${level}-${node.lord}-${start}`,
+      lord: gn(node.lord),
+      level,
+      start: formatDay(start),
+      end: formatDay(end),
+      share,
+      live: asOf >= start && asOf < end,
+      fit: judged.fit,
+      label: FIT_LABEL[judged.fit],
+      reason: judged.reason,
+    }
+  }
+  const childSegments = (
+    parent: DashaNode | undefined,
+    level: CareerTrackSegment['level'],
+  ): CareerTrackSegment[] => (parent?.children ?? []).flatMap(child => {
+    const start = toMs(child.start)
+    const end = toMs(child.end)
+    if (!Number.isFinite(start) || !Number.isFinite(end)) return []
+    return [segment(child, level, start, end, shareOf(start, end))]
+  })
+  const zoom = (
+    parent: DashaNode | undefined,
+    level: 'pratyantardasha' | 'sookshma',
+    parentLabel: string,
+  ): { segs: CareerTrackSegment[]; nowShare: number | null; window: string } => {
+    if (!parent) return { segs: [], nowShare: null, window: '' }
+    const start = toMs(parent.start)
+    const end = toMs(parent.end)
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      return { segs: [], nowShare: null, window: '' }
+    }
+    const window = `${gn(parent.lord)} ${parentLabel}, ${formatDay(start)} to ${formatDay(end)}`
+    const children = parent.children ?? []
+    if (!children.length) {
+      return {
+        segs: [],
+        nowShare: null,
+        window: level === 'pratyantardasha'
+          ? `${window}. Pratyantardasha is not on this chart. Recalculate the chart to load the finer periods.`
+          : '',
+      }
+    }
+    const zoomSpan = end - start
+    const segs = children.flatMap(child => {
+      const cStart = toMs(child.start)
+      const cEnd = toMs(child.end)
+      if (!Number.isFinite(cStart) || !Number.isFinite(cEnd)) return []
+      return [segment(child, level, cStart, cEnd, Math.max(0, ((cEnd - cStart) / zoomSpan) * 100))]
+    })
+    const nowShare = asOf >= start && asOf <= end ? ((asOf - start) / zoomSpan) * 100 : null
+    return { segs, nowShare, window }
+  }
+  const containsNow = (node: DashaNode) => {
+    const start = toMs(node.start)
+    const end = toMs(node.end)
+    return Number.isFinite(start) && Number.isFinite(end) && asOf >= start && asOf < end
+  }
+  const mahaSegs = mahas.map(row => segment(row.node, 'mahadasha', row.start, row.end, shareOf(row.start, row.end)))
+  const antarSegs = mahas.flatMap(row => childSegments(row.node, 'antardasha'))
+  const liveAntarNode = mahas.flatMap(row => row.node.children ?? []).find(containsNow)
+  const pratyantar = zoom(liveAntarNode, 'pratyantardasha', 'antardasha')
+  const livePdNode = (liveAntarNode?.children ?? []).find(containsNow)
+  const sookshma = zoom(livePdNode, 'sookshma', 'pratyantardasha')
+  const liveMaha = mahaSegs.find(s => s.live)
+  const liveAntar = antarSegs.find(s => s.live)
+  const livePd = pratyantar.segs.find(s => s.live)
+  const liveSk = sookshma.segs.find(s => s.live)
+  const nowShare = asOf >= rangeStart && asOf <= rangeEnd ? ((asOf - rangeStart) / span) * 100 : null
+  const nowLabel = liveMaha
+    ? [
+        `${liveMaha.lord} mahadasha · ${liveMaha.label}`,
+        liveAntar ? `${liveAntar.lord} antardasha · ${liveAntar.label}` : '',
+        livePd ? `${livePd.lord} pratyantardasha · ${livePd.label}` : '',
+        liveSk ? `${liveSk.lord} sookshma · ${liveSk.label}` : '',
+      ].filter(Boolean).join('. ')
+    : 'Between the tracked periods'
+  const nextGood = mahaSegs.find(s => s.fit === 'good' && s.start >= (liveMaha?.end ?? formatDay(asOf)))
+  const finer = [
+    livePd ? `Pratyantardasha ${livePd.lord} is ${livePd.label.toLowerCase()}.` : '',
+    liveSk ? `Sookshma ${liveSk.lord} is ${liveSk.label.toLowerCase()}.` : '',
+  ].filter(Boolean).join(' ')
+  const headline = liveMaha
+    ? liveMaha.fit === 'good'
+      ? `${liveMaha.lord} mahadasha is good for career.${liveAntar ? ` Inside it, ${liveAntar.lord} is ${liveAntar.label.toLowerCase()}.` : ''}${finer ? ` ${finer}` : ''}`
+      : liveMaha.fit === 'poor'
+        ? `${liveMaha.lord} mahadasha is not for career.${nextGood ? ` The next good stretch is ${nextGood.lord}, ${nextGood.start} to ${nextGood.end}.` : ''}${finer ? ` ${finer}` : ''}`
+        : `${liveMaha.lord} mahadasha is mixed for career.${liveAntar ? ` ${liveAntar.lord} antardasha is ${liveAntar.label.toLowerCase()}.` : ''}${finer ? ` ${finer}` : ''}`
+    : 'No mahadasha covers this date.'
+  return {
+    headline,
+    nowLabel,
+    nowShare,
+    mahas: mahaSegs,
+    antars: antarSegs,
+    pratyantars: pratyantar.segs,
+    pratyantarNowShare: pratyantar.nowShare,
+    pratyantarWindow: pratyantar.window,
+    sookshmas: sookshma.segs,
+    sookshmaNowShare: sookshma.nowShare,
+    sookshmaWindow: sookshma.window,
+  }
+}
+
+const TRANSIT_LORDS: GrahaId[] = ['Su', 'Ma', 'Ju', 'Sa', 'Ra', 'Ke']
+const CAREER_TRANSIT_HOUSES = [1, 2, 6, 9, 10, 11]
+
+function judgeCareerTransit(
+  id: GrahaId,
+  house: number,
+  aspectsTenth: boolean,
+  isTenthLord: boolean,
+): { fit: CareerFit; reason: string } {
+  const name = gn(id)
+  if (house === 8 || house === 12) {
+    if (id === 'Ju') {
+      return {
+        fit: 'mixed',
+        reason: `${name} is in house ${house}. Jupiter still protects, but this is not the house that pays the career. Mixed for career.`,
+      }
+    }
+    return {
+      fit: 'poor',
+      reason: `${name} is in house ${house}. A drain house takes the visible result off the career. Not for career.`,
+    }
+  }
+  if (CAREER_TRANSIT_HOUSES.includes(house)) {
+    if (id === 'Ke') {
+      return {
+        fit: 'poor',
+        reason: `${name} is on career house ${house}. Ketu withdraws the visible post. Not for career.`,
+      }
+    }
+    if (id === 'Ju' || id === 'Su' || isTenthLord) {
+      const tenth = isTenthLord ? ' and rules the 10th' : ''
+      return {
+        fit: 'good',
+        reason: `${name} is on career house ${house}${tenth}. Good for career.`,
+      }
+    }
+    if (id === 'Sa') {
+      return {
+        fit: 'mixed',
+        reason: `${name} is on career house ${house}. Saturn slows the work and makes it solid. Mixed for career.`,
+      }
+    }
+    if (id === 'Ra') {
+      return {
+        fit: 'mixed',
+        reason: `${name} is on career house ${house}. Rahu amplifies the work and unsettles it. Mixed for career.`,
+      }
+    }
+    if (id === 'Ma') {
+      return {
+        fit: 'mixed',
+        reason: `${name} is on career house ${house}. Mars pushes execution and friction. Mixed for career.`,
+      }
+    }
+    return { fit: 'good', reason: `${name} is on career house ${house}. Good for career.` }
+  }
+  if (aspectsTenth && (id === 'Ju' || id === 'Su' || isTenthLord)) {
+    return { fit: 'good', reason: `${name} aspects the 10th from house ${house}. Good for career.` }
+  }
+  if (aspectsTenth && (id === 'Sa' || id === 'Ra' || id === 'Ma')) {
+    return { fit: 'mixed', reason: `${name} aspects the 10th from house ${house}. The work is under pressure. Mixed for career.` }
+  }
+  return { fit: 'mixed', reason: `${name} is in house ${house}, off the career houses. Mixed for career.` }
+}
+
+export function readCareerTransits(
+  chart: ChartOutput,
+  positions: { id: GrahaId; rashi: Rashi; isRetro?: boolean }[],
+): CareerTransitReading {
+  const asc = chart.lagnas?.ascRashi
+  if (!asc || !positions.length) {
+    return {
+      available: false,
+      headline: 'Transit positions are not on this reading yet.',
+      hits: [],
+    }
+  }
+  const tenthSign = houseSign(asc, 10)
+  const tenthLordId = SIGN_LORDS[tenthSign]
+  const moon = findGraha(chart, 'Mo')
+  const hits: CareerTransitHit[] = []
+  for (const id of TRANSIT_LORDS) {
+    const pos = positions.find(p => p.id === id)
+    if (!pos) continue
+    const house = wholeSignHouse(pos.rashi, asc)
+    const fromMoon = moon ? wholeSignHouse(pos.rashi, moon.rashi) : null
+    const judged = judgeCareerTransit(id, house, aspectsSign(pos.rashi, id, tenthSign), id === tenthLordId)
+    const moonClause = fromMoon && fromMoon !== house ? ` From the Moon it is house ${fromMoon}.` : ''
+    const retroClause = pos.isRetro ? ' It is retrograde, so the result repeats before it settles.' : ''
+    hits.push({
+      id: `tr-${id}`,
+      planet: gn(id),
+      house,
+      signName: rn(pos.rashi),
+      retro: pos.isRetro === true,
+      fit: judged.fit,
+      label: FIT_LABEL[judged.fit],
+      reading: `${gn(id)} transits ${rn(pos.rashi)}, house ${house} from the lagna.${moonClause}${retroClause} ${judged.reason}`,
+    })
+  }
+  const good = hits.filter(h => h.fit === 'good')
+  const poor = hits.filter(h => h.fit === 'poor')
+  const goodLine = good.length
+    ? `${good.map(h => `${h.planet} in house ${h.house}`).join(', ')} ${good.length === 1 ? 'is' : 'are'} good for career in transit.`
+    : ''
+  const poorLine = poor.length
+    ? `${poor.map(h => `${h.planet} in house ${h.house}`).join(', ')} ${poor.length === 1 ? 'is' : 'are'} not for career.`
+    : ''
+  const headline = [goodLine, poorLine].filter(Boolean).join(' ')
+    || 'No slow planet is clearly for the career or against it. The sky is mixed.'
+  return { available: true, headline, hits }
+}
+
 function periodNote(role: string, lordName: string, level: string): string {
   return `${lordName} ${level} — ${role}.`
 }
@@ -490,6 +923,7 @@ function careerWindows(
   nodes: DashaNode[],
   roles: Map<string, string>,
   asOf: number,
+  ctx: PeriodCtx,
 ): CareerWindow[] {
   const past = asOf - 2 * 365 * DAY
   const horizon = asOf + 18 * 365 * DAY
@@ -502,14 +936,15 @@ function careerWindows(
     const role = roles.get(node.lord)
     if (!role) return
     const live = asOf >= start && asOf < end
+    const judged = judgeCareerPeriod(node.lord, ctx)
     out.push({
       id: `${level}-${node.lord}-${start}`,
       title: `${gn(node.lord)} ${level}`,
       start: formatDay(node.start),
       end: formatDay(node.end),
       live,
-      note: periodNote(role, gn(node.lord), level),
-      tone: live ? 'supportive' : 'mixed',
+      note: `${FIT_LABEL[judged.fit]}. ${periodNote(role, gn(node.lord), level)}`,
+      tone: toneOfFit(judged.fit),
     })
   }
   for (const md of nodes) {
@@ -526,6 +961,957 @@ function careerWindows(
   const live = unique.filter(w => w.live)
   const rest = unique.filter(w => !w.live).slice(0, Math.max(0, 8 - live.length))
   return [...live, ...rest].slice(0, 8)
+}
+
+const COMPONENT: Record<string, string> = {
+  sthana: 'position',
+  dig: 'direction',
+  kala: 'time',
+  chesta: 'motion',
+  naisargika: 'nature',
+  drik: 'aspect',
+}
+
+const LADDER: { id: string; name: string }[] = [
+  { id: 'D1', name: 'Birth chart' },
+  { id: 'D9', name: 'Navamsha' },
+  { id: 'D10', name: 'Dashamsha' },
+  { id: 'D24', name: 'Siddhamsha' },
+]
+
+function lordsOf(asc: number, houses: number[]): Set<GrahaId> {
+  return new Set(houses.map(house => SIGN_LORDS[houseSign(asc, house)]))
+}
+
+function d1DeliveryTone(lord: GrahaData | undefined, house: number): CareerTone {
+  if (!lord) return 'mixed'
+  if (lord.dignity === 'debilitated') return 'caution'
+  if (house === 8 || house === 12) return 'caution'
+  if (lord.isCombust && (DUSTHANA.has(house) || house === 8)) return 'caution'
+  if ((holds(lord.dignity)) && !lord.isCombust && (KENDRA.has(house) || TRIKONA.has(house) || house === 11)) {
+    return 'supportive'
+  }
+  if (isWeak(lord.dignity) || lord.isCombust) return 'caution'
+  return 'mixed'
+}
+
+function aspectTone(id: GrahaId, combust: boolean): CareerTone {
+  if (id === 'Su') return 'mixed'
+  if ((BENEFICS.has(id) || id === 'Mo') && !combust) return 'supportive'
+  if (MALEFICS.has(id) || combust) return 'caution'
+  return 'mixed'
+}
+
+function aspectAnswer(id: GrahaId, tone: CareerTone): string {
+  if (id === 'Su') return 'Authority watches the work'
+  if (tone === 'supportive') return 'Support on the career'
+  if (tone === 'caution') return 'Pressure on the career'
+  return 'A mixed glance'
+}
+
+function buildAspects(
+  chart: ChartOutput,
+  target: Rashi,
+  label: string,
+): CareerAdvancedNote[] {
+  const notes: CareerAdvancedNote[] = []
+  for (const g of chart.grahas) {
+    if (!CLASSICAL.includes(g.id) || g.rashi === target) continue
+    if (!aspectsSign(g.rashi as Rashi, g.id, target)) continue
+    const tone = aspectTone(g.id, !!g.isCombust)
+    notes.push({
+      id: `aspect-${label}-${g.id}`,
+      title: `${gn(g.id)} aspects the ${label}`,
+      answer: aspectAnswer(g.id, tone),
+      tone,
+      reading: `${placement(g, 0).replace(', house 0', '')} sees ${rn(target)}. ${
+        tone === 'supportive'
+          ? 'That glance helps the profession hold its name.'
+          : tone === 'caution'
+            ? 'That glance makes the profession earn its name under pressure.'
+            : 'Authority is looking at the profession. The seat has to be real.'
+      }`,
+    })
+  }
+  return notes
+}
+
+function conditionOf(g: GrahaData, role: string): CareerAdvancedNote[] {
+  const notes: CareerAdvancedNote[] = []
+  if (g.isCombust) {
+    notes.push({
+      id: `combust-${g.id}`,
+      title: `${gn(g.id)} under the Sun`,
+      answer: 'The light is borrowed',
+      tone: 'caution',
+      reading: `${role} is combust. The skill and the title are real, and they need review before they are signed in public.`,
+    })
+  }
+  if (g.isRetro) {
+    notes.push({
+      id: `retro-${g.id}`,
+      title: `${gn(g.id)} retrograde`,
+      answer: 'The work returns',
+      tone: 'mixed',
+      reading: `${role} is retrograde. The profession is revised and taken up again. The second attempt is the one that settles.`,
+    })
+  }
+  if (g.gandanta?.isGandanta) {
+    notes.push({
+      id: `gandanta-${g.id}`,
+      title: `${gn(g.id)} in gandanta`,
+      answer: 'A knot on the career planet',
+      tone: 'caution',
+      reading: `${role} sits in a gandanta knot. The profession crosses a junction. Leave a margin around the first launch.`,
+    })
+  }
+  if (g.yuddha?.isWarring) {
+    const winner = g.yuddha.winner ? gn(g.yuddha.winner) : 'one of them'
+    notes.push({
+      id: `yuddha-${g.id}`,
+      title: `${gn(g.id)} in planetary war`,
+      answer: `${winner} takes the degree`,
+      tone: 'caution',
+      reading: `${role} is in planetary war. ${winner} wins the degree. The losing planet’s career promise waits until the winner’s work is done.`,
+    })
+  }
+  if (g.pushkara?.isPushkara) {
+    notes.push({
+      id: `pushkara-${g.id}`,
+      title: `${gn(g.id)} in Pushkara`,
+      answer: 'An auspicious degree',
+      tone: 'supportive',
+      reading: `${role} occupies a Pushkara degree. The profession has a nourishing navamsha under the sign. Use it for the work that has to last.`,
+    })
+  }
+  if (g.avastha?.baladi) {
+    const state = g.avastha.jagradadi ? `${g.avastha.baladi}, ${g.avastha.jagradadi}` : g.avastha.baladi
+    notes.push({
+      id: `avastha-${g.id}`,
+      title: `${gn(g.id)} avastha`,
+      answer: state,
+      tone: g.avastha.baladi === 'Mrita' || g.avastha.baladi === 'Bala' ? 'mixed' : 'supportive',
+      reading: `${role} is in ${state} avastha. A youthful or waking planet can carry a fresh post. An aged or sleeping planet carries a long, quieter one.`,
+    })
+  }
+  return notes
+}
+
+function shadbalaText(chart: ChartOutput, id: GrahaId): { line: string; lead: string | null; tone: CareerTone } | null {
+  const row = chart.shadbala?.planets?.[id]
+  if (!row || typeof row.ratio !== 'number') return null
+  const band = row.qualityBand ?? (row.isStrong ? 'strong' : 'weak')
+  const parts = row.componentShash
+  let lead: string | null = null
+  if (parts) {
+    const ranked = Object.entries(parts).sort((a, b) => b[1] - a[1])
+    const key = ranked[0]?.[0]
+    if (key && COMPONENT[key]) lead = COMPONENT[key]
+  }
+  const tone: CareerTone = row.isStrong || row.ratio >= 1 ? 'supportive' : row.ratio < 0.85 || band === 'weak' ? 'caution' : 'mixed'
+  return {
+    line: `Shadbala is ${band} (${row.ratio.toFixed(2)} of required)${lead ? `, led by ${lead}` : ''}.`,
+    lead,
+    tone,
+  }
+}
+
+function vimsopakaText(chart: ChartOutput, id: GrahaId): { line: string; tone: CareerTone } | null {
+  const row = chart.vimsopaka?.planets?.[id]
+  if (!row || typeof row.dashavarga !== 'number') return null
+  const tone: CareerTone = row.strength === 'very_strong' || row.strength === 'strong'
+    ? 'supportive'
+    : row.strength === 'weak' || row.strength === 'very_weak'
+      ? 'caution'
+      : 'mixed'
+  return {
+    line: `Vimsopaka is ${row.strength.replaceAll('_', ' ')} (dashavarga ${row.dashavarga.toFixed(1)} of 20).`,
+    tone,
+  }
+}
+
+function combineTone(parts: CareerTone[]): CareerTone {
+  if (parts.includes('caution') && !parts.includes('supportive')) return 'caution'
+  if (parts.includes('supportive') && !parts.includes('caution')) return 'supportive'
+  if (parts.includes('supportive') && parts.includes('caution')) return 'mixed'
+  return parts[0] ?? 'mixed'
+}
+
+interface TurnBag {
+  chart: ChartOutput
+  asc: number
+  tenthSign: Rashi
+  tenthLord: GrahaData | undefined
+  tenthLordHouse: number
+  eleventhLord: GrahaData | undefined
+  asOf: Date
+}
+
+function careerPhaseWindow(nodes: DashaNode[], lords: GrahaId[], asOf: number): string {
+  const wanted = new Set(lords)
+  const hits: { lord: GrahaId; level: string; start: number; end: number; live: boolean }[] = []
+  const consider = (node: DashaNode, level: string) => {
+    if (!wanted.has(node.lord as GrahaId)) return
+    const start = toMs(node.start)
+    const end = toMs(node.end)
+    if (!Number.isFinite(start) || !Number.isFinite(end)) return
+    hits.push({
+      lord: node.lord as GrahaId,
+      level,
+      start,
+      end,
+      live: asOf >= start && asOf < end,
+    })
+  }
+  for (const md of nodes) {
+    consider(md, 'mahadasha')
+    for (const ad of md.children ?? []) consider(ad, 'antardasha')
+  }
+  const live = hits.find(h => h.live && h.level === 'mahadasha') ?? hits.find(h => h.live)
+  if (live) {
+    return `This chapter is live in ${gn(live.lord)} ${live.level}, ${formatDay(live.start)} to ${formatDay(live.end)}.`
+  }
+  const horizon = asOf + 15 * 365 * DAY
+  const next = hits
+    .filter(h => h.start >= asOf && h.start < horizon)
+    .sort((a, b) => a.start - b.start)[0]
+  if (!next) return ''
+  return `The next window is ${gn(next.lord)} ${next.level}, ${formatDay(next.start)} to ${formatDay(next.end)}.`
+}
+
+function buildCareerTurns(bag: TurnBag): CareerAdvanced['turns'] {
+  const { chart, asc, tenthSign, tenthLord, tenthLordHouse, eleventhLord, asOf } = bag
+  const sun = findGraha(chart, 'Su')
+  const jupiter = findGraha(chart, 'Ju')
+  const saturn = findGraha(chart, 'Sa')
+  const rahu = findGraha(chart, 'Ra')
+  const ketu = findGraha(chart, 'Ke')
+  const lagnaLord = findGraha(chart, SIGN_LORDS[asc])
+  const eighthLord = findGraha(chart, SIGN_LORDS[houseSign(asc, 8)])
+  const ninthLord = findGraha(chart, SIGN_LORDS[houseSign(asc, 9)])
+  const twelfthLord = findGraha(chart, SIGN_LORDS[houseSign(asc, 12)])
+  const house = (g: GrahaData | undefined) => (g ? wholeSignHouse(g.rashi, asc) : null)
+  const suH = house(sun)
+  const juH = house(jupiter)
+  const saH = house(saturn)
+  const raH = house(rahu)
+  const keH = house(ketu)
+  const eighthLordHouse = house(eighthLord)
+  const ninthLordHouse = house(ninthLord)
+  const twelfthLordHouse = house(twelfthLord)
+  const modality = signModality(tenthSign)
+  const nodes = (chart.dashas?.vimshottari ?? []) as DashaNode[]
+  const now = asOf.getTime()
+  const when = (lords: GrahaId[]) => careerPhaseWindow(nodes, lords.filter(Boolean), now)
+
+  const startTone: CareerTone = tenthLordHouse === 8 || tenthLordHouse === 12
+    ? 'caution'
+    : [1, 9, 10, 11].includes(tenthLordHouse)
+      ? 'supportive'
+      : 'mixed'
+  const startAnswer = tenthLordHouse === 10
+    ? 'The career starts in the 10th itself.'
+    : tenthLordHouse === 1
+      ? 'The career starts as the person.'
+      : tenthLordHouse === 3
+        ? 'The career starts by your own effort.'
+        : tenthLordHouse === 6
+          ? 'The career starts as a job.'
+          : tenthLordHouse === 7
+            ? 'The career starts through other people.'
+            : tenthLordHouse === 9
+              ? 'The career starts through a teacher or a long aim.'
+              : tenthLordHouse === 11
+                ? 'The career starts through a gain.'
+                : tenthLordHouse === 8
+                  ? 'The career starts by breaking the first plan.'
+                  : tenthLordHouse === 12
+                    ? 'The career starts away from the first plan.'
+                    : 'The career starts from the 10th lord’s house.'
+  const modalityLine = modality === 'movable'
+    ? 'A movable 10th starts by changing place or post.'
+    : modality === 'fixed'
+      ? 'A fixed 10th wants one first post and stays with it.'
+      : 'A dual 10th can begin as two strands at once.'
+  const startLords: GrahaId[] = []
+  if (tenthLord) startLords.push(tenthLord.id)
+  if (lagnaLord && !startLords.includes(lagnaLord.id)) startLords.push(lagnaLord.id)
+  if (!startLords.includes('Sa')) startLords.push('Sa')
+  const start: CareerAdvancedNote = {
+    id: 'start',
+    title: 'Start',
+    answer: startAnswer,
+    tone: startTone,
+    reading: [
+      tenthLord ? `${placement(tenthLord, tenthLordHouse)}.` : 'The 10th lord is not placed.',
+      modalityLine,
+      'This is the first public chapter, the moment the work can be named.',
+      when(startLords),
+    ].filter(Boolean).join(' '),
+  }
+
+  let breakScore = 0
+  const breakLines: string[] = []
+  if (tenthLordHouse === 12) {
+    breakScore += 2
+    breakLines.push('The 10th lord in the 12th withdraws the work: a gap, a foreign pause, a hospital, or a season behind the scenes.')
+  }
+  if (twelfthLordHouse === 10) {
+    breakScore += 2
+    breakLines.push('The 12th lord in the 10th puts a withdrawal inside the profession itself.')
+  }
+  if (keH === 10 || linked(ketu, tenthLord)) {
+    breakScore += 2
+    breakLines.push('Ketu on the career cuts the appetite for the visible seat. A break, a retreat, or a specialist silence belongs here.')
+  }
+  if (tenthLord?.isCombust) {
+    breakScore += 1
+    breakLines.push('A combust 10th lord can go quiet in public while the work continues underneath.')
+  }
+  if (saturn && saH === 10 && (isWeak(saturn.dignity) || saturn.isCombust || linked(saturn, ketu))) {
+    breakScore += 1
+    breakLines.push('Saturn on the 10th, under strain, slows the post into a long pause.')
+  }
+  const breakNote: CareerAdvancedNote = breakScore >= 2
+    ? {
+      id: 'break',
+      title: 'Break',
+      answer: 'A career break belongs in this life.',
+      tone: 'caution',
+      reading: [
+        breakLines.join(' '),
+        'A break is a pause in the visible post. It is not yet the death of the profession.',
+        when([twelfthLord?.id, 'Ke', 'Sa'].filter((id): id is GrahaId => !!id)),
+      ].filter(Boolean).join(' '),
+    }
+    : breakScore === 1
+      ? {
+        id: 'break',
+        title: 'Break',
+        answer: 'A pause is possible inside the post.',
+        tone: 'mixed',
+        reading: `${breakLines.join(' ')} Treat it as a season, then return to the 10th lord’s work.`,
+      }
+      : {
+        id: 'break',
+        title: 'Break',
+        answer: 'A career break is not built into this chart.',
+        tone: 'mixed',
+        reading: 'The 12th and Ketu are not sitting on the profession. Ordinary leave can happen. A designed gap, where the public work goes dark, is not the shape.',
+      }
+
+  let changeScore = 0
+  const changeLines: string[] = []
+  if (tenthLordHouse === 8) {
+    changeScore += 3
+    changeLines.push('The 10th lord in the 8th transforms the work. The first profession can die and a second one take its place.')
+  }
+  if (eighthLordHouse === 10 || linked(eighthLord, tenthLord)) {
+    changeScore += 2
+    changeLines.push('The 8th lord meets the career. Research, crisis, shared money, or a forced change rewrites the field.')
+  }
+  if (raH === 10 || linked(rahu, tenthLord)) {
+    changeScore += 2
+    changeLines.push('Rahu on the career makes the change unconventional: a new method, a foreign technique, or a field the family did not name.')
+  }
+  if (modality === 'dual') {
+    changeScore += 1
+    changeLines.push('A dual 10th can change the field while keeping one thread of the old work.')
+  }
+  const changeNote: CareerAdvancedNote = changeScore >= 3
+    ? {
+      id: 'transformation',
+      title: 'Transformation',
+      answer: 'The profession transforms.',
+      tone: tenthLordHouse === 8 ? 'caution' : 'mixed',
+      reading: [
+        changeLines.join(' '),
+        'Transformation changes what the work is. A new title in the same field is a rise, not this.',
+        when([eighthLord?.id, 'Ra', 'Ke'].filter((id): id is GrahaId => !!id)),
+      ].filter(Boolean).join(' '),
+    }
+    : changeScore >= 1
+      ? {
+        id: 'transformation',
+        title: 'Transformation',
+        answer: 'The field can change once.',
+        tone: 'mixed',
+        reading: `${changeLines.join(' ')} One real turn is enough. Do not treat every new offer as a new profession.`,
+      }
+      : {
+        id: 'transformation',
+        title: 'Transformation',
+        answer: 'The profession keeps its nature.',
+        tone: 'supportive',
+        reading: 'The 8th and Rahu are not rewriting the 10th. A new chair can arrive. The kind of work stays the one the 10th lord already names.',
+      }
+
+  let doorScore = 0
+  const doorLines: string[] = []
+  const sameFruit = !!(tenthLord && eleventhLord && eleventhLord.id === tenthLord.id)
+  if (sameFruit) {
+    doorScore += 2
+    doorLines.push(`${gn(tenthLord.id)} rules both the 10th and the 11th. A new gain is this same profession, paid more fully.`)
+  } else if (tenthLordHouse === 11 || linked(eleventhLord, tenthLord)) {
+    doorScore += 2
+    doorLines.push('The 11th meets the 10th. Income, a network, or an offer can open a door beside the current post.')
+  }
+  if (ninthLordHouse === 10 || linked(ninthLord, tenthLord)) {
+    doorScore += 2
+    doorLines.push('The 9th lord supports the career. A teacher, a journey, or a stroke of fortune is how the new work arrives.')
+  }
+  if (jupiter && ((juH != null && [9, 10, 11].includes(juH) && !isWeak(jupiter.dignity)) || linked(jupiter, tenthLord))) {
+    doorScore += 2
+    doorLines.push('Jupiter on the livelihood houses blesses an opening. The opportunity should still match the 10th lord.')
+  } else if (jupiter && juH === 10 && isWeak(jupiter.dignity)) {
+    doorScore += 1
+    doorLines.push('Jupiter sits on the 10th but is weak. An offer can appear and still need repair before it is taken.')
+  }
+  if (raH === 11 || raH === 3) {
+    doorScore += 1
+    doorLines.push('Rahu in the 3rd or the 11th can bring a sudden, unusual opening.')
+  }
+  const yogi = chart.yogiPoint
+  if (yogi?.yogiRashi && [2, 10, 11].includes(wholeSignHouse(yogi.yogiRashi, asc))) {
+    doorScore += 1
+    doorLines.push('The Yogi point sits on a livelihood house, so prosperity can arrive as an opportunity.')
+  }
+  const doorLords: GrahaId[] = []
+  if (eleventhLord) doorLords.push(eleventhLord.id)
+  if (ninthLord && !doorLords.includes(ninthLord.id)) doorLords.push(ninthLord.id)
+  if (jupiter && !doorLords.includes('Ju')) doorLords.push('Ju')
+  const opportunity: CareerAdvancedNote = doorScore >= 3
+    ? {
+      id: 'opportunity',
+      title: 'New opportunity',
+      answer: sameFruit && doorScore < 4 ? 'A new gain is this same profession.' : 'A new opportunity is a real door.',
+      tone: 'supportive',
+      reading: [doorLines.join(' '), 'Take it when the 10th lord or the 11th lord is also running.', when(doorLords)].filter(Boolean).join(' '),
+    }
+    : doorScore >= 1
+      ? {
+        id: 'opportunity',
+        title: 'New opportunity',
+        answer: 'An opening can appear.',
+        tone: 'mixed',
+        reading: `${doorLines.join(' ')} Confirm it in the period of the 11th lord or Jupiter before leaving the current post.`,
+      }
+      : {
+        id: 'opportunity',
+        title: 'New opportunity',
+        answer: 'Deepen the profession you already have.',
+        tone: 'mixed',
+        reading: 'The 9th, the 11th, and Jupiter are not opening a side door. The next step is the same work, done at a higher standard.',
+      }
+
+  let riseScore = 0
+  const riseLines: string[] = []
+  if (suH === 10 || suH === 1 || suH === 9) {
+    riseScore += 2
+    riseLines.push(`The Sun in house ${suH} can give a visible seat. A rise here is authority, not only a better salary.`)
+  }
+  if (tenthLord && [10, 11].includes(tenthLordHouse) && holds(tenthLord.dignity) && !tenthLord.isCombust) {
+    riseScore += 2
+    riseLines.push('The 10th lord is dignified in the 10th or the 11th. Status grows inside the field that is already named.')
+  }
+  if (eleventhLord && eleventhLord.id !== tenthLord?.id && holds(eleventhLord.dignity) && house(eleventhLord) === 10) {
+    riseScore += 1
+    riseLines.push('The gains lord in the 10th pays a promotion in the same house as the work.')
+  }
+  const rise: CareerAdvancedNote = riseScore >= 2
+    ? {
+      id: 'rise',
+      title: 'Rise',
+      answer: 'A rise inside the same field is supported.',
+      tone: 'supportive',
+      reading: [riseLines.join(' '), when([sun?.id ?? 'Su', tenthLord?.id].filter((id): id is GrahaId => !!id))].filter(Boolean).join(' '),
+    }
+    : {
+      id: 'rise',
+      title: 'Rise',
+      answer: 'Status grows by staying.',
+      tone: 'mixed',
+      reading: 'The Sun and the 10th lord are not handing over a throne. Rank comes from staying in the work until Saturn’s period has matured it.',
+    }
+
+  let endScore = 0
+  const endLines: string[] = []
+  if (tenthLordHouse === 8) {
+    endScore += 2
+    endLines.push('The 10th lord in the 8th can end a role. The ending is the door to the transformed work, not a blank.')
+  }
+  if (linked(ketu, tenthLord) && keH !== 10) {
+    endScore += 2
+    endLines.push('Ketu with the 10th lord can sever a chapter. Leave cleanly. The next field is read from the dispositor.')
+  }
+  if (saH === 8 || saH === 12) {
+    endScore += 1
+    endLines.push('Saturn in the 8th or the 12th can close a long post by delay, loss, or withdrawal.')
+  }
+  const ending: CareerAdvancedNote = endScore >= 2
+    ? {
+      id: 'ending',
+      title: 'Ending',
+      answer: 'A chapter of the career can close.',
+      tone: 'caution',
+      reading: [endLines.join(' '), when([eighthLord?.id, 'Ke'].filter((id): id is GrahaId => !!id))].filter(Boolean).join(' '),
+    }
+    : {
+      id: 'ending',
+      title: 'Ending',
+      answer: 'An ending is not required.',
+      tone: 'supportive',
+      reading: 'Nothing here demands that a profession die before the next one can live. Change the chair when the work asks. Do not quit in order to feel a transformation the chart has not promised.',
+    }
+
+  let returnScore = 0
+  const returnLines: string[] = []
+  if (tenthLord?.isRetro) {
+    returnScore += 2
+    returnLines.push('The 10th lord is retrograde. The profession is revised and taken up again. The second attempt is the one that settles.')
+  }
+  if (saturn?.isRetro && saH != null && [6, 10, 11].includes(saH)) {
+    returnScore += 1
+    returnLines.push('Retrograde Saturn on a work house returns the person to a post after a delay.')
+  }
+  if (changeScore >= 2 && jupiter && (holds(jupiter.dignity) || linked(jupiter, tenthLord) || juH === 10 || juH === 9)) {
+    returnScore += 2
+    returnLines.push('Jupiter is the revival after the change. The fall has a teacher, a law, or a second chance behind it.')
+  }
+  const comeBack: CareerAdvancedNote = returnScore >= 2
+    ? {
+      id: 'return',
+      title: 'Return',
+      answer: 'The work returns after the turn.',
+      tone: 'mixed',
+      reading: [returnLines.join(' '), when([jupiter?.id ?? 'Ju', tenthLord?.id].filter((id): id is GrahaId => !!id))].filter(Boolean).join(' '),
+    }
+    : breakScore >= 2 || endScore >= 2
+      ? {
+        id: 'return',
+        title: 'Return',
+        answer: 'A return is not yet promised.',
+        tone: 'caution',
+        reading: 'A break or an ending is present, and Jupiter or a retrograde career lord has not agreed to bring the work back. Rebuild only in a period that actually supports the 10th lord.',
+      }
+      : {
+        id: 'return',
+        title: 'Return',
+        answer: 'No fall here needs a comeback.',
+        tone: 'supportive',
+        reading: 'The chart is not organized as a collapse followed by a revival. Continue the profession. A comeback story would be an import.',
+      }
+
+  const notes = [start, breakNote, changeNote, opportunity, rise, ending, comeBack]
+  const caution = notes.filter(n => n.tone === 'caution')
+  const headline = caution.length
+    ? caution.map(n => n.answer).slice(0, 2).join(' ')
+    : (opportunity.tone === 'supportive' ? opportunity.answer : rise.tone === 'supportive' ? rise.answer : start.answer)
+
+  return {
+    headline,
+    notes,
+    closing: 'A start names the first chapter. A break pauses it. A transformation changes what the work is. A new opportunity opens a door. A rise climbs inside the same field. An ending closes a chapter. A return brings the work back. Read only the lines this chart has earned, and time them by the period named on the card.',
+  }
+}
+
+interface AdvancedBag {
+  chart: ChartOutput
+  asc: number
+  tenthSign: Rashi
+  tenthLordId: GrahaId
+  tenthLord: GrahaData | undefined
+  tenthLordHouse: number
+  tenthOcc: GrahaData[]
+  sun: GrahaData | undefined
+  saturn: GrahaData | undefined
+  mercury: GrahaData | undefined
+  secondLord: GrahaData | undefined
+  eleventhLord: GrahaData | undefined
+  amk: GrahaData | undefined
+  navamshaTone: CareerTone | null
+  dashamshaTone: CareerTone | null
+  navamshaLine: string | null
+  dashamshaLine: string | null
+  asOf: Date
+}
+
+function buildCareerAdvanced(bag: AdvancedBag): CareerAdvanced {
+  const {
+    chart, asc, tenthSign, tenthLordId, tenthLord, tenthLordHouse, tenthOcc,
+    sun, saturn, mercury, secondLord, eleventhLord, amk,
+    navamshaTone, dashamshaTone, navamshaLine, dashamshaLine, asOf,
+  } = bag
+
+  const votes: CareerAdvancedNote[] = []
+  const d1Tone = d1DeliveryTone(tenthLord, tenthLordHouse)
+  votes.push({
+    id: 'd1',
+    title: 'Birth chart',
+    answer: d1Tone === 'supportive' ? 'The 10th lord can carry a post' : d1Tone === 'caution' ? 'The 10th lord is under strain' : 'The 10th lord is ordinary',
+    tone: d1Tone,
+    reading: tenthLord
+      ? `${placement(tenthLord, tenthLordHouse)}. This is the first witness of whether the karma can become a post.`
+      : `${gn(tenthLordId)} rules the 10th and is not placed on this chart.`,
+  })
+  if (navamshaTone && navamshaLine) {
+    votes.push({
+      id: 'd9',
+      title: 'Navamsha',
+      answer: navamshaTone === 'supportive' ? 'The promise holds underneath' : navamshaTone === 'caution' ? 'The promise is thin underneath' : 'Navamsha is ordinary',
+      tone: navamshaTone,
+      reading: navamshaLine,
+    })
+  }
+  if (dashamshaTone && dashamshaLine) {
+    votes.push({
+      id: 'd10',
+      title: 'Dashamsha',
+      answer: dashamshaTone === 'supportive' ? 'The career chart can cash it' : dashamshaTone === 'caution' ? 'The career chart strains it' : 'Dashamsha leaves it open',
+      tone: dashamshaTone,
+      reading: dashamshaLine,
+    })
+  }
+  const lordShad = tenthLord ? shadbalaText(chart, tenthLord.id) : null
+  if (lordShad) {
+    votes.push({
+      id: 'shadbala',
+      title: 'Shadbala',
+      answer: lordShad.tone === 'supportive' ? 'The 10th lord has the strength to act' : lordShad.tone === 'caution' ? 'The 10th lord is short of strength' : 'Shadbala is ordinary',
+      tone: lordShad.tone,
+      reading: lordShad.line,
+    })
+  }
+  const tenthBhava = chart.bhavaBala?.houses?.[10]
+  if (tenthBhava && typeof tenthBhava.totalRupa === 'number') {
+    const tone: CareerTone = tenthBhava.isStrong ? 'supportive' : 'caution'
+    votes.push({
+      id: 'bhava',
+      title: 'Bhava Bala',
+      answer: tenthBhava.isStrong ? 'The 10th house is strong' : 'The 10th house is thin',
+      tone,
+      reading: `Bhava Bala of the 10th is ${tenthBhava.totalRupa.toFixed(1)} rupa. The house itself ${tenthBhava.isStrong ? 'can hold a public post' : 'needs the lord to do more of the work'}.`,
+    })
+  }
+  const sav = chart.ashtakavarga?.sav?.[tenthSign - 1]
+  if (typeof sav === 'number') {
+    const tone: CareerTone = sav >= 30 ? 'supportive' : sav <= 25 ? 'caution' : 'mixed'
+    votes.push({
+      id: 'sav',
+      title: 'Ashtakavarga',
+      answer: `${sav} bindus on the 10th`,
+      tone,
+      reading: `Sarvashtakavarga of ${rn(tenthSign)} is ${sav}. ${tone === 'supportive' ? 'The sign has the points to support a profession.' : tone === 'caution' ? 'The sign is thin, so the profession grows by effort.' : 'The sign is ordinary. The lord decides.'}`,
+    })
+  }
+  const onTenth = buildAspects(chart, tenthSign, '10th')
+  if (onTenth.length) {
+    const tone = combineTone(onTenth.map(n => n.tone))
+    votes.push({
+      id: 'aspects',
+      title: 'Aspects on the 10th',
+      answer: onTenth.map(n => n.title.split(' ')[0]).join(', '),
+      tone,
+      reading: `${onTenth.length === 1 ? 'One planet sees the 10th.' : `${onTenth.length} planets see the 10th.`} ${onTenth.map(n => n.reading).join(' ')}`,
+    })
+  }
+
+  const support = votes.filter(v => v.tone === 'supportive').length
+  const caution = votes.filter(v => v.tone === 'caution').length
+  let deliveryTone: CareerTone = 'mixed'
+  let verdict = 'The witnesses are ordinary. The 10th lord’s house is the working brief.'
+  if (caution > support) {
+    deliveryTone = 'caution'
+    verdict = 'The title is harder to cash.'
+  } else if (support > caution) {
+    deliveryTone = 'supportive'
+    verdict = 'The career can be delivered.'
+  } else if (support > 0 && caution > 0) {
+    deliveryTone = 'mixed'
+    verdict = 'The witnesses split. Use the stronger one as the brief.'
+  }
+
+  const seen = new Set<string>()
+  const strengthRows: CareerAdvanced['strength']['rows'] = []
+  const pushStrength = (id: string, g: GrahaData | undefined, role: string) => {
+    if (!g || seen.has(g.id)) return
+    seen.add(g.id)
+    const house = wholeSignHouse(g.rashi, asc)
+    const shad = shadbalaText(chart, g.id)
+    const vim = vimsopakaText(chart, g.id)
+    const tone = combineTone([
+      d1DeliveryTone(g, house) === 'caution' ? 'caution' : holds(g.dignity) ? 'supportive' : 'mixed',
+      shad?.tone ?? 'mixed',
+      vim?.tone ?? 'mixed',
+    ].filter((t, i) => i === 0 || (i === 1 && shad) || (i === 2 && vim)) as CareerTone[])
+    const reading = [
+      `${placement(g, house)}.`,
+      shad?.line ?? '',
+      vim?.line ?? '',
+    ].filter(Boolean).join(' ')
+    strengthRows.push({
+      id,
+      planet: gn(g.id),
+      role,
+      dignity: plainDignity(g.dignity),
+      shadbala: shad ? shad.line.replace(/\.$/, '') : null,
+      vimsopaka: vim ? vim.line.replace(/\.$/, '') : null,
+      reading,
+      tone,
+    })
+  }
+  pushStrength('tenthLord', tenthLord, 'Karma lord')
+  pushStrength('sun', sun, 'Authority')
+  pushStrength('saturn', saturn, 'Profession')
+  pushStrength('mercury', mercury, 'Skill')
+  pushStrength('gains', eleventhLord, 'Gains')
+  pushStrength('amk', amk, 'Amatyakaraka')
+
+  const houseLabels: Record<number, string> = {
+    2: 'Savings',
+    6: 'Service',
+    10: 'Karma',
+    11: 'Gains',
+  }
+  const houses: CareerAdvanced['strength']['houses'] = []
+  for (const house of [2, 6, 10, 11]) {
+    const sign = houseSign(asc, house)
+    const bindus = chart.ashtakavarga?.sav?.[sign - 1]
+    const bhava = chart.bhavaBala?.houses?.[house]
+    const hasBindus = typeof bindus === 'number'
+    const hasBhava = !!bhava && typeof bhava.totalRupa === 'number'
+    if (!hasBindus && !hasBhava) continue
+    const bav = house === 10 ? chart.ashtakavarga?.bav?.[tenthLordId]?.bindus?.[sign - 1] : undefined
+    const tone: CareerTone = (hasBindus && bindus <= 25) || (hasBhava && !bhava.isStrong)
+      ? ((hasBindus && bindus >= 30) || (hasBhava && bhava.isStrong) ? 'mixed' : 'caution')
+      : (hasBindus && bindus >= 30) || (hasBhava && bhava.isStrong)
+        ? 'supportive'
+        : 'mixed'
+    houses.push({
+      house,
+      label: houseLabels[house],
+      bindus: hasBindus ? bindus : null,
+      bhava: hasBhava ? `${bhava.totalRupa.toFixed(1)} rupa` : null,
+      tone,
+      reading: [
+        `${rn(sign)} on house ${house}.`,
+        hasBindus ? `${bindus} sarvashtakavarga bindus.` : '',
+        hasBhava ? `Bhava Bala ${bhava.totalRupa.toFixed(1)} rupa, ${bhava.isStrong ? 'strong' : 'thin'}.` : '',
+        typeof bav === 'number' ? `${gn(tenthLordId)} contributes ${bav} bindus in this sign.` : '',
+      ].filter(Boolean).join(' '),
+    })
+  }
+  const strengthClosing = strengthRows.some(r => r.shadbala || r.vimsopaka)
+    ? 'Shadbala says whether the planet can act. Vimsopaka says whether the divisionals agree. A strong birth-chart dignity still waits for its period.'
+    : 'Shadbala and Vimsopaka are not on this chart. Dignity and house are the strength until the chart is recalculated with them.'
+
+  const steps: CareerAdvanced['chain']['steps'] = []
+  if (tenthLord) {
+    const walked = new Set<GrahaId>()
+    let current: GrahaData | undefined = tenthLord
+    for (let i = 0; i < 4 && current; i++) {
+      if (walked.has(current.id)) {
+        steps.push({
+          planet: gn(current.id),
+          signName: rn(current.rashi),
+          house: wholeSignHouse(current.rashi, asc),
+          reading: `${gn(current.id)} returns in the chain. These planets move the profession together.`,
+        })
+        break
+      }
+      walked.add(current.id)
+      const house = wholeSignHouse(current.rashi, asc)
+      const dispositor = SIGN_LORDS[current.rashi]
+      const owns = dispositor === current.id
+      steps.push({
+        planet: gn(current.id),
+        signName: rn(current.rashi),
+        house,
+        reading: owns
+          ? `${gn(current.id)} rules ${rn(current.rashi)}. The chain stops here. This planet keeps the profession.`
+          : `${gn(current.id)} sits in ${rn(current.rashi)}, house ${house}. ${gn(dispositor)} disposes the career from this step.`,
+      })
+      if (owns) break
+      const next = findGraha(chart, dispositor)
+      if (!next) break
+      if (walked.has(next.id)) {
+        const last = steps[steps.length - 1]
+        last.reading = `${last.reading} ${gn(next.id)} is already in this chain, so these planets move the profession together.`
+        break
+      }
+      current = next
+    }
+  }
+  const lordAspects = tenthLord && tenthLord.rashi !== tenthSign
+    ? buildAspects(chart, tenthLord.rashi as Rashi, '10th lord')
+    : []
+  const aspects = [...onTenth, ...lordAspects]
+  if (!aspects.length) {
+    aspects.push({
+      id: 'aspect-none',
+      title: 'Aspects',
+      answer: 'The lord carries the 10th',
+      tone: 'mixed',
+      reading: 'No classical planet aspects the 10th or its lord from another sign. Occupants and the lord are the whole picture.',
+    })
+  }
+  const conditions: CareerAdvancedNote[] = []
+  const conditionSeen = new Set<string>()
+  const addConditions = (g: GrahaData | undefined, role: string) => {
+    if (!g) return
+    for (const note of conditionOf(g, role)) {
+      if (conditionSeen.has(note.id)) continue
+      conditionSeen.add(note.id)
+      conditions.push(note)
+    }
+  }
+  addConditions(tenthLord, 'The 10th lord')
+  for (const g of tenthOcc) addConditions(g, `${gn(g.id)} in the 10th`)
+  if (!conditions.length) {
+    conditions.push({
+      id: 'condition-clear',
+      title: 'Condition of the 10th lord',
+      answer: 'Direct and clear of the Sun',
+      tone: 'supportive',
+      reading: 'The 10th lord is direct and free of combustion. No gandanta, planetary war, or Pushkara degree is marked on the career planets in this chart.',
+    })
+  }
+  const chainClosing = steps.length
+    ? 'Read the chain in order. The first planet is the 10th lord. Each later planet is the one who has to agree before the profession stabilizes.'
+    : 'The 10th lord is not placed, so the dispositor chain cannot be walked.'
+
+  const prosperity: CareerAdvancedNote[] = []
+  if (eleventhLord && tenthLord && eleventhLord.id === tenthLord.id) {
+    prosperity.push({
+      id: 'gains',
+      title: 'Gains and karma',
+      answer: 'One planet',
+      tone: 'supportive',
+      reading: `${gn(tenthLord.id)} rules both the 10th and the 11th. The work and its fruit are the same planet. Time that planet when income is the question.`,
+    })
+  } else if (linked(eleventhLord, tenthLord)) {
+    prosperity.push({
+      id: 'gains',
+      title: 'Gains and karma',
+      answer: 'The lords are joined',
+      tone: 'supportive',
+      reading: `${gn(eleventhLord!.id)} and ${gn(tenthLord!.id)} are joined. Income moves when the profession moves.`,
+    })
+  } else if (eleventhLord) {
+    const house = wholeSignHouse(eleventhLord.rashi, asc)
+    const tone = d1DeliveryTone(eleventhLord, house)
+    prosperity.push({
+      id: 'gains',
+      title: 'Gains lord',
+      answer: `${gn(eleventhLord.id)} in house ${house}`,
+      tone,
+      reading: `${placement(eleventhLord, house)}. The 11th lord is how the work pays. It is separate from the 10th lord, so a title and an income can arrive in different periods.`,
+    })
+  }
+  if (secondLord) {
+    const house = wholeSignHouse(secondLord.rashi, asc)
+    const strong = holds(secondLord.dignity) && !secondLord.isCombust
+    const weak = isWeak(secondLord.dignity) || secondLord.isCombust || house === 8 || house === 12
+    prosperity.push({
+      id: 'savings',
+      title: 'What is kept',
+      answer: strong ? 'The 2nd can hold income' : weak ? 'Income needs a container' : 'Savings are ordinary',
+      tone: strong ? 'supportive' : weak ? 'caution' : 'mixed',
+      reading: `${placement(secondLord, house)}. The 2nd is what remains after the 11th has paid. Speech, food, and family money sit here with the savings.`,
+    })
+  }
+  const yogi = chart.yogiPoint
+  if (yogi?.yogiRashi && yogi.yogiGraha) {
+    const house = wholeSignHouse(yogi.yogiRashi, asc)
+    const onCareer = [2, 6, 10, 11].includes(house)
+    prosperity.push({
+      id: 'yogi',
+      title: 'Yogi point',
+      answer: onCareer ? `${gn(yogi.yogiGraha)} prospers a career house` : `${gn(yogi.yogiGraha)} sits off the career houses`,
+      tone: onCareer ? 'supportive' : 'mixed',
+      reading: `The Yogi point is ${rn(yogi.yogiRashi)}, house ${house}, with ${gn(yogi.yogiGraha)} as its planet. ${onCareer ? 'Livelihood prosperity falls on a career house.' : 'Prosperity is in the chart, on a house other than the 2nd, 6th, 10th, or 11th.'}`,
+    })
+  }
+  if (yogi?.avayogiRashi && yogi.avayogiGraha) {
+    const house = wholeSignHouse(yogi.avayogiRashi, asc)
+    if ([2, 6, 10, 11].includes(house)) {
+      prosperity.push({
+        id: 'avayogi',
+        title: 'Avayogi',
+        answer: `${gn(yogi.avayogiGraha)} spends a career house`,
+        tone: 'caution',
+        reading: `The Avayogi point is ${rn(yogi.avayogiRashi)}, house ${house}. That house spends or obstructs. Keep ${gn(yogi.avayogiGraha)} out of the brand of the work.`,
+      })
+    }
+  }
+  const cusp = chart.kp?.cusps?.find(c => c.house === 10)
+  if (cusp?.subLord) {
+    const careerLords = lordsOf(asc, [2, 6, 10, 11])
+    const drainLords = lordsOf(asc, [8, 12])
+    const sub = cusp.subLord
+    const helps = careerLords.has(sub)
+    const drains = drainLords.has(sub)
+    const tone: CareerTone = helps && !drains ? 'supportive' : drains && !helps ? 'caution' : 'mixed'
+    prosperity.push({
+      id: 'kp-sub',
+      title: 'KP 10th sub-lord',
+      answer: tone === 'supportive' ? `${gn(sub)} lets the 10th fructify` : tone === 'caution' ? `${gn(sub)} spends the 10th` : `${gn(sub)} splits the fruit`,
+      tone,
+      reading: `The 10th cusp runs ${gn(cusp.signLord)} as sign lord, ${gn(cusp.starLord)} as star lord, and ${gn(sub)} as sub-lord. In KP the sub-lord decides the fruit. ${
+        helps && !drains
+          ? `${gn(sub)} rules a livelihood house, so the profession can fructify as work, service, or income.`
+          : drains && !helps
+            ? `${gn(sub)} rules the 8th or the 12th, so the fruit leaves as change, cost, research, or a foreign posting.`
+            : `${gn(sub)} touches both a livelihood house and a house of loss, or neither. Name the fruit only in that planet’s period.`
+      }`,
+    })
+  }
+  const prosperityClosing = 'Gains are the 11th, savings are the 2nd, and the Yogi point is prosperity. KP adds the sub-lord of the 10th cusp when that chart is present. A title without one of these is a name that has not yet been paid.'
+
+  const ladderRows: CareerAdvanced['ladder']['rows'] = []
+  for (const varga of LADDER) {
+    const grahas = varga.id === 'D1' ? chart.grahas : chart.vargas?.[varga.id]
+    const lagna = varga.id === 'D1' ? asc : chart.vargaLagnas?.[varga.id]
+    const placed = grahas?.find(g => g.id === tenthLordId)
+    if (!placed) continue
+    const house = lagna ? wholeSignHouse(placed.rashi, lagna) : null
+    const tone: CareerTone = placed.dignity === 'debilitated' || (house != null && (house === 8 || house === 12))
+      ? 'caution'
+      : holds(placed.dignity) || (house != null && (KENDRA.has(house) || TRIKONA.has(house) || house === 11))
+        ? 'supportive'
+        : 'mixed'
+    ladderRows.push({
+      varga: varga.id,
+      signName: rn(placed.rashi),
+      dignity: plainDignity(placed.dignity),
+      house,
+      tone,
+      reading: `${varga.name}: ${gn(tenthLordId)} in ${rn(placed.rashi)}, ${plainDignity(placed.dignity)}${house != null ? `, house ${house}` : ''}.`,
+    })
+  }
+  const signs = new Set(ladderRows.map(r => r.signName))
+  const ladderClosing = ladderRows.length >= 2 && signs.size === 1
+    ? `${gn(tenthLordId)} repeats ${ladderRows[0].signName} across ${ladderRows.map(r => r.varga).join(', ')}. The career sign holds in each of these charts.`
+    : 'D1 is the promise, D9 is whether it holds, D10 is the career chart, and D24 is the training behind the post. A strong row can carry a weak one. It does not erase it.'
+
+  const deliveryReading = `${verdict} ${votes.map(v => `${v.title}: ${v.answer}.`).join(' ')}`
+
+  return {
+    delivery: { verdict, reading: deliveryReading, tone: deliveryTone, votes },
+    strength: { rows: strengthRows, houses, closing: strengthClosing },
+    chain: { steps, aspects, conditions, closing: chainClosing },
+    prosperity: { notes: prosperity, closing: prosperityClosing },
+    turns: buildCareerTurns({
+      chart,
+      asc,
+      tenthSign,
+      tenthLord,
+      tenthLordHouse,
+      eleventhLord,
+      asOf,
+    }),
+    ladder: { rows: ladderRows, closing: ladderClosing },
+  }
 }
 
 export function analyzeCareerProfession(
@@ -1082,14 +2468,29 @@ export function analyzeCareerProfession(
 
   const nodes = (chart.dashas?.vimshottari ?? []) as DashaNode[]
   const now = asOf.getTime()
-  const timing = nodes.length ? careerWindows(nodes, roles, now) : []
+  const periodCtx: PeriodCtx = {
+    chart,
+    asc,
+    tenthLordId,
+    tenthLord,
+    tenthOccIds: new Set(tenthOcc.map(g => g.id)),
+    livelihood: new Set(
+      [tenthLordId, SIGN_LORDS[asc], secondLord?.id, sixthLord?.id, eleventhLord?.id, amkId]
+        .filter((id): id is GrahaId => !!id),
+    ),
+    drain: new Set([SIGN_LORDS[houseSign(asc, 8)], SIGN_LORDS[houseSign(asc, 12)]]),
+  }
+  const tracker = buildCareerTracker(nodes, periodCtx, now)
+  const timing = nodes.length ? careerWindows(nodes, roles, now, periodCtx) : []
   const live = timing.find(w => w.live)
   const path = nodes.length ? getDashaPathAt(nodes, now) : []
-  const timingHeadline = live
-    ? `Running now: ${live.title}. ${live.note}`
-    : path.length
-      ? `${path.slice(0, 2).map(n => gn(n.lord)).join(' / ')} is running, and it is not one of the primary career lords. The next career window is listed below.`
-      : 'Vimshottari is not on this chart, so career timing cannot be named yet.'
+  const timingHeadline = tracker.mahas.length
+    ? tracker.headline
+    : live
+      ? `Running now: ${live.title}. ${live.note}`
+      : path.length
+        ? `${path.slice(0, 2).map(n => gn(n.lord)).join(' / ')} is running, and it is not one of the primary career lords. The next career window is listed below.`
+        : 'Vimshottari is not on this chart, so career timing cannot be named yet.'
 
   const remedies: CareerNote[] = [{
     id: 'karma',
@@ -1151,10 +2552,33 @@ export function analyzeCareerProfession(
     })
   }
 
+  const advanced = buildCareerAdvanced({
+    chart,
+    asc,
+    tenthSign,
+    tenthLordId,
+    tenthLord,
+    tenthLordHouse,
+    tenthOcc,
+    sun,
+    saturn,
+    mercury,
+    secondLord,
+    eleventhLord,
+    amk,
+    navamshaTone: navamsha?.tone ?? null,
+    dashamshaTone: dashamsha?.tone ?? null,
+    navamshaLine: navamsha?.reading ?? null,
+    dashamshaLine: dashamsha?.reading ?? null,
+    asOf,
+  })
+
   const headline = `${trackMeta.headline}. ${rn(tenthSign)} on the 10th, ${gn(tenthLordId)} in house ${tenthLordHouse}.`
   const summary = `${scores[0].summary.split('.')[0]}. ${trackPrediction.split('.').slice(0, 2).join('.').trim()}.`
   const briefSections = [
     { heading: 'Verdict', body: `${headline} ${summary}` },
+    { heading: 'Delivery', body: advanced.delivery.reading },
+    { heading: 'Turns', body: advanced.turns.notes.map(n => `${n.title}: ${n.answer}`).join(' ') },
     { heading: 'Track', body: `${trackPrediction} ${factors.slice(0, 4).join('. ')}` },
     { heading: 'Fields', body: fields.map(f => `${f.field} (${f.why})`).join('; ') || 'Name the field from the 10th lord after the chart is complete.' },
     { heading: 'Yogas', body: yogas.map(y => `${y.title}: ${y.detail}`).join(' ') },
@@ -1196,7 +2620,9 @@ export function analyzeCareerProfession(
     dashamsha,
     timingHeadline,
     timing,
+    tracker,
     remedies,
     brief: { plain, sections: briefSections },
+    advanced,
   }
 }

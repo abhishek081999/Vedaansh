@@ -6,7 +6,7 @@
 
 import React, { useEffect, useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
-import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
+import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { RASHI_SHORT } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
@@ -17,8 +17,13 @@ import { ScoreMeter } from '@/components/ui/marriedLifeUi'
 import { CareerMethodPanel } from '@/components/ui/CareerMethodPanel'
 import {
   analyzeCareerProfession,
+  readCareerTransits,
   type CareerNote,
   type CareerTone,
+  type CareerFit,
+  type CareerTracker,
+  type CareerTransitReading,
+  type CareerTrackSegment,
 } from '@/lib/engine/careerProfession'
 
 type CareerMode = 'desk' | 'method'
@@ -28,7 +33,7 @@ const CAREER_METHODS: { id: CareerMode; code: string; name: string; topic: strin
     id: 'desk',
     code: 'M1',
     name: 'Career reading',
-    topic: 'The first method. The 10th house, its lord, scores, yogas, and whether Navamsha, Dashamsha, and A10 hold the promise.',
+    topic: 'The first method. The 10th house and its lord, then whether the career can be delivered, and the turns of the work: a start, a break, a transformation, and a new opportunity.',
   },
   {
     id: 'method',
@@ -38,16 +43,20 @@ const CAREER_METHODS: { id: CareerMode; code: string; name: string; topic: strin
   },
 ]
 
-type View = 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief'
+type View = 'delivery' | 'strength' | 'chain' | 'turns' | 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief'
 
 const VIEWS: { id: View; label: string }[] = [
+  { id: 'delivery', label: 'Delivery' },
+  { id: 'strength', label: 'Strength' },
+  { id: 'chain', label: 'Chain' },
+  { id: 'turns', label: 'Turns' },
   { id: 'overview', label: 'Significators' },
   { id: 'houses', label: 'Houses' },
   { id: 'yogas', label: 'Yogas' },
   { id: 'planets', label: 'Planets' },
   { id: 'stars', label: 'Nakshatra' },
   { id: 'confirm', label: 'D9 · D10 · A10' },
-  { id: 'timing', label: 'Timing' },
+  { id: 'timing', label: 'Tracker' },
   { id: 'remedies', label: 'What to do' },
   { id: 'brief', label: 'Brief' },
 ]
@@ -56,6 +65,12 @@ const TONE: Record<CareerTone, string> = {
   supportive: 'var(--teal)',
   caution: 'var(--rose)',
   mixed: 'var(--text-gold)',
+}
+
+const FIT_COLOR: Record<CareerFit, string> = {
+  good: 'var(--teal)',
+  mixed: 'var(--text-gold)',
+  poor: 'var(--rose)',
 }
 
 interface Props {
@@ -94,6 +109,207 @@ function NoteList({ notes }: { notes: CareerNote[] }) {
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{n.detail}</p>
         </article>
       ))}
+    </div>
+  )
+}
+
+function AnswerGrid({ notes }: { notes: { id: string; title: string; answer: string; reading: string; tone: CareerTone }[] }) {
+  if (!notes.length) return null
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.55rem' }}>
+      {notes.map(n => (
+        <article
+          key={n.id}
+          style={{
+            padding: '0.8rem 0.9rem',
+            borderLeft: `3px solid ${TONE[n.tone]}`,
+            background: 'var(--surface-2)',
+            borderRadius: 'var(--r-sm)',
+          }}
+        >
+          <SectionLabel>{n.title}</SectionLabel>
+          <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{n.answer}</div>
+          <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{n.reading}</p>
+        </article>
+      ))}
+    </div>
+  )
+}
+
+function PeriodBar({
+  segments,
+  height,
+  minShare = 9,
+}: {
+  segments: CareerTrackSegment[]
+  height: number
+  minShare?: number
+}) {
+  return (
+    <div style={{ display: 'flex', height, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+      {segments.map(seg => (
+        <div
+          key={seg.id}
+          title={`${seg.lord} · ${seg.label}. ${seg.reason}`}
+          style={{
+            width: `${seg.share}%`,
+            minWidth: 0,
+            background: `color-mix(in srgb, ${FIT_COLOR[seg.fit]} 70%, var(--surface-1))`,
+            color: 'var(--text-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: height > 28 ? '0.68rem' : '0.56rem',
+            fontWeight: 750,
+            boxShadow: seg.live ? 'inset 0 0 0 2px var(--text-primary)' : undefined,
+            overflow: 'hidden',
+          }}
+        >
+          {seg.share >= minShare ? seg.lord : ''}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ZoomTrack({
+  caption,
+  segments,
+  nowShare,
+}: {
+  caption: string
+  segments: CareerTrackSegment[]
+  nowShare: number | null
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+      <div className="label-caps" style={{ fontSize: '0.58rem' }}>{caption}</div>
+      <div style={{ position: 'relative' }}>
+        <PeriodBar segments={segments} height={30} minShare={7} />
+        {nowShare != null && (
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              left: `${Math.min(100, Math.max(0, nowShare))}%`,
+              top: 0,
+              bottom: 0,
+              width: 2,
+              background: 'var(--text-primary)',
+              transform: 'translateX(-1px)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.4rem' }}>
+        {segments.map(seg => (
+          <article key={seg.id} style={{ padding: '0.65rem 0.75rem', borderLeft: `3px solid ${FIT_COLOR[seg.fit]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+            <SectionLabel>{seg.live ? 'Now · ' : ''}{seg.lord} · {seg.start} to {seg.end}</SectionLabel>
+            <div style={{ fontWeight: 750, fontSize: '0.78rem', marginBottom: 4 }}>{seg.label}</div>
+            <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{seg.reason}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CareerPeriodTracker({
+  tracker,
+  transits,
+}: {
+  tracker: CareerTracker
+  transits: CareerTransitReading | null
+}) {
+  if (!tracker.mahas.length) {
+    return (
+      <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>{tracker.headline}</p>
+    )
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
+      <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{tracker.headline}</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
+        {(['good', 'mixed', 'poor'] as CareerFit[]).map(fit => (
+          <span key={fit} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+            <span style={{ width: 10, height: 10, borderRadius: 2, background: FIT_COLOR[fit] }} />
+            {fit === 'good' ? 'Good for career' : fit === 'poor' ? 'Not for career' : 'Mixed for career'}
+          </span>
+        ))}
+      </div>
+      <div style={{ position: 'relative' }}>
+        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>Mahadasha</div>
+        <PeriodBar segments={tracker.mahas} height={38} />
+        {tracker.antars.length ? (
+          <>
+            <div className="label-caps" style={{ fontSize: '0.58rem', margin: '0.45rem 0 4px' }}>Antardasha</div>
+            <PeriodBar segments={tracker.antars} height={22} />
+          </>
+        ) : null}
+        {tracker.nowShare != null && (
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              left: `${Math.min(100, Math.max(0, tracker.nowShare))}%`,
+              top: 16,
+              bottom: 0,
+              width: 2,
+              background: 'var(--text-primary)',
+              transform: 'translateX(-1px)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+      </div>
+      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tracker.nowLabel}</p>
+      {tracker.pratyantars.length ? (
+        <ZoomTrack
+          caption={`Pratyantardasha · ${tracker.pratyantarWindow}`}
+          segments={tracker.pratyantars}
+          nowShare={tracker.pratyantarNowShare}
+        />
+      ) : tracker.pratyantarWindow ? (
+        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{tracker.pratyantarWindow}</p>
+      ) : null}
+      {tracker.sookshmas.length ? (
+        <ZoomTrack
+          caption={`Sookshma · ${tracker.sookshmaWindow}`}
+          segments={tracker.sookshmas}
+          nowShare={tracker.sookshmaNowShare}
+        />
+      ) : null}
+      <div>
+        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>Transit · gochar</div>
+        {!transits ? (
+          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reading the current transits.</p>
+        ) : !transits.available ? (
+          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{transits.headline}</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{transits.headline}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.4rem' }}>
+              {transits.hits.map(hit => (
+                <article key={hit.id} style={{ padding: '0.65rem 0.75rem', borderLeft: `3px solid ${FIT_COLOR[hit.fit]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+                  <SectionLabel>{hit.planet} · house {hit.house} · {hit.signName}{hit.retro ? ' · retrograde' : ''}</SectionLabel>
+                  <div style={{ fontWeight: 750, fontSize: '0.78rem', marginBottom: 4 }}>{hit.label}</div>
+                  <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{hit.reading}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+        {tracker.mahas.map(seg => (
+          <article key={seg.id} style={{ padding: '0.75rem 0.85rem', borderLeft: `3px solid ${FIT_COLOR[seg.fit]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+            <SectionLabel>{seg.live ? 'Now · ' : ''}{seg.lord} · {seg.start} to {seg.end}</SectionLabel>
+            <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 4 }}>{seg.label}</div>
+            <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{seg.reason}</p>
+          </article>
+        ))}
+      </div>
     </div>
   )
 }
@@ -159,8 +375,34 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
   const { setActiveTab } = useAppLayout()
   const data = useMemo(() => analyzeCareerProfession(chart), [chart])
   const [mode, setMode] = useState<CareerMode>('desk')
-  const [view, setView] = useState<View>('overview')
+  const [view, setView] = useState<View>('delivery')
   const [copied, setCopied] = useState(false)
+  const [transits, setTransits] = useState<CareerTransitReading | null>(null)
+  const ascRashi = chart.lagnas?.ascRashi
+
+  useEffect(() => {
+    if (!ascRashi) return
+    let cancel = false
+    setTransits(null)
+    fetch(`/api/transit?ascRashi=${ascRashi}`)
+      .then(res => res.json())
+      .then(body => {
+        if (cancel) return
+        const positions = Array.isArray(body?.currentPositions)
+          ? body.currentPositions.flatMap((row: { planetId?: GrahaId; sign?: Rashi; isRetro?: boolean }) => {
+              if (!row.planetId || !row.sign) return []
+              return [{ id: row.planetId, rashi: row.sign, isRetro: row.isRetro === true }]
+            })
+          : []
+        setTransits(readCareerTransits(chart, positions))
+      })
+      .catch(() => {
+        if (!cancel) {
+          setTransits({ available: false, headline: 'Transit could not be read.', hits: [] })
+        }
+      })
+    return () => { cancel = true }
+  }, [ascRashi, chart])
 
   if (!data) {
     return (
@@ -218,6 +460,9 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
             <h2 style={{ margin: '0.7rem 0 0', fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 650 }}>{data.headline}</h2>
             <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55, maxWidth: 760 }}>
               {data.summary}
+            </p>
+            <p style={{ margin: '0.35rem 0 0', fontSize: '0.84rem', color: 'var(--text-gold)', fontWeight: 700, lineHeight: 1.5, maxWidth: 760 }}>
+              {data.advanced.delivery.verdict}
             </p>
           </>
         )}
@@ -289,6 +534,99 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               </button>
             ))}
           </div>
+
+          {view === 'delivery' && (
+            <>
+              <article style={{ padding: '0.95rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
+                <SectionLabel>Can the promise be delivered?</SectionLabel>
+                <h3 style={{ margin: '0 0 0.4rem', fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 650, color: TONE[data.advanced.delivery.tone] }}>
+                  {data.advanced.delivery.verdict}
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.advanced.delivery.reading}</p>
+              </article>
+              <SectionLabel>Witnesses</SectionLabel>
+              <AnswerGrid notes={data.advanced.delivery.votes} />
+              <SectionLabel>Fruit of the work</SectionLabel>
+              <AnswerGrid notes={data.advanced.prosperity.notes} />
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.prosperity.closing}</p>
+            </>
+          )}
+
+          {view === 'strength' && (
+            <>
+              <SectionLabel>Career planets</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {data.advanced.strength.rows.map(row => (
+                  <article key={row.id} style={{ padding: '0.85rem', borderLeft: `3px solid ${TONE[row.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+                    <SectionLabel>{row.role} · {row.planet}</SectionLabel>
+                    <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{row.dignity}</div>
+                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{row.reading}</p>
+                  </article>
+                ))}
+              </div>
+              {data.advanced.strength.houses.length ? (
+                <>
+                  <SectionLabel>Livelihood houses</SectionLabel>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.55rem' }}>
+                    {data.advanced.strength.houses.map(h => (
+                      <article key={h.house} style={{ padding: '0.8rem 0.9rem', borderLeft: `3px solid ${TONE[h.tone]}`, background: 'var(--surface-1)', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
+                        <SectionLabel>House {h.house} · {h.label}</SectionLabel>
+                        <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>
+                          {[h.bindus != null ? `${h.bindus} bindus` : '', h.bhava ?? ''].filter(Boolean).join(' · ')}
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{h.reading}</p>
+                      </article>
+                    ))}
+                  </div>
+                </>
+              ) : null}
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.strength.closing}</p>
+            </>
+          )}
+
+          {view === 'chain' && (
+            <>
+              <SectionLabel>Dispositor chain</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {data.advanced.chain.steps.map((step, index) => (
+                  <article key={`${step.planet}-${index}`} style={{ padding: '0.85rem', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+                    <SectionLabel>Step {index + 1} · house {step.house}</SectionLabel>
+                    <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{step.planet} in {step.signName}</div>
+                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{step.reading}</p>
+                  </article>
+                ))}
+              </div>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.chain.closing}</p>
+              <SectionLabel>Who sees the career</SectionLabel>
+              <AnswerGrid notes={data.advanced.chain.aspects} />
+              <SectionLabel>Condition of the career planets</SectionLabel>
+              <AnswerGrid notes={data.advanced.chain.conditions} />
+              <SectionLabel>Varga ladder of the 10th lord</SectionLabel>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.55rem' }}>
+                {data.advanced.ladder.rows.map(row => (
+                  <article key={row.varga} style={{ padding: '0.8rem 0.9rem', borderLeft: `3px solid ${TONE[row.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+                    <SectionLabel>{row.varga}{row.house != null ? ` · house ${row.house}` : ''}</SectionLabel>
+                    <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{row.signName}</div>
+                    <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{row.reading}</p>
+                  </article>
+                ))}
+              </div>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.ladder.closing}</p>
+            </>
+          )}
+
+          {view === 'turns' && (
+            <>
+              <article style={{ padding: '0.95rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
+                <SectionLabel>The turns of the career</SectionLabel>
+                <h3 style={{ margin: '0 0 0.45rem', fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 650 }}>
+                  {data.advanced.turns.headline}
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.turns.closing}</p>
+              </article>
+              <AnswerGrid notes={data.advanced.turns.notes} />
+            </>
+          )}
 
           {view === 'overview' && (
             <>
@@ -475,14 +813,8 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
 
           {view === 'timing' && (
             <>
-              <SectionLabel>Vimshottari of the career lords</SectionLabel>
-              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.timingHeadline}</p>
-              <NoteList notes={data.timing.map(w => ({
-                id: w.id,
-                title: `${w.live ? 'Now · ' : ''}${w.title} · ${w.start} to ${w.end}`,
-                detail: w.note,
-                tone: w.tone,
-              }))} />
+              <SectionLabel>Which periods are for the career</SectionLabel>
+              <CareerPeriodTracker tracker={data.tracker} transits={transits} />
             </>
           )}
 
