@@ -14,6 +14,7 @@ export type ChartTabId =
   | 'drekkana'
   | 'nakshatramsha'
   | 'relationship'
+  | 'career'
   | 'dasha'
   | 'dasha-interpretation'
   | 'house'
@@ -21,6 +22,7 @@ export type ChartTabId =
   | 'kp-stellar'
   | 'interpretation'
   | 'tattva'
+  | 'naamkaran'
   | 'varshaphal'
   | 'ashtakavarga'
   | 'shadbala'
@@ -40,9 +42,11 @@ export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
   'drekkana',
   'nakshatramsha',
   'relationship',
+  'career',
   'house',
   'interpretation',
   'tattva',
+  'naamkaran',
   'kp-stellar',
 ]
 
@@ -56,6 +60,7 @@ export const FLUSH_PADDING_CHART_TABS: readonly ChartTabId[] = [
   'drekkana',
   'nakshatramsha',
   'relationship',
+  'career',
   'house',
   'kp-stellar',
 ]

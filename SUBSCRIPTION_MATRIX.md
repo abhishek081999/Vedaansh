@@ -30,6 +30,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Muhurta pages/APIs | No | Yes | Yes | `proxy.ts` (`/muhurta`, `/api/muhurta`) |
 | Vimshottari MD/AD full interpretation (“More”) | Teaser only | Yes | Yes | UI: `DashaInterpretationPanel` (`userPlan` / Gold+) |
 | Tattva Prediction (trikona map, Agni/Artha/Vayu/Moksha, Active/Reactive spice, Moon gate, house×karaka×rashi composer) | Overview teaser (also on public `/chart/[slug]`) | Yes | Yes | UI: `TattvaPredictionPanel` / Core Analysis → Tattva; dasha strip in `DashaInterpretationPanel`; public tab teaser |
+| Naamkaran (classical janma-naam — Moon pada, gender syllable parity, Karakamsha Ishta; Rashi naam and two-name on Gold; Shadbala/Navtara checks) | Moon-pada letter + syllable count | Yes | Yes | UI: `NaamkaranPanel` / Core Analysis → Naamkaran (`planMeetsUiGate`, Gold+) |
 | Cosmic Weather full guidance | Labels + short lines | Yes | Yes | UI: `PersonalDayCard` (`userPlan` / Gold+) |
 | Astro Vastu full analysis | Chart + compass preview | Yes | Yes | UI: `AstroVastuPanel` (`userPlan` / Gold+) |
 | Sarvatobhadra Chakra full | Birth star + grid | Yes | Yes | UI: `sbc/page` (`userPlan` / Gold+) |
@@ -41,6 +42,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Sun · 12 Adityas | Primary Aditya + karakatva teaser | Full 12 Adityas, spiritual, afflictions | Full | UI: `SunAdityasPanel` / Planets → Sun tab (Gold+) |
 | Prashna Kerala / Vedic / KP | Satpanchasika only | Yes | Yes | UI: `prashna/page` (Gold+) |
 | Relationship and marriage | D1 lagna chart and five score lines | Full reading | Full reading, plus extended divisionals | UI: `RelationshipMarriagePanel` (`planMeetsUiGate`, Gold+) |
+| Career and profession | D1 chart, five scores, and the five professional-method answers | Full reading, including the seven-step method | Full reading, including the seven-step method | UI: `CareerProfessionPanel` (`planMeetsUiGate`, Gold+) |
 | Kundali Milan — Ashtakoot, Deep Milan, Porutham, dosha, charts, dasha, panchang | Yes | Yes | Yes | `src/app/compare/page.tsx` |
 | Kundali Milan match-making | Headline, lagna, and summary | Steps, four pillars, division overlay | Same as Gold | UI: `MilanMatchMakingPanel` (Gold+) |
 | Kundali Milan married life | Summary, Moon, 4th, 10th, and five scores | Cross-chart reading, houses, partner, separation, timing | Same as Gold | UI: `MilanMarriedLifePanel` (Gold+) |

@@ -38,6 +38,17 @@ const DashamsaWorkspace = dynamic(() => import('@/components/ui/DashamsaWorkspac
 const DwadashamshaWorkspace = dynamic(() => import('@/components/ui/DwadashamshaWorkspace').then(m => m.DwadashamshaWorkspace), { ssr: false })
 const DrekkanaWorkspace = dynamic(() => import('@/components/ui/DrekkanaWorkspace').then(m => m.DrekkanaWorkspace), { ssr: false })
 const NakshatramshaWorkspace = dynamic(() => import('@/components/ui/NakshatramshaWorkspace').then(m => m.NakshatramshaWorkspace), { ssr: false })
+const CareerProfessionPanel = dynamic(
+  () => import('@/components/ui/CareerProfessionPanel').then(m => m.CareerProfessionPanel),
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280, padding: '3rem 1rem' }}>
+        <VedaanshLoader size={44} message="Reading career and profession…" />
+      </div>
+    ),
+  },
+)
 const RelationshipMarriagePanel = dynamic(
   () => import('@/components/ui/RelationshipMarriagePanel').then(m => m.RelationshipMarriagePanel),
   {
@@ -51,6 +62,7 @@ const RelationshipMarriagePanel = dynamic(
 )
 const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
 const TattvaPredictionPanel = dynamic(() => import('@/components/ui/TattvaPredictionPanel').then(m => m.TattvaPredictionPanel), { ssr: false })
+const NaamkaranPanel = dynamic(() => import('@/components/ui/NaamkaranPanel').then(m => m.NaamkaranPanel), { ssr: false })
 const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
 const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => m.HousePanel), { ssr: false })
 const ActiveHousesCard = dynamic(() => import('@/components/dashboard/ActiveHousesCard').then(m => m.ActiveHousesCard), { ssr: false })
@@ -2154,12 +2166,16 @@ function HomeContent() {
                     <NakshatramshaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'relationship' ? (
                     <RelationshipMarriagePanel chart={chart} userPlan={userPlan} />
+                  ) : activeTab === 'career' ? (
+                    <CareerProfessionPanel chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'house' ? (
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (
                   <InterpretationPanel interpretation={chart.interpretation} />
                 ) : activeTab === 'tattva' ? (
                   <TattvaPredictionPanel chart={chart} userPlan={userPlan} />
+                ) : activeTab === 'naamkaran' ? (
+                  <NaamkaranPanel chart={chart} userPlan={userPlan} />
                 ) : activeTab === 'kp-stellar' ? (
                   <KPStellarPanel chart={chart} />
                 ) : (
