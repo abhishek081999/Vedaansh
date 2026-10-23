@@ -4,8 +4,9 @@ import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, Das
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 import { KARAKA_NAMES_7, FIXED_HOUSE_SIGNIFICATORS, calcCharaKarakas } from '@/lib/engine/karakas'
 import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
+import { isKnRaoCharaForward } from '@/lib/engine/dasha/chara'
 import { DashaTree } from '@/components/dasha/DashaTree'
-import { calculateGatewaySigns, getRashiDrishti } from '@/lib/engine/jaimini'
+import { calculateGatewaySigns, getRashiDrishti, evaluateArgala, detectJaiminiRajayogas, recommendMandook } from '@/lib/engine/jaimini'
 import { buildArudhaBundle, pickArudhaSet, countArudhaDifferences, buildArudhaLabelMap } from '@/lib/engine/arudhas'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -16,6 +17,7 @@ import {
   Flame, Eye,
 } from 'lucide-react'
 import { JaiminiMarriageSection } from '@/components/ui/JaiminiMarriageSection'
+import { DashaReadingCard, FamilyKarakaCard, KarakaLifeCard, KarakamshaCard, SoulKarakaCard } from '@/components/ui/JaiminiReadings'
 import type { LucideIcon } from 'lucide-react'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 import { cn } from '@/lib/ui/cn'
@@ -81,6 +83,56 @@ const KARAKA_ROLES: { key: keyof KarakaData; short: string; name: string }[] = [
   { key: 'DK',  short: 'DK',  name: KARAKA_NAMES_7.DK },
 ]
 
+function JaiminiFactStrip({ chart }: { chart: ChartOutput }) {
+  const { meta, arudhas, vargas, lagnas, grahas } = chart
+  const karakas = calcCharaKarakas(
+    grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
+    7,
+  )
+  const akId = karakas.AK
+  const akNavamsha = vargas.D9?.find((g) => g.id === akId)
+  const mark = (id: GrahaId) => `${id}${grahas.find((g) => g.id === id)?.isRetro ? 'R' : ''}`
+  const items: { label: string; value: string }[] = [
+    { label: 'Name', value: meta.name },
+    { label: 'DOB', value: meta.birthDate },
+    { label: 'AK', value: `${GRAHA_NAMES[akId]}${grahas.find((g) => g.id === akId)?.isRetro ? 'R' : ''}` },
+    { label: 'Swansha', value: akNavamsha ? RASHI_SHORT[akNavamsha.rashi] : '—' },
+    { label: 'Lagna', value: RASHI_SHORT[lagnas.ascRashi] },
+    ...KARAKA_ROLES.slice(1).map((role) => ({ label: role.short, value: mark(karakas[role.key]) })),
+    { label: 'AL', value: RASHI_SHORT[arudhas.AL] },
+    { label: 'UL', value: RASHI_SHORT[arudhas.A12] },
+  ]
+
+  return (
+    <div
+      className="fade-up kundali-snapshot-strip jaimini-snapshot-strip"
+      style={{
+        marginTop: 0,
+        marginBottom: 0,
+        padding: '0.35rem 0.5rem',
+        borderRadius: 'var(--r-sm)',
+        border: '1px solid var(--border-soft)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        overflowX: 'auto',
+      }}
+    >
+      {items.map((item, idx) => (
+        <React.Fragment key={item.label}>
+          <span style={{ whiteSpace: 'nowrap', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+            <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
+              {item.label}
+            </span>
+            <span style={{ marginLeft: 4, fontWeight: 600, color: 'var(--text-primary)' }}>{item.value}</span>
+          </span>
+          {idx < items.length - 1 && <span style={{ color: 'var(--border-bright)' }}>|</span>}
+        </React.Fragment>
+      ))}
+    </div>
+  )
+}
+
 function segClass(active: boolean) {
   return cn(styles.segBtn, active && styles.segBtnActive)
 }
@@ -118,82 +170,6 @@ function ArudhaToggle({
     >
       {label}
     </button>
-  )
-}
-
-function JaiminiSnapshot({ chart, isTinyMobile }: { chart: ChartOutput, isTinyMobile: boolean }) {
-  const { meta, arudhas, vargas, lagnas, grahas } = chart;
-  const karakas = calcCharaKarakas(
-    grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
-    7
-  );
-  const akId = karakas.AK;
-  const d9 = vargas['D9'];
-  const akNavamsha = d9?.find(g => g.id === akId);
-  const karakansha = akNavamsha ? akNavamsha.rashi : null;
-
-  return (
-    <div className={cn('jaimini-snapshot-strip', styles.snapshot)}>
-      <span className={styles.snapshotLabel}>Jaimini</span>
-
-      <div className={styles.snapshotChip}>
-        <span className={styles.snapshotChipKey}>Name</span>
-        <span className={styles.snapshotChipVal}>{meta.name}</span>
-      </div>
-
-      {!isTinyMobile && (
-        <div className={styles.snapshotChip}>
-          <span className={styles.snapshotChipKey}>DOB</span>
-          <span className={styles.snapshotChipVal}>{meta.birthDate}</span>
-        </div>
-      )}
-
-      <div className={styles.snapshotChipGold}>
-        <span className={styles.snapshotChipKey}>AK</span>
-        <span className={styles.snapshotChipValGold}>
-          {GRAHA_NAMES[akId as GrahaId]}
-          {chart.grahas.find(g => g.id === akId)?.isRetro && (
-            <span style={{ color: 'var(--dig-retro)', marginLeft: 2, fontSize: '0.55rem' }}>R</span>
-          )}
-        </span>
-      </div>
-
-      <div className={styles.snapshotChip}>
-        <span className={styles.snapshotChipKey}>Swansha</span>
-        <span className={styles.snapshotChipValGold}>{karakansha ? RASHI_SHORT[karakansha] : '—'}</span>
-      </div>
-
-      <div className={styles.snapshotChip}>
-        <span className={styles.snapshotChipKey}>Lagna</span>
-        <span className={styles.snapshotChipVal}>{RASHI_SHORT[lagnas.ascRashi]}</span>
-      </div>
-
-      <div className={styles.snapshotKarakaRow}>
-        {KARAKA_ROLES.slice(1).map((k) => {
-          const val = karakas[k.key];
-          const isRetro = chart.grahas.find(g => g.id === val)?.isRetro;
-          return (
-            <div key={k.short} className={styles.snapshotKaraka} title={k.name}>
-              <span className={styles.snapshotKarakaKey}>{k.short}</span>
-              <span className={styles.snapshotKarakaVal}>
-                {val}
-                {isRetro && <span style={{ color: 'var(--dig-retro)', fontSize: '0.48rem' }}>R</span>}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className={styles.snapshotChipGold}>
-        <span className={styles.snapshotChipKey}>AL</span>
-        <span className={styles.snapshotChipValGold}>{RASHI_SHORT[arudhas.AL]}</span>
-      </div>
-
-      <div className={styles.snapshotChipGold}>
-        <span className={styles.snapshotChipKey}>UL</span>
-        <span className={styles.snapshotChipValGold}>{RASHI_SHORT[arudhas.A12]}</span>
-      </div>
-    </div>
   )
 }
 
@@ -613,7 +589,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     7
   );
   const [activeTab, setActiveTab] = useState<'essence' | 'intelligence' | 'arudhas' | 'marriage' | 'dashas' | 'info'>('essence');
-  const [charaDashaMode, setCharaDashaMode] = useState<'chara' | 'chara_fe' | 'mandook' | 'sthir'>(
+  const [charaDashaMode, setCharaDashaMode] = useState<'chara' | 'chara_fe' | 'mandook' | 'sthir' | 'navamsha' | 'brahma'>(
     chart.meta.gender === 'female' ? 'chara_fe' : 'chara',
   );
 
@@ -627,6 +603,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
       case 'chara_fe': return charaDashas.chara_fe
       case 'mandook': return charaDashas.mandook
       case 'sthir': return charaDashas.sthir
+      case 'navamsha': return charaDashas.navamsha
+      case 'brahma': return charaDashas.brahma
       default: return charaDashas.chara
     }
   }, [charaDashaMode, charaDashas])
@@ -634,16 +612,26 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const dashaTitle = useMemo(() => {
     if (charaDashaMode === 'mandook') return 'Mandook Dasha Timeline'
     if (charaDashaMode === 'sthir') return 'Sthir Dasha Timeline'
+    if (charaDashaMode === 'navamsha') return 'Navamsha Dasha Timeline'
+    if (charaDashaMode === 'brahma') return 'Brahma Dasha Timeline'
     return 'Chara Dasha Timeline'
   }, [charaDashaMode])
 
   // Gateway calculation
-  const currentDashaNode = activeCharaDashas.find((n) => n.isCurrent);
-  let dwaraRashi: Rashi | null = null;
-  if (currentDashaNode) {
-    const entry = Object.entries(RASHI_SHORT).find(([_, val]) => val === currentDashaNode.lord);
-    if (entry) dwaraRashi = Number(entry[0]) as Rashi;
+  const rashiOfDashaLord = (lord: string | undefined): Rashi | null => {
+    if (!lord) return null
+    const entry = Object.entries(RASHI_SHORT).find(([, val]) => val === lord)
+    return entry ? Number(entry[0]) as Rashi : null
   }
+  const currentDashaNode = activeCharaDashas.find((n) => n.isCurrent);
+  const dwaraRashi = rashiOfDashaLord(currentDashaNode?.lord)
+  const antarRashi = rashiOfDashaLord(
+    currentDashaNode?.children?.find((n) => n.isCurrent && n.level === 2)?.lord,
+  )
+  const mandookNote = useMemo(
+    () => recommendMandook(grahas, lagnas.ascRashi),
+    [grahas, lagnas.ascRashi],
+  )
   const gateways = dwaraRashi ? calculateGatewaySigns(lagnas.ascRashi as Rashi, dwaraRashi) : null;
   const [selectedAspectSign, setSelectedAspectSign] = useState<Rashi | null>(null);
   // Global chart-style store — Jaimini renderers support north/south only,
@@ -796,42 +784,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   const currentAsc = getLagnaForVarga(activeVarga === 'D9' ? 'D9' : 'D1');
 
-  const getQuarter = (deg: number) => Math.floor((deg % 30) / 7.5) + 1;
-  const isOppositeQuarter = (q1: number, q2: number) => (q1 + q2) === 5;
-
-  const getArgalaIntervention = (sign: Rashi) => {
-    const getSignAt = (s: Rashi, offset: number): Rashi => (((s + offset - 2) % 12) + 1) as Rashi;
-    
-    const schemes = [
-      { id: '2nd', aSign: getSignAt(sign, 2), vSign: getSignAt(sign, 12), label: 'Wealth' },
-      { id: '4th', aSign: getSignAt(sign, 4), vSign: getSignAt(sign, 10), label: 'Happiness' },
-      { id: '11th', aSign: getSignAt(sign, 11), vSign: getSignAt(sign, 3), label: 'Gains' },
-      { id: '5th', aSign: getSignAt(sign, 5), vSign: getSignAt(sign, 9), label: 'Knowledge' },
-    ];
-
-    return schemes.map(s => {
-      const occupants = currentGrahas.filter(g => g.rashi === s.aSign);
-      const blockers = currentGrahas.filter(g => g.rashi === s.vSign);
-      
-      const details = occupants.map(p => {
-        const pQuarter = getQuarter(p.degree);
-        const activeBlockers = blockers.filter(b => isOppositeQuarter(pQuarter, getQuarter(b.degree)));
-        return {
-          id: p.id,
-          quarter: pQuarter,
-          isBlocked: activeBlockers.length > 0,
-          blockerIds: activeBlockers.map(b => b.id)
-        };
-      });
-
-      return {
-        ...s,
-        occupants: details,
-        isArgalaActive: details.length > 0 && details.some(d => !d.isBlocked),
-        isPartiallyBlocked: details.some(d => d.isBlocked)
-      };
-    });
-  };
+  const getArgalaIntervention = (sign: Rashi) => evaluateArgala(sign, currentGrahas)
 
   const getNavamshaRashi = (gid: GrahaId): Rashi => {
     const d9 = vargas['D9'];
@@ -841,35 +794,16 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
 
   const akGid = karakas.AK;
   const karakamshaRashi = getNavamshaRashi(akGid);
+  const akInD9 = vargas.D9?.some(g => g.id === karakas.AK) ?? false
 
-  const detectJaiminiYogas = () => {
-    const yogas: { name: string; desc: string; strength: string }[] = [];
-    const akPlanet = currentGrahas.find(g => g.id === karakas.AK);
-    const amkPlanet = currentGrahas.find(g => g.id === karakas.AmK);
-    if (akPlanet && amkPlanet) {
-      const areConnected = akPlanet.rashi === amkPlanet.rashi || getRashiDrishti(akPlanet.rashi).includes(amkPlanet.rashi);
-      if (areConnected) {
-        yogas.push({
-          name: 'Principal Raja Yoga',
-          desc: 'Atmakaraka (Self) and Amatyakaraka (Career) are connected by placement or aspect.',
-          strength: akPlanet.rashi === amkPlanet.rashi ? 'Exceptional' : 'Strong'
-        });
-      }
-    }
-    const alRashi = d1EffectiveArudhas.AL as Rashi;
-    const benefics = ['Ju', 'Ve', 'Me'];
-    const alBenefics = currentGrahas.filter(g => benefics.includes(g.id) && (g.rashi === alRashi || getRashiDrishti(alRashi).includes(g.rashi)));
-    if (alBenefics.length >= 2) {
-      yogas.push({
-        name: 'Arudha Shubha Yoga',
-        desc: 'Multiple benefics influence the Arudha Lagna, creating a successful public image.',
-        strength: 'High'
-      });
-    }
-    return yogas;
-  };
-
-  const jaiminiYogas = detectJaiminiYogas();
+  const jaiminiYogas = useMemo(
+    () => detectJaiminiRajayogas(grahas, lagnas.ascRashi, karakas, d1EffectiveArudhas.AL, {
+      d9: vargas.D9,
+      d9Lagna: chart.vargaLagnas?.D9,
+      karakamsha: akInD9 ? karakamshaRashi : undefined,
+    }),
+    [grahas, lagnas.ascRashi, karakas, d1EffectiveArudhas.AL, vargas.D9, chart.vargaLagnas, akInD9, karakamshaRashi],
+  )
 
   type JaiminiTabId = 'essence' | 'intelligence' | 'arudhas' | 'marriage' | 'dashas' | 'info';
 
@@ -903,8 +837,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     const asc = getLagnaForVarga(varga);
     const chartKey = `${varga}-${arudhaBphsMode ? 'bphs' : 'raw'}-${showArudhaOverlay ? 'on' : 'off'}`;
     const scale = Math.min(Math.max(chartScale, 0.5), 2.0);
-    // Mobile: use full panel width. Desktop: allow zoom around a 520px base.
-    const chartMaxPx = isMobile ? undefined : Math.round(520 * scale);
+    const chartMaxPx = isMobile ? undefined : `min(100%, ${(30 * scale).toFixed(2)}rem)`;
     const chartProps = {
       ascRashi: asc,
       grahas: grahasForChart,
@@ -929,6 +862,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           alignItems: 'center',
           width: '100%',
           maxWidth: chartMaxPx ?? '100%',
+          marginInline: 'auto',
           minWidth: 0,
         }}
       >
@@ -949,7 +883,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     );
   };
 
-  const panelPad = isTinyMobile ? '0.35rem' : isMobile ? '0.75rem' : '1.25rem'
+  const panelPad = isTinyMobile ? '0.35rem' : isMobile ? '0.6rem' : '0.7rem'
 
   return (
     <div
@@ -959,15 +893,15 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
         paddingBottom: isMobile ? '6rem' : undefined,
       }}
     >
-      <JaiminiSnapshot chart={chart} isTinyMobile={isTinyMobile} />
+      <JaiminiFactStrip chart={chart} />
 
       <div className={styles.mainGrid}>
         <section className={cn('card-glass', styles.colChart)} style={{
           padding: panelPad,
-          borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)',
+          borderRadius: 'var(--r-md)',
           background: 'var(--surface-1)',
           border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
-          boxShadow: isTinyMobile ? 'none' : 'var(--shadow-card)',
+          boxShadow: 'none',
         }}>
           <div className={styles.headerRow}>
             <div>
@@ -999,22 +933,21 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               onClick={() => setShowSettings(s => !s)}
               className={cn(styles.settingsBtn, showSettings && styles.settingsBtnActive)}
             >
-              <Settings size={14} />
+              <Settings size={12} />
               {isTinyMobile ? 'Set' : 'Settings'}
             </button>
-          </div>
-
-          <div className={cn(styles.segGroup, 'scrollbar-hide')}>
-            {(['natal', 'AL', 'KL', 'dasha', 'house'] as const).map(ref => (
-              <button
-                key={ref}
-                type="button"
-                onClick={() => setActiveLagnaRef(ref)}
-                className={segClass(activeLagnaRef === ref)}
-              >
-                {ref === 'house' ? `H${rotationHouse}` : ref}
-              </button>
-            ))}
+            <div className={cn(styles.segGroup, 'scrollbar-hide')}>
+              {(['natal', 'AL', 'KL', 'dasha', 'house'] as const).map(ref => (
+                <button
+                  key={ref}
+                  type="button"
+                  onClick={() => setActiveLagnaRef(ref)}
+                  className={segClass(activeLagnaRef === ref)}
+                >
+                  {ref === 'house' ? `H${rotationHouse}` : ref}
+                </button>
+              ))}
+            </div>
           </div>
 
           <AnimatePresence>
@@ -1234,10 +1167,10 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
           className={cn('card-glass', styles.colData)}
           style={{
             padding: panelPad,
-            borderRadius: isMobile ? 'var(--r-lg)' : 'var(--r-xl)',
+            borderRadius: 'var(--r-md)',
             background: 'var(--surface-1)',
             border: isTinyMobile ? 'none' : '1px solid var(--border-soft)',
-            boxShadow: isTinyMobile ? 'none' : 'var(--shadow-card)',
+            boxShadow: 'none',
           }}
         >
           {isMobile && (
@@ -1268,52 +1201,6 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             >
               {activeTab === 'essence' && (
                 <div className={styles.tabStack}>
-                  <div className={styles.karakaGrid}>
-                    {KARAKA_ROLES.map((role) => {
-                      const planetId = karakas[role.key];
-                      const planet = currentGrahas.find(g => g.id === planetId);
-                      const isAk = role.key === 'AK';
-                      return (
-                        <div
-                          key={role.key}
-                          className={isAk ? styles.karakaCardAk : styles.karakaCard}
-                          title={role.name}
-                        >
-                          <span className={styles.karakaRole}>{role.short}</span>
-                          <span className={styles.karakaPlanet} style={{ color: grahaChartFill(planetId) }}>
-                            {planetId}
-                            {planet?.isRetro && (
-                              <span style={{ color: 'var(--dig-retro)', fontSize: '0.55rem', marginLeft: 1 }}>R</span>
-                            )}
-                          </span>
-                          <span className={styles.karakaSign}>
-                            {planet ? RASHI_SHORT[planet.rashi] : '—'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className={styles.statusBar}>
-                    <div className={styles.statusItem}>
-                      <span className={styles.statusKey} style={{ color: 'var(--text-gold)' }}>AK</span>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
-                        <span className={styles.statusVal}>{akGid}</span>
-                        {chart.grahas.find(p => p.id === akGid)?.isRetro && (
-                          <span style={{ color: 'var(--dig-retro)', fontSize: '0.6rem', fontWeight: 900 }}>R</span>
-                        )}
-                      </div>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                        ({RASHI_SHORT[karakamshaRashi]})
-                      </span>
-                    </div>
-                    <div className={styles.statusDivider} />
-                    <div className={styles.statusItem}>
-                      <span className={styles.statusKey} style={{ color: 'var(--teal)' }}>AL</span>
-                      <span className={styles.statusVal}>{RASHI_SHORT[d1EffectiveArudhas.AL]}</span>
-                    </div>
-                  </div>
-
                   <SectionCard title="Planetary & Special Lagnas">
                     <table className={styles.dataTable} style={{ minWidth: isMobile ? 420 : undefined }}>
                       <thead>
@@ -1480,14 +1367,67 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     </table>
                   </SectionCard>
 
+                  <div className={styles.karakaGrid}>
+                    {KARAKA_ROLES.map((role) => {
+                      const planetId = karakas[role.key];
+                      const planet = currentGrahas.find(g => g.id === planetId);
+                      const isAk = role.key === 'AK';
+                      return (
+                        <div
+                          key={role.key}
+                          className={isAk ? styles.karakaCardAk : styles.karakaCard}
+                          title={role.name}
+                        >
+                          <span className={styles.karakaRole}>{role.short}</span>
+                          <span className={styles.karakaPlanet} style={{ color: grahaChartFill(planetId) }}>
+                            {planetId}
+                            {planet?.isRetro && (
+                              <span style={{ color: 'var(--dig-retro)', fontSize: '0.55rem', marginLeft: 1 }}>R</span>
+                            )}
+                          </span>
+                          <span className={styles.karakaSign}>
+                            {planet ? RASHI_SHORT[planet.rashi] : '—'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className={styles.statusBar}>
+                    <div className={styles.statusItem}>
+                      <span className={styles.statusKey} style={{ color: 'var(--text-gold)' }}>AK</span>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                        <span className={styles.statusVal}>{akGid}</span>
+                        {chart.grahas.find(p => p.id === akGid)?.isRetro && (
+                          <span style={{ color: 'var(--dig-retro)', fontSize: '0.6rem', fontWeight: 900 }}>R</span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                        ({RASHI_SHORT[karakamshaRashi]})
+                      </span>
+                    </div>
+                    <div className={styles.statusDivider} />
+                    <div className={styles.statusItem}>
+                      <span className={styles.statusKey} style={{ color: 'var(--teal)' }}>AL</span>
+                      <span className={styles.statusVal}>{RASHI_SHORT[d1EffectiveArudhas.AL]}</span>
+                    </div>
+                  </div>
+
+                  <KarakamshaCard chart={chart} karakas={karakas} arudhaLagna={d1EffectiveArudhas.AL} />
+                  <SoulKarakaCard chart={chart} karakas={karakas} />
+                  <KarakaLifeCard chart={chart} karakas={karakas} />
+
                   {jaiminiYogas.length > 0 && (
                     <SectionCard title="Principal Rajayogas">
                       <table className={styles.dataTable}>
                         <tbody>
-                          {jaiminiYogas.map((yoga, k) => (
-                            <tr key={k}>
-                              <td style={{ fontWeight: 900, color: 'var(--text-gold)' }}>{yoga.name}</td>
-                              <td style={{ textAlign: 'right', fontWeight: 900, color: 'var(--gold)', fontSize: '0.68rem' }}>{yoga.strength}</td>
+                          {jaiminiYogas.map((yoga) => (
+                            <tr key={yoga.id}>
+                              <td>
+                                <div style={{ fontWeight: 900, color: 'var(--text-gold)' }}>{yoga.name}</div>
+                                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{yoga.desc}</div>
+                              </td>
+                              <td style={{ textAlign: 'right', fontWeight: 900, color: 'var(--gold)', fontSize: '0.68rem', verticalAlign: 'top' }}>{yoga.strength}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1525,6 +1465,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       </tbody>
                     </table>
                   </SectionCard>
+
+                  <FamilyKarakaCard chart={chart} />
                 </div>
               )}
 
@@ -2114,6 +2056,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>TYPE</th>
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>KARAKAS</th>
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>ASPECTS</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }} title="Odd sign whose lord is joined or aspected by a malefic">4TH</th>
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem', textAlign: 'right' }}>TOTAL</th>
                             </tr>
                           </thead>
@@ -2127,6 +2070,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', opacity: 0.8 }}>{bala.typeBala}</td>
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', color: 'var(--teal)', fontWeight: 700 }}>+{bala.karakaBala}</td>
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', color: 'var(--gold)', fontWeight: 700 }}>+{bala.aspectBala}</td>
+                                  <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', fontWeight: 700 }}>+{bala.chaturthaBala ?? 0}</td>
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', textAlign: 'right', fontWeight: 900, color: 'var(--text-primary)' }}>{bala.total}</td>
                                 </tr>
                               );
@@ -2184,18 +2128,25 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
               {activeTab === 'dashas' && (
                 <div className={styles.tabStack}>
                   <div className={styles.dashaCard}>
+                    {mandookNote && (
+                      <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                        {mandookNote.text}
+                      </p>
+                    )}
                     <div className={styles.dashaHeader}>
                       <div className={styles.dashaTitle}>{dashaTitle}</div>
                       <select
                         value={charaDashaMode}
-                        onChange={(e) => setCharaDashaMode(e.target.value as 'chara' | 'chara_fe' | 'mandook' | 'sthir')}
+                        onChange={(e) => setCharaDashaMode(e.target.value as 'chara' | 'chara_fe' | 'mandook' | 'sthir' | 'navamsha' | 'brahma')}
                         className={styles.dashaSelect}
-                        aria-label="Chara dasha calculation method"
+                        aria-label="Jaimini dasha calculation method"
                       >
                         <option value="chara">Chara Dasha (K.N. Rao)</option>
                         <option value="chara_fe">Chara Dasha (Rangacharya FE)</option>
                         <option value="mandook">Mandook Dasha (K.N. Rao)</option>
                         <option value="sthir">Sthir Dasha</option>
+                        <option value="navamsha">Navamsha Dasha (S.C. Mishra)</option>
+                        <option value="brahma">Brahma Dasha</option>
                       </select>
                     </div>
                     <div className={styles.dashaBody}>
@@ -2207,6 +2158,22 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       />
                     </div>
                   </div>
+                  <DashaReadingCard
+                    sign={dwaraRashi}
+                    antarSign={antarRashi}
+                    upapada={d1EffectiveArudhas.A12}
+                    karakamsha={akInD9 ? karakamshaRashi : undefined}
+                    chart={chart}
+                    roleOf={karakas.roleOf}
+                    applyPadaExceptions={arudhaBphsMode}
+                    sequenceForward={
+                      charaDashaMode === 'chara'
+                        ? isKnRaoCharaForward(lagnas.ascRashi)
+                        : charaDashaMode === 'chara_fe'
+                          ? lagnas.ascRashi % 2 === 1
+                          : undefined
+                    }
+                  />
                 </div>
               )}
           </div>

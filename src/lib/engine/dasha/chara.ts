@@ -28,9 +28,13 @@ function getRashi(g: GrahaData): number {
  * Savya (Direct): Aries (1), Leo (5), Virgo (6), Libra (7), Aquarius (11), Pisces (12)
  * Apasavya (Indirect): Taurus (2), Gemini (3), Cancer (4), Scorpio (8), Sagittarius (9), Capricorn (10)
  */
+/** K.N. Rao savya lagnas run Chara dasha forward. */
+export function isKnRaoCharaForward(lagna: number): boolean {
+  return [1, 5, 6, 7, 11, 12].includes(lagna)
+}
+
 function getMahaSequence(lagna: number): number[] {
-  const isSavya = [1, 5, 6, 7, 11, 12].includes(lagna)
-  return buildSignSequence(lagna, isSavya)
+  return buildSignSequence(lagna, isKnRaoCharaForward(lagna))
 }
 
 /** Odd Lagna → forward; even Lagna → reverse (female Padakrama). */

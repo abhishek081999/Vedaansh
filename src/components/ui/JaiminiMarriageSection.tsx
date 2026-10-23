@@ -357,6 +357,11 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
             <h4 className={styles.sectionTitle}>Marriage timing windows</h4>
             <p className={styles.insightText} style={{ marginBottom: '0.55rem' }}>
               Activate DK / UL / 7th-from-UL / 7th-from-DK in Chara dasha, then confirm with Vimshottari.
+              {ul.sign.rashi === 9
+                ? ' Sagittarius is the Upapada. While its dasha runs, marriage is highly likely for a person of marriageable age.'
+                : ul.seventhFromUl.rashi === 9
+                  ? ' Sagittarius is the 7th from the Upapada. While its dasha runs, marriage is highly likely for a person of marriageable age.'
+                  : ''}
             </p>
             <table className={styles.table}>
               <thead>

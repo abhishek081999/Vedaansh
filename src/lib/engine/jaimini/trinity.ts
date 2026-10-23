@@ -60,7 +60,10 @@ function signNatureWeight(sign: Rashi): number {
 }
 
 /** Scorpio / Aquarius: compare main vs co-lord (Ke / Ra) by placement support. */
-export function resolveSignLord(sign: Rashi, grahas: GrahaData[]): GrahaId {
+export function resolveSignLord(
+  sign: Rashi,
+  grahas: Array<{ id: GrahaId; rashi: Rashi; degree: number }>,
+): GrahaId {
   const mainLordId = SIGN_LORD[sign]
   if (sign !== 8 && sign !== 11) return mainLordId
 
