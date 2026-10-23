@@ -12,6 +12,21 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 - Full chart workspace: Navagraha, vargas (plan-filtered), dashas, strengths, yogas, SBC, ACG, Vastu, Prashna, Jaimini, Nakshatra lab, Numerology
 - Career and profession desk on the chart (Free preview; full reading on Gold+)
+- Professional career method beside that reading: lagna, 6th/7th, income, skill, place, combinations, dasha, and D10
+- Later teaching inside that method: contractual or permanent service, property, job changes, father, child, and collapse
+- Style and System divisions on that method: execution by sign, roles, the three karmas, the house-lord chain, and career triggers
+- Education and Pattern divisions: the 4th, 5th, and 9th for study, two karmic themes at once, lineage, and the phase of the dasha
+- Karma field division on that method: lagna and the 10th first, then the income houses, Dashamsha only after the birth chart
+- Profile division after the field: the 10th lord’s element and nakshatra, Mercury’s two habits, uniform only when the 6th and 10th agree, and a post left in an 8th or 12th period
+- Sector division between the field and the profile: the 5th–9th–Mars–10th circuit, a sector instead of a job title, and the father’s line kept apart from the father’s backing
+- Disha division: the Sun’s half and the Moon’s half, and a compass for growth only when the house, the sign, and the planet agree
+- Pipeline division: Mars through the Moon, authority against the system, and the initiating half kept apart from Disha’s achievement half
+- Counsel division: the Moon and the 10th lord on Disha’s two halves, and whether a charge can be finished
+- Demand division: a stay abroad as learning rather than settlement, and a venture only when clients and endurance agree
+- Pillars division: the house, the planet, and the sign read together, and a Sun seat only bends when Rahu is on it
+- Calling division: a visible 10th against a hidden 5th, and the subject read from the 2nd rather than the 5th
+- Streams division: a joined pair names the stream, and Saturn either holds a service or makes service the hard room
+- Gana division: the 10th lord’s nakshatra sets the behavior, and the Moon and Rahu are compared with it
 - Panchang + calendar; Muhurta (Gold+); Compare / Ashtakoot / Porutham
 - Auth: Google OAuth + credentials; verify email; forgot / reset password
 - Subscriptions: Free / Gold / Platinum via Razorpay; coupons via BillingConfig

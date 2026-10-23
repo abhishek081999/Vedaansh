@@ -37,7 +37,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 - North / South / SBC-style chart UIs; transit overlay
 - Panchang + calendar; Kundali Milan (Ashtakoot, Porutham, and charts on Free; match-making, married life, All Sections, and print on Gold+)
 - Relationship and marriage on the chart (preview on Free; full reading on Gold+)
-- Career and profession on the chart (preview on Free; full reading on Gold+)
+- Career and profession on the chart: the first reading, plus a second method (lagna, 6th/7th, income, skill, place, combinations, dasha, D10). Preview on Free; full reading on Gold+
 - Prashna, Jaimini, ACG, Vastu, Nakshatra lab, Numerology
 - Auth: Google OAuth + credentials; email verify / reset
 - PWA (Serwist) + Android TWA packaging

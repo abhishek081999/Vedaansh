@@ -14,11 +14,29 @@ import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 import { ScoreMeter } from '@/components/ui/marriedLifeUi'
+import { CareerMethodPanel } from '@/components/ui/CareerMethodPanel'
 import {
   analyzeCareerProfession,
   type CareerNote,
   type CareerTone,
 } from '@/lib/engine/careerProfession'
+
+type CareerMode = 'desk' | 'method'
+
+const CAREER_METHODS: { id: CareerMode; code: string; name: string; topic: string }[] = [
+  {
+    id: 'desk',
+    code: 'M1',
+    name: 'Career reading',
+    topic: 'The first method. The 10th house, its lord, scores, yogas, and whether Navamsha, Dashamsha, and A10 hold the promise.',
+  },
+  {
+    id: 'method',
+    code: 'M2',
+    name: 'Professional method',
+    topic: 'The second method. The karma field, then the pair that is joined, then how the nakshatra behaves. Dashamsha comes after the birth chart.',
+  },
+]
 
 type View = 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief'
 
@@ -80,7 +98,7 @@ function NoteList({ notes }: { notes: CareerNote[] }) {
   )
 }
 
-function CareerCharts({ chart, showD10 }: { chart: ChartOutput; showD10: boolean }) {
+function CareerCharts({ chart, showD10, highlight, d10Highlight }: { chart: ChartOutput; showD10: boolean; highlight: number[]; d10Highlight: number[] }) {
   const moonNakIndex = chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0
   const d1Asc = chart.lagnas.ascRashi as Rashi
   const d10Asc = (chart.vargaLagnas?.D10 ?? d1Asc) as Rashi
@@ -111,7 +129,7 @@ function CareerCharts({ chart, showD10 }: { chart: ChartOutput; showD10: boolean
           lagnas={chart.lagnas}
           defaultStyle="north"
           size={280}
-          highlightHouses={[10]}
+          highlightHouses={highlight}
         />
       </article>
       {showD10 && d10Grahas.length ? (
@@ -128,7 +146,7 @@ function CareerCharts({ chart, showD10 }: { chart: ChartOutput; showD10: boolean
             lagnas={chart.lagnas}
             defaultStyle="north"
             size={280}
-            highlightHouses={[10]}
+            highlightHouses={d10Highlight}
           />
         </article>
       ) : null}
@@ -140,6 +158,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
   const full = planMeetsUiGate(userPlan, 'gold')
   const { setActiveTab } = useAppLayout()
   const data = useMemo(() => analyzeCareerProfession(chart), [chart])
+  const [mode, setMode] = useState<CareerMode>('desk')
   const [view, setView] = useState<View>('overview')
   const [copied, setCopied] = useState(false)
 
@@ -164,19 +183,56 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', padding: '0.85rem' }}>
       <header>
-        <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: 4 }}>Career and profession</div>
-        <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 650 }}>{data.headline}</h2>
-        <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55, maxWidth: 760 }}>
-          {data.summary}
-        </p>
+        <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: 6 }}>Career and profession</div>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.28rem', maxWidth: 420 }}>
+          <span className="label-caps" style={{ fontSize: '0.58rem' }}>Method</span>
+          <select
+            aria-label="Select career method"
+            value={mode}
+            onChange={e => setMode(e.target.value as CareerMode)}
+            style={{
+              width: '100%',
+              padding: '0.4rem 0.5rem',
+              background: 'var(--surface-2)',
+              color: 'var(--gold)',
+              border: '1px solid rgba(201,168,76,0.45)',
+              borderRadius: '4px',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              fontFamily: 'var(--font-mono)',
+              cursor: 'pointer',
+            }}
+          >
+            {CAREER_METHODS.map(m => (
+              <option key={m.id} value={m.id}>
+                {m.code} · {m.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <p style={{ margin: '0.55rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5, maxWidth: 760 }}>
-          Birth chart first. Navamsha checks whether the promise holds. Dashamsha is the career chart.
+          {CAREER_METHODS.find(m => m.id === mode)?.topic}
         </p>
+        {mode === 'desk' && (
+          <>
+            <h2 style={{ margin: '0.7rem 0 0', fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 650 }}>{data.headline}</h2>
+            <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55, maxWidth: 760 }}>
+              {data.summary}
+            </p>
+          </>
+        )}
       </header>
 
-      <CareerCharts chart={chart} showD10={full} />
+      <CareerCharts
+        chart={chart}
+        showD10={full}
+        highlight={mode === 'method' ? [1, 6, 7, 10, 11] : [10]}
+        d10Highlight={mode === 'method' ? [1, 5, 10] : [10]}
+      />
 
-      {!full && (
+      {mode === 'method' && <CareerMethodPanel chart={chart} userPlan={userPlan} />}
+
+      {mode === 'desk' && !full && (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.65rem' }}>
             {data.scores.map(d => (
@@ -194,7 +250,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
         </>
       )}
 
-      {full && (
+      {mode === 'desk' && full && (
         <>
           <div
             style={{
