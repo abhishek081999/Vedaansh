@@ -13,7 +13,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 | Persona | Need |
 |---------|------|
 | **Learner / enthusiast** | Free accurate birth chart, panchang, shareable links |
-| **Serious practitioner** | Gold: exports, muhurta, relationship and marriage, Kundali Milan match-making and married life, deeper UI panels, larger library |
+| **Serious practitioner** | Gold: exports, muhurta, relationship and marriage, career and profession, Kundali Milan match-making and married life, deeper UI panels, larger library |
 | **Professional consultant** | Platinum: CRM, email reports, bulk ZIP, white-label branding |
 | **Platform admin** | Users, billing, revenue, audit, broadcast, cleanup |
 
@@ -37,6 +37,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 - North / South / SBC-style chart UIs; transit overlay
 - Panchang + calendar; Kundali Milan (Ashtakoot, Porutham, and charts on Free; match-making, married life, All Sections, and print on Gold+)
 - Relationship and marriage on the chart (preview on Free; full reading on Gold+)
+- Career and profession on the chart (preview on Free; full reading on Gold+)
 - Prashna, Jaimini, ACG, Vastu, Nakshatra lab, Numerology
 - Auth: Google OAuth + credentials; email verify / reset
 - PWA (Serwist) + Android TWA packaging

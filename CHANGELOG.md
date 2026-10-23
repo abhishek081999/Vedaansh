@@ -11,6 +11,7 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 ### Added / live
 
 - Full chart workspace: Navagraha, vargas (plan-filtered), dashas, strengths, yogas, SBC, ACG, Vastu, Prashna, Jaimini, Nakshatra lab, Numerology
+- Career and profession desk on the chart (Free preview; full reading on Gold+)
 - Panchang + calendar; Muhurta (Gold+); Compare / Ashtakoot / Porutham
 - Auth: Google OAuth + credentials; verify email; forgot / reset password
 - Subscriptions: Free / Gold / Platinum via Razorpay; coupons via BillingConfig

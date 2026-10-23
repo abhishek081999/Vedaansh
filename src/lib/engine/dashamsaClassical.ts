@@ -69,7 +69,7 @@ const ROLE_LABEL: Record<RoleKey, string> = {
 }
 
 /** Phaladeepika livelihood chapter + Saravali / BPHS karakatva. */
-const LIVELIHOOD: Record<GrahaId, { nature: string; fields: string[] }> = {
+export const LIVELIHOOD: Record<GrahaId, { nature: string; fields: string[] }> = {
   Su: {
     nature: 'Royal service, authority, gold, and state or father-linked karma',
     fields: ['Government and administration', 'Gold, treasury, and state supply', 'Medicine under authority', 'Wool, forest, and public works', 'Leadership of an institution'],
@@ -111,8 +111,8 @@ const LIVELIHOOD: Record<GrahaId, { nature: string; fields: string[] }> = {
   Pl: { nature: 'Power', fields: [] },
 }
 
-/** BPHS bhava phala of the 10th lord, applied inside Dashamsha. */
-const TENTH_LORD_PHALA: Record<number, { headline: string; prediction: string }> = {
+/** BPHS bhava phala of the 10th lord. Used in Dashamsha and in the natal career desk. */
+export const TENTH_LORD_PHALA: Record<number, { headline: string; prediction: string }> = {
   1: {
     headline: '10th lord in the 1st — self-made status',
     prediction: 'BPHS: karma-lord in the lagna ties the name to the work. The native is known for personal effort, learns the profession in the body, and rises when leading rather than hiding behind a post.',
@@ -163,7 +163,8 @@ const TENTH_LORD_PHALA: Record<number, { headline: string; prediction: string }>
   },
 }
 
-const OCCUPANT_PHALA: Record<GrahaId, string> = {
+/** BPHS phala of a planet occupying the 10th. */
+export const OCCUPANT_PHALA: Record<GrahaId, string> = {
   Su: 'BPHS: Sun in the 10th has directional strength — government, administration, and a visible post. The state or the father is part of the karma. Give the ego a real seat of responsibility.',
   Mo: 'BPHS: Moon in the 10th makes reputation public and changeable. Care, liquids, travel, or the masses. A strong Moon settles the name; a weak Moon makes the post mood-dependent.',
   Ma: 'BPHS: Mars in the 10th has digbala — engineering, surgery, defense, land, or fire trades. Courage builds the career. Conflict at work is the tax when Mars is afflicted.',

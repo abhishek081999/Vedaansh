@@ -47,7 +47,7 @@ Canonical plan names: `free` | `gold` | `platinum`.
 | Plan | Chart saves | Default price (INR) | Notable gates |
 |------|-------------|---------------------|---------------|
 | Free | 20 | — | Core chart, panchang, public share |
-| Gold | 200 | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), relationship and marriage, Kundali Milan match-making and married life |
+| Gold | 200 | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), relationship and marriage, career and profession, Kundali Milan match-making and married life |
 | Platinum | Unlimited | ₹336/mo · ₹2,888/yr | Email charts, bulk ZIP, client CRM, white-label |
 
 Prices: `src/lib/subscription/pricing.ts` (admin `BillingConfig` may override).
