@@ -2537,6 +2537,12 @@ select.input {
   margin-bottom: 0.75rem;
 }
 
+.jaimini-snapshot-strip {
+  margin-top: 0;
+  margin-bottom: 0;
+  box-shadow: none;
+}
+
 .jaimini-panel {
   max-width: 100%;
   min-width: 0;

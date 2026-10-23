@@ -18,6 +18,8 @@ export interface JaiminiRashiBala {
   typeBala: number // Dual (60), Fixed (30), Movable (15)
   karakaBala: number // 1: 60, 2: 75, 3: 90, 4: 105, 5: 120...
   aspectBala: number // 60 for each: Ju, Me, or Rashi Lord
+  /** Jaimini Sutra 2.3.17 — odd sign whose lord is joined or aspected by a malefic. */
+  chaturthaBala: number
   total: number
 }
 
@@ -157,21 +159,44 @@ export function calculateJaiminiBala(chart: Partial<ChartOutput>): JaiminiBalaRe
     if (hasMeAspect) aspectBala += 60
     if (hasLordAspect) aspectBala += 60
 
+    const chaturthaBala = chaturthaBalaForRashi(rashi, grahas)
+
     rashiBala[r] = {
       rashi,
       typeBala,
       karakaBala: rKarakaBala,
       aspectBala,
-      total: typeBala + rKarakaBala + aspectBala
+      chaturthaBala,
+      total: typeBala + rKarakaBala + aspectBala + chaturthaBala
     }
   }
 
   return { 
-    version: 2, 
+    version: 3, 
     planets: planetBala as any, 
     rashis: rashiBala as any, 
     houses: houseBala 
   }
+}
+
+const CHATURTHA_MALEFICS: GrahaId[] = ['Ma', 'Sa', 'Ra', 'Ke']
+
+/**
+ * Fourth source of sign strength (Jaimini Sutra 2.3.17, chaturthah purushe).
+ * An odd sign gains 60 units when its lord is conjunct a malefic or receives
+ * that malefic's rashi drishti. Even signs do not take this source.
+ */
+export function chaturthaBalaForRashi(rashi: Rashi, grahas: GrahaData[]): number {
+  if (rashi % 2 === 0) return 0
+  const lordId = getRashiLord(rashi)
+  const lord = grahas.find(g => g.id === lordId)
+  if (!lord) return 0
+  const linked = grahas.some(pg => {
+    if (pg.id === lord.id || !CHATURTHA_MALEFICS.includes(pg.id)) return false
+    if (pg.rashi === lord.rashi) return true
+    return getRashiDrishti(pg.rashi).includes(lord.rashi)
+  })
+  return linked ? 60 : 0
 }
 
 function getRashiLord(r: Rashi): GrahaId {

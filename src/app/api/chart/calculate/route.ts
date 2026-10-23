@@ -106,8 +106,8 @@ function hasAdvancedFeatures(chartData: any): boolean {
   // Check for Upagrahas and Beeja/Kshetra Sphuta
   const hasUpagrahas = !!chartData.upagrahas && Object.keys(chartData.upagrahas).length >= 7
 
-  // Check for Jaimini Intelligence (Bala and Trinity) - Version 2
-  const hasJaimini = !!chartData.jaiminiBala && !!chartData.jaiminiTrinity && chartData.jaiminiBala.version === 2
+  // Check for Jaimini Intelligence (Bala and Trinity) — version 3 adds Chaturtha bala
+  const hasJaimini = !!chartData.jaiminiBala && !!chartData.jaiminiTrinity && chartData.jaiminiBala.version === 3
 
   const hasInduBb = Number.isFinite(chartData?.lagnas?.induLagna)
     && Number.isFinite(chartData?.lagnas?.bhriguBindu)

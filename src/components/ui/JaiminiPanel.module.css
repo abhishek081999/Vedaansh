@@ -3,25 +3,35 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.35rem;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  container-type: inline-size;
+  container-name: jaimini-panel;
 }
 
 .mainGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 36rem) minmax(0, 1fr);
+  gap: 0.4rem;
   align-items: start;
   width: 100%;
   min-width: 0;
 }
 
-@media (max-width: 960px) {
+/* Stack from the panel width, not the window. A tablet with the sidenav
+   open is narrower than the viewport, and a full-width chart overflows. */
+@container jaimini-panel (max-width: 959px) {
   .mainGrid {
     grid-template-columns: 1fr;
+  }
+
+  .colChart {
+    width: min(100%, 22rem);
+    max-width: 22rem;
+    margin-inline: auto;
   }
 }
 
@@ -34,113 +44,8 @@
   max-width: 100%;
 }
 
-/* Snapshot */
-.snapshot {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 0.55rem 0.75rem;
-  border-radius: var(--r-lg);
-  border: 1px solid var(--border-soft);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-card);
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-.snapshot::-webkit-scrollbar {
-  display: none;
-}
-
-.snapshotLabel {
-  flex-shrink: 0;
-  font-size: 0.58rem;
-  font-weight: 800;
-  color: var(--text-gold);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding-right: 0.35rem;
-  border-right: 1px solid var(--border-soft);
-}
-
-.snapshotChip {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  padding: 0.25rem 0.55rem;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  border: 1px solid var(--border-soft);
-}
-
-.snapshotChipGold {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  padding: 0.25rem 0.55rem;
-  border-radius: var(--r-sm);
-  background: rgba(201, 168, 76, 0.08);
-  border: 1px solid rgba(201, 168, 76, 0.22);
-}
-
-.snapshotChipKey {
-  font-size: 0.52rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  line-height: 1;
-}
-
-.snapshotChipVal {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-
-.snapshotChipValGold {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: var(--text-gold);
-  white-space: nowrap;
-}
-
-.snapshotKarakaRow {
-  display: flex;
-  gap: 0.35rem;
-  flex-shrink: 0;
-}
-
-.snapshotKaraka {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.05rem;
-  padding: 0.2rem 0.35rem;
-  border-radius: 6px;
-  background: var(--surface-3);
-  min-width: 2rem;
-}
-
-.snapshotKarakaKey {
-  font-size: 0.48rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.snapshotKarakaVal {
-  font-size: 0.65rem;
-  font-weight: 900;
-  color: var(--text-primary);
+.colChart {
+  gap: 0.45rem;
 }
 
 /* Header */
@@ -154,10 +59,10 @@
 .pageTitle {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+  font-size: clamp(1rem, 2vw, 1.2rem);
   font-weight: 800;
   color: var(--text-gold);
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .pageSubtitle {
@@ -185,14 +90,14 @@
 .controlsRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.3rem;
   align-items: center;
 }
 
 .segGroup {
   display: flex;
-  gap: 0.25rem;
-  padding: 0.2rem;
+  gap: 0.15rem;
+  padding: 0.1rem;
   border-radius: 8px;
   background: var(--surface-2);
   border: 1px solid var(--border-soft);
@@ -206,8 +111,8 @@
 
 .segBtn {
   flex-shrink: 0;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.62rem;
+  padding: 0.18rem 0.42rem;
+  font-size: 0.56rem;
   font-weight: 800;
   border-radius: 6px;
   border: 1px solid transparent;
@@ -239,9 +144,9 @@
 .settingsBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.7rem;
-  font-size: 0.62rem;
+  gap: 0.25rem;
+  padding: 0.18rem 0.45rem;
+  font-size: 0.56rem;
   font-weight: 800;
   border-radius: 8px;
   border: 1px solid var(--border-soft);
@@ -262,13 +167,12 @@
 .chartStage {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.2rem;
   width: 100%;
   min-width: 0;
-  padding: 0.5rem;
-  border-radius: var(--r-lg);
-  background: var(--surface-2);
-  border: 1px solid var(--border-soft);
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
 .chartLabel {

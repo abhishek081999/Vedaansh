@@ -394,6 +394,8 @@ export type DashaSystem =
   | 'chara_fe'
   | 'mandook'
   | 'sthir'
+  | 'navamsha'
+  | 'brahma'
   | 'narayana'
   | 'tithi_ashtottari'
   | 'naisargika'

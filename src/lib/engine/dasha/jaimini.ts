@@ -1,4 +1,5 @@
 import type { DashaNode, GrahaData, LagnaData } from '@/types/astrology'
+import { calculateJaiminiTrinity } from '../jaimini/trinity'
 
 const RASHI_SHORT: Record<number, string> = {
   1: 'Ar', 2: 'Ta', 3: 'Ge', 4: 'Cn', 5: 'Le', 6: 'Vi',
@@ -261,5 +262,64 @@ export function calcSthirDasha(
   const forward = true
   const sequence = buildLinearSequence(start, true)
   return buildRashiDasha(sequence, sthirYears, birthDate, depth, forward)
+}
+
+/**
+ * Navamsha Dasha — S.C. Mishra reading of Jaimini Sutra 2.3.1–2.
+ * Always starts from Lagna. Odd lagna runs forward, even lagna runs
+ * backward. Every sign lasts 9 years.
+ */
+export function calcNavamshaDasha(
+  _grahas: GrahaData[],
+  lagnas: LagnaData,
+  birthDate: Date,
+  depth: number = 3,
+): DashaNode[] {
+  const asc = lagnas.ascRashi || 1
+  const forward = asc % 2 === 1
+  return buildRashiDasha(buildLinearSequence(asc, forward), () => 9, birthDate, depth, forward)
+}
+
+/** Inclusive zodiacal count from `from` to `to` (1–12). */
+function countZodiacal(from: number, to: number): number {
+  return ((to - from + 12) % 12) + 1
+}
+
+/**
+ * Years of a Brahma-dasha sign: count from the sign to the rashi
+ * occupied by the lord of the 6th from it (Upadesha 2.3.26).
+ */
+function brahmaYears(sign: number, grahas: GrahaData[]): number {
+  const sixth = ((sign + 4) % 12) + 1
+  const lordId = resolveSignLord(sixth, grahas)
+  const lord = grahas.find(g => g.id === lordId)
+  if (!lord) return 7
+  return countZodiacal(sign, lord.rashi)
+}
+
+/**
+ * Brahma Dasha — Upadesha Sutras 2.3.26–27.
+ * Odd sign of Brahma: start there and run forward.
+ * Even sign of Brahma: start from the 7th and run backward.
+ */
+export function calcBrahmaDasha(
+  grahas: GrahaData[],
+  lagnas: LagnaData,
+  birthDate: Date,
+  depth: number = 3,
+): DashaNode[] {
+  const trinity = calculateJaiminiTrinity({ grahas, lagnas })
+  if (!trinity.brahma.id) return []
+  const brahma = grahas.find(g => g.id === trinity.brahma.id)
+  if (!brahma) return []
+  const odd = brahma.rashi % 2 === 1
+  const start = odd ? brahma.rashi : ((brahma.rashi + 5) % 12) + 1
+  return buildRashiDasha(
+    buildLinearSequence(start, odd),
+    (sign) => brahmaYears(sign, grahas),
+    birthDate,
+    depth,
+    odd,
+  )
 }
 

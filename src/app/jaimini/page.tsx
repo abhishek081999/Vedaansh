@@ -25,7 +25,7 @@ export default function JaiminiPage() {
   return (
     <div
       className="main-responsive-padding fade-up jaimini-page"
-      style={{ minWidth: 0, maxWidth: '100%', width: '100%', padding: 'clamp(0.5rem, 1.5vw, 1.25rem)', boxSizing: 'border-box' }}
+      style={{ minWidth: 0, maxWidth: '100%', width: '100%', padding: '0.35rem 0.45rem', boxSizing: 'border-box' }}
     >
       <JaiminiPanel chart={chart} />
     </div>

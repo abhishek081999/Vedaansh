@@ -40,7 +40,7 @@ import { detectYogas }           from './yogas'
 import { calcYoginiDasha }       from './dasha/yogini'
 import { calcCharaDasha, calcCharaDashaFemale } from './dasha/chara'
 import { calcAshtottari }        from './dasha/ashtottari'
-import { calcMandookDasha, calcSthirDasha } from './dasha/jaimini'
+import { calcMandookDasha, calcSthirDasha, calcNavamshaDasha, calcBrahmaDasha } from './dasha/jaimini'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import {
   getKarana, getNakshatra, getTithi,
@@ -531,6 +531,8 @@ export async function calculateChart(
       chara_fe: calcCharaDashaFemale(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
       mandook: calcMandookDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
       sthir: calcSthirDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
+      navamsha: calcNavamshaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
+      brahma: calcBrahmaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
       narayana: [], tithi_ashtottari: [], naisargika: [],
     },
     panchang: {
