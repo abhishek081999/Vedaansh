@@ -30,6 +30,8 @@ function chart(opts: {
   d10Asc?: Rashi
   a10?: Rashi
   amk?: GrahaId
+  ak?: GrahaId
+  indu?: number
   dashaLord?: GrahaId
   pratyantarLord?: GrahaId
   sookshmaLord?: GrahaId
@@ -70,7 +72,7 @@ function chart(opts: {
   return {
     meta: { name: 'Test', gender: 'male' },
     grahas: opts.grahas,
-    lagnas: { ascRashi: opts.asc },
+    lagnas: { ascRashi: opts.asc, ...(opts.indu != null ? { induLagna: opts.indu } : {}) },
     vargas: {
       ...(opts.d9 ? { D9: opts.d9 } : {}),
       ...(opts.d10 ? { D10: opts.d10 } : {}),
@@ -81,7 +83,10 @@ function chart(opts: {
     },
     dashas: { vimshottari: [maha] },
     arudhas: opts.a10 ? { A10: opts.a10 } : {},
-    karakas: opts.amk ? { AmK: opts.amk } : {},
+    karakas: {
+      ...(opts.amk ? { AmK: opts.amk } : {}),
+      ...(opts.ak ? { AK: opts.ak } : {}),
+    },
   } as unknown as ChartOutput
 }
 
@@ -509,5 +514,45 @@ describe('analyzeCareerProfession', () => {
     expect(sky.headline).toMatch(/Jupiter in house 10/)
     expect(sky.headline).toMatch(/not for career/)
     expect(readCareerTransits(serviceChart(), []).available).toBe(false)
+  })
+
+  it('reads argala on the 10th and the room around the post', () => {
+    const support = analyzeCareerProfession(serviceChart(), AS_OF)!.advanced.support
+    expect(support.headline).toBe('The career has support from outside the 10th.')
+    expect(support.tone).toBe('supportive')
+    expect(support.argala.find(n => n.id === 'resources')).toMatchObject({ answer: 'Stands', tone: 'supportive' })
+    expect(support.argala.find(n => n.id === 'resources')!.reading).toMatch(/Rahu/)
+    expect(support.argala.find(n => n.id === 'foundation')!.answer).toBe('Empty')
+    expect(support.argala.find(n => n.id === 'fruit')!.reading).toMatch(/Mars/)
+    expect(support.argala.find(n => n.id === 'promotion')!.answer).toBe('Stands')
+    expect(support.room.find(n => n.id === 'cost')!.answer).toBe('The cost of the work stays off the 10th.')
+    expect(support.room.find(n => n.id === 'rival')!.answer).toBe('The rival sees the profession.')
+  })
+
+  it('names a blocked argala, a rival inside the post, and the wealth point', () => {
+    const support = analyzeCareerProfession(chart({
+      asc: 1,
+      ak: 'Su',
+      amk: 'Sa',
+      indu: 270,
+      grahas: [
+        g('Ra', 11),
+        g('Ke', 9),
+        g('Sa', 2, 'neutral'),
+        g('Mo', 6, 'neutral'),
+        g('Me', 10, 'neutral'),
+        g('Su', 7, 'debilitated'),
+        g('Ve', 4, 'own'),
+        g('Ma', 5, 'friend'),
+        g('Ju', 3, 'own'),
+      ],
+    }), AS_OF)!.advanced.support
+    expect(support.headline).toBe('Outside help to the career is blocked.')
+    expect(support.argala.find(n => n.id === 'resources')!.answer).toBe('Ketu blocks it')
+    expect(support.argala.find(n => n.id === 'promotion')!.answer).toBe('Blocked')
+    expect(support.room.find(n => n.id === 'rival')!.answer).toBe('Rivals sit inside the profession.')
+    expect(support.room.find(n => n.id === 'signature')!.answer).toBe('The signature is hard to hold.')
+    expect(support.room.find(n => n.id === 'indu')!.answer).toBe('Wealth from work falls in house 10.')
+    expect(support.room.find(n => n.id === 'minister')!.answer).toMatch(/agree/)
   })
 })

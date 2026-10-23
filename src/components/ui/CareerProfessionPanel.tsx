@@ -33,7 +33,7 @@ const CAREER_METHODS: { id: CareerMode; code: string; name: string; topic: strin
     id: 'desk',
     code: 'M1',
     name: 'Career reading',
-    topic: 'The first method. The 10th house and its lord, then whether the career can be delivered, and the turns of the work: a start, a break, a transformation, and a new opportunity.',
+    topic: 'The first method. The 10th house and its lord, whether the career can be delivered, the turns of the work, and who helps or blocks the post.',
   },
   {
     id: 'method',
@@ -43,13 +43,14 @@ const CAREER_METHODS: { id: CareerMode; code: string; name: string; topic: strin
   },
 ]
 
-type View = 'delivery' | 'strength' | 'chain' | 'turns' | 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief'
+type View = 'delivery' | 'strength' | 'chain' | 'turns' | 'support' | 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief'
 
 const VIEWS: { id: View; label: string }[] = [
   { id: 'delivery', label: 'Delivery' },
   { id: 'strength', label: 'Strength' },
   { id: 'chain', label: 'Chain' },
   { id: 'turns', label: 'Turns' },
+  { id: 'support', label: 'Support' },
   { id: 'overview', label: 'Significators' },
   { id: 'houses', label: 'Houses' },
   { id: 'yogas', label: 'Yogas' },
@@ -625,6 +626,22 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
                 <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.turns.closing}</p>
               </article>
               <AnswerGrid notes={data.advanced.turns.notes} />
+            </>
+          )}
+
+          {view === 'support' && (
+            <>
+              <article style={{ padding: '0.95rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
+                <SectionLabel>Who helps the career</SectionLabel>
+                <h3 style={{ margin: '0 0 0.45rem', fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 650, color: TONE[data.advanced.support.tone] }}>
+                  {data.advanced.support.headline}
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.support.closing}</p>
+              </article>
+              <SectionLabel>Argala on the 10th</SectionLabel>
+              <AnswerGrid notes={data.advanced.support.argala} />
+              <SectionLabel>The room of the work</SectionLabel>
+              <AnswerGrid notes={data.advanced.support.room} />
             </>
           )}
 

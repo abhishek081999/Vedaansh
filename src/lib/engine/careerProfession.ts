@@ -21,6 +21,7 @@ import {
   getCareerIndicators,
   getNakshatraProfession,
 } from '@/lib/engine/nakshatraProfession'
+import { rashiAspectsOrOccupies } from '@/lib/engine/jaimini/aspects'
 
 export type CareerTone = 'supportive' | 'caution' | 'mixed'
 export type CareerTrackId = 'service' | 'business' | 'government' | 'hybrid'
@@ -238,6 +239,13 @@ export interface CareerAdvanced {
   }
   ladder: {
     rows: { varga: string; signName: string; dignity: string; house: number | null; reading: string; tone: CareerTone }[]
+    closing: string
+  }
+  support: {
+    headline: string
+    tone: CareerTone
+    argala: CareerAdvancedNote[]
+    room: CareerAdvancedNote[]
     closing: string
   }
 }
@@ -1895,6 +1903,7 @@ function buildCareerAdvanced(bag: AdvancedBag): CareerAdvanced {
     : 'D1 is the promise, D9 is whether it holds, D10 is the career chart, and D24 is the training behind the post. A strong row can carry a weak one. It does not erase it.'
 
   const deliveryReading = `${verdict} ${votes.map(v => `${v.title}: ${v.answer}.`).join(' ')}`
+  const careerSupport = buildCareerSupport(chart, asc, tenthSign, tenthLord, tenthLordHouse)
 
   return {
     delivery: { verdict, reading: deliveryReading, tone: deliveryTone, votes },
@@ -1911,6 +1920,186 @@ function buildCareerAdvanced(bag: AdvancedBag): CareerAdvanced {
       asOf,
     }),
     ladder: { rows: ladderRows, closing: ladderClosing },
+    support: careerSupport,
+  }
+}
+
+function signFrom(sign: number, offset: number): Rashi {
+  return (((sign + offset - 2) % 12) + 1) as Rashi
+}
+
+function buildCareerSupport(
+  chart: ChartOutput,
+  asc: number,
+  tenthSign: Rashi,
+  tenthLord: GrahaData | undefined,
+  tenthLordHouse: number,
+): CareerAdvanced['support'] {
+  const inSign = (sign: Rashi) => chart.grahas.filter(g => CLASSICAL.includes(g.id) && g.rashi === sign)
+  const schemes: { id: string; title: string; offset: number; block: number; fifth: boolean; help: string }[] = [
+    { id: 'resources', title: 'Resources · 2nd from the 10th', offset: 2, block: 12, fifth: false, help: 'money, speech, and the resources that feed the post' },
+    { id: 'foundation', title: 'Foundation · 4th from the 10th', offset: 4, block: 10, fifth: false, help: 'the base the seat stands on' },
+    { id: 'fruit', title: 'Fruit · 11th from the 10th', offset: 11, block: 3, fifth: false, help: 'allies and the fruit of the karma' },
+    { id: 'promotion', title: 'Promotion · 5th from the 10th', offset: 5, block: 9, fifth: true, help: 'intelligence and a superior’s favour' },
+  ]
+  const argala: CareerAdvancedNote[] = schemes.map(scheme => {
+    const aSign = signFrom(tenthSign, scheme.offset)
+    const vSign = signFrom(tenthSign, scheme.block)
+    const occ = inSign(aSign)
+    const blocks = inSign(vSign)
+    const aHouse = wholeSignHouse(aSign, asc)
+    const vHouse = wholeSignHouse(vSign, asc)
+    const names = occ.map(g => gn(g.id)).join(', ')
+    const blockerNames = blocks.map(g => gn(g.id)).join(', ')
+    const ketuBlocks = blocks.some(g => g.id === 'Ke')
+    const outweighed = blocks.length > occ.length || (scheme.fifth && occ.length <= blocks.length)
+    let answer = 'Empty'
+    if (occ.length === 0) answer = 'Empty'
+    else if (outweighed) answer = 'Blocked'
+    else if (ketuBlocks) answer = 'Ketu blocks it'
+    else answer = 'Stands'
+    const tone: CareerTone = answer === 'Stands' ? 'supportive' : answer === 'Empty' ? 'mixed' : 'caution'
+    const place = `${rn(aSign)}, house ${aHouse}`
+    const reading = answer === 'Empty'
+      ? `No planet sits in ${place}. This place is ${scheme.help}. The 10th lord carries it alone.`
+      : answer === 'Stands'
+        ? `${names} in ${place} intervene as ${scheme.help}. ${blocks.length ? `${blockerNames} in house ${vHouse} do not outnumber them, so the help remains.` : 'Nothing in the obstructing sign cancels it.'}${scheme.fifth ? ' The 5th from the 10th outweighs the 9th from it.' : ''}`
+        : answer === 'Ketu blocks it'
+          ? `${names} in ${place} would help as ${scheme.help}. Ketu in ${rn(vSign)}, house ${vHouse}, cuts that help.`
+          : `${names} in ${place} would help as ${scheme.help}. ${blockerNames} in ${rn(vSign)}, house ${vHouse}, ${scheme.fifth ? 'are not outweighed, so the favour does not stand.' : 'outnumber them. The intervention does not reach the career.'}`
+    return { id: scheme.id, title: scheme.title, answer, reading, tone }
+  })
+
+  const standing = argala.filter(n => n.answer === 'Stands').length
+  const blocked = argala.filter(n => n.answer === 'Blocked' || n.answer === 'Ketu blocks it').length
+  let headline = 'No planet intervenes on the 10th. The lord carries the post alone.'
+  let tone: CareerTone = 'mixed'
+  if (standing > blocked) {
+    headline = 'The career has support from outside the 10th.'
+    tone = 'supportive'
+  } else if (blocked > standing && standing === 0) {
+    headline = 'Outside help to the career is blocked.'
+    tone = 'caution'
+  } else if (standing > 0 && blocked > 0) {
+    headline = 'Support and obstruction both reach the career.'
+    tone = 'mixed'
+  }
+
+  const room: CareerAdvancedNote[] = []
+  const sun = findGraha(chart, 'Su')
+  if (sun) {
+    const house = wholeSignHouse(sun.rashi, asc)
+    const command = [1, 9, 10].includes(house) && holds(sun.dignity) && !sun.isCombust
+    const strained = sun.isCombust || sun.dignity === 'debilitated' || house === 8 || house === 12
+    room.push({
+      id: 'signature',
+      title: 'Who signs',
+      answer: command ? 'The signature can be yours.' : strained ? 'The signature is hard to hold.' : 'The signature belongs to the institution.',
+      tone: command ? 'supportive' : strained ? 'caution' : 'mixed',
+      reading: `${placement(sun, house)}. ${command ? 'The Sun can carry a seat of command with the 10th.' : strained ? 'Authority is present and difficult to keep in public.' : 'The name can be respected. The chair still belongs to the post, and Saturn keeps its structure.'}`,
+    })
+  }
+  const sixthLord = findGraha(chart, SIGN_LORDS[houseSign(asc, 6)])
+  if (sixthLord) {
+    const house = wholeSignHouse(sixthLord.rashi, asc)
+    const inside = house === 10
+    const sees = !inside && linked(sixthLord, tenthLord)
+    const wins = [3, 6, 11].includes(house) && holds(sixthLord.dignity) && !sixthLord.isCombust
+    const drains = house === 8 || house === 12
+    room.push({
+      id: 'rival',
+      title: 'Who competes',
+      answer: inside
+        ? 'Rivals sit inside the profession.'
+        : sees
+          ? 'The rival sees the profession.'
+          : wins
+            ? 'The daily work can beat the rival.'
+            : drains
+              ? 'The contest drains the post.'
+              : 'Competition is ordinary.',
+      tone: inside || sees || drains ? 'caution' : wins ? 'supportive' : 'mixed',
+      reading: `${placement(sixthLord, house)}. ${inside ? 'The 6th lord occupies the 10th, so service and rivalry are part of the post itself.' : sees ? 'The 6th lord aspects or exchanges with the 10th lord, so the contest reaches the career without sitting in it.' : wins ? 'The 6th lord is strong in an upachaya house. Service can outlast the rival.' : drains ? 'The lord of competition sits in a house of loss.' : 'The 6th is the job and the rival. Neither has taken over the 10th.'}`,
+    })
+  }
+  const seventhLord = findGraha(chart, SIGN_LORDS[houseSign(asc, 7)])
+  if (seventhLord) {
+    const house = wholeSignHouse(seventhLord.rashi, asc)
+    const carries = house === 10 || linked(seventhLord, tenthLord)
+    const strained = [6, 8, 12].includes(house)
+    room.push({
+      id: 'client',
+      title: 'Who hires',
+      answer: carries ? 'Clients and the public carry the post.' : strained ? 'The other side of the work is strained.' : 'Clients are separate from the post.',
+      tone: carries ? 'supportive' : strained ? 'caution' : 'mixed',
+      reading: `${placement(seventhLord, house)}. ${carries ? 'The 7th lord meets the career, so a partner, a client, or the public is how the work is seen.' : strained ? 'Contracts and the public sit in a difficult house. Do not make the whole livelihood depend on one of them.' : 'A partner is not required for the post to exist. Clients remain a separate chapter.'}`,
+    })
+  }
+  const eighthLord = findGraha(chart, SIGN_LORDS[houseSign(asc, 8)])
+  const twelfthLord = findGraha(chart, SIGN_LORDS[houseSign(asc, 12)])
+  const eighthHouse = eighthLord ? wholeSignHouse(eighthLord.rashi, asc) : null
+  const twelfthHouse = twelfthLord ? wholeSignHouse(twelfthLord.rashi, asc) : null
+  const spends = twelfthHouse === 10 || tenthLordHouse === 12
+  const transforms = eighthHouse === 10 || tenthLordHouse === 8
+  if (eighthLord || twelfthLord) {
+    room.push({
+      id: 'cost',
+      title: 'What it costs',
+      answer: spends && transforms
+        ? 'The post spends itself and changes form.'
+        : spends
+          ? 'The post spends itself.'
+          : transforms
+            ? 'The post transforms at a cost.'
+            : 'The cost of the work stays off the 10th.',
+      tone: spends || transforms ? 'caution' : 'supportive',
+      reading: [
+        twelfthLord && twelfthHouse != null ? `${placement(twelfthLord, twelfthHouse)}.` : '',
+        eighthLord && eighthHouse != null ? `${placement(eighthLord, eighthHouse)}.` : '',
+        spends ? 'The 12th meets the career, so the work can be foreign, clinical, hidden, or expensive.' : '',
+        transforms ? 'The 8th meets the career, so the form of the work can break and be rebuilt.' : '',
+        !spends && !transforms ? 'Neither the 8th lord nor the 12th lord has taken the 10th. Loss and sudden change stay off the post until their own periods.' : '',
+      ].filter(Boolean).join(' '),
+    })
+  }
+  const induLon = chart.lagnas?.induLagna
+  if (typeof induLon === 'number' && Number.isFinite(induLon)) {
+    const rashi = (Math.floor((((induLon % 360) + 360) % 360) / 30) + 1) as Rashi
+    const house = wholeSignHouse(rashi, asc)
+    const onWealth = [2, 5, 9, 10, 11].includes(house)
+    const drain = house === 8 || house === 12
+    room.push({
+      id: 'indu',
+      title: 'Indu lagna',
+      answer: onWealth ? `Wealth from work falls in house ${house}.` : drain ? `The wealth point sits in house ${house}.` : `Indu lagna is house ${house}.`,
+      tone: onWealth ? 'supportive' : drain ? 'caution' : 'mixed',
+      reading: `Indu lagna, the lunar wealth point, falls in ${rn(rashi)}, house ${house}. ${onWealth ? 'That house can turn the profession into kept prosperity.' : drain ? 'The wealth point is in a house of loss, so income from the post leaks.' : 'The wealth point is off the career houses. Prosperity comes from another room of the life.'}`,
+    })
+  }
+  const ak = chart.karakas?.AK
+  const amk = chart.karakas?.AmK
+  const akGraha = ak ? findGraha(chart, ak) : undefined
+  const amkGraha = amk ? findGraha(chart, amk) : undefined
+  if (akGraha && amkGraha) {
+    const joined = akGraha.rashi === amkGraha.rashi
+    const sees = rashiAspectsOrOccupies(akGraha.rashi, amkGraha.rashi)
+    room.push({
+      id: 'minister',
+      title: 'Soul and career',
+      answer: sees ? `${gn(akGraha.id)} and ${gn(amkGraha.id)} agree.` : `${gn(akGraha.id)} and ${gn(amkGraha.id)} are separate.`,
+      tone: sees ? 'supportive' : 'mixed',
+      reading: sees
+        ? `Atmakaraka ${gn(akGraha.id)} and Amatyakaraka ${gn(amkGraha.id)} ${joined ? 'share a sign' : 'see each other by rashi drishti'}. Jaimini reads that as the self and the career minister working as one.`
+        : `Atmakaraka ${gn(akGraha.id)} and Amatyakaraka ${gn(amkGraha.id)} neither join nor see each other. The career is a minister’s work, not automatically the soul’s wish.`,
+    })
+  }
+
+  return {
+    headline,
+    tone,
+    argala,
+    room,
+    closing: 'Argala is counted from the 10th sign. A place stands when its planets are not outnumbered by the obstructing sign. The 5th from the 10th stands only when it outweighs the 9th. Ketu in the obstructing sign cuts the help even when the count is even. The room then names the signature, the rival, the client, and the cost.',
   }
 }
 
@@ -2579,6 +2768,7 @@ export function analyzeCareerProfession(
     { heading: 'Verdict', body: `${headline} ${summary}` },
     { heading: 'Delivery', body: advanced.delivery.reading },
     { heading: 'Turns', body: advanced.turns.notes.map(n => `${n.title}: ${n.answer}`).join(' ') },
+    { heading: 'Support', body: `${advanced.support.headline} ${advanced.support.room.map(n => `${n.title}: ${n.answer}`).join(' ')}` },
     { heading: 'Track', body: `${trackPrediction} ${factors.slice(0, 4).join('. ')}` },
     { heading: 'Fields', body: fields.map(f => `${f.field} (${f.why})`).join('; ') || 'Name the field from the 10th lord after the chart is complete.' },
     { heading: 'Yogas', body: yogas.map(y => `${y.title}: ${y.detail}`).join(' ') },
