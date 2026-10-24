@@ -348,7 +348,7 @@ describe('marriage class', () => {
     expect(pillars.detail).toMatch(/deeper chart holds it/)
     expect(pillars.detail).toMatch(/Attraction \(Venus\) reaches the marriage and holds/)
     expect(pillars.detail).toMatch(/Protection \(Jupiter\) reaches the marriage and holds/)
-    expect(prose(reading)).toMatch(/Mars is in its own sign/)
+    expect(prose(reading)).not.toMatch(/Mars is in its own sign/)
     expect(prose(reading)).toMatch(/Saturn is in its own sign/)
     expect(ids(reading)).toContain('class-strength')
   })
