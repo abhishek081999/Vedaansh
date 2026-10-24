@@ -12,8 +12,9 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 - Full chart workspace: Navagraha, vargas (plan-filtered), dashas, strengths, yogas, SBC, ACG, Vastu, Prashna, Jaimini, Nakshatra lab, Numerology
 - Career and profession desk on the chart (Free preview; full reading on Gold+)
-- Professional career method beside that reading: lagna, 6th/7th, income, skill, place, combinations, dasha, and D10
-- Later teaching inside that method: contractual or permanent service, property, job changes, father, child, and collapse
+- Professional career method beside that reading: karma field, the joined pair, nakshatra behavior, then D10, in seven tabs
+- Job, family, and venture questions inside that method: contractual or permanent service, property, job changes, father, child, and collapse
+- Career reading tabs regrouped from fourteen to seven, each with a hint; the weak period label is now "Poor for career"
 - Style and System divisions on that method: execution by sign, roles, the three karmas, the house-lord chain, and career triggers
 - Education and Pattern divisions: the 4th, 5th, and 9th for study, two karmic themes at once, lineage, and the phase of the dasha
 - Karma field division on that method: lagna and the 10th first, then the income houses, Dashamsha only after the birth chart

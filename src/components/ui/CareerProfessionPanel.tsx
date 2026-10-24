@@ -33,33 +33,33 @@ const CAREER_METHODS: { id: CareerMode; code: string; name: string; topic: strin
     id: 'desk',
     code: 'M1',
     name: 'Career reading',
-    topic: 'The first method. The 10th house and its lord, whether the career can be delivered, the turns of the work, and who helps or blocks the post.',
+    topic: 'The 10th house and its lord, whether the career can be delivered, the turns of the work, and who helps or blocks the post.',
   },
   {
     id: 'method',
     code: 'M2',
     name: 'Professional method',
-    topic: 'The second method. The karma field, then the pair that is joined, then how the nakshatra behaves. Dashamsha comes after the birth chart.',
+    topic: 'The karma field first, then the pair that is joined, then how the nakshatra behaves. Dashamsha comes after the birth chart.',
   },
 ]
 
-type View = 'delivery' | 'strength' | 'chain' | 'turns' | 'support' | 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief'
+/** A reading block. Several sections are stacked inside one tab. */
+type Section = 'delivery' | 'strength' | 'chain' | 'turns' | 'support' | 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief'
 
-const VIEWS: { id: View; label: string }[] = [
-  { id: 'delivery', label: 'Delivery' },
-  { id: 'strength', label: 'Strength' },
-  { id: 'chain', label: 'Chain' },
-  { id: 'turns', label: 'Turns' },
-  { id: 'support', label: 'Support' },
-  { id: 'overview', label: 'Significators' },
-  { id: 'houses', label: 'Houses' },
-  { id: 'yogas', label: 'Yogas' },
-  { id: 'planets', label: 'Planets' },
-  { id: 'stars', label: 'Nakshatra' },
-  { id: 'confirm', label: 'D9 · D10 · A10' },
-  { id: 'timing', label: 'Tracker' },
-  { id: 'remedies', label: 'What to do' },
-  { id: 'brief', label: 'Brief' },
+type View = 'overview' | 'promise' | 'houses' | 'yogas' | 'turns' | 'timing' | 'action'
+
+/**
+ * Seven tabs, each grouping related sections (rendered in the order of the JSX below).
+ * Keep the labels short enough to fit on one row on a phone.
+ */
+const VIEWS: { id: View; label: string; hint: string; sections: Section[] }[] = [
+  { id: 'overview', label: 'Overview', hint: 'Five scores, the six questions, the likely track, foreign work, and profession fields', sections: ['overview'] },
+  { id: 'promise', label: 'Promise and Strength', hint: 'Can the 10th deliver, how strong the career planets are, and the D9, D10, and A10 checks', sections: ['delivery', 'strength', 'confirm'] },
+  { id: 'houses', label: 'Houses and Planets', hint: 'Livelihood houses, the 10th from Moon and Sun, each planet at work, the dispositor chain, and the varga ladder', sections: ['houses', 'planets', 'chain'] },
+  { id: 'yogas', label: 'Yogas and Nakshatra', hint: 'Career yogas and the nakshatra profession formula', sections: ['yogas', 'stars'] },
+  { id: 'turns', label: 'Turns and Support', hint: 'Starts, breaks, changes, and rises of the career, and who helps or blocks the post', sections: ['turns', 'support'] },
+  { id: 'timing', label: 'Timing', hint: 'Good and poor periods from mahadasha down to sookshma, and the slow-planet transits', sections: ['timing'] },
+  { id: 'action', label: 'Remedies and Brief', hint: 'What to do with this chart, and a consultant brief to copy', sections: ['remedies', 'brief'] },
 ]
 
 const TONE: Record<CareerTone, string> = {
@@ -235,7 +235,7 @@ function CareerPeriodTracker({
         {(['good', 'mixed', 'poor'] as CareerFit[]).map(fit => (
           <span key={fit} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
             <span style={{ width: 10, height: 10, borderRadius: 2, background: FIT_COLOR[fit] }} />
-            {fit === 'good' ? 'Good for career' : fit === 'poor' ? 'Not for career' : 'Mixed for career'}
+            {fit === 'good' ? 'Good for career' : fit === 'poor' ? 'Poor for career' : 'Mixed for career'}
           </span>
         ))}
       </div>
@@ -282,9 +282,9 @@ function CareerPeriodTracker({
         />
       ) : null}
       <div>
-        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>Transit · gochar</div>
+        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>Transits (gochar)</div>
         {!transits ? (
-          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reading the current transits.</p>
+          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reading the current transits…</p>
         ) : !transits.available ? (
           <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{transits.headline}</p>
         ) : (
@@ -376,7 +376,9 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
   const { setActiveTab } = useAppLayout()
   const data = useMemo(() => analyzeCareerProfession(chart), [chart])
   const [mode, setMode] = useState<CareerMode>('desk')
-  const [view, setView] = useState<View>('delivery')
+  const [view, setView] = useState<View>('overview')
+  const activeView = VIEWS.find(v => v.id === view) ?? VIEWS[0]
+  const has = (section: Section) => activeView.sections.includes(section)
   const [copied, setCopied] = useState(false)
   const [transits, setTransits] = useState<CareerTransitReading | null>(null)
   const ascRashi = chart.lagnas?.ascRashi
@@ -510,15 +512,15 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               background: 'var(--bg-page, var(--surface-1))',
               borderBottom: '1px solid var(--border-soft)',
             }}
-            role="tablist"
+            role="group"
             aria-label="Career and profession sections"
           >
             {VIEWS.map(v => (
               <button
                 key={v.id}
                 type="button"
-                role="tab"
-                aria-selected={view === v.id}
+                title={v.hint}
+                aria-pressed={view === v.id}
                 onClick={() => setView(v.id)}
                 style={{
                   padding: '0.4rem 0.75rem',
@@ -535,8 +537,9 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               </button>
             ))}
           </div>
+          <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{activeView.hint}</p>
 
-          {view === 'delivery' && (
+          {has('delivery') && (
             <>
               <article style={{ padding: '0.95rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
                 <SectionLabel>Can the promise be delivered?</SectionLabel>
@@ -545,15 +548,15 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
                 </h3>
                 <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.advanced.delivery.reading}</p>
               </article>
-              <SectionLabel>Witnesses</SectionLabel>
+              <SectionLabel>Checks on the promise</SectionLabel>
               <AnswerGrid notes={data.advanced.delivery.votes} />
-              <SectionLabel>Fruit of the work</SectionLabel>
+              <SectionLabel>What the work pays</SectionLabel>
               <AnswerGrid notes={data.advanced.prosperity.notes} />
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.prosperity.closing}</p>
             </>
           )}
 
-          {view === 'strength' && (
+          {has('strength') && (
             <>
               <SectionLabel>Career planets</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
@@ -585,38 +588,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
             </>
           )}
 
-          {view === 'chain' && (
-            <>
-              <SectionLabel>Dispositor chain</SectionLabel>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-                {data.advanced.chain.steps.map((step, index) => (
-                  <article key={`${step.planet}-${index}`} style={{ padding: '0.85rem', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>Step {index + 1} · house {step.house}</SectionLabel>
-                    <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{step.planet} in {step.signName}</div>
-                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{step.reading}</p>
-                  </article>
-                ))}
-              </div>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.chain.closing}</p>
-              <SectionLabel>Who sees the career</SectionLabel>
-              <AnswerGrid notes={data.advanced.chain.aspects} />
-              <SectionLabel>Condition of the career planets</SectionLabel>
-              <AnswerGrid notes={data.advanced.chain.conditions} />
-              <SectionLabel>Varga ladder of the 10th lord</SectionLabel>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.55rem' }}>
-                {data.advanced.ladder.rows.map(row => (
-                  <article key={row.varga} style={{ padding: '0.8rem 0.9rem', borderLeft: `3px solid ${TONE[row.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>{row.varga}{row.house != null ? ` · house ${row.house}` : ''}</SectionLabel>
-                    <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{row.signName}</div>
-                    <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{row.reading}</p>
-                  </article>
-                ))}
-              </div>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.ladder.closing}</p>
-            </>
-          )}
-
-          {view === 'turns' && (
+          {has('turns') && (
             <>
               <article style={{ padding: '0.95rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
                 <SectionLabel>The turns of the career</SectionLabel>
@@ -629,7 +601,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
             </>
           )}
 
-          {view === 'support' && (
+          {has('support') && (
             <>
               <article style={{ padding: '0.95rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
                 <SectionLabel>Who helps the career</SectionLabel>
@@ -638,21 +610,21 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
                 </h3>
                 <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.support.closing}</p>
               </article>
-              <SectionLabel>Argala on the 10th</SectionLabel>
+              <SectionLabel>Outside help on the 10th (argala)</SectionLabel>
               <AnswerGrid notes={data.advanced.support.argala} />
-              <SectionLabel>The room of the work</SectionLabel>
+              <SectionLabel>Around the post — signature, rival, client, and cost</SectionLabel>
               <AnswerGrid notes={data.advanced.support.room} />
             </>
           )}
 
-          {view === 'overview' && (
+          {has('overview') && (
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.65rem' }}>
                 {data.scores.map(d => (
                   <ScoreMeter key={d.id} label={d.label} planet={d.planet} score={d.score} summary={d.summary} />
                 ))}
               </div>
-              <SectionLabel>The questions</SectionLabel>
+              <SectionLabel>The six questions</SectionLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.65rem' }}>
                 {data.significators.map(s => (
                   <article
@@ -705,7 +677,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
             </>
           )}
 
-          {view === 'houses' && (
+          {has('houses') && (
             <>
               <SectionLabel>Houses that feed the livelihood</SectionLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.65rem' }}>
@@ -733,21 +705,52 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
             </>
           )}
 
-          {view === 'yogas' && (
+          {has('yogas') && (
             <>
               <SectionLabel>Career yogas</SectionLabel>
               <NoteList notes={data.yogas} />
             </>
           )}
 
-          {view === 'planets' && (
+          {has('planets') && (
             <>
               <SectionLabel>What each planet is doing for the work</SectionLabel>
               <NoteList notes={data.planets} />
             </>
           )}
 
-          {view === 'stars' && (
+          {has('chain') && (
+            <>
+              <SectionLabel>Dispositor chain</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {data.advanced.chain.steps.map((step, index) => (
+                  <article key={`${step.planet}-${index}`} style={{ padding: '0.85rem', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+                    <SectionLabel>Step {index + 1} · house {step.house}</SectionLabel>
+                    <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{step.planet} in {step.signName}</div>
+                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{step.reading}</p>
+                  </article>
+                ))}
+              </div>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.chain.closing}</p>
+              <SectionLabel>Who sees the career</SectionLabel>
+              <AnswerGrid notes={data.advanced.chain.aspects} />
+              <SectionLabel>Condition of the career planets</SectionLabel>
+              <AnswerGrid notes={data.advanced.chain.conditions} />
+              <SectionLabel>Varga ladder of the 10th lord</SectionLabel>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.55rem' }}>
+                {data.advanced.ladder.rows.map(row => (
+                  <article key={row.varga} style={{ padding: '0.8rem 0.9rem', borderLeft: `3px solid ${TONE[row.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+                    <SectionLabel>{row.varga}{row.house != null ? ` · house ${row.house}` : ''}</SectionLabel>
+                    <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{row.signName}</div>
+                    <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{row.reading}</p>
+                  </article>
+                ))}
+              </div>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.ladder.closing}</p>
+            </>
+          )}
+
+          {has('stars') && (
             <>
               <SectionLabel>Nakshatra formula</SectionLabel>
               <article style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
@@ -780,7 +783,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
             </>
           )}
 
-          {view === 'confirm' && (
+          {has('confirm') && (
             <>
               <SectionLabel>Does the promise hold?</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
@@ -828,14 +831,14 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
             </>
           )}
 
-          {view === 'timing' && (
+          {has('timing') && (
             <>
-              <SectionLabel>Which periods are for the career</SectionLabel>
+              <SectionLabel>Which periods favor the career</SectionLabel>
               <CareerPeriodTracker tracker={data.tracker} transits={transits} />
             </>
           )}
 
-          {view === 'remedies' && (
+          {has('remedies') && (
             <>
               <SectionLabel>What to do with this chart</SectionLabel>
               <NoteList notes={data.remedies} />
@@ -843,7 +846,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
             </>
           )}
 
-          {view === 'brief' && (
+          {has('brief') && (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
                 <SectionLabel>Consultant brief</SectionLabel>

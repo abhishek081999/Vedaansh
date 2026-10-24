@@ -595,7 +595,7 @@ function collectFields(
 const FIT_LABEL: Record<CareerFit, string> = {
   good: 'Good for career',
   mixed: 'Mixed for career',
-  poor: 'Not for career',
+  poor: 'Poor for career',
 }
 
 interface PeriodCtx {
@@ -792,7 +792,7 @@ function buildCareerTracker(nodes: DashaNode[], ctx: PeriodCtx, asOf: number): C
     ? liveMaha.fit === 'good'
       ? `${liveMaha.lord} mahadasha is good for career.${liveAntar ? ` Inside it, ${liveAntar.lord} is ${liveAntar.label.toLowerCase()}.` : ''}${finer ? ` ${finer}` : ''}`
       : liveMaha.fit === 'poor'
-        ? `${liveMaha.lord} mahadasha is not for career.${nextGood ? ` The next good stretch is ${nextGood.lord}, ${nextGood.start} to ${nextGood.end}.` : ''}${finer ? ` ${finer}` : ''}`
+        ? `${liveMaha.lord} mahadasha is poor for career.${nextGood ? ` The next good stretch is ${nextGood.lord}, ${nextGood.start} to ${nextGood.end}.` : ''}${finer ? ` ${finer}` : ''}`
         : `${liveMaha.lord} mahadasha is mixed for career.${liveAntar ? ` ${liveAntar.lord} antardasha is ${liveAntar.label.toLowerCase()}.` : ''}${finer ? ` ${finer}` : ''}`
     : 'No mahadasha covers this date.'
   return {
@@ -829,14 +829,14 @@ function judgeCareerTransit(
     }
     return {
       fit: 'poor',
-      reason: `${name} is in house ${house}. A drain house takes the visible result off the career. Not for career.`,
+      reason: `${name} is in house ${house}. A drain house takes the visible result off the career. Poor for career.`,
     }
   }
   if (CAREER_TRANSIT_HOUSES.includes(house)) {
     if (id === 'Ke') {
       return {
         fit: 'poor',
-        reason: `${name} is on career house ${house}. Ketu withdraws the visible post. Not for career.`,
+        reason: `${name} is on career house ${house}. Ketu withdraws the visible post. Poor for career.`,
       }
     }
     if (id === 'Ju' || id === 'Su' || isTenthLord) {
@@ -916,7 +916,7 @@ export function readCareerTransits(
     ? `${good.map(h => `${h.planet} in house ${h.house}`).join(', ')} ${good.length === 1 ? 'is' : 'are'} good for career in transit.`
     : ''
   const poorLine = poor.length
-    ? `${poor.map(h => `${h.planet} in house ${h.house}`).join(', ')} ${poor.length === 1 ? 'is' : 'are'} not for career.`
+    ? `${poor.map(h => `${h.planet} in house ${h.house}`).join(', ')} ${poor.length === 1 ? 'is' : 'are'} poor for career.`
     : ''
   const headline = [goodLine, poorLine].filter(Boolean).join(' ')
     || 'No slow planet is clearly for the career or against it. The sky is mixed.'
@@ -1940,7 +1940,7 @@ function buildCareerSupport(
     { id: 'resources', title: 'Resources · 2nd from the 10th', offset: 2, block: 12, fifth: false, help: 'money, speech, and the resources that feed the post' },
     { id: 'foundation', title: 'Foundation · 4th from the 10th', offset: 4, block: 10, fifth: false, help: 'the base the seat stands on' },
     { id: 'fruit', title: 'Fruit · 11th from the 10th', offset: 11, block: 3, fifth: false, help: 'allies and the fruit of the karma' },
-    { id: 'promotion', title: 'Promotion · 5th from the 10th', offset: 5, block: 9, fifth: true, help: 'intelligence and a superior’s favour' },
+    { id: 'promotion', title: 'Promotion · 5th from the 10th', offset: 5, block: 9, fifth: true, help: 'intelligence and a superior’s favor' },
   ]
   const argala: CareerAdvancedNote[] = schemes.map(scheme => {
     const aSign = signFrom(tenthSign, scheme.offset)
@@ -1966,7 +1966,7 @@ function buildCareerSupport(
         ? `${names} in ${place} intervene as ${scheme.help}. ${blocks.length ? `${blockerNames} in house ${vHouse} do not outnumber them, so the help remains.` : 'Nothing in the obstructing sign cancels it.'}${scheme.fifth ? ' The 5th from the 10th outweighs the 9th from it.' : ''}`
         : answer === 'Ketu blocks it'
           ? `${names} in ${place} would help as ${scheme.help}. Ketu in ${rn(vSign)}, house ${vHouse}, cuts that help.`
-          : `${names} in ${place} would help as ${scheme.help}. ${blockerNames} in ${rn(vSign)}, house ${vHouse}, ${scheme.fifth ? 'are not outweighed, so the favour does not stand.' : 'outnumber them. The intervention does not reach the career.'}`
+          : `${names} in ${place} would help as ${scheme.help}. ${blockerNames} in ${rn(vSign)}, house ${vHouse}, ${scheme.fifth ? 'are not outweighed, so the favor does not stand.' : 'outnumber them. The intervention does not reach the career.'}`
     return { id: scheme.id, title: scheme.title, answer, reading, tone }
   })
 
@@ -2442,7 +2442,7 @@ export function analyzeCareerProfession(
       title: cancelled ? 'Neecha Bhanga of the 10th lord' : '10th lord under strain',
       tone: cancelled ? 'mixed' : 'caution',
       detail: cancelled
-        ? `${gn(tenthLord.id)} is debilitated, and the cancellation is present: the dispositor or the exaltation lord supports it. The fall is not the last word. The rise comes after the humiliation or the apprenticeship, not instead of it.`
+        ? `${gn(tenthLord.id)} is debilitated, and the cancellation is present: the dispositor or the exaltation lord supports it. The fall is not the last word. The rise comes after the setback or the apprenticeship, not instead of it.`
         : `${gn(tenthLord.id)} is ${tenthLord.dignity === 'debilitated' ? 'debilitated' : 'combust in a difficult house'}. Do not expect a straight ladder. Skill and a clean method matter more than the title in this season.`,
     })
   }

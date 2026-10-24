@@ -450,7 +450,7 @@ describe('analyzeCareerProfession', () => {
     expect(turns.notes.find(n => n.id === 'opportunity')!.tone).toBe('supportive')
   })
 
-  it('marks a Ketu mahadasha off the career as not for career', () => {
+  it('marks a Ketu mahadasha off the career as poor for career', () => {
     const tracker = analyzeCareerProfession(chart({
       asc: 1,
       dashaLord: 'Ke',
@@ -467,8 +467,8 @@ describe('analyzeCareerProfession', () => {
       ],
     }), AS_OF)!.tracker
     expect(tracker.mahas[0]?.fit).toBe('poor')
-    expect(tracker.mahas[0]?.label).toBe('Not for career')
-    expect(tracker.headline).toMatch(/Ketu mahadasha is not for career/)
+    expect(tracker.mahas[0]?.label).toBe('Poor for career')
+    expect(tracker.headline).toMatch(/Ketu mahadasha is poor for career/)
   })
 
   it('zooms the live antardasha into pratyantardasha and sookshma', () => {
@@ -512,7 +512,7 @@ describe('analyzeCareerProfession', () => {
     expect(sky.hits.find(h => h.planet === 'Ketu')?.fit).toBe('poor')
     expect(sky.hits.find(h => h.planet === 'Mars')?.fit).toBe('mixed')
     expect(sky.headline).toMatch(/Jupiter in house 10/)
-    expect(sky.headline).toMatch(/not for career/)
+    expect(sky.headline).toMatch(/poor for career/)
     expect(readCareerTransits(serviceChart(), []).available).toBe(false)
   })
 
