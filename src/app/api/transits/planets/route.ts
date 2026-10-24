@@ -1,9 +1,11 @@
 /**
  * src/app/api/transits/planets/route.ts
- * GET /api/transits/planets?date=YYYY-MM-DD&tz=Asia/Kolkata&ayanamsha=lahiri
+ * GET /api/transits/planets?date=YYYY-MM-DD&ayanamsha=lahiri[&at=ISO_INSTANT][&node=mean|true]
  *
- * Returns geocentric sidereal positions of all 9 navagrahas for a given date.
- * Used by the Sarvatobhadra Chakra (SBC) page to load transit overlays.
+ * Returns geocentric sidereal positions of all 9 navagrahas for a given date
+ * (06:00 UTC) or for the exact instant in `at`.
+ * Used by the SBC page and dashboard transit card (date mode) and by
+ * Today's Reading (exact-instant mode).
  * Node.js runtime required — uses sweph native addon.
  */
 
@@ -44,15 +46,21 @@ export async function GET(req: NextRequest) {
     const sp = new URL(req.url).searchParams
     const dateStr  = sp.get('date') ?? new Date().toISOString().split('T')[0]
     const ayanMode = (sp.get('ayanamsha') ?? 'lahiri') as AyanamshaMode
+    // Match the chart's node setting when the caller passes it; SBC keeps the 'mean' default.
+    const nodeMode: 'mean' | 'true' = sp.get('node') === 'true' ? 'true' : 'mean'
 
-    // Use noon UTC on the requested date — geocentric longitudes are
-    // essentially location-independent (error < 0.01° for Moon).
-    const noonUTC = new Date(`${dateStr}T06:00:00Z`) // 06:00 UTC ≈ 11:30 AM IST
-    const jd      = dateToJD(noonUTC)
+    // Default: 06:00 UTC on the requested date (≈ 11:30 AM IST) — geocentric longitudes
+    // are essentially location-independent (error < 0.01° for Moon).
+    // `at` (ISO instant) overrides it for "right now" readings, where the Moon's exact
+    // nakshatra matters (it moves ~13°/day).
+    const atRaw = sp.get('at')
+    const atDate = atRaw ? new Date(atRaw) : null
+    const when = atDate && Number.isFinite(atDate.getTime()) ? atDate : new Date(`${dateStr}T06:00:00Z`)
+    const jd      = dateToJD(when)
     const ayan    = getAyanamsha(jd, ayanMode)
 
     const grahas: TransitGraha[] = GRAHAS_TO_CALC.map(id => {
-      const swId  = id === 'Ra' ? NODE_IDS['mean'] : SWISSEPH_IDS[id]
+      const swId  = id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id]
       const pos   = getPlanetPosition(jd, swId, false)
       const lonSid = toSidereal(pos.longitude, ayan)
       const nak    = getNakshatra(lonSid)

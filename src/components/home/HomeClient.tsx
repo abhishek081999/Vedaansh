@@ -11,7 +11,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown } from 'lucide-react'
+import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown, CalendarCheck, Orbit, HeartHandshake } from 'lucide-react'
 import { birthUtcFromMeta } from '@/lib/engine/dasha/hydrateChara'
 import { getCurrentMahaDashaLord, MajorKundaliStrip } from '@/components/ui/MajorKundaliStrip'
 
@@ -531,6 +531,9 @@ function YoginiDashaBlock({
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   Astrology: Sparkles,
+  'Today\u2019s Reading': CalendarCheck,
+  Transits: Orbit,
+  'Kundali Matching': HeartHandshake,
   Prashna: HelpCircle,
   Panchang: Compass,
   Calendar: Calendar,
@@ -1327,24 +1330,48 @@ function HomeContent() {
 
   const landingWhyVedaansh = [
     { title: 'Classical Accuracy', detail: 'Swiss Ephemeris precision with Lahiri ayanamsha and full varga depth.', icon: Compass },
-    { title: 'One Workspace', detail: 'Kundali, dashas, Panchang, and Prashna in a single coherent flow.', icon: Layers },
+    { title: 'One Workspace', detail: 'Kundali, dashas, transits, Panchang, and Prashna in a single coherent flow.', icon: Layers },
     { title: 'Consultation Ready', detail: 'Built for practitioners and seekers — interpret, export, and plan.', icon: Star },
   ]
 
   const landingJourney = [
     { step: '01', title: 'Enter birth details', text: 'Open Astrology app and submit date, time, and place.' },
     { step: '02', title: 'Generate deep chart', text: 'Compute grahas, houses, dasha layers, and divisional charts instantly.' },
-    { step: '03', title: 'Apply in real life', text: 'Use Panchang, Prashna, and calendar timing to plan your next action.' },
+    { step: '03', title: 'Apply in real life', text: 'Use Today\u2019s Reading, transits, Panchang, and Prashna to plan your next action, and explore marriage and career readings.' },
   ]
 
   const landingMajorSections = [
     {
       title: 'Astrology',
       subtitle: 'Dashboard',
-      text: 'Kundali, vargas, dasha, and interpretation.',
+      text: 'Kundali, vargas, dasha, plus marriage and career readings.',
       href: '/',
       ctaName: 'major_sections_astrology',
       icon: '🧿',
+    },
+    {
+      title: 'Today\u2019s Reading',
+      subtitle: 'Personal',
+      text: 'Daily reading from your Moon, dasha, and transits.',
+      href: '/today',
+      ctaName: 'major_sections_today',
+      icon: '🌤️',
+    },
+    {
+      title: 'Transits',
+      subtitle: 'Gochar',
+      text: 'Cosmic roadmap, Sade Sati, aspects, and live sky.',
+      href: '/transit/roadmap',
+      ctaName: 'major_sections_transits',
+      icon: '🪐',
+    },
+    {
+      title: 'Kundali Matching',
+      subtitle: 'Compatibility',
+      text: '36-point Guna Milan, doshas, and synastry.',
+      href: '/compare',
+      ctaName: 'major_sections_kundali_matching',
+      icon: '💞',
     },
     {
       title: 'Prashna',

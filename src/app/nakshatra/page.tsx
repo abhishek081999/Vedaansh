@@ -7,7 +7,7 @@ import { useAppLayout } from '@/components/providers/LayoutProvider'
 const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
 
 export default function NakshatraPage() {
-  const { chart, setIsFormOpen } = useChart()
+  const { chart, openBirthForm } = useChart()
   const { activeTab } = useAppLayout()
 
   // If no chart is loaded, show a prompt
@@ -23,7 +23,7 @@ export default function NakshatraPage() {
         <p style={{ color: 'var(--text-muted)', maxWidth: 450, fontSize: '0.95rem' }}>
           Please load or create a birth chart to access personalized nakshatra analysis, including Navtara, Muhurta compatibility, and remedies.
         </p>
-        <button onClick={() => setIsFormOpen(true)} className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
+        <button onClick={openBirthForm} className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
           ✦ Open Birth Form
         </button>
       </div>

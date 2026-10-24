@@ -11,6 +11,7 @@ import {
   Brain,
   Briefcase,
   Calendar,
+  CalendarCheck,
   CalendarDays,
   ClipboardList,
   Clock,
@@ -69,6 +70,7 @@ export interface NavGroup {
 
 export const TOP_TABS: NavTab[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: ASTROLOGY_HOME_PATH },
+  { id: 'today', label: 'Today', icon: CalendarCheck, path: '/today' },
   { id: 'my-charts', label: 'My Charts', icon: Library, path: '/my/charts' },
 ]
 

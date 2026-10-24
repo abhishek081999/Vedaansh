@@ -1,6 +1,10 @@
 'use client'
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, Dispatch, SetStateAction } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import type { ChartOutput } from '@/types/astrology'
+
+/** Routes that mount HomeClient (and therefore ChartFormDrawer). */
+const FORM_HOST_PATHS = new Set(['/', '/home'])
 
 function hasCompleteClientHydration(chart: ChartOutput): boolean {
   const d = chart.dashas
@@ -38,6 +42,12 @@ interface ChartContextType {
   setSkipUrlHydration: (skip: boolean) => void
   /** Clear chart/form and block URL re-hydration so the landing page can show. */
   clearToLanding: () => void
+  /**
+   * Open the birth form from any route. The form drawer is only mounted by HomeClient
+   * (`/` and `/home`), so on other routes we hop to `/?new=true` and return to the
+   * current page (via pendingDestination) once the chart is calculated.
+   */
+  openBirthForm: () => void
 }
 
 const ChartContext = createContext<ChartContextType | undefined>(undefined)
@@ -48,6 +58,8 @@ export function ChartProvider({ children }: { children: React.ReactNode }) {
   const [pendingDestination, setPendingDestination] = useState<string | null>(null)
   const [skipUrlHydration, setSkipUrlHydration] = useState(false)
   const hydrateGen = useRef(0)
+  const pathname = usePathname() ?? '/'
+  const router = useRouter()
 
   const setChart: Dispatch<SetStateAction<ChartOutput | null>> = useCallback((action) => {
     setChartState(prev => {
@@ -74,6 +86,16 @@ export function ChartProvider({ children }: { children: React.ReactNode }) {
     hydrateGen.current += 1 // cancel in-flight client hydration
   }, [])
 
+  const openBirthForm = useCallback(() => {
+    if (FORM_HOST_PATHS.has(pathname)) {
+      setIsFormOpen(true)
+      return
+    }
+    setPendingDestination(pathname)
+    setIsFormOpen(true)
+    router.push('/?new=true')
+  }, [pathname, router])
+
   // Backfill legacy in-memory charts once (lazy engine import — not on every route's critical path)
   useEffect(() => {
     setChartState(prev => {
@@ -99,6 +121,7 @@ export function ChartProvider({ children }: { children: React.ReactNode }) {
         skipUrlHydration,
         setSkipUrlHydration,
         clearToLanding,
+        openBirthForm,
       }}
     >
       {children}
