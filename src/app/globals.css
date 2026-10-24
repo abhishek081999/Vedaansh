@@ -5169,8 +5169,37 @@ select.input {
 
 @media (min-width: 1024px) {
   .landing-major-sections-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  /* Groups of four fill a single row of four; groups of six form two rows of three. */
+  .landing-major-group[data-count='4'] .landing-major-sections-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
+
+/* Grouped explore grid: a small labelled row per intent */
+.landing-major-group + .landing-major-group {
+  margin-top: 1.75rem;
+}
+
+.landing-major-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.landing-major-group-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
 }
 
 /* Premium redesign for landing-major-section-card — real elevated cards
@@ -5365,6 +5394,27 @@ select.input {
     position: absolute;
     top: 1.4rem;
     right: 1.3rem;
+  }
+}
+
+/* Phones: compact two-column tiles (icon + title) instead of 1700px of stacked cards */
+@media (max-width: 639px) {
+  .landing-major-sections-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .landing-major-sections-grid .landing-major-section-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+    padding: 0.85rem 0.8rem !important;
+  }
+  .landing-major-sections-grid .landing-major-section-card .stat-sub,
+  .landing-major-sections-grid .landing-major-section-card .card-arrow {
+    display: none;
+  }
+  .landing-major-sections-grid .landing-major-section-card .stat-value {
+    white-space: normal;
+    font-size: 0.9rem !important;
   }
 }
 

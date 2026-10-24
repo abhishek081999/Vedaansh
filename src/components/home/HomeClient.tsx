@@ -1320,150 +1320,41 @@ function HomeContent() {
     { step: '03', title: 'Apply in real life', text: 'Use Today\u2019s Reading, transits, Panchang, and Prashna to plan your next action, and explore marriage and career readings.' },
   ]
 
-  const landingMajorSections = [
+  /** Explore grid, grouped so each row fills evenly (6 / 4 / 6 cards). */
+  const landingMajorGroups = [
     {
-      title: 'Astrology',
-      subtitle: 'Dashboard',
-      text: 'Kundali, vargas, dasha, plus marriage and career readings.',
-      href: '/',
-      ctaName: 'major_sections_astrology',
-      icon: '🧿',
+      id: 'chart',
+      title: 'Read your chart',
+      sections: [
+        { title: 'Astrology', subtitle: 'Dashboard', text: 'Kundali, vargas, dasha, plus marriage and career readings.', href: '/', ctaName: 'major_sections_astrology' },
+        { title: 'Today\u2019s Reading', subtitle: 'Personal', text: 'Daily reading from your Moon, dasha, and transits.', href: '/today', ctaName: 'major_sections_today' },
+        { title: 'Transits', subtitle: 'Gochar', text: 'Cosmic roadmap, Sade Sati, aspects, and live sky.', href: '/transit/roadmap', ctaName: 'major_sections_transits' },
+        { title: 'Relationship & Marriage', subtitle: 'Gold', text: 'Marriage promise, timing, Mars and Vivah readings.', href: '/relationship', ctaName: 'major_sections_relationship' },
+        { title: 'Career & Profession', subtitle: 'Gold', text: 'Dashamsha strength and the professional method.', href: '/career', ctaName: 'major_sections_career' },
+        { title: 'Kundali Matching', subtitle: 'Compatibility', text: '36-point Guna Milan, doshas, and synastry.', href: '/compare', ctaName: 'major_sections_kundali_matching' },
+      ],
     },
     {
-      title: 'Today\u2019s Reading',
-      subtitle: 'Personal',
-      text: 'Daily reading from your Moon, dasha, and transits.',
-      href: '/today',
-      ctaName: 'major_sections_today',
-      icon: '🌤️',
+      id: 'timing',
+      title: 'Plan the right time',
+      sections: [
+        { title: 'Panchang', subtitle: 'Daily', text: 'Tithi, nakshatra, yoga, and karana.', href: '/panchang', ctaName: 'major_sections_panchang' },
+        { title: 'Calendar', subtitle: 'Monthly', text: 'Month-level Vedic timing windows.', href: '/panchang/calendar', ctaName: 'major_sections_calendar' },
+        { title: 'Muhurta Finder', subtitle: 'Timing', text: 'Auspicious windows for key actions.', href: '/muhurta', ctaName: 'major_sections_muhurta_finder' },
+        { title: 'Prashna', subtitle: 'Query', text: 'Guidance for specific questions.', href: '/prashna', ctaName: 'major_sections_prashna' },
+      ],
     },
     {
-      title: 'Transits',
-      subtitle: 'Gochar',
-      text: 'Cosmic roadmap, Sade Sati, aspects, and live sky.',
-      href: '/transit/roadmap',
-      ctaName: 'major_sections_transits',
-      icon: '🪐',
-    },
-    {
-      title: 'Relationship & Marriage',
-      subtitle: 'Gold',
-      text: 'Marriage promise, timing, Mars and Vivah readings.',
-      href: '/relationship',
-      ctaName: 'major_sections_relationship',
-      icon: '💍',
-    },
-    {
-      title: 'Career & Profession',
-      subtitle: 'Gold',
-      text: 'Dashamsha strength and the professional method.',
-      href: '/career',
-      ctaName: 'major_sections_career',
-      icon: '💼',
-    },
-    {
-      title: 'Kundali Matching',
-      subtitle: 'Compatibility',
-      text: '36-point Guna Milan, doshas, and synastry.',
-      href: '/compare',
-      ctaName: 'major_sections_kundali_matching',
-      icon: '💞',
-    },
-    {
-      title: 'Prashna',
-      subtitle: 'Query',
-      text: 'Guidance for specific questions.',
-      href: '/prashna',
-      ctaName: 'major_sections_prashna',
-      icon: '🎯',
-    },
-    {
-      title: 'Panchang',
-      subtitle: 'Daily',
-      text: 'Tithi, nakshatra, yoga, and karana.',
-      href: '/panchang',
-      ctaName: 'major_sections_panchang',
-      icon: '🕉️',
-    },
-    {
-      title: 'Calendar',
-      subtitle: 'Monthly',
-      text: 'Month-level Vedic timing windows.',
-      href: '/panchang/calendar',
-      ctaName: 'major_sections_calendar',
-      icon: '🗓️',
-    },
-    {
-      title: 'Nakshatra',
-      subtitle: 'Lunar',
-      text: 'Nakshatra insights day by day.',
-      href: '/nakshatra',
-      ctaName: 'major_sections_nakshatra',
-      icon: '✨',
-    },
-    {
-      title: 'Jaimini Astrology',
-      subtitle: 'Advanced',
-      text: 'Jaimini charts and life direction.',
-      href: '/jaimini',
-      ctaName: 'major_sections_jaimini',
-      icon: '🔮',
-    },
-    {
-      title: 'Astro Vastu',
-      subtitle: 'Space',
-      text: 'Vastu aligned with your chart.',
-      href: '/vastu',
-      ctaName: 'major_sections_astro_vastu',
-      icon: '🏠',
-    },
-    {
-      title: 'Vedic Numerology',
-      subtitle: 'Anka Jyotish',
-      text: 'Moolank, Bhagyank, name and grid.',
-      href: '/numerology',
-      ctaName: 'major_sections_numerology',
-      icon: '🔢',
-    },
-    {
-      title: 'AstroCartography',
-      subtitle: 'Location',
-      text: 'Planetary lines for travel and moves.',
-      href: '/acg',
-      ctaName: 'major_sections_astrocartography',
-      icon: '🌍',
-    },
-    {
-      title: 'Sarvatobhadra Chakra',
-      subtitle: 'Classical',
-      text: 'Traditional S.B. Chakra timing.',
-      href: '/sbc',
-      ctaName: 'major_sections_sarvatobhadra',
-      icon: '🌀',
-    },
-    {
-      title: 'Muhurta Finder',
-      subtitle: 'Timing',
-      text: 'Auspicious windows for key actions.',
-      href: '/muhurta',
-      ctaName: 'major_sections_muhurta_finder',
-      icon: '🕒',
-    },
-    {
-      title: 'Install App',
-      subtitle: 'Mobile',
-      text: 'Add Vedaansh to your home screen.',
-      href: '/install',
-      ctaName: 'major_sections_install_app',
-      icon: '📲',
-    },
-    {
-      title: 'My Charts',
-      subtitle: 'Library',
-      text: 'Open saved charts from your account.',
-      href: '/my/charts',
-      ctaName: 'major_sections_my_charts',
-      icon: '📚',
+      id: 'advanced',
+      title: 'Go deeper',
+      sections: [
+        { title: 'Nakshatra', subtitle: 'Lunar', text: 'Nakshatra insights day by day.', href: '/nakshatra', ctaName: 'major_sections_nakshatra' },
+        { title: 'Jaimini Astrology', subtitle: 'Advanced', text: 'Jaimini charts and life direction.', href: '/jaimini', ctaName: 'major_sections_jaimini' },
+        { title: 'Sarvatobhadra Chakra', subtitle: 'Classical', text: 'Traditional S.B. Chakra timing.', href: '/sbc', ctaName: 'major_sections_sarvatobhadra' },
+        { title: 'AstroCartography', subtitle: 'Location', text: 'Planetary lines for travel and moves.', href: '/acg', ctaName: 'major_sections_astrocartography' },
+        { title: 'Astro Vastu', subtitle: 'Space', text: 'Vastu aligned with your chart.', href: '/vastu', ctaName: 'major_sections_astro_vastu' },
+        { title: 'Vedic Numerology', subtitle: 'Anka Jyotish', text: 'Moolank, Bhagyank, name and grid.', href: '/numerology', ctaName: 'major_sections_numerology' },
+      ],
     },
   ]
 
@@ -3157,38 +3048,41 @@ function HomeContent() {
                     description="Jump straight to the tool you need."
                     theme="gold"
                   />
-                  <div className="landing-major-sections-grid landing-reveal-stagger">
-                    {landingMajorSections
-                      .filter((section) => section.title !== 'My Charts' || status === 'authenticated')
-                      .map((section, idx) => {
-                        const IconComponent = iconMap[section.title] || Sparkles;
-                        return (
-                          <Link
-                            key={section.title}
-                            href={section.href}
-                            onClick={(e) => {
-                              trackLandingCta(section.ctaName)
-                              openSectionWithChartGate(section.href, e)
-                            }}
-                            onMouseMove={handleMouseMove}
-                            className="landing-major-section-card landing-premium-card"
-                            style={{ ['--stagger-i' as string]: idx }}
-                          >
-                            <div className="card-icon-wrapper">
-                              <IconComponent size={20} strokeWidth={2} />
-                            </div>
-                            <div className="card-body">
-                              {section.subtitle && <span className="card-kicker">{section.subtitle}</span>}
-                              <span className="stat-value">{section.title}</span>
-                              <span className="stat-sub">{section.text}</span>
-                            </div>
-                            <span className="card-arrow" aria-hidden="true">
-                              <ArrowRight size={14} strokeWidth={2.5} />
-                            </span>
-                          </Link>
-                        )
-                      })}
-                  </div>
+                  {landingMajorGroups.map((group, groupIdx) => (
+                    <div key={group.id} className="landing-major-group" data-count={group.sections.length}>
+                      <h3 className="landing-major-group-title">{group.title}</h3>
+                      <div className="landing-major-sections-grid landing-reveal-stagger">
+                        {group.sections.map((section, idx) => {
+                          const IconComponent = iconMap[section.title] || Sparkles;
+                          return (
+                            <Link
+                              key={section.title}
+                              href={section.href}
+                              onClick={(e) => {
+                                trackLandingCta(section.ctaName)
+                                openSectionWithChartGate(section.href, e)
+                              }}
+                              onMouseMove={handleMouseMove}
+                              className="landing-major-section-card landing-premium-card"
+                              style={{ ['--stagger-i' as string]: groupIdx * 6 + idx }}
+                            >
+                              <div className="card-icon-wrapper">
+                                <IconComponent size={20} strokeWidth={2} />
+                              </div>
+                              <div className="card-body">
+                                {section.subtitle && <span className="card-kicker">{section.subtitle}</span>}
+                                <span className="stat-value">{section.title}</span>
+                                <span className="stat-sub">{section.text}</span>
+                              </div>
+                              <span className="card-arrow" aria-hidden="true">
+                                <ArrowRight size={14} strokeWidth={2.5} />
+                              </span>
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </LandingReveal>
 
