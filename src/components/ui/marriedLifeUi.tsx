@@ -296,7 +296,7 @@ export function MarriageClassSections({ reading, showPrinciples = true, clientSa
     { label: 'The pattern', notes: reading.pattern },
     { label: 'Old debt or soul bond', notes: reading.bond },
     { label: 'Birth stars', notes: reading.nakshatra },
-    { label: 'Deeper chart, marriage point, children', notes: reading.navamsha },
+    { label: 'Navamsha and the marriage point', notes: reading.navamsha },
     { label: 'When it cannot restart', notes: reading.strain },
   ]
   return (

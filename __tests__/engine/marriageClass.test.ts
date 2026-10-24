@@ -91,7 +91,7 @@ describe('marriage class', () => {
     expect(ids(reading)).toContain('class-bond-karmic')
     expect(ids(reading)).toContain('class-d9-missing')
     expect(ids(reading)).toContain('class-age-moved')
-    expect(prose(reading)).toMatch(/year is not named|not given from those windows/i)
+    expect(prose(reading)).toMatch(/No year for meeting or ending|Neither stretch names the year/i)
     expect(prose(reading)).not.toMatch(/100%|murder|eyes closed|at 25|at age/i)
   })
 
@@ -228,7 +228,8 @@ describe('marriage class', () => {
       ],
     }))!
     expect(ids(reading)).toContain('class-one-break')
-    expect(ids(reading)).toContain('class-sequence')
+    expect(ids(reading)).not.toContain('class-sequence')
+    expect(ids(reading)).not.toContain('class-kind-open')
     expect(ids(reading)).not.toContain('class-pattern-divorce')
     expect(prose(reading)).not.toMatch(/100%|guaranteed/i)
   })

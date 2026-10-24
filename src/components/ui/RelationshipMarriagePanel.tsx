@@ -61,6 +61,8 @@ const VIEWS: { id: View; label: string }[] = [
 interface Props {
   chart: ChartOutput
   userPlan?: UserPlan
+  /** Inside Kundali Milan: the reading only, without a second set of charts. */
+  embedded?: boolean
 }
 
 function planRank(plan: UserPlan): number {
@@ -190,7 +192,7 @@ function MarriageReadingLoader() {
   )
 }
 
-function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
+function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = false }: Props) {
   const full = planMeetsUiGate(userPlan, 'gold')
   const data = useMemo(() => analyzeMarriedLife(chart), [chart])
   const axis = useMemo(() => (full ? analyzeSeventhAxis(chart) : null), [chart, full])
@@ -248,16 +250,18 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
         <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55, maxWidth: 760 }}>
           {data.summary}
         </p>
-        <p style={{ margin: '0.65rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Solo reading for this chart.{' '}
-          <Link href="/compare" style={{ color: 'var(--text-gold)', fontWeight: 700, textDecoration: 'none' }}>
-            Match with a partner chart
-          </Link>
-          {' '}for Kundali Milan.
-        </p>
+        {embedded ? null : (
+          <p style={{ margin: '0.65rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            Solo reading for this chart.{' '}
+            <Link href="/compare" style={{ color: 'var(--text-gold)', fontWeight: 700, textDecoration: 'none' }}>
+              Match with a partner chart
+            </Link>
+            {' '}for Kundali Milan.
+          </p>
+        )}
       </header>
 
-      <MarriageCharts chart={chart} userPlan={userPlan} showDivisionals={full} />
+      {embedded ? null : <MarriageCharts chart={chart} userPlan={userPlan} showDivisionals={full} />}
 
       {!full && (
         <>
@@ -326,7 +330,6 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
               <ScoreMeter key={d.id} label={d.label} planet={d.planet} score={d.score} summary={d.summary} />
             ))}
           </div>
-
           <SectionLabel>Four questions</SectionLabel>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.65rem' }}>
             {data.significators.map(s => (
@@ -344,7 +347,6 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
               </article>
             ))}
           </div>
-
           <article style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
             <SectionLabel>Who brings the proposal</SectionLabel>
             <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -353,7 +355,6 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
             </p>
             <p style={{ margin: '0.65rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.bondStyle}</p>
           </article>
-
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.65rem' }}>
             <article style={{ padding: '0.85rem', borderLeft: `3px solid ${LIFE_TONE[data.fourth.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
               <SectionLabel>4th house — home</SectionLabel>
@@ -361,9 +362,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
             </article>
             <article style={{ padding: '0.85rem', borderLeft: `3px solid ${LIFE_TONE[data.tenth.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
               <SectionLabel>10th house — work{chart.meta.gender === 'female' ? ' and mother-in-law' : ''}</SectionLabel>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                {data.tenth.reading}
-              </p>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{data.tenth.reading}</p>
             </article>
           </div>
         </>
@@ -561,7 +560,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
   )
 }
 
-export function RelationshipMarriagePanel({ chart, userPlan = 'free' }: Props) {
+export function RelationshipMarriagePanel({ chart, userPlan = 'free', embedded = false }: Props) {
   const [shown, setShown] = useState(false)
   const [, startTransition] = useTransition()
 
@@ -574,5 +573,5 @@ export function RelationshipMarriagePanel({ chart, userPlan = 'free' }: Props) {
   }, [chart, startTransition])
 
   if (!shown) return <MarriageReadingLoader />
-  return <RelationshipMarriageReading chart={chart} userPlan={userPlan} />
+  return <RelationshipMarriageReading chart={chart} userPlan={userPlan} embedded={embedded} />
 }

@@ -24,6 +24,7 @@ const MilanDeepAnalysisPanel = dynamic(() => import('@/components/ui/MilanDeepAn
 const MilanExpandPanel = dynamic(() => import('@/components/ui/MilanExpandPanel').then(m => m.MilanExpandPanel), { ssr: false })
 const MilanMarriedLifePanel = dynamic(() => import('@/components/ui/MilanMarriedLifePanel').then(m => m.MilanMarriedLifePanel), { ssr: false })
 const MilanMatchMakingPanel = dynamic(() => import('@/components/ui/MilanMatchMakingPanel').then(m => m.MilanMatchMakingPanel), { ssr: false })
+const RelationshipMarriagePanel = dynamic(() => import('@/components/ui/RelationshipMarriagePanel').then(m => m.RelationshipMarriagePanel), { ssr: false })
 const NatalPanchangPanel = dynamic(() => import('@/components/panchang/NatalPanchangPanel').then(m => m.NatalPanchangPanel), { ssr: false })
 const SavedChartSelector = dynamic(
   () => import('@/components/ui/SavedChartSelector').then(m => m.SavedChartSelector),
@@ -222,7 +223,8 @@ function getVerdict(score: ReturnType<typeof calculateAshtakoot>) {
 const GRAHA_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 const GRAHA_SYM: Record<string, string> = { Su: '☀', Mo: '☽', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋' }
 
-type View = 'compat' | 'doshas' | 'ashtakoot' | 'matching' | 'married' | 'milan' | 'expand' | 'charts' | 'overlay' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'all'
+type View = 'verdict' | 'match' | 'people' | 'charts'
+type ChartTool = 'charts' | 'overlay' | 'planets' | 'dasha' | 'panchang' | 'ashtakavarga' | 'compat'
 
 function personPayload(chart: ChartOutput) {
   return {
@@ -247,7 +249,9 @@ function CompareContent() {
   const [step, setStep] = useState<'a' | 'b' | 'done'>('a')
   const [chartA, setChartA] = useState<ChartOutput | null>(null)
   const [chartB, setChartB] = useState<ChartOutput | null>(null)
-  const [view, setView] = useState<View>('ashtakoot')
+  const [view, setView] = useState<View>('verdict')
+  const [chartTool, setChartTool] = useState<ChartTool>('charts')
+  const [person, setPerson] = useState<'a' | 'b'>('a')
   const [roleA, setRoleA] = useState<MilanRole>('boy')
   const [roleB, setRoleB] = useState<MilanRole>('girl')
   const [ganaSchool, setGanaSchool] = useState<GanaSchool>('classical')
@@ -260,13 +264,8 @@ function CompareContent() {
   const selectorForRef = useRef<'a' | 'b' | null>(null)
 
   const handleViewChange = useCallback((id: View) => {
-    if (id === 'all' && !fullMilan) return
     setView(id)
-  }, [fullMilan])
-
-  useEffect(() => {
-    if (view === 'all' && !fullMilan) setView('ashtakoot')
-  }, [view, fullMilan])
+  }, [])
 
   useEffect(() => {
     if (!milanId) return
@@ -658,58 +657,13 @@ function CompareContent() {
               )}
             </div>
 
-            {/* Match Insights Summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.25rem' }}>
-              <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--teal)' }}>
-                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--teal)' }}>Relationship strengths</h4>
-                <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {ashtakootScore.nadi.points > 0 && !sameNadi(ashtakootScore) && (
-                    <li><strong>Nadi / prana:</strong> Different nadi — complementary life-force and healthier progeny outlook.</li>
-                  )}
-                  {ashtakootScore.maitri.points >= 3 && <li><strong>Graha Maitri:</strong> {ashtakootScore.maitri.insight}</li>}
-                  {ashtakootScore.gana.points >= 5 && <li><strong>Gana temperament:</strong> {ashtakootScore.gana.insight}</li>}
-                  {ashtakootScore.yoni.points >= 3 && <li><strong>Yoni affinity:</strong> {ashtakootScore.yoni.insight}</li>}
-                  {ashtakootScore.eligibility.band === 'ideal' && (
-                    <li><strong>Eligibility band:</strong> Score sits in the classical 18–32 window.</li>
-                  )}
-                  {ashtakootScore.bhakoot.points === 7 && ashtakootScore.bhakoot.notes?.some(n => n.includes('cancelled')) && (
-                    <li><strong>Bhakoot exception:</strong> Apparent dosha cancelled by friendly lords / direction rule.</li>
-                  )}
-                </ul>
-              </div>
-              <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--rose)' }}>
-                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--rose)' }}>Areas for awareness</h4>
-                {awareness.length > 0 ? (
-                  <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {awareness.map(item => (
-                      <li key={item.id}><strong>{item.label}:</strong> {item.text}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Each of the eight kootas holds its full score. Dosha, Navamsha, and the 7th lord are the next places to read.
-                  </p>
-                )}
-              </div>
-            </div>
-
             {/* View Tabs */}
             <div className="compare-tabs no-print" style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
               {([
-                ['ashtakoot', 'Ashtakoot (36)'],
-                ['matching', 'Match-Making'],
-                ['married', 'Married Life'],
-                ['milan', 'Deep Milan'],
-                ['expand', 'Porutham + Timing'],
-                ['doshas', 'Dosha Analysis'],
-                ['compat', 'Aura Affinity'],
-                ['charts', 'Side-by-Side'],
-                ['overlay', 'Overlay View'],
-                ['planets', 'Positions'],
-                ['dasha', 'Dasha'],
-                ['panchang', 'Panchang'],
-                ['ashtakavarga', 'Ashtakavarga'],
-                ...(fullMilan ? [['all', 'All Sections'] as [View, string]] : []),
+                ['verdict', 'The verdict'],
+                ['match', 'The match'],
+                ['people', 'Each chart'],
+                ['charts', 'Charts'],
               ] as [View, string][]).map(([id, label]) => (
                 <button 
                   key={id} 
@@ -746,9 +700,54 @@ function CompareContent() {
               )}
             </div>
 
-            {/* Ashtakoot Detailed Breakdown */}
-            {(view === 'ashtakoot' || (view === 'all' && fullMilan)) && (
-              <div className="card fade-up" style={{ padding: '0', overflow: 'hidden' }}>
+            {view === 'verdict' && (
+              <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.25rem' }}>
+              <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--teal)' }}>
+                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--teal)' }}>Relationship strengths</h4>
+                <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {ashtakootScore.nadi.points > 0 && !sameNadi(ashtakootScore) && (
+                    <li><strong>Nadi / prana:</strong> Different nadi — complementary life-force and healthier progeny outlook.</li>
+                  )}
+                  {ashtakootScore.maitri.points >= 3 && <li><strong>Graha Maitri:</strong> {ashtakootScore.maitri.insight}</li>}
+                  {ashtakootScore.gana.points >= 5 && <li><strong>Gana temperament:</strong> {ashtakootScore.gana.insight}</li>}
+                  {ashtakootScore.yoni.points >= 3 && <li><strong>Yoni affinity:</strong> {ashtakootScore.yoni.insight}</li>}
+                  {ashtakootScore.eligibility.band === 'ideal' && (
+                    <li><strong>Eligibility band:</strong> Score sits in the classical 18–32 window.</li>
+                  )}
+                  {ashtakootScore.bhakoot.points === 7 && ashtakootScore.bhakoot.notes?.some(n => n.includes('cancelled')) && (
+                    <li><strong>Bhakoot exception:</strong> Apparent dosha cancelled by friendly lords / direction rule.</li>
+                  )}
+                </ul>
+              </div>
+              <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--rose)' }}>
+                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--rose)' }}>Areas for awareness</h4>
+                {awareness.length > 0 ? (
+                  <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {awareness.map(item => (
+                      <li key={item.id}><strong>{item.label}:</strong> {item.text}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    Each of the eight kootas holds its full score. Dosha, Navamsha, and the 7th lord are the next places to read.
+                  </p>
+                )}
+              </div>
+            </div>
+            <MilanExpandPanel
+              chartA={chartA}
+              chartB={chartB}
+              ashtakoot={ashtakootScore}
+              roleA={roleA}
+              roleB={roleB}
+              ganaSchool={ganaSchool}
+              onRoleChange={(a, b) => { setRoleA(a); setRoleB(b) }}
+              onGanaSchoolChange={setGanaSchool}
+              userPlan={userPlan}
+              part="manglik"
+            />
+            <div className="card fade-up" style={{ padding: '0', overflow: 'hidden' }}>
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
                   <h3 className="label-caps" style={{ margin: 0, fontSize: '0.75rem' }}>Detailed Guna Milan Analysis</h3>
                   <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -803,30 +802,13 @@ function CompareContent() {
                   </table>
                 </div>
               </div>
+            <MilanMarriedLifePanel chartA={chartA} chartB={chartB} roleA={roleA} roleB={roleB} userPlan={userPlan} pairOnly />
+              </>
             )}
 
-            {(view === 'matching' || (view === 'all' && fullMilan)) && (
-              <div className="fade-up">
+            {view === 'match' && (
+              <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <MilanMatchMakingPanel chartA={chartA} chartB={chartB} userPlan={userPlan} />
-              </div>
-            )}
-
-            {(view === 'married' || (view === 'all' && fullMilan)) && (
-              <div className="fade-up">
-                <MilanMarriedLifePanel chartA={chartA} chartB={chartB} roleA={roleA} roleB={roleB} userPlan={userPlan} />
-              </div>
-            )}
-
-            {/* Deep Milan — Stage 2/3 */}
-            {(view === 'milan' || (view === 'all' && fullMilan)) && (
-              <div className="fade-up">
-                <MilanDeepAnalysisPanel chartA={chartA} chartB={chartB} ashtakoot={ashtakootScore} />
-              </div>
-            )}
-
-            {/* Porutham + Timing + PDF + History */}
-            {(view === 'expand' || (view === 'all' && fullMilan)) && (
-              <div className="fade-up">
                 <MilanExpandPanel
                   chartA={chartA}
                   chartB={chartB}
@@ -837,19 +819,81 @@ function CompareContent() {
                   onRoleChange={(a, b) => { setRoleA(a); setRoleB(b) }}
                   onGanaSchoolChange={setGanaSchool}
                   userPlan={userPlan}
+                  part="match"
+                />
+                <CompatibilityDoshaPanel chartA={chartA} chartB={chartB} />
+                <MilanDeepAnalysisPanel chartA={chartA} chartB={chartB} ashtakoot={ashtakootScore} />
+              </div>
+            )}
+
+            {view === 'people' && (
+              <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  {(['a', 'b'] as const).map(id => {
+                    const chart = id === 'a' ? chartA : chartB
+                    const label = chart.meta?.name?.trim() || (id === 'a' ? 'Person A' : 'Person B')
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setPerson(id)}
+                        style={{
+                          padding: '0.45rem 0.9rem',
+                          borderRadius: 'var(--r-sm)',
+                          border: `1px solid ${person === id ? 'var(--text-gold)' : 'var(--border)'}`,
+                          background: person === id ? 'var(--surface-3)' : 'var(--surface-1)',
+                          color: person === id ? 'var(--text-gold)' : 'var(--text-muted)',
+                          fontWeight: person === id ? 700 : 500,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+                <RelationshipMarriagePanel
+                  key={person}
+                  chart={person === 'a' ? chartA : chartB}
+                  userPlan={userPlan}
+                  embedded
                 />
               </div>
             )}
 
-            {/* Dosha Analysis */}
-            {(view === 'doshas' || (view === 'all' && fullMilan)) && (
-              <div className="fade-up">
-                 <CompatibilityDoshaPanel chartA={chartA} chartB={chartB} />
+            {view === 'charts' && (
+              <div className="no-print" style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                {([
+                  ['charts', 'Side-by-side'],
+                  ['overlay', 'Overlay'],
+                  ['planets', 'Positions'],
+                  ['dasha', 'Dasha'],
+                  ['panchang', 'Panchang'],
+                  ['ashtakavarga', 'Ashtakavarga'],
+                  ['compat', 'Aura affinity'],
+                ] as [ChartTool, string][]).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setChartTool(id)}
+                    style={{
+                      padding: '0.4rem 0.75rem',
+                      borderRadius: 'var(--r-sm)',
+                      border: `1px solid ${chartTool === id ? 'var(--text-gold)' : 'var(--border)'}`,
+                      background: chartTool === id ? 'var(--surface-3)' : 'var(--surface-1)',
+                      color: chartTool === id ? 'var(--text-gold)' : 'var(--text-muted)',
+                      fontWeight: chartTool === id ? 700 : 500,
+                      cursor: 'pointer',
+                      fontSize: '0.78rem',
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             )}
 
-            {/* Aura Affinity */}
-            {(view === 'compat' || (view === 'all' && fullMilan)) && (
+            {view === 'charts' && chartTool === 'compat' && (
               <div className="card fade-up" style={{ padding: '2rem' }}>
                 <h3 className="label-caps" style={{ marginBottom: '1.5rem' }}>Aura & Psychological Affinity</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1rem' }}>
@@ -882,7 +926,7 @@ function CompareContent() {
             )}
 
             {/* Charts View */}
-            {(view === 'charts' || (view === 'all' && fullMilan)) && (
+            {view === 'charts' && chartTool === 'charts' && (
               <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
                 <div>
                    <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-gold)', fontWeight: 800 }}>{chartA.meta.name}</h3>
@@ -896,7 +940,7 @@ function CompareContent() {
             )}
 
             {/* Overlay */}
-            {(view === 'overlay' || (view === 'all' && fullMilan)) && (
+            {view === 'charts' && chartTool === 'overlay' && (
                <div className="fade-up card" style={{ padding: '2rem' }}>
                   <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                      <h3 style={{ margin: 0 }}>Synastry Overlay</h3>
@@ -915,7 +959,7 @@ function CompareContent() {
             )}
 
             {/* Planets Table */}
-            {(view === 'planets' || (view === 'all' && fullMilan)) && (
+            {view === 'charts' && chartTool === 'planets' && (
               <div className="card fade-up" style={{ padding: '1.5rem', overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                    <thead>
@@ -951,7 +995,7 @@ function CompareContent() {
             )}
 
             {/* Other detailed views */}
-            {(view === 'ashtakavarga' || (view === 'all' && fullMilan)) && chartA.ashtakavarga && chartB.ashtakavarga && (
+            {view === 'charts' && chartTool === 'ashtakavarga' && chartA.ashtakavarga && chartB.ashtakavarga && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: '1.25rem' }}>
                 {[chartA, chartB].map((chart, i) => (
                   <div key={i} className="card" style={{ padding: '0.85rem' }}>
@@ -972,7 +1016,7 @@ function CompareContent() {
               </div>
             )}
 
-            {(view === 'dasha' || (view === 'all' && fullMilan)) && (
+            {view === 'charts' && chartTool === 'dasha' && (
                <div className="print-break" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
                   {[chartA, chartB].map((chart, i) => (
                     <div key={`dasha-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -983,7 +1027,7 @@ function CompareContent() {
                </div>
             )}
 
-            {(view === 'panchang' || (view === 'all' && fullMilan)) && (
+            {view === 'charts' && chartTool === 'panchang' && (
                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
                   {[chartA, chartB].map((chart, i) => (
                     <div key={`panchang-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

@@ -324,12 +324,14 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
 
   const held = EIGHT.filter(h => health[h] === 'holding').length
   const strained = EIGHT.filter(h => health[h] === 'strained').length
-  groups.push(note(
-    'houses-cover',
-    'Why a second chart is required',
-    `${held} of these marriage houses are holding and ${strained} are strained. A single chart rarely balances the whole set — the 1st, 2nd, 4th, 5th, 7th, 8th, 9th, 11th, and 12th. Match-making exists so another person covers the houses this chart does not. Three or four houses balanced between the two charts are enough for the marriage to be workable.`,
-    strained > held ? 'caution' : 'mixed',
-  ))
+  if (strained > 0) {
+    groups.push(note(
+      'houses-cover',
+      'Why a second chart is required',
+      `${held} of these marriage houses are holding and ${strained} are strained. Match-making exists so another person covers the houses this chart does not. Three or four houses balanced between the two charts are enough for the marriage to be workable.`,
+      strained > held ? 'caution' : 'mixed',
+    ))
+  }
 
   if (path.length && md) {
     const rawNames = path.slice(0, 3).map(p => gn(p.lord))

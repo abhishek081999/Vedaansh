@@ -52,7 +52,8 @@ interface Props {
 export function MilanExpandPanel({
   chartA, chartB, ashtakoot, roleA, roleB, ganaSchool, onRoleChange, onGanaSchoolChange,
   userPlan = 'free',
-}: Props) {
+  part,
+}: Props & { part?: 'manglik' | 'match' }) {
   const full = planMeetsUiGate(userPlan, 'gold')
   const roles = useMemo(
     () => resolveMilanRoles(chartA, chartB, { personA: roleA, personB: roleB }),
@@ -156,6 +157,16 @@ export function MilanExpandPanel({
     setHistory(list)
   }
 
+  if (part === 'manglik') {
+    return (
+      <div className="card" style={{ padding: '1.2rem', borderLeft: `4px solid ${TONE[manglik.tone]}` }}>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Manglik pair verdict</h3>
+        <div style={{ fontWeight: 800, marginBottom: 4 }}>{manglik.label}</div>
+        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{manglik.detail}</p>
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       {/* Controls */}
@@ -212,12 +223,13 @@ export function MilanExpandPanel({
         <strong style={{ color: 'var(--accent)' }}>{roles.girlLabel}</strong> as Bride.
       </p>
 
-      {/* Manglik */}
+      {part === 'match' ? null : (
       <div className="card" style={{ padding: '1.2rem', borderLeft: `4px solid ${TONE[manglik.tone]}` }}>
         <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Manglik pair verdict</h3>
         <div style={{ fontWeight: 800, marginBottom: 4 }}>{manglik.label}</div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{manglik.detail}</p>
       </div>
+      )}
 
       {/* Porutham */}
       <div className="card" style={{ padding: '1.2rem' }}>

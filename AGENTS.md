@@ -16,7 +16,7 @@ Context for coding agents working in this repo. **Trust live code over docs** wh
 | Database | MongoDB Atlas + Mongoose (`src/lib/db/`) |
 | Auth | NextAuth.js v5 (`src/app/api/auth/`) |
 | Cache / rate limits | Upstash Redis (`@upstash/redis`) |
-| Validation | Zod 3 |
+| Validation | Zod 4.6.7 |
 | Payments | Razorpay (live); Stripe fields exist but checkout not wired |
 | Email | Resend |
 | Video | Remotion 4 (`remotion/`, `src/lib/reel/`) |

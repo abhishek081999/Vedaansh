@@ -68,7 +68,7 @@
     "typescript": "^5.4.5",
     "tz-lookup": "^6.1.25",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "zod": "3.25.76",
+    "zod": "4.6.7",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
@@ -100,7 +100,7 @@
     "esbuild": ">=0.25.0",
     "postcss": "8.5.23",
     "eslint": "9.39.4",
-    "zod": "3.25.76",
+    "zod": "4.6.7",
     "mongoose": "8.24.1",
     "@auth/core": "0.41.3",
     "brace-expansion": "5.0.12",

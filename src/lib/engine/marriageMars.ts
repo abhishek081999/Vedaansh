@@ -206,13 +206,6 @@ export function analyzeMarriageMars(
       'This is not the same as a debilitated Mars. The energy is unrefined: fast, possessive, and reactive. Physical intimacy goes out of balance, anger answers before thought, and authority in the marriage turns quarrelsome. A weak Moon adds the possessiveness. Manglik heat before about thirty is this same rawness.',
       'caution',
     ))
-  } else {
-    levelNotes.push(note(
-      'mars-open',
-      'Mars has not settled into one level',
-      `Mars is in ${RASHI_NAMES[mars.rashi]}, house ${house}. It is not raw in the way this class names, and it is not yet held by both a benefic and Saturn. Read the flow of the energy. Do not call the planet bad, and do not call it purified.`,
-      'mixed',
-    ))
   }
 
   levelNotes.push(note(
@@ -302,14 +295,14 @@ export function analyzeMarriageMars(
   }
 
   const gender = chart.meta?.gender
-  if (gender === 'female') {
+  if (level !== 'open' && gender === 'female') {
     placements.push(note(
       'mars-hers',
       'Her Mars meets the partner’s energy',
       'In a woman’s chart Mars is how she meets what the partner brings: whether she can take it in and turn it, or only endure it. Recognition matters more than whether the planet is strong. Look for what blocks that recognition. One person is not claimed to remake the other.',
       'mixed',
     ))
-  } else if (gender === 'male') {
+  } else if (level !== 'open' && gender === 'male') {
     placements.push(note(
       'mars-his',
       'His Mars is how he moves toward her',
