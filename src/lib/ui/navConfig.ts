@@ -153,8 +153,8 @@ export const ASTRO_GROUPS: NavGroup[] = [
 
 /** Chart destinations that do not need their own accordion. */
 export const ASTRO_DIRECT_TABS: NavTab[] = [
-  { id: 'relationship', label: 'Relationship', icon: Heart, path: ASTROLOGY_HOME_PATH },
-  { id: 'career', label: 'Career', icon: Briefcase, path: ASTROLOGY_HOME_PATH },
+  { id: 'relationship', label: 'Relationship', icon: Heart, path: '/relationship' },
+  { id: 'career', label: 'Career', icon: Briefcase, path: '/career' },
   { id: 'varshaphal', label: 'Solar Return', icon: Sun, path: ASTROLOGY_HOME_PATH },
   { id: 'panchang', label: 'Natal Panchang', icon: Calendar, path: ASTROLOGY_HOME_PATH },
 ]

@@ -11,7 +11,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown, CalendarCheck, Orbit, HeartHandshake } from 'lucide-react'
+import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown, CalendarCheck, Orbit, HeartHandshake, Heart, Briefcase } from 'lucide-react'
 import { birthUtcFromMeta } from '@/lib/engine/dasha/hydrateChara'
 import { getCurrentMahaDashaLord, MajorKundaliStrip } from '@/components/ui/MajorKundaliStrip'
 
@@ -39,28 +39,6 @@ const DashamsaWorkspace = dynamic(() => import('@/components/ui/DashamsaWorkspac
 const DwadashamshaWorkspace = dynamic(() => import('@/components/ui/DwadashamshaWorkspace').then(m => m.DwadashamshaWorkspace), { ssr: false })
 const DrekkanaWorkspace = dynamic(() => import('@/components/ui/DrekkanaWorkspace').then(m => m.DrekkanaWorkspace), { ssr: false })
 const NakshatramshaWorkspace = dynamic(() => import('@/components/ui/NakshatramshaWorkspace').then(m => m.NakshatramshaWorkspace), { ssr: false })
-const CareerProfessionPanel = dynamic(
-  () => import('@/components/ui/CareerProfessionPanel').then(m => m.CareerProfessionPanel),
-  {
-    ssr: false,
-    loading: () => (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280, padding: '3rem 1rem' }}>
-        <VedaanshLoader size={44} message="Reading career and profession…" />
-      </div>
-    ),
-  },
-)
-const RelationshipMarriagePanel = dynamic(
-  () => import('@/components/ui/RelationshipMarriagePanel').then(m => m.RelationshipMarriagePanel),
-  {
-    ssr: false,
-    loading: () => (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280, padding: '3rem 1rem' }}>
-        <VedaanshLoader size={44} message="Reading relationship and marriage…" />
-      </div>
-    ),
-  },
-)
 const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
 const TattvaPredictionPanel = dynamic(() => import('@/components/ui/TattvaPredictionPanel').then(m => m.TattvaPredictionPanel), { ssr: false })
 const NaamkaranPanel = dynamic(() => import('@/components/ui/NaamkaranPanel').then(m => m.NaamkaranPanel), { ssr: false })
@@ -533,6 +511,8 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Astrology: Sparkles,
   'Today\u2019s Reading': CalendarCheck,
   Transits: Orbit,
+  'Relationship & Marriage': Heart,
+  'Career & Profession': Briefcase,
   'Kundali Matching': HeartHandshake,
   Prashna: HelpCircle,
   Panchang: Compass,
@@ -1366,6 +1346,22 @@ function HomeContent() {
       icon: '🪐',
     },
     {
+      title: 'Relationship & Marriage',
+      subtitle: 'Gold',
+      text: 'Marriage promise, timing, Mars and Vivah readings.',
+      href: '/relationship',
+      ctaName: 'major_sections_relationship',
+      icon: '💍',
+    },
+    {
+      title: 'Career & Profession',
+      subtitle: 'Gold',
+      text: 'Dashamsha strength and the professional method.',
+      href: '/career',
+      ctaName: 'major_sections_career',
+      icon: '💼',
+    },
+    {
       title: 'Kundali Matching',
       subtitle: 'Compatibility',
       text: '36-point Guna Milan, doshas, and synastry.',
@@ -2054,10 +2050,6 @@ function HomeContent() {
                     <DrekkanaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'nakshatramsha' ? (
                     <NakshatramshaWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'relationship' ? (
-                    <RelationshipMarriagePanel chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'career' ? (
-                    <CareerProfessionPanel chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'house' ? (
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (
@@ -2423,8 +2415,8 @@ function HomeContent() {
                           <LifeHighlightsCard
                             chart={chart}
                             userPlan={userPlan}
-                            onOpenRelationship={() => setActiveTab('relationship')}
-                            onOpenCareer={() => setActiveTab('career')}
+                            onOpenRelationship={() => router.push('/relationship')}
+                            onOpenCareer={() => router.push('/career')}
                           />
                           <RemediesCard chart={chart} />
                         </div>
@@ -3136,8 +3128,8 @@ function HomeContent() {
                     <LifeHighlightsCard
                       chart={chart}
                       userPlan={userPlan}
-                      onOpenRelationship={() => setActiveTab('relationship')}
-                      onOpenCareer={() => setActiveTab('career')}
+                      onOpenRelationship={() => router.push('/relationship')}
+                      onOpenCareer={() => router.push('/career')}
                     />
                     <RemediesCard chart={chart} />
 

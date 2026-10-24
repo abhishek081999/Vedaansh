@@ -13,8 +13,6 @@ export type ChartTabId =
   | 'dwadashamsha'
   | 'drekkana'
   | 'nakshatramsha'
-  | 'relationship'
-  | 'career'
   | 'dasha'
   | 'dasha-interpretation'
   | 'house'
@@ -41,8 +39,6 @@ export const FULL_WIDTH_CHART_TABS: readonly ChartTabId[] = [
   'dwadashamsha',
   'drekkana',
   'nakshatramsha',
-  'relationship',
-  'career',
   'house',
   'interpretation',
   'tattva',
@@ -59,8 +55,6 @@ export const FLUSH_PADDING_CHART_TABS: readonly ChartTabId[] = [
   'dwadashamsha',
   'drekkana',
   'nakshatramsha',
-  'relationship',
-  'career',
   'house',
   'kp-stellar',
 ]

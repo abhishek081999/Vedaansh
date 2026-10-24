@@ -48,6 +48,27 @@ const TOOL_DOCS: SearchDoc[] = [
     keywords: ['kundali matching', 'ashtakoot', 'guna milan', 'marriage matching', 'kundali milan', 'married life'],
   },
   {
+    title: 'Today\'s Reading',
+    description: 'Personal daily reading from your Moon, running dasha, live transits, and panchang.',
+    url: '/today',
+    type: 'tool',
+    keywords: ['today', 'daily horoscope', 'daily prediction', 'gochar', 'personal reading'],
+  },
+  {
+    title: 'Relationship & Marriage',
+    description: 'Marriage promise, timing, Mars and Vivah readings, and Navamsha analysis from your chart.',
+    url: '/relationship',
+    type: 'tool',
+    keywords: ['marriage', 'relationship', 'vivah', 'spouse', 'seventh house', 'mangal dosha', 'love'],
+  },
+  {
+    title: 'Career & Profession',
+    description: 'Career direction, Dashamsha strength, and professional method readings from your chart.',
+    url: '/career',
+    type: 'tool',
+    keywords: ['career', 'profession', 'job', 'dashamsha', 'd10', 'tenth house'],
+  },
+  {
     title: 'Nakshatra Analysis',
     description: 'Birth star overview, compatibility, remedies, and muhurta.',
     url: '/nakshatra',

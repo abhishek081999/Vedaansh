@@ -188,7 +188,16 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       (pathname === ASTROLOGY_HOME_PATH
         ? ASTRO_GROUPS.find((g) => g.tabs.some((t) => t.id === activeTab))
         : undefined)
-    if (!activeGroup) return
+    if (!activeGroup) {
+      // Direct links with their own route (Relationship, Career) open the Astrology section only.
+      if (ASTRO_DIRECT_TABS.some((t) => t.path && t.path !== ASTROLOGY_HOME_PATH && pathname === t.path)) {
+        persistSidenavSection('astrology')
+        setIsAstroOpen(true)
+        setIsAdvancedAstroOpen(false)
+        setIsPanchangOpen(false)
+      }
+      return
+    }
     setAstroGroupOpen((prev) => {
       if (prev[activeGroup.id]) return prev
       const next = { ...prev, [activeGroup.id]: true }
@@ -229,9 +238,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const headerPrimaryTabs = TOP_TABS
   const pricingTab = MAIN_TABS.find((tab) => tab.id === 'pricing')
   const astroTabIds = astroNavTabs().map((tab) => tab.id)
-  const isAstroExternalPath = ASTRO_GROUPS.some((group) =>
-    group.tabs.some((tab) => tab.path && tab.path !== ASTROLOGY_HOME_PATH && pathname === tab.path),
-  )
+  const isAstroExternalPath =
+    ASTRO_GROUPS.some((group) =>
+      group.tabs.some((tab) => tab.path && tab.path !== ASTROLOGY_HOME_PATH && pathname === tab.path),
+    ) ||
+    ASTRO_DIRECT_TABS.some((tab) => tab.path && tab.path !== ASTROLOGY_HOME_PATH && pathname === tab.path)
   const isAstroHeaderActive =
     (pathname === ASTROLOGY_HOME_PATH && astroTabIds.includes(activeTab)) || isAstroExternalPath
 
