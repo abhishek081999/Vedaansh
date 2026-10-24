@@ -21,6 +21,8 @@ import { analyzeMarriageHouses } from '@/lib/engine/marriageHouses'
 import { analyzeSeventhLord } from '@/lib/engine/seventhLord'
 import { analyzeKarmicDebt } from '@/lib/engine/karmicDebt'
 import { analyzeVenusJupiterBond } from '@/lib/engine/venusJupiterBond'
+import { analyzeMarriageVivah } from '@/lib/engine/marriageVivah'
+import { analyzeMarriageMars } from '@/lib/engine/marriageMars'
 import { analyzeMarriageKarma } from '@/lib/engine/marriageKarma'
 import { analyzeVenusMarriage } from '@/lib/engine/venusMarriage'
 import { analyzeMarriageGochar } from '@/lib/engine/marriageGochar'
@@ -29,11 +31,11 @@ import { analyzePartnerNature } from '@/lib/engine/partnerNature'
 import { analyzeDivorceEnergy } from '@/lib/engine/divorceEnergy'
 import { analyzeClassicalMarriage } from '@/lib/engine/classicalMarriage'
 import { analyzeMarriageCaseBrief } from '@/lib/engine/marriageCaseBrief'
-import { ClassicalMarriageSections, CaseBriefCard, DivorceEnergySections, IntimateLifeSections, JayaSections, KarmicDebtSections, LIFE_TONE, MarriageClassSections, MarriageGocharSections, MarriageHousesSections, MarriageKarmaSections, NoteCards, PartnerNatureSections, ScoreMeter, SectionLabel, SeventhLordSections, VenusJupiterSections, VenusMarriageSections, YogaChecklist } from '@/components/ui/marriedLifeUi'
+import { ClassicalMarriageSections, CaseBriefCard, DivorceEnergySections, IntimateLifeSections, JayaSections, KarmicDebtSections, LIFE_TONE, MarriageClassSections, MarriageGocharSections, MarriageHousesSections, MarriageKarmaSections, MarriageMarsSections, MarriageVivahSections, NoteCards, PartnerNatureSections, ScoreMeter, SectionLabel, SeventhLordSections, VenusJupiterSections, VenusMarriageSections, YogaChecklist } from '@/components/ui/marriedLifeUi'
 import { JaiminiMarriageSection } from '@/components/ui/JaiminiMarriageSection'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
-type View = 'overview' | 'axis' | 'bonds' | 'classical' | 'jaimini' | 'jaya' | 'class' | 'bond' | 'partner' | 'split' | 'houses' | 'lord' | 'planets' | 'intimate' | 'timing' | 'remedies'
+type View = 'overview' | 'axis' | 'bonds' | 'classical' | 'jaimini' | 'jaya' | 'class' | 'bond' | 'method' | 'partner' | 'split' | 'houses' | 'lord' | 'planets' | 'mars' | 'intimate' | 'timing' | 'remedies'
 
 const VIEWS: { id: View; label: string }[] = [
   { id: 'overview', label: 'Significators' },
@@ -44,11 +46,13 @@ const VIEWS: { id: View; label: string }[] = [
   { id: 'jaya', label: 'Jaya Bhava' },
   { id: 'class', label: 'D1 and D9' },
   { id: 'bond', label: 'Venus and Jupiter' },
+  { id: 'method', label: 'Marriage method' },
   { id: 'partner', label: 'The partner' },
   { id: 'split', label: 'Separation' },
   { id: 'houses', label: 'Eight houses' },
   { id: 'lord', label: '7th lord' },
   { id: 'planets', label: 'Jupiter, Mars, Saturn' },
+  { id: 'mars', label: 'Mars' },
   { id: 'intimate', label: 'Intimate and in-laws' },
   { id: 'timing', label: 'Timing' },
   { id: 'remedies', label: 'Remedies' },
@@ -57,6 +61,8 @@ const VIEWS: { id: View; label: string }[] = [
 interface Props {
   chart: ChartOutput
   userPlan?: UserPlan
+  /** Inside Kundali Milan: the reading only, without a second set of charts. */
+  embedded?: boolean
 }
 
 function planRank(plan: UserPlan): number {
@@ -186,7 +192,7 @@ function MarriageReadingLoader() {
   )
 }
 
-function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
+function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = false }: Props) {
   const full = planMeetsUiGate(userPlan, 'gold')
   const data = useMemo(() => analyzeMarriedLife(chart), [chart])
   const axis = useMemo(() => (full ? analyzeSeventhAxis(chart) : null), [chart, full])
@@ -197,6 +203,8 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
   const seventhLord = useMemo(() => (full ? analyzeSeventhLord(chart) : null), [chart, full])
   const karmicDebt = useMemo(() => (full ? analyzeKarmicDebt(chart) : null), [chart, full])
   const venusJupiter = useMemo(() => (full ? analyzeVenusJupiterBond(chart) : null), [chart, full])
+  const marriageVivah = useMemo(() => (full ? analyzeMarriageVivah(chart) : null), [chart, full])
+  const marriageMars = useMemo(() => (full ? analyzeMarriageMars(chart) : null), [chart, full])
   const { windows: gocharWindows } = useMarriageGocharWindows(chart.lagnas?.ascRashi, full)
   const marriageGochar = useMemo(
     () => (full ? analyzeMarriageGochar(chart, { injectWindows: gocharWindows }) : null),
@@ -242,16 +250,18 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
         <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55, maxWidth: 760 }}>
           {data.summary}
         </p>
-        <p style={{ margin: '0.65rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Solo reading for this chart.{' '}
-          <Link href="/compare" style={{ color: 'var(--text-gold)', fontWeight: 700, textDecoration: 'none' }}>
-            Match with a partner chart
-          </Link>
-          {' '}for Kundali Milan.
-        </p>
+        {embedded ? null : (
+          <p style={{ margin: '0.65rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            Solo reading for this chart.{' '}
+            <Link href="/compare" style={{ color: 'var(--text-gold)', fontWeight: 700, textDecoration: 'none' }}>
+              Match with a partner chart
+            </Link>
+            {' '}for Kundali Milan.
+          </p>
+        )}
       </header>
 
-      <MarriageCharts chart={chart} userPlan={userPlan} showDivisionals={full} />
+      {embedded ? null : <MarriageCharts chart={chart} userPlan={userPlan} showDivisionals={full} />}
 
       {!full && (
         <>
@@ -264,7 +274,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
             <div style={{ minHeight: 112, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
               <div style={{ fontWeight: 700, marginBottom: 6 }}>Full reading is on Gold</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                Every divisional chart, the four questions, D1 and D9, the partner, separation, houses, timing, and remedies.
+                Every divisional chart, the four questions, D1 and D9, Venus and Jupiter, the marriage method, the partner, separation, houses, timing, and remedies.
               </div>
             </div>
           </PlanGate>
@@ -320,7 +330,6 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
               <ScoreMeter key={d.id} label={d.label} planet={d.planet} score={d.score} summary={d.summary} />
             ))}
           </div>
-
           <SectionLabel>Four questions</SectionLabel>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.65rem' }}>
             {data.significators.map(s => (
@@ -338,7 +347,6 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
               </article>
             ))}
           </div>
-
           <article style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
             <SectionLabel>Who brings the proposal</SectionLabel>
             <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -347,7 +355,6 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
             </p>
             <p style={{ margin: '0.65rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.bondStyle}</p>
           </article>
-
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.65rem' }}>
             <article style={{ padding: '0.85rem', borderLeft: `3px solid ${LIFE_TONE[data.fourth.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
               <SectionLabel>4th house — home</SectionLabel>
@@ -355,9 +362,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
             </article>
             <article style={{ padding: '0.85rem', borderLeft: `3px solid ${LIFE_TONE[data.tenth.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
               <SectionLabel>10th house — work{chart.meta.gender === 'female' ? ' and mother-in-law' : ''}</SectionLabel>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                {data.tenth.reading}
-              </p>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{data.tenth.reading}</p>
             </article>
           </div>
         </>
@@ -439,6 +444,13 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
         </>
       )}
 
+      {view === 'method' && marriageVivah && (
+        <>
+          <SectionLabel>Marriage method — Mars, stars, bond, and debt</SectionLabel>
+          <MarriageVivahSections reading={marriageVivah} clientSafe={clientSafe} />
+        </>
+      )}
+
       {view === 'partner' && partnerNature && (
         <>
           <SectionLabel>The partner — read from this chart</SectionLabel>
@@ -485,6 +497,13 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
               <YogaChecklist notes={yogaNotes} filter={yogaFilter} onFilterChange={setYogaFilter} clientSafe={clientSafe} />
             </>
           ) : null}
+        </>
+      )}
+
+      {view === 'mars' && marriageMars && (
+        <>
+          <SectionLabel>Mars — the fire that starts and defends the marriage</SectionLabel>
+          <MarriageMarsSections reading={marriageMars} clientSafe={clientSafe} />
         </>
       )}
 
@@ -541,7 +560,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
   )
 }
 
-export function RelationshipMarriagePanel({ chart, userPlan = 'free' }: Props) {
+export function RelationshipMarriagePanel({ chart, userPlan = 'free', embedded = false }: Props) {
   const [shown, setShown] = useState(false)
   const [, startTransition] = useTransition()
 
@@ -554,5 +573,5 @@ export function RelationshipMarriagePanel({ chart, userPlan = 'free' }: Props) {
   }, [chart, startTransition])
 
   if (!shown) return <MarriageReadingLoader />
-  return <RelationshipMarriageReading chart={chart} userPlan={userPlan} />
+  return <RelationshipMarriageReading chart={chart} userPlan={userPlan} embedded={embedded} />
 }

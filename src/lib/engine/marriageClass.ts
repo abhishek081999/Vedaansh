@@ -59,7 +59,7 @@ const JUPITER_NAKS = new Set([6, 15, 24])
 const KETU_NAKS = new Set([0, 9, 18])
 
 export const MARRIAGE_CLASS_PRINCIPLES =
-  'The birth chart is the marriage as it is lived. The Navamsha (D9) is the same planet at a deeper level: its meaning stays, its strength can change. When a planet is weak in the birth chart and strong in the Navamsha, the deeper chart is what holds. When it is strong in the birth chart and weak in the Navamsha, that strength does not hold underneath. This is read for Venus, Jupiter, and every other planet. Look first at the 7th house, the planet that rules it, and Venus. In the Navamsha, look at Venus first, then the 7th house, then the Moon. Name the kind of bond before naming a year. A break that cannot be restarted needs three things at once: the marriage lord under strain, a difficult planet on Navamsha Venus, and Rahu’s major period with Saturn’s sub-period. The spouse is one of the debts carried from an earlier life, along with children and the home. D7 shows how the household changes after a child. The year you meet, and the place, stay unnamed until the kind of bond is clear.'
+  'A physical marriage is Mars, an emotional marriage is the Moon, and a soul marriage is Venus, especially in the Navamsha. The birth chart is the marriage as it is lived. The Navamsha (D9) is the same planet at a deeper level: its meaning stays, its strength can change. When a planet is weak in the birth chart and strong in the Navamsha, the deeper chart is what holds. When it is strong in the birth chart and weak in the Navamsha, that strength does not hold underneath. This is read for Venus, Jupiter, and every other planet. Look first at the 7th house, the planet that rules it, and Venus. In the Navamsha, look at Venus first, then the 7th house, then the Moon. Householder life works on the ego, on feeling, and on the spirit together. Name the kind of bond before naming a year. A break that cannot be restarted needs three things at once: the marriage lord under strain, a difficult planet on Navamsha Venus, and Rahu’s major period with Saturn’s sub-period. The spouse is one of the debts carried from an earlier life, along with children and the home. D7 shows how the household changes after a child. The nine Navamsha age windows are not used to name a year. Only the first two have a theme here: family karma, then emotional learning. Rahu, Ketu, or Saturn on the marriage move the rest. The year you meet, and the place, stay unnamed until the kind of bond is clear. A soul bond is named only when those combinations are on the chart. A few days of feeling do not make one.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -268,14 +268,17 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
   const strainNotes: MarriedLifeNote[] = []
 
   if (lord && d9Lord) {
-    const same = lord.rashi === d9Lord.rashi && lord.dignity === d9Lord.dignity
-    frame.push(note(
-      'class-d1-d9',
-      'One marriage planet, two strengths',
-      `${gn(lord.id)} rules marriage in both charts. In the birth chart it is in ${rn(lord.rashi)}${lordHouse ? `, house ${lordHouse}` : ''}, ${plainStrength(lord.dignity)}. In the Navamsha it is in ${rn(d9Lord.rashi)}, ${plainStrength(d9Lord.dignity)}. ${same ? 'Sign and strength match, so daily life and the deeper bond tell one story.' : 'It is still the marriage planet. Its strength, and the planets beside it, have changed. The birth chart is the marriage people live. The Navamsha is the quality underneath.'}`,
-      same ? 'supportive' : 'mixed',
-    ))
-  } else if (!d9Lord) {
+    const birthBand = dignityBand(lord, true)
+    const deepBand = dignityBand(d9Lord, false)
+    if (birthBand && deepBand && birthBand !== deepBand) {
+      frame.push(note(
+        'class-d1-d9',
+        'One marriage planet, two strengths',
+        `${gn(lord.id)} rules marriage in both charts. In the birth chart it is in ${rn(lord.rashi)}${lordHouse ? `, house ${lordHouse}` : ''}, ${plainStrength(lord.dignity)}. In the Navamsha it is in ${rn(d9Lord.rashi)}, ${plainStrength(d9Lord.dignity)}. The birth chart is the marriage people live. The Navamsha is the quality underneath, and these two strengths do not match.`,
+        deepBand === 'strong' ? 'supportive' : 'caution',
+      ))
+    }
+  } else if (!d9Lord && !d9Asc) {
     frame.push(note(
       'class-d9-missing',
       'The deeper marriage chart is missing',
@@ -296,7 +299,10 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
   const strengthLines = roster.flatMap(p => {
     const natal = find(chart.grahas, p.id)
     const deep = find(d9, p.id)
-    return natal || deep ? [strengthSentence(p.name, natal, deep)] : []
+    const birthBand = dignityBand(natal, true)
+    const deepBand = dignityBand(deep, false)
+    const flipped = (birthBand === 'weak' && deepBand === 'strong') || (birthBand === 'strong' && deepBand === 'weak')
+    return flipped ? [strengthSentence(p.name, natal, deep)] : []
   })
   if (strengthLines.length) {
     const rescued = roster.some(p => dignityBand(find(chart.grahas, p.id), true) === 'weak' && dignityBand(find(d9, p.id), false) === 'strong')
@@ -382,13 +388,6 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
   if (ranked[0].score >= 3 && ranked[0].score > ranked[1].score) {
     kind = ranked[0].id
     kindNotes.push(note(`class-kind-${kind}`, ranked[0].title, ranked[0].detail, kind === 'soul' ? 'supportive' : 'mixed'))
-  } else {
-    kindNotes.push(note(
-      'class-kind-open',
-      'No single kind of marriage stands out',
-      'Mars, the Moon, and Venus are close enough on marriage that this is not only physical, only emotional, or only soul-level. The choice itself shows which of the three it was.',
-      'mixed',
-    ))
   }
 
   const d9Jupiter = find(d9, 'Ju')
@@ -485,7 +484,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
         tone: 'mixed',
       },
     }
-    patternNotes.push(note('class-moon-venus', code[rel].title, code[rel].detail, code[rel].tone))
+    if (rel !== '2-12') patternNotes.push(note('class-moon-venus', code[rel].title, code[rel].detail, code[rel].tone))
   }
 
   const lordAfflicted = !!lord && (weak(lord) || (lordHouse != null && DUSTHANA.has(lordHouse)) || maleficsOn(lord, chart.grahas).length > 0)
@@ -512,7 +511,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     patternNotes.push(note(
       'class-pattern-second',
       'The first bond finishes; a later one fits',
-      'The marriage lord is under strain in the birth chart, while Venus and the marriage lord are strong in the Navamsha. The earlier bond is deep, and it is the one that finishes an old account. The later bond is the one that fits. A strong Navamsha means the marriage story is not over. Keep this private if a spouse was never told.',
+      'The marriage lord is under strain in the birth chart, in whatever house it occupies, while Venus and the marriage lord are strong in the Navamsha. The earlier bond is deep and can feel already decided. Depth does not keep it. It is the bond that finishes an old account. The later bond is the one that fits. A strong Navamsha means the marriage story is not over. This is not a certainty, and it is not a date. Keep this private if a spouse was never told.',
       'mixed',
     ))
   } else if (manyYoga) {
@@ -533,7 +532,28 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     ))
   }
 
-  if (lordAfflicted && pattern !== 'divorce' && pattern !== 'second') {
+  const d1Moderate = !!lord && !lordAfflicted && !seventhStrong
+  const venusVeryStrong = !!venus && dignified(venus.dignity) && !venus.isCombust && d9VenusStrong
+  if (pattern === 'open' && d9 && d1Moderate && d9LordStrong && venusVeryStrong) {
+    pattern = 'many'
+    patternNotes.push(note(
+      'class-pattern-moderate',
+      'Several bonds, with a very strong Venus',
+      'The birth chart is neither settled nor broken. The Navamsha marriage lord is strong, and Venus is very strong in both charts. Several important relationships can follow, one layer ending before the next begins. This is not counted from the 7th house alone, and it is not a count of weddings.',
+      'mixed',
+    ))
+  }
+
+  if (d9 && lordAfflicted && d9VenusStrong && !d9LordStrong && pattern !== 'divorce') {
+    patternNotes.push(note(
+      'class-karmic-first',
+      'The first bond settles an old account',
+      'The marriage lord is under strain in the birth chart, in whatever house it occupies, and Venus is strong in the Navamsha. The earlier bond is deep and can feel already decided. It is the bond that finishes the account. The later bond is the one that can align. Strength of Venus in the Navamsha does not make that first ending a certainty, and it does not name a year.',
+      'mixed',
+    ))
+  }
+
+  if (lordAfflicted && pattern !== 'divorce' && pattern !== 'second' && !(d9 && d9VenusStrong && !d9LordStrong)) {
     patternNotes.push(note(
       'class-one-break',
       'The marriage lord is under strain',
@@ -557,7 +577,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
       'caution',
     ))
   }
-  if (lordAfflicted && pattern !== 'divorce' && pattern !== 'second' && (d9Venus?.dignity === 'exalted' || d9LordStrong)) {
+  if (lordAfflicted && pattern !== 'divorce' && pattern !== 'second' && d9LordStrong && !d9VenusStrong) {
     patternNotes.push(note(
       'class-d9-protects',
       'The marriage story is not finished',
@@ -585,33 +605,10 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     patternNotes.push(note(
       'class-layers',
       'Where the strain sits',
-      `Three questions stay separate. Here they are: ${layerBits.join('; ')}. The marriage lord answers whether a bond breaks. Venus answers whether attraction still has one direction. The Navamsha answers whether the same damage is still there at a deeper level. Naming the place of the strain is not yet naming a year.`,
+      `Three questions stay separate. Here they are: ${layerBits.join('; ')}. The marriage lord answers whether a bond breaks. Venus answers whether attraction still has one direction. The Navamsha answers whether the same damage is still there at a deeper level. The first layer ends before the next one begins. Naming the place of the strain is not yet naming a year.`,
       'caution',
     ))
   }
-
-  const inSeventh = chart.grahas.filter(g => houseOf(g.rashi, asc) === 7)
-  const d9InSeventh = d9Asc ? (d9 ?? []).filter(g => houseOf(g.rashi, d9Asc) === 7) : []
-  const venusD1Line = !venus
-    ? 'Venus is missing, so the feel of the relationship cannot be read.'
-    : venusAfflicted
-      ? 'Venus is under strain in the birth chart. Daily life in the relationship is unsteady, even when the idea of it is pleasing.'
-      : capable(venus.dignity)
-        ? 'Venus is strong in the birth chart. The choice of a partner runs through looks, money, and a life that works.'
-        : `Venus is in ${rn(venus.rashi)}, ${plainStrength(venus.dignity)}.`
-  const venusD9Line = !d9Venus
-    ? 'Venus is not available in the Navamsha.'
-    : dignityBand(d9Venus, false) === 'strong'
-      ? `Venus is strong in the Navamsha. ${dignityBand(venus, true) === 'weak' ? 'The birth chart is weak. The deeper chart holds this strength. ' : ''}The connection goes deeper than the household.`
-      : dignityBand(d9Venus, false) === 'weak' || maleficsOn(d9Venus, d9 ?? []).length > 0
-        ? `Venus is under strain in the Navamsha. ${dignityBand(venus, true) === 'strong' ? 'Strength in the birth chart does not cancel that. ' : ''}The marriage carries suffering at a deeper level.`
-        : `In the Navamsha, Venus is in ${rn(d9Venus.rashi)}, ${plainStrength(d9Venus.dignity)}.`
-  frame.push(note(
-    'class-sequence',
-    'Birth chart first, then the deeper chart',
-    `In the birth chart, the 7th house is ${rn(seventh)}${inSeventh.length ? `, with ${inSeventh.map(g => gn(g.id)).join(' and ')} there` : ', with no planet in it'}. The planet that rules it is ${lord ? `${gn(lord.id)}, in ${rn(lord.rashi)}` : 'missing'}. ${venusD1Line} In the Navamsha, Venus comes first. ${venusD9Line}${d9Asc ? ` The Navamsha 7th house is ${rn(signOf(d9Asc, 7))}${d9InSeventh.length ? `, with ${d9InSeventh.map(g => gn(g.id)).join(' and ')} there` : ''}.` : ''} ${d9Moon ? `The Navamsha Moon is in ${rn(d9Moon.rashi)}.` : 'The Navamsha Moon is not available.'}`,
-    'mixed',
-  ))
 
   if (venus && (sees(rahu, venus) || (d9Venus && sees(find(d9, 'Ra'), d9Venus)))) {
     patternNotes.push(note(
@@ -629,11 +626,13 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     ))
   }
 
-  if (venus && dignified(venus.dignity) && d9Venus?.dignity === 'debilitated') {
+  if (venus && d9Venus && dignified(venus.dignity) && d9Venus.dignity === 'debilitated') {
+    const d9VenusHouse = d9Asc ? houseOf(d9Venus.rashi, d9Asc) : null
+    const ownSign = venus.dignity === 'own' || venus.dignity === 'moolatrikona'
     patternNotes.push(note(
       'class-venus-flip',
       'Strong at the start, fallen underneath',
-      'The opening looks steadier than the deeper bond. The start is on again and off again, with turns that were not in the plan. Strength in the birth chart is real. It does not cancel Venus falling in the Navamsha.',
+      `${ownSign ? `Venus is in its own sign, ${rn(venus.rashi)}, in the birth chart` : 'Venus is strong in the birth chart'} and fallen in the Navamsha${d9VenusHouse ? `, house ${d9VenusHouse}` : ''}. The opening is on again and off again, with turns that were not in the plan. The bond is still an old account. Strength in the birth chart does not cancel the fall underneath.`,
       'caution',
     ))
   }
@@ -706,7 +705,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     bondNotes.push(note(
       'class-bond-karmic',
       'An old account, not a peaceful bond',
-      'At least two of these are present: Venus with Rahu, Rahu in the 7th house, Rahu or Ketu on the Moon, a weak Venus in the Navamsha, or the marriage lord in the 8th house. The start is fast and intense. Feeling is unstable. Attraction has no contentment. Happy moments can keep arriving. The peace that stays does not. The purpose is an unpaid account. The bond changes when that account is finished, by separation or by becoming a different marriage. The first years are the roughest. A child can settle the house. A child does not erase the account.',
+      'At least two of these are present: Venus with Rahu, Rahu in the 7th house, Rahu or Ketu on the Moon, a weak Venus in the Navamsha, or the marriage lord in the 8th house. The start is fast and intense. Feeling is unstable, and decisions stall. Attraction has no contentment. Happy moments can keep arriving. The peace that stays does not. The purpose is an unpaid account. The bond changes when that account is finished, by separation or by the marriage becoming a different one. The first three years are the roughest. A child can settle the house. A child does not erase the account.',
       'caution',
     ))
   } else if (soul >= 2) {
@@ -734,6 +733,18 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     ))
   }
 
+  const ageMoved = [saturn, rahu, ketu].some(g =>
+    !!g && (houseOf(g.rashi, asc) === 7 || sees(g, venus) || sees(g, lord)),
+  )
+  if (bond !== 'open' && ageMoved) {
+    navNotes.push(note(
+      'class-age-moved',
+      'No year for meeting or ending',
+      'Saturn, Rahu, or Ketu reaches Venus, the marriage lord, or the 7th house, so the usual ages shift. Early life is still family karma. The years after that are still emotional learning. Neither stretch names the year two people meet, or the year an old bond ends.',
+      'mixed',
+    ))
+  }
+
   if (d9Venus && d9Asc && houseOf(d9Venus.rashi, d9Asc) === 8) {
     navNotes.push(note(
       'class-d9-venus-8',
@@ -752,19 +763,26 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     ))
   }
 
-  if (d9Venus) {
+  const d9VenusMarked = !!d9Venus && (
+    d9VenusStrong
+    || d9Venus.dignity === 'debilitated'
+    || dignityBand(d9Venus, false) === 'weak'
+    || !!d9Venus.isRetro
+    || !!(find(d9, 'Ra') && sees(find(d9, 'Ra'), d9Venus))
+  )
+  if (d9Venus && d9VenusMarked) {
     const cond = dignityBand(d9Venus, false) === 'strong'
       ? 'Venus is strong in the Navamsha. Love is something this person can feel, not only an idea.'
       : d9Venus.dignity === 'debilitated'
         ? 'Venus is fallen in the Navamsha. Love is an effort before it becomes the climate of the life.'
         : dignityBand(d9Venus, false) === 'weak'
           ? 'Venus is weak in the Navamsha. Love is an effort before it becomes the climate of the life.'
-          : 'Venus in the Navamsha is of ordinary strength. How love feels follows the planets that touch it.'
+          : ''
     const retro = d9Venus.isRetro
       ? ' Venus is retrograde, moving backward, and that carries into the Navamsha. This is an unfinished love from before this life. Strength does not close that account.'
       : ''
     const node = find(d9, 'Ra') && sees(find(d9, 'Ra'), d9Venus) ? ' Rahu on Navamsha Venus makes the attraction obsessive, like an old pull that will not let go.' : ''
-    navNotes.push(note('class-d9-venus', 'How love is experienced', `${cond}${retro}${node}`, d9VenusStrong ? 'supportive' : d9VenusAfflicted ? 'caution' : 'mixed'))
+    navNotes.push(note('class-d9-venus', 'How love is experienced', `${cond}${retro}${node}`.trim(), d9VenusStrong && !d9Venus.isRetro ? 'supportive' : d9VenusAfflicted || d9Venus.isRetro ? 'caution' : 'mixed'))
   }
 
   if (d9SeventhLord) {
@@ -804,11 +822,16 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     ))
   }
 
-  if (lordId === 'Mo') {
+  if (lordId === 'Mo' && moon) {
+    const moonHouse = houseOf(moon.rashi, asc)
+    const star = nakName(moon.nakshatraIndex)
+    const signLord = find(chart.grahas, LORDS[moon.rashi])
+    const watchers = chart.grahas.filter(g => g.id !== 'Mo' && aspects(g, moon.rashi)).map(g => gn(g.id))
+    const paksha = moon.isWaxingMoon === false ? 'waning' : moon.isWaxingMoon === true ? 'waxing' : 'of unstated phase'
     navNotes.push(note(
       'class-moon-is-lord',
       'The Moon itself rules marriage',
-      'Cancer is on the 7th house, so the Moon is the marriage lord. Before calling this a soul bond, look at its sign, its birth star, the lord of that sign, whether the Moon is waxing or waning, whether it is in a corner house, and which planets see it. The Moon is not a shortcut past those.',
+      `Cancer is on the 7th, so the Moon is the marriage lord. It sits in ${rn(moon.rashi)}${star ? `, ${star}` : ''}, house ${moonHouse}${KENDRA.has(moonHouse) ? ', a corner house' : ''}, ${paksha}. The lord of that sign is ${signLord ? `${gn(signLord.id)} in ${rn(signLord.rashi)}, ${plainStrength(signLord.dignity)}` : 'not on the chart'}. ${watchers.length ? `${watchers.join(' and ')} see the Moon.` : 'No planet sees the Moon by aspect.'} These layers are the reading. The Moon is not a shortcut past them.`,
       'mixed',
     ))
   }
@@ -927,20 +950,11 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     }
   }
 
-  if (chart.vargaLagnas?.D7) {
-    navNotes.push(note(
-      'class-d7',
-      'Children change the marriage',
-      `The children’s chart (D7) has its rising sign in ${rn(chart.vargaLagnas.D7)}. Many marriages exist for a child, and the bond changes when the child arrives. The birth chart is the event. The Navamsha is the quality of the marriage. D7 is what the household becomes afterward. A child’s rising sign, and the period of the birth, are not read from this rising sign alone.`,
-      'mixed',
-    ))
-  }
-
   if (moon && ((rahu && sees(rahu, moon)) || (ketu && sees(ketu, moon)))) {
     strainNotes.push(note(
       'class-moon-node',
       'Rahu or Ketu is on the Moon',
-      'Feelings in the marriage are unsteady. Misunderstandings come often, and the first years are the roughest. A child can settle a great deal of it. How far that reaches still depends on the Navamsha, and on whatever else sees the Moon.',
+      'Feelings in the marriage are unsteady. Misunderstandings come often, and the first three years are the roughest. After that the house can settle, and a child can settle more of it. How far that reaches still depends on the Navamsha, and on whatever else sees the Moon.',
       'mixed',
     ))
   }

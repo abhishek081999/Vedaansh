@@ -71,7 +71,7 @@ const AGE_YEARS: Record<MarriageAgeBand, [number, number] | null> = {
 }
 
 export const MARRIAGE_GOCHAR_PRINCIPLES =
-  'A double transit of Saturn and Jupiter on the 1st or the 7th is one bright chance for marriage. It is not the marriage. Outside the years a marriage is possible, that transit passes. Jupiter’s transit on the lagna alone has coincided with marriage when the dasha was already open. Dated windows are scanned from the sky and then filtered by dasha and age band. They are opportunity ranges, not a guaranteed wedding day.'
+  'A double transit of Saturn and Jupiter on the 1st or the 7th is one bright chance for marriage, once the soul’s stretch of being alone is over. On that house means the planet sits there or glances it: Jupiter by the 5th, 7th, and 9th, Saturn by the 3rd, 7th, and 10th. Jupiter also confirms by reaching Venus or the Moon. It is not the marriage. Outside the years a marriage is possible, the transit passes with no wedding. Jupiter’s transit on the lagna alone has coincided with marriage when the dasha was already open. Transit without that dasha passes. The dasha may be any planet tied to houses 1, 2, 3, 4, 5, 7, 8, or 11. Saturn is looked for in the periods of marriages that stay. When the sky, the period, and the marriageable years agree, that is the strong case — and only if the birth chart already promises a marriage. The promise is read separately. A transit does not create it. Dated windows are search ranges, not a guaranteed wedding day. The same sky returns every few years, so the transit alone is never the wedding.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -104,11 +104,22 @@ function isoDay(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
-/** Pure classifier for one month’s Ju/Sa houses from natal asc. */
+function influences(fromHouse: number, targetHouse: number, planet: 'Ju' | 'Sa'): boolean {
+  if (fromHouse === targetHouse) return true
+  const diff = ((targetHouse - fromHouse + 12) % 12) + 1
+  if (diff === 7) return true
+  if (planet === 'Ju' && (diff === 5 || diff === 9)) return true
+  if (planet === 'Sa' && (diff === 3 || diff === 10)) return true
+  return false
+}
+
+/** Pure classifier for one month’s Ju/Sa houses from natal asc. Occupation or full glance. */
 export function classifyTransitMonth(juHouse: number, saHouse: number): MarriageTransitKind | null {
   if (juHouse === 1 && saHouse === 1) return 'double-1'
   if (juHouse === 7 && saHouse === 7) return 'double-7'
-  if (juHouse === 1) return 'jupiter-lagna'
+  if (influences(juHouse, 7, 'Ju') && influences(saHouse, 7, 'Sa')) return 'double-7'
+  if (influences(juHouse, 1, 'Ju') && influences(saHouse, 1, 'Sa')) return 'double-1'
+  if (influences(juHouse, 1, 'Ju')) return 'jupiter-lagna'
   return null
 }
 
@@ -223,7 +234,7 @@ export function analyzeMarriageGochar(
     window.push(note(
       'gochar-open',
       'This period can receive a marriage transit',
-      `Period lords ${names} are tied to ${houses.map(ordinalHouse).join(', ')}. Those houses can carry a wedding. A double transit of Saturn and Jupiter on the rising sign or marriage house (7th) is a bright chance while this period is open. Dated sky windows below are search ranges, not a guaranteed wedding day.`,
+      `Period lords ${names} are tied to ${houses.map(ordinalHouse).join(', ')}. A dasha of any planet tied to houses 1, 2, 3, 4, 5, 7, 8, or 11 can carry a wedding. A double transit of Saturn and Jupiter on the rising sign or marriage house (7th) — by occupation or by their full glance — is a bright chance while this period is open. Jupiter alone on the rising sign, or Jupiter reaching Venus or the Moon, has also coincided with marriage when the period was already open. Saturn is looked for in the periods of marriages that stay. Dated sky windows below are search ranges, not a guaranteed wedding day.`,
       'mixed',
     ))
   } else if (dashaSupports === false && md) {
@@ -256,9 +267,9 @@ export function analyzeMarriageGochar(
         `gochar-win-${w.start}`,
         `${kindLabel}: ${w.start} → ${w.end}`,
         [
-          w.inDasha ? 'Overlaps the open marriage dasha.' : 'Falls outside the current MD/AD span — note only.',
-          w.inAgeBand === true ? `Fits the ${band} age band.` : '',
-          w.inAgeBand === false ? `Sits outside the ${band} age band — weaker priority.` : '',
+          w.inDasha ? 'Overlaps the open marriage dasha.' : 'Falls outside the current MD/AD span. The sky passes without the event.',
+          w.inAgeBand === true ? `Fits the ${band} age band. Period and marriageable years both agree. That is the strong case, and only if the birth chart already promises a marriage.` : '',
+          w.inAgeBand === false ? `Outside the ${band} marriageable years. This transit passes. It does not trigger a wedding.` : '',
           'Use as a muhurta search range, not as a fixed wedding date.',
         ].filter(Boolean).join(' '),
         w.inDasha && w.inAgeBand !== false ? 'supportive' : 'mixed',
@@ -273,13 +284,23 @@ export function analyzeMarriageGochar(
     ))
   }
 
+  const ageNow = by ? ageAt(isoDay(now), by) : null
+  const beforeMarriageable = ageNow != null && !!ageRange && ageNow < ageRange[0]
   if (childrenVehicle && jupiter) {
     window.push(note(
       'gochar-children',
       'A child can be the reason the marriage is due',
-      `Jupiter, significator of progeny, is on the 5th, and the 5th is in ${names}. Some marriages exist so a child can be born through that union. This is not a finding that a child is assured.`,
+      `Jupiter is the significator of progeny. It is on the 5th, and the 5th is in ${names}. Some marriages exist only so a child can be born through that union. This is not a finding that a child is assured.`,
       'caution',
     ))
+    if (beforeMarriageable) {
+      window.push(note(
+        'gochar-care',
+        'Care, if a relationship already exists',
+        `This child-period is open at age ${ageNow}, before the ${band} marriageable years. If a relationship already exists, the class asks for care: a pregnancy can arrive before a wedding is possible, and health trouble has followed that in the cases studied. It is a caution, not a forecast.`,
+        'caution',
+      ))
+    }
   }
 
   const preferredWin = windows.find(w => w.inDasha && w.inAgeBand !== false) ?? windows.find(w => w.inDasha) ?? windows[0]

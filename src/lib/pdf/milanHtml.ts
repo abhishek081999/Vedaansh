@@ -27,6 +27,8 @@ import { analyzeMilanMarriedLife } from '@/lib/engine/milanMarriedLife'
 import { analyzeMarriageSynastry } from '@/lib/engine/marriageSynastry'
 import { analyzePairCaseBrief } from '@/lib/engine/marriageCaseBrief'
 import { analyzeVenusJupiterBond, compareVenusJupiterBond } from '@/lib/engine/venusJupiterBond'
+import { analyzeMarriageVivah, compareMarriageVivah } from '@/lib/engine/marriageVivah'
+import { analyzeMarriageMars, compareMarriageMars } from '@/lib/engine/marriageMars'
 import { analyzePartnerNature, comparePartnerNature } from '@/lib/engine/partnerNature'
 import { analyzeKarmicDebt, compareKarmicDebt } from '@/lib/engine/karmicDebt'
 
@@ -454,6 +456,12 @@ export function generateMilanHTML(input: MilanReportInput): string {
   const veJuA = analyzeVenusJupiterBond(chartA)
   const veJuB = analyzeVenusJupiterBond(chartB)
   const veJuPair = veJuA && veJuB ? compareVenusJupiterBond(veJuA, veJuB, chartA.meta.name, chartB.meta.name) : []
+  const vivahA = analyzeMarriageVivah(chartA)
+  const vivahB = analyzeMarriageVivah(chartB)
+  const vivahPair = vivahA && vivahB ? compareMarriageVivah(vivahA, vivahB, chartA.meta.name, chartB.meta.name) : []
+  const marsA = analyzeMarriageMars(chartA)
+  const marsB = analyzeMarriageMars(chartB)
+  const marsPair = marsA && marsB ? compareMarriageMars(marsA, marsB, chartA.meta.name, chartB.meta.name) : []
   const partnerA = analyzePartnerNature(chartA)
   const partnerB = analyzePartnerNature(chartB)
   const partnerPair = partnerA && partnerB ? comparePartnerNature(partnerA, partnerB, chartA.meta.name, chartB.meta.name) : []
@@ -513,6 +521,14 @@ export function generateMilanHTML(input: MilanReportInput): string {
     ${veJuPair.length ? `<div class="card" style="margin-bottom:0.75rem">
       <strong style="color:${THEME.primary}">Venus–Jupiter pair</strong>
       <div style="margin-top:0.4rem">${noteList(veJuPair)}</div>
+    </div>` : ''}
+    ${vivahPair.length ? `<div class="card" style="margin-bottom:0.75rem">
+      <strong style="color:${THEME.primary}">Marriage method</strong>
+      <div style="margin-top:0.4rem">${noteList(vivahPair)}</div>
+    </div>` : ''}
+    ${marsPair.length ? `<div class="card" style="margin-bottom:0.75rem">
+      <strong style="color:${THEME.primary}">Mars in the two charts</strong>
+      <div style="margin-top:0.4rem">${noteList(marsPair)}</div>
     </div>` : ''}
     ${partnerPair.length ? `<div class="card" style="margin-bottom:0.75rem">
       <strong style="color:${THEME.primary}">Partner nature pair</strong>

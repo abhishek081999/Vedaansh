@@ -21,6 +21,8 @@ import type { MarriageCaseBrief } from '@/lib/engine/marriageCaseBrief'
 import type { IntimateLife } from '@/lib/engine/intimateLife'
 import type { MarriageKarmaReading } from '@/lib/engine/marriageKarma'
 import type { VenusMarriageReading } from '@/lib/engine/venusMarriage'
+import type { MarriageVivahReading } from '@/lib/engine/marriageVivah'
+import type { MarriageMarsReading } from '@/lib/engine/marriageMars'
 import Link from 'next/link'
 
 export const LIFE_TONE: Record<LifeTone, string> = {
@@ -37,7 +39,10 @@ function softenNote(n: MarriedLifeNote, clientSafe: boolean): MarriedLifeNote {
     .replace(/\bcaution\b/gi, 'note')
     .replace(/\bstrain\b/gi, 'tension')
     .replace(/\bdivorce\b/gi, 'separation risk')
-  const detail = n.detail.replace(CLIENT_SAFE_STRIP, 'reading')
+  const detail = n.detail
+    .replace(CLIENT_SAFE_STRIP, 'reading')
+    .replace(/\bsexual harm\b/gi, 'harm in private life')
+    .replace(/\babuse\b/gi, 'harm')
   return { ...n, title, detail, tone: n.tone === 'caution' ? 'mixed' : n.tone }
 }
 
@@ -291,7 +296,7 @@ export function MarriageClassSections({ reading, showPrinciples = true, clientSa
     { label: 'The pattern', notes: reading.pattern },
     { label: 'Old debt or soul bond', notes: reading.bond },
     { label: 'Birth stars', notes: reading.nakshatra },
-    { label: 'Deeper chart, marriage point, children', notes: reading.navamsha },
+    { label: 'Navamsha and the marriage point', notes: reading.navamsha },
     { label: 'When it cannot restart', notes: reading.strain },
   ]
   return (
@@ -507,6 +512,52 @@ export function MarriageKarmaSections({ reading, clientSafe = false }: { reading
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
+    </div>
+  )
+}
+
+export function MarriageMarsSections({ reading, showPrinciples = true, clientSafe = false }: { reading: MarriageMarsReading; showPrinciples?: boolean; clientSafe?: boolean }) {
+  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
+    { label: 'The level of Mars', notes: reading.level },
+    { label: 'Houses and the will to stay', notes: reading.placements },
+    { label: 'Who Mars sits with', notes: reading.pairs },
+  ]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
+      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
+      {groups.map(group => group.notes.length ? (
+        <div key={group.label}>
+          <SectionLabel>{group.label}</SectionLabel>
+          <NoteCards notes={group.notes} clientSafe={clientSafe} />
+        </div>
+      ) : null)}
+      {showPrinciples && !clientSafe ? (
+        <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{reading.principles}</p>
+      ) : null}
+    </div>
+  )
+}
+
+export function MarriageVivahSections({ reading, showPrinciples = true, clientSafe = false }: { reading: MarriageVivahReading; showPrinciples?: boolean; clientSafe?: boolean }) {
+  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
+    { label: 'Harm', notes: reading.harm },
+    { label: 'Stars, repetition, and a later bond', notes: reading.pattern },
+    { label: 'Bond and debt', notes: reading.debt },
+  ]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
+      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
+      {groups.map(group => group.notes.length ? (
+        <div key={group.label}>
+          <SectionLabel>{group.label}</SectionLabel>
+          <NoteCards notes={group.notes} clientSafe={clientSafe} />
+        </div>
+      ) : null)}
+      {showPrinciples && !clientSafe ? (
+        <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{reading.principles}</p>
+      ) : null}
     </div>
   )
 }

@@ -64,7 +64,7 @@ const COMPLEMENT: Record<number, string> = {
 }
 
 export const MARRIAGE_HOUSES_PRINCIPLES =
-  'Marriage is eight houses. The 7th completes what the self lacks and then steps aside; the 8th is the test that follows. A disturbed 4th is enough to make a marriage unstable even when the 7th is quiet. The 9th, not romance, is what carries a bond through decades. The 12th is sacrifice, surrender, silence, and shared practice. Timing needs the person to be ready, the 5th and 7th and the significator to be in period — Venus for a man, Jupiter for a woman — and the binding houses 2, 8, and 11 to answer as well. Jupiter and Saturn in transit can confirm a period that is already open. That double transit returns every few years, so it does not time a wedding by itself.'
+  'Marriage is the 1st, 2nd, 4th, 5th, 7th, 8th, 9th, 11th, and 12th. The 7th completes what the self lacks and then steps aside; the 8th is the test that follows. A disturbed 4th is enough to make a marriage unstable even when the 7th is quiet. The 9th, not romance, is what carries a bond through decades. The 12th is sacrifice, surrender, silence, and shared practice. A period can marry when the person is ready (lagna, Moon, and the Navamsha lagna lord), the 5th and 7th and the significator are alive — Venus for a man, Jupiter for a woman — and the binding houses 2, 8, and 11 answer as well. The 2nd has to be alive for a family to form. Navamsha has to respond, or a willing period passes. Jupiter and Saturn in transit confirm a period that is already open: Jupiter from the 1st, the 7th, or a reach to Venus or the Moon. That sky returns every few years, so it does not time a wedding by itself. Saturn is looked for in the periods of marriages that stay. Maturity, a willing family, a ready mind, an open dasha, and that sky rarely all arrive together. Three or four of them is the smooth case. It is still not a date.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -210,7 +210,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   houses.push(note(
     'houses-seventh',
     'The 7th completes you, then steps aside',
-    `The 7th is ${rn(seventhSign)}. It is the incomplete part of this person, and the partner is asked to bring ${COMPLEMENT[seventhSign]}. The match is complementing: what is aggressive here wants calm there, and the reverse. ${health[7] === 'holding' ? 'This 7th can complete the meeting.' : health[7] === 'strained' ? 'This 7th is under strain, so the missing piece arrives with friction.' : 'This 7th is neither a clear strength nor a clear break.'} Once the marriage exists, the 7th has done its work. The real test is the 8th: how the two hold each other when something actually goes wrong.`,
+    `The 7th is ${rn(seventhSign)}. It is the incomplete part of this person, and the partner is asked to bring ${COMPLEMENT[seventhSign]}. The match is complementing: the partner supplies that missing piece. ${health[7] === 'holding' ? 'This 7th can complete the meeting.' : health[7] === 'strained' ? 'This 7th is under strain, so the missing piece arrives with friction.' : 'This 7th is neither a clear strength nor a clear break.'} Once the marriage exists, the 7th has done its work. The real test is the 8th: how the two hold each other when something actually goes wrong.`,
     health[7] === 'holding' ? 'supportive' : health[7] === 'strained' ? 'caution' : 'mixed',
   ))
 
@@ -292,7 +292,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     groups.push(note(
       'houses-trine',
       'A value-based marriage',
-      'The 1st, 5th, and 9th are carrying their weight. The class reads that as a couple whose aim is “we move forward,” with the self meaning the couple. The marriage is held by dharma: growth together, and a refusal to abandon the bond when a season is hard.',
+      'The 1st, 5th, and 9th are carrying their weight. The aim is “we move forward,” with the self meaning the couple. The marriage is held by dharma: growth together, and staying when a season is hard.',
       'supportive',
     ))
   } else if (count(TRINE, 'strained') >= 2) {
@@ -308,7 +308,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     groups.push(note(
       'houses-relationship',
       'The relationship is the priority',
-      'The 4th, 7th, 8th, and 12th are holding. The class reads a couple who put the bond first and carry the wider family with them. These charts are also the more troubled ones: the commitment is real, and so is the work.',
+      'The 4th, 7th, 8th, and 12th are holding. The couple put the bond first and carry the wider family with them. These charts are also the more troubled ones: the commitment is real, and so is the work.',
       'mixed',
     ))
   }
@@ -324,15 +324,18 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
 
   const held = EIGHT.filter(h => health[h] === 'holding').length
   const strained = EIGHT.filter(h => health[h] === 'strained').length
-  groups.push(note(
-    'houses-cover',
-    'Why a second chart is required',
-    `${held} of the eight houses are holding and ${strained} are strained. A single chart rarely balances all eight. Match-making exists so another person covers the houses this chart does not. Three or four houses balanced between the two charts are enough for the marriage to be workable.`,
-    strained > held ? 'caution' : 'mixed',
-  ))
+  if (strained > 0) {
+    groups.push(note(
+      'houses-cover',
+      'Why a second chart is required',
+      `${held} of these marriage houses are holding and ${strained} are strained. Match-making exists so another person covers the houses this chart does not. Three or four houses balanced between the two charts are enough for the marriage to be workable.`,
+      strained > held ? 'caution' : 'mixed',
+    ))
+  }
 
   if (path.length && md) {
-    const names = path.slice(0, 3).map(p => gn(p.lord)).join(' → ')
+    const rawNames = path.slice(0, 3).map(p => gn(p.lord))
+    const names = rawNames.filter((name, i) => i === 0 || name !== rawNames[i - 1]).join(' → ')
     if (triangularActive && bindingActive) {
       activation.push(note(
         'houses-both-energies',
@@ -356,15 +359,18 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       ))
     }
 
-    const readiness = ties(md, 1) || ties(ad, 1)
-      || path.some(p => p.lord === 'Mo')
+    const lagnaReady = ties(md, 1) || ties(ad, 1)
+    const moonReady = path.some(p => p.lord === 'Mo')
       || (!!md && chart.grahas.some(g => g.id === 'Mo' && g.rashi === md.rashi))
-      || (!!d9Asc && path.some(p => p.lord === LORDS[d9Asc]))
+      || (!!ad && chart.grahas.some(g => g.id === 'Mo' && g.rashi === ad.rashi))
+    const d9Ready = !!d9Asc && path.some(p => p.lord === LORDS[d9Asc])
+    const readinessHits = [lagnaReady, moonReady, d9Ready].filter(Boolean).length
+    const readiness = readinessHits >= 2
     if (readiness) {
       activation.push(note(
         'houses-readiness',
         'Inner readiness, not the wedding date',
-        `${names} touches the lagna, the Moon, or the Navamsha lagna lord. The class calls that the preparation: the person becomes psychologically able to marry. It is not the timing of the wedding. In a chart where the wedding date is known, this pattern is what the seven years before the marriage tend to show.`,
+        `${names} touches ${readinessHits} of the lagna, the Moon, and the Navamsha lagna lord. That is the preparation: the person becomes able to marry. It is not the timing of the wedding. Where a wedding date is known, this is the pattern the seven years before the marriage tend to show.`,
         'mixed',
       ))
     }
@@ -400,14 +406,14 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       activation.push(note(
         'houses-dasha-stable',
         'This mahadasha can hold a relationship',
-        `${gn(md.id)} is tied to the 7th, the 2nd, or the 11th by lordship, occupation, or company. The class reads a stable relationship from that link, whichever planet is running.`,
+        `${gn(md.id)} is tied to the 7th, the 2nd, or the 11th by lordship, occupation, or company. A stable relationship follows from that link, whichever planet is running. ${saturnInPeriod ? 'Saturn is in the period, which is what is looked for when a marriage stays.' : 'Saturn is outside this period. It is still looked for in the marriages that stay.'}`,
         'supportive',
       ))
     } else if (md && struggle) {
       activation.push(note(
         'houses-dasha-struggle',
         'This mahadasha struggles the marriage',
-        `${gn(md.id)} is tied to the 6th, 8th, or 12th. The class reads strain in the marriage from that link. Stability comes later and wants Saturn’s patience. ${stable ? 'The same planet also touches a marriage house, so the period contains both the bond and the bill.' : ''}`,
+        `${gn(md.id)} is tied to the 6th, 8th, or 12th. Strain in the marriage follows from that link. Stability comes later and wants Saturn’s patience. ${saturnInPeriod ? 'Saturn is already in the period, so that patience is available to be used.' : ''} ${stable ? 'The same planet also touches a marriage house, so the period contains both the bond and the bill.' : ''}`,
         'caution',
       ))
     }
@@ -417,7 +423,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       activation.push(note(
         'houses-dasha-d9',
         'The mahadasha lord is exalted in D9',
-        `${gn(md!.id)} is exalted in Navamsha. The class reads a high-quality marriage from that dignity, whichever planet is running. The period has to be open in D1 as well. Exaltation in D9 does not invent a wedding the houses have not allowed.`,
+        `${gn(md!.id)} is exalted in Navamsha. A high-quality marriage follows from that dignity, whichever planet is running. The period has to be open in D1 as well. Exaltation in D9 does not invent a wedding the houses have not allowed.`,
         'supportive',
       ))
     }
@@ -426,7 +432,24 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       activation.push(note(
         'houses-love',
         'The 5th and the 7th are both in this period',
-        'Feeling and partnership are tied to the same dasha. The class reads a high probability of a love marriage: the bond is chosen from affection, not only arranged around the 7th.',
+        'Feeling and partnership are tied to the same dasha. A love marriage is the likely shape: the bond is chosen from affection, and the 7th is in the same period.',
+        'mixed',
+      ))
+    }
+
+    const smoothParts: string[] = []
+    if (readiness) smoothParts.push('inner readiness')
+    if (manifestCount >= 2) smoothParts.push('a relationship that can become visible')
+    if (triangularActive) smoothParts.push('the decision houses')
+    if (bindingActive) smoothParts.push('the binding houses')
+    if (saturnInPeriod && eighthInPeriod) smoothParts.push('Saturn with the 8th')
+    if (health[2] === 'holding') smoothParts.push('a 2nd house that can hold a family')
+    if (d9Asc && !d9Silent) smoothParts.push('a Navamsha that answers')
+    if (smoothParts.length >= 3) {
+      activation.push(note(
+        'houses-smooth',
+        'Several conditions are on together',
+        `${smoothParts.join(', ')} are on together in ${names}. Three or four agreeing conditions are the smooth case: a person mature enough, a family structure that can receive them, a ready mind, an open dasha, and a sky that still has to confirm. This count is not a wedding date.`,
         'mixed',
       ))
     }
@@ -444,13 +467,20 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       `${why} The class’s reason a correct-looking dasha produces no wedding is this: in D9 the significator is hit, or the 7th lord has gone quiet. D1 can be willing. D9 is not answering.`,
       'caution',
     ))
+  } else if (d9Asc && d9SeventhLord && dignified(d9SeventhLord.dignity) && !d9KarakaHit) {
+    activation.push(note(
+      'houses-d9-live',
+      'Navamsha is answering',
+      `The D9 7th lord, ${gn(d9SeventhLord.id)}, is strong, and the significator is clear of a malefic there. Navamsha has to be alive and to respond. This one is responding. A willing birth-chart period still has to be open, or the response has nothing to meet.`,
+      'supportive',
+    ))
   }
 
   if ((fourthStrained || axisStrained) && path.length >= 3) {
     activation.push(note(
       'houses-finer',
       'The same period can marry and later divide',
-      `The running periods are ${path.slice(0, 4).map(p => gn(p.lord)).join(' → ')}. When the 4th or the 1–7–8–12 axis is already strained, the class does not call a divorce from the mahadasha alone. The split between the wedding and the ending sits in these finer lords.`,
+      `The running periods are ${path.slice(0, 4).map(p => gn(p.lord)).join(' → ')}. When the 4th or the 1–7–8–12 axis is already strained, a divorce is not called from the mahadasha alone. These finer lords are where a wedding and a later ending would be separated. They are not themselves a finding that the marriage ends.`,
       'caution',
     ))
   } else if ((fourthStrained || axisStrained) && path.length > 0 && path.length < 3) {
@@ -510,7 +540,7 @@ export function compareMarriageHouses(
     notes.push(note(
       'houses-pair-gap',
       'The weak houses are still mostly uncovered',
-      `Only ${total} strained house${total === 1 ? '' : 's'} ${total === 1 ? 'is' : 'are'} held by the other chart. The class does not ask for all eight to be perfect. It does ask that the partner supply what this chart cannot. That supply is thin here.`,
+      `Only ${total} strained house${total === 1 ? '' : 's'} ${total === 1 ? 'is' : 'are'} held by the other chart. Three or four covers are what is asked for. The partner is there to supply what this chart cannot. That supply is thin here.`,
       'caution',
     ))
   }

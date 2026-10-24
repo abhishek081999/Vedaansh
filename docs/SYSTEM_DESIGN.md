@@ -69,7 +69,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 | DB | MongoDB Atlas + Mongoose 8.24 |
 | Auth | NextAuth.js v5 (Google + credentials) |
 | Cache / rate limits | Upstash Redis |
-| Validation | Zod 3 |
+| Validation | Zod 4.6.7 |
 | Payments | Razorpay (live); Stripe fields reserved |
 | Email | Resend |
 | Video | Remotion 4 + ffmpeg.wasm (browser MP4) |

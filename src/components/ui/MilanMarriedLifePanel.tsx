@@ -7,12 +7,15 @@
 import React, { useMemo, useState } from 'react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { analyzeMilanMarriedLife } from '@/lib/engine/milanMarriedLife'
+import type { MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
 import { analyzeJayaBhava, compareJayaBhava } from '@/lib/engine/jayaBhava'
 import { analyzeMarriageClass, compareMarriageClass } from '@/lib/engine/marriageClass'
 import { analyzeMarriageHouses, compareMarriageHouses } from '@/lib/engine/marriageHouses'
 import { analyzeSeventhLord, compareSeventhLord } from '@/lib/engine/seventhLord'
 import { analyzeKarmicDebt, compareKarmicDebt } from '@/lib/engine/karmicDebt'
 import { analyzeVenusJupiterBond, compareVenusJupiterBond } from '@/lib/engine/venusJupiterBond'
+import { analyzeMarriageVivah, compareMarriageVivah } from '@/lib/engine/marriageVivah'
+import { analyzeMarriageMars, compareMarriageMars } from '@/lib/engine/marriageMars'
 import { analyzeMarriageGochar, compareMarriageGochar } from '@/lib/engine/marriageGochar'
 import { useMarriageGocharWindows } from '@/hooks/useMarriageGocharWindows'
 import { analyzePartnerNature, comparePartnerNature } from '@/lib/engine/partnerNature'
@@ -47,6 +50,8 @@ import {
   SynastrySections,
   VenusJupiterSections,
   VenusMarriageSections,
+  MarriageMarsSections,
+  MarriageVivahSections,
 } from '@/components/ui/marriedLifeUi'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
@@ -57,9 +62,33 @@ interface Props {
   roleA: MilanRole
   roleB: MilanRole
   userPlan?: UserPlan
+  /** Pair cards and the notes that fire between the charts. Each person's reading stays on its own tabs. */
+  pairOnly?: boolean
 }
 
-export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan = 'free' }: Props) {
+function PairBetween({
+  clientSafe,
+  groups,
+}: {
+  clientSafe: boolean
+  groups: { title: string; notes?: MarriedLifeNote[] }[]
+}) {
+  const shown = groups.filter(g => g.notes && g.notes.length > 0)
+  if (!shown.length) return null
+  return (
+    <div className="card" style={{ padding: '1.15rem' }}>
+      <SectionLabel>What fires between these two charts</SectionLabel>
+      {shown.map(g => (
+        <div key={g.title} style={{ marginTop: '0.85rem' }}>
+          <SectionLabel>{g.title}</SectionLabel>
+          <NoteCards notes={g.notes!} clientSafe={clientSafe} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan = 'free', pairOnly = false }: Props) {
   const full = planMeetsUiGate(userPlan, 'gold')
   const [clientSafe, setClientSafe] = useState(true)
   const bride: 'a' | 'b' | undefined = roleA === 'girl' ? 'a' : roleB === 'girl' ? 'b' : undefined
@@ -125,6 +154,23 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
     const b = analyzeVenusJupiterBond(chartB)
     if (!a || !b) return null
     return { a, b, pair: compareVenusJupiterBond(a, b, nameA, nameB) }
+  }, [chartA, chartB, full, nameA, nameB])
+  const marriageVivah = useMemo(() => {
+    if (!full) return null
+    const a = analyzeMarriageVivah(chartA)
+    const b = analyzeMarriageVivah(chartB)
+    if (!a || !b) return null
+    const pair = compareMarriageVivah(a, b, nameA, nameB)
+    const marked = a.harm.length + a.pattern.length + a.debt.length + b.harm.length + b.pattern.length + b.debt.length
+    if (!marked && !pair.length) return null
+    return { a, b, pair }
+  }, [chartA, chartB, full, nameA, nameB])
+  const marriageMars = useMemo(() => {
+    if (!full) return null
+    const a = analyzeMarriageMars(chartA)
+    const b = analyzeMarriageMars(chartB)
+    if (!a || !b) return null
+    return { a, b, pair: compareMarriageMars(a, b, nameA, nameB) }
   }, [chartA, chartB, full, nameA, nameB])
 
   const { windows: gocharWindowsA } = useMarriageGocharWindows(chartA.lagnas?.ascRashi, full)
@@ -308,6 +354,28 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
         </div>
       )}
 
+      {pairOnly ? (
+        <PairBetween
+          clientSafe={clientSafe}
+          groups={[
+            { title: 'Second bond', notes: classical?.pair },
+            { title: 'Seventh house', notes: jaya?.pair },
+            { title: 'Kind of marriage', notes: marriageClass?.pair },
+            { title: 'Eight houses', notes: marriageHouses?.pair },
+            { title: '7th lord', notes: seventhLord?.pair },
+            { title: 'Venus and Jupiter', notes: venusJupiter?.pair },
+            { title: 'Mars', notes: marriageMars?.pair },
+            { title: 'Marriage method', notes: marriageVivah?.pair },
+            { title: 'Venus bridge', notes: venusMarriage?.pair },
+            { title: 'Transit', notes: marriageGochar?.pair },
+            { title: 'The partner', notes: partnerNature?.pair },
+            { title: 'Separation', notes: divorceEnergy?.pair },
+            { title: 'Karmic debt', notes: karmicDebt?.pair },
+            { title: 'Marriage debt', notes: marriageKarma?.pair },
+          ]}
+        />
+      ) : null}
+      {!pairOnly && <>
       {classical && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>Classical predictions — both charts</SectionLabel>
@@ -515,6 +583,42 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
         </div>
       )}
 
+      {marriageMars && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Mars — both charts</SectionLabel>
+          <NoteCards notes={marriageMars.pair} clientSafe={clientSafe} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
+            {[{ name: data.nameA, reading: marriageMars.a }, { name: data.nameB, reading: marriageMars.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <MarriageMarsSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageMars.a.principles}</p>
+          ) : null}
+        </div>
+      )}
+
+      {marriageVivah && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Marriage method — both charts</SectionLabel>
+          <NoteCards notes={marriageVivah.pair} clientSafe={clientSafe} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
+            {[{ name: data.nameA, reading: marriageVivah.a }, { name: data.nameB, reading: marriageVivah.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <MarriageVivahSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageVivah.a.principles}</p>
+          ) : null}
+        </div>
+      )}
+
       {venusMarriage && (
         <div className="card" style={{ padding: '1.15rem' }}>
           <SectionLabel>Venus bridge — both charts</SectionLabel>
@@ -633,6 +737,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
           </div>
         ))}
       </div>
+      </>}
       </>}
     </div>
   )
