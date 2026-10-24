@@ -44,7 +44,7 @@ const RANK: Partial<Record<Dignity, number>> = {
 }
 
 export const MARRIAGE_MARS_PRINCIPLES =
-  'Mars is the fire of a marriage: the step that turns a love affair or a proposal into a wedding, the physical spark, the boundary, and the will to fight for the bond. Without that will, Venus can still love and the marriage can still fail. Mars does not break a marriage by itself, and it does not stop one by itself. It can break a proposal at the last step, and it can supply ego. It needs Venus for kindness, Jupiter for judgment, and Saturn for patience. Manglik houses (1, 4, 7, 8, 12, and in the South Indian reading the 2nd) are fast, reactive energy, not a bad planet. That heat is read more lightly after about thirty. In marriage the 8th is Mangalya: emotional intimacy, the hidden bond, not the bedroom. A woman’s chart is read for how she meets and redirects the partner’s energy. A man’s chart is read for how he moves toward her. Both charts are examined.'
+  'Mars is the fire of a marriage: the step that turns a love affair or a proposal into a wedding, the physical spark, the boundary, and the will to fight for the bond. Without that will, Venus can still love and the marriage can still fail. Mars does not break a marriage by itself, and it does not stop one by itself. It can break a proposal at the last step, and it can supply ego. It needs Venus for kindness, Jupiter for judgment, and Saturn for patience. Manglik placements (Mars in the 1st, 4th, 7th, 8th, or 12th house, and in the South Indian reading the 2nd) bring fast, reactive energy, not a bad planet. That heat is read more lightly after about thirty. In marriage the 8th is Mangalya: emotional intimacy, the hidden bond, not the bedroom. A woman’s chart is read for how she meets and redirects the partner’s energy. A man’s chart is read for how he moves toward her. Both charts are examined.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -189,7 +189,7 @@ export function analyzeMarriageMars(
     levelNotes.push(note(
       'mars-transformative',
       'A refined Mars',
-      'Mars is strong, Jupiter reaches it, and Saturn steadies it, without Rahu or Ketu sitting on it. Read this as a rare, purified Mars: focused, able to solve rather than only name the problem, with desire that can be used and does not rule the person. Conflict is carried by speech. Dedication to the marriage is the result.',
+      'Mars is strong, Jupiter reaches it, and Saturn steadies it, without Rahu or Ketu sitting on it. This is a rare, purified Mars: focused, able to solve rather than only name the problem, with desire that can be used and does not rule the person. Conflict is carried by speech. Dedication to the marriage is the result.',
       'supportive',
     ))
   } else if (level === 'balanced') {
@@ -219,7 +219,7 @@ export function analyzeMarriageMars(
     placements.push(note(
       'mars-manglik',
       southSecond && !manglik ? 'The 2nd is Manglik in the South Indian reading' : 'Manglik heat is fast energy',
-      `${southSecond && !manglik ? 'Mars is in the 2nd. The South Indian reading counts that house with the usual 1st, 4th, 7th, 8th, and 12th.' : `Mars is in the ${house === 1 ? '1st' : house === 2 ? '2nd' : house === 3 ? '3rd' : `${house}th`}.`} The person does not stay quiet where silence is needed, and the reply comes as soon as the sentence lands. The same placement keeps the hands and the mind at work. It is imbalanced pace, not a bad planet. If Mars stays imbalanced, Jupiter’s judgment and Venus’s kindness are disturbed with it.${maturedByAge ? ` The native is about ${age}. After thirty this heat is read more lightly. It does not disappear.` : ' Before about thirty the same heat is read as aggression and unready authority.'}`,
+      `${southSecond && !manglik ? 'Mars is in the 2nd. The South Indian reading counts that house with the usual 1st, 4th, 7th, 8th, and 12th.' : `Mars is in the ${house === 1 ? '1st' : house === 2 ? '2nd' : house === 3 ? '3rd' : `${house}th`}.`} The person does not stay quiet where silence is needed, and the reply comes as soon as the sentence lands. The same placement keeps the hands and the mind at work. It is imbalanced pace, not a bad planet. If Mars stays imbalanced, Jupiter’s judgment and Venus’s kindness are disturbed with it.${maturedByAge ? ` The person is about ${age}. After thirty this heat is read more lightly. It does not disappear.` : ' Before about thirty the same heat is read as aggression and unready authority.'}`,
       maturedByAge ? 'mixed' : 'caution',
     ))
   }
@@ -238,7 +238,7 @@ export function analyzeMarriageMars(
     placements.push(note(
       'mars-no-fight',
       'Love without the will to fight for it',
-      'Venus is strong and Mars is not. Read couples who still love each other and still cannot make the marriage work. Venus keeps the affection. Mars is the part that would have fought for the bond, and that part is thin. In match-making this pair is read early, and it is not assumed to be a gift.',
+      'Venus is strong and Mars is not. This is the picture of couples who still love each other and still cannot make the marriage work. Venus keeps the affection. Mars is the part that would have fought for the bond, and that part is thin. In match-making this pair is read early, and it is not assumed to be a gift.',
       'caution',
     ))
   } else if (fallen(mars) && !manglik) {
@@ -261,7 +261,7 @@ export function analyzeMarriageMars(
     placements.push(note(
       'mars-ego',
       'Mars will not come down to an agreement',
-      'Mars is in a fire sign, in the 7th, and stronger than the rising-sign lord. Read a person who does not compromise, sets the bar where almost no one qualifies, and treats dominance as the terms of the marriage.',
+      'Mars is in a fire sign, in the 7th, and stronger than the rising-sign lord. This describes a person who does not compromise, sets the bar where almost no one qualifies, and treats dominance as the terms of the marriage.',
       'caution',
     ))
   } else if (element === 'earth' && (level === 'immature' || manglik)) {
@@ -299,7 +299,7 @@ export function analyzeMarriageMars(
     placements.push(note(
       'mars-hers',
       'Her Mars meets the partner’s energy',
-      'In a woman’s chart Mars is how she meets what the partner brings: whether she can take it in and turn it, or only endure it. Recognition matters more than whether the planet is strong. Look for what blocks that recognition. One person is not claimed to remake the other.',
+      'In a woman’s chart Mars is how she meets what the partner brings: whether she can take it in and turn it, or only endure it. Recognition matters more than whether the planet is strong. What blocks that recognition is the thing to understand. One person is not claimed to remake the other.',
       'mixed',
     ))
   } else if (level !== 'open' && gender === 'male') {
@@ -317,7 +317,7 @@ export function analyzeMarriageMars(
     pairs.push(note(
       'mars-saturn',
       saturnHolds ? 'Saturn asks this Mars to slow down' : marsRushes ? 'Mars tries to make Saturn run' : 'Mars and Saturn suppress the anger',
-      `Mars and Saturn are joined or opposed. Read the anger as being about the partner. ${saturnHolds ? 'Saturn is the stronger of the two, so patience is the demand. Issues can sit unresolved until that patience is actually used.' : marsRushes ? 'Mars is strong and Saturn is not. Mars tries to hurry a planet that cannot hurry, and long problems keep being made.' : 'Neither planet clearly rules the other. The anger stays down. Which one wins is not named from dignity alone.'}`,
+      `Mars and Saturn are joined or opposed. The anger here is about the partner. ${saturnHolds ? 'Saturn is the stronger of the two, so patience is the demand. Issues can sit unresolved until that patience is actually used.' : marsRushes ? 'Mars is strong and Saturn is not. Mars tries to hurry a planet that cannot hurry, and long problems keep being made.' : 'Neither planet clearly rules the other. The anger stays down. Which one wins is not named from dignity alone.'}`,
       'caution',
     ))
   }
@@ -330,7 +330,7 @@ export function analyzeMarriageMars(
       pairs.push(note(
         'mars-d9-turn',
         'Navamsha Mars is hotter than the birth chart',
-        'Mars is quieter in the birth chart and heated in Navamsha. Read a marriage that changes the person: behavior toward parents and the partner can turn after the wedding. The early years carry the struggle. The change comes through that struggle.',
+        'Mars is quieter in the birth chart and heated in Navamsha. This is a marriage that changes the person: behavior toward parents and the partner can turn after the wedding. The early years carry the struggle. The change comes through that struggle.',
         'mixed',
       ))
     } else if (!d1Calm && !d9Hot && capable(d9Mars)) {
@@ -360,7 +360,7 @@ export function analyzeMarriageMars(
       'mars-rahu',
       rahuHeld ? 'Mars and Rahu can walk through the obstacle together' : 'Mars and Rahu have no middle setting',
       rahuHeld
-        ? `Mars is strong and a benefic reaches the pair${directed ? `, in the ${house}th, where Mars gets a direction` : ''}. Read this as one of the two endings: partners who stay beside each other through the obstacle. The same pair can become a spiritual path that one person leads and the other follows. Mars–Rahu pushes action in this life. It is not read first as a past-life debt.`
+        ? `Mars is strong and a benefic reaches the pair${directed ? `, in the ${house}th, where Mars gets a direction` : ''}. This is one of the two possible endings: partners who stay beside each other through the obstacle. The same pair can become a spiritual path that one person leads and the other follows. Mars–Rahu pushes action in this life. It is not read first as a past-life debt.`
         : `Mars says act. Rahu says there is no limit. Desire, emotion, and behavior all run without a clear want, and satisfaction does not arrive. The person can picture an ideal partner and still not know the way there. ${directed ? `The ${house === 10 ? '10th gives Mars a direction of work' : '11th asks for a clear aim'}. That helps. It does not by itself balance the pair.` : 'Balance comes from a benefic glance, or from Mars in its own strength, not from Rahu sitting in a pleasant house.'} ${dignified(mars) && !jupiterSees ? 'With Mars strong and no benefic on the pair, power becomes a contest and the person’s word is treated as the rule.' : ''}`,
       rahuHeld ? 'mixed' : 'caution',
     ))
@@ -389,7 +389,7 @@ export function analyzeMarriageMars(
     pairs.push(note(
       'mars-venus-both',
       'Love and passion can sit together',
-      'Mars and Venus are both strong, and they reach each other, with the Mars level held. Read that as love and passion in the same bond. Even then, Mars with Venus is watched for control. Balance between the two people decides whether it stays kind.',
+      'Mars and Venus are both strong, and they reach each other, with the Mars level held. This is love and passion in the same bond. Even then, Mars with Venus is watched for control. Balance between the two people decides whether it stays kind.',
       'supportive',
     ))
   } else if (joined(mars, venus)) {
@@ -445,7 +445,7 @@ export function compareMarriageMars(
     notes.push(note(
       'mars-pair-both',
       'Both charts try to lead',
-      `${nameA} and ${nameB} both carry a raw or Manglik Mars. Read two people who each try to dominate. Conflict is the expected weather. A benefic and Saturn on either Mars are what would change that, not a label that they match.`,
+      `${nameA} and ${nameB} both carry a raw or Manglik Mars. This is two people who each try to dominate. Conflict is the expected weather. A benefic and Saturn on either Mars are what would change that, not a label that they match.`,
       'caution',
     ))
   } else if (hot(a) !== hot(b)) {

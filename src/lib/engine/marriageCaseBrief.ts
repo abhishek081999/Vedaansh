@@ -1,5 +1,5 @@
 // src/lib/engine/marriageCaseBrief.ts
-// Five-bullet consultant brief composed from existing marriage engines.
+// Five-bullet marriage summary composed from existing marriage engines.
 // Pure engine — no React/DB.
 
 import type { ChartOutput } from '@/types/astrology'
@@ -106,16 +106,16 @@ export function analyzeMarriageCaseBrief(
       'brief-action',
       '5. Action',
       split?.flags.level === 'separation' || split?.flags.level === 'divorce' || vj?.flags.scenario === 'both-weak'
-        ? 'Prefer guidance and repeated counseling over a one-shot remedy. Use timing windows only as search ranges for wedding muhurta.'
+        ? 'Steady guidance and repeated support help more than a one-shot remedy. Treat the timing windows only as ranges in which to look for a wedding muhurta (auspicious time).'
         : gochar?.flags.dashaSupports
-          ? 'The marriage period is open — search muhurta inside the sky window; keep ethics and consent central.'
-          : 'Strengthen the period reading and the spouse portrait before fixing a wedding date.',
+          ? 'The marriage period is open, so a muhurta (auspicious time) can be sought inside the sky window, with ethics and consent kept central.'
+          : 'A clearer picture of the marriage period and the spouse portrait helps before a wedding date is fixed.',
       'mixed',
     ),
   ]
 
   return {
-    headline: 'Consultant case brief',
+    headline: 'Marriage summary',
     bullets,
     muhurtaFrom: gochar?.muhurtaFrom,
     muhurtaTo: gochar?.muhurtaTo,
@@ -134,7 +134,7 @@ export function analyzePairCaseBrief(
   const nameA = chartA.meta?.name?.trim() || 'A'
   const nameB = chartB.meta?.name?.trim() || 'B'
   return {
-    headline: 'Consultant case brief — pair',
+    headline: 'Marriage summary — pair',
     bullets: [
       note('pair-brief-a', `${nameA}`, a.bullets.map(x => x.detail).join(' · '), 'mixed'),
       note('pair-brief-b', `${nameB}`, b.bullets.map(x => x.detail).join(' · '), 'mixed'),
@@ -148,14 +148,14 @@ export function analyzePairCaseBrief(
         'pair-brief-time',
         'Shared timing',
         a.muhurtaFrom && b.muhurtaFrom
-          ? `${nameA} window ${a.muhurtaFrom}; ${nameB} window ${b.muhurtaFrom}. Prefer overlap when searching muhurta.`
-          : 'Compare individual gochar windows before fixing a date.',
+          ? `${nameA} window ${a.muhurtaFrom}; ${nameB} window ${b.muhurtaFrom}. The best muhurta (auspicious time) search starts where the two windows overlap.`
+          : 'Compare the individual transit windows before fixing a date.',
         'mixed',
       ),
       note(
         'pair-brief-action',
         'Action',
-        'Lead with eligibility and chemistry. Use overlay for “does each chart meet the partner the other promises?” Search muhurta only inside open dasha + sky windows.',
+        'Start with the bond promise and chemistry. The overlay shows whether each chart offers the partner the other chart promises. A muhurta (auspicious time) is best sought only where the dasha and the sky windows are both open.',
         'mixed',
       ),
     ],

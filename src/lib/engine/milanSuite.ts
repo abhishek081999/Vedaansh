@@ -57,6 +57,8 @@ export function analyzeManglikPair(boyChart: ChartOutput, girlChart: ChartOutput
   const boy = calculateManglik(boyChart.grahas, [], boyChart.lagnas.ascRashi)
   const girl = calculateManglik(girlChart.grahas, [], girlChart.lagnas.ascRashi)
 
+  const boyName = boyChart.meta.name || 'The first chart'
+  const girlName = girlChart.meta.name || 'The second chart'
   const boyActive = boy.isManglik
   const girlActive = girl.isManglik
   const boyCancelled = !boy.isManglik && boy.cancellations.length > 0 && boy.house > 0
@@ -65,16 +67,16 @@ export function analyzeManglikPair(boyChart: ChartOutput, girlChart: ChartOutput
   if (!boyActive && !girlActive && !boyCancelled && !girlCancelled) {
     return {
       boy, girl, verdict: 'both_clear', tone: 'supportive',
-      label: 'Both non-Manglik',
-      detail: 'Neither chart shows active Kuja Dosha in lagna manglik houses.',
+      label: 'Neither chart is Manglik',
+      detail: 'Neither chart shows an active Kuja Dosha (Mars in the 1st, 4th, 7th, 8th or 12th house from the lagna).',
     }
   }
 
   if ((boyCancelled || !boyActive) && (girlCancelled || !girlActive) && (boyCancelled || girlCancelled)) {
     return {
       boy, girl, verdict: 'cancelled', tone: 'supportive',
-      label: 'Manglik cancelled / neutralized',
-      detail: `Cancellations present — Boy: ${boy.cancellations.join(', ') || 'clear'}; Girl: ${girl.cancellations.join(', ') || 'clear'}.`,
+      label: 'Manglik effect softened by cancellation',
+      detail: `Classical cancellation rules apply, which soften the Mars influence. ${boyName}: ${boy.cancellations.join(', ') || 'no Mars concern'}; ${girlName}: ${girl.cancellations.join(', ') || 'no Mars concern'}.`,
     }
   }
 
@@ -84,15 +86,15 @@ export function analyzeManglikPair(boyChart: ChartOutput, girlChart: ChartOutput
       boy, girl,
       verdict: matched ? 'matched_intensity' : 'both_manglik',
       tone: matched ? 'supportive' : 'mixed',
-      label: matched ? 'Both Manglik — intensity matched' : 'Both Manglik — intensity differs',
-      detail: `Boy ${boy.intensity} (H${boy.house}) × Girl ${girl.intensity} (H${girl.house}). Classical practice prefers matching Manglik with Manglik.`,
+      label: matched ? 'Both Manglik, similar strength' : 'Both Manglik, strength differs',
+      detail: `${boyName}: ${boy.intensity.toLowerCase()} Mars influence (house ${boy.house}); ${girlName}: ${girl.intensity.toLowerCase()} Mars influence (house ${girl.house}). Manglik means Mars sits in a house traditionally linked to extra heat in partnership; when both charts carry it, tradition sees the two as balancing each other.`,
     }
   }
 
   return {
     boy, girl, verdict: 'mismatch', tone: 'caution',
-    label: 'Manglik mismatch',
-    detail: `${boyActive ? 'Groom' : 'Bride'} has active Kuja Dosha (${boyActive ? boy.intensity : girl.intensity}); partner does not. Remedies or matching with similar intensity traditionally advised.`,
+    label: 'Manglik in one chart only',
+    detail: `${boyActive ? boyName : girlName} has an active Kuja Dosha (${(boyActive ? boy.intensity : girl.intensity).toLowerCase()} strength); the other chart does not. Manglik means Mars sits in a house traditionally linked to extra heat in partnership. Cancellation rules and age both matter, and this is not a verdict on the relationship; traditional remedies or a closer read can help.`,
   }
 }
 
@@ -176,7 +178,7 @@ export function analyzeMarriageTiming(
         score,
         tone,
         note: `Maha ${GRAHA_NAMES[bm.lord as GrahaId] ?? bm.lord} × ${GRAHA_NAMES[gm.lord as GrahaId] ?? gm.lord} — ${
-          tone === 'supportive' ? 'favourable marriage-period colour' : tone === 'caution' ? 'delay / caution window' : 'mixed timing'
+          tone === 'supportive' ? 'a supportive period for marriage' : tone === 'caution' ? 'a period that may call for patience' : 'mixed timing'
         }.`,
       })
     }
@@ -202,12 +204,12 @@ export function analyzeMarriageTiming(
         girlLords: `${GRAHA_NAMES[gp[0].lord as GrahaId]}/${GRAHA_NAMES[gAntar.lord as GrahaId]}`,
         score,
         tone,
-        note: `Current Antar overlap — finer timing for muhurta / engagement discussions.`,
+        note: 'Current Antardasha overlap, useful for finer timing when planning engagement and muhurta (auspicious-time) discussions.',
       })
     }
   }
 
-  // Next few antar overlaps (boy current maha children × girl current maha children)
+  // Next few antar overlaps (groom-role current Maha children × bride-role current Maha children)
   if (bp[0]?.children?.length && gp[0]?.children?.length) {
     for (const ba of bp[0].children.slice(0, 4)) {
       for (const ga of gp[0].children.slice(0, 4)) {
@@ -224,7 +226,7 @@ export function analyzeMarriageTiming(
           girlLords: `${GRAHA_NAMES[gp[0].lord as GrahaId]}/${GRAHA_NAMES[ga.lord as GrahaId]}`,
           score,
           tone,
-          note: 'Upcoming Antardasha pair within current Mahadashas.',
+          note: 'Upcoming Antardasha pair within the current Mahadashas.',
         })
       }
     }
@@ -233,8 +235,8 @@ export function analyzeMarriageTiming(
 
   const best = windows.filter(w => w.tone === 'supportive').slice(0, 2)
   const summary = best.length
-    ? `Favourable Maha windows include ${best.map(w => `${w.start}→${w.end}`).join('; ')}. Refine with Antardasha + muhurta.`
-    : 'No strongly supportive Maha overlaps in the next ~12 years from Venus/Jupiter-weighted scan — use Antar detail and muhurta.'
+    ? `Supportive Mahadasha windows include ${best.map(w => `${w.start} to ${w.end}`).join('; ')}. Antardasha detail and a muhurta (auspicious-time) check can refine these.`
+    : 'No strongly supportive Mahadasha overlaps appear in the next ~12 years in this Venus/Jupiter-weighted scan. The Antardasha detail and muhurta (auspicious-time) check can still help with timing.'
 
   return {
     windows: windows.slice(0, 8),
@@ -266,7 +268,7 @@ export function buildMilanRemedies(input: {
       id: 'nadi',
       forDosha: 'Nadi Dosha',
       title: 'Nadi pacification',
-      detail: 'Confirm cancellation rules first. Traditional: Mahamrityunjaya japa, donation of grains/clothes on natal Moon weekday, medical preconception counsel (modern health check). Do not treat remedies as medical advice.',
+      detail: 'Check first whether Nadi cancellation rules apply. Traditional steps include Mahamrityunjaya japa and donating grains or clothes on the weekday of the natal Moon; a routine pre-marriage health check is also sensible. Traditional remedies are not medical advice.',
       priority: 'high',
     })
   }
@@ -275,16 +277,16 @@ export function buildMilanRemedies(input: {
       id: 'bhakoot',
       forDosha: 'Bhakoot Dosha',
       title: 'Bhakoot / life-path harmony',
-      detail: 'Joint charity on full-moon days, strengthen Moon (pearls/silver if suitable), shared travel/home goals to align life direction. Check lord-friendship cancellation before alarm.',
+      detail: 'Traditional steps include joint charity on full-moon days, strengthening the Moon (pearl or silver, if suitable), and shared travel or home goals to align life direction. Bhakoot is often softened when the sign lords are friends, so check that first. Traditional remedies are not medical advice.',
       priority: 'high',
     })
   }
   if (input.manglikMismatch) {
     out.push({
       id: 'manglik',
-      forDosha: 'Kuja Dosha mismatch',
-      title: 'Manglik matching / Kuja shanti',
-      detail: 'Prefer Manglik–Manglik match when intensity is high. Classical Kuja shanti (Tuesday fasting, coral if chart allows, Mars mantra) after a qualified jyotishi reviews cancellations.',
+      forDosha: 'Kuja Dosha in one chart',
+      title: 'Manglik balance / Kuja shanti',
+      detail: 'Manglik effects are often softened by cancellation rules and by age. Classical Kuja shanti includes Tuesday fasting, a Mars mantra and, if the chart suits it, coral; a close read of both charts helps decide what fits. Traditional remedies are not medical advice.',
       priority: 'high',
     })
   }
@@ -293,7 +295,7 @@ export function buildMilanRemedies(input: {
       id: 'gana',
       forDosha: 'Gana mismatch',
       title: 'Temperament bridging',
-      detail: 'Conscious communication agreements, delay heated decisions, strengthen Jupiter (Thursday seva) for patience between Deva/Rakshasa styles.',
+      detail: 'Clear communication agreements, pausing before heated decisions, and strengthening Jupiter (Thursday seva) can help with patience between the Deva and Rakshasa temperaments. Traditional remedies are not medical advice.',
       priority: 'medium',
     })
   }
@@ -302,7 +304,7 @@ export function buildMilanRemedies(input: {
       id: `porutham-${name}`,
       forDosha: `Porutham · ${name}`,
       title: `${name} Porutham care`,
-      detail: `South-Indian school flags ${name}. Cross-check with Ashtakoot and D1/D9 before refusing; temple-based shanti varies by region.`,
+      detail: `The South Indian Porutham system flags ${name}. It is worth cross-checking with Ashtakoot and the D1/D9 charts before drawing conclusions; temple-based shanti practices vary by region. Traditional remedies are not medical advice.`,
       priority: 'medium',
     })
   }
@@ -311,7 +313,7 @@ export function buildMilanRemedies(input: {
       id: 'general',
       forDosha: 'General',
       title: 'Maintain harmony',
-      detail: 'No major dosha flags in this scan. Keep muhurta for wedding, and review dashas of both before major moves.',
+      detail: 'No major dosha flags in this scan. A wedding muhurta (auspicious time) and a look at both dasha timelines before big decisions are still worthwhile.',
       priority: 'low',
     })
   }
@@ -331,7 +333,7 @@ function wholeSignHouse(planetRashi: number, ascRashi: number): number {
   return ((planetRashi - ascRashi + 12) % 12) + 1
 }
 
-/** Named classical cues (simplified detection for counselling — not exhaustive shastra eng.). */
+/** Named classical partner-wellbeing cues (simplified detection, not exhaustive). */
 export function catalogVaidhavyaCues(chart: ChartOutput): VaidhavyaCatalogItem[] {
   const asc = chart.lagnas.ascRashi
   const items: VaidhavyaCatalogItem[] = []
@@ -346,11 +348,11 @@ export function catalogVaidhavyaCues(chart: ChartOutput): VaidhavyaCatalogItem[]
   const sa7 = sa && [7, 8].includes(wholeSignHouse(sa.rashi, asc))
   items.push({
     id: 'ma-sa-78',
-    name: 'Mars/Saturn on 7–8',
+    name: 'Mars or Saturn in the 7th/8th house',
     present: !!(ma7 || sa7),
     detail: ma7 || sa7
-      ? 'Malefic occupation of spouse/longevity houses — classical widowhood watch-point.'
-      : 'No Mars/Saturn occupation of 7th/8th from lagna.',
+      ? 'Mars or Saturn sits in the partnership or longevity houses, a classical cue for extra strain in the partnership. It is read with the whole chart and is not a prediction of loss.'
+      : 'Neither Mars nor Saturn sits in the 7th or 8th house from the lagna.',
   })
 
   items.push({
@@ -358,17 +360,17 @@ export function catalogVaidhavyaCues(chart: ChartOutput): VaidhavyaCatalogItem[]
     name: 'Rahu in 7th',
     present: !!(ra && wholeSignHouse(ra.rashi, asc) === 7),
     detail: ra && wholeSignHouse(ra.rashi, asc) === 7
-      ? 'Rahu in 7th — unconventional spouse karma; some texts link to separation themes.'
-      : 'Rahu not in 7th.',
+      ? 'Rahu in the 7th house points to an unconventional partnership; some texts link it to periods of distance, which good communication can ease.'
+      : 'Rahu is not in the 7th house.',
   })
 
   items.push({
     id: 've-dusthana',
-    name: 'Venus in dusthana',
+    name: 'Venus in a challenging house (6th, 8th or 12th)',
     present: !!(ve && [6, 8, 12].includes(wholeSignHouse(ve.rashi, asc))),
     detail: ve && [6, 8, 12].includes(wholeSignHouse(ve.rashi, asc))
-      ? `Venus in H${wholeSignHouse(ve.rashi, asc)} — spouse happiness karaka challenged.`
-      : 'Venus not in 6/8/12.',
+      ? `Venus is in the ${wholeSignHouse(ve.rashi, asc)}th house, so the planet of partnership happiness is under some strain.`
+      : 'Venus is not in the 6th, 8th or 12th house.',
   })
 
   if (ju) {
@@ -377,11 +379,11 @@ export function catalogVaidhavyaCues(chart: ChartOutput): VaidhavyaCatalogItem[]
     const aspects7 = [4, 6, 8].includes((7 - jh + 12) % 12) || jh === 7
     items.push({
       id: 'ju-weak-protect',
-      name: 'Jupiter not protecting 7th',
+      name: 'Jupiter not supporting the 7th house',
       present: !aspects7,
       detail: aspects7
-        ? 'Jupiter influences 7th — protective grace present.'
-        : 'Jupiter does not classically aspect/occupy 7th — weaker protection.',
+        ? 'Jupiter influences the 7th house, a classical sign of protective support.'
+        : 'Jupiter does not occupy or aspect the 7th house in the classical way, so that protective support is lighter.',
     })
   }
 
@@ -401,16 +403,18 @@ export function analyzeDualJaiminiMarriage(boyChart: ChartOutput, girlChart: Cha
   const boy = analyzeJaiminiMarriage(boyChart)
   const girl = analyzeJaiminiMarriage(girlChart)
   if (!boy && !girl) {
-    return { boy: null, girl: null, summary: 'D9 / Upapada data incomplete for both charts.', tone: 'mixed' }
+    return { boy: null, girl: null, summary: 'D9 and Upapada data are incomplete for both charts.', tone: 'mixed' }
   }
   const parts: string[] = []
+  const boyName = boyChart.meta.name || 'The first chart'
+  const girlName = girlChart.meta.name || 'The second chart'
   if (boy) {
-    parts.push(`Groom: ${boy.qualityBand} — ${boy.qualitySummary}`)
-    if (boy.activeRedFlagCount > 0) parts.push(`Groom red flags: ${boy.activeRedFlagCount}`)
+    parts.push(`${boyName}: ${boy.qualityBand} — ${boy.qualitySummary}`)
+    if (boy.activeRedFlagCount > 0) parts.push(`${boyName}, points to watch: ${boy.activeRedFlagCount}`)
   }
   if (girl) {
-    parts.push(`Bride: ${girl.qualityBand} — ${girl.qualitySummary}`)
-    if (girl.activeRedFlagCount > 0) parts.push(`Bride red flags: ${girl.activeRedFlagCount}`)
+    parts.push(`${girlName}: ${girl.qualityBand} — ${girl.qualitySummary}`)
+    if (girl.activeRedFlagCount > 0) parts.push(`${girlName}, points to watch: ${girl.activeRedFlagCount}`)
   }
   const flags = (boy?.activeRedFlagCount ?? 0) + (girl?.activeRedFlagCount ?? 0)
   return {

@@ -48,7 +48,7 @@ const DIGNIFIED: Dignity[] = ['exalted', 'moolatrikona', 'own', 'friend', 'great
 const ORDER: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 
 export const MARRIAGE_VIVAH_PRINCIPLES =
-  'Venus is experience and closeness. Jupiter is meaning and the move from me to we. Closeness without Jupiter dries out. Jupiter without Venus is duty without warmth. Both weak is an immature bond, and a prominent Rahu amplifies it. Both strong can deepen. Harm inside a marriage is read from Mars alone: the body when Mars sees the 1st, speech when Mars sees the 2nd, and sexual harm when that Mars is weak and on the marriage. Saturn can delay or deny. It does not describe abuse. A later marriage is still Venus, and Venus has to meet the spouse’s house. The 9th is the second-bond house. The star gives direction and the period gives time. Punarvasu repeats the same shape. A star exchange swaps the two planets’ significations. The 8th is marital longevity and the 9th is fortune, so an exchange between them disturbs the longevity with what should have been a blessing. Every marriage is a bond. A debt is extra. The birth chart is the event. Navamsha is maturity, and it stays quiet until guidance or practice wakes it. About seven years pass before the two karmas intertwine. Read the rising sign, then houses 2, 4, 5, 7, 8, and 9, the marriage lord and the glances on the 7th, then Navamsha, the period, and the transit.'
+  'Venus is experience and closeness. Jupiter is meaning and the move from me to we. Closeness without Jupiter dries out. Jupiter without Venus is duty without warmth. Both weak is an immature bond, and a prominent Rahu amplifies it. Both strong can deepen. Harm inside a marriage is read from Mars alone: the body when Mars sees the 1st, speech when Mars sees the 2nd, and sexual harm when that Mars is weak and on the marriage. Saturn can delay or deny. It does not describe abuse. A later marriage is still Venus, and Venus has to meet the spouse’s house. The 9th is the second-bond house. The star gives direction and the period gives time. Punarvasu repeats the same shape. A star exchange swaps the two planets’ significations. The 8th is marital longevity and the 9th is fortune, so an exchange between them disturbs the longevity with what should have been a blessing. Every marriage is a bond. A debt is extra. The birth chart is the event. Navamsha is maturity, and it stays quiet until guidance or practice wakes it. About seven years pass before the two karmas intertwine. The reading moves from the rising sign to houses 2, 4, 5, 7, 8, and 9, the marriage lord and the glances on the 7th, then the Navamsha, the period, and the transit.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -199,7 +199,7 @@ export function analyzeMarriageVivah(chart: ChartOutput | null | undefined): Mar
         harm.push(note(
           'vivah-work',
           'The same Mars touches the work',
-          `Mars also reaches the 10th. The marriage difficulty touches the career.${vipreet ? ' A dusthana lord sits in another dusthana, so the work can still rise through that adversity. The career is where the person can save themselves when the bond cannot.' : ' The work is touched. It is not cancelled by that glance alone.'}`,
+          `Mars also reaches the 10th. The marriage difficulty touches the career.${vipreet ? ' The lord of a difficult house (6th, 8th, or 12th) sits in another such house, so the work can still rise through that adversity. The career is where the person can save themselves when the bond cannot.' : ' The work is touched. It is not cancelled by that glance alone.'}`,
           vipreet ? 'mixed' : 'caution',
         ))
       }
@@ -413,8 +413,8 @@ export function analyzeMarriageVivah(chart: ChartOutput | null | undefined): Mar
   if (flags.marsHarm || flags.crisis) {
     harm.push(note(
       'vivah-counsel',
-      'This part is counsel, not a remedy',
-      'Where harm is marked, or the mind is in crisis, the astrologer’s job is counsel from outside the couple, repeated. The same words from the partner do not land. A remedy is not the tool for this part. A clinician comes before any astrological instruction when the crisis mark is present.',
+      'This part needs support, not a remedy',
+      'Where harm is marked, or the mind is in crisis, steady support from outside the couple matters most, and it helps to repeat it. The same words from the partner often do not land. A remedy is not the tool for this part. A clinician comes before any astrological guidance when the crisis mark is present.',
       'mixed',
     ))
   }
@@ -467,7 +467,7 @@ export function compareMarriageVivah(
     notes.push(note(
       'vivah-pair-mars',
       'Harm stays on the chart that has the weak Mars',
-      `${marsWho.join(' and ')} ${marsWho.length > 1 ? 'carry' : 'carries'} Mars as the harm indicator on the marriage. The other chart does not erase it. Counsel that person from outside the couple.`,
+      `${marsWho.join(' and ')} ${marsWho.length > 1 ? 'carry' : 'carries'} Mars as the harm indicator on the marriage. The other chart does not erase it. That person is best supported from outside the couple.`,
       'caution',
     ))
   }

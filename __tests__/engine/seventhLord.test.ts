@@ -84,8 +84,9 @@ describe('7th lord placements', () => {
       ],
     }))!
     expect(ids(reading)).toContain('seventh-h-2')
-    expect(prose(reading)).toMatch(/Do not use that image/)
+    expect(prose(reading)).toMatch(/not a statement about how anyone earns a living/)
     expect(prose(reading)).not.toMatch(/prostitution|sex work/i)
+    expect(prose(reading)).not.toMatch(/Do not use that image|client/i)
   })
 
   it('reads Jupiter in the 7th as protection with guilt', () => {
@@ -105,7 +106,9 @@ describe('7th lord placements', () => {
     }))!
     expect(ids(reading)).toContain('seventh-capricorn-mars')
     expect(ids(reading)).not.toContain('seventh-mars-saturn')
-    expect(prose(reading)).toMatch(/Do not announce an identity/)
+    expect(prose(reading)).toMatch(/do not follow the path family expects/)
+    expect(prose(reading)).toMatch(/a tendency only/)
+    expect(prose(reading)).not.toMatch(/Do not announce an identity/)
     expect(prose(reading)).not.toMatch(/homosexual|transgender/i)
   })
 
@@ -117,6 +120,7 @@ describe('7th lord placements', () => {
     }))!
     expect(ids(reading)).toContain('seventh-remarriage-sun-rahu')
     expect(prose(reading)).not.toMatch(/will die|husband died/i)
+    expect(prose(reading)).toMatch(/does not mean a death is indicated/)
   })
 
   it('confirms remarriage from Saturn’s trimshamsha in a woman’s chart', () => {

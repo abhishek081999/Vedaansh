@@ -1,7 +1,7 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/MilanMarriedLifePanel.tsx
-//  Match reading: emotion, home, mother-in-law, flavor and longevity
+//  Match reading: emotion, home, in-laws, flavor and lasting continuity
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
@@ -259,7 +259,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
   if (!data) {
     return (
       <div className="card" style={{ padding: '1.2rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        Both charts need an ascendant before married life can be compared.
+        Both charts need a calculated ascendant (lagna) before married life can be compared.
       </div>
     )
   }
@@ -274,7 +274,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
           {full ? (
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
               <input type="checkbox" checked={clientSafe} onChange={e => setClientSafe(e.target.checked)} />
-              Client-safe tone
+              Gentle wording
             </label>
           ) : null}
         </div>
@@ -284,20 +284,20 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
       {full && caseBrief ? <CaseBriefCard brief={caseBrief} clientSafe={clientSafe} /> : null}
 
       <div className="card" style={{ padding: '1.15rem', borderLeft: `4px solid ${LIFE_TONE[data.moon.tone]}` }}>
-        <SectionLabel>Moon signs — emotional compatibility</SectionLabel>
+        <SectionLabel>Moon signs: emotional compatibility</SectionLabel>
         <div style={{ fontWeight: 800, marginBottom: 4 }}>{data.moon.signA} × {data.moon.signB}</div>
         <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.moon.detail}</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.75rem' }}>
         <div className="card" style={{ padding: '1.1rem', borderLeft: `4px solid ${LIFE_TONE[data.home.tone]}` }}>
-          <SectionLabel>4th house — home</SectionLabel>
+          <SectionLabel>4th house: home</SectionLabel>
           <p style={{ margin: '0 0 0.55rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{data.home.reading}</p>
           <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>{data.home.a.reading}</p>
           <p style={{ margin: '0.35rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>{data.home.b.reading}</p>
         </div>
         <div className="card" style={{ padding: '1.1rem', borderLeft: `4px solid ${LIFE_TONE[data.tenth.tone]}` }}>
-          <SectionLabel>10th house — career and mother-in-law</SectionLabel>
+          <SectionLabel>10th house: career and mother-in-law</SectionLabel>
           <p style={{ margin: '0 0 0.55rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{data.tenth.reading}</p>
           <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>{data.tenth.a.reading}</p>
           <p style={{ margin: '0.35rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>{data.tenth.b.reading}</p>
@@ -305,7 +305,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
       </div>
 
       <div className="card" style={{ padding: '1.15rem' }}>
-        <SectionLabel>Flavor, passion, longevity, blessing, fruit</SectionLabel>
+        <SectionLabel>Flavor, passion, lasting continuity, blessing, fruit</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           {data.dimensions.map(d => (
             <div key={d.id}>
@@ -333,9 +333,9 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
       {!full && (
         <PlanGate userPlan={userPlan} required="gold" featureName="Married life">
           <div style={{ minHeight: 96, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-            <div style={{ fontWeight: 700, marginBottom: 6 }}>The rest of married life is on Gold</div>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>The rest of the married life reading is on the Gold plan</div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Classical predictions, D1 and D9, the 7th lord, houses, the partner, separation, karmic debt, and timing for both charts.
+              Classical readings, D1 and D9, the 7th lord, houses, the partner, separation themes, karmic patterns and timing for both charts.
             </div>
           </div>
         </PlanGate>
@@ -358,7 +358,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
         <PairBetween
           clientSafe={clientSafe}
           groups={[
-            { title: 'Second bond', notes: classical?.pair },
+            { title: 'Second-bond themes', notes: classical?.pair },
             { title: 'Seventh house', notes: jaya?.pair },
             { title: 'Kind of marriage', notes: marriageClass?.pair },
             { title: 'Eight houses', notes: marriageHouses?.pair },
@@ -369,19 +369,19 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
             { title: 'Venus bridge', notes: venusMarriage?.pair },
             { title: 'Transit', notes: marriageGochar?.pair },
             { title: 'The partner', notes: partnerNature?.pair },
-            { title: 'Separation', notes: divorceEnergy?.pair },
-            { title: 'Karmic debt', notes: karmicDebt?.pair },
-            { title: 'Marriage debt', notes: marriageKarma?.pair },
+            { title: 'Separation themes', notes: divorceEnergy?.pair },
+            { title: 'Karmic patterns', notes: karmicDebt?.pair },
+            { title: 'Marriage karma', notes: marriageKarma?.pair },
           ]}
         />
       ) : null}
       {!pairOnly && <>
       {classical && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Classical predictions — both charts</SectionLabel>
+          <SectionLabel>Classical readings: both charts</SectionLabel>
           {classical.pair.length ? (
             <div style={{ marginBottom: '0.85rem' }}>
-              <SectionLabel>Remarriage / second-bond synthesis</SectionLabel>
+              <SectionLabel>Second-bond themes (classical)</SectionLabel>
               <NoteCards notes={classical.pair} clientSafe={clientSafe} />
             </div>
           ) : null}
@@ -398,7 +398,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {jaimini && (
         <div className="card" style={{ padding: '1.15rem', borderLeft: `4px solid ${LIFE_TONE[jaimini.tone]}` }}>
-          <SectionLabel>Jaimini — both charts</SectionLabel>
+          <SectionLabel>Jaimini: both charts</SectionLabel>
           <p style={{ margin: '0 0 0.85rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{jaimini.summary}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
             <div>
@@ -415,7 +415,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {intimate && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Intimate life — both charts</SectionLabel>
+          <SectionLabel>Intimate life: both charts</SectionLabel>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
             {[{ name: data.nameA, reading: intimate.a }, { name: data.nameB, reading: intimate.b }].map(col => (
               <div key={col.name}>
@@ -429,7 +429,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {axis && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Aries–Libra axis — both charts</SectionLabel>
+          <SectionLabel>Aries–Libra axis: both charts</SectionLabel>
           {axis.match ? (
             <div style={{
               marginBottom: '0.85rem',
@@ -459,7 +459,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {soloLife && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Combinations and planet roles — both charts</SectionLabel>
+          <SectionLabel>Combinations and planet roles: both charts</SectionLabel>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
             {[{ name: data.nameA, reading: soloLife.a }, { name: data.nameB, reading: soloLife.b }].map(col => (
               <div key={col.name}>
@@ -476,7 +476,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {soloLife && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Jupiter, Mars, and Saturn — both charts</SectionLabel>
+          <SectionLabel>Jupiter, Mars and Saturn: both charts</SectionLabel>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
             {[{ name: data.nameA, reading: soloLife.a }, { name: data.nameB, reading: soloLife.b }].map(col => (
               <div key={col.name}>
@@ -495,7 +495,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {jaya && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Seventh house — both charts</SectionLabel>
+          <SectionLabel>Seventh house: both charts</SectionLabel>
           <NoteCards notes={jaya.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: jaya.a }, { name: data.nameB, reading: jaya.b }].map(col => (
@@ -567,7 +567,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {venusJupiter && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Venus and Jupiter — both charts</SectionLabel>
+          <SectionLabel>Venus and Jupiter: both charts</SectionLabel>
           <NoteCards notes={venusJupiter.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: venusJupiter.a }, { name: data.nameB, reading: venusJupiter.b }].map(col => (
@@ -585,7 +585,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {marriageMars && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Mars — both charts</SectionLabel>
+          <SectionLabel>Mars: both charts</SectionLabel>
           <NoteCards notes={marriageMars.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: marriageMars.a }, { name: data.nameB, reading: marriageMars.b }].map(col => (
@@ -603,7 +603,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {marriageVivah && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Marriage method — both charts</SectionLabel>
+          <SectionLabel>Marriage method: both charts</SectionLabel>
           <NoteCards notes={marriageVivah.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: marriageVivah.a }, { name: data.nameB, reading: marriageVivah.b }].map(col => (
@@ -621,7 +621,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {venusMarriage && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Venus bridge — both charts</SectionLabel>
+          <SectionLabel>Venus bridge: both charts</SectionLabel>
           <NoteCards notes={venusMarriage.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: venusMarriage.a }, { name: data.nameB, reading: venusMarriage.b }].map(col => (
@@ -636,7 +636,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {marriageGochar && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Marriage transit — both charts</SectionLabel>
+          <SectionLabel>Marriage transit: both charts</SectionLabel>
           <NoteCards notes={marriageGochar.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: marriageGochar.a }, { name: data.nameB, reading: marriageGochar.b }].map(col => (
@@ -654,7 +654,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {partnerNature && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>The partner — both charts</SectionLabel>
+          <SectionLabel>The partner: both charts</SectionLabel>
           <NoteCards notes={partnerNature.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: partnerNature.a }, { name: data.nameB, reading: partnerNature.b }].map(col => (
@@ -672,7 +672,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {divorceEnergy && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Separation — both charts</SectionLabel>
+          <SectionLabel>Separation themes: both charts</SectionLabel>
           <NoteCards notes={divorceEnergy.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: divorceEnergy.a }, { name: data.nameB, reading: divorceEnergy.b }].map(col => (
@@ -690,7 +690,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {karmicDebt && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Karmic debt — both charts</SectionLabel>
+          <SectionLabel>Karmic patterns: both charts</SectionLabel>
           <NoteCards notes={karmicDebt.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: karmicDebt.a }, { name: data.nameB, reading: karmicDebt.b }].map(col => (
@@ -708,7 +708,7 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       {marriageKarma && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <SectionLabel>Marriage debt and karma — both charts</SectionLabel>
+          <SectionLabel>Marriage karma: both charts</SectionLabel>
           <NoteCards notes={marriageKarma.pair} clientSafe={clientSafe} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
             {[{ name: data.nameA, reading: marriageKarma.a }, { name: data.nameB, reading: marriageKarma.b }].map(col => (

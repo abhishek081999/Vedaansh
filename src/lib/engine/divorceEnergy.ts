@@ -46,7 +46,7 @@ const DUSTHANA = new Set([6, 8, 12])
 const TRIGGERS: GrahaId[] = ['Su', 'Me', 'Ma', 'Ra']
 
 export const DIVORCE_ENERGY_PRINCIPLES =
-  'The first question is whether the marriage can still improve, and which energy is unbalanced. Feeling is the Moon. Attraction is Venus. Duty is Saturn. The class reads a separation when two of those are down, and a divorce when all three are down. The Sun, Mercury, Mars, and Rahu can speed a break that has already started. They do not begin it, and Mars with Rahu on the 7th is struggle rather than a divorce yoga. Rahu aspects only the 7th. The planets that bring a marriage are the ones that return when it separates. A reality check belongs to the first few years, and the strain often becomes visible around seven or eight years. This chart is not given a divorce date.'
+  'The first question is whether the marriage can still improve, and which energy is unbalanced. Feeling is the Moon. Attraction is Venus. Duty is Saturn. Classical texts read a separation when two of those are down, and a divorce when all three are down. The Sun, Mercury, Mars, and Rahu can speed a break that has already started. They do not begin it, and Mars with Rahu on the 7th is struggle rather than a divorce yoga. Rahu aspects only the 7th. The planets that bring a marriage are the ones that return when it separates. A reality check belongs to the first few years, and the strain often becomes visible around seven or eight years. This chart is not given a divorce date.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -115,6 +115,13 @@ function onMarriage(g: GrahaData | undefined, seventh: number, lord: GrahaData |
   if (g.rashi === seventh) return true
   if (lord && g.id !== lord.id && g.rashi === lord.rashi) return true
   return aspects(g, seventh)
+}
+
+const LEVEL_LABEL: Record<SplitLevel, string> = {
+  held: 'balanced marriage energies',
+  strain: 'one energy under strain',
+  separation: 'a separation pattern',
+  divorce: 'all three energies down',
 }
 
 function levelOf(down: number): SplitLevel {
@@ -208,8 +215,8 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
       [
         juOnSeventh && firm(jupiter, asc, grahas) ? 'Jupiter is capable and joins or aspects the 7th or its lord — wisdom and compromise can still land.' : '',
         juOnSeventh && !firm(jupiter, asc, grahas) ? 'Jupiter touches the 7th, but Jupiter itself is under strain, so the softener is thinner.' : '',
-        veOnSeventh ? 'Venus still capable on the marriage keeps affection available even when another energy is down.' : '',
-        'This softens the tone of the strain. It does not invent a wedding date or erase work that still has to be done.',
+        veOnSeventh ? 'Venus is still capable and touches the marriage, which keeps affection available even when another energy is down.' : '',
+        'This softens the tone of the strain. It does not erase the work that still has to be done.',
       ].filter(Boolean).join(' '),
       strainSoftened ? 'supportive' : 'mixed',
     ))
@@ -229,7 +236,7 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
       cancellations.push(note(
         'split-thread-waiting',
         `The remaining thread is ${gn(thread)}, not the current period lords`,
-        `Two energies are down; ${gn(thread)} still holds. The running path is ${running.map(gn).join(' → ')}. When ${gn(thread)} returns in dasha, that is when the class looks for repair — still without naming a court date.`,
+        `Two energies are down; ${gn(thread)} still holds. The running path is ${running.map(gn).join(' → ')}. When ${gn(thread)} returns in dasha, that is when the chart points to repair — still without naming a court date.`,
         'mixed',
       ))
     }
@@ -250,28 +257,28 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
     energies.push(note(
       'split-divorce',
       'All three threads are down',
-      `${parts.join(' ')} Emotion, attraction, and duty have all let go. The class reads that as divorce: the physical bond, the mental bond, and the soul bond no longer have an energy under them. A remedy aimed at Mars, Rahu, the Sun, or Mercury does not restore this. Those planets only speed a break whose roots are already gone. The useful question is whether a thread was missed, not which malefic to blame.`,
+      `${parts.join(' ')} Emotion, attraction, and duty have all let go. Classical texts read that as a divorce pattern: the physical bond, the mental bond, and the soul bond no longer have an energy under them. A remedy aimed at Mars, Rahu, the Sun, or Mercury does not restore this. Those planets only speed a break whose roots are already gone. The useful question is whether a thread was missed, not which malefic to blame.`,
       'caution',
     ))
   } else if (level === 'separation' && thread) {
     energies.push(note(
       'split-separation',
       'Two energies are down. One thread remains',
-      `${parts.join(' ')} ${THREAD[thread]} The class reads a separation here, with a way back through the thread that is still alive. It does not read a completed divorce.`,
+      `${parts.join(' ')} ${THREAD[thread]} This is read as a separation pattern, with a way back through the thread that is still alive, rather than as a completed divorce.`,
       'caution',
     ))
   } else if (level === 'strain') {
     energies.push(note(
       'split-strain',
       'One energy is under strain',
-      `${parts.join(' ')} One energy down is not a separation. The other two are still available. Improvement is the reading, and the strained energy is the one to work with.`,
+      `${parts.join(' ')} One energy down is not a separation. The other two are still available. Improvement is what this shows, and the strained energy is the one to work with.`,
       'mixed',
     ))
   } else {
     energies.push(note(
       'split-held',
       'The three energies are not in a break',
-      'Fewer than two of Moon, Venus, and Saturn are down. The class does not read a separation from this balance. A hard planet on the 7th is still only a hard planet.',
+      'Fewer than two of Moon, Venus, and Saturn are down. A separation is not read from this balance. A hard planet on the 7th is still only a hard planet.',
       'supportive',
     ))
   }
@@ -280,14 +287,14 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
     energies.push(note(
       'split-mars-rahu',
       'Mars and Rahu on the 7th are the struggle, not the divorce',
-      'Mars and Rahu occupy the 7th. The usual sentence is that the marriage must break. The class has watched this combination carry a long marriage: Mars brings effort and plain speech, Rahu brings an unconventional way through the problem, and the struggle itself is how Saturn and Jupiter grow a structure. It has to be endured. It is not a divorce yoga.',
+      'Mars and Rahu occupy the 7th. A common claim is that this pairing breaks a marriage. In practice it can carry a long marriage: Mars brings effort and plain speech, Rahu brings an unconventional way through the problem, and the struggle itself is how Saturn and Jupiter grow a structure. It asks for endurance. It is not a divorce yoga.',
       'mixed',
     ))
   } else if ((level === 'held' || level === 'strain') && onMarriage(mars, seventh, lord)) {
     energies.push(note(
       'split-mars',
       'Mars on the marriage is conflict, not a divorce',
-      'Mars touches the 7th or its lord. That is fights, heat, and the effort to stay. In a large share of charts Mars touches this house and the marriage continues. Conflict is the sentence. Divorce is not.',
+      'Mars touches the 7th or its lord. That is fights, heat, and the effort to stay. In a large share of charts Mars touches this house and the marriage continues. Conflict is what this shows; divorce is not.',
       'mixed',
     ))
   }
@@ -300,7 +307,7 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
       energies.push(note(
         'split-d9',
         'Navamsha disturbs a birth chart that still holds',
-        'D1 still has more than one of the three energies available. In Navamsha, two or more of Moon, Venus, and Saturn are weak. The class allows a separation to show in the fruit of the marriage even when the birth chart looks held. D9 does not invent a divorce the birth chart has refused. It says the soul of the bond is under strain.',
+        'The birth chart (D1) still has more than one of the three energies available. In Navamsha, two or more of Moon, Venus, and Saturn are weak. Strain can show in how the marriage ripens even when the birth chart looks held. D9 does not create a divorce the birth chart has refused. It points to strain in the deeper bond.',
         'mixed',
       ))
     }
@@ -310,7 +317,7 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
     energies.push(note(
       'split-direction',
       'The paths can part while respect remains',
-      'Jupiter is still strong while two energies are down. The class reads some of these as a parting of direction: feeling or duty can remain, and the two lives stop sharing one aim. A friendly separation is possible. It is the less common form. Most people in this pattern do not want to keep seeing each other.',
+      'Jupiter is still strong while two energies are down. Some patterns like this are read as a parting of direction: feeling or duty can remain, and the two lives stop sharing one aim. A friendly separation is possible. It is the less common form. Most people in this pattern do not want to keep seeing each other.',
       'mixed',
     ))
   }
@@ -322,7 +329,7 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
     energies.push(note(
       'split-venus-rahu',
       'Rahu gives the marriage another influence',
-      `${how}. The class reads an option of a bond outside the marriage, or a betrayal that arrives through the partner. It is a pattern of confusion and a pull to leave. It is not a finding that an affair has already happened, and it is not assigned to one of the two by default.`,
+      `${how}. Classical texts read this as the option of a bond outside the marriage, or a betrayal that could arrive through the partner. It is a pattern of confusion and a pull to leave. It is not a finding that an affair has already happened, and it is not assigned to one of the two by default.`,
       'caution',
     ))
   }
@@ -333,7 +340,7 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
       triggers.push(note(
         'split-triggers',
         `${hit.map(gn).join(', ')} can speed the break`,
-        `${hit.map(gn).join(', ')} touch the 7th or its lord. The Sun brings ego, Mercury brings speech that cuts, Mars brings heat, and Rahu brings dissatisfaction and another influence. The class is explicit that the Sun and Mercury do not divorce a chart by themselves, and that Mars and Rahu are the face of a break whose roots are Moon, Venus, or Saturn. Remedies aimed only at this face miss the energy that actually let go.`,
+        `${hit.map(gn).join(', ')} touch the 7th or its lord. The Sun brings ego, Mercury brings speech that cuts, Mars brings heat, and Rahu brings dissatisfaction and another influence. Traditionally the Sun and Mercury cannot end a marriage by themselves, and Mars and Rahu are the visible face of a break whose roots are in the Moon, Venus, or Saturn. Remedies aimed only at that visible face miss the energy that actually let go.`,
         'caution',
       ))
     }
@@ -356,7 +363,7 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
       triggers.push(note(
         'split-period',
         'The period matches the energy, not a divorce date',
-        `${bits}. The class finds that the planets around the marriage return, sometimes in another order, when the marriage separates. This period is that kind of match. It is not a filing date.`,
+        `${bits}. The planets around a marriage tend to return, sometimes in another order, when the marriage separates. This period is that kind of match. It is not a filing date.`,
         'mixed',
       ))
     }
@@ -404,7 +411,7 @@ export function compareDivorceEnergy(
     return [note(
       'split-pair-both',
       'Both charts have all three threads down',
-      `${nameA} and ${nameB} each show Moon, Venus, and Saturn unable to hold a marriage. The break is in both people.`,
+      `${nameA} and ${nameB} each show Moon, Venus, and Saturn unable to hold a marriage. The strain is in both people.`,
       'caution',
     )]
   }
@@ -412,7 +419,7 @@ export function compareDivorceEnergy(
     return [note(
       'split-pair-both',
       'Both charts are in a separation pattern',
-      `${nameA} is ${a.flags.level} and ${nameB} is ${b.flags.level}. Each chart already carries a collapse of the marriage energies. The second chart confirms it. It does not discover it.`,
+      `${nameA} shows ${LEVEL_LABEL[a.flags.level]} and ${nameB} shows ${LEVEL_LABEL[b.flags.level]}. Each chart already carries a collapse of the marriage energies. The second chart confirms the pattern rather than adding to it.`,
       'caution',
     )]
   }
@@ -422,7 +429,7 @@ export function compareDivorceEnergy(
     return [note(
       'split-pair-one',
       `${who}’s chart carries the break`,
-      `The collapsed energy is in ${who}’s Moon, Venus, or Saturn. ${other}’s three energies are not in that pattern. The class would ask which energy can still improve before treating the parting as finished.`,
+      `The collapsed energy is in ${who}’s Moon, Venus, or Saturn. ${other}’s three energies are not in that pattern. It is worth asking which energy can still improve before treating the parting as settled.`,
       'caution',
     )]
   }

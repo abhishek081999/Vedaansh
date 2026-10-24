@@ -255,7 +255,7 @@ export function analyzeKarmicDebt(chart: ChartOutput | null | undefined): Karmic
     release.push(note(
       'karma-open',
       'The debt is still being paid',
-      'The marriage marks of a karmic debt are present, and the completion set is not. No remedy substitutes for the payment. The cord, the guilt, and the blame continue until Saturn’s houses and the 5th and 9th have both done their work. If other debts remain when this one ends, what stops is communication and shared work. A death is not the sentence read from this chart.',
+      'The marriage marks of a karmic debt are present, and the completion set is not. No remedy substitutes for the payment. The cord, the guilt, and the blame continue until Saturn’s houses and the 5th and 9th have both done their work. If other debts remain when this one ends, what stops is communication and shared work. This does not indicate a death.',
       'caution',
     ))
   }

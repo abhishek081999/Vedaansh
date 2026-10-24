@@ -85,7 +85,7 @@ export interface VaidhavyaVidhurMatch {
 
 function longevityBandOf(chart: ChartOutput): { band: LongevityBand; note: string; score: number } {
   const asc = chart.lagnas.ascRashi
-  if (!asc) return { band: 'moderate', note: 'Lagna missing — longevity unread.', score: 5 }
+  if (!asc) return { band: 'moderate', note: 'Lagna missing, so this reading could not be made.', score: 5 }
 
   let score = 6
   const notes: string[] = []
@@ -96,7 +96,7 @@ function longevityBandOf(chart: ChartOutput): { band: LongevityBand; note: strin
     if (!MALEFICS.includes(g.id)) continue
     if (wholeSignHouse(g.rashi, asc) === 8) {
       score -= 1.5
-      notes.push(`${GRAHA_NAMES[g.id]} in 8th`)
+      notes.push(`${GRAHA_NAMES[g.id]} in the 8th house`)
     }
     if (wholeSignHouse(g.rashi, asc) === 1) {
       score -= 0.5
@@ -106,7 +106,7 @@ function longevityBandOf(chart: ChartOutput): { band: LongevityBand; note: strin
     const h = wholeSignHouse(l8.rashi, asc)
     if ([6, 8, 12].includes(h)) {
       score -= 1.5
-      notes.push(`8th lord in dusthana H${h}`)
+      notes.push(`8th lord in a challenging house (house ${h})`)
     }
     if (BENEFICS.includes(l8.id as GrahaId) || [1, 4, 5, 7, 9, 10].includes(h)) {
       score += 1
@@ -126,8 +126,8 @@ function longevityBandOf(chart: ChartOutput): { band: LongevityBand; note: strin
     band,
     score,
     note: notes.length
-      ? `${band} longevity indicators (${notes.slice(0, 3).join('; ')})`
-      : `${band} longevity indicators from 8th-house scan`,
+      ? `${band} wellbeing and longevity indicators (${notes.slice(0, 3).join('; ')})`
+      : `${band} wellbeing and longevity indicators from the 8th-house scan`,
   }
 }
 
@@ -146,8 +146,8 @@ export function scoreSpouseRiskYoga(
 
   if (!asc) {
     return {
-      person, role, intensity: 0, band: 'none', factors: ['Chart lagna unavailable'],
-      longevityBand: 'moderate', longevityNote: 'Unread',
+      person, role, intensity: 0, band: 'none', factors: ['Lagna unavailable for this chart'],
+      longevityBand: 'moderate', longevityNote: 'Not available',
     }
   }
 
@@ -163,11 +163,11 @@ export function scoreSpouseRiskYoga(
     const h = wholeSignHouse(g.rashi, asc)
     if (h === 7) {
       intensity += 2
-      factors.push(`${GRAHA_NAMES[g.id]} occupies 7th`)
+      factors.push(`${GRAHA_NAMES[g.id]} occupies the 7th house`)
     }
     if (h === 8) {
       intensity += 1.5
-      factors.push(`${GRAHA_NAMES[g.id]} occupies 8th`)
+      factors.push(`${GRAHA_NAMES[g.id]} occupies the 8th house`)
     }
   }
 
@@ -176,7 +176,7 @@ export function scoreSpouseRiskYoga(
     const saOnSpouse = grahaAspectsHouse(sa, 7, asc) || grahaAspectsHouse(sa, 8, asc)
     if (maOnSpouse && saOnSpouse) {
       intensity += 2.5
-      factors.push('Mars + Saturn both influence 7th/8th (classical widowhood cue)')
+      factors.push('Mars and Saturn both influence the 7th/8th houses (a classical cue for strain in the partnership, to be read with the whole chart)')
     }
   }
 
@@ -184,11 +184,11 @@ export function scoreSpouseRiskYoga(
     const h = wholeSignHouse(l7.rashi, asc)
     if ([6, 8, 12].includes(h)) {
       intensity += 1.5
-      factors.push(`7th lord in dusthana H${h}`)
+      factors.push(`7th lord in a challenging house (house ${h})`)
     }
     if (l7.isCombust) {
       intensity += 1
-      factors.push('7th lord combust')
+      factors.push('7th lord is combust (close to the Sun, so weaker)')
     }
   }
 
@@ -196,7 +196,7 @@ export function scoreSpouseRiskYoga(
     const h = wholeSignHouse(l8.rashi, asc)
     if ([6, 8, 12].includes(h)) {
       intensity += 1
-      factors.push(`8th lord in dusthana H${h}`)
+      factors.push(`8th lord in a challenging house (house ${h})`)
     }
   }
 
@@ -205,14 +205,14 @@ export function scoreSpouseRiskYoga(
     const h = wholeSignHouse(ve.rashi, asc)
     if ([6, 8, 12].includes(h) || ve.isCombust) {
       intensity += 1
-      factors.push('Venus challenged (spouse happiness karaka)')
+      factors.push('Venus, the planet of partnership happiness, is under strain')
     }
   }
   if (ju) {
     const h = wholeSignHouse(ju.rashi, asc)
     if ([6, 8, 12].includes(h)) {
       intensity += 0.5
-      factors.push('Jupiter in dusthana — weaker protective grace')
+      factors.push('Jupiter sits in a challenging house, so its protective support is lighter')
     }
   }
 
@@ -226,16 +226,16 @@ export function scoreSpouseRiskYoga(
     role,
     intensity,
     band,
-    factors: factors.length ? factors : ['No strong classical spouse-risk factors flagged'],
+    factors: factors.length ? factors : ['No strong classical partner-wellbeing factors flagged'],
     longevityBand: lon.band,
     longevityNote: lon.note,
   }
 }
 
 /**
- * Match Vaidhavya (girl/spouse-death-of-husband cues) with Vidhur (boy/spouse-death-of-wife cues).
- * Similar intensity → cancellation tendency per teacher notes.
- * chartA = Person 1 (traditionally husband/boy), chartB = Person 2 (wife/girl).
+ * Compare the classical partner-wellbeing cues for each chart (Vaidhavya for the bride's chart,
+ * Vidhur for the groom's chart). Similar intensity points to a balancing tendency in the classical notes.
+ * chartA = Person 1 (traditionally the groom), chartB = Person 2 (traditionally the bride).
  */
 export function matchVaidhavyaVidhur(chartA: ChartOutput, chartB: ChartOutput): VaidhavyaVidhurMatch {
   const genderA = chartA.meta.gender
@@ -257,7 +257,7 @@ export function matchVaidhavyaVidhur(chartA: ChartOutput, chartB: ChartOutput): 
   const bothPresent = vidhur.intensity >= 1.5 && vaidhavya.intensity >= 1.5
   const cancelled = bothPresent && intensityGap <= 2.5
 
-  // Critical rule: strong vaidhavya + strong partner longevity still manifests via akaal mrityu risk
+  // Uneven case: a strong cue in one chart against a strong-longevity partner chart is flagged for a closer read
   const critical =
     vaidhavya.intensity >= 6 &&
     vidhur.longevityBand === 'strong' &&
@@ -269,22 +269,22 @@ export function matchVaidhavyaVidhur(chartA: ChartOutput, chartB: ChartOutput): 
   if (cancelled) {
     tone = 'supportive'
     summary =
-      `Vaidhavya (${vaidhavya.intensity}/10) and Vidhur (${vidhur.intensity}/10) are similar intensity — mutual cancellation tendency. Still confirm longevity and 7th-rotation.`
+      `The partner-wellbeing cues in the two charts (${vaidhavya.person} ${vaidhavya.intensity}/10, ${vidhur.person} ${vidhur.intensity}/10) are of similar strength, which classical notes read as a balancing tendency. It is still worth reading alongside the rest of both charts.`
   } else if (critical) {
     tone = 'caution'
     summary =
-      `Strong Vaidhavya (${vaidhavya.intensity}/10) with partner showing ${vidhur.longevityBand} longevity — classical note: yoga can still trigger via akaal mrityu risk. Prefer matching with comparable Vidhur intensity.`
+      `One chart (${vaidhavya.person}, ${vaidhavya.intensity}/10) carries stronger partner-wellbeing cues than the other, whose wellbeing indicators read ${vidhur.longevityBand}. Classical notes prefer comparable strength in both charts, so this is a point for gentle attention and a fuller read, not a prediction.`
   } else if (vaidhavya.intensity >= 6 || vidhur.intensity >= 6) {
     tone = 'caution'
     summary =
-      `Uneven spouse-risk yogas (gap ${intensityGap.toFixed(1)}). Intensity matching or remedial counselling advised before finalizing.`
+      `The partner-wellbeing cues are uneven between the two charts (gap ${intensityGap.toFixed(1)}). A fuller reading of both charts, with a trusted astrologer if you wish, can put this in context.`
   } else if (vaidhavya.band === 'none' && vidhur.band === 'none') {
     tone = 'supportive'
-    summary = 'No strong Vaidhavya/Vidhur factors flagged in either chart from this scan.'
+    summary = 'No strong partner-wellbeing (Vaidhavya / Vidhur) factors flagged in either chart from this scan.'
   } else {
     tone = 'mixed'
     summary =
-      `Mild spouse-risk signals present (Vaidhavya ${vaidhavya.intensity}/10, Vidhur ${vidhur.intensity}/10). Review with longevity and dasha timing.`
+      `Mild partner-wellbeing signals are present (${vaidhavya.person} ${vaidhavya.intensity}/10, ${vidhur.person} ${vidhur.intensity}/10). These are best read together with the longevity indicators and dasha timing.`
   }
 
   return {
@@ -345,13 +345,13 @@ function lordRelation(a: string, b: string): { label: string; tone: MilanTone } 
   const nameA = ID_TO_NAME[a] ?? a
   const nameB = ID_TO_NAME[b] ?? b
   if (a === 'Ra' || a === 'Ke' || b === 'Ra' || b === 'Ke') {
-    return { label: 'Node period — karmic / unstable colour', tone: 'caution' }
+    return { label: 'Rahu/Ketu period, often a restless or karmic phase', tone: 'caution' }
   }
   const rel = FRIEND_MATRIX[nameA]?.[nameB] ?? 'Neutral'
   const rev = FRIEND_MATRIX[nameB]?.[nameA] ?? 'Neutral'
   if (rel === 'Friend' && rev === 'Friend') return { label: 'Mutual friends', tone: 'supportive' }
-  if (rel === 'Enemy' || rev === 'Enemy') return { label: 'Hostile lords', tone: 'caution' }
-  return { label: 'Neutral / mixed', tone: 'mixed' }
+  if (rel === 'Enemy' || rev === 'Enemy') return { label: 'Lords are not natural friends', tone: 'caution' }
+  return { label: 'Neutral or mixed', tone: 'mixed' }
 }
 
 function iso(d: Date | string | number): string {
@@ -379,10 +379,12 @@ export function analyzeDashaPair(
   const findings: DashaPairAnalysis['findings'] = []
   const windows: DashaPairWindow[] = []
 
+  const nameA = chartA.meta.name || 'First chart'
+  const nameB = chartB.meta.name || 'Second chart'
   const pairs: { aNode: DashaNode; bNode: DashaNode; label: string }[] = []
   if (a.current && b.current) pairs.push({ aNode: a.current, bNode: b.current, label: 'Current overlap' })
-  if (a.current && b.next) pairs.push({ aNode: a.current, bNode: b.next, label: 'A current × B next' })
-  if (a.next && b.current) pairs.push({ aNode: a.next, bNode: b.current, label: 'A next × B current' })
+  if (a.current && b.next) pairs.push({ aNode: a.current, bNode: b.next, label: `${nameA} now × ${nameB} next` })
+  if (a.next && b.current) pairs.push({ aNode: a.next, bNode: b.current, label: `${nameA} next × ${nameB} now` })
   if (a.next && b.next) pairs.push({ aNode: a.next, bNode: b.next, label: 'Next overlap' })
 
   for (const p of pairs) {
@@ -396,8 +398,8 @@ export function analyzeDashaPair(
     const marriageActive = aHit || bHit
 
     let note = `${p.label}: ${GRAHA_NAMES[p.aNode.lord as GrahaId] ?? p.aNode.lord} × ${GRAHA_NAMES[p.bNode.lord as GrahaId] ?? p.bNode.lord} — ${rel.label}.`
-    if (marriageActive) note += ' Period lord touches 7th themes — marriage/relationship timing is active.'
-    if (rel.tone === 'caution') note += ' Prefer patience and clear agreements in this window.'
+    if (marriageActive) note += ' A period lord touches 7th-house themes, so partnership matters may feel more active.'
+    if (rel.tone === 'caution') note += ' Patience and clear agreements tend to help in this window.'
 
     windows.push({
       personALord: GRAHA_NAMES[p.aNode.lord as GrahaId] ?? p.aNode.lord,
@@ -420,7 +422,7 @@ export function analyzeDashaPair(
   } else {
     findings.push({
       title: 'Dasha data',
-      detail: 'Vimshottari tree incomplete for one or both charts — recalculate charts to unlock pair timing.',
+      detail: 'The Vimshottari dasha timeline is incomplete for one or both charts. Recalculate the charts to see the pair timing.',
       tone: 'mixed',
     })
   }
@@ -429,10 +431,10 @@ export function analyzeDashaPair(
   const supportWindows = windows.filter(w => w.tone === 'supportive')
   const summary =
     cautionWindows.length > supportWindows.length
-      ? 'Upcoming dasha overlaps lean challenging for relational harmony — time major decisions carefully.'
+      ? 'Upcoming dasha overlaps lean challenging for harmony between you, so it may help to time big decisions with care.'
       : supportWindows.length > 0
-        ? 'At least one supportive dasha-lord pairing appears in the near timeline.'
-        : 'Dasha-pair colour is mixed; use Antardasha detail for fine timing.'
+        ? 'At least one supportive pairing of dasha lords appears in the near timeline.'
+        : 'The dasha pairing looks mixed; the Antardasha detail gives finer timing.'
 
   return {
     currentA: a.current ? { lord: GRAHA_NAMES[a.current.lord as GrahaId] ?? a.current.lord, end: iso(a.current.end) } : null,
@@ -549,7 +551,7 @@ export function matchVarnamala(chartA: ChartOutput, chartB: ChartOutput): Varnam
       personB,
       compatible: true,
       tone: 'mixed',
-      summary: 'Could not map one or both Janma syllables to Varnamala groups.',
+      summary: 'The birth-name syllable of one or both charts could not be matched to a Varnamala group.',
     }
   }
 
@@ -564,7 +566,7 @@ export function matchVarnamala(chartA: ChartOutput, chartB: ChartOutput): Varnam
       compatible: false,
       tone: 'caution',
       summary:
-        `Janma-naam animals clash: ${personA.group.animalSa} (${personA.janmaSyllable}) vs ${personB.group.animalSa} (${personB.janmaSyllable}) — 5th-group enemy rule. Based on Moon pada sound, not commonly used name.`,
+        `The birth-name animals sit in opposing groups: ${personA.group.animalSa} (${personA.janmaSyllable}) and ${personB.group.animalSa} (${personB.janmaSyllable}). This is a mild, traditional point drawn from the Moon pada sound, not the name you use every day.`,
     }
   }
 
@@ -575,7 +577,7 @@ export function matchVarnamala(chartA: ChartOutput, chartB: ChartOutput): Varnam
     compatible: true,
     tone: same ? 'supportive' : 'mixed',
     summary: same
-      ? `Same Varnamala animal (${personA.group.animalSa}) from Janma syllables ${personA.janmaSyllable} / ${personB.janmaSyllable}.`
-      : `${personA.group.animalSa} (${personA.janmaSyllable}) and ${personB.group.animalSa} (${personB.janmaSyllable}) are not 5th-group enemies — acceptable.`,
+      ? `Same Varnamala animal (${personA.group.animalSa}) from the birth-name syllables ${personA.janmaSyllable} and ${personB.janmaSyllable}.`
+      : `${personA.group.animalSa} (${personA.janmaSyllable}) and ${personB.group.animalSa} (${personB.janmaSyllable}) are not in opposing groups, so this point is comfortable.`,
   }
 }

@@ -318,7 +318,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
         ))}
         <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
           <input type="checkbox" checked={clientSafe} onChange={e => setClientSafe(e.target.checked)} />
-          Client-safe tone
+          Gentle wording
         </label>
       </div>
 

@@ -193,7 +193,7 @@ export function analyzeVenusJupiterBond(chart: ChartOutput | null | undefined): 
     scenarioNotes.push(note(
       'vj-open',
       'Venus and Jupiter are not in a decisive pair',
-      `Venus is ${venusW} and Jupiter is ${jupiterW}. The four marriage scenarios need one planet strong and the other weak, or both strong, or both weak. This chart is between those. Do not call it a paper pattern or a duty pattern from a middling planet.`,
+      `Venus is ${venusW} and Jupiter is ${jupiterW}. The four marriage scenarios need one planet strong and the other weak, or both strong, or both weak. This chart sits between those, so it is not a clear paper-marriage or duty-marriage pattern.`,
       'mixed',
     ))
   }
@@ -355,7 +355,7 @@ export function compareVenusJupiterBond(
     notes.push(note(
       'vj-pair-complement',
       'One chart has the closeness, the other has the depth',
-      `${nameA} is the ${a.flags.scenario} pattern and ${nameB} is the ${b.flags.scenario} pattern. Together they hold the two halves the class separates: experience and direction. Each chart alone is incomplete. The marriage works if the warmth and the meaning are actually shared, not left in separate people.`,
+      `${nameA} is the ${a.flags.scenario} pattern and ${nameB} is the ${b.flags.scenario} pattern. Together they hold the two halves classical texts keep apart: experience and direction. Each chart alone is incomplete. The marriage works if the warmth and the meaning are actually shared, not left in separate people.`,
       'mixed',
     ))
   } else if (a.flags.scenario !== 'open' && a.flags.scenario === b.flags.scenario) {
@@ -370,7 +370,7 @@ export function compareVenusJupiterBond(
     notes.push(note(
       'vj-pair-nursery',
       `${who} is still learning what a relationship is`,
-      `${who} has Venus and Jupiter both weak. The other chart does not share that immaturity. The class would not expect one conversation, or a remedy, to mature it. Guidance has to be repeated, and it has to come from outside the couple.`,
+      `${who} has Venus and Jupiter both weak. The other chart does not share that immaturity. Classical texts would not expect one conversation, or a remedy, to mature it. Steady, repeated guidance helps, and it is easier to take in when it comes from outside the couple.`,
       'caution',
     ))
   }

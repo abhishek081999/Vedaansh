@@ -23,6 +23,8 @@ const LORDS: Record<number, GrahaId> = {
   7: 'Ve', 8: 'Ma', 9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju',
 }
 
+const D9_LABEL: Record<'strong' | 'weak' | 'mid', string> = { strong: 'strong', weak: 'under strain', mid: 'moderate' }
+
 const FOCUS: GrahaId[] = ['Ve', 'Ju', 'Mo', 'Ma']
 const DIGNIFIED: Dignity[] = ['exalted', 'moolatrikona', 'own']
 
@@ -78,18 +80,18 @@ function overlayNotes(
     const label = id === dk ? `${gn(id)} (DK)` : gn(id)
     const detail = h === 7 || h === 5 || h === 1 || h === 8 || h === 12 || h === 6
       ? (h === 7
-        ? `${fromName}’s ${label} falls in ${intoName}’s 7th — partnership heat and spouse themes.`
+        ? `${fromName}’s ${label} falls in ${intoName}’s 7th house, touching partnership and warmth between you.`
         : h === 5
-          ? `${fromName}’s ${label} falls in ${intoName}’s 5th — romance and children themes.`
+          ? `${fromName}’s ${label} falls in ${intoName}’s 5th house, touching romance and children.`
           : h === 1
-            ? `${fromName}’s ${label} falls on ${intoName}’s lagna — identity and presence.`
+            ? `${fromName}’s ${label} falls on ${intoName}’s lagna, touching identity and presence.`
             : h === 8
-              ? `${fromName}’s ${label} falls in ${intoName}’s 8th — intensity, shared crisis, or hidden bonds.`
+              ? `${fromName}’s ${label} falls in ${intoName}’s 8th house, touching intensity, shared challenges and deep bonds.`
               : h === 12
-                ? `${fromName}’s ${label} falls in ${intoName}’s 12th — bedroom, foreign pull, or loss themes.`
-                : `${fromName}’s ${label} falls in ${intoName}’s 6th — service, contest, or friction.`)
+                ? `${fromName}’s ${label} falls in ${intoName}’s 12th house, touching intimacy, foreign connections and letting go.`
+                : `${fromName}’s ${label} falls in ${intoName}’s 6th house, touching service, effort and occasional friction.`)
       : `${fromName}’s ${label} in house ${h} of ${intoName}.`
-    notes.push(note(`${prefix}-${id}-h${h}`, `${label} → ${intoName} H${h}`, detail, toneForHouse(h)))
+    notes.push(note(`${prefix}-${id}-h${h}`, `${label} → ${intoName} house ${h}`, detail, toneForHouse(h)))
   }
   return notes
 }
@@ -129,11 +131,11 @@ export function analyzeMarriageSynastry(
   const d9: MarriedLifeNote[] = [note(
     'syn-d9',
     d9Score === 'aligned'
-      ? 'Navamsha Venus and marriage-house lords support each other'
+      ? 'Navamsha Venus and the 7th-house lords support each other'
       : d9Score === 'strained'
-        ? 'Navamsha Venus and marriage-house lords are under strain on both sides'
+        ? 'Navamsha Venus and the 7th-house lords are under some strain on both sides'
         : 'Navamsha marriage strength is mixed',
-    `${nameA}: Navamsha (D9) Venus ${a9.ve}, marriage-house lord ${a9.lord}. ${nameB}: Navamsha Venus ${b9.ve}, marriage-house lord ${b9.lord}. Comparing both Navamshas shows the deeper marriage fruit — aligned charts hold better under pressure.`,
+    `${nameA}: Navamsha (D9) Venus ${D9_LABEL[a9.ve]}, 7th-house lord ${D9_LABEL[a9.lord]}. ${nameB}: Navamsha Venus ${D9_LABEL[b9.ve]}, 7th-house lord ${D9_LABEL[b9.lord]}. Comparing both Navamshas shows the deeper fruit of the marriage; aligned charts tend to hold up better under pressure.`,
     d9Score === 'aligned' ? 'supportive' : d9Score === 'strained' ? 'caution' : 'mixed',
   )]
 
@@ -141,8 +143,8 @@ export function analyzeMarriageSynastry(
   return {
     headline: hitCount
       ? `Cross-chart overlay: ${hitCount} marriage-house contacts`
-      : 'Cross-chart overlay: no sharp contacts on houses 1, 5, 7, 8, or 12',
-    summary: `Navamsha-to-Navamsha score: ${d9Score}. Overlay asks whether each chart lands as the partner the other promises.`,
+      : 'Cross-chart overlay: no strong contacts on houses 1, 5, 7, 8 or 12',
+    summary: `Navamsha-to-Navamsha score: ${d9Score}. The overlay shows where each person’s planets fall in the other’s chart, and what that may feel like.`,
     overlayAonB,
     overlayBonA,
     d9,

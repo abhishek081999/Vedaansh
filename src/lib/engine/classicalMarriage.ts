@@ -84,7 +84,7 @@ export function analyzeClassicalMarriage(chart: ChartOutput | null | undefined):
     timing.push(note(
       'classical-timing-marker',
       'Relative marriage marker',
-      `The earliest classical year marker on this chart is ${y}. Treat it as a ${relative} clock relative to other charts, not as a calendar birthday. Confirm with the dasha of the 7th lord, Venus, and Jupiter.`,
+      `The earliest classical year marker on this chart is ${y}. Take it as a ${relative} clock relative to other charts, not as a calendar birthday. The dasha of the 7th lord, Venus, and Jupiter confirms it.`,
       'mixed',
     ))
   }
@@ -159,7 +159,7 @@ export function analyzeClassicalMarriage(chart: ChartOutput | null | undefined):
       remarriage.push(note(
         'classical-remarriage-flag',
         'A second-bond signature is present',
-        'The pattern flags a second chapter in partnership. Read Navamsha and dasha before treating any first ending as finished. The form of that ending stays unnamed.',
+        'The pattern flags a second chapter in partnership. The Navamsha and dasha show whether any first ending is truly final. The chart does not say how that ending came.',
         'caution',
       ))
     }

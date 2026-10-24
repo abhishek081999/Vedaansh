@@ -110,23 +110,23 @@ function getCompatibility(a: ChartOutput, b: ChartOutput): CompatItem[] {
   // 3. Venus–Moon (Emotional Connection)
   if (aVe && bMo) {
     const d = signDiff(signOf(aVe.totalDegree), signOf(bMo.totalDegree))
-    if ([1, 5, 9].includes(d)) items.push({ label: "A's Venus ↔ B's Moon", score: 1.5, level: 'good', reason: 'Strong emotional attraction' })
+    if ([1, 5, 9].includes(d)) items.push({ label: "Person 1's Venus ↔ Person 2's Moon", score: 1.5, level: 'good', reason: 'Emotional attraction tends to be strong' })
   }
   if (bVe && aMo) {
     const d = signDiff(signOf(bVe.totalDegree), signOf(aMo.totalDegree))
-    if ([1, 5, 9].includes(d)) items.push({ label: "B's Venus ↔ A's Moon", score: 1.5, level: 'good', reason: 'Strong emotional attraction' })
+    if ([1, 5, 9].includes(d)) items.push({ label: "Person 2's Venus ↔ Person 1's Moon", score: 1.5, level: 'good', reason: 'Emotional attraction tends to be strong' })
   }
 
   // 4. Jupiter Support (Blessings)
   if (aJu && bMo) {
     const d = signDiff(signOf(aJu.totalDegree), signOf(bMo.totalDegree))
-    if ([1, 5, 7, 9].includes(d)) items.push({ label: "A's Jupiter blesses B's Moon", score: 1, level: 'good', reason: 'Fortunate for stability' })
+    if ([1, 5, 7, 9].includes(d)) items.push({ label: "Person 1's Jupiter supports Person 2's Moon", score: 1, level: 'good', reason: 'Supports stability' })
   }
 
   // 5. Sun Sign Affinity
   if (aSu && bSu) {
     const d = signDiff(signOf(aSu.totalDegree), signOf(bSu.totalDegree))
-    if ([1, 5, 9].includes(d)) items.push({ label: 'Sun Sign Affinity', score: 1, level: 'good', reason: 'Soul compatibility' })
+    if ([1, 5, 9].includes(d)) items.push({ label: 'Sun Sign Affinity', score: 1, level: 'good', reason: 'A sense of shared outlook' })
   }
 
   return items
@@ -159,9 +159,9 @@ function countsAsStrength(key: keyof typeof KOOTA_LABELS, score: ReturnType<type
 
 function awarenessText(key: keyof typeof KOOTA_LABELS, points: number, max: number, insight: string): string {
   const mark = `${points} of ${max}.`
-  if (key === 'varna') return `${mark} Work and values do not line up between these two.`
-  if (key === 'yoni') return `${mark} Physical affinity is thin. Closeness here is a choice, not an easy instinct.`
-  if (key === 'gana') return `${mark} Temperament does not settle. The two react at different speeds.`
+  if (key === 'varna') return `${mark} Work and values may not line up easily between you.`
+  if (key === 'yoni') return `${mark} Physical affinity is lighter here, so closeness may grow through choice and care rather than instinct.`
+  if (key === 'gana') return `${mark} Temperaments differ, and you may react at different speeds.`
   return `${mark} ${insight}`
 }
 
@@ -183,18 +183,18 @@ function awarenessItems(score: ReturnType<typeof calculateAshtakoot>) {
       label: 'Nadi',
       text:
         score.nadi.points === 8
-          ? 'Same Nadi with a classical cancellation — points restored, but same Nadi is still treated as a progeny caution by many lineages.'
-          : 'Same Nadi (Nadi Dosha) — traditionally refused for progeny vitality.',
+          ? 'Same Nadi with a classical cancellation: the points are restored, though many traditions still advise caution and a routine health check before children.'
+          : 'Same Nadi (Nadi Dosha): traditionally a point of caution for children’s health. Cancellation rules and a routine health check are worth considering.',
     })
   }
   if (score.total < 18) {
-    items.push({ id: 'low', label: 'Low gunas', text: 'The mechanical score is under 18. Read the houses, the 7th lord, and the Navamsha before treating the guna total as the decision.' })
+    items.push({ id: 'low', label: 'Lower guna total', text: 'The guna score is under 18. The houses, the 7th lord and the Navamsha give a fuller picture, and the guna total alone does not decide a match.' })
   }
   if (score.total > 32) {
     items.push({
       id: 'high',
       label: score.total === 36 ? '36/36 total' : 'Very high total',
-      text: 'Many lineages treat a score above 32 as too alike. Confirm Nadi differs and that Mars–Venus spark and separate identity remain.',
+      text: 'Many traditions see a score above 32 as being very alike. It is worth confirming that Nadi differs and that you each keep your own identity and spark.',
     })
   }
   return items
@@ -203,21 +203,21 @@ function awarenessItems(score: ReturnType<typeof calculateAshtakoot>) {
 function getVerdict(score: ReturnType<typeof calculateAshtakoot>) {
   const total = score.total
   const nadiSame = sameNadi(score)
-  // Classical counselling band is 18–32; above 32 (incl. 36) = caution for over-similarity
+  // Classical band is 18–32; above 32 (incl. 36) is read with care for over-similarity
   if (total > 32) {
     return {
-      label: total === 36 ? '36/36 — Caution' : 'Very High — Caution',
+      label: total === 36 ? '36/36: read with care' : 'Very high: read with care',
       sub: nadiSame
-        ? 'Mechanical score is very high, but both charts share the same Nadi — traditionally the gravest koota fault for progeny even when points are restored by exception.'
-        : 'Over 32 gunas — many paramparas treat this as too similar. Confirm Nadi differs and verify Venus–Mars spark.',
+        ? 'The guna score is very high, but both charts share the same Nadi, traditionally the most weighty koota concern even when points are restored by an exception.'
+        : 'Over 32 gunas: many traditions read this as being very alike. It is worth confirming that Nadi differs and looking at the Venus–Mars link.',
       color: 'var(--text-gold)',
       icon: '◇',
     }
   }
-  if (total >= 28) return { label: 'Excellent Match', sub: 'Strong Stage-1 guna score. Still verify Venus–Mars chemistry and longevity — gunas alone are incomplete.', color: 'var(--teal)', icon: '✦' }
-  if (total >= 21) return { label: 'Good Match', sub: 'Within the classical 18–32 window with solid cohesion. Review dosha exceptions and Stage 3 chemistry.', color: 'var(--text-gold)', icon: '★' }
-  if (total >= 18) return { label: 'Average Match', sub: 'Meets traditional minimum (18). Conscious effort needed; karmic bonds can outweigh low–mid gunas.', color: 'var(--accent)', icon: '✓' }
-  return { label: 'Below Traditional Minimum', sub: 'Under 18 gunas — classically refused, yet low-guna marriages often thrive via strong planetary karma. Stage 2–3 is essential.', color: 'var(--rose)', icon: '!' }
+  if (total >= 28) return { label: 'Very Supportive', sub: 'A strong Stage 1 guna score. Venus–Mars chemistry and the partner longevity cues add important detail, since gunas alone are not the whole story.', color: 'var(--teal)', icon: '✦' }
+  if (total >= 21) return { label: 'Supportive', sub: 'Within the classical 18–32 range with solid cohesion. Dosha exceptions and Stage 3 chemistry add further detail.', color: 'var(--text-gold)', icon: '★' }
+  if (total >= 18) return { label: 'Moderate', sub: 'Meets the traditional minimum of 18. Conscious effort helps, and strong chart links can outweigh low-to-middle gunas.', color: 'var(--accent)', icon: '✓' }
+  return { label: 'Below the Traditional Range', sub: 'Under 18 gunas is below the traditional range, yet many marriages with a lower score do well when other chart links are strong. Stages 2 and 3 are worth reading.', color: 'var(--rose)', icon: '!' }
 }
 
 const GRAHA_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
@@ -278,7 +278,7 @@ function CompareContent() {
         const json = await res.json()
         if (cancelled) return
         if (!json.success) {
-          setLoadError(json.error || 'Could not open this Kundali Milan')
+          setLoadError(json.error || 'Could not open this saved match')
           return
         }
         const calc = async (person: Record<string, unknown>) => {
@@ -288,7 +288,7 @@ function CompareContent() {
             body: JSON.stringify(person),
           })
           const body = await response.json()
-          if (!body.success) throw new Error(body.error || 'Could not calculate chart')
+          if (!body.success) throw new Error(body.error || 'Could not calculate this chart')
           return body.data as ChartOutput
         }
         const [a, b] = await Promise.all([calc(json.milan.personA), calc(json.milan.personB)])
@@ -301,7 +301,7 @@ function CompareContent() {
         setStep('done')
         setSaveMessage('Opened from My Charts')
       } catch (e) {
-        if (!cancelled) setLoadError(e instanceof Error ? e.message : 'Could not open this Kundali Milan')
+        if (!cancelled) setLoadError(e instanceof Error ? e.message : 'Could not open this saved match')
       } finally {
         if (!cancelled) setOpeningSaved(false)
       }
@@ -357,11 +357,11 @@ function CompareContent() {
           setStep('done')
         }
       } else {
-        setLoadError(json.error || 'Failed to load chart')
+        setLoadError(json.error || 'Could not load this chart. Please try again.')
       }
     } catch (e) {
       console.error('Failed to load chart', e)
-      setLoadError('Network error — please try again')
+      setLoadError('Network problem. Please check your connection and try again.')
     } finally {
       setLoadingChart(false)
     }
@@ -425,12 +425,12 @@ function CompareContent() {
       })
       const json = await res.json()
       if (!json.success) {
-        setSaveMessage(json.error || 'Could not save this Kundali Milan')
+        setSaveMessage(json.error || 'Could not save this match. Please try again.')
         return
       }
       setSaveMessage('Saved to My Charts → Kundali Milan')
     } catch {
-      setSaveMessage('Could not save this Kundali Milan')
+      setSaveMessage('Could not save this match. Please try again.')
     } finally {
       setSavingMilan(false)
     }
@@ -477,7 +477,7 @@ function CompareContent() {
 
         {openingSaved && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 1rem' }}>
-            <VedaanshLoader message="Opening Kundali Milan…" />
+            <VedaanshLoader message="Opening your saved match…" />
           </div>
         )}
 
@@ -503,7 +503,7 @@ function CompareContent() {
                   className="btn btn-secondary w-full"
                   style={{ width: '100%', justifyContent: 'center', gap: '0.5rem', borderStyle: 'dashed' }}
                 >
-                  📚 Select from My Charts
+                  Select from My Charts
                 </button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1rem 0' }}>
                   <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
@@ -544,7 +544,7 @@ function CompareContent() {
                   className="btn btn-secondary w-full"
                   style={{ width: '100%', justifyContent: 'center', gap: '0.5rem', borderStyle: 'dashed' }}
                 >
-                  📚 Select from My Charts
+                  Select from My Charts
                 </button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1rem 0' }}>
                   <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
@@ -615,11 +615,11 @@ function CompareContent() {
                   {ashtakootScore.eligibility.label}
                 </p>
                 <p style={{ margin: '0.55rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Pair match only.{' '}
+                  This page reads the two charts together.{' '}
                   <Link href="/" style={{ color: 'var(--text-gold)', fontWeight: 700 }}>
                     Open Relationship
                   </Link>
-                  {' '}on a single chart for the solo marriage reading.
+                  {' '}on a single chart for that person&apos;s own marriage reading.
                 </p>
               </div>
 
@@ -640,7 +640,7 @@ function CompareContent() {
                     onClick={() => void openMilanPrintPage()}
                     style={{ fontSize: '0.85rem', gap: '0.4rem' }}
                   >
-                    Print All Sections
+                    Print all sections
                   </button>
                 )}
               </div>
@@ -660,8 +660,8 @@ function CompareContent() {
             {/* View Tabs */}
             <div className="compare-tabs no-print" style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
               {([
-                ['verdict', 'The verdict'],
-                ['match', 'The match'],
+                ['verdict', 'Summary'],
+                ['match', 'Match reading'],
                 ['people', 'Each chart'],
                 ['charts', 'Charts'],
               ] as [View, string][]).map(([id, label]) => (
@@ -694,7 +694,7 @@ function CompareContent() {
                     onClick={() => void openMilanPrintPage()}
                     style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
                   >
-                    Print All Sections
+                    Print all sections
                   </button>
                 </div>
               )}
@@ -707,16 +707,16 @@ function CompareContent() {
                 <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--teal)' }}>Relationship strengths</h4>
                 <ul style={{ margin: 0, padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {ashtakootScore.nadi.points > 0 && !sameNadi(ashtakootScore) && (
-                    <li><strong>Nadi / prana:</strong> Different nadi — complementary life-force and healthier progeny outlook.</li>
+                    <li><strong>Nadi / prana:</strong> Different Nadi, a complementary life-force that tradition links with a healthy outlook for children.</li>
                   )}
                   {ashtakootScore.maitri.points >= 3 && <li><strong>Graha Maitri:</strong> {ashtakootScore.maitri.insight}</li>}
                   {ashtakootScore.gana.points >= 5 && <li><strong>Gana temperament:</strong> {ashtakootScore.gana.insight}</li>}
                   {ashtakootScore.yoni.points >= 3 && <li><strong>Yoni affinity:</strong> {ashtakootScore.yoni.insight}</li>}
                   {ashtakootScore.eligibility.band === 'ideal' && (
-                    <li><strong>Eligibility band:</strong> Score sits in the classical 18–32 window.</li>
+                    <li><strong>Eligibility band:</strong> Score sits in the classical 18–32 range.</li>
                   )}
                   {ashtakootScore.bhakoot.points === 7 && ashtakootScore.bhakoot.notes?.some(n => n.includes('cancelled')) && (
-                    <li><strong>Bhakoot exception:</strong> Apparent dosha cancelled by friendly lords / direction rule.</li>
+                    <li><strong>Bhakoot exception:</strong> An apparent dosha is cancelled by friendly sign lords or the direction rule.</li>
                   )}
                 </ul>
               </div>
@@ -730,7 +730,7 @@ function CompareContent() {
                   </ul>
                 ) : (
                   <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Each of the eight kootas holds its full score. Dosha, Navamsha, and the 7th lord are the next places to read.
+                    Each of the eight kootas holds its full score. Dosha, the Navamsha and the 7th lord are the next places to look.
                   </p>
                 )}
               </div>
@@ -749,7 +749,7 @@ function CompareContent() {
             />
             <div className="card fade-up" style={{ padding: '0', overflow: 'hidden' }}>
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
-                  <h3 className="label-caps" style={{ margin: 0, fontSize: '0.75rem' }}>Detailed Guna Milan Analysis</h3>
+                  <h3 className="label-caps" style={{ margin: 0, fontSize: '0.75rem' }}>Detailed Guna Milan analysis</h3>
                   <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     {ashtakootScore.layers.psychology}
                   </p>
@@ -831,7 +831,7 @@ function CompareContent() {
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                   {(['a', 'b'] as const).map(id => {
                     const chart = id === 'a' ? chartA : chartB
-                    const label = chart.meta?.name?.trim() || (id === 'a' ? 'Person A' : 'Person B')
+                    const label = chart.meta?.name?.trim() || (id === 'a' ? 'Person 1' : 'Person 2')
                     return (
                       <button
                         key={id}
@@ -895,7 +895,7 @@ function CompareContent() {
 
             {view === 'charts' && chartTool === 'compat' && (
               <div className="card fade-up" style={{ padding: '2rem' }}>
-                <h3 className="label-caps" style={{ marginBottom: '1.5rem' }}>Aura & Psychological Affinity</h3>
+                <h3 className="label-caps" style={{ marginBottom: '1.5rem' }}>Aura and emotional affinity</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1rem' }}>
                   {items.map((item, i) => (
                     <div key={i} style={{ 
@@ -913,7 +913,7 @@ function CompareContent() {
                         fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.04em',
                         color: item.level === 'good' ? 'var(--teal)' : item.level === 'bad' ? 'var(--rose)' : 'var(--text-gold)',
                       }}>
-                        {item.level === 'good' ? 'GOOD' : item.level === 'bad' ? 'HARD' : 'MIX'}
+                        {item.level === 'good' ? 'GOOD' : item.level === 'bad' ? 'CARE' : 'MIX'}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.label}</div>
@@ -943,8 +943,8 @@ function CompareContent() {
             {view === 'charts' && chartTool === 'overlay' && (
                <div className="fade-up card" style={{ padding: '2rem' }}>
                   <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                     <h3 style={{ margin: 0 }}>Synastry Overlay</h3>
-                     <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Visualizing Person 2&apos;s planets in Person 1&apos;s houses</p>
+                     <h3 style={{ margin: 0 }}>Chart overlay</h3>
+                     <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Showing Person 2&apos;s planets placed in Person 1&apos;s houses</p>
                   </div>
                   <VargaSwitcher 
                     vargas={chartA.vargas} 
@@ -1045,7 +1045,7 @@ function CompareContent() {
       {/* Footer Branding */}
       <footer className="no-print" style={{ marginTop: 'auto', padding: '3rem 0', textAlign: 'center', borderTop: '1px solid var(--border-soft)', opacity: 0.6 }}>
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.2em' }}>VEDAANSH PRECISION ASTROLOGY ENGINE</div>
-        <div style={{ fontSize: '0.65rem', color: 'var(--text-gold)', marginTop: '0.5rem' }}>SWISS EPHEMERIS · ASHTAKOOT + DEEP MILAN (3-STAGE)</div>
+        <div style={{ fontSize: '0.65rem', color: 'var(--text-gold)', marginTop: '0.5rem' }}>SWISS EPHEMERIS · ASHTAKOOT + THREE-STAGE KUNDALI MILAN</div>
       </footer>
     </div>
   )

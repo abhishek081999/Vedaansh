@@ -102,7 +102,7 @@ const PROPOSAL: Record<number, string> = {
 }
 
 const ETHICS =
-  'Read this as a map of tendencies, not a verdict on someone’s character. A single combination is an influence. A specific event needs several combinations to agree. Stay truthful and a little detached: astrology is for warning and remedy, not for shaming desire or guilt-tripping a client. D1 is the tree (apply remedies there); D9 is the fruit.'
+  'Read this as a map of tendencies, not a verdict on someone’s character. A single combination is an influence. A specific event needs several combinations to agree. Hold it with honesty and a little detachment: astrology is for awareness and remedy, not for shaming desire or inducing guilt. D1 is the tree (apply remedies there); D9 is the fruit.'
 
 function clamp(n: number): number {
   return Math.max(0, Math.min(10, n))
@@ -247,7 +247,7 @@ export function marriageHouseSnapshot(chart: ChartOutput, house: number, topic: 
   const malNames = mal.map(g => gn(g.id))
   const reading = names.length
     ? `${topic}: ${rn(sign)} holds ${names.join(', ')}. Lord ${gn(lord)} sits in house ${lordHouse}${lordGraha ? ` (${dignityWord(lordGraha.dignity)})` : ''}.`
-    : `${topic}: ${rn(sign)} is empty. Read lord ${gn(lord)} in house ${lordHouse}${lordGraha ? ` (${dignityWord(lordGraha.dignity)})` : ''}.`
+    : `${topic}: ${rn(sign)} is empty. Its lord ${gn(lord)} sits in house ${lordHouse}${lordGraha ? ` (${dignityWord(lordGraha.dignity)})` : ''}.`
   return {
     house,
     sign,
@@ -533,7 +533,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     combinations.push({
       id: 've-me',
       title: 'Venus with Mercury — friendship first',
-      detail: `The bond is playful: outings, shared hobbies, clothes, skill, and a “test, then trust” courtship. Intimacy tends to be curious and frequent, with foreplay and mental attraction mattering more than a single script. Messages and photos can carry it. Desire changes, so boredom and a wandering eye are the risk, along with a pending karmic or financial debt between the two. The texture is often sibling-like bickering. When the debt is cleared, a parting can be peaceful. ${d10Line}`,
+      detail: `The bond is playful: outings, shared hobbies, clothes, skill, and a “test, then trust” courtship. Intimacy tends to be curious and frequent, with mental attraction mattering more than a single script. Messages and photos can carry it. Desire changes, so boredom and a wandering eye are the risk, along with a pending karmic or financial debt between the two. The texture is often sibling-like bickering. When the debt is cleared, a parting can be peaceful. ${d10Line}`,
       tone: 'mixed',
     })
   }
@@ -542,7 +542,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     combinations.push({
       id: 've-ra',
       title: 'Venus with Rahu — obsession',
-      detail: 'This is the classic obsessive combination: high desire, grand gestures, luxury tastes, and a hunger that is hard to satisfy. Live-in arrangements before marriage are common, and rejection comes quickly if the fantasy breaks. Intimacy is private — the couple can act as husband and wife before any ceremony. Ketu’s detachment and Jupiter’s principles are what stabilize it. If Rahu is afflicted, the illusion spreads into poor conduct with more than one partner.',
+      detail: 'This is the classic obsessive combination: high desire, grand gestures, luxury tastes, and a hunger that is hard to satisfy. Live-in arrangements before marriage are common, and rejection comes quickly if the fantasy breaks. Intimacy is private — the couple can act as husband and wife before any ceremony. Ketu’s detachment and Jupiter’s principles are what stabilize it. If Rahu is afflicted, the illusion can spread into poor choices in relationships.',
       tone: 'caution',
     })
   }
@@ -558,7 +558,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
           : `The Moon in house ${moH} still colors private life, even without a direct Venus conjunction.`,
         gender === 'male'
           ? 'In a man’s chart the wife often takes a mothering, caregiving role. Equal happiness from mother and wife at the same time is difficult — one bond tends to dominate.'
-          : 'Caregiving can turn into parenting the partner. Keep the romance adult, not only protective.',
+          : 'Caregiving can turn into parenting the partner. The romance needs to stay adult, not only protective.',
         cancer
           ? 'Cancer on Venus or the Moon adds water: shared bathing, a tub, and romance that needs privacy and moonlight or open air.'
           : 'Open air and moonlight still suit this lunar romance when the Moon is tied to the 7th, 8th, or 12th.',
@@ -599,7 +599,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
       combinations.push({
         id: 've-ke-mars',
         title: 'Venus, Ketu, and strong Mars',
-        detail: 'Strong Mars with Venus–Ketu intensifies intimacy toward the rough and the extreme. That can be consensual heat, or it can become harm. Consent, aftercare, and a spiritual frame are the difference.',
+        detail: 'Strong Mars with Venus–Ketu intensifies intimacy toward the rough and the extreme. That can be consensual heat, or it can become harm. Consent and a shared spiritual frame are the difference.',
         tone: 'caution',
       })
     }
@@ -620,8 +620,8 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
       id: 've-ma-su',
       title: 'Venus, Mars, and Sun in the 7th',
       detail: support >= 2
-        ? 'Venus, Mars, and the Sun in the 7th agree with the other marks in this chart. The reading is physical domination in the home. Say it gently, and point toward safety.'
-        : 'Venus, Mars, and the Sun in the 7th give rushed intimacy and a dominating tone. A beating is read only when other combinations agree.',
+        ? 'Venus, Mars, and the Sun in the 7th agree with the other marks in this chart. This points to a risk of physical domination in the home. If that matches real life, take it seriously and seek support.'
+        : 'Venus, Mars, and the Sun in the 7th give rushed intimacy and a dominating tone. Physical harm is indicated only when other combinations agree.',
       tone: 'caution',
     })
   }
@@ -630,7 +630,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     combinations.push({
       id: 'su-me-ve',
       title: 'Sun, Mercury, and Venus',
-      detail: 'Sun with Mercury and Venus can show more than one partner known openly, in the style of a household where everyone knows, rather than a hidden affair. If smoking or intoxicants are also present, this combination is classically watched for heat damaging reproductive vitality. That is a caution to investigate with a physician, not a diagnosis from the chart alone.',
+      detail: 'Sun with Mercury and Venus can show more than one partner known openly, in the style of a household where everyone knows, rather than a hidden affair. If smoking or intoxicants are also present, this combination is classically watched for strain on vitality and reproductive health. That is a caution to investigate with a physician, not a diagnosis from the chart alone.',
       tone: 'caution',
     })
   }
@@ -641,7 +641,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     combinations.push({
       id: 'ninth-in-seventh',
       title: '9th lord in the 7th',
-      detail: 'The 9th lord in the 7th is the partner’s hand on this life: influence after the wedding, and a rise or a fall that follows it. A second marriage, or violence, is read only when other combinations agree.',
+      detail: 'The 9th lord in the 7th is the partner’s hand on this life: influence after the wedding, and a rise or a fall that follows it. A second marriage, or violence, is indicated only when other combinations agree.',
       tone: 'mixed',
     })
   }
@@ -684,7 +684,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     jupiterNotes.push({
       id: 'ju-axis-cool',
       title: 'Jupiter on the 1–7 axis',
-      detail: 'Jupiter on the ascendant–7th axis can cool the body over the years: the couple stays for children or society while sexual contact fades. Jupiter makes the body feel heavy. Do not confuse longevity with passion.',
+      detail: 'Jupiter on the ascendant–7th axis can cool the body over the years: the couple stays for children or society while sexual contact fades. Jupiter makes the body feel heavy. A long marriage is not the same as a passionate one.',
       tone: 'caution',
     })
   }
@@ -726,7 +726,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
       detail: juH === 7
         ? 'Jupiter and Venus together in the 7th disturb that house: desire runs high (Atikami), marital intimacy is harder, and the appetite can include other people. The pair is steadier in trines (1, 5, 9).'
         : juH != null && DUSTHANA.has(juH)
-          ? 'Jupiter and Venus in a dusthana inflame desire (Atikami), and the appetite can include other people. That house’s meaning is overwhelmed.'
+          ? 'Jupiter and Venus in a difficult house (the 6th, 8th, or 12th) can inflame desire (the classical Atikami), and attention can stray beyond the partnership. That house’s meaning is overwhelmed.'
           : 'Jupiter conjunct Venus inflames desire (Atikami). In a trine the same pair keeps the house’s meaning intact.',
       tone: juH === 7 || (juH != null && DUSTHANA.has(juH)) ? 'caution' : 'mixed',
     })
@@ -744,7 +744,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     jupiterNotes.push({
       id: 'sag-navamsa-vow',
       title: 'Sagittarius Navamsha on a private-house lord',
-      detail: `${vowLords.join(', ')} ${vowLords.length > 1 ? 'fall' : 'falls'} in Sagittarius Navamsha as lord of the 7th, 8th, or 12th. This parampara says that straying during that planet’s dasha costs position and reputation. Sagittarius also holds unfulfilled vows — promises made to the divine that were never kept, which leave the person stuck. ${live ? 'That lord is in the current Maha or Antar, so the warning is timely.' : 'Watch both Mahadasha and Antardasha of these lords.'}`,
+      detail: `${vowLords.join(', ')} ${vowLords.length > 1 ? 'fall' : 'falls'} in Sagittarius Navamsha as lord of the 7th, 8th, or 12th. A traditional teaching holds that straying during that planet’s dasha costs position and reputation. Sagittarius also holds unfulfilled vows — promises made to the divine that were never kept, which leave the person stuck. ${live ? 'That lord is in the current main or sub dasha period, so the warning is timely.' : 'The main and sub dasha periods of these lords are the ones to watch.'}`,
       tone: 'caution',
     })
   }
@@ -795,7 +795,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     marsAndNodes.push({
       id: 'ma-ra',
       title: 'Mars with Rahu',
-      detail: 'Mars with Rahu is thief-and-police energy: one person dominates by scheme, and the body can turn aggressive. Afflicted, this is a dangerous combination for violence in the relationship. Do not soften it into “a bit of temper” if the 7th and 12th agree.',
+      detail: 'Mars with Rahu is thief-and-police energy: one person dominates by scheme, and the body can turn aggressive. Afflicted, this combination carries a risk of violence in the relationship. Where the 7th and 12th agree, take harm in the relationship seriously and seek support rather than dismissing it as “a bit of temper”.',
       tone: 'caution',
     })
   }
@@ -811,7 +811,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     marsAndNodes.push({
       id: 'ma-scorpio-seventh',
       title: 'Mars in Scorpio in the 7th',
-      detail: 'Mars in Scorpio in the 7th is a painful seat: suffering around marriage, cuts or surgery to private parts in the classical reading, and a life that changes sharply just before or after the wedding.',
+      detail: 'Mars in Scorpio in the 7th can be a painful seat: suffering around marriage, health strain or a need for surgery in the classical reading, and a life that changes sharply just before or after the wedding.',
       tone: 'caution',
     })
   }
@@ -858,8 +858,8 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
       id: 'sa-second',
       title: 'Saturn in the 2nd — do not lie',
       detail: sameSign(saturn, ketu)
-        ? 'Saturn with Ketu in the 2nd is severe: lies and family disputes can end in expulsion from the lineage. Stay out of family fights; blame lands here.'
-        : 'Saturn in the 2nd punishes false speech inside the family. Do not lie. Embarrassment follows quickly.',
+        ? 'Saturn with Ketu in the 2nd is severe: lies and family disputes can end in a painful break from the family. Staying out of family fights matters, because blame tends to land here.'
+        : 'Saturn in the 2nd makes false speech inside the family costly, so honesty matters here. Embarrassment follows quickly if it slips.',
       tone: 'caution',
     })
   }
@@ -878,7 +878,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     remedies.push({
       id: 'remedy-saturn-gift',
       title: 'Saturn — loosen a bond that should have ended',
-      detail: 'Mercury and Rahu are live, and Saturn is holding the bond. Giving away a Saturn object can loosen a tie that this period was ready to end. Do it only when ending the bond is actually wanted.',
+      detail: 'Mercury and Rahu are live, and Saturn is holding the bond. Giving away a Saturn object can loosen a tie that this period was ready to end. This is only appropriate when ending the bond is genuinely wanted.',
       tone: 'mixed',
     })
   }
@@ -929,7 +929,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
   if (libraProposal(asc).house === 7) bondBits.push('Libra on the 7th also allows a self-chosen partner.')
   const bondStyle = bondBits.length
     ? bondBits.join(' ')
-    : 'No single love-versus-arranged signature dominates. Read the 7th lord’s dasha for how the meeting actually arrives.'
+    : 'No single love-versus-arranged signature dominates. The 7th lord’s dasha shows how the meeting actually arrives.'
 
   const avg = Math.round(dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length)
   const headline = avg >= 7
@@ -946,7 +946,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
       ? tenth.malefics.length
         ? `The 10th holds ${tenth.malefics.join(', ')}. In a woman’s chart that is career pressure and a difficult mother-in-law.`
         : 'The 10th is also the mother-in-law, as well as career. This 10th is not occupied by malefics.'
-      : 'When this chart is matched, read the bride’s 10th for the mother-in-law and both 4th houses for whether the home can stay peaceful.',
+      : 'When this chart is matched, the bride’s 10th house shows the mother-in-law and both 4th houses show whether the home can stay peaceful.',
   ].join(' ')
 
   return {

@@ -42,7 +42,7 @@ export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutpu
 
       {dashaPair && (
         <div className="card" style={{ padding: '1.15rem' }}>
-          <h3 className="label-caps" style={{ margin: '0 0 0.55rem', fontSize: '0.72rem' }}>Dasha compatibility</h3>
+          <h3 className="label-caps" style={{ margin: '0 0 0.55rem', fontSize: '0.72rem' }}>Dasha pairing</h3>
           <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             {dashaPair.summary}
           </p>
@@ -65,7 +65,7 @@ export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutpu
         padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', 
         fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', border: '1px solid var(--border)' 
       }}>
-        Professional relationship analysis considers the balance of malefic energy and specific Martian afflictions. High Kuja Dosha (Manglik) in one chart should ideally be matched with a similar intensity in the other for stability.
+        Manglik means Mars sits in a house traditionally linked to extra heat in partnership. Classical practice also looks at the balance of Mars and other difficult planets across both charts. Cancellation rules and age matter, and a Manglik chart is never a verdict on a relationship.
       </div>
     </div>
   )
@@ -176,7 +176,7 @@ function PapeSamyaComparison({ p1, p2, nameA, nameB }: { p1: any; p2: any; nameA
 
   return (
     <div className="card" style={{ padding: '1.5rem' }}>
-      <div className="label-caps" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Pape-Samya (Malefic Balance)</div>
+      <div className="label-caps" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Pape-Samya (balance of difficult planets)</div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         
@@ -206,9 +206,9 @@ function PapeSamyaComparison({ p1, p2, nameA, nameB }: { p1: any; p2: any; nameA
           fontSize: '0.85rem'
         }}>
           {isBalanced ? (
-            <span>✅ <strong>Stable Balance</strong>: The malefic burdens are well compensated between both charts.</span>
+            <span><strong>Balanced</strong>: the weight of difficult planets is shared fairly evenly between both charts.</span>
           ) : (
-            <span>⚠️ <strong>Imbalance Detected</strong>: There is a significant malefic weight mismatch ({diff.toFixed(2)} pts). This may require conscious adjustment in the relationship.</span>
+            <span><strong>Uneven</strong>: the weight of difficult planets differs between the charts ({diff.toFixed(2)} points). This is a tendency, and awareness and shared effort help.</span>
           )}
         </div>
       </div>

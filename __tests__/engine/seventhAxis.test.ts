@@ -92,7 +92,7 @@ describe('seventh axis', () => {
     })
     const match = seventhAxisMatch(sag, other)
     expect(match!.tone).toBe('caution')
-    expect(match!.detail).toMatch(/Refuse the match/i)
+    expect(match!.detail).toMatch(/best avoided/i)
   })
 
   it('weighs Jupiter for a Gemini lagna match', () => {

@@ -65,7 +65,7 @@ export function analyzeVenusMarriage(chart: ChartOutput): VenusMarriageReading |
     notes.push(note(
       'venus-sukh-like',
       'This can feel like contentment',
-      'Jupiter is strong beside a dignified Venus, so the marriage can feel content. Venus has still not given sukh. The feeling is close to comfort. It is still not given sukh as a finished gift.',
+      'Jupiter is strong beside a dignified Venus, so the marriage can feel content. Venus has still not given sukh (settled marital happiness): the feeling is close to comfort, not a finished gift.',
       'mixed',
     ))
   }
@@ -74,7 +74,7 @@ export function analyzeVenusMarriage(chart: ChartOutput): VenusMarriageReading |
     notes.push(note(
       'venus-jupiter-meaning',
       'Jupiter can interpret a damaged Venus',
-      'Venus is afflicted, and Jupiter is strong enough that the damage can be understood. This is not a sentence that the marriage fails. The two do not become sukh just because the meaning is available.',
+      'Venus is afflicted, and Jupiter is strong enough that the damage can be understood. This does not mean the marriage fails. Even so, the two do not become sukh (settled marital happiness) just because the meaning is available.',
       'mixed',
     ))
   }
@@ -82,8 +82,8 @@ export function analyzeVenusMarriage(chart: ChartOutput): VenusMarriageReading |
   if (combust) {
     notes.push(note(
       'venus-combust-muhurta',
-      'Do not fix a marriage muhurta on a combust Venus',
-      'Venus is combust. A marriage muhurta is not calculated from this Venus, and the wedding date is not fixed while the planet is burned.',
+      'A combust Venus is a poor basis for a wedding date',
+      'Venus is combust, meaning it sits too close to the Sun and its strength is burned away. A marriage muhurta (auspicious wedding time) is not calculated from this Venus, and a wedding date is best not fixed while the planet is in that state.',
       'caution',
     ))
   }
@@ -92,7 +92,7 @@ export function analyzeVenusMarriage(chart: ChartOutput): VenusMarriageReading |
     notes.push(note(
       'venus-dasha-shift',
       'Venus mahadasha is not the pre-marriage result',
-      'Venus is running as mahadasha. The results that belonged to the years before marriage shift once this period is the one in force. Read the dasha apart from the natal promise.',
+      'Venus is running as mahadasha. The results that belonged to the years before marriage shift once this period is the one in force. The dasha is best read separately from the promise of the birth chart.',
       'mixed',
     ))
   }

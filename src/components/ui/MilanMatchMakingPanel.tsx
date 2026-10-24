@@ -1,7 +1,7 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/MilanMatchMakingPanel.tsx
-//  Match-making sequence and house-first chart overlay
+//  Match reading sequence and house-first chart overlay
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
@@ -25,7 +25,7 @@ export function MilanMatchMakingPanel({ chartA, chartB, userPlan = 'free' }: Pro
   if (!data) {
     return (
       <div className="card" style={{ padding: '1.2rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        Both charts need an ascendant before match-making can run.
+        Both charts need a calculated ascendant (lagna) before this match reading can run.
       </div>
     )
   }
@@ -35,7 +35,7 @@ export function MilanMatchMakingPanel({ chartA, chartB, userPlan = 'free' }: Pro
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <div className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${LIFE_TONE[data.lagna.tone]}` }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Match-making sequence</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Match reading, step by step</h3>
         <div style={{ fontWeight: 800, fontSize: '1.15rem', marginBottom: 6 }}>{data.headline}</div>
         <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{data.summary}</p>
         <p style={{ margin: '0.7rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
@@ -47,11 +47,11 @@ export function MilanMatchMakingPanel({ chartA, chartB, userPlan = 'free' }: Pro
       </div>
 
       {!full && (
-        <PlanGate userPlan={userPlan} required="gold" featureName="Match-making">
+        <PlanGate userPlan={userPlan} required="gold" featureName="Match reading">
           <div style={{ minHeight: 96, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-            <div style={{ fontWeight: 700, marginBottom: 6 }}>The rest of match-making is on Gold</div>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>The rest of the match reading is on the Gold plan</div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              The step-by-step sequence, the four pillars, and the division overlay for both charts.
+              The step-by-step sequence, the four pillars and the divisional chart overlay for both charts.
             </div>
           </div>
         </PlanGate>
@@ -84,7 +84,7 @@ export function MilanMatchMakingPanel({ chartA, chartB, userPlan = 'free' }: Pro
       </div>
 
       <div className="card" style={{ padding: '1.1rem' }}>
-        <SectionLabel>Division overlay — same house, both charts</SectionLabel>
+        <SectionLabel>Divisional chart overlay: planets in the same house across both charts</SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
           {data.vargas.map(v => (
             <button

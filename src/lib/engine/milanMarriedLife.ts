@@ -75,72 +75,72 @@ export function moonEmotionalPair(signA: number, signB: number, saturnOnMoon = f
   if (key === '8-10') {
     title = 'Capricorn and Scorpio'
     tone = 'mixed'
-    detail = 'Capricorn confronts directly. Scorpio mutters, holds the grudge, and does not say the need in words. The result is sweet-and-sour: anxiety and overthinking, until the Capricorn Moon slowly learns what was never spoken.'
+    detail = 'Capricorn tends to speak directly, while Scorpio often keeps feelings inside and may not put a need into words. The mix can feel sweet and sour, with some worry and overthinking, until the Capricorn Moon learns what has gone unsaid.'
   } else if (key === '2-3') {
     title = 'Taurus and Gemini'
     tone = 'supportive'
-    detail = 'Gemini and Taurus are friends by rulership (Mercury and Venus). Emotional compatibility is natural: talk, taste, and small pleasures. Taurus usually has the resources; Gemini wants the outing and the small treat.'
+    detail = 'Gemini and Taurus are friends by rulership (Mercury and Venus). Emotional ease comes naturally through conversation, taste and small pleasures. Taurus often provides the resources; Gemini enjoys the outing and the small treat.'
   } else if (key === '3-12') {
     title = 'Gemini and Pisces'
     tone = 'supportive'
-    detail = 'Gemini and Pisces match in the Jaimini sense: both get lost in thought and in writing. The emotional bond is mental and imaginal rather than blunt.'
+    detail = 'Gemini and Pisces match in the Jaimini sense: both can get lost in thought and in writing. The emotional bond is more imaginative and mental than blunt.'
   } else if (key === '2-4') {
     title = 'Taurus and Cancer'
     tone = 'supportive'
-    detail = 'The Moon is exalted in Taurus, so Cancer is comfortable there. Taurus supplies the resources Cancer keeps needing. Taurus still needs affection that is not a price tag, and Cancer needs the credit said out loud.'
+    detail = 'The Moon is exalted in Taurus, so Cancer feels at home there. Taurus offers the security Cancer looks for. Taurus still values affection that is freely given, and Cancer values appreciation said out loud.'
   } else if (key === '4-5') {
     title = 'Cancer and Leo'
     tone = 'supportive'
-    detail = 'Both are royal. Leo treats the spouse as a matter of pride and can take the stand Cancer needs. When they agree, the pair is hard to move.'
+    detail = 'Both carry a quiet dignity. Leo takes pride in the partner and can offer the steady backing Cancer needs. When they agree, the pair is hard to move.'
   } else if (key === '9-11') {
     title = 'Sagittarius and Aquarius'
     tone = 'supportive'
-    detail = 'Aquarius brings the material means and looks toward a spiritual lead. Sagittarius brings the ethic and the direction. One drives. The other knows which door is the temple.'
+    detail = 'Aquarius brings practical means and an interest in deeper meaning. Sagittarius brings values and direction. One often drives while the other keeps the shared purpose in view.'
   } else if ((signA === 3 && signB === 1) || (signB === 3 && signA === 1)) {
     title = 'Gemini and Aries'
     tone = 'caution'
-    detail = 'Aries needs conflict to settle its heat. Gemini lives in imagination and will not keep a strict routine. Mars and Mercury do not share a frequency. The harder strain sits on the Gemini Moon.'
+    detail = 'Aries tends to settle heated feelings by talking them out directly. Gemini lives in imagination and may resist a strict routine. Mars and Mercury do not always share a rhythm, and the Gemini Moon may feel the strain more. Patience and clear agreements help.'
   } else if ((signA === 3 && MARS_SIGNS.has(signB)) || (signB === 3 && MARS_SIGNS.has(signA))) {
     title = 'Gemini and a Mars sign'
     tone = 'caution'
-    detail = 'Jaimini matching is wary of Gemini with Mars-ruled signs (Aries or Scorpio). Speech and strategy rub against heat and secrecy. Feelings are not automatically hostile, but they do not translate cleanly.'
+    detail = 'Jaimini matching is cautious about Gemini with Mars-ruled signs (Aries or Scorpio). Quick, talkative style can rub against heat and privacy. The feelings are not hostile, but they may not translate easily between you.'
   } else {
     const rel = signRel(signA, signB)
     if (rel === 1) {
       title = 'Same Moon sign'
       tone = 'mixed'
-      detail = `${nameA} with ${nameA} feels familiar immediately. The mirror is comforting and, over time, short on contrast.`
+      detail = `${nameA} with ${nameA} feels familiar straight away. The mirror is comforting, though over time it can lack contrast.`
     } else if (rel === 5 || rel === 9) {
       title = 'Trine Moons'
       tone = 'supportive'
-      detail = `${nameA} and ${nameB} are in trine. Emotional weather agrees without a long translation.`
+      detail = `${nameA} and ${nameB} are in trine. Moods and feelings tend to agree without much explaining.`
     } else if (rel === 7) {
       title = 'Opposite Moons'
       tone = 'mixed'
-      detail = `${nameA} opposite ${nameB} is attraction with polarity. Each supplies what the other lacks, and each can feel the other is “too much.”`
+      detail = `${nameA} opposite ${nameB} is attraction with polarity. Each supplies what the other lacks, and each may sometimes feel the other is “too much.”`
     } else if (rel === 3 || rel === 11) {
       title = 'Friendly Moons'
       tone = 'supportive'
-      detail = `${nameA} and ${nameB} sit in a 3/11 relationship. Friendship inside the marriage is easier than drama.`
+      detail = `${nameA} and ${nameB} sit in a 3rd/11th relationship, a friendly one. Friendship inside the marriage tends to come easily.`
     } else if (rel === 6 || rel === 8) {
-      title = '6/8 Moon friction'
+      title = '6th/8th Moon friction'
       tone = 'caution'
-      detail = `${nameA} and ${nameB} are in a 6th/8th link. Anxiety, mismatch of timing, and health-or-crisis topics enter the emotional field.`
+      detail = `${nameA} and ${nameB} are in a 6th/8th link, which can feel like constant friction. Worry, mismatched timing and difficult topics may come up, and openness about them helps.`
     } else if (rel === 4 || rel === 10) {
       title = 'Square Moons'
       tone = 'caution'
-      detail = `${nameA} and ${nameB} square each other. Needs are real on both sides and are not met by assuming the other “should just know.”`
+      detail = `${nameA} and ${nameB} are in a square (4th/10th) relationship. Both have real needs, and they are best met by saying them aloud rather than hoping the other will “just know.”`
     } else {
       title = 'Adjacent Moons'
       tone = 'mixed'
-      detail = `${nameA} and ${nameB} are adjacent. One nurtures, the other reaches. It works when the giving is named.`
+      detail = `${nameA} and ${nameB} are in adjacent signs. One nurtures, the other reaches. It works well when the giving is acknowledged.`
     }
   }
 
   if (saturnOnMoon) {
-    detail += ' Saturn on a Moon replays old arguments. The past is not left in the past unless someone agrees to stop reopening it.'
+    detail += ' Saturn on a Moon can replay old arguments. The past settles more easily when both agree to stop reopening it.'
     if (key === '2-3') {
-      detail += ' With Saturn on the Gemini Moon, the wish is still to go out and be fed small pleasures; Taurus can meet that if it does not become the only love language.'
+      detail += ' With Saturn on the Gemini Moon, the wish is still to go out and enjoy small pleasures; Taurus can meet that, as long as it does not become the only way love is shown.'
     }
   }
 
@@ -165,14 +165,14 @@ function tenthMilLine(chart: ChartOutput, snap: HouseSnapshot, name: string): st
   if (!female && snap.malefics.length === 0) return null
   if (snap.malefics.length === 0) {
     return female
-      ? `${name}'s 10th is clear of malefics — career pressure and the mother-in-law story are not the sharp problem in this chart.`
+      ? `${name}'s 10th house is clear of difficult planets, so career pressure and the bond with the mother-in-law are not a sharp point in this chart.`
       : null
   }
   const who = snap.malefics.join(', ')
   if (female) {
-    return `${name}'s 10th holds ${who}. For a bride this is career strain and the classical mark of a difficult mother-in-law.`
+    return `${name}'s 10th house holds ${who}. Classically, for the bride this points to some career strain and a relationship with the mother-in-law that may need patience and goodwill.`
   }
-  return `${name}'s 10th holds ${who}. Read this as public and career pressure. The mother-in-law is judged more cleanly from the bride's 10th.`
+  return `${name}'s 10th house holds ${who}. Read this as public and career pressure. The mother-in-law is read more cleanly from the bride's 10th house.`
 }
 
 export interface MilanMarriedLifeOptions {
@@ -205,15 +205,15 @@ export function analyzeMilanMarriedLife(
   let homeReading: string
   const homeTone = combineTone(homeA.tone, homeB.tone)
   if (homeA.tone === 'supportive' && homeB.tone === 'supportive') {
-    homeReading = 'Both 4th houses are relatively clear. Domestic peace is available if speech stays kind.'
+    homeReading = 'Both 4th houses are relatively clear. Domestic peace comes more easily when speech stays kind.'
   } else if (homeA.tone === 'caution' && homeB.tone === 'caution') {
-    homeReading = 'Both 4th houses are under stress. The home itself is the argument — matching only the 7th will miss this.'
+    homeReading = 'Both 4th houses are under some stress, so home life itself may need care. Looking only at the 7th house would miss this.'
   } else if (homeA.tone === 'caution') {
-    homeReading = `${nameA} carries more domestic friction into the marriage than ${nameB}. The quieter chart cannot “fix” a wounded 4th by affection alone.`
+    homeReading = `${nameA} may bring more domestic strain into the marriage than ${nameB}. Affection helps, and so do shared routines and patience at home.`
   } else if (homeB.tone === 'caution') {
-    homeReading = `${nameB} carries more domestic friction into the marriage than ${nameA}. Look at the 4th before calling the match easy.`
+    homeReading = `${nameB} may bring more domestic strain into the marriage than ${nameA}, so the 4th house deserves attention.`
   } else {
-    homeReading = 'The 4th houses are mixed. Home harmony will take deliberate care from both people.'
+    homeReading = 'The 4th houses are mixed. Home harmony will take deliberate care from both of you.'
   }
 
   const brideA = opts.bride === 'a' || chartA.meta?.gender === 'female'
@@ -224,7 +224,7 @@ export function analyzeMilanMarriedLife(
   ].filter((s): s is string => !!s)
 
   if (!brideA && !brideB) {
-    milBits.push('Mark which chart is the bride: her 10th house is the mother-in-law, and malefics there are the warning.')
+    milBits.push('Choose which chart is the bride: her 10th house is traditionally read for the mother-in-law, and difficult planets there suggest taking extra care.')
   }
 
   const tenthTone: LifeTone =
@@ -238,22 +238,22 @@ export function analyzeMilanMarriedLife(
     let note = `${nameA} ${d.score}/10 · ${nameB} ${other.score}/10.`
     let tone: LifeTone = 'mixed'
     if (gap >= 4) {
-      note += ` The gap is wide — one person feels this theme much more strongly.`
+      note += ' The gap is wide, so one of you may feel this theme much more strongly.'
       tone = 'caution'
     } else if (d.score >= 7 && other.score >= 7) {
       note += ' Both charts support this theme.'
       tone = 'supportive'
     } else if (d.score <= 3 && other.score <= 3) {
-      note += ' Both charts are thin here.'
+      note += ' Both charts are quiet on this theme, so it may need more conscious attention.'
       tone = 'caution'
     } else {
-      note += ' Close enough to work if it is discussed.'
+      note += ' Close enough to work well if it is talked about.'
     }
     if (d.id === 'passion' && gap >= 4) {
-      note += ' Mismatched desire is the practical risk: one presses, the other goes quiet.'
+      note += ' Differing desire is the practical challenge: one may press while the other withdraws, so gentle talk helps.'
     }
     if (d.id === 'longevity' && d.score >= 6 && other.score >= 6) {
-      note += ' Continuity is available from both 7th lords.'
+      note += ' Both 7th lords support lasting continuity.'
       tone = tone === 'caution' ? 'mixed' : 'supportive'
     }
     return { id: d.id, label: d.label, scoreA: d.score, scoreB: other.score, note, tone }
@@ -268,14 +268,14 @@ export function analyzeMilanMarriedLife(
   })
   findings.push({
     id: 'home',
-    title: '4th house — the heart of the home',
+    title: '4th house: the heart of the home',
     detail: homeReading,
     tone: homeTone,
   })
   findings.push({
     id: 'tenth',
-    title: '10th house — career and mother-in-law',
-    detail: milBits.join(' ') || 'Neither 10th is shouting. Still read the bride’s 10th for the mother-in-law and both careers before the wedding.',
+    title: '10th house: career and mother-in-law',
+    detail: milBits.join(' ') || 'Neither 10th house stands out. The bride’s 10th house is still worth reading for the mother-in-law, along with both careers.',
     tone: tenthTone,
   })
 
@@ -283,7 +283,7 @@ export function analyzeMilanMarriedLife(
   if (passion && passion.tone === 'caution') {
     findings.push({
       id: 'passion-gap',
-      title: 'Passion is uneven',
+      title: 'Passion levels differ',
       detail: passion.note,
       tone: 'caution',
     })
@@ -291,13 +291,13 @@ export function analyzeMilanMarriedLife(
 
   findings.push({
     id: 'proposal-a',
-    title: `${nameA} — who brings the proposal`,
+    title: `${nameA}: who brings the proposal`,
     detail: personA.proposal.detail,
     tone: 'mixed',
   })
   findings.push({
     id: 'proposal-b',
-    title: `${nameB} — who brings the proposal`,
+    title: `${nameB}: who brings the proposal`,
     detail: personB.proposal.detail,
     tone: 'mixed',
   })
@@ -309,8 +309,8 @@ export function analyzeMilanMarriedLife(
     const fruitTone: LifeTone = [1, 5, 7, 9].includes(rel) ? 'supportive' : [6, 8].includes(rel) ? 'caution' : 'mixed'
     findings.push({
       id: 'd9-fruit',
-      title: 'Navamsha lagnas — the fruit',
-      detail: `${nameA}'s D9 lagna is ${RASHI_NAMES[d9A]} and ${nameB}'s is ${RASHI_NAMES[d9B]} (${rel === 1 ? 'same sign' : `${rel}th relation`}). Guna scores do not replace this. The fruit of living together is read here; remedies still belong on each D1.`,
+      title: 'Navamsha lagnas: the fruit of the marriage',
+      detail: `${nameA}'s D9 lagna is ${RASHI_NAMES[d9A]} and ${nameB}'s is ${RASHI_NAMES[d9B]} (${rel === 1 ? 'same sign' : `${rel}th relation`}). Guna scores do not replace this. The Navamsha shows how living together tends to unfold, while any remedies are guided by each D1 chart.`,
       tone: fruitTone,
     })
   }
@@ -326,7 +326,7 @@ export function analyzeMilanMarriedLife(
     for (const link of dusthanaLinks(nameA, ascA, nameB, ascB)) {
       findings.push({
         id: `dusthana-${link.native}`,
-        title: `${link.helper} helps ${link.native} in crisis`,
+        title: `${link.helper} can support ${link.native} in hard times`,
         detail: link.detail,
         tone: 'mixed',
       })
@@ -340,7 +340,7 @@ export function analyzeMilanMarriedLife(
     if (!sharp.length) continue
     findings.push({
       id: `intimate-${who}`,
-      title: `${who} — intimate pressure`,
+      title: `${who}: areas of intimate pressure`,
       detail: `${intimate.headline} ${sharp.map(n => n.title).join('. ')}.`,
       tone: 'caution',
     })
@@ -354,8 +354,8 @@ export function analyzeMilanMarriedLife(
       id: 'spark',
       title: 'Venus–Mars spark across the charts',
       detail: spark
-        ? 'At least one Venus–Mars pair falls in conjunction, trine, or opposition. Romance and heat can find each other. Gunas do not measure this.'
-        : 'Venus and Mars across the two charts do not form a 1/5/7/9 link. Attraction may need time, ritual, and honesty rather than instant chemistry.',
+        ? 'At least one Venus–Mars pair falls in conjunction, trine or opposition, so romance and warmth can find each other. Gunas do not measure this.'
+        : 'Venus and Mars across the two charts do not form a 1st, 5th, 7th or 9th link. Attraction may grow through time, shared rituals and honesty rather than instant chemistry.',
       tone: spark ? 'supportive' : 'caution',
     })
   }
@@ -363,14 +363,14 @@ export function analyzeMilanMarriedLife(
   const support = findings.filter(f => f.tone === 'supportive').length
   const caution = findings.filter(f => f.tone === 'caution').length
   const summary = [
-    `Beyond the 36 gunas: ${nameA} and ${nameB} are read for flavor (Venus), passion (Mars), longevity (7th lord), blessing (Jupiter), and fruit (D9 lagna).`,
+    `Beyond the 36 gunas: ${nameA} and ${nameB} are read for flavor (Venus), passion (Mars), lasting continuity (7th lord), blessing (Jupiter) and the fruit of the marriage (D9 lagna).`,
     moon.detail,
     homeReading,
     caution > support
-      ? 'More cautions than supports — do not let a high guna total talk over the 4th, the 10th, and the 7th lord.'
+      ? 'There are more points to handle with care than points of support, so a high guna total is best read alongside the 4th house, the 10th house and the 7th lord.'
       : support > caution
-        ? 'The relationship layer is broadly supportive. Still name the cautions before a yes.'
-        : 'The relationship layer is mixed. A conscious exchange can carry it; an unexamined match will repeat the chart.',
+        ? 'This layer of the match looks broadly supportive. It is still worth talking through the points of caution together.'
+        : 'This layer of the match is mixed. Open, conscious communication can carry it well.',
   ].join(' ')
 
   return {
@@ -383,7 +383,7 @@ export function analyzeMilanMarriedLife(
     tenth: {
       a: tenthA,
       b: tenthB,
-      reading: milBits.join(' ') || 'Read the bride’s 10th for the mother-in-law.',
+      reading: milBits.join(' ') || 'The bride’s 10th house is traditionally read for the mother-in-law.',
       tone: tenthTone,
     },
     dimensions,

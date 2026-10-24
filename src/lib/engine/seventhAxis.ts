@@ -124,7 +124,7 @@ const ARIES_SEAT: Record<number, string> = {
 
 const PAIR: Record<number, { self: string; teaches: string; friction: string | null }> = {
   1: {
-    self: 'The life is built around the self: body, name, and personal progress. Speech needs a pause, because Venus rules both the 2nd house of speech and the 7th house of marriage. The native aggression needs more attention on partnership if the life is going to widen.',
+    self: 'The life is built around the self: body, name, and personal progress. Speech needs a pause, because Venus rules both the 2nd house of speech and the 7th house of marriage. The person’s own assertiveness needs to make room for partnership if the life is going to widen.',
     teaches: 'The partner’s work is to pull attention off the self and onto the relationship. A quality built in the lagna, including the body, is there for the 7th to perceive.',
     friction: null,
   },
@@ -134,7 +134,7 @@ const PAIR: Record<number, { self: string; teaches: string; friction: string | n
     friction: null,
   },
   3: {
-    self: 'The mind stays young. The 2nd lord is the Moon, so speech runs before the consequence is seen, and a marriage can be decided because someone was liked in the moment. The 10th is Pisces, a debilitated seat for its lord, so career confusion is native.',
+    self: 'The mind stays young. The 2nd lord is the Moon, so speech runs before the consequence is seen, and a marriage can be decided because someone was liked in the moment. The 10th is Pisces, a debilitated seat for its lord, so career confusion comes naturally.',
     teaches: 'The spouse is the teacher. When the 7th holds benefics, the guidance is at home. After marriage the partner is the one who supports a new venture.',
     friction: null,
   },
@@ -151,7 +151,7 @@ const PAIR: Record<number, { self: string; teaches: string; friction: string | n
   6: {
     self: 'Technical, perfectionist, and always inside disease, debt, and enemies. Skill turns into the belief that the mind can solve everything. Mercury’s exaltation feeds that confidence.',
     teaches: 'Pisces in the 7th says some things do not yield to technique. The partner brings the spiritual or energetic side the lagna skips.',
-    friction: 'Venus is debilitated in Virgo and exalted in Pisces, so desire often sits at two temperatures. Read the actual Venus. When both Virgo and Pisces are under pressure, the chart can show a pull outside the marriage. One placement does not settle that question.',
+    friction: 'Venus is debilitated in Virgo and exalted in Pisces, so desire often sits at two temperatures. The actual placement of Venus matters here. When both Virgo and Pisces are under pressure, the chart can show a pull outside the marriage. One placement does not settle that question.',
   },
   7: {
     self: 'The day is spent managing people. The 11th is Leo, so gains are chased through power and position. Saturn is exalted in the lagna, which can calculate, and can undercut someone else to build a name. The question is what is being shown. A right display gives a clean result. A false display gives bad karma.',
@@ -159,7 +159,7 @@ const PAIR: Record<number, { self: string; teaches: string; friction: string | n
     friction: null,
   },
   8: {
-    self: 'The preference is to be alone, and isolation makes the mind rigid. Secrecy is native: little is shown. In Scorpio, Saturn and Ketu support occult and research work. The Moon is debilitated here, and Venus does not perform.',
+    self: 'The preference is to be alone, and isolation makes the mind rigid. Secrecy comes naturally: little is shown. In Scorpio, Saturn and Ketu support occult and research work. The Moon is debilitated here, and Venus does not perform.',
     teaches: 'The Taurus partner teaches how to manage people, and how much to reveal. Taurus carries a pleasant presence; people feel better in that company. The exchange is solitude against display, each one moderating the other.',
     friction: null,
   },
@@ -169,7 +169,7 @@ const PAIR: Record<number, { self: string; teaches: string; friction: string | n
     friction: null,
   },
   10: {
-    self: 'Karma and career fill the life. The 7th is Cancer, and emotion is still hard to say: the wrong sentence comes out even when the care is real. Libra falls in the 10th, so relationship balance happens through conduct at work. Career stability comes before marriage. A thin, unsteady income is a reason to wait.',
+    self: 'Karma and career fill the life. The 7th is Cancer, and emotion is still hard to say: the wrong words can come out even when the care is real. Libra falls in the 10th, so relationship balance happens through conduct at work. Career stability comes before marriage. A thin, unsteady income is a reason to wait.',
     teaches: 'The Cancer partner brings the feeling this lagna does not know how to show. Unlike Gemini, this lagna does not get to postpone the practical life and hope the marriage will supply a spiritual direction. The work has to be standing first.',
     friction: 'Some marital friction is built in. The lagna lord is Saturn and the 7th lord is the Moon. Discipline and emotion complete each other, and they also miss each other.',
   },
@@ -181,7 +181,7 @@ const PAIR: Record<number, { self: string; teaches: string; friction: string | n
   12: {
     self: 'Worldly detail is easy to dismiss. Confidence sits in energy and faith. The person can give property away, including into the spouse’s name, and still feel that energy is the whole matter.',
     teaches: 'The Virgo partner is the one who implements. Technique, which this lagna skips, is what makes the faith usable.',
-    friction: 'Venus is exalted in Pisces and debilitated in Virgo, so desire often sits at two temperatures. Read Venus. When both signs are under pressure, a pull outside the marriage is possible. The whole chart decides.',
+    friction: 'Venus is exalted in Pisces and debilitated in Virgo, so desire often sits at two temperatures. Venus itself is the thing to watch. When both signs are under pressure, a pull outside the marriage is possible. The whole chart decides.',
   },
 }
 
@@ -189,15 +189,15 @@ const MATCH_HINT: Record<number, string> = {
   1: 'On a match, the partner’s Venus shows whether the relationship will actually be managed. This lagna supplies the decision; Libra has to supply the exchange.',
   2: 'Settle 6th-house disease, debt, and enemies before expecting the marriage to feel easy. In the partner’s chart, Mars shows whether someone will stand up for this person.',
   3: 'For a Gemini lagna match, weigh the partner’s Jupiter above Venus. This lagna already carries Venus, sometimes in strength, in the 12th. Jupiter is the wisdom that balances the confusion.',
-  4: 'Look for a partner whose discipline can stand up for this person and still stay emotionally present. A partner absorbed only in work is the failure mode of this axis.',
-  5: 'Humility is the matching condition. Read Saturn and Rahu on the Aquarius side before calling the pair easy.',
-  6: 'Read Venus, rather than Mercury. Exaltation and debilitation of Venus sit on the two ends of this marriage.',
+  4: 'A partner whose discipline can stand up for this person and still stay emotionally present suits this axis. A partner absorbed only in work is its main risk.',
+  5: 'Humility is the matching condition. Saturn and Rahu on the Aquarius side need checking before the pair is called easy.',
+  6: 'Venus, rather than Mercury, is the planet to watch. Exaltation and debilitation of Venus sit on the two ends of this marriage.',
   7: 'The partner’s Mars shows whether this person is brought back to their own want, or kept performing for other people.',
   8: 'The partner has to be able to teach ordinary relationship, because this lagna prefers to stay alone.',
-  9: 'Read the partner’s Mercury. Mercury with Rahu, and under Saturn, uses this person’s knowledge for one person’s rise. That match is one to refuse.',
+  9: 'The partner’s Mercury matters. Mercury with Rahu, and under Saturn, uses this person’s knowledge for one person’s rise. That match is best avoided.',
   10: 'Work and money need to be stable before the marriage. Conduct in the career is the relationship debt.',
   11: 'A strong Sun in the partner’s chart is the support this lagna needs. Earnings without that Sun do not hold the life up.',
-  12: 'Read Venus, as with Virgo. Generosity on this side and self-interest on the Virgo side are tendencies. Placements override them.',
+  12: 'Venus is the planet to watch here, as with Virgo. Generosity on this side and self-interest on the Virgo side are tendencies. Placements override them.',
 }
 
 const LIBRA_PLANET: Partial<Record<GrahaId, { title: string; detail: string; tone: LifeTone }>> = {
@@ -228,7 +228,7 @@ const LIBRA_PLANET: Partial<Record<GrahaId, { title: string; detail: string; ton
   },
   Ve: {
     title: 'Venus in Libra',
-    detail: 'Venus is in its own sign. Managing the other person is native, and the relationship debt of this house is easier to perform.',
+    detail: 'Venus is in its own sign. Managing the other person comes naturally, and the relationship debt of this house is easier to perform.',
     tone: 'supportive',
   },
   Sa: {
@@ -421,7 +421,7 @@ function pushAffairFlag(chart: ChartOutput, asc: number, notes: MarriedLifeNote[
     notes.push(note(
       'virgo-pisces-pressure',
       'Virgo and Pisces both under pressure',
-      'Both ends of this marriage axis are afflicted. That can show interest outside the marriage. Treat it as a consultation flag. The rest of the chart, including Navamsha, decides it.',
+      'Both ends of this marriage axis are afflicted. That can show interest outside the marriage, but it is a flag to look at more closely, not a conclusion. The rest of the chart, including the Navamsha, decides it.',
       'caution',
     ))
   }
@@ -525,7 +525,7 @@ export function seventhAxisMatch(chartA: ChartOutput, chartB: ChartOutput): Axis
     if (asc === 3) {
       const score = dignityMark(find(other, 'Ju'))
       if (score <= 2) tone = 'caution'
-      bits.push(`${name} is Gemini lagna. Weigh ${otherName}’s Jupiter above Venus. That Jupiter is ${score}/5.`)
+      bits.push(`${name} is Gemini lagna. ${otherName}’s Jupiter counts for more than Venus here. That Jupiter is ${score}/5.`)
     }
     if (asc === 9) {
       const mercury = find(other, 'Me')
@@ -535,9 +535,9 @@ export function seventhAxisMatch(chartA: ChartOutput, chartB: ChartOutput): Axis
       const underSaturn = !!mercury && !!saturn && saturnReaches(saturn.rashi, mercury.rashi)
       if (withRahu && underSaturn) {
         tone = 'caution'
-        bits.push(`${otherName}’s Mercury is with Rahu and under Saturn. For ${name}’s Sagittarius lagna, that person uses the knowledge for their own rise. Refuse the match.`)
+        bits.push(`${otherName}’s Mercury is with Rahu and under Saturn. For ${name}’s Sagittarius lagna, that person uses the knowledge for their own rise. This match is best avoided.`)
       } else {
-        bits.push(`${name} is Sagittarius lagna. Read ${otherName}’s Mercury for a real exchange of knowledge.`)
+        bits.push(`${name} is Sagittarius lagna. ${otherName}’s Mercury shows whether there is a real exchange of knowledge.`)
       }
     }
     if (asc === 11) {
@@ -562,7 +562,7 @@ export function seventhAxisMatch(chartA: ChartOutput, chartB: ChartOutput): Axis
     bits.push('Virgo with Pisces: read Venus. Desire often sits at two temperatures on this axis.')
     if (signPressed(chartA, 6) && signPressed(chartA, 12) && signPressed(chartB, 6) && signPressed(chartB, 12)) {
       tone = 'caution'
-      bits.push('Virgo and Pisces are under pressure in both charts. Keep an affair question on the table, and decide it from the whole horoscope.')
+      bits.push('Virgo and Pisces are under pressure in both charts. Whether this becomes a pull outside the marriage is an open question, and only the whole horoscope can settle it.')
     }
   }
 
