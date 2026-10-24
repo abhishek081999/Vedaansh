@@ -68,6 +68,12 @@ const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').th
 const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => m.HousePanel), { ssr: false })
 const ActiveHousesCard = dynamic(() => import('@/components/dashboard/ActiveHousesCard').then(m => m.ActiveHousesCard), { ssr: false })
 const ProgressionWidget = dynamic(() => import('@/components/dashboard/ProgressionWidget').then(m => m.ProgressionWidget), { ssr: false })
+const DoshaSnapshotCard = dynamic(() => import('@/components/dashboard/DashboardInsightCards').then(m => m.DoshaSnapshotCard), { ssr: false })
+const RemediesCard = dynamic(() => import('@/components/dashboard/DashboardInsightCards').then(m => m.RemediesCard), { ssr: false })
+const DivisionalSnapshotCard = dynamic(() => import('@/components/dashboard/DashboardInsightCards').then(m => m.DivisionalSnapshotCard), { ssr: false })
+const LifeHighlightsCard = dynamic(() => import('@/components/dashboard/DashboardInsightCards').then(m => m.LifeHighlightsCard), { ssr: false })
+const TodayPanchangCard = dynamic(() => import('@/components/dashboard/DashboardLiveCards').then(m => m.TodayPanchangCard), { ssr: false })
+const TransitSnapshotCard = dynamic(() => import('@/components/dashboard/DashboardLiveCards').then(m => m.TransitSnapshotCard), { ssr: false })
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
 const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
 const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
@@ -2302,6 +2308,8 @@ function HomeContent() {
                             nodes={vimshottariNodes}
                             onOpenFull={() => setActiveTab('dasha-interpretation')}
                           />
+                          <TodayPanchangCard panchang={todayPanchang} timezone={chart.meta.timezone} />
+                          <TransitSnapshotCard chart={chart} onOpen={() => router.push('/transit/roadmap')} />
                           <div className="panel">
                             <div className="panel-header"><span>Daily Suitability</span></div>
                             <div style={{ padding: '0.4rem 0.55rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
@@ -2371,11 +2379,27 @@ function HomeContent() {
                       )}
 
                       {mobileDashTab === 'yogas' && (
-                        <div className="panel">
-                          <div className="panel-header"><span>Graha Yogas</span></div>
-                          <div style={{ padding: '0.4rem 0.55rem' }}>
-                            {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <div className="panel">
+                            <div className="panel-header"><span>Graha Yogas</span></div>
+                            <div style={{ padding: '0.4rem 0.55rem' }}>
+                              {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>}
+                            </div>
                           </div>
+                          <DoshaSnapshotCard chart={chart} />
+                        </div>
+                      )}
+
+                      {mobileDashTab === 'insights' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <DivisionalSnapshotCard chart={chart} />
+                          <LifeHighlightsCard
+                            chart={chart}
+                            userPlan={userPlan}
+                            onOpenRelationship={() => setActiveTab('relationship')}
+                            onOpenCareer={() => setActiveTab('career')}
+                          />
+                          <RemediesCard chart={chart} />
                         </div>
                       )}
 
@@ -3076,6 +3100,19 @@ function HomeContent() {
                         )}
                       </div>
                     </div>
+
+                    {/* ── Doshas, live Panchang and transits, divisional charts, remedies, life highlights ── */}
+                    <DoshaSnapshotCard chart={chart} />
+                    <TodayPanchangCard panchang={todayPanchang} timezone={chart.meta.timezone} />
+                    <TransitSnapshotCard chart={chart} onOpen={() => router.push('/transit/roadmap')} />
+                    <DivisionalSnapshotCard chart={chart} />
+                    <LifeHighlightsCard
+                      chart={chart}
+                      userPlan={userPlan}
+                      onOpenRelationship={() => setActiveTab('relationship')}
+                      onOpenCareer={() => setActiveTab('career')}
+                    />
+                    <RemediesCard chart={chart} />
 
                  </div>
                )}

@@ -10,6 +10,7 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 ### Added / live
 
+- Dashboard cards: doshas and afflictions, today's Panchang (Rahu Kalam, Abhijit), current transits with Sade Sati status, D9/D10/D7/D12 charts, remedies from the Moon nakshatra and running dasha lords, and a Gold relationship and career highlight. On phones these sit in Today, Yogas, and a new Insights tab
 - Full chart workspace: Navagraha, vargas (plan-filtered), dashas, strengths, yogas, SBC, ACG, Vastu, Prashna, Jaimini, Nakshatra lab, Numerology
 - Career and profession desk on the chart (Free preview; full reading on Gold+)
 - Professional career method beside that reading: karma field, the joined pair, nakshatra behavior, then D10, in seven tabs
