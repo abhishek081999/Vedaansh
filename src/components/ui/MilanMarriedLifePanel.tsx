@@ -54,6 +54,7 @@ import {
   MarriageVivahSections,
 } from '@/components/ui/marriedLifeUi'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
+import { LagnaPairCard } from '@/components/ui/LagnaPairCard'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 
 interface Props {
@@ -280,6 +281,8 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
         </div>
         <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{data.summary}</p>
       </div>
+
+      <LagnaPairCard chartA={chartA} chartB={chartB} nameA={nameA} nameB={nameB} />
 
       {full && caseBrief ? <CaseBriefCard brief={caseBrief} clientSafe={clientSafe} /> : null}
 

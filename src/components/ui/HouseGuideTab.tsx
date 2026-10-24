@@ -46,6 +46,7 @@ import {
 } from '@/lib/engine/naturalHouseKarakas'
 import { getPlanetaryMaturity } from '@/lib/engine/planetaryMaturity'
 import { LagnaSpiritualGuide } from './LagnaSpiritualGuide'
+import { LagnaHouseCallout } from './LagnaCharacterGuide'
 
 const SIGN_LORDS: Record<number, GrahaId> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
@@ -479,6 +480,8 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                       </p>
                     </div>
                   ) : null}
+
+                  <LagnaHouseCallout ascRashi={ascRashi} house={h.houseNum} />
 
                   <ClassicalNotesList
                     title="Classical bhava (BPHS & others)"

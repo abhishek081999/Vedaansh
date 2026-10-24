@@ -17,6 +17,7 @@ import {
 } from '@/lib/engine/houseInterpretations'
 import { HouseProgressionPanel } from './HouseProgressionPanel'
 import { HouseGuideTab } from './HouseGuideTab'
+import { LagnaGuideTab } from './LagnaGuideTab'
 import { RashiGuideTab } from './RashiGuideTab'
 
 const SIGN_LORDS: Record<number, string> = {
@@ -99,7 +100,7 @@ function SummaryChip({
 }
 
 export function HousePanel({ chart }: { chart: ChartOutput }) {
-  const [activeTab, setActiveTab] = useState<'analysis' | 'progression' | 'guide' | 'rashi'>('analysis')
+  const [activeTab, setActiveTab] = useState<'analysis' | 'progression' | 'guide' | 'lagna' | 'rashi'>('analysis')
   const { lagnas, grahas, meta, upagrahas } = chart
   const houseSystem = meta.settings.houseSystem
   const ascRashi = lagnas.ascRashi
@@ -278,6 +279,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
           { id: 'analysis' as const, label: 'Bhava Analysis' },
           { id: 'progression' as const, label: 'House Progression (BCP)' },
           { id: 'guide' as const, label: 'House Guide' },
+          { id: 'lagna' as const, label: 'Ascendant Guide' },
           { id: 'rashi' as const, label: 'Rashi Guide' },
         ].map((t) => (
           <button
@@ -743,6 +745,8 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
         <HouseProgressionPanel chart={chart} />
       ) : activeTab === 'guide' ? (
         <HouseGuideTab chart={chart} />
+      ) : activeTab === 'lagna' ? (
+        <LagnaGuideTab chart={chart} />
       ) : (
         <RashiGuideTab chart={chart} />
       )}
