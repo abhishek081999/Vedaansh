@@ -121,8 +121,22 @@ describe('eight marriage houses', () => {
     expect(reading.flags.trineBalanced).toBe(false)
     expect(ids(reading)).toContain('houses-both-energies')
     expect(ids(reading)).toContain('houses-saturn-eighth')
+    expect(ids(reading)).toContain('houses-smooth')
     expect(prose(reading)).toMatch(/Jupiter/)
+    expect(prose(reading)).toMatch(/not a wedding date/)
     expect(prose(reading)).not.toMatch(/definitely|100%/i)
+  })
+
+  it('reads a strong Navamsha 7th lord as the chart answering', () => {
+    const reading = analyzeMarriageHouses(chart({
+      asc: 1,
+      d9Asc: 1,
+      d9: [g('Ve', 7, 'own')],
+      grahas: [g('Ma', 1, 'own'), g('Ve', 7, 'own')],
+    }))!
+    expect(reading.flags.d9Silent).toBe(false)
+    expect(ids(reading)).toContain('houses-d9-live')
+    expect(prose(reading)).toMatch(/responding/)
   })
 
   it('lets a quiet Navamsha 7th lord cancel a willing period', () => {

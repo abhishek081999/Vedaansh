@@ -21,6 +21,8 @@ import { analyzeMarriageHouses } from '@/lib/engine/marriageHouses'
 import { analyzeSeventhLord } from '@/lib/engine/seventhLord'
 import { analyzeKarmicDebt } from '@/lib/engine/karmicDebt'
 import { analyzeVenusJupiterBond } from '@/lib/engine/venusJupiterBond'
+import { analyzeMarriageVivah } from '@/lib/engine/marriageVivah'
+import { analyzeMarriageMars } from '@/lib/engine/marriageMars'
 import { analyzeMarriageKarma } from '@/lib/engine/marriageKarma'
 import { analyzeVenusMarriage } from '@/lib/engine/venusMarriage'
 import { analyzeMarriageGochar } from '@/lib/engine/marriageGochar'
@@ -29,11 +31,11 @@ import { analyzePartnerNature } from '@/lib/engine/partnerNature'
 import { analyzeDivorceEnergy } from '@/lib/engine/divorceEnergy'
 import { analyzeClassicalMarriage } from '@/lib/engine/classicalMarriage'
 import { analyzeMarriageCaseBrief } from '@/lib/engine/marriageCaseBrief'
-import { ClassicalMarriageSections, CaseBriefCard, DivorceEnergySections, IntimateLifeSections, JayaSections, KarmicDebtSections, LIFE_TONE, MarriageClassSections, MarriageGocharSections, MarriageHousesSections, MarriageKarmaSections, NoteCards, PartnerNatureSections, ScoreMeter, SectionLabel, SeventhLordSections, VenusJupiterSections, VenusMarriageSections, YogaChecklist } from '@/components/ui/marriedLifeUi'
+import { ClassicalMarriageSections, CaseBriefCard, DivorceEnergySections, IntimateLifeSections, JayaSections, KarmicDebtSections, LIFE_TONE, MarriageClassSections, MarriageGocharSections, MarriageHousesSections, MarriageKarmaSections, MarriageMarsSections, MarriageVivahSections, NoteCards, PartnerNatureSections, ScoreMeter, SectionLabel, SeventhLordSections, VenusJupiterSections, VenusMarriageSections, YogaChecklist } from '@/components/ui/marriedLifeUi'
 import { JaiminiMarriageSection } from '@/components/ui/JaiminiMarriageSection'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
-type View = 'overview' | 'axis' | 'bonds' | 'classical' | 'jaimini' | 'jaya' | 'class' | 'bond' | 'partner' | 'split' | 'houses' | 'lord' | 'planets' | 'intimate' | 'timing' | 'remedies'
+type View = 'overview' | 'axis' | 'bonds' | 'classical' | 'jaimini' | 'jaya' | 'class' | 'bond' | 'method' | 'partner' | 'split' | 'houses' | 'lord' | 'planets' | 'mars' | 'intimate' | 'timing' | 'remedies'
 
 const VIEWS: { id: View; label: string }[] = [
   { id: 'overview', label: 'Significators' },
@@ -44,11 +46,13 @@ const VIEWS: { id: View; label: string }[] = [
   { id: 'jaya', label: 'Jaya Bhava' },
   { id: 'class', label: 'D1 and D9' },
   { id: 'bond', label: 'Venus and Jupiter' },
+  { id: 'method', label: 'Marriage method' },
   { id: 'partner', label: 'The partner' },
   { id: 'split', label: 'Separation' },
   { id: 'houses', label: 'Eight houses' },
   { id: 'lord', label: '7th lord' },
   { id: 'planets', label: 'Jupiter, Mars, Saturn' },
+  { id: 'mars', label: 'Mars' },
   { id: 'intimate', label: 'Intimate and in-laws' },
   { id: 'timing', label: 'Timing' },
   { id: 'remedies', label: 'Remedies' },
@@ -197,6 +201,8 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
   const seventhLord = useMemo(() => (full ? analyzeSeventhLord(chart) : null), [chart, full])
   const karmicDebt = useMemo(() => (full ? analyzeKarmicDebt(chart) : null), [chart, full])
   const venusJupiter = useMemo(() => (full ? analyzeVenusJupiterBond(chart) : null), [chart, full])
+  const marriageVivah = useMemo(() => (full ? analyzeMarriageVivah(chart) : null), [chart, full])
+  const marriageMars = useMemo(() => (full ? analyzeMarriageMars(chart) : null), [chart, full])
   const { windows: gocharWindows } = useMarriageGocharWindows(chart.lagnas?.ascRashi, full)
   const marriageGochar = useMemo(
     () => (full ? analyzeMarriageGochar(chart, { injectWindows: gocharWindows }) : null),
@@ -264,7 +270,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
             <div style={{ minHeight: 112, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
               <div style={{ fontWeight: 700, marginBottom: 6 }}>Full reading is on Gold</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                Every divisional chart, the four questions, D1 and D9, the partner, separation, houses, timing, and remedies.
+                Every divisional chart, the four questions, D1 and D9, Venus and Jupiter, the marriage method, the partner, separation, houses, timing, and remedies.
               </div>
             </div>
           </PlanGate>
@@ -439,6 +445,13 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
         </>
       )}
 
+      {view === 'method' && marriageVivah && (
+        <>
+          <SectionLabel>Marriage method — Mars, stars, bond, and debt</SectionLabel>
+          <MarriageVivahSections reading={marriageVivah} clientSafe={clientSafe} />
+        </>
+      )}
+
       {view === 'partner' && partnerNature && (
         <>
           <SectionLabel>The partner — read from this chart</SectionLabel>
@@ -485,6 +498,13 @@ function RelationshipMarriageReading({ chart, userPlan = 'free' }: Props) {
               <YogaChecklist notes={yogaNotes} filter={yogaFilter} onFilterChange={setYogaFilter} clientSafe={clientSafe} />
             </>
           ) : null}
+        </>
+      )}
+
+      {view === 'mars' && marriageMars && (
+        <>
+          <SectionLabel>Mars — the fire that starts and defends the marriage</SectionLabel>
+          <MarriageMarsSections reading={marriageMars} clientSafe={clientSafe} />
         </>
       )}
 

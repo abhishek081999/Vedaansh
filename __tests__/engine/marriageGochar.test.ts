@@ -17,6 +17,7 @@ function chart(opts: {
   grahas: GrahaData[]
   name?: string
   birthDate?: string
+  gender?: 'male' | 'female'
   dasha?: { md: GrahaId; ad?: GrahaId }
 }): ChartOutput {
   const maha: DashaNode = {
@@ -37,7 +38,7 @@ function chart(opts: {
     }] : [],
   }
   return {
-    meta: { name: opts.name ?? 'Test', birthDate: opts.birthDate },
+    meta: { name: opts.name ?? 'Test', birthDate: opts.birthDate, gender: opts.gender },
     grahas: opts.grahas,
     lagnas: { ascRashi: opts.asc },
     dashas: opts.dasha ? { vimshottari: [maha] } : {},
@@ -123,8 +124,13 @@ describe('marriage double transit', () => {
   it('classifies and merges contiguous months', () => {
     expect(classifyTransitMonth(1, 1)).toBe('double-1')
     expect(classifyTransitMonth(7, 7)).toBe('double-7')
-    expect(classifyTransitMonth(1, 5)).toBe('jupiter-lagna')
-    expect(classifyTransitMonth(5, 7)).toBeNull()
+    // Jupiter in 1 glances the 7th; Saturn in 5 glances the 7th by its 3rd.
+    expect(classifyTransitMonth(1, 5)).toBe('double-7')
+    // Jupiter in 5 glances the lagna by its 9th; Saturn in 7 glances the lagna.
+    expect(classifyTransitMonth(5, 7)).toBe('double-1')
+    // Saturn in 3 reaches neither the lagna nor the 7th. Jupiter occupies the lagna.
+    expect(classifyTransitMonth(1, 3)).toBe('jupiter-lagna')
+    expect(classifyTransitMonth(4, 6)).toBeNull()
     const merged = mergeTransitMonths([
       { ym: '2025-03', kind: 'double-7' },
       { ym: '2025-04', kind: 'double-7' },
@@ -151,6 +157,36 @@ describe('marriage double transit', () => {
     }), { skipScan: true })!
     const pair = compareMarriageGochar(open, closed, 'Asha', 'Dev')
     expect(pair.map(n => n.id)).toContain('gochar-pair-one')
+  })
+
+  it('lets a transit pass outside marriageable years, and asks for care when a child-period is early', () => {
+    const reading = analyzeMarriageGochar(chart({
+      asc: 1,
+      birthDate: '2012-01-01',
+      gender: 'male',
+      dasha: { md: 'Ju' },
+      grahas: [
+        g('Ju', 5),
+        g('Ve', 2, 'own'),
+        g('Mo', 1),
+        g('Ma', 6),
+        g('Sa', 10, 'own'),
+        g('Su', 9),
+        g('Me', 3, 'own'),
+      ],
+    }), {
+      now: new Date('2026-10-24T00:00:00Z'),
+      skipScan: true,
+      injectWindows: [
+        { start: '2026-04-01', end: '2026-08-28', kind: 'double-7' },
+      ],
+    })!
+    expect(reading.flags.childrenVehicle).toBe(true)
+    expect(reading.windows[0].inAgeBand).toBe(false)
+    expect(ids(reading)).toContain('gochar-care')
+    expect(prose(reading)).toMatch(/passes\. It does not trigger a wedding/)
+    expect(prose(reading)).toMatch(/before the/)
+    expect(prose(reading)).not.toMatch(/100%/)
   })
 
   it('returns nothing without an ascendant', () => {

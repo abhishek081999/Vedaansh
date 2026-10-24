@@ -13,6 +13,8 @@ import { analyzeMarriageHouses, compareMarriageHouses } from '@/lib/engine/marri
 import { analyzeSeventhLord, compareSeventhLord } from '@/lib/engine/seventhLord'
 import { analyzeKarmicDebt, compareKarmicDebt } from '@/lib/engine/karmicDebt'
 import { analyzeVenusJupiterBond, compareVenusJupiterBond } from '@/lib/engine/venusJupiterBond'
+import { analyzeMarriageVivah, compareMarriageVivah } from '@/lib/engine/marriageVivah'
+import { analyzeMarriageMars, compareMarriageMars } from '@/lib/engine/marriageMars'
 import { analyzeMarriageGochar, compareMarriageGochar } from '@/lib/engine/marriageGochar'
 import { useMarriageGocharWindows } from '@/hooks/useMarriageGocharWindows'
 import { analyzePartnerNature, comparePartnerNature } from '@/lib/engine/partnerNature'
@@ -47,6 +49,8 @@ import {
   SynastrySections,
   VenusJupiterSections,
   VenusMarriageSections,
+  MarriageMarsSections,
+  MarriageVivahSections,
 } from '@/components/ui/marriedLifeUi'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
@@ -125,6 +129,23 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
     const b = analyzeVenusJupiterBond(chartB)
     if (!a || !b) return null
     return { a, b, pair: compareVenusJupiterBond(a, b, nameA, nameB) }
+  }, [chartA, chartB, full, nameA, nameB])
+  const marriageVivah = useMemo(() => {
+    if (!full) return null
+    const a = analyzeMarriageVivah(chartA)
+    const b = analyzeMarriageVivah(chartB)
+    if (!a || !b) return null
+    const pair = compareMarriageVivah(a, b, nameA, nameB)
+    const marked = a.harm.length + a.pattern.length + a.debt.length + b.harm.length + b.pattern.length + b.debt.length
+    if (!marked && !pair.length) return null
+    return { a, b, pair }
+  }, [chartA, chartB, full, nameA, nameB])
+  const marriageMars = useMemo(() => {
+    if (!full) return null
+    const a = analyzeMarriageMars(chartA)
+    const b = analyzeMarriageMars(chartB)
+    if (!a || !b) return null
+    return { a, b, pair: compareMarriageMars(a, b, nameA, nameB) }
   }, [chartA, chartB, full, nameA, nameB])
 
   const { windows: gocharWindowsA } = useMarriageGocharWindows(chartA.lagnas?.ascRashi, full)
@@ -511,6 +532,42 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
           </div>
           {!clientSafe ? (
             <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{venusJupiter.a.principles}</p>
+          ) : null}
+        </div>
+      )}
+
+      {marriageMars && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Mars — both charts</SectionLabel>
+          <NoteCards notes={marriageMars.pair} clientSafe={clientSafe} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
+            {[{ name: data.nameA, reading: marriageMars.a }, { name: data.nameB, reading: marriageMars.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <MarriageMarsSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageMars.a.principles}</p>
+          ) : null}
+        </div>
+      )}
+
+      {marriageVivah && (
+        <div className="card" style={{ padding: '1.15rem' }}>
+          <SectionLabel>Marriage method — both charts</SectionLabel>
+          <NoteCards notes={marriageVivah.pair} clientSafe={clientSafe} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.85rem', marginTop: '0.85rem' }}>
+            {[{ name: data.nameA, reading: marriageVivah.a }, { name: data.nameB, reading: marriageVivah.b }].map(col => (
+              <div key={col.name}>
+                <SectionLabel>{col.name}</SectionLabel>
+                <MarriageVivahSections reading={col.reading} showPrinciples={false} clientSafe={clientSafe} />
+              </div>
+            ))}
+          </div>
+          {!clientSafe ? (
+            <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{marriageVivah.a.principles}</p>
           ) : null}
         </div>
       )}

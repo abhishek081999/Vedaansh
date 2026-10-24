@@ -90,7 +90,9 @@ describe('marriage class', () => {
     expect(reading.flags.bond).toBe('karmic')
     expect(ids(reading)).toContain('class-bond-karmic')
     expect(ids(reading)).toContain('class-d9-missing')
-    expect(prose(reading)).not.toMatch(/100%|murder|eyes closed/i)
+    expect(ids(reading)).toContain('class-age-moved')
+    expect(prose(reading)).toMatch(/year is not named|not given from those windows/i)
+    expect(prose(reading)).not.toMatch(/100%|murder|eyes closed|at 25|at age/i)
   })
 
   it('reads Jupiter with Venus and a trine to the Moon as a soul bond', () => {
@@ -390,5 +392,45 @@ describe('marriage class', () => {
     expect(reading.flags.pattern).toBe('many')
     expect(prose(reading)).toMatch(/In this chart the field is women/)
     expect(prose(reading)).not.toMatch(/woman’s chart/)
+  })
+
+  it('reads a strained marriage lord with a strong Navamsha Venus as the first account', () => {
+    const reading = analyzeMarriageClass(chart({
+      asc: 4,
+      grahas: [
+        g('Sa', 1, 'debilitated'),
+        g('Ve', 2, 'own'),
+        g('Mo', 4, 'own'),
+        g('Ma', 5),
+        g('Ju', 9),
+      ],
+      d9Asc: 2,
+      d9: [
+        g('Ve', 2, 'own'),
+        g('Ma', 4, 'debilitated'),
+      ],
+    }))!
+    expect(reading.flags.pattern).not.toBe('divorce')
+    expect(reading.flags.pattern).not.toBe('second')
+    expect(ids(reading)).toContain('class-karmic-first')
+    expect(ids(reading)).not.toContain('class-one-break')
+    expect(prose(reading)).not.toMatch(/100%|guaranteed|death/i)
+  })
+
+  it('decodes the Moon when Cancer is the 7th', () => {
+    const reading = analyzeMarriageClass(chart({
+      asc: 10,
+      grahas: [
+        g('Mo', 4, 'own', { nakshatraIndex: 7, isWaxingMoon: true }),
+        g('Sa', 10, 'own'),
+        g('Ve', 7, 'own'),
+      ],
+    }))!
+    expect(ids(reading)).toContain('class-moon-is-lord')
+    const note = reading.navamsha.find(n => n.id === 'class-moon-is-lord')!
+    expect(note.detail).toMatch(/Cancer/)
+    expect(note.detail).toMatch(/Pushya/)
+    expect(note.detail).toMatch(/waxing/)
+    expect(note.detail).toMatch(/Saturn/)
   })
 })
