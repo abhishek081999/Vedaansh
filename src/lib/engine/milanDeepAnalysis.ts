@@ -85,9 +85,9 @@ const MARRIAGE_HOUSES = [
   { house: 4, name: 'Domestic happiness' },
   { house: 5, name: 'Romance / children' },
   { house: 7, name: 'Marriage / spouse' },
-  { house: 8, name: 'Longevity / transformation' },
+  { house: 8, name: 'Longevity / deep change' },
   { house: 9, name: 'Fortune / dharma' },
-  { house: 12, name: 'Bedroom / expenses' },
+  { house: 12, name: 'Intimacy / expenses' },
 ] as const
 
 const MALEFICS: GrahaId[] = ['Su', 'Ma', 'Sa', 'Ra', 'Ke']
@@ -104,6 +104,10 @@ function findGraha(chart: ChartOutput, id: GrahaId): GrahaData | undefined {
   return chart.grahas.find(g => g.id === id)
 }
 
+function ord(n: number): string {
+  return n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : `${n}th`
+}
+
 function rn(r: number): string {
   return RASHI_NAMES[r as keyof typeof RASHI_NAMES] ?? `R${r}`
 }
@@ -117,17 +121,17 @@ function aspectTone(rel: number): MilanTone {
 function aspectLabel(rel: number): string {
   const map: Record<number, string> = {
     1: 'Conjunction / same sign',
-    2: '2nd / 12th tension',
-    3: '3rd / 11th support',
-    4: '4th / 10th axis',
+    2: '2nd / 12th apart (some tension)',
+    3: '3rd / 11th apart (some support)',
+    4: '4th / 10th apart (neutral)',
     5: 'Trine (5th)',
-    6: '6th / 8th friction',
+    6: '6th / 8th apart (friction)',
     7: 'Opposition (7th)',
-    8: '8th / 6th friction',
+    8: '8th / 6th apart (friction)',
     9: 'Trine (9th)',
-    10: '10th / 4th axis',
-    11: '11th / 3rd support',
-    12: '12th / 2nd tension',
+    10: '10th / 4th apart (neutral)',
+    11: '11th / 3rd apart (some support)',
+    12: '12th / 2nd apart (some tension)',
   }
   return map[rel] ?? `${rel}th relation`
 }
@@ -183,21 +187,21 @@ function analyzeSeventhRotation(chart: ChartOutput, forPerson: string, readFor?:
 
   const checkHouse = (h: number, label: string) => {
     if (houseAfflicted(chart, h)) {
-      notes.push(`${label} (H${h} from natal, H${((h + 5) % 12) + 1} from 7th-as-lagna) shows affliction.`)
+      notes.push(`${label} (natal house ${h}, house ${((h + 5) % 12) + 1} from the partner's viewpoint) shows some strain.`)
     }
   }
-  // From natal: 7=married life, 5=romance→ from 7th lagna these become 1, 11, 10, 6
-  // We report natal houses relative to spouse perspective as requested
+  // From natal: 7=married life, 5=romance; from the 7th-as-lagna view these become 1, 11, 10, 6
+  // We report natal houses relative to the partner's perspective
   checkHouse(7, 'Married life (7th)')
   checkHouse(5, 'Romance / children (5th)')
   checkHouse(4, 'Domestic happiness (4th)')
-  checkHouse(12, 'Bedroom / intimacy (12th)')
+  checkHouse(12, 'Intimacy (12th)')
 
   if (notes.length === 0) {
-    notes.push('No severe affliction flagged on 4/5/7/12 in this rotation snapshot.')
+    notes.push('No significant strain flagged on the 4th, 5th, 7th or 12th house in this view.')
   }
   if (readFor) {
-    notes.unshift(`Reading ${forPerson}'s 7th-as-lagna chart for ${readFor}'s experience of the marriage.`)
+    notes.unshift(`Reading ${forPerson}'s chart with the 7th house as lagna, to see how ${readFor} may experience the marriage.`)
   }
 
   return {
@@ -222,13 +226,13 @@ function d9LordHarmony(a: ChartOutput, b: ChartOutput): string | null {
   const rel = signCount(aMo.rashi, bMo.rashi)
   const tone = aspectTone(rel)
   return `D9 Moon signs ${rn(aMo.rashi)} ↔ ${rn(bMo.rashi)} (${aspectLabel(rel)}) — ${
-    tone === 'supportive' ? 'supportive dharma/compatibility layer' : tone === 'caution' ? 'friction in deeper marital dharma' : 'mixed Navamsha Moon link'
+    tone === 'supportive' ? 'a supportive layer of deeper compatibility' : tone === 'caution' ? 'some friction in the deeper values of the marriage' : 'a mixed Navamsha Moon link'
   }.`
 }
 
 /**
  * Full Stage 2–3 Milan analysis from two calculated charts.
- * chartA = Person 1 (traditionally boy), chartB = Person 2 (girl).
+ * chartA = Person 1, chartB = Person 2 (order follows the roles chosen in the app).
  */
 export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): MilanDeepResult {
   const nameA = chartA.meta.name || 'Person 1'
@@ -285,7 +289,7 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
     stage3Findings.push({
       id: 've-ma-weak',
       title: 'Muted Venus–Mars cross-link',
-      detail: 'Romance/passion planets do not form classical 1/5/7/9 links across charts — build attraction through shared rituals and timing.',
+      detail: 'The planets of romance and passion do not form the classical supportive links (1st, 5th, 7th or 9th) across the two charts. Attraction can still grow through shared rituals, time together and patience.',
       tone: 'caution',
       stage: 3,
     })
@@ -295,7 +299,7 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
   let marsNakTara = {
     fromBoy: '—',
     fromGirl: '—',
-    detail: 'Mars nakshatra data unavailable.',
+    detail: 'Mars nakshatra data is unavailable.',
   }
   if (aMa && bMa) {
     const aNak = aMa.nakshatraIndex >= 0 ? aMa.nakshatraIndex + 1 : Math.floor(aMa.totalDegree / (360 / 27)) + 1
@@ -307,7 +311,7 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
     marsNakTara = {
       fromBoy,
       fromGirl,
-      detail: `Mars Tara ${fromBoy} / ${fromGirl} — ${tone === 'caution' ? 'karmic friction in passion expression' : 'supportive passion timing between Mars nakshatras'}.`,
+      detail: `Mars Tara ${fromBoy} / ${fromGirl}: ${tone === 'caution' ? 'some friction in how passion is expressed' : 'a supportive rhythm of passion between the two Mars nakshatras'}.`,
     }
     stage3Findings.push({
       id: 'mars-tara',
@@ -336,13 +340,13 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
     const matched = aAff === bAff
     let note: string
     if (aAff && bAff) {
-      note = `Both charts afflict H${house} — Jatak Parijat matching principle: shared struggle can bind.`
+      note = `Both charts show strain on the ${ord(house)} house (${name}); in the classical matching idea (Jatak Parijat), a shared challenge can bring partners closer.`
     } else if (aAff && !bAff) {
-      note = `Only ${nameA} has H${house} afflicted — imbalance; partner may not share that life pressure.`
+      note = `Only ${nameA}'s chart shows strain on the ${ord(house)} house (${name}); ${nameB} may not feel that same pressure, so open conversation helps.`
     } else if (!aAff && bAff) {
-      note = `Only ${nameB} has H${house} afflicted — imbalance on ${name}.`
+      note = `Only ${nameB}'s chart shows strain on the ${ord(house)} house (${name}); ${nameA} may not feel that same pressure, so open conversation helps.`
     } else {
-      note = `Neither chart severely afflicts H${house} — clearer field for ${name}.`
+      note = `Neither chart shows significant strain on the ${ord(house)} house, a clearer field for ${name}.`
     }
     return {
       house,
@@ -361,7 +365,7 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
     stage2Findings.push({
       id: 'house-match',
       title: 'House affliction balance',
-      detail: 'Key marriage houses show matched affliction patterns (or mutual clarity) — favourable per Jatak Parijat matching logic.',
+      detail: 'The key marriage houses show matching patterns (or are clear in both charts), which the classical Jatak Parijat approach reads as favourable.',
       tone: 'supportive',
       stage: 2,
     })
@@ -369,7 +373,7 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
     stage2Findings.push({
       id: 'house-mismatch',
       title: 'Uneven house afflictions',
-      detail: `Imbalance on: ${mismatchHouses.map(h => `H${h.house} (${h.name})`).join(', ')}. Shared remedies or counselling on these themes helps.`,
+      detail: `Uneven strain on: ${mismatchHouses.map(h => `${ord(h.house)} house (${h.name})`).join(', ')}. Talking these themes through together, with shared remedies or counselling if you wish, can help.`,
       tone: 'caution',
       stage: 2,
     })
@@ -396,8 +400,8 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
   const lagnaRel = aL && bL ? signCount(aL, bL) : 0
   const d1Summary =
     aL && bL
-      ? `D1 Lagnas ${rn(aL)} ↔ ${rn(bL)} (${aspectLabel(lagnaRel)}). 7th lords and Venus–Mars still outweigh lagna alone.`
-      : 'D1 lagna data incomplete.'
+      ? `D1 Lagnas ${rn(aL)} ↔ ${rn(bL)} (${aspectLabel(lagnaRel)}). The 7th lords and Venus–Mars links usually matter more than the lagna pairing alone.`
+      : 'D1 lagna data is incomplete.'
 
   stage2Findings.push({
     id: 'd1-lagna',
@@ -414,14 +418,14 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
 
   stage2Findings.push({
     id: 'vaidhavya-vidhur',
-    title: 'Vaidhavya / Vidhur match',
+    title: 'Partner longevity and wellbeing yogas (Vaidhavya / Vidhur)',
     detail: longevityYogas.summary,
     tone: longevityYogas.tone,
     stage: 2,
   })
   stage2Findings.push({
     id: 'varnamala',
-    title: 'Janma-naam Varnamala',
+    title: 'Birth-name Varnamala (Janma-naam)',
     detail: varnamala.summary,
     tone: varnamala.tone,
     stage: 2,
@@ -436,30 +440,30 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
 
   // ── Overall ─────────────────────────────────────────────────
   const priorities: string[] = [
-    'Treat Ashtakoot as Stage 1 only — never decide on gunas alone.',
-    'Verify Venus–Mars cross-links and Mars nakshatra tara (Stage 3).',
-    'Compare afflictions on houses 2, 4, 5, 7, 8, 9, 12 (Jatak Parijat).',
-    'Match Vaidhavya ↔ Vidhur intensity and longevity before finalizing.',
-    'Rotate 7th-as-lagna for spouse-perspective married life / domestic / intimacy.',
-    'Align upcoming Mahadasha pairs of both charts before deciding timing.',
-    'Check Janma-naam Varnamala animals (Moon pada sound), not the common-use name alone.',
+    'Ashtakoot is only the first stage, so the guna total is best read alongside the points below.',
+    'Look at the Venus–Mars links between you and the Mars nakshatra tara (Stage 3).',
+    'Compare strain on the 2nd, 4th, 5th, 7th, 8th, 9th and 12th houses in both charts (Jatak Parijat).',
+    'Read the partner longevity and wellbeing yogas (Vaidhavya / Vidhur) of both charts together; they are tendencies, not predictions.',
+    'View each chart with the 7th house as lagna to see how each partner may experience married life, home and intimacy.',
+    'Compare the upcoming Mahadasha pairs of both charts when thinking about timing.',
+    'Birth-name Varnamala animals use the Moon pada sound, not the name used every day.',
   ]
 
-  let stageLabel = 'Complete three-stage review advised'
+  let stageLabel = 'A full three-stage reading is worthwhile'
   let summary = `${chemistryLabel}. Stage 2 house patterns and Stage 3 planetary chemistry ${
-    chemistryScore >= 5 && mismatchHouses.length <= 2 ? 'are broadly workable' : 'need careful counselling'
+    chemistryScore >= 5 && mismatchHouses.length <= 2 ? 'are broadly workable' : 'deserve a careful, unhurried look'
   }.`
 
   if (longevityYogas.tone === 'caution') {
-    summary += ` Longevity yogas: ${longevityYogas.summary}`
+    summary += ` Partner longevity and wellbeing yogas: ${longevityYogas.summary}`
   }
 
   if (chemistryScore >= 8 && mismatchHouses.length <= 1 && longevityYogas.tone !== 'caution') {
     stageLabel = 'Strong Stage 2–3 support'
-    summary = 'Venus–Mars chemistry and house-affliction balance support the match beyond Moon gunas.'
+    summary = 'Venus–Mars chemistry and the balance of house strain support this match beyond the Moon-based gunas.'
   } else if (chemistryScore < 4 || mismatchHouses.length >= 4 || longevityYogas.tone === 'caution') {
-    stageLabel = 'Stage 2–3 caution'
-    summary = 'Planetary chemistry, longevity yogas, and/or house imbalances need remedies, timing, and realistic expectations — guna score alone is incomplete.'
+    stageLabel = 'Stage 2–3: points to handle with care'
+    summary = 'Planetary chemistry, partner-wellbeing yogas and/or uneven house strain call for patience, good timing and realistic expectations. The guna score alone does not tell the whole story.'
   }
 
   return {

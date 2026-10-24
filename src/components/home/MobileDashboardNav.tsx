@@ -3,9 +3,9 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
 import type { LucideIcon } from 'lucide-react'
-import { LayoutDashboard, Sparkles, Info, Clock, Moon, Zap, Star } from 'lucide-react'
+import { LayoutDashboard, Sparkles, Info, Clock, Moon, Zap, Star, Compass } from 'lucide-react'
 
-export type MobileDashTab = 'overview' | 'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'
+export type MobileDashTab = 'overview' | 'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas' | 'insights'
 export type MobileStrengthSubTab = 'ashtakavarga' | 'shadbala' | 'bhava' | 'vimsopaka'
 
 const MAIN_TABS: { id: MobileDashTab; icon: LucideIcon; label: string }[] = [
@@ -16,6 +16,7 @@ const MAIN_TABS: { id: MobileDashTab; icon: LucideIcon; label: string }[] = [
   { id: 'today', icon: Moon, label: 'Today' },
   { id: 'strengths', icon: Zap, label: 'Strength' },
   { id: 'yogas', icon: Star, label: 'Yogas' },
+  { id: 'insights', icon: Compass, label: 'Insights' },
 ]
 
 export interface MobileDashboardNavProps {

@@ -54,11 +54,11 @@ export function SavedMilanLibrary() {
         router.push('/login?callbackUrl=/my/charts')
         return
       }
-      if (!json.success) throw new Error(json.error || 'Failed to load')
+      if (!json.success) throw new Error(json.error || 'Could not load your saved matches. Please try again.')
       setMilans((json.milans ?? []).map((m: MilanCardData) => ({ ...m, _id: String(m._id) })))
       setPag(json.pagination)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load')
+      setError(e instanceof Error ? e.message : 'Could not load your saved matches. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -101,7 +101,7 @@ export function SavedMilanLibrary() {
       {loading && (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
           <div className="spin-loader" style={{ width: 32, height: 32, margin: '0 auto 1rem', border: '3px solid var(--border)', borderTopColor: 'var(--gold)' }} />
-          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>Loading Kundali Milan…</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>Loading your saved matches…</div>
         </div>
       )}
 
@@ -114,7 +114,7 @@ export function SavedMilanLibrary() {
       {!loading && !error && milans.length === 0 && (
         <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-            {search ? 'No matches with that name' : 'No saved Kundali Milan yet'}
+            {search ? 'No matches with that name' : 'No saved matches yet'}
           </p>
           <Link href="/compare" className="btn btn-primary" style={{ marginTop: '1rem' }}>Match two charts</Link>
         </div>
@@ -144,7 +144,7 @@ export function SavedMilanLibrary() {
                   {openingId === milan._id ? 'Opening…' : 'Open'}
                 </button>
                 {confirmId === milan._id ? (
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => void handleDelete(milan._id)}>Delete</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => void handleDelete(milan._id)}>Yes, delete</button>
                 ) : (
                   <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmId(milan._id)}>Remove</button>
                 )}

@@ -206,7 +206,7 @@ const OCCUPANT: Partial<Record<GrahaId, { title: string; detail: string; tone: L
   },
   Ra: {
     title: 'Rahu in the 7th — an unconventional match',
-    detail: 'The partnership sits outside the expected social frame, or it blooms larger than the reality underneath it. Attraction is amplified. The risk is marrying an image. Check whether the 7th lord and Venus can still tell the truth about the person once the fascination cools.',
+    detail: 'The partnership sits outside the expected social frame, or it blooms larger than the reality underneath it. Attraction is amplified. The risk is marrying an image. The 7th lord and Venus show whether the person still feels true once the fascination cools.',
     tone: 'caution',
   },
   Ke: {
@@ -218,7 +218,7 @@ const OCCUPANT: Partial<Record<GrahaId, { title: string; detail: string; tone: L
 
 function dusthanaCopy(house: number, spouse: string): string {
   if (house === 6) {
-    return `The 7th lord in the 6th makes the marriage a service. One partner becomes the caretaker, effort does not stay optional, and the caretaker’s reserves are what get spent. That disturbance of ease is what the text calls a sickly ${spouse}: the strain is emotional first. The 6th also looks toward loss, so the care can be used up.`
+    return `The 7th lord in the 6th makes the marriage a service. One partner becomes the caretaker, effort does not stay optional, and the caretaker’s reserves are what get spent. That disturbance of ease is what classical texts call a sickly ${spouse}: the strain is emotional first. The 6th also looks toward loss, so the care can be used up.`
   }
   if (house === 8) {
     return `The 7th lord in the 8th makes marriage a transformation. The bond is karmically loud, the partner is emotionally deep, and the story turns on crises. Even a welcome change rubs. Shared money and the partner’s family resources move with this placement, because the 8th sees the 2nd.`
@@ -304,7 +304,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       lordNotes.push(note(
         'bphs-19-2',
         `7th lord in the ${ordinal(lordHouse)} — development, not ease`,
-        `${seat}, without own sign or exaltation. ${dusthanaCopy(lordHouse, spouse)} Rogini in this shloka is the disturbance of the partner’s ease: emotional strain, psychological load, or a bond that wears the person down. It is not a finding that the ${spouse} is physically ill. If this lord later gains strength, the same house becomes workable. Strength overrides the house.`,
+        `${seat}, without own sign or exaltation. ${dusthanaCopy(lordHouse, spouse)} The classical term Rogini here means a disturbance of the partner’s ease: emotional strain, psychological load, or a bond that wears the person down. It is not a finding that the ${spouse} is physically ill. If this lord later gains strength, the same house becomes workable. Strength overrides the house.`,
         'caution',
       ))
     } else {
@@ -374,7 +374,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       lordNotes.push(note(
         'bphs-19-3b',
         'Venus with a malefic — the Venusian quality is what comes under pressure',
-        `Venus is with ${mals.map(g => gn(g.id)).join(' and ')}. The extreme classical line is loss of the ${spouse}. In ordinary charts what fails first is the Venusian tone of the marriage, and only a stack of afflictions plus Navamsha and dasha would push that toward an actual ending. ${venusMaleficCopy(mals.map(g => g.id))}`,
+        `Venus is with ${mals.map(g => gn(g.id)).join(' and ')}. The strongest traditional reading is a serious loss in the marriage. In most charts what suffers first is the warmth and pleasure of the marriage, and only a stack of afflictions together with the Navamsha and dasha would push that toward a hard ending. This does not indicate a death. ${venusMaleficCopy(mals.map(g => g.id))}`,
         'caution',
       ))
     }
@@ -418,7 +418,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     dynamicNotes.push(note(
       'bphs-19-10',
       'The partner’s will outweighs the native’s',
-      'A waning Moon in the 5th leaves little creative independence in emotional trouble. Malefics in the 7th harden the partnership, and malefics in the 12th make surrender the reflex. Together the native is run by the spouse, and the spouse’s values pull against the birth family. The loyalty split is the thing to name in counsel: partner on one side, family on the other.',
+      'A waning Moon in the 5th leaves little creative independence in emotional trouble. Malefics in the 7th harden the partnership, and malefics in the 12th make surrender the reflex. Together the native is run by the spouse, and the spouse’s values pull against the birth family. The central tension is a split loyalty: partner on one side, family on the other.',
       'caution',
     ))
   }
@@ -435,14 +435,14 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       dynamicNotes.push(note(
         'bphs-19-11-guard',
         'Mars and Saturn rule this 7th by lagna — do not force the harsh line',
-        'Taurus, Cancer, Leo, and Libra already give the 7th to Mars or Saturn. The line about an unbound spouse does not apply from that fact alone. It needs a further affliction: both planets in the 7th, a weak 7th lord, or a second malefic piled on the house.',
+        'Taurus, Cancer, Leo, and Libra already give the 7th to Mars or Saturn. The classical warning about an unbound spouse does not apply from that fact alone. It needs a further affliction: both planets in the 7th, a weak 7th lord, or a second malefic piled on the house.',
         'mixed',
       ))
     } else {
       dynamicNotes.push(note(
         'bphs-19-11',
         'Saturn tightens the bond, Mars pushes out of it',
-        `${natural ? 'This lagna already gives the 7th to Mars or Saturn, and a further affliction is present. ' : ''}Saturn restricts the partnership. Mars wants heat and a separate will. The partner can feel hemmed in and then seek intensity outside the frame the native expected — a close friendship, a private life, a refusal to be managed. The classical wording is severe. Use it as a description of independence under pressure. Do not announce misconduct from this line alone.`,
+        `${natural ? 'This lagna already gives the 7th to Mars or Saturn, and a further affliction is present. ' : ''}Saturn restricts the partnership. Mars wants heat and a separate will. The partner can feel hemmed in and then seek intensity outside the frame the native expected — a close friendship, a private life, a refusal to be managed. Classical texts word this severely. Read it as strong independence under pressure, not as misconduct. This line alone does not indicate it.`,
         'caution',
       ))
     }
@@ -457,7 +457,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       dynamicNotes.push(note(
         'bphs-19-12',
         'Venus tied to Mars — intimacy runs hot',
-        'Desire is steered by instinct. The person wants a complete physical bond and is poorly matched with a partner who stays polite and partial. Frustration here is a mismatch of intensity. Counsel the need and the pace. Do not prescribe acts from the shloka.',
+        'Desire is steered by instinct. The person wants a complete physical bond and is poorly matched with a partner who stays polite and partial. Frustration here is a mismatch of intensity, so openly talking about needs and pace helps.',
         'mixed',
       ))
     }
@@ -472,7 +472,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       dynamicNotes.push(note(
         'bphs-19-13',
         'Venus tied to Saturn — desire is delayed or fenced',
-        'Saturn restricts, postpones, or reroutes Venus. Intimacy may need unusual privacy, a long runway, or a structure the person can control. Performance anxiety and a late start belong to this pattern. Difference is not a defect, and this line is not a pronouncement about orientation. Help the person name the conditions under which closeness is actually possible.',
+        'Saturn restricts, postpones, or reroutes Venus. Intimacy may need unusual privacy, a long runway, or a structure the person can control. Performance anxiety and a late start belong to this pattern. Difference is not a defect, and this says nothing about orientation. Closeness is possible once the person can name the conditions under which it feels safe.',
         'mixed',
       ))
     }
@@ -483,7 +483,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
   if (lordDignified && beneficIn7 && lagnaStrongIn7) {
     dynamicNotes.push(note(
       'bphs-19-14',
-      'The gold standard of the chapter',
+      'The best-case partnership pattern',
       `Three conditions meet: the 7th lord is dignified, a benefic occupies the 7th, and a strong ${gn(lagnaId)} sits in the 7th. The ${spouse} is then read as virtuous in the sense that the marriage brings out the better self, and as generative: children, work, and a lineage of effort, not a single event. A weak lagna lord could not have sustained this. The mirror only reflects what stands in front of it.`,
       'supportive',
     ))
@@ -497,8 +497,8 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       'bphs-19-16',
       mild ? 'Malefics touch a strong 7th' : 'Malefics on a weak marriage signature',
       mild
-        ? 'A malefic joins the 7th or its lord, and the lord still has strength. Read a mild loss of ease: friction, a thinner romance, a season of distance. Do not read the end of the marriage from this line alone.'
-        : 'A malefic joins the 7th or its lord, and strength is missing. The spectrum runs from a hollow marriage, to a long separation, to the rare physical loss of a spouse. The far end needs Navamsha, a confirming dasha, and no benefic rescue. Start from the near end: the native can also lose their own outline inside the bond.',
+        ? 'A malefic joins the 7th or its lord, and the lord still has strength. This points to a mild loss of ease: friction, a thinner romance, a season of distance. It does not by itself indicate the marriage ending.'
+        : 'A malefic joins the 7th or its lord, and strength is missing. The spectrum runs from a hollow marriage, to a long separation, and, rarely, a serious loss. The far end needs Navamsha, a confirming dasha, and no benefic rescue, and it is not indicated by this line alone. The more common effect is that a person can lose their own outline inside the bond.',
       mild ? 'mixed' : 'caution',
     ))
   }
@@ -519,7 +519,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     dynamicNotes.push(note(
       'bphs-19-17b',
       '7th lord debilitated',
-      'Debility of the 7th lord is the chapter’s mark for a marriage that cannot hold its shape. The bond is not denied. It is denied comfort, and it breaks or empties when the dasha agrees. Look for a cancellation before saying that aloud.',
+      'Debility of the 7th lord is the classical mark for a marriage that cannot hold its shape. The bond is not denied. It is denied comfort, and it breaks or empties when the dasha agrees. A benefic influence or another cancelling factor on the 7th lord can ease this considerably.',
       'caution',
     ))
   }
@@ -533,8 +533,8 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       'bphs-19-18',
       phase === true ? 'A waxing Moon softens the denial of marital ease' : 'Need without a working mechanism',
       phase === true
-        ? `${base} The commentary applies the full denial of marital happiness to a waning Moon. This Moon is waxing, so the adversity is mitigated: the need is still there, and the mechanism is still thin, but the chart is not read as a marriage without happiness.`
-        : `${base} The person needs a partner and is poorly built to sustain one. The sentence to hear is “I give everything and I am not met,” not “the spouse is the defect.” Strengthen the Moon’s emotional skill, make peace with the 12th, and support Venus or Jupiter. Blaming a sequence of partners misses the chart. ${phase === false ? 'The Moon is waning, which is the commentary’s condition for the full reading.' : 'The commentary reserves the full denial for a waning Moon. Paksha is not on this chart, so leave the far end open.'}`,
+        ? `${base} Classical texts apply the full denial of marital happiness to a waning Moon. This Moon is waxing, so the adversity is mitigated: the need is still there, and the mechanism is still thin, but the chart is not read as a marriage without happiness.`
+        : `${base} The person needs a partner and is poorly built to sustain one. The lived experience is “I give everything and I am not met,” not “the spouse is the defect.” Strengthen the Moon’s emotional skill, make peace with the 12th, and support Venus or Jupiter. Blaming a sequence of partners misses the chart. ${phase === false ? 'The Moon is waning, which is the classical condition for the full reading.' : 'Classical texts reserve the full denial for a waning Moon. The Moon’s phase is not available for this chart, so the far end stays open.'}`,
       phase === true ? 'mixed' : 'caution',
     ))
   }
@@ -545,7 +545,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     multiNotes.push(note(
       'bphs-19-19',
       'Two partnership chapters',
-      'The 7th lord is debilitated, joined to a malefic, and the 7th carries a dual sign or a dual navamsha. The life splits into two partnership eras: a remarriage, or one marriage that becomes a different marriage halfway through. The native’s own picture of a partner stays unclear. Weakness plus ambiguity is why the energy will not settle into one story.',
+      'The 7th lord is debilitated, joined to a malefic, and the 7th carries a dual sign or a dual navamsha. The life can divide into two partnership eras: a second partnership, or one marriage that becomes a different marriage halfway through. The person’s own picture of a partner can stay unclear. Weakness plus ambiguity is why the energy may not settle into one story.',
       'caution',
     ))
   }
@@ -721,7 +721,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     timingNotes.unshift(note(
       'bphs-19-timing-frame',
       'How to use these years',
-      'These age markers assume a culture of very early marriage. Keep the sequence and drop the literal birthday. Confirm with the dasha of the 7th lord, Venus, and Jupiter before naming a year.',
+      'These age markers assume a culture of very early marriage. Read the sequence of the markers rather than the literal birthday, and confirm any year with the dasha of the 7th lord, Venus, and Jupiter.',
       'mixed',
     ))
   }
@@ -742,7 +742,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     strainNotes.push(note(
       'bphs-19-36',
       'Transformation in the marriage, loss inside the 7th',
-      'The 7th lord is in the 8th and the 12th lord is in the 7th. The marriage is built to change the person, and the partnership house itself receives loss, distance, or a bill that comes due. The 19th-year marker is when that pattern is old enough to be visible. Read a hard season, then look for a benefic that softens it.',
+      'The 7th lord is in the 8th and the 12th lord is in the 7th. The marriage is built to change the person, and the partnership house itself receives loss, distance, or a bill that comes due. The 19th-year marker is when that pattern is old enough to be visible. This marks a hard season, and a benefic influence on the chart can soften it.',
       'caution',
     ))
   }
@@ -751,7 +751,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     strainNotes.push(note(
       'bphs-19-37',
       'Toxicity immediately after the union',
-      'Rahu in the 2nd contaminates family, speech, or money. Mars in the 7th puts heat in the marriage itself. The classical image is a sudden poisonous strike in the first days. In counsel that is a secret, a family rupture, or a violent word that lands during the wedding period — not a literal animal bite. The damage is early. It does not wait for a long decline.',
+      'Rahu in the 2nd contaminates family, speech, or money. Mars in the 7th puts heat in the marriage itself. The classical image is a sudden poisonous strike in the first days. In practice that is a secret, a family rupture, or a violent word that lands during the wedding period — not a literal animal bite. The damage is early. It does not wait for a long decline.',
       'caution',
     ))
   }
@@ -762,7 +762,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     strainNotes.push(note(
       'bphs-19-38',
       'The home is what undermines the marriage',
-      'Venus in the 4th puts desire inside the house. The 4th lord in an enemy sign means domestic peace does not hold. In-laws, property, or the simple absence of a feeling of home are the instruments. The markers fall at the 12th and 19th years of the chapter’s count.',
+      'Venus in the 4th puts desire inside the house. The 4th lord in an enemy sign means domestic peace does not hold. In-laws, property, or the simple absence of a feeling of home are the instruments. The markers fall at the 12th and 19th years of the classical count.',
       'caution',
     ))
   }
@@ -795,7 +795,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     strainNotes.push(note(
       'bphs-19-42',
       'Fight, illusion, then a hard aftermath',
-      'Mars in the 6th is a combative way into relationships. Rahu in the 7th puts the partnership on an unstable or illusory footing. Saturn in the 8th makes the aftermath long. Treat the classical severity as the far end of a spectrum that also includes a painful collapse of the marriage, a depleted spouse, and a native who unknowingly repeats a pattern that no partnership survives. A benefic on the 7th lord or in Navamsha is the first thing to look for before any of those sentences is said.',
+      'Mars in the 6th is a combative way into relationships. Rahu in the 7th puts the partnership on an unstable or illusory footing. Saturn in the 8th makes the aftermath long. Classical severity marks the far end of a spectrum that also includes a painful collapse of the marriage, a depleted spouse, and a person who unknowingly repeats a pattern. It is a tendency, not a verdict. A benefic on the 7th lord or in the Navamsha eases it considerably.',
       'caution',
     ))
   }
@@ -871,7 +871,7 @@ export function compareJayaBhava(
     notes.push(note(
       'jaya-pair-dignity',
       'Both 7th lords can carry a marriage',
-      `${nameA} and ${nameB} both have the chapter’s happiness benchmark available. Trouble will still come. The charts say the two can meet it as a pair.`,
+      `${nameA} and ${nameB} both have the classical benchmark for marital happiness available. Trouble can still come, and the charts say the two can meet it as a pair.`,
       'supportive',
     ))
   }
@@ -882,7 +882,7 @@ export function compareJayaBhava(
     notes.push(note(
       'jaya-pair-both-develop',
       'Both marriages are developmental',
-      `Each 7th lord sits in the 6th, 8th, or 12th without dignity. The couple will grow by service, crisis, or sacrifice. Ease is not what either chart promised. Name that before the wedding, while it can still be a shared project.`,
+      `Each 7th lord sits in the 6th, 8th, or 12th without dignity. The couple will grow by service, crisis, or sacrifice. Ease is not what either chart promised. Naming that before the wedding keeps it a shared project.`,
       'caution',
     ))
   } else if (devA !== devB) {
@@ -903,7 +903,7 @@ export function compareJayaBhava(
     notes.push(note(
       'jaya-pair-siege',
       'A three-part pressure on partnership',
-      `${who} show Mars in the 6th, Rahu in the 7th, and Saturn in the 8th. The pattern is a fight on the way in, an unstable bond, and a long aftermath. Do not predict a death. Do ask whether the couple can see the pattern before they reenact it.`,
+      `${who} show Mars in the 6th, Rahu in the 7th, and Saturn in the 8th. The pattern is a fight on the way in, an unstable bond, and a long aftermath. This does not indicate a death. The useful question is whether the couple can see the pattern before they reenact it.`,
       'caution',
     ))
   } else if (a.flags.lossSpectrum && b.flags.lossSpectrum) {
@@ -937,7 +937,7 @@ export function compareJayaBhava(
     notes.push(note(
       'jaya-pair-plain',
       'No shared extreme on the seventh',
-      `${nameA} and ${nameB} do not share a gold-standard pairing or a shared strain signature. Read each 7th lord on its own, then the cross-chart notes above.`,
+      `${nameA} and ${nameB} do not share a gold-standard pairing or a shared strain signature. Each 7th lord is best understood on its own, together with the cross-chart notes above.`,
       'mixed',
     ))
   }

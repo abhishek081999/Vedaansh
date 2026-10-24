@@ -49,7 +49,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
         }}
       >
         <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: '0.35rem' }}>
-          Stage 1 eligibility · ideal 18–32 · above 32 caution
+          Stage 1 (Ashtakoot) · usual range 18–32 · above 32 is read with care
         </div>
         <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: '0.35rem' }}>
           {ashtakoot.eligibility.label}
@@ -70,7 +70,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
         {([
           ['Psychology', ashtakoot.layers.psychology],
           ['Energy', ashtakoot.layers.energy],
-          ['Karma', ashtakoot.layers.karma],
+          ['Shared path', ashtakoot.layers.karma],
         ] as const).map(([t, d]) => (
           <div key={t} className="card" style={{ padding: '1rem' }}>
             <div className="label-caps" style={{ fontSize: '0.6rem', color: 'var(--text-gold)' }}>{t}</div>
@@ -82,7 +82,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       {/* Per-koota insight */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
-          <h3 className="label-caps" style={{ margin: 0, fontSize: '0.72rem' }}>Koota meanings & psychological reading</h3>
+          <h3 className="label-caps" style={{ margin: 0, fontSize: '0.72rem' }}>What each koota looks at</h3>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {kootas.map(({ key, s }, i) => (
@@ -162,7 +162,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
 
       {/* Stage 2 houses + rotation */}
       <div className="card" style={{ padding: '1.25rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Stage 2 · D1 / D9 & house affliction matching</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Stage 2 · D1 / D9 charts and house strain</h3>
         <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{deep.stage2.d1Summary}</p>
         {deep.stage2.d9Summary && (
           <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{deep.stage2.d9Summary}</p>
@@ -181,14 +181,14 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
               {deep.stage2.houseAfflictions.map(h => (
                 <tr key={h.house} style={{ borderBottom: '1px solid var(--border-soft)' }}>
                   <td style={{ padding: '0.65rem' }}>
-                    <div style={{ fontWeight: 700 }}>H{h.house}</div>
+                    <div style={{ fontWeight: 700 }}>House {h.house}</div>
                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{h.name}</div>
                   </td>
                   <td style={{ padding: '0.65rem', color: h.personAAfflicted ? 'var(--rose)' : 'var(--teal)' }}>
-                    {h.personAAfflicted ? 'Afflicted' : 'Clear'}
+                    {h.personAAfflicted ? 'Strained' : 'Clear'}
                   </td>
                   <td style={{ padding: '0.65rem', color: h.personBAfflicted ? 'var(--rose)' : 'var(--teal)' }}>
-                    {h.personBAfflicted ? 'Afflicted' : 'Clear'}
+                    {h.personBAfflicted ? 'Strained' : 'Clear'}
                   </td>
                   <td style={{ padding: '0.65rem', color: h.matched ? 'var(--teal)' : 'var(--text-gold)' }}>
                     {h.matched ? 'Aligned' : 'Uneven'}
@@ -211,8 +211,8 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.75rem' }}>
         {deep.stage2.seventhRotation.map(r => (
           <div key={r.person} className="card" style={{ padding: '1.1rem' }}>
-            <div className="label-caps" style={{ fontSize: '0.6rem' }}>7th-as-Lagna · {r.person}</div>
-            <div style={{ fontWeight: 800, margin: '0.35rem 0' }}>New Lagna: {r.newLagnaName}</div>
+            <div className="label-caps" style={{ fontSize: '0.6rem' }}>Partner’s viewpoint (7th house as lagna) · {r.person}</div>
+            <div style={{ fontWeight: 800, margin: '0.35rem 0' }}>Lagna from this view: {r.newLagnaName}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
               {r.notes.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -220,14 +220,17 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
         ))}
       </div>
 
-      {/* Vaidhavya / Vidhur */}
+      {/* Partner longevity and wellbeing yogas (Vaidhavya / Vidhur) */}
       <div className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${TONE[deep.longevityYogas.tone]}` }}>
         <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>
-          Longevity · Vaidhavya / Vidhur
+          Partner longevity and wellbeing yogas (Vaidhavya / Vidhur)
           {deep.longevityYogas.cancelled && (
-            <span style={{ marginLeft: '0.5rem', color: 'var(--teal)', fontWeight: 800 }}>· Intensity matched</span>
+            <span style={{ marginLeft: '0.5rem', color: 'var(--teal)', fontWeight: 800 }}>· Similar strength</span>
           )}
         </h3>
+        <p style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+          Classical cues for the wellbeing and long life of each partner. They are a tendency to be read with the whole chart, not a prediction of loss.
+        </p>
         <p style={{ margin: '0 0 1rem', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
           {deep.longevityYogas.summary}
         </p>
@@ -235,15 +238,15 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
           {[deep.longevityYogas.personA, deep.longevityYogas.personB].map(y => (
             <div key={`${y.person}-${y.role}`} style={{ padding: '0.9rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                {y.role === 'vaidhavya' ? 'Vaidhavya (spouse risk · wife chart)' : 'Vidhur (spouse risk · husband chart)'}
+                {y.role === 'vaidhavya' ? 'Vaidhavya cues (bride’s chart)' : 'Vidhur cues (groom’s chart)'}
               </div>
               <div style={{ fontWeight: 800, marginTop: 4 }}>{y.person}</div>
               <div style={{ fontSize: '0.85rem', marginTop: 6 }}>
-                Intensity <strong style={{ color: y.band === 'high' ? 'var(--rose)' : y.band === 'none' ? 'var(--teal)' : 'var(--text-gold)' }}>{y.intensity}/10</strong>
+                Strength of cues <strong style={{ color: y.band === 'high' ? 'var(--rose)' : y.band === 'none' ? 'var(--teal)' : 'var(--text-gold)' }}>{y.intensity}/10</strong>
                 <span style={{ color: 'var(--text-muted)' }}> · {y.band}</span>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                Longevity: {y.longevityBand} — {y.longevityNote}
+                {y.longevityNote}
               </div>
               <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1rem', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                 {y.factors.slice(0, 4).map(f => <li key={f}>{f}</li>)}
@@ -255,18 +258,18 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
 
       {/* Dasha pair */}
       <div className="card" style={{ padding: '1.25rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>Dasha-pair impact</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>Dasha pairing (current and upcoming periods)</h3>
         <p style={{ margin: '0 0 0.85rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{deep.dashaPair.summary}</p>
         {(deep.dashaPair.currentA || deep.dashaPair.currentB) && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.85rem', fontSize: '0.75rem' }}>
             {deep.dashaPair.currentA && (
               <span style={{ padding: '0.25rem 0.6rem', borderRadius: 6, background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', color: 'var(--text-gold)' }}>
-                {chartA.meta.name}: {deep.dashaPair.currentA.lord} MD → {deep.dashaPair.currentA.end}
+                {chartA.meta.name}: {deep.dashaPair.currentA.lord} Mahadasha until {deep.dashaPair.currentA.end}
               </span>
             )}
             {deep.dashaPair.currentB && (
               <span style={{ padding: '0.25rem 0.6rem', borderRadius: 6, background: 'rgba(120,160,200,0.12)', border: '1px solid rgba(120,160,200,0.3)', color: 'var(--accent)' }}>
-                {chartB.meta.name}: {deep.dashaPair.currentB.lord} MD → {deep.dashaPair.currentB.end}
+                {chartB.meta.name}: {deep.dashaPair.currentB.lord} Mahadasha until {deep.dashaPair.currentB.end}
               </span>
             )}
           </div>
@@ -285,13 +288,13 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
             ))}
           </div>
         ) : (
-          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>No overlapping Mahadasha windows computed — ensure both charts have Vimshottari data.</p>
+          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>No overlapping Mahadasha windows could be shown. Both charts need Vimshottari dasha data.</p>
         )}
       </div>
 
       {/* Varnamala */}
       <div className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${TONE[deep.varnamala.tone]}` }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>Janma-naam Varnamala</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.5rem', fontSize: '0.72rem' }}>Birth-name Varnamala (Janma-naam)</h3>
         <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{deep.varnamala.summary}</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.75rem' }}>
           {[deep.varnamala.personA, deep.varnamala.personB].map(p => (
@@ -304,14 +307,14 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
               {p.group && (
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 4 }}>
                   Letters: {p.group.letters}
-                  {p.enemyGroup && <> · Enemy: {p.enemyGroup.animalSa}</>}
+                  {p.enemyGroup && <> · Opposing group: {p.enemyGroup.animalSa}</>}
                 </div>
               )}
             </div>
           ))}
         </div>
         <p style={{ margin: '0.75rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-          Based on Moon nakshatra pada sound (Janma naam), not the everyday name. 5th letter-group is the classical enemy.
+          Based on the Moon nakshatra pada sound (Janma-naam), not the everyday name. The 5th letter-group is the classical opposing group.
         </p>
       </div>
 
@@ -326,7 +329,7 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
           color: 'var(--text-muted)',
         }}
       >
-        <div style={{ fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Complete match-making checklist</div>
+        <div style={{ fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Points worth looking at together</div>
         <ol style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: 1.5 }}>
           {deep.overall.priorities.map(p => <li key={p}>{p}</li>)}
         </ol>

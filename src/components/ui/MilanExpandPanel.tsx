@@ -160,7 +160,7 @@ export function MilanExpandPanel({
   if (part === 'manglik') {
     return (
       <div className="card" style={{ padding: '1.2rem', borderLeft: `4px solid ${TONE[manglik.tone]}` }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Manglik pair verdict</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Manglik (Kuja Dosha) check for this match</h3>
         <div style={{ fontWeight: 800, marginBottom: 4 }}>{manglik.label}</div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{manglik.detail}</p>
       </div>
@@ -182,8 +182,8 @@ export function MilanExpandPanel({
             className="input"
             style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem' }}
           >
-            <option value="boy">Groom (Boy)</option>
-            <option value="girl">Bride (Girl)</option>
+            <option value="boy">Groom</option>
+            <option value="girl">Bride</option>
           </select>
         </div>
         <div>
@@ -195,7 +195,7 @@ export function MilanExpandPanel({
             style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem' }}
           >
             <option value="classical">Classical (bride×groom)</option>
-            <option value="parampara">Parampara (teacher notes)</option>
+            <option value="parampara">Parampara (traditional teaching)</option>
           </select>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -204,10 +204,10 @@ export function MilanExpandPanel({
           </button>
           {full ? (
             <button type="button" className="btn" style={{ fontSize: '0.75rem' }} onClick={openPrintPreview}>
-              Print All Sections
+              Print all sections
             </button>
           ) : (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Milan print">
+            <PlanGate userPlan={userPlan} required="gold" featureName="Kundali Milan print">
               <div style={{ minHeight: 36, minWidth: 120 }} />
             </PlanGate>
           )}
@@ -219,13 +219,13 @@ export function MilanExpandPanel({
       </p>
 
       <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        Directional scoring uses <strong style={{ color: 'var(--text-gold)' }}>{roles.boyLabel}</strong> as Groom and{' '}
+        Scoring follows the roles chosen: <strong style={{ color: 'var(--text-gold)' }}>{roles.boyLabel}</strong> as Groom and{' '}
         <strong style={{ color: 'var(--accent)' }}>{roles.girlLabel}</strong> as Bride.
       </p>
 
       {part === 'match' ? null : (
       <div className="card" style={{ padding: '1.2rem', borderLeft: `4px solid ${TONE[manglik.tone]}` }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Manglik pair verdict</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Manglik (Kuja Dosha) check for this match</h3>
         <div style={{ fontWeight: 800, marginBottom: 4 }}>{manglik.label}</div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{manglik.detail}</p>
       </div>
@@ -253,7 +253,7 @@ export function MilanExpandPanel({
 
       {/* Timing */}
       <div className="card" style={{ padding: '1.2rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Marriage timing · Maha + Antar</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Marriage timing · Mahadasha and Antardasha</h3>
         <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{timing.summary}</p>
         {timing.antarPairs.length > 0 && (
           <>
@@ -315,11 +315,11 @@ export function MilanExpandPanel({
                   <div style={{ marginTop: 4 }}>Band: <strong>{a.qualityBand}</strong></div>
                   <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>{a.qualitySummary}</div>
                   <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>
-                    DK {a.darakaraka?.name ?? '—'} · UL H-check · flags {a.activeRedFlagCount}
+                    Darakaraka {a.darakaraka?.name ?? '—'} · points to watch {a.activeRedFlagCount}
                   </div>
                 </>
               ) : (
-                <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>D9/UL incomplete</div>
+                <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>D9 and Upapada data incomplete</div>
               )}
             </div>
           ))}
@@ -328,7 +328,10 @@ export function MilanExpandPanel({
 
       {/* Vaidhavya catalog */}
       <div className="card" style={{ padding: '1.2rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Vaidhavya / Vidhur cue catalog</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Partner longevity and wellbeing yogas (Vaidhavya / Vidhur)</h3>
+        <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+          Classical cues for the wellbeing and long life of each partner. They are a tendency to be read with the whole chart, not a prediction of loss.
+        </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.75rem' }}>
           {[
             { title: `${roles.boyLabel} (Vidhur cues)`, items: vaidBoy },
@@ -349,7 +352,7 @@ export function MilanExpandPanel({
 
       {/* Remedies */}
       <div className="card" style={{ padding: '1.2rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Remedies (when doshas active)</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Traditional remedies (shown when a dosha is flagged)</h3>
         <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
           {remedies.map(r => (
             <li key={r.id} style={{ marginBottom: '0.55rem' }}>
@@ -366,7 +369,7 @@ export function MilanExpandPanel({
         <div className="card" style={{ padding: '1.2rem' }}>
           <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Saved on this device</h3>
           <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            Score snapshots only — they do not reopen charts. Use header Save for My Charts.
+            Score snapshots only; they do not reopen the charts. Use the Save button in the header to store them in My Charts.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
             {history.slice(0, 12).map(h => (

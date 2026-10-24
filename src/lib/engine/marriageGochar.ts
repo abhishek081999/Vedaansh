@@ -267,10 +267,10 @@ export function analyzeMarriageGochar(
         `gochar-win-${w.start}`,
         `${kindLabel}: ${w.start} → ${w.end}`,
         [
-          w.inDasha ? 'Overlaps the open marriage dasha.' : 'Falls outside the current MD/AD span. The sky passes without the event.',
+          w.inDasha ? 'Overlaps the open marriage dasha.' : 'Falls outside the current main and sub dasha periods. The sky passes without the event.',
           w.inAgeBand === true ? `Fits the ${band} age band. Period and marriageable years both agree. That is the strong case, and only if the birth chart already promises a marriage.` : '',
           w.inAgeBand === false ? `Outside the ${band} marriageable years. This transit passes. It does not trigger a wedding.` : '',
-          'Use as a muhurta search range, not as a fixed wedding date.',
+          'This is a muhurta (auspicious timing) search range, not a fixed wedding date.',
         ].filter(Boolean).join(' '),
         w.inDasha && w.inAgeBand !== false ? 'supportive' : 'mixed',
       ))
@@ -297,7 +297,7 @@ export function analyzeMarriageGochar(
       window.push(note(
         'gochar-care',
         'Care, if a relationship already exists',
-        `This child-period is open at age ${ageNow}, before the ${band} marriageable years. If a relationship already exists, the class asks for care: a pregnancy can arrive before a wedding is possible, and health trouble has followed that in the cases studied. It is a caution, not a forecast.`,
+        `This child-period is open at age ${ageNow}, before the ${band} marriageable years. If a relationship already exists, classical texts advise care: a pregnancy can arrive before a wedding is possible, and they associate that with health strain. It is a caution, not a forecast.`,
         'caution',
       ))
     }

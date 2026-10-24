@@ -99,7 +99,7 @@ function wrapGold(userPlan: UserPlan, featureName: string, children: React.React
 }
 
 export function TransitHub({ tab }: TransitHubProps) {
-  const { chart, setIsFormOpen } = useChart()
+  const { chart, openBirthForm } = useChart()
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
   const [, setTransitGrahas] = useState<GrahaData[] | null>(null)
@@ -126,7 +126,7 @@ export function TransitHub({ tab }: TransitHubProps) {
             type="button"
             className="btn btn-primary"
             style={{ padding: '0.75rem 2rem' }}
-            onClick={() => setIsFormOpen(true)}
+            onClick={openBirthForm}
           >
             Enter Birth Details
           </button>

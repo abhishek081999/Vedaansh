@@ -65,9 +65,9 @@ describe('intimate life', () => {
 
   it('adds the home-drain result only on a D4 Moon–Saturn overlap', () => {
     const hits = overlayCharts([g('Mo', 4)], 4, [g('Sa', 1)], 1, 'A', 'B', 'D4')
-    expect(hits[0].detail).toMatch(/Changing residence/)
+    expect(hits[0].detail).toMatch(/change of residence/i)
     const d1 = overlayCharts([g('Mo', 4)], 4, [g('Sa', 1)], 1, 'A', 'B', 'D1')
-    expect(d1[0].detail).not.toMatch(/Changing residence/)
+    expect(d1[0].detail).not.toMatch(/change of residence/i)
   })
 
   it('reads Moon, Gemini, and Libra pursuit only when those planets sit there', () => {
@@ -423,7 +423,7 @@ describe('moon and lagna additions', () => {
   it('gives Gemini–Aries and Cancer–Taurus their own readings', () => {
     expect(moonEmotionalPair(3, 1).title).toBe('Gemini and Aries')
     expect(moonEmotionalPair(4, 2).tone).toBe('supportive')
-    expect(moonEmotionalPair(9, 11).detail).toMatch(/temple|ethic/i)
+    expect(moonEmotionalPair(9, 11).detail).toMatch(/values|ethic/i)
   })
 
   it('rates Scorpio with Aquarius as a useful match', () => {

@@ -168,7 +168,9 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 | Panchang | `/panchang`, calendar, transit APIs |
 | Muhurta | `/muhurta` + `/api/muhurta/*` (Gold+) |
 | Compare / Milan | `/compare` — Ashtakoot, Porutham, dosha, charts, dasha, and panchang on Free; match-making, married life, All Sections, and print on Gold+ |
-| Relationship and marriage | Chart tab — D1 and score preview on Free; full reading on Gold+; extended divisionals on Platinum |
+| Today | `/today` — personal daily reading for the loaded chart (noindex) |
+| Relationship and marriage | `/relationship` (noindex, needs a loaded chart) — D1 and score preview on Free; full reading on Gold+; extended divisionals on Platinum |
+| Career and profession | `/career` (noindex, needs a loaded chart) — scores on Free; full reading and professional method on Gold+ |
 | Jaimini / KP / Prashna | `/jaimini`, `/prashna` |
 | SBC / ACG / Vastu | `/sbc`, `/acg`, `/vastu` |
 | Nakshatra | `/nakshatra/[tab]` |

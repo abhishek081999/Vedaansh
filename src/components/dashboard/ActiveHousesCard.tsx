@@ -6,6 +6,7 @@
 import React from 'react'
 import { ChartOutput } from '@/types/astrology'
 import { getActiveHouses, getHouseTopics, getProgressionHouse } from '@/lib/engine/activeHouses'
+import { getLagnaHouseReading } from '@/lib/engine/lagnaCharacter'
 
 interface ActiveHousesCardProps {
   chart: ChartOutput
@@ -47,6 +48,10 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
   }
 
   const progressionHouse = getProgressionHouse(chart.meta.birthDate)
+  const lagnaTheme = (h: number) => {
+    const reading = getLagnaHouseReading(ascRashi, h as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)
+    return reading ? `${reading.signName}: ${reading.theme}` : null
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.75rem' }}>
@@ -118,6 +123,11 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
                   <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2 }}>
                     {topics[h]}
                   </div>
+                  {lagnaTheme(h) && (
+                    <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.3, marginTop: '0.1rem' }}>
+                      {lagnaTheme(h)}
+                    </div>
+                  )}
                   {indicators.length > 0 && (
                     <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.1rem' }}>
                       {indicators}

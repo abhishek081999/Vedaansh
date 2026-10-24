@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/primitives/EmptyState'
 const JaiminiPanel = dynamic(() => import('@/components/ui/JaiminiPanel'), { ssr: false })
 
 export default function JaiminiPage() {
-  const { chart, setIsFormOpen } = useChart()
+  const { chart, openBirthForm } = useChart()
 
   if (!chart) {
     return (
@@ -17,7 +17,7 @@ export default function JaiminiPage() {
         icon={<Zap size={40} strokeWidth={1.5} style={{ color: 'var(--text-gold)', opacity: 0.75 }} />}
         title="Jaimini Astrology"
         description="Load or create a birth chart to explore Chara Karakas, Arudha Padas, Rashi Drishti, and Chara Dasha timelines."
-        action={{ label: 'Open Birth Form', onClick: () => setIsFormOpen(true) }}
+        action={{ label: 'Open Birth Form', onClick: openBirthForm }}
       />
     )
   }

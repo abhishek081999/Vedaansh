@@ -165,19 +165,19 @@ export function getNadiShort(nak: number): 'Aadi' | 'Madhya' | 'Antya' {
 
 const VARNA_PSYCH: Record<string, string> = {
   Brahmin:
-    'Knowledge-oriented, emotionally adaptable, inner spiritual compass (Jal / Water).',
+    'Thoughtful, emotionally adaptable, with an inner spiritual compass (Jal / Water).',
   Kshatriya:
-    'Leadership, resilience, courage under pressure (Agni / Fire) — power as steadiness, not aggression.',
+    'Leadership, resilience and courage under pressure (Agni / Fire), with strength shown as steadiness rather than aggression.',
   Vaishya:
-    'Practical, diplomatic, goal-driven; gets things done (Prithvi / Earth).',
+    'Practical, diplomatic and goal-driven; gets things done (Prithvi / Earth).',
   Shudra:
-    'Service-oriented, social, empathetic networker (Vayu / Air).',
+    'Service-minded, social and empathetic, good at connecting people (Vayu / Air).',
 }
 
 const GANA_PSYCH: Record<string, string> = {
   Deva: 'Calm, gentle, composed response pattern.',
   Manushya: 'Balanced temperament between composure and intensity.',
-  Rakshasa: 'Intense, assertive, high-drive reactions.',
+  Rakshasa: 'Intense, assertive, high-energy reactions.',
 }
 
 const YONI_PSYCH: Record<string, string> = {
@@ -189,11 +189,11 @@ const YONI_PSYCH: Record<string, string> = {
   Cat: 'Independent affection; selective closeness.',
   Rat: 'Curious, adaptable physical chemistry.',
   Cow: 'Nurturing, steady, family-centred affection.',
-  Buffalo: 'Strong-willed, protective sensuality.',
-  Tiger: 'Passionate, commanding physical presence.',
+  Buffalo: 'Strong-willed, protective warmth.',
+  Tiger: 'Passionate, strong physical presence.',
   Hare: 'Gentle, sensitive, shy intimacy.',
   Monkey: 'Playful, restless, variety-seeking bond.',
-  Lion: 'Proud, dominant expression of desire.',
+  Lion: 'Proud, confident expression of desire.',
   Mongoose: 'Alert, cautious, strategic closeness.',
 }
 
@@ -215,9 +215,9 @@ function calcVarna(bSign: number, gSign: number): Omit<KootaScore, 'meaning' | '
   const elG = getVarnaElement(gSign)
   const notes: string[] = []
   if (elB === 'Fire' && elG === 'Water') {
-    notes.push('Fire + Water: risk of identity loss for the Water (Brahmin) partner if Fire dominates.')
+    notes.push('Fire + Water: the Water (Brahmin) partner may feel their own voice fade if the Fire partner dominates.')
   } else if (elB === 'Fire' && elG === 'Fire') {
-    notes.push('Fire + Fire: ego clashes likely without conscious softening.')
+    notes.push('Fire + Fire: egos may clash unless both soften.')
   }
   return { points, max: 1, p1: bName, p2: gName, notes: notes.length ? notes : undefined }
 }
@@ -253,10 +253,10 @@ function calcTara(bNak: number, gNak: number): Omit<KootaScore, 'meaning' | 'ins
   if (bG && gG) points = 3
   else if (bG || gG) points = 1.5
   const notes: string[] = []
-  // Distance band from girl → boy (classical secondary rule)
-  if (countGB <= 9) notes.push('Girl→Boy distance 1–9: traditionally Ashubh energy band.')
-  else if (countGB <= 18) notes.push('Girl→Boy distance 10–18: Madhyam (medium) luck band.')
-  else notes.push('Girl→Boy distance above 18: Shubh luck band.')
+  // Distance band from bride-role → groom-role (classical secondary rule)
+  if (countGB <= 9) notes.push('Bride-to-groom distance 1–9: traditionally the Ashubh (less favourable) energy band.')
+  else if (countGB <= 18) notes.push('Bride-to-groom distance 10–18: the Madhyam (medium) luck band.')
+  else notes.push('Bride-to-groom distance above 18: the Shubh (favourable) luck band.')
   return {
     points,
     max: 3,
@@ -405,7 +405,7 @@ function calcBhakoot(
 
   // Same rashi = Shubh
   if (bSign === gSign) {
-    notes.push('Same Moon rashi: considered Shubh for Bhakoot (confirm different nakshatra/pada).')
+    notes.push('Same Moon rashi: considered Shubh for Bhakoot (worth confirming the nakshatra and pada differ).')
     return {
       points: 7, max: 7, p1: getRashiName(bSign), p2: getRashiName(gSign), notes,
     }
@@ -423,15 +423,15 @@ function calcBhakoot(
     dosha = true
     if (DWI_DWADASH_OK.has(pairKey) || areNaturalFriends(getLord(bSign), getLord(gSign))) {
       points = 7
-      notes.push('Dwi-Dwadash (2–12) cancelled: sign lords are natural friends / exempt pair.')
+      notes.push('Dwi-Dwadash (2–12, Moon signs next to each other) cancelled: the sign lords are natural friends or an exempt pair.')
       dosha = false
     } else if (boyFromGirl === 2) {
       // Boy's rashi 2nd from girl = Ashubh; girl 2nd from boy more acceptable
       points = 0
-      notes.push('Boy Moon is 2nd from Girl Moon (Dwi-Dwadash): traditionally Ashubh.')
+      notes.push("Dwi-Dwadash (2–12): the groom's Moon is 2nd from the bride's Moon, traditionally seen as less favourable.")
     } else {
       points = 0
-      notes.push('Boy Moon is 12th from Girl Moon (Dwi-Dwadash). Direction: girl-2nd-from-boy is milder but still scored 0 classically.')
+      notes.push("Dwi-Dwadash (2–12): the groom's Moon is 12th from the bride's Moon. This direction is milder, though classical scoring still gives 0.")
     }
   } else if (is59) {
     dosha = true
@@ -439,31 +439,31 @@ function calcBhakoot(
     if (boyFromGirl === 5) {
       points = 7
       dosha = false
-      notes.push('Nav-Pancham: Boy is 5th from Girl — treated as acceptable exception (progeny concern reduced).')
+      notes.push("Nav-Pancham (5–9): the groom's Moon is 5th from the bride's, treated as an acceptable exception (the concern about children is reduced).")
     } else {
       points = 0
-      notes.push('Nav-Pancham (5–9): Boy is 9th from Girl — affects Santana (progeny); score 0.')
+      notes.push("Nav-Pancham (5–9): the groom's Moon is 9th from the bride's. Classically this touches Santana (children) and scores 0; it is a tendency, not a prediction.")
     }
   } else if (is68) {
     dosha = true
     if (SHADASHTAK_OK.has(pairKey) || areNaturalFriends(getLord(bSign), getLord(gSign))) {
       points = 7
       dosha = false
-      notes.push('Shadashtak (6–8) cancelled: same/friendly sign lords (Roga–Mrityu quality lost).')
+      notes.push('Shadashtak (6–8) cancelled: the sign lords are the same or friendly, so the usual health and serious-loss themes of this pairing are set aside.')
     } else {
       points = 0
-      notes.push('Shadashtak (6–8): associated with Roga (disease) and Mrityu themes — score 0.')
+      notes.push('Shadashtak (6–8): the two moons sit 6/8 apart, a pull that can feel like constant friction. Classically it is linked with health and serious-loss themes and scores 0.')
     }
   } else {
     notes.push(`Rashi relation ${boyFromGirl}/${girlFromBoy}: Shubh for Bhakoot.`)
   }
 
   if (is410 && DARIDRA_4_10.has(pairKey)) {
-    notes.push('Chatur-Dash (4–10) Daridra Yoga pair: wealth friction possible even when Bhakoot points are full.')
+    notes.push('Chatur-Dash (4–10) Daridra Yoga pair: money matters may need joint planning even when Bhakoot points are full.')
   }
 
   if (dosha && points === 0) {
-    notes.push('Bhakoot dosha may be ignored if Nadi is pure, Tara is Shubh, or Vashya+Nadi score well — check Stage 2.')
+    notes.push('Bhakoot dosha is often set aside when Nadi is clear, Tara is Shubh, or Vashya and Nadi score well; Stage 2 looks at this further.')
   }
 
   return {
@@ -492,7 +492,7 @@ function calcNadi(
   // Critical: boy's nak immediately after girl's
   const boyIsSecond = ((bNak - gNak + 27) % 27) === 1
   if (boyIsSecond) {
-    notes.push('Boy Nakshatra is immediately 2nd from Girl — traditionally Very Ashubh at nakshatra level.')
+    notes.push("The groom's nakshatra is immediately after the bride's, which traditions treat as a sensitive pairing at the nakshatra level.")
   }
 
   if (!same) {
@@ -525,7 +525,7 @@ function calcNadi(
   }
 
   if (!cancelled) {
-    notes.push('Same Nadi (Nadi Dosha): pranic energy not complementary — traditionally refused for progeny vitality.')
+    notes.push('Same Nadi (Nadi Dosha): the two vital-energy types are alike rather than complementary, which tradition links with concern for children’s vitality. Cancellation rules and a routine health check are worth considering.')
   }
 
   return {
@@ -543,7 +543,7 @@ function buildEligibility(total: number): AshtakootResult['eligibility'] {
     return {
       band: 'below_minimum',
       label: 'Below traditional minimum',
-      detail: 'Under 18 gunas — classical texts often refuse; strong karmic bonds can still succeed (Stage 2–3 required).',
+      detail: 'Under 18 gunas is below the traditional comfort range, but a low guna total is only one layer, and many couples with strong chart links do well (Stage 2–3 looks at those).',
       traditionallyAccepted: false,
     }
   }
@@ -553,15 +553,15 @@ function buildEligibility(total: number): AshtakootResult['eligibility'] {
       label: total === 36 ? '36/36 gunas (caution)' : 'Very high gunas (caution)',
       detail:
         total === 36
-          ? 'Full 36 is mechanically maxed, but many paramparas treat totals above 32 as too similar. Confirm Nadi differs — same Nadi is the gravest koota fault for progeny even when an exception restores points.'
-          : 'Above 32 — some lineages refuse as “too similar.” Confirm Nadi differs and complete D1/D9 plus Venus–Mars Stage 3 before deciding.',
+          ? 'A full 36 is the maximum score, but many traditions see totals above 32 as a sign of being very alike. It is worth confirming that Nadi differs, since same Nadi is the most weighty koota concern even when an exception restores points.'
+          : 'Above 32: some traditions see this as “very alike.” It is worth confirming that Nadi differs and looking at the D1/D9 charts and Venus–Mars links (Stage 3).',
       traditionallyAccepted: true,
     }
   }
   return {
     band: 'ideal',
     label: 'Good eligibility band (18–32)',
-    detail: 'Within the common 18–32 counselling window. Still complete D1/D9 and Venus–Mars Stage 3 before deciding.',
+    detail: 'Within the commonly used 18–32 range. The D1/D9 charts and Venus–Mars links (Stage 3) add further detail.',
     traditionallyAccepted: true,
   }
 }
@@ -572,14 +572,14 @@ function enrich(
   extraInsight?: string,
 ): KootaScore {
   const meanings: Record<KootaKey, string> = {
-    varna: 'Spiritual / ego compatibility (psychology of status & values)',
-    vashya: 'Dominance & mutual influence in the relationship',
-    tara: 'Luck / energy balance between partners',
-    yoni: 'Physical intimacy style & biological affinity',
+    varna: 'Spiritual and ego compatibility (outlook on status and values)',
+    vashya: 'Mutual influence and give-and-take in the relationship',
+    tara: 'Luck and energy balance between partners',
+    yoni: 'Physical intimacy style and natural affinity',
     maitri: 'Emotional friendship via Moon-sign lords',
-    gana: 'Temperament & response patterns',
-    bhakoot: 'Life perspective, fortune path & karmic struggles',
-    nadi: 'Pranic energy, vitality & progeny potential',
+    gana: 'Temperament and response patterns',
+    bhakoot: 'Life outlook, shared fortune and how challenges are met together',
+    nadi: 'Vital energy, health and family life',
   }
 
   let insight = extraInsight ?? ''
@@ -592,36 +592,36 @@ function enrich(
   } else if (key === 'vashya') {
     insight =
       raw.points === 2
-        ? 'Balanced mutual influence — neither naturally suppresses the other.'
+        ? 'Balanced mutual influence; neither naturally overshadows the other.'
         : raw.points === 0
-          ? 'Strong dominance imbalance (e.g. Wild over Water) — negotiate equality consciously.'
-          : 'Partial mutual control; one partner may lead more often.'
+          ? 'A strong imbalance in influence (for example Wild over Water); making room for equal say helps.'
+          : 'Partly balanced influence; one partner may lead more often.'
   } else if (key === 'tara') {
     insight =
       raw.points >= 3
-        ? 'Both tara directions Shubh — luck and effort can support each other.'
+        ? 'Both tara directions are Shubh, so luck and effort can support each other.'
         : raw.points === 0
-          ? 'Both directions Ashubh (Vipat/Pratyari/Vadha) — energy drain risk without conscious effort.'
-          : 'One-sided tara support — mixed luck/effort balance.'
+          ? 'Both directions are Ashubh (Vipat/Pratyari/Vadha), which can feel draining unless both put in conscious effort.'
+          : 'Tara support in one direction only, a mixed balance of luck and effort.'
   } else if (key === 'maitri') {
     insight =
       raw.points >= 4
-        ? 'Moon lords are friends — emotional rapport and friendship come naturally.'
+        ? 'The Moon-sign lords are friends, so emotional rapport and friendship come naturally.'
         : raw.points <= 1
-          ? 'Moon lords clash — friendship needs deliberate cultivation.'
-          : 'Neutral emotional friendship — workable with shared goals.'
+          ? 'The Moon-sign lords are not natural friends, so friendship grows with deliberate effort.'
+          : 'Emotional friendship is neutral and works well with shared goals.'
   } else if (key === 'bhakoot') {
     insight =
       raw.points === 7
         ? 'Aligned life direction and fortune path (Bhakoot clear).'
-        : 'Bhakoot dosha — destiny paths may diverge; check exceptions and Stage 2.'
+        : 'Bhakoot dosha: life directions may need conscious alignment. Exceptions apply in many cases, and Stage 2 looks at them.'
   } else if (key === 'nadi') {
     const sameNadi = raw.p1 === raw.p2
     insight = sameNadi
       ? raw.points === 8
-        ? 'Same Nadi with classical cancellation — points restored, but many lineages still caution for progeny vitality.'
-        : 'Same Nadi (Nadi Dosha) — pranic energy not complementary; traditionally refused for progeny.'
-      : 'Different Nadi — complementary pranic exchange; favourable for progeny vitality.'
+        ? 'Same Nadi with classical cancellation: the points are restored, though many traditions still advise caution and a routine health check before children.'
+        : 'Same Nadi (Nadi Dosha): the vital-energy types are alike rather than complementary. Tradition advises caution, and cancellation rules and a routine health check are worth considering.'
+      : 'Different Nadi: the vital energies complement each other, which is favourable.'
   }
 
   return {
@@ -679,11 +679,11 @@ export function calculateAshtakoot(
     total,
     eligibility: buildEligibility(total),
     layers: {
-      psychology: `Varna (${varna.p1}/${varna.p2}) + Gana (${gana.p1}/${gana.p2}) + Graha Maitri show mental–temperamental alignment.`,
-      energy: `Tara, Yoni (${yoni.p1}/${yoni.p2}), Vashya and Nadi describe vitality, intimacy and dominance exchange.`,
-      karma: `Bhakoot and overall guna band reflect shared destiny path — low gunas can still work via strong planetary karma (Stage 2–3).`,
+      psychology: `Varna (${varna.p1}/${varna.p2}), Gana (${gana.p1}/${gana.p2}) and Graha Maitri show how well your minds and temperaments align.`,
+      energy: `Tara, Yoni (${yoni.p1}/${yoni.p2}), Vashya and Nadi describe vitality, intimacy and mutual influence.`,
+      karma: 'Bhakoot and the overall guna band reflect a shared life path. A lower guna total can still work well when the wider chart links are strong (Stage 2–3).',
     },
     disclaimer:
-      'Ashtakoot is Moon–Nakshatra only (Stage 1). Totals above 32 (including 36/36) often need caution for over-similarity; same Nadi remains the gravest koota concern even if points are restored. Complete D1/D9 and Venus–Mars chemistry before marriage decisions.',
+      'Ashtakoot looks only at the Moon and nakshatra (Stage 1). Totals above 32 (including 36/36) are sometimes read as being very alike, and same Nadi remains the most weighty koota concern even if points are restored. The D1/D9 charts and Venus–Mars chemistry add important context, and none of this is a prediction about your relationship.',
   }
 }

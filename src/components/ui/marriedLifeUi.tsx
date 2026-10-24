@@ -24,12 +24,28 @@ import type { VenusMarriageReading } from '@/lib/engine/venusMarriage'
 import type { MarriageVivahReading } from '@/lib/engine/marriageVivah'
 import type { MarriageMarsReading } from '@/lib/engine/marriageMars'
 import Link from 'next/link'
+import { AlertTriangle, CheckCircle2, CircleDot, ClipboardList } from 'lucide-react'
+import s from '@/components/ui/marriedLifeUi.module.css'
 
 export const LIFE_TONE: Record<LifeTone, string> = {
   supportive: 'var(--teal)',
   caution: 'var(--rose)',
   mixed: 'var(--text-gold)',
 }
+
+/** Sets the --tone custom property that the module CSS reads. */
+export function toneClass(tone: LifeTone): string {
+  return tone === 'supportive' ? s.toneSupportive : tone === 'caution' ? s.toneCaution : s.toneMixed
+}
+
+const TONE_ICON = { supportive: CheckCircle2, caution: AlertTriangle, mixed: CircleDot } as const
+const TONE_LABEL: Record<LifeTone, string> = { supportive: 'Supportive', caution: 'Needs care', mixed: 'Mixed' }
+
+function scoreTone(score: number): LifeTone {
+  return score >= 7 ? 'supportive' : score <= 3 ? 'caution' : 'mixed'
+}
+
+const SCORE_BAND: Record<LifeTone, string> = { supportive: 'Strong', mixed: 'Moderate', caution: 'Tender' }
 
 const CLIENT_SAFE_STRIP = /\b(class reads?|classical line|yogas? marked)\b/gi
 
@@ -57,25 +73,25 @@ export function ScoreMeter({
   score: number
   summary: string
 }) {
-  const color = score >= 7 ? 'var(--teal)' : score <= 3 ? 'var(--rose)' : 'var(--text-gold)'
+  const tone = scoreTone(score)
+  const width = Math.max(0, Math.min(10, score)) * 10
   return (
-    <div style={{
-      padding: '0.85rem 0.9rem',
-      background: 'var(--surface-2)',
-      border: '1px solid var(--border)',
-      borderRadius: 'var(--r-md)',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', alignItems: 'baseline' }}>
-        <strong style={{ fontSize: '0.82rem' }}>{label}</strong>
-        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{planet}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', margin: '0.4rem 0' }}>
-        <div style={{ flex: 1, height: 6, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden' }}>
-          <div style={{ width: `${score * 10}%`, height: '100%', background: color, borderRadius: 3 }} />
+    <div className={`${s.meter} ${toneClass(tone)}`}>
+      <div className={s.meterTop}>
+        <div style={{ minWidth: 0 }}>
+          <strong className={s.meterLabel}>{label}</strong>
+          <span className={s.meterPlanet}>{planet}</span>
         </div>
-        <span style={{ fontSize: '0.75rem', fontWeight: 800, color }}>{score}/10</span>
+        <div className={s.meterScore} aria-label={`${label}: ${score} out of 10, ${SCORE_BAND[tone]}`}>
+          <span className={s.meterNumber}>{score}</span>
+          <span className={s.meterOutOf}>/10</span>
+          <span className={s.meterBand}>{SCORE_BAND[tone]}</span>
+        </div>
       </div>
-      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{summary}</p>
+      <div className={s.track} role="presentation">
+        <div className={s.fill} style={{ width: `${width}%` }} />
+      </div>
+      <p className={s.meterSummary}>{summary}</p>
     </div>
   )
 }
@@ -83,19 +99,20 @@ export function ScoreMeter({
 export function NoteCards({ notes, clientSafe = false }: { notes: MarriedLifeNote[]; clientSafe?: boolean }) {
   if (!notes.length) return null
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+    <div className={s.noteList}>
       {notes.map(raw => {
         const n = softenNote(raw, clientSafe)
+        const Icon = TONE_ICON[n.tone]
         return (
-          <div key={n.id} style={{
-            padding: '0.75rem 0.85rem',
-            borderLeft: `3px solid ${LIFE_TONE[n.tone]}`,
-            background: 'var(--surface-2)',
-            borderRadius: '0 var(--r-sm) var(--r-sm) 0',
-          }}>
-            <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: 4 }}>{n.title}</div>
-            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{n.detail}</p>
-          </div>
+          <article key={n.id} className={`${s.note} ${toneClass(n.tone)}`}>
+            <header className={s.noteHead}>
+              <span className={s.noteIcon} role="img" aria-label={TONE_LABEL[n.tone]} title={TONE_LABEL[n.tone]}>
+                <Icon size={14} strokeWidth={2.2} aria-hidden />
+              </span>
+              <h4 className={s.noteTitle}>{n.title}</h4>
+            </header>
+            <p className={s.noteBody}>{n.detail}</p>
+          </article>
         )
       })}
     </div>
@@ -130,48 +147,32 @@ export function MuhurtaWindowLink({ from, to }: { from?: string; to?: string }) 
 
 export function CaseBriefCard({ brief, clientSafe = false }: { brief: MarriageCaseBrief; clientSafe?: boolean }) {
   return (
-    <div style={{
-      padding: '0.55rem 0.75rem',
-      borderRadius: 'var(--r-md)',
-      border: '1px solid var(--border)',
-      borderLeft: '3px solid var(--text-gold)',
-      background: 'var(--surface-1)',
-    }}>
-      <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>{brief.headline}</div>
-      <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <section className={s.brief} aria-label="Case brief">
+      <div className={s.briefHead}>
+        <ClipboardList size={15} aria-hidden />
+        <h3 className={s.briefTitle}>{brief.headline}</h3>
+      </div>
+      <ol className={s.briefList}>
         {brief.bullets.map((raw, i) => {
           const n = softenNote(raw, clientSafe)
           return (
-            <li
-              key={n.id}
-              style={{
-                display: 'flex',
-                gap: '0.4rem',
-                alignItems: 'baseline',
-                padding: '0.22rem 0.4rem',
-                borderRadius: 'var(--r-sm)',
-                borderLeft: `2px solid ${LIFE_TONE[n.tone]}`,
-                background: i % 2 === 0 ? 'var(--surface-2)' : 'transparent',
-                fontSize: '0.72rem',
-                lineHeight: 1.35,
-              }}
-            >
-              <span style={{ flexShrink: 0, fontWeight: 800, color: 'var(--text-muted)', minWidth: '1rem' }}>{i + 1}.</span>
-              <span style={{ minWidth: 0 }}>
-                <strong style={{ color: 'var(--text-primary)' }}>{n.title}</strong>
+            <li key={n.id} className={`${s.briefItem} ${toneClass(n.tone)}`}>
+              <span className={s.briefNum}>{i + 1}</span>
+              <span className={s.briefText}>
+                <strong>{n.title}</strong>
                 <span style={{ color: 'var(--text-muted)' }}> — </span>
-                <span style={{ color: 'var(--text-secondary)' }}>{n.detail}</span>
+                {n.detail}
               </span>
             </li>
           )
         })}
       </ol>
       {brief.muhurtaFrom ? (
-        <div style={{ marginTop: '0.4rem' }}>
+        <div className={s.briefLink}>
           <MuhurtaWindowLink from={brief.muhurtaFrom} to={brief.muhurtaTo} />
         </div>
       ) : null}
-    </div>
+    </section>
   )
 }
 
@@ -577,6 +578,6 @@ export function VenusMarriageSections({ reading, clientSafe = false }: { reading
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="label-caps" style={{ margin: '0.2rem 0 0.55rem', fontSize: '0.72rem' }}>{children}</h3>
+    <h3 className={s.sectionLabel}>{children}</h3>
   )
 }

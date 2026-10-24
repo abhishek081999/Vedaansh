@@ -96,14 +96,14 @@ export function analyzeMarriageKarma(chart: ChartOutput): MarriageKarmaReading |
     debt.push(note(
       'karma-rina',
       'This marriage carries a debt',
-      'Venus and a difficult planet sit on the partnership. The account is paid by staying, by separating the work, or by both. Do not announce a death from this stack. The 8th being busy is not that announcement.',
+      'Venus and a difficult planet sit on the partnership. The account is paid by staying, by separating the work, or by both. This does not indicate a death. A busy 8th house is not a sign of one either.',
       'caution',
     ))
   } else if (kind === 'karma') {
     debt.push(note(
       'karma-only',
       'One karmic mark, not the whole debt',
-      'Ketu in the Navamsha 7th is one mark on the partnership. It does not, by itself, turn the birth chart into a rina stack.',
+      'Ketu in the Navamsha 7th is one mark on the partnership. It does not, by itself, turn the birth chart into a karmic-debt stack.',
       'mixed',
     ))
   } else {

@@ -126,7 +126,7 @@ describe('marriage class', () => {
     }))!
     expect(ids(sustain)).toContain('class-nak-pair-sustain')
     expect(ids(disconnect)).toContain('class-nak-pair-break')
-    expect(prose(disconnect)).toMatch(/Do not extend it/i)
+    expect(prose(disconnect)).toMatch(/does not extend to every/i)
   })
 
   it('lets the 8th of D9 override an exalted Venus', () => {

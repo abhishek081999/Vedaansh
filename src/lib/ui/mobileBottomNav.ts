@@ -7,6 +7,7 @@ import type { LucideIcon } from 'lucide-react'
 import { FileText, HelpCircle, Shield, User } from 'lucide-react'
 import {
   ADVANCED_ASTRO_TABS,
+  ASTRO_DIRECT_TABS,
   MAIN_TABS,
   PANCHANG_TABS,
   TOP_TABS,
@@ -37,6 +38,7 @@ const EXTRA_ROUTE_TABS: NavTab[] = [
 const ALL_NAV_TABS: NavTab[] = [
   ...TOP_TABS,
   ...MAIN_TABS,
+  ...ASTRO_DIRECT_TABS,
   ...ADVANCED_ASTRO_TABS,
   ...PANCHANG_TABS,
   ...EXTRA_ROUTE_TABS,

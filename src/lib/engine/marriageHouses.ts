@@ -1,5 +1,5 @@
 // src/lib/engine/marriageHouses.ts
-// Class notes: eight houses of the marriage system, and the three-layer
+// Notes on the eight houses of the marriage system, and the three-layer
 // activation that decides whether a period can actually produce a wedding.
 // A house note appears when that house is holding or strained.
 // A period note appears only from the Vimshottari lords on the chart.
@@ -64,7 +64,7 @@ const COMPLEMENT: Record<number, string> = {
 }
 
 export const MARRIAGE_HOUSES_PRINCIPLES =
-  'Marriage is the 1st, 2nd, 4th, 5th, 7th, 8th, 9th, 11th, and 12th. The 7th completes what the self lacks and then steps aside; the 8th is the test that follows. A disturbed 4th is enough to make a marriage unstable even when the 7th is quiet. The 9th, not romance, is what carries a bond through decades. The 12th is sacrifice, surrender, silence, and shared practice. A period can marry when the person is ready (lagna, Moon, and the Navamsha lagna lord), the 5th and 7th and the significator are alive — Venus for a man, Jupiter for a woman — and the binding houses 2, 8, and 11 answer as well. The 2nd has to be alive for a family to form. Navamsha has to respond, or a willing period passes. Jupiter and Saturn in transit confirm a period that is already open: Jupiter from the 1st, the 7th, or a reach to Venus or the Moon. That sky returns every few years, so it does not time a wedding by itself. Saturn is looked for in the periods of marriages that stay. Maturity, a willing family, a ready mind, an open dasha, and that sky rarely all arrive together. Three or four of them is the smooth case. It is still not a date.'
+  'Marriage is the 1st, 2nd, 4th, 5th, 7th, 8th, 9th, 11th, and 12th. The 7th completes what the self lacks and then steps aside; the 8th is the test that follows. A disturbed 4th is enough to make a marriage unstable even when the 7th is quiet. The 9th, not romance, is what carries a bond through decades. The 12th is sacrifice, surrender, silence, and shared practice. A period can marry when the person is ready (lagna, Moon, and the Navamsha lagna lord), the 5th and 7th and the significator are alive — Venus for a man, Jupiter for a woman — and the binding houses 2, 8, and 11 answer as well. The 2nd has to be alive for a family to form. Navamsha has to respond, or a willing period passes. Jupiter and Saturn in transit confirm a period that is already open: Jupiter from the 1st, the 7th, or a reach to Venus or the Moon. That sky returns every few years, so it does not time a wedding by itself. Saturn tends to be present in the periods of marriages that last. Maturity, a willing family, a ready mind, an open dasha, and that sky rarely all arrive together. Three or four of them is the smooth case. It is still not a date.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -234,14 +234,14 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   role(
     2,
     '2nd house — two families, and the words between them',
-    'Family, food, and speech can carry a union. Two households have a chance of becoming one kutumb without the marriage being spent on a single sentence.',
-    'This is where marriages break without the 7th being involved: family pressure, money, or one wrong word. The 2nd is not holding the union of the two lines.',
+    'Family, food, and speech can carry a union. Two households have a chance of growing into one family (kutumb) without the marriage being strained by a single careless word.',
+    'This is where marriages can come under strain without the 7th being involved: family pressure, money, or one wrong word. The 2nd is not holding the union of the two family lines.',
   )
   if (fourthStrained) {
     houses.push(note(
       'houses-fourth-divorce',
-      'The 4th is unbalanced — a condition of divorce',
-      `The 4th is ${rn(signOf(asc, 4))}, and it is not holding emotional security. The class treats a disturbed 4th as mandatory in a divorce reading. Many unstable marriages come from this house alone. ${seventhHolding ? 'The 7th is holding, so it is not the source of that instability.' : 'Check the 7th as well, but do not wait for it to be broken before taking the 4th seriously.'}`,
+      'The 4th is unbalanced — a source of instability',
+      `The 4th is ${rn(signOf(asc, 4))}, and it is not holding emotional security. Classical texts treat a disturbed 4th as an essential factor whenever a marriage is under strain. Many unstable marriages come from this house alone. ${seventhHolding ? 'The 7th is holding, so it is not the source of that instability.' : 'The 7th may be under strain as well, but the 4th matters in its own right, whether or not the 7th is also affected.'}`,
       'caution',
     ))
   } else if (health[4] === 'holding') {
@@ -255,7 +255,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   role(
     5,
     '5th house — the feeling before the vow',
-    'Romance, affection, and a past-life warmth toward the incoming person are available. Purva punya is on the side of the bond.',
+    'Romance, affection, and a past-life warmth toward the incoming person are available. Purva punya (merit carried from earlier lives) is on the side of the bond.',
     'The feeling that should precede marriage is tangled. Attraction and the sense of “I have known you” do not have a clean seat.',
   )
   if (health[8] !== 'thin') {
@@ -299,7 +299,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     groups.push(note(
       'houses-trine-thin',
       'Self-development is not the bond’s center',
-      'Two of the 1st, 5th, and 9th are strained. The class’s value-based marriage — growing as a couple, staying because the direction is shared — does not have its three houses.',
+      'Two of the 1st, 5th, and 9th are strained. The value-based marriage that classical texts describe — growing as a couple, staying because the direction is shared — does not have all three of its houses here.',
       'caution',
     ))
   }
@@ -317,7 +317,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     groups.push(note(
       'houses-divorce-axis',
       'The self–partner–crisis–release axis is strained',
-      'The 1st, 7th, 8th, and 12th are one axis: self, partnership, intimacy under crisis, and detachment. Two or more of them are strained. The class notes that the same mahadasha can give the marriage and later the divorce. The difference is in the finer periods, not in a second yoga.',
+      'The 1st, 7th, 8th, and 12th are one axis: self, partnership, intimacy under crisis, and detachment. Two or more of them are strained. Classical texts note that the same mahadasha can bring a marriage and, later, an ending of it. The difference lies in the finer periods, not in a second yoga.',
       'caution',
     ))
   }
@@ -327,8 +327,8 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   if (strained > 0) {
     groups.push(note(
       'houses-cover',
-      'Why a second chart is required',
-      `${held} of these marriage houses are holding and ${strained} are strained. Match-making exists so another person covers the houses this chart does not. Three or four houses balanced between the two charts are enough for the marriage to be workable.`,
+      'Why the partner’s chart matters',
+      `${held} of these marriage houses are holding and ${strained} are strained. Match-making exists so the partner’s chart can cover the houses this chart does not. Three or four houses balanced between the two charts are enough for the marriage to be workable.`,
       strained > held ? 'caution' : 'mixed',
     ))
   }
@@ -340,14 +340,14 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       activation.push(note(
         'houses-both-energies',
         'The decision and the binding are both on',
-        `${names} ties the triangular houses (${triTied.map(ordinalHouse).join(', ')}) and the binding houses (${bindTied.map(ordinalHouse).join(', ')}). The class says a marriage is decided from 1, 5, and 9, and it actually happens only when 2, 8, and 11 answer as well. Both are answering in this period.`,
+        `${names} ties the triangular houses (${triTied.map(ordinalHouse).join(', ')}) and the binding houses (${bindTied.map(ordinalHouse).join(', ')}). Classical texts say a marriage is decided from the 1st, 5th, and 9th, and actually happens only when the 2nd, 8th, and 11th answer as well. Both are answering in this period.`,
         'supportive',
       ))
     } else if (triangularActive) {
       activation.push(note(
         'houses-triangle-only',
         'The marriage can be decided and still not happen',
-        `${names} ties ${triTied.map(ordinalHouse).join(' and ')}. That is the triangular energy: the decision. The binding houses 2, 8, and 11 are not in this period. The class’s explanation of a “right dasha” with no wedding is exactly this gap.`,
+        `${names} ties ${triTied.map(ordinalHouse).join(' and ')}. That is the triangular energy: the decision. The binding houses 2, 8, and 11 are not in this period. This gap is the traditional explanation for a “right dasha” that brings no wedding.`,
         'mixed',
       ))
     } else if (bindingActive) {
@@ -370,7 +370,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       activation.push(note(
         'houses-readiness',
         'Inner readiness, not the wedding date',
-        `${names} touches ${readinessHits} of the lagna, the Moon, and the Navamsha lagna lord. That is the preparation: the person becomes able to marry. It is not the timing of the wedding. Where a wedding date is known, this is the pattern the seven years before the marriage tend to show.`,
+        `${names} touches ${readinessHits} of the lagna, the Moon, and the Navamsha lagna lord. That is the preparation: the person becomes able to marry. It is not the timing of the wedding. Looking back from a known wedding date, this is the pattern the seven years before the marriage tend to show.`,
         'mixed',
       ))
     }
@@ -384,7 +384,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       activation.push(note(
         'houses-manifest',
         'A relationship can form in this period',
-        `${who} Two or more of the 5th, the 7th, and that significator are tied to ${names}. The class treats that as enough for a relationship to become visible. ${ (ties(md, 2) || ties(ad, 2)) && (ties(md, 11) || ties(ad, 11)) ? 'The 2nd and the 11th are also in the period, which is what converts the relationship into a marriage.' : 'Marriage itself still wants the 2nd and the 11th. Without them this is a relationship, not yet a household.' }`,
+        `${who} Two or more of the 5th, the 7th, and that significator are tied to ${names}. Classical texts treat that as enough for a relationship to become visible. ${ (ties(md, 2) || ties(ad, 2)) && (ties(md, 11) || ties(ad, 11)) ? 'The 2nd and the 11th are also in the period, which is what converts the relationship into a marriage.' : 'Marriage itself still wants the 2nd and the 11th. Without them this is a relationship, not yet a household.' }`,
         'mixed',
       ))
     }
@@ -395,7 +395,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       activation.push(note(
         'houses-saturn-eighth',
         'Saturn and the 8th bind the contract',
-        'Saturn is in the period and the 8th is tied to it. The class gives those two the structural binding: marriage as a contract, with maturity, fairness, patience, and karmic weight, not only as love. The 8th is the emotional contract underneath the social one.',
+        'Saturn is in the period and the 8th is tied to it. Traditionally those two give a marriage its structural binding: marriage as a contract, with maturity, fairness, patience, and karmic weight, not only as love. The 8th is the emotional contract underneath the social one.',
         'mixed',
       ))
     }
@@ -406,14 +406,14 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       activation.push(note(
         'houses-dasha-stable',
         'This mahadasha can hold a relationship',
-        `${gn(md.id)} is tied to the 7th, the 2nd, or the 11th by lordship, occupation, or company. A stable relationship follows from that link, whichever planet is running. ${saturnInPeriod ? 'Saturn is in the period, which is what is looked for when a marriage stays.' : 'Saturn is outside this period. It is still looked for in the marriages that stay.'}`,
+        `${gn(md.id)} is tied to the 7th, the 2nd, or the 11th by lordship, occupation, or company. A stable relationship can follow from that link, whichever planet is running. ${saturnInPeriod ? 'Saturn is in the period, which supports a marriage that lasts.' : 'Saturn is outside this period. It tends to be present in the marriages that last.'}`,
         'supportive',
       ))
     } else if (md && struggle) {
       activation.push(note(
         'houses-dasha-struggle',
-        'This mahadasha struggles the marriage',
-        `${gn(md.id)} is tied to the 6th, 8th, or 12th. Strain in the marriage follows from that link. Stability comes later and wants Saturn’s patience. ${saturnInPeriod ? 'Saturn is already in the period, so that patience is available to be used.' : ''} ${stable ? 'The same planet also touches a marriage house, so the period contains both the bond and the bill.' : ''}`,
+        'This mahadasha can strain the marriage',
+        `${gn(md.id)} is tied to the 6th, 8th, or 12th. Strain in the marriage can follow from that link. Stability comes later and asks for Saturn’s patience. ${saturnInPeriod ? 'Saturn is already in the period, so that patience is available to be used.' : ''} ${stable ? 'The same planet also touches a marriage house, so the period contains both the bond and the bill.' : ''}`,
         'caution',
       ))
     }
@@ -423,7 +423,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       activation.push(note(
         'houses-dasha-d9',
         'The mahadasha lord is exalted in D9',
-        `${gn(md!.id)} is exalted in Navamsha. A high-quality marriage follows from that dignity, whichever planet is running. The period has to be open in D1 as well. Exaltation in D9 does not invent a wedding the houses have not allowed.`,
+        `${gn(md!.id)} is exalted in Navamsha. A high-quality marriage can follow from that dignity, whichever planet is running. The period has to be open in D1 as well. Exaltation in D9 does not invent a wedding the houses have not allowed.`,
         'supportive',
       ))
     }
@@ -464,7 +464,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     activation.push(note(
       'houses-d9-silent',
       'Navamsha can let a marriage period pass',
-      `${why} The class’s reason a correct-looking dasha produces no wedding is this: in D9 the significator is hit, or the 7th lord has gone quiet. D1 can be willing. D9 is not answering.`,
+      `${why} Traditional texts explain a promising-looking dasha that produces no wedding this way: in D9 the significator is hit, or the 7th lord has gone quiet. D1 can be willing. D9 is not answering.`,
       'caution',
     ))
   } else if (d9Asc && d9SeventhLord && dignified(d9SeventhLord.dignity) && !d9KarakaHit) {
@@ -480,14 +480,14 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     activation.push(note(
       'houses-finer',
       'The same period can marry and later divide',
-      `The running periods are ${path.slice(0, 4).map(p => gn(p.lord)).join(' → ')}. When the 4th or the 1–7–8–12 axis is already strained, a divorce is not called from the mahadasha alone. These finer lords are where a wedding and a later ending would be separated. They are not themselves a finding that the marriage ends.`,
+      `The running periods are ${path.slice(0, 4).map(p => gn(p.lord)).join(' → ')}. When the 4th or the 1–7–8–12 axis is already strained, a separation cannot be read from the mahadasha alone. These finer lords are where a wedding and a later ending would be told apart. They are not themselves a finding that the marriage ends.`,
       'caution',
     ))
   } else if ((fourthStrained || axisStrained) && path.length > 0 && path.length < 3) {
     activation.push(note(
       'houses-finer',
       'Finer periods are not on this chart',
-      `${path.map(p => gn(p.lord)).join(' → ')} is as deep as the stored dasha goes. The class looks to sukshma and prana before separating a wedding from a divorce inside one mahadasha. That split cannot be read from the levels present here.`,
+      `${path.map(p => gn(p.lord)).join(' → ')} is as deep as the stored dasha goes. Classical practice looks to the finer sukshma and prana periods before telling a wedding from a later ending inside one mahadasha. That distinction cannot be read from the levels present here.`,
       'mixed',
     ))
   }
@@ -497,7 +497,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     : trineBalanced
       ? 'Houses 1, 5, and 9 can carry a value-based marriage'
       : relationshipBalanced
-        ? 'The relationship houses are the priority, and they will be worked'
+        ? 'The relationship houses are the priority, and they take work'
         : triangularActive && bindingActive
           ? 'This period both decides a marriage and binds it'
           : 'The marriage house (7th) only begins the story. Eight houses carry it.'
@@ -533,7 +533,7 @@ export function compareMarriageHouses(
     notes.push(note(
       'houses-pair-cover',
       'The two charts cover each other',
-      `${nameA} holds ${aCovers.length ? aCovers.map(ordinalHouse).join(', ') : 'none'} of the houses ${nameB} strains. ${nameB} holds ${bCovers.length ? bCovers.map(ordinalHouse).join(', ') : 'none'} of the houses ${nameA} strains. ${total} houses are covered between them. The class treats three or four such covers as enough for the marriage to work. Ashtakoot is this complementary balancing in another language.`,
+      `${nameA} holds ${aCovers.length ? aCovers.map(ordinalHouse).join(', ') : 'none'} of the houses ${nameB} strains. ${nameB} holds ${bCovers.length ? bCovers.map(ordinalHouse).join(', ') : 'none'} of the houses ${nameA} strains. ${total} houses are covered between them. Three or four such covers are traditionally taken as enough for the marriage to work. Ashtakoot is this complementary balancing in another language.`,
       'supportive',
     ))
   } else if (EIGHT.some(h => a.flags.health[h] === 'strained' || b.flags.health[h] === 'strained')) {
@@ -549,7 +549,7 @@ export function compareMarriageHouses(
     notes.push(note(
       'houses-pair-fourth',
       'Both 4th houses are unbalanced',
-      `${nameA} and ${nameB} each carry the class’s divorce condition in the 4th: emotional security is missing on both sides. A quiet 7th in either chart does not remove it.`,
+      `${nameA} and ${nameB} each carry a strained 4th, the house classical texts watch most closely for marital instability: emotional security is missing on both sides. A quiet 7th in either chart does not remove it.`,
       'caution',
     ))
   } else if (a.flags.fourthStrained || b.flags.fourthStrained) {
@@ -558,7 +558,7 @@ export function compareMarriageHouses(
     notes.push(note(
       'houses-pair-fourth',
       'One 4th house has to be carried',
-      `${who}’s 4th is unbalanced. ${other} is the chart that has to supply emotional protection, because the class allows a marriage to fail from the 4th alone.`,
+      `${who}’s 4th is unbalanced. ${other} is the chart that has to supply emotional protection, because a marriage can become unstable from the 4th alone.`,
       'mixed',
     ))
   }
@@ -567,7 +567,7 @@ export function compareMarriageHouses(
     notes.push(note(
       'houses-pair-styles',
       'One chart grows, the other holds the bond',
-      'One chart’s 1st, 5th, and 9th are the value-based pattern. The other’s 4th, 7th, 8th, and 12th put the relationship first. Together they cover the two priorities the class separates.',
+      'One chart’s 1st, 5th, and 9th are the value-based pattern. The other’s 4th, 7th, 8th, and 12th put the relationship first. Together they cover the two priorities that traditional texts distinguish.',
       'supportive',
     ))
   }

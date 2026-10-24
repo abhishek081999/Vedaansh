@@ -1,8 +1,8 @@
 // src/lib/engine/seventhLord.ts
-// Class notes on the 7th lord's house, a few marriage combinations,
-// female remarriage shortcuts, and the three age bands.
+// Notes on the 7th lord's house, a few marriage combinations,
+// female remarriage shortcuts, and the three age bands, based on classical texts.
 // A note is emitted only when the chart forms that condition.
-// Death, sex work, and an identity are not the sentence given to a client.
+// Sensitive themes (death, livelihood, orientation) are worded as gentle tendencies, never verdicts.
 // Pure engine — no React/DB.
 
 import type { ChartOutput, Dignity, Gender, GrahaData, GrahaId, Rashi } from '@/types/astrology'
@@ -44,7 +44,7 @@ const AIR = new Set([3, 7, 11])
 const DIGNIFIED: Dignity[] = ['exalted', 'moolatrikona', 'own']
 
 export const SEVENTH_LORD_PRINCIPLES =
-  'The 7th is the marriage, the partner, and the mirror of what the lagna lacks. It is also a marak, a road away from home, and property far from the birthplace. An exchange between the lagna lord and the 7th lord feels like a known person and still needs other support before a wedding is promised. Manglik heat fades after about 28, even when the family will not hear that. Read D1 with D9, and for a woman add D4 when the wedding period is the question.'
+  'The 7th is the marriage, the partner, and the mirror of what the lagna lacks. It is also a house classically tied to endings and loss, to roads away from home, and to property far from the birthplace. An exchange between the lagna lord and the 7th lord feels like a known person and still needs other support before a wedding can be expected. Manglik heat (Mars in a sensitive house) is said to ease after about 28. Read D1 with D9, and for a woman add D4 when the wedding period is the question.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -164,7 +164,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     placement.push(note(
       'seventh-exchange',
       'Lagna lord and 7th lord exchange',
-      `${gn(lagnaLord.id)} is in the 7th and ${gn(lord.id)} is in the lagna. The person becomes the partner’s shadow and the match feels already known, often from the existing circle. The exchange does not by itself produce the wedding. It needs the rest of the chart to support it.`,
+      `${gn(lagnaLord.id)} is in the 7th and ${gn(lord.id)} is in the lagna. The person stays close to the partner’s side and the match feels already known, often from the existing circle. The exchange does not by itself produce the wedding. It needs the rest of the chart to support it.`,
       'mixed',
     ))
   }
@@ -173,7 +173,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     placement.push(note(
       'seventh-multi-weak-lagna',
       'A weak lagna and a malefic 7th',
-      'The lagna lord is weak, and a malefic occupies or aspects the 7th. The class reads more than one marriage from that pair. One of the two conditions is not enough.',
+      'The lagna lord is weak, and a malefic occupies or aspects the 7th. Classical texts read the possibility of more than one marriage from this pair, as a tendency and not a verdict. One of the two conditions alone is not enough.',
       'caution',
     ))
   }
@@ -183,7 +183,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     placement.push(note(
       'seventh-lord-period',
       'The 7th lord’s period is a hard one for the partner',
-      `${gn(lord.id)} is severely afflicted and is running. The class puts extreme suffering on the partner in this dasha and antardasha. The far classical end of a marak house is loss. The sentence to use is suffering in this period. A death is not announced from this line.`,
+      `${gn(lord.id)} is severely afflicted and its period is running now. Classical texts place strain and suffering on the partner in this dasha and antardasha, and the 7th is a house classically tied to endings and loss. Read it as a hard period to get through together. This does not mean a death is indicated.`,
       'caution',
     ))
   }
@@ -195,7 +195,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     placement.push(note(
       'seventh-with-sixth',
       '7th lord with the 6th lord',
-      `${gn(lord.id)} sits with ${gn(sixthLord.id)}. The class reads more than one bond after marriage. ${mercurial ? 'Mercury is in the mix, so whatever crosses the line tends to stay hidden. ' : ''}${jupiterSees ? 'Jupiter also sees it, so the same yoga can be a deep bond kept inside a boundary, or an influential tie, rather than a physical affair.' : 'Check for a benefic that can hold it inside a boundary before calling it an affair.'}`,
+      `${gn(lord.id)} sits with ${gn(sixthLord.id)}. Classical texts read a second bond alongside the marriage. ${mercurial ? 'Mercury is in the mix, so whatever crosses the line tends to stay private. ' : ''}${jupiterSees ? 'Jupiter also sees it, so the same yoga can be a deep bond kept inside a boundary, or an influential tie, rather than a physical affair.' : 'No benefic is clearly holding it inside a boundary, so it is only a tendency and not a sign of an affair.'}`,
       'caution',
     ))
   }
@@ -210,27 +210,27 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       },
       2: {
         title: '7th lord in the 2nd',
-        detail: `${seat}. Intellect gets clouded by desire. ${severe ? 'The affliction is severe, so desire and livelihood tangle. The class’s hard image is earning through the body. Do not use that image with a client. The usable sentence is that wanting has started to set a price.' : 'Kept short of a severe affliction, this is heat in the mind, not a livelihood.'} The 7th is the 10th from the 10th. Remember that link. Do not go hunting career yogas inside the 7th itself.`,
+        detail: `${seat}. Judgment can get clouded by desire. ${severe ? 'The affliction is severe, so desire and money matters can tangle: wanting something badly may start to steer financial choices. This is a tendency about priorities, not a statement about how anyone earns a living.' : 'Short of a severe affliction, this is restlessness in the mind, not something that touches livelihood.'} The 7th is the 10th from the 10th, so it echoes the career, but career themes are best read from the 10th house itself.`,
         tone: 'caution',
       },
       3: {
         title: '7th lord in the 3rd',
-        detail: `${seat}. Struggle in the marriage is the reliable result. The class also ties this seat to a blurred line with relatives. Do not announce a bond inside the family. Name the struggle, and leave the rest unsaid unless the person has already said it.`,
+        detail: `${seat}. Effort and struggle in the marriage are the most dependable result. Classical texts also tie this seat to blurred lines with relatives, which is a tendency toward closeness in the wider family and not a prediction about any one relationship.`,
         tone: 'caution',
       },
       4: {
         title: '7th lord in the 4th',
-        detail: `${seat}. This is a strong seat. The spouse brings comfort, and children tend to arrive. Efforts to postpone them slip. The class pictures two or three children and more than one surprise pregnancy. Read the tendency to conceive, not a headcount.`,
+        detail: `${seat}. This is a strong seat. The spouse brings comfort, and children tend to come easily, sometimes sooner than planned. Classical texts picture a family of more than one child. Read this as a gentle tendency, not a headcount.`,
         tone: 'supportive',
       },
       5: {
         title: '7th lord in the 5th',
-        detail: `${seat}. The partner tends to come from a thinner financial background. Early marriage and a love marriage are both more available. They still need the 11th to materialize. ${find(grahas, LORDS[signOf(asc, 11)]) && dignified(find(grahas, LORDS[signOf(asc, 11)])?.dignity) ? 'The 11th lord has strength, so that support is present.' : 'The 11th lord is not strong, so the love-marriage line is waiting on gains and timing.'}`,
+        detail: `${seat}. The partner tends to come from a thinner financial background. Early marriage and a love marriage are both more available. They still need the 11th house of gains to come through. ${find(grahas, LORDS[signOf(asc, 11)]) && dignified(find(grahas, LORDS[signOf(asc, 11)])?.dignity) ? 'The 11th lord has strength, so that support is present.' : 'The 11th lord is not strong, so the love-marriage line is waiting on gains and timing.'}`,
         tone: 'mixed',
       },
       6: {
         title: '7th lord in the 6th',
-        detail: `${seat}. Cousins come closer than siblings. ${gender === 'male' && venus && (weak(venus) || maleficsOn(venus).length > 0) ? 'Venus is also disturbed. In a man’s chart the class reads a strain on fertility. That is not a laboratory result.' : ''}${gender === 'female' ? `In a woman’s chart this seat delays marriage. ${jupiter && aspects(jupiter, seventh) ? 'Jupiter sees the 7th, which shortens the delay and does not erase it.' : 'Without Jupiter’s aspect the delay stays in full.'}` : ''}`,
+        detail: `${seat}. Cousins come closer than siblings. ${gender === 'male' && venus && (weak(venus) || maleficsOn(venus).length > 0) ? 'Venus is also disturbed. In a man’s chart classical texts read some strain around family-building. This is a symbolic tendency, not a medical finding.' : ''}${gender === 'female' ? `In a woman’s chart this seat tends to delay marriage. ${jupiter && aspects(jupiter, seventh) ? 'Jupiter sees the 7th, which shortens the delay without erasing it.' : 'Without Jupiter’s aspect the delay is more likely to be felt in full.'}` : ''}`,
         tone: 'mixed',
       },
       7: {
@@ -240,14 +240,14 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       },
       8: {
         title: '7th lord in the 8th',
-        detail: `${seat}. Marriage brings money, in proportion to the life the person already has. An age difference is part of the signature. The counting method was not given, so no number of years is read from this seat alone. ${gender === 'female' ? 'In a woman’s chart the early stretch of the marriage is the hard part.' : ''}`,
+        detail: `${seat}. Marriage brings money, in proportion to the life the person already has. An age difference is part of the pattern. No number of years can be read from this seat alone. ${gender === 'female' ? 'In a woman’s chart the early stretch of the marriage is the hard part.' : ''}`,
         tone: 'mixed',
       },
       9: {
         title: '7th lord in the 9th',
         detail: gender === 'female'
-          ? `${seat}. In a woman’s chart this is spoken last, and only after the rest of the chart has been read. The class associates it with a husband whose private life does not match the public one, including a bond he does not acknowledge. Do not open a consultation with it.`
-          : `${seat}. In a man’s chart this is a strong seat and an excellent partner. In a woman’s chart the same seat is handled with care and is not the opening line.`,
+          ? `${seat}. In a woman’s chart this seat should be read with care and only alongside the rest of the chart. Classical texts associate it with a husband whose private life may not match his public one. This is a tendency, not a verdict.`
+          : `${seat}. In a man’s chart this is a strong seat and points to an excellent partner. In a woman’s chart the same seat is read with more care and only alongside the rest of the chart.`,
         tone: gender === 'female' ? 'caution' : 'supportive',
       },
       10: {
@@ -257,12 +257,12 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       },
       11: {
         title: '7th lord in the 11th',
-        detail: `${seat}. A good partner is indicated, and so is a bond that may stay unofficial: a deep emotional tie, or a friendship that crosses the usual line. It is not automatically an affair. ${severe ? 'The affliction is severe, so desire and livelihood can tangle. Do not turn that into a sentence about sex work.' : ''}`,
+        detail: `${seat}. A good partner is indicated, and so is a bond that may stay unofficial: a deep emotional tie, or a friendship that crosses the usual line. It is not automatically an affair. ${severe ? 'The affliction is severe, so desire and money matters can tangle. Take it as a tendency to watch, not a fixed outcome.' : ''}`,
         tone: 'mixed',
       },
       12: {
         title: '7th lord in the 12th',
-        detail: `${seat}. More than one partner is indicated. A second marriage, when it comes, follows a hard close of the first: the classical line is a death-like separation or an extreme delay. Do not time anyone’s death from this seat. Read a previous bond that did not end cleanly.`,
+        detail: `${seat}. More than one partner is possible. A second marriage, when it comes, follows a hard ending of the first: classical texts speak of a painful separation or a long delay. This does not mean a death is indicated. It more often points to an earlier bond that did not end cleanly.`,
         tone: 'caution',
       },
     }
@@ -276,14 +276,14 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-foreign',
       'The 7th points away from the birthplace',
-      'The 7th is the far side of the lagna. With Rahu on it, or the 7th lord carried to the 9th or 12th under Rahu, the class reads foreign travel, settlement, or property away from the place of birth, and a life that can leave home.',
+      'The 7th is the far side of the lagna. With Rahu on it, or the 7th lord carried to the 9th or 12th under Rahu, classical texts read foreign travel, settlement, or property away from the place of birth, and a life that can leave home.',
       'mixed',
     ))
   } else if (lordHouse === 12 || (find(grahas, 'Ke') && h(find(grahas, 'Ke')) === 7)) {
     combinations.push(note(
       'seventh-leaves-home',
       'The 7th can take the person out of the house',
-      'The 7th lord in the 12th, or Ketu in the 7th, is the class’s mark for leaving home and for a path that bends. Marriage is one of the doors. It is not the only one.',
+      'The 7th lord in the 12th, or Ketu in the 7th, is a classical mark for leaving home and for a path that bends. Marriage is one of the doors. It is not the only one.',
       'mixed',
     ))
   }
@@ -292,7 +292,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-venus-moon',
       'Venus with the Moon',
-      'The partner is strongly supportive. Trouble, when it comes, is a protective lie: something softened so the other person does not flare. The lie is not the malicious kind.',
+      'The partner is strongly supportive. Trouble, when it comes, takes the form of a protective untruth: something softened so the other person does not flare. It is not the malicious kind.',
       'supportive',
     ))
   }
@@ -303,14 +303,14 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-capricorn-mars',
       'Capricorn lagna, Saturn in the lagna, Mars fallen in the 7th',
-      'Saturn sees the fallen Mars from the lagna, and Mars sees Saturn back. The class treats this as its strongest mark for a desire that does not follow the script the family expects, including a bond outside that script. Do not announce an identity. Speak only if the person has already opened the subject.',
+      'Saturn sees the fallen Mars from the lagna, and Mars sees Saturn back. Classical texts treat this as their strongest mark for desire or relationships that do not follow the path family expects. This is a tendency only and says nothing definite about who a person is.',
       'caution',
     ))
   } else if (mutual) {
     combinations.push(note(
       'seventh-mars-saturn',
       'Mars and Saturn see each other',
-      'Mars and Saturn in mutual aspect can carry the same unconventional desire in any lagna. The weight is ordinary here. It becomes heavy when the lagna is Capricorn, Saturn sits in that lagna, and Mars is fallen in the 7th. Do not announce an identity from the general aspect.',
+      'Mars and Saturn in mutual aspect can carry a mild pull toward desire or relationships that do not follow the path family expects, in any lagna. The weight is ordinary here. It becomes heavy only when the lagna is Capricorn, Saturn sits in that lagna, and Mars is fallen in the 7th. This is a tendency, not a verdict.',
       'mixed',
     ))
   }
@@ -321,7 +321,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-jupiter',
       inSeventh ? 'Jupiter in the 7th' : `Jupiter in the ${ordinal(h(jupiter)!)}`,
-      `${inSeventh ? 'Jupiter in the 7th gives a good married life, good children, and a good partner, and it protects the marriage on the surface. ' : 'Jupiter in the 2nd or the 4th feeds the same private restlessness. '}The class’s other side is that one partner does not satisfy, and guilt arrives with the restlessness. ${withMoon ? 'The Moon is with Jupiter, which expands that restlessness.' : ''}`,
+      `${inSeventh ? 'Jupiter in the 7th gives a good married life, good children, and a good partner, and it protects the marriage on the surface. ' : 'Jupiter in the 2nd or the 4th feeds the same private restlessness. '}The other side, in classical texts, is a feeling that one partner may not be enough, with guilt arriving alongside the restlessness. ${withMoon ? 'The Moon is with Jupiter, which expands that restlessness.' : ''}`,
       'mixed',
     ))
   }
@@ -332,8 +332,8 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       'seventh-mars-fourth',
       ruchakaSign ? 'Mars in the 4th — Ruchaka, and a family cash strain' : 'Mars in the 4th takes domestic peace and gives property',
       ruchakaSign
-        ? 'Mars is in the 4th in Aries, Scorpio, or Capricorn, so Ruchaka is available. The class still reads a standing financial crisis in the family life. The yoga does not cancel the cash strain.'
-        : 'Mars in the 4th, outside its own signs and outside Capricorn, is the class’s thief of family happiness. Land, property, and a vehicle tend to come in exchange.',
+        ? 'Mars is in the 4th in Aries, Scorpio, or Capricorn, so Ruchaka (a classical yoga of strength and drive) is available. Classical texts still read a lasting financial strain in family life. The yoga does not cancel that strain.'
+        : 'Mars in the 4th, outside its own signs and outside Capricorn, is classically seen as a thief of family happiness. Land, property, and a vehicle tend to come in exchange.',
       'mixed',
     ))
   }
@@ -348,7 +348,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       combinations.push(note(
         'seventh-remarriage-sun-rahu',
         'Sun and Rahu on a 7th',
-        'From the lagna, the Moon, or the 7th lord, the 7th is under both the Sun and Rahu. In a woman’s chart the class reads a high probability of remarriage. It does not say whether the first bond ended by death or by divorce.',
+        'From the lagna, the Moon, or the 7th lord, the 7th is under both the Sun and Rahu. In a woman’s chart classical texts read a strong possibility of remarriage. They do not say how the first bond ends, and this does not mean a death is indicated.',
         'caution',
       ))
     }
@@ -359,7 +359,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
         combinations.push(note(
           'seventh-remarriage-d30',
           'Lagna in Saturn’s trimshamsha',
-          'The ascendant degree falls in Saturn’s portion of D30. In a woman’s chart the class treats remarriage as confirmed by that placement. The form of the first ending is a separate question.',
+          'The ascendant degree falls in Saturn’s portion of D30. In a woman’s chart classical texts treat this placement as a strong sign of remarriage. How the first bond ends is a separate question the chart does not answer here.',
           'caution',
         ))
       }
@@ -368,7 +368,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       combinations.push(note(
         'seventh-remarriage-retro-saturn',
         'Retrograde Saturn rules the 11th and sits in the 7th',
-        'Both conditions are present: Saturn is retrograde, and Saturn is the 11th lord in the 7th. In a woman’s chart that pair is a remarriage signature. Either condition alone does not make it.',
+        'Both conditions are present: Saturn is retrograde, and Saturn is the 11th lord in the 7th. In a woman’s chart that pair is a classical sign of remarriage. Either condition alone does not make it.',
         'caution',
       ))
     }
@@ -376,7 +376,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       combinations.push(note(
         'seventh-remarriage-three',
         'Saturn, Moon, and Mars in the 7th',
-        'The remarriage yoga wants all three in the 7th. They are all there. If one had been missing, the yoga would not be read.',
+        'This remarriage yoga needs all three in the 7th, and all three are there. If one were missing, the yoga would not apply. It remains a tendency, not a certainty.',
         'caution',
       ))
     }
@@ -390,7 +390,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-malefic-789',
       'Malefics in the 7th, 8th, or 9th from lagna and Moon',
-      'A malefic sits in the 7th, 8th, or 9th counted from the lagna, and again counted from the Moon. The class reads that as marriage-related suffering both before and after the wedding. Peace is what gets spent.',
+      'A malefic sits in the 7th, 8th, or 9th counted from the lagna, and again counted from the Moon. Classical texts read that as strain around marriage, both before and after the wedding, with peace of mind being what is most tested.',
       'caution',
     ))
   }
@@ -399,7 +399,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-saturn-ninth',
       'Saturn in the 9th',
-      `Saturn occupies the 9th${saturn.dignity === 'exalted' ? ', exalted' : ''}. Dignity does not cancel this D1 rule. The class reads problems in married life for a man or a woman. This is not a Navamsha rule.`,
+      `Saturn occupies the 9th${saturn.dignity === 'exalted' ? ', exalted' : ''}. Dignity does not cancel this D1 rule. Classical texts read difficulties in married life for a man or a woman. This is a rule of the main chart (D1), not of the Navamsha.`,
       'caution',
     ))
   }
@@ -414,7 +414,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-eighth-private',
       'A malefic in an 8th of private life',
-      `The 8th from ${eighthHits.join(', ')} holds a malefic. The class reads sexual temperament from those three 8ths, not from the lagna alone. The usable sentence is that private life is intense or unconventional. Acts are not itemized.`,
+      `The 8th from ${eighthHits.join(', ')} holds a malefic. Classical texts read the intensity of private life from these three 8ths together, not from the lagna alone. In plain terms, private life may be intense or unconventional, which is a tendency and not a judgment.`,
       'mixed',
     ))
   }
@@ -423,7 +423,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-yuddha',
       'Lagna lord and 7th lord are in planetary war',
-      `${lagnaLord ? gn(lagnaLord.id) : 'The lagna lord'} and ${lord ? gn(lord.id) : 'the 7th lord'} are within a degree in the same sign. The class calls that graha yuddha inauspicious for marriage no matter which planet is ahead.`,
+      `${lagnaLord ? gn(lagnaLord.id) : 'The lagna lord'} and ${lord ? gn(lord.id) : 'the 7th lord'} are within a degree in the same sign. Classical texts call this planetary war (two planets within a degree) and see it as unfavourable for marriage, whichever planet is ahead.`,
       'caution',
     ))
   }
@@ -433,7 +433,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-d9-saturn',
       'Saturn in the 7th of D9',
-      'Navamsha Saturn in the 7th leans toward an unconventional marriage: caste, religion, age, or circumstance. The later problem the class names is trust.',
+      'Navamsha Saturn in the 7th leans toward an unconventional marriage: caste, religion, age, or circumstance. The later difficulty classical texts name is trust.',
       'caution',
     ))
   }
@@ -442,14 +442,14 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-venus-gemini',
       'Venus in Gemini',
-      'Professionally this Venus can climb, and the person is drawn to art, craft, and song. Married life is the part that suffers. The career height does not repair the marriage.',
+      'Professionally this Venus can climb, and the person is drawn to art, craft, and song. Married life is the part that may be strained. Career success does not by itself repair the marriage.',
       'caution',
     ))
   } else if (venus && AIR.has(venus.rashi)) {
     combinations.push(note(
       'seventh-venus-air',
       'Venus in an air sign',
-      `Venus is in ${rn(venus.rashi)}. Libra and Aquarius are the air signs the class calls workable for marriage.`,
+      `Venus is in ${rn(venus.rashi)}. Libra and Aquarius are the air signs classical texts call workable for marriage.`,
       'supportive',
     ))
   }
@@ -460,7 +460,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       combinations.push(note(
         'seventh-venus-fallen-angle',
         'Fallen Venus in a kendra or trikona',
-        `Venus is debilitated in the ${ordinal(vh)}. The fall is real, and the class still gives good marriage results from a kendra or a trikona. Do not discard the planet for the debilitation alone.`,
+        `Venus is debilitated in the ${ordinal(vh)}. The fall is real, yet classical texts still give good marriage results from a kendra (angular house) or a trikona (trine). Venus should not be written off for the debilitation alone.`,
         'mixed',
       ))
     }
@@ -481,7 +481,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-sun-venus-fire',
       'Sun and Venus together in a fire sign',
-      `The Sun and Venus are together in ${rn(sun.rashi)}. Sagittarius is excluded from this rule. ${running ? 'Their antardasha is running, which is when the class reads marriage trouble pushed to the point of a break.' : 'When the Sun or Venus becomes the antardasha, the class reads marriage trouble pushed to the point of a break.'}`,
+      `The Sun and Venus are together in ${rn(sun.rashi)}. Sagittarius is excluded from this rule. ${running ? 'Their antardasha is running, which is when classical texts read marriage strain building toward a break.' : 'When the Sun or Venus becomes the antardasha, classical texts read marriage strain building toward a break.'} This is a tendency, not a certainty.`,
       'caution',
     ))
   }
@@ -491,7 +491,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-dk-eighth',
       'Darakaraka in the 8th',
-      `${gn(dk.id)} is darakaraka and sits in the 8th. Jaimini reads problems for the marriage from that seat. A transit of Jupiter, or Jupiter and Saturn together, onto the darakaraka by Jaimini aspect is the timing mark. This chart is not being given a transit date from the natal position alone.`,
+      `${gn(dk.id)} is the darakaraka (the planet that signifies the spouse) and sits in the 8th. The Jaimini system reads difficulties for the marriage from that seat. A transit of Jupiter, or Jupiter and Saturn together, onto the darakaraka by Jaimini aspect is the timing mark. No transit date can be given from the natal position alone.`,
       'caution',
     ))
   }
@@ -500,7 +500,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-upachaya-malefic',
       'Malefics in the 3rd, 6th, or 11th',
-      'A malefic in the 3rd, 6th, or 11th is not a reason to frighten someone. Those houses often belong to people whose outer life is functioning. Do not import a marriage disaster from an upachaya malefic.',
+      'A malefic in the 3rd, 6th, or 11th is not a cause for worry. These are growth houses (upachaya: 3rd, 6th, 11th), where a malefic tends to do well over time. It does not point to trouble in marriage.',
       'supportive',
     ))
   }
@@ -510,7 +510,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     combinations.push(note(
       'seventh-trikona-benefic',
       'Benefics in the trines',
-      `Benefics occupy the ${trikonaBenefics.map(ordinal).join(' and ')}. The class reads that as support for a happy married life.`,
+      `Benefics occupy the ${trikonaBenefics.map(ordinal).join(' and ')}. Classical texts read that as support for a happy married life.`,
       'supportive',
     ))
   }
@@ -528,7 +528,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       combinations.push(note(
         'seventh-d4-disturbance',
         'D4’s 4th or 10th is in this period',
-        `For a woman the wedding disturbs the 4th. In Chaturthamsha the running period ${path.slice(0, 3).map(p => gn(p.lord)).join(' → ')} ties the 4th or the 10th. Most such cases are visible by pratyantar. A still finer period is rarely required.`,
+        `For a woman the wedding disturbs the 4th (home and settled life). In the Chaturthamsha (D4) chart, the running period ${path.slice(0, 3).map(p => gn(p.lord)).join(' → ')} ties to the 4th or the 10th. This is usually visible by the third level of the dasha (pratyantar), and a finer period is rarely needed.`,
         'mixed',
       ))
     }
@@ -582,21 +582,21 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     timing.push(note(
       'seventh-band-timely',
       'The conditions of a timely marriage',
-      'Enough of the timely set is present: the lagna, 2nd, 7th, and 8th are not under Saturn, Mars, or Mercury together, Venus is not combust, and the gender mark or a waxing Moon is cooperating. The class places this band around 21 to 28. It is a band, not a birthday.',
+      'Enough of the timely set is present: the lagna, 2nd, 7th, and 8th are not under Saturn, Mars, or Mercury together, Venus is not combust, and the Moon or Sun placement suited to the person’s gender, or a waxing Moon, is cooperating. Classical texts place this band around 21 to 28. It is a band, not a birthday.',
       'supportive',
     ))
   } else if (band === 'delayed') {
     timing.push(note(
       'seventh-band-delayed',
       'The conditions of a delayed marriage',
-      `Several delay marks are present: malefics on the marriage houses, a strong but afflicted 7th lord, retrograde benefics, combust Venus, a doubled 12th, or the 7th from Venus under pressure. The class places this band around 28 to 32. ${manglik ? 'Mars is in a manglik house. After about 28 that heat fades, whether or not the family has caught up.' : ''}`,
+      `Several delay marks are present: malefics on the marriage houses, a strong but afflicted 7th lord, retrograde benefics, combust Venus, a doubled 12th, or the 7th from Venus under pressure. Classical texts place this band around 28 to 32. ${manglik ? 'Mars is in a manglik house, whose heat is said to ease after about 28.' : ''}`,
       'mixed',
     ))
   } else if (band === 'late') {
     timing.push(note(
       'seventh-band-late',
       'Very late, or not at all',
-      'The late set is active: the Sun and Moon are crowded or both weak, Saturn is heavy, the lagna lord is in the 12th, or the 7th and 8th lords have swapped seats. In a man’s chart Saturn on Venus belongs here. In a woman’s chart a weak Mars belongs here. The class reads either a marriage after about 35, or a life that does not marry. Both remain open until the dasha agrees.',
+      'The late set is active: the Sun and Moon are crowded or both weak, Saturn is heavy, the lagna lord is in the 12th, or the 7th and 8th lords have swapped seats. In a man’s chart Saturn on Venus belongs here. In a woman’s chart a weak Mars belongs here. Classical texts read either a marriage after about 35, or a life that stays unmarried by choice or circumstance. Both remain open until the dasha supports one of them.',
       'caution',
     ))
   }
@@ -639,7 +639,7 @@ export function compareSeventhLord(
     notes.push(note(
       'seventh-pair-band',
       'The marriage clocks are in different bands',
-      `${nameA} sits in the ${a.flags.band} band and ${nameB} in the ${b.flags.band} band. A match still happens. The class would not call it the smooth, same-year kind.`,
+      `${nameA} sits in the ${a.flags.band} band and ${nameB} in the ${b.flags.band} band. A match is still possible, though classical texts would not call it the smooth, same-year kind.`,
       'mixed',
     ))
   } else if (a.flags.band !== 'open' && a.flags.band === b.flags.band) {

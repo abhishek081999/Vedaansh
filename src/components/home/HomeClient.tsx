@@ -11,7 +11,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown } from 'lucide-react'
+import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown, CalendarCheck, Orbit, HeartHandshake, Heart, Briefcase } from 'lucide-react'
 import { birthUtcFromMeta } from '@/lib/engine/dasha/hydrateChara'
 import { getCurrentMahaDashaLord, MajorKundaliStrip } from '@/components/ui/MajorKundaliStrip'
 
@@ -39,28 +39,6 @@ const DashamsaWorkspace = dynamic(() => import('@/components/ui/DashamsaWorkspac
 const DwadashamshaWorkspace = dynamic(() => import('@/components/ui/DwadashamshaWorkspace').then(m => m.DwadashamshaWorkspace), { ssr: false })
 const DrekkanaWorkspace = dynamic(() => import('@/components/ui/DrekkanaWorkspace').then(m => m.DrekkanaWorkspace), { ssr: false })
 const NakshatramshaWorkspace = dynamic(() => import('@/components/ui/NakshatramshaWorkspace').then(m => m.NakshatramshaWorkspace), { ssr: false })
-const CareerProfessionPanel = dynamic(
-  () => import('@/components/ui/CareerProfessionPanel').then(m => m.CareerProfessionPanel),
-  {
-    ssr: false,
-    loading: () => (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280, padding: '3rem 1rem' }}>
-        <VedaanshLoader size={44} message="Reading career and profession…" />
-      </div>
-    ),
-  },
-)
-const RelationshipMarriagePanel = dynamic(
-  () => import('@/components/ui/RelationshipMarriagePanel').then(m => m.RelationshipMarriagePanel),
-  {
-    ssr: false,
-    loading: () => (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280, padding: '3rem 1rem' }}>
-        <VedaanshLoader size={44} message="Reading relationship and marriage…" />
-      </div>
-    ),
-  },
-)
 const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
 const TattvaPredictionPanel = dynamic(() => import('@/components/ui/TattvaPredictionPanel').then(m => m.TattvaPredictionPanel), { ssr: false })
 const NaamkaranPanel = dynamic(() => import('@/components/ui/NaamkaranPanel').then(m => m.NaamkaranPanel), { ssr: false })
@@ -68,6 +46,12 @@ const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').th
 const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => m.HousePanel), { ssr: false })
 const ActiveHousesCard = dynamic(() => import('@/components/dashboard/ActiveHousesCard').then(m => m.ActiveHousesCard), { ssr: false })
 const ProgressionWidget = dynamic(() => import('@/components/dashboard/ProgressionWidget').then(m => m.ProgressionWidget), { ssr: false })
+const DoshaSnapshotCard = dynamic(() => import('@/components/dashboard/DashboardInsightCards').then(m => m.DoshaSnapshotCard), { ssr: false })
+const RemediesCard = dynamic(() => import('@/components/dashboard/DashboardInsightCards').then(m => m.RemediesCard), { ssr: false })
+const DivisionalSnapshotCard = dynamic(() => import('@/components/dashboard/DashboardInsightCards').then(m => m.DivisionalSnapshotCard), { ssr: false })
+const LifeHighlightsCard = dynamic(() => import('@/components/dashboard/DashboardInsightCards').then(m => m.LifeHighlightsCard), { ssr: false })
+const TodayPanchangCard = dynamic(() => import('@/components/dashboard/DashboardLiveCards').then(m => m.TodayPanchangCard), { ssr: false })
+const TransitSnapshotCard = dynamic(() => import('@/components/dashboard/DashboardLiveCards').then(m => m.TransitSnapshotCard), { ssr: false })
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
 const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
 const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
@@ -525,6 +509,11 @@ function YoginiDashaBlock({
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   Astrology: Sparkles,
+  'Today\u2019s Reading': CalendarCheck,
+  Transits: Orbit,
+  'Relationship & Marriage': Heart,
+  'Career & Profession': Briefcase,
+  'Kundali Matching': HeartHandshake,
   Prashna: HelpCircle,
   Panchang: Compass,
   Calendar: Calendar,
@@ -1321,120 +1310,51 @@ function HomeContent() {
 
   const landingWhyVedaansh = [
     { title: 'Classical Accuracy', detail: 'Swiss Ephemeris precision with Lahiri ayanamsha and full varga depth.', icon: Compass },
-    { title: 'One Workspace', detail: 'Kundali, dashas, Panchang, and Prashna in a single coherent flow.', icon: Layers },
+    { title: 'One Workspace', detail: 'Kundali, dashas, transits, Panchang, and Prashna in a single coherent flow.', icon: Layers },
     { title: 'Consultation Ready', detail: 'Built for practitioners and seekers — interpret, export, and plan.', icon: Star },
   ]
 
   const landingJourney = [
     { step: '01', title: 'Enter birth details', text: 'Open Astrology app and submit date, time, and place.' },
     { step: '02', title: 'Generate deep chart', text: 'Compute grahas, houses, dasha layers, and divisional charts instantly.' },
-    { step: '03', title: 'Apply in real life', text: 'Use Panchang, Prashna, and calendar timing to plan your next action.' },
+    { step: '03', title: 'Apply in real life', text: 'Use Today\u2019s Reading, transits, Panchang, and Prashna to plan your next action, and explore marriage and career readings.' },
   ]
 
-  const landingMajorSections = [
+  /** Explore grid, grouped so each row fills evenly (6 / 4 / 6 cards). */
+  const landingMajorGroups = [
     {
-      title: 'Astrology',
-      subtitle: 'Dashboard',
-      text: 'Kundali, vargas, dasha, and interpretation.',
-      href: '/',
-      ctaName: 'major_sections_astrology',
-      icon: '🧿',
+      id: 'chart',
+      title: 'Read your chart',
+      sections: [
+        { title: 'Astrology', subtitle: 'Dashboard', text: 'Kundali, vargas, dasha, plus marriage and career readings.', href: '/', ctaName: 'major_sections_astrology' },
+        { title: 'Today\u2019s Reading', subtitle: 'Personal', text: 'Daily reading from your Moon, dasha, and transits.', href: '/today', ctaName: 'major_sections_today' },
+        { title: 'Transits', subtitle: 'Gochar', text: 'Cosmic roadmap, Sade Sati, aspects, and live sky.', href: '/transit/roadmap', ctaName: 'major_sections_transits' },
+        { title: 'Relationship & Marriage', subtitle: 'Gold', text: 'Marriage promise, timing, Mars and Vivah readings.', href: '/relationship', ctaName: 'major_sections_relationship' },
+        { title: 'Career & Profession', subtitle: 'Gold', text: 'Dashamsha strength and the professional method.', href: '/career', ctaName: 'major_sections_career' },
+        { title: 'Kundali Matching', subtitle: 'Compatibility', text: '36-point Guna Milan, doshas, and synastry.', href: '/compare', ctaName: 'major_sections_kundali_matching' },
+      ],
     },
     {
-      title: 'Prashna',
-      subtitle: 'Query',
-      text: 'Guidance for specific questions.',
-      href: '/prashna',
-      ctaName: 'major_sections_prashna',
-      icon: '🎯',
+      id: 'timing',
+      title: 'Plan the right time',
+      sections: [
+        { title: 'Panchang', subtitle: 'Daily', text: 'Tithi, nakshatra, yoga, and karana.', href: '/panchang', ctaName: 'major_sections_panchang' },
+        { title: 'Calendar', subtitle: 'Monthly', text: 'Month-level Vedic timing windows.', href: '/panchang/calendar', ctaName: 'major_sections_calendar' },
+        { title: 'Muhurta Finder', subtitle: 'Timing', text: 'Auspicious windows for key actions.', href: '/muhurta', ctaName: 'major_sections_muhurta_finder' },
+        { title: 'Prashna', subtitle: 'Query', text: 'Guidance for specific questions.', href: '/prashna', ctaName: 'major_sections_prashna' },
+      ],
     },
     {
-      title: 'Panchang',
-      subtitle: 'Daily',
-      text: 'Tithi, nakshatra, yoga, and karana.',
-      href: '/panchang',
-      ctaName: 'major_sections_panchang',
-      icon: '🕉️',
-    },
-    {
-      title: 'Calendar',
-      subtitle: 'Monthly',
-      text: 'Month-level Vedic timing windows.',
-      href: '/panchang/calendar',
-      ctaName: 'major_sections_calendar',
-      icon: '🗓️',
-    },
-    {
-      title: 'Nakshatra',
-      subtitle: 'Lunar',
-      text: 'Nakshatra insights day by day.',
-      href: '/nakshatra',
-      ctaName: 'major_sections_nakshatra',
-      icon: '✨',
-    },
-    {
-      title: 'Jaimini Astrology',
-      subtitle: 'Advanced',
-      text: 'Jaimini charts and life direction.',
-      href: '/jaimini',
-      ctaName: 'major_sections_jaimini',
-      icon: '🔮',
-    },
-    {
-      title: 'Astro Vastu',
-      subtitle: 'Space',
-      text: 'Vastu aligned with your chart.',
-      href: '/vastu',
-      ctaName: 'major_sections_astro_vastu',
-      icon: '🏠',
-    },
-    {
-      title: 'Vedic Numerology',
-      subtitle: 'Anka Jyotish',
-      text: 'Moolank, Bhagyank, name and grid.',
-      href: '/numerology',
-      ctaName: 'major_sections_numerology',
-      icon: '🔢',
-    },
-    {
-      title: 'AstroCartography',
-      subtitle: 'Location',
-      text: 'Planetary lines for travel and moves.',
-      href: '/acg',
-      ctaName: 'major_sections_astrocartography',
-      icon: '🌍',
-    },
-    {
-      title: 'Sarvatobhadra Chakra',
-      subtitle: 'Classical',
-      text: 'Traditional S.B. Chakra timing.',
-      href: '/sbc',
-      ctaName: 'major_sections_sarvatobhadra',
-      icon: '🌀',
-    },
-    {
-      title: 'Muhurta Finder',
-      subtitle: 'Timing',
-      text: 'Auspicious windows for key actions.',
-      href: '/muhurta',
-      ctaName: 'major_sections_muhurta_finder',
-      icon: '🕒',
-    },
-    {
-      title: 'Install App',
-      subtitle: 'Mobile',
-      text: 'Add Vedaansh to your home screen.',
-      href: '/install',
-      ctaName: 'major_sections_install_app',
-      icon: '📲',
-    },
-    {
-      title: 'My Charts',
-      subtitle: 'Library',
-      text: 'Open saved charts from your account.',
-      href: '/my/charts',
-      ctaName: 'major_sections_my_charts',
-      icon: '📚',
+      id: 'advanced',
+      title: 'Go deeper',
+      sections: [
+        { title: 'Nakshatra', subtitle: 'Lunar', text: 'Nakshatra insights day by day.', href: '/nakshatra', ctaName: 'major_sections_nakshatra' },
+        { title: 'Jaimini Astrology', subtitle: 'Advanced', text: 'Jaimini charts and life direction.', href: '/jaimini', ctaName: 'major_sections_jaimini' },
+        { title: 'Sarvatobhadra Chakra', subtitle: 'Classical', text: 'Traditional S.B. Chakra timing.', href: '/sbc', ctaName: 'major_sections_sarvatobhadra' },
+        { title: 'AstroCartography', subtitle: 'Location', text: 'Planetary lines for travel and moves.', href: '/acg', ctaName: 'major_sections_astrocartography' },
+        { title: 'Astro Vastu', subtitle: 'Space', text: 'Vastu aligned with your chart.', href: '/vastu', ctaName: 'major_sections_astro_vastu' },
+        { title: 'Vedic Numerology', subtitle: 'Anka Jyotish', text: 'Moolank, Bhagyank, name and grid.', href: '/numerology', ctaName: 'major_sections_numerology' },
+      ],
     },
   ]
 
@@ -2021,10 +1941,6 @@ function HomeContent() {
                     <DrekkanaWorkspace chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'nakshatramsha' ? (
                     <NakshatramshaWorkspace chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'relationship' ? (
-                    <RelationshipMarriagePanel chart={chart} userPlan={userPlan} />
-                  ) : activeTab === 'career' ? (
-                    <CareerProfessionPanel chart={chart} userPlan={userPlan} />
                   ) : activeTab === 'house' ? (
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (
@@ -2302,6 +2218,8 @@ function HomeContent() {
                             nodes={vimshottariNodes}
                             onOpenFull={() => setActiveTab('dasha-interpretation')}
                           />
+                          <TodayPanchangCard panchang={todayPanchang} timezone={chart.meta.timezone} />
+                          <TransitSnapshotCard chart={chart} onOpen={() => router.push('/transit/roadmap')} />
                           <div className="panel">
                             <div className="panel-header"><span>Daily Suitability</span></div>
                             <div style={{ padding: '0.4rem 0.55rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
@@ -2371,11 +2289,27 @@ function HomeContent() {
                       )}
 
                       {mobileDashTab === 'yogas' && (
-                        <div className="panel">
-                          <div className="panel-header"><span>Graha Yogas</span></div>
-                          <div style={{ padding: '0.4rem 0.55rem' }}>
-                            {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <div className="panel">
+                            <div className="panel-header"><span>Graha Yogas</span></div>
+                            <div style={{ padding: '0.4rem 0.55rem' }}>
+                              {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>}
+                            </div>
                           </div>
+                          <DoshaSnapshotCard chart={chart} />
+                        </div>
+                      )}
+
+                      {mobileDashTab === 'insights' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <DivisionalSnapshotCard chart={chart} />
+                          <LifeHighlightsCard
+                            chart={chart}
+                            userPlan={userPlan}
+                            onOpenRelationship={() => router.push('/relationship')}
+                            onOpenCareer={() => router.push('/career')}
+                          />
+                          <RemediesCard chart={chart} />
                         </div>
                       )}
 
@@ -3077,6 +3011,19 @@ function HomeContent() {
                       </div>
                     </div>
 
+                    {/* ── Doshas, live Panchang and transits, divisional charts, remedies, life highlights ── */}
+                    <DoshaSnapshotCard chart={chart} />
+                    <TodayPanchangCard panchang={todayPanchang} timezone={chart.meta.timezone} />
+                    <TransitSnapshotCard chart={chart} onOpen={() => router.push('/transit/roadmap')} />
+                    <DivisionalSnapshotCard chart={chart} />
+                    <LifeHighlightsCard
+                      chart={chart}
+                      userPlan={userPlan}
+                      onOpenRelationship={() => router.push('/relationship')}
+                      onOpenCareer={() => router.push('/career')}
+                    />
+                    <RemediesCard chart={chart} />
+
                  </div>
                )}
              </div>
@@ -3101,38 +3048,41 @@ function HomeContent() {
                     description="Jump straight to the tool you need."
                     theme="gold"
                   />
-                  <div className="landing-major-sections-grid landing-reveal-stagger">
-                    {landingMajorSections
-                      .filter((section) => section.title !== 'My Charts' || status === 'authenticated')
-                      .map((section, idx) => {
-                        const IconComponent = iconMap[section.title] || Sparkles;
-                        return (
-                          <Link
-                            key={section.title}
-                            href={section.href}
-                            onClick={(e) => {
-                              trackLandingCta(section.ctaName)
-                              openSectionWithChartGate(section.href, e)
-                            }}
-                            onMouseMove={handleMouseMove}
-                            className="landing-major-section-card landing-premium-card"
-                            style={{ ['--stagger-i' as string]: idx }}
-                          >
-                            <div className="card-icon-wrapper">
-                              <IconComponent size={20} strokeWidth={2} />
-                            </div>
-                            <div className="card-body">
-                              {section.subtitle && <span className="card-kicker">{section.subtitle}</span>}
-                              <span className="stat-value">{section.title}</span>
-                              <span className="stat-sub">{section.text}</span>
-                            </div>
-                            <span className="card-arrow" aria-hidden="true">
-                              <ArrowRight size={14} strokeWidth={2.5} />
-                            </span>
-                          </Link>
-                        )
-                      })}
-                  </div>
+                  {landingMajorGroups.map((group, groupIdx) => (
+                    <div key={group.id} className="landing-major-group" data-count={group.sections.length}>
+                      <h3 className="landing-major-group-title">{group.title}</h3>
+                      <div className="landing-major-sections-grid landing-reveal-stagger">
+                        {group.sections.map((section, idx) => {
+                          const IconComponent = iconMap[section.title] || Sparkles;
+                          return (
+                            <Link
+                              key={section.title}
+                              href={section.href}
+                              onClick={(e) => {
+                                trackLandingCta(section.ctaName)
+                                openSectionWithChartGate(section.href, e)
+                              }}
+                              onMouseMove={handleMouseMove}
+                              className="landing-major-section-card landing-premium-card"
+                              style={{ ['--stagger-i' as string]: groupIdx * 6 + idx }}
+                            >
+                              <div className="card-icon-wrapper">
+                                <IconComponent size={20} strokeWidth={2} />
+                              </div>
+                              <div className="card-body">
+                                {section.subtitle && <span className="card-kicker">{section.subtitle}</span>}
+                                <span className="stat-value">{section.title}</span>
+                                <span className="stat-sub">{section.text}</span>
+                              </div>
+                              <span className="card-arrow" aria-hidden="true">
+                                <ArrowRight size={14} strokeWidth={2.5} />
+                              </span>
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </LandingReveal>
 

@@ -868,7 +868,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
     `The 4th is property and the home. ${fourthLord ? `${gn(fourthLord.id)} rules it from house ${fourthLordHouse}.` : ''} Mars is land and construction. The 2nd is whether the money can be committed.`,
     fourthLordHouse === 3 ? 'The 4th lord in the 3rd asks for effort, and still allows the purchase.' : '',
     marsWithRahu ? 'Mars with Rahu is dissatisfaction while choosing. The first plot rarely feels like the one.' : '',
-    ketuOnProperty ? 'Ketu on this question prefers a temple neighbourhood, elevated land, or an upper floor.' : '',
+    ketuOnProperty ? 'Ketu on this question prefers a temple neighborhood, elevated land, or an upper floor.' : '',
     secondLord && isWeak(secondLord.dignity) ? 'The 2nd is thin, so capacity is the brake.' : '',
     fourthOk ? 'The 4th is strong enough that delay is not a denial.' : '',
   ].filter(Boolean).join(' ')
@@ -925,7 +925,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
     mars && (isStrong(mars.dignity) || maH === 1 || maH === 3 || maH === 6 || maH === 10) ? 'Mars gives a technical hand.' : '',
     mercury && (meH === 7 || meH === 10 || joined(mercury, seventhLord) || joined(mercury, tenthLord)) ? 'Mercury is the business mind and the invention.' : '',
     rahu && (raH === 7 || raH === 8 || raH === 10 || joined(rahu, seventhLord)) ? 'Rahu takes the risk the others will not.' : '',
-    mercuryCycle ? 'One planet handles the success, the fall, and the revival. Do not look for three different saviours.' : '',
+    mercuryCycle ? 'One planet handles the success, the fall, and the revival. Do not look for three different saviors.' : '',
     !firstBusinessFails && !mercuryCycle ? 'The 7th, 8th, and 10th are not locked into a startup reset. Read the business only if the 7th is actually loud.' : '',
   ].filter(Boolean).join(' ')
 
@@ -1162,7 +1162,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
         title: 'House-lord chain',
         answer: chainLast ? `${gn(chainLast)} is the last planet in the chain.` : 'The chain cannot start without a 10th lord.',
         reading: chainIds.length
-          ? `${chainIds.map(id => gn(id)).join(' → ')}. Placement, then the depositor, then the nakshatra lord, then the dasha lord. The last planet colors the event: ${chainLast ? ROLE[chainLast] : 'the chain'}.`
+          ? `${chainIds.map(id => gn(id)).join(' → ')}. Placement, then the dispositor, then the nakshatra lord, then the dasha lord. The last planet colors the event: ${chainLast ? ROLE[chainLast] : 'the chain'}.`
           : 'The 10th lord is missing, so the chain has no start.',
         tone: 'mixed' as MethodTone,
       },
@@ -1178,7 +1178,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
           tenthLord && isStrong(tenthLord.dignity) ? `${gn(tenthLord.id)} is strong, so ${ROLE[tenthLord.id]} speaks louder than the house number.` : '',
           tenthLord && isWeak(tenthLord.dignity) ? `${gn(tenthLord.id)} is weak, so the houses it rules speak louder than its textbook nature.` : '',
           tenthLord ? `It rules ${ruled.length ? englishList(ruled.map(h => `house ${h}`)) : 'no house on this lagna'}.` : '',
-          jupiterRulesEighth && jupiter && isStrong(jupiter.dignity) ? 'Jupiter rules the 8th and is strong. That 8th becomes research and a hidden knowledge.' : '',
+          jupiterRulesEighth && jupiter && isStrong(jupiter.dignity) ? 'Jupiter rules the 8th and is strong. That 8th becomes research and hidden knowledge.' : '',
           jupiterRulesEighth && jupiter && isWeak(jupiter.dignity) ? 'Jupiter rules the 8th and is weak. Money, position, and voice come under strain.' : '',
         ].filter(Boolean).join(' '),
         tone: (tenthLord && isWeak(tenthLord.dignity) ? 'caution' : 'mixed') as MethodTone,
@@ -1458,7 +1458,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
           ? `${englishList(debilitatedCareer.map(g => gn(g.id)))} ${debilitatedCareer.length === 1 ? 'is' : 'are'} debilitated, and still functioning.`
           : 'No career lord is debilitated.',
         reading: debilitatedCareer.length
-          ? `Debility is a flavour in the result, not a total denial. ${bhanga ? 'A cancellation is present: the weakness stays visible, and the result can still come.' : 'No cancellation is sitting in a kendra, so the weakness stays in the result.'}`
+          ? `Debility is a flavor in the result, not a total denial. ${bhanga ? 'A cancellation is present: the weakness stays visible, and the result can still come.' : 'No cancellation is sitting in a kendra, so the weakness stays in the result.'}`
           : 'Do not invent a debilitated career. Use the chain and the dasha.',
         tone: (debilitatedCareer.length && !bhanga ? 'caution' : 'mixed') as MethodTone,
       },
@@ -1552,7 +1552,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
       ? 'Mercury here is communication and craft, not pure analysis.'
       : mercuryEarth
         ? 'Mercury here is analytical.'
-        : 'Mercury takes the colour of the field.'
+        : 'Mercury takes the color of the field.'
   const creativePair = !!(venus && mercury && joined(venus, mercury))
   const creativeIncome = !!((venus && houseOf(venus.rashi, asc) === 2) || meH === 2 || joined(secondLord, venus) || joined(secondLord, mercury))
   const creativeField = fieldId === 'speech' || creativePair || creativeIncome
@@ -1629,7 +1629,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
             ? 'Mercury on the work is pulled toward Venus, the 6th, or the 11th. Call it communication or a craft. Do not call it pure analysis because the planet is Mercury.'
             : mercuryEarth
               ? 'Mercury is on the work, in an earth sign, and not pulled into Venus or the 6th and 11th. The intelligence sorts, checks, and builds a structure.'
-              : 'Mercury is on the work and takes the colour of the field. It is not automatically a writer, and it is not automatically an analyst.'
+              : 'Mercury is on the work and takes the color of the field. It is not automatically a writer, and it is not automatically an analyst.'
           : 'Mercury is not the 10th lord, not in the 10th, and not joined to the 10th lord. Its habit is not the profession.',
         tone: 'mixed' as MethodTone,
       },
@@ -1908,7 +1908,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
         title: 'Growth and comfort',
         answer: `Growth ${growth.text}.`,
         reading: [
-          `The bright house used here is house ${brightHouse}, ${rn(brightSign)}. The house direction, the sign direction, and the planet direction are read together. They confirm a way only when they agree, or when they sit on two neighbouring ways.`,
+          `The bright house used here is house ${brightHouse}, ${rn(brightSign)}. The house direction, the sign direction, and the planet direction are read together. They confirm a way only when they agree, or when they sit on two neighboring ways.`,
           `Comfort ${comfort.text}. Comfort is the Moon, the 4th, and the lagna. It is mental ease, not the rise.`,
           waysDiffer ? 'Go toward the growth. Comfort is a different way. The strain in the growth direction is part of the work. Staying only where it is easy does not grow it.' : growth.dirs.length && comfort.dirs.length ? 'Growth and comfort are not in conflict.' : '',
           lagnaLordWay ? `The lagna lord’s sign makes strain more manageable toward the ${lagnaLordWay}. That is not the growth direction unless it matches.` : '',

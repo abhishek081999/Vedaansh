@@ -59,7 +59,7 @@ const JUPITER_NAKS = new Set([6, 15, 24])
 const KETU_NAKS = new Set([0, 9, 18])
 
 export const MARRIAGE_CLASS_PRINCIPLES =
-  'A physical marriage is Mars, an emotional marriage is the Moon, and a soul marriage is Venus, especially in the Navamsha. The birth chart is the marriage as it is lived. The Navamsha (D9) is the same planet at a deeper level: its meaning stays, its strength can change. When a planet is weak in the birth chart and strong in the Navamsha, the deeper chart is what holds. When it is strong in the birth chart and weak in the Navamsha, that strength does not hold underneath. This is read for Venus, Jupiter, and every other planet. Look first at the 7th house, the planet that rules it, and Venus. In the Navamsha, look at Venus first, then the 7th house, then the Moon. Householder life works on the ego, on feeling, and on the spirit together. Name the kind of bond before naming a year. A break that cannot be restarted needs three things at once: the marriage lord under strain, a difficult planet on Navamsha Venus, and Rahu’s major period with Saturn’s sub-period. The spouse is one of the debts carried from an earlier life, along with children and the home. D7 shows how the household changes after a child. The nine Navamsha age windows are not used to name a year. Only the first two have a theme here: family karma, then emotional learning. Rahu, Ketu, or Saturn on the marriage move the rest. The year you meet, and the place, stay unnamed until the kind of bond is clear. A soul bond is named only when those combinations are on the chart. A few days of feeling do not make one.'
+  'A physical marriage is Mars, an emotional marriage is the Moon, and a soul marriage is Venus, especially in the Navamsha. The birth chart is the marriage as it is lived. The Navamsha (D9) is the same planet at a deeper level: its meaning stays, its strength can change. When a planet is weak in the birth chart and strong in the Navamsha, the deeper chart is what holds. When it is strong in the birth chart and weak in the Navamsha, that strength does not hold underneath. This is read for Venus, Jupiter, and every other planet. The first things to examine are the 7th house, the planet that rules it, and Venus. In the Navamsha, the order is Venus, then the 7th house, then the Moon. Householder life works on the ego, on feeling, and on the spirit together. The kind of bond matters more than any year. A break that cannot be restarted needs three things at once: the marriage lord under strain, a difficult planet on Navamsha Venus, and Rahu’s major period with Saturn’s sub-period. The spouse is one of the debts carried from an earlier life, along with children and the home. D7 shows how the household changes after a child. The nine Navamsha age windows are not used to name a year. Only the first two have a theme here: family karma, then emotional learning. Rahu, Ketu, or Saturn on the marriage move the rest. The year you meet, and the place, stay unnamed until the kind of bond is clear. A soul bond is named only when those combinations are on the chart. A few days of feeling do not make one.'
 
 function houseOf(rashi: number, asc: number): number {
   return ((rashi - asc + 12) % 12) + 1
@@ -475,7 +475,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
       },
       '6-8': {
         title: 'Moon and Venus scatter the bond',
-        detail: 'This angle between the Moon and Venus is the one present when a marriage actually ends. Feeling goes one way. Attraction goes another. Intimacy has no center. Ego then finishes it: neither person will bend.',
+        detail: 'This angle between the Moon and Venus is the one often present when a marriage comes apart. Feeling goes one way. Attraction goes another. Closeness has no center. Ego can then finish it when neither person is willing to bend. It is a tendency, not a verdict.',
         tone: 'caution',
       },
       '2-12': {
@@ -511,7 +511,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     patternNotes.push(note(
       'class-pattern-second',
       'The first bond finishes; a later one fits',
-      'The marriage lord is under strain in the birth chart, in whatever house it occupies, while Venus and the marriage lord are strong in the Navamsha. The earlier bond is deep and can feel already decided. Depth does not keep it. It is the bond that finishes an old account. The later bond is the one that fits. A strong Navamsha means the marriage story is not over. This is not a certainty, and it is not a date. Keep this private if a spouse was never told.',
+      'The marriage lord is under strain in the birth chart, in whatever house it occupies, while Venus and the marriage lord are strong in the Navamsha. The earlier bond is deep and can feel already decided. Depth does not keep it. It is the bond that finishes an old account. The later bond is the one that fits. A strong Navamsha means the marriage story is not over. This is not a certainty, and it is not a date. If a spouse was never told about an earlier bond, this is sensitive and best shared only by choice.',
       'mixed',
     ))
   } else if (manyYoga) {
@@ -667,7 +667,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     patternNotes.push(note(
       'class-three-deep',
       'Three deep bonds, the last one steady',
-      'Venus and Mars are together in the Navamsha, and Saturn strains the marriage lord in the birth chart. There are three intense relationships. Steadiness arrives in the third. Keep this private unless both people already know the history.',
+      'Venus and Mars are together in the Navamsha, and Saturn strains the marriage lord in the birth chart. This can show up as three intense relationships, with steadiness arriving in the third. This is sensitive and best shared only if both people already know the history.',
       'mixed',
     ))
   }
@@ -886,7 +886,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     nakNotes.push(note(
       'class-nak-pair-break',
       'Ardra Venus, Pushya Moon',
-      'This pair is specific. Venus in Ardra with the Moon in Pushya is an emotional disconnect. Do not extend it to every Rahu or Saturn birth star.',
+      'This pair is specific. Venus in Ardra with the Moon in Pushya is an emotional disconnect. This does not extend to every Rahu or Saturn birth star.',
       'caution',
     ))
   }
@@ -1025,7 +1025,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     patternNotes.push(note(
       'class-remarriage-three',
       'Saturn, Moon, and Mars in the 7th',
-      'All three sit in the 7th. The classical remarriage yoga asks for this stack. If one were missing, it would not be read. The form of any first ending stays unnamed.',
+      'All three sit in the 7th. The classical second-bond combination asks for all three together, and it is not counted if one is missing. It says nothing about how any first bond ended.',
       'caution',
     ))
   }
@@ -1035,7 +1035,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     patternNotes.push(note(
       'class-multiplicity-twelfth',
       '7th lord in the 12th — more than one opening',
-      'The 7th lord in the 12th opens more than one partnership door: distant bonds, foreign threads, or a second serious chapter. Count openings, not automatic weddings.',
+      'The 7th lord in the 12th opens more than one partnership door: distant bonds, foreign threads, or a second serious chapter. These are openings, not automatic weddings.',
       'mixed',
     ))
   }
@@ -1136,7 +1136,7 @@ export function compareMarriageClass(
     notes.push(note(
       'class-pair-unstable',
       'Instability is in the pattern, not only in the fight',
-      `${who} show D1, D9, and Venus unstable together. Do not time a separation until the type is named and the dasha agrees. Do not promise that a good week has repaired the pattern.`,
+      `${who} show D1, D9, and Venus unstable together. This is a tendency, not a verdict, and it gives no date for a separation: the type of pattern and the dasha have to agree first. A good week does not mean the pattern has been repaired, either.`,
       'caution',
     ))
   }
@@ -1145,7 +1145,7 @@ export function compareMarriageClass(
     notes.push(note(
       'class-pair-open',
       'The two marriage-types do not form one shared label',
-      `Read ${nameA} and ${nameB} separately: kind of marriage, the three pillars, then D9. A shared label would be a convenience, not a finding.`,
+      `${nameA} and ${nameB} are best understood separately: kind of marriage, the three pillars, then D9. A shared label would be a convenience, not a finding.`,
       'mixed',
     ))
   }

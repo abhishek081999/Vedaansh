@@ -47,14 +47,14 @@ function prose(reading: MarriageKarmaReading): string {
 }
 
 describe('marriage karma and Venus', () => {
-  it('reads Venus with Rahu on the 7th as debt, and does not announce a death', () => {
+  it('reads Venus with Rahu on the 7th as debt, and does not indicate a death', () => {
     const reading = analyzeMarriageKarma(chart({
       asc: 1,
       grahas: [g('Ve', 7), g('Ra', 7), g('Ma', 1), g('Ju', 9), g('Sa', 10), g('Mo', 4)],
     }))!
     expect(reading.flags.kind).toBe('rina')
     expect(ids(reading)).toContain('karma-rina')
-    expect(prose(reading)).toMatch(/Do not announce a death/)
+    expect(prose(reading)).toMatch(/does not indicate a death/)
     expect(prose(reading)).not.toMatch(/will die|spouse dies/i)
   })
 

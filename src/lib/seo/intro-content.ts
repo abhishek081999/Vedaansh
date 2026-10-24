@@ -339,6 +339,10 @@ export const HOME_SEO: SeoIntroProps = {
     { label: 'Jaimini Astrology', desc: 'Atmakaraka, Chara Dasha, Arudha Lagna & Padas' },
     { label: 'KP Stellar Astrology', desc: 'Sub-lord system with cuspal interlinks' },
     { label: 'Kundali Matching (Synastry)', desc: '36-point Ashtakoot compatibility scoring' },
+    { label: 'Today\'s Reading', desc: 'Personal daily reading from your Moon, running dasha, and live transits' },
+    { label: 'Transits & Sade Sati', desc: 'Cosmic roadmap, aspects, bi-wheel, and transit calendar' },
+    { label: 'Relationship & Marriage', desc: 'Marriage timing, Mars and Vivah readings, and Navamsha analysis (Gold)' },
+    { label: 'Career & Profession', desc: 'Dashamsha-based career analysis with a step-by-step professional method (Gold)' },
   ],
   relatedLinks: [
     guideLink('free-vedic-birth-chart-kundali', 'Free Kundali guide'),
@@ -369,6 +373,10 @@ export const HOME_FAQ = [
   {
     q: 'What is included in Kundali matching on Vedaansh?',
     a: 'The compare tool offers 36-point Ashtakoot Guna Milan, dosha checks, and side-by-side chart views for two birth details.',
+  },
+  {
+    q: 'Does Vedaansh cover marriage and career astrology?',
+    a: 'Yes. The Relationship & Marriage and Career & Profession panels analyse your chart with divisional charts, dasha timing, and classical methods. Core scores are available on the free plan; the full readings are part of the Gold plan.',
   },
 ] as const
 

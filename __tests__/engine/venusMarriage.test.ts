@@ -73,7 +73,7 @@ describe('Venus in marriage', () => {
     }))!
     expect(reading.flags.bridge).toBe('broken')
     expect(ids(reading)).toContain('venus-jupiter-meaning')
-    expect(prose(reading)).toMatch(/not a sentence that the marriage fails|do not become sukh|do not become sukh|understood/i)
+    expect(prose(reading)).toMatch(/does not mean the marriage fails|do not become sukh|understood/i)
   })
 
   it('refuses a marriage muhurta when Venus is combust', () => {
