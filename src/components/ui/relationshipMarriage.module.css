@@ -1,0 +1,596 @@
+/* Relationship and marriage panel chrome: hero, tab bar, overview cards. */
+
+.toneSupportive { --tone: var(--teal); }
+.toneCaution { --tone: var(--rose); }
+.toneMixed { --tone: var(--amber, var(--text-gold)); }
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.85rem;
+  min-width: 0;
+}
+
+/* ── Hero ────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(ellipse 60% 120% at 0% 0%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 62%),
+    radial-gradient(ellipse 50% 100% at 100% 100%, color-mix(in srgb, var(--rose) 10%, transparent), transparent 65%),
+    var(--surface-1);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.heroBody { min-width: 0; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.45rem;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+}
+
+.eyebrow svg { color: var(--rose); }
+
+.headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+  font-weight: 650;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.lede {
+  margin: 0.55rem 0 0;
+  max-width: 62ch;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+
+.chipKey {
+  flex-shrink: 0;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.handoff {
+  margin: 0.85rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.handoff a {
+  color: var(--text-gold);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
+.handoff a:hover { border-bottom-color: var(--text-gold); }
+
+/* Overall ring */
+
+.ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 118px;
+  text-align: center;
+}
+
+.ringSvg {
+  width: 118px;
+  height: 118px;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--tone) 35%, transparent));
+}
+
+.ringTrack { stroke: var(--surface-3); }
+
+.ringValue {
+  stroke: var(--tone);
+  stroke-linecap: round;
+  animation: ringDraw 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ringCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.ringNumber {
+  font-family: var(--font-display);
+  font-size: 1.95rem;
+  font-weight: 700;
+  color: var(--tone);
+}
+
+.ringOutOf {
+  margin-top: 0.15rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ringCaption {
+  margin-top: 0.35rem;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+@keyframes ringDraw {
+  from { stroke-dashoffset: var(--ring-full); }
+  to { stroke-dashoffset: var(--ring-offset); }
+}
+
+/* ── Tab bar ─────────────────────────────────────────────── */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  margin: 0 -0.15rem;
+  background: color-mix(in srgb, var(--bg-page, var(--surface-1)) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.tabs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px;
+}
+
+.tabs::-webkit-scrollbar { display: none; }
+
+/* Edge fades appear only on the side that still has hidden tabs. */
+.fadeRight {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
+}
+
+.fadeLeft {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 32px);
+  mask-image: linear-gradient(90deg, transparent, #000 32px);
+}
+
+.fadeLeft.fadeRight {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+}
+
+.tab {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.tabActive,
+.tabActive:hover {
+  color: var(--text-gold);
+  font-weight: 750;
+  border-color: color-mix(in srgb, var(--gold) 60%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 16%, transparent), color-mix(in srgb, var(--gold) 6%, transparent)), var(--surface-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 10%, transparent);
+}
+
+.tab svg { flex-shrink: 0; }
+
+.switch {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.switchInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switchTrack {
+  position: relative;
+  width: 30px;
+  height: 17px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.switchTrack::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: var(--text-muted);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.switchInput:checked + .switchTrack {
+  background: color-mix(in srgb, var(--gold) 28%, var(--surface-3));
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--border));
+}
+
+.switchInput:checked + .switchTrack::after {
+  transform: translateX(13px);
+  background: var(--gold);
+}
+
+.switchInput:focus-visible + .switchTrack {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ── Tab content ─────────────────────────────────────────── */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+  animation: contentIn 0.32s ease both;
+}
+
+.tabHint {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.tabHint::before {
+  content: '';
+  flex-shrink: 0;
+  width: 18px;
+  height: 1px;
+  background: var(--gold);
+}
+
+@keyframes contentIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── Grids and cards ─────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+.gridWide { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(ellipse 90% 70% at 0% 0%, color-mix(in srgb, var(--tone) 11%, transparent), transparent 70%),
+    var(--surface-1);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.question:hover {
+  border-color: color-mix(in srgb, var(--tone) 45%, var(--border));
+  transform: translateY(-1px);
+}
+
+.questionHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.badge {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--r-md);
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tone) 35%, transparent);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 750;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+.cardQuestion {
+  margin: 0;
+  font-size: 0.72rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--text-gold);
+}
+
+.placement {
+  align-self: flex-start;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, var(--border-soft));
+  background: color-mix(in srgb, var(--tone) 8%, transparent);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.cardBody {
+  margin: 0.15rem 0 0;
+  font-size: 0.77rem;
+  line-height: 1.58;
+  color: var(--text-secondary);
+}
+
+.proposal {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.95rem;
+  align-items: start;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(ellipse 50% 120% at 0% 50%, var(--gold-faint), transparent 70%),
+    var(--surface-2);
+}
+
+.houseMark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 50%, var(--border));
+  background: color-mix(in srgb, var(--gold) 10%, var(--surface-1));
+  color: var(--text-gold);
+  line-height: 1;
+}
+
+.houseMarkLabel {
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.houseMarkNumber {
+  margin-top: 0.15rem;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.proposalBody { min-width: 0; }
+
+.proposalTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+
+.proposalText {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.bondStyle {
+  margin: 0.7rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: color-mix(in srgb, var(--gold) 6%, transparent);
+  font-size: 0.78rem;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.house {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background:
+    linear-gradient(100deg, color-mix(in srgb, var(--tone) 9%, transparent), transparent 60%),
+    var(--surface-2);
+}
+
+.houseHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  color: var(--tone);
+}
+
+.houseTitle {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.houseBody {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ── Locked (free plan) ──────────────────────────────────── */
+
+.locked {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  min-height: 112px;
+  padding: 1rem 1.1rem;
+  border: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--border));
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(ellipse 60% 120% at 0% 0%, var(--gold-faint), transparent 65%),
+    var(--surface-2);
+}
+
+.lockedIcon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  color: var(--text-gold);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
+.lockedTitle { margin: 0 0 0.3rem; font-size: 0.9rem; font-weight: 750; color: var(--text-primary); }
+.lockedText { margin: 0; font-size: 0.78rem; line-height: 1.55; color: var(--text-muted); }
+
+/* ── Responsive and motion ───────────────────────────────── */
+
+@media (max-width: 640px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 1.05rem 1rem;
+  }
+
+  .ring {
+    order: -1;
+    justify-self: start;
+    width: 96px;
+  }
+
+  .ringSvg { width: 96px; height: 96px; }
+  .ringNumber { font-size: 1.6rem; }
+
+  .bar { flex-direction: column; align-items: stretch; gap: 0.4rem; }
+  .switch { align-self: flex-end; }
+  .proposal { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ringValue,
+  .content { animation: none; }
+  .question,
+  .tab,
+  .switchTrack,
+  .switchTrack::after { transition: none; }
+  .question:hover { transform: none; }
+}

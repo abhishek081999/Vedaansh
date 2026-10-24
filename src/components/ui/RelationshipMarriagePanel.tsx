@@ -4,8 +4,7 @@
 //  Individual chart — quality of married life
 // ─────────────────────────────────────────────────────────────
 
-import React, { useEffect, useMemo, useState, useTransition } from 'react'
-import Link from 'next/link'
+import React, { useEffect, useId, useMemo, useState, useTransition } from 'react'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
 import { RASHI_SHORT } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
@@ -31,14 +30,23 @@ import { analyzePartnerNature } from '@/lib/engine/partnerNature'
 import { analyzeDivorceEnergy } from '@/lib/engine/divorceEnergy'
 import { analyzeClassicalMarriage } from '@/lib/engine/classicalMarriage'
 import { analyzeMarriageCaseBrief } from '@/lib/engine/marriageCaseBrief'
-import { ClassicalMarriageSections, CaseBriefCard, DivorceEnergySections, IntimateLifeSections, JayaSections, KarmicDebtSections, LIFE_TONE, MarriageClassSections, MarriageGocharSections, MarriageHousesSections, MarriageKarmaSections, MarriageMarsSections, MarriageVivahSections, NoteCards, PartnerNatureSections, ScoreMeter, SectionLabel, SeventhLordSections, VenusJupiterSections, VenusMarriageSections, YogaChecklist } from '@/components/ui/marriedLifeUi'
+import { ClassicalMarriageSections, CaseBriefCard, DivorceEnergySections, IntimateLifeSections, JayaSections, KarmicDebtSections, MarriageClassSections, MarriageGocharSections, MarriageHousesSections, MarriageKarmaSections, MarriageMarsSections, MarriageVivahSections, NoteCards, PartnerNatureSections, ScoreMeter, SectionLabel, SeventhLordSections, VenusJupiterSections, VenusMarriageSections, YogaChecklist } from '@/components/ui/marriedLifeUi'
 import { JaiminiMarriageSection } from '@/components/ui/JaiminiMarriageSection'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
+import {
+  MarriageHero,
+  MarriageLockedCard,
+  MarriageOverviewDetails,
+  MarriageTabs,
+  TabHint,
+  type MarriageView,
+} from '@/components/ui/relationshipMarriageUi'
+import s from '@/components/ui/relationshipMarriage.module.css'
 
 /** A reading block. Several sections are stacked inside one tab. */
 type Section = 'overview' | 'axis' | 'bonds' | 'classical' | 'jaimini' | 'jaya' | 'class' | 'bond' | 'method' | 'partner' | 'split' | 'houses' | 'lord' | 'planets' | 'mars' | 'intimate' | 'timing' | 'remedies'
 
-type View = 'overview' | 'seventh' | 'planets' | 'partner' | 'bond' | 'classical' | 'timing'
+type View = MarriageView
 
 /**
  * Seven tabs, each grouping related sections (rendered in the order of the JSX below).
@@ -228,8 +236,9 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
   const [view, setView] = useState<View>('overview')
   const [clientSafe, setClientSafe] = useState(true)
   const [yogaFilter, setYogaFilter] = useState('')
-  const activeSections = VIEWS.find(v => v.id === view)?.sections ?? VIEWS[0].sections
-  const has = (section: Section) => activeSections.includes(section)
+  const panelId = useId()
+  const activeView = VIEWS.find(v => v.id === view) ?? VIEWS[0]
+  const has = (section: Section) => activeView.sections.includes(section)
 
   if (!data) {
     return (
@@ -240,130 +249,52 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', padding: '0.85rem' }}>
-      <header>
-        <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: 4 }}>Relationship and marriage</div>
-        <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 650 }}>{data.headline}</h2>
-        <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55, maxWidth: 760 }}>
-          {data.summary}
-        </p>
-        {embedded ? null : (
-          <p style={{ margin: '0.65rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Solo reading for this chart.{' '}
-            <Link href="/compare" style={{ color: 'var(--text-gold)', fontWeight: 700, textDecoration: 'none' }}>
-              Match with a partner chart
-            </Link>
-            {' '}for Kundali Milan.
-          </p>
-        )}
-      </header>
+    <div className={s.root}>
+      <MarriageHero data={data} chart={chart} embedded={embedded} />
 
       {embedded ? null : <MarriageCharts chart={chart} userPlan={userPlan} showDivisionals={full} />}
 
       {!full && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.65rem' }}>
+          <div className={s.grid}>
             {data.dimensions.map(d => (
               <ScoreMeter key={d.id} label={d.label} planet={d.planet} score={d.score} summary={firstSentence(d.summary)} />
             ))}
           </div>
           <PlanGate userPlan={userPlan} required="gold" featureName="Relationship and marriage">
-            <div style={{ minHeight: 112, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>Full reading is on Gold</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                Every divisional chart, the four questions, D1 and D9, Venus and Jupiter, the marriage method, the partner, separation, houses, timing, and remedies.
-              </div>
-            </div>
+            <MarriageLockedCard />
           </PlanGate>
         </>
       )}
 
       {full && <>
       {caseBrief ? <CaseBriefCard brief={caseBrief} clientSafe={clientSafe} /> : null}
+      <MarriageTabs
+        views={VIEWS}
+        view={view}
+        onView={setView}
+        clientSafe={clientSafe}
+        onClientSafe={setClientSafe}
+        panelId={panelId}
+      />
+
       <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 5,
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.4rem',
-          alignItems: 'center',
-          padding: '0.55rem 0',
-          margin: '0 -0.15rem',
-          background: 'var(--bg-page, var(--surface-1))',
-          borderBottom: '1px solid var(--border-soft)',
-        }}
+        key={view}
+        className={s.content}
+        role="tabpanel"
+        id={`${panelId}-panel`}
+        aria-labelledby={`${panelId}-tab-${view}`}
       >
-        {VIEWS.map(v => (
-          <button
-            key={v.id}
-            type="button"
-            title={v.hint}
-            aria-pressed={view === v.id}
-            onClick={() => setView(v.id)}
-            style={{
-              padding: '0.4rem 0.75rem',
-              borderRadius: '999px',
-              border: `1px solid ${view === v.id ? 'var(--text-gold)' : 'var(--border)'}`,
-              background: view === v.id ? 'var(--surface-3)' : 'var(--surface-1)',
-              color: view === v.id ? 'var(--text-gold)' : 'var(--text-muted)',
-              fontSize: '0.75rem',
-              fontWeight: view === v.id ? 700 : 500,
-              cursor: 'pointer',
-            }}
-          >
-            {v.label}
-          </button>
-        ))}
-        <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-          <input type="checkbox" checked={clientSafe} onChange={e => setClientSafe(e.target.checked)} />
-          Gentle wording
-        </label>
-      </div>
+      <TabHint>{activeView.hint}</TabHint>
 
       {has('overview') && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.65rem' }}>
+          <div className={s.grid}>
             {data.dimensions.map(d => (
               <ScoreMeter key={d.id} label={d.label} planet={d.planet} score={d.score} summary={d.summary} />
             ))}
           </div>
-          <SectionLabel>Four questions</SectionLabel>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.65rem' }}>
-            {data.significators.map(s => (
-              <article key={s.id} style={{
-                padding: '0.85rem',
-                borderRadius: 'var(--r-md)',
-                border: '1px solid var(--border)',
-                borderTop: `3px solid ${LIFE_TONE[s.tone]}`,
-                background: 'var(--surface-1)',
-              }}>
-                <div style={{ fontWeight: 800, fontSize: '0.85rem' }}>{s.title}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-gold)', margin: '0.2rem 0 0.35rem' }}>{s.question}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 6 }}>{s.placement}</div>
-                <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{s.reading}</p>
-              </article>
-            ))}
-          </div>
-          <article style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-            <SectionLabel>Who brings the proposal</SectionLabel>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              <strong style={{ color: 'var(--text-primary)' }}>House {data.proposal.house} · {data.proposal.relative}.</strong>{' '}
-              {data.proposal.detail}
-            </p>
-            <p style={{ margin: '0.65rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.bondStyle}</p>
-          </article>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.65rem' }}>
-            <article style={{ padding: '0.85rem', borderLeft: `3px solid ${LIFE_TONE[data.fourth.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-              <SectionLabel>4th house — home</SectionLabel>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{data.fourth.reading}</p>
-            </article>
-            <article style={{ padding: '0.85rem', borderLeft: `3px solid ${LIFE_TONE[data.tenth.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-              <SectionLabel>10th house — work{chart.meta.gender === 'female' ? ' and mother-in-law' : ''}</SectionLabel>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{data.tenth.reading}</p>
-            </article>
-          </div>
+          <MarriageOverviewDetails data={data} gender={chart.meta.gender} />
         </>
       )}
 
@@ -561,6 +492,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
           <NoteCards notes={data.remedies} clientSafe={clientSafe} />
         </>
       )}
+      </div>
       </>}
     </div>
   )
