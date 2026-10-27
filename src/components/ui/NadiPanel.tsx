@@ -1,7 +1,7 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/NadiPanel.tsx
-//  Nadi workspace. Chart first, then the readings.
+//  Nadi workspace. The active reading leads; the chart stays beside it.
 // ─────────────────────────────────────────────────────────────
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -89,7 +89,7 @@ function NadiCharts({
   const selectedAsc = ((selected ? chart.vargaLagnas?.[selected.name] : undefined) ?? d1Asc) as Rashi
   const core = divisionals.filter((v) => v.tier === 'free')
   const extended = divisionals.filter((v) => v.tier !== 'free')
-  const size = compact ? 250 : 300
+  const size = compact ? 220 : view === 'chart' ? 280 : 248
   const marks = nadiHighlights(view, reading, selected?.name ?? 'D9')
   const option = (v: (typeof divisionals)[number]) => {
     const unlocked = planRank(userPlan) >= tierRank(v.tier)
@@ -288,21 +288,21 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
   const running = useMemo(() => getDashaPathAt(nodes), [nodes])
   const current = VIEWS.find((item) => item.id === view) ?? VIEWS[0]
 
+  const openView = (next: NadiView) => {
+    setView(next)
+    requestAnimationFrame(() => {
+      rootRef.current?.querySelector('#nadi-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
+  }
+
   return (
     <div ref={rootRef} className={styles.root}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Nadi Astrology</h1>
-        <p className={styles.lede}>
-          What is active on this chart: the career, the combinations, the year, and the period. Each tab opens that part.
-        </p>
-      </header>
-
+      <NadiActiveBrief reading={reading} period={period} onOpen={openView} />
       <ChartContextBar chart={chart} />
-      <NadiCharts chart={chart} userPlan={userPlan} compact={isMobile} view={view} reading={reading} />
-      <NadiActiveBrief reading={reading} period={period} />
-      <NadiTabs view={view} onView={setView} />
+      <NadiTabs view={view} onView={openView} />
       <p className={styles.tabHint}>{current?.hint}</p>
 
+      <div className={view === 'chart' ? styles.workspaceChart : styles.workspace}>
       <div className={styles.content} id="nadi-panel" role="tabpanel" aria-labelledby={`nadi-tab-${view}`} key={view}>
         {view === 'chart' && (
           <section className="panel" aria-label="Planetary positions">
@@ -319,6 +319,8 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
             </div>
           </section>
         )}
+
+        {view !== 'chart' ? <NadiHousesSection chart={chart} view={view} reading={reading} /> : null}
 
         {view === 'timing' && (
           <section className="panel" aria-label="Dasha">
@@ -356,8 +358,10 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
             </div>
           </section>
         )}
-
-        {view !== 'chart' ? <NadiHousesSection chart={chart} view={view} reading={reading} /> : null}
+      </div>
+      <aside className={styles.chartRail} aria-label="Charts for this reading">
+        <NadiCharts chart={chart} userPlan={userPlan} compact={isMobile} view={view} reading={reading} />
+      </aside>
       </div>
     </div>
   )

@@ -106,109 +106,61 @@ export function Reference({ label, children }: { label: string; children: React.
   )
 }
 
-export function NadiActiveBrief({ reading, period }: { reading: NadiChartReading; period: string | null }) {
+export type NadiJump = 'houses' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
+
+export function NadiActiveBrief({
+  reading,
+  period,
+  onOpen,
+}: {
+  reading: NadiChartReading
+  period: string | null
+  onOpen: (view: NadiJump) => void
+}) {
   const headline = reading.career.lines[0]
     ?? reading.navamshaNotes[0]
     ?? reading.bcp?.lines[0]
     ?? 'The reading follows the houses, the period, and the combinations on this chart.'
-  const chips: { key: string; value: string }[] = []
-  if (period) chips.push({ key: 'Period', value: period })
-  chips.push({ key: 'Career', value: CAREER_PRIORITY[reading.career.priority] })
-  if (reading.marriageYogas.length > 0) chips.push({ key: 'Marriage', value: `${reading.marriageYogas.length} combination${reading.marriageYogas.length === 1 ? '' : 's'}` })
-  if (reading.yogas.length > 0) chips.push({ key: 'Yogas', value: String(reading.yogas.length) })
-  if (reading.bcp) chips.push({ key: 'Year', value: `${reading.bcp.runningYear} · ${reading.bcp.houseName}` })
-  const ahead = reading.future.years.find((year) => !year.now && year.techniques.length > 1)
-  if (ahead) chips.push({ key: 'Ahead', value: `${ahead.year} · ${ahead.houseName}` })
-  if (reading.dashamshaNotes.length > 0) chips.push({ key: 'Dashamsha', value: 'Active' })
-  if (reading.shashtiamsaNotes.length > 0) chips.push({ key: 'Shashtiamsa', value: 'Active' })
-  chips.push({ key: 'Bhrigu', value: ordinal(reading.bhriguHouse) })
-  if (reading.propertyNotes.length > 0) chips.push({ key: 'Property', value: 'D4' })
-  if (reading.vehicleNotes.length > 0) chips.push({ key: 'Vehicle', value: 'D16' })
+  const yearLine = reading.bcp
+    ? `The ${ordinal(reading.bcp.runningYear)} year is ${reading.bcp.houseName}.`
+    : null
+  const periodLine = period ? `Vimshottari now: ${period}.` : null
+  const lede = [yearLine, periodLine].filter(Boolean).join(' ')
+    || 'Each tab opens one part of this chart: houses, combinations, marriage, career, the years ahead, and the sky.'
 
-  const items = overviewFindings(reading).filter((item) => item.answer !== headline).slice(0, 6)
+  const chips: { key: string; value: string; view: NadiJump }[] = []
+  if (period) chips.push({ key: 'Period', value: period, view: 'timing' })
+  chips.push({ key: 'Career', value: CAREER_PRIORITY[reading.career.priority], view: 'career' })
+  if (reading.marriageYogas.length > 0) {
+    chips.push({
+      key: 'Marriage',
+      value: `${reading.marriageYogas.length} combination${reading.marriageYogas.length === 1 ? '' : 's'}`,
+      view: 'marriage',
+    })
+  }
+  if (reading.yogas.length > 0) chips.push({ key: 'Yogas', value: String(reading.yogas.length), view: 'yogas' })
+  if (reading.bcp) chips.push({ key: 'Year', value: `${reading.bcp.runningYear} · ${reading.bcp.houseName}`, view: 'timing' })
+  const ahead = reading.future.years.find((year) => !year.now && year.techniques.length > 1)
+  if (ahead) chips.push({ key: 'Ahead', value: `${ahead.year} · ${ahead.houseName}`, view: 'future' })
+  chips.push({ key: 'Bhrigu', value: ordinal(reading.bhriguHouse), view: 'houses' })
 
   return (
     <section className={styles.brief} aria-label="Active on this chart">
-      <p className={styles.kicker}>Active on this chart</p>
-      <h2 className={styles.briefTitle}>{headline}</h2>
-      {chips.length > 0 && (
-        <ul className={styles.briefChips}>
-          {chips.map((chip) => (
-            <li key={chip.key} className={styles.briefChip}>
+      <p className={styles.kicker}>Nadi Astrology</p>
+      <h1 className={styles.briefTitle}>{headline}</h1>
+      <p className={styles.briefLede}>{lede}</p>
+      <ul className={styles.briefChips}>
+        {chips.map((chip) => (
+          <li key={chip.key}>
+            <button type="button" className={styles.briefChip} onClick={() => onOpen(chip.view)}>
               <span className={styles.briefKey}>{chip.key}</span>
               <span>{chip.value}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      <FindingGrid items={items} />
+            </button>
+          </li>
+        ))}
+      </ul>
     </section>
   )
-}
-
-function overviewFindings(reading: NadiChartReading): NadiFinding[] {
-  const items: NadiFinding[] = []
-  const marriage = reading.marriageYogas[0]
-  if (marriage) {
-    items.push({
-      id: 'marriage',
-      title: 'Marriage',
-      answer: marriage.name,
-      reading: marriage.reading,
-      tone: toneOf(marriage.reading),
-    })
-  } else if (reading.navamshaNotes[0]) {
-    items.push({ id: 'navamsha', title: 'Navamsha', answer: reading.navamshaNotes[0], tone: toneOf(reading.navamshaNotes[0]) })
-  }
-  const yoga = reading.yogas[0]
-  if (yoga) {
-    items.push({
-      id: 'yoga',
-      title: yoga.kind === 'inauspicious' ? 'Inauspicious' : 'Supportive',
-      answer: yoga.name,
-      reading: `${yoga.effect} ${yoga.bearerNote}`,
-      tone: yoga.kind === 'inauspicious' ? 'caution' : 'support',
-    })
-  }
-  if (reading.dashamshaNotes[0]) {
-    items.push({ id: 'd10', title: 'Dashamsha', answer: reading.dashamshaNotes[0], tone: toneOf(reading.dashamshaNotes[0]) })
-  }
-  if (reading.bcp?.lines[0]) {
-    items.push({ id: 'year', title: 'Running year', answer: reading.bcp.lines[0], tone: 'plain' })
-  }
-  if (reading.decisionNotes[0]) {
-    items.push({ id: 'decision', title: 'Decisions', answer: reading.decisionNotes[0], tone: toneOf(reading.decisionNotes[0]) })
-  }
-  if (reading.wealthTiming[0]) {
-    items.push({ id: 'wealth', title: 'Wealth', answer: reading.wealthTiming[0], tone: toneOf(reading.wealthTiming[0]) })
-  }
-  if (reading.gemNotes[0]) {
-    items.push({ id: 'gem', title: 'Gemstone', answer: reading.gemNotes[0], tone: toneOf(reading.gemNotes[0]) })
-  }
-  if (reading.hardTransitNotes[0]) {
-    items.push({ id: 'hard', title: 'Hard transit', answer: reading.hardTransitNotes[0], tone: 'caution' })
-  }
-  const special = reading.specialNotes.find((line) => line.includes('is running') || line.includes('are running'))
-  if (special) {
-    items.push({ id: 'special', title: 'Degree', answer: special, tone: toneOf(special) })
-  }
-  const asset = [...reading.propertyNotes, ...reading.vehicleNotes].find((line) => line.includes('is running') || line.includes('are running'))
-  if (asset) {
-    items.push({
-      id: 'asset',
-      title: reading.vehicleNotes.includes(asset) ? 'Vehicle' : 'Property',
-      answer: asset,
-      tone: toneOf(asset),
-    })
-  }
-  if (reading.nodeNote) {
-    items.push({ id: 'nodes', title: 'Nodes', answer: reading.nodeNote, tone: 'caution' })
-  }
-  const bhrigu = reading.bhriguNotes.find((line) => line.includes('checked') || line.includes('blessing') || line.includes('Wealth is read'))
-  if (bhrigu) {
-    items.push({ id: 'bhrigu', title: 'Bhrigu Bhava', answer: bhrigu, tone: toneOf(bhrigu) })
-  }
-  return items
 }
 
 export function nadiHighlights(
