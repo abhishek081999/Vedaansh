@@ -11,7 +11,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown, CalendarCheck, Orbit, HeartHandshake, Heart, Briefcase } from 'lucide-react'
+import { Sparkles, Info, Clock, Moon, Zap, Star, Grid3x3, Scale, Home, BarChart3, HelpCircle, Compass, Calendar, Globe, Layers, ArrowRight, Download, Library, ChevronDown, CalendarCheck, Orbit, HeartHandshake, Heart, Briefcase, Waypoints } from 'lucide-react'
 import { birthUtcFromMeta } from '@/lib/engine/dasha/hydrateChara'
 import { getCurrentMahaDashaLord, MajorKundaliStrip } from '@/components/ui/MajorKundaliStrip'
 
@@ -519,6 +519,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Calendar: Calendar,
   Nakshatra: Star,
   'Jaimini Astrology': Zap,
+  'Nadi Astrology': Waypoints,
   'Astro Vastu': Home,
   AstroCartography: Globe,
   'Sarvatobhadra Chakra': Layers,
@@ -1350,6 +1351,7 @@ function HomeContent() {
       sections: [
         { title: 'Nakshatra', subtitle: 'Lunar', text: 'Nakshatra insights day by day.', href: '/nakshatra', ctaName: 'major_sections_nakshatra' },
         { title: 'Jaimini Astrology', subtitle: 'Advanced', text: 'Jaimini charts and life direction.', href: '/jaimini', ctaName: 'major_sections_jaimini' },
+        { title: 'Nadi Astrology', subtitle: 'Advanced', text: 'Chart, planetary positions, and dasha.', href: '/nadi', ctaName: 'major_sections_nadi' },
         { title: 'Sarvatobhadra Chakra', subtitle: 'Classical', text: 'Traditional S.B. Chakra timing.', href: '/sbc', ctaName: 'major_sections_sarvatobhadra' },
         { title: 'AstroCartography', subtitle: 'Location', text: 'Planetary lines for travel and moves.', href: '/acg', ctaName: 'major_sections_astrocartography' },
         { title: 'Astro Vastu', subtitle: 'Space', text: 'Vastu aligned with your chart.', href: '/vastu', ctaName: 'major_sections_astro_vastu' },

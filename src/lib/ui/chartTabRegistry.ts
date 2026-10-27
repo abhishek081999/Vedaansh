@@ -114,6 +114,7 @@ export const MOBILE_DASHBOARD_OPTIONS = {
   ],
   advanced: [
     { id: 'jaimini', label: 'Jaimini Astrology', path: '/jaimini' },
+    { id: 'nadi', label: 'Nadi Astrology', path: '/nadi' },
     { id: 'astro-vastu', label: 'Astro Vastu', path: '/vastu' },
     { id: 'astro-carto', label: 'AstroCartography', path: '/acg' },
     { id: 'sbc', label: 'Sarvatobhadra Chakra', path: '/sbc' },

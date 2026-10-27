@@ -49,7 +49,7 @@ Canonical plans: `free` | `gold` | `platinum`. Enforcement matrix: [`SUBSCRIPTIO
 | **Dashas** | Vimshottari, Yogini, Chara/Jaimini, Ashtottari |
 | **Strengths** | Arudhas, Shadbala, Vimsopaka, Ashtakavarga, yogas |
 | **Panchang** | Daily + monthly calendar; timings (Choghadiya, Rahu Kalam, etc.) |
-| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Prashna (Satpanchasika free), Jaimini, ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
+| **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Prashna (Satpanchasika free), Jaimini, Nadi (chart, positions, houses, dasha), ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
 | **Library** | Save up to **20** charts and **20** Kundali Milan matches; public share; notes; JHD/SJS import; location search |
 
 ### Gold — ₹168/month or ₹1,443/year
@@ -83,7 +83,7 @@ Bulk XLSX import is available to any authenticated user until the plan save cap 
 
 ## Highlights (v2.6.x)
 
-- Sarvatobhadra Chakra, Prashna, Jaimini, KP significators, Vastu, ACG, Naamkaran (name prediction)
+- Sarvatobhadra Chakra, Prashna, Jaimini, Nadi Astrology, KP significators, Vastu, ACG, Naamkaran (name prediction)
 - Reel studio (admin Remotion + canvas cards)
 - Cosmic roadmap `/roadmap` and time scrubber `/scrubber`
 - PWA (Serwist) + Android TWA packaging

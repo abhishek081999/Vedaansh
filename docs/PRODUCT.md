@@ -38,7 +38,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 - Panchang + calendar; Kundali Milan (Ashtakoot, Porutham, and charts on Free; match-making, married life, All Sections, and print on Gold+)
 - Relationship and marriage on the chart (preview on Free; full reading on Gold+)
 - Career and profession on the chart: the first reading, plus a second method (karma field, the joined pair, nakshatra behavior, then D10). Preview on Free; full reading on Gold+
-- Prashna, Jaimini, ACG, Vastu, Nakshatra lab, Numerology
+- Prashna, Jaimini, Nadi (chart, positions, houses, dasha), ACG, Vastu, Nakshatra lab, Numerology
 - Auth: Google OAuth + credentials; email verify / reset
 - PWA (Serwist) + Android TWA packaging
 - Admin reel studio (Remotion) for marketing video
