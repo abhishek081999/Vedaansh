@@ -1,10 +1,37 @@
 'use client'
-// src/components/ui/NakshatraPanel.tsx
-// Full-page Nakshatra workspace: D1 chart (left) + analysis tabs (right)
+// ─────────────────────────────────────────────────────────────
+//  src/components/ui/NakshatraPanel.tsx
+//  Nakshatra workspace: birth star, D1 chart, and analysis tabs
+// ─────────────────────────────────────────────────────────────
 
 import React, { useState, useMemo, useEffect } from 'react'
 import {
-  Info, Compass, Calendar, Zap, Flame, Star, Link2, Heart, Briefcase, Activity, Orbit,
+  Activity,
+  BookOpen,
+  Briefcase,
+  CalendarDays,
+  Check,
+  Coins,
+  Compass,
+  Flame,
+  Gem,
+  Heart,
+  Home,
+  Info,
+  Leaf,
+  Lightbulb,
+  Link2,
+  Moon,
+  Orbit,
+  Plane,
+  Sparkles,
+  Star,
+  Sun,
+  Target,
+  Trophy,
+  TrendingDown,
+  Zap,
+  type LucideIcon,
 } from 'lucide-react'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'
 import { NakshatraProfessionTab } from '@/components/ui/NakshatraProfessionTab'
@@ -14,44 +41,44 @@ import { NakshatraNavtaraTab } from '@/components/ui/NakshatraNavtaraTab'
 import {
   getNakshatraCharacteristics, checkPanchaka,
   getGraNakPositions, getNakCompatibility, TARA_QUALITIES, TARA_NAMES,
-  NAKSHATRA_GANA, NAKSHATRA_NADI, NAKSHATRA_YONI,
   type NakshatraCharacteristics,
 } from '@/lib/engine/nakshatraAdvanced'
 import { getRelationshipNavtara } from '@/lib/engine/navtaraPrediction'
 import {
   getMonthlyForecast, getNakshatraMuhurtaRating, NAKSHATRA_REMEDIES,
-  type DayForecast, type ActivityType,
+  type ActivityType,
 } from '@/lib/engine/nakshatraRemedies'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
-import { NAKSHATRA_NAMES as NAK_NAMES, GRAHA_NAMES, GRAHA_SANSKRIT, RASHI_NAMES } from '@/types/astrology'
+import { NAKSHATRA_NAMES as NAK_NAMES, GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
+import { PlanetDetailCard, ICON } from '@/components/ui/PlanetDetailCard'
+import { NakshatraWheel } from '@/components/ui/NakshatraWheel'
+import { Button } from '@/components/ui/primitives/Button'
+import { cn } from '@/lib/ui/cn'
+import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+import styles from './NakshatraPanel.module.css'
 
-import { PlanetDetailCard, ICON, QC, GANA_COL } from '@/components/ui/PlanetDetailCard'
-const RATING_COL: Record<string,string> = {
-  Excellent:'#4ade80',Good:'#86efac',Neutral:'#fbbf24',Avoid:'#f87171',
-}
-
-// ── Sub-tabs ──────────────────────────────────────────────────
 export type NakshatraSubTab = 'overview' | 'navtara' | 'taramandal' | 'bestdays' | 'muhurta' | 'panchaka' | 'planet' | 'compat' | 'remedies' | 'profession' | 'medical'
 type SubTab = NakshatraSubTab
-const TABS: {id:SubTab;label:string;icon:string}[] = [
-  {id:'navtara',     label:'Navtara',     icon:'🔯'},
-  {id:'taramandal',  label:'Taramandal',  icon:'✦'},
-  {id:'bestdays',    label:'Best Days',   icon:'📅'},
-  {id:'muhurta',     label:'Muhurta',     icon:'⚡'},
-  {id:'panchaka',    label:'Panchaka',    icon:'🔥'},
-  {id:'planet',      label:'Planets',     icon:'✦'},
-  {id:'compat',      label:'Compat',      icon:'🔗'},
-  {id:'remedies',    label:'Remedies',    icon:'🙏'},
-  {id:'profession',  label:'Profession',  icon:'💼'},
-  {id:'medical',     label:'Medical',     icon:'🏥'},
+
+const TABS: { id: SubTab; label: string; Icon: LucideIcon }[] = [
+  { id: 'navtara', label: 'Navtara', Icon: Compass },
+  { id: 'taramandal', label: 'Taramandal', Icon: Orbit },
+  { id: 'bestdays', label: 'Best Days', Icon: CalendarDays },
+  { id: 'muhurta', label: 'Muhurta', Icon: Zap },
+  { id: 'panchaka', label: 'Panchaka', Icon: Flame },
+  { id: 'planet', label: 'Planets', Icon: Star },
+  { id: 'compat', label: 'Compat', Icon: Link2 },
+  { id: 'remedies', label: 'Remedies', Icon: Heart },
+  { id: 'profession', label: 'Profession', Icon: Briefcase },
+  { id: 'medical', label: 'Medical', Icon: Activity },
 ]
 
-const MOBILE_TABS: { id: SubTab; icon: typeof Info; label: string }[] = [
+const MOBILE_TABS: { id: SubTab; icon: LucideIcon; label: string }[] = [
   { id: 'overview', icon: Info, label: 'Overview' },
   { id: 'navtara', icon: Compass, label: 'Navtara' },
   { id: 'taramandal', icon: Orbit, label: 'Mandal' },
-  { id: 'bestdays', icon: Calendar, label: 'Days' },
+  { id: 'bestdays', icon: CalendarDays, label: 'Days' },
   { id: 'muhurta', icon: Zap, label: 'Muhurta' },
   { id: 'panchaka', icon: Flame, label: 'Panchaka' },
   { id: 'planet', icon: Star, label: 'Planets' },
@@ -61,13 +88,96 @@ const MOBILE_TABS: { id: SubTab; icon: typeof Info; label: string }[] = [
   { id: 'medical', icon: Activity, label: 'Medical' },
 ]
 
-// ── Main ─────────────────────────────────────────────────────
+type Gana = NakshatraCharacteristics['gana']
+type Quality = 'auspicious' | 'inauspicious' | 'neutral'
+type Placement = {
+  grahaId: string
+  grahaName: string
+  nakshatraIndex: number
+  nakshatraName: string
+  pada: number
+  lord: GrahaId
+  gana: Gana
+  degree: number
+  panchaka: ReturnType<typeof checkPanchaka>['panchaka']
+}
+
+const RATING_CLASS: Record<string, string> = {
+  Excellent: styles.ratingExcellent,
+  Good: styles.ratingGood,
+  Neutral: styles.ratingNeutral,
+  Avoid: styles.ratingAvoid,
+}
+
+const PADA_START: Record<number, number> = {
+  0: 0, 1: 0, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4, 9: 5, 10: 5, 11: 6,
+  12: 7, 13: 7, 14: 8, 15: 9, 16: 9, 17: 10, 18: 11, 19: 11, 20: 0, 21: 1,
+  22: 2, 23: 2, 24: 3, 25: 4, 26: 4,
+}
+
+function ganaClass(gana: string): string {
+  if (gana === 'Deva') return styles.ganaDeva
+  if (gana === 'Rakshasa') return styles.ganaRakshasa
+  return styles.ganaManushya
+}
+
+function qualityClass(q: Quality): string {
+  if (q === 'auspicious') return styles.qGood
+  if (q === 'inauspicious') return styles.qBad
+  return styles.qMid
+}
+
+function inkClass(q: Quality): string {
+  if (q === 'auspicious') return styles.inkGood
+  if (q === 'inauspicious') return styles.inkBad
+  return styles.inkMid
+}
+
+function scoreTone(summary: string): string {
+  if (summary === 'Excellent' || summary === 'Good') return styles.toneGood
+  if (summary === 'Average' || summary === 'Poor') return styles.toneMid
+  return styles.toneBad
+}
+
+function heatTone(summary: string): string {
+  if (summary === 'Excellent' || summary === 'Good') return styles.heatGood
+  if (summary === 'Average') return styles.heatMid
+  return styles.heatBad
+}
+
+function padaSign(nakIdx: number, pada: number): string {
+  const rashi = ((((PADA_START[nakIdx] ?? 0) + pada - 1) % 12) + 1) as Rashi
+  return RASHI_SHORT[rashi]
+}
+
+export function NakshatraEmpty({
+  onOpenBirthForm,
+  detail,
+}: {
+  onOpenBirthForm: () => void
+  detail?: string
+}) {
+  return (
+    <div className={styles.emptyWrap}>
+      <div className={styles.emptyIcon} aria-hidden>
+        <Moon size={26} />
+      </div>
+      <h2 className={styles.emptyTitle}>Nakshatra</h2>
+      <p className={styles.emptyText}>
+        {detail ?? 'Load a birth chart for the Moon’s star, Navtara, muhurta, compatibility, and remedies.'}
+      </p>
+      <Button onClick={onOpenBirthForm}>Open birth form</Button>
+    </div>
+  )
+}
+
 export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: ChartOutput; initialTab?: SubTab }) {
   const [subTab, setSubTab] = useState<SubTab>(initialTab)
+  const [chartView, setChartView] = useState<'stars' | 'rashi'>('stars')
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1024)
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
@@ -92,19 +202,16 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
   const birthNakPada = moon?.pada ?? 1
   const moonLon = moon?.lonSidereal ?? 0
 
-  const chars    = useMemo(() => getNakshatraCharacteristics(birthNakIdx, birthNakPada), [birthNakIdx, birthNakPada])
+  const chars = useMemo(() => getNakshatraCharacteristics(birthNakIdx, birthNakPada), [birthNakIdx, birthNakPada])
 
   const planetPos = useMemo(() => {
-    // 9 planets
-    const base = getGraNakPositions(chart.grahas.filter(g=>!['Ur','Ne','Pl'].includes(g.id)))
-    // Lagna manual calculation
+    const base = getGraNakPositions(chart.grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id)))
     const ascDeg = chart.lagnas.ascDegree
-    const lagNakIdx = Math.floor(ascDeg / (360/27))
-    const lagNakPada = Math.floor(((ascDeg % (360/27)) / (360/27)) * 4) + 1
+    const lagNakIdx = Math.floor(ascDeg / (360 / 27))
+    const lagNakPada = Math.floor(((ascDeg % (360 / 27)) / (360 / 27)) * 4) + 1
     const lagChars = getNakshatraCharacteristics(lagNakIdx, lagNakPada)
-    
-    const lagPosition = {
-      grahaId: 'As' as any,
+    const lagPosition: Placement = {
+      grahaId: 'As',
       grahaName: 'Lagna',
       nakshatraIndex: lagNakIdx,
       nakshatraName: NAK_NAMES[lagNakIdx],
@@ -112,128 +219,170 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
       lord: lagChars.lord,
       gana: lagChars.gana,
       degree: ascDeg,
-      panchaka: checkPanchaka(lagNakIdx).panchaka
+      panchaka: checkPanchaka(lagNakIdx).panchaka,
     }
-    
     return [lagPosition, ...base]
   }, [chart.grahas, chart.lagnas])
 
-  const remedy   = NAKSHATRA_REMEDIES[birthNakIdx]
-
-  // D1 chart props
-  const d1Grahas   = chart.vargas?.D1 ?? chart.grahas
-  const ascRashi   = chart.lagnas.ascRashi as Rashi
+  const remedy = NAKSHATRA_REMEDIES[birthNakIdx]
+  const d1Grahas = chart.vargas?.D1 ?? chart.grahas
+  const ascRashi = chart.lagnas.ascRashi as Rashi
   const moonNakIdx = moon?.nakshatraIndex ?? 0
-  const tithiNum   = chart.panchang.tithi.number
-  const varaNum    = chart.panchang.vara.number
-
+  const tithiNum = chart.panchang.tithi.number
+  const varaNum = chart.panchang.vara.number
   const showOverview = !isMobile || subTab === 'overview'
   const tabForContent: SubTab = subTab === 'overview' ? 'navtara' : subTab
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'1.5rem', paddingBottom: isMobile ? '6rem' : undefined}}>
-
-      {/* ── Header strip ── */}
-      <div style={{display:'flex',alignItems:'center',gap:'1rem',flexWrap:'wrap',padding:'1rem 1.25rem',background:'linear-gradient(135deg,rgba(139,124,246,.12) 0%,rgba(201,168,76,.08) 100%)',border:'1px solid rgba(139,124,246,.2)',borderRadius:'var(--r-md)'}}>
-        <div style={{width:52,height:52,borderRadius:'50%',background:'radial-gradient(circle,rgba(139,124,246,.35) 0%,transparent 70%)',border:'1px solid rgba(139,124,246,.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.75rem',flexShrink:0}}>🌙</div>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{fontFamily:'var(--font-display)',fontSize:'1.6rem',fontWeight:600,color:'var(--text-primary)',lineHeight:1}}>Nakshatra Workspace</div>
-          <div style={{fontSize:'0.75rem',color:'var(--text-muted)',marginTop:4,display:'flex',gap:'1rem',flexWrap:'wrap'}}>
-            <span>Birth Moon · <strong style={{color:'var(--gold)'}}>{chars.name}</strong> Pada {chars.pada}</span>
-            <span>Lord · <strong style={{color:'var(--text-gold)'}}>{GRAHA_NAMES[chars.lord]}</strong></span>
-            <span>Gana · <strong style={{color:GANA_COL[chars.gana]}}>{chars.gana}</strong></span>
-            <span>Deity · <strong style={{color:'#c084fc'}}>{chars.deity}</strong></span>
+    <div className={cn(styles.workspace, isMobile && styles.workspaceMobile)}>
+      <header className={styles.hero}>
+        <div className={styles.heroGlow} aria-hidden />
+        <div className={styles.heroTop}>
+          <div className={styles.moonMark} aria-hidden>
+            <Moon size={20} />
+          </div>
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>Janma Nakshatra</p>
+            <div className={styles.titleRow}>
+              <h2 className={styles.heroTitle}>{chars.name}</h2>
+              <span className={styles.padaBadge}>Pada {chars.pada}</span>
+            </div>
+            <p className={styles.heroSub}>
+              Birth Moon star · lord {GRAHA_NAMES[chars.lord]}
+            </p>
           </div>
         </div>
-      </div>
-
-      {/* ── Two-column layout: chart always visible + tab content ── */}
-      <div style={{display:'flex',gap:'1.5rem',alignItems:'flex-start',flexDirection: isMobile ? 'column' : 'row', flexWrap: isMobile ? 'nowrap' : 'wrap'}}>
-
-        {/* LEFT: D1 Chart — always visible on mobile */}
-        <div style={{ flex: '1 1 480px', maxWidth: isMobile ? '100%' : '520px', display: 'flex', justifyContent: 'center' }}>
-          <div className="card" style={{ padding: '1rem', width: '100%' }}>
-            <div style={{fontSize:'0.62rem',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--text-muted)',marginBottom:'0.6rem'}}>
-              D1 · Rashi Chart — Janma Lagna
-            </div>
-            <ChakraSelector
-              ascRashi={ascRashi}
-              grahas={d1Grahas}
-              moonNakIndex={moonNakIdx}
-              arudhas={chart.arudhas}
-              tithiNumber={tithiNum}
-              varaNumber={varaNum}
-              showCharaDrishtiControls
-              defaultStyle="north"
-              size={360} 
-            />
-            {/* Quick nakshatra badge */}
-            <div style={{marginTop:'0.75rem',padding:'0.6rem',background:'var(--surface-2)',borderRadius:'var(--r-sm)',fontSize:'0.72rem',color:'var(--text-muted)',lineHeight:1.6}}>
-              <span style={{color:'var(--gold)',fontWeight:600}}>Moon</span> in {chars.name} Pada {chars.pada} · 
-              <span style={{color:'#818cf8',marginLeft:4}}>Nakshatra Lord: {GRAHA_NAMES[chars.lord]}</span>
-            </div>
+        <div className={styles.statGrid}>
+          <div className={styles.statCard}>
+            <div className={styles.statLabel}>Lord</div>
+            <div className={styles.statValue}>{GRAHA_NAMES[chars.lord]}</div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={styles.statLabel}>Gana</div>
+            <div className={cn(styles.statValue, ganaClass(chars.gana))}>{chars.gana}</div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={styles.statLabel}>Deity</div>
+            <div className={styles.statValue}>{chars.deity}</div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={styles.statLabel}>Yoni</div>
+            <div className={styles.statValue}>{chars.yoni}</div>
           </div>
         </div>
+        <div className={styles.shakti}>
+          <span className={styles.shaktiLabel}>Shakti</span>
+          <p className={styles.shaktiQuote}>{chars.shakti}</p>
+        </div>
+      </header>
 
-        {/* RIGHT: Overview + analysis tabs */}
-        <div style={{flex:'1 1 400px',width: '100%', minWidth: isMobile ? 0 : 320,display:'flex',flexDirection:'column',gap:'1.25rem'}}>
-          {showOverview && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-             <div className="label-caps" style={{ fontSize: '0.65rem', color: 'var(--text-gold)', marginBottom: '0.25rem' }}>Janma Nakshatra Overview</div>
-             <OverviewTab chars={chars} />
+      <div className={styles.layout}>
+        <aside className={styles.chartCol}>
+          <div className={styles.chartCard}>
+            <div className={styles.chartLabel}>
+              <span className={styles.chartTitle}>{chartView === 'stars' ? '27 stars' : 'D1 · Rashi'}</span>
+              <div className={styles.viewToggle} role="tablist" aria-label="Chart type">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={chartView === 'stars'}
+                  className={cn(styles.viewBtn, chartView === 'stars' && styles.viewBtnOn)}
+                  onClick={() => setChartView('stars')}
+                >
+                  Nakshatras
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={chartView === 'rashi'}
+                  className={cn(styles.viewBtn, chartView === 'rashi' && styles.viewBtnOn)}
+                  onClick={() => setChartView('rashi')}
+                >
+                  Rashi
+                </button>
+              </div>
+            </div>
+            {chartView === 'stars' ? (
+              <NakshatraWheel
+                key={birthNakIdx}
+                birthIndex={birthNakIdx}
+                birthPada={birthNakPada}
+                markers={planetPos.map(p => ({
+                  id: p.grahaId,
+                  nakshatraIndex: p.nakshatraIndex,
+                  pada: p.pada,
+                }))}
+              />
+            ) : (
+            <div className={styles.chartBody}>
+              <ChakraSelector
+                ascRashi={ascRashi}
+                grahas={d1Grahas}
+                moonNakIndex={moonNakIdx}
+                arudhas={chart.arudhas}
+                tithiNumber={tithiNum}
+                varaNumber={varaNum}
+                showCharaDrishtiControls
+                defaultStyle="north"
+                size={340}
+              />
+            </div>
+            )}
+            <p className={styles.moonNote}>
+              <span>Moon in <strong>{chars.name}</strong> pada {chars.pada}</span>
+              <span className={styles.moonLord}>Lord {GRAHA_NAMES[chars.lord]}</span>
+            </p>
           </div>
-          )}
+        </aside>
+
+        <div className={styles.mainCol}>
+          {showOverview && <OverviewTab chars={chars} />}
 
           {!isMobile && (
-          <>
-          <div style={{ height: '1px', background: 'var(--border-soft)', margin: '0.5rem 0' }} />
-
-          {/* BOTTOM: Analysis Tabs (Dynamic content) */}
-          <div style={{display:'flex',flexDirection:'column',gap:'1.25rem'}}>
-            {/* Sub-tab bar */}
-            <div className="mobile-tab-scroll" style={{display:'flex',gap:'3px',flexWrap:'nowrap',background:'var(--surface-3)',borderRadius:'var(--r-md)',padding:'4px',border:'1px solid var(--border-soft)', overflowX: 'auto'}}>
-              {TABS.map(t=>(
-                <button key={t.id} onClick={()=>setSubTab(t.id)} style={{
-                  flex:'1 1 auto',padding:'0.42rem 0.5rem',
-                  background:subTab===t.id?'var(--surface-1)':'transparent',
-                  border:'none',borderRadius:'calc(var(--r-md) - 2px)',cursor:'pointer',
-                  color:subTab===t.id?'var(--text-gold)':'var(--text-muted)',
-                  fontWeight:subTab===t.id?700:400,fontSize:'0.7rem',
-                  boxShadow:subTab===t.id?'0 2px 8px rgba(0,0,0,.2)':'none',
-                  transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:'0.25rem',
-                }}>
-                  <span>{t.icon}</span><span style={{whiteSpace:'nowrap'}}>{t.label}</span>
-                </button>
-              ))}
+            <div className={cn(styles.panel, styles.panelFlow)}>
+              <div className={styles.tabScroll}>
+                <div className={styles.tabRow} role="tablist" aria-label="Nakshatra analysis">
+                  {TABS.map(t => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={subTab === t.id}
+                      onClick={() => setSubTab(t.id)}
+                      className={cn(styles.tabBtn, subTab === t.id && styles.tabBtnActive)}
+                    >
+                      <t.Icon size={14} aria-hidden />
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <TabContent
+                subTab={tabForContent}
+                birthNakIdx={birthNakIdx}
+                birthNakPada={birthNakPada}
+                moonLon={moonLon}
+                chart={chart}
+                planetPos={planetPos}
+                remedy={remedy}
+              />
             </div>
-
-            {/* Tab content */}
-            <TabContent
-              subTab={tabForContent}
-              birthNakIdx={birthNakIdx}
-              birthNakPada={birthNakPada}
-              moonLon={moonLon}
-              chart={chart}
-              planetPos={planetPos}
-              remedy={remedy}
-            />
-          </div>
-          </>
           )}
 
           {isMobile && subTab !== 'overview' && (
-            <TabContent
-              subTab={subTab}
-              birthNakIdx={birthNakIdx}
-              birthNakPada={birthNakPada}
-              moonLon={moonLon}
-              chart={chart}
-              planetPos={planetPos}
-              remedy={remedy}
-            />
+            <div className={styles.panel}>
+              <TabContent
+                subTab={subTab}
+                birthNakIdx={birthNakIdx}
+                birthNakPada={birthNakPada}
+                moonLon={moonLon}
+                chart={chart}
+                planetPos={planetPos}
+                remedy={remedy}
+              />
+            </div>
           )}
         </div>
-
       </div>
 
       {isMobile && (
@@ -267,203 +416,182 @@ function TabContent({
   birthNakPada: number
   moonLon: number
   chart: ChartOutput
-  planetPos: ReturnType<typeof getGraNakPositions> extends (infer _A)[] ? any[] : any[]
+  planetPos: Placement[]
   remedy: (typeof NAKSHATRA_REMEDIES)[number]
 }) {
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
-      {subTab==='navtara'     && <NakshatraNavtaraTab chart={chart} birthNakIdx={birthNakIdx} />}
-      {subTab==='taramandal'  && <NakshatraTaramandalTab chart={chart} />}
-      {subTab==='bestdays'    && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
-      {subTab==='muhurta'     && <MuhurtaTab nakIdx={birthNakIdx} />}
-      {subTab==='panchaka'    && <PanchakaTab grahas={chart.grahas} />}
-      {subTab==='planet'      && <PlanetTab positions={planetPos} chart={chart} moonNakIdx={birthNakIdx} />}
-      {subTab==='compat'      && <CompatTab birthNakIdx={birthNakIdx} />}
-      {subTab==='remedies'    && <RemediesTab remedy={remedy} nakIdx={birthNakIdx} />}
-      {subTab==='profession'  && <NakshatraProfessionTab chart={chart} birthNakIdx={birthNakIdx} birthNakPada={birthNakPada} />}
-      {subTab==='medical'     && <NakshatraMedicalTab chart={chart} birthNakIdx={birthNakIdx} />}
+    <div className={styles.stack}>
+      {subTab === 'navtara' && <NakshatraNavtaraTab chart={chart} birthNakIdx={birthNakIdx} />}
+      {subTab === 'taramandal' && <NakshatraTaramandalTab chart={chart} />}
+      {subTab === 'bestdays' && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
+      {subTab === 'muhurta' && <MuhurtaTab nakIdx={birthNakIdx} />}
+      {subTab === 'panchaka' && <PanchakaTab grahas={chart.grahas} />}
+      {subTab === 'planet' && <PlanetTab positions={planetPos} chart={chart} moonNakIdx={birthNakIdx} />}
+      {subTab === 'compat' && <CompatTab birthNakIdx={birthNakIdx} />}
+      {subTab === 'remedies' && <RemediesTab remedy={remedy} nakIdx={birthNakIdx} />}
+      {subTab === 'profession' && <NakshatraProfessionTab chart={chart} birthNakIdx={birthNakIdx} birthNakPada={birthNakPada} />}
+      {subTab === 'medical' && <NakshatraMedicalTab chart={chart} birthNakIdx={birthNakIdx} />}
     </div>
   )
 }
 
-// ── Overview ─────────────────────────────────────────────────
 function OverviewTab({ chars }: { chars: NakshatraCharacteristics }) {
-  const rows=[
-    {label:'Deity',value:chars.deity,icon:'🙏',color:'#c084fc'},
-    {label:'Gana',value:chars.gana,icon:'⚡',color:GANA_COL[chars.gana]},
-    {label:'Yoni',value:chars.yoni,icon:'🐾',color:'var(--text-secondary)'},
-    {label:'Varna',value:chars.varna,icon:'👑',color:'var(--text-secondary)'},
-    {label:'Nature',value:chars.nature,icon:'🌿',color:'var(--text-secondary)'},
-    {label:'Body Part',value:chars.bodyPart,icon:'🫀',color:'var(--text-secondary)'},
-    {label:'Symbol',value:chars.symbol,icon:'✦',color:'var(--gold)'},
+  const rows: { label: string; value: string; tone?: string }[] = [
+    { label: 'Deity', value: chars.deity },
+    { label: 'Gana', value: chars.gana, tone: ganaClass(chars.gana) },
+    { label: 'Yoni', value: chars.yoni },
+    { label: 'Nadi', value: chars.nadi },
+    { label: 'Varna', value: chars.varna },
+    { label: 'Nature', value: chars.nature },
+    { label: 'Body part', value: chars.bodyPart },
+    { label: 'Symbol', value: chars.symbol },
   ]
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'0.875rem'}}>
-      <div style={{padding:'1rem 1.125rem',background:'linear-gradient(135deg,rgba(139,124,246,.12),rgba(201,168,76,.08))',border:'1px solid rgba(139,124,246,.25)',borderRadius:'var(--r-md)'}}>
-        <div style={{fontSize:'0.6rem',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--text-muted)',marginBottom:'0.35rem'}}>Shakti — Primordial Power</div>
-        <div style={{fontFamily:'var(--font-display)',fontSize:'0.95rem',color:'var(--text-primary)',lineHeight:1.55,fontStyle:'italic'}}>&quot;{chars.shakti}&quot;</div>
+    <section className={styles.panel}>
+      <div className={styles.sectionHead}>
+        <h3 className={styles.sectionTitle}>Birth star</h3>
+        <div className={styles.sectionRule} />
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.55rem'}}>
-        {rows.map(({label,value,icon,color})=>(
-          <div key={label} style={{padding:'0.7rem',background:'var(--surface-2)',border:'1px solid var(--border-soft)',borderRadius:'var(--r-md)',transition:'border-color .2s'}}
-            onMouseEnter={e=>e.currentTarget.style.borderColor='var(--border-bright)'}
-            onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border-soft)'}>
-            <div style={{fontSize:'0.58rem',textTransform:'uppercase',letterSpacing:'.1em',color:'var(--text-muted)',marginBottom:'0.2rem'}}>{icon} {label}</div>
-            <div style={{fontFamily:'var(--font-display)',fontSize:'0.9rem',color,fontWeight:500}}>{value}</div>
+      <div className={styles.traitGrid}>
+        {rows.map(({ label, value, tone }) => (
+          <div key={label} className={styles.traitCard}>
+            <div className={styles.traitLabel}>{label}</div>
+            <div className={cn(styles.traitValue, tone)}>{value}</div>
           </div>
         ))}
       </div>
-      {/* Pada map */}
       <PadaMap nakIdx={chars.index} pada={chars.pada} />
-    </div>
+    </section>
   )
 }
 
-function PadaMap({nakIdx,pada}:{nakIdx:number;pada:number}) {
-  const SIGNS=['Ar','Ta','Ge','Cn','Le','Vi','Li','Sc','Sg','Cp','Aq','Pi']
-  const STARTS: Record<number,number>={0:0,1:0,2:1,3:1,4:2,5:2,6:3,7:3,8:4,9:5,10:5,11:6,12:7,13:7,14:8,15:9,16:9,17:10,18:11,19:11,20:0,21:1,22:2,23:2,24:3,25:4,26:4}
+function PadaMap({ nakIdx, pada }: { nakIdx: number; pada: number }) {
   return (
-    <div style={{display:'flex',gap:'0.5rem',padding:'0.75rem',background:'var(--gold-faint)',border:'1px solid var(--border)',borderRadius:'var(--r-md)'}}>
-      {[1,2,3,4].map(p=>(
-        <div key={p} style={{flex:1,textAlign:'center',opacity:p===pada?1:0.4}}>
-          <div style={{fontSize:'0.58rem',color:'var(--text-muted)',marginBottom:'0.2rem'}}>Pada {p}</div>
-          <div style={{fontFamily:'var(--font-display)',fontSize:'0.9rem',color:p===pada?'var(--text-gold)':'var(--text-primary)',fontWeight:p===pada?700:400}}>
-            {SIGNS[((STARTS[nakIdx]??0)+p-1)%12]}
-          </div>
-          {p===pada&&<div style={{width:4,height:4,borderRadius:'50%',background:'var(--gold)',margin:'0.3rem auto 0'}}/>}
+    <div className={styles.padaMap} aria-label="Nakshatra padas">
+      {[1, 2, 3, 4].map(p => (
+        <div key={p} className={cn(styles.padaCell, p === pada && styles.padaCellActive)}>
+          <div className={styles.padaLabel}>Pada {p}</div>
+          <div className={styles.padaSign}>{padaSign(nakIdx, p)}</div>
+          {p === pada && <div className={styles.padaDot} />}
         </div>
       ))}
     </div>
   )
 }
 
-// ── Best Days ─────────────────────────────────────────────────
-function BestDaysTab({birthNakIdx,moonLon}:{birthNakIdx:number;moonLon:number}) {
+function BestDaysTab({ birthNakIdx, moonLon }: { birthNakIdx: number; moonLon: number }) {
   const now = new Date()
-  const [month,setMonth] = useState(now.getMonth()+1)
-  const [year,setYear]   = useState(now.getFullYear())
-
-  const days = useMemo(()=>getMonthlyForecast(birthNakIdx,moonLon,year,month),[birthNakIdx,moonLon,year,month])
-  const top5 = useMemo(()=>[...days].sort((a,b)=>b.score-a.score).slice(0,5),[days])
-
-  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const col=(q:'auspicious'|'inauspicious'|'neutral')=>QC[q]
+  const [month, setMonth] = useState(now.getMonth() + 1)
+  const [year, setYear] = useState(now.getFullYear())
+  const days = useMemo(() => getMonthlyForecast(birthNakIdx, moonLon, year, month), [birthNakIdx, moonLon, year, month])
+  const top3 = useMemo(() => [...days].sort((a, b) => b.score - a.score).slice(0, 3), [days])
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'1.5rem'}}>
-      {/* Month Header & selector */}
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'1rem',paddingBottom:'1rem',borderBottom:'1px solid var(--border-soft)'}}>
-        <div style={{display:'flex',flexDirection:'column'}}>
-           <h3 style={{fontFamily:'var(--font-display)',fontSize:'1.3rem',margin:0,color:'var(--text-gold)'}}>Monthly Forecast</h3>
-           <span style={{fontSize:'0.65rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'.1em'}}>Best Days for {MONTHS[month-1]} {year}</span>
+    <div className={styles.stack}>
+      <div className={styles.monthBar}>
+        <div>
+          <h3 className={styles.monthTitle}>Monthly forecast</h3>
+          <span className={styles.monthSub}>Best days for {MONTHS[month - 1]} {year}</span>
         </div>
-        <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
-          <select value={month} onChange={e=>setMonth(Number(e.target.value))} style={{padding:'0.5rem 0.75rem',background:'var(--surface-3)',border:'1px solid var(--border)',borderRadius:'var(--r-md)',color:'var(--text-primary)',fontSize:'0.82rem',cursor:'pointer',outline:'none'}}>
-            {MONTHS.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+        <div className={styles.selectRow}>
+          <select className={styles.select} value={month} onChange={e => setMonth(Number(e.target.value))} aria-label="Month">
+            {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
           </select>
-          <select value={year} onChange={e=>setYear(Number(e.target.value))} style={{padding:'0.5rem 0.75rem',background:'var(--surface-3)',border:'1px solid var(--border)',borderRadius:'var(--r-md)',color:'var(--text-primary)',fontSize:'0.82rem',cursor:'pointer',outline:'none'}}>
-            {[2024,2025,2026,2027,2028].map(y=><option key={y} value={y}>{y}</option>)}
+          <select className={styles.select} value={year} onChange={e => setYear(Number(e.target.value))} aria-label="Year">
+            {[2024, 2025, 2026, 2027, 2028].map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
       </div>
 
-      {/* Top 3 best highlight */}
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:'0.75rem'}}>
-        {top5.slice(0,3).map((d,i)=>{
-          const c=col(d.quality)
-          return (
-            <div key={d.dayOfMonth} style={{padding:'1rem',background:'var(--surface-2)',border:`1px solid ${c.border}`,borderRadius:'var(--r-md)',position:'relative',overflow:'hidden'}}>
-               <div style={{position:'absolute',top:'-10px',right:'-10px',fontSize:'3.5rem',opacity:0.05,color:c.text}}>{i+1}</div>
-               <div style={{fontSize:'0.65rem',color:'var(--text-muted)',marginBottom:'0.25rem'}}>{d.dayName}</div>
-               <div style={{fontSize:'1.5rem',fontWeight:800,color:c.text,fontFamily:'var(--font-display)'}}>{d.dayOfMonth}</div>
-               <div style={{fontSize:'0.75rem',fontWeight:600,color:'var(--text-primary)',marginTop:4}}>{d.nakshatra}</div>
-               <div style={{fontSize:'0.58rem',color:c.text,fontWeight:600,textTransform:'uppercase',marginTop:2}}>{d.tara} Tara</div>
-            </div>
-          )
-        })}
+      <div className={styles.highlightGrid}>
+        {top3.map((d, i) => (
+          <div key={d.dayOfMonth} className={cn(styles.highlightCard, qualityClass(d.quality))}>
+            <span className={styles.rank}>0{i + 1}</span>
+            <div className={styles.dayName}>{d.dayName}</div>
+            <div className={styles.dayNum}>{d.dayOfMonth}</div>
+            <div className={styles.dayNak}>{d.nakshatra}</div>
+            <div className={styles.dayTara}>{d.tara} tara</div>
+          </div>
+        ))}
       </div>
 
-      {/* Month calendar grid */}
-      <div style={{padding:'1rem',background:'var(--surface-2)',borderRadius:'var(--r-lg)',border:'1px solid var(--border-soft)'}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'8px'}}>
-          {['SUN','MON','TUE','WED','THU','FRI','SAT'].map((d,i)=><div key={i} style={{textAlign:'center',fontSize:'0.6rem',color:'var(--text-muted)',padding:'5px 0',fontWeight:700,letterSpacing:'.05em'}}>{d}</div>)}
-          {Array.from({length:days[0]?.date.getDay()??0}).map((_,i)=><div key={`e${i}`}/>)}
-          {days.map(d=>{
-            const c=col(d.quality)
-            const isToday=d.date.toDateString()===new Date().toDateString()
+      <div className={styles.calendar}>
+        <div className={styles.calGrid}>
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+            <div key={d} className={styles.calHead}>{d}</div>
+          ))}
+          {Array.from({ length: days[0]?.date.getDay() ?? 0 }).map((_, i) => <div key={`e${i}`} />)}
+          {days.map(d => {
+            const isToday = d.date.toDateString() === new Date().toDateString()
             return (
-              <div key={d.dayOfMonth} title={`${d.dayName}: ${d.nakshatra} — ${d.tara}`} style={{
-                aspectRatio:'1',borderRadius:10,background:c.bg,
-                border:`1px solid ${isToday?'var(--gold)':c.border}`,
-                display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
-                cursor:'pointer',transition:'all .2s cubic-bezier(0.16, 1, 0.3, 1)',position:'relative',
-                boxShadow:'0 2px 4px rgba(0,0,0,0.05)'
-              }}
-                onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'}}
-                onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'}}>
-                <div style={{fontSize:'1.1rem',fontWeight:800,color:c.text,fontFamily:'var(--font-display)'}}>{d.dayOfMonth}</div>
-                <div style={{fontSize:'0.62rem',color:'var(--text-muted)',fontWeight:600,textAlign:'center',marginTop:2,lineHeight:1}}>{d.tara.toUpperCase().slice(0,4)}</div>
-                {d.panchaka && <div style={{position:'absolute',top:4,right:4,width:6,height:6,borderRadius:'50%',background:'#f87171',boxShadow:'0 0 5px #f87171'}} />}
-                {isToday && <div style={{position:'absolute',bottom:4,fontSize:'0.75rem',color:'var(--gold)'}}>✦</div>}
+              <div
+                key={d.dayOfMonth}
+                title={`${d.dayName}: ${d.nakshatra} — ${d.tara}`}
+                className={cn(styles.calCell, qualityClass(d.quality), isToday && styles.calToday)}
+              >
+                <div className={styles.calDate}>{d.dayOfMonth}</div>
+                <div className={styles.calTara}>{d.tara.slice(0, 4)}</div>
+                {d.panchaka && <div className={styles.panchakaDot} />}
+                {isToday && <div className={styles.todayMark} />}
               </div>
             )
           })}
         </div>
-        <div style={{display:'flex',gap:'1.25rem',marginTop:'1.25rem',justifyContent:'center',paddingTop:'1rem',borderTop:'1px solid var(--border-soft)'}}>
-          {(['auspicious','neutral','inauspicious'] as const).map(q=>(
-            <div key={q} style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'var(--text-secondary)'}}>
-              <div style={{width:10,height:10,borderRadius:3,background:QC[q].bg,border:`1px solid ${QC[q].border}`}}/>
-              <span style={{textTransform:'capitalize',fontWeight:500}}>{q}</span>
+        <div className={styles.legend}>
+          {(['auspicious', 'neutral', 'inauspicious'] as const).map(q => (
+            <div key={q} className={styles.legendItem}>
+              <span className={cn(styles.swatch, qualityClass(q))} />
+              {q}
             </div>
           ))}
-          <div style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'var(--text-secondary)'}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#f87171'}}/>
-            <span style={{fontWeight:500}}>Panchaka</span>
+          <div className={styles.legendItem}>
+            <span className={styles.swatchDot} />
+            Panchaka
           </div>
         </div>
       </div>
 
-      <div style={{padding:'1rem',background:'var(--surface-3)',border:'1px solid var(--border-bright)',borderRadius:'var(--r-md)',fontSize:'0.82rem',color:'var(--text-primary)',lineHeight:1.6,borderLeft:'4px solid var(--gold)'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'0.5rem',marginBottom:'0.5rem'}}>
-          <span style={{fontSize:'1.1rem'}}>💡</span>
-          <strong style={{color:'var(--text-gold)'}}>Planning Strategy:</strong>
-        </div>
-        Plan major activities like <span style={{color:'var(--teal)',fontWeight:600}}>business launches</span> and <span style={{color:'var(--teal)',fontWeight:600}}>travel</span> on <span style={{color:'var(--gold)',fontWeight:700}}>Auspicious</span> days. 
-        Avoid signing critical legal documents or major medical visits during <span style={{color:'var(--rose)',fontWeight:600}}>Inauspicious</span> or <span style={{color:'var(--rose)',fontWeight:600}}>Panchaka</span> periods.
+      <div className={styles.tip}>
+        <Lightbulb className={styles.tipIcon} size={16} aria-hidden />
+        <p>
+          <strong>Planning. </strong>
+          Keep launches and <span className={styles.emTeal}>travel</span> on <span className={styles.emGold}>auspicious</span> days.
+          Leave contracts and medical procedures off <span className={styles.emRose}>inauspicious</span> and <span className={styles.emRose}>Panchaka</span> days.
+        </p>
       </div>
     </div>
   )
 }
 
-// ── Muhurta ───────────────────────────────────────────────────
-const ACTIVITIES: {id:ActivityType;label:string;icon:string}[] = [
-  {id:'marriage',  label:'Marriage',   icon:'💍'},
-  {id:'travel',    label:'Travel',     icon:'✈️'},
-  {id:'business',  label:'Business',   icon:'💼'},
-  {id:'education', label:'Education',  icon:'📚'},
-  {id:'medical',   label:'Medical',    icon:'🏥'},
-  {id:'spiritual', label:'Spiritual',  icon:'🕉️'},
-  {id:'property',  label:'Property',   icon:'🏠'},
-  {id:'career',    label:'Career',     icon:'🎯'},
-  {id:'finance',   label:'Finance',    icon:'💰'},
+const ACTIVITIES: { id: ActivityType; label: string; Icon: LucideIcon }[] = [
+  { id: 'marriage', label: 'Marriage', Icon: Gem },
+  { id: 'travel', label: 'Travel', Icon: Plane },
+  { id: 'business', label: 'Business', Icon: Briefcase },
+  { id: 'education', label: 'Education', Icon: BookOpen },
+  { id: 'medical', label: 'Medical', Icon: Activity },
+  { id: 'spiritual', label: 'Spiritual', Icon: Sparkles },
+  { id: 'property', label: 'Property', Icon: Home },
+  { id: 'career', label: 'Career', Icon: Target },
+  { id: 'finance', label: 'Finance', Icon: Coins },
 ]
 
-function MuhurtaTab({nakIdx}:{nakIdx:number}) {
-  const ratings = useMemo(()=>ACTIVITIES.map(a=>({...a, ...getNakshatraMuhurtaRating(nakIdx,a.id)})),[nakIdx])
+function MuhurtaTab({ nakIdx }: { nakIdx: number }) {
+  const ratings = useMemo(() => ACTIVITIES.map(a => ({ ...a, ...getNakshatraMuhurtaRating(nakIdx, a.id) })), [nakIdx])
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'0.75rem'}}>
-      <p style={{fontSize:'0.75rem',color:'var(--text-muted)',fontStyle:'italic',margin:0,lineHeight:1.6}}>Muhurta suitability of your birth Nakshatra ({NAK_NAMES[nakIdx]}) for various life activities.</p>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.55rem'}}>
-        {ratings.map(r=>(
-          <div key={r.id} style={{padding:'0.75rem',background:'var(--surface-2)',border:`1px solid var(--border-soft)`,borderRadius:'var(--r-md)',transition:'all .2s'}}
-            onMouseEnter={e=>{e.currentTarget.style.borderColor=RATING_COL[r.rating]+'66'; e.currentTarget.style.transform='translateY(-2px)'}}
-            onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border-soft)'; e.currentTarget.style.transform='translateY(0)'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.35rem'}}>
-              <span style={{fontSize:'0.88rem'}}>{r.icon}</span>
-              <span style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 7px',borderRadius:20,background:RATING_COL[r.rating]+'22',color:RATING_COL[r.rating],border:`1px solid ${RATING_COL[r.rating]}55`,textTransform:'uppercase',letterSpacing:'.08em'}}>{r.rating}</span>
+    <div className={styles.stack}>
+      <p className={styles.lead}>
+        How {NAK_NAMES[nakIdx]} suits each kind of beginning.
+      </p>
+      <div className={styles.activityGrid}>
+        {ratings.map(r => (
+          <div key={r.id} className={styles.activityCard}>
+            <div className={styles.activityTop}>
+              <r.Icon size={16} aria-hidden />
+              <span className={cn(styles.ratingPill, RATING_CLASS[r.rating])}>{r.rating}</span>
             </div>
-            <div style={{fontWeight:600,color:'var(--text-primary)',fontSize:'0.8rem',marginBottom:'0.25rem'}}>{r.label}</div>
-            <div style={{fontSize:'0.65rem',color:'var(--text-muted)',lineHeight:1.5}}>{r.note}</div>
+            <div className={styles.activityName}>{r.label}</div>
+            <div className={styles.activityNote}>{r.note}</div>
           </div>
         ))}
       </div>
@@ -471,127 +599,140 @@ function MuhurtaTab({nakIdx}:{nakIdx:number}) {
   )
 }
 
-// ── Panchaka ─────────────────────────────────────────────────
-function PanchakaTab({grahas}:{grahas:ChartOutput['grahas']}) {
-  const panchaka = useMemo(()=>grahas.map(g=>({graha:g.id,name:g.name,...checkPanchaka(g.nakshatraIndex)})),[grahas])
-  const allNaks  = useMemo(()=>NAK_NAMES.map((_,i)=>checkPanchaka(i)),[])
+function PanchakaTab({ grahas }: { grahas: ChartOutput['grahas'] }) {
+  const panchaka = useMemo(() => grahas.map(g => ({ graha: g.id, name: g.name, ...checkPanchaka(g.nakshatraIndex) })), [grahas])
+  const allNaks = useMemo(() => NAK_NAMES.map((_, i) => checkPanchaka(i)), [])
+  const hits = panchaka.filter(p => p.panchaka)
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
-      <p style={{fontSize:'0.75rem',color:'var(--text-muted)',fontStyle:'italic',margin:0,lineHeight:1.6}}>Panchaka Dosha — Moon transiting the last 5 Nakshatras (Dhanishtha→Revati) creates specific inauspicious energies.</p>
-      <div style={{display:'flex',flexDirection:'column',gap:'0.45rem'}}>
-        {panchaka.map(p=>{
-          if(!p.panchaka)return null
-          return (
-            <div key={p.graha} style={{padding:'0.75rem',background:'rgba(239,68,68,.07)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'var(--r-md)',display:'flex',gap:'0.65rem',alignItems:'flex-start'}}>
-              <span style={{fontSize:'1.2rem'}}>{ICON[p.graha]}</span>
-              <div>
-                <div style={{fontWeight:600,fontSize:'0.85rem',color:'var(--text-primary)'}}>{p.name} in {p.nakshatraName}</div>
-                <div style={{fontSize:'0.7rem',color:'#f87171',fontWeight:700,marginTop:2}}>{p.panchaka}</div>
-                <div style={{fontSize:'0.68rem',color:'var(--text-muted)',marginTop:3,lineHeight:1.5}}>{p.description}</div>
-              </div>
+    <div className={styles.stack}>
+      <p className={styles.lead}>
+        Panchaka covers the last five stars, Dhanishtha through Revati. A planet born there carries that dosha.
+      </p>
+      <div className={styles.alertList}>
+        {hits.map(p => (
+          <div key={p.graha} className={styles.alertCard}>
+            <span className={styles.glyph}>{ICON[p.graha]}</span>
+            <div>
+              <div className={styles.alertTitle}>{p.name} in {p.nakshatraName}</div>
+              <div className={styles.alertKind}>{p.panchaka}</div>
+              <div className={styles.alertBody}>{p.description}</div>
             </div>
-          )
-        })}
-        {panchaka.every(p=>!p.panchaka)&&<div style={{padding:'1rem',background:'rgba(34,197,94,.07)',border:'1px solid rgba(34,197,94,.2)',borderRadius:'var(--r-md)',color:'#4ade80',fontSize:'0.85rem',textAlign:'center'}}>✓ No planets in Panchaka zone at birth</div>}
+          </div>
+        ))}
+        {hits.length === 0 && (
+          <div className={styles.clearState}>
+            <Check size={16} aria-hidden />
+            No planet sits in the Panchaka zone at birth
+          </div>
+        )}
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(120px,1fr))',gap:'0.4rem'}}>
-        {allNaks.map((n,i)=>{
-          const hp=panchaka.find(p=>p.nakshatraIndex===i)
-          return (
-            <div key={i} style={{padding:'0.45rem 0.6rem',background:n.panchaka?'rgba(239,68,68,.07)':'var(--surface-2)',border:`1px solid ${n.panchaka?'rgba(239,68,68,.25)':'var(--border-soft)'}`,borderRadius:'var(--r-sm)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <div>
-                <div style={{fontSize:'0.7rem',color:'var(--text-primary)',fontWeight:hp?700:400}}>{n.nakshatraName.split(' ')[0]}</div>
-                {n.panchaka&&<div style={{fontSize:'0.55rem',color:'#f87171',fontWeight:600}}>{n.panchaka.replace(' Panchaka','')}</div>}
+      <div>
+        <div className={styles.sectionHead}>
+          <h3 className={styles.sectionTitle}>Star map</h3>
+          <div className={styles.sectionRule} />
+        </div>
+        <div className={styles.nakGrid}>
+          {allNaks.map((n, i) => {
+            const hp = panchaka.find(p => p.nakshatraIndex === i)
+            return (
+              <div key={n.nakshatraName} className={cn(styles.nakCell, n.panchaka && styles.nakCellHot)}>
+                <div>
+                  <div className={styles.nakName}>{n.nakshatraName}</div>
+                  {n.panchaka && <div className={styles.nakKind}>{n.panchaka.replace(' Panchaka', '')}</div>}
+                </div>
+                {hp && <span className={styles.glyph}>{ICON[hp.graha]}</span>}
               </div>
-              {hp&&<span style={{fontSize:'0.85rem'}}>{ICON[hp.graha]}</span>}
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
     </div>
   )
 }
 
-// ── Planet Nakshatras ─────────────────────────────────────────
-function PlanetTab({positions, chart, moonNakIdx}:{positions:any[], chart: ChartOutput, moonNakIdx:number}) {
+function PlanetTab({ positions, chart, moonNakIdx }: { positions: Placement[]; chart: ChartOutput; moonNakIdx: number }) {
   const { shadbala } = chart
-  
   const mergedPlanets = useMemo(() => {
     return positions.map(p => {
       const full = chart.grahas.find(g => g.id === p.grahaId)
-      const shad = shadbala?.planets[p.grahaId]
+      const shad = shadbala?.planets[p.grahaId as GrahaId]
       return { ...p, ...full, shadbala: shad }
     })
   }, [positions, chart.grahas, shadbala])
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'1.5rem'}}>
-      
-      {/* Shadbala Summary Highlights */}
+    <div className={styles.stack}>
       {shadbala && (
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem'}}>
-          <div style={{padding:'0.85rem',background:'linear-gradient(135deg, rgba(78,205,196,0.1) 0%, var(--surface-2) 100%)',borderRadius:'var(--r-md)',border:'1px solid rgba(78,205,196,0.25)',display:'flex',alignItems:'center',gap:'0.75rem'}}>
-            <div style={{width:36,height:36,borderRadius:'50%',background:'rgba(78,205,196,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem',color:'var(--teal)'}}>🏆</div>
-            <div>
-              <div style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Strongest Planet</div>
-              <div style={{fontWeight:700,color:'var(--text-primary)',fontSize:'0.9rem'}}>{GRAHA_NAMES[shadbala.strongest as GrahaId]} ({shadbala.planets[shadbala.strongest]?.total.toFixed(1)} Rupas)</div>
+        <>
+          <div className={styles.strengthGrid}>
+            <div className={cn(styles.strengthCard, styles.strengthTeal)}>
+              <div className={styles.strengthIcon}><Trophy size={16} aria-hidden /></div>
+              <div>
+                <div className={styles.strengthLabel}>Strongest</div>
+                <div className={styles.strengthValue}>
+                  {GRAHA_NAMES[shadbala.strongest as GrahaId]} ({shadbala.planets[shadbala.strongest]?.total.toFixed(1)} rupas)
+                </div>
+              </div>
+            </div>
+            <div className={cn(styles.strengthCard, styles.strengthRose)}>
+              <div className={styles.strengthIcon}><TrendingDown size={16} aria-hidden /></div>
+              <div>
+                <div className={styles.strengthLabel}>Weakest</div>
+                <div className={styles.strengthValue}>
+                  {GRAHA_NAMES[shadbala.weakest as GrahaId]} ({shadbala.planets[shadbala.weakest]?.total.toFixed(1)} rupas)
+                </div>
+              </div>
             </div>
           </div>
-          <div style={{padding:'0.85rem',background:'linear-gradient(135deg, rgba(224,123,142,0.1) 0%, var(--surface-2) 100%)',borderRadius:'var(--r-md)',border:'1px solid rgba(224,123,142,0.25)',display:'flex',alignItems:'center',gap:'0.75rem'}}>
-            <div style={{width:36,height:36,borderRadius:'50%',background:'rgba(224,123,142,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem',color:'var(--rose)'}}>📉</div>
-            <div>
-              <div style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Weakest Planet</div>
-              <div style={{fontWeight:700,color:'var(--text-primary)',fontSize:'0.9rem'}}>{GRAHA_NAMES[shadbala.weakest as GrahaId]} ({shadbala.planets[shadbala.weakest]?.total.toFixed(1)} Rupas)</div>
-            </div>
+          <div className={styles.profileLine}>
+            Chart profile <b>{shadbala.generatedProfile ?? 'balanced'}</b>
+            {' · '}mean ratio <span className={styles.emGold}>{(shadbala.averageRatio ?? 0).toFixed(2)}x</span>
           </div>
-        </div>
+        </>
       )}
-      {shadbala && (
-        <div style={{padding:'0.7rem 0.85rem',background:'var(--surface-2)',border:'1px solid var(--border-soft)',borderRadius:'var(--r-md)',fontSize:'0.72rem',color:'var(--text-secondary)'}}>
-          Chart profile: <b style={{color:'var(--text-primary)'}}>{shadbala.generatedProfile ?? 'balanced'}</b> ·
-          Mean ratio: <b style={{color:'var(--text-gold)'}}> {(shadbala.averageRatio ?? 0).toFixed(2)}x</b>
-        </div>
-      )}
-      <div style={{display:'flex',flexDirection:'column',gap:'0.75rem'}}>
-        <p style={{fontSize:'0.75rem',color:'var(--text-muted)',fontStyle:'italic',margin:0}}>Graha Nakshatras — Planet positions with their Pada and Navtara relative to Birth Moon ({NAK_NAMES[moonNakIdx]}).</p>
-        <div style={{ overflowX: 'auto', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', background: 'var(--surface-1)' }}>
-          <table style={{width:'100%', minWidth: '500px', borderCollapse:'collapse',fontSize:'0.75rem',color:'var(--text-secondary)'}}>
-            <thead>
-              <tr>{['Planet','Nakshatra','Pada','Lord','Navtara','Gana'].map(c=><th key={c} style={{padding:'0.45rem 0.6rem',textAlign:'left',fontSize:'0.58rem',textTransform:'uppercase',letterSpacing:'.1em',color:'var(--text-muted)',borderBottom:'1px solid var(--border)',whiteSpace:'nowrap'}}>{c}</th>)}</tr>
-            </thead>
-            <tbody>
-              {positions.map((p,i)=>{
-                const taraIdx = (p.nakshatraIndex - moonNakIdx + 27) % 9
-                const taraName = TARA_NAMES[taraIdx]
-                const q = TARA_QUALITIES[taraName].quality
-                return (
-                  <tr key={p.grahaId} style={{background:i%2===0?'transparent':'rgba(255,255,255,.02)'}}>
-                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}><div style={{display:'flex',alignItems:'center',gap:'0.35rem'}}><span>{p.grahaId==='As'?'Asc':ICON[p.grahaId]}</span><span style={{fontWeight:600,color:'var(--text-primary)'}}>{p.grahaName}</span></div></td>
-                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)',color:'var(--text-primary)'}}>{p.nakshatraName}</td>
-                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}>{p.pada}</td>
-                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)',color:'var(--text-gold)'}}>{GRAHA_NAMES[p.lord as GrahaId] || '—'}</td>
-                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}>
-                      <span style={{color:QC[q].text,fontWeight:600}}>{taraName}</span>
-                    </td>
-                    <td style={{padding:'0.5rem 0.6rem',borderBottom:'1px solid var(--border-soft)'}}><span style={{color:GANA_COL[p.gana],fontWeight:600}}>{p.gana}</span></td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+
+      <p className={styles.lead}>
+        Each graha’s star, pada, and Navtara counted from the birth Moon in {NAK_NAMES[moonNakIdx]}.
+      </p>
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              {['Planet', 'Nakshatra', 'Pada', 'Lord', 'Navtara', 'Gana'].map(c => <th key={c}>{c}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {positions.map(p => {
+              const taraIdx = (p.nakshatraIndex - moonNakIdx + 27) % 9
+              const taraName = TARA_NAMES[taraIdx]
+              const q = TARA_QUALITIES[taraName].quality
+              return (
+                <tr key={p.grahaId}>
+                  <td>
+                    <div className={styles.planetCell}>
+                      <span className={styles.glyph}>{p.grahaId === 'As' ? 'Asc' : ICON[p.grahaId]}</span>
+                      {p.grahaName}
+                    </div>
+                  </td>
+                  <td>{p.nakshatraName}</td>
+                  <td>{p.pada}</td>
+                  <td className={styles.lordCell}>{GRAHA_NAMES[p.lord] || '—'}</td>
+                  <td className={inkClass(q)}>{taraName}</td>
+                  <td className={ganaClass(p.gana)}>{p.gana}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
 
-      {/* Detailed Planet Analysis Section */}
-      <div style={{marginTop:'0.5rem'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'0.75rem',marginBottom:'1.25rem'}}>
-          <div style={{height:'1px',flex:1,background:'linear-gradient(to right,transparent,var(--border-soft))'}} />
-          <h3 style={{fontFamily:'var(--font-display)',fontSize:'1rem',color:'var(--text-gold)',margin:0,textTransform:'uppercase',letterSpacing:'0.1em'}}>Detailed Planetary Analysis</h3>
-          <div style={{height:'1px',flex:1,background:'linear-gradient(to left,transparent,var(--border-soft))'}} />
+      <div>
+        <div className={styles.sectionHead}>
+          <h3 className={styles.sectionTitle}>Planet notes</h3>
+          <div className={styles.sectionRule} />
         </div>
-
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))',gap:'1rem'}}>
-          {mergedPlanets.map((p: any) => (
+        <div className={styles.planetGrid}>
+          {mergedPlanets.map(p => (
             <PlanetDetailCard key={p.grahaId} p={p} moonNakIdx={moonNakIdx} ascRashi={chart.lagnas.ascRashi} />
           ))}
         </div>
@@ -600,118 +741,136 @@ function PlanetTab({positions, chart, moonNakIdx}:{positions:any[], chart: Chart
   )
 }
 
+function CompatTab({ birthNakIdx }: { birthNakIdx: number }) {
+  const [cmp, setCmp] = useState(0)
+  const compat = useMemo(() => getNakCompatibility(birthNakIdx, cmp), [birthNakIdx, cmp])
+  const relation = useMemo(() => getRelationshipNavtara(birthNakIdx, cmp, 'You', 'Other'), [birthNakIdx, cmp])
+  const miniGrid = useMemo(() => NAK_NAMES.map((_, i) => ({ idx: i, ...getNakCompatibility(birthNakIdx, i) })), [birthNakIdx])
+  const tone = scoreTone(compat.summary)
 
-// ── Compatibility ─────────────────────────────────────────────
-function CompatTab({birthNakIdx}:{birthNakIdx:number}) {
-  const [cmp,setCmp]=useState(0)
-  const compat=useMemo(()=>getNakCompatibility(birthNakIdx,cmp),[birthNakIdx,cmp])
-  const relation=useMemo(()=>getRelationshipNavtara(birthNakIdx,cmp,'You','Other'),[birthNakIdx,cmp])
-  const SC: Record<string,string>={Excellent:'#4ade80',Good:'#86efac',Average:'#fbbf24',Poor:'#f97316',Incompatible:'#f87171'}
-  const miniGrid=useMemo(()=>NAK_NAMES.map((_,i)=>({idx:i,...getNakCompatibility(birthNakIdx,i)})),[birthNakIdx])
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
-      <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:'0.65rem',alignItems:'center'}}>
-        <div style={{padding:'0.65rem',background:'var(--gold-faint)',border:'1px solid var(--border-bright)',borderRadius:'var(--r-md)',textAlign:'center'}}>
-          <div style={{fontSize:'0.58rem',color:'var(--text-muted)',marginBottom:'0.15rem'}}>Birth Nakshatra</div>
-          <div style={{fontFamily:'var(--font-display)',fontWeight:600,color:'var(--text-gold)',fontSize:'0.9rem'}}>{NAK_NAMES[birthNakIdx]}</div>
+    <div className={styles.stack}>
+      <div className={styles.pairRow}>
+        <div className={styles.pairCard}>
+          <div className={styles.pairLabel}>Birth star</div>
+          <div className={styles.pairValue}>{NAK_NAMES[birthNakIdx]}</div>
         </div>
-        <div style={{fontSize:'1.1rem',color:'var(--text-muted)'}}>↔</div>
-        <select value={cmp} onChange={e=>setCmp(Number(e.target.value))} style={{padding:'0.6rem 0.7rem',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:'var(--r-md)',color:'var(--text-primary)',fontFamily:'var(--font-display)',fontSize:'0.85rem',cursor:'pointer'}}>
-          {NAK_NAMES.map((n,i)=><option key={i} value={i}>{n}</option>)}
+        <div className={styles.pairArrow} aria-hidden>↔</div>
+        <select className={cn(styles.select, styles.pairSelect)} value={cmp} onChange={e => setCmp(Number(e.target.value))} aria-label="Compare nakshatra">
+          {NAK_NAMES.map((n, i) => <option key={n} value={i}>{n}</option>)}
         </select>
       </div>
-      <div style={{padding:'0.85rem 1rem',background:relation.mutualHard?'rgba(244,63,94,.08)':'var(--surface-3)',border:`1px solid ${relation.mutualHard?'rgba(244,63,94,.3)':'var(--border-soft)'}`,borderRadius:'var(--r-md)',fontSize:'0.75rem',lineHeight:1.55,color:'var(--text-secondary)'}}>
-        <div style={{fontWeight:700,color:'var(--text-gold)',marginBottom:4}}>Relationship Navtara</div>
-        <div>You → Other: <strong style={{color:relation.aToB.profile.isHard?'var(--rose)':'var(--teal)'}}>{relation.aToB.tara}</strong> · Other → You: <strong style={{color:relation.bToA.profile.isHard?'var(--rose)':'var(--teal)'}}>{relation.bToA.tara}</strong></div>
-        <div style={{marginTop:4}}>{relation.advice}</div>
+
+      <div className={cn(styles.relationCard, relation.mutualHard && styles.relationHard)}>
+        <div className={styles.relationTitle}>Relationship Navtara</div>
+        <div>
+          You → other: <strong className={relation.aToB.profile.isHard ? styles.emRose : styles.emTeal}>{relation.aToB.tara}</strong>
+          {' · '}
+          Other → you: <strong className={relation.bToA.profile.isHard ? styles.emRose : styles.emTeal}>{relation.bToA.tara}</strong>
+        </div>
+        <div className={styles.relationAdvice}>{relation.advice}</div>
       </div>
-      <div style={{padding:'1.1rem',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:'var(--r-md)'}}>
-        <div style={{textAlign:'center',marginBottom:'1rem'}}>
-          <div style={{fontSize:'2.5rem',fontWeight:800,fontFamily:'var(--font-display)',color:SC[compat.summary],textShadow:`0 0 20px ${SC[compat.summary]}44`}}>{compat.score}%</div>
-          <div style={{fontWeight:600,color:SC[compat.summary],fontSize:'0.95rem'}}>{compat.summary}</div>
+
+      <div className={styles.scoreCard}>
+        <div className={cn(styles.scoreNum, tone)}>{compat.score}%</div>
+        <div className={cn(styles.scoreLabel, tone)}>{compat.summary}</div>
+        <div className={styles.scoreTrack}>
+          <div className={cn(styles.scoreFill, tone === styles.toneBad ? styles.fillRose : tone === styles.toneMid ? styles.fillAmber : styles.fillTeal)} style={{ width: `${compat.score}%` }} />
         </div>
-        <div style={{height:5,background:'var(--surface-3)',borderRadius:3,overflow:'hidden',marginBottom:'1rem'}}>
-          <div style={{height:'100%',width:`${compat.score}%`,background:`linear-gradient(90deg,${SC[compat.summary]},${SC[compat.summary]}bb)`,borderRadius:3,transition:'width .5s'}}/>
+        <div className={styles.factorGrid}>
+          <Factor label="Tarabala" score={compat.taraScore} max={3} extra={compat.taraName} fill={styles.fillGold} ink={styles.emGold} />
+          <Factor label="Gana" score={compat.ganaScore} max={3} extra={compat.ganaMatch ? 'Match' : 'Mismatch'} fill={styles.fillTeal} ink={styles.emTeal} />
+          <Factor
+            label="Nadi"
+            score={compat.nadiScore}
+            max={3}
+            extra={compat.nadiMatch ? 'Same nadi' : 'Different'}
+            fill={compat.nadiMatch ? styles.fillRose : styles.fillTeal}
+            ink={compat.nadiMatch ? styles.emRose : styles.emTeal}
+          />
+          <Factor label="Yoni" score={compat.yoniScore} max={4} extra="" fill={styles.fillAmber} ink={styles.toneMid} />
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem'}}>
-          {[
-            {label:'Tarabala',score:compat.taraScore,max:3,extra:compat.taraName,color:'#818cf8'},
-            {label:'Gana Milan',score:compat.ganaScore,max:3,extra:compat.ganaMatch?'Match':'Mismatch',color:'#34d399'},
-            {label:'Nadi Dosha',score:compat.nadiScore,max:3,extra:compat.nadiMatch?'⚠ Same Nadi':'✓ Different',color:compat.nadiMatch?'#f87171':'#4ade80'},
-            {label:'Yoni Milan',score:compat.yoniScore,max:4,extra:'',color:'#fbbf24'},
-          ].map(({label,score,max,extra,color})=>(
-            <div key={label} style={{padding:'0.6rem',background:'var(--surface-3)',borderRadius:'var(--r-sm)'}}>
-              <div style={{fontSize:'0.6rem',color:'var(--text-muted)',marginBottom:'0.25rem'}}>{label}</div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <span style={{fontWeight:700,color,fontSize:'1rem'}}>{score}/{max}</span>
-                <span style={{fontSize:'0.62rem',color:'var(--text-muted)'}}>{extra}</span>
-              </div>
-              <div style={{height:3,background:'var(--surface-2)',borderRadius:2,marginTop:'0.35rem'}}><div style={{height:'100%',width:`${(score/max)*100}%`,background:color,borderRadius:2,transition:'width .4s'}}/></div>
-            </div>
+      </div>
+
+      <div>
+        <div className={styles.sectionHead}>
+          <h3 className={styles.sectionTitle}>All 27</h3>
+          <div className={styles.sectionRule} />
+        </div>
+        <div className={styles.heatGrid}>
+          {miniGrid.map(n => (
+            <button
+              key={n.idx}
+              type="button"
+              className={cn(styles.heatCell, heatTone(n.summary), n.idx === cmp && styles.heatCellActive)}
+              title={`${NAK_NAMES[n.idx]}: ${n.score}%`}
+              onClick={() => setCmp(n.idx)}
+            >
+              {n.score}
+            </button>
           ))}
         </div>
-      </div>
-      {/* Heat-map */}
-      <div style={{display:'grid',gridTemplateColumns:'repeat(9,1fr)',gap:'3px'}}>
-        {miniGrid.map(n=>{
-          const c=SC[n.summary]
-          return (
-            <div key={n.idx} onClick={()=>setCmp(n.idx)} title={`${NAK_NAMES[n.idx]}: ${n.score}%`} style={{aspectRatio:'1',borderRadius:5,cursor:'pointer',background:`${c}22`,border:`1px solid ${c}55`,display:'flex',alignItems:'center',justifyContent:'center',transition:'transform .15s'}}
-              onMouseEnter={e=>e.currentTarget.style.transform='scale(1.15)'}
-              onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>
-              <div style={{fontSize:'0.48rem',color:c,fontWeight:700}}>{n.score}</div>
-              {n.idx===cmp&&<div style={{position:'absolute',inset:0,border:`2px solid ${c}`,borderRadius:4,pointerEvents:'none'}}/>}
-            </div>
-          )
-        })}
       </div>
     </div>
   )
 }
 
-// ── Remedies ──────────────────────────────────────────────────
-function RemediesTab({remedy,nakIdx}:{remedy: (typeof NAKSHATRA_REMEDIES)[number]; nakIdx:number}) {
-  if(!remedy) return <div style={{color:'var(--text-muted)',padding:'2rem',textAlign:'center'}}>Remedy data unavailable.</div>
-  const sections=[
-    {title:'Mantras & Seed',icon:'🕉',items:[
-      {label:'Mantra',value:remedy.mantra},
-      {label:'Beej Mantra',value:remedy.beej},
-    ]},
-    {title:'Gemstone & Metals',icon:'💎',items:[
-      {label:'Gemstone',value:remedy.gemstone},
-      {label:'Metal',value:remedy.metal},
-      {label:'Color',value:remedy.color},
-    ]},
-    {title:'Nature Offerings',icon:'🌿',items:[
-      {label:'Flower',value:remedy.flower},
-      {label:'Sacred Tree',value:remedy.tree},
-    ]},
-    {title:'Worship',icon:'🙏',items:[
-      {label:'Deity',value:remedy.deity},
-      {label:'Upasana',value:remedy.upasana},
-      {label:'Fasting',value:remedy.fasting},
-    ]},
-    {title:'Service & Health',icon:'❤️',items:[
-      {label:'Charity',value:remedy.charity},
-      {label:'Health Watch',value:remedy.dosha},
-    ]},
+function Factor({
+  label, score, max, extra, fill, ink,
+}: {
+  label: string
+  score: number
+  max: number
+  extra: string
+  fill: string
+  ink: string
+}) {
+  return (
+    <div className={styles.factor}>
+      <div className={styles.factorLabel}>{label}</div>
+      <div className={styles.factorTop}>
+        <span className={cn(styles.factorScore, ink)}>{score}/{max}</span>
+        <span className={styles.factorExtra}>{extra}</span>
+      </div>
+      <div className={styles.factorTrack}>
+        <div className={cn(styles.factorFill, fill)} style={{ width: `${(score / max) * 100}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function RemediesTab({ remedy, nakIdx }: { remedy: (typeof NAKSHATRA_REMEDIES)[number]; nakIdx: number }) {
+  if (!remedy) {
+    return <p className={styles.lead}>Remedy notes are not available for this star.</p>
+  }
+  const sections: { title: string; Icon: LucideIcon; items: { label: string; value: string }[] }[] = [
+    { title: 'Mantra', Icon: Sparkles, items: [{ label: 'Mantra', value: remedy.mantra }, { label: 'Beej', value: remedy.beej }] },
+    { title: 'Gem and metal', Icon: Gem, items: [{ label: 'Gemstone', value: remedy.gemstone }, { label: 'Metal', value: remedy.metal }, { label: 'Color', value: remedy.color }] },
+    { title: 'Offerings', Icon: Leaf, items: [{ label: 'Flower', value: remedy.flower }, { label: 'Tree', value: remedy.tree }] },
+    { title: 'Worship', Icon: Sun, items: [{ label: 'Deity', value: remedy.deity }, { label: 'Upasana', value: remedy.upasana }, { label: 'Fasting', value: remedy.fasting }] },
+    { title: 'Service', Icon: Heart, items: [{ label: 'Charity', value: remedy.charity }, { label: 'Health', value: remedy.dosha }] },
   ]
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'0.875rem'}}>
-      <p style={{fontSize:'0.75rem',color:'var(--text-muted)',fontStyle:'italic',margin:0,lineHeight:1.6}}>Traditional remedies for <strong style={{color:'var(--gold)'}}>{NAK_NAMES[nakIdx]}</strong> Nakshatra — deity worship, mantra, gemstones, and acts of service.</p>
-      {sections.map(s=>(
-        <div key={s.title} style={{padding:'0.875rem',background:'var(--surface-2)',border:'1px solid var(--border-soft)',borderRadius:'var(--r-md)'}}>
-          <div style={{fontSize:'0.65rem',textTransform:'uppercase',letterSpacing:'.1em',color:'var(--text-gold)',fontWeight:700,marginBottom:'0.6rem'}}>{s.icon} {s.title}</div>
-          <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
-            {s.items.map(({label,value})=>(
-              <div key={label} style={{display:'flex',gap:'0.5rem',fontSize:'0.78rem'}}>
-                <span style={{color:'var(--text-muted)',minWidth:90,flexShrink:0}}>{label}:</span>
-                <span style={{color:'var(--text-primary)',fontWeight:500}}>{value}</span>
+    <div className={styles.stack}>
+      <p className={styles.lead}>
+        Worship, mantra, and service traditionally kept for <strong className={styles.emGold}>{NAK_NAMES[nakIdx]}</strong>.
+      </p>
+      <div className={styles.remedyGrid}>
+        {sections.map(s => (
+          <div key={s.title} className={styles.remedyCard}>
+            <div className={styles.remedyHead}>
+              <s.Icon size={14} aria-hidden />
+              {s.title}
+            </div>
+            {s.items.map(({ label, value }) => (
+              <div key={label} className={styles.remedyRow}>
+                <span className={styles.remedyKey}>{label}</span>
+                <span className={styles.remedyVal}>{value}</span>
               </div>
             ))}
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
