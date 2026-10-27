@@ -3,44 +3,36 @@ import React from 'react'
 import dynamic from 'next/dynamic'
 import { useParams } from 'next/navigation'
 import { useChart } from '@/components/providers/ChartProvider'
+import type { NakshatraSubTab } from '@/components/ui/NakshatraPanel'
 
 const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
+const NakshatraEmpty = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraEmpty), { ssr: false })
+
+const TABS = new Set<NakshatraSubTab>([
+  'overview', 'navtara', 'taramandal', 'bestdays', 'muhurta', 'panchaka',
+  'planet', 'compat', 'remedies', 'profession', 'medical',
+])
 
 export default function NakshatraTabPage() {
   const { tab } = useParams()
   const { chart, openBirthForm } = useChart()
+  const raw = Array.isArray(tab) ? tab[0] : tab
+  const subTab: NakshatraSubTab = raw && TABS.has(raw as NakshatraSubTab) ? raw as NakshatraSubTab : 'overview'
 
-  // If no chart is loaded, show a prompt
   if (!chart) {
     return (
-      <div style={{ 
-        flex: 1, display: 'flex', flexDirection: 'column', 
-        alignItems: 'center', justifyContent: 'center', 
-        gap: '1.5rem', padding: '6rem 2rem', textAlign: 'center' 
-      }}>
-        <div style={{ fontSize: '3rem', opacity: 0.5 }}>🌙</div>
-        <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-gold)', fontWeight: 500 }}>Nakshatra Intelligence</h2>
-        <p style={{ color: 'var(--text-muted)', maxWidth: 450, fontSize: '0.95rem' }}>
-          Please load or create a birth chart to access personalized nakshatra analysis, {tab ? `specifically for ${tab}, ` : ''}including Navtara, Muhurta compatibility, and remedies.
-        </p>
-        <button onClick={openBirthForm} className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
-          ✦ Open Birth Form
-        </button>
+      <div className="main-responsive-padding fade-up" style={{ minWidth: 0, padding: 'clamp(1rem, 3vw, 2rem)' }}>
+        <NakshatraEmpty
+          onOpenBirthForm={openBirthForm}
+          detail="Load a birth chart to open this nakshatra section."
+        />
       </div>
     )
   }
 
-  // Use the tab from URL
-  const subTab = tab || 'overview'
-
   return (
     <div className="main-responsive-padding fade-up" style={{ minWidth: 0, padding: 'clamp(1rem, 3vw, 2rem)' }}>
-      <div className="card" style={{ padding: '1.25rem', width: '100%' }}>
-        <NakshatraPanel 
-          chart={chart} 
-          initialTab={subTab as any} 
-        />
-      </div>
+      <NakshatraPanel chart={chart} initialTab={subTab} />
     </div>
   )
 }
