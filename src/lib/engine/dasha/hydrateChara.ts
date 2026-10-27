@@ -6,6 +6,7 @@ import { fromZonedTime } from 'date-fns-tz'
 import type { ChartOutput, DashaNode, GrahaData, LagnaData } from '@/types/astrology'
 import { calcCharaDasha, calcCharaDashaFemale } from './chara'
 import { calcMandookDasha, calcSthirDasha, calcNavamshaDasha, calcBrahmaDasha } from './jaimini'
+import { calcKalachakra } from './kalachakra'
 
 const CHARA_DEPTH = 3
 
@@ -25,7 +26,7 @@ export function ensureCharaDashas(
   meta: ChartOutput['meta'],
   /** @deprecated Ignored — always recomputed so depth/formula fixes apply. */
   _existing?: Partial<Pick<ChartOutput['dashas'], 'chara' | 'chara_fe' | 'mandook' | 'sthir'>>,
-): { chara: DashaNode[]; chara_fe: DashaNode[]; mandook: DashaNode[]; sthir: DashaNode[]; navamsha: DashaNode[]; brahma: DashaNode[] } {
+): { chara: DashaNode[]; chara_fe: DashaNode[]; mandook: DashaNode[]; sthir: DashaNode[]; navamsha: DashaNode[]; brahma: DashaNode[]; kalachakra: DashaNode[] } {
   const birthUtc = birthUtcFromMeta(meta)
   // Always recompute so cached/legacy trees pick up depth and formula fixes
   // (e.g. full Antar→Pratyantar for previous/future periods, not current-only).
@@ -35,7 +36,9 @@ export function ensureCharaDashas(
   const sthir = calcSthirDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
   const navamsha = calcNavamshaDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
   const brahma = calcBrahmaDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
-  return { chara, chara_fe, mandook, sthir, navamsha, brahma }
+  const moon = grahas.find((g) => g.id === 'Mo')
+  const kalachakra = moon ? calcKalachakra(moon.lonSidereal, birthUtc, CHARA_DEPTH) : []
+  return { chara, chara_fe, mandook, sthir, navamsha, brahma, kalachakra }
 }
 
 export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagnas' | 'meta'> & { dashas?: ChartOutput['dashas'] }>(
@@ -44,7 +47,7 @@ export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagna
   if (!chart.grahas?.length || !chart.lagnas) return chart
 
   const existing = chart.dashas
-  const { chara, chara_fe, mandook, sthir, navamsha, brahma } = ensureCharaDashas(chart.grahas, chart.lagnas, chart.meta, existing)
+  const { chara, chara_fe, mandook, sthir, navamsha, brahma, kalachakra } = ensureCharaDashas(chart.grahas, chart.lagnas, chart.meta, existing)
 
   return {
     ...chart,
@@ -56,6 +59,7 @@ export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagna
       sthir,
       navamsha,
       brahma,
+      kalachakra,
     } as ChartOutput['dashas'],
   }
 }

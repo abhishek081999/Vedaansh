@@ -23,6 +23,7 @@ const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m =>
 const YoginiInterpretationPanel = dynamic(() => import('@/components/dasha/YoginiInterpretationPanel').then(m => m.YoginiInterpretationPanel), { ssr: false })
 const VimshottariInterpretationPanel = dynamic(() => import('@/components/dasha/DashaInterpretationPanel').then(m => m.VimshottariInterpretationPanel), { ssr: false })
 const DashaInterpretationTeaserFromChart = dynamic(() => import('@/components/dasha/DashaInterpretationTeaser').then(m => m.DashaInterpretationTeaserFromChart), { ssr: false })
+const KalachakraAnalysisPanel = dynamic(() => import('@/components/dasha/KalachakraAnalysisPanel').then(m => m.KalachakraAnalysisPanel), { ssr: false })
 const PersonalDayCard = dynamic(() => import('@/components/dashboard/PersonalDayCard').then(m => m.PersonalDayCard), { ssr: false })
 const GrahaTable = dynamic(() => import('@/components/ui/GrahaTable').then(m => m.GrahaTable), { ssr: false })
 const AshtakavargaGrid = dynamic(() => import('@/components/ui/AshtakavargaGrid').then(m => m.AshtakavargaGrid), { ssr: false })
@@ -66,7 +67,7 @@ const PwaInstallGuide = dynamic(() => import('@/components/ui/PwaInstallGuide').
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import { routeAllowsWithoutChart } from '@/lib/chartGateRoutes'
-import type { ChartOutput, GrahaId, Rashi, ChartSettings } from '@/types/astrology'
+import type { ChartOutput, DashaNode, GrahaId, Rashi, ChartSettings } from '@/types/astrology'
 import { DEFAULT_SETTINGS, GRAHA_NAMES, NAKSHATRA_NAMES as NAK_NAMES } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
@@ -507,6 +508,29 @@ function YoginiDashaBlock({
   )
 }
 
+function KalachakraReading({
+  chart,
+  nodes,
+  compact = false,
+}: {
+  chart: ChartOutput
+  nodes: DashaNode[]
+  compact?: boolean
+}) {
+  const lon = chart.grahas.find((g) => g.id === 'Mo')?.lonSidereal
+  if (lon == null || !Number.isFinite(lon) || !nodes.length) return null
+  return (
+    <KalachakraAnalysisPanel
+      moonLonSidereal={lon}
+      nodes={nodes}
+      grahas={chart.grahas}
+      ascRashi={chart.lagnas.ascRashi}
+      timezone={chart.meta.timezone}
+      compact={compact}
+    />
+  )
+}
+
 const iconMap: Record<string, React.ComponentType<any>> = {
   Astrology: Sparkles,
   'Today\u2019s Reading': CalendarCheck,
@@ -576,7 +600,7 @@ function HomeContent() {
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
-  const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'>('vimshottari')
+  const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'kalachakra' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'>('vimshottari')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
   const [vimshottariTribhagi, setVimshottariTribhagi] = useState(false)
   const [chartActiveVarga, setChartActiveVarga] = useState<string>('D1')
@@ -1540,6 +1564,7 @@ function HomeContent() {
                   <option value="mandook">Mandook (K.N. Rao)</option>
                   <option value="sthir">Sthir</option>
                   <option value="ashtottari">Ashtottari</option>
+                  <option value="kalachakra">Kalachakra</option>
                 </select>
               )}
             </div>
@@ -1571,6 +1596,12 @@ function HomeContent() {
                 />
               )}
               {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Ashtottari computation required.</div>)}
+              {dashaSystem === 'kalachakra' && (dashboardChart.dashas.kalachakra?.length ? (
+                <>
+                  <KalachakraReading chart={dashboardChart} nodes={dashboardChart.dashas.kalachakra} compact />
+                  <DashaTree nodes={dashboardChart.dashas.kalachakra} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} maxDepth={3} />
+                </>
+              ) : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Kalachakra computation required.</div>)}
               {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <YoginiDashaBlock nodes={dashboardChart.dashas.yogini} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yogini computation required.</div>)}
               {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara computation required.</div>)}
               {dashaSystem === 'chara_fe' && (dashboardChart.dashas.chara_fe?.length ? <DashaTree nodes={dashboardChart.dashas.chara_fe} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara FE computation required.</div>)}
@@ -1620,6 +1651,7 @@ function HomeContent() {
                 <option value="mandook">Mandook (K.N. Rao)</option>
                 <option value="sthir">Sthir</option>
                 <option value="ashtottari">Ashtottari</option>
+                <option value="kalachakra">Kalachakra</option>
               </select>
             </div>
           </div>
@@ -1631,13 +1663,20 @@ function HomeContent() {
                   : (dashboardChart.dashas[dashaSystem] ?? [])
                 if (!nodes || nodes.length === 0) return <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', padding: '0.5rem', fontFamily: 'var(--font-body)' }}>No data.</div>
                 return (
-                  <DashaTree
-                    nodes={nodes}
-                    birthDate={new Date(dashboardChart.meta.birthDate)}
-                    showNakshatra={dashaSystem === 'vimshottari' && vimshottariTribhagi}
-                    tribhagi={dashaSystem === 'vimshottari' && vimshottariTribhagi}
-                    maxDepth={dashaSystem === 'vimshottari' ? (userPlan !== 'free' ? 6 : 4) : 3}
-                  />
+                  <>
+                    {dashaSystem === 'kalachakra' && (
+                      <div style={{ padding: '0 0.15rem 0.35rem' }}>
+                        <KalachakraReading chart={dashboardChart} nodes={dashboardChart.dashas.kalachakra ?? []} compact />
+                      </div>
+                    )}
+                    <DashaTree
+                      nodes={nodes}
+                      birthDate={new Date(dashboardChart.meta.birthDate)}
+                      showNakshatra={dashaSystem === 'vimshottari' && vimshottariTribhagi}
+                      tribhagi={dashaSystem === 'vimshottari' && vimshottariTribhagi}
+                      maxDepth={dashaSystem === 'vimshottari' ? (userPlan !== 'free' ? 6 : 4) : 3}
+                    />
+                  </>
                 )
               })()}
             </div>
@@ -2002,8 +2041,8 @@ function HomeContent() {
                       >
                         <span>Dasha Interpretation</span>
                         <select
-                          value={dashaSystem === 'yogini' ? 'yogini' : 'vimshottari'}
-                          onChange={(e) => setDashaSystem(e.target.value as 'vimshottari' | 'yogini')}
+                          value={dashaSystem === 'yogini' || dashaSystem === 'kalachakra' ? dashaSystem : 'vimshottari'}
+                          onChange={(e) => setDashaSystem(e.target.value as 'vimshottari' | 'yogini' | 'kalachakra')}
                           aria-label="Interpretation dasha system"
                           style={{
                             height: 26,
@@ -2021,10 +2060,22 @@ function HomeContent() {
                         >
                           <option value="vimshottari">Vimshottari</option>
                           <option value="yogini">Yogini</option>
+                          <option value="kalachakra">Kalachakra</option>
                         </select>
                       </div>
                       <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {dashaSystem === 'yogini' ? (
+                        {dashaSystem === 'kalachakra' ? (
+                          chart.dashas.kalachakra?.length ? (
+                            <>
+                              <KalachakraReading chart={chart} nodes={chart.dashas.kalachakra} />
+                              <DashaTree nodes={chart.dashas.kalachakra} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} />
+                            </>
+                          ) : (
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>
+                              Kalachakra computation required.
+                            </div>
+                          )
+                        ) : dashaSystem === 'yogini' ? (
                           chart.dashas.yogini?.length ? (
                             <>
                               <YoginiDashaBlock
@@ -2156,6 +2207,7 @@ function HomeContent() {
                                 <option value="mandook">Mandook (K.N. Rao)</option>
                                 <option value="sthir">Sthir</option>
                                 <option value="ashtottari">Ashtottari</option>
+                                <option value="kalachakra">Kalachakra</option>
                               </select>
                             </div>
                             <div style={{ padding: '0.4rem 0.55rem' }}>
@@ -2187,6 +2239,14 @@ function HomeContent() {
                                 }
                                 const nodes = chart.dashas[dashaSystem] ?? []
                                 if (!nodes?.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
+                                if (dashaSystem === 'kalachakra') {
+                                  return (
+                                    <>
+                                      <KalachakraReading chart={chart} nodes={nodes} />
+                                      <DashaTree nodes={nodes} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} />
+                                    </>
+                                  )
+                                }
                                 return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
                               })()}
                             </div>
@@ -2388,6 +2448,7 @@ function HomeContent() {
                           <option value="mandook">Mandook (K.N. Rao)</option>
                           <option value="sthir">Sthir</option>
                           <option value="ashtottari">Ashtottari</option>
+                          <option value="kalachakra">Kalachakra</option>
                         </select>
                        </div>
                        <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -2404,6 +2465,12 @@ function HomeContent() {
                            />
                          )}
                          {dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Ashtottari computation required.</div>)}
+                         {dashaSystem === 'kalachakra' && (chart.dashas.kalachakra?.length ? (
+                           <>
+                             <KalachakraReading chart={chart} nodes={chart.dashas.kalachakra} />
+                             <DashaTree nodes={chart.dashas.kalachakra} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} />
+                           </>
+                         ) : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Kalachakra computation required.</div>)}
                          {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <YoginiDashaBlock nodes={chart.dashas.yogini} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yogini computation required.</div>)}
                          {dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara computation required.</div>)}
                         {dashaSystem === 'chara_fe' && (chart.dashas.chara_fe?.length ? <DashaTree nodes={chart.dashas.chara_fe} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara FE computation required.</div>)}
@@ -2576,6 +2643,7 @@ function HomeContent() {
                       { id: 'mandook', label: 'Mandook (K.N. Rao)', nodes: chart.dashas.mandook ?? [] },
                       { id: 'sthir', label: 'Sthir', nodes: chart.dashas.sthir ?? [] },
                       { id: 'ashtottari', label: 'Ashtottari', nodes: chart.dashas.ashtottari ?? [] },
+                      { id: 'kalachakra', label: 'Kalachakra', nodes: chart.dashas.kalachakra ?? [] },
                     ] as const).map((system) => (
                       <div
                         key={system.id}
@@ -2590,6 +2658,11 @@ function HomeContent() {
                           {system.label}
                         </div>
                         <div style={{ padding: '0.4rem 0.45rem' }}>
+                          {system.id === 'kalachakra' && (
+                            <div style={{ marginBottom: '0.35rem' }}>
+                              <KalachakraReading chart={chart} nodes={chart.dashas.kalachakra ?? []} compact />
+                            </div>
+                          )}
                           {system.nodes.length > 0 ? (
                             system.id === 'yogini' ? (
                               <YoginiDashaBlock

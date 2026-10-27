@@ -390,6 +390,7 @@ export type DashaSystem =
   | 'vimshottari'
   | 'yogini'
   | 'ashtottari'
+  | 'kalachakra'
   | 'chara'
   | 'chara_fe'
   | 'mandook'

@@ -40,6 +40,7 @@ import { detectYogas }           from './yogas'
 import { calcYoginiDasha }       from './dasha/yogini'
 import { calcCharaDasha, calcCharaDashaFemale } from './dasha/chara'
 import { calcAshtottari }        from './dasha/ashtottari'
+import { calcKalachakra }        from './dasha/kalachakra'
 import { calcMandookDasha, calcSthirDasha, calcNavamshaDasha, calcBrahmaDasha } from './dasha/jaimini'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import {
@@ -527,6 +528,7 @@ export async function calculateChart(
       ashtottari: (plan === 'gold' || plan === 'platinum')
         ? calcAshtottari(moon.lonSidereal, birthUtc, Math.min(dashaDepth, 3))
         : [],
+      kalachakra: calcKalachakra(moon.lonSidereal, birthUtc, Math.min(dashaDepth, 3)),
       chara: calcCharaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
       chara_fe: calcCharaDashaFemale(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
       mandook: calcMandookDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
