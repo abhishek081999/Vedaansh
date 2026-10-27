@@ -6,7 +6,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Briefcase, CalendarRange, Coins, Gem, Grid3x3, Heart, Home, Hourglass, Orbit, Sparkles, Users,
+  BookOpen, Briefcase, CalendarRange, Coins, Gem, Grid3x3, Heart, Home, Hourglass, Orbit, Sparkles, Users,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ChartOutput, DashaNode, DashaSystem, Rashi, UserPlan } from '@/types/astrology'
@@ -36,6 +36,7 @@ const VIEWS: { id: NadiView; label: string; hint: string; icon: LucideIcon }[] =
   { id: 'wealth', label: 'Wealth', hint: 'The wealth years, then property from Chaturthamsha and vehicles from Shodashamsha.', icon: Coins },
   { id: 'future', label: 'Future', hint: 'The coming years, the activations that land on them, and the periods still ahead.', icon: CalendarRange },
   { id: 'timing', label: 'Timing', hint: 'The running year, the degree years, and the period now open.', icon: Hourglass },
+  { id: 'patel', label: 'Points', hint: 'The 22nd drekkana, the 64th Navamsha, and the Bhrigu Bindu.', icon: BookOpen },
   { id: 'transits', label: 'Transits', hint: 'The live sky, the windows open now, and the natal signs Jupiter and Saturn wake together.', icon: Orbit },
   { id: 'remedies', label: 'Remedies', hint: 'The stone, color, and remedy this chart allows.', icon: Gem },
 ]
@@ -79,7 +80,7 @@ function NadiCharts({
 }) {
   const divisionals = VARGA_UI_LIST.filter((v) => v.name !== 'D1')
   const [vargaName, setVargaName] = useState('D9')
-  const focus = view === 'marriage' ? 'D9' : view === 'career' ? 'D10' : null
+  const focus = view === 'marriage' || view === 'patel' ? 'D9' : view === 'career' ? 'D10' : null
   useEffect(() => {
     if (focus) setVargaName(focus)
   }, [focus])

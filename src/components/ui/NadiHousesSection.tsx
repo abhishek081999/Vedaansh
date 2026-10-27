@@ -28,6 +28,8 @@ import {
   placementFindings,
   lifeFindings,
   lifeVerdict,
+  patelFindings,
+  patelVerdict,
   housesVerdict,
   marriageFindings,
   marriagePressureFindings,
@@ -49,7 +51,7 @@ import {
 } from '@/components/ui/nadiFindings'
 import styles from './NadiHousesSection.module.css'
 
-export type NadiReadingView = 'houses' | 'life' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
+export type NadiReadingView = 'houses' | 'life' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'patel' | 'transits' | 'remedies'
 
 const SKY_IDS = ['Ju', 'Sa', 'Ra', 'Ke', 'Ma', 'Ve'] as const
 
@@ -686,6 +688,16 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
             </table>
           </div>
         </Reference>
+      </div>
+    )
+  }
+
+  if (view === 'patel') {
+    const verdict = patelVerdict(reading)
+    return (
+      <div className={styles.stack}>
+        <Verdict title={verdict} note={reading.patel.note} />
+        <FindingGrid items={withoutVerdict(patelFindings(reading), verdict)} />
       </div>
     )
   }

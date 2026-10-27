@@ -109,7 +109,7 @@ export function Reference({ label, children }: { label: string; children: React.
   )
 }
 
-export type NadiJump = 'houses' | 'life' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
+export type NadiJump = 'houses' | 'life' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'patel' | 'transits' | 'remedies'
 
 export function NadiActiveBrief({
   reading,
@@ -146,6 +146,14 @@ export function NadiActiveBrief({
   const ahead = reading.future.years.find((year) => !year.now && year.techniques.length > 1)
   if (ahead) chips.push({ key: 'Ahead', value: `${ahead.year} · ${ahead.houseName}`, view: 'future' })
   chips.push({ key: 'Bhrigu', value: ordinal(reading.bhriguHouse), view: 'houses' })
+  const patelOpen = reading.patel.points.filter((row) => row.running)
+  if (patelOpen.length > 0) {
+    chips.push({
+      key: 'Points',
+      value: patelOpen.length === 1 ? patelOpen[0]!.title : `${patelOpen.length} points`,
+      view: 'patel',
+    })
+  }
 
   return (
     <section className={styles.brief} aria-label="Active on this chart">
@@ -196,6 +204,8 @@ export function nadiHighlights(
     d1.add(4)
     d1.add(9)
     d1.add(12)
+  } else if (view === 'patel') {
+    for (const row of reading.patel.points) d1.add(row.house)
   } else if (view === 'houses' || view === 'chart') {
     if (reading.career.priority === 1) {
       for (const pair of reading.parivartana) {
@@ -211,6 +221,7 @@ export function nadiHighlights(
 
   const varga: number[] = []
   if (vargaName === 'D9' && (view === 'marriage' || view === 'chart')) varga.push(1, 7)
+  if (vargaName === 'D9' && view === 'patel') varga.push(4)
   if (vargaName === 'D10' && (view === 'career' || view === 'chart')) varga.push(1, 10)
   return { d1: [...d1], varga }
 }
@@ -438,6 +449,27 @@ export function futureVerdict(reading: NadiChartReading): string {
   const period = reading.future.periods.find((row) => row.lines.length > 0) ?? reading.future.periods[0]
   if (period) return period.lines[0] ?? period.title
   return 'No coming year is marked. A birth date opens the year-count.'
+}
+
+export function patelFindings(reading: NadiChartReading): NadiFinding[] {
+  return [
+    ...reading.patel.points.map((row) => ({
+      id: row.id,
+      title: row.title,
+      answer: `${row.signName} · ${row.lordName}${row.running ? ' · period open' : ''}`,
+      reading: row.reading,
+      tone: (row.running ? 'caution' : 'plain') as NadiTone,
+    })),
+    ...fromLines('Watched signs', reading.patel.lines, 'patel'),
+  ]
+}
+
+export function patelVerdict(reading: NadiChartReading): string {
+  const open = reading.patel.points.find((row) => row.running)
+  return open?.reading
+    ?? reading.patel.lines[0]
+    ?? reading.patel.points[0]?.reading
+    ?? 'These points are read from the lagna and the Moon.'
 }
 
 export function timingVerdict(reading: NadiChartReading): string {
