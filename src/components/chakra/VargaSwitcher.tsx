@@ -5,7 +5,7 @@ import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
 import { buildArudhaBundle } from '@/lib/engine/arudhas'
 import { getDashaLordPlacementHouses } from '@/lib/engine/activeHouses'
-import { getVargaPosition, VARGA_UI_LIST } from '@/lib/engine/vargas'
+import { getVargaPosition, VARGA_FUNCTIONS, VARGA_UI_LIST, type VargaName } from '@/lib/engine/vargas'
 
 interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'gold'|'platinum' }
 
@@ -29,6 +29,22 @@ function isUnlocked(meta: VargaMeta, plan: UserPlan) { return planLevel(plan)>=t
 
 function hasVargaData(name: string, vargas: Record<string, GrahaData[]>) {
   return name === 'D1' || name in vargas
+}
+
+/** Place grahas in the selected divisional chart. D1 keeps the original signs. */
+function projectGrahasToVarga(grahas: GrahaData[], vargaName: string): GrahaData[] {
+  if (grahas.length === 0 || vargaName === 'D1') return grahas
+  if (!(vargaName in VARGA_FUNCTIONS)) return []
+  return grahas.map(g => {
+    const lon = g.lonSidereal || g.totalDegree
+    const pos = getVargaPosition(lon, vargaName as VargaName)
+    return {
+      ...g,
+      rashi: pos.rashi as Rashi,
+      degree: pos.degree,
+      totalDegree: pos.totalDegree,
+    }
+  })
 }
 
 function VargaOptions({
@@ -418,11 +434,8 @@ export function VargaSwitcher({
                   ascRashi={varAscRashi} grahas={grahas} size={isMobile ? 300 : 440}
                   vargaName={name}
                   userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={vArudhas} arudhasBphs={vArudhasBphs}
-                  transitGrahas={name === 'D1' ? transitGrahas : []} 
-                  comparisonGrahas={comparisonGrahas.length > 0 ? comparisonGrahas.map(g => {
-                    const vPos = getVargaPosition(g.totalDegree, name as any)
-                    return { ...g, totalDegree: vPos.totalDegree, degree: vPos.degree, rashi: vPos.rashi as Rashi }
-                  }) : []}
+                  transitGrahas={projectGrahasToVarga(transitGrahas, name)}
+                  comparisonGrahas={projectGrahasToVarga(comparisonGrahas, name)}
                   moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}
                   highlightHouses={highlightHouses}
