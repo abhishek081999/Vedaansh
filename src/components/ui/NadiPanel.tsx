@@ -284,7 +284,7 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
     const path = getDashaPathAt(chart.dashas?.vimshottari ?? [])
     return path.length > 0 ? path.map((node) => lordLabel(node.lord)).join(' · ') : null
   }, [chart])
-  const nodes = chart.dashas[dashaSystem] ?? []
+  const nodes = useMemo(() => chart.dashas[dashaSystem] ?? [], [chart, dashaSystem])
   const running = useMemo(() => getDashaPathAt(nodes), [nodes])
   const current = VIEWS.find((item) => item.id === view) ?? VIEWS[0]
 
