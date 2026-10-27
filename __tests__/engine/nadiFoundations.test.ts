@@ -11,9 +11,19 @@ import { NADI_BHRIGU_NOTE, bhriguBhavaNotes } from '@/lib/engine/nadi/bhrigu'
 import { NADI_MARRIAGE_RULE_NOTE, readChartLectures } from '@/lib/engine/nadi/marriageRules'
 import { NADI_RASHI_AGE_NOTE, rashiAgeNotes } from '@/lib/engine/nadi/rashiAge'
 import { readNadiLife } from '@/lib/engine/nadi/life'
+import { readNadiPlacements } from '@/lib/engine/nadi/placements'
 import type { Rashi } from '@/types/astrology'
 
 describe('Nadi foundations', () => {
+  it('attaches the classical house and sign line to a placement', () => {
+    const rows = readNadiPlacements({
+      ascRashi: 1,
+      grahas: [{ id: 'Su', rashi: 1, degree: 10 }],
+    })
+    expect(rows[0]?.classicalHouse).toMatch(/Sun in Lagna/)
+    expect(rows[0]?.classicalSign).toMatch(/Aries/)
+  })
+
   it('counts houses anti-clockwise from any start', () => {
     expect(houseCountedFrom(4, 10)).toBe(1)
     expect(houseCountedFrom(4, 8)).toBe(11)

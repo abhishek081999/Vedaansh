@@ -748,6 +748,13 @@
   color: var(--text-secondary);
 }
 
+.findingClassical {
+  margin: 0.28rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
 .reference {
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);

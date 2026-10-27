@@ -14,6 +14,8 @@ export interface NadiFinding {
   title: string
   answer: string
   reading?: string
+  /** Classical paraphrase, kept apart from the Nadi line. */
+  detail?: string
   tone: NadiTone
 }
 
@@ -81,6 +83,7 @@ export function FindingGrid({ items }: { items: readonly NadiFinding[] }) {
           <p className={styles.findingTitle}>{item.title}</p>
           <p className={styles.findingAnswer}>{item.answer}</p>
           {item.reading ? <p className={styles.findingBody}>{item.reading}</p> : null}
+          {item.detail ? <p className={styles.findingClassical}>{item.detail}</p> : null}
         </article>
       ))}
     </div>
@@ -382,6 +385,7 @@ export function placementFindings(reading: NadiChartReading): NadiFinding[] {
       title: row.name,
       answer: `${ordinal(row.house)} · ${sign} · ${rules}`,
       reading: row.prediction,
+      detail: [row.classicalHouse, row.classicalSign].filter((line): line is string => !!line).join(' '),
       tone: toneOf(row.prediction),
     }
   })
