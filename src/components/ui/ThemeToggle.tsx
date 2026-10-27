@@ -6,8 +6,15 @@
 // ─────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react'
+import { Moon, ScrollText, Sun } from 'lucide-react'
 
 type ThemeType = 'dark' | 'light' | 'classic'
+
+const NEXT_THEME: Record<ThemeType, { label: string; Icon: typeof Sun }> = {
+  dark: { label: 'Light', Icon: Sun },
+  light: { label: 'Classic', Icon: ScrollText },
+  classic: { label: 'Dark', Icon: Moon },
+}
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<ThemeType>('classic')
@@ -35,23 +42,7 @@ export function ThemeToggle() {
 
   if (!mounted) return null
 
-  let icon = '☀️'
-  let label = 'Light'
-  let transform = 'rotate(0deg) scale(1)'
-
-  if (theme === 'dark') {
-    icon = '☀️'
-    label = 'Light'
-    transform = 'rotate(0deg) scale(1)'
-  } else if (theme === 'light') {
-    icon = '📜'
-    label = 'Classic'
-    transform = 'rotate(360deg) scale(1.1)'
-  } else if (theme === 'classic') {
-    icon = '🌙'
-    label = 'Dark'
-    transform = 'rotate(180deg) scale(1)'
-  }
+  const { label, Icon } = NEXT_THEME[theme]
 
   return (
     <button
@@ -60,20 +51,9 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={`Switch to ${label} theme`}
       title={`Switch to ${label} theme`}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border-bright)'
-        e.currentTarget.style.boxShadow = '0 0 12px var(--glow-gold-sm)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border)'
-        e.currentTarget.style.boxShadow = 'none'
-      }}
     >
-      <span
-        className="theme-toggle-icon"
-        style={{ transform }}
-      >
-        {icon}
+      <span className="theme-toggle-icon">
+        <Icon size={16} strokeWidth={2} aria-hidden />
       </span>
       <span className="theme-toggle-label">
         {label}

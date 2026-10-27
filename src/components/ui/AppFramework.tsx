@@ -14,7 +14,7 @@ import { NavIcon } from '@/components/ui/layout/NavIcon'
 import { isAuthRoute } from '@/lib/ui/authRoutes'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import type { LucideIcon } from 'lucide-react'
-import { ChevronDown, Library, LogOut, User } from 'lucide-react'
+import { ChevronDown, Library, LogOut, Menu, User, X } from 'lucide-react'
 import {
   ACCOUNT_TABS,
   ADVANCED_ASTRO_TABS,
@@ -504,12 +504,13 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       <header className="app-header" data-sidenav-open={isSidenavOpen ? 'true' : 'false'}>
         {/* Left: Toggler + Brand */}
         <div className="app-header-left">
-          <button 
+          <button
             onClick={() => setIsSidenavOpen((o: boolean) => !o)}
             className="app-header-toggler"
             aria-label="Toggle navigation menu"
+            aria-expanded={isSidenavOpen}
           >
-            <span style={{ fontSize: '1.25rem' }}>☰</span>
+            <Menu size={18} strokeWidth={2} aria-hidden />
           </button>
           
           <Link
@@ -517,11 +518,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             onClick={goHome}
             className="app-header-brand"
           >
-            <Image 
-              src="/veda-icon.png" 
-              alt="Vedaansh Logo"
-              width={30}
-              height={30}
+            <Image
+              src="/veda-icon.png"
+              alt=""
+              width={32}
+              height={32}
               className="app-header-brand-logo"
             />
             <div className="app-header-brand-text">
@@ -596,7 +597,9 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           >
             Dash
           </Link>
-          <ThemeToggle />
+          <div className="app-header-theme">
+            <ThemeToggle />
+          </div>
           {renderHeaderProfile()}
         </div>
       </header>
@@ -649,10 +652,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               >
                 <Image
                   src="/veda-icon.png"
-                  alt="Vedaansh Logo"
+                  alt=""
                   width={36}
                   height={36}
-                  style={{ objectFit: 'contain' }}
+                  className="sidenav-brand-logo"
                 />
                 <div className="sidenav-brand-text">
                   <span className="sidenav-brand-title">Vedaansh</span>
@@ -665,7 +668,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 aria-label="Close menu"
                 onClick={() => setIsSidenavOpen(false)}
               >
-                ✕
+                <X size={16} strokeWidth={2.25} aria-hidden />
               </button>
             </div>
           </div>
@@ -695,7 +698,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                       {session.user.name || 'Account'}
                     </div>
                     <div className="sidenav-profile-hint">
-                      {profileMenuOpen ? 'Close ▴' : 'Account ▾'}
+                      Account
+                      <ChevronDown size={12} strokeWidth={2.25} aria-hidden />
                     </div>
                   </div>
                 </button>
@@ -710,9 +714,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                         if (window.innerWidth < BREAKPOINTS.lg) setIsSidenavOpen(false)
                       }}
                     >
-                      <span aria-hidden style={{ fontSize: '0.85rem' }}>
-                        👤
-                      </span>
+                      <User size={15} strokeWidth={2} aria-hidden />
                       Profile
                     </Link>
                     <button
@@ -725,9 +727,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                         void signOut({ callbackUrl: '/' })
                       }}
                     >
-                      <span aria-hidden style={{ fontSize: '0.85rem' }}>
-                        ⎋
-                      </span>
+                      <LogOut size={15} strokeWidth={2} aria-hidden />
                       Log out
                     </button>
                   </div>
@@ -739,7 +739,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 className="sidenav-signin"
                 onClick={() => { if (window.innerWidth < BREAKPOINTS.lg) setIsSidenavOpen(false) }}
               >
-                👤 Sign In
+                <User size={15} strokeWidth={2} aria-hidden />
+                Sign in
               </Link>
             )}
           </div>
