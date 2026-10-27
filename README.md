@@ -46,7 +46,7 @@ Canonical plans: `free` | `gold` | `platinum`. Enforcement matrix: [`SUBSCRIPTIO
 | **Chart styles** | North Indian, South Indian, Sarvatobhadra — transit overlay |
 | **Grahas** | Navagraha with DMS, nakshatra, pada, dignity, combustion, avastha |
 | **Vargas** | 16 Shodashavarga in UI (engine has full 41; Platinum unlocks full suite) |
-| **Dashas** | Vimshottari, Yogini, Chara/Jaimini, Ashtottari |
+| **Dashas** | Vimshottari, Yogini, Kalachakra, Chara/Jaimini, Ashtottari |
 | **Strengths** | Arudhas, Shadbala, Vimsopaka, Ashtakavarga, yogas |
 | **Panchang** | Daily + monthly calendar; timings (Choghadiya, Rahu Kalam, etc.) |
 | **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Prashna (Satpanchasika free), Jaimini, Nadi (chart, positions, houses, dasha), ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
@@ -102,7 +102,7 @@ Pure TypeScript under `src/lib/engine/` (~76 top-level modules + `dasha/` subsys
 | Ephemeris | `sweph` wrapper, ayanamsha, sidereal, nodes, upagrahas |
 | Houses / structure | Whole sign / Placidus / etc., vargas, arudhas, karakas |
 | Strength | Shadbala, bhava bala, vimsopaka, ashtakavarga |
-| Time lords | Vimshottari, Yogini, Chara, Ashtottari |
+| Time lords | Vimshottari, Yogini, Kalachakra, Chara, Ashtottari |
 | Extras | Yogas, KP, SBC, muhurta, gandanta, pushkara, ACG |
 
 Detailed module inventory lives in git history / code; prefer reading `src/lib/engine/` and `__tests__/engine/`. Architecture: [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md).

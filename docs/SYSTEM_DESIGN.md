@@ -132,7 +132,7 @@ Approximate stages:
 | Core graha | nakshatra, dignity, yuddha, combust, upagrahas |
 | Structure | vargas, arudhas, karakas, ashtakavarga |
 | Strength | shadbala, bhavaBala, vimsopaka, Jaimini bala |
-| Time lords | Vimshottari, Yogini, Chara, Ashtottari, Mandook/Sthir |
+| Time lords | Vimshottari, Yogini, Kalachakra, Chara, Ashtottari, Mandook/Sthir |
 | KP / extras | significators, yogas, gandanta, pushkara, yogi |
 | Output | `ChartOutput` + interpretations |
 

@@ -24,6 +24,7 @@ const TRANSIT_DASHA_SYSTEMS: { id: DashaSystem; label: string }[] = [
   { id: 'mandook', label: 'Mandook (K.N. Rao)' },
   { id: 'sthir', label: 'Sthir' },
   { id: 'ashtottari', label: 'Ashtottari' },
+  { id: 'kalachakra', label: 'Kalachakra' },
 ]
 
 const EMPTY_DASHA_NODES: DashaNode[] = []

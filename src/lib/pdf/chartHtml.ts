@@ -972,7 +972,7 @@ function formatDashaDate(value?: Date | string): string {
 
 function buildDashaSystemTable(
   chart: ChartOutput,
-  key: 'vimshottari' | 'ashtottari' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir',
+  key: 'vimshottari' | 'ashtottari' | 'kalachakra' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir',
   label: string,
 ): string {
   const nodes = chart.dashas[key] ?? []
@@ -991,7 +991,7 @@ function buildDashaSystemTable(
       if (yi) return `${yi.name} (${GRAHA_NAMES[n.lord as GrahaId] || n.lord})`
       return n.label || GRAHA_NAMES[n.lord as GrahaId] || n.lord
     }
-    return GRAHA_NAMES[n.lord as GrahaId] || n.lord
+    return GRAHA_NAMES[n.lord as GrahaId] || n.label || n.lord
   }
 
   const current = nodes.find(n => {
@@ -1157,7 +1157,7 @@ function buildDashaSystemTable(
 }
 
 function buildAllDashasPages(chart: ChartOutput): string {
-  const systems: Array<{ key: 'vimshottari' | 'ashtottari' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'; label: string }> = [
+  const systems: Array<{ key: 'vimshottari' | 'ashtottari' | 'kalachakra' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'; label: string }> = [
     { key: 'vimshottari', label: 'Vimshottari' },
     { key: 'yogini', label: 'Yogini' },
     { key: 'chara', label: 'Chara (K.N. Rao)' },
@@ -1165,6 +1165,7 @@ function buildAllDashasPages(chart: ChartOutput): string {
     { key: 'mandook', label: 'Mandook (K.N. Rao)' },
     { key: 'sthir', label: 'Sthir' },
     { key: 'ashtottari', label: 'Ashtottari' },
+    { key: 'kalachakra', label: 'Kalachakra' },
   ]
 
   return systems.map((system, idx) => `

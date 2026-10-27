@@ -13,6 +13,7 @@ import type { ChartOutput, DashaNode, DashaSystem, Rashi, UserPlan } from '@/typ
 import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { VARGA_UI_LIST } from '@/lib/engine/vargas'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
+import { kalachakraCaption } from '@/lib/engine/dasha/kalachakra'
 import { readNadiChart } from '@/lib/engine/nadi'
 import type { NadiChartReading } from '@/lib/engine/nadi'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
@@ -45,6 +46,7 @@ const DASHA_OPTIONS: { id: DashaSystem; label: string }[] = [
   { id: 'vimshottari', label: 'Vimshottari' },
   { id: 'yogini', label: 'Yogini' },
   { id: 'ashtottari', label: 'Ashtottari' },
+  { id: 'kalachakra', label: 'Kalachakra' },
   { id: 'chara', label: 'Chara (K.N. Rao)' },
   { id: 'chara_fe', label: 'Chara (Rangacharya FE)' },
   { id: 'mandook', label: 'Mandook' },
@@ -356,6 +358,9 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
               </select>
             </div>
             <div className={styles.dashaBody}>
+              {dashaSystem === 'kalachakra' && Number.isFinite(chart.grahas.find((g) => g.id === 'Mo')?.lonSidereal) && (
+                <p className={styles.running}>{kalachakraCaption(chart.grahas.find((g) => g.id === 'Mo')!.lonSidereal)}</p>
+              )}
               {nodes.length > 0 ? (
                 <DashaTree
                   nodes={nodes as DashaNode[]}

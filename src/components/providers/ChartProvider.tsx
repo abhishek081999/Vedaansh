@@ -8,7 +8,7 @@ const FORM_HOST_PATHS = new Set(['/', '/home'])
 
 function hasCompleteClientHydration(chart: ChartOutput): boolean {
   const d = chart.dashas
-  const hasDashas = !!(d?.chara?.length && d?.chara_fe?.length && d?.mandook?.length && d?.sthir?.length)
+  const hasDashas = !!(d?.chara?.length && d?.chara_fe?.length && d?.mandook?.length && d?.sthir?.length && d?.kalachakra?.length)
   const hasLagnas = Number.isFinite(chart.lagnas?.induLagna) && Number.isFinite(chart.lagnas?.bhriguBindu)
   return hasDashas && hasLagnas
 }
