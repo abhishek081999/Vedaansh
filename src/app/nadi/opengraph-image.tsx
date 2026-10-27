@@ -8,7 +8,7 @@ export const contentType = 'image/png'
 export default function Image() {
   return ogBrandedImage({
     title: 'Nadi Astrology',
-    subtitle: 'Chart · Positions · Dasha',
+    subtitle: 'Houses · Yogas · Timing',
     badge: 'Advanced Jyotish',
   })
 }

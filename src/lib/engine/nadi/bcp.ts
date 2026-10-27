@@ -1,9 +1,9 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/nadi/bcp.ts
-//  Bhrigu Chakra Paddhati for the running year only.
+//  Bhrigu Chakra Paddhati for the running year.
 //  Year 1 is the 1st house. The count repeats every 12 years.
 //  The running year is completed years plus one.
-//  The date inside that year is a later lesson.
+//  A planet's degree in that house marks a date in the birthday year.
 // ─────────────────────────────────────────────────────────────
 
 import type { Rashi } from '@/types/astrology'
@@ -109,8 +109,113 @@ export function readBcp(input: BcpInput): BcpReading | null {
   if (input.parivartana?.some((pair) => pair.a === house || pair.b === house)) {
     lines.push('An exchange touches this house, so its result is stronger this year.')
   }
+  lines.push(...bcpDateLines({
+    birthDate: input.birthDate,
+    runningYear,
+    occupants,
+    lord: lordPlanet ?? null,
+  }))
 
   return { runningYear, house, houseName: profile.name, lines }
+}
+
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+] as const
+
+interface Ymd {
+  y: number
+  m: number
+  d: number
+}
+
+/** Degree 0 is the birthday. A degree near 30 falls near the next birthday. */
+export function bcpDegreeDate(birthDate: string, runningYear: number, degree: number): string | null {
+  if (!Number.isInteger(runningYear) || runningYear < 1) return null
+  if (!Number.isFinite(degree) || degree < 0 || degree >= 30) return null
+  const birth = parseYmd(birthDate)
+  if (!birth) return null
+  const start = addYears(birth, runningYear - 1)
+  const end = addYears(birth, runningYear)
+  const span = daysBetween(start, end)
+  if (span <= 0) return null
+  let offset = Math.round((degree / 30) * span)
+  if (offset < 0) offset = 0
+  if (offset >= span) offset = span - 1
+  return formatYmd(addDays(start, offset))
+}
+
+export function bcpDateLines(input: {
+  birthDate?: string
+  runningYear: number
+  occupants: readonly NadiYogaPlacement[]
+  lord: NadiYogaPlacement | null
+}): string[] {
+  if (!input.birthDate) return []
+  const lines: string[] = []
+  const seen = new Set<ClassicalGrahaId>()
+  for (const planet of input.occupants) {
+    const date = planet.degree == null
+      ? null
+      : bcpDegreeDate(input.birthDate, input.runningYear, planet.degree)
+    if (!date) continue
+    seen.add(planet.id)
+    lines.push(`${GRAHA_NAMES[planet.id]} at ${shownDegree(planet.degree!)}° in this house is read around ${date}.`)
+  }
+  const lord = input.lord
+  if (lord && !seen.has(lord.id) && lord.degree != null) {
+    const date = bcpDegreeDate(input.birthDate, input.runningYear, lord.degree)
+    if (date) lines.push(`Its lord ${GRAHA_NAMES[lord.id]} at ${shownDegree(lord.degree)}° is read around ${date}.`)
+  }
+  return lines
+}
+
+function parseYmd(value: string): Ymd | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim())
+  if (!match) return null
+  const y = Number(match[1])
+  const m = Number(match[2])
+  const d = Number(match[3])
+  if (m < 1 || m > 12 || d < 1 || d > daysInMonth(y, m)) return null
+  return { y, m, d }
+}
+
+function isLeap(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+}
+
+function daysInMonth(year: number, month: number): number {
+  const lengths = [31, isLeap(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  return lengths[month - 1] ?? 30
+}
+
+function addYears(date: Ymd, years: number): Ymd {
+  const y = date.y + years
+  const d = Math.min(date.d, daysInMonth(y, date.m))
+  return { y, m: date.m, d }
+}
+
+function daysBetween(start: Ymd, end: Ymd): number {
+  return Math.round((utc(end) - utc(start)) / 86400000)
+}
+
+function addDays(start: Ymd, days: number): Ymd {
+  const date = new Date(utc(start) + days * 86400000)
+  return { y: date.getUTCFullYear(), m: date.getUTCMonth() + 1, d: date.getUTCDate() }
+}
+
+function utc(date: Ymd): number {
+  return Date.UTC(date.y, date.m - 1, date.d)
+}
+
+function formatYmd(date: Ymd): string {
+  return `${date.d} ${MONTHS[date.m - 1]} ${date.y}`
+}
+
+function shownDegree(degree: number): string {
+  const rounded = Math.round(degree * 100) / 100
+  return Number.isInteger(rounded) ? `${rounded}` : `${rounded}`
 }
 
 function completedYears(birthDate: string, asOf: Date): number | null {

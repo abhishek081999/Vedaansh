@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from 'react'
 import type { ChartOutput } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { isClassicalGraha } from '@/lib/engine/houseInterpretations'
 import { readNadiLiveFromChart, type NadiLiveBody, type NadiLiveHit, type NadiLiveReading } from '@/lib/engine/nadi/live'
 import { NADI_KHAARAB_CHANNEL } from '@/lib/engine/nadi/yogas'
@@ -23,6 +23,9 @@ import {
   careerVerdict,
   combinationFindings,
   houseSignalFindings,
+  placementFindings,
+  lifeFindings,
+  lifeVerdict,
   housesVerdict,
   marriageFindings,
   marriagePressureFindings,
@@ -44,7 +47,7 @@ import {
 } from '@/components/ui/nadiFindings'
 import styles from './NadiHousesSection.module.css'
 
-export type NadiReadingView = 'houses' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
+export type NadiReadingView = 'houses' | 'life' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
 
 const SKY_IDS = ['Ju', 'Sa', 'Ra', 'Ke', 'Ma', 'Ve'] as const
 
@@ -237,49 +240,53 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
     return (
       <div className={styles.stack}>
         <Verdict title={housesVerdict(reading)} />
-        <FindingGrid items={withoutVerdict([...bhriguFindings(reading), ...signals], housesVerdict(reading))} />
-        <Reference label="How the Bhrigu Bhava is read">
-          <p className={styles.note}>{reading.bhriguNote}</p>
-        </Reference>
-
-        <div className={styles.layout}>
-          <div className={styles.picker} role="tablist" aria-label="Houses">
-            {reading.houses.map((row) => (
+        <div className={styles.houseGrid} role="tablist" aria-label="Houses">
+          {reading.houses.map((row) => {
+            const active = row.house === house.house
+            const bhrigu = row.house === reading.bhriguHouse
+            return (
               <button
                 key={row.house}
                 type="button"
                 role="tab"
-                aria-selected={row.house === house.house}
-                className={`${styles.houseBtn} ${row.house === house.house ? styles.houseBtnActive : ''}`}
+                aria-selected={active}
+                className={`${styles.houseCell} ${active ? styles.houseCellActive : ''} ${bhrigu ? styles.houseCellBhrigu : ''}`}
                 onClick={() => setSelected(row.house)}
               >
-                <span className={styles.houseNo}>{row.house} {row.name}</span>
-                <span className={styles.houseMeta}>
-                  {row.signName}
-                  {row.occupants.length > 0 ? ` · ${row.occupants.map((g) => g.name).join(', ')}` : ''}
+                <span className={styles.houseIndex}>{row.house}</span>
+                <span className={styles.houseName}>{row.name}</span>
+                <span className={styles.houseSign}>{RASHI_SHORT[row.sign]}</span>
+                <span className={styles.housePlanets}>
+                  {row.occupants.length > 0 ? row.occupants.map((g) => g.id).join(' ') : '—'}
                 </span>
+                {bhrigu ? <span className={styles.bhriguMark}>Bhrigu</span> : null}
               </button>
-            ))}
-          </div>
-          <div className={styles.detail} role="tabpanel">
-            <h3>{ordinal(house.house)} house · {house.name}</h3>
-            <p className={styles.metaLine}>
-              {house.signName} · lord {house.lordName}
-              {house.lordHouse ? ` in the ${ordinal(house.lordHouse)}` : ''}
-              {` · this sign carries the nature of the ${ordinal(house.naturalHouse)} house (${house.naturalHouseLabel})`}
-            </p>
-            {house.roles.length > 0 && (
-              <div className={styles.chips}>
-                {house.roles.map((role) => <span key={role} className={styles.chip}>{role}</span>)}
-              </div>
-            )}
-            <p className={styles.blockTitle}>On this chart</p>
-            <ul className={styles.list}>
-              {house.activeRules.map((rule) => <li key={rule}>{rule}</li>)}
-            </ul>
-            {house.occupants.length > 0 && (
-              <>
-                <p className={styles.blockTitle}>Planets here</p>
+            )
+          })}
+        </div>
+        <div className={styles.detailCard} role="tabpanel">
+          <h3>{ordinal(house.house)} house · {house.name}</h3>
+          <p className={styles.metaLine}>
+            {house.signName} · lord {house.lordName}
+            {house.lordHouse ? ` in the ${ordinal(house.lordHouse)}` : ''}
+            {` · this sign carries the nature of the ${ordinal(house.naturalHouse)} house (${house.naturalHouseLabel})`}
+          </p>
+          <p className={styles.prediction}>{house.prediction}</p>
+          {(house.roles.length > 0 || house.papaPresent || house.house === reading.bhriguHouse) && (
+            <div className={styles.chips}>
+              {house.house === reading.bhriguHouse ? <span className={styles.chip}>Bhrigu Bhava</span> : null}
+              {house.papaPresent ? <span className={styles.chip}>Papa graha here</span> : null}
+              {house.roles.map((role) => <span key={role} className={styles.chip}>{role}</span>)}
+            </div>
+          )}
+          <p className={styles.blockTitle}>On this chart</p>
+          <ul className={styles.list}>
+            {house.activeRules.map((rule) => <li key={rule}>{rule}</li>)}
+          </ul>
+          {house.occupants.length > 0 && (
+            <>
+              <p className={styles.blockTitle}>Planets here</p>
+              <div className={styles.occupants}>
                 {house.occupants.map((g) => (
                   <div key={g.id} className={styles.occupant}>
                     <strong>
@@ -287,7 +294,7 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
                       {g.retro ? ' retrograde' : ''}
                       {g.dignity ? ` · ${g.dignity.replaceAll('_', ' ')}` : ''}
                     </strong>
-                    {g.nadiNote && <p>{g.nadiNote}</p>}
+                    <p>{g.prediction || g.nadiNote}</p>
                     {g.signNote && <p>{g.signNote}</p>}
                     {g.classicalHouseNote && <p>{g.classicalHouseNote}</p>}
                     <p>
@@ -297,28 +304,38 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
                     </p>
                   </div>
                 ))}
-              </>
-            )}
-            <Reference label="Significances and work">
-              <div className={styles.chips}>
-                {house.profile.significances.map((item) => <span key={item} className={styles.chip}>{item}</span>)}
               </div>
-              <p className={styles.metaLine}>
-                Body: {house.profile.bodyParts.join(', ')}
-                {house.naturalKarakas.length > 0
-                  ? ` · Natural karakas: ${house.naturalKarakas.map((id) => GRAHA_NAMES[id]).join(', ')}`
-                  : ''}
-              </p>
-              {house.signNature && <p className={styles.metaLine}>{house.signNature}</p>}
-              {house.signInHouse && <p className={styles.metaLine}>{house.signInHouse}</p>}
-              {house.profile.professions.length > 0 && (
-                <div className={styles.chips}>
-                  {house.profile.professions.map((item) => <span key={item} className={styles.chip}>{item}</span>)}
-                </div>
-              )}
-            </Reference>
-          </div>
+            </>
+          )}
+          <Reference label="Significances and work">
+            <div className={styles.chips}>
+              {house.profile.significances.map((item) => <span key={item} className={styles.chip}>{item}</span>)}
+            </div>
+            <p className={styles.metaLine}>
+              Body: {house.profile.bodyParts.join(', ')}
+              {house.naturalKarakas.length > 0
+                ? ` · Natural karakas: ${house.naturalKarakas.map((id) => GRAHA_NAMES[id]).join(', ')}`
+                : ''}
+            </p>
+            {house.signNature && <p className={styles.metaLine}>{house.signNature}</p>}
+            {house.signInHouse && <p className={styles.metaLine}>{house.signInHouse}</p>}
+            {house.profile.professions.length > 0 && (
+              <div className={styles.chips}>
+                {house.profile.professions.map((item) => <span key={item} className={styles.chip}>{item}</span>)}
+              </div>
+            )}
+          </Reference>
         </div>
+
+        <p className={styles.blockTitle}>Every planet</p>
+        <FindingGrid items={placementFindings(reading)} />
+        <Reference label="How a planet is read">
+          <p className={styles.note}>{reading.placementNote}</p>
+        </Reference>
+        <FindingGrid items={withoutVerdict([...bhriguFindings(reading), ...signals], housesVerdict(reading))} />
+        <Reference label="How the Bhrigu Bhava is read">
+          <p className={styles.note}>{reading.bhriguNote}</p>
+        </Reference>
 
         {combinations.length > 0 && (
           <>
@@ -375,6 +392,16 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
             </table>
           </div>
         </Reference>
+      </div>
+    )
+  }
+
+  if (view === 'life') {
+    const verdict = lifeVerdict(reading)
+    return (
+      <div className={styles.stack}>
+        <Verdict title={verdict} note={reading.life.note} />
+        <FindingGrid items={withoutVerdict(lifeFindings(reading), verdict)} />
       </div>
     )
   }

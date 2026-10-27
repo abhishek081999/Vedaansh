@@ -15,6 +15,8 @@ import {
 import { rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
 import { nadiAfflictedBy } from '@/lib/engine/nadi/grahas'
 import {
+  nadiClosenessClause,
+  nadiConjunctionGrade,
   nadiConjunct,
   type NadiYogaChart,
   type NadiYogaChartInput,
@@ -56,7 +58,7 @@ const DEFS: readonly MarriageDef[] = [
     planets: ['Ve', 'Ma', 'Ra'],
     reading: 'The strongest of these marriage combinations. Separation, affairs, and running away to marry are the forms checked. Trust in the relationship is also checked.',
     organs: true,
-    suppresses: ['ve-ra'],
+    suppresses: ['ve-ra', 've-ma'],
   },
   {
     id: 've-ma-ke',
@@ -64,7 +66,7 @@ const DEFS: readonly MarriageDef[] = [
     planets: ['Ve', 'Ma', 'Ke'],
     reading: 'A very strong marriage combination. Separation, affairs, and running away to marry are the forms checked.',
     organs: true,
-    suppresses: ['ve-ke'],
+    suppresses: ['ve-ke', 've-ma'],
   },
   {
     id: 've-mo-ra',
@@ -113,6 +115,14 @@ const DEFS: readonly MarriageDef[] = [
     reading: 'Separation, two marriages, and delay are the forms checked. The Saturn and Venus pair inside it is also read as wealth, apart from the marriage result.',
     organs: true,
     suppresses: ['ve-sa', 've-ke'],
+  },
+  {
+    id: 've-ma',
+    name: 'Venus + Mars',
+    planets: ['Ve', 'Ma'],
+    reading: 'Passion, a hurried marriage, and conflict in the marriage are the forms checked. Property and a vehicle are also checked.',
+    organs: true,
+    suppresses: [],
   },
   {
     id: 've-sa',
@@ -166,6 +176,8 @@ export function findMarriageYogas(input: NadiYogaChartInput): NadiMarriageYoga[]
     for (const def of matched) {
       if (dropped.has(def.id)) continue
       let reading = def.reading
+      const closeness = nadiClosenessClause(nadiConjunctionGrade(inSign, def.planets))
+      if (closeness) reading += ` ${closeness}`
       if (def.id === 've-sa' && nadiConjunct(inSign, ['Ve', 'Sa', 'Ju'])) {
         reading += ' Jupiter sitting with them may soften the marriage result. Saturn and Venus stay the pair to read.'
       }
@@ -194,6 +206,7 @@ export function findMarriageYogas(input: NadiYogaChartInput): NadiMarriageYoga[]
   if (input.chart === 'D9') {
     const marsRahu = input.grahas.find((g) => g.id === 'Ma')
     if (marsRahu && nadiConjunct(input.grahas, ['Ma', 'Ra'])) {
+      const closeness = nadiClosenessClause(nadiConjunctionGrade(input.grahas, ['Ma', 'Ra']))
       hits.push({
         id: `${input.chart}-ma-ra-second`,
         name: 'Mars + Rahu',
@@ -201,7 +214,7 @@ export function findMarriageYogas(input: NadiYogaChartInput): NadiMarriageYoga[]
         house: wholeSignHouseFromLagna(input.ascRashi, marsRahu.rashi),
         signName: RASHI_NAMES[marsRahu.rashi],
         organs: false,
-        reading: 'In Navamsha, a second marriage is the form checked.',
+        reading: `In Navamsha, a second marriage is the form checked.${closeness ? ` ${closeness}` : ''}`,
       })
     }
     const seventhSign = rashiForHouseFromLagna(input.ascRashi, 7)

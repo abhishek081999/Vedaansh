@@ -33,5 +33,6 @@ export type {
   NadiChartReading,
   NadiHouseReading,
   NadiOccupantReading,
+  NadiPlacement,
   NadiRelativeReading,
 } from '@/lib/engine/nadi/read'

@@ -29,7 +29,7 @@ export default function NadiPage() {
     return (
       <ChartRequiredPrompt
         title="Nadi Astrology"
-        description="Load or create a birth chart to open the Nadi workspace: the chart, planetary positions, dasha, and the twelve houses."
+        description="Load or create a birth chart to open the Nadi workspace: the active reading, the chart beside it, and the twelve houses."
       />
     )
   }

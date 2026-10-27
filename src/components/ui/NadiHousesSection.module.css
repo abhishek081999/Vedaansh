@@ -41,6 +41,116 @@
   color: var(--text-secondary);
 }
 
+.houseGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.houseCell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.06rem;
+  min-width: 0;
+  min-height: 4.6rem;
+  padding: 0.42rem 0.48rem 0.38rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.houseCell:hover {
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
+}
+
+.houseCell:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.houseCellActive,
+.houseCellActive:hover {
+  border-color: var(--gold);
+  background: var(--gold-faint);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 12%, transparent);
+}
+
+.houseCellBhrigu {
+  padding-right: 2.7rem;
+}
+
+.houseCellBhrigu:not(.houseCellActive) {
+  border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
+}
+
+.houseIndex {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-gold);
+}
+
+.houseName {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.64rem;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+
+.houseSign,
+.housePlanets,
+.bhriguMark {
+  font-size: 0.6rem;
+  line-height: 1.2;
+  color: var(--text-muted);
+}
+
+.housePlanets {
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.bhriguMark {
+  position: absolute;
+  top: 0.32rem;
+  right: 0.32rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+}
+
+.detailCard {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.95rem 1rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg, 14px);
+  background:
+    radial-gradient(ellipse 70% 80% at 100% 0%, color-mix(in srgb, var(--gold) 8%, transparent), transparent 55%),
+    var(--surface-1);
+}
+
+.occupants {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .layout {
   display: grid;
   grid-template-columns: 15.5rem minmax(0, 1fr);
@@ -96,6 +206,7 @@
   gap: 0.55rem;
 }
 
+.detailCard h3,
 .detail h3 {
   margin: 0;
   font-family: var(--font-display);
@@ -109,6 +220,13 @@
   font-size: 0.78rem;
   line-height: 1.45;
   color: var(--text-secondary);
+}
+
+.prediction {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--text-primary);
 }
 
 .chips {
@@ -151,8 +269,11 @@
 }
 
 .occupant {
-  padding: 0.45rem 0.55rem;
-  border-top: 1px solid var(--border-soft);
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
 }
 
 .occupant strong {
@@ -165,6 +286,12 @@
   font-size: 0.73rem;
   line-height: 1.4;
   color: var(--text-secondary);
+}
+
+.occupant p:first-of-type {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-primary);
 }
 
 .below {
@@ -228,6 +355,7 @@
 
 .yearNow {
   border-left-color: var(--teal);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--teal) 32%, transparent);
 }
 
 .yearStack {
@@ -459,15 +587,27 @@
 }
 
 .brief {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
-  padding: 0.95rem 1rem 1rem;
+  gap: 0.55rem;
+  padding: 1.15rem 1.25rem 1.05rem;
   border: 1px solid var(--border);
-  border-radius: var(--r-lg, 14px);
+  border-radius: var(--r-xl, 18px);
   background:
-    radial-gradient(ellipse 70% 80% at 0% 0%, color-mix(in srgb, var(--gold) 12%, transparent), transparent 58%),
+    radial-gradient(ellipse 55% 120% at 0% 0%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 62%),
+    radial-gradient(ellipse 40% 90% at 100% 100%, color-mix(in srgb, var(--teal) 8%, transparent), transparent 70%),
     var(--surface-1);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.briefLede {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 .briefTitle,
@@ -480,22 +620,28 @@
 }
 
 .briefTitle {
-  font-size: 1.28rem;
-  max-width: 46rem;
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+  max-width: 40rem;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
 }
 
 .verdict {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  padding: 0.9rem 1rem;
+  padding: 0.95rem 1.05rem;
   border-radius: var(--r-md);
   border: 1px solid var(--border);
-  background: var(--surface-1);
+  border-left: 3px solid var(--gold);
+  background:
+    radial-gradient(ellipse 70% 140% at 0% 0%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 58%),
+    var(--surface-1);
 }
 
 .verdictTitle {
-  font-size: 1.12rem;
+  font-size: clamp(1.05rem, 1.5vw, 1.28rem);
+  line-height: 1.28;
 }
 
 .briefChips {
@@ -510,15 +656,30 @@
 .briefChip {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 0.08rem;
+  max-width: 18rem;
   min-width: 0;
-  padding: 0.4rem 0.65rem;
+  padding: 0.42rem 0.7rem;
   border-radius: var(--r-sm);
-  border: 1px solid var(--border-soft);
-  background: var(--surface-2);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 88%, transparent);
+  font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
+  line-height: 1.3;
+  text-align: left;
   color: var(--text-primary);
+  cursor: pointer;
+}
+
+.briefChip:hover {
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--border));
+}
+
+.briefChip:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 .briefKey {
@@ -544,9 +705,24 @@
   background: var(--surface-2);
 }
 
-.toneSupport { border-left-color: var(--teal); }
-.toneCaution { border-left-color: var(--rose); }
-.tonePlain { border-left-color: var(--text-gold); }
+.toneSupport {
+  border-left-color: var(--teal);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--teal) 9%, transparent), transparent 42%),
+    var(--surface-2);
+}
+.toneCaution {
+  border-left-color: var(--rose);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--rose) 9%, transparent), transparent 42%),
+    var(--surface-2);
+}
+.tonePlain {
+  border-left-color: var(--text-gold);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--gold) 8%, transparent), transparent 42%),
+    var(--surface-2);
+}
 
 .findingTitle {
   margin: 0 0 0.28rem;
@@ -595,6 +771,10 @@
 }
 
 @media (max-width: 1023px) {
+  .houseGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .layout,
   .below {
     grid-template-columns: minmax(0, 1fr);

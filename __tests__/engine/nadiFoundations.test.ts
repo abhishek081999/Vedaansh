@@ -10,6 +10,7 @@ import { NADI_SHASHTIAMSA_NOTE, shashtiamsaNotes } from '@/lib/engine/nadi/shash
 import { NADI_BHRIGU_NOTE, bhriguBhavaNotes } from '@/lib/engine/nadi/bhrigu'
 import { NADI_MARRIAGE_RULE_NOTE, readChartLectures } from '@/lib/engine/nadi/marriageRules'
 import { NADI_RASHI_AGE_NOTE, rashiAgeNotes } from '@/lib/engine/nadi/rashiAge'
+import { readNadiLife } from '@/lib/engine/nadi/life'
 import type { Rashi } from '@/types/astrology'
 
 describe('Nadi foundations', () => {
@@ -70,7 +71,7 @@ describe('Nadi foundations', () => {
     expect(reading.deathIndicators.find((row) => row.id === 'father')?.house).toBe(5)
     expect(reading.deathIndicators.find((row) => row.id === 'mother')?.house).toBe(11)
     expect(reading.jupiterTransit.map((row) => row.planet)).toContain('Rahu')
-    expect(reading.yogas).toEqual([])
+    expect(reading.yogas.map((yoga) => yoga.name)).toEqual(['Mars + Sun'])
   })
 
   it('reads Rahu in the 2nd as the children’s foreign career, and shloka 731 navamsha', () => {
@@ -365,6 +366,7 @@ describe('Nadi foundations', () => {
     const names = severe.marriageYogas.map((yoga) => yoga.name)
     expect(names).toContain('Venus + Mars + Rahu')
     expect(names).not.toContain('Venus + Rahu')
+    expect(names).not.toContain('Venus + Mars')
     expect(severe.marriageYogas[0]?.reading).toMatch(/running away/)
     expect(severe.marriageNote).toMatch(/kidneys/)
     expect(severe.yogas.find((yoga) => yoga.id === 'D1-ma-ra')?.effect).toMatch(/8th/)
@@ -2117,5 +2119,282 @@ describe('Nadi foundations', () => {
     expect(life.future.periods).toEqual([])
     expect(life.future.years.find((year) => year.year === 20)?.techniques).toContain('sign')
     expect(life.future.years.find((year) => year.year === 25)?.techniques).toContain('planet')
+  })
+
+  it('reads study, a relative’s marriage, and settlement from the chart', () => {
+    const mixed = readNadiLife({
+      ascRashi: 1,
+      grahas: [
+        { id: 'Su', rashi: 1, dignity: 'exalted' },
+        { id: 'Ke', rashi: 5 },
+      ],
+    })
+    expect(mixed.education[0]).toMatch(/degree can still be completed/)
+    expect(mixed.education.join(' ')).toMatch(/Ketu in the 5th/)
+
+    const trained = readNadiLife({
+      ascRashi: 1,
+      grahas: [
+        { id: 'Su', rashi: 1, dignity: 'exalted' },
+        { id: 'Ju', rashi: 9, dignity: 'own' },
+      ],
+    })
+    expect(trained.education[0]).toMatch(/trained form of the career/)
+
+    const settled = readNadiLife({
+      ascRashi: 1,
+      grahas: [
+        { id: 'Me', rashi: 12 },
+        { id: 'Ju', rashi: 12 },
+      ],
+    })
+    expect(settled.settlement.join(' ')).toMatch(/Settlement away from the birthplace/)
+
+    const family = readNadiLife({
+      ascRashi: 1,
+      grahas: [{ id: 'Ma', rashi: 1 }],
+    })
+    expect(family.family.join(' ')).toMatch(/Spouse: the marriage house, the 1st, holds Mars/)
+
+    const named = readNadiLife({
+      ascRashi: 6,
+      grahas: [
+        { id: 'Sa', rashi: 1, dignity: 'debilitated' },
+        { id: 'Ju', rashi: 1 },
+        { id: 'Ke', rashi: 10 },
+      ],
+    })
+    expect(named.education[0]).toMatch(/Saturn sits with Jupiter/)
+    expect(named.education[0]).not.toMatch(/or Ketu/)
+  })
+
+  it('mixes the occupied house, the houses a planet rules, and the sign', () => {
+    const reading = readNadiHouses({
+      ascRashi: 4 as Rashi,
+      grahas: [
+        { id: 'Ve', rashi: 1 },
+        { id: 'Ma', rashi: 4 },
+        { id: 'Ra', rashi: 6 },
+        { id: 'Me', rashi: 6 },
+      ],
+    })
+
+    const venus = reading.placements.find((row) => row.id === 'Ve')
+    expect(venus?.house).toBe(10)
+    expect(venus?.signName).toBe('Aries')
+    expect(venus?.naturalHouse).toBe(1)
+    expect(venus?.lordOf).toEqual([4, 11])
+    expect(venus?.prediction).toMatch(/Aries in the 10th/)
+    expect(venus?.prediction).toMatch(/rules the 4th and the 11th/)
+    expect(venus?.prediction).toMatch(/The home and gains are read from the 10th/)
+    expect(venus?.prediction).toMatch(/carries the nature of the 1st/)
+
+    const mars = reading.placements.find((row) => row.id === 'Ma')
+    expect(mars?.house).toBe(1)
+    expect(mars?.lordOf).toEqual([5, 10])
+    expect(mars?.prediction).toMatch(/debilitated/)
+    expect(mars?.prediction).toMatch(/the home joins the body/)
+
+    const rahu = reading.placements.find((row) => row.id === 'Ra')
+    expect(rahu?.lordOf).toEqual([])
+    expect(rahu?.prediction).toMatch(/acts like Mercury/)
+    expect(rahu?.prediction).toMatch(/Mercury sits with it/)
+
+    const lagna = reading.houses[0]
+    expect(lagna?.prediction).toMatch(/The 1st is Cancer/)
+    expect(lagna?.prediction).toMatch(/carries the nature of the 4th/)
+    expect(lagna?.prediction).toMatch(/Mars occupies it/)
+    expect(lagna?.prediction).toMatch(/under pressure/)
+    expect(lagna?.occupants.find((g) => g.id === 'Ma')?.prediction).toBe(mars?.prediction)
+
+    const empty = readNadiHouses({ ascRashi: 1 as Rashi, grahas: [] })
+    expect(empty.placements).toEqual([])
+    expect(empty.houses[1]?.prediction).toMatch(/No planet occupies it/)
+    expect(empty.houses[1]?.prediction).toMatch(/not placed/)
+
+    const combust = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [{ id: 'Ve', rashi: 2, isCombust: true }],
+    })
+    expect(combust.placements.find((row) => row.id === 'Ve')?.prediction).toMatch(/Combustion is recorded/)
+    expect(combust.placements.find((row) => row.id === 'Ve')?.prediction).toMatch(/does not cancel the career or wealth result/)
+    expect(reading.placements.find((row) => row.id === 'Ve')?.prediction).not.toMatch(/Combustion is recorded/)
+  })
+
+  it('reads a degree inside the Bhrigu Chakra year as a date', () => {
+    const at = (degree: number) => readNadiHouses({
+      ascRashi: 1 as Rashi,
+      birthDate: '2001-03-01',
+      asOf: new Date(2001, 5, 1),
+      grahas: [{ id: 'Su', rashi: 1, degree }],
+    })
+    expect(at(0).bcp?.lines.join(' ')).toMatch(/Sun at 0° in this house is read around 1 March 2001/)
+    expect(at(12).bcp?.lines.join(' ')).toMatch(/Sun at 12° in this house is read around 25 July 2001/)
+    expect(at(29).bcp?.lines.join(' ')).toMatch(/Sun at 29° in this house is read around 17 February 2002/)
+    expect(at(12).future.years.find((year) => year.year === 1)?.lines.join(' ')).toMatch(/25 July 2001/)
+
+    const lordOnly = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      birthDate: '2001-03-01',
+      asOf: new Date(2001, 5, 1),
+      grahas: [{ id: 'Ma', rashi: 5, degree: 12 }, { id: 'Ju', rashi: 1 }],
+    })
+    const lordText = lordOnly.bcp?.lines.join(' ') ?? ''
+    expect(lordText).toMatch(/Its lord Mars at 12° is read around 25 July 2001/)
+    expect(lordText).not.toMatch(/Jupiter at/)
+  })
+
+  it('times a khaarab yoga from the dasha and grades the conjunction', () => {
+    const closest = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Ma', rashi: 4, degree: 10 },
+        { id: 'Sa', rashi: 4, degree: 11.5 },
+      ],
+      dashaLords: ['Ma', 'Ve'],
+    })
+    const closeEffect = closest.yogas.find((yoga) => yoga.name === 'Mars + Saturn')?.effect ?? ''
+    expect(closeEffect).toMatch(/within 2°, the closest form/)
+    expect(closeEffect).toMatch(/The period of Mars is open, so this combination is timed now/)
+
+    const untouched = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Ma', rashi: 4, degree: 10 },
+        { id: 'Sa', rashi: 4, degree: 11.5 },
+      ],
+      dashaLords: ['Ve', 'Me'],
+    })
+    expect(untouched.yogas.find((yoga) => yoga.name === 'Mars + Saturn')?.effect).not.toMatch(/timed now/)
+
+    const close = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Ma', rashi: 4, degree: 10 },
+        { id: 'Sa', rashi: 4, degree: 15 },
+      ],
+    })
+    expect(close.yogas.find((yoga) => yoga.name === 'Mars + Saturn')?.effect).toMatch(/within 7°, the close form/)
+
+    const wide = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Ma', rashi: 4, degree: 1 },
+        { id: 'Sa', rashi: 4, degree: 13 },
+      ],
+    })
+    expect(wide.yogas.find((yoga) => yoga.name === 'Mars + Saturn')?.effect).toMatch(/within 15°, the wide form/)
+
+    const dropped = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Ma', rashi: 4, degree: 1 },
+        { id: 'Sa', rashi: 4, degree: 17 },
+      ],
+    })
+    expect(dropped.yogas.find((yoga) => yoga.name === 'Mars + Saturn')).toBeUndefined()
+
+    const career = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Sa', rashi: 2, degree: 10 },
+        { id: 'Ra', rashi: 2, degree: 11.2 },
+      ],
+    })
+    expect(career.career.lines.join(' ')).toMatch(/within 2°, the closest form/)
+
+    const ahead = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      birthDate: '1990-01-01',
+      asOf: new Date(2026, 5, 1),
+      grahas: [
+        { id: 'Ma', rashi: 4, degree: 10 },
+        { id: 'Sa', rashi: 4, degree: 12 },
+      ],
+      dashaNodes: [{
+        lord: 'Ma',
+        start: '2020-01-01T00:00:00.000Z',
+        end: '2027-01-01T00:00:00.000Z',
+        children: [
+          { lord: 'Ma', start: '2026-01-01T00:00:00.000Z', end: '2026-08-01T00:00:00.000Z' },
+          { lord: 'Su', start: '2026-08-01T00:00:00.000Z', end: '2027-01-01T00:00:00.000Z' },
+        ],
+      }],
+    })
+    expect(ahead.future.periods.find((period) => period.now)?.lines.join(' ')).toMatch(/The period of Mars is open, so this combination is timed now/)
+    expect(ahead.future.periods.find((period) => period.title.includes('Sun'))?.lines.join(' ')).toMatch(/The period of Mars times the khaarab combination/)
+  })
+
+  it('reads the remaining Nadi conjunctions, and keeps a tighter marriage group', () => {
+    const supportive = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Ju', rashi: 2, degree: 4 },
+        { id: 'Ve', rashi: 2, degree: 6 },
+        { id: 'Su', rashi: 2, degree: 8 },
+        { id: 'Me', rashi: 9, degree: 1 },
+      ],
+    })
+    const names = supportive.yogas.map((yoga) => yoga.name)
+    expect(names).toContain('Jupiter + Venus')
+    expect(names).toContain('Sun + Jupiter')
+    expect(supportive.yogas.find((yoga) => yoga.name === 'Jupiter + Venus')?.kind).toBe('supportive')
+    expect(supportive.yogas.find((yoga) => yoga.name === 'Mercury + Venus')).toBeUndefined()
+
+    const mercury = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Me', rashi: 6, degree: 8 },
+        { id: 'Ra', rashi: 6, degree: 14 },
+        { id: 'Su', rashi: 3, degree: 2 },
+        { id: 'Ke', rashi: 3, degree: 5 },
+      ],
+    })
+    expect(mercury.yogas.map((yoga) => yoga.name)).toEqual(expect.arrayContaining(['Mercury + Rahu', 'Sun + Ketu']))
+
+    const venusMars = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Ve', rashi: 7, degree: 10 },
+        { id: 'Ma', rashi: 7, degree: 16 },
+      ],
+    })
+    expect(venusMars.marriageYogas.map((yoga) => yoga.name)).toContain('Venus + Mars')
+    expect(venusMars.marriageYogas.find((yoga) => yoga.name === 'Venus + Mars')?.reading).toMatch(/hurried marriage/)
+
+    const jupiterSaturn = readNadiHouses({
+      ascRashi: 1 as Rashi,
+      grahas: [
+        { id: 'Ju', rashi: 5, degree: 4 },
+        { id: 'Sa', rashi: 5, degree: 9 },
+      ],
+    })
+    expect(jupiterSaturn.yogas.map((yoga) => yoga.name)).not.toContain('Jupiter + Saturn')
+    expect(jupiterSaturn.snapshots.map((row) => row.id)).toContain('ju-sa')
+  })
+
+  it('reads Jupiter and Saturn together when both are on one natal planet', () => {
+    const both = readNadiLiveTransits({
+      natal: [{ id: 'Ve', rashi: 3, degree: 10 }],
+      sky: [
+        { id: 'Ju', rashi: 3, degree: 12 },
+        { id: 'Sa', rashi: 3, degree: 18 },
+      ],
+    })
+    const hit = both.hits.find((row) => row.id === 'jupiter-saturn')
+    expect(hit?.answer).toMatch(/Jupiter and Saturn are both on Venus/)
+    expect(hit?.reading).toMatch(/The result of Venus is read while both are there/)
+
+    const split = readNadiLiveTransits({
+      natal: [
+        { id: 'Ve', rashi: 3, degree: 10 },
+        { id: 'Mo', rashi: 6, degree: 8 },
+      ],
+      sky: [
+        { id: 'Ju', rashi: 3, degree: 12 },
+        { id: 'Sa', rashi: 6, degree: 8 },
+      ],
+    })
+    expect(split.hits.find((row) => row.id === 'jupiter-saturn')).toBeUndefined()
   })
 })

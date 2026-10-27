@@ -5,7 +5,7 @@
 //  conjunction, then Saturn’s trine, then a vargottama or
 //  exalted planet, then the 10th. Rashi exchange only.
 //  A retrograde planet is counted in the sign it occupies.
-//  Saturn with the Moon is a later lesson and is not read here.
+//  Saturn with the Moon is read as agriculture, dairy, food, or land.
 // ─────────────────────────────────────────────────────────────
 
 import type { Rashi } from '@/types/astrology'
@@ -20,7 +20,7 @@ import {
 import { rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
 import { nadiAfflictedBy } from '@/lib/engine/nadi/grahas'
 import { NADI_CAREER_WORK } from '@/lib/engine/nadi/rotation'
-import { nadiConjunct, type NadiYogaPlacement } from '@/lib/engine/nadi/yogas'
+import { nadiClosenessClause, nadiConjunctionGrade, nadiConjunct, type NadiYogaPlacement } from '@/lib/engine/nadi/yogas'
 
 export const NADI_CAREER_CONTEXT =
   'Read the size of the result against the place of birth. The chart is the floor.'
@@ -152,7 +152,11 @@ function careerCore(input: NadiCareerInput): Pick<NadiCareerReading, 'priority' 
       priority: 3,
       lines: [
         `Saturn is conjunct ${namesOf(conjunct)}. That contact is read ahead of a trine.`,
-        ...conjunct.map((id) => saturnLine(id, fifth)),
+        ...conjunct.map((id) => {
+          const clause = nadiClosenessClause(nadiConjunctionGrade(input.grahas, ['Sa', id]))
+          const line = saturnLine(id, fifth)
+          return clause ? `${line} ${clause}` : line
+        }),
       ],
       wealth: null,
     }

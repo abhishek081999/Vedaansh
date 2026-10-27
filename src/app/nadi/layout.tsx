@@ -5,21 +5,21 @@ import { NADI_SEO } from '@/lib/seo/intro-content'
 import { breadcrumbJsonLd, routeOgImage, SITE_URL } from '@/lib/seo/site'
 
 export const metadata: Metadata = {
-  title: 'Nadi Astrology — Chart, Positions & Dasha',
-  description: 'Nadi Astrology workspace on your Vedic birth chart: rashi chart, planetary positions, and the running dasha.',
+  title: 'Nadi Astrology — Houses, Yogas & Timing',
+  description: 'Nadi Astrology on your Vedic birth chart: the active reading, twelve houses, yogas, marriage, career, wealth, coming years, transits, and remedies.',
   alternates: { canonical: `${SITE_URL}/nadi` },
   keywords: ['Nadi astrology', 'Bhrigu Nandi Nadi', 'Vedic chart', 'planetary positions', 'Vimshottari dasha'],
   openGraph: {
-    title: 'Nadi Astrology — Chart, Positions & Dasha | Vedaansh',
-    description: 'Birth chart, planetary positions, and dasha in the Nadi Astrology workspace.',
+    title: 'Nadi Astrology — Houses, Yogas & Timing | Vedaansh',
+    description: 'Active Nadi reading on your birth chart: houses, yogas, marriage, career, wealth, coming years, and the live sky.',
     url: `${SITE_URL}/nadi`,
     type: 'website',
     images: routeOgImage('/nadi', 'Nadi Astrology — Vedaansh'),
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nadi Astrology — Chart, Positions & Dasha | Vedaansh',
-    description: 'Birth chart, planetary positions, and dasha in the Nadi Astrology workspace.',
+    title: 'Nadi Astrology — Houses, Yogas & Timing | Vedaansh',
+    description: 'Active Nadi reading on your birth chart: houses, yogas, marriage, career, wealth, coming years, and the live sky.',
     images: [`${SITE_URL}/nadi/opengraph-image`],
   },
 }

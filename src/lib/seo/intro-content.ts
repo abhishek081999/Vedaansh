@@ -118,17 +118,17 @@ export const COMPARE_SEO: SeoIntroProps = {
 
 export const NADI_SEO: SeoIntroProps = {
   ariaLabel: 'Nadi Astrology — Vedaansh',
-  h1: 'Nadi Astrology — Chart, Planetary Positions & Dasha',
+  h1: 'Nadi Astrology — Houses, Yogas, Career & Timing',
   paragraphs: [
-    'Nadi workspace on your Vedic birth chart: the rashi chart, planetary positions with sign, nakshatra and dignity, and the dasha tree that is running now.',
-    'This is the foundation for Nadi readings on the same Swiss Ephemeris chart used across Vedaansh.',
+    'Nadi workspace on your Vedic birth chart. The line active now leads. The rashi chart stays beside the reading, and each tab opens one part: houses, yogas, marriage, career, wealth, the years ahead, transits, and remedies.',
+    'Readings use the same Swiss Ephemeris chart as the rest of Vedaansh, with Bhrigu Bhava, divisional charts, and the Vimshottari period that is running.',
   ],
   h2: 'What this section shows',
   bullets: [
-    { label: 'Chart', desc: 'North, South, circle, or Sarvatobhadra view of the loaded birth chart' },
-    { label: 'Planetary positions', desc: 'Sign, nakshatra, pada, and dignity for each graha' },
-    { label: 'Dasha', desc: 'Vimshottari and the other dasha systems already stored on the chart' },
-    { label: 'Houses', desc: 'Twelve bhavas with sign, lord, occupants, body, work, and house rotation' },
+    { label: 'Active reading', desc: 'Career, the running year, the period, and the next stacked year' },
+    { label: 'Houses', desc: 'Twelve bhavas with sign, lord, occupants, and the Bhrigu Bhava' },
+    { label: 'Life readings', desc: 'Yogas, marriage, career, wealth, property, and vehicles' },
+    { label: 'Timing and sky', desc: 'Degree years, coming periods, live transits, and the stone this chart allows' },
   ],
   relatedLinks: [
     guideLink('free-vedic-birth-chart-kundali', 'What is a Kundali?'),
