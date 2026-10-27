@@ -113,6 +113,7 @@ export interface NadiGrahaPlacement {
   rashi: Rashi
   dignity?: string
   isRetro?: boolean
+  isCombust?: boolean
   degree?: number
 }
 
@@ -358,6 +359,7 @@ export function readNadiChart(chart: ChartOutput): NadiChartReading {
         rashi: g.rashi,
         dignity: g.dignity,
         isRetro: g.isRetro,
+        isCombust: g.isCombust,
         degree: g.degree,
       }]
     }),
@@ -490,9 +492,14 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
   }
 
   const yogas = [
-    ...findKhaarabYogas({ chart: 'D1', ascRashi: asc, grahas }),
+    ...findKhaarabYogas({ chart: 'D1', ascRashi: asc, grahas, dashaLords: input.dashaLords }),
     ...(input.navamshaChart
-      ? findKhaarabYogas({ chart: 'D9', ascRashi: input.navamshaChart.ascRashi, grahas: input.navamshaChart.grahas })
+      ? findKhaarabYogas({
+        chart: 'D9',
+        ascRashi: input.navamshaChart.ascRashi,
+        grahas: input.navamshaChart.grahas,
+        dashaLords: input.dashaLords,
+      })
       : []),
   ]
   if (yogas.filter((yoga) => yoga.id.endsWith('-su-ra')).length >= 2) {
@@ -704,6 +711,7 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
       moonNakshatra: input.moonNakshatra,
       nakshatras: input.nakshatras,
       dashaNodes: input.dashaNodes,
+      khaarabPlanets: [...new Set(yogas.flatMap((yoga) => yoga.planets))],
     }),
   }
 }

@@ -48,6 +48,7 @@ export interface NadiPlacementBody {
   rashi: Rashi
   dignity?: string
   isRetro?: boolean
+  isCombust?: boolean
   degree?: number
 }
 
@@ -172,6 +173,7 @@ function planetPrediction(
   const dignityLine = dignitySentence(g.id, name, dignity)
   if (dignityLine) lines.push(dignityLine)
   if (retro) lines.push(`${name} is retrograde, so this result is late.`)
+  if (g.isCombust) lines.push('Combustion is recorded. It does not cancel the career or wealth result.')
   lines.push(...companionSentences(g.id, house, co))
   return lines.join(' ')
 }

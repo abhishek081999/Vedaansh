@@ -4,7 +4,7 @@
 //  Each year stacks the year-count with the ages, degrees,
 //  and scores that already land on it. A period ahead uses
 //  the same career, money, marriage, property, and vehicle rules.
-//  The date inside a year is not read.
+//  A planet's degree in the active house marks a date in that year.
 // ─────────────────────────────────────────────────────────────
 
 import type { Rashi } from '@/types/astrology'
@@ -18,12 +18,12 @@ import {
   type HouseNumber,
 } from '@/lib/engine/houseInterpretations'
 import { rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
-import { bcpHouse } from '@/lib/engine/nadi/bcp'
+import { bcpDateLines, bcpHouse } from '@/lib/engine/nadi/bcp'
 import { NADI_HOUSES } from '@/lib/engine/nadi/houses'
-import type { NadiYogaPlacement } from '@/lib/engine/nadi/yogas'
+import { khaarabPeriodLine, type NadiYogaPlacement } from '@/lib/engine/nadi/yogas'
 
 export const NADI_FUTURE_NOTE =
-  'The coming years stack the year-count with the sign ages, the planet ages, the degree years, and the score years that land on the same year. A Vimshottari period ahead is read with the same career, money, marriage, property, and vehicle rules. The date inside a year is not read.'
+  'The coming years stack the year-count with the sign ages, the planet ages, the degree years, and the score years that land on the same year. A Vimshottari period ahead is read with the same career, money, marriage, property, and vehicle rules. A planet’s degree inside the active house marks a date in that birthday year.'
 
 export type NadiFutureTechnique = 'year' | 'sign' | 'planet' | 'degree' | 'score' | 'afflicted' | 'wealth'
 
@@ -84,6 +84,8 @@ export interface NadiFutureInput {
   moonNakshatra?: number
   nakshatras?: Partial<Record<ClassicalGrahaId, number>>
   dashaNodes?: readonly NadiDashaNode[]
+  /** Planets that form a khaarab yoga, used to time a coming period. */
+  khaarabPlanets?: readonly ClassicalGrahaId[]
 }
 
 const TAG_ORDER: readonly NadiFutureTechnique[] = ['year', 'planet', 'sign', 'degree', 'score', 'afflicted', 'wealth']
@@ -201,6 +203,12 @@ function yearCountLines(
   if (input.parivartana?.some((pair) => pair.a === house || pair.b === house)) {
     lines.push('An exchange touches this house, so its result is stronger this year.')
   }
+  lines.push(...bcpDateLines({
+    birthDate: input.birthDate,
+    runningYear: year,
+    occupants,
+    lord: lordPlanet ?? null,
+  }))
   return { house, houseName: profile.name, lines }
 }
 
@@ -253,7 +261,7 @@ function comingPeriods(input: NadiFutureInput): NadiFuturePeriod[] {
   const seenMaha = new Set<ClassicalGrahaId>()
   const periods = spans.slice(0, 8).map((span) => {
     const lords = [span.maha, span.antar].filter((id): id is ClassicalGrahaId => id != null)
-    const lines = periodLines(input, lords, !seenMaha.has(span.maha))
+    const lines = periodLines(input, lords, !seenMaha.has(span.maha), span.start <= now && now < span.end)
     seenMaha.add(span.maha)
     const antarName = span.antar ? GRAHA_NAMES[span.antar] : null
     return {
@@ -270,8 +278,15 @@ function comingPeriods(input: NadiFutureInput): NadiFuturePeriod[] {
   return periods.filter((period, index) => index < 2 || period.lines.length > 0).slice(0, 8)
 }
 
-function periodLines(input: NadiFutureInput, lords: readonly ClassicalGrahaId[], includeMahaVarga: boolean): string[] {
+function periodLines(
+  input: NadiFutureInput,
+  lords: readonly ClassicalGrahaId[],
+  includeMahaVarga: boolean,
+  open: boolean,
+): string[] {
   const lines: string[] = []
+  const timed = khaarabPeriodLine(input.khaarabPlanets ?? [], lords, open)
+  if (timed) lines.push(timed)
   const antar = lords[1]
   const d9 = input.navamshaChart
   if (antar && d9) {

@@ -26,7 +26,8 @@ export interface NadiGrahaProfile {
 }
 
 /**
- * Same-sign conjunction strength for later yoga code.
+ * Same-sign conjunction strength.
+ * Within 2° is the closest form, within 7° the close form, and within 15° the wide form.
  * House occupancy itself stays whole-sign even past the weak orb.
  */
 export const NADI_CONJUNCTION_ORB = { strongest: 2, strong: 7, weak: 15 } as const

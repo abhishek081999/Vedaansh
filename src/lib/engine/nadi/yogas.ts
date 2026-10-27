@@ -1,12 +1,13 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/nadi/yogas.ts
-//  Inauspicious conjunctions (khaarab yoga). Same-sign, within 15°.
+//  Same-sign Nadi conjunctions, within 15°. Khaarab pairs and
+//  the supportive pairs. Jupiter with Saturn stays a snapshot.
 //  D1 and D9 are each read as their own chart. A strong lagna
 //  places the result on the family; a weak or afflicted lagna
 //  places it on the native. Teaching associations, not a diagnosis.
 // ─────────────────────────────────────────────────────────────
 
-import { RASHI_NAMES } from '@/types/astrology'
+import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import type { Rashi } from '@/types/astrology'
 import { getDignity } from '@/lib/engine/dignity'
 import {
@@ -25,7 +26,7 @@ export interface NadiYogaPlacement {
 }
 
 export const NADI_KHAARAB_THEME =
-  'One of these is checked: a long illness, a surgery or accident, a court case or trouble with an authority, a career break, or fraud. It falls on the native or on parents, siblings, or children. The dasha that times it is a later step.'
+  'One of these is checked: a long illness, a surgery or accident, a court case or trouble with an authority, a career break, or fraud. It falls on the native or on parents, siblings, or children. The dasha of one of these planets is the period that times it.'
 
 export const NADI_KHAARAB_CHANNEL =
   'A technical or medical career is read as the combination taking a working form. The health or family result is still checked.'
@@ -40,6 +41,7 @@ export interface NadiKhaarabYoga {
   chart: NadiYogaChart
   house: HouseNumber
   signName: string
+  planets: readonly ClassicalGrahaId[]
   effect: string
   career: string | null
   bearer: NadiYogaBearer
@@ -83,7 +85,7 @@ const YOGAS: readonly YogaDef[] = [
     kind: 'inauspicious',
     effect: 'Migraine, a disturbed mind, insomnia, and epilepsy are the forms checked.',
     career: null,
-    suppresses: ['mo-ra'],
+    suppresses: ['mo-ra', 'mo-sa'],
   },
   {
     id: 'ma-ra',
@@ -176,6 +178,123 @@ const YOGAS: readonly YogaDef[] = [
     suppresses: [],
   },
   {
+    id: 'su-ke',
+    name: 'Sun + Ketu',
+    planets: ['Su', 'Ke'],
+    kind: 'inauspicious',
+    effect: 'A cut in status, a sudden break, and the father’s health are checked. The eyes and the heart are checked.',
+    career: 'Research, occult work, or a government post that breaks.',
+    suppresses: [],
+  },
+  {
+    id: 'ma-su',
+    name: 'Mars + Sun',
+    planets: ['Ma', 'Su'],
+    kind: 'inauspicious',
+    effect: 'Heat, fire, or an accident is checked, and so is the father’s health. A government or technical post is the working form.',
+    career: 'Government technical work, the police, or engineering.',
+    suppresses: [],
+  },
+  {
+    id: 'ma-mo',
+    name: 'Mars + Moon',
+    planets: ['Ma', 'Mo'],
+    kind: 'inauspicious',
+    effect: 'Blood, the mind, and the mother’s health are checked. A dispute over land or a house is checked.',
+    career: 'Property, surgery, or work with liquids.',
+    suppresses: [],
+  },
+  {
+    id: 'ma-me',
+    name: 'Mars + Mercury',
+    planets: ['Ma', 'Me'],
+    kind: 'inauspicious',
+    effect: 'Argument, the hands, and the siblings are checked. Technical work is the form that still delivers.',
+    career: 'Engineering or technical writing.',
+    suppresses: [],
+  },
+  {
+    id: 'me-sa',
+    name: 'Mercury + Saturn',
+    planets: ['Me', 'Sa'],
+    kind: 'inauspicious',
+    effect: 'Education and speech are delayed. The skin and the nerves are checked.',
+    career: 'Accounts, writing, or administration.',
+    suppresses: [],
+  },
+  {
+    id: 'me-ra',
+    name: 'Mercury + Rahu',
+    planets: ['Me', 'Ra'],
+    kind: 'inauspicious',
+    effect: 'Speech, accounts, and a foreign dealing are checked for a twist or fraud.',
+    career: 'Trade, software, or writing.',
+    suppresses: [],
+  },
+  {
+    id: 'me-ke',
+    name: 'Mercury + Ketu',
+    planets: ['Me', 'Ke'],
+    kind: 'inauspicious',
+    effect: 'Education and calculation are checked for a break. The skin, the nerves, and speech are checked.',
+    career: 'Research, programming, or accounts.',
+    suppresses: [],
+  },
+  {
+    id: 'mo-sa',
+    name: 'Moon + Saturn',
+    planets: ['Mo', 'Sa'],
+    kind: 'inauspicious',
+    effect: 'The mind and the mother are under pressure. A change of place is checked.',
+    career: 'Agriculture, dairy, food, or land.',
+    suppresses: [],
+  },
+  {
+    id: 'ju-ve',
+    name: 'Jupiter + Venus',
+    planets: ['Ju', 'Ve'],
+    kind: 'supportive',
+    effect: 'Wealth, comfort, children, and a supported marriage are read from this pair.',
+    career: 'Finance, teaching, the arts, or advisory work.',
+    suppresses: [],
+  },
+  {
+    id: 'ju-me',
+    name: 'Jupiter + Mercury',
+    planets: ['Ju', 'Me'],
+    kind: 'supportive',
+    effect: 'Study, counsel, writing, and the law are read as supported.',
+    career: 'Teaching, law, accounts, or publishing.',
+    suppresses: [],
+  },
+  {
+    id: 'ju-mo',
+    name: 'Jupiter + Moon',
+    planets: ['Ju', 'Mo'],
+    kind: 'supportive',
+    effect: 'The mind and the mother are read as supported. Counsel and a settled home are read.',
+    career: 'Teaching, care, or counsel.',
+    suppresses: [],
+  },
+  {
+    id: 'me-ve',
+    name: 'Mercury + Venus',
+    planets: ['Me', 'Ve'],
+    kind: 'supportive',
+    effect: 'Trade, design, and speech that earns are read. Wealth is read from the pair.',
+    career: 'Business, design, or media.',
+    suppresses: [],
+  },
+  {
+    id: 'su-ju',
+    name: 'Sun + Jupiter',
+    planets: ['Su', 'Ju'],
+    kind: 'supportive',
+    effect: 'Honor, a lawful government post, and the father’s standing are read as supported.',
+    career: 'Administration, law, or teaching.',
+    suppresses: [],
+  },
+  {
     id: 'ju-ke',
     name: 'Jupiter + Ketu',
     planets: ['Ju', 'Ke'],
@@ -194,6 +313,50 @@ export interface NadiYogaChartInput {
   chart: NadiYogaChart
   ascRashi: Rashi
   grahas: readonly NadiYogaPlacement[]
+  /** Mahadasha, then antardasha. Only these two time a khaarab yoga. */
+  dashaLords?: readonly ClassicalGrahaId[]
+}
+
+export type NadiConjunctionGrade = 'closest' | 'close' | 'wide'
+
+/** Grade of a conjunction that already exists. Missing degrees stay ungraded. */
+export function nadiConjunctionGrade(
+  grahas: readonly NadiYogaPlacement[],
+  planets: readonly ClassicalGrahaId[],
+): NadiConjunctionGrade | null {
+  const found = nadiConjunct(grahas, planets)
+  if (!found) return null
+  const degrees = found.map((g) => g.degree).filter((d): d is number => typeof d === 'number' && Number.isFinite(d))
+  if (degrees.length !== found.length) return null
+  const span = Math.max(...degrees) - Math.min(...degrees)
+  if (span <= NADI_CONJUNCTION_ORB.strongest) return 'closest'
+  if (span <= NADI_CONJUNCTION_ORB.strong) return 'close'
+  return 'wide'
+}
+
+export function nadiClosenessClause(grade: NadiConjunctionGrade | null): string {
+  if (grade === 'closest') return 'The planets sit within 2°, the closest form.'
+  if (grade === 'close') return 'The planets sit within 7°, the close form.'
+  if (grade === 'wide') return 'The planets sit within 15°, the wide form.'
+  return ''
+}
+
+/** Names the mahadasha or antardasha lord that belongs to the yoga. */
+export function khaarabPeriodLine(
+  planets: readonly ClassicalGrahaId[],
+  lords: readonly ClassicalGrahaId[],
+  open: boolean,
+): string | null {
+  const named: ClassicalGrahaId[] = []
+  for (const id of lords.slice(0, 2)) {
+    if (!planets.includes(id) || named.includes(id)) continue
+    named.push(id)
+  }
+  if (named.length === 0) return null
+  const names = joinNames(named.map((id) => GRAHA_NAMES[id]))
+  return open
+    ? `The period of ${names} is open, so this combination is timed now.`
+    : `The period of ${names} times the khaarab combination.`
 }
 
 /** Planets that share a sign. When every degree is known, the span must be within 15°. */
@@ -235,6 +398,10 @@ export function findKhaarabYogas(input: NadiYogaChartInput): NadiKhaarabYoga[] {
       if (yoga.id === 'ma-sa' && house === 8) {
         effect += ' In the 8th, a violent end and major legal trouble are the forms checked.'
       }
+      const closeness = nadiClosenessClause(nadiConjunctionGrade(inSign, yoga.planets))
+      if (closeness) effect += ` ${closeness}`
+      const timing = khaarabPeriodLine(yoga.planets, input.dashaLords ?? [], true)
+      if (timing) effect += ` ${timing}`
       hits.push({
         id: `${input.chart}-${yoga.id}`,
         name: yoga.name,
@@ -242,6 +409,7 @@ export function findKhaarabYogas(input: NadiYogaChartInput): NadiKhaarabYoga[] {
         chart: input.chart,
         house,
         signName: RASHI_NAMES[sign],
+        planets: yoga.planets,
         effect,
         career: yoga.career,
         bearer,
@@ -289,6 +457,12 @@ export function khaarabSummary(yoga: NadiKhaarabYoga): string {
   const where = `${yoga.chart === 'D9' ? 'Navamsha' : 'Birth chart'}, ${yoga.signName}, ${ordinalHouse(yoga.house)}`
   const career = yoga.career ? ` Working form: ${yoga.career}` : ''
   return `${yoga.name} (${where}). ${yoga.effect} ${yoga.bearerNote}${career}`
+}
+
+function joinNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? ''
+  if (names.length === 2) return `${names[0]} and ${names[1]}`
+  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`
 }
 
 function ordinalHouse(n: number): string {

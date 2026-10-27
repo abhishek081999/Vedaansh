@@ -209,9 +209,12 @@ export function readNadiLiveTransits(input: NadiLiveInput): NadiLiveReading {
   const hits: NadiLiveHit[] = []
   const saturn = skyOf(input.sky, 'Sa')
   const jupiter = skyOf(input.sky, 'Ju')
+  let saturnOn: ClassicalGrahaId[] = []
+  let jupiterOn: ClassicalGrahaId[] = []
 
   if (saturn) {
     const matched = passes(saturn, input.natal, SATURN_TONE)
+    saturnOn = matched.map((planet) => planet.id)
     if (matched.length) {
       const line = overLine(saturn, matched, NADI_SATURN_TRANSIT)
       hits.push({ id: 'saturn', title: 'Saturn', ...line, tone: toneOf(SATURN_TONE, matched.map((planet) => planet.id)) })
@@ -219,10 +222,23 @@ export function readNadiLiveTransits(input: NadiLiveInput): NadiLiveReading {
   }
   if (jupiter) {
     const matched = passes(jupiter, input.natal, JUPITER_TONE)
+    jupiterOn = matched.map((planet) => planet.id)
     if (matched.length) {
       const line = overLine(jupiter, matched, NADI_JUPITER_TRANSIT)
       hits.push({ id: 'jupiter', title: 'Jupiter', ...line, tone: toneOf(JUPITER_TONE, matched.map((planet) => planet.id)) })
     }
+  }
+
+  const shared = saturnOn.filter((id) => jupiterOn.includes(id))
+  if (shared.length > 0) {
+    const names = joinNames(shared.map((id) => GRAHA_NAMES[id]))
+    hits.push({
+      id: 'jupiter-saturn',
+      title: 'Jupiter and Saturn',
+      answer: `Jupiter and Saturn are both on ${names}.`,
+      reading: `The result of ${names} is read while both are there.`,
+      tone: 'plain',
+    })
   }
 
   const nodes: Array<[string, ClassicalGrahaId, ClassicalGrahaId]> = [
