@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { ChevronRight } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { LandingProductMockup, type MockupSlideId } from '@/components/home/LandingProductMockup'
 
@@ -23,8 +24,6 @@ type LandingPremiumHeroProps = {
   showMyCharts: boolean
   withChartGate: (href: string, e?: MouseEvent<HTMLElement>) => void
 }
-
-const AUTO_MS = 5600
 
 const HERO_SLIDES: HeroSlide[] = [
   {
@@ -84,7 +83,6 @@ export function LandingPremiumHero({
 }: LandingPremiumHeroProps) {
   const [active, setActive] = useState(0)
   const [prevActive, setPrevActive] = useState(0)
-  const [paused, setPaused] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
@@ -96,19 +94,17 @@ export function LandingPremiumHero({
     return () => media.removeEventListener('change', apply)
   }, [])
 
-  useEffect(() => {
-    if (reducedMotion || paused) return
-    const timer = window.setInterval(() => {
-      setActive((prev) => {
-        const next = (prev + 1) % HERO_SLIDES.length
-        setPrevActive(prev)
-        return next
-      })
-    }, AUTO_MS)
-    return () => window.clearInterval(timer)
-  }, [paused, reducedMotion])
-
   const slide = HERO_SLIDES[active]
+
+  const goTo = (index: number, ctaName: string) => {
+    setPrevActive(active)
+    setActive(index)
+    trackLandingCta(ctaName)
+  }
+
+  const goNext = () => {
+    goTo((active + 1) % HERO_SLIDES.length, 'hero_next')
+  }
 
   const directionClass = (() => {
     if (active === prevActive) return ''
@@ -131,25 +127,20 @@ export function LandingPremiumHero({
 
   return (
     <section
-      className={`landing-premium-hero landing-premium-hero-carousel fade-up ${paused ? 'is-paused' : ''} ${reducedMotion ? 'reduced-motion' : ''}`}
-      style={{ ['--hero-auto-ms' as string]: `${AUTO_MS}ms`, ['--hero-accent' as string]: slide.accent }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
+      className={`landing-premium-hero landing-premium-hero-carousel fade-up ${reducedMotion ? 'reduced-motion' : ''}`}
+      style={{ ['--hero-accent' as string]: slide.accent }}
       aria-label="Vedaansh product highlights"
     >
-      <div className="landing-hero-carousel-progress-wrap" aria-hidden="true">
-        <div key={`progress-${active}`} className="landing-hero-carousel-progress" />
-      </div>
-
       <div className="landing-premium-hero-carousel-inner">
         <div className="landing-hero-carousel-top">
           <div className="landing-hero-carousel-brand">
             <Image src="/veda-icon.png" alt="Vedaansh" width={26} height={26} />
             <span>Vedaansh</span>
           </div>
-          <span className="landing-hero-carousel-pause-hint">{paused ? 'Paused' : 'Auto slider'}</span>
+          <button type="button" className="landing-hero-next" onClick={goNext}>
+            Next
+            <ChevronRight size={13} strokeWidth={2.25} aria-hidden />
+          </button>
         </div>
 
         <div className="landing-hero-carousel-stage landing-premium-hero-stage">
@@ -241,11 +232,7 @@ export function LandingPremiumHero({
                 role="tab"
                 aria-selected={idx === active}
                 className={`landing-hero-carousel-tab ${idx === active ? 'is-active' : ''}`}
-                onClick={() => {
-                  setPrevActive(active)
-                  setActive(idx)
-                  trackLandingCta(`hero_tab_${item.id}`)
-                }}
+                onClick={() => goTo(idx, `hero_tab_${item.id}`)}
                 style={{ ['--tab-accent' as string]: item.accent }}
               >
                 <span className="landing-hero-carousel-tab-dot" style={{ background: item.accent }} />

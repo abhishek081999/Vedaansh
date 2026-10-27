@@ -1345,7 +1345,7 @@ function HomeContent() {
     { step: '03', title: 'Apply in real life', text: 'Use Today\u2019s Reading, transits, Panchang, and Prashna to plan your next action, and explore marriage and career readings.' },
   ]
 
-  /** Explore grid, grouped so each row fills evenly (6 / 4 / 6 cards). */
+  /** Explore grid, grouped so each row fills evenly (6 / 4 / 7 cards). */
   const landingMajorGroups = [
     {
       id: 'chart',
