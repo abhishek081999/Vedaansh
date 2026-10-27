@@ -26,10 +26,14 @@
 }
 
 .slice {
-  fill: color-mix(in srgb, var(--surface-1) 55%, var(--surface-2));
+  fill: var(--surface-1);
   stroke: var(--border);
-  stroke-width: 0.7;
+  stroke-width: 1;
   cursor: pointer;
+}
+
+.sliceAlt {
+  fill: var(--surface-3);
 }
 
 .slice:hover {
@@ -41,8 +45,9 @@
 }
 
 .sliceBirth {
-  fill: color-mix(in srgb, var(--gold) 26%, var(--surface-1));
+  fill: color-mix(in srgb, var(--gold) 38%, var(--surface-1));
   stroke: var(--gold);
+  stroke-width: 1.4;
 }
 
 .sliceOn {
@@ -81,8 +86,8 @@
 }
 
 .starLabel {
-  fill: var(--text-muted);
-  font-size: 8.5px;
+  fill: var(--text-secondary);
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.01em;
 }
@@ -101,7 +106,7 @@
 .marker {
   fill: var(--text-primary);
   font-family: var(--font-chart-planets);
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 700;
 }
 

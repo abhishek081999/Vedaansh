@@ -102,7 +102,7 @@ export function NakshatraWheel({
 
   return (
     <div className={styles.wrap}>
-      <svg className={styles.wheel} viewBox="0 0 440 440" role="group" aria-label="All 27 nakshatras, clockwise from Ashwini">
+      <svg className={styles.wheel} width="100%" viewBox="-48 -48 536 536" role="group" aria-label="All 27 nakshatras, clockwise from Ashwini">
         {Array.from({ length: 12 }, (_, i) => {
           const a0 = i * 30
           const mid = a0 + 15
@@ -138,6 +138,7 @@ export function NakshatraWheel({
                 d={ringSlice(STAR_INNER, STAR_OUTER, a0, a0 + SPAN)}
                 className={cn(
                   styles.slice,
+                  i % 2 === 1 && styles.sliceAlt,
                   panchaka && styles.slicePanchaka,
                   birth && styles.sliceBirth,
                   on && styles.sliceOn,
