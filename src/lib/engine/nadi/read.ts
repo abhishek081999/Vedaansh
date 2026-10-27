@@ -72,6 +72,15 @@ import {
 } from '@/lib/engine/nadi/property'
 import { NADI_SHASHTIAMSA_NOTE, shashtiamsaNotes } from '@/lib/engine/nadi/shashtiamsa'
 import { NADI_BHRIGU_NOTE, bhriguBhavaNotes } from '@/lib/engine/nadi/bhrigu'
+import { readNadiLife, type NadiLifeReading } from '@/lib/engine/nadi/life'
+import {
+  NADI_PLACEMENT_NOTE,
+  nadiHouseLine,
+  readNadiPlacements,
+  type NadiPlacement,
+} from '@/lib/engine/nadi/placements'
+
+export type { NadiPlacement }
 import { NADI_MARRIAGE_RULE_NOTE, readChartLectures } from '@/lib/engine/nadi/marriageRules'
 import { readNadiFuture, type NadiDashaNode, type NadiFutureReading } from '@/lib/engine/nadi/future'
 import {
@@ -163,6 +172,8 @@ export interface NadiOccupantReading {
   professions: string[]
   bodyParts: string[]
   afflictedBy: string[]
+  /** House, lordship, and sign read together. */
+  prediction: string
 }
 
 export interface NadiHouseReading {
@@ -185,6 +196,8 @@ export interface NadiHouseReading {
   papaPresent: boolean
   activeRules: string[]
   roles: string[]
+  /** Sign, lord, and occupants of this house read together. */
+  prediction: string
 }
 
 export interface NadiLinkReading {
@@ -207,6 +220,8 @@ export interface NadiChartReading {
   pillars: typeof NADI_PILLARS
   maleficRule: string
   houses: NadiHouseReading[]
+  placementNote: string
+  placements: NadiPlacement[]
   links: NadiLinkReading[]
   parivartana: { a: HouseNumber; b: HouseNumber }[]
   relatives: NadiRelativeReading[]
@@ -241,6 +256,7 @@ export interface NadiChartReading {
   bhriguHouse: HouseNumber
   bhriguNote: string
   bhriguNotes: string[]
+  life: NadiLifeReading
   marriageRuleNote: string
   marriageRuleNotes: string[]
   afflictedNotes: string[]
@@ -388,7 +404,16 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
     return houseOf(placed.rashi)
   }
 
-  const houses = HOUSES.map((house) => readHouse(house, asc, occupantsOf(house), lordHouseOf(house)))
+  const placements = readNadiPlacements({ ascRashi: asc, grahas })
+  const predictionOf = new Map(placements.map((row) => [row.id, row.prediction]))
+  const houses = HOUSES.map((house) => readHouse(
+    house,
+    asc,
+    occupantsOf(house),
+    lordHouseOf(house),
+    predictionOf,
+    nadiHouseLine({ ascRashi: asc, house, lordHouse: lordHouseOf(house), placements }),
+  ))
 
   const links = NADI_LORD_LINKS.flatMap((link) => (
     linkFires(link, lordHouseOf, occupantsOf) ? [{ id: link.id, reading: link.reading }] : []
@@ -504,6 +529,8 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
     pillars: NADI_PILLARS,
     maleficRule: NADI_MALEFIC_LIVING_RULE,
     houses,
+    placementNote: NADI_PLACEMENT_NOTE,
+    placements,
     links,
     parivartana,
     relatives,
@@ -557,6 +584,7 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
     bhriguHouse: bhrigu.house,
     bhriguNote: NADI_BHRIGU_NOTE,
     bhriguNotes: bhrigu.notes,
+    life: readNadiLife({ ascRashi: asc, grahas }),
     marriageRuleNote: NADI_MARRIAGE_RULE_NOTE,
     marriageRuleNotes: lectures.marriage,
     afflictedNotes: lectures.afflicted,
@@ -706,6 +734,8 @@ function readHouse(
   asc: Rashi,
   occupants: NadiGrahaPlacement[],
   lordHouse: HouseNumber | null,
+  predictionOf: ReadonlyMap<ClassicalGrahaId, string>,
+  prediction: string,
 ): NadiHouseReading {
   const sign = rashiForHouseFromLagna(asc, house)
   const profile = NADI_HOUSES[house]
@@ -745,14 +775,20 @@ function readHouse(
     profile,
     classicalThemes: theme?.coreThemes ?? [],
     naturalKarakas: getNaturalKarakasForHouse(house),
-    occupants: occupants.map((g) => occupantReading(g, house, ids)),
+    occupants: occupants.map((g) => occupantReading(g, house, ids, predictionOf.get(g.id) ?? '')),
     papaPresent,
     activeRules,
     roles: rolesOfHouse(house),
+    prediction,
   }
 }
 
-function occupantReading(g: NadiGrahaPlacement, house: HouseNumber, ids: ClassicalGrahaId[]): NadiOccupantReading {
+function occupantReading(
+  g: NadiGrahaPlacement,
+  house: HouseNumber,
+  ids: ClassicalGrahaId[],
+  prediction: string,
+): NadiOccupantReading {
   const graha: NadiGrahaProfile = NADI_GRAHAS[g.id]
   return {
     id: g.id,
@@ -765,6 +801,7 @@ function occupantReading(g: NadiGrahaPlacement, house: HouseNumber, ids: Classic
     professions: graha.professions.slice(0, 3),
     bodyParts: graha.bodyParts,
     afflictedBy: nadiAfflictedBy(g.id, ids),
+    prediction,
   }
 }
 

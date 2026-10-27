@@ -34,7 +34,7 @@ function ordinal(n: number): string {
 }
 
 function cautionLine(line: string): boolean {
-  return /loss of work|break|poor time|not worn|not the time|not strong|afflicted|separat|hard|delay|strain|Mrityu Bhaga|difficult|cancelled|cancelling|left out|mixed|accident|mean nodes|illness|struggle|injury|mark on that fame|unexpected|large expense/i.test(line)
+  return /loss of work|break|poor time|not worn|not the time|not strong|afflicted|separat|hard|delay|strain|Mrityu Bhaga|difficult|cancelled|cancelling|left out|mixed|accident|mean nodes|illness|struggle|injury|mark on that fame|unexpected|large expense|debilitated|under pressure|sudden turn|brings a cut/i.test(line)
 }
 
 function supportLine(line: string): boolean {
@@ -106,7 +106,7 @@ export function Reference({ label, children }: { label: string; children: React.
   )
 }
 
-export type NadiJump = 'houses' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
+export type NadiJump = 'houses' | 'life' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
 
 export function NadiActiveBrief({
   reading,
@@ -188,6 +188,11 @@ export function nadiHighlights(
     if (next) d1.add(next.house)
   } else if (view === 'remedies') {
     d1.add(1)
+  } else if (view === 'life') {
+    d1.add(5)
+    d1.add(4)
+    d1.add(9)
+    d1.add(12)
   } else if (view === 'houses' || view === 'chart') {
     if (reading.career.priority === 1) {
       for (const pair of reading.parivartana) {
@@ -348,8 +353,44 @@ export function remedyFindings(reading: NadiChartReading): NadiFinding[] {
   ]
 }
 
+export function lifeFindings(reading: NadiChartReading): NadiFinding[] {
+  return [
+    ...fromLines('Study', reading.life.education, 'study'),
+    ...fromLines('Family', reading.life.family, 'family'),
+    ...fromLines('Settlement', reading.life.settlement, 'settle'),
+    ...fromLines('Health', reading.healthFlags, 'health-life'),
+  ]
+}
+
+export function lifeVerdict(reading: NadiChartReading): string {
+  return reading.life.education[0]
+    ?? reading.life.settlement[0]
+    ?? reading.life.family[0]
+    ?? 'Study, the family, and settlement are read from this chart.'
+}
+
+export function placementFindings(reading: NadiChartReading): NadiFinding[] {
+  return reading.placements.map((row) => {
+    const rules = row.lordOf.length === 0
+      ? 'rules no sign'
+      : `rules ${row.lordOf.map((house) => `the ${ordinal(house)}`).join(' and ')}`
+    const sign = row.naturalHouse === row.house
+      ? row.signName
+      : `${row.signName} carries the ${ordinal(row.naturalHouse)}`
+    return {
+      id: `place-${row.id}`,
+      title: row.name,
+      answer: `${ordinal(row.house)} · ${sign} · ${rules}`,
+      reading: row.prediction,
+      tone: toneOf(row.prediction),
+    }
+  })
+}
+
 export function housesVerdict(reading: NadiChartReading): string {
-  return reading.bhriguNotes[0] ?? 'The Bhrigu Bhava is read from the lagna sign.'
+  const house = reading.houses.find((row) => row.house === reading.bhriguHouse)
+  const first = house?.prediction.split(/(?<=\.)\s/)[0]
+  return first || reading.bhriguNotes[0] || 'The Bhrigu Bhava is read from the lagna sign.'
 }
 
 export function yogasVerdict(reading: NadiChartReading): string {

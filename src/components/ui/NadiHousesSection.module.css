@@ -146,8 +146,8 @@
 }
 
 .occupants {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
@@ -222,6 +222,13 @@
   color: var(--text-secondary);
 }
 
+.prediction {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -279,6 +286,12 @@
   font-size: 0.73rem;
   line-height: 1.4;
   color: var(--text-secondary);
+}
+
+.occupant p:first-of-type {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-primary);
 }
 
 .below {

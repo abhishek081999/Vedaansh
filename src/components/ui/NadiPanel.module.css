@@ -244,6 +244,20 @@
   min-width: 0;
 }
 
+.placementBoard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.35rem 0.75rem 0.9rem;
+}
+
+.placementNote {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
 .dashaToolbar {
   display: flex;
   align-items: center;

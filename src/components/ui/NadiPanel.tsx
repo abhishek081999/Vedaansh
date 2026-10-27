@@ -6,7 +6,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Briefcase, CalendarRange, Coins, Gem, Grid3x3, Heart, Home, Hourglass, Orbit, Sparkles,
+  Briefcase, CalendarRange, Coins, Gem, Grid3x3, Heart, Home, Hourglass, Orbit, Sparkles, Users,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ChartOutput, DashaNode, DashaSystem, Rashi, UserPlan } from '@/types/astrology'
@@ -21,14 +21,15 @@ import { DashaTree } from '@/components/dasha/DashaTree'
 import { ChartContextBar } from '@/components/ui/patterns/ChartContextBar'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { NadiHousesSection, type NadiReadingView } from '@/components/ui/NadiHousesSection'
-import { NadiActiveBrief, nadiHighlights } from '@/components/ui/nadiFindings'
+import { FindingGrid, NadiActiveBrief, nadiHighlights, placementFindings } from '@/components/ui/nadiFindings'
 import styles from './NadiPanel.module.css'
 
 type NadiView = 'chart' | NadiReadingView
 
 const VIEWS: { id: NadiView; label: string; hint: string; icon: LucideIcon }[] = [
-  { id: 'chart', label: 'Chart', hint: 'Planetary positions. The active reading stays above the tabs.', icon: Grid3x3 },
-  { id: 'houses', label: 'Houses', hint: 'The Bhrigu Bhava, the occupied houses, and the exchanges.', icon: Home },
+  { id: 'chart', label: 'Chart', hint: 'Planetary positions, then each planet read from its house, the houses it rules, and its sign.', icon: Grid3x3 },
+  { id: 'houses', label: 'Houses', hint: 'The Bhrigu Bhava, each house’s sign and planets, and the exchanges.', icon: Home },
+  { id: 'life', label: 'Life', hint: 'Study, the family counted from each relative, and settlement away from the birthplace.', icon: Users },
   { id: 'yogas', label: 'Yogas', hint: 'The combinations that are present, and dusthana dignity.', icon: Sparkles },
   { id: 'marriage', label: 'Marriage', hint: 'Marriage combinations, then the three marriage rules and Navamsha.', icon: Heart },
   { id: 'career', label: 'Career', hint: 'The career this chart gives, then Dashamsha, Shashtiamsa, and the neighborhood.', icon: Briefcase },
@@ -305,6 +306,7 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
       <div className={view === 'chart' ? styles.workspaceChart : styles.workspace}>
       <div className={styles.content} id="nadi-panel" role="tabpanel" aria-labelledby={`nadi-tab-${view}`} key={view}>
         {view === 'chart' && (
+          <>
           <section className="panel" aria-label="Planetary positions">
             <div className="panel-header"><span>Planetary positions</span></div>
             <div className={styles.tableBody}>
@@ -318,6 +320,14 @@ export function NadiPanel({ chart, userPlan = 'free' }: Props) {
               />
             </div>
           </section>
+          <section className="panel" aria-label="House, planet, and sign">
+            <div className="panel-header"><span>House, planet, and sign</span></div>
+            <div className={styles.placementBoard}>
+              <p className={styles.placementNote}>{reading.placementNote}</p>
+              <FindingGrid items={placementFindings(reading)} />
+            </div>
+          </section>
+          </>
         )}
 
         {view !== 'chart' ? <NadiHousesSection chart={chart} view={view} reading={reading} /> : null}

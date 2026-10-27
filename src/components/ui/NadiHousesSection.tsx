@@ -23,6 +23,9 @@ import {
   careerVerdict,
   combinationFindings,
   houseSignalFindings,
+  placementFindings,
+  lifeFindings,
+  lifeVerdict,
   housesVerdict,
   marriageFindings,
   marriagePressureFindings,
@@ -44,7 +47,7 @@ import {
 } from '@/components/ui/nadiFindings'
 import styles from './NadiHousesSection.module.css'
 
-export type NadiReadingView = 'houses' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
+export type NadiReadingView = 'houses' | 'life' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
 
 const SKY_IDS = ['Ju', 'Sa', 'Ra', 'Ke', 'Ma', 'Ve'] as const
 
@@ -268,6 +271,7 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
             {house.lordHouse ? ` in the ${ordinal(house.lordHouse)}` : ''}
             {` · this sign carries the nature of the ${ordinal(house.naturalHouse)} house (${house.naturalHouseLabel})`}
           </p>
+          <p className={styles.prediction}>{house.prediction}</p>
           {(house.roles.length > 0 || house.papaPresent || house.house === reading.bhriguHouse) && (
             <div className={styles.chips}>
               {house.house === reading.bhriguHouse ? <span className={styles.chip}>Bhrigu Bhava</span> : null}
@@ -290,7 +294,7 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
                       {g.retro ? ' retrograde' : ''}
                       {g.dignity ? ` · ${g.dignity.replaceAll('_', ' ')}` : ''}
                     </strong>
-                    {g.nadiNote && <p>{g.nadiNote}</p>}
+                    <p>{g.prediction || g.nadiNote}</p>
                     {g.signNote && <p>{g.signNote}</p>}
                     {g.classicalHouseNote && <p>{g.classicalHouseNote}</p>}
                     <p>
@@ -323,6 +327,11 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
           </Reference>
         </div>
 
+        <p className={styles.blockTitle}>Every planet</p>
+        <FindingGrid items={placementFindings(reading)} />
+        <Reference label="How a planet is read">
+          <p className={styles.note}>{reading.placementNote}</p>
+        </Reference>
         <FindingGrid items={withoutVerdict([...bhriguFindings(reading), ...signals], housesVerdict(reading))} />
         <Reference label="How the Bhrigu Bhava is read">
           <p className={styles.note}>{reading.bhriguNote}</p>
@@ -383,6 +392,16 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
             </table>
           </div>
         </Reference>
+      </div>
+    )
+  }
+
+  if (view === 'life') {
+    const verdict = lifeVerdict(reading)
+    return (
+      <div className={styles.stack}>
+        <Verdict title={verdict} note={reading.life.note} />
+        <FindingGrid items={withoutVerdict(lifeFindings(reading), verdict)} />
       </div>
     )
   }

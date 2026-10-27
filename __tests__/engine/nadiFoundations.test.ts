@@ -10,6 +10,7 @@ import { NADI_SHASHTIAMSA_NOTE, shashtiamsaNotes } from '@/lib/engine/nadi/shash
 import { NADI_BHRIGU_NOTE, bhriguBhavaNotes } from '@/lib/engine/nadi/bhrigu'
 import { NADI_MARRIAGE_RULE_NOTE, readChartLectures } from '@/lib/engine/nadi/marriageRules'
 import { NADI_RASHI_AGE_NOTE, rashiAgeNotes } from '@/lib/engine/nadi/rashiAge'
+import { readNadiLife } from '@/lib/engine/nadi/life'
 import type { Rashi } from '@/types/astrology'
 
 describe('Nadi foundations', () => {
@@ -2117,5 +2118,97 @@ describe('Nadi foundations', () => {
     expect(life.future.periods).toEqual([])
     expect(life.future.years.find((year) => year.year === 20)?.techniques).toContain('sign')
     expect(life.future.years.find((year) => year.year === 25)?.techniques).toContain('planet')
+  })
+
+  it('reads study, a relative’s marriage, and settlement from the chart', () => {
+    const mixed = readNadiLife({
+      ascRashi: 1,
+      grahas: [
+        { id: 'Su', rashi: 1, dignity: 'exalted' },
+        { id: 'Ke', rashi: 5 },
+      ],
+    })
+    expect(mixed.education[0]).toMatch(/degree can still be completed/)
+    expect(mixed.education.join(' ')).toMatch(/Ketu in the 5th/)
+
+    const trained = readNadiLife({
+      ascRashi: 1,
+      grahas: [
+        { id: 'Su', rashi: 1, dignity: 'exalted' },
+        { id: 'Ju', rashi: 9, dignity: 'own' },
+      ],
+    })
+    expect(trained.education[0]).toMatch(/trained form of the career/)
+
+    const settled = readNadiLife({
+      ascRashi: 1,
+      grahas: [
+        { id: 'Me', rashi: 12 },
+        { id: 'Ju', rashi: 12 },
+      ],
+    })
+    expect(settled.settlement.join(' ')).toMatch(/Settlement away from the birthplace/)
+
+    const family = readNadiLife({
+      ascRashi: 1,
+      grahas: [{ id: 'Ma', rashi: 1 }],
+    })
+    expect(family.family.join(' ')).toMatch(/Spouse: the marriage house, the 1st, holds Mars/)
+
+    const named = readNadiLife({
+      ascRashi: 6,
+      grahas: [
+        { id: 'Sa', rashi: 1, dignity: 'debilitated' },
+        { id: 'Ju', rashi: 1 },
+        { id: 'Ke', rashi: 10 },
+      ],
+    })
+    expect(named.education[0]).toMatch(/Saturn sits with Jupiter/)
+    expect(named.education[0]).not.toMatch(/or Ketu/)
+  })
+
+  it('mixes the occupied house, the houses a planet rules, and the sign', () => {
+    const reading = readNadiHouses({
+      ascRashi: 4 as Rashi,
+      grahas: [
+        { id: 'Ve', rashi: 1 },
+        { id: 'Ma', rashi: 4 },
+        { id: 'Ra', rashi: 6 },
+        { id: 'Me', rashi: 6 },
+      ],
+    })
+
+    const venus = reading.placements.find((row) => row.id === 'Ve')
+    expect(venus?.house).toBe(10)
+    expect(venus?.signName).toBe('Aries')
+    expect(venus?.naturalHouse).toBe(1)
+    expect(venus?.lordOf).toEqual([4, 11])
+    expect(venus?.prediction).toMatch(/Aries in the 10th/)
+    expect(venus?.prediction).toMatch(/rules the 4th and the 11th/)
+    expect(venus?.prediction).toMatch(/The home and gains are read from the 10th/)
+    expect(venus?.prediction).toMatch(/carries the nature of the 1st/)
+
+    const mars = reading.placements.find((row) => row.id === 'Ma')
+    expect(mars?.house).toBe(1)
+    expect(mars?.lordOf).toEqual([5, 10])
+    expect(mars?.prediction).toMatch(/debilitated/)
+    expect(mars?.prediction).toMatch(/the home joins the body/)
+
+    const rahu = reading.placements.find((row) => row.id === 'Ra')
+    expect(rahu?.lordOf).toEqual([])
+    expect(rahu?.prediction).toMatch(/acts like Mercury/)
+    expect(rahu?.prediction).toMatch(/Mercury sits with it/)
+
+    const lagna = reading.houses[0]
+    expect(lagna?.prediction).toMatch(/The 1st is Cancer/)
+    expect(lagna?.prediction).toMatch(/carries the nature of the 4th/)
+    expect(lagna?.prediction).toMatch(/Mars occupies it/)
+    expect(lagna?.prediction).toMatch(/under pressure/)
+    expect(lagna?.occupants.find((g) => g.id === 'Ma')?.prediction).toBe(mars?.prediction)
+
+    const empty = readNadiHouses({ ascRashi: 1 as Rashi, grahas: [] })
+    expect(empty.placements).toEqual([])
+    expect(empty.houses[1]?.prediction).toMatch(/No planet occupies it/)
+    expect(empty.houses[1]?.prediction).toMatch(/not placed/)
   })
 })
