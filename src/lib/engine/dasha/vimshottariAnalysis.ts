@@ -396,8 +396,8 @@ export function buildDispositorChain(
   }
 
   const summary = links.length >= 3
-    ? `${links[0].lord} → ${links[1].lord} → ${links[2].lord}: fruit often delivers through the sign and star lords.`
-    : `${periodName} dispositor chain incomplete — placement data missing.`
+    ? `${links[0].lord} → ${links[1].lord} → ${links[2].lord}: the fruit often arrives through the lords of the sign and the star.`
+    : `The dispositor chain for ${periodName} is incomplete. Placement data is missing.`
 
   return { links, summary }
 }
@@ -412,11 +412,11 @@ function buildCharaKarakaNote(
     if (!role) return
     const desc = KARAKA_DESCRIPTIONS[role] ?? role
     if (role === 'AK') {
-      parts.push(`${layer} lord is Atmakaraka — soul-purpose timing; identity themes intensify.`)
+      parts.push(`${layer} lord is Atmakaraka. This is timing for the soul’s purpose, and themes of identity intensify.`)
     } else if (role === 'AmK') {
-      parts.push(`${layer} lord is Amatyakaraka — career/counsel timing is highlighted.`)
+      parts.push(`${layer} lord is Amatyakaraka. Timing for career and counsel is brought forward.`)
     } else if (role === 'DK') {
-      parts.push(`${layer} lord is Darakaraka — partnership/spouse themes colour this stretch.`)
+      parts.push(`${layer} lord is Darakaraka. Partnership and the spouse colour this stretch.`)
     } else {
       parts.push(`${layer} lord is ${role} (${desc.split('—')[0]?.trim() ?? role}).`)
     }
@@ -464,15 +464,15 @@ export function buildLifeAreaActivation(
     const themes = activeHouses.map(h => HOUSE_THEME[h] ?? `H${h}`).join('; ')
     const note =
       strength === 'quiet'
-        ? 'Quiet this stretch — not a primary activation.'
-        : `Activated via H${activeHouses.join(', H')} — ${themes}.`
+        ? 'Quiet through this stretch. It is not a primary activation.'
+        : `Active through house ${activeHouses.join(' and house ')}: ${themes}.`
     return { id: def.id, label: def.label, houses: def.houses, strength, note }
   })
 
   const hot = areas.filter(a => a.strength === 'high' || a.strength === 'medium')
   const headline = hot.length
-    ? `Activated now: ${hot.map(a => a.label).join(', ')}.`
-    : 'No single life area dominates — mixed house activation.'
+    ? `Active now: ${hot.map(a => a.label).join(', ')}.`
+    : 'No single area of life dominates. The houses are mixed.'
 
   return { areas, headline }
 }
@@ -485,16 +485,16 @@ function buildD9Note(
   const describe = (snap: VimshottariLordSnapshot, label: string) => {
     if (!snap.d9Dignity && !snap.isVargottama) return
     if (snap.isVargottama) {
-      parts.push(`${label} lord is vargottama — Rasi promise tends to land more fully.`)
+      parts.push(`${label} lord is vargottama. The promise of the rashi tends to land more fully.`)
     }
     if (snap.d9Dignity === 'exalted' || snap.d9Dignity === 'own' || snap.d9Dignity === 'moolatrikona') {
-      parts.push(`${label} strong in D9 (${snap.d9Dignity}) — delivery support even if D1 is mixed.`)
+      parts.push(`${label} is strong in the navamsha (${snap.d9Dignity}). Delivery is supported even when the birth chart is mixed.`)
     } else if (snap.d9Dignity === 'debilitated' || isEnemyDignity(snap.d9Dignity)) {
       const d1Strong = snap.dignity === 'exalted' || snap.dignity === 'own' || snap.dignity === 'moolatrikona'
       parts.push(
         d1Strong
-          ? `${label} strong in D1 but weak in D9 (${snap.d9Dignity}) — results can feel hollow or incomplete.`
-          : `${label} weak in D9 (${snap.d9Dignity}) — expect friction in how results arrive.`,
+          ? `${label} is strong in the birth chart but weak in the navamsha (${snap.d9Dignity}). Results can feel hollow, or unfinished.`
+          : `${label} is weak in the navamsha (${snap.d9Dignity}). Expect friction in the way results arrive.`,
       )
     }
   }
@@ -565,18 +565,18 @@ function clampMix(fav: number, chal: number, neu: number): {
 }
 
 const HOUSE_THEME: Record<number, string> = {
-  1: 'self & vitality',
-  2: 'money & family speech',
-  3: 'effort, siblings & short travel',
-  4: 'home, mother & peace of mind',
-  5: 'creativity, romance & children',
-  6: 'work, competition & health friction',
-  7: 'partnerships & contracts',
-  8: 'sudden change & shared resources',
-  9: 'fortune, mentors & long journeys',
-  10: 'career & public status',
-  11: 'gains, networks & ambitions',
-  12: 'expenses, solitude & foreign ties',
+  1: 'self and vitality',
+  2: 'wealth, family, and speech',
+  3: 'effort, siblings, and short travel',
+  4: 'home, mother, and peace of mind',
+  5: 'creativity, romance, and children',
+  6: 'work, competition, and strain on health',
+  7: 'partnership and contract',
+  8: 'sudden change and shared resources',
+  9: 'fortune, mentors, and long journeys',
+  10: 'career and public standing',
+  11: 'gains, networks, and ambition',
+  12: 'expense, solitude, and ties abroad',
 }
 
 function houseThemeList(houses: number[]): string {
@@ -619,28 +619,28 @@ export function buildCrispInsight(
 
   // 2) House themes from MD (and AD if different)
   if (mahadasha.housesRuled.length) {
-    const placed = mahadasha.house != null ? ` — results deliver via ${HOUSE_THEME[mahadasha.house] ?? `H${mahadasha.house}`}` : ''
-    bullets.push(`Mahadasha activates ${houseThemeList(mahadasha.housesRuled)}${placed}.`)
+    const placed = mahadasha.house != null ? `, and the results arrive through ${HOUSE_THEME[mahadasha.house] ?? `house ${mahadasha.house}`}` : ''
+    bullets.push(`The mahadasha activates ${houseThemeList(mahadasha.housesRuled)}${placed}.`)
   }
   if (antardasha && antardasha.housesRuled.length && antardasha.lord !== mahadasha.lord) {
     const placed = antardasha.house != null
-      ? ` (Antar placed in ${HOUSE_THEME[antardasha.house] ?? `H${antardasha.house}`})`
+      ? `, with the antar placed in ${HOUSE_THEME[antardasha.house] ?? `house ${antardasha.house}`}`
       : ''
-    bullets.push(`This Antar colours results with ${houseThemeList(antardasha.housesRuled)}${placed}.`)
+    bullets.push(`This antar colours the results with ${houseThemeList(antardasha.housesRuled)}${placed}.`)
   }
 
   // 3) Supportive yoga / strength (plain language)
   if (flags.some(f => f.id === 'yogakaraka') || mahadasha.isYogakaraka) {
-    bullets.push('Yogakaraka support — authority, status, and lasting gains are more available if you act.')
+    bullets.push('Yogakaraka support: authority, status, and gains that last are more available if you act.')
   }
   if (flags.some(f => f.id === 'lp-10in10')) {
-    bullets.push('Career lord strong in career house — money, property, and power themes can land this period.')
+    bullets.push('The lord of career is strong in the house of career. Money, property, and power can land in this period.')
   }
   if (flags.some(f => f.id === 'lp-4-10')) {
-    bullets.push('Home–career axis active — property moves or authority at work are in play.')
+    bullets.push('The axis of home and career is active. A move of property, or authority at work, is in play.')
   }
   if (flags.some(f => f.id === 'lp-5-9')) {
-    bullets.push('Creative/fortune link active — children or creative projects (when age-fit) get a push.')
+    bullets.push('The link of creativity and fortune is active. Children, or creative work when age allows, receive a push.')
   }
 
   // Trim to 3 crisp bullets
@@ -649,36 +649,36 @@ export function buildCrispInsight(
   // Watch-outs in plain language (no jargon pile-up)
   const watches: string[] = []
   if (flags.some(f => f.id === 'chidra')) {
-    watches.push('Opening or closing Antar — expect setup struggle or abrupt transitions.')
+    watches.push('An opening or closing antar: expect a struggle to set things up, or a transition that comes abruptly.')
   }
   if (flags.some(f => f.id === 'arishta')) {
-    watches.push('Planet is weak / afflicted — results may come with friction or incomplete delivery.')
+    watches.push('The planet is weak or afflicted. Results may arrive with friction, or feel unfinished.')
   }
   if (flags.some(f => f.id === 'avarohini')) {
-    watches.push('Strength is sliding — don’t force big bets; consolidate instead.')
+    watches.push('Strength is sliding. Do not force a large bet. Consolidate what you already hold.')
   }
   if (flags.some(f => f.id === 'rikta')) {
-    watches.push('Low support points — efforts can feel empty; focus on essentials.')
+    watches.push('Support is thin. Effort can feel empty. Keep the focus on what is essential.')
   }
   if (flags.some(f => f.id === 'maraka')) {
-    watches.push('Hardship-lord period — pressure on body, money, or partnerships; pace yourself.')
+    watches.push('A period of the hardship lord: pressure on the body, on money, or on partnership. Pace yourself.')
   }
   if (flags.some(f => f.id === 'retrograde')) {
-    watches.push('Retrograde lord — timing feels unpredictable; double-check decisions.')
+    watches.push('The lord is retrograde. Timing feels hard to predict. Check a decision twice.')
   }
 
-  const theme = mahaInterp?.keyTheme ?? 'period themes'
+  const theme = mahaInterp?.keyTheme ?? 'the themes of this period'
   const headline =
     toneLabel === 'Favorable stretch'
-      ? `Expect progress in ${theme.toLowerCase()} — lean into openings.`
+      ? `Progress is likely in ${theme.toLowerCase()}. Lean into the openings.`
       : toneLabel === 'Challenging stretch'
-        ? `Expect tests around ${theme.toLowerCase()} — move carefully, results still mixed.`
-        : `Expect a mix around ${theme.toLowerCase()} — some gains, some friction.`
+        ? `Tests gather around ${theme.toLowerCase()}. Move with care. The results stay mixed.`
+        : `A mix gathers around ${theme.toLowerCase()}: some gain, and some friction.`
 
   return {
     toneLabel,
     headline,
-    bullets: trimmed.length ? trimmed : [mahaInterp?.primaryPositive ?? 'Mixed life themes activate.'],
+    bullets: trimmed.length ? trimmed : [mahaInterp?.primaryPositive ?? 'Mixed themes of life come into play.'],
     watch: watches[0] ?? null,
   }
 }
@@ -747,7 +747,7 @@ export function collectLaghuParashariFlags(
         id: 'lp-10in10',
         label: '10th lord in 10th',
         tone: 'supportive',
-        detail: 'Classically linked with money, property, and authority themes during this lord’s periods.',
+        detail: 'Classically linked with money, property, and authority during the periods of this lord.',
       })
     }
   }
@@ -762,7 +762,7 @@ export function collectLaghuParashariFlags(
       id: 'lp-5-9',
       label: '5th–9th lord link',
       tone: 'supportive',
-      detail: '5th and 9th lords connected — progeny / creative fortune themes when age-appropriate; not a guarantee.',
+      detail: 'The lords of the 5th and the 9th are connected. Themes of children and of creative fortune, when age allows. This is not a guarantee.',
     })
   }
 
@@ -775,7 +775,7 @@ export function collectLaghuParashariFlags(
       id: 'lp-4-10',
       label: '4th–10th lord link',
       tone: 'supportive',
-      detail: '4th and 10th lords connected — authority and property / home-building themes during this period.',
+      detail: 'The lords of the 4th and the 10th are connected. Authority, property, and the building of a home are in theme during this period.',
     })
   }
 
@@ -816,7 +816,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
         id: 'kendra-trikona',
         label: 'Kendra / Trikona',
         tone: 'supportive',
-        detail: `Mahadasha lord sits in house ${mahadasha.house} — classically supportive for delivery.`,
+        detail: `The mahadasha lord sits in house ${mahadasha.house}. Classically, that supports delivery.`,
       })
     } else if ([6, 8, 12].includes(mahadasha.house)) {
       chal += 10
@@ -824,7 +824,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
         id: 'dusthana',
         label: 'Dusthana placement',
         tone: 'caution',
-        detail: `Mahadasha lord in house ${mahadasha.house} — expect more friction; results still mixed.`,
+        detail: `The mahadasha lord is in house ${mahadasha.house}. Expect more friction. The results stay mixed.`,
       })
     }
   }
@@ -854,7 +854,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
         id: 'shadbala-weak',
         label: 'Weak Shadbala',
         tone: 'caution',
-        detail: `Shadbala ratio ${mahadasha.shadbalaRatio.toFixed(2)} — delivery may feel muted.`,
+        detail: `Shadbala ratio ${mahadasha.shadbalaRatio.toFixed(2)}. Delivery may feel muted.`,
       })
     }
   }
@@ -871,7 +871,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'rikta',
       label: 'Rikta (low Ashtakavarga)',
       tone: 'caution',
-      detail: `${riktaLord.lord} has ${riktaLord.bavBindus} BAV bindu(s) in its sign (< 4) — results often feel empty or unsatisfactory.`,
+      detail: `${riktaLord.lord} has ${riktaLord.bavBindus} bindu${riktaLord.bavBindus === 1 ? '' : 's'} in its sign, below four. Results often feel empty, or short of what was hoped.`,
     })
   } else if (mahadasha.bavBindus != null && mahadasha.bavBindus >= 5) {
     fav += 6
@@ -879,7 +879,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'bav-good',
       label: 'Healthy Ashtakavarga',
       tone: 'supportive',
-      detail: `Mahadasha lord has ${mahadasha.bavBindus} BAV bindus in its sign.`,
+      detail: `The mahadasha lord has ${mahadasha.bavBindus} bindus in its sign.`,
     })
   }
 
@@ -889,7 +889,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'arishta',
       label: 'Arishta (affliction)',
       tone: 'caution',
-      detail: 'Debilitation and/or enemy dignity in D1 or D9 — expect more troubles; not absolute misfortune.',
+      detail: 'Debilitation, or dignity in an enemy sign, in the birth chart or the navamsha. Expect more trouble. This is not absolute misfortune.',
     })
   }
 
@@ -901,7 +901,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
         id: `chara-ak-${snap.lord}`,
         label: `${snap.lord} = AK`,
         tone: 'supportive',
-        detail: 'Atmakaraka period — soul-purpose and self-identity themes are classically emphasised.',
+        detail: 'An Atmakaraka period. The soul’s purpose, and the identity of the self, are classically emphasised.',
       })
     } else if (snap.charaKaraka === 'AmK') {
       fav += 4
@@ -909,14 +909,14 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
         id: `chara-amk-${snap.lord}`,
         label: `${snap.lord} = AmK`,
         tone: 'supportive',
-        detail: 'Amatyakaraka period — career, counsel, and what sustains you are highlighted.',
+        detail: 'An Amatyakaraka period. Career, counsel, and what sustains you are brought forward.',
       })
     } else if (snap.charaKaraka === 'DK') {
       flags.push({
         id: `chara-dk-${snap.lord}`,
         label: `${snap.lord} = DK`,
         tone: 'mixed',
-        detail: 'Darakaraka period — partnership and spouse significations colour timing.',
+        detail: 'A Darakaraka period. Partnership, and the significations of the spouse, colour the timing.',
       })
     }
   }
@@ -927,7 +927,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'vargottama',
       label: 'Vargottama period lord',
       tone: 'supportive',
-      detail: 'Period lord occupies the same sign in D1 and D9 — classical support for fuller delivery of promise.',
+      detail: 'The period lord occupies the same sign in the birth chart and the navamsha. That is classical support for a fuller delivery of the promise.',
     })
   } else if (
     mahadasha.d9Dignity === 'exalted'
@@ -940,7 +940,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'd9-strong',
       label: 'Strong Navamsha',
       tone: 'supportive',
-      detail: 'Period lord dignified in D9 — Navamsha strength supports how results materialise.',
+      detail: 'The period lord is dignified in the navamsha. That strength supports the way results take form.',
     })
   } else if (
     mahadasha.d9Dignity === 'debilitated'
@@ -951,7 +951,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'd9-weak',
       label: 'Weak Navamsha',
       tone: 'caution',
-      detail: 'Period lord debilitated in D9 — Rasi promise may arrive hollow or incomplete.',
+      detail: 'The period lord is debilitated in the navamsha. The promise of the rashi may arrive hollow, or unfinished.',
     })
   }
 
@@ -965,8 +965,8 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
         label: chidra.phase === 'beginning' ? 'Chidra (beginning)' : 'Chidra (ending)',
         tone: 'caution',
         detail: chidra.phase === 'beginning'
-          ? 'First Antardasha of the Mahadasha — often a struggle/setup phase regardless of planetary strength.'
-          : 'Last Antardasha of the Mahadasha — classically unpredictable; transitions can feel abrupt.',
+          ? 'The first antardasha of the mahadasha. It is often a phase of struggle and setup, whatever the planet’s strength.'
+          : 'The last antardasha of the mahadasha. Classically hard to predict. A transition can feel abrupt.',
       })
     }
   }
@@ -978,7 +978,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'sequence-357',
       label: `${seqIdx + 1}th from birth dasha`,
       tone: 'caution',
-      detail: '3rd, 5th, and 7th mahadashas from birth are often not fully favorable — benefic status can still soften this.',
+      detail: 'The 3rd, 5th, and 7th mahadashas from birth are often not fully favourable. A benefic nature can still soften this.',
     })
   }
 
@@ -988,14 +988,14 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'maraka',
       label: 'Maraka lordship',
       tone: 'caution',
-      detail: 'Owns 2nd and/or 7th without trikona cancellation — can bring severe hardship or pressure. Maraka means hardship intensity, not a life-ending forecast.',
+      detail: 'Owns the 2nd, the 7th, or both, without cancellation from a trikona. That can bring severe hardship or pressure. Maraka means the intensity of hardship. It is not a forecast of the end of life.',
     })
   } else if (mahadasha.marakaCancelled || antardasha?.marakaCancelled) {
     flags.push({
       id: 'maraka-cancelled',
       label: 'Maraka cancelled',
       tone: 'mixed',
-      detail: 'Owns maraka houses but also trikona — maraka potency is greatly weakened.',
+      detail: 'Owns maraka houses, and also a trikona. The force of the maraka is greatly weakened.',
     })
   }
 
@@ -1006,7 +1006,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'retrograde',
       label: 'Retrograde period lord',
       tone: 'mixed',
-      detail: 'Retrograde dasha lords are harder to pin down — expect unexpected turns; soft health caution applies.',
+      detail: 'A retrograde lord of the dasha is harder to pin down. Expect a turn you did not plan. A soft caution on health applies.',
     })
   }
 
@@ -1016,7 +1016,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'gandanta',
       label: 'Gandanta / edge degrees',
       tone: 'caution',
-      detail: 'Lord near sign junction or 0–2° / 28–30° — results may feel incomplete or abrupt.',
+      detail: 'The lord sits near a sign junction, or in the first two degrees or the last two. Results may feel unfinished, or abrupt.',
     })
   }
 
@@ -1032,7 +1032,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'arohini',
       label: 'Arohini (toward exaltation)',
       tone: 'supportive',
-      detail: `${aroTarget.lord} is in exaltation sign approaching its peak — classically supportive delivery.`,
+      detail: `${aroTarget.lord} is in its sign of exaltation and approaching the peak. Classically, delivery is supported.`,
     })
   } else if (aroTarget?.arohiniKind === 'avarohini') {
     chal += 8
@@ -1040,7 +1040,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'avarohini',
       label: 'Avarohini (toward debilitation)',
       tone: 'caution',
-      detail: `${aroTarget.lord} is in debilitation sign approaching its peak — results often feel strained.`,
+      detail: `${aroTarget.lord} is in its sign of debilitation and approaching the low point. Results often feel strained.`,
     })
   }
 
@@ -1067,7 +1067,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
         id: 'md-ad-relation',
         label: relation.label,
         tone: relation.tone === 'challenging' ? 'caution' : relation.tone === 'supportive' ? 'supportive' : 'mixed',
-        detail: `Mahadasha and Antardasha lords are ${relation.label.toLowerCase()}.`,
+        detail: `The lords of mahadasha and antardasha stand in this relation: ${relation.label.toLowerCase()}.`,
       })
     }
   }
@@ -1085,8 +1085,8 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
   if (relation?.tone === 'challenging') summaryParts.push('strained MD–AD link')
 
   const summary = summaryParts.length
-    ? `Mixed period with ${summaryParts.join(', ')}. No dasha is 100% good or bad.`
-    : 'Mixed period — every mahadasha delivers some supportive, challenging, and neutral themes.'
+    ? `A mixed period, with ${summaryParts.join(', ')}. No dasha is entirely favourable or entirely difficult.`
+    : 'A mixed period. Every mahadasha carries themes that support, themes that test, and themes that are neutral.'
 
   const insight = buildCrispInsight(
     mahadasha,
