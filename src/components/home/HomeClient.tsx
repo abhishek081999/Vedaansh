@@ -1596,12 +1596,7 @@ function HomeContent() {
                 />
               )}
               {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Ashtottari computation required.</div>)}
-              {dashaSystem === 'kalachakra' && (dashboardChart.dashas.kalachakra?.length ? (
-                <>
-                  <KalachakraReading chart={dashboardChart} nodes={dashboardChart.dashas.kalachakra} compact />
-                  <DashaTree nodes={dashboardChart.dashas.kalachakra} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} maxDepth={3} />
-                </>
-              ) : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Kalachakra computation required.</div>)}
+              {dashaSystem === 'kalachakra' && (dashboardChart.dashas.kalachakra?.length ? <DashaTree nodes={dashboardChart.dashas.kalachakra} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Kalachakra computation required.</div>)}
               {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <YoginiDashaBlock nodes={dashboardChart.dashas.yogini} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yogini computation required.</div>)}
               {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara computation required.</div>)}
               {dashaSystem === 'chara_fe' && (dashboardChart.dashas.chara_fe?.length ? <DashaTree nodes={dashboardChart.dashas.chara_fe} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara FE computation required.</div>)}
@@ -1663,20 +1658,13 @@ function HomeContent() {
                   : (dashboardChart.dashas[dashaSystem] ?? [])
                 if (!nodes || nodes.length === 0) return <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', padding: '0.5rem', fontFamily: 'var(--font-body)' }}>No data.</div>
                 return (
-                  <>
-                    {dashaSystem === 'kalachakra' && (
-                      <div style={{ padding: '0 0.15rem 0.35rem' }}>
-                        <KalachakraReading chart={dashboardChart} nodes={dashboardChart.dashas.kalachakra ?? []} compact />
-                      </div>
-                    )}
-                    <DashaTree
-                      nodes={nodes}
-                      birthDate={new Date(dashboardChart.meta.birthDate)}
-                      showNakshatra={dashaSystem === 'vimshottari' && vimshottariTribhagi}
-                      tribhagi={dashaSystem === 'vimshottari' && vimshottariTribhagi}
-                      maxDepth={dashaSystem === 'vimshottari' ? (userPlan !== 'free' ? 6 : 4) : 3}
-                    />
-                  </>
+                  <DashaTree
+                    nodes={nodes}
+                    birthDate={new Date(dashboardChart.meta.birthDate)}
+                    showNakshatra={dashaSystem === 'vimshottari' && vimshottariTribhagi}
+                    tribhagi={dashaSystem === 'vimshottari' && vimshottariTribhagi}
+                    maxDepth={dashaSystem === 'vimshottari' ? (userPlan !== 'free' ? 6 : 4) : 3}
+                  />
                 )
               })()}
             </div>
@@ -2240,12 +2228,7 @@ function HomeContent() {
                                 const nodes = chart.dashas[dashaSystem] ?? []
                                 if (!nodes?.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
                                 if (dashaSystem === 'kalachakra') {
-                                  return (
-                                    <>
-                                      <KalachakraReading chart={chart} nodes={nodes} />
-                                      <DashaTree nodes={nodes} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} />
-                                    </>
-                                  )
+                                  return <DashaTree nodes={nodes} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} />
                                 }
                                 return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
                               })()}
@@ -2465,12 +2448,7 @@ function HomeContent() {
                            />
                          )}
                          {dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Ashtottari computation required.</div>)}
-                         {dashaSystem === 'kalachakra' && (chart.dashas.kalachakra?.length ? (
-                           <>
-                             <KalachakraReading chart={chart} nodes={chart.dashas.kalachakra} />
-                             <DashaTree nodes={chart.dashas.kalachakra} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} />
-                           </>
-                         ) : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Kalachakra computation required.</div>)}
+                         {dashaSystem === 'kalachakra' && (chart.dashas.kalachakra?.length ? <DashaTree nodes={chart.dashas.kalachakra} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Kalachakra computation required.</div>)}
                          {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <YoginiDashaBlock nodes={chart.dashas.yogini} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yogini computation required.</div>)}
                          {dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara computation required.</div>)}
                         {dashaSystem === 'chara_fe' && (chart.dashas.chara_fe?.length ? <DashaTree nodes={chart.dashas.chara_fe} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara FE computation required.</div>)}
@@ -2658,11 +2636,6 @@ function HomeContent() {
                           {system.label}
                         </div>
                         <div style={{ padding: '0.4rem 0.45rem' }}>
-                          {system.id === 'kalachakra' && (
-                            <div style={{ marginBottom: '0.35rem' }}>
-                              <KalachakraReading chart={chart} nodes={chart.dashas.kalachakra ?? []} compact />
-                            </div>
-                          )}
                           {system.nodes.length > 0 ? (
                             system.id === 'yogini' ? (
                               <YoginiDashaBlock
