@@ -7,6 +7,8 @@
 import React, { useEffect, useState } from 'react'
 import type { ChartOutput } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { getChartHouseClassical } from '@/lib/engine/classicalChartAnalysis'
+import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import { isClassicalGraha } from '@/lib/engine/houseInterpretations'
 import { readNadiLiveFromChart, type NadiLiveBody, type NadiLiveHit, type NadiLiveReading } from '@/lib/engine/nadi/live'
 import { NADI_KHAARAB_CHANNEL } from '@/lib/engine/nadi/yogas'
@@ -26,6 +28,8 @@ import {
   placementFindings,
   lifeFindings,
   lifeVerdict,
+  patelFindings,
+  patelVerdict,
   housesVerdict,
   marriageFindings,
   marriagePressureFindings,
@@ -47,7 +51,7 @@ import {
 } from '@/components/ui/nadiFindings'
 import styles from './NadiHousesSection.module.css'
 
-export type NadiReadingView = 'houses' | 'life' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'transits' | 'remedies'
+export type NadiReadingView = 'houses' | 'life' | 'yogas' | 'marriage' | 'career' | 'wealth' | 'future' | 'timing' | 'patel' | 'transits' | 'remedies'
 
 const SKY_IDS = ['Ju', 'Sa', 'Ra', 'Ke', 'Ma', 'Ve'] as const
 
@@ -237,6 +241,10 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
     const signals = houseSignalFindings(reading)
     const combinations = combinationFindings(reading)
     const relatives = relativeFindings(reading)
+    const classical = getChartHouseClassical(chart, house.house)
+    const specialAspects = classical.aspectHits.filter((hit) => hit.aspectSpan !== 7)
+    const seventh = classical.aspectHits.filter((hit) => hit.aspectSpan === 7)
+    const notesFor = (id: string) => classical.occupantNotes.find((row) => row.grahaId === id)?.notes ?? []
     return (
       <div className={styles.stack}>
         <Verdict title={housesVerdict(reading)} />
@@ -297,6 +305,7 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
                     <p>{g.prediction || g.nadiNote}</p>
                     {g.signNote && <p>{g.signNote}</p>}
                     {g.classicalHouseNote && <p>{g.classicalHouseNote}</p>}
+                    <ClassicalNotesList title="Classical" notes={notesFor(g.id)} quiet />
                     <p>
                       {g.bodyParts.join(', ')}
                       {g.professions.length > 0 ? ` · ${g.professions.join('; ')}` : ''}
@@ -307,6 +316,34 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
               </div>
             </>
           )}
+          {(classical.lordship?.notes.length || specialAspects.length > 0) && (
+            <>
+              <p className={styles.blockTitle}>Classical lord and aspects</p>
+              {classical.lordship && classical.lordship.notes.length > 0 && (
+                <ClassicalNotesList
+                  title={`${classical.lordship.isLagnaLord ? 'Lagna lord' : `Lord of the ${ordinal(house.house)}`} · ${GRAHA_NAMES[classical.lordship.lordId]} in the ${ordinal(classical.lordship.placedIn)}`}
+                  notes={classical.lordship.notes}
+                  quiet
+                />
+              )}
+              {specialAspects.length > 0 && (
+                <ClassicalNotesList
+                  title="Special aspects on this house"
+                  notes={specialAspects.map((hit) => hit.note)}
+                  quiet
+                />
+              )}
+              {seventh.length > 0 && (
+                <p className={styles.metaLine}>
+                  The 7th aspect also reaches this house from {seventh.map((hit) => GRAHA_NAMES[hit.fromGraha]).join(', ')}.
+                </p>
+              )}
+            </>
+          )}
+          <Reference label="Classical house and sign">
+            <ClassicalNotesList title="House" notes={classical.houseNotes} quiet />
+            <ClassicalNotesList title={house.signName} notes={classical.rashiNotes} />
+          </Reference>
           <Reference label="Significances and work">
             <div className={styles.chips}>
               {house.profile.significances.map((item) => <span key={item} className={styles.chip}>{item}</span>)}
@@ -651,6 +688,16 @@ export function NadiHousesSection({ chart, view, reading }: { chart: ChartOutput
             </table>
           </div>
         </Reference>
+      </div>
+    )
+  }
+
+  if (view === 'patel') {
+    const verdict = patelVerdict(reading)
+    return (
+      <div className={styles.stack}>
+        <Verdict title={verdict} note={reading.patel.note} />
+        <FindingGrid items={withoutVerdict(patelFindings(reading), verdict)} />
       </div>
     )
   }

@@ -12,9 +12,12 @@ import {
 export function ClassicalNotesList({
   title = 'Classical sources',
   notes,
+  quiet = false,
 }: {
   title?: string
   notes: ClassicalNote[]
+  /** Skip the source disclaimer when a parent already shows it. */
+  quiet?: boolean
 }) {
   if (!notes.length) return null
   return (
@@ -69,9 +72,11 @@ export function ClassicalNotesList({
           </div>
         ))}
       </div>
-      <p style={{ margin: '0.45rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-        Paraphrased educational summaries from classical tradition—not a critical edition translation.
-      </p>
+      {quiet ? null : (
+        <p style={{ margin: '0.45rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+          Paraphrased educational summaries from classical tradition—not a critical edition translation.
+        </p>
+      )}
     </div>
   )
 }

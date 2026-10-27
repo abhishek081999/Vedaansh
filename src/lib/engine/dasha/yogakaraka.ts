@@ -43,31 +43,31 @@ const RASHI_NAMES_SHORT: Record<Rashi, string> = {
 export function getYogakaraka(ascRashi: Rashi): YogakarakaInfo {
   switch (ascRashi) {
     case 1: // Aries — no single YK
-      return { lords: [], note: 'No single Yogakaraka — Jupiter + Sun synergy is the best combo' }
+      return { lords: [], note: 'There is no single yogakaraka. Jupiter with the Sun is the strongest pairing.' }
     case 2: // Taurus
-      return { lords: ['Sa'], note: 'Saturn (9th + 10th) is Yogakaraka; Saturn + Mercury is excellent' }
+      return { lords: ['Sa'], note: 'Saturn, lord of the 9th and the 10th, is yogakaraka. Saturn with Mercury is excellent.' }
     case 3: // Gemini
-      return { lords: ['Ve'], note: 'Venus is key; Mercury + Venus is the best combo' }
+      return { lords: ['Ve'], note: 'Venus is the key planet. Mercury with Venus is the strongest pairing.' }
     case 4: // Cancer
-      return { lords: ['Ma'], note: 'Mars (5th + 10th) is Yogakaraka; Mars + Jupiter supports' }
+      return { lords: ['Ma'], note: 'Mars, lord of the 5th and the 10th, is yogakaraka. Mars with Jupiter supports it.' }
     case 5: // Leo
-      return { lords: ['Ma'], note: 'Mars (4th + 9th) is Yogakaraka; Mars + Jupiter supports' }
+      return { lords: ['Ma'], note: 'Mars, lord of the 4th and the 9th, is yogakaraka. Mars with Jupiter supports it.' }
     case 6: // Virgo
-      return { lords: ['Ve'], note: 'Venus (2nd + 9th) is highly productive; not treated as maraka' }
+      return { lords: ['Ve'], note: 'Venus, lord of the 2nd and the 9th, is highly productive, and is not read as a maraka.' }
     case 7: // Libra
-      return { lords: ['Sa'], note: 'Saturn (4th + 5th) is Yogakaraka; Saturn + Mercury is excellent' }
+      return { lords: ['Sa'], note: 'Saturn, lord of the 4th and the 5th, is yogakaraka. Saturn with Mercury is excellent.' }
     case 8: // Scorpio
-      return { lords: [], note: 'No single Yogakaraka — Jupiter + Moon is the best combo' }
+      return { lords: [], note: 'There is no single yogakaraka. Jupiter with the Moon is the strongest pairing.' }
     case 9: // Sagittarius
-      return { lords: [], note: 'No single Yogakaraka — Mars + Sun is the best combo' }
+      return { lords: [], note: 'There is no single yogakaraka. Mars with the Sun is the strongest pairing.' }
     case 10: // Capricorn
-      return { lords: ['Ve'], note: 'Venus (5th + 10th) is the single Yogakaraka; Venus + Mercury supports' }
+      return { lords: ['Ve'], note: 'Venus, lord of the 5th and the 10th, is the single yogakaraka. Venus with Mercury supports it.' }
     case 11: // Aquarius
-      return { lords: ['Ve'], note: 'Venus (4th + 9th) is Yogakaraka' }
+      return { lords: ['Ve'], note: 'Venus, lord of the 4th and the 9th, is yogakaraka.' }
     case 12: // Pisces
-      return { lords: [], note: 'No single Yogakaraka — Mars + Jupiter + Moon synergy is preferred' }
+      return { lords: [], note: 'There is no single yogakaraka. Mars with Jupiter and the Moon is the preferred pairing.' }
     default:
-      return { lords: [], note: 'Yogakaraka depends on lagna — check house lordships' }
+      return { lords: [], note: 'Yogakaraka depends on the lagna. Read it from the house lordships.' }
   }
 }
 
@@ -78,31 +78,31 @@ export function isYogakarakaLord(ascRashi: Rashi, grahaId: string): boolean {
 function specialNoteForLagna(ascRashi: Rashi): string {
   switch (ascRashi) {
     case 1:
-      return 'Jupiter alone is mixed (also 12th lord); Venus + Saturn together is especially heavy.'
+      return 'Jupiter alone is mixed, because it also rules the 12th. Venus with Saturn is especially heavy.'
     case 2:
-      return 'Mercury is not treated as maraka here (also 5th lord).'
+      return 'Mercury is not read as a maraka here, because it also rules the 5th.'
     case 3:
-      return 'Moon is not maraka if unafflicted; Mars and Saturn need care.'
+      return 'The Moon is not a maraka if it is unafflicted. Mars and Saturn need care.'
     case 4:
-      return 'Saturn (7th + 8th) is the hardship lord; Jupiter remains supportive.'
+      return 'Saturn, lord of the 7th and the 8th, is the hardship lord. Jupiter remains supportive.'
     case 5:
-      return 'Mercury can turn sharp when afflicted; Mars + Jupiter is the productive axis.'
+      return 'Mercury can turn sharp when it is afflicted. Mars with Jupiter is the productive axis.'
     case 6:
-      return 'Venus owns 2nd but also 9th — not treated as pure maraka.'
+      return 'Venus rules the 2nd, and also the 9th, so it is not read as a pure maraka.'
     case 7:
-      return 'Moon + Mercury combinations work well; Mars is the main hardship lord.'
+      return 'The Moon with Mercury works well. Mars is the main hardship lord.'
     case 8:
-      return 'Jupiter is not maraka (also 5th lord); Jupiter + Moon is preferred.'
+      return 'Jupiter is not a maraka, because it also rules the 5th. Jupiter with the Moon is preferred.'
     case 9:
-      return 'Venus tends inauspicious; Saturn is the main hardship lord.'
+      return 'Venus tends to be inauspicious. Saturn is the main hardship lord.'
     case 10:
-      return 'Single Yogakaraka Venus — Mars is the main hardship lord.'
+      return 'Venus is the single yogakaraka. Mars is the main hardship lord.'
     case 11:
-      return 'Jupiter, Moon, and Mars can all feel challenging depending on chart context.'
+      return 'Jupiter, the Moon, and Mars can each feel challenging, according to the chart.'
     case 12:
-      return 'Mars as 7th lord does not automatically bring severe hardship; Mercury and Saturn need care.'
+      return 'Mars as lord of the 7th does not by itself bring severe hardship. Mercury and Saturn need care.'
     default:
-      return 'Interpret dasha lords through house ownership for this lagna.'
+      return 'Read the dasha lords through the houses they own for this lagna.'
   }
 }
 
@@ -111,15 +111,15 @@ function marakaNoteForLagna(ascRashi: Rashi): string {
   const names = lords.map(id => GRAHA_NAMES[id] ?? id).join(' / ')
   // Soften classical exceptions called out in teaching summaries
   if (ascRashi === 2) {
-    return `Classical 2nd/7th lords include ${names}; Mercury’s 5th-lordship softens maraka reading.`
+    return `The classical lords of the 2nd and the 7th include ${names}. Mercury’s lordship of the 5th softens the maraka reading.`
   }
   if (ascRashi === 6) {
-    return `Classical 2nd/7th lords include ${names}; Venus also owns 9th so maraka force is weak.`
+    return `The classical lords of the 2nd and the 7th include ${names}. Venus also rules the 9th, so the maraka force is weak.`
   }
   if (ascRashi === 8) {
-    return `Classical 2nd/7th lords include ${names}; Jupiter also owns 5th so maraka force is weak.`
+    return `The classical lords of the 2nd and the 7th include ${names}. Jupiter also rules the 5th, so the maraka force is weak.`
   }
-  return `Hardship (maraka) lords from 2nd/7th: ${names}. Maraka means hardship pressure, not a life-ending forecast.`
+  return `Hardship lords, the marakas, from the 2nd and the 7th: ${names}. Maraka means the pressure of hardship. It is not a forecast of the end of life.`
 }
 
 /** Full lagna profile for Vimshottari UI overlays. */

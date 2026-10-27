@@ -63,6 +63,7 @@ import {
 } from '@/lib/engine/nadi/dashamsha'
 import { NADI_WEALTH_TIMING_NOTE, wealthTimingNotes } from '@/lib/engine/nadi/wealth'
 import { NADI_SPECIAL_NOTE, specialDegreeNotes } from '@/lib/engine/nadi/special'
+import { readPatel, type PatelReading } from '@/lib/engine/nadi/patel'
 import {
   NADI_PROPERTY_NOTE,
   NADI_VEHICLE_NOTE,
@@ -291,6 +292,7 @@ export interface NadiChartReading {
   hardTransitNotes: string[]
   specialNote: string
   specialNotes: string[]
+  patel: PatelReading
   future: NadiFutureReading
 }
 
@@ -676,6 +678,16 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
       navamshaLagna: input.navamshaChart?.ascRashi,
       dashaLords: input.dashaLords,
       parivartana,
+    }),
+    patel: readPatel({
+      ascRashi: asc,
+      ascDegree: input.ascDegree,
+      grahas,
+      navamsha: input.navamsha,
+      navamshaLagna: input.navamshaChart?.ascRashi,
+      upapada: input.upapada,
+      bhriguBindu: input.bhriguBindu,
+      dashaLords: input.dashaLords,
     }),
     future: readNadiFuture({
       ascRashi: asc,

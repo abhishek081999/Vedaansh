@@ -15,6 +15,10 @@ import {
   type HouseNumber,
 } from '@/lib/engine/houseInterpretations'
 import { rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
+import {
+  getPlanetInHouseClassicalSummary,
+  getPlanetInSignClassicalSummary,
+} from '@/lib/engine/classicalInterpretations'
 import { NADI_GRAHAS } from '@/lib/engine/nadi/grahas'
 import { NADI_HOUSES } from '@/lib/engine/nadi/houses'
 
@@ -66,6 +70,10 @@ export interface NadiPlacement {
   dignity: string | null
   retro: boolean
   prediction: string
+  /** First classical note for this planet in this house. */
+  classicalHouse: string | null
+  /** First classical note for this planet in this sign. */
+  classicalSign: string | null
 }
 
 export function readNadiPlacements(input: {
@@ -95,6 +103,8 @@ export function readNadiPlacements(input: {
       dignity,
       retro,
       prediction: planetPrediction(input, g, house, lordOf, dignity, retro, co),
+      classicalHouse: getPlanetInHouseClassicalSummary(id, house),
+      classicalSign: getPlanetInSignClassicalSummary(id, g.rashi),
     }]
   })
 }

@@ -95,7 +95,7 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
         sign: t.sign,
         tone: toneForMajor(t.planetId, 1),
         label: `${tName} over Lagna`,
-        detail: `${tName} transits Lagna (${signName}, H${t.house}) — colours the whole dasha delivery with ${tName} gochar.`,
+        detail: `${tName} transits the lagna (${signName}, house ${t.house}). That colours the whole delivery of the dasha with the transit of ${tName}.`,
       })
     }
 
@@ -108,7 +108,7 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
         sign: t.sign,
         tone: toneForMajor(t.planetId, t.house),
         label: `${tName} over Moon`,
-        detail: `${tName} transits natal Moon sign — mind/mood themes amplify during the active MD/AD.`,
+        detail: `${tName} transits the sign of the natal Moon. Themes of mind and mood grow louder through the active mahadasha and antardasha.`,
       })
     }
 
@@ -128,7 +128,7 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
           sign: t.sign,
           tone: toneForMajor(t.planetId, t.house),
           label: `${tName} over ${layer} lord`,
-          detail: `${tName} transits natal ${lordName} (${layer}) in ${signName} — gochar heats the period lord’s houses.`,
+          detail: `${tName} transits natal ${lordName} (${layer}) in ${signName}. The transit heats the houses of the period lord.`,
         })
       } else if (hasParasharaAspect(t.sign, t.planetId, natal.rashi)) {
         push({
@@ -138,7 +138,7 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
           sign: t.sign,
           tone: toneForMajor(t.planetId, t.house),
           label: `${tName} aspects ${layer} lord`,
-          detail: `Transit ${tName} (H${t.house}) aspects natal ${lordName} (${layer}) — classical dasha+gochar trigger candidate.`,
+          detail: `Transiting ${tName}, in house ${t.house}, aspects natal ${lordName} (${layer}). Classically, that is a candidate for a dasha-and-transit trigger.`,
         })
       }
     }
@@ -156,7 +156,7 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
           sign: t.sign,
           tone: [6, 8, 12].includes(t.house) ? 'caution' : 'mixed',
           label: `${layer} lord transit H${t.house}`,
-          detail: `Active ${layer} lord ${tName} currently transits H${t.house} from lagna — live gochar of the dasha planet.`,
+          detail: `The active ${layer} lord, ${tName}, is now transiting house ${t.house} from the lagna. This is the live transit of the dasha planet.`,
         })
       }
     }

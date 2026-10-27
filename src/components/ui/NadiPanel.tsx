@@ -6,7 +6,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Briefcase, CalendarRange, Coins, Gem, Grid3x3, Heart, Home, Hourglass, Orbit, Sparkles, Users,
+  BookOpen, Briefcase, CalendarRange, Coins, Gem, Grid3x3, Heart, Home, Hourglass, Orbit, Sparkles, Users,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ChartOutput, DashaNode, DashaSystem, Rashi, UserPlan } from '@/types/astrology'
@@ -28,7 +28,7 @@ type NadiView = 'chart' | NadiReadingView
 
 const VIEWS: { id: NadiView; label: string; hint: string; icon: LucideIcon }[] = [
   { id: 'chart', label: 'Chart', hint: 'Planetary positions, then each planet read from its house, the houses it rules, and its sign.', icon: Grid3x3 },
-  { id: 'houses', label: 'Houses', hint: 'The Bhrigu Bhava, each house’s sign and planets, and the exchanges.', icon: Home },
+  { id: 'houses', label: 'Houses', hint: 'The Bhrigu Bhava, each house’s sign and planets, the exchanges, and the classical reading of that house.', icon: Home },
   { id: 'life', label: 'Life', hint: 'Study, the family counted from each relative, and settlement away from the birthplace.', icon: Users },
   { id: 'yogas', label: 'Yogas', hint: 'The combinations that are present, and dusthana dignity.', icon: Sparkles },
   { id: 'marriage', label: 'Marriage', hint: 'Marriage combinations, then the three marriage rules and Navamsha.', icon: Heart },
@@ -36,6 +36,7 @@ const VIEWS: { id: NadiView; label: string; hint: string; icon: LucideIcon }[] =
   { id: 'wealth', label: 'Wealth', hint: 'The wealth years, then property from Chaturthamsha and vehicles from Shodashamsha.', icon: Coins },
   { id: 'future', label: 'Future', hint: 'The coming years, the activations that land on them, and the periods still ahead.', icon: CalendarRange },
   { id: 'timing', label: 'Timing', hint: 'The running year, the degree years, and the period now open.', icon: Hourglass },
+  { id: 'patel', label: 'Points', hint: 'The 22nd drekkana, the 64th Navamsha, and the Bhrigu Bindu.', icon: BookOpen },
   { id: 'transits', label: 'Transits', hint: 'The live sky, the windows open now, and the natal signs Jupiter and Saturn wake together.', icon: Orbit },
   { id: 'remedies', label: 'Remedies', hint: 'The stone, color, and remedy this chart allows.', icon: Gem },
 ]
@@ -79,7 +80,7 @@ function NadiCharts({
 }) {
   const divisionals = VARGA_UI_LIST.filter((v) => v.name !== 'D1')
   const [vargaName, setVargaName] = useState('D9')
-  const focus = view === 'marriage' ? 'D9' : view === 'career' ? 'D10' : null
+  const focus = view === 'marriage' || view === 'patel' ? 'D9' : view === 'career' ? 'D10' : null
   useEffect(() => {
     if (focus) setVargaName(focus)
   }, [focus])

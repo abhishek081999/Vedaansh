@@ -11,9 +11,51 @@ import { NADI_BHRIGU_NOTE, bhriguBhavaNotes } from '@/lib/engine/nadi/bhrigu'
 import { NADI_MARRIAGE_RULE_NOTE, readChartLectures } from '@/lib/engine/nadi/marriageRules'
 import { NADI_RASHI_AGE_NOTE, rashiAgeNotes } from '@/lib/engine/nadi/rashiAge'
 import { readNadiLife } from '@/lib/engine/nadi/life'
+import { readNadiPlacements } from '@/lib/engine/nadi/placements'
+import { readPatel } from '@/lib/engine/nadi/patel'
 import type { Rashi } from '@/types/astrology'
 
 describe('Nadi foundations', () => {
+  it('reads Patel’s 22nd drekkana, 64th Navamsha, and Bhrigu Bindu', () => {
+    const reading = readPatel({
+      ascRashi: 1,
+      ascDegree: 5,
+      grahas: [
+        { id: 'Su', rashi: 8, degree: 2 },
+        { id: 'Mo', rashi: 4, degree: 15 },
+        { id: 'Ma', rashi: 1, degree: 10 },
+        { id: 'Ju', rashi: 8, degree: 20 },
+      ],
+      navamsha: { Mo: 4, Ve: 7, Sa: 10, Ma: 1 },
+      navamshaLagna: 1,
+      upapada: 5,
+      bhriguBindu: 45,
+      dashaLords: ['Ma'],
+    })
+    const lagna = reading.points.find((row) => row.id === 'khara-lagna')
+    expect(lagna?.signName).toBe('Scorpio')
+    expect(lagna?.lordName).toBe('Mars')
+    expect(lagna?.running).toBe(true)
+    expect(lagna?.reading).toMatch(/Sun sits in that 10° band/)
+    expect(lagna?.reading).not.toMatch(/Jupiter sits/)
+    const moon = reading.points.find((row) => row.id === 'khara-moon')
+    expect(moon?.signName).toBe('Aquarius')
+    const sixth = reading.points.find((row) => row.id === 'navamsha-64-lagna')
+    expect(sixth?.signName).toBe('Cancer')
+    expect(reading.lines.join(' ')).toMatch(/Bhrigu Bindu falls in Taurus/)
+    expect(reading.lines.join(' ')).toMatch(/Libra \(Venus’s Navamsha\)/)
+    expect(reading.lines.join(' ')).toMatch(/Saturn’s Navamsha/)
+  })
+
+  it('attaches the classical house and sign line to a placement', () => {
+    const rows = readNadiPlacements({
+      ascRashi: 1,
+      grahas: [{ id: 'Su', rashi: 1, degree: 10 }],
+    })
+    expect(rows[0]?.classicalHouse).toMatch(/Sun in Lagna/)
+    expect(rows[0]?.classicalSign).toMatch(/Aries/)
+  })
+
   it('counts houses anti-clockwise from any start', () => {
     expect(houseCountedFrom(4, 10)).toBe(1)
     expect(houseCountedFrom(4, 8)).toBe(11)
