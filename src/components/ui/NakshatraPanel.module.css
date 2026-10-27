@@ -223,6 +223,36 @@
   color: var(--text-muted);
 }
 
+.viewToggle {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+}
+
+.viewBtn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.28rem 0.55rem;
+  border-radius: calc(var(--r-md) - 2px);
+  cursor: pointer;
+}
+
+.viewBtnOn,
+.viewBtnOn:hover {
+  background: var(--gold-faint);
+  color: var(--text-gold);
+}
+
+.viewBtn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
 .chartAccent {
   font-size: 0.68rem;
   font-weight: 700;

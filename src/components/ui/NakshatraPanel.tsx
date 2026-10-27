@@ -52,6 +52,7 @@ import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { NAKSHATRA_NAMES as NAK_NAMES, GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { PlanetDetailCard, ICON } from '@/components/ui/PlanetDetailCard'
+import { NakshatraWheel } from '@/components/ui/NakshatraWheel'
 import { Button } from '@/components/ui/primitives/Button'
 import { cn } from '@/lib/ui/cn'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
@@ -172,6 +173,7 @@ export function NakshatraEmpty({
 
 export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: ChartOutput; initialTab?: SubTab }) {
   const [subTab, setSubTab] = useState<SubTab>(initialTab)
+  const [chartView, setChartView] = useState<'stars' | 'rashi'>('stars')
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -278,9 +280,40 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
         <aside className={styles.chartCol}>
           <div className={styles.chartCard}>
             <div className={styles.chartLabel}>
-              <span className={styles.chartTitle}>D1 · Rashi</span>
-              <span className={styles.chartAccent}>Janma Lagna</span>
+              <span className={styles.chartTitle}>{chartView === 'stars' ? '27 stars' : 'D1 · Rashi'}</span>
+              <div className={styles.viewToggle} role="tablist" aria-label="Chart type">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={chartView === 'stars'}
+                  className={cn(styles.viewBtn, chartView === 'stars' && styles.viewBtnOn)}
+                  onClick={() => setChartView('stars')}
+                >
+                  Nakshatras
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={chartView === 'rashi'}
+                  className={cn(styles.viewBtn, chartView === 'rashi' && styles.viewBtnOn)}
+                  onClick={() => setChartView('rashi')}
+                >
+                  Rashi
+                </button>
+              </div>
             </div>
+            {chartView === 'stars' ? (
+              <NakshatraWheel
+                key={birthNakIdx}
+                birthIndex={birthNakIdx}
+                birthPada={birthNakPada}
+                markers={planetPos.map(p => ({
+                  id: p.grahaId,
+                  nakshatraIndex: p.nakshatraIndex,
+                  pada: p.pada,
+                }))}
+              />
+            ) : (
             <div className={styles.chartBody}>
               <ChakraSelector
                 ascRashi={ascRashi}
@@ -294,6 +327,7 @@ export function NakshatraPanel({ chart, initialTab = 'overview' }: { chart: Char
                 size={340}
               />
             </div>
+            )}
             <p className={styles.moonNote}>
               <span>Moon in <strong>{chars.name}</strong> pada {chars.pada}</span>
               <span className={styles.moonLord}>Lord {GRAHA_NAMES[chars.lord]}</span>

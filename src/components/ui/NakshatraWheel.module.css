@@ -1,0 +1,189 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.wheel {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.rashi {
+  stroke: var(--border-soft);
+  stroke-width: 0.7;
+}
+
+.rashiA {
+  fill: var(--surface-2);
+}
+
+.rashiB {
+  fill: color-mix(in srgb, var(--surface-3) 72%, var(--surface-1));
+}
+
+.slice {
+  fill: color-mix(in srgb, var(--surface-1) 55%, var(--surface-2));
+  stroke: var(--border);
+  stroke-width: 0.7;
+  cursor: pointer;
+}
+
+.slice:hover {
+  fill: color-mix(in srgb, var(--gold) 14%, var(--surface-2));
+}
+
+.slicePanchaka {
+  fill: color-mix(in srgb, var(--rose) 9%, var(--surface-2));
+}
+
+.sliceBirth {
+  fill: color-mix(in srgb, var(--gold) 26%, var(--surface-1));
+  stroke: var(--gold);
+}
+
+.sliceOn {
+  stroke: var(--text-gold);
+  stroke-width: 1.8;
+}
+
+.slice:focus-visible {
+  outline: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+}
+
+.hub {
+  fill: var(--surface-1);
+  stroke: color-mix(in srgb, var(--gold) 42%, var(--border));
+  stroke-width: 1.2;
+}
+
+.hubName {
+  fill: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hubNameTight {
+  font-size: 10px;
+}
+
+.hubSub {
+  fill: var(--text-muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.starLabel {
+  fill: var(--text-muted);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.starLabelBirth,
+.starLabelOn {
+  fill: var(--text-gold);
+}
+
+.signLabel {
+  fill: var(--text-secondary);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.marker {
+  fill: var(--text-primary);
+  font-family: var(--font-chart-planets);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.markerMoon,
+.markerLagna {
+  fill: var(--text-gold);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.metaTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 0.6rem;
+}
+
+.metaName {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.metaPada {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+}
+
+.metaLine {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.metaLine strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--text-muted);
+}
+
+.swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.swatchBirth {
+  background: color-mix(in srgb, var(--gold) 35%, var(--surface-1));
+  border-color: var(--gold);
+}
+
+.swatchPanchaka {
+  background: color-mix(in srgb, var(--rose) 18%, var(--surface-2));
+  border-color: color-mix(in srgb, var(--rose) 45%, var(--border));
+}
