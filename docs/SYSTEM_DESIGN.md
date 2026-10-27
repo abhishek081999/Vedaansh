@@ -171,7 +171,7 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 | Today | `/today` — personal daily reading for the loaded chart (noindex) |
 | Relationship and marriage | `/relationship` (noindex, needs a loaded chart) — D1 and score preview on Free; full reading on Gold+; extended divisionals on Platinum |
 | Career and profession | `/career` (noindex, needs a loaded chart) — scores on Free; full reading and professional method on Gold+ |
-| Jaimini / KP / Prashna | `/jaimini`, `/prashna` |
+| Jaimini / Nadi / KP / Prashna | `/jaimini`, `/nadi`, `/prashna` |
 | SBC / ACG / Vastu | `/sbc`, `/acg`, `/vastu` |
 | Nakshatra | `/nakshatra/[tab]` |
 | Numerology | `/numerology` |

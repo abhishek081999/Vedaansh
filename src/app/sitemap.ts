@@ -35,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     page('/muhurta', 0.8, 'weekly'),
     page('/compare', 0.75, 'monthly'),
     page('/jaimini', 0.75, 'monthly'),
+    page('/nadi', 0.75, 'monthly'),
     page('/prashna', 0.75, 'monthly'),
     page('/numerology', 0.75, 'monthly'),
     page('/acg', 0.7, 'monthly'),

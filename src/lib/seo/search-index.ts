@@ -83,6 +83,13 @@ const TOOL_DOCS: SearchDoc[] = [
     keywords: ['jaimini', 'chara dasha', 'atmakaraka', 'arudha'],
   },
   {
+    title: 'Nadi Astrology',
+    description: 'Nadi workspace with the birth chart, planetary positions, and dasha.',
+    url: '/nadi',
+    type: 'tool',
+    keywords: ['nadi', 'bhrigu nandi nadi', 'planetary positions', 'dasha'],
+  },
+  {
     title: 'Prashna (Horary)',
     description: 'Krishneeyam Kerala Prashna for yes/no and timing questions.',
     url: '/prashna',
