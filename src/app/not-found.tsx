@@ -29,7 +29,7 @@ export default function NotFound() {
           404 · Page Not Found
         </p>
         <h1 style={{
-          fontFamily: 'var(--font-display, "Playfair Display", serif)',
+          fontFamily: 'var(--font-display, "Newsreader", serif)',
           fontSize: 'clamp(1.8rem, 5vw, 2.8rem)',
           fontWeight: 400,
           color: 'var(--text-primary, #f0ecff)',

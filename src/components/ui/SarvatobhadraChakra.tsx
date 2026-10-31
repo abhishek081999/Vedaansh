@@ -311,7 +311,7 @@ export function SarvatobhadraChakra({
                         fontWeight,
                         color:     cellTextColor(type),
                         fontFamily: type === 'vowel' || type === 'consonant'
-                          ? '"Noto Sans Devanagari", "Mangal", "Devanagari", serif'
+                          ? 'var(--font-deva)'
                           : 'var(--font-display)',
                         lineHeight: isDenseConsonant ? 1.05 : 1.15,
                         width: '100%',

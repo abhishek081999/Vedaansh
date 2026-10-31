@@ -34,8 +34,11 @@
   --color-accent-glow: var(--accent-glow);
   --color-border: var(--border);
   --color-page: var(--bg-page);
-  --font-display: var(--font-playfair), 'Playfair Display', serif;
-  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-sans: var(--font-inter), var(--font-noto-deva), 'Inter', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), 'Newsreader', Georgia, serif;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+  --font-display: var(--font-newsreader), var(--font-noto-deva), 'Newsreader', 'Noto Sans Devanagari', Georgia, serif;
+  --font-body: var(--font-inter), var(--font-noto-deva), 'Inter', 'Noto Sans Devanagari', system-ui, sans-serif;
   --spacing-1: var(--space-1);
   --spacing-2: var(--space-2);
   --spacing-3: var(--space-3);
@@ -56,8 +59,8 @@
   --font-smooth-mac: antialiased;
   --font-smooth-moz: grayscale;
   --fw-base: 400;
-  --fw-display: 300;
-  --fw-heading: 400;
+  --fw-display: 500;
+  --fw-heading: 500;
   --fw-medium: 500;
   --fw-bold: 600;
 
@@ -514,9 +517,10 @@
 /* ── Typography constants ───────────────────────────────────── */
 
 :root {
-  --font-display: var(--font-outfit), var(--font-inter), 'Outfit', 'Inter', system-ui, sans-serif;
-  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+  --font-display: var(--font-newsreader), var(--font-noto-deva), 'Newsreader', 'Noto Sans Devanagari', Georgia, serif;
+  --font-body: var(--font-inter), var(--font-noto-deva), 'Inter', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+  --font-deva: var(--font-noto-deva), 'Noto Sans Devanagari', sans-serif;
   --font-chart-planets: var(--font-inter), 'Inter', system-ui, sans-serif;
   --fw-chart-planet: 500;
 
@@ -703,7 +707,8 @@ h6 {
   font-family: var(--font-display);
   font-weight: var(--fw-heading);
   line-height: 1.2;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.015em;
+  font-optical-sizing: auto;
   color: var(--text-primary);
 }
 
@@ -727,7 +732,8 @@ p {
 .display {
   font-family: var(--font-display);
   font-weight: var(--fw-display);
-  letter-spacing: 0.04em;
+  letter-spacing: -0.02em;
+  font-optical-sizing: auto;
 }
 
 .label-caps {
@@ -749,6 +755,7 @@ code,
 .mono {
   font-family: var(--font-mono);
   font-size: 0.875em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Surfaces & Cards ───────────────────────────────────────── */
@@ -1782,7 +1789,7 @@ select.input {
 }
 
 .sidenav-brand-sub {
-  font-family: var(--font-display);
+  font-family: var(--font-deva);
   font-size: 0.6rem;
   font-weight: 600;
   color: var(--logo-text-sub);
@@ -3084,6 +3091,7 @@ select.input {
 
 .app-header-brand-sub {
   margin-top: 2px;
+  font-family: var(--font-deva);
   font-size: 0.6rem;
   color: var(--logo-text-sub);
   letter-spacing: 0.04em;
@@ -4001,7 +4009,7 @@ select.input {
 }
 
 .landing-shell {
-  font-family: 'Outfit', var(--font-body);
+  font-family: var(--font-body);
   position: relative;
   isolation: isolate;
 }
@@ -4436,12 +4444,12 @@ select.input {
 }
 
 .landing-shell p {
-  font-family: 'Outfit', var(--font-body);
+  font-family: var(--font-body);
   font-weight: 400;
 }
 
 .landing-shell .label-caps {
-  font-family: 'Inter', var(--font-body);
+  font-family: var(--font-body);
   color: color-mix(in oklab, var(--gold) 78%, var(--accent) 22%);
 }
 

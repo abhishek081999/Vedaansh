@@ -82,8 +82,7 @@ export default function FontMockupPage() {
             </div>
             
             <p className="text-sm leading-relaxed text-secondary font-body">
-              The use of <span className="sanskrit">Inter</span> as a body font provides a neutral, 
-              high-legibility anchor for the more expressive <span className="serif italic text-gold">Playfair Display</span> headings.
+              <span className="sanskrit">Inter</span> carries the interface. <span className="serif italic text-gold">Newsreader</span> carries titles, and Devanagari falls through to Noto Sans.
             </p>
 
             <div className="divider" />
