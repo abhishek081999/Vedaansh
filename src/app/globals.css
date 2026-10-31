@@ -2508,9 +2508,15 @@ select.input {
 
   .app-header-left {
     gap: 0.5rem;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
+  }
+
+  .app-header-nav {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-start;
   }
 
   .app-header-toggler {
@@ -3792,12 +3798,9 @@ select.input {
   gap: 0.1rem;
   min-width: 0;
   justify-self: start;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.app-header-nav::-webkit-scrollbar {
-  display: none;
+  /* visible so dropdown panels can paint below the bar.
+     overflow-x: auto would force overflow-y to auto and clip them. */
+  overflow: visible;
 }
 
 .app-header-nav-link,
@@ -3870,6 +3873,9 @@ select.input {
   left: 0;
   min-width: 240px;
   max-width: min(86vw, 760px);
+  max-height: calc(100dvh - var(--app-header-height) - 0.85rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0.7rem;
   border-radius: var(--r-lg);
   border: 1px solid var(--border);
@@ -4002,10 +4008,16 @@ select.input {
   color: var(--text-primary) !important;
 }
 
-@media (min-width: 1024px) and (max-width: 1279px) {
+@media (max-width: 819px) {
+  .app-header-nav {
+    display: none !important;
+  }
+}
+
+@media (min-width: 820px) and (max-width: 1279px) {
   .app-header {
-    padding: 0 0.9rem;
-    column-gap: 0.5rem;
+    padding: 0 0.7rem;
+    column-gap: 0.35rem;
   }
 
   .app-header-nav {
@@ -4014,8 +4026,9 @@ select.input {
 
   .app-header-nav-link,
   .app-header-dropdown-trigger {
-    font-size: 0.75rem;
-    padding: 0.38rem 0.5rem;
+    font-size: 0.72rem;
+    padding: 0.32rem 0.28rem;
+    gap: 0.1rem;
   }
 
   .app-header-mega-menu {
