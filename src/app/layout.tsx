@@ -2,7 +2,7 @@
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
 import Script from 'next/script'
-import { Playfair_Display, Inter, Outfit, JetBrains_Mono } from 'next/font/google'
+import { Newsreader, Inter, IBM_Plex_Mono, Noto_Sans_Devanagari } from 'next/font/google'
 import './globals.css'
 import { AuthProvider }      from '@/components/providers/SessionProvider'
 import { AppLayoutProvider } from '@/components/providers/LayoutProvider'
@@ -13,11 +13,14 @@ import { YantraBackdropRoute } from '@/components/ui/YantraBackdropRoute'
 import { SITE_URL } from '@/lib/seo/site'
 
 // ── Fonts (next/font — zero layout shift, self-hosted) ────────
-const playfair = Playfair_Display({
+// Newsreader: scholarly serif for titles. Holds up from panel headings to the hero.
+// Inter: UI, tables, and chart labels.
+// IBM Plex Mono: degrees and timings (plain zero, real medium/semibold — not faux bold).
+// Noto Sans Devanagari: mantra, SBC aksharas, and Hindi inline with the Latin text.
+const newsreader = Newsreader({
   subsets:  ['latin'],
-  weight:   ['400', '600', '700', '800'],
   style:    ['normal', 'italic'],
-  variable: '--font-playfair',
+  variable: '--font-newsreader',
   display:  'swap',
 })
 const inter = Inter({
@@ -26,17 +29,19 @@ const inter = Inter({
   variable: '--font-inter',
   display:  'swap',
 })
-const outfit = Outfit({
+const plexMono = IBM_Plex_Mono({
   subsets:  ['latin'],
-  weight:   ['300', '400', '500', '600', '700'],
-  variable: '--font-outfit',
+  weight:   ['400', '500', '600'],
+  variable: '--font-plex-mono',
   display:  'swap',
+  preload:  false,
 })
-const jetbrainsMono = JetBrains_Mono({
-  subsets:  ['latin'],
-  weight:   ['400'],
-  variable: '--font-jetbrains-mono',
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets:  ['devanagari'],
+  weight:   ['500', '600'],
+  variable: '--font-noto-deva',
   display:  'swap',
+  preload:  false,
 })
 
 // ── Google Analytics 4 ───────────────────────────────────────
@@ -242,7 +247,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get('x-nonce') ?? ''
 
   return (
-    <html lang="en-IN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${playfair.variable} ${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en-IN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${newsreader.variable} ${inter.variable} ${plexMono.variable} ${notoDevanagari.variable}`}>
       <head>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
