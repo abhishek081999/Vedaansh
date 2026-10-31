@@ -540,7 +540,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        <nav className="app-header-nav hide-mobile" aria-label="Primary">
+        <nav className="app-header-nav" aria-label="Primary">
           {headerPrimaryTabs.map((tab) => renderHeaderTabLink(tab))}
           {renderHeaderDropdown(
             SIDENAV_ACCORDIONS.astrology.headerLabel,

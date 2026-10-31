@@ -1,7 +1,8 @@
 # Vedaansh — product brief
 
 **Product:** Vedic astrology (Jyotish) SaaS — charts, dashas, vargas, panchang, muhurta, CRM, admin  
-**Version:** `jyotish-platform` 2.6.0 · live codebase over marketing copy  
+**Version:** `jyotish-platform` 2.6.0 · Next.js 16.4.2 · live codebase over marketing copy  
+**Synced:** 2026-10-31  
 **Monetization:** `free` | `gold` | `platinum` — see [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md)
 
 Default list prices (INR, code defaults; admin `BillingConfig` may override): Gold ₹168/mo · ₹1,443/yr · Platinum ₹336/mo · ₹2,888/yr (`src/lib/subscription/pricing.ts`).
@@ -22,12 +23,14 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 ## 2. Core journeys
 
 1. **Calculate** — enter birth data → `POST /api/chart/calculate` → interactive chart workspace.
-2. **Save & organize** — library with tags/notes; plan save caps (20 / 200 / ∞).
-3. **Share** — toggle public → unique slug + OG metadata.
-4. **Upgrade** — `/pricing` → Razorpay checkout → verify → plan refresh.
-5. **Muhurta (Gold+)** — find auspicious windows; timeline + report APIs.
-6. **Consult (Platinum)** — Clients CRM with notes, remedies, sessions.
-7. **Admin** — manage users/plans, billing config, ops cleanup.
+2. **Save & organize** — chart library with tags/notes; plan save caps (20 / 200 / ∞).
+3. **Match & keep** — Kundali Milan on `/compare`; save the pair (`POST /api/milan/save`). My Charts lists natal charts and saved matches under separate caps of the same size.
+4. **Share** — toggle public → unique slug + OG metadata.
+5. **Upgrade** — `/pricing` → Razorpay checkout → verify → plan refresh.
+6. **Muhurta (Gold+)** — find auspicious windows; timeline + report APIs. Marriage Ju–Sa windows: `GET /api/marriage/gochar-windows`.
+7. **Read the chart** — Today, relationship and marriage, career and profession, Nadi, Prashna, Jaimini, Nakshatra, Numerology. Gold unlocks the full readings listed in the matrix.
+8. **Consult (Platinum)** — Clients CRM with notes, remedies, sessions.
+9. **Admin** — manage users/plans, billing config, ops cleanup.
 
 ---
 
@@ -35,10 +38,11 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 
 - Swiss Ephemeris–backed natal / varga / dasha / strength engines
 - North / South / SBC-style chart UIs; transit overlay
-- Panchang + calendar; Kundali Milan (Ashtakoot, Porutham, and charts on Free; match-making, married life, All Sections, and print on Gold+)
-- Relationship and marriage on the chart (preview on Free; full reading on Gold+)
-- Career and profession on the chart: the first reading, plus a second method (karma field, the joined pair, nakshatra behavior, then D10). Preview on Free; full reading on Gold+
-- Prashna, Jaimini, Nadi (chart, positions, houses, dasha), ACG, Vastu, Nakshatra lab, Numerology
+- Panchang + calendar; Kundali Milan (Ashtakoot, Porutham, and charts on Free; match-making, married life, All Sections, and print on Gold+). Saved matches live in My Charts
+- Relationship and marriage (`/relationship`): preview on Free; full reading on Gold+; extended divisionals on Platinum
+- Career and profession (`/career`): score preview on Free; full reading and the professional method on Gold+
+- Today (`/today`), roadmap (`/roadmap`), time scrubber (`/scrubber`), guides (`/guides`)
+- Prashna, Jaimini, Nadi (`/nadi`), ACG, Vastu, Nakshatra lab, Numerology, Naamkaran, Tattva
 - Auth: Google OAuth + credentials; email verify / reset
 - PWA (Serwist) + Android TWA packaging
 - Admin reel studio (Remotion) for marketing video
@@ -51,7 +55,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 |------|--------|
 | Full i18n rollout | Remaining (prefs language field exists) |
 | Stripe checkout | Schema fields only — not wired |
-| Research pages/APIs | Platinum-gated in proxy; **UI not shipped** |
+| Research pages/APIs | Platinum-gated in `proxy.ts`; **no route files and no UI** |
 | Apple OAuth | Enum reserved; Google is live |
 
 ---

@@ -1,8 +1,9 @@
 # Vedaansh — testing strategy
 
-**Runner:** Vitest  
-**Suites:** `__tests__/engine/`, `__tests__/security/`, `__tests__/admin/`, `__tests__/ui/`  
-**Rule:** Engine tests must **not** import redis / mongoose / next-auth (Windows Vitest segfault risk). See `__tests__/engine/phase2.test.ts` and `.cursor/rules/tests.mdc`.
+**Runner:** Vitest (`npm run test:engine` → `vitest run`, the full configured suite)  
+**Suites:** `__tests__/engine/`, `__tests__/security/`, `__tests__/admin/`, `__tests__/ui/` (136 test files as of 2026-10-31)  
+**Rule:** Engine tests must **not** import redis / mongoose / next-auth (Windows Vitest segfault risk). See `__tests__/engine/phase2.test.ts` and `.cursor/rules/tests.mdc`.  
+There is no `npm test` script.
 
 ---
 
@@ -10,7 +11,7 @@
 
 | Command | What |
 |---------|------|
-| `npm run test:engine` | `vitest run` — full Vitest suite as configured |
+| `npm run test:engine` | `vitest run` — full Vitest suite (engine, security, admin, and UI). The script name is historical |
 | `npm run test:security` | Security unit tests only |
 | `npm run security:check` / `security:preflight` | Alias → security tests |
 | `npm run security:audit` | Production dep audit (`scripts/security-audit.mjs`, retries registry timeouts) |

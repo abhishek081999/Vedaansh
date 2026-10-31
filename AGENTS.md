@@ -4,13 +4,13 @@ Context for coding agents working in this repo. **Trust live code over docs** wh
 
 ## What this is
 
-**Vedaansh** (`jyotish-platform` v2.6.0) is a Vedic astrology (Jyotish) web app: birth charts, dashas, vargas, panchang, muhurta, prashna, SBC, astrocartography, client CRM, and admin tools. Calculations use **Swiss Ephemeris** via the `sweph` npm package.
+**Vedaansh** (`jyotish-platform` v2.6.0) is a Vedic astrology (Jyotish) web app: birth charts, dashas, vargas, panchang, muhurta, Kundali Milan, relationship and marriage, career and profession, prashna, Jaimini, Nadi, SBC, astrocartography, client CRM, and admin tools. Calculations use **Swiss Ephemeris** via the `sweph` npm package. Stack pin: Next.js 16.4.2, React 19.2.7, Zod 4.6.7.
 
 ## Stack (verify in `package.json`)
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16 App Router (`src/app/`) |
+| Framework | Next.js 16.4.2 App Router (`src/app/`) |
 | Language | TypeScript 5.4+, Node ≥ 24 |
 | Ephemeris | `sweph` — files in `./ephe` (`EPHE_PATH`) |
 | Database | MongoDB Atlas + Mongoose (`src/lib/db/`) |
@@ -33,7 +33,7 @@ src/
   lib/engine/       # Pure astrology math — no DB/React (see rule: engine)
   lib/security/     # Route guards, rate limits, plan gates, CSRF
   lib/subscription/ # Entitlements, pricing
-  lib/db/models/    # Mongoose schemas (User, Chart, etc.)
+  lib/db/models/    # User, Chart (+ ChartCache), KundaliMilan, Client, Subscription, BillingConfig, AdminAuditLog
   types/astrology.ts # Core domain types (GrahaId, Rashi, ChartOutput)
 __tests__/engine/   # Pure engine tests
 __tests__/security/ # Security unit tests
@@ -46,9 +46,9 @@ Canonical plan names: `free` | `gold` | `platinum`.
 
 | Plan | Chart saves | Default price (INR) | Notable gates |
 |------|-------------|---------------------|---------------|
-| Free | 20 | — | Core chart, panchang, public share |
-| Gold | 200 | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), relationship and marriage, career and profession, Kundali Milan match-making and married life |
-| Platinum | Unlimited | ₹336/mo · ₹2,888/yr | Email charts, bulk ZIP, client CRM, white-label |
+| Free | 20 charts and 20 Kundali Milan matches | — | Core chart, panchang, public share, Milan preview |
+| Gold | 200 charts and 200 Kundali Milan matches | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), relationship and marriage, career and profession, Kundali Milan match-making and married life, marriage gochar windows |
+| Platinum | Unlimited charts and Kundali Milan matches | ₹336/mo · ₹2,888/yr | Email charts, bulk ZIP, client CRM, white-label, full 41 vargas |
 
 Prices: `src/lib/subscription/pricing.ts` (admin `BillingConfig` may override).
 
@@ -63,8 +63,8 @@ npm run dev              # Next dev (webpack)
 npm run build            # Production build
 npm run typecheck        # tsc --noEmit
 npm run lint             # ESLint, zero warnings
-npm run test:engine      # Vitest — engine tests
-npm run test:security    # Vitest — security tests
+npm run test:engine      # vitest run — full suite (engine, security, admin, ui)
+npm run test:security    # Vitest — security tests only
 npm run remotion:studio  # Reel video editor
 ```
 
@@ -73,7 +73,7 @@ npm run remotion:studio  # Reel video editor
 Copy `.env.example` → `.env.local`. Critical vars:
 
 - `MONGODB_URI`, `AUTH_SECRET`, `AUTH_URL`
-- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (enables rate limits; auth fails open if Redis is down)
+- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (enables rate limits; rate limits fail open if Redis is down)
 - `EPHE_PATH=./ephe`
 - `RAZORPAY_*`, `RESEND_API_KEY`
 

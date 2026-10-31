@@ -2,7 +2,8 @@
 
 **Store:** MongoDB Atlas via Mongoose (`src/lib/db/models/`)  
 **Cache:** Upstash Redis (ephemeral calc / atlas / rate limits — not durable domain state)  
-**Source of truth:** model files under `src/lib/db/models/`
+**Source of truth:** model files under `src/lib/db/models/`  
+**Synced:** 2026-10-31
 
 ---
 
@@ -11,12 +12,15 @@
 ```
 User ──< Chart ──> ChartCache
   │
+  ├──< KundaliMilan   (saved match; own save cap)
   ├──< Client          (Platinum CRM; userId = consultant)
   ├──< Subscription    (billing lifecycle)
   └──< AdminAuditLog   (adminId)
 
 BillingConfig          (singleton key: "default")
 ```
+
+`Chart` and `ChartCache` are both defined in `src/lib/db/models/Chart.ts`.
 
 ---
 
@@ -87,7 +91,7 @@ Deleted with the user account. Counted on its own save cap (20 / 200 / unlimited
 
 ### ChartCache
 
-Separate from Chart so the chart document stays lean. Large `ChartOutput` blobs live here (and separately in Redis for hot calc).
+Separate from Chart so the chart document stays lean. Large `ChartOutput` blobs live here (and separately in Redis for hot calc). The Mongoose model is exported from `src/lib/db/models/Chart.ts`, not a separate file.
 
 | Field | Type | Notes |
 |-------|------|-------|
@@ -183,7 +187,7 @@ Admin cleanup can clear chart / panchang / atlas namespaces. See `src/lib/redis.
 1. Charts and clients are scoped by `userId` — APIs must never return another user’s rows.
 2. Public charts: `isPublic` + `slug` only via `/api/chart/public`.
 3. Effective plan: `User.plan` + `planExpiresAt` via `getEffectivePlan()` — expired paid → free behavior.
-4. Account delete: cascades charts + ChartCache (see `src/lib/user/accountLifecycle.ts`).
+4. Account delete (`deleteUserAccount` in `src/lib/user/accountLifecycle.ts`) removes that user’s Chart, ChartCache, KundaliMilan, Client, and Subscription rows, then the User document and Auth.js `accounts` / `sessions` / adapter `users` rows. Data export includes charts, clients, subscriptions, and saved Kundali Milan matches.
 
 ---
 

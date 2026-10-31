@@ -25,7 +25,7 @@ A full-featured Vedic astrology (Jyotish) web platform in TypeScript: arc-second
 | Cache / rate limits | @upstash/redis | ^1.38.0 |
 | Geo / Atlas | Photon + Open-Meteo / Nominatim + Redis + `tz-lookup` | — |
 | Styling | Custom CSS + Tailwind | ^4.1.11 |
-| Validation | Zod | 3.25.76 |
+| Validation | Zod | 4.6.7 |
 | Payments | Razorpay (live) · Stripe fields reserved | ^2.9.6 / ^15 |
 | Video / Reels | Remotion 4 | ^4.0.448 |
 | Email | Resend | ^3.2.0 |
@@ -50,7 +50,7 @@ Canonical plans: `free` | `gold` | `platinum`. Enforcement matrix: [`SUBSCRIPTIO
 | **Strengths** | Arudhas, Shadbala, Vimsopaka, Ashtakavarga, yogas |
 | **Panchang** | Daily + monthly calendar; timings (Choghadiya, Rahu Kalam, etc.) |
 | **Tools** | Kundali Milan (Ashtakoot, dosha, charts), relationship and marriage preview, career and profession preview, match-making and married-life preview, Prashna (Satpanchasika free), Jaimini, Nadi (chart, positions, houses, dasha), ACG, Vastu preview, Nakshatra lab teasers, Numerology, Naamkaran overview |
-| **Library** | Save up to **20** charts and **20** Kundali Milan matches; public share; notes; JHD/SJS import; location search |
+| **Library** | Save up to **20** charts and **20** Kundali Milan matches (separate caps); public share; notes; JHD/SJS import; location search |
 
 ### Gold — ₹168/month or ₹1,443/year
 
@@ -75,7 +75,7 @@ Everything in Gold, plus:
 | **Client CRM** | `/clients` + `/api/clients` |
 | **Email charts** | `/api/chart/send-email` |
 | **Bulk ZIP export** | `/api/chart/bulk-export` |
-| **Research** | `/research` + `/api/research` reserved in `proxy.ts` — **UI not shipped** |
+| **Research** | `/research` + `/api/research` reserved in `proxy.ts` — **no route files and no UI** |
 
 Bulk XLSX import is available to any authenticated user until the plan save cap is reached.
 
@@ -84,6 +84,8 @@ Bulk XLSX import is available to any authenticated user until the plan save cap 
 ## Highlights (v2.6.x)
 
 - Sarvatobhadra Chakra, Prashna, Jaimini, Nadi Astrology, KP significators, Vastu, ACG, Naamkaran (name prediction)
+- Saved Kundali Milan library on My Charts (same 20 / 200 / unlimited caps as natal charts)
+- Relationship and marriage, career and profession (Free preview; full reading on Gold+)
 - Reel studio (admin Remotion + canvas cards)
 - Cosmic roadmap `/roadmap` and time scrubber `/scrubber`
 - PWA (Serwist) + Android TWA packaging
@@ -94,7 +96,7 @@ Bulk XLSX import is available to any authenticated user until the plan save cap 
 
 ## Calculation engine
 
-Pure TypeScript under `src/lib/engine/` (~76 top-level modules + `dasha/` subsystems). No React / Mongo / Redis / NextAuth imports. Orchestrator: `calculateChart()` → `ChartOutput`.
+Pure TypeScript under `src/lib/engine/` (153 top-level modules, 229 files, plus `dasha/`, `jaimini/`, `nadi/`, `numerology/`, and `lagnaCharacterData/`). No React / Mongo / Redis / NextAuth imports. Orchestrator: `calculateChart()` → `ChartOutput`.
 
 | Area | Examples |
 |---|---|
@@ -119,7 +121,7 @@ Vedaansh/
 │   ├── lib/engine/          # Pure Jyotish math
 │   ├── lib/security/        # guardRoute, rate limits, plan gates, CSP
 │   ├── lib/subscription/    # Entitlements + pricing
-│   ├── lib/db/models/       # User, Chart, ChartCache, Client, Subscription, …
+│   ├── lib/db/models/       # User, Chart (+ ChartCache), KundaliMilan, Client, Subscription, …
 │   ├── lib/atlas|pdf|reel/  # Location, PDF, Remotion helpers
 │   └── types/astrology.ts   # Domain types
 ├── __tests__/               # engine, security, admin, ui
@@ -138,14 +140,16 @@ Vedaansh/
 
 ## API routes
 
-**55** handlers under `src/app/api/`. Full inventory (auth, plan gates, methods): [`docs/API.md`](./docs/API.md).
+**63** handlers under `src/app/api/`. Full inventory (auth, plan gates, methods): [`docs/API.md`](./docs/API.md).
 
 Notable:
 
 | Route | Notes |
 |---|---|
 | `POST /api/chart/calculate` | Optional auth; Redis cache; plan filters vargas |
-| `POST /api/chart/save` | Soft save-cap by plan |
+| `POST /api/chart/save` | Session required by `proxy.ts`; soft save-cap by plan |
+| `POST /api/milan/save` · `GET /api/milan/list` · `GET/DELETE /api/milan/[id]` | Saved Kundali Milan; same caps as charts |
+| `GET /api/marriage/gochar-windows` | **Gold+** (route gate; not in `proxy.ts` `GOLD_API`) |
 | `POST /api/chart/export` | **Gold+** |
 | `POST /api/chart/send-email` | **Platinum** |
 | `POST /api/chart/bulk-export` | **Platinum** |
@@ -185,7 +189,7 @@ npm run dev                  # http://localhost:3000
 |---|---|
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint, zero warnings |
-| `npm run test:engine` | Vitest suite |
+| `npm run test:engine` | Full Vitest suite (`vitest run`) |
 | `npm run test:security` / `security:preflight` | Security unit tests |
 | `npm run build` / `npm start` | Production |
 | `npm run remotion:studio` | Reel editor |

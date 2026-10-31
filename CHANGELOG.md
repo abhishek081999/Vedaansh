@@ -42,16 +42,19 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 - Full i18n rollout not complete
 - Stripe checkout not wired (schema reserved)
-- Research Platinum routes reserved; UI not shipped
+- Research prefixes reserved in `proxy.ts`; no route files and no UI
+
+### Also live on this version
+
+These shipped in the current tree without a version bump:
+
+- Relationship and marriage: a short preview on Free, the full reading on Gold and Platinum, extended divisionals on Platinum
+- Kundali Milan match-making and married life: a short preview on Free; the full reading, All Sections, and print on Gold and Platinum
+- Save a Kundali Milan from the match result (`/api/milan/save`, list, delete). My Charts has two sections: My Charts and Kundali Milan. Caps match chart saves (20 / 200 / unlimited)
+- Gold marriage transit windows (`GET /api/marriage/gochar-windows`)
 
 ---
 
 ## Unreleased
 
 _Document upcoming user-visible changes here before bumping `package.json`._
-
-### Added
-
-- Relationship and marriage on the chart: a short preview on Free, the full reading on Gold and Platinum
-- Kundali Milan match-making and married life: a short preview on Free; the full reading, All Sections, and print on Gold and Platinum
-- Save a Kundali Milan from the match result. My Charts has two sections: My Charts and Kundali Milan. Caps match chart saves (20 / 200 / unlimited)

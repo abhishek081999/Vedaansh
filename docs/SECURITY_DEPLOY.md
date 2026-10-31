@@ -82,6 +82,7 @@ Heavy paths:
 
 - `proxy.ts`: auth gates, tier routes, admin routes, NextAuth POST rate limit, **per-request CSP nonces**
 - APIs: same-origin on mutating routes, Redis rate limits, body size caps, plan/admin DB checks
+- Edge prefixes in `proxy.ts` are broader than some handlers: `/api/subscription` requires a session (including pricing); `/api/chart/export` (Gold) also matches XLSX export
 - Payments: HMAC verify + webhook replay dedupe (6h)
 - Sessions: secure cookies in production, per-email login throttle
 
