@@ -304,6 +304,7 @@ export function NorthIndianChakra({
   return (
     <>
     <svg
+      className="chakra-svg"
       viewBox={`0 0 ${S} ${S}`}
       width={S}
       height={S}
@@ -451,7 +452,7 @@ export function NorthIndianChakra({
               x={rp.x}
               y={rp.y}
               fontSize={rashiFont}
-              fontFamily="var(--font-mono)"
+              fontFamily="var(--font-chart-mono)"
               fontWeight="var(--fw-medium)"
               fill={lagna ? 'var(--gold)' : 'var(--chart-sign-green)'} // Theme-aware green for signs
               textAnchor="middle"
@@ -536,7 +537,7 @@ export function NorthIndianChakra({
                     <text
                       x={px} y={py + plFont * 0.72 + degFont * 0.5}
                       fontSize={Math.round(degFont)}
-                      fontFamily="var(--font-mono)"
+                      fontFamily="var(--font-chart-mono)"
                       fill="var(--text-muted)"
                       textAnchor="middle"
                       dominantBaseline="middle"
@@ -550,7 +551,6 @@ export function NorthIndianChakra({
                       y={py + plFont * 0.72 + degFont * (showDegrees ? 1.65 : 0.5)}
                       fontSize={Math.round(degFont * 0.85)}
                       fontFamily="var(--font-chart-planets)"
-                      fontStyle="italic"
                       fill="var(--text-muted)"
                       textAnchor="middle"
                       dominantBaseline="middle"
@@ -590,7 +590,6 @@ export function NorthIndianChakra({
                   y={ay}
                   fontSize={aFont}
                   fontFamily="var(--font-chart-planets)"
-                  fontStyle="italic"
                   fontWeight="var(--fw-bold)"
                   fill="var(--gold-light)"
                   textAnchor="middle"
@@ -636,7 +635,7 @@ export function NorthIndianChakra({
                     dominantBaseline="middle"
                     fontSize={Math.round(tFont)}
                     fontWeight={800}
-                    fontFamily="var(--font-mono)"
+                    fontFamily="var(--font-chart-mono)"
                     fill={tg.isRetro ? 'rgba(120,80,220,0.95)' : 'rgba(100,80,180,0.95)'}
                   >
                     <tspan>{tg.id}</tspan>

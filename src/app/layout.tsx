@@ -2,7 +2,7 @@
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
 import Script from 'next/script'
-import { Newsreader, Inter, IBM_Plex_Mono, Noto_Sans_Devanagari } from 'next/font/google'
+import { Newsreader, Inter, IBM_Plex_Mono, JetBrains_Mono, Noto_Sans_Devanagari } from 'next/font/google'
 import './globals.css'
 import { AuthProvider }      from '@/components/providers/SessionProvider'
 import { AppLayoutProvider } from '@/components/providers/LayoutProvider'
@@ -33,6 +33,13 @@ const plexMono = IBM_Plex_Mono({
   subsets:  ['latin'],
   weight:   ['400', '500', '600'],
   variable: '--font-plex-mono',
+  display:  'swap',
+  preload:  false,
+})
+const jetbrainsMono = JetBrains_Mono({
+  subsets:  ['latin'],
+  weight:   ['400', '500', '600'],
+  variable: '--font-jetbrains-mono',
   display:  'swap',
   preload:  false,
 })
@@ -247,7 +254,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = (await headers()).get('x-nonce') ?? ''
 
   return (
-    <html lang="en-IN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${newsreader.variable} ${inter.variable} ${plexMono.variable} ${notoDevanagari.variable}`}>
+    <html lang="en-IN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${newsreader.variable} ${inter.variable} ${plexMono.variable} ${jetbrainsMono.variable} ${notoDevanagari.variable}`}>
       <head>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}

@@ -64,8 +64,9 @@
   --fw-medium: 500;
   --fw-bold: 600;
 
-  /* Chart graha labels — humanist sans reads softer than monospace at small sizes */
-  --font-chart-planets: var(--font-inter), 'Inter', system-ui, sans-serif;
+  /* Chart graha labels — JetBrains stays narrow so two-letter names do not collide in a house */
+  --font-chart-planets: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
+  --font-chart-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
   --fw-chart-planet: 500;
 
   /* Core surfaces */
@@ -521,7 +522,8 @@
   --font-body: var(--font-inter), var(--font-noto-deva), 'Inter', 'Noto Sans Devanagari', system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
   --font-deva: var(--font-noto-deva), 'Noto Sans Devanagari', sans-serif;
-  --font-chart-planets: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-chart-planets: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
+  --font-chart-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
   --fw-chart-planet: 500;
 
   --r-xs: 4px;
@@ -599,10 +601,54 @@ html {
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-gradient);
   overflow-x: hidden;
   position: relative;
   width: 100%;
+}
+
+/* Fixed app frame. 100dvh tracks the visible window so a short browser
+   does not clip the header and charts under overflow:hidden. */
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  min-height: 0;
+}
+
+.app-shell-row {
+  display: flex;
+  flex: 1 1 auto;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+
+.main-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-width: 0;
+  min-height: 0;
+  transition: margin-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  scroll-behavior: smooth;
+}
+
+.app-shell-page {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
 /* ── Vedic Assets ───────────────────────────────────────────── */
@@ -2573,9 +2619,9 @@ select.input {
 
   .sticky-desktop {
     position: sticky;
-    top: 4rem;
+    top: 0.75rem;
     align-self: flex-start;
-    max-height: calc(100vh - 5rem);
+    max-height: calc(100dvh - var(--app-header-height) - 1.5rem);
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
@@ -3746,6 +3792,12 @@ select.input {
   gap: 0.1rem;
   min-width: 0;
   justify-self: start;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.app-header-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .app-header-nav-link,
@@ -6685,6 +6737,25 @@ select.input {
 @media (min-width: 1280px) {
   .varga-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+.varga-chart-frame {
+  display: flex;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Short windows: scale the diamond to the space under the header
+   instead of drawing a 440px chart that the shell then clips. */
+@media (min-width: 1024px) {
+  .varga-chart-frame .chakra-svg {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: min(440px, calc(100dvh - var(--app-header-height) - 17.75rem));
   }
 }
 
