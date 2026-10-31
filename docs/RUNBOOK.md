@@ -13,7 +13,8 @@
 | `GET /api/health` | `{ "status": "ok" }` (or equivalent healthy payload) |
 | Sign-in | Google + email/password |
 | Chart calculate | Anon + logged-in |
-| Chart save | Authenticated |
+| Chart save | Authenticated (proxy requires a session) |
+| Kundali Milan save | Authenticated; appears under My Charts |
 | Pricing / checkout | Razorpay modal opens |
 | CSP | No console CSP violations on home, chart, pricing |
 | `/.well-known/security.txt` | Contact present |
@@ -79,6 +80,10 @@ After calc, `cleanupEphemeris()` must re-set `EPHE_PATH` after `swe_close()` or 
 1. User hits `/api/auth/refresh-plan` or re-login.
 2. Check Mongo `User.plan` + `planExpiresAt` — past expiry → free via `getEffectivePlan()`.
 3. Do not trust JWT alone for entitlements.
+
+### Pricing request returns 401 while signed out
+
+`proxy.ts` puts `/api/subscription` on `PROTECTED_API`, so `/api/subscription/pricing` and `/api/subscription/coupon/validate` require a session before the handler runs. The handler for pricing does not call `auth()` itself. `/pricing` still requests that endpoint.
 
 ### CSRF / origin blocked (`csrf_blocked`)
 

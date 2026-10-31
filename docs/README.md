@@ -1,7 +1,7 @@
 # Vedaansh — documentation index
 
 **Source of truth:** live code (`package.json`, `src/`, `proxy.ts`, `render.yaml`). Prefer code when docs disagree.  
-**Synced:** 2026-10-14 against `jyotish-platform` v2.6.0 (Next.js 16.3, default prices Gold ₹168 / Platinum ₹336).
+**Synced:** 2026-10-31 against `jyotish-platform` v2.6.0 (Next.js 16.4.2, Zod 4.6.7, 63 API handlers, 52 pages). Default prices: Gold ₹168 / Platinum ₹336.
 
 | Doc | Purpose |
 |-----|---------|

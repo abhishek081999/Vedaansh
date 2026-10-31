@@ -139,6 +139,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [tzOpen, setTzOpen] = useState(false)
   const [manualMode, setManualMode] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -1091,60 +1092,105 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
           </>
         )}
 
-        {/* Unified Timezone Selection */}
-        <div style={{ marginTop: '0.65rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.15rem' }}>
-            <label className="field-label" htmlFor={ids.tz} style={{ marginBottom: 0 }}>Timezone (IANA)</label>
-            {manualMode && (
-              <button 
-                type="button" 
-                onClick={resolveTimezoneFromCoords}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--gold)', fontSize: '0.62rem', fontWeight: 600,
-                  textTransform: 'uppercase', padding: 0, letterSpacing: '0.04em'
-                }}
-              >
-                Resolve from Coords ⟲
-              </button>
-            )}
-          </div>
-          <div style={{ position: 'relative' }}>
+      </div>
+
+      {/* Timezone is filled from the place. The value stays on the row; the picker opens on expand. */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setTzOpen((open) => !open)}
+          aria-expanded={tzOpen}
+          aria-controls={`${ids.tz}-panel`}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--text-muted)',
+            fontSize: '0.8rem', fontWeight: 500,
+            display: 'flex', alignItems: 'center', gap: '0.4rem', padding: 0,
+            letterSpacing: '0.03em',
+            width: '100%',
+          }}
+        >
+          <span style={{
+            display: 'inline-block',
+            transform: tzOpen ? 'rotate(90deg)' : 'rotate(0)',
+            transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+            fontSize: '0.55rem',
+          }}>▶</span>
+          Timezone
+          <span style={{
+            marginLeft: 'auto',
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            color: 'var(--text-gold)',
+            fontWeight: 600,
+            fontSize: '0.78rem',
+            letterSpacing: 0,
+          }}>
+            {tz || 'Not set'}
+          </span>
+        </button>
+
+        {tzOpen && (
+          <div
+            id={`${ids.tz}-panel`}
+            style={{
+              marginTop: '0.75rem',
+              padding: '1rem',
+              background: 'var(--surface-2)',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid var(--border-soft)',
+              animation: 'fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) both',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+              <label className="field-label" htmlFor={ids.tz} style={{ marginBottom: 0 }}>
+                Timezone (IANA)
+              </label>
+              {manualMode && (
+                <button
+                  type="button"
+                  onClick={resolveTimezoneFromCoords}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--gold)', fontSize: '0.62rem', fontWeight: 600,
+                    textTransform: 'uppercase', padding: 0, letterSpacing: '0.04em',
+                  }}
+                >
+                  Resolve from Coords
+                </button>
+              )}
+            </div>
             <input
               id={ids.tz}
               type="text"
-              placeholder="Search e.g. Asia/Kolkata" 
-              className="input" 
-              style={{ width: '100%', boxSizing: 'border-box', cursor: 'pointer' }}
-              value={tz} 
-              onChange={e => setTz(e.target.value)}
-              onFocus={e => e.target.select()}
-              onMouseUp={e => e.preventDefault()} // Fix for some browsers not keeping selection on click
+              placeholder="Search e.g. Asia/Kolkata"
+              className="input"
+              style={{ width: '100%', boxSizing: 'border-box' }}
+              value={tz}
+              onChange={(e) => setTz(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              onMouseUp={(e) => e.preventDefault()}
               list="tz-datalist"
               autoComplete="off"
+              autoFocus
             />
             <datalist id="tz-datalist">
-               {/* Explicitly prioritize the most common ones at the very top */}
-               <option value="Asia/Kolkata" />
-               <option value="Asia/Kathmandu" />
-               <option value="Asia/Calcutta" />
-               <option value="Asia/Dubai" />
-               <option value="Asia/Singapore" />
-               <option value="UTC" />
-               <option value="America/New_York" />
-               <option value="Europe/London" />
-               
-               {/* Then the rest of the Asia/ zones and finally the global list */}
-               {tzList
-                 .filter(t => !['Asia/Kolkata', 'Asia/Kathmandu', 'Asia/Calcutta', 'Asia/Dubai', 'Asia/Singapore', 'UTC', 'America/New_York', 'Europe/London'].includes(t))
-                 .map(t => <option key={t} value={t} />)
-               }
+              <option value="Asia/Kolkata" />
+              <option value="Asia/Kathmandu" />
+              <option value="Asia/Calcutta" />
+              <option value="Asia/Dubai" />
+              <option value="Asia/Singapore" />
+              <option value="UTC" />
+              <option value="America/New_York" />
+              <option value="Europe/London" />
+              {tzList
+                .filter((t) => !['Asia/Kolkata', 'Asia/Kathmandu', 'Asia/Calcutta', 'Asia/Dubai', 'Asia/Singapore', 'UTC', 'America/New_York', 'Europe/London'].includes(t))
+                .map((t) => <option key={t} value={t} />)}
             </datalist>
-            <div style={{ fontSize: '0.62rem', color: 'var(--text-gold)', marginTop: 2, fontStyle: 'italic', opacity: 0.8 }}>
-              Selected: {tz}
-            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Advanced settings */}

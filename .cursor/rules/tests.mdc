@@ -33,4 +33,4 @@ describe('Cache key helpers', () => {
 })
 ```
 
-Run: `npm test` or target a file with `npx vitest run __tests__/engine/phase2.test.ts`
+Run: `npm run test:engine` (full Vitest suite) or target a file with `npx vitest run __tests__/engine/phase2.test.ts`. There is no `npm test` script.

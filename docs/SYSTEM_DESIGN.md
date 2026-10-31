@@ -1,6 +1,7 @@
 # Vedaansh — System Design
 
-**Product:** `jyotish-platform` v2.6.0  
+**Product:** `jyotish-platform` v2.6.0 · Next.js 16.4.2 · Zod 4.6.7  
+**Synced:** 2026-10-31  
 **App:** Vedic astrology (Jyotish) SaaS — birth charts, dashas, vargas, panchang, muhurta, CRM, admin  
 **Source of truth:** live codebase (`package.json`, `src/`, `proxy.ts`, `render.yaml`)
 
@@ -62,7 +63,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16.3 App Router |
+| Framework | Next.js 16.4.2 App Router |
 | Language | TypeScript 5.4+ · Node ≥ 24 |
 | UI | React 19, Radix, Framer Motion, Leaflet (ACG maps), Tailwind 4 |
 | Ephemeris | `sweph` + files in `./ephe` |
@@ -83,7 +84,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 
 ### Presentation (`src/app/`, `src/components/`)
 
-- ~43 App Router pages (home, chart, panchang, muhurta, compare, prashna, jaimini, sbc, acg, vastu, nakshatra, numerology, clients, account, admin, legal, etc.)
+- 52 App Router pages (home, chart, today, panchang, muhurta, compare, relationship, career, nadi, prashna, jaimini, sbc, acg, vastu, nakshatra, numerology, roadmap, scrubber, guides, clients, account, admin, legal, etc.)
 - Chart workspace panels, chakras, dashboards
 - Platinum Client CRM UI
 - Admin: users, charts, revenue, billing, audit, reel studio
@@ -97,11 +98,13 @@ Runs before matched requests (skips RSC/prefetch flight requests):
 2. Admin pages/APIs → require `role === 'admin'`
 3. Protected APIs → require session
 4. Gold APIs/pages → `getEffectivePlanForUserId` ≠ free (`/muhurta`, `/api/muhurta`, `/api/chart/export`)
-5. Platinum APIs/pages → platinum only (`/research`, `/api/research` — **reserved; UI not shipped**)
+5. Platinum APIs/pages → platinum only (`/research`, `/api/research` — **reserved; no route files and no UI**)
 6. Protected pages → login redirect
 7. `withDocumentCsp` — per-request CSP nonces
 
-Protected page prefixes include: `/chart`, `/my`, `/muhurta`, `/research`, `/account`.
+Protected page prefixes: `/chart`, `/my`, `/muhurta`, `/research`, `/account`.
+
+`PROTECTED_API` is a prefix list. `/api/subscription` therefore requires a session for pricing and coupon validate. `/api/chart/export` (Gold) also matches `/api/chart/export-xlsx`. `/api/milan/*` and `/api/marriage/gochar-windows` are gated in the route handlers, not in those proxy lists.
 
 ### API + security (`src/app/api/**`, `src/lib/security/**`)
 
@@ -120,7 +123,7 @@ Redis down → rate limits **fail open** (documented).
 
 ### Domain engine (`src/lib/engine/**`)
 
-~76 top-level modules + `dasha/` subsystems (pure). Orchestrator: `calculateChart()` in `calculator.ts`.
+153 top-level modules (229 files) plus `dasha/`, `jaimini/`, `nadi/`, `numerology/`, and `lagnaCharacterData/` (pure). Orchestrator: `calculateChart()` in `calculator.ts`.
 
 Approximate stages:
 
@@ -167,7 +170,8 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 | Charts | `/chart/[slug]`, calculate, save, public share, notes, relocate, varshaphal, ACG |
 | Panchang | `/panchang`, calendar, transit APIs |
 | Muhurta | `/muhurta` + `/api/muhurta/*` (Gold+) |
-| Compare / Milan | `/compare` — Ashtakoot, Porutham, dosha, charts, dasha, and panchang on Free; match-making, married life, All Sections, and print on Gold+ |
+| Compare / Milan | `/compare` — Ashtakoot, Porutham, dosha, charts, dasha, and panchang on Free; match-making, married life, All Sections, and print on Gold+. Saved matches: `/api/milan/save`, `/api/milan/list`, `/api/milan/[id]` (caps 20 / 200 / unlimited) |
+| Marriage transits | `GET /api/marriage/gochar-windows` — Gold+ Ju–Sa window scan |
 | Today | `/today` — personal daily reading for the loaded chart (noindex) |
 | Relationship and marriage | `/relationship` (noindex, needs a loaded chart) — D1 and score preview on Free; full reading on Gold+; extended divisionals on Platinum |
 | Career and profession | `/career` (noindex, needs a loaded chart) — scores on Free; full reading and professional method on Gold+ |
@@ -191,7 +195,7 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 
 ---
 
-## 7. API route inventory (55 handlers)
+## 7. API route inventory (63 handlers)
 
 ### Auth
 - `/api/auth/[...nextauth]`
@@ -202,6 +206,10 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 - `notes`, `template`, `relocate`, `varshaphal`, `astrocartography`
 - `export`, `export-xlsx`, `bulk-import`, `bulk-export`, `send-email`
 
+### Kundali Milan and marriage
+- `/api/milan/save`, `/api/milan/list`, `/api/milan/[id]`
+- `/api/marriage/gochar-windows`
+
 ### User / subscription / payment
 - `/api/user/me`, `account`, `export`, `default-chart`, `subscription`, `subscription/cancel`
 - `/api/subscription/pricing`, `coupon/validate`
@@ -209,7 +217,7 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 - `/api/webhooks/razorpay`
 
 ### Ephemeris / tools
-- `/api/panchang`, `/api/transit`, `/api/transits/planets`
+- `/api/panchang`, `/api/transit`, `/api/transit/sade-sati`, `/api/transit/aspects`, `/api/transit/moorthy`, `/api/transit/calendar` (Gold+), `/api/transits/planets`
 - `/api/muhurta/timeline`, `/api/muhurta/report`
 - `/api/atlas/search`
 - `/api/clients`, `/api/clients/[id]`
@@ -227,7 +235,8 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 |------------|------|-----------|
 | **User** | plan, `planExpiresAt`, prefs, devices (≤3), OAuth, brand (Platinum) | `defaultChartId` → Chart |
 | **Chart** | Birth data (string date/time), settings, slug, notes, tags | `userId`; `cachedDataId` → ChartCache |
-| **ChartCache** | Full `ChartOutput` blob | `chartId` → Chart |
+| **ChartCache** | Full `ChartOutput` blob (schema in `Chart.ts`) | `chartId` → Chart |
+| **KundaliMilan** | Saved match: both birth records, guna total, roles | `userId` → User. Own save cap |
 | **Client** | CRM profile, birth, remedies, sessions (Platinum) | `userId` = consultant |
 | **Subscription** | Billing lifecycle | User / Razorpay |
 | **BillingConfig** | Admin pricing / coupons | Pricing APIs |
@@ -243,7 +252,9 @@ Models: `src/lib/db/models/*`.
 |---------|------|------|----------|
 | Core chart calc | Yes | Yes | Yes |
 | Vargas | 16 | 16 | Full 41 |
-| Save limit | 20 | 200 | Unlimited |
+| Chart saves | 20 | 200 | Unlimited |
+| Kundali Milan saves | 20 | 200 | Unlimited |
+| Marriage gochar windows | No | Yes | Yes |
 | Public share | Yes | Yes | Yes |
 | PDF/HTML export | No | Yes | Yes |
 | Muhurta | No | Yes | Yes |
@@ -314,7 +325,7 @@ Production checklist: `docs/SECURITY_DEPLOY.md`.
 | `src/lib/db/` | Mongoose + connection |
 | `src/lib/pdf/` | HTML report builders |
 | `src/lib/reel/` | Reel helpers + ffmpeg bridge |
-| `src/lib/atlas/` | Coordinate helpers (+ optional local `.db`) |
+| `src/lib/atlas/` | Coordinate helpers (`coords.ts`). Place search is Photon / Open-Meteo / Nominatim plus Redis |
 | `src/lib/panchang/` | Panchang helpers beyond core engine |
 | `src/types/astrology.ts` | `GrahaId`, `Rashi`, `ChartOutput`, `UserPlan` |
 | `proxy.ts` | Edge auth / plan / CSP |
