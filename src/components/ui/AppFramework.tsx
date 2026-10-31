@@ -486,7 +486,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', background: 'transparent' }}>
+    <div className="app-shell">
       <style dangerouslySetInnerHTML={{ __html: progressKeyframes }} />
       <SkipLink targetId="main-content" />
       
@@ -604,7 +604,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, position: 'relative', overflow: 'hidden' }}>
+      <div className="app-shell-row">
         
         {/* ── Ambient background orbs ─────────────────────────── */}
         <div aria-hidden style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
@@ -790,14 +790,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           data-sidenav-open={isSidenavOpen}
           data-mobile-global-nav={showGlobalMobileNav ? 'true' : undefined}
           style={{
-            flex: 1, display: 'flex', flexDirection: 'column', position: 'relative',
-            zIndex: isFormOpen ? 1200 : 1, overflowY: 'auto', overflowX: 'hidden', minWidth: 0,
-            transition: 'margin-left 0.4s cubic-bezier(0.16,1,0.3,1)',
-            scrollBehavior: 'smooth'
+            zIndex: isFormOpen ? 1200 : 1,
           }}
         >
           {/* Dynamic Content */}
-          <div style={{ minHeight: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column' }}>
+          <div className="app-shell-page">
             {children}
           </div>
 

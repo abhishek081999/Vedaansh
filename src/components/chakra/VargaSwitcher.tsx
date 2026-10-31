@@ -418,7 +418,7 @@ export function VargaSwitcher({
                 </div>
               </div>
 
-              <div style={{ display:'flex', justifyContent:'center', flex: 1 }}>
+              <div className="varga-chart-frame">
                 {(() => {
                   const selectedHouse = selectedHouseByChart[name]
                   const dashaHouses = chart ? getDashaLordPlacementHouses(chart, grahas, varAscRashi) : []

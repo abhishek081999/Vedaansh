@@ -223,6 +223,7 @@ export function SouthIndianChakra({
   return (
     <>
     <svg
+      className="chakra-svg"
       viewBox={`0 0 ${size} ${size}`}
       width={size}
       height={size}
@@ -326,7 +327,6 @@ export function SouthIndianChakra({
                   fill="var(--chart-label-muted)"
                   fontFamily="var(--font-chart-planets)"
                   textAnchor="middle"
-                  fontStyle="italic"
                 >
                   {lagnas 
                     ? `AS ${Math.floor(lagnas.ascDegreeInRashi)}°${String(Math.floor((lagnas.ascDegreeInRashi % 1) * 60)).padStart(2, '0')}'` 
@@ -342,7 +342,6 @@ export function SouthIndianChakra({
                       fill="var(--text-muted)"
                       fontFamily="var(--font-chart-planets)"
                       textAnchor="middle"
-                      fontStyle="italic"
                     >
                       {NAKSHATRA_SHORT[ascNak.index]}{ascNak.pada}
                     </text>
@@ -409,7 +408,7 @@ export function SouthIndianChakra({
                       y={yPos + lineH * 0.9}
                       fontSize={degreeFont}
                       fill="var(--text-muted)"
-                      fontFamily="var(--font-mono)"
+                      fontFamily="var(--font-chart-mono)"
                     >
                       {deg}{kar}
                     </text>
@@ -421,7 +420,6 @@ export function SouthIndianChakra({
                       fontSize={degreeFont * 0.88}
                       fill="var(--text-muted)"
                       fontFamily="var(--font-chart-planets)"
-                      fontStyle="italic"
                     >
                       {g.nakshatraIndex !== undefined ? NAKSHATRA_SHORT[g.nakshatraIndex] : ''}{g.pada}
                     </text>
@@ -450,7 +448,6 @@ export function SouthIndianChakra({
                   fontSize={fs.arudha}
                   fill="var(--text-gold)"
                   fontFamily="var(--font-chart-planets)"
-                  fontStyle="italic"
                   fontWeight="var(--fw-bold)"
                 >
                   {textStr}
@@ -480,7 +477,7 @@ export function SouthIndianChakra({
             textAnchor="middle" dominantBaseline="middle"
             fontSize={tFs}
             fontWeight={700}
-            fontFamily="var(--font-mono)"
+            fontFamily="var(--font-chart-mono)"
             fill={tg.isRetro ? 'rgba(200,140,255,0.90)' : 'rgba(139,124,246,0.90)'}
             style={{ filter: 'drop-shadow(0 0 3px rgba(139,124,246,0.5))' }}
           >
