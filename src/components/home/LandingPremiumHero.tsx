@@ -4,10 +4,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronRight } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
-import { LandingProductMockup, type MockupSlideId } from '@/components/home/LandingProductMockup'
+import { LandingCosmicWheel, useTodaySky, type CosmicWheelVariant } from '@/components/home/LandingCosmicWheel'
 
 type HeroSlide = {
-  id: MockupSlideId
+  id: CosmicWheelVariant
   kicker: string
   title: string
   desc: string
@@ -84,6 +84,7 @@ export function LandingPremiumHero({
   const [active, setActive] = useState(0)
   const [prevActive, setPrevActive] = useState(0)
   const [reducedMotion, setReducedMotion] = useState(false)
+  const { sky, failed: skyFailed } = useTodaySky()
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -218,7 +219,7 @@ export function LandingPremiumHero({
             </div>
 
             <aside className="landing-premium-hero-visual">
-              <LandingProductMockup slideId={slide.id} accent={slide.accent} />
+              <LandingCosmicWheel variant={slide.id} accent={slide.accent} sky={sky} failed={skyFailed} />
             </aside>
           </article>
         </div>

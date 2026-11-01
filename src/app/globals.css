@@ -7795,20 +7795,6 @@ select.input {
   margin-left: auto;
 }
 
-.celestial-astrolabe {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.celestial-astrolabe-svg {
-  width: 100%;
-  height: 100%;
-}
-
 /* Glass premium cards */
 .landing-premium-card {
   border-radius: var(--r-md, 0.625rem) !important;
@@ -8295,7 +8281,7 @@ select.input {
 
   .landing-premium-hero-slide .landing-premium-hero-visual {
     order: 2;
-    max-width: min(68vw, 228px);
+    max-width: min(86vw, 330px);
     margin: 0.15rem auto 0;
   }
 
@@ -8385,85 +8371,6 @@ select.input {
   .landing-hero-carousel-tab-dot {
     width: 5px;
     height: 5px;
-  }
-
-  /* Product mockup — smaller, flatter, chart-only */
-  .landing-product-mockup {
-    max-width: min(68vw, 228px);
-    perspective: none;
-  }
-
-  .landing-product-mockup-ambient {
-    display: none;
-  }
-
-  .landing-product-mockup-frame {
-    transform: none;
-    border-radius: 10px;
-    box-shadow:
-      0 1px 3px rgba(15, 23, 42, 0.05),
-      0 10px 28px rgba(15, 23, 42, 0.08);
-  }
-
-  .landing-product-mockup:hover .landing-product-mockup-frame {
-    transform: none;
-  }
-
-  .landing-product-mockup-chrome {
-    padding: 0.38rem 0.5rem;
-    gap: 0.45rem;
-  }
-
-  .landing-product-mockup-dots span {
-    width: 5px;
-    height: 5px;
-  }
-
-  .landing-product-mockup-url {
-    font-size: 0.52rem;
-    padding: 0.2rem 0.4rem;
-  }
-
-  .landing-product-mockup-body {
-    padding: 0.45rem 0.5rem 0.55rem;
-  }
-
-  .landing-product-mockup-tabs {
-    margin-bottom: 0.4rem;
-    gap: 0.18rem;
-  }
-
-  .landing-product-mockup-tab {
-    font-size: 0.5rem;
-    padding: 0.16rem 0.36rem;
-  }
-
-  .landing-product-mockup-layout {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  .landing-product-mockup-sidebar {
-    display: none;
-  }
-
-  .landing-product-mockup-chart-wrap {
-    padding: 0.35rem;
-    border-radius: 6px;
-  }
-
-  .landing-product-mockup-chart-title {
-    font-size: 0.58rem;
-  }
-
-  .landing-product-mockup-badge {
-    font-size: 0.44rem;
-    padding: 0.08rem 0.28rem;
-  }
-
-  .landing-product-mockup-meta {
-    margin-top: 0.25rem;
-    font-size: 0.46rem;
   }
 
   /* Below-hero sections */
@@ -8556,9 +8463,8 @@ select.input {
 }
 
 @media (max-width: 380px) {
-  .landing-premium-hero-slide .landing-premium-hero-visual,
-  .landing-product-mockup {
-    max-width: min(74vw, 200px);
+  .landing-premium-hero-slide .landing-premium-hero-visual {
+    max-width: 88vw;
   }
 
   .landing-hero-carousel-tab {
@@ -8567,266 +8473,198 @@ select.input {
   }
 }
 
-/* ── Product mockup (hero visual) ───────────────────────────── */
+/* ── Cosmic wheel (hero visual) ─────────────────────────────── */
 
-.landing-product-mockup {
-  position: relative;
+.cosmic-wheel {
+  --cw-line: var(--cw-accent);
+  --cw-disc-1: #2a2352;
+  --cw-disc-2: #15122f;
+  --cw-disc-3: #0a0919;
+  --cw-rim-hi: #ffe9a8;
+  --cw-rim-lo: #8a6f2e;
+  --cw-hub: rgba(13, 12, 32, 0.72);
+  --cw-band: rgba(255, 255, 255, 0.55);
+  --cw-star: #ffffff;
+  --cw-ink: #ffffff;
+  --cw-ink-soft: #e9dfc0;
+  --cw-ink-muted: #cfc7e8;
+  --cw-on-active: #14112b;
+  --cw-moon-dark: #191733;
+  --cw-moon-edge: rgba(255, 255, 255, 0.28);
+  --cw-moon-lit: #fbf4d9;
+  --cw-shukla-fill: rgba(255, 241, 196, 0.22);
+  --cw-krishna-fill: rgba(0, 0, 0, 0.42);
+  --cw-shukla-ink: #fff1c4;
+  --cw-shadow: rgba(20, 14, 52, 0.34);
+  --cw-graha-su: #ffb454;
+  --cw-graha-mo: #eef2ff;
+  --cw-graha-ma: #ff7a6b;
+  --cw-graha-me: #6fe0a4;
+  --cw-graha-ju: #ffd95e;
+  --cw-graha-ve: #f7a8e0;
+  --cw-graha-sa: #8fb0ff;
+  --cw-graha-ra: #b79cff;
+  --cw-graha-ke: #d8a27a;
   width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  perspective: 1200px;
+  margin: 0;
 }
 
-.landing-product-mockup-ambient {
-  position: absolute;
-  inset: -18% -12%;
-  opacity: 0.45;
-  pointer-events: none;
-  z-index: 0;
-  filter: blur(1px);
+[data-theme='light'] .cosmic-wheel,
+[data-theme='classic'] .cosmic-wheel {
+  --cw-band: rgba(120, 90, 30, 0.42);
+  --cw-star: #b08a3c;
+  --cw-on-active: #ffffff;
+  --cw-moon-dark: #3f3657;
+  --cw-moon-edge: rgba(60, 40, 20, 0.45);
+  --cw-moon-lit: #fff6d6;
+  --cw-krishna-fill: rgba(50, 35, 70, 0.14);
+  --cw-graha-su: #c2570c;
+  --cw-graha-mo: #475569;
+  --cw-graha-ma: #c81e1e;
+  --cw-graha-me: #15803d;
+  --cw-graha-ju: #a16207;
+  --cw-graha-ve: #be185d;
+  --cw-graha-sa: #1d4ed8;
+  --cw-graha-ra: #6d28d9;
+  --cw-graha-ke: #92400e;
 }
 
-.landing-product-mockup-ambient .celestial-astrolabe-svg {
-  animation: spin-clockwise 160s linear infinite;
+[data-theme='light'] .cosmic-wheel {
+  --cw-line: color-mix(in oklab, var(--cw-accent) 72%, #3a2408);
+  --cw-disc-1: #fffaf0;
+  --cw-disc-2: #fbf1dc;
+  --cw-disc-3: #f0dfba;
+  --cw-rim-hi: #e9c46a;
+  --cw-rim-lo: #8a6400;
+  --cw-hub: rgba(255, 252, 244, 0.86);
+  --cw-ink: #2a1c08;
+  --cw-ink-soft: #4a3714;
+  --cw-ink-muted: #6b5a3a;
+  --cw-shukla-fill: rgba(217, 165, 40, 0.28);
+  --cw-shukla-ink: #7a5500;
+  --cw-shadow: rgba(120, 85, 20, 0.26);
 }
 
-.landing-product-mockup-frame {
-  position: relative;
-  z-index: 1;
-  border-radius: 14px;
-  border: 1px solid var(--border-bright);
-  background: color-mix(in oklab, var(--surface-1) 94%, var(--gold-faint) 6%);
-  box-shadow:
-    0 2px 4px rgba(15, 23, 42, 0.04),
-    0 20px 50px rgba(15, 23, 42, 0.12),
-    0 0 0 1px color-mix(in oklab, var(--gold) 8%, transparent);
-  overflow: hidden;
-  transform: rotateY(-6deg) rotateX(4deg);
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease;
+[data-theme='classic'] .cosmic-wheel {
+  --cw-line: color-mix(in oklab, var(--cw-accent) 45%, #8c0030);
+  --cw-band: rgba(140, 0, 48, 0.32);
+  --cw-disc-1: #ffffff;
+  --cw-disc-2: #fffdf3;
+  --cw-disc-3: #f8efe6;
+  --cw-rim-hi: #b5476f;
+  --cw-rim-lo: #8c0030;
+  --cw-hub: rgba(255, 255, 250, 0.9);
+  --cw-star: #b5476f;
+  --cw-ink: #3a0a1c;
+  --cw-ink-soft: #5c1a30;
+  --cw-ink-muted: #7a5a64;
+  --cw-shukla-fill: rgba(140, 0, 48, 0.12);
+  --cw-shukla-ink: #8c0030;
+  --cw-shadow: rgba(140, 0, 48, 0.2);
 }
 
-.landing-product-mockup:hover .landing-product-mockup-frame {
-  transform: rotateY(-2deg) rotateX(2deg) translateY(-4px);
-  box-shadow:
-    0 4px 8px rgba(15, 23, 42, 0.06),
-    0 28px 60px color-mix(in oklab, var(--gold) 14%, rgba(15, 23, 42, 0.14));
-}
-
-.landing-product-mockup-chrome {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 0.75rem;
-  border-bottom: 1px solid var(--border-soft);
-  background: color-mix(in oklab, var(--surface-2) 80%, transparent);
-}
-
-.landing-product-mockup-dots {
-  display: flex;
-  gap: 0.3rem;
-}
-
-.landing-product-mockup-dots span {
-  width: 7px;
-  height: 7px;
+.cosmic-wheel-svg {
+  display: block;
+  width: 100%;
+  height: auto;
   border-radius: 50%;
-  background: color-mix(in oklab, var(--text-muted) 55%, transparent);
+  filter:
+    drop-shadow(0 18px 38px var(--cw-shadow))
+    drop-shadow(0 0 26px color-mix(in oklab, var(--cw-accent) 30%, transparent));
 }
 
-.landing-product-mockup-dots span:nth-child(1) { background: #ff6b6b; opacity: 0.75; }
-.landing-product-mockup-dots span:nth-child(2) { background: #fbbf24; opacity: 0.75; }
-.landing-product-mockup-dots span:nth-child(3) { background: #34d399; opacity: 0.75; }
-
-.landing-product-mockup-url {
-  flex: 1;
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  padding: 0.28rem 0.55rem;
-  border-radius: 5px;
-  border: 1px solid var(--border-soft);
-  background: color-mix(in oklab, var(--surface-1) 70%, transparent);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.cosmic-wheel-ring-text,
+.cosmic-wheel-center-text {
+  font-family: var(--font-body);
+  user-select: none;
 }
 
-.landing-product-mockup-body {
-  padding: 0.65rem 0.7rem 0.75rem;
-}
-
-.landing-product-mockup-tabs {
-  display: flex;
-  gap: 0.25rem;
-  margin-bottom: 0.55rem;
-}
-
-.landing-product-mockup-tab {
-  font-size: 0.58rem;
+.cosmic-wheel-ring-text {
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0.22rem 0.5rem;
-  border-radius: 5px;
-  color: var(--text-muted);
-  border: 1px solid transparent;
+  letter-spacing: 0.02em;
 }
 
-.landing-product-mockup-tab.is-active {
-  color: var(--text-gold);
-  border-color: color-mix(in oklab, var(--gold) 35%, var(--border));
-  background: color-mix(in oklab, var(--gold-faint) 80%, transparent);
+.cosmic-wheel-spin-slow {
+  transform-origin: 200px 200px;
+  animation: spin-clockwise 180s linear infinite;
 }
 
-.landing-product-mockup-layout {
-  display: grid;
-  grid-template-columns: 1fr 0.72fr;
-  gap: 0.5rem;
+.cosmic-wheel-breathe {
+  transform-origin: 200px 200px;
+  animation: astrolabe-glow-pulse 6s ease-in-out infinite alternate;
 }
 
-.landing-product-mockup-chart-wrap {
-  padding: 0.45rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-soft);
-  background: color-mix(in oklab, var(--surface-0, var(--surface-1)) 60%, transparent);
+.cosmic-wheel-star {
+  animation: star-blink 4s ease-in-out infinite;
 }
 
-.landing-product-mockup-chart-header {
+.cosmic-wheel-pulse {
+  animation: cosmic-wheel-pulse 2.4s ease-in-out infinite;
+}
+
+.cosmic-wheel-graha {
+  animation: cosmic-wheel-fade 0.7s ease both;
+}
+
+@keyframes cosmic-wheel-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.62; }
+}
+
+@keyframes cosmic-wheel-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cosmic-wheel-caption {
+  margin-top: 0.8rem;
+  text-align: center;
+}
+
+.cosmic-wheel-facts {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 1.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.landing-product-mockup-chart-title {
-  font-family: var(--font-display);
-  font-size: 0.68rem;
+.cosmic-wheel-facts li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.cosmic-wheel-fact-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cosmic-wheel-fact-value {
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.landing-product-mockup-badge {
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0.12rem 0.35rem;
-  border-radius: 999px;
-  color: var(--text-gold);
-  border: 1px solid color-mix(in oklab, var(--gold) 40%, var(--border));
-  background: color-mix(in oklab, var(--gold-faint) 70%, transparent);
-}
-
-.landing-mockup-chart-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  color: var(--gold);
-}
-
-.landing-ni-mock-chart {
-  padding: 0.15rem 0;
-}
-
-.landing-ni-mock-sign {
-  font-family: var(--font-mono, monospace);
-  font-size: 4.2px;
-  font-weight: 600;
-  fill: var(--chart-sign-green, #5a9e6f);
-  opacity: 0.9;
-}
-
-.landing-ni-mock-sign.is-lagna {
-  fill: var(--text-gold);
-}
-
-.landing-ni-mock-planet {
-  font-family: var(--font-chart-planets, var(--font-body));
-  font-size: 4.8px;
-  font-weight: 600;
-}
-
-.landing-ni-mock-retro {
-  font-size: 3px;
-  fill: var(--text-muted);
-}
-
-.landing-mockup-planet-bg {
-  fill: color-mix(in oklab, var(--gold-faint) 90%, var(--surface-2));
-  stroke: color-mix(in oklab, var(--gold) 45%, transparent);
-  stroke-width: 0.4;
-}
-
-.landing-mockup-planet-label {
-  font-size: 3.2px;
-  font-weight: 700;
-  fill: var(--text-gold);
-  font-family: var(--font-body);
-}
-
-.landing-mockup-house-label {
-  font-size: 2.8px;
-  font-weight: 600;
-  fill: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-family: var(--font-body);
-}
-
-.landing-product-mockup-meta {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.35rem;
-  font-size: 0.52rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+.cosmic-wheel-source {
+  margin: 0.4rem 0 0;
+  font-size: 0.66rem;
   color: var(--text-muted);
 }
 
-.landing-product-mockup-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 0.28rem;
-  padding: 0.4rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-soft);
-  background: color-mix(in oklab, var(--surface-2) 50%, transparent);
-}
-
-.landing-product-mockup-sidebar-label {
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 0.15rem;
-}
-
-.landing-product-mockup-dasha {
-  display: flex;
-  flex-direction: column;
-  gap: 0.05rem;
-  padding: 0.28rem 0.35rem;
-  border-radius: 5px;
-  border: 1px solid transparent;
-}
-
-.landing-product-mockup-dasha.is-active {
-  border-color: color-mix(in oklab, var(--gold) 40%, var(--border));
-  background: color-mix(in oklab, var(--gold-faint) 75%, transparent);
-}
-
-.landing-product-mockup-dasha-planet {
-  font-size: 0.58rem;
-  font-weight: 700;
-  color: var(--text-gold);
-  font-family: var(--font-mono, monospace);
-}
-
-.landing-product-mockup-dasha-period {
-  font-size: 0.48rem;
-  color: var(--text-muted);
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-wheel-spin-slow,
+  .cosmic-wheel-breathe,
+  .cosmic-wheel-star,
+  .cosmic-wheel-pulse,
+  .cosmic-wheel-graha {
+    animation: none !important;
+  }
 }
 
 /* ── Dark mode premium pass ─────────────────────────────────── */
@@ -8866,36 +8704,6 @@ select.input {
 
 [data-theme='dark'] .landing-ambient-orb {
   opacity: 0.42;
-}
-
-[data-theme='dark'] .landing-product-mockup-frame {
-  background: color-mix(in oklab, var(--surface-2) 88%, rgba(201, 168, 76, 0.04));
-  border-color: color-mix(in oklab, var(--gold) 28%, var(--border));
-  box-shadow:
-    0 0 0 1px rgba(201, 168, 76, 0.06),
-    0 20px 50px rgba(0, 0, 0, 0.45),
-    0 0 80px rgba(139, 124, 246, 0.08);
-}
-
-[data-theme='dark'] .landing-product-mockup:hover .landing-product-mockup-frame {
-  box-shadow:
-    0 0 0 1px rgba(201, 168, 76, 0.14),
-    0 28px 60px rgba(0, 0, 0, 0.55),
-    0 0 100px rgba(201, 168, 76, 0.1);
-}
-
-[data-theme='dark'] .landing-product-mockup-ambient {
-  opacity: 0.55;
-}
-
-[data-theme='dark'] .landing-product-mockup-chrome {
-  background: color-mix(in oklab, var(--surface-3) 70%, transparent);
-}
-
-[data-theme='dark'] .landing-product-mockup-chart-wrap,
-[data-theme='dark'] .landing-product-mockup-sidebar {
-  background: color-mix(in oklab, var(--surface-1) 65%, transparent);
-  border-color: color-mix(in oklab, var(--gold) 12%, var(--border));
 }
 
 [data-theme='dark'] .landing-premium-card {
@@ -8965,15 +8773,6 @@ select.input {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-product-mockup-frame,
-  .landing-product-mockup-ambient .celestial-astrolabe-svg {
-    transform: none !important;
-    animation: none !important;
-    transition: none !important;
-  }
 }
 
 /* ── Production UI primitives ───────────────────────────────── */
