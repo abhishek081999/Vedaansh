@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────
-//  proxy.ts (Next.js 16)
+//  src/proxy.ts (Next.js 16)
 //  Request proxy — auth checks + tier-based feature gating
-//  Runs before every request on protected routes
+//  Must live in src/ because the app is in src/app: Next.js does
+//  not pick up a root-level proxy.ts in that layout.
 // ─────────────────────────────────────────────────────────────
 
 import { auth } from '@/auth'
@@ -10,87 +11,30 @@ import { getEffectivePlanForUserId } from '@/lib/security/planAccess'
 import { abuseLimits, rateLimitMessages, RATE_LIMIT_WINDOWS } from '@/lib/security/rateLimitPolicy'
 import { logSecurityEvent } from '@/lib/security/events'
 import { withDocumentCsp } from '@/lib/security/csp'
+import { classifyProxyPath, isAuthSigninPost } from '@/lib/security/proxyRules'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Routes that require authentication
-const PROTECTED_ROUTES = [
-  '/chart',
-  '/my',
-  '/muhurta',
-  '/research',
-  '/account',
-]
-
-// API routes that require authentication (defense in depth with per-route checks)
-const PROTECTED_API = [
-  '/api/chart/save',
-  '/api/chart/delete',
-  '/api/chart/list',
-  '/api/chart/search',
-  '/api/chart/notes',
-  '/api/chart/bulk-import',
-  '/api/chart/bulk-export',
-  '/api/chart/export-xlsx',
-  '/api/chart/toggle-public',
-  '/api/chart/send-email',
-  '/api/chart/template',
-  '/api/chart/relocate',
-  '/api/chart/astrocartography',
-  '/api/chart/varshaphal',
-  '/api/user',
-  '/api/subscription',
-  '/api/muhurta',
-  '/api/research',
-  '/api/clients',
-  '/api/payment/checkout',
-  '/api/payment/verify',
-]
-
-// Routes requiring Gold+ plan
-const GOLD_ROUTES = ['/muhurta']
-const GOLD_API    = ['/api/muhurta', '/api/chart/export']
-
-// Routes requiring Platinum plan
-const PLATINUM_ROUTES  = ['/research']
-const PLATINUM_API     = ['/api/research']
-
-// Admin-only routes (defense in depth — layout also guards pages)
-const ADMIN_ROUTES = ['/admin']
-const ADMIN_API    = ['/api/admin']
-
-/** App Router RSC/prefetch — must not rewrite request headers (Next 16 router-state parsing). */
-function isAppRouterFlightRequest(req: NextRequest): boolean {
-  return (
-    req.headers.get('RSC') === '1' ||
-    req.headers.get('Next-Router-Prefetch') === '1' ||
-    req.headers.get('Next-HMR-Refresh') === '1' ||
-    req.nextUrl.searchParams.has('_rsc')
-  )
+/**
+ * Same-host URL for redirects. Auth.js rewrites req.url from AUTH_URL, which would
+ * send local and dev.vedaansh.com visitors to production.
+ */
+function sameHostUrl(req: NextRequest, path: string): URL {
+  const url = new URL(path, req.url)
+  const host = req.headers.get('host')
+  if (host) url.host = host
+  const proto = req.headers.get('x-forwarded-proto')?.split(',')[0]?.trim()
+  if (proto === 'http' || proto === 'https') url.protocol = proto
+  return url
 }
 
 export default auth(async (req: NextRequest & { auth: any }) => {
-  // Skip proxy for flight requests — auth/CSP run on full document loads only
-  if (isAppRouterFlightRequest(req)) {
-    return NextResponse.next()
-  }
-
   const { pathname } = req.nextUrl
   const session      = req.auth
+  const route        = classifyProxyPath(pathname)
 
-  // ── Brute-force guard on NextAuth POST endpoints ──────────
-  const AUTH_POST_RATE_LIMIT_EXCLUDED = [
-    '/api/auth/signup',
-    '/api/auth/forgot-password',
-    '/api/auth/reset-password',
-    '/api/auth/verify',
-  ]
-  const shouldRateLimitAuthPost =
-    req.method === 'POST' &&
-    pathname.startsWith('/api/auth/') &&
-    !AUTH_POST_RATE_LIMIT_EXCLUDED.some((p) => pathname.startsWith(p))
-
-  if (shouldRateLimitAuthPost) {
+  // ── Brute-force guard on sign-in endpoints ────────────────
+  if (isAuthSigninPost(req.method, pathname)) {
     const blocked = await applyRouteSecurity(req, {
       rateLimit: {
         bucket: 'auth-signin',
@@ -107,34 +51,30 @@ export default auth(async (req: NextRequest & { auth: any }) => {
   }
 
   // ── Admin route protection ────────────────────────────────
-  const isAdminPage = ADMIN_ROUTES.some((p) => pathname.startsWith(p))
-  const isAdminApi  = ADMIN_API.some((p) => pathname.startsWith(p))
-  if (isAdminPage || isAdminApi) {
+  if (route.isAdminPage || route.isAdminApi) {
     if (!session?.user) {
-      if (isAdminApi) {
+      if (route.isAdminApi) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
-      const loginUrl = new URL('/login', req.url)
+      const loginUrl = sameHostUrl(req, '/login')
       loginUrl.searchParams.set('callbackUrl', pathname)
       return NextResponse.redirect(loginUrl)
     }
     if (session.user.role !== 'admin') {
-      if (isAdminApi) {
+      if (route.isAdminApi) {
         return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 })
       }
-      return NextResponse.redirect(new URL('/', req.url))
+      return NextResponse.redirect(sameHostUrl(req, '/'))
     }
   }
 
   // ── API route protection ──────────────────────────────────
-  const isProtectedApi = PROTECTED_API.some((p) => pathname.startsWith(p))
-  if (isProtectedApi && !session?.user) {
+  if (route.isProtectedApi && !session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   // ── Gold API gating ───────────────────────────────────────
-  const isGoldApi = GOLD_API.some((p) => pathname.startsWith(p))
-  if (isGoldApi && session?.user?.id) {
+  if (route.isGoldApi && session?.user?.id) {
     const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan === 'free') {
       return NextResponse.json(
@@ -145,8 +85,7 @@ export default auth(async (req: NextRequest & { auth: any }) => {
   }
 
   // ── Platinum API gating ───────────────────────────────────
-  const isPlatinumApi = PLATINUM_API.some((p) => pathname.startsWith(p))
-  if (isPlatinumApi && session?.user?.id) {
+  if (route.isPlatinumApi && session?.user?.id) {
     const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan !== 'platinum') {
       return NextResponse.json(
@@ -157,33 +96,30 @@ export default auth(async (req: NextRequest & { auth: any }) => {
   }
 
   // ── Page route protection ─────────────────────────────────
-  const isProtectedPage = PROTECTED_ROUTES.some((p) => pathname.startsWith(p))
-  if (isProtectedPage && !session?.user) {
-    const loginUrl = new URL('/login', req.url)
+  if (route.isProtectedPage && !session?.user) {
+    const loginUrl = sameHostUrl(req, '/login')
     loginUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
   // ── Gold page gating ──────────────────────────────────────
-  const isGoldPage = GOLD_ROUTES.some((p) => pathname.startsWith(p))
-  if (isGoldPage && session?.user?.id) {
+  if (route.isGoldPage && session?.user?.id) {
     const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan === 'free') {
-      const upgradeUrl = new URL('/account?upgrade=gold', req.url)
-      return NextResponse.redirect(upgradeUrl)
+      return NextResponse.redirect(sameHostUrl(req, '/account?upgrade=gold'))
     }
   }
 
   // ── Platinum page gating ──────────────────────────────────
-  const isPlatinumPage = PLATINUM_ROUTES.some((p) => pathname.startsWith(p))
-  if (isPlatinumPage && session?.user?.id) {
+  if (route.isPlatinumPage && session?.user?.id) {
     const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan !== 'platinum') {
-      const upgradeUrl = new URL('/account?upgrade=platinum', req.url)
-      return NextResponse.redirect(upgradeUrl)
+      return NextResponse.redirect(sameHostUrl(req, '/account?upgrade=platinum'))
     }
   }
 
+  // Flight requests skip only the CSP step below: their headers are client-supplied,
+  // so they must never skip the gates above.
   return withDocumentCsp(req, pathname)
 })
 

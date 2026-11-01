@@ -11,6 +11,7 @@ import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
+import { requirePlanGate } from '@/lib/security/planAccess'
 
 export const runtime = 'nodejs'
 
@@ -35,6 +36,9 @@ export async function GET(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 })
   }
+
+  const planBlocked = await requirePlanGate(session.user.id, 'gold')
+  if (planBlocked) return planBlocked
 
   await connectDB()
 

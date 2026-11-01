@@ -8,6 +8,10 @@ export type SecurityEventName =
   | 'auth_signin_rate_limited'
   | 'login_account_locked'
   | 'body_too_large'
+  | 'webhook_activation_rejected'
+  | 'payment_plan_unchanged'
+  | 'payment_revoke_unmatched'
+  | 'payment_revoke_plan_kept'
 
 export function logSecurityEvent(
   event: SecurityEventName,

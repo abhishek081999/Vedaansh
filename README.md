@@ -31,7 +31,7 @@ A full-featured Vedic astrology (Jyotish) web platform in TypeScript: arc-second
 | Email | Resend | ^3.2.0 |
 | Testing | Vitest | ^4.1.8 |
 | Deploy | Render (`render.yaml`) | see [docs/SECURITY_DEPLOY.md](docs/SECURITY_DEPLOY.md) |
-| Edge / gates | `proxy.ts` | Auth, plan routes, CSP nonces |
+| Edge / gates | `src/proxy.ts` | Auth, plan routes, CSP nonces |
 
 ---
 
@@ -59,7 +59,7 @@ Everything in Free, plus:
 | Feature | Detail |
 |---|---|
 | **Chart library** | Save up to **200** charts and **200** Kundali Milan matches |
-| **PDF / HTML export** | `/api/chart/export` (also gated in `proxy.ts`) |
+| **PDF / HTML export** | `/api/chart/export` (also gated in `src/proxy.ts`) |
 | **Muhurta** | Full `/muhurta` + `/api/muhurta/*` (Gold+) |
 | **UI depth** | Full dasha “More”, Cosmic Weather, Vastu, SBC, Prashna Kerala/Vedic/KP, Nakshatra profession/medical, planetary panels, relationship and marriage, career and profession, Naamkaran (full), Kundali Milan match-making, married life, All Sections, and print (see matrix) |
 
@@ -75,7 +75,7 @@ Everything in Gold, plus:
 | **Client CRM** | `/clients` + `/api/clients` |
 | **Email charts** | `/api/chart/send-email` |
 | **Bulk ZIP export** | `/api/chart/bulk-export` |
-| **Research** | `/research` + `/api/research` reserved in `proxy.ts` — **no route files and no UI** |
+| **Research** | `/research` + `/api/research` reserved in `src/proxy.ts` — **no route files and no UI** |
 
 Bulk XLSX import is available to any authenticated user until the plan save cap is reached.
 
@@ -128,7 +128,6 @@ Vedaansh/
 ├── docs/                    # Full documentation set
 ├── ephe/                    # Swiss Ephemeris .se1 files
 ├── remotion/                # Reel compositions
-├── proxy.ts                 # Auth / plan / CSP (Next.js 16)
 ├── render.yaml              # Render deploy
 ├── AGENTS.md                # Agent conventions
 ├── SUBSCRIPTION_MATRIX.md
@@ -147,9 +146,9 @@ Notable:
 | Route | Notes |
 |---|---|
 | `POST /api/chart/calculate` | Optional auth; Redis cache; plan filters vargas |
-| `POST /api/chart/save` | Session required by `proxy.ts`; soft save-cap by plan |
+| `POST /api/chart/save` | Session required by `src/proxy.ts`; soft save-cap by plan |
 | `POST /api/milan/save` · `GET /api/milan/list` · `GET/DELETE /api/milan/[id]` | Saved Kundali Milan; same caps as charts |
-| `GET /api/marriage/gochar-windows` | **Gold+** (route gate; not in `proxy.ts` `GOLD_API`) |
+| `GET /api/marriage/gochar-windows` | **Gold+** (route gate; not in `src/proxy.ts` `GOLD_API`) |
 | `POST /api/chart/export` | **Gold+** |
 | `POST /api/chart/send-email` | **Platinum** |
 | `POST /api/chart/bulk-export` | **Platinum** |

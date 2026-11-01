@@ -32,7 +32,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     page('/panchang', 0.9, 'daily'),
     page('/panchang/calendar', 0.8, 'daily'),
     page('/nakshatra', 0.8, 'weekly'),
-    page('/muhurta', 0.8, 'weekly'),
     page('/compare', 0.75, 'monthly'),
     page('/jaimini', 0.75, 'monthly'),
     page('/nadi', 0.75, 'monthly'),

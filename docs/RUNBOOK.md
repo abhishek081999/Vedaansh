@@ -63,7 +63,9 @@ After calc, `cleanupEphemeris()` must re-set `EPHE_PATH` after `swe_close()` or 
 
 - Missing `RAZORPAY_WEBHOOK_SECRET` in production → **503**.
 - Invalid signature → logged as `webhook_signature_invalid`.
-- Replay dedupe window ~6h — duplicate events ignored.
+- Replay dedupe window ~6h. An event is marked seen only after it succeeds, so retries of failed deliveries are processed.
+- Subscribe the webhook to `payment.captured`, `refund.processed`, and `payment.dispute.lost` in the Razorpay dashboard.
+- A full refund or lost dispute marks the Subscription `refunded` and removes the plan. `payment_revoke_plan_kept` means a later purchase or admin change owns the plan, so review it by hand.
 
 ### Payments verify fail
 
@@ -83,7 +85,7 @@ After calc, `cleanupEphemeris()` must re-set `EPHE_PATH` after `swe_close()` or 
 
 ### Pricing request returns 401 while signed out
 
-`proxy.ts` puts `/api/subscription` on `PROTECTED_API`, so `/api/subscription/pricing` and `/api/subscription/coupon/validate` require a session before the handler runs. The handler for pricing does not call `auth()` itself. `/pricing` still requests that endpoint.
+`/api/subscription/pricing` and `/api/subscription/coupon/validate` are public, so the pricing page works logged out.
 
 ### CSRF / origin blocked (`csrf_blocked`)
 

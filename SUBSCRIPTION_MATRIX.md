@@ -16,12 +16,12 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Core chart calculation | Yes | Yes | Yes | `src/app/api/chart/calculate/route.ts` |
 | Varga charts | 16 Shodashavarga | 16 Shodashavarga | Full 41-suite | `src/lib/engine/vargas.ts` (`PLATINUM_VARGAS`), `VargaSwitcher`, `filterChartVargasForPlan` |
 | Save charts (library limit) | 20 | 200 | Unlimited | `src/lib/subscription/entitlements.ts`, `src/app/api/chart/save/route.ts`, `src/app/api/chart/bulk-import/route.ts` |
-| Save Kundali Milan | 20 | 200 | Unlimited | `src/app/api/milan/save/route.ts` — separate cap, same numbers as chart saves. List and delete: `/api/milan/list`, `/api/milan/[id]`. Session is in the handler; these paths are not in `proxy.ts` `PROTECTED_API` |
+| Save Kundali Milan | 20 | 200 | Unlimited | `src/app/api/milan/save/route.ts` — separate cap, same numbers as chart saves. List and delete: `/api/milan/list`, `/api/milan/[id]`. Session is in the handler; these paths are not in `src/proxy.ts` `PROTECTED_API` |
 | Public chart share links | Yes | Yes | Yes | `src/app/api/chart/public/route.ts`, `src/app/api/chart/toggle-public/route.ts` |
 | Chart library search | Yes | Yes | Yes | `src/app/api/chart/search/route.ts` |
-| Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts`, `proxy.ts` (`/api/chart/export`) — includes Gochar Phala chapter |
-| Export chart (XLSX) | No | Yes | Yes | `src/app/api/chart/export-xlsx/route.ts` checks session. `proxy.ts` Gold prefix `/api/chart/export` also matches this path |
-| Marriage gochar windows | No | Yes | Yes | `GET /api/marriage/gochar-windows` — `requirePlanGate('gold')`. Not listed in `proxy.ts` `GOLD_API` |
+| Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts`, `src/proxy.ts` (`/api/chart/export`) — includes Gochar Phala chapter |
+| Export chart (XLSX) | No | Yes | Yes | `src/app/api/chart/export-xlsx/route.ts` (`requirePlanGate`), `src/proxy.ts` |
+| Marriage gochar windows | No | Yes | Yes | `GET /api/marriage/gochar-windows` — `requirePlanGate('gold')`. Not listed in `src/proxy.ts` `GOLD_API` |
 | Transit hub advanced (Sade Sati, Aspects, Bi-wheel, Calendar) | Roadmap + Live Transit only | Yes | Yes | UI: `TransitHub` PlanGate; API: `/api/transit/calendar` (Gold+) |
 | Bulk XLSX import | Yes* | Yes* | Yes* | `src/app/api/chart/bulk-import/route.ts` — subject to save limits, not plan tier in API |
 | Email chart reports | No | No | Yes | `src/app/api/chart/send-email/route.ts` |
@@ -29,7 +29,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Client CRM list/create | No | No | Yes | `src/app/api/clients/route.ts` |
 | Client CRM item ops (GET/PATCH/POST/DELETE) | No | No | Yes | `src/app/api/clients/[id]/route.ts` |
 | White-label brand fields | No | No | Yes | `src/app/api/user/me/route.ts`, `src/app/api/chart/public/route.ts`, export/email branding |
-| Muhurta pages/APIs | No | Yes | Yes | `proxy.ts` (`/muhurta`, `/api/muhurta`) |
+| Muhurta pages/APIs | No | Yes | Yes | `src/proxy.ts` (`/muhurta`, `/api/muhurta`) |
 | Vimshottari MD/AD full interpretation (“More”) | Teaser only | Yes | Yes | UI: `DashaInterpretationPanel` (`userPlan` / Gold+) |
 | Tattva Prediction (trikona map, Agni/Artha/Vayu/Moksha, Active/Reactive spice, Moon gate, house×karaka×rashi composer) | Overview teaser (also on public `/chart/[slug]`) | Yes | Yes | UI: `TattvaPredictionPanel` / Core Analysis → Tattva; dasha strip in `DashaInterpretationPanel`; public tab teaser |
 | Naamkaran (classical janma-naam — Moon pada, gender syllable parity, Karakamsha Ishta; Rashi naam and two-name on Gold; Shadbala/Navtara checks) | Moon-pada letter + syllable count | Yes | Yes | UI: `NaamkaranPanel` / Core Analysis → Naamkaran (`planMeetsUiGate`, Gold+) |
@@ -49,7 +49,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Kundali Milan match-making | Headline, lagna, and summary | Steps, four pillars, division overlay | Same as Gold | UI: `MilanMatchMakingPanel` (Gold+) |
 | Kundali Milan married life | Summary, Moon, 4th, 10th, and five scores | Cross-chart reading, houses, partner, separation, timing | Same as Gold | UI: `MilanMarriedLifePanel` (Gold+) |
 | Kundali Milan All Sections and print | Hidden | Yes | Yes | UI: `compare/page.tsx` (`fullMilan`, Gold+) |
-| Research pages/APIs | No | No | Yes | `proxy.ts` (`/research`, `/api/research`) — prefixes reserved; no route files and no UI |
+| Research pages/APIs | No | No | Yes | `src/proxy.ts` (`/research`, `/api/research`) — prefixes reserved; no route files and no UI |
 
 \*Bulk import is available to any authenticated user until the plan’s chart save cap is reached.
 
@@ -58,4 +58,5 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 - Paid plans automatically downgrade to Free behavior after `planExpiresAt` (`getEffectivePlan` in `entitlements.ts`).
 - Plan names are canonicalized to: `free`, `gold`, `platinum`.
 - Live checkout: Razorpay (`/api/payment/checkout`, `/api/payment/verify`, `/api/webhooks/razorpay`). Stripe fields exist on `User` / `Subscription` models for future use.
-- `proxy.ts` session and Gold prefixes are broader than some handler checks. `/api/subscription` requires a session (including pricing). `/api/chart/export` (Gold) also covers XLSX export. Milan and marriage gochar gates live in the route handlers.
+- Route lists for `src/proxy.ts` live in `src/lib/security/proxyRules.ts`. `/api/subscription/*` is public. Milan and marriage gochar gates live in the route handlers.
+- Early renewals extend the current period. An upgrade starts immediately. Platinum users cannot buy Gold. Full refunds and lost disputes remove the plan.

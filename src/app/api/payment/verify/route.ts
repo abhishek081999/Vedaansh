@@ -2,11 +2,12 @@
 //  src/app/api/payment/verify/route.ts
 //  POST /api/payment/verify
 //  Called by the Razorpay modal handler after payment.
-//  Verifies the HMAC signature, creates a Subscription doc,
-//  and upgrades user.plan in MongoDB.
+//  Verifies the HMAC signature and the amount, captures the payment
+//  if needed, then activates the plan.
 //
 //  This is the synchronous activation path. The webhook at
-//  /api/webhooks/razorpay handles async retry/renewal events.
+//  /api/webhooks/razorpay covers payments this route never sees.
+//  Both use activatePayment(), which is safe to run twice.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -14,13 +15,11 @@ import { z } from 'zod'
 import crypto from 'crypto'
 import Razorpay from 'razorpay'
 import { auth } from '@/auth'
-import connectDB from '@/lib/db/mongodb'
-import { User } from '@/lib/db/models/User'
-import { Subscription } from '@/lib/db/models/Subscription'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
-import { BillingConfig } from '@/lib/db/models/BillingConfig'
 import { logSecurityEvent } from '@/lib/security/events'
 import { redactForLog } from '@/lib/security/safeLog'
+import { activatePayment } from '@/lib/subscription/activation'
+import { parsePaymentMetadata } from '@/lib/subscription/paymentRules'
 
 export const runtime = 'nodejs'
 
@@ -30,13 +29,10 @@ const VerifySchema = z.object({
   signature: z.string().min(1),
 })
 
-// synced with src/app/pricing/page.tsx (via shared lib)
-
-function addInterval(date: Date, interval: 'monthly' | 'yearly'): Date {
-  const d = new Date(date)
-  if (interval === 'monthly') d.setMonth(d.getMonth() + 1)
-  else d.setFullYear(d.getFullYear() + 1)
-  return d
+function signatureMatches(expected: string, signature: string): boolean {
+  const a = Buffer.from(expected)
+  const b = Buffer.from(signature)
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
 }
 
 export async function POST(req: NextRequest) {
@@ -66,7 +62,7 @@ export async function POST(req: NextRequest) {
       .update(`${orderId}|${paymentId}`)
       .digest('hex')
 
-    if (expectedSig !== signature) {
+    if (!signatureMatches(expectedSig, signature)) {
       logSecurityEvent('payment_verify_failed', redactForLog({ reason: 'signature_mismatch', orderId, paymentId }))
       return NextResponse.json({ success: false, error: 'Payment verification failed' }, { status: 400 })
     }
@@ -75,7 +71,7 @@ export async function POST(req: NextRequest) {
     const keyId = process.env.RAZORPAY_KEY_ID
     if (!keyId || !secret) throw new Error('Razorpay credentials not configured')
     const razorpay = new Razorpay({ key_id: keyId, key_secret: secret })
-    const payment = await razorpay.payments.fetch(paymentId)
+    let payment = await razorpay.payments.fetch(paymentId)
 
     if (!payment || payment.id !== paymentId || payment.order_id !== orderId) {
       return NextResponse.json({ success: false, error: 'Payment correlation failed' }, { status: 400 })
@@ -84,96 +80,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Payment not successful' }, { status: 400 })
     }
 
-    const notePlan = payment.notes?.plan
-    const noteInterval = payment.notes?.interval
-    const noteUserId = payment.notes?.userId
-    if ((notePlan !== 'gold' && notePlan !== 'platinum') || (noteInterval !== 'monthly' && noteInterval !== 'yearly')) {
-      return NextResponse.json({ success: false, error: 'Invalid payment metadata' }, { status: 400 })
+    const metadata = parsePaymentMetadata(payment.notes as Record<string, unknown>, payment.amount)
+    if (!metadata.ok) {
+      return NextResponse.json({ success: false, error: metadata.error }, { status: 400 })
     }
-    if (noteUserId !== session.user.id) {
+    if (metadata.data.userId !== session.user.id) {
       return NextResponse.json({ success: false, error: 'User mismatch in payment metadata' }, { status: 403 })
     }
 
-    const plan = notePlan
-    const interval = noteInterval
-
-    // ── 3. Activate subscription in DB ───────────────────────
-    await connectDB()
-
-    const now    = new Date()
-    const expiry = addInterval(now, interval)
-    const expectedBaseAmount = Number(payment.notes?.baseAmount || 0)
-    const expectedDiscountAmount = Number(payment.notes?.discountAmount || 0)
-    const expectedFinalAmount = Number(payment.notes?.finalAmount || 0)
-    const couponCode = (payment.notes?.couponCode || '').trim().toUpperCase()
-
-    if (!Number.isFinite(expectedBaseAmount) || !Number.isFinite(expectedDiscountAmount) || !Number.isFinite(expectedFinalAmount)) {
-      return NextResponse.json({ success: false, error: 'Invalid amount metadata' }, { status: 400 })
-    }
-    if (expectedBaseAmount < 1 || expectedDiscountAmount < 0 || expectedFinalAmount < 0) {
-      return NextResponse.json({ success: false, error: 'Invalid amount values' }, { status: 400 })
-    }
-    if (expectedFinalAmount !== expectedBaseAmount - expectedDiscountAmount) {
-      return NextResponse.json({ success: false, error: 'Corrupted discount metadata' }, { status: 400 })
-    }
-    if (payment.amount !== expectedFinalAmount) {
-      return NextResponse.json({ success: false, error: 'Amount mismatch' }, { status: 400 })
+    // ── 3. Capture: an authorized payment is only a hold ─────
+    if (payment.status === 'authorized') {
+      try {
+        payment = await razorpay.payments.capture(paymentId, metadata.data.finalAmount, 'INR')
+      } catch (err) {
+        // Razorpay's auto-capture may have got there first, so check before failing.
+        console.warn('[payment/verify] Capture failed, re-checking:', err instanceof Error ? err.message : 'unknown')
+        payment = await razorpay.payments.fetch(paymentId)
+      }
+      if (payment.status !== 'captured') {
+        return NextResponse.json(
+          { success: false, error: 'Payment is still processing. Your plan will activate once it is confirmed.' },
+          { status: 409 },
+        )
+      }
     }
 
-    const existing = await Subscription.findOne({ providerSubscriptionId: paymentId }).lean() as {
-      currentPeriodEnd: Date
-    } | null
-    if (existing) {
-      return NextResponse.json({ success: true, plan, expiresAt: existing.currentPeriodEnd })
+    // ── 4. Activate subscription in DB ───────────────────────
+    const activated = await activatePayment(payment, 'payment.verified')
+    if (!activated.ok) {
+      return NextResponse.json({ success: false, error: activated.error }, { status: 400 })
     }
 
-    // Upsert subscription record
-    await Subscription.findOneAndUpdate(
-      { providerSubscriptionId: paymentId },
-      {
-        $set: {
-          userId:                 session.user.id,
-          plan,
-          provider:               'razorpay',
-          providerSubscriptionId: paymentId,
-          providerCustomerId:     orderId,     // order_id as correlation key
-          providerPlanId:         `${plan}_${interval}`,
-          status:                 'active',
-          interval,
-          currentPeriodStart:     now,
-          currentPeriodEnd:       expiry,
-          cancelAtPeriodEnd:      false,
-          amount:                 expectedFinalAmount,
-          currency:               'INR',
-        },
-        $push: {
-          events: {
-            $each: [{
-              type: 'payment.verified',
-              payload: { paymentId, orderId, couponCode, baseAmount: expectedBaseAmount, discountAmount: expectedDiscountAmount },
-              receivedAt: now,
-            }],
-            $slice: -10,
-          },
-        },
-      },
-      { upsert: true, new: true },
-    )
-
-    // Upgrade user plan
-    await User.findByIdAndUpdate(session.user.id, {
-      plan,
-      planExpiresAt: expiry,
-    })
-
-    if (couponCode) {
-      await BillingConfig.updateOne(
-        { key: 'default', 'coupons.code': couponCode },
-        { $inc: { 'coupons.$.redeemedCount': 1 } },
-      )
-    }
-
-    return NextResponse.json({ success: true, plan, expiresAt: expiry })
+    return NextResponse.json({ success: true, plan: activated.plan, expiresAt: activated.expiresAt })
 
   } catch (err) {
     console.error('[payment/verify]', err)

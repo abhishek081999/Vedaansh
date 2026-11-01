@@ -8,6 +8,12 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 **Stack:** Next.js 16.4 · React 19 · Node ≥ 24 · `sweph` · MongoDB/Mongoose · NextAuth v5 · Upstash Redis · Razorpay  
 **Default prices (INR):** Gold ₹168/mo · ₹1,443/yr · Platinum ₹336/mo · ₹2,888/yr (`pricing.ts`; BillingConfig may override)
 
+### Fixed
+
+- Auth gates, Gold and Platinum page gates, the sign-in rate limit, and the CSP now run: `proxy.ts` moved to `src/proxy.ts`. Previously Next.js ignored it. Logged-out visitors to `/muhurta` now go to login, and XLSX export now requires Gold
+- Birth location timezones come from offline boundary data. Places such as Dhaka, Lahore, Kabul, and coordinates around Lucknow were getting the wrong zone
+- Payments: early renewals keep remaining days, refunds and lost disputes remove the plan, failed webhook deliveries are retried, and welcome emails and coupon counts no longer depend on which payment path finished first
+
 ### Added / live
 
 - Dashboard cards: doshas and afflictions, today's Panchang (Rahu Kalam, Abhijit), current transits with Sade Sati status, D9/D10/D7/D12 charts, remedies from the Moon nakshatra and running dasha lords, and a Gold relationship and career highlight. On phones these sit in Today, Yogas, and a new Insights tab

@@ -14,6 +14,7 @@ export type SubscriptionStatus =
   | 'past_due'
   | 'trialing'
   | 'pending'
+  | 'refunded'
 
 export interface ISubscription extends Document {
   _id:      Types.ObjectId
@@ -42,6 +43,12 @@ export interface ISubscription extends Document {
   amount:   number
   currency: 'INR' | 'USD' | 'EUR'
 
+  // Activation state, see src/lib/subscription/activation.ts
+  grantedPlan?:        UserPlan | null  // null: the user's plan was left unchanged
+  planAppliedAt?:      Date | null
+  couponCountedAt?:    Date | null
+  welcomeEmailSentAt?: Date | null
+
   // Webhook event log (last 10 events)
   events: Array<{
     type:      string
@@ -62,7 +69,7 @@ const SubscriptionSchema = new Schema<ISubscription>({
   providerCustomerId:     { type: String, required: true },
   providerPlanId:         { type: String, required: true },
 
-  status:   { type: String, enum: ['active','cancelled','expired','past_due','trialing','pending'], default: 'pending' },
+  status:   { type: String, enum: ['active','cancelled','expired','past_due','trialing','pending','refunded'], default: 'pending' },
   interval: { type: String, enum: ['monthly','yearly'], required: true },
 
   currentPeriodStart: { type: Date, required: true },
@@ -73,6 +80,12 @@ const SubscriptionSchema = new Schema<ISubscription>({
 
   amount:   { type: Number, required: true },
   currency: { type: String, enum: ['INR','USD','EUR'], required: true },
+
+  // No defaults: a missing value marks a record from before activation tracking.
+  grantedPlan:        { type: String, enum: ['gold','platinum',null] },
+  planAppliedAt:      { type: Date },
+  couponCountedAt:    { type: Date },
+  welcomeEmailSentAt: { type: Date },
 
   events: [{
     type:      { type: String, required: true },
