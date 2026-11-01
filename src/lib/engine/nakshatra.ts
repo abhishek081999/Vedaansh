@@ -323,7 +323,7 @@ export function getHoraTable(
 
 // Rahu Kalam portion of the day by weekday (0=Sun...6=Sat)
 // Expressed as 8ths of the day (daytime)
-const RAHU_KALAM_PORTIONS: number[] = [7, 1, 6, 4, 5, 3, 2] // portion index (1-8)
+const RAHU_KALAM_PORTIONS: number[] = [8, 2, 7, 5, 6, 4, 3] // portion index (1-8)
 
 // Gulika Kalam — standard (Phaladipika) portion by weekday
 const GULIKA_KALAM_PORTIONS: number[] = [6, 7, 5, 6, 6, 5, 6]

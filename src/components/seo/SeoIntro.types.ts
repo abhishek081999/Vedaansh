@@ -16,4 +16,6 @@ export type SeoIntroProps = {
   /** Internal links to guides / related tools (crawlable). */
   relatedLinks?: SeoRelatedLink[]
   relatedTitle?: string
+  /** Page-width layout with the feature list and FAQ collapsed (home). */
+  compact?: boolean
 }

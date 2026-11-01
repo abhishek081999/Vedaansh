@@ -1,255 +1,112 @@
 'use client'
+// ─────────────────────────────────────────────────────────────
+//  src/components/panchang/PanchangTimelineStrip.tsx
+//  Limb transitions across the Hindu day, sunrise to next sunrise
+// ─────────────────────────────────────────────────────────────
 
 import type { CSSProperties } from 'react'
-import { useMemo } from 'react'
-import { startOfHour, addHours } from 'date-fns'
-import { toZonedTime, fromZonedTime } from 'date-fns-tz'
+import { useEffect, useMemo, useState } from 'react'
+import { Sunrise, Sunset } from 'lucide-react'
+import { addHours, startOfHour } from 'date-fns'
+import { fromZonedTime, toZonedTime } from 'date-fns-tz'
 import type { PanchangDayTimeline, TimelineSegment } from '@/lib/panchang/day-timeline'
 import styles from './PanchangTimelineStrip.module.css'
 
-/** Below this % of the window width, show a dot + tooltip instead of spelling the name (avoids vertical letter stacks). */
-const MIN_LABEL_WIDTH_PCT = 5.4
+/** Below this % of the track, a segment shows only a dot; details move to its tooltip. */
+const MIN_NAME_WIDTH_PCT = 5.4
 
-/** Minimum horizontal gap between top-of-ruler labels (percent of track). */
-const RULER_LABEL_MIN_GAP_PCT = 6.5
+/** Below this % of the track, a segment shows its name without the time. */
+const MIN_TIME_WIDTH_PCT = 11
 
-function zonedHourTickInstants(wStart: Date, wEnd: Date, tz: string): Date[] {
-  const z = toZonedTime(wStart, tz)
-  let hourWall = startOfHour(new Date(z.getTime()))
-  if (hourWall.getTime() < z.getTime()) hourWall = addHours(hourWall, 1)
-  let t = fromZonedTime(hourWall, tz)
-  const out: Date[] = []
-  const endMs = wEnd.getTime()
-  for (let guard = 0; guard < 48 && t.getTime() < endMs; guard++) {
-    out.push(t)
+/** Hour labels closer than this to sunset (% of track) would collide with its marker. */
+const HOUR_LABEL_MIN_GAP_PCT = 7
+
+const HOUR_LABEL_STEP = 3
+
+function pctBetween(ms: number, w0: number, w1: number): number {
+  if (w1 <= w0) return 0
+  return Math.max(0, Math.min(100, ((ms - w0) / (w1 - w0)) * 100))
+}
+
+function fmtTime(ms: number, tz: string): string {
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: tz,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date(ms))
+}
+
+function fmtHour(ms: number, tz: string): string {
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: tz,
+    hour: 'numeric',
+    hour12: true,
+  }).format(new Date(ms))
+}
+
+/** Whole wall-clock hours on the label step, inside the window. */
+function hourLabelInstants(w0: number, w1: number, tz: string): number[] {
+  let hourWall = addHours(startOfHour(toZonedTime(new Date(w0), tz)), 1)
+  const out: number[] = []
+  for (let guard = 0; guard < 48; guard++) {
+    const t = fromZonedTime(hourWall, tz).getTime()
+    if (t >= w1) break
+    if (hourWall.getHours() % HOUR_LABEL_STEP === 0) out.push(t)
     hourWall = addHours(hourWall, 1)
-    t = fromZonedTime(hourWall, tz)
   }
   return out
 }
 
-function pctBetween(iso: string, w0: number, w1: number): number {
-  const x = new Date(iso).getTime()
-  if (w1 <= w0) return 0
-  return Math.max(0, Math.min(100, ((x - w0) / (w1 - w0)) * 100))
+function segmentTime(index: number, count: number, startMs: number, endMs: number, tz: string): string {
+  if (count === 1) return 'All day'
+  if (index === 0) return `Until ${fmtTime(endMs, tz)}`
+  if (index === count - 1) return `From ${fmtTime(startMs, tz)}`
+  return `${fmtTime(startMs, tz)} – ${fmtTime(endMs, tz)}`
 }
 
-function fmt24(iso: string, tz: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone: tz,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(iso))
-}
-
-function isNowBetween(startIso: string, endIso: string): boolean {
-  const now = Date.now()
-  return now >= new Date(startIso).getTime() && now <= new Date(endIso).getTime()
-}
-
-function segmentTitle(seg: TimelineSegment): string {
-  return seg.sub ? `${seg.label} · ${seg.sub}` : seg.label
-}
-
-function mergeRulerTopLabels(
-  hourTicks: Date[],
-  w0: number,
-  w1: number,
-  tz: string,
-  sunriseIso: string,
-  sunsetIso: string,
-): Array<{ pct: number; key: string; label: string; priority: number; variant: 'hour' | 'sr' | 'ss' }> {
-  const srP = pctBetween(sunriseIso, w0, w1)
-  const ssP = pctBetween(sunsetIso, w0, w1)
-  const items: Array<{ pct: number; key: string; label: string; priority: number; variant: 'hour' | 'sr' | 'ss' }> = []
-
-  hourTicks.forEach((ht, i) => {
-    if (i % 2 !== 0) return
-    const pct = pctBetween(ht.toISOString(), w0, w1)
-    if (Math.abs(pct - srP) < RULER_LABEL_MIN_GAP_PCT || Math.abs(pct - ssP) < RULER_LABEL_MIN_GAP_PCT) return
-    items.push({
-      pct,
-      key: ht.toISOString(),
-      label: fmt24(ht.toISOString(), tz),
-      priority: 1,
-      variant: 'hour',
-    })
-  })
-
-  items.push(
-    { pct: srP, key: 'sr', label: fmt24(sunriseIso, tz), priority: 2, variant: 'sr' },
-    { pct: ssP, key: 'ss', label: fmt24(sunsetIso, tz), priority: 2, variant: 'ss' },
-  )
-
-  items.sort((a, b) => a.pct - b.pct)
-  const merged: typeof items = []
-  for (const item of items) {
-    if (merged.length === 0) {
-      merged.push(item)
-      continue
-    }
-    const last = merged[merged.length - 1]
-    if (item.pct - last.pct < RULER_LABEL_MIN_GAP_PCT) {
-      if (item.priority > last.priority) merged[merged.length - 1] = item
-    } else {
-      merged.push(item)
-    }
-  }
-  return merged
-}
-
-function softDayNightGradient(srPct: number, ssPct: number): CSSProperties {
-  const b = 2.2
-  const sr0 = Math.max(0, srPct - b)
-  const sr1 = Math.min(100, srPct + b)
-  const ss0 = Math.max(0, ssPct - b)
-  const ss1 = Math.min(100, ssPct + b)
-  const night = 'rgba(10, 9, 14, 0.28)'
-  const day = 'rgba(255, 250, 238, 0.045)'
-  return {
-    background: `linear-gradient(90deg,
-      ${night} 0%,
-      ${night} ${sr0}%,
-      ${day} ${sr1}%,
-      ${day} ${ss0}%,
-      ${night} ${ss1}%,
-      ${night} 100%)`,
-  }
-}
-
-function TrackBackdrop({
-  dayNightStyle,
-  interiorLineTimes,
-  srPct,
-  ssPct,
-  w0,
-  w1,
-  tz,
-  sunriseIso,
-  sunsetIso,
-}: {
-  dayNightStyle: CSSProperties
-  interiorLineTimes: string[]
-  srPct: number
-  ssPct: number
-  w0: number
-  w1: number
-  tz: string
-  sunriseIso: string
-  sunsetIso: string
-}) {
-  return (
-    <>
-      <div className={styles.dayNight} style={dayNightStyle} />
-      <div className={styles.markersLayer}>
-        <span
-          className={`${styles.markerLine} ${styles.markerLineStrong}`}
-          style={{ left: `${srPct}%` }}
-          title={`Sunrise ${fmt24(sunriseIso, tz)}`}
-        />
-        <span
-          className={`${styles.markerLine} ${styles.markerLineStrong}`}
-          style={{ left: `${ssPct}%` }}
-          title={`Sunset ${fmt24(sunsetIso, tz)}`}
-        />
-        {interiorLineTimes.map((iso) => (
-          <span
-            key={iso}
-            className={styles.markerLine}
-            style={{ left: `${pctBetween(iso, w0, w1)}%` }}
-            title={fmt24(iso, tz)}
-          />
-        ))}
-      </div>
-    </>
-  )
-}
-
-function LimbRow({
-  label,
-  segments,
-  w0,
-  w1,
-  dayNightStyle,
-  srPct,
-  ssPct,
-  tz,
-  sunriseIso,
-  sunsetIso,
-  warnActive,
-}: {
+interface LimbRowProps {
   label: string
   segments: TimelineSegment[]
   w0: number
   w1: number
-  dayNightStyle: CSSProperties
-  srPct: number
-  ssPct: number
+  now: number
   tz: string
-  sunriseIso: string
-  sunsetIso: string
-  warnActive?: (seg: TimelineSegment, active: boolean) => boolean
-}) {
-  const interiorLineTimes = useMemo(
-    () => (segments.length > 1 ? segments.slice(0, -1).map((s) => s.end) : []),
-    [segments],
-  )
+}
 
+function LimbRow({ label, segments, w0, w1, now, tz }: LimbRowProps) {
   return (
     <div className={styles.row}>
       <div className={styles.rowLabel}>{label}</div>
-      <div className={styles.trackShell}>
-        <TrackBackdrop
-          dayNightStyle={dayNightStyle}
-          interiorLineTimes={interiorLineTimes}
-          srPct={srPct}
-          ssPct={ssPct}
-          w0={w0}
-          w1={w1}
-          tz={tz}
-          sunriseIso={sunriseIso}
-          sunsetIso={sunsetIso}
-        />
-        <div className={styles.segments}>
-          {segments.map((seg, i) => {
-            const left = pctBetween(seg.start, w0, w1)
-            const right = pctBetween(seg.end, w0, w1)
-            const width = Math.max(0, right - left)
-            const active = isNowBetween(seg.start, seg.end)
-            const warn = warnActive?.(seg, active) ?? false
-            const narrow = width < MIN_LABEL_WIDTH_PCT
-            const title = segmentTitle(seg)
-            return (
-              <div
-                key={`${seg.start}-${seg.end}-${i}`}
-                className={[
-                  styles.segment,
-                  narrow ? styles.segmentNarrow : '',
-                  active ? styles.segmentActive : '',
-                  warn && active ? styles.segmentWarn : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                style={{ width: `${width}%`, flexShrink: 0 }}
-                title={title}
-              >
-                {narrow ? (
-                  <span
-                    className={styles.segmentDot}
-                    aria-hidden
-                    style={warn && active ? { background: 'var(--rose)', opacity: 0.9 } : undefined}
-                  />
-                ) : (
-                  <>
-                    <span className={styles.segmentLabel}>{seg.label}</span>
-                    {seg.sub && <span className={styles.segmentSub}>{seg.sub}</span>}
-                  </>
-                )}
-              </div>
-            )
-          })}
-        </div>
+      <div className={styles.track}>
+        {segments.map((seg, i) => {
+          const startMs = new Date(seg.start).getTime()
+          const endMs = new Date(seg.end).getTime()
+          const width = Math.max(0, pctBetween(endMs, w0, w1) - pctBetween(startMs, w0, w1))
+          const active = now >= startMs && now <= endMs
+          const time = segmentTime(i, segments.length, startMs, endMs, tz)
+          const isBhadra = seg.sub === 'Bhadra'
+          return (
+            <div
+              key={`${seg.start}-${seg.end}-${i}`}
+              className={[
+                styles.segment,
+                width < MIN_NAME_WIDTH_PCT ? styles.segmentTiny : '',
+                width < MIN_TIME_WIDTH_PCT ? styles.segmentCompact : '',
+                active ? styles.segmentActive : '',
+                isBhadra ? styles.segmentBhadra : '',
+              ].filter(Boolean).join(' ')}
+              style={{ '--segment-width': `${width}%` } as CSSProperties}
+              title={[seg.label, seg.sub, time].filter(Boolean).join(' · ')}
+            >
+              <span className={styles.segmentDot} aria-hidden />
+              <span className={styles.segmentName}>{seg.label}</span>
+              <span className={styles.segmentTime}>
+                {seg.sub && width >= MIN_TIME_WIDTH_PCT * 2 ? `${seg.sub} · ${time}` : time}
+              </span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -262,166 +119,70 @@ export function PanchangTimelineStrip({
   timeline: PanchangDayTimeline
   tz: string
 }) {
-  const w0 = useMemo(() => new Date(timeline.windowStart).getTime(), [timeline.windowStart])
-  const w1 = useMemo(() => new Date(timeline.windowEnd).getTime(), [timeline.windowEnd])
+  const [now, setNow] = useState(() => Date.now())
 
-  const hourTicks = useMemo(
-    () => zonedHourTickInstants(new Date(timeline.windowStart), new Date(timeline.windowEnd), tz),
-    [timeline.windowStart, timeline.windowEnd, tz],
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const w0 = new Date(timeline.windowStart).getTime()
+  const w1 = new Date(timeline.windowEnd).getTime()
+  const sunriseMs = new Date(timeline.sunrise).getTime()
+  const sunsetMs = new Date(timeline.sunset).getTime()
+  const sunrisePct = pctBetween(sunriseMs, w0, w1)
+  const sunsetPct = pctBetween(sunsetMs, w0, w1)
+  const nowOnTrack = now >= w0 && now <= w1
+
+  const hourLabels = useMemo(
+    () => hourLabelInstants(w0, w1, tz)
+      .map((ms) => ({ ms, pct: pctBetween(ms, w0, w1) }))
+      .filter(({ pct }) => pct > HOUR_LABEL_MIN_GAP_PCT * 1.5
+        && pct < 100 - HOUR_LABEL_MIN_GAP_PCT / 2
+        && Math.abs(pct - sunsetPct) >= HOUR_LABEL_MIN_GAP_PCT),
+    [w0, w1, tz, sunsetPct],
   )
 
-  const srPct = pctBetween(timeline.sunrise, w0, w1)
-  const ssPct = pctBetween(timeline.sunset, w0, w1)
-
-  const dayNightStyle = useMemo(() => softDayNightGradient(srPct, ssPct), [srPct, ssPct])
-
-  const rulerTopLabels = useMemo(
-    () => mergeRulerTopLabels(hourTicks, w0, w1, tz, timeline.sunrise, timeline.sunset),
-    [hourTicks, w0, w1, tz, timeline.sunrise, timeline.sunset],
-  )
-
-  const hinduDayActive = isNowBetween(timeline.windowStart, timeline.windowEnd)
+  const limbs: Array<[string, TimelineSegment[]]> = [
+    ['Tithi', timeline.tithi],
+    ['Nakshatra', timeline.nakshatra],
+    ['Yoga', timeline.yoga],
+    ['Karana', timeline.karana],
+  ]
 
   return (
-    <div className={styles.body}>
-      <div className={styles.inner}>
-        <div className={styles.row}>
-          <div className={styles.rowLabel}>
-            {/* Empty for ruler alignment */}
-          </div>
-          <div className={`${styles.trackShell} ${styles.trackShellRuler}`}>
-            <TrackBackdrop
-              dayNightStyle={dayNightStyle}
-              interiorLineTimes={[]}
-              srPct={srPct}
-              ssPct={ssPct}
-              w0={w0}
-              w1={w1}
-              tz={tz}
-              sunriseIso={timeline.sunrise}
-              sunsetIso={timeline.sunset}
-            />
-            <div className={styles.rulerBottom}>
-              {hourTicks.map((ht) => (
-                <span
-                  key={ht.toISOString()}
-                  className={styles.hourTick}
-                  style={{ left: `${pctBetween(ht.toISOString(), w0, w1)}%` }}
-                />
-              ))}
-            </div>
-            <div className={styles.rulerTop}>
-              {rulerTopLabels.map((item) =>
-                item.variant === 'hour' ? (
-                  <span key={item.key} className={styles.hourLabel} style={{ left: `${item.pct}%` }}>
-                    {item.label}
-                  </span>
-                ) : (
-                  <span
-                    key={item.key}
-                    className={`${styles.eventChip} ${item.variant === 'sr' ? styles.eventChipSun : styles.eventChipMoon}`}
-                    style={{ left: `${item.pct}%` }}
-                    title={item.variant === 'sr' ? 'Sunrise' : 'Sunset'}
-                  >
-                    <span className={styles.eventIcon} aria-hidden>
-                      {item.variant === 'sr' ? '☀' : '🌇'}
-                    </span>
-                    {item.label}
-                  </span>
-                ),
-              )}
-            </div>
+    <div className={styles.panel}>
+      <div className={styles.grid}>
+        {/* Night and the now line run through every row, so they share one layer */}
+        <div className={styles.overlay} aria-hidden>
+          <span className={styles.night} style={{ left: `${sunsetPct}%` }} />
+          <span className={styles.sunsetLine} style={{ left: `${sunsetPct}%` }} />
+          {nowOnTrack && (
+            <span className={styles.nowLine} style={{ left: `${pctBetween(now, w0, w1)}%` }}>
+              <span className={styles.nowFlag}>Now</span>
+            </span>
+          )}
+        </div>
+
+        <div className={styles.rulerRow}>
+          <div className={styles.ruler}>
+            <span className={`${styles.sunMark} ${styles.sunMarkStart}`} style={{ left: `${sunrisePct}%` }}>
+              <Sunrise size={14} aria-hidden /> {fmtTime(sunriseMs, tz)}
+            </span>
+            {hourLabels.map(({ ms, pct }) => (
+              <span key={ms} className={styles.hourLabel} style={{ left: `${pct}%` }}>
+                {fmtHour(ms, tz)}
+              </span>
+            ))}
+            <span className={styles.sunMark} style={{ left: `${sunsetPct}%` }}>
+              <Sunset size={14} aria-hidden /> {fmtTime(sunsetMs, tz)}
+            </span>
           </div>
         </div>
 
-        <LimbRow
-          label="Tithi"
-          segments={timeline.tithi}
-          w0={w0}
-          w1={w1}
-          dayNightStyle={dayNightStyle}
-          srPct={srPct}
-          ssPct={ssPct}
-          tz={tz}
-          sunriseIso={timeline.sunrise}
-          sunsetIso={timeline.sunset}
-        />
-        <LimbRow
-          label="Nakshatra"
-          segments={timeline.nakshatra}
-          w0={w0}
-          w1={w1}
-          dayNightStyle={dayNightStyle}
-          srPct={srPct}
-          ssPct={ssPct}
-          tz={tz}
-          sunriseIso={timeline.sunrise}
-          sunsetIso={timeline.sunset}
-        />
-        <LimbRow
-          label="Yoga"
-          segments={timeline.yoga}
-          w0={w0}
-          w1={w1}
-          dayNightStyle={dayNightStyle}
-          srPct={srPct}
-          ssPct={ssPct}
-          tz={tz}
-          sunriseIso={timeline.sunrise}
-          sunsetIso={timeline.sunset}
-        />
-        <LimbRow
-          label="Karana"
-          segments={timeline.karana}
-          w0={w0}
-          w1={w1}
-          dayNightStyle={dayNightStyle}
-          srPct={srPct}
-          ssPct={ssPct}
-          tz={tz}
-          sunriseIso={timeline.sunrise}
-          sunsetIso={timeline.sunset}
-          warnActive={(seg, active) => active && seg.sub === 'Bhadra'}
-        />
-
-        <div className={`${styles.row} ${styles.varaRow}`}>
-          <div className={styles.rowLabel}>Vara</div>
-          <div className={styles.trackShell}>
-            <TrackBackdrop
-              dayNightStyle={dayNightStyle}
-              interiorLineTimes={[]}
-              srPct={srPct}
-              ssPct={ssPct}
-              w0={w0}
-              w1={w1}
-              tz={tz}
-              sunriseIso={timeline.sunrise}
-              sunsetIso={timeline.sunset}
-            />
-            <div className={styles.segments}>
-              <div
-                className={`${styles.segment} ${hinduDayActive ? styles.varaHighlight : ''}`}
-                style={{ width: '100%' }}
-                title={`${timeline.vara.sanskrit} (${timeline.vara.name})`}
-              >
-                <span className={styles.segmentLabel}>
-                  {timeline.vara.sanskrit} ({timeline.vara.name})
-                </span>
-                <span className={styles.segmentSub}>whole Hindu day</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.legend}>
-          <span>
-            <span className={styles.swatchDay} aria-hidden /> Softer daylight wash
-          </span>
-          <span>
-            <span className={styles.swatchNight} aria-hidden /> Night wash
-          </span>
-          <span>Narrow slice = dot + hover</span>
-        </div>
+        {limbs.map(([label, segments]) => (
+          <LimbRow key={label} label={label} segments={segments} w0={w0} w1={w1} now={now} tz={tz} />
+        ))}
       </div>
     </div>
   )

@@ -1,10 +1,34 @@
 // Visible, crawlable intro for tool pages (server component).
 // Prefer h2 when the interactive page already owns the h1.
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import type { SeoIntroProps } from './SeoIntro.types'
 import styles from './SeoIntro.module.css'
 
 export type { SeoIntroProps } from './SeoIntro.types'
+
+function SeoBlock({
+  compact,
+  title,
+  as: Tag,
+  titleClassName,
+  children,
+}: {
+  compact: boolean
+  title: string
+  as: 'h2' | 'h3'
+  titleClassName: string
+  children: ReactNode
+}) {
+  const heading = <Tag className={titleClassName}>{title}</Tag>
+  if (!compact) return <>{heading}{children}</>
+  return (
+    <details className={styles.collapsible}>
+      <summary className={styles.summary}>{heading}</summary>
+      {children}
+    </details>
+  )
+}
 
 export function SeoIntro({
   ariaLabel,
@@ -16,12 +40,13 @@ export function SeoIntro({
   faq,
   relatedLinks,
   relatedTitle = 'Related guides',
+  compact = false,
 }: SeoIntroProps) {
   const TitleTag = titleAs === 'h1' ? 'h1' : 'h2'
   const SubTag = titleAs === 'h1' ? 'h2' : 'h3'
 
   return (
-    <section className={styles.section} aria-label={ariaLabel}>
+    <section className={`${styles.section}${compact ? ` ${styles.compact}` : ''}`} aria-label={ariaLabel}>
       <TitleTag className={styles.title}>{h1}</TitleTag>
       {paragraphs.map((p) => (
         <p key={p.slice(0, 48)} className={styles.paragraph}>
@@ -29,8 +54,7 @@ export function SeoIntro({
         </p>
       ))}
       {h2 && bullets && bullets.length > 0 && (
-        <>
-          <SubTag className={styles.subtitle}>{h2}</SubTag>
+        <SeoBlock compact={compact} title={h2} as={SubTag} titleClassName={styles.subtitle}>
           <ul className={styles.list}>
             {bullets.map((b) => (
               <li key={b.label} className={styles.item}>
@@ -39,7 +63,7 @@ export function SeoIntro({
               </li>
             ))}
           </ul>
-        </>
+        </SeoBlock>
       )}
       {relatedLinks && relatedLinks.length > 0 && (
         <div className={styles.related}>
@@ -57,15 +81,16 @@ export function SeoIntro({
       )}
       {faq && faq.length > 0 && (
         <div className={styles.faq}>
-          <SubTag className={styles.faqTitle}>Frequently asked questions</SubTag>
-          <dl className={styles.faqList}>
-            {faq.map(({ q, a }) => (
-              <div key={q} className={styles.faqItem}>
-                <dt>{q}</dt>
-                <dd>{a}</dd>
-              </div>
-            ))}
-          </dl>
+          <SeoBlock compact={compact} title="Frequently asked questions" as={SubTag} titleClassName={styles.faqTitle}>
+            <dl className={styles.faqList}>
+              {faq.map(({ q, a }) => (
+                <div key={q} className={styles.faqItem}>
+                  <dt>{q}</dt>
+                  <dd>{a}</dd>
+                </div>
+              ))}
+            </dl>
+          </SeoBlock>
         </div>
       )}
     </section>

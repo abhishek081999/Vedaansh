@@ -4893,17 +4893,28 @@ select.input {
   border: 1px solid color-mix(in oklab, var(--border-soft) 80%, transparent);
 }
 
+.landing-premium-hero-top {
+  justify-content: flex-end;
+}
+
+@media (min-width: 769px) {
+  .landing-site-footer {
+    padding-right: 4.75rem;
+  }
+}
+
 .landing-hero-next {
   display: inline-flex;
   align-items: center;
   gap: 0.1rem;
-  padding: 0.22rem 0.45rem 0.22rem 0.62rem;
+  min-height: 32px;
+  padding: 0.3rem 0.55rem 0.3rem 0.75rem;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface-1);
   color: var(--text-secondary);
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1.2;
@@ -5529,19 +5540,6 @@ select.input {
   /* Groups of four fill a single row of four; groups of six form two rows of three. */
   .landing-major-group[data-count='4'] .landing-major-sections-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  /* Seven cards: four across, then three that share the full row. */
-  .landing-major-group[data-count='7'] .landing-major-sections-grid {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-  }
-
-  .landing-major-group[data-count='7'] .landing-major-section-card {
-    grid-column: span 3;
-  }
-
-  .landing-major-group[data-count='7'] .landing-major-section-card:nth-child(n + 5) {
-    grid-column: span 4;
   }
 }
 
@@ -6615,6 +6613,10 @@ select.input {
     height: 40px !important;
     right: 1rem !important;
     bottom: 1rem !important;
+  }
+
+  body:has(.landing-sticky-mobile-cta.is-visible) .floating-scroll-top {
+    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .pricing-header {
@@ -8894,3 +8896,260 @@ select.input {
 }
 
 
+
+/* Explore: three tiers of emphasis, from a featured chart group to a flat index */
+.landing-explore-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.75rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.landing-shell .landing-explore-tier .landing-major-group-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-primary);
+}
+
+.landing-shell .landing-explore-tier .landing-major-group-title::after {
+  display: none;
+}
+
+.landing-explore-group-desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.landing-explore-tier + .landing-explore-tier {
+  margin-top: 2.25rem;
+}
+
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border-soft) !important;
+  box-shadow: none !important;
+}
+
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card:hover {
+  transform: translateY(-2px) !important;
+  border-color: var(--border-bright) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card::after {
+  transform: scaleX(0);
+}
+
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card:hover .card-icon-wrapper {
+  transform: none;
+  box-shadow: none;
+}
+
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card .card-kicker {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 1.15rem;
+  color: var(--text-muted) !important;
+  opacity: 1;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card .landing-explore-gold {
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--gold);
+  background: var(--gold-faint);
+  color: var(--text-gold) !important;
+}
+
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card .stat-sub {
+  font-size: 0.8rem !important;
+  line-height: 1.45 !important;
+}
+
+/* Lead card */
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead {
+  grid-column: span 2;
+  background: color-mix(in oklab, var(--gold) 14%, var(--surface-1)) !important;
+  border-color: color-mix(in oklab, var(--gold) 45%, var(--border)) !important;
+}
+
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-value {
+  font-size: 1.45rem !important;
+  white-space: normal;
+}
+
+.landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-sub {
+  display: block;
+  max-width: 34rem;
+  font-size: 0.88rem !important;
+}
+
+.landing-explore-lead-cta {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-gold);
+}
+
+[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead {
+  background: linear-gradient(135deg, var(--primary-brand), var(--classic-maroon-deep)) !important;
+  border-color: var(--classic-maroon-deep) !important;
+}
+
+[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-value,
+[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead:hover .stat-value,
+[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-sub {
+  color: #ffffff !important;
+}
+
+[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .card-kicker,
+[data-theme='classic'] .landing-explore-lead-cta {
+  color: var(--classic-gold) !important;
+}
+
+[data-theme='classic'] .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .card-icon-wrapper {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Tertiary: flat index rows */
+.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid {
+  gap: 0 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.75rem 1rem 0.75rem 0.25rem !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border-soft) !important;
+  border-radius: 0 !important;
+}
+
+.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card:hover {
+  transform: none !important;
+  border-color: var(--border-soft) !important;
+  box-shadow: none !important;
+}
+
+.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card::before,
+.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card::after,
+.landing-shell .landing-explore-tier--tertiary .card-arrow,
+.landing-shell .landing-explore-tier--tertiary .card-kicker {
+  display: none !important;
+}
+
+.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card .card-icon-wrapper,
+.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card:hover .card-icon-wrapper {
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  color: var(--text-gold);
+}
+
+.landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card .stat-value {
+  margin: 0 0 0.1rem;
+  font-size: 0.95rem !important;
+}
+
+@media (hover: hover) and (min-width: 640px) {
+  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card .card-arrow {
+    opacity: 0;
+  }
+
+  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-major-section-card:hover .card-arrow {
+    opacity: 1;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .landing-shell .landing-explore-tier--primary .landing-major-sections-grid .landing-major-section-card:nth-child(6) {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 640px) {
+
+  /* Secondary: icon beside text */
+  .landing-shell .landing-explore-tier--secondary .landing-major-sections-grid .landing-major-section-card {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  .landing-shell .landing-explore-tier--secondary .landing-major-sections-grid .landing-major-section-card .card-icon-wrapper {
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-explore-tier--primary .landing-major-sections-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* Lead fills three of the four columns as a banner */
+  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead {
+    grid-column: span 3;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.1rem;
+  }
+
+  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .card-icon-wrapper {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0;
+  }
+
+  .landing-explore-lead-cta {
+    flex-shrink: 0;
+    margin-top: 0;
+    margin-right: 0.5rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .landing-explore-tier + .landing-explore-tier {
+    margin-top: 1.5rem;
+  }
+
+  .landing-shell .landing-explore-tier--primary .landing-major-sections-grid .landing-major-section-card:nth-child(6) {
+    grid-column: span 2;
+  }
+
+  .landing-shell .landing-explore-tier .landing-major-sections-grid .landing-explore-lead .stat-value {
+    font-size: 1.25rem !important;
+  }
+
+  .landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card .stat-sub {
+    display: block;
+  }
+}

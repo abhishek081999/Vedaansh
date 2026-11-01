@@ -2,127 +2,144 @@
   max-width: 1000px;
   width: 100%;
   margin: 0 auto;
-  padding: clamp(1rem, 4vw, 2.5rem) clamp(0.75rem, 3vw, 1.5rem);
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.selectorCard {
+  padding: clamp(1rem, 3vw, 1.75rem) clamp(0.75rem, 3vw, 1.5rem) 2.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  background: var(--surface-1);
-  padding: 1.25rem;
-  border-radius: var(--r-xl);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .topRow {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-end;
+  gap: 0.6rem 0.75rem;
 }
 
 .datePickerGroup {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-  width: auto;
+  gap: 0.25rem;
 }
 
 .locationGroup {
-  flex: 1 1 300px;
-  max-width: 100%;
+  flex: 1 1 260px;
+  min-width: 0;
 }
 
 .bottomRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.6rem 0.85rem;
   align-items: center;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-soft);
+  padding: 0.85rem 1rem;
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
 }
 
 .birthMoonLabel {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
 }
 
 .birthMoonControls {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  flex: 1;
+  flex: 1 1 320px;
+}
+
+.dateInput,
+.navButton,
+.todayButton,
+.personalToggle {
+  min-height: 2.5rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-1);
 }
 
 .dateInput {
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  padding: 0 0.6rem;
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  outline: none;
-  flex: 1 1 auto;
-}
-
-.dateControls {
-  display: flex;
-  gap: 0.25rem;
-  flex: 0 0 auto;
+  font-size: 0.88rem;
 }
 
 .navButton {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 0.5rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
   cursor: pointer;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+}
+
+.navButton:hover,
+.personalToggle:hover {
+  border-color: var(--border-bright);
+  color: var(--text-primary);
 }
 
 .todayButton {
-  background: rgba(201,168,76,0.1);
-  border: 1px solid rgba(201,168,76,0.2);
-  border-radius: var(--r-md);
-  padding: 0.5rem 1rem;
+  margin-left: 0.25rem;
+  padding: 0 0.85rem;
   cursor: pointer;
   color: var(--text-gold);
   font-size: 0.85rem;
   font-weight: 600;
 }
 
+.personalToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.85rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.personalToggleSet {
+  color: var(--text-gold);
+  background: var(--gold-faint);
+}
+
 .select {
-  flex: 1;
-  min-width: 160px;
-  padding: 0.4rem 0.5rem;
+  flex: 1 1 160px;
+  min-width: 0;
+  min-height: 2.25rem;
+  padding: 0 0.5rem;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
-  background: var(--surface-2);
+  background: var(--surface-1);
   color: var(--text-primary);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 .natalButton {
-  padding: 0.4rem 0.75rem;
-  font-size: 0.75rem;
+  min-height: 2.25rem;
+  padding: 0 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   border-radius: var(--r-sm);
-  border: 1px solid rgba(201,168,76,0.2);
-  background: rgba(201,168,76,0.05);
+  border: 1px solid var(--border);
+  background: var(--gold-faint);
   color: var(--text-gold);
+}
+
+.refreshing {
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
 }
 
 .loadingContainer {
@@ -146,44 +163,25 @@
 }
 
 @media (max-width: 640px) {
-  .main {
-    padding: 1rem 0.75rem;
-    gap: 1.25rem;
-  }
-
-  .selectorCard {
-    padding: 1rem;
-    gap: 1rem;
-  }
-
   .datePickerGroup {
     width: 100%;
   }
 
-  .locationGroup {
-    flex: 1 1 100%;
-  }
-
-  .birthMoonControls select {
-    flex: 1 1 100% !important;
-  }
-
-  .datePickerGroup input {
-    width: 100%;
-  }
-
-  .dateControls {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .navButton, .todayButton {
+  .dateInput {
     flex: 1;
-    text-align: center;
+    min-width: 0;
+  }
+
+  .locationGroup {
+    flex-basis: 100%;
+  }
+
+  .personalToggle {
+    width: 100%;
+    justify-content: center;
   }
 
   .select {
-    min-width: 0;
-    width: 100%;
+    flex-basis: 100%;
   }
 }

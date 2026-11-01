@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { ChevronRight } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { LandingCosmicWheel, useTodaySky, type CosmicWheelVariant } from '@/components/home/LandingCosmicWheel'
+import { LandingTodaySky } from '@/components/home/LandingTodaySky'
 
 type HeroSlide = {
   id: CosmicWheelVariant
@@ -127,17 +127,14 @@ export function LandingPremiumHero({
   }
 
   return (
+    <>
     <section
       className={`landing-premium-hero landing-premium-hero-carousel fade-up ${reducedMotion ? 'reduced-motion' : ''}`}
       style={{ ['--hero-accent' as string]: slide.accent }}
       aria-label="Vedaansh product highlights"
     >
       <div className="landing-premium-hero-carousel-inner">
-        <div className="landing-hero-carousel-top">
-          <div className="landing-hero-carousel-brand">
-            <Image src="/veda-icon.png" alt="Vedaansh" width={26} height={26} />
-            <span>Vedaansh</span>
-          </div>
+        <div className="landing-hero-carousel-top landing-premium-hero-top">
           <button type="button" className="landing-hero-next" onClick={goNext}>
             Next
             <ChevronRight size={13} strokeWidth={2.25} aria-hidden />
@@ -242,15 +239,8 @@ export function LandingPremiumHero({
             ))}
           </div>
 
-          <div className="landing-hero-carousel-footer-links">
-            <Link
-              href="/install"
-              className="landing-hero-carousel-footer-link"
-              onClick={() => trackLandingCta('hero_quick_install_app')}
-            >
-              Install App
-            </Link>
-            {showMyCharts ? (
+          {showMyCharts ? (
+            <div className="landing-hero-carousel-footer-links">
               <Link
                 href="/my/charts"
                 className="landing-hero-carousel-footer-link"
@@ -258,10 +248,12 @@ export function LandingPremiumHero({
               >
                 My Charts
               </Link>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
+    <LandingTodaySky sky={sky} failed={skyFailed} onNavigate={() => trackLandingCta('today_sky_panchang')} />
+    </>
   )
 }
