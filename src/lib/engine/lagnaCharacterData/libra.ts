@@ -105,7 +105,7 @@ export const LIBRA_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Expected to forgive and forget as "fate", yet small hurts resurface at rest; sleep struggles from overthinking.',
         'Work can feel like heaven compared with a conflict-ridden home.',
         'Spends on medical tests and legal matters out of anxiety; very charitable, even clearing others’ debts at personal cost.',
-        'Spouse’s financial setbacks may be repeatedly absorbed by the native.',
+        'Spouse’s financial setbacks may be repeatedly absorbed by the person.',
         'Works better at night in quiet; needs rest, and a short nap greatly improves productivity.',
       ],
     },
@@ -138,7 +138,7 @@ export const LIBRA_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Frequent arguments with the father, who is often detail-oriented, calculative, nitpicking and sometimes self-serving.',
         'The father’s decisions, for example on marriage matches, can negatively affect married life; he may give in to others’ pressure.',
         'He may not fully value the mother, but in serious situations the mother’s steadiness (Capricorn on the 4th) prevails.',
-        'Both the native’s father and father-in-law can influence the quality of married life.',
+        'Both the person’s father and father-in-law can influence the quality of married life.',
       ],
     },
     10: {

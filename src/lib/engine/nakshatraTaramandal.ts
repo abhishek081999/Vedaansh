@@ -112,7 +112,7 @@ export const TARAMANDALS: TaramandalDefinition[] = [
       'Vishnu is the deity of Shravana; cosmic sound, guidance, and direction flow through Garuda energy via this star.',
     theme: 'Protection, communication, and cosmic messaging along the sky-path.',
     functions: [
-      'Protect the native',
+      'Protect the person',
       'Make you a communicator and message-bearer',
       'Open the sky-path (ākāśa mārga)',
       'Sharpen hearing / receptive power (śravaṇa śakti)',
@@ -263,7 +263,7 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     ],
     works: [
       'Mind runs very fast before any major success',
-      'Pulls the native toward intellect-related work (intellectual status / merit)',
+      'Pulls the person toward intellect-related work (intellectual status / merit)',
     ],
     members: [
       m(23),           // Shatabhisha
@@ -352,7 +352,7 @@ export const TARAMANDALS: TaramandalDefinition[] = [
       'Fuel creativity',
     ],
     works: [
-      'Keep the native able to survive the hardest situations',
+      'Keep the person able to survive the hardest situations',
     ],
     members: [
       m(0),            // Ashwini
@@ -369,7 +369,7 @@ export const TARAMANDALS: TaramandalDefinition[] = [
     sanskrit: 'Mṛtyu Karma Maṇḍala',
     kingIndex: 18, // Mula
     kingWhy: 'Mula is named as the king; full member list pending further teaching.',
-    theme: 'Death–karma constellation (details forthcoming).',
+    theme: 'A constellation linked to endings and karma (details coming soon).',
     functions: [],
     works: [],
     members: [m(18)], // king only until group is taught

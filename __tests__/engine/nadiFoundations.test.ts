@@ -591,7 +591,7 @@ describe('Nadi foundations', () => {
         { id: 'Ke', rashi: 1 },
       ],
     })
-    expect(venusRahuSeventh.marriageYogas.find((yoga) => yoga.id === 'D1-ve-ra')?.reading).toMatch(/three forms/)
+    expect(venusRahuSeventh.marriageYogas.find((yoga) => yoga.id === 'D1-ve-ra')?.reading).toMatch(/a delay in marriage, a separation/)
   })
 
   it('reads Saturn’s conjunction ahead of a trine, and a trine ahead of an exalted planet', () => {
@@ -785,7 +785,7 @@ describe('Nadi foundations', () => {
       ascRashi: 1 as Rashi,
       grahas: [{ id: 'Ve', rashi: 12, isRetro: true }],
     })
-    expect(venus.retrogradeNotes.join(' ')).toMatch(/marriage trouble/)
+    expect(venus.retrogradeNotes.join(' ')).toMatch(/difficulty in marriage/)
     expect(venus.retrogradeNotes.join(' ')).toMatch(/powerful/)
 
     const mercury = readNadiHouses({

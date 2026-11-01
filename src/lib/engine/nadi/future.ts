@@ -320,7 +320,7 @@ function periodLines(
     const dignity = planet ? placedDignity(planet) : null
     const strong = dignity === 'exalted' || dignity === 'own' || dignity === 'moolatrikona'
     if (strong && !dusthana) lines.push(`${GRAHA_NAMES[ninth]} rules the 9th and is strong. This period is read for money, luck, and travel.`)
-    else if (dusthana) lines.push(`${GRAHA_NAMES[ninth]} rules the 9th and also a dusthana. A gain is checked together with strain on health or the family.`)
+    else if (dusthana) lines.push(`${GRAHA_NAMES[ninth]} rules the 9th and also a dusthana (difficult houses: 6, 8, 12). A gain is checked together with strain on health or the family.`)
   }
 
   const vargottama = lords.filter((id) => {

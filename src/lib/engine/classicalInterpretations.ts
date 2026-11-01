@@ -44,63 +44,63 @@ function note(source: ClassicalSource, text: string, ref?: string): ClassicalNot
 export const HOUSE_CLASSICAL: Record<HouseNumber, ClassicalNote[]> = {
   1: [
     note('BPHS', 'Tanu Bhava: body, complexion, nature, strength, happiness, sorrow, and the self. Strength of Lagna and Lagna lord shapes vitality and destiny outline.', 'Bhava significations'),
-    note('Phaladeepika', 'The Ascendant shows appearance, fame, longevity beginnings, and general prosperity of the native.'),
-    note('BrihatJataka', 'Lagna is the foundation; benefic influence here elevates character and bodily comfort.'),
+    note('Phaladeepika', 'The Ascendant shows appearance, fame, longevity beginnings, and general prosperity of the person.'),
+    note('BrihatJataka', 'Lagna is the foundation; helpful influence here elevates character and bodily comfort.'),
   ],
   2: [
     note('BPHS', 'Dhana Bhava: wealth, family (kutumba), speech, right eye, food, and accumulated resources.', 'Bhava significations'),
     note('Phaladeepika', 'Second house governs family happiness, speech quality, and capacity to amass movable wealth.'),
-    note('Saravali', 'Benefics in 2nd sweeten speech and increase family prosperity; malefics harshen speech and strain family.'),
+    note('Saravali', 'Helpful planets in 2nd sweeten speech and increase family prosperity; difficult planets harshen speech and strain family.'),
   ],
   3: [
     note('BPHS', 'Sahaja Bhava: siblings (especially younger), courage, servants, short journeys, ears, and valor.', 'Bhava significations'),
     note('Phaladeepika', 'Third shows enterprise, writing, skills of the hands, and relationship with co-borns.'),
-    note('JatakaParijata', 'Strong 3rd gives bravery and initiative; afflicted 3rd reduces courage and fraternal harmony.'),
+    note('JatakaParijata', 'Strong 3rd gives bravery and initiative; troubled 3rd reduces courage and fraternal harmony.'),
   ],
   4: [
     note('BPHS', 'Bandhu/Sukha Bhava: mother, home, conveyances, lands, happiness, and emotional comfort.', 'Bhava significations'),
     note('Phaladeepika', 'Fourth indicates mother, education foundations, property, and domestic peace.'),
-    note('BrihatJataka', 'Benefics in 4th grant conveyances and happiness; malefics disturb home peace.'),
+    note('BrihatJataka', 'Helpful planets in 4th grant conveyances and happiness; difficult planets disturb home peace.'),
   ],
   5: [
     note('BPHS', 'Putra Bhava: children, intelligence, mantra, past-life merit (pūrva puṇya), and counsel.', 'Bhava significations'),
     note('Phaladeepika', 'Fifth rules progeny, authorship, speculation, and divine worship.'),
-    note('Saravali', 'Strong 5th favors learning and children; affliction delays progeny and scatters study.'),
+    note('Saravali', 'Strong 5th favors learning and children; difficult influence delays progeny and scatters study.'),
   ],
   6: [
     note('BPHS', 'Ripu/Roga Bhava: enemies, diseases, debts, maternal uncle, service, and obstacles to be conquered.', 'Bhava significations'),
     note('Phaladeepika', 'Sixth shows litigation, servants, health struggles, and competitive contests.'),
-    note('JatakaParijata', 'Malefics strong in 6th can destroy enemies; weak/afflicted 6th increases disease and debt.'),
+    note('JatakaParijata', 'Difficult planets strong in 6th can destroy enemies; weak/troubled 6th increases disease and debt.'),
   ],
   7: [
     note('BPHS', 'Jāyā/Kalatra Bhava: spouse, partnerships, travel abroad themes, and desire fulfillment through others.', 'Bhava significations'),
     note('Phaladeepika', 'Seventh governs marriage, business partners, and public dealings.'),
-    note('BrihatJataka', 'Benefics in 7th favor a virtuous spouse; malefics bring strife or delay in marriage.'),
+    note('BrihatJataka', 'Helpful planets in 7th favor a virtuous spouse; difficult planets bring strife or delay in marriage.'),
   ],
   8: [
     note('BPHS', 'Āyu Bhava: longevity, obstacles, inheritance, occult knowledge, and sudden transformations.', 'Bhava significations'),
     note('Phaladeepika', 'Eighth indicates life span, chronic ailments, spouse’s wealth, and hidden matters.'),
-    note('Saravali', 'Strong 8th after affliction yields research power and regenerative capacity; severe affliction shortens ease of life.'),
+    note('Saravali', 'Strong 8th after difficult influence yields research power and regenerative capacity; heavy pressure on it can make life feel harder.'),
   ],
   9: [
     note('BPHS', 'Dharma/Bhāgya Bhava: fortune, father, guru, dharma, long journeys, and higher learning.', 'Bhava significations'),
     note('Phaladeepika', 'Ninth shows piety, teachers, luck, and grandchildren themes.'),
-    note('BrihatJataka', 'Benefics in 9th exalt fortune and father; malefics strain dharma and paternal happiness.'),
+    note('BrihatJataka', 'Helpful planets in 9th exalt fortune and father; difficult planets strain dharma and paternal happiness.'),
   ],
   10: [
     note('BPHS', 'Karma Bhava: profession, status, honor, authority, and actions that define public life.', 'Bhava significations'),
     note('Phaladeepika', 'Tenth rules livelihood, reputation, government favor, and achievements.'),
-    note('JatakaParijata', 'Strong 10th and 10th lord raise the native high; affliction brings career instability.'),
+    note('JatakaParijata', 'Strong 10th and 10th lord raise the person high; difficult influence brings career instability.'),
   ],
   11: [
     note('BPHS', 'Lābha Bhava: gains, elder siblings, friends, fulfillment of desires, and income.', 'Bhava significations'),
     note('Phaladeepika', 'Eleventh indicates profits, social circles, and realization of ambitions.'),
-    note('Saravali', 'Benefics in 11th multiply gains; malefics give gains with struggle or through harsh means.'),
+    note('Saravali', 'Helpful planets in 11th multiply gains; difficult planets give gains with struggle or through harsh means.'),
   ],
   12: [
     note('BPHS', 'Vyaya Bhava: losses, expenses, liberation (mokṣa), foreign residence, sleep, and confinement places.', 'Bhava significations'),
     note('Phaladeepika', 'Twelfth shows expenditure, bed comforts, spiritual detachment, and life abroad.'),
-    note('BrihatJataka', 'Benefics in 12th favor charitable expense and peaceful sleep; malefics increase wasteful loss.'),
+    note('BrihatJataka', 'Helpful planets in 12th favor charitable expense and peaceful sleep; difficult planets increase wasteful loss.'),
   ],
 }
 
@@ -109,7 +109,7 @@ export const HOUSE_CLASSICAL: Record<HouseNumber, ClassicalNote[]> = {
 export const RASHI_CLASSICAL: Record<Rashi, ClassicalNote[]> = {
   1: [
     note('BPHS', 'Meṣa: movable, fiery, male, ruled by Mars. Bold, pioneering, bilious temperament.', 'Rashi natures'),
-    note('BrihatJataka', 'Aries natives are active, courageous, and somewhat restless; body marked by heat and vigor.'),
+    note('BrihatJataka', 'Aries people are active, courageous, and somewhat restless; body marked by heat and vigor.'),
     note('Saravali', 'Mesha rising: enterprising spirit, quick to anger, fond of travel and distinction.'),
   ],
   2: [
@@ -188,25 +188,25 @@ function fillPlanetHouses(
 
 export const PLANET_IN_HOUSE_CLASSICAL: PHTable = {
   Su: fillPlanetHouses({
-    1: [note('BPHS', 'Sun in Lagna: authoritative nature, bilious constitution, leadership bent; may reduce hair or eye comfort if afflicted.'), note('Phaladeepika', 'Makes the native proud, active, and respected; excess heat needs care.')],
-    2: [note('BPHS', 'Sun in 2nd: wealth through government/authority; proud speech; strain with family if afflicted.')],
+    1: [note('BPHS', 'Sun in Lagna: authoritative nature, bilious constitution, leadership bent; may reduce hair or eye comfort if under pressure.'), note('Phaladeepika', 'Makes the person proud, active, and respected; excess heat needs care.')],
+    2: [note('BPHS', 'Sun in 2nd: wealth through government/authority; proud speech; strain with family if under pressure.')],
     3: [note('BPHS', 'Sun in 3rd: courageous, victorious over rivals; younger siblings may be few or dominated.')],
     4: [note('BPHS', 'Sun in 4th: unsettled domestic peace; conveyances possible; mother’s health needs care.'), note('Phaladeepika', 'Reduces sukha; favors distant residence at times.')],
-    5: [note('BPHS', 'Sun in 5th: intelligent, advisory roles; children few or delayed if afflicted; mantra siddhi possible.')],
+    5: [note('BPHS', 'Sun in 5th: intelligent, advisory roles; children few or delayed if under pressure; mantra siddhi possible.')],
     6: [note('BPHS', 'Sun in 6th: destroys enemies, succeeds in service/competition; digestive heat themes.')],
     7: [note('BPHS', 'Sun in 7th: delayed or ego-touched marriage; partner proud; partnerships need humility.'), note('Phaladeepika', 'Travel and public dealing increase; marital peace requires compromise.')],
     8: [note('BPHS', 'Sun in 8th: longevity tests, inheritance disputes, research into hidden matters; father’s comfort strained.')],
-    9: [note('BPHS', 'Sun in 9th: fortunate if strong; devotion and fatherly pride; pilgrimage bent.'), note('Saravali', 'Raja-yoga flavor when well-placed with kendra/trikona support.')],
+    9: [note('BPHS', 'Sun in 9th: fortunate if strong; devotion and fatherly pride; pilgrimage bent.'), note('Saravali', 'Raja-yoga flavor when well-placed with kendra (angular houses: 1, 4, 7, 10)/trikona (trine houses: 1, 5, 9) support.')],
     10: [note('BPHS', 'Sun in 10th: digbala—fame, authority, government favor, high karma.'), note('Phaladeepika', 'Rise through own effort and royal/government channels.')],
     11: [note('BPHS', 'Sun in 11th: gains, influential friends, fulfillment of ambitions.')],
-    12: [note('BPHS', 'Sun in 12th: expenses, foreign residence, eye strain; spiritual austerity if supported.'), note('Phaladeepika', 'Private authority and father-distance themes; charity/hospital lean when dignified.')],
+    12: [note('BPHS', 'Sun in 12th: expenses, foreign residence, eye strain; spiritual austerity if supported.'), note('Phaladeepika', 'Private authority and father-distance themes; charity/hospital tendency when dignified.')],
   }, (h) => [note('BPHS', `Sun in house ${h}: colors authority, vitality, and father/government themes in that bhava—judge by dignity and aspects.`)]),
 
   Mo: fillPlanetHouses({
-    1: [note('BPHS', 'Moon in Lagna: attractive, changeable mind, popularity; health follows mental peace.'), note('BrihatJataka', 'Strong Moon rising beautifies and sensitizes the native.')],
+    1: [note('BPHS', 'Moon in Lagna: attractive, changeable mind, popularity; health follows mental peace.'), note('BrihatJataka', 'Strong Moon rising beautifies and sensitizes the person.')],
     2: [note('BPHS', 'Moon in 2nd: sweet speech, fluctuating wealth, family emotional tides.')],
     3: [note('BPHS', 'Moon in 3rd: short travels, artistic skills; courage fluctuates with mood.')],
-    4: [note('BPHS', 'Moon in 4th: digbala—happiness, mother bond, conveyances, public goodwill.'), note('Phaladeepika', 'Home comforts and emotional security increase when unafflicted.')],
+    4: [note('BPHS', 'Moon in 4th: digbala—happiness, mother bond, conveyances, public goodwill.'), note('Phaladeepika', 'Home comforts and emotional security increase when free of difficult influences.')],
     5: [note('BPHS', 'Moon in 5th: fertile mind, devotion, children; education mood-dependent.')],
     6: [note('BPHS', 'Moon in 6th: health anxiety, service mind; overcomes enemies through adaptability.')],
     7: [note('BPHS', 'Moon in 7th: attractive partner, emotional marriage; travel and public dealings.'), note('Phaladeepika', 'Partner may be fair-minded; mood swings need grounding.')],
@@ -214,7 +214,7 @@ export const PLANET_IN_HOUSE_CLASSICAL: PHTable = {
     9: [note('BPHS', 'Moon in 9th: fortune through motherly grace, pilgrimages, dharmic mind.')],
     10: [note('BPHS', 'Moon in 10th: public career, fluctuating profession, fame among masses.')],
     11: [note('BPHS', 'Moon in 11th: gains, many friends, desire fulfillment with emotional cycles.')],
-    12: [note('BPHS', 'Moon in 12th: vivid dreams, foreign life, moksha lean; sleep quality is key.'), note('Phaladeepika', 'Emotional spending and healing sensitivity; domestic ease may sit outside the birth home.')],
+    12: [note('BPHS', 'Moon in 12th: vivid dreams, foreign life, moksha tendency; sleep quality is key.'), note('Phaladeepika', 'Emotional spending and healing sensitivity; domestic ease may sit outside the birth home.')],
   }, (h) => [note('BPHS', `Moon in house ${h}: mind and motherly comfort color that life area—waxing/waning and nakshatra refine results.`)]),
 
   Ma: fillPlanetHouses({
@@ -226,28 +226,28 @@ export const PLANET_IN_HOUSE_CLASSICAL: PHTable = {
     ],
     2: [
       note('BPHS', 'Mars in 2nd: harsh speech possible, family strife or protective duty; wealth via effort.'),
-      note('Phaladeepika', 'When strong: tireless family duty and authoritative speech, land/asset lean. Afflicted: abusive speech and quarrels.'),
+      note('Phaladeepika', 'When strong: tireless family duty and authoritative speech, land/asset tendency. Troubled: abusive speech and quarrels.'),
       note('Saravali', 'Food and family peace suffer if Mars is hot; disciplined speech restores dhana themes.'),
     ],
     3: [
       note('BPHS', 'Mars in 3rd: valor, younger siblings, skilled hands; victory after fight.'),
-      note('Phaladeepika', 'Upachaya strength—courage, short journeys, sports, and technical hands excel.'),
+      note('Phaladeepika', 'Upachaya (growth houses: 3, 6, 10, 11) strength—courage, short journeys, sports, and technical hands excel.'),
       note('Saravali', 'Neighborhood near security/effort themes; fast driving and competitive local energy.'),
     ],
     4: [
       note('BPHS', 'Mars in 4th: domestic agitation, property disputes or renovations; mother’s comfort strained.'),
-      note('Phaladeepika', 'Often grants own house/property even when afflicted; fights, theft, or domestic heat if harsh.'),
-      note('Saravali', 'Land, multiple properties, or factory lean when Saturn supports; still a Kuja house for marriage comfort.'),
+      note('Phaladeepika', 'Often grants own house/property even when under pressure; fights, theft, or domestic heat if harsh.'),
+      note('Saravali', 'Land, multiple properties, or factory tendency when Saturn supports; still a Kuja house for marriage comfort.'),
     ],
     5: [
-      note('BPHS', 'Mars in 5th: sharp intellect, passionate romance; children themes need care if afflicted.'),
-      note('Phaladeepika', 'High posts and strong digestion; modern cesarean lean; protect children and romantic boundaries.'),
+      note('BPHS', 'Mars in 5th: sharp intellect, passionate romance; children themes need care if under pressure.'),
+      note('Phaladeepika', 'High posts and strong digestion; modern cesarean tendency; protect children and romantic boundaries.'),
       note('Saravali', 'Love-language can turn combative; ego heat rises in Sun’s natural house.'),
     ],
     6: [
       note('BPHS', 'Mars in 6th: strong to defeat enemies and disease; surgical/competitive success.'),
-      note('Saravali', 'Excellent for warriors and litigants when not otherwise ruined.'),
-      note('Phaladeepika', 'Upachaya fighter—defense, contest, recovery drive; watch injury and property-related debt.'),
+      note('Saravali', 'Excellent for warriors and litigants when the rest of the chart supports it.'),
+      note('Phaladeepika', 'Upachaya (growth houses: 3, 6, 10, 11) fighter—defense, contest, recovery drive; watch injury and property-related debt.'),
     ],
     7: [
       note('BPHS', 'Mars in 7th: Kuja/Mangal considerations—strife or passion in marriage; partner assertive.'),
@@ -256,30 +256,30 @@ export const PLANET_IN_HOUSE_CLASSICAL: PHTable = {
       note('BrihatJataka', 'Partner may be bold or martial; mutual Manglik matching and age ~28 soften readings.'),
     ],
     8: [
-      note('BPHS', 'Mars in 8th: accidents/surgery vigilance, research courage, inheritance fights.'),
+      note('BPHS', 'Mars in 8th: take care around accidents and surgery; research courage, inheritance fights.'),
       note('Phaladeepika', 'Blood/surgery themes, ancestral property disputes, intense in-law dynamics.'),
-      note('Saravali', 'Friend-circle fights and marital conflict risk if afflicted; occult research courage if dignified.'),
-      note('JatakaParijata', 'Sudden upheavals and longevity tests—judge dispositor and aspects, not the house alone.'),
+      note('Saravali', 'Friend-circle fights and marital conflict risk if under pressure; occult research courage if dignified.'),
+      note('JatakaParijata', 'Sudden upheavals and longevity tests—judge dispositor (ruler of the sign it sits in) and aspects, not the house alone.'),
     ],
     9: [
       note('BPHS', 'Mars in 9th: dharmic fighter, pilgrim warrior; father may be strict/authoritative.'),
-      note('Phaladeepika', 'Practical protective religion—Hanuman, Narasimha, Kartikeya, Rāma, Śiva lean; hot-climate or defense travel.'),
+      note('Phaladeepika', 'Practical protective religion—Hanuman, Narasimha, Kartikeya, Rāma, Śiva tendency; hot-climate or defense travel.'),
       note('Saravali', 'Kṣatriya managerial command; mother may show blood/pain themes if Mars is harsh.'),
     ],
     10: [
       note('BPHS', 'Mars in 10th: digbala—career ambition, command, technical/military success.'),
       note('Phaladeepika', 'Focused hard work in the right direction; own/exalted supports Ruchaka-yoga flavor with effort.'),
-      note('Saravali', 'Commander through karma; afflicted Mars here can show accidents, fire/weapon risk, or difficult progeny dynamics.'),
+      note('Saravali', 'Commander through karma; a Mars under pressure here asks for care around accidents, fire and weapons, and with matters involving children.'),
       note('BrihatJataka', 'Fame through courage and technical mastery when dignity supports.'),
     ],
     11: [
       note('BPHS', 'Mars in 11th: gains through courage and networks; elder sibling energy strong.'),
-      note('Phaladeepika', 'Upachaya gains—competitive networks and loyal-group drive fulfill ambitions.'),
+      note('Phaladeepika', 'Upachaya (growth houses: 3, 6, 10, 11) gains—competitive networks and loyal-group drive fulfill ambitions.'),
       note('Saravali', 'Channel aggression into productive teams; elder-sibling help or heat both possible.'),
     ],
     12: [
       note('BPHS', 'Mars in 12th: expenses, private conflicts, bed comforts strained; spiritual discipline channels heat.'),
-      note('Phaladeepika', 'Foreign land/effort lean; weak Mars (māraṇa-kāraka + low ṣaḍbala) classically linked to erectile dysfunction; afflicted 8th aspect may show partner aggression.'),
+      note('Phaladeepika', 'Foreign land/effort tendency; weak Mars (māraṇa-kāraka (natural indicator) + low ṣaḍbala) classically linked to erectile dysfunction; troubled 8th aspect may show partner aggression.'),
       note('Saravali', 'Wanderer who dislikes idle solitude; long travel loved; anger needs martial/discipline outlets—often steadies after ~age 28.'),
       note('Teaching', '4th aspect can protect sibling themes; 7th may reduce open enmity; 8th intensifies partner bond—read functional nature before harsh conclusions.'),
     ],
@@ -291,8 +291,8 @@ export const PLANET_IN_HOUSE_CLASSICAL: PHTable = {
     3: [note('BPHS', 'Mercury in 3rd: writing, skills, short journeys; communicative siblings.')],
     4: [note('BPHS', 'Mercury in 4th: education, conveyances of learning, mother witty or restless.')],
     5: [note('BPHS', 'Mercury in 5th: sharp buddhi, mantra, speculative intellect; children clever.')],
-    6: [note('BPHS', 'Mercury in 6th: analytical service, debate with enemies; nervous strain if afflicted.')],
-    7: [note('BPHS', 'Mercury in 7th: clever spouse/partner, trade marriages; youthful relating.'), note('Phaladeepika', 'Partner often from nearby circle or through relatives/friends; partnerships fluctuate yet resolve with viveka when unafflicted.')],
+    6: [note('BPHS', 'Mercury in 6th: analytical service, debate with enemies; nervous strain if under pressure.')],
+    7: [note('BPHS', 'Mercury in 7th: clever spouse/partner, trade marriages; youthful relating.'), note('Phaladeepika', 'Partner often from nearby circle or through relatives/friends; partnerships fluctuate yet resolve with viveka when free of difficult influences.')],
     8: [note('BPHS', 'Mercury in 8th: research speech, occult study; longevity of intellect through crisis.')],
     9: [note('BPHS', 'Mercury in 9th: learning from many teachers, dharma debate, long study journeys.')],
     10: [note('BPHS', 'Mercury in 10th: career in communication, accounting, counsel, trade.')],
@@ -307,12 +307,12 @@ export const PLANET_IN_HOUSE_CLASSICAL: PHTable = {
     4: [note('BPHS', 'Jupiter in 4th: happiness, motherly wisdom, property and conveyances.'), note('Saravali', 'Domestic peace and sacred home environment.')],
     5: [note('BPHS', 'Jupiter in 5th: excellent for children, counsel, mantra, past-life merit.')],
     6: [note('BPHS', 'Jupiter in 6th: mixed—defeats enemies yet may serve below worth; health moderation.')],
-    7: [note('BPHS', 'Jupiter in 7th: virtuous spouse, dharmic partnerships; travel and counsel.'), note('Phaladeepika', 'When strong: teacher-like, tolerant partner. When afflicted: delay, prior-family themes, or partnership strain—judge dignity, not the house alone.')],
+    7: [note('BPHS', 'Jupiter in 7th: virtuous spouse, dharmic partnerships; travel and counsel.'), note('Phaladeepika', 'When strong: teacher-like, tolerant partner. When troubled: delay, prior-family themes, or partnership strain—judge dignity, not the house alone.')],
     8: [note('BPHS', 'Jupiter in 8th: longevity, occult wisdom, inheritance; sudden grace in crisis.')],
     9: [note('BPHS', 'Jupiter in 9th: supreme bhagya—father, guru, dharma flourish.'), note('BPHS', 'One of the most auspicious natural placements for fortune.')],
     10: [note('BPHS', 'Jupiter in 10th: respected profession, advisory/judicial/teaching roles.')],
     11: [note('BPHS', 'Jupiter in 11th: abundant gains, noble friends, desire fulfillment.')],
-    12: [note('BPHS', 'Jupiter in 12th: moksha lean, charitable expense, peaceful bed/foreign dharma.'), note('Phaladeepika', 'Initiatory wisdom when strong; knowledge-ego and overspend if afflicted—judge dignity.')],
+    12: [note('BPHS', 'Jupiter in 12th: moksha tendency, charitable expense, peaceful bed/foreign dharma.'), note('Phaladeepika', 'Initiatory wisdom when strong; knowledge-ego and overspend if under pressure—judge dignity.')],
   }, (h) => [note('BPHS', `Jupiter in house ${h}: expands wisdom, grace, and dharma in that bhava—combustion and nodes can reduce purity of results.`)]),
 
   Ve: fillPlanetHouses({
@@ -321,23 +321,23 @@ export const PLANET_IN_HOUSE_CLASSICAL: PHTable = {
     3: [note('BPHS', 'Venus in 3rd: artistic skills, romantic hobbies, refined courage.')],
     4: [note('BPHS', 'Venus in 4th: beautiful home, vehicles, maternal comforts.'), note('Phaladeepika', 'Sukha and conveyances favored.')],
     5: [note('BPHS', 'Venus in 5th: romance, creative intelligence, love marriage themes; children affection.')],
-    6: [note('BPHS', 'Venus in 6th: service in arts/healing; debts from luxury if afflicted.')],
+    6: [note('BPHS', 'Venus in 6th: service in arts/healing; debts from luxury if under pressure.')],
     7: [note('BPHS', 'Venus in 7th: strong marriage magnetism; own-choice marriage needs caution.'), note('Phaladeepika', 'Partner attractive; excess desire needs balance.')],
     8: [note('BPHS', 'Venus in 8th: spouse’s wealth, occult aesthetics; sudden passion and longevity of desire.')],
     9: [note('BPHS', 'Venus in 9th: fortunate pleasures, dharmic arts, soft father/guru relations.')],
     10: [note('BPHS', 'Venus in 10th: career in beauty, arts, diplomacy, luxury trades.')],
     11: [note('BPHS', 'Venus in 11th: gains, pleasurable networks, desire fulfillment.')],
     12: [note('BPHS', 'Venus in 12th: exalted-friendly for bhakti; bed comforts, foreign luxury, charitable spend.'), note('Phaladeepika', 'Selfless love and private devotion; material desire softens through sādhana.')],
-  }, (h) => [note('BPHS', `Venus in house ${h}: brings pleasure, arts, and relational sweetness to that bhava—affliction turns luxury into excess.`)]),
+  }, (h) => [note('BPHS', `Venus in house ${h}: brings pleasure, arts, and relational sweetness to that bhava—difficult influence turns luxury into excess.`)]),
 
   Sa: fillPlanetHouses({
-    1: [note('BPHS', 'Saturn in Lagna: lean/serious body, delayed rise, endurance; childhood austerity.'), note('Phaladeepika', 'Mature outlook; happiness comes later.')],
+    1: [note('BPHS', 'Saturn in Lagna: tendency/serious body, delayed rise, endurance; childhood austerity.'), note('Phaladeepika', 'Mature outlook; happiness comes later.')],
     2: [note('BPHS', 'Saturn in 2nd: slow wealth accumulation, restrained speech, family duty.')],
     3: [note('BPHS', 'Saturn in 3rd: courageous through effort; younger siblings delayed or serious.')],
     4: [note('BPHS', 'Saturn in 4th: restricted domestic comfort; property after labor; mother’s strictness.')],
     5: [note('BPHS', 'Saturn in 5th: delayed children/romance; disciplined learning; fear of creativity.')],
     6: [note('BPHS', 'Saturn in 6th: strong to grind through enemies/disease/debt via routine.'), note('Saravali', 'Service and longevity of effort favored.')],
-    7: [note('BPHS', 'Saturn in 7th: delayed marriage, older/serious partner; duty-bound unions.'), note('Phaladeepika', 'Stability after patience; coldness if afflicted.')],
+    7: [note('BPHS', 'Saturn in 7th: delayed marriage, older/serious partner; duty-bound unions.'), note('Phaladeepika', 'Stability after patience; coldness if under pressure.')],
     8: [note('BPHS', 'Saturn in 8th: long life with chronic tests; occult endurance; inheritance delays.')],
     9: [note('BPHS', 'Saturn in 9th: orthodox hard faith; father distant/strict; late fortune.')],
     10: [note('BPHS', 'Saturn in 10th: digbala—career through endurance, mass work, lasting status.'), note('BPHS', 'Karma siddhi through slow responsible labor.')],
@@ -346,33 +346,33 @@ export const PLANET_IN_HOUSE_CLASSICAL: PHTable = {
   }, (h) => [note('BPHS', `Saturn in house ${h}: delays and structures that life area—results become permanent after sustained karma.`)]),
 
   Ra: fillPlanetHouses({
-    1: [note('Phaladeepika', 'Rahu in Lagna: unconventional appearance/identity, foreign lean, intense self-reinvention.'), note('JatakaParijata', 'Amplifies personality extremes; judge with dispositor.')],
+    1: [note('Phaladeepika', 'Rahu in Lagna: unconventional appearance/identity, foreign tendency, intense self-reinvention.'), note('JatakaParijata', 'Amplifies personality extremes; judge with dispositor (ruler of the sign it sits in).')],
     2: [note('Phaladeepika', 'Rahu in 2nd: unusual speech/wealth paths; family unconventionality; appetite extremes.')],
     3: [note('Phaladeepika', 'Rahu in 3rd: bold short travels, media courage, unconventional siblings/skills.')],
     4: [note('Phaladeepika', 'Rahu in 4th: unsettled homeland, unusual residence, emotional restlessness.')],
     5: [note('Phaladeepika', 'Rahu in 5th: speculative intellect, unconventional romance/children themes.')],
     6: [note('Phaladeepika', 'Rahu in 6th: defeats enemies uniquely; health oddities; service in tech/foreign systems.')],
-    7: [note('Phaladeepika', 'Rahu in 7th: foreign/unusual partner, intense desire marriage; ethics need care.'), note('JatakaParijata', 'Partnerships amplify obsession—dispositor decides grace or illusion.')],
+    7: [note('Phaladeepika', 'Rahu in 7th: foreign/unusual partner, intense desire marriage; ethics need care.'), note('JatakaParijata', 'Partnerships amplify obsession—dispositor (ruler of the sign it sits in) decides grace or illusion.')],
     8: [note('Phaladeepika', 'Rahu in 8th: occult research, sudden upheavals, inheritance oddities.')],
     9: [note('Phaladeepika', 'Rahu in 9th: heterodox belief, foreign dharma, strained conventional father/guru.')],
     10: [note('Phaladeepika', 'Rahu in 10th: unconventional career rise, fame with controversy potential.')],
     11: [note('Phaladeepika', 'Rahu in 11th: large gains via networks, desires magnified.')],
-    12: [note('Phaladeepika', 'Rahu in 12th: foreign residence, hidden expenses, moksha via unusual paths.'), note('JatakaParijata', 'Afflicted Rahu: jail/confinement combinations; with afflicted Moon: mental instability/madness risk per class teaching.')],
-  }, (h) => [note('Phaladeepika', `Rahu in house ${h}: amplifies and foreignizes that bhava—always read with sign lord (dispositor) and dignity.`)]),
+    12: [note('Phaladeepika', 'Rahu in 12th: foreign residence, hidden expenses, moksha via unusual paths.'), note('JatakaParijata', 'Troubled Rahu: jail/confinement combinations; with troubled Moon: mental instability/madness risk per traditional teaching.')],
+  }, (h) => [note('Phaladeepika', `Rahu in house ${h}: amplifies and foreignizes that bhava—always read with sign lord (dispositor (ruler of the sign it sits in)) and dignity.`)]),
 
   Ke: fillPlanetHouses({
     1: [note('Phaladeepika', 'Ketu in Lagna: detached identity, spiritual/moksha bent, psychic sensitivity.'), note('JatakaParijata', 'Past-life mastery of self; this life seeks liberation from ego.')],
     2: [note('Phaladeepika', 'Ketu in 2nd: sparse speech, detachment from family wealth, piercing words.')],
     3: [note('Phaladeepika', 'Ketu in 3rd: solitary courage, occult skills, distance from siblings.')],
     4: [note('Phaladeepika', 'Ketu in 4th: detachment from homeland/mother comforts; inner home sought.')],
-    5: [note('Phaladeepika', 'Ketu in 5th: past-life intellect, unconventional children/romance, mantra lean.')],
+    5: [note('Phaladeepika', 'Ketu in 5th: past-life intellect, unconventional children/romance, mantra tendency.')],
     6: [note('Phaladeepika', 'Ketu in 6th: dissolves enemies mysteriously; healing bent; debt detachment.')],
     7: [note('Phaladeepika', 'Ketu in 7th: spouse from known circle; spiritual/past-bond feel when clean; dissatisfaction if expectations inflate.'), note('JatakaParijata', 'Act as fakir in partnership expectations; placement outweighs mere aspect.')],
     8: [note('Phaladeepika', 'Ketu in 8th: deep occult, longevity mysteries, research detachment.')],
     9: [note('Phaladeepika', 'Ketu in 9th: unorthodox guru path, pilgrim solitude, father distance.')],
     10: [note('Phaladeepika', 'Ketu in 10th: unconventional career, breaks from bosses, behind-the-scenes mastery.')],
     11: [note('Phaladeepika', 'Ketu in 11th: selective gains, few true friends, desire reduction.')],
-    12: [note('Phaladeepika', 'Ketu in 12th: strong moksha indication, isolation, dream wisdom.'), note('JatakaParijata', 'Cortisol/low-testosterone stress linked to erectile dysfunction in class notes; extreme stress may bring suicidal ideation—urge real support.')],
+    12: [note('Phaladeepika', 'Ketu in 12th: strong moksha indication, isolation, dream wisdom.'), note('JatakaParijata', 'Long-term stress may affect sexual health. Very high stress can bring dark thoughts. If you ever feel overwhelmed or unsafe, please talk to someone you trust or a mental-health professional.')],
   }, (h) => [note('Phaladeepika', `Ketu in house ${h}: detaches and spiritualizes that bhava—past mastery, present non-attachment.`)]),
 }
 
@@ -433,7 +433,7 @@ export const PLANET_IN_SIGN_CLASSICAL: PSTable = {
     1: [
       note('BPHS', 'Mars in own Aries (mūlatrikoṇa seat): raw initiative and valor.'),
       note('Phaladeepika', 'Peak courage and initiator heat; tactical execution without hesitation.'),
-      note('Saravali', 'Pioneer fighter—scar/injury vigilance still applies when afflicted.'),
+      note('Saravali', 'Pioneer fighter—scar/injury vigilance still applies when under pressure.'),
     ],
     2: [
       note('BPHS', 'Mars in Taurus: stubborn drive for resources; slow-burning fight.'),
@@ -442,7 +442,7 @@ export const PLANET_IN_SIGN_CLASSICAL: PSTable = {
     ],
     3: [
       note('BPHS', 'Mars in Gemini: sharp debate, skilled hands, restless courage.'),
-      note('Phaladeepika', 'Logic/debate weaponized; afflicted may bend rules for profit; skin stress watched.'),
+      note('Phaladeepika', 'Logic/debate weaponized; troubled may bend rules for profit; skin stress watched.'),
       note('BrihatJataka', 'Technical hands and short-travel courage; dual fronts of effort.'),
     ],
     4: [
@@ -462,14 +462,14 @@ export const PLANET_IN_SIGN_CLASSICAL: PSTable = {
     ],
     7: [
       note('BPHS', 'Mars in Libra: assertive partnerships; diplomacy under stress.'),
-      note('Phaladeepika', '“My-way” Mars can destroy diplomacy—hasty relationship decisions; Lakṣmī-Narasimha / sandalwood lore in some teachings.'),
+      note('Phaladeepika', '“My-way” Mars can destroy diplomacy—hasty relationship decisions; Lakṣmī-Narasimha / sandalwood tradition in some teachings.'),
       note('Saravali', 'Balance warrior heat with partner equality or contracts fracture.'),
     ],
     8: [
       note('BPHS', 'Mars in own Scorpio: penetrating research force, controlled intensity.'),
-      note('Phaladeepika', 'Research/occult drive; fights go underground; surgical and forensic lean.'),
+      note('Phaladeepika', 'Research/occult drive; fights go underground; surgical and forensic tendency.'),
       note('Saravali', 'Fixed water owns fire—stable surface, volcanic depth; transformation through crisis.'),
-      note('JatakaParijata', 'Co-lord Scorpio themes intensify with Ketu yuti—judge Parāśara (nodes without sign lordship) carefully.'),
+      note('JatakaParijata', 'Co-lord Scorpio themes intensify with Ketu yuti (conjunction)—judge Parāśara (nodes without sign lordship) carefully.'),
     ],
     9: [
       note('BPHS', 'Mars in Sagittarius: dharmic fighter; pilgrim-warrior zeal.'),
@@ -479,7 +479,7 @@ export const PLANET_IN_SIGN_CLASSICAL: PSTable = {
     10: [
       note('BPHS', 'Mars exalted in Capricorn: disciplined ambition, career courage.'),
       note('Saravali', 'Commander through structure—ambition with controlled aggression at work.'),
-      note('Phaladeepika', 'Career engine of the chart when unafflicted; digbala-friendly for karma siddhi.'),
+      note('Phaladeepika', 'Career engine of the chart when free of difficult influences; digbala-friendly for karma siddhi.'),
       note('BrihatJataka', 'Exalted Kuja: lasting status through effort, not mere luck.'),
     ],
     11: [
@@ -507,7 +507,7 @@ export const PLANET_IN_SIGN_CLASSICAL: PSTable = {
     10: [note('BPHS', 'Mercury in Capricorn: serious admin intellect; precise career communication.')],
     11: [note('BPHS', 'Mercury in Aquarius: systems/coding mind; gains via networks and ideas.')],
     12: [note('BPHS', 'Mercury debilitated in Pisces: logic dissolves into imagination; intuition if supported.'), note('Phaladeepika', 'Listen more than argue.')],
-  }, (r) => [note('BPHS', `Mercury in ${RASHI_EN[r]}: intellect colored by sign and yuti.`)]),
+  }, (r) => [note('BPHS', `Mercury in ${RASHI_EN[r]}: intellect colored by sign and yuti (conjunction).`)]),
 
   Ju: fillPlanetSigns({
     1: [note('BPHS', 'Jupiter in Aries: pioneering wisdom; assertive counsel; heat in belief.')],
@@ -578,7 +578,7 @@ export const PLANET_IN_SIGN_CLASSICAL: PSTable = {
     6: [note('Phaladeepika', 'Ketu in Virgo: dissolves enemies via detachment; healing service.')],
     7: [note('Phaladeepika', 'Ketu in Libra: partnership dissatisfaction then fakir detachment.')],
     8: [note('Phaladeepika', 'Ketu in Scorpio: occult research, co-lord intensity.')],
-    9: [note('JatakaParijata', 'Ketu spiritualized in Jupiter themes—moksha lean.'), note('Phaladeepika', 'Detached wisdom seeker.')],
+    9: [note('JatakaParijata', 'Ketu spiritualized in Jupiter themes—moksha tendency.'), note('Phaladeepika', 'Detached wisdom seeker.')],
     10: [note('Phaladeepika', 'Ketu in Capricorn: career breaks from hierarchy; behind-scenes mastery.')],
     11: [note('Phaladeepika', 'Ketu in Aquarius: selective gains; few true friends; desire reduction.')],
     12: [note('Phaladeepika', 'Ketu in Pisces: strong liberation indication.')],
@@ -726,7 +726,7 @@ const SPECIAL_ASPECT_TEACHING: Record<string, string> = {
   'Ju-7':
     '7th aspect: good counsel/advice from partners (or partner-like figures) related to that house’s affairs.',
   'Ju-9':
-    '9th aspect: blessings, protection, and bhāgya udaya (fortune rise) for that house; also presses the native to fulfill ethical obligations tied to it.',
+    '9th aspect: blessings, protection, and bhāgya udaya (fortune rise) for that house; also presses the person to fulfill ethical obligations tied to it.',
 
   // ── Saturn (शनि) — 3rd, 7th, 10th ──
   'Sa-3':

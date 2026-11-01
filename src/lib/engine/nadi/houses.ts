@@ -44,12 +44,12 @@ export const NADI_HOUSES: Record<HouseNumber, NadiHouseProfile> = {
     relatives: ['Self'],
     healthNotes: ['Head injury', 'Migraine when Moon meets Rahu or Ketu', 'Serious illness risk when Jupiter meets Rahu here'],
     rules: [
-      'Malefics here strain health, longevity, and reputation.',
-      'Benefics here support health, fame, and the body.',
+      'Difficult planets here strain health, longevity, and reputation.',
+      'Helpful planets here support health, fame, and the body.',
     ],
     occupants: {
       Ra: 'Public recognition, including camera and social visibility.',
-      Ke: 'Cuts and a sudden end to a body theme when other malefics join.',
+      Ke: 'Cuts and a sudden end to a body theme when other difficult planets join.',
     },
   },
   2: {
@@ -76,7 +76,7 @@ export const NADI_HOUSES: Record<HouseNumber, NadiHouseProfile> = {
     professions: ['Writing and publishing', 'Journalism', 'Police and army', 'Art', 'Singing', 'Physical training'],
     subjects: [],
     relatives: ['Younger siblings'],
-    healthNotes: ['Asthma and other breath trouble', 'Smoking when Rahu or Saturn sits here', 'Fracture of the arm, wrist, or hand when malefics afflict'],
+    healthNotes: ['Asthma and other breath trouble', 'Smoking when Rahu or Saturn sits here', 'Fracture of the arm, wrist, or hand when difficult planets afflict'],
     rules: ['Rahu or Saturn here is read with smoking and respiratory strain.'],
     occupants: {
       Ra: 'Smoking and breath trouble.',
@@ -94,7 +94,7 @@ export const NADI_HOUSES: Record<HouseNumber, NadiHouseProfile> = {
     healthNotes: ['Chest and lungs', 'Breast region in a female chart'],
     rules: [
       'Do not collapse this house into one job title. Offer the cluster: property, farming, vehicles, construction, hotels.',
-      'Malefics here are read with property disputes and land held by someone else.',
+      'Difficult planets here are read with property disputes and land held by someone else.',
     ],
     occupants: {
       Su: 'Government quarters, a government father, or a spouse in government service.',
@@ -229,7 +229,7 @@ export const NADI_HOUSES: Record<HouseNumber, NadiHouseProfile> = {
     professions: ['Foreign postings', 'Hospitals, on the expense side', 'Ashrams'],
     subjects: [],
     relatives: ['Paternal uncle and aunt'],
-    healthNotes: ['Feet', 'Addiction when Rahu or other malefics sit here'],
+    healthNotes: ['Feet', 'Addiction when Rahu or other difficult planets sit here'],
     rules: [
       'While this house runs, lock spare cash, take a deliberate foreign trip, or invest on purpose so the loss has a direction.',
       'The 5th lord here is read as study abroad, a foreign partner, children born abroad, or fees that were wasted.',
@@ -254,7 +254,7 @@ export interface NadiLordLink {
 export const NADI_LORD_LINKS: NadiLordLink[] = [
   { id: '2-4-rent', kind: 'either', a: 2, b: 4, reading: 'Rent from property.' },
   { id: '4-6-dispute', kind: 'either', a: 4, b: 6, reading: 'Property dispute or a court matter over land or the house.' },
-  { id: '4-malefics', kind: 'malefics-in', a: 4, b: 4, reading: 'Malefics in the 4th: property dispute, or land occupied by someone else.' },
+  { id: '4-malefics', kind: 'malefics-in', a: 4, b: 4, reading: 'Difficult planets in the 4th: property dispute, or land occupied by someone else.' },
   { id: '4-12-foreign-home', kind: 'either', a: 4, b: 12, reading: 'Home or property tied to a foreign place.' },
   { id: '4-8-delay', kind: 'either', a: 4, b: 8, reading: 'Delayed or disputed inheritance, and the mother’s health is checked.' },
   { id: '5-8-occult', kind: 'either', a: 5, b: 8, reading: 'Occult study, including astrology, with strain around children or pregnancy.' },

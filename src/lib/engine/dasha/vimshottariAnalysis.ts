@@ -652,7 +652,7 @@ export function buildCrispInsight(
     watches.push('An opening or closing antar: expect a struggle to set things up, or a transition that comes abruptly.')
   }
   if (flags.some(f => f.id === 'arishta')) {
-    watches.push('The planet is weak or afflicted. Results may arrive with friction, or feel unfinished.')
+    watches.push('The planet is weak or troubled. Results may arrive with friction, or feel unfinished.')
   }
   if (flags.some(f => f.id === 'avarohini')) {
     watches.push('Strength is sliding. Do not force a large bet. Consolidate what you already hold.')
@@ -978,7 +978,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'sequence-357',
       label: `${seqIdx + 1}th from birth dasha`,
       tone: 'caution',
-      detail: 'The 3rd, 5th, and 7th mahadashas from birth are often not fully favourable. A benefic nature can still soften this.',
+      detail: 'The 3rd, 5th, and 7th mahadashas from birth are often not fully favourable. A helpful nature can still soften this.',
     })
   }
 
@@ -988,14 +988,14 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
       id: 'maraka',
       label: 'Maraka lordship',
       tone: 'caution',
-      detail: 'Owns the 2nd, the 7th, or both, without cancellation from a trikona. That can bring severe hardship or pressure. Maraka means the intensity of hardship. It is not a forecast of the end of life.',
+      detail: 'Owns the 2nd, the 7th, or both, without cancellation from a trikona (trine houses: 1, 5, 9). That can bring severe hardship or pressure. Maraka means the intensity of hardship. It is not a forecast of the end of life.',
     })
   } else if (mahadasha.marakaCancelled || antardasha?.marakaCancelled) {
     flags.push({
       id: 'maraka-cancelled',
       label: 'Maraka cancelled',
       tone: 'mixed',
-      detail: 'Owns maraka houses, and also a trikona. The force of the maraka is greatly weakened.',
+      detail: 'Owns maraka houses, and also a trikona (trine houses: 1, 5, 9). The force of the maraka is greatly weakened.',
     })
   }
 

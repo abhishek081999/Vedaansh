@@ -263,7 +263,7 @@ export function readNadiLiveTransits(input: NadiLiveInput): NadiLiveReading {
         id: 'navamsha-4',
         title: '64th Navamsha',
         answer: `${names} ${there.length === 1 ? 'is' : 'are'} in ${RASHI_NAMES[sign]}, the 4th of Navamsha.`,
-        reading: 'A death in the family or among close relations is checked.',
+        reading: 'Classical Nadi texts use this transit to look for a loss among close relations. It is a point to read with care, not a prediction.',
         tone: 'caution',
       })
     }
@@ -276,7 +276,7 @@ export function readNadiLiveTransits(input: NadiLiveInput): NadiLiveReading {
         id: 'eighth',
         title: '8th lord',
         answer: `Saturn is in ${RASHI_NAMES[eighth]}, the Navamsha of the 8th lord.`,
-        reading: 'A death in the family, a major mishap, or a hard year is checked.',
+        reading: 'Classical Nadi texts use this transit to look for a loss in the family, a mishap, or a hard year. It is a point to read with care, not a prediction.',
         tone: 'caution',
       })
     }
@@ -302,7 +302,7 @@ export function readNadiLiveTransits(input: NadiLiveInput): NadiLiveReading {
         id: `death-${subject.id}`,
         title: subject.label,
         answer: `Saturn is in ${RASHI_NAMES[sign]}, the Navamsha of the 8th lord from ${subject.label.toLowerCase()}.`,
-        reading: 'A death in that line of the family is checked.',
+        reading: 'Classical Nadi texts use this transit to look for a loss in that side of the family. It is a point to read with care, not a prediction.',
         tone: 'caution',
       })
     }

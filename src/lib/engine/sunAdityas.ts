@@ -253,7 +253,7 @@ export const SUN_ADITYAS: AdityaDef[] = [
 ]
 
 export const SUN_KARAKATVA = [
-  'Atma Karaka — significator of the soul',
+  'Atma Karaka (natural indicator) — significator of the soul',
   'Self-identity and recognition',
   'Maan-samman — honour and respect',
   'Father, father figures, and boss',
@@ -425,7 +425,7 @@ export function analyzeSunAdityas(chart: ChartOutput): SunAdityasResult | null {
 
   const kharmasNote =
     sun.rashi === 9 || sun.rashi === 12
-      ? 'Sun in Sagittarius or Pisces — classical Kharmas lore (tired horses / khar on the chariot): auspicious starts like griha pravesh traditionally avoided while Sun is weak in these months.'
+      ? 'Sun in Sagittarius or Pisces — classical Kharmas tradition (tired horses / khar on the chariot): auspicious starts like griha pravesh traditionally avoided while Sun is weak in these months.'
       : 'Kharmas (weak Sun months) classically when Sun transits Sagittarius and Pisces — check gochar, not only natal.'
 
   return {
@@ -457,7 +457,7 @@ export function analyzeSunAdityas(chart: ChartOutput): SunAdityasResult | null {
       'Sun’s rays energize the seven chakras; weak Sun makes rising past Muladhara hard.',
       'Meru Danda (spine): will power, self-esteem, positive ego — spinal issues flag Surya.',
       'Strong Sun = Antaratma’s voice (instant yes/no) becomes your inner Guru.',
-      'Manipura (solar plexus) karaka; Agni / Jatharagni in Ayurveda.',
+      'Manipura (solar plexus) karaka (natural indicator); Agni / Jatharagni in Ayurveda.',
       'Moksha via self-enlightenment (Ishopanishad path of truth) — strong Sun in high yogis.',
       'Ida = Moon, Pingala = Sun, Sushumna supports both.',
     ],
@@ -468,9 +468,9 @@ export function analyzeSunAdityas(chart: ChartOutput): SunAdityasResult | null {
       title: 'Pitru Dosh (via Sun)',
       active: pitruActive,
       detail: pitruStrong
-        ? 'Afflicted / debilitated Sun with Rahu, Ketu, or Saturn — ancestors’ incomplete karmas; struggle in career, health, identity. Conjunction is strongest; refine by nakshatra and house.'
+        ? 'Troubled / debilitated Sun with Rahu, Ketu, or Saturn — ancestors’ incomplete karmas; struggle in career, health, identity. Conjunction is strongest; refine by nakshatra and house.'
         : pitruActive
-          ? 'Sun meets malefic pressure — check Pitru Dosh intensity by house and nakshatra.'
+          ? 'Sun meets difficult pressure — check Pitru Dosh intensity by house and nakshatra.'
           : 'No strong natal Pitru Dosh pattern from Sun+Rahu/Ketu/Saturn / neecha alone.',
     },
     kharmasNote,

@@ -460,7 +460,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
       ? `The D9 7th lord, ${gn(d9SeventhLord.id)}, is weak.`
       : d9SeventhHouse != null && [6, 8, 12].includes(d9SeventhHouse)
         ? `The D9 7th lord sits in the ${ordinalHouse(d9SeventhHouse)} of Navamsha.`
-        : 'Venus or Jupiter is afflicted in Navamsha.'
+        : 'Venus or Jupiter is under pressure in Navamsha.'
     activation.push(note(
       'houses-d9-silent',
       'Navamsha can let a marriage period pass',
@@ -471,7 +471,7 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     activation.push(note(
       'houses-d9-live',
       'Navamsha is answering',
-      `The D9 7th lord, ${gn(d9SeventhLord.id)}, is strong, and the significator is clear of a malefic there. Navamsha has to be alive and to respond. This one is responding. A willing birth-chart period still has to be open, or the response has nothing to meet.`,
+      `The D9 7th lord, ${gn(d9SeventhLord.id)}, is strong, and the significator is clear of a difficult planet there. Navamsha has to be alive and to respond. This one is responding. A willing birth-chart period still has to be open, or the response has nothing to meet.`,
       'supportive',
     ))
   }

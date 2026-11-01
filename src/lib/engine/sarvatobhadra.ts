@@ -764,7 +764,7 @@ export function getLifeAreaPredictions(
     } else {
       LIFE_AREA_PLANET_NEGATIVE[tp]?.forEach(area => {
         scoreMap[area] = Math.max(-100, scoreMap[area] - 25)
-        negativeMap[area].push(`${PLANET_NAME_SBC[tp]} afflicts ${area} zone via ${nak}`)
+        negativeMap[area].push(`${PLANET_NAME_SBC[tp]} puts pressure on ${area} zone via ${nak}`)
       })
     }
   })

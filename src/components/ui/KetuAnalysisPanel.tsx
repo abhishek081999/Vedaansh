@@ -32,7 +32,7 @@ const SUB_TABS: { id: SubTab; label: string; Icon: typeof CircleDot; free?: bool
   { id: 'classical', label: 'Classical', Icon: ScrollText },
   { id: 'houses', label: 'Houses', Icon: Home },
   { id: 'yogas', label: 'Yogas', Icon: Waves },
-  { id: 'lore', label: 'Lore & Rules', Icon: BookOpen },
+  { id: 'lore', label: 'Tradition & Rules', Icon: BookOpen },
 ]
 
 interface KetuAnalysisPanelProps {

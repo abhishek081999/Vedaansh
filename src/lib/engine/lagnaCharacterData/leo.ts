@@ -49,7 +49,7 @@ export const LEO_LAGNA_PROFILE: LagnaCharacterProfile = {
       id: 'cook',
       title: 'Cooking and feeding',
       points: [
-        'Many are excellent cooks: Taurus (food) on the 10th plus the Moon (karaka of food) in the 12th; they love feeding people.',
+        'Many are excellent cooks: Taurus (food) on the 10th plus the Moon (karaka (natural indicator) of food) in the 12th; they love feeding people.',
       ],
     },
     {
@@ -106,13 +106,13 @@ export const LEO_LAGNA_PROFILE: LagnaCharacterProfile = {
     5: {
       house: 5,
       signName: 'Sagittarius',
-      theme: 'Vision, moral guidance, guru; Jupiter must not be afflicted',
+      theme: 'Vision, moral guidance, guru; Jupiter must not be troubled',
       points: [
         '"A king is as great as his vision": big-picture thinking, moral guidance for society, long-term strategy, social prestige and focused long-term goals.',
-        'Jupiter must never be afflicted for Leo Lagna. A guru’s curse can destroy accumulated past merit; never disrespect the guru (Rama and Vashishta, Krishna and Sandipani).',
+        'Jupiter must never be troubled for Leo Lagna. Falling out with a guru can undo much of your good karma; never disrespect the guru (Rama and Vashishta, Krishna and Sandipani).',
         'Visit temples regularly, serve the guru, and keep good advisors and mentors (9th-house link).',
         'Large, shining forehead and glowing skin; strong brahmacharya if the Sun is well placed in its nakshatras.',
-        '5th-8th link: interest in astrology and occult sciences, with healing and diagnostic ability (the Sun is karaka of health).',
+        '5th-8th link: interest in astrology and occult sciences, with healing and diagnostic ability (the Sun is karaka (natural indicator) of health).',
         'Perform Agnihotra or fire rituals regularly; a stronger fire connection brings better recognition.',
       ],
     },
@@ -132,7 +132,7 @@ export const LEO_LAGNA_PROFILE: LagnaCharacterProfile = {
       signName: 'Aquarius',
       theme: 'Rahu obsession in relationships; partnerships and betrayal lessons',
       points: [
-        'Rahu energy brings obsession, a "want it now" attitude and weak control, even though Venus is the natural partnership karaka.',
+        'Rahu energy brings obsession, a "want it now" attitude and weak control, even though Venus is the natural partnership karaka (natural indicator).',
         'High physical expectations, many admirers and extramarital tendencies; the spouse tends to be dominating. Rahu cares only about end results, so over-following rules with the spouse leads to being dominated.',
         'Should go into partnerships: a king succeeds through partnerships (supported by Libra on the 3rd). Good partnership profit means the 7th is working; constant betrayal means Rahu outweighs the Lagna lord, so strengthen the Lagna.',
         'Early partnerships or relationships (about age 22-23) help burn out obsession and teach who the traitors are, so later life stabilises.',

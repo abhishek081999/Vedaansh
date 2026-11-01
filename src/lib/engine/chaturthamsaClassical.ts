@@ -40,7 +40,7 @@ const GRADE_LABEL: Record<SukhaGrade, string> = {
   ordinary: 'Ordinary sukhaphala — home comfort is workable; peace grows by patience more than by property.',
   comfortable: 'Comfortable sukhaphala — dwelling and emotional shelter can be named; effort and dashas still decide the height.',
   prosperous: 'Prosperous sukhaphala — property, conveyances, and domestic peace are a real promise, especially in the 4th lord’s periods.',
-  royal: 'Royal sukhaphala — lands, vehicles, and lasting comfort are strongly indicated when D1 agrees; protect the 4th from malefic dashas.',
+  royal: 'Royal sukhaphala — lands, vehicles, and lasting comfort are strongly indicated when D1 agrees; protect the 4th from difficult planet dashas.',
 }
 
 /** BPHS-style results of the 4th lord by house — read inside Chaturthamsha. */
@@ -48,7 +48,7 @@ const FOURTH_LORD_PHALA: Record<number, { headline: string; prediction: string }
   1: {
     headline: '4th lord in the 1st — self as shelter',
     prediction:
-      'BPHS lens: the happiness-lord in the D4 lagna ties comfort to the native’s own body and will. Property and peace improve when the person leads the household rather than waiting for others to provide it.',
+      'BPHS lens: the happiness-lord in the D4 lagna ties comfort to the person’s own body and will. Property and peace improve when the person leads the household rather than waiting for others to provide it.',
   },
   2: {
     headline: '4th lord in the 2nd — family wealth as home',
@@ -63,7 +63,7 @@ const FOURTH_LORD_PHALA: Record<number, { headline: string; prediction: string }
   4: {
     headline: '4th lord in the 4th — pure bandhu/sukha',
     prediction:
-      'BPHS lens: strongest seat for mother-comfort, lands, and conveyances when the lord is dignified. The native is identified with the dwelling itself; protect this lord in dasha for lasting sukha.',
+      'BPHS lens: strongest seat for mother-comfort, lands, and conveyances when the lord is dignified. The person is identified with the dwelling itself; protect this lord in dasha for lasting sukha.',
   },
   5: {
     headline: '4th lord in the 5th — joy and counsel at home',
@@ -108,11 +108,11 @@ const FOURTH_LORD_PHALA: Record<number, { headline: string; prediction: string }
 }
 
 const FOURTH_OCCUPANT_PHALA: Partial<Record<GrahaId, string>> = {
-  Su: 'BPHS / Phaladeepika: Sun in the 4th unsettles domestic peace; conveyances possible; mother’s health needs care. Distant residence themes rise when afflicted.',
+  Su: 'BPHS / Phaladeepika: Sun in the 4th unsettles domestic peace; conveyances possible; mother’s health needs care. Distant residence themes rise when under pressure.',
   Mo: 'BPHS: Moon in the 4th — digbala for the mind’s shelter. Strong Moon settles mother-comfort and emotional home; weak Moon makes sukha mood-dependent.',
-  Ma: 'BPHS: Mars in the 4th heats land and vehicles; construction and courage build the house. Domestic conflict is the tax when Mars is afflicted.',
+  Ma: 'BPHS: Mars in the 4th heats land and vehicles; construction and courage build the house. Domestic conflict is the tax when Mars is under pressure.',
   Me: 'BPHS: Mercury in the 4th favors learning foundations, documents, and trade linked to property. Dual signs can mean more than one dwelling track.',
-  Ju: 'BPHS: Jupiter in the 4th blesses lands, counsel, and contentment (santosh). Elders and dharma protect the home when Jupiter is unafflicted.',
+  Ju: 'BPHS: Jupiter in the 4th blesses lands, counsel, and contentment (santosh). Elders and dharma protect the home when Jupiter is free of difficult influences.',
   Ve: 'BPHS: Venus in the 4th — digbala for comfort. Beauty, vehicles, and pleasant domestic life; luxury trades and refined dwelling fit.',
   Sa: 'BPHS: Saturn in the 4th delays then hardens property. Stone, labor, and endurance; early emotional dryness can mature into lasting structures.',
   Ra: 'Rahu in the 4th amplifies unconventional dwelling, foreign taste, or obsessive accumulation at home. Scandal or restlessness is the risk when impure.',
@@ -303,7 +303,7 @@ export function buildChaturthamsaClassical(
   factors.push({
     label: '4th lord’s D4 house',
     points: flHouse,
-    note: FOURTH_LORD_PHALA[fourthLord.house]?.headline ?? `4th lord in H${fourthLord.house}.`,
+    note: FOURTH_LORD_PHALA[fourthLord.house]?.headline ?? `4th lord in house ${fourthLord.house}.`,
   })
 
   if (lagnaLord) {
@@ -362,7 +362,7 @@ export function buildChaturthamsaClassical(
     const pen = -5 * maleficsInFourth.length
     score += pen
     factors.push({
-      label: 'Malefics in D4 4th',
+      label: 'Difficult planets in D4 4th',
       points: pen,
       note: `${maleficsInFourth.map((p) => p.name).join(', ')} press domestic peace — Phaladeepika warns on sukha when the 4th is heated.`,
     })
@@ -374,7 +374,7 @@ export function buildChaturthamsaClassical(
   if (beneficsAspectFourth) {
     score += 5
     factors.push({
-      label: 'Benefic drishti on D4 4th',
+      label: 'Helpful drishti on D4 4th',
       points: 5,
       note: 'Jupiter, Venus, Moon, or Mercury aspects the 4th — classical relief for mother-comfort and property.',
     })
@@ -444,7 +444,7 @@ export function buildChaturthamsaClassical(
     id: 'vish-yoga-d4',
     name: 'Saturn–Moon (Vish-style) in D4',
     formed: Boolean(saMo),
-    source: 'Phaladeepika · popular yoga lore',
+    source: 'Phaladeepika · popular yoga tradition',
     detail: saMo
       ? 'Saturn with Moon in D4: material structures may rise while emotional dryness and overthinking about home/commitment linger.'
       : 'Saturn and Moon are not conjunct in D4.',
@@ -510,17 +510,17 @@ export function buildChaturthamsaClassical(
   const flPhala = FOURTH_LORD_PHALA[fourthLord.house]
   const property =
     [4, 11, 2, 9].includes(fourthLord.house) && dignityPoints(fourthLord.dignity) >= 2
-      ? `Property: ${fourthLord.name} in H${fourthLord.house} with workable dignity supports lands/house ownership; confirm with D1 4th and D16 for vehicles.`
+      ? `Property: ${fourthLord.name} in house ${fourthLord.house} with workable dignity supports lands/house ownership; confirm with D1 4th and D16 for vehicles.`
       : [6, 8, 12].includes(fourthLord.house)
-        ? `Property: 4th lord in dusthana H${fourthLord.house} — ownership may come through struggle, inheritance, foreign soil, or delayed purchase.`
+        ? `Property: 4th lord in dusthana (difficult houses: 6, 8, 12) H${fourthLord.house} — ownership may come through struggle, inheritance, foreign soil, or delayed purchase.`
         : `Property: follow ${fourthLord.name} in D4 H${fourthLord.house} with the D1 4th lord for timing of lands and dwelling.`
 
   const motherComfort =
     moon && (moon.house === 4 || dignityPoints(moon.dignity) >= 6)
       ? 'Mother / emotional comfort: Moon is supportive in Chaturthamsha — nurture and domestic peace are available when dashas agree.'
       : maleficsInFourth.length
-        ? 'Mother / emotional comfort: malefics on the D4 4th caution early or ongoing strain around mother-comfort — read with D1 Moon and 4th.'
-        : 'Mother / emotional comfort: mixed — weigh Moon, 4th lord, and benefics on the 4th together.'
+        ? 'Mother / emotional comfort: difficult planets on the D4 4th caution early or ongoing strain around mother-comfort — read with D1 Moon and 4th.'
+        : 'Mother / emotional comfort: mixed — weigh Moon, 4th lord, and helpful planets on the 4th together.'
 
   const conveyances =
     venus && venus.house === 4
@@ -538,9 +538,9 @@ export function buildChaturthamsaClassical(
 
   const contentment =
     jupiter && dignityPoints(jupiter.dignity) >= 6 && ![6, 8, 12].includes(jupiter.house)
-      ? 'Contentment (santosh): Jupiter is supportive in D4 — the native can feel “enough” when wisdom and counsel are honored.'
+      ? 'Contentment (santosh): Jupiter is supportive in D4 — the person can feel “enough” when wisdom and counsel are honored.'
       : jupiter && (dignityPoints(jupiter.dignity) < 0 || [6, 8, 12].includes(jupiter.house))
-        ? 'Contentment: afflicted Jupiter in D4 — even with assets, satisfaction may spoil until counsel, dharma, or temple/wisdom practices restore santosh.'
+        ? 'Contentment: troubled Jupiter in D4 — even with assets, satisfaction may spoil until counsel, dharma, or temple/wisdom practices restore santosh.'
         : 'Contentment: Jupiter’s D4 condition is mixed — santosh depends on dasha and how the 4th lord is used.'
 
   const agrees = d1FourthLordId === fourthLordId
@@ -558,7 +558,7 @@ export function buildChaturthamsaClassical(
   const predictions: string[] = [
     flPhala
       ? `${flPhala.headline}. ${flPhala.prediction}`
-      : `${fourthLord.name} as D4 4th lord in H${fourthLord.house} steers sukhaphala.`,
+      : `${fourthLord.name} as D4 4th lord in house ${fourthLord.house} steers sukhaphala.`,
     d1Agreement.text,
     property,
     motherComfort,
@@ -597,7 +597,7 @@ export function buildChaturthamsaClassical(
       score,
       headline: `Sukhaphala ${score}/100 · ${grade}`,
       text:
-        'Counted factors: 4th-lord dignity and house, D4 lagna-lord dignity, Moon and Jupiter, Mo/Ve digbala in the 4th, Vargottama of the D1 4th lord, malefics in the 4th, benefic drishti, and nodes on the D4 lagna. This is a comfort/property grade — not a street address.',
+        'Counted factors: 4th-lord dignity and house, D4 lagna-lord dignity, Moon and Jupiter, Mo/Ve digbala in the 4th, Vargottama of the D1 4th lord, difficult planets in the 4th, helpful drishti (aspect), and nodes on the D4 lagna. This is a comfort/property grade — not a street address.',
       factors,
     },
     fourthLord: {

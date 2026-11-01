@@ -264,7 +264,7 @@ export function calculateJaiminiTrinity(chart: Partial<ChartOutput>): JaiminiTri
     if (weakerGraha && maleficLinkCount(weakerGraha, grahas) >= 2) {
       rudra = weaker
       rudraReason =
-        `Aprani Rudra: weaker lord ${GRAHA_NAMES[weaker]} is heavily afflicted (≥2 malefic links); overrides stronger ${GRAHA_NAMES[primary]}`
+        `Aprani Rudra: weaker lord ${GRAHA_NAMES[weaker]} is heavily under pressure (≥2 difficult planet links); overrides stronger ${GRAHA_NAMES[primary]}`
     } else {
       rudra = primary
       rudraReason =

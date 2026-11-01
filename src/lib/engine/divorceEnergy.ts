@@ -188,7 +188,7 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
         'Mars heat on marriage houses is softened',
         [
           marsOwn ? 'Mars is in its own strength.' : '',
-          kendraBenefic ? 'A capable Moon, Venus, or Jupiter sits in a kendra.' : '',
+          kendraBenefic ? 'A capable Moon, Venus, or Jupiter sits in a kendra (angular houses: 1, 4, 7, 10).' : '',
           juSeesMars ? 'Jupiter joins or aspects Mars.' : '',
           'The classical Manglik heat still names conflict and effort. After about twenty-eight that heat fades further. It is not read as an automatic break when these cancellations are present.',
         ].filter(Boolean).join(' '),
@@ -211,7 +211,7 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
     strainSoftened = (juOnSeventh && firm(jupiter, asc, grahas)) || veOnSeventh
     cancellations.push(note(
       'split-benefic-soft',
-      'A benefic still touches the marriage',
+      'A helpful planet still touches the marriage',
       [
         juOnSeventh && firm(jupiter, asc, grahas) ? 'Jupiter is capable and joins or aspects the 7th or its lord — wisdom and compromise can still land.' : '',
         juOnSeventh && !firm(jupiter, asc, grahas) ? 'Jupiter touches the 7th, but Jupiter itself is under strain, so the softener is thinner.' : '',
@@ -257,7 +257,7 @@ export function analyzeDivorceEnergy(chart: ChartOutput | null | undefined): Div
     energies.push(note(
       'split-divorce',
       'All three threads are down',
-      `${parts.join(' ')} Emotion, attraction, and duty have all let go. Classical texts read that as a divorce pattern: the physical bond, the mental bond, and the soul bond no longer have an energy under them. A remedy aimed at Mars, Rahu, the Sun, or Mercury does not restore this. Those planets only speed a break whose roots are already gone. The useful question is whether a thread was missed, not which malefic to blame.`,
+      `${parts.join(' ')} Emotion, attraction, and duty have all let go. Classical texts read that as a divorce pattern: the physical bond, the mental bond, and the soul bond no longer have an energy under them. A remedy aimed at Mars, Rahu, the Sun, or Mercury does not restore this. Those planets only speed a break whose roots are already gone. The useful question is whether a thread was missed, not which difficult planet to blame.`,
       'caution',
     ))
   } else if (level === 'separation' && thread) {

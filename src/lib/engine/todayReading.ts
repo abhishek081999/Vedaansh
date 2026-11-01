@@ -372,16 +372,16 @@ export function buildTodayReading(input: BuildTodayReadingInput): TodayReading |
 
   const chandraNote =
     chandra.quality === 'good'
-      ? 'Chandra Bala supports you: steadier mind, easier dealings with people.'
+      ? 'Chandra Bala (the Moon’s strength for you today) is good: your mind is steadier and dealing with people is easier.'
       : chandra.quality === 'bad'
-        ? 'Chandra Bala is demanding: emotions run closer to the surface, so slow down big reactions.'
-        : 'Chandra Bala is neutral: neither lifted nor weighed down by the Moon.'
+        ? 'Chandra Bala (the Moon’s strength for you today) is demanding: emotions run closer to the surface, so slow down big reactions.'
+        : 'Chandra Bala (the Moon’s strength for you today) is neutral: the Moon neither lifts you nor weighs you down.'
 
   let score = 50
   const chandraDelta = chandra.quality === 'good' ? 12 : chandra.quality === 'bad' ? -14 : 0
   score += chandraDelta
-  if (chandra.quality === 'good') supportive.push(`Chandra Bala: Moon ${ordinal(chandraPos)} from your natal Moon`)
-  if (chandra.quality === 'bad') caution.push(`Chandra Bala: Moon ${ordinal(chandraPos)} from your natal Moon`)
+  if (chandra.quality === 'good') supportive.push(`Chandra Bala (the Moon’s strength for you): today’s Moon is ${ordinal(chandraPos)} from your birth Moon`)
+  if (chandra.quality === 'bad') caution.push(`Chandra Bala (the Moon’s strength for you): today’s Moon is ${ordinal(chandraPos)} from your birth Moon`)
 
   const moon: MoonDay = {
     rashi: tMoon.rashi,
@@ -404,8 +404,8 @@ export function buildTodayReading(input: BuildTodayReadingInput): TodayReading |
       : taraProfile.tone === 'transformative' ? 5
         : taraProfile.tone === 'challenging' ? -12 : 0
   score += taraDelta
-  if (taraDelta > 0) supportive.push(`Tara Bala: ${taraProfile.name} (${taraProfile.shortLabel.toLowerCase()})`)
-  if (taraDelta < 0) caution.push(`Tara Bala: ${taraProfile.name} (${taraProfile.shortLabel.toLowerCase()})`)
+  if (taraDelta > 0) supportive.push(`Tara Bala (the day’s star strength for you): ${taraProfile.name} (${taraProfile.shortLabel.toLowerCase()})`)
+  if (taraDelta < 0) caution.push(`Tara Bala (the day’s star strength for you): ${taraProfile.name} (${taraProfile.shortLabel.toLowerCase()})`)
   const tara: TaraDay = {
     name: taraProfile.name,
     taraNumber: taraProfile.taraNumber,
@@ -474,7 +474,7 @@ export function buildTodayReading(input: BuildTodayReadingInput): TodayReading |
     label: 'Yoga',
     value: yoga.name,
     quality: yogaQuality,
-    note: yogaMeta ? `${yogaMeta.meaning}. ${yogaMeta.dayGuidance}` : 'Sun–Moon yoga of the moment.',
+    note: yogaMeta ? `${yogaMeta.meaning}. ${yogaMeta.dayGuidance}` : 'The current Sun–Moon combination.',
   })
 
   panchangDelta += karana.isBhadra ? -4 : 0
@@ -485,7 +485,7 @@ export function buildTodayReading(input: BuildTodayReadingInput): TodayReading |
     quality: karana.isBhadra ? 'caution' : 'mixed',
     note: karanaMeta
       ? `${karanaMeta.meaning}. ${karanaMeta.dayGuidance}`
-      : 'Half-tithi of the moment.',
+      : 'The current half of the lunar day.',
   })
 
   panchangDelta = clamp(panchangDelta, -12, 12)
@@ -494,8 +494,8 @@ export function buildTodayReading(input: BuildTodayReadingInput): TodayReading |
     if (it.quality === 'good' && it.key !== 'vara') supportive.push(`${it.label}: ${it.value}`)
     if (it.quality === 'caution') caution.push(`${it.label}: ${it.value}`)
   }
-  if (vaarQuality === 'good') supportive.push(`Vara lord ${vaar.lordName} is strong in your chart`)
-  if (vaarQuality === 'caution') caution.push(`Vara lord ${vaar.lordName} is weak in your chart`)
+  if (vaarQuality === 'good') supportive.push(`${vaar.lordName}, the ruler of today’s weekday, is strong in your chart`)
+  if (vaarQuality === 'caution') caution.push(`${vaar.lordName}, the ruler of today’s weekday, is weak in your chart`)
 
   // ── 4. Gochar from natal Moon (with Vedha) ────────────────
   const housesFromMoon: Partial<Record<GocharPlanet, number>> = {}
@@ -521,7 +521,7 @@ export function buildTodayReading(input: BuildTodayReadingInput): TodayReading |
     const statusText =
       ev.status === 'favourable' ? 'a supportive position'
         : ev.status === 'vedha'
-          ? `normally supportive, but obstructed by ${GRAHA_NAMES[ev.vedhaBy as GocharPlanet]} (Vedha)`
+          ? `normally supportive, but obstructed by ${GRAHA_NAMES[ev.vedhaBy as GocharPlanet]} (Vedha, a blocking influence)`
           : 'a testing position'
     const flavour = firstSentence(getPlanetInHouse(pid, fromLagna, 'summary'))
     gochar.push({
@@ -548,15 +548,15 @@ export function buildTodayReading(input: BuildTodayReadingInput): TodayReading |
       ? {
           fromMoon: satFromMoon,
           phase: 'sade_sati',
-          note: `Saturn is ${ordinal(satFromMoon)} from your Moon: Sade Sati ${satFromMoon === 12 ? 'rising' : satFromMoon === 1 ? 'peak' : 'setting'} phase. Favour patience and routine over haste.`,
+          note: `Saturn is ${ordinal(satFromMoon)} from your Moon: Sade Sati ${satFromMoon === 12 ? 'rising' : satFromMoon === 1 ? 'peak' : 'setting'} phase. Sade Sati is Saturn’s roughly 7.5-year passage around your Moon. It is often a time of slower progress and more responsibility, so choose patience and routine over haste.`,
         }
       : satFromMoon === 4
-        ? { fromMoon: 4, phase: 'kantaka', note: 'Saturn is 4th from your Moon (Kantaka Shani): domestic and emotional pressure; keep home matters steady.' }
+        ? { fromMoon: 4, phase: 'kantaka', note: 'Saturn is 4th from your Moon (Kantaka Shani, a Saturn phase): you may feel more pressure at home and in your emotions, so keep home matters steady.' }
         : satFromMoon === 8
-          ? { fromMoon: 8, phase: 'ashtama', note: 'Saturn is 8th from your Moon (Ashtama Shani): avoid risky commitments and conflict; protect health.' }
+          ? { fromMoon: 8, phase: 'ashtama', note: 'Saturn is 8th from your Moon (Ashtama Shani, a Saturn phase): avoid risky commitments and conflict, and look after your health.' }
           : { fromMoon: satFromMoon, phase: 'clear', note: 'No Sade Sati, Kantaka or Ashtama Shani right now.' }
-  if (saturn.phase === 'sade_sati') caution.push(`Sade Sati active (Saturn ${ordinal(satFromMoon)} from Moon)`)
-  if (saturn.phase === 'ashtama') caution.push('Ashtama Shani (Saturn 8th from Moon)')
+  if (saturn.phase === 'sade_sati') caution.push(`Sade Sati is active: Saturn is ${ordinal(satFromMoon)} from your Moon, so expect slower progress and more responsibility`)
+  if (saturn.phase === 'ashtama') caution.push('Ashtama Shani: Saturn is 8th from your Moon, so go carefully with big risks')
 
   // ── 5. Dasha ──────────────────────────────────────────────
   const dasha: DashaDay[] = []

@@ -91,8 +91,8 @@ export function checkMrityuBhaga(
       degreeInSign,
       mrityuDegree,
       distanceFromMrityu: distance,
-      interpretation: 'Planet is at exact Mrityu Bhaga degree. This indicates significant transformation potential and health sensitivity. Strong spiritual practices and remedies are recommended.',
-      remedy: 'Worship Lord Shiva or Mrityunjaya. Recite Maha Mrityunjaya Mantra. Perform Rudra Abhishekam.',
+      interpretation: 'This planet is exactly on a Mrityu Bhaga degree, a sensitive point in classical astrology. It can point to big life changes and a need to look after your health. It does not predict any harm. Regular spiritual practice and remedies can help.',
+      remedy: 'Worship Lord Shiva. Recite the Maha Mrityunjaya Mantra, a prayer for health and protection. You can also perform Rudra Abhishekam, a Shiva ritual.',
     }
   }
   
@@ -104,8 +104,8 @@ export function checkMrityuBhaga(
       degreeInSign,
       mrityuDegree,
       distanceFromMrityu: distance,
-      interpretation: 'Planet is near Mrityu Bhaga degree. Indicates potential for transformation and health awareness.',
-      remedy: 'Regular prayers and health awareness. Consider Mrityunjaya Japa.',
+      interpretation: 'This planet is close to a Mrityu Bhaga degree, a sensitive point in classical astrology. It can point to change and a reason to look after your health.',
+      remedy: 'Regular prayer and routine health check-ups. You may also consider Mrityunjaya Japa, a healing mantra practice.',
     }
   }
   
@@ -117,7 +117,7 @@ export function checkMrityuBhaga(
       degreeInSign,
       mrityuDegree,
       distanceFromMrityu: distance,
-      interpretation: 'Planet is in the wider Mrityu Bhaga zone. Minor health awareness suggested.',
+      interpretation: 'This planet is in the wider zone around a Mrityu Bhaga degree, a sensitive point in classical astrology. Simple care of your health is enough.',
       remedy: 'Maintain good health practices. Regular meditation.',
     }
   }

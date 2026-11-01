@@ -128,7 +128,7 @@ function collectPairYogas(grahas: YogaGraha[], lagna: Rashi, karakas: YogaKaraka
       id: 'ak-amk-pk',
       name: 'Atmakaraka–Amatyakaraka–PK Raja Yoga',
       strength: ak.rashi === amk.rashi && ak.rashi === pk.rashi ? 'Exceptional' : 'Strong',
-      desc: `${GRAHA_NAMES[ak.id]} (AK) is connected to both ${GRAHA_NAMES[amk.id]} (AmK) and ${GRAHA_NAMES[pk.id]} (PK). Career and the fifth karaka reinforce the soul aim.`,
+      desc: `${GRAHA_NAMES[ak.id]} (AK) is connected to both ${GRAHA_NAMES[amk.id]} (AmK) and ${GRAHA_NAMES[pk.id]} (PK). Career and the fifth karaka (natural indicator) reinforce the soul aim.`,
     })
   }
 
@@ -212,7 +212,7 @@ export function detectJaiminiRajayogas(
         id: 'arudha-shubha',
         name: 'Arudha Shubha Yoga',
         strength: 'Present',
-        desc: `${hitting.map(g => GRAHA_NAMES[g.id]).join(' and ')} influence Arudha Lagna (${RASHI_NAMES[arudhaLagna]}). The public image has benefic support.`,
+        desc: `${hitting.map(g => GRAHA_NAMES[g.id]).join(' and ')} influence Arudha Lagna (${RASHI_NAMES[arudhaLagna]}). The public image has helpful planet support.`,
       })
     }
   }

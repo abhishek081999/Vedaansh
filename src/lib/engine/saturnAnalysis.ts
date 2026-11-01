@@ -249,7 +249,7 @@ export const SATURN_ASPECTS: SaturnAspectDef[] = [
   },
   {
     span: 10,
-    name: '10th aspect — Dashama Drishti / karma',
+    name: '10th aspect — Dashama Drishti (aspect) / karma',
     meaning: 'Honest work & karmic discipline',
     detail:
       'Disciplines actions. If karmas are even slightly imbalanced, Saturn insists on honest effort (īmāndār mehnat), control, and steady work. Accumulates karma across lives and delivers results; laziness invites disturbance (mood, home peace).',
@@ -265,7 +265,7 @@ export const SATURN_KARAKATVA: SaturnSignificationGroup[] = [
       'Nyaya (justice) — Nyayadhipati / supreme judge',
       'Aayu (longevity) — primary significator of lifespan',
       'Seva — servants, laborers, workers, house help (and far beyond)',
-      'Gareebi lean / financial austerity when afflicted',
+      'Gareebi tendency / financial austerity when under pressure',
       'Retirement life — seen primarily through Saturn',
       'Delay — hallmark quality; results after sustained effort',
       'Isolation / loneliness (Ekant) — positive solitude or painful isolation',
@@ -279,7 +279,7 @@ export const SATURN_KARAKATVA: SaturnSignificationGroup[] = [
       'Confusion about life direction: “What am I doing? What career? What to study?”',
       'Disrupts targets related to the house Saturn occupies',
       'Demands extra effort in its house — no shortcuts',
-      'What Saturn gives is long-term; preserving it is the native’s responsibility',
+      'What Saturn gives is long-term; preserving it is the person’s responsibility',
       'Evaluation returns in next Sade Sati or Mahadasha',
       'Mercury gives materialistic joy; Saturn gives internal joy, happiness, and peace',
     ],
@@ -304,9 +304,9 @@ export const SATURN_MEDICAL: SaturnSignificationGroup[] = [
     category: 'Health when disturbed',
     items: [
       'Spondylitis / spine issues; hip-bone problems; bone deterioration',
-      'Pelvic bone injury lore (hard to rejoin); persistent nerve issues',
+      'Pelvic bone injury tradition (hard to rejoin); persistent nerve issues',
       'Varicose veins (with other factors — medical astrology refine)',
-      'Optical nerve problems when malefic Saturn aspects 2nd or 12th',
+      'Optical nerve problems when difficult Saturn aspects 2nd or 12th',
       'Diagnoses formed in Saturn dasha/transit tend toward chronic / long-term',
     ],
   },
@@ -340,7 +340,7 @@ export const SADE_SATI_PADAS: SaturnSadeSatiPadaDef[] = [
     name: 'Tamra (Copper)',
     metal: 'Copper',
     positions: [3, 7, 10],
-    result: 'Unfavorable — stress, mental tension, health/work decline lean',
+    result: 'Unfavorable — stress, mental tension, health/work decline tendency',
     tone: 'unfavorable',
   },
   {
@@ -348,7 +348,7 @@ export const SADE_SATI_PADAS: SaturnSadeSatiPadaDef[] = [
     name: 'Loha (Iron)',
     metal: 'Iron',
     positions: [4, 8, 12],
-    result: 'Most inauspicious — financial loss, surgeries, body problems lean; worsens with Ra/Ke/Ma aspect on Saturn',
+    result: 'Most inauspicious — financial loss, surgeries, body problems tendency; worsens with Ra/Ke/Ma aspect on Saturn',
     tone: 'severe',
   },
 ]
@@ -362,7 +362,7 @@ const HOUSE_FOCUS: Record<number, SaturnHouseFocus> = {
     notes: [
       'Kantak: isolated, self-sufficient, early maturity, responsibilities at a young age',
       'Black-and-white thinking — no grey areas; speaks truth boldly; loves justice',
-      'Quality persists regardless of vakri, combust, debilitated, or well-placed',
+      'Quality persists regardless of vakri (retrograde), combust, debilitated, or well-placed',
       'Trade-off: may miss childhood / youthful enjoyment',
     ],
   },
@@ -373,7 +373,7 @@ const HOUSE_FOCUS: Record<number, SaturnHouseFocus> = {
     tone: 'neutral',
     notes: [
       'Wealth accumulates slowly; speech measured; family duty weight',
-      'Malefic aspect to 2nd from elsewhere: optical-nerve lore with 12th',
+      'Difficult aspect to 2nd from elsewhere: optical-nerve tradition with 12th',
     ],
   },
   3: {
@@ -407,7 +407,7 @@ const HOUSE_FOCUS: Record<number, SaturnHouseFocus> = {
     notes: [
       'Impulsive creativity vs Saturn rigidity — desires exist but fulfill slowly',
       'Aspects capture 2–7–11 axis with 5th: family/spouse/friends under Saturn grip',
-      'Debilitated + vakri intensifies zigzag desire fulfillment',
+      'Debilitated + vakri (retrograde) intensifies zigzag desire fulfillment',
     ],
   },
   6: {
@@ -427,7 +427,7 @@ const HOUSE_FOCUS: Record<number, SaturnHouseFocus> = {
     tone: 'kantak',
     notes: [
       'Kantak: partnership / marriage challenges with eventual rewards',
-      'Older/serious partner lean; stability after patience',
+      'Older/serious partner tendency; stability after patience',
     ],
   },
   8: {
@@ -437,7 +437,7 @@ const HOUSE_FOCUS: Record<number, SaturnHouseFocus> = {
     tone: 'dusthana',
     notes: [
       'Long life with chronic tests; occult endurance; inheritance delays',
-      'Dhaiyya lore also watches 8th from Moon in transit — separate from natal seat',
+      'Dhaiyya tradition also watches 8th from Moon in transit — separate from natal seat',
     ],
   },
   9: {
@@ -447,8 +447,8 @@ const HOUSE_FOCUS: Record<number, SaturnHouseFocus> = {
     tone: 'watched',
     notes: [
       'Can separate native from father/children — fights, education, job, etc.',
-      'Orthodox hard faith; late fortune; disrespect to father invites immediate Saturn punishment lore',
-      'With Rahu (Shapit): guru-curse lean — luck blocks despite intelligence',
+      'Orthodox hard faith; late fortune; disrespect to father invites immediate Saturn punishment tradition',
+      'With Rahu (Shapit Yoga, a heavy karmic combination): luck can feel blocked despite your intelligence',
     ],
   },
   10: {
@@ -457,10 +457,10 @@ const HOUSE_FOCUS: Record<number, SaturnHouseFocus> = {
     themes: ['Career grind', 'Delayed recognition', 'Cannot sit idle'],
     tone: 'kantak',
     notes: [
-      'Kantak: career struggles, delayed recognition — digbala lean when strong',
-      'Class: must work throughout life; laziness → depression / home peace disturbance',
+      'Kantak: career struggles, delayed recognition — digbala tendency when strong',
+      'Tradition: must work throughout life; laziness → depression / home peace disturbance',
       'Exalted in Libra 10th: workaholic, self-made, struggle then durable status',
-      'Often flows after mid-40s; fuller ease post-~48 in class timing lore',
+      'Often flows after mid-40s; fuller ease post-~48 in traditional teaching timing tradition',
     ],
   },
   11: {
@@ -475,7 +475,7 @@ const HOUSE_FOCUS: Record<number, SaturnHouseFocus> = {
   },
   12: {
     house: 12,
-    title: 'Saturn in 12th — isolation, procrastination, moksha lean',
+    title: 'Saturn in 12th — isolation, procrastination, moksha tendency',
     themes: ['Procrastination', 'Freedom craving', 'Foreign / solitude'],
     tone: 'moksha',
     notes: [
@@ -503,10 +503,10 @@ const RETRO_EFFECTS: SaturnConditionEffects = {
 
 const COMBUST_EFFECTS: SaturnConditionEffects = {
   negatives: [
-    'Lifetime health issues lean; confidence / self-perception strain',
+    'Lifetime health issues tendency; confidence / self-perception strain',
     'Wants discipline but zigzags — fixed morning routine, rest “jab marzi”',
     'Food/drink self-control breaks; comfort-seeking under sober exterior',
-    'Externally confident; internally “ab to main gaya” lean',
+    'Externally confident; internally “ab to main gaya” tendency',
     'Irritated (not weak) Saturn — octopus karma, unfocused hands everywhere',
   ],
   positives: [
@@ -643,7 +643,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     house,
     title: `Saturn in house ${house}`,
     themes: [],
-    notes: ['Judge dignity, yuti, aspects, and functional nature for this lagna.'],
+    notes: ['Judge dignity, yuti (conjunction), aspects, and functional nature for this lagna.'],
     tone: 'neutral' as const,
   }
 
@@ -675,8 +675,8 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
 
   const companionNote =
     companions.length > 0
-      ? `Saturn sits with ${companions.map(c => c.name).join(', ')} — decode Visha (Moon), Shapit (Rahu), fear/escapism (Ketu), combustion (Sun), and Guru balance (Jupiter) through these yuti first.`
-      : 'No close yuti under this module’s orb — Saturn expresses more independently. Still weigh 3/7/10 aspects and dignity.'
+      ? `Saturn sits with ${companions.map(c => c.name).join(', ')} — decode Visha (Moon), Shapit (Rahu), fear/escapism (Ketu), combustion (Sun), and Guru balance (Jupiter) through these yuti (conjunction) first.`
+      : 'No close yuti (conjunction) under this module’s orb — Saturn expresses more independently. Still weigh 3/7/10 aspects and dignity.'
 
   const withMoon =
     !!moon && (saturnAspectsMoon(saturn, moon) || sameSignOrConjunct(saturn, moon, 8))
@@ -700,11 +700,11 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
       sepDeg: moon && withMoon ? angularSep(saturn.lonSidereal, moon.lonSidereal) : null,
       sameSign: !!(moon && saturn.rashi === moon.rashi),
       detail: withMoon
-        ? `Active in H${house}${vishaStronger ? ' — Moon in Capricorn intensifies beyond ordinary conjunction' : moon && saturn.rashi !== moon.rashi ? ' via aspect (3/7/10 or opposition)' : ' via conjunction'}. Default negative lens; mental disturbance lean.`
+        ? `Active in house ${house}${vishaStronger ? ' — Moon in Capricorn intensifies beyond ordinary conjunction' : moon && saturn.rashi !== moon.rashi ? ' via aspect (3/7/10 or opposition)' : ' via conjunction'}. Default negative lens; mental disturbance lean.`
         : 'No close Saturn–Moon conjunction or Saturn special aspect on Moon under this module.',
       effects: [
         'Sees everything negatively first — default pessimism',
-        'Mental disturbance / depression lean when affliction is strong',
+        'Mental disturbance / depression tendency when difficult influence is strong',
         'Negativity can become visible on the face — others feel the vibe',
         'Shows unfulfilled desires through this combination',
         'In 11th: many friends yet disillusioned with society; emotional walls',
@@ -718,12 +718,12 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     },
     {
       id: 'shapit',
-      name: 'Shani–Rahu — Shapit Yoga (cursed combination)',
+      name: 'Shani–Rahu — Shapit Yoga (a heavy karmic combination)',
       active: withRahu,
       sepDeg: rahu && withRahu ? angularSep(saturn.lonSidereal, rahu.lonSidereal) : null,
       sameSign: !!(rahu && saturn.rashi === rahu.rashi),
       detail: withRahu
-        ? `Active in H${house}. Past-life curse lean — nature depends on house. In 9th: guru-curse / bhagya block despite intelligence; knowing what to do but unable to execute.`
+        ? `Active in house ${house}. Traditionally seen as past-life karma — nature depends on house. In 9th: guru-curse / bhagya block despite intelligence; knowing what to do but unable to execute.`
         : 'No Saturn–Rahu conjunction or mutual special-aspect link under this module.',
       effects: [
         'Carries a past-life shraap theme into this life (house-specific)',
@@ -732,7 +732,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
         'Trap: yoga itself obstructs the free-will escape route',
       ],
       positives: [
-        'High intelligence / education possible (5th-from-5th lore in 9th cases)',
+        'High intelligence / education possible (5th-from-5th tradition in 9th cases)',
         'Escape requires determined free will + ethical correction — not fatalism alone',
       ],
     },
@@ -743,12 +743,12 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
       sepDeg: ketu && withKetu ? angularSep(saturn.lonSidereal, ketu.lonSidereal) : null,
       sameSign: !!(ketu && saturn.rashi === ketu.rashi),
       detail: withKetu
-        ? `Conjunction in H${house}. Fear + discipline clash — commitment phobia, escapism from arguments/responsibility; talks more than first steps.${house === 12 ? ' Especially sharp in 12th.' : ''}`
+        ? `Conjunction in house ${house}. Fear + discipline clash — commitment phobia, escapism from arguments/responsibility; talks more than first steps.${house === 12 ? ' Especially sharp in 12th.' : ''}`
         : 'No close Saturn–Ketu conjunction under this orb.',
       effects: [
         'Fear of commitment and being bound to one path',
         'Ketu blocks discipline while Saturn demands it',
-        'Escapist from confrontations; victim narrative lean',
+        'Escapist from confrontations; victim narrative tendency',
       ],
       positives: [
         'Can catalyze genuine moksha solitude if fear is owned',
@@ -762,7 +762,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
       sepDeg: jupiter && withJupiter ? angularSep(saturn.lonSidereal, jupiter.lonSidereal) : null,
       sameSign: !!(jupiter && saturn.rashi === jupiter.rashi),
       detail: withJupiter
-        ? `Conjunction in H${house}. Jupiter is Saturn’s sama (neutral) balancing graha — class: take refuge in Guru when Saturn needs control/remedy. Dharma vs karma tension.`
+        ? `Conjunction in house ${house}. Jupiter is Saturn’s sama (neutral) balancing graha — class: take refuge in Guru when Saturn needs control/remedy. Dharma vs karma tension.`
         : 'No close Saturn–Jupiter conjunction. Class still: remedy Saturn via Guru / Jupiter principles.',
       effects: [
         'Dharma vs karma conflict — delayed outcomes, integrity under pressure',
@@ -770,7 +770,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
       ],
       positives: [
         'Unshakeable ethics; never abandons rightful effort',
-        'Jupiter buffers Saturn’s darkness (astronomical + astrological lore)',
+        'Jupiter buffers Saturn’s darkness (astronomical + astrological tradition)',
       ],
     },
     {
@@ -781,10 +781,10 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
       sameSign: !!(sun && saturn.rashi === sun.rashi),
       detail:
         isCombust || (sun && sameSignOrConjunct(saturn, sun, combustOrbUsed))
-          ? `Sun–Saturn heat in H${house}${sepFromSun != null ? ` (sep ${sepFromSun.toFixed(1)}°)` : ''}. Mythic father tension; ego vs discipline. Who absorbs whose energy depends on degrees.`
+          ? `Sun–Saturn heat in house ${house}${sepFromSun != null ? ` (sep ${sepFromSun.toFixed(1)}°)` : ''}. Mythic father tension; ego vs discipline. Who absorbs whose energy depends on degrees.`
           : 'Saturn not combust / not close to Sun under this orb.',
       effects: [
-        'Father-relationship strain lore; separation themes via 9th also',
+        'Father-relationship strain tradition; separation themes via 9th also',
         'External brightness with internal underconfidence when combust',
         'Zigzag karma — right for a few days, then old patterns',
       ],
@@ -810,7 +810,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
             ]
           : [
               'Deep spirituality, moksha-oriented',
-              'Water-sign moksha trikona with Pushya & Anuradha',
+              'Water-sign moksha trikona (trine houses: 1, 5, 9) with Pushya & Anuradha',
               'Isolation used for self-knowledge',
             ]
     return {
@@ -827,8 +827,8 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     title: 'Vakri Shani (retrograde Saturn)',
     active: saturn.isRetro,
     detail: saturn.isRetro
-      ? 'Beyond Sun’s direct gravitational control lore (≈120°–240° from Sun) — freedom that is unpredictable. Self-evaluation, pending house tasks, sudden results, forced self-discipline.'
-      : 'Saturn not retrograde — less of the vakri “pending work / sudden swing” signature from motion alone.',
+      ? 'Beyond Sun’s direct gravitational control tradition (≈120°–240° from Sun) — freedom that is unpredictable. Self-evaluation, pending house tasks, sudden results, forced self-discipline.'
+      : 'Saturn not retrograde — less of the vakri (retrograde) “pending work / sudden swing” signature from motion alone.',
   }
 
   const combustFlag: SaturnFlag = {
@@ -836,7 +836,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     title: 'Combust Saturn (Asta Shani)',
     active: isCombust,
     detail: isCombust
-      ? `Within ~${combustOrbUsed}° of Sun${sepFromSun != null ? ` (sep ${sepFromSun.toFixed(1)}°)` : ''}. Irritated Saturn, zigzag habits, health/confidence lean — remedy is focused self-correction.`
+      ? `Within ~${combustOrbUsed}° of Sun${sepFromSun != null ? ` (sep ${sepFromSun.toFixed(1)}°)` : ''}. Irritated Saturn, zigzag habits, health/confidence tendency — remedy is focused self-correction.`
       : `Saturn not combust (orb ${combustOrbUsed}°). Discipline significations less eclipsed by solar heat.`,
   }
 
@@ -846,8 +846,8 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     title: 'Combust + Retrograde',
     active: bothActive,
     detail: bothActive
-      ? 'Solar heat + vakri freedom together — pending karma meets zigzag self-control. Double down on one goal and honest routine.'
-      : 'Combust + vakri combination not indicated together.',
+      ? 'Solar heat + vakri (retrograde) freedom together — pending karma meets zigzag self-control. Double down on one goal and honest routine.'
+      : 'Combust + vakri (retrograde) combination not indicated together.',
   }
 
   const exaltFlag: SaturnFlag = {
@@ -873,13 +873,13 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     title: 'Near Indrajeet point (Aq 29.5° / Pi 0°)',
     active: indrajeet,
     detail: indrajeet
-      ? 'Class: one of the strongest conjunction-junction points; effects often clarify after age 30. Navamsha shifts this junction toward Gemini–Cancer lore.'
+      ? 'Tradition: one of the strongest conjunction-junction points; effects often clarify after age 30. Navamsha shifts this junction toward Gemini–Cancer tradition.'
       : 'Saturn not at Aquarius 29.5°–Pisces 0° junction.',
   }
 
   const fatherFlag: SaturnFlag = {
     id: 'father',
-    title: 'Father axis (myth + 9th lore)',
+    title: 'Father axis (myth + 9th tradition)',
     active: house === 9 || yogas.find(y => y.id === 'sa_su_combust')?.active === true,
     detail:
       house === 9 || yogas.find(y => y.id === 'sa_su_combust')?.active
@@ -896,7 +896,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     'Primary: honest effort, character, no wrongdoing — Saturn takes and gives; never abandons',
     'Take refuge in Jupiter / Guru principles when Saturn needs balancing (sama graha)',
     'Use isolation for self-reflection, planning, meditation — not rumination or blaming others',
-    'Dasharatha / Neel Stotra lore for grace during hard Saturn periods (devotional track)',
+    'Dasharatha / Neel Stotra tradition for grace during hard Saturn periods (devotional track)',
     'Saturday discipline: service, iron/black sesame charity only if full chart supports',
   ]
   if (isCombust) {
@@ -906,7 +906,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
   }
   if (saturn.isRetro) {
     remedies.push(
-      'Vakri: finish one pending task in Saturn’s house this week — close the loop Saturn keeps open.',
+      'Vakri (retrograde): finish one pending task in Saturn’s house this week — close the loop Saturn keeps open.',
     )
   }
   if (withMoon) {
@@ -980,7 +980,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
 
   const activeYogas = yogas.filter(y => y.active)
   const oneLiner = isKantak
-    ? `Kantak Shani in H${house} — early responsibility; ${activeYogas.length ? activeYogas.map(y => y.name).join('; ') : 'decode via 3/7/10 aspects and dignity'}.`
+    ? `Kantak Shani in house ${house} — early responsibility; ${activeYogas.length ? activeYogas.map(y => y.name).join('; ') : 'decode via 3/7/10 aspects and dignity'}.`
     : house === 12
       ? `Saturn in 12th — isolation/procrastination vs moksha solitude; ${withKetu ? 'Ketu adds fear/escapism. ' : ''}${withMoon ? 'Moon adds Visha service-debt theme.' : 'Weigh dignity and aspects.'}`
       : `Saturn in ${RASHI_NAMES[saturn.rashi]} · H${house} — delay, discipline, durable results after effort.${saturn.isRetro ? ' Vakri: pending work + self-evaluation.' : ''}`
@@ -1016,7 +1016,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
       'Friends: Mercury, Venus · Enemies: Sun, Moon · Neutral: Jupiter · Mahadasha: 19 years',
     ],
     philosophy: [
-      'Stop treating Saturn as only a malefic — often the best long-term planet',
+      'Stop treating Saturn as only a difficult planet — often the best long-term planet',
       'More than half a life revolves around Saturn cycles (MD/AD/PD, Sade Sati, Dhaiyya, aspects)',
       'Delay is the signature — results after 100% effort',
       'What Saturn gives is permanent; punishment is for ego about the gift',
@@ -1043,7 +1043,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     kantakFlag,
     aspects,
     aspectOverview:
-      'Saturn’s special aspects: 3rd (thoughtful effort + mental tension), 7th (relationship atmosphere / jhik-jhik), 10th (Dashama Drishti — karmic discipline and honest work).',
+      'Saturn’s special aspects: 3rd (thoughtful effort + mental tension), 7th (relationship atmosphere / jhik-jhik), 10th (Dashama Drishti (aspect) — karmic discipline and honest work).',
     yogas,
     companions,
     companionNote,
@@ -1052,7 +1052,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     sadeSatiTeaching: [
       'Begins when Saturn transits the 12th from Moon; three ~2.5-year phases (12th / Moon sign / 2nd)',
       'General BPHS/Phaladeepika phases are only a starting grid — practice varies wildly (downfall to PM-level rise)',
-      'One guaranteed result: reveals true friends and enemies; closest relationships may end',
+      'A common result: it reveals your true friends and rivals; closest relationships may end',
       'Usually 2–3 Sade Satis in a lifetime; a third often implies longevity near ~90',
       'After Sade Sati you emerge with something — never empty-handed',
       'Use Transit → Sade Sati tracker for live gochar; padā system grades quality',
@@ -1067,7 +1067,7 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     dhaiyyaTeaching: [
       'Dhaiyya / small panoti: Saturn transit in 4th or 8th from Moon (~2.5 years)',
       'Primarily work/profession/study obstacles; lower velocity than Sade Sati — often passes unnoticed',
-      'Natal Kantak (kendra Saturn) is permanent and different from transit Kantaka/Dhaiya',
+      'Natal Kantak (kendra (angular houses: 1, 4, 7, 10) Saturn) is permanent and different from transit Kantaka/Dhaiya',
     ],
     retroFlag,
     combustFlag,
@@ -1080,13 +1080,13 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
     combustEffects: COMBUST_EFFECTS,
     mythology: [
       'Surya’s wife Sanjna creates Chhaya (shadow) and leaves; Saturn and Yama born from Chhaya — biological brothers',
-      'Stepmother harshness + father’s suspicion → Saturn lacks parental love; angry glance gives Surya leprosy lore',
+      'Stepmother harshness + father’s suspicion → Saturn lacks parental love; angry glance gives Surya leprosy tradition',
       'Shiva blesses Saturn: Nyayadhish, Karmadhipati, Navagraha seat, full training',
-      'Astronomical lore: far from Sun, buffered by Jupiter’s mass/gravity — significator of darkness; enmity with Sun',
-      'Ravan / Harishchandra lore: Saturn tests severely then rewards; ego after gifts invites taking-back',
+      'Astronomical tradition: far from Sun, buffered by Jupiter’s mass/gravity — significator of darkness; enmity with Sun',
+      'Ravan / Harishchandra tradition: Saturn tests severely then rewards; ego after gifts invites taking-back',
     ],
     dasharathaStory: [
-      'Padma Purana: Saturn at end of Krittika about to enter Rohini → famine/wars lore',
+      'Padma Purana: Saturn at end of Krittika about to enter Rohini → famine/wars tradition',
       'Dasharatha confronts Saturn; cannot stop cosmic law; sings Neel / Dasharatha Stotra',
       'Saturn: will enter Rohini, but stotra reciters receive grace; kingdom spared extremes',
     ],
@@ -1116,18 +1116,18 @@ export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
       'Saturn Mahadasha is 19 years. Correlate Antardasha, Sade Sati, Dhaiyya, and gochar aspects — more than half of life timing touches Saturn somehow.',
     classical,
     caveats: [
-      'Class notes are teaching patterns — not automatic fate for every chart',
+      'Traditional teaching are teaching patterns — not automatic fate for every chart',
       'Sade Sati padā demo uses natal Moon→natal Saturn nakshatra as a calculation example; live Sade Sati quality uses Saturn’s transit nakshatra at period start',
       'Enemy-defeat strategizing is outside this module; use ethics and consent for any chart',
-      'Medical notes are classical lore, not diagnosis',
+      'Medical notes are classical tradition, not diagnosis',
     ],
     methodology: [
       'Whole-sign house from Lagna for natal seat and Kantak',
       'Special aspects 3/7/10 from Saturn’s house',
-      'Yuti orb ~8°; combust orb 15° (engine table)',
+      'Yuti (conjunction) orb ~8°; combust orb 15° (engine table)',
       'Visha: conjunction or Saturn 3/7/10 on Moon; Capricorn Moon intensifies',
       'Shapit: Saturn–Rahu conjunction or mutual special-aspect link',
-      'Mixed layers: house guide + classics + rashi + nakshatra + dignity/vakri/asta',
+      'Mixed layers: house guide + classics + rashi + nakshatra + dignity/vakri (retrograde)/asta',
     ],
     summaryAttrs: [
       { label: 'Seat', value: `${RASHI_NAMES[saturn.rashi]} · H${house}` },

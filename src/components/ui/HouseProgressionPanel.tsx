@@ -65,7 +65,7 @@ const HOUSE_INFO: HouseSignification[] = [
   {
     house: 8,
     sanskrit: 'Ayu Bhava',
-    karakas: 'Longevity, transformation, secrets, death',
+    karakas: 'Longevity, deep change, secrets, endings',
     themes: 'Sudden changes, inheritance, occult, secrets, lifespan, chronic illness, surgery',
     detailedThemes: ['Insurance & taxes', 'Spouse’s wealth', 'Research & mysteries', 'Regeneration', 'Trauma']
   },

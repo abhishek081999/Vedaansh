@@ -28,15 +28,15 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     {
       source: 'BPHS',
       ref: 'Vimshottari effects',
-      text: 'Sun periods favour authority, favour from rulers, courage, and public standing when the Sun is strong; when weak or afflicted, quarrels with superiors, loss of honour, and heat-related strain are classically indicated.',
+      text: 'Sun periods favour authority, favour from rulers, courage, and public standing when the Sun is strong; when weak or troubled, quarrels with superiors, loss of honour, and heat-related strain are classically indicated.',
     },
     {
       source: 'Phaladeepika',
-      text: 'A well-placed Sun brings royal patronage, fame, and success in government or leadership work; an afflicted Sun troubles the father, eyesight themes, and reputation.',
+      text: 'A well-placed Sun brings royal patronage, fame, and success in government or leadership work; an troubled Sun troubles the father, eyesight themes, and reputation.',
     },
     {
       source: 'Jataka Parijata',
-      text: 'Solar dasha activates soul purpose and status — gains through father, government, temples, or positions of command; arrogance and enmity with elders appear if the Sun is combust/afflicted.',
+      text: 'Solar dasha activates soul purpose and status — gains through father, government, temples, or positions of command; arrogance and enmity with elders appear if the Sun is combust/troubled.',
     },
     {
       source: 'Saravali',
@@ -51,7 +51,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     },
     {
       source: 'Phaladeepika',
-      text: 'Lunar dasha brings changes of residence, public contact, and care for dependents; affliction yields mental anxiety, cold/phlegm themes, and drained savings.',
+      text: 'Lunar dasha brings changes of residence, public contact, and care for dependents; difficult influence yields mental anxiety, cold/phlegm themes, and drained savings.',
     },
     {
       source: 'Laghu Parashari',
@@ -66,7 +66,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     {
       source: 'BPHS',
       ref: 'Vimshottari effects',
-      text: 'Mars periods activate siblings, land, weapons/tools, courage, and disputes. Strong Mars: victory, property effort, and technical skill. Afflicted Mars: wounds, quarrels, haste, and litigation heat.',
+      text: 'Mars periods activate siblings, land, weapons/tools, courage, and disputes. Strong Mars: victory, property effort, and technical skill. Troubled Mars: wounds, quarrels, haste, and litigation heat.',
     },
     {
       source: 'Phaladeepika',
@@ -74,7 +74,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     },
     {
       source: 'Jataka Parijata',
-      text: 'Mars delivers through bold action — acquisition of land/house with struggle, competition, and proving strength; enemies and sibling friction accompany affliction.',
+      text: 'Mars delivers through bold action — acquisition of land/house with struggle, competition, and proving strength; enemies and sibling friction accompany difficult influence.',
     },
     {
       source: 'Saravali',
@@ -85,15 +85,15 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     {
       source: 'BPHS',
       ref: 'Vimshottari effects',
-      text: 'Mercury periods favour intellect, speech, trade, writing, and calculation. Strong Mercury: business growth, learning, and clever alliances. Afflicted Mercury: nervous speech, document troubles, and scattered mind.',
+      text: 'Mercury periods favour intellect, speech, trade, writing, and calculation. Strong Mercury: business growth, learning, and clever alliances. Troubled Mercury: nervous speech, document troubles, and scattered mind.',
     },
     {
       source: 'Phaladeepika',
-      text: 'Budha dasha prospers merchants, analysts, messengers, and students; with malefics, false speech, debt of words, and unstable partnerships appear.',
+      text: 'Budha dasha prospers merchants, analysts, messengers, and students; with difficult planets, false speech, debt of words, and unstable partnerships appear.',
     },
     {
       source: 'Laghu Parashari',
-      text: 'Mercury’s dual nature means results flip with association — with benefics, refined intellect; with malefics, cunning or anxiety colours the same houses.',
+      text: 'Mercury’s dual nature means results flip with association — with helpful planets, refined intellect; with difficult planets, cunning or anxiety colours the same houses.',
     },
     {
       source: 'Saravali',
@@ -104,7 +104,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     {
       source: 'BPHS',
       ref: 'Vimshottari effects',
-      text: 'Jupiter periods expand dharma, wisdom, children (age-fit), wealth of faith, and counsel. Strong Jupiter: teachers, mentors, and auspicious ceremonies. Afflicted Jupiter: delayed progeny themes, hollow advice, and over-expansion.',
+      text: 'Jupiter periods expand dharma, wisdom, children (age-fit), wealth of faith, and counsel. Strong Jupiter: teachers, mentors, and auspicious ceremonies. Troubled Jupiter: delayed progeny themes, hollow advice, and over-expansion.',
     },
     {
       source: 'Phaladeepika',
@@ -112,7 +112,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     },
     {
       source: 'Laghu Parashari',
-      text: 'Jupiter as a natural benefic fructifies houses he owns/occupies with growth — unless he is combust, debilitated, or hemmed by malefics.',
+      text: 'Jupiter as a naturally helpful planet fructifies houses he owns/occupies with growth — unless he is combust, debilitated, or hemmed by difficult planets.',
     },
     {
       source: 'Jataka Parijata',
@@ -123,11 +123,11 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     {
       source: 'BPHS',
       ref: 'Vimshottari effects',
-      text: 'Venus periods bring comforts, vehicles, arts, marriage/romance, and luxuries. Strong Venus: pleasures with grace. Afflicted Venus: over-indulgence, relationship strain, and drained resources on desire.',
+      text: 'Venus periods bring comforts, vehicles, arts, marriage/romance, and luxuries. Strong Venus: pleasures with grace. Troubled Venus: over-indulgence, relationship strain, and drained resources on desire.',
     },
     {
       source: 'Phaladeepika',
-      text: 'Shukra dasha prospers artists, diplomats, and those dealing in beauty, perfume, or hospitality; scandals of desire and speech karma rise with affliction.',
+      text: 'Shukra dasha prospers artists, diplomats, and those dealing in beauty, perfume, or hospitality; scandals of desire and speech karma rise with difficult influence.',
     },
     {
       source: 'Saravali',
@@ -142,7 +142,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     {
       source: 'BPHS',
       ref: 'Vimshottari effects',
-      text: 'Saturn periods test patience, duty, servants, longevity themes, and lasting structures. Strong Saturn: position through labour and time. Afflicted Saturn: delays, separation, fear, and chronic obstacles.',
+      text: 'Saturn periods test patience, duty, servants, longevity themes, and lasting structures. Strong Saturn: position through labour and time. Troubled Saturn: delays, separation, fear, and chronic obstacles.',
     },
     {
       source: 'Phaladeepika',
@@ -150,7 +150,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     },
     {
       source: 'Laghu Parashari',
-      text: 'Saturn gives durable fruit for houses he owns when well placed; as a functional malefic he can obstruct those same houses until lessons of time are accepted.',
+      text: 'Saturn gives durable fruit for houses he owns when well placed; as a functional difficult he can obstruct those same houses until lessons of time are accepted.',
     },
     {
       source: 'Saravali',
@@ -161,7 +161,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     {
       source: 'BPHS',
       ref: 'Vimshottari effects',
-      text: 'Rahu periods bring unconventional, foreign, sudden, and ambitious results. Strong/supported Rahu: breakthroughs via unusual paths. Afflicted Rahu: confusion, deception, addiction loops, and status swings.',
+      text: 'Rahu periods bring unconventional, foreign, sudden, and ambitious results. Strong/supported Rahu: breakthroughs via unusual paths. Troubled Rahu: confusion, deception, addiction loops, and status swings.',
     },
     {
       source: 'Phaladeepika',
@@ -180,7 +180,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     {
       source: 'BPHS',
       ref: 'Vimshottari effects',
-      text: 'Ketu periods emphasise detachment, past-life skill flashes, occult/research, and sudden accounting. Strong Ketu: insight and liberation themes. Afflicted Ketu: separations, mysterious losses, and abrupt cuts.',
+      text: 'Ketu periods emphasise detachment, past-life skill flashes, occult/research, and sudden accounting. Strong Ketu: insight and liberation themes. Troubled Ketu: separations, mysterious losses, and abrupt cuts.',
     },
     {
       source: 'Phaladeepika',
@@ -192,7 +192,7 @@ export const VIMSHOTTARI_MAHA_SCRIPTURES: Record<string, ScripturePassage[]> = {
     },
     {
       source: 'Jataka Parijata',
-      text: 'Ketu with benefics supports moksha-leaning intelligence; with malefics, sudden accidents of fate and isolation motifs increase.',
+      text: 'Ketu with helpful planets supports moksha-leaning intelligence; with difficult planets, sudden accidents of fate and isolation motifs increase.',
     },
   ],
 }
@@ -208,7 +208,7 @@ export const VIMSHOTTARI_SCRIPTURE_LORDS = [
  */
 export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = {
   'Su-Su': [
-    { source: 'BPHS', text: 'Sun–Sun antar opens the solar mahadasha with concentrated ego and status themes — quick rises if the Sun is strong; early friction with authority if afflicted.' },
+    { source: 'BPHS', text: 'Sun–Sun antar opens the solar mahadasha with concentrated ego and status themes — quick rises if the Sun is strong; early friction with authority if under pressure.' },
     { source: 'Phaladeepika', text: 'Self-period of the Sun: father, government, and honour dominate; classical lists also note short heat/health dips after a boost.' },
   ],
   'Su-Mo': [
@@ -225,7 +225,7 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   ],
   'Su-Ju': [
     { source: 'BPHS', text: 'Sun–Jupiter antar supports mentors, ethics, and counsel roles alongside authority — teaching under a royal banner.' },
-    { source: 'Laghu Parashari', text: 'When both are functional benefics for the lagna, this antar is classically supportive for dharma and status.' },
+    { source: 'Laghu Parashari', text: 'When both are functional helpful planets for the lagna, this antar is classically supportive for dharma and status.' },
   ],
   'Su-Ve': [
     { source: 'Phaladeepika', text: 'Sun–Venus antar seeks comfort with status — image spending, alliances, and artistic favour; excess vanity if Venus is weak.' },
@@ -236,14 +236,14 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   ],
   'Su-Ra': [
     { source: 'BPHS', text: 'Sun–Rahu antar: sudden status swings and unconventional routes to recognition — verify before leaping.' },
-    { source: 'Phaladeepika', text: 'Shadow on the king — fame through unusual channels or scandal risk if the Sun is afflicted.' },
+    { source: 'Phaladeepika', text: 'Shadow on the king — fame through unusual channels or scandal risk if the Sun is under pressure.' },
   ],
   'Su-Ke': [
     { source: 'BPHS', text: 'Sun–Ketu antar detaches from ego projects — research, occult, or sudden cuts in status themes.' },
   ],
   'Mo-Mo': [
     { source: 'BPHS', text: 'Moon–Moon antar intensifies emotional extremes and money/mood swings — classically “no middle ground” when the Moon is weak.' },
-    { source: 'Phaladeepika', text: 'Self-period of the Moon: mother, mind, and fluids dominate; unrest if the Moon is dark or afflicted.' },
+    { source: 'Phaladeepika', text: 'Self-period of the Moon: mother, mind, and fluids dominate; unrest if the Moon is dark or troubled.' },
   ],
   'Mo-Sa': [
     { source: 'BPHS', text: 'Moon–Saturn antar carries Vish Yoga flavour in teaching summaries — mental labour and heaviness unless Saturn is well placed.' },
@@ -253,7 +253,7 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
     { source: 'BPHS', text: 'Moon–Rahu antar: distance from family or unconventional emotional bonds; Rahu may still “save” via unusual routes if strong.' },
   ],
   'Mo-Ma': [
-    { source: 'Phaladeepika', text: 'Moon–Mars antar increases physical effort and travel — action over contemplation; heat on the mind if both afflicted.' },
+    { source: 'Phaladeepika', text: 'Moon–Mars antar increases physical effort and travel — action over contemplation; heat on the mind if both troubled.' },
   ],
   'Mo-Me': [
     { source: 'BPHS', text: 'Moon–Mercury antar: spending on self-growth and careful career decisions — impulsive switches are classically discouraged.' },
@@ -273,7 +273,7 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   ],
   'Ma-Ma': [
     { source: 'BPHS', text: 'Mars–Mars antar is peak warrior energy — compete, build, travel; channel heat into skill, not quarrels.' },
-    { source: 'Phaladeepika', text: 'Self-period of Mars: land, siblings, and courage dominate; wounds of haste if afflicted.' },
+    { source: 'Phaladeepika', text: 'Self-period of Mars: land, siblings, and courage dominate; wounds of haste if under pressure.' },
   ],
   'Ma-Sa': [
     { source: 'Laghu Parashari', text: 'Mars–Saturn antar: frustration then discipline — long projects move only with patience; natural friction of the pair.' },
@@ -291,7 +291,7 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
     { source: 'Phaladeepika', text: 'Mars–Jupiter antar: dharmic courage — teaching through action; avoid righteous anger.' },
   ],
   'Ma-Su': [
-    { source: 'BPHS', text: 'Mars–Sun antar heats authority — courage for leadership roles; quarrels with superiors if both are afflicted.' },
+    { source: 'BPHS', text: 'Mars–Sun antar heats authority — courage for leadership roles; quarrels with superiors if both are under pressure.' },
     { source: 'Phaladeepika', text: 'Command and weapons/tools combine — status through bold effort; ego friction is the classical caution.' },
   ],
   'Ma-Mo': [
@@ -455,7 +455,7 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   ],
   'Ra-Ma': [
     { source: 'BPHS', text: 'Rahu–Mars antar: high-adrenaline fights or foreign/tech battles — pause before risk.' },
-    { source: 'Phaladeepika', text: 'Sudden courage and conflict; heat on property or siblings themes when afflicted.' },
+    { source: 'Phaladeepika', text: 'Sudden courage and conflict; heat on property or siblings themes when under pressure.' },
   ],
   'Ra-Me': [
     { source: 'Phaladeepika', text: 'Rahu–Mercury antar: information overload and digital branding — stay reality-checked.' },
@@ -483,7 +483,7 @@ export const VIMSHOTTARI_ANTAR_SCRIPTURES: Record<string, ScripturePassage[]> = 
   ],
   'Ke-Me': [
     { source: 'Saravali', text: 'Ketu–Mercury antar: silent or occult intellect — research, coding, or speech withdrawal.' },
-    { source: 'BPHS', text: 'Knowledge without noise; scattered documents if Mercury is afflicted.' },
+    { source: 'BPHS', text: 'Knowledge without noise; scattered documents if Mercury is under pressure.' },
   ],
   'Ke-Ju': [
     { source: 'BPHS', text: 'Ketu–Jupiter antar: detached wisdom — sudden cuts in over-expansion; spiritual or advisory tilt.' },
@@ -527,7 +527,7 @@ function synthesiseAntarScripture(mahaLord: string, antarLord: string): Scriptur
     },
     {
       source: 'Laghu Parashari',
-      text: 'Antardasha fruit follows functional nature for the lagna: a functional benefic antar supports delivery; a functional malefic antar can obstruct or delay the same mahadasha houses until dignity and aspects are weighed.',
+      text: 'Antardasha fruit follows functional nature for the lagna: a functional helpful antar supports delivery; a functional difficult antar can obstruct or delay the same mahadasha houses until dignity and aspects are weighed.',
     },
   ]
 }

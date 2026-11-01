@@ -463,8 +463,8 @@ function scorePlanetStrength(opts: {
 
   score += Math.min(12, opts.beneficAspectCount * 6)
   score -= Math.min(12, opts.maleficAspectCount * 5)
-  if (opts.beneficAspectCount) reasons.push(`${opts.beneficAspectCount} benefic Jaimini link(s)`)
-  if (opts.maleficAspectCount) reasons.push(`${opts.maleficAspectCount} malefic Jaimini link(s)`)
+  if (opts.beneficAspectCount) reasons.push(`${opts.beneficAspectCount} helpful planet Jaimini link(s)`)
+  if (opts.maleficAspectCount) reasons.push(`${opts.maleficAspectCount} difficult planet Jaimini link(s)`)
 
   score = Math.max(0, Math.min(100, score))
   return { band: bandFromScore(score), score, reasons }
@@ -506,7 +506,7 @@ function scoreUlStrength(opts: {
   score -= Math.min(14, opts.maleficOnUl * 6)
   if (opts.beneficOn2nd > 0 && opts.secondDamaged) {
     score += 10
-    reasons.push('Benefic aspect on damaged 2nd from UL can save the marriage')
+    reasons.push('Helpful aspect on damaged 2nd from UL can save the marriage')
   }
 
   score = Math.max(0, Math.min(100, score))
@@ -549,7 +549,7 @@ function scenarioFromBands(dk: StrengthBand, ul: StrengthBand): {
   return {
     scenario: 'mixed',
     label: 'Mixed DK / UL strength',
-    note: 'Outcome depends on dasha activation and benefic rescue aspects on UL / DK.',
+    note: 'Outcome depends on dasha activation and helpful planet rescue aspects on UL / DK.',
   }
 }
 
@@ -700,12 +700,12 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
     `2nd from UL is ${secondUl.rashiName} — family stability after marriage.`,
   ]
   if (ulOnNodeAxis) {
-    ulNotes.push('UL on Rahu–Ketu axis — high-priority divorce / instability indicator in Jaimini.')
+    ulNotes.push('UL (Upapada, the marriage point) is on the Rahu–Ketu axis. Jaimini treats this as an important sign of instability in marriage. It is not a fixed outcome.')
   }
   if (secondDamaged) {
-    ulNotes.push('2nd from UL damaged by malefics — family break risk unless benefics rescue.')
+    ulNotes.push('2nd from UL damaged by difficult planets — family break risk unless helpful planets rescue.')
   } else if (beneficsOn2nd && maleficsOn2nd.length) {
-    ulNotes.push('2nd from UL has malefic pressure but benefic aspects may preserve the marriage.')
+    ulNotes.push('2nd from UL has difficult pressure but helpful aspects may preserve the marriage.')
   }
   if (ulLordDebil || ulLordG?.isCombust) {
     ulNotes.push('UL lord combust or debilitated — marriage problems more likely.')
@@ -743,7 +743,7 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
   const seventhNotes: string[] = [
     `7th house is ${h7.rashiName} — will marriage happen, and partner’s broad character.`,
     `7th lord ${GRAHA_NAMES[h7LordId]} in ${RASHI_NAMES[h7LordG.rashi]} (H${wholeSignHouse(asc, h7LordG.rashi)}) — dignity colours marital quality.`,
-    'In Jaimini, add rashi value (sign type + drishti) to the classical 7th reading.',
+    'In Jaimini, add rashi value (sign type + drishti (aspect)) to the classical 7th reading.',
   ]
   const seventh: SeventhHouseBlock = {
     sign: h7,
@@ -820,9 +820,9 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
     'Sun shows family/society acceptance; Moon shows mass / emotional family support.',
   ]
   if (sunAfflicted) {
-    socialNotes.push('Sun afflicted (debility, Scorpio/Capricorn stress, or nodes) — family/society may resist the match.')
+    socialNotes.push('Sun troubled (debility, Scorpio/Capricorn stress, or nodes) — family/society may resist the match.')
   } else {
-    socialNotes.push('Sun not heavily afflicted — social/family acceptance of marriage is supported.')
+    socialNotes.push('Sun not heavily under pressure — social/family acceptance of marriage is supported.')
   }
   if (sunWith7L) {
     socialNotes.push('Sun with 7th lord — supports marriage through family/social channels.')
@@ -902,10 +902,10 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
     pathLabel = 'Love-cum-arranged (modern blend)'
   } else if (loveScore >= arrangedScore + 2 && loveScore >= 2) {
     pathType = 'love'
-    pathLabel = 'Love marriage lean'
+    pathLabel = 'Love marriage tendency'
   } else if (arrangedScore >= loveScore + 2 && arrangedScore >= 2) {
     pathType = 'arranged'
-    pathLabel = 'Arranged / family-mediated lean'
+    pathLabel = 'Arranged / family-mediated tendency'
   } else if (loveScore > 0 && arrangedScore > 0) {
     pathType = 'love_cum_arranged'
     pathLabel = 'Mixed love & family factors'
@@ -959,7 +959,7 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
       label: 'Rahu conjunct or aspecting DK',
       active: rahuOnDk,
       detail: rahuOnDk
-        ? 'Rahu–DK link: secret/unconventional relationship risk (classic Jaimini divorce cluster).'
+        ? 'Rahu–DK link: secret/unconventional relationship risk (a classic Jaimini sign of strain in marriage).'
         : 'No strong Rahu–DK link.',
     },
     {
@@ -975,7 +975,7 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
       label: '2nd from UL fully damaged',
       active: secondDamaged,
       detail: secondDamaged
-        ? 'Family stability significator damaged — break risk without benefic rescue.'
+        ? 'Family stability significator damaged — break risk without helpful planet rescue.'
         : '2nd from UL not fully damaged.',
     },
     {
@@ -983,7 +983,7 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
       label: 'DK in 6, 8, or 12 in D9',
       active: dusthanaPlacement,
       detail: dusthanaPlacement
-        ? 'DK in dusthana in Navamsha — marital friction / separation themes.'
+        ? 'DK in dusthana (difficult houses: 6, 8, 12) in Navamsha — marital friction / separation themes.'
         : 'DK not in D9 dusthana.',
     },
     {
@@ -1119,7 +1119,7 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
   if (activeRedFlagCount >= 3) {
     insights.push({
       title: 'Red flags clustered',
-      text: `${activeRedFlagCount} divorce / instability flags active. Prioritize UL and Rahu diagnostics.`,
+      text: `${activeRedFlagCount} signs of strain in marriage are active. Look first at the UL (Upapada, the marriage point) and at Rahu.`,
       tone: 'challenging',
     })
   }

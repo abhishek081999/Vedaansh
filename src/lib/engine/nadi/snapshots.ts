@@ -77,7 +77,7 @@ export function findNadiSnapshots(input: NadiSnapshotInput): NadiSnapshot[] {
       hits.push({
         id: 'su-me-water',
         house: houseOfSign(sunMercury[0].rashi),
-        reading: 'Sun and Mercury are together in a water sign, and Saturn or Mars sits with them or aspects them. Cancer is the form checked for the native or an immediate relative.',
+        reading: 'Sun and Mercury are together in a water sign, and Saturn or Mars sits with them or aspects them. Cancer is the form checked for the person or an immediate relative.',
       })
     }
   }

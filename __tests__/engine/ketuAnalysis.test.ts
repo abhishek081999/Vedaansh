@@ -163,7 +163,7 @@ describe('analyzeKetu', () => {
     expect(result.yogas.find(y => y.id === 'surgeon_6')?.active).toBe(true)
     expect(result.yogas.find(y => y.id === 'ke_mo')?.active).toBe(true)
     expect(result.yogas.find(y => y.id === 'ke_ve')?.active).toBe(true)
-    expect(result.yogas.find(y => y.id === 'ke_mo')?.detail).toMatch(/CAUTION|afflict/i)
+    expect(result.yogas.find(y => y.id === 'ke_mo')?.detail).toMatch(/under pressure/)
   })
 
   it('flags Saturn–Ketu in 9th father caution and 8th moksha', () => {

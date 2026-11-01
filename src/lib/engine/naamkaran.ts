@@ -555,12 +555,12 @@ function finishIshta(
       key = rashi === 7 || rashi === 2 ? 'lakshmi' : 'lalita'
       ishta = key === 'lakshmi' ? 'Lakshmi (consort of Vishnu)' : 'Lalita / Śakti'
       sahasranama = key === 'lakshmi' ? 'Lakshmi Sahasranama' : 'Lalita Sahasranama'
-      femaleNote = 'Female native: name searched in the consort / Śakti Sahasranama (session rule).'
+      femaleNote = 'For a woman: name searched in the consort / Śakti Sahasranama (session rule).'
     } else if (key === 'shiva' || key === 'subrahmanya' || key === 'surya') {
       key = 'lalita'
       ishta = 'Lalita / Gauri'
       sahasranama = 'Lalita Sahasranama'
-      femaleNote = 'Female native: masculine Ishta form searched via Lalita Sahasranama (session rule).'
+      femaleNote = 'For a woman: masculine Ishta form searched via Lalita Sahasranama (session rule).'
     }
   }
 
@@ -1197,7 +1197,7 @@ function buildSessionMethod(
     ? `Session pick “${selected.sound}” from ${selected.planetName} → ${selected.nakshatraName} pāda ${selected.pada} in ${selected.rashiName} (H${selected.house}, ${selected.priority}). Name length ${syllableCount} syllables from that rashi. ${
         trikonaValidated ? 'Trikona validated.' : selected.priority === 'kendra' ? 'Kendra fallback (no Trikona).' : 'Not in Trikona/Kendra — prefer another sound.'
       }`
-    : 'No Trikona/Kendra sound from the strong Shadbala planets.'
+    : 'No Trikona (trine houses: 1, 5, 9)/Kendra (angular houses: 1, 4, 7, 10) sound from the strong Shadbala planets.'
 
   return {
     strongest,
@@ -1215,7 +1215,7 @@ function buildSessionMethod(
     trikonaValidated,
     summary,
     methodNote:
-      'Shadbala method: (1) two strongest Shadbala planets → (2) BPHS phonetic letters → (3) Akshar Chakra nakṣatra-pāda → (4–6) keep Trikona (1/5/9) then Kendra (1/4/7/10) → (7) syllable count from that rashi’s motion → (8) Ishta from Atmakaraka’s D1 rashi → (9) Sahasranama word → (10) Katapayadi soft check → (11) confirm Trikona.',
+      'Shadbala method: (1) two strongest Shadbala planets → (2) BPHS phonetic letters → (3) Akshar Chakra nakṣatra-pāda → (4–6) keep Trikona (1/5/9) then Kendra (1/4/7/10) → (7) syllable count from that rashi’s motion → (8) Ishta from Atmakaraka’s D1 rashi → (9) Sahasranama word → (10) Katapayadi soft check → (11) confirm Trikona (trine houses: 1, 5, 9).',
   }
 }
 
@@ -1445,7 +1445,7 @@ export function analyzeNaamkaran(chart: ChartOutput): NaamkaranResult | null {
     session,
     validation,
     methodNote:
-      'Classical tab = Moon-pada janma-naam. Rashi naam = Moon-sign letters. Two names = janma (Moon) and vyavahara (lagna). Shadbala method = strongest planets → BPHS letters → Trikona/Kendra.',
+      'Classical tab = Moon-pada janma-naam. Rashi naam = Moon-sign letters. Two names = janma (Moon) and vyavahara (lagna). Shadbala method = strongest planets → BPHS letters → Trikona (trine houses: 1, 5, 9)/Kendra (angular houses: 1, 4, 7, 10).',
     gender,
   }
 }

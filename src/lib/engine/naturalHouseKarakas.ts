@@ -17,7 +17,7 @@ export interface NaturalHouseKarakaRow {
 
 export const NATURAL_HOUSE_KARAKAS_NOTE =
   'Natural house karakas (Naisargika) list planets that classically signify each bhava’s themes. ' +
-  'This is separate from Jaimini Sthira (fixed) house significators and from Chara (degree-based) karakas. ' +
+  'This is separate from Jaimini Sthira (fixed) house significators and from Chara (degree-based) karakas (natural indicator). ' +
   'Teaching reference only — not chart-personalized.'
 
 export const NATURAL_HOUSE_KARAKAS: Record<HouseNumber1to12, NaturalHouseKarakaRow> = {

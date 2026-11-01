@@ -42,7 +42,7 @@ const MRITYU_EFFECT: Record<ClassicalGrahaId, string> = {
   Ma: 'Siblings are checked, and so are a dispute over land or property, and the blood.',
   Me: 'Education is checked, and so are the skin, speech, the nerves, and the paternal aunt.',
   Ju: 'Children and childbirth are checked.',
-  Ve: 'Marriage is checked for a delay, more than one marriage, or no marriage. The kidneys and the reproductive organs are checked.',
+  Ve: 'Classical texts look here for a delay in marriage or more than one marriage, and for a chance that marriage does not happen. They also link it to kidney and reproductive health. See a doctor for real concerns.',
   Sa: 'The career is checked, and so are the bones, the knees, the hip, and the spine.',
   Ra: 'The period of Rahu is read as difficult, and so are the house and the planets Rahu sits with.',
   Ke: 'The period of Ketu is read as difficult, and so are the house and the planets Ketu sits with.',
@@ -123,7 +123,7 @@ export function specialDegreeNotes(input: SpecialDegreeInput): string[] {
   const avoided = new Set<ClassicalGrahaId>()
 
   if (exact(input.ascDegree, MRITYU_BHAGA_DEGREES[input.ascRashi])) {
-    lines.push('The lagna degree is in Mrityu Bhaga. The native’s health is checked.')
+    lines.push('The lagna degree is in Mrityu Bhaga. The person’s health is checked.')
   }
 
   for (const id of ORDER) {
@@ -199,7 +199,7 @@ function nameNotes(
     lines.push(`A first sound is read from ${joinNames(suitable)}. ${suitable.length === 1 ? `${name(suitable[0]!)} connects` : 'Each connects'} with the lagna or the Navamsha lagna.`)
   }
   if (leftOut.length > 0) {
-    lines.push(`Not used for a first sound: ${joinNames(leftOut)}. A planet in Mrityu Bhaga, a debilitated planet, or a planet with a malefic on it is left out.`)
+    lines.push(`Not used for a first sound: ${joinNames(leftOut)}. A planet in Mrityu Bhaga, a debilitated planet, or a planet with a difficult planet on it is left out.`)
   }
 
   const lordsWeak = avoided.has(lagnaLord) && (d9Lord == null || avoided.has(d9Lord))

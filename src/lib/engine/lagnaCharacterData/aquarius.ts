@@ -9,7 +9,7 @@ export const AQUARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
   rashi: 11,
   title: 'Aquarius Ascendant (Kumbh Lagna)',
   intro:
-    'Aquarius Lagna is tied to the ancestral realm (Pitru Loka) through Rahu, the karaka of ancestors, and is traditionally called the ascendant of natural astrologers because Scorpio, the occult sign, falls on the 10th. ' +
+    'Aquarius Lagna is tied to the ancestral realm (Pitru Loka) through Rahu, the karaka (natural indicator) of ancestors, and is traditionally called the ascendant of natural astrologers because Scorpio, the occult sign, falls on the 10th. ' +
     'It is often born of parents’ intense prayers to ancestors and Hanuman. The central themes are obsession, backdoor routes, ancestral charity and a spiritual duality.',
   traits: [
     {
@@ -18,7 +18,7 @@ export const AQUARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       points: [
         'Obsessive dedication: works very hard for the father (9th), wants what they want at any cost, and keeps consulting several astrologers because one question leads to another.',
         'Tends to reach goals by indirect or behind-the-scenes routes.',
-        'Craving energy linked to a past-life lack of water at death, creating a karmic debt around charity and donation.',
+        'Craving energy which tradition links to going without water in a past life, creating a karmic debt around charity and donation.',
       ],
     },
     {
@@ -43,7 +43,7 @@ export const AQUARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       title: 'On worshipping the Sun and Rama',
       points: [
         'The common claim that Aquarius Lagna should not worship Rama or offer water to the Sun is called a myth: the Sun is the 7th lord, and many avoid "becoming" their 7th-house energy at first.',
-        'Chanting Sun mantras and Rama devotion strengthen the Lagna and bring position and authority; natives often avoid temples early, then become devoted, often to Rama, after life’s shocks.',
+        'Chanting Sun mantras and Rama devotion strengthen the Lagna and bring position and authority; people often avoid temples early, then become devoted, often to Rama, after life’s shocks.',
       ],
     },
   ],
@@ -103,7 +103,7 @@ export const AQUARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       signName: 'Cancer',
       theme: 'Mother is the sensitive point',
       points: [
-        'The most sensitive affliction relates to the mother: avoid conflict with her, as health issues rise after such conflicts.',
+        'The most sensitive difficult influence relates to the mother: avoid conflict with her, as health issues rise after such conflicts.',
         'Heartbreaks hit harder because of this Cancer energy.',
       ],
     },
@@ -115,7 +115,7 @@ export const AQUARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
         'The Sun, 7th lord, is in its own sign here. The biggest trouble in married life and ancestral karma sits here.',
         'As wealth, authority and status rise, married life can feel hollow, with ego issues and a tendency to dominate the spouse.',
         'The person who shines outwardly often lacks real power; power rests with the one in the background. A 7th lord between the Moon and Mercury suggests in-law interference, especially sisters-in-law.',
-        'Rama mala for the spouse and Sun mantras for the native are the remedies suggested.',
+        'Rama mala for the spouse and Sun mantras for the person are the remedies suggested.',
       ],
     },
     8: {
@@ -123,7 +123,7 @@ export const AQUARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       signName: 'Virgo',
       theme: 'Long problems and sudden gains; avoid lending and borrowing',
       points: [
-        'Long-running problems alongside sudden gains: wealth often comes after court cases, fighting through illness or after a death.',
+        'Long-running problems alongside sudden gains: wealth often comes after court cases, getting through illness, or after a loss in the family.',
         'Surgeons and doctors from this Lagna earn well; medical consultations and tests are profitable areas.',
         'Avoid lending and borrowing, since Virgo on the 8th creates prolonged financial entanglements.',
       ],
@@ -134,7 +134,7 @@ export const AQUARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       theme: 'Well-wishing father; Lakshmi devotion',
       points: [
         'The father is generally a well-wisher.',
-        'Natives are often devotees of Lakshmi (and Balaji for South Indian consultees); more devotion brings more luck.',
+        'People are often devotees of Lakshmi (and Balaji for South Indian consultees); more devotion brings more luck.',
         'Libra on the 9th and Sagittarius on the 11th can push them toward expensive, heavy remedies, so beware of advisers who exploit this.',
       ],
     },
@@ -163,7 +163,7 @@ export const AQUARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       signName: 'Capricorn',
       theme: 'Avoids sustained labour; changes activity often',
       points: [
-        'Despite Capricorn’s nature, natives tend to avoid sustained hard work and change activities every few hours.',
+        'Despite Capricorn’s nature, people tend to avoid sustained hard work and change activities every few hours.',
         'Escapism or avoidance of long labour; Saturn here also weighs on career.',
         'Later-life pattern: after the middle years, bondage to duty or spiritual release becomes the question.',
       ],

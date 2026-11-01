@@ -364,7 +364,7 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
   if (mismatchHouses.length === 0) {
     stage2Findings.push({
       id: 'house-match',
-      title: 'House affliction balance',
+      title: 'House difficult influence balance',
       detail: 'The key marriage houses show matching patterns (or are clear in both charts), which the classical Jatak Parijat approach reads as favourable.',
       tone: 'supportive',
       stage: 2,
@@ -372,7 +372,7 @@ export function analyzeMilanDeep(chartA: ChartOutput, chartB: ChartOutput): Mila
   } else {
     stage2Findings.push({
       id: 'house-mismatch',
-      title: 'Uneven house afflictions',
+      title: 'Uneven house difficult influences',
       detail: `Uneven strain on: ${mismatchHouses.map(h => `${ord(h.house)} house (${h.name})`).join(', ')}. Talking these themes through together, with shared remedies or counselling if you wish, can help.`,
       tone: 'caution',
       stage: 2,

@@ -966,7 +966,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
     strainNotes.push(note(
       'class-triple-malefic',
       'Mars, Saturn, and Rahu damage the marriage, and Venus is weak',
-      'All three reach the 7th, and at least two of them sit on the house or on its lord, while Venus has no strength. The bond is unstable. The near end is a marriage that continues as duty after the feeling has gone. Divorce is on the same spectrum. Physical loss of a spouse is the far end, and this line does not decide that.',
+      'All three reach the 7th, and at least two of them sit on the house or on its lord, while Venus has no strength. The bond is unstable. The near end is a marriage that continues as duty after the feeling has gone. Divorce is on the same spectrum. This line does not decide how things will turn out.',
       'caution',
     ))
   }

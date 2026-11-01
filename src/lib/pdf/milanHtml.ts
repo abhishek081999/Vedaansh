@@ -826,7 +826,7 @@ export function generateMilanHTML(input: MilanReportInput): string {
         ${m1.isManglik ? `Kuja Dosha · ${esc(m1.intensity)}` : 'Non-Manglik'}
       </div>
       <p style="font-size:11px;color:${THEME.muted};margin:0">
-        ${m1.isManglik ? `Mars in ${m1.house}th house.` : m1.cancellations?.length ? `Cancellations: ${esc(m1.cancellations.join(', '))}` : 'No focal Martian affliction.'}
+        ${m1.isManglik ? `Mars in ${m1.house}th house.` : m1.cancellations?.length ? `Cancellations: ${esc(m1.cancellations.join(', '))}` : 'No difficult influence from Mars.'}
       </p>
     </div>
     <div class="card">
@@ -835,7 +835,7 @@ export function generateMilanHTML(input: MilanReportInput): string {
         ${m2.isManglik ? `Kuja Dosha · ${esc(m2.intensity)}` : 'Non-Manglik'}
       </div>
       <p style="font-size:11px;color:${THEME.muted};margin:0">
-        ${m2.isManglik ? `Mars in ${m2.house}th house.` : m2.cancellations?.length ? `Cancellations: ${esc(m2.cancellations.join(', '))}` : 'No focal Martian affliction.'}
+        ${m2.isManglik ? `Mars in ${m2.house}th house.` : m2.cancellations?.length ? `Cancellations: ${esc(m2.cancellations.join(', '))}` : 'No difficult influence from Mars.'}
       </p>
     </div>
   </div>
@@ -851,7 +851,7 @@ export function generateMilanHTML(input: MilanReportInput): string {
     <p style="margin:0.65rem 0 0;font-size:11px;color:${papeBalanced ? THEME.emerald : THEME.rose}">
       ${
         papeBalanced
-          ? 'Stable balance — malefic burdens are well compensated between both charts.'
+          ? 'Stable balance — pressures from difficult planets are well compensated between both charts.'
           : `Imbalance detected (${papeDiff.toFixed(2)} pts) — may need conscious adjustment.`
       }
     </p>

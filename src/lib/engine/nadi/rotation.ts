@@ -11,7 +11,7 @@ import type { ClassicalGrahaId, HouseNumber } from '@/lib/engine/houseInterpreta
 import { NADI_PAPA_GRAHAS } from '@/lib/engine/nadi/houses'
 
 export const NADI_ROTATION_NOTE =
-  'Each relative’s house is their lagna. Count anti-clockwise: the 10th is career, the 7th marriage, the 5th education, the 8th longevity. Bhrigu Nadi 731 times a relative’s death when Saturn transits the navamsha of the lord of that 8th house.'
+  'Each relative’s house is their lagna. Count anti-clockwise: the 10th is career, the 7th marriage, the 5th education, the 8th longevity. Bhrigu Nadi 731 looks for a loss in the family when Saturn transits the navamsha of the lord of that 8th house.'
 
 export interface NadiRotationSubject {
   id: string
@@ -60,7 +60,7 @@ export const NADI_CAREER_WORK: Record<ClassicalGrahaId, string> = {
 export const NADI_JUPITER_TRANSIT = [
   { planet: 'Saturn', result: 'Professional growth, a new post, or a promotion. Some work is read even if none is held.' },
   { planet: 'Venus', result: 'Wealth, a marriage or a meeting that may not last, jewelry, or a vehicle.' },
-  { planet: 'Rahu', result: 'A hard period. A death in the family, illness, a loss of work, or a change of place is checked. This is the hardest of these transits.' },
+  { planet: 'Rahu', result: 'A hard period. Classical texts look here for a loss in the family, illness, a loss of work, or a move. This is the hardest of these transits, but it is not a fixed outcome.' },
   { planet: 'Ketu', result: 'A pilgrimage or a turn toward spiritual life, a change of place, surgery, a break in work, or childbirth.' },
   { planet: 'Mars', result: 'A property purchase, a building, or work on a house.' },
   { planet: 'Sun', result: 'A promotion, a government benefit, or a rise in work.' },
@@ -221,13 +221,13 @@ export function healthFlags(
 ): string[] {
   const papa = (house: HouseNumber) => occupantsOf(house).some((g) => PAPA.includes(g.id))
   const flags: string[] = []
-  if (papa(1)) flags.push('Lagna holds a malefic: the native’s overall health and the head are under pressure.')
+  if (papa(1)) flags.push('Lagna holds a difficult planet: the person’s overall health and the head are under pressure.')
   if (papa(10)) {
-    flags.push('The 10th holds a malefic. That house is the 7th from the mother, so her kidneys, blood sugar, and uterus are checked.')
+    flags.push('The 10th holds a difficult planet. That house is the 7th from the mother, so her kidneys, blood sugar, and uterus are checked.')
   }
-  if (papa(9)) flags.push('The 9th holds a malefic. That house is the 6th from the mother, so her digestion is checked.')
-  if (papa(8)) flags.push('The 8th holds a malefic. That house is the 5th from the mother, so her heart is checked.')
-  if (papa(11)) flags.push('The 11th holds a malefic. That house is the 7th from the children, so their kidneys are checked.')
+  if (papa(9)) flags.push('The 9th holds a difficult planet. That house is the 6th from the mother, so her digestion is checked.')
+  if (papa(8)) flags.push('The 8th holds a difficult planet. That house is the 5th from the mother, so her heart is checked.')
+  if (papa(11)) flags.push('The 11th holds a difficult planet. That house is the 7th from the children, so their kidneys are checked.')
   if (papa(9) && papa(5)) flags.push('The 9th is also the 5th from the children: their heart and stomach are checked when it is afflicted.')
   return flags
 }

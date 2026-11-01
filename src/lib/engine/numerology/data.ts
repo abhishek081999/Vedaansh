@@ -249,14 +249,14 @@ const C = (title: string, meaning: string, quality: CompoundQuality): CompoundMe
 
 const COMPOUND_BASE: Record<number, CompoundMeaning> = {
   10: C('Wheel of Fortune', 'Honour, faith and self-confidence; rise and fall by one\'s own will. Name becomes known.', 'fortunate'),
-  11: C('Lion Muzzled', 'Hidden dangers, trials and treachery from others. Warning to be cautious.', 'warning'),
+  11: C('Lion Muzzled', 'Hidden challenges and people who may not be honest with you. Be careful who you trust.', 'warning'),
   12: C('The Sacrifice', 'Anxiety and being sacrificed for others\' plans. Warning against suffering for others.', 'warning'),
   13: C('Regeneration', 'Change of plans, upheaval and power. Destructive if misused; transformation if handled wisely.', 'mixed'),
   14: C('Movement', 'Changes, travel and dealings with the public. Fortunate for money but risk from natural forces and others\' advice.', 'mixed'),
   15: C('The Magician', 'Eloquence, music, art and magnetism. Fortunate for obtaining money, gifts and favours.', 'fortunate'),
-  16: C('Shattered Citadel', 'Strange fatalities, accidents and defeat of plans. Plan everything well in advance.', 'warning'),
+  16: C('Shattered Citadel', 'Sudden setbacks and plans that fall through. Plan everything well in advance.', 'warning'),
   17: C('Star of the Magi', 'Spiritual peace, love and immortality of name. Rises above trials of early life.', 'fortunate'),
-  18: C('Spiritual vs Material', 'Bitter quarrels, deception and danger from enemies. Warning number.', 'warning'),
+  18: C('Spiritual vs Material', 'Quarrels, dishonesty and opposition from others. A number that asks for care.', 'warning'),
   19: C('Prince of Heaven', 'Happiness, success, esteem and honour. One of the most fortunate numbers.', 'fortunate'),
   20: C('The Awakening', 'New purpose, new plans and a call to action. Spiritually strong, materially slow.', 'mixed'),
   21: C('Crown of the Magi', 'Advancement, honours and general success after a long struggle. Very fortunate.', 'fortunate'),
@@ -264,7 +264,7 @@ const COMPOUND_BASE: Record<number, CompoundMeaning> = {
   23: C('Royal Star of the Lion', 'Success, help from superiors and protection. Very fortunate.', 'fortunate'),
   24: C('Love and Assistance', 'Help from those of rank, love, money and creativity. Fortunate.', 'fortunate'),
   25: C('Strength through Experience', 'Benefit gained through observation; trials early, success later. Fortunate.', 'fortunate'),
-  26: C('Partnership Warnings', 'Disaster through bad advice, association and speculation. Choose partners carefully.', 'warning'),
+  26: C('Partnership Warnings', 'Bad advice, the wrong company and risky bets can cause loss. Choose partners carefully.', 'warning'),
   27: C('The Sceptre', 'Authority, command and reward from intellect and creative work. Fortunate.', 'fortunate'),
   28: C('Contradictions', 'Great promise but loss through trust in others and competition. Warning.', 'warning'),
   29: C('Grace under Pressure', 'Uncertainty, treachery and deception from others; trials through relationships. Warning.', 'warning'),
@@ -273,7 +273,7 @@ const COMPOUND_BASE: Record<number, CompoundMeaning> = {
   32: C('Communication', 'Magical power like 5, 14 and 23; fortunate if the person holds to their own judgement.', 'fortunate'),
   37: C('Good Friendships', 'Fortunate partnerships, love and friendships of both sexes. Fortunate.', 'fortunate'),
   43: C('Revolution', 'Upheaval, strife and failure. Unfortunate.', 'warning'),
-  51: C('The Warrior', 'Sudden advancement and power, but also enemies and danger. Powerful.', 'mixed'),
+  51: C('The Warrior', 'Sudden progress and power, but also rivals and risk. A powerful number.', 'mixed'),
 }
 
 /** Cheiro maps 33–52 back onto earlier compound meanings. */

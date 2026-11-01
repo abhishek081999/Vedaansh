@@ -121,7 +121,7 @@ export function readJaiminiDasha(input: {
     ? ` Blocked: ${blocked.map(s => s.label).join(', ')}.`
     : ''
   const reverseText = reverse.active
-    ? ' Three or more malefics in the 3rd form reverse argala, which is not obstructed.'
+    ? ' Three or more difficult planets in the 3rd form reverse argala, which is not obstructed.'
     : ''
   const natalHouse = input.lagna ? distance(input.lagna, sign) : null
   const twelfthNote = natalHouse === 12
@@ -160,7 +160,7 @@ export function readJaiminiDasha(input: {
       title: 'Chara karaka',
       text: lordKaraka
         ? `The sign lord ${GRAHA_NAMES[lord]} carries ${lordKaraka}, so that life area is on stage with the sign.`
-        : `The sign lord ${GRAHA_NAMES[lord]} has no chara-karaka role. Use the karakas among the occupants.`,
+        : `The sign lord ${GRAHA_NAMES[lord]} has no chara-karaka (natural indicator) role. Use the karakas among the occupants.`,
     },
     {
       title: 'Sign lord',
@@ -180,7 +180,7 @@ export function readJaiminiDasha(input: {
     },
     {
       title: 'Houses from the dasha sign',
-      text: `Taken as lagna, the kendras that this period can push are the ${kendraText}.`,
+      text: `Taken as lagna, the kendras (angular houses: 1, 4, 7, 10) that this period can push are the ${kendraText}.`,
     },
   ]
 
@@ -207,7 +207,7 @@ export function readJaiminiDasha(input: {
   if (input.sequenceForward === false) {
     steps.push({
       title: 'Indirect sequence',
-      text: 'This Chara sequence runs backward. That settles an older karmic account before the next step. The direction alone does not make the period negative. Read argala, aspects, and karakas with it.',
+      text: 'This Chara sequence runs backward. That settles an older karmic account before the next step. The direction alone does not make the period negative. Read argala, aspects, and karakas (natural indicator) with it.',
     })
   }
 
@@ -222,9 +222,9 @@ export function readJaiminiDasha(input: {
     const struggle = akHouse == null
       ? ''
       : [6, 8, 12].includes(akHouse)
-        ? ' Atmakaraka sits in a dusthana from Lagna, so the gain comes with more struggle.'
+        ? ' Atmakaraka sits in a dusthana (difficult houses: 6, 8, 12) from Lagna, so the gain comes with more struggle.'
         : [1, 4, 5, 7, 9, 10, 11].includes(akHouse)
-          ? ' Atmakaraka sits in a kendra, trikona, or the 11th from Lagna, so the gain comes with less struggle.'
+          ? ' Atmakaraka sits in a kendra (angular houses: 1, 4, 7, 10), trikona (trine houses: 1, 5, 9), or the 11th from Lagna, so the gain comes with less struggle.'
           : ''
     steps.push({
       title: 'Atmakaraka',
@@ -264,10 +264,10 @@ export function readJaiminiDasha(input: {
     agreements.push('Home agrees: Matrukaraka is involved and 4th-house argala is open.')
   }
   if (knowledgeOpen && (lordKaraka === 'PK' || occupantRoles.has('PK'))) {
-    agreements.push('Intelligence agrees: the fifth karaka is involved and 5th-house argala is open.')
+    agreements.push('Intelligence agrees: the fifth karaka (natural indicator) is involved and 5th-house argala is open.')
   }
   if (reverse.active && (lordKaraka === 'GK' || occupantRoles.has('GK'))) {
-    agreements.push('Struggle agrees: Gnatikaraka is involved and the 3rd holds unblockable malefic argala.')
+    agreements.push('Struggle agrees: Gnatikaraka is involved and the 3rd holds unblockable difficult planet argala.')
   }
 
   return {

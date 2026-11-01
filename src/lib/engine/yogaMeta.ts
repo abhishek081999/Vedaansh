@@ -80,9 +80,9 @@ const YOGAS: Record<YogaId, YogaMeta> = {
   },
   Atiganda: {
     id: 'Atiganda', name: 'Atiganda', number: 6,
-    meaning: 'Great danger',
+    meaning: 'Extra caution',
     quality: 'inauspicious',
-    nature: 'Heightened risk and potential for accidents or disputes',
+    nature: 'A day to be more careful, with a higher chance of mishaps or disputes',
     positiveTraits: 'Caution awareness; good for careful review',
     challenge: 'Sudden setbacks, injury risk, sharp conflict',
     bestFor: 'Audits, safety checks, avoiding travel and surgery',
@@ -120,7 +120,7 @@ const YOGAS: Record<YogaId, YogaMeta> = {
   },
   Ganda: {
     id: 'Ganda', name: 'Ganda', number: 10,
-    meaning: 'Danger / knot',
+    meaning: 'Knot; a tricky point',
     quality: 'inauspicious',
     nature: 'Knotted obstacles and vulnerable junctions',
     positiveTraits: 'Alertness at critical junctures',
@@ -190,13 +190,13 @@ const YOGAS: Record<YogaId, YogaMeta> = {
   },
   Vyatipata: {
     id: 'Vyatipata', name: 'Vyatipata', number: 17,
-    meaning: 'Calamity / misfortune',
+    meaning: 'Sudden upset',
     quality: 'inauspicious',
-    nature: 'Unsettling, reverse, or calamitous tone',
+    nature: 'An unsettled day when things may not go as expected',
     positiveTraits: 'Humility; deep spiritual introspection',
-    challenge: 'Misfortune, mishaps, reversed expectations',
+    challenge: 'Mishaps and plans that turn around',
     bestFor: 'Prayer, restraint, avoiding high-stakes starts',
-    dayGuidance: 'Classical caution — favour spiritual restraint over launches.',
+    dayGuidance: 'Classical texts advise caution. Choose quiet or spiritual activity over launching something new.',
   },
   Variyan: {
     id: 'Variyan', name: 'Variyan', number: 18,

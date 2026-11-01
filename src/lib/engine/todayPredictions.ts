@@ -210,8 +210,8 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
     }
     const ratio = natal.shadbala?.planets?.[lord]?.ratio
     if (typeof ratio === 'number') {
-      if (ratio >= 1.15) { promiseScore += 1; promiseBits.push(`strong ${GRAHA_NAMES[lord]} (Shadbala ${ratio.toFixed(2)}x)`) }
-      else if (ratio < 0.85) { promiseScore -= 1; promiseBits.push(`weak ${GRAHA_NAMES[lord]} (Shadbala ${ratio.toFixed(2)}x)`) }
+      if (ratio >= 1.15) { promiseScore += 1; promiseBits.push(`strong ${GRAHA_NAMES[lord]} (planet strength, or Shadbala, ${ratio.toFixed(2)}x)`) }
+      else if (ratio < 0.85) { promiseScore -= 1; promiseBits.push(`weak ${GRAHA_NAMES[lord]} (planet strength, or Shadbala, ${ratio.toFixed(2)}x)`) }
     }
     const bb = natal.bhavaBala?.houses?.[h]
     if (bb) promiseScore += bb.isStrong ? 0.5 : -0.5
@@ -261,7 +261,7 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
           kind: 'aspects',
           planet: t.id,
           delta,
-          text: `${name}${retro} aspects this house from your ${ordinal(house)} (${benefic ? 'benefic' : 'malefic'} drishti${bindus !== null ? `, ${bindus} bindus here` : ''}).`,
+          text: `${name}${retro} influences this house from your ${ordinal(house)} (${benefic ? 'a helpful' : 'a difficult'} drishti, or aspect${bindus !== null ? `, ${bindus} bindus here` : ''}).`,
         })
       }
     }
@@ -360,7 +360,7 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
       const d = x.dashaLinks[0]
       parts.push(`This matters more than usual because your ${d.levelLabel} lord ${GRAHA_NAMES[d.lord]} ${d.relation} this house.`)
     }
-    if (x.promise === 'strong') parts.push('Your chart naturally backs this area, so good results come easily and setbacks are short-lived.')
+    if (x.promise === 'strong') parts.push('Your chart naturally backs this area, so good results tend to come more easily and setbacks tend to pass sooner.')
     if (x.promise === 'weak') parts.push('This area is less supported in your chart, so expect to put in more effort for the same result.')
 
     const because = [
@@ -391,7 +391,7 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
     const p = AREA[house]
     const hv = houses[house - 1]
     const lead = q === 'good' ? p.good : q === 'bad' ? p.bad : `${p.busy}`
-    const chandra = q === 'good' ? 'Chandra Bala supports you' : q === 'bad' ? 'Chandra Bala is demanding' : 'Chandra Bala is neutral'
+    const chandra = q === 'good' ? 'Chandra Bala (the Moon’s strength for you today) is good' : q === 'bad' ? 'Chandra Bala (the Moon’s strength for you today) is demanding' : 'Chandra Bala (the Moon’s strength for you today) is neutral'
     return `${chandra}; ${lead}. The wider chart rates this house ${hv.verdict.toLowerCase()} today (${hv.score}).`
   }
   phases.push({

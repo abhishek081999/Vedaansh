@@ -698,7 +698,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
     headline: medicalActive ? 'Medicine is a live field' : 'Medicine is not the lead',
     reading: medicalActive
       ? 'The 6th, 8th, or 12th agrees with the 10th. Service, crisis, or a hospital is part of the profession, not a side interest. Name the branch from the planet that actually sits there.'
-      : 'A planet’s medical karaka is not a medical career. Open this field only when the 6th, 8th, or 12th joins the 10th. Otherwise use the planet for the kind of work, not for a ward.',
+      : 'A planet’s medical karaka (natural indicator) is not a medical career. Open this field only when the 6th, 8th, or 12th joins the 10th. Otherwise use the planet for the kind of work, not for a ward.',
     lines: medicalLines,
   }
 
@@ -722,7 +722,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
   if (combos.some(c => c.id === 'me-ra' || c.id === 'ma-ra-8') || (raH === 10 && (maH === 1 || maH === 10 || meH === 10))) {
     modern.push({
       title: 'Venture',
-      reading: 'Rahu with Mars or Mercury, or Rahu on the 10th, can start something that does not have a predecessor in the family. Multiple planets in kendras can mean more than one venture. One of them still has to be finished.',
+      reading: 'Rahu with Mars or Mercury, or Rahu on the 10th, can start something that does not have a predecessor in the family. Multiple planets in kendras (angular houses: 1, 4, 7, 10) can mean more than one venture. One of them still has to be finished.',
     })
   }
   if ((jupiter && (isStrong(jupiter.dignity) || juH === 9 || juH === 10 || juH === 1)) || linked(jupiter, mercury) || (ninthLord && linked(ninthLord, tenthLord))) {
@@ -1162,7 +1162,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
         title: 'House-lord chain',
         answer: chainLast ? `${gn(chainLast)} is the last planet in the chain.` : 'The chain cannot start without a 10th lord.',
         reading: chainIds.length
-          ? `${chainIds.map(id => gn(id)).join(' → ')}. Placement, then the dispositor, then the nakshatra lord, then the dasha lord. The last planet colors the event: ${chainLast ? ROLE[chainLast] : 'the chain'}.`
+          ? `${chainIds.map(id => gn(id)).join(' → ')}. Placement, then the dispositor (ruler of the sign it sits in), then the nakshatra lord, then the dasha lord. The last planet colors the event: ${chainLast ? ROLE[chainLast] : 'the chain'}.`
           : 'The 10th lord is missing, so the chain has no start.',
         tone: 'mixed' as MethodTone,
       },
@@ -1196,15 +1196,15 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
         id: 'kendra',
         title: 'Kendra lordship',
         answer: tenthLord && (tenthLord.id === 'Ju' || tenthLord.id === 'Ve')
-          ? 'A benefic kendra lord gives comfort more than push.'
+          ? 'A helpful planet kendra (angular houses: 1, 4, 7, 10) lord gives comfort more than push.'
           : tenthLord && (tenthLord.id === 'Sa' || tenthLord.id === 'Ma')
-            ? 'A malefic kendra lord pushes, then it builds.'
+            ? 'A difficult planet kendra (angular houses: 1, 4, 7, 10) lord pushes, then it builds.'
             : 'The 10th lord is not Jupiter, Venus, Saturn, or Mars.',
         reading: tenthLord && (tenthLord.id === 'Ju' || tenthLord.id === 'Ve')
-          ? `${gn(tenthLord.id)} rules a kendra. A natural benefic in that role gives comfort. Ambition is not automatic.`
+          ? `${gn(tenthLord.id)} rules a kendra (angular houses: 1, 4, 7, 10). A naturally helpful planet in that role gives comfort. Ambition is not automatic.`
           : tenthLord && (tenthLord.id === 'Sa' || tenthLord.id === 'Ma')
-            ? `${gn(tenthLord.id)} rules a kendra. A natural malefic there is pressure first and power later. The rise follows the difficult chapter.`
-            : 'Kendra lordship changes Jupiter, Venus, Saturn, and Mars. The 10th lord here is outside that rule, so use its role and its chain.',
+            ? `${gn(tenthLord.id)} rules a kendra (angular houses: 1, 4, 7, 10). A naturally difficult planet there is pressure first and power later. The rise follows the difficult chapter.`
+            : 'Kendra (angular houses: 1, 4, 7, 10) lordship changes Jupiter, Venus, Saturn, and Mars. The 10th lord here is outside that rule, so use its role and its chain.',
         tone: 'mixed' as MethodTone,
       },
       {
@@ -1219,16 +1219,16 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
         title: 'Satisfaction',
         answer: moonStrained ? 'Money can come. Satisfaction does not.' : 'The Moon can stay with the work.',
         reading: moonStrained
-          ? 'The Moon is weak, combust, or with a malefic. The 2nd, 6th, 7th, 10th, and 11th can still pay. The person will not feel fed by the salary until the Moon is in a kinder period.'
+          ? 'The Moon is weak, combust, or with a difficult planet. The 2nd, 6th, 7th, 10th, and 11th can still pay. The person will not feel fed by the salary until the Moon is in a kinder period.'
           : 'The Moon is not under that strain. Satisfaction and income are allowed to arrive together.',
         tone: (moonStrained ? 'caution' : 'supportive') as MethodTone,
       },
       {
         id: 'duration',
         title: 'How long the field lasts',
-        answer: saturnAfflicted ? 'Saturn is afflicted. The field keeps changing.' : saturn && isStrong(saturn.dignity) ? 'Saturn can hold one field for a long time.' : 'Saturn does not yet promise a long stay.',
+        answer: saturnAfflicted ? 'Saturn is under pressure. The field keeps changing.' : saturn && isStrong(saturn.dignity) ? 'Saturn can hold one field for a long time.' : 'Saturn does not yet promise a long stay.',
         reading: saturnAfflicted
-          ? 'An afflicted Saturn shortens the stay in a profession even when it is not sitting on the 10th. Count the changes from Saturn, not only from the 10th lord.'
+          ? 'An troubled Saturn shortens the stay in a profession even when it is not sitting on the 10th. Count the changes from Saturn, not only from the 10th lord.'
           : saturn && isStrong(saturn.dignity)
             ? 'A strong Saturn is the duration of the industry, not only of one job title.'
             : 'Saturn is present and not strong enough to lock a decades-long stay. Read its dasha before promising permanence.',
@@ -1276,17 +1276,17 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
       {
         id: 'yoga',
         title: 'Yoga karaka',
-        answer: !ykId ? 'This lagna has no single yoga karaka.' : yk && isStrong(yk.dignity) ? `${gn(ykId)} is strong enough to use the yoga.` : yk && isWeak(yk.dignity) ? `${gn(ykId)} is yoga karaka, and it is weak.` : `${gn(ykId)} is yoga karaka.`,
+        answer: !ykId ? 'This lagna has no single yoga karaka (natural indicator).' : yk && isStrong(yk.dignity) ? `${gn(ykId)} is strong enough to use the yoga.` : yk && isWeak(yk.dignity) ? `${gn(ykId)} is yoga karaka (natural indicator), and it is weak.` : `${gn(ykId)} is yoga karaka.`,
         reading: !ykId
-          ? 'Do not invent a yoga karaka for this lagna. Use the 10th lord and the chain.'
-          : `${gn(ykId)} rules both a kendra and a trikona. ${yk && isStrong(yk.dignity) ? 'It is strong, so the combination can produce a real rise.' : yk && isWeak(yk.dignity) ? 'The name of the yoga is not the result. Without strength the potential stays confused.' : 'Its strength is mixed. Do not promise an extraordinary rise from the name alone.'}`,
+          ? 'Do not invent a yoga karaka (natural indicator) for this lagna. Use the 10th lord and the chain.'
+          : `${gn(ykId)} rules both a kendra (angular houses: 1, 4, 7, 10) and a trikona (trine houses: 1, 5, 9). ${yk && isStrong(yk.dignity) ? 'It is strong, so the combination can produce a real rise.' : yk && isWeak(yk.dignity) ? 'The name of the yoga is not the result. Without strength the potential stays confused.' : 'Its strength is mixed. Do not promise an extraordinary rise from the name alone.'}`,
         tone: (!ykId ? 'mixed' : yk && isStrong(yk.dignity) ? 'supportive' : yk && isWeak(yk.dignity) ? 'caution' : 'mixed') as MethodTone,
       },
       {
         id: 'karaka',
         title: 'Lord against karaka',
         answer: tenthLord?.id === 'Sa'
-          ? 'The 10th lord and the karma karaka are the same planet.'
+          ? 'The 10th lord and the karma karaka (natural indicator) are the same planet.'
           : saturnScore > lordScore
             ? 'Saturn is stronger than the 10th lord.'
             : lordScore > saturnScore
@@ -1297,7 +1297,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
           : saturnScore > lordScore
             ? 'Saturn dominates. The career has duration and pressure. What the 10th lord wants comes second, including emotional satisfaction when the lord is the Moon.'
             : lordScore > saturnScore
-              ? `${tenthLord ? gn(tenthLord.id) : 'The 10th lord'} dominates Saturn. Its role leads the karma karaka.`
+              ? `${tenthLord ? gn(tenthLord.id) : 'The 10th lord'} dominates Saturn. Its role leads the karma karaka (natural indicator).`
               : 'Neither the 10th lord nor Saturn outranks the other. Read them together.',
         tone: 'mixed' as MethodTone,
       },

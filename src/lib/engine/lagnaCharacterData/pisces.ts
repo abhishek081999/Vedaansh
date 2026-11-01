@@ -18,7 +18,7 @@ export const PISCES_LAGNA_PROFILE: LagnaCharacterProfile = {
       title: 'Born to give',
       points: [
         'Gives without bargaining over small amounts and without clear boundaries; wherever Pisces falls in the chart, that area is where they give.',
-        'Others may "mine" them, extracting and leaving; the native feels exhausted and later questions why they keep giving.',
+        'Others may "mine" them, extracting and leaving; the person feels exhausted and later questions why they keep giving.',
         'Key lesson: "I was born to give; whether I receive depends on God." Self-centredness is not a Pisces trait.',
         'They absorb others’ problems and negativity; people gather to unload on them.',
       ],
@@ -80,7 +80,7 @@ export const PISCES_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Not a naturally wealthy sign; may overspend. Resources come suddenly and must be used wisely.',
         'Food must be hot, fresh and spicy, with mood-based eating patterns.',
         'Speech is fast, anger sudden and blunt when provoked. Hates being disrespected about money.',
-        'Values courage; family teaches survival in hard situations. Inherited property is raw and must be developed by the native.',
+        'Values courage; family teaches survival in hard situations. Inherited property is raw and must be developed by the person.',
         'Charity takes the form of land and abhaya (protection, "I will always be with you").',
       ],
     },
@@ -94,7 +94,7 @@ export const PISCES_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Younger siblings may be treated like resources (given chores). Throat, vocal cords and thyroid are indicated.',
         'Friendships deepen by eating together; separation often starts with changed food habits; conversations revolve around food, and they like complete freedom when ordering.',
         'Keep savings healthy; a zero bank balance drains courage. Avoid being hit verbally about resources.',
-        'The father’s habits of hoarding and protecting valuables are echoed in the native’s mindset.',
+        'The father’s habits of hoarding and protecting valuables are echoed in the person’s mindset.',
       ],
     },
     4: {
@@ -118,7 +118,7 @@ export const PISCES_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Struggles with rigid objective exams, better at descriptive and long-answer formats.',
         'Stomach and water-retention issues; romance can be traumatic; tends to show bias in giving.',
         'A mother’s emotional state affects studies; supporting the mother’s financial security helps. The father’s habits can affect fortune (9th link).',
-        'Malefics in the 5th raise social standing through struggle; benefics bring popularity and support from the masses.',
+        'Difficult planets in the 5th raise social standing through struggle; helpful planets bring popularity and support from the masses.',
       ],
     },
     6: {
@@ -126,7 +126,7 @@ export const PISCES_LAGNA_PROFILE: LagnaCharacterProfile = {
       signName: 'Leo',
       theme: 'Government service, father as creditor, prominent rivals',
       points: [
-        'Must serve the father; strong government-job inclination (Sun as natural government karaka); loans or support from government sources.',
+        'Must serve the father; strong government-job inclination (Sun as natural government karaka (natural indicator)); loans or support from government sources.',
         'Health themes: fever, high body temperature, dehydration; need regular water and soothing foods (amla, aloe vera).',
         'Enemies are usually prominent people in the field; fights are public and dramatic. Keep public image clean in order to criticise others.',
         'Very persistent in competitive exams. The father relationship can feel transactional, like borrowing.',
@@ -140,7 +140,7 @@ export const PISCES_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Partner is critical and fault-finding, complaining about small things without a clear root; may recall past gestures ("remember I fed you").',
         'Relationship needs explicit statements ("I love you") and practical, documented care; partner judges by brands and numbers (cars, house size). Venus is debilitated in Virgo.',
         'Confusion about whom to love; comparisons with past partners. Digestive problems worsen during breakups.',
-        'The native listens well but, being Mercury-debilitated, explains their own problems unclearly.',
+        'The person listens well but, being Mercury-debilitated, explains their own problems unclearly.',
       ],
     },
     8: {
@@ -162,7 +162,7 @@ export const PISCES_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Fortune and higher knowledge come incomplete, only partially; higher-education certificates are delayed.',
         'Pull toward occult practice and research, wanting the root of everything; hidden or hard-to-reach temples (hills, caves) appeal to them.',
         'Receives unexpected blessings from the guru, deities and the universe; can become very skilled astrologers, especially in Nadi, Jaimini and Bhrigu Nandi Nadi systems, and can support others through chronic difficulty.',
-        'Father relationship is wounded or unresolved; guru teaching may be harsh and unemotional, pushing the native out of comfort zones.',
+        'Father relationship is wounded or unresolved; guru teaching may be harsh and unemotional, pushing the person out of comfort zones.',
         'Strong moral code about debts; remembers what was borrowed.',
       ],
     },

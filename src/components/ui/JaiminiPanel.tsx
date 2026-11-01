@@ -2056,7 +2056,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>TYPE</th>
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>KARAKAS</th>
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>ASPECTS</th>
-                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }} title="Odd sign whose lord is joined or aspected by a malefic">4TH</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }} title="Odd sign whose lord is joined or aspected by a difficult planet">4TH</th>
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem', textAlign: 'right' }}>TOTAL</th>
                             </tr>
                           </thead>

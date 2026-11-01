@@ -14,13 +14,13 @@ export function calcTaraBala(natalNakIndex: number, transitNakIndex: number) {
   const tara = diff % 9 || 9;
 
   const metadata: Record<number, { name: string; quality: 'good' | 'bad' | 'avg'; score: number; desc: string }> = {
-    1: { name: 'Janma',     quality: 'avg',  score: 40,  desc: 'Danger to body/health' },
+    1: { name: 'Janma',     quality: 'avg',  score: 40,  desc: 'Take care of your body and health' },
     2: { name: 'Sampat',    quality: 'good', score: 100, desc: 'Wealth and Prosperity' },
-    3: { name: 'Vipat',     quality: 'bad',  score: 0,   desc: 'Losses and accidents' },
+    3: { name: 'Vipat',     quality: 'bad',  score: 0,   desc: 'Possible losses; take extra care' },
     4: { name: 'Kshem',     quality: 'good', score: 90,  desc: 'Safety and well-being' },
     5: { name: 'Pratyari',  quality: 'bad',  score: 10,  desc: 'Obstacles and enemies' },
     6: { name: 'Sadhaka',   quality: 'good', score: 100, desc: 'Achievement and fulfillment' },
-    7: { name: 'Vadha',     quality: 'bad',  score: 0,   desc: 'Destruction and danger' },
+    7: { name: 'Vadha',     quality: 'bad',  score: 0,   desc: 'Major obstacles; best avoided for new starts' },
     8: { name: 'Mitra',     quality: 'good', score: 85,  desc: 'Friendly and supportive' },
     9: { name: 'Ati-Mitra', quality: 'good', score: 95,  desc: 'Highly favorable' },
   };

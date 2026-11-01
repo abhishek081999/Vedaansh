@@ -166,7 +166,7 @@ export function rateBavStrength(bindus: number): {
   label: string
 } {
   if (bindus <= 0) {
-    return { band: 'critical', label: 'Zero bindus — no strength in this sign' }
+    return { band: 'critical', label: 'Zero bindus (strength points) — no strength in this sign' }
   }
   if (bindus <= 3) {
     return { band: 'weak', label: 'Below 4 — strength not accepted; poor gochar/dasha results' }
@@ -319,14 +319,14 @@ function sunNatalFindings(
       id: 'su-strong',
       severity: 'positive',
       title: 'Strong Sun BAV where placed',
-      detail: `${bindus} bindus — class strength for health, personality, and leadership significations during Sun dasha/gochar.`,
+      detail: `${bindus} bindus (strength points) — class strength for health, personality, and leadership significations during Sun dasha/gochar.`,
     })
   } else if (band === 'weak' || band === 'critical') {
     out.push({
       id: 'su-weak',
       severity: 'caution',
       title: 'Weak Sun BAV in natal sign',
-      detail: `Below 4 bindus — exaltation/placement alone does not confer strength for gochar or dasha results.`,
+      detail: `Below 4 bindus (strength points) — exaltation/placement alone does not confer strength for gochar or dasha results.`,
     })
   }
 
@@ -366,7 +366,7 @@ function sunNatalFindings(
         id: 'su-h5-children',
         severity: 'caution',
         title: 'Weak Sun in 5th',
-        detail: 'During Sun periods, results may fall on children — health, accidents, conception/pregnancy stress. Confirm with full chart.',
+        detail: 'During Sun periods, children may need more attention: their health and safety, or stress around pregnancy. Confirm with the full chart.',
       })
     }
   }
@@ -375,8 +375,8 @@ function sunNatalFindings(
     out.push({
       id: 'su-upachaya',
       severity: 'positive',
-      title: 'Sun in upachaya with workable BAV',
-      detail: '3/6/10/11 — effort-growth houses. Unafflicted Sun here tends to deliver positive results with work.',
+      title: 'Sun in upachaya (growth houses: 3, 6, 10, 11) with workable BAV',
+      detail: '3/6/10/11 — effort-growth houses. Free of difficult influences Sun here tends to deliver positive results with work.',
     })
   }
 
@@ -458,7 +458,7 @@ function moonNatalFindings(house: number, bindus: number): BavFinding[] {
     out.push({
       id: 'mo-kendra-trikona',
       severity: 'positive',
-      title: 'Moon in kendra/trikona with 6–8 BAV',
+      title: 'Moon in kendra (angular houses: 1, 4, 7, 10)/trikona (trine houses: 1, 5, 9) with 6–8 BAV',
       detail: 'Education, scholarship, and academic excellence well indicated.',
     })
   }
@@ -480,7 +480,7 @@ function marsNatalFindings(house: number, bindus: number, av: AshtakavargaResult
       id: 'ma-low-init',
       severity: 'info',
       title: 'Low Mars BAV where placed',
-      detail: 'Initiative in that life area is harder — not the same as aggression (aggression comes from natal afflictions, not low BAV alone).',
+      detail: 'Initiative in that life area is harder — not the same as aggression (aggression comes from natal difficult influences, not low BAV alone).',
     })
   }
 
@@ -494,7 +494,7 @@ function marsNatalFindings(house: number, bindus: number, av: AshtakavargaResult
       id: 'ma-sibling-sa',
       severity: 'caution',
       title: 'Mars zero-bindu signs',
-      detail: `When Saturn gochars ${zeroSigns.map((r) => `R${r}/H${houseOf(r, ascRashi)}`).join(', ')} and dasha supports — difficult period for brothers. Time with native’s dasha.`,
+      detail: `When Saturn gochars ${zeroSigns.map((r) => `R${r}/H${houseOf(r, ascRashi)}`).join(', ')} and dasha supports — difficult period for brothers. Time with the person’s dasha.`,
     })
   }
 
@@ -572,7 +572,7 @@ function venusNatalFindings(house: number, bindus: number, av: AshtakavargaResul
       id: 've-h7-low',
       severity: 'caution',
       title: 'Low Venus BAV to 7th sign',
-      detail: `When Venus gochars 7th (${h7Pts} bindus) — relationship friction or public-image dips possible (~24–28 days / sign; longer if retrograde).`,
+      detail: `When Venus gochars 7th (${h7Pts} bindus (strength points)) — relationship friction or public-image dips possible (~24–28 days / sign; longer if retrograde).`,
     })
   }
   if (house === 8 && bindus <= 4) {
@@ -767,7 +767,7 @@ function buildPlanetGuide(
         id: `${planet.toLowerCase()}-exalt-low-bav`,
         severity: 'caution',
         title: 'Exalted but low BAV',
-        detail: `${PLANET_NAMES[planet]} is exalted yet only ${selfBindus} self-BAV — class teaching: exalted with low Ashtakavarga is weaker in dasha/gochar than a debilitated planet with high bindus.`,
+        detail: `${PLANET_NAMES[planet]} is exalted yet only ${selfBindus} self-BAV — traditional teaching: exalted with low Ashtakavarga is weaker in dasha/gochar than a debilitated planet with high bindus (strength points).`,
       })
     } else if (dig === 'debilitated' && selfBindus >= 6) {
       natalFindings.push({
@@ -812,7 +812,7 @@ function crossChartFindings(input: BhinnashtakavargaGuideInput): BavFinding[] {
           id: `father-59-${label}`,
           severity: 'caution',
           title: `Low Sun BAV in 5th/9th from ${label}`,
-          detail: `5th=${p5}, 9th=${p9}. Softly malefic for father. Rahu (~1.5y) or Saturn (~2.5y) gochar there worsens; Mercury transit can raise hemorrhage/paralysis risk classically.`,
+          detail: `5th=${p5}, 9th=${p9}. Softly difficult planet for father. Rahu (~1.5y) or Saturn (~2.5y) gochar there worsens; Mercury transit can raise hemorrhage/paralysis risk classically.`,
         })
       }
     }
@@ -861,7 +861,7 @@ function crossChartFindings(input: BhinnashtakavargaGuideInput): BavFinding[] {
       id: 'sav-low-houses',
       severity: 'info',
       title: 'Sarvashtakavarga weak houses',
-      detail: `SAV ≤23 in H${lowHouses.map((x) => x.h).join(', ')} — use SAV for general prediction; use BAV for gochar timing into those signs.`,
+      detail: `SAV ≤23 in house ${lowHouses.map((x) => x.h).join(', ')} — use SAV for general prediction; use BAV for gochar timing into those signs.`,
     })
   }
 

@@ -194,7 +194,7 @@ export function calculatePorutham(
     matched: rajju,
     detail: rajju
       ? `${rB} × ${rG} — different rajju (good).`
-      : `Same ${rB} rajju — traditionally avoided (body-region affliction).`,
+      : `Same ${rB} rajju — traditionally avoided (body-region difficult influence).`,
     weight: 'critical',
   })
 

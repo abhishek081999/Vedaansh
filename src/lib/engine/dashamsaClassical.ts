@@ -115,7 +115,7 @@ export const LIVELIHOOD: Record<GrahaId, { nature: string; fields: string[] }> =
 export const TENTH_LORD_PHALA: Record<number, { headline: string; prediction: string }> = {
   1: {
     headline: '10th lord in the 1st — self-made status',
-    prediction: 'BPHS: karma-lord in the lagna ties the name to the work. The native is known for personal effort, learns the profession in the body, and rises when leading rather than hiding behind a post.',
+    prediction: 'BPHS: karma-lord in the lagna ties the name to the work. The person is known for personal effort, learns the profession in the body, and rises when leading rather than hiding behind a post.',
   },
   2: {
     headline: '10th lord in the 2nd — wealth through the profession',
@@ -151,7 +151,7 @@ export const TENTH_LORD_PHALA: Record<number, { headline: string; prediction: st
   },
   10: {
     headline: '10th lord in the 10th — kingly karma',
-    prediction: 'BPHS: the profession is the life. Self-made fame and visible actions. Strongest when the lord is dignified or has digbala; the native is identified with the post itself.',
+    prediction: 'BPHS: the profession is the life. Self-made fame and visible actions. Strongest when the lord is dignified or has digbala; the person is identified with the post itself.',
   },
   11: {
     headline: '10th lord in the 11th — gains from the profession',
@@ -167,7 +167,7 @@ export const TENTH_LORD_PHALA: Record<number, { headline: string; prediction: st
 export const OCCUPANT_PHALA: Record<GrahaId, string> = {
   Su: 'BPHS: Sun in the 10th has directional strength — government, administration, and a visible post. The state or the father is part of the karma. Give the ego a real seat of responsibility.',
   Mo: 'BPHS: Moon in the 10th makes reputation public and changeable. Care, liquids, travel, or the masses. A strong Moon settles the name; a weak Moon makes the post mood-dependent.',
-  Ma: 'BPHS: Mars in the 10th has digbala — engineering, surgery, defense, land, or fire trades. Courage builds the career. Conflict at work is the tax when Mars is afflicted.',
+  Ma: 'BPHS: Mars in the 10th has digbala — engineering, surgery, defense, land, or fire trades. Courage builds the career. Conflict at work is the tax when Mars is under pressure.',
   Me: 'BPHS / Phaladeepika: Mercury in the 10th is commerce, writing, accounts, and counsel. Skill is the livelihood. In a dual sign, expect two professional tracks.',
   Ju: 'BPHS: Jupiter in the 10th brings honor, counsel, teaching, law, or banking. Elders and teachers protect the rise. The profession should be one the person can defend as right.',
   Ve: 'BPHS: Venus in the 10th favors arts, luxury, diplomacy, vehicles, and pleasant public dealing. Status comes through refinement more than force.',
@@ -693,7 +693,7 @@ export function buildDashamsaClassical(
         dignity: amkRow.d10Dignity,
         headline: `Amatyakaraka ${GRAHA_NAMES[amkId]} in D10 H${amkRow.d10House}`,
         prediction: amkPrediction(amkRow),
-        source: 'Jaimini Sutras — AmK is the minister, the karma the native is known for',
+        source: 'Jaimini Sutras — AmK is the minister, the karma the person is known for',
       }
     : null
 
@@ -760,7 +760,7 @@ export function buildDashamsaClassical(
       gradeLabel: grade === 'mahat' ? 'Mahat' : grade[0]!.toUpperCase() + grade.slice(1),
       score,
       headline: GRADE_COPY[grade],
-      text: 'Counted factors: lagna-lord dignity, 10th-lord dignity, the 10th lord’s house, Digbala in the 10th, Dharma-Karmadhipati, Vargottama, Neecha Bhanga, a strong Amatyakaraka, and benefic drishti on the D10 10th. Other formed yogas are listed beside the grade. This is a mahatphala grade, not a job title.',
+      text: 'Counted factors: lagna-lord dignity, 10th-lord dignity, the 10th lord’s house, Digbala in the 10th, Dharma-Karmadhipati, Vargottama, Neecha Bhanga, a strong Amatyakaraka, and helpful drishti (aspect) on the D10 10th. Other formed yogas are listed beside the grade. This is a mahatphala grade, not a job title.',
       factors,
     },
     tenthLord: {
@@ -962,15 +962,15 @@ function luminary(
 
 function amkPrediction(row: DashamsaPlanetRow): string {
   const place = [1, 4, 7, 10].includes(row.d10House)
-    ? 'in a kendra — the career significator is visible'
+    ? 'in a kendra (angular houses: 1, 4, 7, 10) — the career significator is visible'
     : [5, 9].includes(row.d10House)
-      ? 'in a trikona — the career significator is tied to dharma, students, or fortune'
+      ? 'in a trikona (trine houses: 1, 5, 9) — the career significator is tied to dharma, students, or fortune'
       : row.d10House === 11
         ? 'in the 11th — gains and networks are how the minister works'
         : row.d10House === 10
           ? 'in the 10th — the profession is the life'
           : [6, 8, 12].includes(row.d10House)
-            ? 'in a dusthana — service under pressure, hidden work, or a career of fixing what is broken'
+            ? 'in a dusthana (difficult houses: 6, 8, 12) — service under pressure, hidden work, or a career of fixing what is broken'
             : 'supporting the profession from effort, speech, or courage'
   return `Jaimini: Amatyakaraka ${row.name} in D10 ${row.d10RashiName} H${row.d10House} (${row.d10Dignity.replace(/_/g, ' ')}) is ${place}. Judge the post from this house, and the kind of work from the Phaladeepika planet.`
 }
@@ -992,7 +992,7 @@ function mahatFactors(input: {
     factors.push({
       label: 'D10 lagna lord',
       points: pts,
-      note: `${lagnaLordRow.name} is ${lagnaLordRow.d10Dignity.replace(/_/g, ' ')} in H${lagnaLordRow.d10House}.`,
+      note: `${lagnaLordRow.name} is ${lagnaLordRow.d10Dignity.replace(/_/g, ' ')} in house ${lagnaLordRow.d10House}.`,
     })
   }
   factors.push({
@@ -1054,7 +1054,7 @@ function mahatFactors(input: {
   }
   if (input.beneficAspect) {
     factors.push({
-      label: 'Benefic drishti on the D10 10th',
+      label: 'Helpful drishti (aspect) on the D10 10th',
       points: 4,
       note: 'Jupiter, Venus, or the Moon aspects the karma sign.',
     })
@@ -1239,7 +1239,7 @@ function buildYogas(ctx: {
       tone: vip.formed ? 'mixed' : 'neutral',
       prediction: vip.formed
         ? vip.text
-        : 'Dusthana lords are not placed in another dusthana, so Viparita is not lifting the career through crisis.',
+        : 'Dusthana (difficult houses: 6, 8, 12) lords are not placed in another dusthana, so Viparita is not lifting the career through crisis.',
     },
     {
       id: 'vargottama-karma',
@@ -1259,8 +1259,8 @@ function buildYogas(ctx: {
       tone: amkStrong ? 'supportive' : 'neutral',
       prediction: amkRow
         ? amkStrong
-          ? `Amatyakaraka ${amkRow.name} in D10 H${amkRow.d10House} can act — kendra, trikona, or gains.`
-          : `Amatyakaraka ${amkRow.name} is in D10 H${amkRow.d10House}, outside kendra, trikona, and the 11th. The minister works indirectly.`
+          ? `Amatyakaraka ${amkRow.name} in D10 H${amkRow.d10House} can act — kendra (angular houses: 1, 4, 7, 10), trikona (trine houses: 1, 5, 9), or gains.`
+          : `Amatyakaraka ${amkRow.name} is in D10 H${amkRow.d10House}, outside kendra (angular houses: 1, 4, 7, 10), trikona (trine houses: 1, 5, 9), and the 11th. The minister works indirectly.`
         : 'Amatyakaraka is not on this chart.',
     },
   ]
@@ -1310,10 +1310,10 @@ function neechaReport(
     )
     const bits: string[] = []
     if (fromLagnaDisp || fromMoonDisp) {
-      bits.push(`${dispositor!.name}, lord of the fall sign, is in a kendra from ${fromLagnaDisp ? 'D10 lagna' : 'D10 Moon'}`)
+      bits.push(`${dispositor!.name}, lord of the fall sign, is in a kendra (angular houses: 1, 4, 7, 10) from ${fromLagnaDisp ? 'D10 lagna' : 'D10 Moon'}`)
     }
     if (fromLagnaEx || fromMoonEx) {
-      bits.push(`${exaltRow!.name}, exalted in that sign, is in a kendra from ${fromLagnaEx ? 'D10 lagna' : 'D10 Moon'}`)
+      bits.push(`${exaltRow!.name}, exalted in that sign, is in a kendra (angular houses: 1, 4, 7, 10) from ${fromLagnaEx ? 'D10 lagna' : 'D10 Moon'}`)
     }
     hits.push({
       name: row.name,
@@ -1325,8 +1325,8 @@ function neechaReport(
   const cancelledCount = hits.filter((h) => h.cancelled).length
   const text = hits.map((h) =>
     h.cancelled
-      ? `${h.name} is debilitated in Dashamsha and cancellation applies — ${h.reason}. BPHS: rise after the fall, especially in the dispositor’s dasha.`
-      : `${h.name} is debilitated in Dashamsha without neecha bhanga. The career needs the dispositor’s support; do not expect the fall to cancel itself.`,
+      ? `${h.name} is debilitated in Dashamsha and cancellation applies — ${h.reason}. BPHS: rise after the fall, especially in the dispositor (ruler of the sign it sits in)’s dasha.`
+      : `${h.name} is debilitated in Dashamsha without neecha bhanga. The career needs the dispositor (ruler of the sign it sits in)’s support; do not expect the fall to cancel itself.`,
   ).join(' ')
   return {
     planets: hits.map((h) => h.name),

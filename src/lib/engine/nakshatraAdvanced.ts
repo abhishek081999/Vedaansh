@@ -272,11 +272,11 @@ export function isPanchaka(nakIndex: number): PanchakaType {
 }
 
 const PANCHAKA_DESCRIPTIONS: Record<Exclude<PanchakaType, null>, string> = {
-  'Mrityu Panchaka': 'Death-like events possible; avoid surgery, travel, or signing documents',
-  'Agni Panchaka':   'Risk of fire, accidents, disputes; avoid electrical work and confrontations',
-  'Raja Panchaka':   'Trouble from authorities, government, or elders; avoid legal matters',
-  'Chora Panchaka':  'Risk of theft, fraud, or loss; safeguard valuables and contracts',
-  'Roga Panchaka':   'Health vulnerability; avoid medical procedures if possible, rest is advised',
+  'Mrityu Panchaka': 'A time for extra care. If you can, delay planned surgery, travel, and signing documents',
+  'Agni Panchaka':   'Take care around fire and electrical work, and try to avoid arguments',
+  'Raja Panchaka':   'Dealings with authorities or elders may be harder; delay legal matters if you can',
+  'Chora Panchaka':  'Keep valuables safe and check contracts carefully',
+  'Roga Panchaka':   'A good time to rest. If it is safe to wait, delay planned medical procedures, and follow your doctor’s advice',
 }
 
 export function checkPanchaka(nakIndex: number): PanchakaResult {

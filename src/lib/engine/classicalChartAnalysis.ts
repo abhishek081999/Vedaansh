@@ -164,7 +164,7 @@ export function buildClassicalPdfBlocks(chart: ChartOutput): {
     const rashiNote = getRashiClassical(rashi)[0]
     if (rashiNote) lines.push(`${rashi}: ${rashiNote.text}`)
     if (lordship?.notes[0]) {
-      lines.push(`Lord ${lordship.lordId} in H${lordship.placedIn}: ${lordship.notes[0].text}`)
+      lines.push(`Lord ${lordship.lordId} in house ${lordship.placedIn}: ${lordship.notes[0].text}`)
     }
     if (aspectNotes[0]) lines.push(aspectNotes[0].note.text)
     for (const o of occupants.slice(0, 2)) {

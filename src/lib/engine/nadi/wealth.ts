@@ -142,7 +142,7 @@ function binduLines(input: WealthTimingInput): string[] {
   if (lowest.length === 1 && lowest[0]!.house === 5) {
     lines.push('The 5th holds the lowest score. Education and children are the strained part.')
   } else if (lowest.length === 1 && lowest[0]!.house === 1) {
-    lines.push('The lagna holds the lowest score. The native’s health is the strained part.')
+    lines.push('The lagna holds the lowest score. The person’s health is the strained part.')
   } else if (lowest.length === 1 && lowest[0]!.house === 7) {
     lines.push('The 7th holds the lowest score. Marriage and the body of that house are the strained part.')
   } else if (lowest.length === 1 && lowest[0]!.house === 11) {
@@ -190,7 +190,7 @@ function periodLines(input: WealthTimingInput): string[] {
     if (strong && !dusthana) {
       lines.push(`${GRAHA_NAMES[ninth]} rules the 9th and is strong. This period is read for money, luck, and travel.`)
     } else if (dusthana) {
-      lines.push(`${GRAHA_NAMES[ninth]} rules the 9th and also a dusthana. A gain is checked together with strain on health or the family.`)
+      lines.push(`${GRAHA_NAMES[ninth]} rules the 9th and also a dusthana (difficult houses: 6, 8, 12). A gain is checked together with strain on health or the family.`)
     }
   }
   const pressured = new Set<ClassicalGrahaId>()

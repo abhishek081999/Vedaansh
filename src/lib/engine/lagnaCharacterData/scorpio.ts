@@ -60,7 +60,7 @@ export const SCORPIO_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Brings morality into everything and judges right and wrong; anger when promises are broken. Family fights are about big principles, not petty ones.',
         'Readiness to sacrifice for a cause, religion or God. Misusing family or trust wealth meant for public service brings turmoil to the family.',
         'Speaks little, in few words, but fluently when given a platform such as teaching.',
-        'The partner tends to be talkative, dominant and may feel superior, with the native quieter at home.',
+        'The partner tends to be talkative, dominant and may feel superior, with the person quieter at home.',
         'Often tries to fulfil the mother’s unmet wishes (respect, pilgrimage). Dishonesty or cheating authorities can hurt the children’s career (2nd is the 10th from the 5th).',
         'The father’s workplace may have issues though he performs well, and the father may owe a debt to religion or a spiritual master.',
       ],
@@ -122,7 +122,7 @@ export const SCORPIO_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Partners are judged by financial stability, especially in hard times. Marriage can raise or lower status depending on Venus.',
         'Family plays a big role in marriage, for better or worse; boundaries with relatives can blur. Prefers business partnerships with people they know well.',
         'Protective of the partner (Parshuram energy). Partner is often good-looking, loud and expressive; strong physical drive.',
-        'The native earns and the partner often controls the resources. The partner may feel insecure about the native’s conflicts or controversial stands.',
+        'The person earns and the partner often controls the resources. The partner may feel insecure about the person’s conflicts or controversial stands.',
       ],
     },
     8: {
@@ -175,7 +175,7 @@ export const SCORPIO_LAGNA_PROFILE: LagnaCharacterProfile = {
       theme: 'Strong desire nature; losses through partnerships; living abroad or apart',
       points: [
         'A strong sensual and relationship drive (Mars here can intensify it).',
-        'Partnerships can bring losses. After marriage the native may move abroad, become isolated from old circles, or settle away from old friends.',
+        'Partnerships can bring losses. After marriage the person may move abroad, become isolated from old circles, or settle away from old friends.',
         'The 12th also relates to confinement and legal troubles, so conflicts in close relationships should be handled carefully.',
       ],
     },

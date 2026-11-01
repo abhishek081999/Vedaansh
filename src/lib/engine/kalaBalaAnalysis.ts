@@ -260,7 +260,7 @@ function dashaNote(
   const lordName = GRAHA_NAMES[lord as GrahaId] ?? lord
   const roleWord = role === 'previous' ? 'Previous' : role === 'current' ? 'Current' : 'Upcoming'
   if (virupas == null || !scoredId || band === 'unscored') {
-    return `${roleWord} ${lordName} mahadasha has no direct Kaal score (use dispositor for Rahu/Ketu).`
+    return `${roleWord} ${lordName} mahadasha has no direct Kaal score (use dispositor (ruler of the sign it sits in) for Rahu/Ketu).`
   }
   const via = viaDispositor ? ` via ${GRAHA_NAMES[scoredId]}` : ''
   if (band === 'exceptional' || band === 'very_high' || band === 'strong') {
@@ -545,9 +545,9 @@ function buildPredictions(input: {
       tone,
       text:
         me.isSoftStrong && input.mercuryInKendra
-          ? `Mercury Kaal is strong (${me.virupas.toFixed(0)}) and Mercury sits in a kendra — favorable for putting this native’s name on a business.`
+          ? `Mercury Kaal is strong (${me.virupas.toFixed(0)}) and Mercury sits in a kendra (angular houses: 1, 4, 7, 10) — favorable for putting this the person’s name on a business.`
           : me.isSoftStrong
-            ? `Mercury Kaal is strong (${me.virupas.toFixed(0)}) — good for business paperwork/accounts; kendra placement would further favor naming.`
+            ? `Mercury Kaal is strong (${me.virupas.toFixed(0)}) — good for business paperwork/accounts; kendra (angular houses: 1, 4, 7, 10) placement would further favor naming.`
             : `Mercury Kaal is only ${me.virupas.toFixed(0)} — prefer a family member with stronger Mercury Kaal for business naming if possible.`,
       basedOn: 'Mercury',
       virupas: me.virupas,

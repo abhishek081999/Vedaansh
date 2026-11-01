@@ -1202,11 +1202,11 @@ export default function PrashnaPage() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.72rem' }}>
                           <IndicatorRow label="Body System" value={r.health.bodySystem} ok={null} />
                           <IndicatorRow label="Day of onset" value={r.health.dayOfStart} ok={null} />
-                          <IndicatorRow label="Place of danger" value={r.health.placeOfDeath} ok={null} />
-                          <IndicatorRow label="Cause" value={r.health.causeOfDeath} ok={null} />
-                          <IndicatorRow label="Rebirth (if death)" value={r.health.rebirthNature} ok={null} />
+                          <IndicatorRow label="Place to take care (traditional)" value={r.health.placeOfDeath} ok={null} />
+                          <IndicatorRow label="Risk theme (traditional)" value={r.health.causeOfDeath} ok={null} />
+                          <IndicatorRow label="Spiritual direction (traditional)" value={r.health.rebirthNature} ok={null} />
                         </div>
-                        {r.health.deathSymptoms && r.health.deathSymptoms.includes('CRITICAL') && (
+                        {r.health.deathSymptoms && r.health.deathSymptoms.includes('Extra care') && (
                           <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--rose)12', borderRadius: 6, border: '1px solid var(--rose)', fontSize: '0.73rem', color: 'var(--rose)' }}>
                             ⚠️ {r.health.deathSymptoms}
                           </div>

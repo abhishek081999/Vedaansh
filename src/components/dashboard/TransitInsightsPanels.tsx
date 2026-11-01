@@ -78,7 +78,7 @@ function PlanetInterpCard({ p }: { p: PlanetMomentAnalysis }) {
           {open ? (
             <div className={styles.planetClassicalBody}>
               <ClassicalNotesList
-                title={`Classical · ${GRAHA_NAMES[p.planetId]} in H${p.transitHouse} (gochar)`}
+                title={`Classical · ${GRAHA_NAMES[p.planetId]} in house ${p.transitHouse} (gochar)`}
                 notes={p.houseClassical}
               />
               <ClassicalNotesList

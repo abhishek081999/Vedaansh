@@ -20,7 +20,7 @@ import { nadiAspectsSign } from '@/lib/engine/nadi/snapshots'
 import { nadiConjunct, type NadiYogaPlacement } from '@/lib/engine/nadi/yogas'
 
 export const NADI_BHRIGU_NOTE =
-  'The Bhrigu Bhava is the house with the same number as the lagna sign. It is read on the birth chart. Planets in that house, and the planets with its lord, are the past-life carry. A blessing and a hard result can both show. Affliction is a conjunction with a malefic. Jupiter with Ketu is not an affliction. Exaltation alone is not that test. This house is not the Bhrigu Bindu.'
+  'The Bhrigu Bhava is the house with the same number as the lagna sign. It is read on the birth chart. Planets in that house, and the planets with its lord, are the past-life carry. A blessing and a hard result can both show. Affliction is a conjunction with a difficult planet. Jupiter with Ketu is not an affliction. Exaltation alone is not that test. This house is not the Bhrigu Bindu.'
 
 const ORDER: readonly ClassicalGrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 const PAPA = new Set<ClassicalGrahaId>(['Ma', 'Sa', 'Ra', 'Ke'])

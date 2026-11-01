@@ -277,7 +277,7 @@ export const SUN_HOUSE_TEACHINGS: SunHouseTeaching[] = [
     challenges: [
       'Cannot do चापलूसी — falls behind despite merit',
       'Prefers team leader over team member — can lose opportunities',
-      'If slightly afflicted: must learn to be a team member',
+      'If slightly troubled: must learn to be a team member',
     ],
     notes: ['Karma bhava is a natural Surya seat — status with responsibility.'],
   },
@@ -324,11 +324,11 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
     tagline: 'Soul + mind together — intuition with inner contradiction',
     elements: 'Sun fire (soul/ego) + Moon water (mind/emotions)',
     core: [
-      'Do not scare natives with this yoga alone — degrees, D-charts, and paksha decide intensity',
+      'Do not scare people with this yoga alone — degrees, D-charts, and paksha decide intensity',
       'Full Amavasya: Moon within ~0–3° of Sun; general Amavasya yoga within ~12° (tithi changes after ~12°)',
       'Even exalted Moon with Sun becomes weak — degrees matter',
       'Anger rises like boiling water — burst, calm, then guilt',
-      'Myth: Sun and Moon caught Swarbhanu’s deception at Samudra Manthan — natives spot छल-कपट quickly',
+      'Myth: Sun and Moon caught Swarbhanu’s deception at Samudra Manthan — people spot छल-कपट quickly',
     ],
     positives: [
       'Very strong intuitive power; clear thought process',
@@ -338,13 +338,13 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
       'Emotionally intelligent — can guide others through depression with lived wisdom',
       'Impressive personality; can reach high positions; strong social-media presence if Moon not too weak',
       'Past-life themes appear in dreams; yoga/tantra/Nadi balance suit them',
-      'If Moon exits Amavasya into Pratipada: strong startup / funding timing lore',
+      'If Moon exits Amavasya into Pratipada: strong startup / funding timing tradition',
     ],
     negatives: [
       'When Moon is weak: indecisive; cannot judge right/wrong at crucial moments',
       'Suppress emotions → guilt; take all blame; confidence can drop to zero',
       'Negative imagination; entity/place sensitivity (do not dismiss lightly if chart confirms)',
-      'Avoid loans especially on Amavasya; secret enemies surface; sudden accidents possible',
+      'Avoid loans especially on Amavasya; secret enemies surface; take extra care to stay safe',
       'Depression risk if life collapses; propaganda/scandal risk on social media if Moon weak',
       'Full Amavasya: mental unrest / home finance strain initially possible',
     ],
@@ -360,13 +360,13 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
       2: ['Early financial strain; later career height; family property/money themes persist'],
       3: ['Art inclination; selfishness if Moon very weak'],
       4: ['Prefer birth country; single-parent upbringing common; psychological sensitivity'],
-      5: ['Strong desire for children (often late); miscarriage risk lore; NGO/admin power; tension with mother nearly constant in this teaching'],
+      5: ['Strong desire for children (often late); miscarriage risk tradition; NGO/admin power; tension with mother nearly constant in this teaching'],
       6: ['NGO / administrative themes; mother issues; health vigilance'],
       7: ['Marriage issues depend on Moon; business alone — avoid partnership'],
       8: ['Handles opaque money skillfully; if Moon weak: intimate-health caution; learn swimming but avoid open rivers/seas (teaching)'],
       9: ['Settling abroad likely; strong impact of spiritual authority'],
       10: ['Career focus from childhood; politics or own NGO; sleep latency 2–4 hrs; weak money management'],
-      11: ['Supportive spouse; earning capacity; later friction with first child (5th-aspect lore)'],
+      11: ['Supportive spouse; earning capacity; later friction with first child (5th-aspect tradition)'],
       12: ['Public ethics vs private indulgence contradiction; living relationships possible'],
     },
     remedies: [
@@ -392,7 +392,7 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
     positives: [
       'Leadership, data filtering/analysis, digital platforms, startups, industrial drive',
       'Hard competitor; do-or-die completion; calm exterior with inner steel',
-      'Fitness/sports (esp. 3rd); Vedic/spiritual content creation (Sun–Mars Veda guardianship lore)',
+      'Fitness/sports (esp. 3rd); Vedic/spiritual content creation (Sun–Mars Veda guardianship tradition)',
     ],
     negatives: [
       'Cannot digest insults; long memory; weak forgiveness',
@@ -423,7 +423,7 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
     remedies: [
       'Channel fire into disciplined action and sports rather than ego wars',
       'If 7th: seek Jupiter’s protective aspect / guidance before partnership decisions',
-      'Temple-building lore when Jupiter aspects from 9th onto 3rd-house placement',
+      'Temple-building tradition when Jupiter aspects from 9th onto 3rd-house placement',
     ],
   },
   {
@@ -482,7 +482,7 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
       'Self-discipline, divine knowledge channel, Vedic/occult interest',
       'Educators, mentors, coaches, public-policy / government consultancy',
       'Money often arranges itself; good investors',
-      'Hidden curse lore (all required): Sun+Jupiter in 8 or 12 AND Jupiter combust — false wisdom / father–guru harm themes',
+      'Hidden curse tradition (all required): Sun+Jupiter in 8 or 12 AND Jupiter combust — false wisdom / father–guru harm themes',
     ],
     positives: [
       'Life-changing advice; motivates others; genuine knowledge hunger when positive',
@@ -494,21 +494,21 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
     negatives: [
       '“Only I know” ego; dismisses gurus; “pagla pandit” syndrome',
       'Internal Swadharma vs Adharma conflict with self-justification',
-      '6th affliction: rare but severe illness; spiritual remedies may fail in that dasha',
+      'Under pressure in the 6th: a rare illness is possible, so rely on medical care during that dasha (planetary period)',
       '10th: credit stolen by politics despite ethical work',
     ],
     technical: [
       'Close degrees (even across houses) exchange energy; dasha/antardasha activate',
-      'Remedy mantra lore (Matsya Purana / Yajurveda): “Savita Shaurya Dharma Gurave Namah” with combined ahuti',
+      'Remedy mantra tradition (Matsya Purana / Yajurveda): “Savita Shaurya Dharma Gurave Namah” with combined ahuti',
     ],
     careers: ['Teaching / coaching', 'Counseling', 'Law (6th)', 'Government / banking / admin (10th)', 'Religious leadership (9th)', 'Tax/occult research (8th)'],
     byHouse: {
-      1: ['Confidence + leadership; or massive ego / father-blame if afflicted'],
+      1: ['Confidence + leadership; or massive ego / father-blame if under pressure'],
       2: ['Family ethics & food/fragrance refinement; past speech karma to correct'],
       3: ['Advisor to siblings; gold/jewelry design; Tirupati-type short teerth; may dominate juniors'],
       4: ['Pooja room home; comforts; religious mother; may distribute scriptures if poor'],
       5: ['Best placement — mentors, children bond, mantra, investment'],
-      6: ['Lawyers, govt service, diplomacy; debt payoff; severe hard-to-diagnose illness when sick'],
+      6: ['Lawyers, govt service, diplomacy; debt payoff; illness can be hard to diagnose, so see a good doctor'],
       7: ['Reasonable honest partner; ethical business partners'],
       8: ['Paternal inheritance; tantra/veda; reads secrets; tax “table money” savvy; ego/cult risk'],
       9: ['Sannyas desire; preacher/university builder; foreign education'],
@@ -518,7 +518,7 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
     },
     remedies: [
       'Combined Sun–Jupiter ahuti: Savita Shaurya Dharma Gurave Namah',
-      'If Jupiter combust in 6/8: do not expect easy spiritual fix during affliction dasha',
+      'If Jupiter combust in 6/8: do not expect easy spiritual fix during difficult influence dasha',
     ],
   },
   {
@@ -577,7 +577,7 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
     ],
     technical: [
       'Pitru patterns: Sun+Rahu/Ketu any house (partial); stronger in 5th; full flavour in 9th',
-      'Saturn+Ketu in 5th partial / 9th full Pitru lore (parallel track)',
+      'Saturn+Ketu in 5th partial / 9th full Pitru tradition (parallel track)',
       '5th Pitru: repeating DNA-family problem patterns across generations',
       '9th Sun–Rahu: deep father bond but work fails at last 1%',
     ],
@@ -587,7 +587,7 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
       9: ['Full Pitru flavour with nodes; father karma central'],
     },
     remedies: [
-      'Respect for father / pitru seva is repeatedly emphasised in class casework',
+      'Respect for father / pitru seva is repeatedly emphasised in traditional teaching casework',
       'Accept slow Saturn timing — do not force Sun’s instant-result habit',
     ],
   },
@@ -610,7 +610,7 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
     negatives: [
       'Lies cleverly to father for money while keeping him externally happy',
       'Wrong ambition + wrong confidence; may look illogical to others',
-      '11th extreme: serious crime lore with polished public image — judge whole chart',
+      '11th extreme: serious crime tradition with polished public image — judge whole chart',
     ],
     technical: ['Same-sign or close conjunction = eclipse pattern; refine by house and nakshatra'],
     careers: ['Politics', 'CEO / leadership', 'Technology / ethical hacking', 'Startups'],
@@ -727,7 +727,7 @@ function buildChartNotes(
     notes.push(`${other.name} deeply combust (within ${DEEP_COMBUST_ORB}° of Sun) — significations heavily restricted.`)
   } else if (combust) {
     if (other.id === 'Me') {
-      notes.push('Mercury combust — usually not harmful for Budh Aditya Yoga (class teaching).')
+      notes.push('Mercury combust — usually not harmful for Budh Aditya Yoga (traditional teaching).')
     } else {
       notes.push(`${other.name} combust within classical orb — reduce expected strength.`)
     }
@@ -740,7 +740,7 @@ function buildChartNotes(
   }
   if (sun.nakshatraIndex === 0 || sun.nakshatraIndex === 9) {
     if (teaching.partner === 'Mo') {
-      notes.push('Sun in Ashwini or Magha with Moon yuti — future track / strategy visibility lore applies.')
+      notes.push('Sun in Ashwini or Magha with Moon yuti (conjunction) — future track / strategy visibility tradition applies.')
     }
   }
   return notes
@@ -802,7 +802,7 @@ export function analyzeSunHousesYuti(chart: ChartOutput): SunHousesYutiResult | 
     pitruNotes.push('Sun–Saturn conjunction is a classical Pitru stress marker; Saturn churns ego through necessary humiliation.')
   }
   if (!pitruNotes.length) {
-    pitruNotes.push('No Sun–Rahu/Ketu/Saturn yuti flagged — Pitru Dosha from this module’s yuti rules not indicated.')
+    pitruNotes.push('No Sun–Rahu/Ketu/Saturn yuti (conjunction) flagged — Pitru Dosha from this module’s yuti rules not indicated.')
   }
 
   const remedySet = new Set<string>()
@@ -813,7 +813,7 @@ export function analyzeSunHousesYuti(chart: ChartOutput): SunHousesYutiResult | 
     remedySet.add('Sun in 6th: improve physical discipline first — spiritual gains follow without forcing.')
   }
   if (!remedySet.size) {
-    remedySet.add('No active close yuti — use house themes and general Surya discipline (truth, spine/prana, respectful pitru conduct).')
+    remedySet.add('No active close yuti (conjunction) — use house themes and general Surya discipline (truth, spine/prana, respectful pitru conduct).')
   }
 
   return {
@@ -836,15 +836,15 @@ export function analyzeSunHousesYuti(chart: ChartOutput): SunHousesYutiResult | 
     remedies: [...remedySet],
     caveats: [
       'Never apply these general principles blindly — think carefully before matching any chart.',
-      '70–80% of traits are practical-class notes, not always in standard textbooks.',
+      '70–80% of traits are practical-traditional teaching, not always in standard textbooks.',
       'Degrees, divisional charts, aspects, and dasha timing decide what manifests.',
-      'Same yuti behaves differently house to house and person to person.',
+      'Same yuti (conjunction) behaves differently house to house and person to person.',
       'Jupiter’s aspect can modify many negative Sun combinations.',
     ],
     methodology: [
-      'Layer: planet energy → house → sign → degree/nakshatra → yuti → D9 confirmation.',
+      'Layer: planet energy → house → sign → degree/nakshatra → yuti (conjunction) → D9 confirmation.',
       'For Amavasya: measure Moon–Sun degrees before prescribing heavy remedies.',
-      'For Mars/Jupiter yuti: check combustion depth before promising Rajyoga.',
+      'For Mars/Jupiter yuti (conjunction): check combustion depth before promising Rajyoga.',
       'Multi-planet piles (3–6 grahas) need separate synthesis beyond pairwise notes.',
     ],
   }

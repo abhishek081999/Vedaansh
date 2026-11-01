@@ -216,7 +216,7 @@ function modalityNote(dom: SignModality, movable: number, fixed: number, dual: n
     return `Chara-heavy natal map (${movable} movable vs ${fixed} fixed / ${dual} dual) — life tends to reinvent every few years; Dig often looks restless/confused under change pressure.`
   }
   if (dom === 'fixed') {
-    return `Sthira-heavy map (${fixed} fixed) — resistant to change; Dig can look low because the native refuses to shift stance even when strong Dig exists on a path.`
+    return `Sthira-heavy map (${fixed} fixed) — resistant to change; Dig can look low because the person refuses to shift stance even when strong Dig exists on a path.`
   }
   return `Dwiswabhava-heavy map (${dual} dual) — negotiation/side-hustle mind; most confusion-prone, oscillating between stay and change.`
 }
@@ -374,7 +374,7 @@ export function analyzeDigDrigChesta(
     const scoredId = resolveScored(node.lord, opts.grahas)
     const virupas = scoredId ? virupa(sb.planets[scoredId], 'dig', 'digBala') : null
     const lordName = GRAHA_NAMES[node.lord as GrahaId] ?? node.lord
-    let note = `${lordName} Dig unavailable (need dispositor for Ra/Ke).`
+    let note = `${lordName} Dig unavailable (need dispositor (ruler of the sign it sits in) for Ra/Ke).`
     if (scoredId && virupas != null) {
       const band = digBand(virupas)
       note =

@@ -230,7 +230,7 @@ export const RAHU_KARAKATVA: RahuSignificationGroup[] = [
       'Natural significator of Kāma bhāva (3–7–11 desire axis)',
       'Desires, greed (lālac), passion, obsession, ambition',
       'Always pulls toward māyā — worldly/material hunger never fully satiated',
-      'Unfulfilled past-life desires (Bhrigu Samhita lean)',
+      'Unfulfilled past-life desires (Bhrigu Samhita tendency)',
     ],
   },
   {
@@ -239,8 +239,8 @@ export const RAHU_KARAKATVA: RahuSignificationGroup[] = [
       'Politics, public leadership, mass attraction (with Saturn)',
       'Strategy / observation — detects intent from afar',
       'Foreign lands, cultures, unconventional paths',
-      'Technology, AI, internet, VFX, photography, gadgets; dark-web lore',
-      'Secrecy, gambling/betting lore, hidden wealth methods',
+      'Technology, AI, internet, VFX, photography, gadgets; dark-web tradition',
+      'Secrecy, gambling/betting tradition, hidden wealth methods',
       'Sleep (nidrā); marriage as natural significator when dasha timing fits',
     ],
   },
@@ -248,8 +248,8 @@ export const RAHU_KARAKATVA: RahuSignificationGroup[] = [
     category: 'Spiritual / occult',
     items: [
       'Powerful spiritual awakener despite being pāpī — can outpace Jupiter when genuine',
-      'Tantra, mantra, occult sciences; Bhairav–Kālī lean (Rudrayamal)',
-      'Karaka of Brahma Randhra / Sahasrara activation lore',
+      'Tantra, mantra, occult sciences; Bhairav–Kālī tendency (Rudrayamal)',
+      'Karaka (natural indicator) of Brahma Randhra / Sahasrara activation tradition',
       'Kaal (time) + Ākāśa (ether) — rapid progress when spirituality engages',
       'Eclipse power — can grahan both Sun and Moon',
     ],
@@ -267,11 +267,11 @@ export const RAHU_MEDICAL: RahuSignificationGroup[] = [
     ],
   },
   {
-    category: 'Health domains (lore)',
+    category: 'Health domains (tradition)',
     items: [
       'Mental extremes, confusion, living in a parallel inner world',
       'Addiction / intoxicants / narcotic-type habits (alcohol partly Ra + Sa + Ve)',
-      'Chronic / odd diseases; pandemic lore (unknown medicine, delayed cure)',
+      'Chronic / odd diseases; pandemic tradition (unknown medicine, delayed cure)',
       'Cancer and genetic-experiment themes in classical–modern teaching mix',
     ],
   },
@@ -282,7 +282,7 @@ export const ASHTA_LAKSHMI_DEFS: AshtaLakshmiDef[] = [
     id: 'adi',
     name: 'Adi Lakshmi',
     companion: 'Mo',
-    signification: 'Self-discovery, introspection, tratak / dhyāna lean, moksha desire',
+    signification: 'Self-discovery, introspection, tratak / dhyāna tendency, moksha desire',
     detail: 'Rahu’s illusion + Moon’s emotion → inward search',
   },
   {
@@ -310,7 +310,7 @@ export const ASHTA_LAKSHMI_DEFS: AshtaLakshmiDef[] = [
     id: 'santan',
     name: 'Santan Lakshmi',
     companion: 'Su',
-    signification: 'Progeny themes; IVF/surrogacy lore; pitṛ / santān dosha lean',
+    signification: 'Progeny themes; IVF/surrogacy tradition; pitṛ / santān dosha tendency',
     detail: 'Amplifier on Sun’s progeny/father axis',
   },
   {
@@ -325,7 +325,7 @@ export const ASHTA_LAKSHMI_DEFS: AshtaLakshmiDef[] = [
     name: 'Vijay Lakshmi',
     companion: 'ma_fire_water',
     signification: 'Victory in war/debate; strategist edge',
-    detail: 'Rahu + Mars in fire/water signs (e.g. Scorpio victory lean)',
+    detail: 'Rahu + Mars in fire/water signs (e.g. Scorpio victory tendency)',
   },
   {
     id: 'dhairya',
@@ -343,9 +343,9 @@ const HOUSE_FOCUS: Record<number, RahuHouseFocus> = {
     themes: ['Unconventional self', 'Foreign lean', 'Amplification'],
     tone: 'watched',
     notes: [
-      'Identity extremes, unconventional appearance/path — dispositor decides grace vs fog',
-      'Strong observer / strategist lean; may break family traditions early',
-      'Near 7th cusp lore (class observation): tight Rahu on 7th cusp can alter presentation — not a formal dictum',
+      'Identity extremes, unconventional appearance/path — dispositor (ruler of the sign it sits in) decides grace vs fog',
+      'Strong observer / strategist tendency; may break family traditions early',
+      'Near 7th cusp tradition (class observation): tight Rahu on 7th cusp can alter presentation — not a formal dictum',
     ],
   },
   2: {
@@ -355,16 +355,16 @@ const HOUSE_FOCUS: Record<number, RahuHouseFocus> = {
     tone: 'neutral',
     notes: [
       'Appetite / speech / family values amplify toward unconventional wealth paths',
-      'Secret or foreign income lore; ethics of speech matter',
+      'Secret or foreign income tradition; ethics of speech matter',
     ],
   },
   3: {
     house: 3,
-    title: 'Rahu in 3rd — upachaya courage & media',
+    title: 'Rahu in 3rd — upachaya (growth houses: 3, 6, 10, 11) courage & media',
     themes: ['Parākrama', 'Skills', 'Short travel / media'],
     tone: 'upachaya',
     notes: [
-      'Excellent malefic seat (BPHS upachaya) — bold skills, media courage, strategy',
+      'Excellent difficult planet seat (BPHS upachaya (growth houses: 3, 6, 10, 11)) — bold skills, media courage, strategy',
       'Linked to Ardra-style valor / kāma-bhāva activation',
       'Phal Deepika: Rahu balawān in 3rd among growth houses',
     ],
@@ -381,7 +381,7 @@ const HOUSE_FOCUS: Record<number, RahuHouseFocus> = {
       'Common observation: nālā/drain near residence; unusual interior; books/comfort obsession',
       'Property warning: never forcibly grab land — consequences feel untraceable',
       'Can become powerful healer / mantra–dhyāna practitioner when activated; sleep hypersensitivity by sign',
-      'Same yuti in 4th vs 5th = जमीन-आसमान का फर्क — house changes everything',
+      'Same yuti (conjunction) in 4th vs 5th = जमीन-आसमान का फर्क — house changes everything',
     ],
   },
   5: {
@@ -390,23 +390,23 @@ const HOUSE_FOCUS: Record<number, RahuHouseFocus> = {
     themes: ['Creativity', 'Romance', 'Speculation', 'Attention'],
     tone: 'neutral',
     notes: [
-      'Creative/artistic extremes; photographic memory lore when Mercury/Jupiter support',
-      'Multiple relationships / attention-seeking lean; career confusion if Rahu dominates yuti',
+      'Creative/artistic extremes; photographic memory tradition when Mercury/Jupiter support',
+      'Multiple relationships / attention-seeking tendency; career confusion if Rahu dominates yuti (conjunction)',
       'Fertility: read companions (Ve/Ju amplify; barren sign alone is not enough)',
     ],
   },
   6: {
     house: 6,
-    title: 'Rahu in 6th — Shatru Hantā (best upachaya)',
+    title: 'Rahu in 6th — Shatru Hantā (best upachaya (growth houses: 3, 6, 10, 11))',
     themes: ['Enemy destroyer', 'Debt/disease contest', 'Service systems'],
     tone: 'shatru_hanta',
     notes: [
-      'Class: best Rahu placement among upachaya — “swallows” 6th significations',
+      'Tradition: best Rahu placement among upachaya (growth houses: 3, 6, 10, 11) — “swallows” 6th significations',
       'Protects from enemies, debts, disease, litigation while also creating then resolving them',
       'No planet destroys enemies better here; opponents often self-destruct when Moon joins',
       'With Mars: more aggressive enemy destruction; yoga activates when enemies exist',
       'Diagnosis of disease still difficult — Rahu fog remains',
-      'Ashta Lakshmi Yoga if Jupiter also in kendra from Lagna',
+      'Ashta Lakshmi Yoga if Jupiter also in kendra (angular houses: 1, 4, 7, 10) from Lagna',
     ],
   },
   7: {
@@ -416,7 +416,7 @@ const HOUSE_FOCUS: Record<number, RahuHouseFocus> = {
     tone: 'watched',
     notes: [
       'Natural marriage significator activated — affair or marriage when dasha age fits',
-      'Foreign / unusual partner; dispositor decides grace vs deception',
+      'Foreign / unusual partner; dispositor (ruler of the sign it sits in) decides grace vs deception',
       'Class observation: Rahu near 7th cusp (±3–4°) may alter physical presentation — observational, not formal śloka',
     ],
   },
@@ -427,7 +427,7 @@ const HOUSE_FOCUS: Record<number, RahuHouseFocus> = {
     tone: 'dusthana',
     notes: [
       'Sudden events, fear, research into hidden systems; inheritance oddities',
-      'Strong for tantra/occult when directed; undirected → panic and conspiracy lean',
+      'Strong for tantra/occult when directed; undirected → panic and conspiracy tendency',
     ],
   },
   9: {
@@ -447,19 +447,19 @@ const HOUSE_FOCUS: Record<number, RahuHouseFocus> = {
     tone: 'rajya',
     notes: [
       'Phal Deepika: alone in 10th, Rahu makes the person like a king — if dasha activates',
-      'Influential people follow the native (vs 4th: native cultivates networks)',
+      'Influential people follow the person (vs 4th: native cultivates networks)',
       'Unconventional career, tech/politics/foreign systems; controversy potential',
-      'Stronger raj yoga flavor than many benefic 10th seats when timing fits',
+      'Stronger raj yoga flavor than many helpful planet 10th seats when timing fits',
     ],
   },
   11: {
     house: 11,
-    title: 'Rahu in 11th — upachaya gains & networks',
+    title: 'Rahu in 11th — upachaya (growth houses: 3, 6, 10, 11) gains & networks',
     themes: ['Large gains', 'Networks', 'Desire magnification'],
     tone: 'upachaya',
     notes: [
       'Phal Deepika: balawān in 11th; desires and networks amplify',
-      'Excellent networking; politics / mass association lean',
+      'Excellent networking; politics / mass association tendency',
     ],
   },
   12: {
@@ -468,7 +468,7 @@ const HOUSE_FOCUS: Record<number, RahuHouseFocus> = {
     themes: ['Foreign residence', 'Hidden expenses', 'Moksha via unusual path'],
     tone: 'spiritual',
     notes: [
-      'Foreign residence, nocturnal research, sleep disturbance lore',
+      'Foreign residence, nocturnal research, sleep disturbance tradition',
       'Absorbs Sun tightly → ego/status significations fogged; Jupiter nearby may feed Rahu’s strategy',
       'Spiritual path often self-made; distrust of gurus until late maturity',
     ],
@@ -501,7 +501,7 @@ function nakshatraTraits(index: number): string[] {
     return [
       'Rainstorm / tears; fierce Rudra power; parākrama',
       'Linked to 3rd-house qualities — Mahābali, valor, kāma bhāva',
-      'Own Rahu nakshatra — Rahu’s voice dominates any yuti',
+      'Own Rahu nakshatra — Rahu’s voice dominates any yuti (conjunction)',
     ]
   }
   if (index === 14) {
@@ -514,7 +514,7 @@ function nakshatraTraits(index: number): string[] {
   return [
     'Mysterious / secret knowledge; Varuna guardian of body elements',
     'Healing nakshatra — well-placed Rahu here: strong healing powers',
-    'Treatment / research / occult medicine lore',
+    'Treatment / research / occult medicine tradition',
   ]
 }
 
@@ -539,7 +539,7 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
     house,
     title: `Rahu in house ${house}`,
     themes: [],
-    notes: ['Judge dispositor, yuti, and dasha — Rahu amplifies the seat.'],
+    notes: ['Judge dispositor (ruler of the sign it sits in), yuti (conjunction), and dasha — Rahu amplifies the seat.'],
     tone: 'neutral' as const,
   }
 
@@ -573,8 +573,8 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
 
   const companionNote =
     companions.length > 0
-      ? `Rahu sits with ${companions.map(c => c.name).join(', ')} — primary rule: Rahu absorbs companions’ significations (no body of its own). Decode Rahu first, then the yuti planet.`
-      : 'No close yuti under this module’s orb — Rahu expresses more through house, sign, nakshatra, and dispositor. Still weigh eclipse orbs to luminaries.'
+      ? `Rahu sits with ${companions.map(c => c.name).join(', ')} — primary rule: Rahu absorbs companions’ significations (no body of its own). Decode Rahu first, then the yuti (conjunction) planet.`
+      : 'No close yuti (conjunction) under this module’s orb — Rahu expresses more through house, sign, nakshatra, and dispositor (ruler of the sign it sits in). Still weigh eclipse orbs to luminaries.'
 
   const withMars = !!mars && sameSignOrConjunct(rahu, mars)
   const withJupiter = !!jupiter && sameSignOrConjunct(rahu, jupiter)
@@ -595,10 +595,10 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
         active,
         sepDeg: active && mars ? angularSep(rahu.lonSidereal, mars.lonSidereal) : null,
         detail: active
-          ? `Rahu–Mars in ${RASHI_NAMES[rahu.rashi]} (earth) — Dhanya Lakshmi lean (land, livelihood, jugaad).`
+          ? `Rahu–Mars in ${RASHI_NAMES[rahu.rashi]} (earth) — Dhanya Lakshmi tendency (land, livelihood, jugaad).`
           : withMars
             ? `Rahu–Mars active but not in earth sign — see Vijay Lakshmi if fire/water.`
-            : 'No Rahu–Mars yuti in earth sign.',
+            : 'No Rahu–Mars yuti (conjunction) in earth sign.',
       }
     }
     if (lakshmi.companion === 'ma_fire_water') {
@@ -608,10 +608,10 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
         active,
         sepDeg: active && mars ? angularSep(rahu.lonSidereal, mars.lonSidereal) : null,
         detail: active
-          ? `Rahu–Mars in ${RASHI_NAMES[rahu.rashi]} (fire/water) — Vijay Lakshmi lean (strategy, victory). Scorpio especially victory-coded in class.`
+          ? `Rahu–Mars in ${RASHI_NAMES[rahu.rashi]} (fire/water) — Vijay Lakshmi tendency (strategy, victory). Scorpio especially victory-coded in traditional teaching.`
           : withMars
             ? 'Rahu–Mars active but not in fire/water — see Dhanya if earth.'
-            : 'No Rahu–Mars yuti in fire/water sign.',
+            : 'No Rahu–Mars yuti (conjunction) in fire/water sign.',
       }
     }
     const g = chart.grahas.find(x => x.id === lakshmi.companion)
@@ -621,7 +621,7 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       active,
       sepDeg: active && g ? angularSep(rahu.lonSidereal, g.lonSidereal) : null,
       detail: active
-        ? `${lakshmi.name} via Rahu + ${GRAHA_NAMES[lakshmi.companion]} in H${house}${
+        ? `${lakshmi.name} via Rahu + ${GRAHA_NAMES[lakshmi.companion]} in house ${house}${
             angularSep(rahu.lonSidereal, g!.lonSidereal) <= RAHU_ECLIPSE_ORB
               ? ' (tight absorb orb)'
               : ''
@@ -633,14 +633,14 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
   const yogas: RahuYogaResult[] = [
     {
       id: 'ashta_lakshmi',
-      name: 'Ashta Lakshmi Yoga (Rahu in 6th + Jupiter in kendra)',
+      name: 'Ashta Lakshmi Yoga (Rahu in 6th + Jupiter in kendra (angular houses: 1, 4, 7, 10))',
       active: ashtaLakshmiActive,
       sepDeg: null,
       sameSign: false,
       detail: ashtaLakshmiActive
-        ? `Rahu in 6th and Jupiter in kendra H${jupiterHouse} — class yoga for eight Lakshmis (only Venus & Rahu can give all eight in this teaching).`
+        ? `Rahu in 6th and Jupiter in kendra (angular houses: 1, 4, 7, 10) H${jupiterHouse} — class yoga for eight Lakshmis (only Venus & Rahu can give all eight in this teaching).`
         : house === 6
-          ? 'Rahu in 6th but Jupiter not in kendra from Lagna — Shatru Hantā still strong; full Ashta Lakshmi yoga not indicated.'
+          ? 'Rahu in 6th but Jupiter not in kendra (angular houses: 1, 4, 7, 10) from Lagna — Shatru Hantā still strong; full Ashta Lakshmi yoga not indicated.'
           : 'Requires Rahu in 6th and Jupiter in 1/4/7/10 from Lagna.',
       effects: [
         'Prosperity spectrum through Rahu’s eight Lakshmi combinations',
@@ -658,12 +658,12 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       sepDeg: mars && withMars ? angularSep(rahu.lonSidereal, mars.lonSidereal) : null,
       sameSign: !!(mars && rahu.rashi === mars.rashi),
       detail: withMars
-        ? `Active in H${house} · ${RASHI_NAMES[rahu.rashi]}. “Burning ember in wind” — aggression + ambition; needs direction. Well-placed: exemplary fighters (class examples). Ill-placed: accidents, surgeries, blood issues, criminal lean.`
+        ? `Active in house ${house} · ${RASHI_NAMES[rahu.rashi]}. “Burning ember in wind” — aggression + ambition; needs direction. Well-placed: exemplary fighters (traditional examples). When poorly placed: take care around accidents, surgery and blood-related health, and keep anger in check.`
         : 'No close Rahu–Mars conjunction under this orb.',
       effects: [
         'Overambition with poor planning when unsupported',
-        'Accident / surgery / explosive temperament lean if afflicted',
-        'Blood-related disease lore when severely afflicted',
+        'If under pressure: take care around accidents and surgery, and watch your temper',
+        'Tradition links heavy pressure here to blood-related health issues; see a doctor for real concerns',
       ],
       positives: [
         'Exemplary courage and societal leadership when chart directs well',
@@ -678,12 +678,12 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       sepDeg: jupiter && withJupiter ? angularSep(rahu.lonSidereal, jupiter.lonSidereal) : null,
       sameSign: !!(jupiter && rahu.rashi === jupiter.rashi),
       detail: withJupiter
-        ? `Active in H${house}. Spoils ethics/dharma presentation; guru–śiṣya strain; stomach/small-intestine lore. Well-placed: antaryāmī philosopher — deception appears genuine if misused.`
+        ? `Active in house ${house}. Spoils ethics/dharma presentation; guru–śiṣya strain; stomach/small-intestine tradition. Well-placed: antaryāmī philosopher — deception appears genuine if misused.`
         : 'No close Rahu–Jupiter conjunction under this orb.',
       effects: [
         'Hypocrisy / pretence in religion or opposition to dharma',
         'Damages conventional teacher–student bond',
-        'Small-intestine / stomach problem lore',
+        'Small-intestine / stomach problem tradition',
       ],
       positives: [
         'Inner knowledge / philosopher when owned',
@@ -698,12 +698,12 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       sepDeg: venus && withVenus ? angularSep(rahu.lonSidereal, venus.lonSidereal) : null,
       sameSign: !!(venus && rahu.rashi === venus.rashi),
       detail: withVenus
-        ? `Active in H${house}. King-level material desires; fashion/art/glamour. Ill-placed: excessive bhoga. Spiritual lean: excellent sādhaka / “haṭha yogī” stubbornness.`
+        ? `Active in house ${house}. King-level material desires; fashion/art/glamour. Ill-placed: excessive bhoga. Spiritual tendency: excellent sādhaka / “haṭha yogī” stubbornness.`
         : 'No close Rahu–Venus conjunction.',
-      effects: ['Excessive desire / pleasure lean if afflicted', 'Fashion and entertainment intensity'],
+      effects: ['Excessive desire / pleasure tendency if under pressure', 'Fashion and entertainment intensity'],
       positives: [
         'Dhan Lakshmi; craft/glamour success',
-        'With Moon in Lagna: strong intuition / tantra lean',
+        'With Moon in Lagna: strong intuition / tantra tendency',
         'Mantra / vāk / siddhi support via Venus when directed inward',
       ],
     },
@@ -714,9 +714,9 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       sepDeg: moon && withMoon ? angularSep(rahu.lonSidereal, moon.lonSidereal) : null,
       sameSign: !!(moon && rahu.rashi === moon.rashi),
       detail: withMoon
-        ? `Active in H${house}. Intuition + illusion — Adi Lakshmi lean; in 6th enemies may self-destruct from fear. Watch mental fog and sleep.`
+        ? `Active in house ${house}. Intuition + illusion — Adi Lakshmi tendency; in 6th enemies may self-destruct from fear. Watch mental fog and sleep.`
         : 'No close Rahu–Moon conjunction.',
-      effects: ['Emotional delusion / anxiety lean', 'Sleep and mind hypersensitivity'],
+      effects: ['Emotional delusion / anxiety tendency', 'Sleep and mind hypersensitivity'],
       positives: [
         'Adi Lakshmi: self-discovery, tratak/dhyāna interest',
         'Strong intuitive power; tantra potential with Venus also',
@@ -725,12 +725,12 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
     },
     {
       id: 'ra_su',
-      name: 'Rahu + Sun (grahan lean)',
+      name: 'Rahu + Sun (grahan tendency)',
       active: withSun,
       sepDeg: sepFromSun,
       sameSign: !!(sun && rahu.rashi === sun.rashi),
       detail: withSun
-        ? `Active in H${house}${nearSunEclipse ? ` — tight eclipse orb ${sepFromSun?.toFixed(2)}°` : ''}. Rahu absorbs solar significations (authority, father, vitality presentation). Santan Lakshmi lean.`
+        ? `Active in house ${house}${nearSunEclipse ? ` — tight eclipse orb ${sepFromSun?.toFixed(2)}°` : ''}. Rahu absorbs solar significations (authority, father, vitality presentation). Santan Lakshmi tendency.`
         : 'No close Rahu–Sun conjunction.',
       effects: [
         'Ego / father / authority significations fogged or unconventional',
@@ -745,21 +745,21 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       sepDeg: mercury && withMercury ? angularSep(rahu.lonSidereal, mercury.lonSidereal) : null,
       sameSign: !!(mercury && rahu.rashi === mercury.rashi),
       detail: withMercury
-        ? `Active in H${house}. Vidya Lakshmi — secret knowledge, systems, research. Afflicted with Sun/Saturn: potency lore caution.`
+        ? `Active in house ${house}. Vidya Lakshmi — secret knowledge, systems, research. Troubled with Sun/Saturn: potency tradition caution.`
         : 'No close Rahu–Mercury conjunction.',
-      effects: ['Information fog / cunning speech lean', 'Speculation/gambling lore in 5/8/11 clusters'],
-      positives: ['Analytical/secret knowledge excellence', 'Tech, research, ethical hacking lean'],
+      effects: ['Information fog / cunning speech tendency', 'Speculation/gambling tradition in 5/8/11 clusters'],
+      positives: ['Analytical/secret knowledge excellence', 'Tech, research, ethical hacking tendency'],
     },
     {
       id: 'ra_sa',
-      name: 'Rahu + Saturn (Shapit lean / Dhairya)',
+      name: 'Rahu + Saturn (Shapit tendency / Dhairya)',
       active: withSaturn,
       sepDeg: saturn && withSaturn ? angularSep(rahu.lonSidereal, saturn.lonSidereal) : null,
       sameSign: !!(saturn && rahu.rashi === saturn.rashi),
       detail: withSaturn
-        ? `Active in H${house}. Shanivat agent meets Saturn — Dhairya Lakshmi endurance; also Shapit/curse lean in Saturn module. Spiritual initiation strengthens.`
+        ? `Active in house ${house}. Shanivat agent meets Saturn — Dhairya Lakshmi endurance; also see Shapit Yoga (a heavy karmic combination) in the Saturn section. Spiritual initiation strengthens.`
         : 'No close Rahu–Saturn conjunction.',
-      effects: ['Past-life curse / stall lean (see Saturn Shapit)', 'Heavy karmic delivery through Rahu periods'],
+      effects: ['Past-life karma can slow things down (see Shapit Yoga under Saturn)', 'Heavy karmic delivery through Rahu periods'],
       positives: ['Dhairya Lakshmi: patience and grit', 'Strong spiritual initiation when owned'],
     },
     {
@@ -770,7 +770,7 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       sameSign: aloneInSign,
       detail:
         house === 10 && aloneInHouse
-          ? 'Phal Deepika: alone in 10th, Rahu makes the native like a king — dasha must activate. Influential people follow the person.'
+          ? 'Phal Deepika: alone in 10th, Rahu makes the person like a king — dasha must activate. Influential people follow the person.'
           : house === 10
             ? 'Rahu in 10th but not alone — still strong career/foreign/status amplification; full “king alone” condition softens.'
             : 'Not sitting alone in the 10th.',
@@ -791,11 +791,11 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
 
   const upachayaFlag: RahuFlag = {
     id: 'upachaya',
-    title: 'Upachaya seat (3 / 6 / 10 / 11)',
+    title: 'Upachaya (growth houses: 3, 6, 10, 11) seat (3 / 6 / 10 / 11)',
     active: inUpachaya,
     detail: inUpachaya
-      ? `Rahu in H${house} — BPHS: pāpa grahas in upachaya give excellent results. Phal Deepika names Rahu balawān in 3/6/11; 10th alone = rājya.`
-      : `Rahu in H${house} — outside upachaya. Still judge dispositor and yuti; 6th remains the class best for enemy destruction when present.`,
+      ? `Rahu in house ${house} — BPHS: pāpa grahas in upachaya (growth houses: 3, 6, 10, 11) give excellent results. Phal Deepika names Rahu balawān in 3/6/11; 10th alone = rājya.`
+      : `Rahu in house ${house} — outside upachaya (growth houses: 3, 6, 10, 11). Still judge dispositor (ruler of the sign it sits in) and yuti (conjunction); 6th remains the class best for enemy destruction when present.`,
   }
 
   const shatruHantaFlag: RahuFlag = {
@@ -804,13 +804,13 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
     active: house === 6,
     detail:
       house === 6
-        ? `Best Rahu upachaya — swallows enemies/debts/disease/litigation.${withMoon ? ' Moon yuti: enemies self-destruct from fear.' : ''}${withMars ? ' Mars yuti: aggressive enemy destruction.' : ''}`
+        ? `Best Rahu upachaya (growth houses: 3, 6, 10, 11) — swallows enemies/debts/disease/litigation.${withMoon ? ' Moon yuti: enemies self-destruct from fear.' : ''}${withMars ? ' Mars yuti: aggressive enemy destruction.' : ''}`
         : 'Rahu not in 6th — classic best enemy-destroyer seat not indicated.',
   }
 
   const king10thFlag: RahuFlag = {
     id: 'king_10th',
-    title: '10th-house Rājya lean',
+    title: '10th-house Rājya tendency',
     active: house === 10,
     detail:
       house === 10
@@ -826,18 +826,18 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
     active: inRahuNakshatra,
     detail: inRahuNakshatra
       ? `Natal ${NAKSHATRA_NAMES[rahu.nakshatraIndex]} — Rahu’s voice dominates; memorize nakshatra spans (class: only rote-required layer).`
-      : 'Not in Ardra, Swati, or Shatabhisha — still weigh dispositor nakshatra.',
+      : 'Not in Ardra, Swati, or Shatabhisha — still weigh dispositor (ruler of the sign it sits in) nakshatra.',
   }
 
   const sleepMakarFlag: RahuFlag = {
     id: 'sleep_makar',
-    title: 'Sleep hypersensitivity (Makar / Kumbh lean)',
+    title: 'Sleep hypersensitivity (Makar / Kumbh tendency)',
     active: rahu.rashi === 10 || rahu.rashi === 11,
     detail:
       rahu.rashi === 10
-        ? 'Rahu in Capricorn (Saturn’s sign + Shanivat agency) — deepest sleep lore: can fall asleep standing/talking/driving; mind easily hypnotizable. Paradox: voluntary sleep may not come.'
+        ? 'Rahu in Capricorn (Saturn’s sign + Shanivat agency) — deepest sleep tradition: can fall asleep standing/talking/driving; mind easily hypnotizable. Paradox: voluntary sleep may not come.'
         : rahu.rashi === 11
-          ? 'Rahu in Aquarius — also strong sleep/hypnosis lean (Saturn’s other sign).'
+          ? 'Rahu in Aquarius — also strong sleep/hypnosis tendency (Saturn’s other sign).'
           : 'Not in Capricorn/Aquarius — sleep effects milder unless Moon joins or Capricorn is aspected.',
   }
 
@@ -847,8 +847,8 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
     active: nearSunEclipse || nearMoonEclipse,
     detail:
       nearSunEclipse || nearMoonEclipse
-        ? `Within ~${RAHU_ECLIPSE_ORB}° of ${[nearSunEclipse && 'Sun', nearMoonEclipse && 'Moon'].filter(Boolean).join(' & ')} — Rahu grabs luminary significations (grahan lean).`
-        : `No luminary within ${RAHU_ECLIPSE_ORB}° — eclipse-style absorb not flagged (wider yuti still possible).`,
+        ? `Within ~${RAHU_ECLIPSE_ORB}° of ${[nearSunEclipse && 'Sun', nearMoonEclipse && 'Moon'].filter(Boolean).join(' & ')} — Rahu grabs luminary significations (grahan tendency).`
+        : `No luminary within ${RAHU_ECLIPSE_ORB}° — eclipse-style absorb not flagged (wider yuti (conjunction) still possible).`,
   }
 
   const absorbFlag: RahuFlag = {
@@ -857,7 +857,7 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
     active: companions.length > 0,
     detail:
       companions.length > 0
-        ? 'Core dictum active: Rahu has no body — it takes on the yuti planet’s nature. Predict Rahu first.'
+        ? 'Core dictum active: Rahu has no body — it takes on the yuti (conjunction) planet’s nature. Predict Rahu first.'
         : 'No close companion — absorption dictum idle; house/sign/nakshatra lead.',
   }
 
@@ -873,7 +873,7 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
     'Channel obsession into one ethical craft, healing, or research domain',
     'For diagnosis fog in Rahu periods: second opinions + patience; avoid panic black-magic narratives first',
     'Spiritual track: disciplined dhyāna / mantra — Rahu can progress faster than Jupiter when genuine',
-    'Never claim “Kāl Sarp Doṣa” as classical — only Sarpa Doṣa lore; Narayan Bali mainly pitṛ śānti',
+    'Never claim “Kāl Sarp Doṣa” as classical — only Sarpa Doṣa tradition; Narayan Bali mainly pitṛ śānti',
   ]
   if (house === 4) {
     remedies.push('4th Rahu: do not forcibly occupy others’ property; stabilize one home routine before upgrades.')
@@ -951,7 +951,7 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       : house === 10 && aloneInHouse
         ? 'Rahu alone in 10th — Phal Deepika rājya (king-like) when dasha activates.'
         : inUpachaya
-          ? `Rahu in upachaya H${house} · ${RASHI_NAMES[rahu.rashi]} — malefic growth seat; ${activeYogas.length ? activeYogas.map(y => y.name).join('; ') : 'decode via dispositor & nakshatra'}.`
+          ? `Rahu in upachaya H${house} · ${RASHI_NAMES[rahu.rashi]} — difficult planet growth seat; ${activeYogas.length ? activeYogas.map(y => y.name).join('; ') : 'decode via dispositor & nakshatra'}.`
           : `Rahu in ${RASHI_NAMES[rahu.rashi]} · H${house} — maya, desire, amplification.${inRahuNakshatra ? ` Own nakshatra ${NAKSHATRA_NAMES[rahu.nakshatraIndex]}.` : ''} Predict Rahu before companions.`
 
   return {
@@ -974,10 +974,10 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       aloneInSign,
     },
     nature: [
-      'Pāpī / malefic shadow planet — North Node of the Moon; no physical body',
+      'Pāpī / difficult planet shadow planet — North Node of the Moon; no physical body',
       'Mahabali (Parashara) — uniquely titled among grahas',
       'Shanivat — Saturn’s agent for karma-phala delivery in Rahu periods',
-      'Always nearly vakri; effects sudden, foggy, overnight-change flavoured',
+      'Always nearly vakri (retrograde); effects sudden, foggy, overnight-change flavoured',
       'Breaks rules and traditions (vidroh) — rebellion is native signature',
       'Called Bhagavān Rahu in devotion despite asura origin (Svarbhānu / Siṃhikā)',
     ],
@@ -994,18 +994,18 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       { label: 'Node', value: 'North Node (Chhāyā graha)' },
       { label: 'Nature', value: 'Malefic · Shanivat · Mahabali' },
       { label: 'Elements', value: 'Kāla (time) + Ākāśa (ether)' },
-      { label: 'Best houses', value: '3, 6, 10, 11 (upachaya); 6th best' },
+      { label: 'Best houses', value: '3, 6, 10, 11 (upachaya (growth houses: 3, 6, 10, 11)); 6th best' },
       { label: 'Nakshatras', value: 'Ardra, Swati, Shatabhisha' },
       { label: 'Mahadasha', value: '18 years' },
       { label: 'Maturity', value: `~${RAHU_NATURAL_AGE} years` },
-      { label: 'Ashta Lakshmi', value: 'Rahu in 6th + Jupiter in kendra' },
+      { label: 'Ashta Lakshmi', value: 'Rahu in 6th + Jupiter in kendra (angular houses: 1, 4, 7, 10)' },
     ],
     upachaya: {
       houses: [...RAHU_UPACHAYA_HOUSES],
       inUpachaya,
       detail: inUpachaya
-        ? `In H${house} — growth house requiring valor, competition, shrewdness (Rahu/Mars/Saturn domain, not benefics).`
-        : `Outside 3/6/10/11 — still powerful; upachaya excellence not automatic.`,
+        ? `In H${house} — growth house requiring valor, competition, shrewdness (Rahu/Mars/Saturn domain, not helpful planets).`
+        : `Outside 3/6/10/11 — still powerful; upachaya (growth houses: 3, 6, 10, 11) excellence not automatic.`,
     },
     houseFocus,
     allHouseFocus: Array.from({ length: 12 }, (_, i) => HOUSE_FOCUS[i + 1]!),
@@ -1049,49 +1049,49 @@ export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
       'Guide clients; do not scare them with gochar headlines',
     ],
     sleepTeaching: [
-      'Rahu is karaka of sleep (nidrā)',
+      'Rahu is karaka (natural indicator) of sleep (nidrā)',
       'Strongest in Makar (Saturn’s sign + Shanivat agency); also strong in Kumbh',
       'Can sleep standing / talking / driving; short but extremely deep bursts',
       'Paradox: voluntary sleep hard; involuntary sleep instant',
-      'Moon with Rahu in Makar intensifies — multi-hour standing sleep lore',
+      'Moon with Rahu in Makar intensifies — multi-hour standing sleep tradition',
     ],
     goldenRules: [
       'Rahu absorbs significations of whichever planet it conjoins',
-      'Predict Rahu first in any yuti — most common prediction error otherwise',
-      'Upachaya 3/6/10/11 = excellent for malefic Rahu; 6th = best Shatru Hantā',
+      'Predict Rahu first in any yuti (conjunction) — most common prediction error otherwise',
+      'Upachaya (growth houses: 3, 6, 10, 11) 3/6/10/11 = excellent for difficult planet Rahu; 6th = best Shatru Hantā',
       'Alone in 10th = king-like (Phal Deepika) when dasha comes',
       'Kāl Sarp Doṣa does not exist — only Sarpa Doṣa',
       'Dasha activates; transit times — never the reverse',
-      'House changes interpretation completely even with identical yuti/sign',
+      'House changes interpretation completely even with identical yuti (conjunction)/sign',
     ],
     remedies,
     dictums: [
       'Shanivat Rahu, Kujavat Ketu',
-      'Trishaṣṭa daśage pāpa… (BPHS upachaya malefics excel)',
+      'Trishaṣṭa daśage pāpa… (BPHS upachaya (growth houses: 3, 6, 10, 11) difficult planets excel)',
       'Phal Deepika: Rahu balawān in 3/6/11; alone in 10th → narapati-like',
-      'Rahu in 6th + Jupiter in kendra → Ashta Lakshmi Yoga (class)',
+      'Rahu in 6th + Jupiter in kendra (angular houses: 1, 4, 7, 10) → Ashta Lakshmi Yoga (class)',
       'Activation ~42 years — at least one Rahu-signification event even outside Rahu MD',
     ],
     naturalAge: RAHU_NATURAL_AGE,
     naturalAgeNote:
       'Standard activation ~42. If Rahu dasha runs from birth/childhood, themes activate earlier. At 42, expect at least one significant Rahu-signification event regardless of whether Rahu MD is running — timing still depends on position and current dasha.',
     dashaNote:
-      'Rahu Mahadasha is 18 years. Correlate Antardasha with Saturn (Shanivat agency), dispositor, and house seat. Intuition and past-life desire dreams often rise in Rahu periods.',
+      'Rahu Mahadasha is 18 years. Correlate Antardasha with Saturn (Shanivat agency), dispositor (ruler of the sign it sits in), and house seat. Intuition and past-life desire dreams often rise in Rahu periods.',
     classical,
     caveats: [
-      'Class notes are teaching patterns — not automatic fate for every chart',
-      'Medical notes are classical lore, not diagnosis or treatment advice',
+      'Traditional teaching are teaching patterns — not automatic fate for every chart',
+      'Medical notes are classical tradition, not diagnosis or treatment advice',
       'Ashta Lakshmi pair-hits are conjunction-priority; aspects are milder',
       'Celebrity chart examples in oral class are illustrative, not embedded as data here',
       'Kāl Sarp debunking is this school’s position — other modern authors disagree',
     ],
     methodology: [
-      'Whole-sign house from Lagna for natal seat and upachaya',
+      'Whole-sign house from Lagna for natal seat and upachaya (growth houses: 3, 6, 10, 11)',
       `Yuti orb ~${RAHU_YUTI_ORB}°; eclipse absorb orb ~${RAHU_ECLIPSE_ORB}° to Sun/Moon`,
       'Ashta Lakshmi yoga: Rahu H6 + Jupiter in 1/4/7/10',
       'Dhanya vs Vijay: Rahu–Mars in earth vs fire/water signs',
       'King 10th: Rahu alone in whole-sign 10th (Ketu opposite ignored as pair)',
-      'Mixed layers: house guide + classics + rashi + nakshatra + vakri',
+      'Mixed layers: house guide + classics + rashi + nakshatra + vakri (retrograde)',
     ],
     summaryAttrs: [
       { label: 'Seat', value: `${RASHI_NAMES[rahu.rashi]} · H${house}` },

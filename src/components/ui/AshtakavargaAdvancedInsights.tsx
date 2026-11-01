@@ -854,7 +854,7 @@ export function AshtakavargaAdvancedInsights({
               })}
             </div>
 
-            <Callout tone="warn">{bb?.caution ?? 'Compare bindus inside this topic only — not against other natal houses.'}</Callout>
+            <Callout tone="warn">{bb?.caution ?? 'Compare bindus (strength points) inside this topic only — not against other natal houses.'}</Callout>
           </div>
 
           {bb ? (

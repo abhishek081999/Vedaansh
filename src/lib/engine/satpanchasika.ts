@@ -545,7 +545,7 @@ function resolveSignificator(topic: SatpanchasikaTopic, lagnaRashi: number, grah
   notes.push(strength === 'Strong'
     ? 'Significator well-placed — the matter has natural support.'
     : strength === 'Weak'
-      ? 'Significator afflicted/weak — the matter needs propitiation (see remedies).'
+      ? 'Significator troubled/weak — the matter needs propitiation (see remedies).'
       : 'Significator middling — outcome follows the topic verdict without strong tilt.')
 
   return {
@@ -719,16 +719,16 @@ export function runSatpanchasikaPrashna(input: SatpanchasikaInput): Satpanchasik
       pushScore(sc, scorecard, 'Lagna motion', motionOf(lagnaRashi) === 'movable' ? 'good' : motionOf(lagnaRashi) === 'fixed' ? 'bad' : 'neutral',
         `Movable lagna favours change; fixed opposes it — lagna is ${motionOf(lagnaRashi)} [Ch1 V2]`, 2)
       sections.push(bhavaSection('chyuti', 'Chyuti — Change of Place / Fall from Grace', '🔀', chyuti,
-        ['Movable lagna, unafflicted, aspected by lord/benefics → change occurs favourably.',
-          'Fixed lagna unafflicted → no change (stability).']))
+        ['Movable lagna, free of difficult influences, aspected by lord/helpful planets → change occurs favourably.',
+          'Fixed lagna free of difficult influences → no change (stability).']))
       rules.push('[Ch1 V2] Chyuti (change of place) is judged from the 1st house.')
       break
     }
     case 'home_property': {
       pushScore(sc, scorecard, 'Vriddhi (4th)', vriddhi.verdict === 'good' ? 'good' : vriddhi.verdict === 'bad' ? 'bad' : 'neutral', vriddhi.summary, 3)
       sections.push(bhavaSection('vriddhi', 'Vriddhi — Home, Property, Growth', '🏠', vriddhi,
-        ['4th aspected/occupied by its lord or benefics → property & comforts prosper.',
-          'Malefics spoiling the 4th → obstacles to acquiring home/property.']))
+        ['4th aspected/occupied by its lord or helpful planets → property & comforts prosper.',
+          'Difficult planets spoiling the 4th → obstacles to acquiring home/property.']))
       rules.push('[Ch1 V2] Vriddhi (home/property/growth) is judged from the 4th house.')
       break
     }
@@ -736,10 +736,10 @@ export function runSatpanchasikaPrashna(input: SatpanchasikaInput): Satpanchasik
       const good = pravasa.verdict === 'good' && motionOf(pravasa.sign) === 'movable'
       pushScore(sc, scorecard, 'Pravasa (10th)', pravasa.verdict === 'good' ? 'good' : pravasa.verdict === 'bad' ? 'bad' : 'neutral', pravasa.summary, 2)
       pushScore(sc, scorecard, 'Pravasa sign motion', motionOf(pravasa.sign) === 'movable' ? 'good' : 'neutral',
-        `Movable 10th + malefic aspect favours departure; own lord/benefics keep one home — 10th is ${motionOf(pravasa.sign)} [Ch1 V2]`, 1)
+        `Movable 10th + difficult aspect favours departure; own lord/helpful planets keep one home — 10th is ${motionOf(pravasa.sign)} [Ch1 V2]`, 1)
       sections.push(bhavaSection('pravasa', 'Pravasa — Going Abroad / Leaving', '✈️', pravasa,
-        ['Movable 10th aspected by malefics → departure/travel materialises.',
-          'Own lord or benefics in 10th → one stays put.']))
+        ['Movable 10th aspected by difficult planets → departure/travel materialises.',
+          'Own lord or helpful planets in 10th → one stays put.']))
       if (good) details.push('Combination favours the contemplated journey/emigration.')
       rules.push('[Ch1 V2] Pravasa (departure/going abroad) is judged from the 10th house.')
       break
@@ -838,7 +838,7 @@ export function runSatpanchasikaPrashna(input: SatpanchasikaInput): Satpanchasik
   // ── Moon strength is a universal factor ────────────────────────────────────
   const moonAfflicted = moonIsCombust || ['debilitated', 'enemy', 'great_enemy'].includes(moonDignity)
   pushScore(sc, scorecard, 'Moon strength', moonAfflicted ? 'bad' : moonBright ? 'good' : 'neutral',
-    moonAfflicted ? `Moon ${moonIsCombust ? 'combust' : moonDignity} → weak` : moonBright ? 'Bright, unafflicted Moon → favourable' : 'Moon present, neutral strength', 1)
+    moonAfflicted ? `Moon ${moonIsCombust ? 'combust' : moonDignity} → weak` : moonBright ? 'Bright, free of difficult influences Moon → favourable' : 'Moon present, neutral strength', 1)
 
   // ── Universal timing (every topic gets an appropriate method) ──────────────
   const tr = resolveTiming(topic, grahas, lagnaRashi, moonRashi, navamsaGrahas)
@@ -863,7 +863,7 @@ export function runSatpanchasikaPrashna(input: SatpanchasikaInput): Satpanchasik
 
   // Moon affliction remedy (universal)
   if (moonIsCombust || ['debilitated', 'enemy', 'great_enemy'].includes(moonDignity)) {
-    remedies.push('Moon is afflicted — worship Chandra; offer milk & white flowers on Monday night.')
+    remedies.push('Moon is under pressure — worship Chandra; offer milk & white flowers on Monday night.')
   }
 
   // Topic-aware remedy when the significator is weak (propitiate its lord/karaka)
@@ -937,9 +937,9 @@ function analyzeGeneral(
   const seershodaya = SEERSHODAYA.has(lagnaRashi)
   let actionResult: 'good' | 'bad' | 'neutral'
   let actionText: string
-  if ((beneficInLagna || navamsaLordBenefic) && seershodaya) { actionResult = 'good'; actionText = 'Benefic in lagna / benefic varga + Seershodaya → the contemplated action succeeds [Ch1 V4]' }
-  else if (!beneficInLagna && !navamsaLordBenefic && !seershodaya) { actionResult = 'bad'; actionText = 'No benefic support + non-Seershodaya → the action fails [Ch1 V4]' }
-  else { actionResult = 'neutral'; actionText = 'Mixed benefic/malefic influence → success only with difficulty [Ch1 V4]' }
+  if ((beneficInLagna || navamsaLordBenefic) && seershodaya) { actionResult = 'good'; actionText = 'Benefic in lagna / helpful planet varga + Seershodaya → the contemplated action succeeds [Ch1 V4]' }
+  else if (!beneficInLagna && !navamsaLordBenefic && !seershodaya) { actionResult = 'bad'; actionText = 'No helpful planet support + non-Seershodaya → the action fails [Ch1 V4]' }
+  else { actionResult = 'neutral'; actionText = 'Mixed helpful planet/difficult influence → success only with difficulty [Ch1 V4]' }
   pushScore(sc, scorecard, 'Success of action', actionResult, actionText, 2)
 
   // Benefics in kendra/trikona [Ch4 V1]
@@ -951,34 +951,34 @@ function analyzeGeneral(
     if (cls === 'malefic' && (dusthana.includes(h) || h === 3 || h === 11)) malInBad++   // malefics away from kendra/8th = good placement
     if (cls === 'malefic' && ([1, 4, 7, 10].includes(h) || h === 8)) malInGood++          // malefics in kendra/8th = bad
   }
-  pushScore(sc, scorecard, 'Benefics in kendra/trikona', benInGood > 0 ? 'good' : 'neutral',
-    `${benInGood} benefic(s) in quadrants/trines [Ch4 V1]`, 2)
+  pushScore(sc, scorecard, 'Helpful planets in kendra/trikona', benInGood > 0 ? 'good' : 'neutral',
+    `${benInGood} helpful planet(s) in quadrants/trines [Ch4 V1]`, 2)
   pushScore(sc, scorecard, 'Malefics placement', malInGood === 0 ? 'good' : 'bad',
     malInGood === 0 ? 'No malefic in kendra/8th [Ch4 V1]' : `${malInGood} malefic(s) in kendra/8th → adversity [Ch4 V1]`, 2)
 
   // Gain houses 3/5/11/7 [Ch4 V2]
   const gainHouses = [3, 5, 11, 7]
   const benInGain = grahas.filter(g => isReal(g) && classify(g, grahas, moonBright) === 'benefic' && gainHouses.includes(houseFrom(g.rashi, lagnaRashi)))
-  if (benInGain.length) pushScore(sc, scorecard, 'Benefics in gain houses', 'good', `${benInGain.map(g => name(g.id)).join(', ')} in 3/5/7/11 → gains [Ch4 V2]`, 1)
+  if (benInGain.length) pushScore(sc, scorecard, 'Helpful planets in gain houses', 'good', `${benInGain.map(g => name(g.id)).join(', ')} in 3/5/7/11 → gains [Ch4 V2]`, 1)
 
   sections.push({
     id: 'general', title: 'Omnibus Prosperity & Success (Ch1 V4 · Ch4)', icon: '🌟',
     rows: [
       { label: 'Success of action', value: actionResult === 'good' ? 'Succeeds' : actionResult === 'bad' ? 'Fails' : 'With difficulty', tone: actionResult },
       { label: 'Benefic in lagna', value: beneficInLagna ? 'Yes' : 'No', tone: beneficInLagna ? 'good' : 'neutral' },
-      { label: 'Benefics in kendra/trine', value: String(benInGood), tone: benInGood > 0 ? 'good' : 'neutral' },
+      { label: 'Helpful planets in kendra/trine', value: String(benInGood), tone: benInGood > 0 ? 'good' : 'neutral' },
       { label: 'Malefics in kendra/8th', value: String(malInGood), tone: malInGood === 0 ? 'good' : 'bad' },
-      { label: 'Benefics in gain (3/5/7/11)', value: benInGain.length ? benInGain.map(g => name(g.id)).join(', ') : '—', tone: benInGain.length ? 'good' : 'neutral' },
+      { label: 'Helpful planets in gain (3/5/7/11)', value: benInGain.length ? benInGain.map(g => name(g.id)).join(', ') : '—', tone: benInGain.length ? 'good' : 'neutral' },
     ],
     notes: [
-      'Success of a contemplated action: benefic in lagna or lagna in a benefic\u2019s varga, being a Seershodaya sign [Ch1 V4].',
-      'All-round success: benefics in kendras & trikonas, malefics away from kendras & 8th [Ch4 V1].',
-      'Reverse placement (malefics in kendra/8th, benefics weak) → adversity.',
+      'Success of a contemplated action: helpful planet in lagna or lagna in a helpful planet\u2019s varga, being a Seershodaya sign [Ch1 V4].',
+      'All-round success: helpful planets in kendras (angular houses: 1, 4, 7, 10) & trikonas (trine houses: 1, 5, 9), difficult planets away from kendras & 8th [Ch4 V1].',
+      'Reverse placement (difficult planets in kendra (angular houses: 1, 4, 7, 10)/8th, helpful planets weak) → adversity.',
     ],
   })
-  rules.push('[Ch1 V4 · Ch4 V1-2] Success of action + omnibus prosperity from benefic/malefic placement.')
+  rules.push('[Ch1 V4 · Ch4 V1-2] Success of action + omnibus prosperity from helpful planet/difficult planet placement.')
   void malInBad
-  if (malInGood > 0) remedies.push('Strengthen benefics; propitiate the malefic occupying a quadrant/8th house.')
+  if (malInGood > 0) remedies.push('Strengthen helpful planets; propitiate the difficult planet occupying a quadrant/8th house.')
   void details
 }
 
@@ -1005,7 +1005,7 @@ function analyzeReturn(
   const sunMoon4 = in4.filter(g => g.id === 'Su' || g.id === 'Mo')
   const benefic4 = in4.filter(g => ['Me', 'Ju', 'Ve'].includes(g.id))
   if (sunMoon4.length) pushScore(sc, scorecard, 'Sun/Moon in 4th', 'bad', 'Sun/Moon in 4th → will not arrive [Ch2 V11]', 1)
-  if (benefic4.length) pushScore(sc, scorecard, 'Benefics in 4th', 'good', `${benefic4.map(g => name(g.id)).join(', ')} in 4th → arrives soon [Ch2 V11]`, 1)
+  if (benefic4.length) pushScore(sc, scorecard, 'Helpful planets in 4th', 'good', `${benefic4.map(g => name(g.id)).join(', ')} in 4th → arrives soon [Ch2 V11]`, 1)
 
   // Ch3 V5: Jupiter/Venus in 2nd or 3rd → arrives soon without doubt
   const jupVen23 = grahas.filter(g => (g.id === 'Ju' || g.id === 'Ve') && [2, 3].includes(houseFrom(g.rashi, lagnaRashi)))
@@ -1025,7 +1025,7 @@ function analyzeReturn(
   const malInKendra = grahas.some(g => isReal(g) && classify(g, grahas, moonBright) === 'malefic' && kendraSigns.includes(g.rashi))
   const benInKendra = grahas.filter(g => isReal(g) && classify(g, grahas, moonBright) === 'benefic' && kendraSigns.includes(g.rashi))
   if (moonHouseR === 8 && !malInKendra) pushScore(sc, scorecard, 'Safe return', 'good', 'Moon in 8th + kendras free of malefics → safe return [Ch5 V3]', 1)
-  if (benInKendra.length) pushScore(sc, scorecard, 'Returns with profit', 'good', `${benInKendra.map(g => name(g.id)).join(', ')} in kendras → returns with profit [Ch5 V3]`, 1)
+  if (benInKendra.length) pushScore(sc, scorecard, 'Returns with profit', 'good', `${benInKendra.map(g => name(g.id)).join(', ')} in kendras (angular houses: 1, 4, 7, 10) → returns with profit [Ch5 V3]`, 1)
 
   // Retrograde 7th lord → will not return yet (Ch2 V9, V16)
   const seventhLord = SIGN_LORDS[signAtHouse(7, lagnaRashi)]
@@ -1039,13 +1039,13 @@ function analyzeReturn(
       { label: 'Return houses (5/2/3)', value: inReturn.length ? inReturn.map(g => name(g.id)).join(', ') : '—', tone: inReturn.length ? 'good' : 'neutral' },
       { label: 'Planet in 7th/6th', value: occ67.length ? occ67.map(g => name(g.id)).join(', ') : '—', tone: occ67.length ? 'good' : 'neutral' },
       { label: 'Safety', value: (moonHouseR === 8 && !malInKendra) ? 'Safe (Moon in 8th, clean kendras)' : malInKendra ? 'Malefic in kendra — caution' : 'No specific safety yoga', tone: (moonHouseR === 8 && !malInKendra) ? 'good' : malInKendra ? 'bad' : 'neutral' },
-      { label: 'Profit on return', value: benInKendra.length ? 'Yes (benefics in kendras)' : '—', tone: benInKendra.length ? 'good' : 'neutral' },
+      { label: 'Profit on return', value: benInKendra.length ? 'Yes (helpful planets in kendras)' : '—', tone: benInKendra.length ? 'good' : 'neutral' },
       { label: 'Planets in 4th', value: in4.length ? in4.map(g => name(g.id)).join(', ') : '—', tone: benefic4.length ? 'good' : sunMoon4.length ? 'bad' : 'neutral' },
     ],
     notes: [
       'Return predicted from planets in 5th/2nd/3rd; Jupiter/Venus there → early return [Ch5 V1].',
       'Return also when 7th/6th occupied, Jupiter in a quadrant, or Mercury/Venus in a trine [Ch5 V2].',
-      'Moon in 8th with kendras free of malefics → safe; benefics in kendras → returns with profit [Ch5 V3].',
+      'Moon in 8th with kendras (angular houses: 1, 4, 7, 10) free of difficult planets → safe; helpful planets in kendras → returns with profit [Ch5 V3].',
       'Sun/Moon in 4th → will not arrive; Mercury/Jupiter/Venus in 4th → arrives soon [Ch2 V11].',
     ],
   })
@@ -1075,7 +1075,7 @@ function analyzeLostObject(
     (seershodayaLagna && beneficAspectsLagna) ||
     benIn11.length > 0
   pushScore(sc, scorecard, 'Recovery yoga', quickRecovery ? 'good' : 'bad',
-    quickRecovery ? 'Full Moon/benefic in lagna, Seershodaya lagna aspected by benefics, or benefic in 11th → quick recovery [Ch1 V5 · Ch6 V3]'
+    quickRecovery ? 'Full Moon/helpful planet in lagna, Seershodaya lagna aspected by helpful planets, or helpful planet in 11th → quick recovery [Ch1 V5 · Ch6 V3]'
       : 'Recovery combination absent → chances remote [Ch6 V3]', 3)
 
   // Ch6 V1: fixed sign rising / fixed navamsa / vargottama → stolen by relative, hidden on premises
@@ -1111,7 +1111,7 @@ function analyzeLostObject(
       { label: 'Benefic in 11th', value: benIn11.length ? benIn11.map(g => name(g.id)).join(', ') : '—', tone: benIn11.length ? 'good' : 'neutral' },
     ],
     notes: [
-      'Quick recovery: full Moon or benefic in lagna aspected by Jupiter/Venus, Seershodaya lagna aspected by benefics, or a strong benefic in the 11th [Ch1 V5 · Ch6 V3].',
+      'Quick recovery: full Moon or helpful planet in lagna aspected by Jupiter/Venus, Seershodaya lagna aspected by helpful planets, or a strong helpful planet in the 11th [Ch1 V5 · Ch6 V3].',
       `Article colour/identification: ${colour}.`,
       'Fixed sign/navamsa or vargottama → taken by a relative and hidden on the premises [Ch6 V1].',
       `Rising drekkhana ${drekkana} → hidden at: ${hidingByDrekkana} [Ch6 V2].`,
@@ -1164,7 +1164,7 @@ function analyzeArrival(
   const sunMoon4 = in4.filter(g => g.id === 'Su' || g.id === 'Mo')
   const ben4 = in4.filter(g => ['Me', 'Ju', 'Ve'].includes(g.id))
   if (sunMoon4.length) pushScore(sc, scorecard, 'Sun/Moon in 4th', 'bad', 'Sun & Moon in 4th → will not arrive [Ch2 V11]', 1)
-  if (ben4.length) pushScore(sc, scorecard, 'Benefics in 4th', 'good', `${ben4.map(g => name(g.id)).join(', ')} in 4th → arrives very soon [Ch2 V11]`, 1)
+  if (ben4.length) pushScore(sc, scorecard, 'Helpful planets in 4th', 'good', `${ben4.map(g => name(g.id)).join(', ')} in 4th → arrives very soon [Ch2 V11]`, 1)
 
   // Ch2 V12: Aries/Sag/Leo/Taurus rising or in 4th → enemy/person departs at once
   if (V12_DEPART_SIGNS.has(lagnaRashi) || V12_DEPART_SIGNS.has(sign4)) {
@@ -1178,7 +1178,7 @@ function analyzeArrival(
   // Ch2 V13: fixed rising + Sa/Ju → departed but stopped; movable rising + Su/Ju → will surely come
   const lagnaOcc = occupantsOf(lagnaRashi, grahas)
   if (motion === 'fixed' && lagnaOcc.some(g => g.id === 'Sa' || g.id === 'Ju')) extraNotes.push('Fixed rising + Saturn/Jupiter → has departed but halted en route [Ch2 V13].')
-  if (motion === 'movable' && lagnaOcc.some(g => g.id === 'Su' || g.id === 'Ju')) { pushScore(sc, scorecard, 'Sure arrival', 'good', 'Movable rising + Sun/Jupiter → will surely come [Ch2 V13]', 1) }
+  if (motion === 'movable' && lagnaOcc.some(g => g.id === 'Su' || g.id === 'Ju')) { pushScore(sc, scorecard, 'Sure arrival', 'good', 'Movable rising + Sun/Jupiter → the person is likely to come [Ch2 V13]', 1) }
 
   sections.push({
     id: 'arrival', title: 'Arrival / Departure (Ch2)', icon: '🚶',
@@ -1210,8 +1210,8 @@ function analyzeVictory(
   // Ch3 V1: benefics in 10/1/7 → success; Ma/Sa in 9th → defeat; Me/Ju/Ve in 9th → success
   const succHouses = [10, 1, 7]
   const benSucc = grahas.filter(g => isReal(g) && classify(g, grahas, moonBright) === 'benefic' && succHouses.includes(houseFrom(g.rashi, lagnaRashi)))
-  if (benSucc.length) pushScore(sc, scorecard, 'Benefics in 10/1/7', 'good', `${benSucc.map(g => name(g.id)).join(', ')} in 10th/1st/7th → success [Ch3 V1]`, 3)
-  else pushScore(sc, scorecard, 'Benefics in 10/1/7', 'neutral', 'No benefic supporting the querist in 10th/1st/7th [Ch3 V1]', 1)
+  if (benSucc.length) pushScore(sc, scorecard, 'Helpful planets in 10/1/7', 'good', `${benSucc.map(g => name(g.id)).join(', ')} in 10th/1st/7th → success [Ch3 V1]`, 3)
+  else pushScore(sc, scorecard, 'Helpful planets in 10/1/7', 'neutral', 'No helpful planet supporting the querist in 10th/1st/7th [Ch3 V1]', 1)
 
   const h9 = signAtHouse(9, lagnaRashi)
   const in9 = occupantsOf(h9, grahas)
@@ -1238,7 +1238,7 @@ function analyzeVictory(
   // Benefics in Pauras & malefics in Yayis favour the querist/defender; reverse favours opponent
   const defenderScore = paurasBen + yayisMal
   const challengerScore = yayisBen + paurasMal
-  if (defenderScore > challengerScore) pushScore(sc, scorecard, 'Pauras vs Yayis', 'good', `Defender favoured (${defenderScore} vs ${challengerScore}) — benefics in Pauras / malefics in Yayis [Ch3 V2]`, 2)
+  if (defenderScore > challengerScore) pushScore(sc, scorecard, 'Pauras vs Yayis', 'good', `Defender favoured (${defenderScore} vs ${challengerScore}) — helpful planets in Pauras / difficult planets in Yayis [Ch3 V2]`, 2)
   else if (challengerScore > defenderScore) pushScore(sc, scorecard, 'Pauras vs Yayis', 'bad', `Challenger/opponent favoured (${challengerScore} vs ${defenderScore}) [Ch3 V2]`, 2)
   else pushScore(sc, scorecard, 'Pauras vs Yayis', 'neutral', `Evenly balanced (${defenderScore} vs ${challengerScore}) → undecided [Ch3 V2]`, 1)
 
@@ -1247,18 +1247,18 @@ function analyzeVictory(
     rows: [
       { label: 'Querist support (10/1/7)', value: benSucc.length ? benSucc.map(g => name(g.id)).join(', ') : '—', tone: benSucc.length ? 'good' : 'neutral' },
       { label: '9th house', value: in9.length ? in9.map(g => name(g.id)).join(', ') : '—', tone: benefic9.length ? 'good' : malefic9.length ? 'bad' : 'neutral' },
-      { label: 'Opponent (4th malefic)', value: malefic4.length ? `${malefic4.map(g => name(g.id)).join(', ')} → weakened` : '—', tone: malefic4.length ? 'good' : 'neutral' },
+      { label: 'Opponent (4th difficult planet)', value: malefic4.length ? `${malefic4.map(g => name(g.id)).join(', ')} → weakened` : '—', tone: malefic4.length ? 'good' : 'neutral' },
       { label: 'Pauras (self) score', value: `${defenderScore}`, tone: defenderScore > challengerScore ? 'good' : 'neutral' },
       { label: 'Yayis (opponent) score', value: `${challengerScore}`, tone: challengerScore > defenderScore ? 'bad' : 'neutral' },
     ],
     notes: [
-      'Benefics in 10th/1st/7th → success of the querist [Ch3 V1].',
+      'Helpful planets in 10th/1st/7th → success of the querist [Ch3 V1].',
       'Mars/Saturn in 9th → defeat; Mercury/Jupiter/Venus in 9th → success [Ch3 V1].',
-      'Pauras (defender): houses 3–8; Yayis (challenger): houses 9–2. Benefics in Pauras & malefics in Yayis favour you [Ch3 V2].',
+      'Pauras (defender): houses 3–8; Yayis (challenger): houses 9–2. Helpful planets in Pauras & difficult planets in Yayis favour you [Ch3 V2].',
       'Malefic in 4th → opponent returns defeated; in 5th/6th → turns back midway [Ch2 V3].',
     ],
   })
-  rules.push('[Ch3 V1-2 · Ch2 V3] Victory/defeat by benefic support houses, 9th occupant, and Pauras/Yayis tally.')
+  rules.push('[Ch3 V1-2 · Ch2 V3] Victory/defeat by helpful planet support houses, 9th occupant, and Pauras/Yayis tally.')
 }
 
 /** Reconciliation / negotiation — Ch3 V3-4. */
@@ -1277,25 +1277,25 @@ function analyzeReconciliation(
 
   // Benefics in kendras aspected by benefics → settlement (Ch3 V4)
   const benInKendra = grahas.filter(g => isReal(g) && classify(g, grahas, moonBright) === 'benefic' && [1, 4, 7, 10].includes(houseFrom(g.rashi, lagnaRashi)))
-  if (benInKendra.length) pushScore(sc, scorecard, 'Benefics in kendras', 'good', `${benInKendra.map(g => name(g.id)).join(', ')} in kendras → settlement [Ch3 V4]`, 2)
+  if (benInKendra.length) pushScore(sc, scorecard, 'Helpful planets in kendras', 'good', `${benInKendra.map(g => name(g.id)).join(', ')} in kendras (angular houses: 1, 4, 7, 10) → settlement [Ch3 V4]`, 2)
 
   // Malefics in dual signs → conflict continues
   const malDual = grahas.filter(g => isReal(g) && classify(g, grahas, moonBright) === 'malefic' && motionOf(g.rashi) === 'dual')
-  if (malDual.length) { pushScore(sc, scorecard, 'Malefics in dual signs', 'bad', `${malDual.map(g => name(g.id)).join(', ')} in dual signs → conflict/negotiation fails [Ch3 V3]`, 1) }
+  if (malDual.length) { pushScore(sc, scorecard, 'Difficult planets in dual signs', 'bad', `${malDual.map(g => name(g.id)).join(', ')} in dual signs → conflict/negotiation fails [Ch3 V3]`, 1) }
 
   sections.push({
     id: 'reconciliation', title: 'Reconciliation / Negotiation (Ch3)', icon: '🤝',
     rows: [
       { label: 'Human sign rising', value: humanRising ? 'Yes' : 'No', tone: humanRising ? 'good' : 'neutral' },
-      { label: 'Benefics in lagna', value: benInLagna.length ? benInLagna.map(g => name(g.id)).join(', ') : '—', tone: benInLagna.length ? 'good' : 'neutral' },
-      { label: 'Benefics in kendras', value: benInKendra.length ? benInKendra.map(g => name(g.id)).join(', ') : '—', tone: benInKendra.length ? 'good' : 'neutral' },
+      { label: 'Helpful planets in lagna', value: benInLagna.length ? benInLagna.map(g => name(g.id)).join(', ') : '—', tone: benInLagna.length ? 'good' : 'neutral' },
+      { label: 'Helpful planets in kendras', value: benInKendra.length ? benInKendra.map(g => name(g.id)).join(', ') : '—', tone: benInKendra.length ? 'good' : 'neutral' },
     ],
     notes: [
-      'Human signs rising + benefics occupying → early reconciliation [Ch3 V3].',
-      'Benefics in kendras aspected by benefics → settlement; malefics → tension continues [Ch3 V4].',
+      'Human signs rising + helpful planets occupying → early reconciliation [Ch3 V3].',
+      'Helpful planets in kendras (angular houses: 1, 4, 7, 10) aspected by helpful planets → settlement; difficult planets → tension continues [Ch3 V4].',
     ],
   })
-  rules.push('[Ch3 V3-4] Reconciliation by human-sign lagna & benefics in kendras.')
+  rules.push('[Ch3 V3-4] Reconciliation by human-sign lagna & helpful planets in kendras (angular houses: 1, 4, 7, 10).')
   void details
 }
 
@@ -1314,7 +1314,7 @@ function analyzeWealthPosition(
   if (benPos.length) pushScore(sc, scorecard, 'Position (10/7)', 'good', `${benPos.map(g => name(g.id)).join(', ')} in 10th/7th → position/place [Ch4 V3]`, 2)
   if (benFame.length) pushScore(sc, scorecard, 'Fame & wealth (2/5/1)', 'good', `${benFame.map(g => name(g.id)).join(', ')} in 2nd/5th/lagna → fame & wealth [Ch4 V3]`, 2)
   const malUnfav = grahas.filter(g => isReal(g) && classify(g, grahas, moonBright) === 'malefic' && [11, 12].includes(houseFrom(g.rashi, lagnaRashi)))
-  if (malUnfav.length) pushScore(sc, scorecard, 'Malefics in 12/11', 'bad', `${malUnfav.map(g => name(g.id)).join(', ')} in 12th/11th → unfavourable [Ch4 V3]`, 1)
+  if (malUnfav.length) pushScore(sc, scorecard, 'Difficult planets in 12/11', 'bad', `${malUnfav.map(g => name(g.id)).join(', ')} in 12th/11th → unfavourable [Ch4 V3]`, 1)
 
   // Gain houses 3/5/11/7 [Ch4 V2]
   const gain = grahas.filter(g => isReal(g) && classify(g, grahas, moonBright) === 'benefic' && [3, 5, 11, 7].includes(houseFrom(g.rashi, lagnaRashi)))
@@ -1328,11 +1328,11 @@ function analyzeWealthPosition(
       { label: 'Gains (3/5/7/11)', value: gain.length ? gain.map(g => name(g.id)).join(', ') : '—', tone: gain.length ? 'good' : 'neutral' },
     ],
     notes: [
-      'Benefics in 10th/7th → position; in 2nd/5th/lagna → fame & wealth [Ch4 V3].',
-      'Benefics in 3rd/5th/7th/11th → gainful [Ch4 V2].',
+      'Helpful planets in 10th/7th → position; in 2nd/5th/lagna → fame & wealth [Ch4 V3].',
+      'Helpful planets in 3rd/5th/7th/11th → gainful [Ch4 V2].',
     ],
   })
-  rules.push('[Ch4 V2-3] Wealth/position/fame by benefic house placement.')
+  rules.push('[Ch4 V2-3] Wealth/position/fame by helpful house placement.')
   void details
 }
 
@@ -1348,13 +1348,13 @@ function analyzeIllness(
   const benRec = grahas.filter(g => isReal(g) && classify(g, grahas, moonBright) === 'benefic' && recHouses.includes(houseFrom(g.rashi, lagnaRashi)))
   const moonHouse = houseFrom(moonRashi, lagnaRashi)
   const moonGoodHouse = [3, 6, 10, 11].includes(moonHouse)
-  if (benRec.length) pushScore(sc, scorecard, 'Benefics in 1/7/8/5', 'good', `${benRec.map(g => name(g.id)).join(', ')} → favour recovery [Ch4 V5]`, 2)
-  else pushScore(sc, scorecard, 'Benefics in 1/7/8/5', 'neutral', 'No benefic in recovery houses [Ch4 V5]', 1)
+  if (benRec.length) pushScore(sc, scorecard, 'Helpful planets in 1/7/8/5', 'good', `${benRec.map(g => name(g.id)).join(', ')} → favour recovery [Ch4 V5]`, 2)
+  else pushScore(sc, scorecard, 'Helpful planets in 1/7/8/5', 'neutral', 'No helpful planet in recovery houses [Ch4 V5]', 1)
   pushScore(sc, scorecard, 'Moon house', moonGoodHouse ? 'good' : 'neutral', `Moon in ${moonHouse}th${moonGoodHouse ? ' (3/6/10/11 → recovery)' : ''} [Ch4 V5]`, 1)
 
   // Malefics in 1/8 → aggravation
   const mal18 = grahas.filter(g => isReal(g) && classify(g, grahas, moonBright) === 'malefic' && [1, 8].includes(houseFrom(g.rashi, lagnaRashi)))
-  if (mal18.length) { pushScore(sc, scorecard, 'Malefics in 1/8', 'bad', `${mal18.map(g => name(g.id)).join(', ')} in 1st/8th → aggravation [Ch4 V5 rev.]`, 2); remedies.push('Malefic afflicts the sick — perform propitiation of the afflicting planet.') }
+  if (mal18.length) { pushScore(sc, scorecard, 'Difficult planets in 1/8', 'bad', `${mal18.map(g => name(g.id)).join(', ')} in 1st/8th → aggravation [Ch4 V5 rev.]`, 2); remedies.push('Malefic puts pressure on the sick — perform propitiation of the pressuring planet.') }
 
   sections.push({
     id: 'illness', title: 'Recovery from Illness (Ch4)', icon: '🏥',
@@ -1364,11 +1364,11 @@ function analyzeIllness(
       { label: 'Malefics (1/8)', value: mal18.length ? mal18.map(g => name(g.id)).join(', ') : '—', tone: mal18.length ? 'bad' : 'neutral' },
     ],
     notes: [
-      'Benefics in 1st/7th/8th/5th (aspected by benefics) + Moon in 3rd/6th/10th/11th → recovery [Ch4 V5].',
-      'Reverse placement (malefics in 1st/8th) → the illness worsens.',
+      'Helpful planets in 1st/7th/8th/5th (aspected by helpful planets) + Moon in 3rd/6th/10th/11th → recovery [Ch4 V5].',
+      'Reverse placement (difficult planets in 1st/8th) → the illness worsens.',
     ],
   })
-  rules.push('[Ch4 V5] Recovery from illness by benefics in 1/7/8/5 and Moon house.')
+  rules.push('[Ch4 V5] Recovery from illness by helpful planets in 1/7/8/5 and Moon house.')
   void details
 }
 
@@ -1505,7 +1505,7 @@ function analyzeMarriage(
 
   if (moonGoodHouse && moonAspected) pushScore(sc, scorecard, 'Moon yoga', 'good', `Moon in ${moonHouse}th aspected by Jupiter/Sun/Mercury → marriage succeeds [Ch7 V2]`, 3)
   else pushScore(sc, scorecard, 'Moon yoga', moonGoodHouse ? 'neutral' : 'bad', `Moon in ${moonHouse}th${moonAspected ? ', aspected by benefic' : ', not well aspected'} [Ch7 V2]`, 2)
-  if (benKendraTrikona.length) pushScore(sc, scorecard, 'Benefics in kendra/trikona', 'good', `${benKendraTrikona.map(g => name(g.id)).join(', ')} → supports marriage [Ch7 V2]`, 2)
+  if (benKendraTrikona.length) pushScore(sc, scorecard, 'Helpful planets in kendra/trikona', 'good', `${benKendraTrikona.map(g => name(g.id)).join(', ')} → supports marriage [Ch7 V2]`, 2)
 
   // Ch7 V1: Saturn parity — gain of bride (odd) / groom (even)
   const saturn = grahas.find(g => g.id === 'Sa')
@@ -1517,15 +1517,15 @@ function analyzeMarriage(
     rows: [
       { label: 'Moon house', value: `${moonHouse}th`, tone: moonGoodHouse ? 'good' : 'neutral' },
       { label: 'Moon aspected by Ju/Su/Me', value: moonAspected ? 'Yes' : 'No', tone: moonAspected ? 'good' : 'neutral' },
-      { label: 'Benefics in kendra/trine', value: benKendraTrikona.length ? benKendraTrikona.map(g => name(g.id)).join(', ') : '—', tone: benKendraTrikona.length ? 'good' : 'neutral' },
+      { label: 'Helpful planets in kendra/trine', value: benKendraTrikona.length ? benKendraTrikona.map(g => name(g.id)).join(', ') : '—', tone: benKendraTrikona.length ? 'good' : 'neutral' },
       { label: 'Saturn parity', value: satNote },
     ],
     notes: [
-      'Marriage succeeds: Moon in 3rd/5th/7th/11th/6th aspected by Jupiter/Sun/Mercury; benefics in kendras/trikonas [Ch7 V2].',
+      'Marriage succeeds: Moon in 3rd/5th/7th/11th/6th aspected by Jupiter/Sun/Mercury; helpful planets in kendras (angular houses: 1, 4, 7, 10)/trikonas (trine houses: 1, 5, 9) [Ch7 V2].',
       'Saturn in odd sign → gain of bride; even sign → gain of groom [Ch7 V1].',
     ],
   })
-  rules.push('[Ch7 V1-2] Marriage prospects by Moon yoga & benefic placement.')
+  rules.push('[Ch7 V1-2] Marriage prospects by Moon yoga & helpful planet placement.')
   void details
 }
 
@@ -1566,10 +1566,10 @@ function analyzeRain(
     ],
     notes: [
       'Venus & Saturn in 7th from Moon/Sun, or in 2nd/3rd/4th/8th from lagna → rain [Ch7 V3].',
-      'Benefics in watery signs in 3rd/2nd/quadrants (white half), or Moon in lagna in a watery sign → rain [Ch7 V4].',
+      'Helpful planets in watery signs in 3rd/2nd/quadrants (white half), or Moon in lagna in a watery sign → rain [Ch7 V4].',
     ],
   })
-  rules.push('[Ch7 V3-4] Rainfall forecast by Venus/Saturn & watery-sign benefics.')
+  rules.push('[Ch7 V3-4] Rainfall forecast by Venus/Saturn & watery-sign helpful planets.')
   void sunRashi; void details
 }
 
@@ -1599,7 +1599,7 @@ function analyzeQuerySubject(
     ],
     notes: [
       'The strongest planet\'s house identifies the query subject: 1=self, 3=brother, 4=mother/sister, 5=son, 6=enemy, 7=wife, 9=dharmic person, 10=preceptor/father [Ch7 V7-8].',
-      'When multiple planets occupy the houses, the strongest decides; the karaka is a corollary.',
+      'When multiple planets occupy the houses, the strongest decides; the karaka (natural indicator) is a corollary.',
     ],
   })
   rules.push('[Ch7 V7-8] Query subject from strongest planet\'s house.')
@@ -1626,7 +1626,7 @@ function analyzePersonAbroad(
   const benAspect8 = grahas.some(g => classify(g, grahas, moonBright) === 'benefic' && aspectsSign(g, h8))
 
   let state = 'Safe / no adverse indication'
-  if (satIn8 && !benAspect8) { state = 'Grave danger (8th affliction) [Ch7 V11]'; pushScore(sc, scorecard, 'Person abroad', 'bad', state, 3) }
+  if (satIn8 && !benAspect8) { state = 'Needs extra care: Saturn in the 8th house with no helpful planet [Ch7 V11]'; pushScore(sc, scorecard, 'Person abroad', 'bad', state, 3) }
   else if (satIn9 && malWithSat9 && !benAspect9) { state = 'Ill-health abroad [Ch7 V11]'; pushScore(sc, scorecard, 'Person abroad', 'bad', state, 2) }
   else { pushScore(sc, scorecard, 'Person abroad', 'good', state, 2) }
 
@@ -1634,24 +1634,24 @@ function analyzePersonAbroad(
   const prishto = PRISHTODAYA.has(lagnaRashi)
   const malAspectLagna = grahas.some(g => classify(g, grahas, moonBright) === 'malefic' && aspectsSign(g, lagnaRashi))
   const notes: string[] = []
-  if (prishto && malAspectLagna) { notes.push('Prishtodaya lagna + malefic aspect → person punished/restrained [Ch5 V4].'); pushScore(sc, scorecard, 'Restraint', 'bad', 'Prishtodaya lagna + malefic aspect → punished/restrained [Ch5 V4]', 1) }
+  if (prishto && malAspectLagna) { notes.push('Prishtodaya lagna + difficult aspect → person punished/restrained [Ch5 V4].'); pushScore(sc, scorecard, 'Restraint', 'bad', 'Prishtodaya lagna + difficult aspect → punished/restrained [Ch5 V4]', 1) }
   const h3 = signAtHouse(3, lagnaRashi)
   const mal3 = occupantsOf(h3, grahas).filter(g => classify(g, grahas, moonBright) === 'malefic')
   const ben3 = grahas.some(g => classify(g, grahas, moonBright) === 'benefic' && (aspectsSign(g, h3) || occupantsOf(h3, grahas).some(o => o.id === g.id)))
-  if (mal3.length && !ben3) { notes.push('Malefics in 3rd unaspected by benefics → moved to another place/country [Ch5 V4].'); pushScore(sc, scorecard, 'Relocation', 'neutral', 'Malefics in 3rd (no benefic) → moved to another place [Ch5 V4]', 1) }
+  if (mal3.length && !ben3) { notes.push('Difficult planets in 3rd unaspected by helpful planets → moved to another place/country [Ch5 V4].'); pushScore(sc, scorecard, 'Relocation', 'neutral', 'Difficult planets in 3rd (no helpful planet) → moved to another place [Ch5 V4]', 1) }
   const malKendra = grahas.filter(g => classify(g, grahas, moonBright) === 'malefic' && [1, 4, 7, 10].includes(houseFrom(g.rashi, lagnaRashi)))
-  if (malKendra.length) { notes.push(`Malefics in quadrants (${malKendra.map(g => name(g.id)).join(', ')}) → robbed/cheated [Ch5 V4].`); pushScore(sc, scorecard, 'Robbery/cheating risk', 'bad', `Malefics in quadrants (${malKendra.map(g => name(g.id)).join(', ')}) → robbed/cheated [Ch5 V4]`, 1) }
+  if (malKendra.length) { notes.push(`Difficult planets in quadrants (${malKendra.map(g => name(g.id)).join(', ')}) → robbed/cheated [Ch5 V4].`); pushScore(sc, scorecard, 'Robbery/cheating risk', 'bad', `Difficult planets in quadrants (${malKendra.map(g => name(g.id)).join(', ')}) → robbed/cheated [Ch5 V4]`, 1) }
 
   // Ch7 V12: Sun with benefic aspected by benefics in 8th → father gone abroad
   const sunIn8 = sun && sun.rashi === h8
-  if (sunIn8) notes.push('Sun in 8th with/aspected by benefics → father has gone to another place [Ch7 V12].')
+  if (sunIn8) notes.push('Sun in 8th with/aspected by helpful planets → father has gone to another place [Ch7 V12].')
 
   sections.push({
     id: 'person_abroad', title: 'Person Abroad (Ch5-7)', icon: '🌍',
     rows: [
       { label: 'State', value: state, tone: state.startsWith('Safe') ? 'good' : 'bad' },
       { label: 'Saturn in 8th/9th', value: satIn8 ? '8th' : satIn9 ? '9th' : 'No' },
-      { label: 'Benefic aspect (8/9)', value: (benAspect8 || benAspect9) ? 'Yes (protective)' : 'No', tone: (benAspect8 || benAspect9) ? 'good' : 'neutral' },
+      { label: 'Helpful aspect (8/9)', value: (benAspect8 || benAspect9) ? 'Yes (protective)' : 'No', tone: (benAspect8 || benAspect9) ? 'good' : 'neutral' },
     ],
     notes: notes.length ? notes : ['No adverse combination for the person abroad [Ch7 V11].'],
   })
@@ -1689,7 +1689,7 @@ function analyzeBenefitWoman(
     ],
     notes: [
       'Moon in 2nd/7th/10th/11th/6th/3rd aspected by Jupiter → benefit originates from a woman [Ch4 V4].',
-      'Malefics in lagna/3rd/9th/5th/8th → destroy effort & money, cause fear [Ch4 V4].',
+      'Difficult planets in lagna/3rd/9th/5th/8th → can waste effort and money and create worry [Ch4 V4].',
     ],
   })
   rules.push('[Ch4 V4] Benefit from a woman by Moon aspected by Jupiter.')

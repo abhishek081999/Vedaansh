@@ -135,7 +135,7 @@ const PAIR: Record<number, { self: string; teaches: string; friction: string | n
   },
   3: {
     self: 'The mind stays young. The 2nd lord is the Moon, so speech runs before the consequence is seen, and a marriage can be decided because someone was liked in the moment. The 10th is Pisces, a debilitated seat for its lord, so career confusion comes naturally.',
-    teaches: 'The spouse is the teacher. When the 7th holds benefics, the guidance is at home. After marriage the partner is the one who supports a new venture.',
+    teaches: 'The spouse is the teacher. When the 7th holds helpful planets, the guidance is at home. After marriage the partner is the one who supports a new venture.',
     friction: null,
   },
   4: {
@@ -174,7 +174,7 @@ const PAIR: Record<number, { self: string; teaches: string; friction: string | n
     friction: 'Some marital friction is built in. The lagna lord is Saturn and the 7th lord is the Moon. Discipline and emotion complete each other, and they also miss each other.',
   },
   11: {
-    self: 'Social, commercial, aimed at the crowd. When Saturn is afflicted, ethics slip. Public and online conduct has to stay clean, because this lagna’s results follow its rules.',
+    self: 'Social, commercial, aimed at the crowd. When Saturn is under pressure, ethics slip. Public and online conduct has to stay clean, because this lagna’s results follow its rules.',
     teaches: 'The Sun of the 7th (Leo) is what keeps conduct ethical. A failed ethic can show up as illness that forces a change of life, often with the spouse as the guide. Rahu works well in this lagna and can balance Saturn’s dryness, and the Sun still has to be strong. For Leo, Saturn as 7th lord sits in its own Aquarius. Aquarius does not get that free hold: the partner’s Sun is the support, and earnings alone do not replace it.',
     friction: 'Leo and Aquarius are an extreme opposition. The Aquarius side can drift into duplicity when Saturn is weak. The Leo side can become rigid about being right. Placements override the sign story.',
   },
@@ -340,7 +340,7 @@ function pushScorpio(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) 
     notes.push(note(
       'scorpio-research',
       'Saturn or Ketu in Scorpio',
-      `${names(research)} in Scorpio supports occult and research sense. Malefics are the planets that work in this sign.`,
+      `${names(research)} in Scorpio supports occult and research sense. Difficult planets are the planets that work in this sign.`,
       'supportive',
     ))
   }
@@ -364,7 +364,7 @@ function pushPassion(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) 
       'Passionate attachment',
       asc === 8
         ? `Scorpio lagna loves with fixation.${obsessed ? ' A strong Moon with a benefic Venus intensifies it.' : ''} The bond becomes the whole room.`
-        : 'A strong Moon with a benefic Venus loves with fixation. The bond becomes the whole room.',
+        : 'A strong Moon with a helpful planet Venus loves with fixation. The bond becomes the whole room.',
       'mixed',
     ))
   }
@@ -397,7 +397,7 @@ function pushDebt(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) {
     notes.push(note(
       'mercury-eighth',
       'Mercury on the 8th',
-      'Mercury on the 8th ties a debt to the maternal uncle’s family, including a rite left unfinished after a death.',
+      'Mercury on the 8th ties a debt to the maternal uncle’s family, including a rite left unfinished after a loss in the family.',
       'caution',
     ))
   }
@@ -421,7 +421,7 @@ function pushAffairFlag(chart: ChartOutput, asc: number, notes: MarriedLifeNote[
     notes.push(note(
       'virgo-pisces-pressure',
       'Virgo and Pisces both under pressure',
-      'Both ends of this marriage axis are afflicted. That can show interest outside the marriage, but it is a flag to look at more closely, not a conclusion. The rest of the chart, including the Navamsha, decides it.',
+      'Both ends of this marriage axis are under pressure. That can show interest outside the marriage, but it is a flag to look at more closely, not a conclusion. The rest of the chart, including the Navamsha, decides it.',
       'caution',
     ))
   }

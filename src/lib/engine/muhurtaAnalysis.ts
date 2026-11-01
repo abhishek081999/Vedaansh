@@ -130,11 +130,11 @@ export function analyzeMuhurta(
   const taraScores: Record<number, { score: number; name: string; favorable: boolean }> = {
     1: { score: 0, name: 'Janma', favorable: false },
     2: { score: 20, name: 'Sampat (Wealth)', favorable: true },
-    3: { score: -20, name: 'Vipat (Danger)', favorable: false },
+    3: { score: -20, name: 'Vipat (Caution)', favorable: false },
     4: { score: 15, name: 'Kshem (Safety)', favorable: true },
     5: { score: -15, name: 'Pratyari (Obstacles)', favorable: false },
     6: { score: 20, name: 'Sadhaka (Success)', favorable: true },
-    7: { score: -25, name: 'Vadha (Destruction)', favorable: false },
+    7: { score: -25, name: 'Vadha (Major obstacles)', favorable: false },
     8: { score: 10, name: 'Mitra (Friend)', favorable: true },
     9: { score: 15, name: 'Ati-Mitra (Best Friend)', favorable: true },
   }

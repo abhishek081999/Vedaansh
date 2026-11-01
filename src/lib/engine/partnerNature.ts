@@ -57,11 +57,11 @@ const FAMILY_BY_LORD_HOUSE: Record<number, { title: string; detail: string; tone
   9: { title: 'Family of the partner — fortune and father', detail: 'The 7th lord in the 9th points to a partner linked to fortune, father-line, or a guiding house — often a lift in standing after marriage when the lord is sound.', tone: 'supportive' },
   10: { title: 'Family of the partner — career house', detail: 'The 7th lord in the 10th points to a partner whose family or self is known through work and public role. Career support after marriage is the fruit when strong.', tone: 'mixed' },
   11: { title: 'Family of the partner — gains and elders', detail: 'The 7th lord in the 11th points to a partner from a networked or elder-sibling house — gains and friends enter with the marriage.', tone: 'supportive' },
-  12: { title: 'Family of the partner — distant or foreign', detail: 'The 7th lord in the 12th points to a partner whose roots feel distant, foreign, or apart from the birth place — or a bond that pulls the native away from home.', tone: 'mixed' },
+  12: { title: 'Family of the partner — distant or foreign', detail: 'The 7th lord in the 12th points to a partner whose roots feel distant, foreign, or apart from the birth place — or a bond that pulls the person away from home.', tone: 'mixed' },
 }
 
 const DIRECTION_BY_LORD_HOUSE: Record<number, string> = {
-  1: 'The partner’s life direction is close to the native’s own identity — marriage reshapes the self more than it relocates the person.',
+  1: 'The partner’s life direction is close to the person’s own identity — marriage reshapes the self more than it relocates the person.',
   2: 'The partnership pulls toward family seat, speech, and local wealth rather than long exile.',
   3: 'Short moves, skills, and the sibling or neighbour field colour where the couple settles.',
   4: 'Home, mother-line, and a settled base are the direction the marriage seeks.',
@@ -236,7 +236,7 @@ export function analyzePartnerNature(chart: ChartOutput | null | undefined): Par
 
   const portrait: MarriedLifeNote[] = [note(
     'partner-seventh',
-    'The 7th is the native and the partner',
+    'The 7th is the person and the partner',
     `The 7th is ${RASHI_NAMES[seventh]}. ${sitting} ${lordLine} This house is how this person behaves inside a marriage, and it is the ${who} the chart draws. The other chart confirms whose behavior is the one to work with.`,
     'mixed',
   )]

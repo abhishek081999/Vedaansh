@@ -219,7 +219,7 @@ function dashaNote(
   const lordName = GRAHA_NAMES[lord as GrahaId] ?? lord
   const roleWord = role === 'current' ? 'Current' : 'Upcoming'
   if (virupas == null || !scoredId || band === 'unscored') {
-    return `${roleWord} ${lordName} mahadasha has no direct Sthana score (nodes like Rahu/Ketu need a dispositor on the chart).`
+    return `${roleWord} ${lordName} mahadasha has no direct Sthana score (nodes like Rahu/Ketu need a dispositor (ruler of the sign it sits in) on the chart).`
   }
   const via = viaDispositor ? ` via ${GRAHA_NAMES[scoredId]} dispositor` : ''
   if (band === 'exceptional' || band === 'very_high') {
@@ -389,7 +389,7 @@ export function analyzeSthanaBala(
   const applications: string[] = [
     'Use Sthana of the current or upcoming mahadasha lord for job, house, and marriage timing cues.',
     'Sthana is natal and lifelong; Kala and dasha decide when it activates.',
-    'Rahu/Ketu have no native Sthana — score their sign dispositor.',
+    'Rahu/Ketu have no native Sthana — score their sign dispositor (ruler of the sign it sits in).',
     'Predictions are capacity cues from Sthana alone — confirm with house ownership, yogas, and full Shadbala.',
   ]
   if (dasha.next) applications.unshift(dasha.next.note)
@@ -579,7 +579,7 @@ function buildPredictions(input: {
       topic: 'career',
       title: 'Career / selection timing',
       tone: 'mixed',
-      text: `${timingLordLabel(timing)} mahadasha has no scored Sthana yet (nodes need a dispositor on the chart). Career timing from Sthana is incomplete.`,
+      text: `${timingLordLabel(timing)} mahadasha has no scored Sthana yet (nodes need a dispositor (ruler of the sign it sits in) on the chart). Career timing from Sthana is incomplete.`,
       basedOn: timingLordLabel(timing),
     })
   }

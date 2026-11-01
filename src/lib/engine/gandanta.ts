@@ -208,7 +208,7 @@ export function getGandantaDescription(type: GandantaType): {
     'jyeshtha-mula': {
       name: 'Jyeshtha-Mula Gandanta',
       sanskrit: 'ज्येष्ठामूल गन्धान्त',
-      meaning: 'The Knot of Destruction',
+      meaning: 'The Knot of Deep Change',
       significance: 'Represents the journey from emotional intensity (Scorpio) to spiritual wisdom (Sagittarius). Past life karma related to transformation, occult, and hidden matters.',
       remedy: 'Worship Goddess Durga or Lord Hanuman. Perform Rudra Abhishekam. Charity to the poor on Tuesdays.',
     },
@@ -247,6 +247,6 @@ export function checkLagnaGandanta(ascendantSidereal: number): GandantaResult & 
   
   return {
     ...result,
-    significance: `Lagna in ${desc.name} indicates a life of profound spiritual transformation. ${desc.significance} The native may face significant life changes at the junction points of their life.`,
+    significance: `Lagna in ${desc.name} indicates a life of profound spiritual transformation. ${desc.significance} The person may face significant life changes at the junction points of their life.`,
   }
 }

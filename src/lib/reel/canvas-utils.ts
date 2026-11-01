@@ -66,8 +66,8 @@ export const CHOGHADIYA_COLORS: Record<string, string> = {
 export const CHOGHADIYA_MEANING: Record<string, string> = {
   Amrit: 'Nectar — best for all work', Shubh: 'Auspicious — good beginnings',
   Labh: 'Profit — business & trade', Char: 'Movement — travel, change',
-  Udveg: 'Anxiety — avoid new work', Rog: 'Illness — avoid health work',
-  Kaal: 'Death — strictly avoid', Chal: 'Unstable — caution needed',
+  Udveg: 'Anxiety — avoid new work', Rog: 'Low energy — not for health matters',
+  Kaal: 'Difficult time — best avoided', Chal: 'Unstable — caution needed',
 }
 
 export function fmtTime(isoOrTime: string | undefined | null): string {

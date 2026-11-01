@@ -123,7 +123,7 @@ const DEITY_DESC: Record<string, { desc: string; mantra: string; quality: string
   pusha:         { desc: 'The Nourisher — a solar deity who governs sustenance, progressive growth, and the ability to nourish all beings.', mantra: 'Om Pushne Namah', quality: 'Nourishment, Steady Growth, Provision' },
   vitatha:       { desc: 'The deity of versatility and creative performance. Activates skill in marketing, performance arts, and adaptability.', mantra: 'Om Vitathaya Namah', quality: 'Versatility, Performance, Marketing' },
   grihakshat:    { desc: 'The Household Manager — establishes clear boundaries, domestic order, and the energy of responsible governance.', mantra: 'Om Grihakshataya Namah', quality: 'Household Order, Boundaries, Management' },
-  yama:          { desc: 'The Dharma-keeper and Lord of Death. As a door deity this position is avoided; as a zone it tests karmic alignment and justice.', mantra: 'Om Yamaya Namah', quality: 'Dharma, Justice, Karmic Law' },
+  yama:          { desc: 'The keeper of Dharma and the god of endings. As a door deity this position is avoided; as a zone it tests karmic alignment and justice.', mantra: 'Om Yamaya Namah', quality: 'Dharma, Justice, Karmic Law' },
   gandharv:      { desc: 'The Cosmic Musician of the heavens. This zone brings bliss, entertainment, artistic talent, and the energy of divine play.', mantra: 'Om Gandharvaya Namah', quality: 'Bliss, Arts, Entertainment, Relaxation' },
   bhringraj:     { desc: 'The Great Discriminator. Governs the art of analytical thinking, sorting what serves from what must be released.', mantra: 'Om Bhringgarajaya Namah', quality: 'Analysis, Discrimination, Clarity' },
   mrigha:        { desc: 'The Seeker — the eternal spiritual hunger for knowledge, truth, and discovery. Activates curiosity and research ability.', mantra: 'Om Mrigaya Namah', quality: 'Knowledge Seeking, Curiosity, Research' },
@@ -174,7 +174,7 @@ const NAVAGRAHA_ZONES = [
 const VASTU_DOSHAS = [
   {
     id: 'brahma-dosha', name: 'Brahma Sthana Dosha', severity: 'critical', zone: 'Center',
-    desc: 'Central area obstructed by pillar, heavy beam, toilet, staircase, or wall. The most severe Vastu defect.',
+    desc: 'Central area obstructed by pillar, heavy beam, toilet, staircase, or wall. The most serious Vastu problem to fix.',
     effect: 'Confusion, poor decisions, chronic family disharmony, central nervous system issues, leadership failure.',
     remedy: 'Keep the central 1/9th area completely open. Place a Vastu Purush Yantra (copper) in the center. Install crystal sphere or Swastik symbol. Never drill marma points.',
     scripture: 'Manasara (Ch. 14): "The center of the site is sacred as the sky itself. Any construction here invites cosmic displeasure."',
@@ -185,15 +185,15 @@ const VASTU_DOSHAS = [
     desc: 'North-East corner is cut, lowered, has toilet, kitchen, heavy structure, or fire element.',
     effect: 'Loss of wisdom, mental disturbance, health deterioration, blocked spiritual growth, strained finances.',
     remedy: 'Keep NE clear and light. Place water body or fountain. Install copper Shri Yantra or clear quartz crystal. Perform daily water puja in NE.',
-    scripture: 'Brihat Samhita (53.76): "Ishan belongs to Isha (Shiva). Affliction here causes suffering to the master of the house, his wisdom and health."',
+    scripture: 'Brihat Samhita (53.76): "Ishan belongs to Isha (Shiva). Difficult influence here causes suffering to the master of the house, his wisdom and health."',
     checkFn: () => true,
   },
   {
     id: 'agni-dosha', name: 'Agni (SE) Dosha', severity: 'medium', zone: 'SE',
     desc: 'South-East has water body, toilet, or the corner is missing/extended south.',
-    effect: 'Cash flow disruption, digestive disorders, fire accidents, financial anxiety, confidence issues.',
+    effect: 'Cash flow trouble, digestive issues, fire safety concerns, money worries, low confidence.',
     remedy: 'Place triangular red items, fire lamp (Akhand Jyoti), copper pyramid in SE. Avoid water storage in SE completely.',
-    scripture: 'Vishwakarma Prakash: "Agni in the SE is the sustainer of wealth. Water opposing fire here destroys the treasury."',
+    scripture: 'Vishwakarma Prakash: "Agni in the SE is the sustainer of wealth. Water opposing fire here drains wealth."',
     checkFn: () => true,
   },
   {
@@ -215,7 +215,7 @@ const VASTU_DOSHAS = [
   {
     id: 'veedhi-shoola', name: 'Veedhi Shoola (Road Hit)', severity: 'high', zone: 'Any wall',
     desc: 'A road or pathway directly hits/aims at any face or corner of the property.',
-    effect: 'Accidents, sudden losses, legal challenges, high-pressure health issues, obstacles in career.',
+    effect: 'Mishaps, sudden losses, legal challenges, stress-related health issues, obstacles in career.',
     remedy: 'Install Vastu Kavach. Plant dense trees or bamboo as buffer. Place protective mirror (facing road). Install Hanuman Yantra on affected wall.',
     scripture: 'Mayamata (Ch. 6): "Roads converging at a point create Veedhi Shoola — they pierce the property like a spear, draining its vital force."',
     checkFn: () => true,
@@ -332,7 +332,7 @@ const DIKPALAS = [
   { dir: 'NE', deity: 'Ishana',   power: 'Wisdom, Divine Grace', weapon: 'Trishula',    mount: 'Bull (Nandi)', color: '#8b5cf6', puja: 'Monday' },
   { dir: 'E',  deity: 'Indra',   power: 'Rain, Sovereignty',    weapon: 'Vajra',      mount: 'Airavata (elephant)', color: '#DAA520', puja: 'Thursday' },
   { dir: 'SE', deity: 'Agni',    power: 'Fire, Transformation', weapon: 'Shakti',      mount: 'Ram (mesha)',  color: '#ef4444', puja: 'Tuesday' },
-  { dir: 'S',  deity: 'Yama',    power: 'Dharma, Death',        weapon: 'Danda',      mount: 'Buffalo',     color: '#1f2937', puja: 'Saturday' },
+  { dir: 'S',  deity: 'Yama',    power: 'Dharma, endings',        weapon: 'Danda',      mount: 'Buffalo',     color: '#1f2937', puja: 'Saturday' },
   { dir: 'SW', deity: 'Nirriiti', power: 'Dissolution, Stability',weapon: 'Khadga',    mount: 'Corpse/Lion', color: '#7c3aed', puja: 'Saturday' },
   { dir: 'W',  deity: 'Varuna',  power: 'Water, Cosmic Law',    weapon: 'Pasha (lasso)',mount: 'Makara (crocodile)', color: '#3b82f6', puja: 'Friday' },
   { dir: 'NW', deity: 'Vayu',   power: 'Wind, Speed',          weapon: 'Dhvaja (flag)',mount: 'Deer (mriga)', color: '#10b981', puja: 'Wednesday' },
@@ -360,7 +360,7 @@ const BHAVA_MAP = [
     signifies: 'Family, accumulated wealth, speech, food habits, bank balance, face, neck, liquid assets',
     spatial: 'SE zone governs cash flow and family sustenance. Kitchen in SE channels Agni (fire energy) for financial metabolism.',
     activate: 'Maintain kitchen stove in SE. Keep financial documents and lockers in a clean, energised SE area.',
-    lord_tip: '2nd lord in benefic houses (1,4,5,9,10,11) → good wealth flow. Malefic placement → remediate SE with Agni deepam and copper pyramids.',
+    lord_tip: '2nd lord in helpful houses (1,4,5,9,10,11) → good wealth flow. Malefic placement → remediate SE with Agni deepam and copper pyramids.',
     professions: ['Banking & Finance', 'Jewellery', 'Food industry', 'Wealth management', 'Family business'] },
   { h: 3,  name: 'Vikrama Bhava', eng: 'Efforts & Siblings',  dir: 'S',   room: 'Gym / Study / Hobby Room',      icon: '💪', color: '#dc2626',
     signifies: 'Efforts, younger siblings, neighbours, communication, courage, short travel, planning, arms, shoulders',
@@ -372,7 +372,7 @@ const BHAVA_MAP = [
     signifies: 'Mother, home, mental peace, emotions, luxuries (property & vehicles), domestic comfort, heart, education',
     spatial: 'SW is the most stable directional zone — earth element dominates. Master bedroom here ensures grounding and restful sleep for the family head.',
     activate: 'Master bedroom in SW with head facing South or East. Keep SW heavy (wardrobes, stone furniture). No bathroom or toilet in SW.',
-    lord_tip: '4th lord strong → domestic happiness. Afflicted 4th lord → SW needs Rahu/Ketu remedies plus blue sapphire energisation.',
+    lord_tip: '4th lord strong → domestic happiness. Troubled 4th lord → SW needs Rahu/Ketu remedies plus blue sapphire energisation.',
     professions: ['Real estate & Vastu', 'Hospitality', 'Education', 'Work from home', 'Agriculture'] },
   { h: 5,  name: 'Putra Bhava',  eng: 'Creativity & Children', dir: 'W', room: "Children's Room / Entertainment", icon: '🎨', color: '#3b82f6',
     signifies: 'Education, children, love, creativity, intelligence, sports, stock market, solutions, healing',
@@ -396,19 +396,19 @@ const BHAVA_MAP = [
     signifies: 'Unknown aspects, longevity, transformation, in-laws, unearned money, research, occult, surgery, hidden forces',
     spatial: 'NNE zone governs Ketu\'s energy — hidden, transformative. Underground spaces, safes and research corners belong here.',
     activate: 'Keep NNE zone clean and sacred. Appropriate for meditation or a small mandir. Avoid heavy plumbing or waste here.',
-    lord_tip: '8th lord in kendra/trikona with benefic aspect → research success. Malefic → NNE needs Ketu puja and white crystal grid.',
+    lord_tip: '8th lord in kendra (angular houses: 1, 4, 7, 10)/trikona (trine houses: 1, 5, 9) with helpful aspect → research success. Malefic → NNE needs Ketu puja and white crystal grid.',
     professions: ['Research & Analytics', 'Taxation', 'Engineering', 'Insurance', 'Astrology', 'Surgery', 'Technology'] },
   { h: 9,  name: 'Bhagya Bhava', eng: 'Fortune & Spirituality', dir: 'NE', room: 'Puja Room / Library / Guru Corner', icon: '🙏', color: '#DAA520',
     signifies: 'Luck, divine grace, father, guru, spirituality, religion, higher education, foreign travel, philosophical wisdom',
     spatial: 'NE is the supreme zone — Ishan corner, the abode of Shiva/Jupiter. Puja room here maximises divine blessings and fortune.',
     activate: 'Puja room must be in NE. Library or sacred books in NE/N. No kitchen, toilet or heavy storage in NE. Keep light and open.',
-    lord_tip: '9th lord exalted (Jupiter in Cancer, Sun in Aries) → exceptional fortune. Afflicted → NE must be deeply purified and energised.',
+    lord_tip: '9th lord exalted (Jupiter in Cancer, Sun in Aries) → exceptional fortune. Troubled → NE must be deeply purified and energised.',
     professions: ['Teaching & Consultancy', 'Spiritual work', 'Immigration services', 'Religious institutions', 'Higher education'] },
   { h: 10, name: 'Karma Bhava',  eng: 'Career & Status',     dir: 'ENE', room: 'Home Office / Study / Professional Space', icon: '💼', color: '#f97316',
     signifies: 'Profession, social status, administration, politics, government, identity, authority, career ambitions',
     spatial: 'ENE zone (Sun-East) energises the professional drive. Home office or study facing this direction amplifies career success.',
     activate: 'Office desk facing ENE or N. Place professional awards, diplomas and career symbols here. Avoid clutter in professional space.',
-    lord_tip: '10th lord in Lagna or Kendra → stellar career. Afflicted → home office in ENE needs Sun yantra and Ruby energisation.',
+    lord_tip: '10th lord in Lagna or Kendra (angular houses: 1, 4, 7, 10) → stellar career. Troubled → home office in ENE needs Sun yantra and Ruby energisation.',
     professions: ['All professions', 'Government jobs', 'Administration', 'Politics', 'Business leadership'] },
   { h: 11, name: 'Labha Bhava',  eng: 'Gains & Social Circle', dir: 'NNW', room: 'Garden / Outdoor Space / Social Area', icon: '🌟', color: '#22c55e',
     signifies: 'Profits, friends, big organisations, NGOs, wish fulfillment, elder siblings, social networks, victory',
@@ -420,7 +420,7 @@ const BHAVA_MAP = [
     signifies: 'Isolation, foreign settlement, spiritual liberation, expenditure, losses, meditation, charity, hospitals',
     spatial: 'WNW zone governs detachment and higher surrender. Meditation rooms and guest bedrooms for foreign visitors here support spiritual progress.',
     activate: 'Meditation corner in WNW or NW. Avoid using WNW as master bedroom. Good for a spare guest room or yoga/meditation space.',
-    lord_tip: '12th lord in 12th own house or exalted → spiritual liberation and foreign gains. Afflicted → WNW needs Moon yantra and pearl grid.',
+    lord_tip: '12th lord in 12th own house or exalted → spiritual liberation and foreign gains. Troubled → WNW needs Moon yantra and pearl grid.',
     professions: ['Yoga & Meditation', 'Hospitality', 'Foreign business', 'MNCs', 'Charitable work', 'Ashrams & hospitals'] },
 ]
 
@@ -430,42 +430,42 @@ const PLANET_PROFILES: Record<string, { vastuDir: string; element: string; color
     core: 'Soul/Atma — willpower, authority, self-respect, innovation, truth, government',
     health: 'Heart, bones, right eye, spine',
     strengths: ['Leadership in east-facing careers', 'Strong personal identity', 'Government connections', 'Spiritual clarity'],
-    weaknesses: ['Ego-driven decisions', 'Heart/bone vulnerabilities if afflicted', 'Conflict with authority figures'],
+    weaknesses: ['Ego-driven decisions', 'Heart/bone vulnerabilities if under pressure', 'Conflict with authority figures'],
     spatial: 'Activate East zone for Sun-related life areas. Home office or study facing East amplifies solar energy. Red/orange accents in East wall.',
     remedy: 'Ruby (Manik), Copper Sun yantra in East, Surya Namaskar facing East at sunrise, Sunday fasting' },
   Mo: { vastuDir: 'NW', element: 'Water (Jal)', color: '#e2e8f0',
     core: 'Mind/Manas — emotions, mental stability, motherly nature, mood, intuition, hospitality',
     health: 'Left eye, mental disorders, depression, stomach, ovaries, breasts',
     strengths: ['Emotional intelligence', 'Strong intuition', 'Maternal nurturing energy', 'Hospitality business'],
-    weaknesses: ['Mood swings', 'Excessive sentimentality', 'Sleep disorders if afflicted'],
+    weaknesses: ['Mood swings', 'Excessive sentimentality', 'Sleep disorders if under pressure'],
     spatial: 'NW zone (Vayu-Moon) supports emotional comfort. Master bedroom should not be in NW (causes restlessness). Keep NW airy.',
     remedy: 'Pearl (Moti), Silver Moon yantra in NW, Monday puja with white flowers, Chandra mantra' },
   Ma: { vastuDir: 'S / SSE', element: 'Fire (Agni)', color: '#ef4444',
     core: 'Energy/Shakti — aggression, courage, fire, surgery, property, military, accidents',
     health: 'Blood, bones, injuries, hemoglobin, genitals, surgeries',
     strengths: ['Property acquisition', 'Physical courage', 'Engineering success', 'Sports achievement'],
-    weaknesses: ['Aggressive conflict at home if in 4H', 'Accidents near South zone if afflicted', 'Impulsiveness'],
+    weaknesses: ['Aggressive conflict at home if in 4H', 'Accidents near South zone if under pressure', 'Impulsiveness'],
     spatial: 'South wall should be solid and load-bearing (Mars principle). No open spaces or cuts in South. Gym in S or SSE zone.',
     remedy: 'Red Coral (Moonga), Copper Mars yantra in SSE, Tuesday fast, Hanuman puja' },
   Me: { vastuDir: 'N / NNW', element: 'Air (Vayu)', color: '#22c55e',
     core: 'Intellect/Buddhi — intelligence, communication, business, networking, speech, Mercury rules trade',
     health: 'Nervous system, respiratory, spinal cord, depression, paralysis, deafness',
     strengths: ['Business acumen', 'Communication mastery', 'Financial intelligence', 'Technology aptitude'],
-    weaknesses: ['Overthinking', 'Nervous system sensitivity', 'Indecisiveness if afflicted'],
+    weaknesses: ['Overthinking', 'Nervous system sensitivity', 'Indecisiveness if under pressure'],
     spatial: 'North zone (Mercury) governs opportunities and business. Home office or business cabin facing North or ENE maximises Mercury energy.',
     remedy: 'Emerald (Panna), Green Mercury yantra in N, Wednesday puja, Budha mantra chanting' },
   Ju: { vastuDir: 'NE / NNE', element: 'Water (Jal)', color: '#DAA520',
     core: 'Wisdom/Guru — expansion, growth, wisdom, prosperity, children, spirituality, divine grace',
-    health: 'Liver, weight gain, cancer risk if afflicted, tumours, epilepsy',
+    health: 'Liver, weight gain, cancer risk if under pressure, tumours, epilepsy',
     strengths: ['Divine wisdom', 'Teaching ability', 'Wealth expansion', 'Children\'s success'],
-    weaknesses: ['Excessive optimism', 'Weight management challenges', 'Overindulgence if afflicted'],
+    weaknesses: ['Excessive optimism', 'Weight management challenges', 'Overindulgence if under pressure'],
     spatial: 'NE is Jupiter\'s supreme zone. Puja room must be here. Keep NE light, elevated and sacred. No heavy items or toilet in NE.',
     remedy: 'Yellow Sapphire (Pukhraj), Gold Jupiter yantra in NE, Thursday puja with yellow flowers, Brihaspati mantra' },
   Ve: { vastuDir: 'SE / ESE', element: 'Fire/Water', color: '#ec4899',
     core: 'Beauty/Shukra — love, marriage, wealth, vehicles, fashion, art, relationships, luxury',
     health: 'Throat, kidneys, tonsils, diabetes, skin problems',
     strengths: ['Creative arts mastery', 'Wealth accumulation', 'Relationship harmony', 'Luxury real estate'],
-    weaknesses: ['Overindulgence', 'Kidney/diabetes risk if afflicted', 'Relationship complications'],
+    weaknesses: ['Overindulgence', 'Kidney/diabetes risk if under pressure', 'Relationship complications'],
     spatial: 'SE zone (Venus-Agni) governs cash flow and confidence. Kitchen in SE is auspicious (Venus+Fire). Bedroom in SE for couples enhances romance.',
     remedy: 'Diamond (Heera) or White Sapphire, Silver Venus yantra in SE, Friday puja with white lotus, Shukra mantra' },
   Sa: { vastuDir: 'W / WSW', element: 'Air (Vayu)', color: '#94a3b8',
@@ -494,7 +494,7 @@ const PLANET_PROFILES: Record<string, { vastuDir: string; element: string; color
 /* 12-House Lord Placement Quick-Read Matrix ─────────────────────── */
 const LORD_PLACEMENT_KEY = [
   { houses: [1, 5, 9], label: 'Trikona (Dharma Triangles)', quality: 'excellent', desc: 'Lord in these houses gives divine grace, purpose and natural luck. The corresponding Vastu zone flourishes without much effort.' },
-  { houses: [4, 7, 10], label: 'Kendra (Pillar Houses)', quality: 'strong', desc: 'Lord in Kendra houses gives strong material results. The Vastu zone provides solid, stable support for the life area.' },
+  { houses: [4, 7, 10], label: 'Kendra (Pillar Houses)', quality: 'strong', desc: 'Lord in Kendra (angular houses: 1, 4, 7, 10) houses gives strong material results. The Vastu zone provides solid, stable support for the life area.' },
   { houses: [2, 11], label: 'Upachaya (Growth Houses)', quality: 'good', desc: 'Lord in 2nd or 11th gives increasing wealth and gains over time. The Vastu zone improves with age if kept clean.' },
   { houses: [3, 6], label: 'Dusthana (Challenge Houses)', quality: 'weak', desc: 'Lord in 3rd or 6th creates struggle and effort needed. The Vastu zone may leak energy — prioritise cleaning and activating.' },
   { houses: [8, 12], label: 'Dusthana (Loss/Hidden Houses)', quality: 'afflicted', desc: 'Lord in 8th or 12th hides or dissolves the life-area energy. The corresponding Vastu zone needs strong remediation and purification.' },
@@ -657,11 +657,11 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
       if (lordGraha) {
         const lordName = GRAHA_NAMES[lordId as GrahaId] ?? lordId
         if (qualityEntry?.quality === 'excellent' || qualityEntry?.quality === 'strong' || qualityEntry?.quality === 'good') {
-          dynamicTip = `H${bh.h} lord ${lordName} is strong in H${lordHouse}. The ${bh.dir} zone naturally energises; keep it clean and unobstructed.`
+          dynamicTip = `H${bh.h} lord ${lordName} is strong in house ${lordHouse}. The ${bh.dir} zone naturally energises; keep it clean and unobstructed.`
         } else if (qualityEntry?.quality === 'weak' || qualityEntry?.quality === 'afflicted' || qualityEntry?.quality === 'challenging') {
-          dynamicTip = `H${bh.h} lord ${lordName} is weak in H${lordHouse}. Prioritise Vastu remedies in the ${bh.dir} zone to support this area.`
+          dynamicTip = `H${bh.h} lord ${lordName} is weak in house ${lordHouse}. Prioritise Vastu remedies in the ${bh.dir} zone to support this area.`
         } else {
-          dynamicTip = `H${bh.h} lord ${lordName} is neutral in H${lordHouse}. Maintain balance in the ${bh.dir} zone.`
+          dynamicTip = `H${bh.h} lord ${lordName} is neutral in house ${lordHouse}. Maintain balance in the ${bh.dir} zone.`
         }
       }
 
@@ -958,7 +958,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                   <div style={{ marginBottom: '1.25rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.78rem' }}>
                       <span style={{ color: 'var(--text-muted)' }}>Energy Score</span>
-                      <span style={{ color: sc, fontWeight: 700 }}>{z.score}% — {z.score > 70 ? 'Highly Auspicious' : z.score < 40 ? 'Afflicted — Remedy Required' : 'Moderate'}</span>
+                      <span style={{ color: sc, fontWeight: 700 }}>{z.score}% — {z.score > 70 ? 'Highly Auspicious' : z.score < 40 ? 'Troubled — Remedy Required' : 'Moderate'}</span>
                     </div>
                     <ScoreBar score={z.score} height={10} />
                   </div>
@@ -1504,7 +1504,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.4rem' }}>
                         <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>{z.name} ({z.id})</div>
                         <span style={{ fontSize: '0.66rem', padding: '3px 8px', background: idx === 0 ? 'rgba(224,123,142,0.2)' : idx < 3 ? 'rgba(249,115,22,0.15)' : 'var(--surface-3)', color: idx === 0 ? 'var(--rose)' : idx < 3 ? '#f97316' : 'var(--text-muted)', borderRadius: '4px', fontWeight: 800, border: `1px solid ${idx === 0 ? 'rgba(224,123,142,0.4)' : idx < 3 ? 'rgba(249,115,22,0.35)' : 'var(--border)'}` }}>
-                          {idx === 0 ? 'CRITICAL' : idx < 3 ? 'HIGH' : 'MEDIUM'}
+                          {idx === 0 ? 'TOP PRIORITY' : idx < 3 ? 'HIGH' : 'MEDIUM'}
                         </span>
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Score: {z.score}% · {z.quality} · {ELEM_ICON[z.element]} {z.element}</div>
@@ -2082,7 +2082,7 @@ export function AstroVastuPanel({ chart, userPlan = 'free' }: AstroVastuPanelPro
                   { priority: 2, zone: 'NE', action: 'Energise NE (9th Bhava/Fortune Zone)', detail: 'Puja room or sacred corner in NE. Remove all clutter and toilet from this zone. Light ghee lamp daily.', color: 'var(--teal)', icon: '🙏' },
                   { priority: 3, zone: 'SW', action: 'Stabilise SW (4th Bhava/Home Comfort Zone)', detail: 'Master bedroom in SW with head facing South. Heavy wardrobes in SW corner. No cuts or missing corners in SW.', color: '#3b82f6', icon: '🏠' },
                   { priority: 4, zone: 'ENE', action: 'Activate ENE for Career (10th Bhava)', detail: 'Home office or work desk facing ENE or N. Professional awards in ENE zone. Sun yantra in East wall.', color: '#f59e0b', icon: '💼' },
-                  { priority: 5, zone: 'SE', action: 'Maintain SE Kitchen (2nd Bhava/Wealth)', detail: 'Kitchen stove in SE. Cooking facing East. Cash locker away from SW only if Rahu is malefic. Agni deepam in SE.', color: '#ef4444', icon: '💰' },
+                  { priority: 5, zone: 'SE', action: 'Maintain SE Kitchen (2nd Bhava/Wealth)', detail: 'Kitchen stove in SE. Cooking facing East. Cash locker away from SW only if Rahu is difficult. Agni deepam in SE.', color: '#ef4444', icon: '💰' },
                 ].concat(
                   (chart.grahas as Array<{ id: string; lonSidereal: number; isRetro?: boolean }> || [])
                     .filter(g => g.isRetro)

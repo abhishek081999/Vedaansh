@@ -237,8 +237,8 @@ export function DigDrigChestaAnalysisPanel({
                   </div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                     Net {drigRow.virupas.toFixed(2)} Virupas
-                    {drigRow.benefic != null ? ` · +${drigRow.benefic.toFixed(1)} benefic` : ''}
-                    {drigRow.malefic != null ? ` · −${drigRow.malefic.toFixed(1)} malefic` : ''}
+                    {drigRow.benefic != null ? ` · +${drigRow.benefic.toFixed(1)} helpful planet` : ''}
+                    {drigRow.malefic != null ? ` · −${drigRow.malefic.toFixed(1)} difficult planet` : ''}
                   </div>
                   <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>{drigRow.note}</div>
                   <div style={{ fontSize: '0.74rem' }}>

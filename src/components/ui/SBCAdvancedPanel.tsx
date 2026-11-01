@@ -78,7 +78,7 @@ const DIRECTIONS: Record<string, DirInfo> = {
     color:'#DAA520', icon:'↗',
     general:['Most auspicious direction',"Jupiter's primary zone",'Divinity, grace, knowledge'],
     benefic:['Divine blessings','Wisdom and clarity','Quick recovery','Success in anything'],
-    malefic:['Very rare — even malefics here lose power','Confusion only if center weak'],
+    malefic:['Very rare — even difficult planets here lose power','Confusion only if center weak'],
     bestFor:['Spiritual practice','Education','Health matters','Any new beginning','Puja/meditation'],
     avoidFor:['Storing heavy items','Toilets/bathrooms (Vastu)'],
   },
@@ -96,16 +96,16 @@ const DIRECTIONS: Record<string, DirInfo> = {
     color:'#ef4444', icon:'↘',
     general:['Fire element zone','Mars & Venus combination','Energy, passion, disputes'],
     benefic:['Controlled passion','Good digestion','Romantic success'],
-    malefic:['Accidents & burns','Legal disputes','Inflammatory disease'],
+    malefic:['Take care with accidents and burns','Legal disputes','Inflammation-type health issues'],
     bestFor:['Passion projects','Kitchen/cooking','Athletic endeavors'],
-    avoidFor:['Legal matters (if malefic)','Peace & harmony'],
+    avoidFor:['Legal matters (if difficult)','Peace & harmony'],
   },
   S: {
     name:'South', sanskrit:'Dakshina', deity:'Yama', element:'Earth',
     color:'#94a3b8', icon:'⬇',
-    general:['Saturn\'s natural direction','Death, endings, karma','Discipline & ancestral karma'],
+    general:['Saturn\'s natural direction','Endings and karma','Discipline & ancestral karma'],
     benefic:['Completion of long tasks','Ancestral blessings','Spiritual depth'],
-    malefic:['Severe obstacles & delays','Chronic illness','Death of endeavors'],
+    malefic:['Big obstacles and delays','Long-running health worries','Plans that may not work out'],
     bestFor:['Spiritual practices','Renunciation','Ending bad habits','Ancestral rites'],
     avoidFor:['Starting new ventures','Health matters','Financial decisions'],
   },
@@ -218,7 +218,7 @@ const PREDICT_MODES: Record<PredictMode, {
       'Saturn in S/SW with vedha = chronic/long-term illness',
       'Mars in SE = fever, inflammation, surgery needed',
       'Rahu/Ketu vedha = mysterious diagnosis, misdiagnosis risk',
-      'Multiple benefics positive = early recovery; malefics = prolonged',
+      'Multiple helpful planets positive = early recovery; difficult planets = prolonged',
     ],
   },
   travel: {
@@ -230,10 +230,10 @@ const PREDICT_MODES: Record<PredictMode, {
       'Moon in NW = safe comfortable journey',
       'Jupiter in NE = divine protection; journey auspicious',
       'Mercury in N = smooth journey, good connections',
-      'Mars in SE or SW with vedha = accidents; postpone if possible',
+      'Mars in SE or SW with vedha (a blocking influence) asks for extra care; delay if you can',
       'Saturn in S = delays, cancellations, heavy journey',
       'Rahu in NW = journey happens but unexpected experiences',
-      'No vedha + benefics positive = proceed with confidence',
+      'No vedha + helpful planets positive = proceed with confidence',
     ],
   },
   court: {
@@ -336,7 +336,7 @@ function analyzePrashna(
         reasons.push({ text: `${PLANET_NAME[p]} in ${dir} (ideal direction) — divine support`, positive: true })
       } else if (['Sa','Ma','Ra','Ke'].includes(p)) {
         score -= 1
-        reasons.push({ text: `${PLANET_NAME[p]} in ${dir} (ideal direction) — malefic present, caution`, positive: false })
+        reasons.push({ text: `${PLANET_NAME[p]} in ${dir} (ideal direction) — difficult planet present, caution`, positive: false })
       }
     })
     natalDp.forEach(p => {
@@ -366,7 +366,7 @@ function analyzePrashna(
 
   // Birth nak afflicted?
   if (analysis?.birthNakAffected) {
-    score -= 1; reasons.push({ text: 'Birth nakshatra afflicted — personal challenges present', positive: false })
+    score -= 1; reasons.push({ text: 'Birth nakshatra troubled — personal challenges present', positive: false })
   }
 
   const confidence  = Math.min(95, Math.max(10, 50 + score * 8))
@@ -401,8 +401,8 @@ function analyzeFiveFold(
   // 1. Nakshatra vedha check
   const nakOk = !analysis?.birthNakAffected
   const nakDetail = nakOk
-    ? 'No malefic vedha on birth nakshatra — clear'
-    : 'Malefic vedha on birth nakshatra — afflicted'
+    ? 'No difficult planet vedha on birth nakshatra — clear'
+    : 'Malefic vedha on birth nakshatra — troubled'
 
   // 2. Tithi check
   const tithiOk = tithi ? (tithi.quality === 'best' || tithi.quality === 'good') : true
@@ -426,14 +426,14 @@ function analyzeFiveFold(
   )
   const rashiOk = maleficVedhasOnRashi.length === 0
   const rashiDetail = rashiOk
-    ? 'No malefic vedha on natal rashi positions — clear'
+    ? 'No difficult planet vedha on natal rashi positions — clear'
     : `${maleficVedhasOnRashi.map(v => PLANET_NAME[v.planet]).join(', ')} casting vedha on natal rashi`
 
   // 5. Graha vedha — benefic vs malefic count
   const beneficVedha = (analysis?.vedhas ?? []).filter(v => !v.isMalefic).length
   const maleficVedha = (analysis?.vedhas ?? []).filter(v => v.isMalefic).length
   const grahaOk = beneficVedha >= maleficVedha
-  const grahaDetail = `${beneficVedha} benefic vs ${maleficVedha} malefic planetary vedha — ${grahaOk ? 'Benefics dominant' : 'Malefics dominant — caution'}`
+  const grahaDetail = `${beneficVedha} helpful vs ${maleficVedha} difficult planetary vedha — ${grahaOk ? 'Benefics dominant' : 'Malefics dominant — caution'}`
 
   const score = [nakOk, tithiOk, !varaBad, rashiOk, grahaOk].filter(Boolean).length
 

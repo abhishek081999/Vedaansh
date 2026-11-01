@@ -325,7 +325,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Mercury in ${m.rashiName} (+ dignity / vakri / asta)`}
+                title={`Classical · Mercury in ${m.rashiName} (+ dignity / vakri (retrograde) / asta)`}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (
@@ -596,7 +596,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
               <Label>Degree peak</Label>
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {m.nearExaltPeak
-                  ? `Near exaltation peak (~15° Virgo) — analytical precision lore is strongest near this degree.`
+                  ? `Near exaltation peak (~15° Virgo) — analytical precision tradition is strongest near this degree.`
                   : `Near debilitation peak (~15° Pisces) — communication/focus strain peaks; emotional writing gift can still shine.`}
               </p>
             </Card>

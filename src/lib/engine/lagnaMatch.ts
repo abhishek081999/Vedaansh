@@ -83,7 +83,7 @@ const PAIRS: Record<string, { level: LagnaMatchLevel; reason: string }> = {
   '5-6': { level: 'difficult', reason: 'Virgo likes to correct, and Leo likes appreciation. Frequent corrections can dampen the warmth.' },
   '5-7': { level: 'good', reason: 'Charm, beauty, and a public couple. They enjoy being admired together.' },
   '5-8': { level: 'moderate', reason: 'Two fixed wills and real heat. Respect holds it after loyalty is proven. Power has to be shared on purpose.' },
-  '5-9': { level: 'excellent', reason: 'Fire trine. Admiration, generosity, and room to move. Jealousy is not the native problem.' },
+  '5-9': { level: 'excellent', reason: 'Fire trine. Admiration, generosity, and room to move. Jealousy is not the person problem.' },
   '5-10': { level: 'difficult', reason: 'Leo’s display looks unnecessary to Capricorn, who wants the thing to work, not to shine.' },
   '5-11': { level: 'strong', reason: 'Sun opposite Saturn’s air. Personal glory meets the crowd. Humility helps on the Leo side, and clean public conduct helps on the Aquarius side; pride can invite gossip.' },
   '5-12': { level: 'incompatible', reason: 'Pisces gives quietly, while Leo likes the gift to be visible. Devotion that goes unnoticed can turn into resentment, so appreciation matters.' },

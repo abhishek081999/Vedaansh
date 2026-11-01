@@ -165,7 +165,7 @@ export const CAPRICORN_LAGNA_PROFILE: LagnaCharacterProfile = {
       theme: 'Absent or battling home life; sleep and intimacy issues',
       points: [
         'The father is often away or the home is a constant battlefield; Sagittarius on the 12th can disturb the bedroom and intimacy, and cause insomnia.',
-        'The mother may make temple vows; if they go unfulfilled it can bring losses to the native.',
+        'The mother may make temple vows; if they go unfulfilled it can bring losses to the person.',
         'Ideas arrive during sleep (Sagittarius on the 12th); keep a dream or thought journal.',
         'With Mars in the 12th, protect energy with Hanuman Chalisa and avoid red bedding and heavy electronics in the bedroom.',
       ],

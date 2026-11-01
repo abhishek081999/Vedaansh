@@ -465,7 +465,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
           })}
 
           <Card>
-            <Label>When Moon is afflicted</Label>
+            <Label>When the Moon is under pressure</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.psychology.negativeWhenAfflicted.map(n => <li key={n}>{n}</li>)}
             </ul>

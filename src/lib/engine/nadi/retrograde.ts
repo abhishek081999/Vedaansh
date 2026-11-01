@@ -82,7 +82,7 @@ function otherNotes(input: RetrogradeInput): string[] {
     notes.push(finish(
       input,
       venus,
-      'Venus retrograde: marriage trouble, more than one relationship, or no marriage. The kidneys and the reproductive organs are checked.',
+      'Venus retrograde: classical texts mention difficulty in marriage, more than one relationship, or a chance that marriage does not happen. They also link it to kidney and reproductive health. See a doctor for real concerns.',
       'the marriage trouble still remains',
     ))
   }
