@@ -3,7 +3,7 @@
 **Product:** `jyotish-platform` v2.6.0 · Next.js 16.4.2 · Zod 4.6.7  
 **Synced:** 2026-10-31  
 **App:** Vedic astrology (Jyotish) SaaS — birth charts, dashas, vargas, panchang, muhurta, CRM, admin  
-**Source of truth:** live codebase (`package.json`, `src/`, `proxy.ts`, `render.yaml`)
+**Source of truth:** live codebase (`package.json`, `src/`, `src/proxy.ts`, `render.yaml`)
 
 ---
 
@@ -14,7 +14,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 | Layer | Role |
 |-------|------|
 | Presentation | React pages + client panels |
-| Edge proxy | Auth, plan route gates, CSP (`proxy.ts`) |
+| Edge proxy | Auth, plan route gates, CSP (`src/proxy.ts`) |
 | API | Security-first REST handlers |
 | Engine | Pure Swiss Ephemeris math (`src/lib/engine/**`) |
 | Data | MongoDB Atlas + Upstash Redis |
@@ -32,7 +32,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐
-│  proxy.ts (Next.js 16)                                      │
+│  src/proxy.ts (Next.js 16)                                      │
 │  Auth session · Gold/Platinum page+API gates · Admin · CSP  │
 └───────────────────────────┬─────────────────────────────────┘
                             │
@@ -76,7 +76,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 | Video | Remotion 4 + ffmpeg.wasm (browser MP4) |
 | PWA | Serwist |
 | Tests | Vitest (`__tests__/engine`, `__tests__/security`) |
-| Edge gates | `proxy.ts` (auth, plan, CSP) |
+| Edge gates | `src/proxy.ts` (auth, plan, CSP) |
 
 ---
 
@@ -90,21 +90,21 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 - Admin: users, charts, revenue, billing, audit, reel studio
 - Client-side: localStorage (milan history, numerology readings), device location for atlas
 
-### Edge proxy (`proxy.ts`)
+### Edge proxy (`src/proxy.ts`)
 
-Runs before matched requests (skips RSC/prefetch flight requests):
+Runs before matched requests, including RSC/prefetch flight requests (those skip only the CSP step):
 
-1. Rate-limit NextAuth POST (except signup / forgot / reset / verify)
+1. Rate-limit sign-in POSTs (`/api/auth/callback/credentials`, `/api/auth/signin`)
 2. Admin pages/APIs → require `role === 'admin'`
 3. Protected APIs → require session
-4. Gold APIs/pages → `getEffectivePlanForUserId` ≠ free (`/muhurta`, `/api/muhurta`, `/api/chart/export`)
+4. Gold APIs/pages → `getEffectivePlanForUserId` ≠ free (`/muhurta`, `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx`)
 5. Platinum APIs/pages → platinum only (`/research`, `/api/research` — **reserved; no route files and no UI**)
 6. Protected pages → login redirect
 7. `withDocumentCsp` — per-request CSP nonces
 
-Protected page prefixes: `/chart`, `/my`, `/muhurta`, `/research`, `/account`.
+Protected page prefixes: `/my`, `/muhurta`, `/research`, `/account`. `/chart/[slug]` share links are public.
 
-`PROTECTED_API` is a prefix list. `/api/subscription` therefore requires a session for pricing and coupon validate. `/api/chart/export` (Gold) also matches `/api/chart/export-xlsx`. `/api/milan/*` and `/api/marriage/gochar-windows` are gated in the route handlers, not in those proxy lists.
+Route lists live in `src/lib/security/proxyRules.ts` and match whole path segments. `/api/subscription/*` and the ACG, relocate, and varshaphal APIs are public. `/api/milan/*` and `/api/marriage/gochar-windows` are gated in the route handlers.
 
 ### API + security (`src/app/api/**`, `src/lib/security/**`)
 
@@ -328,7 +328,7 @@ Production checklist: `docs/SECURITY_DEPLOY.md`.
 | `src/lib/atlas/` | Coordinate helpers (`coords.ts`). Place search is Photon / Open-Meteo / Nominatim plus Redis |
 | `src/lib/panchang/` | Panchang helpers beyond core engine |
 | `src/types/astrology.ts` | `GrahaId`, `Rashi`, `ChartOutput`, `UserPlan` |
-| `proxy.ts` | Edge auth / plan / CSP |
+| `src/proxy.ts` | Edge auth / plan / CSP |
 | `__tests__/engine|security/` | Vitest |
 | `.cursor/rules/` | Agent layer conventions |
 

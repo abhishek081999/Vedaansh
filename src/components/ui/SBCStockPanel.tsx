@@ -85,7 +85,7 @@ const NAK_TRADING: NakGuide[] = [
   { nak:'Punarvasu',         lord:'Ju', effect:'Finance/Pharma UP · Recovery',     action:'BUY Jupiter stocks',           stocks:'Bajaj Finance, Cipla',color:'#DAA520' },
   { nak:'Pushya',            lord:'Sa', effect:'Best nakshatra · Steady gains',    action:'MAXIMUM BUY',                  stocks:'L&T, all large-caps', color:'#94a3b8' },
   { nak:'Ashlesha',          lord:'Me', effect:'IT UP but deceptive moves',        action:'BUY IT cautiously',            stocks:'TCS, Infosys',       color:'#22c55e' },
-  { nak:'Magha',             lord:'Ke', effect:'Sudden fall risk · Destruction',   action:'REDUCE positions',             stocks:'Avoid new entries',  color:'#a78bfa' },
+  { nak:'Magha',             lord:'Ke', effect:'Risk of a sudden fall',   action:'REDUCE positions',             stocks:'Avoid new entries',  color:'#a78bfa' },
   { nak:'Purva Phalguni',    lord:'Ve', effect:'Entertainment/Auto UP',            action:'BUY Venus stocks',             stocks:'PVR, Titan, Maruti', color:'#ec4899' },
   { nak:'Uttara Phalguni',   lord:'Su', effect:'Govt/Leadership stocks UP',        action:'BUY Sun sectors',              stocks:'ONGC, PSU banks',    color:'#f59e0b' },
   { nak:'Hasta',             lord:'Mo', effect:'Consumer/FMCG UP · Media',         action:'BUY Moon stocks',              stocks:'HUL, Zee, DMART',    color:'#e2e8f0' },
@@ -94,7 +94,7 @@ const NAK_TRADING: NakGuide[] = [
   { nak:'Vishakha',          lord:'Ju', effect:'Banking/Finance UP',               action:'BUY Jupiter stocks',           stocks:'HDFC, Bajaj Finance', color:'#DAA520' },
   { nak:'Anuradha',          lord:'Sa', effect:'Mining/Metals steady',             action:'BUY Saturn sectors',           stocks:'Hindalco, SAIL',     color:'#94a3b8' },
   { nak:'Jyeshtha',          lord:'Me', effect:'Telecom/IT UP · Authority',        action:'BUY Mercury stocks',           stocks:'Airtel, TCS, Wipro', color:'#22c55e' },
-  { nak:'Moola',             lord:'Ke', effect:'Market destruction energy',        action:'EXIT all positions',           stocks:'No new entries',     color:'#a78bfa' },
+  { nak:'Moola',             lord:'Ke', effect:'Risk of a sharp market fall',        action:'EXIT all positions',           stocks:'No new entries',     color:'#a78bfa' },
   { nak:'Purva Ashadha',     lord:'Ve', effect:'Luxury/Auto strong UP',            action:'BUY Venus stocks',             stocks:'Maruti, Titan, Hero',color:'#ec4899' },
   { nak:'Uttara Ashadha',    lord:'Su', effect:'Leadership/Govt stocks UP',        action:'BUY Sun sectors',              stocks:'ONGC, NTPC, BHEL',   color:'#f59e0b' },
   { nak:'Shravana',          lord:'Mo', effect:'Media/FMCG/Consumer UP',           action:'BUY Moon stocks',              stocks:'Zee, HUL, ITC',      color:'#e2e8f0' },
@@ -143,7 +143,7 @@ const STRATEGIES = [
       'Identify which planet rules that nakshatra',
       'BUY stocks of that planet\'s sector',
       'Hold 2–3 days until Moon changes nakshatra',
-      'EXIT when Moon enters malefic nakshatra (Ardra/Moola/Ashlesha)',
+      'EXIT when Moon enters difficult planet nakshatra (Ardra/Moola/Ashlesha)',
     ],
     example: 'Moon in Rohini (Moon) → BUY HUL, ITC, DMART → Exit at Ardra (Rahu)',
     risk: 'Low',
@@ -174,7 +174,7 @@ const STRATEGIES = [
       'Jupiter + Venus + Mercury positive → BUY index, full position',
       'Saturn + Mars + Rahu negative → SELL/SHORT, maximum cash',
       'Mixed vedha → Range-bound trading, small size, quick exits',
-      'No overnight positions on mixed/malefic days',
+      'No overnight positions on mixed/difficult planet days',
     ],
     example: 'Jupiter & Venus both positive → BUY Nifty at open, target 1.5–2%',
     risk: 'Low',
@@ -188,7 +188,7 @@ const STRATEGIES = [
     steps: [
       'Identify strongest planet from SBC vedha analysis',
       'Overweight that planet\'s market sector',
-      'Underweight sectors of afflicted planets',
+      'Underweight sectors of troubled planets',
       'Hold rotation for 1–2 weeks (or until planet changes sign)',
       'Re-evaluate every Sunday night using new transit data',
     ],
@@ -318,9 +318,9 @@ function computeSignal(
     const lord = getNakLord(mo.lonSidereal)
     const nakRow = NAK_TRADING[Math.floor((mo.lonSidereal % 360) / (360/27))]
     if (['Ju','Ve','Me'].includes(lord)) {
-      score += 2; reasons.push({ text: `Moon in ${nakRow?.nak ?? '—'} (${lord} lord) — benefic nakshatra`, bull: true })
+      score += 2; reasons.push({ text: `Moon in ${nakRow?.nak ?? '—'} (${lord} lord) — helpful planet nakshatra`, bull: true })
     } else if (['Sa','Ra','Ke'].includes(lord)) {
-      score -= 2; reasons.push({ text: `Moon in ${nakRow?.nak ?? '—'} (${lord} lord) — malefic nakshatra`, bull: false })
+      score -= 2; reasons.push({ text: `Moon in ${nakRow?.nak ?? '—'} (${lord} lord) — difficult planet nakshatra`, bull: false })
     } else {
       score += 1; reasons.push({ text: `Moon in ${nakRow?.nak ?? '—'} (${lord} lord) — neutral nakshatra`, bull: true })
     }

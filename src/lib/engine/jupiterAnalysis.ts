@@ -264,8 +264,8 @@ export const JUPITER_KARAKATVA: JupiterSignificationGroup[] = [
   {
     category: 'People & stage of life',
     items: [
-      'Grandfather; father-in-law (sasur) — karaka for in-laws',
-      'Married-life happiness for females (Jupiter = husband karaka)',
+      'Grandfather; father-in-law (sasur) — karaka (natural indicator) for in-laws',
+      'Married-life happiness for females (Jupiter = husband karaka (natural indicator))',
       'Old age (vriddha avastha)',
     ],
   },
@@ -287,7 +287,7 @@ export const JUPITER_MEDICAL: JupiterSignificationGroup[] = [
     category: 'Diabetes lore',
     items: [
       'Retrograde Jupiter → hereditary diabetes (class: dasha onset or after ~51)',
-      'Type 2 linked strongly to vakri / afflicted Guru',
+      'Type 2 linked strongly to vakri (retrograde) / troubled Guru',
       'Type 1 / early onset — Jupiter + Venus combination when badly configured',
     ],
   },
@@ -321,8 +321,8 @@ const HOUSE_FOCUS: Record<number, JupiterHouseFocus> = {
     tone: 'supportive',
     notes: [
       'Until maturity, Jupiter has already shaped calmness and softness of personality',
-      'Further results depend on aspects, vakri, combust, and dignity',
-      'Class delay lore: results of the occupied house arrive later than expected (“diya tale andhera”)',
+      'Further results depend on aspects, vakri (retrograde), combust, and dignity',
+      'Class delay tradition: results of the occupied house arrive later than expected (“diya tale andhera”)',
     ],
   },
   2: {
@@ -341,8 +341,8 @@ const HOUSE_FOCUS: Record<number, JupiterHouseFocus> = {
     themes: ['Effort wisdom', 'Siblings', 'Short journeys of faith'],
     tone: 'delayed',
     notes: [
-      'Courageous wisdom; siblings may be few but fortunate (classical lean)',
-      'Class: delay principle still applies — house results come late, not destroyed',
+      'Courageous wisdom; siblings may be few but fortunate (classical tendency)',
+      'Tradition: delay principle still applies — house results come late, not destroyed',
     ],
   },
   4: {
@@ -352,7 +352,7 @@ const HOUSE_FOCUS: Record<number, JupiterHouseFocus> = {
     tone: 'supportive',
     notes: [
       'Happiness, motherly wisdom, conveyances when strong',
-      'Delay lore: home comforts may mature later than peers expect',
+      'Delay tradition: home comforts may mature later than peers expect',
     ],
   },
   5: {
@@ -367,12 +367,12 @@ const HOUSE_FOCUS: Record<number, JupiterHouseFocus> = {
   },
   6: {
     house: 6,
-    title: 'Jupiter in 6th — dusthana service & enemies',
+    title: 'Jupiter in 6th — dusthana (difficult houses: 6, 8, 12) service & enemies',
     themes: ['Service', 'Debt/disease fight', 'Dignity reversal'],
     tone: 'dusthana',
     notes: [
       'Mixed: can defeat enemies yet serve below worth; health moderation',
-      'Reversal lore: debilitated Jupiter here acts like exalted; exalted here can create problems',
+      'Reversal tradition: debilitated Jupiter here acts like exalted; exalted here can create problems',
     ],
   },
   7: {
@@ -382,8 +382,8 @@ const HOUSE_FOCUS: Record<number, JupiterHouseFocus> = {
     tone: 'watched',
     notes: [
       'Strong: philosophical, teacher-like spouse; high tolerance',
-      'Afflicted: delay, prior-family themes, or partnership strain — judge dignity, not house alone',
-      'Female charts: Jupiter as husband karaka is especially sensitive here',
+      'Troubled: delay, prior-family themes, or partnership strain — judge dignity, not house alone',
+      'Female charts: Jupiter as husband karaka (natural indicator) is especially sensitive here',
     ],
   },
   8: {
@@ -393,7 +393,7 @@ const HOUSE_FOCUS: Record<number, JupiterHouseFocus> = {
     tone: 'dusthana',
     notes: [
       'Longevity, occult wisdom, sudden grace in crisis when supported',
-      'Reversal lore applies; exalted Cancer in 8th may not respond to simple remedies',
+      'Reversal tradition applies; exalted Cancer in 8th may not respond to simple remedies',
     ],
   },
   9: {
@@ -413,7 +413,7 @@ const HOUSE_FOCUS: Record<number, JupiterHouseFocus> = {
     tone: 'supportive',
     notes: [
       'Respected profession — advisory, judicial, teaching, CSR, financial counsel',
-      'Delay lore: career peaks often later but solid',
+      'Delay tradition: career peaks often later but solid',
     ],
   },
   11: {
@@ -423,7 +423,7 @@ const HOUSE_FOCUS: Record<number, JupiterHouseFocus> = {
     tone: 'auspicious',
     notes: [
       'BPHS auspicious — abundant gains, noble friends, desire fulfillment',
-      'Money lore: Jupiter dasha tends to bring funds (may be late/less, but inflow comes)',
+      'Money tradition: Jupiter dasha tends to bring funds (may be late/less, but inflow comes)',
     ],
   },
   12: {
@@ -432,8 +432,8 @@ const HOUSE_FOCUS: Record<number, JupiterHouseFocus> = {
     themes: ['Charity', 'Foreign / bed', 'Initiatory wisdom'],
     tone: 'dusthana',
     notes: [
-      'Moksha lean, charitable expense, peaceful foreign dharma when strong',
-      'Reversal lore; knowledge-ego and overspend if afflicted',
+      'Moksha tendency, charitable expense, peaceful foreign dharma when strong',
+      'Reversal tradition; knowledge-ego and overspend if under pressure',
     ],
   },
 }
@@ -443,12 +443,12 @@ const RETRO_EFFECTS: JupiterConditionEffects = {
     'Results delayed — but wait is usually worth it (“late but great”)',
     'Education: slow learner — must revise 4–5 times; systematic cramming subjects suit better',
     'Always eats more than hunger — mindful food intake required',
-    'Hereditary diabetes lore — especially after ~40–51 or in Jupiter dasha',
+    'Hereditary diabetes tradition — especially after ~40–51 or in Jupiter dasha',
   ],
   positives: [
     'Becomes very strong — results intensely powerful when they arrive',
     'Education quality often high (Masters / PhD band) despite slow pace',
-    'Without vakri, the same delay feels more frustrating; vakri softens the wait psychologically',
+    'Without vakri (retrograde), the same delay feels more frustrating; vakri softens the wait psychologically',
   ],
 }
 
@@ -557,7 +557,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
     house,
     title: `Jupiter in house ${house}`,
     themes: [],
-    notes: ['Judge dignity, yuti, aspects, and functional nature for this lagna.'],
+    notes: ['Judge dignity, yuti (conjunction), aspects, and functional nature for this lagna.'],
     tone: 'neutral' as const,
   }
 
@@ -569,7 +569,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
     title: 'House delay (“jis ghar mein baithta hai…”)',
     active: true,
     detail:
-      'Class teaching: Jupiter delays (does not destroy) the house it occupies — “diya tale andhera.” Results arrive later than expected. Dusthana seats may reverse dignity expression.',
+      'Traditional teaching: Jupiter delays (does not destroy) the house it occupies — “diya tale andhera.” Results arrive later than expected. Dusthana (difficult houses: 6, 8, 12) seats may reverse dignity expression.',
   }
 
   const dusthanaReversal: JupiterFlag = {
@@ -578,11 +578,11 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
     active: inDusthana,
     detail: inDusthana
       ? debilitated
-        ? `Debilitated Jupiter in H${house}: class reversal — can give results equivalent to exalted.`
+        ? `Debilitated Jupiter in house ${house}: class reversal — can give results equivalent to exalted.`
         : exalted
-          ? `Exalted Jupiter in H${house}: class reversal — can create problems (acts closer to debilitated expression).`
+          ? `Exalted Jupiter in house ${house}: class reversal — can create problems (acts closer to debilitated expression).`
           : `Jupiter in dusthana H${house}: weigh dignity carefully — debilitated can rise; exalted can struggle.`
-      : 'Jupiter not in 6/8/12 — dusthana reversal lore not primary from house seat.',
+      : 'Jupiter not in 6/8/12 — dusthana (difficult houses: 6, 8, 12) reversal tradition not primary from house seat.',
   }
 
   const kendradhipatiActive = (JUPITER_KENDRADHIPATI_LAGNAS as Rashi[]).includes(asc)
@@ -591,7 +591,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
     title: 'Kendradhipati Dosha (Gemini / Virgo lagna)',
     active: kendradhipatiActive,
     detail: kendradhipatiActive
-      ? `Lagna ${RASHI_NAMES[asc]}: Jupiter rules two kendras (incl. 7th maraka). Wherever Jupiter sits, some benefic force is reduced — delays knowledge/money/children results; marriage may discuss divorce but typically resolves without split. Does NOT negate results — only delays / softens intensity.`
+      ? `Lagna ${RASHI_NAMES[asc]}: Jupiter rules two kendras (incl. 7th maraka). Wherever Jupiter sits, some helpful planet force is reduced — delays knowledge/money/children results; marriage may discuss divorce but typically resolves without split. Does NOT negate results — only delays / softens intensity.`
       : `Lagna ${RASHI_NAMES[asc]} — Kendradhipati Dosha for Jupiter (Gemini/Virgo only) not indicated.`,
   }
 
@@ -613,8 +613,8 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
 
   const companionNote =
     companions.length > 0
-      ? `Jupiter sits with ${companions.map(c => c.name).join(', ')} — decode Guru yogas and mixed karakatva through these yuti first.`
-      : 'No close yuti under this module’s orb — Jupiter is relatively alone; still weigh aspects and dignity.'
+      ? `Jupiter sits with ${companions.map(c => c.name).join(', ')} — decode Guru yogas and mixed karakatva through these yuti (conjunction) first.`
+      : 'No close yuti (conjunction) under this module’s orb — Jupiter is relatively alone; still weigh aspects and dignity.'
 
   const withRahu = rahu ? sameSignOrConjunct(jupiter, rahu) : false
   const withKetu = ketu ? sameSignOrConjunct(jupiter, ketu) : false
@@ -630,7 +630,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
       sameSign: !!(rahu && jupiter.rashi === rahu.rashi),
       cautionHouses: [...GURU_CHANDAL_HARD_HOUSES],
       detail: withRahu
-        ? `Conjunction active${(GURU_CHANDAL_HARD_HOUSES as readonly number[]).includes(house) ? ` in hard house H${house}` : ` in H${house}`}. Satya/dharma meets maya/desire — conjunction stronger than aspect.`
+        ? `Conjunction active${(GURU_CHANDAL_HARD_HOUSES as readonly number[]).includes(house) ? ` in hard house H${house}` : ` in house ${house}`}. Satya/dharma meets maya/desire — conjunction stronger than aspect.`
         : 'No close Jupiter–Rahu conjunction. Guru-Chandal not indicated under this orb.',
       effects: [
         'Guru/mentor relationships damaged; guru-hopping; education breaks',
@@ -651,18 +651,18 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
       sepDeg: ketu && withKetu ? angularSep(jupiter.lonSidereal, ketu.lonSidereal) : null,
       sameSign: !!(ketu && jupiter.rashi === ketu.rashi),
       detail: withKetu
-        ? `Conjunction active in H${house}. Jupiter expands wisdom; Ketu cuts attachments — intense inner spirituality. Ketu gives viyog (separation), not Rahu-style deceit.`
+        ? `Conjunction active in house ${house}. Jupiter expands wisdom; Ketu cuts attachments — intense inner spirituality. Ketu gives viyog (separation), not Rahu-style deceit.`
         : 'No close Jupiter–Ketu conjunction under this orb.',
       effects: [
-        'Adrishya gyana + tyaag; tapasvi / virakti lean',
+        'Adrishya gyana + tyaag; tapasvi / virakti tendency',
         'May unsettle grihastha life or push leaving a settled path',
-        'Past-life lore: rebelled against guru — must search again this life',
+        'Past-life tradition: rebelled against guru — must search again this life',
         'Rejects external knowledge for inner soul knowledge; final settlement in spiritualism',
       ],
       positives: [
         'Unintentional good words for others can manifest (anintentional blessing)',
         'Heightened intuition; wrong guru is left for inner guru',
-        'Saptarishi diksha lore when Ju–Ke link via 7/9/12 or aspect in benefic setup',
+        'Saptarishi diksha tradition when Ju–Ke link via 7/9/12 or aspect in helpful planet setup',
       ],
     },
     {
@@ -672,11 +672,11 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
       sepDeg: mars && withMars ? angularSep(jupiter.lonSidereal, mars.lonSidereal) : null,
       sameSign: !!(mars && jupiter.rashi === mars.rashi),
       detail: withMars
-        ? `Conjunction active in H${house}. Dharmik aakramakta — religious aggression / ugra sadhana lean; argues with teachers; invents own rituals.`
+        ? `Conjunction active in house ${house}. Dharmik aakramakta — religious aggression / ugra sadhana tendency; argues with teachers; invents own rituals.`
         : 'No close Jupiter–Mars conjunction under this orb.',
       effects: [
         'Contrarian questions to teachers; habit of contradicting mentors',
-        'If Jupiter afflicted: misuses knowledge; disrespects others’ learning; “none wiser than me”',
+        'If Jupiter troubled: misuses knowledge; disrespects others’ learning; “none wiser than me”',
       ],
       positives: [
         'If Jupiter good: ethical strength, self-knowledge, inner knowledge',
@@ -685,15 +685,15 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
     },
     {
       id: 'guru_shani',
-      name: 'Guru-Shani / Dharma-Karmadhipati lean (Jupiter + Saturn)',
+      name: 'Guru-Shani / Dharma-Karmadhipati tendency (Jupiter + Saturn)',
       active: withSaturn,
       sepDeg: saturn && withSaturn ? angularSep(jupiter.lonSidereal, saturn.lonSidereal) : null,
       sameSign: !!(saturn && jupiter.rashi === saturn.rashi),
       detail: withSaturn
-        ? `Conjunction active in H${house}. Dharma vs karma conflict: “Should I follow dharma or perform karma?” Struggle with guru or father; delayed outcomes; never gives up; unshakeable integrity.`
+        ? `Conjunction active in house ${house}. Dharma vs karma conflict: “Should I follow dharma or perform karma?” Struggle with guru or father; delayed outcomes; never gives up; unshakeable integrity.`
         : 'No close Jupiter–Saturn conjunction under this orb. (Full Dharma-Karmadhipati also needs lordship of 9th+10th — judge separately.)',
       effects: [
-        'Guaranteed life struggle with guru and/or father',
+        'Likely struggles in your relationship with a guru or your father',
         'Searches for reasoning/logic in everything',
         'Jupiter expands fields; Saturn demands hard work → delayed results → frustration',
         'Cannot be made to do wrong work — sides with ethics even against father/guru',
@@ -712,12 +712,12 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
 
   const vakSiddhi: JupiterFlag = {
     id: 'vak_siddhi',
-    title: 'Vaak Siddhi lean',
+    title: 'Vaak Siddhi tendency',
     active: vakSiddhiActive && !isCombust,
     detail: vakSiddhiActive
       ? isCombust
-        ? 'Dharma-trikona / 2nd-aspect pattern present, but combust Jupiter softens speech-power intensity.'
-        : 'Jupiter in dharma trikona (1/5/9) and/or aspecting 2nd via 5th/9th — class conditions for vaak siddhi lean. Also check 2nd-lord exchange and D-9.'
+        ? 'Dharma-trikona (trine houses: 1, 5, 9) / 2nd-aspect pattern present, but combust Jupiter softens speech-power intensity.'
+        : 'Jupiter in dharma trikona (1/5/9) and/or aspecting 2nd via 5th/9th — class conditions for vaak siddhi tendency. Also check 2nd-lord exchange and D-9.'
       : 'Primary vaak-siddhi seat/aspect pattern not indicated from natal house alone — still possible via lordship/exchange.',
   }
 
@@ -726,8 +726,8 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
     title: 'Retrograde Jupiter (वक्रि गुरु)',
     active: jupiter.isRetro,
     detail: jupiter.isRetro
-      ? 'Vakri Guru: intensely strong delayed results; slow high-quality education; overeating; hereditary diabetes lore.'
-      : 'Jupiter not retrograde — delay lore still applies via house seat, without vakri intensification.',
+      ? 'Vakri (retrograde) Guru: intensely strong delayed results; slow high-quality education; overeating; hereditary diabetes tradition.'
+      : 'Jupiter not retrograde — delay tradition still applies via house seat, without vakri (retrograde) intensification.',
   }
 
   const combustFlag: JupiterFlag = {
@@ -746,13 +746,13 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
     active: bothActive,
     detail: bothActive
       ? 'Strong delayed delivery with reduced prabhutva — education and mentorship especially stressed; health/diabetes vigilance rises.'
-      : 'Combust + vakri combination not indicated together.',
+      : 'Combust + vakri (retrograde) combination not indicated together.',
   }
 
   const remedies: string[] = [
     'Some Jupiter positions do not respond to (or need) remedies — e.g. exalted Cancer in 8th; sometimes 2nd-house Jupiter',
     'Prefer diksha / mantra / ethical correction in Jupiter mahadasha when chart supports',
-    'Yellow cloth, peepal / banana / banyan reverence lore; north / north-east puja direction',
+    'Yellow cloth, peepal / banana / banyan reverence tradition; north / north-east puja direction',
     'Detailed remedial module: dasha prediction + medical astrology — avoid one-size prescriptions',
   ]
   if (yogas.find(y => y.id === 'guru_chandal')?.active) {
@@ -767,7 +767,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
   }
   if (jupiter.isRetro) {
     remedies.push(
-      'Vakri: food discipline + early metabolic screening; revise study with spaced repetition (4–5 passes).',
+      'Vakri (retrograde): food discipline + early metabolic screening; revise study with spaced repetition (4–5 passes).',
     )
   }
 
@@ -828,7 +828,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
 
   const d9MarriageNote =
     d9Tone === 'exalted_or_own'
-      ? 'D-9 Jupiter exalted/own (sign-only rule): can balance D-1 affliction — marriage, mentorship, spiritual growth lean better.'
+      ? 'D-9 Jupiter exalted/own (sign-only rule): can balance D-1 difficult influence — marriage, mentorship, spiritual growth tendency better.'
       : d9Tone === 'debilitated'
         ? 'D-9 Jupiter debilitated (sign-only): marriage/mentorship/spiritual growth more problematic — weigh full chart.'
         : d9Tone === 'unknown'
@@ -860,7 +860,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
       d9DignityTone: d9Tone,
     },
     nature: [
-      'Naturally shubh (benefic) — remains fundamentally benefic despite conditions',
+      'Naturally shubh (helpful planet) — remains fundamentally helpful planet despite conditions',
       'No enmity with anyone — essentially neutral/benevolent toward all planets',
       'Guru of the Devas (Brihaspati); Shukra is guru of the Daityas',
       'Expanding planet — expands knowledge, money, spiritualism, and ongoing processes',
@@ -876,7 +876,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
         house: h,
         title: `Jupiter in house ${h}`,
         themes: [],
-        notes: ['Judge dignity, yuti, and functional nature for this lagna.'],
+        notes: ['Judge dignity, yuti (conjunction), and functional nature for this lagna.'],
         tone: 'neutral' as const,
       }
     }),
@@ -918,7 +918,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
     ],
     mythology: [
       'Etymology: Brihat (vast) + Pati (lord) — lord of the vastest knowledge',
-      'Birth lore (Brahma Vaivarta): son of Angirasa & Supa via tapasya-tejas; alternate — from Brahma’s jeeva/tongue',
+      'Birth tradition (Brahma Vaivarta): son of Angirasa & Supa via tapasya-tejas; alternate — from Brahma’s jeeva/tongue',
       'Shiva boon after tapasya: named Brihaspati; appointed Guru of the Devas',
       'Wives Shubha and Tara (seven children each); Mercury (Budha) famous son of Tara',
       'Son Kachchha sent to Shukra for Sanjeevani; Devayani’s curse — knowledge useless to him',
@@ -942,16 +942,16 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
       'Never label Guru-Chandal as simply inauspicious — requires spiritual-context study',
       'Kendradhipati delays, does not negate; divorce talk often resolves',
       'House delay ≠ house destruction',
-      'Dusthana reversal: do not treat exalted Jupiter in 6/8/12 as automatically excellent',
+      'Dusthana (difficult houses: 6, 8, 12) reversal: do not treat exalted Jupiter in 6/8/12 as automatically excellent',
       'D-9 marriage: use sign of Jupiter only — house placement in D-9 confuses',
       'Childlessness / diabetes / divorce: never from Jupiter alone',
       'Some placements do not need or respond to remedies',
     ],
     methodology: [
-      'Layer: nature (benefic) → house (watch delay + 2/5/9/11 sukh + 6/8/12 reversal) → sign (Cancer exalt / Capricorn debil / Sag–Pisces own) → degree peaks (~5°) → yuti yogas (Ra/Ke/Ma/Sa) → aspects 5/7/9 → combust 11° → vakri → D-9 sign → dasha',
+      'Layer: nature (helpful planet) → house (watch delay + 2/5/9/11 sukh + 6/8/12 reversal) → sign (Cancer exalt / Capricorn debil / Sag–Pisces own) → degree peaks (~5°) → yuti (conjunction) yogas (Ra/Ke/Ma/Sa) → aspects 5/7/9 → combust 11° → vakri (retrograde) → D-9 sign → dasha',
       'Female charts: husband before marriage, children after — plus Rahu as secondary marriage trigger',
       'Jupiter–Saturn delay is dasha-timed, not arithmetic double delay',
-      'Medical: liver, fat, diabetes (vakri hereditary), prana/oxygen capacity',
+      'Medical: liver, fat, diabetes (vakri (retrograde) hereditary), prana/oxygen capacity',
     ],
     summaryAttrs: [
       { label: 'Element', value: 'Akash (Ether / Space)' },

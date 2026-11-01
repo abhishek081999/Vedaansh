@@ -231,7 +231,7 @@ export const VENUS_KARAKATVA: VenusSignificationGroup[] = [
       'Shukra (semen / reproductive fluid) — essential for conception',
       'Body heat; carrying capacity (especially female charts)',
       'With Jupiter (jeev / santan karak): full cycle from conception to delivery',
-      'Female charts: Beej Sphut lore derived from Venus; severe affliction → progeny issues / santan sukh strain',
+      'Female charts: Beej Sphut tradition derived from Venus; severe difficult influence → progeny issues / santan sukh strain',
     ],
   },
 ]
@@ -251,10 +251,10 @@ export const VENUS_DEEPER: VenusSignificationGroup[] = [
     category: 'Bridge significations',
     items: [
       'Kaam (desire) and Vairagya (detachment) — both',
-      'Bhog (indulgence) → Bodh (awakening) → Moksha lean',
+      'Bhog (indulgence) → Bodh (awakening) → Moksha tendency',
       'Makes one a Raja and a Rishi',
       'Portal between death and rebirth (Mrityu–Punarjanma)',
-      'Mrit Sanjeevani lore — revival after death',
+      'Mrit Sanjeevani tradition — revival after death',
     ],
   },
 ]
@@ -306,7 +306,7 @@ export const VENUS_STAGES: VenusStageDef[] = [
     name: 'Shakti (Power)',
     representedBy: 'Sharmishtha',
     aspect: 'Struggle, karma, motherhood (matritva)',
-    qualities: ['Strength to carry a child', 'Warrior-mother energy', 'Shodashi / struggle lore'],
+    qualities: ['Strength to carry a child', 'Warrior-mother energy', 'Shodashi / struggle tradition'],
   },
   {
     stage: 5,
@@ -329,7 +329,7 @@ const HOUSE_FOCUS: Record<number, VenusHouseFocus> = {
     difficulty: 'supportive',
     notes: [
       'Personality carries grace, taste, and relational warmth when Venus is sound',
-      'If Lagnesh Venus is afflicted: capacity to feel love itself can be disturbed — healing needed',
+      'If Lagnesh Venus is under pressure: capacity to feel love itself can be disturbed — healing needed',
     ],
   },
   2: {
@@ -367,17 +367,17 @@ const HOUSE_FOCUS: Record<number, VenusHouseFocus> = {
     difficulty: 'supportive',
     notes: [
       'Love affairs, creative merit, conception themes with Jupiter',
-      'Venus + Jupiter here: class teaching — excellent for progeny and creativity',
+      'Venus + Jupiter here: traditional teaching — excellent for progeny and creativity',
       'Venus + Rahu here: can delay children; if children come, karmic foundation',
     ],
   },
   6: {
     house: 6,
-    title: 'Venus in 6th — dusthana service & love friction',
+    title: 'Venus in 6th — dusthana (difficult houses: 6, 8, 12) service & love friction',
     themes: ['Service love', 'Rivalry', 'Opposite-sex strain'],
     difficulty: 'dusthana',
     notes: [
-      'Class: problems with opposite sex in relationships when Venus sits in 6/8/12',
+      'Tradition: problems with opposite sex in relationships when Venus sits in 6/8/12',
       'Saturn or Ketu aspecting: distance from opposite sex, or chronic love complaints',
     ],
   },
@@ -388,7 +388,7 @@ const HOUSE_FOCUS: Record<number, VenusHouseFocus> = {
     difficulty: 'watched',
     notes: [
       'Natural 7th significations intensify — spouse comfort, marriage aesthetics',
-      'Still weigh dignity, combust, vakri, and yuti — house alone is not “automatic bliss”',
+      'Still weigh dignity, combust, vakri (retrograde), and yuti (conjunction) — house alone is not “automatic bliss”',
     ],
   },
   8: {
@@ -397,8 +397,8 @@ const HOUSE_FOCUS: Record<number, VenusHouseFocus> = {
     themes: ['Intense intimacy', 'Occult beauty', 'Crisis love'],
     difficulty: 'dusthana',
     notes: [
-      'Deep intimacy, shared resources, death–revival lore of Venus intensifies',
-      'Opposite-sex friction lore of dusthana still applies; judge aspect support carefully',
+      'Deep intimacy, shared resources, death–revival tradition of Venus intensifies',
+      'Opposite-sex friction tradition of dusthana (difficult houses: 6, 8, 12) still applies; judge aspect support carefully',
     ],
   },
   9: {
@@ -407,7 +407,7 @@ const HOUSE_FOCUS: Record<number, VenusHouseFocus> = {
     themes: ['Bhakti', 'Fortune aesthetics', 'Guru of pleasure ethics'],
     difficulty: 'supportive',
     notes: [
-      'Bhog-se-gyan lean; pilgrimage of beauty; ethical love when strong',
+      'Bhog-se-gyan tendency; pilgrimage of beauty; ethical love when strong',
     ],
   },
   10: {
@@ -430,12 +430,12 @@ const HOUSE_FOCUS: Record<number, VenusHouseFocus> = {
   },
   12: {
     house: 12,
-    title: 'Venus in 12th — bed pleasures, foreign, moksha lean',
+    title: 'Venus in 12th — bed pleasures, foreign, moksha tendency',
     themes: ['Private love', 'Foreign / bed', 'Bhog → Moksha'],
     difficulty: 'dusthana',
     notes: [
-      'Strong moksha / Shukra Lok lean via selfless love; also private / foreign / bed themes',
-      'Dusthana opposite-sex friction still watched — especially with Saturn/Ketu aspect',
+      'Strong moksha / Shukra Lok tendency via selfless love; also private / foreign / bed themes',
+      'Dusthana (difficult houses: 6, 8, 12) opposite-sex friction still watched — especially with Saturn/Ketu aspect',
     ],
   },
 }
@@ -566,7 +566,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
     house,
     title: `Venus in house ${house}`,
     themes: [],
-    notes: ['Judge dignity, yuti, and functional nature for this lagna.'],
+    notes: ['Judge dignity, yuti (conjunction), and functional nature for this lagna.'],
     difficulty: 'neutral' as const,
   }
 
@@ -583,8 +583,8 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
         title: `Dusthana H${house} — opposite-sex friction watched`,
         active: true,
         detail: saturnOrKetuAspectDusthana
-          ? `Venus in H${house} with Saturn/Ketu company: class teaching — distance from opposite sex, or chronic love complaints (“I expected this, you didn’t”).`
-          : `Venus in H${house} (6/8/12): class teaching — problems with opposite sex in relationships. Weigh aspects and dignity.`,
+          ? `Venus in house ${house} with Saturn/Ketu company: traditional teaching — distance from opposite sex, or chronic love complaints (“I expected this, you didn’t”).`
+          : `Venus in house ${house} (6/8/12): traditional teaching — problems with opposite sex in relationships. Weigh aspects and dignity.`,
       }
     : debilitated
       ? {
@@ -592,7 +592,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
           title: 'Debilitated Venus — analytical / cold relating risk',
           active: true,
           detail:
-            'Neech Shukra: transactional relating, doubt, dissatisfaction. Without neecha-bhanga — relationship destruction, childbirth delay, marriage strain lore.',
+            'Neech Shukra: transactional relating, doubt, dissatisfaction. Without neecha-bhanga — relationship destruction, childbirth delay, marriage strain tradition.',
         }
       : null
 
@@ -612,8 +612,8 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
 
   const companionNote =
     companions.length > 0
-      ? `Venus sits with ${companions.map(c => c.name).join(', ')} — decode love/kalas through these yuti first (Ketu = bhog vs vairagya clash; Rahu = glamour/desire fog; Saturn = delay/tapasya; Mars = passion not automatic dosa; Jupiter in 5th = progeny joy).`
-      : 'No close yuti under this module’s orb — Venus expresses more independently. Still weigh aspects and house dignity.'
+      ? `Venus sits with ${companions.map(c => c.name).join(', ')} — decode love/kalas through these yuti (conjunction) first (Ketu = bhog vs vairagya clash; Rahu = glamour/desire fog; Saturn = delay/tapasya; Mars = passion not automatic dosa; Jupiter in 5th = progeny joy).`
+      : 'No close yuti (conjunction) under this module’s orb — Venus expresses more independently. Still weigh aspects and house dignity.'
 
   const juIn5WithVe = house === 5 && jupiter != null && sameSignOrConjunct(venus, jupiter)
 
@@ -641,7 +641,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
         'Venus + Rahu',
         venus,
         rahu,
-        'Glamour, excessive desires, confusion with opposite sex; unfulfilled karmic bond lore.',
+        'Glamour, excessive desires, confusion with opposite sex; unfulfilled karmic bond tradition.',
         [
           'Quick attraction but wrong decisions possible',
           'Creates “unfulfilled karmic bond” patterns',
@@ -673,7 +673,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
       'Delays in love and marriage — Saturn demands tapasya before love comes close.',
       [
         'Delay in love / marriage (obvious class note)',
-        'Past-life deception / betrayal of a woman lore — penance now',
+        'Past-life deception / betrayal of a woman tradition — penance now',
         'Tests patience and commitment',
       ],
       [
@@ -716,9 +716,9 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
       'Venus + Moon — Shakti Yoga',
       venus,
       moon,
-      'Class teaching: Venus conjunct Moon creates Shakti Yoga.',
+      'Traditional teaching: Venus conjunct Moon creates Shakti Yoga.',
       [
-        'Emotional–desire fusion can overwhelm if Moon is afflicted',
+        'Emotional–desire fusion can overwhelm if Moon is under pressure',
       ],
       [
         'Feminine power, aesthetic emotion, magnetic nurture',
@@ -732,8 +732,8 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
     title: 'Retrograde Venus (वक्रि शुक्र)',
     active: venus.isRetro,
     detail: venus.isRetro
-      ? 'Vakri Shukra: internal happiness over superficial love; past-life returns; karmic debts; silence→words love language. Position-dependent.'
-      : 'Venus not retrograde — relating less locked into the vakri past-life return pattern.',
+      ? 'Vakri (retrograde) Shukra: internal happiness over superficial love; past-life returns; karmic debts; silence→words love language. Position-dependent.'
+      : 'Venus not retrograde — relating less locked into the vakri (retrograde) past-life return pattern.',
   }
 
   const combustFlag: VenusFlag = {
@@ -752,7 +752,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
     active: bothActive,
     detail: bothActive
       ? 'Ego heat + karmic return pattern together — suppressed desire meets past-life repetition. Handle with patience and honest inner work.'
-      : 'Combust + vakri combination not indicated together.',
+      : 'Combust + vakri (retrograde) combination not indicated together.',
   }
 
   const exaltFlag: VenusFlag = {
@@ -852,10 +852,10 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
   ]
 
   const remedies: string[] = [
-    'Primary remedy lore: cultivate selfless love — class: only path to Shukra Lok',
+    'Primary remedy tradition: cultivate selfless love — class: only path to Shukra Lok',
     'White / pastel aesthetics, clean fragrance, beauty as worship (Archana) without vanity',
     'Diamond / white sapphire only if full chart supports — never prescribe blindly',
-    'Friday discipline: moderate sugar/white foods when Venus is afflicted',
+    'Friday discipline: moderate sugar/white foods when Venus is under pressure',
     'Jayanti path: unconditional service without expectation softens hard Venus',
   ]
   if (debilitated) {
@@ -865,7 +865,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
   }
   if (venus.isRetro) {
     remedies.push(
-      'Vakri: prioritize silent understanding with partner; journal past-pattern returns without reopening drama.',
+      'Vakri (retrograde): prioritize silent understanding with partner; journal past-pattern returns without reopening drama.',
     )
   }
   if (isCombust) {
@@ -875,7 +875,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
   }
   if (inDusthana) {
     remedies.push(
-      'Dusthana Venus: heal opposite-sex expectations; Saturn/Ketu company needs patience, not blame scripts.',
+      'Dusthana (difficult houses: 6, 8, 12) Venus: heal opposite-sex expectations; Saturn/Ketu company needs patience, not blame scripts.',
     )
   }
 
@@ -960,7 +960,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
       'Defender of individual freedom and choice (Tara story)',
       'Path: Prem aur Prana — Bhog se Moksha; “Sambhog se Samadhi”',
       'Rajoguni — passion/activity quality; Bhrigu kul — beautiful, komal, chatur, saundarya-priya',
-      'Lord of Prem, Kala, and Rati (Hora Shastra lore) — pleased gives all; angered takes all',
+      'Lord of Prem, Kala, and Rati (Hora Shastra tradition) — pleased gives all; angered takes all',
     ],
     philosophy: [
       'Venus is not just romance, beauty, or luxury — that is only the skeleton',
@@ -982,7 +982,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
         house: h,
         title: `Venus in house ${h}`,
         themes: [],
-        notes: ['Judge dignity, yuti, and functional nature for this lagna.'],
+        notes: ['Judge dignity, yuti (conjunction), and functional nature for this lagna.'],
         difficulty: 'neutral' as const,
       }
     }),
@@ -1010,9 +1010,9 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
       'Father: Maharishi Bhrigu; Mother: Kavyamata / Ushana — also called Ushana, Kavya, Kavi',
       'Rigveda / Mahabharata Anushasan / Bhagavat: “Ushana Kavi” — fond of poetry',
       'Took Asura-guru role to restore balance when Brihaspati became Deva-guru',
-      'Defended Tara’s independence against Deva pressure — Taraka Maya war lore',
+      'Defended Tara’s independence against Deva pressure — Taraka Maya war tradition',
       'Tapasya for Mrit Sanjeevani: 1,000 years upside-down on vayu; Jayanti (Indra’s daughter) served selflessly → marriage as ideal sadhana + prem',
-      'Daughter Devyani; Bhargava lineage — tantra, rasayana; Chyavan as descendant lore',
+      'Daughter Devyani; Bhargava lineage — tantra, rasayana; Chyavan as descendant tradition',
       'All 20 Vidyas (not 19) — same Vedic knowledge Brihaspati holds, plus more',
       'Shukra Niti — treatise on governance and social structure',
     ],
@@ -1020,7 +1020,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
       'Yayati (Chandravanshi emperor) married Devyani with vow not to look at Sharmishtha — then secretly married Sharmishtha → son Puru',
       'Shukra’s curse (Yayati Chakra): premature old age until a son willingly takes it — Puru accepted',
       'After years of extreme bhog, mind reached shunya → returned youth to Puru, took sanyas',
-      'Quote lore: desire never ends by indulgence — fire grows when ghee is poured',
+      'Quote tradition: desire never ends by indulgence — fire grows when ghee is poured',
       'Lineages: Yadu (Krishna), Puru→Kuru (Kaurava/Pandava), Turvasu, Druhyu, Anu',
       'Astrologically: Kaam→Vairagya, Bhog→Bodh, Raja→Rishi — all Venus karak tatva; Yayati Chakra manifests in charts',
       'Modern echo: cheating, restless desire, youth-obsession injections — read through Venus',
@@ -1053,16 +1053,16 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
     caveats: [
       'Outer romance/luxury readings are skeleton only — always include bridge/moksha layer',
       'Venus–Mars is not automatic sexual-crime yoga — judge full chart',
-      'Vakri returns are specialty + complication — not a curse to announce casually',
+      'Vakri (retrograde) returns are specialty + complication — not a curse to announce casually',
       'Combust orb: class 10° (some 8°) — align with engine 10° but note textual variance',
-      'Dusthana Venus needs healing language, not fatalism about opposite sex',
+      'Dusthana (difficult houses: 6, 8, 12) Venus needs healing language, not fatalism about opposite sex',
       'Check chart capacity before gemstones / ritual prescriptions',
     ],
     methodology: [
-      'Layer: Venus nature (Shukra vs Brihaspati) → house (watch 6/8/12) → sign (Pisces exalt / Virgo debil) → nakshatra (Bharani / Purva Phalguni / Purva Ashadha) → yuti (Ketu/Rahu/Sa/Ma/Ju/Mo) → combust 10° → vakri → 16 kalas disturbance → dasha',
+      'Layer: Venus nature (Shukra vs Brihaspati) → house (watch 6/8/12) → sign (Pisces exalt / Virgo debil) → nakshatra (Bharani / Purva Phalguni / Purva Ashadha) → yuti (Ketu/Rahu/Sa/Ma/Ju/Mo) → combust 10° → vakri (retrograde) → 16 kalas disturbance → dasha',
       'Always ask: is this bhog, bodh, or moksha phase of Venus?',
       'Female charts: weigh five stages (Jayanti → Devyani → Tripura → Sharmishtha → Yayati arc)',
-      'Progeny: Jupiter + Venus together; Beej Sphut / santan sukh via Venus affliction in female charts',
+      'Progeny: Jupiter + Venus together; Beej Sphut / santan sukh via Venus difficult influence in female charts',
     ],
     summaryAttrs: [
       { label: 'Guna', value: 'Rajas (राजोगुणी)' },

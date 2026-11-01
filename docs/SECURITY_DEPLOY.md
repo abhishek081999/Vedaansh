@@ -80,10 +80,10 @@ Heavy paths:
 
 ## 7. What is enforced in code
 
-- `proxy.ts`: auth gates, tier routes, admin routes, NextAuth POST rate limit, **per-request CSP nonces**
+- `src/proxy.ts` (must stay in `src/`, or Next.js silently ignores it): auth gates, tier routes, admin routes, sign-in POST rate limit, **per-request CSP nonces**
 - APIs: same-origin on mutating routes, Redis rate limits, body size caps, plan/admin DB checks
-- Edge prefixes in `proxy.ts` are broader than some handlers: `/api/subscription` requires a session (including pricing); `/api/chart/export` (Gold) also matches XLSX export
-- Payments: HMAC verify + webhook replay dedupe (6h)
+- Route lists live in `src/lib/security/proxyRules.ts` and match whole path segments. `/chart/[slug]`, `/api/subscription/*`, and the ACG, relocate, and varshaphal APIs are intentionally public.
+- Payments: HMAC verify, shared idempotent activation (`src/lib/subscription/activation.ts`), refund and lost-dispute revocation, webhook replay dedupe (6h)
 - Sessions: secure cookies in production, per-email login throttle
 
 See `src/lib/security/` and [`docs/API.md`](./API.md) for implementation details.

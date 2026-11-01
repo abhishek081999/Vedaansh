@@ -414,7 +414,7 @@ function jupiterCycle(age: number, g: GrahaData | undefined): PlanetaryEnergyCyc
     status: base.status,
     statusLabel: base.statusLabel,
     summary:
-      'Jupiter activates an inner peace period every 12 years. At ages 12, 24, 36, 48, and 60, unseen or invisible blessings / protection are indicated — check those years in the native’s life.',
+      'Jupiter activates an inner peace period every 12 years. At ages 12, 24, 36, 48, and 60, unseen or invisible blessings / protection are indicated — check those years in the person’s life.',
     phases: [
       {
         label: 'Shanti kaal',
@@ -455,7 +455,7 @@ function venusCycle(g: GrahaData | undefined): PlanetaryEnergyCycle {
     cyclePeriod: 'Fixed by Venus pada at birth',
     status: 'natal',
     statusLabel: `Pada ${pada}: ${desire.type}`,
-    summary: `Before birth, Venus implants desire into the native. The Venus pada decides which seed dominates: ${desire.type} — ${desire.meaning}.`,
+    summary: `Before birth, Venus implants desire into the person. The Venus pada decides which seed dominates: ${desire.type} — ${desire.meaning}.`,
     phases: [
       { label: '1st Pada — Bhog', description: 'Material enjoyment / pleasures.' },
       { label: '2nd Pada — Prem', description: 'Experience of love.' },
@@ -577,7 +577,7 @@ function rahuCycle(g: GrahaData | undefined): PlanetaryEnergyCycle {
     status: 'continuous',
     statusLabel: 'Always operating',
     summary:
-      'Rahu’s magnetic field attracts toward only three things: what you do not get; what you should not get; and what does not stay after you get it. There is no fourth. This reflects as identity distortion — Rahu breaks identity again and again, and ultimately leads toward tapasya. Do not dismiss Rahu as “only malefic”; you cannot manage without it.',
+      'Rahu’s magnetic field attracts toward only three things: what you do not get; what you should not get; and what does not stay after you get it. There is no fourth. This reflects as identity distortion — Rahu breaks identity again and again, and ultimately leads toward tapasya. Do not dismiss Rahu as “only difficult planet”; you cannot manage without it.',
     phases: [
       { label: 'Unattainable', description: 'Attracts toward what you do not get.' },
       { label: 'Not meant for you', description: 'Attracts toward what you should not get.' },
@@ -589,7 +589,7 @@ function rahuCycle(g: GrahaData | undefined): PlanetaryEnergyCycle {
     manifestations: [
       'Identity breaks and rebuilds repeatedly',
       'Ultimate direction: tapasya',
-      'Not “only malefic” — essential to the native’s path',
+      'Not “only difficult planet” — essential to the person’s path',
     ],
     natalNotes: [
       `Rahu in ${g ? RASHI_NAMES[g.rashi] : '—'} · ${g ? NAKSHATRA_NAMES[g.nakshatraIndex] : '—'}`,

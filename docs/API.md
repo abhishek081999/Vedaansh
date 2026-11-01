@@ -18,17 +18,16 @@
 | Admin | `requireAdmin()` — session + DB `role === 'admin'`. |
 | CSRF | Mutating routes: same-origin Origin/Referer (see presets). |
 | Redis down | Rate limits **fail open** (requests proceed). |
-| Edge gates | `proxy.ts` also requires a session on `PROTECTED_API` prefixes, and blocks Gold/Platinum page+API prefixes and admin. |
+| Edge gates | `src/proxy.ts` also requires a session on `PROTECTED_API` prefixes, and blocks Gold/Platinum page+API prefixes and admin. |
 
 **Plan legend:** — none · soft soft limit · **gold** / **platinum** hard gate · admin DB role
 
 **Proxy prefixes (effective access can be stricter than the handler):**
 
-| Prefix in `proxy.ts` | Effect |
+| Prefix in `src/proxy.ts` | Effect |
 |----------------------|--------|
-| `PROTECTED_API` includes `/api/chart/save`, `/api/chart/template`, `/api/chart/relocate`, `/api/chart/varshaphal`, `/api/chart/astrocartography`, `/api/user`, `/api/subscription`, `/api/clients`, `/api/muhurta`, `/api/payment/checkout`, `/api/payment/verify`, and the other chart writes listed in `proxy.ts` | Session required before the handler runs |
-| `/api/subscription` | Also covers `/api/subscription/pricing` and `/api/subscription/coupon/validate` |
-| `GOLD_API` `/api/chart/export` | Also covers `/api/chart/export-xlsx` (Gold+ at the edge) |
+| `PROTECTED_API` | Whole-segment prefixes in `src/lib/security/proxyRules.ts`. Includes `/api/chart/save`, `/api/chart/template`, `/api/user`, `/api/muhurta`, `/api/clients`, and payment checkout/verify |
+| `GOLD_API` | `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx` |
 | `GOLD_API` `/api/muhurta` | Muhurta timeline and report |
 | Not in `PROTECTED_API` or `GOLD_API` | `/api/milan/*` (session in the handler) and `/api/marriage/gochar-windows` (session + `requirePlanGate('gold')` in the handler) |
 
@@ -63,14 +62,14 @@
 | POST | `/api/chart/toggle-public` | yes | — | Public slug |
 | GET | `/api/chart/public` | no | — | Public by slug; Platinum branding |
 | POST | `/api/chart/export` | yes | **gold** | PDF/HTML. Proxy prefix and route gate |
-| GET | `/api/chart/export-xlsx` | yes | **gold** (proxy) | Handler checks session only; `GOLD_API` prefix `/api/chart/export` also matches this path |
+| GET | `/api/chart/export-xlsx` | yes | **gold** | `requirePlanGate` in handler, also in `GOLD_API` |
 | POST | `/api/chart/bulk-export` | yes | **platinum** | ZIP |
 | POST | `/api/chart/bulk-import` | yes | soft (save cap) | Batch import until the chart save cap |
 | POST | `/api/chart/send-email` | yes | **platinum** | Email report |
 | GET | `/api/chart/template` | yes (proxy) | — | XLSX import template. Handler does not call `auth()` |
-| POST | `/api/chart/relocate` | yes (proxy) | — | Relocated houses. Handler does not call `auth()` |
-| POST | `/api/chart/varshaphal` | yes (proxy) | — | Solar return. Handler does not call `auth()` |
-| GET | `/api/chart/astrocartography` | yes (proxy) | — | ACG lines. Handler does not call `auth()` |
+| POST | `/api/chart/relocate` | no | — | Relocated houses. Public and rate limited |
+| POST | `/api/chart/varshaphal` | no | — | Solar return. Public and rate limited |
+| GET | `/api/chart/astrocartography` | no | — | ACG lines. Public and rate limited |
 
 **Save caps (soft):** free 20 · gold 200 · platinum unlimited — `src/lib/subscription/entitlements.ts`. Kundali Milan uses the same numbers on its own counter.
 
@@ -78,7 +77,7 @@
 
 ## Kundali Milan library
 
-Session is enforced in the handler. These paths are **not** in `proxy.ts` `PROTECTED_API`.
+Session is enforced in the handler. These paths are **not** in `src/proxy.ts` `PROTECTED_API`.
 
 | Method | Path | Auth | Plan | Notes |
 |--------|------|------|------|-------|
@@ -93,7 +92,7 @@ Session is enforced in the handler. These paths are **not** in `proxy.ts` `PROTE
 
 | Method | Path | Auth | Plan | Notes |
 |--------|------|------|------|-------|
-| GET | `/api/marriage/gochar-windows` | yes | **gold** | Ju–Sa window scan. `ascRashi` required, `years` 1–20. `requirePlanGate`; not in `proxy.ts` `GOLD_API` |
+| GET | `/api/marriage/gochar-windows` | yes | **gold** | Ju–Sa window scan. `ascRashi` required, `years` 1–20. `requirePlanGate`; not in `src/proxy.ts` `GOLD_API` |
 
 ---
 
@@ -118,8 +117,8 @@ Session is enforced in the handler. These paths are **not** in `proxy.ts` `PROTE
 | POST | `/api/payment/checkout` | yes | — | Create Razorpay order |
 | POST | `/api/payment/verify` | yes | — | Verify payment + upgrade |
 | POST | `/api/webhooks/razorpay` | HMAC | — | No session; signature required |
-| GET | `/api/subscription/pricing` | yes (proxy) | — | Handler does not call `auth()`. Edge prefix `/api/subscription` requires a session. Prices still come from `BillingConfig` |
-| POST | `/api/subscription/coupon/validate` | yes (proxy) | — | Handler uses the session when present for new-user coupon rules. Edge prefix still requires a session |
+| GET | `/api/subscription/pricing` | no | — | Public so the pricing page works logged out |
+| POST | `/api/subscription/coupon/validate` | optional | — | Uses the session when present for new-user coupon rules |
 
 Default list prices (INR): `src/lib/subscription/pricing.ts` — may be overridden by `BillingConfig` in Mongo.
 
@@ -132,7 +131,7 @@ Default list prices (INR): `src/lib/subscription/pricing.ts` — may be overridd
 | GET | `/api/muhurta/timeline` | yes | **gold** | Timeline windows |
 | POST | `/api/muhurta/report` | yes | **gold** | Report |
 
-Also gated in `proxy.ts` for `/muhurta` and `/api/muhurta`.
+Also gated in `src/proxy.ts` for `/muhurta` and `/api/muhurta`.
 
 ---
 
@@ -163,7 +162,7 @@ Also gated in `proxy.ts` for `/muhurta` and `/api/muhurta`.
 
 ## Admin
 
-All require `requireAdmin()` (session + `role === 'admin'`). Also gated in `proxy.ts`.
+All require `requireAdmin()` (session + `role === 'admin'`). Also gated in `src/proxy.ts`.
 
 | Method | Path | Notes |
 |--------|------|-------|

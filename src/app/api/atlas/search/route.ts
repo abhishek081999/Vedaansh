@@ -1,11 +1,12 @@
 // ─────────────────────────────────────────────────────────────
 //  src/app/api/atlas/search/route.ts
-//  Lightweight geocoding (Photon) + Reverse timezone lookup
-//  Replaces 115MB SQLite with ultra-fast public APIs + Redis
+//  Lightweight geocoding (Photon) + offline timezone lookup
+//  Replaces 115MB SQLite with public geocoding APIs + Redis
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server'
 import { redis, CACHE_TTL } from '@/lib/redis'
+import { resolveTimezone } from '@/lib/geo/timezone'
 
 // ── Types ──────────────────────────────────────────────────────
 interface LocationResult {
@@ -28,148 +29,6 @@ interface PhotonFeature {
     country?: string
     osm_value?: string
     extent?: [number, number, number, number]
-  }
-}
-
-/**
- * Deduplicate concurrent API requests for the same coordinates
- */
-const pendingTzLookups = new Map<string, Promise<string>>();
-
-/**
- * Fetches timezone for coordinates using BigDataCloud free API
- * Rounds coordinates to 2 decimal places to increase cache hit rate.
- * Results cached in Redis for 7 days.
- */
-async function fetchTimezone(lat: number, lng: number): Promise<string> {
-  // Validate coordinates to prevent 400 Bad Requests on absurd fallback data
-  if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-    return 'UTC'
-  }
-
-  // Pre-emptive check for India/Nepal (95% of use cases)
-  const isNepal = (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
-  const isIndia = !isNepal && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
-  
-  // If we are deep inside India or Nepal, we stop here.
-  // Exception: Coastal or border areas might need the API, but for astrology, the regional default is safer than a failing API.
-  if (isNepal) return 'Asia/Kathmandu'
-  if (isIndia) return 'Asia/Kolkata'
-
-  const roundedLat = lat.toFixed(2)
-  const roundedLng = lng.toFixed(2)
-  const cacheKey = `tz:${roundedLat},${roundedLng}`
-  
-  // 1. Check for concurrent pending requests to avoid "Cache Stampede"
-  // We do this BEFORE Redis to prevent multiple simultaneous Redis hits for the same key
-  if (pendingTzLookups.has(cacheKey)) {
-    return pendingTzLookups.get(cacheKey)!
-  }
-
-  const lookupPromise = (async () => {
-    // 2. Try Redis cache
-    try {
-      const cached = await redis.get<string>(cacheKey)
-      if (cached) {
-        // Fix for previously mis-cached Nepal locations
-        const isNepal = (lat > 26.3 && lat < 30.5 && lng > 80.0 && lng < 88.5)
-        if (isNepal && (cached === 'Asia/Kolkata' || cached === 'UTC')) return 'Asia/Kathmandu'
-        return cached
-      }
-    } catch (e) {
-      console.error('[tz] Redis lookup failed:', e)
-    }
-    try {
-      // 3. Query BigDataCloud reverse geocode API (free tier)
-      // Use fixed precision to avoid malformed URL issues with very long floats
-      const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat.toFixed(5)}&longitude=${lng.toFixed(5)}&localityLanguage=en`
-      const res = await fetch(bdcUrl, {
-        next: { revalidate: 604800 }
-      })
-      if (!res.ok) throw new Error(`API failed [${res.status}]`)
-    
-      const data = await res.json()
-      
-      // 4. Extract IANA timezone from informative info
-      const info = data.localityInfo?.informative || []
-      const tzEntry = info.find((i: any) => 
-         i.description === 'time zone' || 
-         (i.name && i.name.includes('/') && i.name.length > 5)
-      )
-      
-      const countryCode = data.countryCode || ""
-      const isNepal = countryCode === "NP" || (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
-      const isIndia = !isNepal && (countryCode === "IN" || (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4))
-      
-      // Initial guess based on region
-      let tz = isNepal ? 'Asia/Kathmandu' : (isIndia ? 'Asia/Kolkata' : 'UTC')
-      
-      if (tzEntry?.name && tzEntry.name.includes('/')) {
-        tz = tzEntry.name
-      } else {
-        // Fallback: check if the API returned a direct timezone property
-        if (data.timezone && typeof data.timezone === 'string' && data.timezone.includes('/')) {
-          tz = data.timezone
-        } else if (data.timezone?.ianaName && typeof data.timezone.ianaName === 'string') {
-          tz = data.timezone.ianaName
-        }
-      }
-      
-      // 5. Cache in Redis
-      await redis.set(cacheKey, tz, CACHE_TTL.ATLAS).catch(() => {})
-      return tz
-    } catch (err) {
-      // 3.5 Fallback to secondary free API before giving up
-      try {
-        const timeApiRes = await fetch(`https://www.timeapi.io/api/TimeZone/coordinate?latitude=${lat.toFixed(5)}&longitude=${lng.toFixed(5)}`, {
-          next: { revalidate: 604800 }
-        })
-        if (timeApiRes.ok) {
-          const timeData = await timeApiRes.json()
-          if (timeData.timeZone && typeof timeData.timeZone === 'string') {
-            const tz = timeData.timeZone
-            await redis.set(cacheKey, tz, CACHE_TTL.ATLAS).catch(() => {})
-            return tz
-          }
-        }
-      } catch (e2) {
-        // ignore secondary failure
-      }
-
-      // 3.7 Offline Fallback (Very reliable)
-      try {
-        const tzlookup = (await import('tz-lookup')).default
-        const tz = tzlookup(lat, lng)
-        if (tz) {
-          await redis.set(cacheKey, tz, CACHE_TTL.ATLAS).catch(() => {})
-          return tz
-        }
-      } catch (e3) {
-        // ignore
-      }
-
-      // Emergency fallback for Region context
-      const isNepalFallback = (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
-      const isIndiaFallback = !isNepalFallback && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
-      
-      const flavor = isNepalFallback ? 'Asia/Kathmandu' : (isIndiaFallback ? 'Asia/Kolkata' : 'UTC')
-      
-      // Only log if it's not a common regional fallback
-      if (flavor === 'UTC') {
-        console.error('[tz] Fetch failed and offline fallback missing for:', lat, lng, err)
-      }
-      
-      return flavor
-    }
-  })()
-
-  pendingTzLookups.set(cacheKey, lookupPromise)
-  
-  try {
-    return await lookupPromise
-  } finally {
-    // Clean up after 1 second to allow near-simultaneous batch searches to hit it
-    setTimeout(() => pendingTzLookups.delete(cacheKey), 1000)
   }
 }
 
@@ -205,7 +64,7 @@ export async function GET(req: NextRequest) {
       }
       const roundedLat = lat.toFixed(2)
       const roundedLng = lng.toFixed(2)
-      const reverseCacheKey = `atlas:reverse:${roundedLat},${roundedLng}`
+      const reverseCacheKey = `atlas:v2:reverse:${roundedLat},${roundedLng}`
 
       // Cached reverse lookups are cheap — do not count against rate limit
       const cached = await redis.get<LocationResult>(reverseCacheKey)
@@ -216,27 +75,34 @@ export async function GET(req: NextRequest) {
       const securityBlocked = await blockIfAtlasRateLimited(req)
       if (securityBlocked) return securityBlocked
       
-      // Use fetchTimezone but it will likely hit our pre-emptive India/Nepal logic or Redis
-      const tz = await fetchTimezone(lat, lng)
-      
-      const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`, {
-        next: { revalidate: 604800 }
-      })
-      
-      if (!res.ok) {
-        const text = await res.text()
-        throw new Error(`BigDataCloud API error ${res.status}: ${text.slice(0, 100)}`)
+      const tz = resolveTimezone(lat, lng)
+
+      // The place name is optional: a geocoder outage must not lose the timezone.
+      let place: { city?: string; locality?: string; countryName?: string; principalSubdivision?: string } = {}
+      let placeResolved = false
+      try {
+        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`, {
+          next: { revalidate: 604800 }
+        })
+        if (!res.ok) throw new Error(`BigDataCloud API error ${res.status}`)
+        place = await res.json()
+        placeResolved = true
+      } catch (err) {
+        console.warn('[atlas/reverse] Place name lookup failed:', err instanceof Error ? err.message : err)
       }
-      const data = await res.json()
 
       const result: LocationResult = {
-        name:      data.city || data.locality || 'Current Location',
-        country:   data.countryName || '',
-        admin1:    data.principalSubdivision || '',
+        name:      place.city || place.locality || 'Current Location',
+        country:   place.countryName || '',
+        admin1:    place.principalSubdivision || '',
         latitude:  lat,
         longitude: lng,
         timezone:  tz,
         population: 0
+      }
+
+      if (!placeResolved) {
+        return NextResponse.json({ results: [result], fromCache: false })
       }
 
       // Cache in Redis (7 days)
@@ -255,18 +121,13 @@ export async function GET(req: NextRequest) {
   }
 
   // Global search cache to prevent redundant external Photon calls
-  const searchCacheKey = `atlas:search:${q.toLowerCase()}`
+  const searchCacheKey = `atlas:v2:search:${q.toLowerCase()}`
   const cachedResults = await redis.get<LocationResult[]>(searchCacheKey)
   if (cachedResults && cachedResults.length > 0) {
-    // Safety: If cached results have 'UTC', we re-verify them to clear the old bug
-    const hasUTC = cachedResults.some(r => r.timezone === 'UTC' || !r.timezone)
-    if (!hasUTC) {
-      return NextResponse.json(
-        { results: cachedResults, fromCache: true },
-        { headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600' } }
-      )
-    }
-    // If we have 'UTC' results, continue to fresh fetch to fix them
+    return NextResponse.json(
+      { results: cachedResults, fromCache: true },
+      { headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600' } }
+    )
   }
 
   const securityBlocked = await blockIfAtlasRateLimited(req)
@@ -302,8 +163,6 @@ export async function GET(req: NextRequest) {
             name: item.name,
             state: item.admin1,
             country: item.country,
-            // Custom property to pass timezone down
-            _timezone: item.timezone
           }
         }))
       } catch (secondaryErr) {
@@ -339,26 +198,7 @@ export async function GET(req: NextRequest) {
         const country = feat.properties.country || ''
         const admin1  = feat.properties.state || ''
 
-        // ── Optimization: Assign TZ directly for major regions ──
-        let timezone = (feat.properties as any)._timezone || ''
-        if (!timezone) {
-          if (country === 'India') {
-            timezone = 'Asia/Kolkata'
-          } else if (country === 'Nepal') {
-            timezone = 'Asia/Kathmandu'
-          } else {
-            // Only hit the API/Redis for other countries
-            timezone = await fetchTimezone(lat, lng)
-          }
-        }
-        
-        // Bounding box safety within search results mapping
-        if (timezone === 'UTC') {
-          const isNepal = country === 'Nepal' || (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
-          const isIndia = !isNepal && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
-          if (isNepal) timezone = 'Asia/Kathmandu'
-          else if (isIndia) timezone = 'Asia/Kolkata'
-        }
+        const timezone = resolveTimezone(lat, lng)
 
         return {
           name,

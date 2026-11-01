@@ -124,8 +124,8 @@ function upapadaTouched(ul: Rashi, grahas: readonly Placement[], lines: string[]
   const malefic = [...hitsOn(ul, grahas, MALEFIC), ...hitsOn(second, grahas, MALEFIC)]
   if (malefic.length === 0) return false
   const benefic = [...hitsOn(ul, grahas, BENEFIC), ...hitsOn(second, grahas, BENEFIC)]
-  const light = benefic.length > malefic.length ? ' Benefics on these signs outnumber the malefics, so the trouble is read more lightly.' : ''
-  lines.push(`A malefic reaches the Upapada (${RASHI_NAMES[ul]}) or the 2nd from it. Trouble in marriage is checked.${light}`)
+  const light = benefic.length > malefic.length ? ' Helpful planets on these signs outnumber the difficult planets, so the trouble is read more lightly.' : ''
+  lines.push(`A difficult planet reaches the Upapada (${RASHI_NAMES[ul]}) or the 2nd from it. Trouble in marriage is checked.${light}`)
   return true
 }
 
@@ -165,7 +165,7 @@ function afflictedNotes(input: { ascRashi: Rashi; grahas: readonly Placement[] }
     const checked = matter.charAt(0).toUpperCase() + matter.slice(1)
     const sign = rashiForHouseFromLagna(input.ascRashi, house)
     const benefic = input.grahas.some((g) => BENEFIC.includes(g.id) && g.rashi === sign)
-    const softer = benefic ? ' A benefic is also there, so the severity is read as lower.' : ''
+    const softer = benefic ? ' A helpful planet is also there, so the severity is read as lower.' : ''
     return `The ${ordinal(house)} is the most afflicted house. ${checked}${softer} The ${ordinal(house)} year, and every 12 years after it, is when this house is read.`
   })
 }

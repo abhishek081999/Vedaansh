@@ -239,7 +239,7 @@ function pastLifeNakshatra(name: string, pada: number): string | null {
 
 function amkHouseText(house: number): string {
   if (house === 5) {
-    return 'Amatyakaraka is in the 5th, a trikona. A rise can be visible, and fame can bring a scandal with it.'
+    return 'Amatyakaraka is in the 5th, a trikona (trine houses: 1, 5, 9). A rise can be visible, and fame can bring a scandal with it.'
   }
   if (house === 6) {
     return 'Amatyakaraka is in the 6th. A rise is possible through struggle, with a health cost. The old picture is a promotion followed by a hospital stay.'
@@ -251,13 +251,13 @@ function amkHouseText(house: number): string {
     return 'Amatyakaraka is in the 12th. Direction is lost, and losses follow.'
   }
   if (house === 1) {
-    return 'Amatyakaraka is in the 1st, both a kendra and a trikona. A rise can be visible.'
+    return 'Amatyakaraka is in the 1st, both a kendra (angular houses: 1, 4, 7, 10) and a trikona (trine houses: 1, 5, 9). A rise can be visible.'
   }
   if (house === 9) {
-    return 'Amatyakaraka is in the 9th, a trikona. A rise can be visible.'
+    return 'Amatyakaraka is in the 9th, a trikona (trine houses: 1, 5, 9). A rise can be visible.'
   }
   if (house === 4 || house === 7 || house === 10) {
-    return `Amatyakaraka is in the ${ordinal(house)}, a kendra. A rise can be visible.`
+    return `Amatyakaraka is in the ${ordinal(house)}, a kendra (angular houses: 1, 4, 7, 10). A rise can be visible.`
   }
   return `Amatyakaraka is in the ${ordinal(house)}. This lecture gives no special rise or fall for that house.`
 }
@@ -285,7 +285,7 @@ export function recommendMandook(
   if (count < 4) return null
   return {
     count,
-    text: `${count} planets sit in kendras, excluding Rahu and Ketu. This lecture reads only Mandook dasha for that pattern and sets Chara aside. Chara stays available here. Use Mandook as the recommended sequence and keep the K.N. Rao Chara sequence beside it.`,
+    text: `${count} planets sit in kendras (angular houses: 1, 4, 7, 10), excluding Rahu and Ketu. This lecture reads only Mandook dasha for that pattern and sets Chara aside. Chara stays available here. Use Mandook as the recommended sequence and keep the K.N. Rao Chara sequence beside it.`,
   }
 }
 
@@ -479,7 +479,7 @@ export function judgmentSteps(input: {
   if (akActive && amkActive) {
     steps.push({
       title: 'Atmakaraka and Amatyakaraka',
-      text: 'Both karakas are active together. This lecture gives the overlap no middle ground: a lifetime rise, or a lifetime collapse. A shortcut in work, travel, or a decision can spoil a period that would otherwise hold. When transit agrees, the result is treated as certain in whichever direction the chart already leans.',
+      text: 'Both karakas (natural indicator) are active together. This lecture gives the overlap no middle ground: a lifetime rise, or a lifetime collapse. A shortcut in work, travel, or a decision can spoil a period that would otherwise hold. When transit agrees, the result is treated as certain in whichever direction the chart already leans.',
     })
   }
 
@@ -525,7 +525,7 @@ export function readSoulKarakas(input: {
       || [6, 8, 12].includes(distance(input.lagna, ak.rashi))
       || (rahu ? touches(rahu.rashi, ak.rashi) : false)
     if (afflicted) {
-      akLines.push('The Atmakaraka is afflicted. This lecture reads that as a large karmic debt brought into this life. Problems in its period are the soul pushing that work to be finished.')
+      akLines.push('The Atmakaraka is under pressure. This lecture reads that as a large karmic debt brought into this life. Problems in its period are the soul pushing that work to be finished.')
     }
     if (ketu && touches(ketu.rashi, ak.rashi)) {
       akLines.push('Ketu with the Atmakaraka brings detachment. The heart can withdraw from money, career, home, spouse, or friends.')
@@ -680,14 +680,14 @@ export function readKarakaLife(input: {
 
   if (pk) {
     const lines = [
-      `${GRAHA_NAMES[input.pk]} is the fifth karaka. This class reads that seat as creation and legacy: children, a business, an idea, a work, and what is left behind. The chart label for the seat remains Pitrukaraka.`,
+      `${GRAHA_NAMES[input.pk]} is the fifth karaka (natural indicator). This class reads that seat as creation and legacy: children, a business, an idea, a work, and what is left behind. The chart label for the seat remains Pitrukaraka.`,
       phaseLine(age, 25, 40, 'creation years'),
     ]
     if (held(pk, input.lagna, input.grahas)) {
-      lines.push('A held fifth karaka supports unconventional work, idealism, and something that can outlast the person.')
+      lines.push('A held fifth karaka (natural indicator) supports unconventional work, idealism, and something that can outlast the person.')
     }
     if (strained(pk, input.lagna, input.grahas)) {
-      lines.push('A strained fifth karaka leans toward obsession with being remembered, and toward holding creations or children too tightly.')
+      lines.push('A strained fifth karaka (natural indicator) leans toward obsession with being remembered, and toward holding creations or children too tightly.')
     }
     rows.push({ id: 'pk', title: 'Fifth karaka', lines })
   }
@@ -700,7 +700,7 @@ export function readKarakaLife(input: {
         ? 'In the 8th the enemy stays hidden and is hard to name.'
         : house === 12
           ? 'In the 12th the person is their own enemy. The destruction comes from inside.'
-          : `In the ${ordinal(house)} this class gives no open, hidden, or self-enemy split. The karaka still names where pain repeats.`
+          : `In the ${ordinal(house)} this class gives no open, hidden, or self-enemy split. The karaka (natural indicator) still names where pain repeats.`
     const lines = [
       `${GRAHA_NAMES[input.gk]} as Gnatikaraka generates the repeating problem: who stands in the way, and what kind of crisis forces growth. It can switch on at any age, when the soul's path needs it.`,
       place,
@@ -738,7 +738,7 @@ export function readKarakaLife(input: {
 
   const linkLines: string[] = []
   if (ak && amk && pk && linked(ak, amk) && linked(amk, pk) && linked(ak, pk)) {
-    linkLines.push('Atmakaraka, Amatyakaraka, and the fifth karaka are linked. Success can arrive in line with the life purpose, from more than one direction.')
+    linkLines.push('Atmakaraka, Amatyakaraka, and the fifth karaka (natural indicator) are linked. Success can arrive in line with the life purpose, from more than one direction.')
   }
   if (linkLines.length) rows.push({ id: 'links', title: 'Linked karakas', lines: linkLines })
 
@@ -763,8 +763,8 @@ export function karakamshaSupport(
   const house = distance(lagna, karakamsha)
   const supported = [1, 4, 5, 7, 9, 10].includes(house)
   const place = supported
-    ? `Karakamsha is the ${ordinal(house)} from Lagna, a kendra or trikona, so the path has structural support.`
-    : `Karakamsha is the ${ordinal(house)} from Lagna, outside kendra and trikona.`
+    ? `Karakamsha is the ${ordinal(house)} from Lagna, a kendra (angular houses: 1, 4, 7, 10) or trikona (trine houses: 1, 5, 9), so the path has structural support.`
+    : `Karakamsha is the ${ordinal(house)} from Lagna, outside kendra (angular houses: 1, 4, 7, 10) and trikona (trine houses: 1, 5, 9).`
   const rahu = grahas.find(g => g.id === 'Ra')
   const ketu = grahas.find(g => g.id === 'Ke')
   const node = (rahu && touches(rahu.rashi, karakamsha)) || (ketu && touches(ketu.rashi, karakamsha))
@@ -773,4 +773,4 @@ export function karakamshaSupport(
     : place
 }
 
-export const SWAMSHA_USAGE = 'Swamsha takes Karakamsha as lagna and places every navamsha planet by whole sign from that lagna. The D9 column of this table is that chart. Read it beside the birth chart, the dasha, the aspects, and all seven karakas. A reading that uses only Swamsha misses the timing. If the Karakamsha dasha runs in childhood, it acts on the family and the household.'
+export const SWAMSHA_USAGE = 'Swamsha takes Karakamsha as lagna and places every navamsha planet by whole sign from that lagna. The D9 column of this table is that chart. Read it beside the birth chart, the dasha, the aspects, and all seven karakas (natural indicator). A reading that uses only Swamsha misses the timing. If the Karakamsha dasha runs in childhood, it acts on the family and the household.'

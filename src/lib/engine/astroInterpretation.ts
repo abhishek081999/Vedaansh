@@ -80,9 +80,9 @@ export const ACG_INTERPRETATIONS: Record<GrahaId, Record<string, string>> = {
     IC: "Home near water or a place of retreat. Potential for boundary issues or idealistic family life."
   },
   Pl: {
-    AS: "Intense transformation, power, and rebirth. A place of 'do or die' personal evolution.",
+    AS: "Intense transformation, power, and rebirth. A place of all-or-nothing personal growth.",
     DS: "Power struggles or deep psychological bonds. Intense sexual or financial partnerships.",
-    MC: "Obsessive career drive. Major transformations in public standing or total career destruction/rebirth.",
+    MC: "Obsessive career drive. Major transformations in public standing or a full career reset and fresh start.",
     IC: "Deep family secrets or intense power dynamics within the home. A place of 'roots' reconstruction."
   }
 }

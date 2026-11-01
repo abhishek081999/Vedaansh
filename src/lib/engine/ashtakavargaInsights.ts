@@ -726,7 +726,7 @@ export function bhavaBhaavam(houseSav: number[], focusHouse: number): BhavaBhaav
     note:
       'Bhava-Bhaavam: the chosen house becomes the BODY of that topic; the other eleven houses describe only the LIFE of that topic.',
     caution:
-      'Do not keep original D1 meanings after rotation (e.g. 4th from Career ≠ personal property). Compare bindus inside this topic — not Career vs natal Lagna.',
+      'Do not keep original D1 meanings after rotation (e.g. 4th from Career ≠ personal property). Compare bindus (strength points) inside this topic — not Career vs natal Lagna.',
   }
 }
 
@@ -735,7 +735,7 @@ export function negativeHouseNotes(house: number, bindus: number): string[] {
   const classical =
     bindus < 28
       ? 'Classical: lower score here means fewer obstacles / shocks / wasteful expenses.'
-      : 'Classical: higher score here increases struggle themes for this dusthana.'
+      : 'Classical: higher score here increases struggle themes for this dusthana (difficult houses: 6, 8, 12).'
   const modern =
     'Modern view: strength in 3/6/8/11 also supports effort, competitiveness, recovery, and gains — correlate with the whole chart.'
   return [classical, modern]
@@ -796,7 +796,7 @@ export function buildHouseComparisonReadings(
       id: 'karma-yogi',
       severity: 'positive',
       title: 'Karma-yogi 10th',
-      detail: `H10 (${h10}) is the chart’s peak SAV — work is the central life theme; even if gains lag, the native rarely steps back from karma.`,
+      detail: `H10 (${h10}) is the chart’s peak SAV — work is the central life theme; even if gains lag, the person rarely steps back from karma.`,
       houses: [10],
     })
   }
@@ -836,7 +836,7 @@ export function buildHouseComparisonReadings(
     out.push({
       id: 'strong-12th-foreign',
       severity: 'positive',
-      title: 'Strong 12th — foreign lean',
+      title: 'Strong 12th — foreign tendency',
       detail: `H12 (${h12}) is very high — efforts abroad / foreign connections can out-yield homeland results when dasha supports.`,
       houses: [12],
     })

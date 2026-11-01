@@ -330,8 +330,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Surya teaching: 12 Adityas, Pingala/prana, afflictions, Pitru Dosh — primary Aditya scored from natal Sun nakshatra, sign, and house.'
-              : 'Free preview of primary Aditya and core karakatva. Gold unlocks all 12 Adityas, spiritual notes, and afflictions.'}
+              ? 'Full Surya teaching: 12 Adityas, Pingala/prana, difficult influences, Pitru Dosh — primary Aditya scored from natal Sun nakshatra, sign, and house.'
+              : 'Free preview of primary Aditya and core karakatva. Gold unlocks all 12 Adityas, spiritual notes, and difficult influences.'}
           </p>
           <SunAdityasPanel chart={chart} userPlan={userPlan} />
 
@@ -341,8 +341,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'House-by-house Surya notes plus Sun–Moon (Amavasya), Mars, Mercury, Jupiter, Venus, Saturn, Rahu, and Ketu yuti — natal house and active conjunctions highlighted.'
-              : 'Free preview of natal Sun house teaching and active yuti. Gold unlocks all 12 houses, full yuti catalogue, and remedies.'}
+              ? 'House-by-house Surya notes plus Sun–Moon (Amavasya), Mars, Mercury, Jupiter, Venus, Saturn, Rahu, and Ketu yuti (conjunction) — natal house and active conjunctions highlighted.'
+              : 'Free preview of natal Sun house teaching and active yuti (conjunction). Gold unlocks all 12 houses, full yuti catalogue, and remedies.'}
           </p>
           <SunHousesYutiPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -373,8 +373,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Mangala teaching: mixed house + rashi + planet interpretations, classical catalogues, upachaya, 4/7/8 aspects, kalas, Mars–Ketu, and remedies — natal items highlighted.'
-              : 'Free preview of natal Mars house, upachaya, and mixed interpretation teaser. Gold unlocks full mixed layers, catalogues, aspects, Mars–Ketu, and remedies.'}
+              ? 'Full Mangala teaching: mixed house + rashi + planet interpretations, classical catalogues, upachaya (growth houses: 3, 6, 10, 11), 4/7/8 aspects, kalas, Mars–Ketu, and remedies — natal items highlighted.'
+              : 'Free preview of natal Mars house, upachaya (growth houses: 3, 6, 10, 11), and mixed interpretation teaser. Gold unlocks full mixed layers, catalogues, aspects, Mars–Ketu, and remedies.'}
           </p>
           <MarsAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -389,8 +389,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Budha teaching: karakatva, mythology, classical catalogues, house difficulty (9/7/12), combust/vakri gifts & shadows, yuti company, and remedies — natal items highlighted.'
-              : 'Free preview of natal Mercury house, yuti companions, and combust/vakri flags. Gold unlocks karakatva, catalogues, house teaching, conditions, and remedies.'}
+              ? 'Full Budha teaching: karakatva, mythology, classical catalogues, house difficulty (9/7/12), combust/vakri (retrograde) gifts & shadows, yuti (conjunction) company, and remedies — natal items highlighted.'
+              : 'Free preview of natal Mercury house, yuti (conjunction) companions, and combust/vakri (retrograde) flags. Gold unlocks karakatva, catalogues, house teaching, conditions, and remedies.'}
           </p>
           <MercuryAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -405,8 +405,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Brihaspati teaching: karakatva, classical catalogues, house delay & dusthana reversal, 5/7/9 aspects, Guru-Chandal/Ketu/Mangal/Shani yogas, kendradhipati, combust/vakri, and remedies — natal items highlighted.'
-              : 'Free preview of natal Jupiter house, aspects, yoga flags, and combust/vakri. Gold unlocks karakatva, catalogues, yogas detail, conditions, and remedies.'}
+              ? 'Full Brihaspati teaching: karakatva, classical catalogues, house delay & dusthana (difficult houses: 6, 8, 12) reversal, 5/7/9 aspects, Guru-Chandal/Ketu/Mangal/Shani yogas, kendradhipati, combust/vakri (retrograde), and remedies — natal items highlighted.'
+              : 'Free preview of natal Jupiter house, aspects, yoga flags, and combust/vakri (retrograde). Gold unlocks karakatva, catalogues, yogas detail, conditions, and remedies.'}
           </p>
           <JupiterAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -421,8 +421,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Shukra teaching: mythology, karakatva, 16 kalas, five stages, dusthana (6/8/12), exalt/debil/vakri/asta, yuti yogas, Yayati arc, and remedies — natal items highlighted.'
-              : 'Free preview of natal Venus house, yuti, dusthana flags, and combust/vakri. Gold unlocks karakatva, 16 kalas, catalogues, yogas, and mythology.'}
+              ? 'Full Shukra teaching: mythology, karakatva, 16 kalas, five stages, dusthana (6/8/12), exalt/debil/vakri (retrograde)/asta, yuti (conjunction) yogas, Yayati arc, and remedies — natal items highlighted.'
+              : 'Free preview of natal Venus house, yuti (conjunction), dusthana (difficult houses: 6, 8, 12) flags, and combust/vakri (retrograde). Gold unlocks karakatva, 16 kalas, catalogues, yogas, and mythology.'}
           </p>
           <VenusAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -437,8 +437,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Shani teaching: karakatva, Kantak kendras, 3/7/10 aspects, Visha/Shapit yogas, Sade Sati padā, vakri/asta, mythology, and remedies — natal items highlighted.'
-              : 'Free preview of natal Saturn house, Kantak, aspects, and yoga/combust/vakri flags. Gold unlocks karakatva, Sade Sati padā, catalogues, and lore.'}
+              ? 'Full Shani teaching: karakatva, Kantak kendras (angular houses: 1, 4, 7, 10), 3/7/10 aspects, Visha/Shapit yogas, Sade Sati padā, vakri (retrograde)/asta, mythology, and remedies — natal items highlighted.'
+              : 'Free preview of natal Saturn house, Kantak, aspects, and yoga/combust/vakri (retrograde) flags. Gold unlocks karakatva, Sade Sati padā, catalogues, and tradition.'}
           </p>
           <SaturnAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -453,8 +453,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Rāhu teaching: karakatva, upachaya / Shatru Hantā, Ashta Lakshmi, Angārak & Guru-Chāṇḍāla yogas, nakshatras, mythology, Kāl Sarp clarification, and dasha-vs-transit — natal items highlighted.'
-              : 'Free preview of natal Rahu house, upachaya / Shatru Hantā flags, and active yogas. Gold unlocks karakatva, catalogues, Ashta Lakshmi, and lore.'}
+              ? 'Full Rāhu teaching: karakatva, upachaya (growth houses: 3, 6, 10, 11) / Shatru Hantā, Ashta Lakshmi, Angārak & Guru-Chāṇḍāla yogas, nakshatras, mythology, Kāl Sarp clarification, and dasha-vs-transit — natal items highlighted.'
+              : 'Free preview of natal Rahu house, upachaya (growth houses: 3, 6, 10, 11) / Shatru Hantā flags, and active yogas. Gold unlocks karakatva, catalogues, Ashta Lakshmi, and tradition.'}
           </p>
           <RahuAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -469,8 +469,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Ketu teaching: karakatva, dharma/moksha trikon, no-dṛṣṭi axis, MD vs AD, yuti yogas, nakshatras, remedies, and prediction ethics — natal items highlighted.'
-              : 'Free preview of natal Ketu house, dharma/moksha flags, and active yogas. Gold unlocks karakatva, catalogues, MD vs AD, and lore.'}
+              ? 'Full Ketu teaching: karakatva, dharma/moksha trikon, no-dṛṣṭi axis, MD vs AD, yuti (conjunction) yogas, nakshatras, remedies, and prediction ethics — natal items highlighted.'
+              : 'Free preview of natal Ketu house, dharma/moksha flags, and active yogas. Gold unlocks karakatva, catalogues, MD vs AD, and tradition.'}
           </p>
           <KetuAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>

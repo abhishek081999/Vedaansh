@@ -20,7 +20,7 @@ export function plainMuhurtaVerdict(
   if (score.label === 'Excellent' || score.score >= 80) {
     return {
       headline: `Good time for ${act}${when}`,
-      detail: `Conditions look supportive for ${act.toLowerCase()}. You can proceed with confidence.${avoid}`,
+      detail: `Conditions look supportive for ${act.toLowerCase()}. It is a good time to go ahead.${avoid}`,
       tone: 'good',
     }
   }
@@ -47,7 +47,7 @@ export function plainMuhurtaVerdict(
   }
   return {
     headline: `Avoid starting ${act}${when}`,
-    detail: `Timing is classically avoided right now.${avoid}`,
+    detail: `Classical rules advise against starting this right now. A later time is a better choice.${avoid}`,
     tone: 'avoid',
   }
 }

@@ -348,7 +348,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Mars in ${m.rashiName} (+ dignity / vakri / asta)`}
+                title={`Classical · Mars in ${m.rashiName} (+ dignity / vakri (retrograde) / asta)`}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (

@@ -48,10 +48,10 @@ export function getDoshaSnapshot(chart: ChartOutput): DoshaSnapshot | null {
     detail: !manglik.house
       ? 'Mars not found'
       : manglik.isManglik
-        ? `Mars in house ${manglik.house} from Lagna · ${manglik.intensity.toLowerCase()} intensity`
+        ? `Mars is in house ${manglik.house} from your rising sign, with ${manglik.intensity.toLowerCase()} intensity. This can add heat to close relationships. It does not decide your marriage.`
         : manglik.cancellations.length
-          ? `Mars in house ${manglik.house}, softened: ${manglik.cancellations[0]}`
-          : `Mars in house ${manglik.house} — not a Manglik placement`,
+          ? `Mars is in house ${manglik.house}, but its effect is softened: ${manglik.cancellations[0]}`
+          : `Mars is in house ${manglik.house}, which is not a Manglik placement`,
   })
 
   const papeTone: DoshaTone = papeSamya.totalWeight >= 3 ? 'strong' : papeSamya.totalWeight >= 1.5 ? 'watch' : 'clear'
@@ -59,7 +59,7 @@ export function getDoshaSnapshot(chart: ChartOutput): DoshaSnapshot | null {
     id: 'pape',
     label: 'Pape-Samya',
     tone: papeTone,
-    detail: `Malefic weight ${papeSamya.totalWeight.toFixed(2)} across houses 1, 2, 4, 7, 8, 12`,
+    detail: `Pressure score ${papeSamya.totalWeight.toFixed(2)} from difficult planets in the houses that affect relationships (1, 2, 4, 7, 8, 12). It is most useful when comparing two charts.`,
   })
 
   const gandanta = chart.grahas.filter(g => CORE.includes(g.id) && g.gandanta?.isGandanta)
@@ -69,7 +69,7 @@ export function getDoshaSnapshot(chart: ChartOutput): DoshaSnapshot | null {
     tone: gandanta.length ? 'watch' : 'clear',
     detail: gandanta.length
       ? gandanta.map(g => `${GRAHA_NAMES[g.id]} (${g.gandanta.severity})`).join(', ')
-      : 'No planet at a water–fire sign junction',
+      : 'No planet sits at a sensitive point where a water sign meets a fire sign',
   })
 
   const mrityu = chart.grahas.filter(g => CORE.includes(g.id) && g.mrityuBhaga?.isMrityuBhaga)
@@ -79,7 +79,7 @@ export function getDoshaSnapshot(chart: ChartOutput): DoshaSnapshot | null {
     tone: mrityu.length ? 'watch' : 'clear',
     detail: mrityu.length
       ? mrityu.map(g => GRAHA_NAMES[g.id]).join(', ')
-      : 'No planet on a Mrityu Bhaga degree',
+      : 'No planet sits on a Mrityu Bhaga degree (a sensitive point in classical astrology)',
   })
 
   const warring = chart.grahas.find(g => g.yuddha?.isWarring)
@@ -88,8 +88,8 @@ export function getDoshaSnapshot(chart: ChartOutput): DoshaSnapshot | null {
     label: 'Graha Yuddha',
     tone: warring ? 'watch' : 'clear',
     detail: warring
-      ? `Mercury and Venus at war · ${warring.yuddha.winner ? `${GRAHA_NAMES[warring.yuddha.winner]} wins` : 'no clear winner'}`
-      : 'No planetary war',
+      ? `Mercury and Venus are very close together, which is called a planetary war · ${warring.yuddha.winner ? `${GRAHA_NAMES[warring.yuddha.winner]} wins` : 'no clear winner'}`
+      : 'No planetary war (no two planets are competing closely)',
   })
 
   const combust = chart.grahas.filter(g => g.isCombust && g.id !== 'Su' && CORE.includes(g.id))
@@ -97,7 +97,7 @@ export function getDoshaSnapshot(chart: ChartOutput): DoshaSnapshot | null {
     id: 'combust',
     label: 'Combustion',
     tone: combust.length ? 'watch' : 'clear',
-    detail: combust.length ? combust.map(g => GRAHA_NAMES[g.id]).join(', ') : 'No planet combust',
+    detail: combust.length ? combust.map(g => GRAHA_NAMES[g.id]).join(', ') : 'No planet is combust (too close to the Sun and weakened)',
   })
 
   const maleficYogas = (chart.yogas ?? []).filter(y => y.category === 'malefic')

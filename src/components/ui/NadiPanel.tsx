@@ -31,7 +31,7 @@ const VIEWS: { id: NadiView; label: string; hint: string; icon: LucideIcon }[] =
   { id: 'chart', label: 'Chart', hint: 'Planetary positions, then each planet read from its house, the houses it rules, and its sign.', icon: Grid3x3 },
   { id: 'houses', label: 'Houses', hint: 'The Bhrigu Bhava, each house’s sign and planets, the exchanges, and the classical reading of that house.', icon: Home },
   { id: 'life', label: 'Life', hint: 'Study, the family counted from each relative, and settlement away from the birthplace.', icon: Users },
-  { id: 'yogas', label: 'Yogas', hint: 'The combinations that are present, and dusthana dignity.', icon: Sparkles },
+  { id: 'yogas', label: 'Yogas', hint: 'The combinations that are present, and dusthana (difficult houses: 6, 8, 12) dignity.', icon: Sparkles },
   { id: 'marriage', label: 'Marriage', hint: 'Marriage combinations, then the three marriage rules and Navamsha.', icon: Heart },
   { id: 'career', label: 'Career', hint: 'The career this chart gives, then Dashamsha, Shashtiamsa, and the neighborhood.', icon: Briefcase },
   { id: 'wealth', label: 'Wealth', hint: 'The wealth years, then property from Chaturthamsha and vehicles from Shodashamsha.', icon: Coins },

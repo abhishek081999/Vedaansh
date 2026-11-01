@@ -109,11 +109,11 @@ function taraBala(natalMoonNak: number, transitMoonNak: number): { name: string;
   const map: Record<number, { score: number; name: string }> = {
     1: { score: -10, name: 'Janma (sensitive)' },
     2: { score: 15, name: 'Sampat (wealth)' },
-    3: { score: -15, name: 'Vipat (danger)' },
+    3: { score: -15, name: 'Vipat (caution)' },
     4: { score: 12, name: 'Kshem (safety)' },
     5: { score: -12, name: 'Pratyari (obstacles)' },
     6: { score: 15, name: 'Sadhaka (success)' },
-    7: { score: -18, name: 'Vadha (destructive)' },
+    7: { score: -18, name: 'Vadha (major obstacles)' },
     8: { score: 8, name: 'Mitra (friend)' },
     9: { score: 12, name: 'Ati-Mitra (best friend)' },
   }
@@ -283,11 +283,11 @@ export function analyzeTransitMoment(
   const sa = planets.find(p => p.planetId === 'Sa')
   if (ju?.transitVerdict === 'good' && [1, 5, 9, 11].includes(ju.transitHouse)) {
     score += 8
-    goodFactors.push(`Jupiter blessing in H${ju.transitHouse} — expansion and protection`)
+    goodFactors.push(`Jupiter blessing in house ${ju.transitHouse} — expansion and protection`)
   }
   if (sa?.transitVerdict === 'caution' && [1, 4, 7, 8, 12].includes(sa.transitHouse)) {
     score -= 10
-    cautionFactors.push(`Saturn pressure in H${sa.transitHouse} — patience and discipline required`)
+    cautionFactors.push(`Saturn pressure in house ${sa.transitHouse} — patience and discipline required`)
   }
 
   score = Math.max(5, Math.min(95, Math.round(score)))

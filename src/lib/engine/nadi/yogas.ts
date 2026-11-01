@@ -26,7 +26,7 @@ export interface NadiYogaPlacement {
 }
 
 export const NADI_KHAARAB_THEME =
-  'One of these is checked: a long illness, a surgery or accident, a court case or trouble with an authority, a career break, or fraud. It falls on the native or on parents, siblings, or children. The dasha of one of these planets is the period that times it.'
+  'One of these is checked: a long illness, a surgery or accident, a court case or trouble with an authority, a career break, or fraud. It falls on the person or on parents, siblings, or children. The dasha of one of these planets is the period that times it.'
 
 export const NADI_KHAARAB_CHANNEL =
   'A technical or medical career is read as the combination taking a working form. The health or family result is still checked.'
@@ -137,7 +137,7 @@ const YOGAS: readonly YogaDef[] = [
     name: 'Sun + Saturn',
     planets: ['Su', 'Sa'],
     kind: 'inauspicious',
-    effect: 'Government income is read somewhere in the family. The father’s health is under pressure, distance from the father is checked, and the native’s heart is checked.',
+    effect: 'Government income is read somewhere in the family. The father’s health is under pressure, distance from the father is checked, and the person’s heart is checked.',
     career: 'A government post in the family.',
     suppresses: [],
   },
@@ -299,7 +299,7 @@ const YOGAS: readonly YogaDef[] = [
     name: 'Jupiter + Ketu',
     planets: ['Ju', 'Ke'],
     kind: 'supportive',
-    effect: 'Jupiter with Ketu is a good combination. The child is read as unusually able, and the native is read for astrology.',
+    effect: 'Jupiter with Ketu is a good combination. The child is read as unusually able, and the person is read for astrology.',
     career: 'Astrology or spiritual work.',
     suppresses: [],
   },
@@ -424,7 +424,7 @@ function bearerNote(bearer: NadiYogaBearer, kind: NadiKhaarabYoga['kind']): stri
   if (kind === 'supportive') return 'This pair is the exception that is read as supportive.'
   if (bearer === 'native') return 'The lagna or its lord is weak or afflicted, so this is read on the native.'
   if (bearer === 'family') return 'The lagna and its lord are strong, so this is read on parents, siblings, or children.'
-  return 'The lagna has not settled who carries it. It is read on the native or on parents, siblings, or children.'
+  return 'The lagna has not settled who carries it. It is read on the person or on parents, siblings, or children.'
 }
 
 function yogaBearer(input: NadiYogaChartInput): NadiYogaBearer {

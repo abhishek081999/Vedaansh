@@ -332,7 +332,7 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
       {sub === 'flags' && (
         <div className={styles.stack}>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Divorce / instability checklist</h4>
+            <h4 className={styles.sectionTitle}>Marriage strain checklist</h4>
             <div className={styles.flagRow}>
               {analysis.redFlags.map(f => (
                 <div key={f.id} className={cn(styles.flag, f.active && styles.flagActive)}>

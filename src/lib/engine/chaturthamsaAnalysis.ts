@@ -254,7 +254,7 @@ const LAGNA_PLANET_READINGS: Partial<Record<GrahaId, LagnaBaseReading>> = {
   },
   Me: {
     general:
-      'Mercury on the D4 lagna links happiness and sorrow to the maternal side, favors apartments and prominent balconies/living areas, and connects the native to many people (media, marketing, HR). Food presentation can be fussy.',
+      'Mercury on the D4 lagna links happiness and sorrow to the maternal side, favors apartments and prominent balconies/living areas, and connects the person to many people (media, marketing, HR). Food presentation can be fussy.',
     traits: [
       'Maternal family themes color property and documents',
       'Wants visible balcony / living space and a view from above',
@@ -301,7 +301,7 @@ const LAGNA_PLANET_READINGS: Partial<Record<GrahaId, LagnaBaseReading>> = {
   },
   Mo: {
     general:
-      'Moon on the D4 lagna heightens emotional sensitivity at home. Well-placed Moon softens the atmosphere; malefic pressure can amplify domestic conflict.',
+      'Moon on the D4 lagna heightens emotional sensitivity at home. Well-placed Moon softens the atmosphere; difficult pressure can amplify domestic conflict.',
     traits: [
       'Very specific about comfort and emotional tone',
       'Needs a pleasant, nurturing domestic field',
@@ -430,7 +430,7 @@ function buildPrimarySignal(heart: Omit<ChaturthamsaLagnaHeart, 'primarySignal'>
   const lord = heart.lagnaLord
   return {
     strength: 'lord',
-    label: `Empty lagna — follow ${lord.name} (lord) in H${lord.house}`,
+    label: `Empty lagna — follow ${lord.name} (lord) in house ${lord.house}`,
     detail: `${lord.name} in ${lord.rashiName} (H${lord.house}) is the emotional address. ${lord.reading}`,
   }
 }
@@ -542,7 +542,7 @@ function buildConflictFlags(
     if (pressed) {
       flags.push({
         id: 'moon-malefic',
-        title: 'Moon under malefic pressure',
+        title: 'Moon under difficult pressure',
         text: 'Mars or Saturn conjunct/aspecting the D4 Moon can amplify domestic irritability, raised voices, or emotional volatility at home.',
         tone: 'challenging',
       })
@@ -551,7 +551,7 @@ function buildConflictFlags(
       flags.push({
         id: 'domestic-stress',
         title: 'Domestic conflict caution',
-        text: 'Malefics on the Moon with malefics also in the D4 4th raise the risk of severe household conflict. Read with D1 and lived context — this is a caution flag, not a verdict.',
+        text: 'Difficult planets on the Moon with difficult planets also in the D4 4th can point to serious conflict at home. Read with D1 and lived context — this is a caution flag, not a verdict.',
         tone: 'challenging',
       })
     }
@@ -571,7 +571,7 @@ function buildConflictFlags(
     flags.push({
       id: 've-ma-sa-axis',
       title: 'Passion + duty stress on the axis',
-      text: 'Venus–Mars on lagna with Saturn in the 7th can mark intense partner dynamics and mutual boundary conflict. Prioritize safety and counseling language over fatalism.',
+      text: 'Venus–Mars on lagna with Saturn in the 7th can mark intense partner dynamics and mutual boundary conflict. Your safety comes first, and counselling can help. This is not a fixed outcome.',
       tone: 'challenging',
     })
   }
@@ -608,7 +608,7 @@ function buildAffinityGuide(occupants: GrahaId[]): ChaturthamsaAffinityNote[] {
     {
       pair: 'Mo–Su',
       title: 'Moon in Leo (with Sun)',
-      text: 'Moon with Sun / Leo themes on D4 lagna supports a spacious, comfort-rich house when otherwise unafflicted.',
+      text: 'Moon with Sun / Leo themes on D4 lagna supports a spacious, comfort-rich house when otherwise free of difficult influences.',
       tone: 'supportive',
     },
   ]
@@ -817,7 +817,7 @@ function buildKeyTriad(grahas: GrahaData[], asc: Rashi): ChaturthamsaKeyTriadMem
     let reading = `${GRAHA_NAMES[id]} in ${RASHI_NAMES[g.rashi]} H${house} (${dignityLabel(g.dignity)}).`
     if (role === 'jupiter') {
       reading += afflicted
-        ? ' Afflicted Jupiter in D4: even with money, people, or children, contentment can spoil — restore santosh through wisdom and counsel.'
+        ? ' Troubled Jupiter in D4: even with money, people, or children, contentment can spoil — restore santosh through wisdom and counsel.'
         : ' Jupiter supports satisfaction with what the house already holds.'
     } else if (role === 'moon') {
       reading += afflicted
@@ -979,7 +979,7 @@ export function analyzeChaturthamsa(chart: ChartOutput): ChaturthamsaAnalysis | 
     .filter((g) => g.isRetro)
     .map((g) => {
       const h = houseOf(g.rashi, asc)
-      return `Retrograde ${GRAHA_NAMES[g.id]} in H${h}: obsessive, persistent demands around that house’s themes — intensity that is hard to ignore.`
+      return `Retrograde ${GRAHA_NAMES[g.id]} in house ${h}: obsessive, persistent demands around that house’s themes — intensity that is hard to ignore.`
     })
 
   const insights: ChaturthamsaInsight[] = []

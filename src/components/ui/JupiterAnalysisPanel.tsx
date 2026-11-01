@@ -351,7 +351,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Jupiter in ${j.rashiName} (+ dignity / vakri / asta)`}
+                title={`Classical · Jupiter in ${j.rashiName} (+ dignity / vakri (retrograde) / asta)`}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (
@@ -670,7 +670,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           </Card>
 
           <Card>
-            <Label>Signs of afflicted Jupiter in life</Label>
+            <Label>Signs of Jupiter under pressure in daily life</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.afflictionSigns.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -681,7 +681,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
               <Label>Degree peak</Label>
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {j.nearExaltPeak
-                  ? `Near deep exaltation (~5° Cancer) — counselor grace and protective wisdom lore peak here.`
+                  ? `Near deep exaltation (~5° Cancer) — counselor grace and protective wisdom tradition peak here.`
                   : `Near deep debilitation (~5° Capricorn) — faith meets cold karma; practical dharma after struggle.`}
               </p>
             </Card>

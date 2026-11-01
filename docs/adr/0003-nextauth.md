@@ -9,7 +9,7 @@ The app needs Google OAuth, email/password, session cookies, email verification,
 
 ## Decision
 
-Use **NextAuth.js v5** (`next-auth` beta) with routes under `src/app/api/auth/`. Session via `auth()`. Edge/`proxy.ts` checks sessions for protected pages and APIs.
+Use **NextAuth.js v5** (`next-auth` beta) with routes under `src/app/api/auth/`. Session via `auth()`. Edge/`src/proxy.ts` checks sessions for protected pages and APIs.
 
 **Plan entitlement is not trusted from the JWT alone.** Effective plan is read from MongoDB (`getEffectivePlan` / `requirePlanGate`). `/api/auth/refresh-plan` syncs plan into the session after billing changes.
 

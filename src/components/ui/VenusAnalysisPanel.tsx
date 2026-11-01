@@ -35,7 +35,7 @@ const SUB_TABS: { id: SubTab; label: string; Icon: typeof Heart; free?: boolean 
   { id: 'houses', label: 'Houses & Yuti', Icon: Home },
   { id: 'kalas', label: '16 Kalas', Icon: Flower2 },
   { id: 'conditions', label: 'Dignity & Yogas', Icon: Waves },
-  { id: 'lore', label: 'Lore & Remedies', Icon: BookOpen },
+  { id: 'lore', label: 'Tradition & Remedies', Icon: BookOpen },
 ]
 
 interface VenusAnalysisPanelProps {
@@ -329,7 +329,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Venus in ${v.rashiName} (+ dignity / vakri / asta)`}
+                title={`Classical · Venus in ${v.rashiName} (+ dignity / vakri (retrograde) / asta)`}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (
@@ -695,7 +695,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
               <Label>Degree peak</Label>
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {v.nearExaltPeak
-                  ? 'Near classical exaltation peak in Pisces — selfless / spiritual Venus lore strongest near deep exalt degrees.'
+                  ? 'Near classical exaltation peak in Pisces — selfless / spiritual Venus tradition strongest near deep exalt degrees.'
                   : 'Near classical debilitation peak in Virgo — cold/analytical relating peaks; neecha-bhanga still softens.'}
               </p>
             </Card>

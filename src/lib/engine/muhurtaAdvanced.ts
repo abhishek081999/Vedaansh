@@ -86,7 +86,7 @@ export function getMuhurtaPanchaka(
   const remainder = sum % 9;
   
   const labels: Record<number, string> = {
-    1: 'Mrityu Panchaka (Danger)',
+    1: 'Mrityu Panchaka (Take extra care)',
     2: 'Agni Panchaka (Fire/Theft)',
     4: 'Raja Panchaka (Legal/State)',
     6: 'Chora Panchaka (Loss/Theft)',

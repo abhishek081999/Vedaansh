@@ -193,7 +193,7 @@ function buildChain(
   }
   const tail = links[links.length - 1]
   const prediction = cyclic
-    ? `${start.name}’s D10 dispositor chain loops (${links.map((l) => l.name).join(' → ')}). A closed loop locks the career style — results recycle through those planets’ dashas.`
+    ? `${start.name}’s D10 dispositor (ruler of the sign it sits in) chain loops (${links.map((l) => l.name).join(' → ')}). A closed loop locks the career style — results recycle through those planets’ dashas.`
     : `${start.name} (${role}) runs ${links.map((l) => `${l.name} H${l.house}`).join(' → ')}.${
       tail ? ` Final support rests with ${tail.name} in ${tail.rashiName}.` : ''
     }`
@@ -322,7 +322,7 @@ export function buildDashamsaAdvanced(
   const drishtiPrediction = [
     onTenth.length
       ? `Aspects on the D10 10th: ${onTenth.map((h) => h.name).join(', ')}.`
-      : 'No full graha drishti reaches the D10 10th from other signs.',
+      : 'No full graha drishti (aspect) reaches the D10 10th from other signs.',
     onLagna.length
       ? `Aspects on D10 lagna: ${onLagna.map((h) => h.name).join(', ')}.`
       : 'D10 lagna is free of outside full aspects.',
@@ -488,7 +488,7 @@ export function buildDashamsaAdvanced(
       careerHit: hit,
       tone,
       note: hit
-        ? `${GRAHA_NAMES[item.lord]} is a D10 career significator${row ? ` in H${row.d10House}` : ''}. ${item.hint ?? 'Watch status, role, and income moves.'}`
+        ? `${GRAHA_NAMES[item.lord]} is a D10 career significator${row ? ` in house ${row.d10House}` : ''}. ${item.hint ?? 'Watch status, role, and income moves.'}`
         : `${item.toneLabel}. ${item.hint ?? 'Background period for livelihood.'}`,
     }
   })
@@ -520,7 +520,7 @@ export function buildDashamsaAdvanced(
         : 'Attach Shadbala on recalculation for strength confirmation.',
     formedRaja.length
       ? `Formed D10 raja links: ${formedRaja.map((r) => r.title).join('; ')}.`
-      : 'No kendra–trikona career links formed in D10 beyond isolated lords.',
+      : 'No kendra (angular houses: 1, 4, 7, 10)–trikona (trine houses: 1, 5, 9) career links formed in D10 beyond isolated lords.',
     timelineItems.find((t) => t.careerHit)?.note
       ?? 'No immediate career-lord antardasha in the next windows — watch the listed timeline.',
   ]
@@ -533,7 +533,7 @@ export function buildDashamsaAdvanced(
 
   return {
     framing:
-      'Advanced levers behind the Śāstra and Synthesis tabs: who feeds the career lords (dispositors), who aspects the D10 10th, natal Shadbala and SAV support, Jaimini karakas in D10, dignity flags, kendra–trikona links, and the next career-sensitive dasha windows.',
+      'Advanced levers behind the Śāstra and Synthesis tabs: who feeds the career lords (dispositors), who aspects the D10 10th, natal Shadbala and SAV support, Jaimini karakas (natural indicator) in D10, dignity flags, kendra (angular houses: 1, 4, 7, 10)–trikona (trine houses: 1, 5, 9) links, and the next career-sensitive dasha windows.',
     headline,
     dispositor,
     drishti: {
@@ -553,7 +553,7 @@ export function buildDashamsaAdvanced(
       available: Boolean(sav),
       houses: savHouses,
       prediction: sav
-        ? 'SAV bindus show how easily transit and dasha results land in natal career houses. Pair with D10 for what the result looks like.'
+        ? 'SAV bindus (strength points) show how easily transit and dasha results land in natal career houses. Pair with D10 for what the result looks like.'
         : 'Ashtakavarga not on this payload.',
     },
     karakas,

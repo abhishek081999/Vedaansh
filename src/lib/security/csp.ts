@@ -51,6 +51,8 @@ export function buildContentSecurityPolicy(nonce: string, isDev: boolean): strin
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     `script-src ${scriptSrc}`,
     `connect-src ${connectSrc}`,
+    "worker-src 'self' blob:",
+    "media-src 'self' blob: data:",
     "frame-src 'self' https: https://api.razorpay.com https://checkout.razorpay.com",
     ...(isDev ? [] : ['upgrade-insecure-requests']),
   ].join('; ')
@@ -60,7 +62,8 @@ function isAppRouterFlightRequest(request: Request): boolean {
   return (
     request.headers.get('RSC') === '1' ||
     request.headers.get('Next-Router-Prefetch') === '1' ||
-    request.headers.get('Next-HMR-Refresh') === '1'
+    request.headers.get('Next-HMR-Refresh') === '1' ||
+    new URL(request.url).searchParams.has('_rsc')
   )
 }
 
@@ -80,6 +83,9 @@ export function withDocumentCsp(request: Request, pathname: string): NextRespons
 
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
+  // Next.js reads the nonce for its own scripts from this request header. Without it,
+  // 'strict-dynamic' blocks the framework bundles and pages never hydrate.
+  requestHeaders.set('Content-Security-Policy', csp)
 
   const response = NextResponse.next({
     request: { headers: requestHeaders },

@@ -7,6 +7,7 @@ import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { areOffersEnabled, getApplicableCoupon, getOrCreateBillingConfig, computeDiscount } from '@/lib/subscription/billing-config'
+import { isDowngradePurchase } from '@/lib/subscription/paymentRules'
 
 export const runtime = 'nodejs'
 
@@ -68,6 +69,12 @@ export async function POST(req: NextRequest) {
     const user = await User.findById(session.user.id)
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
+    }
+    if (isDowngradePurchase(user.plan, user.planExpiresAt, plan)) {
+      return NextResponse.json(
+        { success: false, error: 'Your Platinum plan already includes everything in Gold.' },
+        { status: 409 },
+      )
     }
     const hasAnySubscription = await Subscription.exists({ userId: session.user.id })
     const coupon = areOffersEnabled(billingConfig)

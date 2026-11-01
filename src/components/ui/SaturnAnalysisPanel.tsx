@@ -34,7 +34,7 @@ const SUB_TABS: { id: SubTab; label: string; Icon: typeof Hourglass; free?: bool
   { id: 'houses', label: 'Houses & Aspects', Icon: Home },
   { id: 'yogas', label: 'Yogas', Icon: Waves },
   { id: 'cycles', label: 'Sade Sati', Icon: Hourglass },
-  { id: 'lore', label: 'Lore & Remedies', Icon: BookOpen },
+  { id: 'lore', label: 'Tradition & Remedies', Icon: BookOpen },
 ]
 
 interface SaturnAnalysisPanelProps {
@@ -361,7 +361,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Saturn in ${s.rashiName} (+ dignity / vakri / asta)`}
+                title={`Classical · Saturn in ${s.rashiName} (+ dignity / vakri (retrograde) / asta)`}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (

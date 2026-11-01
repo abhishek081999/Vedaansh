@@ -542,7 +542,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     combinations.push({
       id: 've-ra',
       title: 'Venus with Rahu — obsession',
-      detail: 'This is the classic obsessive combination: high desire, grand gestures, luxury tastes, and a hunger that is hard to satisfy. Live-in arrangements before marriage are common, and rejection comes quickly if the fantasy breaks. Intimacy is private — the couple can act as husband and wife before any ceremony. Ketu’s detachment and Jupiter’s principles are what stabilize it. If Rahu is afflicted, the illusion can spread into poor choices in relationships.',
+      detail: 'This is the classic obsessive combination: high desire, grand gestures, luxury tastes, and a hunger that is hard to satisfy. Live-in arrangements before marriage are common, and rejection comes quickly if the fantasy breaks. Intimacy is private — the couple can act as husband and wife before any ceremony. Ketu’s detachment and Jupiter’s principles are what stabilize it. If Rahu is under pressure, the illusion can spread into poor choices in relationships.',
       tone: 'caution',
     })
   }
@@ -592,7 +592,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     combinations.push({
       id: 've-ke',
       title: 'Venus with Ketu — regret unless the soul agrees',
-      detail: 'Others often ask what they saw in each other. The native can feel they should have waited. Ketu wants contact and then feels the lack of it. The relationship works when the two stay very close and match both emotionally and philosophically; otherwise it feels like pain delivered by the partner. Ketu also repeats the same relationship mistake instead of learning by variety.',
+      detail: 'Others often ask what they saw in each other. The person can feel they should have waited. Ketu wants contact and then feels the lack of it. The relationship works when the two stay very close and match both emotionally and philosophically; otherwise it feels like pain delivered by the partner. Ketu also repeats the same relationship mistake instead of learning by variety.',
       tone: 'caution',
     })
     if (mars && (isStrong(mars.dignity) || (maH != null && [1, 4, 7, 10].includes(maH)))) {
@@ -795,7 +795,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     marsAndNodes.push({
       id: 'ma-ra',
       title: 'Mars with Rahu',
-      detail: 'Mars with Rahu is thief-and-police energy: one person dominates by scheme, and the body can turn aggressive. Afflicted, this combination carries a risk of violence in the relationship. Where the 7th and 12th agree, take harm in the relationship seriously and seek support rather than dismissing it as “a bit of temper”.',
+      detail: 'Mars with Rahu is thief-and-police energy: one person dominates by scheme, and the body can turn aggressive. Troubled, this combination carries a risk of violence in the relationship. Where the 7th and 12th agree, take harm in the relationship seriously and seek support rather than dismissing it as “a bit of temper”.',
       tone: 'caution',
     })
   }
@@ -858,7 +858,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
       id: 'sa-second',
       title: 'Saturn in the 2nd — do not lie',
       detail: sameSign(saturn, ketu)
-        ? 'Saturn with Ketu in the 2nd is severe: lies and family disputes can end in a painful break from the family. Staying out of family fights matters, because blame tends to land here.'
+        ? 'Saturn with Ketu in the 2nd needs care: lies and family disputes could lead to a painful break from the family. Staying out of family fights matters, because blame tends to land here.'
         : 'Saturn in the 2nd makes false speech inside the family costly, so honesty matters here. Embarrassment follows quickly if it slips.',
       tone: 'caution',
     })
@@ -910,7 +910,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     remedies.push({
       id: 'remedy-fourth',
       title: '4th house — cool the home',
-      detail: 'An afflicted 4th is served by water and by quiet service at home: cooling, cleaning, feeding, making the house feel safe. The 4th is the heart of domestic peace for both partners.',
+      detail: 'An troubled 4th is served by water and by quiet service at home: cooling, cleaning, feeding, making the house feel safe. The 4th is the heart of domestic peace for both partners.',
       tone: 'supportive',
     })
   }
@@ -945,7 +945,7 @@ export function analyzeMarriedLife(chart: ChartOutput): MarriedLifeAnalysis | nu
     gender === 'female'
       ? tenth.malefics.length
         ? `The 10th holds ${tenth.malefics.join(', ')}. In a woman’s chart that is career pressure and a difficult mother-in-law.`
-        : 'The 10th is also the mother-in-law, as well as career. This 10th is not occupied by malefics.'
+        : 'The 10th is also the mother-in-law, as well as career. This 10th is not occupied by difficult planets.'
       : 'When this chart is matched, the bride’s 10th house shows the mother-in-law and both 4th houses show whether the home can stay peaceful.',
   ].join(' ')
 

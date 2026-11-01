@@ -130,12 +130,14 @@ Separate from Chart so the chart document stays lean. Large `ChartOutput` blobs 
 | provider | razorpay \| stripe | Live checkout: Razorpay |
 | providerSubscriptionId | string | **unique** |
 | providerCustomerId, providerPlanId | string | |
-| status | active \| cancelled \| expired \| past_due \| trialing \| pending | |
+| status | active \| cancelled \| expired \| past_due \| trialing \| pending \| refunded | |
 | interval | monthly \| yearly | |
 | currentPeriodStart / End | Date | |
 | cancelAtPeriodEnd, cancelledAt | | |
 | amount, currency | paise/cents; INR \| USD \| EUR | |
-| events[] | last ~10 webhook events | |
+| grantedPlan | gold \| platinum \| null | Plan this payment set on the user. Null: plan left unchanged |
+| planAppliedAt, couponCountedAt, welcomeEmailSentAt | Date | Activation steps done. Missing on older records |
+| events[] | last ~10 payment events | IDs and amounts only |
 
 **Indexes:** `userId`; unique `providerSubscriptionId`; `{ userId, status }`; `currentPeriodEnd`
 

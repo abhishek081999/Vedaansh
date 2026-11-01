@@ -177,13 +177,13 @@ function checkRajaYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
 
       if (inSameHouse(kg, tg, ascRashi)) {
         formed = true
-        desc = `${kl} (lord H${kh}) conjunct ${tl} (lord H${th}) in H${kHouse}`
+        desc = `${kl} (lord H${kh}) conjunct ${tl} (lord H${th}) in house ${kHouse}`
       } else if (isParivartana(kg, tg, ascRashi)) {
         formed = true
         desc = `${kl} (lord H${kh}) and ${tl} (lord H${th}) in Parivartana (H${kHouse} ⇄ H${tHouse})`
       } else if (areAssociated(kg, tg, ascRashi)) {
         formed = true
-        desc = `${kl} (lord H${kh}) in H${kHouse} associated by aspect with ${tl} (lord H${th}) in H${tHouse}`
+        desc = `${kl} (lord H${kh}) in house ${kHouse} associated by aspect with ${tl} (lord H${th}) in house ${tHouse}`
       }
 
       if (formed) {
@@ -232,7 +232,7 @@ function checkDhanaYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
           strength:    [2, 5, 9, 11].includes(h) ? 'strong' : 'moderate',
           planets:     [l1, l2],
           houses:      [h],
-          description: `Lords of H${wealthHouses[i]} (${l1}) and H${wealthHouses[j]} (${l2}) conjunct in H${h}`,
+          description: `Lords of H${wealthHouses[i]} (${l1}) and H${wealthHouses[j]} (${l2}) conjunct in house ${h}`,
           effect:      'Wealth accumulation, financial prosperity, multiple income sources',
         })
       }
@@ -289,7 +289,7 @@ function checkSpecialYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[]
       strength:    me.isRetro || me.isCombust ? 'weak' : 'strong',
       planets:     ['Su', 'Me'],
       houses:      [h],
-      description: `Sun and Mercury conjunct in H${h}`,
+      description: `Sun and Mercury conjunct in house ${h}`,
       effect:      'Sharp intelligence, analytical mind, good communication, success through intellect',
     })
   }
@@ -325,7 +325,7 @@ function checkSpecialYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[]
       strength:    'moderate',
       planets:     ['Mo', 'Ma'],
       houses:      [h],
-      description: `Moon and Mars conjunct in H${h}`,
+      description: `Moon and Mars conjunct in house ${h}`,
       effect:      'Wealth through bold action, business acumen, strong willpower, practical intelligence',
     })
   }
@@ -343,7 +343,7 @@ function checkSpecialYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[]
       strength:    'strong',
       planets:     h10Planets.map(g => g.id),
       houses:      [10],
-      description: `Only benefics (${h10Planets.map(g => g.id).join(', ')}) in H10`,
+      description: `Only helpful planets (${h10Planets.map(g => g.id).join(', ')}) in H10`,
       effect:      'Spotless reputation, pure character, lasting fame through righteous deeds',
     })
   }
@@ -416,7 +416,7 @@ function checkSpecialYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[]
         strength:    beneficsIn678.length >= 3 ? 'strong' : 'moderate',
         planets:     ['Mo', ...beneficsIn678.map(g => g.id)],
         houses:      [moH, ...houses678],
-        description: `Benefics (${beneficsIn678.map(g => g.id).join(', ')}) in 6th, 7th, or 8th from Moon`,
+        description: `Helpful planets (${beneficsIn678.map(g => g.id).join(', ')}) in 6th, 7th, or 8th from Moon`,
         effect:      'Leader of others, famous, stable wealth, victory over competitors.',
       })
     }
@@ -548,7 +548,7 @@ function checkLunarYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
         strength:    isKendra(moH) ? 'weak' : 'strong',
         planets:     ['Mo', 'Ju'],
         houses:      [moH, juH],
-        description: `Moon in H${moH} is in ${fromJu}th from Jupiter in H${juH}`,
+        description: `Moon in house ${moH} is in ${fromJu}th from Jupiter in house ${juH}`,
         effect:      'Fluctuating fortune, loss of wealth and position but regaining it through effort.',
       })
     }
@@ -595,7 +595,7 @@ function checkParivartana(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] 
           strength:    'strong',
           planets:     [lordI, lordJ],
           houses:      [i, j],
-          description: `Lord of H${i} (${lordI}) in H${j} and Lord of H${j} (${lordJ}) in H${i}`,
+          description: `Lord of H${i} (${lordI}) in house ${j} and Lord of H${j} (${lordJ}) in house ${i}`,
           effect,
         })
       }
@@ -662,7 +662,7 @@ function checkKartari(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
         strength:    'strong',
         planets:     [...in2nd.map(g => g.id), ...in12th.map(g => g.id)],
         houses:      [1, 2, 12],
-        description: 'Lagna hemmed in by natural benefics.',
+        description: 'Lagna hemmed in by naturally helpful planet.',
         effect:      'Protection, health, support from environment, obstacles are easily overcome.',
       })
     } else if (isPapa) {
@@ -673,7 +673,7 @@ function checkKartari(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
         strength:    'strong',
         planets:     [...in2nd.map(g => g.id), ...in12th.map(g => g.id)],
         houses:      [1, 2, 12],
-        description: 'Lagna hemmed in by natural malefics.',
+        description: 'Lagna hemmed in by naturally difficult planet.',
         effect:      'Pressure, health issues, feeling restricted or trapped by circumstances.',
       })
     }

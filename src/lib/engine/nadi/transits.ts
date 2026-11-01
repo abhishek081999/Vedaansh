@@ -21,7 +21,7 @@ export const NADI_SLOW_TRANSIT_NOTE =
 
 export const NADI_SATURN_TRANSIT = [
   { planet: 'Venus', result: 'The most useful Saturn transit. Wealth, a marriage or a relationship, and growth in vehicles, land, or a house. The size of the gain is not read.' },
-  { planet: 'Rahu', result: 'A hard period. A death in the family, a serious illness, a fall in work, or a change of residence is checked.' },
+  { planet: 'Rahu', result: 'A hard period. Classical texts look here for a loss in the family, illness, a fall in work, or a move. It is not a fixed outcome.' },
   { planet: 'Mars', result: 'Disputes, surgery, an accident, a fracture, or a court case are checked. Building, land, and property are the useful form.' },
   { planet: 'Ketu', result: 'A change of work is read as likely. A supportive running period can make it a step up rather than a loss. Expenditure is also checked.' },
   { planet: 'Sun', result: 'A rise in work. Conflict, separation, or illness is checked for the father or grandfather. Government, a court matter, tax, or a visa is also checked.' },
@@ -31,7 +31,7 @@ export const NADI_SATURN_TRANSIT = [
 ] as const
 
 export const NADI_NODE_TRANSIT = [
-  { planet: 'Rahu over Saturn', result: 'A financial loss, a change of residence, illness, or a death in the immediate family is checked.' },
+  { planet: 'Rahu over Saturn', result: 'Classical texts look here for a financial loss, a move, illness, or a loss in the close family. It is not a fixed outcome.' },
   { planet: 'Ketu over Saturn', result: 'A change of work, or the loss of it.' },
   { planet: 'Rahu over Venus', result: 'Wealth, luxury, relationships, and a vehicle or gadgets.' },
   { planet: 'Venus over Saturn', result: 'For about a month each year, wealth is read for a person in business. A fixed salary does not show this.' },
@@ -144,13 +144,13 @@ export function hardTransitNotes(input: HardTransitInput): string[] {
   }
   if (input.navamshaLagna != null) {
     const sign = rashiForHouseFromLagna(input.navamshaLagna, 4)
-    lines.push(`The 4th of Navamsha is ${RASHI_NAMES[sign]}. Rahu or Saturn in that sign is read as a death in the family or among close relations.`)
+    lines.push(`The 4th of Navamsha is ${RASHI_NAMES[sign]}. Classical texts read Rahu or Saturn in that sign as a possible loss among close relations. It is not a fixed outcome.`)
   }
   if (input.navamsha) {
     const eighth = lordOf(input.ascRashi, 8)
     const sign = input.navamsha[eighth]
     if (sign != null) {
-      lines.push(`Saturn in ${RASHI_NAMES[sign]}, the Navamsha of the 8th lord ${GRAHA_NAMES[eighth]}, is read as a death in the family, a major mishap, or a hard year for the native.`)
+      lines.push(`Saturn in ${RASHI_NAMES[sign]}, the Navamsha of the 8th lord ${GRAHA_NAMES[eighth]}, is read as a possible loss in the family, a mishap, or a hard year for you. It is not a fixed outcome.`)
     }
     const fifth = lordOf(input.ascRashi, 5)
     const birth = input.navamsha[fifth]
@@ -166,8 +166,8 @@ export function hardTransitNotes(input: HardTransitInput): string[] {
     ))
     if (!malefic) continue
     lines.push(house === 1
-      ? 'The lagna holds a malefic. Reputation and temper are checked.'
-      : 'The 7th holds a malefic. Reputation through a partnership is checked.')
+      ? 'The lagna holds a difficult planet. Reputation and temper are checked.'
+      : 'The 7th holds a difficult planet. Reputation through a partnership is checked.')
   }
   return lines
 }

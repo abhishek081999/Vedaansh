@@ -24,13 +24,13 @@ import {
 } from '@/lib/engine/nadi/yogas'
 
 export const NADI_MARRIAGE_SCOPE =
-  'Read this on the native first, then on parents or siblings. It is not read on a maternal uncle or aunt. A result already present in the family is the combination that has shown. Otherwise it stays open for the native or the children.'
+  'Read this on the person first, then on parents or siblings. It is not read on a maternal uncle or aunt. A result already present in the family is the combination that has shown. Otherwise it stays open for the person or the children.'
 
 export const NADI_MARRIAGE_BOND =
   'A bond held for a full year in body, mind, and feeling is read from the 7th. A shorter bond is read from the 5th.'
 
 export const NADI_MARRIAGE_HEALTH =
-  'When a separation is not what shows, the same Venus is checked for the kidneys, uterus, and reproductive organs, for the native or an immediate relative.'
+  'When a separation is not what shows, the same Venus is checked for the kidneys, uterus, and reproductive organs, for the person or an immediate relative.'
 
 export interface NadiMarriageYoga {
   id: string
@@ -183,7 +183,7 @@ export function findMarriageYogas(input: NadiYogaChartInput): NadiMarriageYoga[]
       }
       const hit = toHit(input, def, sign, reading)
       if (def.id === 've-ra' && hit.house === 7) {
-        hit.reading += ' In the 7th, the three forms are no marriage, a separation, or the death of the spouse. Do not reduce this to a separation alone.'
+        hit.reading += ' In the 7th house, classical Nadi texts describe this as a delay in marriage, a separation, or a loss in the marriage. The texts give the possibilities and do not fix an outcome.'
       }
       if (input.chart === 'D9' && def.id === 've-ke') {
         hit.reading += ' In Navamsha, a second marriage is the form checked.'

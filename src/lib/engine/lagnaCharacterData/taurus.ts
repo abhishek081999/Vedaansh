@@ -72,11 +72,11 @@ export const TAURUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       theme: 'Talks about family and money; relatives rarely reciprocate',
       points: [
         'Taurus is the natural 2nd, so 2nd-house energy is doubly important.',
-        'Relatives rarely help despite the native’s dedication; Gemini is self-serving.',
+        'Relatives rarely help despite the person’s dedication; Gemini is self-serving.',
         'Always talks about ancestors, family resources, land, investments, stocks; finds it hard to listen.',
         'Strong drive to accumulate, with travel and effort needed; needs a good bank balance. May collect gadgets such as phones and earphones.',
         'Each family member presents their own version as the correct one, so family disputes are hard to settle.',
-        'Female deities matter: Annapurna, Brahmacharini, Saraswati, Lakshmi, Mahamaya. If the native reports poverty or family instability, traditional teaching asks to check the family history for mistreatment of girl children, with donations to female-linked causes as remedy.',
+        'Female deities matter: Annapurna, Brahmacharini, Saraswati, Lakshmi, Mahamaya. If the person reports poverty or family instability, traditional teaching asks to check the family history for mistreatment of girl children, with donations to female-linked causes as remedy.',
         'Mercury-Moon dasha with job loss: traditional teaching asks to look for rule-breaking relationships in the family draining finances.',
         'Kul Dharma dosha: Jupiter’s blessing is missing from the household (Sagittarius falls in the 8th); remedy is regular donation to Brahmins.',
         'Fast-food habits (chaat, pakode, golgappe, pizza, pasta) from this Gemini 2nd feed the digestive issues seen in the 6th.',
@@ -140,21 +140,21 @@ export const TAURUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       theme: 'Deep marriage wounds, spouse conflict with natal family',
       points: [
         'Scorpio gives wounds that take very long to heal; the marriage can turn intimacy-poor over time (Mars-Ketu energy).',
-        'Spouse typically dislikes the native’s family: Mercury (2nd lord) does not get along with Mars or Ketu, and the family is seen as greedy; fights over money for family are common.',
-        'Malefics in the 7th severely affect marriage.',
+        'Spouse typically dislikes the person’s family: Mercury (2nd lord) does not get along with Mars or Ketu, and the family is seen as greedy; fights over money for family are common.',
+        'Difficult planets in the 7th severely affect marriage.',
         'Business partnerships are slow to work and hard to exit on your own terms; clashes do not resolve quickly.',
       ],
     },
     8: {
       house: 8,
       signName: 'Sagittarius',
-      theme: 'Hidden moral conflict, secrets, curse needing guidance',
+      theme: 'Hidden moral conflict and secrets; guidance helps',
       points: [
         'Moral and intellectual Sagittarius energy is suppressed here, giving an internal moral dilemma that worsens with secret relationships.',
         'Secrets may involve hidden accounts or relationships; a 9th sign in the 8th points to secrets about the legitimacy of marriage.',
         'The 9th relates to family deities, who bless when past karmic debt is cleared.',
-        'Jupiter energy in the 8th acts like a curse that needs astrological guidance. When facing unsolvable secret problems, seek an astrologer.',
-        'Gemstone remedies (8th) and a guru-given yantra or talisman can start bhagyodaya; Saturn as gemstone karaka sits in the 9th for this Lagna.',
+        'Jupiter in the 8th can bring private problems that are hard to solve alone. When that happens, ask a trusted guide or astrologer for advice.',
+        'Gemstone remedies (8th) and a guru-given yantra or talisman can start bhagyodaya; Saturn as gemstone karaka (natural indicator) sits in the 9th for this Lagna.',
       ],
     },
     9: {
@@ -166,7 +166,7 @@ export const TAURUS_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Father is heavy-handed and very ego-driven, like Daksha.',
         'Too much talking at temples or with gurus; they should serve at temples. Visit ancient temples (1500-2000 years old): Kailash, Jyotirlingas such as Kedarnath and Badrinath, and Shaktipeeths.',
         'Kumari worship at Shaktipeeths such as Kamakhya helps the 3rd and 8th house issues; Jyotirlinga visits help marriage problems and bring humility and fortune.',
-        'Saturn demands excessive hard work; karma is dharma for these natives and consistent effort leads to success.',
+        'Saturn demands excessive hard work; karma is dharma for these people and consistent effort leads to success.',
       ],
     },
     10: {
@@ -186,7 +186,7 @@ export const TAURUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       points: [
         'Income can come from foreign sources or import-export, in a God-dependent, unpredictable flow.',
         'A donation share is already built into income: set aside 5-10% on receipt for temples, dhams or the guru.',
-        'The wife and her children also draw on the native’s income (4-8-12 and 5th-from-7th connections); money flowing out helps resolve the 8th-house Jupiter curse.',
+        'The wife and her children also draw on the person’s income (4-8-12 and 5th-from-7th connections); money flowing out helps resolve the 8th-house Jupiter challenge.',
         'Others see them as wealthy even when money is not retained; EMIs get deducted at once.',
       ],
     },

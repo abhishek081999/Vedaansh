@@ -82,11 +82,11 @@ function specialNoteForLagna(ascRashi: Rashi): string {
     case 2:
       return 'Mercury is not read as a maraka here, because it also rules the 5th.'
     case 3:
-      return 'The Moon is not a maraka if it is unafflicted. Mars and Saturn need care.'
+      return 'The Moon is not a maraka if it is free of difficult influences. Mars and Saturn need care.'
     case 4:
       return 'Saturn, lord of the 7th and the 8th, is the hardship lord. Jupiter remains supportive.'
     case 5:
-      return 'Mercury can turn sharp when it is afflicted. Mars with Jupiter is the productive axis.'
+      return 'Mercury can turn sharp when it is under pressure. Mars with Jupiter is the productive axis.'
     case 6:
       return 'Venus rules the 2nd, and also the 9th, so it is not read as a pure maraka.'
     case 7:

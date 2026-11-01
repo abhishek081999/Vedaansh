@@ -145,7 +145,7 @@ describe('analyzeMuhurta', () => {
     const withPanchaka = analyzeMuhurta(
       'HEALTH',
       basePanchang({
-        panchaka: { isAuspicious: false, label: 'Mrityu Panchaka (Danger)', remainder: 1 },
+        panchaka: { isAuspicious: false, label: 'Mrityu Panchaka (Take extra care)', remainder: 1 },
       }),
       natal,
     )

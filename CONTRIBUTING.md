@@ -26,7 +26,7 @@ npm run test:engine   # or at least tests covering your change
 npm run build         # for risky / infra changes
 ```
 
-- API routes: `guardRoute` + Zod + `{ success, error }`; enforce plans on the server. `proxy.ts` prefix lists can be stricter than the handler (`/api/subscription`, `/api/chart/export`).
+- API routes: `guardRoute` + Zod + `{ success, error }`; enforce plans on the server. Route lists for `src/proxy.ts` live in `src/lib/security/proxyRules.ts`; handlers must still enforce plans themselves.
 - Engine: no React / Mongo / Redis / NextAuth imports under `src/lib/engine/**`.
 - UI: plan teasers are OK; API must still gate.
 - Docs: if a route, model, plan gate, or command changes, update `docs/` and [`SUBSCRIPTION_MATRIX.md`](./SUBSCRIPTION_MATRIX.md) in the same change. Trust `package.json` over version strings in prose.

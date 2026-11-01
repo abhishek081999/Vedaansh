@@ -55,7 +55,7 @@ type View = 'overview' | 'promise' | 'houses' | 'yogas' | 'turns' | 'timing' | '
 const VIEWS: { id: View; label: string; hint: string; sections: Section[] }[] = [
   { id: 'overview', label: 'Overview', hint: 'Five scores, the six questions, the likely track, foreign work, and profession fields', sections: ['overview'] },
   { id: 'promise', label: 'Promise and Strength', hint: 'Can the 10th deliver, how strong the career planets are, and the D9, D10, and A10 checks', sections: ['delivery', 'strength', 'confirm'] },
-  { id: 'houses', label: 'Houses and Planets', hint: 'Livelihood houses, the 10th from Moon and Sun, each planet at work, the dispositor chain, and the varga ladder', sections: ['houses', 'planets', 'chain'] },
+  { id: 'houses', label: 'Houses and Planets', hint: 'Livelihood houses, the 10th from Moon and Sun, each planet at work, the dispositor (ruler of the sign it sits in) chain, and the varga ladder', sections: ['houses', 'planets', 'chain'] },
   { id: 'yogas', label: 'Yogas and Nakshatra', hint: 'Career yogas and the nakshatra profession formula', sections: ['yogas', 'stars'] },
   { id: 'turns', label: 'Turns and Support', hint: 'Starts, breaks, changes, and rises of the career, and who helps or blocks the post', sections: ['turns', 'support'] },
   { id: 'timing', label: 'Timing', hint: 'Good and poor periods from mahadasha down to sookshma, and the slow-planet transits', sections: ['timing'] },

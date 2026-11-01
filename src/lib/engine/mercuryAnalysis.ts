@@ -187,7 +187,7 @@ export const MERCURY_KARAKATVA: MercurySignificationGroup[] = [
       'Cousins (paternal / maternal)',
       'Short travel and local journeys',
       'Stand-up comedy / wit / humour',
-      'Behaves like the company kept — takes on yuti nature',
+      'Behaves like the company kept — takes on yuti (conjunction) nature',
     ],
   },
   {
@@ -210,7 +210,7 @@ export const MERCURY_MEDICAL: MercurySignificationGroup[] = [
       'Brain as convergence of Saturn (veins/aging), Moon (mind), Mars (blood/energy)',
       'Skin (त्वचा) — skin issues when Mercury is involved',
       'Neurological pathway disorders (distinct from Moon’s hemorrhage domain)',
-      'Autism indicators when Mercury is badly afflicted',
+      'Autism indicators when Mercury is badly under pressure',
       'Stammering / stuttering (especially combust + retrograde)',
     ],
   },
@@ -218,7 +218,7 @@ export const MERCURY_MEDICAL: MercurySignificationGroup[] = [
     category: 'Distinctions (not Mercury primary)',
     items: [
       'Brain hemorrhage etc. → primarily Moon',
-      'Psoriasis-type skin lore → primarily Sun (esp. fire-sign lagna)',
+      'Psoriasis-type skin tradition → primarily Sun (esp. fire-sign lagna)',
       'Hair fall → Jupiter + Mars; complete baldness → Sun; premature greying ~15–16 → Moon',
       'Sun + Mercury alone does NOT mean spectacles — eyes from 2nd/12th + Sun + Moon + dasha',
     ],
@@ -252,7 +252,7 @@ const HOUSE_FOCUS: Record<number, MercuryHouseFocus> = {
     themes: ['Writing', 'Skills', 'Siblings / courage of mind'],
     difficulty: 'supportive',
     notes: [
-      'Class teaching: even debilitated Mercury here can give excellent emotional writing, lyric, poetry',
+      'Traditional teaching: even debilitated Mercury here can give excellent emotional writing, lyric, poetry',
       'Short journeys and communicative skills amplify',
     ],
   },
@@ -292,7 +292,7 @@ const HOUSE_FOCUS: Record<number, MercuryHouseFocus> = {
     themes: ['Clever partner', 'Trade marriage', 'Immature relating'],
     difficulty: 'problematic',
     notes: [
-      'Class teaching: often not preferred — partnership mind stays youthful and changeable',
+      'Traditional teaching: often not preferred — partnership mind stays youthful and changeable',
       'On 1–7 axis with Moon: maximum immature relationship decisions',
     ],
   },
@@ -303,16 +303,16 @@ const HOUSE_FOCUS: Record<number, MercuryHouseFocus> = {
     difficulty: 'neutral',
     notes: [
       'Research speech, occult study; intellect survives through crisis',
-      'Gambling/speculation lore when Rahu joins 5/8/11 with Mercury',
+      'Gambling/speculation tradition when Rahu joins 5/8/11 with Mercury',
     ],
   },
   9: {
     house: 9,
     title: 'Mercury in 9th — most uncomfortable seat',
-    themes: ['Father / dharma heat', 'Guru household lore', 'Immature fortune'],
+    themes: ['Father / dharma heat', 'Guru household tradition', 'Immature fortune'],
     difficulty: 'most_problematic',
     notes: [
-      'Class: sabse zyada खराब — Jupiter’s house energy suppresses youthful Mercury',
+      'Tradition: sabse zyada खराब — Jupiter’s house energy suppresses youthful Mercury',
       'Mythology: Jupiter’s household is where Mercury felt suspicion and discomfort',
       '9th demands maturity, seriousness, devotion — qualities Mercury fundamentally lacks as Kumar',
       'Even own/exalted here: results come with discomfort; prediction accuracy may suffer for astrologers',
@@ -324,7 +324,7 @@ const HOUSE_FOCUS: Record<number, MercuryHouseFocus> = {
     themes: ['Trade career', 'Counsel', 'Public intellect'],
     difficulty: 'supportive',
     notes: [
-      'Career in communication, accounting, counsel, trade — Rama case study seat in class notes',
+      'Career in communication, accounting, counsel, trade — Rama case study seat in traditional teaching',
       'Needs Sun/Moon/Jupiter support to convert ideas into lasting authority',
     ],
   },
@@ -387,11 +387,11 @@ const BOTH_EFFECTS: MercuryConditionEffects = {
     'Severe decision delay — decides only when the matter has gone out of hand',
     'Stammering at critical communication moments',
     'Over-evaluation until the decision becomes useless',
-    'Travel disruption worse than combust or vakri alone',
+    'Travel disruption worse than combust or vakri (retrograde) alone',
   ],
   positives: [
     'Quick disconnection from society / exterior noise when needed',
-    'Spiritual activation accelerates if they lean even slightly toward sadhana',
+    'Spiritual activation accelerates if they tendency even slightly toward sadhana',
     'Deep internal processing of inner vs outer identity',
     'Sudden epiphany (आहत) / inner-signal guidance',
   ],
@@ -440,7 +440,7 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
     house,
     title: `Mercury in house ${house}`,
     themes: [],
-    notes: ['Judge dignity, yuti, and functional nature for this lagna.'],
+    notes: ['Judge dignity, yuti (conjunction), and functional nature for this lagna.'],
     difficulty: 'neutral' as const,
   }
 
@@ -456,7 +456,7 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
               ? '7th house — partnership caution'
               : '12th house — past-life / isolation caution',
         active: true,
-        detail: houseFocus.notes[0] ?? `Mercury in H${house} is classically watched.`,
+        detail: houseFocus.notes[0] ?? `Mercury in house ${house} is classically watched.`,
       }
     : debilitated && house === 4
       ? {
@@ -484,17 +484,17 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
 
   const companionNote =
     companions.length > 0
-      ? `Mercury sits with ${companions.map(c => c.name).join(', ')} — class teaching: Budha behaves like the company he keeps; decode results through these yuti first.`
-      : 'No close yuti under this module’s orb — Mercury is relatively alone. Alone Mercury still works (~90% potential) but needs a father-figure / base planet for full expression.'
+      ? `Mercury sits with ${companions.map(c => c.name).join(', ')} — traditional teaching: Budha behaves like the company he keeps; decode results through these yuti (conjunction) first.`
+      : 'No close yuti (conjunction) under this module’s orb — Mercury is relatively alone. Alone Mercury still works (~90% potential) but needs a father-figure / base planet for full expression.'
 
   const withMoon = companions.some(c => c.id === 'Mo')
   const moonEnemyFlag: MercuryFlag = {
     id: 'moon_enemy',
-    title: 'Moon — natural enemy lore',
+    title: 'Moon — natural enemy tradition',
     active: withMoon,
     detail: withMoon
-      ? 'Mercury–Moon yuti active. Biological-father lore: relationship is fluctuating (फेरबदल) — sometimes supportive for performance, sometimes emotionally confusing. Immature relationship decisions amplify on 1–7 axis patterns.'
-      : 'Moon is Mercury’s natural enemy in class teaching (birth scandal lore). Current chart: no close Mercury–Moon conjunction under this module’s orb. Still weigh Moon’s support vs friction for speech/mind.',
+      ? 'Mercury–Moon yuti (conjunction) active. Biological-father tradition: relationship is fluctuating (फेरबदल) — sometimes supportive for performance, sometimes emotionally confusing. Immature relationship decisions amplify on 1–7 axis patterns.'
+      : 'Moon is Mercury’s natural enemy in traditional teaching (birth scandal tradition). Current chart: no close Mercury–Moon conjunction under this module’s orb. Still weigh Moon’s support vs friction for speech/mind.',
   }
 
   const retroFlag: MercuryFlag = {
@@ -502,8 +502,8 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
     title: 'Retrograde Mercury (वक्रि बुध)',
     active: mercury.isRetro,
     detail: mercury.isRetro
-      ? 'Vakri Budha: analysis up, decision paralysis, past attachment, misunderstandings, ancient-knowledge pull. Activation lore ~18–22.'
-      : 'Mercury not retrograde — expression more forward than the vakri re-evaluation pattern.',
+      ? 'Vakri (retrograde) Budha: analysis up, decision paralysis, past attachment, misunderstandings, ancient-knowledge pull. Activation tradition ~18–22.'
+      : 'Mercury not retrograde — expression more forward than the vakri (retrograde) re-evaluation pattern.',
   }
 
   const combustFlag: MercuryFlag = {
@@ -522,7 +522,7 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
     active: bothActive,
     detail: bothActive
       ? 'Highest confusion / decision-delay band; stammering at critical moments possible; past resurfaces strongly in Mercury dasha. Also: rapid spiritual activation and quick social disconnection when conscious.'
-      : 'Combust + vakri combination not indicated together.',
+      : 'Combust + vakri (retrograde) combination not indicated together.',
   }
 
   const twelfthPastLife: MercuryFlag = {
@@ -541,12 +541,12 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
     '4 Mukhi Rudraksha (Mercury) — activate (जागृत) with abhishek + “Om Akshamalaye Namah” ×108 before wearing',
     'Emerald (पन्ना) only if the full chart supports — not mandatory for all',
     'Hari moong, green cloth; copper (shared with Mars)',
-    'Deities: Lord Vishnu / Buddha avatara lore; also Ganesha for obstacle-clear speech',
-    'Prefer internal remedies (confidence, focus discipline, journaling) when the chart shows the native cannot follow ritual rules',
+    'Deities: Lord Vishnu / Buddha avatara tradition; also Ganesha for obstacle-clear speech',
+    'Prefer internal remedies (confidence, focus discipline, journaling) when the chart shows the person cannot follow ritual rules',
   ]
   if (bothActive) {
     remedies.unshift(
-      'Combust + vakri: prioritize journaling, input-filtering, and short daily silence before gemstone/rudraksha prescriptions.',
+      'Combust + vakri (retrograde): prioritize journaling, input-filtering, and short daily silence before gemstone/rudraksha prescriptions.',
     )
   }
   if (house === 9) {
@@ -630,12 +630,12 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
       nearDebilPeak,
     },
     nature: [
-      'Saumya (gentle) and Tatastha (neutral) — BPHS Ch.3 lore',
-      'Napunsak graha (neuter) — feminine arts entered after mother-curse lore',
+      'Saumya (gentle) and Tatastha (neutral) — BPHS Ch.3 tradition',
+      'Napunsak graha (neuter) — feminine arts entered after mother-curse tradition',
       'Kumar / Yuvaraj (~16) — heir, not king; needs permission and a base planet',
       'Chanchal / चुलबुला — restless, quick-changing (fastest after Moon)',
       'Ideas often borrowed (“तोते हैं”); analysis without long-term patience',
-      'Can cheat/lie easily when badly placed; takes on yuti nature',
+      'Can cheat/lie easily when badly placed; takes on yuti (conjunction) nature',
       'With Moon support performs well; with Sun support performs even better',
     ],
     karakatva: MERCURY_KARAKATVA,
@@ -652,7 +652,7 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
         house: h,
         title: `Mercury in house ${h}`,
         themes: [],
-        notes: ['Judge dignity, yuti, and functional nature for this lagna.'],
+        notes: ['Judge dignity, yuti (conjunction), and functional nature for this lagna.'],
         difficulty: 'neutral' as const,
       }
     }),
@@ -681,15 +681,15 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
     mythology: [
       'Skanda Purana: Tara (Brihaspati’s wife) and Chandra — Budha conceived; Brihaspati later adopts him',
       'Illegitimate birth karma — Moon attracted to Guru’s wife; Tara stayed willingly ~2+ years in Chandralok',
-      'Mercury considers Brihaspati (Jupiter) an enemy in relationship lore; Moon relationship fluctuates',
-      'Self-discovered wisdom: figured parentage from observation — “बुद्धिर् बलं यशो धर्मम्” lore',
+      'Mercury considers Brihaspati (Jupiter) an enemy in relationship tradition; Moon relationship fluctuates',
+      'Self-discovered wisdom: figured parentage from observation — “बुद्धिर् बलं यशो धर्मम्” tradition',
       'Invocation: Priyangu Kalika Shyamam… — dark like Priyangu bud, gentle, saumya',
       'Symbolic kardhani (waist belt) — childlike protective ornament; always depicted as teenager',
     ],
     curses: [
       'Tara: “Filled with doubt — nobody will trust you; remain isolated.”',
       'Napunsak curse: feminine arts/qualities enter the male form',
-      'Third curse lore (restlessness / chanchalta) — details vary; linked to disturbing tapasya',
+      'Third curse tradition (restlessness / chanchalta) — details vary; linked to disturbing tapasya',
       'Both parents eventually rejected him — shapes insecurity and validation hunger',
     ],
     professions: [
@@ -714,15 +714,15 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
     },
     classical,
     caveats: [
-      'Never tell a client combust/vakri Mercury is simply “bad” — balance with writing, depth, and spiritual positives',
+      'Never tell a client combust/vakri (retrograde) Mercury is simply “bad” — balance with writing, depth, and spiritual positives',
       'Debilitation is by rashi, not house — neecha traits show even with neecha-bhanga softening',
       'Every planet is good including Rahu/Ketu/Saturn when decoded properly',
       'Check chart capacity before prescribing remedies — unused ritual karma can rebound on the astrologer',
       'Avoid volunteering sensational relationship predictions',
     ],
     methodology: [
-      'Layer: Mercury nature → house (watch 9/7/12) → sign (Gemini/Virgo vs Pisces) → degree (~15° peaks) → yuti (company first) → combust orb (14° / 12° vakri) → vakri → dasha',
-      'Decode Inner vs Outer Core whenever combust and/or vakri',
+      'Layer: Mercury nature → house (watch 9/7/12) → sign (Gemini/Virgo vs Pisces) → degree (~15° peaks) → yuti (company first) → combust orb (14° / 12° vakri (retrograde)) → vakri → dasha',
+      'Decode Inner vs Outer Core whenever combust and/or vakri (retrograde)',
       'Give Mercury a base planet (Sun/Venus/mentor) before blaming Budha alone',
       'Medical: nerves/skin/neurology via Mercury; hemorrhage via Moon; hair stages via Mars→Jupiter→Sun',
     ],
@@ -733,7 +733,7 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
       { label: 'Exalt / Debil', value: 'Virgo @15° · Pisces @15°' },
       { label: 'Nakshatras', value: 'Ashlesha · Jyeshtha · Revati' },
       { label: 'Combustion', value: '0–14° (12° if vakri)' },
-      { label: 'Deity', value: 'Vishnu · Ganesha · Buddha lore' },
+      { label: 'Deity', value: 'Vishnu · Ganesha · Buddha tradition' },
       { label: 'Gem / Metal', value: 'Emerald · Copper' },
       { label: 'Rudraksha', value: '4 Mukhi' },
       { label: 'Natural age', value: '~16 (Kumar)' },

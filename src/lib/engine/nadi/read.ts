@@ -601,7 +601,7 @@ export function readNadiHouses(input: NadiChartInput): NadiChartReading {
     dhanNotes: lectures.wealth,
     nodeNote: nadiNodeNote(input.nodeMode),
     sunNote: sun && STRONG_DIGNITY.has(sun.dignity ?? '')
-      ? 'A strong Sun: the father has an established living, and the native may leave a course or a job because that setup is already there.'
+      ? 'A strong Sun: the father has an established living, and the person may leave a course or a job because that setup is already there.'
       : null,
     saturnRetroNote,
     retrogradeNotes: retrograde.others,
@@ -768,7 +768,7 @@ function readHouse(
   const activeRules = [...profile.rules]
   if (papaPresent) activeRules.unshift(NADI_MALEFIC_LIVING_RULE)
   if (house === 1 && !papaPresent && occupants.some((g) => NADI_GRAHAS[g.id].nature === 'benefic')) {
-    activeRules.unshift('Benefics in the lagna support health, fame, and the body.')
+    activeRules.unshift('Helpful planets in the lagna support health, fame, and the body.')
   }
   if (house === 5) activeRules.push(...educationNotes(ids))
   if (house === 2 || house === 7) {

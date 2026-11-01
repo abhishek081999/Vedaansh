@@ -29,17 +29,17 @@ export const VAKRI_ACTIVATION_AGE: Partial<Record<ClassicalGrahaId, string>> = {
 const VAKRI_CORE: ClassicalNote[] = [
   note(
     'BPHS',
-    'Vakri (retrograde): the planet appears to move backward from Earth—an optical effect, not literal reverse motion. Sun and Moon never go vakri; Mercury–Saturn can; Rahu/Ketu are nearly always vakri.',
+    'Vakri (retrograde): the planet appears to move backward from Earth—an optical effect, not literal reverse motion. Sun and Moon never go vakri (retrograde); Mercury–Saturn can; Rahu/Ketu are nearly always vakri.',
     'Vakri',
   ),
   note(
     'Teaching',
-    'Natal vakri marks incomplete karmas and a chance to re-examine that graha’s themes—like a supplementary exam. It is not inherently malefic; almost every chart has at least one vakri planet. In own sign, exaltation, or a clean nakshatra, classics allow auspicious results through a longer process.',
+    'Natal vakri (retrograde) marks incomplete karmas and a chance to re-examine that graha’s themes—like a supplementary exam. It is not inherently difficult planet; almost every chart has at least one vakri planet. In own sign, exaltation, or a clean nakshatra, classics allow auspicious results through a longer process.',
     'Vakri',
   ),
   note(
     'Teaching',
-    'Common pattern: overthinking and dual expression (outer calm vs inner intensity), repeating life themes, flashback memories, and delayed—but eventually solid—results. Ego (ahankāra) attached to a vakri planet imbalances it; check how the Sun joins or aspects that graha.',
+    'Common pattern: overthinking and dual expression (outer calm vs inner intensity), repeating life themes, flashback memories, and delayed—but eventually solid—results. Ego (ahankāra) attached to a vakri (retrograde) planet imbalances it; check how the Sun joins or aspects that graha.',
     'Vakri',
   ),
 ]
@@ -60,7 +60,7 @@ const ASTA_CORE: ClassicalNote[] = [
 const VAKRI_ASTA_COMBO: ClassicalNote[] = [
   note(
     'Teaching',
-    'Vakri + Asta together: immense internal processing power with muted external aura—plans brilliantly inside, but self and others may miss the true potential (Hanumān forgetting his śakti). Early life often feels slow; clarity and delivery typically accelerate after the mid-30s to mid-40s.',
+    'Vakri (retrograde) + Asta together: immense internal processing power with muted external aura—plans brilliantly inside, but self and others may miss the true potential (Hanumān forgetting his śakti). Early life often feels slow; clarity and delivery typically accelerate after the mid-30s to mid-40s.',
     'Vakri+Asta',
   ),
 ]
@@ -71,7 +71,7 @@ const VAKRI_BY_GRAHA: Partial<Record<ClassicalGrahaId, ClassicalNote[]>> = {
   Me: [
     note(
       'Teaching',
-      'Vakri Budha: sharp memory and silent strategic intelligence—brain shows in work more than speech. Challenges: promise-breaking under overload, decision paralysis, social anxiety, internal monologue, and mild OCD/ADHD-like information overload. Journal, filter inputs, and practice mental stillness. Activation ~18–22.',
+      'Vakri (retrograde) Budha: sharp memory and silent strategic intelligence—brain shows in work more than speech. Challenges: promise-breaking under overload, decision paralysis, social anxiety, internal monologue, and mild OCD/ADHD-like information overload. Journal, filter inputs, and practice mental stillness. Activation ~18–22.',
       'Vakri Me',
     ),
     note(
@@ -83,42 +83,42 @@ const VAKRI_BY_GRAHA: Partial<Record<ClassicalGrahaId, ClassicalNote[]>> = {
   Ve: [
     note(
       'Teaching',
-      'Vakri Śukra: deep capacity for love with unfinished past-life love themes. Pattern of intense attraction then sudden detachment, returning old bonds, validation-seeking, pleasure guilt, and self-worth doubt. Art/music outlets, boundaries, and self-love before bonding. Activation ~23–28.',
+      'Vakri (retrograde) Śukra: deep capacity for love with unfinished past-life love themes. Pattern of intense attraction then sudden detachment, returning old bonds, validation-seeking, pleasure guilt, and self-worth doubt. Art/music outlets, boundaries, and self-love before bonding. Activation ~23–28.',
       'Vakri Ve',
     ),
   ],
   Ma: [
     note(
       'Teaching',
-      'Vakri Mangala: calm exterior, boiling interior drive; passive aggression, late explosive anger, and strong revenge impulse if suppressed. Must channel energy through body (walk, gym, sport)—without outlets, verbal violence can be as damaging as physical. Activation ~27–32.',
+      'Vakri (retrograde) Mangala: calm exterior, boiling interior drive; passive aggression, late explosive anger, and strong revenge impulse if suppressed. Must channel energy through body (walk, gym, sport)—without outlets, verbal violence can be as damaging as physical. Activation ~27–32.',
       'Vakri Ma',
     ),
   ],
   Ju: [
     note(
       'Teaching',
-      'Vakri Guru: inner voice becomes the teacher—self-taught, independent, philosophical. Hard to accept an outer guru; moral conflicts and superiority about knowledge if imbalanced; may commercialize dharma. Prefers a sadguru beyond mere form. Activation ~32–38.',
+      'Vakri (retrograde) Guru: inner voice becomes the teacher—self-taught, independent, philosophical. Hard to accept an outer guru; moral conflicts and superiority about knowledge if imbalanced; may commercialize dharma. Prefers a sadguru beyond mere form. Activation ~32–38.',
       'Vakri Ju',
     ),
   ],
   Sa: [
     note(
       'Teaching',
-      'Vakri Śani: accountability and eventual transformation—visionary long-term mind, vairāgya, sevā, silent tapas. Cycle of break→rebuild; high-functioning depression, emotional numbness, work-as-escape, existential loneliness, and inability to ask for help. Needs karuṇā (compassion), rest, and travel—not more harsh discipline. Read emotions through Saturn first, then Moon. Activation ~36–42.',
+      'Vakri (retrograde) Śani: accountability and eventual transformation—visionary long-term mind, vairāgya, sevā, silent tapas. Cycle of break→rebuild; high-functioning depression, emotional numbness, work-as-escape, existential loneliness, and inability to ask for help. Needs karuṇā (compassion), rest, and travel—not more harsh discipline. Read emotions through Saturn first, then Moon. Activation ~36–42.',
       'Vakri Sa',
     ),
   ],
   Ra: [
     note(
       'Teaching',
-      'Rahu is vakri in virtually every chart (stationary Rahu is rare). Insatiable future hunger, illusion/deception skill, ambition that can sacrifice balance, comparison anxiety, and modern obsessions (screens, fame, tech). Core message: the obsession itself is the bondage to escape.',
+      'Rahu is vakri (retrograde) in virtually every chart (stationary Rahu is rare). Insatiable future hunger, illusion/deception skill, ambition that can sacrifice balance, comparison anxiety, and modern obsessions (screens, fame, tech). Core message: the obsession itself is the bondage to escape.',
       'Vakri Ra',
     ),
   ],
   Ke: [
     note(
       'Teaching',
-      'Ketu is characteristically vakri: incomplete memory seeking mokṣa, detached intelligence, and spiritual counterbalance to Rahu’s material pull—“you are already free; remember it.”',
+      'Ketu is characteristically vakri (retrograde): incomplete memory seeking mokṣa, detached intelligence, and spiritual counterbalance to Rahu’s material pull—“you are already free; remember it.”',
       'Vakri Ke',
     ),
   ],
@@ -137,7 +137,7 @@ const ASTA_BY_GRAHA: Partial<Record<ClassicalGrahaId, ClassicalNote[]>> = {
   Me: [
     note(
       'Teaching',
-      'Asta Budha is extremely common (Mercury stays near the Sun)—do not read it as weak intelligence. Mercury governs thinking speed, speech, and information exchange. Classify results by the Sun: mature/well-supported Sun refines a silent strategic mind and writing skill; immature/afflicted Sun yields scattered speech, validation-seeking, and delayed expression.',
+      'Asta Budha is extremely common (Mercury stays near the Sun)—do not read it as weak intelligence. Mercury governs thinking speed, speech, and information exchange. Classify results by the Sun: mature/well-supported Sun refines a silent strategic mind and writing skill; immature/troubled Sun yields scattered speech, validation-seeking, and delayed expression.',
       'Asta Me',
     ),
     note(
@@ -168,7 +168,7 @@ const ASTA_BY_GRAHA: Partial<Record<ClassicalGrahaId, ClassicalNote[]>> = {
   Ju: [
     note(
       'Teaching',
-      'Asta Guru: knowledge and dharma clarity get veiled—ethical confusion, mentor dependency (unlike vakri Jupiter, mentors do appear), suppressed inner truth, and fluctuating faith. Knows the right counsel but struggles to express it confidently.',
+      'Asta Guru: knowledge and dharma clarity get veiled—ethical confusion, mentor dependency (unlike vakri (retrograde) Jupiter, mentors do appear), suppressed inner truth, and fluctuating faith. Knows the right counsel but struggles to express it confidently.',
       'Asta Ju',
     ),
   ],
@@ -187,7 +187,7 @@ const VAKRI_ASTA_BY_GRAHA: Partial<Record<ClassicalGrahaId, ClassicalNote[]>> = 
   Me: [
     note(
       'Teaching',
-      'Vakri + Asta Budha: extremely sharp multi-angle mind, yet timing of speech often off; intelligence may be underestimated. Primary friction is anxiety/overthinking—unless dignity (e.g. exaltation) and house support lift expression.',
+      'Vakri (retrograde) + Asta Budha: extremely sharp multi-angle mind, yet timing of speech often off; intelligence may be underestimated. Primary friction is anxiety/overthinking—unless dignity (e.g. exaltation) and house support lift expression.',
       'Vakri+Asta Me',
     ),
     note(
@@ -199,28 +199,28 @@ const VAKRI_ASTA_BY_GRAHA: Partial<Record<ClassicalGrahaId, ClassicalNote[]>> = 
   Ve: [
     note(
       'Teaching',
-      'Vakri + Asta Śukra: deep artistic sensitivity and soul-level bonding (“deewānā” immersion) with relationships that still feel unfulfilled despite giving excessively. Blind spot: feels unworthy of love while love is actually present.',
+      'Vakri (retrograde) + Asta Śukra: deep artistic sensitivity and soul-level bonding (“deewānā” immersion) with relationships that still feel unfulfilled despite giving excessively. Blind spot: feels unworthy of love while love is actually present.',
       'Vakri+Asta Ve',
     ),
   ],
   Ma: [
     note(
       'Teaching',
-      'Vakri + Asta Mangala: strategic timing of reaction with warrior consciousness inside; suppressed energy often shows on the body—physical outlets remain essential.',
+      'Vakri (retrograde) + Asta Mangala: strategic timing of reaction with warrior consciousness inside; suppressed energy often shows on the body—physical outlets remain essential.',
       'Vakri+Asta Ma',
     ),
   ],
   Ju: [
     note(
       'Teaching',
-      'Vakri + Asta Guru: systemic suppression—teacher-level knowledge kept in a student role; receives less than capacity. Blind spot: feels “I don’t know enough” while knowing plenty.',
+      'Vakri (retrograde) + Asta Guru: systemic suppression—teacher-level knowledge kept in a student role; receives less than capacity. Blind spot: feels “I don’t know enough” while knowing plenty.',
       'Vakri+Asta Ju',
     ),
   ],
   Sa: [
     note(
       'Teaching',
-      'Vakri + Asta Śani: internal endurance with outer invisibility of effort—guilt and over-duty intensify until mid-life maturation softens the load with compassion.',
+      'Vakri (retrograde) + Asta Śani: internal endurance with outer invisibility of effort—guilt and over-duty intensify until mid-life maturation softens the load with compassion.',
       'Vakri+Asta Sa',
     ),
   ],
@@ -228,7 +228,7 @@ const VAKRI_ASTA_BY_GRAHA: Partial<Record<ClassicalGrahaId, ClassicalNote[]>> = 
 
 const VAKRI_DIGNITY_BOOST = note(
   'BPHS',
-  'Classical support: a vakri planet in own sign (svakṣetra), exaltation (ucca), or a pure/benefic nakshatra tends toward auspicious—though still process-oriented—results.',
+  'Classical support: a vakri (retrograde) planet in own sign (svakṣetra), exaltation (ucca), or a pure/helpful planet nakshatra tends toward auspicious—though still process-oriented—results.',
   'Vakri',
 )
 
@@ -369,12 +369,12 @@ export function getNatalVsTransitVakriNotes(): ClassicalNote[] {
   return [
     note(
       'Teaching',
-      'Natal vakri: lifelong karmic pattern—self-purification, hits personality, delayed but stabilizing results, deep past-life memory work (“who you are”).',
+      'Natal vakri (retrograde): lifelong karmic pattern—self-purification, hits personality, delayed but stabilizing results, deep past-life memory work (“who you are”).',
       'Vakri transit',
     ),
     note(
       'Teaching',
-      'Transit vakri: timed trigger—reminder/re-analysis of situations, temporary stalls, reopening of old files (ex-partners, unfinished tasks). Thumb rule: Review → Revise → Realign. When natal vakri also goes transit vakri: double activation on the house axis.',
+      'Transit vakri (retrograde): timed trigger—reminder/re-analysis of situations, temporary stalls, reopening of old files (ex-partners, unfinished tasks). Thumb rule: Review → Revise → Realign. When natal vakri also goes transit vakri: double activation on the house axis.',
       'Vakri transit',
     ),
   ]

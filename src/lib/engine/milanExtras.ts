@@ -431,7 +431,7 @@ export function analyzeDashaPair(
   const supportWindows = windows.filter(w => w.tone === 'supportive')
   const summary =
     cautionWindows.length > supportWindows.length
-      ? 'Upcoming dasha overlaps lean challenging for harmony between you, so it may help to time big decisions with care.'
+      ? 'Upcoming dasha overlaps tendency challenging for harmony between you, so it may help to time big decisions with care.'
       : supportWindows.length > 0
         ? 'At least one supportive pairing of dasha lords appears in the near timeline.'
         : 'The dasha pairing looks mixed; the Antardasha detail gives finer timing.'

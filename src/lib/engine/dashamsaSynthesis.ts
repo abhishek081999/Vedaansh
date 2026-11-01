@@ -201,7 +201,7 @@ function transitTone(house: number, id: GrahaId): CareerTone {
 
 function transitNote(id: GrahaId, house: number, retro: boolean): string {
   const base: Record<number, string> = {
-    1: 'Activates livelihood identity and how the native owns the post.',
+    1: 'Activates livelihood identity and how the person owns the post.',
     2: 'Touches income expression and status speech from work.',
     3: 'Pushes effort, skill, and short professional moves.',
     4: 'Tests peace with the occupation and workplace rooting.',
@@ -309,7 +309,7 @@ function buildTrack(analysis: DashamsaAnalysis, classical: DashamsaClassical): D
   const tenth = classical.tenthLord
   if ([1, 10].includes(tenth.house)) {
     service += 2
-    factors.push(`10th lord in H${tenth.house} — self-made or kingly service.`)
+    factors.push(`10th lord in house ${tenth.house} — self-made or kingly service.`)
   }
   if (tenth.house === 7) {
     business += 3
@@ -318,13 +318,13 @@ function buildTrack(analysis: DashamsaAnalysis, classical: DashamsaClassical): D
   if ([2, 11].includes(tenth.house)) {
     business += 1
     service += 1
-    factors.push(`10th lord in H${tenth.house} — income and gains from work (either track).`)
+    factors.push(`10th lord in house ${tenth.house} — income and gains from work (either track).`)
   }
 
   const seventhLord = analysis.planets.find((p) => p.id === h7.lord)
   if (seventhLord && [1, 10, 11].includes(seventhLord.d10House)) {
     business += 2
-    factors.push(`7th lord ${seventhLord.name} in H${seventhLord.d10House} — partnered or client-facing rise.`)
+    factors.push(`7th lord ${seventhLord.name} in house ${seventhLord.d10House} — partnered or client-facing rise.`)
   }
 
   if (h2.occupants.some((o) => o.id === 'Me' || o.id === 'Ve') || h11.occupants.length >= 2) {
@@ -384,7 +384,7 @@ function buildForeign(analysis: DashamsaAnalysis, classical: DashamsaClassical):
   }
   if (classical.tenthLord.house === 12 || classical.tenthLord.house === 9) {
     score += 2
-    factors.push(`10th lord in H${classical.tenthLord.house} — transfer / distant karma.`)
+    factors.push(`10th lord in house ${classical.tenthLord.house} — transfer / distant karma.`)
   }
   if (analysis.planets.some((p) => p.id === 'Ra' && [9, 10, 12].includes(p.d10House))) {
     score += 1
@@ -398,8 +398,8 @@ function buildForeign(analysis: DashamsaAnalysis, classical: DashamsaClassical):
     headline: active
       ? 'Foreign / transfer theme is live'
       : score > 0
-        ? 'Mild foreign or distant-work lean'
-        : 'Domestic / local livelihood lean',
+        ? 'Mild foreign or distant-work tendency'
+        : 'Domestic / local livelihood tendency',
     prediction: active
       ? 'Prefer West or overseas geography for study, posting, or business when Digpala Varuna or the 9th/12th are hot. Time transfers with 9th/12th-lord dashas and Varuna planets.'
       : score > 0
@@ -419,7 +419,7 @@ function buildBoss(analysis: DashamsaAnalysis): DashamsaSynthesis['boss'] {
     house: tenth.d10House,
     dignity: tenth.d10Dignity,
     nature,
-    prediction: `Phaladeepika treats the 10th as the king and the work. In Dashamsha, ${tenth.name} (${tenth.d10Dignity.replace(/_/g, ' ')}) in H${tenth.d10House} under ${tenth.digpalaName} shows the kind of boss, patron, or institutional face the native meets. ${nature}. Digpala ${tenth.digpalaName} adds how that authority behaves.`,
+    prediction: `Phaladeepika treats the 10th as the king and the work. In Dashamsha, ${tenth.name} (${tenth.d10Dignity.replace(/_/g, ' ')}) in house ${tenth.d10House} under ${tenth.digpalaName} shows the kind of boss, patron, or institutional face the native meets. ${nature}. Digpala ${tenth.digpalaName} adds how that authority behaves.`,
     source: 'Phaladeepika — 10th lord as king / profession significator, read in D10',
   }
 }
@@ -777,7 +777,7 @@ export function buildDashamsaSynthesis(
       : 'Transit snapshot unavailable',
     prediction: transitAvailable
       ? hot.length
-        ? `Watch ${hot.map((h) => `${h.name} in H${h.house}`).join('; ')}. Gochara is cast into D10 houses from the Dashamsha lagna.`
+        ? `Watch ${hot.map((h) => `${h.name} in house ${h.house}`).join('; ')}. Gochara is cast into D10 houses from the Dashamsha lagna.`
         : 'No heavy planet is on D10 1/6/7/10/11 right now — timing leans on dasha more than gochara.'
       : 'Loading gochara from the ephemeris API, or open Transit with the Dashamsha lagna.',
   }

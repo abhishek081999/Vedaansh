@@ -317,10 +317,10 @@ function tenthCareerNote(
     su?.dignity === 'own' ||
     su?.dignity === 'moolatrikona'
   if (sunStrong && !satIn10) {
-    return '10th tip: managerial / authority flavour — lean Sun (leadership, government/senior duty) more than pure Saturn grind.'
+    return '10th tip: managerial / authority flavour — tendency Sun (leadership, government/senior duty) more than pure Saturn grind.'
   }
   if (satIn10 || sa) {
-    return '10th tip: routine service / long grind — lean Saturn (patience, structure). If promotions and authority rise, gradually emphasise Sun.'
+    return '10th tip: routine service / long grind — tendency Saturn (patience, structure). If promotions and authority rise, gradually emphasise Sun.'
   }
   return '10th tip: Saturn for routine karma; Sun when the role is managerial or publicly authoritative.'
 }
@@ -353,11 +353,11 @@ export function composeHouseRemedy(input: {
 
   let synthesis =
     `Combine all three: ${strands.house} ${strands.karaka} ${strands.rashi} ` +
-    'Use the triad together — sign alone or karaka alone is weaker than the full braid.'
+    'Use the triad together — sign alone or karaka (natural indicator) alone is weaker than the full braid.'
 
   if (moonBlocked) {
     synthesis +=
-      ' Ketu Mahadasha active: skip Moon-nourishing practices in this pack; prefer Ketu/jnana and non-Moon karakas.'
+      ' Ketu Mahadasha active: skip Moon-nourishing practices in this pack; prefer Ketu/jnana and non-Moon karakas (natural indicator).'
   }
 
   const tone: PredictionTone =
@@ -397,7 +397,7 @@ export function prioritizeRemedyHouses(
     const house = h as HouseNumber1to12
     const occ = occupantsInHouses(grahas, ascRashi, [house])
     let score = occ.length
-    let reason = occ.length ? `${occ.length} planet(s) in H${house}` : `Empty H${house}`
+    let reason = occ.length ? `${occ.length} planet(s) in house ${house}` : `Empty H${house}`
 
     if (house === 6 || house === 8 || house === 12) {
       score += 1.5 + occ.length * 0.5
@@ -570,7 +570,7 @@ function buildAgni(grahas: GrahaData[], ascRashi: Rashi, dharma: TrikonaScore): 
       mode: 'mixed',
       label: 'Initiation pattern mixed / quiet',
       detail:
-        'Few planets in the Dharma trikona — initiation style follows lagna and dasha lords more than fire-house load.',
+        'Few planets in the Dharma trikona (trine houses: 1, 5, 9) — initiation style follows lagna and dasha lords more than fire-house load.',
       houseFocus: null,
       tone: 'mixed',
     }
@@ -639,7 +639,7 @@ function buildNetwork(kama: TrikonaScore): NetworkReading {
       'Multiple planets in 3–7–11 favor communication, partnerships, and large audiences. Social reach themes can dominate.'
     tone = 'supportive'
   } else if (load === 'moderate') {
-    headline = 'Moderate air trikona — connections matter in selected areas'
+    headline = 'Moderate air trikona (trine houses: 1, 5, 9) — connections matter in selected areas'
     detail = 'Enough 3–7–11 occupancy for meaningful alliances without total network identity.'
     tone = 'supportive'
   }
@@ -778,7 +778,7 @@ function buildRemedies(flavor: DashaFlavor, predictMode: PredictMode): TattvaRem
       id: 'moon-sadhana',
       title: blocked ? 'Moon period inside Ketu Mahadasha' : 'Moon Mahadasha / Antardasha',
       text: blocked
-        ? 'Do not stack Moon-nourishing remedies while Ketu rules the mahadasha — prefer moksha-trikona / jnana practices instead. Firm event forecasts stay soft.'
+        ? 'Do not stack Moon-nourishing remedies while Ketu rules the mahadasha — prefer moksha-trikona (trine houses: 1, 5, 9) / jnana practices instead. Firm event forecasts stay soft.'
         : 'Prefer quiet sadhana and listening to a stable guru/katha over firm event predictions — the mind shifts daily. Discourse nourishes Chandra (emotions).',
       tone: blocked ? 'caution' : 'supportive',
       blockedByKetu: blocked,
@@ -789,7 +789,7 @@ function buildRemedies(flavor: DashaFlavor, predictMode: PredictMode): TattvaRem
     out.push({
       id: 'ketu-moksha',
       title: 'Ketu Mahadasha protocol',
-      text: 'Lean into moksha-trikona practices and tattva-jñāna / Advaita-leaning study. Avoid Moon-activation remedies during this period.',
+      text: 'Lean into moksha-trikona (trine houses: 1, 5, 9) practices and tattva-jñāna / Advaita-leaning study. Avoid Moon-activation remedies during this period.',
       tone: 'supportive',
     })
   }
@@ -806,7 +806,7 @@ function buildRemedies(flavor: DashaFlavor, predictMode: PredictMode): TattvaRem
   out.push({
     id: 'karaka-formula',
     title: 'House × karaka × rashi',
-    text: 'When a house troubles, combine (a) the sign on that house, (b) the natural karaka, and (c) the house itself — three strands give stronger educational remedy framing than any one alone. See composed packs below.',
+    text: 'When a house troubles, combine (a) the sign on that house, (b) the natural karaka (natural indicator), and (c) the house itself — three strands give stronger educational remedy framing than any one alone. See composed packs below.',
     tone: 'mixed',
   })
 

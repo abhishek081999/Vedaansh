@@ -18,7 +18,7 @@ import { rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
 import type { NadiYogaPlacement } from '@/lib/engine/nadi/yogas'
 
 export const NADI_DUSTHANA_NOTE =
-  'A planet exalted in the 6th, 8th, or 12th is read as debilitated. A planet debilitated there is read as exalted. Rahu and Ketu take this from the dispositor. An exchange, or a conjunction of three or more, still stands.'
+  'A planet exalted in the 6th, 8th, or 12th is read as debilitated. A planet debilitated there is read as exalted. Rahu and Ketu take this from the dispositor (ruler of the sign it sits in). An exchange, or a conjunction of three or more, still stands.'
 
 const DUSTHANA = new Set<HouseNumber>([6, 8, 12])
 const CLASSICAL: readonly ClassicalGrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']

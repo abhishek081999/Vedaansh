@@ -163,7 +163,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     spiritual: [
       'Core: “मैं हूं” — first step of the soul’s journey; pure will.',
       'Yukteshwar framing: first fire from the root — generates inner heat for the path.',
-      'Mars / Mesh affliction themes often touch nerves, blood flow, and head — educational only.',
+      'Mars / Mesh difficult influence themes often touch nerves, blood flow, and head — educational only.',
     ],
     positiveTraits: [
       'Leadership and front-runner courage',
@@ -259,7 +259,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     ],
     behavioralNotes: [
       'Bears burdens others drop; flexible workhorse when content.',
-      'Bull vs cow lore: simpler needs, earth-touch, contentment as spiritual marker.',
+      'Bull vs cow tradition: simpler needs, earth-touch, contentment as spiritual marker.',
       'Strong 2nd-house themes support breath practices like Bhrāmarī (educational).',
     ],
     careers: [
@@ -274,7 +274,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     lordContrast:
       'Taurus Venus = “what is MINE” — body, comfort, secure rasa, then nurture others. Libra Venus = “what is OURS” — balances everyone else first and may neglect self.',
     practicalNotes: [
-      'Vrishabha Dāna (releasing a bull at a tīrtha) is classical pitṛ-liberation lore — cultural context, not an app prescription.',
+      'Vrishabha Dāna (releasing a bull at a tīrtha) is classical pitṛ-liberation tradition — cultural context, not an app prescription.',
       'Wherever Taurus sits is often where resources are stored or protected.',
     ],
   },
@@ -312,7 +312,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     spiritual: [
       'Bridge between ahaṁ (ego personality) and ātmā — the bridge is knowledge.',
       'Teaches balance of Dvaita and Advaita, speech and mauna.',
-      'Anuloma–viloma association when the sign is strong — lung/spine balance lore (educational).',
+      'Anuloma–viloma association when the sign is strong — lung/spine balance tradition (educational).',
       'Mercury issues: Viṣṇu Sahasranāma / Viṣṇu–Rāma–Kṛṣṇa connection as classical remedy frame.',
     ],
     positiveTraits: [
@@ -371,7 +371,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     direction: 'North',
     varna: 'Brāhmaṇa',
     deity: 'Śiva',
-    chakraHint: 'Linked with mind-mirror and Anāhata feeling field; Iḍā (Moon channel) lore',
+    chakraHint: 'Linked with mind-mirror and Anāhata feeling field; Iḍā (Moon channel) tradition',
     activationAge: ACTIVATION_AGES[4],
     nakshatras: [
       { name: 'Punarvasu', padas: 'Pada 4' },
@@ -403,7 +403,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     behavioralNotes: [
       'In female charts: menstrual / hormonal / divine-feminine themes are classical Moon–Karka links — educational.',
       'Dreams and “I’ve done this before” déjà vu often noted when Cancer is strong.',
-      'Iḍā active at night lore for cooling and sleep — practice framing only.',
+      'Iḍā active at night tradition for cooling and sleep — practice framing only.',
     ],
     careers: [
       'Nursing, counseling, psychology',
@@ -412,11 +412,11 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'Emotional healing professions',
     ],
     healthThemes: [
-      'Chest, lungs, fluids / edema themes when afflicted',
+      'Chest, lungs, fluids / edema themes when under pressure',
       'Sleep quality and hormonal balance — educational, not diagnostic',
     ],
     practicalNotes: [
-      'Primary focus in analysis: emotional patterns, mother/home, and how the native nurtures.',
+      'Primary focus in analysis: emotional patterns, mother/home, and how the person nurtures.',
       'Water signs often peak at night — match important Cancer-house work to that rhythm when relevant.',
     ],
   },
@@ -445,9 +445,9 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       { name: 'Uttara Phalguni', padas: 'Pada 1', note: 'Padas 2–4 in Kanyā' },
     ],
     symbolMeaning: [
-      'Lion / royal seat — tejas, dharma lean, rāja influence (Parāśara flavor).',
+      'Lion / royal seat — tejas, dharma tendency, rāja influence (Parāśara flavor).',
       'Natural 5th: soul creativity, intelligence, prārabdha fruits — rāja-ṛṣi potential.',
-      'Father significations and completing father’s unfinished work when afflicted.',
+      'Father significations and completing father’s unfinished work when under pressure.',
     ],
     spiritual: [
       'Evolve self-love into universal love; surrender ahaṁ to ātmā.',
@@ -466,7 +466,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'Leadership pressure becoming isolation',
     ],
     behavioralNotes: [
-      'Leo in 3rd class example: gains and duties with little inner attachment — outer success can feel empty.',
+      'Leo in 3rd traditional example: gains and duties with little inner attachment — outer success can feel empty.',
       'Needs recognition but must learn constructive feedback.',
     ],
     careers: [
@@ -475,7 +475,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'Technology leadership when Sun is skilled',
     ],
     healthThemes: [
-      'Heart, vitality, and heat regulation via Sun/Piṅgalā lore',
+      'Heart, vitality, and heat regulation via Sun/Piṅgalā tradition',
       'Daytime strength — schedule Leo-house peaks accordingly',
     ],
     practicalNotes: [
@@ -531,7 +531,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     ],
     behavioralNotes: [
       'Appears stable outside while calculating and replaying for years inside.',
-      'Earth signs prefer daytime analytical work; water signs night — timing lore.',
+      'Earth signs prefer daytime analytical work; water signs night — timing tradition.',
       'When Virgo dominates the chart: karmic repayment via healing and service.',
     ],
     careers: [
@@ -542,7 +542,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     ],
     healthThemes: [
       'Stomach / intestines / digestion vulnerability',
-      'Mental stress, OCD-lean, burnout — silent anxiety pattern',
+      'Mental stress, OCD-tendency, burnout — silent anxiety pattern',
     ],
     lordContrast:
       'Virgo Mercury verifies and refines (“master this”). Gemini Mercury spreads and multitasks (“know everything”).',
@@ -581,7 +581,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     spiritual: [
       'Learn to balance negative/positive, inner/outer, want vs action.',
       'Truth-based balance beyond worldly pleasure.',
-      'Fire + air barren (bañjar) lore with Aries/Leo/Sag/Gemini/Aquarius for progeny & medinī contexts — not absolute infertility.',
+      'Fire + air barren (bañjar) tradition with Aries/Leo/Sag/Gemini/Aquarius for progeny & medinī contexts — not absolute infertility.',
     ],
     positiveTraits: [
       'Partnership skill, diplomacy, PR speech',
@@ -598,7 +598,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     behavioralNotes: [
       'Never likes being alone; needs company and approval.',
       'Aries–Libra axis: Mars vs Venus, “I” vs “We”, impulse vs patience — classical friction.',
-      'Libra engineers often drawn to bridges/flyovers lore — aesthetic balance.',
+      'Libra engineers often drawn to bridges/flyovers tradition — aesthetic balance.',
     ],
     careers: [
       'Law, diplomacy, arbitration, HR, PR',
@@ -619,7 +619,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'Libra Venus is mind and “ours”; Taurus Venus is body and “mine”. Reputation outside can look excellent while close partnerships strain if self is neglected.',
     practicalNotes: [
       'Main dilemma: how much others need you vs how much you need others — live without false guilt.',
-      'Per Parāśara framing taught in class: Virgo is not bañjar; fire and air are.',
+      'Per Parāśara framing taught in traditional teaching: Virgo is not bañjar; fire and air are.',
     ],
   },
 
@@ -651,11 +651,11 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'Snake shedding skin: painful renewal that must release the past mentally.',
     ],
     spiritual: [
-      'Full Mūlādhāra→Sahasrāra journey; kundalinī / tantra–mantra depth (dakṣiṇa and vāma frames in classical lore).',
+      'Full Mūlādhāra→Sahasrāra journey; kundalinī / tantra–mantra depth (dakṣiṇa and vāma frames in classical tradition).',
       'Jaimini: primary occult-science sign; Phaladīpikā “viṣayukta” (poison-linked) caution.',
       'Śiva tattva: death and immortality together; Garuḍa Purāṇa afterlife-journey flavor when strong without sādhanā.',
       '8th / āyuṣ: sudden endings and revival themes — educational longevity only; always read Saturn + 8th together.',
-      'Occult cluster lore: tantra, nāga vidyā, chemical/poison mastery; Venus influence can color mṛt-sañjīvanī / healing revival themes.',
+      'Occult cluster tradition: tantra, nāga vidyā, chemical/poison mastery; Venus influence can color mṛt-sañjīvanī / healing revival themes.',
       'Ketu as Mars’s co-delivery: irritation (not open rage), multi-angle attack, deep digging, burst energy then fatigue.',
     ],
     positiveTraits: [
@@ -667,13 +667,13 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     ],
     challengingTraits: [
       'Jealousy, suspicion, hidden anger that explodes late',
-      'Vengeance that can self-harm to destroy the betrayer',
-      'Mental pressure and reproductive/hormonal stress lore',
+      'A desire for revenge that can end up hurting you as well',
+      'Mental pressure and reproductive/hormonal stress tradition',
       'Holding challenges in the mind so stagnant water turns toxic',
     ],
     behavioralNotes: [
       'In 8th/Scorpio dashā even loud people start hiding innermost thoughts.',
-      'Sudden crises (often financial more than physical) with escapes — pattern lore.',
+      'Sudden crises (often financial more than physical) with escapes — pattern tradition.',
       'Never fights openly — mind games and calculated timing.',
       'People constantly confide secrets; brand/aesthetic privacy and spiritual peace often co-exist.',
       'Daily “sudden” micro-crises are common; physical accidents often leave them unhurt — pattern observation, not prediction.',
@@ -727,12 +727,12 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'Half-human half-animal with bow aimed up — beast to sage.',
       'Arrow to sky = high goals; bow pulled back = remember past mistakes.',
       'Last of Dakṣiṇāyana — gateway before Uttarāyaṇa light (Makara Saṅkrānti).',
-      'Called Brahma-nāla / ancestral–kul dharma portal in teaching lore.',
+      'Called Brahma-nāla / ancestral–kul dharma portal in teaching tradition.',
     ],
     spiritual: [
       'Three journeys: paśu→ṛṣi, bhog→yog, jhūṭh→sach.',
       'Mental lotus blooms with a true guru — guidance is medicine.',
-      'Internet / visa (9th) connectivity lore — darkness to light bridge.',
+      'Internet / visa (9th) connectivity tradition — darkness to light bridge.',
       '“धनुष गुरु धर्म वृद्धि” — Jupiter here grows dharma, truth, knowledge.',
     ],
     positiveTraits: [
@@ -758,7 +758,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'EdTech, ethical tech, sustainable development',
     ],
     healthThemes: [
-      'Thighs/hips; pitta heat; Jupiter–Moon digestion lore when discussing acid themes',
+      'Thighs/hips; pitta heat; Jupiter–Moon digestion tradition when discussing acid themes',
       'Night strength — match Dhanu-house peaks when relevant',
     ],
     lordContrast:
@@ -795,7 +795,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     ],
     symbolMeaning: [
       'Crocodile: extreme patience, strikes when ready, never releases the grip.',
-      'Rough outer skin, soft inner emotional reservoir — “crocodile tears” strategy lore.',
+      'Rough outer skin, soft inner emotional reservoir — “crocodile tears” strategy tradition.',
       'Natural 10th: all karma dimensions, peak potential, prestige.',
       'Uttarāyaṇa begins here — light spreads from Makara.',
     ],
@@ -818,7 +818,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     behavioralNotes: [
       'Paradox: practical face, deep feelings inside.',
       'Jupiter debilitated here — expansion meets restriction.',
-      'Moon here struggles to express — stress and “viṣa-yoga” flavor lore.',
+      'Moon here struggles to express — stress and “viṣa-yoga” flavor tradition.',
     ],
     careers: [
       'Corporate leadership, administration, judiciary',
@@ -833,7 +833,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'Capricorn Saturn = personal karma field, judge-like structure. Aquarius Saturn = collective reform, society protocols, detached objectivity.',
     practicalNotes: [
       'Activation often ~41–44. You reap what you sow.',
-      'Ketu here: career transformation, Vedic ritual lean, rush vs patience conflict.',
+      'Ketu here: career transformation, Vedic ritual tendency, rush vs patience conflict.',
     ],
   },
 
@@ -870,7 +870,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'High default consciousness and unusual / prophetic dreams.',
       'Past and present memory significations; cosmic frequency matching.',
       'Rahu as Saturn’s “delivery boy” for tech, maya, magnification — co-ruler flavor.',
-      'If selfishness kills the collective heart, native feels stuck “neither here nor there”.',
+      'If selfishness kills the collective heart, person feels stuck “neither here nor there”.',
     ],
     positiveTraits: [
       'Humanitarian, NGO / reform instinct',
@@ -884,9 +884,9 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
       'Detached intimacy when protocols feel threatened',
     ],
     behavioralNotes: [
-      'Hardworking “curseful” karma sign — double results for efforts after restart.',
+      'Hardworking sign with heavy karma — double results for efforts after restart.',
       'Early Kumbha activation may skip corporate path into social reform.',
-      'Health: nerves, energy, psychology, sleep, device effects lore.',
+      'Health: nerves, energy, psychology, sleep, device effects tradition.',
     ],
     careers: [
       'Technology, startups, large tech corps',
@@ -925,7 +925,7 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     guna: 'Sāttvic',
     activationAge: ACTIVATION_AGES[12],
     nakshatras: [
-      { name: 'Purva Bhadrapada', padas: 'Pada 4', note: 'Secretive sacrifice lean' },
+      { name: 'Purva Bhadrapada', padas: 'Pada 4', note: 'Secretive sacrifice tendency' },
       { name: 'Uttara Bhadrapada', padas: 'All 4', note: 'Deep contemplation, path discernment' },
       { name: 'Revati', padas: 'All 4', note: 'Music, craft, travel, guidance, nurture' },
     ],
@@ -972,10 +972,10 @@ const GUIDES: Record<Rashi, RashiDeepGuide> = {
     ],
     healthThemes: [
       'Feet and heels (Kāla Puruṣa)',
-      'Circulation / blood-flow and blockage lore when stressed',
+      'Circulation / blood-flow and blockage tradition when stressed',
       'Neurological and psychic sensitivity — “fish diving deep, brain first” metaphor in teaching',
       'Lymphatic / edema / fluid-retention themes; auto-immune and psychosomatic patterns',
-      'Stress-triggered allergic / urticaria-type lore in class cases — educational only, never diagnose from sign alone',
+      'Stress-triggered allergic / urticaria-type tradition in traditional teaching cases — educational only, never diagnose from sign alone',
       'Mercury’s debilitation here colors mental processing under emotional oceans',
     ],
     lordContrast:

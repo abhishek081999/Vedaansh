@@ -278,9 +278,9 @@ export function buildTodayDasha(input: TodayDashaInput): TodayDasha | null {
     .map(d => `the ${d.levelLabel} lord ${d.lordName} ${TONE_TEXT[d.tone]}`)
     .join(' and ')
   const turnovers = prana.filter(p => toMs(p.startIso) > winStart && toMs(p.startIso) < winEnd).length
-  const parts = [`Running ${trail}.`]
+  const parts = [`Your current planetary periods (dashas) are ${trail}.`]
   if (lead) parts.push(`${lead[0].toUpperCase()}${lead.slice(1)}.`)
-  if (turnovers > 0) parts.push(`${turnovers === 1 ? 'One' : turnovers} Prana period${turnovers === 1 ? '' : 's'} turn${turnovers === 1 ? 's' : ''} over today.`)
+  if (turnovers > 0) parts.push(`${turnovers === 1 ? 'One' : turnovers} short Prana period${turnovers === 1 ? '' : 's'} (the smallest dasha level) change${turnovers === 1 ? 's' : ''} today.`)
   const soon = changes.find(c => c.today && c.level <= 3)
   if (soon) parts.push(`The ${soon.levelLabel} changes today${soon.toLordName ? ` from ${soon.fromLordName} to ${soon.toLordName}` : ''}.`)
 

@@ -206,7 +206,7 @@ function BAVTable({
   const modeNote = mode === 'sodhya'
     ? ' Sodhita (Trikona + Ekadhipatya) bindus.'
     : mode === 'mandala'
-      ? ' Mandala → Trikona → Ekadhipatya on SAV.'
+      ? ' Mandala → Trikona (trine houses: 1, 5, 9) → Ekadhipatya on SAV.'
       : ' Raw JHora/Parasara bindus (SAV = 337).'
 
   return (
@@ -214,7 +214,7 @@ function BAVTable({
       <div className={styles.tableHint}>Swipe horizontally to see all columns</div>
       <div style={{ fontSize: '0.68rem', color: COLOR.muted, marginBottom: '0.45rem' }}>
         {columnMode === 'house'
-          ? 'Columns = houses from Lagna (JHora style). Values are the same sign-based bindus.'
+          ? 'Columns = houses from Lagna (JHora style). Values are the same sign-based bindus (strength points).'
           : 'Columns = absolute signs Aries→Pisces.'}
         {modeNote}
       </div>

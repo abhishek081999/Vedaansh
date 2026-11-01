@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
-import connectDB from '@/lib/db/mongodb'
-import { User } from '@/lib/db/models/User'
-import { Subscription } from '@/lib/db/models/Subscription'
-import { sendWelcomeEmail } from '@/lib/email'
 import { redis } from '@/lib/redis'
 import { logSecurityEvent } from '@/lib/security/events'
 import { redactForLog } from '@/lib/security/safeLog'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
+import { activatePayment, revokePayment } from '@/lib/subscription/activation'
 
 export const runtime = 'nodejs'
 
@@ -22,79 +19,40 @@ function verifyWebhookSignature(body: string, signature: string, secret: string)
   return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
 }
 
-async function isReplayEvent(eventType: string, rawBody: string): Promise<boolean> {
+function replayKey(eventType: string, rawBody: string): string {
   const fingerprint = crypto.createHash('sha256').update(`${eventType}:${rawBody}`).digest('hex')
-  const key = `webhook:razorpay:seen:${fingerprint}`
-  const seen = await redis.get<string>(key)
-  if (seen) return true
-  // 6h dedupe window keeps retries idempotent while limiting cache growth.
-  await redis.set(key, '1', 6 * 60 * 60)
-  return false
+  return `webhook:razorpay:seen:${fingerprint}`
 }
 
-// ── Plan helpers ──────────────────────────────────────────────
-
-function addInterval(date: Date, interval: 'monthly' | 'yearly'): Date {
-  const d = new Date(date)
-  if (interval === 'monthly') d.setMonth(d.getMonth() + 1)
-  else d.setFullYear(d.getFullYear() + 1)
-  return d
-}
+// ── Event handlers ────────────────────────────────────────────
 
 async function handlePaymentCaptured(payload: any) {
-  const payment   = payload?.payment?.entity
-  const notes     = payment?.notes ?? {}
+  const payment = payload?.payment?.entity
+  // Payments without plan notes did not come from our checkout.
+  if (!payment?.id || !payment.notes?.userId || !payment.notes?.plan) return
 
-  if (!notes.userId || !notes.plan) return 
-
-  await connectDB()
-
-  // Avoid duplicate processing if verify route already handled it
-  const existing = await Subscription.findOne({ providerSubscriptionId: payment.id })
-  if (existing?.status === 'active') return 
-
-  const plan     = notes.plan     as 'gold' | 'platinum'
-  const interval = notes.interval as 'monthly' | 'yearly' ?? 'monthly'
-  const now      = new Date()
-  const expiry   = addInterval(now, interval)
-  const amount   = payment.amount ?? 0
-
-  // 1. Update Subscription doc
-  await Subscription.findOneAndUpdate(
-    { providerSubscriptionId: payment.id },
-    {
-      $set: {
-        userId:                 notes.userId,
-        plan,
-        provider:               'razorpay',
-        providerSubscriptionId: payment.id,
-        providerCustomerId:     payment.order_id,
-        providerPlanId:         `${plan}_${interval}`,
-        status:                 'active',
-        interval,
-        currentPeriodStart:     now,
-        currentPeriodEnd:       expiry,
-        cancelAtPeriodEnd:      false,
-        amount,
-        currency:               'INR',
-      },
-      $push: { events: { $each: [{ type: 'payment.captured', payload, receivedAt: now }], $slice: -10 } },
-    },
-    { upsert: true }
-  )
-
-  // 2. Upgrade User record
-  const user = await User.findByIdAndUpdate(notes.userId, { 
-    plan, 
-    planExpiresAt: expiry 
-  })
-
-  // 3. Send Welcome Email
-  if (user?.email) {
-    await sendWelcomeEmail(user.email, plan as any, expiry)
+  const activated = await activatePayment(payment, 'payment.captured')
+  if (!activated.ok) {
+    // Signed by Razorpay but unusable, so a retry would fail the same way.
+    logSecurityEvent('webhook_activation_rejected', redactForLog({ paymentId: payment.id, reason: activated.error }))
   }
 }
 
+async function handleRefundProcessed(payload: any) {
+  const refund = payload?.refund?.entity
+  const payment = payload?.payment?.entity
+  const paymentId = refund?.payment_id ?? payment?.id
+  if (!paymentId) return
+
+  // amount_refunded is the running total. refund.amount covers this refund only.
+  const refundedAmount = Number(payment?.amount_refunded ?? refund?.amount)
+  await revokePayment(paymentId, 'refund', Number.isFinite(refundedAmount) ? refundedAmount : null)
+}
+
+async function handleDisputeLost(payload: any) {
+  const paymentId = payload?.payment?.entity?.id ?? payload?.dispute?.entity?.payment_id
+  if (paymentId) await revokePayment(paymentId, 'dispute_lost')
+}
 
 // ── Main route handler ─────────────────────────────────────────
 
@@ -124,7 +82,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  if (await isReplayEvent(event.event, rawBody)) {
+  const seenKey = replayKey(event.event, rawBody)
+  if (await redis.get<string>(seenKey)) {
     return NextResponse.json({ received: true, duplicate: true })
   }
 
@@ -133,10 +92,19 @@ export async function POST(req: NextRequest) {
       case 'payment.captured':
         await handlePaymentCaptured(event.payload)
         break
-      // You can add subscription.cancelled, etc. here later if using Recurring Subscriptions API
+      case 'refund.processed':
+        await handleRefundProcessed(event.payload)
+        break
+      case 'payment.dispute.lost':
+        await handleDisputeLost(event.payload)
+        break
       default:
         break
     }
+
+    // Marked only after success, so Razorpay's retry of a failed delivery is still processed.
+    // 6h window limits cache growth; the handlers are safe to repeat after that.
+    await redis.set(seenKey, '1', 6 * 60 * 60)
 
     return NextResponse.json({ received: true })
 

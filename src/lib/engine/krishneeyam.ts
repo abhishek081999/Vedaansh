@@ -310,13 +310,13 @@ const PLANET_SHAPE: Record<GrahaId, string> = {
 
 // ── Ch1: Planet physical features [Ch1, St22-29] for thief identification ────
 const PLANET_PHYSICAL_FEATURES: Record<GrahaId, string> = {
-  Su: 'Short, thick, honey-colored eyes, reddish-black complexion, lean, sparse-haired, bilious (Pitta), strong bones, valorous, angry temperament',
+  Su: 'Short, thick, honey-colored eyes, reddish-black complexion, tendency, sparse-haired, bilious (Pitta), strong bones, valorous, angry temperament',
   Mo: 'Tall, unsteady, sweet-worded, beautiful eyes, lovely, Vata-Kapha constitution, wheatish complexion, knowledgeable, rich-blooded',
   Ma: 'Unsteady, childlike appearance, bilious, rich bone-marrow, aggressive, triangular face, fish-bellied, red-and-white complexion',
   Me: 'Greenish like tender grass, middle-build, protruding veins all over body, happy disposition, mixed temperament, calm, healthy skin, speaks double-meaning words',
   Ju: 'Whitish complexion, rich in fats, big belly, tall, slightly yellow hair, honey-colored eyes, Kapha temperament, eloquent',
   Ve: 'Vata-Kapha constitution, beautiful eyes with Kajal (collyrium), beautiful finger joints, sweet words, rich semen',
-  Sa: 'Vata temperament, yellowish eyes, big teeth, big nails and hair, dark-colored body, long/tall, miserly, lean, strong muscular tendons',
+  Sa: 'Vata temperament, yellowish eyes, big teeth, big nails and hair, dark-colored body, long/tall, miserly, tendency, strong muscular tendons',
   Ra: 'Dark complexion, smoky/shadowy appearance, large build, fierce eyes',
   Ke: 'Smoky-colored, emaciated, spiritual appearance, spotted',
   Ur: 'Unusual/eccentric appearance', Ne: 'Soft, dreamy appearance', Pl: 'Deep, intense appearance'
@@ -329,9 +329,9 @@ const PLANET_GUNA: Record<GrahaId, string> = {
   Su:'Sattvika (noble, equanimous)',
   Ve:'Rajasika (worldly pleasures, ambitious)',
   Me:'Rajasika (worldly pleasures, ambitious)',
-  Ma:'Tamasika (cruel, violent, evil deeds)',
-  Sa:'Tamasika (cruel, violent, evil deeds)',
-  Ra:'Tamasika (cruel, violent, evil deeds)',
+  Ma:'Tamasika (heavy, harsh energy; classical texts link it to harmful actions)',
+  Sa:'Tamasika (heavy, harsh energy; classical texts link it to harmful actions)',
+  Ra:'Tamasika (heavy, harsh energy; classical texts link it to harmful actions)',
   Ke:'Mixed (spiritual but also Tamasika)',
   Ur:'Rajasika', Ne:'Mixed', Pl:'Tamasika'
 }
@@ -713,10 +713,10 @@ const PLANET_HOUSE4_QUARTERS: Record<GrahaId, string[]> = {
   Ve: ['Worry and anxiety about wife/partner', 'Worry about wife/partner', 'Worry about wife/partner', 'Worry about wife/partner'],
   Ju: ['Worry about finance', 'Worry about finance/wealth', 'Worry about wealth', 'Worry about wealth'],
   Ma: ['Enmity with relatives (1st Hora)', 'Mental agony and distress (2nd Hora)', 'Enmity with relatives', 'Mental agony'],
-  Sa: ['Fear and danger', 'Death of someone close', 'Fear and danger', 'Death of someone close'],
+  Sa: ['Worry about safety', 'Worry about the wellbeing of someone close', 'Worry about safety', 'Worry about the wellbeing of someone close'],
   Mo: ['Wife is beautiful', 'Wife is beautiful', 'Wife is beautiful', 'Wife is beautiful'],
   Me: ['Arguments and disputes with others', 'Arguments with others', 'Arguments', 'Arguments'],
-  Ra: ['Hidden fear', 'Poison or hidden danger', 'Fear from unseen', 'Chronic hidden disease'],
+  Ra: ['Hidden fear', 'A hidden risk; be careful with food and medicines', 'Fear from unseen', 'A long-running health worry that is worth checking with a doctor'],
   Ke: ['Spiritual troubles', 'Obstacle in home', 'Spiritual troubles', 'Obstacle from unknown'],
   Ur: ['Sudden changes at home'], Ne: ['Hidden issues at home'], Pl: ['Deep transformation at home']
 }
@@ -740,13 +740,13 @@ export const PLANET_COLORS: Record<GrahaId, string> = {
 
 // Planet physical features [Ch1, St22-29]
 export const PLANET_FEATURES: Record<GrahaId, string> = {
-  Su: 'Short, thick, honey-colored eyes, reddish-black, lean, sparse-haired, bilious temperament',
+  Su: 'Short, thick, honey-colored eyes, reddish-black, tendency, sparse-haired, bilious temperament',
   Mo: 'Tall, unsteady, sweet-worded, beautiful eyes, wheatish complexion, knowledgeable',
   Ma: 'Unsteady, childlike, bilious, triangular build, fish-bellied, red and white complexion',
   Me: 'Greenish tinge, medium build, protruding veins, calm, speaks double-meaning words',
   Ju: 'Whitish, rich in fats, big belly, tall, slightly yellow hair, honey-colored eyes, eloquent',
   Ve: 'Vatha-Kapha temperament, beautiful kajal-lined eyes, lovely finger joints, sweet-worded',
-  Sa: 'Vatha temperament, yellowish eyes, big teeth & nails, dark skin, long body, miserly, lean',
+  Sa: 'Vatha temperament, yellowish eyes, big teeth & nails, dark skin, long body, miserly, tendency',
   Ra: 'Dark complexion, large body, foreign appearance',
   Ke: 'Smoky complexion, intense eyes, spiritual appearance',
   Ur: 'Mixed appearance', Ne: 'Watery appearance', Pl: 'Dark, transformative appearance'
@@ -828,7 +828,7 @@ const PLANET_HOUSE_NATURE: Record<GrahaId, string> = {
   Ju: 'Attractive and wonderful house',
   Su: 'Wooden and dilapidated house',
   Sa: 'Worn-out, dilapidated wooden house',
-  Ra: 'Latrine / ruined structure',
+  Ra: 'Toilet or run-down building',
   Ke: 'Abandoned / spiritual place',
   Ur: 'Modern unusual structure',
   Ne: 'Near water body',
@@ -965,8 +965,8 @@ export const HOUSE_SIGNIFICATORS: Record<number, string[]> = {
   4:  ['Mother', 'Home', 'Property', 'Vehicle', 'Hidden things', 'Education', 'Heart', 'Friend', 'Water'],
   5:  ['Children', 'Speculation', 'Intelligence', 'Love affairs', 'Past deeds', 'Stomach diseases'],
   6:  ['Enemies', 'Disease', 'Debt', 'Injury', 'Theft', 'Competition', 'Wounds'],
-  7:  ['Spouse', 'Partner', 'Business', 'Marriage', 'Lost property', 'Travel', 'Disease', 'Death hearsay'],
-  8:  ['Death', 'Longevity', 'Accidents', 'Hidden matters', 'Legacy', 'Varieties of food'],
+  7:  ['Spouse', 'Partner', 'Business', 'Marriage', 'Lost property', 'Travel', 'Disease', 'News about a loss'],
+  8:  ['Life span', 'Longevity', 'Sudden events', 'Hidden matters', 'Legacy', 'Varieties of food'],
   9:  ['Father', 'Fortune', 'Religion', 'Long journeys', 'Higher learning', 'Good & bad of father'],
   10: ['Profession', 'Career', 'Fame', 'Government', 'Status', 'Place of residence', 'Savings', 'Prestige'],
   11: ['Gains', 'Elder siblings', 'Friends', 'Fulfillment of wishes', 'Income', 'Whatever is obtained'],
@@ -1273,20 +1273,20 @@ export function analyzeDeathSymptoms(grahas: GrahaData[], lagnaRashi: number, la
 
   if ((isSarpa || isKolamukha || isGrudhramukha) && maleficsInAsc.length > 0 && moonIn8th) {
     const drekkanaType = isSarpa ? 'Sarpa (Serpent)' : isKolamukha ? 'Kolamukha' : 'Grudhramukha (Vulture-face)'
-    return `⚠️ CRITICAL: ${drekkanaType} Drekkana + malefic in ascendant + Moon in 8th → Serious danger / death indicated [Ch13:1]`
+    return `Extra care needed: ${drekkanaType} Drekkana (a sensitive part of the rising sign), a difficult planet in the ascendant and the Moon in the 8th house. Classical texts treat this as a serious health warning. It is not a certain outcome. Please follow proper medical advice. [Ch13:1]`
   }
-  if (isSarpa && moonIn8th) return `Sarpa Drekkana ascendant + Moon in 8th → Caution: illness may be severe [Ch13:1]`
-  if (isKolamukha) return `Kolamukha Drekkana: Risk from beasts if Saturn+Gulika involved [Ch13:1]`
-  if (isGrudhramukha) return `Grudhramukha Drekkana: Risk from birds/high places if Saturn+Gulika involved [Ch13:1]`
+  if (isSarpa && moonIn8th) return `Sarpa Drekkana ascendant + Moon in 8th → The illness may need extra attention. Please see a doctor. [Ch13:1]`
+  if (isKolamukha) return `Kolamukha Drekkana: Classical texts mention risk from animals if Saturn and Gulika are involved [Ch13:1]`
+  if (isGrudhramukha) return `Grudhramukha Drekkana: Classical texts mention risk from birds or high places if Saturn and Gulika are involved [Ch13:1]`
 
   // Prishtodaya + malefics in 1/7/4/10 + Moon in 8th [Ch13:2]
   const prishtodaya = PRISHTODAYA_SIGNS.has(lagnaRashi)
   const maleficsInKendra = grahas.filter(g => MALEFICS.has(g.id) && [1,4,7,10].includes(((g.rashi - lagnaRashi + 12) % 12) + 1))
   if (prishtodaya && maleficsInKendra.length >= 2 && moonIn8th) {
-    return `Prishtodaya ascendant + malefics in Kendra + Moon in 8th → Sick native is in danger [Ch13:2]`
+    return `Prishtodaya ascendant + difficult planets in Kendra (angular houses: 1, 4, 7, 10) + Moon in 8th → The person who is unwell needs extra care and medical attention [Ch13:2]`
   }
 
-  return 'No critical death-indicating Drekkana patterns found'
+  return 'No serious warning patterns found in the Drekkana'
 }
 
 /**
@@ -1361,7 +1361,7 @@ export function analyzeMoonYogas(grahas: GrahaData[], moonRashi: number, lagnaRa
     // Check if malefics in 8th form the Dhurudhura [Ch4:8]
     const malIn8th = grahas.filter(g => MALEFICS.has(g.id) && getPlanetHouse(g.rashi, lagnaRashi) === 8)
     if ((mal2nd.length > 0 || mal12th.length > 0) && malIn8th.length > 0 && !benAspect) {
-      return { yoga:'dhurudhura', name:'Dhurudhura Yoga (Malefic)', result:'⚠️ Death imminent — malefics cause Dhurudhura with malefic in 8th and no benefic aspect [Ch4:8]' }
+      return { yoga:'dhurudhura', name:'Dhurudhura Yoga (Malefic)', result:'A strong caution. Difficult planets surround the Moon, another sits in the 8th house, and no helpful planet balances them. Classical texts treat this as a serious warning, not a certain outcome. Take extra care and seek proper advice. [Ch4:8]' }
     }
     const allBenefic = [...planetsIn2nd,...planetsIn12th].every(g => isBenefic(g.id, g.isCombust))
     return {
@@ -1445,9 +1445,9 @@ export function analyzeTimeStrength(grahas: GrahaData[], tithiPaksha: string, va
   const benefics = grahas.filter(g => isBenefic(g.id, g.isCombust) && !['Ur','Ne','Pl'].includes(g.id))
   const malefics_list = grahas.filter(g => MALEFICS.has(g.id) && !['Ur','Ne','Pl'].includes(g.id))
   if (tithiPaksha === 'shukla') {
-    notes.push(`[Ch2:13] Shukla Paksha → Benefics (${benefics.map(g=>g.name).join(',')}) are strengthened`)
+    notes.push(`[Ch2:13] Shukla Paksha → Helpful planets (${benefics.map(g=>g.name).join(',')}) are strengthened`)
   } else {
-    notes.push(`[Ch2:13] Krishna Paksha → Malefics (${malefics_list.map(g=>g.name).join(',')}) are strengthened`)
+    notes.push(`[Ch2:13] Krishna Paksha → Difficult planets (${malefics_list.map(g=>g.name).join(',')}) are strengthened`)
   }
 
   // Special day-of-week strength [Ch2:13]
@@ -1679,8 +1679,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
       const rahuBenAspects = grahas.filter(g => isBenefic(g.id, g.isCombust) && hasAspect(g, coreRashi))
       const rahuMalAspects = grahas.filter(g => !isBenefic(g.id, g.isCombust) && hasAspect(g, coreRashi) && !['Ur','Ne','Pl'].includes(g.id))
       details.push(`[Ch22] Rahu in ${coreRefName}: hidden enemies, foreign matters, delays of 6–18 months.`)
-      if (rahuBenAspects.length > 0) details.push(`[Ch22] Benefics (${rahuBenAspects.map(g=>g.name).join(', ')}) aspect Rahu → hidden helpers; unexpected resolution possible.`)
-      if (rahuMalAspects.length > 0) details.push(`[Ch22] Malefics (${rahuMalAspects.map(g=>g.name).join(', ')}) aspect Rahu → betrayal or deception.`)
+      if (rahuBenAspects.length > 0) details.push(`[Ch22] Helpful planets (${rahuBenAspects.map(g=>g.name).join(', ')}) aspect Rahu → hidden helpers; unexpected resolution possible.`)
+      if (rahuMalAspects.length > 0) details.push(`[Ch22] Difficult planets (${rahuMalAspects.map(g=>g.name).join(', ')}) aspect Rahu → betrayal or deception.`)
     }
   } else {
     planetInAscendantEffect = `No planet in ${coreRefName} — sign type determines result`
@@ -1714,12 +1714,12 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   const chhatraIsObstacle = [6, 8, 12].includes(chhatraHouseFromRef)
   if (chhatraIsObstacle) {
     negative++; total++
-    scorecard.push({ label: 'Chathra Rasi', result: 'bad', detail: `${RASHI_NAMES[chhatraRashi]} in H${chhatraHouseFromRef} from ${coreRefShort} — obstacle (6/8/12)`, weight: 1 })
+    scorecard.push({ label: 'Chathra Rasi', result: 'bad', detail: `${RASHI_NAMES[chhatraRashi]} in house ${chhatraHouseFromRef} from ${coreRefShort} — obstacle (6/8/12)`, weight: 1 })
     rules.push(`[Ch11:21] Chathra Rasi (${RASHI_NAMES[chhatraRashi]}) in house ${chhatraHouseFromRef} from ${coreRefShort} (6/8/12) → Obstacle`)
-    details.push(`Veedhi Rasi: ${RASHI_NAMES[veedhiRasi]}. Chathra ${RASHI_NAMES[chhatraRashi]} in H${chhatraHouseFromRef} from ${coreRefName} creates an obstacle.`)
+    details.push(`Veedhi Rasi: ${RASHI_NAMES[veedhiRasi]}. Chathra ${RASHI_NAMES[chhatraRashi]} in house ${chhatraHouseFromRef} from ${coreRefName} creates an obstacle.`)
   } else {
     positive++; total++
-    scorecard.push({ label: 'Chathra Rasi', result: 'good', detail: `${RASHI_NAMES[chhatraRashi]} in H${chhatraHouseFromRef} from ${coreRefShort} — favorable`, weight: 1 })
+    scorecard.push({ label: 'Chathra Rasi', result: 'good', detail: `${RASHI_NAMES[chhatraRashi]} in house ${chhatraHouseFromRef} from ${coreRefShort} — favorable`, weight: 1 })
     rules.push(`[Ch11:21] Chathra Rasi (${RASHI_NAMES[chhatraRashi]}) in house ${chhatraHouseFromRef} from ${coreRefShort} → Favorable`)
     details.push(`Veedhi Rasi: ${RASHI_NAMES[veedhiRasi]}. Chathra ${RASHI_NAMES[chhatraRashi]} is favorable from ${coreRefName}.`)
   }
@@ -1749,9 +1749,9 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     rules.push(`[Ch2-General] Moon in ${RASHI_NAMES[moonRashi]} (house ${moonHouse}), dignity: ${moonDignity} → Strong Moon favors query`)
   } else {
     negative++
-    scorecard.push({ label: 'Moon Strength', result: 'bad', detail: `${RASHI_NAMES[moonRashi]}, ${moonIsCombust ? 'combust' : moonDignity} — afflicted`, weight: 1 })
+    scorecard.push({ label: 'Moon Strength', result: 'bad', detail: `${RASHI_NAMES[moonRashi]}, ${moonIsCombust ? 'combust' : moonDignity} — troubled`, weight: 1 })
     rules.push(`[Ch2-General] Moon is ${moonIsCombust ? 'combust' : moonDignity} → Weak Moon reduces chances`)
-    details.push(`Moon is afflicted. Mental clarity and query prospects are diminished.`)
+    details.push(`Moon is under pressure. Mental clarity and query prospects are diminished.`)
     remedies.push('Worship Chandra (Moon) — offer milk and white flowers on Monday night')
   }
 
@@ -1779,10 +1779,10 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
   const isWaxing = tithiPaksha === 'shukla'
   if (isWaxing) {
     positive++
-    rules.push(`[Ch2:13-14] Shukla Paksha (Waxing, Tithi ${tithiNumber}) → Benefic planets strengthened; favorable`)
+    rules.push(`[Ch2:13-14] Shukla Paksha (Waxing, Tithi ${tithiNumber}) → Helpful planets strengthened; favorable`)
   } else {
     negative++
-    rules.push(`[Ch2:13-14] Krishna Paksha (Waning, Tithi ${tithiNumber}) → Malefic planets strengthened; energy receding`)
+    rules.push(`[Ch2:13-14] Krishna Paksha (Waning, Tithi ${tithiNumber}) → Difficult planets strengthened; energy receding`)
     details.push('Waning phase: Better to wait for Shukla Paksha for new ventures.')
   }
   total++
@@ -1801,7 +1801,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     // Benefic in 9th [Ch7, St11]
     if (jupHouse === 9 && isBenefic('Ju', jupiter.isCombust)) {
       positive += 2; total += 2
-      rules.push(`[Ch7:11] Strong benefic Jupiter in 9th house → Querist gets ALL desired objects`)
+      rules.push(`[Ch7:11] Strong helpful planet Jupiter in 9th house → Querist gets ALL desired objects`)
     }
   }
 
@@ -1822,7 +1822,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     if (satHouse !== 8) {
       const sun = grahas.find(g => g.id === 'Su')
       if (sun && getPlanetHouse(sun.rashi, lagnaRashi) === 1 && jupInKendraCheck(jupiter, lagnaRashi)) {
-        rules.push(`[Ch7:15] Sun in Lagna + strong Jupiter in Kendra + Saturn NOT in 8th → Querist is long-lived`)
+        rules.push(`[Ch7:15] Sun in Lagna + strong Jupiter in Kendra (angular houses: 1, 4, 7, 10) + Saturn NOT in 8th → Querist is long-lived`)
       }
     }
   }
@@ -1973,19 +1973,19 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     const ascBeneficSign = !MALEFICS.has(SIGN_LORDS[lagnaRashi])
     if (ascBeneficSign && planetsInUdayaAsc.length > 0 && isBenefic(planetsInUdayaAsc[0].id, planetsInUdayaAsc[0].isCombust) && ascAspectedByBenefics.length > 0) {
       positive += 3; total += 3
-      rules.push(`[Ch26:4] Benefic sign + benefic in ascendant + benefic aspect → IMMEDIATE FULL RECOVERY`)
+      rules.push(`[Ch26:4] Helpful sign + helpful planet in ascendant + helpful aspect → IMMEDIATE FULL RECOVERY`)
       details.push('Most favorable: Lost property will be regained immediately.')
     } else if (ascAspectedByBenefics.length > 0) {
       positive += 2; total += 2
-      rules.push(`[Ch26:4] Benefics (${ascAspectedByBenefics.map(g=>g.name).join(', ')}) aspect ascendant → Property WILL BE RECOVERED`)
+      rules.push(`[Ch26:4] Helpful planets (${ascAspectedByBenefics.map(g=>g.name).join(', ')}) aspect ascendant → Property WILL BE RECOVERED`)
     }
     if (ascAspectedByMalefics.length > ascAspectedByBenefics.length) {
       negative += 2; total += 2
-      rules.push(`[Ch26:4] Malefics (${ascAspectedByMalefics.map(g=>g.name).join(', ')}) dominate → Property NOT easily recovered`)
+      rules.push(`[Ch26:4] Difficult planets (${ascAspectedByMalefics.map(g=>g.name).join(', ')}) dominate → Property NOT easily recovered`)
     }
     // [Ch26, St4] Malefic sign + benefic occupant + malefic aspect → partly recovered after long time
     if (!ascBeneficSign && planetsInUdayaAsc.length > 0 && isBenefic(planetsInUdayaAsc[0].id) && ascAspectedByMalefics.length > 0) {
-      details.push('[Ch26:4] Malefic sign + benefic occupant + malefic aspect → Property partly recovered after very long time')
+      details.push('[Ch26:4] Difficult sign + helpful planet occupant + difficult aspect → Property partly recovered after very long time')
     }
 
     // Location from sign type [Ch27, St1-2]
@@ -2095,7 +2095,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     // Number of thieves [Ch25, St13]
     const maleficAspectors = grahas.filter(g => !isBenefic(g.id) && hasAspect(g, lagnaRashi) && !['Ur','Ne','Pl'].includes(g.id))
     if (maleficAspectors.length > 1) {
-      thiefLocation += ` | ${maleficAspectors.length} malefics aspect → ${maleficAspectors.length} thieves involved`
+      thiefLocation += ` | ${maleficAspectors.length} difficult planets aspect → ${maleficAspectors.length} thieves involved`
     }
 
     thief = {
@@ -2166,21 +2166,21 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     rules.push(`[Ch13:6] Dosha: ${diseaseDosha}`)
     rules.push(`[Ch13:6] Body system: ${bodySystem}`)
     rules.push(`[Ch13:7] Rebirth nature by sign: ${rebirthNature}`)
-    details.push(`[Ch13:1] Death symptoms check: ${deathSymptoms}`)
-    details.push(`[Ch13:7] Place of death: ${placeOfDeath} | Cause: ${causeOfDeath}`)
+    details.push(`[Ch13:1] Serious-warning check: ${deathSymptoms}`)
+    details.push(`[Ch13:7] Traditional place theme: ${placeOfDeath} | Traditional risk theme: ${causeOfDeath}`)
 
     // Benefics in 6th/8th → recovery
     const benIn68 = grahas.filter(g => isBenefic(g.id, g.isCombust) && (getPlanetHouse(g.rashi, houseLagna) === 6 || getPlanetHouse(g.rashi, houseLagna) === 8))
     if (benIn68.length > 0) {
       positive++; total++
-      rules.push(`[Ch13:5] Benefics (${benIn68.map(g=>g.name).join(', ')}) in 6th/8th → Disease will be cured`)
+      rules.push(`[Ch13:5] Helpful planets (${benIn68.map(g=>g.name).join(', ')}) in 6th/8th → Classical texts read this as a good sign for recovery. Please keep following medical advice.`)
     }
     // Malefics in 6th can deform that limb [Ch7, St12]
     const malIn6 = grahas.find(g => !isBenefic(g.id) && getPlanetHouse(g.rashi, houseLagna) === 6)
     if (malIn6) {
       const benInKendraTrikona = grahas.some(g => isBenefic(g.id, g.isCombust) && [1,4,5,7,9,10].includes(getPlanetHouse(g.rashi, houseLagna)))
       if (!benInKendraTrikona) {
-        details.push(`[Ch7:12] Malefic ${malIn6.name} in 6th + no benefic in Kendra/Trikona → Deformity or disease in that limb`)
+        details.push(`[Ch7:12] Malefic ${malIn6.name} in 6th + no helpful planet in Kendra (angular houses: 1, 4, 7, 10)/Trikona (trine houses: 1, 5, 9) → Deformity or disease in that limb`)
       }
     }
   }
@@ -2198,10 +2198,10 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
         const ketuWithVenus = grahas.some(g => g.id === 'Ve' && g.rashi === lagnaRashi)
 
         if (ketuWithMoonOrVenus) { positive += 2; total += 2; rules.push('[Ch21:7] Ketu + Moon/Venus in ascendant → PREGNANCY CONFIRMED') }
-        if (ketuWithJupiter) { positive += 2; total += 2; rules.push('[Ch21:8] Ketu + Jupiter in ascendant → Child will be healthy/prosperous') }
+        if (ketuWithJupiter) { positive += 2; total += 2; rules.push('[Ch21:8] Ketu + Jupiter in ascendant → Classical texts read this as a good sign for the child’s health and prosperity') }
         if (ketuWithVenus) { positive += 2; total += 2; rules.push('[Ch21:10] Ketu + Venus in ascendant → Lady, food, and pregnancy all obtained') }
         if (ketuWithMercury) { details.push('[Ch21:9] Ketu + Mercury in ascendant → Child may have nervous disorders; lady will dominate household') }
-        if (ketuWithSaturnOrMars) { negative += 2; total += 2; rules.push('[Ch21:7] Ketu + Saturn/Mars in ascendant → Pregnancy DENIED or DESTROYED (miscarriage risk)') }
+        if (ketuWithSaturnOrMars) { negative += 2; total += 2; rules.push('[Ch21:7] Ketu + Saturn/Mars in ascendant → Classical texts urge extra care with pregnancy here. This is not a medical finding, so please follow your doctor’s advice') }
         if (grahas.some(g => g.id === 'Sa' && g.rashi === lagnaRashi)) {
           details.push('[Ch21:11] Ketu + Saturn in ascendant → House may catch fire; money flow obstructed')
           remedies.push('Visit Naga temples; offer milk to serpent idols to propitiate Rahu-Ketu')
@@ -2269,8 +2269,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
 
     // Treasure query [Ch15, St7]
     const hasTreasure = grahas.some(g => isBenefic(g.id, g.isCombust) && [1,4,7,10,11].includes(getPlanetHouse(g.rashi, houseLagna)))
-      ? 'YES — Benefics in quadrant/11th → Treasure exists in the house'
-      : 'NO — No benefics in quadrant → No hidden treasure indicated'
+      ? 'YES — Helpful planets in quadrant/11th → Treasure exists in the house'
+      : 'NO — No helpful planets in quadrant → No hidden treasure indicated'
 
     // Ownership [Ch15, St9]
     const ownership = relevantPlanet
@@ -2281,7 +2281,7 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     const houseDirection = SIGN_DIRECTIONS[lagnaRashi] ?? 'East'
 
     // Shape [Ch15, St6]
-    const shapes: Record<number, string> = { 10: 'Round house', 11: 'Rahu\'s house (latrine/ruin)', 5: 'Covered house' }
+    const shapes: Record<number, string> = { 10: 'Round house', 11: 'Rahu\'s house (a toilet or a run-down place)', 5: 'Covered house' }
     const houseShape = shapes[lagnaRashi] ?? 'Standard rectangular'
 
     houseQuery = { houseType: `${houseNature}. Alt: ${altHouseNature}`, hasTreasure, ownership, direction: houseDirection, shape: houseShape }
@@ -2320,8 +2320,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     const h7Sign = ((lagnaRashi + 5) % 12) + 1
     const h7Planet = grahas.find(g => g.rashi === h7Sign && !['Ur','Ne','Pl'].includes(g.id))
 
-    let relQuality = ascBeneficAsp ? 'Favorable — Benefic aspects ascendant; love and fulfillment expected' :
-      ascMaleficAsp ? 'Unfavorable — Malefic aspects ascendant; wife/partner may reject or be hostile' :
+    let relQuality = ascBeneficAsp ? 'Favorable — Helpful aspects ascendant; love and fulfillment expected' :
+      ascMaleficAsp ? 'Unfavorable — Difficult aspects ascendant; wife/partner may reject or be hostile' :
       'Neutral — Mixed indications'
 
     // Partner nature [Ch18, St2]
@@ -2370,8 +2370,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
     // ── Food / Bhojana Prashna [Ch16] ────────────────────────────────────
     const ascLordId = SIGN_LORDS[lagnaRashi]
     const ascLordPlanet = grahas.find(g => g.id === ascLordId)
-    const foodQuality = isBenefic(ascLordId) ? 'Good and clean food (benefic ascendant lord)' :
-      'Harsh or impure food (malefic ascendant lord) [Ch16:3]'
+    const foodQuality = isBenefic(ascLordId) ? 'Good and clean food (helpful planet ascendant lord)' :
+      'Harsh or impure food (difficult planet ascendant lord) [Ch16:3]'
 
     // Food type from sign
     let foodType = MALE_SIGNS.has(lagnaRashi) ? 'Harsh, dry food (male sign)' : 'Fluid/watery food (female/watery sign)'
@@ -2510,8 +2510,8 @@ export function runKrishneeyamPrashna(input: KrishneeyamInput): KrishneeyamResul
         const benAsp = grahas.filter(g => isBenefic(g.id, g.isCombust) && hasAspect(g, lagnaRashi) && g.id !== 'Ra')
         const malAsp = grahas.filter(g => !isBenefic(g.id, g.isCombust) && hasAspect(g, lagnaRashi) && !['Ur','Ne','Pl'].includes(g.id))
         const base = 'Rahu in ascendant: hidden forces, foreign influence, delays of 6–18 months. '
-        const ben = benAsp.length > 0 ? `Benefic aspect of ${benAsp.map(g=>g.name).join('/')} — unexpected rescue. ` : ''
-        const mal = malAsp.length > 0 ? `Malefic aspect of ${malAsp.map(g=>g.name).join('/')} — betrayal or deception. ` : ''
+        const ben = benAsp.length > 0 ? `Helpful aspect of ${benAsp.map(g=>g.name).join('/')} — unexpected rescue. ` : ''
+        const mal = malAsp.length > 0 ? `Difficult aspect of ${malAsp.map(g=>g.name).join('/')} — betrayal or deception. ` : ''
         return base + ben + mal
       })()
     : undefined

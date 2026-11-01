@@ -76,15 +76,15 @@ export const USE_CASE_CATEGORIES: UseCaseCategory[] = [
 
 export const USE_CASES: SBCUseCase[] = [
   // ── HEALTH (15) ────────────────────────────────────────────
-  { id:'h1',  cat:'health', label:'Surgery Success',           positive:['Ma','Mo'], avoid:['Ra','Sa'],     note:'Mars favorable, Moon not afflicted' },
-  { id:'h2',  cat:'health', label:'Disease Recovery Timing',   positive:['Mo','Su'], avoid:['Ra','Ke'],     note:'Moon nakshatra clear of malefics' },
+  { id:'h1',  cat:'health', label:'Surgery Success',           positive:['Ma','Mo'], avoid:['Ra','Sa'],     note:'Mars favorable, Moon not under pressure' },
+  { id:'h2',  cat:'health', label:'Disease Recovery Timing',   positive:['Mo','Su'], avoid:['Ra','Ke'],     note:'Moon nakshatra clear of difficult planets' },
   { id:'h3',  cat:'health', label:'Medicine / Treatment Right',positive:['Me','Mo'], avoid:['Ra','Sa'],     note:'Mercury positive for proper diagnosis' },
   { id:'h4',  cat:'health', label:'Patient Recovery Outlook',  positive:['Su','Mo'], avoid:['Sa','Ra'],     note:'Sun & Moon both must be positive' },
-  { id:'h5',  cat:'health', label:'Best Time for Operation',   positive:['Ma'],      avoid:['Sa','Ra'],     note:'Mars favorable, Moon unafflicted' },
+  { id:'h5',  cat:'health', label:'Best Time for Operation',   positive:['Ma'],      avoid:['Sa','Ra'],     note:'Mars favorable, Moon free of difficult influences' },
   { id:'h6',  cat:'health', label:'Mental Health Recovery',    positive:['Mo'],      avoid:['Ra','Ke'],     note:'Moon free from Rahu/Ketu vedha' },
   { id:'h7',  cat:'health', label:'Chronic Disease Duration',  positive:['Su','Mo'], avoid:['Sa'],          note:'Saturn vedha prolongs illness' },
   { id:'h8',  cat:'health', label:'Eye Treatment Timing',      positive:['Su'],      avoid:['Ra','Sa'],     note:'Sun nakshatra must be clear' },
-  { id:'h9',  cat:'health', label:'Pregnancy & Safe Delivery', positive:['Mo','Ve'], avoid:['Ma','Ra'],     note:'Moon and Venus must be unafflicted' },
+  { id:'h9',  cat:'health', label:'Pregnancy & Safe Delivery', positive:['Mo','Ve'], avoid:['Ma','Ra'],     note:'Moon and Venus must be free of difficult influences' },
   { id:'h10', cat:'health', label:'Start Medicine Timing',     positive:['Me','Mo'], avoid:['Ra','Ke'],     note:'Mercury and Moon favorable' },
   { id:'h11', cat:'health', label:'Hospital Admission',        positive:['Mo'],      avoid:['Ra','Ma','Sa'],note:'Moon must be positive' },
   { id:'h12', cat:'health', label:'Bone & Joint Treatment',    positive:['Sa','Me'], avoid:['Ra','Ma'],     note:'Saturn check for bones' },
@@ -94,16 +94,16 @@ export const USE_CASES: SBCUseCase[] = [
 
   // ── MARRIAGE (15) ──────────────────────────────────────────
   { id:'m1',  cat:'marriage', label:'Best Marriage Date',         positive:['Ve','Mo','Ju'], avoid:['Sa','Ma','Ra'], note:'Venus, Moon, Jupiter all positive' },
-  { id:'m2',  cat:'marriage', label:'Marriage Happiness Outlook', positive:['Ve'],           avoid:['Sa','Ra'],      note:'Venus must be strong and unafflicted' },
+  { id:'m2',  cat:'marriage', label:'Marriage Happiness Outlook', positive:['Ve'],           avoid:['Sa','Ra'],      note:'Venus must be strong and free of difficult influences' },
   { id:'m3',  cat:'marriage', label:'Marriage Delay Reason',      positive:['Ve','Mo'],      avoid:['Sa','Ra'],      note:'Saturn/Rahu vedha on Venus causes delay' },
   { id:'m4',  cat:'marriage', label:'Compatibility Assessment',   positive:['Mo'],           avoid:['Sa','Ra'],      note:'Moon (emotions) must be harmonious' },
   { id:'m5',  cat:'marriage', label:'Engagement Ceremony',        positive:['Ve','Ju'],      avoid:['Sa','Ma'],      note:'Venus and Jupiter favorable' },
   { id:'m6',  cat:'marriage', label:'Second Marriage Timing',     positive:['Ve','Mo'],      avoid:['Sa','Ra','Ke'], note:'Venus and Moon must be clear' },
-  { id:'m7',  cat:'marriage', label:'Marital Problem Period',     positive:['Ve'],           avoid:['Ma','Sa'],      note:'Venus afflicted signals problems' },
+  { id:'m7',  cat:'marriage', label:'Marital Problem Period',     positive:['Ve'],           avoid:['Ma','Sa'],      note:'Venus troubled signals problems' },
   { id:'m8',  cat:'marriage', label:'Divorce Possibility',        positive:['Ve','Ju'],      avoid:['Ma','Sa'],      note:'Mars/Saturn on 7th nakshatra' },
   { id:'m9',  cat:'marriage', label:'Honeymoon Travel Timing',    positive:['Mo','Ve'],      avoid:['Ra','Sa'],      note:'Moon and Venus positive' },
   { id:'m10', cat:'marriage', label:'Wedding Function Timing',    positive:['Ju','Ve'],      avoid:['Sa','Ra','Ma'], note:'Jupiter and Venus favorable' },
-  { id:'m11', cat:'marriage', label:'Marital Harmony Period',     positive:['Ve'],           avoid:['Ma','Sa','Ra'], note:'Venus free from malefics' },
+  { id:'m11', cat:'marriage', label:'Marital Harmony Period',     positive:['Ve'],           avoid:['Ma','Sa','Ra'], note:'Venus free from difficult planets' },
   { id:'m12', cat:'marriage', label:'Reconciliation After Separation',positive:['Ve','Mo'],  avoid:['Sa','Ma'],      note:'Venus and Moon positive' },
   { id:'m13', cat:'marriage', label:'Love Marriage Success',      positive:['Ve','Ma'],      avoid:['Sa','Ra'],      note:'Venus and Mars both positive' },
   { id:'m14', cat:'marriage', label:'Arranged Marriage Success',  positive:['Ju','Ve'],      avoid:['Sa','Ra','Ma'], note:'Jupiter and Venus positive' },
@@ -116,10 +116,10 @@ export const USE_CASES: SBCUseCase[] = [
   { id:'c4',  cat:'children', label:'Naming Ceremony Timing',     positive:['Mo','Me'],      avoid:['Ra','Sa'],      note:'Moon and Mercury positive' },
   { id:'c5',  cat:'children', label:'Child Education Success',    positive:['Me','Ju'],      avoid:['Sa','Ra'],      note:'Mercury and Jupiter positive' },
   { id:'c6',  cat:'children', label:'First School Day',           positive:['Me'],           avoid:['Ra','Sa'],      note:'Mercury must be favorable' },
-  { id:'c7',  cat:'children', label:'Child Surgery Timing',       positive:['Ma','Mo'],      avoid:['Sa','Ra'],      note:'Mars not afflicting child nakshatra' },
+  { id:'c7',  cat:'children', label:'Child Surgery Timing',       positive:['Ma','Mo'],      avoid:['Sa','Ra'],      note:'Mars not pressuring child nakshatra' },
   { id:'c8',  cat:'children', label:'Child Travel Safety',        positive:['Mo'],           avoid:['Ra','Ma','Sa'], note:'Moon positive for safe journey' },
   { id:'c9',  cat:'children', label:'Adoption Timing',            positive:['Ju','Mo'],      avoid:['Sa','Ra'],      note:'Jupiter and Moon positive' },
-  { id:'c10', cat:'children', label:'Children Problem Period',     positive:['Ju'],           avoid:['Sa','Ra','Ma'], note:'Jupiter afflicted signals problems' },
+  { id:'c10', cat:'children', label:'Children Problem Period',     positive:['Ju'],           avoid:['Sa','Ra','Ma'], note:'Jupiter troubled signals problems' },
 
   // ── EDUCATION (10) ─────────────────────────────────────────
   { id:'e1',  cat:'education', label:'Exam Success Prediction',   positive:['Me','Ju'],      avoid:['Sa','Ra'],      note:'Mercury and Jupiter must be clear' },
@@ -178,7 +178,7 @@ export const USE_CASES: SBCUseCase[] = [
   { id:'f8',  cat:'finance', label:'Mutual Fund Investment',      positive:['Ju','Me'],      avoid:['Sa','Ra'],      note:'Jupiter and Mercury positive' },
   { id:'f9',  cat:'finance', label:'Insurance Purchase',          positive:['Sa','Ju'],      avoid:['Ra','Ke'],      note:'Saturn and Jupiter positive' },
   { id:'f10', cat:'finance', label:'Jewellery Purchase',          positive:['Ve','Ju'],      avoid:['Sa','Ra'],      note:'Venus and Jupiter positive' },
-  { id:'f11', cat:'finance', label:'Financial Loss Risk',         positive:['Ju'],           avoid:['Sa','Ra','Ke'], note:'Jupiter afflicted signals losses' },
+  { id:'f11', cat:'finance', label:'Financial Loss Risk',         positive:['Ju'],           avoid:['Sa','Ra','Ke'], note:'Jupiter troubled signals losses' },
   { id:'f12', cat:'finance', label:'Debt Clearance Timing',       positive:['Ju','Sa'],      avoid:['Ra','Ke'],      note:'Jupiter and Saturn positive' },
   { id:'f13', cat:'finance', label:'Sudden Wealth / Windfall',    positive:['Ra','Ju'],      avoid:['Sa','Ke'],      note:'Rahu and Jupiter positive' },
   { id:'f14', cat:'finance', label:'Crypto / Speculation',        positive:['Ra','Ju'],      avoid:['Sa','Ke'],      note:'Rahu and Jupiter check carefully' },
@@ -202,7 +202,7 @@ export const USE_CASES: SBCUseCase[] = [
   { id:'p15', cat:'property', label:'Interior / Vastu Work',      positive:['Ma','Me'],      avoid:['Sa','Ra'],      note:'Mars and Mercury positive' },
 
   // ── TRAVEL (15) ────────────────────────────────────────────
-  { id:'t1',  cat:'travel', label:'Safe Travel Timing',           positive:['Mo'],           avoid:['Ra','Ke','Ma'], note:'Moon must not be afflicted' },
+  { id:'t1',  cat:'travel', label:'Safe Travel Timing',           positive:['Mo'],           avoid:['Ra','Ke','Ma'], note:'Moon must not be troubled' },
   { id:'t2',  cat:'travel', label:'Air Travel Safety',            positive:['Mo','Me'],      avoid:['Ra','Ke'],      note:'Moon and Rahu check' },
   { id:'t3',  cat:'travel', label:'Sea Voyage Timing',            positive:['Mo','Ve'],      avoid:['Ra','Ma'],      note:'Moon and Venus positive' },
   { id:'t4',  cat:'travel', label:'Foreign Trip Timing',          positive:['Ra','Ju'],      avoid:['Sa','Ke'],      note:'Rahu and Jupiter positive' },
@@ -292,7 +292,7 @@ export const USE_CASES: SBCUseCase[] = [
   { id:'q3',  cat:'prashna', label:'Will the disease be cured?',      positive:['Mo','Su'],   avoid:['Ra','Ke'],     note:'Moon and Sun must be clear' },
   { id:'q4',  cat:'prashna', label:'Will the loan be approved?',      positive:['Ju'],        avoid:['Sa','Ra'],     note:'Jupiter must be positive' },
   { id:'q5',  cat:'prashna', label:'Will I win the court case?',      positive:['Ju','Su'],   avoid:['Sa','Ra'],     note:'Jupiter and Sun positive' },
-  { id:'q6',  cat:'prashna', label:'Will the journey be safe?',       positive:['Mo'],        avoid:['Ra','Ma','Sa'],note:'Moon must not be afflicted' },
+  { id:'q6',  cat:'prashna', label:'Will the journey be safe?',       positive:['Mo'],        avoid:['Ra','Ma','Sa'],note:'Moon must not be troubled' },
   { id:'q7',  cat:'prashna', label:'Will my business succeed?',       positive:['Me','Ju'],   avoid:['Sa','Ra'],     note:'Mercury and Jupiter check' },
   { id:'q8',  cat:'prashna', label:'Will the enemy be defeated?',     positive:['Ma','Ju'],   avoid:['Sa','Ra'],     note:'Mars and Jupiter positive' },
   { id:'q9',  cat:'prashna', label:'Will the lost item be found?',    positive:['Mo','Me'],   avoid:['Ra','Ke'],     note:'Moon and Mercury check' },
@@ -388,15 +388,15 @@ export function assessSingleUseCase(
     if (st.blessed) {
       score += 30
       positiveCount++
-      reasons.push(`✓ ${PLANET_NAMES[pid]} is blessed by benefic vedha`)
+      reasons.push(`✓ ${PLANET_NAMES[pid]} is blessed by helpful planet vedha`)
     } else if (st.free) {
       score += 15
       positiveCount++
-      reasons.push(`✓ ${PLANET_NAMES[pid]} is free from malefic vedha`)
+      reasons.push(`✓ ${PLANET_NAMES[pid]} is free from difficult planet vedha`)
     } else {
       score -= 30
       afflictedCount++
-      reasons.push(`✗ ${PLANET_NAMES[pid]} is afflicted by malefic vedha`)
+      reasons.push(`✗ ${PLANET_NAMES[pid]} is under pressure by difficult planet vedha`)
     }
   })
 
@@ -407,7 +407,7 @@ export function assessSingleUseCase(
     if (!st.afflicted) {
       // Malefic planet is active and strong
       score -= 20
-      reasons.push(`⚠ ${PLANET_NAMES[pid]} is active and casting malefic vedha`)
+      reasons.push(`⚠ ${PLANET_NAMES[pid]} is active and casting difficult planet vedha`)
     }
   })
 

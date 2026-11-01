@@ -845,7 +845,7 @@ function divisionReadings(chart: ChartOutput, now = Date.now()): MarriedLifeNote
           `Mandi in the D7 ${mandiHouse}th`,
           mandiHouse === 8
             ? 'Mandi in the 8th of D7. A hidden bond, when it runs, is painful.'
-            : 'Mandi on a dusthana of D7. The ending, when it runs, stays painful.',
+            : 'Mandi on a dusthana (difficult houses: 6, 8, 12) of D7. The ending, when it runs, stays painful.',
           'caution',
         ))
       }
@@ -918,7 +918,7 @@ function divisionReadings(chart: ChartOutput, now = Date.now()): MarriedLifeNote
       || venus.isCombust
       || d7.grahas.some(p => (p.id === 'Ma' || p.id === 'Sa' || p.id === 'Ra' || p.id === 'Ke') && p.rashi === venus.rashi)
     )) {
-      out.push(note('d7-venus-child', 'Venus afflicted in D7', 'Development of a child is disturbed.', 'caution'))
+      out.push(note('d7-venus-child', 'Venus troubled in D7', 'Development of a child is disturbed.', 'caution'))
     }
     const fifthLord = LORDS[signOf(d7.asc, 5)]
     if (ketu && (houseOf(ketu.rashi, d7.asc) === 5 || d7.grahas.some(p => p.id === fifthLord && p.rashi === ketu.rashi))) {
@@ -954,7 +954,7 @@ function exposureWindows(chart: ChartOutput, now: number): MarriedLifeNote[] {
           const open = start <= now && end > now
           const detail = [
             `${formatWhen(node.start, node.end)}.`,
-            severe ? 'Saturn, Mars, and the Moon are together. The pain is severe, and allegations can follow.' : '',
+            severe ? 'Saturn, Mars, and the Moon are together. This can be a very painful time, and accusations are possible.' : '',
             phone
               ? (lords.includes('Sa')
                 ? 'The Moon is in Gemini in D3. Inside Saturn, the bond is exposed through friends and the phone.'
@@ -1332,7 +1332,7 @@ function inlawNotes(chart: ChartOutput, asc: number): MarriedLifeNote[] {
         'ketu-ties',
         `Ketu in the ${h === 2 ? '2nd' : '8th'}`,
         h === 2
-          ? 'Ketu in the 2nd can sever the native’s own family ties.'
+          ? 'Ketu in the 2nd can sever the person’s own family ties.'
           : 'Ketu in the 8th can sever ties with the spouse’s family.',
         'caution',
       ))

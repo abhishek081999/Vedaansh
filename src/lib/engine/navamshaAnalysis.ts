@@ -765,7 +765,7 @@ function seventhLordInterpretation(
     parts.push(`Placement in dusthana house ${d9House} of D9 can bring tests that ultimately deepen the bond if handled wisely.`)
   }
   if ([1, 4, 5, 7, 9, 10, 11].includes(d9House)) {
-    parts.push(`Benefic house ${d9House} support for partnership themes is encouraging.`)
+    parts.push(`Helpful house ${d9House} support for partnership themes is encouraging.`)
   }
   return parts.join(' ')
 }

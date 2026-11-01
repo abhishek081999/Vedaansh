@@ -366,7 +366,7 @@ function buildHouseReading(
   if (house === 12) {
     const malefics = occupants.filter((g) => MALEFICS.includes(g.id) && g.id !== 'Ke')
     if (malefics.length) {
-      bits.push('Malefic pressure here can echo as unsettling dream content — soften with rest and release practice, not fear.')
+      bits.push('Difficult pressure here can echo as unsettling dream content — soften with rest and release practice, not fear.')
     }
     if (occupants.some((g) => g.id === 'Ke')) {
       bits.push('Ketu here supports letting go in sleep and solitude.')
@@ -517,7 +517,7 @@ function buildSummary(
     `D12 opens in ${isolation.lagnaName} — isolation and dream tone lead with ${isolation.primarySignal.label.toLowerCase()}.`,
   ]
   if (isolation.aloneInDreams) {
-    parts.push('Kendras are quiet — solitude can feel unsupported in the dream field.')
+    parts.push('Kendras (angular houses: 1, 4, 7, 10) are quiet — solitude can feel unsupported in the dream field.')
   }
   if (thirst) {
     parts.push(`Deep thirst marked by debilitated ${thirst.name}.`)
@@ -585,7 +585,7 @@ export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | 
           ? `With ${lordConjuncts.map((id) => GRAHA_NAMES[id]).join(', ')} — blend those natures into the isolation story.`
           : `${GRAHA_NAMES[lagnaLordId]} alone steers the alone-time narrative.`,
         aloneInDreams
-          ? 'Empty kendras amplify the sense of being alone in dreams.'
+          ? 'Empty kendras (angular houses: 1, 4, 7, 10) amplify the sense of being alone in dreams.'
           : null,
       ]
         .filter(Boolean)
@@ -604,7 +604,7 @@ export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | 
       }
     : {
         strength: 'lord',
-        label: `Empty lagna — follow ${GRAHA_NAMES[lagnaLordId]} in H${lordHouse}`,
+        label: `Empty lagna — follow ${GRAHA_NAMES[lagnaLordId]} in house ${lordHouse}`,
         detail: isolationBase.lagnaLord.reading,
       }
 

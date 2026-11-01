@@ -172,8 +172,8 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
   if (lagnaLord && weak(lagnaLord) && grahas.some(g => isMalefic(g.id) && (h(g) === 7 || aspects(g, seventh)))) {
     placement.push(note(
       'seventh-multi-weak-lagna',
-      'A weak lagna and a malefic 7th',
-      'The lagna lord is weak, and a malefic occupies or aspects the 7th. Classical texts read the possibility of more than one marriage from this pair, as a tendency and not a verdict. One of the two conditions alone is not enough.',
+      'A weak lagna and a difficult planet 7th',
+      'The lagna lord is weak, and a difficult planet occupies or aspects the 7th. Classical texts read the possibility of more than one marriage from this pair, as a tendency and not a verdict. One of the two conditions alone is not enough.',
       'caution',
     ))
   }
@@ -183,7 +183,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     placement.push(note(
       'seventh-lord-period',
       'The 7th lord’s period is a hard one for the partner',
-      `${gn(lord.id)} is severely afflicted and its period is running now. Classical texts place strain and suffering on the partner in this dasha and antardasha, and the 7th is a house classically tied to endings and loss. Read it as a hard period to get through together. This does not mean a death is indicated.`,
+      `${gn(lord.id)} is under heavy pressure and its period is running now. Classical texts place strain and suffering on the partner in this dasha and antardasha, and the 7th is a house classically tied to endings and loss. Read it as a hard period to get through together. This does not mean a death is indicated.`,
       'caution',
     ))
   }
@@ -210,7 +210,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       },
       2: {
         title: '7th lord in the 2nd',
-        detail: `${seat}. Judgment can get clouded by desire. ${severe ? 'The affliction is severe, so desire and money matters can tangle: wanting something badly may start to steer financial choices. This is a tendency about priorities, not a statement about how anyone earns a living.' : 'Short of a severe affliction, this is restlessness in the mind, not something that touches livelihood.'} The 7th is the 10th from the 10th, so it echoes the career, but career themes are best read from the 10th house itself.`,
+        detail: `${seat}. Judgment can get clouded by desire. ${severe ? 'The pressure is strong, so desire and money matters can tangle: wanting something badly may start to steer financial choices. This is a tendency about priorities, not a statement about how anyone earns a living.' : 'Short of a severe affliction, this is restlessness in the mind, not something that touches livelihood.'} The 7th is the 10th from the 10th, so it echoes the career, but career themes are best read from the 10th house itself.`,
         tone: 'caution',
       },
       3: {
@@ -235,7 +235,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       },
       7: {
         title: '7th lord in the 7th',
-        detail: `${seat}. A spouse from a good family is indicated from this seat, and that still holds when the lord is a malefic. The cost is loneliness in the search: several proposals fall away before one stays.`,
+        detail: `${seat}. A spouse from a good family is indicated from this seat, and that still holds when the lord is a difficult planet. The cost is loneliness in the search: several proposals fall away before one stays.`,
         tone: isMalefic(lord.id) ? 'mixed' : 'supportive',
       },
       8: {
@@ -257,7 +257,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
       },
       11: {
         title: '7th lord in the 11th',
-        detail: `${seat}. A good partner is indicated, and so is a bond that may stay unofficial: a deep emotional tie, or a friendship that crosses the usual line. It is not automatically an affair. ${severe ? 'The affliction is severe, so desire and money matters can tangle. Take it as a tendency to watch, not a fixed outcome.' : ''}`,
+        detail: `${seat}. A good partner is indicated, and so is a bond that may stay unofficial: a deep emotional tie, or a friendship that crosses the usual line. It is not automatically an affair. ${severe ? 'The pressure is strong, so desire and money matters can tangle. Take it as a tendency to watch, not a fixed outcome.' : ''}`,
         tone: 'mixed',
       },
       12: {
@@ -389,8 +389,8 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
   if (fromLagna && fromMoon) {
     combinations.push(note(
       'seventh-malefic-789',
-      'Malefics in the 7th, 8th, or 9th from lagna and Moon',
-      'A malefic sits in the 7th, 8th, or 9th counted from the lagna, and again counted from the Moon. Classical texts read that as strain around marriage, both before and after the wedding, with peace of mind being what is most tested.',
+      'Difficult planets in the 7th, 8th, or 9th from lagna and Moon',
+      'A difficult planet sits in the 7th, 8th, or 9th counted from the lagna, and again counted from the Moon. Classical texts read that as strain around marriage, both before and after the wedding, with peace of mind being what is most tested.',
       'caution',
     ))
   }
@@ -413,8 +413,8 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
   if (eighthHits.length) {
     combinations.push(note(
       'seventh-eighth-private',
-      'A malefic in an 8th of private life',
-      `The 8th from ${eighthHits.join(', ')} holds a malefic. Classical texts read the intensity of private life from these three 8ths together, not from the lagna alone. In plain terms, private life may be intense or unconventional, which is a tendency and not a judgment.`,
+      'A difficult planet in an 8th of private life',
+      `The 8th from ${eighthHits.join(', ')} holds a difficult planet. Classical texts read the intensity of private life from these three 8ths together, not from the lagna alone. In plain terms, private life may be intense or unconventional, which is a tendency and not a judgment.`,
       'mixed',
     ))
   }
@@ -459,7 +459,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     if (vh != null && (KENDRA.has(vh) || TRIKONA.has(vh))) {
       combinations.push(note(
         'seventh-venus-fallen-angle',
-        'Fallen Venus in a kendra or trikona',
+        'Fallen Venus in a kendra (angular houses: 1, 4, 7, 10) or trikona (trine houses: 1, 5, 9)',
         `Venus is debilitated in the ${ordinal(vh)}. The fall is real, yet classical texts still give good marriage results from a kendra (angular house) or a trikona (trine). Venus should not be written off for the debilitation alone.`,
         'mixed',
       ))
@@ -499,8 +499,8 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
   if (grahas.some(g => isMalefic(g.id) && [3, 6, 11].includes(houseOf(g.rashi, asc)))) {
     combinations.push(note(
       'seventh-upachaya-malefic',
-      'Malefics in the 3rd, 6th, or 11th',
-      'A malefic in the 3rd, 6th, or 11th is not a cause for worry. These are growth houses (upachaya: 3rd, 6th, 11th), where a malefic tends to do well over time. It does not point to trouble in marriage.',
+      'Difficult planets in the 3rd, 6th, or 11th',
+      'A difficult planet in the 3rd, 6th, or 11th is not a cause for worry. These are growth houses (upachaya (growth houses: 3, 6, 10, 11): 3rd, 6th, 11th), where a difficult planet tends to do well over time. It does not point to trouble in marriage.',
       'supportive',
     ))
   }
@@ -509,8 +509,8 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
   if (trikonaBenefics.length >= 2) {
     combinations.push(note(
       'seventh-trikona-benefic',
-      'Benefics in the trines',
-      `Benefics occupy the ${trikonaBenefics.map(ordinal).join(' and ')}. Classical texts read that as support for a happy married life.`,
+      'Helpful planets in the trines',
+      `Helpful planets occupy the ${trikonaBenefics.map(ordinal).join(' and ')}. Classical texts read that as support for a happy married life.`,
       'supportive',
     ))
   }
@@ -589,7 +589,7 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     timing.push(note(
       'seventh-band-delayed',
       'The conditions of a delayed marriage',
-      `Several delay marks are present: malefics on the marriage houses, a strong but afflicted 7th lord, retrograde benefics, combust Venus, a doubled 12th, or the 7th from Venus under pressure. Classical texts place this band around 28 to 32. ${manglik ? 'Mars is in a manglik house, whose heat is said to ease after about 28.' : ''}`,
+      `Several delay marks are present: difficult planets on the marriage houses, a strong but troubled 7th lord, retrograde helpful planets, combust Venus, a doubled 12th, or the 7th from Venus under pressure. Classical texts place this band around 28 to 32. ${manglik ? 'Mars is in a manglik house, whose heat is said to ease after about 28.' : ''}`,
       'mixed',
     ))
   } else if (band === 'late') {

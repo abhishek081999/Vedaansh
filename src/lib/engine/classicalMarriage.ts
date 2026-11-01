@@ -232,7 +232,7 @@ export function compareClassicalMarriage(
     notes.push(note(
       'classical-pair-soft',
       'Both charts have softeners on strain',
-      `${nameA} and ${nameB} each show Kuja cancellation or a benefic on the marriage. Conflict can still be worked without reading an automatic break.`,
+      `${nameA} and ${nameB} each show Kuja cancellation or a helpful planet on the marriage. Conflict can still be worked without reading an automatic break.`,
       'supportive',
     ))
   }

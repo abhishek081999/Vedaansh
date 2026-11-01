@@ -26,7 +26,7 @@ export const NADI_CAREER_CONTEXT =
   'Read the size of the result against the place of birth. The chart is the floor.'
 
 const HOUSE_CAREER: Record<HouseNumber, string> = {
-  1: 'the native’s own name and effort',
+  1: 'the person’s own name and effort',
   2: 'food, a family business, a hotel, or accumulated wealth',
   3: 'writing, courage, or short journeys',
   4: 'property, rent, vehicles, or a family business in land',
@@ -229,7 +229,7 @@ function saturnLine(id: ClassicalGrahaId, fifth: boolean): string {
   }
   if (id === 'Ju') return 'Teaching, consulting, astrology, or the law.'
   if (id === 'Su') {
-    return 'A government post, for the native or for the father. The father’s health and the heart are under pressure, and a court case is checked.'
+    return 'A government post, for the person or for the father. The father’s health and the heart are under pressure, and a court case is checked.'
   }
   if (id === 'Mo') {
     return 'Agriculture, dairy, food, or land. A change of city or country is also checked.'

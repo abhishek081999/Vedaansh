@@ -283,7 +283,7 @@ export function analyzeNakshatramsha(chart: ChartOutput): NakshatramshaAnalysis 
         detail: occupants.map((o) => o.reading).join(' '),
       }
     : {
-        label: `Empty lagna — follow ${GRAHA_NAMES[lagnaLordId]} in H${lordHouse}`,
+        label: `Empty lagna — follow ${GRAHA_NAMES[lagnaLordId]} in house ${lordHouse}`,
         detail: `${GRAHA_NAMES[lagnaLordId]} placement is the D27 willpower address.`,
       }
 
@@ -331,7 +331,7 @@ export function analyzeNakshatramsha(chart: ChartOutput): NakshatramshaAnalysis 
       bits.push('Jupiter–Ketu here: partner satisfaction / liking can feel incomplete.')
     }
     if (h === 5 && occ.filter((g) => MALEFICS.includes(g.id)).length >= 2) {
-      bits.push('Heavy malefic load in 5th: fear scripts (including medical anxiety) can loop — keep language gentle.')
+      bits.push('Heavy difficult planet load in 5th: fear scripts (including medical anxiety) can loop — keep language gentle.')
     }
     if (h === 4 && occ.some((g) => g.id === 'Ma') && occ.some((g) => g.id === 'Ra')) {
       bits.push('Mars–Rahu in 4th: strong intuition / unconventional inner method.')
@@ -365,7 +365,7 @@ export function analyzeNakshatramsha(chart: ChartOutput): NakshatramshaAnalysis 
     label = 'High pressure capacity'
     tone = 'supportive'
     reading =
-      'D27 kendras and lagna hold decent vitality — under stress, the will to continue tends to hold. Still rest; high capacity is not infinite.'
+      'D27 kendras (angular houses: 1, 4, 7, 10) and lagna hold decent vitality — under stress, the will to continue tends to hold. Still rest; high capacity is not infinite.'
   } else if (score <= 7) {
     band = 'strained'
     label = 'Strained bandwidth'
@@ -386,7 +386,7 @@ export function analyzeNakshatramsha(chart: ChartOutput): NakshatramshaAnalysis 
     house: row.house,
     theme: ASK_THEME_LABEL[row.house] ?? row.theme,
     vitalityScore: row.vitalityScore,
-    reading: `Weak/afflicted energy in H${row.house} (${ASK_THEME_LABEL[row.house]}): class rule — what cannot generate cleanly in D27 is often exactly what the client asks about. ${row.reading}`,
+    reading: `Weak/troubled energy in house ${row.house} (${ASK_THEME_LABEL[row.house]}): class rule — what cannot generate cleanly in D27 is often exactly what the client asks about. ${row.reading}`,
     tone: row.tone,
   }))
 

@@ -281,7 +281,7 @@ const HOUSE_FOCUS: Record<number, MarsHouseFocus> = {
     themes: ['Hyperactivity', 'Commander identity', 'Trait shift'],
     notes: [
       'Completely changes personality flavour — behaves differently from baseline lagna tone',
-      'Can make the native hyperactive; Manglik house — pace partnerships consciously',
+      'Can make the person hyperactive; Manglik house — pace partnerships consciously',
     ],
   },
   2: {
@@ -291,15 +291,15 @@ const HOUSE_FOCUS: Record<number, MarsHouseFocus> = {
     notes: [
       'Disturbs family life; bitter/harsh speech (कड़वे वचन)',
       'People avoid conversation — family and outsiders',
-      'If Ketu joins here → extremely problematic in class teaching',
+      'If Ketu joins here → extremely problematic in traditional teaching',
     ],
   },
   3: {
     house: 3,
-    title: 'Mars in 3rd — upachaya courage',
+    title: 'Mars in 3rd — upachaya (growth houses: 3, 6, 10, 11) courage',
     themes: ['Siblings', 'Valour', 'Effort'],
     notes: [
-      'Strong upachaya seat — sibling happiness, courage (पराक्रम), strength for life challenges',
+      'Strong upachaya (growth houses: 3, 6, 10, 11) seat — sibling happiness, courage (पराक्रम), strength for life challenges',
       'Hands, short efforts, competitive skill amplify',
     ],
   },
@@ -324,10 +324,10 @@ const HOUSE_FOCUS: Record<number, MarsHouseFocus> = {
   },
   6: {
     house: 6,
-    title: 'Mars in 6th — upachaya warrior',
+    title: 'Mars in 6th — upachaya (growth houses: 3, 6, 10, 11) warrior',
     themes: ['Enemies', 'Disease fight', 'Competition'],
     notes: [
-      'Excellent upachaya — defeats enemies and disease; surgical/competitive success when not ruined elsewhere',
+      'Excellent upachaya (growth houses: 3, 6, 10, 11) — defeats enemies and disease; surgical/competitive success when not ruined elsewhere',
     ],
   },
   7: {
@@ -344,8 +344,8 @@ const HOUSE_FOCUS: Record<number, MarsHouseFocus> = {
     title: 'Mars in 8th — surgery, accident, research',
     themes: ['Sudden events', 'Shared resources', 'Intensity'],
     notes: [
-      'Accidents/surgery vigilance, research courage, inheritance fights',
-      'With Ketu: class example of frequent life-threatening accidents when badly configured',
+      'Take care around accidents and surgery; courage for research; possible inheritance disputes',
+      'With Ketu, and if the rest of the chart is under pressure: take extra care around accidents',
       'Not automatically “bad” — dignity and chart decide',
     ],
   },
@@ -354,9 +354,9 @@ const HOUSE_FOCUS: Record<number, MarsHouseFocus> = {
     title: 'Mars in 9th — strict dharma / father heat',
     themes: ['Father', 'Belief', 'Pilgrim warrior'],
     notes: [
-      'Father may be strict / harsh-speaking; native may invent a divine father-figure (e.g. Shiva)',
+      'Father may be strict / harsh-speaking; person may invent a divine father-figure (e.g. Shiva)',
       'Self-made spiritual rules; dharmic fighter energy',
-      'Property lore often needs both Mars signs traced (see methodology)',
+      'Property tradition often needs both Mars signs traced (see methodology)',
     ],
   },
   10: {
@@ -364,7 +364,7 @@ const HOUSE_FOCUS: Record<number, MarsHouseFocus> = {
     title: 'Mars in 10th — digbala career command',
     themes: ['Ambition', 'Technical / military success'],
     notes: [
-      'Strong upachaya + career seat — command, technical drive, industrial/defense flavour',
+      'Strong upachaya (growth houses: 3, 6, 10, 11) + career seat — command, technical drive, industrial/defense flavour',
     ],
   },
   11: {
@@ -372,7 +372,7 @@ const HOUSE_FOCUS: Record<number, MarsHouseFocus> = {
     title: 'Mars in 11th — gains through courage',
     themes: ['Networks', 'Elder siblings', 'Targets'],
     notes: [
-      'Upachaya gains through courage and networks; elder-sibling energy strong',
+      'Upachaya (growth houses: 3, 6, 10, 11) gains through courage and networks; elder-sibling energy strong',
     ],
   },
   12: {
@@ -464,19 +464,19 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
     placementTone: withKetu ? ketuTone : 'neutral',
     detail: withKetu
       ? ketuTone === 'constructive'
-        ? 'Mars–Ketu active with relatively supportive house/dignity — class notes allow deep spirituality, tantra, surgery excellence, or defense medals when the chart supports.'
+        ? 'Mars–Ketu active with relatively supportive house/dignity — traditional teaching allow deep spirituality, tantra, surgery excellence, or defense medals when the chart supports.'
         : ketuTone === 'intense'
-          ? 'Mars–Ketu active in a high-heat house — class notes warn of accidents, surgeries, cutting, criminal charts when badly configured; past-life issues surface. With Moon involvement, treat as high-caution combination.'
+          ? 'Mars–Ketu active in a high-heat house — if the chart is under pressure, it asks for care around accidents, surgery and sharp tools, and for keeping anger in check; past-life issues surface. With Moon involvement, treat as high-caution combination.'
           : 'Mars–Ketu active — two fires: anger-fire (Mars) vs sadhana-fire (Ketu). Ketu detaches; Mars pushes forward → lifelong internal conflict. Results swing by house and sign.'
-      : 'No close Mars–Ketu conjunction under this module’s orb. Class teaching calls this pair one of the hardest when badly placed — and one of the most powerful when well placed.',
+      : 'No close Mars–Ketu conjunction under this module’s orb. Traditional teaching calls this pair one of the hardest when badly placed — and one of the most powerful when well placed.',
     positives: [
       'Takes spirituality / tantra very far when well placed',
       'Excellent surgeons; defense services with top-level medals/honors',
     ],
     negatives: [
       'Two volcanoes erupting — Ketu behaves Mars-like; havoc when badly placed',
-      'Accidents, surgeries, life-threatening situations; criminal charts when extreme',
-      'Mars + Ketu + Moon = very dangerous combination in class warning',
+      'Take care around accidents and surgery, and keep anger in check; when extreme',
+      'Mars, Ketu and the Moon together ask for extra care and calm',
     ],
   }
 
@@ -484,13 +484,13 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
   const inPersonalLossHouse = (MARS_PERSONAL_LOSS_HOUSES as readonly number[]).includes(house)
   const functionalMaleficCaution: MarsFlag = {
     id: 'functional_malefic',
-    title: 'Functional-malefic lagna caution',
+    title: 'Functional-difficult planet lagna caution',
     active: lagnaFunctional && inPersonalLossHouse,
     detail: lagnaFunctional && inPersonalLossHouse
-      ? `For ${RASHI_NAMES[asc]} lagna, Mars in H${house} (watched houses 2/4/7/8/9) is a class caution: personal losses (relationship fights, health, accidents, surgeries, harassment) can outweigh money themes — Mars often does not “merely” give financial loss.`
+      ? `For ${RASHI_NAMES[asc]} lagna, Mars in house ${house} (watched houses 2/4/7/8/9) is a traditional caution: personal losses (relationship fights, health, accidents, surgeries, harassment) can outweigh money themes — Mars often does not “merely” give financial loss.`
       : lagnaFunctional
-        ? `${RASHI_NAMES[asc]} lagna: Mars is often a functional malefic — watch houses 2, 4, 7, 8, 9 especially. Current Mars in H${house} is outside that personal-loss set.`
-        : 'Functional-malefic personal-loss set (Gemini / Virgo / Capricorn lagnas with Mars in 2/4/7/8/9) not indicated for this chart.',
+        ? `${RASHI_NAMES[asc]} lagna: Mars is often a functional difficult — watch houses 2, 4, 7, 8, 9 especially. Current Mars in house ${house} is outside that personal-loss set.`
+        : 'Functional-difficult planet personal-loss set (Gemini / Virgo / Capricorn lagnas with Mars in 2/4/7/8/9) not indicated for this chart.',
   }
 
   const houseCaution: MarsFlag | null =
@@ -501,7 +501,7 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
           active: true,
           detail:
             house === 1
-              ? 'Mars in 1st rewrites personality traits and can make the native hyperactive.'
+              ? 'Mars in 1st rewrites personality traits and can make the person hyperactive.'
               : 'Mars in 5th can turn love/children/education into conflict fields — ego clashes in Sun’s natural house.',
         }
       : null
@@ -509,15 +509,15 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
   const remedies: string[] = [
     'Primary chart deity for Mars: Hanuman Ji (Mars as Hanuman avatar in kundali teaching)',
     'Also: Kartikeya, Chamunda',
-    'Extremely afflicted: Lord Vishnu — Nārāyaṇa Kavach; Narasimha puja',
-    'Mangalnath Temple, Ujjain — Mars birthplace lore; भात का अभिषेक for Mars problems',
-    'Manglik marriage lore: first symbolic marriage with Vishnu (Peepal / Kumbh / Krishna idol) before human marriage in some traditions',
+    'Extremely troubled: Lord Vishnu — Nārāyaṇa Kavach; Narasimha puja',
+    'Mangalnath Temple, Ujjain — Mars birthplace tradition; भात का अभिषेक for Mars problems',
+    'Manglik marriage tradition: first symbolic marriage with Vishnu (Peepal / Kumbh / Krishna idol) before human marriage in some traditions',
   ]
   if (withKetu && ketuTone === 'intense') {
     remedies.unshift('With harsh Mars–Ketu: prioritize Hanuman / Vishnu pacification and avoid reckless physical risk until dasha context is clear.')
   }
   if (mars.rashi === 8 && house === 9) {
-    remedies.push('Scorpio Mars in 9th class note: inclination may lean Shiva even while Hanuman remains the general Mars deity.')
+    remedies.push('Scorpio Mars in 9th class note: inclination may tendency Shiva even while Hanuman remains the general Mars deity.')
   }
 
   const allHouses: MarsClassicalHouseEntry[] = []
@@ -607,15 +607,15 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
       'Outdoor sports requiring muscular / physical energy',
     ],
     strengthVsCardio:
-      'Strength / weight training → Mars. Cardio (running, continuous movement) is read separately. Afflicted Mars may worsen hyperactivity with heavy weights — cardio that burns inner heat can suit better. Judge by sign and condition.',
+      'Strength / weight training → Mars. Cardio (running, continuous movement) is read separately. Troubled Mars may worsen hyperactivity with heavy weights — cardio that burns inner heat can suit better. Judge by sign and condition.',
     activityNote:
-      'If Mars is very good, the person cannot sit idle — always doing something (kitchen innovation, projects, training). Manglik positive trait: can work until death if they choose; constructive vs destructive depends on placement.',
+      'If Mars is very good, the person cannot sit idle — always doing something (kitchen innovation, projects, training). Manglik positive trait: can stay active all their life if they choose; constructive vs destructive depends on placement.',
     upachaya: {
       houses: [...UPACHAYA_HOUSES],
       inUpachaya,
       detail: inUpachaya
-        ? `Mars in H${house} — upachaya seat (3/6/10/11). Class teaching: Mars gives very good results here — sibling happiness, courage, strength to meet challenges.`
-        : `Mars in H${house} — outside upachaya (3/6/10/11). Still judge dignity; 1st and 5th are specially cautioned for personality rewrite / children-romance conflict.`,
+        ? `Mars in house ${house} — upachaya (growth houses: 3, 6, 10, 11) seat (3/6/10/11). Traditional teaching: Mars gives very good results here — sibling happiness, courage, strength to meet challenges.`
+        : `Mars in house ${house} — outside upachaya (3/6/10/11). Still judge dignity; 1st and 5th are specially cautioned for personality rewrite / children-romance conflict.`,
     },
     houseFocus,
     houseCaution,
@@ -632,7 +632,7 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
       active: mars.isRetro,
       detail: mars.isRetro
         ? 'Obsessive behaviour; either excessive body-building or total neglect of physique; significations turn inward; slow to recognize own capability and control energy; old problems resurface. Similar pattern when retro Mars activates in dasha.'
-        : 'Mars not retrograde — expression more outward than the vakri internalization pattern.',
+        : 'Mars not retrograde — expression more outward than the vakri (retrograde) internalization pattern.',
     },
     combustFlag: {
       id: 'combust',
@@ -652,7 +652,7 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
     remedies,
     mythology: [
       'Bhasmāsura: Shiva’s boon of touch-to-ash → Vishnu as Mohini tricks the demon into self-destruction — why Vishnu pacifies extreme Mars',
-      'Mars’s biggest planetary enemy is Mercury, but Vishnu is the controller in remedy lore',
+      'Mars’s biggest planetary enemy is Mercury, but Vishnu is the controller in remedy tradition',
       'Mars carries Tridev qualities: creation, protection, and destruction',
       'In kundali, Mars IS Hanuman Ji — specific placements may shift inclination to Vishnu, Rāma, or Shiva',
     ],
@@ -668,7 +668,7 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
     ],
     naturalAge: 28,
     naturalAgeNote:
-      'Mars’s natural age ~28 — significations (donations, mature Martian behaviour) strengthen after this; Manglik marriage-fear readings also soften around this age in class teaching.',
+      'Mars’s natural age ~28 — significations (donations, mature Martian behaviour) strengthen after this; Manglik marriage-fear readings also soften around this age in traditional teaching.',
     functionalMaleficCaution,
     signDualityNote:
       'Aries (fire, moolatrikona) vs Scorpio (water, fixed): Mars owns contradictory seats — same planet, different indications. Same Scorpio Mars in H5 vs H9 can read as sky-and-earth difference.',
@@ -677,7 +677,7 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
       'No chart is purely good or bad — always balanced',
       'Never blunt-predict on Mars alone; special aspects always apply',
       'Mars in 7th or 8th is not automatically bad — chart-specific',
-      'Decode Moon → emotions of the kundali; decode Mars → the native’s ACTIVITIES',
+      'Decode Moon → emotions of the kundali; decode Mars → the person’s ACTIVITIES',
       'Seek hidden facts (both signs owned, 2nd-from / 8th-from links) — surface abroad/job calls are easy',
       'Parashari system: Rahu/Ketu are not assigned sign lordship (some texts give Ketu Scorpio co-rule — class follows Parashara)',
     ],

@@ -57,7 +57,7 @@ export const SAGITTARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       points: [
         'Purpose: leave home, pursue philosophy, gain experience and, in the traditional reading, relieve ancestral karma.',
         'Childhood sinus, cough or breathing sensitivity is common. Whoever enters their life tends to rise, so counselling, consulting, professorship, training and third-party service businesses suit them.',
-        'If Jupiter is afflicted: backbone, cervical spine, calf, thigh and knee issues (sports, army and combat roles stress the lower body).',
+        'If Jupiter is under pressure: backbone, cervical spine, calf, thigh and knee issues (sports, army and combat roles stress the lower body).',
         'Initially fast learners who ask logical questions, until outside planetary pressure (such as Saturn) increases.',
         'Jupiter is the Lagna lord, so read where Jupiter is placed first.',
       ],
@@ -78,7 +78,7 @@ export const SAGITTARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       signName: 'Aquarius',
       theme: 'Childhood blame, restless pursuit of recognition, information ethics',
       points: [
-        'Siblings or cousins may falsely blame the native, leaving a deep sense of unfair treatment. Elder siblings may misuse gifts or money meant for the child.',
+        'Siblings or cousins may falsely blame the person, leaving a deep sense of unfair treatment. Elder siblings may misuse gifts or money meant for the child.',
         'School pattern: wrong books, heavy bags, copying notes and getting caught.',
         'As adults can become workaholics chasing medals and recognition (Rahu has no end point).',
         'Ethical risk: manipulating information, spreading rumours or using unethical means to gain information or undermine others.',
@@ -89,7 +89,7 @@ export const SAGITTARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
       signName: 'Pisces',
       theme: 'Urge to stay away from home; spiritual nature',
       points: [
-        'Pisces is Jupiter’s own sign; the native’s true nature is spiritual rather than ego-driven (Sagittarius is more intellectual and combative).',
+        'Pisces is Jupiter’s own sign; the person’s true nature is spiritual rather than ego-driven (Sagittarius is more intellectual and combative).',
         'Strong urge to stay away from home as they grow; conflicts around eating habits and criticism at home; may run away or hide during fights.',
       ],
     },
@@ -179,7 +179,7 @@ export const SAGITTARIUS_LAGNA_PROFILE: LagnaCharacterProfile = {
   readingNotes: [
     'Remedies: faith in a guru or mentor (essential), temple donations, offering garlands to deities, Vishnu worship, Ekadashi fasting, late-night meditation and chanting, and speaking gently.',
     'Rise comes through fortune (bhagya) more than pure effort; core wound is the relationship with the mother (2nd and 8th); core obstacle is direction-finding (7th Mercury).',
-    'Moon in Sagittarius (as opposed to the Lagna) shows similar behaviour but different physical patterns; the native may not hold to self-made routines but can be highly creative.',
+    'Moon in Sagittarius (as opposed to the Lagna) shows similar behaviour but different physical patterns; the person may not hold to self-made routines but can be highly creative.',
     'Confirm every point against the actual planets, lords and aspects in the chart; sign-level text is the baseline only.',
   ],
 }

@@ -115,7 +115,7 @@ export const DIGPALA_META: Record<DigpalaId, DigpalaMeta> = {
     rulingPlanetNote: 'Sun (अधिष्ठाता ग्रह)',
     signification: 'Power-house of energy — kingship, government, authority with money',
     detail:
-      'Indra natives need power along with income for satisfaction. Business kings and government-linked careers. Troubles often clear when work or transfer aligns to the East.',
+      'Indra people need power along with income for satisfaction. Business kings and government-linked careers. Troubles often clear when work or transfer aligns to the East.',
     professions: ['Government / public office', 'Business leadership / “king” roles', 'Executive authority', 'Politics-adjacent power'],
     directionAdvice: 'Prefer East for office setup, transfer, or job search when Indra Digpala is active on lagna or 10th lord.',
     predictionHook: 'Authority + status timing; East-direction relief for career friction.',
@@ -149,7 +149,7 @@ export const DIGPALA_META: Record<DigpalaId, DigpalaMeta> = {
     rulingPlanetNote: 'Mars',
     signification: 'Rules & regulations — once started, never retreats',
     detail:
-      'Yama is the deity of no return: after entering this group, the native persists despite loss or defeat. Lawyers know they may lose and still fight; judges must decide; soldiers must advance on duty.',
+      'Yama is the deity of no return: after entering this group, the person persists despite loss or defeat. Lawyers know they may lose and still fight; judges must decide; soldiers must advance on duty.',
     professions: ['Lawyers / advocates', 'Judges / magistrates', 'Government officers', 'Defense forces', 'Civil / electrical engineers', 'R&D that never quits mid-problem'],
     directionAdvice: 'South direction suits duty-bound, rule-bound, or high-persistence work.',
     predictionHook: 'Non-retreat career arcs; litigation stamina; engineering / research grind.',
@@ -759,7 +759,7 @@ function buildProfession(
     : lagnaDigpala.detail
 
   const respectPath = eleventh
-    ? `Respect and awards route through 11th lord ${eleventh.name} in H${eleventh.d10House} (${eleventh.digpala.name}).`
+    ? `Respect and awards route through 11th lord ${eleventh.name} in house ${eleventh.d10House} (${eleventh.digpala.name}).`
     : 'Watch 11th lord Digpala and its dasha for when work earns public respect.'
 
   return {
@@ -794,11 +794,11 @@ function buildEthics(
   if (hasRakshasa || hasRahu) {
     tone = 'challenging'
     headline = 'Unconventional / boundary-breaking track in D10 8th'
-    text = '8th house or its lord touches Rakshasa/Rahu themes — shortcuts, grey methods, or hidden dealings may appear. Check whether the native keeps ethics while breaking bureaucracy.'
+    text = '8th house or its lord touches Rakshasa/Rahu themes — shortcuts, grey methods, or hidden dealings may appear. Check whether the person keeps ethics while breaking bureaucracy.'
   } else if (maleficHeavy) {
     tone = 'mixed'
     headline = 'Pressure and secrecy around occupation'
-    text = 'Malefics in D10 8th intensify secrets, crises, and new-venture endings — not automatically unethical, but the track must be watched.'
+    text = 'Difficult planets in D10 8th intensify secrets, crises, and new-venture endings — not automatically unethical, but the track must be watched.'
   } else if (occupants.length === 0 && eighthLord && STRONG_DIGNITY.includes(eighthLord.d10Dignity)) {
     tone = 'supportive'
     headline = 'Cleaner ethical track indicated'
@@ -806,7 +806,7 @@ function buildEthics(
   }
 
   const lordNote = eighthLord
-    ? `8th lord ${eighthLord.name} in H${eighthLord.d10House} under ${eighthLord.digpala.name}.`
+    ? `8th lord ${eighthLord.name} in house ${eighthLord.d10House} under ${eighthLord.digpala.name}.`
     : '8th lord placement unavailable.'
 
   return { tone, headline, text, occupants, lordNote }
@@ -869,7 +869,7 @@ function buildAdvanced(
     : '10th lord Digpala unavailable.'
 
   const eleventhLordReading = eleventh
-    ? `D10 11th lord ${eleventh.name} under ${eleventh.digpala.name} in H${eleventh.d10House}: profits and awards. Classroom rule — when a nation-scale or career-defining event hits during this lord’s dasha, fame often jumps.`
+    ? `D10 11th lord ${eleventh.name} under ${eleventh.digpala.name} in house ${eleventh.d10House}: profits and awards. Classroom rule — when a nation-scale or career-defining event hits during this lord’s dasha, fame often jumps.`
     : '11th lord reading unavailable.'
 
   const creationVsFame =
@@ -882,7 +882,7 @@ function buildAdvanced(
           : 'Creation vs fame: compare 10th-lord Digpala (karma style) with 11th-lord Digpala (recognition style).'
 
   const competitionNote = sixth
-    ? `6th lord ${sixth.name} in H${sixth.d10House} (${sixth.digpala.name}): how you face rivals and speed-breakers.`
+    ? `6th lord ${sixth.name} in house ${sixth.d10House} (${sixth.digpala.name}): how you face rivals and speed-breakers.`
     : '6th lord competition reading unavailable.'
 
   const mentorshipNote =
@@ -894,7 +894,7 @@ function buildAdvanced(
     'Always read Digpala of Lagna, 10th lord, and 11th lord before declaring profession.',
     'Direction advice is a prediction tool (transfer / setup / foreign), not only symbolism.',
     lagnaLord
-      ? `D10 Lagna lord ${lagnaLord.name} in H${lagnaLord.d10House} shows how the native owns livelihood.`
+      ? `D10 Lagna lord ${lagnaLord.name} in house ${lagnaLord.d10House} shows how the person owns livelihood.`
       : 'Confirm D10 Lagna lord house for livelihood ownership.',
   ]
 

@@ -8,7 +8,7 @@ export const contentType = 'image/png'
 export default function Image() {
   return ogBrandedImage({
     title:    'Jaimini Astrology',
-    subtitle: 'Chara Dasha · Karakas · Arudha',
+    subtitle: 'Chara Dasha · Karakas (natural indicator) · Arudha',
     badge:    'Classical Jyotish',
   })
 }

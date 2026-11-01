@@ -256,7 +256,7 @@ export const MANAS_STAGES: ManasStageDef[] = [
     id: 'bhaya',
     name: 'Bhaya Manas',
     meaning: 'Fear mind — terror and all fear-based emotions.',
-    planets: 'Ketu, Saturn, and afflicted Moon',
+    planets: 'Ketu, Saturn, and troubled Moon',
     nakshatraIndexes: [18, 5, 0], // Mula, Ardra, Ashwini
     remedy: 'Yoga, satsang, guru seva, and steadying practices that rebuild safety in the mind.',
   },
@@ -357,7 +357,7 @@ const PSYCHOLOGY_POSITIVE = [
 ]
 
 const PSYCHOLOGY_NEGATIVE = [
-  'Suicidal tendencies (Moon is crucial — cannot occur without Moon’s involvement)',
+  'Very low moods (the Moon is central here). If you ever feel overwhelmed or unsafe, please talk to someone you trust or a mental-health professional.',
   'Paranormal disturbance (bhoot / pret / pishaach badha)',
   'Mental confusion and instability',
   'Extreme tension and depression',
@@ -500,7 +500,7 @@ export function computePakshaBali(
     return {
       band: 'full',
       label: 'Purnima — full strength',
-      detail: 'Full Moon: all 16 kalas awake. High-tide mind — emotionally stable if unafflicted; excellent for worship.',
+      detail: 'Full Moon: all 16 kalas awake. High-tide mind — emotionally stable if free of difficult influences; excellent for worship.',
       strengthPct: 100,
     }
   }
@@ -576,7 +576,7 @@ export function assessMoonNeechaBhanga(
       factors.push(`Dispositor ${dispositor.name} in kendra from Lagna (H${dispFromLagna})`)
     }
     if (KENDRAS.has(dispFromMoon)) {
-      factors.push(`Dispositor in kendra from Moon (${dispFromMoon}th from Moon)`)
+      factors.push(`Dispositor (ruler of the sign it sits in) in kendra (angular houses: 1, 4, 7, 10) from Moon (${dispFromMoon}th from Moon)`)
     }
     if (dispositorExalted) {
       factors.push(`Dispositor exalted (${RASHI_NAMES[dispositor.rashi]})`)
@@ -603,7 +603,7 @@ export function assessMoonNeechaBhanga(
     cancelled,
     factors,
     detail: cancelled
-      ? 'Neecha Bhanga indicated — especially when Mars (Scorpio lord) is exalted in a kendra from Lagna. Debility softens; mind retains strength under stress.'
+      ? 'Neecha Bhanga indicated — especially when Mars (Scorpio lord) is exalted in a kendra (angular houses: 1, 4, 7, 10) from Lagna. Debility softens; mind retains strength under stress.'
       : factors.length > 0
         ? `Partial cancellation factors present (${factors.length}). Confirm classical conditions before calling full Neecha Bhanga.`
         : 'Debilitated Moon without clear Neecha Bhanga factors — expect raw emotional intensity, dual compassion/cruelty themes, and need for conscious grounding.',
@@ -735,7 +735,7 @@ function buildChartInsights(
       title: 'Moon in 6th — service & stress',
       active: house === 6,
       detail:
-        'Mind tied to duty, criticism, and health routines. Exalted Moon here can still feel lonely if no planets occupy kendras from Moon. Mother may nag; native often absorbs her responsibilities.',
+        'Mind tied to duty, criticism, and health routines. Exalted Moon here can still feel lonely if no planets occupy kendras (angular houses: 1, 4, 7, 10) from Moon. Mother may nag; native often absorbs her responsibilities.',
     },
     {
       id: 'house_10',
@@ -756,7 +756,7 @@ function buildChartInsights(
       title: 'Gaja Kesari (Moon–Jupiter kendra)',
       active: gajaKesari,
       detail: juHouse != null
-        ? `Jupiter in kendra from Moon (Jupiter H${juHouse}, Moon H${house}). Quality depends on houses — 6/8/12 placements make it moderate rather than royal.`
+        ? `Jupiter in kendra (angular houses: 1, 4, 7, 10) from Moon (Jupiter H${juHouse}, Moon H${house}). Quality depends on houses — 6/8/12 placements make it moderate rather than royal.`
         : 'Jupiter forms kendra from Moon.',
     },
     {
@@ -764,21 +764,21 @@ function buildChartInsights(
       title: 'Kendra isolation from Moon',
       active: kendraFromMoon === 0,
       detail:
-        'No planets in kendras from Moon — loneliness tendency; mind works alone. Build satsang and steady companionship consciously.',
+        'No planets in kendras (angular houses: 1, 4, 7, 10) from Moon — loneliness tendency; mind works alone. Build satsang and steady companionship consciously.',
     },
     {
       id: 'purnima_mind',
       title: 'Purnima mind — high tide',
       active: isPurnima,
       detail:
-        'Full Moon birth: emotional fluctuation minimal if unafflicted — already in balanced “high tide.” Mood swings less; clarity of what must be done.',
+        'Full Moon birth: emotional fluctuation minimal if free of difficult influences — already in balanced “high tide.” Mood swings less; clarity of what must be done.',
     },
     {
       id: 'weak_paksha',
       title: 'Weak Paksha Bali',
       active: pakshaBali.band === 'weakest' || pakshaBali.band === 'waning',
       detail:
-        `${pakshaBali.label}. Afflicted + weak paksha needs listeners and emotional scaffolding; avoid harsh debate environments.`,
+        `${pakshaBali.label}. Troubled + weak paksha needs listeners and emotional scaffolding; avoid harsh debate environments.`,
     },
     {
       id: 'neecha_bhanga',
@@ -870,7 +870,7 @@ function buildAnalysisFramework(
     {
       id: 'aspects',
       step: 6,
-      label: 'Support / affliction',
+      label: 'Support / difficult influence',
       status: grahan.active
         ? `Grahan with ${grahan.with === 'Ra' ? 'Rahu' : 'Ketu'}`
         : 'No Moon–node grahan',
@@ -882,7 +882,7 @@ function buildAnalysisFramework(
       step: 7,
       label: 'Dispositor placement',
       status: dispositorNote,
-      note: 'Dispositor in kendra / exaltation can redeem a weak Moon.',
+      note: 'Dispositor (ruler of the sign it sits in) in kendra (angular houses: 1, 4, 7, 10) / exaltation can redeem a weak Moon.',
       ok: true,
     },
     {
@@ -1025,13 +1025,13 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
       id: 'moon_rahu',
       title: 'Moon + Rahu',
       active: withRahu,
-      detail: 'Unfulfilled desires and rina from past lives. Hidden note: high possibility past-life death on Amavasya — such natives often feel very low on Amavasya.',
+      detail: 'Unfulfilled desires and rina from past lives. Tradition links this to a difficult ending in a past life on Amavasya (new Moon). People with this placement often feel low around Amavasya.',
     },
     {
       id: 'moon_8',
       title: 'Moon in 8th',
       active: in8,
-      detail: 'Indicates sudden death theme in a past life.',
+      detail: 'Tradition links this to a sudden ending in a past life. It says nothing about your own life span.',
     },
     {
       id: 'moon_saturn',
@@ -1055,7 +1055,7 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
       id: 'matri_rina',
       title: 'Matri Rina (mother’s debt)',
       active: debil || withSaturn || withRahu || moon.isCombust,
-      detail: 'Afflicted Moon can show debt toward mother — maternal-lineage parallel to pitri dosha themes.',
+      detail: 'Troubled Moon can show debt toward mother — maternal-lineage parallel to pitri dosha themes.',
     },
   ]
 
@@ -1153,7 +1153,7 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
     chartReadingTips: [
       'Never ignore Moon — even as a beginner check Moon nakshatra, rashi, and house.',
       'Stay on one planet when asked — do not jump to unrelated yogas mid-analysis.',
-      'Confirm with the native; do not write what cannot be verified.',
+      'Confirm with the person; do not write what cannot be verified.',
       'Quick paksha: count houses from Sun to Moon (≈1 tithi each; 1–2 tithi margin OK).',
       'Rigveda Soma: Moon as father/creator who sees all as children and liberates.',
       'Yajurveda: Chandrama manaso jatah — Moon born of mind; Sun of eyes.',

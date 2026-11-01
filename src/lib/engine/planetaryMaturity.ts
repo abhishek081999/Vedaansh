@@ -156,7 +156,7 @@ export const PLANETARY_MATURITY_NOTES: PlanetaryMaturityNote[] = [
     id: 'events',
     title: 'Events around maturity',
     body:
-      'Classical teaching holds that around each planet’s maturity year, some notable life event tends to occur — positive, negative, or neutral — according to that planet’s placement, strength, and capacity to deliver. This is traditional timing lore, not a guaranteed prediction for every chart.',
+      'Classical teaching holds that around each planet’s maturity year, some notable life event tends to occur — positive, negative, or neutral — according to that planet’s placement, strength, and capacity to deliver. This is traditional timing tradition, not a guaranteed prediction for every chart.',
   },
   {
     id: 'modern',

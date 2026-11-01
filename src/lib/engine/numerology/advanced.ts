@@ -663,7 +663,7 @@ export function getYearGocharaHint(personalYear: CoreNumber): YearGocharaHint {
     personalYear,
     yearPlanet: p.planet,
     amplifyWhen: `When ${p.planet} is strong by gochara (own/exalt sign, good house from Moon/Lagna)`,
-    cautionWhen: `When ${p.planet} is afflicted by Saturn/Rahu transit or combust`,
+    cautionWhen: `When ${p.planet} is under pressure by Saturn/Rahu transit or combust`,
     tip: `Personal year ${personalYear} is an ${p.planet} year — watch ${p.planet} gochara and dasha overlap for amplification (see Predictions → Dasha Timing).`,
   }
 }

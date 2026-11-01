@@ -1288,7 +1288,7 @@ function buildCareerTurns(bag: TurnBag): CareerAdvanced['turns'] {
       tone: 'caution',
       reading: [
         breakLines.join(' '),
-        'A break is a pause in the visible post. It is not yet the death of the profession.',
+        'A break is a pause in the visible post. It is not the end of the profession.',
         when([twelfthLord?.id, 'Ke', 'Sa'].filter((id): id is GrahaId => !!id)),
       ].filter(Boolean).join(' '),
     }
@@ -1312,7 +1312,7 @@ function buildCareerTurns(bag: TurnBag): CareerAdvanced['turns'] {
   const changeLines: string[] = []
   if (tenthLordHouse === 8) {
     changeScore += 3
-    changeLines.push('The 10th lord in the 8th transforms the work. The first profession can die and a second one take its place.')
+    changeLines.push('The 10th lord in the 8th transforms the work. The first profession can end and a second one take its place.')
   }
   if (eighthLordHouse === 10 || linked(eighthLord, tenthLord)) {
     changeScore += 2
@@ -1450,7 +1450,7 @@ function buildCareerTurns(bag: TurnBag): CareerAdvanced['turns'] {
   }
   if (linked(ketu, tenthLord) && keH !== 10) {
     endScore += 2
-    endLines.push('Ketu with the 10th lord can sever a chapter. Leave cleanly. The next field is read from the dispositor.')
+    endLines.push('Ketu with the 10th lord can sever a chapter. Leave cleanly. The next field is read from the dispositor (ruler of the sign it sits in).')
   }
   if (saH === 8 || saH === 12) {
     endScore += 1
@@ -1469,7 +1469,7 @@ function buildCareerTurns(bag: TurnBag): CareerAdvanced['turns'] {
       title: 'Ending',
       answer: 'An ending is not required.',
       tone: 'supportive',
-      reading: 'Nothing here demands that a profession die before the next one can live. Change the chair when the work asks. Do not quit in order to feel a transformation the chart has not promised.',
+      reading: 'Nothing here says one profession must end before the next can begin. Change the chair when the work asks. Do not quit in order to feel a transformation the chart has not promised.',
     }
 
   let returnScore = 0
@@ -1786,7 +1786,7 @@ function buildCareerAdvanced(bag: AdvancedBag): CareerAdvanced {
   }
   const chainClosing = steps.length
     ? 'Read the chain in order. The first planet is the 10th lord. Each later planet is the one who has to agree before the profession stabilizes.'
-    : 'The 10th lord is not placed, so the dispositor chain cannot be walked.'
+    : 'The 10th lord is not placed, so the dispositor (ruler of the sign it sits in) chain cannot be walked.'
 
   const prosperity: CareerAdvancedNote[] = []
   if (eleventhLord && tenthLord && eleventhLord.id === tenthLord.id) {
@@ -2275,7 +2275,7 @@ export function analyzeCareerProfession(
       score: profession,
       summary: saturn
         ? `${placement(saturn, saH ?? 0)}.${strengthClause(chart, 'Sa')} Saturn is the job that remains after the title is stripped off.`
-        : 'Saturn is missing from this chart, so the profession karaka cannot be scored.',
+        : 'Saturn is missing from this chart, so the profession karaka (natural indicator) cannot be scored.',
     },
     {
       id: 'skill',
@@ -2284,7 +2284,7 @@ export function analyzeCareerProfession(
       score: skill,
       summary: mercury
         ? `${placement(mercury, meH ?? 0)}.${strengthClause(chart, 'Me')} Mercury is the skill a client can be billed for.`
-        : 'Mercury is missing from this chart, so the skill karaka cannot be scored.',
+        : 'Mercury is missing from this chart, so the skill karaka (natural indicator) cannot be scored.',
     },
     {
       id: 'gains',
@@ -2382,7 +2382,7 @@ export function analyzeCareerProfession(
       id: 'amala',
       title: 'Amala yoga',
       tone: 'supportive',
-      detail: `A natural benefic occupies the 10th without a malefic. The public work can stay clean, and reputation is part of the fruit. ${tenthOcc.map(g => gn(g.id)).join(', ')} is the planet to live up to.`,
+      detail: `A naturally helpful planet occupies the 10th without a difficult planet. The public work can stay clean, and reputation is part of the fruit. ${tenthOcc.map(g => gn(g.id)).join(', ')} is the planet to live up to.`,
     })
   }
   if (moon) {
@@ -2392,7 +2392,7 @@ export function analyzeCareerProfession(
         id: 'amala-moon',
         title: 'Amala from the Moon',
         tone: 'supportive',
-        detail: `The 10th from the Moon is also held by a benefic alone (${fromMoon.map(g => gn(g.id)).join(', ')}). Satisfaction and reputation can agree.`,
+        detail: `The 10th from the Moon is also held by a helpful planet alone (${fromMoon.map(g => gn(g.id)).join(', ')}). Satisfaction and reputation can agree.`,
       })
     }
   }
@@ -2425,7 +2425,7 @@ export function analyzeCareerProfession(
       id: 'digbala-mars',
       title: 'Mars’s digbala',
       tone: 'supportive',
-      detail: 'Mars in the 10th has directional strength. Engineering, surgery, defense, land, or any work that requires courage fits. Conflict is the tax when Mars is afflicted.',
+      detail: 'Mars in the 10th has directional strength. Engineering, surgery, defense, land, or any work that requires courage fits. Conflict is the tax when Mars is under pressure.',
     })
   }
   if (tenthLord && (isStrong(tenthLord.dignity) || tenthLord.dignity === 'friend') && !tenthLord.isCombust) {
@@ -2442,7 +2442,7 @@ export function analyzeCareerProfession(
       title: cancelled ? 'Neecha Bhanga of the 10th lord' : '10th lord under strain',
       tone: cancelled ? 'mixed' : 'caution',
       detail: cancelled
-        ? `${gn(tenthLord.id)} is debilitated, and the cancellation is present: the dispositor or the exaltation lord supports it. The fall is not the last word. The rise comes after the setback or the apprenticeship, not instead of it.`
+        ? `${gn(tenthLord.id)} is debilitated, and the cancellation is present: the dispositor (ruler of the sign it sits in) or the exaltation lord supports it. The fall is not the last word. The rise comes after the setback or the apprenticeship, not instead of it.`
         : `${gn(tenthLord.id)} is ${tenthLord.dignity === 'debilitated' ? 'debilitated' : 'combust in a difficult house'}. Do not expect a straight ladder. Skill and a clean method matter more than the title in this season.`,
     })
   }
@@ -2705,7 +2705,7 @@ export function analyzeCareerProfession(
       id: 'saturn-upaya',
       title: 'Saturn’s apprenticeship',
       tone: 'mixed',
-      detail: 'Serve someone senior, keep the hours, and do not quit on the first delay. Saturday service to laborers or elders fits a weak professional karaka. The post hardens after the refusal.',
+      detail: 'Serve someone senior, keep the hours, and do not quit on the first delay. Saturday service to laborers or elders fits a weak professional karaka (natural indicator). The post hardens after the refusal.',
     })
   }
   if (authority <= 4) {

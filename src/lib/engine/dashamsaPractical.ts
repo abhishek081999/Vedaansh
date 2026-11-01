@@ -34,10 +34,10 @@ export interface D10SignSector {
 
 export const D10_SIGN_SECTORS: Record<Rashi, Omit<D10SignSector, 'rashi' | 'name' | 'short'>> = {
   1: {
-    headline: 'Do-or-die initiation — build from garage',
+    headline: 'All-or-nothing start. Begin small and build up',
     flavor: 'Extremely competitive; start small, climb hard; impulsive launch energy; warriors vs those who choke.',
     industries: ['Mechanics / bare parts', 'Sales from scratch', 'Founders / own firm', 'Engineering grind without status'],
-    caution: 'Ventures often die in 3–4 months from cash burn, poor strategy, or no resources — luxury offices are not this path.',
+    caution: 'New ventures can struggle in the first 3–4 months because of cash burn, poor strategy, or no resources — luxury offices are not this path.',
   },
   2: {
     headline: 'Resources & capital wars — gold mine for finance',
@@ -615,13 +615,13 @@ function buildSecondHouse(analysis: DashamsaAnalysis): SecondHouseKarma {
 
   const text = [
     `D10 2nd in ${h2.rashiName}: speech in karma, lineage work, and stored career wealth — not bank balance alone.`,
-    lord ? `2nd lord ${lord.name} in H${lord.d10House} (${lord.digpala.name}).` : '',
+    lord ? `2nd lord ${lord.name} in house ${lord.d10House} (${lord.digpala.name}).` : '',
     occ.length ? `Occupants: ${occ.map((o) => o.name).join(', ')}.` : 'No planets in 2nd.',
   ].filter(Boolean).join(' ')
 
   return {
     occupants: occ.map((o) => o.name),
-    lordNote: lord ? `${lord.name} in H${lord.d10House}` : '—',
+    lordNote: lord ? `${lord.name} in house ${lord.d10House}` : '—',
     speechBased,
     lineageLink: lineage,
     text,
@@ -637,7 +637,7 @@ function buildDesireFear(analysis: DashamsaAnalysis): DesireFearAxis {
       house,
       occupants: occ.map((p) => `${p.name} (${p.d10RashiShort})`),
       lordNote: lord
-        ? `${label} lord ${lord.name} in H${lord.d10House} · ${lord.digpala.name}`
+        ? `${label} lord ${lord.name} in house ${lord.d10House} · ${lord.digpala.name}`
         : `${label} lord unavailable`,
       text: base,
     }
@@ -696,7 +696,7 @@ function buildMoonMind(analysis: DashamsaAnalysis): MoonLagnaMind {
   }
 
   const fireNote = fireInitiative
-    ? 'Fire signs on Moon-lagna kendras/trines (1/5/9) — mind constantly initiates career moves; cannot stay passive.'
+    ? 'Fire signs on Moon-lagna kendras (angular houses: 1, 4, 7, 10)/trines (1/5/9) — mind constantly initiates career moves; cannot stay passive.'
     : 'Fire initiative on Moon-lagna axis is quieter — less compulsive achievement drive.'
 
   return {
@@ -866,7 +866,7 @@ function buildPending(analysis: DashamsaAnalysis): DashamsaPendingPractical {
       matched: ketuLagna,
       severity: ketuLagna ? 'challenging' : 'neutral',
       detail: ketuLagna
-        ? 'Ketu on D10 lagna — success not easy; check dispositor; if dispositor in 6/8/12 or Saturn-aspected, long struggle before rise.'
+        ? 'Ketu on D10 lagna — success not easy; check dispositor (ruler of the sign it sits in); if dispositor in 6/8/12 or Saturn-aspected, long struggle before rise.'
         : 'Ketu not on D10 lagna.',
     },
     {
@@ -1316,7 +1316,7 @@ const INHERITED_META: {
     id: 'Ra',
     source: 'Disturbance / karmic knot',
     detail:
-      'Shows which energy is disturbed and what actually pushes the native to act in this life.',
+      'Shows which energy is disturbed and what actually pushes the person to act in this life.',
     toolHow: 'Obsession, shortcut, unconventional drive — the itch that forces karma.',
   },
   {
@@ -1330,7 +1330,7 @@ const INHERITED_META: {
     id: 'Ju',
     source: 'Bhāgya / guru grace (9th)',
     detail:
-      'How much nature/divine support and guru-relationships across lives will hold the native.',
+      'How much nature/divine support and guru-relationships across lives will hold the person.',
     toolHow: 'Counsel, teaching, grace, expansion — walks with mentors when strong.',
   },
 ]
@@ -1454,7 +1454,7 @@ function buildBondage(analysis: DashamsaAnalysis): DashamsaBondagePractical {
           : '—',
       },
       synthesis: lagnaLord
-        ? `Core work (${analysis.d10LagnaName}) executes via ${lagnaLord.name} in H${lagnaLord.d10House} ${lagnaLord.d10RashiName} — read House→Sign→Planet in that order before naming a profession.`
+        ? `Core work (${analysis.d10LagnaName}) executes via ${lagnaLord.name} in house ${lagnaLord.d10House} ${lagnaLord.d10RashiName} — read House→Sign→Planet in that order before naming a profession.`
         : 'Lagna lord synthesis pending.',
     },
   ]
@@ -1732,7 +1732,7 @@ function buildKarmaYoga(analysis: DashamsaAnalysis, chart: ChartOutput): Dashams
       houses: '1–5–9',
       element: 'Fire (Agni)',
       signs: 'Aries, Leo, Sagittarius',
-      remedy: 'Agnihotra / fire yajña — fire starts the native’s work.',
+      remedy: 'Agnihotra / fire yajña — fire starts the person’s work.',
       active: fireN >= 3,
       reason: fireN >= 3 ? `${fireN} hits on fire triad (planets + dasha).` : 'Fire triad quieter.',
     },
@@ -1841,7 +1841,7 @@ function dashaHouseNote(code: CircuitVargaCode, lord: GrahaId, house: number, le
     if ([6, 8, 12].includes(house)) {
       return {
         id,
-        title: `D3 mind · ${name} in H${house}`,
+        title: `D3 mind · ${name} in house ${house}`,
         text: house === 8
           ? 'Mind stuck in a pit — fear, grief, inability to move on.'
           : house === 6
@@ -1854,7 +1854,7 @@ function dashaHouseNote(code: CircuitVargaCode, lord: GrahaId, house: number, le
       return { id, title: `D3 · ${name} in 4th`, text: 'Thoughts on comfort, home, mother, emotional security — often links to conflict axis.', tone: 'mixed' }
     }
     if (house === 5 || house === 7) {
-      return { id, title: `D3 · ${name} in H${house}`, text: 'Mind stays on romance / bond themes.', tone: 'mixed' }
+      return { id, title: `D3 · ${name} in house ${house}`, text: 'Mind stays on romance / bond themes.', tone: 'mixed' }
     }
     if (house === 3) {
       return { id, title: `D3 · ${name} in 3rd`, text: 'Mind tracks who is entering via communication.', tone: 'mixed' }
@@ -1862,7 +1862,7 @@ function dashaHouseNote(code: CircuitVargaCode, lord: GrahaId, house: number, le
     if (house === 1) {
       return { id, title: `D3 · ${name} on lagna`, text: 'Subconscious identity under training/correction this period.', tone: 'mixed' }
     }
-    return { id, title: `D3 · ${name} in H${house}`, text: 'Period colors mental inclination through this house.', tone: 'neutral' }
+    return { id, title: `D3 · ${name} in house ${house}`, text: 'Period colors mental inclination through this house.', tone: 'neutral' }
   }
   if (code === 'D7') {
     if (house === 1) {
@@ -1875,16 +1875,16 @@ function dashaHouseNote(code: CircuitVargaCode, lord: GrahaId, house: number, le
       return { id, title: `D7 · ${name} in 10th`, text: 'Partner likely met via workplace / status field.', tone: 'mixed' }
     }
     if ([6, 8, 12].includes(house)) {
-      return { id, title: `D7 · ${name} in H${house}`, text: 'Relationship strain, hidden bonds, or exit path active.', tone: 'challenging' }
+      return { id, title: `D7 · ${name} in house ${house}`, text: 'Relationship strain, hidden bonds, or exit path active.', tone: 'challenging' }
     }
     if (house === 5 || house === 9 || house === 11) {
-      return { id, title: `D7 · ${name} in H${house}`, text: 'Children / fortune / gains themes in relationship field — pregnancy timing needs D2+D9 confirm.', tone: 'supportive' }
+      return { id, title: `D7 · ${name} in house ${house}`, text: 'Children / fortune / gains themes in relationship field — pregnancy timing needs D2+D9 confirm.', tone: 'supportive' }
     }
-    return { id, title: `D7 · ${name} in H${house}`, text: 'Who enters / leaves life colors this house.', tone: 'neutral' }
+    return { id, title: `D7 · ${name} in house ${house}`, text: 'Who enters / leaves life colors this house.', tone: 'neutral' }
   }
   if (code === 'D9') {
     if ([6, 8, 12].includes(house)) {
-      return { id, title: `D9 fruit · ${name} in H${house}`, text: 'Destiny outcome under strain — confirm with D7 before naming cheating/break.', tone: 'challenging' }
+      return { id, title: `D9 fruit · ${name} in house ${house}`, text: 'Destiny outcome under strain — confirm with D7 before naming cheating/break.', tone: 'challenging' }
     }
     if (house === 7 || house === 1) {
       return { id, title: `D9 · ${name} on axis`, text: 'Final partnership result crystallizes through this lord.', tone: 'mixed' }
@@ -1895,19 +1895,19 @@ function dashaHouseNote(code: CircuitVargaCode, lord: GrahaId, house: number, le
     if (house === 5) {
       return { id, title: `D9 · ${name} in 5th`, text: 'Children / romance fruit confirms; conflict after childbirth needs Virgo/3rd checks.', tone: 'mixed' }
     }
-    return { id, title: `D9 · ${name} in H${house}`, text: 'Navāṁśa fruit of the running period.', tone: 'neutral' }
+    return { id, title: `D9 · ${name} in house ${house}`, text: 'Navāṁśa fruit of the running period.', tone: 'neutral' }
   }
   if (code === 'D2') {
     if (house === 8 || house === 12) {
-      return { id, title: `D2 · ${name} in H${house}`, text: 'Passive / maternity / hidden wealth flavor — not the same as D10 promotion.', tone: 'mixed' }
+      return { id, title: `D2 · ${name} in house ${house}`, text: 'Passive / maternity / hidden wealth flavor — not the same as D10 promotion.', tone: 'mixed' }
     }
     if (house === 4 || house === 5) {
-      return { id, title: `D2 · ${name} in H${house}`, text: 'Home / children spending and inflow; stay-home money possible.', tone: 'mixed' }
+      return { id, title: `D2 · ${name} in house ${house}`, text: 'Home / children spending and inflow; stay-home money possible.', tone: 'mixed' }
     }
     if (house === 11) {
       return { id, title: `D2 · ${name} in 11th`, text: 'Social recognition through wealth eventually rises.', tone: 'supportive' }
     }
-    return { id, title: `D2 · ${name} in H${house}`, text: 'Wealth inflow/drain through this house.', tone: 'neutral' }
+    return { id, title: `D2 · ${name} in house ${house}`, text: 'Wealth inflow/drain through this house.', tone: 'neutral' }
   }
   // D10
   if (house === 8) {
@@ -1920,12 +1920,12 @@ function dashaHouseNote(code: CircuitVargaCode, lord: GrahaId, house: number, le
     return { id, title: `D10 · ${name} in 3rd`, text: 'Karma via communication / phone — extra person or status talk can enter here.', tone: 'mixed' }
   }
   if (house === 5 || house === 11) {
-    return { id, title: `D10 · ${name} in H${house}`, text: 'Training, opportunity, income, position — can look like “promotion” alone.', tone: 'supportive' }
+    return { id, title: `D10 · ${name} in house ${house}`, text: 'Training, opportunity, income, position — can look like “promotion” alone.', tone: 'supportive' }
   }
   if (house === 1 || house === 10) {
-    return { id, title: `D10 · ${name} in H${house}`, text: 'Core livelihood / status karma under pressure.', tone: 'mixed' }
+    return { id, title: `D10 · ${name} in house ${house}`, text: 'Core livelihood / status karma under pressure.', tone: 'mixed' }
   }
-  return { id, title: `D10 · ${name} in H${house}`, text: 'Action karma of the period in this house.', tone: 'neutral' }
+  return { id, title: `D10 · ${name} in house ${house}`, text: 'Action karma of the period in this house.', tone: 'neutral' }
 }
 
 function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaCircuitPractical {
@@ -2104,7 +2104,7 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
     if (moon && (WEAK.includes(moon.dignity) || [6, 8, 12].includes(houseFrom(d3.asc, moon.rashi)))) {
       mindFears.push({
         id: 'fear-moon',
-        title: 'Moon afflicted in D3',
+        title: 'Moon troubled in D3',
         text: 'Fear of communicating with mother; won’t express inner feelings; wary of public/masses.',
         tone: 'challenging',
       })
@@ -2113,7 +2113,7 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
     if (rahu && (WEAK.includes(rahu.dignity) || [6, 8, 12].includes(houseFrom(d3.asc, rahu.rashi)))) {
       mindFears.push({
         id: 'fear-rahu',
-        title: 'Rahu afflicted in D3',
+        title: 'Rahu troubled in D3',
         text: 'Fear of being alone, pitṛu themes, device malfunction, and things out of control.',
         tone: 'challenging',
       })
@@ -2176,7 +2176,7 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
   const flavorDefs: Omit<JobLossFlavor, 'active'>[] = [
     { id: 'Ma', name: 'Mars', nature: 'Sudden / abrupt layoff or aggressive quit toward independence' },
     { id: 'Sa', name: 'Saturn', nature: 'Slow grind — insults, overtime, weekend pressure until exit' },
-    { id: 'Me', name: 'Mercury', nature: 'Office politics played against the native' },
+    { id: 'Me', name: 'Mercury', nature: 'Office politics played against the person' },
     { id: 'Su', name: 'Sun', nature: 'Ego clash with authority' },
   ]
   const flavors: JobLossFlavor[] = flavorDefs.map((f) => ({
@@ -2243,7 +2243,7 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
       'Good astrologers extract karma + relationship patterns via D7; average ones stop at D1/D9.',
       'You were never able to judge cheating from D1+D9 alone — D7 reveals it, D9 confirms.',
       'Verify exalted planets through the full circuit before promising delivery.',
-      'Avoid Chara Kārakas routinely — high energy cost.',
+      'Avoid Chara Kārakas (natural indicator) routinely — high energy cost.',
     ],
   }
 }

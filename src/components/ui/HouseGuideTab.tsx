@@ -507,8 +507,8 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                     <ClassicalNotesList
                       title={
                         classicalPack.lordship.isLagnaLord
-                          ? `Classical · Lagna lord (${GRAHA_NAMES[classicalPack.lordship.lordId]}) in H${classicalPack.lordship.placedIn}`
-                          : `Classical · Lord of H${h.houseNum} (${GRAHA_NAMES[classicalPack.lordship.lordId]}) in H${classicalPack.lordship.placedIn}`
+                          ? `Classical · Lagna lord (${GRAHA_NAMES[classicalPack.lordship.lordId]}) in house ${classicalPack.lordship.placedIn}`
+                          : `Classical · Lord of H${h.houseNum} (${GRAHA_NAMES[classicalPack.lordship.lordId]}) in house ${classicalPack.lordship.placedIn}`
                       }
                       notes={classicalPack.lordship.notes}
                     />
@@ -517,7 +517,7 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                   {classicalPack && classicalPack.aspectNotes.length > 0 ? (
                     <>
                       <ClassicalNotesList
-                        title="Classical · Drishti on this house"
+                        title="Classical · Drishti (aspect) on this house"
                         notes={classicalPack.aspectNotes}
                       />
                       {(['Ma', 'Ju', 'Sa'] as const)

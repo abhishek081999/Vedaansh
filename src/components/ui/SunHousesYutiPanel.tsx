@@ -241,7 +241,7 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
           </Card>
 
           {!showFull && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Sun houses & yuti full analysis">
+            <PlanGate userPlan={userPlan} required="gold" featureName="Sun houses & yuti (conjunction) full analysis">
               <div style={{ minHeight: 100, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
                 <div style={{ fontWeight: 700, marginBottom: 6 }}>Locked on Free</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>

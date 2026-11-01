@@ -55,7 +55,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 |------|--------|
 | Full i18n rollout | Remaining (prefs language field exists) |
 | Stripe checkout | Schema fields only — not wired |
-| Research pages/APIs | Platinum-gated in `proxy.ts`; **no route files and no UI** |
+| Research pages/APIs | Platinum-gated in `src/proxy.ts`; **no route files and no UI** |
 | Apple OAuth | Enum reserved; Google is live |
 
 ---

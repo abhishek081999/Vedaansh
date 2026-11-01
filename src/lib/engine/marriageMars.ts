@@ -196,7 +196,7 @@ export function analyzeMarriageMars(
     levelNotes.push(note(
       'mars-balanced',
       'A balanced Mars',
-      'Mars is strong, a benefic reaches it, and Saturn supplies patience. Attraction and physical compatibility can be real, and trouble is faced by both people rather than by one. This Mars protects. Passion and steadiness can sit in the same bond.',
+      'Mars is strong, a helpful planet reaches it, and Saturn supplies patience. Attraction and physical compatibility can be real, and trouble is faced by both people rather than by one. This Mars protects. Passion and steadiness can sit in the same bond.',
       'supportive',
     ))
   } else if (level === 'immature') {
@@ -252,7 +252,7 @@ export function analyzeMarriageMars(
     placements.push(note(
       'mars-war',
       'Heat without a container',
-      'Mars is active and not held. The marriage can become a running argument. The same planet, once Saturn and a benefic reach it, is what makes the bond lively instead.',
+      'Mars is active and not held. The marriage can become a running argument. The same planet, once Saturn and a helpful planet reach it, is what makes the bond lively instead.',
       'caution',
     ))
   }
@@ -360,7 +360,7 @@ export function analyzeMarriageMars(
       'mars-rahu',
       rahuHeld ? 'Mars and Rahu can walk through the obstacle together' : 'Mars and Rahu have no middle setting',
       rahuHeld
-        ? `Mars is strong and a benefic reaches the pair${directed ? `, in the ${house}th, where Mars gets a direction` : ''}. This is one of the two possible endings: partners who stay beside each other through the obstacle. The same pair can become a spiritual path that one person leads and the other follows. Mars–Rahu pushes action in this life. It is not read first as a past-life debt.`
+        ? `Mars is strong and a helpful planet reaches the pair${directed ? `, in the ${house}th, where Mars gets a direction` : ''}. This is one of the two possible endings: partners who stay beside each other through the obstacle. The same pair can become a spiritual path that one person leads and the other follows. Mars–Rahu pushes action in this life. It is not read first as a past-life debt.`
         : `Mars says act. Rahu says there is no limit. Desire, emotion, and behavior all run without a clear want, and satisfaction does not arrive. The person can picture an ideal partner and still not know the way there. ${directed ? `The ${house === 10 ? '10th gives Mars a direction of work' : '11th asks for a clear aim'}. That helps. It does not by itself balance the pair.` : 'Balance comes from a benefic glance, or from Mars in its own strength, not from Rahu sitting in a pleasant house.'} ${dignified(mars) && !jupiterSees ? 'With Mars strong and no benefic on the pair, power becomes a contest and the person’s word is treated as the rule.' : ''}`,
       rahuHeld ? 'mixed' : 'caution',
     ))
@@ -445,7 +445,7 @@ export function compareMarriageMars(
     notes.push(note(
       'mars-pair-both',
       'Both charts try to lead',
-      `${nameA} and ${nameB} both carry a raw or Manglik Mars. This is two people who each try to dominate. Conflict is the expected weather. A benefic and Saturn on either Mars are what would change that, not a label that they match.`,
+      `${nameA} and ${nameB} both carry a raw or Manglik Mars. This is two people who each try to dominate. Conflict is the expected weather. A helpful planet and Saturn on either Mars are what would change that, not a label that they match.`,
       'caution',
     ))
   } else if (hot(a) !== hot(b)) {

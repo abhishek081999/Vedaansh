@@ -317,7 +317,7 @@ describe('intimate life', () => {
       ])] },
     }))
     const exposure = exposed!.divisions.find(n => n.id.startsWith('open-expose-') || n.id.startsWith('expose-'))
-    expect(exposure?.detail).toMatch(/allegations/)
+    expect(exposure?.detail).toMatch(/accusations/)
     expect(exposure?.detail).toMatch(/phone/)
 
     const phone = analyzeIntimateLife(chart(1, [g('Su', 6), g('Me', 6), g('Ke', 6)]))

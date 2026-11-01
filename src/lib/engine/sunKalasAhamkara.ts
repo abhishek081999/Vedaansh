@@ -176,9 +176,9 @@ const PSYCHOLOGY_NEGATIVE = [
   'Conflict with father or authority',
   'Burnout, inflammation, eye strain',
   'Tyranny or domination in relationships',
-  'Heart / bone / fever vulnerabilities when afflicted',
+  'Heart / bone / fever vulnerabilities when under pressure',
   'Identity crisis when Sun is weak or eclipsed',
-  'Pitri dosha themes when heavily afflicted',
+  'Pitri dosha themes when heavily under pressure',
 ]
 
 function wholeSignHouse(planetRashi: Rashi, ascRashi: Rashi): number {
@@ -371,7 +371,7 @@ export function analyzeSunKalasAhamkara(chart: ChartOutput): SunKalasAhamkaraRes
       id: 'pitri_rina',
       title: 'Pitri Rina (father’s debt)',
       active: debil || withSaturn || withRahu || in8 || in9,
-      detail: 'Afflicted or heavily loaded Sun can show debt toward father / pitris — parallel to Matri Rina for Moon.',
+      detail: 'Troubled or heavily loaded Sun can show debt toward father / pitris — parallel to Matri Rina for Moon.',
     },
   ]
 
@@ -400,10 +400,10 @@ export function analyzeSunKalasAhamkara(chart: ChartOutput): SunKalasAhamkaraRes
       positive: PSYCHOLOGY_POSITIVE,
       negativeWhenAfflicted: PSYCHOLOGY_NEGATIVE,
       fireNote:
-        'Sun is Agni Tattva. Will and identity burn like fire — illuminating when steady, scorching when afflicted.',
+        'Sun is Agni Tattva. Will and identity burn like fire — illuminating when steady, scorching when under pressure.',
     },
     traditionNote:
-      'In Tantra / Aditya traditions Surya has 12 kalas — one ray per rashi. The natal Sun sign lights that kala for the native. Parallel to Chandra’s 16 kalas, but solar light is fixed to the zodiac arc rather than lunar elongation.',
+      'In Tantra / Aditya traditions Surya has 12 kalas — one ray per rashi. The natal Sun sign lights that kala for the person. Parallel to Chandra’s 16 kalas, but solar light is fixed to the zodiac arc rather than lunar elongation.',
     ahamkaraStages: AHAMKARA_STAGES,
     primaryAhamkara: primary,
     secondaryAhamkara: secondary,

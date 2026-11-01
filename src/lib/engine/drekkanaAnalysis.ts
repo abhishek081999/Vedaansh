@@ -222,7 +222,7 @@ const LAGNA_SIGN_FLAVOR: Record<Rashi, string> = {
 const HOUSE_THEMES: Record<number, string> = {
   1: 'Self-image and the face the subconscious keeps rehearsing',
   2: 'Family speech, values, and resource thoughts',
-  3: 'Courage (Mars karaka), status-seeking, and achievement drive',
+  3: 'Courage (Mars karaka (natural indicator)), status-seeking, and achievement drive',
   4: 'Emotional foundation and home-axis control',
   5: 'Creativity, romance display, hobbies, and recognition hunger',
   6: 'Conflict, service friction, and confused effort',
@@ -367,7 +367,7 @@ function buildHouseReading(house: number, occupants: GrahaData[], rashi: Rashi):
     bits.push('Venus–Jupiter in 7th: heightened romance / relating focus (atikāma flavor).')
   }
   if (house === 3) {
-    bits.push('3rd (Mars karaka): courage, fighting spirit, and achievement drive — medals come from this energy.')
+    bits.push('3rd (Mars karaka (natural indicator)): courage, fighting spirit, and achievement drive — medals come from this energy.')
     if (occupants.some((g) => g.id === 'Ma' && WEAK_DIGNITY.includes(g.dignity))) {
       bits.push('Weak Mars here: conflict anxiety — may postpone confrontation; body tension in arguments.')
     }
@@ -490,7 +490,7 @@ function buildSaturnDrain(grahas: GrahaData[], asc: Rashi): DrekkanaSaturnDrain 
     bits.push('On lagna: old-soul overthinking and forced early maturity (“childhood shortened by circumstance”).')
   }
   if (inKendraOrTrikona && !onLagna) {
-    bits.push('In kendra/trikona: Saturn sits where it can shape (and sometimes freeze) core mental angles.')
+    bits.push('In kendra (angular houses: 1, 4, 7, 10)/trikona (trine houses: 1, 5, 9): Saturn sits where it can shape (and sometimes freeze) core mental angles.')
   }
   if (moonSaturnLink) {
     bits.push(
@@ -527,8 +527,8 @@ function buildCapacity(grahas: GrahaData[], asc: Rashi): DrekkanaCapacity {
       digHouse,
       isDigbali,
       reading: isDigbali
-        ? `${GRAHA_NAMES[id]} in H${house} — digbali. During its periods, will tends to hold; acts more from own conviction.`
-        : `${GRAHA_NAMES[id]} in H${house} (digbala house is H${digHouse}) — not digbali; more open to external pressure in its periods.`,
+        ? `${GRAHA_NAMES[id]} in house ${house} — digbali. During its periods, will tends to hold; acts more from own conviction.`
+        : `${GRAHA_NAMES[id]} in house ${house} (digbala house is H${digHouse}) — not digbali; more open to external pressure in its periods.`,
     })
   }
   const digbaliCount = digbali.filter((d) => d.isDigbali).length
@@ -561,7 +561,7 @@ function buildCourage(grahas: GrahaData[], asc: Rashi): DrekkanaCourage {
     bits.push(`3rd holds ${third.map((g) => GRAHA_NAMES[g.id]).join(', ')}.`)
   }
   if (ma) {
-    bits.push(`Mars sits in H${marsHouse} (${dignityLabel(ma.dignity)}).`)
+    bits.push(`Mars sits in house ${marsHouse} (${dignityLabel(ma.dignity)}).`)
     if (marsHouse === 1 || STRONG_DIGNITY.includes(ma.dignity)) {
       tone = 'supportive'
       bits.push('Strong Mars flavor supports “yes we can” motivational drive.')
@@ -630,12 +630,12 @@ function buildKamaTrikona(grahas: GrahaData[], asc: Rashi): DrekkanaKamaTrikona 
   let reading: string
   if (classicPattern) {
     reading =
-      'Classic Kama Trikona: Rahu in 3rd, Venus in 7th, Mercury in 11th — mind stays geared toward relating, desire, and connection themes. Confirm with D1 7th before over-reading.'
+      'Classic Kama Trikona (trine houses: 1, 5, 9): Rahu in 3rd, Venus in 7th, Mercury in 11th — mind stays geared toward relating, desire, and connection themes. Confirm with D1 7th before over-reading.'
   } else if (inKamaAxis) {
     reading = `Rahu (H${rahuHouse}), Venus (H${venusHouse}), and Mercury (H${mercuryHouse}) occupy the 3–7–11 desire axis — relationship scripts stay loud in the subconscious.`
   } else {
     reading =
-      'Kama Trikona not fully lit. Relating focus is milder; check where Venus and the 7th lord sit for partnership mental load.'
+      'Kama Trikona (trine houses: 1, 5, 9) not fully lit. Relating focus is milder; check where Venus and the 7th lord sit for partnership mental load.'
   }
 
   return {
@@ -685,7 +685,7 @@ export function analyzeDrekkana(chart: ChartOutput): DrekkanaAnalysis | null {
     decisionStyle = 'dusthana-confused'
     decisionNote = '6th/8th load is heavy — life-direction confusion rises when those lords run; slow down major choices.'
   } else {
-    decisionNote = 'Mixed trine and dusthana load — clarity comes in waves; map current dasha to D3 houses.'
+    decisionNote = 'Mixed trine and dusthana (difficult houses: 6, 8, 12) load — clarity comes in waves; map current dasha to D3 houses.'
   }
 
   const occupants = lagnaOcc.map((g) => ({
@@ -701,7 +701,7 @@ export function analyzeDrekkana(chart: ChartOutput): DrekkanaAnalysis | null {
         detail: occupants.map((o) => o.reading).join(' '),
       }
     : {
-        label: `Empty lagna — follow ${GRAHA_NAMES[lagnaLordId]} in H${lordHouse}`,
+        label: `Empty lagna — follow ${GRAHA_NAMES[lagnaLordId]} in house ${lordHouse}`,
         detail: `${GRAHA_NAMES[lagnaLordId]} in ${RASHI_NAMES[lordG?.rashi ?? asc]} steers the subconscious address.`,
       }
 
@@ -846,7 +846,7 @@ export function analyzeDrekkana(chart: ChartOutput): DrekkanaAnalysis | null {
   if (dominantHouse != null) {
     insights.push({
       kind: 'highlight',
-      title: `Mind congregates in H${dominantHouse}`,
+      title: `Mind congregates in house ${dominantHouse}`,
       text: mind.dominantHouseTheme
         ? `${mind.dominantHouseTheme}. Cluster of planets here marks the dominant thought pattern.`
         : `House ${dominantHouse} holds the densest subconscious focus.`,

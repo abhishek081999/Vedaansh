@@ -29,7 +29,7 @@ const FEATURES = {
       '✓ Profession & Medical nakshatra previews',
       '✓ Satpanchasika Prashna (horary)',
       '✓ Shadbala, Vimsopaka & Bhava Bala',
-      '✓ Ashtakavarga, Arudhas & Chara Karakas',
+      '✓ Ashtakavarga, Arudhas & Chara Karakas (natural indicator)',
       '✓ 100+ Graha Yogas detected',
       '✓ Daily Panchang & Muhurta tools',
       '✓ Kundali Milan — Ashtakoot, dosha, and charts',

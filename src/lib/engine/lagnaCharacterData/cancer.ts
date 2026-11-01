@@ -65,7 +65,7 @@ export const CANCER_LAGNA_PROFILE: LagnaCharacterProfile = {
         'Royal or good family background is likely; traditionally Cancer Lagnas were born into royal families.',
         'Food: variety, picky, fond of expensive and luxury restaurants, love trying new things.',
         'Family deities: Rama, Durga, Krishna; ancestors often did religious or social work such as Bhagwat Katha.',
-        'The father’s wealth and growth often rise after the native’s birth; with good past merit, significant wealth follows.',
+        'The father’s wealth and growth often rise after the person’s birth; with good past merit, significant wealth follows.',
         'Wealth is stored through a chair or position of power (politics, even forming parties), business, entertainment, government stocks; strong at charity and donation, a royal quality.',
         'Maintain the chair or position well; good use of it improves wealth and standing.',
       ],
@@ -112,7 +112,7 @@ export const CANCER_LAGNA_PROFILE: LagnaCharacterProfile = {
       signName: 'Sagittarius',
       theme: 'Karmic debt to the guru; liver and happiness issues',
       points: [
-        'The largest pending karma is with the guru (Jupiter): Sagittarius brings cheaters, deceivers and karmic events, with Jupiter affliction and debt.',
+        'The largest pending karma is with the guru (Jupiter): Sagittarius brings cheaters, deceivers and karmic events, with Jupiter difficult influence and debt.',
         'Remedies: serve the guru and teachers regularly, donate clothes, visit temples regularly, annadaan and cloth donation. The debt must be repaid or they stay trapped.',
         'Health: liver-related problems and missing happiness; marital happiness suffers when the 6th activates negatively.',
         'Root cause: not listening to the guru’s advice and not following rules or discipline.',

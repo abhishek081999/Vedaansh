@@ -207,7 +207,7 @@ const LAGNA_PROFILES: Record<Rashi, Omit<LagnaSpiritualProfile, 'name' | 'sanskr
     rashi: 8,
     elementId: 'water',
     primaryConsciousness: '"I have died before"',
-    subconsciousEnergy: 'Death–rebirth threshold',
+    subconsciousEnergy: 'Deep change and renewal',
     invisibleFear: 'Going too deep — will not return',
     egoType: 'Transformational ego',
     purpose: 'Deep diving into consciousness',
@@ -219,7 +219,7 @@ const LAGNA_PROFILES: Record<Rashi, Omit<LagnaSpiritualProfile, 'name' | 'sanskr
     elementId: 'fire',
     primaryConsciousness: '"I need meaning / purpose"',
     subconsciousEnergy: 'Constant seeking',
-    invisibleFear: 'Meaninglessness equals death',
+    invisibleFear: 'A life without meaning feels unbearable',
     egoType: 'Seeker ego',
     purpose: 'Finding truth and higher meaning',
     lifePattern: 'Restless quest and exploration',
@@ -244,7 +244,7 @@ const LAGNA_PROFILES: Record<Rashi, Omit<LagnaSpiritualProfile, 'name' | 'sanskr
     invisibleFear: 'Connecting means losing self',
     egoType: 'Detached ego',
     purpose: 'Maintaining uniqueness',
-    lifePattern: 'Alone in a crowd; revolutionary lean',
+    lifePattern: 'Alone in a crowd; revolutionary tendency',
     whatBreaksPattern: 'Connection without losing identity',
   },
   12: {
@@ -289,20 +289,20 @@ export const LAGNA_SPIRITUAL_PRINCIPLES: LagnaSpiritualPrinciple[] = [
     body:
       'Forms and roles change across lifetimes; energy patterns repeat. ' +
       'Awareness dissolves karma: recognize the pattern, accept the fear, practice the element-appropriate medicine, ' +
-      'and meet smaller life “deaths” (ego losses) consciously.',
+      'and meet life’s smaller endings (ego losses) consciously.',
   },
   {
     id: 'order',
     title: 'Reading order for spiritual context',
     body:
       'First weigh blessings (9th house and its condition), then lagna element and fear pattern, ' +
-      'then planetary form. Dharma trikona teaching also pairs D1–D9–D20 for outer life, inner self, and spiritual evolution.',
+      'then planetary form. Dharma trikona (trine houses: 1, 5, 9) teaching also pairs D1–D9–D20 for outer life, inner self, and spiritual evolution.',
   },
   {
     id: 'bhakti',
     title: 'Bhakti can transcend the chart',
     body:
-      'Genuine devotion may lift the native above ordinary planetary and nakṣatra rules — ' +
+      'Genuine devotion may lift the person above ordinary planetary and nakṣatra rules — ' +
       'life manifestation can diverge from textbook phalita. Ritual alone is not enough; surrender transforms meaning.',
   },
   {

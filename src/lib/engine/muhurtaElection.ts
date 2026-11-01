@@ -45,7 +45,7 @@ export const ELECTIONAL_LAGNA: Record<
   HEALTH: {
     good: [1, 5, 9],
     avoid: [6, 8, 12],
-    note: 'Fire / vitality lagna; avoid dusthana lagna',
+    note: 'Fire / vitality lagna; avoid dusthana (difficult houses: 6, 8, 12) lagna',
   },
   SPIRITUAL: {
     good: [4, 8, 9, 12],

@@ -72,7 +72,7 @@ export const GEMINI_LAGNA_PROFILE: LagnaCharacterProfile = {
       signName: 'Leo',
       theme: 'Biggest strength: communication, skills, recognition',
       points: [
-        'Leo (lord Sun) falls on the 3rd, and Mercury, the Lagna lord and karaka of communication, always stays close to the Sun: the most powerful house for this Lagna.',
+        'Leo (lord Sun) falls on the 3rd, and Mercury, the Lagna lord and karaka (natural indicator) of communication, always stays close to the Sun: the most powerful house for this Lagna.',
         'Best fits: reporters, journalists, editors, content writers, directors, government officers, PR, auditors, singers.',
         'If they cannot write, speak, direct or audit well, the 3rd house is damaged.',
         'Take courses and certifications from valued government institutions; stay close to powerful people (many become personal assistants).',
@@ -121,7 +121,7 @@ export const GEMINI_LAGNA_PROFILE: LagnaCharacterProfile = {
       theme: 'Dharmic, stable partner; infidelity is the major risk',
       points: [
         'Jupiter has no directional strength in the 7th.',
-        'Ideal partner: religious, shows the right path, stable and speaks less (the native is already talkative), traditional.',
+        'Ideal partner: religious, shows the right path, stable and speaks less (the person is already talkative), traditional.',
         'Infidelity damages both Sagittarius and Jupiter energy; lack of loyalty is the major relationship problem for this Lagna.',
         'A partner with strong Jupiter brings a major positive change; the Guru’s blessing is essential.',
         'Do not be overly selfish in education (5th) or partnership (7th); choose good moral values even over skill, and do not trade values for small gains.',

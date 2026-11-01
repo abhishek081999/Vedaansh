@@ -16,7 +16,7 @@ export default function JaiminiPage() {
         className="main-empty-state"
         icon={<Zap size={40} strokeWidth={1.5} style={{ color: 'var(--text-gold)', opacity: 0.75 }} />}
         title="Jaimini Astrology"
-        description="Load or create a birth chart to explore Chara Karakas, Arudha Padas, Rashi Drishti, and Chara Dasha timelines."
+        description="Load or create a birth chart to explore Chara Karakas (natural indicator), Arudha Padas, Rashi Drishti (aspect), and Chara Dasha timelines."
         action={{ label: 'Open Birth Form', onClick: openBirthForm }}
       />
     )

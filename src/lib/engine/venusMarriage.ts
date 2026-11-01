@@ -74,7 +74,7 @@ export function analyzeVenusMarriage(chart: ChartOutput): VenusMarriageReading |
     notes.push(note(
       'venus-jupiter-meaning',
       'Jupiter can interpret a damaged Venus',
-      'Venus is afflicted, and Jupiter is strong enough that the damage can be understood. This does not mean the marriage fails. Even so, the two do not become sukh (settled marital happiness) just because the meaning is available.',
+      'Venus is under pressure, and Jupiter is strong enough that the damage can be understood. This does not mean the marriage fails. Even so, the two do not become sukh (settled marital happiness) just because the meaning is available.',
       'mixed',
     ))
   }
