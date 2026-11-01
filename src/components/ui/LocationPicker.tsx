@@ -197,7 +197,7 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
               maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}
           >
-            \u2726 Birth: {birthLocation.name.split(',')[0]}
+            ✦ Birth: {birthLocation.name.split(',')[0]}
           </button>
         )}
       </div>
@@ -209,7 +209,7 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
           value={query}
           onChange={e => handleInput(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
-          placeholder="Search city\u2026"
+          placeholder="Search city…"
           autoComplete="off"
           style={{ width: '100%', paddingRight: loading ? '2rem' : undefined }}
         />
@@ -217,7 +217,7 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
           <span style={{
             position: 'absolute', right: '0.5rem', top: '50%',
             transform: 'translateY(-50%)', fontSize: '0.72rem', color: 'var(--text-muted)',
-          }}>\u27f3</span>
+          }}>⟳</span>
         )}
       </div>
 
