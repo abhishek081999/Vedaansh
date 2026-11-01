@@ -20,6 +20,10 @@ type SkyPanchang = {
   lunarElongationDeg: number
   planets: SkyPlanet[]
   horaTable: SkyHora[]
+  sunrise: string
+  sunset: string
+  rahuKalam: { start: string; end: string }
+  abhijitMuhurta: { start: string; end: string }
   calendarContext: { sauraMasa: string; rituSa: string; ayanaSa: string; samvatsara: string }
 }
 
@@ -30,7 +34,7 @@ export type TodaySky = {
 }
 
 // The landing wheel is a shared public snapshot, so it uses one reference place instead of asking for location.
-const REFERENCE = { lat: 23.18, lng: 75.78, tz: 'Asia/Kolkata', label: 'Ujjain' }
+export const SKY_REFERENCE = { lat: 23.18, lng: 75.78, tz: 'Asia/Kolkata', label: 'Ujjain' }
 
 export function useTodaySky(): { sky: TodaySky | null; failed: boolean } {
   const [sky, setSky] = useState<TodaySky | null>(null)
@@ -38,12 +42,12 @@ export function useTodaySky(): { sky: TodaySky | null; failed: boolean } {
 
   useEffect(() => {
     const controller = new AbortController()
-    const date = new Intl.DateTimeFormat('en-CA', { timeZone: REFERENCE.tz }).format(new Date())
+    const date = new Intl.DateTimeFormat('en-CA', { timeZone: SKY_REFERENCE.tz }).format(new Date())
     const params = new URLSearchParams({
       date,
-      lat: String(REFERENCE.lat),
-      lng: String(REFERENCE.lng),
-      tz: REFERENCE.tz,
+      lat: String(SKY_REFERENCE.lat),
+      lng: String(SKY_REFERENCE.lng),
+      tz: SKY_REFERENCE.tz,
     })
 
     fetch(`/api/panchang?${params}`, { signal: controller.signal })
@@ -146,7 +150,7 @@ function tithiLabel(t: SkyPanchang['tithi']) {
 
 function formatTime(iso: string) {
   return new Intl.DateTimeFormat('en-IN', {
-    timeZone: REFERENCE.tz,
+    timeZone: SKY_REFERENCE.tz,
     hour: 'numeric',
     minute: '2-digit',
   }).format(new Date(iso))
@@ -689,7 +693,7 @@ export function LandingCosmicWheel({ variant, accent, sky, failed }: LandingCosm
         {variant !== 'compare' ? (
           <p className="cosmic-wheel-source">
             {panchang
-              ? `Today's sky · ${REFERENCE.label}, noon IST${variant === 'prashna' ? ' · hora live' : ''}`
+              ? `Today's sky · ${SKY_REFERENCE.label}, noon IST${variant === 'prashna' ? ' · hora live' : ''}`
               : failed
                 ? 'Live sky unavailable right now'
                 : "Reading today's sky…"}

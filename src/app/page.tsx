@@ -3,6 +3,7 @@
 import HomeClientDynamic from '@/components/home/HomeClientDynamic'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
+import { SiteFooter } from '@/components/ui/layout/SiteFooter'
 import { HOME_FAQ, HOME_SEO } from '@/lib/seo/intro-content'
 import { faqJsonLd } from '@/lib/seo/site'
 
@@ -12,6 +13,7 @@ export default async function Page() {
       <JsonLd data={faqJsonLd([...HOME_FAQ])} />
       <HomeClientDynamic />
       <SeoIntro {...HOME_SEO} faq={[...HOME_FAQ]} />
+      <SiteFooter />
     </>
   )
 }

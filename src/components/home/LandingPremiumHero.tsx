@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { ChevronRight } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { LandingCosmicWheel, useTodaySky, type CosmicWheelVariant } from '@/components/home/LandingCosmicWheel'
+import { LandingTodaySky } from '@/components/home/LandingTodaySky'
 
 type HeroSlide = {
   id: CosmicWheelVariant
@@ -127,6 +128,7 @@ export function LandingPremiumHero({
   }
 
   return (
+    <>
     <section
       className={`landing-premium-hero landing-premium-hero-carousel fade-up ${reducedMotion ? 'reduced-motion' : ''}`}
       style={{ ['--hero-accent' as string]: slide.accent }}
@@ -263,5 +265,7 @@ export function LandingPremiumHero({
         </div>
       </div>
     </section>
+    <LandingTodaySky sky={sky} failed={skyFailed} onNavigate={() => trackLandingCta('today_sky_panchang')} />
+    </>
   )
 }
