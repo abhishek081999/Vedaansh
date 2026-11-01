@@ -12,7 +12,7 @@ export default async function Page() {
     <>
       <JsonLd data={faqJsonLd([...HOME_FAQ])} />
       <HomeClientDynamic />
-      <SeoIntro {...HOME_SEO} faq={[...HOME_FAQ]} />
+      <SeoIntro {...HOME_SEO} faq={[...HOME_FAQ]} compact />
       <SiteFooter />
     </>
   )

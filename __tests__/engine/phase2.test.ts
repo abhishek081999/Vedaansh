@@ -172,6 +172,18 @@ describe('Panchang with sweph', () => {
     expect(rk.start.getTime()).toBeGreaterThanOrEqual(sr.getTime())
     expect(rk.end.getTime()).toBeLessThanOrEqual(ss.getTime())
   })
+  it('rahu kalam falls in the classical slot for each weekday', () => {
+    const sr = new Date('2024-01-15T00:00:00Z')
+    const ss = new Date('2024-01-15T08:00:00Z')
+    const hour = 60 * 60 * 1000
+    // Sun to Sat: 8th, 2nd, 7th, 5th, 6th, 4th, 3rd of the eight daytime slots
+    const slots = [8, 2, 7, 5, 6, 4, 3]
+    slots.forEach((slot, vara) => {
+      const rk = getRahuKalam(sr, ss, vara)
+      expect(rk.start.getTime()).toBe(sr.getTime() + (slot - 1) * hour)
+      expect(rk.end.getTime()).toBe(sr.getTime() + slot * hour)
+    })
+  })
   it('abhijit is centred on noon', () => {
     const sr = new Date('2024-01-15T01:00:00Z')
     const ss = new Date('2024-01-15T12:00:00Z')

@@ -8,6 +8,7 @@ import type { ComponentType, MouseEvent } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight,
+  BookOpen,
   Briefcase,
   Calendar,
   CalendarCheck,
@@ -37,12 +38,14 @@ type ExploreSection = {
   icon: ComponentType<{ size?: number; strokeWidth?: number }>
 }
 
-const EXPLORE_GROUPS: { id: string; title: string; sections: ExploreSection[] }[] = [
+const EXPLORE_GROUPS: { id: string; title: string; description: string; tier: 'primary' | 'secondary' | 'tertiary'; sections: ExploreSection[] }[] = [
   {
     id: 'chart',
     title: 'Read your chart',
+    description: 'Start from your birth details.',
+    tier: 'primary',
     sections: [
-      { title: 'Astrology', subtitle: 'Dashboard', text: 'Kundali, vargas, dasha, plus marriage and career readings.', href: '/', ctaName: 'major_sections_astrology', icon: Sparkles },
+      { title: 'Astrology', subtitle: 'Workspace', text: 'Kundali, vargas, dasha, plus marriage and career readings.', href: '/?new=true', ctaName: 'major_sections_astrology', icon: Sparkles },
       { title: 'Today’s Reading', subtitle: 'Personal', text: 'Daily reading from your Moon, dasha, and transits.', href: '/today', ctaName: 'major_sections_today', icon: CalendarCheck },
       { title: 'Transits', subtitle: 'Gochar', text: 'Cosmic roadmap, Sade Sati, aspects, and live sky.', href: '/transit/roadmap', ctaName: 'major_sections_transits', icon: Orbit },
       { title: 'Relationship & Marriage', subtitle: 'Gold', text: 'Marriage promise, timing, Mars and Vivah readings.', href: '/relationship', ctaName: 'major_sections_relationship', icon: Heart },
@@ -53,6 +56,8 @@ const EXPLORE_GROUPS: { id: string; title: string; sections: ExploreSection[] }[
   {
     id: 'timing',
     title: 'Plan the right time',
+    description: 'Check the day before you commit.',
+    tier: 'secondary',
     sections: [
       { title: 'Panchang', subtitle: 'Daily', text: 'Tithi, nakshatra, yoga, and karana.', href: '/panchang', ctaName: 'major_sections_panchang', icon: Compass },
       { title: 'Calendar', subtitle: 'Monthly', text: 'Month-level Vedic timing windows.', href: '/panchang/calendar', ctaName: 'major_sections_calendar', icon: Calendar },
@@ -63,6 +68,8 @@ const EXPLORE_GROUPS: { id: string; title: string; sections: ExploreSection[] }[
   {
     id: 'advanced',
     title: 'Go deeper',
+    description: 'Classical systems for closer study.',
+    tier: 'tertiary',
     sections: [
       { title: 'Nakshatra', subtitle: 'Lunar', text: 'Nakshatra insights day by day.', href: '/nakshatra', ctaName: 'major_sections_nakshatra', icon: Star },
       { title: 'Jaimini Astrology', subtitle: 'Advanced', text: 'Jaimini charts and life direction.', href: '/jaimini', ctaName: 'major_sections_jaimini', icon: Zap },
@@ -71,6 +78,7 @@ const EXPLORE_GROUPS: { id: string; title: string; sections: ExploreSection[] }[
       { title: 'AstroCartography', subtitle: 'Location', text: 'Planetary lines for travel and moves.', href: '/acg', ctaName: 'major_sections_astrocartography', icon: Globe },
       { title: 'Astro Vastu', subtitle: 'Space', text: 'Vastu aligned with your chart.', href: '/vastu', ctaName: 'major_sections_astro_vastu', icon: Home },
       { title: 'Vedic Numerology', subtitle: 'Anka Jyotish', text: 'Moolank, Bhagyank, name and grid.', href: '/numerology', ctaName: 'major_sections_numerology', icon: Hash },
+      { title: 'Jyotish Guides', subtitle: 'Learn', text: 'The methods behind each tool.', href: '/guides', ctaName: 'major_sections_guides', icon: BookOpen },
     ],
   },
 ]
@@ -96,11 +104,20 @@ export function LandingExplore({ trackLandingCta, withChartGate }: LandingExplor
         theme="gold"
       />
       {EXPLORE_GROUPS.map((group, groupIdx) => (
-        <div key={group.id} className="landing-major-group" data-count={group.sections.length}>
-          <h3 className="landing-major-group-title">{group.title}</h3>
+        <div
+          key={group.id}
+          className={`landing-major-group landing-explore-tier landing-explore-tier--${group.tier}`}
+          data-count={group.sections.length}
+        >
+          <div className="landing-explore-group-head">
+            <h3 className="landing-major-group-title">{group.title}</h3>
+            <p className="landing-explore-group-desc">{group.description}</p>
+          </div>
           <div className="landing-major-sections-grid landing-reveal-stagger">
             {group.sections.map((section, idx) => {
               const IconComponent = section.icon
+              const isLead = group.tier === 'primary' && idx === 0
+              const isGold = section.subtitle === 'Gold'
               return (
                 <Link
                   key={section.title}
@@ -110,20 +127,27 @@ export function LandingExplore({ trackLandingCta, withChartGate }: LandingExplor
                     withChartGate(section.href, e)
                   }}
                   onMouseMove={trackPointer}
-                  className="landing-major-section-card landing-premium-card"
+                  className={`landing-major-section-card landing-premium-card${isLead ? ' landing-explore-lead' : ''}`}
                   style={{ ['--stagger-i' as string]: groupIdx * 6 + idx }}
                 >
                   <div className="card-icon-wrapper">
                     <IconComponent size={20} strokeWidth={2} />
                   </div>
                   <div className="card-body">
-                    <span className="card-kicker">{section.subtitle}</span>
+                    <span className={`card-kicker${isGold ? ' landing-explore-gold' : ''}`}>{section.subtitle}</span>
                     <span className="stat-value">{section.title}</span>
                     <span className="stat-sub">{section.text}</span>
                   </div>
-                  <span className="card-arrow" aria-hidden="true">
-                    <ArrowRight size={14} strokeWidth={2.5} />
-                  </span>
+                  {isLead ? (
+                    <span className="landing-explore-lead-cta" aria-hidden="true">
+                      Start a chart
+                      <ArrowRight size={14} strokeWidth={2.5} />
+                    </span>
+                  ) : (
+                    <span className="card-arrow" aria-hidden="true">
+                      <ArrowRight size={14} strokeWidth={2.5} />
+                    </span>
+                  )}
                 </Link>
               )
             })}

@@ -64,6 +64,7 @@ const LandingStickyMobileCta = dynamic(() => import('@/components/home/LandingSt
 const AboutPreview = dynamic(() => import('@/components/about/AboutPreview').then(m => m.AboutPreview), { ssr: false })
 const LandingWorkspaceShowcase = dynamic(() => import('@/components/home/LandingWorkspaceShowcase').then(m => m.LandingWorkspaceShowcase), { ssr: false })
 const LandingAudience = dynamic(() => import('@/components/home/LandingAudience').then(m => m.LandingAudience), { ssr: false })
+const LandingTestimonials = dynamic(() => import('@/components/home/LandingTestimonials').then(m => m.LandingTestimonials), { ssr: false })
 const LandingPlans = dynamic(() => import('@/components/home/LandingPlans').then(m => m.LandingPlans), { ssr: false })
 const LandingGuides = dynamic(() => import('@/components/home/LandingGuidesInstall').then(m => m.LandingGuides), { ssr: false })
 const LandingInstallStrip = dynamic(() => import('@/components/home/LandingGuidesInstall').then(m => m.LandingInstallStrip), { ssr: false })
@@ -3089,6 +3090,8 @@ function HomeContent() {
                 <LandingAudience trackLandingCta={trackLandingCta} withChartGate={openSectionWithChartGate} />
               </LandingReveal>
 
+              <LandingTestimonials />
+
               <LandingReveal as="section" id="landing-plans" className="landing-section-row landing-section-row--gold">
                 <LandingPlans trackLandingCta={trackLandingCta} />
               </LandingReveal>
@@ -3117,12 +3120,6 @@ function HomeContent() {
                   <button onClick={() => { trackLandingCta('cta_band_start_now'); openAstrologyApp() }} className="btn btn-primary landing-cta-band-primary">
                     Open Astrology App
                   </button>
-                  <Link href="/prashna" onClick={() => trackLandingCta('cta_band_open_prashna')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-                    Open Prashna
-                  </Link>
-                  <Link href="/install" onClick={() => trackLandingCta('cta_band_install_app')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
-                    Install App
-                  </Link>
                   {status === 'authenticated' && (
                     <Link href="/my/charts" onClick={() => trackLandingCta('cta_band_my_charts')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
                       My Charts

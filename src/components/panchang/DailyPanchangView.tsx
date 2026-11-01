@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { ChevronDown, CircleCheck, CircleX, MapPin, Moon, MoonStar, Orbit, Rows3, Sunrise, Sunset, Timer } from 'lucide-react'
 import { formatLongitudeDMS, rashiBlockFromLongitude } from '@/lib/panchang/sidereal'
-import { PANCHAKA_GLOSSARY } from '@/lib/panchang/panchaka-glossary'
+import { buildDayReading } from '@/lib/panchang/day-reading'
 import { isRiktaTithi, riktaTithiDescription } from '@/lib/panchang/muhurta-extra'
 import { getTithiDayMeta } from '@/lib/engine/tithiMeta'
 import { getKaranaMeta } from '@/lib/engine/karanaMeta'
@@ -12,10 +13,13 @@ import { getNakshatraMuhurtaMeta, getAbhijitWindow } from '@/lib/engine/nakshatr
 import { getVaarMeta } from '@/lib/engine/vaarMeta'
 import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
 import { SanskarasReference } from '@/components/panchang/SanskarasReference'
-import type { PanchangDayTimeline } from '@/lib/panchang/day-timeline'
+import { GRAHA_NAMES, type GrahaId } from '@/types/astrology'
+import type { PanchangDayTimeline, TimelineSegment } from '@/lib/panchang/day-timeline'
 import styles from './DailyPanchangView.module.css'
 import { PanchangViz } from './PanchangViz'
 import { PanchangTimelineStrip } from './PanchangTimelineStrip'
+import { PanchangDayWindows } from './PanchangDayWindows'
+import { PanchangDayReading } from './PanchangDayReading'
 
 /** Response shape from GET /api/panchang */
 export interface PanchangApiData {
@@ -129,21 +133,45 @@ function fmtTime(iso: string, tz: string): string {
   }).format(new Date(iso))
 }
 
-function durationMin(start: string, end: string): number {
-  return Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60_000)
-}
-
 function isNow(start: string, end: string): boolean {
   const now = Date.now()
   return now >= new Date(start).getTime() && now <= new Date(end).getTime()
 }
 
-export function DailyPanchangView({ data }: { data: PanchangApiData }) {
+function dateInTz(date: Date, tz: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date)
+}
+
+function grahaName(id: string): string {
+  return GRAHA_NAMES[id as GrahaId] ?? id
+}
+
+/** "until 1:11 pm, then Navami" — names the day when the limb runs past this date. */
+export function limbUntil(
+  value: string,
+  segments: TimelineSegment[] | undefined,
+  endIso: string | null | undefined,
+  date: string,
+  tz: string,
+): string | undefined {
+  const index = segments?.findIndex((s) => s.label === value) ?? -1
+  const segment = index >= 0 ? segments?.[index] : undefined
+  const end = endIso ?? segment?.end
+  if (!end) return undefined
+  const endDate = new Date(end)
+  const day = dateInTz(endDate, tz) === date
+    ? ''
+    : `, ${new Intl.DateTimeFormat('en-IN', { timeZone: tz, day: 'numeric', month: 'short' }).format(endDate)}`
+  const next = index >= 0 ? segments?.[index + 1]?.label : undefined
+  return `Until ${fmtTime(end, tz)}${day}${next ? `, then ${next}` : ''}`
+}
+
+export function DailyPanchangView({ data, locationName }: { data: PanchangApiData; locationName?: string }) {
   const tz = data.location.tz
   const [horaOpen, setHoraOpen] = useState(false)
   const [planetsOpen, setPlanetsOpen] = useState(false)
   const [chogOpen, setChogOpen] = useState(false)
-  const [panchakaOpen, setPanchakaOpen] = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(false)
   const [vizTab, setVizTab] = useState<'wheel' | 'timeline'>('timeline')
 
   const sunRashi = data.sunRashi ?? rashiBlockFromLongitude(data.sunLongitudeSidereal ?? 0)
@@ -170,122 +198,157 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
   const nakMeta = getNakshatraMuhurtaMeta(data.nakshatra.index, data.nakshatra.pada)
   const abhijit = getAbhijitWindow(data.moonLongitudeSidereal)
   const vaarMeta = getVaarMeta(data.vara.number)
+  const isToday = dateInTz(new Date(), tz) === data.date
+  const calendar = data.calendarContext
+  const currentChoghadiya = data.choghadiya?.day.find((s) => isNow(s.start, s.end))
+    ?? data.choghadiya?.night.find((s) => isNow(s.start, s.end))
+  const currentHora = data.horaTable?.find((h) => isNow(h.start, h.end))
+  const dayReading = buildDayReading({
+    tithiNumber: data.tithi.number,
+    nakshatraIndex: data.nakshatra.index,
+    nakshatraPada: data.nakshatra.pada,
+    yogaName: data.yoga.name,
+    karanaName: data.karana.name,
+    varaNumber: data.vara.number,
+    timeline: data.timeline,
+  })
+  const yogaTone = data.yoga.quality === 'auspicious' ? 'good' : data.yoga.quality === 'inauspicious' ? 'bad' : undefined
 
   return (
     <div className={styles.root}>
-      {/* Quick Summary Header */}
-      <div className={styles.quickHeader}>
-        <div className={styles.dateLocationRow}>
-          <div className={styles.dateDisplay}>{new Date(data.date + 'T12:00:00Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}</div>
-          <div className={styles.locationDisplay}>
-            <span>📍 {data.location.lat.toFixed(2)}, {data.location.lng.toFixed(2)}</span>
-            <span>({tz})</span>
+      <section className={styles.hero}>
+        <header className={styles.heroHead}>
+          <div className={styles.heroTitle}>
+            <div className={styles.eyebrow}>{isToday ? "Today's panchang" : 'Panchang'}</div>
+            <h2 className={styles.dateDisplay}>
+              {new Date(data.date + 'T12:00:00Z').toLocaleDateString('en-IN', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}
+            </h2>
+            {calendar && (
+              <p className={styles.calendarLine}>
+                {calendar.sauraMasa} · {calendar.rituSa} · {calendar.ayanaSa} · {calendar.samvatsara} samvatsara · VS {calendar.vikramSamvat}
+              </p>
+            )}
           </div>
-        </div>
+          <div className={styles.heroMeta}>
+            <div className={styles.locationDisplay}>
+              <MapPin size={14} aria-hidden />
+              {locationName ?? `${data.location.lat.toFixed(2)}, ${data.location.lng.toFixed(2)}`}
+            </div>
+            <div className={styles.signs}>Sun in {sunRashi.sa} · Moon in {moonRashi.sa}</div>
+          </div>
+        </header>
 
-        {/* The Five Limbs - Ultra Compact */}
         <div className={styles.limbsGrid}>
-          <CompactLimbCard 
-            label="Tithi" 
-            value={data.tithi.name} 
-            sub={`${data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} · ${tithiMeta.group.id} · ${tithiMeta.group.elementLabel}`}
-            percent={data.tithi.percent}
-            isRikta={riktaInfo.active}
-            riktaDetail={riktaInfo.detail}
+          <LimbCell
+            label="Tithi"
+            value={data.tithi.name}
+            until={limbUntil(data.tithi.name, data.timeline?.tithi, data.limbEnds?.tithi, data.date, tz)}
+            sub={`${data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} paksha · ${tithiMeta.group.id} · ${tithiMeta.group.elementLabel}`}
+            flag={riktaInfo.active ? 'Rikta' : undefined}
+            flagTitle={riktaInfo.detail}
           />
-          <CompactLimbCard 
-            label="Nakshatra" 
-            value={abhijit.active ? `${data.nakshatra.name} · Abhijit` : data.nakshatra.name} 
-            sub={`${nakMeta.group.id} · ${nakMeta.mukha.id} · Pada ${data.nakshatra.pada}`}
-            percent={(data.nakshatra.degree / 13.33) * 100}
+          <LimbCell
+            label="Nakshatra"
+            value={data.nakshatra.name}
+            until={limbUntil(data.nakshatra.name, data.timeline?.nakshatra, data.limbEnds?.nakshatra, data.date, tz)}
+            sub={`Pada ${data.nakshatra.pada} · ${nakMeta.group.id} · ${nakMeta.mukha.id}`}
+            note={abhijit.active ? 'Abhijit' : undefined}
           />
-          <CompactLimbCard 
-            label="Yoga" 
-            value={data.yoga.name} 
-            sub={yogaMeta
-              ? `${yogaMeta.quality} · ${yogaMeta.meaning}`
-              : `${data.yoga.quality} · ${data.yoga.percent.toFixed(0)}%`}
-            percent={data.yoga.percent}
-            quality={data.yoga.quality}
+          <LimbCell
+            label="Yoga"
+            value={data.yoga.name}
+            until={limbUntil(data.yoga.name, data.timeline?.yoga, data.limbEnds?.yoga, data.date, tz)}
+            sub={yogaMeta?.meaning}
+            note={data.yoga.quality}
+            noteTone={yogaTone}
           />
-          <CompactLimbCard 
-            label="Karana" 
-            value={data.karana.name} 
-            sub={karanaMeta
-              ? `${karanaMeta.typeLabel} · ${karanaMeta.meaning}${karanaMeta.isBhadra ? ' · Bhadra' : ''}`
-              : data.karana.type}
-            isBhadra={data.karana.isBhadra || karanaMeta?.isBhadra}
+          <LimbCell
+            label="Karana"
+            value={data.karana.name}
+            until={limbUntil(data.karana.name, data.timeline?.karana, null, data.date, tz)}
+            sub={karanaMeta ? `${karanaMeta.typeLabel} · ${karanaMeta.meaning}` : data.karana.type}
+            flag={data.karana.isBhadra || karanaMeta?.isBhadra ? 'Bhadra' : undefined}
           />
-          <CompactLimbCard 
-            label="Vara" 
-            value={data.vara.name} 
+          <LimbCell
+            label="Vara"
+            value={data.vara.name}
+            until="Sunrise to next sunrise"
             sub={`${vaarMeta.sanskrit} · ${vaarMeta.lordName} · ${vaarMeta.nature}`}
           />
         </div>
-      </div>
 
-      {/* Daily Cycle - Visual Strip */}
-      <div className={styles.cycleStrip}>
-        <CycleItem icon="🌅" label="Sunrise" value={fmtTime(data.sunrise, tz)} />
-        <CycleItem icon="🌇" label="Sunset" value={fmtTime(data.sunset, tz)} />
-        <CycleItem icon="🌙" label="Moonrise" value={data.moonrise ? fmtTime(data.moonrise, tz) : '—'} />
-        <CycleItem icon="🌑" label="Moonset" value={data.moonset ? fmtTime(data.moonset, tz) : '—'} />
-        <CycleItem icon="⏱" label="Day Length" value={`${Math.floor(dayLengthMin / 60)}h ${dayLengthMin % 60}m`} />
-      </div>
-
-      {/* Muhurtas - Good vs Bad Grid */}
-      <section className={styles.muhurtaSection}>
-        <div className={styles.sectionHeading}>Important Timings</div>
-        <div className={styles.muhurtaGrid}>
-          <MuhurtaCard label="Abhijit" start={data.abhijitMuhurta?.start} end={data.abhijitMuhurta?.end} tz={tz} tone="good" />
-          <MuhurtaCard label="Rahu Kalam" start={data.rahuKalam.start} end={data.rahuKalam.end} tz={tz} tone="bad" />
-          <MuhurtaCard label="Gulika Kalam" start={data.gulikaKalam.start} end={data.gulikaKalam.end} tz={tz} tone="bad" />
-          <MuhurtaCard label="Yamaganda" start={data.yamaganda.start} end={data.yamaganda.end} tz={tz} tone="neutral" />
-          {data.brahmaMuhurta && <MuhurtaCard label="Brahma Muhurta" start={data.brahmaMuhurta.start} end={data.brahmaMuhurta.end} tz={tz} tone="good" />}
-          {data.godhuliMuhurat && <MuhurtaCard label="Godhuli" start={data.godhuliMuhurat.start} end={data.godhuliMuhurat.end} tz={tz} tone="good" />}
-        </div>
-        <div style={{ marginTop: '0.75rem' }}>
-          <DinmanMuhurtaStrip sunrise={data.sunrise} sunset={data.sunset} tz={tz} />
-        </div>
-        <div style={{ marginTop: '0.75rem' }}>
-          <SanskarasReference />
+        <div className={styles.cycleStrip}>
+          <CycleItem icon={<Sunrise size={16} aria-hidden />} label="Sunrise" value={fmtTime(data.sunrise, tz)} />
+          <CycleItem icon={<Sunset size={16} aria-hidden />} label="Sunset" value={fmtTime(data.sunset, tz)} />
+          <CycleItem icon={<MoonStar size={16} aria-hidden />} label="Moonrise" value={data.moonrise ? fmtTime(data.moonrise, tz) : '—'} />
+          <CycleItem icon={<Moon size={16} aria-hidden />} label="Moonset" value={data.moonset ? fmtTime(data.moonset, tz) : '—'} />
+          <CycleItem icon={<Timer size={16} aria-hidden />} label="Day length" value={`${Math.floor(dayLengthMin / 60)}h ${dayLengthMin % 60}m`} />
         </div>
       </section>
 
-      {/* Personalized Bala (if available) */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionHeading}>Predictions for the day</h2>
+        <PanchangDayReading reading={dayReading} tz={tz} />
+      </section>
+
       {data.personalBala && (
-        <section>
-          <div className={styles.sectionHeading}>Your Personal Bala</div>
-          <div className={styles.chogGrid}>
-             <div className={styles.limbCard} style={{ borderColor: data.personalBala.tara.favorable ? 'var(--teal)' : 'var(--rose)' }}>
-                <div className={styles.limbLabel}>Tara Bala <span style={{ color: data.personalBala.tara.favorable ? 'var(--teal)' : 'var(--rose)' }}>{data.personalBala.tara.favorable ? '✓' : '✗'}</span></div>
-                <div className={styles.limbValue}>{data.personalBala.tara.nameSa}</div>
-                <div className={styles.limbSub}>{data.personalBala.tara.hint}</div>
-             </div>
-             <div className={styles.limbCard} style={{ borderColor: data.personalBala.chandra.favorable ? 'var(--teal)' : 'var(--rose)' }}>
-                <div className={styles.limbLabel}>Chandra Bala <span style={{ color: data.personalBala.chandra.favorable ? 'var(--teal)' : 'var(--rose)' }}>{data.personalBala.chandra.favorable ? '✓' : '✗'}</span></div>
-                <div className={styles.limbValue}>House {data.personalBala.chandra.houseFromNatalMoon}</div>
-                <div className={styles.limbSub}>{data.personalBala.chandra.hint}</div>
-             </div>
+        <section className={styles.section}>
+          <h2 className={styles.sectionHeading}>Your personal bala</h2>
+          <div className={styles.balaGrid}>
+            <BalaCard
+              label="Tara Bala"
+              value={`${data.personalBala.tara.nameSa} · ${data.personalBala.tara.nameEn}`}
+              hint={data.personalBala.tara.hint}
+              favorable={data.personalBala.tara.favorable}
+            />
+            <BalaCard
+              label="Chandra Bala"
+              value={`House ${data.personalBala.chandra.houseFromNatalMoon} from natal Moon`}
+              hint={data.personalBala.chandra.hint}
+              favorable={data.personalBala.chandra.favorable}
+            />
           </div>
         </section>
       )}
 
-      {/* Visualization Tab Toggle */}
-      <section className={styles.vizContainer}>
-        <div className={styles.vizTabs}>
-          <button 
-            className={`${styles.vizTabBtn} ${vizTab === 'timeline' ? styles.vizTabBtnActive : ''}`}
-            onClick={() => setVizTab('timeline')}
-          >
-            📊 Timeline View
-          </button>
-          <button 
-            className={`${styles.vizTabBtn} ${vizTab === 'wheel' ? styles.vizTabBtnActive : ''}`}
-            onClick={() => setVizTab('wheel')}
-          >
-            🎡 Sky Wheel
-          </button>
+      <section className={styles.section}>
+        <h2 className={styles.sectionHeading}>Important timings</h2>
+        <PanchangDayWindows
+          sunrise={data.sunrise}
+          sunset={data.sunset}
+          tz={tz}
+          abhijit={data.abhijitMuhurta}
+          brahma={data.brahmaMuhurta}
+          godhuli={data.godhuliMuhurat}
+          rahu={data.rahuKalam}
+          gulika={data.gulikaKalam}
+          yamaganda={data.yamaganda}
+          durMuhurat={data.durMuhurat}
+        />
+        <DinmanMuhurtaStrip sunrise={data.sunrise} sunset={data.sunset} tz={tz} />
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.vizHead}>
+          <h2 className={styles.sectionHeading}>{vizTab === 'timeline' ? 'Sunrise to sunrise' : 'Sky wheel'}</h2>
+          <div className={styles.vizTabs}>
+            <button
+              type="button"
+              aria-pressed={vizTab === 'timeline'}
+              className={`${styles.vizTabBtn} ${vizTab === 'timeline' ? styles.vizTabBtnActive : ''}`}
+              onClick={() => setVizTab('timeline')}
+            >
+              <Rows3 size={14} aria-hidden /> Timeline
+            </button>
+            <button
+              type="button"
+              aria-pressed={vizTab === 'wheel'}
+              className={`${styles.vizTabBtn} ${vizTab === 'wheel' ? styles.vizTabBtnActive : ''}`}
+              onClick={() => setVizTab('wheel')}
+            >
+              <Orbit size={14} aria-hidden /> Sky wheel
+            </button>
+          </div>
         </div>
 
         <div className={styles.vizContent}>
@@ -298,97 +361,114 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
               moonLon={data.moonLongitudeSidereal ?? 0}
               elongDeg={elongDisplay}
               nakIndex={data.nakshatra.index}
-              tithiPercent={data.tithi.percent}
+              nakPada={data.nakshatra.pada}
+              tithiName={data.tithi.name}
               paksha={data.tithi.paksha}
-              yogaPercent={data.yoga.percent}
+              yogaName={data.yoga.name}
               yogaNumber={data.yoga.number}
-              sunrise={data.sunrise}
-              sunset={data.sunset}
-              tz={tz}
               dateStr={data.date}
             />
           )}
         </div>
       </section>
 
-        <CollapsibleSection title="Choghadiya (Day & Night)" open={chogOpen} onToggle={() => setChogOpen(!chogOpen)}>
-          {data.choghadiya && (
-            <div className={styles.chogGrid}>
-              {(['day', 'night'] as const).map((part) => (
-                <div key={part} className={styles.chogBlock}>
-                  <div className={styles.chogBlockTitle}>{part}</div>
-                  {data.choghadiya![part].map((slot, i) => (
-                    <div key={i} className={`${styles.chogRow} ${isNow(slot.start, slot.end) ? styles.chogRowActive : ''}`}>
-                      <span className={slot.quality === 'good' ? styles.chogGood : slot.quality === 'mixed' ? styles.chogMixed : styles.chogAvoid}>
-                        {slot.name}
-                      </span>
-                      <span className={styles.mono}>{fmtTime(slot.start, tz)}</span>
-                    </div>
-                  ))}
+      <section className={styles.section}>
+        <h2 className={styles.sectionHeading}>Reference</h2>
+        <div className={styles.disclosureGroup}>
+          <CollapsibleSection
+            title="Choghadiya"
+            hint={currentChoghadiya ? `Now: ${currentChoghadiya.name}` : 'Day and night'}
+            open={chogOpen}
+            onToggle={() => setChogOpen(!chogOpen)}
+          >
+            {data.choghadiya && (
+              <div className={styles.chogGrid}>
+                {(['day', 'night'] as const).map((part) => (
+                  <div key={part} className={styles.chogBlock}>
+                    <div className={styles.chogBlockTitle}>{part}</div>
+                    {data.choghadiya![part].map((slot, i) => (
+                      <div key={i} className={`${styles.chogRow} ${isNow(slot.start, slot.end) ? styles.chogRowActive : ''}`}>
+                        <span className={slot.quality === 'good' ? styles.chogGood : slot.quality === 'mixed' ? styles.chogMixed : styles.chogAvoid}>
+                          {slot.name}
+                        </span>
+                        <span className={styles.mono}>{fmtTime(slot.start, tz)} – {fmtTime(slot.end, tz)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Hora"
+            hint={currentHora ? `Now: ${grahaName(currentHora.lord)}` : 'Planetary hours'}
+            open={horaOpen}
+            onToggle={() => setHoraOpen(!horaOpen)}
+          >
+            <div className={styles.factGrid}>
+              {data.horaTable?.map((h, i) => (
+                <div key={i} className={`${styles.fact} ${isNow(h.start, h.end) ? styles.factActive : ''}`}>
+                  <div className={styles.factValue}>{grahaName(h.lord)}</div>
+                  <div className={styles.factMono}>{fmtTime(h.start, tz)} – {fmtTime(h.end, tz)}</div>
                 </div>
               ))}
             </div>
-          )}
-        </CollapsibleSection>
+          </CollapsibleSection>
 
-        <CollapsibleSection title="Graha Positions (Sidereal)" open={planetsOpen} onToggle={() => setPlanetsOpen(!planetsOpen)}>
-          <div className={styles.ephemeris} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}>
-            {data.planets?.map(p => (
-              <div key={p.id} style={{ textAlign: 'center' }}>
-                <div className={styles.ephemerisLabel}>{p.sa}</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{p.rashiSa}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.degInSign.toFixed(2)}°</div>
-              </div>
-            ))}
-          </div>
-        </CollapsibleSection>
+          <CollapsibleSection
+            title="Graha positions"
+            hint="Sidereal"
+            open={planetsOpen}
+            onToggle={() => setPlanetsOpen(!planetsOpen)}
+          >
+            <div className={styles.factGrid}>
+              {data.planets?.map((p) => (
+                <div key={p.id} className={styles.fact}>
+                  <div className={styles.factLabel}>
+                    {p.sa}
+                    {p.retro && <span title="Retrograde"> · R</span>}
+                    {p.combust && <span title="Combust"> · C</span>}
+                  </div>
+                  <div className={styles.factValue}>{p.rashiSa}</div>
+                  <div className={styles.factMono}>{p.degInSign.toFixed(2)}°</div>
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
 
-        <CollapsibleSection title="Hora Table" open={horaOpen} onToggle={() => setHoraOpen(!horaOpen)}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
-            {data.horaTable?.map((h, i) => (
-              <div key={i} style={{ padding: '0.5rem', borderRadius: '4px', background: isNow(h.start, h.end) ? 'rgba(201,168,76,0.1)' : 'var(--surface-2)', border: isNow(h.start, h.end) ? '1px solid var(--text-gold)' : '1px solid var(--border)' }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 700 }}>{h.lord} {isNow(h.start, h.end) && '✨'}</div>
-                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{fmtTime(h.start, tz)}</div>
-              </div>
-            ))}
-          </div>
-        </CollapsibleSection>
+          <CollapsibleSection
+            title="Calendar and ephemeris"
+            hint={calendar ? `Shaka ${calendar.shakaYear}` : undefined}
+            open={calendarOpen}
+            onToggle={() => setCalendarOpen(!calendarOpen)}
+          >
+            <div className={styles.factGrid}>
+              {[
+                ['Saura masa', calendar?.sauraMasa],
+                ['Ritu', calendar ? `${calendar.rituSa} (${calendar.rituEn})` : undefined],
+                ['Ayana', calendar?.ayanaSa],
+                ['Samvatsara', calendar?.samvatsara],
+                ['Vikram Samvat', calendar?.vikramSamvat],
+                ['Shaka year', calendar?.shakaYear],
+                ['Ayanamsha', data.ayanamsha],
+              ].map(([label, value]) => (
+                <div key={label} className={styles.fact}>
+                  <div className={styles.factLabel}>{label}</div>
+                  <div className={styles.factValue}>{value ?? '—'}</div>
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
+        </div>
+        <SanskarasReference />
+      </section>
 
-        <CollapsibleSection title="Advanced Ephemeris & Calendar" open={panchakaOpen} onToggle={() => setPanchakaOpen(!panchakaOpen)}>
-          <div className={styles.ephemeris}>
-            <div>
-              <div className={styles.ephemerisLabel}>Saura Masa</div>
-              <div>{data.calendarContext?.sauraMasa}</div>
-            </div>
-            <div>
-              <div className={styles.ephemerisLabel}>Ayana</div>
-              <div>{data.calendarContext?.ayanaSa}</div>
-            </div>
-            <div>
-              <div className={styles.ephemerisLabel}>Shaka Year</div>
-              <div>{data.calendarContext?.shakaYear}</div>
-            </div>
-            <div>
-              <div className={styles.ephemerisLabel}>Ayanamsha</div>
-              <div style={{ fontSize: '0.75rem' }}>{data.ayanamsha}</div>
-            </div>
-          </div>
-        </CollapsibleSection>
-      <footer style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between', paddingTop: '1.5rem', borderTop: '1px solid var(--border-soft)', marginTop: '2rem' }}>
-        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: 520, lineHeight: 1.5 }}>
+      <footer className={styles.footer}>
+        <p className={styles.footerNote}>
           Times follow the selected timezone. Almanac quality matches classical five-limb structure; exact edge times may differ slightly from other software due to ayanamsha and rise/set models.
         </p>
-        <Link
-          href="/panchang/calendar"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            color: 'var(--text-gold)',
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <Link href="/panchang/calendar" className={styles.footerLink}>
           Monthly calendar →
         </Link>
       </footer>
@@ -396,39 +476,35 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
   )
 }
 
-interface CompactLimbCardProps {
+interface LimbCellProps {
   label: string
   value: string
+  until?: string
   sub?: string
-  percent?: number
-  isRikta?: boolean
-  riktaDetail?: string
-  isBhadra?: boolean
-  quality?: string
+  flag?: string
+  flagTitle?: string
+  note?: string
+  noteTone?: 'good' | 'bad'
 }
 
-function CompactLimbCard({ label, value, sub, percent, isRikta, riktaDetail, isBhadra, quality }: CompactLimbCardProps) {
+function LimbCell({ label, value, until, sub, flag, flagTitle, note, noteTone }: LimbCellProps) {
+  const noteClass = noteTone === 'good' ? styles.noteGood : noteTone === 'bad' ? styles.noteBad : ''
   return (
-    <div className={styles.limbCard}>
-      <div className={styles.limbAccent} style={quality === 'inauspicious' || isRikta || isBhadra ? { background: 'var(--rose)' } : quality === 'auspicious' ? { background: 'var(--teal)' } : {}} />
+    <div className={styles.limbCell}>
       <div className={styles.limbLabel}>
         {label}
-        {isRikta && <span style={{ color: 'var(--rose)', fontSize: '0.55rem' }}>⚠️ RIKTA</span>}
-        {isBhadra && <span style={{ color: 'var(--rose)', fontSize: '0.55rem' }}>⚠️ BHADRA</span>}
+        {flag && <span className={styles.limbFlag} title={flagTitle}>{flag}</span>}
+        {note && <span className={`${styles.limbNote} ${noteClass}`}>{note}</span>}
       </div>
       <div className={styles.limbValue}>{value}</div>
-      <div className={styles.limbSub}>{sub}</div>
-      {percent !== undefined && (
-        <div className={styles.progressBar}>
-          <div className={styles.progressFill} style={{ width: `${percent}%`, background: quality === 'inauspicious' ? 'var(--rose)' : quality === 'auspicious' ? 'var(--teal)' : 'var(--text-gold)' }} />
-        </div>
-      )}
+      {until && <div className={styles.limbUntil}>{until}</div>}
+      {sub && <div className={styles.limbSub}>{sub}</div>}
     </div>
   )
 }
 
 interface CycleItemProps {
-  icon: string
+  icon: React.ReactNode
   label: string
   value: string
 }
@@ -443,48 +519,41 @@ function CycleItem({ icon, label, value }: CycleItemProps) {
   )
 }
 
-interface MuhurtaCardProps {
+interface BalaCardProps {
   label: string
-  start?: string
-  end?: string
-  tz: string
-  tone: 'good' | 'bad' | 'neutral'
+  value: string
+  hint: string
+  favorable: boolean
 }
 
-function MuhurtaCard({ label, start, end, tz, tone }: MuhurtaCardProps) {
-  if (!start || !end) return null
-  const active = isNow(start, end)
-  const statusClass = tone === 'good' ? styles.statusGood : tone === 'bad' ? styles.statusBad : styles.statusNeutral
-  
+function BalaCard({ label, value, hint, favorable }: BalaCardProps) {
   return (
-    <div className={`${styles.muhurtaCard} ${active ? styles.muhurtaCardActive : ''}`}>
-      <div className={styles.muhurtaInfo}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div className={`${styles.statusIndicator} ${statusClass}`} />
-          <span className={styles.muhurtaName}>{label}</span>
-        </div>
-        <span className={styles.muhurtaTime}>{fmtTime(start, tz)} – {fmtTime(end, tz)}</span>
+    <div className={styles.balaCard}>
+      <div className={`${styles.balaStatus} ${favorable ? styles.noteGood : styles.noteBad}`}>
+        {favorable ? <CircleCheck size={15} aria-hidden /> : <CircleX size={15} aria-hidden />}
+        {label} · {favorable ? 'Favourable' : 'Unfavourable'}
       </div>
-      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-        {durationMin(start, end)} min
-      </div>
+      <div className={styles.balaValue}>{value}</div>
+      <div className={styles.limbSub}>{hint}</div>
     </div>
   )
 }
 
 interface CollapsibleSectionProps {
   title: string
+  hint?: string
   children: React.ReactNode
   open: boolean
   onToggle: () => void
 }
 
-function CollapsibleSection({ title, children, open, onToggle }: CollapsibleSectionProps) {
+function CollapsibleSection({ title, hint, children, open, onToggle }: CollapsibleSectionProps) {
   return (
-    <div style={{ marginBottom: '0.5rem' }}>
-      <button className={styles.disclosureBtn} onClick={onToggle}>
+    <div className={styles.disclosure}>
+      <button type="button" className={styles.disclosureBtn} aria-expanded={open} onClick={onToggle}>
         <span>{title}</span>
-        <span>{open ? '−' : '+'}</span>
+        {hint && <span className={styles.disclosureHint}>{hint}</span>}
+        <ChevronDown size={16} aria-hidden className={`${styles.disclosureIcon} ${open ? styles.disclosureIconOpen : ''}`} />
       </button>
       {open && <div className={styles.disclosureContent}>{children}</div>}
     </div>

@@ -75,7 +75,7 @@ export const metadata: Metadata = {
   },
 
   description:
-    'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, all 41 varga charts, Panchang & Arudhas. Arc-second accuracy via Swiss Ephemeris. No login required.',
+    'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, 16 Shodashavarga charts, Panchang & Arudhas. Arc-second accuracy via Swiss Ephemeris. No login required.',
 
   keywords: [
     'Vedic astrology', 'Jyotish', 'Jyotisha', 'kundali', 'free kundali', 'birth chart', 'free horoscope',
@@ -96,7 +96,7 @@ export const metadata: Metadata = {
     siteName:  'Vedaansh',
     title:     'Vedaansh — Free Vedic Astrology Platform',
     description:
-      'Free Vedic birth charts, Dasha, 41 vargas, Panchang. Swiss Ephemeris precision.',
+      'Free Vedic birth charts, Dasha, 16 vargas, Panchang. Swiss Ephemeris precision.',
     images: [{
       url:    '/opengraph-image',
       width:  1200,
@@ -110,7 +110,7 @@ export const metadata: Metadata = {
     card:        'summary_large_image',
     site:        '@vedaansh',
     title:       'Vedaansh — Free Vedic Astrology',
-    description: 'Free birth charts, Dasha, 41 vargas, Panchang. Swiss Ephemeris precision.',
+    description: 'Free birth charts, Dasha, 16 vargas, Panchang. Swiss Ephemeris precision.',
     images:      ['/opengraph-image'],
   },
 
@@ -181,7 +181,7 @@ const jsonLdWebSite = {
   name:          'Vedaansh',
   url:           BASE_URL,
   inLanguage:    'en-IN',
-  description:   'Free Vedic astrology platform — birth charts, Dasha, 41 vargas, Panchang.',
+  description:   'Free Vedic astrology platform — birth charts, Dasha, 16 vargas, Panchang.',
   publisher:     { '@type': 'Organization', name: 'Vedaansh', url: BASE_URL },
   hasPart: [
     { '@type': 'WebPage', name: 'Daily Panchang', url: `${BASE_URL}/panchang` },
@@ -215,7 +215,7 @@ const jsonLdWebApp = {
     priceCurrency:   'INR',
     availability:    'https://schema.org/InStock',
   },
-  description: 'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, all 41 varga charts, Panchang & Arudhas with arc-second Swiss Ephemeris accuracy.',
+  description: 'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, 16 Shodashavarga charts, Panchang & Arudhas with arc-second Swiss Ephemeris accuracy.',
   featureList: [
     'Free Vedic birth chart (Kundali)',
     'Vimshottari and Yogini Dasha',

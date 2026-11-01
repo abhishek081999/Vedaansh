@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import styles from './LivePanchangTicker.module.css'
 import { Spinner } from '@/components/ui/primitives/Spinner'
+import { GRAHA_NAMES, type GrahaId } from '@/types/astrology'
 import type { PanchangApiData } from './DailyPanchangView'
 
 interface Props {
@@ -16,13 +17,10 @@ function isNow(start: string, end: string): boolean {
   return now >= new Date(start).getTime() && now <= new Date(end).getTime()
 }
 
-function fmtTime(iso: string, tz: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
-    timeZone: tz,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  }).format(new Date(iso))
+function fmtCountdown(ms: number): string {
+  const totalMin = Math.floor(ms / 60_000)
+  if (totalMin >= 60) return `${Math.floor(totalMin / 60)}h ${totalMin % 60}m`
+  return `${totalMin}m ${Math.floor((ms % 60_000) / 1000)}s`
 }
 
 export function LivePanchangTicker({ data, loading, locationName }: Props) {
@@ -33,169 +31,81 @@ export function LivePanchangTicker({ data, loading, locationName }: Props) {
     return () => clearInterval(timer)
   }, [])
 
-  const currentHora = data?.horaTable?.find(h => isNow(h.start, h.end))
-  const currentRahu = data ? isNow(data.rahuKalam.start, data.rahuKalam.end) : false
-  const currentGulika = data ? isNow(data.gulikaKalam.start, data.gulikaKalam.end) : false
-  const currentYamaganda = data ? isNow(data.yamaganda.start, data.yamaganda.end) : false
-  const currentChoghadiya =
-    data?.choghadiya?.day.find(slot => isNow(slot.start, slot.end)) ??
-    data?.choghadiya?.night.find(slot => isNow(slot.start, slot.end))
-
-  if (loading || !data) {
+  if (!data) {
     return (
       <div className={styles.tickerContainer}>
         <div className={styles.tickerContent}>
-          <div className={styles.liveIndicator}>
-            <Spinner size={14} label="Syncing panchang" />
-            <span className={styles.liveText}>Syncing…</span>
-          </div>
-          <div className={styles.tickerItem}>Loading celestial pulse…</div>
+          {loading && <Spinner size={14} label="Syncing panchang" />}
+          <span className={styles.syncing}>{loading ? 'Loading panchang…' : 'Panchang unavailable'}</span>
         </div>
       </div>
     )
   }
 
-  const formattedTime = time.toLocaleTimeString('en-IN', {
+  const tz = data.location.tz
+  const isToday = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(time) === data.date
+
+  const currentHora = data.horaTable?.find(h => isNow(h.start, h.end))
+  const currentChoghadiya =
+    data.choghadiya?.day.find(slot => isNow(slot.start, slot.end)) ??
+    data.choghadiya?.night.find(slot => isNow(slot.start, slot.end))
+  const activeKalams = [
+    { label: 'Rahu Kalam', window: data.rahuKalam },
+    { label: 'Gulika Kalam', window: data.gulikaKalam },
+    { label: 'Yamaganda', window: data.yamaganda },
+  ].filter(k => isNow(k.window.start, k.window.end))
+
+  const nextChangeAt = [
+    currentHora?.end,
+    currentChoghadiya?.end,
+    ...activeKalams.map(k => k.window.end),
+  ]
+    .filter((v): v is string => Boolean(v))
+    .map(v => new Date(v).getTime())
+    .sort((a, b) => a - b)[0]
+
+  const details = [
+    currentHora ? `Hora ${GRAHA_NAMES[currentHora.lord as GrahaId] ?? currentHora.lord}` : null,
+    currentChoghadiya ? `Choghadiya ${currentChoghadiya.name}` : null,
+  ].filter(Boolean).join(' · ')
+
+  const clock = time.toLocaleTimeString('en-IN', {
+    timeZone: tz,
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: true,
   })
-
-  // Extract country from location name if possible
-  const locationParts = locationName ? locationName.split(',') : []
-  const country = locationParts.length > 0 ? locationParts[locationParts.length - 1].trim() : ''
-  const city = locationParts.length > 0 ? locationParts[0].trim() : ''
-  const activeWarnings = [
-    currentRahu ? 'Rahu Kalam' : null,
-    currentGulika ? 'Gulika Kalam' : null,
-    currentYamaganda ? 'Yamaganda' : null,
-  ].filter(Boolean) as string[]
-  const nowRunningLabel = activeWarnings.length > 0 ? activeWarnings.join(' · ') : 'Good Time'
-  const nowRunningTone = activeWarnings.length > 0 ? styles.nowRunningBad : styles.nowRunningGood
-  const nextChangeCandidates = [
-    currentHora?.end,
-    currentChoghadiya?.end,
-    currentRahu ? data.rahuKalam.end : undefined,
-    currentGulika ? data.gulikaKalam.end : undefined,
-    currentYamaganda ? data.yamaganda.end : undefined,
-  ].filter((v): v is string => Boolean(v))
-  const nextChangeAt = nextChangeCandidates.length
-    ? nextChangeCandidates
-      .map(v => new Date(v).getTime())
-      .sort((a, b) => a - b)[0]
-    : null
-  const msToNextChange = nextChangeAt ? Math.max(0, nextChangeAt - time.getTime()) : null
-  const nextChangeCountdown = msToNextChange != null
-    ? `${Math.floor(msToNextChange / 60_000)}m ${Math.floor((msToNextChange % 60_000) / 1000)}s`
-    : null
-  const compactDetails = [
-    currentHora ? `Hora ${currentHora.lord}` : null,
-    currentChoghadiya ? `Choghadiya ${currentChoghadiya.name}` : null,
-    `Tithi ${data.tithi.name}`,
-  ].filter(Boolean).join(' | ')
+  const city = locationName?.split(',')[0].trim()
 
   return (
     <div className={styles.tickerContainer}>
       <div className={styles.tickerContent}>
-        <div className={styles.nowCard}>
-          <div className={styles.nowMetaCompact}>
-            <span className={styles.liveStatusLabel}>
-              <span className={styles.liveInlineDot} />
-              LIVE
+        {isToday ? (
+          <>
+            <span className={styles.liveLabel}>
+              <span className={styles.liveDot} aria-hidden />
+              Live
             </span>
-            <span className={`${styles.nowRunningPill} ${nowRunningTone}`}>{nowRunningLabel}</span>
-            <span className={styles.nowDetail}>{compactDetails}</span>
+            <span className={`${styles.statusPill} ${activeKalams.length > 0 ? styles.statusBad : styles.statusClear}`}>
+              {activeKalams.length > 0 ? activeKalams.map(k => k.label).join(' · ') : 'No kalam active'}
+            </span>
+            {details && <span className={styles.details}>{details}</span>}
             {nextChangeAt && (
-              <span className={styles.nextChangeText}>
-                Next {fmtTime(new Date(nextChangeAt).toISOString(), data.location.tz)}
-                {nextChangeCountdown && <span className={styles.nextChangeCountdown}> (changes in {nextChangeCountdown})</span>}
+              <span className={styles.nextChange}>
+                Changes in {fmtCountdown(Math.max(0, nextChangeAt - time.getTime()))}
               </span>
             )}
-          </div>
-        </div>
-
-        <div className={styles.tickerScroll}>
-          <div className={styles.tickerTrack}>
-            {/* Primary Set */}
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Tithi:</span>
-              <span className={styles.itemValue}>{data.tithi.name}</span>
-            </div>
-            <div className={styles.tickerDivider} />
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Nakshatra:</span>
-              <span className={styles.itemValue}>{data.nakshatra.name}</span>
-            </div>
-            <div className={styles.tickerDivider} />
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Yoga:</span>
-              <span className={styles.itemValue}>{data.yoga.name}</span>
-            </div>
-            <div className={styles.tickerDivider} />
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Karana:</span>
-              <span className={styles.itemValue}>{data.karana.name}</span>
-            </div>
-            <div className={styles.tickerDivider} />
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Rashi:</span>
-              <span className={styles.itemValue}>{data.moonRashi?.en}</span>
-            </div>
-            {currentHora && (
-              <>
-                <div className={styles.tickerDivider} />
-                <div className={styles.tickerItem}>
-                  <span className={styles.itemLabel}>Hora:</span>
-                  <span className={styles.itemValue}>{currentHora.lord}</span>
-                </div>
-              </>
-            )}
-
-            {/* Duplicate Set for Loop */}
-            <div className={styles.tickerDivider} />
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Tithi:</span>
-              <span className={styles.itemValue}>{data.tithi.name}</span>
-            </div>
-            <div className={styles.tickerDivider} />
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Nakshatra:</span>
-              <span className={styles.itemValue}>{data.nakshatra.name}</span>
-            </div>
-            <div className={styles.tickerDivider} />
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Yoga:</span>
-              <span className={styles.itemValue}>{data.yoga.name}</span>
-            </div>
-            <div className={styles.tickerDivider} />
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Karana:</span>
-              <span className={styles.itemValue}>{data.karana.name}</span>
-            </div>
-            <div className={styles.tickerDivider} />
-            <div className={styles.tickerItem}>
-              <span className={styles.itemLabel}>Rashi:</span>
-              <span className={styles.itemValue}>{data.moonRashi?.en}</span>
-            </div>
-            {currentHora && (
-              <>
-                <div className={styles.tickerDivider} />
-                <div className={styles.tickerItem}>
-                  <span className={styles.itemLabel}>Hora:</span>
-                  <span className={styles.itemValue}>{currentHora.lord}</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+          </>
+        ) : (
+          <span className={styles.details}>
+            Now showing {new Date(data.date + 'T12:00:00Z').toLocaleDateString('en-IN', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
+        )}
 
         <div className={styles.locationInfo}>
-          <div className={styles.timeValue}>{formattedTime}</div>
-          <div className={styles.locationValue}>
-             <span className={styles.city}>{city}</span>
-             {country && <span className={styles.country}>{country}</span>}
-          </div>
+          <span className={styles.timeValue}>{clock}</span>
+          {city && <span className={styles.city}>{city}</span>}
         </div>
       </div>
     </div>

@@ -7,6 +7,50 @@
   color: var(--text-secondary);
 }
 
+.compact {
+  max-width: 1240px;
+}
+
+.collapsible {
+  margin-top: var(--space-5, 1.25rem);
+  border-top: 1px solid var(--border);
+}
+
+.collapsible .list,
+.collapsible .faqList {
+  border-top: 0;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::after {
+  content: '+';
+  color: var(--text-gold, var(--gold));
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.collapsible[open] > .summary::after {
+  content: '\2212';
+}
+
+.summary > .subtitle,
+.summary > .faqTitle {
+  margin: 0;
+}
+
 .title {
   margin: 0 0 var(--space-3, 0.75rem);
   font-family: var(--font-display), Georgia, serif;
