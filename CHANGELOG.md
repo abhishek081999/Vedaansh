@@ -16,6 +16,11 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 ### Added / live
 
+- Ṣaṭpañcāśikā in Prashna is now a rule engine over all 56 ślokas: fourteen question types, each rule cited with the chart facts that fired it, a verdict weighted by planetary strength, the five timing methods kept separate, lost-item details, rules it could not judge listed with the reason, and a searchable śloka reference
+- Ṣaṭpañcāśikā now answers 32 questions, grouped by theme: new ones include who took a lost item, where it is, whom the question is about, when a traveller returns, whether it is good to set out, and any of the twelve houses through śloka 1.3
+- Prashna timing now covers every question about an event and shows approximate calendar dates. Methods the text gives for that question are marked as from the text, and borrowed ones as adapted
+- Vedic Prashna is now a real reading (Gold+): ten matters, lagna lord, matter's lord, kāraka and Moon weighed by ṣaḍbala, Parashari links, Tajika ithasala, ishrafa, nakta, yamaya and kamboola with orbs, kartari, bhāva bala, and separate timing
+- Prashna adds a time-sensitivity check showing whether the verdict holds a few minutes either side, casting for a past question, a planet table, and a hit-or-miss log in reading history
 - Dashboard cards: doshas and afflictions, today's Panchang (Rahu Kalam, Abhijit), current transits with Sade Sati status, D9/D10/D7/D12 charts, remedies from the Moon nakshatra and running dasha lords, and a Gold relationship and career highlight. On phones these sit in Today, Yogas, and a new Insights tab
 - Full chart workspace: Navagraha, vargas (plan-filtered), dashas, strengths, yogas, SBC, ACG, Vastu, Prashna, Jaimini, Nakshatra lab, Numerology
 - Career and profession desk on the chart (Free preview; full reading on Gold+)
