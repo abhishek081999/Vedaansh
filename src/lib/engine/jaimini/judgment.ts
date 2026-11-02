@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/jaimini/judgment.ts
 //  Sagittarius judgment, Atmakaraka crisis, and Amatyakaraka
-//  career notes from the Jaimini lecture. Narrative only.
+//  career notes. Narrative only.
 //  Chara year counts and rashi drishti stay in their own modules.
 //  Past-life pada stories are limited to the three nakshatras
-//  the lecture actually specifies.
+//  the rules actually specify.
 // ─────────────────────────────────────────────────────────────
 
 import type { Dignity, GrahaId, Rashi } from '@/types/astrology'
@@ -259,7 +259,7 @@ function amkHouseText(house: number): string {
   if (house === 4 || house === 7 || house === 10) {
     return `Amatyakaraka is in the ${ordinal(house)}, a kendra (angular houses: 1, 4, 7, 10). A rise can be visible.`
   }
-  return `Amatyakaraka is in the ${ordinal(house)}. This lecture gives no special rise or fall for that house.`
+  return `Amatyakaraka is in the ${ordinal(house)}. No special rise or fall is marked for that house.`
 }
 
 function conjunctionText(id: GrahaId, others: JudgmentGraha[]): string {
@@ -285,7 +285,7 @@ export function recommendMandook(
   if (count < 4) return null
   return {
     count,
-    text: `${count} planets sit in kendras (angular houses: 1, 4, 7, 10), excluding Rahu and Ketu. This lecture reads only Mandook dasha for that pattern and sets Chara aside. Chara stays available here. Use Mandook as the recommended sequence and keep the K.N. Rao Chara sequence beside it.`,
+    text: `${count} planets sit in kendras (angular houses: 1, 4, 7, 10), excluding Rahu and Ketu. This pattern is read through Mandook dasha, with Chara set aside. Chara stays available here. Use Mandook as the recommended sequence and keep the K.N. Rao Chara sequence beside it.`,
   }
 }
 
@@ -360,14 +360,14 @@ function sagittariusPeriodText(input: {
   if (saturn?.rashi === 9) {
     parts.push('Saturn in Sagittarius makes patience the test. The exhaustion of waiting is part of that test.')
   }
-  parts.push('The chart cannot measure ego. A rise in position that arrives with a rise in ego is the condition this lecture treats as a public fall.')
+  parts.push('The chart cannot measure ego. A rise in position that arrives with a rise in ego is the condition treated here as a public fall.')
   if (input.upapada) {
     const marriage = sagittariusMarriageLine(input.upapada, 9)
     if (marriage) parts.push(marriage)
   }
   if (eighth && rahuOnSag) {
     const extra = jupiter.weak ? ' Jupiter is weak or touched by Rahu as well.' : ''
-    parts.push(`Sagittarius as the 8th from the Atmakaraka, together with Rahu on Sagittarius, is the lecture's high-risk combination.${extra} The result can be a change of identity, career, reputation, relationship, belief, or money. A Saturn transit over Sagittarius, the Atmakaraka, or a maraka point raises it further. This reading uses the birth chart only, and it is not a prediction of physical death by itself.`)
+    parts.push(`Sagittarius as the 8th from the Atmakaraka, together with Rahu on Sagittarius, is a high-risk combination.${extra} The result can be a change of identity, career, reputation, relationship, belief, or money. A Saturn transit over Sagittarius, the Atmakaraka, or a maraka point raises it further. This reading uses the birth chart only, and it is not a prediction of physical death by itself.`)
   }
   return parts.join(' ')
 }
@@ -479,7 +479,7 @@ export function judgmentSteps(input: {
   if (akActive && amkActive) {
     steps.push({
       title: 'Atmakaraka and Amatyakaraka',
-      text: 'Both karakas (natural indicator) are active together. This lecture gives the overlap no middle ground: a lifetime rise, or a lifetime collapse. A shortcut in work, travel, or a decision can spoil a period that would otherwise hold. When transit agrees, the result is treated as certain in whichever direction the chart already leans.',
+      text: 'Both karakas (natural indicator) are active together. This overlap has no middle ground: a lifetime rise, or a lifetime collapse. A shortcut in work, travel, or a decision can spoil a period that would otherwise hold. When transit agrees, the result is treated as certain in whichever direction the chart already leans.',
     })
   }
 
@@ -518,14 +518,14 @@ export function readSoulKarakas(input: {
     const star = nakshatraOf(ak.rashi, ak.degree)
     const story = pastLifeNakshatra(star.name, star.pada)
     akLines.push(story
-      ?? `${star.name} is ruled by ${GRAHA_NAMES[star.lord]}, pada ${star.pada}. This lecture gives a pada story only for Ashwini, Krittika, and Bharani.`)
+      ?? `${star.name} is ruled by ${GRAHA_NAMES[star.lord]}, pada ${star.pada}. A detailed pada story is given only for Ashwini, Krittika, and Bharani.`)
     const rahu = findGraha(input.grahas, 'Ra')
     const ketu = findGraha(input.grahas, 'Ke')
     const afflicted = dignityOf(ak) === 'debilitated'
       || [6, 8, 12].includes(distance(input.lagna, ak.rashi))
       || (rahu ? touches(rahu.rashi, ak.rashi) : false)
     if (afflicted) {
-      akLines.push('The Atmakaraka is under pressure. This lecture reads that as a large karmic debt brought into this life. Problems in its period are the soul pushing that work to be finished.')
+      akLines.push('The Atmakaraka is under pressure. This is read as a large karmic debt brought into this life. Problems in its period are the soul pushing that work to be finished.')
     }
     if (ketu && touches(ketu.rashi, ak.rashi)) {
       akLines.push('Ketu with the Atmakaraka brings detachment. The heart can withdraw from money, career, home, spouse, or friends.')
@@ -562,7 +562,7 @@ export function readSoulKarakas(input: {
   }
 
   if (ak?.rashi === 9 && amk?.rashi === 9) {
-    sagittariusLines.push('Atmakaraka and Amatyakaraka both sit in Sagittarius. The lecture reads leadership, spiritual authority, or public influence, and an ego that can turn the same planets toward a fall.')
+    sagittariusLines.push('Atmakaraka and Amatyakaraka both sit in Sagittarius. This points to leadership, spiritual authority, or public influence, and an ego that can turn the same planets toward a fall.')
   }
 
   for (const g of input.grahas) {
@@ -579,7 +579,7 @@ export function readSoulKarakas(input: {
     sagittariusLines.push('Saturn in Sagittarius makes patience the test. The exhaustion of waiting is part of that test.')
   }
   if (ak && houseFrom(ak.rashi, 8) === 9) {
-    sagittariusLines.push('Sagittarius is the 8th from the Atmakaraka. When the Sagittarius period also runs, this lecture treats that as a fall condition, stronger if Rahu touches the sign.')
+    sagittariusLines.push('Sagittarius is the 8th from the Atmakaraka. When the Sagittarius period also runs, this is treated as a fall condition, stronger if Rahu touches the sign.')
   }
   if (!sagittariusLines.length) {
     sagittariusLines.push('No classical planet or the Lagna is in Sagittarius, so the Mula, Purva Ashadha, and Uttara Ashadha split has nothing to describe yet.')
@@ -680,7 +680,7 @@ export function readKarakaLife(input: {
 
   if (pk) {
     const lines = [
-      `${GRAHA_NAMES[input.pk]} is the fifth karaka (natural indicator). This class reads that seat as creation and legacy: children, a business, an idea, a work, and what is left behind. The chart label for the seat remains Pitrukaraka.`,
+      `${GRAHA_NAMES[input.pk]} is the fifth karaka (natural indicator). This seat is read as creation and legacy: children, a business, an idea, a work, and what is left behind. The chart label for the seat remains Pitrukaraka.`,
       phaseLine(age, 25, 40, 'creation years'),
     ]
     if (held(pk, input.lagna, input.grahas)) {
@@ -700,14 +700,14 @@ export function readKarakaLife(input: {
         ? 'In the 8th the enemy stays hidden and is hard to name.'
         : house === 12
           ? 'In the 12th the person is their own enemy. The destruction comes from inside.'
-          : `In the ${ordinal(house)} this class gives no open, hidden, or self-enemy split. The karaka (natural indicator) still names where pain repeats.`
+          : `In the ${ordinal(house)} there is no open, hidden, or self-enemy split. The karaka (natural indicator) still names where pain repeats.`
     const lines = [
       `${GRAHA_NAMES[input.gk]} as Gnatikaraka generates the repeating problem: who stands in the way, and what kind of crisis forces growth. It can switch on at any age, when the soul's path needs it.`,
       place,
     ]
     if (mkWeak) lines.push('With a strained Matrukaraka, Gnatikaraka repeats emotional pain and can sink into depression.')
     if (mkWeak && rahu && (touches(rahu.rashi, gk.rashi) || (mk ? touches(rahu.rashi, mk.rashi) : false))) {
-      lines.push('Rahu joins that strain. This class reads a severe emotional breakdown.')
+      lines.push('Rahu joins that strain. This points to severe emotional strain.')
     }
     rows.push({ id: 'gk', title: 'Gnatikaraka', lines })
   }
@@ -751,7 +751,7 @@ export function readKarakaLife(input: {
 
 export function karakamshaDirection(ak: GrahaId): string {
   const hint = AK_DIRECTION[ak]
-  if (!hint) return 'This Atmakaraka has no career hint in the lecture table.'
+  if (!hint) return 'This Atmakaraka has no specific career hint.'
   return `The starting hint for ${GRAHA_NAMES[ak]} as Atmakaraka is ${hint} The full chart still decides the result.`
 }
 
@@ -769,7 +769,7 @@ export function karakamshaSupport(
   const ketu = grahas.find(g => g.id === 'Ke')
   const node = (rahu && touches(rahu.rashi, karakamsha)) || (ketu && touches(ketu.rashi, karakamsha))
   return node
-    ? `${place} Rahu or Ketu touches Karakamsha, which this lecture reads as an obstacle or a false path.`
+    ? `${place} Rahu or Ketu touches Karakamsha, which is read as an obstacle or a false path.`
     : place
 }
 

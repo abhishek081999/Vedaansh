@@ -7,6 +7,7 @@
 import type { GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { rashiAspectsOrOccupies } from './aspects'
+import { fifthKarakaName, type JaiminiMethod } from './method'
 import { resolveSignLord } from './trinity'
 
 export interface JaiminiYogaHit {
@@ -34,6 +35,7 @@ export interface JaiminiYogaCharts {
   d9Lagna?: Rashi
   /** Atmakaraka's navamsha sign. Fifth-lord yogas are also read from here. */
   karakamsha?: Rashi
+  method?: JaiminiMethod
 }
 
 function houseFrom(seed: Rashi, house: number): Rashi {
@@ -95,8 +97,15 @@ function fifthLordYoga(
 }
 
 /** Conjunction and rashi-drishti rajayogas for one chart. Fifth lord is taken from `lagna`. */
-function collectPairYogas(grahas: YogaGraha[], lagna: Rashi, karakas: YogaKarakas): JaiminiYogaHit[] {
+function collectPairYogas(grahas: YogaGraha[], lagna: Rashi, karakas: YogaKarakas, method: JaiminiMethod): JaiminiYogaHit[] {
   const yogas: JaiminiYogaHit[] = []
+  const pkName = fifthKarakaName(method)
+  const akPkMeaning = method === 'practical'
+    ? 'Children, creation, and legacy participate in the soul\'s work.'
+    : 'Father and authority participate in the soul\'s work.'
+  const amkPkMeaning = method === 'practical'
+    ? 'Career and what the person creates or leaves behind move together.'
+    : 'Career and the father significator move together.'
   const ak = placed(grahas, karakas.AK)
   const amk = placed(grahas, karakas.AmK)
   const pk = placed(grahas, karakas.PK)
@@ -110,18 +119,18 @@ function collectPairYogas(grahas: YogaGraha[], lagna: Rashi, karakas: YogaKaraka
     push(pairYoga('ak-dk', 'Atmakaraka–Darakaraka Yoga', ak, 'AK', dk, 'DK', 'Partnership participates in the soul\'s work.'))
   }
   if (ak && pk && linked(ak, pk)) {
-    push(pairYoga('ak-pk', 'Atmakaraka–Pitrukaraka Yoga', ak, 'AK', pk, 'PK', 'Father and authority participate in the soul\'s work.'))
+    push(pairYoga('ak-pk', `Atmakaraka–${pkName} Yoga`, ak, 'AK', pk, 'PK', akPkMeaning))
   }
   if (amk && dk && linked(amk, dk)) {
     push(pairYoga('amk-dk', 'Amatyakaraka–Darakaraka Yoga', amk, 'AmK', dk, 'DK', 'Career and partnership move together.'))
   }
   if (amk && pk && linked(amk, pk)) {
-    push(pairYoga('amk-pk', 'Amatyakaraka–Pitrukaraka Yoga', amk, 'AmK', pk, 'PK', 'Career and the father significator move together.'))
+    push(pairYoga('amk-pk', `Amatyakaraka–${pkName} Yoga`, amk, 'AmK', pk, 'PK', amkPkMeaning))
   }
   push(fifthLordYoga('ak-fifth-lord', 'Atmakaraka', ak, grahas, lagna, 'Lagna'))
   push(fifthLordYoga('amk-fifth-lord', 'Amatyakaraka', amk, grahas, lagna, 'Lagna'))
   push(fifthLordYoga('dk-fifth-lord', 'Darakaraka', dk, grahas, lagna, 'Lagna'))
-  push(fifthLordYoga('pk-fifth-lord', 'Pitrukaraka', pk, grahas, lagna, 'Lagna'))
+  push(fifthLordYoga('pk-fifth-lord', pkName, pk, grahas, lagna, 'Lagna'))
 
   if (ak && amk && pk && linked(ak, amk) && linked(ak, pk)) {
     yogas.push({
@@ -164,10 +173,11 @@ export function detectJaiminiRajayogas(
   arudhaLagna?: Rashi,
   charts?: JaiminiYogaCharts,
 ): JaiminiYogaHit[] {
-  const yogas = collectPairYogas(grahas, lagna, karakas)
+  const method = charts?.method ?? 'classical'
+  const yogas = collectPairYogas(grahas, lagna, karakas, method)
   const d9 = charts?.d9
   if (d9 && d9.length) {
-    const d9Hits = collectPairYogas(d9, charts.d9Lagna ?? lagna, karakas)
+    const d9Hits = collectPairYogas(d9, charts.d9Lagna ?? lagna, karakas, method)
     const d9Ids = new Set(d9Hits.map(hit => hit.id))
     for (const hit of yogas) {
       if (d9Ids.has(hit.id)) {
@@ -197,7 +207,7 @@ export function detectJaiminiRajayogas(
       fifthLordYoga('kk-ak-fifth', 'Atmakaraka', ak, grahas, charts.karakamsha, 'Karakamsha'),
       fifthLordYoga('kk-amk-fifth', 'Amatyakaraka', amk, grahas, charts.karakamsha, 'Karakamsha'),
       fifthLordYoga('kk-dk-fifth', 'Darakaraka', dk, grahas, charts.karakamsha, 'Karakamsha'),
-      fifthLordYoga('kk-pk-fifth', 'Pitrukaraka', pk, grahas, charts.karakamsha, 'Karakamsha'),
+      fifthLordYoga('kk-pk-fifth', fifthKarakaName(method), pk, grahas, charts.karakamsha, 'Karakamsha'),
     ]
     for (const hit of fromKk) {
       if (hit) yogas.push(hit)

@@ -8,6 +8,8 @@ import {
   calculateJaiminiTrinity,
   calculateGatewaySigns,
 } from '@/lib/engine/jaimini'
+import { calculateJaiminiBala } from '@/lib/engine/jaimini/bala'
+import { calcSthirDasha } from '@/lib/engine/dasha/jaimini'
 import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
 
 function stubGraha(partial: Partial<GrahaData> & { id: GrahaData['id']; rashi: Rashi }): GrahaData {
@@ -69,6 +71,10 @@ function stubGraha(partial: Partial<GrahaData> & { id: GrahaData['id']; rashi: R
   }
 }
 
+function chartOf(grahas: GrahaData[], ascRashi: Rashi): ChartOutput {
+  return { grahas, lagnas: { ascRashi, ascDegree: 10 } } as unknown as ChartOutput
+}
+
 describe('calculateGatewaySigns', () => {
   it('maps Dwara distance from Lagna onto Bahya from Dwara', () => {
     // Lagna Aries (1), Dwara Cancer (4) → distance 4 → Bahya = 4th from Cancer = Libra (7)
@@ -114,52 +120,129 @@ describe('calculateJaiminiTrinity', () => {
     expect(t.brahma.id).not.toBe('Ke')
   })
 
-  it('delegates Maheshwara when 8th lord from AK is in own sign', () => {
-    // AK Moon in Cancer → 8th = Aquarius → lord Saturn
-    // Place Saturn in Capricorn (own) → delegate to stronger of 8th/12th from Cap
-    // 8th from Cap = Leo → Su; 12th from Cap = Sagittarius → Ju
+  it('keeps the 8th lord from AK as Maheshwara even when it is in own sign', () => {
+    // AK Moon in Cancer → 8th = Aquarius → Saturn, sitting in its own Capricorn
     const grahas = [
-      stubGraha({ id: 'Su', rashi: 5, degree: 10, dignity: 'own' }),
-      stubGraha({ id: 'Mo', rashi: 4, degree: 28, dignity: 'own' }), // AK
+      stubGraha({ id: 'Su', rashi: 5, degree: 10 }),
+      stubGraha({ id: 'Mo', rashi: 4, degree: 28 }), // AK
       stubGraha({ id: 'Ma', rashi: 1, degree: 12 }),
       stubGraha({ id: 'Me', rashi: 3, degree: 8 }),
-      stubGraha({ id: 'Ju', rashi: 9, degree: 22, dignity: 'own' }), // stronger own + higher deg
+      stubGraha({ id: 'Ju', rashi: 9, degree: 22 }),
       stubGraha({ id: 'Ve', rashi: 7, degree: 6 }),
-      stubGraha({ id: 'Sa', rashi: 10, degree: 14, dignity: 'own' }), // 8th lord from AK in own
+      stubGraha({ id: 'Sa', rashi: 10, degree: 14 }),
       stubGraha({ id: 'Ra', rashi: 2, degree: 4 }),
       stubGraha({ id: 'Ke', rashi: 8, degree: 4 }),
     ]
-    const chart = {
-      grahas,
-      lagnas: { ascRashi: 1 as Rashi, ascDegree: 5 },
-    } as unknown as ChartOutput
-
-    const t = calculateJaiminiTrinity(chart)
-    expect(t.maheshwara.id).toBe('Ju')
-    expect(t.maheshwara.reason).toMatch(/own|exalted|moolatrikona/i)
+    expect(calculateJaiminiTrinity(chartOf(grahas, 1)).maheshwara.id).toBe('Sa')
   })
 
-  it('uses 6th lord from Sun when Rahu conjuncts AK', () => {
-    // AK Venus with Rahu in Libra; Sun in Aries → 6th from Sun = Virgo → Mercury
+  it('makes an exalted planet in the 12th from AK the Maheshwara', () => {
+    // AK Mars in Aries → 12th = Pisces holds exalted Venus; 8th lord would be Mars
+    const grahas = [
+      stubGraha({ id: 'Su', rashi: 5, degree: 10 }),
+      stubGraha({ id: 'Mo', rashi: 4, degree: 12 }),
+      stubGraha({ id: 'Ma', rashi: 1, degree: 28 }), // AK
+      stubGraha({ id: 'Me', rashi: 3, degree: 8 }),
+      stubGraha({ id: 'Ju', rashi: 9, degree: 22 }),
+      stubGraha({ id: 'Ve', rashi: 12, degree: 6 }),
+      stubGraha({ id: 'Sa', rashi: 10, degree: 14 }),
+      stubGraha({ id: 'Ra', rashi: 2, degree: 4 }),
+      stubGraha({ id: 'Ke', rashi: 8, degree: 4 }),
+    ]
+    const t = calculateJaiminiTrinity(chartOf(grahas, 1))
+    expect(t.maheshwara.id).toBe('Ve')
+    expect(t.maheshwara.reason).toContain('12th from AK')
+  })
+
+  it('does not reroute Maheshwara through the Sun when Rahu joins AK', () => {
+    // AK Venus in Libra with Rahu → 8th = Taurus → Venus
     const grahas = [
       stubGraha({ id: 'Su', rashi: 1, degree: 12 }),
       stubGraha({ id: 'Mo', rashi: 4, degree: 10 }),
       stubGraha({ id: 'Ma', rashi: 5, degree: 8 }),
-      stubGraha({ id: 'Me', rashi: 6, degree: 6 }),
+      stubGraha({ id: 'Me', rashi: 3, degree: 6 }),
       stubGraha({ id: 'Ju', rashi: 9, degree: 14 }),
-      stubGraha({ id: 'Ve', rashi: 7, degree: 27, dignity: 'own' }), // AK
+      stubGraha({ id: 'Ve', rashi: 7, degree: 27 }), // AK
       stubGraha({ id: 'Sa', rashi: 11, degree: 5 }),
-      stubGraha({ id: 'Ra', rashi: 7, degree: 4 }), // with AK
+      stubGraha({ id: 'Ra', rashi: 7, degree: 4 }),
       stubGraha({ id: 'Ke', rashi: 1, degree: 4 }),
     ]
-    const chart = {
-      grahas,
-      lagnas: { ascRashi: 4 as Rashi, ascDegree: 8 },
-    } as unknown as ChartOutput
+    expect(calculateJaiminiTrinity(chartOf(grahas, 4)).maheshwara.id).toBe('Ve')
+  })
 
-    const t = calculateJaiminiTrinity(chart)
-    expect(t.maheshwara.id).toBe('Me')
-    expect(t.maheshwara.reason).toContain('Rahu/Ketu')
+  it('rejects Saturn as the AK 8th-lord Brahma and falls back to 6/8/12 lords', () => {
+    // AK Moon in Cancer → 8th = Aquarius, Saturn sits there but cannot be Brahma
+    const grahas = [
+      stubGraha({ id: 'Su', rashi: 5, degree: 10 }),
+      stubGraha({ id: 'Mo', rashi: 4, degree: 28 }), // AK
+      stubGraha({ id: 'Ma', rashi: 2, degree: 12 }),
+      stubGraha({ id: 'Me', rashi: 3, degree: 8 }),
+      stubGraha({ id: 'Ju', rashi: 9, degree: 22 }),
+      stubGraha({ id: 'Ve', rashi: 7, degree: 6 }),
+      stubGraha({ id: 'Sa', rashi: 11, degree: 14 }),
+      stubGraha({ id: 'Ra', rashi: 6, degree: 4 }),
+      stubGraha({ id: 'Ke', rashi: 12, degree: 4 }),
+    ]
+    const t = calculateJaiminiTrinity(chartOf(grahas, 1))
+    expect(t.brahma.id).not.toBe('Sa')
+    expect(t.brahma.reason).toContain('Strongest of 6th/8th/12th')
+  })
+
+  it('never names a node for any role, and keeps Mars as lord of Scorpio', () => {
+    // Taurus lagna: 2nd Gemini, 8th Sagittarius. Aries AK → 8th = Scorpio with Mars in Taurus
+    const grahas = [
+      stubGraha({ id: 'Su', rashi: 1, degree: 28 }), // AK
+      stubGraha({ id: 'Mo', rashi: 4, degree: 20 }),
+      stubGraha({ id: 'Ma', rashi: 2, degree: 18 }),
+      stubGraha({ id: 'Me', rashi: 3, degree: 10 }),
+      stubGraha({ id: 'Ju', rashi: 9, degree: 12 }),
+      stubGraha({ id: 'Ve', rashi: 7, degree: 8 }),
+      stubGraha({ id: 'Sa', rashi: 11, degree: 6 }),
+      stubGraha({ id: 'Ra', rashi: 2, degree: 4 }),
+      stubGraha({ id: 'Ke', rashi: 8, degree: 4 }),
+    ]
+    const t = calculateJaiminiTrinity(chartOf(grahas, 2))
+    expect(t.maheshwara.id).toBe('Ma')
+    for (const id of [t.brahma.id, t.maheshwara.id, t.rudra.id]) {
+      expect(['Ra', 'Ke']).not.toContain(id)
+    }
+  })
+
+  it('reports the weaker lord as Aprani Rudra under malefic drishti', () => {
+    // Cancer lagna: 2nd lord Sun (exalted, strong); 8th lord Saturn in Aries.
+    // Mars in fixed Leo aspects movable Aries, Libra and Capricorn.
+    const grahas = [
+      stubGraha({ id: 'Su', rashi: 1, degree: 28 }), // AK
+      stubGraha({ id: 'Mo', rashi: 4, degree: 20 }),
+      stubGraha({ id: 'Ma', rashi: 5, degree: 8 }),
+      stubGraha({ id: 'Me', rashi: 2, degree: 6 }),
+      stubGraha({ id: 'Ju', rashi: 9, degree: 11 }),
+      stubGraha({ id: 'Ve', rashi: 7, degree: 9 }),
+      stubGraha({ id: 'Sa', rashi: 1, degree: 4 }),
+      stubGraha({ id: 'Ra', rashi: 3, degree: 3 }),
+      stubGraha({ id: 'Ke', rashi: 9, degree: 3 }),
+    ]
+    const t = calculateJaiminiTrinity(chartOf(grahas, 4))
+    expect(t.rudra.id).toBe('Su')
+    expect(t.rudra.aprani).toBe('Sa')
+  })
+
+  it('starts Sthira Dasha from the sign of Brahma', () => {
+    // AK Venus in Taurus → Jupiter owns and occupies Sagittarius, so Brahma = Jupiter
+    const grahas = [
+      stubGraha({ id: 'Su', rashi: 5, degree: 10 }),
+      stubGraha({ id: 'Mo', rashi: 4, degree: 12 }),
+      stubGraha({ id: 'Ma', rashi: 1, degree: 8 }),
+      stubGraha({ id: 'Me', rashi: 3, degree: 10 }),
+      stubGraha({ id: 'Ju', rashi: 9, degree: 16 }),
+      stubGraha({ id: 'Ve', rashi: 2, degree: 28 }), // AK
+      stubGraha({ id: 'Sa', rashi: 11, degree: 5 }),
+      stubGraha({ id: 'Ra', rashi: 6, degree: 4 }),
+      stubGraha({ id: 'Ke', rashi: 12, degree: 4 }),
+    ]
+    const chart = chartOf(grahas, 1)
+    const d = calcSthirDasha(grahas, chart.lagnas, new Date('2000-01-01T00:00:00Z'), 1)
+    expect(d[0].label).toContain('Sagittarius')
   })
 
   it('picks Rudra as stronger of 2nd and 8th lords from Lagna', () => {
@@ -210,3 +293,34 @@ describe('calculateJaiminiTrinity', () => {
   })
 })
 
+describe('calculateJaiminiBala', () => {
+  const grahas = [
+    stubGraha({ id: 'Su', rashi: 4, degree: 10 }),
+    stubGraha({ id: 'Mo', rashi: 2, degree: 12 }),
+    stubGraha({ id: 'Ma', rashi: 1, degree: 28 }), // AK
+    stubGraha({ id: 'Me', rashi: 1, degree: 8 }), // with Saturn in Aries
+    stubGraha({ id: 'Ju', rashi: 3, degree: 22 }),
+    stubGraha({ id: 'Ve', rashi: 7, degree: 6 }),
+    stubGraha({ id: 'Sa', rashi: 1, degree: 14 }),
+    stubGraha({ id: 'Ra', rashi: 6, degree: 4 }),
+    stubGraha({ id: 'Ke', rashi: 12, degree: 4 }),
+  ]
+  const bala = calculateJaiminiBala(chartOf(grahas, 1))
+
+  it('counts Kendra strength from the Atmakaraka', () => {
+    expect(bala.planets.Su.kendraBala).toBe(60) // 4th from AK
+    expect(bala.planets.Mo.kendraBala).toBe(30) // 2nd from AK
+    expect(bala.planets.Ju.kendraBala).toBe(15) // 3rd from AK
+  })
+
+  it('gives Adhipati +60 to an odd-sign lord placed outside its own sign', () => {
+    // Mercury (lord of Gemini) in Aries with Saturn: neutral 15 + 60
+    expect(bala.planets.Me.placementBala).toBe(75)
+  })
+
+  it('adds the lord total into sign strength', () => {
+    expect(bala.rashis[1].lordBala).toBe(bala.planets.Ma.total)
+    const r = bala.rashis[1]
+    expect(r.total).toBe(r.typeBala + r.karakaBala + r.aspectBala + r.chaturthaBala + r.lordBala)
+  })
+})

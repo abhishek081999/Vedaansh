@@ -302,7 +302,7 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
       {showFull && sub === 'yuti' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            Pairwise Sun conjunctions from class notes. Active pairs for this chart are highlighted;
+            Pairwise Sun conjunctions. Active pairs for this chart are highlighted;
             open each for core traits, house variants, and technical orbs.
           </p>
           {data.allYutis.map(t => {

@@ -1,4 +1,6 @@
-import type { DashaNode, GrahaData, LagnaData } from '@/types/astrology'
+import type { DashaNode, GrahaData, LagnaData, Rashi } from '@/types/astrology'
+import { calculateJaiminiBala } from '../jaimini/bala'
+import type { JaiminiMethod } from '../jaimini/method'
 import { calculateJaiminiTrinity } from '../jaimini/trinity'
 
 const RASHI_SHORT: Record<number, string> = {
@@ -56,34 +58,6 @@ function sthirYears(sign: number): number {
   return 9
 }
 
-function signNatureWeight(sign: number): number {
-  if ([3, 6, 9, 12].includes(sign)) return 3 // dual
-  if ([2, 5, 8, 11].includes(sign)) return 2 // fixed
-  return 1 // movable
-}
-
-function dignityWeight(dignity?: string): number {
-  switch (dignity) {
-    case 'exalted': return 9
-    case 'moolatrikona': return 8
-    case 'own': return 7
-    case 'great_friend': return 6
-    case 'friend': return 5
-    case 'neutral': return 4
-    case 'enemy': return 3
-    case 'great_enemy': return 2
-    case 'debilitated': return 1
-    default: return 0
-  }
-}
-
-function planetStrengthScore(g: GrahaData, grahas: GrahaData[]): number {
-  const dignity = dignityWeight(g.dignity) * 100
-  const ownSign = resolveSignLord(g.rashi, grahas) === g.id ? 20 : 0
-  const degree = g.degree
-  return dignity + ownSign + degree
-}
-
 function resolveSignLord(sign: number, grahas: GrahaData[]): string {
   const mainLordId = SIGN_LORD[sign]
   if (sign !== 8 && sign !== 11) return mainLordId
@@ -110,8 +84,9 @@ function countDistance(from: number, to: number, forward: boolean): number {
   return ((from - to + 12) % 12) + 1
 }
 
-function mandookYears(sign: number, grahas: GrahaData[]): number {
-  const lordId = resolveSignLord(sign, grahas)
+function mandookYears(sign: number, grahas: GrahaData[], method: JaiminiMethod): number {
+  // Practical method: Scorpio is Mars only and Aquarius is Saturn only.
+  const lordId = method === 'practical' ? SIGN_LORD[sign] : resolveSignLord(sign, grahas)
   const lord = grahas.find((g) => g.id === lordId)
   if (!lord) return sthirYears(sign)
 
@@ -124,47 +99,10 @@ function mandookYears(sign: number, grahas: GrahaData[]): number {
   return dist
 }
 
-function signStrength(sign: number, grahas: GrahaData[]): number {
-  const occupants = grahas.filter((g) => g.rashi === sign && g.id !== 'Ra' && g.id !== 'Ke')
-  const occupied = occupants.length > 0 ? 100 : 0
-  const occupantWeight = occupants.length * 15
-  const bestDegree = occupants.length ? Math.max(...occupants.map((g) => g.degree)) : 0
-  const nature = signNatureWeight(sign) * 5
-  const lordId = resolveSignLord(sign, grahas)
-  const lord = grahas.find((g) => g.id === lordId)
-  const lordWeight = lord ? (dignityWeight(lord.dignity) * 8 + lord.degree) : 0
-  return occupied + occupantWeight + bestDegree + nature + lordWeight
-}
-
-function strongerOf(signA: number, signB: number, grahas: GrahaData[]): number {
-  const a = signStrength(signA, grahas)
-  const b = signStrength(signB, grahas)
-  return a >= b ? signA : signB
-}
-
-function getBrahmaSign(grahas: GrahaData[], asc: number): number {
-  // Jaimini workflow used for Sthira: stronger of Lagna/7th,
-  // then strongest among lords of 6th/8th/12th from that seed sign.
-  const seed = strongerOf(asc, ((asc + 5) % 12) + 1, grahas)
-  const h6 = ((seed + 4) % 12) + 1
-  const h8 = ((seed + 6) % 12) + 1
-  const h12 = ((seed + 10) % 12) + 1
-
-  const candidateIds = Array.from(new Set([h6, h8, h12].map((h) => resolveSignLord(h, grahas))))
-  const candidates = candidateIds
-    .filter((id) => id !== 'Ra' && id !== 'Ke')
-    .map((id) => grahas.find((g) => g.id === id))
-    .filter((g): g is GrahaData => Boolean(g))
-  if (!candidates.length) return seed
-
-  candidates.sort((a, b) => {
-    const pDiff = planetStrengthScore(b, grahas) - planetStrengthScore(a, grahas)
-    if (pDiff !== 0) return pDiff
-    const sDiff = signStrength(b.rashi, grahas) - signStrength(a.rashi, grahas)
-    if (sDiff !== 0) return sDiff
-    return b.degree - a.degree
-  })
-  return candidates[0].rashi
+/** Sthira Dasha starts from the sign occupied by Brahma. */
+function getBrahmaSign(grahas: GrahaData[], lagnas: LagnaData, asc: number): number {
+  const { brahma } = calculateJaiminiTrinity({ grahas, lagnas })
+  return grahas.find((g) => g.id === brahma.id)?.rashi ?? asc
 }
 
 function buildSubDashas(
@@ -241,6 +179,7 @@ export function calcMandookDasha(
   lagnas: LagnaData,
   birthDate: Date,
   depth: number = 3,
+  method: JaiminiMethod = 'classical',
 ): DashaNode[] {
   // K.N. Rao Mandooka: odd Lagna -> start from Lagna (direct),
   // even Lagna -> start from 7th (reverse), with frog-jump sequence.
@@ -248,7 +187,7 @@ export function calcMandookDasha(
   const start = asc % 2 === 1 ? asc : ((asc + 5) % 12) + 1
   const forward = asc % 2 === 1
   const sequence = buildMandookSequence(start, forward)
-  return buildRashiDasha(sequence, (sign) => mandookYears(sign, grahas), birthDate, depth, forward)
+  return buildRashiDasha(sequence, (sign) => mandookYears(sign, grahas, method), birthDate, depth, forward)
 }
 
 export function calcSthirDasha(
@@ -256,9 +195,18 @@ export function calcSthirDasha(
   lagnas: LagnaData,
   birthDate: Date,
   depth: number = 3,
+  method: JaiminiMethod = 'classical',
 ): DashaNode[] {
   const asc = lagnas.ascRashi || 1
-  const start = getBrahmaSign(grahas, asc)
+  if (method === 'practical') {
+    // Practical method: stronger of Lagna and 7th; odd sign runs direct, even runs reverse.
+    const bala = calculateJaiminiBala({ grahas, lagnas })
+    const seventh = ((asc + 5) % 12) + 1
+    const seed = bala.rashis[asc as Rashi].total >= bala.rashis[seventh as Rashi].total ? asc : seventh
+    const direct = seed % 2 === 1
+    return buildRashiDasha(buildLinearSequence(seed, direct), sthirYears, birthDate, depth, direct)
+  }
+  const start = getBrahmaSign(grahas, lagnas, asc)
   const forward = true
   const sequence = buildLinearSequence(start, true)
   return buildRashiDasha(sequence, sthirYears, birthDate, depth, forward)

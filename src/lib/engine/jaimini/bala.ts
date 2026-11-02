@@ -10,6 +10,8 @@ export interface JaiminiPlanetBala {
   karakaBala: number
   karakaRole: string
   kartariBala: number
+  /** Kendra 60 / Panaphara 30 / Apoklima 15, counted from the Atmakaraka. */
+  kendraBala: number
   total: number
 }
 
@@ -20,6 +22,8 @@ export interface JaiminiRashiBala {
   aspectBala: number // 60 for each: Ju, Me, or Rashi Lord
   /** Jaimini Sutra 2.3.17 — odd sign whose lord is joined or aspected by a malefic. */
   chaturthaBala: number
+  /** Total strength of the sign's lord. */
+  lordBala: number
   total: number
 }
 
@@ -30,12 +34,16 @@ export interface JaiminiBalaResult {
   houses: Record<number, number> // House 1-12 -> 60/30/15
 }
 
+const JAIMINI_GRAHAS: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
+const CHATURTHA_MALEFICS: GrahaId[] = ['Ma', 'Sa', 'Ra', 'Ke']
+const ODD_SIGN_LORDS: GrahaId[] = ['Su', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
+const KENDRA_BALA = [60, 30, 15]
+
 /**
  * Calculate Jaimini Planetary Strength (Bala)
  */
 export function calculateJaiminiBala(chart: Partial<ChartOutput>): JaiminiBalaResult {
-  const grahas = chart.grahas || []
-  const lagnas = chart.lagnas || { ascRashi: 1 }
+  const grahas = (chart.grahas || []).filter(g => JAIMINI_GRAHAS.includes(g.id))
 
   // Force 7-karaka scheme for Jaimini Intelligence calculations
   const karakas = calcCharaKarakas(
@@ -46,6 +54,7 @@ export function calculateJaiminiBala(chart: Partial<ChartOutput>): JaiminiBalaRe
   const planetBala: Record<string, JaiminiPlanetBala> = {}
   const rashiBala: Record<number, JaiminiRashiBala> = {}
   const houseBala: Record<number, number> = {}
+  const akRashi = grahas.find(g => g.id === karakas.AK)?.rashi
 
   // 1. Planet Placement Bala
   grahas.forEach(g => {
@@ -76,13 +85,11 @@ export function calculateJaiminiBala(chart: Partial<ChartOutput>): JaiminiBalaRe
       }
     }
 
-    // Adhipati Strength for Odd Signs
-    const isLordOfOddSign = [1, 3, 5, 7, 9, 11].includes(g.rashi) && getRashiLord(g.rashi) === g.id
-    if (isLordOfOddSign) {
-        const malefics = ['Ma', 'Sa', 'Ra', 'Ke']
-        const hasMaleficConnection = grahas.some(pg => 
-            (pg.rashi === g.rashi && malefics.includes(pg.id) && pg.id !== g.id) || 
-            (getRashiDrishti(pg.rashi).includes(g.rashi) && malefics.includes(pg.id))
+    // Adhipati Strength: lord of an odd sign, wherever it sits, linked to a malefic
+    if (ODD_SIGN_LORDS.includes(g.id)) {
+        const hasMaleficConnection = grahas.some(pg =>
+            CHATURTHA_MALEFICS.includes(pg.id) && pg.id !== g.id &&
+            (pg.rashi === g.rashi || getRashiDrishti(pg.rashi).includes(g.rashi))
         )
         if (hasMaleficConnection) {
             strength += 60
@@ -110,6 +117,9 @@ export function calculateJaiminiBala(chart: Partial<ChartOutput>): JaiminiBalaRe
     // Kartari Bala
     const kartariBala = calculateKartariBala(g, grahas)
 
+    const houseFromAk = akRashi ? ((g.rashi - akRashi + 12) % 12) + 1 : null
+    const kendraBala = houseFromAk === null ? 0 : KENDRA_BALA[(houseFromAk - 1) % 3]
+
     planetBala[g.id] = {
       id: g.id,
       placementBala: strength,
@@ -117,7 +127,8 @@ export function calculateJaiminiBala(chart: Partial<ChartOutput>): JaiminiBalaRe
       karakaBala: kStrength,
       karakaRole: kRole,
       kartariBala: kartariBala,
-      total: strength + kStrength + kartariBala
+      kendraBala,
+      total: strength + kStrength + kartariBala + kendraBala
     }
   })
 
@@ -160,6 +171,7 @@ export function calculateJaiminiBala(chart: Partial<ChartOutput>): JaiminiBalaRe
     if (hasLordAspect) aspectBala += 60
 
     const chaturthaBala = chaturthaBalaForRashi(rashi, grahas)
+    const lordBala = planetBala[getRashiLord(rashi)]?.total ?? 0
 
     rashiBala[r] = {
       rashi,
@@ -167,19 +179,18 @@ export function calculateJaiminiBala(chart: Partial<ChartOutput>): JaiminiBalaRe
       karakaBala: rKarakaBala,
       aspectBala,
       chaturthaBala,
-      total: typeBala + rKarakaBala + aspectBala + chaturthaBala
+      lordBala,
+      total: typeBala + rKarakaBala + aspectBala + chaturthaBala + lordBala
     }
   }
 
   return { 
-    version: 3, 
+    version: 4, 
     planets: planetBala as any, 
     rashis: rashiBala as any, 
     houses: houseBala 
   }
 }
-
-const CHATURTHA_MALEFICS: GrahaId[] = ['Ma', 'Sa', 'Ra', 'Ke']
 
 /**
  * Fourth source of sign strength (Jaimini Sutra 2.3.17, chaturthah purushe).
