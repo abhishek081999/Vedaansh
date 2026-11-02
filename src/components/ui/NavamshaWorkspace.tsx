@@ -14,6 +14,7 @@ import {
   Hourglass,
   Layers,
   Link2,
+  ScrollText,
   Sparkles,
   Star,
   Users,
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { PanelShell, PlanGate } from '@/components/ui/patterns'
+import { NavamshaPredictionsPanel } from '@/components/ui/NavamshaPredictionsPanel'
 import {
   analyzeNavamsha,
   NAVAMSHA_VARIANT_LABELS,
@@ -35,6 +37,7 @@ import styles from './NavamshaWorkspace.module.css'
 
 type TabId =
   | 'overview'
+  | 'predictions'
   | 'mapping'
   | 'relations'
   | 'advanced'
@@ -48,6 +51,7 @@ type TabId =
 
 const TABS: { id: TabId; label: string; shortLabel: string; Icon: typeof Star }[] = [
   { id: 'overview', label: 'Overview', shortLabel: 'Overview', Icon: Sparkles },
+  { id: 'predictions', label: 'Predictions', shortLabel: 'Predict', Icon: ScrollText },
   { id: 'mapping', label: 'D1 → D9 Mapping', shortLabel: 'Mapping', Icon: ArrowRight },
   { id: 'relations', label: 'D1↔D9 Relations', shortLabel: 'Relations', Icon: Link2 },
   { id: 'advanced', label: 'Advanced', shortLabel: 'Advanced', Icon: Waypoints },
@@ -270,6 +274,8 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
           </div>
         </section>
       )}
+
+      {tab === 'predictions' && <NavamshaPredictionsPanel chart={chart} />}
 
       {/* ── Mapping table ────────────────────────────────────── */}
       {tab === 'mapping' && (
