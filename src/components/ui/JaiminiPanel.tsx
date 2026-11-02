@@ -14,10 +14,10 @@ import {
   Gem, Mountain, Clock, Scale, Brain,
   User, Coins, Swords, Home, Palette, Shield, Heart, Hourglass,
   Sparkles, Building2, TrendingUp, HeartHandshake,
-  Flame, Eye,
+  Flame, Eye, Star, Compass, Users, Landmark, Orbit,
 } from 'lucide-react'
 import { JaiminiMarriageSection } from '@/components/ui/JaiminiMarriageSection'
-import { JaiminiAllDashas, JaiminiDeepReading } from '@/components/ui/JaiminiInsights'
+import { JaiminiAllDashas, JaiminiDeepReading, type JaiminiInsightSection } from '@/components/ui/JaiminiInsights'
 import { JAIMINI_METHODS, type JaiminiMethod } from '@/lib/engine/jaimini/method'
 import type { BoardSystem } from '@/lib/engine/jaimini/dashaBoard'
 import { DashaReadingCard, FamilyKarakaCard, KarakaLifeCard, KarakamshaCard, SoulKarakaCard } from '@/components/ui/JaiminiReadings'
@@ -75,6 +75,39 @@ const ARUDHA_LABELS: Record<string, { label: string; desc: string; Icon: LucideI
   A11: { label: 'Labha Pada',      desc: 'Gains & social network', Icon: TrendingUp },
   A12: { label: 'Upapada Lagna',   desc: 'Marriage & devotion', Icon: HeartHandshake },
 }
+
+type JaiminiTabId =
+  | 'essence'
+  | 'karakamsha'
+  | 'arudhas'
+  | 'argala'
+  | 'yogas'
+  | 'family'
+  | 'marriage'
+  | 'lagnas'
+  | 'houses'
+  | 'dashas'
+  | 'transits'
+  | 'board'
+  | 'intelligence'
+  | 'info'
+
+const JAIMINI_TABS: { id: JaiminiTabId; label: string; short: string; Icon: LucideIcon }[] = [
+  { id: 'essence', label: 'Soul Architecture', short: 'Soul', Icon: Gem },
+  { id: 'karakamsha', label: 'Karakamsha', short: 'Swamsha', Icon: Star },
+  { id: 'arudhas', label: 'Arudha Landscape', short: 'Arudhas', Icon: Mountain },
+  { id: 'argala', label: 'Argala', short: 'Argala', Icon: Compass },
+  { id: 'yogas', label: 'Yogas', short: 'Yogas', Icon: Sparkles },
+  { id: 'family', label: 'Family', short: 'Family', Icon: Users },
+  { id: 'marriage', label: 'Marriage & Relationship', short: 'Marriage', Icon: HeartHandshake },
+  { id: 'lagnas', label: 'Special Lagnas', short: 'Lagnas', Icon: Landmark },
+  { id: 'houses', label: 'Houses', short: 'Houses', Icon: Home },
+  { id: 'dashas', label: 'Chara Dasha', short: 'Dasha', Icon: Clock },
+  { id: 'transits', label: 'Transits', short: 'Transit', Icon: Orbit },
+  { id: 'board', label: 'All Dashas', short: 'All', Icon: TrendingUp },
+  { id: 'intelligence', label: 'Intelligence', short: 'Intel', Icon: Brain },
+  { id: 'info', label: 'Info Reference', short: 'Info', Icon: Scale },
+]
 
 const KARAKA_ROLES: { key: keyof KarakaData; short: string; name: string }[] = [
   { key: 'AK',  short: 'AK',  name: KARAKA_NAMES_7.AK },
@@ -591,7 +624,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
     7
   );
-  const [activeTab, setActiveTab] = useState<'essence' | 'intelligence' | 'arudhas' | 'marriage' | 'dashas' | 'deep' | 'board' | 'info'>('essence');
+  const [activeTab, setActiveTab] = useState<JaiminiTabId>('essence');
   const [method, setMethod] = useState<JaiminiMethod>('classical');
   const [charaDashaMode, setCharaDashaMode] = useState<'chara' | 'chara_fe' | 'mandook' | 'sthir' | 'navamsha' | 'brahma'>(
     chart.meta.gender === 'female' ? 'chara_fe' : 'chara',
@@ -819,31 +852,27 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     [grahas, lagnas.ascRashi, karakas, d1EffectiveArudhas.AL, vargas.D9, chart.vargaLagnas, akInD9, karakamshaRashi, method],
   )
 
-  type JaiminiTabId = 'essence' | 'intelligence' | 'arudhas' | 'marriage' | 'dashas' | 'deep' | 'board' | 'info';
+  const tabs = JAIMINI_TABS
 
-  const tabs: { id: JaiminiTabId; label: string; short: string; Icon: LucideIcon }[] = [
-    { id: 'essence', label: 'Soul Architecture', short: 'Soul', Icon: Gem },
-    { id: 'arudhas', label: 'Arudha Landscape', short: 'Arudhas', Icon: Mountain },
-    { id: 'marriage', label: 'Marriage & Relationship', short: 'Marriage', Icon: HeartHandshake },
-    { id: 'dashas',  label: 'Chara Dasha', short: 'Dasha', Icon: Clock },
-    { id: 'deep',    label: 'Deep Reading', short: 'Deep', Icon: Sparkles },
-    { id: 'board',   label: 'All Dashas', short: 'All', Icon: TrendingUp },
-    { id: 'info',    label: 'Info Reference', short: 'Info', Icon: Scale },
-    { id: 'intelligence', label: 'Intelligence', short: 'Intel', Icon: Brain },
-  ];
-
-  const mobileTabs = [
-    { id: 'essence' as const, icon: Gem, label: 'Essence' },
-    { id: 'arudhas' as const, icon: Mountain, label: 'Arudhas' },
-    { id: 'marriage' as const, icon: HeartHandshake, label: 'Marriage' },
-    { id: 'dashas' as const, icon: Clock, label: 'Dasha' },
-    { id: 'deep' as const, icon: Sparkles, label: 'Deep' },
-    { id: 'board' as const, icon: TrendingUp, label: 'All' },
-    { id: 'info' as const, icon: Scale, label: 'Info' },
-    { id: 'intelligence' as const, icon: Brain, label: 'Intel' },
-  ];
+  const mobileTabs = JAIMINI_TABS.map((tab) => ({
+    id: tab.id,
+    icon: tab.Icon,
+    label: tab.short,
+  }))
 
   const argalaInterventions = selectedAspectSign ? getArgalaIntervention(selectedAspectSign) : [];
+
+  const renderInsight = (section: JaiminiInsightSection) => (
+    <JaiminiDeepReading
+      chart={chart}
+      karakas={karakas}
+      method={method}
+      nodes={activeCharaDashas as DashaNode[]}
+      arudhas={{ AL: d1EffectiveArudhas.AL, A7: d1EffectiveArudhas.A7, A12: d1EffectiveArudhas.A12 }}
+      dwaraSign={dwaraRashi}
+      section={section}
+    />
+  )
 
   const renderJaiminiChartBlock = (
     label: string,
@@ -1449,11 +1478,21 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     </div>
                   </div>
 
-                  <KarakamshaCard chart={chart} karakas={karakas} arudhaLagna={d1EffectiveArudhas.AL} />
                   <SoulKarakaCard chart={chart} karakas={karakas} />
                   <KarakaLifeCard chart={chart} karakas={karakas} />
+                </div>
+              )}
 
-                  {jaiminiYogas.length > 0 && (
+              {activeTab === 'karakamsha' && (
+                <div className={styles.tabStack}>
+                  <KarakamshaCard chart={chart} karakas={karakas} arudhaLagna={d1EffectiveArudhas.AL} />
+                  {renderInsight('nakshatra')}
+                </div>
+              )}
+
+              {activeTab === 'yogas' && (
+                <div className={styles.tabStack}>
+                  {jaiminiYogas.length > 0 ? (
                     <SectionCard title="Principal Rajayogas">
                       <table className={styles.dataTable}>
                         <tbody>
@@ -1469,8 +1508,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         </tbody>
                       </table>
                     </SectionCard>
+                  ) : (
+                    <SectionCard title="Principal Rajayogas">
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        No principal Jaimini rajayoga is formed in this chart.
+                      </p>
+                    </SectionCard>
                   )}
-
                   <SectionCard title="Fixed Significators (Sthira Karakas)" scrollY>
                     <table className={styles.dataTable}>
                       <thead>
@@ -1501,8 +1545,30 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       </tbody>
                     </table>
                   </SectionCard>
+                </div>
+              )}
 
+              {activeTab === 'family' && (
+                <div className={styles.tabStack}>
                   <FamilyKarakaCard chart={chart} />
+                </div>
+              )}
+
+              {activeTab === 'lagnas' && (
+                <div className={styles.tabStack}>
+                  {renderInsight('lagnas')}
+                </div>
+              )}
+
+              {activeTab === 'houses' && (
+                <div className={styles.tabStack}>
+                  {renderInsight('houses')}
+                </div>
+              )}
+
+              {activeTab === 'transits' && (
+                <div className={styles.tabStack}>
+                  {renderInsight('transits')}
                 </div>
               )}
 
@@ -1556,6 +1622,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     );
                   })}
 
+                  {renderInsight('arudha')}
+                </div>
+              )}
+
+              {activeTab === 'argala' && (
+                <div className={styles.tabStack}>
+                  {renderInsight('argala')}
                   {/* Detailed Argala Intelligence Matrix (Dynamic) */}
                   <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
                     <div style={{ 
@@ -2159,25 +2232,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     </div>
 
                   </div>
+                  {renderInsight('trinity')}
                 </div>
               )}
 
               {activeTab === 'marriage' && (
                 <div className={styles.tabStack}>
                   <JaiminiMarriageSection chart={chart} />
-                </div>
-              )}
-
-              {activeTab === 'deep' && (
-                <div className={styles.tabStack}>
-                  <JaiminiDeepReading
-                    chart={chart}
-                    karakas={karakas}
-                    method={method}
-                    nodes={activeCharaDashas as DashaNode[]}
-                    arudhas={{ AL: d1EffectiveArudhas.AL, A7: d1EffectiveArudhas.A7, A12: d1EffectiveArudhas.A12 }}
-                    dwaraSign={dwaraRashi}
-                  />
                 </div>
               )}
 
@@ -2250,6 +2311,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           : undefined
                     }
                   />
+                  {renderInsight('gateway')}
                 </div>
               )}
           </div>

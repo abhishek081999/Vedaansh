@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/JaiminiInsights.tsx
-//  Deep Reading and All Dashas tabs of the Jaimini panel.
-//  Every reading follows the chosen method (M1 or M2).
+//  Focused Jaimini readings (argala, lagnas, houses, transits)
+//  and the All Dashas board. Every reading follows the chosen method.
 // ─────────────────────────────────────────────────────────────
 'use client'
 
@@ -82,6 +82,16 @@ function names(ids: GrahaId[]): string {
   return ids.map(id => GRAHA_NAMES[id]).join(', ')
 }
 
+export type JaiminiInsightSection =
+  | 'argala'
+  | 'gateway'
+  | 'lagnas'
+  | 'trinity'
+  | 'arudha'
+  | 'houses'
+  | 'nakshatra'
+  | 'transits'
+
 export function JaiminiDeepReading({
   chart,
   karakas,
@@ -89,6 +99,7 @@ export function JaiminiDeepReading({
   nodes,
   arudhas,
   dwaraSign,
+  section,
 }: {
   chart: ChartOutput
   karakas: CharaKarakaResult
@@ -96,12 +107,14 @@ export function JaiminiDeepReading({
   nodes: BoardSystem['nodes']
   arudhas: { AL: Rashi; A7: Rashi; A12: Rashi }
   dwaraSign: Rashi | null
+  section: JaiminiInsightSection
 }) {
   const [transits, setTransits] = useState<TransitPosition[] | null>(null)
   const [transitFailed, setTransitFailed] = useState(false)
   const ascRashi = chart.lagnas.ascRashi
 
   useEffect(() => {
+    if (section !== 'transits') return
     let cancelled = false
     fetch(`/api/transit?ascRashi=${ascRashi}`)
       .then(res => res.json())
@@ -116,7 +129,7 @@ export function JaiminiDeepReading({
         if (!cancelled) setTransitFailed(true)
       })
     return () => { cancelled = true }
-  }, [ascRashi])
+  }, [ascRashi, section])
 
   const ctx = useMemo<InsightContext>(() => ({
     grahas: chart.grahas,
@@ -156,6 +169,7 @@ export function JaiminiDeepReading({
 
   return (
     <>
+      {section === 'argala' && (
       <Card title="Argala on all 12 houses">
         <p style={muted}>
           {method === 'practical'
@@ -190,7 +204,9 @@ export function JaiminiDeepReading({
           </Row>
         ))}
       </Card>
+      )}
 
+      {section === 'gateway' && (
       <Card title="Dwara and Bahya">
         {gateway ? (
           <>
@@ -202,7 +218,9 @@ export function JaiminiDeepReading({
           <p style={muted}>No sign is running in this dasha.</p>
         )}
       </Card>
+      )}
 
+      {section === 'lagnas' && (
       <Card title="Ghatika, Varnada, and Hora Lagna">
         {special.rows.map(row => (
           <Row key={row.id} title={`${row.name} · ${RASHI_NAMES[row.sign]}`} accent={BAND_COLOR[row.band]}>
@@ -212,7 +230,9 @@ export function JaiminiDeepReading({
         ))}
         {special.comparison && <p style={text}>{special.comparison}</p>}
       </Card>
+      )}
 
+      {section === 'trinity' && (
       <Card title="Brahma, Maheshwara, and Rudra timing">
         {trinity.map(row => (
           <Row key={row.id} title={`${row.title}${row.active ? ' · active now' : ''}`} accent={row.active ? 'var(--gold)' : undefined}>
@@ -221,7 +241,9 @@ export function JaiminiDeepReading({
           </Row>
         ))}
       </Card>
+      )}
 
+      {section === 'arudha' && (
       <Card title="Arudha: money and image">
         {arudhaInsights.map(row => (
           <Row key={row.id} title={row.title}>
@@ -229,7 +251,9 @@ export function JaiminiDeepReading({
           </Row>
         ))}
       </Card>
+      )}
 
+      {section === 'houses' && (
       <Card title="Each house: chara karaka, lord, and fixed karaka">
         {triads.map(row => (
           <Row key={row.house} title={`House ${row.house} · ${RASHI_NAMES[row.sign]}`}>
@@ -237,8 +261,9 @@ export function JaiminiDeepReading({
           </Row>
         ))}
       </Card>
+      )}
 
-      {nakshatra && (
+      {section === 'nakshatra' && nakshatra && (
         <Card title="Atmakaraka nakshatra">
           <p style={text}>
             {GRAHA_NAMES[nakshatra.planet]} is in {nakshatra.nakshatra}, pada {nakshatra.pada}, ruled by {GRAHA_NAMES[nakshatra.lord]}. {nakshatra.nature}
@@ -251,6 +276,7 @@ export function JaiminiDeepReading({
         </Card>
       )}
 
+      {section === 'transits' && (
       <Card title="Transit triggers today">
         {transitFailed && <p style={muted}>Today&apos;s transits could not be loaded.</p>}
         {!transitFailed && !trigger && <p style={muted}>Loading today&apos;s transits.</p>}
@@ -268,6 +294,7 @@ export function JaiminiDeepReading({
           </Row>
         )}
       </Card>
+      )}
     </>
   )
 }
