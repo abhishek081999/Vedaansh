@@ -6,7 +6,7 @@
 //  Pure — no React / DB imports.
 // ─────────────────────────────────────────────────────────────
 
-import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
+import type { ChartOutput, Dignity, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import {
   analyzeNavamsha,
@@ -76,6 +76,8 @@ export interface NavamshaPlanetPrediction {
   d9Rashi: Rashi
   d9RashiName: string
   d9House: number
+  d1Dignity: Dignity
+  d9Dignity: Dignity
   navamshaTitle: string
   /** D1 houses this planet rules (empty for nodes) */
   lordOf: number[]
@@ -316,6 +318,8 @@ export function buildNavamshaPredictions(
       d9Rashi: row.d9Rashi,
       d9RashiName: row.d9RashiName,
       d9House: row.d9House,
+      d1Dignity: row.d1Dignity,
+      d9Dignity: row.d9Dignity,
       navamshaTitle: profile.title,
       lordOf: lordshipsOf(row.id, lords),
       isVargottama: row.isVargottama,
