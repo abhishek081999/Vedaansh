@@ -12,6 +12,7 @@ import styles from './transit-scrubber.module.css'
 import { TransitDetailsPanels } from './TransitDetailsPanels'
 import { TransitInsightsPanels } from './TransitInsightsPanels'
 import { TransitNavtaraPanel } from './TransitNavtaraPanel'
+import { RashiSkyFigure, wheelRashiName, type RashiSkySlice, type SkyGrahaMark } from '@/components/home/LandingCosmicWheel'
 
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
 const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
@@ -28,6 +29,32 @@ const TRANSIT_DASHA_SYSTEMS: { id: DashaSystem; label: string }[] = [
 ]
 
 const EMPTY_DASHA_NODES: DashaNode[] = []
+
+const SKY_GRAHA_IDS = new Set<GrahaId>(['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke'])
+
+function skyMarks(chart: ChartOutput): SkyGrahaMark[] {
+  return chart.grahas
+    .filter(g => SKY_GRAHA_IDS.has(g.id))
+    .map(g => ({ id: g.id, longitude: g.lonSidereal, retro: g.id === 'Ke' ? false : g.isRetro }))
+}
+
+function skyFromTransit(chart: ChartOutput): RashiSkySlice {
+  const moon = chart.grahas.find(g => g.id === 'Mo')
+  const sun = chart.grahas.find(g => g.id === 'Su')
+  const moonRashi = (moon?.rashi ?? 1) as Rashi
+  const sunRashi = (sun?.rashi ?? 1) as Rashi
+  const elong = moon && sun
+    ? ((moon.lonSidereal - sun.lonSidereal) % 360 + 360) % 360
+    : 0
+  return {
+    planets: skyMarks(chart),
+    moonRashi: { rashi: moonRashi, sa: wheelRashiName(moonRashi) },
+    sunRashi: { rashi: sunRashi, sa: wheelRashiName(sunRashi) },
+    nakshatra: { name: chart.panchang.nakshatra.name },
+    tithi: { name: chart.panchang.tithi.name, paksha: chart.panchang.tithi.paksha },
+    lunarElongationDeg: elong,
+  }
+}
 
 interface TransitScrubberProps {
   natalChart: ChartOutput
@@ -409,6 +436,19 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
 
         {/* Chart beside controls on desktop */}
         <section className={styles.chartCol}>
+          <div className={styles.skyBlock}>
+            <div className={styles.momentLabel}>Sidereal sky</div>
+            <RashiSkyFigure
+              sky={transitChart ? skyFromTransit(transitChart) : null}
+              natal={skyMarks(natalChart)}
+              accent="#c9a84c"
+              wheelId="transit"
+              source={transitChart
+                ? `${formatDisplayDate(targetDate)} · ${formatDisplayTime(targetTime)} · ${natalChart.meta.birthPlace || natalChart.meta.timezone}`
+                : null}
+              emptyLabel={error ? 'Sky unavailable for this moment' : 'Reading this sky…'}
+            />
+          </div>
           <div style={{ width: '100%' }}>
             <VargaSwitcher
               vargas={natalChart.vargas}

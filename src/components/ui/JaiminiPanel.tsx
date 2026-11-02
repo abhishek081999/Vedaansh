@@ -14,9 +14,12 @@ import {
   Gem, Mountain, Clock, Scale, Brain,
   User, Coins, Swords, Home, Palette, Shield, Heart, Hourglass,
   Sparkles, Building2, TrendingUp, HeartHandshake,
-  Flame, Eye,
+  Flame, Eye, Star, Compass, Users, Landmark, Orbit,
 } from 'lucide-react'
 import { JaiminiMarriageSection } from '@/components/ui/JaiminiMarriageSection'
+import { JaiminiAllDashas, JaiminiDeepReading, type JaiminiInsightSection } from '@/components/ui/JaiminiInsights'
+import { JAIMINI_METHODS, type JaiminiMethod } from '@/lib/engine/jaimini/method'
+import type { BoardSystem } from '@/lib/engine/jaimini/dashaBoard'
 import { DashaReadingCard, FamilyKarakaCard, KarakaLifeCard, KarakamshaCard, SoulKarakaCard } from '@/components/ui/JaiminiReadings'
 import type { LucideIcon } from 'lucide-react'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
@@ -72,6 +75,39 @@ const ARUDHA_LABELS: Record<string, { label: string; desc: string; Icon: LucideI
   A11: { label: 'Labha Pada',      desc: 'Gains & social network', Icon: TrendingUp },
   A12: { label: 'Upapada Lagna',   desc: 'Marriage & devotion', Icon: HeartHandshake },
 }
+
+type JaiminiTabId =
+  | 'essence'
+  | 'karakamsha'
+  | 'arudhas'
+  | 'argala'
+  | 'yogas'
+  | 'family'
+  | 'marriage'
+  | 'lagnas'
+  | 'houses'
+  | 'dashas'
+  | 'transits'
+  | 'board'
+  | 'intelligence'
+  | 'info'
+
+const JAIMINI_TABS: { id: JaiminiTabId; label: string; short: string; Icon: LucideIcon }[] = [
+  { id: 'essence', label: 'Soul Architecture', short: 'Soul', Icon: Gem },
+  { id: 'karakamsha', label: 'Karakamsha', short: 'Swamsha', Icon: Star },
+  { id: 'arudhas', label: 'Arudha Landscape', short: 'Arudhas', Icon: Mountain },
+  { id: 'argala', label: 'Argala', short: 'Argala', Icon: Compass },
+  { id: 'yogas', label: 'Yogas', short: 'Yogas', Icon: Sparkles },
+  { id: 'family', label: 'Family', short: 'Family', Icon: Users },
+  { id: 'marriage', label: 'Marriage & Relationship', short: 'Marriage', Icon: HeartHandshake },
+  { id: 'lagnas', label: 'Special Lagnas', short: 'Lagnas', Icon: Landmark },
+  { id: 'houses', label: 'Houses', short: 'Houses', Icon: Home },
+  { id: 'dashas', label: 'Chara Dasha', short: 'Dasha', Icon: Clock },
+  { id: 'transits', label: 'Transits', short: 'Transit', Icon: Orbit },
+  { id: 'board', label: 'All Dashas', short: 'All', Icon: TrendingUp },
+  { id: 'intelligence', label: 'Intelligence', short: 'Intel', Icon: Brain },
+  { id: 'info', label: 'Info Reference', short: 'Info', Icon: Scale },
+]
 
 const KARAKA_ROLES: { key: keyof KarakaData; short: string; name: string }[] = [
   { key: 'AK',  short: 'AK',  name: KARAKA_NAMES_7.AK },
@@ -588,7 +624,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
     grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
     7
   );
-  const [activeTab, setActiveTab] = useState<'essence' | 'intelligence' | 'arudhas' | 'marriage' | 'dashas' | 'info'>('essence');
+  const [activeTab, setActiveTab] = useState<JaiminiTabId>('essence');
+  const [method, setMethod] = useState<JaiminiMethod>('classical');
   const [charaDashaMode, setCharaDashaMode] = useState<'chara' | 'chara_fe' | 'mandook' | 'sthir' | 'navamsha' | 'brahma'>(
     chart.meta.gender === 'female' ? 'chara_fe' : 'chara',
   );
@@ -601,13 +638,22 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
   const activeCharaDashas = useMemo(() => {
     switch (charaDashaMode) {
       case 'chara_fe': return charaDashas.chara_fe
-      case 'mandook': return charaDashas.mandook
-      case 'sthir': return charaDashas.sthir
+      case 'mandook': return method === 'practical' ? charaDashas.mandookPractical : charaDashas.mandook
+      case 'sthir': return method === 'practical' ? charaDashas.sthirPractical : charaDashas.sthir
       case 'navamsha': return charaDashas.navamsha
       case 'brahma': return charaDashas.brahma
       default: return charaDashas.chara
     }
-  }, [charaDashaMode, charaDashas])
+  }, [charaDashaMode, charaDashas, method])
+
+  const boardSystems = useMemo<BoardSystem[]>(() => [
+    { id: 'chara', name: 'Chara (K.N. Rao)', kind: 'sign', nodes: charaDashas.chara },
+    { id: 'chara_fe', name: 'Chara (Rangacharya)', kind: 'sign', nodes: charaDashas.chara_fe },
+    { id: 'mandook', name: 'Mandook', kind: 'sign', nodes: method === 'practical' ? charaDashas.mandookPractical : charaDashas.mandook },
+    { id: 'sthir', name: 'Sthira', kind: 'sign', nodes: method === 'practical' ? charaDashas.sthirPractical : charaDashas.sthir },
+    { id: 'vimshottari', name: 'Vimshottari', kind: 'graha', nodes: chart.dashas?.vimshottari ?? [] },
+    { id: 'yogini', name: 'Yogini', kind: 'graha', nodes: chart.dashas?.yogini ?? [] },
+  ], [charaDashas, method, chart.dashas])
 
   const dashaTitle = useMemo(() => {
     if (charaDashaMode === 'mandook') return 'Mandook Dasha Timeline'
@@ -801,31 +847,32 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
       d9: vargas.D9,
       d9Lagna: chart.vargaLagnas?.D9,
       karakamsha: akInD9 ? karakamshaRashi : undefined,
+      method,
     }),
-    [grahas, lagnas.ascRashi, karakas, d1EffectiveArudhas.AL, vargas.D9, chart.vargaLagnas, akInD9, karakamshaRashi],
+    [grahas, lagnas.ascRashi, karakas, d1EffectiveArudhas.AL, vargas.D9, chart.vargaLagnas, akInD9, karakamshaRashi, method],
   )
 
-  type JaiminiTabId = 'essence' | 'intelligence' | 'arudhas' | 'marriage' | 'dashas' | 'info';
+  const tabs = JAIMINI_TABS
 
-  const tabs: { id: JaiminiTabId; label: string; short: string; Icon: LucideIcon }[] = [
-    { id: 'essence', label: 'Soul Architecture', short: 'Soul', Icon: Gem },
-    { id: 'arudhas', label: 'Arudha Landscape', short: 'Arudhas', Icon: Mountain },
-    { id: 'marriage', label: 'Marriage & Relationship', short: 'Marriage', Icon: HeartHandshake },
-    { id: 'dashas',  label: 'Chara Dasha', short: 'Dasha', Icon: Clock },
-    { id: 'info',    label: 'Info Reference', short: 'Info', Icon: Scale },
-    { id: 'intelligence', label: 'Intelligence', short: 'Intel', Icon: Brain },
-  ];
-
-  const mobileTabs = [
-    { id: 'essence' as const, icon: Gem, label: 'Essence' },
-    { id: 'arudhas' as const, icon: Mountain, label: 'Arudhas' },
-    { id: 'marriage' as const, icon: HeartHandshake, label: 'Marriage' },
-    { id: 'dashas' as const, icon: Clock, label: 'Dasha' },
-    { id: 'info' as const, icon: Scale, label: 'Info' },
-    { id: 'intelligence' as const, icon: Brain, label: 'Intel' },
-  ];
+  const mobileTabs = JAIMINI_TABS.map((tab) => ({
+    id: tab.id,
+    icon: tab.Icon,
+    label: tab.short,
+  }))
 
   const argalaInterventions = selectedAspectSign ? getArgalaIntervention(selectedAspectSign) : [];
+
+  const renderInsight = (section: JaiminiInsightSection) => (
+    <JaiminiDeepReading
+      chart={chart}
+      karakas={karakas}
+      method={method}
+      nodes={activeCharaDashas as DashaNode[]}
+      arudhas={{ AL: d1EffectiveArudhas.AL, A7: d1EffectiveArudhas.A7, A12: d1EffectiveArudhas.A12 }}
+      dwaraSign={dwaraRashi}
+      section={section}
+    />
+  )
 
   const renderJaiminiChartBlock = (
     label: string,
@@ -916,6 +963,24 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
             >
               {chartStyle === 'south' ? 'S' : 'N'}
             </button>
+          </div>
+
+          <div style={{ margin: '0.5rem 0' }}>
+            <label style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)' }}>
+              Method{' '}
+              <select
+                value={method}
+                onChange={(e) => setMethod(e.target.value as JaiminiMethod)}
+                className={styles.dashaSelect}
+              >
+                {JAIMINI_METHODS.map(m => (
+                  <option key={m.id} value={m.id}>{m.code} · {m.name}</option>
+                ))}
+              </select>
+            </label>
+            <p style={{ margin: '0.3rem 0 0', fontSize: '0.7rem', lineHeight: 1.45, color: 'var(--text-secondary)' }}>
+              {JAIMINI_METHODS.find(m => m.id === method)?.topic}
+            </p>
           </div>
 
           <div className={styles.controlsRow}>
@@ -1413,11 +1478,21 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     </div>
                   </div>
 
-                  <KarakamshaCard chart={chart} karakas={karakas} arudhaLagna={d1EffectiveArudhas.AL} />
                   <SoulKarakaCard chart={chart} karakas={karakas} />
                   <KarakaLifeCard chart={chart} karakas={karakas} />
+                </div>
+              )}
 
-                  {jaiminiYogas.length > 0 && (
+              {activeTab === 'karakamsha' && (
+                <div className={styles.tabStack}>
+                  <KarakamshaCard chart={chart} karakas={karakas} arudhaLagna={d1EffectiveArudhas.AL} />
+                  {renderInsight('nakshatra')}
+                </div>
+              )}
+
+              {activeTab === 'yogas' && (
+                <div className={styles.tabStack}>
+                  {jaiminiYogas.length > 0 ? (
                     <SectionCard title="Principal Rajayogas">
                       <table className={styles.dataTable}>
                         <tbody>
@@ -1433,8 +1508,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                         </tbody>
                       </table>
                     </SectionCard>
+                  ) : (
+                    <SectionCard title="Principal Rajayogas">
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        No principal Jaimini rajayoga is formed in this chart.
+                      </p>
+                    </SectionCard>
                   )}
-
                   <SectionCard title="Fixed Significators (Sthira Karakas)" scrollY>
                     <table className={styles.dataTable}>
                       <thead>
@@ -1465,8 +1545,30 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       </tbody>
                     </table>
                   </SectionCard>
+                </div>
+              )}
 
+              {activeTab === 'family' && (
+                <div className={styles.tabStack}>
                   <FamilyKarakaCard chart={chart} />
+                </div>
+              )}
+
+              {activeTab === 'lagnas' && (
+                <div className={styles.tabStack}>
+                  {renderInsight('lagnas')}
+                </div>
+              )}
+
+              {activeTab === 'houses' && (
+                <div className={styles.tabStack}>
+                  {renderInsight('houses')}
+                </div>
+              )}
+
+              {activeTab === 'transits' && (
+                <div className={styles.tabStack}>
+                  {renderInsight('transits')}
                 </div>
               )}
 
@@ -1520,6 +1622,13 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     );
                   })}
 
+                  {renderInsight('arudha')}
+                </div>
+              )}
+
+              {activeTab === 'argala' && (
+                <div className={styles.tabStack}>
+                  {renderInsight('argala')}
                   {/* Detailed Argala Intelligence Matrix (Dynamic) */}
                   <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-soft)', borderRadius: '12px', overflow: 'hidden' }}>
                     <div style={{ 
@@ -1994,6 +2103,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                             <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>DIGNITY</th>
                             <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>KARAKA</th>
                             <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>KARTARI</th>
+                            <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem' }}>KENDRA</th>
                             <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem', textAlign: 'right', borderRadius: '0 8px 8px 0' }}>TOTAL</th>
                           </tr>
                         </thead>
@@ -2022,6 +2132,10 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                     {bala.kartariBala > 0 ? `+${bala.kartariBala}` : '0'}
                                   </div>
                                   <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>{bala.kartariBala > 0 ? 'Active' : 'No Hems'}</div>
+                                </td>
+                                <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem' }}>
+                                  <div style={{ fontWeight: 800 }}>+{bala.kendraBala ?? 0}</div>
+                                  <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>From AK</div>
                                 </td>
                                 <td style={{ padding: isTinyMobile ? '0.75rem 0.4rem' : '1rem 0.75rem', textAlign: 'right' }}>
                                   <div style={{ 
@@ -2057,6 +2171,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>KARAKAS</th>
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }}>ASPECTS</th>
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }} title="Odd sign whose lord is joined or aspected by a difficult planet">4TH</th>
+                              <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem' }} title="Total strength of the sign's lord">LORD</th>
                               <th style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.6rem', textAlign: 'right' }}>TOTAL</th>
                             </tr>
                           </thead>
@@ -2071,6 +2186,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', color: 'var(--teal)', fontWeight: 700 }}>+{bala.karakaBala}</td>
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', color: 'var(--gold)', fontWeight: 700 }}>+{bala.aspectBala}</td>
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', fontWeight: 700 }}>+{bala.chaturthaBala ?? 0}</td>
+                                  <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', fontWeight: 700 }}>+{bala.lordBala ?? 0}</td>
                                   <td style={{ padding: isTinyMobile ? '0.5rem 0.4rem' : '0.75rem 0.6rem', textAlign: 'right', fontWeight: 900, color: 'var(--text-primary)' }}>{bala.total}</td>
                                 </tr>
                               );
@@ -2116,12 +2232,33 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                     </div>
 
                   </div>
+                  {renderInsight('trinity')}
                 </div>
               )}
 
               {activeTab === 'marriage' && (
                 <div className={styles.tabStack}>
                   <JaiminiMarriageSection chart={chart} />
+                </div>
+              )}
+
+              {activeTab === 'board' && (
+                <div className={styles.tabStack}>
+                  <JaiminiAllDashas
+                    chart={chart}
+                    karakas={karakas}
+                    method={method}
+                    systems={boardSystems}
+                    anchors={{
+                      karakamsha: akInD9 ? karakamshaRashi : undefined,
+                      upapada: d1EffectiveArudhas.A12,
+                      A2: d1EffectiveArudhas.A2,
+                      A4: d1EffectiveArudhas.A4,
+                      A5: d1EffectiveArudhas.A5,
+                      A7: d1EffectiveArudhas.A7,
+                      A10: d1EffectiveArudhas.A10,
+                    }}
+                  />
                 </div>
               )}
 
@@ -2143,8 +2280,8 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                       >
                         <option value="chara">Chara Dasha (K.N. Rao)</option>
                         <option value="chara_fe">Chara Dasha (Rangacharya FE)</option>
-                        <option value="mandook">Mandook Dasha (K.N. Rao)</option>
-                        <option value="sthir">Sthir Dasha</option>
+                        <option value="mandook">{method === 'practical' ? 'Mandook Dasha (Practical)' : 'Mandook Dasha (K.N. Rao)'}</option>
+                        <option value="sthir">{method === 'practical' ? 'Sthir Dasha (Lagna or 7th)' : 'Sthir Dasha (from Brahma)'}</option>
                         <option value="navamsha">Navamsha Dasha (S.C. Mishra)</option>
                         <option value="brahma">Brahma Dasha</option>
                       </select>
@@ -2174,6 +2311,7 @@ function JaiminiPanel({ chart, userPlan = 'free' }: JaiminiPanelProps) {
                           : undefined
                     }
                   />
+                  {renderInsight('gateway')}
                 </div>
               )}
           </div>

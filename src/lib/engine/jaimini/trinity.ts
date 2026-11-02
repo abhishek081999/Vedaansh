@@ -1,14 +1,16 @@
 // ─────────────────────────────────────────────────────────────
 //  src/lib/engine/jaimini/trinity.ts
-//  Jaimini Brahma · Maheshwara · Rudra (Rath / Upadesa Sutras school)
-//  Used for longevity significators and Intel panel display
+//  Jaimini Brahma · Maheshwara · Rudra
+//  Strength comparisons use Jaimini Bala totals (graha and rashi).
+//  Only the seven planets qualify; Rahu and Ketu are never candidates.
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaId, Rashi, ChartOutput, GrahaData } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { calcCharaKarakas } from '../karakas'
-import { OWN_SIGNS } from '../dignity'
+import { EXALTATION_SIGN } from '../dignity'
 import { getRashiDrishti } from './aspects'
+import { calculateJaiminiBala, type JaiminiBalaResult } from './bala'
 
 export interface JaiminiTrinity {
   brahma: {
@@ -22,12 +24,13 @@ export interface JaiminiTrinity {
   rudra: {
     id: GrahaId | null
     reason: string
+    /** Weaker of the 2nd/8th lords when it receives a malefic's rashi drishti. */
+    aprani: GrahaId | null
   }
 }
 
 const CLASSICAL: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
-const EXCLUDED_FROM_BRAHMA: GrahaId[] = ['Sa', 'Ra', 'Ke']
-const MALEFICS: GrahaId[] = ['Ma', 'Sa', 'Ra', 'Ke', 'Su']
+const MALEFICS: GrahaId[] = ['Ma', 'Sa', 'Ra', 'Ke']
 
 const SIGN_LORD: Record<Rashi, GrahaId> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
@@ -36,27 +39,6 @@ const SIGN_LORD: Record<Rashi, GrahaId> = {
 
 function houseFrom(seed: Rashi, house: number): Rashi {
   return ((((seed - 1) + (house - 1)) % 12) + 1) as Rashi
-}
-
-function dignityWeight(dignity?: string): number {
-  switch (dignity) {
-    case 'exalted': return 9
-    case 'moolatrikona': return 8
-    case 'own': return 7
-    case 'great_friend': return 6
-    case 'friend': return 5
-    case 'neutral': return 4
-    case 'enemy': return 3
-    case 'great_enemy': return 2
-    case 'debilitated': return 1
-    default: return 0
-  }
-}
-
-function signNatureWeight(sign: Rashi): number {
-  if ([3, 6, 9, 12].includes(sign)) return 3
-  if ([2, 5, 8, 11].includes(sign)) return 2
-  return 1
 }
 
 /** Scorpio / Aquarius: compare main vs co-lord (Ke / Ra) by placement support. */
@@ -84,75 +66,50 @@ export function resolveSignLord(
   return mainLord.degree >= altLord.degree ? mainLordId : altLordId
 }
 
-function planetStrengthScore(g: GrahaData, grahas: GrahaData[]): number {
-  const dignity = dignityWeight(g.dignity) * 100
-  const ownSign = resolveSignLord(g.rashi, grahas) === g.id ? 20 : 0
-  return dignity + ownSign + g.degree
+function strongerSign(a: Rashi, b: Rashi, bala: JaiminiBalaResult): Rashi {
+  return bala.rashis[a].total >= bala.rashis[b].total ? a : b
 }
 
-function signStrength(sign: Rashi, grahas: GrahaData[]): number {
-  const occupants = grahas.filter(g => g.rashi === sign && g.id !== 'Ra' && g.id !== 'Ke')
-  const occupied = occupants.length > 0 ? 100 : 0
-  const occupantWeight = occupants.length * 15
-  const bestDegree = occupants.length ? Math.max(...occupants.map(g => g.degree)) : 0
-  const nature = signNatureWeight(sign) * 5
-  const lordId = resolveSignLord(sign, grahas)
-  const lord = grahas.find(g => g.id === lordId)
-  const lordWeight = lord ? dignityWeight(lord.dignity) * 8 + lord.degree : 0
-  return occupied + occupantWeight + bestDegree + nature + lordWeight
-}
-
-function strongerSign(a: Rashi, b: Rashi, grahas: GrahaData[]): Rashi {
-  return signStrength(a, grahas) >= signStrength(b, grahas) ? a : b
-}
-
-function strongerPlanet(
-  a: GrahaId,
-  b: GrahaId,
-  grahas: GrahaData[],
-): GrahaId {
+function strongerPlanet(a: GrahaId, b: GrahaId, grahas: GrahaData[], bala: JaiminiBalaResult): GrahaId {
   const pa = grahas.find(g => g.id === a)
   const pb = grahas.find(g => g.id === b)
   if (!pa) return b
   if (!pb) return a
-  const sa = planetStrengthScore(pa, grahas)
-  const sb = planetStrengthScore(pb, grahas)
-  if (sa !== sb) return sa >= sb ? a : b
+  const sa = bala.planets[a].total
+  const sb = bala.planets[b].total
+  if (sa !== sb) return sa > sb ? a : b
   // Tie-break: higher degree in sign (Jaimini convention)
   return pa.degree >= pb.degree ? a : b
 }
 
-function strongestAmong(ids: GrahaId[], grahas: GrahaData[]): GrahaId | null {
-  const unique = Array.from(new Set(ids))
+function strongestAmong(ids: GrahaId[], grahas: GrahaData[], bala: JaiminiBalaResult): GrahaId | null {
   let best: GrahaId | null = null
-  for (const id of unique) {
+  for (const id of new Set(ids)) {
     if (!grahas.some(g => g.id === id)) continue
-    best = best ? strongerPlanet(best, id, grahas) : id
+    best = best ? strongerPlanet(best, id, grahas, bala) : id
   }
   return best
 }
 
-function isOwnOrExalted(g: GrahaData): boolean {
-  if (g.dignity === 'exalted' || g.dignity === 'own' || g.dignity === 'moolatrikona') return true
-  return OWN_SIGNS[g.id]?.includes(g.rashi) ?? false
-}
-
-function maleficLinkCount(target: GrahaData, grahas: GrahaData[]): number {
-  return grahas.filter(g => {
-    if (!MALEFICS.includes(g.id) || g.id === target.id) return false
-    if (g.rashi === target.rashi) return true
-    return getRashiDrishti(g.rashi).includes(target.rashi)
-  }).length
+function hasMaleficDrishti(target: GrahaData, grahas: GrahaData[]): boolean {
+  return grahas.some(g =>
+    MALEFICS.includes(g.id) && g.id !== target.id && getRashiDrishti(g.rashi).includes(target.rashi),
+  )
 }
 
 /**
- * Calculate Jaimini Trinity: Brahma, Maheshwara, Rudra
- * School: Sanjay Rath / common Upadesa Sutras application for Sthira longevity.
+ * Brahma: 8th lord from AK when it occupies the 8th from AK (never Saturn);
+ *   else the strongest of the 6th/8th/12th lords from the stronger of Lagna
+ *   and 7th, skipping Saturn.
+ * Maheshwara: 8th lord from AK, unless an exalted planet occupies the 12th
+ *   from AK, which then takes the role.
+ * Rudra: stronger of the 2nd and 8th lords from Lagna.
  */
 export function calculateJaiminiTrinity(chart: Partial<ChartOutput>): JaiminiTrinity {
   const grahas = (chart.grahas || []).filter(g => CLASSICAL.includes(g.id))
   const lagnas = chart.lagnas || { ascRashi: 1 as Rashi }
   const lagnaRashi = lagnas.ascRashi as Rashi
+  const bala = calculateJaiminiBala({ grahas, lagnas: chart.lagnas })
 
   const karakas = calcCharaKarakas(
     grahas.map(g => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
@@ -162,20 +119,14 @@ export function calculateJaiminiTrinity(chart: Partial<ChartOutput>): JaiminiTri
   const akPlanet = grahas.find(g => g.id === karakas.AK) ?? null
 
   // ── Brahma ─────────────────────────────────────────────────
-  // 1) Special claim: 8th lord from AK occupying the 8th from AK (not Sa/Ra/Ke)
-  // 2) Else: stronger of Lagna vs 7th → strongest of 6th/8th/12th lords (Sa/Ra/Ke out)
   let brahma: GrahaId | null = null
   let brahmaReason = ''
 
   if (akPlanet) {
     const eighthFromAK = houseFrom(akPlanet.rashi, 8)
-    const eighthLordFromAK = resolveSignLord(eighthFromAK, grahas)
+    const eighthLordFromAK = SIGN_LORD[eighthFromAK]
     const eighthLordPlanet = grahas.find(g => g.id === eighthLordFromAK)
-    if (
-      eighthLordPlanet
-      && eighthLordPlanet.rashi === eighthFromAK
-      && !EXCLUDED_FROM_BRAHMA.includes(eighthLordFromAK)
-    ) {
+    if (eighthLordPlanet && eighthLordPlanet.rashi === eighthFromAK && eighthLordFromAK !== 'Sa') {
       brahma = eighthLordFromAK
       brahmaReason =
         `8th lord from AK (${GRAHA_NAMES[eighthLordFromAK]}) occupies the 8th from AK (${RASHI_NAMES[eighthFromAK]})`
@@ -184,97 +135,69 @@ export function calculateJaiminiTrinity(chart: Partial<ChartOutput>): JaiminiTri
 
   if (!brahma) {
     const seventh = houseFrom(lagnaRashi, 7)
-    const seed = strongerSign(lagnaRashi, seventh, grahas)
+    const seed = strongerSign(lagnaRashi, seventh, bala)
     const seedLabel = seed === lagnaRashi ? 'Lagna' : '7th house'
-    const candidates = [
-      resolveSignLord(houseFrom(seed, 6), grahas),
-      resolveSignLord(houseFrom(seed, 8), grahas),
-      resolveSignLord(houseFrom(seed, 12), grahas),
-    ].filter(id => !EXCLUDED_FROM_BRAHMA.includes(id))
+    const candidates = [6, 8, 12]
+      .map(h => SIGN_LORD[houseFrom(seed, h)])
+      .filter(id => id !== 'Sa')
 
-    brahma = strongestAmong(candidates, grahas)
+    brahma = strongestAmong(candidates, grahas, bala)
     brahmaReason = brahma
-      ? `Strongest of 6th/8th/12th lords from stronger of Lagna vs 7th (${seedLabel} / ${RASHI_NAMES[seed]}) → ${GRAHA_NAMES[brahma]}`
-      : 'No eligible Brahma candidate (Saturn/Rahu/Ketu excluded)'
+      ? `Strongest of 6th/8th/12th lords from stronger of Lagna vs 7th (${seedLabel} / ${RASHI_NAMES[seed]}), Saturn skipped → ${GRAHA_NAMES[brahma]}`
+      : 'No eligible Brahma candidate (Saturn skipped)'
   }
 
   // ── Maheshwara ─────────────────────────────────────────────
-  // Base: 8th lord from AK
-  // If that lord is exalted/own: stronger of 8th & 12th lords from its placement
-  // If Rahu/Ketu with AK or in 8th from AK: 6th lord from Sun
   let maheshwara: GrahaId | null = null
   let maheshwaraReason = ''
 
   if (akPlanet) {
     const eighthFromAK = houseFrom(akPlanet.rashi, 8)
-    const nodesOnAk = grahas.some(
-      g => (g.id === 'Ra' || g.id === 'Ke') && g.rashi === akPlanet.rashi,
-    )
-    const nodesInEighth = grahas.some(
-      g => (g.id === 'Ra' || g.id === 'Ke') && g.rashi === eighthFromAK,
-    )
+    const twelfthFromAK = houseFrom(akPlanet.rashi, 12)
+    const exaltedInTwelfth = grahas
+      .filter(g => g.id !== 'Ra' && g.id !== 'Ke' && g.rashi === twelfthFromAK && EXALTATION_SIGN[g.id] === g.rashi)
+      .map(g => g.id)
 
-    if (nodesOnAk || nodesInEighth) {
-      const sun = grahas.find(g => g.id === 'Su')
-      if (sun) {
-        const sixthFromSun = houseFrom(sun.rashi, 6)
-        maheshwara = resolveSignLord(sixthFromSun, grahas)
-        maheshwaraReason =
-          `Rahu/Ketu with AK or in 8th from AK → 6th lord from Sun (${GRAHA_NAMES[maheshwara]} from ${RASHI_NAMES[sun.rashi]})`
-      }
-    }
-
-    if (!maheshwara) {
-      const eighthLordId = resolveSignLord(eighthFromAK, grahas)
-      const eighthLord = grahas.find(g => g.id === eighthLordId)
-
-      if (eighthLord && isOwnOrExalted(eighthLord)) {
-        const fromPlacement8 = resolveSignLord(houseFrom(eighthLord.rashi, 8), grahas)
-        const fromPlacement12 = resolveSignLord(houseFrom(eighthLord.rashi, 12), grahas)
-        maheshwara = strongerPlanet(fromPlacement8, fromPlacement12, grahas)
-        maheshwaraReason =
-          `8th lord from AK (${GRAHA_NAMES[eighthLordId]}) is ${eighthLord.dignity} in ${RASHI_NAMES[eighthLord.rashi]} → stronger of 8th/12th lords from its placement → ${GRAHA_NAMES[maheshwara]}`
-      } else {
-        maheshwara = eighthLordId
-        maheshwaraReason =
-          `8th lord from AK (${GRAHA_NAMES[eighthLordId]}, 8th = ${RASHI_NAMES[eighthFromAK]})`
-      }
+    maheshwara = strongestAmong(exaltedInTwelfth, grahas, bala)
+    if (maheshwara) {
+      maheshwaraReason =
+        `Exalted ${GRAHA_NAMES[maheshwara]} occupies the 12th from AK (${RASHI_NAMES[twelfthFromAK]})`
+    } else {
+      maheshwara = SIGN_LORD[eighthFromAK]
+      maheshwaraReason =
+        `8th lord from AK (${GRAHA_NAMES[maheshwara]}, 8th = ${RASHI_NAMES[eighthFromAK]})`
     }
   } else {
     maheshwaraReason = 'Atmakaraka not found — Maheshwara unavailable'
   }
 
   // ── Rudra ──────────────────────────────────────────────────
-  // Stronger of 2nd and 8th lords from Lagna.
-  // Aprani exception: if the weaker is hit by 2+ malefic links, it can become Rudra.
-  const secondLord = resolveSignLord(houseFrom(lagnaRashi, 2), grahas)
-  const eighthLord = resolveSignLord(houseFrom(lagnaRashi, 8), grahas)
+  const secondLord = SIGN_LORD[houseFrom(lagnaRashi, 2)]
+  const eighthLord = SIGN_LORD[houseFrom(lagnaRashi, 8)]
 
   let rudra: GrahaId | null = null
   let rudraReason = ''
+  let aprani: GrahaId | null = null
 
   if (secondLord === eighthLord) {
     rudra = secondLord
     rudraReason = `2nd and 8th lords from Lagna are the same (${GRAHA_NAMES[secondLord]})`
   } else {
-    const primary = strongerPlanet(secondLord, eighthLord, grahas)
-    const weaker: GrahaId = primary === secondLord ? eighthLord : secondLord
-    const weakerGraha = grahas.find(g => g.id === weaker)
+    rudra = strongerPlanet(secondLord, eighthLord, grahas, bala)
+    rudraReason =
+      `Stronger of 2nd lord (${GRAHA_NAMES[secondLord]}) and 8th lord (${GRAHA_NAMES[eighthLord]}) from Lagna → ${GRAHA_NAMES[rudra]}`
 
-    if (weakerGraha && maleficLinkCount(weakerGraha, grahas) >= 2) {
-      rudra = weaker
-      rudraReason =
-        `Aprani Rudra: weaker lord ${GRAHA_NAMES[weaker]} is heavily under pressure (≥2 difficult planet links); overrides stronger ${GRAHA_NAMES[primary]}`
-    } else {
-      rudra = primary
-      rudraReason =
-        `Stronger of 2nd lord (${GRAHA_NAMES[secondLord]}) and 8th lord (${GRAHA_NAMES[eighthLord]}) from Lagna → ${GRAHA_NAMES[primary]}`
+    const weaker: GrahaId = rudra === secondLord ? eighthLord : secondLord
+    const weakerGraha = grahas.find(g => g.id === weaker)
+    if (weakerGraha && hasMaleficDrishti(weakerGraha, grahas)) {
+      aprani = weaker
+      rudraReason += `. Aprani Rudra: weaker lord ${GRAHA_NAMES[weaker]} receives a malefic's drishti`
     }
   }
 
   return {
     brahma: { id: brahma, reason: brahmaReason },
     maheshwara: { id: maheshwara, reason: maheshwaraReason },
-    rudra: { id: rudra, reason: rudraReason },
+    rudra: { id: rudra, reason: rudraReason, aprani },
   }
 }

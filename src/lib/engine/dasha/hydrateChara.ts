@@ -7,6 +7,8 @@ import type { ChartOutput, DashaNode, GrahaData, LagnaData } from '@/types/astro
 import { calcCharaDasha, calcCharaDashaFemale } from './chara'
 import { calcMandookDasha, calcSthirDasha, calcNavamshaDasha, calcBrahmaDasha } from './jaimini'
 import { calcKalachakra } from './kalachakra'
+import { calculateJaiminiBala } from '../jaimini/bala'
+import { calculateJaiminiTrinity } from '../jaimini/trinity'
 
 const CHARA_DEPTH = 3
 
@@ -26,7 +28,7 @@ export function ensureCharaDashas(
   meta: ChartOutput['meta'],
   /** @deprecated Ignored — always recomputed so depth/formula fixes apply. */
   _existing?: Partial<Pick<ChartOutput['dashas'], 'chara' | 'chara_fe' | 'mandook' | 'sthir'>>,
-): { chara: DashaNode[]; chara_fe: DashaNode[]; mandook: DashaNode[]; sthir: DashaNode[]; navamsha: DashaNode[]; brahma: DashaNode[]; kalachakra: DashaNode[] } {
+): { chara: DashaNode[]; chara_fe: DashaNode[]; mandook: DashaNode[]; sthir: DashaNode[]; mandookPractical: DashaNode[]; sthirPractical: DashaNode[]; navamsha: DashaNode[]; brahma: DashaNode[]; kalachakra: DashaNode[] } {
   const birthUtc = birthUtcFromMeta(meta)
   // Always recompute so cached/legacy trees pick up depth and formula fixes
   // (e.g. full Antar→Pratyantar for previous/future periods, not current-only).
@@ -34,11 +36,13 @@ export function ensureCharaDashas(
   const chara_fe = calcCharaDashaFemale(grahas, lagnas, birthUtc, CHARA_DEPTH)
   const mandook = calcMandookDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
   const sthir = calcSthirDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
+  const mandookPractical = calcMandookDasha(grahas, lagnas, birthUtc, CHARA_DEPTH, 'practical')
+  const sthirPractical = calcSthirDasha(grahas, lagnas, birthUtc, CHARA_DEPTH, 'practical')
   const navamsha = calcNavamshaDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
   const brahma = calcBrahmaDasha(grahas, lagnas, birthUtc, CHARA_DEPTH)
   const moon = grahas.find((g) => g.id === 'Mo')
   const kalachakra = moon ? calcKalachakra(moon.lonSidereal, birthUtc, CHARA_DEPTH) : []
-  return { chara, chara_fe, mandook, sthir, navamsha, brahma, kalachakra }
+  return { chara, chara_fe, mandook, sthir, mandookPractical, sthirPractical, navamsha, brahma, kalachakra }
 }
 
 export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagnas' | 'meta'> & { dashas?: ChartOutput['dashas'] }>(
@@ -51,6 +55,9 @@ export function hydrateCharaDashas<T extends Pick<ChartOutput, 'grahas' | 'lagna
 
   return {
     ...chart,
+    // Saved charts bypass the calculate route, so refresh formula-driven Jaimini data here too.
+    jaiminiBala: calculateJaiminiBala({ grahas: chart.grahas, lagnas: chart.lagnas }),
+    jaiminiTrinity: calculateJaiminiTrinity({ grahas: chart.grahas, lagnas: chart.lagnas }),
     dashas: {
       ...(existing ?? {}),
       chara,

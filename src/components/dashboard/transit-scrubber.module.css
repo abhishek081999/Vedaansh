@@ -33,6 +33,11 @@
   align-items: center;
 }
 
+.skyBlock {
+  width: min(100%, 560px);
+  margin: 0 auto 0.35rem;
+}
+
 .panel {
   display: flex;
   flex-direction: column;
