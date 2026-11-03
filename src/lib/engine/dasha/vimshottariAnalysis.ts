@@ -26,6 +26,7 @@ import {
   getVimshottariAntarHint,
   getVimshottariInterpretation,
 } from '@/lib/engine/dasha/vimshottariInterpretations'
+import { collectClassicalDashaRules } from '@/lib/engine/dasha/vimshottariClassicalRules'
 import {
   DEBILITATION_SIGN,
   EXALTATION_DEGREE,
@@ -639,6 +640,12 @@ export function buildCrispInsight(
   if (flags.some(f => f.id === 'lp-4-10')) {
     bullets.push('The axis of home and career is active. A move of property, or authority at work, is in play.')
   }
+  if (flags.some(f => f.id === 'cl-rajayoga-antar')) {
+    bullets.push('A rajayoga antar: kendra and trikona lords meet in the running periods. Status and achievement can rise in this stretch.')
+  }
+  if (flags.some(f => f.id.startsWith('cl-node-kendra'))) {
+    bullets.push('The node sits in a kendra with a trikona lord. This is among the best periods a node can give.')
+  }
   if (flags.some(f => f.id === 'lp-5-9')) {
     bullets.push('The link of creativity and fortune is active. Children, or creative work when age allows, receive a push.')
   }
@@ -662,6 +669,9 @@ export function buildCrispInsight(
   }
   if (flags.some(f => f.id === 'maraka')) {
     watches.push('A period of the hardship lord: pressure on the body, on money, or on partnership. Pace yourself.')
+  }
+  if (flags.some(f => f.id === 'cl-kendradhipati')) {
+    watches.push('A benefic that owns two kendras: expect less ease than the planet’s nature suggests.')
   }
   if (flags.some(f => f.id === 'retrograde')) {
     watches.push('The lord is retrograde. Timing feels hard to predict. Check a decision twice.')
@@ -780,6 +790,24 @@ export function collectLaghuParashariFlags(
   }
 
   return flags
+}
+
+const YEAR_MS = 365.2425 * 24 * 60 * 60 * 1000
+
+/** Fraction of a dasha node elapsed at `nowMs` (0–1), or null on bad dates. */
+export function mahaProgressAt(node: DashaNode, nowMs: number): number | null {
+  const start = new Date(node.start).getTime()
+  const end = new Date(node.end).getTime()
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null
+  return Math.min(Math.max((nowMs - start) / (end - start), 0), 1)
+}
+
+/** Age at the start of `maha`, taking the first level-1 node as birth. */
+export function ageAtMahaStart(nodes: DashaNode[], maha: DashaNode): number | null {
+  const first = nodes.find(n => n.level === 1 || n.level === undefined)
+  if (!first) return null
+  const ms = new Date(maha.start).getTime() - new Date(first.start).getTime()
+  return Number.isFinite(ms) ? ms / YEAR_MS : null
 }
 
 /**
@@ -1055,6 +1083,26 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
     flags.push(f)
   }
 
+  const classical = collectClassicalDashaRules({
+    ascRashi,
+    grahas,
+    mahaLord: mahaNode.lord,
+    antarLord: antarNode?.lord ?? null,
+    mahaSequenceIndex: seqIdx,
+    antarIndexInMaha: antarNode ? antardashaIndexInMaha(mahaNode.lord, antarNode.lord) : -1,
+    navamshaGrahas,
+    mahaProgress: mahaProgressAt(mahaNode, Date.now()),
+    ageAtMahaStartYears: ageAtMahaStart(nodes, mahaNode),
+    shadbala,
+    ashtakavarga,
+  })
+  for (const { flag, weight } of classical) {
+    if (weight > 0) fav += weight
+    else if (weight < 0) chal += -weight
+    else neu += 2
+    flags.push(flag)
+  }
+
   let relation: MdAdRelation | null = null
   if (antarNode) {
     const g1 = findGraha(grahas, mahaNode.lord)
@@ -1081,6 +1129,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
   if (flags.some(f => f.id === 'arohini')) summaryParts.push('Arohini lift')
   if (flags.some(f => f.id === 'avarohini')) summaryParts.push('Avarohini strain')
   if (flags.some(f => f.id.startsWith('lp-'))) summaryParts.push('Laghu Parashari yoga')
+  if (flags.some(f => f.id === 'cl-rajayoga-antar')) summaryParts.push('rajayoga antar')
   if (relation?.tone === 'supportive') summaryParts.push('harmonious MD–AD link')
   if (relation?.tone === 'challenging') summaryParts.push('strained MD–AD link')
 
