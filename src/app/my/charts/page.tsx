@@ -11,6 +11,7 @@ import { ChartTagsInput } from '@/components/ui/ChartTagsInput'
 import { formatTagLabel } from '@/lib/chart/tags'
 import { BulkImport } from '@/components/ui/BulkImport'
 import { SavedMilanLibrary } from '@/components/ui/SavedMilanLibrary'
+import { SavedNumerologyLibrary } from '@/components/ui/SavedNumerologyLibrary'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -492,7 +493,13 @@ export default function MyChartsPage() {
   const [filterTag,        setFilterTag]        = useState('')
   const [isSearching,      setIsSearching]      = useState(false)
   const [openingId,        setOpeningId]        = useState<string | null>(null)
-  const [library,          setLibrary]          = useState<'charts' | 'milan'>('charts')
+  const [library,          setLibrary]          = useState<'charts' | 'milan' | 'numerology'>('charts')
+
+  // Deep link from other pages, e.g. /my/charts?library=numerology
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('library')
+    if (requested === 'milan' || requested === 'numerology') setLibrary(requested)
+  }, [])
 
   const userPlan = (session?.user as any)?.plan ?? 'free'
 
@@ -735,6 +742,7 @@ export default function MyChartsPage() {
         {([
           ['charts', 'My Charts'],
           ['milan', 'Kundali Milan'],
+          ['numerology', 'Numerology'],
         ] as const).map(([id, label]) => (
           <button
             key={id}
@@ -756,7 +764,7 @@ export default function MyChartsPage() {
         ))}
       </div>
 
-      {library === 'milan' ? <SavedMilanLibrary /> : (
+      {library === 'milan' ? <SavedMilanLibrary /> : library === 'numerology' ? <SavedNumerologyLibrary /> : (
       <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
         {/* Primary Toolbar */}

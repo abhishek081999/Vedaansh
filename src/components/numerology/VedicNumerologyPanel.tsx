@@ -6,7 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FileDown, Hash } from 'lucide-react'
+import { Bookmark, FileDown, Hash } from 'lucide-react'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput, Gender, UserPlan } from '@/types/astrology'
 import {
@@ -71,6 +72,54 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- re-sync only when the active chart identity changes
   }, [chartKey])
 
+  // Open a saved reading from My Charts (/numerology?reading=<id>).
+  const [loadedReading, setLoadedReading] = useState<string | null>(null)
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('reading')
+    if (!id) return
+    let cancelled = false
+    void (async () => {
+      const res = await fetch(`/api/numerology/saved/${encodeURIComponent(id)}`)
+      const json = await res.json().catch(() => null) as { success?: boolean; reading?: SavedReadingInput } | null
+      if (cancelled || !json?.success || !json.reading) return
+      setName(json.reading.personName ?? '')
+      setBirthDate(json.reading.birthDate)
+      setGender(json.reading.gender ?? 'other')
+      setFriendshipMode(json.reading.friendshipMode ?? 'bphs')
+      setLoadedReading(json.reading.label)
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  const [saveState, setSaveState] = useState<{ status: 'idle' | 'saving' | 'saved' | 'error'; message?: string }>({ status: 'idle' })
+  const savedKey = `${name.trim()}|${birthDate}|${gender}|${friendshipMode}`
+  const lastSavedKey = useRef<string | null>(null)
+  useEffect(() => {
+    if (saveState.status !== 'idle' && lastSavedKey.current !== savedKey) setSaveState({ status: 'idle' })
+  }, [savedKey, saveState.status])
+
+  const saveReading = async () => {
+    if (!session?.user) {
+      window.location.href = `/login?callbackUrl=${encodeURIComponent('/numerology')}`
+      return
+    }
+    setSaveState({ status: 'saving' })
+    try {
+      const res = await fetch('/api/numerology/saved', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personName: name.trim(), birthDate, gender, friendshipMode }),
+      })
+      const json = await res.json().catch(() => ({})) as { success?: boolean; error?: string }
+      if (!res.ok || !json.success) throw new Error(json.error ?? 'Could not save this reading')
+      lastSavedKey.current = savedKey
+      setSaveState({ status: 'saved' })
+    } catch (err) {
+      lastSavedKey.current = savedKey
+      setSaveState({ status: 'error', message: err instanceof Error ? err.message : 'Could not save this reading' })
+    }
+  }
+
   const report = useMemo(
     () => (birthDate ? buildNumerologyCore({ birthDate, name: name.trim() || undefined, gender }) : null),
     [birthDate, name, gender],
@@ -122,10 +171,22 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
       title="Vedic Numerology"
       headerActions={
         report ? (
-          <Button variant="ghost" size="sm" onClick={openPdf} disabled={!canExport} title={canExport ? 'Open printable report' : 'Gold plan required'}>
-            <FileDown size={14} aria-hidden style={{ marginRight: 4 }} />
-            PDF
-          </Button>
+          <div style={{ display: 'flex', gap: '0.35rem' }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { void saveReading() }}
+              disabled={saveState.status === 'saving' || saveState.status === 'saved'}
+              title={session?.user ? 'Save to My Charts → Numerology' : 'Sign in to save'}
+            >
+              <Bookmark size={14} aria-hidden style={{ marginRight: 4 }} />
+              {saveState.status === 'saving' ? 'Saving…' : saveState.status === 'saved' ? 'Saved' : 'Save'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={openPdf} disabled={!canExport} title={canExport ? 'Open printable report' : 'Gold plan required'}>
+              <FileDown size={14} aria-hidden style={{ marginRight: 4 }} />
+              PDF
+            </Button>
+          </div>
         ) : null
       }
       toolbar={
@@ -173,6 +234,22 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
         <Alert variant="error">Please enter a valid date of birth.</Alert>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {saveState.status === 'saved' && (
+            <Alert variant="success">
+              Reading saved. Find it under <Link href="/my/charts?library=numerology" style={{ color: 'var(--text-gold)', fontWeight: 700 }}>My Charts → Numerology</Link>.
+            </Alert>
+          )}
+          {saveState.status === 'error' && (
+            <Alert variant="error">
+              {saveState.message}
+              {saveState.message?.includes('Upgrade') && <> <Link href="/pricing?highlight=gold" style={{ color: 'var(--text-gold)', fontWeight: 700 }}>See plans</Link></>}
+            </Alert>
+          )}
+          {loadedReading && (
+            <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+              Opened saved reading <strong style={{ color: 'var(--text-gold)' }}>{loadedReading}</strong>.
+            </p>
+          )}
           {usingChart && (
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>
               Using birth details from <strong style={{ color: 'var(--text-gold)' }}>{chart?.meta.name || 'your active chart'}</strong>. Edit the fields above to analyse anyone else.
@@ -227,6 +304,14 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
       )}
     </PanelShell>
   )
+}
+
+interface SavedReadingInput {
+  label: string
+  personName?: string
+  birthDate: string
+  gender?: Gender
+  friendshipMode?: FriendshipMode
 }
 
 // ── Gold layer (server-built predictions + remedies) ──────────
