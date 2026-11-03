@@ -22,12 +22,14 @@ import {
   Mountain,
   Eclipse,
   CircleDot,
+  Flower2,
 } from 'lucide-react'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { GrahaTable } from '@/components/ui/GrahaTable'
 import { PlanetDetailCard } from '@/components/ui/PlanetDetailCard'
 import { AdvancedAnalysisPanel } from '@/components/ui/AdvancedAnalysisPanel'
 import { PlanetaryEnergyCyclesPanel } from '@/components/ui/PlanetaryEnergyCyclesPanel'
+import { PlanetaryRemediesPanel } from '@/components/ui/PlanetaryRemediesPanel'
 import { PlanetaryMaturityGuide } from '@/components/ui/PlanetaryMaturityGuide'
 import { MoonKalasManasPanel } from '@/components/ui/MoonKalasManasPanel'
 import { SunAdityasPanel } from '@/components/ui/SunAdityasPanel'
@@ -49,7 +51,7 @@ import { cn } from '@/lib/ui/cn'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import styles from './PlanetsWorkspace.module.css'
 
-type TabId = 'overview' | 'details' | 'sun' | 'moon' | 'mars' | 'mercury' | 'jupiter' | 'venus' | 'saturn' | 'rahu' | 'ketu' | 'maturity' | 'energy' | 'yogi' | 'insights'
+type TabId = 'overview' | 'details' | 'sun' | 'moon' | 'mars' | 'mercury' | 'jupiter' | 'venus' | 'saturn' | 'rahu' | 'ketu' | 'remedies' | 'maturity' | 'energy' | 'yogi' | 'insights'
 
 const TABS: {
   id: TabId
@@ -69,6 +71,7 @@ const TABS: {
   { id: 'saturn', label: 'Saturn · Shani', shortLabel: 'Saturn', Icon: Mountain },
   { id: 'rahu', label: 'Rahu · Rāhu', shortLabel: 'Rahu', Icon: Eclipse },
   { id: 'ketu', label: 'Ketu · Śikhin', shortLabel: 'Ketu', Icon: CircleDot },
+  { id: 'remedies', label: 'Remedies · Upay', shortLabel: 'Remedies', Icon: Flower2 },
   { id: 'maturity', label: 'Maturity Ages', shortLabel: 'Maturity', Icon: Hourglass },
   { id: 'energy', label: 'Energy Cycles', shortLabel: 'Energy', Icon: Orbit },
   { id: 'yogi', label: 'Yogi Point', shortLabel: 'Yogi', Icon: Sparkles, optional: true },
@@ -473,6 +476,22 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
               : 'Free preview of natal Ketu house, dharma/moksha flags, and active yogas. Gold unlocks karakatva, catalogues, MD vs AD, and tradition.'}
           </p>
           <KetuAnalysisPanel chart={chart} userPlan={userPlan} />
+        </section>
+      )}
+
+      {/* ── Remedies · Upay ──────────────────────────────────── */}
+      {tab === 'remedies' && (
+        <section className={styles.section} role="tabpanel">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>Planetary Energies & Remedies</h3>
+            <div className={styles.sectionRule} />
+          </div>
+          <p className={styles.sectionHint}>
+            {energyFull
+              ? 'Behavioural, spiritual, daan, and seva remedies for each graha — ranked by natal affliction (dignity, combust, vakri, war, gandanta, shadbala), with the nakshatra deity that gives the exact energy for the remedy.'
+              : 'Free preview of your two most afflicted grahas with indications and behavioural remedies. Gold unlocks all nine planets with spiritual remedies, daan, seva, and cautions.'}
+          </p>
+          <PlanetaryRemediesPanel chart={chart} userPlan={userPlan} />
         </section>
       )}
 
