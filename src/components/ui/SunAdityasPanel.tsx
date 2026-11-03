@@ -9,6 +9,7 @@ import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   BookOpen,
+  Compass,
   Flame,
   Lock,
   Sparkles,
@@ -17,14 +18,16 @@ import {
 } from 'lucide-react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { analyzeSunAdityas } from '@/lib/engine/sunAdityas'
+import { analyzeSunReadingMethod } from '@/lib/engine/sunReadingMethod'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
 
-type SubTab = 'overview' | 'adityas' | 'spiritual' | 'afflictions'
+type SubTab = 'overview' | 'reading' | 'adityas' | 'spiritual' | 'afflictions'
 
 const SUB_TABS: { id: SubTab; label: string; Icon: typeof SunIcon; free?: boolean }[] = [
   { id: 'overview', label: 'Overview', Icon: SunIcon, free: true },
+  { id: 'reading', label: 'Reading Method', Icon: Compass },
   { id: 'adityas', label: '12 Adityas', Icon: Sparkles },
   { id: 'spiritual', label: 'Energy & Spirit', Icon: Zap },
   { id: 'afflictions', label: 'Afflictions', Icon: Flame },
@@ -39,6 +42,7 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const data = useMemo(() => analyzeSunAdityas(chart), [chart])
+  const reading = useMemo(() => analyzeSunReadingMethod(chart), [chart])
 
   if (!data) {
     return (
@@ -78,7 +82,7 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
             Free preview: natal Sun placement, primary Aditya, and core significations.
-            Gold unlocks all 12 Adityas, Pingala/spiritual notes, afflictions, and Pitru Dosh.
+            Gold unlocks the 5-step reading method, all 12 Adityas, Pingala/spiritual notes, afflictions, and Pitru Dosh.
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
             <Button variant="primary" size="sm">View plans</Button>
@@ -203,6 +207,100 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
               </div>
             </PlanGate>
           )}
+        </div>
+      )}
+
+      {showFull && sub === 'reading' && reading && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+            Read the Sun alone first, in five steps: background → characteristics → daivik support → negatives → remedies.
+          </p>
+
+          {reading.steps.map(s => (
+            <Card key={s.step}>
+              <Label>Step {s.step} · {s.title}</Label>
+              <div style={{ fontSize: '0.72rem', color: 'var(--teal)', marginBottom: 4 }}>{s.question}</div>
+              <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {s.points.map(p => <li key={p}>{p}</li>)}
+              </ul>
+            </Card>
+          ))}
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: '0.55rem',
+          }}>
+            <Card>
+              <Label>Motion in the zodiac</Label>
+              <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-gold)' }}>{reading.motion.label}</div>
+              <p style={{ margin: '0.35rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                {reading.motion.detail}
+              </p>
+              <div style={{ marginTop: 4, fontSize: '0.64rem', color: 'var(--text-muted)' }}>
+                {reading.motion.degreesToExaltation.toFixed(0)}° to exaltation · {reading.motion.degreesToDebilitation.toFixed(0)}° to debilitation
+              </div>
+            </Card>
+            <Card>
+              <Label>Sandhi / gandanta</Label>
+              <p style={{ margin: 0, fontSize: '0.7rem', color: reading.sandhi.active ? 'var(--rose)' : 'var(--text-secondary)', lineHeight: 1.45 }}>
+                {reading.sandhi.detail}
+              </p>
+            </Card>
+            <Card>
+              <Label>Solar month</Label>
+              <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-gold)' }}>
+                {reading.solarMonth.month}{reading.solarMonth.aditya ? ` · ${reading.solarMonth.aditya}` : ''}
+              </div>
+              <p style={{ margin: '0.35rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                Sun at this degree puts birth around {reading.solarMonth.approxBirthWindow} — a quick sanity check on the birth data.
+              </p>
+            </Card>
+            <Card>
+              <Label>Body side</Label>
+              <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                {reading.bodySide.detail}
+              </p>
+            </Card>
+          </div>
+
+          <Card>
+            <Label>Appearance (Surya on Lagna)</Label>
+            <div style={{ fontSize: '0.68rem', color: reading.appearance.applies ? 'var(--teal)' : 'var(--text-muted)', marginBottom: 4 }}>
+              {reading.appearance.reason}
+            </div>
+            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5, opacity: reading.appearance.applies ? 1 : 0.6 }}>
+              {reading.appearance.traits.map(t => <li key={t}>{t}</li>)}
+            </ul>
+          </Card>
+
+          <Card>
+            <Label>Activation ages</Label>
+            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              {reading.activationAges.map(a => (
+                <li key={`${a.age}-${a.source}`}>
+                  <strong>{a.age}</strong> — {a.source}{a.mahadasha ? ` · ${a.mahadasha} Mahadasha running` : ''}
+                </li>
+              ))}
+            </ul>
+            <p style={{ margin: '0.45rem 0 0', fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+              An age is only confirmed when the dasha running then also supports the theme.
+            </p>
+          </Card>
+
+          <Card>
+            <Label>Practices & remedies</Label>
+            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              {reading.practices.map(p => <li key={p}>{p}</li>)}
+            </ul>
+          </Card>
+
+          <Card>
+            <Label>Reading principles</Label>
+            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              {reading.principles.map(p => <li key={p}>{p}</li>)}
+            </ul>
+          </Card>
         </div>
       )}
 
