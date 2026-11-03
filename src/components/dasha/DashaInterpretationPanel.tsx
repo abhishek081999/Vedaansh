@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Coins,
   Crown,
+  Flower2,
   GraduationCap,
   Heart,
   HeartPulse,
@@ -77,6 +78,12 @@ import {
   getVimshottariPratyantarScriptures,
   type ScripturePassage,
 } from '@/lib/engine/dasha/vimshottariScriptures'
+import {
+  computeDashaLordRemedies,
+  REMEDY_CORE_PRINCIPLE,
+  type DashaLordRemedy,
+  type RemedyNeed,
+} from '@/lib/engine/planetaryRemedies'
 import type { TransitPosition } from '@/lib/engine/transits'
 import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
@@ -99,10 +106,11 @@ const DASHA_EVENT_LABELS = [
 const LEVEL_NAMES = ['Mahadasha', 'Antardasha', 'Pratyantardasha'] as const
 
 type Tone = 'supportive' | 'caution' | 'mixed' | 'neutral'
-type TabId = 'reading' | 'areas' | 'timeline' | 'gochar' | 'delivery'
+type TabId = 'reading' | 'remedies' | 'areas' | 'timeline' | 'gochar' | 'delivery'
 
 const TABS: { id: TabId; label: string; icon: React.ElementType; gold: boolean }[] = [
   { id: 'reading', label: 'Reading', icon: ScrollText, gold: false },
+  { id: 'remedies', label: 'Remedies', icon: Flower2, gold: false },
   { id: 'areas', label: 'Life areas', icon: Layers, gold: true },
   { id: 'timeline', label: 'Timeline', icon: CalendarClock, gold: true },
   { id: 'gochar', label: 'Gochar', icon: Orbit, gold: true },
@@ -658,6 +666,92 @@ function DeliveryBlock({ analysis }: { analysis: VimshottariPeriodAnalysis }) {
   )
 }
 
+const NEED_TONE: Record<RemedyNeed, { tone: Tone; label: string }> = {
+  high: { tone: 'caution', label: 'Needs remedy' },
+  moderate: { tone: 'mixed', label: 'Some strain' },
+  low: { tone: 'supportive', label: 'Supported' },
+}
+
+function RemedyList({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null
+  return (
+    <div className={styles.box}>
+      <span className={styles.boxTitle}>{title}</span>
+      <ul className={styles.bullets} style={{ marginTop: 0 }}>
+        {items.map(i => (
+          <li key={i} className={styles.bullet} style={{ fontSize: '0.76rem' }}>
+            <ChevronRight size={13} aria-hidden className={styles.bulletIcon} />
+            <span>{i}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function RemediesBlock({ remedies, canExpandDetails }: {
+  remedies: DashaLordRemedy[]
+  canExpandDetails: boolean
+}) {
+  return (
+    <div className={styles.section}>
+      <p className={styles.sectionLead}>
+        Remedies for the planets running your dasha now. {REMEDY_CORE_PRINCIPLE.keyRule}
+      </p>
+      {remedies.map(({ levels, assessment: a }) => {
+        const t = a.teaching
+        const need = NEED_TONE[a.need]
+        const deities = [...t.deities, `${a.nakshatraDeity} (${a.nakshatraName})`]
+        return (
+          <div key={a.grahaId} className={cn(styles.card, toneClass(need.tone))}>
+            <div className={styles.cardHead} style={{ cursor: 'default' }}>
+              <Disc lord={a.grahaId} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span className={styles.eyebrow}>{levels.join(' · ')}</span>
+                <div className={styles.cardTitleRow}>
+                  <h3 className={styles.cardTitle}>{t.name} · {t.sanskrit}</h3>
+                  <Pill tone={need.tone}>{need.label}</Pill>
+                </div>
+                <div className={styles.cardSub}>
+                  {a.reasons.length > 0 ? a.reasons.join(' · ') : 'No major natal affliction'}
+                </div>
+                <div className={styles.cardSub}>
+                  <b>Deities:</b> {deities.join(' · ')}
+                </div>
+              </div>
+            </div>
+            <div className={styles.cardBody}>
+              <div className={styles.duo}>
+                <RemedyList title="Indications" items={t.indications} />
+                <RemedyList title="Behavioural" items={t.behavioral} />
+              </div>
+              {canExpandDetails ? (
+                <>
+                  <div className={styles.duo}>
+                    <RemedyList title="Spiritual" items={t.spiritual} />
+                    <RemedyList title="Daan & Seva" items={[...t.donation, ...t.seva]} />
+                  </div>
+                  {t.notes.map(n => (
+                    <div key={n} className={cn(styles.callout, styles.toneCaution)}>
+                      <AlertTriangle size={15} aria-hidden className={styles.calloutIcon} />
+                      <span>{n}</span>
+                    </div>
+                  ))}
+                  {t.duration && <div className={styles.note}>Duration: {t.duration}</div>}
+                </>
+              ) : (
+                <div className={styles.note}>
+                  <Lock size={11} aria-hidden /> Spiritual remedies, daan, seva and cautions on Gold.
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 /** @deprecated Prefer VimshottariInterpretationPanel — alias kept for clarity */
 export function DashaInterpretationPanel(props: VimshottariInterpretationPanelProps) {
   return <VimshottariInterpretationPanel {...props} />
@@ -734,6 +828,11 @@ export function VimshottariInterpretationPanel({
       })
     return () => { cancelled = true }
   }, [ascRashi])
+
+  const remedies = useMemo(
+    () => computeDashaLordRemedies(activePath.map(n => n.lord), grahas, shadbala),
+    [activePath, grahas, shadbala],
+  )
 
   const gochar = useMemo(() => {
     if (!transitPositions || activePath.length < 1) return null
@@ -1011,7 +1110,11 @@ export function VimshottariInterpretationPanel({
           </>
         )}
 
-        {tab !== 'reading' && !canExpandDetails && <Upsell text={goldUpsell} />}
+        {tab === 'remedies' && (
+          <RemediesBlock remedies={remedies} canExpandDetails={canExpandDetails} />
+        )}
+
+        {tab !== 'reading' && tab !== 'remedies' && !canExpandDetails && <Upsell text={goldUpsell} />}
 
         {canExpandDetails && analysis && (
           <>
