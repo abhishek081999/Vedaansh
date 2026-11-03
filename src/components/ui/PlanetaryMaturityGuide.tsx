@@ -12,6 +12,7 @@ import {
   PLANETARY_MATURITY_NOTES,
 } from '@/lib/engine/planetaryMaturity'
 import { formatKarakaHouseLabels } from '@/lib/engine/naturalHouseKarakas'
+import styles from './PlanetaryMaturityGuide.module.css'
 
 export function PlanetaryMaturityGuide() {
   const rows = getPlanetaryMaturityRows()
@@ -39,10 +40,8 @@ export function PlanetaryMaturityGuide() {
       }}>
         <div
           role="row"
+          className={styles.headRow}
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(7rem, 1fr) 5rem minmax(5.5rem, 0.9fr) minmax(0, 2fr)',
-            gap: '0.65rem',
             padding: '0.65rem 0.9rem',
             borderBottom: '1px solid var(--border-soft)',
             background: 'var(--surface-3)',
@@ -63,10 +62,8 @@ export function PlanetaryMaturityGuide() {
           <div
             key={row.grahaId}
             role="row"
+            className={styles.row}
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(7rem, 1fr) 5rem minmax(5.5rem, 0.9fr) minmax(0, 2fr)',
-              gap: '0.65rem',
               padding: '0.85rem 0.9rem',
               borderBottom: '1px solid var(--border-soft)',
               alignItems: 'start',
@@ -108,15 +105,18 @@ export function PlanetaryMaturityGuide() {
                 yrs
               </span>
             </div>
-            <div style={{
+            <div className={styles.fullRow} style={{
               fontSize: '0.78rem',
               fontWeight: 600,
               color: row.karakaHouses.length ? 'var(--text-primary)' : 'var(--text-muted)',
               fontVariantNumeric: 'tabular-nums',
               lineHeight: 1.45,
             }}>
+              <span className={styles.cellLabel}>Houses as karaka</span>
               {formatKarakaHouseLabels(row.karakaHouses)}
             </div>
+            <div className={styles.fullRow}>
+            <span className={styles.cellLabel}>Significances after maturity</span>
             <ul style={{
               margin: 0,
               padding: '0 0 0 1.1rem',
@@ -128,6 +128,7 @@ export function PlanetaryMaturityGuide() {
                 <li key={s}>{s}</li>
               ))}
             </ul>
+            </div>
           </div>
         ))}
       </div>

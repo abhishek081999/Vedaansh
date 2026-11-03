@@ -233,7 +233,8 @@ function ToneBalanceViz({ section }: { section: HubSection }) {
         { label: 'Caution', color: TONE_COLOR.caution },
       ]}
     >
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 180px) 1fr', gap: '0.75rem', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ flex: '0 1 150px', minWidth: 120 }}>
         <SegmentRing
           size={150}
           thickness={18}
@@ -248,13 +249,14 @@ function ToneBalanceViz({ section }: { section: HubSection }) {
             { label: 'Notes', value: counts.neutral, max: Math.max(1, counts.neutral), color: TONE_COLOR.neutral },
           ].filter((s) => s.value > 0)}
         />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+        </div>
+        <div style={{ flex: '1 1 170px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           {([
             ['Supportive', counts.supportive, TONE_COLOR.supportive],
             ['Mixed', counts.mixed, TONE_COLOR.mixed],
             ['Caution', counts.caution, TONE_COLOR.caution],
           ] as const).map(([label, value, color]) => (
-            <div key={label} style={{ display: 'grid', gridTemplateColumns: '72px 1fr 28px', gap: '0.45rem', alignItems: 'center' }}>
+            <div key={label} style={{ display: 'grid', gridTemplateColumns: '72px minmax(0, 1fr) auto', gap: '0.45rem', alignItems: 'center' }}>
               <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{label}</span>
               <Meter value={value} max={total} color={color} height={7} />
               <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', textAlign: 'right' }}>{value}</span>
@@ -435,7 +437,8 @@ function StrengthCharts({ chart }: { chart: ChartOutput }) {
     <div className={styles.vizRow}>
       {shadbalaRows.length ? (
         <VizCard title="Shadbala radar" caption="Ratio vs required strength (dashed = 1.0)">
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(160px, 1fr) minmax(120px, 0.7fr)', gap: '0.75rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ flex: '1 1 180px', minWidth: 0 }}>
             <RadarChart
               axes={radarAxes}
               series={[{ label: 'Ratio', values: radarValues, color: 'var(--gold)' }]}
@@ -444,6 +447,8 @@ function StrengthCharts({ chart }: { chart: ChartOutput }) {
               size={200}
               ariaLabel="Shadbala strength radar"
             />
+            </div>
+            <div style={{ flex: '0 1 150px', minWidth: 0 }}>
             <Gauge
               value={avgRatio}
               max={1.4}
@@ -456,6 +461,7 @@ function StrengthCharts({ chart }: { chart: ChartOutput }) {
                 { from: 1, to: 1.4, color: 'var(--teal)' },
               ]}
             />
+            </div>
           </div>
         </VizCard>
       ) : null}

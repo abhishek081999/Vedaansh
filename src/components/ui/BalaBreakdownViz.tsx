@@ -37,7 +37,7 @@ export function BalaBreakdownViz({
   const showRadar = !!(breakdown && active && keys.length >= 3)
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: showRadar ? 'repeat(auto-fit, minmax(260px, 1fr))' : '1fr', gap: '0.6rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: showRadar ? 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))' : '1fr', gap: '0.6rem' }}>
       <VizCard
         title={`${title} by planet`}
         caption={classicalMin ? `Bar = Virupas · tick = classical minimum ${classicalMin}` : 'Virupas per planet'}

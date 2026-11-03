@@ -275,7 +275,7 @@ export function PlanetaryRemediesPanel({ chart, userPlan = 'free' }: PlanetaryRe
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
         gap: '0.75rem',
       }}>
         {visible.map((p) => (
@@ -294,7 +294,7 @@ export function PlanetaryRemediesPanel({ chart, userPlan = 'free' }: PlanetaryRe
           <PlanGate userPlan={userPlan} required="gold" featureName="Full Planetary Remedies">
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
               gap: '0.75rem',
               minHeight: 160,
             }}>
