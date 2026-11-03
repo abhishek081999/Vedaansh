@@ -390,3 +390,18 @@ export function getTithiMoonCombo(
     note,
   }
 }
+
+// ── Deeper birth readings for the strongest lunar days ───────
+
+const TITHI_DEEP_READINGS: Partial<Record<number, string>> = {
+  14: 'Chaturdashi (Saturn): struggle and tapasya — every task demands extra effort. The subtle body is very active; the quick inner “yes / no” is their sixth sense. Pushes hard decisions; secrets (their own and others’, through sharp observation) surface easily.',
+  15: 'Purnima: emotionally complete and balanced — knows how to react, keeps the mind clean and speaks up rather than holding grudges. In ritual they want proper vidhi and will correct mistakes.',
+  30: 'Amavasya: darkness, mystery, siddhi, sadhana and moksha — stronger than Purnima and gives a distinct confidence. Reserved, lives inward and reads people quietly. (Linking Amavasya to Rahu is popular but not found in BPHS, Phaladeepika, Muhurta Chintamani or Vashishtha Samhita.)',
+}
+
+/** Extended reading for Chaturdashi (14 / 29), Purnima and Amavasya; null for others. */
+export function getTithiDeepReading(tithiNumber1to30: number): string | null {
+  const n = Math.min(30, Math.max(1, Math.floor(tithiNumber1to30)))
+  if (n === 30) return TITHI_DEEP_READINGS[30] ?? null
+  return TITHI_DEEP_READINGS[lunarDayFromTithi(n)] ?? null
+}

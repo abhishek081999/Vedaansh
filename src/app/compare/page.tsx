@@ -1032,7 +1032,7 @@ function CompareContent() {
                   {[chartA, chartB].map((chart, i) => (
                     <div key={`panchang-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                        <div style={{ textAlign: 'center', fontWeight: 800, color: i === 0 ? 'var(--text-gold)' : 'var(--accent)' }}>{chart.meta.name} — Panchang</div>
-                       <div className="card" style={{ padding: '1.5rem' }}><NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} title="Natal Panchang" /></div>
+                       <div className="card" style={{ padding: '1.5rem' }}><NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} chart={chart} title="Natal Panchang" /></div>
                     </div>
                   ))}
                </div>

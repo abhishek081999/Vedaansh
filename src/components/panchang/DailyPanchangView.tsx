@@ -20,6 +20,8 @@ import { PanchangViz } from './PanchangViz'
 import { PanchangTimelineStrip } from './PanchangTimelineStrip'
 import { PanchangDayWindows } from './PanchangDayWindows'
 import { PanchangDayReading } from './PanchangDayReading'
+import { PanchangVisheshSection } from './PanchangVisheshSection'
+import { analyzePanchangVishesh, type VisheshGraha } from '@/lib/engine/panchangVishesh'
 
 /** Response shape from GET /api/panchang */
 export interface PanchangApiData {
@@ -198,6 +200,19 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
   const nakMeta = getNakshatraMuhurtaMeta(data.nakshatra.index, data.nakshatra.pada)
   const abhijit = getAbhijitWindow(data.moonLongitudeSidereal)
   const vaarMeta = getVaarMeta(data.vara.number)
+  const vishesh = useMemo(() => {
+    if (data.sunLongitudeSidereal == null || data.moonLongitudeSidereal == null) return null
+    return analyzePanchangVishesh({
+      tithiNumber: data.tithi.number,
+      varaNumber: data.vara.number,
+      sunLon: data.sunLongitudeSidereal,
+      moonLon: data.moonLongitudeSidereal,
+      nakshatraIndex: data.nakshatra.index,
+      grahas: data.planets?.map((pl) => ({ id: pl.id as VisheshGraha['id'], lon: pl.longitude })),
+      sunrise: data.sunrise,
+      at: data.julianDay != null ? new Date((data.julianDay - 2440587.5) * 86_400_000) : null,
+    })
+  }, [data])
   const isToday = dateInTz(new Date(), tz) === data.date
   const calendar = data.calendarContext
   const currentChoghadiya = data.choghadiya?.day.find((s) => isNow(s.start, s.end))
@@ -461,6 +476,15 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
             </div>
           </CollapsibleSection>
         </div>
+        {vishesh && (
+          <PanchangVisheshSection
+            result={vishesh}
+            mode="daily"
+            tithiNumber={data.tithi.number}
+            varaNumber={data.vara.number}
+            yogaName={data.yoga.name}
+          />
+        )}
         <SanskarasReference />
       </section>
 

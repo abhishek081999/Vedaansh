@@ -174,3 +174,19 @@ export function vaarPatiNakNote(varaNumber: number, vaarPatiNakIndex: number | n
 export function listVaarMeta(): VaarMeta[] {
   return [...VAAR]
 }
+
+/** Birth-weekday temperament (shown in character; events depend on the chart). */
+const VAAR_BIRTH_TEMPERAMENT: string[] = [
+  'Strong will, royal bearing and love of social standing; drawn to arms, authority and gold.',
+  'Changeable, keeps rethinking the path; artistic and fond of good food; can soothe and heal others by listening.',
+  'Driven, self-respecting and ambitious; can tip into stubbornness, aggression or over-confidence.',
+  'Witty and playful; drawn to writing and acting. With a weak Mercury, needs support in decisions.',
+  'Loves travel, vehicles and knowledge; with Pushya or Uttara Phalguni, travel itself becomes learning and income.',
+  'Romantic, soft-hearted, fond of fragrance; reading moves from romance and thrillers toward books of self-discovery.',
+  'Slightly blunt with family yet kind to staff; drawn to crafts; slow, steady growth — both hard-working and lazy.',
+]
+
+export function getVaarBirthTemperament(varaNumber: number): string {
+  const n = ((Math.floor(varaNumber) % 7) + 7) % 7
+  return VAAR_BIRTH_TEMPERAMENT[n]
+}

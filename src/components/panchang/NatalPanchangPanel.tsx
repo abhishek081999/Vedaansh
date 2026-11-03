@@ -7,6 +7,8 @@ import { getYogaMeta } from '@/lib/engine/yogaMeta'
 import { getNakshatraMuhurtaMeta } from '@/lib/engine/nakshatraMuhurta'
 import { getVaarMeta } from '@/lib/engine/vaarMeta'
 import { SanskarasReference } from '@/components/panchang/SanskarasReference'
+import { PanchangVisheshSection } from '@/components/panchang/PanchangVisheshSection'
+import { analyzePanchangVishesh } from '@/lib/engine/panchangVishesh'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 
 type P = ChartOutput['panchang']
@@ -31,11 +33,14 @@ export function NatalPanchangPanel({
   p,
   title = 'Natal Panchang',
   moonRashi,
+  chart,
 }: {
   p: P
   title?: string
   /** Birth Moon rashi (1–12) for tithi × Moon combination */
   moonRashi?: Rashi | null
+  /** Full chart — enables vishesh yogas, tithi / Vaar Pati strength and vaar guna */
+  chart?: ChartOutput | null
 }) {
   const tz = p.location.tz
   const pakLabel = p.tithi.paksha === 'shukla' ? 'Shukla paksha' : 'Krishna paksha'
@@ -59,6 +64,22 @@ export function NatalPanchangPanel({
       ? 'var(--teal)'
       : 'var(--gold)'
   const vaarMeta = getVaarMeta(p.vara.number)
+  const sunLon = p.sunLongitudeSidereal ?? chart?.grahas.find(g => g.id === 'Su')?.lonSidereal
+  const moonLon = p.moonLongitudeSidereal ?? chart?.grahas.find(g => g.id === 'Mo')?.lonSidereal
+  const vishesh = sunLon != null && moonLon != null
+    ? analyzePanchangVishesh({
+        tithiNumber: p.tithi.number,
+        varaNumber: p.vara.number,
+        sunLon,
+        moonLon,
+        nakshatraIndex: p.nakshatra.index,
+        grahas: chart?.grahas.map(g => ({ id: g.id, lon: g.lonSidereal })),
+        lagnaRashi: chart?.lagnas.ascRashi ?? null,
+        sunrise: p.sunrise,
+        at: chart ? new Date((chart.meta.julianDay - 2440587.5) * 86_400_000) : null,
+        vaarPatiNavamshaRashi: chart?.vargas?.D9?.find(g => g.id === vaarMeta.lord)?.rashi ?? null,
+      })
+    : null
 
   const muhurtas: { label: string; times: { start: Date; end: Date }; tone: 'warn' | 'caution' | 'good' }[] = [
     { label: 'Rahu kalam', times: p.rahuKalam, tone: 'warn' },
@@ -434,6 +455,16 @@ export function NatalPanchangPanel({
           <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Hora</div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{p.horaTable.length} horas computed for birth sunrise/sunset.</div>
         </div>
+      )}
+
+      {vishesh && (
+        <PanchangVisheshSection
+          result={vishesh}
+          mode="natal"
+          tithiNumber={p.tithi.number}
+          varaNumber={p.vara.number}
+          yogaName={p.yoga.name}
+        />
       )}
 
       <SanskarasReference />
