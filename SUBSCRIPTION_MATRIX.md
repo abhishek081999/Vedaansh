@@ -35,6 +35,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | White-label brand fields | No | No | Yes | `src/app/api/user/me/route.ts`, `src/app/api/chart/public/route.ts`, export/email branding |
 | Muhurta pages/APIs | No | Yes | Yes | `src/proxy.ts` (`/muhurta`, `/api/muhurta`) |
 | Vimshottari MD/AD full interpretation (“More”) | Teaser only | Yes | Yes | UI: `DashaInterpretationPanel` (`userPlan` / Gold+) |
+| Interpretation hub (overview, planets, houses, rashis, strength, transit, dasha) | Overview tone map + first 3 themes (also on public `/chart/[slug]`) | Yes | Yes | UI: `InterpretationHub` (`userPlan` / Gold+) |
 | Tattva Prediction (trikona map, Agni/Artha/Vayu/Moksha, Active/Reactive spice, Moon gate, house×karaka×rashi composer) | Overview teaser (also on public `/chart/[slug]`) | Yes | Yes | UI: `TattvaPredictionPanel` / Core Analysis → Tattva; dasha strip in `DashaInterpretationPanel`; public tab teaser |
 | Naamkaran (classical janma-naam — Moon pada, gender syllable parity, Karakamsha Ishta; Rashi naam and two-name on Gold; Shadbala/Navtara checks) | Moon-pada letter + syllable count | Yes | Yes | UI: `NaamkaranPanel` / Core Analysis → Naamkaran (`planMeetsUiGate`, Gold+) |
 | Cosmic Weather full guidance | Labels + short lines | Yes | Yes | UI: `PersonalDayCard` (`userPlan` / Gold+) |
@@ -64,3 +65,4 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 - Live checkout: Razorpay (`/api/payment/checkout`, `/api/payment/verify`, `/api/webhooks/razorpay`). Stripe fields exist on `User` / `Subscription` models for future use.
 - Route lists for `src/proxy.ts` live in `src/lib/security/proxyRules.ts`. `/api/subscription/*` is public. Milan and marriage gochar gates live in the route handlers.
 - Early renewals extend the current period. An upgrade starts immediately. Platinum users cannot buy Gold. Full refunds and lost disputes remove the plan.
+- **UI-only teasers** (Interpretation hub, Tattva, dasha “More”, planetary panels, etc.) pass `userPlan` and use `planMeetsUiGate` / `PlanGate`. They do not have dedicated paid API routes — treat them as conversion surfaces; server gates still apply wherever an API exists for the same domain.

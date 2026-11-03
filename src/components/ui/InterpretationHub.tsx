@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import {
   BookOpen,
   ChevronDown,
@@ -14,11 +15,12 @@ import {
   Compass,
   Gauge as GaugeIcon,
   Home,
+  Lock,
   Orbit,
   Sparkles,
   Timer,
 } from 'lucide-react'
-import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
+import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
 import type { TransitPosition } from '@/lib/engine/transits'
 import {
@@ -30,13 +32,21 @@ import {
 } from '@/lib/engine/interpretationHub'
 import { wholeSignHouseFromLagna } from '@/lib/engine/houseInterpretations'
 import { PanelShell } from '@/components/ui/patterns/PanelShell'
+import { PlanGate } from '@/components/ui/patterns/PlanGate'
+import { Button } from '@/components/ui/primitives/Button'
 import { BarList, Gauge, Legend, Meter, RadarChart, SegmentRing, VizCard, toneFor } from '@/components/ui/viz'
 import { lordColor } from '@/components/dasha/dashaPalette'
+import { planMeetsUiGate } from '@/lib/ui/planGate'
 import styles from './InterpretationHub.module.css'
 
 interface InterpretationHubProps {
   chart: ChartOutput
+  userPlan?: UserPlan
 }
+
+/** Free preview: overview only, first N insight cards. */
+const FREE_OVERVIEW_LIMIT = 3
+const FREE_SECTION_IDS: HubSectionId[] = ['overview']
 
 const CLASSICAL: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 const SHADBALA_AXES: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
@@ -468,11 +478,13 @@ function SectionVisuals({
   chart,
   focusId,
   onSelect,
+  showFull,
 }: {
   section: HubSection
   chart: ChartOutput
   focusId: string | null
   onSelect: (id: string) => void
+  showFull: boolean
 }) {
   if (section.id === 'strength') return <StrengthCharts chart={chart} />
 
@@ -498,7 +510,7 @@ function SectionVisuals({
     return (
       <div className={styles.vizRow}>
         <ToneBalanceViz section={section} />
-        {section.id === 'overview' && chart.shadbala?.planets ? (
+        {showFull && section.id === 'overview' && chart.shadbala?.planets ? (
           <VizCard title="At a glance" caption="Top Shadbala ratios">
             <BarList
               rows={SHADBALA_AXES
@@ -528,7 +540,8 @@ function SectionVisuals({
   return null
 }
 
-export function InterpretationHub({ chart }: InterpretationHubProps) {
+export function InterpretationHub({ chart, userPlan = 'free' }: InterpretationHubProps) {
+  const showFull = planMeetsUiGate(userPlan, 'gold')
   const [active, setActive] = useState<HubSectionId>('overview')
   const [focusId, setFocusId] = useState<string | null>(null)
   const [transitPositions, setTransitPositions] = useState<TransitPosition[] | null>(null)
@@ -536,6 +549,10 @@ export function InterpretationHub({ chart }: InterpretationHubProps) {
   const ascRashi = chart.lagnas.ascRashi
 
   useEffect(() => {
+    if (!showFull) {
+      setTransitPositions([])
+      return
+    }
     let cancelled = false
     const asOf = new Date().toISOString().slice(0, 10)
     fetch(`/api/transit?ascRashi=${ascRashi}&months=1&startDate=${asOf}`)
@@ -548,7 +565,7 @@ export function InterpretationHub({ chart }: InterpretationHubProps) {
         if (!cancelled) setTransitPositions([])
       })
     return () => { cancelled = true }
-  }, [ascRashi])
+  }, [ascRashi, showFull])
 
   const sections = useMemo(
     () => buildInterpretationHub(chart, transitPositions, now),
@@ -560,10 +577,31 @@ export function InterpretationHub({ chart }: InterpretationHubProps) {
     setFocusId(null)
   }, [active])
 
+  useEffect(() => {
+    if (!showFull && !FREE_SECTION_IDS.includes(active)) {
+      setActive('overview')
+    }
+  }, [showFull, active])
+
+  const visibleItems = useMemo(() => {
+    if (showFull || section.id !== 'overview') return section.items
+    return section.items.slice(0, FREE_OVERVIEW_LIMIT)
+  }, [showFull, section])
+
+  const lockedExtra = !showFull && section.id === 'overview'
+    ? Math.max(0, section.items.length - FREE_OVERVIEW_LIMIT)
+    : 0
+
+  const selectSection = (id: HubSectionId) => {
+    if (!showFull && !FREE_SECTION_IDS.includes(id)) return
+    setActive(id)
+  }
+
   const toolbar = (
     <div className={styles.tabs} role="tablist" aria-label="Interpretation sections">
       {sections.map((s) => {
         const selected = s.id === section.id
+        const locked = !showFull && !FREE_SECTION_IDS.includes(s.id)
         const meta = SECTION_META[s.id]
         const Icon = meta.Icon
         return (
@@ -572,10 +610,14 @@ export function InterpretationHub({ chart }: InterpretationHubProps) {
             type="button"
             role="tab"
             aria-selected={selected}
+            aria-disabled={locked}
+            disabled={locked}
+            title={locked ? 'Gold unlocks this section' : undefined}
             className={`${styles.tab}${selected ? ` ${styles.tabActive}` : ''}`}
-            onClick={() => setActive(s.id)}
+            onClick={() => selectSection(s.id)}
+            style={locked ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
           >
-            <Icon size={12} aria-hidden />
+            {locked ? <Lock size={11} aria-hidden /> : <Icon size={12} aria-hidden />}
             {meta.label}
             {s.items.length ? <span className={styles.tabCount}>{s.items.length}</span> : null}
           </button>
@@ -587,18 +629,48 @@ export function InterpretationHub({ chart }: InterpretationHubProps) {
   return (
     <PanelShell title="Interpretation" toolbar={toolbar} padding="sm" className="fade-up">
       <div className={styles.root}>
+        {!showFull && (
+          <div
+            style={{
+              padding: '0.75rem 1rem',
+              background: 'var(--surface-3)',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid var(--gold-faint)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '0.55rem',
+            }}
+          >
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+              <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
+              Free preview: overview tone map and the first {FREE_OVERVIEW_LIMIT} chart themes.
+              Gold unlocks planets, houses, rashis, strength charts, transits, and dasha readings.
+            </div>
+            <Link href="/pricing" style={{ textDecoration: 'none' }}>
+              <Button variant="primary" size="sm">View plans</Button>
+            </Link>
+          </div>
+        )}
+
         <SectionVisuals
           key={section.id}
           section={section}
           chart={chart}
           focusId={focusId}
           onSelect={setFocusId}
+          showFull={showFull}
         />
+
         <div role="tabpanel" aria-label={section.label} className={styles.panelBody} key={`panel-${section.id}`}>
-          <p className={styles.intro}>{section.intro}</p>
-          {section.items.length ? (
+          <p className={styles.intro}>
+            {showFull
+              ? section.intro
+              : 'A short preview of the strongest themes in this chart. Upgrade for the full reading hub.'}
+          </p>
+          {visibleItems.length ? (
             <div className={styles.cardGrid}>
-              {section.items.map((item, idx) => (
+              {visibleItems.map((item, idx) => (
                 <HubCard
                   key={`${section.id}-${idx}-${item.id}`}
                   item={item}
@@ -612,6 +684,16 @@ export function InterpretationHub({ chart }: InterpretationHubProps) {
               No readings in this section yet.
             </div>
           )}
+
+          {lockedExtra > 0 ? (
+            <PlanGate userPlan={userPlan} required="gold" featureName="Full interpretation hub">
+              <div className={styles.cardGrid} style={{ marginTop: '0.75rem', minHeight: 120 }}>
+                {section.items.slice(FREE_OVERVIEW_LIMIT, FREE_OVERVIEW_LIMIT + 2).map((item, idx) => (
+                  <HubCard key={`locked-${idx}-${item.id}`} item={item} />
+                ))}
+              </div>
+            </PlanGate>
+          ) : null}
         </div>
       </div>
     </PanelShell>

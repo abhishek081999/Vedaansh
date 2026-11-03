@@ -46,8 +46,8 @@ Canonical plan names: `free` | `gold` | `platinum`.
 
 | Plan | Chart saves | Default price (INR) | Notable gates |
 |------|-------------|---------------------|---------------|
-| Free | 20 charts and 20 Kundali Milan matches | — | Core chart, panchang, public share, Milan preview |
-| Gold | 200 charts and 200 Kundali Milan matches | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), relationship and marriage, career and profession, Kundali Milan match-making and married life, marriage gochar windows |
+| Free | 20 charts and 20 Kundali Milan matches | — | Core chart, panchang, public share, Milan preview, Interpretation hub teaser |
+| Gold | 200 charts and 200 Kundali Milan matches | ₹168/mo · ₹1,443/yr | PDF/HTML export, muhurta (`/muhurta`, `/api/muhurta`), full Interpretation hub, relationship and marriage, career and profession, Kundali Milan match-making and married life, marriage gochar windows |
 | Platinum | Unlimited charts and Kundali Milan matches | ₹336/mo · ₹2,888/yr | Email charts, bulk ZIP, client CRM, white-label, full 41 vargas |
 
 Prices: `src/lib/subscription/pricing.ts` (admin `BillingConfig` may override).
@@ -95,7 +95,7 @@ Production checklist: `docs/SECURITY_DEPLOY.md`.
 
 1. **API routes** — `guardRoute(req, routeSecurityPresets.*())` before business logic; Zod `safeParse`; `{ success, error }` JSON.
 2. **Engine** — Pure functions; sidereal longitudes via `getAyanamsha` + `toSidereal`; types from `@/types/astrology`; GrahaId codes (`Su`, `Mo`, …).
-3. **UI** — `'use client'` when using hooks; CSS vars (`var(--gold)`, `var(--surface-2)`); `userPlan` prop for visual gating (API must enforce too).
+3. **UI** — `'use client'` when using hooks; CSS vars (`var(--gold)`, `var(--surface-2)`); `userPlan` prop for visual gating (API must enforce too). Prefer shared viz (`src/components/ui/viz`) and `PlanGate` for Gold teasers.
 4. **Tests** — Engine tests must not import redis/mongoose/next-auth (Windows Vitest segfault risk). See `__tests__/engine/phase2.test.ts`.
 
 ### Domain types
@@ -104,6 +104,7 @@ Production checklist: `docs/SECURITY_DEPLOY.md`.
 - `Rashi`: `1`–`12` (Aries = 1)
 - `UserPlan`: `'free' | 'gold' | 'platinum'`
 - Main orchestrator: `calculateChart()` in `src/lib/engine/calculator.ts` → `ChartOutput`
+- Interpretation hub: pure `buildInterpretationHub()` in `src/lib/engine/interpretationHub.ts`; UI `InterpretationHub` (Free overview teaser; Gold+ full sections)
 
 ### Do not
 

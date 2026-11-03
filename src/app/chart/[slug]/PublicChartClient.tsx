@@ -334,7 +334,12 @@ export function PublicChartClient({
           )}
 
           {tab === 'interpretation' && (
-            <InterpretationHub chart={chart} />
+            <div className="card">
+              <div className="label-caps" style={{ marginBottom: '0.85rem' }}>
+                Interpretation · Free teaser
+              </div>
+              <InterpretationHub chart={chart} userPlan="free" />
+            </div>
           )}
 
           {tab === 'tattva' && (

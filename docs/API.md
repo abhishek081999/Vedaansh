@@ -5,6 +5,7 @@
 **Security:** `guardRoute(req, routeSecurityPresets.*())` first — body limit, same-origin on writes, Redis rate limits  
 **Plan truth:** MongoDB via `getEffectivePlan()` / `requirePlanGate()` — not JWT alone  
 **Full entitlements:** [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md)  
+**UI-only teasers** (Interpretation hub, Tattva, etc.) are not REST routes — see the matrix “UI:” rows; they gate in the client with `userPlan`.  
 **Synced:** 2026-10-31
 
 ---

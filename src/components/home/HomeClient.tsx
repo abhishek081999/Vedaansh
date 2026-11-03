@@ -1913,7 +1913,7 @@ function HomeContent() {
                   ) : activeTab === 'house' ? (
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (
-                  <InterpretationHub chart={chart} />
+                  <InterpretationHub chart={chart} userPlan={userPlan} />
                 ) : activeTab === 'tattva' ? (
                   <TattvaPredictionPanel chart={chart} userPlan={userPlan} />
                 ) : activeTab === 'naamkaran' ? (
