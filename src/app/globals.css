@@ -2634,6 +2634,12 @@ select.input {
     scrollbar-color: var(--border-soft) transparent;
   }
 
+  /* Panels must keep their natural height so the rail scrolls instead of
+     each overflow:hidden panel shrinking and clipping its own content. */
+  .sticky-desktop > * {
+    flex-shrink: 0;
+  }
+
   .sticky-desktop::-webkit-scrollbar {
     width: var(--scrollbar-size-thin);
   }

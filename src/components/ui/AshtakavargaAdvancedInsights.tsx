@@ -28,6 +28,7 @@ import {
 import type { AshtakavargaResult, GrahaData, GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
 import styles from '@/components/ui/AshtakavargaWorkspace.module.css'
+import { Heatmap } from '@/components/ui/viz'
 
 type SubTab = 'overview' | 'structure' | 'houses' | 'bhava' | 'timing'
 
@@ -358,6 +359,8 @@ function HouseHeatStrip({ ratings }: { ratings: AshtakavargaInsights['houseRatin
     </div>
   )
 }
+
+const BAV_ORDER = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
 
 export function AshtakavargaAdvancedInsights({
   ashtakavarga,
@@ -737,6 +740,26 @@ export function AshtakavargaAdvancedInsights({
               icon={<Home size={16} />}
             />
             <HouseHeatStrip ratings={insights.houseRatings} />
+          </div>
+          <div className="card" style={{ padding: '1rem' }}>
+            <SectionHead
+              title="Planet × house bindus (BAV)"
+              subtitle="Each planet's Bhinnashtakavarga in house order from the Lagna · 4+ supports, ≤3 strains"
+              icon={<Home size={16} />}
+            />
+            <Heatmap
+              rows={BAV_ORDER.filter((id) => ashtakavarga.bav[id]).map((id) => id)}
+              cols={Array.from({ length: 12 }, (_, i) => `H${i + 1}`)}
+              values={BAV_ORDER.filter((id) => ashtakavarga.bav[id]).map((id) =>
+                Array.from({ length: 12 }, (_, h) => ashtakavarga.bav[id].bindus[(ascRashi - 1 + h) % 12] ?? null),
+              )}
+              min={0}
+              max={8}
+              mid={4}
+              highlightCols={[focusHouse - 1]}
+              cellTitle={(r, c, v) => `${BAV_ORDER.filter((id) => ashtakavarga.bav[id])[r]} in H${c + 1}: ${v ?? '—'} bindus`}
+              ariaLabel="Bhinnashtakavarga bindus by planet and house"
+            />
           </div>
           <div
             style={{

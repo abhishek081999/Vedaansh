@@ -26,7 +26,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Numerology year calendar (.ics with tithi) | No | Yes | Yes | `GET /api/numerology/calendar` — `requirePlanGate('gold')` |
 | Business numerology + launch-date finder | No | Yes | Yes | Advanced Tools tab (UI gate; client-side calculator) |
 | Save numerology to CRM client | No | No | Yes | `POST /api/numerology/save-to-client` — `requirePlanGate('platinum')` |
-| Transit hub advanced (Sade Sati, Aspects, Bi-wheel, Calendar) | Roadmap + Live Transit only | Yes | Yes | UI: `TransitHub` PlanGate; API: `/api/transit/calendar` (Gold+) |
+| Transit hub advanced (Forecast, Sade Sati, Aspects, Bi-wheel, Calendar) | Roadmap + Live Transit + Moon Passages | Yes | Yes | UI: `TransitHub` PlanGate; API: `/api/transit/calendar`, `POST /api/transit/forecast` (Gold+). Moon Passages (`/transit/moon`, `POST /api/transit/moon`) is free like Live Transit |
 | Bulk XLSX import | Yes* | Yes* | Yes* | `src/app/api/chart/bulk-import/route.ts` — subject to save limits, not plan tier in API |
 | Email chart reports | No | No | Yes | `src/app/api/chart/send-email/route.ts` |
 | Bulk ZIP export | No | No | Yes | `src/app/api/chart/bulk-export/route.ts` |

@@ -19,6 +19,7 @@ import {
   type KalaPlanetAnalysis,
 } from '@/lib/engine/kalaBalaAnalysis'
 import { PanelShell } from '@/components/ui/patterns/PanelShell'
+import { BalaBreakdownViz } from '@/components/ui/BalaBreakdownViz'
 
 const ORDER: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
 
@@ -372,6 +373,15 @@ export function KalaBalaAnalysisPanel({
             {activeRow ? <PlanetDetail row={activeRow} /> : null}
           </div>
         </div>
+
+        <BalaBreakdownViz
+          title="Kala Bala"
+          rows={analysis.rows}
+          classicalMin={KALA_CLASSICAL_MIN_VIRUPAS}
+          activeId={activeRow?.id}
+          breakdown={activeRow?.breakdown}
+          breakdownLabels={{ natha: 'Natha', paksha: 'Paksha', tribhaga: 'Tribhaga', vaara: 'Vaara', hora: 'Hora', maasa: 'Maasa', varsha: 'Varsha', ayana: 'Ayana' }}
+        />
 
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>

@@ -1,0 +1,357 @@
+/* Moon passages — Transit hub + scrubber embed */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(90% 80% at 0% 0%, color-mix(in oklab, var(--gold) 10%, transparent), transparent 55%),
+    var(--surface-2);
+}
+
+.art {
+  width: 5.5rem;
+  height: 5.5rem;
+  flex-shrink: 0;
+}
+
+.art svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.moonDark {
+  fill: color-mix(in oklab, var(--text-primary) 78%, var(--surface-2) 22%);
+}
+
+.moonLit {
+  fill: color-mix(in oklab, var(--surface-1) 50%, #fff8e8 50%);
+}
+
+.moonEdge {
+  stroke: color-mix(in oklab, var(--gold) 42%, var(--border) 58%);
+  stroke-width: 1;
+  fill: none;
+}
+
+.orbit {
+  fill: none;
+  stroke: color-mix(in oklab, var(--gold) 35%, var(--border) 65%);
+  stroke-width: 0.7;
+  stroke-dasharray: 2.5 3.5;
+}
+
+.heroMeta {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.25rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: moonPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes moonPulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+}
+
+.chipGood {
+  color: var(--teal);
+  border-color: color-mix(in oklab, var(--teal) 35%, var(--border) 65%);
+  background: color-mix(in oklab, var(--teal) 10%, var(--surface-1) 90%);
+}
+
+.chipCaution {
+  color: var(--rose);
+  border-color: color-mix(in oklab, var(--rose) 35%, var(--border) 65%);
+  background: color-mix(in oklab, var(--rose) 10%, var(--surface-1) 90%);
+}
+
+.chipGold {
+  color: var(--text-gold);
+  border-color: color-mix(in oklab, var(--gold) 35%, var(--border) 65%);
+  background: color-mix(in oklab, var(--gold) 10%, var(--surface-1) 90%);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.sectionHint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.55rem 0.75rem;
+  align-items: start;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  border-left-width: 3px;
+}
+
+.rowSupportive {
+  border-left-color: var(--teal);
+}
+
+.rowMixed {
+  border-left-color: var(--amber);
+}
+
+.rowPressure {
+  border-left-color: var(--rose);
+}
+
+.kind {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.rowMain {
+  min-width: 0;
+}
+
+.rowLabel {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.rowMeta {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.rowText {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.rowWhen {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.nowBadge {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--teal);
+  background: color-mix(in oklab, var(--teal) 12%, transparent);
+}
+
+.cycleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: 0.45rem;
+}
+
+.cycleCard {
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+}
+
+.cycleLabel {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cycleName {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.cycleWhen {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.cycleTone {
+  margin: 0.35rem 0 0;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.toneSupportive {
+  color: var(--teal);
+}
+
+.toneMixed {
+  color: var(--amber);
+}
+
+.tonePressure {
+  color: var(--rose);
+}
+
+.empty,
+.status {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--rose);
+}
+
+.compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.compactHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+}
+
+.compactLink {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-gold);
+  text-decoration: none;
+}
+
+.compactLink:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rowWhen {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liveDot {
+    animation: none;
+  }
+}

@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react'
 import type { ChartOutput } from '@/types/astrology'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+import { TimelineBand, VizCard, type BandSegment } from '@/components/ui/viz'
 import type { SadeSatiReport, SaturnMoonPhase, SaturnMoonPhaseKind } from '@/lib/engine/sadeSati'
 
 interface SadeSatiPanelProps {
@@ -31,6 +32,15 @@ function statusBadge(report: SadeSatiReport): { label: string; color: string } {
     return { label: 'Ashtama Shani active', color: toneColor('ashtama') }
   }
   return { label: 'Clear window', color: 'var(--teal)' }
+}
+
+function phaseShort(p: SaturnMoonPhase): string {
+  if (p.kind === 'ashtama') return 'Ashtama'
+  if (p.kind === 'kantaka') return 'Kantaka'
+  if (p.kind === 'sade_sati_peak') return 'Peak'
+  if (p.kind === 'sade_sati_rising') return 'Rising'
+  if (p.kind === 'sade_sati_setting') return 'Setting'
+  return p.label.replace('Sade Sati — ', '').split(' ')[0]
 }
 
 function PhaseCard({ phase, compact }: { phase: SaturnMoonPhase; compact?: boolean }) {
@@ -218,6 +228,46 @@ export function SadeSatiPanel({ chart }: SadeSatiPanelProps) {
           ))}
         </div>
       </div>
+
+      <VizCard
+        title="Saturn–Moon timeline"
+        caption="Sade Sati cycles on top, Kantaka (Dhaiya) and Ashtama below. Gold line = today. Hover a block for dates."
+        legend={[
+          { label: 'Peak / Ashtama', color: toneColor('ashtama') },
+          { label: 'Rising, setting, Kantaka', color: toneColor('kantaka') },
+        ]}
+      >
+        <TimelineBand
+          segments={[
+            ...report.cycles.flatMap((c) => c.phases).map((p): BandSegment => ({
+              key: `c-${p.kind}-${p.startIso}`,
+              start: p.startIso,
+              end: p.endIso,
+              lane: 0,
+              color: toneColor(p.kind),
+              label: phaseShort(p),
+              emphasis: p.isCurrent,
+              title: `${p.label} · ${p.startIso} → ${p.endIso}`,
+            })),
+            ...report.specials.map((p): BandSegment => ({
+              key: `s-${p.kind}-${p.startIso}`,
+              start: p.startIso,
+              end: p.endIso,
+              lane: 1,
+              color: toneColor(p.kind),
+              label: phaseShort(p),
+              emphasis: p.isCurrent,
+              title: `${p.label} · ${p.startIso} → ${p.endIso}`,
+            })),
+          ]}
+          laneLabels={['Sade Sati', 'Dhaiya / 8th']}
+          from={report.windowStartIso}
+          to={report.windowEndIso}
+          now={report.asOfIso}
+          ticks={8}
+          ariaLabel="Saturn transit phases relative to the natal Moon"
+        />
+      </VizCard>
 
       {report.softeners.length > 0 && (
         <div

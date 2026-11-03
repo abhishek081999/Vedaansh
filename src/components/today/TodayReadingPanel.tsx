@@ -153,7 +153,12 @@ export function TodayReadingPanel({ chart }: { chart: ChartOutput }) {
 
           <AreasCard r={reading} />
           <div className={styles.grid2}>
-            <MoonCard r={reading} tz={tz} />
+            <MoonCard
+              r={reading}
+              tz={tz}
+              natal={chart}
+              transitMoon={transit.find(g => g.id === 'Mo') ?? null}
+            />
             <PanchangCard r={reading} />
           </div>
           {advanced && <DayTimelineCard a={advanced} tz={tz} />}

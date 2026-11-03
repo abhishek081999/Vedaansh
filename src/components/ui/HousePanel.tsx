@@ -16,6 +16,7 @@ import {
   wholeSignHouseFromLagna,
 } from '@/lib/engine/houseInterpretations'
 import { HouseProgressionPanel } from './HouseProgressionPanel'
+import { HouseVisualsOverview, SandhiMeter } from './HouseVisuals'
 import { HouseGuideTab } from './HouseGuideTab'
 import { LagnaGuideTab } from './LagnaGuideTab'
 import { RashiGuideTab } from './RashiGuideTab'
@@ -101,6 +102,11 @@ function SummaryChip({
 
 export function HousePanel({ chart }: { chart: ChartOutput }) {
   const [activeTab, setActiveTab] = useState<'analysis' | 'progression' | 'guide' | 'lagna' | 'rashi'>('analysis')
+  const [selectedHouse, setSelectedHouse] = useState<number | null>(null)
+  const selectHouse = (n: number) => {
+    setSelectedHouse(n)
+    document.getElementById(`bhava-card-${n}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
   const { lagnas, grahas, meta, upagrahas } = chart
   const houseSystem = meta.settings.houseSystem
   const ascRashi = lagnas.ascRashi
@@ -306,6 +312,16 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
 
       {activeTab === 'analysis' ? (
         <>
+          <HouseVisualsOverview
+            houses={houseData}
+            grahas={grahas}
+            ascDegree={lagnas.ascDegree}
+            ascRashi={ascRashi}
+            bhavaBala={chart.bhavaBala}
+            selected={selectedHouse}
+            onSelect={selectHouse}
+          />
+
           {lagnaLordInFirst ? (
             <div
               className="card"
@@ -340,14 +356,16 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
               return (
               <div
                 key={h.houseNum}
+                id={`bhava-card-${h.houseNum}`}
                 className="card"
+                onClick={() => setSelectedHouse(h.houseNum)}
                 style={{
                   padding: '1.5rem',
                   position: 'relative',
                   overflow: 'hidden',
                   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                   background: 'var(--surface-1)',
-                  border: '1px solid var(--border-soft)',
+                  border: `1px solid ${selectedHouse === h.houseNum ? 'var(--gold)' : 'var(--border-soft)'}`,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '1.25rem',
@@ -358,7 +376,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                   e.currentTarget.style.boxShadow = 'var(--shadow-deep), 0 0 15px var(--gold-faint)'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-soft)'
+                  e.currentTarget.style.borderColor = selectedHouse === h.houseNum ? 'var(--gold)' : 'var(--border-soft)'
                   e.currentTarget.style.transform = 'translateY(0)'
                   e.currentTarget.style.boxShadow = 'none'
                 }}
@@ -429,6 +447,8 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                     </div>
                   </div>
                 </div>
+
+                <SandhiMeter house={h} />
 
                 {(wsSignNote || signNote) ? (
                   <div

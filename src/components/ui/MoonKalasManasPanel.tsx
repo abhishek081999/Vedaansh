@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { analyzeMoonKalasManas, type MoonKalaDef } from '@/lib/engine/moonKalasManas'
+import { MoonPhase, SegmentRing } from '@/components/ui/viz'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
@@ -218,6 +219,30 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
               leading={data.activeChandraKala.number}
               mode={data.possessionMode}
             />
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '0.75rem' }}>
+              <div style={{ width: 200 }}>
+                <SegmentRing
+                  segments={Array.from({ length: 16 }, (_, i) => ({
+                    label: String(i + 1),
+                    value: i < data.possessedCount ? 1 : 0,
+                    max: 1,
+                    color: 'var(--gold)',
+                    active: i + 1 === data.activeChandraKala.number,
+                    title: `Kala ${i + 1}${i < data.possessedCount ? ' — possessed' : ''}`,
+                  }))}
+                  thickness={16}
+                  size={170}
+                  centerValue={data.possessedCount}
+                  centerLabel="of 16 kalas"
+                  ariaLabel={`${data.possessedCount} of 16 kalas possessed`}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <MoonPhase tithi={Math.floor((((data.elongationDeg % 360) + 360) % 360) / 12) + 1} size={72} />
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{data.tithiName}</span>
+                <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{data.paksha === 'shukla' ? 'Shukla' : 'Krishna'} paksha · {data.elongationDeg.toFixed(0)}°</span>
+              </div>
+            </div>
             <div style={{
               marginTop: '0.75rem',
               display: 'grid',

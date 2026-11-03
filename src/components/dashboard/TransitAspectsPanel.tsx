@@ -8,6 +8,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import type { ChartOutput, GrahaId } from '@/types/astrology'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+import { Heatmap, TimelineBand, VizCard, type BandSegment } from '@/components/ui/viz'
 import type {
   MultiTransitTone,
   MultiTransitWindow,
@@ -35,6 +36,91 @@ function encodeNatal(chart: ChartOutput): string {
     })
     .filter(Boolean)
     .join(',')
+}
+
+const MAJOR: GrahaId[] = ['Ju', 'Sa', 'Ra', 'Ke']
+
+/** Grid of which slow planet aspects which natal point now + double/triple windows on a timeline. */
+function TransitAspectVisuals({ report }: { report: TransitAspectReport }) {
+  const grid = useMemo(() => {
+    const targets: string[] = []
+    const labels: string[] = []
+    for (const h of report.nowHits) {
+      if (!targets.includes(h.targetId)) {
+        targets.push(h.targetId)
+        labels.push(h.targetLabel)
+      }
+    }
+    const values = MAJOR.map(lord => targets.map(t => (report.nowHits.some(h => h.transitLord === lord && h.targetId === t) ? 1 : null)))
+    const title = (r: number, c: number) => {
+      const hit = report.nowHits.find(h => h.transitLord === MAJOR[r] && h.targetId === targets[c])
+      return hit ? `${hit.transitLordName} → ${hit.targetLabel}: ${hit.relation} (${hit.transitSignName} → ${hit.natalSignName})` : `${MAJOR[r]} → ${labels[c]}: no contact`
+    }
+    return { labels, values, title }
+  }, [report.nowHits])
+
+  const windows = useMemo(() => {
+    const lanes: string[] = []
+    const segments: BandSegment[] = report.multiWindows.map(w => {
+      let lane = lanes.indexOf(w.targetLabel)
+      if (lane < 0) {
+        lane = lanes.length
+        lanes.push(w.targetLabel)
+      }
+      return {
+        key: w.id,
+        start: w.startIso,
+        end: w.endIso,
+        lane,
+        color: toneColor(w.tone),
+        label: `×${w.grade}`,
+        emphasis: w.isCurrent,
+        title: `${w.gradeLabel} on ${w.targetLabel}: ${w.transitLordNames.join(' + ')} · ${w.startIso} → ${w.endIso}`,
+      }
+    })
+    return { lanes, segments }
+  }, [report.multiWindows])
+
+  if (!grid.labels.length && !windows.segments.length) return null
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '0.75rem' }}>
+      {grid.labels.length > 0 && (
+        <VizCard title="Contacts right now" caption="Filled cell = that slow planet occupies or aspects the natal point today">
+          <Heatmap
+            rows={MAJOR}
+            cols={grid.labels}
+            values={grid.values}
+            min={0}
+            max={1}
+            format={v => (v ? '●' : '')}
+            cellTitle={grid.title}
+            ariaLabel="Current transit contacts to natal points"
+          />
+        </VizCard>
+      )}
+      {windows.segments.length > 0 && (
+        <VizCard
+          title="Double / triple transit windows"
+          caption="×2 / ×3 = how many slow planets touch the same point together. Gold line = today."
+          legend={[
+            { label: 'Supportive', color: toneColor('supportive') },
+            { label: 'Mixed', color: toneColor('mixed') },
+            { label: 'Caution', color: toneColor('caution') },
+          ]}
+        >
+          <TimelineBand
+            segments={windows.segments}
+            laneLabels={windows.lanes}
+            from={report.windowStartIso}
+            to={report.windowEndIso}
+            now={report.asOfIso}
+            laneHeight={18}
+            ariaLabel="Multi-transit windows by natal point"
+          />
+        </VizCard>
+      )}
+    </div>
+  )
 }
 
 function MultiCard({ w }: { w: MultiTransitWindow }) {
@@ -235,6 +321,8 @@ export function TransitAspectsPanel({ chart }: TransitAspectsPanelProps) {
           Window {report.windowStartIso} → {report.windowEndIso} · as of {report.asOfIso}
         </div>
       </div>
+
+      <TransitAspectVisuals report={report} />
 
       {showMulti && (
         <>

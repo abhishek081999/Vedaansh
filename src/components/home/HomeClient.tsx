@@ -20,6 +20,7 @@ const BirthForm = dynamic(() => import('@/components/ui/BirthForm').then(m => m.
 const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').then(m => m.VarshaphalPanel), { ssr: false })
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
 const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
+const DashaVisualizer = dynamic(() => import('@/components/dasha/DashaVisualizer').then(m => m.DashaVisualizer), { ssr: false })
 const YoginiInterpretationPanel = dynamic(() => import('@/components/dasha/YoginiInterpretationPanel').then(m => m.YoginiInterpretationPanel), { ssr: false })
 const VimshottariInterpretationPanel = dynamic(() => import('@/components/dasha/DashaInterpretationPanel').then(m => m.VimshottariInterpretationPanel), { ssr: false })
 const DashaInterpretationTeaserFromChart = dynamic(() => import('@/components/dasha/DashaInterpretationTeaser').then(m => m.DashaInterpretationTeaserFromChart), { ssr: false })
@@ -578,6 +579,7 @@ function HomeContent() {
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'kalachakra' | 'yogini' | 'chara' | 'chara_fe' | 'mandook' | 'sthir'>('vimshottari')
+  const [dashaView, setDashaView] = useState<'graphics' | 'table'>('graphics')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
   const [vimshottariTribhagi, setVimshottariTribhagi] = useState(false)
   const [chartActiveVarga, setChartActiveVarga] = useState<string>('D1')
@@ -1972,7 +1974,7 @@ function HomeContent() {
                           aria-label="Interpretation dasha system"
                           style={{
                             height: 26,
-                            marginLeft: 'auto',
+                            marginLeft: 0,
                             padding: '0 0.45rem',
                             fontSize: '0.64rem',
                             background: 'var(--surface-3)',
@@ -2344,6 +2346,30 @@ function HomeContent() {
                          style={{ flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}
                        >
                          <span>Dasha Timeline</span>
+                        <div role="tablist" aria-label="Dasha view" style={{ display: 'inline-flex', marginLeft: 'auto', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999 }}>
+                          {(['graphics', 'table'] as const).map(v => (
+                            <button
+                              key={v}
+                              type="button"
+                              role="tab"
+                              aria-selected={dashaView === v}
+                              onClick={() => setDashaView(v)}
+                              style={{
+                                height: 22,
+                                padding: '0 0.6rem',
+                                border: 'none',
+                                borderRadius: 999,
+                                fontSize: '0.64rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                background: dashaView === v ? 'var(--gold)' : 'transparent',
+                                color: dashaView === v ? 'var(--text-on-gold)' : 'var(--text-secondary)',
+                              }}
+                            >
+                              {v === 'graphics' ? 'Graphics' : 'Table'}
+                            </button>
+                          ))}
+                        </div>
                         <select
                           value={dashaSystem}
                           onChange={(e) => setDashaSystem(e.target.value as any)}
@@ -2373,7 +2399,23 @@ function HomeContent() {
                         </select>
                        </div>
                        <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                         {dashaSystem === 'vimshottari' && (
+                         {dashaView === 'graphics' && (() => {
+                           const vizNodes = dashaSystem === 'vimshottari' ? vimshottariNodes : chart.dashas[dashaSystem]
+                           return vizNodes?.length ? (
+                             <DashaVisualizer
+                               nodes={vizNodes}
+                               birthDate={birthUtcFromMeta(chart.meta)}
+                               timezone={chart.meta.timezone}
+                               lazyExpand={dashaSystem === 'vimshottari'}
+                               tribhagi={dashaSystem === 'vimshottari' && vimshottariTribhagi}
+                             />
+                           ) : (
+                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>
+                               {dashaSystem} computation required.
+                             </div>
+                           )
+                         })()}
+                         {dashaView === 'table' && dashaSystem === 'vimshottari' && (
                            <VimshottariDashaBlock
                              nodes={vimshottariNodes}
                              birthDate={birthUtcFromMeta(chart.meta)}
@@ -2385,13 +2427,13 @@ function HomeContent() {
                              onTribhagi={setVimshottariTribhagi}
                            />
                          )}
-                         {dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Ashtottari computation required.</div>)}
-                         {dashaSystem === 'kalachakra' && (chart.dashas.kalachakra?.length ? <DashaTree nodes={chart.dashas.kalachakra} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Kalachakra computation required.</div>)}
-                         {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <YoginiDashaBlock nodes={chart.dashas.yogini} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yogini computation required.</div>)}
-                         {dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara computation required.</div>)}
-                        {dashaSystem === 'chara_fe' && (chart.dashas.chara_fe?.length ? <DashaTree nodes={chart.dashas.chara_fe} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara FE computation required.</div>)}
-                        {dashaSystem === 'mandook' && (chart.dashas.mandook?.length ? <DashaTree nodes={chart.dashas.mandook} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Mandook computation required.</div>)}
-                        {dashaSystem === 'sthir' && (chart.dashas.sthir?.length ? <DashaTree nodes={chart.dashas.sthir} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Sthir computation required.</div>)}
+                         {dashaView === 'table' && dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Ashtottari computation required.</div>)}
+                         {dashaView === 'table' && dashaSystem === 'kalachakra' && (chart.dashas.kalachakra?.length ? <DashaTree nodes={chart.dashas.kalachakra} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Kalachakra computation required.</div>)}
+                         {dashaView === 'table' && dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <YoginiDashaBlock nodes={chart.dashas.yogini} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yogini computation required.</div>)}
+                         {dashaView === 'table' && dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara computation required.</div>)}
+                        {dashaView === 'table' && dashaSystem === 'chara_fe' && (chart.dashas.chara_fe?.length ? <DashaTree nodes={chart.dashas.chara_fe} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara FE computation required.</div>)}
+                        {dashaView === 'table' && dashaSystem === 'mandook' && (chart.dashas.mandook?.length ? <DashaTree nodes={chart.dashas.mandook} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Mandook computation required.</div>)}
+                        {dashaView === 'table' && dashaSystem === 'sthir' && (chart.dashas.sthir?.length ? <DashaTree nodes={chart.dashas.sthir} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Sthir computation required.</div>)}
                        </div>
                      </div>
                   )}

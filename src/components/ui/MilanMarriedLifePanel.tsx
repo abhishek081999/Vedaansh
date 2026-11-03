@@ -56,6 +56,7 @@ import {
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { LagnaPairCard } from '@/components/ui/LagnaPairCard'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { Legend, RadarChart } from '@/components/ui/viz'
 
 interface Props {
   chartA: ChartOutput
@@ -309,6 +310,21 @@ export function MilanMarriedLifePanel({ chartA, chartB, roleA, roleB, userPlan =
 
       <div className="card" style={{ padding: '1.15rem' }}>
         <SectionLabel>Flavor, passion, lasting continuity, blessing, fruit</SectionLabel>
+        {data.dimensions.length >= 3 && (
+          <div style={{ maxWidth: 320, margin: '0 auto 0.75rem' }}>
+            <RadarChart
+              axes={data.dimensions.map((d) => d.label)}
+              max={10}
+              size={200}
+              series={[
+                { label: data.nameA, values: data.dimensions.map((d) => d.scoreA), color: 'var(--text-gold)' },
+                { label: data.nameB, values: data.dimensions.map((d) => d.scoreB), color: 'var(--accent)' },
+              ]}
+              ariaLabel={`Married-life dimensions for ${data.nameA} and ${data.nameB}`}
+            />
+            <Legend items={[{ label: data.nameA, color: 'var(--text-gold)' }, { label: data.nameB, color: 'var(--accent)' }]} />
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           {data.dimensions.map(d => (
             <div key={d.id}>

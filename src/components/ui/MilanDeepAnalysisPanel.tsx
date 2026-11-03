@@ -8,6 +8,7 @@ import React, { useMemo } from 'react'
 import type { ChartOutput } from '@/types/astrology'
 import type { AshtakootResult } from '@/lib/engine/ashtakoot'
 import { analyzeMilanDeep } from '@/lib/engine/milanDeepAnalysis'
+import { MilanDashaTimeline, MilanGunaRing } from '@/components/ui/MilanVisuals'
 
 const TONE: Record<string, string> = {
   supportive: 'var(--teal)',
@@ -64,6 +65,8 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
           {ashtakoot.disclaimer}
         </p>
       </div>
+
+      <MilanGunaRing ashtakoot={ashtakoot} />
 
       {/* Three layers */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.75rem' }}>
@@ -128,6 +131,8 @@ export function MilanDeepAnalysisPanel({ chartA, chartB, ashtakoot }: Props) {
           </span>
         </div>
       </div>
+
+      <MilanDashaTimeline chartA={chartA} chartB={chartB} dashaPair={deep.dashaPair} />
 
       {/* Stage 3 Venus–Mars */}
       <div className="card" style={{ padding: '1.25rem' }}>

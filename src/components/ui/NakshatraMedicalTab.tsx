@@ -8,7 +8,8 @@ import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Activity, BookOpen, Layers, Thermometer, Lock } from 'lucide-react'
-import type { ChartOutput, GrahaId, UserPlan } from '@/types/astrology'
+import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
+import { KalapurushaBodyMap, type BodyHighlight } from '@/components/ui/KalapurushaBodyMap'
 import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
@@ -145,7 +146,7 @@ export function NakshatraMedicalTab({
         />
       )}
       {showFull && section === 'dosha' && <DoshaSection birthNakIdx={birthNakIdx} moonProfile={moonProfile} />}
-      {showFull && section === 'body' && <BodyMapSection birthNakIdx={birthNakIdx} indicators={indicators} />}
+      {showFull && section === 'body' && <BodyMapSection birthNakIdx={birthNakIdx} indicators={indicators} chart={chart} />}
       {showFull && section === 'reference' && <ReferenceSection />}
     </div>
   )
@@ -427,13 +428,33 @@ function DoshaSection({ birthNakIdx, moonProfile }: { birthNakIdx: number; moonP
 function BodyMapSection({
   birthNakIdx,
   indicators,
+  chart,
 }: {
   birthNakIdx: number
   indicators: MedicalIndicatorResult[]
+  chart: ChartOutput
 }) {
   const moon = getNakshatraMedical(birthNakIdx)
+  const highlights = useMemo<BodyHighlight[]>(() => {
+    const out: BodyHighlight[] = []
+    const asc = chart.lagnas.ascRashi
+    for (const ind of indicators) {
+      const rashi = ind.key === 'ascendant'
+        ? asc
+        : ind.planetId ? chart.grahas.find(g => g.id === ind.planetId)?.rashi : undefined
+      if (rashi) out.push({ rashi, color: PRIORITY_COL[ind.priority], label: ind.label })
+    }
+    out.push({ rashi: (((asc + 4) % 12) + 1) as Rashi, color: 'var(--rose)', label: '6th house sign' })
+    return out
+  }, [chart, indicators])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ padding: '0.85rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
+        <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)', marginBottom: 8 }}>
+          Kalapurusha · signs on the body
+        </div>
+        <KalapurushaBodyMap highlights={highlights} />
+      </div>
       <div style={{ padding: '0.85rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)' }}>
         <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)', marginBottom: 6 }}>
           Moon body map · {moon.name}

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { analyzeSunKalasAhamkara } from '@/lib/engine/sunKalasAhamkara'
+import { SegmentRing } from '@/components/ui/viz'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
@@ -158,6 +159,23 @@ export function SunKalasAhamkaraPanel({ chart, userPlan = 'free' }: SunKalasAham
             <p style={{ margin: '0.55rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
               Sun in {data.sun.rashiName} lights this Aditya kala · {data.worshipNote}
             </p>
+            <div style={{ maxWidth: 240, margin: '0.6rem auto 0' }}>
+              <SegmentRing
+                segments={data.allKalas.map(k => ({
+                  label: String(k.number),
+                  value: k.number === data.activeKala.number ? 1 : 0,
+                  max: 1,
+                  color: 'var(--amber)',
+                  active: k.number === data.activeKala.number,
+                  title: `${k.number}. ${k.name}`,
+                }))}
+                thickness={16}
+                size={180}
+                centerValue={data.activeKala.number}
+                centerLabel={data.activeKala.name}
+                ariaLabel={`Solar kala ${data.activeKala.number} of 12: ${data.activeKala.name}`}
+              />
+            </div>
           </Card>
 
           <Card>

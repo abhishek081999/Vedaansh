@@ -817,3 +817,23 @@
   color: var(--rose);
   border: 1px solid rgba(224, 123, 142, 0.3);
 }
+
+.compareTable :global(th).compareGroupRow {
+  padding: 0.45rem 0.65rem;
+  font-size: 0.6rem;
+  color: var(--text-gold);
+  background: var(--surface-3);
+}
+
+.wheelLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .wheelLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

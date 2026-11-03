@@ -18,6 +18,8 @@ import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { ConditionBadges } from '@/components/ui/AdvancedAnalysisPanel'
 import { VARGA_META, getVargaPosition, PLATINUM_VARGAS } from '@/lib/engine/vargas'
 import { getMarakaBadhakaFlags } from '@/lib/engine/marakaBadhaka'
+import { Meter } from '@/components/ui/viz'
+import { DIGNITY_MAX, dignityRank } from '@/lib/ui/dignityScale'
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -77,6 +79,11 @@ function DignityCell({ dignity }: { dignity: string }) {
       border: `1px solid ${s.color}33`,
     }}>
       {s.label}
+      {dignityRank(dignity) !== null && (
+        <span style={{ display: 'block', marginTop: 2 }}>
+          <Meter value={(dignityRank(dignity) ?? 0) + 1} max={DIGNITY_MAX + 1} color={s.color} height={3} title={`Dignity ${s.label}`} />
+        </span>
+      )}
     </span>
   )
 }

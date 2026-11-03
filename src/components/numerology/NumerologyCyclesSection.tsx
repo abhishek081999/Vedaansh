@@ -10,6 +10,9 @@ import type { NumerologyCoreReport } from '@/lib/engine/numerology/calc'
 import { NUMBER_PROFILES, PERSONAL_YEAR_THEMES } from '@/lib/engine/numerology/data'
 import { HarmonyPill, NumberOrb, SectionCard, gridColumns } from './shared'
 import { YearCalendarExport, type CalendarLocation } from './YearCalendarExport'
+import { SegmentRing, TimelineBand, type BandSegment } from '@/components/ui/viz'
+
+const LIFE_SPAN = 90
 
 export function NumerologyCyclesSection({ report, canExport, location }: {
   report: NumerologyCoreReport
@@ -43,6 +46,38 @@ export function NumerologyCyclesSection({ report, canExport, location }: {
 
       {(activePhase || activePinnacle) && (
         <SectionCard title="Where you are in life" subtitle={`Age ${timeline.ageNow}`}>
+          <TimelineBand
+            segments={[
+              ...timeline.lifePhases.map((ph): BandSegment => ({
+                key: `ph-${ph.id}`,
+                start: ph.ageFrom,
+                end: ph.ageTo ?? LIFE_SPAN,
+                lane: 0,
+                color: ph.id === 'transition' ? 'var(--accent)' : 'var(--gold)',
+                label: `${ph.label.split(' ')[0]} ${ph.ruling}`,
+                emphasis: ph.active,
+                title: `${ph.label} · ${ph.rulingLabel} · ages ${ph.ageFrom}–${ph.ageTo ?? '+'}`,
+              })),
+              ...timeline.pinnacles.map((pn): BandSegment => ({
+                key: `pn-${pn.index}`,
+                start: pn.fromAge,
+                end: pn.toAge ?? LIFE_SPAN,
+                lane: 1,
+                color: pn.index % 2 ? 'var(--teal)' : 'var(--accent)',
+                label: `P${pn.index} · ${pn.value}`,
+                emphasis: pn.active,
+                title: `Pinnacle ${pn.index} (${pn.value}) — ${pn.theme} · ages ${pn.fromAge}–${pn.toAge ?? '+'}`,
+              })),
+            ]}
+            laneLabels={['Life phase', 'Pinnacles']}
+            from={0}
+            to={LIFE_SPAN}
+            now={timeline.ageNow}
+            ticks={9}
+            laneHeight={22}
+            tickFormat={v => `${Math.round(v)}`}
+            ariaLabel="Numerology life phases and pinnacles by age"
+          />
           <div style={gridColumns(260)}>
             {activePhase && (
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -70,6 +105,23 @@ export function NumerologyCyclesSection({ report, canExport, location }: {
       </SectionCard>
 
       <SectionCard title="9-Year Forecast" subtitle="Personal year numbers run in 9-year cycles from birthday to birthday.">
+        <div style={{ maxWidth: 240, margin: '0 auto' }}>
+          <SegmentRing
+            segments={Array.from({ length: 9 }, (_, i) => ({
+              label: String(i + 1),
+              value: i + 1 <= cycles.personalYear ? 1 : 0,
+              max: 1,
+              color: i + 1 === cycles.personalYear ? 'var(--gold)' : 'var(--accent)',
+              active: i + 1 === cycles.personalYear,
+              title: `Personal Year ${i + 1} — ${PERSONAL_YEAR_THEMES[i + 1 as keyof typeof PERSONAL_YEAR_THEMES]?.theme ?? ''}`,
+            }))}
+            size={190}
+            thickness={20}
+            centerValue={cycles.personalYear}
+            centerLabel={`year ${cycles.personalYear} of 9`}
+            ariaLabel={`Personal year ${cycles.personalYear} of the 9-year cycle`}
+          />
+        </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth: 420 }}>
             <thead>

@@ -16,6 +16,7 @@ import {
 import { Spinner } from '@/components/ui/primitives/Spinner'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import { MuhurtaDiagnostics } from './MuhurtaDiagnostics'
+import { ClockDial, type DialWindow } from '@/components/ui/viz'
 import {
   MUHURTA_ACTIVITIES,
   MUHURTA_ACTIVITY_LABELS,
@@ -60,6 +61,16 @@ const EMPTY_SCORE: MuhurtaScore = {
   factors: ['No score for this activity'],
 }
 
+function hourOf(ms: number): number {
+  const d = new Date(ms)
+  return d.getHours() + d.getMinutes() / 60
+}
+
+function fmtHour(h: number): string {
+  const mins = Math.round((((h % 24) + 24) % 24) * 60) % 1440
+  return `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, '0')}`
+}
+
 export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
   const loading = props.loading || false
   const [internalActivity, setInternalActivity] = useState<MuhurtaActivity>('BUSINESS')
@@ -96,6 +107,38 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
       if (!d.missing && d.info.score > max.info.score) max = d
     }
     return max.missing ? null : max
+  }, [activeData])
+
+  // Merge consecutive good / high samples into arcs for the 24h dial.
+  const dialWindows = useMemo<DialWindow[]>(() => {
+    if (activeData.length < 2) return []
+    const step = (new Date(activeData[1].time).getTime() - new Date(activeData[0].time).getTime()) / 3_600_000
+    const out: DialWindow[] = []
+    let run: { tier: 'high' | 'good'; start: number; end: number } | null = null
+    const flush = () => {
+      if (run) {
+        out.push({
+          key: `${run.tier}-${out.length}`,
+          start: run.start,
+          end: run.end,
+          color: run.tier === 'high' ? 'var(--teal)' : 'var(--amber)',
+          label: `${run.tier === 'high' ? 'High' : 'Good'} · ${fmtHour(run.start)}–${fmtHour(run.end)}`,
+        })
+      }
+      run = null
+    }
+    for (const d of activeData) {
+      const tier = d.missing ? null : d.info.score > 75 ? 'high' : d.info.score > 50 ? 'good' : null
+      const h = hourOf(new Date(d.time).getTime())
+      if (tier && run && run.tier === tier) {
+        run.end = h + step
+      } else {
+        flush()
+        if (tier) run = { tier, start: h, end: h + step }
+      }
+    }
+    flush()
+    return out
   }, [activeData])
 
   const bestTimeStr = useMemo(() => {
@@ -210,6 +253,18 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
           </div>
         )}
       </div>
+
+      {!loading && !props.error && dialWindows.length > 0 && (
+        <div style={{ maxWidth: 300, margin: '0 auto 1.25rem' }}>
+          <ClockDial
+            windows={dialWindows}
+            now={hourOf(Date.now())}
+            centerTop={bestTimeStr || undefined}
+            centerBottom={bestTimeStr ? 'peak window' : undefined}
+            size={220}
+          />
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--border-soft)', paddingTop: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>

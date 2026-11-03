@@ -92,6 +92,8 @@ import { Button } from '@/components/ui/primitives/Button'
 import { TattvaDashaOverlayStrip } from '@/components/ui/TattvaPredictionPanel'
 import { analyzeTattvaDashaOverlay } from '@/lib/engine/tattvaPrediction'
 import styles from './DashaInterpretationPanel.module.css'
+import { TimelineBand, type BandSegment } from '@/components/ui/viz'
+import { lordColor } from '@/components/dasha/dashaPalette'
 
 const DASHA_EVENT_LABELS = [
   'Job change',
@@ -369,6 +371,47 @@ const PHASES = [
   { key: 'phaseMiddle', label: 'Middle' },
   { key: 'phaseEnd', label: 'Closing' },
 ] as const
+
+/** Whole-life Mahadasha lane + current Mahadasha's Antardashas, both on one time axis. */
+function DashaLifeBand({ nodes, mahaNode, now }: { nodes: DashaNode[]; mahaNode: DashaNode; now: number }) {
+  const segments = useMemo<BandSegment[]>(() => {
+    const mahas = nodes.filter(n => n.level === 1).length ? nodes.filter(n => n.level === 1) : nodes
+    const out: BandSegment[] = mahas.map((n, i) => ({
+      key: `m-${i}`,
+      start: n.start,
+      end: n.end,
+      lane: 0,
+      color: lordColor(n.lord),
+      label: n.lord,
+      emphasis: n.isCurrent,
+      title: `${planetName(n.lord)} Mahadasha · ${formatNodeDate(n.start)} → ${formatNodeDate(n.end)}`,
+    }))
+    ;(mahaNode.children ?? []).forEach((a, i) => {
+      out.push({
+        key: `a-${i}`,
+        start: a.start,
+        end: a.end,
+        lane: 1,
+        color: lordColor(a.lord),
+        label: a.lord,
+        emphasis: a.isCurrent,
+        title: `${planetName(mahaNode.lord)}–${planetName(a.lord)} · ${formatNodeDate(a.start)} → ${formatNodeDate(a.end)}`,
+      })
+    })
+    return out
+  }, [nodes, mahaNode])
+  if (!segments.length) return null
+  return (
+    <TimelineBand
+      segments={segments}
+      laneLabels={['Mahadasha', `${planetName(mahaNode.lord)} antars`]}
+      now={now}
+      ticks={8}
+      laneHeight={22}
+      ariaLabel="Vimshottari Mahadasha timeline"
+    />
+  )
+}
 
 function PlanetCard({
   data,
@@ -960,6 +1003,8 @@ export function VimshottariInterpretationPanel({
             <ChainTile key={`${node.lord}-${i}`} node={node} index={i} now={now} />
           ))}
         </div>
+
+        <DashaLifeBand nodes={nodes} mahaNode={mahaNode} now={now} />
 
         {analysis && (
           <div>

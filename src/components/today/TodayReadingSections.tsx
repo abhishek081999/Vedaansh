@@ -4,9 +4,12 @@
 //  Presentational cards for Today's Reading (no data fetching).
 // ─────────────────────────────────────────────────────────────
 
-import React from 'react'
-import type { TodayReading, TimedWindow, Quality } from '@/lib/engine/todayReading'
+import React, { useMemo } from 'react'
+import Link from 'next/link'
+import type { ChartOutput } from '@/types/astrology'
+import type { TodayReading, TimedWindow, Quality, TodayTransitGraha } from '@/lib/engine/todayReading'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { buildMoonTransitReport } from '@/lib/engine/moonTransitAnalysis'
 import styles from './today-reading.module.css'
 
 type Tone = 'good' | 'mixed' | 'caution'
@@ -82,10 +85,31 @@ function ordinal(n: number): string {
 
 // ── Moon + Tara ──────────────────────────────────────────────
 
-export function MoonCard({ r, tz }: { r: TodayReading; tz: string }) {
+export function MoonCard({
+  r,
+  tz,
+  natal,
+  transitMoon,
+}: {
+  r: TodayReading
+  tz: string
+  natal?: ChartOutput
+  transitMoon?: TodayTransitGraha | null
+}) {
   const m = r.moon
   const moonTone: Tone = m.chandraQuality === 'good' ? 'good' : m.chandraQuality === 'bad' ? 'caution' : 'mixed'
   const taraTone: Tone = r.tara.tone === 'supportive' || r.tara.tone === 'transformative' ? 'good' : r.tara.isHard ? 'caution' : 'mixed'
+
+  const crossings = useMemo(() => {
+    if (!natal || !transitMoon) return []
+    const report = buildMoonTransitReport({
+      natal,
+      moonLon: transitMoon.lonSidereal,
+      moonSpeedDegPerDay: transitMoon.speed,
+    })
+    return report?.nearTerm.slice(0, 6) ?? []
+  }, [natal, transitMoon])
+
   return (
     <section className={styles.card} aria-label="Your Moon today">
       <h2 className={styles.cardTitle}>Your Moon today</h2>
@@ -125,6 +149,33 @@ export function MoonCard({ r, tz }: { r: TodayReading; tz: string }) {
             It becomes the {ordinal(m.signChange.toChandraPosition)} from your Moon
             ({m.signChange.toChandraQuality === 'good' ? 'supportive' : m.signChange.toChandraQuality === 'bad' ? 'demanding' : 'neutral'}). Time is approximate (±15 min).
           </span>
+        </div>
+      )}
+      {crossings.length > 0 && (
+        <div className={styles.kv}>
+          <span className={styles.kvKey}>Moon crossings</span>
+          <span className={styles.kvVal}>Next 72h over natal points</span>
+          <ul className={styles.crossList}>
+            {crossings.map(c => {
+              const tone: Tone = c.tone === 'supportive' ? 'good' : c.tone === 'pressure' ? 'caution' : 'mixed'
+              return (
+                <li key={`${c.key}-${c.atIso}`} className={styles.crossItem} style={toned(tone)}>
+                  <span className={styles.crossWhen}>{fmtWhen(c.atIso, tz)}</span>
+                  <span className={styles.crossLabel}>
+                    <span className={styles.dot} />
+                    {c.label}
+                    {c.activeNow ? ' · now' : ''}
+                  </span>
+                  <span className={styles.crossNote}>{c.text}</span>
+                </li>
+              )
+            })}
+          </ul>
+          <p className={styles.kvNote}>
+            <Link href="/transit/moon" className={styles.inlineLink}>
+              Full Moon cycle (27 days) →
+            </Link>
+          </p>
         </div>
       )}
     </section>

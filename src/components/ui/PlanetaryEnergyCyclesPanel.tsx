@@ -19,6 +19,7 @@ import {
   type PlanetaryEnergyCycle,
 } from '@/lib/engine/planetaryEnergyCycles'
 import { ICON } from '@/components/ui/PlanetDetailCard'
+import { TimelineBand, VizCard, type BandSegment } from '@/components/ui/viz'
 
 /** Free users see these two as a teaser (prefer active status when sorting). */
 const FREE_PREVIEW_COUNT = 2
@@ -328,6 +329,34 @@ export function PlanetaryEnergyCyclesPanel({
     return first?.grahaId ?? 'Sa'
   })
 
+  // Numeric windows only ("29" or "28–30"); descriptive ones stay in the cards.
+  const ageMap = useMemo(() => {
+    const lanes: string[] = []
+    const segments: BandSegment[] = []
+    for (const c of result.cycles) {
+      const timed = c.windows
+        .map(w => ({ w, m: w.ages.match(/^\s*(\d+(?:\.\d+)?)\s*(?:[–-]\s*(\d+(?:\.\d+)?))?\s*$/) }))
+        .filter(x => x.m)
+      if (!timed.length) continue
+      const lane = lanes.length
+      lanes.push(c.grahaName)
+      timed.forEach(({ w, m }, i) => {
+        const a = Number(m![1])
+        const b = m![2] ? Number(m![2]) : a + 1
+        segments.push({
+          key: `${c.grahaId}-${i}`,
+          start: a,
+          end: Math.max(b, a + 0.6),
+          lane,
+          color: WINDOW_KIND_COLOR[w.kind],
+          emphasis: w.active,
+          title: `${c.grahaName} · ${w.label} · age ${w.ages}`,
+        })
+      })
+    }
+    return { lanes, segments }
+  }, [result.cycles])
+
   const activeCount = result.cycles.filter(c => c.status === 'active').length
 
   const body = (
@@ -377,6 +406,32 @@ export function PlanetaryEnergyCyclesPanel({
           {!showFull ? ' · preview' : ''}
         </span>
       </div>
+
+      {showFull && ageMap.segments.length > 0 && (
+        <div style={{ marginBottom: '0.85rem' }}>
+          <VizCard
+            title="Energy windows by age"
+            caption="Every timed lock, release and activation window on one age axis. Gold line = your current age."
+            legend={[
+              { label: 'Lock', color: WINDOW_KIND_COLOR.lock },
+              { label: 'Release', color: WINDOW_KIND_COLOR.release },
+              { label: 'Activation', color: WINDOW_KIND_COLOR.activation },
+            ]}
+          >
+            <TimelineBand
+              segments={ageMap.segments}
+              laneLabels={ageMap.lanes}
+              from={0}
+              to={90}
+              now={result.age}
+              ticks={9}
+              laneHeight={18}
+              tickFormat={(v) => `${Math.round(v)}`}
+              ariaLabel="Planetary energy windows by age"
+            />
+          </VizCard>
+        </div>
+      )}
 
       <div style={{
         display: 'grid',

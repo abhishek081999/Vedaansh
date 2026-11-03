@@ -10,8 +10,11 @@ import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { DASHA_LEVEL_SHORT } from '@/lib/engine/dasha/vimshottari'
 import styles from './transit-scrubber.module.css'
 import { TransitDetailsPanels } from './TransitDetailsPanels'
+import { TransitNatalWheel } from './TransitNatalWheel'
+import { buildPointGroups } from './transitPoints'
 import { TransitInsightsPanels } from './TransitInsightsPanels'
 import { TransitNavtaraPanel } from './TransitNavtaraPanel'
+import { MoonTransitPanel } from './MoonTransitPanel'
 import { RashiSkyFigure, wheelRashiName, type RashiSkySlice, type SkyGrahaMark } from '@/components/home/LandingCosmicWheel'
 
 const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
@@ -254,6 +257,14 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
   const dashaSystemLabel =
     TRANSIT_DASHA_SYSTEMS.find(s => s.id === dashaSystem)?.label ?? dashaSystem
 
+  // Transit lagnas + upagrahas for the house overlay (planets come from transitData).
+  const transitExtraPoints = useMemo(() => {
+    if (!transitChart) return []
+    return buildPointGroups(natalChart, transitChart)
+      .filter(g => g.kind !== 'graha')
+      .flatMap(g => g.rows)
+  }, [natalChart, transitChart])
+
   const chartSize = isMobile
     ? (typeof window !== 'undefined' ? Math.min(window.innerWidth - 32, 420) : 360)
     : 520
@@ -465,6 +476,8 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
         </section>
       </div>
 
+      <TransitNatalWheel natalChart={natalChart} transitChart={transitChart} />
+
       <TransitDetailsPanels
         natalChart={natalChart}
         transitChart={transitChart}
@@ -502,6 +515,12 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
 
       <TransitNavtaraPanel natalChart={natalChart} transitChart={transitChart} asOf={asOf} />
 
+      {transitChart ? (
+        <section className={styles.panel}>
+          <MoonTransitPanel natalChart={natalChart} transitChart={transitChart} compact />
+        </section>
+      ) : null}
+
       <TransitInsightsPanels natalChart={natalChart} transitChart={transitChart} />
 
       {/* House overlay */}
@@ -516,6 +535,7 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
               const natalAscRashi = natalChart.lagnas.ascRashi
               const houseRashi = (((natalAscRashi - 1 + house - 1) % 12) + 1) as Rashi
               const planets = transitData?.filter(g => g.rashi === houseRashi) || []
+              const points = transitExtraPoints.filter(p => p.transit?.rashi === houseRashi)
               const isLagna = house === 1
 
               return (
@@ -539,7 +559,17 @@ export function TransitScrubber({ natalChart, onTransitChange }: TransitScrubber
                         {p.id}{p.isRetro ? ' ℞' : ''}
                       </span>
                     ))}
-                    {planets.length === 0 && (
+                    {points.map(p => (
+                      <span
+                        key={p.key}
+                        className="badge"
+                        title={p.label}
+                        style={{ fontSize: '0.62rem', padding: '0.06rem 0.3rem', color: 'var(--text-secondary)', border: '1px solid var(--border-soft)' }}
+                      >
+                        {p.code}
+                      </span>
+                    ))}
+                    {planets.length === 0 && points.length === 0 && (
                       <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', opacity: 0.45 }}>—</span>
                     )}
                   </div>
