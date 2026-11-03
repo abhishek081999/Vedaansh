@@ -20,7 +20,7 @@ import {
   Sparkles,
   Timer,
 } from 'lucide-react'
-import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
+import type { ChartOutput, GrahaData, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
 import type { TransitPosition } from '@/lib/engine/transits'
 import {
@@ -317,7 +317,7 @@ function HouseMapViz({
 }) {
   const asc = chart.lagnas.ascRashi
   const byHouse = useMemo(() => {
-    const map: Record<number, { rashi: Rashi; grahas: typeof chart.grahas }> = {}
+    const map: Record<number, { rashi: Rashi; grahas: GrahaData[] }> = {}
     for (let h = 1; h <= 12; h++) {
       const rashi = ((((asc - 1 + h - 1) % 12) + 1) as Rashi)
       map[h] = {

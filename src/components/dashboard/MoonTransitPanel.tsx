@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import type { ChartOutput } from '@/types/astrology'
 import { moonLitPath } from '@/lib/panchang/moon-phase'
 import {
@@ -240,9 +241,9 @@ export function MoonTransitPanel({
       <div className={`${styles.compact} ${className ?? ''}`}>
         <div className={styles.compactHead}>
           <h3 className={styles.sectionTitle}>Moon passages</h3>
-          <a className={styles.compactLink} href="/transit/moon">
+          <Link className={styles.compactLink} href="/transit/moon">
             Open full Moon cycle →
-          </a>
+          </Link>
         </div>
         <p className={styles.sectionHint}>
           {report.moon.rashiName} · {report.moon.nakshatraName} P{report.moon.pada} · next 72h
