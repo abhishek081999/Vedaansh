@@ -9,6 +9,7 @@ import { Chart, ChartCache } from '@/lib/db/models/Chart'
 import { Client } from '@/lib/db/models/Client'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { KundaliMilan } from '@/lib/db/models/KundaliMilan'
+import { NumerologyReading } from '@/lib/db/models/NumerologyReading'
 
 export type ActiveSubscriptionSummary = {
   plan: 'gold' | 'platinum'
@@ -108,6 +109,7 @@ export async function deleteUserAccount(userId: string): Promise<void> {
     chartIds.length > 0 ? ChartCache.deleteMany({ chartId: { $in: chartIds } }) : Promise.resolve(),
     Chart.deleteMany({ userId: userObjectId }),
     KundaliMilan.deleteMany({ userId: userObjectId }),
+    NumerologyReading.deleteMany({ userId: userObjectId }),
     Client.deleteMany({ userId: userObjectId }),
     Subscription.deleteMany({ userId: userObjectId }),
     User.deleteOne({ _id: userObjectId }),
@@ -126,7 +128,7 @@ export async function buildUserDataExport(userId: string) {
   await connectDB()
   const userObjectId = new Types.ObjectId(userId)
 
-  const [user, charts, clients, subscriptions, kundaliMilans] = await Promise.all([
+  const [user, charts, clients, subscriptions, kundaliMilans, numerologyReadings] = await Promise.all([
     User.findById(userId)
       .select('-passwordHash -verificationToken -verificationExpires')
       .lean() as Promise<{
@@ -146,6 +148,7 @@ export async function buildUserDataExport(userId: string) {
     Client.find({ userId: userObjectId }).lean(),
     Subscription.find({ userId: userObjectId }).lean(),
     KundaliMilan.find({ userId: userObjectId }).lean(),
+    NumerologyReading.find({ userId: userObjectId }).lean(),
   ])
 
   if (!user) return null
@@ -165,6 +168,7 @@ export async function buildUserDataExport(userId: string) {
     },
     charts,
     kundaliMilans,
+    numerologyReadings,
     clients,
     subscriptions: subscriptions.map((s) => ({
       plan: s.plan,
