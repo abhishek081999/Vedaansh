@@ -171,7 +171,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
   }, [sripati, grahas, mandi, gulika, mandiHouse, gulikaHouse])
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', minWidth: 0 }}>
       <div
         style={{
           display: 'flex',
@@ -279,6 +279,9 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
           borderRadius: 'var(--r-md)',
           border: '1px solid var(--border-soft)',
           width: 'fit-content',
+          maxWidth: '100%',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
         }}
       >
         {[
@@ -301,6 +304,8 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
               color: activeTab === t.id ? 'var(--text-gold)' : 'var(--text-muted)',
               fontWeight: activeTab === t.id ? 700 : 500,
               fontSize: '0.8rem',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
               transition: 'all 0.2s',
               boxShadow: activeTab === t.id ? 'var(--shadow-sm)' : 'none',
             }}
@@ -666,7 +671,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
             })}
           </div>
 
-          <div style={{ marginTop: '2rem' }}>
+          <div style={{ marginTop: '2rem', minWidth: 0 }}>
             <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>
               Detailed Bhava Table — Madhya & Sandhi
             </h3>

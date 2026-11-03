@@ -84,18 +84,26 @@ export function BhavaChalitWheel({
     [grahas, houses, ascRashi],
   )
 
-  // Stagger planet glyphs that sit within 7° of each other.
+  // Stagger planet glyphs: each takes the outermost tier where no neighbour's
+  // glyph would touch it (gap measured around the circle so clusters at the
+  // Lagna wrap correctly). Inner tiers need a wider angle for the same pixels.
   const placed = useMemo(() => {
-    const sorted = [...grahas].sort((a, b) => span(ascDegree, a.lonSidereal) - span(ascDegree, b.lonSidereal))
-    let prev = -999
-    let tier = 0
-    return sorted.map((g) => {
-      const d = span(ascDegree, g.lonSidereal)
-      tier = d - prev < 7 ? (tier + 1) % 3 : 0
-      prev = d
-      return { g, r: R_PLANET - tier * 22 }
-    })
-  }, [grahas, ascDegree])
+    const TIER_R = [R_PLANET, R_PLANET - 24, R_PLANET - 48, R_PLANET - 72]
+    const taken: { lon: number; tier: number }[] = []
+    const gap = (a: number, b: number) => Math.min(span(a, b), span(b, a))
+    return [...grahas]
+      .sort((a, b) => a.lonSidereal - b.lonSidereal)
+      .map((g) => {
+        let tier = 0
+        const clash = (t: number) => {
+          const minDeg = (24 / TIER_R[t]) / RAD
+          return taken.some((x) => x.tier === t && gap(x.lon, g.lonSidereal) < minDeg)
+        }
+        while (tier < TIER_R.length - 1 && clash(tier)) tier++
+        taken.push({ lon: g.lonSidereal, tier })
+        return { g, r: TIER_R[tier] }
+      })
+  }, [grahas])
 
   const shiftIds = new Set(shifts.map((s) => s.id))
 
@@ -167,11 +175,11 @@ export function BhavaChalitWheel({
           a.lon === undefined ? null : (() => {
             const [x0, y0] = polar(c, c, R_HOUSE_I - 4, ang(a.lon))
             const [x1, y1] = polar(c, c, R_SIGN_O + 6, ang(a.lon))
-            const [lx, ly] = polar(c, c, R_HOUSE_I - 16, ang(a.lon))
+            const [lx, ly] = polar(c, c, R_SIGN_I - 4, ang(a.lon))
             return (
               <g key={a.label} pointerEvents="none">
                 <line x1={x0} y1={y0} x2={x1} y2={y1} stroke="var(--gold)" strokeWidth={1.8} />
-                <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize={9} fontWeight={800} fill="var(--gold)">
+                <text x={lx + 4} y={ly - 7} textAnchor="start" fontSize={9} fontWeight={800} fill="var(--gold)" paintOrder="stroke" stroke="var(--surface-1)" strokeWidth={3}>
                   {a.label}
                 </text>
               </g>
@@ -191,7 +199,7 @@ export function BhavaChalitWheel({
               <title>{`${g.name} ${g.rashiName} ${g.degree.toFixed(1)}°${g.isRetro ? ' (R)' : ''}${shifted ? ' · changes house in Chalit' : ''}`}</title>
               <line x1={px} y1={py} x2={tx} y2={ty} stroke={col} strokeOpacity={0.45} strokeWidth={1} />
               <circle cx={tx} cy={ty} r={2} fill={col} />
-              <circle cx={px} cy={py} r={11} fill="var(--surface-1)" stroke={col} strokeWidth={shifted ? 2.2 : 1.2} strokeDasharray={shifted ? '3 2' : undefined} />
+              <circle cx={px} cy={py} r={10.5} fill="var(--surface-1)" stroke={col} strokeWidth={shifted ? 2.2 : 1.2} strokeDasharray={shifted ? '3 2' : undefined} />
               <text x={px} y={py} textAnchor="middle" dominantBaseline="central" fontSize={9.5} fontWeight={800} fill={col} style={{ fontFamily: 'var(--font-chart-planets)' }}>
                 {g.id}
                 {g.isRetro ? 'ᴿ' : ''}
@@ -401,7 +409,7 @@ export function SandhiMeter({ house }: { house: HouseVizDatum }) {
   ]
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: items.length ? 12 : 4 }}>
         <span>Sandhi</span>
         <span style={{ color: 'var(--text-gold)' }}>Madhya</span>
         <span>Sandhi</span>
