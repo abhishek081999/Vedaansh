@@ -43,7 +43,7 @@ Breakpoints: import from `@/lib/ui/breakpoints` (`BREAKPOINTS.lg` = 1024) — do
 
 ## Plan gating in UI
 
-Pass `userPlan?: 'free' | 'gold' | 'platinum'` as a prop. Use `<PlanGate required="gold" userPlan={userPlan}>` for locked sections — enforce access on the API too via `requirePlanGate()`.
+Pass `userPlan?: 'free' | 'gold' | 'platinum'` as a prop. Use `<PlanGate required="gold" userPlan={userPlan}>` for locked sections — enforce access on the API too via `requirePlanGate()` when an API exists. For chart-workspace teasers (e.g. `InterpretationHub`, `TattvaPredictionPanel`), also lock secondary tabs and truncate free content with `planMeetsUiGate`. Prefer `src/components/ui/viz` for rings, gauges, and bar charts.
 
 ## Panel anatomy
 

@@ -49,6 +49,7 @@ import {
   Zap,
   Info,
   Download,
+  TrendingUp,
 } from 'lucide-react'
 
 export const SIDENAV_WIDTH_PX = 240
@@ -104,8 +105,10 @@ export const ASTRO_GROUPS: NavGroup[] = [
     id: 'transit',
     label: 'Transit',
     tabs: [
-      { id: 'transit-roadmap', label: 'Cosmic Roadmap', icon: Route, path: '/transit/roadmap' },
       { id: 'transit-scrubber', label: 'Live Transit', icon: Timer, path: '/transit/scrubber' },
+      { id: 'transit-forecast', label: 'Forecast', icon: TrendingUp, path: '/transit/forecast' },
+      { id: 'transit-moon', label: 'Moon Passages', icon: Moon, path: '/transit/moon' },
+      { id: 'transit-roadmap', label: 'Cosmic Roadmap', icon: Route, path: '/transit/roadmap' },
       { id: 'transit-sade-sati', label: 'Sade Sati', icon: Hourglass, path: '/transit/sade-sati' },
       { id: 'transit-aspects', label: 'Aspects', icon: Crosshair, path: '/transit/aspects' },
       { id: 'transit-biwheel', label: 'Bi-wheel', icon: Orbit, path: '/transit/biwheel' },

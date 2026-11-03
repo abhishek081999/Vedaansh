@@ -23,6 +23,7 @@ import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
+import { GrahaProfileHeader } from '@/components/ui/GrahaProfileHeader'
 
 type SubTab = 'overview' | 'foundations' | 'classical' | 'houses' | 'yogas' | 'conditions' | 'remedies'
 type ClassicalView = 'mixed' | 'natal' | 'houses' | 'signs'
@@ -73,6 +74,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      <GrahaProfileHeader chart={chart} id="Ju" />
       {!showFull && (
         <div style={{
           padding: '0.75rem 1rem',

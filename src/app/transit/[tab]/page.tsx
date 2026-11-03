@@ -10,7 +10,7 @@ const TransitHub = dynamic(
   { ssr: false },
 )
 
-const VALID: TransitHubTab[] = ['roadmap', 'scrubber', 'sade-sati', 'aspects', 'biwheel', 'calendar']
+const VALID: TransitHubTab[] = ['scrubber', 'forecast', 'moon', 'roadmap', 'sade-sati', 'aspects', 'biwheel', 'calendar']
 
 export default function TransitTabPage() {
   const params = useParams()

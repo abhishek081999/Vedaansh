@@ -30,6 +30,7 @@ import {
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { PanelShell } from '@/components/ui/patterns/PanelShell'
+import { SegmentRing, VizCard } from '@/components/ui/viz'
 
 type SubTab = 'overview' | 'trikona' | 'dasha' | 'stability' | 'remedies'
 
@@ -105,6 +106,13 @@ function Pill({
       {children}
     </span>
   )
+}
+
+const TATTVA_COLOR: Record<TattvaId, string> = {
+  agni: 'var(--amber)',
+  prithvi: 'var(--gold)',
+  vayu: 'var(--accent)',
+  jal: 'var(--teal)',
 }
 
 function TattvaIcon({ id }: { id: TattvaId }) {
@@ -247,6 +255,28 @@ export function TattvaPredictionPanel({
         )}
         {data.network.rahuInAirTrikona && <Pill>Rahu in 3–7–11</Pill>}
       </div>
+
+      <VizCard
+        title="Element balance"
+        caption="Planets in each trikona — Agni (1-5-9), Prithvi (2-6-10), Vayu (3-7-11), Jal (4-8-12)"
+        legend={data.trikonas.map((t) => ({ label: `${t.label} · ${t.planetCount}`, color: TATTVA_COLOR[t.tattva] }))}
+      >
+        <SegmentRing
+          segments={data.trikonas.map((t) => ({
+            label: t.sanskrit,
+            value: t.planetCount,
+            max: Math.max(t.planetCount, 0.4),
+            color: TATTVA_COLOR[t.tattva],
+            active: t.id === data.dominantTrikona,
+            title: `${t.label}: ${t.planetCount} planet(s) in houses ${t.houses.join('-')}`,
+          }))}
+          size={190}
+          thickness={24}
+          centerValue={data.trikonas.find((t) => t.id === data.dominantTrikona)?.sanskrit ?? ''}
+          centerLabel="dominant"
+          ariaLabel="Planet count per elemental trikona"
+        />
+      </VizCard>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
         {SUB_TABS.map((t) => {

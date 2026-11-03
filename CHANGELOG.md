@@ -74,4 +74,11 @@ These shipped in the current tree without a version bump:
 
 ## Unreleased
 
-_Document upcoming user-visible changes here before bumping `package.json`._
+### Added
+
+- Interpretation hub on the chart workspace and public share: tone map, planet strip, house map, Shadbala radar/bars, and expandable theme cards (`InterpretationHub`)
+- Free teaser for that hub: overview tone map + first three themes; Gold unlocks planets, houses, rashis, strength, transit, and dasha sections (`userPlan` / `planMeetsUiGate`)
+
+### Fixed
+
+- Duplicate React keys when a chart has several yogas with the same name (e.g. multiple Raja Yogas) in the Interpretation hub overview

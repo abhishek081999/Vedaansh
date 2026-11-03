@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react'
 import { format, addYears, differenceInYears, isWithinInterval } from 'date-fns'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, GRAHA_NAMES } from '@/types/astrology'
+import { SegmentRing, VizCard } from '@/components/ui/viz'
 
 interface HouseSignification {
   house: number
@@ -275,6 +276,38 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
             </div>
           </div>
         </div>
+      )}
+
+      {currentProgression && (
+        <VizCard
+          title="Where you are in the 12-house cycle"
+          caption={`Each year of life activates the next house from the Lagna. Cycle ${Math.floor((currentProgression.age - 1) / 12) + 1} of 9 — filled arcs are years already lived in this cycle.`}
+        >
+          <SegmentRing
+            segments={HOUSE_INFO.map((h, i) => {
+              const houseNum = i + 1
+              const progress =
+                houseNum < currentProgression.houseNum
+                  ? 1
+                  : houseNum === currentProgression.houseNum
+                    ? (Date.now() - currentProgression.startDate.getTime()) /
+                      (currentProgression.endDate.getTime() - currentProgression.startDate.getTime())
+                    : 0
+              return {
+                label: `H${houseNum}`,
+                value: progress,
+                max: 1,
+                color: houseNum === currentProgression.houseNum ? 'var(--gold)' : 'var(--accent)',
+                active: houseNum === currentProgression.houseNum,
+                title: `House ${houseNum} · ${h.sanskrit}`,
+              }
+            })}
+            centerValue={`H${currentProgression.houseNum}`}
+            centerLabel={`age ${currentProgression.ageRange}`}
+            size={220}
+            ariaLabel={`House ${currentProgression.houseNum} is active this year`}
+          />
+        </VizCard>
       )}
 
       {/* Cycle Selector & Table */}

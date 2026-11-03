@@ -1,11 +1,12 @@
 'use client'
 
 import React from 'react'
-import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
+import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { analyzeTransitMoment, type PositionVerdict } from '@/lib/engine/transitMomentAnalysis'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import styles from './transit-scrubber.module.css'
+import { buildPointGroups, type PointPos } from './transitPoints'
 
 const VERDICT_LABEL: Record<PositionVerdict, string> = {
   good: 'Good',
@@ -19,8 +20,6 @@ const VERDICT_CLASS: Record<PositionVerdict, string> = {
   caution: styles.verdictCaution,
 }
 
-const GRAHA_ORDER: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
-
 function grahaHouse(rashi: Rashi, ascRashi: Rashi): number {
   return ((rashi - ascRashi + 12) % 12) + 1
 }
@@ -31,7 +30,7 @@ function fmtDeg(deg: number): string {
   return `${d}°${String(m).padStart(2, '0')}'`
 }
 
-function fmtPlanetLine(g: GrahaData, ascRashi: Rashi): string {
+function fmtPlanetLine(g: PointPos, ascRashi: Rashi): string {
   const h = grahaHouse(g.rashi, ascRashi)
   return `${RASHI_SHORT[g.rashi]} ${fmtDeg(g.degree)} · ${g.nakshatraName?.split(' ')[0] ?? '—'} P${g.pada} · H${h}`
 }
@@ -77,6 +76,11 @@ export function TransitDetailsPanels({
     if (!transitChart) return null
     return analyzeTransitMoment(natalChart, transitChart)
   }, [natalChart, transitChart])
+
+  const pointGroups = React.useMemo(
+    () => buildPointGroups(natalChart, transitChart),
+    [natalChart, transitChart],
+  )
 
   const natalMoon = natalChart.grahas.find(g => g.id === 'Mo')
   const natalSun = natalChart.grahas.find(g => g.id === 'Su')
@@ -149,7 +153,7 @@ export function TransitDetailsPanels({
 
       {/* Planet comparison */}
       <div className={styles.compareSection}>
-        <h3 className={styles.compareTitle}>Natal vs transit — planetary positions</h3>
+        <h3 className={styles.compareTitle}>Natal vs transit — planets, lagnas &amp; upagrahas</h3>
         <div className={styles.compareScroll}>
           <table className={styles.compareTable}>
             <thead>
@@ -163,58 +167,66 @@ export function TransitDetailsPanels({
               </tr>
             </thead>
             <tbody>
-              {GRAHA_ORDER.map(id => {
-                const natal = natalChart.grahas.find(g => g.id === id)
-                const transit = transitChart?.grahas.find(g => g.id === id)
-                if (!natal) return null
-
-                const natalH = grahaHouse(natal.rashi, natalAsc)
-                const transitH = transit ? grahaHouse(transit.rashi, natalAsc) : null
-                const shifted = transitH != null && transitH !== natalH
-                const pa = planetAnalysis?.planets.find(p => p.planetId === id)
-
-                return (
-                  <tr key={id}>
-                    <td className={styles.planetCell}>
-                      {GRAHA_NAMES[id]}
-                      <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: '0.25rem' }}>({id})</span>
-                    </td>
-                    <td className={styles.natalCol}>{fmtPlanetLine(natal, natalAsc)}</td>
-                    <td className={styles.transitCol}>
-                      {transit ? (
-                        <>
-                          {fmtPlanetLine(transit, natalAsc)}
-                          {transit.isRetro && <span className={styles.retroMark}>℞</span>}
-                        </>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td>{transitH != null ? `H${transitH}` : '—'}</td>
-                    <td>
-                      {pa ? (
-                        <span className={`${styles.verdictBadge} ${VERDICT_CLASS[pa.transitVerdict]}`}>
-                          {VERDICT_LABEL[pa.transitVerdict]}
-                        </span>
-                      ) : '—'}
-                    </td>
-                    <td>
-                      {transitH != null ? (
-                        <span className={`${styles.houseShift} ${shifted ? styles.houseShiftMoved : styles.houseShiftSame}`}>
-                          {shifted ? `H${natalH} → H${transitH}` : 'Same house'}
-                        </span>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
+              {pointGroups.map(group => (
+                <React.Fragment key={group.title}>
+                  <tr>
+                    <th colSpan={6} scope="colgroup" className={styles.compareGroupRow}>{group.title}</th>
                   </tr>
-                )
-              })}
+                  {group.rows.map(row => {
+                    const { natal, transit } = row
+                    if (!natal) return null
+
+                    const natalH = grahaHouse(natal.rashi, natalAsc)
+                    const transitH = transit ? grahaHouse(transit.rashi, natalAsc) : null
+                    const shifted = transitH != null && transitH !== natalH
+                    const pa = row.grahaId
+                      ? planetAnalysis?.planets.find(p => p.planetId === row.grahaId)
+                      : undefined
+
+                    return (
+                      <tr key={row.key}>
+                        <td className={styles.planetCell}>
+                          {row.label}
+                          <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: '0.25rem' }}>({row.code})</span>
+                        </td>
+                        <td className={styles.natalCol}>{fmtPlanetLine(natal, natalAsc)}</td>
+                        <td className={styles.transitCol}>
+                          {transit ? (
+                            <>
+                              {fmtPlanetLine(transit, natalAsc)}
+                              {transit.isRetro && <span className={styles.retroMark}>℞</span>}
+                            </>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                        <td>{transitH != null ? `H${transitH}` : '—'}</td>
+                        <td>
+                          {pa ? (
+                            <span className={`${styles.verdictBadge} ${VERDICT_CLASS[pa.transitVerdict]}`}>
+                              {VERDICT_LABEL[pa.transitVerdict]}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td>
+                          {transitH != null ? (
+                            <span className={`${styles.houseShift} ${shifted ? styles.houseShiftMoved : styles.houseShiftSame}`}>
+                              {shifted ? `H${natalH} → H${transitH}` : 'Same house'}
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </React.Fragment>
+              ))}
             </tbody>
           </table>
         </div>
         <p style={{ margin: '0.85rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Houses are counted from your <strong>natal lagna</strong>. Transit house shows where each transiting planet falls in your birth chart at the selected moment.
+          Houses are counted from your <strong>natal lagna</strong>. Transit house shows where each transiting planet, lagna and upagraha falls in your birth chart at the selected moment. Time-sensitive points (lagnas, Gulika/Maandi) are cast for the birthplace.
         </p>
       </div>
     </section>

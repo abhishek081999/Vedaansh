@@ -7,6 +7,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { RadarChart, VizCard } from '@/components/ui/viz'
 import {
   Briefcase,
   CalendarClock,
@@ -275,6 +276,16 @@ function HouseCard({ icon: Icon, title, tone, reading }: { icon: LucideIcon; tit
 export function MarriageOverviewDetails({ data, gender }: { data: MarriedLifeAnalysis; gender?: string }) {
   return (
     <>
+      {data.dimensions.length >= 3 && (
+        <VizCard title="Marriage dimensions" caption="Flavor, passion, continuity, blessing and fruit — each scored out of 10">
+          <RadarChart
+            axes={data.dimensions.map(d => d.label)}
+            max={10}
+            size={200}
+            series={[{ label: 'This chart', values: data.dimensions.map(d => d.score), color: 'var(--gold)' }]}
+          />
+        </VizCard>
+      )}
       <SectionLabel>Four questions</SectionLabel>
       <div className={`${s.grid} ${s.gridWide}`}>
         {data.significators.map(sig => {

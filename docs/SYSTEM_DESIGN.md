@@ -1,7 +1,7 @@
 # Vedaansh — System Design
 
 **Product:** `jyotish-platform` v2.6.0 · Next.js 16.4.2 · Zod 4.6.7  
-**Synced:** 2026-10-31  
+**Synced:** 2026-11-03  
 **App:** Vedic astrology (Jyotish) SaaS — birth charts, dashas, vargas, panchang, muhurta, CRM, admin  
 **Source of truth:** live codebase (`package.json`, `src/`, `src/proxy.ts`, `render.yaml`)
 
@@ -86,6 +86,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 
 - 52 App Router pages (home, chart, today, panchang, muhurta, compare, relationship, career, nadi, prashna, jaimini, sbc, acg, vastu, nakshatra, numerology, roadmap, scrubber, guides, clients, account, admin, legal, etc.)
 - Chart workspace panels, chakras, dashboards
+- Interpretation hub (`InterpretationHub` + pure `interpretationHub` builder) — Free overview teaser; Gold+ full sections with viz kit
 - Platinum Client CRM UI
 - Admin: users, charts, revenue, billing, audit, reel studio
 - Client-side: localStorage (milan history, numerology readings), device location for atlas
@@ -138,8 +139,9 @@ Approximate stages:
 | Time lords | Vimshottari, Yogini, Kalachakra, Chara, Ashtottari, Mandook/Sthir |
 | KP / extras | significators, yogas, gandanta, pushkara, yogi |
 | Output | `ChartOutput` + interpretations |
+| Hub readings | `interpretationHub.ts` — overview / planets / houses / rashis / strength / transit / dasha aggregates for UI |
 
-Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on Platinum).
+Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on Platinum). UI plan teasers (Interpretation hub, Tattva, etc.) use `userPlan` + `planMeetsUiGate`; paid APIs still use `requirePlanGate`.
 
 ---
 
@@ -168,6 +170,7 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 | Domain | Surface |
 |--------|---------|
 | Charts | `/chart/[slug]`, calculate, save, public share, notes, relocate, varshaphal, ACG |
+| Interpretation hub | Chart workspace + public share tab — Free: overview tone map + first 3 themes; Gold+: planets, houses, rashis, strength charts, transit, dasha (`InterpretationHub`) |
 | Panchang | `/panchang`, calendar, transit APIs |
 | Muhurta | `/muhurta` + `/api/muhurta/*` (Gold+) |
 | Compare / Milan | `/compare` — Ashtakoot, Porutham, dosha, charts, dasha, and panchang on Free; match-making, married life, All Sections, and print on Gold+. Saved matches: `/api/milan/save`, `/api/milan/list`, `/api/milan/[id]` (caps 20 / 200 / unlimited) |

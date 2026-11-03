@@ -1,24 +1,28 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/TransitTimeline.tsx
-//  Visual 12-Month Cosmic Roadmap Component
+//  Visual 12-Month Cosmic Roadmap — year-at-a-glance chart (dasha
+//  bands + planet sign spans), current sky, and a month-grouped
+//  ingress timeline with same-day events merged per planet.
 // ─────────────────────────────────────────────────────────────
 
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { GRAHA_NAMES, RASHI_NAMES, type DashaNode, type GrahaId } from '@/types/astrology'
-import { BREAKPOINTS } from '@/lib/ui/breakpoints'
+import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT, type DashaNode, type GrahaId, type Rashi } from '@/types/astrology'
 import {
   buildTransitDashaOverlay,
   dashaLordsAt,
   formatDashaPathAt,
   type DashaBandSegment,
 } from '@/lib/engine/dasha/transitDashaOverlay'
+import styles from './transit-roadmap.module.css'
+
+type EventType = 'sign_change' | 'house_change' | 'nakshatra_change' | 'pada_change' | 'retrograde_start' | 'retrograde_end'
 
 interface TransitEvent {
   planetId:    GrahaId
   date:        string
-  type:        'sign_change' | 'house_change' | 'nakshatra_change' | 'pada_change' | 'retrograde_start' | 'retrograde_end'
+  type:        EventType
   description: string
   house:       number
   sign:        number
@@ -44,92 +48,174 @@ interface TransitTimelineProps {
   months?: number
 }
 
-const BAND_COLORS = [
-  'var(--gold)',
-  'var(--teal)',
-  'var(--amber)',
-  'var(--rose)',
-  '#d986ff',
-  'var(--text-secondary)',
-]
+type Movement = 'major' | 'rashi' | 'nakshatra' | 'pada' | 'all'
+type Scope = 'major_planets' | 'all_planets'
 
-function bandColor(lord: string, index: number): string {
-  const byLord: Record<string, string> = {
-    Su: 'var(--amber)',
-    Mo: 'var(--text-secondary)',
-    Ma: 'var(--rose)',
-    Me: 'var(--teal)',
-    Ju: 'var(--teal)',
-    Ve: '#d986ff',
-    Sa: 'var(--gold)',
-    Ra: 'var(--rose)',
-    Ke: 'var(--amber)',
-  }
-  return byLord[lord] || BAND_COLORS[index % BAND_COLORS.length]
+const MAJOR_PLANETS = new Set<GrahaId>(['Ju', 'Sa', 'Ra', 'Ke'])
+const ALL_ORDER: GrahaId[] = ['Ju', 'Sa', 'Ra', 'Ke', 'Ma', 'Su', 'Ve', 'Me', 'Mo']
+/** Moon changes sign every ~2.5 days — too dense for the glance chart. */
+const GLANCE_EXCLUDE = new Set<GrahaId>(['Mo'])
+
+const GRAHA_ICONS: Record<string, string> = {
+  Su: '☉', Mo: '☾', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋',
 }
 
-function DashaBandRow({
-  label,
-  segments,
-  isMobile,
-}: {
-  label: string
-  segments: DashaBandSegment[]
-  isMobile: boolean
-}) {
+const GRAHA_COLORS: Record<string, string> = {
+  Su: 'var(--amber)',
+  Mo: 'var(--text-secondary)',
+  Ma: 'var(--rose)',
+  Me: 'var(--teal)',
+  Ju: 'var(--teal)',
+  Ve: '#d986ff',
+  Sa: 'var(--gold)',
+  Ra: 'var(--rose)',
+  Ke: 'var(--amber)',
+}
+
+const SANSKRIT: Record<string, string> = {
+  Su: 'Surya', Mo: 'Chandra', Ma: 'Mangal', Me: 'Budha', Ju: 'Guru', Ve: 'Shukra', Sa: 'Shani', Ra: 'Rahu', Ke: 'Ketu',
+}
+
+const MOVEMENTS: Array<{ id: Movement; label: string }> = [
+  { id: 'major', label: 'Key shifts' },
+  { id: 'rashi', label: 'Sign' },
+  { id: 'nakshatra', label: 'Nakshatra' },
+  { id: 'pada', label: 'Pada' },
+  { id: 'all', label: 'All' },
+]
+
+const TYPE_RANK: Record<EventType, number> = {
+  house_change: 0,
+  sign_change: 0,
+  retrograde_start: 1,
+  retrograde_end: 1,
+  nakshatra_change: 2,
+  pada_change: 3,
+}
+
+// ── Helpers ──────────────────────────────────────────────────
+
+function dateAt(iso: string): Date {
+  return new Date(`${iso.slice(0, 10)}T12:00:00Z`)
+}
+
+function fmt(d: Date, opts: Intl.DateTimeFormatOptions): string {
+  return new Intl.DateTimeFormat('en-IN', { ...opts, timeZone: 'UTC' }).format(d)
+}
+
+interface RoadmapWindow { start: Date; end: Date; span: number }
+
+function fracIn(w: RoadmapWindow, d: Date): number {
+  return Math.min(1, Math.max(0, (d.getTime() - w.start.getTime()) / w.span))
+}
+
+function rashiName(n: number): string {
+  return RASHI_NAMES[n as Rashi] ?? String(n)
+}
+
+function rashiShort(n: number): string {
+  return RASHI_SHORT[n as Rashi] ?? String(n)
+}
+
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`
+}
+
+function eventTitle(ev: TransitEvent): string {
+  const name = GRAHA_NAMES[ev.planetId]
+  switch (ev.type) {
+    case 'house_change':
+    case 'sign_change':
+      return `${name} enters ${rashiName(ev.sign)}`
+    case 'retrograde_start':
+      return `${name} turns retrograde`
+    case 'retrograde_end':
+      return `${name} turns direct`
+    case 'nakshatra_change':
+      return `${name} enters ${ev.nakshatra}`
+    default:
+      return `${name} moves to ${ev.nakshatra} pada ${ev.pada}`
+  }
+}
+
+function eventTag(ev: TransitEvent): string {
+  switch (ev.type) {
+    case 'house_change':
+    case 'sign_change':
+      return 'Ingress'
+    case 'retrograde_start':
+      return 'Retrograde'
+    case 'retrograde_end':
+      return 'Direct'
+    case 'nakshatra_change':
+      return 'Nakshatra'
+    default:
+      return 'Pada'
+  }
+}
+
+/** Strip the engine's lead-ins so the body reads as interpretation only. */
+function eventBody(ev: TransitEvent): string | null {
+  if (ev.type === 'nakshatra_change' || ev.type === 'pada_change') return null
+  return ev.description
+    .replace(/^Activation \(H\d+\):\s*/, '')
+    .replace(/^[A-Za-z]+ (enters [A-Za-z]+|turns (Direct|Retrograde))\.\s*/, '')
+    .trim() || null
+}
+
+interface EventGroup {
+  key: string
+  date: string
+  planetId: GrahaId
+  primary: TransitEvent
+  rest: TransitEvent[]
+}
+
+function groupEvents(list: TransitEvent[]): EventGroup[] {
+  const map = new Map<string, TransitEvent[]>()
+  for (const ev of list) {
+    const k = `${ev.date}|${ev.planetId}`
+    map.set(k, [...(map.get(k) ?? []), ev])
+  }
+  const out: EventGroup[] = []
+  for (const [key, evs] of map) {
+    const sorted = [...evs].sort((a, b) => TYPE_RANK[a.type] - TYPE_RANK[b.type])
+    out.push({ key, date: sorted[0].date, planetId: sorted[0].planetId, primary: sorted[0], rest: sorted.slice(1) })
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date) || ALL_ORDER.indexOf(a.planetId) - ALL_ORDER.indexOf(b.planetId))
+}
+
+interface Span { startFrac: number; endFrac: number; sign: number; house: number; start: Date; end: Date }
+interface RetroSpan { startFrac: number; endFrac: number }
+
+// ── Year at a glance ─────────────────────────────────────────
+
+function BandRow({ label, short, segments }: { label: string; short: string; segments: DashaBandSegment[] }) {
   if (segments.length === 0) return null
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-        {label}
-      </div>
-      <div
-        style={{
-          position: 'relative',
-          height: isMobile ? 28 : 32,
-          borderRadius: 8,
-          background: 'var(--surface-3)',
-          border: '1px solid var(--border-soft)',
-          overflow: 'hidden',
-        }}
-      >
-        {segments.map((seg, i) => {
-          const widthPct = Math.max(0.8, (seg.endFrac - seg.startFrac) * 100)
-          const color = bandColor(seg.lord, i)
+    <div className={styles.glanceRow}>
+      <span className={styles.rowLabel}>
+        <span className={styles.long}>{label}</span><span className={styles.short}>{short}</span>
+      </span>
+      <div className={styles.track}>
+        {segments.map(seg => {
+          const color = GRAHA_COLORS[seg.lord] ?? 'var(--gold)'
+          const width = Math.max(0.6, (seg.endFrac - seg.startFrac) * 100)
           return (
             <div
               key={`${seg.lord}-${seg.start.toISOString()}-${seg.level}`}
+              className={styles.band}
               title={`${seg.lordName}: ${seg.start.toLocaleDateString()} – ${seg.end.toLocaleDateString()}`}
               style={{
-                position: 'absolute',
                 left: `${seg.startFrac * 100}%`,
-                width: `${widthPct}%`,
-                top: 2,
-                bottom: 2,
-                borderRadius: 6,
-                background: `linear-gradient(90deg, ${color}55, ${color}22)`,
-                border: `1px solid ${color}66`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                padding: '0 4px',
+                width: `${width}%`,
+                background: `color-mix(in oklab, ${color} 30%, var(--surface-2))`,
+                borderColor: `color-mix(in oklab, ${color} 60%, transparent)`,
               }}
             >
-              {widthPct > (isMobile ? 10 : 6) && (
-                <span
-                  style={{
-                    fontSize: isMobile ? '0.58rem' : '0.65rem',
-                    fontWeight: 800,
-                    color,
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {seg.lordName}
-                </span>
-              )}
+              {width > 9 && <span>{seg.lordName}</span>}
             </div>
           )
         })}
@@ -138,520 +224,368 @@ function DashaBandRow({
   )
 }
 
+function PlanetRow({ pid, spans, retro, pips, dim }: {
+  pid: GrahaId
+  spans: Span[]
+  retro: RetroSpan[]
+  pips: number[]
+  dim: boolean
+}) {
+  const color = GRAHA_COLORS[pid]
+  return (
+    <div className={`${styles.glanceRow} ${dim ? styles.dim : ''}`}>
+      <span className={styles.rowLabel} style={{ color }}>
+        <span className={styles.rowGlyph}>{GRAHA_ICONS[pid]}</span><span className={styles.long}>{GRAHA_NAMES[pid]}</span>
+      </span>
+      <div className={styles.track}>
+        {spans.map(s => {
+          const width = (s.endFrac - s.startFrac) * 100
+          return (
+            <div
+              key={`${pid}-${s.startFrac}`}
+              className={styles.span}
+              title={`${GRAHA_NAMES[pid]} in ${rashiName(s.sign)} (house ${s.house}) · ${fmt(s.start, { day: 'numeric', month: 'short' })} – ${fmt(s.end, { day: 'numeric', month: 'short', year: 'numeric' })}`}
+              style={{
+                left: `${s.startFrac * 100}%`,
+                width: `${width}%`,
+                background: `color-mix(in oklab, ${color} 20%, var(--surface-2))`,
+                borderColor: `color-mix(in oklab, ${color} 50%, transparent)`,
+              }}
+            >
+              {width > 13 ? <span>{rashiName(s.sign)} · H{s.house}</span> : width > 5 ? <span>{rashiShort(s.sign)}</span> : null}
+            </div>
+          )
+        })}
+        {retro.map(r => (
+          <div key={`rx-${r.startFrac}`} className={styles.retro} title="Retrograde"
+            style={{ left: `${r.startFrac * 100}%`, width: `${Math.max(0.5, (r.endFrac - r.startFrac) * 100)}%` }} />
+        ))}
+        {pips.map(f => (
+          <span key={`pip-${f}`} className={styles.pip} style={{ left: `${f * 100}%`, background: color }} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Component ────────────────────────────────────────────────
+
 export function TransitTimeline({ ascRashi, vimshottari, months = 12 }: TransitTimelineProps) {
   const [events, setEvents] = useState<TransitEvent[]>([])
   const [positions, setPositions] = useState<TransitPosition[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'major' | 'rashi' | 'nakshatra' | 'pada'>('major')
-  const [planetScope, setPlanetScope] = useState<'all_planets' | 'major_planets'>('major_planets')
-  const [planetWise, setPlanetWise] = useState<'all' | GrahaId>('all')
-  const [isMobile, setIsMobile] = useState(false)
+  const [error, setError] = useState(false)
+  const [movement, setMovement] = useState<Movement>('major')
+  const [scope, setScope] = useState<Scope>('major_planets')
+  const [planet, setPlanet] = useState<'all' | GrahaId>('all')
+
+  const window0 = useMemo<RoadmapWindow>(() => {
+    const now = new Date()
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12))
+    const end = new Date(start)
+    end.setUTCMonth(end.getUTCMonth() + months)
+    return { start, end, span: end.getTime() - start.getTime() }
+  }, [months])
 
   const dashaOverlay = useMemo(() => {
     if (!vimshottari?.length) return null
-    const windowStart = new Date()
-    const windowEnd = new Date(windowStart)
-    windowEnd.setMonth(windowEnd.getMonth() + months)
-    return buildTransitDashaOverlay(vimshottari, windowStart, windowEnd)
-  }, [vimshottari, months])
+    return buildTransitDashaOverlay(vimshottari, window0.start, window0.end)
+  }, [vimshottari, window0])
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < BREAKPOINTS.lg)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
-  useEffect(() => {
+    let cancelled = false
     async function fetchTransits() {
       try {
         const res = await fetch(`/api/transit?ascRashi=${ascRashi}&months=${months}`)
         const json = await res.json()
+        if (cancelled) return
         if (json.success) {
           setEvents(json.data)
           setPositions(json.currentPositions || [])
+        } else {
+          setError(true)
         }
       } catch (err) {
         console.error('Failed to fetch transits:', err)
+        if (!cancelled) setError(true)
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
     fetchTransits()
+    return () => { cancelled = true }
   }, [ascRashi, months])
+
+  const scopePlanets = useMemo(
+    () => (scope === 'major_planets' ? ALL_ORDER.filter(p => MAJOR_PLANETS.has(p)) : ALL_ORDER),
+    [scope],
+  )
+
+  // Glance rows: sign spans from current sign + ingress events; retro spans from stations.
+  const glance = useMemo(() => {
+    const frac = (d: Date) => fracIn(window0, d)
+    return scopePlanets.filter(p => !GLANCE_EXCLUDE.has(p)).map(pid => {
+      const pos = positions.find(p => p.planetId === pid)
+      const evs = events.filter(e => e.planetId === pid)
+      const ingress = evs.filter(e => e.type === 'house_change' || e.type === 'sign_change')
+      const spans: Span[] = []
+      let curStart = window0.start
+      let curSign = pos?.sign ?? ingress[0]?.sign ?? 1
+      let curHouse = pos?.house ?? ingress[0]?.house ?? 1
+      for (const ev of ingress) {
+        const d = dateAt(ev.date)
+        if (d.getTime() > curStart.getTime()) {
+          spans.push({ startFrac: frac(curStart), endFrac: frac(d), sign: curSign, house: curHouse, start: curStart, end: d })
+        }
+        curStart = d
+        curSign = ev.sign
+        curHouse = ev.house
+      }
+      spans.push({ startFrac: frac(curStart), endFrac: 1, sign: curSign, house: curHouse, start: curStart, end: window0.end })
+
+      const retro: RetroSpan[] = []
+      if (pid !== 'Ra' && pid !== 'Ke') {
+        let rxStart: Date | null = pos?.isRetro ? window0.start : null
+        for (const ev of evs) {
+          if (ev.type === 'retrograde_start') rxStart = dateAt(ev.date)
+          if (ev.type === 'retrograde_end' && rxStart) {
+            retro.push({ startFrac: frac(rxStart), endFrac: frac(dateAt(ev.date)) })
+            rxStart = null
+          }
+        }
+        if (rxStart) retro.push({ startFrac: frac(rxStart), endFrac: 1 })
+      }
+      return { pid, spans, retro, pips: ingress.map(e => frac(dateAt(e.date))) }
+    })
+  }, [events, positions, scopePlanets, window0])
+
+  const monthTicks = useMemo(() => {
+    const out: Array<{ f: number; label: string; year: string | null }> = []
+    const d = new Date(Date.UTC(window0.start.getUTCFullYear(), window0.start.getUTCMonth() + 1, 1, 12))
+    while (d.getTime() < window0.end.getTime()) {
+      out.push({
+        f: (d.getTime() - window0.start.getTime()) / window0.span,
+        label: fmt(d, { month: 'short' }),
+        year: d.getUTCMonth() === 0 ? String(d.getUTCFullYear()).slice(2) : null,
+      })
+      d.setUTCMonth(d.getUTCMonth() + 1)
+    }
+    return out
+  }, [window0])
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center' }}>
-        <div className="spin-loader" style={{ margin: '0 auto 1.5rem', width: 40, height: 40, border: '3px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%' }} />
-        <div style={{ color: 'var(--text-gold)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>Calculating your personal roadmap...</div>
+      <div className={styles.loading}>
+        <div className={`spin-loader ${styles.spinner}`} />
+        <div>Calculating your personal roadmap…</div>
       </div>
     )
   }
 
-  const MAJOR_PLANETS = new Set<GrahaId>(['Ju', 'Sa', 'Ra', 'Ke'])
-
-  const filteredEvents = events.filter((ev) => {
-    if (planetScope === 'major_planets' && !MAJOR_PLANETS.has(ev.planetId)) return false
-    if (planetWise !== 'all' && ev.planetId !== planetWise) return false
-    if (filter === 'major') return ev.isMajor
-    if (filter === 'rashi') return ev.type === 'sign_change'
-    if (filter === 'nakshatra') return ev.type === 'nakshatra_change'
-    if (filter === 'pada') return ev.type === 'pada_change'
-    return true
-  })
-
-  const filteredPositions = positions.filter((p) => {
-    if (planetScope === 'major_planets') return MAJOR_PLANETS.has(p.planetId)
-    if (planetWise !== 'all' && p.planetId !== planetWise) return false
-    return true
-  })
-
-  const planetOptions: Array<{ id: 'all' | GrahaId; label: string }> = [
-    { id: 'all', label: 'All' },
-    { id: 'Su', label: 'Sun' },
-    { id: 'Mo', label: 'Moon' },
-    { id: 'Ma', label: 'Mars' },
-    { id: 'Me', label: 'Mercury' },
-    { id: 'Ju', label: 'Jupiter' },
-    { id: 'Ve', label: 'Venus' },
-    { id: 'Sa', label: 'Saturn' },
-    { id: 'Ra', label: 'Rahu' },
-    { id: 'Ke', label: 'Ketu' },
-  ]
-
-  const GRAHA_ICONS: Record<string, string> = {
-    'Su': '☉',
-    'Mo': '☾',
-    'Ma': '♂',
-    'Me': '☿',
-    'Ju': '♃',
-    'Ve': '♀',
-    'Sa': '♄',
-    'Ra': '☊',
-    'Ke': '☋',
+  if (error) {
+    return <div className={styles.empty}>Could not load transits. Please refresh to try again.</div>
   }
 
-  const GRAHA_COLORS: Record<string, string> = {
-    'Su': 'var(--amber)',
-    'Mo': 'var(--text-secondary)',
-    'Ma': 'var(--rose)',
-    'Me': 'var(--teal)',
-    'Ju': 'var(--teal)',
-    'Ve': '#d986ff',
-    'Sa': 'var(--gold)',
-    'Ra': 'var(--rose)',
-    'Ke': 'var(--amber)',
+  const filteredEvents = events.filter(ev => {
+    if (!scopePlanets.includes(ev.planetId)) return false
+    if (planet !== 'all' && ev.planetId !== planet) return false
+    if (movement === 'major') return ev.isMajor
+    if (movement === 'rashi') return ev.type === 'sign_change' || ev.type === 'house_change'
+    if (movement === 'nakshatra') return ev.type === 'nakshatra_change'
+    if (movement === 'pada') return ev.type === 'pada_change'
+    return true
+  })
+  const groups = groupEvents(filteredEvents)
+
+  const byMonth = new Map<string, EventGroup[]>()
+  for (const g of groups) {
+    const k = g.date.slice(0, 7)
+    byMonth.set(k, [...(byMonth.get(k) ?? []), g])
   }
+  const adStarts = (dashaOverlay?.antar ?? []).filter(s => s.startFrac > 0.0001)
+
+  const shownPositions = ALL_ORDER
+    .map(id => positions.find(p => p.planetId === id))
+    .filter((p): p is TransitPosition => !!p && scopePlanets.includes(p.planetId))
+
+  const rangeLabel = `${fmt(window0.start, { month: 'short', year: 'numeric' })} – ${fmt(window0.end, { month: 'short', year: 'numeric' })}`
+  const nowPath = vimshottari?.length ? formatDashaPathAt(vimshottari, Date.now()) : ''
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '2rem' }}>
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: isMobile ? '1rem' : '1.5rem', borderBottom: '1px solid var(--border-soft)', paddingBottom: '1.5rem' }}>
+    <div className={`fade-up ${styles.root}`}>
+      <header className={styles.head}>
         <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.4rem' : '2rem', color: 'var(--text-gold)', fontWeight: 800 }}>Cosmic Roadmap</h2>
-          <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)', fontSize: isMobile ? '0.8rem' : '0.9rem' }}>Major and full transits for all grahas in rashi, nakshatra, and pada.</p>
+          <h2>Cosmic Roadmap</h2>
+          <p>{rangeLabel} · ingresses, stations and nakshatra shifts against your Lagna</p>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', width: isMobile ? '100%' : 'auto' }}>
-          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Transit by Planets</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--surface-3)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-soft)', gap: '0.2rem' }}>
-            <button
-              onClick={() => setPlanetScope('all_planets')}
-              style={{
-                padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none',
-                background: planetScope === 'all_planets' ? 'var(--gold)' : 'transparent',
-                color: planetScope === 'all_planets' ? 'var(--text-on-gold)' : 'var(--text-secondary)',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-              }}
-            >All Planets</button>
-            <button
-              onClick={() => setPlanetScope('major_planets')}
-              style={{
-                padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none',
-                background: planetScope === 'major_planets' ? 'var(--gold)' : 'transparent',
-                color: planetScope === 'major_planets' ? 'var(--text-on-gold)' : 'var(--text-secondary)',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-              }}
-            >Major Planets</button>
-          </div>
-          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Planet Wise</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--surface-3)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-soft)', gap: '0.2rem' }}>
-            {planetOptions.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => setPlanetWise(option.id)}
-                style={{
-                  padding: '0.35rem 0.65rem', borderRadius: '6px', border: 'none',
-                  background: planetWise === option.id ? 'var(--gold)' : 'transparent',
-                  color: planetWise === option.id ? 'var(--text-on-gold)' : 'var(--text-secondary)',
-                  cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
-                }}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Transit by Movement</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--surface-3)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-soft)', gap: '0.2rem' }}>
-            <button 
-              onClick={() => setFilter('major')}
-              style={{ 
-                padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none', 
-                background: filter === 'major' ? 'var(--gold)' : 'transparent',
-                color: filter === 'major' ? 'var(--text-on-gold)' : 'var(--text-secondary)',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700
-              }}
-            >Major</button>
-            <button 
-              onClick={() => setFilter('all')}
-              style={{ 
-                padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none', 
-                background: filter === 'all' ? 'var(--gold)' : 'transparent',
-                color: filter === 'all' ? 'var(--text-on-gold)' : 'var(--text-secondary)',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700
-              }}
-            >All</button>
-            <button
-              onClick={() => setFilter('rashi')}
-              style={{
-                padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none',
-                background: filter === 'rashi' ? 'var(--gold)' : 'transparent',
-                color: filter === 'rashi' ? 'var(--text-on-gold)' : 'var(--text-secondary)',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-              }}
-            >Rashi</button>
-            <button
-              onClick={() => setFilter('nakshatra')}
-              style={{
-                padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none',
-                background: filter === 'nakshatra' ? 'var(--gold)' : 'transparent',
-                color: filter === 'nakshatra' ? 'var(--text-on-gold)' : 'var(--text-secondary)',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-              }}
-            >Nakshatra</button>
-            <button
-              onClick={() => setFilter('pada')}
-              style={{
-                padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none',
-                background: filter === 'pada' ? 'var(--gold)' : 'transparent',
-                color: filter === 'pada' ? 'var(--text-on-gold)' : 'var(--text-secondary)',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-              }}
-            >Pada</button>
-          </div>
-        </div>
-      </div>
+        {nowPath && <span className={styles.nowChip}>Dasha now · {nowPath}</span>}
+      </header>
 
-      {dashaOverlay && (
-        <div className="card" style={{ padding: isMobile ? '0.9rem' : '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.5rem', alignItems: 'baseline' }}>
-            <div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-                Vimshottari Dasha Overlay
-              </div>
-              <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                Mahadasha and Antardasha across the same {months}-month window as transit ingresses.
-              </p>
+      {/* ── Year at a glance ── */}
+      <section className={styles.panel}>
+        <div className={styles.panelHead}>
+          <h3>Year at a glance</h3>
+          <span className={styles.muted}>Bars = sign held (house from Lagna) · hatched = retrograde · dots = ingress</span>
+        </div>
+        <div className={styles.glance}>
+          <div className={styles.axisRow}>
+            <span />
+            <div className={styles.axis}>
+              <span className={styles.todayLabel} style={{ left: 0 }}>Today</span>
+              {monthTicks.map(t => (
+                <span key={t.f} className={`${styles.tick} ${t.year ? styles.tickYear : ''}`} style={{ left: `${t.f * 100}%` }}>
+                  {t.label}{t.year ? ` ’${t.year}` : ''}
+                </span>
+              ))}
             </div>
-            {dashaOverlay.currentPath.length > 0 && (
-              <div
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  color: 'var(--text-gold)',
-                  background: 'var(--gold-faint)',
-                  border: '1px solid var(--border-soft)',
-                  borderRadius: 8,
-                  padding: '0.35rem 0.65rem',
-                }}
-              >
-                Now · {formatDashaPathAt(vimshottari ?? [], Date.now())}
-              </div>
-            )}
           </div>
-          <DashaBandRow label="Mahadasha" segments={dashaOverlay.maha} isMobile={isMobile} />
-          <DashaBandRow label="Antardasha" segments={dashaOverlay.antar} isMobile={isMobile} />
-          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            Read ingresses against the running MD/AD — same dasha lord as the transit planet often strengthens the theme.
+          {dashaOverlay && (
+            <>
+              <BandRow label="Mahadasha" short="MD" segments={dashaOverlay.maha} />
+              <BandRow label="Antardasha" short="AD" segments={dashaOverlay.antar} />
+              <div className={styles.divider} />
+            </>
+          )}
+          {glance.map(row => (
+            <PlanetRow key={row.pid} pid={row.pid} spans={row.spans} retro={row.retro} pips={row.pips}
+              dim={planet !== 'all' && planet !== row.pid} />
+          ))}
+          <div className={styles.gridOverlay} aria-hidden>
+            {monthTicks.map(t => <span key={t.f} style={{ left: `${t.f * 100}%` }} />)}
           </div>
         </div>
-      )}
+      </section>
 
-      <div className="card" style={{ padding: isMobile ? '0.9rem' : '1.2rem' }}>
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 700 }}>
-          Current Transit Snapshot (All Planets)
+      {/* ── Sky now ── */}
+      <section className={styles.panel}>
+        <div className={styles.panelHead}>
+          <h3>Sky right now</h3>
+          <span className={styles.muted}>House counted from your Lagna</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '0.55rem' }}>
-          {filteredPositions.map((p) => (
-            <div key={p.planetId} style={{ border: '1px solid var(--border-soft)', borderRadius: '10px', padding: '0.6rem 0.7rem', background: 'var(--surface-2)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                <strong style={{ color: 'var(--text-primary)' }}>{GRAHA_NAMES[p.planetId]}</strong>
-                <span style={{ fontSize: '0.75rem', color: p.isRetro ? 'var(--rose)' : 'var(--text-muted)' }}>{p.isRetro ? 'Rx' : 'Direct'}</span>
-              </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                {RASHI_NAMES[p.sign as keyof typeof RASHI_NAMES]} | {p.nakshatra} P{p.pada} | H{p.house}
+        <div className={styles.nowGrid}>
+          {shownPositions.map(p => (
+            <div key={p.planetId} className={styles.nowCard} style={{ borderTopColor: GRAHA_COLORS[p.planetId] }}>
+              <span className={styles.nowGlyph} style={{ color: GRAHA_COLORS[p.planetId] }}>{GRAHA_ICONS[p.planetId]}</span>
+              <div className={styles.nowBody}>
+                <div className={styles.nowTop}>
+                  <strong>{GRAHA_NAMES[p.planetId]}</strong>
+                  {p.isRetro && p.planetId !== 'Ra' && p.planetId !== 'Ke' && <span className={styles.rx}>Rx</span>}
+                </div>
+                <div className={styles.nowSign}>{rashiName(p.sign)} · <b>{ordinal(p.house)} house</b></div>
+                <div className={styles.nowNak}>{p.nakshatra} · pada {p.pada}</div>
               </div>
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ── Filters ── */}
+      <div className={styles.toolbar}>
+        <div className={styles.seg} role="tablist" aria-label="Planet scope">
+          {(['major_planets', 'all_planets'] as const).map(s => (
+            <button key={s} type="button" role="tab" aria-selected={scope === s}
+              className={scope === s ? styles.segOn : ''}
+              onClick={() => { setScope(s); if (s === 'major_planets' && planet !== 'all' && !MAJOR_PLANETS.has(planet)) setPlanet('all') }}>
+              {s === 'major_planets' ? 'Slow planets' : 'All planets'}
+            </button>
+          ))}
+        </div>
+        <div className={styles.planetChips} role="tablist" aria-label="Planet">
+          <button type="button" role="tab" aria-selected={planet === 'all'}
+            className={`${styles.pchip} ${planet === 'all' ? styles.pchipOn : ''}`} onClick={() => setPlanet('all')}>All</button>
+          {scopePlanets.map(id => (
+            <button key={id} type="button" role="tab" aria-selected={planet === id} title={GRAHA_NAMES[id]}
+              className={`${styles.pchip} ${planet === id ? styles.pchipOn : ''}`}
+              style={planet === id ? { background: GRAHA_COLORS[id], borderColor: GRAHA_COLORS[id] } : { color: GRAHA_COLORS[id] }}
+              onClick={() => setPlanet(id)}>
+              {GRAHA_ICONS[id]} <span>{GRAHA_NAMES[id]}</span>
+            </button>
+          ))}
+        </div>
+        <div className={styles.seg} role="tablist" aria-label="Movement type">
+          {MOVEMENTS.map(m => (
+            <button key={m.id} type="button" role="tab" aria-selected={movement === m.id}
+              className={movement === m.id ? styles.segOn : ''} onClick={() => setMovement(m.id)}>
+              {m.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Timeline: grid aligns date column, dot column, and a single straight vertical spine */}
-      {filteredEvents.length === 0 ? (
-        <div className="card" style={{ padding: isMobile ? '1rem' : '1.25rem', color: 'var(--text-muted)' }}>
-          No transit events available for this filter.
-        </div>
+      {/* ── Timeline ── */}
+      {groups.length === 0 ? (
+        <div className={styles.empty}>No transit events for this filter in the window.</div>
       ) : (
-      <div style={{ position: 'relative' }}>
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            left: isMobile ? '11px' : '99px',
-            top: '0.75rem',
-            bottom: '0.75rem',
-            width: 2,
-            transform: 'translateX(-50%)',
-            borderRadius: 1,
-            background: 'linear-gradient(to bottom, var(--gold) 0%, var(--border-soft) 100%)',
-            opacity: 0.38,
-            pointerEvents: 'none',
-            zIndex: 0,
-          }}
-        />
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '22px minmax(0, 1fr)' : '88px 22px minmax(0, 1fr)',
-            columnGap: isMobile ? '0.75rem' : '1rem',
-            rowGap: isMobile ? '1.5rem' : '2.5rem',
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          {filteredEvents.map((ev, i) => {
-            const date = new Date(ev.date)
-            const month = date.toLocaleString('default', { month: 'short' })
-            const day = date.getDate()
-            const color = GRAHA_COLORS[ev.planetId] || 'var(--gold)'
-            const dashaAtEvent = vimshottari?.length
-              ? dashaLordsAt(vimshottari, date)
-              : { maha: null, antar: null }
-            const dashaChip = dashaAtEvent.maha
-              ? (dashaAtEvent.antar ? `${dashaAtEvent.maha} / ${dashaAtEvent.antar}` : dashaAtEvent.maha)
-              : null
-
-            const PLANET_LABELS: Record<string, string> = {
-              Su: 'Surya (Sun)',
-              Mo: 'Chandra (Moon)',
-              Ma: 'Mangal (Mars)',
-              Me: 'Budha (Mercury)',
-              Ju: 'Guru (Jupiter)',
-              Ve: 'Shukra (Venus)',
-              Sa: 'Shani (Saturn)',
-              Ra: 'Rahu (North Node)',
-              Ke: 'Ketu (South Node)',
-            }
-            const planetLabel = PLANET_LABELS[ev.planetId] || ev.planetId
-            const dotSize = isMobile ? 10 : 12
-
-            const dateCell = !isMobile ? (
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.75rem',
-                      color: 'var(--text-muted)',
-                      lineHeight: 1.2,
-                      textAlign: 'right',
-                      paddingRight: '0.15rem',
-                      alignSelf: 'start',
-                      paddingTop: '0.2rem',
-                    }}
-                  >
-                    <div style={{ fontWeight: 800, color: 'var(--text-secondary)' }}>{day}</div>
-                    <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', opacity: 0.7 }}>{month}</div>
-                  </div>
-            ) : null
-
-            const dotCell = (
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'flex-start',
-                    paddingTop: isMobile ? '0.35rem' : '0.25rem',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: dotSize,
-                      height: dotSize,
-                      borderRadius: '50%',
-                      background: color,
-                      border: '3px solid var(--bg-page)',
-                      boxShadow: `0 0 10px ${color}88`,
-                      flexShrink: 0,
-                    }}
-                  />
-                </div>
-            )
-
-            const cardCell = (
-                <div
-                  className="card"
-                  style={{
-                    padding: isMobile ? '1rem' : '1.25rem',
-                    display: 'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    gap: isMobile ? '0.75rem' : '1.25rem',
-                    alignItems: isMobile ? 'flex-start' : 'center',
-                    background: `linear-gradient(90deg, ${color}08 0%, transparent 100%)`,
-                    borderLeft: `4px solid ${color}`,
-                    transition: 'transform 0.2s',
-                    cursor: 'default',
-                  }}
-                  onMouseOver={e => !isMobile && (e.currentTarget.style.transform = 'translateX(5px)')}
-                  onMouseOut={e => !isMobile && (e.currentTarget.style.transform = 'translateX(0)')}
-                >
-                  {isMobile && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                        alignItems: 'center',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 800 }}>
-                        {day} {month}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.85rem',
-                          fontWeight: 800,
-                          color: ev.type.includes('house') ? 'var(--text-gold)' : 'var(--text-secondary)',
-                        }}
-                      >
-                        H{ev.house} Focus
-                      </div>
-                    </div>
-                  )}
-
-                  <div
-                    style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: '12px',
-                      background: 'var(--surface-3)',
-                      border: '1px solid var(--border-soft)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.5rem',
-                      color,
-                      boxShadow: `inset 0 0 10px ${color}15`,
-                    }}
-                  >
-                    {GRAHA_ICONS[ev.planetId]}
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem 0.75rem', marginBottom: '0.25rem' }}>
-                      <span
-                        className="badge"
-                        style={{
-                          background: `${color}15`,
-                          color,
-                          fontSize: '0.6rem',
-                          fontWeight: 800,
-                          border: `1px solid ${color}33`,
-                        }}
-                      >
-                        {ev.type.replace('_', ' ').toUpperCase()}
+        <div className={styles.timeline}>
+          {[...byMonth.entries()].map(([month, list]) => {
+            const mid = dateAt(`${month}-15`)
+            const lords = vimshottari?.length ? dashaLordsAt(vimshottari, mid) : { maha: null, antar: null }
+            const adHere = adStarts.filter(s => s.start.toISOString().slice(0, 7) === month)
+            return (
+              <section key={month} className={styles.month}>
+                <h3 className={styles.monthHead}>
+                  <span>{fmt(mid, { month: 'long', year: 'numeric' })}</span>
+                  <span className={styles.monthMeta}>
+                    {list.length} event{list.length > 1 ? 's' : ''}
+                    {lords.maha && <> · {lords.maha}{lords.antar ? ` / ${lords.antar}` : ''}</>}
+                  </span>
+                </h3>
+                <ol className={styles.events}>
+                  {adHere.map(s => (
+                    <li key={`ad-${s.start.toISOString()}`} className={styles.dashaEvent}>
+                      <span className={styles.date}>
+                        <b>{fmt(s.start, { day: 'numeric' })}</b>{fmt(s.start, { month: 'short' })}
                       </span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>{planetLabel}</span>
-                      {dashaChip && (
-                        <span
-                          className="badge"
-                          title="Vimshottari MD / AD at this ingress"
-                          style={{
-                            background: 'var(--gold-faint)',
-                            color: 'var(--text-gold)',
-                            fontSize: '0.58rem',
-                            fontWeight: 800,
-                            border: '1px solid var(--border-soft)',
-                          }}
-                        >
-                          DASHA {dashaChip}
+                      <span className={styles.dashaMark}>◆</span>
+                      <div>
+                        <strong>{s.lordName} Antardasha begins</strong>
+                        <p>Transits of {s.lordName} carry extra weight until {fmt(s.end, { month: 'short', year: 'numeric' })}.</p>
+                      </div>
+                    </li>
+                  ))}
+                  {list.map(g => {
+                    const color = GRAHA_COLORS[g.planetId] ?? 'var(--gold)'
+                    const d = dateAt(g.date)
+                    const body = eventBody(g.primary)
+                    const isIngress = TYPE_RANK[g.primary.type] === 0
+                    const extras = g.rest.map(r => r.type === 'nakshatra_change' ? `→ ${r.nakshatra}`
+                      : r.type === 'pada_change' ? `Pada ${r.pada}`
+                      : r.type === 'retrograde_start' ? 'Turns Rx' : r.type === 'retrograde_end' ? 'Turns direct' : eventTag(r))
+                    return (
+                      <li key={g.key} className={`${styles.event} ${isIngress ? styles.eventMajor : ''}`}
+                        style={{ '--accent': color } as React.CSSProperties}>
+                        <span className={styles.date}>
+                          <b>{fmt(d, { day: 'numeric' })}</b>{fmt(d, { month: 'short' })}
                         </span>
-                      )}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: isMobile ? '0.95rem' : '1.1rem',
-                        fontWeight: 500,
-                        color: 'var(--text-primary)',
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {ev.description}
-                    </div>
-                    <div style={{ marginTop: '0.45rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                      {RASHI_NAMES[ev.sign as keyof typeof RASHI_NAMES]} | {ev.nakshatra} | Pada {ev.pada}
-                    </div>
-                  </div>
-
-                  {!isMobile && (
-                    <div style={{ textAlign: 'right', minWidth: '90px' }}>
-                      <div
-                        style={{
-                          fontSize: '0.6rem',
-                          color: 'var(--text-muted)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                        }}
-                      >
-                        Activation
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.95rem',
-                          fontWeight: 700,
-                          color: ev.type.includes('house') ? 'var(--text-gold)' : 'var(--text-secondary)',
-                        }}
-                      >
-                        House {ev.house}
-                      </div>
-                      <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Focus Area</div>
-                    </div>
-                  )}
-                </div>
-            )
-
-            return isMobile ? (
-              <React.Fragment key={i}>
-                {dotCell}
-                {cardCell}
-              </React.Fragment>
-            ) : (
-              <React.Fragment key={i}>
-                {dateCell}
-                {dotCell}
-                {cardCell}
-              </React.Fragment>
+                        <span className={styles.glyph} style={{ color }}>{GRAHA_ICONS[g.planetId]}</span>
+                        <div className={styles.eventBody}>
+                          <div className={styles.eventTop}>
+                            <strong>{eventTitle(g.primary)}</strong>
+                            <span className={styles.tag}>{eventTag(g.primary)}</span>
+                          </div>
+                          {body && <p>{body}</p>}
+                          <div className={styles.meta}>
+                            <span className={styles.house}>{ordinal(g.primary.house)} house</span>
+                            <span>{rashiName(g.primary.sign)}</span>
+                            <span>{g.primary.nakshatra} · P{g.primary.pada}</span>
+                            <span className={styles.sanskrit}>{SANSKRIT[g.planetId]}</span>
+                            {extras.map(x => <span key={x} className={styles.extra}>{x}</span>)}
+                          </div>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ol>
+              </section>
             )
           })}
         </div>
-      </div>
       )}
 
-      <div style={{ 
-        marginTop: '2rem', padding: '1.5rem', background: 'var(--surface-2)', 
-        borderRadius: 'var(--r-md)', border: '1px dashed var(--border-soft)',
-        fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.6
-      }}>
-        💡 <strong>Analytical Tip:</strong> Use Major for cycle-level shifts, and switch to Rashi/Nakshatra/Pada tabs for precise timing windows in your personal chart.
-      </div>
+      <p className={styles.footnote}>
+        Tip: use <b>Key shifts</b> for cycle-level changes; switch to Sign, Nakshatra or Pada for precise timing.
+        A transit planet that is also your running dasha lord tends to deliver its theme more strongly.
+      </p>
     </div>
   )
 }

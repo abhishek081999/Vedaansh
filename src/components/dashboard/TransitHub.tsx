@@ -38,23 +38,44 @@ const TransitCalendarPanel = dynamic(
   () => import('@/components/dashboard/TransitCalendarPanel').then(m => m.TransitCalendarPanel),
   { ssr: false },
 )
+const TransitForecastPanel = dynamic(
+  () => import('@/components/dashboard/TransitForecastPanel').then(m => m.TransitForecastPanel),
+  { ssr: false },
+)
+const MoonTransitPanel = dynamic(
+  () => import('@/components/dashboard/MoonTransitPanel').then(m => m.MoonTransitPanel),
+  { ssr: false },
+)
 
-export type TransitHubTab = 'roadmap' | 'scrubber' | 'sade-sati' | 'aspects' | 'biwheel' | 'calendar'
+export type TransitHubTab = 'roadmap' | 'forecast' | 'scrubber' | 'moon' | 'sade-sati' | 'aspects' | 'biwheel' | 'calendar'
 
-const GOLD_TABS = new Set<TransitHubTab>(['sade-sati', 'aspects', 'biwheel', 'calendar'])
+const GOLD_TABS = new Set<TransitHubTab>(['forecast', 'sade-sati', 'aspects', 'biwheel', 'calendar'])
 
 const TABS: Array<{ id: TransitHubTab; label: string; href: string; blurb: string; gold?: boolean }> = [
-  {
-    id: 'roadmap',
-    label: 'Cosmic Roadmap',
-    href: '/transit/roadmap',
-    blurb: '12-month ingresses with Vimshottari MD/AD overlay',
-  },
   {
     id: 'scrubber',
     label: 'Live Transit',
     href: '/transit/scrubber',
     blurb: 'Scrub date & time against your natal chart',
+  },
+  {
+    id: 'forecast',
+    label: 'Forecast',
+    href: '/transit/forecast',
+    blurb: 'Predictive transit weather — life areas, windows & drivers (gochar + BAV + dasha)',
+    gold: true,
+  },
+  {
+    id: 'moon',
+    label: 'Moon Passages',
+    href: '/transit/moon',
+    blurb: 'Moon over natal grahas, lagnas & upagrahas — 72h + 27-day cycle',
+  },
+  {
+    id: 'roadmap',
+    label: 'Cosmic Roadmap',
+    href: '/transit/roadmap',
+    blurb: '12-month ingresses with Vimshottari MD/AD overlay',
   },
   {
     id: 'sade-sati',
@@ -141,7 +162,7 @@ export function TransitHub({ tab }: TransitHubProps) {
   }
 
   const active = TABS.find(t => t.id === tab) ?? TABS[0]
-  const wide = tab === 'scrubber' || tab === 'biwheel' || tab === 'calendar'
+  const wide = tab === 'forecast' || tab === 'scrubber' || tab === 'moon' || tab === 'biwheel' || tab === 'calendar'
 
   let body: React.ReactNode = null
   if (tab === 'roadmap') {
@@ -153,8 +174,20 @@ export function TransitHub({ tab }: TransitHubProps) {
         />
       </div>
     )
+  } else if (tab === 'forecast') {
+    body = wrapGold(userPlan, 'Transit forecast', (
+      <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>
+        <TransitForecastPanel chart={chart} />
+      </div>
+    ))
   } else if (tab === 'scrubber') {
     body = <TransitScrubber natalChart={chart} onTransitChange={setTransitGrahas} />
+  } else if (tab === 'moon') {
+    body = (
+      <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>
+        <MoonTransitPanel natalChart={chart} />
+      </div>
+    )
   } else if (tab === 'sade-sati') {
     body = wrapGold(userPlan, 'Sade Sati tracker', (
       <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem 1.75rem' }}>

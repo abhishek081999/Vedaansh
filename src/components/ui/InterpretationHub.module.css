@@ -1,0 +1,191 @@
+/* Interpretation hub — section motion and chart chrome */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.85rem);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.tab:hover {
+  border-color: var(--gold);
+  color: var(--text-primary);
+}
+
+.tabActive {
+  border-color: var(--gold);
+  background: var(--gold-faint);
+  color: var(--text-gold);
+  font-weight: 700;
+}
+
+.tabCount {
+  opacity: 0.55;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+}
+
+.vizRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.panelBody {
+  animation: hubFade 0.35s ease both;
+}
+
+@keyframes hubFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.intro {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 0.85rem;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.card {
+  position: relative;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md, 10px);
+  padding: 0.75rem 0.8rem 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--hub-accent, var(--border-soft));
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--hub-accent, var(--gold)) 45%, var(--border-soft));
+  box-shadow: var(--shadow-sm, 0 4px 14px rgba(0, 0, 0, 0.08));
+}
+
+.cardFocused {
+  outline: 1px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.houseMap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.35rem;
+}
+
+.houseCell {
+  appearance: none;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  border-radius: var(--r-sm, 6px);
+  padding: 0.4rem 0.3rem;
+  cursor: pointer;
+  text-align: center;
+  min-height: 3.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.houseCell:hover,
+.houseCellActive {
+  border-color: var(--gold);
+  background: var(--gold-faint);
+}
+
+.planetStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.planetChip {
+  appearance: none;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  border-radius: var(--r-sm, 6px);
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.planetChip:hover,
+.planetChipActive {
+  border-color: var(--gold);
+  background: var(--gold-faint);
+  transform: translateY(-1px);
+}
+
+.toneDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.detailList {
+  margin: 0;
+  padding-left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  animation: hubFade 0.25s ease both;
+}
+
+@media (max-width: 640px) {
+  .houseMap {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

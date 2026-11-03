@@ -5,6 +5,7 @@
 **Security:** `guardRoute(req, routeSecurityPresets.*())` first — body limit, same-origin on writes, Redis rate limits  
 **Plan truth:** MongoDB via `getEffectivePlan()` / `requirePlanGate()` — not JWT alone  
 **Full entitlements:** [`SUBSCRIPTION_MATRIX.md`](../SUBSCRIPTION_MATRIX.md)  
+**UI-only teasers** (Interpretation hub, Tattva, etc.) are not REST routes — see the matrix “UI:” rows; they gate in the client with `userPlan`.  
 **Synced:** 2026-10-31
 
 ---
@@ -157,6 +158,8 @@ Also gated in `src/proxy.ts` for `/muhurta` and `/api/muhurta`.
 | GET | `/api/transit/sade-sati` | no | — | Sade Sati / Kantaka / Ashtama from Moon |
 | GET | `/api/transit/aspects` | no | — | Gochara aspects + double/triple windows |
 | GET | `/api/transit/moorthy` | no | — | Ju/Sa Moorthy Nirnaya (ingress weekday) |
+| POST | `/api/transit/moon` | no | — | Moon passages over natal grahas / lagnas / upagrahas (72h + 27d) |
+| POST | `/api/transit/forecast` | yes | gold | Predictive forecast: gochar + Vedha, BAV, MD/AD weighting, life-area scores, windows, ingress/station events (≤24 months) |
 | GET | `/api/transit/calendar` | yes | gold | Monthly gochar calendar (`format=html` printable) |
 | GET | `/api/transits/planets` | no | — | Planet positions |
 | GET | `/api/atlas/search` | no | — | Geocode (Photon / Open-Meteo / Nominatim + Redis) |

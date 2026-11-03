@@ -47,7 +47,8 @@ export interface TransitPosition {
   isRetro: boolean
 }
 
-const TRANSIT_INTERPRETATIONS: Record<string, Record<number, string>> = {
+/** Transit-specific house themes for the slow grahas (house from Lagna). */
+export const TRANSIT_INTERPRETATIONS: Record<string, Record<number, string>> = {
   Ju: {
     1: "A cycle of personal growth and new beginnings. Confidence and vitality increase.",
     2: "Financial growth and expansion of family resources. Values become more philosophical.",

@@ -19,6 +19,8 @@ import {
   drigPolarityColor,
 } from '@/lib/engine/digDrigChestaAnalysis'
 import { PanelShell } from '@/components/ui/patterns/PanelShell'
+import { BalaBreakdownViz } from '@/components/ui/BalaBreakdownViz'
+import { DivergingBarList, VizCard } from '@/components/ui/viz'
 
 type Tab = 'overview' | 'dig' | 'drig' | 'chesta' | 'naisargika'
 
@@ -259,6 +261,18 @@ export function DigDrigChestaAnalysisPanel({
                 />
               )}
             </div>
+            {tab === 'drig' ? (
+              <VizCard title="Drig Bala by planet" caption="Net aspect support — right is helped, left is pressured">
+                <DivergingBarList rows={analysis.drig.rows.map((r) => ({ key: r.id, label: r.name, value: r.virupas }))} unit="V" />
+              </VizCard>
+            ) : (
+              <BalaBreakdownViz
+                title={tab === 'dig' ? 'Dig Bala' : 'Cheshta Bala'}
+                rows={tab === 'dig' ? analysis.dig.rows : analysis.chesta.rows}
+                classicalMin={tab === 'dig' ? DIG_CLASSICAL_MIN_VIRUPAS : CHESTA_CLASSICAL_MIN_VIRUPAS}
+                activeId={active}
+              />
+            )}
             <ScoreTable
               rows={
                 tab === 'dig'
@@ -275,6 +289,9 @@ export function DigDrigChestaAnalysisPanel({
           <div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '0.45rem', lineHeight: 1.45 }}>
               {analysis.naisargika.note}
+            </div>
+            <div style={{ marginBottom: '0.6rem' }}>
+              <BalaBreakdownViz title="Naisargika Bala" rows={analysis.naisargika.rows} />
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
               <thead>
