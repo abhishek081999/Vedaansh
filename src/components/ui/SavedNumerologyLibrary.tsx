@@ -123,7 +123,7 @@ export function SavedNumerologyLibrary() {
       )}
 
       {!loading && readings.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.85rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '0.85rem' }}>
           {readings.map(reading => (
             <article key={reading._id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
               <strong style={{ fontSize: '0.95rem' }}>{reading.label}</strong>

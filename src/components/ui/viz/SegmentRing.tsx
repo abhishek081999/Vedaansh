@@ -41,7 +41,9 @@ export function SegmentRing({
 }) {
   const total = segments.reduce((s, x) => s + Math.max(0, x.max), 0)
   if (total <= 0) return null
-  const pad = showLabels ? 46 : 4
+  // Outside labels need room for the longest one (~5.4 units per char at 9.5px) or they clip at the edge
+  const longest = showLabels ? Math.max(0, ...segments.map((s) => s.label.length)) : 0
+  const pad = showLabels ? Math.max(46, Math.ceil(18 + longest * 5.4)) : 4
   const vb = size + pad * 2
   const c = vb / 2
   const rO = size / 2

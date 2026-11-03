@@ -112,23 +112,25 @@ export function KakshyaCard({ a, tz }: { a: TodayAdvanced; tz: string }) {
         </>
       )}
 
-      <table className={styles.table}>
-        <thead>
-          <tr><th>Graha</th><th>Position</th><th>BAV</th><th>SAV</th>{hasPrastara && <th>Kakshya</th>}<th>Read</th></tr>
-        </thead>
-        <tbody>
-          {k.rows.map(r => (
-            <tr key={r.planet}>
-              <td>{r.planetName}</td>
-              <td>{r.degreeInSign.toFixed(1)}° {r.rashiName}</td>
-              <td className={styles.mono}>{r.bav}</td>
-              <td className={styles.mono}>{r.sav}</td>
-              {hasPrastara && <td>{r.kakshyaLord}{r.hasBindu === null ? '' : r.hasBindu ? ' ✓' : ' ✗'}</td>}
-              <td style={toned(VERDICT_TONE[r.verdict])}><span className={styles.badge}>{r.verdict}</span></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className={styles.tableScroll}>
+        <table className={styles.table}>
+          <thead>
+            <tr><th>Graha</th><th>Position</th><th>BAV</th><th>SAV</th>{hasPrastara && <th>Kakshya</th>}<th>Read</th></tr>
+          </thead>
+          <tbody>
+            {k.rows.map(r => (
+              <tr key={r.planet}>
+                <td>{r.planetName}</td>
+                <td>{r.degreeInSign.toFixed(1)}° {r.rashiName}</td>
+                <td className={styles.mono}>{r.bav}</td>
+                <td className={styles.mono}>{r.sav}</td>
+                {hasPrastara && <td>{r.kakshyaLord}{r.hasBindu === null ? '' : r.hasBindu ? ' ✓' : ' ✗'}</td>}
+                <td style={toned(VERDICT_TONE[r.verdict])}><span className={styles.badge}>{r.verdict}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {!hasPrastara && <p className={styles.note}>Recalculate this chart to unlock kakshya bindus; sign-level bindus are shown for now.</p>}
       <p className={styles.note}>BAV is the planet&apos;s own bindu count in the sign it is crossing (4+ is workable, 5+ good). A tick means the kakshya lord of its exact degree also contributed a bindu.</p>
     </section>
@@ -145,22 +147,24 @@ export function SudarshanaCard({ a }: { a: TodayAdvanced }) {
     <section className={styles.card} aria-label="Sudarshana Chakra">
       <h2 className={styles.cardTitle}>Sudarshana · three reference points</h2>
       {s.summary.map(t => <p key={t} className={styles.note} style={{ color: 'var(--text-secondary)' }}>{t}</p>)}
-      <table className={styles.table}>
-        <thead>
-          <tr><th>Graha</th><th>Lagna</th><th>Moon</th><th>Sun</th><th>Agree</th></tr>
-        </thead>
-        <tbody>
-          {s.rows.map(r => (
-            <tr key={r.planet}>
-              <td>{r.planetName}</td>
-              <td className={styles.mono}>{r.houses.lagna}</td>
-              <td className={styles.mono}>{r.houses.moon}</td>
-              <td className={styles.mono}>{r.houses.sun}</td>
-              <td style={toned(tone(r.good))}><span className={styles.badge}>{r.good}/3</span> <span className={styles.windowNote} style={{ display: 'inline' }}>{r.verdict}</span></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className={styles.tableScroll}>
+        <table className={styles.table}>
+          <thead>
+            <tr><th>Graha</th><th>Lagna</th><th>Moon</th><th>Sun</th><th>Agree</th></tr>
+          </thead>
+          <tbody>
+            {s.rows.map(r => (
+              <tr key={r.planet}>
+                <td>{r.planetName}</td>
+                <td className={styles.mono}>{r.houses.lagna}</td>
+                <td className={styles.mono}>{r.houses.moon}</td>
+                <td className={styles.mono}>{r.houses.sun}</td>
+                <td style={toned(tone(r.good))}><span className={styles.badge}>{r.good}/3</span> <span className={styles.windowNote} style={{ display: 'inline' }}>{r.verdict}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <p className={styles.note}>Each planet&apos;s house is counted from your Lagna, your Moon and your Sun. When all three agree the result is dependable; when they split, the influence is partial.</p>
     </section>
   )

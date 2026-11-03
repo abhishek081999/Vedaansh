@@ -139,7 +139,7 @@ export function TransitBiWheelPanel({ chart }: TransitBiWheelPanelProps) {
       )}
 
       {!loading && !error && transitGrahas && (
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem', alignItems: 'start' }}>
           <div className="card" style={{ padding: isMobile ? '0.75rem' : '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.65rem' }}>
             <CircleChakra
               ascRashi={chart.lagnas.ascRashi}

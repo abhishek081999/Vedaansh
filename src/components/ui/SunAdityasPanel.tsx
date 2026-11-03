@@ -230,7 +230,7 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))',
             gap: '0.55rem',
           }}>
             <Card>
@@ -325,7 +325,7 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
           </p>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))',
             gap: '0.55rem',
           }}>
             {(scope === 'chart' ? data.matchingAdityas.map(m => m.aditya) : data.allAdityas).map(a => {
@@ -456,7 +456,7 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))',
             gap: '0.55rem',
           }}>
             {(scope === 'chart' ? activeAfflictions : data.afflictions).map(f => (
