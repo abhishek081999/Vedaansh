@@ -1,14 +1,14 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
-//  Advanced Anka tools — brand, plate, marriage timing, month
+//  Advanced Anka tools — business, brand, plate, marriage timing, month
 //  calendar, nakshatra bridge, inclusion, health, yantras,
-//  Vastu×Kua, Devanagari, compare, local saves
+//  Vastu×Kua, compare, local saves
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useMemo, useState } from 'react'
 import type { ChartOutput } from '@/types/astrology'
 import type { NumerologyReport } from '@/lib/engine/numerology/calc'
-import { buildNumerologyReport } from '@/lib/engine/numerology/calc'
+import { buildNumerologyCore } from '@/lib/engine/numerology/calc'
 import {
   buildInclusionTable,
   buildMonthCalendar,
@@ -22,7 +22,6 @@ import {
   getYantraPacks,
   getYearGocharaHint,
   scoreBrandOrSignature,
-  scoreDevanagariName,
   suggestPlateEndings,
   type FriendshipMode,
 } from '@/lib/engine/numerology/advanced'
@@ -30,6 +29,7 @@ import { NUMBER_PROFILES } from '@/lib/engine/numerology/data'
 import { Field } from '@/components/ui/primitives/Field'
 import { Button } from '@/components/ui/primitives/Button'
 import { HarmonyPill, NumberOrb, SectionCard, TagList, gridColumns } from './shared'
+import { BusinessNumerologyTool } from './BusinessNumerologyTool'
 
 const SAVE_KEY = 'vedaansh_numerology_saves'
 
@@ -44,7 +44,7 @@ export function NumerologyToolsSection({
   chart: ChartOutput | null
   friendshipMode: FriendshipMode
 }) {
-  const [sub, setSub] = useState<'labels' | 'brand' | 'timing' | 'health' | 'compare' | 'saves'>('labels')
+  const [sub, setSub] = useState<'labels' | 'business' | 'brand' | 'timing' | 'health' | 'compare' | 'saves'>('labels')
   const cheiro = useMemo(() => getCheiroLabels(report.moolank.value, report.bhagyank.value), [report])
   const friendship = useMemo(
     () => getNumberFriendshipMode(report.moolank.value, friendshipMode),
@@ -76,14 +76,9 @@ export function NumerologyToolsSection({
     : null
 
   const [brand, setBrand] = useState('')
-  const [devName, setDevName] = useState('')
   const brandScore = useMemo(
     () => (brand.trim() ? scoreBrandOrSignature(brand.trim(), report.moolank.value, report.bhagyank.value) : null),
     [brand, report],
-  )
-  const devScore = useMemo(
-    () => (devName.trim() ? scoreDevanagariName(devName.trim(), report.moolank.value, report.bhagyank.value) : null),
-    [devName, report],
   )
   const plates = useMemo(
     () => suggestPlateEndings(report.moolank.value, report.bhagyank.value),
@@ -119,7 +114,7 @@ export function NumerologyToolsSection({
   const [compareName, setCompareName] = useState('')
   const compareReport = useMemo(() => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(compareDob)) return null
-    return buildNumerologyReport({ birthDate: compareDob, name: compareName.trim() || undefined })
+    return buildNumerologyCore({ birthDate: compareDob, name: compareName.trim() || undefined })
   }, [compareDob, compareName])
 
   const [saves, setSaves] = useState<SaveRow[]>([])
@@ -140,6 +135,7 @@ export function NumerologyToolsSection({
       <div className="tab-bar" role="tablist" aria-label="Advanced tools">
         {([
           { id: 'labels' as const, label: 'Labels & Grid' },
+          { id: 'business' as const, label: 'Business' },
           { id: 'brand' as const, label: 'Brand & Plate' },
           { id: 'timing' as const, label: 'Timing' },
           { id: 'health' as const, label: 'Health & Yantra' },
@@ -214,6 +210,8 @@ export function NumerologyToolsSection({
         </>
       )}
 
+      {sub === 'business' && <BusinessNumerologyTool moolank={report.moolank.value} bhagyank={report.bhagyank.value} />}
+
       {sub === 'brand' && (
         <>
           <SectionCard title="Brand / Signature Number" subtitle="Score a business name, brand word, or signature as written.">
@@ -226,20 +224,6 @@ export function NumerologyToolsSection({
                 mh={brandScore.moolankHarmony}
                 bh={brandScore.bhagyankHarmony}
                 tips={brandScore.tips}
-              />
-            )}
-          </SectionCard>
-
-          <SectionCard title="Devanagari Name (simplified)" subtitle="Akshara→Latin approximation — confirm samskara names with a pandit.">
-            <Field label="नाम / Hindi-Sanskrit text" value={devName} maxLength={80} placeholder="आर्यन" onChange={e => setDevName(e.target.value)} />
-            {devScore && (
-              <ScoreBlock
-                root={devScore.root}
-                compound={devScore.compound}
-                verdict={devScore.verdict}
-                mh={devScore.moolankHarmony}
-                bh={devScore.bhagyankHarmony}
-                tips={devScore.tips}
               />
             )}
           </SectionCard>

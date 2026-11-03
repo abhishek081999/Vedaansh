@@ -2,12 +2,13 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/numerology/NumerologyGridSection.tsx
 //  Lo Shu / Vedic grid, planes (yogas), missing & repeated
-//  numbers with remedies, and Kua number directions
+//  numbers with remedies, Pythagorean arrows and Kua directions
 // ─────────────────────────────────────────────────────────────
 
-import React, { useState } from 'react'
-import type { NumerologyReport, GridSource } from '@/lib/engine/numerology/calc'
+import React, { useMemo, useState } from 'react'
+import type { NumerologyCoreReport, GridSource } from '@/lib/engine/numerology/calc'
 import { NUMBER_PROFILES, type CoreNumber } from '@/lib/engine/numerology/data'
+import { getPythagoreanArrows, type ArrowHit } from '@/lib/engine/numerology/arrows'
 import { KeyValue, SectionCard, gridColumns } from './shared'
 
 const SOURCE_LABEL: Record<GridSource, string> = {
@@ -19,10 +20,11 @@ const SOURCE_LABEL: Record<GridSource, string> = {
 
 const PLANE_COLOR = { complete: 'var(--teal)', partial: 'var(--gold)', empty: 'var(--rose)' } as const
 
-export function NumerologyGridSection({ report }: { report: NumerologyReport }) {
+export function NumerologyGridSection({ report }: { report: NumerologyCoreReport }) {
   const [layout, setLayout] = useState<'vedic' | 'loshu'>('vedic')
   const { grid, kua } = report
   const cells = layout === 'vedic' ? grid.layout.vedic : grid.layout.loshu
+  const arrows = useMemo(() => getPythagoreanArrows(report.date), [report.date])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -115,6 +117,41 @@ export function NumerologyGridSection({ report }: { report: NumerologyReport }) 
         </SectionCard>
       </div>
 
+      <SectionCard
+        title="Pythagorean Arrows"
+        subtitle="Birth-date digits only, on the 3-6-9 / 2-5-8 / 1-4-7 chart. A full line is an arrow of strength; an empty line is an arrow of weakness."
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'flex-start' }}>
+          <div
+            role="grid"
+            aria-label="Pythagorean birth chart"
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 44px)', gap: 4, flexShrink: 0 }}
+          >
+            {arrows.layout.flat().map(n => {
+              const c = arrows.counts[n]
+              return (
+                <div key={n} role="gridcell" aria-label={c ? `${n} × ${c}` : `${n} missing`} style={{
+                  height: 44, borderRadius: 'var(--r-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: c ? 'var(--gold-faint)' : 'var(--surface-2)',
+                  border: `1px solid ${c ? 'var(--border-bright)' : 'var(--border-soft)'}`,
+                  fontSize: c > 2 ? '0.72rem' : '0.9rem', fontWeight: 600,
+                  color: c ? 'var(--text-gold)' : 'var(--text-muted)', opacity: c ? 1 : 0.4,
+                }}>
+                  {c ? String(n).repeat(c) : n}
+                </div>
+              )
+            })}
+          </div>
+          <div style={{ flex: '1 1 260px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {arrows.strengths.map(a => <ArrowRow key={a.name} arrow={a} tone="strength" />)}
+            {arrows.weaknesses.map(a => <ArrowRow key={a.name} arrow={a} tone="weakness" />)}
+            {arrows.strengths.length + arrows.weaknesses.length === 0 && (
+              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>No complete or empty lines — a balanced chart without strong arrows.</p>
+            )}
+          </div>
+        </div>
+      </SectionCard>
+
       {kua ? (
         <SectionCard title={`Kua Number ${kua.value} — ${kua.group} Group`} subtitle={`Directional number from solar year ${kua.solarYear} and gender. Face these directions while working, sleeping and meeting.`}>
           <div style={gridColumns(150)}>
@@ -160,6 +197,27 @@ function GridCell({ n, count, sources }: { n: CoreNumber; count: number; sources
       <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
         {NUMBER_PROFILES[n].planet}
       </span>
+    </div>
+  )
+}
+
+function ArrowRow({ arrow, tone }: { arrow: ArrowHit; tone: 'strength' | 'weakness' }) {
+  const color = tone === 'strength' ? 'var(--teal)' : 'var(--rose)'
+  return (
+    <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
+      <span style={{
+        fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 99, marginTop: 2,
+        border: `1px solid ${color}`, color, textTransform: 'uppercase', letterSpacing: '0.05em',
+        minWidth: 72, textAlign: 'center', whiteSpace: 'nowrap', flexShrink: 0,
+      }}>
+        {tone}
+      </span>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          {arrow.name} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({arrow.numbers.join('-')})</span>
+        </div>
+        <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{arrow.meaning}</div>
+      </div>
     </div>
   )
 }

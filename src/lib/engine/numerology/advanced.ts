@@ -29,6 +29,7 @@ import {
   type CoreNumber,
 } from './data'
 import { GRAHA_NUMBER } from './tools'
+import { devanagariToLatin } from './devanagari'
 
 // ── Friendship modes ──────────────────────────────────────────
 
@@ -619,30 +620,20 @@ export function getVastuKuaHints(input: {
   }
 }
 
-// ── Devanagari (simplified) name values ───────────────────────
-// Approximate: map common Devanagari independent vowels/consonants to Chaldean via transliteration key.
+// ── Devanagari name values ────────────────────────────────────
+// Transliterated to Indian English spelling, then scored on Chaldean.
 
-const DEV_MAP: Record<string, string> = {
-  'अ': 'A', 'आ': 'A', 'इ': 'I', 'ई': 'I', 'उ': 'U', 'ऊ': 'U', 'ए': 'E', 'ऐ': 'A', 'ओ': 'O', 'औ': 'O',
-  'क': 'K', 'ख': 'K', 'ग': 'G', 'घ': 'G', 'च': 'C', 'छ': 'C', 'ज': 'J', 'झ': 'J',
-  'ट': 'T', 'ठ': 'T', 'ड': 'D', 'ढ': 'D', 'त': 'T', 'थ': 'T', 'द': 'D', 'ध': 'D', 'न': 'N', 'ण': 'N',
-  'प': 'P', 'फ': 'P', 'ब': 'B', 'भ': 'B', 'म': 'M', 'य': 'Y', 'र': 'R', 'ल': 'L', 'व': 'V', 'श': 'S', 'ष': 'S', 'स': 'S', 'ह': 'H',
-}
-
-export function scoreDevanagariName(text: string, moolank: CoreNumber, bhagyank: CoreNumber): BrandScore | null {
-  let latin = ''
-  for (const ch of text) {
-    if (DEV_MAP[ch]) latin += DEV_MAP[ch]
-    else if (/[A-Za-z]/.test(ch)) latin += ch
-  }
+export function scoreDevanagariName(text: string, moolank: CoreNumber, bhagyank: CoreNumber): (BrandScore & { latin: string }) | null {
+  const latin = devanagariToLatin(text)
   if (!latin) return null
   const scored = scoreBrandOrSignature(latin, moolank, bhagyank)
   if (!scored) return null
   return {
     ...scored,
+    latin,
     tips: [
       ...scored.tips,
-      'Devanagari scoring uses a simplified akshara→Latin map; confirm with a traditional pandit for samskara names.',
+      `Read as "${latin}". Spelling conventions vary — compare variants in Name → Spelling comparison.`,
     ],
   }
 }

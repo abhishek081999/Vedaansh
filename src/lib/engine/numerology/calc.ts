@@ -40,8 +40,9 @@ import {
   type NumberRelation,
   type ParsedDate,
 } from './core'
-import { buildPredictionBundle, type PredictionBundle } from './predictions'
-import { buildRemedyPackage, type RemedyPackage } from './remedies'
+import type { PredictionBundle } from './predictions'
+import type { RemedyPackage } from './remedies'
+import { getAge, getLifePhases, getPinnacles, getPowerDays, type LifePhase, type PinnacleResult } from './timeline'
 
 export {
   HARMONY_LABEL,
@@ -407,9 +408,21 @@ export function linkNumbersToChart(
 }
 
 // ── Full report ───────────────────────────────────────────────
+// The free core report is built anywhere (client included). Gold
+// predictions + remedies are built server-side in ./report and
+// merged in by /api/numerology/premium.
 
-export interface NumerologyReport {
+export interface NumerologyTimeline {
+  ageNow: number
+  pinnacles: PinnacleResult[]
+  lifePhases: LifePhase[]
+  powerDays: { day: number; reason: string }[]
+}
+
+export interface NumerologyCoreReport {
   date: ParsedDate
+  today: ParsedDate
+  gender: Gender | null
   moolank: NumberResult
   bhagyank: NumberResult
   name: NameNumberResult | null
@@ -421,21 +434,35 @@ export interface NumerologyReport {
   karmicDebts: KarmicDebtHit[]
   coreHarmony: Harmony
   nameHarmony: { moolank: Harmony; bhagyank: Harmony } | null
+  timeline: NumerologyTimeline
+}
+
+export interface NumerologyPremium {
   predictions: PredictionBundle
   remedies: RemedyPackage
 }
 
-export function buildNumerologyReport(input: {
+export type NumerologyReport = NumerologyCoreReport & NumerologyPremium
+
+export interface NumerologyInput {
   birthDate: string
   name?: string
   gender?: Gender
-  today?: Date
+  /** Local "today"; defaults to the current date. */
+  today?: Date | ParsedDate
   system?: LetterSystem
-}): NumerologyReport | null {
+}
+
+function toParsedToday(today: NumerologyInput['today']): ParsedDate {
+  if (today && !(today instanceof Date)) return today
+  const now = today ?? new Date()
+  return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }
+}
+
+export function buildNumerologyCore(input: NumerologyInput): NumerologyCoreReport | null {
   const date = parseBirthDate(input.birthDate)
   if (!date) return null
-  const now = input.today ?? new Date()
-  const today: ParsedDate = { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }
+  const today = toParsedToday(input.today)
 
   const moolank = getMoolank(date.day)
   const bhagyank = getBhagyank(date)
@@ -455,30 +482,12 @@ export function buildNumerologyReport(input: {
   if (name) debtSources.push({ source: 'Name total', compound: name.compound })
   const karmicDebts = findKarmicDebts(debtSources)
 
-  const predictions = buildPredictionBundle({
-    date,
-    moolank: moolank.value,
-    bhagyank: bhagyank.value,
-    namank: name?.value ?? null,
-    gridCounts: grid.counts,
-    cycles,
-    today,
-    gender: input.gender,
-  })
-
-  const remedies = buildRemedyPackage({
-    moolank: moolank.value,
-    bhagyank: bhagyank.value,
-    namank: name?.value ?? null,
-    personalYear: cycles.personalYear,
-    missingNumbers: grid.missing.map(m => m.number),
-    karmicDebts,
-    coreHarmony,
-    nameHarmony,
-  })
+  const ageNow = getAge(date, today)
 
   return {
     date,
+    today,
+    gender: input.gender ?? null,
     moolank,
     bhagyank,
     name,
@@ -490,7 +499,11 @@ export function buildNumerologyReport(input: {
     karmicDebts,
     coreHarmony,
     nameHarmony,
-    predictions,
-    remedies,
+    timeline: {
+      ageNow,
+      pinnacles: getPinnacles(date, ageNow),
+      lifePhases: getLifePhases(moolank.value, bhagyank.value, ageNow),
+      powerDays: getPowerDays(moolank.value, bhagyank.value),
+    },
   }
 }

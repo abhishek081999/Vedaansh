@@ -4,11 +4,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo } from 'react'
-import type { NumerologyReport } from '@/lib/engine/numerology/calc'
+import type { NumerologyCoreReport } from '@/lib/engine/numerology/calc'
 import { getDailyAnkaMuhurta } from '@/lib/engine/numerology/advanced'
 import { HarmonyPill, NumberOrb } from './shared'
 
-export function NumerologyTodayStrip({ report }: { report: NumerologyReport }) {
+export function NumerologyTodayStrip({ report }: { report: NumerologyCoreReport }) {
   const daily = useMemo(() => {
     const now = new Date()
     return getDailyAnkaMuhurta({

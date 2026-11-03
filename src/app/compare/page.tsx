@@ -22,6 +22,7 @@ const YogaList = dynamic(() => import('@/components/ui/YogaList').then(m => m.Yo
 const CompatibilityDoshaPanel = dynamic(() => import('@/components/ui/CompatibilityDoshaPanel').then(m => m.CompatibilityDoshaPanel), { ssr: false })
 const MilanDeepAnalysisPanel = dynamic(() => import('@/components/ui/MilanDeepAnalysisPanel').then(m => m.MilanDeepAnalysisPanel), { ssr: false })
 const MilanExpandPanel = dynamic(() => import('@/components/ui/MilanExpandPanel').then(m => m.MilanExpandPanel), { ssr: false })
+const CoupleNumerologyCard = dynamic(() => import('@/components/numerology/CoupleNumerologyCard').then(m => m.CoupleNumerologyCard), { ssr: false })
 const MilanMarriedLifePanel = dynamic(() => import('@/components/ui/MilanMarriedLifePanel').then(m => m.MilanMarriedLifePanel), { ssr: false })
 const MilanMatchMakingPanel = dynamic(() => import('@/components/ui/MilanMatchMakingPanel').then(m => m.MilanMatchMakingPanel), { ssr: false })
 const RelationshipMarriagePanel = dynamic(() => import('@/components/ui/RelationshipMarriagePanel').then(m => m.RelationshipMarriagePanel), { ssr: false })
@@ -823,6 +824,11 @@ function CompareContent() {
                 />
                 <CompatibilityDoshaPanel chartA={chartA} chartB={chartB} />
                 <MilanDeepAnalysisPanel chartA={chartA} chartB={chartB} ashtakoot={ashtakootScore} />
+                <CoupleNumerologyCard
+                  title="Numerology Match (Anka Jyotish)"
+                  a={{ birthDate: chartA.meta.birthDate, name: chartA.meta.name, label: chartA.meta.name?.trim() || 'Person 1' }}
+                  b={{ birthDate: chartB.meta.birthDate, name: chartB.meta.name, label: chartB.meta.name?.trim() || 'Person 2' }}
+                />
               </div>
             )}
 

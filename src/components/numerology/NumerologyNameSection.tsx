@@ -2,7 +2,8 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/numerology/NumerologyNameSection.tsx
 //  Namank analysis — Chaldean letter breakdown, soul / personality
-//  numbers, compound meaning and name-correction targets
+//  numbers, compound meaning, name depth, spelling comparison,
+//  Devanagari / Katapayadi and name-correction targets
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo } from 'react'
@@ -10,18 +11,19 @@ import {
   getNameNumber,
   numberHarmony,
   suggestNameTotals,
-  type NumerologyReport,
+  type NumerologyCoreReport,
 } from '@/lib/engine/numerology/calc'
-import { CHALDEAN_VALUES, NUMBER_PROFILES } from '@/lib/engine/numerology/data'
+import { CHALDEAN_VALUES, NUMBER_PROFILES, compoundReadAs } from '@/lib/engine/numerology/data'
 import { HarmonyPill, NumberOrb, QUALITY_COLOR, SectionCard, gridColumns } from './shared'
 import { BabyNameTool } from './BabyNameTool'
+import { DevanagariNameCard, NameDepthCard, SpellingCompareCard } from './NameDepthCards'
 
 const CHALDEAN_ROWS = [1, 2, 3, 4, 5, 6, 7, 8].map(v => ({
   value: v,
   letters: Object.entries(CHALDEAN_VALUES).filter(([, n]) => n === v).map(([l]) => l).join(' '),
 }))
 
-export function NumerologyNameSection({ report, rawName }: { report: NumerologyReport; rawName: string }) {
+export function NumerologyNameSection({ report, rawName }: { report: NumerologyCoreReport; rawName: string }) {
   const { name, moolank, bhagyank, date } = report
   const parentDob = `${String(date.year).padStart(4, '0')}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
   const pythagorean = useMemo(() => (rawName ? getNameNumber(rawName, 'pythagorean') : null), [rawName])
@@ -36,11 +38,14 @@ export function NumerologyNameSection({ report, rawName }: { report: NumerologyR
         <SectionCard title="Name Numerology" subtitle="Enter your name above (as commonly used / signed) to calculate the Namank.">
           <ChaldeanTable />
         </SectionCard>
+        <SpellingCompareCard currentName="" moolank={moolank.value} bhagyank={bhagyank.value} />
+        <DevanagariNameCard moolank={moolank.value} bhagyank={bhagyank.value} />
         <BabyNameTool defaultParentDob={parentDob} />
       </div>
     )
   }
 
+  const readAs = compoundReadAs(name.compound)
   const isAligned = report.nameHarmony
     && report.nameHarmony.moolank !== 'challenging'
     && report.nameHarmony.bhagyank !== 'challenging'
@@ -82,10 +87,16 @@ export function NumerologyNameSection({ report, rawName }: { report: NumerologyR
       </div>
 
       {name.compoundMeaning && (
-        <SectionCard title={`Compound ${name.compound} — ${name.compoundMeaning.title}`} accent={QUALITY_COLOR[name.compoundMeaning.quality]}>
+        <SectionCard
+          title={`Compound ${name.compound} — ${name.compoundMeaning.title}`}
+          subtitle={readAs !== name.compound ? `Cheiro's table ends at 52, so ${name.compound} is read as ${readAs} (same root ${name.value}).` : undefined}
+          accent={QUALITY_COLOR[name.compoundMeaning.quality]}
+        >
           <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{name.compoundMeaning.meaning}</p>
         </SectionCard>
       )}
+
+      <NameDepthCard name={rawName} />
 
       <SectionCard
         title="Name Correction"
@@ -121,6 +132,10 @@ export function NumerologyNameSection({ report, rawName }: { report: NumerologyR
           <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>No nearby totals support both core numbers strongly; prioritise Moolank harmony.</p>
         )}
       </SectionCard>
+
+      <SpellingCompareCard currentName={rawName} moolank={moolank.value} bhagyank={bhagyank.value} />
+
+      <DevanagariNameCard moolank={moolank.value} bhagyank={bhagyank.value} />
 
       <SectionCard title="Chaldean Letter Values">
         <ChaldeanTable />

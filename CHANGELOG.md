@@ -10,12 +10,18 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 ### Fixed
 
+- Numerology: full names totalling more than 52 now get a compound meaning (read on Cheiro's cycle, same root). Gold predictions and remedies are now built on the server, so free accounts can no longer read them from the browser
 - Auth gates, Gold and Platinum page gates, the sign-in rate limit, and the CSP now run: `proxy.ts` moved to `src/proxy.ts`. Previously Next.js ignored it. Logged-out visitors to `/muhurta` now go to login, and XLSX export now requires Gold
 - Birth location timezones come from offline boundary data. Places such as Dhaka, Lahore, Kabul, and coordinates around Lucknow were getting the wrong zone
 - Payments: early renewals keep remaining days, refunds and lost disputes remove the plan, failed webhook deliveries are retried, and welcome emails and coupon counts no longer depend on which payment path finished first
 
 ### Added / live
 
+- Numerology couple match: core-number harmony, a combined Lo Shu grid showing what each partner brings, and the relationship number — in Numerology → Compatibility and on the Kundali Milan match view
+- Numerology business tool (Gold): business name, launch date, logo initial and GST / PAN / CIN / phone scored together, plus a launch-date finder
+- Numerology year calendar (Gold): download a year of best and caution days as an .ics file, with the sunrise tithi and Rikta days flagged
+- Numerology for CRM clients (Platinum): load a client into the numerology tool and save a snapshot note, with key remedies, to their record
+- Numerology Name tab: name depth (karmic lessons, hidden passion, balance number), side-by-side spelling comparison, and Devanagari names with Katapayadi numbering and Indian-style transliteration. Grid tab: Pythagorean arrows of strength and weakness
 - Ṣaṭpañcāśikā in Prashna is now a rule engine over all 56 ślokas: fourteen question types, each rule cited with the chart facts that fired it, a verdict weighted by planetary strength, the five timing methods kept separate, lost-item details, rules it could not judge listed with the reason, and a searchable śloka reference
 - Ṣaṭpañcāśikā now answers 32 questions, grouped by theme: new ones include who took a lost item, where it is, whom the question is about, when a traveller returns, whether it is good to set out, and any of the twelve houses through śloka 1.3
 - Prashna timing now covers every question about an event and shows approximate calendar dates. Methods the text gives for that question are marked as from the text, and borrowed ones as adapted
