@@ -29,7 +29,7 @@
 | `PROTECTED_API` | Whole-segment prefixes in `src/lib/security/proxyRules.ts`. Includes `/api/chart/save`, `/api/chart/template`, `/api/user`, `/api/muhurta`, `/api/clients`, and payment checkout/verify |
 | `GOLD_API` | `/api/muhurta`, `/api/chart/export`, `/api/chart/export-xlsx` |
 | `GOLD_API` `/api/muhurta` | Muhurta timeline and report |
-| Not in `PROTECTED_API` or `GOLD_API` | `/api/milan/*` (session in the handler) and `/api/marriage/gochar-windows` (session + `requirePlanGate('gold')` in the handler) |
+| Not in `PROTECTED_API` or `GOLD_API` | `/api/milan/*` (session in the handler) `/api/marriage/gochar-windows`, `/api/numerology/premium`, `/api/numerology/calendar` (session + `requirePlanGate('gold')`) and `/api/numerology/save-to-client` (`requirePlanGate('platinum')`) in the handler |
 
 ---
 
@@ -93,6 +93,9 @@ Session is enforced in the handler. These paths are **not** in `src/proxy.ts` `P
 | Method | Path | Auth | Plan | Notes |
 |--------|------|------|------|-------|
 | GET | `/api/marriage/gochar-windows` | yes | **gold** | Ju–Sa window scan. `ascRashi` required, `years` 1–20. `requirePlanGate`; not in `src/proxy.ts` `GOLD_API` |
+| POST | `/api/numerology/premium` | yes | **gold** | Numerology predictions + remedies. Body `birthDate`, optional `name`, `gender`, `system`, `today` (caller's local date). `userWrite` preset + `requirePlanGate`; free core numbers are computed client-side |
+| GET | `/api/numerology/calendar` | yes | **gold** | Yearly `.ics` of personal-day ratings with the sunrise tithi. Query `birthDate`, `year`, `lat`, `lng`, `tz`, optional `include` (`highlights` / `all`), `name`. `muhurtaRead` preset |
+| POST | `/api/numerology/save-to-client` | yes | **platinum** | Adds a numerology prediction note to a CRM client and, with `includeRemedies`, up to 5 urgent/important remedies. Body `clientId`, optional `name`, `includeRemedies`, `today`. Recomputed from the stored client. `clientsWrite` preset |
 
 ---
 

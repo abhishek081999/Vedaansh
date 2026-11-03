@@ -282,9 +282,21 @@ const COMPOUND_ALIASES: Record<number, number> = {
   42: 24, 44: 26, 45: 27, 46: 37, 47: 29, 48: 30, 49: 31, 50: 32, 52: 43,
 }
 
+/**
+ * Compound used for interpretation. Cheiro's table ends at 52; larger totals
+ * (common for full Indian names) step down by 9 — keeping the same root —
+ * until they land in the 10–52 cycle.
+ */
+export function compoundReadAs(n: number): number {
+  let v = Math.trunc(n)
+  while (v > 52) v -= 9
+  return v
+}
+
 export function getCompoundMeaning(n: number): CompoundMeaning | null {
-  if (COMPOUND_BASE[n]) return COMPOUND_BASE[n]!
-  const alias = COMPOUND_ALIASES[n]
+  const key = compoundReadAs(n)
+  if (COMPOUND_BASE[key]) return COMPOUND_BASE[key]!
+  const alias = COMPOUND_ALIASES[key]
   return alias ? COMPOUND_BASE[alias] ?? null : null
 }
 

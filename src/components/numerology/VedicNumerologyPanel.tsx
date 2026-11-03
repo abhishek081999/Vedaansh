@@ -5,11 +5,16 @@
 //  Pre-fills name / DOB / gender from the active chart when present.
 // ─────────────────────────────────────────────────────────────
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FileDown, Hash } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput, Gender, UserPlan } from '@/types/astrology'
-import { buildNumerologyReport, linkNumbersToChart } from '@/lib/engine/numerology/calc'
+import {
+  buildNumerologyCore,
+  linkNumbersToChart,
+  type NumerologyPremium,
+  type NumerologyReport,
+} from '@/lib/engine/numerology/calc'
 import type { CoreNumber } from '@/lib/engine/numerology/data'
 import type { FriendshipMode } from '@/lib/engine/numerology/advanced'
 import { generateNumerologyHTML } from '@/lib/pdf/numerologyHtml'
@@ -30,6 +35,7 @@ import { NumerologyPredictionsSection } from './NumerologyPredictionsSection'
 import { NumerologyRemediesSection } from './NumerologyRemediesSection'
 import { NumerologyToolsSection } from './NumerologyToolsSection'
 import { NumerologyTodayStrip } from './NumerologyTodayStrip'
+import { ClientNumerologyBar } from './ClientNumerologyBar'
 
 const TABS = [
   { id: 'overview', label: 'Core Numbers', gate: null },
@@ -48,6 +54,7 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
   const { data: session } = useSession()
   const userPlan = ((session?.user as { plan?: UserPlan } | undefined)?.plan ?? 'free') as UserPlan
   const canExport = planMeetsUiGate(userPlan, 'gold')
+  const isPlatinum = planMeetsUiGate(userPlan, 'platinum')
 
   const [name, setName] = useState(chart?.meta.name ?? '')
   const [birthDate, setBirthDate] = useState(chart?.meta.birthDate ?? '')
@@ -65,11 +72,21 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
   }, [chartKey])
 
   const report = useMemo(
-    () => (birthDate ? buildNumerologyReport({ birthDate, name: name.trim() || undefined, gender }) : null),
+    () => (birthDate ? buildNumerologyCore({ birthDate, name: name.trim() || undefined, gender }) : null),
     [birthDate, name, gender],
   )
 
+  const activeTab = TABS.find(t => t.id === tab)
+  const premium = useNumerologyPremium(
+    report ? { birthDate, name: name.trim(), gender } : null,
+    canExport && !!activeTab?.gate,
+  )
+  const fullReport: NumerologyReport | null = report && premium.data ? { ...report, ...premium.data } : null
+
   const usingChart = !!chart && birthDate === chart.meta.birthDate
+  const calendarLocation = chart
+    ? { lat: chart.meta.latitude, lng: chart.meta.longitude, tz: chart.meta.timezone, label: chart.meta.birthPlace || 'chart birthplace' }
+    : null
   const chartLinks = useMemo(() => {
     if (!report || !chart || !usingChart) return null
     const entries: { label: string; number: CoreNumber }[] = [
@@ -80,14 +97,22 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
     return linkNumbersToChart(entries, chart.grahas, chart.lagnas.ascRashi)
   }, [report, chart, usingChart])
 
-  const openPdf = () => {
+  const openPdf = async () => {
     if (!report || !canExport) return
-    const html = generateNumerologyHTML(report, {
+    // Open synchronously so popup blockers allow it, then fill once Gold data arrives.
+    const w = window.open('', '_blank')
+    if (!w) return
+    w.document.write('<p style="font-family:sans-serif">Preparing report…</p>')
+    const data = premium.data ?? await premium.load()
+    if (!data) {
+      w.document.body.textContent = premium.error ?? 'Could not load the Gold report.'
+      return
+    }
+    const html = generateNumerologyHTML({ ...report, ...data }, {
       title: name.trim() || chart?.meta.name || 'Numerology Report',
       branding: 'Vedaansh',
     })
-    const w = window.open('', '_blank')
-    if (!w) return
+    w.document.open()
     w.document.write(html)
     w.document.close()
   }
@@ -129,6 +154,12 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
               </select>
             </div>
           </div>
+          {isPlatinum && (
+            <ClientNumerologyBar
+              currentName={name}
+              onLoad={c => { setName(c.name); setBirthDate(c.birthDate); setGender(c.gender) }}
+            />
+          )}
         </div>
       }
     >
@@ -169,25 +200,119 @@ export function VedicNumerologyPanel({ chart }: { chart: ChartOutput | null }) {
           {tab === 'overview' && <NumerologyCoreSection report={report} chartLinks={chartLinks} />}
           {tab === 'predictions' && (
             <PlanGate userPlan={userPlan} required="gold" featureName="Numerology predictions">
-              <NumerologyPredictionsSection report={report} chart={usingChart ? chart : null} />
+              <PremiumBody state={premium} entitled={canExport}>
+                {fullReport && <NumerologyPredictionsSection report={fullReport} chart={usingChart ? chart : null} />}
+              </PremiumBody>
             </PlanGate>
           )}
           {tab === 'remedies' && (
             <PlanGate userPlan={userPlan} required="gold" featureName="Numerology remedies">
-              <NumerologyRemediesSection report={report} />
+              <PremiumBody state={premium} entitled={canExport}>
+                {fullReport && <NumerologyRemediesSection report={fullReport} />}
+              </PremiumBody>
             </PlanGate>
           )}
           {tab === 'tools' && (
             <PlanGate userPlan={userPlan} required="gold" featureName="Advanced numerology tools">
-              <NumerologyToolsSection report={report} chart={usingChart ? chart : null} friendshipMode={friendshipMode} />
+              <PremiumBody state={premium} entitled={canExport}>
+                {fullReport && <NumerologyToolsSection report={fullReport} chart={usingChart ? chart : null} friendshipMode={friendshipMode} />}
+              </PremiumBody>
             </PlanGate>
           )}
           {tab === 'grid' && <NumerologyGridSection report={report} />}
           {tab === 'name' && <NumerologyNameSection report={report} rawName={name.trim()} />}
-          {tab === 'cycles' && <NumerologyCyclesSection report={report} />}
+          {tab === 'cycles' && <NumerologyCyclesSection report={report} canExport={canExport} location={calendarLocation} />}
           {tab === 'compat' && <NumerologyCompatSection report={report} />}
         </div>
       )}
     </PanelShell>
   )
+}
+
+// ── Gold layer (server-built predictions + remedies) ──────────
+
+interface PremiumState {
+  data: NumerologyPremium | null
+  loading: boolean
+  error: string | null
+  load: () => Promise<NumerologyPremium | null>
+}
+
+function localIsoToday(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** Fetches the Gold layer for the current inputs; auto-loads while `autoLoad` is true. */
+function useNumerologyPremium(
+  input: { birthDate: string; name: string; gender: Gender } | null,
+  autoLoad: boolean,
+): PremiumState {
+  const key = input ? JSON.stringify(input) : ''
+  const [cache, setCache] = useState<{ key: string; data: NumerologyPremium } | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const inflight = useRef<{ key: string; promise: Promise<NumerologyPremium | null> } | null>(null)
+
+  const load = useCallback(async (): Promise<NumerologyPremium | null> => {
+    if (!input) return null
+    if (cache?.key === key) return cache.data
+    if (inflight.current?.key === key) return inflight.current.promise
+    const promise = (async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch('/api/numerology/premium', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            birthDate: input.birthDate,
+            name: input.name || undefined,
+            gender: input.gender,
+            today: localIsoToday(),
+          }),
+        })
+        const json = await res.json() as { success: boolean; data?: NumerologyPremium; error?: string }
+        if (!res.ok || !json.success || !json.data) throw new Error(json.error ?? 'Could not load Gold numerology')
+        setCache({ key, data: json.data })
+        return json.data
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not load Gold numerology')
+        return null
+      } finally {
+        if (inflight.current?.key === key) inflight.current = null
+        setLoading(false)
+      }
+    })()
+    inflight.current = { key, promise }
+    return promise
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` captures `input`
+  }, [key, cache])
+
+  // Debounce so typing a name does not fire a request per keystroke.
+  useEffect(() => {
+    if (!autoLoad || !input || cache?.key === key) return
+    const t = setTimeout(() => { void load() }, 350)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` captures `input`
+  }, [autoLoad, key, cache, load])
+
+  return { data: cache?.key === key ? cache.data : null, loading, error, load }
+}
+
+function PremiumBody({ state, entitled, children }: { state: PremiumState; entitled: boolean; children: React.ReactNode }) {
+  if (state.data) return <>{children}</>
+  // Placeholder behind the PlanGate overlay — Gold content is only ever fetched for entitled users.
+  if (!entitled) {
+    return <p style={{ margin: 0, minHeight: 160, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Personalised predictions, remedies and tools are built for Gold members.</p>
+  }
+  if (state.error) {
+    return (
+      <Alert variant="error">
+        {state.error}{' '}
+        <Button variant="ghost" size="sm" onClick={() => { void state.load() }}>Retry</Button>
+      </Alert>
+    )
+  }
+  return <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Loading your Gold analysis…</p>
 }

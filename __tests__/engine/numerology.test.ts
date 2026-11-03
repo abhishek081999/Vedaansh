@@ -16,8 +16,8 @@ import {
   checkNumber,
   getLuckyDates,
   linkNumbersToChart,
-  buildNumerologyReport,
 } from '@/lib/engine/numerology/calc'
+import { buildNumerologyReport } from '@/lib/engine/numerology/report'
 import { getCompoundMeaning, NUMBER_GRAHA } from '@/lib/engine/numerology/data'
 import {
   suggestBabyNames,

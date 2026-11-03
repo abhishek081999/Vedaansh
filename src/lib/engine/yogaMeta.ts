@@ -326,3 +326,46 @@ export function formatYogaWeatherLine(meta: YogaMeta): string {
 export function listYogaMeta(): YogaMeta[] {
   return (Object.values(YOGAS) as YogaMeta[]).sort((a, b) => a.number - b.number)
 }
+
+// ── Birth-yoga reading (deity + natal tendency + remedy) ─────
+
+export interface YogaBirthNote {
+  deity:        string
+  birthReading: string
+  remedy:       string
+}
+
+const YOGA_BIRTH_NOTES: Record<YogaId, YogaBirthNote> = {
+  Vishkambha: { deity: 'Yama', birthReading: 'Carries many responsibilities; only part of the effort gets rewarded or noticed. Strongest in the first half (0–6°40′) of the yoga.', remedy: 'Devotion and limitless effort — never lose heart; rewards arrive late but arrive.' },
+  Priti:      { deity: 'Vishnu', birthReading: 'Gentle and loving at work and home; others hand over their work and they cannot refuse.', remedy: 'Guard against ego, stubbornness and over-attachment.' },
+  Ayushman:   { deity: 'Purna Chandra', birthReading: 'Does work that lasts and is remembered; listens to the heart more than the head.', remedy: 'Avoid short-term gains; music and kirtan steady the mind.' },
+  Saubhagya:  { deity: 'Brahma', birthReading: 'Lucky; shines in production, manufacturing and industry — stands out among peers there.', remedy: 'Prefer industry over small shopkeeping; do not exaggerate skills.' },
+  Shobhana:   { deity: 'Brihaspati', birthReading: 'Growth comes with a clean, orderly workspace and neat presentation.', remedy: 'Clear clutter at home and office — unused things, files and old furniture.' },
+  Atiganda:   { deity: 'Amavasya Chandra', birthReading: 'Repeated speed-breakers and opposition in work; worse in the first half of the yoga.', remedy: 'Do not broadcast failures; keep relationships clean and avoid back-biting.' },
+  Sukarma:    { deity: 'Indra', birthReading: 'Born to act; wants to be first everywhere and juggles many tasks.', remedy: 'Stay down to earth, avoid showing off, and never slip into laziness.' },
+  Dhriti:     { deity: 'Jala', birthReading: 'Traditional and slow to accept new methods, so often a step behind success; hidden attraction outside the partnership.', remedy: 'Move with the times and adopt modern techniques.' },
+  Shula:      { deity: 'Sarpa', birthReading: 'Thorn-like pain; prone to addictions once exposed and slow to recover from them.', remedy: 'Exercise, pranayama and professional de-addiction support when needed.' },
+  Ganda:      { deity: 'Agni', birthReading: 'Skewed perceptions; work is blocked mainly by health breaks.', remedy: 'Do Gandamula shanti where applicable; look for the positive in people.' },
+  Vriddhi:    { deity: 'Surya', birthReading: 'Steady growth and promotion; emotional decisions are the weak spot. Effects drop sharply on Amavasya.', remedy: 'Be practical before deciding.' },
+  Dhruva:     { deity: 'Prithvi', birthReading: 'Earth-like patience that forgives much — but when patience snaps, decades of goodwill can be lost.', remedy: 'Manage anger before it accumulates.' },
+  Vyaghata:   { deity: 'Vayu', birthReading: 'Emotional hurt; betrayal from the most trusted person often becomes a turning point.', remedy: 'Stay alert; daily bathing and routine pull them out of low phases.' },
+  Harshana:   { deity: 'Bhaga', birthReading: 'Royal taste — beautiful office, a fixed standard it will not go below; uses sama-dana-danda-bheda.', remedy: 'Keep the standard without letting ego block real opportunities.' },
+  Vajra:      { deity: 'Varuna', birthReading: 'Sudden falls, losses, accidents, fire or theft; blunt one-liners end good discussions.', remedy: 'Never let insurance lapse (home, health, accident, loans); soften speech.' },
+  Siddhi:     { deity: 'Ganesha', birthReading: 'Innovative and keeps upgrading skills, but struggles to show them.', remedy: 'Keep a Ganesha image nearby; learn to market your work.' },
+  Vyatipata:  { deity: 'Rudra', birthReading: 'Blunt and critical; quickly irritated, so jobs and relationships change often.', remedy: 'Self-balance is the only remedy — practise restraint in speech.' },
+  Variyan:    { deity: 'Kubera', birthReading: 'Loves praise and drops people over small slights; excellent at handling and saving others’ money, generous to a fault.', remedy: 'Avoid spending for false prestige.' },
+  Parigha:    { deity: 'Vishwakarma', birthReading: 'Sudden good and bad turns; skill in construction and design; strong desire nature.', remedy: 'Keep character clean — inauspiciousness reduces over time.' },
+  Shiva:      { deity: 'Surya (Mitra)', birthReading: 'Helps outsiders generously but gives family too little time, so is under-valued at home.', remedy: 'Spend real time with spouse and children.' },
+  Siddha:     { deity: 'Kartikeya', birthReading: 'Hidden fire; walks away rather than argue; loves travel and observes deeply.', remedy: 'Do not take up several fronts at once.' },
+  Sadhya:     { deity: 'Savitri', birthReading: 'Drive to do something different; creative and generative (strong fertility in women); work is valued later.', remedy: 'Keep body clean and fresh — daily shaving, perfume, hygiene.' },
+  Shubha:     { deity: 'Lakshmi', birthReading: 'Earns money, honour and status; may cut corners to maintain status later.', remedy: 'Stay honest once established. Weaker if born on Amavasya.' },
+  Shukla:     { deity: 'Parvati', birthReading: 'Guards reputation fiercely and can turn unprofessional to protect it.', remedy: 'Stay professional; achievements dim if born Amavasya to Krishna Panchami.' },
+  Brahma:     { deity: 'Ashwini Kumaras', birthReading: 'Fast, active and well-groomed; never forgets a route; their remedies "work" for others — good in medicine.', remedy: 'Balance ego and avoid haste.' },
+  Indra:      { deity: 'Pitri', birthReading: 'Proud of the family name and inherits family traits and skills; drops own work to help others.', remedy: 'Settle your own goals before taking on others’.' },
+  Vaidhriti:  { deity: 'Diti', birthReading: 'Very patient in life’s storms, but loses all patience when women of the family are insulted.', remedy: 'Verify before reacting; avoid harsh criticism.' },
+}
+
+export function getYogaBirthNote(nameOrNumber: string | number): YogaBirthNote | null {
+  const meta = getYogaMeta(nameOrNumber)
+  return meta ? YOGA_BIRTH_NOTES[meta.id] : null
+}

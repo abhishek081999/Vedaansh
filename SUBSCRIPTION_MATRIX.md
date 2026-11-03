@@ -22,6 +22,10 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts`, `src/proxy.ts` (`/api/chart/export`) — includes Gochar Phala chapter |
 | Export chart (XLSX) | No | Yes | Yes | `src/app/api/chart/export-xlsx/route.ts` (`requirePlanGate`), `src/proxy.ts` |
 | Marriage gochar windows | No | Yes | Yes | `GET /api/marriage/gochar-windows` — `requirePlanGate('gold')`. Not listed in `src/proxy.ts` `GOLD_API` |
+| Numerology predictions, remedies, advanced tools, PDF | No | Yes | Yes | `POST /api/numerology/premium` — `requirePlanGate('gold')`. Core numbers, grids, arrows, name depth, spelling comparison and Katapayadi stay free |
+| Numerology year calendar (.ics with tithi) | No | Yes | Yes | `GET /api/numerology/calendar` — `requirePlanGate('gold')` |
+| Business numerology + launch-date finder | No | Yes | Yes | Advanced Tools tab (UI gate; client-side calculator) |
+| Save numerology to CRM client | No | No | Yes | `POST /api/numerology/save-to-client` — `requirePlanGate('platinum')` |
 | Transit hub advanced (Sade Sati, Aspects, Bi-wheel, Calendar) | Roadmap + Live Transit only | Yes | Yes | UI: `TransitHub` PlanGate; API: `/api/transit/calendar` (Gold+) |
 | Bulk XLSX import | Yes* | Yes* | Yes* | `src/app/api/chart/bulk-import/route.ts` — subject to save limits, not plan tier in API |
 | Email chart reports | No | No | Yes | `src/app/api/chart/send-email/route.ts` |

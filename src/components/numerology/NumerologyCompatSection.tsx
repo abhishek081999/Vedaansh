@@ -1,25 +1,23 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/numerology/NumerologyCompatSection.tsx
-//  Partner compatibility, mobile / vehicle / house number checker,
+//  Couple numerology, mobile / vehicle / house number checker,
 //  and the 9×9 number harmony matrix
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
 import {
   checkNumber,
-  getBhagyank,
-  getMoolank,
   HARMONY_LABEL,
   numberHarmony,
   parseBirthDate,
-  type Harmony,
-  type NumerologyReport,
+  type NumerologyCoreReport,
 } from '@/lib/engine/numerology/calc'
 import { CORE_NUMBERS, NUMBER_PROFILES } from '@/lib/engine/numerology/data'
 import { Field } from '@/components/ui/primitives/Field'
 import { HARMONY_COLOR, HarmonyPill, NumberOrb, SectionCard, gridColumns } from './shared'
 import { BusinessPartnerTool } from './BusinessPartnerTool'
+import { CoupleNumerologyCard } from './CoupleNumerologyCard'
 
 const CHECK_KINDS = [
   { id: 'mobile', label: 'Mobile number', placeholder: '98765 43210' },
@@ -28,28 +26,20 @@ const CHECK_KINDS = [
   { id: 'other', label: 'Account / other', placeholder: 'Any number' },
 ] as const
 
-const HARMONY_POINTS: Record<Harmony, number> = { excellent: 4, good: 3, neutral: 2, mixed: 1, challenging: 0 }
-
-export function NumerologyCompatSection({ report }: { report: NumerologyReport }) {
+export function NumerologyCompatSection({ report }: { report: NumerologyCoreReport }) {
   const { moolank, bhagyank, date } = report
   const selfDob = `${String(date.year).padStart(4, '0')}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
 
   const [partnerDob, setPartnerDob] = useState('')
-  const partner = useMemo(() => {
-    const d = parseBirthDate(partnerDob)
-    if (!d) return null
-    const pm = getMoolank(d.day).value
-    const pb = getBhagyank(d).value
-    const pairs = [
-      { label: `Your Moolank ${moolank.value} ↔ Partner Moolank ${pm}`, h: numberHarmony(moolank.value, pm), weight: 2 },
-      { label: `Your Bhagyank ${bhagyank.value} ↔ Partner Bhagyank ${pb}`, h: numberHarmony(bhagyank.value, pb), weight: 1.5 },
-      { label: `Your Moolank ${moolank.value} ↔ Partner Bhagyank ${pb}`, h: numberHarmony(moolank.value, pb), weight: 1 },
-      { label: `Your Bhagyank ${bhagyank.value} ↔ Partner Moolank ${pm}`, h: numberHarmony(bhagyank.value, pm), weight: 1 },
-    ]
-    const max = pairs.reduce((s, p) => s + 4 * p.weight, 0)
-    const got = pairs.reduce((s, p) => s + HARMONY_POINTS[p.h] * p.weight, 0)
-    return { pm, pb, pairs, percent: Math.round((got / max) * 100) }
-  }, [partnerDob, moolank.value, bhagyank.value])
+  const [partnerName, setPartnerName] = useState('')
+  const self = useMemo(
+    () => ({ birthDate: selfDob, name: report.name?.words.map(w => w.word).join(' '), label: 'You' }),
+    [selfDob, report.name],
+  )
+  const partner = useMemo(
+    () => (parseBirthDate(partnerDob) ? { birthDate: partnerDob, name: partnerName.trim() || undefined, label: partnerName.trim() || 'Partner' } : null),
+    [partnerDob, partnerName],
+  )
 
   const [kind, setKind] = useState<(typeof CHECK_KINDS)[number]['id']>('mobile')
   const [numberInput, setNumberInput] = useState('')
@@ -59,25 +49,11 @@ export function NumerologyCompatSection({ report }: { report: NumerologyReport }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={gridColumns(300)}>
-        <SectionCard title="Partner Compatibility" subtitle="Compare core numbers for marriage, business or friendship.">
+        <SectionCard title="Partner Compatibility" subtitle="Compare core numbers, combined grids and the relationship number for marriage, business or friendship.">
+          <Field label="Partner's name (optional)" value={partnerName} maxLength={120} onChange={e => setPartnerName(e.target.value)} />
           <Field label="Partner's date of birth" type="date" value={partnerDob} onChange={e => setPartnerDob(e.target.value)} />
-          {partner && (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <NumberOrb value={partner.pm} size={44} />
-                <NumberOrb value={partner.pb} size={44} muted />
-                <div>
-                  <div style={{ fontSize: '1.4rem', fontFamily: 'var(--font-display)', color: 'var(--text-gold)' }}>{partner.percent}%</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Numerological match</div>
-                </div>
-              </div>
-              {partner.pairs.map(p => (
-                <div key={p.label} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', alignItems: 'center', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                  <span>{p.label}</span>
-                  <HarmonyPill harmony={p.h} />
-                </div>
-              ))}
-            </>
+          {!partner && (
+            <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)' }}>Enter a date of birth to see the couple analysis below.</p>
           )}
         </SectionCard>
 
@@ -128,6 +104,8 @@ export function NumerologyCompatSection({ report }: { report: NumerologyReport }
           )}
         </SectionCard>
       </div>
+
+      {partner && <CoupleNumerologyCard a={self} b={partner} />}
 
       <SectionCard title="Number Harmony Matrix" subtitle="How each number relates to every other (row ↔ column). Your Moolank and Bhagyank rows are highlighted.">
         <div style={{ overflowX: 'auto' }}>

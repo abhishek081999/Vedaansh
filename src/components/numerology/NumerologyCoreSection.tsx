@@ -10,13 +10,13 @@ import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import {
   getNumberFriendship,
   type NumberGrahaLink,
-  type NumerologyReport,
+  type NumerologyCoreReport,
 } from '@/lib/engine/numerology/calc'
 import { NUMBER_PROFILES, CORE_NUMBERS, getCompoundMeaning, type CoreNumber } from '@/lib/engine/numerology/data'
 import { HarmonyPill, KeyValue, NumberOrb, QUALITY_COLOR, SectionCard, TagList, gridColumns } from './shared'
 
 interface Props {
-  report: NumerologyReport
+  report: NumerologyCoreReport
   chartLinks: NumberGrahaLink[] | null
 }
 

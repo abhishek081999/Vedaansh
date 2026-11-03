@@ -1,18 +1,25 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/components/numerology/NumerologyCyclesSection.tsx
-//  Personal year / month / day, 9-year forecast, lucky dates
+//  Personal year / month / day, 9-year forecast, lucky dates,
+//  yearly .ics calendar export
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react'
-import type { NumerologyReport } from '@/lib/engine/numerology/calc'
+import type { NumerologyCoreReport } from '@/lib/engine/numerology/calc'
 import { NUMBER_PROFILES, PERSONAL_YEAR_THEMES } from '@/lib/engine/numerology/data'
 import { HarmonyPill, NumberOrb, SectionCard, gridColumns } from './shared'
+import { YearCalendarExport, type CalendarLocation } from './YearCalendarExport'
 
-export function NumerologyCyclesSection({ report }: { report: NumerologyReport }) {
-  const { cycles, upcomingYears, luckyDates, moolank, predictions } = report
-  const activePinnacle = predictions.pinnacles.find(x => x.active)
-  const activePhase = predictions.lifePhases.find(x => x.active)
+export function NumerologyCyclesSection({ report, canExport, location }: {
+  report: NumerologyCoreReport
+  canExport: boolean
+  location: CalendarLocation | null
+}) {
+  const { cycles, upcomingYears, luckyDates, moolank, timeline, date } = report
+  const birthDate = `${String(date.year).padStart(4, '0')}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+  const activePinnacle = timeline.pinnacles.find(x => x.active)
+  const activePhase = timeline.lifePhases.find(x => x.active)
   const items = [
     { label: 'Personal Year', value: cycles.personalYear, detail: `${cycles.yearTheme.theme} · from birthday ${cycles.cycleYear}` },
     { label: 'Personal Month', value: cycles.personalMonth, detail: PERSONAL_YEAR_THEMES[cycles.personalMonth].theme },
@@ -35,7 +42,7 @@ export function NumerologyCyclesSection({ report }: { report: NumerologyReport }
       </div>
 
       {(activePhase || activePinnacle) && (
-        <SectionCard title="Where you are in life" subtitle={`Age ${predictions.ageNow}`}>
+        <SectionCard title="Where you are in life" subtitle={`Age ${timeline.ageNow}`}>
           <div style={gridColumns(260)}>
             {activePhase && (
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -114,7 +121,7 @@ export function NumerologyCyclesSection({ report }: { report: NumerologyReport }
 
       <SectionCard title="Power Days" subtitle="Calendar dates whose root matches your Moolank (personal power) or Bhagyank (destiny). Best for interviews, launches and rituals.">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-          {predictions.powerDays.map(pd => (
+          {timeline.powerDays.map(pd => (
             <span
               key={`${pd.day}-${pd.reason}`}
               title={pd.reason}
@@ -130,6 +137,13 @@ export function NumerologyCyclesSection({ report }: { report: NumerologyReport }
           ))}
         </div>
       </SectionCard>
+
+      <YearCalendarExport
+        birthDate={birthDate}
+        name={report.name?.words.map(w => w.word).join(' ') ?? ''}
+        entitled={canExport}
+        location={location}
+      />
     </div>
   )
 }
