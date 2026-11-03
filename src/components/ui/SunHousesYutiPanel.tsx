@@ -18,6 +18,7 @@ import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { analyzeSunHousesYuti } from '@/lib/engine/sunHousesYuti'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
+import { ChartScopeToggle, EmptyForChart, type ChartScope } from '@/components/ui/patterns/ChartScopeToggle'
 import { Button } from '@/components/ui/primitives/Button'
 
 type SubTab = 'overview' | 'houses' | 'yuti' | 'remedies'
@@ -37,6 +38,7 @@ interface SunHousesYutiPanelProps {
 export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPanelProps) {
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
+  const [scope, setScope] = useState<ChartScope>('chart')
   const data = useMemo(() => analyzeSunHousesYuti(chart), [chart])
 
   if (!data) {
@@ -255,16 +257,18 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
 
       {showFull && sub === 'houses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <ChartScopeToggle value={scope} onChange={setScope} chartCount={1} totalCount={data.allHouses.length} />
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            House notes use the Kaal Purush teaching frame (1st = Aries…). Your natal Sun house is highlighted;
-            match traits to the whole chart — sign, degrees, and yogas modify everything.
+            House notes use the Kaal Purush teaching frame (1st = Aries…).
+            {scope === 'chart' ? ' Showing your natal Sun house only.' : ' Your natal Sun house is highlighted.'}
+            {' '}Match traits to the whole chart — sign, degrees, and yogas modify everything.
           </p>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             gap: '0.55rem',
           }}>
-            {data.allHouses.map(h => {
+            {(scope === 'chart' ? data.allHouses.filter(h => h.house === data.sun.house) : data.allHouses).map(h => {
               const isNatal = h.house === data.sun.house
               return (
                 <div
@@ -285,11 +289,11 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
                   </div>
                   <div style={{ fontSize: '0.72rem', fontWeight: 600, marginTop: 4 }}>{h.title}</div>
                   <ul style={{ margin: '0.4rem 0 0', paddingLeft: '1rem', fontSize: '0.66rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                    {h.positives.slice(0, 3).map(p => <li key={p}>{p}</li>)}
+                    {h.positives.slice(0, isNatal ? 99 : 3).map(p => <li key={p}>{p}</li>)}
                   </ul>
                   {h.challenges.length > 0 && (
                     <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1rem', fontSize: '0.64rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                      {h.challenges.slice(0, 2).map(c => <li key={c}>{c}</li>)}
+                      {h.challenges.slice(0, isNatal ? 99 : 2).map(c => <li key={c}>{c}</li>)}
                     </ul>
                   )}
                 </div>
@@ -301,11 +305,21 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
 
       {showFull && sub === 'yuti' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <ChartScopeToggle
+            value={scope}
+            onChange={setScope}
+            chartCount={data.activeYutis.length}
+            totalCount={data.allYutis.length}
+          />
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            Pairwise Sun conjunctions. Active pairs for this chart are highlighted;
-            open each for core traits, house variants, and technical orbs.
+            {scope === 'chart'
+              ? 'Sun conjunctions present in this kundali, with your house variant and orb.'
+              : 'All pairwise Sun conjunctions for study; active pairs for this chart are highlighted.'}
           </p>
-          {data.allYutis.map(t => {
+          {scope === 'chart' && data.activeYutis.length === 0 && (
+            <EmptyForChart>No planet conjoins the Sun in this chart — the Sun works on its own sign, house and nakshatra.</EmptyForChart>
+          )}
+          {(scope === 'chart' ? data.allYutis.filter(t => data.activeYutis.some(y => y.partner === t.partner)) : data.allYutis).map(t => {
             const active = data.activeYutis.find(y => y.partner === t.partner)
             const houseBits = t.byHouse[data.sun.house]
             return (

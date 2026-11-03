@@ -21,6 +21,7 @@ import { analyzeSunAdityas } from '@/lib/engine/sunAdityas'
 import { analyzeSunReadingMethod } from '@/lib/engine/sunReadingMethod'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
+import { ChartScopeToggle, EmptyForChart, type ChartScope } from '@/components/ui/patterns/ChartScopeToggle'
 import { Button } from '@/components/ui/primitives/Button'
 
 type SubTab = 'overview' | 'reading' | 'adityas' | 'spiritual' | 'afflictions'
@@ -41,6 +42,7 @@ interface SunAdityasPanelProps {
 export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelProps) {
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
+  const [scope, setScope] = useState<ChartScope>('chart')
   const data = useMemo(() => analyzeSunAdityas(chart), [chart])
   const reading = useMemo(() => analyzeSunReadingMethod(chart), [chart])
 
@@ -241,12 +243,14 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
                 {reading.motion.degreesToExaltation.toFixed(0)}° to exaltation · {reading.motion.degreesToDebilitation.toFixed(0)}° to debilitation
               </div>
             </Card>
-            <Card>
-              <Label>Sandhi / gandanta</Label>
-              <p style={{ margin: 0, fontSize: '0.7rem', color: reading.sandhi.active ? 'var(--rose)' : 'var(--text-secondary)', lineHeight: 1.45 }}>
-                {reading.sandhi.detail}
-              </p>
-            </Card>
+            {reading.sandhi.active && (
+              <Card>
+                <Label>Sandhi / gandanta</Label>
+                <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--rose)', lineHeight: 1.45 }}>
+                  {reading.sandhi.detail}
+                </p>
+              </Card>
+            )}
             <Card>
               <Label>Solar month</Label>
               <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-gold)' }}>
@@ -269,9 +273,11 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
             <div style={{ fontSize: '0.68rem', color: reading.appearance.applies ? 'var(--teal)' : 'var(--text-muted)', marginBottom: 4 }}>
               {reading.appearance.reason}
             </div>
-            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5, opacity: reading.appearance.applies ? 1 : 0.6 }}>
-              {reading.appearance.traits.map(t => <li key={t}>{t}</li>)}
-            </ul>
+            {reading.appearance.applies && (
+              <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {reading.appearance.traits.map(t => <li key={t}>{t}</li>)}
+              </ul>
+            )}
           </Card>
 
           <Card>
@@ -306,16 +312,23 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
 
       {showFull && sub === 'adityas' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <ChartScopeToggle
+            value={scope}
+            onChange={setScope}
+            chartCount={data.matchingAdityas.length}
+            totalCount={data.allAdityas.length}
+          />
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            Twelve Adityas (Veda / Purana solar forms). Matching forms for this natal Sun are highlighted;
-            primary scored first by nakshatra, then sign, then house.
+            {scope === 'chart'
+              ? 'Aditya forms this natal Sun carries — primary first, scored by nakshatra, then sign, then house.'
+              : 'All twelve Adityas (Veda / Purana solar forms) for study; forms matching this Sun are highlighted.'}
           </p>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
             gap: '0.55rem',
           }}>
-            {data.allAdityas.map(a => {
+            {(scope === 'chart' ? data.matchingAdityas.map(m => m.aditya) : data.allAdityas).map(a => {
               const match = data.matchingAdityas.find(m => m.aditya.id === a.id)
               const isPrimary = a.id === data.primaryAditya.id
               return (
@@ -414,6 +427,15 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
 
       {showFull && sub === 'afflictions' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <ChartScopeToggle
+            value={scope}
+            onChange={setScope}
+            chartCount={activeAfflictions.length}
+            totalCount={data.afflictions.length}
+          />
+          {scope === 'chart' && activeAfflictions.length === 0 && (
+            <EmptyForChart>No Rahu, Ketu, Saturn, debilitation or Aquarius pressure on this Sun.</EmptyForChart>
+          )}
           <Card>
             <Label>Pitru Dosh</Label>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -437,7 +459,7 @@ export function SunAdityasPanel({ chart, userPlan = 'free' }: SunAdityasPanelPro
             gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
             gap: '0.55rem',
           }}>
-            {data.afflictions.map(f => (
+            {(scope === 'chart' ? activeAfflictions : data.afflictions).map(f => (
               <div
                 key={f.id}
                 style={{
