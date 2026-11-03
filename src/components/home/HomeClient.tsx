@@ -41,7 +41,7 @@ const DashamsaWorkspace = dynamic(() => import('@/components/ui/DashamsaWorkspac
 const DwadashamshaWorkspace = dynamic(() => import('@/components/ui/DwadashamshaWorkspace').then(m => m.DwadashamshaWorkspace), { ssr: false })
 const DrekkanaWorkspace = dynamic(() => import('@/components/ui/DrekkanaWorkspace').then(m => m.DrekkanaWorkspace), { ssr: false })
 const NakshatramshaWorkspace = dynamic(() => import('@/components/ui/NakshatramshaWorkspace').then(m => m.NakshatramshaWorkspace), { ssr: false })
-const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
+const InterpretationHub = dynamic(() => import('@/components/ui/InterpretationHub').then(m => m.InterpretationHub), { ssr: false })
 const TattvaPredictionPanel = dynamic(() => import('@/components/ui/TattvaPredictionPanel').then(m => m.TattvaPredictionPanel), { ssr: false })
 const NaamkaranPanel = dynamic(() => import('@/components/ui/NaamkaranPanel').then(m => m.NaamkaranPanel), { ssr: false })
 const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
@@ -1913,7 +1913,7 @@ function HomeContent() {
                   ) : activeTab === 'house' ? (
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (
-                  <InterpretationPanel interpretation={chart.interpretation} />
+                  <InterpretationHub chart={chart} />
                 ) : activeTab === 'tattva' ? (
                   <TattvaPredictionPanel chart={chart} userPlan={userPlan} />
                 ) : activeTab === 'naamkaran' ? (

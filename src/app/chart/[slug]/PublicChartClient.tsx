@@ -15,7 +15,7 @@ import { GrahaTable }    from '@/components/ui/GrahaTable'
 import { DashaTree }     from '@/components/dasha/DashaTree'
 import { ShadbalaTable }    from '@/components/ui/ShadbalaTable'
 import { VimsopakaBalaPanel } from '@/components/ui/VimsopakaBalaPanel'
-import { InterpretationPanel } from '@/components/ui/InterpretationPanel'
+import { InterpretationHub } from '@/components/ui/InterpretationHub'
 import { NatalPanchangPanel } from '@/components/panchang/NatalPanchangPanel'
 import { ThemeToggle }      from '@/components/ui/ThemeToggle'
 
@@ -334,18 +334,7 @@ export function PublicChartClient({
           )}
 
           {tab === 'interpretation' && (
-            <div className="card">
-              <div className="label-caps" style={{ marginBottom: '0.85rem' }}>
-                Interpretation Layer
-              </div>
-              {chart.interpretation ? (
-                <InterpretationPanel interpretation={chart.interpretation} />
-              ) : (
-                <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  Interpretation Layer is unavailable for this chart.
-                </div>
-              )}
-            </div>
+            <InterpretationHub chart={chart} />
           )}
 
           {tab === 'tattva' && (
