@@ -1,0 +1,253 @@
+/* Full Dainik Rashifal extras — same manuscript palette as DailyHoroscope. */
+
+.dive {
+  --dd-brand: var(--primary-brand, #8c0030);
+  --dd-gold: #a77a3a;
+  --dd-line: color-mix(in oklab, var(--dd-brand) 22%, var(--border, #e5ddd0));
+  --dd-ink: var(--text-primary);
+  --dd-soft: var(--text-secondary);
+  --dd-muted: var(--text-muted);
+  --dd-excellent: #1f7a62;
+  --dd-good: #2e7d5b;
+  --dd-mixed: #c8691e;
+  --dd-challenging: #b3263b;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  color: var(--dd-ink);
+}
+
+:global([data-theme='dark']) .dive {
+  --dd-brand: #e58aa6;
+  --dd-gold: #d9b273;
+  --dd-excellent: #5fd4b0;
+  --dd-good: #6fcf9f;
+  --dd-mixed: #f0a463;
+  --dd-challenging: #f07a8a;
+}
+
+.dive [data-tone='excellent'] { --tone: var(--dd-excellent); }
+.dive [data-tone='good'] { --tone: var(--dd-good); }
+.dive [data-tone='mixed'] { --tone: var(--dd-mixed); }
+.dive [data-tone='challenging'] { --tone: var(--dd-challenging); }
+
+.block {
+  min-width: 0;
+}
+
+.title {
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--dd-line);
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 3vw, 1.45rem);
+  font-weight: 600;
+  color: var(--dd-brand);
+}
+
+.title em {
+  font-family: var(--font-serif);
+  font-size: 0.75em;
+  font-weight: 400;
+  color: var(--dd-muted);
+}
+
+.split {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+}
+
+/* Week chart */
+
+.week {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.grid {
+  stroke: color-mix(in oklab, var(--dd-ink) 8%, transparent);
+  stroke-dasharray: 2 5;
+}
+
+.chBand {
+  fill: color-mix(in oklab, var(--dd-challenging) 9%, transparent);
+}
+
+.area {
+  fill: color-mix(in oklab, var(--dd-gold) 12%, transparent);
+}
+
+.line {
+  fill: none;
+  stroke: var(--dd-gold);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.dot {
+  fill: var(--surface-1, #fff);
+  stroke: var(--tone);
+  stroke-width: 3;
+}
+
+.score {
+  text-anchor: middle;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  fill: var(--tone);
+}
+
+.day,
+.dayNow {
+  text-anchor: middle;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  fill: var(--dd-ink);
+}
+
+.dayNow {
+  fill: var(--dd-brand);
+}
+
+.date {
+  text-anchor: middle;
+  font-size: 11px;
+  fill: var(--dd-muted);
+}
+
+.moon,
+.moonCare {
+  text-anchor: middle;
+  font-size: 11.5px;
+  font-weight: 600;
+  fill: var(--dd-soft);
+}
+
+.moonCare {
+  fill: var(--dd-challenging);
+}
+
+.caption {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  color: var(--dd-soft);
+}
+
+.caption strong {
+  color: var(--dd-ink);
+}
+
+/* Chandrashtama */
+
+.ch {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--dd-challenging);
+  background: color-mix(in oklab, var(--dd-challenging) 6%, transparent);
+}
+
+.chIcon {
+  flex: none;
+  color: var(--dd-challenging);
+}
+
+.chWhen {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--dd-ink);
+}
+
+.ch[data-active] .chWhen {
+  color: var(--dd-challenging);
+}
+
+.chText {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--dd-soft);
+}
+
+/* Swabhav */
+
+.lead {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--dd-ink);
+}
+
+.list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  position: relative;
+  padding-left: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--dd-soft);
+}
+
+.list li::before {
+  content: '◆';
+  position: absolute;
+  left: 0;
+  top: 0.2rem;
+  font-size: 0.5rem;
+  color: var(--dd-gold);
+}
+
+.lord {
+  margin: 0.8rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--dd-soft);
+}
+
+.lord strong {
+  color: var(--dd-brand);
+}
+
+.sub {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dd-brand);
+}
+
+/* SVG text scales with the chart — enlarge labels on phones so they stay legible. */
+@media (max-width: 640px) {
+  .score { font-size: 26px; }
+  .day,
+  .dayNow { font-size: 25px; }
+  /* Weekday + Aaj/Kal is enough on a phone; the date row would collide at this size. */
+  .date { display: none; }
+  .moon,
+  .moonCare { font-size: 22px; }
+}

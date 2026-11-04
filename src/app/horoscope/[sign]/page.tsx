@@ -11,7 +11,9 @@ import { DailyHoroscope } from '@/components/horoscope/DailyHoroscope'
 import { RashiIcon } from '@/components/horoscope/RashiIcon'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd, faqJsonLd, ogImages, SITE_URL } from '@/lib/seo/site'
-import { getDailyHoroscope, todayHoroscopeDate } from '@/lib/horoscope/daily'
+import { getChandrashtama, getDailyHoroscope, getWeekOutlook, todayHoroscopeDate } from '@/lib/horoscope/daily'
+import { getRashiProfile } from '@/lib/engine/rashiInterpretations'
+import { HoroscopeDeepDive } from '@/components/horoscope/HoroscopeDeepDive'
 import { RASHI_SLUGS, rashiFromSlug } from '@/lib/engine/dailyRashiHoroscope'
 import { RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
 import styles from '../horoscope.module.css'
@@ -59,7 +61,10 @@ export default async function HoroscopeSignPage({ params }: Params) {
   const rashi = rashiFromSlug(sign)
   if (!rashi) notFound()
 
-  const report = await getDailyHoroscope(todayHoroscopeDate())
+  const today = todayHoroscopeDate()
+  const [report, week] = await Promise.all([getDailyHoroscope(today), getWeekOutlook(today, rashi)])
+  const now = Date.now()
+  const chandrashtama = getChandrashtama(rashi, new Date(now))
   const name = RASHI_NAMES[rashi]
 
   return (
@@ -74,6 +79,15 @@ export default async function HoroscopeSignPage({ params }: Params) {
       <JsonLd data={faqJsonLd(FAQ)} />
 
       <DailyHoroscope initialReport={report} sign={rashi} variant="page" />
+
+      <HoroscopeDeepDive
+        rashi={rashi}
+        english={name}
+        week={week}
+        chandrashtama={chandrashtama}
+        profile={getRashiProfile(rashi)}
+        now={now}
+      />
 
       <section className={styles.block} aria-labelledby="all-signs">
         <h2 id="all-signs" className={styles.blockTitle}>All twelve Moon signs today</h2>

@@ -17,7 +17,7 @@ import type {
 } from '@/lib/engine/dailyRashiHoroscope'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 import type { Rashi } from '@/types/astrology'
-import { RashiGlyph } from './RashiIcon'
+import { RashiGlyph, RashiIcon } from './RashiIcon'
 import styles from './DailyHoroscope.module.css'
 
 const STORAGE_KEY = 'vedaansh:horoscope-sign'
@@ -225,7 +225,17 @@ function Diamonds({ rating, tone }: { rating: number; tone: HoroscopeTone }) {
   )
 }
 
-function Card({ sign, date, detailed }: { sign: RashiHoroscope; date: string; detailed: boolean }) {
+function Card({
+  sign,
+  date,
+  place,
+  detailed,
+}: {
+  sign: RashiHoroscope
+  date: string
+  place: string
+  detailed: boolean
+}) {
   const [first, ...rest] = sign.summary
   return (
     <article className={styles.card} key={`${date}-${sign.rashi}`} aria-live="polite">
@@ -286,6 +296,26 @@ function Card({ sign, date, detailed }: { sign: RashiHoroscope; date: string; de
         </div>
       </dl>
 
+      {sign.shubhSamay?.length ? (
+        <div className={styles.samay}>
+          <h4 className={styles.label}>
+            Shubh samay <em>· good hours, {place} time</em>
+          </h4>
+          <ul>
+            {sign.shubhSamay.map((w) => (
+              <li key={w.start}>
+                <span className={styles.samayTime}>
+                  {fmtTime(w.start)} – {fmtTime(w.end)}
+                </span>
+                <span className={styles.samayLord}>
+                  {PLANET_GLYPHS[w.lord]} {PLANET_NAMES[w.lord]} hora
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <div className={styles.kv}>
         <div>
           <h4 className={styles.label}>
@@ -343,6 +373,64 @@ function Card({ sign, date, detailed }: { sign: RashiHoroscope; date: string; de
         </>
       )}
     </article>
+  )
+}
+
+/** Rashi taalika — all twelve signs today as a score ribbon. */
+function Taalika({
+  report,
+  selected,
+  onSelect,
+}: {
+  report: DailyHoroscopeReport
+  selected: Rashi
+  onSelect: (r: Rashi) => void
+}) {
+  // The sign whose 8th house the Moon occupies today.
+  const chandrashtama = (((report.moonRashi + 4) % 12) + 1) as Rashi
+  const best = [...report.signs].sort((a, b) => b.score - a.score)[0].rashi
+  const ch = report.signs[chandrashtama - 1]
+  const top = report.signs[best - 1]
+  return (
+    <div className={styles.taalika}>
+      <h4 className={styles.label}>
+        Rashi taalika <em>· all twelve rashis today</em>
+      </h4>
+      <ol className={styles.bars}>
+        {report.signs.map((s) => (
+          <li key={s.rashi}>
+            <button
+              type="button"
+              className={`${styles.bar} ${s.rashi === selected ? styles.barActive : ''}`}
+              data-tone={s.tone}
+              data-care={s.rashi === chandrashtama || undefined}
+              aria-pressed={s.rashi === selected}
+              aria-label={`${s.sanskrit} (${s.english}) ${s.score} of 100${s.rashi === chandrashtama ? ', Chandrashtama' : ''}`}
+              onClick={() => onSelect(s.rashi)}
+            >
+              <span className={styles.barScore}>
+                {s.rashi === best ? <span className={styles.barStar} aria-hidden>★</span> : null}
+                {s.score}
+              </span>
+              <span className={styles.barTrack} aria-hidden>
+                <span style={{ height: `${s.score}%` }} />
+              </span>
+              <RashiIcon rashi={s.rashi} size={22} className={styles.barIcon} />
+              <span className={styles.barName}>{s.devanagari}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+      <p className={styles.taalikaNote}>
+        <span>
+          <b className={styles.noteStar}>★</b> Strongest today: <strong>{top.sanskrit}</strong> ({top.score})
+        </span>
+        <span>
+          <b className={styles.noteCare}>◆</b> Chandrashtama: <strong>{ch.sanskrit}</strong> — the Moon transits its
+          8th; avoid new starts
+        </span>
+      </p>
+    </div>
   )
 }
 
@@ -543,7 +631,7 @@ export function DailyHoroscope({
               </Link>
             </div>
           </div>
-          <Card sign={current} date={report.date} detailed={isPage} />
+          <Card sign={current} date={report.date} place={report.timings?.place ?? 'Ujjain'} detailed={isPage} />
         </div>
       ) : (
         <div className={styles.layout} aria-hidden>
@@ -551,6 +639,8 @@ export function DailyHoroscope({
           <div className={styles.skeletonCard} />
         </div>
       )}
+
+      {report && current ? <Taalika report={report} selected={current.rashi} onSelect={pick} /> : null}
 
       <p className={styles.method}>
         Classical gochara from the Moon sign · Swiss Ephemeris · Lahiri ayanamsha ·{' '}

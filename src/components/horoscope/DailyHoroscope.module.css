@@ -866,3 +866,176 @@
 .shell .hubDeva {
   font-size: 20px;
 }
+
+/* ── Shubh samay ── */
+
+.samay ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.samay li {
+  display: flex;
+  flex-direction: column;
+}
+
+.samayTime {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--hz-good);
+}
+
+.samayLord {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--hz-ink-muted);
+}
+
+/* ── Rashi taalika (score ribbon) ── */
+
+.taalika {
+  margin-top: 1.75rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--hz-line);
+}
+
+.taalika .label {
+  text-align: center;
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.35rem 0 0.4rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--hz-ink);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.bar:hover,
+.bar:focus-visible {
+  background: color-mix(in oklab, var(--hz-brand) 6%, transparent);
+  outline: none;
+}
+
+.barActive {
+  background: color-mix(in oklab, var(--hz-brand) 12%, transparent);
+}
+
+.barScore {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tone);
+}
+
+.barStar {
+  font-size: 0.7rem;
+  color: var(--hz-gold);
+}
+
+.barTrack {
+  position: relative;
+  display: block;
+  width: 8px;
+  height: 64px;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--hz-ink) 7%, transparent);
+  overflow: hidden;
+}
+
+.barTrack span {
+  position: absolute;
+  inset: auto 0 0;
+  border-radius: inherit;
+  background: linear-gradient(0deg, color-mix(in oklab, var(--tone) 55%, transparent), var(--tone));
+  transition: height 0.5s ease;
+}
+
+.bar[data-care] .barTrack {
+  box-shadow: 0 0 0 1.5px var(--hz-challenging);
+}
+
+.barIcon {
+  color: #a77a3a;
+}
+
+.barActive .barIcon,
+.barActive .barName {
+  color: var(--hz-brand);
+}
+
+:global([data-theme='dark']) .barIcon {
+  color: #d9b273;
+}
+
+.barName {
+  font-family: var(--font-deva, 'Noto Sans Devanagari'), serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--hz-ink-soft);
+}
+
+.shell.shell .taalikaNote {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem 1.5rem;
+  margin: 0.6rem 0 0;
+  font-size: 0.82rem;
+  color: var(--hz-ink-muted);
+}
+
+.taalikaNote strong {
+  color: var(--hz-ink);
+}
+
+.noteStar {
+  color: var(--hz-gold);
+}
+
+.noteCare {
+  color: var(--hz-challenging);
+}
+
+@media (max-width: 640px) {
+  .bars {
+    gap: 0.1rem;
+  }
+  .barName {
+    display: none;
+  }
+  .barTrack {
+    height: 48px;
+    width: 6px;
+  }
+  .barScore {
+    font-size: 0.64rem;
+  }
+}
