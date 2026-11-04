@@ -69,6 +69,7 @@ const LandingTestimonials = dynamic(() => import('@/components/home/LandingTesti
 const LandingPlans = dynamic(() => import('@/components/home/LandingPlans').then(m => m.LandingPlans), { ssr: false })
 const LandingGuides = dynamic(() => import('@/components/home/LandingGuidesInstall').then(m => m.LandingGuides), { ssr: false })
 const LandingInstallStrip = dynamic(() => import('@/components/home/LandingGuidesInstall').then(m => m.LandingInstallStrip), { ssr: false })
+const DailyHoroscope = dynamic(() => import('@/components/horoscope/DailyHoroscope').then(m => m.DailyHoroscope), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
@@ -3067,6 +3068,10 @@ function HomeContent() {
                 showMyCharts={status === 'authenticated'}
                 withChartGate={openSectionWithChartGate}
               />
+
+              <LandingReveal as="section" id="landing-horoscope" className="landing-section-row">
+                <DailyHoroscope variant="landing" onNavigate={trackLandingCta} onFindMoonSign={openAstrologyApp} />
+              </LandingReveal>
 
               <LandingReveal as="section" className="landing-section-row landing-section-row--gold landing-major-sections">
                 <LandingExplore trackLandingCta={trackLandingCta} withChartGate={openSectionWithChartGate} />

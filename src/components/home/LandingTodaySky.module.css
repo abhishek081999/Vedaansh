@@ -1,0 +1,455 @@
+/* Aaj ka Panchang — open manuscript leaf (no tiles), shares the Dainik Rashifal palette. */
+
+.leaf {
+  --pp-brand: var(--primary-brand, #8c0030);
+  --pp-gold: #a77a3a;
+  --pp-line: color-mix(in oklab, var(--pp-brand) 22%, var(--border, #e5ddd0));
+  --pp-ink: var(--text-primary);
+  --pp-soft: var(--text-secondary);
+  --pp-muted: var(--text-muted);
+  --pp-good: #2e7d5b;
+  --pp-care: #b3263b;
+  position: relative;
+  margin: 0 0 2rem;
+  padding: 1.1rem 0 1.4rem;
+  border-top: 1px solid var(--pp-line);
+  border-bottom: 1px solid var(--pp-line);
+  color: var(--pp-ink);
+}
+
+/* Double rule, like a manuscript margin. */
+.leaf::before,
+.leaf::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--pp-line) 12%, var(--pp-line) 88%, transparent);
+}
+
+.leaf::before { top: 4px; }
+.leaf::after { bottom: 4px; }
+
+:global([data-theme='dark']) .leaf {
+  --pp-brand: #e58aa6;
+  --pp-gold: #d9b273;
+  --pp-good: #6fcf9f;
+  --pp-care: #f07a8a;
+}
+
+/* ── Head ── */
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.25rem;
+  margin-bottom: 1.1rem;
+}
+
+.leaf.leaf .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pp-brand);
+}
+
+.eyebrow span {
+  font-size: 0.6rem;
+  color: var(--pp-gold);
+}
+
+.headMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1.1rem;
+  font-size: 0.82rem;
+  color: var(--pp-muted);
+}
+
+.place {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.signs {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  color: var(--pp-brand);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Body: medallion | angas | day arc ── */
+
+.body {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+
+@media (min-width: 720px) {
+  .body {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+  .body > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1080px) {
+  .body {
+    grid-template-columns: 190px minmax(0, 1.15fr) minmax(250px, 0.85fr);
+    gap: 0;
+  }
+  .body > :last-child {
+    grid-column: auto;
+  }
+  .body > * + * {
+    padding-left: 1.75rem;
+    margin-left: 1.75rem;
+    border-left: 1px solid var(--pp-line);
+  }
+  .body > :nth-child(2) {
+    margin-left: 0.5rem;
+  }
+}
+
+/* Moon column */
+
+.moonCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.medallion {
+  width: 150px;
+  height: 150px;
+  overflow: visible;
+}
+
+.ringOuter {
+  fill: none;
+  stroke: var(--pp-line);
+  stroke-width: 1;
+}
+
+.tickShukla,
+.tickKrishna,
+.tickNow {
+  stroke-linecap: round;
+}
+
+.tickShukla {
+  stroke: color-mix(in oklab, var(--pp-gold) 70%, transparent);
+  stroke-width: 1.4;
+}
+
+.tickKrishna {
+  stroke: color-mix(in oklab, var(--pp-ink) 35%, transparent);
+  stroke-width: 1.4;
+}
+
+.tickNow {
+  stroke: var(--pp-brand);
+  stroke-width: 3;
+}
+
+.glowIn {
+  stop-color: var(--pp-gold);
+  stop-opacity: 0.22;
+}
+
+.glowOut {
+  stop-color: var(--pp-gold);
+  stop-opacity: 0;
+}
+
+.moonDark {
+  fill: color-mix(in oklab, var(--pp-ink) 72%, var(--surface-2, #eee) 28%);
+}
+
+.moonLit {
+  fill: color-mix(in oklab, var(--surface-1, #fff) 55%, #fff6dc 45%);
+}
+
+.moonEdge {
+  fill: none;
+  stroke: color-mix(in oklab, var(--pp-gold) 60%, transparent);
+  stroke-width: 1;
+}
+
+.ringLabel {
+  text-anchor: middle;
+  font-family: var(--font-deva, 'Noto Sans Devanagari'), serif;
+  font-size: 8.5px;
+  fill: var(--pp-muted);
+}
+
+.leaf.leaf .vara {
+  margin: 0.35rem 0 0.15rem;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--pp-brand);
+}
+
+.leaf.leaf .calendar {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--pp-muted);
+}
+
+/* Angas — dotted-leader ledger */
+
+.angas {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.anga {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.42rem 0;
+}
+
+.anga dt {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  flex: none;
+}
+
+.angaSa {
+  font-family: var(--font-deva, 'Noto Sans Devanagari'), serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--pp-gold);
+}
+
+.angaEn {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pp-muted);
+}
+
+.leader {
+  flex: 1;
+  min-width: 1rem;
+  border-bottom: 1px dotted color-mix(in oklab, var(--pp-ink) 28%, transparent);
+  transform: translateY(-0.25rem);
+}
+
+.anga dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0;
+  text-align: right;
+  min-width: 0;
+}
+
+.anga dd strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--pp-ink);
+}
+
+.anga dd span {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.78rem;
+  color: var(--pp-muted);
+}
+
+.anga[data-tone='care'] dd strong,
+.anga[data-tone='care'] dd span {
+  color: var(--pp-care);
+}
+
+/* Day arc */
+
+.arcFig {
+  margin-block: 0;
+  min-width: 0;
+}
+
+.arc {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.horizon {
+  stroke: var(--pp-line);
+  stroke-width: 1;
+}
+
+.arcTrack {
+  fill: none;
+  stroke: color-mix(in oklab, var(--pp-gold) 35%, transparent);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 4;
+}
+
+.arcDone {
+  fill: none;
+  stroke: color-mix(in oklab, var(--pp-gold) 85%, transparent);
+  stroke-width: 2;
+}
+
+.arcRahu,
+.arcAbhijit {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.arcRahu { stroke: var(--pp-care); }
+.arcAbhijit { stroke: var(--pp-good); }
+
+.sun {
+  fill: #e8a33a;
+}
+
+.sunHalo {
+  fill: #e8a33a;
+  opacity: 0.22;
+}
+
+.arcCaption {
+  text-anchor: middle;
+  font-family: var(--font-deva, 'Noto Sans Devanagari'), serif;
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--pp-brand);
+}
+
+.arcSub {
+  text-anchor: middle;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 9.5px;
+  fill: var(--pp-muted);
+}
+
+.arcEnd {
+  font-size: 9.5px;
+  font-weight: 600;
+  fill: var(--pp-soft);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem 1.1rem;
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--pp-muted);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legend i {
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.legend b {
+  font-weight: 600;
+  color: var(--pp-ink);
+}
+
+.legendRahu i { background: var(--pp-care); }
+.legendAbhijit i { background: var(--pp-good); }
+
+/* Skeleton */
+
+.skeleton {
+  min-height: 150px;
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--pp-ink) 6%, transparent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeletonRound {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  justify-self: center;
+}
+
+@keyframes pulse {
+  50% { opacity: 0.45; }
+}
+
+@media (max-width: 719px) {
+  .head {
+    justify-content: center;
+    text-align: center;
+  }
+  .headMeta {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+.legend em {
+  font-family: var(--font-serif);
+  font-size: 0.74rem;
+  color: var(--pp-muted);
+}
+
+:global([data-theme='dark']) .moonDark {
+  fill: #2b2940;
+}
+
+:global([data-theme='dark']) .moonLit {
+  fill: #f3ead6;
+}
