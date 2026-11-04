@@ -9,6 +9,14 @@ export type CosmicWheelVariant = 'astrology' | 'prashna' | 'panchang' | 'calenda
 type SkyPlanet = { id: string; sa: string; longitude: number; retro: boolean }
 type SkyHora = { lord: string; start: string; end: string }
 
+type SkyTimelineSegment = {
+  start: string
+  end: string
+  label: string
+  /** Paksha for tithi segments */
+  sub?: string
+}
+
 type SkyPanchang = {
   sunRashi: { rashi: number; sa: string }
   moonRashi: { rashi: number; sa: string }
@@ -25,6 +33,10 @@ type SkyPanchang = {
   rahuKalam: { start: string; end: string }
   abhijitMuhurta: { start: string; end: string }
   calendarContext: { sauraMasa: string; rituSa: string; ayanaSa: string; samvatsara: string }
+  /** Sunrise→next-sunrise limb runs; used when tithi (etc.) changes during the day. */
+  timeline?: {
+    tithi: SkyTimelineSegment[]
+  }
 }
 
 export type TodaySky = {

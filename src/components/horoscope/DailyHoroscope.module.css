@@ -1,0 +1,868 @@
+/* Dainik Rashifal — parchment chakra + manuscript card, built on the site theme tokens. */
+
+.shell {
+  --hz-brand: var(--primary-brand, #8c0030);
+  --hz-gold: var(--gold, #b48600);
+  --hz-ink: var(--text-primary);
+  --hz-ink-soft: var(--text-secondary);
+  --hz-ink-muted: var(--text-muted);
+  --hz-paper: var(--surface-1);
+  --hz-paper-2: var(--surface-2);
+  --hz-line: color-mix(in oklab, var(--hz-brand) 22%, var(--border, #e5ddd0));
+  --hz-good: #2e7d5b;
+  --hz-mixed: #c8691e;
+  --hz-challenging: #b3263b;
+  --hz-excellent: #1f7a62;
+  position: relative;
+  color: var(--hz-ink);
+}
+
+:global([data-theme='dark']) .shell {
+  --hz-brand: #e58aa6;
+  --hz-good: #6fcf9f;
+  --hz-excellent: #5fd4b0;
+  --hz-mixed: #f0a463;
+  --hz-challenging: #f07a8a;
+}
+
+.shell [data-tone='excellent'] { --tone: var(--hz-excellent); }
+.shell [data-tone='good'] { --tone: var(--hz-good); }
+.shell [data-tone='mixed'] { --tone: var(--hz-mixed); }
+.shell [data-tone='challenging'] { --tone: var(--hz-challenging); }
+
+/* ── Heads ── */
+
+.pageHead {
+  text-align: center;
+}
+
+.pageKicker {
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hz-brand);
+}
+
+.pageTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4.5vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--hz-ink);
+}
+
+.pageTitle span {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.5em;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--hz-brand);
+}
+
+.shell.shell .intro {
+  max-width: 62ch;
+  margin: 0.5rem auto 1.25rem;
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--hz-ink-soft);
+}
+
+/* ── Toolbar: Aaj / Kal, date, share ── */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1.25rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--hz-line);
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+}
+
+.tab {
+  padding: 0.2rem 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--hz-ink-muted);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--hz-ink);
+}
+
+.tabActive {
+  color: var(--hz-brand);
+  font-weight: 600;
+  border-bottom-color: var(--hz-brand);
+}
+
+.readAt {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.86rem;
+  color: var(--hz-ink-muted);
+}
+
+.share {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  background: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hz-ink-soft);
+  cursor: pointer;
+}
+
+.share:hover {
+  color: var(--hz-brand);
+}
+
+/* ── Panchang strip ── */
+
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 0 1.5rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--hz-line);
+}
+
+.strip > div {
+  padding: 0.15rem 1rem;
+  text-align: center;
+}
+
+.strip > div + div {
+  border-left: 1px solid var(--hz-line);
+}
+
+.strip dt {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hz-ink-muted);
+}
+
+.strip dd {
+  margin: 0.1rem 0 0;
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--hz-ink);
+}
+
+.strip dd.good {
+  color: var(--hz-good);
+}
+
+.strip dd.care {
+  color: var(--hz-challenging);
+}
+
+@media (max-width: 640px) {
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 0.6rem;
+  }
+  .strip > div + div {
+    border-left: 0;
+  }
+  .strip > div:nth-child(3) {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+}
+
+/* ── Layout ── */
+
+.layout {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(300px, 1fr) minmax(0, 1.08fr);
+  }
+  .shellPage .wheelCol {
+    position: sticky;
+    top: calc(var(--app-header-height, 64px) + 1rem);
+  }
+}
+
+.wheelCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* ── Chakra ── */
+
+.chakra {
+  width: min(100%, 440px);
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 18px 30px color-mix(in oklab, var(--hz-brand) 14%, transparent));
+}
+
+.rimOuter {
+  fill: var(--hz-paper);
+  stroke: var(--hz-brand);
+  stroke-width: 2.5;
+}
+
+.rim {
+  fill: none;
+  stroke: color-mix(in oklab, var(--hz-brand) 55%, transparent);
+  stroke-width: 1;
+}
+
+.spoke {
+  stroke: color-mix(in oklab, var(--hz-brand) 35%, transparent);
+  stroke-width: 0.8;
+}
+
+.seg {
+  cursor: pointer;
+  outline: none;
+}
+
+.segFill {
+  fill: var(--hz-paper);
+  transition: fill 0.2s;
+}
+
+.seg:hover .segFill {
+  fill: color-mix(in oklab, var(--hz-brand) 6%, var(--hz-paper));
+}
+
+.seg:focus-visible .segFill {
+  fill: color-mix(in oklab, var(--hz-brand) 10%, var(--hz-paper));
+  stroke: var(--hz-brand);
+  stroke-width: 1.5;
+}
+
+.segActive .segFill,
+.segActive:hover .segFill {
+  fill: color-mix(in oklab, var(--hz-brand) 22%, var(--hz-paper));
+}
+
+.segGlyph,
+.hubGlyph {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', 'Apple Symbols', sans-serif;
+  fill: var(--hz-ink);
+}
+
+.segGlyph {
+  font-size: 19px;
+}
+
+.segName {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  fill: var(--hz-ink-soft);
+}
+
+.segActive .segGlyph,
+.segActive .segName {
+  fill: var(--hz-brand);
+}
+
+.toneArc {
+  fill: none;
+  stroke: var(--tone);
+  stroke-width: 4;
+  stroke-dasharray: 9 4;
+  stroke-linecap: butt;
+}
+
+.discHi {
+  stop-color: var(--hz-paper);
+}
+
+.discLo {
+  stop-color: color-mix(in oklab, var(--hz-gold) 10%, var(--hz-paper-2));
+}
+
+.disc {
+  stroke: color-mix(in oklab, var(--hz-brand) 25%, transparent);
+  stroke-width: 1;
+}
+
+.scoreTrack {
+  fill: none;
+  stroke: color-mix(in oklab, var(--hz-ink) 8%, transparent);
+  stroke-width: 3.5;
+}
+
+.scoreArc {
+  fill: none;
+  stroke: var(--tone);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s ease;
+}
+
+.hubGlyph {
+  font-size: 26px;
+  fill: var(--hz-brand);
+}
+
+.hubName {
+  text-anchor: middle;
+  font-family: var(--font-display);
+  font-size: 27px;
+  font-weight: 600;
+  fill: var(--hz-ink);
+}
+
+.hubEn {
+  text-anchor: middle;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  fill: var(--hz-ink-muted);
+}
+
+.hubScore {
+  text-anchor: middle;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 700;
+  fill: var(--hz-ink);
+}
+
+.hubOf {
+  font-size: 12px;
+  font-weight: 500;
+  fill: var(--hz-ink-muted);
+}
+
+.hubTone {
+  text-anchor: middle;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  fill: var(--tone);
+}
+
+.moonMark circle {
+  fill: #2b2a3a;
+  stroke: var(--hz-paper);
+  stroke-width: 2.5;
+}
+
+:global([data-theme='dark']) .moonMark circle {
+  fill: #f3ead6;
+}
+
+.shell.shell .hint {
+  max-width: 40ch;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--hz-ink-soft);
+}
+
+.hint strong {
+  font-family: var(--font-body);
+  font-style: normal;
+  color: var(--hz-ink);
+}
+
+.wheelActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.25rem;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1.1rem;
+  border: 0;
+  border-radius: 4px;
+  background: var(--hz-brand);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 6px 16px -8px var(--hz-brand);
+  transition: transform 0.15s, filter 0.2s;
+}
+
+:global([data-theme='dark']) .cta {
+  color: #1a0c12;
+}
+
+.cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.textLink {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  color: var(--hz-brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Manuscript card ── */
+
+.card {
+  position: relative;
+  min-width: 0;
+  padding: clamp(1.1rem, 3vw, 1.75rem);
+  background: var(--hz-paper);
+  border: 1px solid color-mix(in oklab, var(--hz-brand) 45%, transparent);
+  outline: 1px solid color-mix(in oklab, var(--hz-brand) 18%, transparent);
+  outline-offset: -6px;
+  box-shadow: 0 16px 36px -24px color-mix(in oklab, var(--hz-brand) 60%, transparent);
+  animation: fadeUp 0.35s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.cornerTl,
+.cornerBr {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--hz-brand);
+  transform: rotate(45deg);
+}
+
+.cornerTl { top: -4px; left: -4px; }
+.cornerBr { right: -4px; bottom: -4px; }
+
+.shell.shell .kicker {
+  margin: 0;
+  text-align: center;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hz-brand);
+}
+
+.shell.shell .headline {
+  margin: 0.35rem 0 0.25rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 3vw, 1.6rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--hz-brand);
+}
+
+.shell.shell .meta {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--hz-ink-muted);
+}
+
+.ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.8rem 0 1rem;
+  font-size: 0.75rem;
+  color: var(--hz-brand);
+}
+
+.ornament span {
+  width: min(28%, 120px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hz-line), transparent);
+}
+
+.shell.shell .lede {
+  margin: 0 0 1rem;
+  font-family: var(--font-serif);
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--hz-ink);
+}
+
+.dropCap {
+  float: left;
+  margin: 0.2rem 0.45rem 0 0;
+  font-family: var(--font-display);
+  font-size: 3.1rem;
+  font-weight: 700;
+  line-height: 0.8;
+  color: var(--hz-brand);
+}
+
+.shell.shell .later {
+  margin: -0.4rem 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 2px solid var(--hz-gold);
+  background: color-mix(in oklab, var(--hz-gold) 8%, transparent);
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--hz-ink-soft);
+}
+
+.shell.shell .label {
+  margin: 1rem 0 0.45rem;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hz-brand);
+}
+
+.label em {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--hz-ink-muted);
+}
+
+.shell.shell .labelCare {
+  color: var(--hz-mixed);
+}
+
+.phala {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phala li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+}
+
+.phalaName {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hz-ink);
+}
+
+.phalaName em {
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--hz-ink-muted);
+}
+
+.leader {
+  flex: 1;
+  min-width: 1rem;
+  border-bottom: 1px dotted color-mix(in oklab, var(--hz-ink) 30%, transparent);
+  transform: translateY(-0.2rem);
+}
+
+.diamonds {
+  display: inline-flex;
+  gap: 1px;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.dOn {
+  color: var(--tone);
+}
+
+.dOff {
+  color: color-mix(in oklab, var(--hz-ink) 30%, transparent);
+}
+
+.shubh {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 1.1rem 0 0;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--hz-line);
+  border-bottom: 1px solid var(--hz-line);
+}
+
+.shubh > div {
+  text-align: center;
+  padding: 0 0.4rem;
+}
+
+.shubh > div + div {
+  border-left: 1px solid var(--hz-line);
+}
+
+.shubh dt {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hz-ink-muted);
+}
+
+.shubh dd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0.25rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hz-ink);
+}
+
+.shubh dd.ank {
+  font-size: 1.3rem;
+  color: var(--hz-brand);
+}
+
+.swatch {
+  flex: none;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--hz-ink) 25%, transparent);
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 0 1.25rem;
+}
+
+.kv > div + div {
+  border-left: 1px solid var(--hz-line);
+  padding-left: 1.25rem;
+}
+
+@media (max-width: 480px) {
+  .kv > div + div {
+    border-left: 0;
+    padding-left: 0;
+  }
+}
+
+.kv ul,
+.plain,
+.gochara {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.kv li,
+.plain li {
+  position: relative;
+  padding-left: 0.95rem;
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--hz-ink-soft);
+}
+
+.kv li::before,
+.plain li::before {
+  content: '◆';
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  font-size: 0.5rem;
+  color: var(--hz-good);
+}
+
+.kv > div + div li::before {
+  color: var(--hz-mixed);
+}
+
+.shell.shell .upaya {
+  display: flex;
+  gap: 0.6rem;
+  margin: 1.1rem 0 0;
+  padding: 0.7rem 0.85rem;
+  background: color-mix(in oklab, var(--hz-gold) 9%, transparent);
+  border-radius: 4px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--hz-ink-soft);
+}
+
+.upaya strong {
+  color: var(--hz-brand);
+}
+
+.upayaMark {
+  flex: none;
+  font-family: var(--font-deva, serif);
+  font-size: 1.3rem;
+  line-height: 1.1;
+  color: var(--hz-brand);
+}
+
+.gochara li {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--hz-ink-soft);
+}
+
+.gochara strong {
+  color: var(--hz-ink);
+}
+
+.gGlyph {
+  flex: none;
+  width: 1.2rem;
+  text-align: center;
+  font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', 'Apple Symbols', sans-serif;
+  color: var(--hz-ink-muted);
+}
+
+.gochara li[data-status='favourable'] .gGlyph { color: var(--hz-good); }
+.gochara li[data-status='unfavourable'] .gGlyph { color: var(--hz-mixed); }
+
+.shell.shell .method {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.76rem;
+  color: var(--hz-ink-muted);
+}
+
+.method a {
+  color: var(--hz-brand);
+  font-weight: 600;
+}
+
+/* ── Skeleton ── */
+
+.skeletonWheel,
+.skeletonCard {
+  background: color-mix(in oklab, var(--hz-ink) 6%, transparent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeletonWheel {
+  justify-self: center;
+  width: min(100%, 420px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.skeletonCard {
+  min-height: 420px;
+}
+
+@keyframes pulse {
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .skeletonWheel,
+  .skeletonCard {
+    animation: none;
+  }
+  .scoreArc {
+    transition: none;
+  }
+}
+
+/* Indian-style sign marks: Devanagari rashi names. */
+.segDeva,
+.hubDeva {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-family: var(--font-deva, 'Noto Sans Devanagari'), var(--font-display);
+  font-weight: 600;
+}
+
+.segDeva {
+  font-size: 15px;
+  fill: var(--hz-ink);
+}
+
+.segActive .segDeva {
+  fill: var(--hz-brand);
+}
+
+.hubDeva {
+  font-size: 22px;
+  fill: var(--hz-brand);
+}
+
+/* Pictorial rashi marks — antique gold, brand colour when selected. */
+.segIcon {
+  color: #a77a3a;
+}
+
+.segActive .segIcon {
+  color: var(--hz-brand);
+}
+
+.hubIcon {
+  color: #a77a3a;
+}
+
+:global([data-theme='dark']) .segIcon,
+:global([data-theme='dark']) .hubIcon {
+  color: #d9b273;
+}
+
+.shell .segDeva {
+  font-size: 13px;
+}
+
+.shell .hubDeva {
+  font-size: 20px;
+}

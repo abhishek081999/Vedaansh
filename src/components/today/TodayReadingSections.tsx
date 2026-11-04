@@ -90,11 +90,14 @@ export function MoonCard({
   tz,
   natal,
   transitMoon,
+  visual,
 }: {
   r: TodayReading
   tz: string
   natal?: ChartOutput
   transitMoon?: TodayTransitGraha | null
+  /** Optional graphic shown under the title (phase, Tara and Chandra wheels). */
+  visual?: React.ReactNode
 }) {
   const m = r.moon
   const moonTone: Tone = m.chandraQuality === 'good' ? 'good' : m.chandraQuality === 'bad' ? 'caution' : 'mixed'
@@ -113,6 +116,7 @@ export function MoonCard({
   return (
     <section className={styles.card} aria-label="Your Moon today">
       <h2 className={styles.cardTitle}>Your Moon today</h2>
+      {visual}
       <div className={styles.kv} style={toned(moonTone)}>
         <span className={styles.kvKey}>Moon</span>
         <span className={styles.kvVal}>
@@ -184,10 +188,11 @@ export function MoonCard({
 
 // ── Panchang ─────────────────────────────────────────────────
 
-export function PanchangCard({ r }: { r: TodayReading }) {
+export function PanchangCard({ r, visual }: { r: TodayReading; visual?: React.ReactNode }) {
   return (
     <section className={styles.card} aria-label="Panchang for today">
       <h2 className={styles.cardTitle}>Panchang, read for you</h2>
+      {visual}
       {r.panchang.map(it => (
         <div key={it.key} className={styles.kv} style={toned(it.quality)}>
           <span className={styles.kvKey}>{it.label}</span>
@@ -205,11 +210,8 @@ export function PanchangCard({ r }: { r: TodayReading }) {
 
 // ── Life areas ───────────────────────────────────────────────
 
-export function AreasCard({ r }: { r: TodayReading }) {
-  return (
-    <section className={styles.card} aria-label="Life areas today">
-      <h2 className={styles.cardTitle}>Life areas today</h2>
-      {r.areas.map(a => {
+export function AreasCard({ r, visual }: { r: TodayReading; visual?: React.ReactNode }) {
+  const rows = r.areas.map(a => {
         const tone = scoreTone(a.score)
         return (
           <div key={a.id} className={styles.areaRow} style={toned(tone)}>
@@ -221,7 +223,13 @@ export function AreasCard({ r }: { r: TodayReading }) {
             {a.drivers.length > 0 && <span className={styles.areaWhy}>{a.verdict}: {a.drivers.join('; ')}.</span>}
           </div>
         )
-      })}
+      })
+  return (
+    <section className={styles.card} aria-label="Life areas today">
+      <h2 className={styles.cardTitle}>Life areas today</h2>
+      {visual
+        ? <div className={styles.areasLayout}><div className={styles.areasViz}>{visual}</div><div className={styles.areasRows}>{rows}</div></div>
+        : rows}
       <p className={styles.note}>
         Scores combine today&apos;s Moon, Tara/Chandra Bala, panchang, and the gochar of the planets that rule each area. They are relative, not absolute.
       </p>
@@ -231,7 +239,7 @@ export function AreasCard({ r }: { r: TodayReading }) {
 
 // ── Windows ──────────────────────────────────────────────────
 
-export function WindowsCard({ r, tz }: { r: TodayReading; tz: string }) {
+export function WindowsCard({ r, tz, visual }: { r: TodayReading; tz: string; visual?: React.ReactNode }) {
   const { good, avoid, horas, currentHora } = r.windows
   const row = (w: TimedWindow, tone: Tone) => (
     <div key={`${w.label}-${w.startIso}`} className={styles.windowRow} style={toned(tone)}>
@@ -246,6 +254,7 @@ export function WindowsCard({ r, tz }: { r: TodayReading; tz: string }) {
   return (
     <section className={styles.card} aria-label="Timing windows">
       <h2 className={styles.cardTitle}>Timing today</h2>
+      {visual}
       {currentHora && (
         <p className={styles.note}>
           Now: <strong style={{ color: 'var(--text-primary)' }}>{currentHora.label}</strong>

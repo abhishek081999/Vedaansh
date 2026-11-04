@@ -1,0 +1,133 @@
+.main {
+  max-width: 1120px;
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 1.75rem) 16px 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.blockTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+  color: var(--text-primary);
+}
+
+.blockNote {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.blockNote a {
+  color: var(--text-gold);
+  font-weight: 600;
+}
+
+.signGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.signCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 12px);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.signCard:hover {
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.signCardActive {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold) inset;
+}
+
+.signGlyph {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  color: #a77a3a;
+  background: color-mix(in oklab, var(--gold) 12%, transparent);
+}
+
+.signText .signDeva {
+  display: inline;
+  font-family: var(--font-deva, 'Noto Sans Devanagari'), var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-gold);
+}
+
+.signText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.signText strong {
+  font-size: 0.92rem;
+}
+
+.signText span {
+  overflow: hidden;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.signScore {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-gold);
+}
+
+.signScore[data-tone='excellent'] { color: #2f9e6b; }
+.signScore[data-tone='mixed'] { color: #c7772f; }
+.signScore[data-tone='challenging'] { color: #c84b4b; }
+
+.faq {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 12px);
+  background: var(--surface-1);
+  padding: 0.75rem 1rem;
+}
+
+.faq summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.faq p {
+  margin: 0.6rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
