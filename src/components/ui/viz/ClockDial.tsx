@@ -89,10 +89,12 @@ export function ClockDial({
       })}
       {now !== undefined && (() => {
         const [x, y] = polar(c, c, R + 2, ang(now))
+        // With centre text, start the hand at the inner disc so it does not cross the label.
+        const [x0, y0] = centerTop || centerBottom ? polar(c, c, R - 2 * (ringW + 4) - 2, ang(now)) : [c, c]
         return (
           <g>
-            <line x1={c} y1={c} x2={x} y2={y} stroke="var(--text-primary)" strokeWidth={2} strokeLinecap="round" />
-            <circle cx={c} cy={c} r={4} fill="var(--text-primary)" />
+            <line x1={x0} y1={y0} x2={x} y2={y} stroke="var(--text-primary)" strokeWidth={2} strokeLinecap="round" />
+            <circle cx={x0} cy={y0} r={centerTop || centerBottom ? 3 : 4} fill="var(--text-primary)" />
           </g>
         )
       })()}

@@ -19,6 +19,7 @@ import { HouseMapPanel, PredictionsCard } from './TodayPredictionSections'
 import { TodayDashaPanel } from './TodayDashaPanel'
 import { TodayTabs, type TodayTabDef } from './TodayTabs'
 import { DayTimelineCard, KakshyaCard, SudarshanaCard } from './TodayAdvancedSections'
+import { AreasRadar, DayDial, DaySignals, MoonVisuals, PanchangLimbs, ScoreDial } from './TodayVisuals'
 import styles from './today-reading.module.css'
 
 const LOCATION_KEY = 'vedaansh-today-location'
@@ -136,9 +137,9 @@ export function TodayReadingPanel({ chart }: { chart: ChartOutput }) {
             </div>
             <div className={styles.sideCol}>
               <section className={styles.hero} style={toned(scoreTone(reading.score))} aria-label="Overall day">
-                <div className={styles.scoreRing} role="img" aria-label={`${reading.label}, ${reading.score} out of 100`}>
-                  <span className={styles.scoreValue}>{reading.score}</span>
-                  <span className={styles.scoreLabel}>{reading.label}</span>
+                <div className={styles.heroViz}>
+                  <ScoreDial score={reading.score} label={reading.label} />
+                  <DaySignals r={reading} />
                 </div>
                 <div>
                   <h2 className={styles.headline}>{reading.headline}</h2>
@@ -151,19 +152,30 @@ export function TodayReadingPanel({ chart }: { chart: ChartOutput }) {
             </div>
           </div>
 
-          <AreasCard r={reading} />
+          <AreasCard r={reading} visual={<AreasRadar r={reading} />} />
           <div className={styles.grid2}>
             <MoonCard
               r={reading}
               tz={tz}
               natal={chart}
               transitMoon={transit.find(g => g.id === 'Mo') ?? null}
+              visual={(
+                <MoonVisuals
+                  r={reading}
+                  sun={transit.find(g => g.id === 'Su') ?? null}
+                  moon={transit.find(g => g.id === 'Mo') ?? null}
+                />
+              )}
             />
-            <PanchangCard r={reading} />
+            <PanchangCard r={reading} visual={<PanchangLimbs items={reading.panchang} />} />
           </div>
           {advanced && <DayTimelineCard a={advanced} tz={tz} />}
           <div className={styles.grid2}>
-            <WindowsCard r={reading} tz={tz} />
+            <WindowsCard
+              r={reading}
+              tz={tz}
+              visual={<DayDial r={reading} segments={advanced?.timeline?.segments} tz={tz} now={asOf ?? new Date()} />}
+            />
             <RemedyCard r={reading} />
           </div>
           {advanced && (
