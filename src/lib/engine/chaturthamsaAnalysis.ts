@@ -734,7 +734,7 @@ function buildRelocation(
     tone = 'challenging'
     headline = eighthLordPeriodActive ? 'Strong relocation window' : '6/8 dasha link — move possible'
     details.push(
-      `Mahadasha lord and Antardasha lord stand in a 6/8 relationship in D4 — class rule for residence change.`,
+      `Mahadasha lord and Antardasha lord stand in a 6/8 relationship in D4 — a strong indicator for residence change.`,
     )
   }
   if (!details.length) {

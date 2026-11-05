@@ -672,7 +672,7 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
       saturn,
       'Delays in love and marriage — Saturn demands tapasya before love comes close.',
       [
-        'Delay in love / marriage (obvious class note)',
+        'Delay in love / marriage',
         'Past-life deception / betrayal of a woman tradition — penance now',
         'Tests patience and commitment',
       ],
@@ -1048,13 +1048,13 @@ export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
     naturalAgeNote:
       'Classical planetary maturity for Venus significations is often cited near 25 — do not confuse with 20-year Venus mahadasha length.',
     dashaNote:
-      'Venus mahadasha = 20 years. Results shift: early ~4–5 years, middle ~7–8 years, remaining years another band. Over 20 years, class note: a person eventually tires of bhog. Detail belongs in dasha–antardasha study.',
+      'Venus mahadasha = 20 years. Results shift: early ~4–5 years, middle ~7–8 years, remaining years another band. Over 20 years, a person eventually tires of bhog. Detail belongs in dasha–antardasha study.',
     classical,
     caveats: [
       'Outer romance/luxury readings are skeleton only — always include bridge/moksha layer',
       'Venus–Mars is not automatic sexual-crime yoga — judge full chart',
       'Vakri (retrograde) returns are specialty + complication — not a curse to announce casually',
-      'Combust orb: class 10° (some 8°) — align with engine 10° but note textual variance',
+      'Combust orb often cited as 10° (some texts 8°) — engine uses 10°; note textual variance',
       'Dusthana (difficult houses: 6, 8, 12) Venus needs healing language, not fatalism about opposite sex',
       'Check chart capacity before gemstones / ritual prescriptions',
     ],

@@ -373,7 +373,7 @@ export const SUN_YUTI_TEACHINGS: SunYutiTeaching[] = [
       'Primary: cultivate emotional independence (hard but central)',
       'Rudri Path; Somnath darshan (Moon); Tarkeshwar Shiv tantric jaap (Sun)',
       'Shri Vidya — nine āvaraṇas practice (not full system necessarily)',
-      'Diksha only from a Shankaracharya lineage when seeking initiation (class note)',
+      'Diksha only from a Shankaracharya lineage when seeking initiation',
       'Rigveda “द्व सुपर्ण” — two birds on one tree competing for one fruit (body/consciousness)',
     ],
   },
