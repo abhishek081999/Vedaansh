@@ -21,14 +21,23 @@ const DOSHA_WORD: Record<DoshaTone, string> = { clear: 'Clear', watch: 'Watch', 
 
 // ── Doshas ───────────────────────────────────────────────────
 
-export function DoshaSnapshotCard({ chart }: { chart: ChartOutput }) {
+export function DoshaSnapshotCard({
+  chart,
+  onOpenDosha,
+}: {
+  chart: ChartOutput
+  onOpenDosha?: () => void
+}) {
   const snap = useMemo(() => getDoshaSnapshot(chart), [chart])
   if (!snap) {
     return <DashCard title="Doshas & Afflictions"><DashEmpty>Unavailable. Recalculate the chart.</DashEmpty></DashCard>
   }
+  const shrapIds = new Set(['pitru', 'matru', 'sarpa', 'guru', 'brahmin', 'stri'])
+  const coreFlags = snap.flags.filter(f => !shrapIds.has(f.id))
+  const shrapFlags = snap.flags.filter(f => shrapIds.has(f.id))
   return (
     <DashCard title="Doshas & Afflictions" meta="from Lagna">
-      {snap.flags.map(f => (
+      {coreFlags.map(f => (
         <DashRow
           key={f.id}
           dot
@@ -37,10 +46,37 @@ export function DoshaSnapshotCard({ chart }: { chart: ChartOutput }) {
           value={<><strong>{DOSHA_WORD[f.tone]}</strong> · {f.detail}</>}
         />
       ))}
+      {shrapFlags.length > 0 && (
+        <div style={{ marginTop: '0.35rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+            <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-gold)' }}>
+              Shrap desk
+            </span>
+            {onOpenDosha ? (
+              <button
+                type="button"
+                onClick={onOpenDosha}
+                style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+              >
+                Open full reading →
+              </button>
+            ) : null}
+          </div>
+          {shrapFlags.map(f => (
+            <DashRow
+              key={f.id}
+              dot
+              tone={DOSHA_TONE[f.tone]}
+              label={f.label}
+              value={<><strong>{DOSHA_WORD[f.tone]}</strong> · {f.detail}</>}
+            />
+          ))}
+        </div>
+      )}
       {snap.maleficYogas.length > 0 && (
         <DashRow label="Malefic yogas" tone="watch" value={snap.maleficYogas.map(y => y.name).join(', ')} />
       )}
-      <DashNote>Indicators, not verdicts. Weigh them with dasha, aspects, and the full chart.</DashNote>
+      <DashNote>Indicators, not verdicts. Weigh them with dasha, aspects, and the full chart. Commercial Kal Sarp is not scored.</DashNote>
     </DashCard>
   )
 }

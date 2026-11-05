@@ -50,6 +50,7 @@ Canonical plan ids: `free` | `gold` | `platinum`.
 | Prashna Kerala / Vedic / KP | Satpanchasika only | Yes | Yes | UI: `prashna/page` (Gold+) |
 | Relationship and marriage | D1 lagna chart and five score lines | Full reading | Full reading, plus extended divisionals | UI: `RelationshipMarriagePanel` (`planMeetsUiGate`, Gold+) |
 | Career and profession | D1 chart, five scores, and the five professional-method answers | Full reading, including the seven-step method | Full reading, including the seven-step method | UI: `CareerProfessionPanel` (`planMeetsUiGate`, Gold+) |
+| Dosha & Upay (Shrap) | Flag severity teaser (present/watch counts) | Full Pitru/Matru/Sarpa/Guru/Brahmin/Stri desk, children focus, addiction signatures, lending risk, Jupiter remedy timing | Same as Gold | UI: `ShrapDoshaPanel` on `/dosha` (`planMeetsUiGate`, Gold+); dashboard flags via `getDoshaSnapshot` |
 | Kundali Milan — Ashtakoot, Deep Milan, Porutham, dosha, charts, dasha, panchang | Yes | Yes | Yes | `src/app/compare/page.tsx` |
 | Kundali Milan match-making | Headline, lagna, and summary | Steps, four pillars, division overlay | Same as Gold | UI: `MilanMatchMakingPanel` (Gold+) |
 | Kundali Milan married life | Summary, Moon, 4th, 10th, and five scores | Cross-chart reading, houses, partner, separation, timing | Same as Gold | UI: `MilanMarriedLifePanel` (Gold+) |

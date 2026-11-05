@@ -44,6 +44,8 @@ describe('getDoshaSnapshot', () => {
     expect(manglik.tone).not.toBe('clear')
     expect(snap.flags.find(f => f.id === 'gandanta')!.tone).toBe('clear')
     expect(snap.flags.some(f => f.id === 'kaalsarp')).toBe(false)
+    expect(snap.flags.some(f => f.id === 'pitru')).toBe(true)
+    expect(snap.flags.some(f => f.id === 'sarpa')).toBe(true)
   })
 
   it('reports gandanta and combustion planets by name', () => {
