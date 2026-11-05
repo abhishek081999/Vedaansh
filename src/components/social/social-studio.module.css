@@ -372,3 +372,218 @@
   text-align: center;
   color: var(--text-secondary);
 }
+
+/* ── Calendar ───────────────────────────────────────────── */
+
+.calHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.calTitle {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0 0.25rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.calGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.calWeekday {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
+  padding: 0.25rem 0;
+}
+
+.calCell {
+  min-height: 108px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  background: var(--surface-1, transparent);
+}
+
+.calEmpty {
+  background: transparent;
+  border-style: dashed;
+  opacity: 0.4;
+}
+
+.calToday {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+
+.calDay {
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+}
+
+.calDay:hover {
+  color: var(--gold);
+}
+
+.evChip,
+.postChip {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legend .evChip,
+.legend .postChip {
+  width: auto;
+  cursor: default;
+}
+
+.ev_festival {
+  background: rgba(240, 160, 60, 0.18);
+  color: #c46a00;
+  border-color: rgba(240, 160, 60, 0.45);
+}
+
+.ev_vrat {
+  background: rgba(139, 124, 246, 0.16);
+  color: #6b5bd6;
+  border-color: rgba(139, 124, 246, 0.4);
+}
+
+.ev_ingress {
+  background: rgba(78, 205, 196, 0.15);
+  color: #1d8f87;
+  border-color: rgba(78, 205, 196, 0.4);
+}
+
+.ev_retro {
+  background: rgba(224, 123, 142, 0.15);
+  color: #c24a63;
+  border-color: rgba(224, 123, 142, 0.4);
+}
+
+.postChip {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border-color: var(--border-bright, var(--border));
+  border-left-width: 4px;
+}
+
+.st_idea {
+  border-left-color: #9aa0a6;
+}
+
+.st_draft {
+  border-left-color: var(--gold);
+}
+
+.st_ready {
+  border-left-color: #2bb673;
+}
+
+.st_posted {
+  border-left-color: #6b5bd6;
+  opacity: 0.75;
+}
+
+@media (max-width: 760px) {
+  .calCell {
+    min-height: 70px;
+  }
+  .evChip,
+  .postChip {
+    font-size: 0.6rem;
+  }
+}
+
+/* ── Library ────────────────────────────────────────────── */
+
+.libList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.libRow {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) 120px auto auto;
+  gap: 0.6rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.55rem 0.75rem;
+}
+
+@media (max-width: 760px) {
+  .libRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .libMain {
+    grid-column: 1 / -1;
+  }
+}
+
+.libDate {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--gold);
+}
+
+.libMain {
+  min-width: 0;
+}
+
+.libMain .templateMeta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ev_eclipse {
+  background: rgba(30, 30, 40, 0.85);
+  color: #f2d27a;
+  border-color: rgba(242, 210, 122, 0.55);
+  font-weight: 700;
+}

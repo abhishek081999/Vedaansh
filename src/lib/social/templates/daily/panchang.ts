@@ -3,7 +3,7 @@ import { GRAHA_NAMES } from '@/types/astrology'
 import { cap, fmtDeg, fmtRange, fmtT } from '@/lib/social/render/kit'
 import type { Row, SlideSpec } from '@/lib/social/render/slides/types'
 import type { DayData, TemplateDef } from '@/lib/social/templates/types'
-import { DAILY_CTA, dateLabels, grahaId } from '@/lib/social/templates/shared'
+import { DAILY_CTA, dateLabels, fmtUntil, grahaId } from '@/lib/social/templates/shared'
 
 function goodBadRows(d: DayData): { good: Row[]; bad: Row[] } {
   const p = d.panchang
@@ -45,8 +45,8 @@ export const panchangDaily: TemplateDef = {
         meta: [cc?.sauraMasa, paksha, cc?.vikramSamvat ? `V.S. ${cc.vikramSamvat}` : ''].filter(Boolean).join('  ·  '),
         hero: { kind: 'wheel', planets, highlightNak: p.nakshatra?.index ?? null },
         tiles: [
-          { label: 'Tithi', value: p.tithi?.name ?? '—', detail: `till ${fmtT(p.limbEnds?.tithi)}` },
-          { label: 'Nakshatra', value: p.nakshatra?.name ?? '—', detail: `till ${fmtT(p.limbEnds?.nakshatra)}` },
+          { label: 'Tithi', value: p.tithi?.name ?? '—', detail: `till ${fmtUntil(p.limbEnds?.tithi, d.date, fmtT)}` },
+          { label: 'Nakshatra', value: p.nakshatra?.name ?? '—', detail: `till ${fmtUntil(p.limbEnds?.nakshatra, d.date, fmtT)}` },
         ],
       },
       {
@@ -55,17 +55,17 @@ export const panchangDaily: TemplateDef = {
         sections: [
           {
             rows: [
-              { title: p.tithi?.name ?? '—', note: `Tithi · ${paksha}`, right: `till ${fmtT(p.limbEnds?.tithi)}`, lead: { kind: 'medallion', text: 'ति' } },
+              { title: p.tithi?.name ?? '—', note: `Tithi · ${paksha}`, right: `till ${fmtUntil(p.limbEnds?.tithi, d.date, fmtT)}`, lead: { kind: 'medallion', text: 'ति' } },
               {
                 title: p.nakshatra?.name ?? '—',
                 note: `Nakshatra · pada ${p.nakshatra?.pada ?? '—'} · ${GRAHA_NAMES[grahaId(p.nakshatra?.lord)]}`,
-                right: `till ${fmtT(p.limbEnds?.nakshatra)}`,
+                right: `till ${fmtUntil(p.limbEnds?.nakshatra, d.date, fmtT)}`,
                 lead: { kind: 'medallion', text: 'न' },
               },
               {
                 title: p.yoga?.name ?? '—',
                 note: `Yoga${p.yoga?.quality ? ` · ${p.yoga.quality}` : ''}`,
-                right: `till ${fmtT(p.limbEnds?.yoga)}`,
+                right: `till ${fmtUntil(p.limbEnds?.yoga, d.date, fmtT)}`,
                 tone: /inausp/i.test(p.yoga?.quality ?? '') ? 'mixed' : 'neutral',
                 lead: { kind: 'medallion', text: 'यो' },
               },
@@ -132,8 +132,8 @@ export const panchangDaily: TemplateDef = {
       caption: {
         hook: `🕉 Aaj ka Panchang — ${dl.long}`,
         lines: [
-          `Tithi: ${p.tithi?.name} (${paksha}) till ${fmtT(p.limbEnds?.tithi)}`,
-          `Nakshatra: ${p.nakshatra?.name} till ${fmtT(p.limbEnds?.nakshatra)}`,
+          `Tithi: ${p.tithi?.name} (${paksha}) till ${fmtUntil(p.limbEnds?.tithi, d.date, fmtT)}`,
+          `Nakshatra: ${p.nakshatra?.name} till ${fmtUntil(p.limbEnds?.nakshatra, d.date, fmtT)}`,
           `Yoga: ${p.yoga?.name} · Karana: ${p.karana?.name}`,
           `Sunrise ${fmtT(p.sunrise)} · Sunset ${fmtT(p.sunset)}`,
           `Rahu Kaal: ${fmtRange(p.rahuKalam?.start, p.rahuKalam?.end)}`,

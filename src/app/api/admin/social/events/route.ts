@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     const { from, to, loc } = parsed.data
     const location = EVENT_LOCATIONS[loc]
 
-    const key = `social:events:v1:${loc}:${from}:${to}`
+    const key = `social:events:v2:${loc}:${from}:${to}`
     let events = (await redis.get(key)) as CalendarEvent[] | null
     if (!events) {
       events = findCalendarEvents(from, to, location)

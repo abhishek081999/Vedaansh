@@ -56,6 +56,11 @@ export const skyToday: TemplateDef = {
   },
 }
 
+const GRAHA_MANTRA: Record<RemedyGrahaId, string> = {
+  Su: 'Om Suryaya Namah', Mo: 'Om Chandraya Namah', Ma: 'Om Mangalaya Namah', Me: 'Om Budhaya Namah', Ju: 'Om Gurave Namah',
+  Ve: 'Om Shukraya Namah', Sa: 'Om Shanaishcharaya Namah', Ra: 'Om Rahave Namah', Ke: 'Om Ketave Namah',
+}
+
 export const upayToday: TemplateDef = {
   id: 'upay',
   code: 'A9',
@@ -82,7 +87,8 @@ export const upayToday: TemplateDef = {
           {
             title: 'Worship & donate',
             items: [
-              teach.spiritual.find((s) => /chant|mantra/i.test(s)) ?? teach.spiritual[0] ?? (teach.deities.length ? `Worship ${teach.deities.join(' / ')}` : ''),
+              teach.spiritual.find((s) => /chant|mantra/i.test(s)) ?? `Chant “${GRAHA_MANTRA[lord]}” 108 times`,
+              teach.deities.length ? `Worship ${teach.deities.join(' / ')}` : '',
               teach.donation.length ? `Donate: ${teach.donation.slice(0, 3).join(', ')}` : '',
             ].filter(Boolean),
           },
@@ -93,7 +99,7 @@ export const upayToday: TemplateDef = {
       slides,
       caption: {
         hook: `🙏 Aaj ka Upay — ${dl.weekday} is ruled by ${meta.lordName} (${teach.sanskrit})`,
-        lines: [meta.dayGuidance, ...teach.behavioral.slice(0, 3).map((s) => `• ${s}`), `Donate: ${teach.donation.join(', ')}`],
+        lines: [meta.dayGuidance, ...teach.behavioral.slice(0, 3).map((s) => `• ${s}`), `Mantra: ${GRAHA_MANTRA[lord]}`, teach.donation.length ? `Donate: ${teach.donation.join(', ')}` : ''],
         tags: ['#upay', '#remedies', `#${teach.sanskrit}`, '#vedicremedies', '#grahashanti'],
       },
     }

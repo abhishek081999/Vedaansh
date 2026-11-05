@@ -4,7 +4,7 @@ import { NAKSHATRA_REMEDIES } from '@/lib/engine/nakshatraRemedies'
 import { fmtT } from '@/lib/social/render/kit'
 import type { SlideSpec } from '@/lib/social/render/slides/types'
 import type { TemplateDef } from '@/lib/social/templates/types'
-import { DAILY_CTA, dateLabels, grahaSa } from '@/lib/social/templates/shared'
+import { DAILY_CTA, dateLabels, fmtUntil, grahaSa } from '@/lib/social/templates/shared'
 import { NAK_BEST_FOR, NAK_DEITY, NAK_QUALITY, NAK_SYMBOL } from '@/lib/social/templates/daily/nakshatra-meta'
 
 const QUALITY_EN: Record<string, string> = { Chara: 'Movable', Sthira: 'Fixed', Misra: 'Mixed', Tikshna: 'Sharp', Mridu: 'Soft', Ugra: 'Fierce' }
@@ -33,7 +33,7 @@ export const nakshatraDaily: TemplateDef = {
         type: 'cover',
         head: { kicker: `Nakshatra of the day · ${dl.short}`, deva: 'आज का नक्षत्र', title: name, sub: `Moon in ${p.moonRashi?.sa ?? '—'} · pada ${pada}` },
         hero: { kind: 'nakRing', idx, moonLon: p.moonRashi?.longitude, big: String(idx + 1), small: 'of 27' },
-        meta: `Symbol · ${NAK_SYMBOL[idx] ?? '—'}  ·  until ${fmtT(p.limbEnds?.nakshatra)}`,
+        meta: `Symbol · ${NAK_SYMBOL[idx] ?? '—'}  ·  until ${fmtUntil(p.limbEnds?.nakshatra, d.date, fmtT)}`,
       },
       {
         type: 'tiles',
@@ -45,7 +45,7 @@ export const nakshatraDaily: TemplateDef = {
           { label: 'Nature', value: q || '—', detail: QUALITY_EN[q] ? `${QUALITY_EN[q]} nakshatra` : '' },
           { label: 'Pada', value: `${pada} of 4`, detail: `${PADA_AIM[pada - 1]} pada` },
           { label: 'Symbol', value: NAK_SYMBOL[idx] ?? '—' },
-          { label: 'Until', value: fmtT(p.limbEnds?.nakshatra), detail: 'Moon moves on' },
+          { label: 'Until', value: fmtUntil(p.limbEnds?.nakshatra, d.date, fmtT), detail: 'Moon moves on' },
         ],
       },
       {
@@ -68,7 +68,7 @@ export const nakshatraDaily: TemplateDef = {
       caption: {
         hook: `🌙 Today’s nakshatra: ${name} — ${dl.long}`,
         lines: [
-          `Moon in ${name} pada ${pada} until ${fmtT(p.limbEnds?.nakshatra)}.`,
+          `Moon in ${name} pada ${pada} until ${fmtUntil(p.limbEnds?.nakshatra, d.date, fmtT)}.`,
           `Deity: ${NAK_DEITY[idx]} · Lord: ${GRAHA_NAMES[lord]} · Symbol: ${NAK_SYMBOL[idx]}`,
           `Favourable for: ${NAK_BEST_FOR[idx]}`,
           rem ? `Mantra: ${rem.mantra}` : '',

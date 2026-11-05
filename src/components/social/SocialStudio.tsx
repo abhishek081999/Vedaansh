@@ -8,7 +8,7 @@ import { ensureFonts } from '@/lib/social/render/kit'
 import type { BrandSettings, SlideSpec } from '@/lib/social/render/slides/types'
 import { CATEGORY_LABEL, type DayData, type TemplateDef, type TemplateParams } from '@/lib/social/templates/types'
 import { TEMPLATES, templatesByCategory } from '@/lib/social/templates/registry'
-import { CITY_PRESETS } from '@/lib/social/templates/shared'
+import { CITY_PRESETS, pickEvent, shortDay } from '@/lib/social/templates/shared'
 import {
   CAPTION_MAX_CHARS,
   CAPTION_MAX_TAGS,
@@ -17,7 +17,12 @@ import {
   type HashtagPreset,
 } from '@/lib/social/caption/caption'
 import { downloadBlob, makeZip, renderSlideToCanvas, renderSlidesToBlobs, slideFileName, type RenderOpts } from '@/lib/social/export/export'
+import { CalendarView } from '@/components/social/CalendarView'
+import { LibraryView } from '@/components/social/LibraryView'
+import { STATUS_LABEL, socialApi, type PostStatus, type SocialPostDto } from '@/components/social/api'
 import styles from './social-studio.module.css'
+
+type Tab = 'studio' | 'calendar' | 'library'
 
 const BRAND_KEY = 'vedaansh.social.brand.v1'
 const DEFAULT_BRAND: BrandSettings & { preset: HashtagPreset } = {
@@ -81,7 +86,12 @@ export function SocialStudio() {
   const [slideIdx, setSlideIdx] = useState(0)
   const [ready, setReady] = useState(false)
   const [icon, setIcon] = useState<HTMLImageElement | null>(null)
-  const [captionEdit, setCaptionEdit] = useState<string | null>(null)
+  const [captionEdit, setCaptionEdit] = useState<{ key: string; text: string } | null>(null)
+  const [tab, setTab] = useState<Tab>('studio')
+  const [eventId, setEventId] = useState<string | undefined>(undefined)
+  const [item, setItem] = useState(1)
+  const [editing, setEditing] = useState<{ id: string; status: PostStatus } | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
   const [busy, setBusy] = useState<string | null>(null)
   const [secondsPerSlide, setSecondsPerSlide] = useState(3)
   const [notice, setNotice] = useState<string | null>(null)
@@ -89,7 +99,8 @@ export function SocialStudio() {
   const template = useMemo<TemplateDef>(() => TEMPLATES.find((t) => t.id === templateId) ?? TEMPLATES[0], [templateId])
   const frame = FRAMES[template.formats.includes(frameId) ? frameId : template.formats[0]]
   const theme = useMemo(() => getTheme(themeId), [themeId])
-  const params: TemplateParams = useMemo(() => ({ date, city, rashi }), [date, city, rashi])
+  const params: TemplateParams = useMemo(() => ({ date, city, rashi, eventId, item }), [date, city, rashi, eventId, item])
+  const captionKey = `${templateId}|${date}|${city}|${rashi}|${eventId ?? ''}|${item}`
 
   // Fonts, icon and saved brand settings
   useEffect(() => {
@@ -142,8 +153,7 @@ export function SocialStudio() {
     () => Object.fromEntries(TEMPLATES.map((t) => [t.id, data ? safeBuild(t, data, params) : null])),
     [data, params],
   )
-  useEffect(() => setSlideIdx(0), [templateId, rashi])
-  useEffect(() => setCaptionEdit(null), [templateId, date, city, rashi])
+  useEffect(() => setSlideIdx(0), [templateId, rashi, eventId, item])
   const idx = Math.min(slideIdx, Math.max(0, slides.length - 1))
 
   const brandSettings: BrandSettings = useMemo(() => ({ name: brand.name, handle: brand.handle, ctaLine: brand.ctaLine }), [brand.name, brand.handle, brand.ctaLine])
@@ -154,10 +164,16 @@ export function SocialStudio() {
     () => (build ? composeCaption(build.caption, { ctaLine: brand.ctaLine, handle: brand.handle, preset: brand.preset }) : ''),
     [build, brand.ctaLine, brand.handle, brand.preset],
   )
-  const caption = captionEdit ?? autoCaption
+  const caption = captionEdit?.key === captionKey ? captionEdit.text : autoCaption
+  const eventOptions = useMemo(
+    () => (template.eventKinds && data ? data.events.filter((e) => template.eventKinds!.includes(e.kind)) : []),
+    [template, data],
+  )
+  const currentEvent = template.eventKinds && data ? pickEvent(data.events, template.eventKinds, eventId) : null
   const tagCount = (caption.match(/#[\p{L}\p{N}_]+/gu) ?? []).length
 
-  const baseName = `vedaansh-${template.id}-${date}${template.params.includes('rashi') ? `-${RASHI_NAMES[rashi as Rashi].toLowerCase()}` : ''}-${frame.id}`
+  const baseName = `vedaansh-${template.id}-${template.params.includes('item') ? `${String(item).padStart(2, '0')}` : date}${template.params.includes('rashi') ? `-${RASHI_NAMES[rashi as Rashi].toLowerCase()}` : ''}-${frame.id}`
+  const itemOptions = useMemo(() => template.items?.() ?? [], [template])
 
   const flash = (msg: string) => {
     setNotice(msg)
@@ -199,7 +215,7 @@ export function SocialStudio() {
       const captions: string[] = []
       for (const p of template.batch(params)) {
         const b = template.build(data, p)
-        const tag = p.rashi ? RASHI_NAMES[p.rashi as Rashi].toLowerCase() : String(entries.length + 1)
+        const tag = p.item ? String(p.item).padStart(2, '0') : p.rashi ? RASHI_NAMES[p.rashi as Rashi].toLowerCase() : String(entries.length + 1)
         const blobs = await renderSlidesToBlobs(b.slides, opts)
         blobs.forEach((blob, i) => entries.push({ name: slideFileName(`${template.id}-${date}-${tag}-${frame.id}`, i, blobs.length), data: blob }))
         captions.push(`=== ${tag} ===\n${composeCaption(b.caption, { ctaLine: brand.ctaLine, handle: brand.handle, preset: brand.preset })}`)
@@ -216,6 +232,93 @@ export function SocialStudio() {
       downloadBlob(mp4, `${baseName}.mp4`)
     })
 
+  const openTemplate = (tid: string, p: Partial<TemplateParams>) => {
+    setTemplateId(tid)
+    if (p.date) setDate(p.date)
+    setEventId(p.eventId)
+    if (p.rashi) setRashi(p.rashi)
+    if (p.item) setItem(p.item)
+    setEditing(null)
+    setTab('studio')
+  }
+
+  const openPost = (post: SocialPostDto) => {
+    const p = post.params ?? {}
+    const d = p.date ?? new Date(new Date(post.scheduledFor).getTime() + 5.5 * 3600_000).toISOString().slice(0, 10)
+    setTemplateId(post.templateId)
+    setDate(d)
+    if (p.city) setCity(p.city)
+    if (p.rashi) setRashi(p.rashi)
+    if (p.item) setItem(p.item)
+    setEventId(p.eventId)
+    setFrameId(post.format)
+    setEditing({ id: post._id, status: post.status })
+    setCaptionEdit(post.caption ? { key: `${post.templateId}|${d}|${p.city ?? city}|${p.rashi ?? rashi}|${p.eventId ?? ''}|${p.item ?? item}`, text: post.caption } : null)
+    setTab('studio')
+  }
+
+  const savePost = (status: PostStatus) =>
+    run('save', async () => {
+      const evDate = currentEvent?.date
+      const body = {
+        templateId: template.id,
+        params: {
+          date,
+          city,
+          ...(template.params.includes('rashi') ? { rashi } : {}),
+          ...(template.params.includes('item') ? { item } : {}),
+          ...(currentEvent ? { eventId: currentEvent.id } : {}),
+        },
+        scheduledFor: evDate ?? date,
+        format: frame.id,
+        status,
+        caption,
+        ...(currentEvent ? { eventRef: currentEvent.id } : {}),
+      }
+      if (editing) {
+        await socialApi.updatePost(editing.id, body)
+        setEditing({ id: editing.id, status })
+        flash(`Updated · ${STATUS_LABEL[status]}`)
+      } else {
+        const post = await socialApi.createPost(body)
+        setEditing({ id: post._id, status: post.status })
+        flash(`Saved to calendar for ${shortDay(evDate ?? date)}`)
+      }
+      setRefreshKey((k) => k + 1)
+    })
+
+  const exportPosts = (posts: SocialPostDto[]) =>
+    run('export', async () => {
+      const cache = new Map<string, DayData>()
+      const entries: { name: string; data: Blob | string }[] = []
+      const captions: string[] = []
+      let n = 0
+      for (const post of posts) {
+        const t = TEMPLATES.find((x) => x.id === post.templateId)
+        if (!t) continue
+        const p = { date: post.params.date ?? date, city: post.params.city ?? city, rashi: post.params.rashi, eventId: post.params.eventId, item: post.params.item } as TemplateParams
+        const key = `${p.date}|${p.city}`
+        let day = cache.get(key)
+        if (!day) {
+          const json = await fetch(`/api/admin/social/data?${new URLSearchParams({ date: p.date, city: p.city })}`).then((r) => r.json())
+          if (!json.success) throw new Error(json.error ?? 'Could not load data')
+          day = json.data as DayData
+          cache.set(key, day)
+        }
+        const b = t.build(day, p)
+        const f = FRAMES[post.format] ?? FRAMES['4x5']
+        const blobs = await renderSlidesToBlobs(b.slides, { ...opts, frame: f, seed: `${t.id}-${p.date}` })
+        n += 1
+        const folder = `${String(n).padStart(2, '0')}-${p.date}-${t.id}`
+        blobs.forEach((blob, i) => entries.push({ name: `${folder}/${slideFileName('slide', i, blobs.length)}`, data: blob }))
+        entries.push({ name: `${folder}/caption.txt`, data: post.caption || composeCaption(b.caption, { ctaLine: brand.ctaLine, handle: brand.handle, preset: brand.preset }) })
+        captions.push(`=== ${folder} ===\n${post.caption}`)
+        setBusy(`export:${n}/${posts.length}`)
+      }
+      entries.push({ name: 'all-captions.txt', data: captions.join('\n\n') })
+      downloadBlob(await makeZip(entries), `vedaansh-ready-posts-${date}.zip`)
+    })
+
   const copyCaption = async () => {
     try {
       await navigator.clipboard.writeText(caption)
@@ -227,9 +330,11 @@ export function SocialStudio() {
 
   const busyLabel = busy?.startsWith('video:')
     ? `${busy.split(':')[1] === 'encode' ? 'Recording' : 'Converting'} video… ${busy.split(':')[2]}%`
-    : busy
-      ? 'Working…'
-      : null
+    : busy?.startsWith('export:')
+      ? `Rendering post ${busy.split(':')[1]}…`
+      : busy
+        ? 'Working…'
+        : null
 
   return (
     <div className={styles.page}>
@@ -239,18 +344,19 @@ export function SocialStudio() {
           <p className={styles.subtitle}>Posts, carousels and stories generated from Vedaansh data — pick a template, check it, export.</p>
         </div>
         <div className={styles.tabs} role="tablist">
-          <button type="button" role="tab" className={styles.tab} aria-selected="true">
-            Studio
-          </button>
-          <button type="button" role="tab" className={styles.tab} aria-selected="false" disabled title="Coming with the content calendar">
-            Calendar
-          </button>
-          <button type="button" role="tab" className={styles.tab} aria-selected="false" disabled title="Coming with the content calendar">
-            Library
-          </button>
+          {(['studio', 'calendar', 'library'] as Tab[]).map((id) => (
+            <button key={id} type="button" role="tab" className={styles.tab} aria-selected={tab === id} onClick={() => setTab(id)}>
+              {id === 'studio' ? 'Studio' : id === 'calendar' ? 'Calendar' : 'Library'}
+            </button>
+          ))}
         </div>
       </header>
 
+      {tab === 'calendar' ? (
+        <CalendarView anchor={date} onOpenTemplate={openTemplate} onOpenPost={openPost} refreshKey={refreshKey} />
+      ) : tab === 'library' ? (
+        <LibraryView anchor={date} onOpenPost={openPost} onExport={exportPosts} refreshKey={refreshKey} onChanged={() => setRefreshKey((k) => k + 1)} busy={!!busy} />
+      ) : (
       <div className={styles.layout}>
         {/* Template picker */}
         <aside className={`${styles.panel} ${styles.picker}`} aria-label="Templates">
@@ -260,7 +366,17 @@ export function SocialStudio() {
               {g.items.map((t) => {
                 const thumbBuild = thumbs[t.id]
                 return (
-                  <button key={t.id} type="button" className={styles.templateBtn} aria-pressed={t.id === template.id} onClick={() => setTemplateId(t.id)}>
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={styles.templateBtn}
+                    aria-pressed={t.id === template.id}
+                    onClick={() => {
+                      setTemplateId(t.id)
+                      setItem(1)
+                      setEditing(null)
+                    }}
+                  >
                     {thumbBuild ? (
                       <SlideCanvas slides={thumbBuild.slides} index={0} opts={thumbOpts} className={styles.thumb} ready={ready} />
                     ) : (
@@ -379,10 +495,44 @@ export function SocialStudio() {
             </label>
           ) : null}
 
+          {template.params.includes('item') ? (
+            <label className={styles.field}>
+              Series item ({itemOptions.length})
+              <select className={styles.select} value={item} onChange={(e) => setItem(Number(e.target.value))}>
+                {itemOptions.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          {template.params.includes('event') ? (
+            <label className={styles.field}>
+              Event (next 45 days)
+              <select
+                className={styles.select}
+                value={currentEvent?.id ?? ''}
+                onChange={(e) => {
+                  const ev = eventOptions.find((x) => x.id === e.target.value)
+                  setEventId(ev?.id)
+                  if (ev) setDate(ev.date)
+                }}
+              >
+                {eventOptions.length === 0 ? <option value="">No upcoming events</option> : null}
+                {eventOptions.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {shortDay(e.date)} · {e.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
           <div>
             <p className={styles.panelTitle}>Caption</p>
             <label className={styles.field}>
-              <textarea className={styles.textarea} value={caption} onChange={(e) => setCaptionEdit(e.target.value)} />
+              <textarea className={styles.textarea} value={caption} onChange={(e) => setCaptionEdit({ key: captionKey, text: e.target.value })} />
             </label>
             <div className={styles.counts}>
               <span className={caption.length > CAPTION_MAX_CHARS ? styles.over : undefined}>
@@ -409,10 +559,30 @@ export function SocialStudio() {
                 Copy caption
               </button>
             </div>
-            {captionEdit !== null ? (
+            {captionEdit?.key === captionKey ? (
               <button type="button" className={styles.chip} style={{ marginTop: '0.5rem' }} onClick={() => setCaptionEdit(null)}>
                 Reset to generated caption
               </button>
+            ) : null}
+          </div>
+
+          <div className={styles.actions}>
+            <p className={styles.panelTitle}>Calendar</p>
+            <div className={styles.row2}>
+              <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => savePost(editing?.status ?? 'draft')} disabled={!build || !!busy}>
+                {editing ? 'Update saved post' : 'Save to calendar'}
+              </button>
+              <button type="button" className={styles.btn} onClick={() => savePost('ready')} disabled={!build || !!busy}>
+                {editing?.status === 'ready' ? 'Ready ✓' : 'Save as ready'}
+              </button>
+            </div>
+            {editing ? (
+              <p className={styles.saved}>
+                Editing a saved post ({STATUS_LABEL[editing.status]}) ·{' '}
+                <button type="button" className={styles.calDay} onClick={() => setEditing(null)}>
+                  save as new instead
+                </button>
+              </p>
             ) : null}
           </div>
 
@@ -426,7 +596,7 @@ export function SocialStudio() {
             </button>
             {template.batch ? (
               <button type="button" className={styles.btn} onClick={downloadBatch} disabled={!data || !!busy}>
-                Batch: all 12 rashis (ZIP)
+                {template.params.includes('item') ? `Batch: whole series, ${template.batch(params).length} posts (ZIP)` : 'Batch: all 12 rashis (ZIP)'}
               </button>
             ) : null}
             <div className={styles.row2}>
@@ -470,6 +640,7 @@ export function SocialStudio() {
           </details>
         </aside>
       </div>
+      )}
     </div>
   )
 }

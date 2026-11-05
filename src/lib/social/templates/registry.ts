@@ -4,8 +4,22 @@ import { luckyGrid, rashiStory, rashiphalDaily } from '@/lib/social/templates/da
 import { nakshatraDaily } from '@/lib/social/templates/daily/nakshatra'
 import { choghadiyaDaily } from '@/lib/social/templates/daily/choghadiya'
 import { skyToday, upayToday } from '@/lib/social/templates/daily/sky'
+import { chandrashtamaWeek, weekPanchang, weekTransits, weeklyRashiphal } from '@/lib/social/templates/weekly/weekly'
+import { festivalEvent, gocharEvent, grahanEvent, retrogradeEvent, sankrantiEvent, vratEvent } from '@/lib/social/templates/events/events'
+import {
+  doshaSeries,
+  grahaRemedySeries,
+  guideSeries,
+  nakshatraSeries,
+  numerologySeries,
+  rashiSeries,
+  sadeSatiSeries,
+  tithiSeries,
+  yogaSeries,
+} from '@/lib/social/templates/evergreen/series'
+import { featurePromo, shlokaCard } from '@/lib/social/templates/brand/brand'
 
-/** Every template in the studio, in catalogue order. Phase 2/3 categories add here. */
+/** Every template in the studio, in catalogue order. */
 export const TEMPLATES: TemplateDef[] = [
   panchangDaily,
   shubhAshubh,
@@ -16,6 +30,27 @@ export const TEMPLATES: TemplateDef[] = [
   choghadiyaDaily,
   skyToday,
   upayToday,
+  weeklyRashiphal,
+  chandrashtamaWeek,
+  weekTransits,
+  weekPanchang,
+  gocharEvent,
+  retrogradeEvent,
+  vratEvent,
+  festivalEvent,
+  sankrantiEvent,
+  grahanEvent,
+  nakshatraSeries,
+  rashiSeries,
+  grahaRemedySeries,
+  tithiSeries,
+  yogaSeries,
+  doshaSeries,
+  guideSeries,
+  sadeSatiSeries,
+  numerologySeries,
+  featurePromo,
+  shlokaCard,
 ]
 
 export function getTemplate(id: string): TemplateDef | undefined {
