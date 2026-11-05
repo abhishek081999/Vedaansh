@@ -34,15 +34,21 @@ export async function GET(req: NextRequest) {
         .limit(limit)
         .lean(),
       Subscription.countDocuments(filter),
-      Subscription.find(activeFilter).select('amount interval').lean(),
+      Subscription.find(activeFilter).select('amount interval currency').lean(),
     ])
 
-    const mrrEstimate = activeSubscriptions.reduce((acc, s) => {
+    // INR and USD are totalled separately; records from before USD support are INR.
+    type ActiveSub = (typeof activeSubscriptions)[number]
+    const monthlyMajor = (subs: ActiveSub[]) => subs.reduce((acc, s) => {
       const monthlyAmount = s.interval === 'yearly' ? s.amount / 12 : s.amount
       return acc + monthlyAmount / 100
     }, 0)
+    const totalMinor = (subs: ActiveSub[]) => subs.reduce((acc, s) => acc + s.amount, 0)
 
-    const totalActiveAmount = activeSubscriptions.reduce((acc, s) => acc + s.amount, 0)
+    const inrSubs = activeSubscriptions.filter(s => (s.currency ?? 'INR') === 'INR')
+    const usdSubs = activeSubscriptions.filter(s => s.currency === 'USD')
+    const mrrEstimate = monthlyMajor(inrSubs)
+    const totalActiveAmount = totalMinor(inrSubs)
 
     return NextResponse.json({
       success: true,
@@ -51,6 +57,11 @@ export async function GET(req: NextRequest) {
         activeSubscriptions: activeSubscriptions.length,
         mrrEstimate,
         activeSubscriptionValueInr: Math.round(totalActiveAmount / 100),
+        usd: {
+          activeSubscriptions: usdSubs.length,
+          mrrEstimate: monthlyMajor(usdSubs),
+          activeSubscriptionValue: totalMinor(usdSubs) / 100,
+        },
         subscriptions,
         pagination: paginationMeta(page, limit, total),
       },

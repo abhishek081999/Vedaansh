@@ -42,6 +42,27 @@ describe('parsePaymentMetadata', () => {
   })
 })
 
+describe('parsePaymentMetadata currency', () => {
+  it('treats orders without a currency note as INR', () => {
+    const r = parsePaymentMetadata(notes, 15120, 'INR')
+    expect(r.ok && r.data.currency).toBe('INR')
+  })
+
+  it('accepts a USD order paid in USD', () => {
+    const r = parsePaymentMetadata({ ...notes, currency: 'USD' }, 15120, 'USD')
+    expect(r.ok && r.data.currency).toBe('USD')
+  })
+
+  it('rejects a payment whose currency differs from the order', () => {
+    expect(parsePaymentMetadata(notes, 15120, 'USD')).toEqual({ ok: false, error: 'Currency mismatch' })
+    expect(parsePaymentMetadata({ ...notes, currency: 'USD' }, 15120, 'INR').ok).toBe(false)
+  })
+
+  it('rejects unsupported currencies', () => {
+    expect(parsePaymentMetadata({ ...notes, currency: 'EUR' }, 15120, 'EUR').ok).toBe(false)
+  })
+})
+
 describe('computePlanGrant', () => {
   const base = { plan: 'gold' as const, interval: 'monthly' as const, now }
 

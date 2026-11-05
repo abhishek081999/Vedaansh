@@ -20,7 +20,12 @@ type Coupon = {
 
 type BillingPayload = {
   offersEnabled: boolean
+  internationalEnabled: boolean
   prices: {
+    gold: { monthly: number; yearly: number }
+    platinum: { monthly: number; yearly: number }
+  }
+  usdPrices: {
     gold: { monthly: number; yearly: number }
     platinum: { monthly: number; yearly: number }
   }
@@ -57,9 +62,14 @@ export default function AdminBillingPage() {
       const billing = json.billing
       setData({
         offersEnabled: !!billing.offersEnabled,
+        internationalEnabled: !!billing.internationalEnabled,
         prices: {
           gold: { monthly: billing.prices.gold.monthly, yearly: billing.prices.gold.yearly },
           platinum: { monthly: billing.prices.platinum.monthly, yearly: billing.prices.platinum.yearly },
+        },
+        usdPrices: {
+          gold: { monthly: billing.usdPrices?.gold?.monthly ?? 5, yearly: billing.usdPrices?.gold?.yearly ?? 48 },
+          platinum: { monthly: billing.usdPrices?.platinum?.monthly ?? 10, yearly: billing.usdPrices?.platinum?.yearly ?? 96 },
         },
         coupons: (billing.coupons || []).map((c: any) => ({
           ...c,
@@ -159,6 +169,20 @@ export default function AdminBillingPage() {
           />
           <span>Enable offers and coupon redemption globally</span>
         </label>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginTop: '0.75rem' }}>
+          <input
+            type="checkbox"
+            checked={data.internationalEnabled}
+            onChange={(e) => setData({ ...data, internationalEnabled: e.target.checked })}
+            style={{ marginTop: 3 }}
+          />
+          <span>
+            Enable international payments (USD)
+            <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: 2 }}>
+              Shows a ₹ INR / $ USD switch on the pricing page. Turn on only after PayPal or international cards are activated in Razorpay, or USD checkouts will fail.
+            </small>
+          </span>
+        </label>
       </div>
 
       <div className="admin-box">
@@ -170,6 +194,12 @@ export default function AdminBillingPage() {
           <small>Active Sub Value: ₹{Math.round((analytics?.totalRevenuePaise || 0) / 100)}</small>
           <small>Est. MRR: ₹{Math.round((analytics?.mrrEstimatePaise || 0) / 100)}</small>
           <small>Discount on Active Subs: ₹{Math.round((analytics?.totalDiscountPaise || 0) / 100)}</small>
+          {(analytics?.usd?.activeSubscriptions ?? 0) > 0 && (
+            <>
+              <small>USD Active Sub Value: ${((analytics.usd.activeSubscriptionValueCents || 0) / 100).toFixed(2)}</small>
+              <small>USD Est. MRR: ${((analytics.usd.mrrEstimateCents || 0) / 100).toFixed(2)}</small>
+            </>
+          )}
           <button className="btn btn-secondary" onClick={exportCsv} style={{ marginLeft: 'auto' }}>
             Export CSV Report
           </button>
@@ -209,13 +239,23 @@ export default function AdminBillingPage() {
           <PriceInput label="Platinum Monthly (INR)" value={data.prices.platinum.monthly} onChange={v => setData({ ...data, prices: { ...data.prices, platinum: { ...data.prices.platinum, monthly: v } } })} />
           <PriceInput label="Platinum Yearly (INR)" value={data.prices.platinum.yearly} onChange={v => setData({ ...data, prices: { ...data.prices, platinum: { ...data.prices.platinum, yearly: v } } })} />
         </div>
+        <h3 style={{ margin: '1.25rem 0 0.25rem', fontSize: '0.95rem' }}>International prices (USD)</h3>
+        <p style={{ color: 'var(--text-muted)', marginTop: 0, fontSize: '0.8rem' }}>
+          Charged in USD through Razorpay (PayPal / international cards). Up to 2 decimals, e.g. 4.99. Percent coupons apply; fixed INR coupons do not.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1rem' }}>
+          <PriceInput label="Gold Monthly (USD)" step="0.01" value={data.usdPrices.gold.monthly} onChange={v => setData({ ...data, usdPrices: { ...data.usdPrices, gold: { ...data.usdPrices.gold, monthly: v } } })} />
+          <PriceInput label="Gold Yearly (USD)" step="0.01" value={data.usdPrices.gold.yearly} onChange={v => setData({ ...data, usdPrices: { ...data.usdPrices, gold: { ...data.usdPrices.gold, yearly: v } } })} />
+          <PriceInput label="Platinum Monthly (USD)" step="0.01" value={data.usdPrices.platinum.monthly} onChange={v => setData({ ...data, usdPrices: { ...data.usdPrices, platinum: { ...data.usdPrices.platinum, monthly: v } } })} />
+          <PriceInput label="Platinum Yearly (USD)" step="0.01" value={data.usdPrices.platinum.yearly} onChange={v => setData({ ...data, usdPrices: { ...data.usdPrices, platinum: { ...data.usdPrices.platinum, yearly: v } } })} />
+        </div>
       </div>
 
       <div className="admin-box">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <div>
             <h2 style={{ marginTop: 0 }}>Offers & Coupons</h2>
-            <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>Create codes for percent or fixed INR discounts.</p>
+            <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>Create codes for percent or fixed INR discounts. Fixed INR coupons are not accepted on USD checkouts.</p>
           </div>
           <button onClick={() => setData({ ...data, coupons: [...data.coupons, { ...emptyCoupon }] })} className="btn btn-secondary">+ Add Coupon</button>
         </div>
@@ -302,15 +342,15 @@ function removeCoupon(data: BillingPayload, setData: (next: BillingPayload) => v
   setData({ ...data, coupons: data.coupons.filter((_, i) => i !== index) })
 }
 
-function PriceInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return <LabeledInput label={label} type="number" value={String(value)} onChange={v => onChange(Number(v || 0))} />
+function PriceInput({ label, value, onChange, step }: { label: string; value: number; onChange: (v: number) => void; step?: string }) {
+  return <LabeledInput label={label} type="number" step={step} value={String(value)} onChange={v => onChange(Number(v || 0))} />
 }
 
-function LabeledInput({ label, value, onChange, type = 'text' }: { label: string; value: string | number; onChange: (v: string) => void; type?: string }) {
+function LabeledInput({ label, value, onChange, type = 'text', step }: { label: string; value: string | number; onChange: (v: string) => void; type?: string; step?: string }) {
   return (
     <label style={{ display: 'grid', gap: '0.25rem' }}>
       <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{label}</span>
-      <input type={type} value={value} onChange={e => onChange(e.target.value)} style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.55rem 0.7rem', color: 'var(--text-primary)' }} />
+      <input type={type} step={step} value={value} onChange={e => onChange(e.target.value)} style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.55rem 0.7rem', color: 'var(--text-primary)' }} />
     </label>
   )
 }

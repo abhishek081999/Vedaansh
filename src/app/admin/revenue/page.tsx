@@ -65,9 +65,15 @@ export default function AdminRevenuePage() {
       <AdminMessage message={error} type="error" onDismiss={() => setError(null)} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-        <RevenueCard label="Est. MRR" value={`₹${Math.round(data.mrrEstimate).toLocaleString()}`} icon="📈" color="var(--teal)" />
+        <RevenueCard label="Est. MRR (INR)" value={`₹${Math.round(data.mrrEstimate).toLocaleString()}`} icon="📈" color="var(--teal)" />
         <RevenueCard label="Active Subs" value={data.activeSubscriptions} icon="💎" color="var(--gold)" />
-        <RevenueCard label="Active Sub Value" value={`₹${(data.activeSubscriptionValueInr || 0).toLocaleString()}`} icon="🧾" color="var(--accent)" />
+        <RevenueCard label="Active Sub Value (INR)" value={`₹${(data.activeSubscriptionValueInr || 0).toLocaleString()}`} icon="🧾" color="var(--accent)" />
+        {(data.usd?.activeSubscriptions ?? 0) > 0 && (
+          <>
+            <RevenueCard label="Est. MRR (USD)" value={`$${(data.usd.mrrEstimate || 0).toFixed(2)}`} icon="🌍" color="var(--teal)" />
+            <RevenueCard label="Active Sub Value (USD)" value={`$${(data.usd.activeSubscriptionValue || 0).toFixed(2)}`} icon="🧾" color="var(--accent)" />
+          </>
+        )}
       </div>
 
       <div className="admin-box" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>

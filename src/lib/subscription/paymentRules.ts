@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getEffectivePlan } from '@/lib/subscription/entitlements'
+import type { PaymentCurrency } from '@/lib/subscription/pricing'
 import type { UserPlan } from '@/types/astrology'
 
 export type PaidPlan = 'gold' | 'platinum'
@@ -13,6 +14,8 @@ export type PaymentMetadata = {
   userId: string
   plan: PaidPlan
   interval: BillingInterval
+  /** Amounts below are in the smallest unit of this currency (paise or cents). */
+  currency: PaymentCurrency
   couponCode: string
   baseAmount: number
   discountAmount: number
@@ -28,10 +31,14 @@ export function addInterval(date: Date, interval: BillingInterval): Date {
   return d
 }
 
-/** Validates the notes written at checkout against the amount Razorpay actually took. */
+/**
+ * Validates the notes written at checkout against the amount and currency Razorpay actually took.
+ * Orders created before USD support have no currency note and are INR.
+ */
 export function parsePaymentMetadata(
   notes: Record<string, unknown> | null | undefined,
   paidAmount: unknown,
+  paidCurrency?: unknown,
 ): { ok: true; data: PaymentMetadata } | { ok: false; error: string } {
   const { plan, interval, userId } = notes ?? {}
   if ((plan !== 'gold' && plan !== 'platinum') || (interval !== 'monthly' && interval !== 'yearly')) {
@@ -39,6 +46,15 @@ export function parsePaymentMetadata(
   }
   if (typeof userId !== 'string' || !userId) {
     return { ok: false, error: 'Invalid payment metadata' }
+  }
+
+  const noteCurrency = notes?.currency ?? 'INR'
+  if (noteCurrency !== 'INR' && noteCurrency !== 'USD') {
+    return { ok: false, error: 'Invalid payment currency' }
+  }
+  const currency: PaymentCurrency = noteCurrency
+  if (paidCurrency != null && String(paidCurrency).toUpperCase() !== currency) {
+    return { ok: false, error: 'Currency mismatch' }
   }
 
   const baseAmount = Number(notes?.baseAmount || 0)
@@ -64,6 +80,7 @@ export function parsePaymentMetadata(
       userId,
       plan,
       interval,
+      currency,
       couponCode: String(notes?.couponCode ?? '').trim().toUpperCase(),
       baseAmount,
       discountAmount,

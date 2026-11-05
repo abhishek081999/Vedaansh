@@ -64,6 +64,11 @@ export default function SupportPage() {
             <Link href="/refund" style={{ color: 'var(--gold)' }}>Refund Policy</Link>
           </li>
           <li>
+            <strong>Payment failed or paying from outside India</strong> — on{' '}
+            <Link href="/pricing?help=1" style={{ color: 'var(--gold)' }}>Pricing</Link>, choose
+            “Request help with payment”. We&apos;ll send a PayPal invoice or Wise / UPI details and activate your plan once paid.
+          </li>
+          <li>
             <strong>Cancel renewal</strong> — Account → Billing & privacy → Cancel renewal
           </li>
           <li>

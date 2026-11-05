@@ -11,11 +11,13 @@ import {
   getApplicableCoupon,
   getCouponRejectionReason,
   getOrCreateBillingConfig,
+  getPlanAmountMinor,
 } from '@/lib/subscription/billing-config'
 
 const ValidateSchema = z.object({
   couponCode: z.string().trim().min(1).max(50),
   interval: z.enum(['monthly', 'yearly']),
+  currency: z.enum(['INR', 'USD']).default('INR'),
 })
 
 export async function POST(req: NextRequest) {
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid coupon request' }, { status: 400 })
     }
 
-    const { couponCode, interval } = parsed.data
+    const { couponCode, interval, currency } = parsed.data
     await connectDB()
 
     const billingConfig = await getOrCreateBillingConfig()
@@ -55,13 +57,15 @@ export async function POST(req: NextRequest) {
     }> = {}
 
     for (const plan of plans) {
-      const baseAmountPaise = billingConfig.prices[plan][interval === 'monthly' ? 'monthlyPaise' : 'yearlyPaise']
+      const baseAmountPaise = getPlanAmountMinor(billingConfig, currency, plan, interval)
       const coupon = getApplicableCoupon(
         billingConfig.coupons,
         couponCode,
         plan,
         interval,
         userContext,
+        new Date(),
+        currency,
       )
       const { discountPaise, finalAmountPaise } = computeDiscount(baseAmountPaise, coupon)
       discounts[plan] = {
@@ -73,6 +77,7 @@ export async function POST(req: NextRequest) {
         value: coupon?.value,
       }
     }
+    // Amounts above are in the smallest unit of `currency` (the field names predate USD).
 
     const anyValid = plans.some(plan => discounts[plan].valid)
     if (!anyValid) {
@@ -83,7 +88,7 @@ export async function POST(req: NextRequest) {
       }
 
       const reasons = plans
-        .map(plan => getCouponRejectionReason(couponMeta, plan, interval, userContext))
+        .map(plan => getCouponRejectionReason(couponMeta, plan, interval, userContext, new Date(), currency))
         .filter(Boolean) as string[]
       const uniqueReasons = [...new Set(reasons)]
       const error = uniqueReasons[0] ?? `Coupon not valid for ${interval} billing on Gold or Platinum`

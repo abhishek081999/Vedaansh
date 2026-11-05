@@ -17,12 +17,16 @@ import {
   computePlanGrant,
   isFullReversal,
   parsePaymentMetadata,
+  type BillingInterval,
+  type PaidPlan,
 } from '@/lib/subscription/paymentRules'
+import type { PaymentCurrency } from '@/lib/subscription/pricing'
 
 type RazorpayPaymentLike = {
   id: string
   order_id?: string | null
   amount?: unknown
+  currency?: unknown
   notes?: unknown
 }
 
@@ -42,7 +46,11 @@ export async function activatePayment(
   payment: RazorpayPaymentLike,
   source: 'payment.verified' | 'payment.captured',
 ): Promise<ActivationResult> {
-  const parsed = parsePaymentMetadata(payment.notes as Record<string, unknown>, payment.amount)
+  const parsed = parsePaymentMetadata(
+    payment.notes as Record<string, unknown>,
+    payment.amount,
+    payment.currency,
+  )
   if (!parsed.ok) return parsed
   const meta = parsed.data
 
@@ -82,7 +90,7 @@ export async function activatePayment(
           currentPeriodEnd: grant.periodEnd,
           cancelAtPeriodEnd: false,
           amount: meta.finalAmount,
-          currency: 'INR',
+          currency: meta.currency,
           planAppliedAt: null,
           couponCountedAt: null,
           welcomeEmailSentAt: null,
@@ -93,6 +101,7 @@ export async function activatePayment(
               paymentId: payment.id,
               orderId: payment.order_id,
               couponCode: meta.couponCode,
+              currency: meta.currency,
               baseAmount: meta.baseAmount,
               discountAmount: meta.discountAmount,
             },
@@ -162,6 +171,132 @@ export async function activatePayment(
         plan: getEffectivePlan(user.plan, user.planExpiresAt),
         expiresAt: user.planExpiresAt ?? null,
         userId: meta.userId,
+      }
+}
+
+export type ManualPaymentInput = {
+  requestId: string
+  userId: string
+  plan: PaidPlan
+  interval: BillingInterval
+  /** Smallest unit of `currency` (paise or cents). */
+  amountMinor: number
+  currency: PaymentCurrency
+  method: string
+  transactionId: string
+  adminEmail: string
+}
+
+/** Subscription key for a manual payment, one per payment request. */
+export function manualSubscriptionKey(requestId: string): string {
+  return `manual_${requestId}`
+}
+
+/**
+ * Activates a plan the team was paid for outside Razorpay (PayPal invoice, Wise, UPI, bank).
+ * Same rules and the same safe-to-repeat steps as activatePayment: the Subscription insert
+ * decides the period once, so a double click or a retry after a crash changes nothing.
+ */
+export async function activateManualPayment(input: ManualPaymentInput): Promise<ActivationResult & { subscriptionId?: string }> {
+  await connectDB()
+
+  const user = await User.findById(input.userId).select('email plan planExpiresAt').lean() as {
+    email?: string
+    plan?: string
+    planExpiresAt?: Date | null
+  } | null
+  if (!user) return { ok: false, error: 'User not found' }
+
+  const key = manualSubscriptionKey(input.requestId)
+  const now = new Date()
+  const grant = computePlanGrant({
+    currentPlan: user.plan,
+    currentExpiry: user.planExpiresAt,
+    plan: input.plan,
+    interval: input.interval,
+    now,
+  })
+
+  try {
+    await Subscription.updateOne(
+      { providerSubscriptionId: key },
+      {
+        $setOnInsert: {
+          userId: input.userId,
+          plan: input.plan,
+          grantedPlan: grant.grantedPlan,
+          provider: 'manual',
+          providerSubscriptionId: key,
+          providerCustomerId: input.transactionId || 'manual',
+          providerPlanId: `${input.plan}_${input.interval}`,
+          status: 'active',
+          interval: input.interval,
+          currentPeriodStart: grant.periodStart,
+          currentPeriodEnd: grant.periodEnd,
+          cancelAtPeriodEnd: false,
+          amount: input.amountMinor,
+          currency: input.currency,
+          planAppliedAt: null,
+          couponCountedAt: null,
+          welcomeEmailSentAt: null,
+          events: [{
+            type: 'manual.paid',
+            payload: {
+              requestId: input.requestId,
+              method: input.method,
+              transactionId: input.transactionId,
+              recordedBy: input.adminEmail,
+            },
+            receivedAt: now,
+          }],
+        },
+      },
+      { upsert: true },
+    )
+  } catch (err) {
+    if ((err as { code?: number }).code !== 11000) throw err
+  }
+
+  const sub = await Subscription.findOne({ providerSubscriptionId: key }).lean() as {
+    _id: unknown
+    plan: string
+    status: string
+    grantedPlan?: string | null
+    currentPeriodEnd: Date
+    planAppliedAt?: Date | null
+  } | null
+  if (!sub) return { ok: false, error: 'Subscription not recorded' }
+  if (sub.status === 'refunded') return { ok: false, error: 'Payment was refunded' }
+
+  if (!sub.planAppliedAt) {
+    if (sub.grantedPlan) {
+      await User.updateOne(
+        { _id: input.userId },
+        { $set: { plan: sub.grantedPlan, planExpiresAt: sub.currentPeriodEnd } },
+      )
+    } else {
+      logSecurityEvent('payment_plan_unchanged', { paymentId: key, plan: input.plan })
+    }
+    await Subscription.updateOne({ _id: sub._id }, { $set: { planAppliedAt: new Date() } })
+  }
+
+  if (user.email && await claimOnce(sub._id, 'welcomeEmailSentAt')) {
+    try {
+      await sendWelcomeEmail(user.email, input.plan, sub.currentPeriodEnd)
+    } catch (err) {
+      console.error('[activation] Welcome email failed:', err instanceof Error ? err.message : 'unknown')
+    }
+  }
+
+  const subscriptionId = String(sub._id)
+  return sub.grantedPlan
+    ? { ok: true, plan: sub.grantedPlan, expiresAt: sub.currentPeriodEnd, userId: input.userId, subscriptionId }
+    : {
+        ok: true,
+        plan: getEffectivePlan(user.plan, user.planExpiresAt),
+        expiresAt: user.planExpiresAt ?? null,
+        userId: input.userId,
+        subscriptionId,
       }
 }
 

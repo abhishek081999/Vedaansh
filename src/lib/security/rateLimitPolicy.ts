@@ -38,6 +38,7 @@ export const abuseLimits = {
   userDeletePerHour: 10,
   paymentCheckoutPerMinute: 40,
   paymentVerifyPerMinute: 60,
+  paymentRequestPerHour: 5,
   adminReadPerMinute: 300,
   adminMutatePerMinute: 120,
   adminBroadcastPerFiveMin: 20,

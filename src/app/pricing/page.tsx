@@ -1,14 +1,51 @@
 'use client'
 // src/app/pricing/page.tsx — Subscription tiers
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { PLAN_PRICES } from '@/lib/subscription/pricing'
+import { PLAN_PRICES, PLAN_PRICES_USD, type PaymentCurrency } from '@/lib/subscription/pricing'
 import { PRICING_FAQ } from '@/lib/seo/intro-content'
+import { PaymentHelpRequest, type PaymentHelpReason } from '@/components/pricing/PaymentHelpRequest'
 
 let razorpayLoadPromise: Promise<void> | null = null
+
+const CURRENCY_STORAGE_KEY = 'vedaansh:pricing-currency'
+
+/** Visitors whose browser is on Indian time see INR; everyone else sees USD. */
+function guessCurrency(): PaymentCurrency {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+    return tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta' ? 'INR' : 'USD'
+  } catch {
+    return 'INR'
+  }
+}
+
+function readSavedCurrency(): PaymentCurrency | null {
+  try {
+    const saved = window.localStorage.getItem(CURRENCY_STORAGE_KEY)
+    return saved === 'INR' || saved === 'USD' ? saved : null
+  } catch {
+    return null
+  }
+}
+
+function saveCurrency(currency: PaymentCurrency) {
+  try {
+    window.localStorage.setItem(CURRENCY_STORAGE_KEY, currency)
+  } catch {
+    // Storage blocked: the choice just isn't remembered.
+  }
+}
+
+/** Amount text without the symbol. INR shows whole rupees; USD keeps cents when there are any. */
+function amountText(minor: number, currency: PaymentCurrency): string {
+  if (currency === 'INR') return String(Math.round(minor / 100))
+  const cents = Math.round(minor)
+  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2)
+}
 
 const FEATURES = {
   free: {
@@ -103,6 +140,7 @@ export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)  // plan key being loaded
   const [checkoutError,  setCheckoutError]  = useState<string | null>(null)
+  const [failedPlan, setFailedPlan] = useState<'gold' | 'platinum' | null>(null)
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string
@@ -111,10 +149,60 @@ export default function PricingPage() {
   } | null>(null)
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-  const [runtimePrices, setRuntimePrices] = useState(PLAN_PRICES)
+  const [runtimePrices, setRuntimePrices] = useState<{
+    gold: { monthlyPaise: number; yearlyPaise: number }
+    platinum: { monthlyPaise: number; yearlyPaise: number }
+  }>(PLAN_PRICES)
+  const [runtimeUsdPrices, setRuntimeUsdPrices] = useState<{
+    gold: { monthlyCents: number; yearlyCents: number }
+    platinum: { monthlyCents: number; yearlyCents: number }
+  }>(PLAN_PRICES_USD)
+  const [internationalEnabled, setInternationalEnabled] = useState(false)
+  const [currency, setCurrency] = useState<PaymentCurrency>('INR')
+  const [help, setHelp] = useState<{
+    open: boolean
+    plan: 'gold' | 'platinum'
+    reason: PaymentHelpReason
+    failureNote: string | null
+  }>({ open: false, plan: 'gold', reason: 'international', failureNote: null })
+  // Set while the Razorpay modal is open if a payment attempt fails inside it.
+  const paymentFailureRef = useRef<string | null>(null)
+
+  function openHelp(plan: 'gold' | 'platinum', reason: PaymentHelpReason, failureNote: string | null = null) {
+    if (!session) {
+      window.location.href = '/login?callbackUrl=%2Fpricing%3Fhelp%3D1'
+      return
+    }
+    setHelp({ open: true, plan, reason, failureNote })
+  }
+  const symbol = currency === 'USD' ? '$' : '₹'
+
+  function planMinor(plan: 'gold' | 'platinum', interval: 'monthly' | 'yearly'): number {
+    if (currency === 'USD') {
+      return runtimeUsdPrices[plan][interval === 'monthly' ? 'monthlyCents' : 'yearlyCents']
+    }
+    return runtimePrices[plan][interval === 'monthly' ? 'monthlyPaise' : 'yearlyPaise']
+  }
+
+  function chooseCurrency(next: PaymentCurrency) {
+    setCurrency(next)
+    saveCurrency(next)
+  }
 
   const currentPlan = (session?.user as any)?.plan ?? 'free'
   const PLAN_RANK: Record<string, number> = { free: 0, gold: 1, platinum: 2 }
+
+  // /pricing?help=1 (e.g. after signing in from the help link) opens the request form.
+  useEffect(() => {
+    if (!session) return
+    try {
+      if (new URLSearchParams(window.location.search).get('help') === '1') {
+        setHelp(h => ({ ...h, open: true }))
+      }
+    } catch {
+      // ignore
+    }
+  }, [session])
 
   useEffect(() => {
     // Warm up SDK after first render so checkout opens faster and more reliably.
@@ -125,6 +213,13 @@ export default function PricingPage() {
       .then(json => {
         if (json.success && json.prices) {
           setRuntimePrices(json.prices)
+        }
+        if (json.success && json.usdPrices?.gold?.monthlyCents) {
+          setRuntimeUsdPrices(json.usdPrices)
+        }
+        if (json.success && json.internationalEnabled) {
+          setInternationalEnabled(true)
+          setCurrency(readSavedCurrency() ?? guessCurrency())
         }
       })
       .catch(() => {})
@@ -144,7 +239,7 @@ export default function PricingPage() {
       const res = await fetch('/api/subscription/coupon/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ couponCode: code, interval: billing }),
+        body: JSON.stringify({ couponCode: code, interval: billing, currency }),
       })
       const data = await res.json().catch(() => ({ success: false, error: 'Could not validate coupon.' }))
       if (!data.success) {
@@ -186,7 +281,7 @@ export default function PricingPage() {
         const res = await fetch('/api/subscription/coupon/validate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ couponCode: code, interval: billing }),
+          body: JSON.stringify({ couponCode: code, interval: billing, currency }),
         })
         const data = await res.json()
         if (data.success) {
@@ -202,7 +297,7 @@ export default function PricingPage() {
       }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [billing])
+  }, [billing, currency])
 
   // ── Razorpay checkout ────────────────────────────────────────
   async function handleSubscribe(planKey: 'gold' | 'platinum') {
@@ -212,6 +307,8 @@ export default function PricingPage() {
     }
     setCheckoutLoading(planKey)
     setCheckoutError(null)
+    setFailedPlan(null)
+    paymentFailureRef.current = null
 
     try {
       // 1. Create order on server
@@ -221,6 +318,7 @@ export default function PricingPage() {
         body: JSON.stringify({
           plan: planKey,
           interval: billing,
+          currency,
           couponCode: appliedCoupon?.code || couponCode.trim() || undefined,
         }),
       })
@@ -261,13 +359,24 @@ export default function PricingPage() {
           window.location.href = '/account?upgraded=1'
         },
         modal: {
-          ondismiss: () => setCheckoutLoading(null),
+          ondismiss: () => {
+            setCheckoutLoading(null)
+            // The user closed the modal after a failed attempt: offer the team's help.
+            if (paymentFailureRef.current) {
+              setCheckoutError(paymentFailureRef.current)
+              setFailedPlan(planKey)
+            }
+          },
         },
+      })
+      rzp.on('payment.failed', (response: { error?: { description?: string; reason?: string } }) => {
+        paymentFailureRef.current = response?.error?.description || 'Your payment could not be completed.'
       })
       rzp.open()
 
     } catch (err) {
       setCheckoutError(err instanceof Error ? err.message : 'Payment failed. Please try again.')
+      setFailedPlan(planKey)
       setCheckoutLoading(null)
     }
   }
@@ -365,6 +474,35 @@ export default function PricingPage() {
           ))}
         </div>
 
+        {internationalEnabled && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem', marginTop: '-0.5rem' }}>
+            <div role="group" aria-label="Currency" style={{ display: 'flex', gap: '0.25rem', background: 'var(--surface-2)', padding: '0.25rem', borderRadius: 99, border: '1px solid var(--border)' }}>
+              {(['INR', 'USD'] as const).map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => chooseCurrency(c)}
+                  aria-pressed={currency === c}
+                  style={{
+                    padding: '0.3rem 0.9rem', borderRadius: 99, cursor: 'pointer', border: 'none',
+                    fontFamily: 'var(--font-display)', fontSize: '0.78rem', fontWeight: currency === c ? 700 : 400,
+                    background: currency === c ? 'var(--surface-1)' : 'transparent',
+                    color: currency === c ? 'var(--text-primary)' : 'var(--text-muted)',
+                    boxShadow: currency === c ? 'var(--shadow-card)' : 'none',
+                  }}
+                >
+                  {c === 'INR' ? '₹ INR' : '$ USD'}
+                </button>
+              ))}
+            </div>
+            {currency === 'USD' && (
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
+                Outside India? Pay in USD with PayPal or an international card.
+              </span>
+            )}
+          </div>
+        )}
+
         <div style={{ width: '100%', maxWidth: 480, display: 'grid', gap: '0.5rem' }}>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <input
@@ -452,24 +590,20 @@ export default function PricingPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem', width: '100%' }}>
           {(Object.entries(FEATURES) as [string, typeof FEATURES.free][]).map(([key, tier]) => {
             const isCurrent = currentPlan === key
-            const dynamicPrice = key === 'gold'
-              ? runtimePrices.gold
-              : key === 'platinum'
-                ? runtimePrices.platinum
-                : tier.price
-            const price = dynamicPrice[billing as 'monthly' | 'yearly']
+            const paidKey = key === 'gold' || key === 'platinum' ? key : null
+            // All amounts in the smallest unit of `currency` (paise or cents).
+            const monthlyMinor = paidKey ? planMinor(paidKey, 'monthly') : 0
+            const yearlyMinor = paidKey ? planMinor(paidKey, 'yearly') : 0
+            const price = billing === 'yearly' ? yearlyMinor : monthlyMinor
             const isGold = key === 'gold'
-            const planDiscount = (key === 'gold' || key === 'platinum') && appliedCoupon?.discounts[key]?.valid
-              ? appliedCoupon.discounts[key]
+            const planDiscount = paidKey && appliedCoupon?.discounts[paidKey]?.valid
+              ? appliedCoupon.discounts[paidKey]
               : null
-            const displayMonthly = planDiscount
-              ? Math.round((planDiscount.finalAmountPaise / 100) / (billing === 'yearly' ? 12 : 1))
-              : billing === 'yearly'
-                ? Math.round(dynamicPrice.yearly / 12)
-                : dynamicPrice.monthly
-            const originalMonthly = billing === 'yearly'
-              ? Math.round(dynamicPrice.yearly / 12)
-              : dynamicPrice.monthly
+            const originalMonthlyMinor = billing === 'yearly' ? yearlyMinor / 12 : monthlyMinor
+            const displayMonthlyMinor = planDiscount
+              ? planDiscount.finalAmountPaise / (billing === 'yearly' ? 12 : 1)
+              : originalMonthlyMinor
+            const fmt = (minor: number) => `${symbol}${amountText(minor, currency)}`
 
             return (
               <div key={key} style={{
@@ -516,12 +650,12 @@ export default function PricingPage() {
                     <>
                       {planDiscount && (
                         <span style={{ fontSize: '0.95rem', color: 'var(--text-muted)', textDecoration: 'line-through', marginRight: '0.25rem' }}>
-                          ₹{originalMonthly}
+                          {fmt(originalMonthlyMinor)}
                         </span>
                       )}
-                      <span style={{ fontSize: '1rem', color: 'var(--text-muted)', alignSelf: 'flex-start', marginTop: 8 }}>₹</span>
+                      <span style={{ fontSize: '1rem', color: 'var(--text-muted)', alignSelf: 'flex-start', marginTop: 8 }}>{symbol}</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 700, color: planDiscount ? 'var(--teal)' : 'var(--text-primary)' }}>
-                        {displayMonthly}
+                        {amountText(displayMonthlyMinor, currency)}
                       </span>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
                         /month
@@ -531,15 +665,15 @@ export default function PricingPage() {
                 </div>
                 {planDiscount && price > 0 && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
-                    Coupon applied — save ₹{Math.round(planDiscount.discountPaise / 100)}
+                    Coupon applied — save {fmt(planDiscount.discountPaise)}
                     {billing === 'yearly' ? '/year' : '/month'}
                   </div>
                 )}
                 {billing === 'yearly' && price > 0 && !planDiscount && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
-                    {key === 'platinum'
-                      ? `₹${dynamicPrice.yearly}/year — ₹${Math.round(dynamicPrice.yearly / 12)}/month billed yearly`
-                      : `₹${dynamicPrice.yearly}/year — save ₹${(dynamicPrice.monthly * 12) - dynamicPrice.yearly}`}
+                    {key === 'platinum' || monthlyMinor * 12 <= yearlyMinor
+                      ? `${fmt(yearlyMinor)}/year — ${fmt(yearlyMinor / 12)}/month billed yearly`
+                      : `${fmt(yearlyMinor)}/year — save ${fmt(monthlyMinor * 12 - yearlyMinor)}`}
                   </div>
                 )}
 
@@ -594,10 +728,26 @@ export default function PricingPage() {
                         ? 'Opening checkout…'
                         : `Upgrade to ${tier.name} →`}
                     </button>
-                    {checkoutError && checkoutLoading === null && (
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-danger)', marginTop: '0.4rem', textAlign: 'center' }}>
-                        {checkoutError}
-                      </p>
+                    {checkoutError && checkoutLoading === null && failedPlan === key && (
+                      <div style={{
+                        marginTop: '0.5rem', padding: '0.7rem 0.8rem', textAlign: 'center',
+                        border: '1px solid var(--border)', borderRadius: 'var(--r-md)', background: 'var(--surface-2)',
+                      }}>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-danger)', margin: '0 0 0.5rem' }}>
+                          {checkoutError}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => openHelp(key as 'gold' | 'platinum', 'checkout_failed', checkoutError)}
+                          style={{
+                            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                            fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 700,
+                            color: 'var(--text-gold)', textDecoration: 'underline',
+                          }}
+                        >
+                          Payment not working? Ask the Vedaansh team to set it up →
+                        </button>
+                      </div>
                     )}
                   </>
                 )}
@@ -620,10 +770,34 @@ export default function PricingPage() {
           })}
         </div>
 
+        {/* Manual payment help */}
+        <div style={{
+          width: '100%', maxWidth: 680, padding: '1.1rem 1.25rem',
+          border: '1px dashed var(--border)', borderRadius: 'var(--r-lg)',
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
+        }}>
+          <div style={{ fontFamily: 'var(--font-display)', minWidth: 0, flex: '1 1 260px' }}>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+              Outside India, or can&apos;t pay online?
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.5 }}>
+              Ask the Vedaansh team. We&apos;ll send a PayPal invoice, Wise or UPI details, and activate your plan once paid.
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => openHelp(failedPlan ?? 'gold', failedPlan ? 'checkout_failed' : 'international', failedPlan ? checkoutError : null)}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            Request help with payment
+          </button>
+        </div>
+
         {/* Trust signals */}
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           {[
-            { icon: '🔒', text: 'Secure payments via Razorpay' },
+            { icon: '🔒', text: currency === 'USD' ? 'Secure payments via Razorpay · PayPal accepted' : 'Secure payments via Razorpay' },
             { icon: <Image src="/veda-icon.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />, text: 'Swiss Ephemeris precision' },
           ].map(({ icon, text }) => (
             <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
@@ -691,6 +865,16 @@ export default function PricingPage() {
 
       </main>
 
+      <PaymentHelpRequest
+        open={help.open}
+        onClose={() => setHelp(h => ({ ...h, open: false }))}
+        defaultPlan={help.plan}
+        defaultInterval={billing}
+        defaultCurrency={currency === 'INR' && !internationalEnabled && guessCurrency() === 'USD' ? 'USD' : currency}
+        reason={help.reason}
+        failureNote={help.failureNote}
+      />
+
       <footer style={{ padding: '1.5rem 2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontSize: '0.8rem', borderTop: '1px solid var(--border-soft)' }}>
         <div style={{ marginBottom: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
           <Link href="/terms" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</Link>
@@ -701,7 +885,7 @@ export default function PricingPage() {
           <span style={{ opacity: 0.4 }}>·</span>
           <Link href="/support" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Support</Link>
         </div>
-        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotisha Platform</span> · All prices in INR · GST applicable
+        Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotisha Platform</span> · {currency === 'USD' ? 'Prices in USD' : 'All prices in INR · GST applicable'}
       </footer>
     </div>
   )

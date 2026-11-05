@@ -1,4 +1,9 @@
-import { PLAN_PRICES } from '@/lib/subscription/pricing'
+import {
+  PLAN_PRICES,
+  PLAN_PRICES_USD,
+  planAmountMinor,
+  type PaymentCurrency,
+} from '@/lib/subscription/pricing'
 import { BillingConfig, type BillingPlan, type BillingInterval, type IBillingConfig, type ICoupon } from '@/lib/db/models/BillingConfig'
 
 export function defaultPrices() {
@@ -6,6 +11,21 @@ export function defaultPrices() {
     gold: { ...PLAN_PRICES.gold },
     platinum: { ...PLAN_PRICES.platinum },
   }
+}
+
+export function defaultUsdPrices() {
+  return {
+    gold: { ...PLAN_PRICES_USD.gold },
+    platinum: { ...PLAN_PRICES_USD.platinum },
+  }
+}
+
+function hasUsdPrices(config: Pick<IBillingConfig, 'usdPrices'>): boolean {
+  const usd = config.usdPrices
+  return Boolean(
+    usd?.gold?.monthlyCents && usd.gold.yearlyCents
+    && usd.platinum?.monthlyCents && usd.platinum.yearlyCents,
+  )
 }
 
 /** Prior list prices — bump stored BillingConfig when it still matches any of these defaults. */
@@ -39,6 +59,14 @@ export async function getOrCreateBillingConfig(): Promise<IBillingConfig> {
       existing.offersEnabled = true
       changed = true
     }
+    if (existing.internationalEnabled === undefined || existing.internationalEnabled === null) {
+      existing.internationalEnabled = false
+      changed = true
+    }
+    if (!hasUsdPrices(existing)) {
+      existing.usdPrices = defaultUsdPrices()
+      changed = true
+    }
     if (matchesPreviousListPrices(existing.prices)) {
       existing.prices = defaultPrices()
       changed = true
@@ -60,7 +88,9 @@ export async function getOrCreateBillingConfig(): Promise<IBillingConfig> {
   return BillingConfig.create({
     key: 'default',
     offersEnabled: true,
+    internationalEnabled: false,
     prices: defaultPrices(),
+    usdPrices: defaultUsdPrices(),
     coupons: [],
   })
 }
@@ -69,15 +99,35 @@ export function areOffersEnabled(config: Pick<IBillingConfig, 'offersEnabled'>):
   return config.offersEnabled !== false
 }
 
+export function isInternationalEnabled(config: Pick<IBillingConfig, 'internationalEnabled'>): boolean {
+  return config.internationalEnabled === true
+}
+
+/** Base price for a plan in the smallest unit of `currency` (paise or cents). */
+export function getPlanAmountMinor(
+  config: Pick<IBillingConfig, 'prices' | 'usdPrices'>,
+  currency: PaymentCurrency,
+  plan: BillingPlan,
+  interval: BillingInterval,
+): number {
+  const usd = hasUsdPrices(config) ? config.usdPrices : defaultUsdPrices()
+  return planAmountMinor({ inr: config.prices, usd }, currency, plan, interval)
+}
+
 export function getCouponRejectionReason(
   coupon: ICoupon | undefined,
   plan: BillingPlan,
   interval: BillingInterval,
   user?: { email?: string | null; isNewUser?: boolean },
   now = new Date(),
+  currency: PaymentCurrency = 'INR',
 ): string | null {
   if (!coupon) return 'Invalid coupon code'
   if (!coupon.active) return 'This coupon is inactive'
+  // Fixed coupons are set in rupees, so they cannot be applied to a USD price.
+  if (currency !== 'INR' && coupon.type === 'fixed') {
+    return 'This coupon is only valid for payments in INR'
+  }
   if (coupon.expiresAt && coupon.expiresAt < now) {
     return `This coupon expired on ${coupon.expiresAt.toLocaleString('en-IN')}`
   }
@@ -102,6 +152,10 @@ export function getCouponRejectionReason(
   return null
 }
 
+/**
+ * Works in the smallest unit of whichever currency the base amount is in.
+ * Fixed coupons are in rupees and are rejected for other currencies before this runs.
+ */
 export function computeDiscount(
   baseAmountPaise: number,
   coupon: ICoupon | null,
@@ -126,6 +180,7 @@ export function getApplicableCoupon(
   interval: BillingInterval,
   user?: { email?: string | null; isNewUser?: boolean },
   now = new Date(),
+  currency: PaymentCurrency = 'INR',
 ): ICoupon | null {
   if (!code) return null
   const normalized = code.trim().toUpperCase()
@@ -133,7 +188,7 @@ export function getApplicableCoupon(
 
   const coupon = coupons.find(c => c.code === normalized)
   if (!coupon) return null
-  if (getCouponRejectionReason(coupon, plan, interval, user, now)) return null
+  if (getCouponRejectionReason(coupon, plan, interval, user, now, currency)) return null
 
   return coupon
 }

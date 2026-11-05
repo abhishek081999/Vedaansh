@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
-import { getOrCreateBillingConfig } from '@/lib/subscription/billing-config'
+import { defaultUsdPrices, getOrCreateBillingConfig } from '@/lib/subscription/billing-config'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { requireAdmin } from '@/lib/admin/auth'
@@ -24,8 +24,17 @@ const CouponSchema = z.object({
   intervals: z.array(z.enum(['monthly', 'yearly'])).default(['monthly', 'yearly']),
 })
 
+// Dollars with up to two decimals, e.g. 4.99.
+const usdAmount = z.coerce.number().positive().max(10_000)
+  .refine(v => Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'USD prices can have at most 2 decimals')
+
 const BillingUpdateSchema = z.object({
   offersEnabled: z.coerce.boolean().default(true),
+  internationalEnabled: z.coerce.boolean().optional(),
+  usdPrices: z.object({
+    gold: z.object({ monthly: usdAmount, yearly: usdAmount }),
+    platinum: z.object({ monthly: usdAmount, yearly: usdAmount }),
+  }).optional(),
   prices: z.object({
     gold: z.object({
       monthly: z.coerce.number().int().positive(),
@@ -41,6 +50,18 @@ const BillingUpdateSchema = z.object({
 
 function toPaise(amountInRupees: number): number {
   return Math.round(amountInRupees * 100)
+}
+
+type SubForTotals = { amount: number; interval: string; currency?: string }
+
+/** Sums active subscriptions per currency, since INR and USD amounts cannot be added. */
+function totalsByCurrency(subs: SubForTotals[], currency: 'INR' | 'USD') {
+  const matching = subs.filter(s => (s.currency ?? 'INR') === currency)
+  return {
+    count: matching.length,
+    valueMinor: matching.reduce((sum, s) => sum + (s.amount || 0), 0),
+    mrrMinor: matching.reduce((sum, s) => sum + (s.interval === 'yearly' ? s.amount / 12 : s.amount), 0),
+  }
 }
 
 function formatDayKey(date: Date): string {
@@ -65,15 +86,17 @@ export async function GET(req: NextRequest) {
 
     await connectDB()
     const billingConfig = await getOrCreateBillingConfig()
-    const activeSubscriptions = await Subscription.find({ status: 'active' }).select('amount interval events').lean()
+    const activeSubscriptions = await Subscription.find({ status: 'active' }).select('amount interval currency events').lean()
 
-    const activeSubscriptionValuePaise = activeSubscriptions.reduce((sum, s) => sum + (s.amount || 0), 0)
-    const mrrEstimatePaise = activeSubscriptions.reduce((sum, s) => {
-      const monthly = s.interval === 'yearly' ? s.amount / 12 : s.amount
-      return sum + monthly
-    }, 0)
+    const subsForTotals = activeSubscriptions as unknown as SubForTotals[]
+    const inrTotals = totalsByCurrency(subsForTotals, 'INR')
+    const usdTotals = totalsByCurrency(subsForTotals, 'USD')
+    const activeSubscriptionValuePaise = inrTotals.valueMinor
+    const mrrEstimatePaise = inrTotals.mrrMinor
 
-    const totalDiscountPaise = activeSubscriptions.reduce((sum, s) => {
+    // Discount analytics stay in INR: fixed coupons are INR-only.
+    const inrSubscriptions = activeSubscriptions.filter(s => (s.currency ?? 'INR') === 'INR')
+    const totalDiscountPaise = inrSubscriptions.reduce((sum, s) => {
       const evt = (s.events || []).find((e: { type: string }) => e.type === 'payment.verified')
       const discount = Number((evt?.payload as Record<string, unknown>)?.discountAmount || 0)
       return sum + (Number.isFinite(discount) ? discount : 0)
@@ -95,7 +118,7 @@ export async function GET(req: NextRequest) {
     const weeklyLookback = new Date(now)
     weeklyLookback.setUTCDate(weeklyLookback.getUTCDate() - (7 * 11))
 
-    for (const s of activeSubscriptions) {
+    for (const s of inrSubscriptions) {
       const evt = (s.events || []).find((e: { type: string }) => e.type === 'payment.verified')
       if (!evt) continue
       const payload = (evt.payload as Record<string, unknown>) || {}
@@ -131,6 +154,11 @@ export async function GET(req: NextRequest) {
       analytics: {
         activeSubscriptionValuePaise,
         mrrEstimatePaise,
+        usd: {
+          activeSubscriptions: usdTotals.count,
+          activeSubscriptionValueCents: usdTotals.valueMinor,
+          mrrEstimateCents: usdTotals.mrrMinor,
+        },
         totalDiscountPaise,
         couponStats,
         dailyRedemptions,
@@ -185,6 +213,29 @@ export async function PUT(req: NextRequest) {
     billingConfig.prices.platinum.monthlyPaise = toPaise(payload.prices.platinum.monthly)
     billingConfig.prices.platinum.yearlyPaise = toPaise(payload.prices.platinum.yearly)
 
+    if (payload.internationalEnabled !== undefined) {
+      billingConfig.internationalEnabled = payload.internationalEnabled
+    }
+    if (payload.usdPrices) {
+      const toCents = (dollars: number) => Math.round(dollars * 100)
+      billingConfig.usdPrices = {
+        gold: {
+          monthly: payload.usdPrices.gold.monthly,
+          yearly: payload.usdPrices.gold.yearly,
+          monthlyCents: toCents(payload.usdPrices.gold.monthly),
+          yearlyCents: toCents(payload.usdPrices.gold.yearly),
+        },
+        platinum: {
+          monthly: payload.usdPrices.platinum.monthly,
+          yearly: payload.usdPrices.platinum.yearly,
+          monthlyCents: toCents(payload.usdPrices.platinum.monthly),
+          yearlyCents: toCents(payload.usdPrices.platinum.yearly),
+        },
+      }
+    } else if (!billingConfig.usdPrices?.gold?.monthlyCents) {
+      billingConfig.usdPrices = defaultUsdPrices()
+    }
+
     billingConfig.coupons = normalizedCoupons as typeof billingConfig.coupons
     await billingConfig.save()
 
@@ -196,6 +247,8 @@ export async function PUT(req: NextRequest) {
       targetId: 'default',
       metadata: {
         offersEnabled: payload.offersEnabled,
+        internationalEnabled: billingConfig.internationalEnabled,
+        usdPrices: payload.usdPrices ?? null,
         couponCount: normalizedCoupons.length,
       },
     })
