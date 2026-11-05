@@ -44,6 +44,17 @@ const nextConfig = {
   // Permanent redirects
   async redirects() {
     return [
+      // Old reel generator → Social Studio
+      {
+        source:      '/admin/reel/:path*',
+        destination: '/admin/social',
+        permanent:   false,
+      },
+      {
+        source:      '/admin/reel',
+        destination: '/admin/social',
+        permanent:   false,
+      },
       {
         source:      '/asrology',
         destination: '/',
