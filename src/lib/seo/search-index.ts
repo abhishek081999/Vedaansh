@@ -69,6 +69,13 @@ const TOOL_DOCS: SearchDoc[] = [
     keywords: ['career', 'profession', 'job', 'dashamsha', 'd10', 'tenth house'],
   },
   {
+    title: 'Dosha & Upay',
+    description: 'Pitru, Matru, Sarpa, Guru and related Shrap flags with remedies, children focus, lending risk, and Jupiter timing.',
+    url: '/dosha',
+    type: 'tool',
+    keywords: ['dosha', 'shrap', 'pitru', 'matru', 'sarpa', 'guru dosha', 'remedy', 'upay', 'kanya'],
+  },
+  {
     title: 'Nakshatra Analysis',
     description: 'Birth star overview, compatibility, remedies, and muhurta.',
     url: '/nakshatra',

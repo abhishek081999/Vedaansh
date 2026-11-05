@@ -98,6 +98,7 @@ const FEATURES = {
       '✓ Full Profession & Medical nakshatra analysis',
       '✓ Full relationship and marriage reading',
       '✓ Full career and profession reading',
+      '✓ Full Dosha & Upay (Shrap) desk',
       '✓ Full Kundali Milan: match-making, married life, and print',
       '✓ Kerala, Vedic & KP Prashna modes',
       '✓ Ashtottari & Chara (Jaimini) Dashas',

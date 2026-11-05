@@ -10,6 +10,7 @@ import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
 import { calculateManglik, calculatePapeSamya, type ManglikAnalysis, type PapeSamyaAnalysis } from '@/lib/engine/doshas'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { NAKSHATRA_REMEDIES, type NakshatraRemedies } from '@/lib/engine/nakshatraRemedies'
+import { analyzeShrapDosha } from '@/lib/engine/shrapDosha'
 
 // ── Dosha snapshot ───────────────────────────────────────────
 
@@ -99,6 +100,22 @@ export function getDoshaSnapshot(chart: ChartOutput): DoshaSnapshot | null {
     tone: combust.length ? 'watch' : 'clear',
     detail: combust.length ? combust.map(g => GRAHA_NAMES[g.id]).join(', ') : 'No planet is combust (too close to the Sun and weakened)',
   })
+
+  // Shrap desk compact flags (never emit kaalsarp)
+  const shrap = analyzeShrapDosha(chart)
+  if (shrap) {
+    for (const row of shrap.summaryRows) {
+      if (row.id === 'kaalsarp') continue
+      flags.push({
+        id: row.id,
+        label: row.label,
+        tone: row.severity,
+        detail: row.present
+          ? `${row.keyRemedy}. Open Dosha & Upay for full indicators.`
+          : `Clear on this rule set · ${row.primaryPlanet} / ${row.primaryHouse}`,
+      })
+    }
+  }
 
   const maleficYogas = (chart.yogas ?? []).filter(y => y.category === 'malefic')
 

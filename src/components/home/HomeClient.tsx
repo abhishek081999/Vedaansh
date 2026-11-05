@@ -2282,7 +2282,7 @@ function HomeContent() {
                               {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>}
                             </div>
                           </div>
-                          <DoshaSnapshotCard chart={chart} />
+                          <DoshaSnapshotCard chart={chart} onOpenDosha={() => router.push('/dosha')} />
                         </div>
                       )}
 
@@ -3041,7 +3041,7 @@ function HomeContent() {
                     </div>
 
                     {/* ── Doshas, live Panchang and transits, divisional charts, remedies, life highlights ── */}
-                    <DoshaSnapshotCard chart={chart} />
+                    <DoshaSnapshotCard chart={chart} onOpenDosha={() => router.push('/dosha')} />
                     <TodayPanchangCard panchang={todayPanchang} timezone={chart.meta.timezone} />
                     <TransitSnapshotCard chart={chart} onOpen={() => router.push('/transit/roadmap')} />
                     <DivisionalSnapshotCard chart={chart} />

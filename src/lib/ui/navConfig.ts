@@ -24,6 +24,7 @@ import {
   Heart,
   HeartHandshake,
   Hexagon,
+  ShieldAlert,
   Building2,
   Home,
   Hourglass,
@@ -159,6 +160,7 @@ export const ASTRO_GROUPS: NavGroup[] = [
 export const ASTRO_DIRECT_TABS: NavTab[] = [
   { id: 'relationship', label: 'Relationship', icon: Heart, path: '/relationship' },
   { id: 'career', label: 'Career', icon: Briefcase, path: '/career' },
+  { id: 'dosha', label: 'Dosha & Upay', icon: ShieldAlert, path: '/dosha' },
   { id: 'varshaphal', label: 'Solar Return', icon: Sun, path: ASTROLOGY_HOME_PATH },
   { id: 'panchang', label: 'Natal Panchang', icon: Calendar, path: ASTROLOGY_HOME_PATH },
 ]
@@ -187,6 +189,7 @@ export const ASTRO_NAV: AstroNavEntry[] = [
   { kind: 'group', group: astroGroup('strength-analytics') },
   { kind: 'link', tab: astroDirectTab('relationship') },
   { kind: 'link', tab: astroDirectTab('career') },
+  { kind: 'link', tab: astroDirectTab('dosha') },
   { kind: 'link', tab: astroDirectTab('varshaphal') },
   { kind: 'link', tab: astroDirectTab('panchang') },
 ]
