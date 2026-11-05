@@ -3,7 +3,7 @@ import { GRAHA_NAMES, GRAHA_SANSKRIT } from '@/types/astrology'
 import type { HoroscopeTone, RashiHoroscope } from '@/lib/engine/dailyRashiHoroscope'
 import type { Tone } from '@/lib/social/render/theme'
 import type { RashiCard } from '@/lib/social/render/slides/types'
-import type { CityPreset } from '@/lib/social/templates/types'
+import type { CalendarEvent, CalendarEventKind, CityPreset } from '@/lib/social/templates/types'
 
 export const CITY_PRESETS: CityPreset[] = [
   { id: 'delhi', name: 'New Delhi', lat: 28.6139, lng: 77.209, tz: 'Asia/Kolkata' },
@@ -97,3 +97,31 @@ export function rashiCard(s: RashiHoroscope, dateLabel: string, withSummary: boo
 }
 
 export const DAILY_CTA = { title: 'Your sky, every day', deva: 'शुभ दिन', lines: ['Save this post & share it with family', 'Free kundali, panchang & daily rashiphal'] }
+
+export const GRAHA_DEVA: Record<string, string> = {
+  Su: 'सूर्य', Mo: 'चंद्र', Ma: 'मंगल', Me: 'बुध', Ju: 'गुरु', Ve: 'शुक्र', Sa: 'शनि', Ra: 'राहु', Ke: 'केतु',
+}
+
+/** IST calendar date (YYYY-MM-DD) of an instant. */
+export function istDate(iso: string): string {
+  return new Date(new Date(iso).getTime() + 5.5 * 3600_000).toISOString().slice(0, 10)
+}
+
+/** "Thu 6 Nov" for a YYYY-MM-DD date. */
+export function shortDay(date: string): string {
+  const d = new Date(`${date}T12:00:00Z`)
+  return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+}
+
+/** End time, with the day added when it falls after `onDate` ("10:31 AM, Fri 6 Nov"). */
+export function fmtUntil(iso: string | null | undefined, onDate: string, fmt: (s: string) => string): string {
+  if (!iso) return '—'
+  const d = istDate(iso)
+  return d === onDate ? fmt(iso) : `${fmt(iso)}, ${shortDay(d)}`
+}
+
+/** The chosen event if it matches, else the first upcoming event of the given kinds. */
+export function pickEvent(events: CalendarEvent[] | undefined, kinds: CalendarEventKind[], eventId?: string): CalendarEvent | null {
+  const list = (events ?? []).filter((e) => kinds.includes(e.kind))
+  return list.find((e) => e.id === eventId) ?? list[0] ?? null
+}

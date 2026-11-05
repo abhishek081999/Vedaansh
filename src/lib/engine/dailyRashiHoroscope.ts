@@ -142,7 +142,7 @@ const NAMES: Record<GocharPlanet, string> = {
 const ORD = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th']
 
 /** Life matters of each house counted from the Moon. */
-const HOUSE_MATTERS = [
+export const HOUSE_MATTERS = [
   '',
   'self, mood and body',
   'family, speech and savings',

@@ -71,14 +71,22 @@ export interface RashiCard {
   varjya: string[]
 }
 
+export interface WeekRow {
+  rashi: number
+  scores: number[]
+  tones: Tone[]
+  note?: string
+}
+
 export type SlideSpec =
   | { type: 'cover'; head: Heading; hero: Hero; meta?: string; tiles?: Tile[] }
   | { type: 'list'; head: Heading; sections: { heading?: string; rows: Row[] }[]; note?: string }
   | { type: 'tiles'; head: Heading; tiles: Tile[]; cols: 2 | 3; note?: string }
   | { type: 'signGrid'; head: Heading; cells: SignCell[]; note?: string }
   | { type: 'rashi'; card: RashiCard }
+  | { type: 'weekGrid'; head: Heading; days: string[]; rows: WeekRow[]; note?: string }
   | { type: 'text'; head: Heading; hero?: Hero; paragraphs: string[]; bullets?: { title?: string; tone?: Tone; items: string[] }[] }
-  | { type: 'quote'; head?: Heading; quote: string; attribution?: string }
+  | { type: 'quote'; head?: Heading; quote: string; deva?: boolean; translation?: string; attribution?: string }
   | { type: 'cta'; title: string; deva?: string; lines: string[] }
 
 export interface BrandSettings {

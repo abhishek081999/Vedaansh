@@ -31,7 +31,7 @@ import {
   wrap,
 } from '@/lib/social/render/kit'
 import { drawPlanetDisk } from '@/lib/social/render/planet-disk'
-import type { BrandSettings, Heading, Hero, Lead, RashiCard, Row, SignCell, SlideSpec, Tile } from '@/lib/social/render/slides/types'
+import type { BrandSettings, Heading, Hero, Lead, RashiCard, Row, SignCell, SlideSpec, Tile, WeekRow } from '@/lib/social/render/slides/types'
 import { RASHI_SANSKRIT, type Rashi } from '@/types/astrology'
 
 export interface RenderCtx {
@@ -180,7 +180,15 @@ function drawRow(ctx: CanvasRenderingContext2D, t: Theme, x: number, y: number, 
   const maxT = w - (tx - x) - rightW - (right ? 48 : 28)
   const titleSz = h >= 110 ? 40 : h >= 84 ? 36 : 32
   const noteSz = h >= 84 ? 24 : 21
-  if (r.note) {
+  const noteLines = r.note && h >= 128 ? splitLines(ctx, r.note, maxT, { size: 23, weight: 500 }, 2) : null
+  if (r.note && noteLines && noteLines.length > 1) {
+    const block = titleSz * 0.72 + 14 + 2 * 31
+    const top = y + (h - block) / 2 + titleSz * 0.72
+    text(ctx, r.title, tx, top, { kind: 'serif', size: titleSz, weight: 600, color: t.ink, align: 'left', maxWidth: maxT })
+    noteLines.forEach((ln, i) =>
+      text(ctx, ln, tx, top + 40 + i * 31, { size: 23, weight: 500, color: tone === 'neutral' ? t.inkSoft : c.ink, align: 'left', maxWidth: maxT }),
+    )
+  } else if (r.note) {
     const gapTN = Math.min(36, h * 0.34)
     const top = y + (h - (titleSz * 0.72 + gapTN)) / 2 + titleSz * 0.72
     text(ctx, r.title, tx, top, { kind: 'serif', size: titleSz, weight: 600, color: t.ink, align: 'left', maxWidth: maxT })
@@ -410,6 +418,55 @@ function signGridBlock(ctx: CanvasRenderingContext2D, t: Theme, cells: SignCell[
   }
 }
 
+function weekGridBlock(ctx: CanvasRenderingContext2D, t: Theme, days: string[], rows: WeekRow[]): Block {
+  const gap = 14
+  const head = 40
+  return {
+    min: head + rows.length * 116 + (rows.length - 1) * gap,
+    max: head + rows.length * 200 + (rows.length - 1) * gap,
+    grow: rows.length,
+    shrink: true,
+    draw: (y, h) => {
+      const rh = (h - head - (rows.length - 1) * gap) / rows.length
+      const nameW = 250
+      const noteW = 170
+      const colsX0 = COL_X + nameW
+      const colsW = COL_W - nameW - noteW
+      const cw = colsW / days.length
+      days.forEach((d, i) => text(ctx, d, colsX0 + cw * i + cw / 2, y + 26, { size: 22, weight: 700, spacing: 2, color: t.gold }))
+      rows.forEach((r, ri) => {
+        const ry = y + head + ri * (rh + gap)
+        drawPanel(ctx, t, COL_X, ry, COL_W, rh, 'neutral', 20)
+        const ri0 = r.rashi - 1
+        text(ctx, RASHI_GLYPH[ri0], COL_X + 46, ry + rh / 2, { kind: 'sym', size: 40, color: t.gold, baseline: 'middle' })
+        text(ctx, RASHI_SANSKRIT[r.rashi as Rashi] ?? '', COL_X + 84, ry + rh / 2 - 2, { kind: 'serif', size: 34, weight: 600, color: t.ink, align: 'left', maxWidth: nameW - 92 })
+        text(ctx, RASHI_DEVA[ri0], COL_X + 84, ry + rh / 2 + 32, { kind: 'deva', size: 21, weight: 600, color: t.inkMute, align: 'left' })
+        const barTop = ry + 22
+        const barBottom = ry + rh - 22
+        const bw = Math.min(30, cw * 0.55)
+        r.scores.forEach((sc, i) => {
+          const bh = Math.max(8, ((barBottom - barTop) * Math.max(0, Math.min(100, sc))) / 100)
+          const bx = colsX0 + cw * i + (cw - bw) / 2
+          ctx.save()
+          rrect(ctx, bx, barTop, bw, barBottom - barTop, bw / 2)
+          ctx.fillStyle = t.goldFill
+          ctx.fill()
+          rrect(ctx, bx, barBottom - bh, bw, bh, bw / 2)
+          ctx.fillStyle = toneColors(t, r.tones[i] ?? 'neutral').bar
+          ctx.fill()
+          ctx.restore()
+        })
+        if (r.note) {
+          const lines = splitLines(ctx, r.note, noteW - 24, { size: 22, weight: 600 }, 2)
+          lines.forEach((ln, i) =>
+            text(ctx, ln, COL_X + COL_W - noteW / 2 - 6, ry + rh / 2 + 8 - (lines.length - 1) * 14 + i * 28, { size: 22, weight: 600, color: t.inkSoft, maxWidth: noteW - 20 }),
+          )
+        }
+      })
+    },
+  }
+}
+
 function rashiBlocks(ctx: CanvasRenderingContext2D, rc: RenderCtx, card: RashiCard): Block[] {
   const t = rc.theme
   const r = card.rashi - 1
@@ -609,21 +666,42 @@ export function renderSlide(ctx: CanvasRenderingContext2D, spec: SlideSpec, rc: 
     case 'rashi':
       runStack(top, bottom, rashiBlocks(ctx, rc, spec.card))
       break
+    case 'weekGrid': {
+      const blocks: Block[] = [headingBlock(ctx, rc, spec.head), weekGridBlock(ctx, t, spec.days, spec.rows)]
+      if (spec.note) blocks.push(noteBlock(ctx, t, spec.note))
+      runStack(top, bottom, blocks)
+      break
+    }
     case 'text':
       runStack(top, bottom, textBlocks(ctx, rc, spec))
       break
     case 'quote': {
       const blocks: Block[] = []
       if (spec.head) blocks.push(headingBlock(ctx, rc, spec.head))
-      const lines = splitLines(ctx, spec.quote, COL_W - 80, { kind: 'serif', size: 52, italic: true, weight: 500 }, 7)
+      const qo = spec.deva
+        ? ({ kind: 'deva', size: 42, weight: 600 } as const)
+        : ({ kind: 'serif', size: 52, italic: true, weight: 500 } as const)
+      const lh = spec.deva ? 66 : 66
+      const lines = splitLines(ctx, spec.quote, COL_W - 80, qo, spec.deva ? 6 : 7)
       blocks.push({
-        min: lines.length * 66 + 120,
+        min: lines.length * lh + 120,
         draw: (y) => {
           text(ctx, '“', CX, y + 90, { kind: 'serif', size: 150, weight: 600, color: t.gold })
-          lines.forEach((ln, i) => text(ctx, ln, CX, y + 150 + i * 66, { kind: 'serif', size: 52, italic: true, weight: 500, color: t.ink }))
+          lines.forEach((ln, i) => text(ctx, ln, CX, y + 150 + i * lh, { ...qo, color: spec.deva ? t.gold : t.ink }))
         },
       })
-      if (spec.attribution) blocks.push({ min: 40, draw: (y) => text(ctx, `— ${spec.attribution}`, CX, y + 30, { size: 28, weight: 600, color: t.gold }) })
+      if (spec.translation) {
+        const tl = splitLines(ctx, spec.translation, COL_W - 60, { kind: 'serif', size: 34, italic: true, weight: 500 }, 6)
+        blocks.push({
+          min: tl.length * 46 + 30,
+          shrink: true,
+          draw: (y) => {
+            drawOrnament(ctx, t, y + 6, 300)
+            tl.forEach((ln, i) => text(ctx, ln, CX, y + 56 + i * 46, { kind: 'serif', size: 34, italic: true, weight: 500, color: t.ink }))
+          },
+        })
+      }
+      if (spec.attribution) blocks.push({ min: 40, draw: (y) => text(ctx, `— ${spec.attribution}`, CX, y + 30, { size: 28, weight: 600, color: t.gold, maxWidth: COL_W }) })
       runStack(top, bottom, blocks)
       break
     }

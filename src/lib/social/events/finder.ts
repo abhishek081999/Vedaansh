@@ -35,6 +35,7 @@ import { getTithi } from '@/lib/engine/nakshatra'
 import { getMoonrise, getSunrise, getSunset } from '@/lib/engine/sunrise'
 import { getLunarMonth, type LunarMasa } from '@/lib/engine/panchangVishesh'
 import { calculatePersonalTransits } from '@/lib/engine/transits'
+import { findEclipses, type EclipseInfo } from '@/lib/engine/eclipses'
 import {
   ADHIKA_EKADASHI_NAMES,
   EKADASHI_NAMES,
@@ -45,7 +46,7 @@ import {
 
 // ── Public types ─────────────────────────────────────────────
 
-export type CalendarEventKind = 'vrat' | 'festival' | 'sankranti' | 'ingress' | 'retro_start' | 'retro_end'
+export type CalendarEventKind = 'vrat' | 'festival' | 'sankranti' | 'ingress' | 'retro_start' | 'retro_end' | 'eclipse'
 
 export interface CalendarEvent {
   id:     string
@@ -61,6 +62,8 @@ export interface CalendarEvent {
   at?:     string
   /** Amanta lunar month for vrats / festivals ("Adhika Jyeshtha" when intercalary) */
   masa?:   string
+  /** Eclipse details (kind 'eclipse' only). */
+  eclipse?: EclipseInfo
   suggestedTemplates: string[]
 }
 
@@ -405,10 +408,40 @@ function findSolarFestivals(sankrantis: CalendarEvent[], loc: EventLocation): Ca
   return out
 }
 
+// ── Eclipses ─────────────────────────────────────────────────
+
+const ECLIPSE_TYPE_LABEL: Record<EclipseInfo['type'], string> = {
+  total: 'Total', annular: 'Annular', hybrid: 'Hybrid', partial: 'Partial', penumbral: 'Penumbral',
+}
+
+export function eclipseEvent(e: EclipseInfo, loc: EventLocation): CalendarEvent {
+  const at = e.local.max ?? e.max
+  const date = formatInTimeZone(new Date(at), loc.tz, 'yyyy-MM-dd')
+  const name = e.kind === 'solar' ? 'Surya Grahan' : 'Chandra Grahan'
+  const vis = e.local.visible ? `Visible from ${loc.name}` : `Not visible from ${loc.name}`
+  return {
+    id: `eclipse:${e.kind}-${e.type}:${date}`,
+    date,
+    kind: 'eclipse',
+    title: `${name} (${ECLIPSE_TYPE_LABEL[e.type]})`,
+    deva: e.kind === 'solar' ? 'सूर्य ग्रहण' : 'चंद्र ग्रहण',
+    planet: e.kind === 'solar' ? 'Su' : 'Mo',
+    sign: e.sign,
+    at,
+    detail: `${vis}${e.local.sutakStart ? ' · sutak applies' : ''}. Moon in ${RASHI_SANSKRIT[e.sign]} (${e.nakshatra}).`,
+    eclipse: e,
+    suggestedTemplates: ['grahan'],
+  }
+}
+
+function findEclipseEvents(from: string, to: string, loc: EventLocation): CalendarEvent[] {
+  return findEclipses(new Date(`${from}T00:00:00Z`), new Date(`${to}T23:59:59Z`), loc).map((e) => eclipseEvent(e, loc))
+}
+
 // ── Entry point ──────────────────────────────────────────────
 
 const KIND_ORDER: Record<CalendarEventKind, number> = {
-  festival: 0, sankranti: 1, vrat: 2, ingress: 3, retro_start: 4, retro_end: 5,
+  eclipse: 0, festival: 1, sankranti: 2, vrat: 3, ingress: 4, retro_start: 5, retro_end: 6,
 }
 
 export function findCalendarEvents(
@@ -424,6 +457,7 @@ export function findCalendarEvents(
     ...findLunarFestivals(days),
     ...transits,
     ...findSolarFestivals(transits, loc),
+    ...findEclipseEvents(from, to, loc),
   ].filter(inRange)
   return all.sort((a, b) =>
     a.date.localeCompare(b.date) || KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || a.title.localeCompare(b.title),

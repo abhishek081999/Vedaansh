@@ -142,3 +142,98 @@ describe('slideshow frame plan', async () => {
     expect(slideshowFrame(269, 3, 90, 15, 1.04)).toMatchObject({ slide: 2, nextAlpha: 0 })
   })
 })
+
+describe('weekly & event templates', () => {
+  it('weekly rashiphal shows all 12 signs across 3 day-by-day slides', () => {
+    const b = getTemplate('weekly-rashiphal')!.build(day, params)
+    const grids = b.slides.filter((s) => s.type === 'weekGrid')
+    expect(grids).toHaveLength(3)
+    expect(grids.flatMap((s) => (s.type === 'weekGrid' ? s.rows.map((r) => r.rashi) : []))).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    for (const g of grids) if (g.type === 'weekGrid') for (const r of g.rows) expect(r.scores).toHaveLength(7)
+  })
+
+  it('gochar gives an effect line for every Moon sign, fast planets included', () => {
+    const ingress = day.events.filter((e) => e.kind === 'ingress')
+    expect(ingress.length).toBeGreaterThan(0)
+    for (const ev of ingress) {
+      const b = getTemplate('gochar')!.build(day, { ...params, eventId: ev.id })
+      const rows = b.slides.flatMap((s) => (s.type === 'list' ? s.sections.flatMap((x) => x.rows) : []))
+      expect(rows, ev.title).toHaveLength(12)
+      for (const r of rows) expect(r.note && r.note.length > 10, `${ev.title}: ${r.title}`).toBe(true)
+    }
+  })
+
+  it('event templates use the chosen event, else the first upcoming one', () => {
+    const vrats = day.events.filter((e) => e.kind === 'vrat')
+    const second = vrats[1]
+    const b = getTemplate('vrat')!.build(day, { ...params, eventId: second.id })
+    expect(b.slides[0].type === 'cover' && b.slides[0].head.title).toBe(second.title)
+    const first = getTemplate('vrat')!.build(day, params)
+    expect(first.slides[0].type === 'cover' && first.slides[0].head.title).toBe(vrats[0].title)
+  })
+
+  it('event templates degrade to a notice when there is no event', () => {
+    const empty = { ...day, events: [] } as DayData
+    for (const id of ['gochar', 'retrograde', 'vrat', 'festival', 'sankranti']) {
+      const b = getTemplate(id)!.build(empty, params)
+      expect(b.slides).toHaveLength(1)
+      expect(b.slides[0].type).toBe('text')
+    }
+  })
+})
+
+describe('evergreen series', () => {
+  const series = TEMPLATES.filter((t) => t.items)
+  it('covers the planned series', () => {
+    expect(series.map((t) => t.code).sort()).toEqual(['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D9', 'E1', 'E2'])
+    expect(getTemplate('series-nakshatra')!.items!()).toHaveLength(27)
+    expect(getTemplate('series-tithi')!.items!()).toHaveLength(30)
+  })
+
+  for (const t of series) {
+    it(`${t.id}: every item renders on-frame with real content`, () => {
+      for (const { value } of t.items!()) {
+        const b = t.build(day, { ...params, item: value })
+        expect(b.slides.length).toBeGreaterThan(0)
+        for (const s of b.slides) {
+          if (s.type === 'text') {
+            const n = s.paragraphs.filter(Boolean).length + (s.bullets ?? []).reduce((a, x) => a + x.items.filter(Boolean).length, 0)
+            expect(n, `${t.id}#${value} "${s.head.title}" is empty`).toBeGreaterThan(0)
+          }
+        }
+        for (const fid of t.formats) {
+          b.slides.forEach((s, i) => {
+            const ctx = mockCtx()
+            renderSlide(ctx, s, { frame: FRAMES[fid], theme: getTheme('cosmic'), brand, seed: 't', index: i, total: b.slides.length })
+            for (const tx of ctx.texts) {
+              expect(tx.y, `${t.id}#${value}/${i} "${tx.s}"`).toBeLessThan(FRAMES[fid].h - 40)
+              expect(tx.s, `${t.id}#${value}/${i}`).not.toMatch(/undefined|NaN|^—$/)
+            }
+          })
+        }
+      }
+    })
+  }
+
+  it('sade sati grid follows Saturn in Pisces (Nov 2026)', () => {
+    const b = getTemplate('sade-sati')!.build(day, params)
+    const grid = b.slides[0]
+    if (grid.type !== 'signGrid') throw new Error('expected grid')
+    const phase = Object.fromEntries(grid.cells.map((c) => [c.rashi, c.value]))
+    expect(phase[11]).toMatch(/setting/)
+    expect(phase[12]).toMatch(/peak/)
+    expect(phase[1]).toMatch(/rising/)
+    expect(phase[5]).toMatch(/Ashtama/)
+  })
+})
+
+describe('aaj ka upay', () => {
+  it('has real content for every weekday lord', () => {
+    for (let v = 0; v < 7; v++) {
+      const d = { ...day, panchang: { ...day.panchang, vara: { ...day.panchang.vara, number: v } } } as DayData
+      const s = getTemplate('upay')!.build(d, params).slides[0]
+      if (s.type !== 'text') throw new Error('expected text slide')
+      for (const b of s.bullets ?? []) expect(b.items.filter(Boolean).length, `weekday ${v} ${b.title}`).toBeGreaterThan(0)
+    }
+  })
+})
