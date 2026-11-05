@@ -225,3 +225,85 @@ export async function sendAdminBroadcastEmails(params: {
   return { sent, failed, errors }
 }
 
+
+// ── Manual payment requests ─────────────────────────────────
+
+export type PaymentRequestEmailData = {
+  requestId: string
+  name: string
+  email: string
+  plan: string
+  interval: string
+  currency: string
+  country: string
+  method: string
+  reason: string
+  message: string
+  failureNote: string
+}
+
+const METHOD_LABELS: Record<string, string> = {
+  paypal: 'PayPal',
+  wise: 'Wise transfer',
+  upi: 'UPI',
+  bank: 'Bank transfer',
+  other: 'Other',
+}
+
+/** Tells the Vedaansh team someone needs a subscription set up by hand. */
+export async function sendPaymentRequestTeamEmail(to: string[], data: PaymentRequestEmailData) {
+  const planLabel = data.plan.charAt(0).toUpperCase() + data.plan.slice(1)
+  const rows: Array<[string, string]> = [
+    ['Name', data.name],
+    ['Email', data.email],
+    ['Plan', `${planLabel} (${data.interval})`],
+    ['Currency', data.currency],
+    ['Country', data.country || '—'],
+    ['Preferred method', METHOD_LABELS[data.method] ?? data.method],
+    ['Reason', data.reason === 'checkout_failed' ? 'Checkout failed' : data.reason === 'international' ? 'International payment' : 'Other'],
+    ['Checkout error', data.failureNote || '—'],
+    ['Message', data.message || '—'],
+  ]
+  const table = rows.map(([k, v]) => `
+    <tr>
+      <td style="padding: 6px 12px 6px 0; color: #6b7280; vertical-align: top; white-space: nowrap;">${k}</td>
+      <td style="padding: 6px 0; color: #111827;">${escapeHtml(v).replace(/\n/g, '<br/>')}</td>
+    </tr>`).join('')
+
+  return resend.emails.send({
+    from: `${appName} <${fromEmail}>`,
+    to,
+    reply_to: data.email,
+    subject: `Payment request: ${planLabel} ${data.interval} — ${data.email}`,
+    html: createLayout(`
+      <h2 style="color: #111827; margin-top: 0;">New subscription payment request</h2>
+      <p style="font-size: 15px; color: #4b5563;">Send the user an invoice or payment details, then mark it paid in the admin panel to activate their plan.</p>
+      <table style="font-size: 14px; border-collapse: collapse; margin: 24px 0;">${table}</table>
+      <a href="${baseUrl}/admin/payment-requests"
+         style="background-color: #1a1b1e; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 700; display: inline-block;">
+        Open payment requests
+      </a>
+      <p style="font-size: 12px; color: #9ca3af; margin-top: 24px;">Request ID: ${escapeHtml(data.requestId)}</p>
+    `),
+  }).then(res => ({ success: !res.error, ...res }))
+    .catch(err => ({ success: false, error: err }))
+}
+
+/** Confirms to the user that the team has their request. */
+export async function sendPaymentRequestReceivedEmail(email: string, data: Pick<PaymentRequestEmailData, 'plan' | 'interval' | 'method'>) {
+  const planLabel = data.plan.charAt(0).toUpperCase() + data.plan.slice(1)
+  const method = METHOD_LABELS[data.method] ?? data.method
+
+  return resend.emails.send({
+    from: `${appName} <${fromEmail}>`,
+    to: [email],
+    subject: `We received your ${planLabel} request — ${appName}`,
+    html: createLayout(`
+      <h2 style="color: #111827; margin-top: 0;">We've got your request</h2>
+      <p style="font-size: 16px; color: #4b5563;">Thanks for choosing <strong>${planLabel}</strong> (${escapeHtml(data.interval)}). Our team will email you payment details for <strong>${escapeHtml(method)}</strong>, usually within 1–2 business days.</p>
+      <p style="font-size: 16px; color: #4b5563;">As soon as your payment is confirmed, we'll activate your plan and you'll get a confirmation email.</p>
+      <p style="font-size: 14px; color: #9ca3af;">You don't need to pay anything until you hear from us. If you didn't make this request, you can ignore this email.</p>
+    `),
+  }).then(res => ({ success: !res.error, ...res }))
+    .catch(err => ({ success: false, error: err }))
+}

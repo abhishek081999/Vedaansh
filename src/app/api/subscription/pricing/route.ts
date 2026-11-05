@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/db/mongodb'
-import { getOrCreateBillingConfig } from '@/lib/subscription/billing-config'
+import { getOrCreateBillingConfig, isInternationalEnabled } from '@/lib/subscription/billing-config'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
 
 export async function GET(req: Request) {
@@ -13,6 +13,8 @@ export async function GET(req: Request) {
     return NextResponse.json({
       success: true,
       prices: billingConfig.prices,
+      usdPrices: billingConfig.usdPrices,
+      internationalEnabled: isInternationalEnabled(billingConfig),
     })
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to fetch pricing' }, { status: 500 })

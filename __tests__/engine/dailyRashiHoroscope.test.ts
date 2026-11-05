@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDailyHoroscopeSky } from '@/lib/engine/dailyHoroscopeSky'
+import { buildDailyHoroscopeSky, findMoonInSign } from '@/lib/engine/dailyHoroscopeSky'
 import {
   buildDailyHoroscopeReport,
   buildRashiHoroscope,
@@ -27,6 +27,18 @@ function sky(rashis: Record<string, Rashi>, ingress: DailyHoroscopeSky['moonIngr
       yoga: { name: 'Vishkumbha', quality: 'inauspicious' },
       karana: { name: 'Bava', isBhadra: false },
     },
+    timings: {
+      place: 'Ujjain',
+      sunrise: '2026-01-01T01:30:00.000Z',
+      sunset: '2026-01-01T12:30:00.000Z',
+      rahuKalam: { start: '2026-01-01T07:30:00.000Z', end: '2026-01-01T09:00:00.000Z' },
+      horas: Array.from({ length: 24 }, (_, i) => ({
+        start: new Date(Date.parse('2026-01-01T01:30:00.000Z') + i * 3_600_000).toISOString(),
+        end: new Date(Date.parse('2026-01-01T02:30:00.000Z') + i * 3_600_000).toISOString(),
+        lord: (['Ju', 'Ma', 'Su', 'Ve', 'Me', 'Mo', 'Sa'] as const)[i % 7],
+        day: i < 12,
+      })),
+    },
   }
 }
 
@@ -51,6 +63,29 @@ describe('daily rashi horoscope', () => {
     const s = sky({ ...BASE, Mo: 8 }, { at: '2026-01-01T06:30:00.000Z', toRashi: 9 })
     const h = buildRashiHoroscope(s, 1)
     expect(h.moon.later?.house).toBe(9)
+  })
+
+  it('picks shubh samay from favourable horas outside Rahu Kalam', () => {
+    // Moon sign Aries: Jupiter in the 11th (favourable), Sun in the 1st (not).
+    const h = buildRashiHoroscope(sky({ ...BASE, Ju: 11, Su: 1 }), 1)
+    expect(h.shubhSamay.length).toBeGreaterThan(0)
+    for (const w of h.shubhSamay) {
+      expect(w.lord).not.toBe('Su')
+      const overlapsRahu = Date.parse(w.start) < Date.parse('2026-01-01T09:00:00.000Z')
+        && Date.parse(w.end) > Date.parse('2026-01-01T07:30:00.000Z')
+      expect(overlapsRahu).toBe(false)
+    }
+    expect(h.shubhSamay.some((w) => w.lord === 'Ju')).toBe(true)
+  })
+
+  it('finds the Moon’s span in a sign (Chandrashtama window)', () => {
+    const from = new Date('2026-11-04T00:30:00Z')
+    const w = findMoonInSign(from, 10)!
+    expect(w).not.toBeNull()
+    const hours = (Date.parse(w.end) - Date.parse(w.start)) / 3_600_000
+    expect(hours).toBeGreaterThan(48)
+    expect(hours).toBeLessThan(66)
+    expect(Date.parse(w.start)).toBeGreaterThan(from.getTime())
   })
 
   it('resolves slugs in English and Sanskrit', () => {

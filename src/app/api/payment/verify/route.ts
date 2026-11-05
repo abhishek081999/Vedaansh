@@ -80,7 +80,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Payment not successful' }, { status: 400 })
     }
 
-    const metadata = parsePaymentMetadata(payment.notes as Record<string, unknown>, payment.amount)
+    const metadata = parsePaymentMetadata(
+      payment.notes as Record<string, unknown>,
+      payment.amount,
+      payment.currency,
+    )
     if (!metadata.ok) {
       return NextResponse.json({ success: false, error: metadata.error }, { status: 400 })
     }
@@ -91,7 +95,7 @@ export async function POST(req: NextRequest) {
     // ── 3. Capture: an authorized payment is only a hold ─────
     if (payment.status === 'authorized') {
       try {
-        payment = await razorpay.payments.capture(paymentId, metadata.data.finalAmount, 'INR')
+        payment = await razorpay.payments.capture(paymentId, metadata.data.finalAmount, metadata.data.currency)
       } catch (err) {
         // Razorpay's auto-capture may have got there first, so check before failing.
         console.warn('[payment/verify] Capture failed, re-checking:', err instanceof Error ? err.message : 'unknown')

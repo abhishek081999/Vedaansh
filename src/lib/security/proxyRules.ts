@@ -28,6 +28,7 @@ const PROTECTED_API = [
   '/api/clients',
   '/api/payment/checkout',
   '/api/payment/verify',
+  '/api/payment/request',
 ]
 
 const GOLD_ROUTES = ['/muhurta']

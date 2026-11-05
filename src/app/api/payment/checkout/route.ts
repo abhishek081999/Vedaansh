@@ -6,7 +6,14 @@ import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
 import { guardRoute, routeSecurityPresets } from '@/lib/security/presets'
-import { areOffersEnabled, getApplicableCoupon, getOrCreateBillingConfig, computeDiscount } from '@/lib/subscription/billing-config'
+import {
+  areOffersEnabled,
+  computeDiscount,
+  getApplicableCoupon,
+  getOrCreateBillingConfig,
+  getPlanAmountMinor,
+  isInternationalEnabled,
+} from '@/lib/subscription/billing-config'
 import { isDowngradePurchase } from '@/lib/subscription/paymentRules'
 
 export const runtime = 'nodejs'
@@ -34,7 +41,13 @@ const CheckoutSchema = z.object({
   plan:     z.enum(['gold', 'platinum']),
   interval: z.enum(['monthly', 'yearly']),
   couponCode: z.string().trim().max(50).optional(),
+  currency: z.enum(['INR', 'USD']).default('INR'),
 })
+
+function razorpayErrorDescription(err: unknown): string {
+  const e = err as { error?: { description?: unknown } } | null
+  return typeof e?.error?.description === 'string' ? e.error.description : ''
+}
 
 // ── Route handler ─────────────────────────────────────────────
 
@@ -61,9 +74,16 @@ export async function POST(req: NextRequest) {
     }
 
     await connectDB()
-    const { plan, interval, couponCode } = parsed.data
+    const { plan, interval, couponCode, currency } = parsed.data
     const billingConfig = await getOrCreateBillingConfig()
-    const amountPaise = billingConfig.prices[plan][interval === 'monthly' ? 'monthlyPaise' : 'yearlyPaise']
+    if (currency !== 'INR' && !isInternationalEnabled(billingConfig)) {
+      return NextResponse.json(
+        { success: false, error: 'International payments are not available yet. Please contact support.' },
+        { status: 400 },
+      )
+    }
+    // In the smallest unit of `currency`: paise for INR, cents for USD.
+    const amountPaise = getPlanAmountMinor(billingConfig, currency, plan, interval)
 
     // Get or create Razorpay customer for this user
     const user = await User.findById(session.user.id)
@@ -84,6 +104,8 @@ export async function POST(req: NextRequest) {
           plan,
           interval,
           { email: user.email, isNewUser: !hasAnySubscription },
+          new Date(),
+          currency,
         )
       : null
     const { discountPaise, finalAmountPaise } = computeDiscount(amountPaise, coupon)
@@ -107,27 +129,39 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Create a one-time order
-    const order = await razorpay.orders.create({
-      amount:   finalAmountPaise,
-      currency: 'INR',
-      notes: {
-        userId:   session.user.id,
-        plan,
-        interval,
-        email:    user.email,
-        couponCode: coupon?.code ?? '',
-        baseAmount: String(amountPaise),
-        discountAmount: String(discountPaise),
-        finalAmount: String(finalAmountPaise),
-      },
-    })
+    // Create a one-time order. USD orders let Razorpay offer PayPal and international cards.
+    let order: { id: string }
+    try {
+      order = await razorpay.orders.create({
+        amount:   finalAmountPaise,
+        currency,
+        notes: {
+          userId:   session.user.id,
+          plan,
+          interval,
+          currency,
+          email:    user.email,
+          couponCode: coupon?.code ?? '',
+          baseAmount: String(amountPaise),
+          discountAmount: String(discountPaise),
+          finalAmount: String(finalAmountPaise),
+        },
+      })
+    } catch (err) {
+      if (currency === 'INR') throw err
+      // Most often the Razorpay account is not yet enabled for this currency.
+      console.error('[payment/checkout] International order failed:', razorpayErrorDescription(err) || 'unknown')
+      return NextResponse.json(
+        { success: false, error: 'International payments are temporarily unavailable. Please try INR or contact support.' },
+        { status: 503 },
+      )
+    }
 
     return NextResponse.json({
       success:    true,
       orderId:    order.id,
       amount:     finalAmountPaise,
-      currency:   'INR',
+      currency,
       keyId:      process.env.RAZORPAY_KEY_ID,
       planLabel:  plan === 'gold' ? 'Gold' : 'Platinum',
       userName:   user.name,

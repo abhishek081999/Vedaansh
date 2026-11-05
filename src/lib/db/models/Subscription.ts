@@ -6,7 +6,8 @@
 import { Schema, model, models, type Document, type Types } from 'mongoose'
 import type { UserPlan } from '@/types/astrology'
 
-export type PaymentProvider = 'razorpay' | 'stripe'
+/** 'manual': paid by invoice (PayPal / Wise / UPI / bank) and recorded by an admin. */
+export type PaymentProvider = 'razorpay' | 'stripe' | 'manual'
 export type SubscriptionStatus =
   | 'active'
   | 'cancelled'
@@ -63,7 +64,7 @@ export interface ISubscription extends Document {
 const SubscriptionSchema = new Schema<ISubscription>({
   userId:   { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   plan:     { type: String, enum: ['gold','platinum'], required: true },
-  provider: { type: String, enum: ['razorpay','stripe'], required: true },
+  provider: { type: String, enum: ['razorpay','stripe','manual'], required: true },
 
   providerSubscriptionId: { type: String, required: true, unique: true },
   providerCustomerId:     { type: String, required: true },

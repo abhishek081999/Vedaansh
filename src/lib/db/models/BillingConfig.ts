@@ -19,9 +19,18 @@ export interface ICoupon {
   intervals: BillingInterval[]
 }
 
+export interface UsdPlanPrice {
+  monthly: number
+  yearly: number
+  monthlyCents: number
+  yearlyCents: number
+}
+
 export interface IBillingConfig extends Document {
   key: 'default'
   offersEnabled: boolean
+  /** USD checkout (PayPal / international cards via Razorpay). Off until Razorpay activates it. */
+  internationalEnabled: boolean
   prices: {
     gold: {
       monthly: number
@@ -35,6 +44,10 @@ export interface IBillingConfig extends Document {
       monthlyPaise: number
       yearlyPaise: number
     }
+  }
+  usdPrices: {
+    gold: UsdPlanPrice
+    platinum: UsdPlanPrice
   }
   coupons: ICoupon[]
   createdAt: Date
@@ -56,9 +69,17 @@ const CouponSchema = new Schema<ICoupon>({
   intervals: { type: [String], enum: ['monthly', 'yearly'], default: ['monthly', 'yearly'] },
 }, { _id: false })
 
+const UsdPlanPriceSchema = new Schema<UsdPlanPrice>({
+  monthly: { type: Number, required: true },
+  yearly: { type: Number, required: true },
+  monthlyCents: { type: Number, required: true },
+  yearlyCents: { type: Number, required: true },
+}, { _id: false })
+
 const BillingConfigSchema = new Schema<IBillingConfig>({
   key: { type: String, default: 'default', unique: true },
   offersEnabled: { type: Boolean, default: true },
+  internationalEnabled: { type: Boolean, default: false },
   prices: {
     gold: {
       monthly: { type: Number, required: true },
@@ -72,6 +93,10 @@ const BillingConfigSchema = new Schema<IBillingConfig>({
       monthlyPaise: { type: Number, required: true },
       yearlyPaise: { type: Number, required: true },
     },
+  },
+  usdPrices: {
+    gold: { type: UsdPlanPriceSchema },
+    platinum: { type: UsdPlanPriceSchema },
   },
   coupons: { type: [CouponSchema], default: [] },
 }, { timestamps: true })

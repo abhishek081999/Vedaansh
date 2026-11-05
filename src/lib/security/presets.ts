@@ -111,6 +111,16 @@ export const routeSecurityPresets = {
       message: rateLimitMessages.generic,
     },
   }),
+  paymentRequest: (): RouteSecurityOptions => ({
+    requireSameOrigin: true,
+    maxBodyBytes: AUTH_JSON_BODY_BYTES,
+    rateLimit: {
+      bucket: 'payment-request',
+      limit: abuseLimits.paymentRequestPerHour,
+      windowSeconds: RATE_LIMIT_WINDOWS.hour,
+      message: 'You have sent several requests already. Our team will reply by email.',
+    },
+  }),
 } as const
 
 export async function guardRoute(

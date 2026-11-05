@@ -50,7 +50,7 @@ vi.mock('@/lib/db/models/Subscription', () => ({
   },
 }))
 
-import { activatePayment, revokePayment } from '@/lib/subscription/activation'
+import { activateManualPayment, activatePayment, revokePayment } from '@/lib/subscription/activation'
 
 const notes = {
   userId: 'u1',
@@ -121,6 +121,26 @@ describe('activatePayment', () => {
     expect(db.user.plan).toBe('free')
   })
 
+  it('records a USD payment in USD', async () => {
+    const usdNotes = { ...notes, currency: 'USD', couponCode: '', baseAmount: '500', discountAmount: '0', finalAmount: '500' }
+    const r = await activatePayment({ id: 'pay_usd', order_id: 'order_usd', amount: 500, currency: 'USD', notes: usdNotes }, 'payment.captured')
+    expect(r.ok).toBe(true)
+    expect(db.subs[0].currency).toBe('USD')
+    expect(db.subs[0].amount).toBe(500)
+    expect(db.user.plan).toBe('gold')
+  })
+
+  it('records an order without a currency note as INR', async () => {
+    await activatePayment({ ...payment, currency: 'INR' }, 'payment.captured')
+    expect(db.subs[0].currency).toBe('INR')
+  })
+
+  it('rejects a payment taken in a different currency than the order notes', async () => {
+    const r = await activatePayment({ ...payment, currency: 'USD' }, 'payment.captured')
+    expect(r.ok).toBe(false)
+    expect(db.subs).toHaveLength(0)
+  })
+
   it('does not reactivate a refunded payment', async () => {
     await activatePayment(payment, 'payment.verified')
     await revokePayment('pay_1', 'refund', 15120)
@@ -172,5 +192,64 @@ describe('revokePayment', () => {
     db.user.plan = 'gold'
     await revokePayment('pay_1', 'refund', 15120)
     expect(db.user.plan).toBe('gold')
+  })
+})
+
+describe('activateManualPayment', () => {
+  const manual = {
+    requestId: 'req1',
+    userId: 'u1',
+    plan: 'gold' as const,
+    interval: 'yearly' as const,
+    amountMinor: 4800,
+    currency: 'USD' as const,
+    method: 'paypal',
+    transactionId: 'PAYPAL-123',
+    adminEmail: 'admin@example.com',
+  }
+
+  it('grants the plan and records a manual USD subscription', async () => {
+    const r = await activateManualPayment(manual)
+    expect(r.ok).toBe(true)
+    expect(db.user.plan).toBe('gold')
+    expect(db.user.planExpiresAt).toBeInstanceOf(Date)
+    expect(db.subs).toHaveLength(1)
+    expect(db.subs[0]).toMatchObject({
+      provider: 'manual',
+      providerSubscriptionId: 'manual_req1',
+      currency: 'USD',
+      amount: 4800,
+      interval: 'yearly',
+    })
+    expect(db.emails).toBe(1)
+  })
+
+  it('changes nothing when the same request is marked paid twice', async () => {
+    await activateManualPayment(manual)
+    const expiry = db.user.planExpiresAt
+    const again = await activateManualPayment(manual)
+    expect(again.ok).toBe(true)
+    expect(db.subs).toHaveLength(1)
+    expect(db.user.planExpiresAt).toEqual(expiry)
+    expect(db.emails).toBe(1)
+  })
+
+  it('extends an active plan of the same tier from its current expiry', async () => {
+    const current = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+    db.user = { email: 'a@example.com', plan: 'gold', planExpiresAt: current }
+    await activateManualPayment(manual)
+    expect(db.subs[0].currentPeriodStart).toEqual(current)
+  })
+
+  it('does not lower an active Platinum user', async () => {
+    db.user = { email: 'a@example.com', plan: 'platinum', planExpiresAt: new Date(Date.now() + 86_400_000) }
+    await activateManualPayment(manual)
+    expect(db.user.plan).toBe('platinum')
+  })
+
+  it('fails for an unknown user', async () => {
+    db.user = null
+    const r = await activateManualPayment(manual)
+    expect(r.ok).toBe(false)
   })
 })

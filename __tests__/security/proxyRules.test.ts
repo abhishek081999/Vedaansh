@@ -42,6 +42,7 @@ describe('classifyProxyPath', () => {
     expect(classifyProxyPath('/muhurta').isGoldPage).toBe(true)
     expect(classifyProxyPath('/api/chart/template').isProtectedApi).toBe(true)
     expect(classifyProxyPath('/api/user/me').isProtectedApi).toBe(true)
+    expect(classifyProxyPath('/api/payment/request').isProtectedApi).toBe(true)
     expect(classifyProxyPath('/api/chart/export').isGoldApi).toBe(true)
     expect(classifyProxyPath('/api/chart/export-xlsx').isGoldApi).toBe(true)
     expect(classifyProxyPath('/admin/users').isAdminPage).toBe(true)

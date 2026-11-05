@@ -78,7 +78,15 @@ export interface RashiHoroscope {
   /** Varjya — what to go easy on today. */
   varjya: string[]
   lucky: HoroscopeLucky
+  /** Shubh samay: horas of grahas favouring this sign, outside Rahu Kalam (reference-place times). */
+  shubhSamay: HoroscopeWindow[]
   remedy: string
+}
+
+export interface HoroscopeWindow {
+  start: string
+  end: string
+  lord: GocharPlanet
 }
 
 export interface DailyHoroscopeReport {
@@ -91,6 +99,7 @@ export interface DailyHoroscopeReport {
   panchang: DailyHoroscopeSky['panchang']
   moonNakshatra: DailyHoroscopeSky['moonNakshatra']
   moonIngress: DailyHoroscopeSky['moonIngress']
+  timings: Omit<DailyHoroscopeSky['timings'], 'horas'>
   signs: RashiHoroscope[]
 }
 
@@ -388,6 +397,31 @@ function karyaVarjya(houses: Record<GocharPlanet, number>, transits: HoroscopeTr
   return { karya: karya.slice(0, 4), varjya: varjya.slice(0, 4) }
 }
 
+/**
+ * Shubh samay: waking-hour horas (sunrise → 3 h after sunset) ruled by a graha
+ * in favourable gochara for this sign, never overlapping Rahu Kalam.
+ * Strongest lords first (by daily weight), one window per graha, at most two, in time order.
+ */
+function shubhSamay(
+  sky: DailyHoroscopeSky,
+  values: Record<GocharPlanet, number>,
+): HoroscopeWindow[] {
+  const { horas, rahuKalam, sunset } = sky.timings
+  const rStart = Date.parse(rahuKalam.start)
+  const rEnd = Date.parse(rahuKalam.end)
+  const cutoff = Date.parse(sunset) + 3 * 3_600_000
+  const picks = horas
+    .filter((h) => Date.parse(h.start) < cutoff)
+    .filter((h) => values[h.lord] >= 1 && h.lord !== 'Ra' && h.lord !== 'Ke')
+    .filter((h) => Date.parse(h.end) <= rStart || Date.parse(h.start) >= rEnd)
+    .sort((a, b) => DAY_WEIGHTS[b.lord] - DAY_WEIGHTS[a.lord] || Date.parse(a.start) - Date.parse(b.start))
+    // One window per graha keeps the two picks distinct.
+    .filter((h, i, arr) => arr.findIndex((x) => x.lord === h.lord) === i)
+    .slice(0, 2)
+    .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
+  return picks.map((h) => ({ start: h.start, end: h.end, lord: h.lord }))
+}
+
 const ALL: GocharPlanet[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 
 /** Reading for one Moon sign. */
@@ -492,6 +526,7 @@ export function buildRashiHoroscope(sky: DailyHoroscopeSky, rashi: Rashi): Rashi
       direction: PLANET_DIRECTION[ally],
       mantra: PLANET_MANTRA[ally],
     },
+    shubhSamay: shubhSamay(sky, values),
     remedy,
   }
 }
@@ -509,6 +544,12 @@ export function buildDailyHoroscopeReport(sky: DailyHoroscopeSky): DailyHoroscop
     panchang: sky.panchang,
     moonNakshatra: sky.moonNakshatra,
     moonIngress: sky.moonIngress,
+    timings: {
+      place: sky.timings.place,
+      sunrise: sky.timings.sunrise,
+      sunset: sky.timings.sunset,
+      rahuKalam: sky.timings.rahuKalam,
+    },
     signs,
   }
 }
