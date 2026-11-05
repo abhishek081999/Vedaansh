@@ -517,7 +517,7 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
     remedies.unshift('With harsh Mars–Ketu: prioritize Hanuman / Vishnu pacification and avoid reckless physical risk until dasha context is clear.')
   }
   if (mars.rashi === 8 && house === 9) {
-    remedies.push('Scorpio Mars in 9th class note: inclination may tendency Shiva even while Hanuman remains the general Mars deity.')
+    remedies.push('Scorpio Mars in 9th: inclination may tend toward Shiva even while Hanuman remains the general Mars deity.')
   }
 
   const allHouses: MarsClassicalHouseEntry[] = []

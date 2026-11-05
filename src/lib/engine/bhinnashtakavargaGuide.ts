@@ -628,7 +628,7 @@ function saturnNatalFindings(
       id: 'sa-foreign-go',
       severity: 'info',
       title: 'Saturn in 10th with 2–3 BAV',
-      detail: 'Class note: foreign travel often compelled rather than joyful choice — confirm with full chart and 10th-lord links.',
+      detail: 'Foreign travel often compelled rather than joyful choice — confirm with full chart and 10th-lord links.',
     })
   }
 

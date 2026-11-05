@@ -386,7 +386,7 @@ export function analyzeNakshatramsha(chart: ChartOutput): NakshatramshaAnalysis 
     house: row.house,
     theme: ASK_THEME_LABEL[row.house] ?? row.theme,
     vitalityScore: row.vitalityScore,
-    reading: `Weak/troubled energy in house ${row.house} (${ASK_THEME_LABEL[row.house]}): class rule — what cannot generate cleanly in D27 is often exactly what the client asks about. ${row.reading}`,
+    reading: `Weak/troubled energy in house ${row.house} (${ASK_THEME_LABEL[row.house]}): what cannot generate cleanly in D27 is often exactly what the client asks about. ${row.reading}`,
     tone: row.tone,
   }))
 

@@ -462,7 +462,7 @@ function buildCrossNotes(chart: ChartOutput, d12Asc: Rashi, d12Grahas: GrahaData
     notes.push({
       id: 'd4xd3',
       title: 'D4 × D3 → D12 lens',
-      text: 'Class framing: heart space (D4) combined with subconscious space (D3) describes the D12 pattern. When D3+D4 already explain a question, D12 may stay optional — use it for isolation, dreams, and unfinished residue.',
+      text: 'Heart space (D4) combined with subconscious space (D3) describes the D12 pattern. When D3+D4 already explain a question, D12 may stay optional — use it for isolation, dreams, and unfinished residue.',
       tone: 'neutral',
     })
   }
@@ -477,7 +477,7 @@ function buildCrossNotes(chart: ChartOutput, d12Asc: Rashi, d12Grahas: GrahaData
       id: 'd6xd2',
       title: 'D6 × D2 · Pending service',
       text: names
-        ? `D6 6th holds ${names}; with D2 resources, class reads unfinished service / debt to feed, repay, or care for — map softly onto D1 without assigning blame.`
+        ? `D6 6th holds ${names}; with D2 resources, this often reads as unfinished service / debt to feed, repay, or care for — map softly onto D1 without assigning blame.`
         : 'D6×D2 available: look for unfinished service and ancestral-resource debts, then map back to D1 for practical payback (giving, feeding, supporting).',
       tone: 'mixed',
     })
@@ -500,7 +500,7 @@ function buildCrossNotes(chart: ChartOutput, d12Asc: Rashi, d12Grahas: GrahaData
     notes.push({
       id: 'd8xd3',
       title: 'D8 × D3 · Skills path',
-      text: 'Class note: talents from the subconscious (D3) pressed by this-life fear/trauma (D8) can become either a wasted skill or a career. Cross-check D24 for unused learning potential.',
+      text: 'Talents from the subconscious (D3) pressed by this-life fear/trauma (D8) can become either a wasted skill or a career. Cross-check D24 for unused learning potential.',
       tone: 'neutral',
     })
   }
