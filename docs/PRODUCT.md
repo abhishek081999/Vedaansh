@@ -46,7 +46,7 @@ Default list prices (INR, code defaults; admin `BillingConfig` may override): Go
 - Prashna, Jaimini, Nadi (`/nadi`), ACG, Vastu, Nakshatra lab, Numerology, Naamkaran, Tattva
 - Auth: Google OAuth + credentials; email verify / reset
 - PWA (Serwist) + Android TWA packaging
-- Admin reel studio (Remotion) for marketing video
+- Admin Social Studio (`/admin/social`) for Instagram stills/carousels; Remotion CLI (`npm run reel:mp4`) for HQ Reels from a Remotion pack export
 
 ---
 

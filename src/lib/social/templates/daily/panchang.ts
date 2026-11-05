@@ -153,7 +153,7 @@ export const shubhAshubh: TemplateDef = {
   name: 'Shubh / Ashubh Samay',
   deva: 'शुभ-अशुभ समय',
   blurb: 'One post with today’s good windows (Brahma, Abhijit, Godhuli) and times to avoid (Rahu Kaal, Yamaganda, Gulika).',
-  formats: ['4x5', '9x16'],
+  formats: ['4x5', '1x1', '9x16'],
   params: ['date', 'city'],
   build(d) {
     const dl = dateLabels(d.date)

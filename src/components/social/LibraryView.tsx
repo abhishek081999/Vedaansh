@@ -100,6 +100,7 @@ export function LibraryView({
                     {t?.name ?? p.templateId} <span className={styles.templateMeta}>· {p.format}</span>
                   </div>
                   <div className={styles.templateMeta}>{p.caption.split('\n')[0]?.slice(0, 110)}</div>
+                  {p.notes?.trim() ? <div className={styles.templateMeta}>Note: {p.notes.trim().slice(0, 90)}</div> : null}
                 </div>
                 <select className={styles.select} value={p.status} onChange={(e) => setStatus(p, e.target.value as PostStatus)} aria-label="Status">
                   {POST_STATUSES.map((s) => (
