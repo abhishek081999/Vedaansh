@@ -14,8 +14,7 @@ export function AdminSidebar({ user, onClose }: { user: any, onClose?: () => voi
     { href: '/admin/charts', icon: '📚', label: 'Charts' },
     { href: '/admin/revenue', icon: '💰', label: 'Revenue' },
     { href: '/admin/audit', icon: '🛡️', label: 'Audit Log' },
-    { href: '/admin/reel', icon: '🎬', label: 'Reel Generator' },
-    { href: '/admin/reel/video', icon: '🎞️', label: 'Reel Video' },
+    { href: '/admin/social', icon: '🎬', label: 'Social Studio' },
   ]
 
   return (
