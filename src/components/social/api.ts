@@ -29,7 +29,7 @@ export const socialApi = {
   listPosts: (q: Record<string, string>) => call<{ posts: SocialPostDto[] }>(`/api/admin/social/posts?${new URLSearchParams(q)}`).then((r) => r.posts),
   createPost: (body: Omit<SocialPostDto, '_id' | 'scheduledFor'> & { scheduledFor: string }) =>
     call<{ post: SocialPostDto }>('/api/admin/social/posts', { method: 'POST', body: JSON.stringify(body) }).then((r) => r.post),
-  updatePost: (id: string, body: Partial<Omit<SocialPostDto, '_id'>>) =>
+  updatePost: (id: string, body: Partial<Omit<SocialPostDto, '_id' | 'notes'>> & { notes?: string | null }) =>
     call<{ post: SocialPostDto }>(`/api/admin/social/posts/${id}`, { method: 'PATCH', body: JSON.stringify(body) }).then((r) => r.post),
   deletePost: (id: string) => call<unknown>(`/api/admin/social/posts/${id}`, { method: 'DELETE' }),
   events: (from: string, to: string) => call<{ events: CalendarEvent[] }>(`/api/admin/social/events?${new URLSearchParams({ from, to })}`).then((r) => r.events),

@@ -88,7 +88,7 @@ Vedaansh is a **Next.js 16 monolith** (App Router, Node ≥ 24) with a hard boun
 - Chart workspace panels, chakras, dashboards
 - Interpretation hub (`InterpretationHub` + pure `interpretationHub` builder) — Free overview teaser; Gold+ full sections with viz kit
 - Platinum Client CRM UI
-- Admin: users, charts, revenue, billing, audit, reel studio
+- Admin: users, charts, revenue, billing, audit, Social Studio
 - Client-side: localStorage (milan history, numerology readings), device location for atlas
 
 ### Edge proxy (`src/proxy.ts`)
@@ -192,7 +192,7 @@ Plan filtering: `filterChartVargasForPlan` (16 Shodashavarga vs full 41 suite on
 | Account | Plan, export, cancel, white-label |
 | Clients CRM | Platinum — notes, remedies, sessions |
 | Admin | Users, charts, revenue, billing, audit, broadcast, Redis cleanup |
-| Reels | Remotion studio + ffmpeg.wasm browser encode |
+| Reels | Social Studio canvas encode (browser) + Remotion CLI HQ pack |
 | Location atlas | `/api/atlas/search` — Photon / Open-Meteo / Nominatim + Redis cache |
 | Health | `/api/health` |
 
@@ -310,7 +310,7 @@ Admin cleanup can clear chart / panchang / atlas Redis namespaces.
 | Resend | Auth + chart email | `RESEND_API_KEY` |
 | Google OAuth | Social sign-in | `AUTH_GOOGLE_*` |
 | Photon / Open-Meteo / Nominatim | Location search | via `/api/atlas/search` |
-| Remotion | Admin reel video | `remotion/` |
+| Remotion | HQ reel encode from Social Studio pack / CLI | `remotion/`, `npm run reel:mp4` |
 
 Production checklist: `docs/SECURITY_DEPLOY.md`.
 
@@ -339,7 +339,7 @@ Production checklist: `docs/SECURITY_DEPLOY.md`.
 
 ## 14. Design summary
 
-Vedaansh is a **single Node service** with a pure ephemeris core, a security-first API, and edge-level plan gating. Monetization is free / gold / platinum; persistence is MongoDB; Redis accelerates cache and abuse control. Client apps include web PWA and Android TWA; admin tooling includes CRM ops and Remotion reels.
+Vedaansh is a **single Node service** with a pure ephemeris core, a security-first API, and edge-level plan gating. Monetization is free / gold / platinum; persistence is MongoDB; Redis accelerates cache and abuse control. Client apps include web PWA and Android TWA; admin tooling includes CRM ops and Social Studio (with optional Remotion CLI for HQ reels).
 
 ---
 

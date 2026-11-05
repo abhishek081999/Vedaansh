@@ -87,7 +87,7 @@ Bulk XLSX import is available to any authenticated user until the plan save cap 
 - Saved Kundali Milan library on My Charts (same 20 / 200 / unlimited caps as natal charts)
 - Relationship and marriage, career and profession (Free preview; full reading on Gold+)
 - Interpretation hub (Free overview teaser; full multi-section reading on Gold+)
-- Reel studio (admin Remotion + canvas cards)
+- Social Studio (admin Instagram packs) + Remotion CLI for HQ Reels
 - Cosmic roadmap `/roadmap` and time scrubber `/scrubber`
 - PWA (Serwist) + Android TWA packaging
 - Atlas via Photon / Open-Meteo / Nominatim + Redis (not local SQLite)

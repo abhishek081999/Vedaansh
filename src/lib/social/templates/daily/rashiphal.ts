@@ -51,7 +51,7 @@ export const rashiStory: TemplateDef = {
   name: 'Single-sign daily',
   deva: 'राशि विशेष',
   blurb: 'One story per sign with the full daily reading. Use “Batch” to export all 12 at once.',
-  formats: ['9x16', '4x5'],
+  formats: ['9x16', '4x5', '1x1'],
   params: ['date', 'rashi'],
   build(d, p) {
     const r = (p.rashi ?? 1) as Rashi
@@ -82,8 +82,8 @@ export const luckyGrid: TemplateDef = {
   category: 'daily',
   name: 'Lucky colour & number',
   deva: 'आज का शुभ रंग',
-  blurb: 'One post: lucky colour and number for all 12 signs.',
-  formats: ['4x5', '9x16'],
+  blurb: 'One post: lucky colour and number for all 12 signs. Works well as a square 1:1 feed tile.',
+  formats: ['4x5', '1x1', '9x16'],
   params: ['date'],
   build(d) {
     const dl = dateLabels(d.date)

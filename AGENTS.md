@@ -19,7 +19,7 @@ Context for coding agents working in this repo. **Trust live code over docs** wh
 | Validation | Zod 4.6.7 |
 | Payments | Razorpay (live); Stripe fields exist but checkout not wired |
 | Email | Resend |
-| Video | Remotion 4 (`remotion/`, `src/lib/reel/`) |
+| Video | Social Studio browser MP4 + Remotion CLI (`remotion/`, `npm run reel:mp4`) |
 | Tests | Vitest (`__tests__/`) |
 | Deploy | Render — see `docs/SECURITY_DEPLOY.md`, `render.yaml` |
 

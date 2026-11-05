@@ -7,8 +7,9 @@ import { THEME_IDS, THEME_LABEL, getTheme, type ThemeId } from '@/lib/social/ren
 import { ensureFonts } from '@/lib/social/render/kit'
 import type { BrandSettings, SlideSpec } from '@/lib/social/render/slides/types'
 import { CATEGORY_LABEL, type DayData, type TemplateDef, type TemplateParams } from '@/lib/social/templates/types'
-import { TEMPLATES, templatesByCategory } from '@/lib/social/templates/registry'
+import { TEMPLATES, getTemplate, templatesByCategory } from '@/lib/social/templates/registry'
 import { CITY_PRESETS, pickEvent, shortDay } from '@/lib/social/templates/shared'
+import { DAILY_PACK_LABEL, DAILY_PACK_TEMPLATE_IDS } from '@/lib/social/packs/daily'
 import {
   CAPTION_MAX_CHARS,
   CAPTION_MAX_TAGS,
@@ -17,6 +18,12 @@ import {
   type HashtagPreset,
 } from '@/lib/social/caption/caption'
 import { downloadBlob, makeZip, renderSlideToCanvas, renderSlidesToBlobs, slideFileName, type RenderOpts } from '@/lib/social/export/export'
+import {
+  buildRemotionPackMeta,
+  buildRemotionPackProps,
+  remotionPackReadme,
+  remotionSlideName,
+} from '@/lib/social/export/remotionPack'
 import { CalendarView } from '@/components/social/CalendarView'
 import { LibraryView } from '@/components/social/LibraryView'
 import { STATUS_LABEL, socialApi, type PostStatus, type SocialPostDto } from '@/components/social/api'
@@ -91,6 +98,7 @@ export function SocialStudio() {
   const [eventId, setEventId] = useState<string | undefined>(undefined)
   const [item, setItem] = useState(1)
   const [editing, setEditing] = useState<{ id: string; status: PostStatus } | null>(null)
+  const [notes, setNotes] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
   const [busy, setBusy] = useState<string | null>(null)
   const [secondsPerSlide, setSecondsPerSlide] = useState(3)
@@ -232,6 +240,30 @@ export function SocialStudio() {
       downloadBlob(mp4, `${baseName}.mp4`)
     })
 
+  /** PNG slides + props.json for Remotion ImageReel / `npm run reel:mp4`. */
+  const downloadRemotionPack = () =>
+    run('remotion', async () => {
+      if (!slides.length) return
+      const blobs = await renderSlidesToBlobs(slides, opts)
+      const props = buildRemotionPackProps(blobs.length, secondsPerSlide)
+      const meta = buildRemotionPackMeta({
+        templateId: template.id,
+        date,
+        frameId: frame.id,
+        slideCount: blobs.length,
+        secondsPerImage: secondsPerSlide,
+      })
+      const entries = [
+        ...blobs.map((b, i) => ({ name: remotionSlideName(i, blobs.length), data: b })),
+        { name: 'props.json', data: JSON.stringify(props, null, 2) },
+        { name: 'meta.json', data: JSON.stringify(meta, null, 2) },
+        { name: 'README.md', data: remotionPackReadme(meta, props) },
+        { name: 'caption.txt', data: caption },
+      ]
+      downloadBlob(await makeZip(entries), `${baseName}-remotion.zip`)
+      flash(frame.id === '9x16' ? 'Remotion pack ready' : 'Remotion pack ready · switch to 9:16 for best Reels')
+    })
+
   const openTemplate = (tid: string, p: Partial<TemplateParams>) => {
     setTemplateId(tid)
     if (p.date) setDate(p.date)
@@ -239,6 +271,7 @@ export function SocialStudio() {
     if (p.rashi) setRashi(p.rashi)
     if (p.item) setItem(p.item)
     setEditing(null)
+    setNotes('')
     setTab('studio')
   }
 
@@ -253,6 +286,7 @@ export function SocialStudio() {
     setEventId(p.eventId)
     setFrameId(post.format)
     setEditing({ id: post._id, status: post.status })
+    setNotes(post.notes ?? '')
     setCaptionEdit(post.caption ? { key: `${post.templateId}|${d}|${p.city ?? city}|${p.rashi ?? rashi}|${p.eventId ?? ''}|${p.item ?? item}`, text: post.caption } : null)
     setTab('studio')
   }
@@ -260,6 +294,7 @@ export function SocialStudio() {
   const savePost = (status: PostStatus) =>
     run('save', async () => {
       const evDate = currentEvent?.date
+      const trimmedNotes = notes.trim().slice(0, 2000)
       const body = {
         templateId: template.id,
         params: {
@@ -273,10 +308,11 @@ export function SocialStudio() {
         format: frame.id,
         status,
         caption,
+        ...(trimmedNotes ? { notes: trimmedNotes } : {}),
         ...(currentEvent ? { eventRef: currentEvent.id } : {}),
       }
       if (editing) {
-        await socialApi.updatePost(editing.id, body)
+        await socialApi.updatePost(editing.id, { ...body, notes: trimmedNotes || null })
         setEditing({ id: editing.id, status })
         flash(`Updated · ${STATUS_LABEL[status]}`)
       } else {
@@ -319,6 +355,45 @@ export function SocialStudio() {
       downloadBlob(await makeZip(entries), `vedaansh-ready-posts-${date}.zip`)
     })
 
+  /** One-click morning pack: save A1+A2+A3 as Ready and download a ZIP. */
+  const makeDailyPack = () =>
+    run('pack', async () => {
+      if (!data) return
+      const firstPack = getTemplate(DAILY_PACK_TEMPLATE_IDS[0])
+      if (!firstPack) throw new Error('Daily pack templates missing')
+      const packFrame = firstPack.formats.includes(frameId) ? frame : FRAMES[firstPack.formats[0]]
+      const packParams: TemplateParams = { date, city }
+      const entries: { name: string; data: Blob | string }[] = []
+      const captions: string[] = []
+      let n = 0
+      for (const id of DAILY_PACK_TEMPLATE_IDS) {
+        const t = getTemplate(id)
+        if (!t) throw new Error(`Missing template ${id}`)
+        const f = t.formats.includes(packFrame.id) ? packFrame : FRAMES[t.formats[0]]
+        const b = t.build(data, packParams)
+        const cap = composeCaption(b.caption, { ctaLine: brand.ctaLine, handle: brand.handle, preset: brand.preset })
+        await socialApi.createPost({
+          templateId: t.id,
+          params: { date, city },
+          scheduledFor: date,
+          format: f.id,
+          status: 'ready',
+          caption: cap,
+        })
+        n += 1
+        setBusy(`pack:${n}/${DAILY_PACK_TEMPLATE_IDS.length}`)
+        const folder = `${String(n).padStart(2, '0')}-${date}-${t.id}`
+        const blobs = await renderSlidesToBlobs(b.slides, { ...opts, frame: f, seed: `${t.id}-${date}` })
+        blobs.forEach((blob, i) => entries.push({ name: `${folder}/${slideFileName('slide', i, blobs.length)}`, data: blob }))
+        entries.push({ name: `${folder}/caption.txt`, data: cap })
+        captions.push(`=== ${t.code} ${t.name} ===\n${cap}`)
+      }
+      entries.push({ name: 'all-captions.txt', data: captions.join('\n\n') })
+      downloadBlob(await makeZip(entries), `vedaansh-daily-pack-${date}-${packFrame.id}.zip`)
+      setRefreshKey((k) => k + 1)
+      flash(`Daily pack ready · ${DAILY_PACK_TEMPLATE_IDS.length} posts saved for ${shortDay(date)}`)
+    })
+
   const copyCaption = async () => {
     try {
       await navigator.clipboard.writeText(caption)
@@ -332,9 +407,11 @@ export function SocialStudio() {
     ? `${busy.split(':')[1] === 'encode' ? 'Recording' : 'Converting'} video… ${busy.split(':')[2]}%`
     : busy?.startsWith('export:')
       ? `Rendering post ${busy.split(':')[1]}…`
-      : busy
-        ? 'Working…'
-        : null
+      : busy?.startsWith('pack:')
+        ? `Daily pack ${busy.split(':')[1]}…`
+        : busy
+          ? 'Working…'
+          : null
 
   return (
     <div className={styles.page}>
@@ -576,10 +653,31 @@ export function SocialStudio() {
                 {editing?.status === 'ready' ? 'Ready ✓' : 'Save as ready'}
               </button>
             </div>
+            <button type="button" className={styles.btn} onClick={makeDailyPack} disabled={!data || !!busy} title="Save A1 panchang, A2 shubh/ashubh and A3 rashiphal as Ready, then download a ZIP">
+              {DAILY_PACK_LABEL} → Ready + ZIP
+            </button>
+            <label className={styles.field}>
+              Notes (private — not in caption)
+              <textarea
+                className={styles.textarea}
+                value={notes}
+                maxLength={2000}
+                rows={3}
+                placeholder="Shoot notes, alt caption ideas, posting time…"
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </label>
             {editing ? (
               <p className={styles.saved}>
                 Editing a saved post ({STATUS_LABEL[editing.status]}) ·{' '}
-                <button type="button" className={styles.calDay} onClick={() => setEditing(null)}>
+                <button
+                  type="button"
+                  className={styles.calDay}
+                  onClick={() => {
+                    setEditing(null)
+                    setNotes('')
+                  }}
+                >
                   save as new instead
                 </button>
               </p>
@@ -616,6 +714,15 @@ export function SocialStudio() {
                 Make video (MP4)
               </button>
             </div>
+            <button
+              type="button"
+              className={styles.btn}
+              onClick={downloadRemotionPack}
+              disabled={!slides.length || !!busy}
+              title="ZIP of PNGs + props.json for npm run reel:mp4 (HQ H.264). Best with Story/Reel 9:16."
+            >
+              Download Remotion pack {frame.id === '9x16' ? '(9:16)' : '(prefer 9:16)'}
+            </button>
             {busyLabel || notice ? <p className={styles.status}>{busyLabel ?? notice}</p> : null}
           </div>
 

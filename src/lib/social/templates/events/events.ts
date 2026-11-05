@@ -253,37 +253,227 @@ export const vratEvent: TemplateDef = {
 
 // ── C4 Festival ───────────────────────────────────────────────
 
+/** Observance guidance keyed by festival rule id (from `festival:<id>:<date>`). */
+const FESTIVAL_GUIDE: Record<string, { theme: string; observe: string[]; avoid: string[]; blessing: string }> = {
+  diwali: {
+    theme: 'Lakshmi Puja in pradosh — invite wealth, light and clean beginnings into the home.',
+    observe: ['Clean and decorate the home; light diyas at dusk', 'Lakshmi-Ganesha puja in pradosh kaal', 'Share sweets and offer food to the needy'],
+    avoid: ['Leaving the house dark after sunset', 'Harsh words or quarrels on Diwali night'],
+    blessing: 'May Goddess Lakshmi fill your home with light, prosperity and peace.',
+  },
+  dhanteras: {
+    theme: 'Dhanvantari and Kubera day — health and wealth auspiciously invited.',
+    observe: ['Buy gold, silver, utensils or something lasting for the home', 'Light a diya at the entrance at dusk', 'Offer prayers to Dhanvantari for health'],
+    avoid: ['Empty spending with no lasting value', 'Leaving iron tools or knives unused and unclean'],
+    blessing: 'May lasting wealth and good health enter your life.',
+  },
+  'narak-chaturdashi': {
+    theme: 'Choti Diwali — Abhyanga snan and the victory of light over darkness.',
+    observe: ['Oil bath (abhyanga snan) before sunrise', 'Light diyas in the evening', 'Offer gratitude for protection from harm'],
+    avoid: ['Sleeping through the pre-dawn window', 'Neglecting elders and guests'],
+    blessing: 'May every shadow lift and your path stay bright.',
+  },
+  'govardhan-puja': {
+    theme: 'Krishna lifts Govardhan — gratitude for nature, food and protection.',
+    observe: ['Prepare or visit an Annakut / chappan bhog offering', 'Circumambulate a Govardhan mound or sacred hill if nearby', 'Feed cows and share prasadam'],
+    avoid: ['Wasting food', 'Pride over simple seva'],
+    blessing: 'May Krishna’s protection shelter your family always.',
+  },
+  'bhai-dooj': {
+    theme: 'Brothers and sisters renew the bond of care and protection.',
+    observe: ['Sister applies tilak; brother offers a gift or blessing', 'Share a meal together', 'Call siblings you cannot visit'],
+    avoid: ['Letting old grudges spoil the day', 'Skipping elders’ blessings'],
+    blessing: 'May sibling love remain your lifelong shield.',
+  },
+  dussehra: {
+    theme: 'Vijayadashami — dharma’s victory and an auspicious start for learning and work.',
+    observe: ['Witness or recall Ramlila / Shami puja', 'Begin studies, tools or a new resolve (Shastra / Aparajita puja)', 'Offer prayers to Rama and Durga'],
+    avoid: ['Starting with arrogance', 'Burning anger into the evening celebration'],
+    blessing: 'May every inner Ravana fall, and victory walk with you.',
+  },
+  'ganesh-chaturthi': {
+    theme: 'Ganesha arrives — remove obstacles and begin with wisdom.',
+    observe: ['Install or visit a Ganesha murti; offer durva and modak', 'Chant “Om Gan Ganapataye Namah”', 'Keep the home clean for the festive days'],
+    avoid: ['Harsh speech near the murti', 'Wasting flowers or prasadam'],
+    blessing: 'May Vighnaharta clear your path and steady your start.',
+  },
+  janmashtami: {
+    theme: 'Krishna’s midnight birth — devotion, fasting and joyful kirtan.',
+    observe: ['Fast or take light sattvic food until nishita', 'Sing bhajans; read a verse of the Bhagavata', 'Offer butter, milk and tulsi at midnight'],
+    avoid: ['Heavy tamasic food before the puja', 'Noise without devotion'],
+    blessing: 'May Krishna’s flute fill your heart with joy and courage.',
+  },
+  'maha-shivratri': {
+    theme: 'The great night of Shiva — jagaran, abhishek and inner stillness.',
+    observe: ['Night vigil with Om Namah Shivaya', 'Abhishek with water, milk and bel leaves', 'Offer bilva and sit in quiet meditation'],
+    avoid: ['Sleep through the sacred night if you took a vow', 'Harsh speech and intoxication'],
+    blessing: 'May Mahadev still your mind and strengthen your resolve.',
+  },
+  holi: {
+    theme: 'Colour, forgiveness and the play of spring.',
+    observe: ['Play with safe colours; embrace friends and family', 'Share gujiya and cool drinks', 'Forgive a small quarrel from the year'],
+    avoid: ['Harsh or unsafe colours', 'Forced play or disrespect'],
+    blessing: 'May colour return to every grey corner of your life.',
+  },
+  'holika-dahan': {
+    theme: 'Holika Dahan — burn ego and fear in the sacred fire.',
+    observe: ['Offer grains or a symbolic item to the bonfire with a prayer', 'Circumambulate safely with family', 'Sing or listen to Holika / Prahlad katha'],
+    avoid: ['Unsafe fireworks near the fire', 'Mocking others in the crowd'],
+    blessing: 'May what no longer serves you turn to ash tonight.',
+  },
+  'ram-navami': {
+    theme: 'Birth of Shri Rama — maryada, courage and dharma.',
+    observe: ['Read or hear a Ramayana passage at madhyahna', 'Offer flowers and bhog to Rama', 'Practice one act of fair speech today'],
+    avoid: ['Unjust anger', 'Breaking a vow lightly'],
+    blessing: 'May Rama’s maryada guide your choices.',
+  },
+  'raksha-bandhan': {
+    theme: 'The sacred thread of protection between siblings.',
+    observe: ['Tie rakhi outside Bhadra kaal when possible', 'Offer a sincere blessing and a small gift', 'Honour chosen-family bonds too'],
+    avoid: ['Rushing the ritual without presence', 'Empty promises'],
+    blessing: 'May every rakhi you tie become a lifelong shield.',
+  },
+  'karwa-chauth': {
+    theme: 'A day-long fast broken at moonrise for marital well-being.',
+    observe: ['Keep the nirjala or fruit fast as vowed', 'Break the fast after sighting the Moon', 'Offer water (arghya) and a heartfelt prayer'],
+    avoid: ['Ignoring health limits — modify the fast if needed', 'Breaking the fast before moonrise if you took the vow'],
+    blessing: 'May your bond stay nourished through every season.',
+  },
+  ugadi: {
+    theme: 'Lunar new year — fresh sankalpa and sweet-bitter life accepted together.',
+    observe: ['Taste Ugadi pachadi / Guḍhi offerings', 'Set one clear intention for the year', 'Clean the entrance and raise a Guḍhi if you observe it'],
+    avoid: ['Starting the year with complaint alone', 'Neglecting elders’ blessings'],
+    blessing: 'May the new year hold both joy and wisdom for you.',
+  },
+  'makar-sankranti': {
+    theme: 'Sun enters Makara — uttarayana punya, warmth and charity.',
+    observe: ['Holy bath; offer water to the Sun', 'Donate sesame, jaggery, grain or warm clothes', 'Share til-gud with neighbours'],
+    avoid: ['Wasting food on a day meant for daan', 'Harsh speech at the sankranti hour'],
+    blessing: 'May the northward Sun lift your fortunes steadily.',
+  },
+  'guru-purnima': {
+    theme: 'Honour the teacher — Vyasa and every guide who lit your path.',
+    observe: ['Offer flowers or a note of thanks to your guru or mentor', 'Study one verse or skill with fresh humility', 'Serve without expecting return'],
+    avoid: ['Pride in knowledge', 'Forgetting those who taught you first'],
+    blessing: 'May true guidance always find you.',
+  },
+  'chaitra-navratri': {
+    theme: 'Nine nights of the Goddess begin — Ghatasthapana and devotion.',
+    observe: ['Install the kalash (Ghatasthapana) if you observe Navratri', 'Keep a lamp or japa through the nine nights', 'Offer sattvic food and quiet mind'],
+    avoid: ['Tamasic excess during the vrata', 'Empty ritual without sincerity'],
+    blessing: 'May Maa Durga guard the threshold of your year.',
+  },
+  'sharad-navratri': {
+    theme: 'Sharad Navratri — nine nights of Shakti in the autumn sky.',
+    observe: ['Ghatasthapana and daily Devi prayers', 'Keep the home clean and the mind steady', 'Join or host a simple aarti'],
+    avoid: ['Anger dressed as zeal', 'Neglecting rest entirely'],
+    blessing: 'May the Goddess walk with you through every night.',
+  },
+  'akshaya-tritiya': {
+    theme: 'The day when merit does not decay — gold, daan and new starts.',
+    observe: ['Begin a lasting purchase, account or learning', 'Give charity that continues (food, education, tools)', 'Lakshmi-Narayana prayers'],
+    avoid: ['Hoarding without sharing', 'Starting what you will abandon'],
+    blessing: 'May what you plant today never wither.',
+  },
+  'hanuman-jayanti': {
+    theme: 'Birth of Hanuman — strength, seva and fearless devotion.',
+    observe: ['Chant Hanuman Chalisa', 'Offer sindoor and oil at a Hanuman temple', 'Do one act of courageous help'],
+    avoid: ['Boastful strength without seva', 'Harsh speech'],
+    blessing: 'May Bajrangbali lend you strength and a steady heart.',
+  },
+  'vasant-panchami': {
+    theme: 'Saraswati’s day — learning, arts and yellow spring light.',
+    observe: ['Worship books, instruments or tools of your craft', 'Wear or offer yellow; begin a study', 'Saraswati vandana'],
+    avoid: ['Leaving study materials neglected', 'Idle gossip in place of practice'],
+    blessing: 'May Saraswati sharpen your mind and sweeten your speech.',
+  },
+  'chhath-puja': {
+    theme: 'Arghya to the setting and rising Sun — purity, endurance and gratitude.',
+    observe: ['Follow the vrata steps your family keeps', 'Offer the evening and morning arghya with a clean mind', 'Stand by the water with reverence'],
+    avoid: ['Impurity of body or intention during the vrata', 'Wasting the offerings'],
+    blessing: 'May Surya Dev fill your home with health and honour.',
+  },
+}
+
+function festivalKey(ev: CalendarEvent): string {
+  return ev.id.split(':')[1] ?? ''
+}
+
+function festivalGuide(ev: CalendarEvent) {
+  return (
+    FESTIVAL_GUIDE[festivalKey(ev)] ?? {
+      theme: ev.detail ?? `Honour ${ev.deva ?? 'the divine'} on this sacred day.`,
+      observe: ['Light a diya; offer flowers, incense and a simple prayer', 'Share prasadam or a meal with family', 'Give daan — food, clothes or coin — if you can'],
+      avoid: ['Harsh speech and needless conflict', 'Treating the day as only a holiday with no remembrance'],
+      blessing: `May ${ev.deva ?? 'the divine'} bless your home with light and peace.`,
+    }
+  )
+}
+
 export const festivalEvent: TemplateDef = {
   id: 'festival',
   code: 'C4',
   category: 'event',
   name: 'Festival card',
   deva: 'त्योहार',
-  blurb: 'Greeting post for a festival, auto-filled from the festival calendar (date, deity, month, significance).',
+  blurb: 'Festival carousel: greeting cover, significance, how to observe / what to avoid, then a blessing CTA — filled from the festival calendar.',
   formats: ['4x5', '9x16'],
   params: ['event', 'city'],
   eventKinds: ['festival'],
   build(d, p) {
     const ev = pickEvent(d.events, ['festival'], p.eventId)
     if (!ev) return noEvent('festival', d)
+    const g = festivalGuide(ev)
     const sameDay = ev.date === d.date
+    const shortName = ev.title.split(' (')[0]
+    const slides: SlideSpec[] = [
+      {
+        type: 'cover',
+        head: { kicker: eventDateLabel(ev), deva: `शुभ ${shortName}`, title: ev.title, sub: [ev.deva, ev.masa].filter(Boolean).join(' · ') },
+        hero: { kind: 'lotus', glyph: 'ॐ' },
+        meta: ev.detail ?? g.theme,
+        tiles: [
+          { label: 'Date', value: shortDay(ev.date) },
+          sameDay ? { label: 'Sunrise', value: fmtT(d.panchang.sunrise), detail: d.city.name } : { label: 'Month', value: ev.masa ?? '—' },
+        ],
+      },
+      {
+        type: 'text',
+        head: { kicker: shortName, deva: 'महत्त्व', title: 'Why It Matters' },
+        paragraphs: [g.theme],
+        bullets: ev.deva ? [{ title: 'Deity', items: [ev.deva] }] : undefined,
+      },
+      {
+        type: 'text',
+        head: { kicker: shortName, deva: 'क्या करें, क्या न करें', title: 'Observe & Avoid' },
+        paragraphs: [],
+        bullets: [
+          { title: 'Observe', tone: 'good', items: g.observe },
+          { title: 'Avoid', tone: 'warn', items: g.avoid },
+        ],
+      },
+      {
+        type: 'cta',
+        title: g.blessing,
+        deva: `शुभ ${shortName}`,
+        lines: ['Save this post & share it with family', 'Free kundali, panchang & festival calendar'],
+      },
+    ]
     return {
-      slides: [
-        {
-          type: 'cover',
-          head: { kicker: eventDateLabel(ev), deva: `शुभ ${ev.title.split(' (')[0]}`, title: ev.title, sub: [ev.deva, ev.masa].filter(Boolean).join(' · ') },
-          hero: { kind: 'lotus', glyph: 'ॐ' },
-          meta: ev.detail,
-          tiles: [
-            { label: 'Date', value: shortDay(ev.date) },
-            sameDay ? { label: 'Sunrise', value: fmtT(d.panchang.sunrise), detail: d.city.name } : { label: 'Month', value: ev.masa ?? '—' },
-          ],
-        },
-      ],
+      slides,
       caption: {
         hook: `🪔 Wishing you a blessed ${ev.title}!`,
-        lines: [eventDateLabel(ev), ev.detail ?? '', ev.deva ? `Deity: ${ev.deva}` : ''],
-        tags: [`#${ev.title.split(' ')[0].toLowerCase()}`, '#festival', '#hindufestival', '#sanatandharma', '#festivevibes'],
+        lines: [
+          eventDateLabel(ev),
+          g.theme,
+          ev.deva ? `Deity: ${ev.deva}` : '',
+          'How to observe:',
+          ...g.observe.map((x) => `• ${x}`),
+          'Avoid:',
+          ...g.avoid.map((x) => `• ${x}`),
+          g.blessing,
+        ],
+        tags: [`#${shortName.replace(/\s+/g, '').toLowerCase()}`, '#festival', '#hindufestival', '#sanatandharma', '#festivevibes'],
       },
     }
   },

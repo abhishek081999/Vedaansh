@@ -180,6 +180,21 @@ describe('weekly & event templates', () => {
       expect(b.slides[0].type).toBe('text')
     }
   })
+
+  it('festival carousel has cover, meaning, observe/avoid and blessing', () => {
+    const diwali = day.events.find((e) => e.id.startsWith('festival:diwali:'))!
+    const b = getTemplate('festival')!.build(day, { ...params, eventId: diwali.id })
+    expect(b.slides.map((s) => s.type)).toEqual(['cover', 'text', 'text', 'cta'])
+    const observe = b.slides[2]
+    expect(observe.type).toBe('text')
+    if (observe.type !== 'text') return
+    const goods = observe.bullets?.find((x) => x.title === 'Observe')?.items ?? []
+    const warns = observe.bullets?.find((x) => x.title === 'Avoid')?.items ?? []
+    expect(goods.length).toBeGreaterThanOrEqual(2)
+    expect(warns.length).toBeGreaterThanOrEqual(1)
+    expect(b.caption.hook).toMatch(/Diwali/)
+    expect(composeCaption(b.caption, { ctaLine: brand.ctaLine, handle: brand.handle, preset: 'growth' })).not.toMatch(/undefined/)
+  })
 })
 
 describe('evergreen series', () => {

@@ -96,7 +96,9 @@ async function runTranscode(
   }
 
   if (code !== 0) {
-    throw new Error('Video conversion failed (FFmpeg). Try Download WebM or use Remotion MP4.')
+    throw new Error(
+      'Video conversion failed (FFmpeg). Try “Make video” again, or Download Remotion pack → npm run reel:mp4 for HQ H.264.',
+    )
   }
 
   const data = await ffmpeg.readFile(OUT)
