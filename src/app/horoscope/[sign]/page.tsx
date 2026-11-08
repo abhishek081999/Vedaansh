@@ -4,8 +4,8 @@
 //  for search, recomputed per IST day (Redis-cached).
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { DailyHoroscope } from '@/components/horoscope/DailyHoroscope'
 import { RashiIcon } from '@/components/horoscope/RashiIcon'

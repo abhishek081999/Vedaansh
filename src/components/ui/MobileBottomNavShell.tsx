@@ -5,9 +5,9 @@
 //  Shared fixed mobile bottom tab bar + optional Dashboard link
 // ─────────────────────────────────────────────────────────────
 
+import { useRouter } from '@/i18n/navigation'
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useRouter } from 'next/navigation'
 import type { LucideIcon } from 'lucide-react'
 import { LayoutDashboard } from 'lucide-react'
 import { useAppLayout } from '@/components/providers/LayoutProvider'

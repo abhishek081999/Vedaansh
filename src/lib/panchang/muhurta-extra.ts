@@ -45,6 +45,9 @@ export function isRiktaTithi(tithiNumber1to30: number): boolean {
   return isRiktaTithiNumber(tithiNumber1to30)
 }
 
-export function riktaTithiDescription(): string {
+export function riktaTithiDescription(lang: 'en' | 'hi' = 'en'): string {
+  if (lang === 'hi') {
+    return 'रिक्ता तिथि (शुक्ल और कृष्ण पक्ष की चतुर्थी, नवमी, चतुर्दशी): स्थायी नींव वाले कार्यों के लिए शास्त्रों में "रिक्त" मानी गई है; अनेक परंपराओं में सामान्य कार्यों के लिए ठीक।'
+  }
   return 'Rikta tithi (Chaturthi, Navami, Chaturdashi in shukla and krishna paksha): classically “empty” for lasting foundations; fine for routine acts in many traditions.'
 }

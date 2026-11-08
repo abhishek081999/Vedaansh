@@ -6,6 +6,13 @@
 
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { mergeHi } from '@/lib/engine/locale/planetsA.util'
+import {
+  JUPITER_ASPECTS_HI, JUPITER_EFFECTS_HI, JUPITER_HOUSE_FOCUS_HI, JUPITER_KARAKATVA_HI, JUPITER_MEDICAL_HI,
+  JUPITER_SAPTARISHI_HI, JUPITER_STEPS_HI, JUPITER_TEXT_HI, JUPITER_YOGAS_HI,
+} from '@/lib/engine/locale/jupiterAnalysis.hi'
 import { getPlanetInHouse } from '@/lib/engine/houseInterpretations'
 import {
   getDignityAwarePlanetInSign,
@@ -485,14 +492,15 @@ function aspectTargetHouse(fromHouse: number, span: number): number {
   return ((fromHouse - 1 + (span - 1)) % 12) + 1
 }
 
-function buildAspectHits(jupiterHouse: number): JupiterAspectHit[] {
-  return JUPITER_ASPECTS.map(teaching => {
+function buildAspectHits(jupiterHouse: number, hi = false): JupiterAspectHit[] {
+  return JUPITER_ASPECTS.map(en => {
+    const teaching = hi ? mergeHi(en, JUPITER_ASPECTS_HI[en.span as 5 | 7 | 9]) : en
     const targetHouse = aspectTargetHouse(jupiterHouse, teaching.span)
     return {
       span: teaching.span,
       targetHouse,
       teaching,
-      note: `From H${jupiterHouse}, ${teaching.span}th aspect lands on H${targetHouse} — ${teaching.meaning.toLowerCase()}.`,
+      note: hi ? fill(JUPITER_TEXT_HI.aspectNote, { from: jupiterHouse, span: teaching.span, to: targetHouse, meaning: teaching.meaning }) : `From H${jupiterHouse}, ${teaching.span}th aspect lands on H${targetHouse} — ${teaching.meaning.toLowerCase()}.`,
     }
   })
 }
@@ -525,7 +533,14 @@ function isOwnSign(rashi: Rashi, degree: number): boolean {
 /**
  * Natal Brihaspati analysis from class teaching notes.
  */
-export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null {
+function jupiterHouseFocusHi(h: number, en: JupiterHouseFocus): JupiterHouseFocus {
+  const row = JUPITER_HOUSE_FOCUS_HI[h]
+  if (row) return mergeHi(en, row)
+  return { ...en, title: fill(JUPITER_TEXT_HI.houseFallbackTitle, { house: h }), notes: [JUPITER_TEXT_HI.houseFallbackNote] }
+}
+
+export function analyzeJupiter(chart: ChartOutput, lang: EngineLang = 'en'): JupiterAnalysisResult | null {
+  const hi = lang === 'hi'
   const jupiter = chart.grahas.find(g => g.id === 'Ju')
   if (!jupiter) return null
 
@@ -595,7 +610,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
       : `Lagna ${RASHI_NAMES[asc]} — Kendradhipati Dosha for Jupiter (Gemini/Virgo only) not indicated.`,
   }
 
-  const aspects = buildAspectHits(house)
+  const aspects = buildAspectHits(house, hi)
 
   const companionIds: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ve', 'Sa', 'Ra', 'Ke']
   const companions: JupiterCompanion[] = []
@@ -835,7 +850,7 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
           ? 'D-9 Jupiter sign unavailable on this chart payload — check Navamsha separately for marriage.'
           : 'D-9 Jupiter neither exalted/own nor debilitated — neutral balancer; judge full Navamsha.'
 
-  return {
+  const result: JupiterAnalysisResult = {
     jupiter: {
       rashi: jupiter.rashi,
       rashiName: RASHI_NAMES[jupiter.rashi],
@@ -969,5 +984,89 @@ export function analyzeJupiter(chart: ChartOutput): JupiterAnalysisResult | null
     ],
     oneLiner:
       'Brihaspati expands dharma, wisdom, and fortune — but delays the house he sits in, shields like Jupiter shields Earth, and turns every yoga (Chandal, Ketu, Mangal, Shani) into a test of whether maya or truth sits on the guru’s throne.',
+  }
+  if (!hi) return result
+
+  const T = JUPITER_TEXT_HI
+  const companionsHi = companions.map(c => ({ ...c, name: GRAHA_HI[c.id] ?? c.name }))
+  const yogasHi = yogas.map(y => {
+    const h = JUPITER_YOGAS_HI[y.id]
+    const where = (GURU_CHANDAL_HARD_HOUSES as readonly number[]).includes(house)
+      ? fill(T.hardHouse, { house })
+      : fill(T.inHouse, { house })
+    return {
+      ...y,
+      name: h.name,
+      detail: y.active ? fill(h.activeDetail, { where, house }) : h.inactive,
+      effects: [...h.effects],
+      positives: [...h.positives],
+    }
+  })
+  const remediesHi = [...T.remedies]
+  if (yogas.find(y => y.id === 'guru_chandal')?.active) remediesHi.unshift(T.remedyChandal)
+  if (isCombust) remediesHi.push(T.remedyCombust)
+  if (jupiter.isRetro) remediesHi.push(T.remedyRetro)
+  const d9Hi = d9Tone === 'exalted_or_own' ? T.d9.good : d9Tone === 'debilitated' ? T.d9.debil : d9Tone === 'unknown' ? T.d9.unknown : T.d9.other
+  return {
+    ...result,
+    jupiter: {
+      ...result.jupiter,
+      rashiName: RASHI_HI[jupiter.rashi],
+      nakshatraName: NAKSHATRA_HI[jupiter.nakshatraIndex],
+      d9RashiName: d9Rashi != null ? RASHI_HI[d9Rashi] : null,
+    },
+    nature: [...T.nature],
+    karakatva: JUPITER_KARAKATVA.map((g, i) => mergeHi(g, JUPITER_KARAKATVA_HI[i])),
+    medical: JUPITER_MEDICAL.map((g, i) => mergeHi(g, JUPITER_MEDICAL_HI[i])),
+    houseFocus: jupiterHouseFocusHi(house, houseFocus),
+    allHouseFocus: result.allHouseFocus.map(h => jupiterHouseFocusHi(h.house, h)),
+    houseDelayFlag: { ...houseDelayFlag, title: T.houseDelay.title, detail: T.houseDelay.detail },
+    dusthanaReversal: {
+      ...dusthanaReversal,
+      title: T.dusthana.title,
+      detail: inDusthana
+        ? fill(debilitated ? T.dusthana.debil : exalted ? T.dusthana.exalt : T.dusthana.other, { house })
+        : T.dusthana.none,
+    },
+    kendradhipati: {
+      ...kendradhipati,
+      title: T.kendradhipati.title,
+      detail: fill(kendradhipatiActive ? T.kendradhipati.active : T.kendradhipati.none, { lagna: RASHI_HI[asc] }),
+    },
+    aspectOverview: T.aspectOverview,
+    yogas: yogasHi,
+    companions: companionsHi,
+    companionNote: companionsHi.length > 0
+      ? fill(T.companionsWith, { list: companionsHi.map(c => c.name).join(', ') })
+      : T.companionsNone,
+    femaleChartNotes: [...T.femaleChartNotes, d9Hi],
+    vakSiddhi: {
+      ...vakSiddhi,
+      title: T.vak.title,
+      detail: vakSiddhiActive ? (isCombust ? T.vak.combust : T.vak.active) : T.vak.none,
+    },
+    retroFlag: { ...retroFlag, title: T.retro.title, detail: jupiter.isRetro ? T.retro.active : T.retro.inactive },
+    combustFlag: {
+      ...combustFlag,
+      title: T.combust.title,
+      detail: isCombust
+        ? fill(T.combust.active, { orb: JUPITER_COMBUST_ORB, sep: sepFromSun != null ? fill(T.combust.sep, { sep: sepFromSun.toFixed(1) }) : '' })
+        : fill(T.combust.inactive, { orb: JUPITER_COMBUST_ORB }),
+    },
+    bothFlag: { ...bothFlag, title: T.both.title, detail: bothActive ? T.both.active : T.both.inactive },
+    retroEffects: { negatives: [...JUPITER_EFFECTS_HI.retro.negatives], positives: [...JUPITER_EFFECTS_HI.retro.positives] },
+    combustEffects: { negatives: [...JUPITER_EFFECTS_HI.combust.negatives], positives: [...JUPITER_EFFECTS_HI.combust.positives] },
+    afflictionSigns: [...T.afflictionSigns],
+    professions: [...T.professions],
+    mythology: [...T.mythology],
+    saptarishi: JUPITER_SAPTARISHI_HI.map(r => ({ ...r })),
+    selfRealizationSteps: JUPITER_SELF_REALIZATION_STEPS.map((st, i) => ({ ...st, english: JUPITER_STEPS_HI[i] })),
+    dikshaNotes: [...T.dikshaNotes],
+    remedies: remediesHi,
+    naturalAgeNote: T.naturalAgeNote,
+    caveats: [...T.caveats],
+    methodology: [...T.methodology],
+    summaryAttrs: T.summaryAttrs.map(a => ({ ...a })),
+    oneLiner: T.oneLiner,
   }
 }

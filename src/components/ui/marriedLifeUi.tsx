@@ -4,6 +4,7 @@
 //  Shared meters and note cards for married-life readings
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React from 'react'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
 import type { JayaBhavaReading } from '@/lib/engine/jayaBhava'
@@ -23,7 +24,6 @@ import type { MarriageKarmaReading } from '@/lib/engine/marriageKarma'
 import type { VenusMarriageReading } from '@/lib/engine/venusMarriage'
 import type { MarriageVivahReading } from '@/lib/engine/marriageVivah'
 import type { MarriageMarsReading } from '@/lib/engine/marriageMars'
-import Link from 'next/link'
 import { AlertTriangle, CheckCircle2, CircleDot, ClipboardList } from 'lucide-react'
 import s from '@/components/ui/marriedLifeUi.module.css'
 

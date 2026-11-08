@@ -5,7 +5,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
-import { SANSKARA_NOTE, sanskarasByCategory } from '@/lib/engine/sanskaras'
+import { sanskaraNote, sanskarasByCategory } from '@/lib/engine/sanskaras'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 
 interface Props {
   defaultOpen?: boolean
@@ -13,7 +15,9 @@ interface Props {
 
 export function SanskarasReference({ defaultOpen = false }: Props) {
   const [open, setOpen] = useState(defaultOpen)
-  const groups = sanskarasByCategory()
+  const t = useTranslations('panchang.sanskaras')
+  const { lang } = useLang()
+  const groups = sanskarasByCategory(lang)
 
   return (
     <div style={{
@@ -32,10 +36,10 @@ export function SanskarasReference({ defaultOpen = false }: Props) {
       >
         <div style={{ flex: 1 }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)' }}>
-            16 Samskaras
+            {t('title')}
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.35 }}>
-            Life-cycle rites (distinct from daily 48-min muhurta)
+            {t('subtitle')}
           </div>
         </div>
         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{open ? '▴' : '▾'}</span>
@@ -44,7 +48,7 @@ export function SanskarasReference({ defaultOpen = false }: Props) {
       {open && (
         <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            {SANSKARA_NOTE}
+            {sanskaraNote(lang)}
           </p>
           {groups.map((g) => (
             <div key={g.id}>
@@ -74,7 +78,7 @@ export function SanskarasReference({ defaultOpen = false }: Props) {
                             marginLeft: 6, fontSize: '0.5rem', fontWeight: 700,
                             color: 'var(--teal)', letterSpacing: '0.04em', textTransform: 'uppercase',
                           }}>
-                            Common
+                            {t('common')}
                           </span>
                         )}
                       </div>

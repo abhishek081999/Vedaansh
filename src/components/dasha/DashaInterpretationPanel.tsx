@@ -4,8 +4,12 @@
 //  Active Vimshottari MD/AD narrative + chart-conditioned flags
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import type { EngineLang } from '@/lib/engine/lang'
 import {
   AlertTriangle,
   ArrowRight,
@@ -66,9 +70,9 @@ import {
   formatVimshottariDurationYears,
   getVimshottariAntarHint,
   getVimshottariInterpretation,
+  getVimshottariResultHierarchy,
   isBeneficVimNature,
   isMaleficVimNature,
-  VIMSHOTTARI_RESULT_HIERARCHY,
   type VimshottariInterpretation,
   type VimshottariNature,
 } from '@/lib/engine/dasha/vimshottariInterpretations'
@@ -80,10 +84,10 @@ import {
 } from '@/lib/engine/dasha/vimshottariScriptures'
 import {
   computeDashaLordRemedies,
-  REMEDY_CORE_PRINCIPLE,
   type DashaLordRemedy,
   type RemedyNeed,
 } from '@/lib/engine/planetaryRemedies'
+import { localizeDashaLordRemedies, remedyKeyRule } from '@/lib/engine/dasha/dashaRemedyText'
 import type { TransitPosition } from '@/lib/engine/transits'
 import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
@@ -95,28 +99,31 @@ import styles from './DashaInterpretationPanel.module.css'
 import { TimelineBand, type BandSegment } from '@/components/ui/viz'
 import { lordColor } from '@/components/dasha/dashaPalette'
 
+/** Stored English event labels (saved with the note) → message key for display. */
 const DASHA_EVENT_LABELS = [
-  'Job change',
-  'Move / home',
-  'Relationship',
-  'Health',
-  'Travel',
-  'Finance',
-  'Other',
+  ['Job change', 'job'],
+  ['Move / home', 'move'],
+  ['Relationship', 'relationship'],
+  ['Health', 'health'],
+  ['Travel', 'travel'],
+  ['Finance', 'finance'],
+  ['Other', 'other'],
 ] as const
 
-const LEVEL_NAMES = ['Mahadasha', 'Antardasha', 'Pratyantardasha'] as const
+const LEVEL_KEYS = ['maha', 'antar', 'pratya'] as const
+
+type T = ReturnType<typeof useTranslations>
 
 type Tone = 'supportive' | 'caution' | 'mixed' | 'neutral'
 type TabId = 'reading' | 'remedies' | 'areas' | 'timeline' | 'gochar' | 'delivery'
 
-const TABS: { id: TabId; label: string; icon: React.ElementType; gold: boolean }[] = [
-  { id: 'reading', label: 'Reading', icon: ScrollText, gold: false },
-  { id: 'remedies', label: 'Remedies', icon: Flower2, gold: false },
-  { id: 'areas', label: 'Life areas', icon: Layers, gold: true },
-  { id: 'timeline', label: 'Timeline', icon: CalendarClock, gold: true },
-  { id: 'gochar', label: 'Gochar', icon: Orbit, gold: true },
-  { id: 'delivery', label: 'Delivery', icon: Link2, gold: true },
+const TABS: { id: TabId; icon: React.ElementType; gold: boolean }[] = [
+  { id: 'reading', icon: ScrollText, gold: false },
+  { id: 'remedies', icon: Flower2, gold: false },
+  { id: 'areas', icon: Layers, gold: true },
+  { id: 'timeline', icon: CalendarClock, gold: true },
+  { id: 'gochar', icon: Orbit, gold: true },
+  { id: 'delivery', icon: Link2, gold: true },
 ]
 
 const LIFE_AREA_ICON: Record<LifeAreaId, React.ElementType> = {
@@ -166,8 +173,13 @@ function planetVars(lord: string): React.CSSProperties {
   return { '--planet': GRAHA_DISPLAY_COLOR[lord as GrahaId] ?? 'var(--gold)' } as React.CSSProperties
 }
 
-function planetName(lord: string): string {
+function planetName(lord: string, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return GRAHA_HI[lord as GrahaId] ?? lord
   return GRAHA_NAMES[lord as GrahaId] ?? lord
+}
+
+function natureLabel(nature: VimshottariNature, t: T): string {
+  return t(`nature.${nature.replace(' ', '')}`)
 }
 
 function toMs(value: Date | string | number): number {
@@ -181,22 +193,29 @@ function periodProgress(node: DashaNode, now: number): number {
   return Math.min(1, Math.max(0, (now - start) / (end - start)))
 }
 
-function formatRemaining(ms: number): string {
-  if (ms <= 0) return 'ending'
+function formatRemaining(ms: number, t: T): string {
+  if (ms <= 0) return t('remaining.ending')
   const days = Math.floor(ms / 86_400_000)
   const years = Math.floor(days / 365.25)
   const months = Math.floor((days - years * 365.25) / 30.44)
-  if (years > 0) return months > 0 ? `${years}y ${months}m left` : `${years}y left`
+  if (years > 0) return months > 0 ? t('remaining.ym', { years, months }) : t('remaining.y', { years })
   if (months > 0) {
     const rem = Math.floor(days - months * 30.44)
-    return rem > 0 ? `${months}m ${rem}d left` : `${months}m left`
+    return rem > 0 ? t('remaining.md', { months, days: rem }) : t('remaining.m', { months })
   }
-  return `${Math.max(1, days)}d left`
+  return t('remaining.d', { days: Math.max(1, days) })
 }
 
-function formatNodeDate(value: Date | string | number): string {
+function formatNodeDate(value: Date | string | number, lang: EngineLang = 'en'): string {
   const ms = toMs(value)
-  return Number.isFinite(ms) ? formatShortDate(new Date(ms).toISOString()) : '—'
+  return Number.isFinite(ms) ? formatShortDate(new Date(ms).toISOString(), lang) : '—'
+}
+
+const DIGNITY_KEYS = new Set(['exalted', 'debilitated', 'own', 'moolatrikona', 'friend', 'great_friend', 'neutral', 'enemy', 'great_enemy'])
+const BAND_KEYS = new Set(['excellent', 'strong', 'average', 'weak'])
+const KARAKA_HI: Record<string, string> = {
+  AK: 'आत्मकारक', AmK: 'अमात्यकारक', BK: 'भ्रातृकारक', MK: 'मातृकारक',
+  PK: 'पुत्रकारक', PiK: 'पितृकारक', GK: 'ज्ञातिकारक', DK: 'दारकारक',
 }
 
 function dignityTone(dignity: string): Tone {
@@ -207,27 +226,35 @@ function dignityTone(dignity: string): Tone {
   return 'neutral'
 }
 
-function snapshotFacts(s: VimshottariLordSnapshot | null): { label: string; tone: Tone }[] {
+function snapshotFacts(s: VimshottariLordSnapshot | null, t: T, hi: boolean): { label: string; tone: Tone }[] {
   if (!s) return []
   const facts: { label: string; tone: Tone }[] = []
-  if (s.housesRuled.length) facts.push({ label: `Rules H${s.housesRuled.join(', H')}`, tone: 'neutral' })
-  if (s.house != null) facts.push({ label: `In H${s.house}`, tone: 'neutral' })
-  if (s.dignity) facts.push({ label: `D1 ${s.dignity}`, tone: dignityTone(s.dignity) })
-  if (s.d9Dignity) facts.push({ label: `D9 ${s.d9Dignity}`, tone: dignityTone(s.d9Dignity) })
-  if (s.isVargottama) facts.push({ label: 'Vargottama', tone: 'supportive' })
-  if (s.shadbalaBand) facts.push({ label: `Shadbala ${s.shadbalaBand}`, tone: 'neutral' })
+  const dig = (d: string) => (DIGNITY_KEYS.has(d) ? t(`dignity.${d}`) : d)
+  if (s.housesRuled.length) {
+    facts.push({
+      label: t('facts.rules', { houses: s.housesRuled.map(n => t('facts.house', { n })).join(t('facts.houseSep')) }),
+      tone: 'neutral',
+    })
+  }
+  if (s.house != null) facts.push({ label: t('facts.inHouse', { n: s.house }), tone: 'neutral' })
+  if (s.dignity) facts.push({ label: t('facts.d1', { dignity: dig(s.dignity) }), tone: dignityTone(s.dignity) })
+  if (s.d9Dignity) facts.push({ label: t('facts.d9', { dignity: dig(s.d9Dignity) }), tone: dignityTone(s.d9Dignity) })
+  if (s.isVargottama) facts.push({ label: t('facts.vargottama'), tone: 'supportive' })
+  if (s.shadbalaBand) {
+    facts.push({ label: t('facts.shadbala', { band: BAND_KEYS.has(s.shadbalaBand) ? t(`band.${s.shadbalaBand}`) : s.shadbalaBand }), tone: 'neutral' })
+  }
   if (s.bavBindus != null) {
     facts.push({
-      label: `BAV ${s.bavBindus}`,
+      label: t('facts.bav', { n: s.bavBindus }),
       tone: s.bavBindus >= 5 ? 'supportive' : s.bavBindus <= 3 ? 'caution' : 'neutral',
     })
   }
-  if (s.arohiniKind === 'arohini') facts.push({ label: 'Arohini', tone: 'supportive' })
-  if (s.arohiniKind === 'avarohini') facts.push({ label: 'Avarohini', tone: 'mixed' })
-  if (s.isRetro) facts.push({ label: 'Retro', tone: 'mixed' })
-  if (s.isYogakaraka) facts.push({ label: 'Yogakaraka', tone: 'supportive' })
-  if (s.charaKaraka) facts.push({ label: s.charaKaraka, tone: 'neutral' })
-  if (s.isMaraka) facts.push({ label: 'Maraka hardship', tone: 'caution' })
+  if (s.arohiniKind === 'arohini') facts.push({ label: t('facts.arohini'), tone: 'supportive' })
+  if (s.arohiniKind === 'avarohini') facts.push({ label: t('facts.avarohini'), tone: 'mixed' })
+  if (s.isRetro) facts.push({ label: t('facts.retro'), tone: 'mixed' })
+  if (s.isYogakaraka) facts.push({ label: t('facts.yogakaraka'), tone: 'supportive' })
+  if (s.charaKaraka) facts.push({ label: hi ? KARAKA_HI[s.charaKaraka] ?? s.charaKaraka : s.charaKaraka, tone: 'neutral' })
+  if (s.isMaraka) facts.push({ label: t('facts.maraka'), tone: 'caution' })
   return facts
 }
 
@@ -260,27 +287,29 @@ function Pill({ tone, children, title, className }: {
 }
 
 function Upsell({ text }: { text: string }) {
+  const t = useTranslations('dashaPanel.vim')
   return (
     <div className={styles.upsell}>
       <div className={styles.upsellText}>
         <Crown size={16} aria-hidden style={{ color: 'var(--text-gold)', flex: '0 0 auto', marginTop: 2 }} />
         <div>
-          <strong>Unlock with Gold</strong>
+          <strong>{t('upsell.title')}</strong>
           {text}
         </div>
       </div>
       <Link href="/pricing" style={{ textDecoration: 'none' }}>
-        <Button variant="primary" size="sm">View plans</Button>
+        <Button variant="primary" size="sm">{t('upsell.plans')}</Button>
       </Link>
     </div>
   )
 }
 
 function MixBar({ analysis }: { analysis: VimshottariPeriodAnalysis }) {
+  const t = useTranslations('dashaPanel.vim')
   const segs: { label: string; value: number; tone: Tone }[] = [
-    { label: 'Favorable', value: analysis.favorableShare, tone: 'supportive' },
-    { label: 'Neutral', value: analysis.neutralShare, tone: 'mixed' },
-    { label: 'Challenging', value: analysis.challengingShare, tone: 'caution' },
+    { label: t('mix.favorable'), value: analysis.favorableShare, tone: 'supportive' },
+    { label: t('mix.neutral'), value: analysis.neutralShare, tone: 'mixed' },
+    { label: t('mix.challenging'), value: analysis.challengingShare, tone: 'caution' },
   ]
   return (
     <div className={styles.mix}>
@@ -307,25 +336,26 @@ function MixBar({ analysis }: { analysis: VimshottariPeriodAnalysis }) {
 }
 
 function ScriptureBlock({ passages, level }: { passages: ScripturePassage[]; level: string }) {
+  const t = useTranslations('dashaPanel.vim')
   if (!passages.length) return null
   return (
     <details className={styles.scriptures}>
       <summary className={styles.scripturesSummary}>
         <ScrollText size={14} aria-hidden />
-        Classical references · {level}
+        {t('scripture.title', { level })}
         <span className={styles.scripturesCount}>{passages.length}</span>
       </summary>
       <div className={styles.scripturesBody}>
         {passages.map((p, i) => (
           <figure key={`${p.source}-${i}`} className={styles.passage}>
             <figcaption className={styles.passageSource}>
-              {p.source}{p.ref ? ` · ${p.ref}` : ''}
+              {t(`sources.${p.source}`)}{p.ref ? ` · ${p.ref}` : ''}
             </figcaption>
             <p className={styles.passageText}>{p.text}</p>
           </figure>
         ))}
         <div className={styles.note} style={{ fontStyle: 'italic' }}>
-          Educational paraphrases of classical teaching — not verbatim scripture, not predictive certainty.
+          {t('scripture.disclaimer')}
         </div>
       </div>
     </details>
@@ -335,6 +365,9 @@ function ScriptureBlock({ passages, level }: { passages: ScripturePassage[]; lev
 // ── Hero: active period chain ────────────────────────────────
 
 function ChainTile({ node, index, now }: { node: DashaNode; index: number; now: number }) {
+  const t = useTranslations('dashaPanel.vim')
+  const { lang } = useLang()
+  const levelName = t(`levels.${LEVEL_KEYS[index]}`)
   const progress = periodProgress(node, now)
   const remaining = toMs(node.end) - now
   return (
@@ -342,14 +375,14 @@ function ChainTile({ node, index, now }: { node: DashaNode; index: number; now: 
       <div className={styles.chainHead}>
         <Disc lord={node.lord} size={index === 0 ? 'lg' : undefined} />
         <div style={{ minWidth: 0 }}>
-          <div className={styles.chainLevel}>{LEVEL_NAMES[index]}</div>
-          <div className={styles.chainName}>{planetName(node.lord)}</div>
+          <div className={styles.chainLevel}>{levelName}</div>
+          <div className={styles.chainName}>{planetName(node.lord, lang)}</div>
         </div>
       </div>
       <div
         className={styles.progress}
         role="progressbar"
-        aria-label={`${LEVEL_NAMES[index]} elapsed`}
+        aria-label={t('chain.elapsed', { level: levelName })}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(progress * 100)}
@@ -357,8 +390,8 @@ function ChainTile({ node, index, now }: { node: DashaNode; index: number; now: 
         <div className={styles.progressFill} style={{ width: `${Math.max(2, progress * 100)}%` }} />
       </div>
       <div className={styles.chainMeta}>
-        <span className={styles.chainDates}>{formatNodeDate(node.start)} → {formatNodeDate(node.end)}</span>
-        <span className={styles.chainMetaStrong}>{formatRemaining(remaining)}</span>
+        <span className={styles.chainDates}>{formatNodeDate(node.start, lang)} → {formatNodeDate(node.end, lang)}</span>
+        <span className={styles.chainMetaStrong}>{formatRemaining(remaining, t)}</span>
       </div>
     </div>
   )
@@ -367,13 +400,15 @@ function ChainTile({ node, index, now }: { node: DashaNode; index: number; now: 
 // ── Period card ──────────────────────────────────────────────
 
 const PHASES = [
-  { key: 'phaseStart', label: 'Opening' },
-  { key: 'phaseMiddle', label: 'Middle' },
-  { key: 'phaseEnd', label: 'Closing' },
+  { key: 'phaseStart', label: 'opening' },
+  { key: 'phaseMiddle', label: 'middle' },
+  { key: 'phaseEnd', label: 'closing' },
 ] as const
 
 /** Whole-life Mahadasha lane + current Mahadasha's Antardashas, both on one time axis. */
 function DashaLifeBand({ nodes, mahaNode, now }: { nodes: DashaNode[]; mahaNode: DashaNode; now: number }) {
+  const t = useTranslations('dashaPanel.vim')
+  const { lang } = useLang()
   const segments = useMemo<BandSegment[]>(() => {
     const mahas = nodes.filter(n => n.level === 1).length ? nodes.filter(n => n.level === 1) : nodes
     const out: BandSegment[] = mahas.map((n, i) => ({
@@ -384,7 +419,7 @@ function DashaLifeBand({ nodes, mahaNode, now }: { nodes: DashaNode[]; mahaNode:
       color: lordColor(n.lord),
       label: n.lord,
       emphasis: n.isCurrent,
-      title: `${planetName(n.lord)} Mahadasha · ${formatNodeDate(n.start)} → ${formatNodeDate(n.end)}`,
+      title: t('band2.mahaTitle', { lord: planetName(n.lord, lang), start: formatNodeDate(n.start, lang), end: formatNodeDate(n.end, lang) }),
     }))
     ;(mahaNode.children ?? []).forEach((a, i) => {
       out.push({
@@ -395,20 +430,20 @@ function DashaLifeBand({ nodes, mahaNode, now }: { nodes: DashaNode[]; mahaNode:
         color: lordColor(a.lord),
         label: a.lord,
         emphasis: a.isCurrent,
-        title: `${planetName(mahaNode.lord)}–${planetName(a.lord)} · ${formatNodeDate(a.start)} → ${formatNodeDate(a.end)}`,
+        title: `${planetName(mahaNode.lord, lang)}–${planetName(a.lord, lang)} · ${formatNodeDate(a.start, lang)} → ${formatNodeDate(a.end, lang)}`,
       })
     })
     return out
-  }, [nodes, mahaNode])
+  }, [nodes, mahaNode, t, lang])
   if (!segments.length) return null
   return (
     <TimelineBand
       segments={segments}
-      laneLabels={['Mahadasha', `${planetName(mahaNode.lord)} antars`]}
+      laneLabels={[t('band2.lane'), t('band2.antars', { lord: planetName(mahaNode.lord, lang) })]}
       now={now}
       ticks={8}
       laneHeight={22}
-      ariaLabel="Vimshottari Mahadasha timeline"
+      ariaLabel={t('band2.aria')}
     />
   )
 }
@@ -424,9 +459,12 @@ function PlanetCard({
   progress,
   defaultExpanded = true,
   canExpandDetails,
+  scriptureLevel,
 }: {
   data: VimshottariInterpretation
   levelLabel: string
+  /** Level name for the scripture heading (e.g. "Mahadasha") */
+  scriptureLevel?: string
   facts: { label: string; tone: Tone }[]
   antarHint?: string | null
   /** Override years display (e.g. antardasha months) */
@@ -438,10 +476,11 @@ function PlanetCard({
   defaultExpanded?: boolean
   canExpandDetails: boolean
 }) {
+  const t = useTranslations('dashaPanel.vim')
   const [expanded, setExpanded] = useState(defaultExpanded)
   const tone = natureTone(data.nature)
   const durationText = durationLabel
-    ?? `${data.years} ${data.years === 1 ? 'Year' : 'Years'}`
+    ?? t(data.years === 1 ? 'card.year' : 'card.years', { n: data.years })
   const phaseIndex = progress < 1 / 3 ? 0 : progress < 2 / 3 ? 1 : 2
 
   return (
@@ -457,7 +496,7 @@ function PlanetCard({
           <div className={styles.eyebrow}>{levelLabel}</div>
           <div className={styles.cardTitleRow}>
             <h3 className={styles.cardTitle}>{data.title}</h3>
-            <Pill tone={tone}>{data.nature}</Pill>
+            <Pill tone={tone}>{natureLabel(data.nature, t)}</Pill>
           </div>
           <div className={styles.cardSub}>
             <b>{durationText}</b> · {data.keyTheme}
@@ -475,7 +514,7 @@ function PlanetCard({
         </div>
         <span className={styles.chev}>
           {!canExpandDetails && <Lock size={12} aria-hidden />}
-          {expanded ? 'Less' : 'More'}
+          {expanded ? t('card.less') : t('card.more')}
           <ChevronDown size={14} aria-hidden className={cn(styles.chevIcon, expanded && styles.chevOpen)} />
         </span>
       </button>
@@ -489,27 +528,27 @@ function PlanetCard({
 
             <div className={styles.duo}>
               <div className={cn(styles.box, styles.toneSupportive)}>
-                <div className={styles.boxTitle}><Sparkles size={12} aria-hidden /> Supportive effects</div>
+                <div className={styles.boxTitle}><Sparkles size={12} aria-hidden /> {t('card.supportive')}</div>
                 <p className={styles.boxText}>
-                  <b>{isAntar ? 'This period: ' : 'Primary: '}</b>{data.primaryPositive}
+                  <b>{isAntar ? t('card.thisPeriod') : t('card.primary')}</b>{data.primaryPositive}
                 </p>
                 {data.secondaryBenefits && (
-                  <p className={styles.boxText}><b>Also: </b>{data.secondaryBenefits}</p>
+                  <p className={styles.boxText}><b>{t('card.also')}</b>{data.secondaryBenefits}</p>
                 )}
               </div>
               <div className={cn(styles.box, styles.toneCaution)}>
-                <div className={styles.boxTitle}><ShieldAlert size={12} aria-hidden /> Risks & caution</div>
+                <div className={styles.boxTitle}><ShieldAlert size={12} aria-hidden /> {t('card.risks')}</div>
                 {data.negativeEffects
                   ? <p className={styles.boxText}>{data.negativeEffects}</p>
-                  : <p className={styles.boxText}>Few classical negatives when well placed.</p>}
+                  : <p className={styles.boxText}>{t('card.fewNegatives')}</p>}
                 {data.healthCaution && (
-                  <p className={styles.boxText}><b>Health: </b>{data.healthCaution}</p>
+                  <p className={styles.boxText}><b>{t('card.health')}</b>{data.healthCaution}</p>
                 )}
               </div>
             </div>
 
             <div>
-              <div className={styles.eyebrow} style={{ marginBottom: '0.45rem' }}>How it unfolds</div>
+              <div className={styles.eyebrow} style={{ marginBottom: '0.45rem' }}>{t('phases.title')}</div>
               <div className={styles.phases}>
                 {PHASES.map((p, i) => (
                   <div
@@ -517,8 +556,8 @@ function PlanetCard({
                     className={cn(styles.phase, i === phaseIndex && styles.phaseNow, i < phaseIndex && styles.phasePast)}
                   >
                     <div className={styles.phaseHead}>
-                      <span className={styles.phaseName}>{p.label}</span>
-                      {i === phaseIndex && <Pill tone="mixed">You are here</Pill>}
+                      <span className={styles.phaseName}>{t(`phases.${p.label}`)}</span>
+                      {i === phaseIndex && <Pill tone="mixed">{t('phases.here')}</Pill>}
                     </div>
                     <p className={styles.phaseText}>{data[p.key]}</p>
                   </div>
@@ -529,23 +568,23 @@ function PlanetCard({
             <div className={styles.events}>
               <Star size={14} aria-hidden style={{ color: 'var(--text-gold)', flex: '0 0 auto', marginTop: 3 }} />
               <div>
-                <b>Life events: </b>{data.lifeEvents}
+                <b>{t('card.lifeEvents')}</b>{data.lifeEvents}
                 {antarHint && !isAntar && (
-                  <div style={{ marginTop: 4 }}><b>Current antar: </b>{antarHint}</div>
+                  <div style={{ marginTop: 4 }}><b>{t('card.currentAntar')}</b>{antarHint}</div>
                 )}
                 {isAntar && (
                   <div className={styles.note} style={{ marginTop: 4 }}>
-                    Sub-period only — does not replace the active mahadasha story.
+                    {t('card.subOnly')}
                   </div>
                 )}
               </div>
             </div>
 
-            <ScriptureBlock passages={scriptures} level={levelLabel.replace('Active ', '')} />
+            <ScriptureBlock passages={scriptures} level={scriptureLevel ?? levelLabel} />
           </div>
         ) : (
           <div className={styles.cardBody}>
-            <Upsell text=" Phases, risks, life events and classical references for every active period." />
+            <Upsell text={t('upsell.card')} />
           </div>
         )
       )}
@@ -556,6 +595,7 @@ function PlanetCard({
 // ── Tab content ──────────────────────────────────────────────
 
 function TimelineBlock({ timeline }: { timeline: VimshottariUpcomingTimeline }) {
+  const t = useTranslations('dashaPanel.vim')
   const items = [...timeline.upcomingAntars, ...(timeline.nextMaha ? [timeline.nextMaha] : [])]
   return (
     <div className={styles.section}>
@@ -567,13 +607,15 @@ function TimelineBlock({ timeline }: { timeline: VimshottariUpcomingTimeline }) 
           ))}
         </ol>
       ) : (
-        <div className={styles.note}>No upcoming periods in range.</div>
+        <div className={styles.note}>{t('timeline.none')}</div>
       )}
     </div>
   )
 }
 
 function TimelineRow({ item }: { item: UpcomingDashaItem }) {
+  const t = useTranslations('dashaPanel.vim')
+  const { lang } = useLang()
   const tone: Tone = item.tone === 'caution' ? 'caution' : item.tone === 'supportive' ? 'supportive' : 'mixed'
   const isMaha = item.kind === 'maha'
   return (
@@ -583,10 +625,10 @@ function TimelineRow({ item }: { item: UpcomingDashaItem }) {
         <div className={styles.railTop}>
           <span className={styles.railLabel}>{item.label}</span>
           <Pill tone={tone}>{item.toneLabel}</Pill>
-          {isMaha && <Pill tone="neutral">Next mahadasha</Pill>}
+          {isMaha && <Pill tone="neutral">{t('timeline.nextMaha')}</Pill>}
         </div>
         <div className={styles.railDates}>
-          {formatShortDate(item.startIso)} → {formatShortDate(item.endIso)}
+          {formatShortDate(item.startIso, lang)} → {formatShortDate(item.endIso, lang)}
         </div>
         {item.hint && <p className={styles.railHint}>{item.hint}</p>}
       </div>
@@ -603,6 +645,7 @@ function strengthTone(strength: LifeAreaActivation['strength']): Tone {
 }
 
 function LifeAreaGrid({ areas, headline }: { areas: LifeAreaActivation[]; headline: string }) {
+  const t = useTranslations('dashaPanel.vim')
   const sorted = [...areas].sort((a, b) => STRENGTH_LEVEL[b.strength] - STRENGTH_LEVEL[a.strength])
   return (
     <div className={styles.section}>
@@ -618,7 +661,7 @@ function LifeAreaGrid({ areas, headline }: { areas: LifeAreaActivation[]; headli
                   <Icon size={14} aria-hidden className={styles.areaIcon} />
                   {a.label}
                 </span>
-                <Pill tone={strengthTone(a.strength)}>{a.strength}</Pill>
+                <Pill tone={strengthTone(a.strength)}>{t(`strength.${a.strength}`)}</Pill>
               </div>
               <div className={styles.meter} aria-hidden>
                 {[1, 2, 3].map(n => (
@@ -627,7 +670,7 @@ function LifeAreaGrid({ areas, headline }: { areas: LifeAreaActivation[]; headli
               </div>
               <p className={styles.areaNote}>{a.note}</p>
               {a.houses.length > 0 && (
-                <span className={styles.areaHouses}>Houses {a.houses.map(h => `H${h}`).join(' · ')}</span>
+                <span className={styles.areaHouses}>{t('areas.houses', { list: a.houses.map(n => t('facts.house', { n })).join(' · ') })}</span>
               )}
             </div>
           )
@@ -638,17 +681,19 @@ function LifeAreaGrid({ areas, headline }: { areas: LifeAreaActivation[]; headli
 }
 
 function GocharBlock({ overlay }: { overlay: DashaGocharOverlay | null }) {
+  const t = useTranslations('dashaPanel.vim')
+  const { lang } = useLang()
   if (!overlay) {
     return (
       <div className={styles.section}>
-        <p className={styles.sectionLead}>Loading dasha × gochar…</p>
+        <p className={styles.sectionLead}>{t('gochar.loading')}</p>
       </div>
     )
   }
   return (
     <div className={styles.section}>
       <p className={styles.sectionLead}>
-        {overlay.summary} <em>· as of {overlay.asOfLabel}</em>
+        {overlay.summary} <em>{t('gochar.asOf', { date: lang === 'hi' ? formatShortDate(overlay.asOfLabel, lang) : overlay.asOfLabel })}</em>
       </p>
       {overlay.hits.length > 0 && (
         <ul className={styles.hits}>
@@ -668,6 +713,8 @@ function GocharBlock({ overlay }: { overlay: DashaGocharOverlay | null }) {
 }
 
 function ChainRow({ title, chain }: { title: string; chain: DispositorChain }) {
+  const t = useTranslations('dashaPanel.vim')
+  const { lang } = useLang()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       <div className={styles.eyebrow}>{title}</div>
@@ -679,8 +726,8 @@ function ChainRow({ title, chain }: { title: string; chain: DispositorChain }) {
               <span className={styles.link} title={l.label}>
                 <Disc lord={l.lord} size="sm" />
                 <span className={styles.linkText}>
-                  <span className={styles.linkName}>{planetName(l.lord)}</span>
-                  <span className={styles.linkRole}>{l.role === 'period' ? 'Period lord' : `${l.role} lord`}</span>
+                  <span className={styles.linkName}>{planetName(l.lord, lang)}</span>
+                  <span className={styles.linkRole}>{t(`delivery.${l.role}`)}</span>
                 </span>
               </span>
             </React.Fragment>
@@ -693,26 +740,31 @@ function ChainRow({ title, chain }: { title: string; chain: DispositorChain }) {
 }
 
 function DeliveryBlock({ analysis }: { analysis: VimshottariPeriodAnalysis }) {
+  const t = useTranslations('dashaPanel.vim')
   return (
     <div className={styles.section}>
       <p className={styles.sectionLead}>
-        A dasha lord delivers through the planets that host it — its sign lord and nakshatra lord shape how results arrive.
+        {t('delivery.lead')}
       </p>
-      <ChainRow title="Mahadasha chain" chain={analysis.dispositorChains.mahadasha} />
+      <ChainRow title={t('delivery.mahaChain')} chain={analysis.dispositorChains.mahadasha} />
       {analysis.dispositorChains.antardasha && (
         <>
           <hr className={styles.divider} />
-          <ChainRow title="Antardasha chain" chain={analysis.dispositorChains.antardasha} />
+          <ChainRow title={t('delivery.antarChain')} chain={analysis.dispositorChains.antardasha} />
         </>
       )}
     </div>
   )
 }
 
-const NEED_TONE: Record<RemedyNeed, { tone: Tone; label: string }> = {
-  high: { tone: 'caution', label: 'Needs remedy' },
-  moderate: { tone: 'mixed', label: 'Some strain' },
-  low: { tone: 'supportive', label: 'Supported' },
+const NEED_TONE: Record<RemedyNeed, Tone> = {
+  high: 'caution',
+  moderate: 'mixed',
+  low: 'supportive',
+}
+
+const REMEDY_LEVEL_KEY: Record<string, (typeof LEVEL_KEYS)[number]> = {
+  Mahadasha: 'maha', Antardasha: 'antar', Pratyantardasha: 'pratya',
 }
 
 function RemedyList({ title, items }: { title: string; items: string[] }) {
@@ -736,43 +788,45 @@ function RemediesBlock({ remedies, canExpandDetails }: {
   remedies: DashaLordRemedy[]
   canExpandDetails: boolean
 }) {
+  const tr = useTranslations('dashaPanel.vim')
+  const { lang, hi } = useLang()
   return (
     <div className={styles.section}>
       <p className={styles.sectionLead}>
-        Remedies for the planets running your dasha now. {REMEDY_CORE_PRINCIPLE.keyRule}
+        {tr('remedies.lead', { rule: remedyKeyRule(lang) })}
       </p>
       {remedies.map(({ levels, assessment: a }) => {
         const t = a.teaching
-        const need = NEED_TONE[a.need]
+        const need = { tone: NEED_TONE[a.need], label: tr(`remedies.${a.need}`) }
         const deities = [...t.deities, `${a.nakshatraDeity} (${a.nakshatraName})`]
         return (
           <div key={a.grahaId} className={cn(styles.card, toneClass(need.tone))}>
             <div className={styles.cardHead} style={{ cursor: 'default' }}>
               <Disc lord={a.grahaId} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <span className={styles.eyebrow}>{levels.join(' · ')}</span>
+                <span className={styles.eyebrow}>{levels.map(l => tr(`levels.${REMEDY_LEVEL_KEY[l]}`)).join(' · ')}</span>
                 <div className={styles.cardTitleRow}>
-                  <h3 className={styles.cardTitle}>{t.name} · {t.sanskrit}</h3>
+                  <h3 className={styles.cardTitle}>{hi && t.sanskrit === t.name ? t.name : `${t.name} · ${t.sanskrit}`}</h3>
                   <Pill tone={need.tone}>{need.label}</Pill>
                 </div>
                 <div className={styles.cardSub}>
-                  {a.reasons.length > 0 ? a.reasons.join(' · ') : 'No major natal affliction'}
+                  {a.reasons.length > 0 ? a.reasons.join(' · ') : tr('remedies.noAffliction')}
                 </div>
                 <div className={styles.cardSub}>
-                  <b>Deities:</b> {deities.join(' · ')}
+                  <b>{tr('remedies.deities')}</b> {deities.join(' · ')}
                 </div>
               </div>
             </div>
             <div className={styles.cardBody}>
               <div className={styles.duo}>
-                <RemedyList title="Indications" items={t.indications} />
-                <RemedyList title="Behavioural" items={t.behavioral} />
+                <RemedyList title={tr('remedies.indications')} items={t.indications} />
+                <RemedyList title={tr('remedies.behavioral')} items={t.behavioral} />
               </div>
               {canExpandDetails ? (
                 <>
                   <div className={styles.duo}>
-                    <RemedyList title="Spiritual" items={t.spiritual} />
-                    <RemedyList title="Daan & Seva" items={[...t.donation, ...t.seva]} />
+                    <RemedyList title={tr('remedies.spiritual')} items={t.spiritual} />
+                    <RemedyList title={tr('remedies.daan')} items={[...t.donation, ...t.seva]} />
                   </div>
                   {t.notes.map(n => (
                     <div key={n} className={cn(styles.callout, styles.toneCaution)}>
@@ -780,11 +834,11 @@ function RemediesBlock({ remedies, canExpandDetails }: {
                       <span>{n}</span>
                     </div>
                   ))}
-                  {t.duration && <div className={styles.note}>Duration: {t.duration}</div>}
+                  {t.duration && <div className={styles.note}>{tr('remedies.duration', { d: t.duration })}</div>}
                 </>
               ) : (
                 <div className={styles.note}>
-                  <Lock size={11} aria-hidden /> Spiritual remedies, daan, seva and cautions on Gold.
+                  <Lock size={11} aria-hidden /> {tr('remedies.locked')}
                 </div>
               )}
             </div>
@@ -810,10 +864,12 @@ export function VimshottariInterpretationPanel({
   userPlan = 'free',
   chartId = null,
 }: VimshottariInterpretationPanelProps) {
+  const t = useTranslations('dashaPanel.vim')
+  const { lang, hi } = useLang()
   const canExpandDetails = planMeetsUiGate(userPlan, 'gold')
   const canTagEvents = planMeetsUiGate(userPlan, 'platinum')
   const [transitPositions, setTransitPositions] = useState<TransitPosition[] | null>(null)
-  const [eventLabel, setEventLabel] = useState<string>(DASHA_EVENT_LABELS[0])
+  const [eventLabel, setEventLabel] = useState<string>(DASHA_EVENT_LABELS[0][0])
   const [eventNote, setEventNote] = useState('')
   const [eventSaving, setEventSaving] = useState(false)
   const [eventMsg, setEventMsg] = useState<string | null>(null)
@@ -838,8 +894,9 @@ export function VimshottariInterpretationPanel({
       shadbala,
       ashtakavarga,
       navamshaGrahas,
+      lang,
     }),
-    [nodes, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas],
+    [nodes, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas, lang],
   )
 
   const tattvaOverlay = useMemo(
@@ -849,8 +906,8 @@ export function VimshottariInterpretationPanel({
   const moonGuidance = tattvaOverlay?.predictMode === 'guidance'
 
   const timeline = useMemo(
-    () => buildUpcomingVimshottariTimeline(nodes),
-    [nodes],
+    () => buildUpcomingVimshottariTimeline(nodes, Date.now(), 5, lang),
+    [nodes, lang],
   )
 
   useEffect(() => {
@@ -873,8 +930,8 @@ export function VimshottariInterpretationPanel({
   }, [ascRashi])
 
   const remedies = useMemo(
-    () => computeDashaLordRemedies(activePath.map(n => n.lord), grahas, shadbala),
-    [activePath, grahas, shadbala],
+    () => localizeDashaLordRemedies(computeDashaLordRemedies(activePath.map(n => n.lord), grahas, shadbala), lang),
+    [activePath, grahas, shadbala, lang],
   )
 
   const gochar = useMemo(() => {
@@ -886,26 +943,27 @@ export function VimshottariInterpretationPanel({
       antarLord: activePath[1]?.lord ?? null,
       pratyaLord: activePath[2]?.lord ?? null,
       transitPositions,
+      lang,
     })
-  }, [transitPositions, activePath, ascRashi, grahas])
+  }, [transitPositions, activePath, ascRashi, grahas, lang])
 
   if (activePath.length < 1) return null
 
-  const maha = getVimshottariInterpretation(activePath[0].lord)
+  const maha = getVimshottariInterpretation(activePath[0].lord, lang)
   if (!maha) return null
 
   const mahaNode = activePath[0]
   const antarNode = activePath[1] ?? null
   const pratyaNode = activePath[2] ?? null
   const antarHint = antarNode
-    ? getVimshottariAntarHint(mahaNode.lord, antarNode.lord)
+    ? getVimshottariAntarHint(mahaNode.lord, antarNode.lord, lang)
     : null
   const antarYears = antarNode ? durationMsToYears(antarNode.durationMs) : 0
   const antar = antarNode
-    ? buildVimshottariAntarInterpretation(mahaNode.lord, antarNode.lord, antarYears)
+    ? buildVimshottariAntarInterpretation(mahaNode.lord, antarNode.lord, antarYears, lang)
     : null
   const antarDurationLabel = antarNode
-    ? formatVimshottariDurationYears(antarYears)
+    ? formatVimshottariDurationYears(antarYears, lang)
     : null
   const pratyaYears = pratyaNode ? durationMsToYears(pratyaNode.durationMs) : 0
   const pratya = antarNode && pratyaNode
@@ -914,17 +972,18 @@ export function VimshottariInterpretationPanel({
       antarNode.lord,
       pratyaNode.lord,
       pratyaYears,
+      lang,
     )
     : null
   const pratyaDurationLabel = pratyaNode
-    ? formatVimshottariDurationYears(pratyaYears)
+    ? formatVimshottariDurationYears(pratyaYears, lang)
     : null
-  const mahaScriptures = getVimshottariMahaScriptures(mahaNode.lord)
+  const mahaScriptures = getVimshottariMahaScriptures(mahaNode.lord, lang)
   const antarScriptures = antarNode
-    ? getVimshottariAntarScriptures(mahaNode.lord, antarNode.lord)
+    ? getVimshottariAntarScriptures(mahaNode.lord, antarNode.lord, lang)
     : []
   const pratyaScriptures = antarNode && pratyaNode
-    ? getVimshottariPratyantarScriptures(mahaNode.lord, antarNode.lord, pratyaNode.lord)
+    ? getVimshottariPratyantarScriptures(mahaNode.lord, antarNode.lord, pratyaNode.lord, lang)
     : []
 
   const chainNodes = activePath.slice(0, 3)
@@ -932,10 +991,10 @@ export function VimshottariInterpretationPanel({
   const cautionFlags = analysis ? analysis.flags.filter(f => f.tone === 'caution').slice(0, 4) : []
   const signals = analysis
     ? [
-      analysis.d9Note && { title: 'Navamsha', text: analysis.d9Note, icon: Layers },
-      analysis.charaKarakaNote && { title: 'Chara Karaka', text: analysis.charaKarakaNote, icon: Crown },
-      analysis.yogakarakaNote && { title: 'Yogakaraka', text: analysis.yogakarakaNote, icon: Sparkles },
-      analysis.lagnaSpecialNote && { title: 'Lagna note', text: analysis.lagnaSpecialNote, icon: Star },
+      analysis.d9Note && { title: t('signals.navamsha'), text: analysis.d9Note, icon: Layers },
+      analysis.charaKarakaNote && { title: t('signals.chara'), text: analysis.charaKarakaNote, icon: Crown },
+      analysis.yogakarakaNote && { title: t('signals.yogakaraka'), text: analysis.yogakarakaNote, icon: Sparkles },
+      analysis.lagnaSpecialNote && { title: t('signals.lagna'), text: analysis.lagnaSpecialNote, icon: Star },
     ].filter(Boolean) as { title: string; text: string; icon: React.ElementType }[]
     : []
 
@@ -943,7 +1002,7 @@ export function VimshottariInterpretationPanel({
     if (!chartId || !canTagEvents || eventSaving) return
     const text = eventNote.trim()
     if (!text) {
-      setEventMsg('Add a short note first.')
+      setEventMsg(t('notes.empty'))
       return
     }
     setEventSaving(true)
@@ -975,27 +1034,28 @@ export function VimshottariInterpretationPanel({
       })
       const body = await res.json().catch(() => null)
       if (!res.ok || !body?.success) {
-        setEventMsg(body?.error || 'Could not save note.')
+        setEventMsg(body?.error || t('notes.failed'))
       } else {
         setEventNote('')
-        setEventMsg('Saved to chart notes.')
+        setEventMsg(t('notes.saved'))
       }
     } catch {
-      setEventMsg('Could not save note.')
+      setEventMsg(t('notes.failed'))
     } finally {
       setEventSaving(false)
     }
   }
 
-  const goldUpsell = ' Life-area activation, the upcoming dasha timeline, live gochar overlay and dispositor delivery chains.'
+  const goldUpsell = t('upsell.tabs')
+  const toneText = analysis ? analysis.insight.toneText ?? analysis.insight.toneLabel : ''
 
   return (
     <div className={styles.panel}>
       {/* ── Hero ── */}
-      <section className={cn(styles.hero, toneClass(heroTone))} aria-label="Vimshottari interpretation">
+      <section className={cn(styles.hero, toneClass(heroTone))} aria-label={t('hero.aria')}>
         <div className={styles.heroTop}>
-          <span className={styles.eyebrow}>Vimshottari · Now running</span>
-          {analysis && <Pill tone={heroTone}>{analysis.insight.toneLabel}</Pill>}
+          <span className={styles.eyebrow}>{t('hero.eyebrow')}</span>
+          {analysis && <Pill tone={heroTone}>{toneText}</Pill>}
         </div>
 
         <div className={styles.chain} style={{ '--chain-cols': chainNodes.length } as React.CSSProperties}>
@@ -1025,7 +1085,7 @@ export function VimshottariInterpretationPanel({
         {analysis?.insight.watch && (
           <div className={cn(styles.callout, styles.toneCaution)}>
             <AlertTriangle size={15} aria-hidden className={styles.calloutIcon} />
-            <span><strong>Watch: </strong>{analysis.insight.watch}</span>
+            <span><strong>{t('hero.watch')}</strong>{analysis.insight.watch}</span>
           </div>
         )}
 
@@ -1033,8 +1093,8 @@ export function VimshottariInterpretationPanel({
           <div className={cn(styles.callout, styles.toneCaution)}>
             <Moon size={15} aria-hidden className={styles.calloutIcon} />
             <span>
-              <strong>Moon period — guidance mode. </strong>
-              Firm event forecasts are softened. Prefer sadhana / katha; see Tattva Prediction → Remedies.
+              <strong>{t('hero.moonTitle')}</strong>
+              {t('hero.moonText')}
               {tattvaOverlay?.remedies[0] ? ` ${tattvaOverlay.remedies[0].text}` : ''}
             </span>
           </div>
@@ -1085,23 +1145,23 @@ export function VimshottariInterpretationPanel({
       <TattvaDashaOverlayStrip grahas={grahas} dashaNodes={nodes} />
 
       {/* ── Tabs ── */}
-      <div className={styles.tabs} role="tablist" aria-label="Dasha interpretation sections">
-        {TABS.map(t => {
-          const Icon = t.icon
-          const locked = t.gold && !canExpandDetails
+      <div className={styles.tabs} role="tablist" aria-label={t('tabsAria')}>
+        {TABS.map(tb => {
+          const Icon = tb.icon
+          const locked = tb.gold && !canExpandDetails
           return (
             <button
-              key={t.id}
+              key={tb.id}
               type="button"
               role="tab"
-              id={`dasha-tab-${t.id}`}
-              aria-selected={tab === t.id}
-              aria-controls={`dasha-panel-${t.id}`}
-              className={cn(styles.tab, tab === t.id && styles.tabActive, locked && styles.tabLock)}
-              onClick={() => setTab(t.id)}
+              id={`dasha-tab-${tb.id}`}
+              aria-selected={tab === tb.id}
+              aria-controls={`dasha-panel-${tb.id}`}
+              className={cn(styles.tab, tab === tb.id && styles.tabActive, locked && styles.tabLock)}
+              onClick={() => setTab(tb.id)}
             >
               <Icon size={14} aria-hidden />
-              {t.label}
+              {t(`tabs.${tb.id}`)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -1118,8 +1178,9 @@ export function VimshottariInterpretationPanel({
           <>
             <PlanetCard
               data={maha}
-              levelLabel="Active Mahadasha"
-              facts={snapshotFacts(analysis?.mahadasha ?? null)}
+              levelLabel={t('card.activeMaha')}
+              scriptureLevel={t('levels.maha')}
+              facts={snapshotFacts(analysis?.mahadasha ?? null, t, hi)}
               scriptures={mahaScriptures}
               progress={periodProgress(mahaNode, now)}
               defaultExpanded={canExpandDetails}
@@ -1128,8 +1189,9 @@ export function VimshottariInterpretationPanel({
             {antar && antarNode && (
               <PlanetCard
                 data={antar}
-                levelLabel="Active Antardasha"
-                facts={snapshotFacts(analysis?.antardasha ?? null)}
+                levelLabel={t('card.activeAntar')}
+                scriptureLevel={t('levels.antar')}
+                facts={snapshotFacts(analysis?.antardasha ?? null, t, hi)}
                 antarHint={antarHint}
                 durationLabel={antarDurationLabel}
                 scriptures={antarScriptures}
@@ -1142,8 +1204,9 @@ export function VimshottariInterpretationPanel({
             {pratya && pratyaNode && (
               <PlanetCard
                 data={pratya}
-                levelLabel="Active Pratyantardasha"
-                facts={snapshotFacts(analysis?.pratyantardasha ?? null)}
+                levelLabel={t('card.activePratya')}
+                scriptureLevel={t('levels.pratya')}
+                facts={snapshotFacts(analysis?.pratyantardasha ?? null, t, hi)}
                 durationLabel={pratyaDurationLabel}
                 scriptures={pratyaScriptures}
                 isAntar
@@ -1176,55 +1239,52 @@ export function VimshottariInterpretationPanel({
       {canTagEvents && (
         <div className={styles.section}>
           <div className={styles.eyebrow} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Tag size={12} aria-hidden /> Event tag · Platinum
+            <Tag size={12} aria-hidden /> {t('notes.title')}
           </div>
           {!chartId ? (
             <p className={styles.sectionLead}>
-              Save this chart to attach dasha-dated notes, or manage clients in{' '}
-              <Link href="/clients" className={styles.textLink}>CRM</Link>.
+              {t('notes.saveFirst')}{' '}
+              <Link href="/clients" className={styles.textLink}>{t('notes.crm')}</Link>.
             </p>
           ) : (
             <>
               <p className={styles.sectionLead}>
-                Log what happened during the current{' '}
-                <b>{planetName(mahaNode.lord)}{antarNode ? ` / ${planetName(antarNode.lord)}` : ''}</b> period.
+                {t('notes.logBefore')}{' '}
+                <b>{planetName(mahaNode.lord, lang)}{antarNode ? ` / ${planetName(antarNode.lord, lang)}` : ''}</b> {t('notes.logAfter')}
               </p>
               <div className={styles.eventRow}>
                 <select
                   value={eventLabel}
                   onChange={e => setEventLabel(e.target.value)}
                   className={styles.control}
-                  aria-label="Event type"
+                  aria-label={t('notes.typeAria')}
                 >
-                  {DASHA_EVENT_LABELS.map(l => (
-                    <option key={l} value={l}>{l}</option>
+                  {DASHA_EVENT_LABELS.map(([value, key]) => (
+                    <option key={value} value={value}>{t(`events.${key}`)}</option>
                   ))}
                 </select>
                 <input
                   value={eventNote}
                   onChange={e => setEventNote(e.target.value)}
-                  placeholder="What happened / note…"
+                  placeholder={t('notes.placeholder')}
                   maxLength={500}
                   className={cn(styles.control, styles.controlGrow)}
-                  aria-label="Event note"
+                  aria-label={t('notes.noteAria')}
                 />
                 <Button variant="secondary" size="sm" onClick={() => void saveDashaEvent()} disabled={eventSaving}>
-                  {eventSaving ? 'Saving…' : 'Save note'}
+                  {eventSaving ? t('notes.saving') : t('notes.save')}
                 </Button>
               </div>
               {eventMsg && <div className={styles.note}>{eventMsg}</div>}
-              <Link href="/clients" className={styles.textLink}>Open client CRM →</Link>
+              <Link href="/clients" className={styles.textLink}>{t('notes.openCrm')}</Link>
             </>
           )}
         </div>
       )}
 
       <div className={styles.footer}>
-        <p>{VIMSHOTTARI_RESULT_HIERARCHY}</p>
-        <p>
-          Educational timing overlay — every dasha mixes supportive, neutral, and challenging themes.
-          Health notes are soft cautions, not medical advice. Maraka means hardship pressure, not a life-ending forecast.
-        </p>
+        <p>{getVimshottariResultHierarchy(lang)}</p>
+        <p>{t('footer')}</p>
       </div>
     </div>
   )

@@ -20,6 +20,22 @@ import {
 } from '@/lib/engine/dignity'
 import { getTithiDayMeta, lunarDayFromTithi } from '@/lib/engine/tithiMeta'
 import { getVaarMeta, vaarPatiNakNote } from '@/lib/engine/vaarMeta'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import {
+  ANANDADI_HI,
+  LEVEL_HI,
+  MASA_LABEL_HI,
+  PAKSHA_HI,
+  PANCHAK_STATUS_HI,
+  SENSITIVE_HI,
+  STRENGTH_HI,
+  TITHYAMSHA_HI,
+  VAAR_GUNA_TRAITS_HI,
+  VAAR_PATI_HI,
+  WILDCARD_LABELS_HI,
+  YOGAS_HI,
+} from '@/lib/engine/locale/panchangVishesh.hi'
 
 // ── Shared helpers ────────────────────────────────────────────
 
@@ -50,6 +66,30 @@ function angDist(a: number, b: number): number {
 /** House of `rashi` counted from `from` (1–12). */
 function houseFrom(from: Rashi, rashi: Rashi): number {
   return ((rashi - from + 12) % 12) + 1
+}
+
+/** Display names in the requested language. */
+function grahaName(id: GrahaId, lang: EngineLang): string {
+  return lang === 'hi' ? GRAHA_HI[id] : GRAHA_NAMES[id]
+}
+function nakName(i: number, lang: EngineLang): string {
+  return lang === 'hi' ? NAKSHATRA_HI[i] : NAKSHATRA_NAMES[i]
+}
+function rashiName(r: Rashi, lang: EngineLang): string {
+  return lang === 'hi' ? RASHI_HI[r] : RASHI_NAMES[r]
+}
+function statusName(status: string, lang: EngineLang): string {
+  return lang === 'hi' ? PANCHAK_STATUS_HI[status] ?? status : status
+}
+
+/** Translate a strength level ('strong' | 'moderate' | 'weak' | 'medium') for display. */
+export function visheshLevelLabel(level: string, lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? LEVEL_HI[level] ?? level : level
+}
+
+/** Panchak status ('exalted', 'own'…) for display. */
+export function panchakStatusLabel(status: string, lang: EngineLang = 'en'): string {
+  return statusName(status, lang)
 }
 
 export type VisheshQuality = 'auspicious' | 'inauspicious' | 'mixed'
@@ -140,16 +180,17 @@ export interface TithyamshaInfo {
 const SHUBH_TITHYAMSHA = new Set([1, 3, 4, 7, 8, 11])
 
 /** Each 12° tithi has 15 tithyamshas of 0.8° (≈ 95 min on an average tithi). */
-export function getTithyamsha(sunLon: number, moonLon: number): TithyamshaInfo {
+export function getTithyamsha(sunLon: number, moonLon: number, lang: EngineLang = 'en'): TithyamshaInfo {
   const elong = norm360(moonLon - sunLon)
   const fraction = (elong % 12) / 12
   const part = Math.min(15, Math.floor(fraction * 15) + 1)
   const auspicious = SHUBH_TITHYAMSHA.has(part)
   const waning = elong >= 180
+  const hi = lang === 'hi'
   let note = auspicious
-    ? `Tithyamsha ${part} is one of the classically favourable parts (1, 3, 4, 7, 8, 11).`
-    : `Tithyamsha ${part} is a neutral part — read the main tithi first.`
-  if (auspicious && waning) note += ' Krishna paksha softens this support somewhat.'
+    ? hi ? fill(TITHYAMSHA_HI.good, { part }) : `Tithyamsha ${part} is one of the classically favourable parts (1, 3, 4, 7, 8, 11).`
+    : hi ? fill(TITHYAMSHA_HI.neutral, { part }) : `Tithyamsha ${part} is a neutral part — read the main tithi first.`
+  if (auspicious && waning) note += hi ? TITHYAMSHA_HI.krishna : ' Krishna paksha softens this support somewhat.'
   return { part, fraction, auspicious, note }
 }
 
@@ -170,6 +211,8 @@ export const VAAR_GUNA_TRAITS: Record<VaarGuna, string> = {
 
 export interface VaarGunaInfo {
   guna:        VaarGuna
+  /** `guna` in the requested language */
+  gunaLabel:   string
   /** 1-based slot of 96 minutes from sunrise */
   slot:        number
   minutesFromSunrise: number
@@ -177,7 +220,7 @@ export interface VaarGunaInfo {
   traits:      string
 }
 
-export function getVaarGuna(varaNumber: number, sunrise: Date, at: Date): VaarGunaInfo | null {
+export function getVaarGuna(varaNumber: number, sunrise: Date, at: Date, lang: EngineLang = 'en'): VaarGunaInfo | null {
   const mins = (at.getTime() - sunrise.getTime()) / 60_000
   if (!Number.isFinite(mins) || mins < 0 || mins > 24 * 60 + 30) return null
   const vara = ((Math.floor(varaNumber) % 7) + 7) % 7
@@ -186,10 +229,11 @@ export function getVaarGuna(varaNumber: number, sunrise: Date, at: Date): VaarGu
   const guna = GUNA_CYCLE[(start + slot) % 3]
   return {
     guna,
+    gunaLabel: lang === 'hi' ? { Sattva: 'सत्त्व', Rajas: 'रजस्', Tamas: 'तमस्' }[guna] : guna,
     slot: slot + 1,
     minutesFromSunrise: Math.round(mins),
     ishtaGhati: minutesToGhatiPal(mins),
-    traits: VAAR_GUNA_TRAITS[guna],
+    traits: lang === 'hi' ? VAAR_GUNA_TRAITS_HI[guna] : VAAR_GUNA_TRAITS[guna],
   }
 }
 
@@ -270,8 +314,12 @@ export function getTithiStrength(input: {
   lagnaRashi?: Rashi | null
   /** Pre-computed vishesh yogas (Pushkar / Siddhi) that lift a weak tithi */
   supportiveYogas?: VisheshYoga[]
+  lang?: EngineLang
 }): TithiStrengthResult {
   const { sunLon, moonLon } = input
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
+  const H = STRENGTH_HI
   const elong = norm360(moonLon - sunLon)
   const factors: StrengthFactor[] = []
 
@@ -280,12 +328,12 @@ export function getTithiStrength(input: {
   const pakshaBala: TithiStrengthResult['pakshaBala'] =
     brightness >= 0.5 ? 'strong' : brightness >= 0.2 ? 'medium' : 'weak'
   if (pakshaBala === 'strong') {
-    factors.push({ label: 'Paksha bala', effect: 'plus', detail: 'Moon is well lit (near or past the half-moon), so the tithi carries good strength.' })
+    factors.push(hi ? { ...H.pakshaGood, effect: 'plus' } : { label: 'Paksha bala', effect: 'plus', detail: 'Moon is well lit (near or past the half-moon), so the tithi carries good strength.' })
   } else if (pakshaBala === 'weak') {
-    factors.push({ label: 'Weak paksha bala', effect: 'minus', detail: 'Moon is close to Amavasya (Krishna Chaturdashi to Shukla Pratipada window) — the mind-energy is drained.' })
+    factors.push(hi ? { ...H.pakshaWeak, effect: 'minus' } : { label: 'Weak paksha bala', effect: 'minus', detail: 'Moon is close to Amavasya (Krishna Chaturdashi to Shukla Pratipada window) — the mind-energy is drained.' })
   }
   if (elong < 180 && brightness < 0.2) {
-    factors.push({ label: 'Moving out of Amavasya', effect: 'plus', detail: 'Moon has left the Sun and is waxing — weakness is easing, not deepening.' })
+    factors.push(hi ? { ...H.leavingAmavasya, effect: 'plus' } : { label: 'Moving out of Amavasya', effect: 'plus', detail: 'Moon has left the Sun and is waxing — weakness is easing, not deepening.' })
   }
 
   const moonPanchak = getPanchakStatus('Mo', moonLon)
@@ -293,13 +341,17 @@ export function getTithiStrength(input: {
   const pctMoon = PANCHAK_SHUBH_PERCENT[moonPanchak]
   const pctSun = PANCHAK_SHUBH_PERCENT[sunPanchak]
 
-  if (pctMoon >= 50) factors.push({ label: `Moon ${moonPanchak}`, effect: 'plus', detail: `Moon in shubh panchak (${moonPanchak}) — about ${pctMoon}% shubh phala.` })
-  if (pctMoon <= 7) factors.push({ label: `Moon ${moonPanchak}`, effect: 'minus', detail: `Moon in ashubh panchak (${moonPanchak}) — about ${100 - pctMoon}% ashubh phala.` })
-  if (pctSun >= 50) factors.push({ label: `Sun ${sunPanchak}`, effect: 'plus', detail: `Sun in shubh panchak (${sunPanchak}) — about ${pctSun}% shubh phala.` })
-  if (pctSun <= 7) factors.push({ label: `Sun ${sunPanchak}`, effect: 'minus', detail: `Sun in ashubh panchak (${sunPanchak}) — about ${100 - pctSun}% ashubh phala.` })
-  if (isParamNeecha('Mo', moonLon)) factors.push({ label: 'Moon param-neecha', effect: 'minus', detail: 'Moon within 0–3° Vrishchika — fully debilitated; tithi gives ashubh results unless lifted by yoga.' })
-  else if (moonPanchak === 'debilitated') factors.push({ label: 'Moon leaving neecha', effect: 'plus', detail: 'Moon has crossed its deep-debilitation degree and is moving toward exaltation.' })
-  if (isParamNeecha('Su', sunLon)) factors.push({ label: 'Sun param-neecha', effect: 'minus', detail: 'Sun within 0–10° Tula — fully debilitated.' })
+  const ms = statusName(moonPanchak, lang)
+  const ss = statusName(sunPanchak, lang)
+  const moonLabel = hi ? fill(H.moonStatus, { status: ms }) : `Moon ${moonPanchak}`
+  const sunLabel = hi ? fill(H.sunStatus, { status: ss }) : `Sun ${sunPanchak}`
+  if (pctMoon >= 50) factors.push({ label: moonLabel, effect: 'plus', detail: hi ? fill(H.moonShubh, { status: ms, pct: pctMoon }) : `Moon in shubh panchak (${moonPanchak}) — about ${pctMoon}% shubh phala.` })
+  if (pctMoon <= 7) factors.push({ label: moonLabel, effect: 'minus', detail: hi ? fill(H.moonAshubh, { status: ms, pct: 100 - pctMoon }) : `Moon in ashubh panchak (${moonPanchak}) — about ${100 - pctMoon}% ashubh phala.` })
+  if (pctSun >= 50) factors.push({ label: sunLabel, effect: 'plus', detail: hi ? fill(H.sunShubh, { status: ss, pct: pctSun }) : `Sun in shubh panchak (${sunPanchak}) — about ${pctSun}% shubh phala.` })
+  if (pctSun <= 7) factors.push({ label: sunLabel, effect: 'minus', detail: hi ? fill(H.sunAshubh, { status: ss, pct: 100 - pctSun }) : `Sun in ashubh panchak (${sunPanchak}) — about ${100 - pctSun}% ashubh phala.` })
+  if (isParamNeecha('Mo', moonLon)) factors.push(hi ? { ...H.moonParam, effect: 'minus' } : { label: 'Moon param-neecha', effect: 'minus', detail: 'Moon within 0–3° Vrishchika — fully debilitated; tithi gives ashubh results unless lifted by yoga.' })
+  else if (moonPanchak === 'debilitated') factors.push(hi ? { ...H.moonLeaving, effect: 'plus' } : { label: 'Moon leaving neecha', effect: 'plus', detail: 'Moon has crossed its deep-debilitation degree and is moving toward exaltation.' })
+  if (isParamNeecha('Su', sunLon)) factors.push(hi ? { ...H.sunParam, effect: 'minus' } : { label: 'Sun param-neecha', effect: 'minus', detail: 'Sun within 0–10° Tula — fully debilitated.' })
 
   let score = 25 + brightness * 35 + pctMoon * 0.25 + pctSun * 0.15
 
@@ -314,11 +366,22 @@ export function getTithiStrength(input: {
     const d = angDist(g.lon, moonLon)
     if (rashiOf(g.lon) === moonR || d <= 12) {
       const ahead = norm360(g.lon - moonLon) < 30
-      factors.push({
-        label: `Moon with ${GRAHA_NAMES[node]}`,
-        effect: 'minus',
-        detail: `${GRAHA_NAMES[node]} ${d <= 12 ? `within ${d.toFixed(1)}°` : 'in the same sign'}${ahead ? ', ahead of the Moon' : ''} — grahan-like affliction weakens the tithi.`,
-      })
+      const nodeName = grahaName(node, lang)
+      factors.push(hi
+        ? {
+            label: fill(H.nodeLabel, { node: nodeName }),
+            effect: 'minus',
+            detail: fill(H.nodeDetail, {
+              node: nodeName,
+              where: d <= 12 ? fill(H.nodeWithin, { deg: d.toFixed(1) }) : H.nodeSameSign,
+              ahead: ahead ? H.nodeAhead : '',
+            }),
+          }
+        : {
+            label: `Moon with ${nodeName}`,
+            effect: 'minus',
+            detail: `${nodeName} ${d <= 12 ? `within ${d.toFixed(1)}°` : 'in the same sign'}${ahead ? ', ahead of the Moon' : ''} — grahan-like affliction weakens the tithi.`,
+          })
       score -= d <= 12 ? 12 : 7
     }
   }
@@ -327,7 +390,9 @@ export function getTithiStrength(input: {
   if (input.lagnaRashi) {
     const h = houseFrom(input.lagnaRashi, moonR)
     if ([1, 6, 8, 12].includes(h) && pctMoon <= 12.5) {
-      factors.push({ label: `Moon in house ${h}`, effect: 'minus', detail: `Moon in the ${h === 1 ? 'lagna' : `${h}th`} while in ashubh panchak — sensitive birth tithi.` })
+      factors.push(hi
+        ? { label: fill(H.houseLabel, { h }), effect: 'minus', detail: fill(H.houseDetail, { house: h === 1 ? H.lagna : fill(H.nth, { h }) }) }
+        : { label: `Moon in house ${h}`, effect: 'minus', detail: `Moon in the ${h === 1 ? 'lagna' : `${h}th`} while in ashubh panchak — sensitive birth tithi.` })
       score -= 6
     }
   }
@@ -338,28 +403,28 @@ export function getTithiStrength(input: {
     const next = ((moonR % 12) + 1) as Rashi
     const inSign = (r: Rashi, list: GrahaId[]) => grahas.some((g) => list.includes(g.id) && g.id !== 'Mo' && rashiOf(g.lon) === r)
     if (inSign(prev, NATURAL_MALEFICS) && inSign(next, NATURAL_MALEFICS)) {
-      factors.push({ label: 'Papa kartari on Moon', effect: 'minus', detail: 'Malefics hem the Moon from both sides.' })
+      factors.push(hi ? { ...H.papaKartari, effect: 'minus' } : { label: 'Papa kartari on Moon', effect: 'minus', detail: 'Malefics hem the Moon from both sides.' })
       score -= 8
     } else if (inSign(prev, NATURAL_BENEFICS) && inSign(next, NATURAL_BENEFICS)) {
-      factors.push({ label: 'Shubh kartari on Moon', effect: 'plus', detail: 'Benefics on both sides of the Moon support the tithi.' })
+      factors.push(hi ? { ...H.shubhKartari, effect: 'plus' } : { label: 'Shubh kartari on Moon', effect: 'plus', detail: 'Benefics on both sides of the Moon support the tithi.' })
       score += 8
     }
     const ju = byId.get('Ju')
     if (ju && (rashiOf(ju.lon) === moonR || houseFrom(rashiOf(ju.lon), moonR) === 7 || [5, 9].includes(houseFrom(rashiOf(ju.lon), moonR)))) {
-      factors.push({ label: 'Jupiter supports Moon', effect: 'plus', detail: 'Jupiter conjoins or aspects the Moon (1/5/7/9) — Gaja-Kesari-type protection.' })
+      factors.push(hi ? { ...H.jupiter, effect: 'plus' } : { label: 'Jupiter supports Moon', effect: 'plus', detail: 'Jupiter conjoins or aspects the Moon (1/5/7/9) — Gaja-Kesari-type protection.' })
       score += 8
     }
   }
 
   const lifts = (input.supportiveYogas ?? []).filter((y) => y.quality === 'auspicious' && (y.id === 'dwipushkar' || y.id === 'tripushkar'))
   for (const y of lifts) {
-    factors.push({ label: y.label, effect: 'plus', detail: 'Even a weak tithi gains extra energy inside this yoga.' })
+    factors.push({ label: y.label, effect: 'plus', detail: hi ? H.pushkarLift : 'Even a weak tithi gains extra energy inside this yoga.' })
     score += 10
   }
 
   score = Math.round(Math.min(100, Math.max(0, score)))
   const level: TithiStrengthResult['level'] = score >= 60 ? 'strong' : score >= 38 ? 'moderate' : 'weak'
-  const summary =
+  const summary = hi ? H.summary[level] :
     level === 'strong'
       ? 'Tithi is well supported — its qualities show up clearly in temperament and timing.'
       : level === 'moderate'
@@ -389,61 +454,74 @@ export function getVaarPatiStrength(input: {
   /** Navamsha rashi of the Vaar Pati, if known (for vargottama) */
   vaarPatiNavamshaRashi?: Rashi | null
   supportiveYogas?: VisheshYoga[]
+  lang?: EngineLang
 }): VaarPatiStrengthResult | null {
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
+  const V = VAAR_PATI_HI
   const vaar = getVaarMeta(input.varaNumber)
+  const lordName = getVaarMeta(input.varaNumber, lang).lordName
   const g = input.grahas.find((x) => x.id === vaar.lord)
   if (!g) return null
   const factors: StrengthFactor[] = []
   let score = 0
 
   const status = getPanchakStatus(vaar.lord, g.lon)
+  const statusLabel = `${lordName} ${statusName(status, lang)}`
   if (['exalted', 'moolatrikona', 'own', 'friend'].includes(status)) {
-    factors.push({ label: `${vaar.lordName} ${status}`, effect: 'plus', detail: 'Vaar Pati in shubh panchak — the birth weekday supports you.' })
+    factors.push({ label: statusLabel, effect: 'plus', detail: hi ? V.shubh : 'Vaar Pati in shubh panchak — the birth weekday supports you.' })
     score += 2
   } else if (status !== 'neutral') {
-    factors.push({ label: `${vaar.lordName} ${status}`, effect: 'minus', detail: 'Vaar Pati in ashubh panchak — more effort, delays and obstacles in that planet’s areas.' })
+    factors.push({ label: statusLabel, effect: 'minus', detail: hi ? V.ashubh : 'Vaar Pati in ashubh panchak — more effort, delays and obstacles in that planet’s areas.' })
     score -= 2
   } else {
-    factors.push({ label: `${vaar.lordName} sama rashi`, effect: 'minus', detail: 'Vaar Pati in a neutral sign — limited support.' })
+    factors.push(hi
+      ? { label: fill(V.samaLabel, { lord: lordName }), effect: 'minus', detail: V.sama }
+      : { label: `${lordName} sama rashi`, effect: 'minus', detail: 'Vaar Pati in a neutral sign — limited support.' })
     score -= 1
   }
 
   if (input.vaarPatiNavamshaRashi && input.vaarPatiNavamshaRashi === rashiOf(g.lon)) {
-    factors.push({ label: 'Vargottama', effect: 'plus', detail: 'Same sign in D1 and D9 — Vaar Pati is steady and reliable.' })
+    factors.push(hi ? { ...V.vargottama, effect: 'plus' } : { label: 'Vargottama', effect: 'plus', detail: 'Same sign in D1 and D9 — Vaar Pati is steady and reliable.' })
     score += 2
   }
 
   if (input.lagnaRashi) {
     const h = houseFrom(input.lagnaRashi, rashiOf(g.lon))
     if ([1, 4, 7, 10, 5, 9].includes(h)) {
-      factors.push({ label: `House ${h}`, effect: 'plus', detail: 'Vaar Pati in a kendra or trikona.' })
+      factors.push({ label: hi ? fill(V.house, { h }) : `House ${h}`, effect: 'plus', detail: hi ? V.kendra : 'Vaar Pati in a kendra or trikona.' })
       score += 1
     } else if ([6, 8, 12].includes(h)) {
       const malefic = NATURAL_MALEFICS.includes(vaar.lord)
       if (malefic && status === 'debilitated') {
-        factors.push({ label: `House ${h} (viparita)`, effect: 'plus', detail: 'A debilitated malefic in a dusthana can turn its results around.' })
+        factors.push({ label: hi ? fill(V.houseViparita, { h }) : `House ${h} (viparita)`, effect: 'plus', detail: hi ? V.viparita : 'A debilitated malefic in a dusthana can turn its results around.' })
         score += 1
       } else {
-        factors.push({ label: `House ${h}`, effect: 'minus', detail: 'Vaar Pati in a dusthana (6/8/12).' })
+        factors.push({ label: hi ? fill(V.house, { h }) : `House ${h}`, effect: 'minus', detail: hi ? V.dusthana : 'Vaar Pati in a dusthana (6/8/12).' })
         score -= 1
       }
     }
     const karakas = YOGAKARAKA_BY_LAGNA[input.lagnaRashi] ?? []
     if (karakas.some((k) => k !== vaar.lord && input.grahas.some((x) => x.id === k && rashiOf(x.lon) === rashiOf(g.lon)))) {
-      factors.push({ label: 'With yogakaraka', effect: 'plus', detail: 'Vaar Pati sits with the lagna’s yogakaraka.' })
+      factors.push(hi ? { ...V.yogakaraka, effect: 'plus' } : { label: 'With yogakaraka', effect: 'plus', detail: 'Vaar Pati sits with the lagna’s yogakaraka.' })
       score += 1
     }
   }
 
   const nakNote = vaarPatiNakNote(input.varaNumber, nakOf(g.lon))
   if (nakNote) {
+    // Decide from the English note; show the note in `lang`.
     const plus = nakNote.includes('strength')
-    factors.push({ label: `${vaar.lordName} in ${NAKSHATRA_NAMES[nakOf(g.lon)]}`, effect: plus ? 'plus' : 'minus', detail: nakNote })
+    const shownNote = vaarPatiNakNote(input.varaNumber, nakOf(g.lon), lang) ?? nakNote
+    const label = hi
+      ? fill(V.nakLabel, { lord: lordName, nak: nakName(nakOf(g.lon), lang) })
+      : `${lordName} in ${NAKSHATRA_NAMES[nakOf(g.lon)]}`
+    factors.push({ label, effect: plus ? 'plus' : 'minus', detail: shownNote })
     score += plus ? 1 : -1
   }
 
   if ((input.supportiveYogas ?? []).some((y) => y.quality === 'auspicious' && /siddhi|pushkar/i.test(y.id))) {
-    factors.push({ label: 'Birth inside a siddhi yoga', effect: 'plus', detail: 'Sarvartha / Amrit siddhi or Pushkar yoga at birth makes the Vaar Pati shubh.' })
+    factors.push(hi ? { ...V.siddhi, effect: 'plus' } : { label: 'Birth inside a siddhi yoga', effect: 'plus', detail: 'Sarvartha / Amrit siddhi or Pushkar yoga at birth makes the Vaar Pati shubh.' })
     score += 1
   }
 
@@ -523,6 +601,8 @@ export interface PanchangVisheshInput {
   /** Birth (natal) or reading moment (daily) */
   at?:            Date | string | null
   vaarPatiNavamshaRashi?: Rashi | null
+  /** Output language for labels and details (ids stay English) */
+  lang?:          EngineLang
 }
 
 export interface PanchangVisheshResult {
@@ -552,94 +632,119 @@ export function analyzePanchangVishesh(input: PanchangVisheshInput): PanchangVis
   const nak = input.nakshatraIndex ?? nakOf(input.moonLon)
   const sunR = rashiOf(input.sunLon)
   const moonR = rashiOf(input.moonLon)
-  const tithiName = getTithiDayMeta(t).name
-  const varaName = getVaarMeta(vara).name
-  const nakName = NAKSHATRA_NAMES[nak]
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
+  const Y = YOGAS_HI
+  const tithiName = getTithiDayMeta(t, lang).name
+  const varaName = getVaarMeta(vara, lang).name
+  const nakLabel = nakName(nak, lang)
   const lunarMonth = getLunarMonth(input.sunLon, input.moonLon)
   const yogas: VisheshYoga[] = []
+  /** Push a yoga; in Hindi, label/detail come from YOGAS_HI[key] filled with `vals`. */
+  const add = (
+    base: Omit<VisheshYoga, 'label' | 'detail'>,
+    en: { label: string; detail: string },
+    hiKey: keyof typeof YOGAS_HI | null,
+    vals: Record<string, string | number> = {},
+  ) => {
+    const tpl = hiKey ? (YOGAS_HI[hiKey] as { label: string; detail: string }) : null
+    yogas.push({
+      ...base,
+      label: hi && tpl ? fill(tpl.label, vals) : en.label,
+      detail: hi && tpl ? fill(tpl.detail, vals) : en.detail,
+    })
+  }
+  const triple = { vara: varaName, tithi: tithiName, nak: nakLabel }
 
   // Dwipushkar / Tripushkar
   if (PUSHKAR_VARAS.has(vara) && PUSHKAR_TITHIS.has(lunarDay)) {
     if (DWIPUSHKAR_NAKS.has(nak)) {
-      yogas.push({ id: 'dwipushkar', label: 'Dwipushkar Yoga', quality: 'auspicious', category: 'tithi-vara',
-        detail: `${varaName} + ${tithiName} + ${nakName} — results double. A weak Moon or tithi gets extra strength.` })
+      add({ id: 'dwipushkar', quality: 'auspicious', category: 'tithi-vara' }, { label: 'Dwipushkar Yoga',
+        detail: `${varaName} + ${tithiName} + ${nakLabel} — results double. A weak Moon or tithi gets extra strength.` }, 'dwipushkar', triple)
     } else if (TRIPUSHKAR_NAKS.has(nak)) {
-      yogas.push({ id: 'tripushkar', label: 'Tripushkar Yoga', quality: 'auspicious', category: 'tithi-vara',
-        detail: `${varaName} + ${tithiName} + ${nakName} — results triple. Strongly lifts a weak tithi; avoid losses and debts begun now, as they repeat too.` })
+      add({ id: 'tripushkar', quality: 'auspicious', category: 'tithi-vara' }, { label: 'Tripushkar Yoga',
+        detail: `${varaName} + ${tithiName} + ${nakLabel} — results triple. Strongly lifts a weak tithi; avoid losses and debts begun now, as they repeat too.` }, 'tripushkar', triple)
     }
   }
 
   // Krakacha: tithi + vara (Sunday = 1) = 13
   if (lunarDay + (vara + 1) === 13) {
-    yogas.push({ id: 'krakacha', label: 'Krakacha Yoga', quality: 'inauspicious', category: 'tithi-vara',
-      detail: `${tithiName} on ${varaName} (tithi + vara = 13) — the "saw" yoga cuts into auspiciousness. Watched closely in mundane work (storms, heavy rain) and in personal health swings.` })
+    add({ id: 'krakacha', quality: 'inauspicious', category: 'tithi-vara' }, { label: 'Krakacha Yoga',
+      detail: `${tithiName} on ${varaName} (tithi + vara = 13) — the "saw" yoga cuts into auspiciousness. Watched closely in mundane work (storms, heavy rain) and in personal health swings.` }, 'krakacha', triple)
   }
 
   // Tithi–nakshatra dosha (Shukla 1–13 and Krishna 1–13 by lunar day)
   if (TITHI_NAK_DOSHA[lunarDay]?.includes(nak)) {
-    yogas.push({ id: 'tithi-nak-dosha', label: 'Tithi–Nakshatra dosha', quality: 'inauspicious', category: 'tithi-nakshatra',
-      detail: `${tithiName} with ${nakName} is a classically inauspicious pair. Even a strong lagna or lagnesh can give setbacks in its dasha / antardasha — check this when a "good" dasha underperforms.` })
+    add({ id: 'tithi-nak-dosha', quality: 'inauspicious', category: 'tithi-nakshatra' }, { label: 'Tithi–Nakshatra dosha',
+      detail: `${tithiName} with ${nakLabel} is a classically inauspicious pair. Even a strong lagna or lagnesh can give setbacks in its dasha / antardasha — check this when a "good" dasha underperforms.` }, 'tithiNak', triple)
   }
 
   // Yamaghanta (vara + nakshatra)
   if (YAMAGHANTA_NAK[vara] === nak) {
-    yogas.push({ id: 'yamaghanta', label: 'Yamaghanta Yoga', quality: 'inauspicious', category: 'vara-nakshatra',
-      detail: `${varaName} + ${nakName} — "death of a part of life": obstacles grow in frequency, or one area (health, emotions, material life) suffers suddenly in lagna / lagnesh periods.` })
+    add({ id: 'yamaghanta', quality: 'inauspicious', category: 'vara-nakshatra' }, { label: 'Yamaghanta Yoga',
+      detail: `${varaName} + ${nakLabel} — "death of a part of life": obstacles grow in frequency, or one area (health, emotions, material life) suffers suddenly in lagna / lagnesh periods.` }, 'yamaghanta', triple)
   }
   // Natal echo: each day-lord in its own Yamaghanta nakshatra
   for (const g of input.grahas ?? []) {
     const v = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'].indexOf(g.id)
     if (v < 0 || g.id === 'Mo') continue
     if (YAMAGHANTA_NAK[v] === nakOf(g.lon)) {
-      yogas.push({ id: `yamaghanta-${g.id}`, label: `${GRAHA_NAMES[g.id]} in Yamaghanta nakshatra`, quality: 'inauspicious', category: 'vara-nakshatra',
-        detail: `${GRAHA_NAMES[g.id]} in ${NAKSHATRA_NAMES[nakOf(g.lon)]} echoes the Yamaghanta pattern for that planet’s significations.` })
+      add({ id: `yamaghanta-${g.id}`, quality: 'inauspicious', category: 'vara-nakshatra' }, { label: `${GRAHA_NAMES[g.id]} in Yamaghanta nakshatra`,
+        detail: `${GRAHA_NAMES[g.id]} in ${NAKSHATRA_NAMES[nakOf(g.lon)]} echoes the Yamaghanta pattern for that planet’s significations.` },
+        'yamaghantaGraha', { graha: grahaName(g.id, lang), nak: nakName(nakOf(g.lon), lang) })
     }
   }
 
   // Surya-rashi dagdha tithi
   if (SURYA_DAGDHA[sunR].includes(lunarDay)) {
-    yogas.push({ id: 'surya-dagdha', label: 'Surya-rashi dagdha tithi', quality: 'inauspicious', category: 'masa-tithi',
-      detail: `${tithiName} with Sun in ${RASHI_NAMES[sunR]} weakens the tithi (either paksha). Its effects show in daily routines and specific events more than in the whole life.` })
+    add({ id: 'surya-dagdha', quality: 'inauspicious', category: 'masa-tithi' }, { label: 'Surya-rashi dagdha tithi',
+      detail: `${tithiName} with Sun in ${RASHI_NAMES[sunR]} weakens the tithi (either paksha). Its effects show in daily routines and specific events more than in the whole life.` },
+      'suryaDagdha', { tithi: tithiName, rashi: rashiName(sunR, lang) })
   }
 
   // Wildcard tithis
-  const wild = WILDCARD_TITHIS.find((r) => r.masa === lunarMonth.festivalMasa && r.paksha === paksha && r.lunarDay === lunarDay)
+  const wildIdx = WILDCARD_TITHIS.findIndex((r) => r.masa === lunarMonth.festivalMasa && r.paksha === paksha && r.lunarDay === lunarDay)
+  const wild = wildIdx >= 0 ? WILDCARD_TITHIS[wildIdx] : undefined
   if (wild) {
-    yogas.push({ id: 'yugadi-wildcard', label: 'Yugadi / Manvadi tithi', quality: 'auspicious', category: 'masa-tithi',
-      detail: `${wild.label} — a "wildcard" tithi on which a yuga or manvantara began. Weakness of Sun, Moon or tithi can be set aside.` })
+    add({ id: 'yugadi-wildcard', quality: 'auspicious', category: 'masa-tithi' }, { label: 'Yugadi / Manvadi tithi',
+      detail: `${wild.label} — a "wildcard" tithi on which a yuga or manvantara began. Weakness of Sun, Moon or tithi can be set aside.` },
+      'wildcard', { label: WILDCARD_LABELS_HI[wildIdx] ?? wild.label })
   }
 
   // Monthly parvas
-  if (t === 30) yogas.push({ id: 'parva-amavasya', label: 'Amavasya parva', quality: 'mixed', category: 'parva', detail: 'One of the five monthly parvas — strong for sadhana, pitru rites and inner work.' })
-  if (t === 15) yogas.push({ id: 'parva-purnima', label: 'Purnima parva', quality: 'auspicious', category: 'parva', detail: 'One of the five monthly parvas — Moon is full; Sri Vidya worship treats the full Moon itself as the Sri Yantra’s bindu.' })
-  if (lunarDay === 8) yogas.push({ id: `parva-ashtami-${paksha}`, label: `${paksha === 'shukla' ? 'Shukla' : 'Krishna'} Ashtami parva`, quality: 'mixed', category: 'parva', detail: 'One of the five monthly parvas — Amavasya, the two Ashtamis and Purnima fall about seven tithis apart and carry strong energy for sadhana.' })
+  if (t === 30) add({ id: 'parva-amavasya', quality: 'mixed', category: 'parva' }, { label: 'Amavasya parva', detail: 'One of the five monthly parvas — strong for sadhana, pitru rites and inner work.' }, 'amavasya')
+  if (t === 15) add({ id: 'parva-purnima', quality: 'auspicious', category: 'parva' }, { label: 'Purnima parva', detail: 'One of the five monthly parvas — Moon is full; Sri Vidya worship treats the full Moon itself as the Sri Yantra’s bindu.' }, 'purnima')
+  if (lunarDay === 8) add({ id: `parva-ashtami-${paksha}`, quality: 'mixed', category: 'parva' }, { label: `${paksha === 'shukla' ? 'Shukla' : 'Krishna'} Ashtami parva`, detail: 'One of the five monthly parvas — Amavasya, the two Ashtamis and Purnima fall about seven tithis apart and carry strong energy for sadhana.' }, 'ashtami', { paksha: PAKSHA_HI[paksha] })
   if (degInSign(input.sunLon) < 1 || degInSign(input.sunLon) > 29.5) {
-    yogas.push({ id: 'parva-sankranti', label: 'Sankranti parva', quality: 'mixed', category: 'parva', detail: `Sun is at the ${degInSign(input.sunLon) < 1 ? 'start' : 'end'} of ${RASHI_NAMES[sunR]} — the solar-ingress parva.` })
+    const atStart = degInSign(input.sunLon) < 1
+    add({ id: 'parva-sankranti', quality: 'mixed', category: 'parva' }, { label: 'Sankranti parva', detail: `Sun is at the ${atStart ? 'start' : 'end'} of ${RASHI_NAMES[sunR]} — the solar-ingress parva.` },
+      'sankranti', { rashi: rashiName(sunR, lang), edge: atStart ? Y.sankranti.start : Y.sankranti.end })
   }
 
   // Esoteric / special tithis
   const fm = lunarMonth.festivalMasa
   if (paksha === 'krishna' && lunarDay === 8) {
-    yogas.push({ id: 'kalashtami', label: 'Krishna Ashtami (Kalashtami / Bhoot Ashtami)', quality: 'mixed', category: 'parva', detail: 'Used by sadhakas for release from troubling energies; Kala Bhairava worship is prescribed.' })
+    add({ id: 'kalashtami', quality: 'mixed', category: 'parva' }, { label: 'Krishna Ashtami (Kalashtami / Bhoot Ashtami)', detail: 'Used by sadhakas for release from troubling energies; Kala Bhairava worship is prescribed.' }, 'kalashtami')
   }
   if (t === 30 && vara === 6) {
-    yogas.push({ id: 'shani-amavasya', label: 'Shani Amavasya', quality: 'mixed', category: 'parva', detail: 'Saturday Amavasya — Shani worship for court cases and Shani pida.' })
+    add({ id: 'shani-amavasya', quality: 'mixed', category: 'parva' }, { label: 'Shani Amavasya', detail: 'Saturday Amavasya — Shani worship for court cases and Shani pida.' }, 'shaniAmavasya')
   }
   if (paksha === 'krishna' && lunarDay === 14) {
     const maha = fm === 'Phalguna'
-    yogas.push({ id: maha ? 'mahashivratri' : 'masik-shivratri', label: maha ? 'Mahashivratri' : 'Masik Shivratri', quality: 'mixed', category: 'parva',
+    add({ id: maha ? 'mahashivratri' : 'masik-shivratri', quality: 'mixed', category: 'parva' }, {
+      label: maha ? 'Mahashivratri' : 'Masik Shivratri',
       detail: maha
         ? 'Phalguna Krishna Chaturdashi — Shiva tattva fully awake; worship runs through the four praharas of the night, not just the morning abhishek.'
-        : 'Krishna Chaturdashi — the Moon is drained before Amavasya; Shiva, who wears the Moon, is worshipped.' })
+        : 'Krishna Chaturdashi — the Moon is drained before Amavasya; Shiva, who wears the Moon, is worshipped.' }, maha ? 'mahashivratri' : 'masikShivratri')
   }
   if (fm === 'Ashvina' && t === 15) {
-    yogas.push({ id: 'sharad-purnima', label: 'Ashvina (Sharad) Purnima', quality: 'auspicious', category: 'parva', detail: 'Night japa for Lakshmi / Sri-kula mantras gives quick results for money that is stuck.' })
+    add({ id: 'sharad-purnima', quality: 'auspicious', category: 'parva' }, { label: 'Ashvina (Sharad) Purnima', detail: 'Night japa for Lakshmi / Sri-kula mantras gives quick results for money that is stuck.' }, 'sharadPurnima')
   }
   if (fm === 'Ashvina' && paksha === 'shukla' && lunarDay === 8) {
-    yogas.push({ id: 'mahashtami', label: 'Mahashtami', quality: 'auspicious', category: 'parva', detail: 'Householders may worship the Mother in any heartfelt way — japa, dhyana or simple conversation.' })
+    add({ id: 'mahashtami', quality: 'auspicious', category: 'parva' }, { label: 'Mahashtami', detail: 'Householders may worship the Mother in any heartfelt way — japa, dhyana or simple conversation.' }, 'mahashtami')
   }
   if ((fm === 'Ashadha' || fm === 'Magha') && paksha === 'shukla' && lunarDay <= 9) {
-    yogas.push({ id: 'gupt-navratri', label: 'Gupt Navratri', quality: 'mixed', category: 'parva', detail: `${fm} Gupt Navratri — Dasha Mahavidya sadhana for sadhakas, not prescribed for householders.` })
+    add({ id: 'gupt-navratri', quality: 'mixed', category: 'parva' }, { label: 'Gupt Navratri', detail: `${fm} Gupt Navratri — Dasha Mahavidya sadhana for sadhakas, not prescribed for householders.` }, 'guptNavratri', { masa: MASA_LABEL_HI[fm] ?? fm })
   }
 
   // Tithi–graha yutis (transit or natal)
@@ -663,11 +768,11 @@ export function analyzePanchangVishesh(input: PanchangVisheshInput): PanchangVis
     return (a === 'Ma' ? marsSees(ab) : satSees(ab)) || (b === 'Ma' ? marsSees(ba) : satSees(ba))
   }
   if (grahas.length) {
-    if (lunarDay === 1 && conj('Mo', 'Me')) yogas.push({ id: 'pratipada-mo-me', label: 'Pratipada + Moon–Mercury', quality: 'auspicious', category: 'tithi-graha', detail: 'Sharp, precocious intelligence — learning comes early and fast.' })
-    if (lunarDay === 2 && conj('Ve', 'Mo')) yogas.push({ id: 'dwitiya-ve-mo', label: 'Dwitiya + Venus–Moon', quality: 'auspicious', category: 'tithi-graha', detail: 'Refinement, comfort and emotional grace.' })
-    if (lunarDay === 3 && conj('Ve', 'Ju')) yogas.push({ id: 'tritiya-ve-ju', label: 'Tritiya + Venus–Jupiter', quality: 'auspicious', category: 'tithi-graha', detail: 'Supports mantra siddhi along with enjoyment — "bhoga to moksha".' })
-    if (lunarDay === 4 && conj('Ma', 'Ke')) yogas.push({ id: 'chaturthi-ma-ke', label: 'Chaturthi + Mars–Ketu', quality: 'auspicious', category: 'tithi-graha', detail: 'Rin-mochan window: starting Mars’ Rin Mochan stotra by vidhi on this transit helps clear debts.' })
-    if (lunarDay === 9 && (conj('Ma', 'Sa') || mutualAspect('Ma', 'Sa'))) yogas.push({ id: 'navami-ma-sa', label: 'Navami + Mars–Saturn', quality: 'mixed', category: 'tithi-graha', detail: 'Fighting yoga — suited to filing cases, taking hearing dates or debates where you need the upper hand. The other side gets it too; the stronger chart wins.' })
+    if (lunarDay === 1 && conj('Mo', 'Me')) add({ id: 'pratipada-mo-me', quality: 'auspicious', category: 'tithi-graha' }, { label: 'Pratipada + Moon–Mercury', detail: 'Sharp, precocious intelligence — learning comes early and fast.' }, 'pratipadaMoMe')
+    if (lunarDay === 2 && conj('Ve', 'Mo')) add({ id: 'dwitiya-ve-mo', quality: 'auspicious', category: 'tithi-graha' }, { label: 'Dwitiya + Venus–Moon', detail: 'Refinement, comfort and emotional grace.' }, 'dwitiyaVeMo')
+    if (lunarDay === 3 && conj('Ve', 'Ju')) add({ id: 'tritiya-ve-ju', quality: 'auspicious', category: 'tithi-graha' }, { label: 'Tritiya + Venus–Jupiter', detail: 'Supports mantra siddhi along with enjoyment — "bhoga to moksha".' }, 'tritiyaVeJu')
+    if (lunarDay === 4 && conj('Ma', 'Ke')) add({ id: 'chaturthi-ma-ke', quality: 'auspicious', category: 'tithi-graha' }, { label: 'Chaturthi + Mars–Ketu', detail: 'Rin-mochan window: starting Mars’ Rin Mochan stotra by vidhi on this transit helps clear debts.' }, 'chaturthiMaKe')
+    if (lunarDay === 9 && (conj('Ma', 'Sa') || mutualAspect('Ma', 'Sa'))) add({ id: 'navami-ma-sa', quality: 'mixed', category: 'tithi-graha' }, { label: 'Navami + Mars–Saturn', detail: 'Fighting yoga — suited to filing cases, taking hearing dates or debates where you need the upper hand. The other side gets it too; the stronger chart wins.' }, 'navamiMaSa')
   }
 
   // Eclipse-season tithis
@@ -679,20 +784,32 @@ export function analyzePanchangVishesh(input: PanchangVisheshInput): PanchangVis
     const limit = t === 15 ? 12 : 18
     if (dNode <= limit) {
       const isLunar = t === 15
-      let detail = isLunar
-        ? `Purnima with the Moon ${dNode.toFixed(1)}° from a node — lunar-eclipse season. Japa in grahan kala is multiplied many times; Tripura Bhairavi, Kali and Bagalamukhi are worshipped.`
-        : `Amavasya with the Sun ${dNode.toFixed(1)}° from a node — solar-eclipse season. Chhinnamasta, Dhumavati and Tara are worshipped; the Mahabharata war began on a solar eclipse.`
-      if (isLunar && conj('Ju', 'Ke') && signOf('Ju') === 4) detail += ' Rare Guru–Ketu yuti in Karka — classically able to bestow siddhis.'
-      if (isLunar && moonR === 8) detail += ' In Vrishchika — very strong for inner transformation.'
-      yogas.push({ id: isLunar ? 'chandra-grahan-season' : 'surya-grahan-season', label: isLunar ? 'Chandra grahan tithi' : 'Surya grahan tithi', quality: 'mixed', category: 'eclipse', detail })
+      const tpl = isLunar ? Y.chandraGrahan : Y.suryaGrahan
+      let detail = hi
+        ? fill(tpl.detail, { deg: dNode.toFixed(1) })
+        : isLunar
+          ? `Purnima with the Moon ${dNode.toFixed(1)}° from a node — lunar-eclipse season. Japa in grahan kala is multiplied many times; Tripura Bhairavi, Kali and Bagalamukhi are worshipped.`
+          : `Amavasya with the Sun ${dNode.toFixed(1)}° from a node — solar-eclipse season. Chhinnamasta, Dhumavati and Tara are worshipped; the Mahabharata war began on a solar eclipse.`
+      if (isLunar && conj('Ju', 'Ke') && signOf('Ju') === 4) detail += hi ? Y.guruKetu : ' Rare Guru–Ketu yuti in Karka — classically able to bestow siddhis.'
+      if (isLunar && moonR === 8) detail += hi ? Y.vrishchika : ' In Vrishchika — very strong for inner transformation.'
+      yogas.push({
+        id: isLunar ? 'chandra-grahan-season' : 'surya-grahan-season',
+        label: hi ? tpl.label : isLunar ? 'Chandra grahan tithi' : 'Surya grahan tithi',
+        quality: 'mixed',
+        category: 'eclipse',
+        detail,
+      })
     }
   }
 
   const sensitiveBirth: string[] = []
-  if (t === 30) sensitiveBirth.push('Amavasya birth — Parashara notes a phase of financial strain for the parents at some point; the chart shows where (upbringing, food, education or values).')
-  if (t === 29) sensitiveBirth.push('Krishna Chaturdashi birth — Moon is very weak; check paksha bala and the Moon’s degree before judging the chart.')
+  if (t === 30 && hi) sensitiveBirth.push(SENSITIVE_HI.amavasya)
+  else if (t === 30) sensitiveBirth.push('Amavasya birth — Parashara notes a phase of financial strain for the parents at some point; the chart shows where (upbringing, food, education or values).')
+  if (t === 29 && hi) sensitiveBirth.push(SENSITIVE_HI.krishna14)
+  else if (t === 29) sensitiveBirth.push('Krishna Chaturdashi birth — Moon is very weak; check paksha bala and the Moon’s degree before judging the chart.')
   const isVishti = isVishtiAt(input.sunLon, input.moonLon)
-  if (isVishti && bhadraLoka(moonR) === 'Bhuloka') sensitiveBirth.push('Vishti (Bhadra) with the Moon in Karka / Simha / Kumbha / Mina — Bhadra resides on earth, the sensitive form.')
+  if (isVishti && bhadraLoka(moonR) === 'Bhuloka' && hi) sensitiveBirth.push(SENSITIVE_HI.bhadra)
+  else if (isVishti && bhadraLoka(moonR) === 'Bhuloka') sensitiveBirth.push('Vishti (Bhadra) with the Moon in Karka / Simha / Kumbha / Mina — Bhadra resides on earth, the sensitive form.')
 
   const tithiStrength = getTithiStrength({
     sunLon: input.sunLon,
@@ -700,22 +817,23 @@ export function analyzePanchangVishesh(input: PanchangVisheshInput): PanchangVis
     grahas,
     lagnaRashi: input.lagnaRashi,
     supportiveYogas: yogas,
+    lang,
   })
   const vaarPatiStrength = grahas.length
-    ? getVaarPatiStrength({ varaNumber: vara, grahas, lagnaRashi: input.lagnaRashi, vaarPatiNavamshaRashi: input.vaarPatiNavamshaRashi, supportiveYogas: yogas })
+    ? getVaarPatiStrength({ varaNumber: vara, grahas, lagnaRashi: input.lagnaRashi, vaarPatiNavamshaRashi: input.vaarPatiNavamshaRashi, supportiveYogas: yogas, lang })
     : null
 
   const sunrise = input.sunrise ? new Date(input.sunrise) : null
   const at = input.at ? new Date(input.at) : null
-  const vaarGuna = sunrise && at ? getVaarGuna(vara, sunrise, at) : null
+  const vaarGuna = sunrise && at ? getVaarGuna(vara, sunrise, at, lang) : null
 
   return {
     lunarMonth,
-    tithyamsha: getTithyamsha(input.sunLon, input.moonLon),
+    tithyamsha: getTithyamsha(input.sunLon, input.moonLon, lang),
     vaarGuna,
     tithiStrength,
     vaarPatiStrength,
-    anandadi: getAnandadiYoga(vara, input.moonLon),
+    anandadi: getAnandadiYoga(vara, input.moonLon, lang),
     yogas,
     sensitiveBirth,
   }
@@ -790,13 +908,24 @@ export interface AnandadiYoga extends AnandadiMeta {
 
 const NAK28_NAMES = [...NAKSHATRA_NAMES.slice(0, 21), 'Abhijit', ...NAKSHATRA_NAMES.slice(21)]
 
-export function getAnandadiYoga(varaNumber: number, moonLon: number): AnandadiYoga {
+const NAK28_NAMES_HI = [...NAKSHATRA_HI.slice(0, 21), 'अभिजित', ...NAKSHATRA_HI.slice(21)]
+
+function localAnandadi(meta: AnandadiMeta, lang: EngineLang): AnandadiMeta {
+  if (lang !== 'hi') return meta
+  const hi = ANANDADI_HI[meta.number - 1]
+  return hi ? { ...meta, ...hi } : meta
+}
+
+export function getAnandadiYoga(varaNumber: number, moonLon: number, lang: EngineLang = 'en'): AnandadiYoga {
   const vara = ((Math.floor(varaNumber) % 7) + 7) % 7
   const n28 = nak28Of(moonLon)
   const idx = (n28 - ANANDADI_START_28[vara] + 28) % 28
-  return { ...ANANDADI[idx], nakshatraUsed: NAK28_NAMES[n28] }
+  return {
+    ...localAnandadi(ANANDADI[idx], lang),
+    nakshatraUsed: lang === 'hi' ? NAK28_NAMES_HI[n28] : NAK28_NAMES[n28],
+  }
 }
 
-export function listAnandadiYogas(): AnandadiMeta[] {
-  return [...ANANDADI]
+export function listAnandadiYogas(lang: EngineLang = 'en'): AnandadiMeta[] {
+  return ANANDADI.map((a) => localAnandadi(a, lang))
 }

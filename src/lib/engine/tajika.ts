@@ -1,5 +1,8 @@
 
 import { type GrahaData, type Rashi, type GrahaId } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { TAJIKA_TEXT_HI, TAJIKA_TYPE_HI, TAJIKA_YOGA_NAME_HI } from '@/lib/engine/locale/tajika.hi'
+import { GRAHA_HI } from '@/i18n/jyotish'
 
 export interface TajikaYoga {
   name: string
@@ -107,4 +110,31 @@ export function getTajikaYogas(grahas: GrahaData[]): TajikaYoga[] {
   }
   
   return yogas
+}
+
+/**
+ * Display text for a Tajika yoga in `lang`. English returns the stored
+ * fields unchanged; Hindi rebuilds them from the graha ids and type.
+ */
+export function tajikaYogaText(
+  yoga: TajikaYoga,
+  lang: EngineLang = 'en',
+): { name: string; typeLabel: string; aspecting: string; description: string } {
+  if (lang !== 'hi') {
+    return {
+      name: yoga.name,
+      typeLabel: yoga.type.toUpperCase(),
+      aspecting: `${yoga.graha1} aspecting ${yoga.graha2}.`,
+      description: yoga.description,
+    }
+  }
+  const g = (id: GrahaId) => GRAHA_HI[id] ?? id
+  return {
+    name: TAJIKA_YOGA_NAME_HI[yoga.name] ?? yoga.name,
+    typeLabel: TAJIKA_TYPE_HI[yoga.type] ?? yoga.type,
+    aspecting: fill(TAJIKA_TEXT_HI.aspecting, { a: g(yoga.graha1), b: g(yoga.graha2) }),
+    description: yoga.name === 'Ithasala'
+      ? fill(TAJIKA_TEXT_HI.ithasala, { fast: g(yoga.graha1), slow: g(yoga.graha2) })
+      : yoga.description,
+  }
 }

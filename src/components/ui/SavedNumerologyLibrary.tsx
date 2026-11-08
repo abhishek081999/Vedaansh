@@ -4,9 +4,8 @@
 //  Numerology section of My Charts
 // ─────────────────────────────────────────────────────────────
 
+import { Link, useRouter } from '@/i18n/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 interface ReadingCardData {
   _id: string

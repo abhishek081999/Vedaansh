@@ -1,9 +1,9 @@
 'use client'
 
+import { Link, useRouter } from '@/i18n/navigation'
 import React, { useState } from 'react'
 import { signIn, getSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { Alert, Button, Card, Field } from '@/components/ui/primitives'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'

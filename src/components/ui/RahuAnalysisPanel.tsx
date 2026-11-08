@@ -5,8 +5,8 @@
 //  Free overview · Gold+ full sections
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   BookOpen,
   Eclipse,
@@ -23,6 +23,9 @@ import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { GrahaProfileHeader } from '@/components/ui/GrahaProfileHeader'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 
 type SubTab = 'overview' | 'foundations' | 'classical' | 'houses' | 'yogas' | 'lore'
 type ClassicalView = 'mixed' | 'natal' | 'houses' | 'signs'
@@ -42,10 +45,13 @@ interface RahuAnalysisPanelProps {
 }
 
 export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPanelProps) {
+  const tp = useTranslations('planetsB.rahu')
+  const tc = useTranslations('planetsB.common')
+  const { lang, hi } = useLang()
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const [classicalView, setClassicalView] = useState<ClassicalView>('mixed')
-  const data = useMemo(() => analyzeRahu(chart), [chart])
+  const data = useMemo(() => analyzeRahu(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -57,7 +63,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Rahu data unavailable for this chart.
+        {tp('unavailable')}
       </div>
     )
   }
@@ -87,26 +93,25 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: natal Rahu house, upachaya / Shatru Hantā flags, and active yogas.
-            Gold unlocks karakatva, catalogues, Ashta Lakshmi detail, mythology, and dictums.
+            {tp('freePreview')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{tc('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{r.rashiName} · H{r.house}</Pill>
-        <Pill>{r.nakshatraName} P{r.pada}</Pill>
-        <Pill>{r.dignity.replace('_', ' ')}</Pill>
-        {data.upachaya.inUpachaya && <Pill gold>Upachaya</Pill>}
-        {data.shatruHantaFlag.active && <Pill gold>Shatru Hantā</Pill>}
-        {r.inRahuNakshatra && <Pill gold>Rahu nakshatra</Pill>}
-        {(r.nearSunEclipse || r.nearMoonEclipse) && <Pill warn>Eclipse absorb</Pill>}
-        {activeYogas.length > 0 && <Pill>Yogas · {activeYogas.length}</Pill>}
+        <Pill gold>{r.rashiName} · {tc('houseShort', { n: r.house })}</Pill>
+        <Pill>{r.nakshatraName} {tc('padaShort', { n: r.pada })}</Pill>
+        <Pill>{hi ? dignityHi(r.dignity) : r.dignity.replace('_', ' ')}</Pill>
+        {data.upachaya.inUpachaya && <Pill gold>{tp('upachaya')}</Pill>}
+        {data.shatruHantaFlag.active && <Pill gold>{tp('shatru')}</Pill>}
+        {r.inRahuNakshatra && <Pill gold>{tp('ownNakshatra')}</Pill>}
+        {(r.nearSunEclipse || r.nearMoonEclipse) && <Pill warn>{tp('eclipse')}</Pill>}
+        {activeYogas.length > 0 && <Pill>{tc('yogasCount', { count: activeYogas.length })}</Pill>}
         {data.companions.length > 0 && (
-          <Pill>Yuti · {data.companions.map(c => c.name).join(', ')}</Pill>
+          <Pill>{tc('yutiList', { names: data.companions.map(c => c.name).join(', ') })}</Pill>
         )}
       </div>
 
@@ -123,7 +128,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Rahu analysis sections"
+        aria-label={tp('sectionsAria')}
       >
         {SUB_TABS.map(t => {
           const locked = !showFull && !t.free
@@ -155,7 +160,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
               }}
             >
               <t.Icon size={13} aria-hidden />
-              {t.label}
+              {tp(`tabs.${t.id}`)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -165,7 +170,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Natal Rahu · H{data.houseFocus.house}</Label>
+            <Label>{tp('natalHouse', { n: data.houseFocus.house })}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
@@ -184,7 +189,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
                   || data.houseFocus.tone === 'watched'
                 }
               >
-                {data.houseFocus.tone.replace('_', ' ')}
+                {tp(`tone.${data.houseFocus.tone}`)}
               </Pill>
             </div>
             <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -193,14 +198,14 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
           </Card>
 
           <Card>
-            <Label>One-line teaching</Label>
+            <Label>{tc('oneLine')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
               {data.oneLiner}
             </p>
           </Card>
 
           <Card>
-            <Label>Key flags</Label>
+            <Label>{tp('lbl.key_flags')}</Label>
             <FlagRow flag={data.upachayaFlag} />
             <FlagRow flag={data.shatruHantaFlag} />
             <FlagRow flag={data.king10thFlag} />
@@ -213,7 +218,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
 
           {activeYogas.length > 0 && (
             <Card>
-              <Label>Active yogas</Label>
+              <Label>{tp('lbl.active_yogas')}</Label>
               {activeYogas.map(y => (
                 <div key={y.id} style={{ marginBottom: '0.55rem' }}>
                   <div style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--text-gold)' }}>{y.name}</div>
@@ -226,14 +231,14 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
           )}
 
           <Card>
-            <Label>Companions</Label>
+            <Label>{tc('companions')}</Label>
             <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.companionNote}
             </p>
           </Card>
 
           <Card>
-            <Label>Summary</Label>
+            <Label>{tp('lbl.summary')}</Label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
               {data.summaryAttrs.map(a => (
                 <div key={a.label}>
@@ -251,13 +256,13 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
       {showFull && sub === 'foundations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Nature</Label>
+            <Label>{tc('nature')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.nature.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Philosophy</Label>
+            <Label>{tp('lbl.philosophy')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.philosophy.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -279,7 +284,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
             </Card>
           ))}
           <Card>
-            <Label>Zodiacal quick ref</Label>
+            <Label>{tp('lbl.zodiacal_quick_ref')}</Label>
             {data.zodiacal.map(z => (
               <div key={z.label} style={{ display: 'flex', gap: 8, fontSize: '0.72rem', marginBottom: 4 }}>
                 <span style={{ color: 'var(--text-muted)', minWidth: 110 }}>{z.label}</span>
@@ -288,7 +293,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
             ))}
           </Card>
           <Card>
-            <Label>Rahu nakshatras</Label>
+            <Label>{tp('lbl.rahu_nakshatras')}</Label>
             {data.nakshatraTeachings.map(n => (
               <div key={n.index} style={{ marginBottom: '0.55rem', opacity: n.isNatal ? 1 : 0.75 }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
@@ -297,7 +302,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
                   </strong>
                   <Pill>{n.rashiName}</Pill>
                   <Pill>{n.deity}</Pill>
-                  {n.isNatal && <Pill gold>Natal</Pill>}
+                  {n.isNatal && <Pill gold>{tc('natalPill')}</Pill>}
                 </div>
                 <ul style={{ margin: '0.3rem 0 0', paddingLeft: '1.1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                   {n.traits.map(t => <li key={t}>{t}</li>)}
@@ -306,13 +311,13 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
             ))}
           </Card>
           <Card>
-            <Label>Sleep (nidrā)</Label>
+            <Label>{tp('lbl.sleep_nidr')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.sleepTeaching.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Maturity & dasha</Label>
+            <Label>{tp('lbl.maturity_dasha')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.naturalAgeNote}
             </p>
@@ -343,23 +348,24 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
                   textTransform: 'capitalize',
                 }}
               >
-                {v}
+                {tc(`cv.${v}`)}
               </button>
             ))}
           </div>
 
           {classicalView === 'mixed' && data.classical.natalMixed && (
             <Card>
-              <Label>Mixed natal layers</Label>
+              <Label>{tp('lbl.mixed_natal_layers')}</Label>
               <LayerStack layers={data.classical.natalMixed.layers} />
             </Card>
           )}
 
           {classicalView === 'natal' && (
             <>
+              {hi && <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{tc('classicalNoteHi')}</p>}
               <Card>
-                <Label>Natal house classical</Label>
-                <ClassicalNotesList notes={data.classical.natalHouseClassical} />
+                <Label>{tp('lbl.natal_house_classical')}</Label>
+                <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={data.classical.natalHouseClassical} />
                 {data.classical.platformNatalHouseFull && (
                   <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {data.classical.platformNatalHouseFull}
@@ -367,8 +373,8 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
                 )}
               </Card>
               <Card>
-                <Label>Natal sign classical</Label>
-                <ClassicalNotesList notes={data.classical.natalSignClassical} />
+                <Label>{tp('lbl.natal_sign_classical')}</Label>
+                <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={data.classical.natalSignClassical} />
                 {data.classical.platformNatalSignFull && (
                   <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {data.classical.platformNatalSignFull}
@@ -376,8 +382,8 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
                 )}
               </Card>
               <Card>
-                <Label>Vakri (always for Rahu)</Label>
-                <ClassicalNotesList notes={data.classical.vakriAst} />
+                <Label>{tp('lbl.vakri_always_for_rahu')}</Label>
+                <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={data.classical.vakriAst} />
               </Card>
             </>
           )}
@@ -385,9 +391,9 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
           {classicalView === 'houses' && data.classical.allHouses.map(h => (
             <Card key={h.house}>
               <Label>
-                House {h.house}{h.isNatal ? ' · Natal' : ''}
+                {tc('house', { n: h.house })}{h.isNatal ? ` · ${tc('natalPill')}` : ''}
               </Label>
-              <ClassicalNotesList notes={h.classical} />
+              <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={h.classical} />
               {h.isNatal && <LayerStack layers={h.mixedLayers} compact />}
             </Card>
           ))}
@@ -395,9 +401,9 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
           {classicalView === 'signs' && data.classical.allSigns.map(s => (
             <Card key={s.rashi}>
               <Label>
-                {s.rashiName}{s.isNatal ? ' · Natal' : ''}
+                {s.rashiName}{s.isNatal ? ` · ${tc('natalPill')}` : ''}
               </Label>
-              <ClassicalNotesList notes={s.classical} />
+              <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={s.classical} />
               {s.isNatal && <LayerStack layers={s.mixedLayers} compact />}
             </Card>
           ))}
@@ -407,7 +413,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
       {showFull && sub === 'houses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Upachaya</Label>
+            <Label>{tp('lbl.upachaya')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.upachaya.detail}
             </p>
@@ -421,12 +427,12 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
                 }}>
                   {h.title}
                 </strong>
-                {h.house === data.houseFocus.house && <Pill gold>Natal</Pill>}
+                {h.house === data.houseFocus.house && <Pill gold>{tc('natalPill')}</Pill>}
                 <Pill
                   gold={h.tone === 'upachaya' || h.tone === 'shatru_hanta' || h.tone === 'rajya'}
                   warn={h.tone === 'dusthana' || h.tone === 'watched'}
                 >
-                  {h.tone.replace('_', ' ')}
+                  {tp(`tone.${h.tone}`)}
                 </Pill>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
@@ -443,22 +449,22 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
       {showFull && sub === 'yogas' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Ashta Lakshmi Yoga</Label>
+            <Label>{tp('lbl.ashta_lakshmi_yoga')}</Label>
             <FlagRow flag={data.ashtaLakshmiYoga} />
             <p style={{ margin: '0.4rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-              Pair combinations below refine which of the eight Lakshmis are emphasized (conjunction stronger than aspect).
+              {tp('lakshmiIntro')}
             </p>
           </Card>
 
           <Card>
-            <Label>Eight Lakshmis (pair hits)</Label>
+            <Label>{tp('lbl.eight_lakshmis_pair_hits')}</Label>
             {data.ashtaLakshmiHits.map(hit => (
               <div key={hit.lakshmi.id} style={{ marginBottom: '0.55rem', opacity: hit.active ? 1 : 0.65 }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
                   <strong style={{ fontSize: '0.78rem', color: hit.active ? 'var(--text-gold)' : 'var(--text-primary)' }}>
                     {hit.lakshmi.name}
                   </strong>
-                  {hit.active ? <Pill gold>Active</Pill> : <Pill>Clear</Pill>}
+                  {hit.active ? <Pill gold>{tc('active')}</Pill> : <Pill>{tc('clear')}</Pill>}
                   {hit.sepDeg != null && <Pill>{hit.sepDeg.toFixed(1)}°</Pill>}
                 </div>
                 <p style={{ margin: '0.2rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -471,7 +477,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
             ))}
             {activeLakshmis.length === 0 && (
               <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                No Lakshmi pair conjunctions flagged under this orb.
+                {tp('lakshmiNone')}
               </p>
             )}
           </Card>
@@ -488,7 +494,7 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
                   textTransform: 'uppercase',
                   color: y.active ? 'var(--rose)' : 'var(--text-muted)',
                 }}>
-                  {y.active ? 'Active' : 'Clear'}
+                  {y.active ? tc('active') : tc('clear')}
                 </span>
               </div>
               <p style={{ margin: '0.35rem 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -496,11 +502,11 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
               </p>
               {y.active && (
                 <>
-                  <Label>Effects</Label>
+                  <Label>{tp('lbl.effects')}</Label>
                   <ul style={{ margin: '0 0 0.45rem', paddingLeft: '1.1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {y.effects.map(e => <li key={e}>{e}</li>)}
                   </ul>
-                  <Label>Positives</Label>
+                  <Label>{tp('lbl.positives')}</Label>
                   <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {y.positives.map(e => <li key={e}>{e}</li>)}
                   </ul>
@@ -514,61 +520,61 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
       {showFull && sub === 'lore' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Golden rules</Label>
+            <Label>{tc('goldenRules')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.goldenRules.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Critical dictums</Label>
+            <Label>{tp('lbl.critical_dictums')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.dictums.map(d => <li key={d}>{d}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Dasha vs transit</Label>
+            <Label>{tp('lbl.dasha_vs_transit')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.dashaVsTransit.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Kāl Sarp clarification</Label>
+            <Label>{tp('lbl.k_l_sarp_clarification')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.kaalSarpNote.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Mythology — Samudra Manthan</Label>
+            <Label>{tp('lbl.mythology_samudra_manthan')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.mythology.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Principles from the myth</Label>
+            <Label>{tp('lbl.principles_from_the_myth')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.mythPrinciples.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Remedies & conduct</Label>
+            <Label>{tp('lbl.remedies_conduct')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.remedies.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Caveats</Label>
+            <Label>{tc('caveats')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.caveats.map(c => <li key={c}>{c}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Methodology</Label>
+            <Label>{tc('methodology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.methodology.map(mth => <li key={mth}>{mth}</li>)}
             </ul>
             <div style={{ marginTop: '0.55rem', fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
               <BookOpen size={12} aria-hidden />
-              Class teaching — Rahu karakatva, upachaya, Ashta Lakshmi, yuti yogas, Kāl Sarp clarification
+              {tp('footer')}
             </div>
           </Card>
         </div>
@@ -578,6 +584,8 @@ export function RahuAnalysisPanel({ chart, userPlan = 'free' }: RahuAnalysisPane
 }
 
 function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: boolean }) {
+  const tc = useTranslations('planetsB.common')
+  const { hi } = useLang()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.45rem' : '0.65rem' }}>
       {layers.map(layer => (
@@ -616,7 +624,8 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
           {layer.classicalNotes && layer.classicalNotes.length > 0 && (
             <div style={{ marginTop: 6 }}>
               <ClassicalNotesList
-                title="Sources"
+                quiet={hi}
+                title={tc('sources')}
                 notes={compact ? layer.classicalNotes.slice(0, 2) : layer.classicalNotes}
               />
             </div>
@@ -628,6 +637,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
 }
 
 function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const tc = useTranslations('planetsB.common')
   return (
     <div style={{ marginBottom: '0.45rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -638,7 +648,7 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
           textTransform: 'uppercase',
           color: flag.active ? 'var(--rose)' : 'var(--text-muted)',
         }}>
-          {flag.active ? 'Active' : 'Clear'}
+          {flag.active ? tc('active') : tc('clear')}
         </span>
       </div>
       <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>

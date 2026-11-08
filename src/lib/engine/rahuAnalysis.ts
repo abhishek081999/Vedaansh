@@ -22,6 +22,22 @@ import {
   type InterpLayer,
   type MixedPlanetPlacement,
 } from '@/lib/engine/planetInterpretationMix'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { mergeHi, ordObl } from '@/lib/engine/locale/planetsA.util'
+import { classicalBundleHi } from '@/lib/engine/planetsBClassicalHi'
+import {
+  ASHTA_LAKSHMI_HI,
+  RAHU_FLAGS_HI as FH,
+  RAHU_HOUSE_FOCUS_HI,
+  RAHU_KARAKATVA_HI,
+  RAHU_LAKSHMI_DETAIL_HI as LH,
+  RAHU_MEDICAL_HI,
+  RAHU_NAKSHATRAS_HI,
+  RAHU_REMEDIES_HI,
+  RAHU_STATIC_HI as SH,
+  RAHU_YOGAS_HI as YH,
+} from '@/lib/engine/locale/rahuAnalysis.hi'
 
 export interface RahuSignificationGroup {
   category: string
@@ -521,7 +537,136 @@ function nakshatraTraits(index: number): string[] {
 /**
  * Natal Rahu analysis from class teaching notes.
  */
-export function analyzeRahu(chart: ChartOutput): RahuAnalysisResult | null {
+export function analyzeRahu(chart: ChartOutput, lang: EngineLang = 'en'): RahuAnalysisResult | null {
+  const r = analyzeRahuEn(chart)
+  return r && lang === 'hi' ? localizeRahuHi(r, chart) : r
+}
+
+function rahuHouseFocusHi(hf: RahuHouseFocus): RahuHouseFocus {
+  const hi = RAHU_HOUSE_FOCUS_HI[hf.house]
+  if (hi) return { ...hf, title: hi.title, themes: [...hi.themes], notes: [...hi.notes] }
+  return { ...hf, title: fill(FH.fallbackTitle, { nth: ordObl(hf.house) }), notes: [FH.fallbackNote] }
+}
+
+/** Hindi display copy of an English Rahu result (ids, flags and numbers unchanged). */
+function localizeRahuHi(r: RahuAnalysisResult, chart: ChartOutput): RahuAnalysisResult {
+  const ra = r.rahu
+  const nth = ordObl(ra.house)
+  const rashi = RASHI_HI[ra.rashi]
+  const asc = chart.lagnas.ascRashi as Rashi
+  const jupiter = chart.grahas.find(g => g.id === 'Ju')
+  const juHouse = jupiter ? wholeSignHouse(jupiter.rashi, asc) : null
+  const on = (id: RahuYogaResult['id']) => r.yogas.find(y => y.id === id)?.active === true
+  const yogas = r.yogas.map((y): RahuYogaResult => {
+    const t = YH[y.id]
+    let detail: string
+    if (y.id === 'ashta_lakshmi') detail = y.active ? fill(YH.ashta_lakshmi.on, { nth: ordObl(juHouse ?? 1) }) : ra.house === 6 ? YH.ashta_lakshmi.six : YH.ashta_lakshmi.off
+    else if (y.id === 'king_10th') detail = y.active ? YH.king_10th.on : ra.house === 10 ? YH.king_10th.tenth : YH.king_10th.off
+    else if (!y.active) detail = t.off
+    else if (y.id === 'ra_su') detail = fill(YH.ra_su.on, { nth, tight: ra.nearSunEclipse && ra.sepFromSunDeg != null ? fill(YH.ra_su.tight, { sep: ra.sepFromSunDeg.toFixed(2) }) : '' })
+    else detail = fill(t.on, { nth, rashi })
+    return { ...y, name: t.name, detail, effects: [...t.effects], positives: [...t.positives] }
+  })
+  const ashtaLakshmiHits = r.ashtaLakshmiHits.map(h => {
+    const l = h.lakshmi
+    const lhi = ASHTA_LAKSHMI_HI[l.id]
+    const lakshmi = lhi ? { ...l, ...lhi } : l
+    let detail: string
+    if (l.companion === 'ma_earth') detail = h.active ? fill(LH.dhanyaOn, { rashi }) : on('angarak') ? LH.dhanyaOther : LH.dhanyaOff
+    else if (l.companion === 'ma_fire_water') detail = h.active ? fill(LH.vijayOn, { rashi }) : on('angarak') ? LH.vijayOther : LH.vijayOff
+    else {
+      const graha = GRAHA_HI[l.companion]
+      detail = h.active
+        ? fill(LH.pairOn, { nth, graha, name: lakshmi.name, tight: h.sepDeg != null && h.sepDeg <= RAHU_ECLIPSE_ORB ? LH.pairTight : '' })
+        : fill(LH.pairOff, { graha, name: lakshmi.name })
+    }
+    return { ...h, lakshmi, detail }
+  })
+  const companions = r.companions.map(c => ({ ...c, name: GRAHA_HI[c.id] ?? c.name }))
+  const flag = (f: RahuFlag, title: string, detail: string): RahuFlag => ({ ...f, title, detail })
+  const lum = [ra.nearSunEclipse && SH.sun, ra.nearMoonEclipse && SH.moon].filter(Boolean).join(SH.and)
+  const remedies = [...RAHU_REMEDIES_HI.base]
+  if (ra.house === 4) remedies.push(RAHU_REMEDIES_HI.h4)
+  if (ra.house === 6) remedies.push(RAHU_REMEDIES_HI.h6)
+  if (on('angarak')) remedies.push(RAHU_REMEDIES_HI.mars)
+  if (on('guru_chandal')) remedies.push(RAHU_REMEDIES_HI.jupiter)
+  if (ra.rashi === 10 || ra.rashi === 11) remedies.push(RAHU_REMEDIES_HI.sleep)
+  const nakshatraTeachings = r.nakshatraTeachings.map(n => ({
+    ...n,
+    name: NAKSHATRA_HI[n.index] ?? n.name,
+    rashiName: RASHI_HI[({ 5: 3, 14: 7, 23: 11 } as Record<number, Rashi>)[n.index] ?? 1],
+    deity: RAHU_NAKSHATRAS_HI[n.index]?.deity ?? n.deity,
+    traits: RAHU_NAKSHATRAS_HI[n.index] ? [...RAHU_NAKSHATRAS_HI[n.index].traits] : n.traits,
+  }))
+  const active = yogas.filter(y => y.active)
+  const nakName = NAKSHATRA_HI[ra.nakshatraIndex] ?? ra.nakshatraName
+  const oneLiner =
+    ra.house === 6
+      ? fill(FH.oneLiner6, { ashta: on('ashta_lakshmi') ? FH.oneLiner6Ashta : '' })
+      : ra.house === 10 && ra.aloneInHouse
+        ? FH.oneLiner10
+        : r.upachaya.inUpachaya
+          ? fill(FH.oneLinerUpachaya, { nth, rashi, yogas: active.length ? active.map(y => y.name).join('; ') : FH.oneLinerUpachayaNone })
+          : fill(FH.oneLinerOther, { rashi, nth, nak: ra.inRahuNakshatra ? fill(FH.oneLinerOwnNak, { nak: nakName }) : '' })
+  const L = SH.summaryLabels
+  const V = SH.summaryValues
+  return {
+    ...r,
+    rahu: { ...ra, rashiName: rashi, nakshatraName: nakName },
+    nature: [...SH.nature],
+    philosophy: [...SH.philosophy],
+    karakatva: mergeHi(r.karakatva, RAHU_KARAKATVA_HI),
+    medical: mergeHi(r.medical, RAHU_MEDICAL_HI),
+    zodiacal: SH.zodiacal.map(z => ({ label: z.label, value: fill(z.value, { age: RAHU_NATURAL_AGE }) })),
+    upachaya: { ...r.upachaya, detail: r.upachaya.inUpachaya ? fill(FH.upachayaOnDetail, { nth }) : FH.upachayaOffDetail },
+    houseFocus: rahuHouseFocusHi(r.houseFocus),
+    allHouseFocus: r.allHouseFocus.map(rahuHouseFocusHi),
+    upachayaFlag: flag(r.upachayaFlag, FH.upachayaTitle, fill(r.upachayaFlag.active ? FH.upachayaOn : FH.upachayaOff, { nth })),
+    shatruHantaFlag: flag(
+      r.shatruHantaFlag,
+      FH.shatruTitle,
+      r.shatruHantaFlag.active ? fill(FH.shatruOn, { moon: on('ra_mo') ? FH.shatruMoon : '', mars: on('angarak') ? FH.shatruMars : '' }) : FH.shatruOff,
+    ),
+    king10thFlag: flag(r.king10thFlag, FH.kingTitle, ra.house === 10 ? (ra.aloneInHouse ? FH.kingAlone : FH.kingWith) : FH.kingOff),
+    rahuNakshatraFlag: flag(r.rahuNakshatraFlag, FH.nakTitle, ra.inRahuNakshatra ? fill(FH.nakOn, { nak: nakName }) : FH.nakOff),
+    sleepMakarFlag: flag(r.sleepMakarFlag, FH.sleepTitle, ra.rashi === 10 ? FH.sleepCap : ra.rashi === 11 ? FH.sleepAq : FH.sleepOff),
+    eclipseFlag: flag(r.eclipseFlag, FH.eclipseTitle, fill(r.eclipseFlag.active ? FH.eclipseOn : FH.eclipseOff, { lum, orb: RAHU_ECLIPSE_ORB })),
+    absorbFlag: flag(r.absorbFlag, FH.absorbTitle, r.absorbFlag.active ? FH.absorbOn : FH.absorbOff),
+    yogas,
+    companions,
+    companionNote: companions.length ? fill(FH.companionsWith, { names: companions.map(c => c.name).join(', ') }) : FH.companionsNone,
+    ashtaLakshmiYoga: { ...r.ashtaLakshmiYoga, title: FH.ashtaTitle, detail: yogas.find(y => y.id === 'ashta_lakshmi')?.detail ?? r.ashtaLakshmiYoga.detail },
+    ashtaLakshmiHits,
+    nakshatraTeachings,
+    activeNakshatraTeaching: nakshatraTeachings.find(n => n.isNatal) ?? null,
+    mythology: [...SH.mythology],
+    mythPrinciples: [...SH.mythPrinciples],
+    kaalSarpNote: [...SH.kaalSarpNote],
+    dashaVsTransit: [...SH.dashaVsTransit],
+    sleepTeaching: [...SH.sleepTeaching],
+    goldenRules: [...SH.goldenRules],
+    remedies,
+    dictums: [...SH.dictums],
+    naturalAgeNote: SH.naturalAgeNote,
+    dashaNote: SH.dashaNote,
+    classical: classicalBundleHi(r.classical, 'Ra', { ...ra, isCombust: false }),
+    caveats: [...SH.caveats],
+    methodology: SH.methodology.map(m => fill(m, { yuti: RAHU_YUTI_ORB, eclipse: RAHU_ECLIPSE_ORB })),
+    summaryAttrs: [
+      { label: L.seat, value: fill(V.seat, { rashi, n: ra.house }) },
+      { label: L.nakshatra, value: fill(V.nak, { nak: nakName, pada: ra.pada }) },
+      { label: L.upachaya, value: r.upachaya.inUpachaya ? fill(V.yesHouse, { n: ra.house }) : V.no },
+      { label: L.shatru, value: ra.house === 6 ? V.yes : V.no },
+      { label: L.ownNak, value: ra.inRahuNakshatra ? V.yes : V.no },
+      { label: L.dasha, value: V.dasha },
+      { label: L.maturity, value: fill(V.maturity, { age: RAHU_NATURAL_AGE }) },
+      { label: L.yogas, value: active.length ? active.map(y => y.name).join(', ') : V.none },
+    ],
+    oneLiner,
+  }
+}
+
+function analyzeRahuEn(chart: ChartOutput): RahuAnalysisResult | null {
   const rahu = chart.grahas.find(g => g.id === 'Ra')
   if (!rahu) return null
 

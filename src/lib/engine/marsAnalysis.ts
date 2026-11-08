@@ -6,6 +6,12 @@
 
 import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
 import { NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { mergeHi } from '@/lib/engine/locale/planetsA.util'
+import {
+  MARS_ASPECTS_HI, MARS_HOUSE_FOCUS_HI, MARS_KALAS_HI, MARS_KARAKATVA_HI, MARS_TEXT_HI,
+} from '@/lib/engine/locale/marsAnalysis.hi'
 import {
   MANGLIK_OVERVIEW,
   MARS_CONTROL_NOTE,
@@ -404,14 +410,15 @@ function aspectTargetHouse(marsHouse: number, span: number): number {
   return ((marsHouse - 1 + (span - 1)) % 12) + 1
 }
 
-function buildAspectHits(marsHouse: number): MarsAspectHit[] {
-  return MARS_ASPECTS.map(teaching => {
+function buildAspectHits(marsHouse: number, hi = false): MarsAspectHit[] {
+  return MARS_ASPECTS.map(en => {
+    const teaching = hi ? mergeHi(en, MARS_ASPECTS_HI[en.span]) : en
     const targetHouse = aspectTargetHouse(marsHouse, teaching.span)
     return {
       span: teaching.span,
       targetHouse,
       teaching,
-      note: `From H${marsHouse}, ${teaching.span}th aspect lands on H${targetHouse} — ${teaching.meaning.toLowerCase()}.`,
+      note: hi ? fill(MARS_TEXT_HI.aspectNote, { from: marsHouse, span: teaching.span, to: targetHouse, meaning: teaching.meaning }) : `From H${marsHouse}, ${teaching.span}th aspect lands on H${targetHouse} — ${teaching.meaning.toLowerCase()}.`,
     }
   })
 }
@@ -426,7 +433,13 @@ function marsKetuTone(house: number, ownOrExalted: boolean): MarsKetuResult['pla
 /**
  * Natal Mangala analysis from class teaching notes.
  */
-export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
+/** Mars kalas in `lang` (ids unchanged). */
+export function marsKalas(lang: EngineLang = 'en'): MarsKalaDef[] {
+  return lang === 'hi' ? MARS_KALAS.map(k => mergeHi(k, MARS_KALAS_HI[k.id])) : MARS_KALAS
+}
+
+export function analyzeMars(chart: ChartOutput, lang: EngineLang = 'en'): MarsAnalysisResult | null {
+  const hi = lang === 'hi'
   const mars = chart.grahas.find(g => g.id === 'Ma')
   if (!mars) return null
 
@@ -451,7 +464,7 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
   }
 
   const inUpachaya = UPACHAYA_HOUSES.includes(house as 3 | 6 | 10 | 11)
-  const aspects = buildAspectHits(house)
+  const aspects = buildAspectHits(house, hi)
 
   const withKetu = ketu ? sameSignOrConjunct(mars, ketu) : false
   const ketuSep = ketu ? angularSep(mars.lonSidereal, ketu.lonSidereal) : null
@@ -576,7 +589,7 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
     natalMixed,
   }
 
-  return {
+  const result: MarsAnalysisResult = {
     mars: {
       rashi: mars.rashi,
       rashiName: RASHI_NAMES[mars.rashi],
@@ -698,6 +711,61 @@ export function analyzeMars(chart: ChartOutput): MarsAnalysisResult | null {
       { label: 'Natural age', value: '28' },
       { label: 'Enemy', value: 'Mercury' },
     ],
+  }
+  if (!hi) return result
+
+  const T = MARS_TEXT_HI
+  const hf = MARS_HOUSE_FOCUS_HI[house]
+  const remediesHi = [...T.remedies]
+  if (withKetu && ketuTone === 'intense') remediesHi.unshift(T.remedyKetu)
+  if (mars.rashi === 8 && house === 9) remediesHi.push(T.remedyScorpio9)
+  return {
+    ...result,
+    mars: { ...result.mars, rashiName: RASHI_HI[mars.rashi], nakshatraName: NAKSHATRA_HI[mars.nakshatraIndex] },
+    karakatva: MARS_KARAKATVA.map((g, i) => mergeHi(g, MARS_KARAKATVA_HI[i])),
+    distinctions: [...T.distinctions],
+    sports: [...T.sports],
+    strengthVsCardio: T.strengthVsCardio,
+    activityNote: T.activityNote,
+    upachaya: { ...result.upachaya, detail: fill(inUpachaya ? T.upachayaIn : T.upachayaOut, { house }) },
+    houseFocus: hf
+      ? mergeHi(houseFocus, hf)
+      : { ...houseFocus, title: fill(T.houseFallbackTitle, { house }), notes: [T.houseFallbackNote] },
+    houseCaution: houseCaution
+      ? { ...houseCaution, title: house === 1 ? T.caution.title1 : T.caution.title5, detail: house === 1 ? T.caution.detail1 : T.caution.detail5 }
+      : null,
+    aspectOverview: T.aspectOverview,
+    kalas: marsKalas('hi'),
+    tantricKalasNote: T.tantricKalasNote,
+    marsKetu: {
+      ...marsKetu,
+      detail: withKetu ? T.ketu[ketuTone] : T.ketu.none,
+      positives: [...T.ketu.positives],
+      negatives: [...T.ketu.negatives],
+    },
+    retroFlag: { ...result.retroFlag, title: T.retro.title, detail: mars.isRetro ? T.retro.active : T.retro.inactive },
+    combustFlag: { ...result.combustFlag, title: T.combust.title, detail: isCombust ? T.combust.active : T.combust.inactive },
+    professions: [...T.professions],
+    remedies: remediesHi,
+    mythology: [...T.mythology],
+    manglikPositive: T.manglikPositive,
+    manglikOverview: T.manglikOverview,
+    controlNote: T.controlNote,
+    spiritual: [...T.spiritual],
+    naturalAgeNote: T.naturalAgeNote,
+    functionalMaleficCaution: {
+      ...functionalMaleficCaution,
+      title: T.functional.title,
+      detail: lagnaFunctional && inPersonalLossHouse
+        ? fill(T.functional.active, { lagna: RASHI_HI[asc], house })
+        : lagnaFunctional
+          ? fill(T.functional.lagnaOnly, { lagna: RASHI_HI[asc], house })
+          : T.functional.none,
+    },
+    signDualityNote: T.signDualityNote,
+    caveats: [...T.caveats],
+    methodology: [...T.methodology],
+    summaryAttrs: T.summaryAttrs.map(a => ({ ...a })),
   }
 }
 

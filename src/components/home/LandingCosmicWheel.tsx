@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
+import { GRAHA_HI, GRAHA_SHORT_HI, NAKSHATRA_HI, NAKSHATRA_SHORT_HI, masaHi, samvatsaraHi, termHi } from '@/i18n/jyotish'
 import { NAKSHATRA_NAMES, NAKSHATRA_SHORT, type Rashi } from '@/types/astrology'
 import { SAURA_MASA_BY_RASHI } from '@/lib/panchang/hindu-calendar'
 
@@ -154,17 +156,36 @@ const KOOTAS = [
   { name: 'Nadi', points: 8 },
 ]
 
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
+// ── Page language ──
+
+type WheelText = {
+  hi: boolean
+  t: ReturnType<typeof useTranslations<'home.wheel'>>
+  /** Romanised engine name → page language (rashi, nakshatra, tithi, yoga…). */
+  term: (en: string) => string
+  masa: (en: string) => string
+  paksha: (p: 'shukla' | 'krishna') => string
 }
 
-function tithiLabel(t: { name: string; paksha: 'shukla' | 'krishna' }) {
-  if (t.name === 'Purnima' || t.name === 'Amavasya') return t.name
-  return `${capitalize(t.paksha)} ${t.name}`
+function useWheelText(): WheelText {
+  const hi = useLocale() === 'hi'
+  const t = useTranslations('home.wheel')
+  return {
+    hi,
+    t,
+    term: (en) => (hi ? termHi(en) : en),
+    masa: (en) => (hi ? masaHi(en) : en),
+    paksha: (p) => (p === 'shukla' ? t('shuklaName') : t('krishnaName')),
+  }
 }
 
-function formatTime(iso: string) {
-  return new Intl.DateTimeFormat('en-IN', {
+function tithiLabel(t: { name: string; paksha: 'shukla' | 'krishna' }, w: WheelText) {
+  if (t.name === 'Purnima' || t.name === 'Amavasya') return w.term(t.name)
+  return `${w.paksha(t.paksha)} ${w.term(t.name)}`
+}
+
+function formatTime(iso: string, hi = false) {
+  return new Intl.DateTimeFormat(hi ? 'hi-IN' : 'en-IN', {
     timeZone: SKY_REFERENCE.tz,
     hour: 'numeric',
     minute: '2-digit',
@@ -285,11 +306,15 @@ function RingText({ r, deg, size = 8.5, fill = 'var(--cw-ink-soft)', children }:
   )
 }
 
-function ZodiacBand({ accent, labels = RASHI_NAMES, highlight = [] }: {
+function ZodiacBand({ accent, labels = RASHI_NAMES, highlight = [], display }: {
   accent: string
   labels?: string[]
   highlight?: string[]
+  /** Label shown on the ring; `labels` stay the matching keys. */
+  display?: (name: string) => string
 }) {
+  const w = useWheelText()
+  const show = display ?? w.term
   return (
     <g>
       {labels.map((name, i) => {
@@ -305,7 +330,7 @@ function ZodiacBand({ accent, labels = RASHI_NAMES, highlight = [] }: {
               strokeOpacity="0.5"
               strokeWidth="0.6"
             />
-            <RingText r={(BAND_INNER + BAND_OUTER) / 2} deg={(i + 0.5) * span} fill={on ? 'var(--cw-ink)' : 'var(--cw-ink-soft)'}>{name}</RingText>
+            <RingText r={(BAND_INNER + BAND_OUTER) / 2} deg={(i + 0.5) * span} fill={on ? 'var(--cw-ink)' : 'var(--cw-ink-soft)'}>{show(name)}</RingText>
           </g>
         )
       })}
@@ -328,9 +353,10 @@ function NakshatraBand({ accent, skyIndex, natalIndex }: {
   skyIndex: number | null
   natalIndex: number | null
 }) {
+  const { hi } = useWheelText()
   return (
     <g>
-      {NAKSHATRA_SHORT.map((name, i) => {
+      {(hi ? NAKSHATRA_SHORT_HI : NAKSHATRA_SHORT).map((name, i) => {
         const sky = i === skyIndex
         const birth = i === natalIndex && !sky
         return (
@@ -343,7 +369,7 @@ function NakshatraBand({ accent, skyIndex, natalIndex }: {
               strokeOpacity={sky || birth ? 0.85 : 0.32}
               strokeWidth={birth ? 1.15 : 0.4}
             />
-            <title>{NAKSHATRA_NAMES[i]}</title>
+            <title>{hi ? NAKSHATRA_HI[i] : NAKSHATRA_NAMES[i]}</title>
             <RingText
               r={(NAK_INNER + NAK_OUTER) / 2}
               deg={(i + 0.5) * NAK_SPAN}
@@ -364,6 +390,7 @@ function Hub({ accent, r = 72 }: { accent: string; r?: number }) {
 }
 
 function GrahaLabel({ id, retro, x, y, size }: { id: string; retro?: boolean; x: number; y: number; size: number }) {
+  const { hi, t } = useWheelText()
   const color = GRAHA_COLORS[id] ?? 'var(--cw-ink)'
   return (
     <text
@@ -376,8 +403,8 @@ function GrahaLabel({ id, retro, x, y, size }: { id: string; retro?: boolean; x:
       fill={color}
       className="cosmic-wheel-center-text"
     >
-      {id}
-      {retro && id !== 'Ra' && id !== 'Ke' ? <tspan fontSize={size * 0.65} dy={-size * 0.35}>R</tspan> : null}
+      {hi ? GRAHA_SHORT_HI[id as keyof typeof GRAHA_SHORT_HI] ?? id : id}
+      {retro && id !== 'Ra' && id !== 'Ke' ? <tspan fontSize={size * 0.65} dy={-size * 0.35}>{t('retro')}</tspan> : null}
     </text>
   )
 }
@@ -479,6 +506,7 @@ function RashiWheel({ panchang, natal, accent, variant }: {
   accent: string
   variant: string
 }) {
+  const w = useWheelText()
   const hasNatal = (natal?.length ?? 0) > 0
   const planets = panchang ? layoutPlanets(panchang.planets, hasNatal ? SKY_TRACKS_WITH_NATAL : GRAHA_TRACKS) : []
   const natalMarks = hasNatal && natal ? layoutPlanets(natal, NATAL_TRACKS, 12) : []
@@ -505,8 +533,8 @@ function RashiWheel({ panchang, natal, accent, variant }: {
       {panchang ? (
         <>
           <Moon cx={CX} cy={184} r={24} elongation={panchang.lunarElongationDeg} variant={variant} />
-          <CenterText y={225} size={10.5}>{tithiLabel(panchang.tithi)}</CenterText>
-          <CenterText y={238} size={8.5} fill="var(--cw-ink-muted)" weight={500}>Moon in {wheelRashiName(panchang.moonRashi.rashi)}</CenterText>
+          <CenterText y={225} size={10.5}>{tithiLabel(panchang.tithi, w)}</CenterText>
+          <CenterText y={238} size={8.5} fill="var(--cw-ink-muted)" weight={500}>{w.t('moonIn', { rashi: w.term(wheelRashiName(panchang.moonRashi.rashi)) })}</CenterText>
         </>
       ) : null}
     </g>
@@ -527,16 +555,21 @@ type RashiSkyFigureProps = {
 
 /** Sidereal sky: rashis on the rim, grahas by longitude, tithi and Moon in the hub. */
 export function RashiSkyFigure({ sky, natal = null, accent, source, emptyLabel, wheelId = 'astrology' }: RashiSkyFigureProps) {
+  const w = useWheelText()
+  const { t, term } = w
+  const moonRashi = sky ? term(wheelRashiName(sky.moonRashi.rashi)) : ''
+  const sunRashi = sky ? term(wheelRashiName(sky.sunRashi.rashi)) : ''
   const caption = sky
     ? [
-        { label: 'Moon', value: `${wheelRashiName(sky.moonRashi.rashi)} · ${sky.nakshatra.name}` },
-        { label: 'Sun', value: wheelRashiName(sky.sunRashi.rashi) },
-        { label: 'Paksha', value: capitalize(sky.tithi.paksha) },
+        { id: 'moon', label: t('moon'), value: `${moonRashi} · ${term(sky.nakshatra.name)}` },
+        { id: 'sun', label: t('sun'), value: sunRashi },
+        { id: 'paksha', label: t('paksha'), value: w.paksha(sky.tithi.paksha) },
       ]
     : []
   const aria = sky
-    ? `Sky: ${tithiLabel(sky.tithi)}, Moon in ${wheelRashiName(sky.moonRashi.rashi)}, ${sky.nakshatra.name} nakshatra, Sun in ${wheelRashiName(sky.sunRashi.rashi)}.${natal?.length ? ' Birth planets sit on the inner ring.' : ''}`
-    : 'Circular Vedic sky wheel.'
+    ? t('ariaSky', { tithi: tithiLabel(sky.tithi, w), moon: moonRashi, nakshatra: term(sky.nakshatra.name), sun: sunRashi }) +
+      (natal?.length ? t('ariaNatal') : '')
+    : t('ariaEmpty')
 
   return (
     <figure className="cosmic-wheel" style={{ ['--cw-accent' as string]: accent }}>
@@ -548,7 +581,7 @@ export function RashiSkyFigure({ sky, natal = null, accent, source, emptyLabel, 
         {caption.length > 0 ? (
           <ul className="cosmic-wheel-facts">
             {caption.map((fact) => (
-              <li key={fact.label}>
+              <li key={fact.id}>
                 <span className="cosmic-wheel-fact-label">{fact.label}</span>
                 <span className="cosmic-wheel-fact-value">{fact.value}</span>
               </li>
@@ -557,7 +590,7 @@ export function RashiSkyFigure({ sky, natal = null, accent, source, emptyLabel, 
         ) : null}
         <p className="cosmic-wheel-source">{sky && source ? source : emptyLabel}</p>
         {natal?.length ? (
-          <p className="cosmic-wheel-source">Inner ring · your planets · nakshatra band · Moon&apos;s star</p>
+          <p className="cosmic-wheel-source">{t('natalNote')}</p>
         ) : null}
       </figcaption>
     </figure>
@@ -566,6 +599,7 @@ export function RashiSkyFigure({ sky, natal = null, accent, source, emptyLabel, 
 
 /** Prashna is read from the moment asked: the Moon and the running hora lord carry the question. */
 function PrashnaWheel({ sky, accent }: { sky: TodaySky | null; accent: string }) {
+  const w = useWheelText()
   const panchang = sky?.panchang ?? null
   const hora = panchang && sky && sky.horaIndex >= 0 ? panchang.horaTable[sky.horaIndex] : undefined
   const keyGrahas = hora ? ['Mo', hora.lord] : ['Mo']
@@ -602,14 +636,14 @@ function PrashnaWheel({ sky, accent }: { sky: TodaySky | null; accent: string })
       ))}
       {hora ? (
         <>
-          <CenterText y={180} size={8} fill="var(--cw-ink-muted)" weight={700}>HORA NOW</CenterText>
-          <CenterText y={206} size={21} fill={GRAHA_COLORS[hora.lord]} weight={700}>{GRAHA_NAMES[hora.lord] ?? hora.lord}</CenterText>
-          <CenterText y={223} size={9} fill="var(--cw-ink-muted)" weight={500}>until {formatTime(hora.end)}</CenterText>
+          <CenterText y={180} size={8} fill="var(--cw-ink-muted)" weight={700}>{w.t('horaNow')}</CenterText>
+          <CenterText y={206} size={21} fill={GRAHA_COLORS[hora.lord]} weight={700}>{w.hi ? GRAHA_HI[hora.lord as keyof typeof GRAHA_HI] ?? hora.lord : GRAHA_NAMES[hora.lord] ?? hora.lord}</CenterText>
+          <CenterText y={223} size={9} fill="var(--cw-ink-muted)" weight={500}>{w.t('until', { time: formatTime(hora.end, w.hi) })}</CenterText>
         </>
       ) : panchang ? (
         <>
-          <CenterText y={190} size={8} fill="var(--cw-ink-muted)" weight={700}>TODAY</CenterText>
-          <CenterText y={212} size={17} weight={700}>{panchang.vara.sanskrit}</CenterText>
+          <CenterText y={190} size={8} fill="var(--cw-ink-muted)" weight={700}>{w.t('today')}</CenterText>
+          <CenterText y={212} size={17} weight={700}>{w.term(panchang.vara.sanskrit)}</CenterText>
         </>
       ) : null}
     </g>
@@ -618,17 +652,18 @@ function PrashnaWheel({ sky, accent }: { sky: TodaySky | null; accent: string })
 
 /** The five limbs around today's Moon, with the Sun–Moon arc that produces the tithi. */
 function PanchangWheel({ panchang, accent }: { panchang: SkyPanchang | null; accent: string }) {
+  const w = useWheelText()
   const sun = panchang?.planets.find((planet) => planet.id === 'Su')
   const moon = panchang?.planets.find((planet) => planet.id === 'Mo')
   const limbs = panchang
     ? [
-        { label: 'Tithi', value: panchang.tithi.name },
-        { label: 'Vara', value: panchang.vara.sanskrit },
-        { label: 'Nakshatra', value: panchang.nakshatra.name },
-        { label: 'Yoga', value: panchang.yoga.name },
-        { label: 'Karana', value: panchang.karana.name },
+        { id: 'tithi', label: w.t('tithi'), value: w.term(panchang.tithi.name) },
+        { id: 'vara', label: w.t('vara'), value: w.term(panchang.vara.sanskrit) },
+        { id: 'nakshatra', label: w.t('nakshatra'), value: w.term(panchang.nakshatra.name) },
+        { id: 'yoga', label: w.t('yoga'), value: w.term(panchang.yoga.name) },
+        { id: 'karana', label: w.t('karana'), value: w.term(panchang.karana.name) },
       ]
-    : [{ label: 'Tithi' }, { label: 'Vara' }, { label: 'Nakshatra' }, { label: 'Yoga' }, { label: 'Karana' }]
+    : (['tithi', 'vara', 'nakshatra', 'yoga', 'karana'] as const).map((id) => ({ id, label: w.t(id) }))
 
   let elongationArc: string | null = null
   if (sun && moon) {
@@ -652,11 +687,11 @@ function PanchangWheel({ panchang, accent }: { panchang: SkyPanchang | null; acc
         const edge = polar(58, i * 72)
         const value = 'value' in limb ? limb.value : undefined
         return (
-          <g key={limb.label}>
+          <g key={limb.id}>
             <line x1={anchor.x} y1={anchor.y} x2={edge.x} y2={edge.y} stroke={accent} strokeOpacity="0.6" strokeWidth="0.8" />
             <circle cx={p.x} cy={p.y} r="33" fill="var(--cw-hub)" stroke={accent} strokeOpacity="0.75" strokeWidth="0.9" />
             <text x={p.x} y={p.y - 6} textAnchor="middle" fontSize="6.8" fontWeight="700" letterSpacing="0.5" fill="var(--cw-ink-muted)" className="cosmic-wheel-center-text">
-              {limb.label.toUpperCase()}
+              {w.hi ? limb.label : limb.label.toUpperCase()}
             </text>
             {value ? (
               <text x={p.x} y={p.y + 8} textAnchor="middle" fontSize={value.length > 9 ? 8 : 9.5} fontWeight="600" fill="var(--cw-ink)" className="cosmic-wheel-center-text">
@@ -675,18 +710,19 @@ const MASA_NAMES = Array.from({ length: 12 }, (_, i) => SAURA_MASA_BY_RASHI[(i +
 
 /** Year, month and day together: solar masas outside, the lunar month's 30 tithis inside. */
 function CalendarWheel({ panchang, accent }: { panchang: SkyPanchang | null; accent: string }) {
+  const w = useWheelText()
   const currentIndex = panchang ? panchang.tithi.number - 1 : -1
   const sun = panchang?.planets.find((planet) => planet.id === 'Su')
   const sunEdge = sun ? polar(BAND_INNER, sun.longitude) : null
 
   return (
     <g>
-      <ZodiacBand accent={accent} labels={MASA_NAMES} highlight={panchang ? [panchang.calendarContext.sauraMasa] : []} />
+      <ZodiacBand accent={accent} labels={MASA_NAMES} display={w.masa} highlight={panchang ? [panchang.calendarContext.sauraMasa] : []} />
       {sunEdge ? <circle cx={sunEdge.x} cy={sunEdge.y} r="3.5" fill={GRAHA_COLORS.Su} /> : null}
       <path d={sectorPath(112, 116, 0.5, 179.5)} fill="var(--cw-shukla-ink)" />
       <path d={sectorPath(112, 116, 180.5, 359.5)} fill="var(--cw-ink-muted)" fillOpacity="0.5" />
-      <RingText r={100} deg={90} size={8} fill="var(--cw-shukla-ink)">SHUKLA</RingText>
-      <RingText r={100} deg={270} size={8} fill="var(--cw-ink-muted)">KRISHNA</RingText>
+      <RingText r={100} deg={90} size={8} fill="var(--cw-shukla-ink)">{w.t('shukla')}</RingText>
+      <RingText r={100} deg={270} size={8} fill="var(--cw-ink-muted)">{w.t('krishna')}</RingText>
       {Array.from({ length: 30 }).map((_, i) => {
         const angle = (i + 0.5) * 12
         const p = polar(135, angle)
@@ -701,10 +737,10 @@ function CalendarWheel({ panchang, accent }: { panchang: SkyPanchang | null; acc
       <Hub accent={accent} r={78} />
       {panchang ? (
         <>
-          <CenterText y={150} size={8} fill="var(--cw-ink-muted)" weight={700}>TITHI {panchang.tithi.number} OF 30</CenterText>
+          <CenterText y={150} size={8} fill="var(--cw-ink-muted)" weight={700}>{w.t('tithiOf', { n: panchang.tithi.number })}</CenterText>
           <Moon cx={CX} cy={182} r={22} elongation={panchang.lunarElongationDeg} variant="calendar" />
-          <CenterText y={224} size={11}>{tithiLabel(panchang.tithi)}</CenterText>
-          <CenterText y={238} size={8.5} fill="var(--cw-ink-muted)" weight={500}>{panchang.calendarContext.sauraMasa} masa</CenterText>
+          <CenterText y={224} size={11}>{tithiLabel(panchang.tithi, w)}</CenterText>
+          <CenterText y={238} size={8.5} fill="var(--cw-ink-muted)" weight={500}>{w.t('masa', { masa: w.masa(panchang.calendarContext.sauraMasa) })}</CenterText>
         </>
       ) : null}
     </g>
@@ -727,6 +763,7 @@ function MatchChart({ cx, label, moonDeg, grahaDegs, accent }: {
   grahaDegs: [string, number][]
   accent: string
 }) {
+  const { hi } = useWheelText()
   const r = MATCH_RADIUS
   const moon = matchPoint(cx, r - 12, moonDeg)
   return (
@@ -743,7 +780,7 @@ function MatchChart({ cx, label, moonDeg, grahaDegs, accent }: {
         return <circle key={id} cx={p.x} cy={p.y} r="3" fill={GRAHA_COLORS[id]} />
       })}
       <circle cx={moon.x} cy={moon.y} r="9" fill="var(--cw-hub)" stroke={GRAHA_COLORS.Mo} strokeWidth="1.1" />
-      <text x={moon.x} y={moon.y} textAnchor="middle" dominantBaseline="central" fontSize="8" fontWeight="700" fill={GRAHA_COLORS.Mo} className="cosmic-wheel-center-text">Mo</text>
+      <text x={moon.x} y={moon.y} textAnchor="middle" dominantBaseline="central" fontSize="8" fontWeight="700" fill={GRAHA_COLORS.Mo} className="cosmic-wheel-center-text">{hi ? GRAHA_SHORT_HI.Mo : 'Mo'}</text>
       <text x={cx} y={CX} textAnchor="middle" dominantBaseline="central" fontSize="10.5" fontWeight="600" fill="var(--cw-ink)" className="cosmic-wheel-center-text">{label}</text>
     </g>
   )
@@ -751,6 +788,7 @@ function MatchChart({ cx, label, moonDeg, grahaDegs, accent }: {
 
 /** Guna Milan compares the two natal Moons through eight kootas; positions here are illustrative. */
 function MatchWheel({ accent }: { accent: string }) {
+  const w = useWheelText()
   const total = KOOTAS.reduce((sum, koota) => sum + koota.points, 0)
   const leftCx = CX - MATCH_OFFSET
   const rightCx = CX + MATCH_OFFSET
@@ -758,17 +796,17 @@ function MatchWheel({ accent }: { accent: string }) {
   const moonB = matchPoint(rightCx, MATCH_RADIUS - 12, -MATCH_MOON_DEG)
   return (
     <g>
-      <ZodiacBand accent={accent} labels={KOOTAS.map((koota) => `${koota.name} · ${koota.points}`)} />
+      <ZodiacBand accent={accent} labels={KOOTAS.map((koota) => `${w.term(koota.name)} · ${koota.points}`)} display={(label) => label} />
       <MatchChart
         cx={leftCx}
-        label="Chart A"
+        label={w.t('chartA')}
         moonDeg={MATCH_MOON_DEG}
         grahaDegs={[['Su', 100], ['Ma', 160], ['Me', 205], ['Ju', 250], ['Ve', 295], ['Sa', 340]]}
         accent={accent}
       />
       <MatchChart
         cx={rightCx}
-        label="Chart B"
+        label={w.t('chartB')}
         moonDeg={-MATCH_MOON_DEG}
         grahaDegs={[['Su', 20], ['Ma', 65], ['Me', 110], ['Ju', 155], ['Ve', 200], ['Sa', 260]]}
         accent={accent}
@@ -784,19 +822,20 @@ function MatchWheel({ accent }: { accent: string }) {
       />
       <Hub accent={accent} r={30} />
       <CenterText y={205} size={22} weight={700}>{total}</CenterText>
-      <CenterText y={217} size={7.5} fill="var(--cw-ink-muted)" weight={600}>GUNA</CenterText>
+      <CenterText y={217} size={7.5} fill="var(--cw-ink-muted)" weight={600}>{w.t('guna')}</CenterText>
     </g>
   )
 }
 
 // ── Caption ──
 
-function captionFor(variant: CosmicWheelVariant, sky: TodaySky | null): { label: string; value: string }[] {
+function captionFor(variant: CosmicWheelVariant, sky: TodaySky | null, w: WheelText): { id: string; label: string; value: string }[] {
+  const { t, term } = w
   if (variant === 'compare') {
     return [
-      { label: 'Kootas', value: '8' },
-      { label: 'Heaviest', value: 'Nadi · 8' },
-      { label: 'Maximum', value: '36 guna' },
+      { id: 'kootas', label: t('kootas'), value: '8' },
+      { id: 'heaviest', label: t('heaviest'), value: t('heaviestValue') },
+      { id: 'maximum', label: t('maximum'), value: t('maximumValue') },
     ]
   }
   const p = sky?.panchang
@@ -804,36 +843,45 @@ function captionFor(variant: CosmicWheelVariant, sky: TodaySky | null): { label:
   switch (variant) {
     case 'astrology':
       return [
-        { label: 'Moon', value: `${p.moonRashi.sa} · ${p.nakshatra.name}` },
-        { label: 'Sun', value: p.sunRashi.sa },
-        { label: 'Paksha', value: capitalize(p.tithi.paksha) },
+        { id: 'moon', label: t('moon'), value: `${term(p.moonRashi.sa)} · ${term(p.nakshatra.name)}` },
+        { id: 'sun', label: t('sun'), value: term(p.sunRashi.sa) },
+        { id: 'paksha', label: t('paksha'), value: w.paksha(p.tithi.paksha) },
       ]
     case 'prashna':
       return [
-        { label: 'Vara', value: p.vara.sanskrit },
-        { label: 'Moon', value: p.nakshatra.name },
-        { label: 'Tithi', value: tithiLabel(p.tithi) },
+        { id: 'vara', label: t('vara'), value: term(p.vara.sanskrit) },
+        { id: 'moon', label: t('moon'), value: term(p.nakshatra.name) },
+        { id: 'tithi', label: t('tithi'), value: tithiLabel(p.tithi, w) },
       ]
     case 'panchang':
       return [
-        { label: 'Paksha', value: capitalize(p.tithi.paksha) },
-        { label: 'Moon', value: p.moonRashi.sa },
-        { label: 'Sun', value: p.sunRashi.sa },
+        { id: 'paksha', label: t('paksha'), value: w.paksha(p.tithi.paksha) },
+        { id: 'moon', label: t('moon'), value: term(p.moonRashi.sa) },
+        { id: 'sun', label: t('sun'), value: term(p.sunRashi.sa) },
       ]
     case 'calendar':
       return [
-        { label: 'Ritu', value: p.calendarContext.rituSa },
-        { label: 'Ayana', value: p.calendarContext.ayanaSa },
-        { label: 'Samvatsara', value: p.calendarContext.samvatsara },
+        { id: 'ritu', label: t('ritu'), value: term(p.calendarContext.rituSa) },
+        { id: 'ayana', label: t('ayana'), value: term(p.calendarContext.ayanaSa) },
+        {
+          id: 'samvatsara',
+          label: t('samvatsara'),
+          value: w.hi ? samvatsaraHi(p.calendarContext.samvatsara) : p.calendarContext.samvatsara,
+        },
       ]
   }
 }
 
-function describeWheel(variant: CosmicWheelVariant, sky: TodaySky | null) {
-  if (variant === 'compare') return 'Two birth charts joined at their Moons, inside the eight Ashtakoot kootas totalling 36 guna.'
+function describeWheel(variant: CosmicWheelVariant, sky: TodaySky | null, w: WheelText) {
+  if (variant === 'compare') return w.t('ariaMatch')
   const p = sky?.panchang
-  if (!p) return 'Circular Vedic sky wheel.'
-  return `Today's sky: ${tithiLabel(p.tithi)}, Moon in ${p.moonRashi.sa}, ${p.nakshatra.name} nakshatra, Sun in ${p.sunRashi.sa}.`
+  if (!p) return w.t('ariaEmpty')
+  return w.t('ariaToday', {
+    tithi: tithiLabel(p.tithi, w),
+    moon: w.term(p.moonRashi.sa),
+    nakshatra: w.term(p.nakshatra.name),
+    sun: w.term(p.sunRashi.sa),
+  })
 }
 
 type LandingCosmicWheelProps = {
@@ -844,6 +892,9 @@ type LandingCosmicWheelProps = {
 }
 
 export function LandingCosmicWheel({ variant, accent, sky, failed }: LandingCosmicWheelProps) {
+  const w = useWheelText()
+  const { t } = w
+  const place = t('place')
   const panchang = sky?.panchang ?? null
   if (variant === 'astrology') {
     return (
@@ -851,18 +902,18 @@ export function LandingCosmicWheel({ variant, accent, sky, failed }: LandingCosm
         sky={panchang}
         accent={accent}
         wheelId="astrology"
-        source={panchang ? `Today's sky · ${SKY_REFERENCE.label}, noon IST` : null}
-        emptyLabel={failed ? 'Live sky unavailable right now' : "Reading today's sky…"}
+        source={panchang ? t('source', { place }) : null}
+        emptyLabel={failed ? t('unavailable') : t('reading')}
       />
     )
   }
 
-  const caption = captionFor(variant, sky)
+  const caption = captionFor(variant, sky, w)
   const line = 'var(--cw-line)'
 
   return (
     <figure className="cosmic-wheel" style={{ ['--cw-accent' as string]: accent }}>
-      <svg viewBox="0 0 400 400" className="cosmic-wheel-svg" role="img" aria-label={describeWheel(variant, sky)}>
+      <svg viewBox="0 0 400 400" className="cosmic-wheel-svg" role="img" aria-label={describeWheel(variant, sky, w)}>
         <Backdrop variant={variant} accent={line} />
         {variant === 'prashna' ? <PrashnaWheel sky={sky} accent={line} /> : null}
         {variant === 'panchang' ? <PanchangWheel panchang={panchang} accent={line} /> : null}
@@ -874,7 +925,7 @@ export function LandingCosmicWheel({ variant, accent, sky, failed }: LandingCosm
         {caption.length > 0 ? (
           <ul className="cosmic-wheel-facts">
             {caption.map((fact) => (
-              <li key={fact.label}>
+              <li key={fact.id}>
                 <span className="cosmic-wheel-fact-label">{fact.label}</span>
                 <span className="cosmic-wheel-fact-value">{fact.value}</span>
               </li>
@@ -884,13 +935,13 @@ export function LandingCosmicWheel({ variant, accent, sky, failed }: LandingCosm
         {variant !== 'compare' ? (
           <p className="cosmic-wheel-source">
             {panchang
-              ? `Today's sky · ${SKY_REFERENCE.label}, noon IST${variant === 'prashna' ? ' · hora live' : ''}`
+              ? t(variant === 'prashna' ? 'sourcePrashna' : 'source', { place })
               : failed
-                ? 'Live sky unavailable right now'
-                : "Reading today's sky…"}
+                ? t('unavailable')
+                : t('reading')}
           </p>
         ) : (
-          <p className="cosmic-wheel-source">Illustrative charts · your score comes from your two birth charts</p>
+          <p className="cosmic-wheel-source">{t('matchNote')}</p>
         )}
       </figcaption>
     </figure>

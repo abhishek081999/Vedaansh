@@ -84,3 +84,33 @@ describe('getRemedySnapshot', () => {
     expect(snap.focus.map(f => f.role)).toContain('Weakest by Shadbala')
   })
 })
+
+describe('dashboard insights in Hindi', () => {
+  const deva = /[ऀ-ॿ]/
+  const now = new Date('2026-06-01T00:00:00Z').getTime()
+
+  it('keeps dosha ids and tones and swaps label/detail text', () => {
+    const grahas = [graha('Ma', 7), graha('Ju', 2), graha('Mo', 4, { gandanta: { isGandanta: true, severity: 'exact' } as GrahaData['gandanta'] })]
+    const en = getDoshaSnapshot(chartWith(grahas))!
+    const hi = getDoshaSnapshot(chartWith(grahas), 'hi')!
+    expect(hi.flags.map(f => [f.id, f.tone])).toEqual(en.flags.map(f => [f.id, f.tone]))
+    for (const f of hi.flags) {
+      expect(f.label, f.id).toMatch(deva)
+      expect(f.detail, f.id).toMatch(deva)
+    }
+    expect(hi.flags.find(f => f.id === 'gandanta')!.detail).toContain('चंद्र (सटीक)')
+  })
+
+  it('gives Hindi remedies without changing roles or planets', () => {
+    const dashas = { vimshottari: [{ lord: 'Sa', start: new Date('2020-01-01'), end: new Date('2039-01-01'), level: 1 }] }
+    const en = getRemedySnapshot(chartWith([graha('Mo', 2)], { dashas }), now)
+    const hi = getRemedySnapshot(chartWith([graha('Mo', 2)], { dashas }), now, 'hi')
+    expect(hi.focus.map(f => [f.role, f.graha])).toEqual(en.focus.map(f => [f.role, f.graha]))
+    expect(hi.focus[0].roleLabel).toBe('महादशा स्वामी')
+    expect(hi.focus[0].remedy.mantra).toMatch(deva)
+    expect(hi.moonNakshatra?.name).toBe('Rohini')
+    for (const v of Object.values(hi.moonNakshatra!.remedies).slice(0, 1)) expect(v).toMatch(deva)
+    expect(hi.moonNakshatra!.remedies.deity).toMatch(deva)
+    expect(en.focus[0].roleLabel).toBeUndefined()
+  })
+})

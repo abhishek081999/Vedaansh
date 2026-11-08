@@ -16,6 +16,16 @@ import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
 import { getMarakaBadhakaFlags } from '@/lib/engine/marakaBadhaka'
 import { getPlanetEnergyTeaser } from '@/lib/engine/planetaryEnergyCycles'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI, NAKSHATRA_HI, NAKSHATRA_DEITY_HI, KARAKA_SHORT_HI } from '@/i18n/jyotish'
+import { dignityInterpretation, nakshatraInterpretation } from '@/lib/engine/interpretations'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
+import {
+  AVASTHA_HI, CLASSICAL_HOUSE_SUMMARY_HI, CLASSICAL_SIGN_SUMMARY_HI, DIGNITY_CLASSICAL_HI, GANA_HI,
+  RASHI_CORE_HI, SPECIAL_ASPECT_OVERVIEW_HI, SPECIAL_POINT_HI, STRENGTH_BAND_HI, TARA_NAME_HI,
+  energyTeaserHi, vakriAstSummaryHi,
+} from '@/lib/engine/locale/planetCard.hi'
 
 /** Free planet cards: only these show a full energy teaser. */
 const FREE_ENERGY_TEASER_IDS = new Set<string>(['Su', 'Sa'])
@@ -87,6 +97,8 @@ export function PlanetDetailCard({
   birthDate,
   userPlan = 'free',
 }: PlanetDetailCardProps) {
+  const t = useTranslations('planetsA.card')
+  const { lang, hi } = useLang()
   const isAsc = p.grahaId === 'As'
   const isSpecialPoint = ['As', 'PP', 'IL', 'BB'].includes(p.grahaId)
   const taraIdx = isSpecialPoint ? 0 : (p.nakshatraIndex - moonNakIdx + 27) % 9
@@ -108,7 +120,7 @@ export function PlanetDetailCard({
   const statusColor = p.isRetro ? 'var(--rose)' : p.isCombust ? 'var(--amber)' : 'var(--teal)'
   
   // Dignity formatting
-  const dignityLabel = (p.dignity || 'neutral').replace('_', ' ')
+  const dignityLabel = hi ? dignityHi(p.dignity) : (p.dignity || 'neutral').replace('_', ' ')
   const digColor = 
     p.dignity === 'exalted' ? '#4ade80' : 
     p.dignity === 'debilitated' ? '#f87171' : 
@@ -123,20 +135,34 @@ export function PlanetDetailCard({
   const houseNum = !isSpecialPoint
     ? (typeof p.house === 'number' ? p.house : wholeSignHouseFromLagna(ascRashi, planetRashi))
     : null
-  const houseInterp = houseNum ? getPlanetInHouse(p.grahaId, houseNum, 'summary') : null
-  const houseTheme = houseNum ? getHouseTheme(houseNum) : null
-  const rashiInterp = !isSpecialPoint ? getPlanetInSign(p.grahaId, planetRashi, 'summary') : null
-  const rashiCore = !isSpecialPoint ? getRashiCoreSummary(planetRashi) : null
-  const classicalSign = !isSpecialPoint ? getPlanetInSignClassicalSummary(p.grahaId, planetRashi) : null
-  const classicalHouse = houseNum ? getPlanetInHouseClassicalSummary(p.grahaId, houseNum) : null
+  const houseInterp = houseNum ? getPlanetInHouse(p.grahaId, houseNum, 'summary', lang) : null
+  const houseTheme = houseNum ? getHouseTheme(houseNum, lang) : null
+  const rashiInterp = !isSpecialPoint ? getPlanetInSign(p.grahaId, planetRashi, 'summary', lang) : null
+  const rashiCore = !isSpecialPoint
+    ? (hi ? RASHI_CORE_HI[planetRashi - 1] ?? null : getRashiCoreSummary(planetRashi))
+    : null
+  const classicalSign = !isSpecialPoint
+    ? (hi
+        ? (getPlanetInSignClassicalSummary(p.grahaId, planetRashi) ? CLASSICAL_SIGN_SUMMARY_HI[p.grahaId as keyof typeof CLASSICAL_SIGN_SUMMARY_HI]?.[planetRashi - 1] ?? null : null)
+        : getPlanetInSignClassicalSummary(p.grahaId, planetRashi))
+    : null
+  const classicalHouse = houseNum
+    ? (hi
+        ? (getPlanetInHouseClassicalSummary(p.grahaId, houseNum) ? CLASSICAL_HOUSE_SUMMARY_HI[p.grahaId as keyof typeof CLASSICAL_HOUSE_SUMMARY_HI]?.[houseNum - 1] ?? null : null)
+        : getPlanetInHouseClassicalSummary(p.grahaId, houseNum))
+    : null
   const classicalDignity = !isSpecialPoint
-    ? getDignityClassicalNotes(p.dignity || 'neutral', false)[0]?.text ?? null
+    ? (hi
+        ? DIGNITY_CLASSICAL_HI[p.dignity || 'neutral'] ?? null
+        : getDignityClassicalNotes(p.dignity || 'neutral', false)[0]?.text ?? null)
     : null
   const vakriAstLine = !isSpecialPoint
-    ? getVakriAstSummary(p.grahaId, p.isRetro, p.isCombust)
+    ? (hi ? vakriAstSummaryHi(p.grahaId, p.isRetro, p.isCombust) : getVakriAstSummary(p.grahaId, p.isRetro, p.isCombust))
     : null
   const specialAspectOverview = !isSpecialPoint
-    ? getSpecialAspectOverview(p.grahaId)[0]?.text ?? null
+    ? (hi
+        ? SPECIAL_ASPECT_OVERVIEW_HI[p.grahaId as keyof typeof SPECIAL_ASPECT_OVERVIEW_HI] ?? null
+        : getSpecialAspectOverview(p.grahaId)[0]?.text ?? null)
     : null
   const aspectTargets = houseNum && !isSpecialPoint
     ? getAspectedHouses(p.grahaId as GrahaId, houseNum)
@@ -147,8 +173,30 @@ export function PlanetDetailCard({
   const energyTeaser = useMemo(() => {
     if (isSpecialPoint || !grahas || !birthDate) return null
     if (!energyFull && !FREE_ENERGY_TEASER_IDS.has(p.grahaId)) return null
-    return getPlanetEnergyTeaser(p.grahaId as GrahaId, grahas, birthDate)
-  }, [isSpecialPoint, grahas, birthDate, p.grahaId, energyFull])
+    const c = getPlanetEnergyTeaser(p.grahaId as GrahaId, grahas, birthDate)
+    return c && hi ? energyTeaserHi(c) : c
+  }, [isSpecialPoint, grahas, birthDate, p.grahaId, energyFull, hi])
+
+  const gid = p.grahaId as GrahaId
+  const displayName = hi
+    ? (SPECIAL_POINT_HI[p.grahaId] ?? GRAHA_HI[gid] ?? p.grahaName ?? p.id)
+    : (p.grahaName || p.id)
+  const nakName = hi ? NAKSHATRA_HI[p.nakshatraIndex] ?? p.nakshatraName : p.nakshatraName
+  const deity = hi ? NAKSHATRA_DEITY_HI[p.nakshatraIndex] ?? p.deity : p.deity
+  const gana = hi ? GANA_HI[p.gana] ?? p.gana : p.gana
+  const taraLabel = hi ? TARA_NAME_HI[taraName] ?? taraName : taraName
+  const lordName = p.lord ? (hi ? GRAHA_HI[p.lord as GrahaId] : GRAHA_NAMES[p.lord as GrahaId]) : null
+  const kpName = (id: string | undefined) => (id ? (hi ? GRAHA_HI[id as GrahaId] ?? id : id) : '—')
+  const karakaLabel = p.charaKaraka ? (hi ? KARAKA_SHORT_HI[p.charaKaraka] ?? p.charaKaraka : p.charaKaraka) : null
+  const analysisText = hi
+    ? (rashiInterp || nakshatraInterpretation(p.nakshatraIndex, 'hi'))
+    : (p.interpretation || rashiInterp || SIGN_INTERPRETATIONS[p.grahaId as string]?.[planetRashi] || NAKSHATRA_INTERPRETATIONS[p.nakshatraIndex])
+  const dignityText = hi
+    ? dignityInterpretation(p.dignity || 'neutral', 'hi')
+    : DIGNITY_INTERPRETATIONS[p.dignity || 'neutral']
+  const bandRaw: string | undefined = p.shadbala ? (p.shadbala.qualityBand || (p.shadbala.isStrong ? 'strong' : 'weak')) : undefined
+  const bandLabel = bandRaw && hi ? STRENGTH_BAND_HI[bandRaw] ?? bandRaw : bandRaw
+  const avasthaLabel = (v: string) => (hi ? AVASTHA_HI[v] ?? v : v)
 
   return (
     <div className="card" style={{
@@ -168,16 +216,16 @@ export function PlanetDetailCard({
             {ICON[p.grahaId] || p.grahaId.substring(0, 2)}
           </div>
           <div>
-            <div style={{fontWeight:700,fontSize:'0.9rem',color:'var(--text-primary)',lineHeight:1.1}}>{p.grahaName || p.id}</div>
-            {!isSpecialPoint && <div style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>{GRAHA_SANSKRIT[p.grahaId as GrahaId] || ''}</div>}
+            <div style={{fontWeight:700,fontSize:'0.9rem',color:'var(--text-primary)',lineHeight:1.1}}>{displayName}</div>
+            {!isSpecialPoint && !hi && <div style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>{GRAHA_SANSKRIT[p.grahaId as GrahaId] || ''}</div>}
           </div>
         </div>
         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'3px'}}>
-          {p.isRetro && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.15)',color:'var(--rose)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.3)'}}>RETROGRADE</span>}
-          {p.isCombust && <span style={{fontSize:'0.55rem',background:'rgba(245,158,66,0.15)',color:'var(--amber)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(245,158,66,0.3)'}}>COMBUST</span>}
-          {mb?.isMaraka && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.15)',color:'var(--rose)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.3)'}}>M · MARAKA</span>}
-          {mb?.marakaCancelledByTrikona && !mb?.isMaraka && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.08)',color:'var(--text-muted)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.2)'}} title={`Owns H${mb.marakaOf.join('+')} but also H${mb.trikonaOf.join('+')}`}>M∅ · TRIKONA</span>}
-          {mb?.isBadhaka && <span style={{fontSize:'0.55rem',background:'rgba(201,132,42,0.15)',color:'#c9842a',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(201,132,42,0.35)'}}>B · BADHAKA</span>}
+          {p.isRetro && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.15)',color:'var(--rose)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.3)'}}>{t('retro')}</span>}
+          {p.isCombust && <span style={{fontSize:'0.55rem',background:'rgba(245,158,66,0.15)',color:'var(--amber)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(245,158,66,0.3)'}}>{t('combust')}</span>}
+          {mb?.isMaraka && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.15)',color:'var(--rose)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.3)'}}>{t('maraka')}</span>}
+          {mb?.marakaCancelledByTrikona && !mb?.isMaraka && <span style={{fontSize:'0.55rem',background:'rgba(224,123,142,0.08)',color:'var(--text-muted)',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(224,123,142,0.2)'}} title={t('trikonaTitle', { maraka: mb.marakaOf.join('+'), trikona: mb.trikonaOf.join('+') })}>{t('trikona')}</span>}
+          {mb?.isBadhaka && <span style={{fontSize:'0.55rem',background:'rgba(201,132,42,0.15)',color:'#c9842a',padding:'2px 6px',borderRadius:4,fontWeight:700,border:'1px solid rgba(201,132,42,0.35)'}}>{t('badhaka')}</span>}
           {!isSpecialPoint && <span style={{fontSize:'0.6rem',color:digColor,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.05em'}}>{dignityLabel}</span>}
         </div>
       </div>
@@ -187,15 +235,15 @@ export function PlanetDetailCard({
         {/* Sign & Degree */}
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div style={{display:'flex',flexDirection:'column'}}>
-            <span style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase'}}>Sign & Position</span>
+            <span style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase'}}>{t('signPos')}</span>
             <span style={{fontSize:'0.85rem',fontWeight:600,color:'var(--text-primary)'}}>
-              {RASHI_NAMES[planetRashi]} {degInSignFloor}° {minInSign}&apos;
+              {hi ? RASHI_HI[planetRashi] : RASHI_NAMES[planetRashi]} {degInSignFloor}° {minInSign}&apos;
             </span>
           </div>
           {p.charaKaraka && (
             <div style={{textAlign:'right'}}>
-              <span style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase'}}>Chara Karaka</span>
-              <div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--gold)'}}>{p.charaKaraka}</div>
+              <span style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase'}}>{t('charaKaraka')}</span>
+              <div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--gold)'}}>{karakaLabel}</div>
             </div>
           )}
         </div>
@@ -203,30 +251,30 @@ export function PlanetDetailCard({
         {/* Nakshatra Bubble */}
         <div style={{padding:'0.65rem',background:'var(--surface-3)',borderRadius:'var(--r-md)',border:'1px solid var(--border-soft)'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.4rem'}}>
-            <span style={{fontSize:'0.8rem',fontWeight:700,color:'var(--text-gold)'}}>{p.nakshatraName}</span>
-            <span style={{fontSize:'0.65rem',color:'var(--text-muted)'}}>Pada {p.pada}</span>
+            <span style={{fontSize:'0.8rem',fontWeight:700,color:'var(--text-gold)'}}>{nakName}</span>
+            <span style={{fontSize:'0.65rem',color:'var(--text-muted)'}}>{t('pada', { n: p.pada })}</span>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.4rem',fontSize:'0.68rem'}}>
-            <div style={{color:'var(--text-secondary)'}}>Lord: <span style={{color:'var(--text-primary)',fontWeight:500}}>{GRAHA_NAMES[p.lord as GrahaId] || '—'}</span></div>
-            <div style={{color:'var(--text-secondary)',textAlign:'right'}}>Deity: <span style={{color:'var(--text-primary)',fontWeight:500}}>{p.deity}</span></div>
-            <div style={{color:'var(--text-secondary)'}}>Gana: <span style={{color:GANA_COL[p.gana],fontWeight:600}}>{p.gana}</span></div>
-            <div style={{color:'var(--text-secondary)',textAlign:'right'}}>Tara: <span style={{color:QC[q as keyof typeof QC].text,fontWeight:700}}>{taraName}</span></div>
+            <div style={{color:'var(--text-secondary)'}}>{t('lord')} <span style={{color:'var(--text-primary)',fontWeight:500}}>{lordName || '—'}</span></div>
+            <div style={{color:'var(--text-secondary)',textAlign:'right'}}>{t('deity')} <span style={{color:'var(--text-primary)',fontWeight:500}}>{deity}</span></div>
+            <div style={{color:'var(--text-secondary)'}}>{t('gana')} <span style={{color:GANA_COL[p.gana],fontWeight:600}}>{gana}</span></div>
+            <div style={{color:'var(--text-secondary)',textAlign:'right'}}>{t('tara')} <span style={{color:QC[q as keyof typeof QC].text,fontWeight:700}}>{taraLabel}</span></div>
           </div>
         </div>
 
         {/* KP, Avastha & Lordship Grid */}
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.75rem'}}>
           <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
-             <span style={{fontSize:'0.55rem',color:'var(--text-muted)',textTransform:'uppercase'}}>KP Sub-Lords</span>
+             <span style={{fontSize:'0.55rem',color:'var(--text-muted)',textTransform:'uppercase'}}>{t('kpSub')}</span>
              <div style={{fontSize:'0.7rem',display:'flex',gap:'4px',flexWrap:'wrap'}}>
-               <span style={{padding:'2px 5px',background:'rgba(129,140,248,0.1)',borderRadius:3,border:'1px solid rgba(129,140,248,0.2)',color:'#818cf8'}}>Sub: {p.kp?.subLord || '—'}</span>
-               <span style={{padding:'2px 5px',background:'rgba(52,211,153,0.1)',borderRadius:3,border:'1px solid rgba(52,211,153,0.2)',color:'#34d399'}}>SS: {p.kp?.subSubLord || '—'}</span>
+               <span style={{padding:'2px 5px',background:'rgba(129,140,248,0.1)',borderRadius:3,border:'1px solid rgba(129,140,248,0.2)',color:'#818cf8'}}>{t('sub')} {kpName(p.kp?.subLord)}</span>
+               <span style={{padding:'2px 5px',background:'rgba(52,211,153,0.1)',borderRadius:3,border:'1px solid rgba(52,211,153,0.2)',color:'#34d399'}}>{t('subSub')} {kpName(p.kp?.subSubLord)}</span>
              </div>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:'4px',textAlign:'right'}}>
-             <span style={{fontSize:'0.55rem',color:'var(--text-muted)',textTransform:'uppercase'}}>House Ruler</span>
+             <span style={{fontSize:'0.55rem',color:'var(--text-muted)',textTransform:'uppercase'}}>{t('houseRuler')}</span>
              <div style={{fontSize:'0.72rem',fontWeight:600,color:'var(--text-gold)'}}>
-               {ruledSigns.length > 0 ? `L-${ruledSigns.join(', ')}` : '—'}
+               {ruledSigns.length > 0 ? t('ruled', { houses: ruledSigns.join(', ') }) : '—'}
              </div>
           </div>
         </div>
@@ -234,22 +282,22 @@ export function PlanetDetailCard({
         {/* Interpretations Analysis */}
         {!isSpecialPoint && (
           <div style={{padding:'0.75rem',background:'var(--surface-2)',borderRadius:'var(--r-md)',border:'1px solid var(--border-soft)',borderLeft:'3px solid var(--gold)'}}>
-             <div style={{fontSize:'0.55rem',color:'var(--text-gold)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:'0.35rem'}}>Analysis</div>
+             <div style={{fontSize:'0.55rem',color:'var(--text-gold)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:'0.35rem'}}>{t('analysis')}</div>
              <div style={{fontSize:'0.72rem',color:'var(--text-primary)',lineHeight:1.5,fontStyle:'italic'}}>
-               {p.interpretation || rashiInterp || SIGN_INTERPRETATIONS[p.grahaId as string]?.[planetRashi] || NAKSHATRA_INTERPRETATIONS[p.nakshatraIndex]}
+               {analysisText}
                {rashiCore ? (
                  <div style={{marginTop:'0.35rem',color:'var(--text-secondary)',fontSize:'0.68rem',fontStyle:'normal'}}>
                    {rashiCore}
                  </div>
                ) : null}
                <div style={{marginTop:'0.4rem',color:'var(--text-muted)',fontSize:'0.65rem'}}>
-                 {DIGNITY_INTERPRETATIONS[p.dignity || 'neutral']}
+                 {dignityText}
                </div>
              </div>
              {houseInterp && houseNum ? (
                <div style={{marginTop:'0.65rem',paddingTop:'0.55rem',borderTop:'1px solid var(--border-soft)'}}>
                  <div style={{fontSize:'0.55rem',color:'var(--text-gold)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:'0.3rem'}}>
-                   In House {houseNum}{houseTheme ? ` · ${houseTheme.english}` : ''}
+                   {t('inHouse', { n: houseNum })}{houseTheme ? ` · ${houseTheme.english}` : ''}
                  </div>
                  <div style={{fontSize:'0.72rem',color:'var(--text-secondary)',lineHeight:1.5}}>
                    {houseInterp}
@@ -259,7 +307,7 @@ export function PlanetDetailCard({
              {(classicalSign || classicalHouse || classicalDignity || vakriAstLine || specialAspectOverview) ? (
                <div style={{marginTop:'0.65rem',paddingTop:'0.55rem',borderTop:'1px solid var(--border-soft)'}}>
                  <div style={{fontSize:'0.55rem',color:'#818cf8',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:'0.3rem'}}>
-                   Classical (BPHS / Phaladīpikā)
+                   {t('classical')}
                  </div>
                  {classicalSign ? (
                    <div style={{fontSize:'0.7rem',color:'var(--text-secondary)',lineHeight:1.45,marginBottom: (classicalHouse || classicalDignity || vakriAstLine || specialAspectOverview) ? '0.35rem' : 0}}>
@@ -302,7 +350,7 @@ export function PlanetDetailCard({
                              color:'var(--text-secondary)',
                            }}
                          >
-                           {span}th → H{h}: {getAspectDescription(span, p.grahaId as GrahaId)}
+                           {t('aspectChip', { span, h })} {getAspectDescription(span, p.grahaId as GrahaId, lang)}
                          </span>
                        )
                      })}
@@ -335,7 +383,7 @@ export function PlanetDetailCard({
                 letterSpacing: '0.06em',
                 fontWeight: 700,
               }}>
-                Energy Cycle
+                {t('energyCycle')}
               </span>
               <span style={{
                 fontSize: '0.55rem',
@@ -359,20 +407,20 @@ export function PlanetDetailCard({
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginTop:'0.25rem',paddingTop:'0.6rem',borderTop:'1px solid var(--border-soft)'}}>
            {p.shadbala ? (
              <div>
-               <span style={{fontSize:'0.55rem',color:'var(--text-muted)',textTransform:'uppercase',display:'block'}}>Total Strength</span>
+               <span style={{fontSize:'0.55rem',color:'var(--text-muted)',textTransform:'uppercase',display:'block'}}>{t('totalStrength')}</span>
                <span style={{fontSize:'0.9rem',fontWeight:700,color:p.shadbala.isStrong?'var(--teal)':'var(--rose)'}}>
-                 {p.shadbala.total.toFixed(2)} <span style={{fontSize:'0.6rem'}}>Rupas</span>
+                 {p.shadbala.total.toFixed(2)} <span style={{fontSize:'0.6rem'}}>{t('rupas')}</span>
                </span>
                <div style={{fontSize:'0.58rem',marginTop:2,color:p.shadbala.isStrong?'var(--teal)':'var(--rose)',textTransform:'uppercase',letterSpacing:'0.05em',fontWeight:700}}>
-                 {p.shadbala.qualityBand || (p.shadbala.isStrong ? 'strong' : 'weak')}
+                 {bandLabel}
                </div>
              </div>
            ) : <div/>}
            {p.avastha && (
              <div style={{textAlign:'right'}}>
-               <span style={{fontSize:'0.55rem',color:'var(--text-muted)',textTransform:'uppercase',display:'block',marginBottom:2}}>Avastha</span>
+               <span style={{fontSize:'0.55rem',color:'var(--text-muted)',textTransform:'uppercase',display:'block',marginBottom:2}}>{t('avastha')}</span>
                <div style={{fontSize:'0.65rem',color:'var(--text-primary)',background:'var(--surface-3)',padding:'2px 6px',borderRadius:4,border:'1px solid var(--border-soft)'}}>
-                 {p.avastha.baladi} · {p.avastha.jagradadi}
+                 {avasthaLabel(p.avastha.baladi)} · {avasthaLabel(p.avastha.jagradadi)}
                </div>
              </div>
            )}

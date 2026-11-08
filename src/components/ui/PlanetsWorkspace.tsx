@@ -48,6 +48,9 @@ import { ageFromBirthDate, computePlanetaryEnergyCycles } from '@/lib/engine/pla
 import { NAKSHATRA_NAMES as NAK_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
 import { cn } from '@/lib/ui/cn'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import styles from './PlanetsWorkspace.module.css'
 
@@ -84,6 +87,9 @@ interface PlanetsWorkspaceProps {
 }
 
 export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceProps) {
+  const t = useTranslations('chart.planetsWs')
+  const tw = t
+  const { hi } = useLang()
   const [tab, setTab] = useState<TabId>('overview')
   const energyFull = planMeetsUiGate(userPlan, 'gold')
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
@@ -141,12 +147,12 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       strong,
       age,
       activeEnergy,
-      sunLabel: sun ? `${RASHI_SHORT[sun.rashi]} ${Math.floor(sun.degree)}°` : '—',
-      moonLabel: moon ? NAK_NAMES[moon.nakshatraIndex] : '—',
-      marsLabel: mars ? `${RASHI_SHORT[mars.rashi]} ${Math.floor(mars.degree)}°` : '—',
-      lagnaLabel: `${RASHI_NAMES[chart.lagnas.ascRashi]}`,
+      sunLabel: sun ? `${hi ? RASHI_HI[sun.rashi] : RASHI_SHORT[sun.rashi]} ${Math.floor(sun.degree)}°` : '—',
+      moonLabel: moon ? (hi ? NAKSHATRA_HI[moon.nakshatraIndex] : NAK_NAMES[moon.nakshatraIndex]) : '—',
+      marsLabel: mars ? `${hi ? RASHI_HI[mars.rashi] : RASHI_SHORT[mars.rashi]} ${Math.floor(mars.degree)}°` : '—',
+      lagnaLabel: `${hi ? RASHI_HI[chart.lagnas.ascRashi] : RASHI_NAMES[chart.lagnas.ascRashi]}`,
     }
-  }, [classical, chart.shadbala, chart.meta.birthDate, chart.grahas, chart.lagnas.ascRashi])
+  }, [classical, chart.shadbala, chart.meta.birthDate, chart.grahas, chart.lagnas.ascRashi, hi])
 
   const visibleTabs = TABS.filter((t) => !(t.optional && t.id === 'yogi' && !chart.yogiPoint))
 
@@ -157,53 +163,53 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
         <div className={styles.heroGlow} aria-hidden />
         <div className={styles.heroTop}>
           <div>
-            <p className={styles.eyebrow}>Graha Analysis</p>
-            <h2 className={styles.heroTitle}>Planets Workspace</h2>
+            <p className={styles.eyebrow}>{t('eyebrow')}</p>
+            <h2 className={styles.heroTitle}>{t('heroTitle')}</h2>
             <p className={styles.heroSub}>
-              Natal positions, dignity, and planetary energy forms — independent of running dasha.
+              {t('heroSub')}
             </p>
           </div>
           <div className={styles.badgeRow}>
-            <span className={cn(styles.badge, styles.badgeGold)}>Lagna · {stats.lagnaLabel}</span>
-            <span className={styles.badge}>Sun · {stats.sunLabel}</span>
-            <span className={styles.badge}>Moon · {stats.moonLabel}</span>
-            <span className={styles.badge}>Mars · {stats.marsLabel}</span>
+            <span className={cn(styles.badge, styles.badgeGold)}>{t('badgeLagna', { v: stats.lagnaLabel })}</span>
+            <span className={styles.badge}>{t('badgeSun', { v: stats.sunLabel })}</span>
+            <span className={styles.badge}>{t('badgeMoon', { v: stats.moonLabel })}</span>
+            <span className={styles.badge}>{t('badgeMars', { v: stats.marsLabel })}</span>
             {stats.retro > 0 && (
-              <span className={cn(styles.badge, styles.badgeRose)}>{stats.retro} Retro</span>
+              <span className={cn(styles.badge, styles.badgeRose)}>{t('retro', { n: stats.retro })}</span>
             )}
             {stats.combust > 0 && (
-              <span className={cn(styles.badge, styles.badgeAmber)}>{stats.combust} Combust</span>
+              <span className={cn(styles.badge, styles.badgeAmber)}>{t('combust', { n: stats.combust })}</span>
             )}
           </div>
         </div>
 
         <div className={styles.statGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Age</div>
+            <div className={styles.statLabel}>{t('statAge')}</div>
             <div className={styles.statValue}>{stats.age}</div>
-            <div className={styles.statHint}>Completed years</div>
+            <div className={styles.statHint}>{t('statAgeHint')}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Energy Active</div>
+            <div className={styles.statLabel}>{t('statEnergy')}</div>
             <div className={styles.statValue}>{stats.activeEnergy}</div>
-            <div className={styles.statHint}>Cycle windows lit now</div>
+            <div className={styles.statHint}>{t('statEnergyHint')}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Shadbala Strong</div>
+            <div className={styles.statLabel}>{t('statStrong')}</div>
             <div className={styles.statValue}>{stats.strong}</div>
-            <div className={styles.statHint}>of {classical.length} grahas</div>
+            <div className={styles.statHint}>{t('ofGrahas', { n: classical.length })}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Special Points</div>
+            <div className={styles.statLabel}>{t('statSpecial')}</div>
             <div className={styles.statValue}>4</div>
-            <div className={styles.statHint}>Lagna · PP · IL · BB</div>
+            <div className={styles.statHint}>{t('statSpecialHint')}</div>
           </div>
         </div>
       </header>
 
       {/* ── Tabs ─────────────────────────────────────────────── */}
       <div className={styles.tabScroll}>
-        <div className={styles.tabRow} role="tablist" aria-label="Planets sections">
+        <div className={styles.tabRow} role="tablist" aria-label={t('tabsAria')}>
           {visibleTabs.map((t) => {
             const active = tab === t.id
             const count =
@@ -222,8 +228,8 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
                 onClick={() => setTab(t.id)}
               >
                 <t.Icon size={14} strokeWidth={active ? 2.25 : 2} aria-hidden />
-                <span className={styles.tabLabelFull}>{t.label}</span>
-                <span className={styles.tabLabelShort}>{t.shortLabel}</span>
+                <span className={styles.tabLabelFull}>{tw(`tab_${t.id}`)}</span>
+                <span className={styles.tabLabelShort}>{tw(`tabShort_${t.id}`)}</span>
                 {count != null && <span className={styles.tabCount}>{count}</span>}
               </button>
             )
@@ -235,17 +241,17 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'overview' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Charts & Micro-Details</h3>
+            <h3 className={styles.sectionTitle}>{t('tChartsMicro')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
-            D1 and D9 side by side, with planetary micro-details for quick scanning.
+            {t('overviewHint')}
           </p>
           <div className={styles.overviewGrid}>
             <div className={styles.chartCard}>
               <div className={styles.chartLabel}>
-                <span className={styles.chartTitle}>D1 · Rashi Chart</span>
-                <span className={styles.chartAccent}>{RASHI_SHORT[chart.lagnas.ascRashi]} lagna</span>
+                <span className={styles.chartTitle}>{t('cD1')}</span>
+                <span className={styles.chartAccent}>{t('lagnaOf', { sign: hi ? RASHI_HI[chart.lagnas.ascRashi] : RASHI_SHORT[chart.lagnas.ascRashi] })}</span>
               </div>
               <ChakraSelector
                 ascRashi={chart.lagnas.ascRashi as Rashi}
@@ -263,9 +269,9 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
 
             <div className={styles.chartCard}>
               <div className={styles.chartLabel}>
-                <span className={styles.chartTitle}>D9 · Navamsha</span>
+                <span className={styles.chartTitle}>{t('cD9')}</span>
                 <span className={styles.chartAccent}>
-                  {RASHI_SHORT[(chart.vargaLagnas?.D9 ?? 1) as Rashi]} lagna
+                  {t('lagnaOf', { sign: hi ? RASHI_HI[(chart.vargaLagnas?.D9 ?? 1) as Rashi] : RASHI_SHORT[(chart.vargaLagnas?.D9 ?? 1) as Rashi] })}
                 </span>
               </div>
               <ChakraSelector
@@ -282,7 +288,7 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
 
             <div className={styles.tableCard}>
               <div className={styles.chartLabel}>
-                <span className={styles.chartTitle}>Planetary Micro-Details</span>
+                <span className={styles.chartTitle}>{t('cMicro')}</span>
                 <Activity size={14} color="var(--text-gold)" aria-hidden />
               </div>
               <GrahaTable
@@ -302,11 +308,11 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'details' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Deep Planetary Analysis</h3>
+            <h3 className={styles.sectionTitle}>{t('tDeep')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
-            Sign, nakshatra, KP lords, dignity, energy-cycle teaser, and shadbala for each graha and special point.
+            {t('detailsHint')}
           </p>
           <div className={styles.planetGrid}>
             {mergedPlanets.map((p) => (
@@ -328,24 +334,24 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'sun' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Sun · 12 Adityas</h3>
+            <h3 className={styles.sectionTitle}>{t('tSunAditya')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Surya teaching: 12 Adityas, Pingala/prana, difficult influences, Pitru Dosh — primary Aditya scored from natal Sun nakshatra, sign, and house.'
-              : 'Free preview of primary Aditya and core karakatva. Gold unlocks all 12 Adityas, spiritual notes, and difficult influences.'}
+              ? t('sunAdityaFull')
+              : t('sunAdityaFree')}
           </p>
           <SunAdityasPanel chart={chart} userPlan={userPlan} />
 
           <div className={styles.sectionHead} style={{ marginTop: '1.25rem' }}>
-            <h3 className={styles.sectionTitle}>Sun · Houses & Yuti</h3>
+            <h3 className={styles.sectionTitle}>{t('tSunHouses')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'House-by-house Surya notes plus Sun–Moon (Amavasya), Mars, Mercury, Jupiter, Venus, Saturn, Rahu, and Ketu yuti (conjunction) — natal house and active conjunctions highlighted.'
-              : 'Free preview of natal Sun house teaching and active yuti (conjunction). Gold unlocks all 12 houses, full yuti catalogue, and remedies.'}
+              ? t('sunHousesFull')
+              : t('sunHousesFree')}
           </p>
           <SunHousesYutiPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -355,13 +361,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'moon' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Moon · 16 Kalas & Manas</h3>
+            <h3 className={styles.sectionTitle}>{t('tMoon')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Moon teaching: Paksha Bali, Chandra + Tripura Sundari 16 kalas, significations, Vedic quotes, eight-step analysis, Neecha Bhanga, seven manas, and past-life / grahan — chart-specific items highlighted.'
-              : 'Free preview of Paksha Bali, both active kalas (Chandra + Tripura), and primary manas. Gold unlocks foundations, both kala systems, manas, analysis framework, and past-life reference.'}
+              ? t('moonFull')
+              : t('moonFree')}
           </p>
           <MoonKalasManasPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -371,13 +377,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'mars' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Mars · Mangala Analysis</h3>
+            <h3 className={styles.sectionTitle}>{t('tMars')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Mangala teaching: mixed house + rashi + planet interpretations, classical catalogues, upachaya (growth houses: 3, 6, 10, 11), 4/7/8 aspects, kalas, Mars–Ketu, and remedies — natal items highlighted.'
-              : 'Free preview of natal Mars house, upachaya (growth houses: 3, 6, 10, 11), and mixed interpretation teaser. Gold unlocks full mixed layers, catalogues, aspects, Mars–Ketu, and remedies.'}
+              ? t('marsFull')
+              : t('marsFree')}
           </p>
           <MarsAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -387,13 +393,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'mercury' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Mercury · Budha Analysis</h3>
+            <h3 className={styles.sectionTitle}>{t('tMercury')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Budha teaching: karakatva, mythology, classical catalogues, house difficulty (9/7/12), combust/vakri (retrograde) gifts & shadows, yuti (conjunction) company, and remedies — natal items highlighted.'
-              : 'Free preview of natal Mercury house, yuti (conjunction) companions, and combust/vakri (retrograde) flags. Gold unlocks karakatva, catalogues, house teaching, conditions, and remedies.'}
+              ? t('mercuryFull')
+              : t('mercuryFree')}
           </p>
           <MercuryAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -403,13 +409,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'jupiter' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Jupiter · Guru Analysis</h3>
+            <h3 className={styles.sectionTitle}>{t('tJupiter')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Brihaspati teaching: karakatva, classical catalogues, house delay & dusthana (difficult houses: 6, 8, 12) reversal, 5/7/9 aspects, Guru-Chandal/Ketu/Mangal/Shani yogas, kendradhipati, combust/vakri (retrograde), and remedies — natal items highlighted.'
-              : 'Free preview of natal Jupiter house, aspects, yoga flags, and combust/vakri (retrograde). Gold unlocks karakatva, catalogues, yogas detail, conditions, and remedies.'}
+              ? t('jupiterFull')
+              : t('jupiterFree')}
           </p>
           <JupiterAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -419,13 +425,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'venus' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Venus · Shukra Analysis</h3>
+            <h3 className={styles.sectionTitle}>{t('tVenus')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Shukra teaching: mythology, karakatva, 16 kalas, five stages, dusthana (6/8/12), exalt/debil/vakri (retrograde)/asta, yuti (conjunction) yogas, Yayati arc, and remedies — natal items highlighted.'
-              : 'Free preview of natal Venus house, yuti (conjunction), dusthana (difficult houses: 6, 8, 12) flags, and combust/vakri (retrograde). Gold unlocks karakatva, 16 kalas, catalogues, yogas, and mythology.'}
+              ? t('venusFull')
+              : t('venusFree')}
           </p>
           <VenusAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -435,13 +441,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'saturn' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Saturn · Shani Analysis</h3>
+            <h3 className={styles.sectionTitle}>{t('tSaturn')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Shani teaching: karakatva, Kantak kendras (angular houses: 1, 4, 7, 10), 3/7/10 aspects, Visha/Shapit yogas, Sade Sati padā, vakri (retrograde)/asta, mythology, and remedies — natal items highlighted.'
-              : 'Free preview of natal Saturn house, Kantak, aspects, and yoga/combust/vakri (retrograde) flags. Gold unlocks karakatva, Sade Sati padā, catalogues, and tradition.'}
+              ? t('saturnFull')
+              : t('saturnFree')}
           </p>
           <SaturnAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -451,13 +457,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'rahu' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Rahu · Rāhu Analysis</h3>
+            <h3 className={styles.sectionTitle}>{t('tRahu')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Rāhu teaching: karakatva, upachaya (growth houses: 3, 6, 10, 11) / Shatru Hantā, Ashta Lakshmi, Angārak & Guru-Chāṇḍāla yogas, nakshatras, mythology, Kāl Sarp clarification, and dasha-vs-transit — natal items highlighted.'
-              : 'Free preview of natal Rahu house, upachaya (growth houses: 3, 6, 10, 11) / Shatru Hantā flags, and active yogas. Gold unlocks karakatva, catalogues, Ashta Lakshmi, and tradition.'}
+              ? t('rahuFull')
+              : t('rahuFree')}
           </p>
           <RahuAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -467,13 +473,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'ketu' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Ketu · Śikhin Analysis</h3>
+            <h3 className={styles.sectionTitle}>{t('tKetu')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Full Ketu teaching: karakatva, dharma/moksha trikon, no-dṛṣṭi axis, MD vs AD, yuti (conjunction) yogas, nakshatras, remedies, and prediction ethics — natal items highlighted.'
-              : 'Free preview of natal Ketu house, dharma/moksha flags, and active yogas. Gold unlocks karakatva, catalogues, MD vs AD, and tradition.'}
+              ? t('ketuFull')
+              : t('ketuFree')}
           </p>
           <KetuAnalysisPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -483,13 +489,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'remedies' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Planetary Energies & Remedies</h3>
+            <h3 className={styles.sectionTitle}>{t('tRemedies')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Behavioural, spiritual, daan, and seva remedies for each graha — ranked by natal affliction (dignity, combust, vakri, war, gandanta, shadbala), with the nakshatra deity that gives the exact energy for the remedy.'
-              : 'Free preview of your two most afflicted grahas with indications and behavioural remedies. Gold unlocks all nine planets with spiritual remedies, daan, seva, and cautions.'}
+              ? t('remediesFull')
+              : t('remediesFree')}
           </p>
           <PlanetaryRemediesPanel chart={chart} userPlan={userPlan} />
         </section>
@@ -499,12 +505,12 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'maturity' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Planetary Maturity Ages</h3>
+            <h3 className={styles.sectionTitle}>{t('tMaturity')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
-            Classical ages when each planet matures, with themes said to strengthen afterward.
-            Static teaching guide — not chart-personalized.
+            {t('maturityHint1')}
+            {t('maturityHint2')}
           </p>
           <PlanetaryMaturityGuide />
         </section>
@@ -514,13 +520,13 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'energy' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Planetary Energy Cycles</h3>
+            <h3 className={styles.sectionTitle}>{t('tEnergy')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
             {energyFull
-              ? 'Energy forms from classical cycle teaching — Saturn locks/releases, Jupiter peace ages, Venus pada desires, Sun authority switch in air signs, and more. Independent of mahadasha.'
-              : 'Free preview of two cycles. Upgrade to Gold for all nine planets with phases, timing windows, and chart-specific notes.'}
+              ? t('energyFull')
+              : t('energyFree')}
           </p>
           <PlanetaryEnergyCyclesPanel chart={chart} userPlan={userPlan} embedded />
         </section>
@@ -530,7 +536,7 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'yogi' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Yogi Point System</h3>
+            <h3 className={styles.sectionTitle}>{t('tYogi')}</h3>
             <div className={styles.sectionRule} />
           </div>
           {chart.yogiPoint ? (
@@ -543,7 +549,7 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
               }))}
             />
           ) : (
-            <div className={styles.emptyNote}>Yogi Point is not available for this chart.</div>
+            <div className={styles.emptyNote}>{t('yogiNA')}</div>
           )}
         </section>
       )}
@@ -552,11 +558,11 @@ export function PlanetsWorkspace({ chart, userPlan = 'free' }: PlanetsWorkspaceP
       {tab === 'insights' && (
         <section className={styles.section} role="tabpanel">
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Interpretation & Advanced Flags</h3>
+            <h3 className={styles.sectionTitle}>{t('tInsights')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.sectionHint}>
-            Narrative interpretation plus Gandanta, Pushkara, Mrityu Bhaga, and Yuddha status.
+            {t('insightsHint')}
           </p>
           <div className={styles.stack}>
             {chart.interpretation ? (

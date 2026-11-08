@@ -7,6 +7,10 @@ import React from 'react'
 import { ChartOutput } from '@/types/astrology'
 import { getActiveHouses, getHouseTopics, getProgressionHouse } from '@/lib/engine/activeHouses'
 import { getLagnaHouseReading } from '@/lib/engine/lagnaCharacter'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import type { GrahaId, Rashi } from '@/types/astrology'
 
 interface ActiveHousesCardProps {
   chart: ChartOutput
@@ -21,7 +25,9 @@ const RASHI_LORD: Record<number, string> = {
 export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProps) {
   const { lagnas, grahas, dashas } = chart
   const ascRashi = lagnas.ascRashi
-  const topics = getHouseTopics()
+  const t = useTranslations('chart.activeHouses')
+  const { lang, hi } = useLang()
+  const topics = getHouseTopics(lang)
   const activeHouses = getActiveHouses(chart, transitMoonLon)
 
   const findCurrentLords = (nodes: any[]): string[] => {
@@ -49,7 +55,7 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
 
   const progressionHouse = getProgressionHouse(chart.meta.birthDate)
   const lagnaTheme = (h: number) => {
-    const reading = getLagnaHouseReading(ascRashi, h as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)
+    const reading = getLagnaHouseReading(ascRashi, h as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12, lang)
     return reading ? `${reading.signName}: ${reading.theme}` : null
   }
 
@@ -58,16 +64,16 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
 
       {/* ── Compact header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.25rem', borderBottom: '1px solid var(--border-soft)' }}>
-        <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.07em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Active Houses</span>
+        <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.07em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('title')}</span>
         <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.58rem', color: 'var(--text-muted)', alignItems: 'center' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold)', display: 'inline-block' }} /> Dasha
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold)', display: 'inline-block' }} /> {t('dasha')}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--teal)', display: 'inline-block' }} /> Transit
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--teal)', display: 'inline-block' }} /> {t('transit')}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-            <span style={{ width: 8, height: 2, background: 'var(--gold)', opacity: 0.6, display: 'inline-block' }} /> Prog
+            <span style={{ width: 8, height: 2, background: 'var(--gold)', opacity: 0.6, display: 'inline-block' }} /> {t('prog')}
           </span>
         </div>
       </div>
@@ -81,8 +87,8 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
             const isDasha = activeLords.slice(0, 1).some(l => getHouseOfPlanet(l) === h)
 
             const indicators: React.ReactNode[] = []
-            if (isTransit) indicators.push(<span key="tr" style={{ color: 'var(--teal)', fontSize: '0.58rem' }}>● Transit Moon</span>)
-            if (isProgression) indicators.push(<span key="pr" style={{ color: 'var(--text-gold)', fontSize: '0.58rem' }}>● Yearly Prog</span>)
+            if (isTransit) indicators.push(<span key="tr" style={{ color: 'var(--teal)', fontSize: '0.58rem' }}>{t('transitMoon')}</span>)
+            if (isProgression) indicators.push(<span key="pr" style={{ color: 'var(--text-gold)', fontSize: '0.58rem' }}>{t('yearlyProg')}</span>)
             activeLords.slice(0, 2).forEach((l, li) => {
               const isOcc = getHouseOfPlanet(l) === h
               const rashiOfHouse = ((ascRashi + h - 2) % 12) + 1
@@ -90,7 +96,7 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
               if (isOcc || isRul) {
                 indicators.push(
                   <span key={`${l}-${li}`} style={{ color: 'var(--gold)', fontSize: '0.58rem' }}>
-                    ● {li === 0 ? 'MD' : 'AD'} {l} ({isOcc ? 'in' : 'rules'})
+                    {t('lord', { level: li === 0 ? t('md') : t('ad'), lord: hi ? GRAHA_HI[l as GrahaId] ?? l : l, relation: isOcc ? t('in') : t('rules') })}
                   </span>
                 )
               }
@@ -140,7 +146,7 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-          Calculate chart to see active houses.
+          {t('empty')}
         </div>
       )}
     </div>

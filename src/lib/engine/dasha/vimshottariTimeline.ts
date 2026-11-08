@@ -13,6 +13,9 @@ import {
   isMaleficVimNature,
 } from '@/lib/engine/dasha/vimshottariInterpretations'
 import { isChidraAntardasha } from '@/lib/engine/dasha/vimshottariAnalysis'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import { TIMELINE_HI } from '@/lib/engine/locale/dashaGochar.hi'
 
 export type TimelineTone = 'supportive' | 'mixed' | 'caution'
 
@@ -45,10 +48,18 @@ function toMs(value: Date | string | number): number {
   return new Date(value).getTime()
 }
 
-function toneForAntar(mahaLord: string, antarLord: string): {
+function toneForAntar(mahaLord: string, antarLord: string, lang: EngineLang = 'en'): {
   tone: TimelineTone
   toneLabel: string
 } {
+  if (lang === 'hi') {
+    const en = toneForAntar(mahaLord, antarLord)
+    const chidra = isChidraAntardasha(mahaLord, antarLord)
+    const label = chidra.isChidra
+      ? chidra.phase === 'beginning' ? TIMELINE_HI.setup : TIMELINE_HI.transition
+      : TIMELINE_HI[en.tone]
+    return { tone: en.tone, toneLabel: label }
+  }
   const interp = getVimshottariInterpretation(antarLord)
   const chidra = isChidraAntardasha(mahaLord, antarLord)
   if (chidra.isChidra) {
@@ -74,7 +85,9 @@ export function buildUpcomingVimshottariTimeline(
   nodes: DashaNode[],
   now: number = Date.now(),
   antarLimit = 5,
+  lang: EngineLang = 'en',
 ): VimshottariUpcomingTimeline {
+  if (lang === 'hi') return timelineHi(buildUpcomingVimshottariTimeline(nodes, now, antarLimit))
   const path = getDashaPathAt(nodes, now)
   const currentMaha = path[0] ?? nodes.find(n => toMs(n.start) <= now && now < toMs(n.end)) ?? null
 
@@ -176,9 +189,47 @@ export function buildUpcomingVimshottariTimeline(
   }
 }
 
-export function formatShortDate(iso: string): string {
+export function formatShortDate(iso: string, lang: EngineLang = 'en'): string {
   if (!iso) return '—'
   const d = new Date(iso)
   if (!Number.isFinite(d.getTime())) return '—'
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  return d.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+/** Hindi copy of a timeline: same lords, dates and tones; Hindi labels and hints. */
+function timelineHi(en: VimshottariUpcomingTimeline): VimshottariUpcomingTimeline {
+  const T = TIMELINE_HI
+  const name = (id: string) => GRAHA_HI[id as GrahaId] ?? id
+  const upcomingAntars = en.upcomingAntars.map(item => {
+    // English labels mark the kind of row: "Current X Antar", "X Antar", "X Antar (Y MD)".
+    const inNextMaha = item.label.endsWith(' MD)')
+    const { toneLabel } = toneForAntar(item.mahaLord, item.lord, 'hi')
+    return {
+      ...item,
+      toneLabel: item.toneLabel.startsWith('Now') ? fill(T.now, { tone: toneLabel }) : toneLabel,
+      hint: getVimshottariAntarHint(item.mahaLord, item.lord, 'hi'),
+      label: inNextMaha
+        ? fill(T.antarInMaha, { lord: name(item.lord), maha: name(item.mahaLord) })
+        : item.label.startsWith('Current')
+          ? fill(T.currentAntar, { lord: name(item.lord) })
+          : fill(T.antar, { lord: name(item.lord) }),
+    }
+  })
+  const nextMaha = en.nextMaha
+    ? {
+      ...en.nextMaha,
+      toneLabel: T.nextMaha,
+      hint: getVimshottariInterpretation(en.nextMaha.lord, 'hi')?.keyTheme ?? null,
+      label: fill(T.maha, { lord: name(en.nextMaha.lord) }),
+    }
+    : null
+  const parts: string[] = []
+  const first = upcomingAntars[0]
+  if (first) {
+    parts.push(en.upcomingAntars[0].toneLabel.startsWith('Now')
+      ? fill(T.headCurrent, { date: formatShortDate(first.endIso, 'hi') })
+      : fill(T.headNext, { label: first.label, date: formatShortDate(first.startIso, 'hi') }))
+  }
+  if (nextMaha) parts.push(fill(T.headNextMaha, { lord: name(nextMaha.lord), date: formatShortDate(nextMaha.startIso, 'hi') }))
+  return { upcomingAntars, nextMaha, headline: parts.length ? parts.join(' · ') : T.none }
 }

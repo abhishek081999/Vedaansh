@@ -8,6 +8,7 @@ import React, { useState } from 'react'
 import type { CareerTone } from '@/lib/engine/dashamsaAnalysis'
 import type { DashamsaClassical, DashamsaPlanetPhala } from '@/lib/engine/dashamsaClassical'
 import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/ui/cn'
 import styles from './DashamsaWorkspace.module.css'
 
@@ -31,6 +32,7 @@ function toneClass(tone: CareerTone): string {
 }
 
 function PlanetPhalaCard({ p }: { p: DashamsaPlanetPhala }) {
+  const t = useTranslations('divisional.d10.cl')
   const [open, setOpen] = useState(p.priority)
   return (
     <article className={cn(styles.insightCard, p.priority ? styles.insightHighlight : styles.insightInfo)}>
@@ -54,12 +56,12 @@ function PlanetPhalaCard({ p }: { p: DashamsaPlanetPhala }) {
         <div style={{ marginTop: '0.65rem' }}>
           {p.houseTeaching && (
             <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-              Teaching (house): {p.houseTeaching}
+              {t('teaching', { text: p.houseTeaching })}
             </p>
           )}
-          <ClassicalNotesList title="Planet in D10 house" notes={p.houseClassical} />
+          <ClassicalNotesList title={t('planetInHouse')} notes={p.houseClassical} />
           <div style={{ height: '0.55rem' }} />
-          <ClassicalNotesList title="Planet in D10 rashi" notes={p.signClassical} />
+          <ClassicalNotesList title={t('planetInRashi')} notes={p.signClassical} />
         </div>
       )}
     </article>
@@ -67,6 +69,7 @@ function PlanetPhalaCard({ p }: { p: DashamsaPlanetPhala }) {
 }
 
 export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClassical }) {
+  const t = useTranslations('divisional.d10.cl')
   const formed = classical.yogas.filter((y) => y.formed)
   const quiet = classical.yogas.filter((y) => !y.formed)
   const { mahatphala, livelihood, mahatEmphasis, phala } = classical
@@ -74,7 +77,7 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
 
   return (
     <>
-      <Section title="Classical predictions">
+      <Section title={t('predictions')}>
         <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
           {classical.framing}
         </p>
@@ -85,7 +88,7 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
         </ol>
       </Section>
 
-      <Section title="Mahatphala grade">
+      <Section title={t('mahatGrade')}>
         <article className={cn(styles.insightCard, styles.insightHighlight)}>
           <h4 className={styles.insightTitle}>
             {mahatphala.gradeLabel}
@@ -119,10 +122,10 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
         </div>
       </Section>
 
-      <Section title="Livelihood planet">
+      <Section title={t('livelihood')}>
         <article className={cn(styles.insightCard, mahatEmphasis.agrees ? styles.insightStrength : styles.insightHighlight)} style={{ marginBottom: '0.65rem' }}>
           <h4 className={styles.insightTitle}>
-            {mahatEmphasis.agrees ? 'D1 and D10 agree' : 'D1 type · D10 status'}
+            {mahatEmphasis.agrees ? t('d1d10Agree') : t('d1TypeD10Status')}
           </h4>
           <p className={styles.insightText}>{mahatEmphasis.agreement}</p>
         </article>
@@ -143,10 +146,10 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Planet</th>
-                <th>Score</th>
-                <th>Why this score</th>
-                <th>Fields</th>
+                <th>{t('thPlanet')}</th>
+                <th>{t('thScore')}</th>
+                <th>{t('thWhy')}</th>
+                <th>{t('thFields')}</th>
               </tr>
             </thead>
             <tbody>
@@ -155,7 +158,7 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
                   <td className={styles.planetCell}>
                     {c.name}
                     {c.id === livelihood.winner.id && (
-                      <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 6 }}>Lead</span>
+                      <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 6 }}>{t('lead')}</span>
                     )}
                   </td>
                   <td>{c.score}</td>
@@ -167,11 +170,11 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
           </table>
         </div>
         <p style={{ margin: '0.55rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          Dashamsha 10th complex leads with {mahatEmphasis.winner.name} ({mahatEmphasis.winner.score}) — {mahatEmphasis.winner.why}.
+          {t('complexLeads', { name: mahatEmphasis.winner.name, score: mahatEmphasis.winner.score, why: mahatEmphasis.winner.why })}
         </p>
       </Section>
 
-      <Section title="10th lord and the 10th sign">
+      <Section title={t('tenthLordSign')}>
         <div className={styles.insightGrid}>
           <article className={cn(styles.insightCard, styles.insightHighlight)}>
             <h4 className={styles.insightTitle}>{classical.tenthLord.headline}</h4>
@@ -187,29 +190,29 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
           </article>
           {classical.tenthOccupants.map((o) => (
             <article key={o.id} className={cn(styles.insightCard, styles.insightStrength)}>
-              <h4 className={styles.insightTitle}>{o.name} in the D10 10th</h4>
+              <h4 className={styles.insightTitle}>{t('inD10Tenth', { name: o.name })}</h4>
               <p className={styles.insightText}>{o.prediction}</p>
             </article>
           ))}
           {classical.luminaries.map((l) => (
             <article key={l.from} className={cn(styles.insightCard, styles.insightInfo)}>
-              <h4 className={styles.insightTitle}>10th from {l.from}</h4>
+              <h4 className={styles.insightTitle}>{t('tenthFrom', { from: l.from })}</h4>
               <p className={styles.insightText}>{l.prediction}</p>
             </article>
           ))}
         </div>
       </Section>
 
-      <Section title="Yogas that are formed">
+      <Section title={t('yogasFormed')}>
         {formed.length === 0 ? (
-          <p className={styles.heroSub}>No listed career yoga is formed. Use the 10th lord’s house as the reading.</p>
+          <p className={styles.heroSub}>{t('noYoga')}</p>
         ) : (
           <div className={styles.insightGrid}>
             {formed.map((y) => (
               <article key={y.id} className={cn(styles.insightCard, toneClass(y.tone))}>
                 <h4 className={styles.insightTitle}>
                   {y.name}
-                  <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Formed</span>
+                  <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('formed')}</span>
                 </h4>
                 <p className={styles.insightText}>{y.prediction}</p>
                 <p style={{ margin: '0.45rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>{y.source}</p>
@@ -219,7 +222,7 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
         )}
       </Section>
 
-      <Section title="Checked and not formed">
+      <Section title={t('yogasQuiet')}>
         <ul style={{ margin: 0, paddingLeft: '1.15rem', color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: 1.5 }}>
           {quiet.map((y) => (
             <li key={y.id} style={{ marginBottom: 6 }}>
@@ -230,7 +233,7 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
       </Section>
 
       {classical.amatyakaraka && (
-        <Section title="Amatyakaraka">
+        <Section title={t('amatya')}>
           <article className={cn(styles.insightCard, styles.insightHighlight)}>
             <h4 className={styles.insightTitle}>{classical.amatyakaraka.headline}</h4>
             <p className={styles.insightText}>{classical.amatyakaraka.prediction}</p>
@@ -239,18 +242,18 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
         </Section>
       )}
 
-      <Section title="Rashi & planet phala in D10">
+      <Section title={t('phala')}>
         <p className={styles.heroSub} style={{ marginBottom: '0.75rem', maxWidth: 'none' }}>
           {phala.framing}
         </p>
         <article className={cn(styles.insightCard, styles.insightHighlight)} style={{ marginBottom: '0.65rem' }}>
           <h4 className={styles.insightTitle}>
-            D10 Lagna · {phala.lagna.rashiName}
+            {t('lagnaHead', { rashi: phala.lagna.rashiName })}
             <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>{phala.lagna.keyword}</span>
           </h4>
           {phala.lagna.careers.length > 0 && (
             <p className={styles.insightText} style={{ marginBottom: '0.45rem' }}>
-              Careers: {phala.lagna.careers.join(' · ')}
+              {t('careers', { list: phala.lagna.careers.join(' · ') })}
             </p>
           )}
           {phala.lagna.traits.length > 0 && (
@@ -258,7 +261,7 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
               {phala.lagna.traits.join(' · ')}
             </p>
           )}
-          <ClassicalNotesList title="Lagna rashi classical" notes={phala.lagna.classical} />
+          <ClassicalNotesList title={t('lagnaClassical')} notes={phala.lagna.classical} />
         </article>
 
         <div className={styles.insightGrid} style={{ marginBottom: '0.75rem' }}>
@@ -270,22 +273,22 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
               <p className={styles.insightText}>{h.d10Theme}</p>
               {h.signInHouse && (
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                  Sign-in-house: {h.signInHouse}
+                  {t('signInHouse', { text: h.signInHouse })}
                 </p>
               )}
               {h.occupants.length > 0 && (
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  Occupants: {h.occupants.join(', ')}
+                  {t('occupants', { list: h.occupants.join(', ') })}
                 </p>
               )}
               <div style={{ marginTop: '0.45rem' }}>
-                <ClassicalNotesList title="House classical" notes={h.houseClassical} />
+                <ClassicalNotesList title={t('houseClassical')} notes={h.houseClassical} />
               </div>
             </article>
           ))}
         </div>
 
-        <h4 className={styles.insightTitle} style={{ marginBottom: '0.55rem' }}>Career lords in D10</h4>
+        <h4 className={styles.insightTitle} style={{ marginBottom: '0.55rem' }}>{t('careerLords')}</h4>
         <div className={styles.insightGrid}>
           {phala.priorityPlanets.map((p) => (
             <PlanetPhalaCard key={p.id} p={p} />
@@ -299,7 +302,7 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
               className={styles.tabBtn}
               onClick={() => setShowOtherPhala((v) => !v)}
             >
-              {showOtherPhala ? 'Hide' : 'Show'} other planets ({phala.otherPlanets.length})
+              {showOtherPhala ? t('hideOther', { n: phala.otherPlanets.length }) : t('showOther', { n: phala.otherPlanets.length })}
             </button>
             {showOtherPhala && (
               <div className={styles.insightGrid} style={{ marginTop: '0.65rem' }}>
@@ -312,22 +315,22 @@ export function DashamsaClassicalPanel({ classical }: { classical: DashamsaClass
         )}
       </Section>
 
-      <Section title="When it shows">
+      <Section title={t('whenShows')}>
         <div className={styles.insightGrid}>
-          {classical.timing.map((t) => (
-            <article key={t.id} className={cn(styles.insightCard, t.live ? styles.insightHighlight : styles.insightInfo)}>
+          {classical.timing.map((row) => (
+            <article key={row.id} className={cn(styles.insightCard, row.live ? styles.insightHighlight : styles.insightInfo)}>
               <h4 className={styles.insightTitle}>
-                {t.title}
-                {t.live && <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>Live</span>}
+                {row.title}
+                {row.live && <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>{t('live')}</span>}
               </h4>
-              <p style={{ margin: '0 0 0.35rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{t.window}</p>
-              <p className={styles.insightText}>{t.prediction}</p>
+              <p style={{ margin: '0 0 0.35rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.window}</p>
+              <p className={styles.insightText}>{row.prediction}</p>
             </article>
           ))}
         </div>
       </Section>
 
-      <Section title="How to read it">
+      <Section title={t('howToRead')}>
         <ol style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
           {classical.readingOrder.map((s) => (
             <li key={s} style={{ marginBottom: 6 }}>{s}</li>

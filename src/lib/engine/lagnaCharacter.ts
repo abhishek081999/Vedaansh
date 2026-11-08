@@ -7,6 +7,26 @@
 
 import type { Rashi } from '@/types/astrology'
 import type { HouseNumber } from '@/lib/engine/houseInterpretations'
+import type { EngineLang } from '@/lib/engine/lang'
+import { RASHI_HI } from '@/i18n/jyotish'
+import {
+  LAGNA_CHARACTER_METHOD_NOTES_HI,
+  LAGNA_CHARACTER_NOTE_HI,
+  LAGNA_HOUSE_THEME_HI,
+  type LagnaProfileHi,
+} from '@/lib/engine/locale/lagnaCharacter.hi'
+import { ARIES_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/aries.hi'
+import { TAURUS_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/taurus.hi'
+import { GEMINI_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/gemini.hi'
+import { CANCER_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/cancer.hi'
+import { LEO_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/leo.hi'
+import { VIRGO_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/virgo.hi'
+import { LIBRA_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/libra.hi'
+import { SCORPIO_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/scorpio.hi'
+import { SAGITTARIUS_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/sagittarius.hi'
+import { CAPRICORN_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/capricorn.hi'
+import { AQUARIUS_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/aquarius.hi'
+import { PISCES_LAGNA_PROFILE_HI } from '@/lib/engine/locale/lagnaCharacterData/pisces.hi'
 import { ARIES_LAGNA_PROFILE } from '@/lib/engine/lagnaCharacterData/aries'
 import { TAURUS_LAGNA_PROFILE } from '@/lib/engine/lagnaCharacterData/taurus'
 import { GEMINI_LAGNA_PROFILE } from '@/lib/engine/lagnaCharacterData/gemini'
@@ -77,8 +97,67 @@ const LAGNA_CHARACTER_PROFILES: Partial<Record<Rashi, LagnaCharacterProfile>> = 
   12: PISCES_LAGNA_PROFILE,
 }
 
-export function getLagnaCharacterProfile(rashi: Rashi): LagnaCharacterProfile | null {
-  return LAGNA_CHARACTER_PROFILES[rashi] ?? null
+const LAGNA_CHARACTER_PROFILES_HI: Partial<Record<Rashi, LagnaProfileHi>> = {
+  1: ARIES_LAGNA_PROFILE_HI,
+  2: TAURUS_LAGNA_PROFILE_HI,
+  3: GEMINI_LAGNA_PROFILE_HI,
+  4: CANCER_LAGNA_PROFILE_HI,
+  5: LEO_LAGNA_PROFILE_HI,
+  6: VIRGO_LAGNA_PROFILE_HI,
+  7: LIBRA_LAGNA_PROFILE_HI,
+  8: SCORPIO_LAGNA_PROFILE_HI,
+  9: SAGITTARIUS_LAGNA_PROFILE_HI,
+  10: CAPRICORN_LAGNA_PROFILE_HI,
+  11: AQUARIUS_LAGNA_PROFILE_HI,
+  12: PISCES_LAGNA_PROFILE_HI,
+}
+
+/** Hindi house reading built on the English one: ids/house stay, text swaps. */
+function houseHi(rashi: Rashi, en: LagnaHouseReading): LagnaHouseReading {
+  const sign = (((rashi + en.house - 2) % 12) + 1) as Rashi
+  return {
+    ...en,
+    signName: RASHI_HI[sign] ?? en.signName,
+    theme: LAGNA_HOUSE_THEME_HI[rashi]?.[en.house - 1] ?? en.theme,
+    points: LAGNA_CHARACTER_PROFILES_HI[rashi]?.houses[en.house] ?? en.points,
+  }
+}
+
+/** With lang 'hi', every display string is Hindi; rashi, trait ids and house numbers stay. */
+export function getLagnaCharacterProfile(rashi: Rashi, lang: EngineLang = 'en'): LagnaCharacterProfile | null {
+  const en = LAGNA_CHARACTER_PROFILES[rashi] ?? null
+  if (!en || lang !== 'hi') return en
+  const hi = LAGNA_CHARACTER_PROFILES_HI[rashi]
+  if (!hi) return en
+  const houses = Object.fromEntries(
+    Object.values(en.houses).map((h) => [h.house, houseHi(rashi, h)]),
+  ) as Record<HouseNumber, LagnaHouseReading>
+  return {
+    ...en,
+    title: hi.title,
+    intro: hi.intro,
+    traits: en.traits.map((t, i) => ({
+      ...t,
+      title: hi.traits[i]?.title ?? t.title,
+      points: hi.traits[i]?.points ?? t.points,
+    })),
+    houses,
+    exceptions: hi.exceptions.length === en.exceptions.length ? hi.exceptions : en.exceptions,
+    readingNotes: hi.readingNotes.length === en.readingNotes.length ? hi.readingNotes : en.readingNotes,
+  }
+}
+
+/** Raw Hindi profile table (tests compare it with the English shape). */
+export function getLagnaCharacterProfileHi(rashi: Rashi): LagnaProfileHi | null {
+  return LAGNA_CHARACTER_PROFILES_HI[rashi] ?? null
+}
+
+export function getLagnaCharacterMethodNotes(lang: EngineLang = 'en'): string[] {
+  return lang === 'hi' ? LAGNA_CHARACTER_METHOD_NOTES_HI : LAGNA_CHARACTER_METHOD_NOTES
+}
+
+export function getLagnaCharacterNote(lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? LAGNA_CHARACTER_NOTE_HI : LAGNA_CHARACTER_NOTE
 }
 
 /** Signs that currently have a character profile. */
@@ -86,6 +165,9 @@ export function getLagnaCharacterAvailableRashis(): Rashi[] {
   return (Object.keys(LAGNA_CHARACTER_PROFILES).map(Number) as Rashi[]).sort((a, b) => a - b)
 }
 
-export function getLagnaHouseReading(rashi: Rashi, house: HouseNumber): LagnaHouseReading | null {
-  return getLagnaCharacterProfile(rashi)?.houses[house] ?? null
+/** With lang 'hi', signName, theme and points come back in Hindi. */
+export function getLagnaHouseReading(rashi: Rashi, house: HouseNumber, lang: EngineLang = 'en'): LagnaHouseReading | null {
+  const en = LAGNA_CHARACTER_PROFILES[rashi]?.houses[house] ?? null
+  if (!en || lang !== 'hi') return en
+  return houseHi(rashi, en)
 }

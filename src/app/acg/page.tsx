@@ -1,10 +1,10 @@
 'use client'
 
+import { Link } from '@/i18n/navigation'
 import React, { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { useChart } from '@/components/providers/ChartProvider'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
-import Link from 'next/link'
 import { Globe, Map, Sparkles, BookOpen } from 'lucide-react'
 import type { ACGAnalysisTab } from '@/components/ui/AstroCartographyAnalysis'
 import { MobileBottomNavShell } from '@/components/ui/MobileBottomNavShell'

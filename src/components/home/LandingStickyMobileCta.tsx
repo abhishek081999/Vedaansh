@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 type LandingStickyMobileCtaProps = {
   onClick: () => void
@@ -8,6 +9,7 @@ type LandingStickyMobileCtaProps = {
 
 export function LandingStickyMobileCta({ onClick }: LandingStickyMobileCtaProps) {
   const [visible, setVisible] = useState(false)
+  const t = useTranslations('home')
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -55,7 +57,7 @@ export function LandingStickyMobileCta({ onClick }: LandingStickyMobileCtaProps)
         onClick={onClick}
         className="btn btn-primary landing-sticky-mobile-cta-btn"
       >
-        ✦ Start Astrology App
+        {t('stickyCta')}
       </button>
     </div>
   )

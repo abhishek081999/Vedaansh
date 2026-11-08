@@ -528,6 +528,9 @@ export function getVargaPosition(lon: number, vname: VargaName): VargaPosition {
 /**
  * Human-readable varga metadata (UI + gating)
  */
+import type { EngineLang } from './lang'
+import { VARGA_HI } from './locale/vargas.hi'
+
 export const VARGA_META: Record<string, { full: string; topic: string; tier: 'free' | 'gold' | 'platinum' }> = {
   D1:  { full: 'Rashi',               topic: 'Lagna chart — personality, body, overall life',        tier: 'free' },
   Chalit: { full: 'Bhava Chalit',     topic: 'House positions — actual house placements (Sripati)', tier: 'free' },
@@ -584,3 +587,17 @@ export const VARGA_UI_LIST: Array<{ name: string; full: string; topic: string; t
     tier: VARGA_META[name]?.tier ?? 'platinum',
   })),
 ]
+
+/** VARGA_UI_LIST with Hindi names and topics when lang is 'hi'. Names (D9…) and tiers never change. */
+export function vargaUiList(lang: EngineLang = 'en'): typeof VARGA_UI_LIST {
+  if (lang !== 'hi') return VARGA_UI_LIST
+  return VARGA_UI_LIST.map(v => ({ ...v, ...(VARGA_HI[v.name] ?? {}) }))
+}
+
+/** One varga's display name and topic in the given language. */
+export function vargaText(name: string, lang: EngineLang = 'en'): { full: string; topic: string } | null {
+  const base = VARGA_META[name]
+  if (!base) return null
+  const hi = lang === 'hi' ? VARGA_HI[name] : undefined
+  return { full: hi?.full ?? base.full, topic: hi?.topic ?? base.topic }
+}

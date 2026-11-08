@@ -1,7 +1,17 @@
 'use client'
 import React from 'react'
-import type { GrahaData, Rashi } from '@/types/astrology'
+import type { GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_SHORT, RASHI_NAMES } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import {
+  GANDANTA_POSITION_HI,
+  GANDANTA_TYPE_HI,
+  MRITYU_REMEDY_HI,
+  PUSHKARA_REMEDY_HI,
+  SEVERITY_HI,
+} from '@/lib/engine/locale/advancedInterpretation.hi'
 
 // ─────────────────────────────────────────────────────────────
 //  AdvancedAnalysisPanel.tsx
@@ -34,10 +44,17 @@ const COLORS = {
 
 // Gandanta badge component
 function GandantaBadge({ gandanta }: { gandanta: GrahaData['gandanta'] }) {
+  const t = useTranslations('planetsB.advanced')
+  const { hi } = useLang()
   if (!gandanta.isGandanta) return null
   
   const colors = gandanta.severity === 'exact' ? COLORS.gandanta.exact : COLORS.gandanta.near
-  const typeLabel = gandanta.type?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) || ''
+  const typeLabel = hi
+    ? (gandanta.type ? GANDANTA_TYPE_HI[gandanta.type] ?? gandanta.type : '')
+    : gandanta.type?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) || ''
+  const position = hi
+    ? (gandanta.position ? GANDANTA_POSITION_HI[gandanta.position] ?? gandanta.position : '')
+    : gandanta.position?.replace('-', ' ')
   
   return (
     <div style={{
@@ -49,7 +66,7 @@ function GandantaBadge({ gandanta }: { gandanta: GrahaData['gandanta'] }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
         <span style={{ fontSize: '0.7rem', fontWeight: 700, color: colors.text, textTransform: 'uppercase' }}>
-          ⚠ Gandanta
+          {t('gandanta')}
         </span>
         <span style={{ 
           fontSize: '0.55rem', 
@@ -59,11 +76,11 @@ function GandantaBadge({ gandanta }: { gandanta: GrahaData['gandanta'] }) {
           border: `1px solid ${colors.border}`,
           color: colors.text,
         }}>
-          {gandanta.severity.toUpperCase()}
+          {hi ? SEVERITY_HI[gandanta.severity] ?? gandanta.severity : gandanta.severity.toUpperCase()}
         </span>
       </div>
       <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-        {typeLabel} · {gandanta.position?.replace('-', ' ')} · {gandanta.distanceFromJunction?.toFixed(2)}° from junction
+        {typeLabel} · {position} · {t('fromJunction', { deg: gandanta.distanceFromJunction?.toFixed(2) ?? '' })}
       </div>
     </div>
   )
@@ -71,10 +88,12 @@ function GandantaBadge({ gandanta }: { gandanta: GrahaData['gandanta'] }) {
 
 // Pushkara badge component
 function PushkaraBadge({ pushkara }: { pushkara: GrahaData['pushkara'] }) {
+  const t = useTranslations('planetsB.advanced')
+  const { hi } = useLang()
   if (!pushkara.isPushkara) return null
   
   const colors = COLORS.pushkara.navamsha
-  const label = 'Pushkara Navamsha'
+  const label = t('pushkara')
   
   return (
     <div style={{
@@ -91,7 +110,7 @@ function PushkaraBadge({ pushkara }: { pushkara: GrahaData['pushkara'] }) {
       </div>
       {pushkara.remedy && (
         <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-          {pushkara.remedy}
+          {hi ? PUSHKARA_REMEDY_HI : pushkara.remedy}
         </div>
       )}
     </div>
@@ -100,6 +119,8 @@ function PushkaraBadge({ pushkara }: { pushkara: GrahaData['pushkara'] }) {
 
 // Mrityu Bhaga badge component
 function MrityuBadge({ mrityuBhaga }: { mrityuBhaga: GrahaData['mrityuBhaga'] }) {
+  const t = useTranslations('planetsB.advanced')
+  const { hi } = useLang()
   if (!mrityuBhaga.isMrityuBhaga) return null
   
   const colors = COLORS.mrityu[mrityuBhaga.severity as keyof typeof COLORS.mrityu] || COLORS.mrityu.wide
@@ -114,18 +135,18 @@ function MrityuBadge({ mrityuBhaga }: { mrityuBhaga: GrahaData['mrityuBhaga'] })
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
         <span style={{ fontSize: '0.7rem', fontWeight: 700, color: colors.text }}>
-          🔱 Mrityu Bhaga
+          {t('mrityu')}
         </span>
         <span style={{ fontSize: '0.55rem', color: colors.text, opacity: 0.8 }}>
-          {mrityuBhaga.severity.toUpperCase()}
+          {hi ? SEVERITY_HI[mrityuBhaga.severity] ?? mrityuBhaga.severity : mrityuBhaga.severity.toUpperCase()}
         </span>
       </div>
       <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-        {mrityuBhaga.distanceFromMrityu.toFixed(2)}° from {mrityuBhaga.mrityuDegree}° point
+        {t('fromPoint', { dist: mrityuBhaga.distanceFromMrityu.toFixed(2), point: mrityuBhaga.mrityuDegree })}
       </div>
       {mrityuBhaga.remedy && (
         <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem', fontStyle: 'italic' }}>
-          {mrityuBhaga.remedy}
+          {hi ? MRITYU_REMEDY_HI[mrityuBhaga.severity] ?? mrityuBhaga.remedy : mrityuBhaga.remedy}
         </div>
       )}
     </div>
@@ -134,6 +155,8 @@ function MrityuBadge({ mrityuBhaga }: { mrityuBhaga: GrahaData['mrityuBhaga'] })
 
 // Yuddha badge component
 function YuddhaBadge({ yuddha, planetId }: { yuddha: GrahaData['yuddha']; planetId: string }) {
+  const t = useTranslations('planetsB.advanced')
+  const { hi } = useLang()
   if (!yuddha.isWarring) return null
   if (planetId !== 'Me' && planetId !== 'Ve') return null
   
@@ -150,7 +173,7 @@ function YuddhaBadge({ yuddha, planetId }: { yuddha: GrahaData['yuddha']; planet
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <span style={{ fontSize: '0.7rem', fontWeight: 700, color: colors.text }}>
-          ⚔ Yuddha (Planetary War)
+          {t('yuddha')}
         </span>
         <span style={{ 
           fontSize: '0.55rem', 
@@ -160,18 +183,25 @@ function YuddhaBadge({ yuddha, planetId }: { yuddha: GrahaData['yuddha']; planet
           border: `1px solid ${colors.border}`,
           color: colors.text,
         }}>
-          {isWinner ? 'WINNER' : 'LOSER'}
+          {isWinner ? t('winner') : t('loser')}
         </span>
       </div>
       <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-        {yuddha.degreeDifference.toFixed(2)}° from {isWinner ? yuddha.loser : yuddha.winner}
+        {t('fromGraha', { deg: yuddha.degreeDifference.toFixed(2), graha: otherGraha(isWinner ? yuddha.loser : yuddha.winner, hi) })}
       </div>
     </div>
   )
 }
 
+function otherGraha(id: string | null | undefined, hi: boolean): string {
+  if (!id) return ''
+  return hi && id in GRAHA_HI ? GRAHA_HI[id as GrahaId] : id
+}
+
 // Main component
 export function AdvancedAnalysisPanel({ grahas }: AdvancedAnalysisPanelProps) {
+  const t = useTranslations('planetsB.advanced')
+  const { hi } = useLang()
   // Filter planets with special conditions
   const planetsWithConditions = grahas.filter(g => 
     g.gandanta?.isGandanta || 
@@ -184,10 +214,10 @@ export function AdvancedAnalysisPanel({ grahas }: AdvancedAnalysisPanelProps) {
     return (
       <div className="card" style={{ padding: '1rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
         <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-          Advanced Analysis
+          {t('title')}
         </div>
         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-          No special conditions detected in this chart.
+          {t('none')}
         </div>
       </div>
     )
@@ -196,7 +226,7 @@ export function AdvancedAnalysisPanel({ grahas }: AdvancedAnalysisPanelProps) {
   return (
     <div className="card" style={{ padding: '1rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
       <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)', marginBottom: '0.75rem' }}>
-        Advanced Analysis · Special Conditions
+        {t('titleConditions')}
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
@@ -219,9 +249,9 @@ export function AdvancedAnalysisPanel({ grahas }: AdvancedAnalysisPanelProps) {
               paddingBottom: '0.5rem',
               borderBottom: '1px solid var(--border-soft)',
             }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{g.name}</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{hi ? GRAHA_HI[g.id] ?? g.name : g.name}</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                {RASHI_SHORT[g.rashi]} {g.degree.toFixed(2)}°
+                {hi ? RASHI_HI[g.rashi] : RASHI_SHORT[g.rashi]} {g.degree.toFixed(2)}°
               </span>
             </div>
             

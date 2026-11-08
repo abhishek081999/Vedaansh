@@ -5,14 +5,16 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import {
   getDinmanRatriman,
   formatDinmanSlotLabel,
   type DinmanSlot,
 } from '@/lib/engine/dinmanMuhurta'
 
-function fmt(d: Date, tz?: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+function fmt(d: Date, tz?: string, tag = 'en-IN'): string {
+  return new Intl.DateTimeFormat(tag, {
     timeZone: tz,
     hour: 'numeric',
     minute: '2-digit',
@@ -36,10 +38,13 @@ interface Props {
 
 export function DinmanMuhurtaStrip({ sunrise, sunset, tz, expandable = true }: Props) {
   const [open, setOpen] = useState(false)
+  const t = useTranslations('panchang.dinman')
+  const { lang, tag } = useLang()
   const result = useMemo(
-    () => getDinmanRatriman(new Date(sunrise), new Date(sunset)),
-    [sunrise, sunset],
+    () => getDinmanRatriman(new Date(sunrise), new Date(sunset), { lang }),
+    [sunrise, sunset, lang],
   )
+  const f = (d: Date) => fmt(d, tz, tag)
 
   const cur = result.current
   const next = result.nextFavourable
@@ -57,9 +62,9 @@ export function DinmanMuhurtaStrip({ sunrise, sunset, tz, expandable = true }: P
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-          Dinman / Ratriman
+          {t('title')}
         </span>
-        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>15 × ~48 min</span>
+        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t('slots')}</span>
         {expandable && (
           <button
             type="button"
@@ -70,7 +75,7 @@ export function DinmanMuhurtaStrip({ sunrise, sunset, tz, expandable = true }: P
               letterSpacing: '0.04em', textTransform: 'uppercase',
             }}
           >
-            {open ? 'Hide table' : 'All slots'}
+            {open ? t('hide') : t('all')}
           </button>
         )}
       </div>
@@ -83,38 +88,38 @@ export function DinmanMuhurtaStrip({ sunrise, sunset, tz, expandable = true }: P
           color: 'var(--text-secondary)',
           lineHeight: 1.4,
         }}>
-          <strong style={{ color: 'var(--text-primary)' }}>{formatDinmanSlotLabel(cur)}</strong>
+          <strong style={{ color: 'var(--text-primary)' }}>{formatDinmanSlotLabel(cur, lang)}</strong>
           {' · '}
           <span style={{ color: curTone, fontWeight: 700, textTransform: 'uppercase', fontSize: '0.68rem' }}>
-            {cur.favorability}
+            {t(`fav.${cur.favorability}`)}
           </span>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
-            {fmt(cur.start, tz)} – {fmt(cur.end, tz)} · {cur.groupLabel}
+            {f(cur.start)} – {f(cur.end)} · {cur.groupLabel}
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
             {cur.goodFor}
           </div>
         </div>
       ) : (
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>The current time is outside the sunrise-to-sunrise window of this date.</div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('outside')}</div>
       )}
 
       {next && (!cur || next.start.getTime() !== cur.start.getTime()) && (
         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
-          Next favourable: <strong style={{ color: 'var(--teal)' }}>{formatDinmanSlotLabel(next)}</strong>
-          {' · '}{fmt(next.start, tz)} – {fmt(next.end, tz)}
+          {t('next')} <strong style={{ color: 'var(--teal)' }}>{formatDinmanSlotLabel(next, lang)}</strong>
+          {' · '}{f(next.start)} – {f(next.end)}
         </div>
       )}
 
       <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.3 }}>
-        Backup when a full panchang muhurta is unavailable — pick a favourable 48-min window on a fixed date.
+        {t('note')}
       </div>
 
       {open && (
         <div style={{ marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
           {([
-            ['Day (Dinman)', result.daySlots],
-            ['Night (Ratriman)', result.nightSlots],
+            [t('day'), result.daySlots],
+            [t('night'), result.nightSlots],
           ] as const).map(([label, slots]) => (
             <div key={label}>
               <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 4 }}>
@@ -136,8 +141,8 @@ export function DinmanMuhurtaStrip({ sunrise, sunset, tz, expandable = true }: P
                     <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
                       #{s.slot} {s.nakName}
                     </div>
-                    <div style={{ color: tone(s.favorability) }}>{s.favorability}</div>
-                    <div style={{ color: 'var(--text-muted)' }}>{fmt(s.start, tz)}–{fmt(s.end, tz)}</div>
+                    <div style={{ color: tone(s.favorability) }}>{t(`fav.${s.favorability}`)}</div>
+                    <div style={{ color: 'var(--text-muted)' }}>{f(s.start)}–{f(s.end)}</div>
                   </div>
                 ))}
               </div>

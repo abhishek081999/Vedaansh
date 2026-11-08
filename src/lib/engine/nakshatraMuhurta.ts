@@ -6,6 +6,18 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NAKSHATRA_NAMES } from '@/types/astrology'
+import { NAKSHATRA_HI, termHi } from '@/i18n/jyotish'
+import { overlay, type EngineLang } from '@/lib/engine/lang'
+import {
+  ABHIJIT_HI,
+  ASHWINI_HI,
+  FALL_EFFECTS_HI,
+  GROUPS_HI,
+  MUKHAS_HI,
+  NAK_TEXT_HI,
+  SHAKTI_HI,
+  YONI_HI,
+} from '@/lib/engine/locale/nakshatraMuhurta.hi'
 import {
   getNakshatraCharacteristics,
   NAKSHATRA_SHAKTI,
@@ -222,13 +234,14 @@ export function isAbhijitLongitude(moonLonSidereal: number): boolean {
   return lon >= ABHIJIT_START_DEG && lon < ABHIJIT_END_DEG
 }
 
-export function getAbhijitWindow(moonLonSidereal?: number | null): AbhijitWindow {
-  const spanLabel = 'Makara 6°40′–10°53′20″ (within Uttara Ashadha)'
+export function getAbhijitWindow(moonLonSidereal?: number | null, lang: EngineLang = 'en'): AbhijitWindow {
+  const hi = lang === 'hi'
+  const spanLabel = hi ? ABHIJIT_HI.spanLabel : 'Makara 6°40′–10°53′20″ (within Uttara Ashadha)'
   if (moonLonSidereal == null || Number.isNaN(moonLonSidereal)) {
     return {
       active: false,
       spanLabel,
-      note: 'Special 28th muhurta nakshatra — Laghu/Kshipra; check Moon longitude for Abhijit window.',
+      note: hi ? ABHIJIT_HI.unknown : 'Special 28th muhurta nakshatra — Laghu/Kshipra; check Moon longitude for Abhijit window.',
     }
   }
   const active = isAbhijitLongitude(moonLonSidereal)
@@ -236,8 +249,8 @@ export function getAbhijitWindow(moonLonSidereal?: number | null): AbhijitWindow
     active,
     spanLabel,
     note: active
-      ? 'Abhijit is active — treat as Laghu (Kshipra); excellent for light auspicious starts.'
-      : 'Outside Abhijit span; use the current Moon nakshatra’s muhurta group.',
+      ? hi ? ABHIJIT_HI.active : 'Abhijit is active — treat as Laghu (Kshipra); excellent for light auspicious starts.'
+      : hi ? ABHIJIT_HI.inactive : 'Outside Abhijit span; use the current Moon nakshatra’s muhurta group.',
   }
 }
 
@@ -303,21 +316,26 @@ export const NAKSHATRA_FALL_EFFECTS: string[] = [
   'Completion and safe passage; nourishment; endings that protect; journey’s close',
 ]
 
-export function getNakshatraMuhurtaMeta(index: number, pada: number = 1): NakshatraMuhurtaMeta {
+/** `group.id` / `mukha.id` stay English; labels and text follow `lang`. */
+export function getNakshatraMuhurtaMeta(index: number, pada: number = 1, lang: EngineLang = 'en'): NakshatraMuhurtaMeta {
   const i = ((index % 27) + 27) % 27
+  const hi = lang === 'hi'
   const chars = getNakshatraCharacteristics(i, pada)
-  const group = GROUPS[GROUP_BY_INDEX[i]]
-  const mukha = MUKHAS[MUKHA_BY_INDEX[i]]
-  const shakti = NAKSHATRA_SHAKTI[i]
-  const basicEnergy = `${chars.gana} · ${chars.yoni} yoni · ${shakti}`
+  const groupId = GROUP_BY_INDEX[i]
+  const mukhaId = MUKHA_BY_INDEX[i]
+  const group = overlay(GROUPS[groupId], GROUPS_HI[groupId], lang)
+  const mukha = overlay(MUKHAS[mukhaId], MUKHAS_HI[mukhaId], lang)
+  const basicEnergy = hi
+    ? `${termHi(chars.gana)} · ${YONI_HI[chars.yoni] ?? chars.yoni} ${NAK_TEXT_HI.yoni} · ${SHAKTI_HI[i]}`
+    : `${chars.gana} · ${chars.yoni} yoni · ${NAKSHATRA_SHAKTI[i]}`
 
   return {
     index: i,
-    name: NAKSHATRA_NAMES[i],
+    name: hi ? NAKSHATRA_HI[i] : NAKSHATRA_NAMES[i],
     group,
     mukha,
     basicEnergy,
-    fallEffect: NAKSHATRA_FALL_EFFECTS[i],
+    fallEffect: hi ? FALL_EFFECTS_HI[i] : NAKSHATRA_FALL_EFFECTS[i],
     chars,
   }
 }
@@ -330,8 +348,10 @@ export function getAshwiniYogaNotes(
   nakIndex: number,
   varaNumber: number,
   tithiNumber?: number | null,
+  lang: EngineLang = 'en',
 ): AshwiniYogaNote[] {
   if (nakIndex !== 0) return []
+  const hi = lang === 'hi'
   const notes: AshwiniYogaNote[] = []
   const isTue = varaNumber === 2
   const isThu = varaNumber === 4
@@ -341,25 +361,25 @@ export function getAshwiniYogaNotes(
   if (isTue || isThu || isFri) {
     notes.push({
       id: 'sarvartha_siddhi',
-      label: 'Sarvartha Siddhi Yoga',
+      label: hi ? ASHWINI_HI.sarvartha.label : 'Sarvartha Siddhi Yoga',
       quality: 'auspicious',
-      detail: 'Ashwini on Tue/Thu/Fri — generally good for most work (see Vish Yoga caveat if Tue + Saptami).',
+      detail: hi ? ASHWINI_HI.sarvartha.detail : 'Ashwini on Tue/Thu/Fri — generally good for most work (see Vish Yoga caveat if Tue + Saptami).',
     })
   }
   if (isTue) {
     notes.push({
       id: 'amrit_siddhi',
-      label: 'Amrit Siddhi Yoga',
+      label: hi ? ASHWINI_HI.amrit.label : 'Amrit Siddhi Yoga',
       quality: 'caution',
-      detail: 'Ashwini on Tuesday — auspicious overall, but avoid Griha Pravesh and house construction.',
+      detail: hi ? ASHWINI_HI.amrit.detail : 'Ashwini on Tuesday — auspicious overall, but avoid Griha Pravesh and house construction.',
     })
   }
   if (isTue && lunarDay === 7) {
     notes.push({
       id: 'vish_yoga',
-      label: 'Vish Yoga (Madhu mein Vish)',
+      label: hi ? ASHWINI_HI.vish.label : 'Vish Yoga (Madhu mein Vish)',
       quality: 'inauspicious',
-      detail: 'Ashwini + Tuesday + Saptami — avoid all shubh karyas despite Amrit Siddhi label.',
+      detail: hi ? ASHWINI_HI.vish.detail : 'Ashwini + Tuesday + Saptami — avoid all shubh karyas despite Amrit Siddhi label.',
     })
   }
   return notes
@@ -371,10 +391,16 @@ export const ASHWINI_ACTIVITY_HINT = {
   avoid: 'Agricultural ploughing/sowing and soil fertilisation timing',
 }
 
+export function getAshwiniActivityHint(lang: EngineLang = 'en'): typeof ASHWINI_ACTIVITY_HINT {
+  return lang === 'hi' ? { favour: ASHWINI_HI.favour, avoid: ASHWINI_HI.avoid } : ASHWINI_ACTIVITY_HINT
+}
+
 export function formatNakshatraWeatherLine(meta: NakshatraMuhurtaMeta): string {
   return `${meta.group.label} · ${meta.mukha.label} — ${meta.group.goodFor}`
 }
 
-export function listMuhurtaNakGroups(): MuhurtaNakGroupMeta[] {
-  return [GROUPS.Dhruva, GROUPS.Chara, GROUPS.Ugra, GROUPS.Mishra, GROUPS.Laghu, GROUPS.Mridu, GROUPS.Tikshna]
+export function listMuhurtaNakGroups(lang: EngineLang = 'en'): MuhurtaNakGroupMeta[] {
+  return (['Dhruva', 'Chara', 'Ugra', 'Mishra', 'Laghu', 'Mridu', 'Tikshna'] as const).map((id) =>
+    overlay(GROUPS[id], GROUPS_HI[id], lang),
+  )
 }

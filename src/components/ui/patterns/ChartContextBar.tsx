@@ -8,6 +8,9 @@ import React from 'react'
 import { Star } from 'lucide-react'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { RASHI_HI } from '@/i18n/jyotish'
 import { formatTagLabel } from '@/lib/chart/tags'
 import { cn } from '@/lib/ui/cn'
 
@@ -45,6 +48,8 @@ export function ChartContextBar({
   defaultStarBusy = false,
   onSetDefault,
 }: ChartContextBarProps) {
+  const t = useTranslations('chart.actions')
+  const { hi } = useLang()
   const ascRashi = chart.lagnas.ascRashi as Rashi
 
   return (
@@ -63,7 +68,7 @@ export function ChartContextBar({
             }}
             disabled={defaultStarBusy || isDefaultChart}
             title={isDefaultChart ? 'Default chart (loads on login)' : 'Set as default (load on login)'}
-            aria-label={isDefaultChart ? 'Default chart' : 'Set as default chart'}
+            aria-label={isDefaultChart ? t('defaultChart') : t('setDefault')}
             aria-pressed={isDefaultChart}
             style={{
               display: 'inline-flex',
@@ -109,7 +114,7 @@ export function ChartContextBar({
       </span>
       <span className="name-sep hide-mobile">·</span>
       <span className="name-asc hide-mobile">
-        {RASHI_NAMES[ascRashi]} {chart.lagnas.ascDegreeInRashi.toFixed(1)}°
+        {hi ? RASHI_HI[ascRashi] : RASHI_NAMES[ascRashi]} {chart.lagnas.ascDegreeInRashi.toFixed(1)}°
       </span>
       {tags.length > 0 && (
         <span

@@ -6,9 +6,8 @@
 //  Used on the landing page and /horoscope/[sign].
 // ─────────────────────────────────────────────────────────────
 
+import { Link, useRouter } from '@/i18n/navigation'
 import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { ArrowRight, Share2 } from 'lucide-react'
 import type {
   DailyHoroscopeReport,

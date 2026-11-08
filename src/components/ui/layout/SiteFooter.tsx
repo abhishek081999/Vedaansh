@@ -1,17 +1,19 @@
+import { Link } from '@/i18n/navigation'
 import React from 'react'
-import Link from 'next/link'
-
+import { useTranslations } from 'next-intl'
+// Labels: common.footer.links.<id>
 const FOOTER_LINKS = [
-  { href: '/guides', label: 'Guides' },
-  { href: '/search', label: 'Search' },
-  { href: '/install', label: 'Install App' },
-  { href: '/terms', label: 'Terms' },
-  { href: '/privacy', label: 'Privacy' },
-  { href: '/refund', label: 'Refund' },
-  { href: '/support', label: 'Support' },
+  { href: '/guides', id: 'guides' },
+  { href: '/search', id: 'search' },
+  { href: '/install', id: 'install' },
+  { href: '/terms', id: 'terms' },
+  { href: '/privacy', id: 'privacy' },
+  { href: '/refund', id: 'refund' },
+  { href: '/support', id: 'support' },
 ] as const
 
 export function SiteFooter({ variant = 'default' }: { variant?: 'default' | 'minimal' }) {
+  const t = useTranslations('common.footer')
   if (variant === 'minimal') {
     return (
       <footer
@@ -27,14 +29,14 @@ export function SiteFooter({ variant = 'default' }: { variant?: 'default' | 'min
           zIndex: 1,
         }}
       >
-        <nav aria-label="Legal and support" style={{ marginBottom: '0.5rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <nav aria-label={t('navLabel')} style={{ marginBottom: '0.5rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           {FOOTER_LINKS.map((link) => (
             <Link key={link.href} href={link.href} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-              {link.label}
+              {t(`links.${link.id}`)}
             </Link>
           ))}
         </nav>
-        <span>Jyotisha · The Eye of the Vedas</span>
+        <span>{t('tagline')}</span>
       </footer>
     )
   }
@@ -57,16 +59,16 @@ export function SiteFooter({ variant = 'default' }: { variant?: 'default' | 'min
       }}
     >
       <span>
-        Powered by{' '}
+        {t('poweredBy')}{' '}
         <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>Swiss Ephemeris</span>
-        {' '}· Lahiri ayanamsha
+        {' '}· {t('ayanamsha')}
       </span>
-      <nav aria-label="Legal and support" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+      <nav aria-label={t('navLabel')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
         {FOOTER_LINKS.map((link, i) => (
           <React.Fragment key={link.href}>
             {i > 0 ? <span style={{ color: 'var(--border-bright)' }} aria-hidden>•</span> : null}
             <Link href={link.href} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-              {link.label}
+              {t(`links.${link.id}`)}
             </Link>
           </React.Fragment>
         ))}

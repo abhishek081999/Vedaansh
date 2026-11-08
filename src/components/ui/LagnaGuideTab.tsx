@@ -6,8 +6,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SANSKRIT, type Dignity } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import {
   getPlanetInHouse,
   RASHI_LORDS,
@@ -22,15 +25,16 @@ import { LagnaDashaLinks } from './LagnaDashaLinks'
 
 const HOUSES = Array.from({ length: 12 }, (_, i) => (i + 1) as HouseNumber)
 
-const DIGNITY_LABEL: Partial<Record<Dignity, string>> = {
-  exalted: 'exalted',
-  moolatrikona: 'moolatrikona',
-  own: 'own sign',
-  debilitated: 'debilitated',
-  great_friend: 'great friend sign',
-  friend: 'friend sign',
-  enemy: 'enemy sign',
-  great_enemy: 'great enemy sign',
+/** Dignities that get a label; copy lives in houseGuide.lagna.dignity. */
+const DIGNITY_KEYS: Partial<Record<Dignity, true>> = {
+  exalted: true,
+  moolatrikona: true,
+  own: true,
+  debilitated: true,
+  great_friend: true,
+  friend: true,
+  enemy: true,
+  great_enemy: true,
 }
 
 interface LagnaGuideTabProps {
@@ -40,8 +44,10 @@ interface LagnaGuideTabProps {
 export function LagnaGuideTab({ chart }: LagnaGuideTabProps) {
   const ascRashi = chart.lagnas.ascRashi
   const [openHouse, setOpenHouse] = useState<HouseNumber | null>(1)
+  const t = useTranslations('houseGuide.lagna')
+  const { hi, lang } = useLang()
 
-  const profile = useMemo(() => getLagnaCharacterProfile(ascRashi), [ascRashi])
+  const profile = useMemo(() => getLagnaCharacterProfile(ascRashi, lang), [ascRashi, lang])
   const lordRow = RASHI_LORDS.find((r) => r.number === ascRashi)
 
   const overlay = useMemo(() => buildLagnaChartOverlay(ascRashi, chart.grahas), [ascRashi, chart.grahas])
@@ -58,12 +64,17 @@ export function LagnaGuideTab({ chart }: LagnaGuideTabProps) {
           border: '1px solid var(--border-soft)',
         }}
       >
-        <div style={sectionLabel}>Ascendant guide</div>
+        <div style={sectionLabel}>{t('label')}</div>
         <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-          This chart’s Lagna is <strong style={{ color: 'var(--text-gold)' }}>{RASHI_NAMES[ascRashi]}</strong>{' '}
-          ({RASHI_SANSKRIT[ascRashi]})
-          {lordRow ? `, ruled by ${GRAHA_NAMES[lordRow.lord]} (${lordRow.lordHindi})` : ''}. Educational reference —
-          actual planets, lords and aspects in the chart refine every reading.
+          {t('introA')} <strong style={{ color: 'var(--text-gold)' }}>{hi ? RASHI_HI[ascRashi] : RASHI_NAMES[ascRashi]}</strong>{' '}
+          ({hi ? RASHI_NAMES[ascRashi] : RASHI_SANSKRIT[ascRashi]})
+          {lordRow
+            ? t('ruledBy', {
+                lord: hi ? GRAHA_HI[lordRow.lord] : GRAHA_NAMES[lordRow.lord],
+                hindi: hi ? GRAHA_NAMES[lordRow.lord] : lordRow.lordHindi,
+              })
+            : ''}
+          {t('introB')}
         </p>
       </div>
 
@@ -83,7 +94,7 @@ export function LagnaGuideTab({ chart }: LagnaGuideTabProps) {
               color: 'var(--text-primary)',
             }}
           >
-            {profile.title} — house by house
+            {t('houseByHouse', { title: profile.title })}
           </h3>
 
           {HOUSES.map((houseNum) => {
@@ -123,17 +134,17 @@ export function LagnaGuideTab({ chart }: LagnaGuideTabProps) {
                 >
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      House {houseNum} · {reading.signName}
+                      {t('houseHead', { n: houseNum, sign: reading.signName })}
                     </div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 3 }}>
                       {reading.theme}
                       {occupants.length > 0 ? (
                         <span style={{ color: 'var(--text-gold)' }}>
-                          {' '}· Occupants: {occupants.map((o) => o.id).join(' · ')}
+                          {t('occupants', { list: occupants.map((o) => (hi ? GRAHA_HI[o.id] : o.id)).join(' · ') })}
                         </span>
                       ) : null}
                       {dashaActive ? (
-                        <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}> · Dasha active</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{t('dashaActive')}</span>
                       ) : null}
                     </div>
                   </div>
@@ -177,7 +188,9 @@ const sectionLabel: React.CSSProperties = {
 }
 
 function ChartOverlayBlock({ ov }: { ov: HouseOverlay }) {
-  const lordName = GRAHA_NAMES[ov.lordId]
+  const t = useTranslations('houseGuide.lagna')
+  const { hi, lang } = useLang()
+  const lordName = hi ? GRAHA_HI[ov.lordId] : GRAHA_NAMES[ov.lordId]
   return (
     <div
       style={{
@@ -191,31 +204,27 @@ function ChartOverlayBlock({ ov }: { ov: HouseOverlay }) {
         color: 'var(--text-secondary)',
       }}
     >
-      <div style={sectionLabel}>In your chart</div>
+      <div style={sectionLabel}>{t('inYourChart')}</div>
       <div style={{ marginTop: 4 }}>
-        House lord {lordName}{' '}
-        {ov.lordPlacedHouse ? (
-          <>sits in house {ov.lordPlacedHouse}. Read this house’s results through that placement.</>
-        ) : (
-          <>placement not available.</>
-        )}
+        {t('houseLord', { lord: lordName })}{' '}
+        {ov.lordPlacedHouse ? t('sitsIn', { n: ov.lordPlacedHouse }) : t('notAvailable')}
       </div>
       {ov.occupants.length === 0 ? (
         <div style={{ marginTop: 4, color: 'var(--text-muted)' }}>
-          No planets here; the house speaks mainly through its lord.
+          {t('noPlanets')}
         </div>
       ) : (
         <ul style={{ margin: '4px 0 0', paddingLeft: '1.1rem' }}>
           {ov.occupants.map((o) => {
             const tags = [
-              DIGNITY_LABEL[o.dignity],
-              o.isRetro ? 'retrograde' : null,
-              o.isCombust ? 'combust' : null,
+              DIGNITY_KEYS[o.dignity] ? t(`dignity.${o.dignity}`) : null,
+              o.isRetro ? t('retrograde') : null,
+              o.isCombust ? t('combust') : null,
             ].filter(Boolean)
-            const text = getPlanetInHouse(o.id, ov.house, 'summary')
+            const text = getPlanetInHouse(o.id, ov.house, 'summary', lang)
             return (
               <li key={o.id}>
-                <strong style={{ color: 'var(--text-primary)' }}>{GRAHA_NAMES[o.id]}</strong>
+                <strong style={{ color: 'var(--text-primary)' }}>{hi ? GRAHA_HI[o.id] : GRAHA_NAMES[o.id]}</strong>
                 {tags.length > 0 ? ` (${tags.join(', ')})` : ''}
                 {text ? `: ${text}` : ''}
               </li>

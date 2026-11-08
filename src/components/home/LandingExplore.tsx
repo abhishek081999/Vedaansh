@@ -4,8 +4,8 @@
 //  Tool directory on the landing page, grouped by purpose
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import type { ComponentType, MouseEvent } from 'react'
-import Link from 'next/link'
 import {
   ArrowRight,
   BookOpen,
@@ -28,59 +28,55 @@ import {
   Waypoints,
   Zap,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 
+// Copy lives in messages/<locale>/home.json under explore.cards.<id>.
 type ExploreSection = {
-  title: string
-  subtitle: string
-  text: string
+  id: string
+  /** Plan badge: shown in gold. */
+  gold?: boolean
   href: string
   ctaName: string
   icon: ComponentType<{ size?: number; strokeWidth?: number }>
 }
 
-const EXPLORE_GROUPS: { id: string; title: string; description: string; tier: 'primary' | 'secondary' | 'tertiary'; sections: ExploreSection[] }[] = [
+const EXPLORE_GROUPS: { id: string; tier: 'primary' | 'secondary' | 'tertiary'; sections: ExploreSection[] }[] = [
   {
     id: 'chart',
-    title: 'Read your chart',
-    description: 'Start from your birth details.',
     tier: 'primary',
     sections: [
-      { title: 'Astrology', subtitle: 'Workspace', text: 'Kundali, vargas, dasha, plus marriage and career readings.', href: '/?new=true', ctaName: 'major_sections_astrology', icon: Sparkles },
-      { title: 'Today’s Reading', subtitle: 'Personal', text: 'Daily reading from your Moon, dasha, and transits.', href: '/today', ctaName: 'major_sections_today', icon: CalendarCheck },
-      { title: 'Transits', subtitle: 'Gochar', text: 'Cosmic roadmap, Sade Sati, aspects, and live sky.', href: '/transit/roadmap', ctaName: 'major_sections_transits', icon: Orbit },
-      { title: 'Relationship & Marriage', subtitle: 'Gold', text: 'Marriage promise, timing, Mars and Vivah readings.', href: '/relationship', ctaName: 'major_sections_relationship', icon: Heart },
-      { title: 'Career & Profession', subtitle: 'Gold', text: 'Dashamsha strength and the professional method.', href: '/career', ctaName: 'major_sections_career', icon: Briefcase },
-      { title: 'Dosha & Upay', subtitle: 'Gold', text: 'Pitru, Matru, Sarpa and related Shrap flags with remedies.', href: '/dosha', ctaName: 'major_sections_dosha', icon: ShieldAlert },
-      { title: 'Kundali Matching', subtitle: 'Compatibility', text: '36-point Guna Milan, doshas, and synastry.', href: '/compare', ctaName: 'major_sections_kundali_matching', icon: HeartHandshake },
+      { id: 'astrology', href: '/?new=true', ctaName: 'major_sections_astrology', icon: Sparkles },
+      { id: 'today', href: '/today', ctaName: 'major_sections_today', icon: CalendarCheck },
+      { id: 'transits', href: '/transit/roadmap', ctaName: 'major_sections_transits', icon: Orbit },
+      { id: 'relationship', gold: true, href: '/relationship', ctaName: 'major_sections_relationship', icon: Heart },
+      { id: 'career', gold: true, href: '/career', ctaName: 'major_sections_career', icon: Briefcase },
+      { id: 'dosha', gold: true, href: '/dosha', ctaName: 'major_sections_dosha', icon: ShieldAlert },
+      { id: 'kundali_matching', href: '/compare', ctaName: 'major_sections_kundali_matching', icon: HeartHandshake },
     ],
   },
   {
     id: 'timing',
-    title: 'Plan the right time',
-    description: 'Check the day before you commit.',
     tier: 'secondary',
     sections: [
-      { title: 'Panchang', subtitle: 'Daily', text: 'Tithi, nakshatra, yoga, and karana.', href: '/panchang', ctaName: 'major_sections_panchang', icon: Compass },
-      { title: 'Calendar', subtitle: 'Monthly', text: 'Month-level Vedic timing windows.', href: '/panchang/calendar', ctaName: 'major_sections_calendar', icon: Calendar },
-      { title: 'Muhurta Finder', subtitle: 'Gold', text: 'Auspicious windows for key actions.', href: '/muhurta', ctaName: 'major_sections_muhurta_finder', icon: Clock },
-      { title: 'Prashna', subtitle: 'Query', text: 'Guidance for specific questions.', href: '/prashna', ctaName: 'major_sections_prashna', icon: HelpCircle },
+      { id: 'panchang', href: '/panchang', ctaName: 'major_sections_panchang', icon: Compass },
+      { id: 'calendar', href: '/panchang/calendar', ctaName: 'major_sections_calendar', icon: Calendar },
+      { id: 'muhurta_finder', gold: true, href: '/muhurta', ctaName: 'major_sections_muhurta_finder', icon: Clock },
+      { id: 'prashna', href: '/prashna', ctaName: 'major_sections_prashna', icon: HelpCircle },
     ],
   },
   {
     id: 'advanced',
-    title: 'Go deeper',
-    description: 'Classical systems for closer study.',
     tier: 'tertiary',
     sections: [
-      { title: 'Nakshatra', subtitle: 'Lunar', text: 'Nakshatra insights day by day.', href: '/nakshatra', ctaName: 'major_sections_nakshatra', icon: Star },
-      { title: 'Jaimini Astrology', subtitle: 'Advanced', text: 'Jaimini charts and life direction.', href: '/jaimini', ctaName: 'major_sections_jaimini', icon: Zap },
-      { title: 'Nadi Astrology', subtitle: 'Advanced', text: 'Chart, planetary positions, and dasha.', href: '/nadi', ctaName: 'major_sections_nadi', icon: Waypoints },
-      { title: 'Sarvatobhadra Chakra', subtitle: 'Classical', text: 'Traditional S.B. Chakra timing.', href: '/sbc', ctaName: 'major_sections_sarvatobhadra', icon: Layers },
-      { title: 'AstroCartography', subtitle: 'Location', text: 'Planetary lines for travel and moves.', href: '/acg', ctaName: 'major_sections_astrocartography', icon: Globe },
-      { title: 'Astro Vastu', subtitle: 'Space', text: 'Vastu aligned with your chart.', href: '/vastu', ctaName: 'major_sections_astro_vastu', icon: Home },
-      { title: 'Vedic Numerology', subtitle: 'Anka Jyotish', text: 'Moolank, Bhagyank, name and grid.', href: '/numerology', ctaName: 'major_sections_numerology', icon: Hash },
-      { title: 'Jyotish Guides', subtitle: 'Learn', text: 'The methods behind each tool.', href: '/guides', ctaName: 'major_sections_guides', icon: BookOpen },
+      { id: 'nakshatra', href: '/nakshatra', ctaName: 'major_sections_nakshatra', icon: Star },
+      { id: 'jaimini', href: '/jaimini', ctaName: 'major_sections_jaimini', icon: Zap },
+      { id: 'nadi', href: '/nadi', ctaName: 'major_sections_nadi', icon: Waypoints },
+      { id: 'sarvatobhadra', href: '/sbc', ctaName: 'major_sections_sarvatobhadra', icon: Layers },
+      { id: 'astrocartography', href: '/acg', ctaName: 'major_sections_astrocartography', icon: Globe },
+      { id: 'astro_vastu', href: '/vastu', ctaName: 'major_sections_astro_vastu', icon: Home },
+      { id: 'numerology', href: '/numerology', ctaName: 'major_sections_numerology', icon: Hash },
+      { id: 'guides', href: '/guides', ctaName: 'major_sections_guides', icon: BookOpen },
     ],
   },
 ]
@@ -97,12 +93,13 @@ type LandingExploreProps = {
 }
 
 export function LandingExplore({ trackLandingCta, withChartGate }: LandingExploreProps) {
+  const t = useTranslations('home.explore')
   return (
     <div className="landing-section-row-content">
       <VedicSectionHeader
-        kicker="Explore"
-        title="Every core Vedaansh journey"
-        description="Jump straight to the tool you need."
+        kicker={t('kicker')}
+        title={t('title')}
+        description={t('description')}
         theme="gold"
       />
       {EXPLORE_GROUPS.map((group, groupIdx) => (
@@ -112,17 +109,17 @@ export function LandingExplore({ trackLandingCta, withChartGate }: LandingExplor
           data-count={group.sections.length}
         >
           <div className="landing-explore-group-head">
-            <h3 className="landing-major-group-title">{group.title}</h3>
-            <p className="landing-explore-group-desc">{group.description}</p>
+            <h3 className="landing-major-group-title">{t(`groups.${group.id}.title`)}</h3>
+            <p className="landing-explore-group-desc">{t(`groups.${group.id}.description`)}</p>
           </div>
           <div className="landing-major-sections-grid landing-reveal-stagger">
             {group.sections.map((section, idx) => {
               const IconComponent = section.icon
               const isLead = group.tier === 'primary' && idx === 0
-              const isGold = section.subtitle === 'Gold'
+              const isGold = section.gold === true
               return (
                 <Link
-                  key={section.title}
+                  key={section.id}
                   href={section.href}
                   onClick={(e) => {
                     trackLandingCta(section.ctaName)
@@ -136,13 +133,13 @@ export function LandingExplore({ trackLandingCta, withChartGate }: LandingExplor
                     <IconComponent size={20} strokeWidth={2} />
                   </div>
                   <div className="card-body">
-                    <span className={`card-kicker${isGold ? ' landing-explore-gold' : ''}`}>{section.subtitle}</span>
-                    <span className="stat-value">{section.title}</span>
-                    <span className="stat-sub">{section.text}</span>
+                    <span className={`card-kicker${isGold ? ' landing-explore-gold' : ''}`}>{t(`cards.${section.id}.subtitle`)}</span>
+                    <span className="stat-value">{t(`cards.${section.id}.title`)}</span>
+                    <span className="stat-sub">{t(`cards.${section.id}.text`)}</span>
                   </div>
                   {isLead ? (
                     <span className="landing-explore-lead-cta" aria-hidden="true">
-                      Start a chart
+                      {t('startChart')}
                       <ArrowRight size={14} strokeWidth={2.5} />
                     </span>
                   ) : (

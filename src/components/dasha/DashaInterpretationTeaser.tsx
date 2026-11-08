@@ -19,6 +19,9 @@ import { GRAHA_NAMES } from '@/types/astrology'
 import { analyzeVimshottariPeriod } from '@/lib/engine/dasha/vimshottariAnalysis'
 import { getVimshottariInterpretation } from '@/lib/engine/dasha/vimshottariInterpretations'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
 
 export interface DashaInterpretationTeaserProps {
   nodes: DashaNode[]
@@ -67,6 +70,9 @@ export function DashaInterpretationTeaser({
   onOpenFull,
   userPlan = 'free',
 }: DashaInterpretationTeaserProps) {
+  const t = useTranslations('chart.dashaInsight')
+  const { lang, hi } = useLang()
+  const gName = (id: string) => (hi ? GRAHA_HI[id as keyof typeof GRAHA_HI] : GRAHA_NAMES[id as keyof typeof GRAHA_NAMES]) ?? id
   const canShowFull = planMeetsUiGate(userPlan, 'gold')
 
   const { analysis, mahaTitle, antarLord } = useMemo(() => {
@@ -76,7 +82,7 @@ export function DashaInterpretationTeaser({
       path.push(cur)
       cur = cur.children?.find(c => c.isCurrent)
     }
-    const maha = path[0] ? getVimshottariInterpretation(path[0].lord) : null
+    const maha = path[0] ? getVimshottariInterpretation(path[0].lord, lang) : null
     return {
       analysis: analyzeVimshottariPeriod({
         nodes,
@@ -85,11 +91,12 @@ export function DashaInterpretationTeaser({
         shadbala,
         ashtakavarga,
         navamshaGrahas,
+        lang,
       }),
-      mahaTitle: maha?.title ?? (path[0] ? GRAHA_NAMES[path[0].lord as keyof typeof GRAHA_NAMES] ?? path[0].lord : null),
+      mahaTitle: maha?.title ?? (path[0] ? (hi ? GRAHA_HI[path[0].lord as keyof typeof GRAHA_HI] : GRAHA_NAMES[path[0].lord as keyof typeof GRAHA_NAMES]) ?? path[0].lord : null),
       antarLord: path[1]?.lord ?? null,
     }
-  }, [nodes, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas])
+  }, [nodes, ascRashi, grahas, shadbala, ashtakavarga, navamshaGrahas, lang, hi])
 
   if (!mahaTitle || !analysis) return null
 
@@ -116,13 +123,13 @@ export function DashaInterpretationTeaser({
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
         <div style={{ minWidth: 0 }}>
           <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-gold)', marginBottom: 2 }}>
-            Dasha insight
+            {t('label')}
           </div>
           <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
             {mahaTitle}
             {antarLord && (
               <span style={{ fontSize: '0.72rem', fontWeight: 500, color: 'var(--text-muted)', marginLeft: 6 }}>
-                / {GRAHA_NAMES[antarLord as keyof typeof GRAHA_NAMES] ?? antarLord} Antar
+                {t('antar', { lord: gName(antarLord) })}
               </span>
             )}
           </div>
@@ -130,7 +137,7 @@ export function DashaInterpretationTeaser({
             className="label-caps"
             style={{ fontSize: '0.56rem', color: toneColor, marginTop: 3, letterSpacing: '0.04em' }}
           >
-            {insight.toneLabel}
+            {insight.toneText ?? insight.toneLabel}
           </div>
         </div>
         <button
@@ -139,7 +146,7 @@ export function DashaInterpretationTeaser({
           className="btn btn-secondary btn-sm"
           style={{ flexShrink: 0, fontSize: '0.65rem', whiteSpace: 'nowrap' }}
         >
-          {canShowFull ? 'Full reading →' : 'Details →'}
+          {canShowFull ? t('full') : t('details')}
         </button>
       </div>
 
@@ -159,7 +166,7 @@ export function DashaInterpretationTeaser({
 
           {insight.watch && (
             <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--rose)', lineHeight: 1.35 }}>
-              Watch: {insight.watch}
+              {t('watch', { text: insight.watch })}
             </p>
           )}
         </>
@@ -177,13 +184,13 @@ export function DashaInterpretationTeaser({
         <div style={{ width: `${analysis.challengingShare}%`, background: 'var(--rose)' }} />
       </div>
       <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-        {analysis.favorableShare}% fav · {analysis.neutralShare}% neu · {analysis.challengingShare}% challenge
+        {t('mix', { fav: analysis.favorableShare, neu: analysis.neutralShare, chal: analysis.challengingShare })}
       </div>
 
       {!canShowFull && (
         <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
           <Lock size={11} aria-hidden />
-          Full bullets, watch notes & period reading on Gold
+          {t('locked')}
         </div>
       )}
     </div>

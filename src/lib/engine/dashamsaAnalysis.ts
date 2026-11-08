@@ -19,6 +19,20 @@ import {
 } from '@/types/astrology'
 import { D10 } from '@/lib/engine/vargas'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
+import { dignityText, fill, gName, pick, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import { overlay } from '@/lib/engine/lang'
+import {
+  D10_HOUSE_DETAIL_HI,
+  D10_HOUSE_THEMES_HI,
+  D10_LAGNA_THEMES_HI,
+  D10_PLANET_THEMES_HI,
+  D10_PURPOSE_HI,
+  D10_PURPOSE_PROTOCOL_HI,
+  D10_TEXT_HI,
+  DASHA_LEVEL_LABELS_HI,
+  DIGPALA_META_HI,
+  DIGPALA_PROFESSIONS_HI,
+} from '@/lib/engine/locale/dashamsa.hi'
 
 export type CareerTone = 'supportive' | 'challenging' | 'mixed' | 'neutral'
 
@@ -282,11 +296,23 @@ export const DIGPALA_META: Record<DigpalaId, DigpalaMeta> = {
  * Odd signs: parts 1→10 = Indra→Ananta.
  * Even signs: reverse (part 1 = Ananta … part 10 = Indra).
  */
-export function digpalaForPlacement(rashi: Rashi, degreeInSign: number): DigpalaMeta {
+export function digpalaForPlacement(rashi: Rashi, degreeInSign: number, lang: EngineLang = 'en'): DigpalaMeta {
   const part = dashamshaPart(degreeInSign)
   const idx = isOddSign(rashi) ? part - 1 : 10 - part
   const id = DIGPALA_ORDER[idx]!
-  return DIGPALA_META[id]
+  return localizeDigpala(DIGPALA_META[id], lang)
+}
+
+/** Overlay Hindi Digpala copy; ids / Sanskrit / oddPart stay English-stable. */
+export function localizeDigpala(meta: DigpalaMeta, lang: EngineLang = 'en'): DigpalaMeta {
+  if (lang !== 'hi') return meta
+  const hi = DIGPALA_META_HI[meta.id]
+  const professions = DIGPALA_PROFESSIONS_HI[meta.id] ?? meta.professions
+  // Cast: DigpalaHi may omit null-only fields; overlay only swaps string keys.
+  return {
+    ...overlay(meta, hi as Partial<Record<keyof DigpalaMeta, string>>, lang),
+    professions,
+  }
 }
 
 // ── Themes ───────────────────────────────────────────────────
@@ -374,6 +400,91 @@ const PLANET_D10_THEMES: Record<GrahaId, string> = {
   Ne: 'Idealism or confusion in professional direction.',
   Pl: 'Power and rebirth through vocation.',
 }
+
+
+/** English sentence templates; Hindi twins in locale/dashamsa.hi.ts. */
+const D10_TEXT_EN = {
+  planetFallback: 'Career expression through this Dashamsha.',
+  planetRoute: '{name} operates from {d1} (H{d1House}) into Dashamsha {d10} (H{d10House}), part {part}/10.',
+  planetDigpala: 'Digpala {digpala} / {digpalaSa} ({direction}) — {signification}.',
+  vargottama: 'Vargottama: natal and D10 signs align — career promise is consistent.',
+  dignityIn: 'Dignity in D10: {dignity}.',
+  roleMissing: '{role} placement unavailable.',
+  roleDusthana: 'needs careful handling of conflict, secrecy, or endings',
+  roleKendra: 'can act visibly in livelihood',
+  roleOther: 'supports career through effort and timing',
+  roleNote: '{role} ({name}) in D10 {rashi} H{house} under {digpala} — {tone}. {theme}',
+  rolePredMissing: '{role}: Digpala unavailable.',
+  rolePred: '{hook} Direction: {advice}',
+  dashaNote: '{name} in D10 H{house} ({rashi}) · Digpala {digpala}',
+  dashaMissing: '{name} — D10 placement missing',
+  dasha11: ' — 11th lord period: watch awards, profits, and public recognition.',
+  dasha10: ' — 10th lord period: work karma and reputation build-up accelerate.',
+  careerWindow: '{level} {name} through {end} — watch D10 houses {houses}.',
+  noVimshottari: 'No active Vimshottari path.',
+  fameWindow: '{level} {name} can lift recognition (11th / Ananta themes) through {end}.',
+  fameWindowAlt: 'No current dasha lord is the D10 11th lord — fame spikes more likely when 11th-lord dasha runs after a public event.',
+  digpalaCount: '{n} planets in this Digpala',
+  digpalaCountOne: '{n} planet in this Digpala',
+  dirLagna: 'Lagna Digpala {name} ({dirSa}) sets the primary compass for livelihood.',
+  dirVaruna: 'Varuna emphasis: overseas education, foreign posting, or West-direction business is a live theme.',
+  dirTenth: '10th lord Digpala {name} refines where work karma actually lands.',
+  srcLagna: 'Lagna Digpala {name}',
+  srcTenth: '10th lord {name} → {digpala}',
+  srcTenthPending: '10th lord Digpala pending',
+  srcEleventh: '11th lord {name} → {digpala}',
+  srcEleventhPending: '11th lord Digpala pending',
+  respectPath: 'Respect and awards route through 11th lord {name} in house {house} ({digpala}).',
+  respectWatch: 'Watch 11th lord Digpala and its dasha for when work earns public respect.',
+  livHeadline: 'Livelihood flavor: {lagna} + {tenth}',
+  tenthDigpalaFallback: '10th Digpala',
+  ethMixed: 'Business track looks mixed — read secrets without assuming guilt',
+  ethRakshasaHead: 'Unconventional / boundary-breaking track in D10 8th',
+  ethRakshasaText: '8th house or its lord touches Rakshasa/Rahu themes — shortcuts, grey methods, or hidden dealings may appear. Check whether the person keeps ethics while breaking bureaucracy.',
+  ethPressureHead: 'Pressure and secrecy around occupation',
+  ethPressureText: 'Difficult planets in D10 8th intensify secrets, crises, and new-venture endings — not automatically unethical, but the track must be watched.',
+  ethCleanHead: 'Cleaner ethical track indicated',
+  ethCleanText: 'Empty 8th with a dignified 8th lord often keeps hidden dealings muted — still verify with dashas and D1.',
+  ethLord: '8th lord {name} in house {house} under {digpala}.',
+  ethLordMissing: '8th lord placement unavailable.',
+  fameWorldwide: 'Ananta / sky themes — reputation can travel far',
+  fameWide: 'Strong public-karma link — reputation builds beyond the local circle',
+  fameLocal: 'Respect is earned; worldwide fame needs Ananta or strong 11th timing',
+  fame11: '11th lord {name} in D10 H{house} ({digpala}) — awards and “father of the field” style recognition time with this lord’s dasha after a public event.',
+  fame11Missing: '11th lord unavailable.',
+  fameAnanta: 'Ananta Digpala on {names} points to name that can scale.',
+  fameNoAnanta: 'No planet currently in Ananta Digpala — fame still possible via 10th/11th lords and public dashas.',
+  fameTenth: '10th lord {name} under {digpala} sets how karma becomes reputation.',
+  advLagna: 'D1 Lagna Digpala {name} ({direction}): {detail}',
+  advTenth: 'D10 10th lord {name} Digpala {digpala}: {detail}',
+  advBrahmaExtra: ' Creation + internal peace — founding work, not only status.',
+  advFifthExtra: ' In D10 5th: education fights, prestige battles, or creative karma may color the 10th lord.',
+  advTenthMissing: '10th lord Digpala unavailable.',
+  advEleventh: 'D10 11th lord {name} under {digpala} in house {house}: profits and awards. Classroom rule — when a nation-scale or career-defining event hits during this lord’s dasha, fame often jumps.',
+  advEleventhMissing: '11th lord reading unavailable.',
+  creationSplit: 'Split signature: Brahma on 10th lord (create / inner peace) with Ananta or sky-linked 11th (worldwide name) — build first, fame follows.',
+  creationBrahma: 'Brahma on 10th lord emphasizes creation and inner satisfaction over loud fame.',
+  creationAnanta: 'Ananta on 11th lord favors awards and wide reputation when dasha supports.',
+  creationCompare: 'Creation vs fame: compare 10th-lord Digpala (karma style) with 11th-lord Digpala (recognition style).',
+  competition: '6th lord {name} in house {house} ({digpala}): how you face rivals and speed-breakers.',
+  competitionMissing: '6th lord competition reading unavailable.',
+  mentorOcc: 'D10 9th occupied by {names} — mentors and right-direction guidance are active.',
+  mentorLord: 'D10 9th lord {name} steers mentorship and occupational knowledge.',
+  noteProtocol: 'Always read Digpala of Lagna, 10th lord, and 11th lord before declaring profession.',
+  noteDirection: 'Direction advice is a prediction tool (transfer / setup / foreign), not only symbolism.',
+  noteLagnaLord: 'D10 Lagna lord {name} in house {house} shows how the person owns livelihood.',
+  noteLagnaConfirm: 'Confirm D10 Lagna lord house for livelihood ownership.',
+  roleLagna: 'D10 Lagna lord (livelihood self)',
+  roleTenth: '10th lord (all work karma)',
+  roleEleventh: '11th lord (profits & awards)',
+  roleSixth: '6th lord (competition)',
+  insightVgTitle: 'Vargottama in career chart',
+  insightVgText: '{names} keep the same sign in D1 and D10 — professional expression matches natal promise.',
+  insightWeakTitle: 'Weak dignity in D10',
+  insightWeakText: '{names} lose strength in Dashamsha — deliver with more effort or supporting lords.',
+  insightDashaTitle: 'Current dasha × D10',
+  insightFameTitle: 'Fame window',
+} as const
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -574,14 +685,23 @@ function planetStrengthScore(p: {
   return Math.max(5, Math.min(98, s))
 }
 
-function buildPlanetInterpretation(p: DashamsaPlanetRow): { theme: string; interpretation: string } {
-  const theme = PLANET_D10_THEMES[p.id] ?? 'Career expression through this Dashamsha.'
+function buildPlanetInterpretation(
+  p: DashamsaPlanetRow,
+  planetThemes: Record<GrahaId, string>,
+  lang: EngineLang,
+): { theme: string; interpretation: string } {
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
+  const theme = planetThemes[p.id] ?? PLANET_D10_THEMES[p.id] ?? T.planetFallback
   const parts = [
-    `${p.name} operates from ${p.d1RashiName} (H${p.d1House}) into Dashamsha ${p.d10RashiName} (H${p.d10House}), part ${p.partInSign}/10.`,
-    `Digpala ${p.digpala.name} / ${p.digpala.nameSa} (${p.digpala.direction}) — ${p.digpala.signification}.`,
+    fill(T.planetRoute, {
+      name: p.name, d1: p.d1RashiName, d1House: p.d1House, d10: p.d10RashiName, d10House: p.d10House, part: p.partInSign,
+    }),
+    fill(T.planetDigpala, {
+      digpala: p.digpala.name, digpalaSa: p.digpala.nameSa, direction: p.digpala.direction, signification: p.digpala.signification,
+    }),
     p.digpala.predictionHook,
-    p.isVargottama ? 'Vargottama: natal and D10 signs align — career promise is consistent.' : null,
-    `Dignity in D10: ${p.d10Dignity.replace(/_/g, ' ')}.`,
+    p.isVargottama ? T.vargottama : null,
+    fill(T.dignityIn, { dignity: dignityText(p.d10Dignity, lang) }),
   ].filter(Boolean)
   return { theme, interpretation: parts.join(' ') }
 }
@@ -590,21 +710,24 @@ function keyLordNote(
   role: string,
   row: DashamsaPlanetRow | undefined,
   house: number,
+  houseThemes: Record<number, string>,
+  lang: EngineLang,
 ): string {
-  if (!row) return `${role} placement unavailable.`
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
+  if (!row) return fill(T.roleMissing, { role })
   const dusthana = [6, 8, 12].includes(row.d10House)
   const kendra = [1, 4, 7, 10].includes(row.d10House)
-  const tone = dusthana
-    ? 'needs careful handling of conflict, secrecy, or endings'
-    : kendra
-      ? 'can act visibly in livelihood'
-      : 'supports career through effort and timing'
-  return `${role} (${row.name}) in D10 ${row.d10RashiName} H${row.d10House} under ${row.digpala.name} — ${tone}. ${HOUSE_THEMES_D10[house]}`
+  const tone = dusthana ? T.roleDusthana : kendra ? T.roleKendra : T.roleOther
+  return fill(T.roleNote, {
+    role, name: row.name, rashi: row.d10RashiName, house: row.d10House, digpala: row.digpala.name,
+    tone, theme: houseThemes[house] ?? '',
+  })
 }
 
-function keyLordPrediction(role: string, row: DashamsaPlanetRow | undefined): string {
-  if (!row) return `${role}: Digpala unavailable.`
-  return `${row.digpala.predictionHook} Direction: ${row.digpala.directionAdvice}`
+function keyLordPrediction(role: string, row: DashamsaPlanetRow | undefined, lang: EngineLang): string {
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
+  if (!row) return fill(T.rolePredMissing, { role })
+  return fill(T.rolePred, { hook: row.digpala.predictionHook, advice: row.digpala.directionAdvice })
 }
 
 function dashaToneForHouse(house: number | null): CareerTone {
@@ -628,7 +751,10 @@ function buildDashaOverlay(
   planets: DashamsaPlanetRow[],
   tenthLordId: GrahaId,
   eleventhLordId: GrahaId,
+  lang: EngineLang,
 ): DashamsaDashaOverlay | null {
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
+  const levels = lang === 'hi' ? DASHA_LEVEL_LABELS_HI : DASHA_LEVEL_LABELS
   const nodes = chart.dashas?.vimshottari
   if (!nodes?.length) return null
   const path = getDashaPathAt(nodes)
@@ -643,19 +769,15 @@ function buildDashaOverlay(
     const isEleventhLord = lord === eleventhLordId
     const isTenthLord = lord === tenthLordId
     let note = row
-      ? `${GRAHA_NAMES[lord]} in D10 H${row.d10House} (${row.d10RashiName}) · Digpala ${row.digpala.name}`
-      : `${GRAHA_NAMES[lord]} — D10 placement missing`
-    if (isEleventhLord) {
-      note += ' — 11th lord period: watch awards, profits, and public recognition.'
-    }
-    if (isTenthLord) {
-      note += ' — 10th lord period: work karma and reputation build-up accelerate.'
-    }
+      ? fill(T.dashaNote, { name: gName(lord, lang), house: row.d10House, rashi: row.d10RashiName, digpala: row.digpala.name })
+      : fill(T.dashaMissing, { name: gName(lord, lang) })
+    if (isEleventhLord) note += T.dasha11
+    if (isTenthLord) note += T.dasha10
     return {
       level: seg.level,
-      levelLabel: DASHA_LEVEL_LABELS[seg.level] ?? `L${seg.level}`,
+      levelLabel: levels[seg.level] ?? `L${seg.level}`,
       lord,
-      lordName: GRAHA_NAMES[lord],
+      lordName: gName(lord, lang),
       start: formatDashaDate(seg.start),
       end: formatDashaDate(seg.end),
       d10Rashi: row?.d10Rashi ?? null,
@@ -675,13 +797,17 @@ function buildDashaOverlay(
 
   const top = lords[0]
   const careerWindow = top
-    ? `${top.levelLabel} ${top.lordName} through ${top.end} — watch D10 houses ${highlightHouses.join(', ') || '1, 10, 11'}.`
-    : 'No active Vimshottari path.'
+    ? fill(T.careerWindow, {
+      level: top.levelLabel, name: top.lordName, end: top.end,
+      houses: highlightHouses.join(', ') || '1, 10, 11',
+    })
+    : T.noVimshottari
 
-  const fameLord = lords.find((l) => l.isEleventhLord) ?? lords.find((l) => l.d10House === 11 || l.digpalaName === 'Ananta')
+  const fameLord = lords.find((l) => l.isEleventhLord)
+    ?? lords.find((l) => l.d10House === 11 || l.digpalaName === 'Ananta' || l.digpalaName === 'अनन्त')
   const fameWindow = fameLord
-    ? `${fameLord.levelLabel} ${fameLord.lordName} can lift recognition (11th / Ananta themes) through ${fameLord.end}.`
-    : 'No current dasha lord is the D10 11th lord — fame spikes more likely when 11th-lord dasha runs after a public event.'
+    ? fill(T.fameWindow, { level: fameLord.levelLabel, name: fameLord.lordName, end: fameLord.end })
+    : T.fameWindowAlt
 
   return {
     pathLabel: lords.map((l) => l.lordName).join(' / '),
@@ -696,7 +822,9 @@ function buildDirection(
   lagnaDigpala: DigpalaMeta,
   planets: DashamsaPlanetRow[],
   tenth: DashamsaPlanetRow | undefined,
+  lang: EngineLang,
 ): DashamsaDirectionReading {
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
   const counts = new Map<DigpalaId, number>()
   for (const p of planets) {
     counts.set(p.digpala.id, (counts.get(p.digpala.id) ?? 0) + 1)
@@ -706,8 +834,8 @@ function buildDirection(
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([id, n]) => ({
-      digpala: DIGPALA_META[id],
-      reason: `${n} planet${n > 1 ? 's' : ''} in this Digpala`,
+      digpala: localizeDigpala(DIGPALA_META[id], lang),
+      reason: fill(n === 1 ? T.digpalaCountOne : T.digpalaCount, { n }),
     }))
 
   const foreignTheme =
@@ -716,15 +844,11 @@ function buildDirection(
     || (counts.get('varuna') ?? 0) >= 2
 
   const notes: string[] = [
-    `Lagna Digpala ${lagnaDigpala.name} (${lagnaDigpala.directionSa}) sets the primary compass for livelihood.`,
+    fill(T.dirLagna, { name: lagnaDigpala.name, dirSa: lagnaDigpala.directionSa }),
     lagnaDigpala.directionAdvice,
   ]
-  if (foreignTheme) {
-    notes.push('Varuna emphasis: overseas education, foreign posting, or West-direction business is a live theme.')
-  }
-  if (tenth) {
-    notes.push(`10th lord Digpala ${tenth.digpala.name} refines where work karma actually lands.`)
-  }
+  if (foreignTheme) notes.push(T.dirVaruna)
+  if (tenth) notes.push(fill(T.dirTenth, { name: tenth.digpala.name }))
 
   return {
     primaryDigpala: lagnaDigpala,
@@ -741,7 +865,9 @@ function buildProfession(
   tenth: DashamsaPlanetRow | undefined,
   eleventh: DashamsaPlanetRow | undefined,
   digpalaBuckets: DigpalaBucket[],
+  lang: EngineLang,
 ): DashamsaProfessionSketch {
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
   const fields = new Set<string>()
   for (const f of lagnaDigpala.professions) fields.add(f)
   if (tenth) for (const f of tenth.digpala.professions) fields.add(f)
@@ -749,9 +875,9 @@ function buildProfession(
   for (const b of heavy) for (const f of b.digpala.professions.slice(0, 2)) fields.add(f)
 
   const sources = [
-    `Lagna Digpala ${lagnaDigpala.name}`,
-    tenth ? `10th lord ${tenth.name} → ${tenth.digpala.name}` : '10th lord Digpala pending',
-    eleventh ? `11th lord ${eleventh.name} → ${eleventh.digpala.name}` : '11th lord Digpala pending',
+    fill(T.srcLagna, { name: lagnaDigpala.name }),
+    tenth ? fill(T.srcTenth, { name: tenth.name, digpala: tenth.digpala.name }) : T.srcTenthPending,
+    eleventh ? fill(T.srcEleventh, { name: eleventh.name, digpala: eleventh.digpala.name }) : T.srcEleventhPending,
   ]
 
   const workStyle = tenth
@@ -759,11 +885,14 @@ function buildProfession(
     : lagnaDigpala.detail
 
   const respectPath = eleventh
-    ? `Respect and awards route through 11th lord ${eleventh.name} in house ${eleventh.d10House} (${eleventh.digpala.name}).`
-    : 'Watch 11th lord Digpala and its dasha for when work earns public respect.'
+    ? fill(T.respectPath, { name: eleventh.name, house: eleventh.d10House, digpala: eleventh.digpala.name })
+    : T.respectWatch
 
   return {
-    headline: `Livelihood flavor: ${lagnaDigpala.name} + ${tenth?.digpala.name ?? '10th Digpala'}`,
+    headline: fill(T.livHeadline, {
+      lagna: lagnaDigpala.name,
+      tenth: tenth?.digpala.name ?? T.tenthDigpalaFallback,
+    }),
     fields: [...fields].slice(0, 10),
     workStyle,
     respectPath,
@@ -775,7 +904,10 @@ function buildEthics(
   houses: DashamsaHouseRow[],
   planets: DashamsaPlanetRow[],
   d10Lagna: Rashi,
+  houseDetail: Record<number, string>,
+  lang: EngineLang,
 ): DashamsaEthicsTrack {
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
   const h8 = houses[7]!
   const eighthLordId = SIGN_LORDS[wholeSignHouseSign(d10Lagna, 8)]
   const eighthLord = planets.find((p) => p.id === eighthLordId)
@@ -784,30 +916,30 @@ function buildEthics(
     return { id: o.id, name: o.name, digpala: row?.digpala.name ?? o.digpalaName }
   })
   const hasRahu = occupants.some((o) => o.id === 'Ra')
-  const hasRakshasa = occupants.some((o) => o.digpala === 'Rakshasa') || eighthLord?.digpala.id === 'rakshasa'
+  const hasRakshasa = occupants.some((o) => o.digpala === 'Rakshasa' || o.digpala === 'राक्षस') || eighthLord?.digpala.id === 'rakshasa'
   const maleficHeavy = occupants.some((o) => o.id === 'Sa' || o.id === 'Ma' || o.id === 'Ra')
 
   let tone: CareerTone = 'neutral'
-  let headline = 'Business track looks mixed — read secrets without assuming guilt'
-  let text = HOUSE_DETAIL_D10[8]
+  let headline: string = T.ethMixed
+  let text: string = houseDetail[8] ?? HOUSE_DETAIL_D10[8]!
 
   if (hasRakshasa || hasRahu) {
     tone = 'challenging'
-    headline = 'Unconventional / boundary-breaking track in D10 8th'
-    text = '8th house or its lord touches Rakshasa/Rahu themes — shortcuts, grey methods, or hidden dealings may appear. Check whether the person keeps ethics while breaking bureaucracy.'
+    headline = T.ethRakshasaHead
+    text = T.ethRakshasaText
   } else if (maleficHeavy) {
     tone = 'mixed'
-    headline = 'Pressure and secrecy around occupation'
-    text = 'Difficult planets in D10 8th intensify secrets, crises, and new-venture endings — not automatically unethical, but the track must be watched.'
+    headline = T.ethPressureHead
+    text = T.ethPressureText
   } else if (occupants.length === 0 && eighthLord && STRONG_DIGNITY.includes(eighthLord.d10Dignity)) {
     tone = 'supportive'
-    headline = 'Cleaner ethical track indicated'
-    text = 'Empty 8th with a dignified 8th lord often keeps hidden dealings muted — still verify with dashas and D1.'
+    headline = T.ethCleanHead
+    text = T.ethCleanText
   }
 
   const lordNote = eighthLord
-    ? `8th lord ${eighthLord.name} in house ${eighthLord.d10House} under ${eighthLord.digpala.name}.`
-    : '8th lord placement unavailable.'
+    ? fill(T.ethLord, { name: eighthLord.name, house: eighthLord.d10House, digpala: eighthLord.digpala.name })
+    : T.ethLordMissing
 
   return { tone, headline, text, occupants, lordNote }
 }
@@ -816,7 +948,9 @@ function buildFame(
   planets: DashamsaPlanetRow[],
   eleventh: DashamsaPlanetRow | undefined,
   tenth: DashamsaPlanetRow | undefined,
+  lang: EngineLang,
 ): DashamsaFamePath {
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
   const ananta = planets.filter((p) => p.digpala.id === 'ananta')
   const anantaNames = ananta.map((p) => p.name)
   let scale: DashamsaFamePath['scale'] = 'local'
@@ -828,22 +962,20 @@ function buildFame(
     scale = 'regional'
   }
 
-  const headline =
-    scale === 'worldwide'
-      ? 'Ananta / sky themes — reputation can travel far'
-      : scale === 'wide'
-        ? 'Strong public-karma link — reputation builds beyond the local circle'
-        : 'Respect is earned; worldwide fame needs Ananta or strong 11th timing'
+  const headline: string =
+    scale === 'worldwide' ? T.fameWorldwide
+      : scale === 'wide' ? T.fameWide
+        : T.fameLocal
 
   const eleventhLordNote = eleventh
-    ? `11th lord ${eleventh.name} in D10 H${eleventh.d10House} (${eleventh.digpala.name}) — awards and “father of the field” style recognition time with this lord’s dasha after a public event.`
-    : '11th lord unavailable.'
+    ? fill(T.fame11, { name: eleventh.name, house: eleventh.d10House, digpala: eleventh.digpala.name })
+    : T.fame11Missing
 
   const text = [
     anantaNames.length
-      ? `Ananta Digpala on ${anantaNames.join(', ')} points to name that can scale.`
-      : 'No planet currently in Ananta Digpala — fame still possible via 10th/11th lords and public dashas.',
-    tenth ? `10th lord ${tenth.name} under ${tenth.digpala.name} sets how karma becomes reputation.` : null,
+      ? fill(T.fameAnanta, { names: anantaNames.join(', ') })
+      : T.fameNoAnanta,
+    tenth ? fill(T.fameTenth, { name: tenth.name, digpala: tenth.digpala.name }) : null,
   ].filter(Boolean).join(' ')
 
   return { scale, headline, text, anantaPlanets: anantaNames, eleventhLordNote }
@@ -856,50 +988,51 @@ function buildAdvanced(
   sixth: DashamsaPlanetRow | undefined,
   ninthHouse: DashamsaHouseRow,
   lagnaLord: DashamsaPlanetRow | undefined,
+  lang: EngineLang,
 ): DashamsaAdvanced {
-  const lagnaDigpalaReading =
-    `D1 Lagna Digpala ${lagnaDigpala.name} (${lagnaDigpala.direction}): ${lagnaDigpala.detail}`
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
+  const lagnaDigpalaReading = fill(T.advLagna, {
+    name: lagnaDigpala.name, direction: lagnaDigpala.direction, detail: lagnaDigpala.detail,
+  })
 
   const tenthLordDigpalaReading = tenth
-    ? `D10 10th lord ${tenth.name} Digpala ${tenth.digpala.name}: ${tenth.digpala.detail}${
-      tenth.digpala.id === 'brahma'
-        ? ' Creation + internal peace — founding work, not only status.'
-        : ''
-    }${tenth.d10House === 5 ? ' In D10 5th: education fights, prestige battles, or creative karma may color the 10th lord.' : ''}`
-    : '10th lord Digpala unavailable.'
+    ? fill(T.advTenth, { name: tenth.name, digpala: tenth.digpala.name, detail: tenth.digpala.detail })
+      + (tenth.digpala.id === 'brahma' ? T.advBrahmaExtra : '')
+      + (tenth.d10House === 5 ? T.advFifthExtra : '')
+    : T.advTenthMissing
 
   const eleventhLordReading = eleventh
-    ? `D10 11th lord ${eleventh.name} under ${eleventh.digpala.name} in house ${eleventh.d10House}: profits and awards. Classroom rule — when a nation-scale or career-defining event hits during this lord’s dasha, fame often jumps.`
-    : '11th lord reading unavailable.'
+    ? fill(T.advEleventh, { name: eleventh.name, digpala: eleventh.digpala.name, house: eleventh.d10House })
+    : T.advEleventhMissing
 
-  const creationVsFame =
+  const creationVsFame: string =
     tenth?.digpala.id === 'brahma' && (eleventh?.digpala.id === 'ananta' || eleventh?.d10House === 10)
-      ? 'Split signature: Brahma on 10th lord (create / inner peace) with Ananta or sky-linked 11th (worldwide name) — build first, fame follows.'
+      ? T.creationSplit
       : tenth?.digpala.id === 'brahma'
-        ? 'Brahma on 10th lord emphasizes creation and inner satisfaction over loud fame.'
+        ? T.creationBrahma
         : eleventh?.digpala.id === 'ananta'
-          ? 'Ananta on 11th lord favors awards and wide reputation when dasha supports.'
-          : 'Creation vs fame: compare 10th-lord Digpala (karma style) with 11th-lord Digpala (recognition style).'
+          ? T.creationAnanta
+          : T.creationCompare
 
   const competitionNote = sixth
-    ? `6th lord ${sixth.name} in house ${sixth.d10House} (${sixth.digpala.name}): how you face rivals and speed-breakers.`
-    : '6th lord competition reading unavailable.'
+    ? fill(T.competition, { name: sixth.name, house: sixth.d10House, digpala: sixth.digpala.name })
+    : T.competitionMissing
 
   const mentorshipNote =
     ninthHouse.occupants.length
-      ? `D10 9th occupied by ${ninthHouse.occupants.map((o) => o.name).join(', ')} — mentors and right-direction guidance are active.`
-      : `D10 9th lord ${ninthHouse.lordName} steers mentorship and occupational knowledge.`
+      ? fill(T.mentorOcc, { names: ninthHouse.occupants.map((o) => o.name).join(', ') })
+      : fill(T.mentorLord, { name: ninthHouse.lordName })
 
   const notes = [
-    'Always read Digpala of Lagna, 10th lord, and 11th lord before declaring profession.',
-    'Direction advice is a prediction tool (transfer / setup / foreign), not only symbolism.',
+    T.noteProtocol,
+    T.noteDirection,
     lagnaLord
-      ? `D10 Lagna lord ${lagnaLord.name} in house ${lagnaLord.d10House} shows how the person owns livelihood.`
-      : 'Confirm D10 Lagna lord house for livelihood ownership.',
+      ? fill(T.noteLagnaLord, { name: lagnaLord.name, house: lagnaLord.d10House })
+      : T.noteLagnaConfirm,
   ]
 
   return {
-    protocol: D10_PURPOSE.predictionProtocol,
+    protocol: lang === 'hi' ? [...D10_PURPOSE_PROTOCOL_HI] : [...D10_PURPOSE.predictionProtocol],
     lagnaDigpalaReading,
     tenthLordDigpalaReading,
     eleventhLordReading,
@@ -914,16 +1047,21 @@ function buildAdvanced(
  * Full Dashamsha analysis from a calculated chart.
  * Requires chart.vargas.D10 and chart.vargaLagnas.D10.
  */
-export function analyzeDashamsa(chart: ChartOutput): DashamsaAnalysis | null {
+export function analyzeDashamsa(chart: ChartOutput, lang: EngineLang = 'en'): DashamsaAnalysis | null {
   const d10Grahas = chart.vargas?.D10
   const d10Lagna = chart.vargaLagnas?.D10
   if (!d10Grahas?.length || !d10Lagna) return null
+
+  const houseThemes = pick(HOUSE_THEMES_D10, D10_HOUSE_THEMES_HI, lang)
+  const houseDetail = pick(HOUSE_DETAIL_D10, D10_HOUSE_DETAIL_HI, lang)
+  const lagnaThemes = pick(DASHAMSA_LAGNA_THEMES, D10_LAGNA_THEMES_HI, lang)
+  const planetThemes = pick(PLANET_D10_THEMES, D10_PLANET_THEMES_HI as Record<GrahaId, string>, lang)
 
   const d1Asc = chart.lagnas.ascRashi
   const d10ById = new Map<GrahaId, GrahaData>()
   for (const g of d10Grahas) d10ById.set(g.id, g)
 
-  const lagnaDigpalaResolved = digpalaForPlacement(d1Asc, chart.lagnas.ascDegreeInRashi)
+  const lagnaDigpalaResolved = digpalaForPlacement(d1Asc, chart.lagnas.ascDegreeInRashi, lang)
 
   const planets: DashamsaPlanetRow[] = []
 
@@ -933,18 +1071,18 @@ export function analyzeDashamsa(chart: ChartOutput): DashamsaAnalysis | null {
     if (!d1 || !d10) continue
 
     const partInSign = dashamshaPart(d1.degree)
-    const digpala = digpalaForPlacement(d1.rashi, d1.degree)
+    const digpala = digpalaForPlacement(d1.rashi, d1.degree, lang)
     const d10Dispositor = SIGN_LORDS[d10.rashi]
     const base = {
       id,
-      name: GRAHA_NAMES[id],
+      name: gName(id, lang),
       d1Rashi: d1.rashi,
-      d1RashiName: RASHI_NAMES[d1.rashi],
-      d1RashiShort: RASHI_SHORT[d1.rashi],
+      d1RashiName: rName(d1.rashi, lang),
+      d1RashiShort: lang === 'hi' ? rName(d1.rashi, lang) : RASHI_SHORT[d1.rashi],
       d1Degree: d1.degree,
       d10Rashi: d10.rashi,
-      d10RashiName: RASHI_NAMES[d10.rashi],
-      d10RashiShort: RASHI_SHORT[d10.rashi],
+      d10RashiName: rName(d10.rashi, lang),
+      d10RashiShort: lang === 'hi' ? rName(d10.rashi, lang) : RASHI_SHORT[d10.rashi],
       d10Degree: d10.degree,
       partInSign,
       d1House: houseOf(d1.rashi, d1Asc),
@@ -954,13 +1092,13 @@ export function analyzeDashamsa(chart: ChartOutput): DashamsaAnalysis | null {
       isVargottama: d1.rashi === d10.rashi,
       digpala,
       d10Dispositor,
-      d10DispositorName: GRAHA_NAMES[d10Dispositor],
+      d10DispositorName: gName(d10Dispositor, lang),
       strengthScore: 0,
       theme: '',
       interpretation: '',
     }
     base.strengthScore = planetStrengthScore(base)
-    const { theme, interpretation } = buildPlanetInterpretation(base as DashamsaPlanetRow)
+    const { theme, interpretation } = buildPlanetInterpretation(base as DashamsaPlanetRow, planetThemes, lang)
     planets.push({ ...base, theme, interpretation })
   }
 
@@ -982,18 +1120,18 @@ export function analyzeDashamsa(chart: ChartOutput): DashamsaAnalysis | null {
     houses.push({
       house: h,
       rashi,
-      rashiName: RASHI_NAMES[rashi],
-      rashiShort: RASHI_SHORT[rashi],
+      rashiName: rName(rashi, lang),
+      rashiShort: lang === 'hi' ? rName(rashi, lang) : RASHI_SHORT[rashi],
       lord,
-      lordName: GRAHA_NAMES[lord],
-      theme: HOUSE_THEMES_D10[h],
-      detail: HOUSE_DETAIL_D10[h],
+      lordName: gName(lord, lang),
+      theme: houseThemes[h]!,
+      detail: houseDetail[h]!,
       occupants,
     })
   }
 
   const digpalaBuckets: DigpalaBucket[] = DIGPALA_ORDER.map((id) => {
-    const digpala = DIGPALA_META[id]
+    const digpala = localizeDigpala(DIGPALA_META[id], lang)
     const occ = planets
       .filter((p) => p.digpala.id === id)
       .map((p) => ({
@@ -1020,6 +1158,7 @@ export function analyzeDashamsa(chart: ChartOutput): DashamsaAnalysis | null {
   const sixth = planets.find((p) => p.id === sixthLordId)
   const lagnaLord = planets.find((p) => p.id === lagnaLordId)
 
+  const T = pick(D10_TEXT_EN as Record<string, string>, D10_TEXT_HI as Record<string, string>, lang)
   const toKeyLord = (
     role: string,
     id: GrahaId,
@@ -1028,59 +1167,65 @@ export function analyzeDashamsa(chart: ChartOutput): DashamsaAnalysis | null {
   ): DashamsaKeyLord => ({
     role,
     id,
-    name: GRAHA_NAMES[id],
+    name: gName(id, lang),
     d10Rashi: row?.d10Rashi ?? d10Lagna,
-    d10RashiName: row?.d10RashiName ?? RASHI_NAMES[d10Lagna],
+    d10RashiName: row?.d10RashiName ?? rName(d10Lagna, lang),
     d10House: row?.d10House ?? 1,
     d10Dignity: row?.d10Dignity ?? ('neutral' as Dignity),
-    digpala: row?.digpala ?? DIGPALA_META.indra,
+    digpala: row?.digpala ?? localizeDigpala(DIGPALA_META.indra, lang),
     digpalaName: row?.digpala.name ?? '—',
     isVargottama: row?.isVargottama ?? false,
-    note: keyLordNote(role, row, house),
-    predictionNote: keyLordPrediction(role, row),
+    note: keyLordNote(role, row, house, houseThemes, lang),
+    predictionNote: keyLordPrediction(role, row, lang),
   })
 
   const keyLords: DashamsaKeyLord[] = [
-    toKeyLord('D10 Lagna lord (livelihood self)', lagnaLordId, lagnaLord, 1),
-    toKeyLord('10th lord (all work karma)', tenthLordId, tenth, 10),
-    toKeyLord('11th lord (profits & awards)', eleventhLordId, eleventh, 11),
-    toKeyLord('6th lord (competition)', sixthLordId, sixth, 6),
+    toKeyLord(T.roleLagna, lagnaLordId, lagnaLord, 1),
+    toKeyLord(T.roleTenth, tenthLordId, tenth, 10),
+    toKeyLord(T.roleEleventh, eleventhLordId, eleventh, 11),
+    toKeyLord(T.roleSixth, sixthLordId, sixth, 6),
   ]
 
-  const direction = buildDirection(lagnaDigpalaResolved, planets, tenth)
-  const profession = buildProfession(lagnaDigpalaResolved, tenth, eleventh, digpalaBuckets)
-  const ethics = buildEthics(houses, planets, d10Lagna)
-  const fame = buildFame(planets, eleventh, tenth)
-  const advanced = buildAdvanced(lagnaDigpalaResolved, tenth, eleventh, sixth, houses[8]!, lagnaLord)
+  const direction = buildDirection(lagnaDigpalaResolved, planets, tenth, lang)
+  const profession = buildProfession(lagnaDigpalaResolved, tenth, eleventh, digpalaBuckets, lang)
+  const ethics = buildEthics(houses, planets, d10Lagna, houseDetail, lang)
+  const fame = buildFame(planets, eleventh, tenth, lang)
+  const advanced = buildAdvanced(lagnaDigpalaResolved, tenth, eleventh, sixth, houses[8]!, lagnaLord, lang)
 
   const insights: DashamsaInsight[] = []
   insights.push({
     kind: 'info',
-    title: 'Dashamsha lagna',
-    text: `${RASHI_NAMES[d10Lagna]} (${RASHI_SANSKRIT[d10Lagna]}) sets ājīvikā foundation. ${DASHAMSA_LAGNA_THEMES[d10Lagna]}`,
+    title: lang === 'hi' ? 'दशमांश लग्न' : 'Dashamsha lagna',
+    text: lang === 'hi'
+      ? `${rName(d10Lagna, lang)} आजीविका की नींव तय करता है। ${lagnaThemes[d10Lagna]}`
+      : `${RASHI_NAMES[d10Lagna]} (${RASHI_SANSKRIT[d10Lagna]}) sets ājīvikā foundation. ${lagnaThemes[d10Lagna]}`,
   })
   insights.push({
     kind: direction.foreignTheme ? 'highlight' : 'info',
-    title: `Lagna Digpala · ${lagnaDigpalaResolved.name}`,
+    title: lang === 'hi'
+      ? `लग्न दिग्पाल · ${lagnaDigpalaResolved.name}`
+      : `Lagna Digpala · ${lagnaDigpalaResolved.name}`,
     text: advanced.lagnaDigpalaReading,
   })
   if (tenth) {
     insights.push({
       kind: tenth.digpala.id === 'brahma' || tenth.digpala.id === 'ananta' ? 'highlight' : 'strength',
-      title: `10th lord Digpala · ${tenth.digpala.name}`,
+      title: lang === 'hi'
+        ? `दशमेश दिग्पाल · ${tenth.digpala.name}`
+        : `10th lord Digpala · ${tenth.digpala.name}`,
       text: advanced.tenthLordDigpalaReading,
     })
   }
   if (eleventh) {
     insights.push({
       kind: 'highlight',
-      title: '11th lord · awards & recognition timing',
+      title: lang === 'hi' ? 'एकादशेश · पुरस्कार एवं मान्यता समय' : '11th lord · awards & recognition timing',
       text: advanced.eleventhLordReading,
     })
   }
   insights.push({
     kind: 'info',
-    title: 'Creation vs fame',
+    title: lang === 'hi' ? 'सृजन बनाम यश' : 'Creation vs fame',
     text: advanced.creationVsFame,
   })
   insights.push({
@@ -1096,45 +1241,54 @@ export function analyzeDashamsa(chart: ChartOutput): DashamsaAnalysis | null {
   if (vargottama.length) {
     insights.push({
       kind: 'strength',
-      title: 'Vargottama in career chart',
-      text: `${vargottama.map((p) => p.name).join(', ')} keep the same sign in D1 and D10 — professional expression matches natal promise.`,
+      title: T.insightVgTitle,
+      text: fill(T.insightVgText, { names: vargottama.map((p) => p.name).join(', ') }),
     })
   }
   if (weakInD10.length) {
     insights.push({
       kind: 'caution',
-      title: 'Weak dignity in D10',
-      text: `${weakInD10.map((p) => p.name).join(', ')} lose strength in Dashamsha — deliver with more effort or supporting lords.`,
+      title: T.insightWeakTitle,
+      text: fill(T.insightWeakText, { names: weakInD10.map((p) => p.name).join(', ') }),
     })
   }
 
-  const dashaOverlay = buildDashaOverlay(chart, planets, tenthLordId, eleventhLordId)
+  const dashaOverlay = buildDashaOverlay(chart, planets, tenthLordId, eleventhLordId, lang)
   if (dashaOverlay) {
     insights.push({
       kind: 'info',
-      title: 'Current dasha × D10',
+      title: T.insightDashaTitle,
       text: dashaOverlay.careerWindow,
     })
     insights.push({
       kind: 'highlight',
-      title: 'Fame window',
+      title: T.insightFameTitle,
       text: dashaOverlay.fameWindow,
     })
   }
 
-  const summaryParts = [
-    `D10 Lagna ${RASHI_NAMES[d10Lagna]}`,
-    `Digpala ${lagnaDigpalaResolved.name}`,
-    `10L ${GRAHA_NAMES[tenthLordId]}→${tenth?.digpala.name ?? '—'}`,
-    `11L ${GRAHA_NAMES[eleventhLordId]}`,
-  ]
-  if (dashaOverlay) summaryParts.push(`Dasha ${dashaOverlay.pathLabel}`)
+  const summaryParts = lang === 'hi'
+    ? [
+      `D10 लग्न ${rName(d10Lagna, lang)}`,
+      `दिग्पाल ${lagnaDigpalaResolved.name}`,
+      `दशमेश ${gName(tenthLordId, lang)}→${tenth?.digpala.name ?? '—'}`,
+      `एकादशेश ${gName(eleventhLordId, lang)}`,
+    ]
+    : [
+      `D10 Lagna ${RASHI_NAMES[d10Lagna]}`,
+      `Digpala ${lagnaDigpalaResolved.name}`,
+      `10L ${GRAHA_NAMES[tenthLordId]}→${tenth?.digpala.name ?? '—'}`,
+      `11L ${GRAHA_NAMES[eleventhLordId]}`,
+    ]
+  if (dashaOverlay) {
+    summaryParts.push(lang === 'hi' ? `दशा ${dashaOverlay.pathLabel}` : `Dasha ${dashaOverlay.pathLabel}`)
+  }
 
   return {
     d10Lagna,
-    d10LagnaName: RASHI_NAMES[d10Lagna],
-    d10LagnaSanskrit: RASHI_SANSKRIT[d10Lagna],
-    d10LagnaTheme: DASHAMSA_LAGNA_THEMES[d10Lagna],
+    d10LagnaName: rName(d10Lagna, lang),
+    d10LagnaSanskrit: lang === 'hi' ? rName(d10Lagna, lang) : RASHI_SANSKRIT[d10Lagna],
+    d10LagnaTheme: lagnaThemes[d10Lagna]!,
     lagnaVargottama: d1Asc === d10Lagna,
     lagnaDigpala: lagnaDigpalaResolved,
     planets,
@@ -1152,6 +1306,6 @@ export function analyzeDashamsa(chart: ChartOutput): DashamsaAnalysis | null {
     fame,
     advanced,
     summary: summaryParts.join(' · '),
-    purpose: D10_PURPOSE,
+    purpose: lang === 'hi' ? (D10_PURPOSE_HI as unknown as typeof D10_PURPOSE) : D10_PURPOSE,
   }
 }

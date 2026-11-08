@@ -5,16 +5,18 @@
 //  Free: 2 most afflicted planets (indications + behavioural) · Gold+: all nine
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import {
   computePlanetaryRemedies,
-  REMEDY_CORE_PRINCIPLE,
+  getRemedyCorePrinciple,
   type PlanetRemedyAssessment,
   type RemedyGrahaId,
   type RemedyNeed,
@@ -23,10 +25,16 @@ import { ICON } from '@/components/ui/PlanetDetailCard'
 
 const FREE_PREVIEW_COUNT = 2
 
+// label = message key under planetsB.remedies.need
 const NEED_STYLE: Record<RemedyNeed, { bg: string; border: string; text: string; label: string }> = {
-  high:     { bg: 'rgba(244,114,128,0.12)', border: 'rgba(244,114,128,0.4)', text: 'var(--rose)',       label: 'Needs remedy' },
-  moderate: { bg: 'rgba(245,158,66,0.12)',  border: 'rgba(245,158,66,0.4)',  text: 'var(--amber)',      label: 'Some strain' },
-  low:      { bg: 'rgba(255,255,255,0.04)', border: 'var(--border-soft)',     text: 'var(--text-muted)', label: 'Supported' },
+  high:     { bg: 'rgba(244,114,128,0.12)', border: 'rgba(244,114,128,0.4)', text: 'var(--rose)',       label: 'high' },
+  moderate: { bg: 'rgba(245,158,66,0.12)',  border: 'rgba(245,158,66,0.4)',  text: 'var(--amber)',      label: 'moderate' },
+  low:      { bg: 'rgba(255,255,255,0.04)', border: 'var(--border-soft)',     text: 'var(--text-muted)', label: 'low' },
+}
+
+/** "Sun · Surya"; in Hindi the two names coincide, so show one. */
+function titleOf(teaching: { name: string; sanskrit: string }): string {
+  return teaching.name === teaching.sanskrit ? teaching.name : `${teaching.name} · ${teaching.sanskrit}`
 }
 
 const labelStyle: React.CSSProperties = {
@@ -68,9 +76,10 @@ function RemedyCard({
   onToggle: () => void
   previewOnly?: boolean
 }) {
+  const tr = useTranslations('planetsB.remedies')
   const s = NEED_STYLE[p.need]
   const t = p.teaching
-  const deities = [...t.deities, `${p.nakshatraDeity} (nakshatra)`]
+  const deities = [...t.deities, tr('nakDeity', { deity: p.nakshatraDeity })]
   return (
     <div style={{
       border: `1px solid ${expanded ? s.border : 'var(--border-soft)'}`,
@@ -114,7 +123,7 @@ function RemedyCard({
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', alignItems: 'flex-start' }}>
             <div>
               <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-                {t.name} · {t.sanskrit}
+                {titleOf(t)}
               </div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-gold)', marginTop: 2 }}>
                 {p.nakshatraName} · {p.nakshatraDeity}
@@ -132,11 +141,11 @@ function RemedyCard({
               color: s.text,
               whiteSpace: 'nowrap',
             }}>
-              {s.label}
+              {tr(`need.${s.label}`)}
             </span>
           </div>
           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
-            {p.reasons.length > 0 ? p.reasons.join(' · ') : 'No major affliction'}
+            {p.reasons.length > 0 ? p.reasons.join(' · ') : tr('noAffliction')}
           </div>
         </div>
         <span style={{
@@ -162,14 +171,14 @@ function RemedyCard({
             borderRadius: 'var(--r-sm)',
             borderLeft: '3px solid var(--gold)',
           }}>
-            <div style={{ ...labelStyle, color: 'var(--text-gold)' }}>Deities · this chart</div>
+            <div style={{ ...labelStyle, color: 'var(--text-gold)' }}>{tr('deities')}</div>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-primary)', lineHeight: 1.45 }}>
               {deities.join(' · ')}
             </div>
           </div>
 
-          <RemedyList title="Indications of weakness" items={t.indications} />
-          <RemedyList title="Behavioural remedies" items={t.behavioral} />
+          <RemedyList title={tr('indications')} items={t.indications} />
+          <RemedyList title={tr('behavioral')} items={t.behavioral} />
 
           {previewOnly ? (
             <div style={{
@@ -180,13 +189,13 @@ function RemedyCard({
               gap: '0.35rem',
             }}>
               <Lock size={12} aria-hidden />
-              Spiritual remedies, daan, seva, and cautions on Gold
+              {tr('lockedExtras')}
             </div>
           ) : (
             <>
-              <RemedyList title="Spiritual remedies" items={t.spiritual} />
-              <RemedyList title="Donation (Daan)" items={t.donation} />
-              <RemedyList title="Seva" items={t.seva} />
+              <RemedyList title={tr('spiritual')} items={t.spiritual} />
+              <RemedyList title={tr('donation')} items={t.donation} />
+              <RemedyList title={tr('seva')} items={t.seva} />
               {t.notes.map((n) => (
                 <div key={n} style={{
                   fontSize: '0.66rem',
@@ -201,7 +210,7 @@ function RemedyCard({
               ))}
               {t.duration && (
                 <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  Duration: {t.duration}
+                  {tr('duration', { duration: t.duration })}
                 </div>
               )}
             </>
@@ -218,11 +227,14 @@ interface PlanetaryRemediesPanelProps {
 }
 
 export function PlanetaryRemediesPanel({ chart, userPlan = 'free' }: PlanetaryRemediesPanelProps) {
+  const t = useTranslations('planetsB.remedies')
+  const { lang } = useLang()
   const showFull = planMeetsUiGate(userPlan, 'gold')
+  const core = getRemedyCorePrinciple(lang)
 
   const result = useMemo(
-    () => computePlanetaryRemedies(chart.grahas, chart.shadbala),
-    [chart.grahas, chart.shadbala],
+    () => computePlanetaryRemedies(chart.grahas, chart.shadbala, lang),
+    [chart.grahas, chart.shadbala, lang],
   )
 
   const visible = showFull ? result.planets : result.planets.slice(0, FREE_PREVIEW_COUNT)
@@ -246,11 +258,10 @@ export function PlanetaryRemediesPanel({ chart, userPlan = 'free' }: PlanetaryRe
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: your {FREE_PREVIEW_COUNT} most afflicted planets with behavioural remedies.
-            All nine planets with spiritual remedies, daan, and seva require Gold.
+            {t('freePreview', { count: FREE_PREVIEW_COUNT })}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{t('viewPlans')}</Button>
           </Link>
         </div>
       )}
@@ -266,10 +277,10 @@ export function PlanetaryRemediesPanel({ chart, userPlan = 'free' }: PlanetaryRe
         borderRadius: 'var(--r-sm)',
       }}>
         <div style={{ fontWeight: 700, color: 'var(--text-gold)', marginBottom: 4 }}>
-          {REMEDY_CORE_PRINCIPLE.title}
+          {core.title}
         </div>
-        <div>Look at: {REMEDY_CORE_PRINCIPLE.steps.join(' → ')}.</div>
-        <div style={{ marginTop: 4, fontStyle: 'italic' }}>{REMEDY_CORE_PRINCIPLE.keyRule}</div>
+        <div>{t('lookAt', { steps: core.steps.join(' → ') })}</div>
+        <div style={{ marginTop: 4, fontStyle: 'italic' }}>{core.keyRule}</div>
         <div style={{ marginTop: 6, color: 'var(--text-primary)' }}>{result.insight}</div>
       </div>
 
@@ -291,7 +302,7 @@ export function PlanetaryRemediesPanel({ chart, userPlan = 'free' }: PlanetaryRe
 
       {locked.length > 0 && (
         <div style={{ marginTop: '0.85rem' }}>
-          <PlanGate userPlan={userPlan} required="gold" featureName="Full Planetary Remedies">
+          <PlanGate userPlan={userPlan} required="gold" featureName={t('gateFeature')}>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
@@ -309,10 +320,10 @@ export function PlanetaryRemediesPanel({ chart, userPlan = 'free' }: PlanetaryRe
                   }}
                 >
                   <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>
-                    {p.teaching.name} · {p.teaching.sanskrit}
+                    {titleOf(p.teaching)}
                   </div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 6 }}>
-                    {NEED_STYLE[p.need].label}
+                    {t(`need.${NEED_STYLE[p.need].label}`)}
                   </div>
                 </div>
               ))}

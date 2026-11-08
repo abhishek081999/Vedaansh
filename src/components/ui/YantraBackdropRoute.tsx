@@ -1,7 +1,7 @@
 'use client'
 
+import { usePathname } from '@/i18n/navigation'
 import { useEffect } from 'react'
-import { usePathname } from 'next/navigation'
 
 /** Matches CSS in globals.css (`body.yantra-backdrop`) */
 const BODY_CLASS = 'yantra-backdrop'

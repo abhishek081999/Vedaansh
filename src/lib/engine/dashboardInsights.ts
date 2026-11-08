@@ -11,6 +11,12 @@ import { calculateManglik, calculatePapeSamya, type ManglikAnalysis, type PapeSa
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { NAKSHATRA_REMEDIES, type NakshatraRemedies } from '@/lib/engine/nakshatraRemedies'
 import { analyzeShrapDosha } from '@/lib/engine/shrapDosha'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_DEITY_HI } from '@/i18n/jyotish'
+import { ordHi, PLANET_REMEDIES_HI } from '@/lib/engine/locale/todayReading.hi'
+import {
+  DOSHA_HI, GANDANTA_SEVERITY_HI, INTENSITY_HI, MANGLIK_CANCEL_HI, NAK_REMEDY_HI, REMEDY_ROLE_HI, SHRAP_HI,
+} from '@/lib/engine/locale/dashboardInsights.hi'
 
 // ── Dosha snapshot ───────────────────────────────────────────
 
@@ -33,7 +39,8 @@ export interface DoshaSnapshot {
 
 const CORE: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 
-export function getDoshaSnapshot(chart: ChartOutput): DoshaSnapshot | null {
+export function getDoshaSnapshot(chart: ChartOutput, lang: EngineLang = 'en'): DoshaSnapshot | null {
+  if (lang === 'hi') return getDoshaSnapshotHi(chart)
   const asc = chart.lagnas?.ascRashi
   if (!asc || !chart.grahas?.length) return null
 
@@ -150,6 +157,8 @@ export type RemedyRole = 'Mahadasha lord' | 'Antardasha lord' | 'Weakest by Shad
 
 export interface RemedyFocus {
   role: RemedyRole
+  /** Display text for role (Hindi when lang is 'hi'). */
+  roleLabel?: string
   graha: GrahaId
   name: string
   remedy: PlanetRemedy
@@ -160,11 +169,16 @@ export interface RemedySnapshot {
   focus: RemedyFocus[]
 }
 
-export function getRemedySnapshot(chart: ChartOutput, now: number = Date.now()): RemedySnapshot {
+export function getRemedySnapshot(chart: ChartOutput, now: number = Date.now(), lang: EngineLang = 'en'): RemedySnapshot {
+  const hi = lang === 'hi'
   const moon = chart.grahas?.find(g => g.id === 'Mo')
   const nak = moon ? NAKSHATRA_REMEDIES[moon.nakshatraIndex] : undefined
+  const nakHi = hi && moon ? NAK_REMEDY_HI[moon.nakshatraIndex] : undefined
   const moonNakshatra = moon && nak
-    ? { name: NAKSHATRA_NAMES[moon.nakshatraIndex] ?? moon.nakshatraName, remedies: nak }
+    ? {
+        name: NAKSHATRA_NAMES[moon.nakshatraIndex] ?? moon.nakshatraName,
+        remedies: nakHi ? { ...nak, ...nakHi, deity: NAKSHATRA_DEITY_HI[moon.nakshatraIndex] ?? nak.deity } : nak,
+      }
     : null
 
   const focus: RemedyFocus[] = []
@@ -172,10 +186,12 @@ export function getRemedySnapshot(chart: ChartOutput, now: number = Date.now()):
   const push = (role: RemedyRole, id: string | undefined) => {
     const graha = id as GrahaId | undefined
     if (!graha || seen.has(graha)) return
-    const remedy = PLANET_REMEDIES[graha]
+    const remedy = (hi ? PLANET_REMEDIES_HI[graha] : undefined) ?? PLANET_REMEDIES[graha]
     if (!remedy) return
     seen.add(graha)
-    focus.push({ role, graha, name: GRAHA_NAMES[graha] ?? graha, remedy })
+    focus.push(hi
+      ? { role, roleLabel: REMEDY_ROLE_HI[role], graha, name: GRAHA_NAMES[graha] ?? graha, remedy }
+      : { role, graha, name: GRAHA_NAMES[graha] ?? graha, remedy })
   }
 
   const path = getDashaPathAt(chart.dashas?.vimshottari ?? [], now)
@@ -184,4 +200,73 @@ export function getRemedySnapshot(chart: ChartOutput, now: number = Date.now()):
   push('Weakest by Shadbala', chart.shadbala?.weakest)
 
   return { moonNakshatra, focus }
+}
+
+/** Hindi dosha snapshot: same ids, tones and analyses as the English one; only label/detail differ. */
+function getDoshaSnapshotHi(chart: ChartOutput): DoshaSnapshot | null {
+  const en = getDoshaSnapshot(chart)
+  if (!en) return null
+  const { manglik, papeSamya } = en
+  const g = (id: GrahaId) => GRAHA_HI[id] ?? GRAHA_NAMES[id] ?? id
+  const shrap = analyzeShrapDosha(chart)
+  const shrapRows = new Map((shrap?.summaryRows ?? []).map(row => [row.id, row]))
+  const flags = en.flags.map((f): DoshaFlag => {
+    switch (f.id) {
+      case 'manglik': {
+        const house = manglik.house ? ordHi(manglik.house) : ''
+        const detail = !manglik.house
+          ? DOSHA_HI.marsMissing
+          : manglik.isManglik
+            ? fill(DOSHA_HI.manglikYes, { house, intensity: INTENSITY_HI[manglik.intensity.toLowerCase()] ?? manglik.intensity })
+            : manglik.cancellations.length
+              ? fill(DOSHA_HI.manglikSoftened, { house, reason: MANGLIK_CANCEL_HI[manglik.cancellations[0]] ?? manglik.cancellations[0] })
+              : fill(DOSHA_HI.manglikNo, { house })
+        return { ...f, label: DOSHA_HI.manglik, detail }
+      }
+      case 'pape':
+        return { ...f, label: DOSHA_HI.pape, detail: fill(DOSHA_HI.papeDetail, { score: papeSamya.totalWeight.toFixed(2) }) }
+      case 'gandanta': {
+        const list = chart.grahas.filter(x => CORE.includes(x.id) && x.gandanta?.isGandanta)
+        return {
+          ...f,
+          label: DOSHA_HI.gandanta,
+          detail: list.length
+            ? list.map(x => `${g(x.id)} (${GANDANTA_SEVERITY_HI[x.gandanta.severity] ?? x.gandanta.severity})`).join(', ')
+            : DOSHA_HI.gandantaNone,
+        }
+      }
+      case 'mrityu': {
+        const list = chart.grahas.filter(x => CORE.includes(x.id) && x.mrityuBhaga?.isMrityuBhaga)
+        return { ...f, label: DOSHA_HI.mrityu, detail: list.length ? list.map(x => g(x.id)).join(', ') : DOSHA_HI.mrityuNone }
+      }
+      case 'yuddha': {
+        const warring = chart.grahas.find(x => x.yuddha?.isWarring)
+        const winner = warring?.yuddha.winner
+        return {
+          ...f,
+          label: DOSHA_HI.yuddha,
+          detail: warring
+            ? fill(DOSHA_HI.yuddhaYes, { winner: winner ? fill(DOSHA_HI.yuddhaWinner, { planet: g(winner) }) : DOSHA_HI.yuddhaNoWinner })
+            : DOSHA_HI.yuddhaNone,
+        }
+      }
+      case 'combust': {
+        const list = chart.grahas.filter(x => x.isCombust && x.id !== 'Su' && CORE.includes(x.id))
+        return { ...f, label: DOSHA_HI.combust, detail: list.length ? list.map(x => g(x.id)).join(', ') : DOSHA_HI.combustNone }
+      }
+      default: {
+        const row = shrapRows.get(f.id)
+        const hi = SHRAP_HI[f.id]
+        if (!row || !hi) return f
+        return {
+          ...f,
+          label: hi.label,
+          detail: row.present
+            ? fill(DOSHA_HI.shrapPresent, { remedy: hi.keyRemedy })
+            : fill(DOSHA_HI.shrapClear, { planet: hi.primaryPlanet, house: hi.primaryHouse }),
+        }
+      }
+    }
+  })
+  return { ...en, flags }
 }

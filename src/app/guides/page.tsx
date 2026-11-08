@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import styles from '@/components/seo/GuideArticle.module.css'

@@ -1,7 +1,7 @@
 'use client'
 
+import { Link } from '@/i18n/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { AdminMessage } from '@/components/admin/AdminMessage'
 import { AdminPagination } from '@/components/admin/AdminPagination'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'

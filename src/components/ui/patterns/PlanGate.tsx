@@ -4,12 +4,13 @@
 //  Visual plan gate — API must enforce access separately
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React from 'react'
-import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import type { UserPlan } from '@/types/astrology'
 import { planGateLabel, planMeetsUiGate, type UiPlanGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
+import { useTranslations } from 'next-intl'
 
 export interface PlanGateProps {
   userPlan: UserPlan
@@ -26,6 +27,7 @@ export function PlanGate({
   children,
   className,
 }: PlanGateProps) {
+  const t = useTranslations('chartTools.planGate')
   if (planMeetsUiGate(userPlan, required)) {
     return <>{children}</>
   }
@@ -38,11 +40,11 @@ export function PlanGate({
       <div className="plan-gate__overlay">
         <span className="plan-gate__label">
           <Lock size={16} aria-hidden />
-          {featureName ? `${featureName} requires ${tier}` : `${tier} plan required`}
+          {featureName ? t('requires', { feature: featureName, tier }) : t('required', { tier })}
         </span>
         <Link href="/pricing" style={{ pointerEvents: 'auto' }}>
           <Button variant="primary" size="sm">
-            View plans
+            {t('viewPlans')}
           </Button>
         </Link>
       </div>

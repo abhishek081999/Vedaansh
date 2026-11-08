@@ -5,8 +5,8 @@
 //  Free overview · Gold+ full sections
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   BookOpen,
   Home,
@@ -24,6 +24,9 @@ import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { GrahaProfileHeader } from '@/components/ui/GrahaProfileHeader'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 
 type SubTab = 'overview' | 'foundations' | 'classical' | 'houses' | 'yogas' | 'conditions' | 'remedies'
 type ClassicalView = 'mixed' | 'natal' | 'houses' | 'signs'
@@ -47,7 +50,10 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const [classicalView, setClassicalView] = useState<ClassicalView>('mixed')
-  const data = useMemo(() => analyzeJupiter(chart), [chart])
+  const t = useTranslations('planetsA.jupiter')
+  const c = useTranslations('planetsA.common')
+  const { lang, hi } = useLang()
+  const data = useMemo(() => analyzeJupiter(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -59,7 +65,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Jupiter data unavailable for this chart.
+        {t('unavailable')}
       </div>
     )
   }
@@ -88,29 +94,28 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: natal Jupiter house, aspects, yogas flags, and combust/vakri.
-            Gold unlocks karakatva, classical catalogues, house teaching, yogas detail, and remedies.
+            {t('freeNote')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{c('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{j.rashiName} · H{j.house}</Pill>
-        <Pill>{j.nakshatraName} P{j.pada}</Pill>
-        <Pill>{j.dignity.replace('_', ' ')}</Pill>
-        {j.ownSign && <Pill gold>Own sign</Pill>}
-        {j.moolatrikona && <Pill gold>Mooltrikona</Pill>}
-        {j.exalted && <Pill gold>Exalted</Pill>}
-        {j.debilitated && <Pill warn>Debilitated</Pill>}
-        {j.isRetro && <Pill warn>Retrograde</Pill>}
-        {j.isCombust && <Pill warn>Combust</Pill>}
-        {data.inAuspiciousHouse && <Pill gold>Auspicious house</Pill>}
-        {data.kendradhipati.active && <Pill warn>Kendradhipati</Pill>}
+        <Pill gold>{j.rashiName} · {c('houseShort', { n: j.house })}</Pill>
+        <Pill>{j.nakshatraName} {c('padaShort', { n: j.pada })}</Pill>
+        <Pill>{hi ? dignityHi(j.dignity) : j.dignity.replace('_', ' ')}</Pill>
+        {j.ownSign && <Pill gold>{t('ownSign')}</Pill>}
+        {j.moolatrikona && <Pill gold>{t('mooltrikona')}</Pill>}
+        {j.exalted && <Pill gold>{t('exalted')}</Pill>}
+        {j.debilitated && <Pill warn>{t('debilitated')}</Pill>}
+        {j.isRetro && <Pill warn>{c('retro')}</Pill>}
+        {j.isCombust && <Pill warn>{c('combust')}</Pill>}
+        {data.inAuspiciousHouse && <Pill gold>{t('auspiciousHouse')}</Pill>}
+        {data.kendradhipati.active && <Pill warn>{t('kendradhipati')}</Pill>}
         {activeYogas.length > 0 && (
-          <Pill warn>Yoga · {activeYogas.map(y => y.name.split('(')[0].trim()).join(', ')}</Pill>
+          <Pill warn>{t('yogaPill', { list: activeYogas.map(y => y.name.split('(')[0].trim()).join(', ') })}</Pill>
         )}
         {data.companions.length > 0 && (
           <Pill>Yuti · {data.companions.map(c => c.name).join(', ')}</Pill>
@@ -130,19 +135,19 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Jupiter analysis sections"
+        aria-label={t('sectionsAria')}
       >
-        {SUB_TABS.map(t => {
-          const locked = !showFull && !t.free
-          const active = sub === t.id
+        {SUB_TABS.map(tab => {
+          const locked = !showFull && !tab.free
+          const active = sub === tab.id
           return (
             <button
-              key={t.id}
+              key={tab.id}
               type="button"
               role="tab"
               aria-selected={active}
               disabled={locked}
-              onClick={() => select(t.id)}
+              onClick={() => select(tab.id)}
               style={{
                 flex: '1 1 auto',
                 padding: '0.42rem 0.55rem',
@@ -161,8 +166,8 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
                 whiteSpace: 'nowrap',
               }}
             >
-              <t.Icon size={13} aria-hidden />
-              {t.label}
+              <tab.Icon size={13} aria-hidden />
+              {t(`tab_${tab.id}`)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -172,14 +177,14 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Natal Jupiter · H{data.houseFocus.house}</Label>
+            <Label>{t('natalJupiter', { n: data.houseFocus.house })}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
-              {data.houseFocus.themes.map(t => <Pill key={t}>{t}</Pill>)}
+              {data.houseFocus.themes.map(th => <Pill key={th}>{th}</Pill>)}
               <Pill gold={data.houseFocus.tone === 'auspicious'} warn={data.houseFocus.tone === 'dusthana' || data.houseFocus.tone === 'watched'}>
-                {data.houseFocus.tone}
+                {t(`tone_${data.houseFocus.tone}`)}
               </Pill>
             </div>
             <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -188,35 +193,35 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           </Card>
 
           <Card>
-            <Label>One-line teaching</Label>
+            <Label>{t('oneLine')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
               {data.oneLiner}
             </p>
           </Card>
 
           <Card>
-            <Label>Special aspects (5 / 7 / 9)</Label>
+            <Label>{t('specialAspects')}</Label>
             <p style={{ margin: '0 0 0.45rem', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
               {data.aspectOverview}
             </p>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.aspects.map(a => (
                 <li key={a.span}>
-                  {a.span}th → H{a.targetHouse}: {a.teaching.meaning}
+                  {t('aspectLine', { span: a.span, h: a.targetHouse, meaning: a.teaching.meaning })}
                 </li>
               ))}
             </ul>
           </Card>
 
           <Card>
-            <Label>Company (yuti)</Label>
+            <Label>{t('company')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.companionNote}
             </p>
           </Card>
 
           <Card>
-            <Label>Quick flags</Label>
+            <Label>{c('quickFlags')}</Label>
             <FlagRow flag={data.houseDelayFlag} />
             <FlagRow flag={data.dusthanaReversal} />
             <FlagRow flag={data.kendradhipati} />
@@ -233,9 +238,9 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           </Card>
 
           <Card>
-            <Label>Mixed interpretations teaser</Label>
+            <Label>{c('mixedTeaserLabel')}</Label>
             <p style={{ margin: '0 0 0.45rem', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-              House guide · classics · planet×house · rashi · planet×sign · nakshatra · dignity
+              {c('mixedTeaserLayers')}{hi ? ` · ${c('classicalEnNote')}` : ''}
             </p>
             {data.classical.natalMixed ? (
               <LayerStack
@@ -244,30 +249,30 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
               />
             ) : (
               <ClassicalNotesList
-                title="Jupiter in house — classics"
+                title={t('housesClassics')}
                 notes={data.classical.natalHouseClassical.slice(0, 2)}
               />
             )}
             {!showFull && (
               <div style={{ marginTop: 6, fontSize: '0.65rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Lock size={12} aria-hidden /> Full mixed layers + 12×12 catalogues on Gold
+                <Lock size={12} aria-hidden /> {c('mixedGold')}
               </div>
             )}
           </Card>
 
           <Card>
-            <Label>Natural age · {data.naturalAge}</Label>
+            <Label>{c('naturalAge', { n: data.naturalAge })}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.naturalAgeNote}
             </p>
           </Card>
 
           {!showFull && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Jupiter full analysis">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('gateFeature')}>
               <div style={{ minHeight: 100, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Locked on Free</div>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>{c('lockedFree')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Full karakatva · classical 12 houses × 12 signs · yogas · combust/vakri · mythology · remedies
+                  {t('lockedList')}
                 </div>
               </div>
             </PlanGate>
@@ -287,13 +292,13 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
               border: '1px solid var(--border-soft)',
             }}
             role="tablist"
-            aria-label="Classical catalogue view"
+            aria-label={c('classicalAria')}
           >
             {([
-              { id: 'mixed' as const, label: 'Mixed natal' },
-              { id: 'natal' as const, label: 'Classical natal' },
-              { id: 'houses' as const, label: 'All 12 houses' },
-              { id: 'signs' as const, label: 'All 12 signs' },
+              { id: 'mixed' as const, label: c('viewMixed') },
+              { id: 'natal' as const, label: c('viewNatal') },
+              { id: 'houses' as const, label: c('viewHouses') },
+              { id: 'signs' as const, label: c('viewSigns') },
             ]).map(v => (
               <button
                 key={v.id}
@@ -321,10 +326,10 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           {classicalView === 'mixed' && data.classical.natalMixed && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                All interpretation engines mixed for natal Jupiter in {j.rashiName} · H{j.house}.
+                {t('mixedIntro', { sign: j.rashiName, n: j.house })}{hi ? ` ${c('classicalEnNote')}` : ''}
               </p>
               <Card>
-                <Label>Blended snapshot</Label>
+                <Label>{c('blended')}</Label>
                 <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.natalMixed.blendedSummary.slice(0, 520)}
                   {data.classical.natalMixed.blendedSummary.length > 520 ? '…' : ''}
@@ -337,30 +342,30 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           {classicalView === 'natal' && (
             <>
               <Card>
-                <Label>Platform house note (H{j.house})</Label>
+                <Label>{c('platformHouse', { n: j.house })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalHouseFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Jupiter in house ${j.house}`}
+                title={t('classicalHouse', { n: j.house })}
                 notes={data.classical.natalHouseClassical}
               />
               <Card>
-                <Label>Platform sign note ({j.rashiName})</Label>
+                <Label>{c('platformSign', { sign: j.rashiName })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalSignFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Jupiter in ${j.rashiName} (+ dignity / vakri (retrograde) / asta)`}
+                title={t('classicalSign', { sign: j.rashiName })}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (
-                <ClassicalNotesList title="Vakri / Asta (Guru)" notes={data.classical.vakriAst} />
+                <ClassicalNotesList title={t('vakriAst')} notes={data.classical.vakriAst} />
               )}
               <ClassicalNotesList
-                title="Special aspects overview"
+                title={c('specialAspects')}
                 notes={data.classical.aspectOverviewClassical}
               />
             </>
@@ -369,7 +374,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           {classicalView === 'houses' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed house layers for each bhava. Natal house highlighted.
+                {t('housesShort')}
               </p>
               {data.classical.allHouses.map(h => (
                 <div
@@ -382,8 +387,8 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
                   }}
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: h.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
-                    House {h.house}
-                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {c('house', { n: h.house })}
+                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{c('natal')}</span>}
                   </div>
                   <LayerStack layers={h.mixedLayers} compact={!h.isNatal} />
                 </div>
@@ -394,7 +399,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           {classicalView === 'signs' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed sign layers for each rāśi. Natal sign highlighted.
+                {t('signsShort')}
               </p>
               {data.classical.allSigns.map(s => (
                 <div
@@ -408,7 +413,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: s.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
                     {s.rashiName}
-                    {s.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {s.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{c('natal')}</span>}
                   </div>
                   <LayerStack layers={s.mixedLayers} compact={!s.isNatal} />
                 </div>
@@ -421,7 +426,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
       {showFull && sub === 'foundations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Nature</Label>
+            <Label>{t('nature')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.nature.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -446,26 +451,26 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           ))}
 
           <Card>
-            <Label>Female-chart & marriage notes</Label>
+            <Label>{t('femaleNotes')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.femaleChartNotes.map(n => <li key={n}>{n}</li>)}
             </ul>
             {j.d9RashiName && (
               <p style={{ margin: '0.45rem 0 0', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                D-9 Jupiter sign: {j.d9RashiName} ({j.d9DignityTone.replace(/_/g, ' ')})
+                {t('d9Sign', { sign: j.d9RashiName, tone: t(`d9_${j.d9DignityTone}`) })}
               </p>
             )}
           </Card>
 
           <Card>
-            <Label>Professions</Label>
+            <Label>{c('professions')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.professions.map(p => <li key={p}>{p}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Saptarishi gifts (Brihaspati as Kulacharya)</Label>
+            <Label>{t('saptarishi')}</Label>
             {data.saptarishi.map(s => (
               <div key={s.rishi} style={{ marginBottom: '0.35rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                 <strong style={{ color: 'var(--text-gold)' }}>{s.rishi}</strong>
@@ -475,25 +480,25 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           </Card>
 
           <Card>
-            <Label>Seven steps to self-realization</Label>
+            <Label>{t('steps')}</Label>
             <ol style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.selfRealizationSteps.map(s => (
                 <li key={s.step}>
-                  {s.sanskrit} — {s.english}
+                  {hi ? s.sanskrit : `${s.sanskrit} — ${s.english}`}
                 </li>
               ))}
             </ol>
           </Card>
 
           <Card>
-            <Label>Diksha timing</Label>
+            <Label>{t('diksha')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.dikshaNotes.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Summary attributes</Label>
+            <Label>{c('summaryAttrs')}</Label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
@@ -515,7 +520,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
       {showFull && sub === 'houses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Natal house focus</Label>
+            <Label>{t('natalHouseFocus')}</Label>
             <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
@@ -525,11 +530,11 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           </Card>
 
           <Card>
-            <Label>BPHS auspicious seats (2 · 5 · 9 · 11)</Label>
+            <Label>{t('auspiciousSeats')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Current Jupiter in H{j.house}
-              {data.inAuspiciousHouse ? ' — auspicious sukh seat.' : ' — outside the primary sukh set.'}
-              {' '}House delay still applies wherever Jupiter sits.
+              {t('currentIn', { n: j.house })}
+              {data.inAuspiciousHouse ? t('sukhYes') : t('sukhNo')}
+              {t('delayStill')}
             </p>
           </Card>
 
@@ -539,11 +544,11 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           <FlagCard flag={data.vakSiddhi} />
 
           <Card>
-            <Label>Aspect hits from natal seat</Label>
+            <Label>{t('aspectHits')}</Label>
             {data.aspects.map(a => (
               <div key={a.span} style={{ marginBottom: '0.55rem' }}>
                 <div style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--text-gold)' }}>
-                  {a.teaching.name} → H{a.targetHouse}
+                  {t('aspectTo', { name: a.teaching.name, h: a.targetHouse })}
                 </div>
                 <p style={{ margin: '0.2rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                   {a.teaching.detail}
@@ -567,12 +572,12 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
                 {hf.house === j.house && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
-                {hf.themes.map(t => <Pill key={t}>{t}</Pill>)}
+                {hf.themes.map(th => <Pill key={th}>{th}</Pill>)}
                 <Pill
                   gold={hf.tone === 'auspicious'}
                   warn={hf.tone === 'dusthana' || hf.tone === 'watched'}
                 >
-                  {hf.tone}
+                  {t(`tone_${hf.tone}`)}
                 </Pill>
               </div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -586,15 +591,15 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
       {showFull && sub === 'yogas' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Companions</Label>
+            <Label>{t('companions')}</Label>
             {data.companions.length === 0 ? (
-              <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>No close yuti.</p>
+              <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>{t('noYuti')}</p>
             ) : (
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {data.companions.map(c => (
                   <li key={c.id}>
                     {c.name} · {c.sepDeg.toFixed(1)}°
-                    {c.sameSign ? ' · same sign' : ''}
+                    {c.sameSign ? t('sameSign') : ''}
                   </li>
                 ))}
               </ul>
@@ -611,7 +616,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
                   textTransform: 'uppercase',
                   color: y.active ? 'var(--rose)' : 'var(--text-muted)',
                 }}>
-                  {y.active ? 'Active' : 'Clear'}
+                  {y.active ? c('active') : c('clear')}
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -619,20 +624,20 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
               </p>
               {y.sepDeg != null && (
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  Separation {y.sepDeg.toFixed(1)}°{y.sameSign ? ' · same sign' : ''}
+                  {t('separation', { deg: y.sepDeg.toFixed(1) })}{y.sameSign ? t('sameSign') : ''}
                 </p>
               )}
               {y.cautionHouses && y.active && (
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  Hardest houses for this yoga: {y.cautionHouses.join(', ')}
-                  {(y.cautionHouses as number[]).includes(j.house) ? ` — natal H${j.house} is in that set.` : '.'}
+                  {t('hardest', { list: y.cautionHouses.join(', ') })}
+                  {(y.cautionHouses as number[]).includes(j.house) ? t('natalInSet', { n: j.house }) : '.'}
                 </p>
               )}
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', margin: '0.55rem 0 4px' }}>Effects</div>
+              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', margin: '0.55rem 0 4px' }}>{t('effects')}</div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {y.effects.map(e => <li key={e}>{e}</li>)}
               </ul>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Constructive lean</div>
+              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{t('constructive')}</div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {y.positives.map(e => <li key={e}>{e}</li>)}
               </ul>
@@ -648,31 +653,31 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
           <FlagCard flag={data.bothFlag} />
 
           <Card>
-            <Label>Combust — reduced intensity</Label>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Challenges</div>
+            <Label>{t('combustCard')}</Label>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>{t('challenges')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.combustEffects.negatives.map(n => <li key={n}>{n}</li>)}
             </ul>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Clarifications</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{t('clarifications')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.combustEffects.positives.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Retrograde — strong but delayed</Label>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Challenges</div>
+            <Label>{t('retroCard')}</Label>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>{t('challenges')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.retroEffects.negatives.map(n => <li key={n}>{n}</li>)}
             </ul>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Strengths</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{t('strengths')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.retroEffects.positives.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Signs of Jupiter under pressure in daily life</Label>
+            <Label>{t('afflictionSigns')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.afflictionSigns.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -680,11 +685,11 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
 
           {(j.nearExaltPeak || j.nearDebilPeak) && (
             <Card>
-              <Label>Degree peak</Label>
+              <Label>{t('degreePeak')}</Label>
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {j.nearExaltPeak
-                  ? `Near deep exaltation (~5° Cancer) — counselor grace and protective wisdom tradition peak here.`
-                  : `Near deep debilitation (~5° Capricorn) — faith meets cold karma; practical dharma after struggle.`}
+                  ? t('nearExalt')
+                  : t('nearDebil')}
               </p>
             </Card>
           )}
@@ -694,34 +699,34 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
       {showFull && sub === 'remedies' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Remedies & caution</Label>
+            <Label>{t('remediesCaution')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.remedies.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Mythology</Label>
+            <Label>{c('mythology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.mythology.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Caveats</Label>
+            <Label>{c('caveats')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.caveats.map(c => <li key={c}>{c}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Methodology</Label>
+            <Label>{c('methodology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.methodology.map(mth => <li key={mth}>{mth}</li>)}
             </ul>
             <div style={{ marginTop: '0.55rem', fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
               <BookOpen size={12} aria-hidden />
-              Class teaching — Brihaspati karakatva, yogas, aspects, combust/vakri, remedies
+              {t('sourceLine')}
             </div>
           </Card>
         </div>
@@ -731,6 +736,7 @@ export function JupiterAnalysisPanel({ chart, userPlan = 'free' }: JupiterAnalys
 }
 
 function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: boolean }) {
+  const c = useTranslations('planetsA.common')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.45rem' : '0.65rem' }}>
       {layers.map(layer => (
@@ -773,7 +779,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
           {layer.classicalNotes && layer.classicalNotes.length > 0 && (
             <div style={{ marginTop: 6 }}>
               <ClassicalNotesList
-                title="Sources"
+                title={c('sources')}
                 notes={compact ? layer.classicalNotes.slice(0, 2) : layer.classicalNotes}
               />
             </div>
@@ -785,6 +791,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
 }
 
 function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const c = useTranslations('planetsA.common')
   return (
     <div style={{ marginBottom: '0.45rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -795,7 +802,7 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
           textTransform: 'uppercase',
           color: flag.active ? 'var(--rose)' : 'var(--text-muted)',
         }}>
-          {flag.active ? 'Active' : 'Clear'}
+          {flag.active ? c('active') : c('clear')}
         </span>
       </div>
       <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -806,11 +813,12 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
 }
 
 function FlagCard({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const c = useTranslations('planetsA.common')
   return (
     <Card>
       <Label>{flag.title}</Label>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? 'Indicated' : 'Not indicated'}</span>
+        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? c('indicated') : c('notIndicated')}</span>
       </div>
       <p style={{ margin: '0.4rem 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
         {flag.detail}

@@ -6,6 +6,14 @@
 
 import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
 import { NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { dignityHi, mergeHi } from '@/lib/engine/locale/planetsA.util'
+import {
+  ADITYAS_HI, SUN_AFFLICTIONS_HI, SUN_DASHA_NOTE_HI, SUN_DIGNITY_HI, SUN_EGO_HI, SUN_HEALTH_HI,
+  SUN_HOUSE_NOTES_HI, SUN_KARAKATVA_HI, SUN_KHARMAS_HI, SUN_METHODOLOGY_HI, SUN_OTHER_NAMES_HI,
+  SUN_PHYSICAL_HI, SUN_PITRU_HI, SUN_RAYS_HI, SUN_REASON_HI, SUN_SPIRITUAL_HI,
+} from '@/lib/engine/locale/sunAdityas.hi'
 
 export type AdityaId =
   | 'dhata'
@@ -289,8 +297,14 @@ function sameSignOrConjunct(a: GrahaData, b: GrahaData, orb = 8): boolean {
   return a.rashi === b.rashi || angularSep(a.lonSidereal, b.lonSidereal) <= orb
 }
 
-function scoreAdityas(sun: GrahaData, house: number): Array<{ aditya: AdityaDef; score: number; reasons: string[] }> {
-  return SUN_ADITYAS.map(aditya => {
+/** The 12 Adityas in `lang` (ids, nakshatras, rashis and houses unchanged). */
+export function sunAdityasCatalogue(lang: EngineLang = 'en'): AdityaDef[] {
+  return lang === 'hi' ? SUN_ADITYAS.map(a => mergeHi(a, ADITYAS_HI[a.id])) : SUN_ADITYAS
+}
+
+function scoreAdityas(sun: GrahaData, house: number, lang: EngineLang = 'en'): Array<{ aditya: AdityaDef; score: number; reasons: string[] }> {
+  const hi = lang === 'hi'
+  return sunAdityasCatalogue(lang).map(aditya => {
     let score = 0
     const reasons: string[] = []
 
@@ -298,19 +312,23 @@ function scoreAdityas(sun: GrahaData, house: number): Array<{ aditya: AdityaDef;
       const padaOk = !aditya.padas || aditya.padas.includes(sun.pada)
       if (padaOk) {
         score += 5
-        reasons.push(`Sun in ${NAKSHATRA_NAMES[sun.nakshatraIndex]}${aditya.padas ? ` pada ${sun.pada}` : ''}`)
+        reasons.push(hi
+          ? fill(SUN_REASON_HI.nak, { nak: NAKSHATRA_HI[sun.nakshatraIndex] }) + (aditya.padas ? fill(SUN_REASON_HI.pada, { pada: sun.pada }) : '')
+          : `Sun in ${NAKSHATRA_NAMES[sun.nakshatraIndex]}${aditya.padas ? ` pada ${sun.pada}` : ''}`)
       } else {
         score += 2
-        reasons.push(`Sun in ${NAKSHATRA_NAMES[sun.nakshatraIndex]} (pada ${sun.pada}; primary padas ${aditya.padas?.join('/')})`)
+        reasons.push(hi
+          ? fill(SUN_REASON_HI.nakOffPada, { nak: NAKSHATRA_HI[sun.nakshatraIndex], pada: sun.pada, padas: aditya.padas?.join('/') ?? '' })
+          : `Sun in ${NAKSHATRA_NAMES[sun.nakshatraIndex]} (pada ${sun.pada}; primary padas ${aditya.padas?.join('/')})`)
       }
     }
     if (aditya.rashis.includes(sun.rashi)) {
       score += 2
-      reasons.push(`Sun in ${RASHI_NAMES[sun.rashi]}`)
+      reasons.push(hi ? fill(SUN_REASON_HI.rashi, { rashi: RASHI_HI[sun.rashi] }) : `Sun in ${RASHI_NAMES[sun.rashi]}`)
     }
     if (aditya.houses?.includes(house)) {
       score += 1
-      reasons.push(`Sun in house ${house}`)
+      reasons.push(hi ? fill(SUN_REASON_HI.house, { house }) : `Sun in house ${house}`)
     }
     return { aditya, score, reasons }
   })
@@ -321,14 +339,16 @@ function scoreAdityas(sun: GrahaData, house: number): Array<{ aditya: AdityaDef;
 /**
  * Natal Surya analysis: Aditya form, dignity, afflictions, spiritual notes.
  */
-export function analyzeSunAdityas(chart: ChartOutput): SunAdityasResult | null {
+export function analyzeSunAdityas(chart: ChartOutput, lang: EngineLang = 'en'): SunAdityasResult | null {
   const sun = chart.grahas.find(g => g.id === 'Su')
   if (!sun) return null
 
   const asc = chart.lagnas.ascRashi as Rashi
   const house = wholeSignHouse(sun.rashi, asc)
-  const matching = scoreAdityas(sun, house)
-  const primary = matching[0]?.aditya ?? SUN_ADITYAS[0]
+  const hi = lang === 'hi'
+  const catalogue = sunAdityasCatalogue(lang)
+  const matching = scoreAdityas(sun, house, lang)
+  const primary = matching[0]?.aditya ?? catalogue[0]
 
   const ra = chart.grahas.find(g => g.id === 'Ra')
   const ke = chart.grahas.find(g => g.id === 'Ke')
@@ -385,50 +405,60 @@ export function analyzeSunAdityas(chart: ChartOutput): SunAdityasResult | null {
     },
   ]
 
-  let egoNote =
-    'Positive ego = self-respect, confidence, trust in capacity. Negative ego ruins condition and blocks the path.'
-  if (ownLeo) {
-    egoNote += ' Sun in Leo (own): generally strong, but can tip into negative ego.'
-  } else if (debilitated) {
-    egoNote += ' Sun in Libra (neecha): self-respect lowers; easy to be disrespected.'
-  } else if (exalted) {
-    egoNote += ' Sun in Aries (uchcha): full light — positive self-force when channelled.'
+  if (hi) {
+    for (let i = 0; i < afflictions.length; i++) afflictions[i] = mergeHi(afflictions[i], SUN_AFFLICTIONS_HI[afflictions[i].id])
   }
 
+  const E = hi ? SUN_EGO_HI : null
+  let egoNote =
+    E?.base ?? 'Positive ego = self-respect, confidence, trust in capacity. Negative ego ruins condition and blocks the path.'
+  if (ownLeo) {
+    egoNote += E?.own ?? ' Sun in Leo (own): generally strong, but can tip into negative ego.'
+  } else if (debilitated) {
+    egoNote += E?.debilitated ?? ' Sun in Libra (neecha): self-respect lowers; easy to be disrespected.'
+  } else if (exalted) {
+    egoNote += E?.exalted ?? ' Sun in Aries (uchcha): full light — positive self-force when channelled.'
+  }
+
+  const D = hi ? SUN_DIGNITY_HI : null
   const dignityNotes: string[] = [
-    `Dignity: ${sun.dignity.replace('_', ' ')} · ${RASHI_NAMES[sun.rashi]}`,
+    D
+      ? fill(D.line, { dignity: dignityHi(sun.dignity), rashi: RASHI_HI[sun.rashi] })
+      : `Dignity: ${sun.dignity.replace('_', ' ')} · ${RASHI_NAMES[sun.rashi]}`,
   ]
   if (exalted) {
     dignityNotes.push(
-      'Exalted in Aries: full light at the eastern rising sign; moolatrikona theme; life-source flowering — deeper than “King with army commander Mars”.',
+      D?.exalted ?? 'Exalted in Aries: full light at the eastern rising sign; moolatrikona theme; life-source flowering — deeper than “King with army commander Mars”.',
     )
   }
-  if (ownLeo) dignityNotes.push('Own sign Leo (Simha) — natural authority seat.')
-  if (friendly) dignityNotes.push('Friendly fire/dharma signs (Sagittarius / Scorpio) support Surya.')
-  if (debilitated) dignityNotes.push('Debilitated in Libra — identity and honour under strain.')
-  if (enemyAq) dignityNotes.push('Enemy Aquarius — friction with conventional authority expression.')
+  if (ownLeo) dignityNotes.push(D?.own ?? 'Own sign Leo (Simha) — natural authority seat.')
+  if (friendly) dignityNotes.push(D?.friendly ?? 'Friendly fire/dharma signs (Sagittarius / Scorpio) support Surya.')
+  if (debilitated) dignityNotes.push(D?.debilitated ?? 'Debilitated in Libra — identity and honour under strain.')
+  if (enemyAq) dignityNotes.push(D?.enemy ?? 'Enemy Aquarius — friction with conventional authority expression.')
 
   const houseNotes: string[] = []
   if (house === 10) {
     houseNotes.push(
-      'Sun in 10th: comfortable post; career success; social responsibility — devote energy to society (financial, emotional, mental, or physical).',
+      hi ? SUN_HOUSE_NOTES_HI[10] : 'Sun in 10th: comfortable post; career success; social responsibility — devote energy to society (financial, emotional, mental, or physical).',
     )
   }
   if (house === 9) {
     houseNotes.push(
-      'Sun in 9th: father, bhagya, dharma — keep high moral duty and seek inner truth; else guide toward spirituality.',
+      hi ? SUN_HOUSE_NOTES_HI[9] : 'Sun in 9th: father, bhagya, dharma — keep high moral duty and seek inner truth; else guide toward spirituality.',
     )
   }
   if (house === 1) {
-    houseNotes.push('Sun in Lagna: identity radiates through the body-self; comfortable Surya seat.')
+    houseNotes.push(hi ? SUN_HOUSE_NOTES_HI[1] : 'Sun in Lagna: identity radiates through the body-self; comfortable Surya seat.')
   }
 
-  const kharmasNote =
-    sun.rashi === 9 || sun.rashi === 12
+  const inKharmas = sun.rashi === 9 || sun.rashi === 12
+  const kharmasNote = hi
+    ? (inKharmas ? SUN_KHARMAS_HI.inKharmas : SUN_KHARMAS_HI.generic)
+    : inKharmas
       ? 'Sun in Sagittarius or Pisces — classical Kharmas tradition (tired horses / khar on the chariot): auspicious starts like griha pravesh traditionally avoided while Sun is weak in these months.'
       : 'Kharmas (weak Sun months) classically when Sun transits Sagittarius and Pisces — check gochar, not only natal.'
 
-  return {
+  const result: SunAdityasResult = {
     sun: {
       rashi: sun.rashi,
       rashiName: RASHI_NAMES[sun.rashi],
@@ -451,7 +481,7 @@ export function analyzeSunAdityas(chart: ChartOutput): SunAdityasResult | null {
     dignityNotes,
     primaryAditya: primary,
     matchingAdityas: matching,
-    allAdityas: SUN_ADITYAS,
+    allAdityas: catalogue,
     spiritual: [
       'Pranashakti / Pingala Nadi — male, future-sensing, Shiva-stable energy from the right nostril.',
       'Sun’s rays energize the seven chakras; weak Sun makes rising past Muladhara hard.',
@@ -488,5 +518,23 @@ export function analyzeSunAdityas(chart: ChartOutput): SunAdityasResult | null {
       'Sun Mahadasha is 6 years — short because tej is intense to sustain.',
     ],
     dashaNote: 'Vimshottari: Sun Mahadasha = 6 years (shortest intensity window among luminaries).',
+  }
+  if (!hi) return result
+  return {
+    ...result,
+    sun: { ...result.sun, rashiName: RASHI_HI[sun.rashi], nakshatraName: NAKSHATRA_HI[sun.nakshatraIndex] },
+    karakatva: [...SUN_KARAKATVA_HI],
+    physical: { ...SUN_PHYSICAL_HI, colors: [...SUN_PHYSICAL_HI.colors], metals: [...SUN_PHYSICAL_HI.metals] },
+    health: [...SUN_HEALTH_HI],
+    spiritual: [...SUN_SPIRITUAL_HI],
+    pitruDosh: {
+      ...result.pitruDosh,
+      title: SUN_PITRU_HI.title,
+      detail: pitruStrong ? SUN_PITRU_HI.strong : pitruActive ? SUN_PITRU_HI.active : SUN_PITRU_HI.none,
+    },
+    otherNames: [...SUN_OTHER_NAMES_HI],
+    rays: SUN_RAYS_HI.map(r => ({ ...r })),
+    methodology: [...SUN_METHODOLOGY_HI],
+    dashaNote: SUN_DASHA_NOTE_HI,
   }
 }

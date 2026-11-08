@@ -7,6 +7,8 @@
 import type { GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES, GRAHA_SANSKRIT } from '@/types/astrology'
 import { getHousesForKaraka } from '@/lib/engine/naturalHouseKarakas'
+import type { EngineLang } from '@/lib/engine/lang'
+import { PLANETARY_MATURITY_HI, PLANETARY_MATURITY_NOTES_HI } from '@/lib/engine/locale/planetaryMaturity.hi'
 
 /** Classical nine (no outer planets). */
 export type MaturityGrahaId = Extract<GrahaId, 'Su' | 'Mo' | 'Ma' | 'Me' | 'Ju' | 'Ve' | 'Sa' | 'Ra' | 'Ke'>
@@ -188,6 +190,17 @@ export function getPlanetaryMaturity(grahaId: GrahaId): PlanetaryMaturityRow | n
 }
 
 /** Rows sorted by ascending classical maturity age. */
-export function getPlanetaryMaturityRows(): PlanetaryMaturityRow[] {
-  return ASCENDING_AGE_ORDER.map((id) => withKarakaHouses(PLANETARY_MATURITY[id]))
+export function getPlanetaryMaturityRows(lang: EngineLang = 'en'): PlanetaryMaturityRow[] {
+  return ASCENDING_AGE_ORDER.map((id) => {
+    const row = withKarakaHouses(PLANETARY_MATURITY[id])
+    if (lang !== 'hi') return row
+    const hi = PLANETARY_MATURITY_HI[id]
+    return { ...row, name: hi.name, sanskrit: hi.sanskrit, significances: [...hi.significances] }
+  })
+}
+
+/** Teaching notes in the requested language (ids unchanged). */
+export function getPlanetaryMaturityNotes(lang: EngineLang = 'en'): PlanetaryMaturityNote[] {
+  if (lang !== 'hi') return PLANETARY_MATURITY_NOTES
+  return PLANETARY_MATURITY_NOTES.map((n) => ({ ...n, ...PLANETARY_MATURITY_NOTES_HI[n.id] }))
 }

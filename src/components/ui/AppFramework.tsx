@@ -1,9 +1,11 @@
 'use client'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import Link from 'next/link'
+import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { Link, usePathname, useRouter } from '@/i18n/navigation'
+import { isAppLocale, localizePath } from '@/i18n/config'
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
@@ -111,6 +113,14 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const profileMenuRef = useRef<HTMLDivElement>(null)
   const headerProfileRef = useRef<HTMLDivElement>(null)
   const showGlobalMobileNav = useMobileGlobalBottomNavActive()
+  const t = useTranslations('common.shell')
+  const tNav = useTranslations('nav')
+  const rawLocale = useLocale()
+  const locale = isAppLocale(rawLocale) ? rawLocale : 'en'
+  const homeHref = localizePath('/', locale)
+  /** Translated nav label; falls back to the English label in navConfig. */
+  const tabLabel = (tab: NavTab) => (tNav.has(`tabs.${tab.id}`) ? tNav(`tabs.${tab.id}`) : tab.label)
+  const groupLabel = (group: NavGroup) => (tNav.has(`groups.${group.id}`) ? tNav(`groups.${group.id}`) : group.label)
 
   /** Brand / logo → always land on clean home (not a sticky chart URL). */
   const goHome = useCallback((e?: React.MouseEvent) => {
@@ -122,10 +132,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     }
     // Sync-clear query params so BirthForm cannot auto-submit the old chart back.
     if (typeof window !== 'undefined') {
-      window.history.replaceState(window.history.state, '', '/')
+      window.history.replaceState(window.history.state, '', homeHref)
     }
     router.replace('/')
-  }, [clearToLanding, router, setActiveTab, setIsSidenavOpen])
+  }, [clearToLanding, homeHref, router, setActiveTab, setIsSidenavOpen])
 
   useEffect(() => {
     if (!isSidenavOpen) setProfileMenuOpen(false)
@@ -258,7 +268,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           className={`sidenav-group-accordion-btn${isOpen ? ' sidenav-group-accordion-btn--open' : ''}`}
           aria-expanded={isOpen}
         >
-          <span className="sidenav-group-accordion-label">{group.label}</span>
+          <span className="sidenav-group-accordion-label">{groupLabel(group)}</span>
           <ChevronDown className="sidenav-group-accordion-chevron" size={12} strokeWidth={2} aria-hidden />
         </button>
         <div className="sidenav-submenu sidenav-submenu--nested" style={{ maxHeight: isOpen ? maxHeight : 0 }}>
@@ -339,7 +349,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         className={linkClass}
       >
         <NavIcon icon={t.icon} />
-        <span className="sidenav-link-label">{t.label}</span>
+        <span className="sidenav-link-label">{tabLabel(t)}</span>
         {isActive && <span className="sidenav-link-dot" aria-hidden />}
       </Link>
     )
@@ -381,7 +391,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         className={`${className}${isActive ? ` ${className}--active` : ''}`}
       >
         {isMenuLink ? <NavIcon icon={t.icon} className="app-header-menu-icon" /> : null}
-        <span>{t.label}</span>
+        <span>{tabLabel(t)}</span>
       </Link>
     )
   }
@@ -410,7 +420,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     if (status === 'loading') {
       return (
         <div className="app-header-profile app-header-profile--loading">
-          <Spinner size={18} label="Syncing session" />
+          <Spinner size={18} label={t('syncingSession')} />
         </div>
       )
     }
@@ -423,15 +433,15 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             className="app-header-profile-btn"
             aria-expanded={headerProfileOpen}
             aria-haspopup="menu"
-            aria-label="Account menu"
+            aria-label={t('accountMenu')}
             onClick={() => setHeaderProfileOpen((open) => !open)}
           >
             <div className="app-header-avatar">
               {session.user.name?.[0] || 'A'}
             </div>
             <div className="app-header-profile-meta">
-              <span className="app-header-profile-name">{session.user.name || 'Account'}</span>
-              <span className="app-header-profile-hint">Account</span>
+              <span className="app-header-profile-name">{session.user.name || t('account')}</span>
+              <span className="app-header-profile-hint">{t('account')}</span>
             </div>
             <ChevronDown className="app-header-profile-chevron" size={14} strokeWidth={2.25} aria-hidden />
           </button>
@@ -444,7 +454,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 onClick={() => setHeaderProfileOpen(false)}
               >
                 <Library size={15} strokeWidth={2} aria-hidden />
-                My Charts
+                {t('myCharts')}
               </Link>
               <Link
                 href="/account"
@@ -453,7 +463,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 onClick={() => setHeaderProfileOpen(false)}
               >
                 <User size={15} strokeWidth={2} aria-hidden />
-                Profile
+                {t('profile')}
               </Link>
               <button
                 type="button"
@@ -461,11 +471,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 className="app-header-profile-item app-header-profile-item--danger"
                 onClick={() => {
                   setHeaderProfileOpen(false)
-                  void signOut({ callbackUrl: '/' })
+                  void signOut({ callbackUrl: homeHref })
                 }}
               >
                 <LogOut size={15} strokeWidth={2} aria-hidden />
-                Log out
+                {t('logOut')}
               </button>
             </div>
           )}
@@ -476,7 +486,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     return (
       <Link href="/login" className="app-header-signin">
         <User size={15} strokeWidth={2} aria-hidden />
-        <span className="app-header-signin-label">Sign in</span>
+        <span className="app-header-signin-label">{t('signIn')}</span>
       </Link>
     )
   }
@@ -507,7 +517,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           <button
             onClick={() => setIsSidenavOpen((o: boolean) => !o)}
             className="app-header-toggler"
-            aria-label="Toggle navigation menu"
+            aria-label={t('toggleNav')}
             aria-expanded={isSidenavOpen}
           >
             <Menu size={18} strokeWidth={2} aria-hidden />
@@ -530,31 +540,31 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 Vedaansh
               </span>
               <span className="app-header-brand-sub">
-                ॥ श्री गणेशाय नमः ॥
+                {'॥ श्री गणेशाय नमः ॥'}
               </span>
             </div>
           </Link>
 
           {isOffline && (
-            <div className="app-header-offline-badge">OFFLINE</div>
+            <div className="app-header-offline-badge">{t('offline')}</div>
           )}
         </div>
 
-        <nav className="app-header-nav" aria-label="Primary">
+        <nav className="app-header-nav" aria-label={tNav('labels.primary')}>
           {headerPrimaryTabs.map((tab) => renderHeaderTabLink(tab))}
           {renderHeaderDropdown(
-            SIDENAV_ACCORDIONS.astrology.headerLabel,
+            tNav('headerSections.astrology'),
             <div className="app-header-mega-menu">
               {ASTRO_GROUPS.map((group) => (
                 <div key={group.id} className="app-header-menu-group">
-                  <div className="app-header-menu-group-title">{group.label}</div>
+                  <div className="app-header-menu-group-title">{groupLabel(group)}</div>
                   <div className="app-header-menu-group-links">
                     {group.tabs.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
                   </div>
                 </div>
               ))}
               <div className="app-header-menu-group">
-                <div className="app-header-menu-group-title">Readings</div>
+                <div className="app-header-menu-group-title">{tNav('labels.readings')}</div>
                 <div className="app-header-menu-group-links">
                   {ASTRO_DIRECT_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
                 </div>
@@ -563,21 +573,21 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             { active: isAstroHeaderActive, wide: true },
           )}
           {renderHeaderDropdown(
-            SIDENAV_ACCORDIONS.advanced.headerLabel,
+            tNav('headerSections.advanced'),
             <div className="app-header-menu-list app-header-menu-list--split">
               {ADVANCED_ASTRO_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
             </div>,
             { active: ADVANCED_ASTRO_TABS.some((tab) => tab.path === pathname), align: 'right' },
           )}
           {renderHeaderDropdown(
-            SIDENAV_ACCORDIONS.nakshatra.headerLabel,
+            tNav('headerSections.nakshatra'),
             <div className="app-header-menu-list app-header-menu-list--split">
               {NAKSHATRA_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
             </div>,
             { active: NAKSHATRA_TABS.some((tab) => tab.path === pathname), align: 'right' },
           )}
           {renderHeaderDropdown(
-            SIDENAV_ACCORDIONS.panchang.headerLabel,
+            tNav('headerSections.panchang'),
             <div className="app-header-menu-list">
               {PANCHANG_TABS.map((tab) => renderHeaderTabLink(tab, 'app-header-menu-link'))}
             </div>,
@@ -595,8 +605,9 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             }}
             className="app-header-mobile-dash show-mobile-only"
           >
-            Dash
+            {t('dash')}
           </Link>
+          <LanguageSwitcher compact />
           <div className="app-header-theme">
             <ThemeToggle />
           </div>
@@ -665,7 +676,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 className="sidenav-close-btn"
-                aria-label="Close menu"
+                aria-label={t('closeMenu')}
                 onClick={() => setIsSidenavOpen(false)}
               >
                 <X size={16} strokeWidth={2.25} aria-hidden />
@@ -677,8 +688,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           <div className="sidenav-profile">
             {status === 'loading' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.75 }}>
-                <Spinner size={24} label="Syncing session" />
-                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Syncing…</div>
+                <Spinner size={24} label={t('syncingSession')} />
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{t('syncing')}</div>
               </div>
             ) : status === 'authenticated' && session?.user ? (
               <div ref={profileMenuRef} className="sidenav-profile-wrap">
@@ -687,7 +698,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                   onClick={() => setProfileMenuOpen((v) => !v)}
                   aria-expanded={profileMenuOpen}
                   aria-haspopup="menu"
-                  aria-label="Account menu"
+                  aria-label={t('accountMenu')}
                   className="sidenav-profile-btn"
                 >
                   <div className="sidenav-avatar">
@@ -695,10 +706,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="sidenav-profile-name">
-                      {session.user.name || 'Account'}
+                      {session.user.name || t('account')}
                     </div>
                     <div className="sidenav-profile-hint">
-                      Account
+                      {t('account')}
                       <ChevronDown size={12} strokeWidth={2.25} aria-hidden />
                     </div>
                   </div>
@@ -715,7 +726,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                       }}
                     >
                       <User size={15} strokeWidth={2} aria-hidden />
-                      Profile
+                      {t('profile')}
                     </Link>
                     <button
                       type="button"
@@ -724,11 +735,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                       onClick={() => {
                         setProfileMenuOpen(false)
                         setIsSidenavOpen(false)
-                        void signOut({ callbackUrl: '/' })
+                        void signOut({ callbackUrl: homeHref })
                       }}
                     >
                       <LogOut size={15} strokeWidth={2} aria-hidden />
-                      Log out
+                      {t('logOut')}
                     </button>
                   </div>
                 )}
@@ -740,7 +751,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                 onClick={() => { if (window.innerWidth < BREAKPOINTS.lg) setIsSidenavOpen(false) }}
               >
                 <User size={15} strokeWidth={2} aria-hidden />
-                Sign in
+                {t('signIn')}
               </Link>
             )}
           </div>
@@ -749,33 +760,34 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           <nav className="sidenav-nav">
             {TOP_TABS.map(t => renderTab(t))}
 
-            {renderAccordion(SIDENAV_ACCORDIONS.astrology.label, SIDENAV_ACCORDIONS.astrology.icon, isAstroOpen, () => toggleSidenavSection('astrology', isAstroOpen), (
+            {renderAccordion(tNav('sections.astrology'), SIDENAV_ACCORDIONS.astrology.icon, isAstroOpen, () => toggleSidenavSection('astrology', isAstroOpen), (
               ASTRO_NAV.map((entry) => (
                 entry.kind === 'group' ? renderGroupAccordion(entry.group) : renderTab(entry.tab, true)
               ))
             ), '1600px')}
 
-            {renderAccordion(SIDENAV_ACCORDIONS.advanced.label, SIDENAV_ACCORDIONS.advanced.icon, isAdvancedAstroOpen, () => toggleSidenavSection('advanced', isAdvancedAstroOpen), (
+            {renderAccordion(tNav('sections.advanced'), SIDENAV_ACCORDIONS.advanced.icon, isAdvancedAstroOpen, () => toggleSidenavSection('advanced', isAdvancedAstroOpen), (
               ADVANCED_ASTRO_TABS.map(t => renderTab(t, true))
             ))}
 
             {renderTab(NAKSHATRA_LINK)}
 
-            {renderAccordion(SIDENAV_ACCORDIONS.panchang.label, SIDENAV_ACCORDIONS.panchang.icon, isPanchangOpen, () => toggleSidenavSection('panchang', isPanchangOpen), (
+            {renderAccordion(tNav('sections.panchang'), SIDENAV_ACCORDIONS.panchang.icon, isPanchangOpen, () => toggleSidenavSection('panchang', isPanchangOpen), (
               PANCHANG_TABS.map(t => renderTab(t, true))
             ), '500px')}
 
-            <div className="sidenav-section-label">Tools</div>
+            <div className="sidenav-section-label">{tNav('labels.tools')}</div>
             {TOOL_TABS.map(t => renderTab(t))}
-            <div className="sidenav-section-label">Account</div>
+            <div className="sidenav-section-label">{tNav('labels.account')}</div>
             {ACCOUNT_TABS.map(t => renderTab(t))}
           </nav>
 
           {/* Bottom Actions */}
           <div className="sidenav-footer">
             <div className="sidenav-footer-om" dangerouslySetInnerHTML={{ __html: SIDENAV_OM_SVG }} />
+            <LanguageSwitcher />
             <Link href="/?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}>
-              + New Consultation
+              {t('newConsultation')}
             </Link>
           </div>
         </aside>
@@ -803,7 +815,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             onClick={scrollToTop}
             className="floating-scroll-top"
             type="button"
-            aria-label="Scroll to top"
+            aria-label={t('scrollTop')}
             style={{
               position: 'fixed',
               bottom: showGlobalMobileNav ? 'calc(5rem + env(safe-area-inset-bottom, 0px))' : '2rem',

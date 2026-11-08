@@ -440,3 +440,26 @@ describe('analyzeDashaGochar', () => {
     expect(overlay.summary.length).toBeGreaterThan(10)
   })
 })
+
+describe('Vimshottari insight in Hindi', () => {
+  it('has Hindi for every antar hint and every mahadasha', async () => {
+    const { VIMSHOTTARI_ANTAR_HINTS, VIMSHOTTARI_INTERPRETATIONS } = await import('@/lib/engine/dasha/vimshottariInterpretations')
+    const { VIM_ANTAR_HI, VIM_INTERP_HI } = await import('@/lib/engine/locale/vimshottari.hi')
+    expect(Object.keys(VIM_ANTAR_HI).sort()).toEqual(Object.keys(VIMSHOTTARI_ANTAR_HINTS).sort())
+    expect(Object.keys(VIM_INTERP_HI).sort()).toEqual(Object.keys(VIMSHOTTARI_INTERPRETATIONS).sort())
+  })
+
+  it('keeps tone, shares and flags; swaps only the sentences', () => {
+    const grahas = [stubGraha({ id: 'Sa', rashi: 10, dignity: 'own' }), stubGraha({ id: 'Me', rashi: 3 })]
+    const nodes = [mahaNode('Sa', { isCurrent: true, children: [antar('Me', true)] })]
+    const en = analyzeVimshottariPeriod({ nodes, ascRashi: 2, grahas })!
+    const hi = analyzeVimshottariPeriod({ nodes, ascRashi: 2, grahas, lang: 'hi' })!
+    expect(hi.insight.toneLabel).toBe(en.insight.toneLabel)
+    expect(hi.favorableShare).toBe(en.favorableShare)
+    expect(hi.flags.map(f => f.id)).toEqual(en.flags.map(f => f.id))
+    expect(hi.insight.bullets.length).toBe(en.insight.bullets.length)
+    expect(Boolean(hi.insight.watch)).toBe(Boolean(en.insight.watch))
+    for (const text of [hi.insight.headline, hi.insight.toneText ?? '', ...hi.insight.bullets]) expect(text).toMatch(/[ऀ-ॿ]/)
+    expect(en.insight.toneText).toBeUndefined()
+  })
+})

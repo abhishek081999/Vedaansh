@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronLeft, ChevronRight, UserRound } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import { DailyPanchangView, type PanchangApiData } from '@/components/panchang/DailyPanchangView'
@@ -21,6 +24,10 @@ function addDays(dateStr: string, n: number): string {
 }
 
 export default function PanchangPage() {
+  const t = useTranslations('panchang.page')
+  const { hi } = useLang()
+  const nakNames = hi ? NAKSHATRA_HI : NAKSHATRA_NAMES
+  const rashiNames = hi ? RASHI_HI : RASHI_NAMES
   const { chart } = useChart()
   const [date, setDate] = useState(todayIST)
   const [data, setData] = useState<PanchangApiData | null>(null)
@@ -55,11 +62,11 @@ export default function PanchangPage() {
       setData(json.data)
     } catch (e: unknown) {
       if (requestId !== latestRequest.current) return
-      setError(e instanceof Error ? e.message : 'Failed to load')
+      setError(e instanceof Error ? e.message : t('failed'))
     } finally {
       if (requestId === latestRequest.current) setLoading(false)
     }
-  }, [location, birthNakSel, birthMoonSel])
+  }, [location, birthNakSel, birthMoonSel, t])
 
   // Deep links from the monthly calendar: /panchang?date=YYYY-MM-DD
   useEffect(() => {
@@ -82,15 +89,15 @@ export default function PanchangPage() {
               type="button"
               onClick={() => setDate((d: string) => addDays(d, -1))}
               className={pageStyles.navButton}
-              aria-label="Previous day"
-              title="Previous day"
+              aria-label={t('prevDay')}
+              title={t('prevDay')}
             >
               <ChevronLeft size={18} aria-hidden />
             </button>
             <input
               id="panchang-date"
               type="date"
-              aria-label="Panchang date"
+              aria-label={t('dateLabel')}
               value={date}
               onChange={e => setDate(e.target.value)}
               className={pageStyles.dateInput}
@@ -99,8 +106,8 @@ export default function PanchangPage() {
               type="button"
               onClick={() => setDate((d: string) => addDays(d, 1))}
               className={pageStyles.navButton}
-              aria-label="Next day"
-              title="Next day"
+              aria-label={t('nextDay')}
+              title={t('nextDay')}
             >
               <ChevronRight size={18} aria-hidden />
             </button>
@@ -110,7 +117,7 @@ export default function PanchangPage() {
                 onClick={() => setDate(todayIST())}
                 className={pageStyles.todayButton}
               >
-                Today
+                {t('today')}
               </button>
             )}
           </div>
@@ -131,37 +138,37 @@ export default function PanchangPage() {
             className={`${pageStyles.personalToggle} ${birthNakSel !== '' ? pageStyles.personalToggleSet : ''}`}
           >
             <UserRound size={15} aria-hidden />
-            {birthNakSel !== '' ? NAKSHATRA_NAMES[Number(birthNakSel)] : 'Personalise'}
+            {birthNakSel !== '' ? nakNames[Number(birthNakSel)] : t('personalise')}
           </button>
         </div>
 
         {personalOpen && (
           <div className={pageStyles.bottomRow}>
             <span className={pageStyles.birthMoonLabel}>
-              Add your birth Moon to see Tara Bala and Chandra Bala
+              {t('birthMoonHint')}
             </span>
             <div className={pageStyles.birthMoonControls}>
               <select
-                aria-label="Birth nakshatra"
+                aria-label={t('birthNak')}
                 value={birthNakSel}
                 onChange={e => setBirthNakSel(e.target.value)}
                 className={pageStyles.select}
               >
-                <option value="">Birth nakshatra</option>
-                {NAKSHATRA_NAMES.map((name, i) => (
+                <option value="">{t('birthNak')}</option>
+                {nakNames.map((name, i) => (
                   <option key={name} value={i}>{name}</option>
                 ))}
               </select>
               <select
-                aria-label="Birth Moon rashi"
+                aria-label={t('birthMoonRashi')}
                 value={birthMoonSel}
                 onChange={e => setBirthMoonSel(e.target.value)}
                 disabled={birthNakSel === ''}
                 className={pageStyles.select}
               >
-                <option value="">Auto rashi</option>
+                <option value="">{t('autoRashi')}</option>
                 {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as Rashi[]).map((r) => (
-                  <option key={r} value={r}>{RASHI_NAMES[r]}</option>
+                  <option key={r} value={r}>{rashiNames[r]}</option>
                 ))}
               </select>
               {chart && (
@@ -176,7 +183,7 @@ export default function PanchangPage() {
                   }}
                   className={pageStyles.natalButton}
                 >
-                  Use natal Moon
+                  {t('useNatalMoon')}
                 </button>
               )}
             </div>
@@ -194,7 +201,7 @@ export default function PanchangPage() {
         <div className={pageStyles.loadingContainer}>
           <div className="spin-loader" />
           <div className={pageStyles.loadingText}>
-            Calculating the celestial movements…
+            {t('loading')}
           </div>
         </div>
       )}

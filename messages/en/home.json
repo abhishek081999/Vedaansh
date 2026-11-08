@@ -1,0 +1,455 @@
+{
+  "hero": {
+    "ariaLabel": "Vedaansh product highlights",
+    "tabsLabel": "Hero modules",
+    "next": "Next",
+    "ownChart": "Own Chart",
+    "myCharts": "My Charts",
+    "trust": {
+      "ephemeris": "Swiss Ephemeris",
+      "ayanamsha": "Lahiri ayanamsha",
+      "noLogin": "No login required"
+    },
+    "slides": {
+      "astrology": {
+        "kicker": "Astrology Workspace",
+        "title": "Charts, dashas, guidance — one workspace",
+        "desc": "Kundali through vargas and dasha layers in a single focused flow.",
+        "bullets": [
+          "D1–D60 & vargas",
+          "Consultation-ready"
+        ],
+        "cta": "Open Astrology"
+      },
+      "prashna": {
+        "kicker": "Prashna Engine",
+        "title": "Clear answers for timely questions",
+        "desc": "Structured Prashna when you need a direct read on a decision.",
+        "bullets": [
+          "Focused flow",
+          "Timing cues"
+        ],
+        "cta": "Open Prashna"
+      },
+      "panchang": {
+        "kicker": "Daily Panchang",
+        "title": "Today’s tithi, nakshatra, muhurta",
+        "desc": "Panchang signals and day-level timing at a glance.",
+        "bullets": [
+          "Rahu Kalam & yogas",
+          "Day factors"
+        ],
+        "cta": "Open Panchang"
+      },
+      "calendar": {
+        "kicker": "Vedic Calendar",
+        "title": "Month view — stronger dates first",
+        "desc": "Scan festivals and windows before you lock a day.",
+        "bullets": [
+          "Monthly grid",
+          "Festival context"
+        ],
+        "cta": "Open Calendar"
+      },
+      "compare": {
+        "kicker": "Kundali Matching",
+        "title": "Match two charts — Ashtakoot & more",
+        "desc": "Ashtakoot scoring, dosha checks, and side-by-side charts without loading a saved natal first.",
+        "bullets": [
+          "36-point Guna Milan",
+          "Dual birth forms"
+        ],
+        "cta": "Open Kundali Matching"
+      }
+    }
+  },
+  "explore": {
+    "kicker": "Explore",
+    "title": "Every core Vedaansh journey",
+    "description": "Jump straight to the tool you need.",
+    "startChart": "Start a chart",
+    "groups": {
+      "chart": {
+        "title": "Read your chart",
+        "description": "Start from your birth details."
+      },
+      "timing": {
+        "title": "Plan the right time",
+        "description": "Check the day before you commit."
+      },
+      "advanced": {
+        "title": "Go deeper",
+        "description": "Classical systems for closer study."
+      }
+    },
+    "cards": {
+      "astrology": {
+        "title": "Astrology",
+        "subtitle": "Workspace",
+        "text": "Kundali, vargas, dasha, plus marriage and career readings."
+      },
+      "today": {
+        "title": "Today’s Reading",
+        "subtitle": "Personal",
+        "text": "Daily reading from your Moon, dasha, and transits."
+      },
+      "transits": {
+        "title": "Transits",
+        "subtitle": "Gochar",
+        "text": "Cosmic roadmap, Sade Sati, aspects, and live sky."
+      },
+      "relationship": {
+        "title": "Relationship & Marriage",
+        "subtitle": "Gold",
+        "text": "Marriage promise, timing, Mars and Vivah readings."
+      },
+      "career": {
+        "title": "Career & Profession",
+        "subtitle": "Gold",
+        "text": "Dashamsha strength and the professional method."
+      },
+      "dosha": {
+        "title": "Dosha & Upay",
+        "subtitle": "Gold",
+        "text": "Pitru, Matru, Sarpa and related Shrap flags with remedies."
+      },
+      "kundali_matching": {
+        "title": "Kundali Matching",
+        "subtitle": "Compatibility",
+        "text": "36-point Guna Milan, doshas, and synastry."
+      },
+      "panchang": {
+        "title": "Panchang",
+        "subtitle": "Daily",
+        "text": "Tithi, nakshatra, yoga, and karana."
+      },
+      "calendar": {
+        "title": "Calendar",
+        "subtitle": "Monthly",
+        "text": "Month-level Vedic timing windows."
+      },
+      "muhurta_finder": {
+        "title": "Muhurta Finder",
+        "subtitle": "Gold",
+        "text": "Auspicious windows for key actions."
+      },
+      "prashna": {
+        "title": "Prashna",
+        "subtitle": "Query",
+        "text": "Guidance for specific questions."
+      },
+      "nakshatra": {
+        "title": "Nakshatra",
+        "subtitle": "Lunar",
+        "text": "Nakshatra insights day by day."
+      },
+      "jaimini": {
+        "title": "Jaimini Astrology",
+        "subtitle": "Advanced",
+        "text": "Jaimini charts and life direction."
+      },
+      "nadi": {
+        "title": "Nadi Astrology",
+        "subtitle": "Advanced",
+        "text": "Chart, planetary positions, and dasha."
+      },
+      "sarvatobhadra": {
+        "title": "Sarvatobhadra Chakra",
+        "subtitle": "Classical",
+        "text": "Traditional S.B. Chakra timing."
+      },
+      "astrocartography": {
+        "title": "AstroCartography",
+        "subtitle": "Location",
+        "text": "Planetary lines for travel and moves."
+      },
+      "astro_vastu": {
+        "title": "Astro Vastu",
+        "subtitle": "Space",
+        "text": "Vastu aligned with your chart."
+      },
+      "numerology": {
+        "title": "Vedic Numerology",
+        "subtitle": "Anka Jyotish",
+        "text": "Moolank, Bhagyank, name and grid."
+      },
+      "guides": {
+        "title": "Jyotish Guides",
+        "subtitle": "Learn",
+        "text": "The methods behind each tool."
+      }
+    }
+  },
+  "audience": {
+    "kicker": "Who it's for",
+    "title": "Built for every stage of practice",
+    "seekers": {
+      "title": "For seekers",
+      "text": "Understand your own chart and plan each day without learning the whole system first.",
+      "links": [
+        "Today’s Reading",
+        "Daily Panchang",
+        "Kundali Matching"
+      ]
+    },
+    "students": {
+      "title": "For students",
+      "text": "Work through classical methods on real charts, with plain-language guides beside the calculations.",
+      "links": [
+        "Jyotish guides",
+        "Jaimini",
+        "Nadi"
+      ]
+    },
+    "practitioners": {
+      "title": "For practitioners",
+      "text": "Keep client records, prepare consultations and send out reports under your own brand.",
+      "links": [
+        "Client CRM",
+        "White-label reports",
+        "PDF exports"
+      ]
+    }
+  },
+  "plans": {
+    "kicker": "Plans",
+    "title": "Start free, upgrade when your work needs it",
+    "description": "No credit card is needed for the Free plan.",
+    "perMonth": "/month",
+    "freeForever": "Free forever",
+    "orYearly": "or ₹{price} a year",
+    "compare": "Compare all features",
+    "free": {
+      "name": "Free",
+      "blurb": "Core charts and daily timing.",
+      "features": [
+        "Birth chart and 16 Shodashavarga",
+        "Panchang and public share links",
+        "20 saved charts and 20 matches"
+      ]
+    },
+    "gold": {
+      "name": "Gold",
+      "blurb": "Full readings and timing tools.",
+      "features": [
+        "Relationship and career readings",
+        "Muhurta Finder and PDF export",
+        "200 saved charts and 200 matches"
+      ]
+    },
+    "platinum": {
+      "name": "Platinum",
+      "blurb": "For professional practice.",
+      "features": [
+        "All 41 varga charts",
+        "Client CRM and white-label reports",
+        "Unlimited saves, email and bulk ZIP"
+      ]
+    }
+  },
+  "guides": {
+    "kicker": "Learn",
+    "title": "Learn Jyotish as you go",
+    "seeAll": "See all guides",
+    "items": {
+      "free-vedic-birth-chart-kundali": {
+        "topic": "Start here",
+        "title": "What a Vedic birth chart shows"
+      },
+      "vimshottari-dasha-explained": {
+        "topic": "Timing",
+        "title": "Vimshottari Dasha explained"
+      },
+      "what-is-navamsha-d9-chart": {
+        "topic": "Divisional charts",
+        "title": "What is Navamsha (D9)?"
+      },
+      "ashtakoot-guna-milan-explained": {
+        "topic": "Matching",
+        "title": "Ashtakoot Guna Milan explained"
+      }
+    }
+  },
+  "install": {
+    "title": "Keep Vedaansh on your home screen",
+    "text": "Install it from Chrome on Android or Safari on iPhone and iPad. No app store needed.",
+    "cta": "See how to install"
+  },
+  "stickyCta": "✦ Start Astrology App",
+  "showcase": {
+    "kicker": "Inside the workspace",
+    "title": "The depth of a classical reading, laid out clearly",
+    "description": "A sample of what one birth chart opens up. Yours is calculated from your own birth details.",
+    "rashi": {
+      "title": "Rashi chart",
+      "text": "North and South Indian styles, with degrees, nakshatras and karakas.",
+      "aria": "Sample North Indian birth chart",
+      "sample": "Sample chart"
+    },
+    "dasha": {
+      "title": "Vimshottari dasha",
+      "text": "The full 120-year cycle, down to six levels of sub-periods on paid plans.",
+      "aria": "Vimshottari periods: Ketu 7, Venus 20, Sun 6, Moon 10, Mars 7, Rahu 18, Jupiter 16, Saturn 19, Mercury 17 years"
+    },
+    "ashtakavarga": {
+      "title": "Ashtakavarga",
+      "text": "Bindus across all twelve signs.",
+      "aria": "Sample Sarvashtakavarga bindus by sign"
+    },
+    "shadbala": {
+      "title": "Shadbala",
+      "text": "Sixfold planetary strength.",
+      "aria": "Sample Shadbala ratios"
+    },
+    "vargas": {
+      "title": "Divisional charts",
+      "text": "All 16 Shodashavarga on every plan, and the full 41 on Platinum.",
+      "cta": "Calculate your chart"
+    }
+  },
+  "todaySky": {
+    "ariaLabel": "Today's panchang",
+    "eyebrow": "Aaj ka Panchang",
+    "signs": "Surya in {sun} · Chandra in {moon}",
+    "cityLink": "Panchang for your city",
+    "moonPhase": "Moon phase: {tithi}",
+    "calendarLine1": "{masa} · {ritu} ritu",
+    "calendarLine2": "{ayana} · {samvatsara} samvatsara",
+    "dayAria": "Day from sunrise to sunset",
+    "daylight": "{hours}h {mins}m of daylight",
+    "rahuKalam": "Rahu Kalam",
+    "abhijit": "Abhijit",
+    "abhijitWednesday": "(not used on Wednesday)",
+    "angas": {
+      "tithi": "Tithi",
+      "nakshatra": "Nakshatra",
+      "yoga": "Yoga",
+      "karana": "Karana",
+      "vara": "Vara"
+    },
+    "pada": "Pada {pada}",
+    "paksha": "{paksha} paksha",
+    "tithiChanges": "{paksha} · changes {time}",
+    "bhadra": "Bhadra — avoid new starts",
+    "lordDay": "{lord} day",
+    "horaNow": "{lord} hora now",
+    "shukla": "Shukla",
+    "krishna": "Krishna",
+    "place": "Ujjain"
+  },
+  "why": {
+    "kicker": "Why Vedaansh",
+    "title": "Classical depth with modern clarity",
+    "description": "Relevant information first — deep tooling always one click away.",
+    "pillars": {
+      "accuracy": {
+        "title": "Classical Accuracy",
+        "detail": "Swiss Ephemeris precision with Lahiri ayanamsha and full varga depth."
+      },
+      "workspace": {
+        "title": "One Workspace",
+        "detail": "Kundali, dashas, transits, Panchang, and Prashna in a single coherent flow."
+      },
+      "consultation": {
+        "title": "Consultation Ready",
+        "detail": "Built for practitioners and seekers — interpret, export, and plan."
+      }
+    },
+    "stats": {
+      "vargas": {
+        "value": "16–41",
+        "label": "Varga charts by plan"
+      },
+      "precision": {
+        "value": "Arc-sec",
+        "label": "Ephemeris precision"
+      },
+      "free": {
+        "value": "Free",
+        "label": "Core tools"
+      }
+    }
+  },
+  "how": {
+    "kicker": "How it works",
+    "title": "From birth data to confident direction",
+    "steps": {
+      "01": {
+        "title": "Enter birth details",
+        "text": "Open Astrology app and submit date, time, and place."
+      },
+      "02": {
+        "title": "Generate deep chart",
+        "text": "Compute grahas, houses, dasha layers, and divisional charts instantly."
+      },
+      "03": {
+        "title": "Apply in real life",
+        "text": "Use Today’s Reading, transits, Panchang, and Prashna to plan your next action, and explore marriage and career readings."
+      }
+    }
+  },
+  "ctaBand": {
+    "kicker": "Start your journey",
+    "title": "Open your Vedic command center",
+    "desc": "Start with your chart, then move into Prashna, Panchang, and calendar planning in one workflow.",
+    "primary": "Open Astrology App",
+    "myCharts": "My Charts"
+  },
+  "aboutPreview": {
+    "kicker": "About Vedaansh",
+    "title": "Vision, tradition, and the people behind the platform",
+    "lead": "Vedaansh is a community platform rooted in Vedic culture — bringing together authentic Jyotish (Vedic astrology), scripture-aligned knowledge, and practical tools for seekers, students, and practitioners.",
+    "pillars": [
+      "Vedic Astrology",
+      "Scripture & Tradition",
+      "Culture & Community"
+    ],
+    "builtBy": "Built by <b>Abhishek Kumar</b>, Software Engineer.",
+    "thanks": "Special thanks to Sameer Bhatnagar sir — the app's functionalities are inspired by his teachings and wisdom.",
+    "cta": "Read full story →"
+  },
+  "wheel": {
+    "moon": "Moon",
+    "sun": "Sun",
+    "paksha": "Paksha",
+    "vara": "Vara",
+    "tithi": "Tithi",
+    "nakshatra": "Nakshatra",
+    "yoga": "Yoga",
+    "karana": "Karana",
+    "ritu": "Ritu",
+    "ayana": "Ayana",
+    "samvatsara": "Samvatsara",
+    "kootas": "Kootas",
+    "heaviest": "Heaviest",
+    "maximum": "Maximum",
+    "heaviestValue": "Nadi · 8",
+    "maximumValue": "36 guna",
+    "guna": "GUNA",
+    "chartA": "Chart A",
+    "chartB": "Chart B",
+    "moonIn": "Moon in {rashi}",
+    "horaNow": "HORA NOW",
+    "until": "until {time}",
+    "today": "TODAY",
+    "shukla": "SHUKLA",
+    "krishna": "KRISHNA",
+    "tithiOf": "TITHI {n} OF 30",
+    "masa": "{masa} masa",
+    "shuklaName": "Shukla",
+    "krishnaName": "Krishna",
+    "retro": "R",
+    "source": "Today's sky · {place}, noon IST",
+    "sourcePrashna": "Today's sky · {place}, noon IST · hora live",
+    "unavailable": "Live sky unavailable right now",
+    "reading": "Reading today's sky…",
+    "natalNote": "Inner ring · your planets · nakshatra band · Moon's star",
+    "matchNote": "Illustrative charts · your score comes from your two birth charts",
+    "ariaSky": "Sky: {tithi}, Moon in {moon}, {nakshatra} nakshatra, Sun in {sun}.",
+    "ariaNatal": " Birth planets sit on the inner ring.",
+    "ariaEmpty": "Circular Vedic sky wheel.",
+    "ariaToday": "Today's sky: {tithi}, Moon in {moon}, {nakshatra} nakshatra, Sun in {sun}.",
+    "ariaMatch": "Two birth charts joined at their Moons, inside the eight Ashtakoot kootas totalling 36 guna.",
+    "place": "Ujjain"
+  }
+}

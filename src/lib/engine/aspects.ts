@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaId, Rashi } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
 
 /**
  * Standard Vedic (Parashari) Aspects
@@ -47,7 +48,22 @@ export function getAspectedHouses(planetId: GrahaId, currentHouse: number): numb
  * Short aspect labels for tooltips.
  * Prefer planet-aware labels for Ma / Ju / Sa special drishti when `planetId` is set.
  */
-export function getAspectDescription(a: number, planetId?: GrahaId): string {
+const ASPECT_DESC_HI: Record<string, string> = {
+  'Protection / territory': 'रक्षा / क्षेत्र', 'Partnership / energy': 'साझेदारी / ऊर्जा',
+  'Eliminates threats (not house itself)': 'ख़तरों को दूर करता है (भाव को नहीं)',
+  'Learning capacity': 'सीखने की क्षमता', 'Partner counsel': 'साथी को परामर्श', 'Blessings / fortune-rise': 'आशीर्वाद / भाग्योदय',
+  'Thoughtful effort / mental tension': 'विचारपूर्ण प्रयास / मानसिक तनाव', 'Relationships / domestic atmosphere': 'संबंध / घर का वातावरण',
+  'Karma discipline / honest work': 'कर्म का अनुशासन / ईमानदार परिश्रम', 'Effort & Valor': 'प्रयास और पराक्रम',
+  'Happiness & Home': 'सुख और घर', 'Wisdom & Children': 'ज्ञान और संतान', 'Direct Influence / Partners': 'सीधा प्रभाव / साझेदार',
+  'Transformation': 'परिवर्तन', 'Fortune & Grace': 'भाग्य और कृपा', 'Action & Karma': 'कर्म और कार्य',
+}
+
+export function getAspectDescription(a: number, planetId?: GrahaId, lang: EngineLang = 'en'): string {
+  const en = aspectDescriptionEn(a, planetId)
+  return lang === 'hi' ? ASPECT_DESC_HI[en] ?? en : en
+}
+
+function aspectDescriptionEn(a: number, planetId?: GrahaId): string {
   if (planetId === 'Ma') {
     if (a === 4) return 'Protection / territory'
     if (a === 7) return 'Partnership / energy'

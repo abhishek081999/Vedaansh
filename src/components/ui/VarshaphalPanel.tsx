@@ -11,21 +11,22 @@ import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { ExportPdfButton } from '@/components/ui/ExportPdfButton'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { tajikaYogaText, type TajikaYoga } from '@/lib/engine/tajika'
 
 interface VarshaphalPanelProps {
   natalChart: ChartOutput
 }
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-
-function fmtDateTime(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}  ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')} UTC`
-}
-
 export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
   const birthYear  = parseInt(natalChart.meta.birthDate.slice(0, 4))
   const thisYear   = new Date().getFullYear()
+  const t = useTranslations('chartTools.varshaphal')
+  const { lang, hi } = useLang()
+  const rashiName = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
+  const grahaName = (id: GrahaData['id']) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id]) ?? id
 
   const [year,     setYear]     = useState(thisYear)
   const [loading,  setLoading]  = useState(false)
@@ -36,7 +37,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
       returnYear: number; 
       natalSunSidereal: number; 
       munthaRashi: number; 
-      tajikaYogas: any[];
+      tajikaYogas: TajikaYoga[];
       completedAge: number;
     } 
   } | null>(null)
@@ -72,11 +73,11 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
       if (!json.success) throw new Error(json.error)
       setResult(json)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Calculation failed')
+      setError(e instanceof Error ? e.message : t('failed'))
     } finally {
       setLoading(false)
     }
-  }, [year, natalSun, natalChart])
+  }, [year, natalSun, natalChart, t])
 
   const years = Array.from({ length: 15 }, (_, i) => thisYear - 5 + i)
     .filter(y => y >= birthYear)
@@ -101,14 +102,13 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
         }}>☀️</div>
         <div style={{ flex: 1, minWidth: 200 }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.1 }}>
-            Varshaphal <span style={{ color: 'var(--text-gold)', marginLeft: 8 }}>{year}</span>
+            {t('title')} <span style={{ color: 'var(--text-gold)', marginLeft: 8 }}>{year}</span>
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.5, maxWidth: 600 }}>
-            Solar Return Analysis — The chart for the exact moment the Sun returns to its natal position. 
-            Used for predicting themes and events for the current year.
+            {t('intro')}
             {natalSun && (
               <span style={{ marginLeft: 8, color: 'var(--text-gold)', fontWeight: 600 }}>
-                · Natal Sun: {natalSun.totalDegree.toFixed(3)}°
+                · {t('natalSun', { deg: natalSun.totalDegree.toFixed(3) })}
               </span>
             )}
           </div>
@@ -116,7 +116,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
         
         {/* Quick Year Selector */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <div className="label-caps" style={{ fontSize: '0.6rem' }}>Select Return Year</div>
+          <div className="label-caps" style={{ fontSize: '0.6rem' }}>{t('selectYear')}</div>
           <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
             {years.map(y => (
               <button key={y} onClick={() => { setYear(y); if (result?.meta.returnYear !== y) setResult(null) }} style={{
@@ -142,8 +142,8 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
             style={{ marginTop: '0.25rem' }}
           >
             {loading ? (
-               <><span className="spin-loader" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', marginRight: 6 }} /> Calculating…</>
-            ) : `Cast ${year} Solar Return`}
+               <><span className="spin-loader" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', marginRight: 6 }} /> {t('calculating')}</>
+            ) : t('cast', { year })}
           </button>
         </div>
       </div>
@@ -163,11 +163,11 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
              <div className="card" style={{ padding: '1.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                    <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text-muted)', fontWeight: 700 }}>
-                      Varshaphal Chart · {result.chart.meta.name}
+                      {t('chartOf', { name: result.chart.meta.name })}
                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                        <div style={{ fontSize: '0.7rem', color: 'var(--text-gold)', background: 'var(--gold-faint)', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
-                          {year} Return
+                          {t('returnBadge', { year })}
                        </div>
                        <ExportPdfButton chart={result.chart} compact style={{ height: 24, padding: '0 8px' }} />
                     </div>
@@ -191,7 +191,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
              <div className="card" style={{ padding: '1.25rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
                   <span style={{ fontSize: '1.2rem' }}>💎</span>
-                  <div className="label-caps" style={{ fontSize: '0.7rem', color: 'var(--text-gold)', margin: 0 }}>Tajika Analysis</div>
+                  <div className="label-caps" style={{ fontSize: '0.7rem', color: 'var(--text-gold)', margin: 0 }}>{t('tajika')}</div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -199,10 +199,10 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                   <div style={{ padding: '1rem', background: 'var(--gold-faint)', borderRadius: '12px', border: '1px solid var(--gold)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-gold)' }}>Muntha Position</div>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-gold)' }}>{t('muntha')}</div>
                         <div style={{ fontSize: '1.2rem', fontWeight: 600, fontFamily: 'var(--font-display)', marginTop: '0.2rem' }}>
-                          {(RASHI_NAMES as any)[result.meta.munthaRashi as Rashi]}
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>(Age {result.meta.completedAge})</span>
+                          {rashiName(result.meta.munthaRashi as Rashi)}
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>{t('age', { age: result.meta.completedAge })}</span>
                         </div>
                       </div>
                       <div style={{ 
@@ -213,15 +213,15 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                       </div>
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.75rem', lineHeight: 1.4 }}>
-                      The yearly Muntha resides in your <strong>House {((result.meta.munthaRashi - result.chart.lagnas.ascRashi + 12) % 12) + 1}</strong>.
+                      {t.rich('munthaHouse', { n: ((result.meta.munthaRashi - result.chart.lagnas.ascRashi + 12) % 12) + 1, b: (c) => <strong>{c}</strong> })}
                     </div>
                   </div>
 
                   {/* Tajika Yogas */}
                   <div>
-                    <div className="label-caps" style={{ fontSize: '0.6rem', marginBottom: '0.75rem', opacity: 0.6 }}>Yearly Tajika Yogas</div>
+                    <div className="label-caps" style={{ fontSize: '0.6rem', marginBottom: '0.75rem', opacity: 0.6 }}>{t('yogas')}</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                      {result.meta.tajikaYogas.length > 0 ? result.meta.tajikaYogas.map((yoga, i) => (
+                      {result.meta.tajikaYogas.length > 0 ? result.meta.tajikaYogas.map((yoga, i) => { const yt = tajikaYogaText(yoga, lang); return (
                         <div key={i} style={{ 
                           padding: '0.85rem 1rem', 
                           background: 'var(--surface-3)', 
@@ -229,18 +229,18 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                           border: `1px solid ${yoga.type === 'auspicious' ? 'var(--teal)' : 'var(--rose)'}`,
                         }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{yoga.name}</span>
+                            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{yt.name}</span>
                             <span style={{ fontSize: '0.6rem', padding: '2px 6px', borderRadius: 4, background: yoga.type === 'auspicious' ? 'var(--teal-faint)' : 'var(--rose-faint)', color: yoga.type === 'auspicious' ? 'var(--teal)' : 'var(--rose)' }}>
-                              {yoga.type.toUpperCase()}
+                              {yt.typeLabel}
                             </span>
                           </div>
                           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 4 }}>
-                            {yoga.graha1} aspecting {yoga.graha2}. {yoga.description}
+                            {yt.aspecting} {yt.description}
                           </div>
                         </div>
-                      )) : (
+                      ) }) : (
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem', border: '1px dashed var(--border)', borderRadius: 8 }}>
-                          No major Tajika yogas detected.
+                          {t('noYogas')}
                         </div>
                       )}
                     </div>
@@ -250,7 +250,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
 
              {/* Planet Positions Table */}
              <div className="card" style={{ padding: '1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>Solar Return Planets</div>
+                <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>{t('planets')}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                    {result.chart.grahas.slice(0, 11).map(g => (
                       <div key={g.id} style={{
@@ -260,7 +260,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                       }}>
                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.75rem', color: 'var(--text-muted)', width: 22 }}>{g.id}</span>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: 500 }}>{(GRAHA_NAMES as any)[g.id] || g.id}</span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: 500 }}>{grahaName(g.id)}</span>
                          </div>
                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
@@ -274,7 +274,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
              </div>
 
              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '0 0.5rem' }}>
-                * Varshaphal cast using Janma place and {natalChart.meta.settings.ayanamsha} ayanamsha.
+                {t('footnote', { ayanamsha: natalChart.meta.settings.ayanamsha })}
              </div>
 
           </div>
@@ -285,22 +285,22 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
            <div className="card fade-up" style={{ flex: '1 1 450px', padding: '3rem 2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.25rem', border: '1px dashed var(--border)' }}>
               <div style={{ fontSize: '3rem', opacity: 0.15 }}>🌞</div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem', color: 'var(--text-primary)', fontWeight: 500 }}>
-                 Generate Solar Return for <strong>{year}</strong>
+                 {t.rich('generate', { year, b: (c) => <strong>{c}</strong> })}
               </div>
               <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: 400, lineHeight: 1.6 }}>
-                 Compare your Janma Kundali (right) with the upcoming Solar Return energies for {year}.
+                 {t('compare', { year })}
               </p>
               <button 
                 onClick={calculate} 
                 className="btn btn-primary btn-lg"
                 style={{ padding: '0.85rem 2.5rem' }}
               >
-                 Cast {year} Solar Return
+                 {t('cast', { year })}
               </button>
            </div>
 
            <div className="card fade-up" style={{ flex: '0 0 320px', padding: '1.25rem', border: '1px solid var(--gold-faint)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div className="label-caps" style={{ marginBottom: '1.25rem', fontSize: '0.65rem', color: 'var(--text-gold)', width: '100%' }}>Natal Reference (Janma)</div>
+              <div className="label-caps" style={{ marginBottom: '1.25rem', fontSize: '0.65rem', color: 'var(--text-gold)', width: '100%' }}>{t('natalRef')}</div>
               <ChakraSelector
                  ascRashi={natalChart.lagnas.ascRashi}
                  grahas={natalChart.vargas?.D1 ?? natalChart.grahas}
@@ -313,7 +313,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                  size={250} 
               />
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '1rem', fontFamily: 'var(--font-display)' }}>
-                 {natalChart.meta.name} · {(RASHI_NAMES as any)[natalChart.lagnas.ascRashi]} Lagna
+                 {t('natalLagna', { name: natalChart.meta.name, rashi: rashiName(natalChart.lagnas.ascRashi) })}
               </div>
            </div>
         </div>

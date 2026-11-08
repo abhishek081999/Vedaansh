@@ -31,6 +31,40 @@ export const TARA_NAMES_SA = [
   'Atimitra',
 ] as const
 
+/** Hindi tara names, same order as TARA_NAMES_EN. */
+export const TARA_NAMES_HI = ['जन्म', 'संपत्', 'विपत्', 'क्षेम', 'प्रत्यरि', 'साधक', 'नैधन', 'मित्र', 'अतिमित्र'] as const
+
+const TARA_HINTS = {
+  en: {
+    good: 'Generally considered supportive for auspicious work in many almanacs.',
+    bad: 'Often avoided for major beginnings in classical muhurta lists; routine activity is fine for many users.',
+  },
+  hi: {
+    good: 'अनेक पंचांगों में शुभ कार्यों के लिए सामान्यतः सहायक मानी जाती है।',
+    bad: 'शास्त्रीय मुहूर्त सूचियों में बड़े आरंभ के लिए प्रायः टाली जाती है; सामान्य कार्य अधिकांश लोगों के लिए ठीक हैं।',
+  },
+}
+
+const CHANDRA_HINTS = {
+  en: {
+    approx: 'Natal Moon sign was estimated from the middle of your birth nakshatra; for precision, set your birth Moon rashi from the chart.',
+    stated: 'Uses your stated natal Moon rashi. Favourable houses 1, 3, 6, 10, 11 from natal Moon are common in Drik-style summaries.',
+  },
+  hi: {
+    approx: 'जन्म चंद्र राशि का अनुमान आपके जन्म नक्षत्र के मध्य से लगाया गया है; सटीकता के लिए कुंडली से अपनी जन्म चंद्र राशि चुनें।',
+    stated: 'आपकी बताई गई जन्म चंद्र राशि का उपयोग किया गया है। दृक्-शैली के सारांशों में जन्म चंद्र से 1, 3, 6, 10, 11वें भाव शुभ माने जाते हैं।',
+  },
+}
+
+/** Tara bala hint in `lang` (the API sends English; pages re-read it in their language). */
+export function taraBalaHint(favorable: boolean, lang: 'en' | 'hi' = 'en'): string {
+  return favorable ? TARA_HINTS[lang].good : TARA_HINTS[lang].bad
+}
+
+export function chandraBalaHint(usedApproxRashi: boolean, lang: 'en' | 'hi' = 'en'): string {
+  return usedApproxRashi ? CHANDRA_HINTS[lang].approx : CHANDRA_HINTS[lang].stated
+}
+
 /** Favourable for beginnings in many muhurta manuals: Sampat, Kshema, Sadhana, Mitra, Ati-mitra. */
 const TARA_FAVORABLE = new Set([2, 4, 6, 8, 9])
 
@@ -60,9 +94,7 @@ export function computeTaraBala(birthNakIndex: number, transitNakIndex: number):
   const d = ((transitNakIndex - birthNakIndex + 27) % 27) + 1
   const taraNumber = ((d - 1) % 9) + 1
   const favorable = TARA_FAVORABLE.has(taraNumber)
-  const hint = favorable
-    ? 'Generally considered supportive for auspicious work in many almanacs.'
-    : 'Often avoided for major beginnings in classical muhurta lists; routine activity is fine for many users.'
+  const hint = taraBalaHint(favorable)
 
   return {
     distance: d,
@@ -91,9 +123,7 @@ export function computeChandraBala(
 ): ChandraBalaResult {
   const houseFromNatalMoon = ((transitMoonRashi - birthMoonRashi + 12) % 12) + 1
   const favorable = CHANDRA_FAVORABLE_HOUSES.has(houseFromNatalMoon)
-  const hint = usedApproxRashi
-    ? 'Natal Moon sign was estimated from the middle of your birth nakshatra; for precision, set your birth Moon rashi from the chart.'
-    : 'Uses your stated natal Moon rashi. Favourable houses 1, 3, 6, 10, 11 from natal Moon are common in Drik-style summaries.'
+  const hint = chandraBalaHint(usedApproxRashi)
 
   return {
     birthMoonRashi,

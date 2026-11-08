@@ -1,6 +1,6 @@
 'use client'
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState, useEffect } from 'react'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { CircleDot, Compass, BookOpen, Gem, Eye, Home, Zap, Lock } from 'lucide-react'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'

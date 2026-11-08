@@ -10,6 +10,9 @@ import type { Dignity, DashaNode, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { describeKalachakra, type KalachakraSeed } from '@/lib/engine/dasha/kalachakra'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { KC_GATI_NAME_HI, KC_HI, KC_HOUSE_THEME_HI } from '@/lib/engine/locale/kalachakra.hi'
 
 const SIGN_LORD: Record<Rashi, GrahaId> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
@@ -99,8 +102,16 @@ export interface KalachakraAnalysis {
   currentAntarKey: string | null
 }
 
-export function kalachakraGati(from: Rashi, to: Rashi): KalachakraGati {
+export function kalachakraGati(from: Rashi, to: Rashi, lang: EngineLang = 'en'): KalachakraGati {
   const house = ((to - from + 12) % 12) + 1
+  if (lang === 'hi') {
+    const en = kalachakraGati(from, to)
+    const note = en.name === 'Markati' ? KC_HI.gatiMarkati
+      : en.name === 'Manduki' ? KC_HI.gatiManduki
+        : en.name === 'Simhavalokana' ? KC_HI.gatiSimha
+          : house === 1 ? KC_HI.gatiRepeat : KC_HI.gatiDirect
+    return { ...en, note }
+  }
   if (house === 6 || house === 8) {
     return {
       name: 'Markati',
@@ -201,6 +212,91 @@ function focusText(role: 'Deha' | 'Jeeva', signName: string, occupants: Kalachak
   }
   const sits = occupants.length === 1 ? 'sits' : 'sit'
   return `${role} is ${signName}, ${subject}. ${who} ${sits} there, and the result follows that planet's condition.`
+}
+
+function namesHi(ids: GrahaId[]): string {
+  return ids.map((id) => GRAHA_HI[id] ?? id).join(', ')
+}
+
+function focusTextHi(role: 'Deha' | 'Jeeva', sign: Rashi, occupants: KalachakraGraha[]): string {
+  const T = KC_HI
+  const deha = role === 'Deha'
+  const support = occupants.filter((g) => SUPPORT.has(g.id))
+  const caution = occupants.filter((g) => CAUTION.has(g.id))
+  const head = fill(T.focusHead, {
+    role: deha ? T.roleDeha : T.roleJeeva,
+    sign: RASHI_HI[sign],
+    subject: deha ? T.subjectDeha : T.subjectJeeva,
+  })
+  if (!occupants.length) return `${head} ${deha ? T.emptyDeha : T.emptyJeeva}`
+  const who = namesHi(occupants.map((g) => g.id))
+  if (caution.length && !support.length) return `${head} ${fill(deha ? T.cautionDeha : T.cautionJeeva, { who })}`
+  if (support.length && !caution.length) return `${head} ${fill(deha ? T.supportDeha : T.supportJeeva, { who })}`
+  if (caution.length && support.length) return `${head} ${fill(T.mixedShare, { who })}`
+  return `${head} ${fill(T.sits, { who })}`
+}
+
+/** Hindi text fields for a period view; ids, tones, keys and dates come from the English view. */
+function periodHi(
+  view: KalachakraPeriodView,
+  lagna: Rashi,
+  grahas: KalachakraGraha[],
+  seed: KalachakraSeed,
+  previous: Rashi | null,
+): KalachakraPeriodView {
+  const T = KC_HI
+  const sign = view.sign
+  const house = view.houseFromLagna
+  const theme = KC_HOUSE_THEME_HI[house]
+  const occupants = grahas.filter((g) => g.rashi === sign)
+  const lord = SIGN_LORD[sign]
+  const lordGraha = grahas.find((g) => g.id === lord)
+  const gati = previous ? kalachakraGati(previous, sign, 'hi') : null
+  const occ = occupants.length
+    ? fill(T.occupies, { who: namesHi(occupants.map((g) => g.id)), sign: RASHI_HI[sign] })
+    : fill(T.empty, { sign: RASHI_HI[sign] })
+  const lordText = lordGraha
+    ? fill(T.lordFrom, { lord: GRAHA_HI[lord], from: RASHI_HI[lordGraha.rashi], house: houseFrom(lagna, lordGraha.rashi) })
+    : fill(T.lordRules, { lord: GRAHA_HI[lord], sign: RASHI_HI[sign] })
+  const prediction = [
+    fill(T.timeLine, { sign: RASHI_HI[sign], level: T.level[view.level] ?? T.levelOther, house, theme }),
+    occ,
+    lordText,
+    gati?.note ?? '',
+    [view.isDeha ? T.isDeha : '', view.isJeeva ? T.isJeeva : ''].filter(Boolean).join(' '),
+  ].filter(Boolean).join(' ')
+  const areas: KalachakraArea[] = [
+    {
+      id: 'body',
+      title: T.areaBody,
+      text: view.isDeha
+        ? fill(T.bodyDeha, { occ })
+        : house === 1 || house === 6 || house === 8
+          ? fill(T.bodyHouse, { house, occ })
+          : fill(T.bodyOther, { deha: RASHI_HI[seed.deha], theme }),
+    },
+    {
+      id: 'work',
+      title: T.areaWork,
+      text: [2, 6, 10, 11].includes(house) ? fill(T.workFront, { theme, lord: lordText }) : fill(T.workIndirect, { house, theme }),
+    },
+    {
+      id: 'people',
+      title: T.areaPeople,
+      text: [4, 5, 7].includes(house) ? fill(T.peopleFront, { theme }) : T.peopleIndirect,
+    },
+    { id: 'shift', title: T.areaShift, text: gati?.note ?? T.shiftOpen },
+  ]
+  return {
+    ...view,
+    signName: RASHI_HI[sign],
+    short: RASHI_HI[sign],
+    gati: gati ?? view.gati,
+    occupants: occupants.map((g) => GRAHA_HI[g.id]),
+    headline: fill(T.headline, { sign: RASHI_HI[sign], house, tone: T.tone[view.tone] }),
+    prediction,
+    areas,
+  }
 }
 
 function buildPeriod(
@@ -322,13 +418,14 @@ function viewsFor(
   grahas: KalachakraGraha[],
   seed: KalachakraSeed,
   currentKey: string | null,
+  lang: EngineLang = 'en',
 ): KalachakraPeriodView[] {
   const views: KalachakraPeriodView[] = []
   let previous: Rashi | null = null
   for (const node of nodes) {
     const view = buildPeriod(node, previous, lagna, grahas, seed, currentKey)
     if (!view) continue
-    views.push(view)
+    views.push(lang === 'hi' ? periodHi(view, lagna, grahas, seed, previous) : view)
     previous = view.sign
   }
   return views
@@ -340,7 +437,10 @@ export function analyzeKalachakra(input: {
   grahas: KalachakraGraha[]
   ascRashi: Rashi
   now?: number
+  /** Language of the reading text (default English). */
+  lang?: EngineLang
 }): KalachakraAnalysis {
+  const lang = input.lang ?? 'en'
   const seed = describeKalachakra(input.moonLonSidereal)
   const grahas = input.grahas.filter((g) => CLASSICAL.has(g.id))
   const path = getDashaPathAt(input.nodes, input.now)
@@ -351,8 +451,27 @@ export function analyzeKalachakra(input: {
 
   const dehaOcc = grahas.filter((g) => g.rashi === seed.deha)
   const jeevaOcc = grahas.filter((g) => g.rashi === seed.jeeva)
-  const mahadashas = viewsFor(input.nodes, input.ascRashi, grahas, seed, currentMahaKey)
+  const mahadashas = viewsFor(input.nodes, input.ascRashi, grahas, seed, currentMahaKey, lang)
   const running = mahadashas.find((p) => p.isCurrent)
+  if (lang === 'hi') {
+    const v = {
+      nak: NAKSHATRA_HI[seed.nakshatraIndex] ?? seed.nakshatraName,
+      pada: seed.pada,
+      gati: KC_GATI_NAME_HI[seed.gati] ?? seed.gati,
+      years: seed.paramayu,
+      sign: running?.signName ?? '',
+      house: running?.houseFromLagna ?? '',
+    }
+    return {
+      seed,
+      deha: { sign: seed.deha, signName: RASHI_HI[seed.deha], occupants: dehaOcc.map((g) => GRAHA_HI[g.id]), text: focusTextHi('Deha', seed.deha, dehaOcc) },
+      jeeva: { sign: seed.jeeva, signName: RASHI_HI[seed.jeeva], occupants: jeevaOcc.map((g) => GRAHA_HI[g.id]), text: focusTextHi('Jeeva', seed.jeeva, jeevaOcc) },
+      summary: fill(running ? KC_HI.summaryLive : KC_HI.summaryOut, v),
+      mahadashas,
+      currentMahaKey,
+      currentAntarKey,
+    }
+  }
   const summary = running
     ? `${seed.nakshatraName} pada ${seed.pada} runs ${seed.gati} Kalachakra, paramayu ${seed.paramayu} years. ${running.signName} is the live mahadasha, the ${ordinal(running.houseFromLagna)} from Lagna.`
     : `${seed.nakshatraName} pada ${seed.pada} runs ${seed.gati} Kalachakra, paramayu ${seed.paramayu} years. The nine-sign row is outside the selected date.`
@@ -384,6 +503,7 @@ export function kalachakraAntars(
   grahas: KalachakraGraha[],
   moonLonSidereal: number,
   currentAntarKey: string | null,
+  lang: EngineLang = 'en',
 ): KalachakraPeriodView[] {
   if (!maha?.children?.length) return []
   return viewsFor(
@@ -392,5 +512,6 @@ export function kalachakraAntars(
     grahas.filter((g) => CLASSICAL.has(g.id)),
     describeKalachakra(moonLonSidereal),
     currentAntarKey,
+    lang,
   )
 }

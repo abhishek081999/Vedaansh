@@ -6,6 +6,17 @@
 
 import type { Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
+import { RASHI_HI } from '@/i18n/jyotish'
+import { fill, overlay, type EngineLang } from '@/lib/engine/lang'
+import {
+  AFFINITY_HI,
+  AMAVASYA_HI,
+  COMBO_NOTES_HI,
+  DAY_SEEDS_HI,
+  DEEP_READINGS_HI,
+  GROUPS_HI,
+  WEATHER_HI,
+} from '@/lib/engine/locale/tithiMeta.hi'
 
 export type TithiGroupId = 'Nanda' | 'Bhadra' | 'Jaya' | 'Rikta' | 'Purna'
 
@@ -14,7 +25,10 @@ export type TithiElement = 'Agni' | 'Prithvi' | 'Akash' | 'Vayu' | 'Jal'
 export type TithiNature = 'shubh' | 'ashubh'
 
 export interface TithiGroupMeta {
+  /** Stable id — compare against this, never against `label`. */
   id:            TithiGroupId
+  /** Display name in the requested language. */
+  label:         string
   lunarDays:     readonly [number, number, number]
   element:       TithiElement
   elementLabel:  string
@@ -40,6 +54,7 @@ export interface TithiDayMeta {
 const GROUPS: Record<TithiGroupId, TithiGroupMeta> = {
   Nanda: {
     id: 'Nanda',
+    label: 'Nanda',
     lunarDays: [1, 6, 11],
     element: 'Agni',
     elementLabel: 'Agni (Fire)',
@@ -50,6 +65,7 @@ const GROUPS: Record<TithiGroupId, TithiGroupMeta> = {
   },
   Bhadra: {
     id: 'Bhadra',
+    label: 'Bhadra',
     lunarDays: [2, 7, 12],
     element: 'Prithvi',
     elementLabel: 'Prithvi (Earth)',
@@ -60,6 +76,7 @@ const GROUPS: Record<TithiGroupId, TithiGroupMeta> = {
   },
   Jaya: {
     id: 'Jaya',
+    label: 'Jaya',
     lunarDays: [3, 8, 13],
     element: 'Akash',
     elementLabel: 'Akash (Ether)',
@@ -70,6 +87,7 @@ const GROUPS: Record<TithiGroupId, TithiGroupMeta> = {
   },
   Rikta: {
     id: 'Rikta',
+    label: 'Rikta',
     lunarDays: [4, 9, 14],
     element: 'Vayu',
     elementLabel: 'Vayu (Air)',
@@ -80,6 +98,7 @@ const GROUPS: Record<TithiGroupId, TithiGroupMeta> = {
   },
   Purna: {
     id: 'Purna',
+    label: 'Purna',
     lunarDays: [5, 10, 15],
     element: 'Jal',
     elementLabel: 'Jal (Water)',
@@ -260,20 +279,28 @@ export function lunarDayFromTithi(tithiNumber1to30: number): number {
   return ((n - 1) % 15) + 1
 }
 
-export function getTithiGroup(tithiNumber1to30: number): TithiGroupMeta {
+function localGroup(id: TithiGroupId, lang: EngineLang): TithiGroupMeta {
+  return overlay(GROUPS[id], GROUPS_HI[id], lang)
+}
+
+export function getTithiGroup(tithiNumber1to30: number, lang: EngineLang = 'en'): TithiGroupMeta {
   const lunarDay = lunarDayFromTithi(tithiNumber1to30)
-  return GROUPS[GROUP_BY_LUNAR_DAY[lunarDay - 1]]
+  return localGroup(GROUP_BY_LUNAR_DAY[lunarDay - 1], lang)
 }
 
 export function isRiktaTithiNumber(tithiNumber1to30: number): boolean {
   return getTithiGroup(tithiNumber1to30).id === 'Rikta'
 }
 
-export function getTithiDayMeta(tithiNumber1to30: number): TithiDayMeta {
+export function getTithiDayMeta(tithiNumber1to30: number, lang: EngineLang = 'en'): TithiDayMeta {
   const n = Math.min(30, Math.max(1, Math.floor(tithiNumber1to30)))
   const lunarDay = lunarDayFromTithi(n)
-  const group = getTithiGroup(n)
-  const seed = n === 30 ? AMAVASYA_SEED : DAY_SEEDS[lunarDay - 1]
+  const group = getTithiGroup(n, lang)
+  const seed = overlay(
+    n === 30 ? AMAVASYA_SEED : DAY_SEEDS[lunarDay - 1],
+    n === 30 ? AMAVASYA_HI : DAY_SEEDS_HI[lunarDay - 1],
+    lang,
+  )
 
   return {
     lunarDay,
@@ -288,13 +315,14 @@ export function getTithiDayMeta(tithiNumber1to30: number): TithiDayMeta {
 }
 
 /** One-line cosmic-weather blurb for today’s tithi. */
-export function formatTithiWeatherLine(meta: TithiDayMeta): string {
-  const nature = meta.group.nature === 'shubh' ? 'Shubh' : 'Ashubh'
-  return `${meta.group.id} · ${meta.group.elementLabel} · ${nature} — ${meta.group.dayGuidance}`
+export function formatTithiWeatherLine(meta: TithiDayMeta, lang: EngineLang = 'en'): string {
+  const shubh = meta.group.nature === 'shubh'
+  const nature = lang === 'hi' ? (shubh ? WEATHER_HI.shubh : WEATHER_HI.ashubh) : shubh ? 'Shubh' : 'Ashubh'
+  return `${meta.group.label} · ${meta.group.elementLabel} · ${nature} — ${meta.group.dayGuidance}`
 }
 
-export function listTithiGroups(): TithiGroupMeta[] {
-  return [GROUPS.Nanda, GROUPS.Bhadra, GROUPS.Jaya, GROUPS.Rikta, GROUPS.Purna]
+export function listTithiGroups(lang: EngineLang = 'en'): TithiGroupMeta[] {
+  return (['Nanda', 'Bhadra', 'Jaya', 'Rikta', 'Purna'] as const).map((id) => localGroup(id, lang))
 }
 
 // ── Tithi × Moon-sign affinity (traditional combination chart) ─
@@ -346,16 +374,16 @@ const AFFINITY_BY_LUNAR_DAY: Array<{
   { rashi: 12, positiveTendency: 'Liberation (moksha) orientation',        healthSensitivity: 'Generally balanced' },
 ]
 
-export function getTithiMoonAffinity(tithiNumber1to30: number): TithiMoonAffinity {
-  const dayMeta = getTithiDayMeta(tithiNumber1to30)
-  const row = AFFINITY_BY_LUNAR_DAY[dayMeta.lunarDay - 1]
+export function getTithiMoonAffinity(tithiNumber1to30: number, lang: EngineLang = 'en'): TithiMoonAffinity {
+  const dayMeta = getTithiDayMeta(tithiNumber1to30, lang)
+  const row = overlay(AFFINITY_BY_LUNAR_DAY[dayMeta.lunarDay - 1], AFFINITY_HI[dayMeta.lunarDay - 1], lang)
   return {
     lunarDay: dayMeta.lunarDay,
     tithiName: dayMeta.name,
     groupId: dayMeta.group.id,
     elementLabel: dayMeta.group.elementLabel,
     affinityRashi: row.rashi,
-    affinityRashiName: RASHI_NAMES[row.rashi],
+    affinityRashiName: lang === 'hi' ? RASHI_HI[row.rashi] : RASHI_NAMES[row.rashi],
     positiveTendency: row.positiveTendency,
     healthSensitivity: row.healthSensitivity,
   }
@@ -368,13 +396,18 @@ export function getTithiMoonAffinity(tithiNumber1to30: number): TithiMoonAffinit
 export function getTithiMoonCombo(
   tithiNumber1to30: number,
   birthMoonRashi?: Rashi | null,
+  lang: EngineLang = 'en',
 ): TithiMoonComboResult {
-  const affinity = getTithiMoonAffinity(tithiNumber1to30)
+  const affinity = getTithiMoonAffinity(tithiNumber1to30, lang)
   const moon = birthMoonRashi ?? null
   const matches = moon != null && moon === affinity.affinityRashi
+  const rashiName = (r: Rashi) => (lang === 'hi' ? RASHI_HI[r] : RASHI_NAMES[r])
 
   let note: string
-  if (moon == null) {
+  if (lang === 'hi') {
+    const values = { tithi: affinity.tithiName, rashi: affinity.affinityRashiName, moon: moon != null ? rashiName(moon) : '' }
+    note = fill(moon == null ? COMBO_NOTES_HI.noMoon : matches ? COMBO_NOTES_HI.match : COMBO_NOTES_HI.mismatch, values)
+  } else if (moon == null) {
     note = `Traditional affinity for ${affinity.tithiName} is ${affinity.affinityRashiName} Moon.`
   } else if (matches) {
     note = `Birth Moon in ${affinity.affinityRashiName} aligns with this tithi’s classical affinity — tendencies below are emphasised.`
@@ -385,7 +418,7 @@ export function getTithiMoonCombo(
   return {
     ...affinity,
     birthMoonRashi: moon,
-    birthMoonRashiName: moon != null ? RASHI_NAMES[moon] : null,
+    birthMoonRashiName: moon != null ? rashiName(moon) : null,
     moonMatchesAffinity: matches,
     note,
   }
@@ -400,8 +433,9 @@ const TITHI_DEEP_READINGS: Partial<Record<number, string>> = {
 }
 
 /** Extended reading for Chaturdashi (14 / 29), Purnima and Amavasya; null for others. */
-export function getTithiDeepReading(tithiNumber1to30: number): string | null {
+export function getTithiDeepReading(tithiNumber1to30: number, lang: EngineLang = 'en'): string | null {
   const n = Math.min(30, Math.max(1, Math.floor(tithiNumber1to30)))
-  if (n === 30) return TITHI_DEEP_READINGS[30] ?? null
-  return TITHI_DEEP_READINGS[lunarDayFromTithi(n)] ?? null
+  const table = lang === 'hi' ? DEEP_READINGS_HI : TITHI_DEEP_READINGS
+  const key = n === 30 ? 30 : lunarDayFromTithi(n)
+  return table[key] ?? TITHI_DEEP_READINGS[key] ?? null
 }

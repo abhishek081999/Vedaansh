@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import type { GrahaData, Rashi, ArudhaData, LagnaData, GrahaId } from '@/types/astrology'
 import { RASHI_SHORT, NAKSHATRA_SHORT } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
+import { useChartLabels } from './useChartLabels'
 import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
 import { getAspectedHouses } from '@/lib/engine/aspects'
 import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
@@ -72,6 +73,7 @@ export function CircleChakra({
   showTooltip = false,
   biWheel = false,
 }: Props) {
+  const L = useChartLabels()
   const cx = size / 2, cy = size / 2
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -325,7 +327,7 @@ export function CircleChakra({
               const [px, py] = polar(cx, cy, pZone + rOff, mid)
               const col   = grahaChartFill(g.id)
               const subPf = Math.max(8, Math.round(pfThis * 0.50))
-              const baseLbl = GRAHA_SHORT[g.id] ?? g.id
+              const baseLbl = L.hi ? L.graha(String(g.id)) : GRAHA_SHORT[g.id] ?? g.id
               const mbTags = marakaBadhakaTags(ascRashi, g.id)
               return (
                 <g 
@@ -345,7 +347,7 @@ export function CircleChakra({
                   >
                     <tspan>{baseLbl}</tspan>
                     {g.isRetro && (
-                      <tspan fontSize={subPf} fontWeight="700" baselineShift="0.28em">R</tspan>
+                      <tspan fontSize={subPf} fontWeight="700" baselineShift="0.28em">{L.retro}</tspan>
                     )}
                     {g.isCombust && (
                       <tspan fontSize={subPf} fontWeight="700" baselineShift="0.28em">C</tspan>
@@ -395,7 +397,7 @@ export function CircleChakra({
                   fontSize={pfT} fontWeight={biWheel ? 700 : 600}
                   fill="rgba(139,124,246,0.95)"
                 >
-                  {GRAHA_SHORT[g.id] ?? g.id}{showDegrees ? ` ${Math.floor(g.degree)}°` : ''}
+                  {L.hi ? L.graha(String(g.id)) : GRAHA_SHORT[g.id] ?? g.id}{showDegrees ? ` ${Math.floor(g.degree)}°` : ''}
                 </text>
               )
             })}

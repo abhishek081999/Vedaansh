@@ -1,0 +1,365 @@
+// Hindi + English text catalogs for src/lib/engine/dashamsaSynthesis.ts
+
+import type { GrahaId } from '@/types/astrology'
+import type { CareerTrack } from '@/lib/engine/dashamsaSynthesis'
+
+export const BOSS_NATURE_HI: Record<GrahaId, string> = {
+  Su: 'राजा-स्वरूप अधिकार — पिता-आकृति, राज्य या गर्विला नेता',
+  Mo: 'जन-मुख या परिवर्तनशील बॉस — मातृ, लोकप्रिय, मनोदशा-चालित',
+  Ma: 'सेनापति बॉस — सीधा, तकनीकी, प्रतिस्पर्धी या सैन्य',
+  Me: 'व्यापारी या विश्लेषक बॉस — सौदे, दस्तावेज़ और कौशल',
+  Ju: 'गुरु बॉस — परामर्श, न्याय, बैंकिंग या शिक्षक संरक्षक',
+  Ve: 'परिष्कृत बॉस — कला, विलास, कूटनीति या सुखद संरक्षण',
+  Sa: 'संस्थागत बॉस — धीमा, कठोर, सहनशीलता-आधारित पदानुक्रम',
+  Ra: 'अपरंपरागत या विदेशी बॉस — अचानक, महत्वाकांक्षी, अस्पष्ट',
+  Ke: 'विशेषज्ञ या वैराग्यी बॉस — छोटी दरबार, गहरा कौशल',
+  Ur: '',
+  Ne: '',
+  Pl: '',
+}
+
+export const TRACK_COPY_HI: Record<CareerTrack, string> = {
+  service: 'सेवा / नौकरी मार्ग — पद, पदानुक्रम या राज्य से यश।',
+  business: 'व्यवसाय / व्यापार मार्ग — ग्राहक, साझेदार और स्वयं का उद्यम आजीविका ढोते हैं।',
+  hybrid: 'मिश्र मार्ग — पद और साथ के उद्यम या साझेदारी दोनों सक्रिय।',
+}
+
+export const D10S_TEXT_EN = {
+  framing:
+    'One career desk: A10 for public title, Phaladeepika + Digpala + nakshatra for the work, BPHS track rules, foreign Digpala, boss from the 10th lord, Vimsopaka strength, Muntha year, D10 gochara, and dasha windows — then a copyable brief.',
+
+  transitH1: 'Activates livelihood identity and how the person owns the post.',
+  transitH2: 'Touches income expression and status speech from work.',
+  transitH3: 'Pushes effort, skill, and short professional moves.',
+  transitH4: 'Tests peace with the occupation and workplace rooting.',
+  transitH5: 'Lights reputation, students, and creative authority.',
+  transitH6: 'Rivals, deadlines, and service load rise.',
+  transitH7: 'Partners, clients, and public dealing accelerate.',
+  transitH8: 'Secrets, endings, and research karma open.',
+  transitH9: 'Mentors, right direction, and long transfers.',
+  transitH10: 'Direct hit on work karma and visible status.',
+  transitH11: 'Gains, awards, and network fruit.',
+  transitH12: 'Closures, foreign chapters, or behind-the-scenes work.',
+  transitHDefault: 'Career house is touched.',
+  transitJuExtra: ' Jupiter transit favors expansion when the house is clean.',
+  transitSaExtra: ' Saturn demands durable results before it pays.',
+  transitRaExtra: ' Rahu amplifies ambition — watch shortcuts.',
+  transitRetro: ' Retrograde: review before leaping.',
+
+  srcPhaladeepika: 'Phaladeepika',
+  srcPhaladeepikaSupport: 'Phaladeepika support',
+  srcD10Mahatphala: 'D10 mahatphala',
+  srcD10LagnaRashi: 'D10 lagna rashi',
+  srcNakshatra: '{label} nakshatra',
+  srcPlanetNakCombo: 'Planet–nakshatra combo',
+  srcDigpala: 'Digpala',
+
+  trackPredHybrid:
+    'Keep a stable post while building a client or product line. Do not force a pure employee or pure founder identity.',
+  trackPredBusiness:
+    'Counsel toward trade, practice, consulting, or a venture with partners. Hierarchy alone will feel thin.',
+  trackPredService:
+    'Counsel toward a named post, government, corporate ladder, or institutional duty. Own venture is secondary unless the 7th activates later.',
+  trackSource: 'BPHS — 10th (karma/post) vs 7th (partners/trade); 2nd–11th for commercial fruit',
+  trackFactorD10H10Occ: 'D10 10th occupied by {names} — visible post / duty.',
+  trackFactorD10H7Occ: 'D10 7th occupied by {names} — clients and partners.',
+  trackFactorTenthLordKendra: '10th lord in house {house} — self-made or kingly service.',
+  trackFactorTenthLord7: '10th lord in the 7th — trade and partnership as the profession.',
+  trackFactorTenthLord211: '10th lord in house {house} — income and gains from work (either track).',
+  trackFactor7thLord: '7th lord {name} in house {house} — partnered or client-facing rise.',
+  trackFactor211Emphasis: '2nd / 11th emphasis — commercial expression and gains.',
+  trackFactorSunSatH10: '{planet} in D10 10th — employment / institutional authority.',
+
+  foreignFactorLagnaDigpala: 'Lagna Digpala {name} — West / overseas livelihood flavor.',
+  foreignFactorTenthDigpala: '10th lord Digpala {name} — work karma itself leans foreign.',
+  foreignFactorD10H9: 'D10 9th occupied — long travel, mentors abroad, or right-direction postings.',
+  foreignFactorD10H12: 'D10 12th occupied — foreign, hospitals, ashrams, or behind-the-curtain work.',
+  foreignFactorTenthLordHouse: '10th lord in house {house} — transfer / distant karma.',
+  foreignFactorRahu: 'Rahu in D10 9th/10th/12th — unconventional or foreign status.',
+  foreignHeadlineActive: 'Foreign / transfer theme is live',
+  foreignHeadlineMild: 'Mild foreign or distant-work tendency',
+  foreignHeadlineDomestic: 'Domestic / local livelihood tendency',
+  foreignPredActive:
+    'Prefer West or overseas geography for study, posting, or business when Digpala Varuna or the 9th/12th are hot. Time transfers with 9th/12th-lord dashas and Varuna planets.',
+  foreignPredMild: 'Distant work or short foreign chapters can appear; they are not the whole livelihood story.',
+  foreignPredDomestic:
+    'Primary livelihood reads domestic. Foreign chapters need dasha support from the 9th/12th or Rahu.',
+
+  bossNatureFallback: '{name} colors the authority figure.',
+  bossPrediction:
+    'Phaladeepika treats the 10th as the king and the work. In Dashamsha, {name} ({dignity}) in house {house} under {digpala} shows the kind of boss, patron, or institutional face the native meets. {nature}. Digpala {digpala} adds how that authority behaves.',
+  bossSource: 'Phaladeepika — 10th lord as king / profession significator, read in D10',
+
+  vimsUnavailableHeadline: 'Vimsopaka not on this chart payload',
+  vimsUnavailablePred: 'Recalculate the chart to attach dashavarga strength for the career lords.',
+  vimsStrongHeadline: 'Career lords carry real Vimsopaka weight in D10',
+  vimsModerateHeadline: 'Career lords are moderate in D10 Vimsopaka',
+  vimsTenthLordLine:
+    '10th lord {name}: D10 contribution {d10Points}/20 · dashavarga {dashavarga}/20 ({strength}).',
+  vimsLagnaLordLine: 'D10 lagna lord {name}: D10 contribution {d10Points}/20 · dashavarga {dashavarga}/20.',
+  vimsBphsNote:
+    'BPHS dashavarga: when D10 dignity of the karma lords is high, professional fruit holds under pressure.',
+
+  annualTheme1: 'Year theme: reclaim the professional identity — title, branding, or a fresh start in livelihood.',
+  annualTheme2: 'Year theme: income speech and family status from work; renegotiate pay or commercial voice.',
+  annualTheme3: 'Year theme: effort, skill upgrades, and short career moves or side projects.',
+  annualTheme4: 'Year theme: workplace peace, property linked to work, or emotional fit with the job.',
+  annualTheme5: 'Year theme: reputation, students, creative authority, or speculative career bets.',
+  annualTheme6: 'Year theme: competition, workload, health vs job, and clearing service debts.',
+  annualTheme7: 'Year theme: partners, clients, contracts, and public dealing.',
+  annualTheme8: 'Year theme: transformation of the post — research, crisis, or a chapter ending.',
+  annualTheme9: 'Year theme: mentors, dharma in work, long transfer, or higher training.',
+  annualTheme10: 'Year theme: peak karma year — promotion, visible duty, or a defining project.',
+  annualTheme11: 'Year theme: gains, awards, and network fruit from prior work.',
+  annualTheme12: 'Year theme: foreign posting, sabbatical, closure, or behind-the-scenes labor.',
+  annualThemeFallback: 'Annual Muntha touches the career chart.',
+  annualHeadline: 'Muntha {muntha} · D10 house {house} · age {age}',
+  annualPredictionSuffix:
+    ' This is the Tajika year pointer read against Dashamsha houses — open Solar Return for the full Varshaphal D10 chart.',
+  annualSource: 'Tajika Muntha (1 rashi/year) mapped to D10 houses',
+
+  winLevelMaha: 'Maha',
+  winLevelAntar: 'Antar',
+  winLevelPratyantar: 'Pratyantar',
+  winLevelSukshma: 'Sukshma',
+  winLevelPrana: 'Prana',
+  winLevelDasha: 'Dasha',
+  winLevelN: 'L{level}',
+  winTitleLive: '{level} {lord}',
+  winTitleNext: 'Next Maha {lord}',
+  winCareerLive: 'Career significator is running now.',
+  winCareerActive: 'Active dasha lord in D10 context until {end}.',
+  winCareerUpcoming: 'Upcoming mahadasha of a career significator.',
+
+  briefTitle: '{name} — Dashamsha career brief',
+  briefMdFooter:
+    '_Generated by Vedaansh D10 Synthesis. Classical sources: BPHS, Phaladeepika, Jaimini, Tajika Muntha, Narada Digpalas._',
+  briefSecSummary: 'Summary',
+  briefSecProfession: 'Profession',
+  briefSecA10: 'A10 · public title',
+  briefSecMahatphala: 'Mahatphala',
+  briefSecD10Phala: 'D10 rashi & planet phala',
+  briefSecJobBiz: 'Job vs business',
+  briefSecForeign: 'Foreign / transfer',
+  briefSecBoss: 'Boss / patron',
+  briefSecAnnual: 'This year (Muntha)',
+  briefSecTransit: 'Current D10 gochara',
+  briefSecTiming: 'Timing windows',
+  briefProfessionBody: '{doThis}\n{agreement}\nConfidence: {confidence}.',
+  briefMahatBody: '{headline} (score {score}). {tenthPred}',
+  briefPhalaBodyLagna: 'Lagna {rashiName} ({keyword}): {careers}.',
+  briefSeeClassical: 'see classical notes',
+  briefTransitUnavailable: 'Transit snapshot unavailable.',
+  briefTransitHitLine: '{name} in D10 H{house} ({signName}) — {note}',
+  briefNoWindows: 'No dasha windows.',
+  briefWindowLine: '{title} {start}→{end}{live} — {note}',
+  briefLiveTag: ' [LIVE]',
+
+  a10Headline: 'A10 {rashi} · H{house} from lagna',
+  a10PredRajya: 'Rajya Pada (A10) is {rashi}, lord {lord}.',
+  a10PredFraming: 'A10 is how the world names the career; the D10 10th is the work itself.',
+  a10PredOccupants: 'Planets on A10: {names} — they color the public title.',
+  a10PredNoOccupants: 'No planet sits on A10 — title comes through the lord and aspects.',
+  a10PredAspectors: 'Aspecting A10: {names}.',
+  a10PredHouse:
+    'From Dashamsha lagna, A10 falls in house {house} — status image relative to livelihood foundation.',
+  a10Source: 'Jaimini / Parashara — Arudha of the 10th (Rajya Pada)',
+  a10BphsNote:
+    'BPHS-corrected A10 ({bphs}) differs from raw ({raw}). This reading uses the BPHS set.',
+
+  profHeadlineAgree: '{name} leads livelihood and D10 status',
+  profHeadlineSplit: '{livelihood} work · {mahat} status',
+  profDoThisOverlap: 'Prioritize: {fields}.',
+  profDoThisFields: 'Prioritize {fields}.',
+  profDoThisSignifications: 'Prioritize {name} significations.',
+  profNakshatraUnavailable: 'Nakshatra career formula unavailable on this payload.',
+  profSourceLivelihood: 'Phaladeepika livelihood',
+  profSourceDigpala: 'Digpala profession lists',
+  profSourceNakshatra: 'Nakshatra profession engine',
+  profSourceMahat: 'D10 mahatphala lord',
+  profSourceLagnaCareers: 'D10 lagna rashi careers',
+
+  transitHeadHot: '{names} activating D10 career houses',
+  transitHeadBg: 'Background gochara on the Dashamsha',
+  transitHeadUnavailable: 'Transit snapshot unavailable',
+  transitPredHot:
+    'Watch {detail}. Gochara is cast into D10 houses from the Dashamsha lagna.',
+  transitPredNoHeavy:
+    'No heavy planet is on D10 1/6/7/10/11 right now — timing leans on dasha more than gochara.',
+  transitPredLoad: 'Loading gochara from the ephemeris API, or open Transit with the Dashamsha lagna.',
+  transitPredDetail: '{name} in house {house}',
+
+  headlineMahatphala: 'Mahatphala {grade} ({score})',
+  headlineForeignLean: 'foreign lean',
+
+  chartNameFallback: 'Chart',
+} as const
+
+export const D10S_TEXT_HI: Record<keyof typeof D10S_TEXT_EN, string> = {
+  framing:
+    'एक करियर डेस्क: सार्वजनिक शीर्षक के लिए A10, कार्य के लिए फलदीपिका + दिग्पाल + नक्षत्र, BPHS मार्ग नियम, विदेशी दिग्पाल, दशमेश से बॉस, विम्सोपाक शक्ति, मुंठा वर्ष, D10 गोचर और दशा खिड़कियाँ — फिर प्रतिलिपि योग्य सारांश।',
+
+  transitH1: 'आजीविका पहचान और पद को कैसे अपनाते हैं, सक्रिय करता है।',
+  transitH2: 'कार्य से आय अभिव्यक्ति और यश-भाषा को छूता है।',
+  transitH3: 'प्रयास, कौशल और छोटे करियर कदमों को धकेला।',
+  transitH4: 'व्यवसाय व श्रमस्थल स्थिरता की परीक्षा।',
+  transitH5: 'यश, शिष्य और रचनात्मक अधिकार प्रकाशित।',
+  transitH6: 'प्रतिद्वंद्वी, समय-सीमा और सेवा भार बढ़ते हैं।',
+  transitH7: 'साझेदार, ग्राहक और सार्वजनिक व्यवहार तेज।',
+  transitH8: 'रहस्य, समापन और शोध-कर्म खुलते हैं।',
+  transitH9: 'गुरु, सही दिशा और लंबे स्थानांतरण।',
+  transitH10: 'कार्य-कर्म और दृश्य पद पर प्रत्यक्ष प्रहार।',
+  transitH11: 'लाभ, पुरस्कार और नेटवर्क फल।',
+  transitH12: 'समापन, विदेशी अध्याय या पर्दे के पीछे का कार्य।',
+  transitHDefault: 'करियर भाव छुआ गया।',
+  transitJuExtra: ' गुरु का गोचर स्वच्छ भाव में विस्तार के अनुकूल।',
+  transitSaExtra: ' शनि भुगतान से पहले टिकाऊ परिणाम माँगता है।',
+  transitRaExtra: ' राहु महत्वाकांक्षा बढ़ाता है — शॉर्टकट से सावधान।',
+  transitRetro: ' वक्री: छलाँग से पहले पुनर्विचार।',
+
+  srcPhaladeepika: 'फलदीपिका',
+  srcPhaladeepikaSupport: 'फलदीपिका सहायता',
+  srcD10Mahatphala: 'D10 महत्फल',
+  srcD10LagnaRashi: 'D10 लग्न राशि',
+  srcNakshatra: '{label} नक्षत्र',
+  srcPlanetNakCombo: 'ग्रह–नक्षत्र संयोग',
+  srcDigpala: 'दिग्पाल',
+
+  trackPredHybrid:
+    'स्थिर पद रखें और साथ ग्राहक या उत्पाद लाइन बनाएँ। शुद्ध कर्मचारी या शुद्ध संस्थापक पहचान न बाध्य करें।',
+  trackPredBusiness:
+    'व्यापार, अभ्यास, परामर्श या साझेदारी उद्यम की ओर मार्गदर्शन। केवल पदानुक्रम पतला लगेगा।',
+  trackPredService:
+    'नामित पद, सरकार, कॉर्पोरेट सीढ़ी या संस्थागत कर्तव्य की ओर। स्वयं का उद्यम द्वितीयक जब तक सप्तम सक्रिय न हो।',
+  trackSource: 'BPHS — दशम (कर्म/पद) बनाम सप्तम (साझेदार/व्यापार); व्यावसायिक फल के लिए द्वितीय–एकादश',
+  trackFactorD10H10Occ: 'D10 दशम में {names} — दृश्य पद / कर्तव्य।',
+  trackFactorD10H7Occ: 'D10 सप्तम में {names} — ग्राहक और साझेदार।',
+  trackFactorTenthLordKendra: 'दशमेश भाव {house} में — स्वनिर्मित या राजसी सेवा।',
+  trackFactorTenthLord7: 'दशमेश सप्तम में — व्यापार और साझेदारी ही पेशा।',
+  trackFactorTenthLord211: 'दशमेश भाव {house} में — कार्य से आय और लाभ (दोनों मार्ग)।',
+  trackFactor7thLord: 'सप्तमेश {name} भाव {house} में — साझेदारी या ग्राहक-मुख उदय।',
+  trackFactor211Emphasis: 'द्वितीय / एकादश ज़ोर — व्यावसायिक अभिव्यक्ति और लाभ।',
+  trackFactorSunSatH10: 'D10 दशम में {planet} — नौकरी / संस्थागत अधिकार।',
+
+  foreignFactorLagnaDigpala: 'लग्न दिग्पाल {name} — पश्चिम / विदेशी आजीविका स्वाद।',
+  foreignFactorTenthDigpala: 'दशमेश दिग्पाल {name} — कार्य-कर्म स्वयं विदेशी झुकाव।',
+  foreignFactorD10H9: 'D10 नवम में ग्रह — लंबी यात्रा, विदेशी गुरु या दूरस्थ पद।',
+  foreignFactorD10H12: 'D10 द्वादश में ग्रह — विदेश, अस्पताल, आश्रम या पर्दे के पीछे का कार्य।',
+  foreignFactorTenthLordHouse: 'दशमेश भाव {house} में — स्थानांतरण / दूरस्थ कर्म।',
+  foreignFactorRahu: 'D10 नवम/दशम/द्वादश में राहु — अपरंपरागत या विदेशी यश।',
+  foreignHeadlineActive: 'विदेशी / स्थानांतरण विषय सक्रिय',
+  foreignHeadlineMild: 'हल्का विदेशी या दूरस्थ-कार्य झुकाव',
+  foreignHeadlineDomestic: 'घरेलू / स्थानीय आजीविका झुकाव',
+  foreignPredActive:
+    'जब दिग्पाल वरुण या नवम/द्वादश गर्म हों तो अध्ययन, पद या व्यवसाय के लिए पश्चिम या विदेश भूभाग प्राथमिकता। स्थानांतरण नवम/द्वादशेश की दशा और वरुण ग्रहों से समयबद्ध करें।',
+  foreignPredMild: 'दूरस्थ कार्य या छोटे विदेशी अध्याय आ सकते हैं; पूरी आजीविका कथा नहीं।',
+  foreignPredDomestic:
+    'प्राथमिक आजीविका घरेलू। विदेशी अध्यायों को नवम/द्वादश या राहु की दशा सहारा चाहिए।',
+
+  bossNatureFallback: '{name} अधिकार-आकृति को रंग देता है।',
+  bossPrediction:
+    'फलदीपिका दशम को राजा और कार्य मानती है। दशमांश में {name} ({dignity}) भाव {house} में {digpala} के अधीन वह बॉस, संरक्षक या संस्थागत मुख जो जातक से मिलता है, दिखाता है। {nature}. दिग्पाल {digpala} बताता है कि वह अधिकार कैसे व्यवहार करता है।',
+  bossSource: 'फलदीपिका — D10 में पढ़ा दशमेश राजा / पेशा कारक',
+
+  vimsUnavailableHeadline: 'इस चार्ट पर विम्सोपाक उपलब्ध नहीं',
+  vimsUnavailablePred: 'करियर-स्वामियों की दशावर्ग शक्ति जोड़ने के लिए चार्ट पुनर्गणना करें।',
+  vimsStrongHeadline: 'करियर-स्वामी D10 में वास्तविक विम्सोपाक भार ढोते हैं',
+  vimsModerateHeadline: 'करियर-स्वामी D10 विम्सोपाक में मध्यम',
+  vimsTenthLordLine:
+    'दशमेश {name}: D10 योगदान {d10Points}/20 · दशावर्ग {dashavarga}/20 ({strength}).',
+  vimsLagnaLordLine: 'D10 लग्नेश {name}: D10 योगदान {d10Points}/20 · दशावर्ग {dashavarga}/20.',
+  vimsBphsNote: 'BPHS दशावर्ग: जब कर्म-स्वामियों की D10 गरिमा उच्च हो, व्यावसायिक फल दबाव में टिकता है।',
+
+  annualTheme1: 'वर्ष-विषय: व्यावसायिक पहचान पुनर्प्राप्ति — शीर्षक, ब्रांडिंग या नई आजीविका शुरुआत।',
+  annualTheme2: 'वर्ष-विषय: कार्य से आय-भाषा और पारिवारिक यश; वेतन या व्यावसायिक स्वर पर पुनर्बातचीत।',
+  annualTheme3: 'वर्ष-विषय: प्रयास, कौशल उन्नति और छोटे करियर कदम या साइड प्रोजेक्ट।',
+  annualTheme4: 'वर्ष-विषय: कार्यस्थल शांति, कार्य से जुड़ी संपत्ति या नौकरी से भावनात्मक मेल।',
+  annualTheme5: 'वर्ष-विषय: कीर्ति, शिष्य, रचनात्मक अधिकार या सट्टा करियर दांव।',
+  annualTheme6: 'वर्ष-विषय: प्रतिस्पर्धा, कार्यभार, स्वास्थ्य बनाम नौकरी और सेवा ऋण साफ़ करना।',
+  annualTheme7: 'वर्ष-विषय: साझेदार, ग्राहक, अनुबंध और सार्वजनिक व्यवहार।',
+  annualTheme8: 'वर्ष-विषय: पद का रूपांतरण — शोध, संकट या अध्याय समापन।',
+  annualTheme9: 'वर्ष-विषय: गुरु, कार्य में धर्म, लंबा स्थानांतरण या उच्च प्रशिक्षण।',
+  annualTheme10: 'वर्ष-विषय: शिखर कर्म वर्ष — पदोन्नति, दृश्य कर्तव्य या निर्णायक परियोजना।',
+  annualTheme11: 'वर्ष-विषय: पूर्व कार्य से लाभ, पुरस्कार और नेटवर्क फल।',
+  annualTheme12: 'वर्ष-विषय: विदेशी पद, विश्राम, समापन या पर्दे के पीछे श्रम।',
+  annualThemeFallback: 'वार्षिक मुंठा करियर चार्ट को छूता है।',
+  annualHeadline: 'मुंठा {muntha} · D10 भाव {house} · आयु {age}',
+  annualPredictionSuffix:
+    ' यह ताजिक वर्ष सूचक है जिसे दशमांश भावों पर पढ़ा जाता है — पूर्ण वर्षफल D10 चार्ट के लिए सौर वापसी खोलें।',
+  annualSource: 'D10 भावों पर मैपित ताजिक मुंठा (प्रति वर्ष 1 राशि)',
+
+  winLevelMaha: 'महा',
+  winLevelAntar: 'अंतर',
+  winLevelPratyantar: 'प्रत्यंतर',
+  winLevelSukshma: 'सूक्ष्म',
+  winLevelPrana: 'प्राण',
+  winLevelDasha: 'दशा',
+  winLevelN: 'L{level}',
+  winTitleLive: '{level} {lord}',
+  winTitleNext: 'अगली महा {lord}',
+  winCareerLive: 'करियर कारक अभी चल रहा है।',
+  winCareerActive: 'D10 संदर्भ में सक्रिय दशा-स्वामी {end} तक।',
+  winCareerUpcoming: 'करियर कारक की आगामी महादशा।',
+
+  briefTitle: '{name} — दशमांश करियर सारांश',
+  briefMdFooter:
+    '_वेदांश D10 संश्लेषण द्वारा निर्मित। शास्त्रीय स्रोत: BPHS, फलदीपिका, जैमिनी, ताजिक मुंठा, नारद दिग्पाल।_',
+  briefSecSummary: 'सारांश',
+  briefSecProfession: 'पेशा',
+  briefSecA10: 'A10 · सार्वजनिक शीर्षक',
+  briefSecMahatphala: 'महत्फल',
+  briefSecD10Phala: 'D10 राशि और ग्रह फल',
+  briefSecJobBiz: 'नौकरी बनाम व्यवसाय',
+  briefSecForeign: 'विदेशी / स्थानांतरण',
+  briefSecBoss: 'बॉस / संरक्षक',
+  briefSecAnnual: 'इस वर्ष (मुंठा)',
+  briefSecTransit: 'वर्तमान D10 गोचर',
+  briefSecTiming: 'समय खिड़कियाँ',
+  briefProfessionBody: '{doThis}\n{agreement}\nविश्वसनीयता: {confidence}.',
+  briefMahatBody: '{headline} (अंक {score}). {tenthPred}',
+  briefPhalaBodyLagna: 'लग्न {rashiName} ({keyword}): {careers}.',
+  briefSeeClassical: 'शास्त्रीय टिप्पणी देखें',
+  briefTransitUnavailable: 'गोचर स्नैपशॉट उपलब्ध नहीं।',
+  briefTransitHitLine: '{name} D10 H{house} ({signName}) में — {note}',
+  briefNoWindows: 'कोई दशा खिड़की नहीं।',
+  briefWindowLine: '{title} {start}→{end}{live} — {note}',
+  briefLiveTag: ' [सक्रिय]',
+
+  a10Headline: 'A10 {rashi} · लग्न से H{house}',
+  a10PredRajya: 'राज्य पद (A10) {rashi} है, स्वामी {lord}।',
+  a10PredFraming: 'A10 बताता है संसार करियर को कैसे नाम देता है; D10 दशम स्वयं कार्य है।',
+  a10PredOccupants: 'A10 पर ग्रह: {names} — वे सार्वजनिक शीर्षक रंगते हैं।',
+  a10PredNoOccupants: 'A10 पर कोई ग्रह नहीं — शीर्षक स्वामी और दृष्टि से आता है।',
+  a10PredAspectors: 'A10 को दृष्टि: {names}.',
+  a10PredHouse:
+    'दशमांश लग्न से A10 भाव {house} में पड़ता है — आजीविका आधार से सापेक्ष यश-छवि।',
+  a10Source: 'जैमिनी / पराशर — दशम का आरूढ (राज्य पद)',
+  a10BphsNote:
+    'BPHS-सुधारा A10 ({bphs}) कच्चे ({raw}) से भिन्न। यह पाठ BPHS सेट प्रयोग करता है।',
+
+  profHeadlineAgree: '{name} आजीविका और D10 यश में अग्रणी',
+  profHeadlineSplit: '{livelihood} कार्य · {mahat} यश',
+  profDoThisOverlap: 'प्राथमिकता: {fields}.',
+  profDoThisFields: 'प्राथमिकता {fields}.',
+  profDoThisSignifications: 'प्राथमिकता {name} के कारकत्व।',
+  profNakshatraUnavailable: 'इस चार्ट पर नक्षत्र करियर सूत्र उपलब्ध नहीं।',
+  profSourceLivelihood: 'फलदीपिका आजीविका',
+  profSourceDigpala: 'दिग्पाल पेशा सूची',
+  profSourceNakshatra: 'नक्षत्र पेशा इंजन',
+  profSourceMahat: 'D10 महत्फल स्वामी',
+  profSourceLagnaCareers: 'D10 लग्न राशि पेशे',
+
+  transitHeadHot: '{names} D10 करियर भावों को सक्रिय कर रहे हैं',
+  transitHeadBg: 'दशमांश पर पृष्ठभूमि गोचर',
+  transitHeadUnavailable: 'गोचर स्नैपशॉट उपलब्ध नहीं',
+  transitPredHot: '{detail} देखें। गोचर दशमांश लग्न से D10 भावों में डाला जाता है।',
+  transitPredNoHeavy:
+    'अभी D10 1/6/7/10/11 पर कोई भारी ग्रह नहीं — समय दशा पर ज़्यादा निर्भर।',
+  transitPredLoad: 'गणना API से गोचर लोड हो रहा है, या दशमांश लग्न के साथ गोचर खोलें।',
+  transitPredDetail: '{name} भाव {house} में',
+
+  headlineMahatphala: 'महत्फल {grade} ({score})',
+  headlineForeignLean: 'विदेशी झुकाव',
+
+  chartNameFallback: 'चार्ट',
+}

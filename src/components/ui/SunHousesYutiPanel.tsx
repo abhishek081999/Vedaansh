@@ -4,8 +4,8 @@
 //  Surya: houses 1–12 + yuti teachings — Free overview · Gold+ full
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   BookOpen,
   Flame,
@@ -20,14 +20,17 @@ import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { ChartScopeToggle, EmptyForChart, type ChartScope } from '@/components/ui/patterns/ChartScopeToggle'
 import { Button } from '@/components/ui/primitives/Button'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 
 type SubTab = 'overview' | 'houses' | 'yuti' | 'remedies'
 
 const SUB_TABS: { id: SubTab; label: string; Icon: typeof SunIcon; free?: boolean }[] = [
-  { id: 'overview', label: 'Overview', Icon: SunIcon, free: true },
-  { id: 'houses', label: '12 Houses', Icon: Home },
-  { id: 'yuti', label: 'Yuti catalogue', Icon: Sparkles },
-  { id: 'remedies', label: 'Remedies & caveats', Icon: Flame },
+  { id: 'overview', label: 'tabOverview', Icon: SunIcon, free: true },
+  { id: 'houses', label: 'tabHouses', Icon: Home },
+  { id: 'yuti', label: 'tabYuti', Icon: Sparkles },
+  { id: 'remedies', label: 'tabRemedies', Icon: Flame },
 ]
 
 interface SunHousesYutiPanelProps {
@@ -39,7 +42,9 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const [scope, setScope] = useState<ChartScope>('chart')
-  const data = useMemo(() => analyzeSunHousesYuti(chart), [chart])
+  const t = useTranslations('planetsA.sunHouses')
+  const { lang, hi } = useLang()
+  const data = useMemo(() => analyzeSunHousesYuti(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -51,7 +56,7 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Sun data unavailable for this chart.
+        {t('unavailable')}
       </div>
     )
   }
@@ -78,19 +83,18 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: natal Sun house teaching and active yuti highlights.
-            Gold unlocks all 12 house notes, full yuti catalogue, and remedies.
+            {t('freeNote')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{t('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{data.sun.rashiName} · H{data.sun.house}</Pill>
-        <Pill>{data.sun.nakshatraName} P{data.sun.pada}</Pill>
-        <Pill>{data.sun.dignity.replace('_', ' ')}</Pill>
+        <Pill gold>{data.sun.rashiName} · {t('houseShort', { n: data.sun.house })}</Pill>
+        <Pill>{data.sun.nakshatraName} {t('padaShort', { n: data.sun.pada })}</Pill>
+        <Pill>{hi ? dignityHi(data.sun.dignity) : data.sun.dignity.replace('_', ' ')}</Pill>
         {data.activeYutis.map(y => (
           <Pill key={y.partner} warn>{y.name}</Pill>
         ))}
@@ -112,19 +116,19 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Sun houses and yuti sections"
+        aria-label={t('sectionsAria')}
       >
-        {SUB_TABS.map(t => {
-          const locked = !showFull && !t.free
-          const active = sub === t.id
+        {SUB_TABS.map(tab => {
+          const locked = !showFull && !tab.free
+          const active = sub === tab.id
           return (
             <button
-              key={t.id}
+              key={tab.id}
               type="button"
               role="tab"
               aria-selected={active}
               disabled={locked}
-              onClick={() => select(t.id)}
+              onClick={() => select(tab.id)}
               style={{
                 flex: '1 1 auto',
                 padding: '0.42rem 0.55rem',
@@ -143,8 +147,8 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
                 whiteSpace: 'nowrap',
               }}
             >
-              <t.Icon size={13} aria-hidden />
-              {t.label}
+              <tab.Icon size={13} aria-hidden />
+              {t(tab.label)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -154,18 +158,18 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Natal Sun house (H{ht.house})</Label>
+            <Label>{t('natalHouse', { n: ht.house })}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {ht.title}
             </div>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 4 }}>
-              Kaal Purush frame: {ht.kaalPurushSign}
+              {t('kaalPurush', { sign: ht.kaalPurushSign })}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
-              {ht.themes.map(t => <Pill key={t}>{t}</Pill>)}
+              {ht.themes.map(th => <Pill key={th}>{th}</Pill>)}
             </div>
-            <SectionList title="Strengths" items={ht.positives} />
-            <SectionList title="Watch-outs" items={showFull ? ht.challenges : ht.challenges.slice(0, 2)} />
+            <SectionList title={t('strengths')} items={ht.positives} />
+            <SectionList title={t('watchOuts')} items={showFull ? ht.challenges : ht.challenges.slice(0, 2)} />
             {ht.notes.map(n => (
               <p key={n} style={{ margin: '0.45rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
                 {n}
@@ -175,11 +179,11 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
 
           {data.amavasya && (
             <Card>
-              <Label>Sun–Moon distance</Label>
+              <Label>{t('sunMoon')}</Label>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{data.amavasya.label}</span>
                 <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  {data.amavasya.sepDeg.toFixed(1)}° · {data.amavasya.paksha} paksha
+                  {t('paksha', { deg: data.amavasya.sepDeg.toFixed(1), paksha: t(data.amavasya.paksha === 'shukla' ? 'pakshaShukla' : data.amavasya.paksha === 'krishna' ? 'pakshaKrishna' : 'pakshaUnknown') })}
                 </span>
               </div>
               <p style={{ margin: '0.4rem 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -189,10 +193,10 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
           )}
 
           <Card>
-            <Label>Active yutis ({data.activeYutis.length})</Label>
+            <Label>{t('activeYutis', { n: data.activeYutis.length })}</Label>
             {data.activeYutis.length === 0 ? (
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                No close Sun conjunctions detected under this module’s orbs.
+                {t('noYutis')}
               </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -213,7 +217,7 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
                       </span>
                       <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
                         {y.sepDeg.toFixed(1)}°
-                        {y.deeplyCombust ? ' · deep combust' : y.combust ? ' · combust' : ''}
+                        {y.deeplyCombust ? t('deepCombust') : y.combust ? t('combust') : ''}
                       </span>
                     </div>
                     <p style={{ margin: '0.3rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -234,7 +238,7 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
           </Card>
 
           <Card>
-            <Label>Pitru notes</Label>
+            <Label>{t('pitruNotes')}</Label>
             {data.pitruNotes.map(n => (
               <p key={n} style={{ margin: '0 0 0.35rem', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {n}
@@ -243,11 +247,11 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
           </Card>
 
           {!showFull && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Sun houses & yuti (conjunction) full analysis">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('gateFeature')}>
               <div style={{ minHeight: 100, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Locked on Free</div>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('lockedFree')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  All 12 house teachings · full yuti catalogue (Moon–Ketu) · house-wise yuti notes · remedies & methodology
+                  {t('lockedList')}
                 </div>
               </div>
             </PlanGate>
@@ -259,9 +263,9 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <ChartScopeToggle value={scope} onChange={setScope} chartCount={1} totalCount={data.allHouses.length} />
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            House notes use the Kaal Purush teaching frame (1st = Aries…).
-            {scope === 'chart' ? ' Showing your natal Sun house only.' : ' Your natal Sun house is highlighted.'}
-            {' '}Match traits to the whole chart — sign, degrees, and yogas modify everything.
+            {t('housesIntro')}
+            {scope === 'chart' ? t('housesChart') : t('housesAll')}
+            {t('housesMatch')}
           </p>
           <div style={{
             display: 'grid',
@@ -283,8 +287,8 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
                     <span style={{ fontWeight: 800, fontSize: '0.8rem', color: isNatal ? 'var(--text-gold)' : 'var(--text-primary)' }}>
-                      H{h.house} · {h.kaalPurushSign}
-                      {isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                      {t('houseShort', { n: h.house })} · {h.kaalPurushSign}
+                      {isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{t('natal')}</span>}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.72rem', fontWeight: 600, marginTop: 4 }}>{h.title}</div>
@@ -313,18 +317,18 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
           />
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
             {scope === 'chart'
-              ? 'Sun conjunctions present in this kundali, with your house variant and orb.'
-              : 'All pairwise Sun conjunctions for study; active pairs for this chart are highlighted.'}
+              ? t('yutiChart')
+              : t('yutiAll')}
           </p>
           {scope === 'chart' && data.activeYutis.length === 0 && (
-            <EmptyForChart>No planet conjoins the Sun in this chart — the Sun works on its own sign, house and nakshatra.</EmptyForChart>
+            <EmptyForChart>{t('noConjunct')}</EmptyForChart>
           )}
-          {(scope === 'chart' ? data.allYutis.filter(t => data.activeYutis.some(y => y.partner === t.partner)) : data.allYutis).map(t => {
-            const active = data.activeYutis.find(y => y.partner === t.partner)
-            const houseBits = t.byHouse[data.sun.house]
+          {(scope === 'chart' ? data.allYutis.filter(yt => data.activeYutis.some(y => y.partner === yt.partner)) : data.allYutis).map(yt => {
+            const active = data.activeYutis.find(y => y.partner === yt.partner)
+            const houseBits = yt.byHouse[data.sun.house]
             return (
               <div
-                key={t.partner}
+                key={yt.partner}
                 style={{
                   padding: '0.8rem 0.85rem',
                   borderRadius: 'var(--r-md)',
@@ -335,28 +339,28 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
                   <div>
                     <div style={{ fontWeight: 800, fontSize: '0.88rem', color: active ? 'var(--text-gold)' : 'var(--text-primary)' }}>
-                      {t.name}
-                      {active && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>ACTIVE · {active.sepDeg.toFixed(1)}°</span>}
+                      {yt.name}
+                      {active && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{t('activeSep', { deg: active.sepDeg.toFixed(1) })}</span>}
                     </div>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t.sanskrit}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{yt.sanskrit}</div>
                   </div>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', maxWidth: 280, textAlign: 'right' }}>
-                    {t.tagline}
+                    {yt.tagline}
                   </div>
                 </div>
-                <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', marginTop: 6 }}>{t.elements}</div>
-                <SectionList title="Core" items={t.core.slice(0, active ? 99 : 3)} />
-                <SectionList title="Positives" items={t.positives.slice(0, active ? 6 : 3)} />
-                <SectionList title="When challenged" items={t.negatives.slice(0, active ? 5 : 2)} />
-                {t.technical.length > 0 && (
-                  <SectionList title="Technical" items={t.technical} />
+                <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', marginTop: 6 }}>{yt.elements}</div>
+                <SectionList title={t('core')} items={yt.core.slice(0, active ? 99 : 3)} />
+                <SectionList title={t('positives')} items={yt.positives.slice(0, active ? 6 : 3)} />
+                <SectionList title={t('challenged')} items={yt.negatives.slice(0, active ? 5 : 2)} />
+                {yt.technical.length > 0 && (
+                  <SectionList title={t('technical')} items={yt.technical} />
                 )}
                 {houseBits && houseBits.length > 0 && (
-                  <SectionList title={`In your H${data.sun.house}`} items={houseBits} />
+                  <SectionList title={t('inYourHouse', { n: data.sun.house })} items={houseBits} />
                 )}
-                {t.careers.length > 0 && (
+                {yt.careers.length > 0 && (
                   <div style={{ marginTop: 6, fontSize: '0.66rem', color: 'var(--text-muted)' }}>
-                    Careers: {t.careers.join(' · ')}
+                    {t('careers', { list: yt.careers.join(' · ') })}
                   </div>
                 )}
               </div>
@@ -368,25 +372,25 @@ export function SunHousesYutiPanel({ chart, userPlan = 'free' }: SunHousesYutiPa
       {showFull && sub === 'remedies' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Suggested practices (from active patterns)</Label>
+            <Label>{t('practices')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.remedies.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Caveats</Label>
+            <Label>{t('caveats')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.caveats.map(c => <li key={c}>{c}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Methodology</Label>
+            <Label>{t('methodology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.methodology.map(m => <li key={m}>{m}</li>)}
             </ul>
             <div style={{ marginTop: '0.55rem', fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
               <BookOpen size={12} aria-hidden />
-              Class teaching notes — houses, Amavasya, Mars/Mercury/Jupiter/Venus/Saturn/nodes with Sun
+              {t('sources')}
             </div>
           </Card>
         </div>

@@ -1,8 +1,8 @@
 'use client'
 
+import { Link } from '@/i18n/navigation'
 import React, { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 
 interface SavedChart {

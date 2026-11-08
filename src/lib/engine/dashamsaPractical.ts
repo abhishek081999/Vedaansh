@@ -5,13 +5,103 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ChartOutput, Dignity, GrahaData, GrahaId, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { RASHI_SHORT } from '@/types/astrology'
 import type {
   CareerTone,
   DashamsaAnalysis,
   DashamsaPlanetRow,
 } from '@/lib/engine/dashamsaAnalysis'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
+import { analyzeDashamsa } from '@/lib/engine/dashamsaAnalysis'
+import { dignityText, fill, gName, pick, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  D10_SIGN_SECTORS_HI,
+  D10P_TEXT_EN,
+  D10P_TEXT_HI,
+} from '@/lib/engine/locale/dashamsaPractical.hi'
+
+type D10PText = typeof D10P_TEXT_EN
+
+function d10pText(lang: EngineLang): D10PText {
+  return pick(D10P_TEXT_EN, D10P_TEXT_HI as unknown as D10PText, lang)
+}
+
+const CHARITY_KEY: Partial<Record<GrahaId, keyof D10PText>> = {
+  Su: 'charitySu',
+  Mo: 'charityMo',
+  Ma: 'charityMa',
+  Me: 'charityMe',
+  Ju: 'charityJu',
+  Ve: 'charityVe',
+  Sa: 'charitySa',
+  Ra: 'charityRa',
+  Ke: 'charityKe',
+  Ur: 'charityUr',
+  Ne: 'charityNe',
+  Pl: 'charityPl',
+}
+
+function charityFor(id: GrahaId, _lang: EngineLang, T: D10PText): string {
+  const key = CHARITY_KEY[id]
+  return (key ? T[key] : undefined) ?? T.charityDefault
+}
+
+function lagnaRechargeText(rashi: Rashi, T: D10PText): string {
+  const byRashi: Record<Rashi, keyof D10PText> = {
+    1: 'lagnaRecharge1',
+    2: 'lagnaRecharge2',
+    3: 'lagnaRecharge3',
+    4: 'lagnaRecharge4',
+    5: 'lagnaRecharge5',
+    6: 'lagnaRecharge6',
+    7: 'lagnaRecharge7',
+    8: 'lagnaRecharge8',
+    9: 'lagnaRecharge9',
+    10: 'lagnaRecharge10',
+    11: 'lagnaRecharge11',
+    12: 'lagnaRecharge12',
+  }
+  return T[byRashi[rashi]]
+}
+
+function elementLabelText(el: 'fire' | 'earth' | 'air' | 'water', T: D10PText): string {
+  const map = {
+    fire: T.elementLabelFire,
+    earth: T.elementLabelEarth,
+    air: T.elementLabelAir,
+    water: T.elementLabelWater,
+  } as const
+  return map[el]
+}
+
+function inheritedMeta(T: D10PText): {
+  id: GrahaId
+  source: string
+  detail: string
+  toolHow: string
+}[] {
+  return [
+    { id: 'Ma', source: T.inheritedMaSource, detail: T.inheritedMaDetail, toolHow: T.inheritedMaToolHow },
+    { id: 'Ve', source: T.inheritedVeSource, detail: T.inheritedVeDetail, toolHow: T.inheritedVeToolHow },
+    { id: 'Sa', source: T.inheritedSaSource, detail: T.inheritedSaDetail, toolHow: T.inheritedSaToolHow },
+    { id: 'Mo', source: T.inheritedMoSource, detail: T.inheritedMoDetail, toolHow: T.inheritedMoToolHow },
+    { id: 'Su', source: T.inheritedSuSource, detail: T.inheritedSuDetail, toolHow: T.inheritedSuToolHow },
+    { id: 'Me', source: T.inheritedMeSource, detail: T.inheritedMeDetail, toolHow: T.inheritedMeToolHow },
+    { id: 'Ra', source: T.inheritedRaSource, detail: T.inheritedRaDetail, toolHow: T.inheritedRaToolHow },
+    { id: 'Ke', source: T.inheritedKeSource, detail: T.inheritedKeDetail, toolHow: T.inheritedKeToolHow },
+    { id: 'Ju', source: T.inheritedJuSource, detail: T.inheritedJuDetail, toolHow: T.inheritedJuToolHow },
+  ]
+}
+
+const VERTICAL_THEME: Partial<Record<number, keyof D10PText>> = {
+  1: 'verticalTheme1',
+  4: 'verticalTheme4',
+  5: 'verticalTheme5',
+  6: 'verticalTheme6',
+  8: 'verticalTheme8',
+  10: 'verticalTheme10',
+  11: 'verticalTheme11',
+}
 
 const STRONG: Dignity[] = ['exalted', 'moolatrikona', 'own']
 const WEAK: Dignity[] = ['debilitated', 'great_enemy', 'enemy']
@@ -175,22 +265,6 @@ export interface DashamsaKarmaPractical {
   desireFear: DesireFearAxis
   recognition: RecognitionReading
   takeaways: string[]
-}
-
-/** Planet charity hints for 2-6-10 pending karma. */
-const PLANET_CHARITY: Record<GrahaId, string> = {
-  Su: 'Wheat, copper, help to father-figures / government workers; Sunday dana',
-  Mo: 'Milk, rice, white cloth, care for mothers/children; Monday emotional service',
-  Ma: 'Red lentils, tools, blood-donation drives (medical context), help laborers',
-  Me: 'Books, stationery, green items, support students / clerks',
-  Ju: 'Turmeric, yellow cloth, education fees, cow/gaushala support',
-  Ve: 'Sweets, clothes, shringar/adornment for Devi, support to women artisans',
-  Sa: 'Black sesame, iron, shoes, wages/food for cleaners and elderly workers',
-  Ra: 'Unusual/mixed dana at crossroads; help outsiders / displaced people',
-  Ke: 'Blankets, temple seva, dogs/strays, quiet anonymous giving',
-  Ur: 'Unusual tech/community dana',
-  Ne: 'Quiet compassion dana',
-  Pl: 'Crisis-fund support',
 }
 
 export interface SectorHit {
@@ -467,42 +541,36 @@ function lordOfHouse(analysis: DashamsaAnalysis, house: number): DashamsaPlanetR
 
 function buildVertical(
   id: KarmaVerticalSlice['id'],
-  label: string,
-  labelSa: string,
-  meaning: string,
   asc: Rashi,
   planets: DashamsaPlanetRow[],
+  lang: EngineLang = 'en',
 ): KarmaVerticalSlice {
-  const themes: Record<number, string> = {
-    1: 'Self / body of this vertical',
-    4: 'Emotional base / Matri themes',
-    5: 'Creativity / helping through voice or status',
-    6: 'Service / conflict / orphans-of-resource themes',
-    8: 'Hidden support / father–line emotion',
-    10: 'Public karma of this vertical',
-    11: 'Gains desired by this vertical',
-  }
+  const T = d10pText(lang)
+  const labelKey = { body: 'verticalLabelBody', mind: 'verticalLabelMind', soul: 'verticalLabelSoul' } as const
+  const meaningKey = { body: 'verticalMeaningBody', mind: 'verticalMeaningMind', soul: 'verticalMeaningSoul' } as const
+  const label = T[labelKey[id]]
+  const labelSa = id === 'body' ? 'शरीर' : id === 'mind' ? 'मन' : 'आत्मन्'
+  const meaning = T[meaningKey[id]]
   const focusHouses = [1, 4, 5, 6, 8, 10]
   const houseNotes = focusHouses.map((house) => {
     const occ = planets.filter((p) => houseFrom(asc, p.d10Rashi) === house)
     const names = occ.map((p) => p.name).join(', ') || '—'
-    let note = themes[house] ?? `House ${house}`
-    if (house === 8 && id === 'soul') note = '8th from Sun — father’s emotional support / expression patterns'
-    if (house === 8 && id === 'mind') note = '8th from Moon — father ↔ paternal grandmother support lore'
-    if (house === 6 && id === 'mind') note = '6th from Moon — service to those who lost childhood/resources'
-    return {
-      house,
-      theme: themes[house] ?? `H${house}`,
-      occupants: names,
-      note,
-    }
+    const themeKey = VERTICAL_THEME[house]
+    const theme = themeKey ? T[themeKey] : fill(T.verticalHouseFallback, { house: String(house) })
+    let note = theme
+    if (house === 8 && id === 'soul') note = T.verticalNote8Soul
+    if (house === 8 && id === 'mind') note = T.verticalNote8Mind
+    if (house === 6 && id === 'mind') note = T.verticalNote6Mind
+    return { house, theme, occupants: names, note }
   })
   const h1 = houseNotes[0]!
-  const summary = `${label} vertical rises in ${RASHI_NAMES[asc]}. H1: ${h1.occupants}. Read 4/5/6/8 for rin and attachment patterns.`
-  return { id, label, labelSa, ascRashi: asc, ascName: RASHI_NAMES[asc], meaning, houseNotes, summary }
+  const ascName = rName(asc, lang)
+  const summary = fill(T.verticalSummary, { label, ascName, h1Occupants: h1.occupants })
+  return { id, label, labelSa, ascRashi: asc, ascName, meaning, houseNotes, summary }
 }
 
-function buildRecognition(analysis: DashamsaAnalysis): RecognitionReading {
+function buildRecognition(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): RecognitionReading {
+  const T = d10pText(lang)
   const sun = analysis.planets.find((p) => p.id === 'Su')
   const ju = analysis.planets.find((p) => p.id === 'Ju')
   const mo = analysis.planets.find((p) => p.id === 'Mo')
@@ -511,38 +579,54 @@ function buildRecognition(analysis: DashamsaAnalysis): RecognitionReading {
   const factors = [
     {
       id: 'sun',
-      label: 'Sun strong',
+      label: T.recognitionFactorSunLabel,
       ok: Boolean(sun && (STRONG.includes(sun.d10Dignity) || [1, 5, 9, 10].includes(sun.d10House))),
       detail: sun
-        ? `Sun in ${sun.d10RashiName} H${sun.d10House} (${sun.d10Dignity.replace(/_/g, ' ')})`
-        : 'Sun missing',
+        ? fill(T.recognitionSunDetail, {
+          rashi: sun.d10RashiName,
+          house: String(sun.d10House),
+          dignity: dignityText(sun.d10Dignity, lang),
+        })
+        : T.recognitionSunMissing,
     },
     {
       id: 'jupiter',
-      label: 'Jupiter strong',
+      label: T.recognitionFactorJupiterLabel,
       ok: Boolean(ju && (STRONG.includes(ju.d10Dignity) || [1, 5, 9, 11].includes(ju.d10House))),
       detail: ju
-        ? `Jupiter in ${ju.d10RashiName} H${ju.d10House} (${ju.d10Dignity.replace(/_/g, ' ')})`
-        : 'Jupiter missing',
+        ? fill(T.recognitionJupiterDetail, {
+          rashi: ju.d10RashiName,
+          house: String(ju.d10House),
+          dignity: dignityText(ju.d10Dignity, lang),
+        })
+        : T.recognitionJupiterMissing,
     },
     {
       id: 'moon',
-      label: 'Moon well-placed',
+      label: T.recognitionFactorMoonLabel,
       ok: Boolean(mo && !WEAK.includes(mo.d10Dignity) && ![6, 8, 12].includes(mo.d10House)),
       detail: mo
-        ? `Moon in ${mo.d10RashiName} H${mo.d10House} (${mo.d10Dignity.replace(/_/g, ' ')})`
-        : 'Moon missing',
+        ? fill(T.recognitionMoonDetail, {
+          rashi: mo.d10RashiName,
+          house: String(mo.d10House),
+          dignity: dignityText(mo.d10Dignity, lang),
+        })
+        : T.recognitionMoonMissing,
     },
     {
       id: 'lagna',
-      label: 'Lagna / lagna lord strong',
+      label: T.recognitionFactorLagnaLabel,
       ok: Boolean(
         analysis.lagnaVargottama
         || (lagnaLord && (STRONG.includes(lagnaLord.d10Dignity) || [1, 4, 7, 10].includes(lagnaLord.d10House))),
       ),
       detail: lagnaLord
-        ? `Lagna lord ${lagnaLord.name} H${lagnaLord.d10House}${analysis.lagnaVargottama ? ' · Vargottama lagna' : ''}`
-        : 'Lagna lord missing',
+        ? fill(T.recognitionLagnaDetail, {
+          name: lagnaLord.name,
+          house: String(lagnaLord.d10House),
+          vargottama: analysis.lagnaVargottama ? T.recognitionLagnaVargottama : '',
+        })
+        : T.recognitionLagnaMissing,
     },
   ]
 
@@ -552,46 +636,45 @@ function buildRecognition(analysis: DashamsaAnalysis): RecognitionReading {
   const thanklessNotes: string[] = []
   const capPlanets = analysis.planets.filter((p) => p.d10Rashi === 10)
   if (capPlanets.length >= 2) {
-    thanklessNotes.push(
-      `${capPlanets.length} planets in Capricorn (D10) — hard work with risk of “used then discarded” credit patterns.`,
-    )
+    thanklessNotes.push(fill(T.recognitionThanklessCapPlanets, { n: String(capPlanets.length) }))
   }
   const sa = analysis.planets.find((p) => p.id === 'Sa')
   if (sa) {
-    if (sa.d10House === 10) thanklessNotes.push('Saturn in D10 10th — career credit often delayed or taken by others.')
-    if (sa.d10House === 4) thanklessNotes.push('Saturn in D10 4th — domestic / mother’s load under-appreciated.')
-    if (sa.d10House === 7) thanklessNotes.push('Saturn in D10 7th — partners may take work for granted.')
-    if (sa.d10Rashi === 10) thanklessNotes.push('Saturn in Capricorn — boundary-mark labor; status comes late if at all.')
+    if (sa.d10House === 10) thanklessNotes.push(T.recognitionThanklessSaH10)
+    if (sa.d10House === 4) thanklessNotes.push(T.recognitionThanklessSaH4)
+    if (sa.d10House === 7) thanklessNotes.push(T.recognitionThanklessSaH7)
+    if (sa.d10Rashi === 10) thanklessNotes.push(T.recognitionThanklessSaCap)
   }
   if (analysis.d10Lagna === 10) {
-    thanklessNotes.push('Capricorn D10 lagna — rise is real, but thankless chapters are common unless recognition factors fire.')
+    thanklessNotes.push(T.recognitionThanklessCapLagna)
   }
 
   let tone: CareerTone = 'mixed'
-  let headline = 'Recognition mixed — strengthen Sun–Jupiter–Moon–Lagna together'
-  let text = 'Classroom rule: recognition is near-certain only when Sun, Jupiter, Moon, and Lagna are all supportive in D10.'
+  let headline: string = T.recognitionHeadlineMixed
+  let text: string = T.recognitionTextMixed
   if (okCount >= 4) {
     tone = 'supportive'
-    headline = 'Recognition highly supported (all four factors)'
-    text = 'Sun + Jupiter + Moon + Lagna align — due credit for karma is strongly indicated.'
+    headline = T.recognitionHeadlineStrong
+    text = T.recognitionTextStrong
   } else if (okCount === 3) {
     tone = 'supportive'
-    headline = 'Recognition likely with one soft spot'
-    text = 'Three of four recognition pillars are up — polish the weak factor and watch 11th-lord dasha.'
+    headline = T.recognitionHeadlineLikely
+    text = T.recognitionTextLikely
   } else if (okCount <= 1 && thanklessNotes.length) {
     tone = 'challenging'
-    headline = 'Thankless-work pattern risk'
-    text = 'Few recognition pillars with Capricorn/Saturn weight — expect effort without applause unless dasha lifts the four factors.'
+    headline = T.recognitionHeadlineThankless
+    text = T.recognitionTextThankless
   } else if (okCount <= 1) {
     tone = 'challenging'
-    headline = 'Recognition not guaranteed yet'
-    text = 'Strengthen pillars are soft — deliver excellence, but do not expect automatic credit.'
+    headline = T.recognitionHeadlineSoft
+    text = T.recognitionTextSoft
   }
 
   return { tone, score, headline, text, factors, thanklessNotes }
 }
 
-function buildSecondHouse(analysis: DashamsaAnalysis): SecondHouseKarma {
+function buildSecondHouse(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): SecondHouseKarma {
+  const T = d10pText(lang)
   const h2 = analysis.houses[1]!
   const occ = h2.occupants
   const lord = lordOfHouse(analysis, 2)
@@ -607,21 +690,29 @@ function buildSecondHouse(analysis: DashamsaAnalysis): SecondHouseKarma {
   )
 
   const tips: string[] = []
-  if (speechBased) tips.push('Lagna lord tied to 2nd — profession leans on speech: teaching, law, politics, spokesperson roles.')
-  if (lineage) tips.push('2nd–11th link — family/legacy business or lineage work often continues.')
-  if (occ.some((o) => o.id === 'Mo')) tips.push('Moon in 2nd — philosophy, fiction, astrology, mass communication flavor.')
-  if (occ.some((o) => o.id === 'Ra')) tips.push('Rahu in 2nd — family jealousy, possession fights, or weak emotional support at home.')
-  if (occ.length === 0) tips.push('Empty 2nd — read 2nd lord carefully for speech and stored career wealth.')
+  if (speechBased) tips.push(T.secondTipSpeech)
+  if (lineage) tips.push(T.secondTipLineage)
+  if (occ.some((o) => o.id === 'Mo')) tips.push(T.secondTipMoon)
+  if (occ.some((o) => o.id === 'Ra')) tips.push(T.secondTipRahu)
+  if (occ.length === 0) tips.push(T.secondTipEmpty)
 
   const text = [
-    `D10 2nd in ${h2.rashiName}: speech in karma, lineage work, and stored career wealth — not bank balance alone.`,
-    lord ? `2nd lord ${lord.name} in house ${lord.d10House} (${lord.digpala.name}).` : '',
-    occ.length ? `Occupants: ${occ.map((o) => o.name).join(', ')}.` : 'No planets in 2nd.',
+    fill(T.secondHouseText, { rashi: h2.rashiName }),
+    lord
+      ? fill(T.secondLordDigpala, {
+        name: lord.name,
+        house: String(lord.d10House),
+        digpala: lord.digpala.name,
+      })
+      : '',
+    occ.length
+      ? fill(T.secondOccupants, { names: occ.map((o) => o.name).join(', ') })
+      : T.secondEmpty,
   ].filter(Boolean).join(' ')
 
   return {
     occupants: occ.map((o) => o.name),
-    lordNote: lord ? `${lord.name} in house ${lord.d10House}` : '—',
+    lordNote: lord ? fill(T.secondLordNote, { name: lord.name, house: String(lord.d10House) }) : '—',
     speechBased,
     lineageLink: lineage,
     text,
@@ -629,7 +720,8 @@ function buildSecondHouse(analysis: DashamsaAnalysis): SecondHouseKarma {
   }
 }
 
-function buildDesireFear(analysis: DashamsaAnalysis): DesireFearAxis {
+function buildDesireFear(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): DesireFearAxis {
+  const T = d10pText(lang)
   const pack = <H extends 6 | 8 | 11>(house: H, label: string, base: string) => {
     const occ = occupantsInHouse(analysis.planets, house)
     const lord = lordOfHouse(analysis, house)
@@ -637,15 +729,20 @@ function buildDesireFear(analysis: DashamsaAnalysis): DesireFearAxis {
       house,
       occupants: occ.map((p) => `${p.name} (${p.d10RashiShort})`),
       lordNote: lord
-        ? `${label} lord ${lord.name} in house ${lord.d10House} · ${lord.digpala.name}`
-        : `${label} lord unavailable`,
+        ? fill(T.desireLordNote, {
+          label,
+          name: lord.name,
+          house: String(lord.d10House),
+          digpala: lord.digpala.name,
+        })
+        : fill(T.desireLordUnavailable, { label }),
       text: base,
     }
   }
   return {
-    desire: pack(11, '11th', 'Icchā pūrti — karma you WANT to do (personal desire, not only destiny assignment).'),
-    fear: pack(8, '8th', 'Karma you fear or keep secret — few know; also hidden wealth / bribery when tied to money houses.'),
-    prarabdha: pack(6, '6th', 'Prārabdha — must be endured from childhood patterns; rivalry, errands, obsessive completion, public criticism.'),
+    desire: pack(11, '11th', T.desireText),
+    fear: pack(8, '8th', T.fearText),
+    prarabdha: pack(6, '6th', T.prarabdhaText),
   }
 }
 
@@ -658,7 +755,8 @@ function angleDiff(a: number, b: number): number {
   return d > 180 ? 360 - d : d
 }
 
-function buildMoonMind(analysis: DashamsaAnalysis): MoonLagnaMind {
+function buildMoonMind(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): MoonLagnaMind {
+  const T = d10pText(lang)
   const mo = analysis.planets.find((p) => p.id === 'Mo')
   const moonAsc = (mo?.d10Rashi ?? analysis.d10Lagna) as Rashi
   const sukhHouse = 4
@@ -675,33 +773,26 @@ function buildMoonMind(analysis: DashamsaAnalysis): MoonLagnaMind {
   const moonInFire = mo ? fireSigns.includes(mo.d10Rashi) : false
   const fireInitiative = moonInFire || fireHits.length >= 2
 
-  let sukhNote =
-    '4th from Moon-as-lagna = sukha the mind seeks through career entanglement.'
+  let sukhNote = T.moonSukhNoteBase
   if (sukh.some((p) => p.id === 'Ve' || p.id === 'Me')) {
-    sukhNote +=
-      ' Venus/Mercury here — happiness sought via relationships, money, desires.'
+    sukhNote += T.moonSukhVeMe
     if (sukh.some((p) => p.d10Rashi === 8)) {
-      sukhNote +=
-        ' Scorpio flavor — sought happiness may bring confusion, prolonged scars rather than true sukha.'
+      sukhNote += T.moonSukhScorpio
     }
   } else if (sukh.length === 0) {
-    sukhNote += ' Empty 4th from Moon — read the 4th lord from Moon for comfort style.'
+    sukhNote += T.moonSukhEmpty
   }
 
-  let twelfthNote =
-    '12th from Moon = bulb’s own shadow — disturbances too close to see; hard to articulate why the mind is restless.'
+  let twelfthNote: string = T.moonTwelfthNoteBase
   if (twelfth.some((p) => p.id === 'Ke')) {
-    twelfthNote =
-      'Ketu in 12th from Moon — mind chases desire fulfillment; poor sleep until wants are met; unrest feels “unsolvable.”'
+    twelfthNote = T.moonTwelfthKetu
   }
 
-  const fireNote = fireInitiative
-    ? 'Fire signs on Moon-lagna kendras (angular houses: 1, 4, 7, 10)/trines (1/5/9) — mind constantly initiates career moves; cannot stay passive.'
-    : 'Fire initiative on Moon-lagna axis is quieter — less compulsive achievement drive.'
+  const fireNote = fireInitiative ? T.moonFireYes : T.moonFireNo
 
   return {
     moonAsc,
-    moonAscName: RASHI_NAMES[moonAsc],
+    moonAscName: rName(moonAsc, lang),
     sukhHouse,
     sukhOccupants: sukh.map((p) => `${p.name} (${p.d10RashiShort})`),
     sukhNote,
@@ -712,20 +803,23 @@ function buildMoonMind(analysis: DashamsaAnalysis): MoonLagnaMind {
   }
 }
 
-function buildPending(analysis: DashamsaAnalysis): DashamsaPendingPractical {
+function buildPending(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): DashamsaPendingPractical {
+  const T = d10pText(lang)
   const items: PendingKarmaItem[] = []
   for (const house of [2, 6, 10] as const) {
     for (const p of occupantsInHouse(analysis.planets, house)) {
-      let pendingTheme = `Pending karma through ${GRAHA_NAMES[p.id]} significations in D10 H${house}.`
+      let pendingTheme = fill(T.pendingThemeDefault, {
+        planet: gName(p.id, lang),
+        house: String(house),
+      })
       if (p.id === 'Ke' && house === 2 && p.d10Rashi === 2) {
-        pendingTheme =
-          'Ketu in D10 2nd Taurus — pending dana of food/resources; distribute food to clear this karma.'
+        pendingTheme = T.pendingThemeKetuTa2
       } else if (house === 2) {
-        pendingTheme = `Pending resource/speech karma via ${p.name} in 2nd (${p.d10RashiName}).`
+        pendingTheme = fill(T.pendingThemeH2, { name: p.name, rashi: p.d10RashiName })
       } else if (house === 6) {
-        pendingTheme = `Pending service/rivalry karma via ${p.name} in 6th — must be worked through, not escaped.`
+        pendingTheme = fill(T.pendingThemeH6, { name: p.name })
       } else {
-        pendingTheme = `Pending career-status karma via ${p.name} in 10th — hard work / dana related to ${p.name}.`
+        pendingTheme = fill(T.pendingThemeH10, { name: p.name })
       }
       items.push({
         planetId: p.id,
@@ -733,7 +827,7 @@ function buildPending(analysis: DashamsaAnalysis): DashamsaPendingPractical {
         house,
         rashiName: p.d10RashiName,
         pendingTheme,
-        charity: PLANET_CHARITY[p.id] ?? 'Dana matching the planet’s nature to the needy.',
+        charity: charityFor(p.id, lang, T),
       })
     }
   }
@@ -747,31 +841,15 @@ function buildPending(analysis: DashamsaAnalysis): DashamsaPendingPractical {
   const juIn10 = ju?.d10House === 10
   const capActive = capLagna || saIn10 || saIn11 || analysis.planets.filter((p) => p.d10Rashi === 10).length >= 2
 
-  if (capLagna) capNotes.push('Capricorn D10 lagna — no ritual shortcut; pure hard work is the remedy.')
-  if (saIn10) {
-    capNotes.push(
-      'Saturn in D10 10th — grinds thoroughly; spiritual credit from 9th does not cancel this pressure.',
-    )
-  }
-  if (saIn11) {
-    capNotes.push(
-      'Saturn in D10 11th — “whatever you buried will be found”; past effort returns as hard-earned fruit.',
-    )
-  }
-  if (juIn10) {
-    capNotes.push(
-      'Jupiter in D10 10th — kapha stuck in status swamp; needs Mars heat; toughest projects build lasting strength; workplace may feel toxic yet formative.',
-    )
-  }
+  if (capLagna) capNotes.push(T.capNoteLagna)
+  if (saIn10) capNotes.push(T.capNoteSa10)
+  if (saIn11) capNotes.push(T.capNoteSa11)
+  if (juIn10) capNotes.push(T.capNoteJu10)
 
   const capricornHardWork = {
     active: capActive,
-    headline: capActive
-      ? 'Capricorn / 10–11 grind active — hard work only'
-      : 'Capricorn 10–11 grind not dominant',
-    text: capActive
-      ? 'Classroom rule: Capricorn in D10 (esp. 10th/11th) consumes ritual remedies — do sādhanā through the 9th, then accept 10–11 as grind. Only consistent effort works.'
-      : 'No strong Capricorn-on-10/11 signature — ritual + effort both have room.',
+    headline: capActive ? T.capHeadlineActive : T.capHeadlineQuiet,
+    text: capActive ? T.capTextActive : T.capTextQuiet,
     notes: capNotes,
   }
 
@@ -817,129 +895,91 @@ function buildPending(analysis: DashamsaAnalysis): DashamsaPendingPractical {
   const flags: ClinicalFlag[] = [
     {
       id: 'parashuram',
-      title: 'Parashurām yoga (Mars–Saturn in 9th)',
+      title: T.flagParashuramTitle,
       matched: parashuram,
       severity: parashuram ? 'challenging' : 'neutral',
-      detail: parashuram
-        ? 'Mars–Saturn on D10 9th — must literally fight for position and dharma path.'
-        : 'No Mars–Saturn 9th signature.',
+      detail: parashuram ? T.flagParashuramYes : T.flagParashuramNo,
     },
     {
       id: 'moon-saturn',
-      title: 'Moon–Saturn within 3°20′',
+      title: T.flagMoonSaturnTitle,
       matched: moSaOrb <= 3.333,
       severity: moSaOrb <= 3.333 ? 'challenging' : 'neutral',
       detail: moSaOrb <= 3.333
-        ? `Orb ${moSaOrb.toFixed(2)}° — depressive / career-anxiety tendency; parental calls may spike upset.`
-        : `Moon–Saturn orb ${moSaOrb === 999 ? 'n/a' : `${moSaOrb.toFixed(1)}°`} — outside tight mutual impact.`,
+        ? fill(T.flagMoonSaturnYes, { orb: moSaOrb.toFixed(2) })
+        : moSaOrb === 999
+          ? T.flagMoonSaturnNa
+          : fill(T.flagMoonSaturnNo, { orb: `${moSaOrb.toFixed(1)}°` }),
     },
     {
       id: 'venus-rahu',
-      title: 'Venus–Rahu healing / medical pull',
+      title: T.flagVenusRahuTitle,
       matched: veRaLink,
       severity: 'mixed',
-      detail: veRaLink
-        ? 'Venus–Rahu link — Śukrācārya recovery guru; strong doctor/healer pull (check Bharani / incision tools).'
-        : 'No clear Venus–Rahu medical link in D10.',
+      detail: veRaLink ? T.flagVenusRahuYes : T.flagVenusRahuNo,
     },
     {
       id: 'surgical',
-      title: 'Mars–Rahu in 5th · surgical',
+      title: T.flagSurgicalTitle,
       matched: surgical,
       severity: 'mixed',
-      detail: surgical
-        ? 'Mars–Rahu on 5th — cutting/operating tendency; surgery practice indicator.'
-        : 'No Mars–Rahu 5th surgical signature.',
+      detail: surgical ? T.flagSurgicalYes : T.flagSurgicalNo,
     },
     {
       id: 'doctor-612',
-      title: '6–12 / Jupiter service-medicine',
+      title: T.flagDoctor612Title,
       matched: doc612,
       severity: 'mixed',
-      detail: doc612
-        ? '6–12 disease/hospital axis or Jupiter on service/status — classic healer / treatment livelihood flavor.'
-        : '6–12 medical axis not strongly lit.',
+      detail: doc612 ? T.flagDoctor612Yes : T.flagDoctor612No,
     },
     {
       id: 'ketu-lagna',
-      title: 'Ketu in D10 lagna',
+      title: T.flagKetuLagnaTitle,
       matched: ketuLagna,
       severity: ketuLagna ? 'challenging' : 'neutral',
-      detail: ketuLagna
-        ? 'Ketu on D10 lagna — success not easy; check dispositor (ruler of the sign it sits in); if dispositor in 6/8/12 or Saturn-aspected, long struggle before rise.'
-        : 'Ketu not on D10 lagna.',
+      detail: ketuLagna ? T.flagKetuLagnaYes : T.flagKetuLagnaNo,
     },
     {
       id: 'chhaya',
-      title: 'Chhāyāgrasta (Ketu overshadows Sa/Mo)',
+      title: T.flagChhayaTitle,
       matched: chhaya,
       severity: chhaya ? 'challenging' : 'neutral',
-      detail: chhaya
-        ? 'Ketu at higher degree than Saturn/Moon nearby — Saturn results weaken even in good dignity.'
-        : 'No clear Ketu-over-Saturn/Moon chhāyā pattern.',
+      detail: chhaya ? T.flagChhayaYes : T.flagChhayaNo,
     },
     {
       id: 'me-ju',
-      title: 'Mercury–Jupiter conjunction',
+      title: T.flagMeJuTitle,
       matched: meJuConj,
       severity: meJuConj ? 'mixed' : 'neutral',
-      detail: meJuConj
-        ? 'Me–Ju conjunct — “gold mixed with mercury”; aspect between them is cleaner than conjunction.'
-        : 'No Mercury–Jupiter conjunction in D10.',
+      detail: meJuConj ? T.flagMeJuYes : T.flagMeJuNo,
     },
     {
       id: 've-su',
-      title: 'Venus–Sun · fame hunger',
+      title: T.flagVeSuTitle,
       matched: Boolean(veSuConj),
       severity: 'mixed',
-      detail: veSuConj
-        ? 'Venus–Sun — desire for prominence/quick achievement; transitions between career points feel sticky.'
-        : 'No Venus–Sun conjunction in D10.',
+      detail: veSuConj ? T.flagVeSuYes : T.flagVeSuNo,
     },
   ]
 
   const remedies: RemedyCard[] = [
-    {
-      id: '260',
-      title: '2–6–10 pending-karma dana',
-      when: 'Any planet in D10 2nd, 6th, or 10th',
-      action:
-        'Charity matching that planet’s significations — temples, footpaths, traffic signals, office cleaners/plate-takers. Described as a protective “bribe” so the planet stops grinding you.',
-    },
-    {
-      id: 'moon-ketu',
-      title: 'Moon–Ketu lagna / emotional backlog',
-      when: 'Moon–Ketu on D10 lagna or heavy Moon distress',
-      action:
-        'Vrindavan / Mathura / Govardhan for Krishna-peace; or Maa Satī Śakti-pīṭha — break coconut, offer water; lifelong when Moon problems flare.',
-    },
-    {
-      id: 'capricorn',
-      title: 'Capricorn 10–11',
-      when: 'Capricorn lagna or Saturn on D10 10th/11th',
-      action:
-        'No ritual bypass — consistent hard work + humility (Dakṣa / Śiva story). Puja through 9th; accept 10–11 grind.',
-    },
-    {
-      id: 'food',
-      title: 'Annadāna (food)',
-      when: 'Ketu/planets in 2nd with Taurus or food-sign flavor',
-      action: 'Distribute food at temples / to the needy; Venus–Sun links may add Devī śṛṅgāra offerings.',
-    },
+    { id: '260', title: T.remedy260Title, when: T.remedy260When, action: T.remedy260Action },
+    { id: 'moon-ketu', title: T.remedyMoonKetuTitle, when: T.remedyMoonKetuWhen, action: T.remedyMoonKetuAction },
+    { id: 'capricorn', title: T.remedyCapTitle, when: T.remedyCapWhen, action: T.remedyCapAction },
+    { id: 'food', title: T.remedyFoodTitle, when: T.remedyFoodWhen, action: T.remedyFoodAction },
   ]
 
   const methodSteps = [
-    'Exact birth details → D10 lagna + occupants first',
-    'Trace lord-to-lord circuit from lagna through key houses',
-    'Cross-check D1 degrees for tight conjunctions / combustion',
-    'Bhāva chalit for cusp shifts; D9 for confirmation',
-    'Ashtakavarga / house bala for wealth magnitude (not hype scores alone)',
-    'Dasha timing last; confirm with client’s lived feedback loop',
+    T.pendingMethod0,
+    T.pendingMethod1,
+    T.pendingMethod2,
+    T.pendingMethod3,
+    T.pendingMethod4,
+    T.pendingMethod5,
   ]
 
   return {
-    axisRule:
-      'CRITICAL: Planets in D10 2nd, 6th, or 10th show PENDING KARMA of that planet — clear via matching charity/dana, not denial.',
+    axisRule: T.pendingAxisRule,
     items,
     capricornHardWork,
     flags,
@@ -948,7 +988,8 @@ function buildPending(analysis: DashamsaAnalysis): DashamsaPendingPractical {
   }
 }
 
-function buildBonds(analysis: DashamsaAnalysis): KarmicBondNote {
+function buildBonds(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): KarmicBondNote {
+  const T = d10pText(lang)
   const h1 = analysis.houses[0]!
   const lagnaLord = analysis.keyLords[0]!
   return {
@@ -957,66 +998,46 @@ function buildBonds(analysis: DashamsaAnalysis): KarmicBondNote {
     lagnaLordName: lagnaLord.name,
     lagnaLordHouse: lagnaLord.d10House,
     occupants: h1.occupants.map((o) => o.name),
-    text: `People whose D1 (birth) Lagna matches your D10 Lagna sign ${analysis.d10LagnaName} — or who carry the same planetary color as your D10 1st — tend to share food, travel, and heavy life-time with you (friends, boss, spouse, even rivals).`,
-    mutualTip: 'Best-friend bond: mutual interchange — your D10 lagna matches their D1 lagna AND their D10 lagna matches your D1 lagna. Also useful for birth-time rectification checks.',
+    text: fill(T.bondsText, { d10LagnaName: analysis.d10LagnaName }),
+    mutualTip: T.bondsMutualTip,
   }
 }
 
-function buildKarma(analysis: DashamsaAnalysis): DashamsaKarmaPractical {
+function buildKarma(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): DashamsaKarmaPractical {
+  const T = d10pText(lang)
   const sun = analysis.planets.find((p) => p.id === 'Su')
   const mo = analysis.planets.find((p) => p.id === 'Mo')
   const sunAsc = (sun?.d10Rashi ?? analysis.d10Lagna) as Rashi
   const moonAsc = (mo?.d10Rashi ?? analysis.d10Lagna) as Rashi
 
   const verticals: KarmaVerticalSlice[] = [
-    buildVertical(
-      'body',
-      'Body (Śarīra)',
-      'शरीर',
-      'Lagna-based D10 — karma of the body; whom you physically work and travel with.',
-      analysis.d10Lagna,
-      analysis.planets,
-    ),
-    buildVertical(
-      'mind',
-      'Mind (Manas)',
-      'मन',
-      'Moon-as-lagna D10 — vṛtti from past life; Matṛ-ṛṇa / motherland debt; mental livelihood style.',
-      moonAsc,
-      analysis.planets,
-    ),
-    buildVertical(
-      'soul',
-      'Soul (Ātman)',
-      'आत्मन्',
-      'Sun-as-lagna D10 — what binds the soul to material work; power, boundaries, attachment.',
-      sunAsc,
-      analysis.planets,
-    ),
+    buildVertical('body', analysis.d10Lagna, analysis.planets, lang),
+    buildVertical('mind', moonAsc, analysis.planets, lang),
+    buildVertical('soul', sunAsc, analysis.planets, lang),
   ]
 
   return {
-    whyToday:
-      'Today ~90% of life questions are karma/profession (settled job, fame, assigned work). With no fixed varṇāśrama mold, D10 often outweighs D9 for immediate counseling — D9 still rules fate/marriage fruit.',
-    bonds: buildBonds(analysis),
-    secondHouse: buildSecondHouse(analysis),
-    moonMind: buildMoonMind(analysis),
+    whyToday: T.karmaWhyToday,
+    bonds: buildBonds(analysis, lang),
+    secondHouse: buildSecondHouse(analysis, lang),
+    moonMind: buildMoonMind(analysis, lang),
     verticals,
-    desireFear: buildDesireFear(analysis),
-    recognition: buildRecognition(analysis),
+    desireFear: buildDesireFear(analysis, lang),
+    recognition: buildRecognition(analysis, lang),
     takeaways: [
-      'Match D10 lagna combinations to others’ D1 lagna for karmic people.',
-      '2nd house = speech + lineage karma + stored career wealth.',
-      'Moon-as-lagna: 4th = sukha sought; 12th = unsolvable restlessness.',
-      'Three verticals: Lagna / Moon-as-lagna / Sun-as-lagna = body, mind, soul rin.',
-      '11th = desired karma; 8th = feared/hidden; 6th = unavoidable prārabdha.',
-      '2–6–10 planets = pending karma → matching dana; Capricorn 10–11 = hard work only.',
-      'Saturn/Capricorn weight = thankless patterns; Sun+Jupiter+Moon+Lagna = recognition.',
+      T.karmaTakeaway0,
+      T.karmaTakeaway1,
+      T.karmaTakeaway2,
+      T.karmaTakeaway3,
+      T.karmaTakeaway4,
+      T.karmaTakeaway5,
+      T.karmaTakeaway6,
     ],
   }
 }
 
-function buildCombos(analysis: DashamsaAnalysis): CareerComboHit[] {
+function buildCombos(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): CareerComboHit[] {
+  const T = d10pText(lang)
   const byId = new Map(analysis.planets.map((p) => [p.id, p]))
   const sameSign = (a: GrahaId, b: GrahaId) => {
     const pa = byId.get(a)
@@ -1034,70 +1055,69 @@ function buildCombos(analysis: DashamsaAnalysis): CareerComboHit[] {
 
   const axis371 = analysis.planets.filter((p) => [3, 7, 11].includes(p.d10House))
 
+  const meIn7 = inHouse('Me', [7])
+  const multiBizDetail = meIn7
+    ? inSign('Me', [1])
+      ? T.comboMultiBizDetailYes
+      : T.comboMultiBizDetailPackets
+    : T.comboMultiBizDetailNo
+
   return [
     {
       id: 'civil',
-      title: 'Sun–Saturn · civil / class infrastructure',
+      title: T.comboCivilTitle,
       matched: sameSign('Su', 'Sa'),
-      detail: sameSign('Su', 'Sa')
-        ? 'Sun–Saturn together in D10 — civil engineering / Grade-A infrastructure flavor.'
-        : 'No Sun–Saturn conjunction in D10.',
+      detail: sameSign('Su', 'Sa') ? T.comboCivilDetailYes : T.comboCivilDetailNo,
     },
     {
       id: 'electrical',
-      title: 'Mars–Rahu · electrical / defense build',
+      title: T.comboElectricalTitle,
       matched: sameSign('Ma', 'Ra'),
-      detail: sameSign('Ma', 'Ra')
-        ? 'Mars–Rahu — electrical, construction heat, injury-prone physical tech.'
-        : 'No Mars–Rahu conjunction in D10.',
+      detail: sameSign('Ma', 'Ra') ? T.comboElectricalDetailYes : T.comboElectricalDetailNo,
     },
     {
       id: 'aviation',
-      title: 'Mars in Pisces · aviation',
+      title: T.comboAviationTitle,
       matched: inSign('Ma', [12]),
-      detail: inSign('Ma', [12])
-        ? 'Mars in Pisces (D10) — strong aviation / airport / air-crew indicator.'
-        : 'Mars not in Pisces in D10.',
+      detail: inSign('Ma', [12]) ? T.comboAviationDetailYes : T.comboAviationDetailNo,
     },
     {
       id: 'fashion',
-      title: 'Venus prominent · fashion / polish',
+      title: T.comboFashionTitle,
       matched: Boolean(byId.get('Ve') && (STRONG.includes(byId.get('Ve')!.d10Dignity) || [1, 7, 10].includes(byId.get('Ve')!.d10House))),
-      detail: 'Venus strong or angular in D10 supports fashion, brand, and aesthetic industries.',
+      detail: T.comboFashionDetail,
     },
     {
       id: 'influencer',
-      title: 'Venus–Jupiter + 3/7/11 · reach',
+      title: T.comboInfluencerTitle,
       matched: axis371.length >= 2 && (sameSign('Ve', 'Ju') || (inHouse('Ve', [3, 7, 11]) && inHouse('Ju', [3, 7, 11]))),
       detail: axis371.length
-        ? `${axis371.length} planets on 3–7–11 axis — baseline for influencer / wide-reach narratives (Venus–Jupiter preferred over raw Rahu).`
-        : 'Weak 3–7–11 occupancy — reach may stay niche.',
+        ? fill(T.comboInfluencerDetailYes, { n: String(axis371.length) })
+        : T.comboInfluencerDetailNo,
     },
     {
       id: 'telecom',
-      title: 'Saturn–Rahu · telecom / signals',
+      title: T.comboTelecomTitle,
       matched: sameSign('Sa', 'Ra'),
-      detail: sameSign('Sa', 'Ra')
-        ? 'Saturn–Rahu — telecom, SIM, networking-signal work flavor.'
-        : 'No Saturn–Rahu conjunction in D10.',
+      detail: sameSign('Sa', 'Ra') ? T.comboTelecomDetailYes : T.comboTelecomDetailNo,
     },
     {
       id: 'bondage',
-      title: '6th emphasis · corporate bondage',
+      title: T.comboBondageTitle,
       matched: occupantsInHouse(analysis.planets, 6).length >= 2 || inHouse('Sa', [6]),
-      detail: 'Heavy 6th = rules, third-party management, emergency analysis — work under systems.',
+      detail: T.comboBondageDetail,
     },
     {
       id: 'independent',
-      title: '12th emphasis · independent / freelance',
+      title: T.comboIndependentTitle,
       matched: occupantsInHouse(analysis.planets, 12).length >= 1,
       detail: occupantsInHouse(analysis.planets, 12).length
-        ? '12th occupancy supports independent / night / foreign freelancing opposite 6th bondage.'
-        : 'No 12th emphasis — independence themes are quieter.',
+        ? T.comboIndependentDetailYes
+        : T.comboIndependentDetailNo,
     },
     {
       id: 'medical-ve-ra',
-      title: 'Venus–Rahu · healer / doctor pull',
+      title: T.comboMedicalVeRaTitle,
       matched: Boolean(
         byId.get('Ve')
         && byId.get('Ra')
@@ -1106,95 +1126,90 @@ function buildCombos(analysis: DashamsaAnalysis): CareerComboHit[] {
           || [1, 5, 9].includes(((byId.get('Ra')!.d10House - byId.get('Ve')!.d10House + 12) % 12) + 1)
         ),
       ),
-      detail: 'Venus–Rahu (conjunct or 1/5/9) — recovery-guru flavor; medical / surgical career pull.',
+      detail: T.comboMedicalVeRaDetail,
     },
     {
       id: 'jupiter-10',
-      title: 'Jupiter in 10th · hard path, lasting strength',
+      title: T.comboJupiter10Title,
       matched: inHouse('Ju', [10]),
-      detail: inHouse('Ju', [10])
-        ? 'Jupiter in D10 10th — stuck in status swamp until Mars heat; toughest projects, toxic-but-formative bosses.'
-        : 'Jupiter not in D10 10th.',
+      detail: inHouse('Ju', [10]) ? T.comboJupiter10DetailYes : T.comboJupiter10DetailNo,
     },
     {
       id: 'fluid',
-      title: 'Mars in Cancer · fluid / marine mechanics',
+      title: T.comboFluidTitle,
       matched: inSign('Ma', [4]),
-      detail: inSign('Ma', [4])
-        ? 'Mars in Cancer — fluid mechanics, boats/submarines, water–fire engineering strain.'
-        : 'Mars not in Cancer in D10.',
+      detail: inSign('Ma', [4]) ? T.comboFluidDetailYes : T.comboFluidDetailNo,
     },
     {
       id: 'delivery-apps',
-      title: 'Mars strong · delivery / transport apps',
+      title: T.comboDeliveryAppsTitle,
       matched: Boolean(byId.get('Ma') && (STRONG.includes(byId.get('Ma')!.d10Dignity) || [1, 3, 6, 10].includes(byId.get('Ma')!.d10House))),
-      detail: 'Strong/angular Mars in D10 often lands in Zomato/Swiggy/Uber-style delivery transport stacks.',
+      detail: T.comboDeliveryAppsDetail,
     },
     {
       id: 'multi-biz',
-      title: 'Mercury in 7th · multiple business attempts',
-      matched: inHouse('Me', [7]),
-      detail: inHouse('Me', [7])
-        ? inSign('Me', [1])
-          ? 'Mercury in Aries in 7th — packet energy, no resources; ventures start/stop repeatedly.'
-          : 'Mercury in D10 7th — multiple business / partnership attempts; energy comes in packets.'
-        : 'Mercury not in D10 7th.',
+      title: T.comboMultiBizTitle,
+      matched: meIn7,
+      detail: multiBizDetail,
     },
     {
       id: 've-ke',
-      title: 'Venus–Ketu · fuse drain (avoid mix)',
+      title: T.comboVeKeTitle,
       matched: sameSign('Ve', 'Ke'),
-      detail: sameSign('Ve', 'Ke')
-        ? 'Venus–Ketu together — monk and relationship energy cancel; drains position and/or married life.'
-        : 'Venus and Ketu not conjunct in D10.',
+      detail: sameSign('Ve', 'Ke') ? T.comboVeKeDetailYes : T.comboVeKeDetailNo,
     },
     {
       id: 'ketu-lagna',
-      title: 'Ketu on D10 lagna · directionless',
+      title: T.comboKetuLagnaTitle,
       matched: inHouse('Ke', [1]),
-      detail: inHouse('Ke', [1])
-        ? 'Ketu on D10 lagna — does not know what to do; skill institutes + placement help often better than solo hunt.'
-        : 'Ketu not on D10 lagna.',
+      detail: inHouse('Ke', [1]) ? T.comboKetuLagnaDetailYes : T.comboKetuLagnaDetailNo,
     },
     {
       id: 'libra-rahu-floor',
-      title: 'Rahu in Libra · high-floor brand aura',
+      title: T.comboLibraRahuFloorTitle,
       matched: inSign('Ra', [7]),
-      detail: inSign('Ra', [7])
-        ? 'Rahu in Libra — upper floors, big-brand aura; won’t leave brand identity for a startup easily.'
-        : 'Rahu not in Libra in D10.',
+      detail: inSign('Ra', [7]) ? T.comboLibraRahuFloorDetailYes : T.comboLibraRahuFloorDetailNo,
     },
     {
       id: 'libra-ketu-ground',
-      title: 'Ketu in Libra · ground-floor work',
+      title: T.comboLibraKetuGroundTitle,
       matched: inSign('Ke', [7]) && !sameSign('Ke', 'Mo'),
-      detail: inSign('Ke', [7])
-        ? 'Ketu in Libra without Moon support — tends to stay ground-floor; Ketu+Moon can still rise.'
-        : 'Ketu not in Libra in D10.',
+      detail: inSign('Ke', [7]) ? T.comboLibraKetuGroundDetailYes : T.comboLibraKetuGroundDetailNo,
     },
     {
       id: 'wfhome',
-      title: 'Saturn in 4th · work from home',
+      title: T.comboWfhomeTitle,
       matched: inHouse('Sa', [4]),
-      detail: inHouse('Sa', [4])
-        ? 'Saturn in D10 4th — home office / clinic / cloud kitchen; hard to sustain a daily office commute.'
-        : 'Saturn not in D10 4th.',
+      detail: inHouse('Sa', [4]) ? T.comboWfhomeDetailYes : T.comboWfhomeDetailNo,
     },
     {
       id: 'lagna-lord-7',
-      title: 'Lagna lord in 7th · partner-dependent',
+      title: T.comboLagnaLord7Title,
       matched: Boolean(analysis.planets.find((p) => p.id === analysis.keyLords[0]?.id && p.d10House === 7)),
-      detail: 'Lagna lord in 7th — livelihood depends on partner; solo platforms safer than random human partners (esp. Aquarius).',
+      detail: T.comboLagnaLord7Detail,
     },
   ]
 }
 
-function buildSectors(analysis: DashamsaAnalysis): DashamsaSectorsPractical {
-  const lagnaMeta = D10_SIGN_SECTORS[analysis.d10Lagna]
+function sectorMeta(rashi: Rashi, lang: EngineLang) {
+  const en = D10_SIGN_SECTORS[rashi]
+  const hi = D10_SIGN_SECTORS_HI[rashi]
+  if (lang !== 'hi' || !hi) return en
+  return {
+    headline: hi.headline,
+    flavor: hi.flavor,
+    industries: hi.industries,
+    caution: hi.caution,
+  }
+}
+
+function buildSectors(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): DashamsaSectorsPractical {
+  const T = d10pText(lang)
+  const lagnaMeta = sectorMeta(analysis.d10Lagna, lang)
   const lagnaSector: D10SignSector = {
     rashi: analysis.d10Lagna,
     name: analysis.d10LagnaName,
-    short: RASHI_SHORT[analysis.d10Lagna],
+    short: lang === 'hi' ? rName(analysis.d10Lagna, lang) : RASHI_SHORT[analysis.d10Lagna],
     ...lagnaMeta,
   }
 
@@ -1209,7 +1224,7 @@ function buildSectors(analysis: DashamsaAnalysis): DashamsaSectorsPractical {
   hits.push({
     rashi: analysis.d10Lagna,
     name: analysis.d10LagnaName,
-    role: 'D10 Lagna — primary sector flavor',
+    role: T.sectorsRoleLagna,
     sector: lagnaSector,
     planetNames: analysis.houses[0]?.occupants.map((o) => o.name) ?? [],
   })
@@ -1218,12 +1233,18 @@ function buildSectors(analysis: DashamsaAnalysis): DashamsaSectorsPractical {
     if (rashi === analysis.d10Lagna && plist.length === 0) continue
     if (plist.length < 2 && rashi !== analysis.d10Lagna) continue
     if (rashi === analysis.d10Lagna) continue
-    const meta = D10_SIGN_SECTORS[rashi]
+    const meta = sectorMeta(rashi, lang)
+    const name = rName(rashi, lang)
     hits.push({
       rashi,
-      name: RASHI_NAMES[rashi],
-      role: `${plist.length} planets — secondary sector`,
-      sector: { rashi, name: RASHI_NAMES[rashi], short: RASHI_SHORT[rashi], ...meta },
+      name,
+      role: fill(T.sectorsRoleSecondary, { n: String(plist.length) }),
+      sector: {
+        rashi,
+        name,
+        short: lang === 'hi' ? name : RASHI_SHORT[rashi],
+        ...meta,
+      },
       planetNames: plist.map((p) => p.name),
     })
   }
@@ -1231,109 +1252,29 @@ function buildSectors(analysis: DashamsaAnalysis): DashamsaSectorsPractical {
   // Always include 10th house sign flavor
   const h10 = analysis.houses[9]!
   if (h10.rashi !== analysis.d10Lagna) {
-    const meta = D10_SIGN_SECTORS[h10.rashi]
+    const meta = sectorMeta(h10.rashi, lang)
     hits.push({
       rashi: h10.rashi,
       name: h10.rashiName,
-      role: 'D10 10th house sign — status sector',
+      role: T.sectorsRoleH10,
       sector: { rashi: h10.rashi, name: h10.rashiName, short: h10.rashiShort, ...meta },
       planetNames: h10.occupants.map((o) => o.name),
     })
   }
 
-  const houseFlavorNotes = [
-    'Always read House (base) + Rashi (flavor) + Planet (delivery) together.',
-    'D10 gives SECTOR / industry; Navamsha often shows whether the fruit ripens — learn D10 for interviews, D9 for results.',
-    '4th = work-from-home / clinic / cloud kitchen; 5th = social front-end; 6th = bondage under rules; 7th = partnership business; 12th = independent.',
-  ]
+  const houseFlavorNotes = [T.sectorsHouseNote0, T.sectorsHouseNote1, T.sectorsHouseNote2]
 
-  const energyNotes = [
-    'Check Sthāna bala & Kāla bala — if weak, tell the client their time has not come yet.',
-    'Energy drain after layoff is like a bullet left in: better exit near 40% drain than wait for 100%.',
-    'Helpable clients ask “which sector / where am I wrong?” — not only “when will the job come?”',
-    'Mercury is the most exploited planet in corporate D10 — protect speech and boundaries.',
-  ]
+  const energyNotes = [T.sectorsEnergy0, T.sectorsEnergy1, T.sectorsEnergy2, T.sectorsEnergy3]
 
   return {
-    method: 'Three-layer method: House = base significance · Sign = industry flavor · Planet = delivery agent.',
+    method: T.sectorsMethod,
     lagnaSector,
     hits,
-    combos: buildCombos(analysis),
+    combos: buildCombos(analysis, lang),
     houseFlavorNotes,
     energyNotes,
   }
 }
-
-const INHERITED_META: {
-  id: GrahaId
-  source: string
-  detail: string
-  toolHow: string
-}[] = [
-  {
-    id: 'Ma',
-    source: 'Ancestral karma (pitṛ)',
-    detail:
-      'Heat/passion of conception; Mars is never fully “yours” — bloodshed, land, family fights pull the whole lineage.',
-    toolHow: 'Navigates bondage with physical strength, courage, and fight.',
-  },
-  {
-    id: 'Ve',
-    source: 'DNA / seed (śukra)',
-    detail:
-      'Nature of the father’s seed in the womb; Venus problems involve kutumb / extended family.',
-    toolHow: 'Uses body, family ties, beauty, or finances to move through karma.',
-  },
-  {
-    id: 'Sa',
-    source: 'Own individual karma',
-    detail:
-      'Self-created ṛṇa — when Saturn punishes, it does so alone/in isolation.',
-    toolHow: 'Endurance, delay, solitary grind; owns the consequence personally.',
-  },
-  {
-    id: 'Mo',
-    source: 'Mother’s manobhāva',
-    detail:
-      'Mother’s emotional/mental state in conception and pregnancy — what she felt binds the mind.',
-    toolHow: 'Feels, nurtures, seeks comfort; mind is the binder to the world.',
-  },
-  {
-    id: 'Su',
-    source: 'Father’s condition & life-force',
-    detail:
-      'Father’s morals, stability, sacrifice, survival force. In D10, Sun is the MOST important for authority and position.',
-    toolHow: 'Uses authority, visibility, and responsibility to navigate.',
-  },
-  {
-    id: 'Me',
-    source: 'Maternal family (māmā–māmī)',
-    detail:
-      'Comes through maternal relatives; also speech, intelligence, paperwork.',
-    toolHow: 'Talks, analyzes, uses intellect and documents as tools.',
-  },
-  {
-    id: 'Ra',
-    source: 'Disturbance / karmic knot',
-    detail:
-      'Shows which energy is disturbed and what actually pushes the person to act in this life.',
-    toolHow: 'Obsession, shortcut, unconventional drive — the itch that forces karma.',
-  },
-  {
-    id: 'Ke',
-    source: 'Disturbance / karmic knot',
-    detail:
-      'Cuts and liberates; pairs with Rahu as the knot that motivates action and detachment.',
-    toolHow: 'Detachment, sudden exits, specialist skill without craving spotlight.',
-  },
-  {
-    id: 'Ju',
-    source: 'Bhāgya / guru grace (9th)',
-    detail:
-      'How much nature/divine support and guru-relationships across lives will hold the person.',
-    toolHow: 'Counsel, teaching, grace, expansion — walks with mentors when strong.',
-  },
-]
 
 function strengthHint(p: DashamsaPlanetRow | undefined): InheritedKarmaPlanet['strengthHint'] {
   if (!p) return 'absent'
@@ -1345,23 +1286,24 @@ function strengthHint(p: DashamsaPlanetRow | undefined): InheritedKarmaPlanet['s
   return 'mixed'
 }
 
-function buildBondage(analysis: DashamsaAnalysis): DashamsaBondagePractical {
+function buildBondage(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): DashamsaBondagePractical {
+  const T = d10pText(lang)
   const byId = new Map(analysis.planets.map((p) => [p.id, p]))
-  const sector = D10_SIGN_SECTORS[analysis.d10Lagna]
+  const sector = sectorMeta(analysis.d10Lagna, lang)
   const h1 = analysis.houses[0]!
   const lagnaLord = analysis.keyLords[0]
   const mo = byId.get('Mo')
   const moonHouseTheme = mo
-    ? (analysis.houses[mo.d10House - 1]?.theme ?? `House ${mo.d10House}`)
-    : 'Moon placement unavailable'
-  const moonSector = mo ? D10_SIGN_SECTORS[mo.d10Rashi] : null
+    ? (analysis.houses[mo.d10House - 1]?.theme ?? fill(T.verticalHouseFallback, { house: String(mo.d10House) }))
+    : T.bondageMoonMissing
+  const moonSector = mo ? sectorMeta(mo.d10Rashi, lang) : null
 
-  const inherited: InheritedKarmaPlanet[] = INHERITED_META.map((meta) => {
+  const inherited: InheritedKarmaPlanet[] = inheritedMeta(T).map((meta) => {
     const p = byId.get(meta.id)
     const hint = strengthHint(p)
     return {
       id: meta.id,
-      name: GRAHA_NAMES[meta.id],
+      name: gName(meta.id, lang),
       source: meta.source,
       detail: meta.detail,
       d10House: p?.d10House ?? null,
@@ -1369,11 +1311,11 @@ function buildBondage(analysis: DashamsaAnalysis): DashamsaBondagePractical {
       strengthHint: hint,
       toolNote:
         hint === 'strong'
-          ? `Active tool: ${meta.toolHow}`
+          ? fill(T.inheritedToolActive, { tool: meta.toolHow })
           : hint === 'soft'
-            ? `Soft/pressed: ${meta.toolHow} (expect friction).`
+            ? fill(T.inheritedToolSoft, { tool: meta.toolHow })
             : hint === 'mixed'
-              ? `Available: ${meta.toolHow}`
+              ? fill(T.inheritedToolMixed, { tool: meta.toolHow })
               : meta.toolHow,
     }
   })
@@ -1384,112 +1326,126 @@ function buildBondage(analysis: DashamsaAnalysis): DashamsaBondagePractical {
       .map((p) => p.name)
     : []
 
+  const lagnaOccNames = h1.occupants.map((o) => o.name).join(', ') || (lang === 'hi' ? 'खाली' : 'empty')
+  const houseWord = lang === 'hi' ? 'भाव {house}' : 'House {house}'
   const layered: LayeredReading[] = [
     {
       id: 'lagna',
-      title: 'D10 Lagna — health of karma',
-      priority: 'Most fundamental — if lagna energy is unsatisfied, work never feels happy',
+      title: T.bondageLayerLagnaTitle,
+      priority: T.bondageLayerLagnaPriority,
       house: {
-        label: 'House 1',
-        text: `${h1.theme} Occupants: ${h1.occupants.map((o) => o.name).join(', ') || 'empty'}.`,
+        label: T.bondageHouse1Label,
+        text: fill(T.bondageHouseThemeOcc, { theme: h1.theme, names: lagnaOccNames }),
       },
       rashi: {
         label: analysis.d10LagnaName,
         text: `${sector.headline}. ${sector.flavor}`,
       },
       planet: {
-        label: 'Lagna color',
+        label: T.bondageLagnaColorLabel,
         text: h1.occupants.length
-          ? `Planets on lagna tint the core work: ${h1.occupants.map((o) => o.name).join(', ')}.`
-          : 'Empty lagna — core karma speaks through lagna lord and sign flavor more than occupants.',
+          ? fill(T.bondagePlanetsOnLagna, { names: h1.occupants.map((o) => o.name).join(', ') })
+          : T.bondageEmptyLagna,
       },
-      synthesis: `Align effort with ${analysis.d10LagnaName} lagna flavor (${sector.industries.slice(0, 3).join(', ')}) — that is the pathway to fulfillment, not a random job title.`,
+      synthesis: fill(T.bondageSynthesisLagna, {
+        lagna: analysis.d10LagnaName,
+        industries: sector.industries.slice(0, 3).join(', '),
+      }),
     },
     {
       id: 'moon',
-      title: 'D10 Moon — why the mind took rebirth',
-      priority: 'Unfulfilled desire that binds the jīva to the world',
+      title: T.bondageLayerMoonTitle,
+      priority: T.bondageLayerMoonPriority,
       house: {
-        label: mo ? `House ${mo.d10House}` : 'Moon',
+        label: mo ? fill(houseWord, { house: String(mo.d10House) }) : gName('Mo', lang),
         text: mo
-          ? `${moonHouseTheme} — desire/entanglement zone of the mind.`
-          : 'Moon data missing.',
+          ? fill(T.bondageMoonHouseText, { theme: moonHouseTheme })
+          : T.bondageMoonMissing,
       },
       rashi: {
         label: mo?.d10RashiName ?? '—',
         text: moonSector
           ? `${moonSector.headline}. ${moonSector.flavor}`
-          : 'Sign flavor unavailable.',
+          : T.bondageSignFlavorMissing,
       },
       planet: {
-        label: 'Conjunctions',
+        label: T.bondageConjLabel,
         text: moonConj.length
-          ? `Moon joins ${moonConj.join(', ')} — past-life desire flavored by these forces (e.g. Rahu = incomplete obsession).`
-          : 'Moon stands relatively alone — desire is clearer, less knotted by companions.',
+          ? fill(T.bondageMoonConj, { names: moonConj.join(', ') })
+          : T.bondageMoonAlone,
       },
       synthesis: mo
-        ? `Past-life itch sits in D10 H${mo.d10House} ${mo.d10RashiName}${moonConj.length ? ` with ${moonConj.join(', ')}` : ''} — career is a tool to work that desire, not the desire itself.`
-        : 'Cannot synthesize Moon desire without placement.',
+        ? fill(T.bondageMoonSynthesis, {
+          house: String(mo.d10House),
+          rashi: mo.d10RashiName,
+          conj: moonConj.length ? (lang === 'hi' ? ` ${moonConj.join(', ')} के साथ` : ` with ${moonConj.join(', ')}`) : '',
+        })
+        : T.bondageMoonSynthesisMissing,
     },
     {
       id: 'lagna-lord',
-      title: 'Lagna lord — how karma is executed',
-      priority: 'Expression path of the core work',
+      title: T.bondageLayerLordTitle,
+      priority: T.bondageLayerLordPriority,
       house: {
-        label: lagnaLord ? `House ${lagnaLord.d10House}` : '—',
+        label: lagnaLord ? fill(houseWord, { house: String(lagnaLord.d10House) }) : '—',
         text: lagnaLord
-          ? `${analysis.houses[lagnaLord.d10House - 1]?.theme ?? ''} — stage where lagna energy acts.`
-          : 'Lagna lord unavailable.',
+          ? fill(T.bondageLordHouseText, {
+            theme: analysis.houses[lagnaLord.d10House - 1]?.theme ?? '',
+          })
+          : T.bondageLordUnavailable,
       },
       rashi: {
         label: lagnaLord?.d10RashiName ?? '—',
         text: lagnaLord
-          ? `${D10_SIGN_SECTORS[lagnaLord.d10Rashi].headline}`
+          ? sectorMeta(lagnaLord.d10Rashi, lang).headline
           : '—',
       },
       planet: {
         label: lagnaLord?.name ?? '—',
         text: lagnaLord
-          ? `${lagnaLord.name} (${lagnaLord.d10Dignity.replace(/_/g, ' ')}) Digpala ${lagnaLord.digpalaName} — the delivery agent of lagna karma.`
+          ? fill(T.bondageLordDigpala, {
+            name: lagnaLord.name,
+            dignity: dignityText(lagnaLord.d10Dignity, lang),
+            digpala: lagnaLord.digpala.name,
+          })
           : '—',
       },
       synthesis: lagnaLord
-        ? `Core work (${analysis.d10LagnaName}) executes via ${lagnaLord.name} in house ${lagnaLord.d10House} ${lagnaLord.d10RashiName} — read House→Sign→Planet in that order before naming a profession.`
-        : 'Lagna lord synthesis pending.',
+        ? fill(T.bondageLordSynthesis, {
+          lagna: analysis.d10LagnaName,
+          name: lagnaLord.name,
+          house: String(lagnaLord.d10House),
+          rashi: lagnaLord.d10RashiName,
+        })
+        : T.bondageLordSynthesisPending,
     },
   ]
 
   const navigationTools = [
-    { planet: 'Mercury', how: 'Talks, intellect, paperwork', active: strengthHint(byId.get('Me')) === 'strong' },
-    { planet: 'Mars', how: 'Physical strength / fight', active: strengthHint(byId.get('Ma')) === 'strong' },
-    { planet: 'Sun', how: 'Authority / position', active: strengthHint(byId.get('Su')) === 'strong' },
-    { planet: 'Venus', how: 'Body, family, finances', active: strengthHint(byId.get('Ve')) === 'strong' },
-    { planet: 'Jupiter', how: 'Grace, teaching, counsel', active: strengthHint(byId.get('Ju')) === 'strong' },
-    { planet: 'Saturn', how: 'Solo endurance', active: strengthHint(byId.get('Sa')) === 'strong' },
+    { planet: gName('Me', lang), how: T.bondageNavMercury, active: strengthHint(byId.get('Me')) === 'strong' },
+    { planet: gName('Ma', lang), how: T.bondageNavMars, active: strengthHint(byId.get('Ma')) === 'strong' },
+    { planet: gName('Su', lang), how: T.bondageNavSun, active: strengthHint(byId.get('Su')) === 'strong' },
+    { planet: gName('Ve', lang), how: T.bondageNavVenus, active: strengthHint(byId.get('Ve')) === 'strong' },
+    { planet: gName('Ju', lang), how: T.bondageNavJupiter, active: strengthHint(byId.get('Ju')) === 'strong' },
+    { planet: gName('Sa', lang), how: T.bondageNavSaturn, active: strengthHint(byId.get('Sa')) === 'strong' },
   ]
 
   return {
-    framing:
-      'Do not jump to “career title.” First ask: why did this soul take a body? Every embodiment is bondage. Once the core ṛṇa is clear, purpose and livelihood path clarify themselves. People use whatever planetary tools they were given to navigate that bondage.',
-    goldenOrder: [
-      'HOUSE first — base significance of the field of action',
-      'RASHI (sign) second — flavor / industry / style',
-      'PLANET third — delivery agent (never start here)',
-    ],
+    framing: T.bondageFraming,
+    goldenOrder: [T.bondageGolden0, T.bondageGolden1, T.bondageGolden2],
     inherited,
     layered,
     navigationTools,
     principles: [
-      'Give the chart time — 15–25 minutes of darśan before concluding.',
-      'Fewer words, more observation; guessing (“maybe…”) means you are not reading.',
-      'Avoid jargon labels (exalted/debilitated as insults) — paint a living picture.',
-      'D10 is karma/choice — describe tendencies, avoid hard determinism (unlike some D9 statements).',
-      'Whatever drama we enact — violence, power, relationships — all of that is Dashamsha.',
-      'Fulfillment comes from aligning effort with D10 lagna energy, not with a random job label.',
-      'Do not become mechanical — sync with the chart; synthesis over ChatGPT-style lists.',
+      T.bondagePrinciple0,
+      T.bondagePrinciple1,
+      T.bondagePrinciple2,
+      T.bondagePrinciple3,
+      T.bondagePrinciple4,
+      T.bondagePrinciple5,
+      T.bondagePrinciple6,
     ],
-    homework:
-      'Take 5–6 known charts. Read D10 lagna first (House→Sign→Planet). Predict core karma/work nature. Verify with them. That practice builds real D10 lagna skill.',
+    homework: T.bondageHomework,
   }
 }
 
@@ -1499,40 +1455,18 @@ const ELEMENT_OF: Record<Rashi, 'fire' | 'earth' | 'air' | 'water'> = {
   9: 'fire', 10: 'earth', 11: 'air', 12: 'water',
 }
 
-const ELEMENT_LABEL: Record<'fire' | 'earth' | 'air' | 'water', string> = {
-  fire: 'Fire (drive / initiation)',
-  earth: 'Earth (resources / endurance)',
-  air: 'Air (ideas / networks)',
-  water: 'Water (care / depth)',
-}
-
-/** Short recharge practices keyed by D10 (and D1) lagna sign. */
-const LAGNA_RECHARGE: Record<Rashi, string> = {
-  1: 'Keep starting real projects in small arenas — sparring, builds, sales from zero. Idle Aries stagnates.',
-  2: 'Stay close to capital, budgets, and tangible assets. Starve Taurus of resources and the field dies.',
-  3: 'Stay a lifelong student of tools — write, automate, ship paperwork cleanly every week.',
-  4: 'Serve people or healing causes regularly; rigid SOP desks without public contact poison Cancer.',
-  5: 'Lead visibly — present, manage, hold a stage. Leo recharges through rightful authority, not hiding.',
-  6: 'Keep SOPs, health routines, and skill drills sharp. Virgo drains when work has no measurable improvement.',
-  7: 'Protect polish and standards — dress, environment, client quality. Libra collapses in crude grind.',
-  8: 'Do deep work on crisis, research, or recovery themes; shallow busywork underfeeds Scorpio.',
-  9: 'Keep client-facing counsel or teaching loops alive; alone-lab Sagittarius loses the third-party current.',
-  10: 'Honour long hours on one serious craft. Capricorn recharges through committed structure, not scatter.',
-  11: 'Ship experiments and side channels; Aquarius dies in pure hierarchy without room to break norms.',
-  12: 'Protect solitude, night craft, or foreign/freelance modes. Forced 9–5 bondage empties Pisces.',
-}
-
 function houseDistance(from: Rashi, to: Rashi): number {
   return ((to - from + 12) % 12) + 1
 }
 
-function buildLagnaSync(analysis: DashamsaAnalysis, chart: ChartOutput): LagnaSyncReading {
+function buildLagnaSync(analysis: DashamsaAnalysis, chart: ChartOutput, lang: EngineLang = 'en'): LagnaSyncReading {
+  const T = d10pText(lang)
   const d1 = chart.lagnas.ascRashi
   const d10 = analysis.d10Lagna
-  const d1Name = RASHI_NAMES[d1]
+  const d1Name = rName(d1, lang)
   const d10Name = analysis.d10LagnaName
-  const d1Sector = D10_SIGN_SECTORS[d1]
-  const d10Sector = D10_SIGN_SECTORS[d10]
+  const d1Sector = sectorMeta(d1, lang)
+  const d10Sector = sectorMeta(d10, lang)
   const d1El = ELEMENT_OF[d1]
   const d10El = ELEMENT_OF[d10]
   const dist = houseDistance(d1, d10) // 1 = same
@@ -1553,62 +1487,77 @@ function buildLagnaSync(analysis: DashamsaAnalysis, chart: ChartOutput): LagnaSy
   let bridge: string
   let counsel: string
 
-  const d1Role = `Birth lagna (${d1Name}): who you are under pressure — ${d1Sector.flavor}`
-  const d10Role = `Career lagna (${d10Name}): where livelihood actually runs — ${d10Sector.headline}. Typical doors: ${d10Sector.industries.slice(0, 3).join('; ')}.`
+  const d1Role = fill(T.syncD1Role, { d1Name, d1Flavor: d1Sector.flavor })
+  const d10Role = fill(T.syncD10Role, {
+    d10Name,
+    d10Headline: d10Sector.headline,
+    doors: d10Sector.industries.slice(0, 3).join('; '),
+  })
 
   if (d1 === d10) {
     status = 'synced'
-    statusLabel = 'Synced'
-    headline = `${d1Name} on both D1 and D10 — identity and livelihood share one engine`
-    text = `When the rising signs match, career can ride the same energy you already are. Dasha weather still moves, but you are not borrowing a foreign field — ${d1Name} work feels native.`
-    bridge = `Lean fully into ${d1Name} strengths at work. The more the job uses this sign’s craft, the more stable the chart feels through ups and downs.`
-    counsel = 'Prefer roles that look like this lagna’s sector list. Forcing a mismatched industry wastes a rare sync advantage.'
+    statusLabel = T.syncStatusSynced
+    headline = fill(T.syncSyncedHeadline, { name: d1Name })
+    text = fill(T.syncSyncedText, { name: d1Name })
+    bridge = fill(T.syncSyncedBridge, { name: d1Name })
+    counsel = T.syncSyncedCounsel
   } else if (sameElement) {
     status = 'element-bridge'
-    const elWord = d1El === 'fire' ? 'Fire' : d1El === 'earth' ? 'Earth' : d1El === 'air' ? 'Air' : 'Water'
-    statusLabel = `${elWord} bridge`
-    headline = `${d1Name} (D1) ↔ ${d10Name} (D10) — same ${elWord.toLowerCase()} element, different dialect`
-    text = `The signs differ, but they speak the same elemental language (${ELEMENT_LABEL[d1El]}). Livelihood will not feel alien so much as “translated”: your ${d1Name} nature must learn the work habits of ${d10Name}.`
-    bridge = `Use ${d1Name} as the personal operating system and ${d10Name} as the professional market. Example pattern: keep ${d1Name} skills sharp while accepting ${d10Name}’s industry rules, hours, and barriers.`
+    const elWord = lang === 'hi'
+      ? { fire: 'अग्नि', earth: 'पृथ्वी', air: 'वायु', water: 'जल' }[d1El]
+      : d1El === 'fire' ? 'Fire' : d1El === 'earth' ? 'Earth' : d1El === 'air' ? 'Air' : 'Water'
+    statusLabel = fill(T.syncStatusElementBridge, { element: elWord })
+    headline = fill(T.syncElementHeadline, { d1Name, d10Name, element: lang === 'hi' ? elWord : elWord.toLowerCase() })
+    text = fill(T.syncElementText, {
+      d1Name,
+      d10Name,
+      elementLabel: elementLabelText(d1El, T),
+    })
+    bridge = fill(T.syncElementBridge, { d1Name, d10Name })
     counsel = d10Sector.caution
-      ? `Watch the ${d10Name} caution: ${d10Sector.caution}`
-      : `Build a weekly rhythm that feeds both signs — identity practice (${d1Name}) plus career practice (${d10Name}).`
+      ? fill(T.syncElementCounselCaution, { d10Name, caution: d10Sector.caution })
+      : fill(T.syncElementCounselRhythm, { d1Name, d10Name })
   } else if (softMoon || softSun || trineLink) {
     status = 'soft-link'
-    statusLabel = softMoon ? 'Moon link' : softSun ? 'Sun link' : 'Trine link'
-    headline = `${d1Name} life-path linked softly to ${d10Name} career`
+    statusLabel = softMoon ? T.syncStatusMoonLink : softSun ? T.syncStatusSunLink : T.syncStatusTrineLink
+    headline = fill(T.syncSoftHeadline, { d1Name, d10Name })
     const linkBit = softMoon
-      ? `D10 lagna matches the Moon sign — the mind already recognises this career field.`
+      ? T.syncSoftMoon
       : softSun
-        ? `D10 lagna matches the Sun sign — purpose/ego can endorse this livelihood.`
-        : `${d10Name} sits in a 5/9 harmony from ${d1Name} — supportive angle, not identity twin.`
-    text = `${linkBit} Still an offset of rising signs, so expect a learning curve: personal style (${d1Name}) and job theatre (${d10Name}) need conscious bridging.`
-    bridge = `Treat ${d10Name} as the stage and ${d1Name} as the actor’s training. Interview and role choice should favour ${d10Name} sectors; daily self-care should recharge ${d1Name}.`
-    counsel = 'Do not force exact-sign “sync” remedies. Soft links work when you honour both layers without pretending they are identical.'
+        ? T.syncSoftSun
+        : fill(T.syncSoftTrine, { d10Name, d1Name })
+    text = fill(T.syncSoftText, { linkBit, d1Name, d10Name })
+    bridge = fill(T.syncSoftBridge, { d10Name, d1Name })
+    counsel = T.syncSoftCounsel
   } else if (strainAxis) {
     status = 'strain'
-    statusLabel = 'Strain axis'
-    headline = `${d1Name} ↔ ${d10Name} sits on a 6/8-style tension`
-    text = `Birth rising and career rising pull in competing directions. Work can feel like duty against temperament — productive under discipline, exhausting if you deny either side.`
-    bridge = `Name the conflict openly: ${d1Name} wants ${d1Sector.industries[0] ?? 'its own craft'}; ${d10Name} demands ${d10Sector.industries[0] ?? 'its market'}. Schedule recovery for the D1 sign after D10 grind days.`
-    counsel = 'Prefer roles that let ${d10Name} pay the bills while ${d1Name} gets a protected side channel (study, craft, service) — full denial of either side drains energy fastest.'
+    statusLabel = T.syncStatusStrain
+    headline = fill(T.syncStrainHeadline, { d1Name, d10Name })
+    text = T.syncStrainText
+    bridge = fill(T.syncStrainBridge, {
+      d1Name,
+      d10Name,
+      d1Craft: d1Sector.industries[0] ?? 'its own craft',
+      d10Craft: d10Sector.industries[0] ?? 'its market',
+    })
+    counsel = fill(T.syncStrainCounsel, { d10Name, d1Name })
   } else {
     status = 'offset'
-    statusLabel = 'Offset'
-    headline = `${d1Name} self · ${d10Name} livelihood — two engines, one life`
-    text = `D1 and D10 do not share the same rising sign. That is common — it means livelihood runs on a different “fuel” than your default personality. Skill can be high while the job still feels borrowed until you recharge both fields on purpose.`
-    bridge = `Map two columns: (1) ${d1Name} — how you think and recover; (2) ${d10Name} — which industry doors to knock. Career advice should start from D10; counselling and burnout care should start from D1.`
+    statusLabel = T.syncStatusOffset
+    headline = fill(T.syncOffsetHeadline, { d1Name, d10Name })
+    text = T.syncOffsetText
+    bridge = fill(T.syncOffsetBridge, { d1Name, d10Name })
     counsel = d10Sector.caution
-      ? `While working the ${d10Name} field, remember: ${d10Sector.caution}`
-      : `Align applications with ${d10Name} sectors; keep ${d1Name} habits as the private battery.`
+      ? fill(T.syncOffsetCounselCaution, { d10Name, caution: d10Sector.caution })
+      : fill(T.syncOffsetCounselDefault, { d10Name, d1Name })
   }
 
   const recharge = [
-    `Recharge D1 (${d1Name}): ${LAGNA_RECHARGE[d1]}`,
-    `Recharge D10 (${d10Name}): ${LAGNA_RECHARGE[d10]}`,
+    fill(T.syncRechargeD1, { name: d1Name, text: lagnaRechargeText(d1, T) }),
+    fill(T.syncRechargeD10, { name: d10Name, text: lagnaRechargeText(d10, T) }),
   ]
   if (sameElement) {
-    recharge.push(`Shared ${ELEMENT_LABEL[d1El]} — practices that build endurance, craft, and tangible output feed both signs.`)
+    recharge.push(fill(T.syncRechargeSharedElement, { elementLabel: elementLabelText(d1El, T) }))
   }
 
   return {
@@ -1629,64 +1578,48 @@ function buildLagnaSync(analysis: DashamsaAnalysis, chart: ChartOutput): LagnaSy
   }
 }
 
-function dashaEventForHouse(house: number | null): Omit<DashaHouseEvent, 'levelLabel' | 'lordName' | 'd10House'> {
+function dashaEventForHouse(
+  house: number | null,
+  T: D10PText,
+): Omit<DashaHouseEvent, 'levelLabel' | 'lordName' | 'd10House'> {
   if (house == null) {
-    return { event: 'D10 house unknown for this lord.', tone: 'neutral', pathHint: null }
+    return { event: T.dashaEventUnknown, tone: 'neutral', pathHint: null }
   }
   if (house === 8) {
-    return {
-      event: '8th-house dasha in D10 — current work chapter tends to end; face change, do not hide.',
-      tone: 'challenging',
-      pathHint: 'Jnana path: occult/research/healing pivot. Bhakti path: endure as witness; often re-settle in a new field after dasha.',
-    }
+    return { event: T.dashaEventH8, tone: 'challenging', pathHint: T.dashaPathH8Jnana }
   }
   if (house === 12) {
-    return {
-      event: '12th-house dasha in D10 — release, foreign, or faith-mode work; logic alone fails.',
-      tone: 'challenging',
-      pathHint: 'Operate on faith/Prakṛti support; Pisces-like surrender of analysis.',
-    }
+    return { event: T.dashaEventH12, tone: 'challenging', pathHint: T.dashaPathH12 }
   }
   if (house === 5) {
-    return {
-      event: '5th-house dasha — status/creativity/education themes; watch 5+8 demotion or 5+12 transfer patterns.',
-      tone: 'mixed',
-      pathHint: 'With 8th: fire/demotion risk. With 9th: favor higher studies. With 12th: transfer flavor.',
-    }
+    return { event: T.dashaEventH5, tone: 'mixed', pathHint: T.dashaPathH5 }
   }
   if (house === 11) {
-    return {
-      event: '11th-house dasha — team/gains shift inside the organization more than total exit.',
-      tone: 'mixed',
-      pathHint: null,
-    }
+    return { event: T.dashaEventH11, tone: 'mixed', pathHint: null }
   }
   if (house === 6) {
-    return {
-      event: '6th-house dasha — service, rivalry, and bondage under systems intensify.',
-      tone: 'mixed',
-      pathHint: null,
-    }
+    return { event: T.dashaEventH6, tone: 'mixed', pathHint: null }
   }
   if ([1, 10].includes(house)) {
     return {
-      event: `H${house} dasha — core livelihood / status pressure; keep prescribed duty without attachment.`,
+      event: fill(T.dashaEventH110, { house: String(house) }),
       tone: 'supportive',
       pathHint: null,
     }
   }
   return {
-    event: `D10 H${house} dasha — work karma colors this house’s field.`,
+    event: fill(T.dashaEventGeneric, { house: String(house) }),
     tone: 'neutral',
     pathHint: null,
   }
 }
 
-function buildKarmaYoga(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaKarmaYogaPractical {
-  const sync = buildLagnaSync(analysis, chart)
+function buildKarmaYoga(analysis: DashamsaAnalysis, chart: ChartOutput, lang: EngineLang = 'en'): DashamsaKarmaYogaPractical {
+  const T = d10pText(lang)
+  const sync = buildLagnaSync(analysis, chart, lang)
 
   const dashaEvents: DashaHouseEvent[] = (analysis.dashaOverlay?.lords ?? []).map((l) => {
-    const meta = dashaEventForHouse(l.d10House)
+    const meta = dashaEventForHouse(l.d10House, T)
     return {
       levelLabel: l.levelLabel,
       lordName: l.lordName,
@@ -1700,20 +1633,17 @@ function buildKarmaYoga(analysis: DashamsaAnalysis, chart: ChartOutput): Dashams
   const has5and8 = housesHit.has(5) && housesHit.has(8)
   const has5and12 = housesHit.has(5) && housesHit.has(12)
 
-  let crisisHeadline = 'No 8th/12th dasha crisis signature right now'
-  if (has5and8) crisisHeadline = '5th + 8th dasha link — fire / demotion / role-elimination risk'
-  else if (has5and12) crisisHeadline = '5th + 12th dasha link — transfer / relocation flavor'
-  else if (crisisActive) crisisHeadline = '8th or 12th dasha active — chapter ending; remedies build acceptance, not escape'
+  let crisisHeadline: string = T.crisisHeadlineNone
+  if (has5and8) crisisHeadline = T.crisisHeadline58
+  else if (has5and12) crisisHeadline = T.crisisHeadline512
+  else if (crisisActive) crisisHeadline = T.crisisHeadline812
 
   const crisisMode = {
     active: crisisActive || has5and8 || has5and12,
     headline: crisisHeadline,
-    jnanaPath:
-      'During 8th dasha many turn to occult, healing, research, consultations — discover true nature but may leave the old career.',
-    bhaktiPath:
-      'Others treat God as witness, keep steady service without attachment; after dasha, work often re-forms in another field.',
-    acceptanceRule:
-      'Gītā 3.2–3.4: remedies align energy and acceptance — they do not cancel fated chapter-ends. Escaping duty as “sannyāsa” while the mind flees looks like fear, not freedom.',
+    jnanaPath: T.crisisJnana,
+    bhaktiPath: T.crisisBhakti,
+    acceptanceRule: T.crisisAcceptance,
   }
 
   // Triad activity: planets in those house groups OR dasha lords hitting them
@@ -1730,40 +1660,43 @@ function buildKarmaYoga(analysis: DashamsaAnalysis, chart: ChartOutput): Dashams
     {
       id: 'fire',
       houses: '1–5–9',
-      element: 'Fire (Agni)',
-      signs: 'Aries, Leo, Sagittarius',
-      remedy: 'Agnihotra / fire yajña — fire starts the person’s work.',
+      element: lang === 'hi' ? 'अग्नि' : 'Fire (Agni)',
+      signs: lang === 'hi' ? 'मेष, सिंह, धनु' : 'Aries, Leo, Sagittarius',
+      remedy: T.triadFireRemedy,
       active: fireN >= 3,
-      reason: fireN >= 3 ? `${fireN} hits on fire triad (planets + dasha).` : 'Fire triad quieter.',
+      reason: fireN >= 3 ? fill(T.triadReasonFire, { n: String(fireN) }) : T.triadReasonQuiet,
     },
     {
       id: 'earth',
       houses: '2–6–10',
-      element: 'Earth (Pṛthivī)',
-      signs: 'Taurus, Virgo, Capricorn',
-      remedy: 'Dāna / charity matching the troubling planet — pending-karma axis.',
+      element: lang === 'hi' ? 'पृथ्वी' : 'Earth (Pṛthivī)',
+      signs: lang === 'hi' ? 'वृषभ, कन्या, मकर' : 'Taurus, Virgo, Capricorn',
+      remedy: T.triadEarthRemedy,
       active: earthN >= 3,
-      reason: earthN >= 3 ? `${earthN} hits on earth triad.` : 'Earth triad quieter.',
+      reason: earthN >= 3 ? fill(T.triadReasonEarth, { n: String(earthN) }) : T.triadReasonEarthQuiet,
     },
     {
       id: 'air',
       houses: '3–7–11',
-      element: 'Air (Vāyu)',
-      signs: 'Gemini, Libra, Aquarius',
-      remedy: 'Bhajan, kīrtan, saṅkīrtan, home programs, abhiṣeka / śṛṅgāra of the deity.',
+      element: lang === 'hi' ? 'वायु' : 'Air (Vāyu)',
+      signs: lang === 'hi' ? 'मिथुन, तुला, कुंभ' : 'Gemini, Libra, Aquarius',
+      remedy: T.triadAirRemedy,
       active: airN >= 3,
-      reason: airN >= 3 ? `${airN} hits on air triad.` : 'Air triad quieter.',
+      reason: airN >= 3 ? fill(T.triadReasonAir, { n: String(airN) }) : T.triadReasonAirQuiet,
     },
     {
       id: 'water',
       houses: '4–8–12',
-      element: 'Water (Jala)',
-      signs: 'Cancer, Scorpio, Pisces',
-      remedy: 'Dhām darśan / pilgrimage and mokṣa-oriented practice.',
+      element: lang === 'hi' ? 'जल' : 'Water (Jala)',
+      signs: lang === 'hi' ? 'कर्क, वृश्चिक, मीन' : 'Cancer, Scorpio, Pisces',
+      remedy: T.triadWaterRemedy,
       active: waterN >= 3 || crisisActive,
       reason: crisisActive || waterN >= 3
-        ? `${waterN} hits${crisisActive ? ' + 8/12 dasha' : ''} on water triad.`
-        : 'Water triad quieter.',
+        ? fill(T.triadReasonWater, {
+          n: String(waterN),
+          extra: crisisActive ? T.triadReasonWaterExtra : '',
+        })
+        : T.triadReasonWaterQuiet,
     },
   ]
 
@@ -1785,40 +1718,36 @@ function buildKarmaYoga(analysis: DashamsaAnalysis, chart: ChartOutput): Dashams
           d1Dignity: d1.dignity,
           d9Dignity: d9p.dignity,
           d10House: p.d10House,
-          d10Note: `Strong in D1 (${d1.dignity}) but soft in D9 (${d9p.dignity}) — check D10 H${p.d10House} ${p.d10RashiName} (${p.digpala.name}) for the karma that “spoiled” this graha’s fruit.`,
+          d10Note: fill(T.corruptionNote, {
+            d1Dignity: dignityText(d1.dignity, lang),
+            d9Dignity: dignityText(d9p.dignity, lang),
+            house: String(p.d10House),
+            rashi: p.d10RashiName,
+            digpala: p.digpala.name,
+          }),
         })
       }
     }
   }
 
   return {
-    framing:
-      'Bhagavad Gītā ch.3 (Karma Yoga) on D10: Prakṛti forces action; 8th/12th dashas end chapters; remedies build acceptance and energy alignment — the astrologer serves the grahas, not client wish-fulfillment.',
+    framing: T.karmaYogaFraming,
     sync,
     dashaEvents,
     crisisMode,
     triads,
     corruption,
-    oilField:
-      'A livelihood sign is a finite well: when that planet’s dasha ends, the job can end even if skill remains. Exact D1=D10 sync reuses one well; offset charts must recharge both identity (D1) and career (D10) on purpose — lagna responds to aligned action, study, and duty; other houses empty faster.',
+    oilField: T.oilField,
     multiChart: [
-      'D1 — battlefield / life context',
-      'D3 — mind, courage, inclination',
-      'D9 — fruit / destiny outcome',
-      'D10 — karma actually being done',
-      'D27 — whether the heart/stamina supports the work',
-      'D2 — wealth inflow and drain',
-      'Golden rule: planet strong in D1 but damaged in D9 → always open D10 for the corrupting action.',
+      T.karmaYogaMulti0,
+      T.karmaYogaMulti1,
+      T.karmaYogaMulti2,
+      T.karmaYogaMulti3,
+      T.karmaYogaMulti4,
+      T.karmaYogaMulti5,
+      T.karmaYogaMulti6,
     ],
-    ethics: [
-      'Remedies ≠ changing destiny; they align acceptance (Arjuna receives ātma-jñāna to face battle, not cancel it).',
-      'Transactional “save my job” rituals alone do not stop Prakṛti.',
-      'Warn early (save money, EMI risk) — speak hard truth; false hope drains puṇya.',
-      'If client refuses tapasyā, return fees — do not carry ineffective consultation karma.',
-      'Offer a portion back (Viṣṇu / guru / deity); ungrateful “I did it myself” fades blessings.',
-      'Keep prescribed duty even when income pauses (Gītā 3.8) — research and craft without attachment.',
-      'You are a servant of the planets, not of the client.',
-    ],
+    ethics: [T.ethics0, T.ethics1, T.ethics2, T.ethics3, T.ethics4, T.ethics5, T.ethics6],
   }
 }
 
@@ -1833,111 +1762,199 @@ function occupantsAtHouse(grahas: GrahaData[], asc: Rashi, house: number): Graha
   return grahas.filter((g) => houseFrom(asc, g.rashi) === house)
 }
 
-function dashaHouseNote(code: CircuitVargaCode, lord: GrahaId, house: number, levelIndex = 0): CircuitNote {
-  const name = GRAHA_NAMES[lord]
-  // Level index keeps IDs unique when the same lord repeats (e.g. Me–Me antardasha).
+/** D7 / D9 / D2 circuit notes (English text kept verbatim; Hindi twin below). */
+const CIRCUIT_VARGA_EN = {
+  d7LagnaTitle: 'D7 lagna · {name}',
+  d7LagnaText: 'Relationship / children karma activates — this lord’s dasha is pivotal for who enters life.',
+  d7H7Title: 'D7 · {name} in 7th',
+  d7H7Text: 'Partner axis lit — meeting, haunting old love, or bond renegotiation.',
+  d7H10Title: 'D7 · {name} in 10th',
+  d7H10Text: 'Partner likely met via workplace / status field.',
+  d7HouseTitle: 'D7 · {name} in house {house}',
+  d7DusText: 'Relationship strain, hidden bonds, or exit path active.',
+  d7TrineText: 'Children / fortune / gains themes in relationship field — pregnancy timing needs D2+D9 confirm.',
+  d7DefText: 'Who enters / leaves life colors this house.',
+  d9FruitTitle: 'D9 fruit · {name} in house {house}',
+  d9DusText: 'Destiny outcome under strain — confirm with D7 before naming cheating/break.',
+  d9AxisTitle: 'D9 · {name} on axis',
+  d9AxisText: 'Final partnership result crystallizes through this lord.',
+  d9H11Title: 'D9 · {name} in 11th',
+  d9H11Text: 'Gains / network fruit — can include fake promises if Venus sign is Aquarius-flavored.',
+  d9H5Title: 'D9 · {name} in 5th',
+  d9H5Text: 'Children / romance fruit confirms; conflict after childbirth needs Virgo/3rd checks.',
+  d9HouseTitle: 'D9 · {name} in house {house}',
+  d9DefText: 'Navāṁśa fruit of the running period.',
+  d2HouseTitle: 'D2 · {name} in house {house}',
+  d2DusText: 'Passive / maternity / hidden wealth flavor — not the same as D10 promotion.',
+  d2H45Text: 'Home / children spending and inflow; stay-home money possible.',
+  d2H11Title: 'D2 · {name} in 11th',
+  d2H11Text: 'Social recognition through wealth eventually rises.',
+  d2DefText: 'Wealth inflow/drain through this house.',
+  d10H12Title: 'D10 · {name} in 12th',
+  d10H3Title: 'D10 · {name} in 3rd',
+  d10HouseTitle: 'D10 · {name} in house {house}',
+}
+
+const CIRCUIT_VARGA_HI: Record<keyof typeof CIRCUIT_VARGA_EN, string> = {
+  d7LagnaTitle: 'D7 लग्न · {name}',
+  d7LagnaText: 'संबंध / संतान का कर्म सक्रिय होता है: इस स्वामी की दशा तय करती है कि जीवन में कौन आता है।',
+  d7H7Title: 'D7 · {name} सप्तम भाव में',
+  d7H7Text: 'साथी की धुरी प्रकाशित: मिलना, पुराने प्रेम की याद, या बंधन पर फिर से बात।',
+  d7H10Title: 'D7 · {name} दशम भाव में',
+  d7H10Text: 'साथी संभवतः कार्यस्थल / प्रतिष्ठा के क्षेत्र से मिलता है।',
+  d7HouseTitle: 'D7 · {name} भाव {house} में',
+  d7DusText: 'संबंधों में तनाव, छिपे बंधन, या अलग होने का रास्ता सक्रिय।',
+  d7TrineText: 'संबंध के क्षेत्र में संतान / भाग्य / लाभ के विषय: गर्भधारण के समय के लिए D2+D9 से पुष्टि चाहिए।',
+  d7DefText: 'जीवन में कौन आता / जाता है, यह इस भाव को रंगता है।',
+  d9FruitTitle: 'D9 फल · {name} भाव {house} में',
+  d9DusText: 'भाग्य के परिणाम पर दबाव: धोखे / टूटन का नाम लेने से पहले D7 से पुष्टि करें।',
+  d9AxisTitle: 'D9 · {name} धुरी पर',
+  d9AxisText: 'साझेदारी का अंतिम परिणाम इसी स्वामी से ठोस होता है।',
+  d9H11Title: 'D9 · {name} एकादश भाव में',
+  d9H11Text: 'लाभ / नेटवर्क का फल: शुक्र की राशि पर कुंभ का स्वर हो तो झूठे वादे भी शामिल हो सकते हैं।',
+  d9H5Title: 'D9 · {name} पंचम भाव में',
+  d9H5Text: 'संतान / प्रेम का फल पुष्ट होता है; संतान के बाद के संघर्ष के लिए कन्या / तृतीय भाव की जाँच चाहिए।',
+  d9HouseTitle: 'D9 · {name} भाव {house} में',
+  d9DefText: 'चल रही अवधि का नवांश फल।',
+  d2HouseTitle: 'D2 · {name} भाव {house} में',
+  d2DusText: 'निष्क्रिय / मातृत्व / छिपे धन का स्वर: यह D10 की पदोन्नति जैसा नहीं।',
+  d2H45Text: 'घर / संतान पर ख़र्च और आय; घर बैठे धन संभव।',
+  d2H11Title: 'D2 · {name} एकादश भाव में',
+  d2H11Text: 'धन के माध्यम से सामाजिक मान्यता अंततः बढ़ती है।',
+  d2DefText: 'इस भाव से धन का आना / जाना।',
+  d10H12Title: 'D10 · {name} द्वादश भाव में',
+  d10H3Title: 'D10 · {name} तृतीय भाव में',
+  d10HouseTitle: 'D10 · {name} भाव {house} में',
+}
+
+function dashaHouseNote(
+  code: CircuitVargaCode,
+  lord: GrahaId,
+  house: number,
+  lang: EngineLang,
+  levelIndex = 0,
+): CircuitNote {
+  const T = d10pText(lang)
+  const name = gName(lord, lang)
   const id = `${code.toLowerCase()}-dasha-${lord}-h${house}-L${levelIndex}`
   if (code === 'D3') {
     if ([6, 8, 12].includes(house)) {
+      const titleKey = house === 8 ? T.circuitD3H8Title : house === 6 ? T.circuitD3H6Title : T.circuitD3H12Title
+      const textKey = house === 8 ? T.circuitD3H8Text : house === 6 ? T.circuitD3H6Text : T.circuitD3H12Text
       return {
         id,
-        title: `D3 mind · ${name} in house ${house}`,
-        text: house === 8
-          ? 'Mind stuck in a pit — fear, grief, inability to move on.'
-          : house === 6
-            ? 'Mind on conflict, court, karma friction, family tension.'
-            : 'Mind cannot forget; endings and regret loop.',
+        title: fill(titleKey, { name, house: String(house) }),
+        text: textKey,
         tone: 'challenging',
       }
     }
     if (house === 4) {
-      return { id, title: `D3 · ${name} in 4th`, text: 'Thoughts on comfort, home, mother, emotional security — often links to conflict axis.', tone: 'mixed' }
+      return { id, title: fill(T.circuitD3H4Title, { name }), text: T.circuitD3H4Text, tone: 'mixed' }
     }
     if (house === 5 || house === 7) {
-      return { id, title: `D3 · ${name} in house ${house}`, text: 'Mind stays on romance / bond themes.', tone: 'mixed' }
+      return {
+        id,
+        title: fill(T.circuitD3H57Title, { name, house: String(house) }),
+        text: T.circuitD3H57Text,
+        tone: 'mixed',
+      }
     }
     if (house === 3) {
-      return { id, title: `D3 · ${name} in 3rd`, text: 'Mind tracks who is entering via communication.', tone: 'mixed' }
+      return { id, title: fill(T.circuitD3H3Title, { name }), text: T.circuitD3H3Text, tone: 'mixed' }
     }
     if (house === 1) {
-      return { id, title: `D3 · ${name} on lagna`, text: 'Subconscious identity under training/correction this period.', tone: 'mixed' }
+      return { id, title: fill(T.circuitD3H1Title, { name }), text: T.circuitD3H1Text, tone: 'mixed' }
     }
-    return { id, title: `D3 · ${name} in house ${house}`, text: 'Period colors mental inclination through this house.', tone: 'neutral' }
+    return {
+      id,
+      title: fill(T.circuitD3HDefTitle, { name, house: String(house) }),
+      text: T.circuitD3HDefText,
+      tone: 'neutral',
+    }
   }
+  const X = lang === 'hi' ? CIRCUIT_VARGA_HI : CIRCUIT_VARGA_EN
+  const ttl = (key: keyof typeof CIRCUIT_VARGA_EN) => fill(X[key], { name, house: String(house) })
   if (code === 'D7') {
     if (house === 1) {
-      return { id, title: `D7 lagna · ${name}`, text: 'Relationship / children karma activates — this lord’s dasha is pivotal for who enters life.', tone: 'mixed' }
+      return { id, title: ttl('d7LagnaTitle'), text: X.d7LagnaText, tone: 'mixed' }
     }
     if (house === 7) {
-      return { id, title: `D7 · ${name} in 7th`, text: 'Partner axis lit — meeting, haunting old love, or bond renegotiation.', tone: 'mixed' }
+      return { id, title: ttl('d7H7Title'), text: X.d7H7Text, tone: 'mixed' }
     }
     if (house === 10) {
-      return { id, title: `D7 · ${name} in 10th`, text: 'Partner likely met via workplace / status field.', tone: 'mixed' }
+      return { id, title: ttl('d7H10Title'), text: X.d7H10Text, tone: 'mixed' }
     }
     if ([6, 8, 12].includes(house)) {
-      return { id, title: `D7 · ${name} in house ${house}`, text: 'Relationship strain, hidden bonds, or exit path active.', tone: 'challenging' }
+      return { id, title: ttl('d7HouseTitle'), text: X.d7DusText, tone: 'challenging' }
     }
     if (house === 5 || house === 9 || house === 11) {
-      return { id, title: `D7 · ${name} in house ${house}`, text: 'Children / fortune / gains themes in relationship field — pregnancy timing needs D2+D9 confirm.', tone: 'supportive' }
+      return { id, title: ttl('d7HouseTitle'), text: X.d7TrineText, tone: 'supportive' }
     }
-    return { id, title: `D7 · ${name} in house ${house}`, text: 'Who enters / leaves life colors this house.', tone: 'neutral' }
+    return { id, title: ttl('d7HouseTitle'), text: X.d7DefText, tone: 'neutral' }
   }
   if (code === 'D9') {
     if ([6, 8, 12].includes(house)) {
-      return { id, title: `D9 fruit · ${name} in house ${house}`, text: 'Destiny outcome under strain — confirm with D7 before naming cheating/break.', tone: 'challenging' }
+      return { id, title: ttl('d9FruitTitle'), text: X.d9DusText, tone: 'challenging' }
     }
     if (house === 7 || house === 1) {
-      return { id, title: `D9 · ${name} on axis`, text: 'Final partnership result crystallizes through this lord.', tone: 'mixed' }
+      return { id, title: ttl('d9AxisTitle'), text: X.d9AxisText, tone: 'mixed' }
     }
     if (house === 11) {
-      return { id, title: `D9 · ${name} in 11th`, text: 'Gains / network fruit — can include fake promises if Venus sign is Aquarius-flavored.', tone: 'mixed' }
+      return { id, title: ttl('d9H11Title'), text: X.d9H11Text, tone: 'mixed' }
     }
     if (house === 5) {
-      return { id, title: `D9 · ${name} in 5th`, text: 'Children / romance fruit confirms; conflict after childbirth needs Virgo/3rd checks.', tone: 'mixed' }
+      return { id, title: ttl('d9H5Title'), text: X.d9H5Text, tone: 'mixed' }
     }
-    return { id, title: `D9 · ${name} in house ${house}`, text: 'Navāṁśa fruit of the running period.', tone: 'neutral' }
+    return { id, title: ttl('d9HouseTitle'), text: X.d9DefText, tone: 'neutral' }
   }
   if (code === 'D2') {
     if (house === 8 || house === 12) {
-      return { id, title: `D2 · ${name} in house ${house}`, text: 'Passive / maternity / hidden wealth flavor — not the same as D10 promotion.', tone: 'mixed' }
+      return { id, title: ttl('d2HouseTitle'), text: X.d2DusText, tone: 'mixed' }
     }
     if (house === 4 || house === 5) {
-      return { id, title: `D2 · ${name} in house ${house}`, text: 'Home / children spending and inflow; stay-home money possible.', tone: 'mixed' }
+      return { id, title: ttl('d2HouseTitle'), text: X.d2H45Text, tone: 'mixed' }
     }
     if (house === 11) {
-      return { id, title: `D2 · ${name} in 11th`, text: 'Social recognition through wealth eventually rises.', tone: 'supportive' }
+      return { id, title: ttl('d2H11Title'), text: X.d2H11Text, tone: 'supportive' }
     }
-    return { id, title: `D2 · ${name} in house ${house}`, text: 'Wealth inflow/drain through this house.', tone: 'neutral' }
+    return { id, title: ttl('d2HouseTitle'), text: X.d2DefText, tone: 'neutral' }
   }
   // D10
   if (house === 8) {
-    return { id, title: `D10 karma · ${name} in 8th`, text: 'Hidden / transformative karma — cutter dasha; verify research vs job loss vs new venture via D3/D7.', tone: 'challenging' }
+    return {
+      id,
+      title: fill(T.circuitD10H8Title, { name }),
+      text: T.circuitD10H8Text,
+      tone: 'challenging',
+    }
   }
   if (house === 12) {
-    return { id, title: `D10 · ${name} in 12th`, text: 'Independent work, foreign, or release of livelihood chapter.', tone: 'challenging' }
+    return { id, title: ttl('d10H12Title'), text: T.circuitD10H12Text, tone: 'challenging' }
   }
   if (house === 3) {
-    return { id, title: `D10 · ${name} in 3rd`, text: 'Karma via communication / phone — extra person or status talk can enter here.', tone: 'mixed' }
+    return { id, title: ttl('d10H3Title'), text: T.circuitD10H3Text, tone: 'mixed' }
   }
   if (house === 5 || house === 11) {
-    return { id, title: `D10 · ${name} in house ${house}`, text: 'Training, opportunity, income, position — can look like “promotion” alone.', tone: 'supportive' }
+    return { id, title: ttl('d10HouseTitle'), text: T.circuitD10H511Text, tone: 'supportive' }
   }
   if (house === 1 || house === 10) {
-    return { id, title: `D10 · ${name} in house ${house}`, text: 'Core livelihood / status karma under pressure.', tone: 'mixed' }
+    return { id, title: ttl('d10HouseTitle'), text: T.circuitD10H110Text, tone: 'mixed' }
   }
-  return { id, title: `D10 · ${name} in house ${house}`, text: 'Action karma of the period in this house.', tone: 'neutral' }
+  return { id, title: ttl('d10HouseTitle'), text: T.circuitD10HDefText, tone: 'neutral' }
 }
 
-function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaCircuitPractical {
+function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput, lang: EngineLang = 'en'): DashamsaCircuitPractical {
+  const T = d10pText(lang)
+  let relationshipFlagsOverride: CircuitNote[] | null = null
   const path = chart.dashas?.vimshottari ? getDashaPathAt(chart.dashas.vimshottari) : []
   const lords = path.map((n) => n.lord as GrahaId).slice(0, 4)
 
   const meta: { code: CircuitVargaCode; title: string; represents: string }[] = [
-    { code: 'D3', title: 'Drekkana (D3)', represents: 'What you think — subconscious mind' },
-    { code: 'D7', title: 'Saptāṁśa (D7)', represents: 'Who enters life — relationships & children' },
-    { code: 'D10', title: 'Daśāṁśa (D10)', represents: 'What karma / actions you perform' },
-    { code: 'D9', title: 'Navāṁśa (D9)', represents: 'What you choose — destiny / final fruit' },
-    { code: 'D2', title: 'Horā (D2)', represents: 'Wealth inflow & drain (maternity vs promotion check)' },
+    { code: 'D3', title: T.circuitLayerD3Title, represents: T.circuitLayerD3Rep },
+    { code: 'D7', title: T.circuitLayerD7Title, represents: T.circuitLayerD7Rep },
+    { code: 'D10', title: T.circuitLayerD10Title, represents: T.circuitLayerD10Rep },
+    { code: 'D9', title: T.circuitLayerD9Title, represents: T.circuitLayerD9Rep },
+    { code: 'D2', title: T.circuitLayerD2Title, represents: T.circuitLayerD2Rep },
   ]
 
   const layers: CircuitLayer[] = meta.map(({ code, title, represents }) => {
@@ -1946,9 +1963,14 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
       const dashaNotes: CircuitNote[] = lords.map((lord, levelIndex) => {
         const row = analysis.planets.find((p) => p.id === lord)
         if (!row) {
-          return { id: `d10-miss-${lord}-L${levelIndex}`, title: GRAHA_NAMES[lord], text: 'D10 placement missing.', tone: 'neutral' }
+          return {
+            id: `d10-miss-${lord}-L${levelIndex}`,
+            title: gName(lord, lang),
+            text: T.circuitPlacementMissing,
+            tone: 'neutral',
+          }
         }
-        return dashaHouseNote('D10', lord, row.d10House, levelIndex)
+        return dashaHouseNote('D10', lord, row.d10House, lang, levelIndex)
       })
       const staticNotes: CircuitNote[] = []
       const ju = analysis.planets.find((p) => p.id === 'Ju')
@@ -1957,16 +1979,16 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
       if (ju && ve && ju.d10House === ve.d10House) {
         staticNotes.push({
           id: 'd10-ju-ve',
-          title: 'Jupiter–Venus together in D10',
-          text: `In H${ju.d10House} — allegations / “spoil” of that house; secret communication can hit reputation when in 3rd.`,
+          title: T.circuitD10JuVeTitle,
+          text: fill(T.circuitD10JuVeText, { house: String(ju.d10House) }),
           tone: 'challenging',
         })
       }
       if (ju && su && ve && [ju, su, ve].every((p) => p.d10House === ju.d10House)) {
         staticNotes.push({
           id: 'd10-ju-su-ve',
-          title: 'Jupiter–Sun–Venus cluster',
-          text: 'Extra person / relationship karma often enters the livelihood field.',
+          title: T.circuitD10JuSuVeTitle,
+          text: T.circuitD10JuSuVeText,
           tone: 'challenging',
         })
       }
@@ -1974,8 +1996,8 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
       if (ketu && ketu.d10House === 1) {
         staticNotes.push({
           id: 'd10-ketu-lagna',
-          title: 'Ketu on D10 lagna',
-          text: 'Detachment from work — kāmacor / avoidance pattern possible.',
+          title: T.comboKetuLagnaTitle,
+          text: T.circuitD10KetuLagnaText,
           tone: 'mixed',
         })
       }
@@ -2001,7 +2023,12 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
         lagnaName: null,
         lagnaOccupants: [],
         dashaNotes: [],
-        staticNotes: [{ id: `${code}-missing`, title: `${code} unavailable`, text: `Recalculate chart to generate ${code}.`, tone: 'neutral' }],
+        staticNotes: [{
+          id: `${code}-missing`,
+          title: fill(T.circuitVargaMissing, { code }),
+          text: fill(T.circuitVargaMissingText, { code }),
+          tone: 'neutral',
+        }],
       }
     }
 
@@ -2009,9 +2036,14 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
     const dashaNotes = lords.map((lord, levelIndex) => {
       const g = slice.grahas.find((p) => p.id === lord)
       if (!g) {
-        return { id: `${code}-miss-${lord}-L${levelIndex}`, title: GRAHA_NAMES[lord], text: `Missing in ${code}.`, tone: 'neutral' as CareerTone }
+        return {
+          id: `${code}-miss-${lord}-L${levelIndex}`,
+          title: gName(lord, lang),
+          text: fill(T.circuitPlacementMissingCode, { code }),
+          tone: 'neutral' as CareerTone,
+        }
       }
-      return dashaHouseNote(code, lord, houseFrom(slice.asc, g.rashi), levelIndex)
+      return dashaHouseNote(code, lord, houseFrom(slice.asc, g.rashi), lang, levelIndex)
     })
 
     const staticNotes: CircuitNote[] = []
@@ -2021,8 +2053,8 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
       if (ju && su) {
         staticNotes.push({
           id: 'd7-ju-su-lagna',
-          title: 'Jupiter–Sun on D7 lagna',
-          text: `In ${RASHI_NAMES[slice.asc]} — conflict signature; their dasha is critical for relationship events.`,
+          title: T.circuitD7JuSuLagna,
+          text: fill(T.circuitD7JuSuText, { rashi: rName(slice.asc, lang) }),
           tone: 'challenging',
         })
       }
@@ -2031,16 +2063,16 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
       if (ra && houseFrom(slice.asc, ra.rashi) === 7) {
         staticNotes.push({
           id: 'd7-rahu-7',
-          title: 'Rahu in D7 7th',
-          text: 'Partner field haunted by obsession / old love; Scorpio flavor intensifies unfinished bonds.',
+          title: T.circuitD7Rahu7Title,
+          text: T.circuitD7Rahu7Text,
           tone: 'challenging',
         })
       }
       if (sa && houseFrom(slice.asc, sa.rashi) === 10) {
         staticNotes.push({
           id: 'd7-sa-10',
-          title: 'Saturn in D7 10th',
-          text: '10th axis — partner often met at workplace; isolation/insult themes with Rahu dasha.',
+          title: T.circuitD7Sa10Title,
+          text: T.circuitD7Sa10Text,
           tone: 'mixed',
         })
       }
@@ -2054,8 +2086,8 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
           // 6-8 from each other: houses differ by 5 or 7? 6th from A is +5, 8th is +7
           staticNotes.push({
             id: 'd7-ju-ve-68',
-            title: 'Jupiter–Venus on 6–8 axis in D7',
-            text: 'Only one agenda survives — relationship tends to end; Aries–Virgo flavor = fight/cry.',
+            title: T.circuitD7JuVe68Title,
+            text: T.circuitD7JuVe68Text,
             tone: 'challenging',
           })
         }
@@ -2066,8 +2098,8 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
       if (ve && (houseFrom(slice.asc, ve.rashi) === 1 || ve.rashi === 11)) {
         staticNotes.push({
           id: 'd9-ve-cheat',
-          title: 'Venus cheat / fake-promise check',
-          text: 'Venus on lagna or Aquarius-sign fruit can show chalāwā — confirm with D7 before naming infidelity.',
+          title: T.circuitD9VeCheatTitle,
+          text: T.circuitD9VeCheatText,
           tone: 'challenging',
         })
       }
@@ -2077,8 +2109,8 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
       if (sa) {
         staticNotes.push({
           id: 'd3-sa-lagna',
-          title: 'Saturn on D3 lagna',
-          text: 'Regular insult, demotivation, alone-feeling — period trains the subconscious.',
+          title: T.circuitD3SaLagnaTitle,
+          text: T.circuitD3SaLagnaText,
           tone: 'challenging',
         })
       }
@@ -2089,8 +2121,8 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
       title,
       represents,
       available: true,
-      lagnaName: RASHI_NAMES[slice.asc],
-      lagnaOccupants: lagnaOcc.map((g) => GRAHA_NAMES[g.id]),
+      lagnaName: rName(slice.asc, lang),
+      lagnaOccupants: lagnaOcc.map((g) => gName(g.id, lang)),
       dashaNotes,
       staticNotes,
     }
@@ -2104,8 +2136,8 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
     if (moon && (WEAK.includes(moon.dignity) || [6, 8, 12].includes(houseFrom(d3.asc, moon.rashi)))) {
       mindFears.push({
         id: 'fear-moon',
-        title: 'Moon troubled in D3',
-        text: 'Fear of communicating with mother; won’t express inner feelings; wary of public/masses.',
+        title: T.circuitFearMoonTitle,
+        text: T.circuitFearMoonText,
         tone: 'challenging',
       })
     }
@@ -2113,8 +2145,8 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
     if (rahu && (WEAK.includes(rahu.dignity) || [6, 8, 12].includes(houseFrom(d3.asc, rahu.rashi)))) {
       mindFears.push({
         id: 'fear-rahu',
-        title: 'Rahu troubled in D3',
-        text: 'Fear of being alone, pitṛu themes, device malfunction, and things out of control.',
+        title: T.circuitFearRahuTitle,
+        text: T.circuitFearRahuText,
         tone: 'challenging',
       })
     }
@@ -2122,30 +2154,37 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
     if (ketu && [6, 8, 12, 1].includes(houseFrom(d3.asc, ketu.rashi))) {
       mindFears.push({
         id: 'fear-ketu',
-        title: 'Ketu unbalanced in D3',
-        text: 'Unable to sort emotions — remains stuck holding onto things.',
+        title: T.circuitFearKetuTitle,
+        text: T.circuitFearKetuText,
         tone: 'challenging',
       })
     }
     if (occupantsAtHouse(d3.grahas, d3.asc, 12).length >= 2) {
       mindFears.push({
         id: 'fear-12',
-        title: '12th house crowded in D3',
-        text: 'Cannot forget — endings replay in the mind.',
+        title: T.circuitFear12Title,
+        text: T.circuitFear12Text,
         tone: 'challenging',
       })
     }
     if (occupantsAtHouse(d3.grahas, d3.asc, 8).length >= 2) {
       mindFears.push({
         id: 'fear-8',
-        title: '8th house crowded in D3',
-        text: 'Subconsciously stuck in a pit — unable to move on.',
+        title: T.circuitFear8Title,
+        text: T.circuitFear8Text,
         tone: 'challenging',
       })
     }
   }
 
-  // Relationship flags across D7/D9/D10
+  // Relationship flags across D7/D9/D10. The keyword test reads English
+  // text, so Hindi takes the same note ids the English run selects.
+  if (lang !== 'en') {
+    const enAnalysis = analyzeDashamsa(chart)
+    const enIds = enAnalysis ? buildCircuit(enAnalysis, chart, 'en').relationshipFlags.map((n) => n.id) : []
+    const all = new Map(layers.flatMap((l) => [...l.staticNotes, ...l.dashaNotes]).map((n) => [`rel-${n.id}`, n]))
+    relationshipFlagsOverride = enIds.map((id) => ({ ...all.get(id)!, id })).filter((n) => n.title !== undefined)
+  }
   const relationshipFlags: CircuitNote[] = []
   for (const layer of layers) {
     for (const n of [...layer.staticNotes, ...layer.dashaNotes]) {
@@ -2161,7 +2200,7 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
   }
   // Dedupe by title
   const seenRel = new Set<string>()
-  const relUnique = relationshipFlags.filter((n) => {
+  const relUnique = relationshipFlagsOverride ?? relationshipFlags.filter((n) => {
     if (seenRel.has(n.title)) return false
     seenRel.add(n.title)
     return true
@@ -2174,10 +2213,10 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
   })
   const inEighth = analysis.planets.filter((p) => p.d10House === 8).map((p) => p.id)
   const flavorDefs: Omit<JobLossFlavor, 'active'>[] = [
-    { id: 'Ma', name: 'Mars', nature: 'Sudden / abrupt layoff or aggressive quit toward independence' },
-    { id: 'Sa', name: 'Saturn', nature: 'Slow grind — insults, overtime, weekend pressure until exit' },
-    { id: 'Me', name: 'Mercury', nature: 'Office politics played against the person' },
-    { id: 'Su', name: 'Sun', nature: 'Ego clash with authority' },
+    { id: 'Ma', name: gName('Ma', lang), nature: T.jobLossMaNature },
+    { id: 'Sa', name: gName('Sa', lang), nature: T.jobLossSaNature },
+    { id: 'Me', name: gName('Me', lang), nature: T.jobLossMeNature },
+    { id: 'Su', name: gName('Su', lang), nature: T.jobLossSuNature },
   ]
   const flavors: JobLossFlavor[] = flavorDefs.map((f) => ({
     ...f,
@@ -2203,52 +2242,40 @@ function buildCircuit(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaC
   const syncVerdict = {
     synced,
     theme: mostlyChallenge
-      ? 'Synced strain across divisions'
+      ? T.circuitSyncStrainTheme
       : mostlySupport
-        ? 'Synced opportunity theme'
-        : 'Mixed — divisions disagree',
-    detail: synced
-      ? 'Same dasha delivers a consistent result across layers — trust the shared theme over a single chart.'
-      : 'D1 romance or D10 promotion alone is not enough — wait for D3/D7/D9 (and D2 for money/maternity) to agree.',
+        ? T.circuitSyncOppTheme
+        : T.circuitSyncMixedTheme,
+    detail: synced ? T.circuitSyncStrainDetail : T.circuitSyncMixedDetail,
   }
 
   return {
-    framing:
-      'Advanced circuit: D1 context → D3 mind → D7 who enters → D10 karma done → D9 fruit. Relationship and “why” questions need the full stack — D10 alone misreads pregnancy as promotion.',
-    sequence: [
-      'D1 (Rāśi) — battlefield / overall context',
-      'D3 (Drekkana) — subconscious thoughts',
-      'D7 (Saptāṁśa) — who enters; always check for relationships',
-      'D10 (Daśāṁśa) — karma performed (why the partner entered)',
-      'D9 (Navāṁśa) — final destiny / outcome',
-      'D2 (Horā) — wealth vs maternity / passive money (when needed)',
-    ],
+    framing: T.circuitFraming,
+    sequence: [T.circuitSeq0, T.circuitSeq1, T.circuitSeq2, T.circuitSeq3, T.circuitSeq4, T.circuitSeq5],
     layers,
     syncVerdict,
     relationshipFlags: relUnique,
     jobDisruption: {
       active: jobActive,
-      headline: jobActive
-        ? '8th/12th D10 dasha — energy drained; cross-check D3/D7 for research vs exit vs new venture'
-        : 'No 8th/12th D10 dasha cutter active on current path',
+      headline: jobActive ? T.circuitJobHeadlineActive : T.circuitJobHeadlineQuiet,
       flavors,
-      caveat:
-        '8th house dasha ≠ always job loss — research, direction change, childbirth, marriage, or relocation possible. D10 lagna Rahu can look like promotion while D2/D3/D7 show maternity.',
+      caveat: T.circuitJobCaveat,
     },
     mindFears,
     practiceAdvice: [
-      'Spend ~70–80% of a normal consult on D1; only 20–30% on D9/D10 combined.',
-      'Save full D3/D7/D9/D10 circuits for emergency / difficult cases — overusing Navāṁśa drains energy.',
-      'Do not over-rely on D9 for client predictions for the first 6 months of practice — use it as back-end validation.',
-      'Good astrologers extract karma + relationship patterns via D7; average ones stop at D1/D9.',
-      'You were never able to judge cheating from D1+D9 alone — D7 reveals it, D9 confirms.',
-      'Verify exalted planets through the full circuit before promising delivery.',
-      'Avoid Chara Kārakas (natural indicator) routinely — high energy cost.',
+      T.circuitPractice0,
+      T.circuitPractice1,
+      T.circuitPractice2,
+      T.circuitPractice3,
+      T.circuitPractice4,
+      T.circuitPractice5,
+      T.circuitPractice6,
     ],
   }
 }
 
-function buildSurvival(analysis: DashamsaAnalysis): DashamsaSurvivalPractical {
+function buildSurvival(analysis: DashamsaAnalysis, lang: EngineLang = 'en'): DashamsaSurvivalPractical {
+  const T = d10pText(lang)
   const byId = new Map(analysis.planets.map((p) => [p.id, p]))
   const lagna = analysis.d10Lagna
   const moonOnLagna = analysis.planets.some((p) => p.id === 'Mo' && p.d10House === 1)
@@ -2266,49 +2293,41 @@ function buildSurvival(analysis: DashamsaAnalysis): DashamsaSurvivalPractical {
   const flags: SurvivalFlag[] = [
     {
       id: 'cancer-toxic',
-      title: 'Cancer rising fragility',
+      title: T.survFlagCancerTitle,
       matched: cancerRising,
       detail: cancerRising
         ? moonOnLagna
-          ? 'Cancer rising with Moon on lagna — high risk of toxic mood / politics stuckness; prefer public-care or CSR-style roles.'
-          : 'Cancer rising in D10 — moody, politics-intolerant; lethal if forced into rigid SOP desks.'
-        : 'Not Cancer rising.',
+          ? T.survFlagCancerMoon
+          : T.survFlagCancerNoMoon
+        : T.survFlagCancerNo,
       tone: cancerRising ? 'challenging' : 'neutral',
     },
     {
       id: 'ketu-lost',
-      title: 'Ketu lagna directionless',
+      title: T.survFlagKetuTitle,
       matched: ketuOnLagna,
-      detail: ketuOnLagna
-        ? 'Ketu on D10 lagna — join institutes with placement; pray/progress faster through the fog rather than solo CEO hunting.'
-        : 'Ketu not on lagna.',
+      detail: ketuOnLagna ? T.survFlagKetuYes : T.survFlagKetuNo,
       tone: ketuOnLagna ? 'challenging' : 'neutral',
     },
     {
       id: 'vishad',
-      title: 'Viṣāda (Moon–Saturn) drain',
+      title: T.survFlagVishadTitle,
       matched: moonSa,
-      detail: moonSa
-        ? 'Moon–Saturn in D10 — grief/regret loop drains energy; the “bullet” stays until routine and sector reset.'
-        : 'No Moon–Saturn conjunction in D10.',
+      detail: moonSa ? T.survFlagVishadYes : T.survFlagVishadNo,
       tone: moonSa ? 'challenging' : 'neutral',
     },
     {
       id: 'cutter-dasha',
-      title: '8th/12th dasha cutter',
+      title: T.survFlagCutterTitle,
       matched: eighthDasha,
-      detail: eighthDasha
-        ? 'Current path hits D10 8th/12th — chapter end or independence push; exit near 40% drain, do not wait for 100%.'
-        : 'No 8th/12th on current dasha path.',
+      detail: eighthDasha ? T.survFlagCutterYes : T.survFlagCutterNo,
       tone: eighthDasha ? 'challenging' : 'neutral',
     },
     {
       id: 'overconfidence',
-      title: 'Overconfidence + dusthāna',
+      title: T.survFlagOverconfTitle,
       matched: overconfident,
-      detail: overconfident
-        ? 'Strong angles plus 8/12 — hard-headed risk taking can end in isolation/crisis; check D2 for money bleed.'
-        : 'No strong overconfidence + dusthāna stack.',
+      detail: overconfident ? T.survFlagOverconfYes : T.survFlagOverconfNo,
       tone: overconfident ? 'challenging' : 'neutral',
     },
   ]
@@ -2326,43 +2345,42 @@ function buildSurvival(analysis: DashamsaAnalysis): DashamsaSurvivalPractical {
   const distinctions: SignDistinction[] = [
     {
       id: 'ge-vi',
-      left: 'Gemini — pure analytics / automation',
-      right: 'Virgo — driving analytics / DEX efficiency',
-      rule: 'Gemini codes and automates; Virgo checks market share, accuracy, 2-day→1-day delivery experience.',
+      left: T.survDistGeViLeft,
+      right: T.survDistGeViRight,
+      rule: T.survDistGeViRule,
       relevant: geminiHit || virgoHit,
     },
     {
       id: 'le-aq',
-      left: 'Leo — selected players / long power',
-      right: 'Aquarius — anyone can join / side hustle',
-      rule: 'Leo = Jio/Starlink-style dominance & PSU tenure; Aquarius = YouTube/MLM layering, rule-breaking channels.',
+      left: T.survDistLeAqLeft,
+      right: T.survDistLeAqRight,
+      rule: T.survDistLeAqRule,
       relevant: leoHit || aquHit,
     },
     {
       id: 'su-ra',
-      left: 'Sun — what I can give (legitimate / self)',
-      right: 'Rahu — what I will get (opportunist)',
-      rule: 'Sun works government/process for itself; Rahu takes any unclear channel that pays.',
+      left: T.survDistSuRaLeft,
+      right: T.survDistSuRaRight,
+      rule: T.survDistSuRaRule,
       relevant: Boolean(sun || rahu),
     },
     {
       id: 'ra-ke-floor',
-      left: 'Rahu in Libra — C-level high floors / aura',
-      right: 'Ketu in Libra — ground floor (unless Moon lifts)',
-      rule: 'Brand identity vs cliff detachment; Rahu won’t leave big brand easily.',
+      left: T.survDistRaKeLeft,
+      right: T.survDistRaKeRight,
+      rule: T.survDistRaKeRule,
       relevant: analysis.planets.some((p) => (p.id === 'Ra' || p.id === 'Ke') && p.d10Rashi === 7),
     },
     {
       id: '6-12',
-      left: '6th — bondage under company rules',
-      right: '12th — independent / foreign / freelance',
-      rule: 'Same skill flips by house: under someone vs solo. Dasha decides which mode is live.',
+      left: T.survDist612Left,
+      right: T.survDist612Right,
+      rule: T.survDist612Rule,
       relevant: analysis.planets.some((p) => p.d10House === 6 || p.d10House === 12),
     },
   ]
 
-  // Extra combos not already the primary list focus — reuse full buildCombos matched subset for survival emphasis
-  const allCombos = buildCombos(analysis)
+  const allCombos = buildCombos(analysis, lang)
   const extraCombos = allCombos.filter((c) =>
     ['fluid', 'delivery-apps', 'multi-biz', 've-ke', 'ketu-lagna', 'libra-rahu-floor', 'wfhome', 'lagna-lord-7', 'influencer'].includes(c.id),
   )
@@ -2372,88 +2390,75 @@ function buildSurvival(analysis: DashamsaAnalysis): DashamsaSurvivalPractical {
     && lagnaOcc.some((p) => p.id === 'Su' || p.id === 'Sa' || p.id === 'Ma')
 
   const partnership: DashamsaSurvivalPractical['partnership'] = {
-    method:
-      'Match business partners on D10 the way you match marriage on D9 — overlay both D10 charts for conjunction/aspect pairs.',
+    method: T.survPartnershipMethod,
     rules: [
-      { id: 'su-sa', pair: 'Sun over Saturn', effect: 'Sun person’s status/resources decline; Saturn side rises.', tone: 'challenging' },
-      { id: 've-ma', pair: 'Venus over Mars', effect: 'Smooth, attractive, heavy-working partnership.', tone: 'supportive' },
-      { id: 'sa-ma', pair: 'Saturn over Mars', effect: 'Violence / conflict potential — do not ignore.', tone: 'challenging' },
-      { id: 'su-ve', pair: 'Sun over Venus', effect: 'Burns fragrance, happiness, partner communication.', tone: 'challenging' },
-      { id: 'su-me', pair: 'Sun over Mercury', effect: 'One dominates; other handles paperwork/comms.', tone: 'mixed' },
+      { id: 'su-sa', pair: T.survPartnerSuSa, effect: T.survPartnerSuSaFx, tone: 'challenging' },
+      { id: 've-ma', pair: T.survPartnerVeMa, effect: T.survPartnerVeMaFx, tone: 'supportive' },
+      { id: 'sa-ma', pair: T.survPartnerSaMa, effect: T.survPartnerSaMaFx, tone: 'challenging' },
+      { id: 'su-ve', pair: T.survPartnerSuVe, effect: T.survPartnerSuVeFx, tone: 'challenging' },
+      { id: 'su-me', pair: T.survPartnerSuMe, effect: T.survPartnerSuMeFx, tone: 'mixed' },
     ],
     hardHeaded,
-    hardHeadedNote: hardHeaded
-      ? 'This D10 lagna carries Sun/Mars hard-head energy — two such charts rarely partner well (lion with own pride only).'
-      : 'Lagna is not a classic Sun–Mars hard stack; soft partnerships may still work if overlay is clean.',
+    hardHeadedNote: hardHeaded ? T.survHardHeadYes : T.survHardHeadNo,
   }
 
   return {
-    framing:
-      'Survival-series D10: sectors, EMI-level practicality, energy drain, and partnership overlays — not Gītā philosophy. House + Sign + Planet, then dasha.',
-    threeLayer: 'House = base significance · Rashi = industry flavor · Planet = delivery agent. Never read one alone.',
-    d10VsD9:
-      'D10 = which sector / interview door to knock. D9 = whether the fruit ripens. Learn D10 before over-trusting Navāṁśa results.',
+    framing: T.survivalFraming,
+    threeLayer: T.survivalThreeLayer,
+    d10VsD9: T.survivalD10VsD9,
     distinctions,
     extraCombos,
     energyDrain: {
       risk,
       headline:
         risk === 'challenging'
-          ? 'High drain risk — treat layoff like a bullet still bleeding'
+          ? T.survDrainHeadlineHigh
           : risk === 'mixed'
-            ? 'Moderate drain signals — exit early if toxicity rises'
-            : 'Drain flags quiet — still check Sthāna & Kāla bala before promising timing',
-      bulletRule:
-        'Better quit near 40% energy drain than wait for 100%. At full drain, recovery can take 6+ months of sleep/eat fog before focus returns.',
-      recoveryNote:
-        'After long isolation, do not jump back to peak title (CEO→CEO). Step to senior/middle manager until energy rebuilds. Negative drain (−10/−20) means stop promising timelines.',
+            ? T.survDrainHeadlineMid
+            : T.survDrainHeadlineLow,
+      bulletRule: T.survBulletRule,
+      recoveryNote: T.survRecoveryNote,
       flags,
     },
     helpability: {
-      good: [
-        'Which sector should I try?',
-        'Where am I making mistakes?',
-        'Where should I focus / apply?',
-        'How can I improve this skill?',
-      ],
-      bad: [
-        'When will my job come? (only)',
-        'Make me an IAS through consultation',
-        'Give date without my effort',
-      ],
-      text:
-        'If the client only demands dates and refuses sector/skill work, the chart may be readable but the person is not helpable yet — refuse endless UPSC-fixed mindset sessions.',
+      good: [T.survHelpGood0, T.survHelpGood1, T.survHelpGood2, T.survHelpGood3],
+      bad: [T.survHelpBad0, T.survHelpBad1, T.survHelpBad2],
+      text: T.survHelpText,
     },
     partnership,
     sunHouseGuide: [
-      { house: 1, role: 'Manager / self-authority' },
-      { house: 3, role: 'School principal / courage desk' },
-      { house: 5, role: 'Status, lineage, professor' },
-      { house: 6, role: 'Crisis solver under pressure' },
-      { house: 7, role: 'Needs external direction — weak Digbala risk' },
-      { house: 10, role: 'High official / public status' },
+      { house: 1, role: T.survSunH1 },
+      { house: 3, role: T.survSunH3 },
+      { house: 5, role: T.survSunH5 },
+      { house: 6, role: T.survSunH6 },
+      { house: 7, role: T.survSunH7 },
+      { house: 10, role: T.survSunH10 },
     ],
     takeaways: [
-      'Always: House + Sign + Planet; D10 after D1; dasha times the mode (6th bondage vs 12th solo).',
-      'Energy drain is central — recovery timelines beat “when job” fantasies.',
-      'Partnership: overlay D10s; soft energies work, two hard-heads usually do not.',
-      'Protect Mercury from corporate exploitation; Venus–Ketu should not fuse.',
-      'Use natural strength — do not force Aries founders energy if the chart is Gemini analytics.',
-      'Prediction lands only when client energy matches; donkey≠horse.',
-      'If Sthāna/Kāla bala weak: say clearly “your time has not come yet.”',
+      T.survTake0,
+      T.survTake1,
+      T.survTake2,
+      T.survTake3,
+      T.survTake4,
+      T.survTake5,
+      T.survTake6,
     ],
   }
 }
 
 /** Practical classroom layer on top of core Dashamsha analysis. */
-export function buildDashamsaPractical(analysis: DashamsaAnalysis, chart: ChartOutput): DashamsaPractical {
+export function buildDashamsaPractical(
+  analysis: DashamsaAnalysis,
+  chart: ChartOutput,
+  lang: EngineLang = 'en',
+): DashamsaPractical {
   return {
-    karma: buildKarma(analysis),
-    sectors: buildSectors(analysis),
-    pending: buildPending(analysis),
-    bondage: buildBondage(analysis),
-    karmaYoga: buildKarmaYoga(analysis, chart),
-    circuit: buildCircuit(analysis, chart),
-    survival: buildSurvival(analysis),
+    karma: buildKarma(analysis, lang),
+    sectors: buildSectors(analysis, lang),
+    pending: buildPending(analysis, lang),
+    bondage: buildBondage(analysis, lang),
+    karmaYoga: buildKarmaYoga(analysis, chart, lang),
+    circuit: buildCircuit(analysis, chart, lang),
+    survival: buildSurvival(analysis, lang),
   }
 }

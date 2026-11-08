@@ -4,22 +4,12 @@
 //  General day prediction. Engine: src/lib/panchang/day-reading.ts
 // ─────────────────────────────────────────────────────────────
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { CircleCheck, TriangleAlert } from 'lucide-react'
-import type { DayReading, DayReadingLine, DayTone } from '@/lib/panchang/day-reading'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import type { DayLimb, DayReading, DayReadingLine, DayTone } from '@/lib/panchang/day-reading'
 import styles from './PanchangDayReading.module.css'
-
-const TONE_LABEL: Record<DayTone, string> = {
-  favourable: 'A favourable day',
-  mixed: 'A mixed day',
-  cautious: 'A day for caution',
-}
-
-const TONE_NOTE: Record<DayTone, string> = {
-  favourable: 'Nothing in the panchang argues against ordinary good work today.',
-  mixed: 'Some limbs support the day and others ask for care, so choose your timing.',
-  cautious: 'Keep important beginnings for a better window and favour routine work.',
-}
 
 const TONE_CLASS: Record<DayTone, string> = {
   favourable: styles.toneFavourable,
@@ -27,8 +17,13 @@ const TONE_CLASS: Record<DayTone, string> = {
   cautious: styles.toneCautious,
 }
 
-function fmtTime(iso: string, tz: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+/** DayLimb id → panchang.limbs key */
+const LIMB_KEY: Record<DayLimb, 'tithi' | 'nakshatra' | 'yoga' | 'karana' | 'vara' | 'special'> = {
+  Tithi: 'tithi', Nakshatra: 'nakshatra', Yoga: 'yoga', Karana: 'karana', Vara: 'vara', 'Special yoga': 'special',
+}
+
+function fmtTime(iso: string, tz: string, tag: string): string {
+  return new Intl.DateTimeFormat(tag, {
     timeZone: tz,
     hour: 'numeric',
     minute: '2-digit',
@@ -37,13 +32,17 @@ function fmtTime(iso: string, tz: string): string {
 }
 
 export function PanchangDayReading({ reading, tz }: { reading: DayReading; tz: string }) {
+  const t = useTranslations('panchang.reading')
+  const tl = useTranslations('panchang.limbs')
+  const { tag } = useLang()
+  const limb = (l: DayLimb) => tl(LIMB_KEY[l])
   return (
     <div className={`${styles.panel} ${TONE_CLASS[reading.tone]}`}>
       <header className={styles.head}>
-        <h3 className={styles.verdict}>{TONE_LABEL[reading.tone]}</h3>
-        <p className={styles.note}>{TONE_NOTE[reading.tone]}</p>
+        <h3 className={styles.verdict}>{t(`tone.${reading.tone}`)}</h3>
+        <p className={styles.note}>{t(`toneNote.${reading.tone}`)}</p>
         {reading.signals.length > 0 && (
-          <ul className={styles.signals} aria-label="What this is based on">
+          <ul className={styles.signals} aria-label={t('basedOn')}>
             {reading.signals.map((s) => (
               <li key={s.label} className={s.positive ? styles.signalGood : styles.signalBad}>{s.label}</li>
             ))}
@@ -56,20 +55,20 @@ export function PanchangDayReading({ reading, tz }: { reading: DayReading; tz: s
       </ul>
 
       <div className={styles.columns}>
-        <ReadingList title="Favours" icon={<CircleCheck size={15} aria-hidden />} titleClass={styles.titleGood} lines={reading.favours} />
-        <ReadingList title="Take care with" icon={<TriangleAlert size={15} aria-hidden />} titleClass={styles.titleBad} lines={reading.cautions} />
+        <ReadingList title={t('favours')} icon={<CircleCheck size={15} aria-hidden />} titleClass={styles.titleGood} lines={reading.favours} limb={limb} />
+        <ReadingList title={t('takeCare')} icon={<TriangleAlert size={15} aria-hidden />} titleClass={styles.titleBad} lines={reading.cautions} limb={limb} />
       </div>
 
       {reading.shifts.length > 0 && (
         <div className={styles.shifts}>
-          <h4 className={styles.listTitle}>How the day changes</h4>
+          <h4 className={styles.listTitle}>{t('changes')}</h4>
           <ol className={styles.shiftList}>
             {reading.shifts.map((s) => (
               <li key={`${s.limb}-${s.at}`} className={styles.shift}>
-                <span className={styles.shiftTime}>{fmtTime(s.at, tz)}</span>
+                <span className={styles.shiftTime}>{fmtTime(s.at, tz, tag)}</span>
                 <span className={styles.shiftBody}>
                   <span className={`${styles.shiftTitle} ${s.caution ? styles.shiftCaution : ''}`}>
-                    {s.limb} moves from {s.from} to {s.to}
+                    {t('moves', { limb: limb(s.limb), from: s.from, to: s.to, gender: s.limb === 'Tithi' ? 'f' : 'm' })}
                   </span>
                   {s.guidance && <span className={styles.lineText}>{s.guidance}</span>}
                 </span>
@@ -80,8 +79,8 @@ export function PanchangDayReading({ reading, tz }: { reading: DayReading; tz: s
       )}
 
       <footer className={styles.footer}>
-        <p>Read for everyone at this place from the classical limb tables. These are traditional tendencies, not fixed events.</p>
-        <Link href="/today" className={styles.footerLink}>Predictions from your own chart →</Link>
+        <p>{t('footer')}</p>
+        <Link href="/today" className={styles.footerLink}>{t('ownChart')}</Link>
       </footer>
     </div>
   )
@@ -92,16 +91,17 @@ interface ReadingListProps {
   icon: React.ReactNode
   titleClass: string
   lines: DayReadingLine[]
+  limb: (l: DayLimb) => string
 }
 
-function ReadingList({ title, icon, titleClass, lines }: ReadingListProps) {
+function ReadingList({ title, icon, titleClass, lines, limb }: ReadingListProps) {
   return (
     <div className={styles.list}>
       <h4 className={`${styles.listTitle} ${titleClass}`}>{icon}{title}</h4>
       <dl className={styles.lines}>
         {lines.map((line) => (
           <div key={`${line.limb}-${line.text}`} className={styles.line}>
-            <dt className={styles.lineLimb}>{line.limb}</dt>
+            <dt className={styles.lineLimb}>{limb(line.limb)}</dt>
             <dd className={styles.lineText}>{line.text}</dd>
           </div>
         ))}

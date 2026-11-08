@@ -7,13 +7,15 @@
 
 import React, { useMemo, useState } from 'react'
 import { ChevronDown, UserRound } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import type { Rashi } from '@/types/astrology'
 import type { HouseNumber } from '@/lib/engine/houseInterpretations'
 import {
+  getLagnaCharacterMethodNotes,
+  getLagnaCharacterNote,
   getLagnaCharacterProfile,
   getLagnaHouseReading,
-  LAGNA_CHARACTER_METHOD_NOTES,
-  LAGNA_CHARACTER_NOTE,
 } from '@/lib/engine/lagnaCharacter'
 
 interface LagnaCharacterGuideProps {
@@ -21,7 +23,9 @@ interface LagnaCharacterGuideProps {
 }
 
 export function LagnaCharacterGuide({ ascRashi }: LagnaCharacterGuideProps) {
-  const profile = useMemo(() => getLagnaCharacterProfile(ascRashi), [ascRashi])
+  const t = useTranslations('houseGuide.lagna')
+  const { lang } = useLang()
+  const profile = useMemo(() => getLagnaCharacterProfile(ascRashi, lang), [ascRashi, lang])
   const [summaryOpen, setSummaryOpen] = useState(false)
   const [methodOpen, setMethodOpen] = useState(false)
 
@@ -56,11 +60,11 @@ export function LagnaCharacterGuide({ ascRashi }: LagnaCharacterGuideProps) {
           }}
         >
           <UserRound size={12} aria-hidden style={{ color: 'var(--gold)' }} />
-          Ascendant character · {profile.title}
+          {t('character', { title: profile.title })}
         </div>
         <p style={bodyText}>{profile.intro}</p>
         <p style={{ ...bodyText, marginTop: '0.45rem', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-          {LAGNA_CHARACTER_NOTE}
+          {getLagnaCharacterNote(lang)}
         </p>
       </div>
 
@@ -88,7 +92,7 @@ export function LagnaCharacterGuide({ ascRashi }: LagnaCharacterGuideProps) {
 
       {profile.exceptions.length > 0 ? (
         <div style={callout}>
-          <div style={miniLabel}>Lagna-specific exception</div>
+          <div style={miniLabel}>{t('exception')}</div>
           <ul style={list}>
             {profile.exceptions.map((e) => (
               <li key={e}>{e}</li>
@@ -100,7 +104,7 @@ export function LagnaCharacterGuide({ ascRashi }: LagnaCharacterGuideProps) {
       <Collapsible
         open={summaryOpen}
         onToggle={() => setSummaryOpen((o) => !o)}
-        title="House-by-house summary"
+        title={t('summaryTitle')}
       >
         <div style={{ overflowX: 'auto' }}>
           <div
@@ -113,9 +117,9 @@ export function LagnaCharacterGuide({ ascRashi }: LagnaCharacterGuideProps) {
             }}
           >
             <div style={{ ...summaryRow, ...summaryHeader }}>
-              <span>House</span>
-              <span>Sign</span>
-              <span>Key theme</span>
+              <span>{t('colHouse')}</span>
+              <span>{t('colSign')}</span>
+              <span>{t('colTheme')}</span>
             </div>
             {houseRows.map((row) => (
               <div key={row.house} style={summaryRow}>
@@ -133,7 +137,7 @@ export function LagnaCharacterGuide({ ascRashi }: LagnaCharacterGuideProps) {
       <Collapsible
         open={methodOpen}
         onToggle={() => setMethodOpen((o) => !o)}
-        title="How to apply this Lagna reading"
+        title={t('applyTitle')}
       >
         <div style={{ paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <ul style={list}>
@@ -141,9 +145,9 @@ export function LagnaCharacterGuide({ ascRashi }: LagnaCharacterGuideProps) {
               <li key={n}>{n}</li>
             ))}
           </ul>
-          <div style={miniLabel}>General method</div>
+          <div style={miniLabel}>{t('generalMethod')}</div>
           <ul style={list}>
-            {LAGNA_CHARACTER_METHOD_NOTES.map((n) => (
+            {getLagnaCharacterMethodNotes(lang).map((n) => (
               <li key={n}>{n}</li>
             ))}
           </ul>
@@ -155,14 +159,16 @@ export function LagnaCharacterGuide({ ascRashi }: LagnaCharacterGuideProps) {
 
 /** Per-house callout for the Lagna profile; null when no profile or reading exists. */
 export function LagnaHouseCallout({ ascRashi, house }: { ascRashi: Rashi; house: HouseNumber }) {
-  const reading = useMemo(() => getLagnaHouseReading(ascRashi, house), [ascRashi, house])
-  const profile = useMemo(() => getLagnaCharacterProfile(ascRashi), [ascRashi])
+  const t = useTranslations('houseGuide.lagna')
+  const { lang } = useLang()
+  const reading = useMemo(() => getLagnaHouseReading(ascRashi, house, lang), [ascRashi, house, lang])
+  const profile = useMemo(() => getLagnaCharacterProfile(ascRashi, lang), [ascRashi, lang])
   if (!reading || !profile) return null
 
   return (
     <div style={callout}>
       <div style={miniLabel}>
-        {profile.title} · House {house} ({reading.signName})
+        {t('callout', { title: profile.title, n: house, sign: reading.signName })}
       </div>
       <p style={{ ...bodyText, fontWeight: 600, color: 'var(--text-primary)', margin: '0.3rem 0 0' }}>
         {reading.theme}

@@ -1,8 +1,8 @@
 'use client'
 // src/components/dashboard/PersonalDayCard.tsx — Compact inline layout
 
+import { Link } from '@/i18n/navigation'
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
 import { getTithiDayMeta, formatTithiWeatherLine } from '@/lib/engine/tithiMeta'
@@ -13,13 +13,17 @@ import {
   formatNakshatraWeatherLine,
   getAshwiniYogaNotes,
   getAbhijitWindow,
-  ASHWINI_ACTIVITY_HINT,
+  getAshwiniActivityHint,
 } from '@/lib/engine/nakshatraMuhurta'
 import { DinmanMuhurtaStrip } from '@/components/panchang/DinmanMuhurtaStrip'
 import { getVaarMeta, formatVaarWeatherLine, getCurrentHora } from '@/lib/engine/vaarMeta'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
 import type { PanchangData, UserPlan } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { NAKSHATRA_HI, termHi } from '@/i18n/jyotish'
+import { TARA_HI } from '@/lib/engine/locale/todayReading.hi'
 
 interface PersonalDayCardProps {
   birthMoonNakIdx: number
@@ -43,6 +47,8 @@ export function PersonalDayCard({
   birthDate,
   userPlan = 'free',
 }: PersonalDayCardProps) {
+  const t = useTranslations('chart.personalDay')
+  const { lang, hi } = useLang()
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [todayNak, setTodayNak] = useState<{ index: number; name: string } | null>(null)
   const [todayTithiNum, setTodayTithiNum] = useState<number | null>(
@@ -102,7 +108,7 @@ export function PersonalDayCard({
   if (loading) {
     return (
       <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.4rem 0' }}>
-        Loading cosmic data…
+        {t('loading')}
       </div>
     )
   }
@@ -117,7 +123,7 @@ export function PersonalDayCard({
   const isAuspicious = q.quality === 'auspicious'
   const isDanger     = q.quality === 'inauspicious'
   const accentColor  = isAuspicious ? 'var(--teal)' : isDanger ? 'var(--rose)' : 'var(--gold)'
-  const qualityLabel = isAuspicious ? 'Auspicious' : isDanger ? 'Caution' : 'Neutral'
+  const qualityLabel = isAuspicious ? t('auspicious') : isDanger ? t('caution') : t('neutral')
 
   // BCP Calculation
   const birthDateObj = new Date(birthDate)
@@ -155,30 +161,30 @@ export function PersonalDayCard({
     ankaPower = toCore(now.getDate()) === moolank
   }
 
-  const tithiMeta = todayTithiNum != null ? getTithiDayMeta(todayTithiNum) : null
+  const tithiMeta = todayTithiNum != null ? getTithiDayMeta(todayTithiNum, lang) : null
   const tithiAccent = tithiMeta
     ? (tithiMeta.group.nature === 'shubh' ? 'var(--teal)' : 'var(--rose)')
     : accentColor
   const pakshaLabel = todayPanchang?.tithi?.paksha === 'krishna'
-    ? 'Krishna'
+    ? t('krishna')
     : todayPanchang?.tithi?.paksha === 'shukla'
-      ? 'Shukla'
+      ? t('shukla')
       : null
 
-  const karanaMeta = todayKaranaName ? getKaranaMeta(todayKaranaName) : null
+  const karanaMeta = todayKaranaName ? getKaranaMeta(todayKaranaName, lang) : null
   const karanaAccent = karanaMeta?.isBhadra ? 'var(--rose)' : 'var(--gold)'
-  const yogaMeta = todayYogaName ? getYogaMeta(todayYogaName) : null
+  const yogaMeta = todayYogaName ? getYogaMeta(todayYogaName, lang) : null
   const yogaAccent = yogaMeta
     ? (yogaMeta.quality === 'auspicious' ? 'var(--teal)' : yogaMeta.quality === 'inauspicious' ? 'var(--rose)' : 'var(--gold)')
     : accentColor
   const yogaQualityLabel = yogaMeta
-    ? (yogaMeta.quality === 'auspicious' ? 'Shubh' : yogaMeta.quality === 'inauspicious' ? 'Ashubh' : 'Neutral')
+    ? (yogaMeta.quality === 'auspicious' ? t('shubh') : yogaMeta.quality === 'inauspicious' ? t('ashubh') : t('neutral'))
     : null
 
-  const nakMeta = getNakshatraMuhurtaMeta(todayNak.index, todayPanchang?.nakshatra?.pada ?? 1)
-  const abhijit = getAbhijitWindow(todayPanchang?.moonLongitudeSidereal)
+  const nakMeta = getNakshatraMuhurtaMeta(todayNak.index, todayPanchang?.nakshatra?.pada ?? 1, lang)
+  const abhijit = getAbhijitWindow(todayPanchang?.moonLongitudeSidereal, lang)
   const ashwiniNotes = todayPanchang?.vara != null
-    ? getAshwiniYogaNotes(todayNak.index, todayPanchang.vara.number, todayTithiNum)
+    ? getAshwiniYogaNotes(todayNak.index, todayPanchang.vara.number, todayTithiNum, lang)
     : []
   const nakAccent = nakMeta.group.id === 'Ugra' || nakMeta.group.id === 'Tikshna'
     ? 'var(--rose)'
@@ -186,9 +192,9 @@ export function PersonalDayCard({
       ? 'var(--teal)'
       : 'var(--gold)'
 
-  const vaarMeta = todayPanchang?.vara != null ? getVaarMeta(todayPanchang.vara.number) : null
+  const vaarMeta = todayPanchang?.vara != null ? getVaarMeta(todayPanchang.vara.number, lang) : null
   const currentHora = todayPanchang?.horaTable?.length
-    ? getCurrentHora(todayPanchang.horaTable)
+    ? getCurrentHora(todayPanchang.horaTable, new Date(), lang)
     : null
 
   return (
@@ -207,10 +213,10 @@ export function PersonalDayCard({
         }}>
           <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
             <Lock size={13} aria-hidden style={{ verticalAlign: '-2px', marginRight: 5 }} />
-            Full cosmic weather guidance (hora, muhurta windows, caveats) requires Gold.
+            {t('goldNote')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{t('viewPlans')}</Button>
           </Link>
         </div>
       )}
@@ -229,13 +235,13 @@ export function PersonalDayCard({
           borderRadius: 3, border: '1px solid var(--border-soft)',
           background: 'var(--gold-faint)', color: 'var(--text-gold)',
           letterSpacing: '0.05em', textTransform: 'uppercase'
-        }} title={`Bhrigu Chakra Paddhati - Year ${bcpYear}`}>
-          BCP: H{bcpHouse}
+        }} title={t('bcpTitle', { year: bcpYear })}>
+          {t('bcp', { house: bcpHouse })}
         </span>
         {ankaPersonalDay != null && (
           <Link
             href="/numerology"
-            title="Open Vedic Numerology"
+            title={t('ankaTitle')}
             style={{
               fontSize: '0.6rem', fontWeight: 700, padding: '1px 7px',
               borderRadius: 3, border: '1px solid var(--border-soft)',
@@ -244,14 +250,14 @@ export function PersonalDayCard({
               letterSpacing: '0.05em', textTransform: 'uppercase', textDecoration: 'none',
             }}
           >
-            Anka PD {ankaPersonalDay}{ankaPower ? ' · Power' : ''}
+            {t('anka', { n: ankaPersonalDay })}{ankaPower ? t('power') : ''}
           </Link>
         )}
         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
           Tarabala: <strong style={{ color: accentColor }}>{taraName} #{taraIdx + 1}</strong>
         </span>
         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-          ☽ <strong style={{ color: 'var(--text-primary)' }}>{todayNak.name}</strong>
+          ☽ <strong style={{ color: 'var(--text-primary)' }}>{hi ? NAKSHATRA_HI[todayNak.index] ?? todayNak.name : todayNak.name}</strong>
         </span>
       </div>
 
@@ -263,7 +269,7 @@ export function PersonalDayCard({
         color: 'var(--text-secondary)',
         lineHeight: 1.4,
       }}>
-        {q.recommendation}
+        {hi ? TARA_HI[taraName]?.decisionWindow ?? q.recommendation : q.recommendation}
       </div>
 
       {/* ── Today’s vaar ── */}
@@ -280,7 +286,7 @@ export function PersonalDayCard({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-              Vaar
+              {t('vaar')}
             </span>
             <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
               {vaarMeta.name}
@@ -297,7 +303,7 @@ export function PersonalDayCard({
             </span>
           </div>
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
-            {vaarMeta.nature} · Best for: {vaarMeta.bestFor}
+            {vaarMeta.nature} · {t('bestFor', { text: vaarMeta.bestFor })}
           </div>
           {showFull && (
             <>
@@ -308,20 +314,20 @@ export function PersonalDayCard({
                 color: 'var(--text-secondary)',
                 lineHeight: 1.4,
               }}>
-                {formatVaarWeatherLine(vaarMeta)}
+                {formatVaarWeatherLine(vaarMeta, lang)}
               </div>
               {currentHora && (
                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
-                  Now hora: <strong style={{ color: 'var(--text-primary)' }}>{currentHora.lordName}</strong>
+                  {t('nowHora')} <strong style={{ color: 'var(--text-primary)' }}>{currentHora.lordName}</strong>
                   {' — '}{currentHora.purposeHint}
                 </div>
               )}
               <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.3 }}>
                 {vaarMeta.strengthenNaks.length > 0 && (
-                  <>Vaar Pati gains in {vaarMeta.strengthenNaks.join(', ')}. </>
+                  <>{t('vaarGains', { naks: vaarMeta.strengthenNaks.map(n => (hi ? termHi(n) : n)).join(', ') })}</>
                 )}
                 {vaarMeta.weakenNaks.length > 0 && (
-                  <>Caution if in {vaarMeta.weakenNaks.join(', ')}.</>
+                  <>{t('vaarCaution', { naks: vaarMeta.weakenNaks.map(n => (hi ? termHi(n) : n)).join(', ') })}</>
                 )}
               </div>
             </>
@@ -342,25 +348,25 @@ export function PersonalDayCard({
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-            Nakshatra
+            {t('nakshatra')}
           </span>
           <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
             {nakMeta.name}
-            {abhijit.active ? ' · Abhijit' : ''}
+            {abhijit.active ? t('abhijit') : ''}
           </strong>
           <span style={{
             fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
             borderRadius: 3, border: `1px solid ${nakAccent}`,
             color: nakAccent, letterSpacing: '0.04em', textTransform: 'uppercase',
           }}>
-            {nakMeta.group.id}
+            {hi ? nakMeta.group.label : nakMeta.group.id}
           </span>
           <span style={{
             fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
             borderRadius: 3, border: '1px solid var(--border-soft)',
             color: 'var(--text-muted)', letterSpacing: '0.04em', textTransform: 'uppercase',
           }}>
-            {nakMeta.mukha.id}
+            {hi ? nakMeta.mukha.label : nakMeta.mukha.id}
           </span>
         </div>
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
@@ -383,7 +389,7 @@ export function PersonalDayCard({
                   : formatNakshatraWeatherLine(nakMeta)}
               </div>
               <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
-                Mukha: {nakMeta.mukha.meaning} — {nakMeta.mukha.goodFor}
+                {t('mukha', { meaning: nakMeta.mukha.meaning, goodFor: nakMeta.mukha.goodFor })}
               </div>
               {ashwiniNotes.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginTop: '0.1rem' }}>
@@ -397,7 +403,7 @@ export function PersonalDayCard({
                     </div>
                   ))}
                   <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
-                    Favour: {ASHWINI_ACTIVITY_HINT.favour}. Avoid: {ASHWINI_ACTIVITY_HINT.avoid}.
+                    {t('ashwiniHint', getAshwiniActivityHint(lang))}
                   </div>
                 </div>
               )}
@@ -419,7 +425,7 @@ export function PersonalDayCard({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-              Tithi
+              {t('tithi')}
             </span>
             <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
               {tithiMeta.name}
@@ -430,7 +436,7 @@ export function PersonalDayCard({
               borderRadius: 3, border: `1px solid ${tithiAccent}`,
               color: tithiAccent, letterSpacing: '0.04em', textTransform: 'uppercase',
             }}>
-              {tithiMeta.group.id}
+              {hi ? tithiMeta.group.label : tithiMeta.group.id}
             </span>
             <span style={{
               fontSize: '0.55rem', fontWeight: 700, padding: '1px 6px',
@@ -439,15 +445,15 @@ export function PersonalDayCard({
               color: tithiAccent,
               letterSpacing: '0.04em', textTransform: 'uppercase',
             }}>
-              {tithiMeta.group.nature === 'shubh' ? 'Shubh' : 'Ashubh'}
+              {tithiMeta.group.nature === 'shubh' ? t('shubh') : t('ashubh')}
             </span>
           </div>
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
             {tithiMeta.group.elementLabel} · {tithiMeta.group.meaning}
             {showFull && (
               <>
-                {' · '}Deity {tithiMeta.deity}
-                {' · '}Best for: {tithiMeta.bestFor}
+                {' · '}{t('deity', { name: tithiMeta.deity })}
+                {' · '}{t('bestFor', { text: tithiMeta.bestFor })}
               </>
             )}
           </div>
@@ -460,7 +466,7 @@ export function PersonalDayCard({
                 color: 'var(--text-secondary)',
                 lineHeight: 1.4,
               }}>
-                {formatTithiWeatherLine(tithiMeta)}
+                {formatTithiWeatherLine(tithiMeta, lang)}
               </div>
               <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
                 {tithiMeta.temperament}
@@ -483,7 +489,7 @@ export function PersonalDayCard({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-              Yoga
+              {t('yoga')}
             </span>
             <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
               {yogaMeta.name}
@@ -497,7 +503,7 @@ export function PersonalDayCard({
             </span>
           </div>
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
-            {yogaMeta.meaning}{showFull ? ` · Best for: ${yogaMeta.bestFor}` : ''}
+            {yogaMeta.meaning}{showFull ? ` · ${t('bestFor', { text: yogaMeta.bestFor })}` : ''}
           </div>
           {showFull && (
             <>
@@ -508,10 +514,10 @@ export function PersonalDayCard({
                 color: 'var(--text-secondary)',
                 lineHeight: 1.4,
               }}>
-                {formatYogaWeatherLine(yogaMeta)}
+                {formatYogaWeatherLine(yogaMeta, lang)}
               </div>
               <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
-                Challenge: {yogaMeta.challenge}
+                {t('challenge', { text: yogaMeta.challenge })}
               </div>
             </>
           )}
@@ -531,7 +537,7 @@ export function PersonalDayCard({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-              Karana
+              {t('karana')}
             </span>
             <strong style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>
               {karanaMeta.name}
@@ -549,13 +555,13 @@ export function PersonalDayCard({
                 borderRadius: 3, background: 'rgba(244,63,94,0.12)',
                 color: 'var(--rose)', letterSpacing: '0.04em', textTransform: 'uppercase',
               }}>
-                Bhadra
+                {t('bhadra')}
               </span>
             )}
           </div>
           <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
             {karanaMeta.meaning}
-            {showFull ? ` · Deity ${karanaMeta.deity} · ${karanaMeta.career}` : ''}
+            {showFull ? t('karanaDeity', { name: karanaMeta.deity, career: karanaMeta.career }) : ''}
           </div>
           {showFull && (
             <>
@@ -566,10 +572,10 @@ export function PersonalDayCard({
                 color: 'var(--text-secondary)',
                 lineHeight: 1.4,
               }}>
-                {formatKaranaWeatherLine(karanaMeta)}
+                {formatKaranaWeatherLine(karanaMeta, lang)}
               </div>
               <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.85, lineHeight: 1.35 }}>
-                Challenge: {karanaMeta.challenge}
+                {t('challenge', { text: karanaMeta.challenge })}
               </div>
             </>
           )}
@@ -587,7 +593,7 @@ export function PersonalDayCard({
 
       {/* ── Birth moon note ── */}
       <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', opacity: 0.75 }}>
-        Birth Moon: {birthMoonName}
+        {t('birthMoon', { name: hi ? termHi(birthMoonName) : birthMoonName })}
       </div>
     </div>
   )

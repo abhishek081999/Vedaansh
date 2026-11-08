@@ -7,7 +7,25 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ChartOutput, Dignity, GrahaId, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, gName, pick, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  ATMAKARAKA_IN_NAVAMSHA_HI,
+  D9_HOUSE_THEME_HI,
+  GRAHA_QUALITIES_HI,
+  GRAHA_SIGNIFIES_HI,
+  MERCURY_FAME_HI,
+  NAMING_DEITY_HI,
+  NAVAMSHA_DASHA_NOTE_HI,
+  NAVAMSHA_SIGNS_HI,
+  SOURCE_SIGN_GENERIC_HI,
+} from '@/lib/engine/locale/navamshaSignKnowledge.hi'
+import {
+  COMBINATIONS_HI,
+  LAGNA_RULES_HI,
+  LORD_RULES_HI,
+  NP9_TEXT_HI,
+} from '@/lib/engine/locale/navamshaPredictions.hi'
+import type { NavamshaSignProfile } from '@/lib/engine/navamshaSignKnowledge'
 import {
   analyzeNavamsha,
   signCount,
@@ -177,13 +195,159 @@ function planetTone(row: NavamshaPlanetRow): DashaTone {
   return 'neutral'
 }
 
-function sourceReading(d1Rashi: Rashi, d9Rashi: Rashi): string {
-  const profile = NAVAMSHA_SIGNS[d9Rashi]
+const NP9_TEXT_EN: Record<keyof typeof NP9_TEXT_HI, string> = {
+  signFallback: '{planet} brings {signifies} into the {title} — {essence}.',
+  significationsFallback: 'its significations',
+  houseReading: 'Falls in D9 house {house} — the {signifies} play out through {theme}.',
+  sourceJoin: '{generic} {element}',
+  lagnaTitle: '{planet} in D9 lagna',
+  saAxisTitle: 'Saturn on the D9 1/7 axis',
+  saAxisText: 'Reputation and dignity in partnership get tested; avoid humiliation-prone situations and serve at a Rama temple to soften it.',
+  comboTitle: '{title} ({rashi})',
+  ariesHealthTitle: '{planet} from D1 house {house} into Aries navamsha',
+  ariesHealthText: 'Coming from a 6/8/12 house into Aries, its dasha can show physically — injuries, accidents or surgery. Drive carefully and keep the body strong.',
+  virgoHealthTitle: '{planet} carries Virgo karma',
+  virgoHealthText: 'From D1 Virgo into {rashi}: the lineage\'s roga-rina-shatru (illness, debt, dispute) travels with {signifies}. Preventive health checks and clearing loans help.',
+  digFallTitle: '{planet}: exalted in D1, debilitated in D9',
+  digFallText: 'Rises high and then falls through ego — keep humility once success arrives.',
+  digRiseTitle: '{planet}: debilitated in D1, exalted in D9',
+  digRiseText: 'Starts at rock bottom and heals over time — the area that hurt early becomes a strength (neecha → ucha transformation).',
+  lordRuleText: '{planet} rules your D1 house {house}. {text}',
+  lord107Title: '10th lord joins 7th lord / Venus in Libra navamsha',
+  lord107Text: 'Career and marriage get tied — partner chosen for status or work; choose for character too.',
+  lord56Title: '5th and 6th lords in Libra navamsha',
+  lord56Text: 'Conception may need patience or medical support — check D7 lagna and Jupiter/Sun there.',
+  ke9AkTitle: 'Ketu 9th from Atmakaraka in D9',
+  ke9AkText: 'Old habits and addictions cling till late in life — vow-based discipline and guru guidance are essential.',
+  akKeTitle: 'Atmakaraka with Ketu in D9',
+  akKeText: 'The soul releases easily — detachment and a peaceful departure; moksha leaning.',
+  akRaTitle: 'Atmakaraka with Rahu in D9',
+  akRaText: 'Many unfinished desires — practise giving and contentment so the soul is not bound.',
+  veAriesTitle: 'Venus in Aries navamsha under malefic pressure',
+  veAriesText: 'Physical need runs high. If it is not met inside the bond, this placement can pull toward an affair. Keep the relationship honest and the body occupied.',
+  taurusMalTitle: 'Malefic in Taurus navamsha in 6, 8 or 12',
+  taurusMalText: 'Stored resources are fought over: dowry, what was brought from the parents\' house, land or cash. The relative of that D9 house is the one who presses. {tail}',
+  taurusMalMars: 'Mars makes the fight physical.',
+  taurusMalNoMars: 'Keep the marriage reading on money, not on romance.',
+  fameTitle: 'Known for · Mercury with {planet} ({rashi})',
+  eighthTitle: 'D9 house {house} pressed from its 8th',
+  eighthText: 'House {house} is empty while its 8th (house {eighth}) holds {names}. A strong 8th "kills" the house it is 8th from — {theme} get suppressed. Strengthen this house first in remedies.',
+  keTitle: 'Ketu clears the 12th from itself (D9 house {house})',
+  keText: 'Ketu in house {from} disrupts house {house} — {theme}: people leave, things end or change repeatedly there.',
+  raTitle: 'Rahu disturbs the 2nd from itself (D9 house {house})',
+  raText: 'Rahu in house {from} spoils house {house} — {theme} — through stubbornness and obsession.',
+  lord47Title: '4th lord in the 7th with malefics',
+  lord47Text: '{planet} (4th lord) sits in the D1 7th with {names} — the pull of partner and outside life can leave parents without care in old age. Plan consciously for their support.',
+  scorpioTitle: 'Planet(s) in Scorpio navamsha',
+  scorpioText: 'What is most feared in the domain of {names} tends to arrive while this placement is loud. Do not feed that fear; forgive, forget, move on. Seek a Sagittarius guide who has already walked the same fire.',
+  scorpioSoftTitle: '{planet} weakened in Scorpio navamsha',
+  scorpioSoftText: 'Digbala or dignity already lost — the Scorpio blow softens. Transformation still happens; the torture is less theatrical. Confirm with D9 lagna strength.',
+  scorpioMoonTitle: 'Moon in Scorpio navamsha (debilitated)',
+  scorpioMoonText: 'Emotional support of the soft kind is not the gift — occult, research and a changed heart after the dasha often are. Bhoga does not fill the cup. Care the body and the bathroom; fear of deep water is classical.',
+  sagTitle: 'Planet(s) in Sagittarius navamsha',
+  sagText: 'Moral ridge active for {names}. Temptation will call — refuse the slip (affairs, small cheats, regulatory breaks) or the chair falls. Stay mute; keep three–four months\' savings while loud; refill punya with nama and charity.',
+  sagMuteTitle: 'Sagittarius navamsha is mute',
+  sagMuteText: 'Ask the deity once, then do your duty — faith, not Gemini bargaining. Big three-to-five-year goals; do not fight over small change. Work under one cut-to-cut authority, not a panel.',
+  juDebTitle: 'Jupiter debilitated in D9',
+  juDebText: 'Happiness from children thins; extramarital or boundary-breaking pull rises when ethics slip. Ask plainly about shady bonds when this Jupiter\'s age or dasha runs — confirm before stating. Rebuild through Vishnu-tattva and vows kept.',
+  veSagTitle: 'Venus in Sagittarius navamsha',
+  veSagText: 'Keep respectful distance from casual opposite-sex pull. Loyalty is the exam; officers and public roles carry harassment-case risk if boundaries slip. Lakshmi or Radha; ritual purity over DJ shortcuts.',
+  juSaSagTitle: 'Saturn influences Jupiter in Sagittarius navamsha',
+  juSaSagText: 'Lifelong free consultation, temple errands and social-religious service tend to be extracted — boundaries with "beta" labour requests still matter.',
+  capTitle: 'Planet(s) in Capricorn navamsha',
+  capText: 'Pressure-cooker active for {names}. Mood does not excuse duty (opposite Cancer). You become the bonded labourer of that signification — serve, endure, then command. Do not play victim; mark boundaries so home is not unpaid office.',
+  capManualTitle: 'Capricorn navamsha demands real work',
+  capManualText: 'Manual, old-school, alone on the job nobody else knows. Under load the mind cannot innovate — finish the scrape first. Authority, money and status can arrive after grinding; soft honour stays thin (Jupiter debilitated here). Strong dignity commands; weak dignity gasps. Exit is Pisces: a little bhakti and letting go.',
+  saCapTitle: 'Saturn in Capricorn navamsha',
+  saCapText: 'Own-sign prison: past laziness repaid as work with no shortcuts. Steer off IT quarterly churn toward core industry, finance, law, refining, QA or training. Major changes only — never fifteen-day software drama.',
+  suCapTitle: 'Sun in Capricorn navamsha',
+  suCapText: 'Mukhiya of labourers: territory, government quarter energy, consistency that outlasts early stares. Personal life burns while the post is built. Copper / Surya-Narayana; purpose before ego. Stand for mother when in the 4th without drowning the spouse.',
+  virgoPierceTitle: '{planet} in Virgo navamsha',
+  virgoPierceText: 'Inclination to piercings or small body procedures; the body part ruled here needs correction work.',
+  virgoStitchText: 'Stitches or minor surgery in the lower body/abdomen are indicated — keep up gut and pelvic health.',
+  lagnaNodesTitle: 'Lagna lord {planet} with {names} in D9',
+  lagnaNodesText: 'Head injuries or stitches to the head are indicated — wear a helmet and avoid risky falls.',
+  lord6Title: '6th lord linked to lagna lord / 5th in D9',
+  lord6Text: 'A lifelong student — learning never stops; competitive exams may take many attempts, but persistence wins.',
+  rahuAkTitle: 'Rahu as Atmakaraka',
+  rahuAkText: 'Does not forgive easily and plans carefully against enemies; read the dispositor {disp} (lord of D9 {rashi}) to see how that plays out.',
+  zeroTitle: '{planet} at 0° ({rashi})',
+  zeroText: 'Planets at the very start of a sign give good results and great pace in life (per the lectures).',
+  moon4Title: 'Moon in the D1 4th house',
+  moon4Text: 'Be the first to give — donate food, water and salt regularly to keep home and mind steady.',
+  veCleanTitle: 'Strong Venus in D9',
+  veCleanText: 'Avoid eating in untidy places and living in a dirty environment — cleanliness keeps Venus giving money and grace.',
+  namingTitle: 'Name after the strongest planet — {planet}',
+  namingText: 'The name is called daily and carries emotion (Moon). Choose names of {deity} for this chart\'s children or a pet-name.',
+  induTitle: 'Indu lagna star lord {planet} is {dignity}',
+  induText: 'When the nakshatra lord of Indu lagna is exalted or debilitated, the chart can generate very large wealth.',
+  depRa: 'With Rahu, many desires remain at the end — practise giving and contentment now so the soul leaves light.',
+  depKe: 'Ketu links the atmakaraka — the body is released easily and peacefully.',
+  dep12: 'Atmakaraka in the 12th / Pisces without malefics — a peaceful departure, as if in sleep.',
+  depDus: 'Atmakaraka in a dusthana with malefics — the end tends to come through illness or a hospital stay; preventive health care matters.',
+  dep9: 'Atmakaraka in the 9th — the soul departs with blessings, often near a temple or in devotion.',
+  dep4Ma: 'Atmakaraka in the 4th with Mars — departure during travel; road safety is essential.',
+  dep4Pisces: 'Atmakaraka in the 4th (Pisces) — departure during travel, possibly air travel.',
+  dep4: 'Atmakaraka in the 4th — departure tends to happen while travelling.',
+  dep5: 'Atmakaraka in the 5th — departure amid people or entertainment, at ease.',
+  depTitle: 'Atmakaraka indication of departure',
+  depText: '{text} (Jaimini indication of manner, not timing{soft}.)',
+  depSoft: '; {names} with the AK soften it',
+  akPresent: '{planet} is exalted here — {qualities} come naturally.',
+  akMissing: '{planet} is debilitated here — {qualities} tend to be missing and must be built consciously.',
+  veCapAge: 'Venus in Capricorn navamsha — after 32–33 a separate (nuclear) household eases career and marriage.',
+  elementTitle: '{n} planets in {element} navamshas',
+  elFire: 'Most planets in fire navamshas — always initiating, building and seeking status; finishing is the challenge.',
+  elEarth: 'Most planets in earth navamshas — practical, resource-building, service-driven; joy must be cultivated.',
+  elAir: 'Most planets in air navamshas — communication, networks and reactions drive life; ground yourself.',
+  elWater: 'Most planets in water navamshas — emotional, intuitive and karmic; release and charity bring peace.',
+  elNameFire: 'fire', elNameEarth: 'earth', elNameAir: 'air', elNameWater: 'water',
+  headline: '{rashi} navamsha lagna — {title}. {guidance}',
+}
+
+/** Knowledge-base tables in one language. */
+interface NP9Ctx {
+  lang: EngineLang
+  T: Record<keyof typeof NP9_TEXT_HI, string>
+  signs: Record<number, NavamshaSignProfile>
+  generic: Record<number, string>
+  signifies: Partial<Record<string, string>>
+  houseTheme: Record<number, string>
+  qualities: Partial<Record<string, string>>
+  akTheme: Record<number, string>
+  dashaNote: Record<number, string>
+  naming: Partial<Record<string, string>>
+  fame: Partial<Record<string, string>>
+  g: (id: GrahaId) => string
+  r: (x: Rashi) => string
+}
+
+function np9Ctx(lang: EngineLang): NP9Ctx {
+  const hi = lang === 'hi'
+  return {
+    lang,
+    T: pick(NP9_TEXT_EN, NP9_TEXT_HI as Record<keyof typeof NP9_TEXT_HI, string>, lang),
+    signs: hi ? NAVAMSHA_SIGNS_HI : NAVAMSHA_SIGNS,
+    generic: hi ? SOURCE_SIGN_GENERIC_HI : SOURCE_SIGN_GENERIC,
+    signifies: hi ? GRAHA_SIGNIFIES_HI : GRAHA_SIGNIFIES,
+    houseTheme: hi ? D9_HOUSE_THEME_HI : D9_HOUSE_THEME,
+    qualities: hi ? GRAHA_QUALITIES_HI : GRAHA_QUALITIES,
+    akTheme: hi ? ATMAKARAKA_IN_NAVAMSHA_HI : ATMAKARAKA_IN_NAVAMSHA,
+    dashaNote: hi ? NAVAMSHA_DASHA_NOTE_HI : NAVAMSHA_DASHA_NOTE,
+    naming: hi ? NAMING_DEITY_HI : NAMING_DEITY,
+    fame: hi ? MERCURY_FAME_HI : MERCURY_FAME,
+    g: (id: GrahaId) => gName(id, lang),
+    r: (x: Rashi) => rName(x, lang),
+  }
+}
+
+function sourceReading(d1Rashi: Rashi, d9Rashi: Rashi, L: NP9Ctx): string {
+  const profile = L.signs[d9Rashi]
   const specific = profile.fromSign?.[d1Rashi]
   if (specific) return specific
   const byElement = profile.fromElement?.[SIGN_ELEMENT[d1Rashi]]
-  if (byElement) return `${SOURCE_SIGN_GENERIC[d1Rashi]} ${byElement}`
-  return SOURCE_SIGN_GENERIC[d1Rashi]
+  if (byElement) return fill(L.T.sourceJoin, { generic: L.generic[d1Rashi], element: byElement })
+  return L.generic[d1Rashi]
 }
 
 function rule(
@@ -293,7 +457,12 @@ export function buildNavamshaPredictions(
   analysis: NavamshaAnalysis,
   d1AscRashi: Rashi,
   extras: NavamshaPredictionExtras = {},
+  lang: EngineLang = 'en',
 ): NavamshaPredictionReport {
+  const L = np9Ctx(lang)
+  const { T } = L
+  const sig = (id: GrahaId) => L.signifies[id] ?? T.significationsFallback
+  const names = (ids: GrahaId[], sep = ', ') => ids.map((id) => L.g(id)).join(sep)
   const lords = houseLords(d1AscRashi)
   const akId = analysis.atmakaraka
   const dashaByLord = new Map<GrahaId, string[]>()
@@ -304,10 +473,15 @@ export function buildNavamshaPredictions(
   }
 
   const planets: NavamshaPlanetPrediction[] = analysis.planets.map((row) => {
-    const profile = NAVAMSHA_SIGNS[row.d9Rashi]
+    const profile = L.signs[row.d9Rashi]
     const signReading =
       profile.planets[row.id] ??
-      `${GRAHA_NAMES[row.id]} brings ${GRAHA_SIGNIFIES[row.id] ?? 'its significations'} into the ${profile.title.toLowerCase()} — ${profile.essence.split('.')[0]}.`
+      fill(T.signFallback, {
+        planet: L.g(row.id),
+        signifies: sig(row.id),
+        title: profile.title.toLowerCase(),
+        essence: profile.essence.split(lang === 'hi' ? '।' : '.')[0]!,
+      })
     const houseSpecial = profile.inHouse?.[row.d9House] ?? null
     return {
       id: row.id,
@@ -326,10 +500,10 @@ export function buildNavamshaPredictions(
       isAtmakaraka: row.id === akId,
       dashaLevels: dashaByLord.get(row.id) ?? [],
       signReading,
-      sourceReading: sourceReading(row.d1Rashi, row.d9Rashi),
-      houseReading: `Falls in D9 house ${row.d9House} — the ${GRAHA_SIGNIFIES[row.id] ?? 'its significations'} play out through ${D9_HOUSE_THEME[row.d9House]}.`,
+      sourceReading: sourceReading(row.d1Rashi, row.d9Rashi, L),
+      houseReading: fill(T.houseReading, { house: row.d9House, signifies: sig(row.id), theme: L.houseTheme[row.d9House] }),
       houseSpecial,
-      dashaReading: NAVAMSHA_DASHA_NOTE[row.d9Rashi],
+      dashaReading: L.dashaNote[row.d9Rashi],
       remedy: profile.remedy,
       tone: planetTone(row),
     }
@@ -351,44 +525,45 @@ export function buildNavamshaPredictions(
   }
   for (const id of lagnaOcc) {
     const hit = lagnaRules[id]
-    if (hit) rules.push(rule(`lagna-${id}`, 'lagna', `${GRAHA_NAMES[id]} in D9 lagna`, hit[0], hit[1], [id]))
+    if (hit) rules.push(rule(`lagna-${id}`, 'lagna', fill(T.lagnaTitle, { planet: L.g(id) }), lang === 'hi' ? LAGNA_RULES_HI[id] ?? hit[0] : hit[0], hit[1], [id]))
   }
   const sa = byId.get('Sa')
   if (sa && (sa.d9House === 1 || sa.d9House === 7)) {
-    rules.push(rule('lagna-Sa-1-7', 'lagna', 'Saturn on the D9 1/7 axis', 'Reputation and dignity in partnership get tested; avoid humiliation-prone situations and serve at a Rama temple to soften it.', 'challenging', ['Sa']))
+    rules.push(rule('lagna-Sa-1-7', 'lagna', T.saAxisTitle, T.saAxisText, 'challenging', ['Sa']))
   }
 
   // ── Combinations by shared D9 sign ────────────────────────
   const bySign = new Map<Rashi, GrahaId[]>()
   for (const p of planets) bySign.set(p.d9Rashi, [...(bySign.get(p.d9Rashi) ?? []), p.id])
   const usedCombo = new Set<string>()
-  for (const c of COMBINATIONS) {
+  for (const [ci, c] of COMBINATIONS.entries()) {
+    const ct = lang === 'hi' ? COMBINATIONS_HI[ci] ?? c : c
     for (const [sign, ids] of bySign) {
       if (!c.ids.every((id) => ids.includes(id))) continue
       if (c.signs && !c.signs.includes(sign)) continue
       const key = [...c.ids].sort().join('-')
       if (usedCombo.has(key)) continue
       usedCombo.add(key)
-      rules.push(rule(`combo-${key}`, 'combination', `${c.title} (${RASHI_NAMES[sign]})`, c.text, c.tone, c.ids))
+      rules.push(rule(`combo-${key}`, 'combination', fill(T.comboTitle, { title: ct.title, rashi: L.r(sign) }), ct.text, c.tone, c.ids))
     }
   }
 
   // ── Health: dusthana-sourced planet into Aries navamsha ───
   for (const p of planets) {
     if (p.d9Rashi === 1 && DUSTHANA.includes(p.d1House)) {
-      rules.push(rule(`health-aries-${p.id}`, 'health', `${p.name} from D1 house ${p.d1House} into Aries navamsha`, 'Coming from a 6/8/12 house into Aries, its dasha can show physically — injuries, accidents or surgery. Drive carefully and keep the body strong.', 'challenging', [p.id]))
+      rules.push(rule(`health-aries-${p.id}`, 'health', fill(T.ariesHealthTitle, { planet: p.name, house: p.d1House }), T.ariesHealthText, 'challenging', [p.id]))
     }
     if (p.d1Rashi === 6 && p.d9Rashi !== 6) {
-      rules.push(rule(`health-virgo-${p.id}`, 'health', `${p.name} carries Virgo karma`, `From D1 Virgo into ${p.d9RashiName}: the lineage's roga-rina-shatru (illness, debt, dispute) travels with ${GRAHA_SIGNIFIES[p.id] ?? 'its significations'}. Preventive health checks and clearing loans help.`, 'challenging', [p.id]))
+      rules.push(rule(`health-virgo-${p.id}`, 'health', fill(T.virgoHealthTitle, { planet: p.name }), fill(T.virgoHealthText, { rashi: p.d9RashiName, signifies: sig(p.id) }), 'challenging', [p.id]))
     }
   }
 
   // ── Dignity flips ─────────────────────────────────────────
   for (const r of analysis.planets) {
     if (r.d1Dignity === 'exalted' && r.d9Dignity === 'debilitated') {
-      rules.push(rule(`dig-fall-${r.id}`, 'dignity', `${r.name}: exalted in D1, debilitated in D9`, 'Rises high and then falls through ego — keep humility once success arrives.', 'challenging', [r.id]))
+      rules.push(rule(`dig-fall-${r.id}`, 'dignity', fill(T.digFallTitle, { planet: r.name }), T.digFallText, 'challenging', [r.id]))
     } else if (r.d1Dignity === 'debilitated' && r.d9Dignity === 'exalted') {
-      rules.push(rule(`dig-rise-${r.id}`, 'dignity', `${r.name}: debilitated in D1, exalted in D9`, 'Starts at rock bottom and heals over time — the area that hurt early becomes a strength (neecha → ucha transformation).', 'supportive', [r.id]))
+      rules.push(rule(`dig-rise-${r.id}`, 'dignity', fill(T.digRiseTitle, { planet: r.name }), T.digRiseText, 'supportive', [r.id]))
     }
   }
 
@@ -459,34 +634,35 @@ export function buildNavamshaPredictions(
         const veOk = ve && !['debilitated', 'enemy', 'great_enemy'].includes(ve.d9Dignity) && !DUSTHANA.includes(ve.d9House)
         if (!veOk) continue
       }
-      rules.push(rule(`lord-${lr.house}-${lr.sign}`, 'lordship', lr.title, `${p.name} rules your D1 house ${lr.house}. ${lr.text}`, lr.tone, [p.id]))
+      const lt = lang === 'hi' ? LORD_RULES_HI[`${lr.house}-${lr.sign}`] ?? lr : lr
+      rules.push(rule(`lord-${lr.house}-${lr.sign}`, 'lordship', lt.title, fill(T.lordRuleText, { planet: p.name, house: lr.house, text: lt.text }), lr.tone, [p.id]))
     }
   }
   // 10th lord with 7th lord or Venus in Libra navamsha
   const tenth = lordIn(10)
   const seventh = lordIn(7)
   if (tenth && tenth.d9Rashi === 7 && ((seventh && seventh.d9Rashi === 7 && seventh.id !== tenth.id) || byId.get('Ve')?.d9Rashi === 7) && tenth.id !== 'Ve') {
-    rules.push(rule('lord-10-7-libra', 'lordship', '10th lord joins 7th lord / Venus in Libra navamsha', 'Career and marriage get tied — partner chosen for status or work; choose for character too.', 'mixed', [tenth.id]))
+    rules.push(rule('lord-10-7-libra', 'lordship', T.lord107Title, T.lord107Text, 'mixed', [tenth.id]))
   }
   // 5th + 6th lord together in Libra navamsha
   const fifth = lordIn(5)
   const sixth = lordIn(6)
   if (fifth && sixth && fifth.id !== sixth.id && fifth.d9Rashi === 7 && sixth.d9Rashi === 7) {
-    rules.push(rule('lord-5-6-libra', 'lordship', '5th and 6th lords in Libra navamsha', 'Conception may need patience or medical support — check D7 lagna and Jupiter/Sun there.', 'challenging', [fifth.id, sixth.id]))
+    rules.push(rule('lord-5-6-libra', 'lordship', T.lord56Title, T.lord56Text, 'challenging', [fifth.id, sixth.id]))
   }
 
   // ── Karaka rules ──────────────────────────────────────────
   const ak = byId.get(akId)
   const ke = byId.get('Ke')
   if (ak && ke && signCount(ak.d9Rashi, ke.d9Rashi) === 9) {
-    rules.push(rule('karaka-ke-9-ak', 'karaka', 'Ketu 9th from Atmakaraka in D9', 'Old habits and addictions cling till late in life — vow-based discipline and guru guidance are essential.', 'challenging', ['Ke', akId]))
+    rules.push(rule('karaka-ke-9-ak', 'karaka', T.ke9AkTitle, T.ke9AkText, 'challenging', ['Ke', akId]))
   }
   if (ak && ke && ak.d9Rashi === ke.d9Rashi) {
-    rules.push(rule('karaka-ak-ke', 'karaka', 'Atmakaraka with Ketu in D9', 'The soul releases easily — detachment and a peaceful departure; moksha leaning.', 'supportive', [akId, 'Ke']))
+    rules.push(rule('karaka-ak-ke', 'karaka', T.akKeTitle, T.akKeText, 'supportive', [akId, 'Ke']))
   }
   const ra = byId.get('Ra')
   if (ak && ra && ak.d9Rashi === ra.d9Rashi && akId !== 'Ra') {
-    rules.push(rule('karaka-ak-ra', 'karaka', 'Atmakaraka with Rahu in D9', 'Many unfinished desires — practise giving and contentment so the soul is not bound.', 'challenging', [akId, 'Ra']))
+    rules.push(rule('karaka-ak-ra', 'karaka', T.akRaTitle, T.akRaText, 'challenging', [akId, 'Ra']))
   }
 
   // ── Venus in Aries navamsha, restless houses + malefics ───
@@ -497,8 +673,8 @@ export function buildNavamshaPredictions(
       rules.push(rule(
         'venus-aries-outlet',
         'house',
-        'Venus in Aries navamsha under malefic pressure',
-        'Physical need runs high. If it is not met inside the bond, this placement can pull toward an affair. Keep the relationship honest and the body occupied.',
+        T.veAriesTitle,
+        T.veAriesText,
         'challenging',
         ['Ve', ...mal],
       ))
@@ -511,8 +687,8 @@ export function buildNavamshaPredictions(
     rules.push(rule(
       'taurus-resource-fight',
       'house',
-      'Malefic in Taurus navamsha in 6, 8 or 12',
-      `Stored resources are fought over: dowry, what was brought from the parents' house, land or cash. The relative of that D9 house is the one who presses. ${taurusMal.some((p) => p.id === 'Ma') ? 'Mars makes the fight physical.' : 'Keep the marriage reading on money, not on romance.'}`,
+      T.taurusMalTitle,
+      fill(T.taurusMalText, { tail: taurusMal.some((p) => p.id === 'Ma') ? T.taurusMalMars : T.taurusMalNoMars }),
       'challenging',
       taurusMal.map((p) => p.id),
     ))
@@ -522,8 +698,8 @@ export function buildNavamshaPredictions(
   const me = byId.get('Me')
   if (me) {
     for (const other of bySign.get(me.d9Rashi) ?? []) {
-      const text = MERCURY_FAME[other]
-      if (text) rules.push(rule(`fame-Me-${other}`, 'combination', `Known for · Mercury with ${GRAHA_NAMES[other]} (${me.d9RashiName})`, text, 'neutral', ['Me', other]))
+      const text = L.fame[other]
+      if (text) rules.push(rule(`fame-Me-${other}`, 'combination', fill(T.fameTitle, { planet: L.g(other), rashi: me.d9RashiName }), text, 'neutral', ['Me', other]))
     }
   }
 
@@ -534,7 +710,7 @@ export function buildNavamshaPredictions(
     const eighth = houseFrom(h, 8)
     const mal = (occByHouse.get(eighth) ?? []).filter((id) => MALEFICS.includes(id))
     if (mal.length >= 2 && !(occByHouse.get(h)?.length)) {
-      rules.push(rule(`eighth-from-${h}`, 'house', `D9 house ${h} pressed from its 8th`, `House ${h} is empty while its 8th (house ${eighth}) holds ${mal.map((id) => GRAHA_NAMES[id]).join(', ')}. A strong 8th "kills" the house it is 8th from — ${D9_HOUSE_THEME[h]} get suppressed. Strengthen this house first in remedies.`, 'challenging', mal))
+      rules.push(rule(`eighth-from-${h}`, 'house', fill(T.eighthTitle, { house: h }), fill(T.eighthText, { house: h, eighth, names: names(mal), theme: L.houseTheme[h] }), 'challenging', mal))
     }
   }
 
@@ -542,12 +718,12 @@ export function buildNavamshaPredictions(
   const keP = byId.get('Ke')
   if (keP) {
     const h = houseFrom(keP.d9House, 12)
-    rules.push(rule('node-ke-12th', 'house', `Ketu clears the 12th from itself (D9 house ${h})`, `Ketu in house ${keP.d9House} disrupts house ${h} — ${D9_HOUSE_THEME[h]}: people leave, things end or change repeatedly there.`, 'mixed', ['Ke']))
+    rules.push(rule('node-ke-12th', 'house', fill(T.keTitle, { house: h }), fill(T.keText, { from: keP.d9House, house: h, theme: L.houseTheme[h] }), 'mixed', ['Ke']))
   }
   const raP = byId.get('Ra')
   if (raP) {
     const h = houseFrom(raP.d9House, 2)
-    rules.push(rule('node-ra-2nd', 'house', `Rahu disturbs the 2nd from itself (D9 house ${h})`, `Rahu in house ${raP.d9House} spoils house ${h} — ${D9_HOUSE_THEME[h]} — through stubbornness and obsession.`, 'mixed', ['Ra']))
+    rules.push(rule('node-ra-2nd', 'house', fill(T.raTitle, { house: h }), fill(T.raText, { from: raP.d9House, house: h, theme: L.houseTheme[h] }), 'mixed', ['Ra']))
   }
 
   // ── 4th lord in D1 7th with malefics (Cancer lecture) ─────
@@ -556,7 +732,7 @@ export function buildNavamshaPredictions(
   if (fl && fl.d1House === 7) {
     const mal = planets.filter((p) => p.d1House === 7 && p.id !== fl.id && MALEFICS.includes(p.id)).map((p) => p.id)
     if (mal.length) {
-      rules.push(rule('lord-4-in-7-malefic', 'lordship', '4th lord in the 7th with malefics', `${fl.name} (4th lord) sits in the D1 7th with ${mal.map((id) => GRAHA_NAMES[id]).join(', ')} — the pull of partner and outside life can leave parents without care in old age. Plan consciously for their support.`, 'challenging', [fl.id, ...mal]))
+      rules.push(rule('lord-4-in-7-malefic', 'lordship', T.lord47Title, fill(T.lord47Text, { planet: fl.name, names: names(mal) }), 'challenging', [fl.id, ...mal]))
     }
   }
 
@@ -566,8 +742,8 @@ export function buildNavamshaPredictions(
     rules.push(rule(
       'scorpio-fear-magnet',
       'guidance',
-      'Planet(s) in Scorpio navamsha',
-      `What is most feared in the domain of ${scorpioPs.map((p) => p.name).join(', ')} tends to arrive while this placement is loud. Do not feed that fear; forgive, forget, move on. Seek a Sagittarius guide who has already walked the same fire.`,
+      T.scorpioTitle,
+      fill(T.scorpioText, { names: scorpioPs.map((p) => p.name).join(', ') }),
       'challenging',
       scorpioPs.map((p) => p.id),
     ))
@@ -576,8 +752,8 @@ export function buildNavamshaPredictions(
         rules.push(rule(
           `scorpio-soft-${p.id}`,
           'dignity',
-          `${p.name} weakened in Scorpio navamsha`,
-          'Digbala or dignity already lost — the Scorpio blow softens. Transformation still happens; the torture is less theatrical. Confirm with D9 lagna strength.',
+          fill(T.scorpioSoftTitle, { planet: p.name }),
+          T.scorpioSoftText,
           'mixed',
           [p.id],
         ))
@@ -589,8 +765,8 @@ export function buildNavamshaPredictions(
     rules.push(rule(
       'scorpio-moon-deb',
       'dignity',
-      'Moon in Scorpio navamsha (debilitated)',
-      'Emotional support of the soft kind is not the gift — occult, research and a changed heart after the dasha often are. Bhoga does not fill the cup. Care the body and the bathroom; fear of deep water is classical.',
+      T.scorpioMoonTitle,
+      T.scorpioMoonText,
       'challenging',
       ['Mo'],
     ))
@@ -602,16 +778,16 @@ export function buildNavamshaPredictions(
     rules.push(rule(
       'sagittarius-fall-test',
       'guidance',
-      'Planet(s) in Sagittarius navamsha',
-      `Moral ridge active for ${sagPs.map((p) => p.name).join(', ')}. Temptation will call — refuse the slip (affairs, small cheats, regulatory breaks) or the chair falls. Stay mute; keep three–four months\' savings while loud; refill punya with nama and charity.`,
+      T.sagTitle,
+      fill(T.sagText, { names: sagPs.map((p) => p.name).join(', ') }),
       'challenging',
       sagPs.map((p) => p.id),
     ))
     rules.push(rule(
       'sagittarius-mute-faith',
       'guidance',
-      'Sagittarius navamsha is mute',
-      'Ask the deity once, then do your duty — faith, not Gemini bargaining. Big three-to-five-year goals; do not fight over small change. Work under one cut-to-cut authority, not a panel.',
+      T.sagMuteTitle,
+      T.sagMuteText,
       'neutral',
       sagPs.map((p) => p.id),
     ))
@@ -621,8 +797,8 @@ export function buildNavamshaPredictions(
     rules.push(rule(
       'sagittarius-ju-deb-d9',
       'dignity',
-      'Jupiter debilitated in D9',
-      'Happiness from children thins; extramarital or boundary-breaking pull rises when ethics slip. Ask plainly about shady bonds when this Jupiter\'s age or dasha runs — confirm before stating. Rebuild through Vishnu-tattva and vows kept.',
+      T.juDebTitle,
+      T.juDebText,
       'challenging',
       ['Ju'],
     ))
@@ -632,8 +808,8 @@ export function buildNavamshaPredictions(
     rules.push(rule(
       'sagittarius-venus-boundary',
       'guidance',
-      'Venus in Sagittarius navamsha',
-      'Keep respectful distance from casual opposite-sex pull. Loyalty is the exam; officers and public roles carry harassment-case risk if boundaries slip. Lakshmi or Radha; ritual purity over DJ shortcuts.',
+      T.veSagTitle,
+      T.veSagText,
       'challenging',
       ['Ve'],
     ))
@@ -649,8 +825,8 @@ export function buildNavamshaPredictions(
       rules.push(rule(
         'sagittarius-ju-sa-seva',
         'combination',
-        'Saturn influences Jupiter in Sagittarius navamsha',
-        'Lifelong free consultation, temple errands and social-religious service tend to be extracted — boundaries with "beta" labour requests still matter.',
+        T.juSaSagTitle,
+        T.juSaSagText,
         'mixed',
         ['Ju', 'Sa'],
       ))
@@ -663,16 +839,16 @@ export function buildNavamshaPredictions(
     rules.push(rule(
       'capricorn-pressure-cooker',
       'guidance',
-      'Planet(s) in Capricorn navamsha',
-      `Pressure-cooker active for ${capPs.map((p) => p.name).join(', ')}. Mood does not excuse duty (opposite Cancer). You become the bonded labourer of that signification — serve, endure, then command. Do not play victim; mark boundaries so home is not unpaid office.`,
+      T.capTitle,
+      fill(T.capText, { names: capPs.map((p) => p.name).join(', ') }),
       'challenging',
       capPs.map((p) => p.id),
     ))
     rules.push(rule(
       'capricorn-manual-grind',
       'guidance',
-      'Capricorn navamsha demands real work',
-      'Manual, old-school, alone on the job nobody else knows. Under load the mind cannot innovate — finish the scrape first. Authority, money and status can arrive after grinding; soft honour stays thin (Jupiter debilitated here). Strong dignity commands; weak dignity gasps. Exit is Pisces: a little bhakti and letting go.',
+      T.capManualTitle,
+      T.capManualText,
       'neutral',
       capPs.map((p) => p.id),
     ))
@@ -682,8 +858,8 @@ export function buildNavamshaPredictions(
     rules.push(rule(
       'capricorn-saturn-own',
       'guidance',
-      'Saturn in Capricorn navamsha',
-      'Own-sign prison: past laziness repaid as work with no shortcuts. Steer off IT quarterly churn toward core industry, finance, law, refining, QA or training. Major changes only — never fifteen-day software drama.',
+      T.saCapTitle,
+      T.saCapText,
       'challenging',
       ['Sa'],
     ))
@@ -693,8 +869,8 @@ export function buildNavamshaPredictions(
     rules.push(rule(
       'capricorn-sun-authority',
       'guidance',
-      'Sun in Capricorn navamsha',
-      'Mukhiya of labourers: territory, government quarter energy, consistency that outlasts early stares. Personal life burns while the post is built. Copper / Surya-Narayana; purpose before ego. Stand for mother when in the 4th without drowning the spouse.',
+      T.suCapTitle,
+      T.suCapText,
       'mixed',
       ['Su'],
     ))
@@ -703,45 +879,45 @@ export function buildNavamshaPredictions(
   // ── Virgo lecture: piercings, stitches, lifelong learning ─
   for (const id of ['Ma', 'Ra'] as GrahaId[]) {
     const p = byId.get(id)
-    if (p && p.d9Rashi === 6) rules.push(rule(`virgo-pierce-${id}`, 'health', `${p.name} in Virgo navamsha`, 'Inclination to piercings or small body procedures; the body part ruled here needs correction work.', 'neutral', [id]))
+    if (p && p.d9Rashi === 6) rules.push(rule(`virgo-pierce-${id}`, 'health', fill(T.virgoPierceTitle, { planet: p.name }), T.virgoPierceText, 'neutral', [id]))
   }
   for (const id of ['Ra', 'Ke'] as GrahaId[]) {
     const p = byId.get(id)
-    if (p && p.d9Rashi === 6) rules.push(rule(`virgo-stitch-${id}`, 'health', `${p.name} in Virgo navamsha`, 'Stitches or minor surgery in the lower body/abdomen are indicated — keep up gut and pelvic health.', 'challenging', [id]))
+    if (p && p.d9Rashi === 6) rules.push(rule(`virgo-stitch-${id}`, 'health', fill(T.virgoPierceTitle, { planet: p.name }), T.virgoStitchText, 'challenging', [id]))
   }
   const lagnaLord = lords[1] ? byId.get(lords[1]) : undefined
   if (lagnaLord) {
     const nodeWith = (bySign.get(lagnaLord.d9Rashi) ?? []).filter((id) => id === 'Ra' || id === 'Ke')
-    if (nodeWith.length) rules.push(rule('lagna-lord-nodes', 'health', `Lagna lord ${lagnaLord.name} with ${nodeWith.map((id) => GRAHA_NAMES[id]).join('/')} in D9`, 'Head injuries or stitches to the head are indicated — wear a helmet and avoid risky falls.', 'challenging', [lagnaLord.id, ...nodeWith]))
+    if (nodeWith.length) rules.push(rule('lagna-lord-nodes', 'health', fill(T.lagnaNodesTitle, { planet: lagnaLord.name, names: names(nodeWith, '/') }), T.lagnaNodesText, 'challenging', [lagnaLord.id, ...nodeWith]))
   }
   const sixthLord = lords[6] ? byId.get(lords[6]) : undefined
   if (sixthLord && lagnaLord && sixthLord.id !== lagnaLord.id && (sixthLord.d9Rashi === lagnaLord.d9Rashi || sixthLord.d9House === 5)) {
-    rules.push(rule('lord-6-learning', 'lordship', '6th lord linked to lagna lord / 5th in D9', 'A lifelong student — learning never stops; competitive exams may take many attempts, but persistence wins.', 'mixed', [sixthLord.id, lagnaLord.id]))
+    rules.push(rule('lord-6-learning', 'lordship', T.lord6Title, T.lord6Text, 'mixed', [sixthLord.id, lagnaLord.id]))
   }
 
   // ── Taurus lecture: Rahu AK, 0° planets, Moon 4th, Venus ──
   if (akId === 'Ra' && raP) {
     const disp = SIGN_LORDS[raP.d9Rashi]
-    rules.push(rule('karaka-rahu-ak', 'karaka', 'Rahu as Atmakaraka', `Does not forgive easily and plans carefully against enemies; read the dispositor ${GRAHA_NAMES[disp]} (lord of D9 ${raP.d9RashiName}) to see how that plays out.`, 'mixed', ['Ra', disp]))
+    rules.push(rule('karaka-rahu-ak', 'karaka', T.rahuAkTitle, fill(T.rahuAkText, { disp: L.g(disp), rashi: raP.d9RashiName }), 'mixed', ['Ra', disp]))
   }
   for (const r of analysis.planets) {
     if (r.d1Degree < 1) {
-      rules.push(rule(`zero-deg-${r.id}`, 'dignity', `${r.name} at 0° (${r.d1RashiName})`, 'Planets at the very start of a sign give good results and great pace in life (per the lectures).', 'supportive', [r.id]))
+      rules.push(rule(`zero-deg-${r.id}`, 'dignity', fill(T.zeroTitle, { planet: r.name, rashi: r.d1RashiName }), T.zeroText, 'supportive', [r.id]))
     }
   }
   const moP = byId.get('Mo')
   if (moP && moP.d1House === 4) {
-    rules.push(rule('moon-4th-donate', 'guidance', 'Moon in the D1 4th house', 'Be the first to give — donate food, water and salt regularly to keep home and mind steady.', 'neutral', ['Mo']))
+    rules.push(rule('moon-4th-donate', 'guidance', T.moon4Title, T.moon4Text, 'neutral', ['Mo']))
   }
   const veD9 = rowById.get('Ve')
   if (veD9 && (['exalted', 'moolatrikona', 'own'].includes(veD9.d9Dignity) || veD9.isVargottama)) {
-    rules.push(rule('venus-clean', 'guidance', 'Strong Venus in D9', 'Avoid eating in untidy places and living in a dirty environment — cleanliness keeps Venus giving money and grace.', 'supportive', ['Ve']))
+    rules.push(rule('venus-clean', 'guidance', T.veCleanTitle, T.veCleanText, 'supportive', ['Ve']))
   }
 
   // ── Naming after the strongest planet (Cancer lecture) ────
   const strongest = extras.strongestGraha ?? analysis.advanced?.strongest?.id
-  if (strongest && NAMING_DEITY[strongest]) {
-    rules.push(rule('naming-strongest', 'guidance', `Name after the strongest planet — ${GRAHA_NAMES[strongest]}`, `The name is called daily and carries emotion (Moon). Choose names of ${NAMING_DEITY[strongest]} for this chart's children or a pet-name.`, 'neutral', [strongest]))
+  if (strongest && L.naming[strongest]) {
+    rules.push(rule('naming-strongest', 'guidance', fill(T.namingTitle, { planet: L.g(strongest) }), fill(T.namingText, { deity: L.naming[strongest]! }), 'neutral', [strongest]))
   }
 
   // ── Indu lagna wealth check (Libra lecture) ───────────────
@@ -750,7 +926,7 @@ export function buildNavamshaPredictions(
     const nakLord = NAK_LORDS[Math.floor(lon / (360 / 27)) % 9]
     const nl = nakLord ? rowById.get(nakLord) : undefined
     if (nl && (nl.d1Dignity === 'exalted' || nl.d1Dignity === 'debilitated')) {
-      rules.push(rule('indu-wealth', 'lordship', `Indu lagna star lord ${nl.name} is ${nl.d1Dignity}`, 'When the nakshatra lord of Indu lagna is exalted or debilitated, the chart can generate very large wealth.', 'supportive', [nl.id]))
+      rules.push(rule('indu-wealth', 'lordship', fill(T.induTitle, { planet: nl.name, dignity: lang === 'hi' ? (nl.d1Dignity === 'exalted' ? 'उच्च' : 'नीच') : nl.d1Dignity }), T.induText, 'supportive', [nl.id]))
     }
   }
 
@@ -763,34 +939,34 @@ export function buildNavamshaPredictions(
     let text: string | null = null
     let tone: DashaTone = 'neutral'
     if (withAk.includes('Ra')) {
-      text = 'With Rahu, many desires remain at the end — practise giving and contentment now so the soul leaves light.'
+      text = T.depRa
       tone = 'challenging'
     } else if (withAk.includes('Ke') || ketuTrine) {
-      text = 'Ketu links the atmakaraka — the body is released easily and peacefully.'
+      text = T.depKe
       tone = 'supportive'
     } else if ((ak.d9House === 12 || ak.d9Rashi === 12) && !malWith.length) {
-      text = 'Atmakaraka in the 12th / Pisces without malefics — a peaceful departure, as if in sleep.'
+      text = T.dep12
       tone = 'supportive'
     } else if (DUSTHANA.includes(ak.d9House) && malWith.length) {
-      text = 'Atmakaraka in a dusthana with malefics — the end tends to come through illness or a hospital stay; preventive health care matters.'
+      text = T.depDus
       tone = 'challenging'
     } else if (ak.d9House === 9) {
-      text = 'Atmakaraka in the 9th — the soul departs with blessings, often near a temple or in devotion.'
+      text = T.dep9
       tone = 'supportive'
     } else if (ak.d9House === 4) {
       const fourthSign = analysis.houses.find((h) => h.house === 4)?.rashi
       text = withAk.includes('Ma')
-        ? 'Atmakaraka in the 4th with Mars — departure during travel; road safety is essential.'
+        ? T.dep4Ma
         : fourthSign === 12
-          ? 'Atmakaraka in the 4th (Pisces) — departure during travel, possibly air travel.'
-          : 'Atmakaraka in the 4th — departure tends to happen while travelling.'
+          ? T.dep4Pisces
+          : T.dep4
       tone = 'mixed'
     } else if (ak.d9House === 5) {
-      text = 'Atmakaraka in the 5th — departure amid people or entertainment, at ease.'
+      text = T.dep5
       tone = 'neutral'
     }
     if (text) {
-      rules.push(rule('departure-ak', 'departure', 'Atmakaraka indication of departure', `${text} (Jaimini indication of manner, not timing${benWith.length ? `; ${benWith.map((id) => GRAHA_NAMES[id]).join(', ')} with the AK soften it` : ''}.)`, tone, [akId]))
+      rules.push(rule('departure-ak', 'departure', T.depTitle, fill(T.depText, { text, soft: benWith.length ? fill(T.depSoft, { names: names(benWith) }) : '' }), tone, [akId]))
     }
   }
 
@@ -803,18 +979,18 @@ export function buildNavamshaPredictions(
     const db = DEBILITATED_IN[s]
     atmakaraka = {
       id: akId,
-      name: GRAHA_NAMES[akId],
+      name: L.g(akId),
       d9Rashi: s,
-      d9RashiName: RASHI_NAMES[s],
-      theme: ATMAKARAKA_IN_NAVAMSHA[s],
-      present: ex ? { planet: ex, text: `${GRAHA_NAMES[ex]} is exalted here — ${GRAHA_QUALITIES[ex]} come naturally.` } : null,
-      missing: db ? { planet: db, text: `${GRAHA_NAMES[db]} is debilitated here — ${GRAHA_QUALITIES[db]} tend to be missing and must be built consciously.` } : null,
+      d9RashiName: L.r(s),
+      theme: L.akTheme[s],
+      present: ex ? { planet: ex, text: fill(T.akPresent, { planet: L.g(ex), qualities: L.qualities[ex] ?? '' }) } : null,
+      missing: db ? { planet: db, text: fill(T.akMissing, { planet: L.g(db), qualities: L.qualities[db] ?? '' }) } : null,
     }
   }
 
   // ── Sign cards (D9 houses 1–12) ───────────────────────────
   const signCards: NavamshaSignCard[] = analysis.houses.map((h) => {
-    const profile = NAVAMSHA_SIGNS[h.rashi]
+    const profile = L.signs[h.rashi]
     const occupants = h.occupants.map((o) => o.id)
     return {
       house: h.house,
@@ -826,7 +1002,7 @@ export function buildNavamshaPredictions(
       shadow: profile.shadow,
       guidance: profile.guidance,
       remedy: profile.remedy,
-      houseTheme: D9_HOUSE_THEME[h.house],
+      houseTheme: L.houseTheme[h.house],
       houseSpecial: profile.inHouse?.[h.house] ?? null,
       occupants,
       empty: occupants.length === 0,
@@ -836,13 +1012,13 @@ export function buildNavamshaPredictions(
   // ── Age markers ───────────────────────────────────────────
   const ageMarkers: NavamshaAgeMarker[] = []
   for (const [sign, ids] of bySign) {
-    for (const a of NAVAMSHA_SIGNS[sign].ages ?? []) {
-      ageMarkers.push({ age: a.age, sign, signName: RASHI_NAMES[sign], planets: ids, note: a.note })
+    for (const a of L.signs[sign].ages ?? []) {
+      ageMarkers.push({ age: a.age, sign, signName: L.r(sign), planets: ids, note: a.note })
     }
   }
   const veRow = byId.get('Ve')
   if (veRow?.d9Rashi === 10) {
-    ageMarkers.push({ age: 33, sign: 10, signName: RASHI_NAMES[10], planets: ['Ve'], note: 'Venus in Capricorn navamsha — after 32–33 a separate (nuclear) household eases career and marriage.' })
+    ageMarkers.push({ age: 33, sign: 10, signName: L.r(10), planets: ['Ve'], note: T.veCapAge })
   }
   ageMarkers.sort((a, b) => a.age - b.age)
 
@@ -852,18 +1028,14 @@ export function buildNavamshaPredictions(
   const dominant = (Object.entries(elementBalance) as [keyof typeof elementBalance, GrahaId[]][])
     .sort((a, b) => b[1].length - a[1].length)[0]
   if (dominant && dominant[1].length >= 4) {
-    const elementText: Record<string, string> = {
-      fire: 'Most planets in fire navamshas — always initiating, building and seeking status; finishing is the challenge.',
-      earth: 'Most planets in earth navamshas — practical, resource-building, service-driven; joy must be cultivated.',
-      air: 'Most planets in air navamshas — communication, networks and reactions drive life; ground yourself.',
-      water: 'Most planets in water navamshas — emotional, intuitive and karmic; release and charity bring peace.',
-    }
-    rules.push(rule(`element-${dominant[0]}`, 'timing', `${dominant[1].length} planets in ${dominant[0]} navamshas`, elementText[dominant[0]], 'neutral', dominant[1]))
+    const elementText: Record<string, string> = { fire: T.elFire, earth: T.elEarth, air: T.elAir, water: T.elWater }
+    const elementName: Record<string, string> = { fire: T.elNameFire, earth: T.elNameEarth, air: T.elNameAir, water: T.elNameWater }
+    rules.push(rule(`element-${dominant[0]}`, 'timing', fill(T.elementTitle, { n: dominant[1].length, element: elementName[dominant[0]]! }), elementText[dominant[0]]!, 'neutral', dominant[1]))
   }
 
   const activeNow = planets.filter((p) => p.dashaLevels.length > 0)
-  const lagnaProfile = NAVAMSHA_SIGNS[analysis.d9Lagna]
-  const headline = `${analysis.d9LagnaName} navamsha lagna — ${lagnaProfile.title}. ${lagnaProfile.guidance}`
+  const lagnaProfile = L.signs[analysis.d9Lagna]
+  const headline = fill(T.headline, { rashi: analysis.d9LagnaName, title: lagnaProfile.title, guidance: lagnaProfile.guidance })
 
   return {
     d9Lagna: analysis.d9Lagna,
@@ -880,11 +1052,11 @@ export function buildNavamshaPredictions(
 }
 
 /** Convenience wrapper straight from a chart. */
-export function analyzeNavamshaPredictions(chart: ChartOutput): NavamshaPredictionReport | null {
-  const analysis = analyzeNavamsha(chart)
+export function analyzeNavamshaPredictions(chart: ChartOutput, lang: EngineLang = 'en'): NavamshaPredictionReport | null {
+  const analysis = analyzeNavamsha(chart, lang)
   if (!analysis) return null
   return buildNavamshaPredictions(analysis, chart.lagnas.ascRashi as Rashi, {
     induLagnaLon: chart.lagnas.induLagna,
     strongestGraha: chart.shadbala?.strongest as GrahaId | undefined,
-  })
+  }, lang)
 }

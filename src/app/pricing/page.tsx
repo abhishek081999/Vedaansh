@@ -1,7 +1,7 @@
 'use client'
 // src/app/pricing/page.tsx — Subscription tiers
+import { Link } from '@/i18n/navigation'
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'

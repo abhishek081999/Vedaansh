@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useTranslations } from 'next-intl'
 import { Drawer } from '@/components/ui/primitives/Drawer'
 
 export interface ChartFormDrawerProps {
@@ -11,13 +12,14 @@ export interface ChartFormDrawerProps {
 }
 
 export function ChartFormDrawer({ open, onClose, children, summary }: ChartFormDrawerProps) {
+  const t = useTranslations('chart.drawer')
   return (
     <Drawer
       open={open}
       onClose={onClose}
-      title="Birth Details"
-      subtitle="Janma Kala Entry"
-      closeLabel="Close birth details form"
+      title={t('title')}
+      subtitle={t('subtitle')}
+      closeLabel={t('close')}
     >
       {children}
       {summary}

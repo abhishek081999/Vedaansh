@@ -1,8 +1,8 @@
 'use client'
 // src/app/compare/page.tsx — Professional Kundali Matching & Comparison
+import { Link } from '@/i18n/navigation'
 import { useState, useMemo, useRef, useCallback, useEffect, Suspense } from 'react'
 import React from 'react'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'

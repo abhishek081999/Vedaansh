@@ -11,6 +11,10 @@ import {
   MARS_CONTROL_NOTE,
   wholeSignHouseFromLagna,
 } from '@/lib/engine/houseInterpretations'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { MANGLIK_HI } from '@/lib/engine/locale/manglikTeaching.hi'
+import { MANGLIK_CANCEL_HI } from '@/lib/engine/locale/dashboardInsights.hi'
+import { ordHi } from '@/lib/engine/locale/todayReading.hi'
 
 export type ManglikStatus = 'present' | 'cancelled' | 'not_present'
 
@@ -73,6 +77,7 @@ function houseFrom(refRashi: Rashi, planetRashi: Rashi): number {
 export function getManglikPerspectives(
   grahas: GrahaData[],
   ascRashi: Rashi,
+  lang: EngineLang = 'en',
 ): ManglikPerspectiveFlags {
   const mars = grahas.find((g) => g.id === 'Ma')
   const moon = grahas.find((g) => g.id === 'Mo')
@@ -114,6 +119,19 @@ export function getManglikPerspectives(
     scopeDetail = `${ANSHIK_PURNA_MANGLIK_NOTE} ${MA_VE_NOTE}`
   }
 
+  if (lang === 'hi') {
+    const H = MANGLIK_HI
+    const list = [fromLagna && 'Lagna', fromMoon && 'Moon', fromVenus && 'Venus']
+      .filter((x): x is string => !!x)
+      .map((x) => H.persp[x])
+      .join(', ')
+    scopeLabel =
+      scope === 'anshik' ? fill(H.scopeAnshik, { list })
+        : scope === 'purna' ? fill(H.scopePurna, { list, count: activeCount })
+          : H.scopeNone
+    scopeDetail = marsVenusConjunctInKuja ? `${H.anshikPurna} ${H.maVe}` : H.anshikPurna
+  }
+
   return {
     fromLagna,
     fromMoon,
@@ -138,7 +156,9 @@ export function getManglikTeaching(
   analysis: ManglikAnalysis,
   grahas?: GrahaData[],
   ascRashi?: Rashi,
+  lang: EngineLang = 'en',
 ): ManglikTeaching {
+  if (lang === 'hi') return getManglikTeachingHi(analysis, grahas, ascRashi)
   const status = getManglikStatusLabel(analysis)
   const inDoshaHouse = MANGLIK_HOUSES.has(analysis.house)
   const houseNote = inDoshaHouse ? (HOUSE_NOTES[analysis.house] ?? null) : null
@@ -188,5 +208,40 @@ export function getManglikTeaching(
       analysis.house > 0
         ? `Mars is in the ${analysis.house}th house from Lagna—outside the usual Kuja houses (1, 4, 7, 8, 12). Other perspectives (Moon/Venus) may still show aṁśik cues—see scope below when available.`
         : 'Mars placement could not be resolved for this chart.',
+  }
+}
+
+function getManglikTeachingHi(
+  analysis: ManglikAnalysis,
+  grahas?: GrahaData[],
+  ascRashi?: Rashi,
+): ManglikTeaching {
+  const H = MANGLIK_HI
+  const status = getManglikStatusLabel(analysis)
+  const inDoshaHouse = MANGLIK_HOUSES.has(analysis.house)
+  const base = {
+    status,
+    headline: H.headline[status],
+    houseNote: inDoshaHouse ? (H.houseNotes[analysis.house] ?? null) : null,
+    overview: H.overview,
+    perspectives: grahas && ascRashi != null ? getManglikPerspectives(grahas, ascRashi, 'hi') : null,
+    controlNote: H.control,
+  }
+  if (status === 'present') {
+    const intensity = analysis.intensity === 'High' ? H.intensityHigh : analysis.intensity === 'Low' ? H.intensityLow : ''
+    return { ...base, cancellationNotes: [], statusDetail: fill(H.presentDetail, { nth: ordHi(analysis.house), intensity }) }
+  }
+  if (status === 'cancelled') {
+    return {
+      ...base,
+      cancellationNotes: analysis.cancellations.map((c) => MANGLIK_CANCEL_HI[c] ?? c),
+      statusDetail: H.cancelSoften,
+    }
+  }
+  return {
+    ...base,
+    houseNote: null,
+    cancellationNotes: [],
+    statusDetail: analysis.house > 0 ? fill(H.notPresentDetail, { nth: ordHi(analysis.house) }) : H.unresolved,
   }
 }

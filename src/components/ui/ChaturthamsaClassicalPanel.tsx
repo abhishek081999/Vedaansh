@@ -12,6 +12,8 @@ import type {
 } from '@/lib/engine/chaturthamsaClassical'
 import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import { cn } from '@/lib/ui/cn'
+import { useTranslations } from 'next-intl'
+import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import styles from './ChaturthamsaWorkspace.module.css'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -35,6 +37,8 @@ function toneClass(tone: D4Tone): string {
 
 function PlanetPhalaCard({ p }: { p: ChaturthamsaPlanetPhala }) {
   const [open, setOpen] = useState(p.priority)
+  const t = useTranslations('divisional.d4.cl')
+  const { hi } = useDivisionalCommon()
   return (
     <article className={cn(styles.insightCard, p.priority ? styles.insightHighlight : styles.insightInfo)}>
       <button
@@ -48,7 +52,7 @@ function PlanetPhalaCard({ p }: { p: ChaturthamsaPlanetPhala }) {
         }}
       >
         <h4 className={styles.insightTitle}>
-          {p.name} · D4 H{p.d4House} · {p.d4RashiName}
+          {t('cardHead', { name: p.name, house: p.d4House, rashi: p.d4RashiName })}
           {p.role && (
             <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>
               {p.role}
@@ -61,12 +65,13 @@ function PlanetPhalaCard({ p }: { p: ChaturthamsaPlanetPhala }) {
         <div style={{ marginTop: '0.65rem' }}>
           {p.houseTeaching && (
             <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-              Teaching (house): {p.houseTeaching}
+              {t('teaching', { text: p.houseTeaching })}
             </p>
           )}
-          <ClassicalNotesList title="Planet in D4 house" notes={p.houseClassical} />
+          <ClassicalNotesList title={t('inHouse')} notes={p.houseClassical} quiet={hi} />
           <div style={{ height: '0.55rem' }} />
-          <ClassicalNotesList title="Planet in D4 rashi" notes={p.signClassical} />
+          <ClassicalNotesList title={t('inRashi')} notes={p.signClassical} quiet={hi} />
+          {hi && <p className={styles.emptyHint} style={{ marginTop: '0.45rem' }}>{t('disclaimer')}</p>}
         </div>
       )}
     </article>
@@ -74,6 +79,8 @@ function PlanetPhalaCard({ p }: { p: ChaturthamsaPlanetPhala }) {
 }
 
 export function ChaturthamsaClassicalPanel({ classical }: { classical: ChaturthamsaClassical }) {
+  const t = useTranslations('divisional.d4.cl')
+  const c = useDivisionalCommon()
   const formed = classical.yogas.filter((y) => y.formed)
   const quiet = classical.yogas.filter((y) => !y.formed)
   const { sukhaphala, fourthLord, fourthHouse, domains } = classical
@@ -83,7 +90,7 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
 
   return (
     <>
-      <Section title="Classical predictions">
+      <Section title={t('predictions')}>
         <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
           {classical.framing}
         </p>
@@ -95,7 +102,7 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
         <p className={styles.emptyHint} style={{ marginTop: '0.75rem' }}>{classical.caution}</p>
       </Section>
 
-      <Section title="Sukhaphala grade">
+      <Section title={t('grade')}>
         <article className={cn(styles.insightCard, styles.insightHighlight)}>
           <h4 className={styles.insightTitle}>
             {sukhaphala.headline}
@@ -137,26 +144,27 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
         </div>
       </Section>
 
-      <Section title="4th lord & Bandhu/Sukha">
+      <Section title={t('fourthLord')}>
         <article className={cn(styles.insightCard, styles.insightHighlight)} style={{ marginBottom: '0.75rem' }}>
           <h4 className={styles.insightTitle}>{fourthLord.headline}</h4>
           <p className={styles.insightText}>
-            {fourthLord.name} · {fourthLord.rashiName} · H{fourthLord.house} · {fourthLord.dignity.replace(/_/g, ' ')}
+            {fourthLord.name} · {fourthLord.rashiName} · {c.houseShort(fourthLord.house)} · {c.dignity(fourthLord.dignity)}
           </p>
           <p className={styles.insightText} style={{ marginTop: '0.45rem' }}>{fourthLord.prediction}</p>
         </article>
         <article className={cn(styles.insightCard, styles.insightInfo)}>
           <h4 className={styles.insightTitle}>
-            D4 4th · {fourthHouse.rashiName}
+            {t('fourthHouse', { rashi: fourthHouse.rashiName })}
             {fourthHouse.occupants.length > 0 && (
               <span className={styles.pill} style={{ marginLeft: 8 }}>
                 {fourthHouse.occupants.join(', ')}
               </span>
             )}
           </h4>
-          <ClassicalNotesList title="Bhava (classical)" notes={fourthHouse.houseNotes} />
+          <ClassicalNotesList title={t('bhava')} notes={fourthHouse.houseNotes} quiet={c.hi} />
           <div style={{ height: '0.45rem' }} />
-          <ClassicalNotesList title="Rashi of the 4th" notes={fourthHouse.rashiNotes} />
+          <ClassicalNotesList title={t('rashi4')} notes={fourthHouse.rashiNotes} quiet={c.hi} />
+          {c.hi && <p className={styles.emptyHint} style={{ marginTop: '0.45rem' }}>{t('disclaimer')}</p>}
           {fourthHouse.occupantPhala.length > 0 && (
             <ul className={styles.bulletList} style={{ marginTop: '0.65rem' }}>
               {fourthHouse.occupantPhala.map((o) => (
@@ -166,20 +174,20 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
           )}
         </article>
         <article className={cn(styles.insightCard, classical.d1Agreement.agrees ? styles.insightStrength : styles.insightHighlight)} style={{ marginTop: '0.75rem' }}>
-          <h4 className={styles.insightTitle}>D1 ↔ D4 4th lord</h4>
+          <h4 className={styles.insightTitle}>{t('d1d4')}</h4>
           <p className={styles.insightText}>{classical.d1Agreement.text}</p>
         </article>
       </Section>
 
-      <Section title="Domain predictions">
+      <Section title={t('domains')}>
         <div className={styles.insightGrid}>
           {(
             [
-              ['Property / lands', domains.property],
-              ['Mother & comfort', domains.motherComfort],
-              ['Conveyances', domains.conveyances],
-              ['Relocation', domains.relocation],
-              ['Contentment', domains.contentment],
+              [t('dProperty'), domains.property],
+              [t('dMother'), domains.motherComfort],
+              [t('dConvey'), domains.conveyances],
+              [t('dReloc'), domains.relocation],
+              [t('dContent'), domains.contentment],
             ] as const
           ).map(([title, text]) => (
             <article key={title} className={cn(styles.insightCard, styles.insightInfo)}>
@@ -190,13 +198,13 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
         </div>
       </Section>
 
-      <Section title="Yogas in D4">
+      <Section title={t('yogas')}>
         <div className={styles.insightGrid}>
           {formed.map((y) => (
             <article key={y.id} className={cn(styles.insightCard, toneClass(y.tone))}>
               <h4 className={styles.insightTitle}>
                 {y.name}
-                <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>Formed</span>
+                <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>{t('formed')}</span>
               </h4>
               <p className={styles.statHint} style={{ whiteSpace: 'normal', marginBottom: 6 }}>{y.source}</p>
               <p className={styles.insightText}>{y.detail}</p>
@@ -206,7 +214,7 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
         {quiet.length > 0 && (
           <details style={{ marginTop: '0.75rem' }}>
             <summary style={{ cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-              Quiet yogas ({quiet.length})
+              {t('quietYogas', { n: quiet.length })}
             </summary>
             <ul className={styles.noteList} style={{ marginTop: '0.55rem' }}>
               {quiet.map((y) => (
@@ -219,7 +227,7 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
         )}
       </Section>
 
-      <Section title="Graha phala in D4">
+      <Section title={t('phala')}>
         <div className={styles.insightGrid}>
           {priorityPhala.map((p) => (
             <PlanetPhalaCard key={p.id} p={p} />
@@ -232,7 +240,7 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
               className={styles.tabBtn}
               onClick={() => setShowOtherPhala((v) => !v)}
             >
-              {showOtherPhala ? 'Hide' : 'Show'} other grahas ({otherPhala.length})
+              {showOtherPhala ? t('hideOther', { n: otherPhala.length }) : t('showOther', { n: otherPhala.length })}
             </button>
             {showOtherPhala && (
               <div className={styles.insightGrid} style={{ marginTop: '0.65rem' }}>
@@ -245,7 +253,7 @@ export function ChaturthamsaClassicalPanel({ classical }: { classical: Chaturtha
         )}
       </Section>
 
-      <Section title="Sources">
+      <Section title={t('sources')}>
         <ul className={styles.bulletList}>
           {classical.sources.map((s) => (
             <li key={s}>{s}</li>

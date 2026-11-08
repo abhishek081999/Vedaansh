@@ -1,7 +1,11 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, masaHi, samvatsaraHi, termHi } from '@/i18n/jyotish'
+import { chandraBalaHint, taraBalaHint } from '@/lib/panchang/tara-chandra-bala'
 import { ChevronDown, CircleCheck, CircleX, MapPin, Moon, MoonStar, Orbit, Rows3, Sunrise, Sunset, Timer } from 'lucide-react'
 import { formatLongitudeDMS, rashiBlockFromLongitude } from '@/lib/panchang/sidereal'
 import { buildDayReading } from '@/lib/panchang/day-reading'
@@ -126,8 +130,8 @@ export interface PanchangApiData {
   }
 }
 
-function fmtTime(iso: string, tz: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+function fmtTime(iso: string, tz: string, tag = 'en-IN'): string {
+  return new Intl.DateTimeFormat(tag, {
     timeZone: tz,
     hour: 'numeric',
     minute: '2-digit',
@@ -144,8 +148,25 @@ function dateInTz(date: Date, tz: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date)
 }
 
-function grahaName(id: string): string {
-  return GRAHA_NAMES[id as GrahaId] ?? id
+function grahaName(id: string, hi = false): string {
+  return (hi ? GRAHA_HI[id as GrahaId] : GRAHA_NAMES[id as GrahaId]) ?? id
+}
+
+/** Formatting + wording for limbUntil; English defaults keep old callers working. */
+export interface LimbUntilText {
+  tag: string
+  until: (time: string) => string
+  untilDay: (time: string, day: string) => string
+  then: (next: string) => string
+  name: (en: string) => string
+}
+
+const LIMB_UNTIL_EN: LimbUntilText = {
+  tag: 'en-IN',
+  until: (time) => `Until ${time}`,
+  untilDay: (time, day) => `Until ${time}, ${day}`,
+  then: (next) => `, then ${next}`,
+  name: (en) => en,
 }
 
 /** "until 1:11 pm, then Navami" — names the day when the limb runs past this date. */
@@ -155,21 +176,41 @@ export function limbUntil(
   endIso: string | null | undefined,
   date: string,
   tz: string,
+  text: LimbUntilText = LIMB_UNTIL_EN,
 ): string | undefined {
   const index = segments?.findIndex((s) => s.label === value) ?? -1
   const segment = index >= 0 ? segments?.[index] : undefined
   const end = endIso ?? segment?.end
   if (!end) return undefined
   const endDate = new Date(end)
-  const day = dateInTz(endDate, tz) === date
-    ? ''
-    : `, ${new Intl.DateTimeFormat('en-IN', { timeZone: tz, day: 'numeric', month: 'short' }).format(endDate)}`
+  const time = fmtTime(end, tz, text.tag)
+  const sameDay = dateInTz(endDate, tz) === date
+  const day = new Intl.DateTimeFormat(text.tag, { timeZone: tz, day: 'numeric', month: 'short' }).format(endDate)
   const next = index >= 0 ? segments?.[index + 1]?.label : undefined
-  return `Until ${fmtTime(end, tz)}${day}${next ? `, then ${next}` : ''}`
+  return `${sameDay ? text.until(time) : text.untilDay(time, day)}${next ? text.then(text.name(next)) : ''}`
+}
+
+/** LimbUntilText for the current page language. */
+export function useLimbUntilText(): LimbUntilText {
+  const t = useTranslations('panchang.view')
+  const { tag, hi } = useLang()
+  return {
+    tag,
+    until: (time) => t('until', { time }),
+    untilDay: (time, day) => t('untilDay', { time, day }),
+    then: (next) => t('then', { next }),
+    name: (en) => (hi ? termHi(en) : en),
+  }
 }
 
 export function DailyPanchangView({ data, locationName }: { data: PanchangApiData; locationName?: string }) {
+  const t = useTranslations('panchang.view')
+  const tl = useTranslations('panchang.limbs')
+  const { lang, tag, hi } = useLang()
+  const untilText = useLimbUntilText()
+  const name = (en: string) => (hi ? termHi(en) : en)
   const tz = data.location.tz
+  const fmt = (iso: string) => fmtTime(iso, tz, tag)
   const [horaOpen, setHoraOpen] = useState(false)
   const [planetsOpen, setPlanetsOpen] = useState(false)
   const [chogOpen, setChogOpen] = useState(false)
@@ -194,12 +235,13 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
     active: isRiktaTithi(data.tithi.number),
     detail: riktaTithiDescription(),
   }
-  const tithiMeta = getTithiDayMeta(data.tithi.number)
-  const karanaMeta = getKaranaMeta(data.karana.name)
-  const yogaMeta = getYogaMeta(data.yoga.name)
-  const nakMeta = getNakshatraMuhurtaMeta(data.nakshatra.index, data.nakshatra.pada)
-  const abhijit = getAbhijitWindow(data.moonLongitudeSidereal)
-  const vaarMeta = getVaarMeta(data.vara.number)
+  const riktaDetail = hi ? riktaTithiDescription('hi') : riktaInfo.detail
+  const tithiMeta = getTithiDayMeta(data.tithi.number, lang)
+  const karanaMeta = getKaranaMeta(data.karana.name, lang)
+  const yogaMeta = getYogaMeta(data.yoga.name, lang)
+  const nakMeta = getNakshatraMuhurtaMeta(data.nakshatra.index, data.nakshatra.pada, lang)
+  const abhijit = getAbhijitWindow(data.moonLongitudeSidereal, lang)
+  const vaarMeta = getVaarMeta(data.vara.number, lang)
   const vishesh = useMemo(() => {
     if (data.sunLongitudeSidereal == null || data.moonLongitudeSidereal == null) return null
     return analyzePanchangVishesh({
@@ -211,8 +253,9 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
       grahas: data.planets?.map((pl) => ({ id: pl.id as VisheshGraha['id'], lon: pl.longitude })),
       sunrise: data.sunrise,
       at: data.julianDay != null ? new Date((data.julianDay - 2440587.5) * 86_400_000) : null,
+      lang,
     })
-  }, [data])
+  }, [data, lang])
   const isToday = dateInTz(new Date(), tz) === data.date
   const calendar = data.calendarContext
   const currentChoghadiya = data.choghadiya?.day.find((s) => isNow(s.start, s.end))
@@ -226,6 +269,7 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
     karanaName: data.karana.name,
     varaNumber: data.vara.number,
     timeline: data.timeline,
+    lang,
   })
   const yogaTone = data.yoga.quality === 'auspicious' ? 'good' : data.yoga.quality === 'inauspicious' ? 'bad' : undefined
 
@@ -234,13 +278,19 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
       <section className={styles.hero}>
         <header className={styles.heroHead}>
           <div className={styles.heroTitle}>
-            <div className={styles.eyebrow}>{isToday ? "Today's panchang" : 'Panchang'}</div>
+            <div className={styles.eyebrow}>{isToday ? t('todays') : t('panchang')}</div>
             <h2 className={styles.dateDisplay}>
-              {new Date(data.date + 'T12:00:00Z').toLocaleDateString('en-IN', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}
+              {new Date(data.date + 'T12:00:00Z').toLocaleDateString(tag, { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}
             </h2>
             {calendar && (
               <p className={styles.calendarLine}>
-                {calendar.sauraMasa} · {calendar.rituSa} · {calendar.ayanaSa} · {calendar.samvatsara} samvatsara · VS {calendar.vikramSamvat}
+                {t('calendarLine', {
+                  masa: hi ? masaHi(calendar.sauraMasa) : calendar.sauraMasa,
+                  ritu: name(calendar.rituSa),
+                  ayana: name(calendar.ayanaSa),
+                  samvatsara: hi ? samvatsaraHi(calendar.samvatsara) : calendar.samvatsara,
+                  vs: calendar.vikramSamvat,
+                })}
               </p>
             )}
           </div>
@@ -249,85 +299,95 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
               <MapPin size={14} aria-hidden />
               {locationName ?? `${data.location.lat.toFixed(2)}, ${data.location.lng.toFixed(2)}`}
             </div>
-            <div className={styles.signs}>Sun in {sunRashi.sa} · Moon in {moonRashi.sa}</div>
+            <div className={styles.signs}>{t('signs', { sun: name(sunRashi.sa), moon: name(moonRashi.sa) })}</div>
           </div>
         </header>
 
         <div className={styles.limbsGrid}>
           <LimbCell
-            label="Tithi"
-            value={data.tithi.name}
-            until={limbUntil(data.tithi.name, data.timeline?.tithi, data.limbEnds?.tithi, data.date, tz)}
-            sub={`${data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} paksha · ${tithiMeta.group.id} · ${tithiMeta.group.elementLabel}`}
-            flag={riktaInfo.active ? 'Rikta' : undefined}
-            flagTitle={riktaInfo.detail}
+            label={tl('tithi')}
+            value={name(data.tithi.name)}
+            until={limbUntil(data.tithi.name, data.timeline?.tithi, data.limbEnds?.tithi, data.date, tz, untilText)}
+            sub={t('pakshaGroup', {
+              paksha: name(data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'),
+              group: tithiMeta.group.label,
+              element: tithiMeta.group.elementLabel,
+            })}
+            flag={riktaInfo.active ? t('rikta') : undefined}
+            flagTitle={riktaDetail}
           />
           <LimbCell
-            label="Nakshatra"
-            value={data.nakshatra.name}
-            until={limbUntil(data.nakshatra.name, data.timeline?.nakshatra, data.limbEnds?.nakshatra, data.date, tz)}
-            sub={`Pada ${data.nakshatra.pada} · ${nakMeta.group.id} · ${nakMeta.mukha.id}`}
-            note={abhijit.active ? 'Abhijit' : undefined}
+            label={tl('nakshatra')}
+            value={name(data.nakshatra.name)}
+            until={limbUntil(data.nakshatra.name, data.timeline?.nakshatra, data.limbEnds?.nakshatra, data.date, tz, untilText)}
+            sub={t('padaGroup', {
+              pada: data.nakshatra.pada,
+              group: hi ? nakMeta.group.label : nakMeta.group.id,
+              mukha: nakMeta.mukha.label,
+            })}
+            note={abhijit.active ? t('abhijit') : undefined}
           />
           <LimbCell
-            label="Yoga"
-            value={data.yoga.name}
-            until={limbUntil(data.yoga.name, data.timeline?.yoga, data.limbEnds?.yoga, data.date, tz)}
+            label={tl('yoga')}
+            value={name(data.yoga.name)}
+            until={limbUntil(data.yoga.name, data.timeline?.yoga, data.limbEnds?.yoga, data.date, tz, untilText)}
             sub={yogaMeta?.meaning}
-            note={data.yoga.quality}
+            note={t.has(`quality.${data.yoga.quality}`) ? t(`quality.${data.yoga.quality}`) : data.yoga.quality}
             noteTone={yogaTone}
           />
           <LimbCell
-            label="Karana"
-            value={data.karana.name}
-            until={limbUntil(data.karana.name, data.timeline?.karana, null, data.date, tz)}
+            label={tl('karana')}
+            value={name(data.karana.name)}
+            until={limbUntil(data.karana.name, data.timeline?.karana, null, data.date, tz, untilText)}
             sub={karanaMeta ? `${karanaMeta.typeLabel} · ${karanaMeta.meaning}` : data.karana.type}
-            flag={data.karana.isBhadra || karanaMeta?.isBhadra ? 'Bhadra' : undefined}
+            flag={data.karana.isBhadra || karanaMeta?.isBhadra ? t('bhadra') : undefined}
           />
           <LimbCell
-            label="Vara"
-            value={data.vara.name}
-            until="Sunrise to next sunrise"
+            label={tl('vara')}
+            value={hi ? vaarMeta.name : data.vara.name}
+            until={t('sunriseToSunrise')}
             sub={`${vaarMeta.sanskrit} · ${vaarMeta.lordName} · ${vaarMeta.nature}`}
           />
         </div>
 
         <div className={styles.cycleStrip}>
-          <CycleItem icon={<Sunrise size={16} aria-hidden />} label="Sunrise" value={fmtTime(data.sunrise, tz)} />
-          <CycleItem icon={<Sunset size={16} aria-hidden />} label="Sunset" value={fmtTime(data.sunset, tz)} />
-          <CycleItem icon={<MoonStar size={16} aria-hidden />} label="Moonrise" value={data.moonrise ? fmtTime(data.moonrise, tz) : '—'} />
-          <CycleItem icon={<Moon size={16} aria-hidden />} label="Moonset" value={data.moonset ? fmtTime(data.moonset, tz) : '—'} />
-          <CycleItem icon={<Timer size={16} aria-hidden />} label="Day length" value={`${Math.floor(dayLengthMin / 60)}h ${dayLengthMin % 60}m`} />
+          <CycleItem icon={<Sunrise size={16} aria-hidden />} label={t('sunrise')} value={fmt(data.sunrise)} />
+          <CycleItem icon={<Sunset size={16} aria-hidden />} label={t('sunset')} value={fmt(data.sunset)} />
+          <CycleItem icon={<MoonStar size={16} aria-hidden />} label={t('moonrise')} value={data.moonrise ? fmt(data.moonrise) : '—'} />
+          <CycleItem icon={<Moon size={16} aria-hidden />} label={t('moonset')} value={data.moonset ? fmt(data.moonset) : '—'} />
+          <CycleItem icon={<Timer size={16} aria-hidden />} label={t('dayLength')} value={t('hm', { h: Math.floor(dayLengthMin / 60), m: dayLengthMin % 60 })} />
         </div>
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.sectionHeading}>Predictions for the day</h2>
+        <h2 className={styles.sectionHeading}>{t('predictions')}</h2>
         <PanchangDayReading reading={dayReading} tz={tz} />
       </section>
 
       {data.personalBala && (
         <section className={styles.section}>
-          <h2 className={styles.sectionHeading}>Your personal bala</h2>
+          <h2 className={styles.sectionHeading}>{t('personalBala')}</h2>
           <div className={styles.balaGrid}>
             <BalaCard
-              label="Tara Bala"
-              value={`${data.personalBala.tara.nameSa} · ${data.personalBala.tara.nameEn}`}
-              hint={data.personalBala.tara.hint}
+              label={t('taraBala')}
+              value={hi ? name(data.personalBala.tara.nameSa) : `${data.personalBala.tara.nameSa} · ${data.personalBala.tara.nameEn}`}
+              hint={hi ? taraBalaHint(data.personalBala.tara.favorable, 'hi') : data.personalBala.tara.hint}
               favorable={data.personalBala.tara.favorable}
+              statusText={data.personalBala.tara.favorable ? t('favourable') : t('unfavourable')}
             />
             <BalaCard
-              label="Chandra Bala"
-              value={`House ${data.personalBala.chandra.houseFromNatalMoon} from natal Moon`}
-              hint={data.personalBala.chandra.hint}
+              label={t('chandraBala')}
+              value={t('houseFromMoon', { n: data.personalBala.chandra.houseFromNatalMoon })}
+              hint={hi ? chandraBalaHint(data.personalBala.chandra.usedApproxRashi, 'hi') : data.personalBala.chandra.hint}
               favorable={data.personalBala.chandra.favorable}
+              statusText={data.personalBala.chandra.favorable ? t('favourable') : t('unfavourable')}
             />
           </div>
         </section>
       )}
 
       <section className={styles.section}>
-        <h2 className={styles.sectionHeading}>Important timings</h2>
+        <h2 className={styles.sectionHeading}>{t('timings')}</h2>
         <PanchangDayWindows
           sunrise={data.sunrise}
           sunset={data.sunset}
@@ -345,7 +405,7 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
 
       <section className={styles.section}>
         <div className={styles.vizHead}>
-          <h2 className={styles.sectionHeading}>{vizTab === 'timeline' ? 'Sunrise to sunrise' : 'Sky wheel'}</h2>
+          <h2 className={styles.sectionHeading}>{vizTab === 'timeline' ? t('sunriseToSunriseTitle') : t('skyWheel')}</h2>
           <div className={styles.vizTabs}>
             <button
               type="button"
@@ -353,7 +413,7 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
               className={`${styles.vizTabBtn} ${vizTab === 'timeline' ? styles.vizTabBtnActive : ''}`}
               onClick={() => setVizTab('timeline')}
             >
-              <Rows3 size={14} aria-hidden /> Timeline
+              <Rows3 size={14} aria-hidden /> {t('timeline')}
             </button>
             <button
               type="button"
@@ -361,7 +421,7 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
               className={`${styles.vizTabBtn} ${vizTab === 'wheel' ? styles.vizTabBtnActive : ''}`}
               onClick={() => setVizTab('wheel')}
             >
-              <Orbit size={14} aria-hidden /> Sky wheel
+              <Orbit size={14} aria-hidden /> {t('skyWheel')}
             </button>
           </div>
         </div>
@@ -388,11 +448,11 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.sectionHeading}>Reference</h2>
+        <h2 className={styles.sectionHeading}>{t('reference')}</h2>
         <div className={styles.disclosureGroup}>
           <CollapsibleSection
-            title="Choghadiya"
-            hint={currentChoghadiya ? `Now: ${currentChoghadiya.name}` : 'Day and night'}
+            title={t('choghadiya')}
+            hint={currentChoghadiya ? t('now', { name: name(currentChoghadiya.name) }) : t('dayAndNight')}
             open={chogOpen}
             onToggle={() => setChogOpen(!chogOpen)}
           >
@@ -400,13 +460,13 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
               <div className={styles.chogGrid}>
                 {(['day', 'night'] as const).map((part) => (
                   <div key={part} className={styles.chogBlock}>
-                    <div className={styles.chogBlockTitle}>{part}</div>
+                    <div className={styles.chogBlockTitle}>{t(part)}</div>
                     {data.choghadiya![part].map((slot, i) => (
                       <div key={i} className={`${styles.chogRow} ${isNow(slot.start, slot.end) ? styles.chogRowActive : ''}`}>
                         <span className={slot.quality === 'good' ? styles.chogGood : slot.quality === 'mixed' ? styles.chogMixed : styles.chogAvoid}>
-                          {slot.name}
+                          {name(slot.name)}
                         </span>
-                        <span className={styles.mono}>{fmtTime(slot.start, tz)} – {fmtTime(slot.end, tz)}</span>
+                        <span className={styles.mono}>{fmt(slot.start)} – {fmt(slot.end)}</span>
                       </div>
                     ))}
                   </div>
@@ -416,24 +476,24 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Hora"
-            hint={currentHora ? `Now: ${grahaName(currentHora.lord)}` : 'Planetary hours'}
+            title={t('hora')}
+            hint={currentHora ? t('now', { name: grahaName(currentHora.lord, hi) }) : t('planetaryHours')}
             open={horaOpen}
             onToggle={() => setHoraOpen(!horaOpen)}
           >
             <div className={styles.factGrid}>
               {data.horaTable?.map((h, i) => (
                 <div key={i} className={`${styles.fact} ${isNow(h.start, h.end) ? styles.factActive : ''}`}>
-                  <div className={styles.factValue}>{grahaName(h.lord)}</div>
-                  <div className={styles.factMono}>{fmtTime(h.start, tz)} – {fmtTime(h.end, tz)}</div>
+                  <div className={styles.factValue}>{grahaName(h.lord, hi)}</div>
+                  <div className={styles.factMono}>{fmt(h.start)} – {fmt(h.end)}</div>
                 </div>
               ))}
             </div>
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Graha positions"
-            hint="Sidereal"
+            title={t('grahaPositions')}
+            hint={t('sidereal')}
             open={planetsOpen}
             onToggle={() => setPlanetsOpen(!planetsOpen)}
           >
@@ -441,11 +501,11 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
               {data.planets?.map((p) => (
                 <div key={p.id} className={styles.fact}>
                   <div className={styles.factLabel}>
-                    {p.sa}
-                    {p.retro && <span title="Retrograde"> · R</span>}
-                    {p.combust && <span title="Combust"> · C</span>}
+                    {hi ? grahaName(p.id, true) : p.sa}
+                    {p.retro && <span title={t('retrograde')}> · {t('retroShort')}</span>}
+                    {p.combust && <span title={t('combust')}> · {t('combustShort')}</span>}
                   </div>
-                  <div className={styles.factValue}>{p.rashiSa}</div>
+                  <div className={styles.factValue}>{name(p.rashiSa)}</div>
                   <div className={styles.factMono}>{p.degInSign.toFixed(2)}°</div>
                 </div>
               ))}
@@ -453,20 +513,20 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Calendar and ephemeris"
-            hint={calendar ? `Shaka ${calendar.shakaYear}` : undefined}
+            title={t('calendarEphemeris')}
+            hint={calendar ? t('shaka', { year: calendar.shakaYear }) : undefined}
             open={calendarOpen}
             onToggle={() => setCalendarOpen(!calendarOpen)}
           >
             <div className={styles.factGrid}>
               {[
-                ['Saura masa', calendar?.sauraMasa],
-                ['Ritu', calendar ? `${calendar.rituSa} (${calendar.rituEn})` : undefined],
-                ['Ayana', calendar?.ayanaSa],
-                ['Samvatsara', calendar?.samvatsara],
-                ['Vikram Samvat', calendar?.vikramSamvat],
-                ['Shaka year', calendar?.shakaYear],
-                ['Ayanamsha', data.ayanamsha],
+                [t('sauraMasa'), calendar ? (hi ? masaHi(calendar.sauraMasa) : calendar.sauraMasa) : undefined],
+                [t('ritu'), calendar ? (hi ? name(calendar.rituSa) : `${calendar.rituSa} (${calendar.rituEn})`) : undefined],
+                [t('ayana'), calendar ? name(calendar.ayanaSa) : undefined],
+                [t('samvatsara'), calendar ? (hi ? samvatsaraHi(calendar.samvatsara) : calendar.samvatsara) : undefined],
+                [t('vikramSamvat'), calendar?.vikramSamvat],
+                [t('shakaYear'), calendar?.shakaYear],
+                [t('ayanamsha'), data.ayanamsha],
               ].map(([label, value]) => (
                 <div key={label} className={styles.fact}>
                   <div className={styles.factLabel}>{label}</div>
@@ -490,10 +550,10 @@ export function DailyPanchangView({ data, locationName }: { data: PanchangApiDat
 
       <footer className={styles.footer}>
         <p className={styles.footerNote}>
-          Times follow the selected timezone. Almanac quality matches classical five-limb structure; exact edge times may differ slightly from other software due to ayanamsha and rise/set models.
+          {t('footer')}
         </p>
         <Link href="/panchang/calendar" className={styles.footerLink}>
-          Monthly calendar →
+          {t('monthly')}
         </Link>
       </footer>
     </div>
@@ -548,14 +608,15 @@ interface BalaCardProps {
   value: string
   hint: string
   favorable: boolean
+  statusText: string
 }
 
-function BalaCard({ label, value, hint, favorable }: BalaCardProps) {
+function BalaCard({ label, value, hint, favorable, statusText }: BalaCardProps) {
   return (
     <div className={styles.balaCard}>
       <div className={`${styles.balaStatus} ${favorable ? styles.noteGood : styles.noteBad}`}>
         {favorable ? <CircleCheck size={15} aria-hidden /> : <CircleX size={15} aria-hidden />}
-        {label} · {favorable ? 'Favourable' : 'Unfavourable'}
+        {label} · {statusText}
       </div>
       <div className={styles.balaValue}>{value}</div>
       <div className={styles.limbSub}>{hint}</div>

@@ -4,6 +4,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaId } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { YOGINI_HI } from '@/lib/engine/locale/yogini.hi'
 
 export type YoginiNature =
   | 'Benefic'
@@ -161,8 +163,12 @@ export const YOGINI_INTERPRETATIONS: Record<string, YoginiInterpretation> = {
   },
 }
 
-export function getYoginiInterpretation(lord: string): YoginiInterpretation | null {
-  return YOGINI_INTERPRETATIONS[lord] ?? null
+/** With lang 'hi', the name and every text field come back in Hindi; lord / years / nature stay ids. */
+export function getYoginiInterpretation(lord: string, lang: EngineLang = 'en'): YoginiInterpretation | null {
+  const en = YOGINI_INTERPRETATIONS[lord] ?? null
+  if (!en || lang !== 'hi') return en
+  const hi = YOGINI_HI[lord]
+  return hi ? { ...en, ...hi } : en
 }
 
 export function isBeneficNature(nature: YoginiNature): boolean {

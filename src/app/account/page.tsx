@@ -4,10 +4,10 @@
 //  User account page with editable preferences
 // ─────────────────────────────────────────────────────────────
 
+import { Link, useRouter } from '@/i18n/navigation'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link                    from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { ThemeToggle }         from '@/components/ui/ThemeToggle'
 import { VedaanshLoader }      from '@/components/ui/primitives/VedaanshLoader'
 import { useChartStyle }       from '@/components/providers/ChartStyleProvider'

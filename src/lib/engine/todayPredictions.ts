@@ -19,6 +19,10 @@ import { hasParasharaAspect } from '@/lib/engine/aspects'
 import { RASHI_LORDS } from '@/lib/engine/houseInterpretations'
 import { houseFrom } from '@/lib/engine/gocharRules'
 import type { DashaDay, GocharRow, MoonDay, TodayTransitGraha } from '@/lib/engine/todayReading'
+import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { DIGNITY_HI, GOCHAR_STATUS_HI, ordHi, ordHiDirect } from '@/lib/engine/locale/todayReading.hi'
+import { AREA_HI, BINDU_WORD_HI, PRED_HI, PROMISE_HI, VERDICT_HI } from '@/lib/engine/locale/todayPredictions.hi'
 
 // ── Input contracts ──────────────────────────────────────────
 
@@ -39,6 +43,8 @@ export interface BuildPredictionsInput {
   /** Pieces of the day's reading this engine builds on (so rules are not recomputed). */
   reading: { moon: MoonDay; gochar: GocharRow[]; dasha: DashaDay[] }
   now?: Date
+  /** Language of the text fields; pass the same lang as buildTodayReading. */
+  lang?: EngineLang
 }
 
 // ── Output contracts ─────────────────────────────────────────
@@ -72,6 +78,8 @@ export interface HouseActivation {
   activity: number
   tone: Tone
   verdict: 'Favourable' | 'Mixed' | 'Challenging' | 'Quiet'
+  /** `verdict` in the requested language */
+  verdictLabel: string
   influences: HouseInfluence[]
   dashaLinks: Array<{ lord: GrahaId; levelLabel: string; relation: 'rules' | 'sits in' }>
 }
@@ -160,6 +168,13 @@ function binduWord(b: number): string {
 export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredictions | null {
   const { natal, transit, reading } = input
   const nowMs = (input.now ?? new Date()).getTime()
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
+  const P = PRED_HI
+  const gName = (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id])
+  const rName = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
+  const nth = (n: number) => (hi ? ordHi(n) : ordinal(n))
+  const area = (h: number) => (hi ? AREA_HI[h] : AREA[h])
   const lagna = natal.lagnas.ascRashi
   if (!lagna || transit.length === 0) return null
 
@@ -205,20 +220,24 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
     const promiseBits: string[] = []
     const houseSav = sav?.[rashi - 1]
     if (typeof houseSav === 'number') {
-      if (houseSav >= SAV_STRONG) { promiseScore += 1; promiseBits.push(`${houseSav} Ashtakavarga bindus`) }
-      else if (houseSav <= SAV_WEAK) { promiseScore -= 1; promiseBits.push(`only ${houseSav} Ashtakavarga bindus`) }
+      if (houseSav >= SAV_STRONG) { promiseScore += 1; promiseBits.push(hi ? fill(P.bindus, { n: houseSav }) : `${houseSav} Ashtakavarga bindus`) }
+      else if (houseSav <= SAV_WEAK) { promiseScore -= 1; promiseBits.push(hi ? fill(P.onlyBindus, { n: houseSav }) : `only ${houseSav} Ashtakavarga bindus`) }
     }
     const ratio = natal.shadbala?.planets?.[lord]?.ratio
     if (typeof ratio === 'number') {
-      if (ratio >= 1.15) { promiseScore += 1; promiseBits.push(`strong ${GRAHA_NAMES[lord]} (planet strength, or Shadbala, ${ratio.toFixed(2)}x)`) }
-      else if (ratio < 0.85) { promiseScore -= 1; promiseBits.push(`weak ${GRAHA_NAMES[lord]} (planet strength, or Shadbala, ${ratio.toFixed(2)}x)`) }
+      if (ratio >= 1.15) { promiseScore += 1; promiseBits.push(hi ? fill(P.strongLord, { planet: gName(lord), ratio: ratio.toFixed(2) }) : `strong ${GRAHA_NAMES[lord]} (planet strength, or Shadbala, ${ratio.toFixed(2)}x)`) }
+      else if (ratio < 0.85) { promiseScore -= 1; promiseBits.push(hi ? fill(P.weakLord, { planet: gName(lord), ratio: ratio.toFixed(2) }) : `weak ${GRAHA_NAMES[lord]} (planet strength, or Shadbala, ${ratio.toFixed(2)}x)`) }
     }
     const bb = natal.bhavaBala?.houses?.[h]
     if (bb) promiseScore += bb.isStrong ? 0.5 : -0.5
     if (lordNatal?.dignity === 'exalted' || lordNatal?.dignity === 'own' || lordNatal?.dignity === 'moolatrikona') promiseScore += 0.5
     if (lordNatal?.dignity === 'debilitated') promiseScore -= 0.5
     const promise: Promise3 = promiseScore >= 1.5 ? 'strong' : promiseScore <= -1 ? 'weak' : 'average'
-    const promiseNote = promiseBits.length
+    const promiseNote = hi
+      ? promiseBits.length
+        ? fill(P.promiseNote, { promise: PROMISE_HI[promise], bits: promiseBits.join(', ') })
+        : fill(P.promiseNoteShort, { promise: PROMISE_HI[promise] })
+      : promiseBits.length
       ? `${promise === 'strong' ? 'Well supported' : promise === 'weak' ? 'Less supported' : 'Average support'} in your chart (${promiseBits.join(', ')}).`
       : `${promise === 'strong' ? 'Well supported' : promise === 'weak' ? 'Less supported' : 'Average support'} in your chart.`
 
@@ -229,8 +248,8 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
       if (!CORE.includes(t.id)) continue
       const w = TRANSIT_WEIGHT[t.id] ?? 1
       const benefic = t.id === 'Mo' ? chandraSign >= 0 : BENEFIC.has(t.id)
-      const name = GRAHA_NAMES[t.id]
-      const retro = t.isRetro && t.id !== 'Ra' && t.id !== 'Ke' ? ' (retrograde)' : ''
+      const name = gName(t.id)
+      const retro = t.isRetro && t.id !== 'Ra' && t.id !== 'Ke' ? (hi ? P.retro : ' (retrograde)') : ''
 
       if (t.rashi === rashi) {
         const bindus = bavOf(t.id, rashi)
@@ -241,15 +260,23 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
         const nature = eff >= 0 ? (benefic ? 1.2 : 0.8) : (benefic ? 0.6 : 1.2)
         const delta = round1(eff * w * nature)
         const bits: string[] = []
-        if (bindus !== null) bits.push(`${bindus} bindus in ${RASHI_NAMES[rashi]} (${binduWord(bindus)})`)
-        const row = gocharOf(t.id)
-        if (t.id === 'Mo') bits.push(`Chandra Bala ${reading.moon.chandraQuality === 'bad' ? 'strained' : reading.moon.chandraQuality === 'good' ? 'supportive' : 'neutral'}`)
-        else if (row) bits.push(`${ordinal(row.fromMoon)} from your Moon, ${row.status}`)
+        const q = reading.moon.chandraQuality
+        if (hi) {
+          if (bindus !== null) bits.push(fill(P.binduBit, { rashi: rName(rashi), n: bindus, word: BINDU_WORD_HI[binduWord(bindus)] }))
+          const row = gocharOf(t.id)
+          if (t.id === 'Mo') bits.push(fill(P.chandraBit, { state: q === 'bad' ? P.strained : q === 'good' ? P.supportive : P.neutral }))
+          else if (row) bits.push(fill(P.gocharBit, { nth: ordHi(row.fromMoon), status: GOCHAR_STATUS_HI[row.status] ?? row.status }))
+        } else {
+          if (bindus !== null) bits.push(`${bindus} bindus in ${RASHI_NAMES[rashi]} (${binduWord(bindus)})`)
+          const row = gocharOf(t.id)
+          if (t.id === 'Mo') bits.push(`Chandra Bala ${q === 'bad' ? 'strained' : q === 'good' ? 'supportive' : 'neutral'}`)
+          else if (row) bits.push(`${ordinal(row.fromMoon)} from your Moon, ${row.status}`)
+        }
         influences.push({
           kind: t.id === 'Mo' ? 'moon' : 'occupies',
           planet: t.id,
           delta,
-          text: `${name}${retro} sits here: ${bits.join('; ')}.`,
+          text: hi ? fill(P.sits, { planet: name, retro, bits: bits.join('; ') }) : `${name}${retro} sits here: ${bits.join('; ')}.`,
         })
       } else if (t.id !== 'Ra' && t.id !== 'Ke' && hasParasharaAspect(t.rashi, t.id, rashi)) {
         const bindus = bavOf(t.id, rashi)
@@ -261,7 +288,9 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
           kind: 'aspects',
           planet: t.id,
           delta,
-          text: `${name}${retro} influences this house from your ${ordinal(house)} (${benefic ? 'a helpful' : 'a difficult'} drishti, or aspect${bindus !== null ? `, ${bindus} bindus here` : ''}).`,
+          text: hi
+            ? fill(P.aspects, { planet: name, retro, nth: ordHi(house), kind: benefic ? P.helpful : P.difficult, bindus: bindus !== null ? fill(P.bindusHere, { n: bindus }) : '' })
+            : `${name}${retro} influences this house from your ${ordinal(house)} (${benefic ? 'a helpful' : 'a difficult'} drishti, or aspect${bindus !== null ? `, ${bindus} bindus here` : ''}).`,
         })
       }
     }
@@ -278,7 +307,14 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
           kind: 'lord',
           planet: lord,
           delta: round1(eff * 1.4),
-          text: `House lord ${GRAHA_NAMES[lord]} is ${eff > 0 ? 'well' : 'poorly'} placed today${dig !== 0 ? ` (${tLord.dignity.replace('_', ' ')})` : ''}${gocharOf(lord) ? `, ${ordinal(gocharOf(lord)!.fromMoon)} from your Moon` : ''}.`,
+          text: hi
+            ? fill(P.lordPlaced, {
+                planet: gName(lord),
+                state: eff > 0 ? P.well : P.poorly,
+                dignity: dig !== 0 ? ` (${DIGNITY_HI[tLord.dignity] ?? tLord.dignity})` : '',
+                moon: gocharOf(lord) ? fill(P.lordMoon, { nth: ordHi(gocharOf(lord)!.fromMoon) }) : '',
+              })
+            : `House lord ${GRAHA_NAMES[lord]} is ${eff > 0 ? 'well' : 'poorly'} placed today${dig !== 0 ? ` (${tLord.dignity.replace('_', ' ')})` : ''}${gocharOf(lord) ? `, ${ordinal(gocharOf(lord)!.fromMoon)} from your Moon` : ''}.`,
         })
       }
     }
@@ -297,7 +333,9 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
           kind: 'dasha',
           planet: d.lord,
           delta: round1(sign * lw),
-          text: `${d.levelLabel} lord ${d.lordName} ${ruledHere ? 'rules' : 'sits in'} this house and is ${d.tone === 'supportive' ? 'well placed' : 'under strain'}, so this area is "live" in your current period.`,
+          text: hi
+            ? fill(P.dashaLink, { level: d.levelLabel, lord: d.lordName, relation: ruledHere ? P.rules : P.sitsIn, state: d.tone === 'supportive' ? P.wellPlaced : P.underStrain })
+            : `${d.levelLabel} lord ${d.lordName} ${ruledHere ? 'rules' : 'sits in'} this house and is ${d.tone === 'supportive' ? 'well placed' : 'under strain'}, so this area is "live" in your current period.`,
         })
       }
     }
@@ -323,8 +361,8 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
     houses.push({
       house: h,
       rashi,
-      rashiName: RASHI_NAMES[rashi],
-      areaTitle: AREA[h].title,
+      rashiName: rName(rashi),
+      areaTitle: area(h).title,
       lord,
       lordHouse,
       promise,
@@ -334,6 +372,7 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
       activity,
       tone,
       verdict,
+      verdictLabel: hi ? VERDICT_HI[verdict] : verdict,
       influences: influences.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)),
       dashaLinks,
     })
@@ -344,24 +383,27 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
   const ranked = [...houses].filter(x => x.verdict !== 'Quiet').sort((a, b) => prominence(b) - prominence(a)).slice(0, 5)
 
   const predictions: DayPrediction[] = ranked.map(x => {
-    const phrase = AREA[x.house]
+    const phrase = area(x.house)
     const sameDirection = x.influences.filter(i => (x.net >= 0 ? i.delta > 0 : i.delta < 0))
     const sources = new Set(sameDirection.map(i => (i.kind === 'dasha' ? 'dasha' : i.kind === 'moon' ? 'moon' : `${i.kind}-${i.planet}`)))
     const slowOrDasha = sameDirection.some(i => i.kind === 'dasha' || ['Sa', 'Ju', 'Ra', 'Ke', 'Ma'].includes(i.planet))
     const confidence: Confidence =
       sources.size >= 3 && slowOrDasha ? 'high' : sources.size >= 2 ? 'moderate' : 'low'
 
-    const body =
-      x.tone === 'favourable' ? `${phrase.good[0].toUpperCase()}${phrase.good.slice(1)}.`
+    const body = hi
+      ? x.tone === 'favourable' ? `${phrase.good}।` : x.tone === 'challenging' ? `${phrase.bad}।` : fill(P.mixed, { busy: phrase.busy, good: phrase.good, bad: phrase.bad })
+      : x.tone === 'favourable' ? `${phrase.good[0].toUpperCase()}${phrase.good.slice(1)}.`
         : x.tone === 'challenging' ? `${phrase.bad[0].toUpperCase()}${phrase.bad.slice(1)}.`
           : `Mixed signals: ${phrase.busy}. Upside: ${phrase.good}. Watch for: ${phrase.bad}.`
     const parts = [body]
     if (x.dashaLinks.length) {
       const d = x.dashaLinks[0]
-      parts.push(`This matters more than usual because your ${d.levelLabel} lord ${GRAHA_NAMES[d.lord]} ${d.relation} this house.`)
+      parts.push(hi
+        ? fill(P.dashaMatters, { level: d.levelLabel, lord: gName(d.lord), relation: d.relation === 'rules' ? P.relRules : P.relSits })
+        : `This matters more than usual because your ${d.levelLabel} lord ${GRAHA_NAMES[d.lord]} ${d.relation} this house.`)
     }
-    if (x.promise === 'strong') parts.push('Your chart naturally backs this area, so good results tend to come more easily and setbacks tend to pass sooner.')
-    if (x.promise === 'weak') parts.push('This area is less supported in your chart, so expect to put in more effort for the same result.')
+    if (x.promise === 'strong') parts.push(hi ? P.strongPromise : 'Your chart naturally backs this area, so good results tend to come more easily and setbacks tend to pass sooner.')
+    if (x.promise === 'weak') parts.push(hi ? P.weakPromise : 'This area is less supported in your chart, so expect to put in more effort for the same result.')
 
     const because = [
       ...x.influences.slice(0, 3).map(i => i.text),
@@ -370,7 +412,7 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
 
     return {
       house: x.house,
-      title: `${ordinal(x.house)} house · ${phrase.title}`,
+      title: hi ? fill(P.title, { nth: ordHiDirect(x.house), area: phrase.title }) : `${ordinal(x.house)} house · ${phrase.title}`,
       tone: x.tone,
       confidence,
       text: parts.join(' '),
@@ -388,29 +430,33 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
   const moonHouse = reading.moon.lagnaHouse
   const phaseTone = (q: 'good' | 'bad' | 'avg'): Tone => (q === 'good' ? 'favourable' : q === 'bad' ? 'challenging' : 'mixed')
   const phaseText = (house: number, q: 'good' | 'bad' | 'avg') => {
-    const p = AREA[house]
+    const p = area(house)
     const hv = houses[house - 1]
     const lead = q === 'good' ? p.good : q === 'bad' ? p.bad : `${p.busy}`
+    if (hi) {
+      const chandraHi = q === 'good' ? P.chandraGood : q === 'bad' ? P.chandraBad : P.chandraAvg
+      return fill(P.phaseText, { chandra: chandraHi, lead, verdict: hv.verdictLabel, score: hv.score })
+    }
     const chandra = q === 'good' ? 'Chandra Bala (the Moon’s strength for you today) is good' : q === 'bad' ? 'Chandra Bala (the Moon’s strength for you today) is demanding' : 'Chandra Bala (the Moon’s strength for you today) is neutral'
     return `${chandra}; ${lead}. The wider chart rates this house ${hv.verdict.toLowerCase()} today (${hv.score}).`
   }
   phases.push({
-    label: shiftsSoon ? 'Now' : 'All day',
+    label: hi ? (shiftsSoon ? P.now : P.allDay) : shiftsSoon ? 'Now' : 'All day',
     untilIso: shiftsSoon ? reading.moon.signChange?.atIso ?? null : null,
     rashiName: reading.moon.rashiName,
     house: moonHouse,
-    areaTitle: AREA[moonHouse].title,
+    areaTitle: area(moonHouse).title,
     tone: phaseTone(reading.moon.chandraQuality),
     text: phaseText(moonHouse, reading.moon.chandraQuality),
   })
   if (reading.moon.signChange && shiftsSoon) {
     const nextHouse = (moonHouse % 12) + 1
     phases.push({
-      label: 'After the Moon shifts',
+      label: hi ? P.afterShift : 'After the Moon shifts',
       untilIso: null,
       rashiName: reading.moon.signChange.toRashiName,
       house: nextHouse,
-      areaTitle: AREA[nextHouse].title,
+      areaTitle: area(nextHouse).title,
       tone: phaseTone(reading.moon.signChange.toChandraQuality),
       text: phaseText(nextHouse, reading.moon.signChange.toChandraQuality),
     })
@@ -424,13 +470,15 @@ export function buildTodayPredictions(input: BuildPredictionsInput): TodayPredic
     if (!['raja', 'dhana', 'mahapurusha'].includes(y.category) || y.strength === 'weak') continue
     const signs = y.planets.map(p => natalBy(p as GrahaId)?.rashi).filter((r): r is Rashi => typeof r === 'number')
     const hitBy: string[] = []
-    if (tMoon && signs.includes(tMoon.rashi)) hitBy.push('the Moon')
-    if (tJup && signs.some(s => s === tJup.rashi || hasParasharaAspect(tJup.rashi, 'Ju', s))) hitBy.push('Jupiter')
+    if (tMoon && signs.includes(tMoon.rashi)) hitBy.push(hi ? P.theMoon : 'the Moon')
+    if (tJup && signs.some(s => s === tJup.rashi || hasParasharaAspect(tJup.rashi, 'Ju', s))) hitBy.push(hi ? P.jupiter : 'Jupiter')
     if (!hitBy.length) continue
     // A chart can hold several yogas with the same name (e.g. multiple Raja Yogas),
     // so the planets involved are part of the note and exact duplicates are dropped.
-    const involved = y.planets.map(p => GRAHA_NAMES[p as GrahaId] ?? p).join(' + ')
-    const note = `${y.name} (${involved}): ${hitBy.join(' and ')} touches the planets of this yoga today, which can bring its promise forward.`
+    const involved = y.planets.map(p => gName(p as GrahaId) ?? p).join(' + ')
+    const note = hi
+      ? fill(P.yogaNote, { yoga: termHi(y.name), planets: involved, by: hitBy.join(P.and) })
+      : `${y.name} (${involved}): ${hitBy.join(' and ')} touches the planets of this yoga today, which can bring its promise forward.`
     if (!yogaNotes.includes(note)) yogaNotes.push(note)
   }
 

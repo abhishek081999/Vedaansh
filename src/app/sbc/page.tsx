@@ -14,8 +14,8 @@
  *  - Comprehensive transit & natal position tables
  */
 
+import { Link } from '@/i18n/navigation'
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'

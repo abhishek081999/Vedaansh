@@ -18,6 +18,7 @@ import { getVargaPosition } from '@/lib/engine/vargas'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChartStyleOptional } from '@/components/providers/ChartStyleProvider'
+import { useTranslations } from 'next-intl'
 
 function getSignType(r: Rashi): 'Movable' | 'Fixed' | 'Dual' {
   if ([1, 4, 7, 10].includes(r)) return 'Movable'
@@ -112,6 +113,7 @@ export function ChakraSelector({
   initialLagnaSource = 'natal',
   defaultShowArudha = false,
 }: ChakraSelectorProps) {
+  const t = useTranslations('chart.chakra')
   const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle']
   // Global chart-style store — changing style in any chart applies everywhere.
   // Falls back to local state when rendered outside the provider.
@@ -300,7 +302,7 @@ export function ChakraSelector({
             }}
           >
             <SettingsIcon />
-            <span>{resolvedShowSettings ? 'Hide Panel' : 'Chart Settings'}</span>
+            <span>{resolvedShowSettings ? t('hide') : t('settings')}</span>
           </button>
         </div>
       )}
@@ -315,7 +317,7 @@ export function ChakraSelector({
           
           {/* Style switcher */}
           <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700, marginRight: '0.5rem' }}>STYLE:</span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700, marginRight: '0.5rem' }}>{t('style')}</span>
             {STYLES.map((s) => {
               const active = style === s.id
               const locked = s.tier === 'gold' && userPlan === 'free'
@@ -323,7 +325,7 @@ export function ChakraSelector({
                 <button
                   key={s.id}
                   onClick={() => locked ? (window.location.href = '/pricing') : setStyle(s.id as ChartStyle)}
-                  title={locked ? `${s.label} — requires Gold plan` : s.description}
+                  title={locked ? t('requiresGold', { style: t(`styles.${s.id}.label`) }) : t(`styles.${s.id}.description`)}
                   style={{
                     padding: '0.35rem 0.75rem', fontSize: '0.75rem',
                     fontFamily: 'var(--font-chart-planets)', letterSpacing: '0.04em',
@@ -336,7 +338,7 @@ export function ChakraSelector({
                   }}
                 >
                   {locked && <span style={{ fontSize: '0.6rem' }}>🔒</span>}
-                  {s.label}
+                  {t(`styles.${s.id}.label`)}
                 </button>
               )
             })}
@@ -346,21 +348,21 @@ export function ChakraSelector({
 
           {/* Config toggles */}
           <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700, marginRight: '0.25rem' }}>DISPLAY:</span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700, marginRight: '0.25rem' }}>{t('display')}</span>
             {!isSBC && (
               <>
-                <Toggle label="9 Planets"   value={onlyNine}   onChange={setOnlyNine} />
-                <Toggle label="Degrees"   value={showDegrees}   onChange={setShowDegrees} />
-                <Toggle label="Nakshatra" value={showNakshatra} onChange={setShowNakshatra} />
+                <Toggle label={t('toggles.nine')}   value={onlyNine}   onChange={setOnlyNine} />
+                <Toggle label={t('toggles.degrees')}   value={showDegrees}   onChange={setShowDegrees} />
+                <Toggle label={t('toggles.nakshatra')} value={showNakshatra} onChange={setShowNakshatra} />
                 {userPlan !== 'free' && (
-                  <Toggle label="Karaka" value={showKaraka} onChange={setShowKaraka} />
+                  <Toggle label={t('toggles.karaka')} value={showKaraka} onChange={setShowKaraka} />
                 )}
                 {arudhas && (
                   <>
-                    <Toggle label="Arudha" value={showArudha} onChange={setShowArudha} />
+                    <Toggle label={t('toggles.arudha')} value={showArudha} onChange={setShowArudha} />
                     {showArudha && (
                       <Toggle
-                        label="BPHS exceptions"
+                        label={t('toggles.bphs')}
                         value={arudhaBphsMode}
                         onChange={setArudhaBphsMode}
                       />
@@ -368,12 +370,12 @@ export function ChakraSelector({
                   </>
                 )}
                 {transitGrahas.length > 0 && (
-                  <Toggle label="Show Natal" value={showNatal} onChange={setShowNatal} />
+                  <Toggle label={t('toggles.natal')} value={showNatal} onChange={setShowNatal} />
                 )}
-                <Toggle label="Tooltip" value={showTooltip} onChange={setShowTooltip} />
+                <Toggle label={t('toggles.tooltip')} value={showTooltip} onChange={setShowTooltip} />
                 {showCharaDrishtiControls && (
                   <>
-                    <Toggle label="Chara Drishti" value={enableCharaDrishti} onChange={setEnableCharaDrishti} />
+                    <Toggle label={t('toggles.chara')} value={enableCharaDrishti} onChange={setEnableCharaDrishti} />
                     {enableCharaDrishti && (
                       <button
                         type="button"
@@ -388,7 +390,7 @@ export function ChakraSelector({
                           cursor: 'pointer',
                         }}
                       >
-                        Clear House
+                        {t('clearHouse')}
                       </button>
                     )}
                   </>
@@ -397,9 +399,9 @@ export function ChakraSelector({
             )}
             {isSBC && (
               <>
-                <Toggle label="Tithi"  value={showTithi} onChange={setShowTithi} />
-                <Toggle label="Vara"   value={showVara}  onChange={setShowVara} />
-                <Toggle label="Legend" value={showLegend} onChange={setShowLegend} />
+                <Toggle label={t('toggles.tithi')}  value={showTithi} onChange={setShowTithi} />
+                <Toggle label={t('toggles.vara')}   value={showVara}  onChange={setShowVara} />
+                <Toggle label={t('toggles.legend')} value={showLegend} onChange={setShowLegend} />
               </>
             )}
           </div>
@@ -413,7 +415,7 @@ export function ChakraSelector({
                   display: 'flex', alignItems: 'center', gap: '0.4rem', 
                   color: 'var(--gold)', fontWeight: 700, letterSpacing: '0.05em', fontSize: '0.72rem'
                 }}>
-                  LAGNA SOURCE
+                  {t('lagnaSource')}
                 </div>
                 <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
                   {[
@@ -435,12 +437,12 @@ export function ChakraSelector({
                           color: active ? 'var(--gold)' : 'var(--text-muted)',
                         }}
                       >
-                        {ls.label}
+                        {t(`sources.${ls.id}`)}
                       </button>
                     )
                   })}
                 </div>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>House:</span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('house')}</span>
                 <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', flexWrap: 'wrap' }}>
                   {Array.from({length: 12}).map((_, i) => {
                     const id = `h${i+1}`
@@ -470,12 +472,12 @@ export function ChakraSelector({
           <div style={{ height: '1px', background: 'var(--border-soft)' }} />
           {/* Advanced Typography Scales */}
           <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700 }}>TYPOGRAPHY:</span>
-            <ScaleSlider label="Chart Size" value={chartScale} onChange={setChartScale} />
-            <ScaleSlider label="Base Scale" value={fontScale} onChange={setFontScale} />
-            <ScaleSlider label="Planets" value={planetScale} onChange={setPlanetScale} />
-            <ScaleSlider label="Details" value={infoScale} onChange={setInfoScale} />
-            <ScaleSlider label="Arudha" value={arudhaScale} onChange={setArudhaScale} />
+            <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700 }}>{t('typography')}</span>
+            <ScaleSlider label={t('scales.chart')} value={chartScale} onChange={setChartScale} />
+            <ScaleSlider label={t('scales.base')} value={fontScale} onChange={setFontScale} />
+            <ScaleSlider label={t('scales.planets')} value={planetScale} onChange={setPlanetScale} />
+            <ScaleSlider label={t('scales.details')} value={infoScale} onChange={setInfoScale} />
+            <ScaleSlider label={t('scales.arudha')} value={arudhaScale} onChange={setArudhaScale} />
           </div>
         </div>
       )}
@@ -573,10 +575,10 @@ export function ChakraSelector({
           fontFamily: 'var(--font-chart-planets)',
           color: 'var(--text-muted)',
         }}>
-          <span><span style={{ color: 'rgba(208,232,240,0.7)' }}>■</span> Moon nakshatra</span>
-          <span><span style={{ color: 'rgba(180,140,220,0.7)' }}>■</span> Current tithi</span>
-          <span><span style={{ color: 'rgba(100,210,160,0.7)' }}>■</span> Vara lord</span>
-          <span>Outer ring: 27 nakshatras · Second: tithis · Third: vara lords · Inner: aksharas</span>
+          <span><span style={{ color: 'rgba(208,232,240,0.7)' }}>■</span> {t('sbc.moonNak')}</span>
+          <span><span style={{ color: 'rgba(180,140,220,0.7)' }}>■</span> {t('sbc.tithi')}</span>
+          <span><span style={{ color: 'rgba(100,210,160,0.7)' }}>■</span> {t('sbc.vara')}</span>
+          <span>{t('sbc.rings')}</span>
         </div>
       )}
     </div>

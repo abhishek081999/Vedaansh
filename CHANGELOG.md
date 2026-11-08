@@ -17,6 +17,8 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/). Version from
 
 ### Added / live
 
+- Hindi Panchang and Today's Reading: `/hi/panchang`, `/hi/panchang/calendar` and `/hi/today` are fully in Hindi, including the day predictions, Vishesh panchang, Dinman muhurtas, house-by-house predictions, dasha timeline and remedies. Panchang pages have Hindi titles, descriptions and SEO text and point Google at their `/hi` versions
+- Hindi (हिन्दी) site, first part: every page is available under `/hi/...` with a language switch in the header and side menu. The menus, header, footer, home page, today's panchang strip and home SEO text are in Hindi so far; other pages still show English text under `/hi` while they are translated
 - Numerology couple match: core-number harmony, a combined Lo Shu grid showing what each partner brings, and the relationship number — in Numerology → Compatibility and on the Kundali Milan match view
 - Numerology business tool (Gold): business name, launch date, logo initial and GST / PAN / CIN / phone scored together, plus a launch-date finder
 - Numerology year calendar (Gold): download a year of best and caution days as an .ics file, with the sunrise tithi and Rikta days flagged

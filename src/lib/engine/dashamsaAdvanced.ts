@@ -6,9 +6,15 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ChartOutput, Dignity, GrahaId, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { buildUpcomingVimshottariTimeline } from '@/lib/engine/dasha/vimshottariTimeline'
 import type { CareerTone, DashamsaAnalysis, DashamsaPlanetRow } from '@/lib/engine/dashamsaAnalysis'
+import { dignityText, fill, gName, pick, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  D10A_TEXT_EN,
+  D10A_TEXT_HI,
+  KARAKA_CAREER_HI,
+  type D10AText,
+} from '@/lib/engine/locale/dashamsaAdvanced.hi'
 import {
   aspectHouses,
   aspectsSign,
@@ -23,7 +29,7 @@ const SIGN_LORDS: Record<Rashi, GrahaId> = {
 }
 
 const KARAKA_CAREER: Record<string, string> = {
-  AK: 'Atmakaraka — soul’s drive through the work',
+  AK: 'Atmakaraka — soul\u2019s drive through the work',
   AmK: 'Amatyakaraka — the minister; profession and status',
   BK: 'Bhratrikaraka — siblings, courage, co-workers, effort',
   MK: 'Matrukaraka — emotional climate of the workplace',
@@ -156,19 +162,20 @@ function houseSign(asc: Rashi, house: number): Rashi {
   return (((asc - 1 + house - 1) % 12) + 1) as Rashi
 }
 
-function aspectLabel(id: GrahaId, fromRashi: Rashi, target: Rashi): string {
+function aspectLabel(id: GrahaId, fromRashi: Rashi, target: Rashi, T: D10AText): string {
   const house = ((target - fromRashi + 12) % 12) + 1
-  if (id === 'Ma' && (house === 4 || house === 8)) return `${house}th (Mars special)`
-  if (id === 'Ju' && (house === 5 || house === 9)) return `${house}th (Jupiter special)`
-  if (id === 'Sa' && (house === 3 || house === 10)) return `${house}th (Saturn special)`
-  if (house === 7) return '7th (full)'
-  return `${house}th`
+  if (id === 'Ma' && (house === 4 || house === 8)) return fill(T.aspectMarsSpecial, { house })
+  if (id === 'Ju' && (house === 5 || house === 9)) return fill(T.aspectJuSpecial, { house })
+  if (id === 'Sa' && (house === 3 || house === 10)) return fill(T.aspectSaSpecial, { house })
+  if (house === 7) return T.aspect7Full
+  return fill(T.aspectNth, { house })
 }
 
 function buildChain(
   start: DashamsaPlanetRow,
   role: string,
   byId: Map<GrahaId, DashamsaPlanetRow>,
+  T: D10AText,
 ): DispositorChain {
   const links: DispositorLink[] = []
   const seen = new Set<GrahaId>()
@@ -193,10 +200,15 @@ function buildChain(
   }
   const tail = links[links.length - 1]
   const prediction = cyclic
-    ? `${start.name}’s D10 dispositor (ruler of the sign it sits in) chain loops (${links.map((l) => l.name).join(' → ')}). A closed loop locks the career style — results recycle through those planets’ dashas.`
-    : `${start.name} (${role}) runs ${links.map((l) => `${l.name} H${l.house}`).join(' → ')}.${
-      tail ? ` Final support rests with ${tail.name} in ${tail.rashiName}.` : ''
-    }`
+    ? fill(T.dispCyclic, {
+        start: start.name,
+        chain: links.map((l) => l.name).join(' → '),
+      })
+    : fill(T.dispLinear, {
+        start: start.name,
+        role,
+        links: links.map((l) => fill(T.dispLink, { name: l.name, house: l.house })).join(' → '),
+      }) + (tail ? fill(T.dispTail, { name: tail.name, rashi: tail.rashiName }) : '')
   return {
     startId: start.id,
     startName: start.name,
@@ -211,6 +223,7 @@ function buildDrishti(
   analysis: DashamsaAnalysis,
   targetSign: Rashi,
   targetLabel: string,
+  T: D10AText,
 ): DrishtiHit[] {
   const hits: DrishtiHit[] = []
   for (const p of analysis.planets) {
@@ -225,19 +238,31 @@ function buildDrishti(
         : (p.id === 'Sa' || p.id === 'Ma' || p.id === 'Ra')
           ? 'mixed'
           : 'neutral'
+    const asp = aspectLabel(p.id, p.d10Rashi, targetSign, T)
     hits.push({
       id: p.id,
       name: p.name,
       fromHouse: p.d10House,
-      aspectLabel: aspectLabel(p.id, p.d10Rashi, targetSign),
+      aspectLabel: asp,
       tone,
-      note: `${p.name} from D10 H${p.d10House} casts ${aspectLabel(p.id, p.d10Rashi, targetSign)} on the ${targetLabel}${special ? ' — special aspect counts full in Parashara.' : '.'}`,
+      note: fill(T.drishtiNote, {
+        name: p.name,
+        fromHouse: p.d10House,
+        aspectLabel: asp,
+        targetLabel,
+        special: special ? T.drishtiSpecial : T.drishtiPlainEnd,
+      }),
     })
   }
   return hits.sort((a, b) => a.fromHouse - b.fromHouse)
 }
 
-function buildRaja(analysis: DashamsaAnalysis, byId: Map<GrahaId, DashamsaPlanetRow>): RajaLink[] {
+function buildRaja(
+  analysis: DashamsaAnalysis,
+  byId: Map<GrahaId, DashamsaPlanetRow>,
+  T: D10AText,
+  lang: EngineLang,
+): RajaLink[] {
   const d10 = analysis.d10Lagna
   const lord = (h: number) => SIGN_LORDS[houseSign(d10, h)]
   const L1 = lord(1)
@@ -258,11 +283,11 @@ function buildRaja(analysis: DashamsaAnalysis, byId: Map<GrahaId, DashamsaPlanet
   }
 
   const pairs: { id: string; title: string; a: GrahaId; b: GrahaId; why: string }[] = [
-    { id: '1-10', title: 'Lagna–10th link', a: L1, b: L10, why: 'Self and profession reinforce each other' },
-    { id: '9-10', title: '9th–10th dharma-karma', a: L9, b: L10, why: 'Fortune and work move together' },
-    { id: '5-10', title: '5th–10th counsel yoga', a: L5, b: L10, why: 'Intelligence and status (ministerial flavour)' },
-    { id: '4-10', title: '4th–10th axis', a: L4, b: L10, why: 'Base and peak — property, vehicles, or homeland duty with status' },
-    { id: '7-10', title: '7th–10th public axis', a: L7, b: L10, why: 'Partners and profession share one story' },
+    { id: '1-10', title: T.rajaTitle1_10, a: L1, b: L10, why: T.rajaWhy1_10 },
+    { id: '9-10', title: T.rajaTitle9_10, a: L9, b: L10, why: T.rajaWhy9_10 },
+    { id: '5-10', title: T.rajaTitle5_10, a: L5, b: L10, why: T.rajaWhy5_10 },
+    { id: '4-10', title: T.rajaTitle4_10, a: L4, b: L10, why: T.rajaWhy4_10 },
+    { id: '7-10', title: T.rajaTitle7_10, a: L7, b: L10, why: T.rajaWhy7_10 },
   ]
 
   return pairs.map((p) => {
@@ -273,10 +298,26 @@ function buildRaja(analysis: DashamsaAnalysis, byId: Map<GrahaId, DashamsaPlanet
       formed,
       tone: formed ? 'supportive' : 'neutral',
       prediction: formed
-        ? `${GRAHA_NAMES[p.a]} and ${GRAHA_NAMES[p.b]} are linked in Dashamsha — ${p.why}.`
-        : `${GRAHA_NAMES[p.a]} and ${GRAHA_NAMES[p.b]} are not joined by conjunction, exchange, or aspect in D10.`,
+        ? fill(T.rajaFormed, { a: gName(p.a, lang), b: gName(p.b, lang), why: p.why })
+        : fill(T.rajaNotFormed, { a: gName(p.a, lang), b: gName(p.b, lang) }),
     }
   })
+}
+
+function careerRoleLabel(
+  id: GrahaId,
+  tenthLordId: GrahaId,
+  lagnaLordId: GrahaId,
+  livelihoodId: GrahaId,
+  amkId: GrahaId | null,
+  T: D10AText,
+  short: boolean,
+): string {
+  if (id === tenthLordId) return short ? T.role10thLord : T.roleD10TenthLord
+  if (id === lagnaLordId) return short ? T.roleLagnaLord : T.roleD10LagnaLord
+  if (id === livelihoodId) return short ? T.roleLivelihood : T.roleLivelihoodPlanet
+  if (amkId && id === amkId) return T.roleAmK
+  return short ? T.roleCareer : T.roleCareerLord
 }
 
 /**
@@ -286,7 +327,11 @@ export function buildDashamsaAdvanced(
   analysis: DashamsaAnalysis,
   classical: DashamsaClassical,
   chart: ChartOutput,
+  lang: EngineLang = 'en',
 ): DashamsaAdvanced | null {
+  const T = pick(D10A_TEXT_EN, D10A_TEXT_HI, lang)
+  const KARAKA = pick(KARAKA_CAREER, KARAKA_CAREER_HI, lang)
+
   if (!analysis.planets.length) return null
   const byId = new Map(analysis.planets.map((p) => [p.id, p]))
   const d1ById = new Map(chart.grahas?.map((g) => [g.id, g]) ?? [])
@@ -308,45 +353,60 @@ export function buildDashamsaAdvanced(
   const dispositor: DispositorChain[] = []
   const tenthRow = byId.get(tenthLordId)
   const lagnaRow = byId.get(lagnaLordId)
-  if (tenthRow) dispositor.push(buildChain(tenthRow, 'D10 10th lord', byId))
+  if (tenthRow) {
+    dispositor.push(
+      buildChain(tenthRow, careerRoleLabel(tenthLordId, tenthLordId, lagnaLordId, livelihoodId, amkId, T, false), byId, T),
+    )
+  }
   if (lagnaRow && lagnaLordId !== tenthLordId) {
-    dispositor.push(buildChain(lagnaRow, 'D10 lagna lord', byId))
+    dispositor.push(
+      buildChain(lagnaRow, careerRoleLabel(lagnaLordId, tenthLordId, lagnaLordId, livelihoodId, amkId, T, false), byId, T),
+    )
   }
   if (livelihoodId !== tenthLordId && livelihoodId !== lagnaLordId) {
     const liv = byId.get(livelihoodId)
-    if (liv) dispositor.push(buildChain(liv, 'livelihood planet', byId))
+    if (liv) {
+      dispositor.push(
+        buildChain(liv, careerRoleLabel(livelihoodId, tenthLordId, lagnaLordId, livelihoodId, amkId, T, false), byId, T),
+      )
+    }
   }
 
-  const onTenth = buildDrishti(analysis, tenthSign, 'D10 10th')
-  const onLagna = buildDrishti(analysis, d10, 'D10 lagna')
+  const onTenth = buildDrishti(analysis, tenthSign, T.targetD10Tenth, T)
+  const onLagna = buildDrishti(analysis, d10, T.targetD10Lagna, T)
   const drishtiPrediction = [
     onTenth.length
-      ? `Aspects on the D10 10th: ${onTenth.map((h) => h.name).join(', ')}.`
-      : 'No full graha drishti (aspect) reaches the D10 10th from other signs.',
+      ? fill(T.drishtiOnTenth, { names: onTenth.map((h) => h.name).join(', ') })
+      : T.drishtiOnTenthNone,
     onLagna.length
-      ? `Aspects on D10 lagna: ${onLagna.map((h) => h.name).join(', ')}.`
-      : 'D10 lagna is free of outside full aspects.',
+      ? fill(T.drishtiOnLagna, { names: onLagna.map((h) => h.name).join(', ') })
+      : T.drishtiOnLagnaNone,
   ].join(' ')
 
   const shadbalaAvailable = Boolean(chart.shadbala?.planets)
   const shadbalaRows: StrengthRow[] = careerIds.map((id) => {
     const sb = chart.shadbala?.planets?.[id]
-    const role =
-      id === tenthLordId ? '10th lord'
-        : id === lagnaLordId ? 'Lagna lord'
-          : id === livelihoodId ? 'Livelihood'
-            : id === amkId ? 'AmK'
-              : 'Career lord'
+    // Shadbala rows fall back to 'Career lord'; flag rows use the short 'Career'.
+    const role = [tenthLordId, lagnaLordId, livelihoodId, amkId].includes(id)
+      ? careerRoleLabel(id, tenthLordId, lagnaLordId, livelihoodId, amkId, T, true)
+      : T.roleCareerLord
+    const name = gName(id, lang)
     if (!sb) {
       return {
-        id, name: GRAHA_NAMES[id], role,
-        ratio: null, total: null, isStrong: null, quality: null, digBala: null,
-        note: 'Shadbala not on this chart payload.',
+        id,
+        name,
+        role,
+        ratio: null,
+        total: null,
+        isStrong: null,
+        quality: null,
+        digBala: null,
+        note: T.shadbalaMissing,
       }
     }
     return {
       id,
-      name: GRAHA_NAMES[id],
+      name,
       role,
       ratio: sb.ratio,
       total: sb.total,
@@ -354,8 +414,8 @@ export function buildDashamsaAdvanced(
       quality: sb.qualityBand ?? null,
       digBala: sb.digBala,
       note: sb.isStrong
-        ? `${GRAHA_NAMES[id]} clears required Shadbala (ratio ${sb.ratio.toFixed(2)}) — natal muscle behind the D10 promise.`
-        : `${GRAHA_NAMES[id]} is below required Shadbala (ratio ${sb.ratio.toFixed(2)}) — D10 status needs supporting lords and dasha.`,
+        ? fill(T.shadbalaStrong, { name, ratio: sb.ratio.toFixed(2) })
+        : fill(T.shadbalaWeak, { name, ratio: sb.ratio.toFixed(2) }),
     }
   })
 
@@ -368,19 +428,17 @@ export function buildDashamsaAdvanced(
       ? {
           totalRupa: h10.totalRupa,
           isStrong: h10.isStrong,
-          note: `Natal 10th bhava bala ${h10.totalRupa.toFixed(2)} rupa — ${h10.isStrong ? 'strong career house' : 'career house needs effort'}.`,
+          note: fill(h10.isStrong ? T.bhava10Strong : T.bhava10Weak, { rupa: h10.totalRupa.toFixed(2) }),
         }
       : null,
     eleventh: h11
       ? {
           totalRupa: h11.totalRupa,
           isStrong: h11.isStrong,
-          note: `Natal 11th bhava bala ${h11.totalRupa.toFixed(2)} rupa — ${h11.isStrong ? 'gains house supports awards' : 'gains come slowly'}.`,
+          note: fill(h11.isStrong ? T.bhava11Strong : T.bhava11Weak, { rupa: h11.totalRupa.toFixed(2) }),
         }
       : null,
-    prediction: (h10 || h11)
-      ? 'Bhava bala is cast on the birth chart; strong natal 10th/11th backs whatever Dashamsha promises.'
-      : 'Bhava bala not attached — recalculate for house strength.',
+    prediction: (h10 || h11) ? T.bhavaPredAvailable : T.bhavaPredMissing,
   }
 
   const d1Asc = chart.lagnas.ascRashi
@@ -393,18 +451,20 @@ export function buildDashamsaAdvanced(
         : bindus >= 30 ? 'supportive'
           : bindus >= 25 ? 'mixed'
             : 'challenging'
+    const rashiLabel = rName(sign, lang)
+    const support =
+      bindus == null ? ''
+        : bindus >= 30 ? T.savSupportHigh
+          : bindus >= 25 ? T.savSupportMid
+            : T.savSupportLow
     return {
       house,
-      rashiName: RASHI_NAMES[sign],
+      rashiName: rashiLabel,
       bindus,
       tone,
       note: bindus == null
-        ? `SAV for natal H${house} unavailable.`
-        : `Natal H${house} (${RASHI_NAMES[sign]}) has ${bindus} SAV bindus — ${
-          bindus >= 30 ? 'transit and dasha fruits land easily'
-            : bindus >= 25 ? 'average support'
-              : 'thin support; effort and remedies matter'
-        }.`,
+        ? fill(T.savUnavailable, { house })
+        : fill(T.savNote, { house, rashi: rashiLabel, bindus, support }),
     }
   })
 
@@ -423,21 +483,28 @@ export function buildDashamsaAdvanced(
     .flatMap((k) => {
       const row = byId.get(k.id)
       if (!row) return []
-      const label = KARAKA_CAREER[k.code] ?? k.code
+      const label = KARAKA[k.code] ?? k.code
       const place =
-        [1, 10].includes(row.d10House) ? 'sits on the career throne'
-          : [5, 9, 11].includes(row.d10House) ? 'supports status through fortune or gains'
-            : [6, 8, 12].includes(row.d10House) ? 'works through pressure, secrecy, or service'
-              : 'supports the profession from effort and speech'
+        [1, 10].includes(row.d10House) ? T.karakaThrone
+          : [5, 9, 11].includes(row.d10House) ? T.karakaFortune
+            : [6, 8, 12].includes(row.d10House) ? T.karakaPressure
+              : T.karakaEffort
       return [{
         code: k.code,
         label,
         id: k.id,
-        name: GRAHA_NAMES[k.id],
+        name: gName(k.id, lang),
         house: row.d10House,
         rashiName: row.d10RashiName,
         dignity: row.d10Dignity,
-        careerNote: `${k.code} ${GRAHA_NAMES[k.id]} in D10 H${row.d10House} (${row.d10RashiName}) ${place}. ${label}.`,
+        careerNote: fill(T.karakaCareerNote, {
+          code: k.code,
+          name: gName(k.id, lang),
+          house: row.d10House,
+          rashi: row.d10RashiName,
+          place,
+          label,
+        }),
       }]
     })
 
@@ -445,33 +512,31 @@ export function buildDashamsaAdvanced(
     const row = byId.get(id)
     const natal = d1ById.get(id)
     const flagList: string[] = []
-    if (row?.isVargottama) flagList.push('Vargottama')
-    if (natal?.pushkara?.isPushkara) flagList.push('Pushkara')
-    if (natal?.pushkara?.isPushkaraNavamsha) flagList.push('Pushkara Navamsha')
-    if (natal?.isCombust) flagList.push('Combust')
-    if (natal?.isRetro) flagList.push('Retrograde')
-    if (row && ['exalted', 'moolatrikona', 'own'].includes(row.d10Dignity)) flagList.push(`D10 ${row.d10Dignity}`)
-    if (row && row.d10Dignity === 'debilitated') flagList.push('D10 debilitated')
-    const role =
-      id === tenthLordId ? '10th lord'
-        : id === lagnaLordId ? 'Lagna lord'
-          : id === livelihoodId ? 'Livelihood'
-            : id === amkId ? 'AmK'
-              : 'Career'
+    if (row?.isVargottama) flagList.push(T.flagVargottama)
+    if (natal?.pushkara?.isPushkara) flagList.push(T.flagPushkara)
+    if (natal?.pushkara?.isPushkaraNavamsha) flagList.push(T.flagPushkaraNav)
+    if (natal?.isCombust) flagList.push(T.flagCombust)
+    if (natal?.isRetro) flagList.push(T.flagRetro)
+    if (row && ['exalted', 'moolatrikona', 'own'].includes(row.d10Dignity)) {
+      flagList.push(fill(T.flagD10Dignity, { dignity: dignityText(row.d10Dignity, lang) }))
+    }
+    if (row && row.d10Dignity === 'debilitated') flagList.push(T.flagD10Debilitated)
+    const role = careerRoleLabel(id, tenthLordId, lagnaLordId, livelihoodId, amkId, T, true)
+    const name = gName(id, lang)
     return {
       id,
-      name: GRAHA_NAMES[id],
+      name,
       role,
       flags: flagList,
       note: flagList.length
-        ? `${GRAHA_NAMES[id]} (${role}): ${flagList.join(', ')}.`
-        : `${GRAHA_NAMES[id]} (${role}): no special dignity flags.`,
+        ? fill(T.flagNoteWith, { name, role, flags: flagList.join(', ') })
+        : fill(T.flagNoteNone, { name, role }),
     }
   })
 
-  const raja = buildRaja(analysis, byId)
+  const raja = buildRaja(analysis, byId, T, lang)
 
-  const upcoming = buildUpcomingVimshottariTimeline(chart.dashas?.vimshottari ?? [], Date.now(), 6)
+  const upcoming = buildUpcomingVimshottariTimeline(chart.dashas?.vimshottari ?? [], Date.now(), 6, lang)
   const timelineItems: CareerTimelineItem[] = upcoming.upcomingAntars.map((item) => {
     const hit = careerIds.includes(item.lord) || careerIds.includes(item.mahaLord)
     const row = byId.get(item.lord)
@@ -479,61 +544,69 @@ export function buildDashamsaAdvanced(
       hit
         ? (row && [6, 8, 12].includes(row.d10House) ? 'mixed' : 'supportive')
         : item.tone === 'caution' ? 'challenging' : item.tone === 'supportive' ? 'mixed' : 'neutral'
+    const lordName = gName(item.lord, lang)
     return {
       label: item.label,
       lord: item.lord,
-      lordName: GRAHA_NAMES[item.lord],
+      lordName,
       start: item.startIso.slice(0, 10),
       end: item.endIso.slice(0, 10),
       careerHit: hit,
       tone,
       note: hit
-        ? `${GRAHA_NAMES[item.lord]} is a D10 career significator${row ? ` in house ${row.d10House}` : ''}. ${item.hint ?? 'Watch status, role, and income moves.'}`
-        : `${item.toneLabel}. ${item.hint ?? 'Background period for livelihood.'}`,
+        ? fill(T.timelineCareerHit, {
+            name: lordName,
+            housePart: row ? fill(T.timelineHousePart, { house: row.d10House }) : '',
+            hint: item.hint ?? T.timelineHintDefault,
+          })
+        : fill(T.timelineBackground, {
+            toneLabel: item.toneLabel,
+            hint: item.hint ?? T.timelineHintBg,
+          }),
     }
   })
   if (upcoming.nextMaha) {
     const m = upcoming.nextMaha
+    const mahaName = gName(m.lord, lang)
     timelineItems.push({
       label: m.label,
       lord: m.lord,
-      lordName: GRAHA_NAMES[m.lord],
+      lordName: mahaName,
       start: m.startIso.slice(0, 10),
       end: m.endIso.slice(0, 10),
       careerHit: careerIds.includes(m.lord),
       tone: careerIds.includes(m.lord) ? 'supportive' : 'neutral',
       note: careerIds.includes(m.lord)
-        ? `Next mahadasha of career lord ${GRAHA_NAMES[m.lord]} — major professional chapter.`
-        : `Next mahadasha ${GRAHA_NAMES[m.lord]} — check its D10 house when it arrives.`,
+        ? fill(T.timelineNextMahaCareer, { name: mahaName })
+        : fill(T.timelineNextMahaCheck, { name: mahaName }),
     })
   }
 
   const formedRaja = raja.filter((r) => r.formed)
   const strongSb = shadbalaRows.filter((r) => r.isStrong)
   const takeaways = [
-    dispositor[0]?.prediction ?? 'Dispositor chain unavailable.',
+    dispositor[0]?.prediction ?? T.takeawayDispMissing,
     drishtiPrediction,
     strongSb.length
-      ? `Strong natal Shadbala: ${strongSb.map((r) => r.name).join(', ')}.`
+      ? fill(T.takeawayStrongSb, { names: strongSb.map((r) => r.name).join(', ') })
       : shadbalaAvailable
-        ? 'Career lords are not all strong in Shadbala — lean on timing and supporting yogas.'
-        : 'Attach Shadbala on recalculation for strength confirmation.',
+        ? T.takeawayWeakSb
+        : T.takeawaySbMissing,
     formedRaja.length
-      ? `Formed D10 raja links: ${formedRaja.map((r) => r.title).join('; ')}.`
-      : 'No kendra (angular houses: 1, 4, 7, 10)–trikona (trine houses: 1, 5, 9) career links formed in D10 beyond isolated lords.',
+      ? fill(T.takeawayRajaFormed, { titles: formedRaja.map((r) => r.title).join('; ') })
+      : T.takeawayRajaNone,
     timelineItems.find((t) => t.careerHit)?.note
-      ?? 'No immediate career-lord antardasha in the next windows — watch the listed timeline.',
+      ?? T.takeawayTimelineNone,
   ]
 
   const headline = [
-    formedRaja.length ? `${formedRaja.length} raja links` : 'technical read',
-    onTenth.length ? `drishti×${onTenth.length}` : null,
-    strongSb.length ? `strong ${strongSb.map((r) => r.name).join('/')}` : null,
+    formedRaja.length ? fill(T.headlineRajaLinks, { n: formedRaja.length }) : T.headlineTechnical,
+    onTenth.length ? fill(T.headlineDrishti, { n: onTenth.length }) : null,
+    strongSb.length ? fill(T.headlineStrong, { names: strongSb.map((r) => r.name).join('/') }) : null,
   ].filter(Boolean).join(' · ')
 
   return {
-    framing:
-      'Advanced levers behind the Śāstra and Synthesis tabs: who feeds the career lords (dispositors), who aspects the D10 10th, natal Shadbala and SAV support, Jaimini karakas (natural indicator) in D10, dignity flags, kendra (angular houses: 1, 4, 7, 10)–trikona (trine houses: 1, 5, 9) links, and the next career-sensitive dasha windows.',
+    framing: T.framing,
     headline,
     dispositor,
     drishti: {
@@ -544,23 +617,19 @@ export function buildDashamsaAdvanced(
     shadbala: {
       available: shadbalaAvailable,
       rows: shadbalaRows,
-      prediction: shadbalaAvailable
-        ? 'Shadbala is natal strength. A weak 10th lord can still deliver in its dasha if D10 yoga and SAV support, but the road is harder.'
-        : 'Recalculate the chart to attach Shadbala.',
+      prediction: shadbalaAvailable ? T.shadbalaPredAvailable : T.shadbalaPredMissing,
     },
     bhavaBala,
     ashtakavarga: {
       available: Boolean(sav),
       houses: savHouses,
-      prediction: sav
-        ? 'SAV bindus (strength points) show how easily transit and dasha results land in natal career houses. Pair with D10 for what the result looks like.'
-        : 'Ashtakavarga not on this payload.',
+      prediction: sav ? T.savPredAvailable : T.savPredMissing,
     },
     karakas,
     flags,
     raja,
     timeline: {
-      headline: upcoming.headline || 'Upcoming Vimshottari windows',
+      headline: upcoming.headline || T.timelineHeadlineFallback,
       items: timelineItems,
     },
     takeaways,

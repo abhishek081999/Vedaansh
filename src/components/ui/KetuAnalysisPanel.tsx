@@ -5,8 +5,8 @@
 //  Free overview · Gold+ full sections
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   BookOpen,
   CircleDot,
@@ -23,6 +23,9 @@ import { ClassicalNotesList } from '@/components/ui/ClassicalNotesList'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { GrahaProfileHeader } from '@/components/ui/GrahaProfileHeader'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 
 type SubTab = 'overview' | 'foundations' | 'classical' | 'houses' | 'yogas' | 'lore'
 type ClassicalView = 'mixed' | 'natal' | 'houses' | 'signs'
@@ -42,10 +45,13 @@ interface KetuAnalysisPanelProps {
 }
 
 export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPanelProps) {
+  const tp = useTranslations('planetsB.ketu')
+  const tc = useTranslations('planetsB.common')
+  const { lang, hi } = useLang()
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const [classicalView, setClassicalView] = useState<ClassicalView>('mixed')
-  const data = useMemo(() => analyzeKetu(chart), [chart])
+  const data = useMemo(() => analyzeKetu(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -57,7 +63,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Ketu data unavailable for this chart.
+        {tp('unavailable')}
       </div>
     )
   }
@@ -86,26 +92,25 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: natal Ketu house, dharma/moksha flags, and active yogas.
-            Gold unlocks karakatva, catalogues, MD vs AD teaching, and lore.
+            {tp('freePreview')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{tc('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{k.rashiName} · H{k.house}</Pill>
-        <Pill>{k.nakshatraName} P{k.pada}</Pill>
-        <Pill>{k.dignity.replace('_', ' ')}</Pill>
-        {data.dharmaTrikon.inDharma && <Pill gold>Dharma</Pill>}
-        {data.mokshaTrikon.inMoksha && <Pill gold>Moksha</Pill>}
-        {k.inKetuNakshatra && <Pill gold>Ketu nakshatra</Pill>}
-        {k.inJupiterSign && <Pill>Jupiter sign</Pill>}
-        {activeYogas.length > 0 && <Pill>Yogas · {activeYogas.length}</Pill>}
+        <Pill gold>{k.rashiName} · {tc('houseShort', { n: k.house })}</Pill>
+        <Pill>{k.nakshatraName} {tc('padaShort', { n: k.pada })}</Pill>
+        <Pill>{hi ? dignityHi(k.dignity) : k.dignity.replace('_', ' ')}</Pill>
+        {data.dharmaTrikon.inDharma && <Pill gold>{tp('dharma')}</Pill>}
+        {data.mokshaTrikon.inMoksha && <Pill gold>{tp('moksha')}</Pill>}
+        {k.inKetuNakshatra && <Pill gold>{tp('ownNakshatra')}</Pill>}
+        {k.inJupiterSign && <Pill>{tp('jupiterSign')}</Pill>}
+        {activeYogas.length > 0 && <Pill>{tc('yogasCount', { count: activeYogas.length })}</Pill>}
         {data.companions.length > 0 && (
-          <Pill>Yuti · {data.companions.map(c => c.name).join(', ')}</Pill>
+          <Pill>{tc('yutiList', { names: data.companions.map(c => c.name).join(', ') })}</Pill>
         )}
       </div>
 
@@ -122,7 +127,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Ketu analysis sections"
+        aria-label={tp('sectionsAria')}
       >
         {SUB_TABS.map(t => {
           const locked = !showFull && !t.free
@@ -154,7 +159,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
               }}
             >
               <t.Icon size={13} aria-hidden />
-              {t.label}
+              {tp(`tabs.${t.id}`)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -164,7 +169,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Natal Ketu · H{data.houseFocus.house}</Label>
+            <Label>{tp('natalHouse', { n: data.houseFocus.house })}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
@@ -192,21 +197,21 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
           </Card>
 
           <Card>
-            <Label>One-line teaching</Label>
+            <Label>{tc('oneLine')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
               {data.oneLiner}
             </p>
           </Card>
 
           <Card>
-            <Label>12th from Ketu — detachment lean</Label>
+            <Label>{tp('detach')}</Label>
             <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.detach12thNote}
             </p>
           </Card>
 
           <Card>
-            <Label>Key flags</Label>
+            <Label>{tp('lbl.key_flags')}</Label>
             <FlagRow flag={data.dharmaFlag} />
             <FlagRow flag={data.mokshaFlag} />
             <FlagRow flag={data.axisFlag} />
@@ -219,7 +224,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
 
           {activeYogas.length > 0 && (
             <Card>
-              <Label>Active yogas</Label>
+              <Label>{tp('lbl.active_yogas')}</Label>
               {activeYogas.map(y => (
                 <div key={y.id} style={{ marginBottom: '0.55rem' }}>
                   <div style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--text-gold)' }}>{y.name}</div>
@@ -232,14 +237,14 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
           )}
 
           <Card>
-            <Label>Companions</Label>
+            <Label>{tc('companions')}</Label>
             <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.companionNote}
             </p>
           </Card>
 
           <Card>
-            <Label>Summary</Label>
+            <Label>{tp('lbl.summary')}</Label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
               {data.summaryAttrs.map(a => (
                 <div key={a.label}>
@@ -257,24 +262,24 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
       {showFull && sub === 'foundations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Nature</Label>
+            <Label>{tc('nature')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.nature.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Philosophy</Label>
+            <Label>{tp('lbl.philosophy')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.philosophy.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Ketu vs Rahu vs Jupiter</Label>
+            <Label>{tp('lbl.ketu_vs_rahu_vs_jupiter')}</Label>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.68rem' }}>
                 <thead>
                   <tr>
-                    {['Aspect', 'Rahu', 'Ketu', 'Jupiter'].map(h => (
+                    {[tp('colAspect'), tp('colRahu'), tp('colKetu'), tp('colJupiter')].map(h => (
                       <th key={h} style={{
                         textAlign: 'left',
                         padding: '0.35rem 0.4rem',
@@ -317,7 +322,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
             </Card>
           ))}
           <Card>
-            <Label>Zodiacal quick ref</Label>
+            <Label>{tp('lbl.zodiacal_quick_ref')}</Label>
             {data.zodiacal.map(z => (
               <div key={z.label} style={{ display: 'flex', gap: 8, fontSize: '0.72rem', marginBottom: 4 }}>
                 <span style={{ color: 'var(--text-muted)', minWidth: 110 }}>{z.label}</span>
@@ -326,7 +331,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
             ))}
           </Card>
           <Card>
-            <Label>Ketu nakshatras</Label>
+            <Label>{tp('lbl.ketu_nakshatras')}</Label>
             {data.nakshatraTeachings.map(n => (
               <div key={n.index} style={{ marginBottom: '0.55rem', opacity: n.isNatal ? 1 : 0.75 }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
@@ -334,7 +339,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
                     {n.name}
                   </strong>
                   <Pill>{n.rashiName}</Pill>
-                  {n.isNatal && <Pill gold>Natal</Pill>}
+                  {n.isNatal && <Pill gold>{tc('natalPill')}</Pill>}
                 </div>
                 <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--text-muted)' }}>{n.significance}</p>
                 <ul style={{ margin: '0.3rem 0 0', paddingLeft: '1.1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -344,13 +349,13 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
             ))}
           </Card>
           <Card>
-            <Label>Mahadasha vs Antardasha</Label>
+            <Label>{tp('lbl.mahadasha_vs_antardasha')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.mdVsAd.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Maturity & dasha</Label>
+            <Label>{tp('lbl.maturity_dasha')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.naturalAgeNote}
             </p>
@@ -381,23 +386,24 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
                   textTransform: 'capitalize',
                 }}
               >
-                {v}
+                {tc(`cv.${v}`)}
               </button>
             ))}
           </div>
 
           {classicalView === 'mixed' && data.classical.natalMixed && (
             <Card>
-              <Label>Mixed natal layers</Label>
+              <Label>{tp('lbl.mixed_natal_layers')}</Label>
               <LayerStack layers={data.classical.natalMixed.layers} />
             </Card>
           )}
 
           {classicalView === 'natal' && (
             <>
+              {hi && <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{tc('classicalNoteHi')}</p>}
               <Card>
-                <Label>Natal house classical</Label>
-                <ClassicalNotesList notes={data.classical.natalHouseClassical} />
+                <Label>{tp('lbl.natal_house_classical')}</Label>
+                <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={data.classical.natalHouseClassical} />
                 {data.classical.platformNatalHouseFull && (
                   <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {data.classical.platformNatalHouseFull}
@@ -405,8 +411,8 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
                 )}
               </Card>
               <Card>
-                <Label>Natal sign classical</Label>
-                <ClassicalNotesList notes={data.classical.natalSignClassical} />
+                <Label>{tp('lbl.natal_sign_classical')}</Label>
+                <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={data.classical.natalSignClassical} />
                 {data.classical.platformNatalSignFull && (
                   <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {data.classical.platformNatalSignFull}
@@ -414,8 +420,8 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
                 )}
               </Card>
               <Card>
-                <Label>Vakri (always for Ketu)</Label>
-                <ClassicalNotesList notes={data.classical.vakriAst} />
+                <Label>{tp('lbl.vakri_always_for_ketu')}</Label>
+                <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={data.classical.vakriAst} />
               </Card>
             </>
           )}
@@ -423,9 +429,9 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
           {classicalView === 'houses' && data.classical.allHouses.map(h => (
             <Card key={h.house}>
               <Label>
-                House {h.house}{h.isNatal ? ' · Natal' : ''}
+                {tc('house', { n: h.house })}{h.isNatal ? ` · ${tc('natalPill')}` : ''}
               </Label>
-              <ClassicalNotesList notes={h.classical} />
+              <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={h.classical} />
               {h.isNatal && <LayerStack layers={h.mixedLayers} compact />}
             </Card>
           ))}
@@ -433,9 +439,9 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
           {classicalView === 'signs' && data.classical.allSigns.map(s => (
             <Card key={s.rashi}>
               <Label>
-                {s.rashiName}{s.isNatal ? ' · Natal' : ''}
+                {s.rashiName}{s.isNatal ? ` · ${tc('natalPill')}` : ''}
               </Label>
-              <ClassicalNotesList notes={s.classical} />
+              <ClassicalNotesList quiet={hi} title={tc('classicalSources')} notes={s.classical} />
               {s.isNatal && <LayerStack layers={s.mixedLayers} compact />}
             </Card>
           ))}
@@ -445,7 +451,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
       {showFull && sub === 'houses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Dharma & moksha trikon</Label>
+            <Label>{tp('lbl.dharma_moksha_trikon')}</Label>
             <p style={{ margin: '0 0 0.4rem', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.dharmaTrikon.detail}
             </p>
@@ -462,7 +468,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
                 }}>
                   {h.title}
                 </strong>
-                {h.house === data.houseFocus.house && <Pill gold>Natal</Pill>}
+                {h.house === data.houseFocus.house && <Pill gold>{tc('natalPill')}</Pill>}
                 <Pill
                   gold={h.tone === 'moksha' || h.tone === 'dharma' || h.tone === 'surgical'}
                   warn={h.tone === 'dusthana' || h.tone === 'watched' || h.tone === 'relating'}
@@ -495,7 +501,7 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
                   textTransform: 'uppercase',
                   color: y.active ? 'var(--rose)' : 'var(--text-muted)',
                 }}>
-                  {y.active ? 'Active' : 'Clear'}
+                  {y.active ? tc('active') : tc('clear')}
                 </span>
               </div>
               <p style={{ margin: '0.35rem 0', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -503,11 +509,11 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
               </p>
               {y.active && (
                 <>
-                  <Label>Effects</Label>
+                  <Label>{tp('lbl.effects')}</Label>
                   <ul style={{ margin: '0 0 0.45rem', paddingLeft: '1.1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {y.effects.map(e => <li key={e}>{e}</li>)}
                   </ul>
-                  <Label>Positives</Label>
+                  <Label>{tp('lbl.positives')}</Label>
                   <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {y.positives.map(e => <li key={e}>{e}</li>)}
                   </ul>
@@ -521,61 +527,61 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
       {showFull && sub === 'lore' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Golden rules</Label>
+            <Label>{tc('goldenRules')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.goldenRules.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Critical dictums</Label>
+            <Label>{tp('lbl.critical_dictums')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.dictums.map(d => <li key={d}>{d}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Chart reading method</Label>
+            <Label>{tp('lbl.chart_reading_method')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.chartMethod.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Prediction ethics</Label>
+            <Label>{tp('lbl.prediction_ethics')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.ethics.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Mythology</Label>
+            <Label>{tc('mythology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.mythology.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Principles from the myth</Label>
+            <Label>{tp('lbl.principles_from_the_myth')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.mythPrinciples.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Remedies & conduct</Label>
+            <Label>{tp('lbl.remedies_conduct')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.remedies.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Caveats</Label>
+            <Label>{tc('caveats')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.caveats.map(c => <li key={c}>{c}</li>)}
             </ul>
           </Card>
           <Card>
-            <Label>Methodology</Label>
+            <Label>{tc('methodology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.methodology.map(mth => <li key={mth}>{mth}</li>)}
             </ul>
             <div style={{ marginTop: '0.55rem', fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
               <BookOpen size={12} aria-hidden />
-              Class teaching — Ketu karakatva, moksha/dharma, MD vs AD, no-dṛṣṭi, ethics
+              {tp('footer')}
             </div>
           </Card>
         </div>
@@ -585,6 +591,8 @@ export function KetuAnalysisPanel({ chart, userPlan = 'free' }: KetuAnalysisPane
 }
 
 function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: boolean }) {
+  const tc = useTranslations('planetsB.common')
+  const { hi } = useLang()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.45rem' : '0.65rem' }}>
       {layers.map(layer => (
@@ -623,7 +631,8 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
           {layer.classicalNotes && layer.classicalNotes.length > 0 && (
             <div style={{ marginTop: 6 }}>
               <ClassicalNotesList
-                title="Sources"
+                quiet={hi}
+                title={tc('sources')}
                 notes={compact ? layer.classicalNotes.slice(0, 2) : layer.classicalNotes}
               />
             </div>
@@ -635,6 +644,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
 }
 
 function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const tc = useTranslations('planetsB.common')
   return (
     <div style={{ marginBottom: '0.45rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -645,7 +655,7 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
           textTransform: 'uppercase',
           color: flag.active ? 'var(--rose)' : 'var(--text-muted)',
         }}>
-          {flag.active ? 'Active' : 'Clear'}
+          {flag.active ? tc('active') : tc('clear')}
         </span>
       </div>
       <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>

@@ -1,7 +1,8 @@
 // Visible, crawlable intro for tool pages (server component).
 // Prefer h2 when the interactive page already owns the h1.
+import { Link } from '@/i18n/navigation'
 import type { ReactNode } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import type { SeoIntroProps } from './SeoIntro.types'
 import styles from './SeoIntro.module.css'
 
@@ -39,9 +40,10 @@ export function SeoIntro({
   titleAs = 'h2',
   faq,
   relatedLinks,
-  relatedTitle = 'Related guides',
+  relatedTitle,
   compact = false,
 }: SeoIntroProps) {
+  const t = useTranslations('common.seo')
   const TitleTag = titleAs === 'h1' ? 'h1' : 'h2'
   const SubTag = titleAs === 'h1' ? 'h2' : 'h3'
 
@@ -67,7 +69,7 @@ export function SeoIntro({
       )}
       {relatedLinks && relatedLinks.length > 0 && (
         <div className={styles.related}>
-          <SubTag className={styles.subtitle}>{relatedTitle}</SubTag>
+          <SubTag className={styles.subtitle}>{relatedTitle ?? t('relatedGuides')}</SubTag>
           <ul className={styles.relatedList}>
             {relatedLinks.map((link) => (
               <li key={link.href}>
@@ -81,7 +83,7 @@ export function SeoIntro({
       )}
       {faq && faq.length > 0 && (
         <div className={styles.faq}>
-          <SeoBlock compact={compact} title="Frequently asked questions" as={SubTag} titleClassName={styles.faqTitle}>
+          <SeoBlock compact={compact} title={t('faq')} as={SubTag} titleClassName={styles.faqTitle}>
             <dl className={styles.faqList}>
               {faq.map(({ q, a }) => (
                 <div key={q} className={styles.faqItem}>

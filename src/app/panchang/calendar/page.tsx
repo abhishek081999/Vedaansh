@@ -8,9 +8,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { termHi } from '@/i18n/jyotish'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
-import { CalendarDayDetail, TONE_CLASS, TONE_LABEL } from '@/components/panchang/CalendarDayDetail'
+import { CalendarDayDetail, TONE_CLASS } from '@/components/panchang/CalendarDayDetail'
 import type { PanchangApiData } from '@/components/panchang/DailyPanchangView'
 import styles from '@/components/panchang/PanchangCalendar.module.css'
 import { buildDayReading, type DayReading, type DayTone } from '@/lib/panchang/day-reading'
@@ -18,23 +21,23 @@ import { elongationForTithi, moonLitPath } from '@/lib/panchang/moon-phase'
 
 type DayEntry = PanchangApiData | 'error'
 
-const MONTHS = [
-  'January','February','March','April','May','June',
-  'July','August','September','October','November','December',
-]
-const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+/** Month and weekday names in the page language (Intl, so no tables to translate). */
+function monthName(tag: string, month: number, style: 'long' | 'short' = 'long'): string {
+  return new Intl.DateTimeFormat(tag, { month: style, timeZone: 'UTC' }).format(new Date(Date.UTC(2024, month, 15)))
+}
+function weekdayNames(tag: string): string[] {
+  // 2024-01-07 was a Sunday
+  return Array.from({ length: 7 }, (_, i) =>
+    new Intl.DateTimeFormat(tag, { weekday: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2024, 0, 7 + i))),
+  )
+}
 const TONES: DayTone[] = ['favourable', 'mixed', 'cautious']
 
 /** Enough to fill a month quickly without tripping the public API rate limit. */
 const FETCH_CONCURRENCY = 6
 
-/** Tithi numbers (1–30) most people look for in a monthly view. */
-const KEY_TITHIS: Record<number, string> = {
-  11: 'Shukla Ekadashi',
-  15: 'Purnima',
-  26: 'Krishna Ekadashi',
-  30: 'Amavasya',
-}
+/** Tithi numbers (1–30) most people look for in a monthly view; names in panchang.calendar.key. */
+const KEY_TITHIS = new Set([11, 15, 26, 30])
 
 function todayIn(tz: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date())
@@ -73,10 +76,15 @@ interface DayCellProps {
 }
 
 function DayCell({ day, date, isToday, selected, entry, reading, onSelect }: DayCellProps) {
+  const t = useTranslations('panchang.calendar')
+  const tw = useTranslations('panchang.view')
+  const { tag, hi } = useLang()
+  const name = (en: string) => (hi ? termHi(en) : en)
   const data = typeof entry === 'object' ? entry : null
+  const dayLabel = `${day} ${monthName(tag, Number(date.slice(5, 7)) - 1)}`
   const label = data && reading
-    ? `${day} ${MONTHS[Number(date.slice(5, 7)) - 1]}, ${data.tithi.name}, ${data.nakshatra.name}, ${TONE_LABEL[reading.tone]} day`
-    : `${day} ${MONTHS[Number(date.slice(5, 7)) - 1]}`
+    ? t('cellLabel', { date: dayLabel, tithi: name(data.tithi.name), nak: name(data.nakshatra.name), tone: t(`tone.${reading.tone}`) })
+    : dayLabel
   return (
     <button
       type="button"
@@ -92,11 +100,11 @@ function DayCell({ day, date, isToday, selected, entry, reading, onSelect }: Day
       </span>
       {data && reading && (
         <>
-          <span className={`${styles.tithiName} ${KEY_TITHIS[data.tithi.number] ? styles.tithiKey : ''}`}>{data.tithi.name}</span>
-          <span className={styles.nakName}>{data.nakshatra.name}</span>
+          <span className={`${styles.tithiName} ${KEY_TITHIS.has(data.tithi.number) ? styles.tithiKey : ''}`}>{name(data.tithi.name)}</span>
+          <span className={styles.nakName}>{name(data.nakshatra.name)}</span>
           <span className={styles.cellFoot}>
             <span className={styles.toneDot} aria-hidden />
-            {data.karana.isBhadra && <span className={`${styles.cellFootText} ${styles.bhadra}`}>Bhadra</span>}
+            {data.karana.isBhadra && <span className={`${styles.cellFootText} ${styles.bhadra}`}>{tw('bhadra')}</span>}
           </span>
         </>
       )}
@@ -112,6 +120,8 @@ function DayCell({ day, date, isToday, selected, entry, reading, onSelect }: Day
 }
 
 export default function MonthlyPanchangPage() {
+  const t = useTranslations('panchang.calendar')
+  const { lang, tag } = useLang()
   const { chart } = useChart()
   const [location, setLocation] = useState<LocationValue>(getSavedLocation)
   const today = todayIn(location.tz)
@@ -176,19 +186,20 @@ export default function MonthlyPanchangPage() {
         karanaName: entry.karana.name,
         varaNumber: entry.vara.number,
         timeline: entry.timeline,
+        lang,
       })
     }
     return out
-  }, [days, locationKey, monthDates])
+  }, [days, locationKey, monthDates, lang])
 
   // A long tithi can hold at noon on two consecutive days, so those merge into one row
   const keyDays: Array<{ date: string; lastDay: number; name: string; tithiNumber: number }> = []
   monthDates.forEach((date, i) => {
     const entry = entryFor(date)
-    if (!entry || entry === 'error' || !KEY_TITHIS[entry.tithi.number]) return
+    if (!entry || entry === 'error' || !KEY_TITHIS.has(entry.tithi.number)) return
     const last = keyDays[keyDays.length - 1]
     if (last?.tithiNumber === entry.tithi.number && last.lastDay === i) last.lastDay = i + 1
-    else keyDays.push({ date, lastDay: i + 1, name: KEY_TITHIS[entry.tithi.number], tithiNumber: entry.tithi.number })
+    else keyDays.push({ date, lastDay: i + 1, name: t(`key.${entry.tithi.number}`), tithiNumber: entry.tithi.number })
   })
   const failedCount = monthDates.filter((date) => entryFor(date) === 'error').length
 
@@ -206,12 +217,12 @@ export default function MonthlyPanchangPage() {
     <main className={styles.main}>
       <div className={styles.toolbar}>
         <div className={styles.titleBlock}>
-          <h1 className={styles.title}>{MONTHS[month]} {year}</h1>
+          <h1 className={styles.title}>{monthName(tag, month)} {year}</h1>
           <div className={styles.navGroup}>
             <button
               type="button"
               className={styles.navButton}
-              aria-label="Previous month"
+              aria-label={t('prevMonth')}
               onClick={() => (month === 0 ? showMonth(year - 1, 11) : showMonth(year, month - 1))}
             >
               <ChevronLeft size={18} aria-hidden />
@@ -219,7 +230,7 @@ export default function MonthlyPanchangPage() {
             <button
               type="button"
               className={styles.navButton}
-              aria-label="Next month"
+              aria-label={t('nextMonth')}
               onClick={() => (month === 11 ? showMonth(year + 1, 0) : showMonth(year, month + 1))}
             >
               <ChevronRight size={18} aria-hidden />
@@ -230,7 +241,7 @@ export default function MonthlyPanchangPage() {
                 className={styles.todayButton}
                 onClick={() => showMonth(Number(today.slice(0, 4)), Number(today.slice(5, 7)) - 1)}
               >
-                Today
+                {t('today')}
               </button>
             )}
           </div>
@@ -247,8 +258,8 @@ export default function MonthlyPanchangPage() {
 
       {failedCount > 0 && (
         <div className={styles.retry} role="alert">
-          <span>{failedCount} {failedCount === 1 ? 'day' : 'days'} could not load.</span>
-          <button type="button" onClick={() => setRetryCount((n) => n + 1)}>Try again</button>
+          <span>{t('failed', { n: failedCount })}</span>
+          <button type="button" onClick={() => setRetryCount((n) => n + 1)}>{t('retry')}</button>
         </div>
       )}
 
@@ -256,7 +267,7 @@ export default function MonthlyPanchangPage() {
         <div className={styles.calendarColumn}>
           <div className={styles.board}>
             <div className={styles.weekdays}>
-              {WEEKDAYS.map((d) => <div key={d} className={styles.weekday}>{d}</div>)}
+              {weekdayNames(tag).map((d) => <div key={d} className={styles.weekday}>{d}</div>)}
             </div>
             <div className={styles.grid}>
               {Array.from({ length: firstDayOfMonth(year, month) }, (_, i) => (
@@ -277,25 +288,25 @@ export default function MonthlyPanchangPage() {
             </div>
           </div>
 
-          <ul className={styles.legend} aria-label="Day tone">
+          <ul className={styles.legend} aria-label={t('dayTone')}>
             {TONES.map((tone) => (
               <li key={tone} className={TONE_CLASS[tone]}>
                 <span className={styles.toneDot} aria-hidden />
-                {TONE_LABEL[tone]}
+                {t(`tone.${tone}`)}
               </li>
             ))}
           </ul>
 
           {keyDays.length > 0 && (
             <section className={styles.keyDays}>
-              <h2 className={styles.sectionTitle}>Key days this month</h2>
+              <h2 className={styles.sectionTitle}>{t('keyDays')}</h2>
               <ul className={styles.keyDayList}>
                 {keyDays.map(({ date, lastDay, name, tithiNumber }) => (
                   <li key={date}>
                     <button type="button" className={styles.keyDay} onClick={() => setSelected(date)}>
                       <MoonIcon tithiNumber={tithiNumber} size={18} />
                       <span className={styles.keyDayDate}>
-                        {Number(date.slice(8))}{lastDay !== Number(date.slice(8)) && `–${lastDay}`} {MONTHS[month].slice(0, 3)}
+                        {Number(date.slice(8))}{lastDay !== Number(date.slice(8)) && `–${lastDay}`} {monthName(tag, month, 'short')}
                       </span>
                       {name}
                     </button>
@@ -306,7 +317,7 @@ export default function MonthlyPanchangPage() {
           )}
 
           <p className={styles.note}>
-            Each day shows the limbs at local noon for {location.name}. Fasting and festival dates follow their own sunrise rules, so a published calendar may list a key day one day apart.
+            {t('note', { place: location.name })}
           </p>
         </div>
 
@@ -315,7 +326,7 @@ export default function MonthlyPanchangPage() {
             <CalendarDayDetail data={selectedEntry} reading={readings[selected]} />
           ) : (
             <div className={styles.detailEmpty}>
-              {selectedEntry === 'error' ? 'This day could not load.' : 'Loading day…'}
+              {selectedEntry === 'error' ? t('dayError') : t('dayLoading')}
             </div>
           )}
         </div>

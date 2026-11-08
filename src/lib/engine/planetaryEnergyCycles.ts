@@ -6,6 +6,9 @@
 
 import type { GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { CORE_INSIGHT_HI, ENERGY_DYNAMIC_HI as H, ENERGY_STATIC_HI } from '@/lib/engine/locale/planetaryEnergyCycles.hi'
 
 export type EnergyCycleStatus =
   | 'active'
@@ -661,6 +664,7 @@ export function computePlanetaryEnergyCycles(
   grahas: GrahaData[],
   birthDate: string,
   asOf: Date = new Date(),
+  lang: EngineLang = 'en',
 ): PlanetaryEnergyCyclesResult {
   const age = ageFromBirthDate(birthDate, asOf)
   const classic = grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
@@ -680,12 +684,197 @@ export function computePlanetaryEnergyCycles(
     }
   }).filter((c): c is PlanetaryEnergyCycle => c != null)
 
+  if (lang === 'hi') {
+    return {
+      age,
+      birthDate,
+      asOf: asOf.toISOString().slice(0, 10),
+      cycles: cycles.map(c => localizeCycleHi(c, age, findGraha(classic, c.grahaId))),
+      insight: CORE_INSIGHT_HI,
+    }
+  }
+
   return {
     age,
     birthDate,
     asOf: asOf.toISOString().slice(0, 10),
     cycles,
     insight: CORE_INSIGHT,
+  }
+}
+
+// ── Hindi display layer ──────────────────────────────────────
+// Status, ids, ages and window activity come from the English builders;
+// only the strings are rebuilt here.
+
+function ageHitLabelHi(age: number, ages: number[]): string {
+  if (ages.includes(age)) return H.activeNow
+  const next = nearestFutureAge(age, ages)
+  if (next != null && next - age <= 2) return fill(H.approachingAge, { age: next })
+  if (next != null) return fill(H.nextAtAge, { age: next })
+  return H.pastAges
+}
+
+function localizeCycleHi(c: PlanetaryEnergyCycle, age: number, g: GrahaData | undefined): PlanetaryEnergyCycle {
+  const st = ENERGY_STATIC_HI[c.kind]
+  const rashi = g ? RASHI_HI[g.rashi] : '—'
+  const nak = g ? NAKSHATRA_HI[g.nakshatraIndex] ?? '—' : '—'
+  const padaSuffix = g ? fill(H.padaSuffix, { pada: g.pada }) : ''
+  const base = {
+    ...c,
+    grahaName: GRAHA_HI[c.grahaId] ?? c.grahaName,
+    title: st.title,
+    theme: st.theme,
+    cyclePeriod: st.cyclePeriod,
+    phases: st.phases.map(p => ({ ...p })),
+    manifestations: [...st.manifestations],
+    insight: CORE_INSIGHT_HI,
+  }
+  const win = (labels: Array<[string, string]>) =>
+    c.windows.map((w, i) => ({ ...w, label: labels[i]?.[0] ?? w.label, ages: labels[i]?.[1] ?? w.ages }))
+
+  switch (c.kind) {
+    case 'sun_air_authority': {
+      const isAir = c.status !== 'not_applicable'
+      return {
+        ...base,
+        statusLabel: isAir ? ageHitLabelHi(age, SUN_ACTIVATION_AGES) : H.sunOnlyAir,
+        summary: isAir ? H.sunSummaryAir : fill(H.sunSummaryNotAir, { rashi }),
+        windows: win(SUN_ACTIVATION_AGES.map(a => [fill(H.age, { age: a }), String(a)])),
+        natalNotes: [
+          fill(isAir ? H.sunNoteAir : H.sunNoteNotAir, { rashi }),
+          ...(g ? [fill(H.nakPada, { nak, pada: g.pada })] : []),
+          ...(isAir ? [fill(H.sunTriggerAges, { ages: SUN_ACTIVATION_AGES.join(', ') })] : []),
+        ],
+      }
+    }
+    case 'moon_emotional_memory': {
+      const negativeHit = age > 0 && age % 14 === 0
+      const positiveHit = age > 0 && age % 7 === 0
+      const label = negativeHit
+        ? H.moonNegative
+        : positiveHit
+          ? H.moonPositive
+          : age % 7 >= 5
+            ? fill(H.moonNear, { age: nextMultiple(age, 7) })
+            : fill(H.moonNextShift, { age: nextMultiple(age, 7) })
+      return {
+        ...base,
+        statusLabel: label,
+        summary: H.moonSummary,
+        windows: win([[H.moonWindowShift, H.every7], [H.moonWindowNegative, H.every14]]),
+        natalNotes: [fill(H.moonNote, { nak, pada: padaSuffix }), H.moonNote2],
+      }
+    }
+    case 'mars_four_fires': {
+      const known = g != null && H.marsFire[g.nakshatraIndex] != null
+      const fire = known && g ? H.marsFire[g.nakshatraIndex] : H.marsFireDefault
+      return {
+        ...base,
+        statusLabel: fill(known ? H.marsStatusKnown : H.marsStatusDecode, { fire }),
+        summary: H.marsSummary,
+        windows: win([
+          [H.marsWinDeities, H.marsWinNatal],
+          [H.marsWinPada, g ? fill(H.pada, { pada: g.pada }) : H.natal],
+          [H.marsWinAgni, H.marsWinAgniAges],
+        ]),
+        manifestations: base.manifestations.map(m => fill(m, { nak, fire })),
+        natalNotes: [fill(H.marsNote, { nak, pada: padaSuffix }), fill(H.marsFireNote, { fire }), H.marsExamples],
+      }
+    }
+    case 'mercury_circuits': {
+      const logical = c.windows[0]?.active ?? false
+      const chaotic = c.windows[1]?.active ?? false
+      let statusLabel = H.meDecode
+      let summary = H.meSummary
+      if (logical && chaotic) {
+        statusLabel = H.meBoth
+        summary += H.meBothExtra
+      } else if (logical) {
+        statusLabel = H.meLogical
+        summary = H.meLogicalSummary
+      } else if (chaotic) {
+        statusLabel = H.meChaotic
+        summary = H.meChaoticSummary
+      }
+      return {
+        ...base,
+        statusLabel,
+        summary,
+        windows: win([[H.meWinLogical, H.meWinLogicalAges], [H.meWinChaotic, H.meWinChaoticAges]]),
+        natalNotes: [fill(H.meNote, { rashi, nak }), g?.isCombust ? H.meCombust : H.meNotCombust, H.meCircuitNote],
+      }
+    }
+    case 'jupiter_peace':
+      return {
+        ...base,
+        statusLabel: ageHitLabelHi(age, JUPITER_PEACE_AGES),
+        summary: H.juSummary,
+        windows: win(JUPITER_PEACE_AGES.map(a => [fill(H.age, { age: a }), String(a)])),
+        natalNotes: [fill(H.juNote, { rashi, nak }), fill(H.juAges, { ages: JUPITER_PEACE_AGES.join(', ') })],
+      }
+    case 'venus_desires': {
+      const padaRaw = g?.pada ?? 1
+      const pada = padaRaw >= 1 && padaRaw <= 4 ? padaRaw : 1
+      const d = H.vePada[pada]
+      return {
+        ...base,
+        statusLabel: fill(H.veStatus, { pada, type: d.type }),
+        summary: fill(H.veSummary, d),
+        windows: win([[fill(H.veWindow, { pada }), d.type]]),
+        natalNotes: [fill(H.veNote, { nak, pada }), fill(H.veSeed, d)],
+      }
+    }
+    case 'saturn_karma_lock': {
+      const all = [...SATURN_LOCKS, ...SATURN_RELEASES]
+      const lbl = (w: { label: string }) => H.saLock[w.label] ?? w.label
+      const lock = SATURN_LOCKS.find(w => inRange(age, w.from, w.to))
+      const release = SATURN_RELEASES.find(w => inRange(age, w.from, w.to))
+      let statusLabel = H.saBetween
+      const hit = lock ?? release
+      if (hit) statusLabel = fill(H.saActive, { label: lbl(hit), from: hit.from, to: hit.to })
+      else {
+        const next = [SATURN_LOCKS.find(w => w.from > age), SATURN_RELEASES.find(w => w.from > age)]
+          .filter((w): w is { label: string; from: number; to: number } => w != null)
+          .sort((a, b) => a.from - b.from)[0]
+        if (next && next.from - age <= 2) statusLabel = fill(H.saApproaching, { label: lbl(next), from: next.from, to: next.to })
+        else if (next) statusLabel = fill(H.saNext, { label: lbl(next), from: next.from, to: next.to })
+        else statusLabel = H.saPassed
+      }
+      return {
+        ...base,
+        statusLabel,
+        summary: H.saSummary,
+        windows: win(all.map(w => [lbl(w), `${w.from}–${w.to}`])),
+        natalNotes: [fill(H.saNote, { rashi, nak })],
+      }
+    }
+    case 'rahu_magnetic':
+      return {
+        ...base,
+        statusLabel: H.raStatus,
+        summary: H.raSummary,
+        windows: win([[H.raWindow, H.raLifelong]]),
+        natalNotes: [fill(H.raNote, { rashi, nak })],
+      }
+    case 'ketu_past_life': {
+      const hit = age > 0 && age % 7 === 0
+      const next = nextMultiple(age, 7)
+      const statusLabel = hit
+        ? H.keActive
+        : age % 7 >= 5
+          ? fill(H.keNear, { age: next })
+          : fill(H.keNext, { age: next })
+      return {
+        ...base,
+        statusLabel,
+        summary: H.keSummary,
+        windows: win([[H.keWindow, H.every7]]),
+        natalNotes: [fill(H.keNote, { rashi, nak }), fill(H.keNextMark, { age: hit ? age + 7 : next })],
+      }
+    }
+    default:
+      return c
   }
 }
 

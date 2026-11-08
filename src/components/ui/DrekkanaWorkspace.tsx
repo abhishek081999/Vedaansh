@@ -24,23 +24,24 @@ import {
   type D3Tone,
   type DrekkanaInsight,
 } from '@/lib/engine/drekkanaAnalysis'
-import { RASHI_SHORT } from '@/types/astrology'
 import { cn } from '@/lib/ui/cn'
+import { useTranslations } from 'next-intl'
+import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
 import styles from './DrekkanaWorkspace.module.css'
 
 type TabId = 'overview' | 'mind' | 'style' | 'capacity' | 'drain' | 'kama' | 'effort' | 'houses' | 'planets'
 
-const TABS: { id: TabId; label: string; shortLabel: string; Icon: LucideIcon }[] = [
-  { id: 'overview', label: 'Overview', shortLabel: 'Overview', Icon: Sparkles },
-  { id: 'mind', label: 'Mind Focus', shortLabel: 'Mind', Icon: Brain },
-  { id: 'style', label: 'Style · Music', shortLabel: 'Style', Icon: Music },
-  { id: 'capacity', label: 'Capacity · Digbala', shortLabel: 'Capacity', Icon: Activity },
-  { id: 'drain', label: 'Saturn · Exhaustion', shortLabel: 'Drain', Icon: BatteryWarning },
-  { id: 'kama', label: 'Desire Axis', shortLabel: 'Desire', Icon: Heart },
-  { id: 'effort', label: 'Effort Sutras', shortLabel: 'Effort', Icon: GitCompare },
-  { id: 'houses', label: 'Key Houses', shortLabel: 'Houses', Icon: Layers },
-  { id: 'planets', label: 'Planets', shortLabel: 'Planets', Icon: Zap },
+const TABS: { id: TabId; Icon: LucideIcon }[] = [
+  { id: 'overview', Icon: Sparkles },
+  { id: 'mind', Icon: Brain },
+  { id: 'style', Icon: Music },
+  { id: 'capacity', Icon: Activity },
+  { id: 'drain', Icon: BatteryWarning },
+  { id: 'kama', Icon: Heart },
+  { id: 'effort', Icon: GitCompare },
+  { id: 'houses', Icon: Layers },
+  { id: 'planets', Icon: Zap },
 ]
 
 function insightClass(kind: DrekkanaInsight['kind']): string {
@@ -64,7 +65,10 @@ interface DrekkanaWorkspaceProps {
 
 export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: DrekkanaWorkspaceProps) {
   const [tab, setTab] = useState<TabId>('overview')
-  const analysis = useMemo(() => analyzeDrekkana(chart), [chart])
+  const t = useTranslations('divisional.d3')
+  const c = useDivisionalCommon()
+  const { lang } = c
+  const analysis = useMemo(() => analyzeDrekkana(chart, lang), [chart, lang])
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
   const d3Asc = (chart.vargaLagnas?.D3 ?? 1) as Rashi
   const d3Grahas = chart.vargas?.D3 ?? []
@@ -72,10 +76,10 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
   if (!analysis) {
     return (
       <PanelShell
-        title="Drekkana (D3)"
+        title={t('title')}
         empty={{
-          title: 'Drekkana data unavailable',
-          description: 'Recalculate the chart to generate the D3 chart and subconscious-mind interpretations.',
+          title: t('emptyTitle'),
+          description: t('emptyDesc'),
         }}
       >
         {null}
@@ -94,66 +98,62 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
         <div className={styles.heroGlow} aria-hidden />
         <div className={styles.heroTop}>
           <div>
-            <p className={styles.eyebrow}>D3 · Drekkana</p>
+            <p className={styles.eyebrow}>{t('eyebrow')}</p>
             <h2 className={styles.heroTitle}>
               {analysis.d3LagnaName}
-              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
-                {' '}· {analysis.d3LagnaSanskrit}
-              </span>
+              {!c.hi && (
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{' '}· {analysis.d3LagnaSanskrit}</span>
+              )}
             </h2>
             <p className={styles.heroSub}>{analysis.summary}</p>
           </div>
           <div className={styles.badgeRow}>
             <span className={cn(styles.badge, styles.badgeGold)}>{timeStyle.label}</span>
             <span className={cn(styles.badge, styles.badgeTeal)}>
-              {capacity.style === 'marathon' ? 'Marathon' : capacity.style === 'sprint' ? 'Sprint' : 'Mixed pace'}
+              {t(`pace.${capacity.style}`)}
             </span>
             {saturnDrain.active && (
               <span className={cn(styles.badge)} style={{ color: 'var(--rose, #fb7185)' }}>
-                Saturn drain
+                {t('badgeSaturn')}
               </span>
             )}
             {kamaTrikona.active && (
-              <span className={cn(styles.badge, styles.badgeGold)}>Kama axis</span>
+              <span className={cn(styles.badge, styles.badgeGold)}>{t('badgeKama')}</span>
             )}
             {stuckEighth.loaded && (
               <span className={cn(styles.badge)} style={{ color: 'var(--rose, #fb7185)' }}>
-                8th trauma zone
+                {t('badgeEighth')}
               </span>
             )}
             {persistence.active && (
-              <span className={cn(styles.badge, styles.badgeTeal)}>Persistence</span>
+              <span className={cn(styles.badge, styles.badgeTeal)}>{t('badgePersist')}</span>
             )}
           </div>
         </div>
 
         <div className={styles.statGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Time orientation</div>
-            <div className={styles.statValue}>{timeStyle.orientation}</div>
-            <div className={styles.statHint}>{timeStyle.element} lagna</div>
+            <div className={styles.statLabel}>{t('statTime')}</div>
+            <div className={styles.statValue}>{t(`orientation.${timeStyle.orientation}`)}</div>
+            <div className={styles.statHint}>{t(`element.${timeStyle.element}`)}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Capacity</div>
-            <div className={styles.statValue}>{capacity.style}</div>
-            <div className={styles.statHint}>{capacity.digbaliCount} digbali</div>
+            <div className={styles.statLabel}>{t('statCapacity')}</div>
+            <div className={styles.statValue}>{t(`style.${capacity.style}`)}</div>
+            <div className={styles.statHint}>{t('digbaliCount', { n: capacity.digbaliCount })}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Exhaustion</div>
-            <div className={styles.statValue}>{exhaustion.level}</div>
+            <div className={styles.statLabel}>{t('statExhaustion')}</div>
+            <div className={styles.statValue}>{t(`level.${exhaustion.level}`)}</div>
             <div className={styles.statHint}>{exhaustion.score}/10</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Mind cluster</div>
+            <div className={styles.statLabel}>{t('statCluster')}</div>
             <div className={styles.statValue}>
-              {mind.dominantHouse != null ? `H${mind.dominantHouse}` : '—'}
+              {mind.dominantHouse != null ? c.houseShort(mind.dominantHouse) : '—'}
             </div>
             <div className={styles.statHint}>
-              {mind.decisionStyle === 'trine-clear'
-                ? 'Trine-clear'
-                : mind.decisionStyle === 'dusthana-confused'
-                  ? '6/8 fog'
-                  : 'Mixed decisions'}
+              {t(`decision.${mind.decisionStyle}`)}
             </div>
           </div>
         </div>
@@ -162,8 +162,8 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       <div className={styles.chartsRow}>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D1 · Rashi</span>
-            <span className={styles.chartAccent}>Outer layer</span>
+            <span className={styles.chartTitle}>{t('chartD1')}</span>
+            <span className={styles.chartAccent}>{t('chartD1Accent')}</span>
           </div>
           <ChakraSelector
             ascRashi={chart.lagnas.ascRashi as Rashi}
@@ -180,8 +180,8 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
         </div>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D3 · Drekkana</span>
-            <span className={styles.chartAccent}>{RASHI_SHORT[d3Asc]} lagna · Manas</span>
+            <span className={styles.chartTitle}>{t('chartD3')}</span>
+            <span className={styles.chartAccent}>{t('chartD3Accent', { lagna: c.lagnaOf(d3Asc) })}</span>
           </div>
           <ChakraSelector
             ascRashi={d3Asc}
@@ -198,19 +198,19 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       </div>
 
       <div className={styles.tabScroll}>
-        <div className={styles.tabRow} role="tablist" aria-label="Drekkana sections">
-          {TABS.map((t) => (
+        <div className={styles.tabRow} role="tablist" aria-label={t('tabsAria')}>
+          {TABS.map((tb) => (
             <button
-              key={t.id}
+              key={tb.id}
               type="button"
               role="tab"
-              aria-selected={tab === t.id}
-              className={cn(styles.tabBtn, tab === t.id && styles.tabBtnActive)}
-              onClick={() => setTab(t.id)}
+              aria-selected={tab === tb.id}
+              className={cn(styles.tabBtn, tab === tb.id && styles.tabBtnActive)}
+              onClick={() => setTab(tb.id)}
             >
-              <t.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === t.id ? 2.25 : 2} />
-              <span className={styles.tabLabelFull}>{t.label}</span>
-              <span className={styles.tabLabelShort}>{t.shortLabel}</span>
+              <tb.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === tb.id ? 2.25 : 2} />
+              <span className={styles.tabLabelFull}>{t(`tabs.${tb.id}`)}</span>
+              <span className={styles.tabLabelShort}>{t(`tabs.${tb.id}Short`)}</span>
             </button>
           ))}
         </div>
@@ -219,7 +219,7 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       {tab === 'overview' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>D3 Insights</h3>
+            <h3 className={styles.sectionTitle}>{t('insightsTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
@@ -245,7 +245,7 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       {tab === 'mind' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Where the mind is stuck</h3>
+            <h3 className={styles.sectionTitle}>{t('mindTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <article className={cn(styles.insightCard, styles.insightHighlight)} style={{ marginBottom: '0.85rem' }}>
@@ -254,34 +254,34 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
           </article>
           <div className={styles.sketchGrid}>
             <div className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}>Sign flavor</h4>
+              <h4 className={styles.insightTitle}>{t('signFlavor')}</h4>
               <p className={styles.insightText}>{mind.signFlavor}</p>
             </div>
             <div className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}>Decision style</h4>
+              <h4 className={styles.insightTitle}>{t('decisionStyle')}</h4>
               <p className={styles.insightText}>{mind.decisionNote}</p>
             </div>
           </div>
           <div className={styles.sketchGrid} style={{ marginTop: '0.65rem' }}>
             <div className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}>Lagna lord · {mind.lagnaLord.name}</h4>
+              <h4 className={styles.insightTitle}>{t('lagnaLord', { name: mind.lagnaLord.name })}</h4>
               <p className={styles.insightText}>{mind.lagnaLord.reading}</p>
             </div>
             <div className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}>Persistence</h4>
+              <h4 className={styles.insightTitle}>{t('persistence')}</h4>
               <p className={styles.insightText}>{persistence.reading}</p>
             </div>
           </div>
           {stuckEighth.loaded && (
             <article className={cn(styles.insightCard, styles.insightCaution)} style={{ marginTop: '0.85rem' }}>
-              <h4 className={styles.insightTitle}>8th-house stuck thoughts</h4>
+              <h4 className={styles.insightTitle}>{t('eighthStuck')}</h4>
               <p className={styles.insightText}>{stuckEighth.reading}</p>
             </article>
           )}
           {mind.occupants.length > 0 && (
             <>
               <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-                <h3 className={styles.sectionTitle}>Planets on lagna</h3>
+                <h3 className={styles.sectionTitle}>{t('planetsOnLagna')}</h3>
                 <div className={styles.sectionRule} />
               </div>
               <div className={styles.cardGrid}>
@@ -305,7 +305,7 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       {tab === 'style' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Time · music · study</h3>
+            <h3 className={styles.sectionTitle}>{t('styleTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <div className={styles.insightGrid}>
@@ -322,7 +322,7 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
               <p className={styles.insightText}>{musicStudy.studyReading}</p>
             </article>
             <article className={cn(styles.insightCard, toneClass(courage.tone))}>
-              <h4 className={styles.insightTitle}>3rd · Mars courage</h4>
+              <h4 className={styles.insightTitle}>{t('courage')}</h4>
               <p className={styles.insightText}>{courage.reading}</p>
             </article>
           </div>
@@ -332,19 +332,19 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       {tab === 'capacity' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Sprint vs marathon</h3>
+            <h3 className={styles.sectionTitle}>{t('capacityTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <article className={cn(styles.insightCard, insightClass(
             capacity.tone === 'challenging' ? 'caution' : capacity.tone === 'supportive' ? 'strength' : 'info',
           ))} style={{ marginBottom: '0.85rem' }}>
             <h4 className={styles.insightTitle}>
-              {capacity.style} · {capacity.digbaliCount} digbali
+              {t('capacityHead', { style: t(`style.${capacity.style}`), n: capacity.digbaliCount })}
             </h4>
             <p className={styles.insightText}>{capacity.reading}</p>
           </article>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            Digbali dashas favor self-led decisions; non-digbali periods invite outside pressure — match goals to capacity.
+            {t('capacityIntro')}
           </p>
           <div className={styles.cardGrid}>
             {capacity.digbali.map((d) => (
@@ -352,10 +352,10 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
                 <div className={styles.planetCardHead}>
                   <h4 className={styles.planetName}>{d.name}</h4>
                   <span className={cn(styles.pill, d.isDigbali ? styles.toneSupportive : styles.toneNeutral)}>
-                    {d.isDigbali ? 'digbali' : `needs H${d.digHouse}`}
+                    {d.isDigbali ? t('digbali') : t('needsHouse', { house: d.digHouse })}
                   </span>
                 </div>
-                <div className={styles.mappingLine}>Now in H{d.house}</div>
+                <div className={styles.mappingLine}>{t('nowIn', { house: d.house })}</div>
                 <p className={styles.planetBody}>{d.reading}</p>
               </article>
             ))}
@@ -366,26 +366,26 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       {tab === 'drain' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Saturn · trauma · exhaustion</h3>
+            <h3 className={styles.sectionTitle}>{t('drainTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <div className={styles.insightGrid}>
             <article className={cn(styles.insightCard, toneClass(saturnDrain.tone))}>
-              <h4 className={styles.insightTitle}>Saturn drain</h4>
+              <h4 className={styles.insightTitle}>{t('saturnDrain')}</h4>
               <p className={styles.insightText}>{saturnDrain.reading}</p>
             </article>
             <article className={cn(styles.insightCard, toneClass(exhaustion.tone))}>
               <h4 className={styles.insightTitle}>
-                Exhaustion · {exhaustion.level} ({exhaustion.score}/10)
+                {t('exhaustionHead', { level: t(`level.${exhaustion.level}`), score: exhaustion.score })}
               </h4>
               <p className={styles.insightText}>{exhaustion.reading}</p>
             </article>
             <article className={cn(styles.insightCard, toneClass(stuckEighth.tone))}>
-              <h4 className={styles.insightTitle}>8th · trauma zone</h4>
+              <h4 className={styles.insightTitle}>{t('eighthZone')}</h4>
               <p className={styles.insightText}>{stuckEighth.reading}</p>
             </article>
             <article className={cn(styles.insightCard, styles.insightInfo)}>
-              <h4 className={styles.insightTitle}>Sangat / overlap</h4>
+              <h4 className={styles.insightTitle}>{t('sangat')}</h4>
               <p className={styles.insightText}>{analysis.sangatNote}</p>
             </article>
           </div>
@@ -395,20 +395,20 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       {tab === 'kama' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Desire / relating axis</h3>
+            <h3 className={styles.sectionTitle}>{t('kamaTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <article className={cn(styles.insightCard, kamaTrikona.active ? styles.insightCaution : styles.insightInfo)}>
             <h4 className={styles.insightTitle}>
-              {kamaTrikona.classicPattern ? 'Classic Kama Trikona' : kamaTrikona.active ? 'Desire axis active' : 'Desire axis quiet'}
+              {kamaTrikona.classicPattern ? t('kamaClassic') : kamaTrikona.active ? t('kamaActive') : t('kamaQuiet')}
             </h4>
             <p className={styles.insightText}>{kamaTrikona.reading}</p>
             <div className={styles.statHint} style={{ marginTop: '0.45rem', whiteSpace: 'normal' }}>
-              Rahu H{kamaTrikona.rahuHouse ?? '—'} · Venus H{kamaTrikona.venusHouse ?? '—'} · Mercury H{kamaTrikona.mercuryHouse ?? '—'}
+              {t('kamaHouses', { ra: kamaTrikona.rahuHouse ?? '—', ve: kamaTrikona.venusHouse ?? '—', me: kamaTrikona.mercuryHouse ?? '—' })}
             </div>
           </article>
           <p className={styles.heroSub} style={{ marginTop: '0.85rem', maxWidth: 'none' }}>
-            Confirm with D1 7th before over-reading. This flags subconscious focus on relating — not a guarantee of any specific behavior.
+            {t('kamaNote')}
           </p>
         </section>
       )}
@@ -416,11 +416,11 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       {tab === 'effort' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Who puts more effort?</h3>
+            <h3 className={styles.sectionTitle}>{t('effortTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            Sutra: compare house strength of self (H1) vs the other house. Stronger side carries more subconscious effort.
+            {t('effortIntro')}
           </p>
           <div className={styles.insightGrid}>
             {analysis.effortCompares.map((e) => (
@@ -430,7 +430,7 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
                 <h4 className={styles.insightTitle}>{e.label}</h4>
                 <p className={styles.insightText}>{e.reading}</p>
                 <div className={styles.statHint} style={{ marginTop: '0.35rem', whiteSpace: 'normal' }}>
-                  H1 {e.selfScore} · H{e.otherHouse} {e.otherScore}
+                  {t('effortScores', { self: e.selfScore, house: e.otherHouse, other: e.otherScore })}
                 </div>
               </article>
             ))}
@@ -441,7 +441,7 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       {tab === 'houses' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Focused D3 houses</h3>
+            <h3 className={styles.sectionTitle}>{t('focusedTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <div className={styles.houseGrid}>
@@ -450,12 +450,12 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
                 key={h.house}
                 className={cn(styles.houseCard, (h.house === 8 || h.house === 7) && styles.houseCardHot)}
               >
-                <div className={styles.houseNum}>House {h.house}</div>
+                <div className={styles.houseNum}>{c.house(h.house)}</div>
                 <div className={styles.houseSign}>{h.rashiName}</div>
                 <div className={styles.houseMeta}>
-                  Lord {h.lordName}
+                  {t('lord', { name: h.lordName })}
                   <span className={cn(styles.pill, toneClass(h.tone))} style={{ marginLeft: 6 }}>
-                    {h.tone}
+                    {c.tone(h.tone)}
                   </span>
                 </div>
                 <div className={styles.housePlanets}>
@@ -473,7 +473,7 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
       {tab === 'planets' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Planet rows</h3>
+            <h3 className={styles.sectionTitle}>{t('planetsTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <div className={styles.cardGrid}>
@@ -484,10 +484,10 @@ export function DrekkanaWorkspace({ chart, userPlan: _userPlan = 'free' }: Drekk
                     {p.name}
                     {p.isRetro ? ' ℞' : ''}
                   </h4>
-                  <span className={cn(styles.pill, toneClass(p.tone))}>{p.tone}</span>
+                  <span className={cn(styles.pill, toneClass(p.tone))}>{c.tone(p.tone)}</span>
                 </div>
                 <div className={styles.mappingLine}>
-                  {p.rashiName} · H{p.house} · {p.dignity.replace(/_/g, ' ')}
+                  {p.rashiName} · {c.houseShort(p.house)} · {c.dignity(p.dignity)}
                 </div>
                 <p className={styles.planetBody}>{p.interpretation}</p>
               </article>

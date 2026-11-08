@@ -22,6 +22,24 @@ import {
   type InterpLayer,
   type MixedPlanetPlacement,
 } from '@/lib/engine/planetInterpretationMix'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { mergeHi, ordObl } from '@/lib/engine/locale/planetsA.util'
+import { classicalBundleHi } from '@/lib/engine/planetsBClassicalHi'
+import {
+  VENUS_DEEPER_HI,
+  VENUS_EFFECTS_HI,
+  VENUS_FLAGS_HI as FH,
+  VENUS_HOUSE_FOCUS_HI,
+  VENUS_KALAS_HI,
+  VENUS_KARAKATVA_HI,
+  VENUS_NAKSHATRAS_HI,
+  VENUS_PAST_LIFE_HI,
+  VENUS_REMEDIES_HI,
+  VENUS_STAGES_HI,
+  VENUS_STATIC_HI as SH,
+  VENUS_YOGAS_HI as YH,
+} from '@/lib/engine/locale/venusAnalysis.hi'
 
 export interface VenusSignificationGroup {
   category: string
@@ -535,7 +553,128 @@ function buildYoga(
 /**
  * Natal Shukra analysis from class teaching notes.
  */
-export function analyzeVenus(chart: ChartOutput): VenusAnalysisResult | null {
+export function analyzeVenus(chart: ChartOutput, lang: EngineLang = 'en'): VenusAnalysisResult | null {
+  const r = analyzeVenusEn(chart)
+  return r && lang === 'hi' ? localizeVenusHi(r) : r
+}
+
+function houseFocusHi(hf: VenusHouseFocus): VenusHouseFocus {
+  const hi = VENUS_HOUSE_FOCUS_HI[hf.house]
+  if (hi) return { ...hf, title: hi.title, themes: [...hi.themes], notes: [...hi.notes] }
+  return { ...hf, title: fill(FH.fallbackTitle, { nth: ordObl(hf.house) }), notes: [FH.fallbackNote] }
+}
+
+function yogaHi(y: VenusYogaResult, house: number): VenusYogaResult {
+  const t = YH[y.id]
+  if (y.id === 've_ju') {
+    const in5 = y.name !== 'Venus + Jupiter'
+    const name = in5 ? YH.ve_ju.name5 : YH.ve_ju.name
+    if (!y.active) return { ...y, name, detail: fill(YH.notIndicated, { name }) }
+    return {
+      ...y,
+      name,
+      detail: in5 ? YH.ve_ju.detail5 : YH.ve_ju.detail,
+      effects: in5 ? [] : [...YH.ve_ju.effects],
+      positives: [...(in5 ? YH.ve_ju.positives5 : YH.ve_ju.positives)],
+    }
+  }
+  if (!y.active) return { ...y, name: t.name, detail: fill(YH.notIndicated, { name: t.name }) }
+  if (y.id === 've_rahu') {
+    const tight = y.sepDeg != null && y.sepDeg <= VENUS_RAHU_TIGHT_ORB
+    return {
+      ...y,
+      name: t.name,
+      detail: YH.ve_rahu.detail + (tight && y.sepDeg != null ? fill(YH.ve_rahu.tightDetail, { sep: y.sepDeg.toFixed(2) }) : ''),
+      effects: [
+        ...YH.ve_rahu.effects,
+        house === 5 ? YH.ve_rahu.effectH5 : YH.ve_rahu.effectOther,
+        tight ? fill(YH.ve_rahu.effectTight, { orb: VENUS_RAHU_TIGHT_ORB }) : YH.ve_rahu.effectLoose,
+      ],
+      positives: [...YH.ve_rahu.positives],
+    }
+  }
+  const full = t as { name: string; detail: string; effects: string[]; positives: string[] }
+  return { ...y, name: full.name, detail: full.detail, effects: [...full.effects], positives: [...full.positives] }
+}
+
+/** Hindi display copy of an English Venus result (ids, flags and numbers unchanged). */
+function localizeVenusHi(r: VenusAnalysisResult): VenusAnalysisResult {
+  const v = r.venus
+  const nth = ordObl(v.house)
+  const withSaKe = r.inDusthana && r.companions.some(c => c.id === 'Sa' || c.id === 'Ke')
+  const houseCaution: VenusFlag | null = r.houseCaution
+    ? r.inDusthana
+      ? { ...r.houseCaution, title: fill(FH.dusthanaTitle, { nth }), detail: fill(withSaKe ? FH.dusthanaWithSaKe : FH.dusthanaPlain, { nth }) }
+      : { ...r.houseCaution, title: FH.debilCautionTitle, detail: FH.debilCaution }
+    : null
+  const companions = r.companions.map(c => ({ ...c, name: GRAHA_HI[c.id] ?? c.name }))
+  const remedies = [...VENUS_REMEDIES_HI.base]
+  if (v.debilitated) remedies.unshift(VENUS_REMEDIES_HI.debil)
+  if (v.isRetro) remedies.push(VENUS_REMEDIES_HI.retro)
+  if (v.isCombust) remedies.push(VENUS_REMEDIES_HI.combust)
+  if (r.inDusthana) remedies.push(VENUS_REMEDIES_HI.dusthana)
+  const flag = (f: VenusFlag, title: string, on: string, off: string): VenusFlag => ({ ...f, title, detail: f.active ? on : off })
+  const nakIdx = (n: VenusNakshatraTeaching) => VENUS_NAKSHATRAS.findIndex(x => x.index === n.index)
+  const nakshatraTeachings = r.nakshatraTeachings.map(n => {
+    const hi = VENUS_NAKSHATRAS_HI[nakIdx(n)]
+    const rashi = VENUS_NAKSHATRAS[nakIdx(n)]
+    return {
+      ...n,
+      name: NAKSHATRA_HI[n.index] ?? n.name,
+      rashiName: rashi ? RASHI_HI[({ 1: 1, 10: 5, 19: 9 } as Record<number, Rashi>)[n.index] ?? 1] : n.rashiName,
+      deityTheme: hi?.deityTheme ?? n.deityTheme,
+      traits: hi ? [...hi.traits] : n.traits,
+    }
+  })
+  const yogas = r.yogas.map(y => yogaHi(y, v.house))
+  return {
+    ...r,
+    venus: { ...v, rashiName: RASHI_HI[v.rashi], nakshatraName: NAKSHATRA_HI[v.nakshatraIndex] ?? v.nakshatraName },
+    nature: [...SH.nature],
+    philosophy: [...SH.philosophy],
+    karakatva: mergeHi(r.karakatva, VENUS_KARAKATVA_HI),
+    deeperSignifications: mergeHi(r.deeperSignifications, VENUS_DEEPER_HI),
+    houseFocus: houseFocusHi(r.houseFocus),
+    allHouseFocus: r.allHouseFocus.map(houseFocusHi),
+    houseCaution,
+    companions,
+    companionNote: companions.length ? fill(FH.companionsWith, { names: companions.map(c => c.name).join(', ') }) : FH.companionsNone,
+    yogas,
+    kalas: mergeHi(r.kalas, VENUS_KALAS_HI),
+    stages: mergeHi(r.stages, VENUS_STAGES_HI),
+    nakshatraTeachings,
+    activeNakshatraTeaching: nakshatraTeachings.find(n => n.isNatal) ?? null,
+    retroFlag: flag(r.retroFlag, FH.retroTitle, FH.retroOn, FH.retroOff),
+    combustFlag: flag(
+      r.combustFlag,
+      FH.combustTitle,
+      fill(FH.combustOn, { orb: v.combustOrbUsed, alt: VENUS_COMBUST_ORB_ALT, sep: v.sepFromSunDeg != null ? fill(FH.combustSep, { sep: v.sepFromSunDeg.toFixed(1) }) : '' }),
+      fill(FH.combustOff, { orb: v.combustOrbUsed }),
+    ),
+    bothFlag: flag(r.bothFlag, FH.bothTitle, FH.bothOn, FH.bothOff),
+    exaltFlag: flag(r.exaltFlag, FH.exaltTitle, FH.exaltOn, FH.exaltOff),
+    debilFlag: flag(r.debilFlag, FH.debilTitle, FH.debilOn, FH.debilOff),
+    retroEffects: mergeHi(r.retroEffects, VENUS_EFFECTS_HI.retro),
+    combustEffects: mergeHi(r.combustEffects, VENUS_EFFECTS_HI.combust),
+    exaltEffects: mergeHi(r.exaltEffects, VENUS_EFFECTS_HI.exalt),
+    debilEffects: mergeHi(r.debilEffects, VENUS_EFFECTS_HI.debil),
+    pastLifeHints: r.pastLifeHints.map(h => ({ ...h, ...(VENUS_PAST_LIFE_HI[h.id] ?? {}) })),
+    mythology: [...SH.mythology],
+    yayatiArc: [...SH.yayatiArc],
+    jupiterVsVenus: SH.jupiterVsVenus.map(x => ({ ...x })),
+    upcomingTopics: [...SH.upcomingTopics],
+    remedies,
+    naturalAgeNote: SH.naturalAgeNote,
+    dashaNote: SH.dashaNote,
+    classical: classicalBundleHi(r.classical, 'Ve', v),
+    caveats: [...SH.caveats],
+    methodology: [...SH.methodology],
+    summaryAttrs: SH.summaryAttrs.map(a => ({ label: a.label, value: fill(a.value, { orb: VENUS_COMBUST_ORB, alt: VENUS_COMBUST_ORB_ALT }) })),
+    oneLiner: SH.oneLiner,
+  }
+}
+
+function analyzeVenusEn(chart: ChartOutput): VenusAnalysisResult | null {
   const venus = chart.grahas.find(g => g.id === 'Ve')
   if (!venus) return null
 

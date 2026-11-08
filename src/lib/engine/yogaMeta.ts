@@ -4,6 +4,9 @@
 //  Qualities align with YOGA_QUALITY in nakshatra.ts.
 // ─────────────────────────────────────────────────────────────
 
+import { overlay, type EngineLang } from '@/lib/engine/lang'
+import { YOGA_BIRTH_NOTES_HI, YOGA_QUALITY_HI, YOGAS_HI } from '@/lib/engine/locale/yogaMeta.hi'
+
 export type YogaQuality = 'auspicious' | 'inauspicious' | 'neutral'
 
 export type YogaId =
@@ -304,27 +307,32 @@ const BY_NAME: Record<string, YogaId> = Object.fromEntries(
   (Object.keys(YOGAS) as YogaId[]).map((id) => [id.toLowerCase(), id]),
 )
 
-export function getYogaMeta(nameOrNumber: string | number): YogaMeta | null {
+/** `name` is the display name in `lang`; match on `id`. */
+export function getYogaMeta(nameOrNumber: string | number, lang: EngineLang = 'en'): YogaMeta | null {
+  let found: YogaMeta | undefined
   if (typeof nameOrNumber === 'number') {
     const n = Math.min(27, Math.max(1, Math.floor(nameOrNumber)))
-    const found = (Object.values(YOGAS) as YogaMeta[]).find((y) => y.number === n)
-    return found ?? null
+    found = (Object.values(YOGAS) as YogaMeta[]).find((y) => y.number === n)
+  } else {
+    const id = BY_NAME[nameOrNumber.trim().toLowerCase()]
+    found = id ? YOGAS[id] : undefined
   }
-  const key = nameOrNumber.trim().toLowerCase()
-  const id = BY_NAME[key]
-  return id ? YOGAS[id] : null
+  return found ? overlay(found, YOGAS_HI[found.id], lang) : null
 }
 
-export function formatYogaWeatherLine(meta: YogaMeta): string {
-  const q =
-    meta.quality === 'auspicious' ? 'Shubh'
+export function formatYogaWeatherLine(meta: YogaMeta, lang: EngineLang = 'en'): string {
+  const q = lang === 'hi'
+    ? YOGA_QUALITY_HI[meta.quality]
+    : meta.quality === 'auspicious' ? 'Shubh'
       : meta.quality === 'inauspicious' ? 'Ashubh'
         : 'Neutral'
   return `${q} · ${meta.meaning} — ${meta.dayGuidance}`
 }
 
-export function listYogaMeta(): YogaMeta[] {
-  return (Object.values(YOGAS) as YogaMeta[]).sort((a, b) => a.number - b.number)
+export function listYogaMeta(lang: EngineLang = 'en'): YogaMeta[] {
+  return (Object.values(YOGAS) as YogaMeta[])
+    .sort((a, b) => a.number - b.number)
+    .map((y) => overlay(y, YOGAS_HI[y.id], lang))
 }
 
 // ── Birth-yoga reading (deity + natal tendency + remedy) ─────
@@ -365,7 +373,7 @@ const YOGA_BIRTH_NOTES: Record<YogaId, YogaBirthNote> = {
   Vaidhriti:  { deity: 'Diti', birthReading: 'Very patient in life’s storms, but loses all patience when women of the family are insulted.', remedy: 'Verify before reacting; avoid harsh criticism.' },
 }
 
-export function getYogaBirthNote(nameOrNumber: string | number): YogaBirthNote | null {
+export function getYogaBirthNote(nameOrNumber: string | number, lang: EngineLang = 'en'): YogaBirthNote | null {
   const meta = getYogaMeta(nameOrNumber)
-  return meta ? YOGA_BIRTH_NOTES[meta.id] : null
+  return meta ? overlay(YOGA_BIRTH_NOTES[meta.id], YOGA_BIRTH_NOTES_HI[meta.id], lang) : null
 }

@@ -7,6 +7,9 @@
 import { useMemo, type CSSProperties } from 'react'
 import { moonLitPath } from '@/lib/panchang/moon-phase'
 import { NAKSHATRA_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 import type { Rashi } from '@/types/astrology'
 import styles from './PanchangViz.module.css'
 
@@ -74,8 +77,9 @@ function MoonDisc({ elongDeg, r }: { elongDeg: number; r: number }) {
   )
 }
 
-function rashiOf(lon: number): string {
-  return RASHI_SANSKRIT[(Math.floor(norm(lon) / RASHI_SPAN) + 1) as Rashi]
+function rashiOf(lon: number, hi = false): string {
+  const r = (Math.floor(norm(lon) / RASHI_SPAN) + 1) as Rashi
+  return hi ? RASHI_HI[r] : RASHI_SANSKRIT[r]
 }
 
 export function PanchangViz({
@@ -101,6 +105,10 @@ export function PanchangViz({
   yogaNumber: number
   dateStr: string
 }) {
+  const t = useTranslations('panchang.viz')
+  const { hi } = useLang()
+  const shownTithi = hi ? termHi(tithiName) : tithiName
+  const shownYoga = hi ? termHi(yogaName) : yogaName
   const shukla = paksha === 'shukla'
   const elong = norm(moonLon - sunLon)
   const sumLon = norm(sunLon + moonLon)
@@ -109,8 +117,9 @@ export function PanchangViz({
   const waning = norm(elongDeg) >= 180
   const sunRashiIndex = Math.floor(norm(sunLon) / RASHI_SPAN)
   const moonRashiIndex = Math.floor(norm(moonLon) / RASHI_SPAN)
-  const nakName = NAKSHATRA_NAMES[nakIndex]
-  const sunNakName = NAKSHATRA_NAMES[Math.floor(norm(sunLon) / NAK_SPAN)]
+  const naks = hi ? NAKSHATRA_HI : NAKSHATRA_NAMES
+  const nakName = naks[nakIndex]
+  const sunNakName = naks[Math.floor(norm(sunLon) / NAK_SPAN)]
 
   const separation = Math.min(elong, 360 - elong)
   const moonLabelR = separation < LABEL_CLASH_DEG ? R_BODY_LABEL_NEAR : R_BODY_LABEL
@@ -125,7 +134,9 @@ export function PanchangViz({
     p1: pos(sunLon + i * TITHI_SPAN, R_TITHI_TICK_OUT),
   })), [sunLon])
 
-  const summary = `Sun in ${rashiOf(sunLon)}, Moon in ${rashiOf(moonLon)} in ${nakName}. ${tithiName}, ${Math.round(elong)} degrees from the Sun, ${litPct}% lit.`
+  const summary = t('summary', {
+    sun: rashiOf(sunLon, hi), moon: rashiOf(moonLon, hi), nak: nakName, tithi: shownTithi, deg: Math.round(elong), lit: litPct,
+  })
 
   return (
     <div className={styles.panel}>
@@ -152,7 +163,7 @@ export function PanchangViz({
                   textAnchor="middle"
                   dominantBaseline="central"
                 >
-                  {RASHI_SANSKRIT[rashi]}
+                  {hi ? RASHI_HI[rashi] : RASHI_SANSKRIT[rashi]}
                 </text>
               </g>
             )
@@ -168,7 +179,7 @@ export function PanchangViz({
                   d={sectorPath(start, start + NAK_SPAN, R_NAK_IN, R_RASHI_IN)}
                   className={`${styles.nakSector} ${current ? styles.nakSectorCurrent : ''}`}
                 >
-                  <title>{`${i + 1}. ${name}`}</title>
+                  <title>{`${i + 1}. ${hi ? NAKSHATRA_HI[i] : name}`}</title>
                 </path>
                 <text
                   x={label.x}
@@ -211,9 +222,9 @@ export function PanchangViz({
           <g className={styles.centerMoon} transform={`translate(${C} ${C - 28})`}>
             <MoonDisc elongDeg={elongDeg} r={R_CENTER_MOON} />
           </g>
-          <text x={C} y={C + 28} textAnchor="middle" className={styles.skyTitle}>{tithiName}</text>
+          <text x={C} y={C + 28} textAnchor="middle" className={styles.skyTitle}>{shownTithi}</text>
           <text x={C} y={C + 48} textAnchor="middle" className={styles.skySub}>
-            {shukla ? 'Shukla' : 'Krishna'} · {litPct}% lit
+            {t('lit', { paksha: shukla ? t('shukla') : t('krishna'), lit: litPct })}
           </text>
 
           <circle cx={sun.x} cy={sun.y} r={13} className={styles.sun} />
@@ -221,25 +232,25 @@ export function PanchangViz({
             <MoonDisc elongDeg={elongDeg} r={12} />
             <circle r={12} className={styles.moonOutline} />
           </g>
-          <text x={sunLabel.x} y={sunLabel.y} className={styles.bodyLabel} textAnchor="middle" dominantBaseline="central">Sun</text>
-          <text x={moonLabel.x} y={moonLabel.y} className={styles.bodyLabel} textAnchor="middle" dominantBaseline="central">Moon</text>
+          <text x={sunLabel.x} y={sunLabel.y} className={styles.bodyLabel} textAnchor="middle" dominantBaseline="central">{t('sun')}</text>
+          <text x={moonLabel.x} y={moonLabel.y} className={styles.bodyLabel} textAnchor="middle" dominantBaseline="central">{t('moon')}</text>
         </svg>
       </div>
 
       <div className={styles.readings}>
         <dl className={styles.readingList}>
-          <Reading swatch={styles.swatchSun} term="Sun" value={`${rashiOf(sunLon)} ${(norm(sunLon) % RASHI_SPAN).toFixed(1)}°`} note={`In ${sunNakName}`} />
-          <Reading swatch={styles.swatchMoon} term="Moon" value={`${rashiOf(moonLon)} ${(norm(moonLon) % RASHI_SPAN).toFixed(1)}°`} note={`${litPct}% lit, ${waning ? 'waning' : 'waxing'}`} />
+          <Reading swatch={styles.swatchSun} term={t('sun')} value={`${rashiOf(sunLon, hi)} ${(norm(sunLon) % RASHI_SPAN).toFixed(1)}°`} note={t('inNak', { nak: sunNakName })} />
+          <Reading swatch={styles.swatchMoon} term={t('moon')} value={`${rashiOf(moonLon, hi)} ${(norm(moonLon) % RASHI_SPAN).toFixed(1)}°`} note={t('moonNote', { lit: litPct, dir: waning ? t('waning') : t('waxing') })} />
           <Reading
             swatch={shukla ? styles.swatchShukla : styles.swatchKrishna}
-            term="Tithi"
-            value={tithiName}
-            note={`Moon is ${Math.round(elong)}° ahead of the Sun. Each tick is one tithi, 12°.`}
+            term={t('tithi')}
+            value={shownTithi}
+            note={t('tithiNote', { deg: Math.round(elong) })}
           />
-          <Reading swatch={styles.swatchNak} term="Nakshatra" value={nakName} note={`Number ${nakIndex + 1} of 27, pada ${nakPada}`} />
-          <Reading term="Yoga" value={yogaName} note={`Number ${yogaNumber} of 27. Sun + Moon = ${sumLon.toFixed(1)}°.`} />
+          <Reading swatch={styles.swatchNak} term={t('nakshatra')} value={nakName} note={t('nakNote', { n: nakIndex + 1, pada: nakPada })} />
+          <Reading term={t('yoga')} value={shownYoga} note={t('yogaNote', { n: yogaNumber, sum: sumLon.toFixed(1) })} />
         </dl>
-        <p className={styles.caption}>Sidereal positions at local noon. Mesha starts at the top; the zodiac runs clockwise.</p>
+        <p className={styles.caption}>{t('caption')}</p>
       </div>
     </div>
   )

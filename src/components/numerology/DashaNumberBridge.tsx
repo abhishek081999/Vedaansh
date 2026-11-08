@@ -4,13 +4,12 @@
 //  Vimshottari MD/AD lords mapped to Anka numbers + outlook
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo } from 'react'
 import type { ChartOutput } from '@/types/astrology'
 import type { NumerologyReport } from '@/lib/engine/numerology/calc'
 import { buildDashaNumberBridge } from '@/lib/engine/numerology/tools'
 import { HarmonyPill, NumberOrb, SectionCard, gridColumns } from './shared'
-import Link from 'next/link'
-
 const OUTLOOK_COLOR = {
   favourable: 'var(--teal)',
   mixed: 'var(--gold)',

@@ -22,6 +22,20 @@ import {
   type InterpLayer,
   type MixedPlanetPlacement,
 } from '@/lib/engine/planetInterpretationMix'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { mergeHi, ordObl } from '@/lib/engine/locale/planetsA.util'
+import { classicalBundleHi } from '@/lib/engine/planetsBClassicalHi'
+import {
+  KETU_FLAGS_HI as FH,
+  KETU_HOUSE_FOCUS_HI,
+  KETU_KARAKATVA_HI,
+  KETU_MEDICAL_HI,
+  KETU_NAKSHATRAS_HI,
+  KETU_REMEDIES_HI,
+  KETU_STATIC_HI as SH,
+  KETU_YOGAS_HI as YH,
+} from '@/lib/engine/locale/ketuAnalysis.hi'
 
 export interface KetuSignificationGroup {
   category: string
@@ -457,7 +471,173 @@ function nakshatraTraits(index: number): string[] {
 /**
  * Natal Ketu analysis from class teaching notes.
  */
-export function analyzeKetu(chart: ChartOutput): KetuAnalysisResult | null {
+export function analyzeKetu(chart: ChartOutput, lang: EngineLang = 'en'): KetuAnalysisResult | null {
+  const r = analyzeKetuEn(chart)
+  return r && lang === 'hi' ? localizeKetuHi(r, chart) : r
+}
+
+function ketuHouseFocusHi(hf: KetuHouseFocus): KetuHouseFocus {
+  const hi = KETU_HOUSE_FOCUS_HI[hf.house]
+  if (hi) return { ...hf, title: hi.title, themes: [...hi.themes], notes: [...hi.notes] }
+  return { ...hf, title: fill(FH.fallbackTitle, { nth: ordObl(hf.house) }), notes: [FH.fallbackNote] }
+}
+
+/** Same rule as analyzeKetuEn: Moon with Ketu and itself weak, combust, or with Saturn/Mars. */
+function ketuMoonUnderPressure(chart: ChartOutput, ketu: GrahaData): boolean {
+  const moon = chart.grahas.find(g => g.id === 'Mo')
+  if (!moon || !sameSignOrConjunct(ketu, moon)) return false
+  const sa = chart.grahas.find(g => g.id === 'Sa')
+  const ma = chart.grahas.find(g => g.id === 'Ma')
+  return (
+    moon.dignity === 'debilitated' ||
+    moon.isCombust ||
+    (sa != null && (sameSignOrConjunct(ketu, sa) || sameSignOrConjunct(moon, sa))) ||
+    (ma != null && (sameSignOrConjunct(ketu, ma) || sameSignOrConjunct(moon, ma)))
+  )
+}
+
+/** Hindi display copy of an English Ketu result (ids, flags and numbers unchanged). */
+function localizeKetuHi(r: KetuAnalysisResult, chart: ChartOutput): KetuAnalysisResult {
+  const k = r.ketu
+  const nth = ordObl(k.house)
+  const rashi = RASHI_HI[k.rashi]
+  const ketuG = chart.grahas.find(g => g.id === 'Ke')
+  const pressure = ketuG ? ketuMoonUnderPressure(chart, ketuG) : false
+  const on = (id: KetuYogaResult['id']) => r.yogas.find(y => y.id === id)?.active === true
+  const yogas = r.yogas.map((y): KetuYogaResult => {
+    const t = YH[y.id]
+    const base = { ...y, name: t.name }
+    if (!y.active) return { ...base, detail: t.off, effects: [], positives: [] }
+    switch (y.id) {
+      case 'ke_ju_expressway': {
+        const conj = r.companions.some(c => c.id === 'Ju')
+        return {
+          ...base,
+          detail: fill(YH.ke_ju_expressway.on, { where: conj ? fill(YH.ke_ju_expressway.conj, { nth }) : fill(YH.ke_ju_expressway.sign, { rashi }) }),
+          effects: [...YH.ke_ju_expressway.effects],
+          positives: [...YH.ke_ju_expressway.positives],
+        }
+      }
+      case 'ke_mo':
+        return {
+          ...base,
+          detail: fill(YH.ke_mo.on, { nth, moon: pressure ? YH.ke_mo.moonPressure : YH.ke_mo.moonSteady }),
+          effects: [pressure ? YH.ke_mo.effectPressure : YH.ke_mo.effectSteady, YH.ke_mo.effect2],
+          positives: [...YH.ke_mo.positives],
+        }
+      case 'ke_sa':
+        return {
+          ...base,
+          detail: fill(YH.ke_sa.on, { nth }),
+          effects: [YH.ke_sa.effect1, k.house === 9 ? YH.ke_sa.effect9 : YH.ke_sa.effectOther],
+          positives: [...YH.ke_sa.positives],
+        }
+      default: {
+        const tt = t as { on: string; effects: string[]; positives: string[] }
+        return { ...base, detail: fill(tt.on, { nth }), effects: [...tt.effects], positives: [...tt.positives] }
+      }
+    }
+  })
+  // English keeps effects/positives on inactive yogas too; Hindi mirrors that.
+  const fixedYogas = yogas.map((y, i) => {
+    if (y.active) return y
+    const eff = y.id === 'ke_mo' ? [pressure ? YH.ke_mo.effectPressure : YH.ke_mo.effectSteady, YH.ke_mo.effect2]
+      : y.id === 'ke_sa' ? [YH.ke_sa.effect1, k.house === 9 ? YH.ke_sa.effect9 : YH.ke_sa.effectOther]
+      : [...((YH[y.id] as { effects?: string[] }).effects ?? [])]
+    return { ...y, effects: r.yogas[i].effects.length ? eff : [], positives: r.yogas[i].positives.length ? [...(YH[y.id] as { positives: string[] }).positives] : [] }
+  })
+  const companions = r.companions.map(c => ({ ...c, name: GRAHA_HI[c.id] ?? c.name }))
+  const flag = (f: KetuFlag, title: string, detail: string): KetuFlag => ({ ...f, title, detail })
+  const nakName = NAKSHATRA_HI[k.nakshatraIndex] ?? k.nakshatraName
+  const remedies = [...KETU_REMEDIES_HI.base]
+  if (k.house === 4) remedies.push(KETU_REMEDIES_HI.h4)
+  if (k.house === 3) remedies.push(KETU_REMEDIES_HI.h3)
+  if (on('ke_mo') && pressure) remedies.push(KETU_REMEDIES_HI.moon)
+  if (r.dharmaTrikon.inDharma || r.mokshaTrikon.inMoksha) remedies.push(KETU_REMEDIES_HI.trikon)
+  const nakshatraTeachings = r.nakshatraTeachings.map(n => ({
+    ...n,
+    name: NAKSHATRA_HI[n.index] ?? n.name,
+    rashiName: RASHI_HI[({ 0: 1, 9: 5, 18: 9 } as Record<number, Rashi>)[n.index] ?? 1],
+    significance: KETU_NAKSHATRAS_HI[n.index]?.significance ?? n.significance,
+    traits: KETU_NAKSHATRAS_HI[n.index] ? [...KETU_NAKSHATRAS_HI[n.index].traits] : n.traits,
+  }))
+  const active = fixedYogas.filter(y => y.active)
+  const oneLiner = r.mokshaTrikon.inMoksha
+    ? fill(FH.oneLinerMoksha, { n: k.house, rashi, nak: k.inKetuNakshatra ? fill(FH.oneLinerOwnNak, { nak: nakName }) : '' })
+    : r.dharmaTrikon.inDharma
+      ? fill(FH.oneLinerDharma, { n: k.house, ju: k.inJupiterSign ? FH.oneLinerJu : '' })
+      : k.house === 7
+        ? FH.oneLiner7
+        : fill(FH.oneLinerOther, { rashi, n: k.house, yogas: active.length ? ` ${active.map(y => y.name).join('; ')}।` : '' })
+  const L = SH.summaryLabels
+  const V = SH.summaryValues
+  const yrs = { years: KETU_MAHADASHA_YEARS, age: KETU_NATURAL_AGE }
+  return {
+    ...r,
+    ketu: { ...k, rashiName: rashi, nakshatraName: nakName },
+    nature: [...SH.nature],
+    philosophy: [...SH.philosophy],
+    vsRahuJupiter: SH.vsRahuJupiter.map(x => ({ ...x })),
+    karakatva: mergeHi(r.karakatva, KETU_KARAKATVA_HI),
+    medical: mergeHi(r.medical, KETU_MEDICAL_HI),
+    zodiacal: SH.zodiacal.map(z => ({ label: z.label, value: fill(z.value, yrs) })),
+    dharmaTrikon: { ...r.dharmaTrikon, detail: r.dharmaTrikon.inDharma ? fill(FH.dharmaDetailOn, { n: k.house }) : FH.dharmaDetailOff },
+    mokshaTrikon: { ...r.mokshaTrikon, detail: r.mokshaTrikon.inMoksha ? fill(FH.mokshaDetailOn, { n: k.house }) : FH.mokshaDetailOff },
+    houseFocus: ketuHouseFocusHi(r.houseFocus),
+    allHouseFocus: r.allHouseFocus.map(ketuHouseFocusHi),
+    detach12thNote: fill(FH.detachNote, { nth, d: r.detach12thHouse }),
+    dharmaFlag: flag(r.dharmaFlag, FH.dharmaTitle, r.dharmaFlag.active ? fill(FH.dharmaOn, { nth }) : FH.dharmaOff),
+    mokshaFlag: flag(r.mokshaFlag, FH.mokshaTitle, r.mokshaFlag.active ? fill(FH.mokshaOn, { nth }) : FH.mokshaOff),
+    noDrishtiFlag: flag(r.noDrishtiFlag, FH.noDrishtiTitle, FH.noDrishti),
+    ketuNakshatraFlag: flag(r.ketuNakshatraFlag, FH.nakTitle, k.inKetuNakshatra ? fill(FH.nakOn, { nak: nakName }) : FH.nakOff),
+    jupiterSignFlag: flag(r.jupiterSignFlag, FH.juTitle, k.inJupiterSign ? (k.rashi === 9 ? FH.juSag : FH.juPisces) : FH.juOff),
+    marriage7Flag: flag(
+      r.marriage7Flag,
+      FH.marriageTitle,
+      r.marriage7Flag.active ? fill(FH.marriageOn, { rel: k.house === 7 ? FH.marriageIn : FH.marriageAxis, gap: KETU_MARRIAGE_AGE_GAP_YEARS.join('–') }) : FH.marriageOff,
+    ),
+    mdVsAdFlag: flag(r.mdVsAdFlag, FH.mdTitle, fill(FH.md, yrs)),
+    axisFlag: flag(
+      r.axisFlag,
+      FH.axisTitle,
+      r.axisFlag.active
+        ? fill(FH.axisOn, { k: k.house, r: k.oppositeRahuHouse ?? '—', sep: k.sepFromRahuDeg != null ? fill(FH.axisSep, { sep: k.sepFromRahuDeg.toFixed(1) }) : '' })
+        : FH.axisOff,
+    ),
+    yogas: fixedYogas,
+    companions,
+    companionNote: companions.length ? fill(FH.companionsWith, { names: companions.map(c => c.name).join(', ') }) : FH.companionsNone,
+    nakshatraTeachings,
+    activeNakshatraTeaching: nakshatraTeachings.find(n => n.isNatal) ?? null,
+    mythology: [...SH.mythology],
+    mythPrinciples: [...SH.mythPrinciples],
+    mdVsAd: [...SH.mdVsAd],
+    chartMethod: [...SH.chartMethod],
+    ethics: [...SH.ethics],
+    goldenRules: [...SH.goldenRules],
+    remedies,
+    dictums: SH.dictums.map(d => fill(d, yrs)),
+    naturalAgeNote: SH.naturalAgeNote,
+    dashaNote: fill(SH.dashaNote, yrs),
+    classical: classicalBundleHi(r.classical, 'Ke', { ...k, isCombust: false }),
+    caveats: [...SH.caveats],
+    methodology: SH.methodology.map(m => fill(m, { yuti: KETU_YUTI_ORB })),
+    summaryAttrs: [
+      { label: L.seat, value: fill(V.seat, { rashi, n: k.house }) },
+      { label: L.nakshatra, value: fill(V.nak, { nak: nakName, pada: k.pada }) },
+      { label: L.dharma, value: r.dharmaTrikon.inDharma ? fill(V.yesHouse, { n: k.house }) : V.no },
+      { label: L.moksha, value: r.mokshaTrikon.inMoksha ? fill(V.yesHouse, { n: k.house }) : V.no },
+      { label: L.from12, value: fill(V.house, { n: r.detach12thHouse }) },
+      { label: L.ownNak, value: k.inKetuNakshatra ? V.yes : V.no },
+      { label: L.dasha, value: fill(V.dasha, yrs) },
+      { label: L.maturity, value: fill(V.maturity, yrs) },
+      { label: L.yogas, value: active.length ? active.map(y => y.name).join(', ') : V.none },
+    ],
+    oneLiner,
+  }
+}
+
+function analyzeKetuEn(chart: ChartOutput): KetuAnalysisResult | null {
   const ketu = chart.grahas.find(g => g.id === 'Ke')
   if (!ketu) return null
 

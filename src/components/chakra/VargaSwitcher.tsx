@@ -5,7 +5,9 @@ import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
 import { buildArudhaBundle } from '@/lib/engine/arudhas'
 import { getDashaLordPlacementHouses } from '@/lib/engine/activeHouses'
-import { getVargaPosition, VARGA_FUNCTIONS, VARGA_UI_LIST, type VargaName } from '@/lib/engine/vargas'
+import { getVargaPosition, VARGA_FUNCTIONS, VARGA_UI_LIST, vargaUiList, type VargaName } from '@/lib/engine/vargas'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 
 interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'gold'|'platinum' }
 
@@ -58,15 +60,17 @@ function VargaOptions({
   vargas: Record<string, GrahaData[]>
   short?: boolean
 }) {
+  const t = useTranslations('chart.varga')
+  const { hi } = useLang()
   const core = available.filter(v => v.tier === 'free')
   const extended = available.filter(v => v.tier !== 'free')
   const renderOpt = (v: VargaMeta) => {
     const unlocked = isUnlocked(v, plan)
     const ready = hasVargaData(v.name, vargas)
     const label = short
-      ? `${v.name} · ${VARGA_SHORT_LABEL[v.name] ?? v.full}`
+      ? `${v.name} · ${(hi ? undefined : VARGA_SHORT_LABEL[v.name]) ?? v.full}`
       : `${v.name} · ${v.full}`
-    const suffix = !unlocked ? ' (Platinum)' : !ready ? ' (recalculate)' : ''
+    const suffix = !unlocked ? t('platinumSuffix') : !ready ? t('recalcSuffix') : ''
     return (
       <option key={v.name} value={v.name} disabled={!unlocked || !ready}>
         {label}{suffix}
@@ -75,8 +79,8 @@ function VargaOptions({
   }
   return (
     <>
-      <optgroup label="Core charts">{core.map(renderOpt)}</optgroup>
-      <optgroup label="Extended & variants (Platinum)">{extended.map(renderOpt)}</optgroup>
+      <optgroup label={t('core')}>{core.map(renderOpt)}</optgroup>
+      <optgroup label={t('extended')}>{extended.map(renderOpt)}</optgroup>
     </>
   )
 }
@@ -99,12 +103,13 @@ interface Props {
 function Pill({ meta, plan, state, onClick }: {
   meta:VargaMeta; plan:UserPlan; state:'primary'|'secondary'|'none'; onClick:()=>void
 }) {
+  const t = useTranslations('chart.varga')
   const unlocked = isUnlocked(meta, plan)
   const tierDisplayName = meta.tier === 'platinum' ? 'Platinum' : meta.tier === 'gold' ? 'Gold' : 'Free'
   return (
     <button
       onClick={onClick}
-      title={unlocked ? `${meta.full} — ${meta.topic}` : `Requires ${tierDisplayName} plan`}
+      title={unlocked ? `${meta.full} — ${meta.topic}` : t('requires', { tier: tierDisplayName })}
       style={{
         padding:'0.26rem 0.65rem', fontSize:'0.82rem',
         fontFamily:'var(--font-mono)', cursor:'pointer',
@@ -160,12 +165,13 @@ function SettingsBtn({
   onClick: () => void
   label?: boolean
 }) {
+  const t = useTranslations('chart.varga')
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label="Chart settings"
-      title={open ? 'Hide chart settings' : 'Chart settings'}
+      aria-label={t('settings')}
+      title={open ? t('hideSettings') : t('settings')}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -183,7 +189,7 @@ function SettingsBtn({
         fontSize: label ? '0.72rem' : '0.75rem',
       }}
     >
-      ⚙{label ? (open ? ' Hide' : ' Settings') : null}
+      ⚙{label ? (open ? t('hideBtn') : t('settingsBtn')) : null}
     </button>
   )
 }
@@ -224,6 +230,9 @@ export function VargaSwitcher({
   hideMobileSelector = false,
   chart, transitMoonLon, comparisonGrahas = [],
 }: Props) {
+  const t = useTranslations('chart.varga')
+  const { lang } = useLang()
+  const VARGA_META = React.useMemo(() => vargaUiList(lang), [lang])
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
   const [chartSettingsOpen, setChartSettingsOpen] = useState<Record<string, boolean>>({})
   const [isMobile, setIsMobile] = useState(false)
@@ -284,7 +293,7 @@ export function VargaSwitcher({
     const p1 = selected[0] || 'D1'
     const p2 = selected[1] || 'D9'
     return [p1, p2]
-  }, [selected, isMobile, userPlan, mobileSelectedVarga])
+  }, [selected, isMobile, userPlan, mobileSelectedVarga, VARGA_META])
 
   return (
     <div style={{ display:'flex',flexDirection:'column',gap:'0.6rem' }}>
@@ -350,7 +359,7 @@ export function VargaSwitcher({
                       const m = VARGA_META.find(v => v.name === e.target.value)
                       if (m) handleClick(m)
                     }}
-                    aria-label="Select divisional chart"
+                    aria-label={t('select')}
                     style={{
                       ...selectStyleBase,
                       flex: 1,
@@ -389,14 +398,14 @@ export function VargaSwitcher({
                     onChange={(e) => setEnableCharaDrishti(e.target.checked)}
                   />
                   <span style={{ fontSize: '0.7rem', color: enableCharaDrishti ? 'var(--gold)' : 'var(--text-muted)', fontWeight: 700 }}>
-                    Chara Drishti
+                    {t('charaDrishti')}
                   </span>
                 </label>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                   <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
                     {selectedHouseByChart[name]
-                      ? `Selected House ${selectedHouseByChart[name]}`
-                      : 'Click a house'}
+                      ? t('selectedHouse', { n: selectedHouseByChart[name] ?? 0 })
+                      : t('clickHouse')}
                   </span>
                   {selectedHouseByChart[name] ? (
                     <button
@@ -412,7 +421,7 @@ export function VargaSwitcher({
                         cursor: 'pointer',
                       }}
                     >
-                      Clear
+                      {t('clear')}
                     </button>
                   ) : null}
                 </div>

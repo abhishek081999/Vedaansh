@@ -67,29 +67,63 @@ function isAppRouterFlightRequest(request: Request): boolean {
   )
 }
 
-export function withDocumentCsp(request: Request, pathname: string): NextResponse {
+export interface DocumentCspOptions {
+  /** Serve this URL instead of the requested one (locale prefix stripped). */
+  rewriteTo?: URL
+  /** Extra request headers for every render, RSC navigations included. */
+  requestHeaders?: Record<string, string>
+  /**
+   * Extra request headers for full document requests only. RSC navigations
+   * pass through untouched unless `requestHeaders` or `rewriteTo` is set.
+   */
+  documentHeaders?: Record<string, string>
+}
+
+function passThrough(request: Request, options: DocumentCspOptions): NextResponse {
+  const extra = options.requestHeaders
+  if (!options.rewriteTo && !extra) return NextResponse.next()
+  const init = extra ? { request: { headers: withExtraHeaders(request, extra) } } : undefined
+  return options.rewriteTo ? NextResponse.rewrite(options.rewriteTo, init) : NextResponse.next(init)
+}
+
+function withExtraHeaders(request: Request, extra: Record<string, string>): Headers {
+  const headers = new Headers(request.headers)
+  for (const [key, value] of Object.entries(extra)) headers.set(key, value)
+  return headers
+}
+
+export function withDocumentCsp(
+  request: Request,
+  pathname: string,
+  options: DocumentCspOptions = {},
+): NextResponse {
   if (!shouldApplyDocumentCsp(pathname)) {
-    return NextResponse.next()
+    return passThrough(request, {
+      ...options,
+      requestHeaders: options.requestHeaders ?? options.documentHeaders,
+    })
   }
 
-  // Do not clone/mutate headers on RSC navigations — breaks Next 16 router-state parsing
+  // Leave the CSP headers alone on RSC navigations — cloning them breaks Next 16
+  // router-state parsing. Locale headers and rewrites still apply.
   if (isAppRouterFlightRequest(request)) {
-    return NextResponse.next()
+    return passThrough(request, options)
   }
 
   const isDev = process.env.NODE_ENV === 'development'
   const nonce = generateCspNonce()
   const csp = buildContentSecurityPolicy(nonce, isDev)
 
-  const requestHeaders = new Headers(request.headers)
+  const requestHeaders = withExtraHeaders(request, { ...options.documentHeaders, ...options.requestHeaders })
   requestHeaders.set('x-nonce', nonce)
   // Next.js reads the nonce for its own scripts from this request header. Without it,
   // 'strict-dynamic' blocks the framework bundles and pages never hydrate.
   requestHeaders.set('Content-Security-Policy', csp)
 
-  const response = NextResponse.next({
-    request: { headers: requestHeaders },
-  })
+  const init = { request: { headers: requestHeaders } }
+  const response = options.rewriteTo
+    ? NextResponse.rewrite(options.rewriteTo, init)
+    : NextResponse.next(init)
   response.headers.set('Content-Security-Policy', csp)
   return response
 }

@@ -4,18 +4,21 @@
 //  Chart-specific Rashi guide — lagna, moon, occupied signs only
 // ─────────────────────────────────────────────────────────────
 import React, { useMemo, useState } from 'react'
-import type { ChartOutput, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
+import { GRAHA_NAMES as GRAHA_NAMES_EN, RASHI_NAMES as RASHI_NAMES_EN, RASHI_SANSKRIT } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import { isClassicalGraha, wholeSignHouseFromLagna } from '@/lib/engine/houseInterpretations'
+import { rashiForHouseFromLagna } from '@/lib/engine/rashiInterpretations'
 import {
-  getPlanetInSign,
-  getRashiInHouse,
-  getRashiProfile,
-  rashiForHouseFromLagna,
-} from '@/lib/engine/rashiInterpretations'
+  getPlanetInSignInLang,
+  getRashiInHouseInLang,
+  getRashiProfileInLang,
+} from '@/lib/engine/rashiGuideLang'
 import {
-  getRashiDeepGuide,
-  RASHI_SHARED_TEACHINGS,
+  getRashiDeepGuide as getRashiDeepGuideEn,
+  getRashiSharedTeachings,
   type RashiDeepGuide,
 } from '@/lib/engine/rashiDeepGuide'
 import {
@@ -33,6 +36,14 @@ type OpenKey = 'lagna' | 'moon' | 'sun' | 'teach' | `h${number}` | `p-${string}`
 
 export function RashiGuideTab({ chart }: RashiGuideTabProps) {
   const [open, setOpen] = useState<OpenKey | null>('lagna')
+  const t = useTranslations('houseGuide.rashi')
+  const { hi, lang } = useLang()
+  const GRAHA_NAMES = (hi ? GRAHA_HI : GRAHA_NAMES_EN) as Record<GrahaId, string>
+  const RASHI_NAMES = (hi ? RASHI_HI : RASHI_NAMES_EN) as Record<Rashi, string>
+  const getRashiProfile = (r: number) => getRashiProfileInLang(r, lang)
+  const getRashiInHouse = (r: number, h: number) => getRashiInHouseInLang(r, h, lang)
+  const getPlanetInSign = (g: string, r: number, d: 'full' | 'summary') => getPlanetInSignInLang(g, r, d, lang)
+  const getRashiDeepGuide = (r: number) => getRashiDeepGuideEn(r, lang)
   const ascRashi = chart.lagnas.ascRashi
   const moon = chart.grahas.find((g) => g.id === 'Mo')
   const sun = chart.grahas.find((g) => g.id === 'Su')
@@ -59,7 +70,8 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
         deep,
       }
     })
-  }, [ascRashi, classical])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getters only change with lang
+  }, [ascRashi, classical, lang])
 
   const lagnaProfile = getRashiProfile(ascRashi)!
   const lagnaDeep = getRashiDeepGuide(ascRashi)
@@ -81,41 +93,39 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
         }}
       >
         <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-gold)', fontWeight: 700, marginBottom: '0.4rem' }}>
-          Your chart · Rashi reading
+          {t('introLabel')}
         </div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-          Aries–Pisces notes filtered to this chart: Lagna, Moon, Sun, each house’s sign from Lagna,
-          planet-in-sign, plus deep teaching (tattva, Kaal Purush, careers, spiritual themes).
-          Educational reference — not medical advice.
+          {t('intro')}
         </p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 180px), 1fr))', gap: '0.75rem' }}>
-        <Chip label="Lagna" value={`${RASHI_NAMES[ascRashi]}`} hint={lagnaProfile.sanskrit} />
-        {moonRashi ? <Chip label="Moon sign" value={RASHI_NAMES[moonRashi]} hint={RASHI_SANSKRIT[moonRashi]} /> : null}
-        {sunRashi ? <Chip label="Sun sign" value={RASHI_NAMES[sunRashi]} hint={RASHI_SANSKRIT[sunRashi]} /> : null}
-        <Chip label="Lagna lord" value={`${GRAHA_NAMES[lagnaProfile.lord]}`} hint={lagnaProfile.lordHindi} />
-        {lagnaDeep ? <Chip label="Keyword" value={lagnaDeep.keyword} hint={`${lagnaDeep.elementEn} · ${lagnaDeep.motionEn}`} /> : null}
-        {lagnaDeep ? <Chip label="Strong time" value={lagnaDeep.strongTime} hint={lagnaDeep.kaalPurushPart} /> : null}
+        <Chip label={t('chipLagna')} value={`${RASHI_NAMES[ascRashi]}`} hint={hi ? RASHI_NAMES_EN[ascRashi] : lagnaProfile.sanskrit} />
+        {moonRashi ? <Chip label={t('chipMoon')} value={RASHI_NAMES[moonRashi]} hint={hi ? RASHI_NAMES_EN[moonRashi] : RASHI_SANSKRIT[moonRashi]} /> : null}
+        {sunRashi ? <Chip label={t('chipSun')} value={RASHI_NAMES[sunRashi]} hint={hi ? RASHI_NAMES_EN[sunRashi] : RASHI_SANSKRIT[sunRashi]} /> : null}
+        <Chip label={t('chipLagnaLord')} value={`${GRAHA_NAMES[lagnaProfile.lord]}`} hint={hi ? GRAHA_NAMES_EN[lagnaProfile.lord] : lagnaProfile.lordHindi} />
+        {lagnaDeep ? <Chip label={t('chipKeyword')} value={lagnaDeep.keyword} hint={hi ? `${t(`elem.${lagnaDeep.element}`)} · ${t(`motion.${lagnaDeep.motion}`)}` : `${lagnaDeep.elementEn} · ${lagnaDeep.motionEn}`} /> : null}
+        {lagnaDeep ? <Chip label={t('chipStrong')} value={lagnaDeep.strongTime} hint={lagnaDeep.kaalPurushPart} /> : null}
       </div>
 
       {/* Lagna deep dive */}
       <Accordion
-        title={`Lagna in ${RASHI_NAMES[ascRashi]}`}
+        title={t('lagnaIn', { sign: RASHI_NAMES[ascRashi] })}
         subtitle={lagnaDeep ? `${lagnaDeep.keyword} — ${lagnaProfile.coreSummary}` : lagnaProfile.coreSummary}
         open={open === 'lagna'}
         onToggle={() => toggle('lagna')}
       >
         {lagnaDeep ? <DeepGuideBlock guide={lagnaDeep} dense={false} /> : null}
-        <Bullets title="Core nature" items={lagnaProfile.coreNature} />
-        <ClassicalNotesList title="Classical rashi (BPHS & others)" notes={getRashiClassical(ascRashi)} />
-        <ClassicalNotesList title="Classical · Lagna lord placement" notes={getLagnaLordClassical(chart)} />
+        <Bullets title={t('coreNature')} items={lagnaProfile.coreNature} />
+        <ClassicalNotesList title={t('classicalRashi')} notes={getRashiClassical(ascRashi)} />
+        <ClassicalNotesList title={t('classicalLagnaLord')} notes={getLagnaLordClassical(chart)} />
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{lagnaProfile.lordSummary}</p>
-        <Bullets title={`${GRAHA_NAMES[lagnaProfile.lord]} notes`} items={lagnaProfile.lordNotes} />
-        <Bullets title="Remedies & practices" items={lagnaProfile.remedies} />
-        <Bullets title="Special rules" items={lagnaProfile.specialRules} />
+        <Bullets title={t('lordNotes', { planet: GRAHA_NAMES[lagnaProfile.lord] })} items={lagnaProfile.lordNotes} />
+        <Bullets title={t('remediesPractices')} items={lagnaProfile.remedies} />
+        <Bullets title={t('specialRules')} items={lagnaProfile.specialRules} />
         <div style={callout}>
-          <div style={label}>Lagna sign in House 1</div>
+          <div style={label}>{t('lagnaSignInFirst')}</div>
           <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
             {getRashiInHouse(ascRashi, 1)}
           </p>
@@ -124,13 +134,13 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
 
       {moonProfile && moonRashi && moonRashi !== ascRashi ? (
         <Accordion
-          title={`Moon in ${RASHI_NAMES[moonRashi]}`}
+          title={t('moonIn', { sign: RASHI_NAMES[moonRashi] })}
           subtitle={moonDeep ? `${moonDeep.keyword} — ${moonProfile.coreSummary}` : moonProfile.coreSummary}
           open={open === 'moon'}
           onToggle={() => toggle('moon')}
         >
           <div style={callout}>
-            <div style={label}>{GRAHA_NAMES.Mo} in {RASHI_NAMES[moonRashi]}</div>
+            <div style={label}>{t('planetIn', { planet: GRAHA_NAMES.Mo, sign: RASHI_NAMES[moonRashi] })}</div>
             <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {getPlanetInSign('Mo', moonRashi, 'full')}
             </p>
@@ -145,22 +155,22 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
               'full',
             )}
           />
-          <ClassicalNotesList title={`Classical ${RASHI_NAMES[moonRashi]}`} notes={getRashiClassical(moonRashi)} />
+          <ClassicalNotesList title={t('classicalSign', { sign: RASHI_NAMES[moonRashi] })} notes={getRashiClassical(moonRashi)} />
           {moonDeep ? <DeepGuideBlock guide={moonDeep} dense /> : null}
-          <Bullets title="Sign essence" items={moonProfile.coreNature.slice(0, 4)} />
-          <Bullets title="Remedies" items={moonProfile.remedies.slice(0, 3)} />
+          <Bullets title={t('signEssence')} items={moonProfile.coreNature.slice(0, 4)} />
+          <Bullets title={t('remedies')} items={moonProfile.remedies.slice(0, 3)} />
         </Accordion>
       ) : null}
 
       {sunProfile && sunRashi && sunRashi !== ascRashi && sunRashi !== moonRashi ? (
         <Accordion
-          title={`Sun in ${RASHI_NAMES[sunRashi]}`}
+          title={t('sunIn', { sign: RASHI_NAMES[sunRashi] })}
           subtitle={sunDeep ? `${sunDeep.keyword} — ${sunProfile.coreSummary}` : sunProfile.coreSummary}
           open={open === 'sun'}
           onToggle={() => toggle('sun')}
         >
           <div style={callout}>
-            <div style={label}>{GRAHA_NAMES.Su} in {RASHI_NAMES[sunRashi]}</div>
+            <div style={label}>{t('planetIn', { planet: GRAHA_NAMES.Su, sign: RASHI_NAMES[sunRashi] })}</div>
             <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {getPlanetInSign('Su', sunRashi, 'full')}
             </p>
@@ -175,16 +185,16 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
               'full',
             )}
           />
-          <ClassicalNotesList title={`Classical ${RASHI_NAMES[sunRashi]}`} notes={getRashiClassical(sunRashi)} />
+          <ClassicalNotesList title={t('classicalSign', { sign: RASHI_NAMES[sunRashi] })} notes={getRashiClassical(sunRashi)} />
           {sunDeep ? <DeepGuideBlock guide={sunDeep} dense /> : null}
-          <Bullets title="Sign essence" items={sunProfile.coreNature.slice(0, 4)} />
+          <Bullets title={t('signEssence')} items={sunProfile.coreNature.slice(0, 4)} />
         </Accordion>
       ) : null}
 
       {/* Planets in their signs */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
         <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--text-primary)' }}>
-          Planets in signs (this chart)
+          {t('planetsInSigns')}
         </h3>
         {classical.map((g) => {
           const key = `p-${g.id}` as OpenKey
@@ -193,14 +203,14 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
           return (
             <Accordion
               key={g.id}
-              title={`${GRAHA_NAMES[g.id]} in ${RASHI_NAMES[g.rashi]}`}
+              title={t('planetIn', { planet: GRAHA_NAMES[g.id], sign: RASHI_NAMES[g.rashi] })}
               subtitle={getPlanetInSign(g.id, g.rashi, 'summary') ?? ''}
               open={open === key}
               onToggle={() => toggle(key)}
             >
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{full}</p>
               <ClassicalNotesList
-                title="Classical phalita"
+                title={t('phalita')}
                 notes={getDignityAwarePlanetInSign(
                   g.id,
                   g.rashi,
@@ -212,7 +222,7 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
               />
               {profile ? (
                 <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  {RASHI_NAMES[g.rashi]} ({profile.sanskrit}) is ruled by {GRAHA_NAMES[profile.lord]}. {profile.coreSummary}
+                  {t('ruledBy', { sign: RASHI_NAMES[g.rashi], sanskrit: hi ? RASHI_NAMES_EN[g.rashi] : profile.sanskrit, lord: GRAHA_NAMES[profile.lord] })} {profile.coreSummary}
                 </p>
               ) : null}
             </Accordion>
@@ -223,39 +233,39 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
       {/* Signs through houses */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
         <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--text-primary)' }}>
-          Signs in houses (from Lagna)
+          {t('signsInHouses')}
         </h3>
         {houseSigns.map((h) => {
           const key = `h${h.house}` as OpenKey
           return (
             <Accordion
               key={h.house}
-              title={`House ${h.house}: ${RASHI_NAMES[h.rashi]}`}
+              title={t('houseSign', { n: h.house, sign: RASHI_NAMES[h.rashi] })}
               subtitle={
                 h.deep
-                  ? `${h.deep.keyword} · Lord ${GRAHA_NAMES[h.profile.lord]}${h.occupants.length ? ` · ${h.occupants.map((p) => p.id).join(' · ')}` : ''}`
+                  ? `${h.deep.keyword} · ${t('lordShort', { lord: GRAHA_NAMES[h.profile.lord] })}${h.occupants.length ? ` · ${h.occupants.map((p) => (hi ? GRAHA_HI[p.id] : p.id)).join(' · ')}` : ''}`
                   : h.occupants.length
-                    ? `Lord ${GRAHA_NAMES[h.profile.lord]} · ${h.occupants.map((p) => p.id).join(' · ')}`
-                    : `Lord ${GRAHA_NAMES[h.profile.lord]} · empty`
+                    ? `${t('lordShort', { lord: GRAHA_NAMES[h.profile.lord] })} · ${h.occupants.map((p) => (hi ? GRAHA_HI[p.id] : p.id)).join(' · ')}`
+                    : `${t('lordShort', { lord: GRAHA_NAMES[h.profile.lord] })} · ${t('emptyShort')}`
               }
               open={open === key}
               onToggle={() => toggle(key)}
             >
               <div style={callout}>
-                <div style={label}>{RASHI_NAMES[h.rashi]} in House {h.house}</div>
+                <div style={label}>{t('signInHouse', { sign: RASHI_NAMES[h.rashi], n: h.house })}</div>
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
                   {h.note}
                 </p>
               </div>
               {h.deep ? <DeepGuideBlock guide={h.deep} dense /> : null}
-              <ClassicalNotesList title={`Classical ${RASHI_NAMES[h.rashi]}`} notes={getRashiClassical(h.rashi)} />
+              <ClassicalNotesList title={t('classicalSign', { sign: RASHI_NAMES[h.rashi] })} notes={getRashiClassical(h.rashi)} />
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                 {h.profile.coreSummary}
               </p>
               {h.occupants.map((p) => (
                 <div key={p.id} style={{ padding: '0.55rem 0.7rem', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-soft)' }}>
                   <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-gold)' }}>
-                    {GRAHA_NAMES[p.id]} in {RASHI_NAMES[p.rashi as Rashi]}
+                    {t('planetIn', { planet: GRAHA_NAMES[p.id], sign: RASHI_NAMES[p.rashi as Rashi] })}
                   </div>
                   <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: 2 }}>
                     {getPlanetInSign(p.id, p.rashi, 'full')}
@@ -268,12 +278,12 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
       </section>
 
       <Accordion
-        title="Rashi teaching principles"
-        subtitle="Classifications, soul journey, one-keyword method, karma overview"
+        title={t('teachTitle')}
+        subtitle={t('teachSubtitle')}
         open={open === 'teach'}
         onToggle={() => toggle('teach')}
       >
-        {RASHI_SHARED_TEACHINGS.map((block) => (
+        {getRashiSharedTeachings(lang).map((block) => (
           <Bullets key={block.id} title={block.title} items={block.points} />
         ))}
       </Accordion>
@@ -282,16 +292,18 @@ export function RashiGuideTab({ chart }: RashiGuideTabProps) {
 }
 
 function DeepGuideBlock({ guide, dense }: { guide: RashiDeepGuide; dense: boolean }) {
+  const t = useTranslations('houseGuide.rashi')
+  const { hi } = useLang()
   const attrChips = [
-    { label: 'Element', value: `${guide.element} (${guide.elementEn})` },
-    { label: 'Motion', value: `${guide.motion} (${guide.motionEn})` },
-    { label: 'Lord', value: guide.lordName },
-    { label: 'Body', value: guide.kaalPurushPart },
-    { label: 'Strong', value: guide.strongTime },
-    { label: 'Active age', value: guide.activationAge },
+    { label: t('attr.element'), value: hi ? t(`elem.${guide.element}`) : `${guide.element} (${guide.elementEn})` },
+    { label: t('attr.motion'), value: hi ? t(`motion.${guide.motion}`) : `${guide.motion} (${guide.motionEn})` },
+    { label: t('attr.lord'), value: guide.lordName },
+    { label: t('attr.body'), value: guide.kaalPurushPart },
+    { label: t('attr.strong'), value: guide.strongTime },
+    { label: t('attr.age'), value: guide.activationAge },
   ]
-  if (guide.deity) attrChips.push({ label: 'Deity', value: guide.deity })
-  if (guide.exaltedPlanet) attrChips.push({ label: 'Exalted', value: guide.exaltedPlanet })
+  if (guide.deity) attrChips.push({ label: t('attr.deity'), value: guide.deity })
+  if (guide.exaltedPlanet) attrChips.push({ label: t('attr.exalted'), value: guide.exaltedPlanet })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -316,21 +328,21 @@ function DeepGuideBlock({ guide, dense }: { guide: RashiDeepGuide; dense: boolea
 
       {!dense ? (
         <>
-          <Bullets title="Symbol & meaning" items={guide.symbolMeaning} />
-          <Bullets title="Spiritual themes" items={guide.spiritual} />
-          <Bullets title="Strengths" items={guide.positiveTraits} />
-          <Bullets title="Watch-outs" items={guide.challengingTraits} />
-          <Bullets title="Behavioral notes" items={guide.behavioralNotes} />
-          <Bullets title="Career fields" items={guide.careers} />
-          <Bullets title="Health themes (educational)" items={guide.healthThemes} />
+          <Bullets title={t('symbol')} items={guide.symbolMeaning} />
+          <Bullets title={t('spiritual')} items={guide.spiritual} />
+          <Bullets title={t('strengths')} items={guide.positiveTraits} />
+          <Bullets title={t('watchOuts')} items={guide.challengingTraits} />
+          <Bullets title={t('behavioral')} items={guide.behavioralNotes} />
+          <Bullets title={t('careers')} items={guide.careers} />
+          <Bullets title={t('health')} items={guide.healthThemes} />
           {guide.nakshatras.length ? (
             <div>
-              <div style={label}>Nakshatras in this rashi</div>
+              <div style={label}>{t('nakshatras')}</div>
               <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: 1.55 }}>
                 {guide.nakshatras.map((n) => (
                   <li key={n.name}>
                     <strong style={{ color: 'var(--text-primary)' }}>{n.name}</strong> — {n.padas}
-                    {n.lord ? ` · lord ${n.lord}` : ''}
+                    {n.lord ? t('nakLord', { lord: n.lord }) : ''}
                     {n.note ? ` · ${n.note}` : ''}
                   </li>
                 ))}
@@ -339,18 +351,18 @@ function DeepGuideBlock({ guide, dense }: { guide: RashiDeepGuide; dense: boolea
           ) : null}
           {guide.compatibility ? (
             <div style={callout}>
-              <div style={label}>Compatibility (educational)</div>
+              <div style={label}>{t('compat')}</div>
               <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                <strong>Best:</strong> {guide.compatibility.best.join('; ')}
+                <strong>{t('best')}</strong> {guide.compatibility.best.join('; ')}
               </p>
               {guide.compatibility.moderate?.length ? (
                 <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  <strong>Moderate:</strong> {guide.compatibility.moderate.join('; ')}
+                  <strong>{t('moderate')}</strong> {guide.compatibility.moderate.join('; ')}
                 </p>
               ) : null}
               {guide.compatibility.low?.length ? (
                 <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  <strong>Low:</strong> {guide.compatibility.low.join('; ')}
+                  <strong>{t('low')}</strong> {guide.compatibility.low.join('; ')}
                 </p>
               ) : null}
               <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
@@ -360,11 +372,11 @@ function DeepGuideBlock({ guide, dense }: { guide: RashiDeepGuide; dense: boolea
           ) : null}
           {(guide.luckyColors?.length || guide.gemstone) ? (
             <div style={callout}>
-              <div style={label}>Colors & gemstone</div>
+              <div style={label}>{t('colors')}</div>
               {guide.luckyColors?.length ? (
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  Lucky: {guide.luckyColors.join(', ')}
-                  {guide.unluckyColors?.length ? ` · Avoid (traditional): ${guide.unluckyColors.join(', ')}` : ''}
+                  {t('lucky', { list: guide.luckyColors.join(', ') })}
+                  {guide.unluckyColors?.length ? t('avoid', { list: guide.unluckyColors.join(', ') }) : ''}
                 </p>
               ) : null}
               {guide.gemstone ? (
@@ -374,22 +386,22 @@ function DeepGuideBlock({ guide, dense }: { guide: RashiDeepGuide; dense: boolea
           ) : null}
           {guide.lordContrast ? (
             <div style={callout}>
-              <div style={label}>Lord contrast</div>
+              <div style={label}>{t('lordContrast')}</div>
               <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
                 {guide.lordContrast}
               </p>
             </div>
           ) : null}
-          <Bullets title="Practical notes" items={guide.practicalNotes} />
+          <Bullets title={t('practical')} items={guide.practicalNotes} />
           {guide.chakraHint ? (
             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Chakra / nāḍī hint: {guide.chakraHint}
+              {t('chakraHint', { hint: guide.chakraHint })}
             </p>
           ) : null}
         </>
       ) : (
         <>
-          <Bullets title="Deep keyword notes" items={[...guide.symbolMeaning.slice(0, 2), ...guide.spiritual.slice(0, 2), ...guide.practicalNotes.slice(0, 2)]} />
+          <Bullets title={t('deepNotes')} items={[...guide.symbolMeaning.slice(0, 2), ...guide.spiritual.slice(0, 2), ...guide.practicalNotes.slice(0, 2)]} />
           {guide.lordContrast ? (
             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{guide.lordContrast}</p>
           ) : null}

@@ -5,6 +5,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { Rashi, GrahaId, YogiPointResult } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { YOGI_TEXT_HI } from '@/lib/engine/locale/yogiPoint.hi'
 
 /**
  * Yogi Point System
@@ -235,4 +238,25 @@ export function calculateYogiWealthScore(
   }
   
   return { score, factors }
+}
+
+/**
+ * Interpretation + remedy text in the requested language. English returns the
+ * strings stored on the result unchanged; Hindi rebuilds them from its fields.
+ */
+export function getYogiPointText(
+  r: YogiPointResult,
+  lang: EngineLang = 'en',
+): { interpretation: YogiPointResult['interpretation']; remedy: string } {
+  if (lang !== 'hi') return { interpretation: r.interpretation, remedy: r.remedy }
+  const row = (tpl: string, rashi: Rashi, deg: number, graha: GrahaId) =>
+    fill(tpl, { rashi: RASHI_HI[rashi], deg: deg.toFixed(2), graha: GRAHA_HI[graha] })
+  return {
+    interpretation: {
+      yogi: row(YOGI_TEXT_HI.yogi, r.yogiRashi, r.yogiDegreeInSign, r.yogiGraha),
+      sahayogi: row(YOGI_TEXT_HI.sahayogi, r.sahayogiRashi, r.sahayogiDegreeInSign, r.sahayogiGraha),
+      avayogi: row(YOGI_TEXT_HI.avayogi, r.avayogiRashi, r.avayogiDegreeInSign, r.avayogiGraha),
+    },
+    remedy: fill(YOGI_TEXT_HI.remedy, { yogi: GRAHA_HI[r.yogiGraha], avayogi: GRAHA_HI[r.avayogiGraha] }),
+  }
 }

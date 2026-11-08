@@ -1,7 +1,7 @@
 'use client'
 
+import { Link } from '@/i18n/navigation'
 import React from 'react'
-import Link from 'next/link'
 import type { LegalPageData } from '@/lib/legal/content'
 import { LEGAL_CONTACT, LEGAL_NAV_LINKS } from '@/lib/legal/content'
 

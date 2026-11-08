@@ -5,8 +5,8 @@
  * Based on "Krishneeyam" by Sri Krishna Acharya (~11th c. AD)
  */
 
+import { Link } from '@/i18n/navigation'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import { Check, Lightbulb, Lock, X } from 'lucide-react'

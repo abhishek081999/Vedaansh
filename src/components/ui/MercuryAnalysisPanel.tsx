@@ -5,8 +5,8 @@
 //  Free overview · Gold+ full sections
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   BookOpen,
   Brain,
@@ -25,6 +25,9 @@ import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { GrahaProfileHeader } from '@/components/ui/GrahaProfileHeader'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 
 type SubTab = 'overview' | 'foundations' | 'classical' | 'houses' | 'conditions' | 'remedies'
 type ClassicalView = 'mixed' | 'natal' | 'houses' | 'signs'
@@ -47,7 +50,10 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const [classicalView, setClassicalView] = useState<ClassicalView>('mixed')
-  const data = useMemo(() => analyzeMercury(chart), [chart])
+  const t = useTranslations('planetsA.mercury')
+  const c = useTranslations('planetsA.common')
+  const { lang, hi } = useLang()
+  const data = useMemo(() => analyzeMercury(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -59,7 +65,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Mercury data unavailable for this chart.
+        {t('unavailable')}
       </div>
     )
   }
@@ -87,28 +93,27 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: natal Mercury house, yuti companions, and combust/vakri flags.
-            Gold unlocks karakatva, classical catalogues, house teaching, conditions, and remedies.
+            {t('freeNote')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{c('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{m.rashiName} · H{m.house}</Pill>
-        <Pill>{m.nakshatraName} P{m.pada}</Pill>
-        <Pill>{m.dignity.replace('_', ' ')}</Pill>
-        {m.ownSign && <Pill gold>Own sign</Pill>}
-        {m.exalted && <Pill gold>Exalted</Pill>}
-        {m.debilitated && <Pill warn>Debilitated</Pill>}
-        {m.isRetro && <Pill warn>Retrograde</Pill>}
-        {m.isCombust && <Pill warn>Combust</Pill>}
-        {data.bothFlag.active && <Pill warn>Combust + Vakri</Pill>}
-        {data.inProblematicHouse && <Pill warn>Watched house</Pill>}
+        <Pill gold>{m.rashiName} · {c('houseShort', { n: m.house })}</Pill>
+        <Pill>{m.nakshatraName} {c('padaShort', { n: m.pada })}</Pill>
+        <Pill>{hi ? dignityHi(m.dignity) : m.dignity.replace('_', ' ')}</Pill>
+        {m.ownSign && <Pill gold>{t('ownSign')}</Pill>}
+        {m.exalted && <Pill gold>{t('exalted')}</Pill>}
+        {m.debilitated && <Pill warn>{t('debilitated')}</Pill>}
+        {m.isRetro && <Pill warn>{c('retro')}</Pill>}
+        {m.isCombust && <Pill warn>{c('combust')}</Pill>}
+        {data.bothFlag.active && <Pill warn>{t('bothPill')}</Pill>}
+        {data.inProblematicHouse && <Pill warn>{t('watched')}</Pill>}
         {data.companions.length > 0 && (
-          <Pill>Yuti · {data.companions.map(c => c.name).join(', ')}</Pill>
+          <Pill>{t('yutiPill', { list: data.companions.map(cp => cp.name).join(', ') })}</Pill>
         )}
       </div>
 
@@ -125,19 +130,19 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Mercury analysis sections"
+        aria-label={t('sectionsAria')}
       >
-        {SUB_TABS.map(t => {
-          const locked = !showFull && !t.free
-          const active = sub === t.id
+        {SUB_TABS.map(tab => {
+          const locked = !showFull && !tab.free
+          const active = sub === tab.id
           return (
             <button
-              key={t.id}
+              key={tab.id}
               type="button"
               role="tab"
               aria-selected={active}
               disabled={locked}
-              onClick={() => select(t.id)}
+              onClick={() => select(tab.id)}
               style={{
                 flex: '1 1 auto',
                 padding: '0.42rem 0.55rem',
@@ -156,8 +161,8 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
                 whiteSpace: 'nowrap',
               }}
             >
-              <t.Icon size={13} aria-hidden />
-              {t.label}
+              <tab.Icon size={13} aria-hidden />
+              {t(`tab_${tab.id}`)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -167,14 +172,14 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Natal Mercury · H{data.houseFocus.house}</Label>
+            <Label>{t('natalMercury', { n: data.houseFocus.house })}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
-              {data.houseFocus.themes.map(t => <Pill key={t}>{t}</Pill>)}
+              {data.houseFocus.themes.map(th => <Pill key={th}>{th}</Pill>)}
               <Pill warn={data.houseFocus.difficulty === 'problematic' || data.houseFocus.difficulty === 'most_problematic'}>
-                {data.houseFocus.difficulty.replace('_', ' ')}
+                {t(`diff_${data.houseFocus.difficulty}`)}
               </Pill>
             </div>
             <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -183,21 +188,21 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           </Card>
 
           <Card>
-            <Label>One-line teaching</Label>
+            <Label>{t('oneLine')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
               {data.oneLiner}
             </p>
           </Card>
 
           <Card>
-            <Label>Company (yuti)</Label>
+            <Label>{t('company')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.companionNote}
             </p>
           </Card>
 
           <Card>
-            <Label>Quick flags</Label>
+            <Label>{c('quickFlags')}</Label>
             <FlagRow flag={data.retroFlag} />
             <FlagRow flag={data.combustFlag} />
             <FlagRow flag={data.bothFlag} />
@@ -207,9 +212,9 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           </Card>
 
           <Card>
-            <Label>Mixed interpretations teaser</Label>
+            <Label>{c('mixedTeaserLabel')}</Label>
             <p style={{ margin: '0 0 0.45rem', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-              House guide · classics · planet×house · rashi · planet×sign · nakshatra · dignity
+              {c('mixedTeaserLayers')}{hi ? ` · ${c('classicalEnNote')}` : ''}
             </p>
             {data.classical.natalMixed ? (
               <LayerStack
@@ -218,30 +223,30 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
               />
             ) : (
               <ClassicalNotesList
-                title="Mercury in house — classics"
+                title={t('housesClassics')}
                 notes={data.classical.natalHouseClassical.slice(0, 2)}
               />
             )}
             {!showFull && (
               <div style={{ marginTop: 6, fontSize: '0.65rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Lock size={12} aria-hidden /> Full mixed layers + 12×12 catalogues on Gold
+                <Lock size={12} aria-hidden /> {c('mixedGold')}
               </div>
             )}
           </Card>
 
           <Card>
-            <Label>Natural age · {data.naturalAge}</Label>
+            <Label>{c('naturalAge', { n: data.naturalAge })}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.naturalAgeNote}
             </p>
           </Card>
 
           {!showFull && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Mercury full analysis">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('gateFeature')}>
               <div style={{ minHeight: 100, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Locked on Free</div>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>{c('lockedFree')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Full karakatva · classical 12 houses × 12 signs · combust/vakri · mythology · remedies
+                  {t('lockedList')}
                 </div>
               </div>
             </PlanGate>
@@ -261,13 +266,13 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
               border: '1px solid var(--border-soft)',
             }}
             role="tablist"
-            aria-label="Classical catalogue view"
+            aria-label={c('classicalAria')}
           >
             {([
-              { id: 'mixed' as const, label: 'Mixed natal' },
-              { id: 'natal' as const, label: 'Classical natal' },
-              { id: 'houses' as const, label: 'All 12 houses' },
-              { id: 'signs' as const, label: 'All 12 signs' },
+              { id: 'mixed' as const, label: c('viewMixed') },
+              { id: 'natal' as const, label: c('viewNatal') },
+              { id: 'houses' as const, label: c('viewHouses') },
+              { id: 'signs' as const, label: c('viewSigns') },
             ]).map(v => (
               <button
                 key={v.id}
@@ -295,10 +300,10 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           {classicalView === 'mixed' && data.classical.natalMixed && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                All interpretation engines mixed for natal Mercury in {m.rashiName} · H{m.house}.
+                {t('mixedIntro', { sign: m.rashiName, n: m.house })}{hi ? ` ${c('classicalEnNote')}` : ''}
               </p>
               <Card>
-                <Label>Blended snapshot</Label>
+                <Label>{c('blended')}</Label>
                 <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.natalMixed.blendedSummary.slice(0, 520)}
                   {data.classical.natalMixed.blendedSummary.length > 520 ? '…' : ''}
@@ -311,27 +316,27 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           {classicalView === 'natal' && (
             <>
               <Card>
-                <Label>Platform house note (H{m.house})</Label>
+                <Label>{c('platformHouse', { n: m.house })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalHouseFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Mercury in house ${m.house}`}
+                title={t('classicalHouse', { n: m.house })}
                 notes={data.classical.natalHouseClassical}
               />
               <Card>
-                <Label>Platform sign note ({m.rashiName})</Label>
+                <Label>{c('platformSign', { sign: m.rashiName })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalSignFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Mercury in ${m.rashiName} (+ dignity / vakri (retrograde) / asta)`}
+                title={t('classicalSign', { sign: m.rashiName })}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (
-                <ClassicalNotesList title="Vakri / Asta (Budha)" notes={data.classical.vakriAst} />
+                <ClassicalNotesList title={t('vakriAst')} notes={data.classical.vakriAst} />
               )}
             </>
           )}
@@ -339,7 +344,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           {classicalView === 'houses' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed house layers for each bhava. Natal house highlighted.
+                {t('housesShort')}
               </p>
               {data.classical.allHouses.map(h => (
                 <div
@@ -352,8 +357,8 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
                   }}
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: h.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
-                    House {h.house}
-                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {c('house', { n: h.house })}
+                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{c('natal')}</span>}
                   </div>
                   <LayerStack layers={h.mixedLayers} compact={!h.isNatal} />
                 </div>
@@ -364,7 +369,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           {classicalView === 'signs' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed sign layers for each rāśi. Natal sign highlighted.
+                {t('signsShort')}
               </p>
               {data.classical.allSigns.map(s => (
                 <div
@@ -378,7 +383,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: s.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
                     {s.rashiName}
-                    {s.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {s.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{c('natal')}</span>}
                   </div>
                   <LayerStack layers={s.mixedLayers} compact={!s.isNatal} />
                 </div>
@@ -391,14 +396,14 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
       {showFull && sub === 'foundations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Nature</Label>
+            <Label>{t('nature')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.nature.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Why Mercury needs support</Label>
+            <Label>{t('needsSupport')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.needsSupport.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -423,7 +428,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           ))}
 
           <Card>
-            <Label>Vedic roles</Label>
+            <Label>{t('vedicRoles')}</Label>
             {data.vedicRoles.map(v => (
               <div key={v.veda} style={{ marginBottom: '0.4rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                 <strong style={{ color: 'var(--text-gold)' }}>{v.veda}</strong>
@@ -433,10 +438,10 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           </Card>
 
           <Card>
-            <Label>Relationships</Label>
+            <Label>{t('relationships')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Enemy: <strong style={{ color: 'var(--text-gold)' }}>{data.relationships.enemy}</strong>
-              {' · '}Neutrals: {data.relationships.neutrals.join(', ')}
+              {t('enemy')} <strong style={{ color: 'var(--text-gold)' }}>{data.relationships.enemy}</strong>
+              {t('neutrals', { list: data.relationships.neutrals.join(', ') })}
             </p>
             <p style={{ margin: '0.4rem 0 0', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
               {data.relationships.note}
@@ -444,21 +449,21 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           </Card>
 
           <Card>
-            <Label>Languages</Label>
+            <Label>{t('languages')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.languagesNote}
             </p>
           </Card>
 
           <Card>
-            <Label>Professions</Label>
+            <Label>{c('professions')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.professions.map(p => <li key={p}>{p}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Summary attributes</Label>
+            <Label>{c('summaryAttrs')}</Label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
@@ -480,7 +485,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
       {showFull && sub === 'houses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Natal house focus</Label>
+            <Label>{t('natalHouseFocus')}</Label>
             <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
@@ -490,10 +495,10 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           </Card>
 
           <Card>
-            <Label>Problematic seats (class ranking)</Label>
+            <Label>{t('problematic')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Most difficult: 9th · then 7th and 12th. Current Mercury in H{m.house}
-              {data.inProblematicHouse ? ' — watched.' : ' — outside the watched set.'}
+              {t('problematicText', { n: m.house })}
+              {data.inProblematicHouse ? t('watchedYes') : t('watchedNo')}
             </p>
           </Card>
 
@@ -512,9 +517,9 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
                 {hf.house === m.house && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
-                {hf.themes.map(t => <Pill key={t}>{t}</Pill>)}
+                {hf.themes.map(th => <Pill key={th}>{th}</Pill>)}
                 <Pill warn={hf.difficulty === 'problematic' || hf.difficulty === 'most_problematic'}>
-                  {hf.difficulty.replace('_', ' ')}
+                  {t(`diff_${hf.difficulty}`)}
                 </Pill>
               </div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -524,15 +529,15 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           ))}
 
           <Card>
-            <Label>Companions</Label>
+            <Label>{t('companions')}</Label>
             {data.companions.length === 0 ? (
-              <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>No close yuti.</p>
+              <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>{t('noYuti')}</p>
             ) : (
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {data.companions.map(c => (
                   <li key={c.id}>
                     {c.name} · {c.sepDeg.toFixed(1)}°
-                    {c.sameSign ? ' · same sign' : ''}
+                    {c.sameSign ? t('sameSign') : ''}
                   </li>
                 ))}
               </ul>
@@ -551,40 +556,40 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           <FlagCard flag={data.bothFlag} />
 
           <Card>
-            <Label>Combust — shadow & gift</Label>
+            <Label>{t('combustCard')}</Label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
               <MessageSquare size={14} aria-hidden style={{ color: 'var(--text-gold)' }} />
-              <span style={{ fontSize: '0.74rem', fontWeight: 600 }}>Asta Budha</span>
+              <span style={{ fontSize: '0.74rem', fontWeight: 600 }}>{t('astaBudha')}</span>
             </div>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Challenges</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>{t('challenges')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.combustEffects.negatives.map(n => <li key={n}>{n}</li>)}
             </ul>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Hidden strengths</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{t('hiddenStrengths')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.combustEffects.positives.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Retrograde — shadow & gift</Label>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Challenges</div>
+            <Label>{t('retroCard')}</Label>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>{t('challenges')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.retroEffects.negatives.map(n => <li key={n}>{n}</li>)}
             </ul>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Strengths</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{t('strengths')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.retroEffects.positives.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Both together</Label>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Intensified</div>
+            <Label>{t('bothCard')}</Label>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>{t('intensified')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.bothEffects.negatives.map(n => <li key={n}>{n}</li>)}
             </ul>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Overlooked gifts</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{t('overlooked')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.bothEffects.positives.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -595,11 +600,11 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
 
           {(m.nearExaltPeak || m.nearDebilPeak) && (
             <Card>
-              <Label>Degree peak</Label>
+              <Label>{t('degreePeak')}</Label>
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {m.nearExaltPeak
-                  ? `Near exaltation peak (~15° Virgo) — analytical precision tradition is strongest near this degree.`
-                  : `Near debilitation peak (~15° Pisces) — communication/focus strain peaks; emotional writing gift can still shine.`}
+                  ? t('nearExalt')
+                  : t('nearDebil')}
               </p>
             </Card>
           )}
@@ -609,7 +614,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
       {showFull && sub === 'remedies' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Remedies</Label>
+            <Label>{c('remedies')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.remedies.map(r => <li key={r}>{r}</li>)}
             </ul>
@@ -619,34 +624,34 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
           </Card>
 
           <Card>
-            <Label>Mythology</Label>
+            <Label>{c('mythology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.mythology.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Curses (Purana lore)</Label>
+            <Label>{t('curses')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.curses.map(c => <li key={c}>{c}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Caveats</Label>
+            <Label>{c('caveats')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.caveats.map(c => <li key={c}>{c}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Methodology</Label>
+            <Label>{c('methodology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.methodology.map(mth => <li key={mth}>{mth}</li>)}
             </ul>
             <div style={{ marginTop: '0.55rem', fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
               <BookOpen size={12} aria-hidden />
-              Class teaching — Budha karakatva, houses, combust/vakri, mythology, remedies
+              {t('sourceLine')}
             </div>
           </Card>
         </div>
@@ -656,6 +661,7 @@ export function MercuryAnalysisPanel({ chart, userPlan = 'free' }: MercuryAnalys
 }
 
 function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: boolean }) {
+  const c = useTranslations('planetsA.common')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.45rem' : '0.65rem' }}>
       {layers.map(layer => (
@@ -698,7 +704,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
           {layer.classicalNotes && layer.classicalNotes.length > 0 && (
             <div style={{ marginTop: 6 }}>
               <ClassicalNotesList
-                title="Sources"
+                title={c('sources')}
                 notes={compact ? layer.classicalNotes.slice(0, 2) : layer.classicalNotes}
               />
             </div>
@@ -710,6 +716,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
 }
 
 function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const c = useTranslations('planetsA.common')
   return (
     <div style={{ marginBottom: '0.45rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -720,7 +727,7 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
           textTransform: 'uppercase',
           color: flag.active ? 'var(--rose)' : 'var(--text-muted)',
         }}>
-          {flag.active ? 'Active' : 'Clear'}
+          {flag.active ? c('active') : c('clear')}
         </span>
       </div>
       <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -731,11 +738,12 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
 }
 
 function FlagCard({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const c = useTranslations('planetsA.common')
   return (
     <Card>
       <Label>{flag.title}</Label>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? 'Indicated' : 'Not indicated'}</span>
+        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? c('indicated') : c('notIndicated')}</span>
       </div>
       <p style={{ margin: '0.4rem 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
         {flag.detail}

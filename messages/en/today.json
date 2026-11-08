@@ -1,0 +1,220 @@
+{
+  "page": {
+    "title": "Today's Reading",
+    "empty": "Load or create your birth chart to get a personal reading for today, built from your Moon, running dasha, live transits and today's panchang.",
+    "openForm": "Open Birth Form",
+    "forName": " · for {name}",
+    "updated": " · updated {time}",
+    "birthPlace": "Birth place",
+    "refresh": "Refresh",
+    "updating": "Updating…",
+    "refreshLabel": "Refresh reading",
+    "whereToday": "Where are you today? (sunrise, Rahu Kalam and horas depend on it)",
+    "retry": "Try again",
+    "staleError": "Showing the last reading; refresh failed: {error}",
+    "tabsLabel": "Dasha, transits and houses for today",
+    "tabDasha": "Dasha",
+    "tabTransits": "Transits",
+    "tabHouses": "Houses",
+    "overall": "Overall day",
+    "disclaimer": "A rule-based reading from classical indicators (Chandra/Tara Bala, gochar with Vedha, panchang, dasha). It describes the day's tone, not fixed events, and is not medical, legal or financial advice."
+  },
+  "fmt": {
+    "tomorrow": "tomorrow "
+  },
+  "chart": {
+    "aria": "Your chart with today's transits",
+    "title": "Your chart · today's transits",
+    "note": "Your natal planets are shown as usual; the purple planets are where the planets are right now. Open Chart Settings to switch style or hide the natal layer."
+  },
+  "moon": {
+    "aria": "Your Moon today",
+    "title": "Your Moon today",
+    "moon": "Moon",
+    "value": "{rashi} · {nak} (pada {pada})",
+    "counted": "Counted from your natal Moon it is the {nth} house; from your Lagna it lights up the {lagnaNth} house of {theme}.",
+    "tara": "Tara Bala",
+    "taraValue": "{name} (#{n}) · {label}",
+    "watch": " Watch for: {trap}",
+    "overNatal": "Over natal",
+    "overNote": "The Moon is crossing the sign of your natal {planets}, so those themes feel closer today.",
+    "and": " and ",
+    "nextShift": "Next shift",
+    "enters": "~{when} · Moon enters {rashi}",
+    "becomes": "It becomes the {nth} from your Moon ({state}). Time is approximate (±15 min).",
+    "supportive": "supportive",
+    "demanding": "demanding",
+    "neutral": "neutral",
+    "crossings": "Moon crossings",
+    "next72": "Next 72h over natal points",
+    "now": " · now",
+    "fullCycle": "Full Moon cycle (27 days) →"
+  },
+  "panchang": {
+    "aria": "Panchang for today",
+    "title": "Panchang, read for you",
+    "quality": {
+      "good": "Supportive",
+      "mixed": "Neutral",
+      "caution": "Caution"
+    }
+  },
+  "areas": {
+    "aria": "Life areas today",
+    "title": "Life areas today",
+    "barLabel": "{label}: {score} out of 100, {verdict}",
+    "why": "{verdict}: {drivers}.",
+    "note": "Scores combine today's Moon, Tara/Chandra Bala, panchang, and the gochar of the planets that rule each area. They are relative, not absolute."
+  },
+  "windows": {
+    "aria": "Timing windows",
+    "title": "Timing today",
+    "now": "now",
+    "nowLine": "Now:",
+    "until": "(until {time})",
+    "noneGood": "No clean auspicious window is left today; keep to routine work.",
+    "horas": "Horas that suit your chart",
+    "avoid": "Avoid starting things"
+  },
+  "doAvoid": {
+    "doAria": "Do today",
+    "avoidAria": "Avoid today",
+    "lean": "Lean into",
+    "easy": "Go easy on"
+  },
+  "factors": {
+    "supAria": "Supportive factors",
+    "cauAria": "Caution factors",
+    "helping": "What is helping",
+    "noHelp": "No strong supportive factors stand out today.",
+    "weighing": "What is weighing",
+    "noWeigh": "Nothing significant is pressing today."
+  },
+  "remedy": {
+    "aria": "Remedy of the day",
+    "title": "Anchor for the day",
+    "day": "{name} day",
+    "line": "Colour {color} · charity: {charity}.",
+    "extra": "{reason}. {day}s are best for it; charity: {charity}.",
+    "note": "Simple devotional practices only. Gemstones need a full chart review first."
+  },
+  "transits": {
+    "gochar": "Gochar from your Moon",
+    "graha": "Graha",
+    "sign": "Sign",
+    "moon": "Moon",
+    "lagna": "Lagna",
+    "read": "Read",
+    "contacts": "Transit contacts to your birth chart",
+    "noContacts": "No close conjunctions or oppositions to your natal planets today.",
+    "note": "Gochar uses the classical Parashari tables (favourable houses from the natal Moon, with Vedha). Transits colour the day; your dasha and natal promise decide what can actually manifest.",
+    "status": {
+      "favourable": "favourable",
+      "vedha": "vedha",
+      "unfavourable": "unfavourable",
+      "neutral": "neutral"
+    }
+  },
+  "predictions": {
+    "aria": "What to expect today",
+    "title": "What to expect today",
+    "until": " · until ~{when}",
+    "moonIn": "Moon in {rashi} · {area}",
+    "quiet": "No single area stands out strongly today; it is a quiet day astrologically.",
+    "tone": {
+      "favourable": "Favourable",
+      "mixed": "Mixed",
+      "challenging": "Challenging"
+    },
+    "conf": {
+      "high": "High confidence",
+      "moderate": "Moderate confidence",
+      "low": "Light indication"
+    },
+    "yoga": "Natal yoga in play",
+    "note": "Each house is read from your birth chart (Ashtakavarga bindus, Shadbala of its lord, Bhava Bala) against today's transits, drishti and your running dasha. These are tendencies, not fixed events.",
+    "house": "House {n}",
+    "natalPromise": "{rashi} · natal {promise}",
+    "promise": {
+      "strong": "strong",
+      "average": "average",
+      "weak": "weak"
+    }
+  },
+  "dasha": {
+    "left": "{time} left",
+    "progress": "{level} {lord} progress",
+    "prana": "Prana periods today",
+    "sookshma": "Sookshma around now",
+    "next": "What changes next",
+    "today": "today",
+    "now": "now",
+    "lords": "Dasha lords in the sky today",
+    "inSign": "In {rashi}: {moonNth} from your Moon, {lagnaNth} from Lagna. {note}",
+    "note": "Vimshottari from your birth Moon. The Maha and Antar set the long theme, Pratyantar and Sookshma the weeks, Prana and Deha the hours. A lord that is well placed in your chart and favourable in transit delivers its results more easily."
+  },
+  "advanced": {
+    "stripAria": "Hora timeline from {from} to {to}; details are listed below",
+    "hora": "{lord} hora",
+    "segTitle": "{lord} hora {span} · score {score}",
+    "legend": "green good · amber mixed · red caution · faded = past · outlined = now",
+    "aria": "Hora timeline and best slots",
+    "title": "Your day, hora by hora",
+    "best": "Strongest upcoming horas",
+    "purpose": "Best slot for each purpose, from your own house lords",
+    "now": "now",
+    "horaNote": "Hora lords are scored on their strength in your chart (dignity, Shadbala), today's gochar, the choghadiya underneath, and overlap with Rahu Kalam, Yamaganda and Gulika.",
+    "kAria": "Kakshya timing",
+    "kTitle": "Kakshya · fine timing inside the sign",
+    "kMoon": "The Moon changes kakshya about every 7 hours. Its bindu windows are the best moments for Moon-ruled matters (mind, people, home).",
+    "kWin": "{lord} kakshya · {state}",
+    "bindu": "bindu",
+    "noBindu": "no bindu",
+    "nowSuffix": " · now",
+    "position": "Position",
+    "kakshya": "Kakshya",
+    "recalc": "Recalculate this chart to unlock kakshya bindus; sign-level bindus are shown for now.",
+    "kNote": "BAV is the planet's own bindu count in the sign it is crossing (4+ is workable, 5+ good). A tick means the kakshya lord of its exact degree also contributed a bindu.",
+    "verdict": {
+      "strong": "strong",
+      "steady": "steady",
+      "weak": "weak"
+    },
+    "sAria": "Sudarshana Chakra",
+    "sTitle": "Sudarshana · three reference points",
+    "sun": "Sun",
+    "agree": "Agree",
+    "sNote": "Each planet's house is counted from your Lagna, your Moon and your Sun. When all three agree the result is dependable; when they split, the influence is partial."
+  },
+  "visuals": {
+    "outOf": "out of 100",
+    "dialAria": "{label}, {score} out of 100",
+    "tara": "Tara",
+    "chandra": "Chandra",
+    "panchang": "Panchang",
+    "fromMoon": "{nth} from Moon",
+    "pSupport": "{n}/5 supportive",
+    "signals": "Key signals today",
+    "today": "Today",
+    "radarAria": "Life areas: {list}",
+    "lit": "{name}, about {lit}% lit",
+    "tithiN": "Tithi {n}",
+    "waxing": "Waxing",
+    "waning": "Waning",
+    "litLine": "{dir} · {lit}% lit",
+    "of9": "of 9",
+    "taraAria": "Tara {n} of 9: {name}",
+    "taraName": "{name} Tara",
+    "chandraBala": "Chandra Bala",
+    "fromNatal": "{nth} from natal Moon",
+    "chandraAria": "Transit Moon is {n} houses from your natal Moon",
+    "natalMoon": "NATAL MOON",
+    "limbs": "Five limbs of the panchang",
+    "now": "now",
+    "ringHoras": "Outer ring: horas (colour = quality)",
+    "good": "Good window",
+    "avoid": "Avoid starting",
+    "horaSeg": "{lord} hora · {from}–{to}",
+    "winSeg": "{label} · {from}–{to}"
+  }
+}

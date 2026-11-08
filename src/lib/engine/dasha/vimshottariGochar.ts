@@ -8,6 +8,9 @@ import type { GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import type { TransitPosition } from '@/lib/engine/transits'
 import { hasParasharaAspect } from '@/lib/engine/aspects'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { GOCHAR_HI } from '@/lib/engine/locale/dashaGochar.hi'
 
 export type GocharHitTone = 'supportive' | 'caution' | 'mixed'
 
@@ -49,6 +52,8 @@ export interface AnalyzeDashaGocharInput {
   transitPositions: TransitPosition[]
   /** ISO date label for UI */
   asOf?: string
+  /** Language of labels / details (default English). */
+  lang?: EngineLang
 }
 
 /**
@@ -65,7 +70,12 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
     pratyaLord = null,
     transitPositions,
     asOf,
+    lang = 'en',
   } = input
+  const hi = lang === 'hi'
+  const H = GOCHAR_HI
+  /** English text, or the Hindi template filled with the same values. */
+  const tx = (en: string, tpl: string, v: Record<string, string | number>) => (hi ? fill(tpl, v) : en)
 
   const periodLords = [mahaLord, antarLord, pratyaLord].filter(Boolean) as string[]
   const hits: DashaGocharHit[] = []
@@ -85,6 +95,8 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
     if (!MAJOR_TRANSIT_LORDS.includes(t.planetId)) continue
     const tName = GRAHA_NAMES[t.planetId] ?? t.planetId
     const signName = RASHI_NAMES[t.sign] ?? `R${t.sign}`
+    const tHi = GRAHA_HI[t.planetId] ?? t.planetId
+    const signHi = RASHI_HI[t.sign] ?? signName
 
     // Transit in lagna
     if (t.sign === lagnaSign) {
@@ -94,8 +106,8 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
         house: t.house,
         sign: t.sign,
         tone: toneForMajor(t.planetId, 1),
-        label: `${tName} over Lagna`,
-        detail: `${tName} transits the lagna (${signName}, house ${t.house}). That colours the whole delivery of the dasha with the transit of ${tName}.`,
+        label: tx(`${tName} over Lagna`, H.lagnaLabel, { t: tHi }),
+        detail: tx(`${tName} transits the lagna (${signName}, house ${t.house}). That colours the whole delivery of the dasha with the transit of ${tName}.`, H.lagnaDetail, { t: tHi, sign: signHi, house: t.house }),
       })
     }
 
@@ -107,8 +119,8 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
         house: t.house,
         sign: t.sign,
         tone: toneForMajor(t.planetId, t.house),
-        label: `${tName} over Moon`,
-        detail: `${tName} transits the sign of the natal Moon. Themes of mind and mood grow louder through the active mahadasha and antardasha.`,
+        label: tx(`${tName} over Moon`, H.moonLabel, { t: tHi }),
+        detail: tx(`${tName} transits the sign of the natal Moon. Themes of mind and mood grow louder through the active mahadasha and antardasha.`, H.moonDetail, { t: tHi }),
       })
     }
 
@@ -119,6 +131,7 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
       const lordName = GRAHA_NAMES[lord as GrahaId] ?? lord
       const layer =
         lord === mahaLord ? 'MD' : lord === antarLord ? 'AD' : 'PD'
+      const v = { t: tHi, layer: H.layer[layer], lord: GRAHA_HI[lord as GrahaId] ?? lord, sign: signHi, house: t.house }
 
       if (t.sign === natal.rashi) {
         push({
@@ -127,8 +140,8 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
           house: t.house,
           sign: t.sign,
           tone: toneForMajor(t.planetId, t.house),
-          label: `${tName} over ${layer} lord`,
-          detail: `${tName} transits natal ${lordName} (${layer}) in ${signName}. The transit heats the houses of the period lord.`,
+          label: tx(`${tName} over ${layer} lord`, H.overLabel, v),
+          detail: tx(`${tName} transits natal ${lordName} (${layer}) in ${signName}. The transit heats the houses of the period lord.`, H.overDetail, v),
         })
       } else if (hasParasharaAspect(t.sign, t.planetId, natal.rashi)) {
         push({
@@ -137,8 +150,8 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
           house: t.house,
           sign: t.sign,
           tone: toneForMajor(t.planetId, t.house),
-          label: `${tName} aspects ${layer} lord`,
-          detail: `Transiting ${tName}, in house ${t.house}, aspects natal ${lordName} (${layer}). Classically, that is a candidate for a dasha-and-transit trigger.`,
+          label: tx(`${tName} aspects ${layer} lord`, H.aspLabel, v),
+          detail: tx(`Transiting ${tName}, in house ${t.house}, aspects natal ${lordName} (${layer}). Classically, that is a candidate for a dasha-and-transit trigger.`, H.aspDetail, v),
         })
       }
     }
@@ -155,8 +168,8 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
           house: t.house,
           sign: t.sign,
           tone: [6, 8, 12].includes(t.house) ? 'caution' : 'mixed',
-          label: `${layer} lord transit H${t.house}`,
-          detail: `The active ${layer} lord, ${tName}, is now transiting house ${t.house} from the lagna. This is the live transit of the dasha planet.`,
+          label: tx(`${layer} lord transit H${t.house}`, H.selfLabel, { t: tHi, layer: H.layer[layer], house: t.house }),
+          detail: tx(`The active ${layer} lord, ${tName}, is now transiting house ${t.house} from the lagna. This is the live transit of the dasha planet.`, H.selfDetail, { t: tHi, layer: H.layer[layer], house: t.house }),
         })
       }
     }
@@ -172,9 +185,10 @@ export function analyzeDashaGochar(input: AnalyzeDashaGocharInput): DashaGocharO
   hits.sort((a, b) => rank(a) - rank(b))
 
   const top = hits.slice(0, 6)
+  const topLabels = top.slice(0, 3).map(h => h.label).join('; ')
   const summary = top.length
-    ? `Dasha × gochar: ${top.slice(0, 3).map(h => h.label).join('; ')}.`
-    : 'No major Ju/Sa/Ra/Ke gochar hits on MD/AD/Moon/lagna right now — dasha still runs; transit tone is quieter.'
+    ? tx(`Dasha × gochar: ${topLabels}.`, H.summary, { hits: topLabels })
+    : hi ? H.summaryNone : 'No major Ju/Sa/Ra/Ke gochar hits on MD/AD/Moon/lagna right now — dasha still runs; transit tone is quieter.'
 
   return {
     hits: top,

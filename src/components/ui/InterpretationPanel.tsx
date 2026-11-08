@@ -1,7 +1,11 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartInterpretation, InterpretationInsight } from '@/types/astrology'
+import { useChart } from '@/components/providers/ChartProvider'
+import { useLang } from '@/i18n/useLang'
+import { localizeChartInterpretation } from '@/lib/engine/advancedInterpretationLang'
 
 interface InterpretationPanelProps {
   interpretation: ChartInterpretation
@@ -17,11 +21,25 @@ function toneStyles(tone: InterpretationInsight['tone']) {
   return { bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.35)', text: '#a78bfa' }
 }
 
-export function InterpretationPanel({ interpretation }: InterpretationPanelProps) {
+export function InterpretationPanel({ interpretation: source }: InterpretationPanelProps) {
+  const t = useTranslations('planetsB.insights')
+  const { lang } = useLang()
+  const { chart } = useChart()
+  const interpretation = useMemo(
+    () =>
+      chart
+        ? localizeChartInterpretation(
+            source,
+            { grahas: chart.grahas, shadbala: chart.shadbala, ascRashi: chart.lagnas?.ascRashi },
+            lang,
+          )
+        : source,
+    [source, chart, lang],
+  )
   return (
     <div className="card" style={{ padding: '1rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
       <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)', marginBottom: '0.5rem' }}>
-        Interpretation Layer
+        {t('layer')}
       </div>
       <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.9rem' }}>
         {interpretation.headline}
@@ -42,7 +60,7 @@ export function InterpretationPanel({ interpretation }: InterpretationPanelProps
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.35rem' }}>
                 <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)' }}>{insight.title}</div>
                 <div style={{ fontSize: '0.58rem', color: color.text, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  {insight.category}
+                  {t(`category.${insight.category}`)}
                 </div>
               </div>
               <div style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -50,7 +68,7 @@ export function InterpretationPanel({ interpretation }: InterpretationPanelProps
               </div>
               {insight.actions?.length ? (
                 <div style={{ marginTop: '0.45rem', fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
-                  <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Practical Actions:</span> {insight.actions.join(' · ')}
+                  <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{t('actions')}</span> {insight.actions.join(' · ')}
                 </div>
               ) : null}
             </div>

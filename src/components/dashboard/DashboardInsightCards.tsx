@@ -15,9 +15,13 @@ import { analyzeMarriedLife } from '@/lib/engine/marriedLifeAnalysis'
 import { analyzeCareerMethod } from '@/lib/engine/careerMethod'
 import { getDoshaSnapshot, getRemedySnapshot, type DoshaTone } from '@/lib/engine/dashboardInsights'
 import { DashCard, DashEmpty, DashNote, DashRow, TONE_COLOR, type CardTone } from '@/components/dashboard/DashboardCardShell'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { termHi } from '@/i18n/jyotish'
+import { yogaNameHi } from '@/lib/engine/locale/yogas.hi'
 
 const DOSHA_TONE: Record<DoshaTone, CardTone> = { clear: 'good', watch: 'watch', strong: 'alert' }
-const DOSHA_WORD: Record<DoshaTone, string> = { clear: 'Clear', watch: 'Watch', strong: 'Notable' }
+const DOSHA_WORD: Record<DoshaTone, 'clear' | 'watch' | 'notable'> = { clear: 'clear', watch: 'watch', strong: 'notable' }
 
 // ── Doshas ───────────────────────────────────────────────────
 
@@ -28,29 +32,31 @@ export function DoshaSnapshotCard({
   chart: ChartOutput
   onOpenDosha?: () => void
 }) {
-  const snap = useMemo(() => getDoshaSnapshot(chart), [chart])
+  const t = useTranslations('chart.insights')
+  const { lang, hi } = useLang()
+  const snap = useMemo(() => getDoshaSnapshot(chart, lang), [chart, lang])
   if (!snap) {
-    return <DashCard title="Doshas & Afflictions"><DashEmpty>Unavailable. Recalculate the chart.</DashEmpty></DashCard>
+    return <DashCard title={t('doshaTitle')}><DashEmpty>{t('unavailable')}</DashEmpty></DashCard>
   }
   const shrapIds = new Set(['pitru', 'matru', 'sarpa', 'guru', 'brahmin', 'stri'])
   const coreFlags = snap.flags.filter(f => !shrapIds.has(f.id))
   const shrapFlags = snap.flags.filter(f => shrapIds.has(f.id))
   return (
-    <DashCard title="Doshas & Afflictions" meta="from Lagna">
+    <DashCard title={t('doshaTitle')} meta={t('fromLagna')}>
       {coreFlags.map(f => (
         <DashRow
           key={f.id}
           dot
           tone={DOSHA_TONE[f.tone]}
           label={f.label}
-          value={<><strong>{DOSHA_WORD[f.tone]}</strong> · {f.detail}</>}
+          value={<><strong>{t(DOSHA_WORD[f.tone])}</strong> · {f.detail}</>}
         />
       ))}
       {shrapFlags.length > 0 && (
         <div style={{ marginTop: '0.35rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
             <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-gold)' }}>
-              Shrap desk
+              {t('shrapDesk')}
             </span>
             {onOpenDosha ? (
               <button
@@ -58,7 +64,7 @@ export function DoshaSnapshotCard({
                 onClick={onOpenDosha}
                 style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
               >
-                Open full reading →
+                {t('openFull')}
               </button>
             ) : null}
           </div>
@@ -68,15 +74,15 @@ export function DoshaSnapshotCard({
               dot
               tone={DOSHA_TONE[f.tone]}
               label={f.label}
-              value={<><strong>{DOSHA_WORD[f.tone]}</strong> · {f.detail}</>}
+              value={<><strong>{t(DOSHA_WORD[f.tone])}</strong> · {f.detail}</>}
             />
           ))}
         </div>
       )}
       {snap.maleficYogas.length > 0 && (
-        <DashRow label="Malefic yogas" tone="watch" value={snap.maleficYogas.map(y => y.name).join(', ')} />
+        <DashRow label={t('maleficYogas')} tone="watch" value={snap.maleficYogas.map(y => (hi ? yogaNameHi(y.name) : y.name)).join(', ')} />
       )}
-      <DashNote>Indicators, not verdicts. Weigh them with dasha, aspects, and the full chart. Commercial Kal Sarp is not scored.</DashNote>
+      <DashNote>{t('doshaNote')}</DashNote>
     </DashCard>
   )
 }
@@ -84,35 +90,37 @@ export function DoshaSnapshotCard({
 // ── Remedies ─────────────────────────────────────────────────
 
 export function RemediesCard({ chart }: { chart: ChartOutput }) {
-  const snap = useMemo(() => getRemedySnapshot(chart), [chart])
+  const t = useTranslations('chart.insights')
+  const { hi, lang } = useLang()
+  const snap = useMemo(() => getRemedySnapshot(chart, Date.now(), lang), [chart, lang])
   if (!snap.moonNakshatra && snap.focus.length === 0) {
-    return <DashCard title="Remedies"><DashEmpty>Unavailable. Recalculate the chart.</DashEmpty></DashCard>
+    return <DashCard title={t('remediesTitle')}><DashEmpty>{t('unavailable')}</DashEmpty></DashCard>
   }
   const nak = snap.moonNakshatra
   return (
-    <DashCard title="Remedies & Lucky Data" meta={nak ? `Moon in ${nak.name}` : undefined}>
+    <DashCard title={t('remediesFull')} meta={nak ? t('moonIn', { name: hi ? termHi(nak.name) : nak.name }) : undefined}>
       {nak && (
         <>
-          <DashRow label="Mantra" value={nak.remedies.mantra} />
-          <DashRow label="Deity" value={nak.remedies.deity} />
-          <DashRow label="Color · Metal" value={`${nak.remedies.color} · ${nak.remedies.metal}`} />
-          <DashRow label="Charity" value={nak.remedies.charity} />
-          <DashRow label="Fasting" value={nak.remedies.fasting} />
+          <DashRow label={t('mantra')} value={nak.remedies.mantra} />
+          <DashRow label={t('deity')} value={nak.remedies.deity} />
+          <DashRow label={t('colorMetal')} value={`${nak.remedies.color} · ${nak.remedies.metal}`} />
+          <DashRow label={t('charity')} value={nak.remedies.charity} />
+          <DashRow label={t('fasting')} value={nak.remedies.fasting} />
         </>
       )}
       {snap.focus.map(f => (
         <div key={f.role} style={{ marginTop: '0.5rem' }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-gold)' }}>
-            {f.role} · {f.name}
+            {f.roleLabel ?? f.role} · {hi ? termHi(f.name) : f.name}
           </div>
-          <DashRow label="Day" value={f.remedy.day} />
-          <DashRow label="Mantra" value={f.remedy.mantra} />
-          <DashRow label="Stone" value={f.remedy.gemstone} />
-          <DashRow label="Give" value={f.remedy.charity} />
+          <DashRow label={t('day')} value={f.remedy.day} />
+          <DashRow label={t('mantra')} value={f.remedy.mantra} />
+          <DashRow label={t('stone')} value={f.remedy.gemstone} />
+          <DashRow label={t('give')} value={f.remedy.charity} />
         </div>
       ))}
       <DashNote>
-        Start with mantra, charity, and routine. Wear a gemstone only after a full chart review, since the wrong stone can strengthen a difficult planet.
+        {t('remediesNote')}
       </DashNote>
     </DashCard>
   )
@@ -123,12 +131,13 @@ export function RemediesCard({ chart }: { chart: ChartOutput }) {
 const VARGA_PILLS = ['D9', 'D10', 'D7', 'D12'] as const
 
 export function DivisionalSnapshotCard({ chart }: { chart: ChartOutput }) {
+  const t = useTranslations('chart.insights')
   const available = VARGA_PILLS.filter(v => chart.vargas?.[v]?.length)
   const [selected, setSelected] = useState<string>(available[0] ?? 'D9')
   const active = available.includes(selected as (typeof VARGA_PILLS)[number]) ? selected : available[0]
 
   if (!active) {
-    return <DashCard title="Divisional Charts"><DashEmpty>Unavailable. Recalculate the chart.</DashEmpty></DashCard>
+    return <DashCard title={t('divisionalTitle')}><DashEmpty>{t('unavailable')}</DashEmpty></DashCard>
   }
 
   const d1Asc = chart.lagnas.ascRashi as Rashi
@@ -137,8 +146,8 @@ export function DivisionalSnapshotCard({ chart }: { chart: ChartOutput }) {
   const moonNak = chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0
 
   return (
-    <DashCard title="Divisional Charts" meta={meta ? `${active} · ${meta.full}` : active}>
-      <div role="tablist" aria-label="Divisional chart" style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+    <DashCard title={t('divisionalTitle')} meta={meta ? `${active} · ${meta.full}` : active}>
+      <div role="tablist" aria-label={t('divisionalTabs')} style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
         {available.map(v => {
           const on = v === active
           return (
@@ -199,6 +208,7 @@ function LifeHighlightsBody({ chart, onOpenRelationship, onOpenCareer }: {
   onOpenRelationship?: () => void
   onOpenCareer?: () => void
 }) {
+  const t = useTranslations('chart.insights')
   const marriage = useMemo(() => analyzeMarriedLife(chart), [chart])
   const career = useMemo(() => analyzeCareerMethod(chart), [chart])
   const link = (label: string, fn?: () => void) =>
@@ -212,8 +222,8 @@ function LifeHighlightsBody({ chart, onOpenRelationship, onOpenCareer }: {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
       <section>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-gold)' }}>Relationship</span>
-          {link('Open →', onOpenRelationship)}
+          <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-gold)' }}>{t('relationship')}</span>
+          {link(t('open'), onOpenRelationship)}
         </div>
         {marriage ? (
           <>
@@ -233,13 +243,13 @@ function LifeHighlightsBody({ chart, onOpenRelationship, onOpenCareer }: {
               ))}
             </div>
           </>
-        ) : <DashEmpty>Unavailable.</DashEmpty>}
+        ) : <DashEmpty>{t('unavailableShort')}</DashEmpty>}
       </section>
 
       <section style={{ borderTop: '1px solid var(--border-soft)', paddingTop: '0.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-gold)' }}>Career</span>
-          {link('Open →', onOpenCareer)}
+          <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-gold)' }}>{t('career')}</span>
+          {link(t('open'), onOpenCareer)}
         </div>
         {career ? (
           <>
@@ -248,10 +258,10 @@ function LifeHighlightsBody({ chart, onOpenRelationship, onOpenCareer }: {
               <strong>{career.dominant.planet}.</strong> {career.dominant.principle}
             </div>
             <div style={{ marginTop: '0.35rem', fontSize: '0.64rem', color: TONE_COLOR[TONE_OF[career.d10.tone]] }}>
-              D10: {career.d10.verdict}
+              {t('d10', { verdict: career.d10.verdict })}
             </div>
           </>
-        ) : <DashEmpty>Unavailable.</DashEmpty>}
+        ) : <DashEmpty>{t('unavailableShort')}</DashEmpty>}
       </section>
     </div>
   )
@@ -264,10 +274,11 @@ export function LifeHighlightsCard({ chart, userPlan = 'free', onOpenRelationshi
   onOpenCareer?: () => void
 }) {
   // Real content is only rendered for Gold+, so a locked card never ships readings into the DOM.
+  const t = useTranslations('chart.insights')
   const unlocked = planMeetsUiGate(userPlan, 'gold')
   return (
-    <DashCard title="Relationship & Career">
-      <PlanGate userPlan={userPlan} required="gold" featureName="Relationship and career highlights">
+    <DashCard title={t('lifeTitle')}>
+      <PlanGate userPlan={userPlan} required="gold" featureName={t('lifeFeature')}>
         {unlocked
           ? <LifeHighlightsBody chart={chart} onOpenRelationship={onOpenRelationship} onOpenCareer={onOpenCareer} />
           : <LockedPlaceholder />}

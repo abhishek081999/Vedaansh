@@ -8,6 +8,7 @@ import React, { useCallback, useState } from 'react'
 import type { CareerTone } from '@/lib/engine/dashamsaAnalysis'
 import type { DashamsaSynthesis } from '@/lib/engine/dashamsaSynthesis'
 import { cn } from '@/lib/ui/cn'
+import { useTranslations } from 'next-intl'
 import styles from './DashamsaWorkspace.module.css'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -36,6 +37,7 @@ function confidenceClass(c: DashamsaSynthesis['profession']['confidence']): stri
 }
 
 export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynthesis }) {
+  const t = useTranslations('divisional.d10.sy')
   const [copied, setCopied] = useState(false)
   const { profession, a10, track, foreign, boss, vimsopaka, annual, transit, windows, brief } = synthesis
 
@@ -61,17 +63,17 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
 
   return (
     <>
-      <Section title="Career synthesis">
+      <Section title={t('title')}>
         <p className={styles.heroSub} style={{ marginBottom: '0.65rem', maxWidth: 'none' }}>
           {synthesis.framing}
         </p>
         <article className={cn(styles.insightCard, styles.insightHighlight)}>
-          <h4 className={styles.insightTitle}>Headline</h4>
+          <h4 className={styles.insightTitle}>{t('headline')}</h4>
           <p className={styles.insightText}>{synthesis.headline}</p>
         </article>
       </Section>
 
-      <Section title="Profession card">
+      <Section title={t('profession')}>
         <article className={cn(styles.insightCard, confidenceClass(profession.confidence))} style={{ marginBottom: '0.65rem' }}>
           <h4 className={styles.insightTitle}>
             {profession.headline}
@@ -89,8 +91,8 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Field</th>
-                <th>Sources agreeing</th>
+                <th>{t('thField')}</th>
+                <th>{t('thSources')}</th>
               </tr>
             </thead>
             <tbody>
@@ -109,12 +111,12 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
         </div>
         {profession.digpalaFields.length > 0 && (
           <p style={{ margin: '0.55rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Digpala fields: {profession.digpalaFields.join(' · ')}
+            {t('digpalaFields', { list: profession.digpalaFields.join(' · ') })}
           </p>
         )}
       </Section>
 
-      <Section title="A10 · Rajya Pada">
+      <Section title={t('a10')}>
         <article className={cn(styles.insightCard, styles.insightHighlight)}>
           <h4 className={styles.insightTitle}>{a10.headline}</h4>
           <p className={styles.insightText}>{a10.prediction}</p>
@@ -125,7 +127,7 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
         </article>
       </Section>
 
-      <Section title="Job vs business · Foreign · Boss">
+      <Section title={t('trackForeignBoss')}>
         <div className={styles.insightGrid}>
           <article className={cn(styles.insightCard, track.id === 'hybrid' ? styles.insightHighlight : styles.insightStrength)}>
             <h4 className={styles.insightTitle}>
@@ -158,7 +160,7 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
         </div>
       </Section>
 
-      <Section title="Strength · Year · Gochara">
+      <Section title={t('strengthYear')}>
         <div className={styles.insightGrid}>
           <article className={cn(styles.insightCard, vimsopaka.available ? styles.insightStrength : styles.insightInfo)}>
             <h4 className={styles.insightTitle}>{vimsopaka.headline}</h4>
@@ -167,12 +169,12 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
               <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {vimsopaka.tenthLord && (
                   <span className={cn(styles.pill, styles.pillPk)}>
-                    10L {vimsopaka.tenthLord.name} D10 {vimsopaka.tenthLord.d10Points}
+                    {t('tenthLordPill', { name: vimsopaka.tenthLord.name, points: vimsopaka.tenthLord.d10Points })}
                   </span>
                 )}
                 {vimsopaka.lagnaLord && (
                   <span className={cn(styles.pill, styles.pillVg)}>
-                    AL {vimsopaka.lagnaLord.name} D10 {vimsopaka.lagnaLord.d10Points}
+                    {t('lagnaLordPill', { name: vimsopaka.lagnaLord.name, points: vimsopaka.lagnaLord.d10Points })}
                   </span>
                 )}
               </div>
@@ -183,13 +185,13 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
             <p className={styles.insightText}>{annual.prediction}</p>
             <p style={{ margin: '0.45rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
               {annual.source}
-              {annual.openSolarReturn ? ' · Open Solar Return for full Varshaphal D10.' : ''}
+              {annual.openSolarReturn ? t('openSolarReturn') : ''}
             </p>
           </article>
           <article className={cn(styles.insightCard, transit.available ? styles.insightHighlight : styles.insightInfo)}>
             <h4 className={styles.insightTitle}>{transit.headline}</h4>
             <p className={styles.insightText}>{transit.prediction}</p>
-            <p style={{ margin: '0.35rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>As of {transit.asOf}</p>
+            <p style={{ margin: '0.35rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t('asOf', { date: transit.asOf })}</p>
           </article>
         </div>
         {transit.hits.length > 0 && (
@@ -207,9 +209,9 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
         )}
       </Section>
 
-      <Section title="Dasha windows">
+      <Section title={t('dashaWindows')}>
         {windows.length === 0 ? (
-          <p className={styles.heroSub}>No Vimshottari path on this chart.</p>
+          <p className={styles.heroSub}>{t('noVimshottari')}</p>
         ) : (
           <div className={styles.insightGrid}>
             {windows.map((w) => (
@@ -228,13 +230,13 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
         )}
       </Section>
 
-      <Section title="Career brief">
+      <Section title={t('brief')}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
           <button type="button" className={styles.tabBtn} onClick={copyBrief}>
-            {copied ? 'Copied' : 'Copy Markdown brief'}
+            {copied ? t('copied') : t('copyBrief')}
           </button>
           <button type="button" className={styles.tabBtn} onClick={downloadBrief}>
-            Download .md
+            {t('downloadMd')}
           </button>
         </div>
         <div className={styles.insightGrid}>
@@ -246,7 +248,7 @@ export function DashamsaSynthesisPanel({ synthesis }: { synthesis: DashamsaSynth
           ))}
         </div>
         <p style={{ margin: '0.65rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-          Paste into notes or a client PDF. Full chart PDF export remains on the toolbar (Gold+).
+          {t('briefFoot')}
         </p>
       </Section>
     </>

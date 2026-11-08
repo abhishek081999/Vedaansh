@@ -5,8 +5,8 @@
 //  Manas, Paksha Bali — Free overview · Gold+ full sections
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   BookOpen,
   Brain,
@@ -23,6 +23,9 @@ import { MoonPhase, SegmentRing } from '@/components/ui/viz'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 
 type SubTab = 'overview' | 'foundations' | 'kalas' | 'manas' | 'analysis' | 'pastlife'
 type KalaView = 'both' | 'chandra' | 'tripura'
@@ -45,7 +48,9 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const [kalaView, setKalaView] = useState<KalaView>('both')
-  const data = useMemo(() => analyzeMoonKalasManas(chart), [chart])
+  const t = useTranslations('planetsA.moon')
+  const { lang, hi } = useLang()
+  const data = useMemo(() => analyzeMoonKalasManas(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -57,7 +62,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Moon data unavailable for this chart.
+        {t('unavailable')}
       </div>
     )
   }
@@ -75,10 +80,11 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
 
   const activeInsights = data.chartInsights.filter(i => i.active)
   const possessionTitle = data.possessedCount >= 16
-    ? 'All 16 kalas possessed'
+    ? t('possAll')
     : data.possessionMode === 'accumulated'
-      ? `Possessed kalas 1–${data.possessedCount}`
-      : `${data.possessedCount} of 16 remaining`
+      ? t('possAcc', { n: data.possessedCount })
+      : t('possRem', { n: data.possessedCount })
+  const pakshaWord = data.paksha === 'shukla' ? t('shukla') : t('krishna')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -95,29 +101,28 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: Paksha Bali, cumulative kalas (Chandra + Tripura), and primary manas.
-            Gold unlocks full 16×2 kala tables, seven manas, analysis framework, and past-life.
+            {t('freeNote')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{t('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{data.moon.rashiName} · H{data.moon.house}</Pill>
-        <Pill>{data.moon.nakshatraName} P{data.moon.pada}</Pill>
-        <Pill>{data.moon.degreeInSign.toFixed(1)}° · {data.moon.dignity}</Pill>
-        <Pill>{data.tithiName} · {data.paksha === 'shukla' ? 'Shukla' : 'Krishna'}</Pill>
+        <Pill gold>{data.moon.rashiName} · {t('houseShort', { n: data.moon.house })}</Pill>
+        <Pill>{data.moon.nakshatraName} {t('padaShort', { n: data.moon.pada })}</Pill>
+        <Pill>{data.moon.degreeInSign.toFixed(1)}° · {hi ? dignityHi(data.moon.dignity) : data.moon.dignity}</Pill>
+        <Pill>{data.tithiName} · {pakshaWord}</Pill>
         <Pill gold>{possessionTitle}</Pill>
         <Pill teal={data.pakshaBali.band === 'full'} warn={data.pakshaBali.band === 'weakest' || data.pakshaBali.band === 'waning'}>
           {data.pakshaBali.label}
         </Pill>
-        {data.isAmavasya && <Pill warn>Amavasya</Pill>}
-        {data.isPurnima && <Pill teal>Purnima</Pill>}
-        {data.neechaBhanga.cancelled && <Pill teal>Neecha Bhanga</Pill>}
-        {data.neechaBhanga.isDebilitated && !data.neechaBhanga.cancelled && <Pill warn>Debilitated</Pill>}
-        {data.grahanYoga.active && <Pill warn>Grahan Yoga</Pill>}
+        {data.isAmavasya && <Pill warn>{t('amavasya')}</Pill>}
+        {data.isPurnima && <Pill teal>{t('purnima')}</Pill>}
+        {data.neechaBhanga.cancelled && <Pill teal>{t('neechaBhanga')}</Pill>}
+        {data.neechaBhanga.isDebilitated && !data.neechaBhanga.cancelled && <Pill warn>{t('debilitated')}</Pill>}
+        {data.grahanYoga.active && <Pill warn>{t('grahanYoga')}</Pill>}
       </div>
 
       <div
@@ -133,19 +138,19 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Moon analysis sections"
+        aria-label={t('sectionsAria')}
       >
-        {SUB_TABS.map(t => {
-          const locked = !showFull && !t.free
-          const active = sub === t.id
+        {SUB_TABS.map(tab => {
+          const locked = !showFull && !tab.free
+          const active = sub === tab.id
           return (
             <button
-              key={t.id}
+              key={tab.id}
               type="button"
               role="tab"
               aria-selected={active}
               disabled={locked}
-              onClick={() => select(t.id)}
+              onClick={() => select(tab.id)}
               style={{
                 flex: '1 1 auto',
                 padding: '0.42rem 0.55rem',
@@ -164,8 +169,8 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
                 whiteSpace: 'nowrap',
               }}
             >
-              <t.Icon size={13} aria-hidden />
-              <span className="moon-tab-full">{t.label}</span>
+              <tab.Icon size={13} aria-hidden />
+              <span className="moon-tab-full">{t(`tab_${tab.id}`)}</span>
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -175,7 +180,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Paksha Bali</Label>
+            <Label>{t('pakshaBali')}</Label>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: baliColor }}>
                 {data.pakshaBali.label}
@@ -202,12 +207,12 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
               {data.pakshaBali.detail}
             </p>
             <p style={{ margin: '0.4rem 0 0', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-              Moon is {data.housesFromSun} house(s) from Sun (~{data.housesFromSun} tithi, ±1–2 OK) · elongation {data.elongationDeg.toFixed(1)}°.
+              {t('housesFromSun', { n: data.housesFromSun, deg: data.elongationDeg.toFixed(1) })}
             </p>
           </Card>
 
           <Card>
-            <Label>Kalas at birth (cumulative)</Label>
+            <Label>{t('kalasAtBirth')}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {possessionTitle}
             </div>
@@ -228,19 +233,19 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
                     max: 1,
                     color: 'var(--gold)',
                     active: i + 1 === data.activeChandraKala.number,
-                    title: `Kala ${i + 1}${i < data.possessedCount ? ' — possessed' : ''}`,
+                    title: i < data.possessedCount ? t('kalaPossessed', { n: i + 1 }) : t('kalaTitle', { n: i + 1 }),
                   }))}
                   thickness={16}
                   size={170}
                   centerValue={data.possessedCount}
-                  centerLabel="of 16 kalas"
-                  ariaLabel={`${data.possessedCount} of 16 kalas possessed`}
+                  centerLabel={t('of16')}
+                  ariaLabel={t('possessedAria', { n: data.possessedCount })}
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <MoonPhase tithi={Math.floor((((data.elongationDeg % 360) + 360) % 360) / 12) + 1} size={72} />
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{data.tithiName}</span>
-                <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{data.paksha === 'shukla' ? 'Shukla' : 'Krishna'} paksha · {data.elongationDeg.toFixed(0)}°</span>
+                <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{t('pakshaDeg', { paksha: pakshaWord, deg: data.elongationDeg.toFixed(0) })}</span>
               </div>
             </div>
             <div style={{
@@ -250,13 +255,13 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
               gap: '0.65rem',
             }}>
               <PossessedList
-                title="Chandra Kalas (Moon)"
+                title={t('chandraKalas')}
                 items={data.possessedChandraKalas}
                 leadingNumber={data.activeChandraKala.number}
                 total={16}
               />
               <PossessedList
-                title="Tripura Sundari Kalas"
+                title={t('tripuraKalas')}
                 items={data.possessedTripuraKalas}
                 leadingNumber={data.activeTripuraKala.number}
                 total={16}
@@ -264,13 +269,13 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
             </div>
             {!showFull && (
               <div style={{ marginTop: '0.55rem', fontSize: '0.65rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Lock size={12} aria-hidden /> Open 16 Kalas tab on Gold for full meanings of all 16 in both systems
+                <Lock size={12} aria-hidden /> {t('openKalasGold')}
               </div>
             )}
           </Card>
 
           <Card>
-            <Label>Primary Manas</Label>
+            <Label>{t('primaryManas')}</Label>
             <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
               {data.primaryManas.name}
             </div>
@@ -279,14 +284,14 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
             </p>
             {data.manasScores[0]?.reasons.length > 0 && (
               <div style={{ marginTop: '0.5rem', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                Why: {data.manasScores[0].reasons.join(' · ')}
+                {t('why', { reasons: data.manasScores[0].reasons.join(' · ') })}
               </div>
             )}
           </Card>
 
           {activeInsights.length > 0 && (
             <Card>
-              <Label>Active chart notes</Label>
+              <Label>{t('activeNotes')}</Label>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {activeInsights.slice(0, showFull ? 4 : 2).map(i => (
                   <li key={i.id}><strong style={{ color: 'var(--text-primary)' }}>{i.title}</strong> — {i.detail}</li>
@@ -296,7 +301,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
           )}
 
           <Card>
-            <Label>Mind significations</Label>
+            <Label>{t('mindSig')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.psychology.positive.slice(0, showFull ? 99 : 4).map(p => <li key={p}>{p}</li>)}
             </ul>
@@ -306,11 +311,11 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
           </Card>
 
           {!showFull && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Moon Kalas & Manas full analysis">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('gateFeature')}>
               <div style={{ minHeight: 120, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Locked on Free</div>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('lockedFree')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Foundations · full Chandra + Tripura tables · seven manas · 8-step analysis · Neecha Bhanga · past-life
+                  {t('lockedList')}
                 </div>
               </div>
             </PlanGate>
@@ -321,7 +326,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
       {showFull && sub === 'foundations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Basic Moon information</Label>
+            <Label>{t('basicInfo')}</Label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
@@ -329,11 +334,11 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
               fontSize: '0.72rem',
             }}>
               {([
-                ['Own sign', data.basicInfo.ownSign],
-                ['Exaltation', data.basicInfo.exaltation],
-                ['Debilitation', data.basicInfo.debilitation],
-                ['Transit / sign', data.basicInfo.transitPerSign],
-                ['Nakshatras', data.basicInfo.nakshatrasOwned],
+                [t('ownSign'), data.basicInfo.ownSign],
+                [t('exaltation'), data.basicInfo.exaltation],
+                [t('debilitation'), data.basicInfo.debilitation],
+                [t('transit'), data.basicInfo.transitPerSign],
+                [t('nakshatras'), data.basicInfo.nakshatrasOwned],
               ] as const).map(([k, v]) => (
                 <div key={k} style={{ padding: '0.4rem 0.5rem', background: 'var(--surface-3)', borderRadius: 'var(--r-sm)' }}>
                   <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>{k}</div>
@@ -344,14 +349,14 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
             {(data.moon.nearExaltPeak || data.moon.nearDebilPeak) && (
               <p style={{ margin: '0.55rem 0 0', fontSize: '0.7rem', color: data.moon.nearExaltPeak ? 'var(--teal)' : 'var(--rose)' }}>
                 {data.moon.nearExaltPeak
-                  ? `Near exaltation peak (0–3° Taurus) — currently ${data.moon.degreeInSign.toFixed(1)}°.`
-                  : `Near debilitation peak (0–3° Scorpio) — currently ${data.moon.degreeInSign.toFixed(1)}°.`}
+                  ? t('nearExalt', { deg: data.moon.degreeInSign.toFixed(1) })
+                  : t('nearDebil', { deg: data.moon.degreeInSign.toFixed(1) })}
               </p>
             )}
           </Card>
 
           <Card>
-            <Label>Moon significations</Label>
+            <Label>{t('moonSig')}</Label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
@@ -369,24 +374,23 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
           </Card>
 
           <Card>
-            <Label>How kalas accumulate</Label>
+            <Label>{t('howAccumulate')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              <li>From Amavasya the Moon gathers kalas one by one (~12° / one tithi each).</li>
-              <li>Shukla Ashtami birth → you have kalas <strong style={{ color: 'var(--text-primary)' }}>1 through 8</strong>, not only the 8th.</li>
-              <li>Purnima birth → you have <strong style={{ color: 'var(--text-primary)' }}>all 16</strong>, not only the 16th.</li>
-              <li>Krishna paksha → the set wanes from the full 16 toward Amavasya.</li>
-              <li>Chandra and Tripura Sundari share the same count; names differ by tradition.</li>
+              <li>{t('acc1')}</li>
+              <li>{t('acc2a')}<strong style={{ color: 'var(--text-primary)' }}>{t('acc2b')}</strong>{t('acc2c')}</li>
+              <li>{t('acc3a')}<strong style={{ color: 'var(--text-primary)' }}>{t('acc3b')}</strong>{t('acc3c')}</li>
+              <li>{t('acc4')}</li>
+              <li>{t('acc5')}</li>
             </ul>
             <p style={{ margin: '0.55rem 0 0', fontSize: '0.72rem', color: 'var(--text-primary)' }}>
-              This chart: {data.tithiName} ({data.paksha === 'shukla' ? 'Shukla' : 'Krishna'}) → {possessionTitle}.
+              {t('thisChart', { tithi: data.tithiName, paksha: pakshaWord, title: possessionTitle })}
             </p>
           </Card>
 
           <Card>
-            <Label>Paksha determination</Label>
+            <Label>{t('pakshaDet')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              With Sun = Amavasya; 180° = Purnima. 0°→180° = Shukla; 180°→360° = Krishna.
-              Each house ≈ 12–13° ≈ 1 tithi. This chart: Moon is {data.housesFromSun} house(s) from Sun.
+              {t('pakshaDetText', { n: data.housesFromSun })}
             </p>
           </Card>
 
@@ -409,9 +413,9 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
           ))}
 
           <Card>
-            <Label>Teaching quotes</Label>
+            <Label>{t('teachingQuotes')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              {data.teachingQuotes.map(t => <li key={t}>{t}</li>)}
+              {data.teachingQuotes.map(q => <li key={q}>{q}</li>)}
             </ul>
           </Card>
         </div>
@@ -439,7 +443,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
       {showFull && sub === 'manas' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            All seven manas stages. Primary for this chart is highlighted; scores come from natal Moon nakshatra, house, and yogas.
+            {t('manasIntro')}
           </p>
           {data.manasStages.map(stage => {
             const score = data.manasScores.find(s => s.id === stage.id)
@@ -459,18 +463,18 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <div style={{ fontWeight: 800, fontSize: '0.88rem', color: isPrimary ? 'var(--text-gold)' : 'var(--text-primary)' }}>
                     {stage.name}
-                    {isPrimary && <span style={{ fontSize: '0.6rem', marginLeft: 8, fontWeight: 700 }}>PRIMARY</span>}
-                    {!isPrimary && isActive && <span style={{ fontSize: '0.6rem', marginLeft: 8, fontWeight: 700, color: 'var(--teal)' }}>ACTIVE</span>}
+                    {isPrimary && <span style={{ fontSize: '0.6rem', marginLeft: 8, fontWeight: 700 }}>{t('primary')}</span>}
+                    {!isPrimary && isActive && <span style={{ fontSize: '0.6rem', marginLeft: 8, fontWeight: 700, color: 'var(--teal)' }}>{t('active')}</span>}
                   </div>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Score {score?.score ?? 0}</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{t('score', { n: score?.score ?? 0 })}</span>
                 </div>
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                   {stage.meaning}
                 </p>
-                <div style={{ marginTop: 6, fontSize: '0.66rem', color: 'var(--text-muted)' }}>Planets: {stage.planets}</div>
+                <div style={{ marginTop: 6, fontSize: '0.66rem', color: 'var(--text-muted)' }}>{t('planets', { list: stage.planets })}</div>
                 {score && score.reasons.length > 0 && (
                   <div style={{ marginTop: 4, fontSize: '0.66rem', color: 'var(--teal)' }}>
-                    Chart: {score.reasons.join(' · ')}
+                    {t('chartReasons', { reasons: score.reasons.join(' · ') })}
                   </div>
                 )}
                 <div style={{
@@ -483,14 +487,14 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
                   lineHeight: 1.4,
                 }}>
                   <Flame size={12} style={{ verticalAlign: '-2px', marginRight: 4 }} aria-hidden />
-                  Remedy: {stage.remedy}
+                  {t('remedy', { text: stage.remedy })}
                 </div>
               </div>
             )
           })}
 
           <Card>
-            <Label>When the Moon is under pressure</Label>
+            <Label>{t('underPressure')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.psychology.negativeWhenAfflicted.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -501,11 +505,11 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
       {showFull && sub === 'analysis' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            Eight-step Moon analysis framework — stay on Moon until each step is checked.
+            {t('analysisIntro')}
           </p>
 
           <Card>
-            <Label>Neecha Bhanga</Label>
+            <Label>{t('neechaBhanga')}</Label>
             <p style={{
               margin: 0,
               fontSize: '0.78rem',
@@ -564,7 +568,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
             </div>
           ))}
 
-          <Label>Chart insights (active highlighted)</Label>
+          <Label>{t('insightsLabel')}</Label>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
@@ -589,7 +593,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
                     textTransform: 'uppercase',
                     color: insight.active ? 'var(--text-gold)' : 'var(--text-muted)',
                   }}>
-                    {insight.active ? 'Active' : '—'}
+                    {insight.active ? t('activeWord') : '—'}
                   </span>
                 </div>
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -604,7 +608,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
       {showFull && sub === 'pastlife' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Grahan Yoga</Label>
+            <Label>{t('grahanYoga')}</Label>
             <p style={{
               margin: 0,
               fontSize: '0.78rem',
@@ -639,7 +643,7 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
                     textTransform: 'uppercase',
                     color: f.active ? 'var(--rose)' : 'var(--text-muted)',
                   }}>
-                    {f.active ? 'Active' : 'Not indicated'}
+                    {f.active ? t('activeWord') : t('notIndicated')}
                   </span>
                 </div>
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -650,9 +654,9 @@ export function MoonKalasManasPanel({ chart, userPlan = 'free' }: MoonKalasManas
           </div>
 
           <Card>
-            <Label>Reading emphasis</Label>
+            <Label>{t('readingEmphasis')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              {data.chartReadingTips.map(t => <li key={t}>{t}</li>)}
+              {data.chartReadingTips.map(tip => <li key={tip}>{tip}</li>)}
             </ul>
             <p style={{ margin: '0.65rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
               {data.gocharNote}
@@ -673,6 +677,7 @@ function PossessionStrip({
   leading: number
   mode: 'accumulated' | 'remaining'
 }) {
+  const t = useTranslations('planetsA.moon')
   return (
     <div style={{ marginTop: '0.7rem' }}>
       <div style={{
@@ -685,7 +690,7 @@ function PossessionStrip({
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
       }}>
-        <span>{mode === 'accumulated' ? 'Amavasya → birth tithi' : 'Remaining from Purnima'}</span>
+        <span>{mode === 'accumulated' ? t('stripAcc') : t('stripRem')}</span>
         <span>{count}/16</span>
       </div>
       <div style={{
@@ -693,7 +698,7 @@ function PossessionStrip({
         gridTemplateColumns: 'repeat(16, minmax(0, 1fr))',
         gap: 3,
       }}
-        aria-label={`${count} of 16 kalas possessed`}
+        aria-label={t('possessedAria', { n: count })}
       >
         {Array.from({ length: 16 }, (_, i) => {
           const n = i + 1
@@ -702,7 +707,7 @@ function PossessionStrip({
           return (
             <div
               key={n}
-              title={`Kala ${n}`}
+              title={t('kalaTitle', { n })}
               style={{
                 height: 10,
                 borderRadius: 2,
@@ -725,9 +730,9 @@ function PossessionStrip({
         color: 'var(--text-muted)',
         flexWrap: 'wrap',
       }}>
-        <span><i style={{ display: 'inline-block', width: 8, height: 8, background: 'var(--teal)', borderRadius: 1, marginRight: 4 }} />Yours</span>
-        <span><i style={{ display: 'inline-block', width: 8, height: 8, background: 'var(--gold)', borderRadius: 1, marginRight: 4 }} />Leading edge</span>
-        <span><i style={{ display: 'inline-block', width: 8, height: 8, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 1, marginRight: 4 }} />Not yet / gone</span>
+        <span><i style={{ display: 'inline-block', width: 8, height: 8, background: 'var(--teal)', borderRadius: 1, marginRight: 4 }} />{t('yours')}</span>
+        <span><i style={{ display: 'inline-block', width: 8, height: 8, background: 'var(--gold)', borderRadius: 1, marginRight: 4 }} />{t('leadingEdge')}</span>
+        <span><i style={{ display: 'inline-block', width: 8, height: 8, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 1, marginRight: 4 }} />{t('notYet')}</span>
       </div>
     </div>
   )
@@ -744,6 +749,7 @@ function PossessedList({
   leadingNumber: number
   total: number
 }) {
+  const t = useTranslations('planetsA.moon')
   return (
     <div style={{
       padding: '0.65rem 0.7rem',
@@ -795,7 +801,7 @@ function PossessedList({
                 </span>
                 {lead && (
                   <span style={{ fontSize: '0.52rem', fontWeight: 800, color: 'var(--text-gold)', letterSpacing: '0.06em' }}>
-                    LEAD
+                    {t('lead')}
                   </span>
                 )}
               </div>
@@ -847,10 +853,11 @@ function KalasSection({
   tripuraNote: string
   worshipNote: string
 }) {
+  const t = useTranslations('planetsA.moon')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <Card>
-        <Label>{possessionMode === 'accumulated' ? 'Possessed at birth' : 'Remaining after Purnima'}</Label>
+        <Label>{possessionMode === 'accumulated' ? t('possessedAtBirth') : t('remainingAfter')}</Label>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-gold)' }}>
           {possessionTitle}
         </div>
@@ -863,15 +870,14 @@ function KalasSection({
           mode={possessionMode}
         />
         <p style={{ margin: '0.55rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          {paksha === 'shukla' ? 'Shukla — accumulating from Amavasya' : 'Krishna — waning from Purnima'}
-          {' · '}Leading: Chandra {activeChandra.number}. {activeChandra.name}
-          {' ↔ '}Tripura {activeTripura.number}. {activeTripura.name}
+          {paksha === 'shukla' ? t('shuklaAcc') : t('krishnaWane')}
+          {t('leadingPair', { cn: activeChandra.number, cname: activeChandra.name, tn: activeTripura.number, tname: activeTripura.name })}
         </p>
       </Card>
 
       <div
         role="tablist"
-        aria-label="Kala display"
+        aria-label={t('kalaDisplay')}
         style={{
           display: 'inline-flex',
           alignSelf: 'flex-start',
@@ -884,9 +890,9 @@ function KalasSection({
         }}
       >
         {([
-          { id: 'both' as const, label: 'Both systems' },
-          { id: 'chandra' as const, label: 'Chandra only' },
-          { id: 'tripura' as const, label: 'Tripura only' },
+          { id: 'both' as const, label: t('both') },
+          { id: 'chandra' as const, label: t('chandraOnly') },
+          { id: 'tripura' as const, label: t('tripuraOnly') },
         ]).map(opt => {
           const on = kalaView === opt.id
           return (
@@ -916,7 +922,7 @@ function KalasSection({
       {kalaView === 'both' && (
         <>
           <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-            Same number = same elongation band. Green / gold rows are yours; dim rows are not possessed at birth.
+            {t('bothIntro')}
             {chandraNote} {tripuraNote}
           </p>
           <div style={{
@@ -939,9 +945,9 @@ function KalasSection({
               color: 'var(--text-muted)',
             }}>
               <span>#</span>
-              <span>Chandra (Moon)</span>
-              <span>Tripura Sundari</span>
-              <span>Status</span>
+              <span>{t('colChandra')}</span>
+              <span>{t('colTripura')}</span>
+              <span>{t('colStatus')}</span>
             </div>
             {chandraKalas.map((ck, i) => {
               const tk = tripuraKalas[i]
@@ -994,7 +1000,7 @@ function KalasSection({
                     color: isLeading ? 'var(--text-gold)' : possessed ? 'var(--teal)' : 'var(--text-muted)',
                     paddingTop: 2,
                   }}>
-                    {isLeading ? 'LEAD' : possessed ? 'YOURS' : '—'}
+                    {isLeading ? t('lead') : possessed ? t('yoursCaps') : '—'}
                   </div>
                 </div>
               )
@@ -1035,8 +1041,8 @@ function KalasSection({
                     color: isLeading ? 'var(--text-gold)' : possessed ? 'var(--teal)' : 'var(--text-muted)',
                   }}>
                     {k.number}. {k.name}
-                    {isLeading && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>LEAD</span>}
-                    {!isLeading && possessed && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>YOURS</span>}
+                    {isLeading && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{t('lead')}</span>}
+                    {!isLeading && possessed && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{t('yoursCaps')}</span>}
                   </span>
                   <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{k.fromDeg}°</span>
                 </div>
@@ -1050,7 +1056,7 @@ function KalasSection({
       )}
 
       <Card>
-        <Label>Worship note</Label>
+        <Label>{t('worship')}</Label>
         <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
           {worshipNote}
         </p>

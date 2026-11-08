@@ -6,6 +6,14 @@
 
 import type { Rashi } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
+import { overlay, type EngineLang } from '@/lib/engine/lang'
+import { RASHI_HI } from '@/i18n/jyotish'
+import {
+  LAGNA_ELEMENTS_HI,
+  LAGNA_SPIRITUAL_PRINCIPLES_HI,
+  LAGNA_SPIRITUAL_PROFILES_HI,
+  LAGNA_SPIRITUALITY_NOTE_HI,
+} from '@/lib/engine/locale/lagnaSpirituality.hi'
 
 export type LagnaElementId = 'fire' | 'earth' | 'air' | 'water'
 
@@ -319,28 +327,37 @@ const RASHI_ORDER: Rashi[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
 function withNames(
   base: Omit<LagnaSpiritualProfile, 'name' | 'sanskrit'>,
+  lang: EngineLang = 'en',
 ): LagnaSpiritualProfile {
-  return {
+  const en: LagnaSpiritualProfile = {
     ...base,
     name: RASHI_NAMES[base.rashi],
     sanskrit: RASHI_SANSKRIT[base.rashi],
   }
+  if (lang !== 'hi') return en
+  return { ...overlay(en, LAGNA_SPIRITUAL_PROFILES_HI[base.rashi], lang), name: RASHI_HI[base.rashi], sanskrit: RASHI_NAMES[base.rashi] }
 }
 
-export function getLagnaElement(rashi: Rashi): LagnaElementProfile {
-  return LAGNA_ELEMENTS[RASHI_TO_LAGNA_ELEMENT[rashi]]
+export function getLagnaElement(rashi: Rashi, lang: EngineLang = 'en'): LagnaElementProfile {
+  const id = RASHI_TO_LAGNA_ELEMENT[rashi]
+  return overlay(LAGNA_ELEMENTS[id], LAGNA_ELEMENTS_HI[id], lang)
 }
 
-export function getLagnaSpiritualProfile(rashi: Rashi): LagnaSpiritualProfile {
-  return withNames(LAGNA_PROFILES[rashi])
+export function getLagnaSpiritualProfile(rashi: Rashi, lang: EngineLang = 'en'): LagnaSpiritualProfile {
+  return withNames(LAGNA_PROFILES[rashi], lang)
 }
 
-export function getLagnaElementRows(): LagnaElementProfile[] {
-  return ELEMENT_ORDER.map((id) => LAGNA_ELEMENTS[id])
+export function getLagnaElementRows(lang: EngineLang = 'en'): LagnaElementProfile[] {
+  return ELEMENT_ORDER.map((id) => overlay(LAGNA_ELEMENTS[id], LAGNA_ELEMENTS_HI[id], lang))
 }
 
-export function getLagnaSpiritualRows(): LagnaSpiritualProfile[] {
-  return RASHI_ORDER.map((r) => withNames(LAGNA_PROFILES[r]))
+export function getLagnaSpiritualRows(lang: EngineLang = 'en'): LagnaSpiritualProfile[] {
+  return RASHI_ORDER.map((r) => withNames(LAGNA_PROFILES[r], lang))
+}
+
+export function getLagnaSpiritualPrinciples(lang: EngineLang = 'en'): LagnaSpiritualPrinciple[] {
+  if (lang !== 'hi') return LAGNA_SPIRITUAL_PRINCIPLES
+  return LAGNA_SPIRITUAL_PRINCIPLES.map((p, i) => ({ ...p, ...LAGNA_SPIRITUAL_PRINCIPLES_HI[i] }))
 }
 
 export interface ChartLagnaSpirituality {
@@ -351,11 +368,11 @@ export interface ChartLagnaSpirituality {
 }
 
 /** Chart-personalized spiritual lagna snapshot for UI. */
-export function getChartLagnaSpirituality(ascRashi: Rashi): ChartLagnaSpirituality {
+export function getChartLagnaSpirituality(ascRashi: Rashi, lang: EngineLang = 'en'): ChartLagnaSpirituality {
   return {
-    lagna: getLagnaSpiritualProfile(ascRashi),
-    element: getLagnaElement(ascRashi),
-    principles: LAGNA_SPIRITUAL_PRINCIPLES,
-    note: LAGNA_SPIRITUALITY_NOTE,
+    lagna: getLagnaSpiritualProfile(ascRashi, lang),
+    element: getLagnaElement(ascRashi, lang),
+    principles: getLagnaSpiritualPrinciples(lang),
+    note: lang === 'hi' ? LAGNA_SPIRITUALITY_NOTE_HI : LAGNA_SPIRITUALITY_NOTE,
   }
 }

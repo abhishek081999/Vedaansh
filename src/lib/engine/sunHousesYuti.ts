@@ -6,6 +6,10 @@
 
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { mergeHi } from '@/lib/engine/locale/planetsA.util'
+import { SUN_HOUSES_HI, SUN_YUTIS_HI, SUN_YUTI_TPL_HI } from '@/lib/engine/locale/sunHousesYuti.hi'
 
 export type SunYutiPartner = 'Mo' | 'Ma' | 'Me' | 'Ju' | 'Ve' | 'Sa' | 'Ra' | 'Ke'
 
@@ -672,11 +676,21 @@ function sameSignOrConjunct(a: GrahaData, b: GrahaData, orb = 8): boolean {
   return a.rashi === b.rashi || angularSep(a.lonSidereal, b.lonSidereal) <= orb
 }
 
-function houseTeachingFor(house: number): SunHouseTeaching {
-  return SUN_HOUSE_TEACHINGS.find(h => h.house === house) ?? SUN_HOUSE_TEACHINGS[0]
+/** The 12 Sun-in-house teachings in `lang` (house numbers unchanged). */
+export function sunHouseTeachings(lang: EngineLang = 'en'): SunHouseTeaching[] {
+  return lang === 'hi' ? SUN_HOUSE_TEACHINGS.map(h => mergeHi(h, SUN_HOUSES_HI[h.house])) : SUN_HOUSE_TEACHINGS
 }
 
-function analyzeAmavasya(sun: GrahaData, moon: GrahaData | undefined): AmavasyaAnalysis | null {
+/** The Sun yuti teachings in `lang` (partner ids unchanged). */
+export function sunYutiTeachings(lang: EngineLang = 'en'): SunYutiTeaching[] {
+  return lang === 'hi' ? SUN_YUTI_TEACHINGS.map(y => mergeHi(y, SUN_YUTIS_HI[y.partner])) : SUN_YUTI_TEACHINGS
+}
+
+function houseTeachingFor(house: number, list: SunHouseTeaching[]): SunHouseTeaching {
+  return list.find(h => h.house === house) ?? list[0]
+}
+
+function analyzeAmavasya(sun: GrahaData, moon: GrahaData | undefined, hi = false): AmavasyaAnalysis | null {
   if (!moon) return null
   const sepDeg = angularSep(sun.lonSidereal, moon.lonSidereal)
   const band: AmavasyaAnalysis['band'] =
@@ -687,14 +701,14 @@ function analyzeAmavasya(sun: GrahaData, moon: GrahaData | undefined): AmavasyaA
   // Near new moon (end of Krishna / start of Shukla) — treat Amavasya band as Krishna closure
   if (band !== 'outside' && (elong <= 12 || elong >= 348)) paksha = 'krishna'
 
-  const label =
+  const label = hi ? SUN_YUTI_TPL_HI.amavasyaLabel[band] :
     band === 'full'
       ? 'Full Amavasya (0–3°)'
       : band === 'amavasya'
         ? 'Amavasya Yoga (within 12°)'
         : 'Outside Amavasya orb'
 
-  const detail =
+  const detail = hi ? fill(SUN_YUTI_TPL_HI.amavasyaDetail[band], { sep: sepDeg.toFixed(1) }) :
     band === 'full'
       ? `Moon is ${sepDeg.toFixed(1)}° from Sun — full Amavasya band. Personality can be magnetic; mind peace and early home finances need care. Check D-charts and paksha bal.`
       : band === 'amavasya'
@@ -719,7 +733,9 @@ function buildChartNotes(
   sepDeg: number,
   combust: boolean,
   deeplyCombust: boolean,
+  hi = false,
 ): string[] {
+  if (hi) return buildChartNotesHi(teaching, sun, other, house, sepDeg, combust, deeplyCombust)
   const notes: string[] = [
     `${teaching.name} active — separation ${sepDeg.toFixed(1)}° · ${other.rashi === sun.rashi ? 'same sign' : 'close orb'} · Sun H${house}`,
   ]
@@ -746,21 +762,46 @@ function buildChartNotes(
   return notes
 }
 
+function buildChartNotesHi(
+  teaching: SunYutiTeaching,
+  sun: GrahaData,
+  other: GrahaData,
+  house: number,
+  sepDeg: number,
+  combust: boolean,
+  deeplyCombust: boolean,
+): string[] {
+  const T = SUN_YUTI_TPL_HI
+  const name = GRAHA_HI[other.id] ?? other.name
+  const notes: string[] = [
+    fill(T.chartHead, { name: teaching.name, sep: sepDeg.toFixed(1), how: other.rashi === sun.rashi ? T.sameSign : T.closeOrb, house }),
+  ]
+  if (deeplyCombust) notes.push(fill(T.deepCombust, { name, orb: DEEP_COMBUST_ORB }))
+  else if (combust) notes.push(other.id === 'Me' ? T.mercuryCombust : fill(T.combust, { name }))
+  if (teaching.partner === 'Ju' && combust && (house === 8 || house === 12)) notes.push(T.hiddenCurse)
+  if (teaching.partner === 'Ma' && house === 7) notes.push(T.marsSeventh)
+  if ((sun.nakshatraIndex === 0 || sun.nakshatraIndex === 9) && teaching.partner === 'Mo') notes.push(T.ashwiniMagha)
+  return notes
+}
+
 /**
  * Natal Surya house + yuti teaching analysis (chart-aware highlights).
  */
-export function analyzeSunHousesYuti(chart: ChartOutput): SunHousesYutiResult | null {
+export function analyzeSunHousesYuti(chart: ChartOutput, lang: EngineLang = 'en'): SunHousesYutiResult | null {
+  const hi = lang === 'hi'
+  const houses = sunHouseTeachings(lang)
+  const yutis = sunYutiTeachings(lang)
   const sun = chart.grahas.find(g => g.id === 'Su')
   if (!sun) return null
 
   const asc = chart.lagnas.ascRashi as Rashi
   const house = wholeSignHouse(sun.rashi, asc)
-  const houseTeaching = houseTeachingFor(house)
+  const houseTeaching = houseTeachingFor(house, houses)
   const moon = chart.grahas.find(g => g.id === 'Mo')
-  const amavasya = analyzeAmavasya(sun, moon)
+  const amavasya = analyzeAmavasya(sun, moon, hi)
 
   const activeYutis: ActiveSunYuti[] = []
-  for (const teaching of SUN_YUTI_TEACHINGS) {
+  for (const teaching of yutis) {
     const other = chart.grahas.find(g => g.id === teaching.partner)
     if (!other) continue
     const orb = teaching.partner === 'Mo' ? 12 : teaching.partner === 'Me' || teaching.partner === 'Ve' ? 10 : 8
@@ -781,7 +822,7 @@ export function analyzeSunHousesYuti(chart: ChartOutput): SunHousesYutiResult | 
       deeplyCombust,
       teaching,
       houseNotes,
-      chartNotes: buildChartNotes(teaching, sun, other, house, sepDeg, combust, deeplyCombust),
+      chartNotes: buildChartNotes(teaching, sun, other, house, sepDeg, combust, deeplyCombust, hi),
     })
   }
 
@@ -790,8 +831,9 @@ export function analyzeSunHousesYuti(chart: ChartOutput): SunHousesYutiResult | 
   const withKe = activeYutis.some(y => y.partner === 'Ke')
   const withSa = activeYutis.some(y => y.partner === 'Sa')
   if (withRa || withKe) {
-    pitruNotes.push(
-      house === 9
+    pitruNotes.push(hi
+      ? (house === 9 ? SUN_YUTI_TPL_HI.pitru9 : house === 5 ? SUN_YUTI_TPL_HI.pitru5 : SUN_YUTI_TPL_HI.pitruNodes)
+      : house === 9
         ? 'Sun with Rahu/Ketu in 9th — full Pitru Dosha flavour in this teaching (father/dharma incomplete karmas).'
         : house === 5
           ? 'Sun with Rahu/Ketu in 5th — partial Pitru Dosha; generational DNA-pattern repetition.'
@@ -799,10 +841,10 @@ export function analyzeSunHousesYuti(chart: ChartOutput): SunHousesYutiResult | 
     )
   }
   if (withSa) {
-    pitruNotes.push('Sun–Saturn conjunction is a classical Pitru stress marker; Saturn churns ego through necessary humiliation.')
+    pitruNotes.push(hi ? SUN_YUTI_TPL_HI.pitruSaturn : 'Sun–Saturn conjunction is a classical Pitru stress marker; Saturn churns ego through necessary humiliation.')
   }
   if (!pitruNotes.length) {
-    pitruNotes.push('No Sun–Rahu/Ketu/Saturn yuti (conjunction) flagged — Pitru Dosha from this module’s yuti rules not indicated.')
+    pitruNotes.push(hi ? SUN_YUTI_TPL_HI.pitruNone : 'No Sun–Rahu/Ketu/Saturn yuti (conjunction) flagged — Pitru Dosha from this module’s yuti rules not indicated.')
   }
 
   const remedySet = new Set<string>()
@@ -810,38 +852,38 @@ export function analyzeSunHousesYuti(chart: ChartOutput): SunHousesYutiResult | 
     for (const r of y.teaching.remedies) remedySet.add(r)
   }
   if (house === 6) {
-    remedySet.add('Sun in 6th: improve physical discipline first — spiritual gains follow without forcing.')
+    remedySet.add(hi ? SUN_YUTI_TPL_HI.remedy6 : 'Sun in 6th: improve physical discipline first — spiritual gains follow without forcing.')
   }
   if (!remedySet.size) {
-    remedySet.add('No active close yuti (conjunction) — use house themes and general Surya discipline (truth, spine/prana, respectful pitru conduct).')
+    remedySet.add(hi ? SUN_YUTI_TPL_HI.remedyNone : 'No active close yuti (conjunction) — use house themes and general Surya discipline (truth, spine/prana, respectful pitru conduct).')
   }
 
   return {
     sun: {
       rashi: sun.rashi,
-      rashiName: RASHI_NAMES[sun.rashi],
+      rashiName: hi ? RASHI_HI[sun.rashi] : RASHI_NAMES[sun.rashi],
       nakshatraIndex: sun.nakshatraIndex,
-      nakshatraName: NAKSHATRA_NAMES[sun.nakshatraIndex],
+      nakshatraName: hi ? NAKSHATRA_HI[sun.nakshatraIndex] : NAKSHATRA_NAMES[sun.nakshatraIndex],
       pada: sun.pada,
       house,
       dignity: sun.dignity,
       degreeInSign: sun.degree,
     },
     houseTeaching,
-    allHouses: SUN_HOUSE_TEACHINGS,
+    allHouses: houses,
     activeYutis,
-    allYutis: SUN_YUTI_TEACHINGS,
+    allYutis: yutis,
     amavasya,
     pitruNotes,
     remedies: [...remedySet],
-    caveats: [
+    caveats: hi ? [...SUN_YUTI_TPL_HI.caveats] : [
       'Never apply these general principles blindly — think carefully before matching any chart.',
       '70–80% of traits are practical-traditional teaching, not always in standard textbooks.',
       'Degrees, divisional charts, aspects, and dasha timing decide what manifests.',
       'Same yuti (conjunction) behaves differently house to house and person to person.',
       'Jupiter’s aspect can modify many negative Sun combinations.',
     ],
-    methodology: [
+    methodology: hi ? [...SUN_YUTI_TPL_HI.methodology] : [
       'Layer: planet energy → house → sign → degree/nakshatra → yuti (conjunction) → D9 confirmation.',
       'For Amavasya: measure Moon–Sun degrees before prescribing heavy remedies.',
       'For Mars/Jupiter yuti (conjunction): check combustion depth before promising Rajyoga.',

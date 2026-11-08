@@ -4,8 +4,8 @@
 //  Manglik pair, Porutham, timing, D9/Jaimini, remedies, PDF, history
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState, useEffect } from 'react'
-import Link from 'next/link'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import type { AshtakootResult, GanaSchool } from '@/lib/engine/ashtakoot'
 import { calculatePorutham } from '@/lib/engine/porutham'

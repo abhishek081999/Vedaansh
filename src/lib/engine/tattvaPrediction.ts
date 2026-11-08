@@ -17,6 +17,20 @@ import {
 } from '@/lib/engine/naturalHouseKarakas'
 import { RASHI_LORDS, HOUSE_THEMES } from '@/lib/engine/houseInterpretations'
 import { RASHI_PROFILES } from '@/lib/engine/rashiInterpretations'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { HOUSE_THEMES_HI } from '@/lib/engine/locale/interpretations.hi'
+import {
+  AGNI_COPY_HI,
+  EDUCATIONAL_NOTE_HI,
+  HOUSE_KARAKA_THEMES_HI,
+  KARAKA_PRACTICE_HI,
+  MODALITY_HI,
+  MONEY_COPY_HI,
+  RASHI_FIRST_REMEDY_HI,
+  TATTVA_HI as TH,
+  TRI_DEF_HI,
+} from '@/lib/engine/locale/tattvaPrediction.hi'
 
 /** Classical nine for tattva scoring (exclude Ur/Ne/Pl). */
 export const TATTVA_GRAHAS: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
@@ -173,6 +187,8 @@ export interface AnalyzeTattvaPredictionInput {
   d10Grahas?: GrahaData[]
   d10Asc?: Rashi
   now?: Date
+  /** Output language (default English). */
+  lang?: EngineLang
 }
 
 const EDUCATIONAL_NOTE =
@@ -242,6 +258,18 @@ function classicalGrahas(grahas: GrahaData[]): GrahaData[] {
   return grahas.filter((g) => set.has(g.id))
 }
 
+function gName(id: GrahaId, lang: EngineLang): string {
+  return (lang === 'hi' ? GRAHA_HI[id] : GRAHA_NAMES[id]) ?? id
+}
+
+function rName(r: Rashi, lang: EngineLang): string {
+  return lang === 'hi' ? RASHI_HI[r] : RASHI_NAMES[r]
+}
+
+function houseThemesText(house: HouseNumber1to12, lang: EngineLang): string {
+  return lang === 'hi' ? HOUSE_KARAKA_THEMES_HI[house] : NATURAL_HOUSE_KARAKAS[house].themes
+}
+
 function findGraha(grahas: GrahaData[], id: GrahaId): GrahaData | undefined {
   return grahas.find((g) => g.id === id)
 }
@@ -275,8 +303,16 @@ function secondaryKarakasForHouse(house: HouseNumber1to12): GrahaId[] {
   return []
 }
 
-function karakaStrand(house: HouseNumber1to12, karakas: GrahaId[], secondary: GrahaId[]): string {
+function karakaStrand(house: HouseNumber1to12, karakas: GrahaId[], secondary: GrahaId[], lang: EngineLang = 'en'): string {
   const all = [...new Set([...karakas, ...secondary])]
+  if (lang === 'hi') {
+    return fill(TH.karakaStrand, {
+      h: house,
+      themes: HOUSE_KARAKA_THEMES_HI[house],
+      names: all.map((id) => gName(id, 'hi')).join(', '),
+      practices: all.map((id) => KARAKA_PRACTICE_HI[id]).filter(Boolean).join('। '),
+    })
+  }
   const practices = all
     .map((id) => KARAKA_PRACTICE[id])
     .filter(Boolean)
@@ -285,7 +321,12 @@ function karakaStrand(house: HouseNumber1to12, karakas: GrahaId[], secondary: Gr
   return `Natural karakas for H${house} (${themes}): ${names}. ${practices.join('. ')}.`
 }
 
-function rashiStrand(rashi: Rashi, lord: GrahaId): string {
+function rashiStrand(rashi: Rashi, lord: GrahaId, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') {
+    const lordHi = gName(lord, 'hi')
+    const hint = RASHI_FIRST_REMEDY_HI[rashi] ?? fill(TH.rashiHintFallback, { rashi: RASHI_HI[rashi], lord: lordHi })
+    return fill(TH.rashiStrand, { rashi: RASHI_HI[rashi], lord: lordHi, hint })
+  }
   const profile = RASHI_PROFILES[rashi]
   const lordName = GRAHA_NAMES[lord] ?? lord
   const rashiHint = profile?.remedies?.[0]
@@ -294,7 +335,10 @@ function rashiStrand(rashi: Rashi, lord: GrahaId): string {
   return `Sign on the house: ${RASHI_NAMES[rashi]} (lord ${lordRow?.lordEnglish ?? lordName}). ${rashiHint}`
 }
 
-function houseStrand(house: HouseNumber1to12): string {
+function houseStrand(house: HouseNumber1to12, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') {
+    return fill(TH.houseStrand, { h: house, short: HOUSE_THEMES_HI[house]?.shortThemes ?? HOUSE_KARAKA_THEMES_HI[house] })
+  }
   const theme = HOUSE_THEMES[house]
   const short = theme?.shortThemes ?? NATURAL_HOUSE_KARAKAS[house].themes
   return `House H${house} — ${short}. Support this bhava’s topics directly (environment, duty, and relationships tied to it).`
@@ -304,6 +348,7 @@ function tenthCareerNote(
   house: HouseNumber1to12,
   occupants: TattvaHouseOccupant[],
   grahas: GrahaData[],
+  lang: EngineLang = 'en',
 ): string | null {
   if (house !== 10) return null
   const su = findGraha(grahas, 'Su')
@@ -317,11 +362,14 @@ function tenthCareerNote(
     su?.dignity === 'own' ||
     su?.dignity === 'moolatrikona'
   if (sunStrong && !satIn10) {
+    if (lang === 'hi') return TH.tenthSun
     return '10th tip: managerial / authority flavour — tendency Sun (leadership, government/senior duty) more than pure Saturn grind.'
   }
   if (satIn10 || sa) {
+    if (lang === 'hi') return TH.tenthSaturn
     return '10th tip: routine service / long grind — tendency Saturn (patience, structure). If promotions and authority rise, gradually emphasise Sun.'
   }
+  if (lang === 'hi') return TH.tenthDefault
   return '10th tip: Saturn for routine karma; Sun when the role is managerial or publicly authoritative.'
 }
 
@@ -334,29 +382,33 @@ export function composeHouseRemedy(input: {
   ascRashi: Rashi
   ketuMahadasha?: boolean
   priorityReason?: string
+  lang?: EngineLang
 }): HouseRemedyComposition | null {
   if (input.house < 1 || input.house > 12) return null
+  const lang = input.lang ?? 'en'
   const house = input.house as HouseNumber1to12
   const rashi = wholeSignHouseSign(input.ascRashi, house)
   const rashiLord = SIGN_LORDS[rashi]
   const karakas = getNaturalKarakasForHouse(house)
   const secondary = secondaryKarakasForHouse(house)
-  const occupants = occupantsInHouses(input.grahas, input.ascRashi, [house])
+  const occupants = occupantsInHouses(input.grahas, input.ascRashi, [house], lang)
   const moonInMix = [...karakas, ...secondary, rashiLord].includes('Mo')
   const moonBlocked = !!(input.ketuMahadasha && moonInMix)
 
   const strands = {
-    house: houseStrand(house),
-    karaka: karakaStrand(house, karakas, secondary),
-    rashi: rashiStrand(rashi, rashiLord),
+    house: houseStrand(house, lang),
+    karaka: karakaStrand(house, karakas, secondary, lang),
+    rashi: rashiStrand(rashi, rashiLord, lang),
   }
 
-  let synthesis =
+  let synthesis = lang === 'hi'
+    ? fill(TH.synthesis, strands)
+    :
     `Combine all three: ${strands.house} ${strands.karaka} ${strands.rashi} ` +
     'Use the triad together — sign alone or karaka (natural indicator) alone is weaker than the full braid.'
 
   if (moonBlocked) {
-    synthesis +=
+    synthesis += lang === 'hi' ? TH.synthesisMoonBlocked :
       ' Ketu Mahadasha active: skip Moon-nourishing practices in this pack; prefer Ketu/jnana and non-Moon karakas (natural indicator).'
   }
 
@@ -365,19 +417,19 @@ export function composeHouseRemedy(input: {
 
   return {
     house,
-    houseThemes: NATURAL_HOUSE_KARAKAS[house].themes,
+    houseThemes: houseThemesText(house, lang),
     rashi,
-    rashiName: RASHI_NAMES[rashi],
+    rashiName: rName(rashi, lang),
     rashiLord,
-    rashiLordName: GRAHA_NAMES[rashiLord] ?? rashiLord,
+    rashiLordName: gName(rashiLord, lang),
     karakas,
-    karakaNames: karakas.map((id) => GRAHA_NAMES[id] ?? id),
+    karakaNames: karakas.map((id) => gName(id, lang)),
     secondaryKarakas: secondary,
     occupants,
-    priorityReason: input.priorityReason ?? `User-selected H${house}`,
+    priorityReason: input.priorityReason ?? (lang === 'hi' ? fill(TH.userSelected, { h: house }) : `User-selected H${house}`),
     strands,
     synthesis,
-    tenthCareerNote: tenthCareerNote(house, occupants, input.grahas),
+    tenthCareerNote: tenthCareerNote(house, occupants, input.grahas, lang),
     moonBlocked,
     tone,
   }
@@ -390,27 +442,31 @@ export function prioritizeRemedyHouses(
   moksha: MokshaReading,
   money: MoneyTypeReading[],
   limit = 4,
+  lang: EngineLang = 'en',
 ): { house: HouseNumber1to12; reason: string }[] {
+  const hi = lang === 'hi'
   const scored: { house: HouseNumber1to12; score: number; reason: string }[] = []
 
   for (let h = 1; h <= 12; h++) {
     const house = h as HouseNumber1to12
     const occ = occupantsInHouses(grahas, ascRashi, [house])
     let score = occ.length
-    let reason = occ.length ? `${occ.length} planet(s) in house ${house}` : `Empty H${house}`
+    let reason = hi
+      ? fill(occ.length ? TH.reasonPlanets : TH.reasonEmpty, { h: house, n: occ.length })
+      : occ.length ? `${occ.length} planet(s) in house ${house}` : `Empty H${house}`
 
     if (house === 6 || house === 8 || house === 12) {
       score += 1.5 + occ.length * 0.5
-      reason = `Dusthana H${house} · ${occ.length} occupant(s)`
+      reason = hi ? fill(TH.reasonDusthana, { h: house, n: occ.length }) : `Dusthana H${house} · ${occ.length} occupant(s)`
     }
     if (moksha.fourEightTension && (house === 4 || house === 8)) {
       score += 2
-      reason = `4–8 tension · H${house}`
+      reason = hi ? fill(TH.reasonTension, { h: house }) : `4–8 tension · H${house}`
     }
     const moneyLead = money.find((m) => m.dominant && m.house === house)
     if (moneyLead) {
       score += 1.25
-      reason = `Lead money type · H${house}`
+      reason = hi ? fill(TH.reasonMoney, { h: house }) : `Lead money type · H${house}`
     }
     scored.push({ house, score, reason })
   }
@@ -425,8 +481,9 @@ function buildHouseRemedies(
   moksha: MokshaReading,
   money: MoneyTypeReading[],
   ketuMahadasha: boolean,
+  lang: EngineLang = 'en',
 ): HouseRemedyComposition[] {
-  const picks = prioritizeRemedyHouses(grahas, ascRashi, moksha, money, 4)
+  const picks = prioritizeRemedyHouses(grahas, ascRashi, moksha, money, 4, lang)
   const out: HouseRemedyComposition[] = []
   for (const p of picks) {
     const c = composeHouseRemedy({
@@ -435,6 +492,7 @@ function buildHouseRemedies(
       ascRashi,
       ketuMahadasha,
       priorityReason: p.reason,
+      lang,
     })
     if (c) out.push(c)
   }
@@ -456,7 +514,11 @@ function modalityCounts(grahas: GrahaData[]): { movable: number; fixed: number; 
   return { movable, fixed, dual, dominant }
 }
 
-function modalityNote(dom: SignModality, movable: number, fixed: number, dual: number): string {
+function modalityNote(dom: SignModality, movable: number, fixed: number, dual: number, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') {
+    const tpl = dom === 'movable' ? TH.modalityMovable : dom === 'fixed' ? TH.modalityFixed : TH.modalityDual
+    return fill(tpl, { movable, fixed, dual })
+  }
   if (dom === 'movable') {
     return `Chara-heavy (${movable} movable vs ${fixed} fixed / ${dual} dual) — life tends to reinvent on short cycles.`
   }
@@ -470,6 +532,7 @@ function occupantsInHouses(
   grahas: GrahaData[],
   ascRashi: Rashi,
   houses: readonly number[],
+  lang: EngineLang = 'en',
 ): TattvaHouseOccupant[] {
   const want = new Set(houses)
   const out: TattvaHouseOccupant[] = []
@@ -478,10 +541,10 @@ function occupantsInHouses(
     if (!want.has(house)) continue
     out.push({
       id: g.id,
-      name: GRAHA_NAMES[g.id] ?? g.name,
+      name: lang === 'hi' ? GRAHA_HI[g.id] ?? g.name : GRAHA_NAMES[g.id] ?? g.name,
       house,
       rashi: g.rashi,
-      rashiName: RASHI_NAMES[g.rashi] ?? g.rashiName,
+      rashiName: lang === 'hi' ? RASHI_HI[g.rashi] ?? g.rashiName : RASHI_NAMES[g.rashi] ?? g.rashiName,
     })
   }
   return out.sort((a, b) => a.house - b.house || a.id.localeCompare(b.id))
@@ -491,10 +554,26 @@ function countInHouse(occupants: TattvaHouseOccupant[], house: number): number {
   return occupants.filter((o) => o.house === house).length
 }
 
-function buildTrikonas(grahas: GrahaData[], ascRashi: Rashi): TrikonaScore[] {
+function buildTrikonas(grahas: GrahaData[], ascRashi: Rashi, lang: EngineLang = 'en'): TrikonaScore[] {
   return TRI_DEF.map((def) => {
-    const occupants = occupantsInHouses(grahas, ascRashi, def.houses)
+    const occupants = occupantsInHouses(grahas, ascRashi, def.houses, lang)
     const planetCount = occupants.length
+    if (lang === 'hi') {
+      const lines = TH[def.id]
+      const band = planetCount >= 4 ? 0 : planetCount >= 2 ? 1 : 2
+      const tri = TRI_DEF_HI[def.id]!
+      return {
+        id: def.id,
+        tattva: def.tattva,
+        label: tri.label,
+        sanskrit: tri.sanskrit,
+        houses: def.houses,
+        planetCount,
+        occupants,
+        headline: lines[band]!,
+        detail: `${fill(TH.triDetail, { houses: def.houses.join(', '), n: planetCount })} ${TH[`${def.id}Detail`]}`,
+      }
+    }
     let headline = `${def.label}: light load`
     let detail = `Houses ${def.houses.join(', ')} hold ${planetCount} classical planet(s).`
 
@@ -546,7 +625,8 @@ function buildTrikonas(grahas: GrahaData[], ascRashi: Rashi): TrikonaScore[] {
   })
 }
 
-function buildAgni(grahas: GrahaData[], ascRashi: Rashi, dharma: TrikonaScore): AgniInitiation {
+function buildAgni(grahas: GrahaData[], ascRashi: Rashi, dharma: TrikonaScore, lang: EngineLang = 'en'): AgniInitiation {
+  const hi = lang === 'hi'
   const c1 = countInHouse(dharma.occupants, 1)
   const c5 = countInHouse(dharma.occupants, 5)
   const c9 = countInHouse(dharma.occupants, 9)
@@ -568,8 +648,8 @@ function buildAgni(grahas: GrahaData[], ascRashi: Rashi, dharma: TrikonaScore): 
   if (max === 0 && scores[0]!.score < 0.5) {
     return {
       mode: 'mixed',
-      label: 'Initiation pattern mixed / quiet',
-      detail:
+      label: hi ? TH.agniQuietLabel : 'Initiation pattern mixed / quiet',
+      detail: hi ? TH.agniQuietDetail :
         'Few planets in the Dharma trikona (trine houses: 1, 5, 9) — initiation style follows lagna and dasha lords more than fire-house load.',
       houseFocus: null,
       tone: 'mixed',
@@ -581,14 +661,16 @@ function buildAgni(grahas: GrahaData[], ascRashi: Rashi, dharma: TrikonaScore): 
   if (Math.abs(top.score - second.score) < 0.15 && top.score > 0) {
     return {
       mode: 'mixed',
-      label: 'Mixed fire initiation',
-      detail: `H${top.house} and H${second.house} compete — blend ${AGNI_COPY[top.mode].label.toLowerCase()} with ${AGNI_COPY[second.mode].label.toLowerCase()}.`,
+      label: hi ? TH.agniMixedLabel : 'Mixed fire initiation',
+      detail: hi
+        ? fill(TH.agniMixedDetail, { a: top.house, b: second.house, first: AGNI_COPY_HI[top.mode].label, second: AGNI_COPY_HI[second.mode].label })
+        : `H${top.house} and H${second.house} compete — blend ${AGNI_COPY[top.mode].label.toLowerCase()} with ${AGNI_COPY[second.mode].label.toLowerCase()}.`,
       houseFocus: top.house,
       tone: 'mixed',
     }
   }
 
-  const copy = AGNI_COPY[top.mode]
+  const copy = hi ? AGNI_COPY_HI[top.mode] : AGNI_COPY[top.mode]
   return {
     mode: top.mode,
     label: copy.label,
@@ -598,7 +680,8 @@ function buildAgni(grahas: GrahaData[], ascRashi: Rashi, dharma: TrikonaScore): 
   }
 }
 
-function buildMoney(artha: TrikonaScore): MoneyTypeReading[] {
+function buildMoney(artha: TrikonaScore, lang: EngineLang = 'en'): MoneyTypeReading[] {
+  const copy = lang === 'hi' ? MONEY_COPY_HI : MONEY_COPY
   const modes: { mode: MoneyMode; house: 2 | 6 | 10 }[] = [
     { mode: 'lineage', house: 2 },
     { mode: 'grind', house: 6 },
@@ -609,8 +692,8 @@ function buildMoney(artha: TrikonaScore): MoneyTypeReading[] {
     return {
       mode,
       house,
-      label: MONEY_COPY[mode].label,
-      detail: MONEY_COPY[mode].detail,
+      label: copy[mode].label,
+      detail: copy[mode].detail,
       planetCount,
       dominant: false,
     }
@@ -624,28 +707,29 @@ function buildMoney(artha: TrikonaScore): MoneyTypeReading[] {
   return rows
 }
 
-function buildNetwork(kama: TrikonaScore): NetworkReading {
+function buildNetwork(kama: TrikonaScore, lang: EngineLang = 'en'): NetworkReading {
+  const hi = lang === 'hi'
   const planetCount = kama.planetCount
   const rahuInAirTrikona = kama.occupants.some((o) => o.id === 'Ra')
   const load: NetworkReading['load'] =
     planetCount >= 4 ? 'strong' : planetCount >= 2 ? 'moderate' : 'quiet'
-  let headline = 'Network / speech load is quiet'
-  let detail = 'Few planets in 3–7–11 — alliances and audiences may need deliberate cultivation.'
+  let headline = hi ? TH.networkQuiet[0]! : 'Network / speech load is quiet'
+  let detail = hi ? TH.networkQuiet[1]! : 'Few planets in 3–7–11 — alliances and audiences may need deliberate cultivation.'
   let tone: PredictionTone = 'mixed'
 
   if (load === 'strong') {
-    headline = 'Strong Vayu network — speech, partners, groups amplify'
-    detail =
+    headline = hi ? TH.networkStrong[0]! : 'Strong Vayu network — speech, partners, groups amplify'
+    detail = hi ? TH.networkStrong[1]! :
       'Multiple planets in 3–7–11 favor communication, partnerships, and large audiences. Social reach themes can dominate.'
     tone = 'supportive'
   } else if (load === 'moderate') {
-    headline = 'Moderate air trikona (trine houses: 1, 5, 9) — connections matter in selected areas'
-    detail = 'Enough 3–7–11 occupancy for meaningful alliances without total network identity.'
+    headline = hi ? TH.networkModerate[0]! : 'Moderate air trikona (trine houses: 1, 5, 9) — connections matter in selected areas'
+    detail = hi ? TH.networkModerate[1]! : 'Enough 3–7–11 occupancy for meaningful alliances without total network identity.'
     tone = 'supportive'
   }
 
   if (rahuInAirTrikona) {
-    detail +=
+    detail += hi ? TH.networkRahu :
       ' Rahu in this triangle amplifies outsider / unconventional reach (neighbors → partners → networks).'
     tone = load === 'quiet' ? 'mixed' : 'favorable'
   }
@@ -653,28 +737,29 @@ function buildNetwork(kama: TrikonaScore): NetworkReading {
   return { planetCount, load, rahuInAirTrikona, headline, detail, tone }
 }
 
-function buildMoksha(moksha: TrikonaScore): MokshaReading {
+function buildMoksha(moksha: TrikonaScore, lang: EngineLang = 'en'): MokshaReading {
+  const hi = lang === 'hi'
   const house4Count = countInHouse(moksha.occupants, 4)
   const house8Count = countInHouse(moksha.occupants, 8)
   const house12Count = countInHouse(moksha.occupants, 12)
   const fourEightTension = house4Count >= 1 && house8Count >= 1
-  let headline = 'Moksha trikona is background'
-  let detail = 'H4/H8/H12 are lightly occupied — emotional impressions may be quieter.'
+  let headline = hi ? TH.mokshaBackground[0]! : 'Moksha trikona is background'
+  let detail = hi ? TH.mokshaBackground[1]! : 'H4/H8/H12 are lightly occupied — emotional impressions may be quieter.'
   let tone: PredictionTone = 'mixed'
 
   if (moksha.planetCount >= 4) {
-    headline = 'Moksha triangle loaded — deep impressions and liberation themes'
-    detail = 'Water houses carry several planets — home/heart, crisis/research, and release all speak.'
+    headline = hi ? TH.mokshaLoaded[0]! : 'Moksha triangle loaded — deep impressions and liberation themes'
+    detail = hi ? TH.mokshaLoaded[1]! : 'Water houses carry several planets — home/heart, crisis/research, and release all speak.'
     tone = 'caution'
   } else if (moksha.planetCount >= 2) {
-    headline = 'Moksha themes are active'
-    detail = 'Enough water-house occupancy for emotional sanskara and inner work to matter.'
+    headline = hi ? TH.mokshaActive[0]! : 'Moksha themes are active'
+    detail = hi ? TH.mokshaActive[1]! : 'Enough water-house occupancy for emotional sanskara and inner work to matter.'
     tone = 'mixed'
   }
 
   if (fourEightTension) {
-    headline = '4th–8th tension flagged'
-    detail +=
+    headline = hi ? TH.mokshaTension : '4th–8th tension flagged'
+    detail += hi ? TH.mokshaTensionDetail :
       ' When 8th-house pressure rises, the 4th (heart/home) often feels it; a strong 4th also supports weathering 8th storms. Over-indulging 4th comforts can stall 8th research/depth.'
     tone = 'caution'
   }
@@ -699,7 +784,9 @@ function buildDashaFlavor(
   grahas: GrahaData[],
   dashaNodes: DashaNode[] | undefined,
   now: Date,
+  lang: EngineLang = 'en',
 ): DashaFlavor {
+  const hi = lang === 'hi'
   const levels: DashaFlavorLevel[] = []
   let ketuMahadasha = false
   let sunMahadasha = false
@@ -721,11 +808,13 @@ function buildDashaFlavor(
         levels.push({
           level: 'maha',
           lord,
-          lordName: GRAHA_NAMES[lord] ?? lord,
+          lordName: gName(lord, lang),
           rashi,
-          rashiName: rashi != null ? RASHI_NAMES[rashi] : null,
+          rashiName: rashi != null ? rName(rashi, lang) : null,
           energy,
-          note:
+          note: hi
+            ? energy === 'active' ? TH.mahaActive : energy === 'reactive' ? TH.mahaReactive : TH.mahaUnknown
+            :
             energy === 'active'
               ? 'Odd-sign placement — initiative / create-action flavor this Mahadasha (spice, not sole verdict).'
               : energy === 'reactive'
@@ -744,11 +833,13 @@ function buildDashaFlavor(
         levels.push({
           level: 'antar',
           lord,
-          lordName: GRAHA_NAMES[lord] ?? lord,
+          lordName: gName(lord, lang),
           rashi,
-          rashiName: rashi != null ? RASHI_NAMES[rashi] : null,
+          rashiName: rashi != null ? rName(rashi, lang) : null,
           energy,
-          note:
+          note: hi
+            ? energy === 'active' ? TH.antarActive : energy === 'reactive' ? TH.antarReactive : TH.antarUnknown
+            :
             energy === 'active'
               ? 'Antardasha in odd sign — easier to initiate within the mahadasha frame.'
               : energy === 'reactive'
@@ -761,7 +852,7 @@ function buildDashaFlavor(
 
   return {
     levels,
-    spiceNote:
+    spiceNote: hi ? TH.spiceNote :
       'Odd = Active (you initiate); Even = Reactive (you respond). Supporting flavor only — never the main dish.',
     ketuMahadasha,
     sunMahadasha,
@@ -769,15 +860,16 @@ function buildDashaFlavor(
   }
 }
 
-function buildRemedies(flavor: DashaFlavor, predictMode: PredictMode): TattvaRemedy[] {
+function buildRemedies(flavor: DashaFlavor, predictMode: PredictMode, lang: EngineLang = 'en'): TattvaRemedy[] {
   const out: TattvaRemedy[] = []
+  const hi = lang === 'hi'
 
   if (predictMode === 'guidance' || flavor.moonInPath) {
     const blocked = flavor.ketuMahadasha
     out.push({
       id: 'moon-sadhana',
-      title: blocked ? 'Moon period inside Ketu Mahadasha' : 'Moon Mahadasha / Antardasha',
-      text: blocked
+      title: hi ? (blocked ? TH.moonBlockedTitle : TH.moonTitle) : blocked ? 'Moon period inside Ketu Mahadasha' : 'Moon Mahadasha / Antardasha',
+      text: hi ? (blocked ? TH.moonBlockedText : TH.moonText) : blocked
         ? 'Do not stack Moon-nourishing remedies while Ketu rules the mahadasha — prefer moksha-trikona (trine houses: 1, 5, 9) / jnana practices instead. Firm event forecasts stay soft.'
         : 'Prefer quiet sadhana and listening to a stable guru/katha over firm event predictions — the mind shifts daily. Discourse nourishes Chandra (emotions).',
       tone: blocked ? 'caution' : 'supportive',
@@ -788,8 +880,8 @@ function buildRemedies(flavor: DashaFlavor, predictMode: PredictMode): TattvaRem
   if (flavor.ketuMahadasha) {
     out.push({
       id: 'ketu-moksha',
-      title: 'Ketu Mahadasha protocol',
-      text: 'Lean into moksha-trikona (trine houses: 1, 5, 9) practices and tattva-jñāna / Advaita-leaning study. Avoid Moon-activation remedies during this period.',
+      title: hi ? TH.ketuTitle : 'Ketu Mahadasha protocol',
+      text: hi ? TH.ketuText : 'Lean into moksha-trikona (trine houses: 1, 5, 9) practices and tattva-jñāna / Advaita-leaning study. Avoid Moon-activation remedies during this period.',
       tone: 'supportive',
     })
   }
@@ -797,16 +889,16 @@ function buildRemedies(flavor: DashaFlavor, predictMode: PredictMode): TattvaRem
   if (flavor.sunMahadasha) {
     out.push({
       id: 'sun-dharma',
-      title: 'Sun Mahadasha protocol',
-      text: 'Orient to dharma and moral clarity (Rāma-like principles); personal sacrifice often improves results. Late nights weaken Surya — keep early rhythm.',
+      title: hi ? TH.sunTitle : 'Sun Mahadasha protocol',
+      text: hi ? TH.sunText : 'Orient to dharma and moral clarity (Rāma-like principles); personal sacrifice often improves results. Late nights weaken Surya — keep early rhythm.',
       tone: 'supportive',
     })
   }
 
   out.push({
     id: 'karaka-formula',
-    title: 'House × karaka × rashi',
-    text: 'When a house troubles, combine (a) the sign on that house, (b) the natural karaka (natural indicator), and (c) the house itself — three strands give stronger educational remedy framing than any one alone. See composed packs below.',
+    title: hi ? TH.formulaTitle : 'House × karaka × rashi',
+    text: hi ? TH.formulaText : 'When a house troubles, combine (a) the sign on that house, (b) the natural karaka (natural indicator), and (c) the house itself — three strands give stronger educational remedy framing than any one alone. See composed packs below.',
     tone: 'mixed',
   })
 
@@ -820,51 +912,54 @@ function buildRemedies(flavor: DashaFlavor, predictMode: PredictMode): TattvaRem
 export function analyzeTattvaPrediction(
   input: AnalyzeTattvaPredictionInput,
 ): TattvaPredictionResult | null {
-  const { grahas, ascRashi, dashaNodes, d10Grahas, d10Asc, now = new Date() } = input
+  const { grahas, ascRashi, dashaNodes, d10Grahas, d10Asc, now = new Date(), lang = 'en' } = input
   if (!grahas?.length || !ascRashi) return null
+  const hi = lang === 'hi'
 
-  const trikonas = buildTrikonas(grahas, ascRashi)
+  const trikonas = buildTrikonas(grahas, ascRashi, lang)
   const byId = Object.fromEntries(trikonas.map((t) => [t.id, t])) as Record<TrikonaId, TrikonaScore>
   const dominantTrikona = [...trikonas].sort((a, b) => b.planetCount - a.planetCount)[0]!.id
 
-  const agni = buildAgni(grahas, ascRashi, byId.dharma)
-  const money = buildMoney(byId.artha)
-  const network = buildNetwork(byId.kama)
-  const moksha = buildMoksha(byId.moksha)
-  const dashaFlavor = buildDashaFlavor(grahas, dashaNodes, now)
+  const agni = buildAgni(grahas, ascRashi, byId.dharma, lang)
+  const money = buildMoney(byId.artha, lang)
+  const network = buildNetwork(byId.kama, lang)
+  const moksha = buildMoksha(byId.moksha, lang)
+  const dashaFlavor = buildDashaFlavor(grahas, dashaNodes, now, lang)
 
   const predictMode: PredictMode = dashaFlavor.moonInPath ? 'guidance' : 'full'
-  const predictModeNote =
-    predictMode === 'guidance'
-      ? 'Moon is in the current Mahadasha or Antardasha path — firm event predictions are softened; show sadhana guidance instead.'
-      : 'Current dasha path is not Moon-led — full educational prediction pack is available (still not certainty).'
+  const predictModeNote = predictModeText(predictMode, lang)
 
   const d1Counts = modalityCounts(grahas)
-  const d1Note = modalityNote(d1Counts.dominant, d1Counts.movable, d1Counts.fixed, d1Counts.dual)
+  const d1Note = modalityNote(d1Counts.dominant, d1Counts.movable, d1Counts.fixed, d1Counts.dual, lang)
   let d10Block: LifeStability['d10'] = null
   if (d10Grahas?.length && d10Asc) {
     const c = modalityCounts(d10Grahas)
     d10Block = {
       ...c,
-      note: modalityNote(c.dominant, c.movable, c.fixed, c.dual),
+      note: modalityNote(c.dominant, c.movable, c.fixed, c.dual, lang),
     }
   }
 
   const lifeStability: LifeStability = {
     d1: { ...d1Counts, note: d1Note },
     d10: d10Block,
-    headline: d10Block
+    headline: hi
+      ? d10Block
+        ? fill(TH.stabilityD10, { d1: MODALITY_HI[d1Counts.dominant]!, d10: MODALITY_HI[d10Block.dominant]! })
+        : fill(TH.stabilityD1, { d1: MODALITY_HI[d1Counts.dominant]!, note: d1Note })
+      : d10Block
       ? `D1 ${d1Counts.dominant} · D10 ${d10Block.dominant} — compare career change tempo with life map`
       : `D1 ${d1Counts.dominant} — ${d1Note}`,
   }
 
-  const remedies = buildRemedies(dashaFlavor, predictMode)
+  const remedies = buildRemedies(dashaFlavor, predictMode, lang)
   const houseRemedies = buildHouseRemedies(
     grahas,
     ascRashi,
     moksha,
     money,
     dashaFlavor.ketuMahadasha,
+    lang,
   )
 
   const headlines: string[] = [
@@ -874,18 +969,18 @@ export function analyzeTattvaPrediction(
     moksha.headline,
   ]
   if (predictMode === 'guidance') {
-    headlines.unshift('Moon period — guidance mode (soft predictions)')
+    headlines.unshift(hi ? TH.headlineGuidance : 'Moon period — guidance mode (soft predictions)')
   }
   const maha = dashaFlavor.levels.find((l) => l.level === 'maha')
   if (maha?.energy) {
-    headlines.push(`MD ${maha.lordName}: ${maha.energy} spice`)
+    headlines.push(hi ? fill(TH.headlineMd, { lord: maha.lordName, energy: dashaEnergyLabel(maha.energy, 'hi') }) : `MD ${maha.lordName}: ${maha.energy} spice`)
   }
   if (houseRemedies[0]) {
-    headlines.push(`Remedy focus H${houseRemedies[0].house} · ${houseRemedies[0].rashiName}`)
+    headlines.push(hi ? fill(TH.headlineRemedy, { h: houseRemedies[0].house, rashi: houseRemedies[0].rashiName }) : `Remedy focus H${houseRemedies[0].house} · ${houseRemedies[0].rashiName}`)
   }
 
   return {
-    educationalNote: EDUCATIONAL_NOTE,
+    educationalNote: hi ? EDUCATIONAL_NOTE_HI : EDUCATIONAL_NOTE,
     dominantTrikona,
     trikonas,
     agni,
@@ -907,20 +1002,24 @@ export function analyzeTattvaDashaOverlay(
   grahas: GrahaData[],
   dashaNodes: DashaNode[] | undefined,
   now: Date = new Date(),
+  lang: EngineLang = 'en',
 ): Pick<TattvaPredictionResult, 'dashaFlavor' | 'predictMode' | 'predictModeNote' | 'remedies'> | null {
   if (!grahas?.length) return null
-  const dashaFlavor = buildDashaFlavor(grahas, dashaNodes, now)
+  const dashaFlavor = buildDashaFlavor(grahas, dashaNodes, now, lang)
   const predictMode: PredictMode = dashaFlavor.moonInPath ? 'guidance' : 'full'
-  const predictModeNote =
-    predictMode === 'guidance'
-      ? 'Moon is in the current Mahadasha or Antardasha path — firm event predictions are softened; show sadhana guidance instead.'
-      : 'Current dasha path is not Moon-led — full educational prediction pack is available (still not certainty).'
   return {
     dashaFlavor,
     predictMode,
-    predictModeNote,
-    remedies: buildRemedies(dashaFlavor, predictMode),
+    predictModeNote: predictModeText(predictMode, lang),
+    remedies: buildRemedies(dashaFlavor, predictMode, lang),
   }
+}
+
+function predictModeText(predictMode: PredictMode, lang: EngineLang): string {
+  if (lang === 'hi') return predictMode === 'guidance' ? TH.guidanceNote : TH.fullNote
+  return predictMode === 'guidance'
+    ? 'Moon is in the current Mahadasha or Antardasha path — firm event predictions are softened; show sadhana guidance instead.'
+    : 'Current dasha path is not Moon-led — full educational prediction pack is available (still not certainty).'
 }
 
 export function tattvaToneColor(tone: PredictionTone): string {
@@ -930,6 +1029,7 @@ export function tattvaToneColor(tone: PredictionTone): string {
   return 'var(--text-muted)'
 }
 
-export function dashaEnergyLabel(energy: DashaEnergy): string {
+export function dashaEnergyLabel(energy: DashaEnergy, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return energy === 'active' ? TH.active : TH.reactive
   return energy === 'active' ? 'Active' : 'Reactive'
 }

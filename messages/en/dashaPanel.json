@@ -1,0 +1,240 @@
+{
+  "vim": {
+    "events": {
+      "job": "Job change",
+      "move": "Move / home",
+      "relationship": "Relationship",
+      "health": "Health",
+      "travel": "Travel",
+      "finance": "Finance",
+      "other": "Other"
+    },
+    "levels": {
+      "maha": "Mahadasha",
+      "antar": "Antardasha",
+      "pratya": "Pratyantardasha"
+    },
+    "tabs": {
+      "reading": "Reading",
+      "remedies": "Remedies",
+      "areas": "Life areas",
+      "timeline": "Timeline",
+      "gochar": "Gochar",
+      "delivery": "Delivery"
+    },
+    "nature": {
+      "Benefic": "Benefic",
+      "Mixed": "Mixed",
+      "Malefic": "Malefic",
+      "HighlyBenefic": "Highly Benefic",
+      "HighlyMalefic": "Highly Malefic"
+    },
+    "remaining": {
+      "ending": "ending",
+      "ym": "{years}y {months}m left",
+      "y": "{years}y left",
+      "md": "{months}m {days}d left",
+      "m": "{months}m left",
+      "d": "{days}d left"
+    },
+    "facts": {
+      "rules": "Rules {houses}",
+      "houseSep": ", ",
+      "house": "H{n}",
+      "inHouse": "In H{n}",
+      "d1": "D1 {dignity}",
+      "d9": "D9 {dignity}",
+      "vargottama": "Vargottama",
+      "shadbala": "Shadbala {band}",
+      "bav": "BAV {n}",
+      "arohini": "Arohini",
+      "avarohini": "Avarohini",
+      "retro": "Retro",
+      "yogakaraka": "Yogakaraka",
+      "maraka": "Maraka hardship"
+    },
+    "dignity": {
+      "exalted": "exalted",
+      "debilitated": "debilitated",
+      "own": "own",
+      "moolatrikona": "moolatrikona",
+      "friend": "friend",
+      "great_friend": "great_friend",
+      "neutral": "neutral",
+      "enemy": "enemy",
+      "great_enemy": "great_enemy"
+    },
+    "band": {
+      "excellent": "excellent",
+      "strong": "strong",
+      "average": "average",
+      "weak": "weak"
+    },
+    "upsell": {
+      "title": "Unlock with Gold",
+      "plans": "View plans",
+      "card": " Phases, risks, life events and classical references for every active period.",
+      "tabs": " Life-area activation, the upcoming dasha timeline, live gochar overlay and dispositor delivery chains."
+    },
+    "mix": {
+      "favorable": "Favorable",
+      "neutral": "Neutral",
+      "challenging": "Challenging"
+    },
+    "scripture": {
+      "title": "Classical references · {level}",
+      "disclaimer": "Educational paraphrases of classical teaching — not verbatim scripture, not predictive certainty."
+    },
+    "sources": {
+      "BPHS": "BPHS",
+      "Phaladeepika": "Phaladeepika",
+      "Laghu Parashari": "Laghu Parashari",
+      "Jataka Parijata": "Jataka Parijata",
+      "Saravali": "Saravali"
+    },
+    "chain": {
+      "elapsed": "{level} elapsed"
+    },
+    "phases": {
+      "opening": "Opening",
+      "middle": "Middle",
+      "closing": "Closing",
+      "here": "You are here",
+      "title": "How it unfolds"
+    },
+    "band2": {
+      "mahaTitle": "{lord} Mahadasha · {start} → {end}",
+      "lane": "Mahadasha",
+      "antars": "{lord} antars",
+      "aria": "Vimshottari Mahadasha timeline"
+    },
+    "card": {
+      "year": "{n} Year",
+      "years": "{n} Years",
+      "less": "Less",
+      "more": "More",
+      "supportive": "Supportive effects",
+      "thisPeriod": "This period: ",
+      "primary": "Primary: ",
+      "also": "Also: ",
+      "risks": "Risks & caution",
+      "fewNegatives": "Few classical negatives when well placed.",
+      "health": "Health: ",
+      "lifeEvents": "Life events: ",
+      "currentAntar": "Current antar: ",
+      "subOnly": "Sub-period only — does not replace the active mahadasha story.",
+      "activeMaha": "Active Mahadasha",
+      "activeAntar": "Active Antardasha",
+      "activePratya": "Active Pratyantardasha"
+    },
+    "timeline": {
+      "none": "No upcoming periods in range.",
+      "nextMaha": "Next mahadasha"
+    },
+    "strength": {
+      "high": "high",
+      "medium": "medium",
+      "low": "low",
+      "quiet": "quiet"
+    },
+    "areas": {
+      "houses": "Houses {list}"
+    },
+    "gochar": {
+      "loading": "Loading dasha × gochar…",
+      "asOf": "· as of {date}"
+    },
+    "delivery": {
+      "lead": "A dasha lord delivers through the planets that host it — its sign lord and nakshatra lord shape how results arrive.",
+      "mahaChain": "Mahadasha chain",
+      "antarChain": "Antardasha chain",
+      "period": "Period lord",
+      "sign": "sign lord",
+      "nakshatra": "nakshatra lord"
+    },
+    "remedies": {
+      "lead": "Remedies for the planets running your dasha now. {rule}",
+      "high": "Needs remedy",
+      "moderate": "Some strain",
+      "low": "Supported",
+      "noAffliction": "No major natal affliction",
+      "deities": "Deities:",
+      "indications": "Indications",
+      "behavioral": "Behavioural",
+      "spiritual": "Spiritual",
+      "daan": "Daan & Seva",
+      "duration": "Duration: {d}",
+      "locked": "Spiritual remedies, daan, seva and cautions on Gold."
+    },
+    "hero": {
+      "aria": "Vimshottari interpretation",
+      "eyebrow": "Vimshottari · Now running",
+      "watch": "Watch: ",
+      "moonTitle": "Moon period — guidance mode. ",
+      "moonText": "Firm event forecasts are softened. Prefer sadhana / katha; see Tattva Prediction → Remedies."
+    },
+    "signals": {
+      "navamsha": "Navamsha",
+      "chara": "Chara Karaka",
+      "yogakaraka": "Yogakaraka",
+      "lagna": "Lagna note"
+    },
+    "tabsAria": "Dasha interpretation sections",
+    "notes": {
+      "title": "Event tag · Platinum",
+      "saveFirst": "Save this chart to attach dasha-dated notes, or manage clients in",
+      "crm": "CRM",
+      "logBefore": "Log what happened during the current",
+      "logAfter": "period.",
+      "typeAria": "Event type",
+      "placeholder": "What happened / note…",
+      "noteAria": "Event note",
+      "saving": "Saving…",
+      "save": "Save note",
+      "empty": "Add a short note first.",
+      "failed": "Could not save note.",
+      "saved": "Saved to chart notes.",
+      "openCrm": "Open client CRM →"
+    },
+    "footer": "Educational timing overlay — every dasha mixes supportive, neutral, and challenging themes. Health notes are soft cautions, not medical advice. Maraka means hardship pressure, not a life-ending forecast."
+  },
+  "yogini": {
+    "title": "Yogini Interpretation",
+    "maha": "Active Yogini (Mahadasha)",
+    "antar": "Active Antar-Yogini",
+    "year": "{n} Year",
+    "years": "{n} Years",
+    "less": "▴ Less",
+    "more": "▾ More",
+    "positive": "Positive Effects",
+    "primary": "Primary",
+    "secondary": "Secondary",
+    "mind": "Mind & Psychology",
+    "state": "State",
+    "activation": "Activation",
+    "risks": "Risks & Caution",
+    "negatives": "Negatives",
+    "favorable": "Generally favorable — few classical negatives.",
+    "health": "Health",
+    "other": "Other",
+    "triggers": "Triggers & Events",
+    "triggersLabel": "Triggers",
+    "lifeEvents": "Life events"
+  },
+  "kala": {
+    "pada": "{nak} pada {pada}",
+    "paramayu": "Paramayu {years}y",
+    "deha": "Deha · body",
+    "jeeva": "Jeeva · life",
+    "maha": "Mahadasha",
+    "antars": "{sign} antardasha",
+    "sign": "Sign",
+    "noPlanet": "No planet",
+    "gatiLine": "{gati} · {nth} from the previous sign",
+    "tone": {
+      "supportive": "supportive",
+      "mixed": "mixed",
+      "caution": "caution"
+    }
+  }
+}

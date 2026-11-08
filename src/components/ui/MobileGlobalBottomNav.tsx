@@ -6,8 +6,8 @@
 //  that do not own a custom multi-section bottom bar
 // ─────────────────────────────────────────────────────────────
 
+import { usePathname } from '@/i18n/navigation'
 import React, { useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
 import {
   resolveMobileNavTab,

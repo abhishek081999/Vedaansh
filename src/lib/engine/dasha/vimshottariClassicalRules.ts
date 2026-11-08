@@ -10,6 +10,16 @@ import type { AshtakavargaResult, GrahaData, GrahaId, Rashi, ShadbalaResult } fr
 import { GRAHA_NAMES } from '@/types/astrology'
 import { DASHA_SEQUENCE } from '@/lib/engine/dasha/vimshottari'
 import type { VimshottariFlag } from '@/lib/engine/dasha/vimshottariAnalysis'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import {
+  CL_FOURTH_HOUSE_FALLBACK_HI,
+  CL_FOURTH_HOUSE_HI,
+  CL_HI,
+  CL_LAGNA_LORD_HI,
+  CL_LAGNA_PAIR_HI,
+  CL_MARS_HOUSE_HI,
+} from '@/lib/engine/locale/vimshottariClassical.hi'
 
 export interface ClassicalRuleHit {
   flag: VimshottariFlag
@@ -33,6 +43,21 @@ export interface ClassicalRuleInput {
   ageAtMahaStartYears?: number | null
   shadbala?: ShadbalaResult | null
   ashtakavarga?: AshtakavargaResult | null
+  /** Language of flag label / detail (default English). */
+  lang?: EngineLang
+}
+
+type HiVars = Record<string, string | number>
+type PushHit = (h: ClassicalRuleHit, hiKey: string, vars: HiVars) => void
+
+const LAYER_HI: Record<string, string> = { MD: 'महादशा', AD: 'अंतर्दशा' }
+
+function hn(id: string | null): string {
+  return id ? GRAHA_HI[id as GrahaId] ?? id : ''
+}
+
+function joinHi(houses: number[]): string {
+  return houses.join(' और ')
 }
 
 const SIGN_LORDS: Record<number, GrahaId> = {
@@ -146,10 +171,11 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
   const { ascRashi, grahas, mahaLord, antarLord, mahaSequenceIndex, antarIndexInMaha, navamshaGrahas } = input
   const hits: ClassicalRuleHit[] = []
   const seen = new Set<string>()
-  const push = (h: ClassicalRuleHit) => {
+  const push: PushHit = (h, hiKey, vars) => {
     if (seen.has(h.flag.id)) return
     seen.add(h.flag.id)
-    hits.push(h)
+    const T = input.lang === 'hi' ? CL_HI[hiKey] : undefined
+    hits.push(T ? { ...h, flag: { ...h.flag, label: fill(T.label, vars), detail: fill(T.detail, vars) } } : h)
   }
 
   const lord5 = houseLord(ascRashi, 5)
@@ -175,53 +201,53 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
     // Lagna lord and trikona lords give good results in their own periods.
     if (ruled.includes(1)) {
       push(hit('cl-lagnesh', 'Lagna lord period', 'supportive',
-        `${n} rules the lagna. The lagna lord can deliver every area of life, from vitality to the outcome of effort.`, 5))
+        `${n} rules the lagna. The lagna lord can deliver every area of life, from vitality to the outcome of effort.`, 5), 'lagnesh', { n: hn(lord) })
     } else if (ruled.some(h => h === 5 || h === 9)) {
       push(hit(`cl-trikona-lord-${layer}`, `Trikona lord period (${layer})`, 'supportive',
-        `${n} rules the ${ruled.filter(h => h === 5 || h === 9).join(' and ')} — a lakshmi sthana. Its period tends to bring fortune and money.`, 5))
+        `${n} rules the ${ruled.filter(h => h === 5 || h === 9).join(' and ')} — a lakshmi sthana. Its period tends to bring fortune and money.`, 5), 'trikonaLord', { layer: LAYER_HI[layer], n: hn(lord), houses: joinHi(ruled.filter(h => h === 5 || h === 9)) })
     }
 
     // 3rd / 6th / 11th lords: trouble, unless a trikona lordship softens it.
     const trishadaya = ruled.filter(h => h === 3 || h === 6 || h === 11)
     if (trishadaya.length && !ruled.some(h => TRIKONA.includes(h))) {
       push(hit(`cl-trishadaya-${layer}`, `Lord of ${trishadaya.join('/')} (${layer})`, 'caution',
-        `${n} rules the ${trishadaya.join(' and ')}. These periods bring effort, competition, and friction before gain.`, -6))
+        `${n} rules the ${trishadaya.join(' and ')}. These periods bring effort, competition, and friction before gain.`, -6), 'trishadaya', { layer: LAYER_HI[layer], n: hn(lord), houses: trishadaya.join('/') })
     }
 
     // 8th / 12th lordship alone is neutral: results follow association.
     if (ruled.length && ruled.every(h => h === 8 || h === 12)) {
       push(hit(`cl-neutral-lord-${layer}`, `Neutral lordship (${layer})`, 'neutral',
-        `${n} rules only the ${ruled.join(' and ')}. Such a lord is neutral; it gives results through the planets it joins and the house it occupies.`, 0))
+        `${n} rules only the ${ruled.join(' and ')}. Such a lord is neutral; it gives results through the planets it joins and the house it occupies.`, 0), 'neutralLord', { layer: LAYER_HI[layer], n: hn(lord), houses: joinHi(ruled) })
     }
 
     // Kendradhipati dosha: a natural benefic owning two kendras.
     if ((lord === 'Ju' || lord === 'Me') && ruled.filter(h => KENDRA.includes(h)).length >= 2) {
       push(hit('cl-kendradhipati', 'Kendradhipati dosha', 'caution',
-        `${n} is a natural benefic that owns two kendras. It loses part of its benefic nature, so its period gives mixed results.`, -5))
+        `${n} is a natural benefic that owns two kendras. It loses part of its benefic nature, so its period gives mixed results.`, -5), 'kendradhipati', { n: hn(lord) })
     }
 
     // Natural malefic as kendra lord (non-trikona) loses its malefic edge.
     if (['Su', 'Ma', 'Sa'].includes(lord) && ruled.some(h => h !== 1 && KENDRA.includes(h)) && !ruled.some(h => TRIKONA.includes(h))) {
       push(hit(`cl-malefic-kendra-${layer}`, `Malefic kendra lord (${layer})`, 'mixed',
-        `${n} is a natural malefic that owns a kendra. Kendra lordship softens its harsh side.`, 2))
+        `${n} is a natural malefic that owns a kendra. Kendra lordship softens its harsh side.`, 2), 'maleficKendra', { layer: LAYER_HI[layer], n: hn(lord) })
     }
 
     // Malefics thrive in 3, 6, 11.
     if (NATURAL_MALEFIC.has(lord) && [3, 6, 11].includes(house)) {
       push(hit(`cl-malefic-upachaya-${layer}`, `Malefic in ${house}th (${layer})`, 'supportive',
-        `${n} is a natural malefic placed in the ${house}th. Cruel planets in the 3rd, 6th, and 11th give good results in their periods.`, 6))
+        `${n} is a natural malefic placed in the ${house}th. Cruel planets in the 3rd, 6th, and 11th give good results in their periods.`, 6), 'maleficUpachaya', { layer: LAYER_HI[layer], n: hn(lord), house })
     }
 
     // Viparita: debilitated planet in 3/6/8, or debilitated lord of 3/6/12.
     if (g.dignity === 'debilitated' && ([3, 6, 8].includes(house) || ruled.some(h => [3, 6, 12].includes(h)))) {
       push(hit(`cl-viparita-${layer}`, `Debilitated in a hard place (${layer})`, 'supportive',
-        `${n} is debilitated and tied to a dusthana. A weak lord of a difficult house is taught to give a surprisingly good period, after early strain.`, 5))
+        `${n} is debilitated and tied to a dusthana. A weak lord of a difficult house is taught to give a surprisingly good period, after early strain.`, 5), 'viparita', { layer: LAYER_HI[layer], n: hn(lord) })
     }
 
     // Malefic in the 4th: home and property themes.
     if (NATURAL_MALEFIC.has(lord) && house === 4) {
       push(hit(`cl-malefic-4th-${layer}`, `Malefic in the 4th (${layer})`, 'caution',
-        `${n} sits in the 4th. Watch for ${FOURTH_HOUSE_MALEFIC[lord] ?? 'loss around land and home'}. This is a theme to guard, not a certainty, and not medical advice.`, -5))
+        `${n} sits in the 4th. Watch for ${FOURTH_HOUSE_MALEFIC[lord] ?? 'loss around land and home'}. This is a theme to guard, not a certainty, and not medical advice.`, -5), 'malefic4th', { layer: LAYER_HI[layer], n: hn(lord), theme: CL_FOURTH_HOUSE_HI[lord] ?? CL_FOURTH_HOUSE_FALLBACK_HI })
     }
 
     // Lord aspects its own house.
@@ -229,36 +255,36 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
       const own = ruled.filter(h => aspectsSign(g, signOfHouse(ascRashi, h)))
       if (own.length) {
         push(hit(`cl-own-aspect-${layer}`, `Aspects own house (${layer})`, 'supportive',
-          `${n} aspects the ${own.join(' and ')}, a house it rules. A planet that looks at its own house protects it in its period.`, 4))
+          `${n} aspects the ${own.join(' and ')}, a house it rules. A planet that looks at its own house protects it in its period.`, 4), 'ownAspect', { layer: LAYER_HI[layer], n: hn(lord), houses: joinHi(own) })
       }
     }
 
     // Laghu Parashari: 2nd/7th lord placed in or linked to the 4th lord.
     if ((ruled.includes(2) || ruled.includes(7)) && lord !== lord4 && (house === 4 || connected(g, g4, ascRashi))) {
       push(hit('cl-maraka-4th', 'Maraka lord linked to the 4th', 'supportive',
-        `${n} rules the 2nd or the 7th and is tied to the 4th. Its period still brings strain, but the returns are taught to outweigh it.`, 5))
+        `${n} rules the 2nd or the 7th and is tied to the 4th. Its period still brings strain, but the returns are taught to outweigh it.`, 5), 'maraka4th', { n: hn(lord) })
     }
 
     // 6th / 8th / 12th lord linked to the 5th lord.
     if (ruled.some(h => [6, 8, 12].includes(h)) && lord !== lord5 && connected(g, g5, ascRashi)) {
       push(hit('cl-dusthana-5th', 'Dusthana lord linked to the 5th', 'supportive',
-        `${n} rules a dusthana and is linked with the 5th lord (${name(lord5)}). Laghu Parashari reads this as good results in the period.`, 5))
+        `${n} rules a dusthana and is linked with the 5th lord (${name(lord5)}). Laghu Parashari reads this as good results in the period.`, 5), 'dusthana5th', { n: hn(lord), l5: hn(lord5) })
     }
 
     // 6th / 7th lord in the 10th or linked to the 10th lord.
     if ((ruled.includes(6) || ruled.includes(7)) && (house === 10 || (lord !== lord10 && connected(g, g10, ascRashi)))) {
       push(hit('cl-6-7-tenth', '6th/7th lord tied to the 10th', 'supportive',
-        `${n} rules the 6th or the 7th and is tied to the 10th. Only then is such a period auspicious, through work and status.`, 5))
+        `${n} rules the 6th or the 7th and is tied to the 10th. Only then is such a period auspicious, through work and status.`, 5), 'sixSeven10', { n: hn(lord) })
     }
 
     // 5th lord in 10th; 10th lord in 9th.
     if (lord === lord5 && house === 10) {
       push(hit('cl-5in10', '5th lord in the 10th', 'supportive',
-        `${n}, lord of the 5th, sits in the 10th. Money, property, and power are classically promised in its periods.`, 6))
+        `${n}, lord of the 5th, sits in the 10th. Money, property, and power are classically promised in its periods.`, 6), 'fiveIn10', { n: hn(lord) })
     }
     if (lord === lord10 && house === 9) {
       push(hit('cl-10in9', '10th lord in the 9th', 'supportive',
-        `${n}, lord of the 10th, sits in the 9th. This gives a good position and a strong period.`, 5))
+        `${n}, lord of the 10th, sits in the 9th. This gives a good position and a strong period.`, 5), 'tenIn9', { n: hn(lord) })
     }
 
     // Nodes: kendra + trikona-lord link is the best dasha; Rahu alone in 5th needs care.
@@ -266,17 +292,17 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
       const linkedTrikona = [g5, g9].some(t => t && (t.rashi === g.rashi || aspectsSign(t, g.rashi)))
       if (KENDRA.includes(house) && linkedTrikona) {
         push(hit(`cl-node-kendra-${lord}`, `${n} in kendra with trikona lord`, 'supportive',
-          `${n} sits in a kendra and is joined or aspected by the lord of the 5th or the 9th. Few dashas are better than this.`, 10))
+          `${n} sits in a kendra and is joined or aspected by the lord of the 5th or the 9th. Few dashas are better than this.`, 10), 'nodeKendra', { n: hn(lord) })
       }
       if (lord === 'Ra' && house === 5) {
         const kendraLords = KENDRA.map(h => find(grahas, houseLord(ascRashi, h)))
         const linkedKendra = kendraLords.some(k => k && (k.rashi === g.rashi || aspectsSign(k, g.rashi)))
         if (linkedTrikona || linkedKendra) {
           push(hit('cl-rahu-5th-linked', 'Rahu in 5th, well linked', 'supportive',
-            'Rahu in the 5th is joined or aspected by a kendra or trikona lord. That turns its period good.', 5))
+            'Rahu in the 5th is joined or aspected by a kendra or trikona lord. That turns its period good.', 5), 'rahu5Linked', {})
         } else {
           push(hit('cl-rahu-5th-alone', 'Rahu alone in the 5th', 'caution',
-            'Rahu sits alone in the 5th with no kendra or trikona lord linked. Classically, progeny matters need extra care in this period. Read it with the D7, and consult a medical professional for any concern.', -4))
+            'Rahu sits alone in the 5th with no kendra or trikona lord linked. Classically, progeny matters need extra care in this period. Read it with the D7, and consult a medical professional for any concern.', -4), 'rahu5Alone', {})
         }
       }
     }
@@ -295,7 +321,7 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
           allFine
             ? `${n} faces ${opp.map(o => name(o.id)).join(', ')} across the 1–7 axis. This is one of the taught exceptions that works well.`
             : `${n} faces ${opp.map(o => name(o.id)).join(', ')} across the 1–7 axis. Apart from Mars–Moon, Saturn–Jupiter, and Mars–Jupiter, such periods tend not to go smoothly.`,
-          allFine ? 4 : -5))
+          allFine ? 4 : -5), allFine ? 'axisFine' : 'axisBad', { layer: LAYER_HI[layer], n: hn(lord), opp: opp.map(o => hn(o.id)).join(', ') })
       }
     }
 
@@ -308,14 +334,14 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
             ? 'Mars is exalted in the rashi and debilitated in the navamsha. Its period is taught to bring serious trouble for a brother or a close friend; keep them close.'
             : lord === 'Su'
               ? 'The Sun is exalted in the rashi and debilitated in the navamsha. Its period is taught to bring a run of losses in the family and in agricultural land. Read it as a call to protect, not a certainty.'
-              : `${n} is exalted in the rashi and debilitated in the navamsha. The promise looks strong but falls short; family and fixed assets need protection.`, -6))
+              : `${n} is exalted in the rashi and debilitated in the navamsha. The promise looks strong but falls short; family and fixed assets need protection.`, -6), lord === 'Ma' ? 'd1d9FallMa' : lord === 'Su' ? 'd1d9FallSu' : 'd1d9Fall', { layer: LAYER_HI[layer], n: hn(lord) })
       } else if (g.dignity === 'debilitated' && d9.dignity === 'exalted') {
         push(hit(`cl-d1-d9-rise-${layer}`, `Debilitated D1, exalted D9 (${layer})`, 'supportive',
           lord === 'Ma'
             ? 'Mars is debilitated in the rashi and exalted in the navamsha. Farmland or a farmhouse, if you hold one, is taught to profit well in this period.'
             : lord === 'Su'
               ? 'The Sun is debilitated in the rashi and exalted in the navamsha. Expect early defamation or a setback at work, then vindication and strong money.'
-              : `${n} is debilitated in the rashi and exalted in the navamsha. Expect early setbacks, then a strong final result.`, 5))
+              : `${n} is debilitated in the rashi and exalted in the navamsha. Expect early setbacks, then a strong final result.`, 5), lord === 'Ma' ? 'd1d9RiseMa' : lord === 'Su' ? 'd1d9RiseSu' : 'd1d9Rise', { layer: LAYER_HI[layer], n: hn(lord) })
       }
     }
 
@@ -326,10 +352,10 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
       const b = moonBrightness(grahas)
       if (b != null && b >= 120) {
         push(hit('cl-moon-bright', 'Paksha-bali Moon', 'supportive',
-          'The Moon is bright (near full). It makes the mind resilient and supports money and home, even if the sign is weak.', 5))
+          'The Moon is bright (near full). It makes the mind resilient and supports money and home, even if the sign is weak.', 5), 'moonBright', {})
       } else if (b != null && b <= 48) {
         push(hit('cl-moon-dark', 'Dark Moon (near amavasya)', 'caution',
-          'The Moon is near new moon and lacks paksha bala. Its period can bring emotional strain and repeated minor illness, even in a good sign. This is not medical advice.', -5))
+          'The Moon is near new moon and lacks paksha bala. Its period can bring emotional strain and repeated minor illness, even in a good sign. This is not medical advice.', -5), 'moonDark', {})
       }
     }
   }
@@ -343,7 +369,7 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
     const pairs = (ownsKendra(md) && ownsTrikona(ad)) || (ownsTrikona(md) && ownsKendra(ad))
     if (pairs && connected(find(grahas, mahaLord), find(grahas, antarLord), ascRashi)) {
       push(hit('cl-rajayoga-antar', 'Rajayoga antardasha', 'supportive',
-        `${name(mahaLord)} and ${name(antarLord)} join kendra and trikona lordship and are connected. This is a rajayoga-giving stretch, usually six months to three years.`, 10))
+        `${name(mahaLord)} and ${name(antarLord)} join kendra and trikona lordship and are connected. This is a rajayoga-giving stretch, usually six months to three years.`, 10), 'rajayogaAntar', { a: hn(mahaLord), b: hn(antarLord) })
     }
   }
 
@@ -351,7 +377,7 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
   for (const p of LAGNA_PAIRINGS[ascRashi] ?? []) {
     const involved = [mahaLord, antarLord].includes(p.a) || [mahaLord, antarLord].includes(p.b)
     if (involved && connected(find(grahas, p.a), find(grahas, p.b), ascRashi)) {
-      push(hit(`cl-lagna-pair-${p.a}-${p.b}`, `${name(p.a)}–${name(p.b)} pairing`, p.tone, p.detail, p.tone === 'supportive' ? 6 : -6))
+      push(hit(`cl-lagna-pair-${p.a}-${p.b}`, `${name(p.a)}–${name(p.b)} pairing`, p.tone, p.detail, p.tone === 'supportive' ? 6 : -6), 'lagnaPair', { a: hn(p.a), b: hn(p.b), detail: CL_LAGNA_PAIR_HI[`${ascRashi}-${p.a}-${p.b}`] ?? p.detail })
     }
   }
 
@@ -365,7 +391,7 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
       || ([4, 6, 9].includes(nth) && (mahaLord === 'Ra' || mahaLord === 'Ma'))
     if (bad) {
       push(hit('cl-birth-sequence', `${nth}th mahadasha from birth`, 'caution',
-        `${name(mahaLord)} as the ${nth}th mahadasha from birth is taught to give malefic results, even when placed well.`, -6))
+        `${name(mahaLord)} as the ${nth}th mahadasha from birth is taught to give malefic results, even when placed well.`, -6), 'birthSequence', { nth, n: hn(mahaLord) })
     }
   }
 
@@ -377,7 +403,7 @@ export function collectClassicalDashaRules(input: ClassicalRuleInput): Classical
       ? ' After Venus come the Sun (6 years) and the Moon (10 years); read both now, because guidance given at the end of Venus changes in the Moon.'
       : ''
     push(hit('cl-sandhi', 'Dasha sandhi', 'neutral',
-      `The mahadasha is in its last antar. ${name(next)} begins next, and its themes are already forming. Judge the next lord before advising.${venusNote}`, 0))
+      `The mahadasha is in its last antar. ${name(next)} begins next, and its themes are already forming. Judge the next lord before advising.${venusNote}`, 0), 'sandhi', { next: hn(next), venus: mahaLord === 'Ve' ? CL_HI.sandhiVenus.detail : '' })
   }
 
   return hits
@@ -415,7 +441,7 @@ const LAGNA_LORD_NOTES: Record<string, { tone: VimshottariFlag['tone']; detail: 
   '2-Me': { tone: 'supportive', detail: 'For Taurus lagna, Mercury rules the 2nd and the 5th. The 2nd makes it a maraka, but the 5th turns that into foresight, precise planning, and decisions that win over competitors.', weight: 4 },
 }
 
-function collectPlacementRules(c: PlacementCtx, push: (h: ClassicalRuleHit) => void): void {
+function collectPlacementRules(c: PlacementCtx, push: PushHit): void {
   const { ascRashi, grahas, lord, layer, g, house, ruled } = c
   const conj = (id: string) => grahas.some(o => o.id === id && o.id !== lord && o.rashi === g.rashi)
   const conjLordOf = (h: number) => {
@@ -425,7 +451,7 @@ function collectPlacementRules(c: PlacementCtx, push: (h: ClassicalRuleHit) => v
 
   // Lagna-specific notes for Venus / Mercury.
   const note = LAGNA_LORD_NOTES[`${ascRashi}-${lord}`]
-  if (note) push(hit(`cl-lagna-lord-${lord}`, `${name(lord)} for this lagna`, note.tone, note.detail, note.weight))
+  if (note) push(hit(`cl-lagna-lord-${lord}`, `${name(lord)} for this lagna`, note.tone, note.detail, note.weight), 'lagnaLord', { n: hn(lord), detail: CL_LAGNA_LORD_HI[`${ascRashi}-${lord}`] ?? note.detail })
 
   // Shadbala in rupas.
   const sb = c.shadbala?.planets?.[lord]
@@ -434,7 +460,7 @@ function collectPlacementRules(c: PlacementCtx, push: (h: ClassicalRuleHit) => v
     if (rupa >= 6) {
       push(hit(`cl-shadbala-6-${layer}`, `Shadbala above 6 rupas (${layer})`, 'supportive',
         `${name(lord)} has ${rupa.toFixed(1)} rupas of Shadbala. Above six rupas, and in its own or a friend’s sign, a lord gives a good period.`,
-        g.dignity === 'own' || g.dignity === 'friend' || g.dignity === 'great_friend' || g.dignity === 'moolatrikona' ? 5 : 3))
+        g.dignity === 'own' || g.dignity === 'friend' || g.dignity === 'great_friend' || g.dignity === 'moolatrikona' ? 5 : 3), 'shadbala6', { layer: LAYER_HI[layer], n: hn(lord), rupa: rupa.toFixed(1) })
     }
   }
 
@@ -442,15 +468,15 @@ function collectPlacementRules(c: PlacementCtx, push: (h: ClassicalRuleHit) => v
     const afflicted = conj('Ra') || conj('Ke') || conj('Sa') || g.dignity === 'debilitated'
     if (!afflicted && ([1, 4, 5, 7, 9, 10, 11].includes(house) || ruled.includes(9) || ruled.includes(10))) {
       push(hit('cl-sun-fame', 'Sun well placed', 'supportive',
-        'A clean Sun in a kendra, a trikona, or the 11th, or as lord of the 9th or the 10th, gives money, honour, and fame in its period. Government awards are possible.', 6))
+        'A clean Sun in a kendra, a trikona, or the 11th, or as lord of the 9th or the 10th, gives money, honour, and fame in its period. Government awards are possible.', 6), 'sunFame', {})
     }
     if (conjLordOf(5)) {
       push(hit('cl-sun-5th-lord', 'Sun with the 5th lord', 'supportive',
-        'The Sun joins the 5th lord. If its period comes when children are planned, it is taught to give a child, often a son.', 4))
+        'The Sun joins the 5th lord. If its period comes when children are planned, it is taught to give a child, often a son.', 4), 'sun5th', {})
     }
     if (conjLordOf(2)) {
       push(hit('cl-sun-2nd-lord', 'Sun with the 2nd lord', 'supportive',
-        'The Sun joins the 2nd lord. Money arrives, and an auspicious event takes place in the family.', 4))
+        'The Sun joins the 2nd lord. Money arrives, and an auspicious event takes place in the family.', 4), 'sun2nd', {})
     }
     if ([6, 8, 12].includes(house)) {
       const withNode = conj('Ra') || conj('Ke')
@@ -458,11 +484,11 @@ function collectPlacementRules(c: PlacementCtx, push: (h: ClassicalRuleHit) => v
         withNode
           ? 'The Sun sits with a node in the 6th, 8th, or 12th. This is taught as a very hard period, in which name, standing, and money can all be lost. Keep the Moon’s period, which follows, in view.'
           : 'The Sun sits in the 6th, 8th, or 12th. Watch loans and defaults, raids or inquiries, and anything that could cost your reputation.',
-        withNode ? -9 : -5))
+        withNode ? -9 : -5), withNode ? 'sunDusthanaNode' : 'sunDusthana', {})
     }
     if (house === 3) {
       push(hit('cl-sun-3rd', 'Sun in the 3rd', 'mixed',
-        'The Sun in the 3rd gives a sudden early jump. Do not be drawn in by the hype; a decline can follow.', 0))
+        'The Sun in the 3rd gives a sudden early jump. Do not be drawn in by the hype; a decline can follow.', 0), 'sun3rd', {})
     }
   }
 
@@ -470,25 +496,25 @@ function collectPlacementRules(c: PlacementCtx, push: (h: ClassicalRuleHit) => v
     const bright = (moonBrightness(grahas) ?? 90) >= 120
     if (g.dignity === 'exalted') {
       push(hit('cl-moon-exalted', 'Exalted Moon', 'supportive',
-        'An exalted Moon in its own period brings power and authority.', 5))
+        'An exalted Moon in its own period brings power and authority.', 5), 'moonExalted', {})
     } else if (g.dignity === 'debilitated' && g.degree <= 5 && house === 8 && !bright) {
       push(hit('cl-moon-deep-8', 'Deeply debilitated Moon in the 8th', 'caution',
-        'This is the hardest Moon placement taught. Its period can bring deep emotional lows. Keep support close, be careful around water and substances, and take any mental-health concern to a professional.', -8))
+        'This is the hardest Moon placement taught. Its period can bring deep emotional lows. Keep support close, be careful around water and substances, and take any mental-health concern to a professional.', -8), 'moonDeep8', {})
     } else if ((g.dignity === 'enemy' || g.dignity === 'great_enemy') && house >= 6) {
       push(hit('cl-moon-bondage', 'Moon in an enemy sign', 'caution',
-        'The Moon in an enemy sign in the later houses can feel like bondage: home or work feels like a cage where you cannot do as you wish.', -5))
+        'The Moon in an enemy sign in the later houses can feel like bondage: home or work feels like a cage where you cannot do as you wish.', -5), 'moonBondage', {})
     } else if (g.dignity === 'friend' || g.dignity === 'great_friend') {
       push(hit('cl-moon-friend', 'Moon in a friend’s sign', 'supportive',
-        'The Moon in a friend’s sign gives joy from family and relatives, and a wish to keep your own people around you. Emotional security grows.', 4))
+        'The Moon in a friend’s sign gives joy from family and relatives, and a wish to keep your own people around you. Emotional security grows.', 4), 'moonFriend', {})
     }
     if (house >= 1 && house <= 4 && (conjLordOf(4) || conjLordOf(9) || conjLordOf(10))) {
       push(hit('cl-moon-wealth-home', 'Moon with the 4th, 9th or 10th lord', 'supportive',
-        'The Moon sits in houses 1 to 4 with the lord of the 4th, the 9th, or the 10th. Its period is taught to give much money, respect, and a fine house.', 6))
+        'The Moon sits in houses 1 to 4 with the lord of the 4th, the 9th, or the 10th. Its period is taught to give much money, respect, and a fine house.', 6), 'moonWealthHome', {})
     }
     const bav = c.ashtakavarga?.bav?.Mo?.bindus?.[g.rashi - 1]
     if (bav != null && bav >= 6) {
       push(hit('cl-moon-bav-high', `Moon with ${bav} bindus`, 'supportive',
-        `The Moon has ${bav} Ashtakavarga bindus in its sign. With six or seven, its period is taught to give a great deal of money.`, 5))
+        `The Moon has ${bav} Ashtakavarga bindus in its sign. With six or seven, its period is taught to give a great deal of money.`, 5), 'moonBav', { bav })
     }
   }
 
@@ -496,14 +522,14 @@ function collectPlacementRules(c: PlacementCtx, push: (h: ClassicalRuleHit) => v
     const m = MARS_BY_HOUSE[house]
     if (m) {
       push(hit(`cl-mars-house-${house}`, `Mars in the ${house}th`, m.tone, m.detail,
-        m.tone === 'supportive' ? 4 : m.tone === 'caution' ? -4 : 0))
+        m.tone === 'supportive' ? 4 : m.tone === 'caution' ? -4 : 0), 'marsHouse', { house, detail: CL_MARS_HOUSE_HI[house] ?? m.detail })
     }
   }
 
   if (lord === 'Sa') {
     const at = (n: number) => ((house - 1 + n - 1) % 12) + 1
     push(hit(`cl-saturn-aspects-${layer}`, 'Saturn’s aspects', 'neutral',
-      `Saturn’s 3rd aspect falls on house ${at(3)}: plan for the future there. Its 7th aspect falls on house ${at(7)}: present karma pays out there. Its 10th aspect falls on house ${at(10)}: old karma is re-engineered there.`, 0))
+      `Saturn’s 3rd aspect falls on house ${at(3)}: plan for the future there. Its 7th aspect falls on house ${at(7)}: present karma pays out there. Its 10th aspect falls on house ${at(10)}: old karma is re-engineered there.`, 0), 'saturnAspects', { a3: at(3), a7: at(7), a10: at(10) })
   }
 
   if (layer === 'MD' && (lord === 'Ra' || lord === 'Ke') && c.mahaProgress != null) {
@@ -516,7 +542,7 @@ function collectPlacementRules(c: PlacementCtx, push: (h: ClassicalRuleHit) => v
           : phase === 'middle'
             ? 'The middle of Rahu is where comfort and gains begin to arrive.'
             : 'The last years of Rahu give good results, but classically weigh on the elders of the family, often a grandparent. Keep their health in view.',
-        phase === 'middle' ? 4 : -3))
+        phase === 'middle' ? 4 : -3), phase === 'start' ? 'rahuPhaseStart' : phase === 'middle' ? 'rahuPhaseMiddle' : 'rahuPhaseEnd', {})
     } else {
       const year = p * 7
       const phase = year < 2 ? 'start' : year < 5 ? 'middle' : 'end'
@@ -526,26 +552,26 @@ function collectPlacementRules(c: PlacementCtx, push: (h: ClassicalRuleHit) => v
           : phase === 'middle'
             ? 'Years three to five of Ketu turn you inward. Events push you to think about yourself, and inner guidance arrives.'
             : 'The last years of Ketu bring detachment, from a relationship, a desire, or a comfort, not only in spiritual form.',
-        0))
+        0), phase === 'start' ? 'ketuPhaseStart' : phase === 'middle' ? 'ketuPhaseMiddle' : 'ketuPhaseEnd', {})
     }
   }
 
   if (lord === 'Ke') {
     if (conj('Ju') && conj('Mo')) {
       push(hit('cl-ketu-ju-mo', 'Ketu with Jupiter and the Moon', 'supportive',
-        'A rare combination of Ketu, Jupiter, and the Moon gives a kind of divine sight. Memories of past lives can surface in its period.', 5))
+        'A rare combination of Ketu, Jupiter, and the Moon gives a kind of divine sight. Memories of past lives can surface in its period.', 5), 'ketuJuMo', {})
     }
     if (conj('Ma') && conj('Sa')) {
       push(hit('cl-ketu-ma-sa', 'Ketu with Mars and Saturn', 'mixed',
-        'Ketu with Mars and Saturn makes a secret warrior, with a life close to that of an ascetic.', 0))
+        'Ketu with Mars and Saturn makes a secret warrior, with a life close to that of an ascetic.', 0), 'ketuMaSa', {})
     }
     if (conj('Ve') && conj('Me')) {
       push(hit('cl-ketu-ve-me', 'Ketu with Venus and Mercury', 'supportive',
-        'Ketu with Venus and Mercury makes a poet of devotion, in the line of Kabir.', 4))
+        'Ketu with Venus and Mercury makes a poet of devotion, in the line of Kabir.', 4), 'ketuVeMe', {})
     }
     if (layer === 'MD' && c.ageAtMahaStartYears != null && c.ageAtMahaStartYears >= 24 && c.ageAtMahaStartYears <= 26) {
       push(hit('cl-ketu-best-age', 'Ketu at its best age', 'mixed',
-        'Ketu running from about 25 to 32 is its strongest stretch. Good or bad, it brings sudden changes and a turn in the life.', 0))
+        'Ketu running from about 25 to 32 is its strongest stretch. Good or bad, it brings sudden changes and a turn in the life.', 0), 'ketuBestAge', {})
     }
   }
 }

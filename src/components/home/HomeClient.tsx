@@ -5,12 +5,16 @@
 //  Redesigned: themed, animated, cleaner visual hierarchy
 // ─────────────────────────────────────────────────────────────
 
+import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import dynamic from 'next/dynamic'
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useLocale, useTranslations } from 'next-intl'
+import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
+import { YOGA_CATEGORY_HI, yogaNameHi } from '@/lib/engine/locale/yogas.hi'
 import { Star, Grid3x3, Scale, Home, BarChart3, Compass, Layers, Download, Library, ChevronDown } from 'lucide-react'
 import { birthUtcFromMeta } from '@/lib/engine/dasha/hydrateChara'
 import { getCurrentMahaDashaLord, MajorKundaliStrip } from '@/components/ui/MajorKundaliStrip'
@@ -177,10 +181,13 @@ function ArudhaPanel({ arudhas, arudhasBphs }: { arudhas: ChartOutput['arudhas']
 // ─────────────────────────────────────────────────────────────
 
 function ChartSummary({ chart }: { chart: ChartOutput }) {
+  const t = useTranslations('chart.actions')
+  const { hi } = useLang()
+  const asc = chart.lagnas.ascRashi as Rashi
   const rows = [
-    { label: 'Ascendant', value: `${RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
-    { label: 'Ayanamsha', value: `${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(3)}°` },
-    { label: 'Julian Day', value: chart.meta.julianDay.toFixed(4), mono: true },
+    { label: t('ascendant'), value: `${hi ? RASHI_HI[asc] : RASHI_NAMES[asc]} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
+    { label: t('ayanamsha'), value: `${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(3)}°` },
+    { label: t('julianDay'), value: chart.meta.julianDay.toFixed(4), mono: true },
   ]
   return (
     <div style={{
@@ -190,7 +197,7 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
       border: '1px solid var(--border)',
       borderRadius: 'var(--r-md)',
     }}>
-      <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Chart Summary</div>
+      <div className="label-caps" style={{ marginBottom: '0.5rem' }}>{t('summary')}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
         {rows.map(({ label, value, mono }) => (
           <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.8rem' }}>
@@ -228,17 +235,19 @@ function DashboardAvViewSelect({
   value: DashboardAvView
   onChange: (v: DashboardAvView) => void
 }) {
+  const t = useTranslations('chart.strength')
+  const hi = useLocale() === 'hi'
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as DashboardAvView)}
-      aria-label="Ashtakavarga view"
+      aria-label={t('avView')}
       style={DASHBOARD_AV_SELECT_STYLE}
     >
-      <option value="sav">Sarvashtakavarga</option>
+      <option value="sav">{t('sav')}</option>
       {DASHBOARD_AV_PLANETS.map((p) => (
         <option key={p} value={p}>
-          {GRAHA_NAMES[p] ?? p} BAV
+          {t('bav', { planet: (hi ? GRAHA_HI[p as GrahaId] : GRAHA_NAMES[p]) ?? p })}
         </option>
       ))}
     </select>
@@ -257,6 +266,7 @@ function DashboardSavChart({
   /** SAV uses 24–32+ bands; BAV uses 0–8 class bands */
   mode?: 'sav' | 'bav'
 }) {
+  const hiSav = useLocale() === 'hi'
   const CHART_COLOR = {
     teal: 'var(--teal, #4fd1c5)',
     blue: 'var(--blue, #60a5fa)',
@@ -348,7 +358,7 @@ function DashboardSavChart({
               fill={rashi === ascRashi ? CHART_COLOR.gold : CHART_COLOR.muted}
               fontWeight={700}
             >
-              {RASHI_SHORT[rashi as Rashi]}
+              {hiSav ? RASHI_HI[rashi as Rashi] : RASHI_SHORT[rashi as Rashi]}
             </text>
           </g>
         )
@@ -596,6 +606,16 @@ function HomeContent() {
   const [acgNatalData, setAcgNatalData] = useState<any[]>([])
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
+  const tHome = useTranslations('home')
+  const tw = useTranslations('chart.workspace')
+  const tAct = useTranslations('chart.actions')
+  const tTab = useTranslations('chart.panelTabs')
+  const hiLang = useLocale() === 'hi'
+  const lt = (en: string) => (hiLang ? termHi(en) : en)
+  const tStr = useTranslations('chart.strength')
+  const tYoga = useTranslations('chart.yogas')
+  const gName = React.useCallback((id: string) => (hiLang ? GRAHA_HI[id as GrahaId] : GRAHA_NAMES[id as GrahaId]) ?? id, [hiLang])
   const urlChartId = searchParams.get('chartId')
 
   const [loading,    setLoading]    = useState(false)
@@ -780,32 +800,32 @@ function HomeContent() {
       : (chart.ashtakavarga.bav[dashboardAvView]?.total ?? values.reduce((a, b) => a + b, 0))
     const signs = values.map((val, i) => ({ sign: (i + 1) as Rashi, val }))
     const sorted = [...signs].sort((a, b) => b.val - a.val)
-    const planetName = isSav ? null : (GRAHA_NAMES[dashboardAvView as GrahaId] ?? dashboardAvView)
+    const planetName = isSav ? null : gName(dashboardAvView)
     return {
       isSav,
       mode: (isSav ? 'sav' : 'bav') as 'sav' | 'bav',
       values,
-      title: isSav ? 'Sarvashtakavarga' : `${planetName} BAV`,
-      totalLabel: isSav ? 'SAV Total' : 'BAV Total',
+      title: isSav ? tStr('sav') : tStr('bav', { planet: planetName ?? '' }),
+      totalLabel: isSav ? tStr('savTotal') : tStr('bavTotal'),
       total,
       avg: (total / 12).toFixed(1),
       highest: sorted[0],
       lowest: sorted[sorted.length - 1],
     }
-  }, [chart, dashboardAvView])
+  }, [chart, dashboardAvView, gName, tStr])
 
   const dashboardShadbalaSummary = useMemo(() => {
     if (!chart?.shadbala) return null
     const { strongest, weakest, planets } = chart.shadbala
     const core: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
-    const sn = GRAHA_NAMES[strongest as GrahaId] ?? strongest
-    const wn = GRAHA_NAMES[weakest as GrahaId] ?? weakest
+    const sn = gName(strongest)
+    const wn = gName(weakest)
     const ratios = core.map((id) => planets[id]?.ratio).filter((r): r is number => typeof r === 'number')
     const meanRatio = ratios.length ? (ratios.reduce((a, b) => a + b, 0) / ratios.length).toFixed(2) : '—'
     const ranked = core
       .map((id) => ({
         id,
-        name: GRAHA_NAMES[id] ?? id,
+        name: gName(id),
         total: planets[id]?.total ?? 0,
         ratio: planets[id]?.ratio ?? 0,
       }))
@@ -824,7 +844,7 @@ function HomeContent() {
       maxTotal,
       top5,
     }
-  }, [chart])
+  }, [chart, gName])
 
   const dashboardBhavaBalaSummary = useMemo(() => {
     if (!chart?.bhavaBala?.houses) return null
@@ -853,14 +873,14 @@ function HomeContent() {
     const strongScore = v.planets[v.strongest]?.shodasvarga
     const weakScore = v.planets[v.weakest]?.shodasvarga
     return {
-      strongest: GRAHA_NAMES[v.strongest as GrahaId] ?? v.strongest,
-      weakest: GRAHA_NAMES[v.weakest as GrahaId] ?? v.weakest,
+      strongest: gName(v.strongest),
+      weakest: gName(v.weakest),
       strongScore: strongScore != null ? strongScore.toFixed(2) : '—',
       weakScore: weakScore != null ? weakScore.toFixed(2) : '—',
       avg: v.insights?.averageShodasvarga != null ? v.insights.averageShodasvarga.toFixed(2) : null,
       top3,
     }
-  }, [chart])
+  }, [chart, gName])
 
   const showSecondaryAnalysisColumn =
     activeTab === 'dashboard' ||
@@ -1180,9 +1200,10 @@ function HomeContent() {
       const params = new URLSearchParams(searchParams.toString())
       params.delete('new')
       const p = params.toString()
-      router.replace(p ? `?${p}` : window.location.pathname, { scroll: false })
+      // Unprefixed path from next-intl; its router adds /hi back when needed.
+      router.replace(p ? `?${p}` : pathname, { scroll: false })
     }
-  }, [searchParams, router, setIsFormOpen, setPendingDestination])
+  }, [searchParams, router, pathname, setIsFormOpen, setPendingDestination])
 
   // Load hashtags when opening a saved chart from My Charts (chartId in URL)
   useEffect(() => {
@@ -1313,23 +1334,24 @@ function HomeContent() {
     }
   }, [defaultChart, router, setChart, userPrefs])
 
+  // Copy: messages/<locale>/home.json → why / how / ctaBand
   const landingWhyVedaansh = [
-    { title: 'Classical Accuracy', detail: 'Swiss Ephemeris precision with Lahiri ayanamsha and full varga depth.', icon: Compass },
-    { title: 'One Workspace', detail: 'Kundali, dashas, transits, Panchang, and Prashna in a single coherent flow.', icon: Layers },
-    { title: 'Consultation Ready', detail: 'Built for practitioners and seekers — interpret, export, and plan.', icon: Star },
+    { id: 'accuracy', title: tHome('why.pillars.accuracy.title'), detail: tHome('why.pillars.accuracy.detail'), icon: Compass },
+    { id: 'workspace', title: tHome('why.pillars.workspace.title'), detail: tHome('why.pillars.workspace.detail'), icon: Layers },
+    { id: 'consultation', title: tHome('why.pillars.consultation.title'), detail: tHome('why.pillars.consultation.detail'), icon: Star },
   ]
 
-  const landingJourney = [
-    { step: '01', title: 'Enter birth details', text: 'Open Astrology app and submit date, time, and place.' },
-    { step: '02', title: 'Generate deep chart', text: 'Compute grahas, houses, dasha layers, and divisional charts instantly.' },
-    { step: '03', title: 'Apply in real life', text: 'Use Today\u2019s Reading, transits, Panchang, and Prashna to plan your next action, and explore marriage and career readings.' },
-  ]
+  const landingJourney = (['01', '02', '03'] as const).map((step) => ({
+    step,
+    title: tHome(`how.steps.${step}.title`),
+    text: tHome(`how.steps.${step}.text`),
+  }))
 
-  const landingTrustStats = [
-    { value: '16–41', label: 'Varga charts by plan' },
-    { value: 'Arc-sec', label: 'Ephemeris precision' },
-    { value: 'Free', label: 'Core tools' },
-  ]
+  const landingTrustStats = (['vargas', 'precision', 'free'] as const).map((id) => ({
+    id,
+    value: tHome(`why.stats.${id}.value`),
+    label: tHome(`why.stats.${id}.label`),
+  }))
 
   const landingVariant = searchParams.get('lpv') === 'b' ? 'b' : 'a'
 
@@ -1408,7 +1430,7 @@ function HomeContent() {
               alignItems: 'center',
             }}
           >
-            <span style={{ flexShrink: 0 }}>Planetary Details</span>
+            <span style={{ flexShrink: 0 }}>{tw('planetaryDetails')}</span>
             <div
               style={{
                 display: 'inline-flex',
@@ -1420,7 +1442,7 @@ function HomeContent() {
             >
               <div
                 role="tablist"
-                aria-label="Planetary detail view"
+                aria-label={tw('planetaryView')}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.28rem' }}
               >
                 <button
@@ -1442,7 +1464,7 @@ function HomeContent() {
                     lineHeight: 1,
                   }}
                 >
-                  Planets
+                  {tTab('planets')}
                 </button>
                 <button
                   type="button"
@@ -1463,7 +1485,7 @@ function HomeContent() {
                     lineHeight: 1,
                   }}
                 >
-                  Dasha
+                  {tTab('dasha')}
                 </button>
               </div>
               {planetaryDetailTab === 'planets' ? (
@@ -1478,13 +1500,13 @@ function HomeContent() {
                   }}
                   onClick={() => setExpandGraha(!expandGraha)}
                 >
-                  {expandGraha ? '▴ Less' : '▾ More'}
+                  {expandGraha ? tTab('less') : tTab('more')}
                 </button>
               ) : (
                 <select
                   value={dashaSystem}
                   onChange={(e) => setDashaSystem(e.target.value as any)}
-                  aria-label="Dasha system"
+                  aria-label={tw('dashaSystem')}
                   style={{
                     height: 26,
                     padding: '0 0.45rem',
@@ -1498,14 +1520,14 @@ function HomeContent() {
                     cursor: 'pointer',
                   }}
                 >
-                  <option value="vimshottari">Vimshottari</option>
-                  <option value="yogini">Yogini</option>
-                  <option value="chara">Chara (K.N. Rao)</option>
-                  <option value="chara_fe">Chara (Rangacharya FE)</option>
-                  <option value="mandook">Mandook (K.N. Rao)</option>
-                  <option value="sthir">Sthir</option>
-                  <option value="ashtottari">Ashtottari</option>
-                  <option value="kalachakra">Kalachakra</option>
+                  <option value="vimshottari">{tw('dasha.vimshottari')}</option>
+                  <option value="yogini">{tw('dasha.yogini')}</option>
+                  <option value="chara">{tw('dasha.chara')}</option>
+                  <option value="chara_fe">{tw('dasha.chara_fe')}</option>
+                  <option value="mandook">{tw('dasha.mandook')}</option>
+                  <option value="sthir">{tw('dasha.sthir')}</option>
+                  <option value="ashtottari">{tw('dasha.ashtottari')}</option>
+                  <option value="kalachakra">{tw('dasha.kalachakra')}</option>
                 </select>
               )}
             </div>
@@ -1536,13 +1558,13 @@ function HomeContent() {
                   onTribhagi={setVimshottariTribhagi}
                 />
               )}
-              {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Ashtottari computation required.</div>)}
-              {dashaSystem === 'kalachakra' && (dashboardChart.dashas.kalachakra?.length ? <DashaTree nodes={dashboardChart.dashas.kalachakra} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Kalachakra computation required.</div>)}
-              {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <YoginiDashaBlock nodes={dashboardChart.dashas.yogini} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yogini computation required.</div>)}
-              {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara computation required.</div>)}
-              {dashaSystem === 'chara_fe' && (dashboardChart.dashas.chara_fe?.length ? <DashaTree nodes={dashboardChart.dashas.chara_fe} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara FE computation required.</div>)}
-              {dashaSystem === 'mandook' && (dashboardChart.dashas.mandook?.length ? <DashaTree nodes={dashboardChart.dashas.mandook} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Mandook computation required.</div>)}
-              {dashaSystem === 'sthir' && (dashboardChart.dashas.sthir?.length ? <DashaTree nodes={dashboardChart.dashas.sthir} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Sthir computation required.</div>)}
+              {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>{tw('computationRequired', { system: tw('dasha.ashtottari') })}</div>)}
+              {dashaSystem === 'kalachakra' && (dashboardChart.dashas.kalachakra?.length ? <DashaTree nodes={dashboardChart.dashas.kalachakra} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>{tw('computationRequired', { system: tw('dasha.kalachakra') })}</div>)}
+              {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <YoginiDashaBlock nodes={dashboardChart.dashas.yogini} birthDate={birthUtcFromMeta(dashboardChart.meta)} timezone={dashboardChart.meta.timezone} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>{tw('computationRequired', { system: tw('dasha.yogini') })}</div>)}
+              {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>{tw('computationRequired', { system: tw('dasha.chara') })}</div>)}
+              {dashaSystem === 'chara_fe' && (dashboardChart.dashas.chara_fe?.length ? <DashaTree nodes={dashboardChart.dashas.chara_fe} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>{tw('computationRequired', { system: tw('dasha.chara_fe') })}</div>)}
+              {dashaSystem === 'mandook' && (dashboardChart.dashas.mandook?.length ? <DashaTree nodes={dashboardChart.dashas.mandook} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>{tw('computationRequired', { system: tw('dasha.mandook') })}</div>)}
+              {dashaSystem === 'sthir' && (dashboardChart.dashas.sthir?.length ? <DashaTree nodes={dashboardChart.dashas.sthir} birthDate={new Date(dashboardChart.meta.birthDate)} maxDepth={3} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>{tw('computationRequired', { system: tw('dasha.sthir') })}</div>)}
             </div>
           )}
         </div>
@@ -1553,9 +1575,9 @@ function HomeContent() {
       return (
         <div className="panel fade-up">
           <div className="panel-header">
-            <span>Astronomical Details</span>
+            <span>{tw('astronomical')}</span>
             <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.72rem', padding: '0.2rem 0.45rem', fontFamily: 'var(--font-body)' }} onClick={() => setExpandAstro(!expandAstro)}>
-              {expandAstro ? '▴ Less' : '▾ More'}
+              {expandAstro ? tTab('less') : tTab('more')}
             </button>
           </div>
           <div style={{ maxHeight: expandAstro ? 'none' : '220px', overflow: 'hidden', position: 'relative', padding: '0.4rem 0.5rem' }}>
@@ -1572,7 +1594,7 @@ function HomeContent() {
       return (
         <div className="panel fade-up">
           <div className="panel-header" style={{ flexWrap: 'wrap', gap: '0.5rem', padding: '0.5rem 0.65rem' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Today&apos;s Timeline</span>
+            <span style={{ whiteSpace: 'nowrap' }}>{tw('todayTimeline')}</span>
             <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>
               <span className="hide-mobile" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--text-muted)', opacity: 0.8 }}>☽ {dashboardChart.panchang.nakshatra.name}</span>
               <select
@@ -1580,14 +1602,14 @@ function HomeContent() {
                 onChange={(e) => setDashaSystem(e.target.value as any)}
                 style={{ padding: '0.16rem 0.36rem', fontSize: '0.7rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'var(--font-body)', cursor: 'pointer' }}
               >
-                <option value="vimshottari">Vimshottari</option>
-                <option value="yogini">Yogini</option>
-                <option value="chara">Chara (K.N. Rao)</option>
-                <option value="chara_fe">Chara (Rangacharya FE)</option>
-                <option value="mandook">Mandook (K.N. Rao)</option>
-                <option value="sthir">Sthir</option>
-                <option value="ashtottari">Ashtottari</option>
-                <option value="kalachakra">Kalachakra</option>
+                <option value="vimshottari">{tw('dasha.vimshottari')}</option>
+                <option value="yogini">{tw('dasha.yogini')}</option>
+                <option value="chara">{tw('dasha.chara')}</option>
+                <option value="chara_fe">{tw('dasha.chara_fe')}</option>
+                <option value="mandook">{tw('dasha.mandook')}</option>
+                <option value="sthir">{tw('dasha.sthir')}</option>
+                <option value="ashtottari">{tw('dasha.ashtottari')}</option>
+                <option value="kalachakra">{tw('dasha.kalachakra')}</option>
               </select>
             </div>
           </div>
@@ -1597,7 +1619,7 @@ function HomeContent() {
                 const nodes = dashaSystem === 'vimshottari'
                   ? vimshottariNodes
                   : (dashboardChart.dashas[dashaSystem] ?? [])
-                if (!nodes || nodes.length === 0) return <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', padding: '0.5rem', fontFamily: 'var(--font-body)' }}>No data.</div>
+                if (!nodes || nodes.length === 0) return <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', padding: '0.5rem', fontFamily: 'var(--font-body)' }}>{tw('noData')}</div>
                 return (
                   <DashaTree
                     nodes={nodes}
@@ -1627,7 +1649,7 @@ function HomeContent() {
     return (
       <div className="panel fade-up">
         <div className="panel-header">
-          <span>Cosmic Weather</span>
+          <span>{tw('cosmicWeather')}</span>
           <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
             ☽ {dashboardChart.panchang.nakshatra.name}
           </span>
@@ -1662,15 +1684,15 @@ function HomeContent() {
 
           {/* Daily Suitability */}
           <div>
-            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>Daily Suitability</div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>{tw('dailySuitability')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '0.65rem', rowGap: '0.28rem' }}>
               {[
-                { label: 'Spiritual', icon: '✦', rating: 95, color: 'var(--teal)' },
-                { label: 'Wellness',  icon: '✦', rating: 82, color: 'var(--teal)' },
-                { label: 'Learning',  icon: '✦', rating: 78, color: 'var(--gold)' },
-                { label: 'Business',  icon: '✦', rating: 45, color: 'var(--rose)' },
-                { label: 'Travel',    icon: '✦', rating: 30, color: 'var(--rose)' },
-                { label: 'Property',  icon: '✦', rating: 15, color: 'var(--rose)' },
+                { label: tw('suit.Spiritual'), icon: '✦', rating: 95, color: 'var(--teal)' },
+                { label: tw('suit.Wellness'),  icon: '✦', rating: 82, color: 'var(--teal)' },
+                { label: tw('suit.Learning'),  icon: '✦', rating: 78, color: 'var(--gold)' },
+                { label: tw('suit.Business'),  icon: '✦', rating: 45, color: 'var(--rose)' },
+                { label: tw('suit.Travel'),    icon: '✦', rating: 30, color: 'var(--rose)' },
+                { label: tw('suit.Property'),  icon: '✦', rating: 15, color: 'var(--rose)' },
               ].map((act, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.12rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1698,8 +1720,8 @@ function HomeContent() {
       <button
         type="button"
         onClick={() => handleCopyShareLink()}
-        aria-label={shareCopied ? 'Link copied' : 'Copy link to this chart'}
-        title={shareCopied ? 'Copied!' : 'Copy link — free, no login required'}
+        aria-label={shareCopied ? tw('linkCopied') : tw('copyLink')}
+        title={shareCopied ? tw('copied') : tw('copyFree')}
         className="chart-mobile-action-btn"
         style={{
           borderColor: shareCopied ? 'var(--accent)' : undefined,
@@ -1718,7 +1740,7 @@ function HomeContent() {
           type="button"
           onClick={() => handleSave('regular')}
           disabled={saving || saveDone}
-          aria-label={isSavedChart ? 'Update saved chart' : 'Save chart'}
+          aria-label={isSavedChart ? tw('updateSaved') : tw('saveChart')}
           className="chart-mobile-action-btn"
           style={{
             borderColor: saveDone ? 'var(--accent)' : undefined,
@@ -1742,7 +1764,7 @@ function HomeContent() {
       <button
         type="button"
         onClick={() => setIsFormOpen(true)}
-        aria-label="Edit birth details"
+        aria-label={tw('editBirth')}
         className="chart-mobile-action-btn"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1753,7 +1775,7 @@ function HomeContent() {
       <button
         type="button"
         onClick={startNewChart}
-        aria-label="New chart"
+        aria-label={tw('newChart')}
         className="chart-mobile-action-btn chart-mobile-action-btn--primary"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1770,8 +1792,8 @@ function HomeContent() {
         <div key="home-loading" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', padding: '6rem 2rem', minHeight: '60vh' }}>
           <div className="spin-loader" style={{ width: 56, height: 56, border: '4px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%', borderLeftColor: 'transparent' }} />
           <div style={{ textAlign: 'center' }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--text-gold)', margin: '0 0 0.5rem 0', fontWeight: 500 }}>Recalculating Karma…</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Aligning with stellar coordinates with Swiss Ephemeris precision.</p>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--text-gold)', margin: '0 0 0.5rem 0', fontWeight: 500 }}>{tw('recalculating')}</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{tw('aligning')}</p>
           </div>
         </div>
       ) : chart ? (
@@ -1801,8 +1823,8 @@ function HomeContent() {
                       {status === 'authenticated' && (
                         <Link
                           href="/my/charts"
-                          aria-label="My Charts"
-                          title="My Charts"
+                          aria-label={tw('myCharts')}
+                          title={tw('myCharts')}
                           className="chart-mobile-action-btn"
                         >
                           <Library size={16} strokeWidth={2} aria-hidden />
@@ -1814,7 +1836,7 @@ function HomeContent() {
                     type="button"
                     className="chart-mobile-actions-toggle"
                     aria-expanded={mobileChartActionsOpen}
-                    aria-label={mobileChartActionsOpen ? 'Hide chart actions' : 'Show chart actions'}
+                    aria-label={mobileChartActionsOpen ? tw('hideActions') : tw('showActions')}
                     onClick={toggleMobileChartActions}
                   >
                     <ChevronDown size={16} strokeWidth={2.25} aria-hidden />
@@ -1835,7 +1857,7 @@ function HomeContent() {
                       className="btn btn-secondary btn-sm"
                       style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
                     >
-                      My Charts
+                      {tAct('myCharts')}
                     </Link>
                   )}
                   <ExportPdfButton chart={chart} compact />
@@ -1857,12 +1879,12 @@ function HomeContent() {
               <div className="chart-actions-compact" style={{ display: isPhone ? 'none' : 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                   {status === 'authenticated' && (
                     <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
-                      {saving ? '…' : saveDone ? '✓' : isSavedChart ? 'Update' : '+ Save'}
+                      {saving ? '…' : saveDone ? '✓' : isSavedChart ? tw('update') : tw('save')}
                     </button>
                   )}
                   {status === 'authenticated' && (
                     <Link href="/my/charts" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                      My Charts
+                      {tAct('myCharts')}
                     </Link>
                   )}
                   {status === 'authenticated' && userPlan === 'platinum' && (
@@ -1875,15 +1897,15 @@ function HomeContent() {
                     type="button"
                     onClick={() => void handleCopyShareLink()}
                     className={`btn btn-secondary btn-sm`}
-                    title={shareCopied ? 'Copied!' : 'Copy link — free, no login required'}
-                    aria-label={shareCopied ? 'Link copied' : 'Copy link to this chart'}
+                    title={shareCopied ? tw('copied') : tw('copyFree')}
+                    aria-label={shareCopied ? tw('linkCopied') : tw('copyLink')}
                   >
                     {shareCopied ? '✓' : <ShareLinkIcon />}
                   </button>
                   <ExportPdfButton chart={chart} compact />
                   <EmailChartButton chart={chart} compact />
                   <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm">✎</button>
-                  <button onClick={startNewChart} className="btn btn-primary btn-sm">+ New</button>
+                  <button onClick={startNewChart} className="btn btn-primary btn-sm">{tAct('newChart')}</button>
               </div>
             </div>
 
@@ -1968,11 +1990,11 @@ function HomeContent() {
                         className="panel-header"
                         style={{ flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}
                       >
-                        <span>Dasha Interpretation</span>
+                        <span>{tw('dashaInterpretation')}</span>
                         <select
                           value={dashaSystem === 'yogini' || dashaSystem === 'kalachakra' ? dashaSystem : 'vimshottari'}
                           onChange={(e) => setDashaSystem(e.target.value as 'vimshottari' | 'yogini' | 'kalachakra')}
-                          aria-label="Interpretation dasha system"
+                          aria-label={tw('interpDashaSystem')}
                           style={{
                             height: 26,
                             marginLeft: 0,
@@ -1987,9 +2009,9 @@ function HomeContent() {
                             cursor: 'pointer',
                           }}
                         >
-                          <option value="vimshottari">Vimshottari</option>
-                          <option value="yogini">Yogini</option>
-                          <option value="kalachakra">Kalachakra</option>
+                          <option value="vimshottari">{tw('dasha.vimshottari')}</option>
+                          <option value="yogini">{tw('dasha.yogini')}</option>
+                          <option value="kalachakra">{tw('dasha.kalachakra')}</option>
                         </select>
                       </div>
                       <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -2074,7 +2096,7 @@ function HomeContent() {
                       )}
 
                       {mobileDashTab === 'astro' && (
-                        <PanelShell title="Astro Details" padding="sm">
+                        <PanelShell title={tw('astroDetails')} padding="sm">
                           <AstroDetailsPanel chart={chart} />
                         </PanelShell>
                       )}
@@ -2082,9 +2104,9 @@ function HomeContent() {
                       {mobileDashTab === 'planetary' && (
                         <div className="panel">
                           <div className="panel-header">
-                            <span>Planetary Details</span>
+                            <span>{tw('planetaryDetails')}</span>
                             <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.72rem', padding: '0.2rem 0.45rem', fontFamily: 'var(--font-body)' }} onClick={() => setExpandGraha(!expandGraha)}>
-                              {expandGraha ? '▴ Less' : '▾ More'}
+                              {expandGraha ? tTab('less') : tTab('more')}
                             </button>
                           </div>
                           <div style={{ padding: '0.4rem 0' }}>
@@ -2109,7 +2131,7 @@ function HomeContent() {
                           {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ?? 0) > 0 && (
                             <div className="panel">
                               <div className="panel-header">
-                                <span>Yogini Interpretation</span>
+                                <span>{tw('yoginiInterpretation')}</span>
                                 <button
                                   type="button"
                                   className="btn btn-secondary btn-sm"
@@ -2126,17 +2148,17 @@ function HomeContent() {
                           )}
                           <div className="panel">
                             <div className="panel-header">
-                              <span>Dasha Timeline</span>
+                              <span>{tw('dashaTimeline')}</span>
                               <select value={dashaSystem} onChange={(e) => setDashaSystem(e.target.value as any)}
                                 style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}>
-                                <option value="vimshottari">Vimshottari</option>
-                                <option value="yogini">Yogini</option>
-                                <option value="chara">Chara (K.N. Rao)</option>
-                                <option value="chara_fe">Chara (Rangacharya FE)</option>
-                                <option value="mandook">Mandook (K.N. Rao)</option>
-                                <option value="sthir">Sthir</option>
-                                <option value="ashtottari">Ashtottari</option>
-                                <option value="kalachakra">Kalachakra</option>
+                                <option value="vimshottari">{tw('dasha.vimshottari')}</option>
+                                <option value="yogini">{tw('dasha.yogini')}</option>
+                                <option value="chara">{tw('dasha.chara')}</option>
+                                <option value="chara_fe">{tw('dasha.chara_fe')}</option>
+                                <option value="mandook">{tw('dasha.mandook')}</option>
+                                <option value="sthir">{tw('dasha.sthir')}</option>
+                                <option value="ashtottari">{tw('dasha.ashtottari')}</option>
+                                <option value="kalachakra">{tw('dasha.kalachakra')}</option>
                               </select>
                             </div>
                             <div style={{ padding: '0.4rem 0.55rem' }}>
@@ -2157,7 +2179,7 @@ function HomeContent() {
                                 }
                                 if (dashaSystem === 'yogini') {
                                   const yoginiNodes = chart.dashas.yogini ?? []
-                                  if (!yoginiNodes.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
+                                  if (!yoginiNodes.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>{tw('dataUnavailable')}</p>
                                   return (
                                     <YoginiDashaBlock
                                       nodes={yoginiNodes}
@@ -2167,7 +2189,7 @@ function HomeContent() {
                                   )
                                 }
                                 const nodes = chart.dashas[dashaSystem] ?? []
-                                if (!nodes?.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
+                                if (!nodes?.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>{tw('dataUnavailable')}</p>
                                 if (dashaSystem === 'kalachakra') {
                                   return <DashaTree nodes={nodes} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} />
                                 }
@@ -2181,7 +2203,7 @@ function HomeContent() {
                       {mobileDashTab === 'today' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                           <div className="panel">
-                            <div className="panel-header"><span>Cosmic Weather</span></div>
+                            <div className="panel-header"><span>{tw('cosmicWeather')}</span></div>
                             <div style={{ padding: '0.4rem 0.55rem' }}>
                               <PersonalDayCard
                                 birthMoonNakIdx={chart.panchang.nakshatra.index}
@@ -2210,12 +2232,12 @@ function HomeContent() {
                             <div className="panel-header"><span>Daily Suitability</span></div>
                             <div style={{ padding: '0.4rem 0.55rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
                               {[
-                                { label: 'Spiritual', rating: 95, color: 'var(--teal)' },
-                                { label: 'Wellness',  rating: 82, color: 'var(--teal)' },
-                                { label: 'Learning',  rating: 78, color: 'var(--gold)' },
-                                { label: 'Business',  rating: 45, color: 'var(--rose)' },
-                                { label: 'Travel',    rating: 30, color: 'var(--rose)' },
-                                { label: 'Property',  rating: 15, color: 'var(--rose)' },
+                                { label: tw('suit.Spiritual'), rating: 95, color: 'var(--teal)' },
+                                { label: tw('suit.Wellness'),  rating: 82, color: 'var(--teal)' },
+                                { label: tw('suit.Learning'),  rating: 78, color: 'var(--gold)' },
+                                { label: tw('suit.Business'),  rating: 45, color: 'var(--rose)' },
+                                { label: tw('suit.Travel'),    rating: 30, color: 'var(--rose)' },
+                                { label: tw('suit.Property'),  rating: 15, color: 'var(--rose)' },
                               ].map((act) => (
                                 <div key={act.label} style={{ display: 'flex', flexDirection: 'column', gap: '0.12rem' }}>
                                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -2234,7 +2256,7 @@ function HomeContent() {
 
                       {mobileDashTab === 'panchang' && (
                         <div className="panel">
-                          <div className="panel-header"><span>Natal Panchang</span></div>
+                          <div className="panel-header"><span>{tw('natalPanchang')}</span></div>
                           <div style={{ padding: '0.4rem 0.55rem' }}><NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} chart={chart} /></div>
                         </div>
                       )}
@@ -2254,20 +2276,20 @@ function HomeContent() {
                                       ascRashi={chart.lagnas.ascRashi}
                                     />
                                   </div>
-                                ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
+                                ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>{tw('unavailable')}</p>
                               )}
                               {mobileStrengthTab === 'bhava' && (
                                 chart.bhavaBala ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
-                                  : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
+                                  : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>{tw('unavailable')}</p>
                               )}
                               {mobileStrengthTab === 'vimsopaka' && (
                                 chart.vimsopaka ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
-                                  : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
+                                  : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>{tw('unavailable')}</p>
                               )}
                               {mobileStrengthTab === 'ashtakavarga' && (
                                 chart.ashtakavarga
                                   ? <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><AshtakavargaGrid userPlan={userPlan} ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /></div>
-                                  : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
+                                  : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>{tw('unavailable')}</p>
                               )}
                             </div>
                           </div>
@@ -2277,9 +2299,9 @@ function HomeContent() {
                       {mobileDashTab === 'yogas' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                           <div className="panel">
-                            <div className="panel-header"><span>Graha Yogas</span></div>
+                            <div className="panel-header"><span>{tw('grahaYogas')}</span></div>
                             <div style={{ padding: '0.4rem 0.55rem' }}>
-                              {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>}
+                              {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>{tw('unavailable')}</p>}
                             </div>
                           </div>
                           <DoshaSnapshotCard chart={chart} onOpenDosha={() => router.push('/dosha')} />
@@ -2346,8 +2368,8 @@ function HomeContent() {
                          className="panel-header"
                          style={{ flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}
                        >
-                         <span>Dasha Timeline</span>
-                        <div role="tablist" aria-label="Dasha view" style={{ display: 'inline-flex', marginLeft: 'auto', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999 }}>
+                         <span>{tw('dashaTimeline')}</span>
+                        <div role="tablist" aria-label={tw('dashaView')} style={{ display: 'inline-flex', marginLeft: 'auto', padding: 2, gap: 2, background: 'var(--surface-3)', border: '1px solid var(--border-soft)', borderRadius: 999 }}>
                           {(['graphics', 'table'] as const).map(v => (
                             <button
                               key={v}
@@ -2367,14 +2389,14 @@ function HomeContent() {
                                 color: dashaView === v ? 'var(--text-on-gold)' : 'var(--text-secondary)',
                               }}
                             >
-                              {v === 'graphics' ? 'Graphics' : 'Table'}
+                              {v === 'graphics' ? tw('graphics') : tw('table')}
                             </button>
                           ))}
                         </div>
                         <select
                           value={dashaSystem}
                           onChange={(e) => setDashaSystem(e.target.value as any)}
-                          aria-label="Dasha system"
+                          aria-label={tw('dashaSystem')}
                           style={{
                             height: 26,
                             marginLeft: 'auto',
@@ -2389,14 +2411,14 @@ function HomeContent() {
                             cursor: 'pointer',
                           }}
                         >
-                          <option value="vimshottari">Vimshottari</option>
-                          <option value="yogini">Yogini</option>
-                          <option value="chara">Chara (K.N. Rao)</option>
-                          <option value="chara_fe">Chara (Rangacharya FE)</option>
-                          <option value="mandook">Mandook (K.N. Rao)</option>
-                          <option value="sthir">Sthir</option>
-                          <option value="ashtottari">Ashtottari</option>
-                          <option value="kalachakra">Kalachakra</option>
+                          <option value="vimshottari">{tw('dasha.vimshottari')}</option>
+                          <option value="yogini">{tw('dasha.yogini')}</option>
+                          <option value="chara">{tw('dasha.chara')}</option>
+                          <option value="chara_fe">{tw('dasha.chara_fe')}</option>
+                          <option value="mandook">{tw('dasha.mandook')}</option>
+                          <option value="sthir">{tw('dasha.sthir')}</option>
+                          <option value="ashtottari">{tw('dasha.ashtottari')}</option>
+                          <option value="kalachakra">{tw('dasha.kalachakra')}</option>
                         </select>
                        </div>
                        <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -2428,20 +2450,20 @@ function HomeContent() {
                              onTribhagi={setVimshottariTribhagi}
                            />
                          )}
-                         {dashaView === 'table' && dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Ashtottari computation required.</div>)}
-                         {dashaView === 'table' && dashaSystem === 'kalachakra' && (chart.dashas.kalachakra?.length ? <DashaTree nodes={chart.dashas.kalachakra} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Kalachakra computation required.</div>)}
-                         {dashaView === 'table' && dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <YoginiDashaBlock nodes={chart.dashas.yogini} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yogini computation required.</div>)}
-                         {dashaView === 'table' && dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara computation required.</div>)}
-                        {dashaView === 'table' && dashaSystem === 'chara_fe' && (chart.dashas.chara_fe?.length ? <DashaTree nodes={chart.dashas.chara_fe} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara FE computation required.</div>)}
-                        {dashaView === 'table' && dashaSystem === 'mandook' && (chart.dashas.mandook?.length ? <DashaTree nodes={chart.dashas.mandook} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Mandook computation required.</div>)}
-                        {dashaView === 'table' && dashaSystem === 'sthir' && (chart.dashas.sthir?.length ? <DashaTree nodes={chart.dashas.sthir} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Sthir computation required.</div>)}
+                         {dashaView === 'table' && dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>{tw('computationRequired', { system: tw('dasha.ashtottari') })}</div>)}
+                         {dashaView === 'table' && dashaSystem === 'kalachakra' && (chart.dashas.kalachakra?.length ? <DashaTree nodes={chart.dashas.kalachakra} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} maxDepth={3} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>{tw('computationRequired', { system: tw('dasha.kalachakra') })}</div>)}
+                         {dashaView === 'table' && dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <YoginiDashaBlock nodes={chart.dashas.yogini} birthDate={birthUtcFromMeta(chart.meta)} timezone={chart.meta.timezone} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>{tw('computationRequired', { system: tw('dasha.yogini') })}</div>)}
+                         {dashaView === 'table' && dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>{tw('computationRequired', { system: tw('dasha.chara') })}</div>)}
+                        {dashaView === 'table' && dashaSystem === 'chara_fe' && (chart.dashas.chara_fe?.length ? <DashaTree nodes={chart.dashas.chara_fe} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>{tw('computationRequired', { system: tw('dasha.chara_fe') })}</div>)}
+                        {dashaView === 'table' && dashaSystem === 'mandook' && (chart.dashas.mandook?.length ? <DashaTree nodes={chart.dashas.mandook} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>{tw('computationRequired', { system: tw('dasha.mandook') })}</div>)}
+                        {dashaView === 'table' && dashaSystem === 'sthir' && (chart.dashas.sthir?.length ? <DashaTree nodes={chart.dashas.sthir} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>{tw('computationRequired', { system: tw('dasha.sthir') })}</div>)}
                        </div>
                      </div>
                   )}
 
                   {activeTab === 'panchang' && (
                      <div className="panel fade-up">
-                        <div className="panel-header"><span>Natal Panchang</span></div>
+                        <div className="panel-header"><span>{tw('natalPanchang')}</span></div>
                         <div style={{ padding: '0.5rem 0.65rem' }}><NatalPanchangPanel p={chart.panchang} moonRashi={chart.grahas.find(g => g.id === 'Mo')?.rashi} chart={chart} /></div>
                      </div>
                   )}
@@ -2455,9 +2477,9 @@ function HomeContent() {
 
                   {activeTab === 'yogas' && (
                      <div className="panel fade-up">
-                        <div className="panel-header"><span>Graha Yogas</span></div>
+                        <div className="panel-header"><span>{tw('grahaYogas')}</span></div>
                         <div style={{ padding: '0.5rem 0.65rem' }}>
-                          {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem', margin: 0 }}>Recalculate chart to see Yogas.</p>}
+                          {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem', margin: 0 }}>{tw('recalcYogas')}</p>}
                         </div>
                      </div>
                   )}
@@ -2479,7 +2501,7 @@ function HomeContent() {
                       </div>
                       <div style={{ padding: '0.5rem 0.65rem' }}>
                         {!chart.ashtakavarga ? (
-                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</p>
+                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>{tw('recalcAshtakavarga')}</p>
                         ) : dashboardAshtakSummary ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', minWidth: 0, width: '100%' }}>
                             <div style={{ width: '100%', maxWidth: 280, minWidth: 0 }}>
@@ -2495,20 +2517,20 @@ function HomeContent() {
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{dashboardAshtakSummary.totalLabel}</div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text-gold)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
                                   {dashboardAshtakSummary.total}
-                                  <span style={{ marginLeft: 4, fontSize: '0.58rem', fontWeight: 600, color: 'var(--text-muted)' }}>{dashboardAshtakSummary.avg}/sign</span>
+                                  <span style={{ marginLeft: 4, fontSize: '0.58rem', fontWeight: 600, color: 'var(--text-muted)' }}>{tStr('perSign', { n: dashboardAshtakSummary.avg })}</span>
                                 </div>
                               </div>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.35rem 0.45rem' }}>
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Strong Sign</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{tw('strongSign')}</div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--teal)', fontWeight: 800 }}>
-                                  {RASHI_SHORT[dashboardAshtakSummary.highest.sign]}
+                                  {hiLang ? RASHI_HI[dashboardAshtakSummary.highest.sign] : RASHI_SHORT[dashboardAshtakSummary.highest.sign]}
                                   <span style={{ marginLeft: 4, fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 600 }}>({dashboardAshtakSummary.highest.val})</span>
                                 </div>
                               </div>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.35rem 0.45rem', gridColumn: '1 / -1' }}>
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Weak Sign</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{tw('weakSign')}</div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--rose)', fontWeight: 800 }}>
-                                  {RASHI_SHORT[dashboardAshtakSummary.lowest.sign]}
+                                  {hiLang ? RASHI_HI[dashboardAshtakSummary.lowest.sign] : RASHI_SHORT[dashboardAshtakSummary.lowest.sign]}
                                   <span style={{ marginLeft: 4, fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 600 }}>({dashboardAshtakSummary.lowest.val})</span>
                                 </div>
                               </div>
@@ -2521,7 +2543,7 @@ function HomeContent() {
 
                   {activeTab === 'shadbala' && (
                     <div className="panel fade-up">
-                      <div className="panel-header"><span>Shadbala</span></div>
+                      <div className="panel-header"><span>{tw('shadbala')}</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}>
                         {chart.shadbala
                           ? <ShadbalaTable
@@ -2533,27 +2555,27 @@ function HomeContent() {
                               grahas={chart.grahas}
                               ascRashi={chart.lagnas.ascRashi}
                             />
-                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Shadbala data unavailable.</p>}
+                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>{tw('shadbalaNA')}</p>}
                       </div>
                     </div>
                   )}
 
                    {activeTab === 'bhava-bala' && (
                     <div className="panel fade-up">
-                      <div className="panel-header"><span>Bhava Bala</span></div>
+                      <div className="panel-header"><span>{tw('bhavaBala')}</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}>
                         {chart.bhavaBala ? (
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
                               <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--teal)' }}>{chart.bhavaBala.houses[chart.bhavaBala.strongestHouse].totalRupa.toFixed(1)} R</div>
-                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Strongest H{chart.bhavaBala.strongestHouse}</div>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{tStr('strongestHouse', { n: chart.bhavaBala.strongestHouse })}</div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
                               <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--rose)' }}>{chart.bhavaBala.houses[chart.bhavaBala.weakestHouse].totalRupa.toFixed(1)} R</div>
-                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Weakest H{chart.bhavaBala.weakestHouse}</div>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{tStr('weakestHouse', { n: chart.bhavaBala.weakestHouse })}</div>
                             </div>
                           </div>
-                        ) : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Bhava Bala data unavailable.</p>}
+                        ) : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>{tw('bhavaBalaNA')}</p>}
                       </div>
                     </div>
                   )}
@@ -2573,7 +2595,7 @@ function HomeContent() {
                               <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Weakest: {chart.vimsopaka.weakest}</div>
                             </div>
                           </div>
-                        ) : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Vimsopaka data unavailable.</p>}
+                        ) : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>{tw('vimsopakaNA')}</p>}
                       </div>
                     </div>
                   )}
@@ -2585,24 +2607,24 @@ function HomeContent() {
               {activeTab === 'dasha' && (
                 <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
                   <div className="panel-header">
-                    <span>All Dashas Available</span>
+                    <span>{tw('allDashas')}</span>
                     <ExportPdfButton
                       chart={chart}
                       compact
-                      label="Dasha PDF"
-                      title="Download Dasha PDF (includes user details, D1, D9, all dashas)"
+                      label={tw('dashaPdf')}
+                      title={tw('dashaPdfTitle')}
                     />
                   </div>
                   <div style={{ padding: '0.5rem 0.65rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
                     {([
-                      { id: 'vimshottari', label: vimshottariTribhagi ? 'Vimshottari (Tribhagi)' : 'Vimshottari', nodes: vimshottariNodes },
-                      { id: 'yogini', label: 'Yogini', nodes: chart.dashas.yogini ?? [] },
-                      { id: 'chara', label: 'Chara (K.N. Rao)', nodes: chart.dashas.chara ?? [] },
-                      { id: 'chara_fe', label: 'Chara (Rangacharya FE)', nodes: chart.dashas.chara_fe ?? [] },
-                      { id: 'mandook', label: 'Mandook (K.N. Rao)', nodes: chart.dashas.mandook ?? [] },
-                      { id: 'sthir', label: 'Sthir', nodes: chart.dashas.sthir ?? [] },
-                      { id: 'ashtottari', label: 'Ashtottari', nodes: chart.dashas.ashtottari ?? [] },
-                      { id: 'kalachakra', label: 'Kalachakra', nodes: chart.dashas.kalachakra ?? [] },
+                      { id: 'vimshottari', label: vimshottariTribhagi ? tw('dasha.tribhagi') : tw('dasha.vimshottari'), nodes: vimshottariNodes },
+                      { id: 'yogini', label: tw('dasha.yogini'), nodes: chart.dashas.yogini ?? [] },
+                      { id: 'chara', label: tw('dasha.chara'), nodes: chart.dashas.chara ?? [] },
+                      { id: 'chara_fe', label: tw('dasha.chara_fe'), nodes: chart.dashas.chara_fe ?? [] },
+                      { id: 'mandook', label: tw('dasha.mandook'), nodes: chart.dashas.mandook ?? [] },
+                      { id: 'sthir', label: tw('dasha.sthir'), nodes: chart.dashas.sthir ?? [] },
+                      { id: 'ashtottari', label: tw('dasha.ashtottari'), nodes: chart.dashas.ashtottari ?? [] },
+                      { id: 'kalachakra', label: tw('dasha.kalachakra'), nodes: chart.dashas.kalachakra ?? [] },
                     ] as const).map((system) => (
                       <div
                         key={system.id}
@@ -2659,7 +2681,7 @@ function HomeContent() {
                          ascRashi={chart.lagnas.ascRashi}
                        />
                      ) : (
-                       <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Shadbala.</div>
+                       <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>{tw('recalcShadbala')}</div>
                      )}
                    </div>
                  </div>
@@ -2670,7 +2692,7 @@ function HomeContent() {
                  <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
                    <div className="panel-header"><span>Bhava Bala — House Strength</span></div>
                    <div style={{ padding: '0.5rem 0.65rem' }}>
-                     {chart.bhavaBala ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Bhava Bala.</div>}
+                     {chart.bhavaBala ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>{tw('recalcBhavaBala')}</div>}
                    </div>
                  </div>
                )}
@@ -2680,7 +2702,7 @@ function HomeContent() {
                   <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
                     <div className="panel-header"><span>Ashtakavarga Intelligence</span></div>
                     <div style={{ padding: '0.5rem 0.65rem' }}>
-                     {chart.ashtakavarga ? <AshtakavargaGrid userPlan={userPlan} ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Ashtakavarga.</div>}
+                     {chart.ashtakavarga ? <AshtakavargaGrid userPlan={userPlan} ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>{tw('recalcAshtakavarga')}</div>}
                     </div>
                   </div>
                 )}
@@ -2689,7 +2711,7 @@ function HomeContent() {
                 {activeTab === 'vimsopaka' && (
                   <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
                     <div className="panel-header"><span>Vimsopaka Bala</span></div>
-                    {chart.vimsopaka ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.75rem', fontSize: '0.78rem' }}>Vimsopaka data unavailable — recalculate chart.</div>}
+                    {chart.vimsopaka ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.75rem', fontSize: '0.78rem' }}>{tw('vimsopakaRecalc')}</div>}
                   </div>
                 )}
 
@@ -2708,16 +2730,16 @@ function HomeContent() {
                     {/* ── Ashtakavarga ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandAv ? '1 / -1' : undefined }}>
                       <div className="panel-header">
-                        <span>Ashtakavarga</span>
+                        <span>{tw('ashtakavarga')}</span>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                           {chart.ashtakavarga && !dashExpandAv ? (
                             <DashboardAvViewSelect value={dashboardAvView} onChange={setDashboardAvView} />
                           ) : null}
-                          {chart.ashtakavarga && <button type="button" onClick={() => setDashExpandAv(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandAv ? '▴' : '▾ Full'}</button>}
+                          {chart.ashtakavarga && <button type="button" onClick={() => setDashExpandAv(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandAv ? '▴' : tStr('full')}</button>}
                         </div>
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
-                        {!chart.ashtakavarga ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        {!chart.ashtakavarga ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>{tw('unavailable')}</p>
                         : dashExpandAv ? <AshtakavargaGrid userPlan={userPlan} ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} grahas={chart.grahas} janmaNakshatraIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex} dashaLord={getCurrentMahaDashaLord(chart) ?? undefined} />
                         : dashboardAshtakSummary ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: 0 }}>
@@ -2765,20 +2787,20 @@ function HomeContent() {
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{dashboardAshtakSummary.totalLabel}</div>
                                 <div style={{ fontSize: '0.82rem', color: 'var(--text-gold)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
                                   {dashboardAshtakSummary.total}
-                                  <span style={{ marginLeft: 3, fontSize: '0.54rem', fontWeight: 600, color: 'var(--text-muted)' }}>{dashboardAshtakSummary.avg}/sign</span>
+                                  <span style={{ marginLeft: 3, fontSize: '0.54rem', fontWeight: 600, color: 'var(--text-muted)' }}>{tStr('perSign', { n: dashboardAshtakSummary.avg })}</span>
                                 </div>
                               </div>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box', minWidth: 0 }}>
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Strong Sign</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{tw('strongSign')}</div>
                                 <div style={{ fontSize: '0.82rem', color: 'var(--teal)', fontWeight: 800 }}>
-                                  {RASHI_SHORT[dashboardAshtakSummary.highest.sign]}
+                                  {hiLang ? RASHI_HI[dashboardAshtakSummary.highest.sign] : RASHI_SHORT[dashboardAshtakSummary.highest.sign]}
                                   <span style={{ marginLeft: 3, fontSize: '0.54rem', color: 'var(--text-muted)', fontWeight: 600 }}>({dashboardAshtakSummary.highest.val})</span>
                                 </div>
                               </div>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box', minWidth: 0 }}>
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Weak Sign</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{tw('weakSign')}</div>
                                 <div style={{ fontSize: '0.82rem', color: 'var(--rose)', fontWeight: 800 }}>
-                                  {RASHI_SHORT[dashboardAshtakSummary.lowest.sign]}
+                                  {hiLang ? RASHI_HI[dashboardAshtakSummary.lowest.sign] : RASHI_SHORT[dashboardAshtakSummary.lowest.sign]}
                                   <span style={{ marginLeft: 3, fontSize: '0.54rem', color: 'var(--text-muted)', fontWeight: 600 }}>({dashboardAshtakSummary.lowest.val})</span>
                                 </div>
                               </div>
@@ -2791,11 +2813,11 @@ function HomeContent() {
                     {/* ── Shadbala ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandShad ? '1 / -1' : undefined }}>
                       <div className="panel-header">
-                        <span>Shadbala</span>
-                        {chart.shadbala && <button type="button" onClick={() => setDashExpandShad(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandShad ? '▴' : '▾ Full'}</button>}
+                        <span>{tw('shadbala')}</span>
+                        {chart.shadbala && <button type="button" onClick={() => setDashExpandShad(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandShad ? '▴' : tStr('full')}</button>}
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
-                        {!chart.shadbala ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        {!chart.shadbala ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>{tw('unavailable')}</p>
                         : dashExpandShad ? (
                           <ShadbalaTable
                             shadbala={chart.shadbala}
@@ -2809,17 +2831,17 @@ function HomeContent() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(70px, 1fr))', gap: '0.35rem' }}>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Strongest</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{tw('strongest')}</div>
                                 <div style={{ fontSize: '0.78rem', color: 'var(--teal)', fontWeight: 800 }}>{dashboardShadbalaSummary.strongestLabel}</div>
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{dashboardShadbalaSummary.strongTotal}R</div>
                               </div>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Weakest</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{tw('weakest')}</div>
                                 <div style={{ fontSize: '0.78rem', color: 'var(--rose)', fontWeight: 800 }}>{dashboardShadbalaSummary.weakestLabel}</div>
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{dashboardShadbalaSummary.weakTotal}R</div>
                               </div>
                               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Avg / Spread</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{tw('avgSpread')}</div>
                                 <div style={{ fontSize: '0.78rem', color: 'var(--text-gold)', fontWeight: 800 }}>{dashboardShadbalaSummary.meanRatio}x</div>
                                 <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{dashboardShadbalaSummary.spread}R</div>
                               </div>
@@ -2850,11 +2872,11 @@ function HomeContent() {
                     {/* ── Vimsopaka ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandVim ? '1 / -1' : undefined }}>
                       <div className="panel-header">
-                        <span>Vimsopaka (16 Vargas)</span>
-                        {chart.vimsopaka && <button type="button" onClick={() => setDashExpandVim(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandVim ? '▴' : '▾ Full'}</button>}
+                        <span>{tw('vimsopaka16')}</span>
+                        {chart.vimsopaka && <button type="button" onClick={() => setDashExpandVim(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandVim ? '▴' : tStr('full')}</button>}
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
-                        {!chart.vimsopaka ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        {!chart.vimsopaka ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>{tw('unavailable')}</p>
                         : dashExpandVim ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
                         : dashboardVimsopakaSummary ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
@@ -2871,7 +2893,7 @@ function HomeContent() {
                               </span>
                               {dashboardVimsopakaSummary.avg && (
                                 <span style={{ color: 'var(--text-muted)', fontWeight: 500, marginLeft: 'auto' }}>
-                                  avg {dashboardVimsopakaSummary.avg}
+                                  {tStr('avg', { n: dashboardVimsopakaSummary.avg })}
                                 </span>
                               )}
                             </div>
@@ -2885,7 +2907,7 @@ function HomeContent() {
                                 return (
                                   <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                                     <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 700, width: '4.2rem', flexShrink: 0 }}>
-                                      #{idx + 1} {GRAHA_NAMES[row.id as GrahaId] ?? row.id}
+                                      #{idx + 1} {gName(row.id)}
                                     </span>
                                     <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)', overflow: 'hidden' }}>
                                       <div style={{ 
@@ -2919,18 +2941,18 @@ function HomeContent() {
                     {/* ── Bhava Bala ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandBhava ? '1 / -1' : undefined }}>
                       <div className="panel-header">
-                        <span>Bhava Bala</span>
-                        {chart.bhavaBala && <button type="button" onClick={() => setDashExpandBhava(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandBhava ? '▴' : '▾ Full'}</button>}
+                        <span>{tw('bhavaBala')}</span>
+                        {chart.bhavaBala && <button type="button" onClick={() => setDashExpandBhava(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandBhava ? '▴' : tStr('full')}</button>}
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
-                        {!chart.bhavaBala ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        {!chart.bhavaBala ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>{tw('unavailable')}</p>
                         : dashExpandBhava ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
                         : dashboardBhavaBalaSummary ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                             <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.68rem', fontWeight: 700, marginBottom: '0.2rem' }}>
-                              <span>⬆ <span style={{ color: 'var(--teal)' }}>H{dashboardBhavaBalaSummary.strongestHouse}</span> {dashboardBhavaBalaSummary.strongTotal}R</span>
-                              <span>⬇ <span style={{ color: 'var(--rose)' }}>H{dashboardBhavaBalaSummary.weakestHouse}</span> {dashboardBhavaBalaSummary.weakTotal}R</span>
-                              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>avg {dashboardBhavaBalaSummary.avgRupa}R</span>
+                              <span>⬆ <span style={{ color: 'var(--teal)' }}>{tStr('house', { n: dashboardBhavaBalaSummary.strongestHouse })}</span> {dashboardBhavaBalaSummary.strongTotal}R</span>
+                              <span>⬇ <span style={{ color: 'var(--rose)' }}>{tStr('house', { n: dashboardBhavaBalaSummary.weakestHouse })}</span> {dashboardBhavaBalaSummary.weakTotal}R</span>
+                              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{tStr('avg', { n: `${dashboardBhavaBalaSummary.avgRupa}R` })}</span>
                             </div>
                             {/* House strength mini-bars for all 12 */}
                             {chart.bhavaBala.houses && (
@@ -2968,7 +2990,7 @@ function HomeContent() {
                               </div>
                             )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.58rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 2px' }}>
-                              <span>H1</span><span>H6</span><span>H12</span>
+                              <span>{tStr('house', { n: 1 })}</span><span>{tStr('house', { n: 6 })}</span><span>{tStr('house', { n: 12 })}</span>
                             </div>
                           </div>
                         ) : null}
@@ -2978,8 +3000,8 @@ function HomeContent() {
                     {/* ── Natal Panchang ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandPanchang ? '1 / -1' : undefined }}>
                       <div className="panel-header">
-                        <span>Natal Panchang</span>
-                        <button type="button" onClick={() => setDashExpandPanchang(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandPanchang ? '▴' : '▾ Full'}</button>
+                        <span>{tw('natalPanchang')}</span>
+                        <button type="button" onClick={() => setDashExpandPanchang(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandPanchang ? '▴' : tStr('full')}</button>
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
                         {dashExpandPanchang ? (
@@ -2987,12 +3009,12 @@ function HomeContent() {
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
                             {[
-                              { label: 'Vara',     value: `${chart.panchang.vara.name} · lord ${GRAHA_NAMES[chart.panchang.vara.lord as GrahaId] ?? chart.panchang.vara.lord}` },
-                              { label: 'Tithi',    value: `${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30) · ${chart.panchang.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'}` },
-                              { label: 'Nakshatra', value: `${chart.panchang.nakshatra.name} · Pada ${chart.panchang.nakshatra.pada}` },
-                              { label: 'Yoga',     value: chart.panchang.yoga.name },
-                              { label: 'Karana',  value: chart.panchang.karana.name },
-                              { label: 'Sunrise',  value: new Date(chart.panchang.sunrise).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) },
+                              { label: tw('vara'), value: tw('varaVal', { name: lt(chart.panchang.vara.name), lord: (hiLang ? GRAHA_HI : GRAHA_NAMES)[chart.panchang.vara.lord as GrahaId] ?? chart.panchang.vara.lord }) },
+                              { label: tw('tithi'), value: tw('tithiVal', { name: lt(chart.panchang.tithi.name), n: chart.panchang.tithi.number, paksha: lt(chart.panchang.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna') }) },
+                              { label: tw('nakshatra'), value: tw('nakVal', { name: lt(chart.panchang.nakshatra.name), pada: chart.panchang.nakshatra.pada }) },
+                              { label: tw('yoga'), value: lt(chart.panchang.yoga.name) },
+                              { label: tw('karana'), value: lt(chart.panchang.karana.name) },
+                              { label: tw('sunrise'), value: new Date(chart.panchang.sunrise).toLocaleTimeString(hiLang ? 'hi-IN' : 'en-IN', { hour: '2-digit', minute: '2-digit' }) },
                             ].map(({ label, value }) => (
                               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '0.18rem 0', borderBottom: '1px solid var(--border-soft)', gap: '0.5rem' }}>
                                 <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', flexShrink: 0 }}>{label}</span>
@@ -3007,17 +3029,17 @@ function HomeContent() {
                     {/* ── Graha Yogas ── */}
                     <div className="panel fade-up" style={{ gridColumn: dashExpandYogas ? '1 / -1' : undefined }}>
                       <div className="panel-header">
-                        <span>Graha Yogas</span>
-                        {chart.yogas && <button type="button" onClick={() => setDashExpandYogas(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandYogas ? '▴' : '▾ Full'}</button>}
+                        <span>{tw('grahaYogas')}</span>
+                        {chart.yogas && <button type="button" onClick={() => setDashExpandYogas(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandYogas ? '▴' : tStr('full')}</button>}
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
-                        {!chart.yogas ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        {!chart.yogas ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>{tw('unavailable')}</p>
                         : dashExpandYogas ? <YogaList yogas={chart.yogas} />
                         : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                             {/* Summary line */}
                             <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '0.15rem' }}>
-                              {chart.yogas.length} yoga{chart.yogas.length !== 1 ? 's' : ''} · {chart.yogas.filter((y: any) => y.strength === 'strong' || y.strength === 'Strong').length} strong
+                              {tYoga('summary', { n: chart.yogas.length, strong: chart.yogas.filter((y: any) => y.strength === 'strong' || y.strength === 'Strong').length })}
                             </div>
                             {/* Compact yoga list */}
                             {chart.yogas.slice(0, 6).map((yoga: any, idx: number) => {
@@ -3025,15 +3047,15 @@ function HomeContent() {
                               return (
                                 <div key={idx} style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px solid var(--border-soft)' }}>
                                   <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {yoga.name}
+                                    {hiLang ? yogaNameHi(yoga.name) : yoga.name}
                                   </span>
-                                  {isStrong && <span style={{ fontSize: '0.55rem', fontWeight: 700, padding: '0 4px', borderRadius: 2, background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', border: '1px solid rgba(78,205,196,0.3)', flexShrink: 0 }}>Strong</span>}
-                                  {yoga.category && <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', flexShrink: 0 }}>{yoga.category}</span>}
+                                  {isStrong && <span style={{ fontSize: '0.55rem', fontWeight: 700, padding: '0 4px', borderRadius: 2, background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', border: '1px solid rgba(78,205,196,0.3)', flexShrink: 0 }}>{tYoga('strong')}</span>}
+                                  {yoga.category && <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', flexShrink: 0 }}>{hiLang ? YOGA_CATEGORY_HI[yoga.category] ?? yoga.category : yoga.category}</span>}
                                 </div>
                               )
                             })}
                             {chart.yogas.length > 6 && (
-                              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>+{chart.yogas.length - 6} more — click ▾ Full</div>
+                              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>{tYoga('more', { n: chart.yogas.length - 6 })}</div>
                             )}
                           </div>
                         )}
@@ -3084,16 +3106,16 @@ function HomeContent() {
               <LandingReveal as="section" className="landing-section-row landing-section-row--gold" delay={60}>
                 <div className="landing-section-row-content">
                   <VedicSectionHeader
-                    kicker="Why Vedaansh"
-                    title="Classical depth with modern clarity"
-                    description="Relevant information first — deep tooling always one click away."
+                    kicker={tHome('why.kicker')}
+                    title={tHome('why.title')}
+                    description={tHome('why.description')}
                     theme="gold"
                   />
                   <div className="landing-premium-pillars landing-reveal-stagger">
                     {landingWhyVedaansh.map((item, idx) => {
                       const PillarIcon = item.icon;
                       return (
-                        <article key={item.title} className="landing-premium-pillar" style={{ ['--stagger-i' as string]: idx }}>
+                        <article key={item.id} className="landing-premium-pillar" style={{ ['--stagger-i' as string]: idx }}>
                           <div className="landing-premium-pillar-icon">
                             <PillarIcon size={22} strokeWidth={1.75} />
                           </div>
@@ -3105,7 +3127,7 @@ function HomeContent() {
                   </div>
                   <div className="landing-trust-bar">
                     {landingTrustStats.map((stat) => (
-                      <div key={stat.label} className="landing-trust-stat">
+                      <div key={stat.id} className="landing-trust-stat">
                         <span className="landing-trust-stat-value">{stat.value}</span>
                         <span className="landing-trust-stat-label">{stat.label}</span>
                       </div>
@@ -3117,8 +3139,8 @@ function HomeContent() {
               <LandingReveal as="section" className="landing-section-row landing-section-row--gold landing-flow-card" delay={80}>
                 <div className="landing-section-row-content">
                   <VedicSectionHeader
-                    kicker="How it works"
-                    title="From birth data to confident direction"
+                    kicker={tHome('how.kicker')}
+                    title={tHome('how.title')}
                     theme="gold"
                   />
                   <div className="landing-flow-grid landing-reveal-stagger landing-flow-grid--animated">
@@ -3157,19 +3179,19 @@ function HomeContent() {
 
               <LandingReveal as="section" id="landing-cta-band" className={`landing-cta-band landing-premium-cta ${landingStyles.ctaBand}`} delay={120}>
                 <div>
-                  <div className="label-caps landing-premium-cta-kicker">Start your journey</div>
-                  <h3 className="landing-premium-cta-title">Open your Vedic command center</h3>
+                  <div className="label-caps landing-premium-cta-kicker">{tHome('ctaBand.kicker')}</div>
+                  <h3 className="landing-premium-cta-title">{tHome('ctaBand.title')}</h3>
                   <p className="landing-premium-cta-desc">
-                    Start with your chart, then move into Prashna, Panchang, and calendar planning in one workflow.
+                    {tHome('ctaBand.desc')}
                   </p>
                 </div>
                 <div className="landing-cta-band-actions">
                   <button onClick={() => { trackLandingCta('cta_band_start_now'); openAstrologyApp() }} className="btn btn-primary landing-cta-band-primary">
-                    Open Astrology App
+                    {tHome('ctaBand.primary')}
                   </button>
                   {status === 'authenticated' && (
                     <Link href="/my/charts" onClick={() => trackLandingCta('cta_band_my_charts')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
-                      My Charts
+                      {tHome('ctaBand.myCharts')}
                     </Link>
                   )}
                 </div>
@@ -3221,7 +3243,8 @@ function HomeContent() {
                   // Keep address bar in sync immediately; Next router may lag and
                   // briefly remount while still seeing ?new=true.
                   if (typeof window !== 'undefined') {
-                    window.history.replaceState(window.history.state, '', `/${qs}`)
+                    // Keep the current path (it carries the /hi prefix on Hindi pages).
+                    window.history.replaceState(window.history.state, '', `${window.location.pathname}${qs}`)
                   }
                   router.replace(qs, { scroll: false })
 

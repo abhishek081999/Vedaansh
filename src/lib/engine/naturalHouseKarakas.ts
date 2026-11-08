@@ -6,6 +6,8 @@
 
 import type { GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { NATURAL_HOUSE_KARAKAS_HI } from '@/lib/engine/locale/houseGuide.hi'
 
 export type HouseNumber1to12 = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
@@ -37,8 +39,15 @@ export const NATURAL_HOUSE_KARAKAS: Record<HouseNumber1to12, NaturalHouseKarakaR
 
 const HOUSE_ORDER: HouseNumber1to12[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
-export function getNaturalHouseKarakaRows(): NaturalHouseKarakaRow[] {
+export function getNaturalHouseKarakaRows(lang: EngineLang = 'en'): NaturalHouseKarakaRow[] {
+  if (lang === 'hi') {
+    return HOUSE_ORDER.map((h) => ({ ...NATURAL_HOUSE_KARAKAS[h], themes: NATURAL_HOUSE_KARAKAS_HI.themes[h] ?? NATURAL_HOUSE_KARAKAS[h].themes }))
+  }
   return HOUSE_ORDER.map((h) => NATURAL_HOUSE_KARAKAS[h])
+}
+
+export function getNaturalHouseKarakasNote(lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? NATURAL_HOUSE_KARAKAS_HI.note : NATURAL_HOUSE_KARAKAS_NOTE
 }
 
 export function getNaturalKarakasForHouse(house: number): GrahaId[] {

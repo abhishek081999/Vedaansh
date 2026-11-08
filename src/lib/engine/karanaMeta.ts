@@ -4,6 +4,9 @@
 //  Name lookup accepts engine spellings and common variants.
 // ─────────────────────────────────────────────────────────────
 
+import { overlay, type EngineLang } from '@/lib/engine/lang'
+import { KARANA_WEATHER_HI, KARANAS_HI } from '@/lib/engine/locale/karanaMeta.hi'
+
 export type KaranaType = 'movable' | 'fixed'
 
 export type KaranaId =
@@ -24,8 +27,8 @@ export interface KaranaMeta {
   /** Display name used in the engine (`getKarana`) */
   name:          string
   type:          KaranaType
-  /** Char (movable) / Sthir (fixed) label for UI */
-  typeLabel:     'Char' | 'Sthir'
+  /** Char (movable) / Sthir (fixed) label for UI, in the requested language — compare `type` */
+  typeLabel:     string
   meaning:       string
   deity:         string
   nature:        string
@@ -237,18 +240,19 @@ export function normalizeKaranaName(name: string): KaranaId | null {
   return ALIASES[key] ?? null
 }
 
-export function getKaranaMeta(name: string): KaranaMeta | null {
+export function getKaranaMeta(name: string, lang: EngineLang = 'en'): KaranaMeta | null {
   const id = normalizeKaranaName(name)
-  return id ? KARANAS[id] : null
+  return id ? overlay(KARANAS[id], KARANAS_HI[id], lang) : null
 }
 
-export function formatKaranaWeatherLine(meta: KaranaMeta): string {
-  const caution = meta.isBhadra ? 'Bhadra · ' : ''
-  return `${caution}${meta.typeLabel} · ${meta.meaning} · Deity ${meta.deity} — ${meta.dayGuidance}`
+export function formatKaranaWeatherLine(meta: KaranaMeta, lang: EngineLang = 'en'): string {
+  const hi = lang === 'hi'
+  const caution = meta.isBhadra ? (hi ? KARANA_WEATHER_HI.bhadra : 'Bhadra · ') : ''
+  return `${caution}${meta.typeLabel} · ${meta.meaning} · ${hi ? KARANA_WEATHER_HI.deity : 'Deity'} ${meta.deity} — ${meta.dayGuidance}`
 }
 
-export function listKaranaMeta(): KaranaMeta[] {
-  return [
+export function listKaranaMeta(lang: EngineLang = 'en'): KaranaMeta[] {
+  const all = [
     KARANAS.Bava,
     KARANAS.Balava,
     KARANAS.Kaulava,
@@ -261,4 +265,5 @@ export function listKaranaMeta(): KaranaMeta[] {
     KARANAS.Naga,
     KARANAS.Kimstughna,
   ]
+  return all.map((k) => overlay(k, KARANAS_HI[k.id], lang))
 }

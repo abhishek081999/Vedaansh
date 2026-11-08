@@ -21,20 +21,21 @@ import {
   type D12Tone,
   type DwadashamshaInsight,
 } from '@/lib/engine/dwadashamshaAnalysis'
-import { RASHI_SHORT } from '@/types/astrology'
 import { cn } from '@/lib/ui/cn'
+import { useTranslations } from 'next-intl'
+import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
 import styles from './DwadashamshaWorkspace.module.css'
 
 type TabId = 'overview' | 'isolation' | 'thirst' | 'houses' | 'contrast' | 'cross'
 
-const TABS: { id: TabId; label: string; shortLabel: string; Icon: LucideIcon }[] = [
-  { id: 'overview', label: 'Overview', shortLabel: 'Overview', Icon: Sparkles },
-  { id: 'isolation', label: 'Isolation / Dreams', shortLabel: 'Alone', Icon: CloudMoon },
-  { id: 'thirst', label: 'Thirst & Release', shortLabel: 'Thirst', Icon: Droplets },
-  { id: 'houses', label: 'Key Houses', shortLabel: 'Houses', Icon: Layers },
-  { id: 'contrast', label: 'D4 · D8 · D12', shortLabel: 'Contrast', Icon: GitCompare },
-  { id: 'cross', label: 'Cross Vargas', shortLabel: 'Cross', Icon: Wind },
+const TABS: { id: TabId; Icon: LucideIcon }[] = [
+  { id: 'overview', Icon: Sparkles },
+  { id: 'isolation', Icon: CloudMoon },
+  { id: 'thirst', Icon: Droplets },
+  { id: 'houses', Icon: Layers },
+  { id: 'contrast', Icon: GitCompare },
+  { id: 'cross', Icon: Wind },
 ]
 
 function insightClass(kind: DwadashamshaInsight['kind']): string {
@@ -58,7 +59,10 @@ interface DwadashamshaWorkspaceProps {
 
 export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: DwadashamshaWorkspaceProps) {
   const [tab, setTab] = useState<TabId>('overview')
-  const analysis = useMemo(() => analyzeDwadashamsha(chart), [chart])
+  const t = useTranslations('divisional.d12')
+  const c = useDivisionalCommon()
+  const { lang } = c
+  const analysis = useMemo(() => analyzeDwadashamsha(chart, lang), [chart, lang])
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
 
   const d12Asc = (chart.vargaLagnas?.D12 ?? 1) as Rashi
@@ -67,10 +71,10 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
   if (!analysis) {
     return (
       <PanelShell
-        title="Dwadashamsha (D12)"
+        title={t('title')}
         empty={{
-          title: 'Dwadashamsha data unavailable',
-          description: 'Recalculate the chart to generate the D12 chart and isolation / thirst interpretations.',
+          title: t('emptyTitle'),
+          description: t('emptyDesc'),
         }}
       >
         {null}
@@ -86,63 +90,63 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
         <div className={styles.heroGlow} aria-hidden />
         <div className={styles.heroTop}>
           <div>
-            <p className={styles.eyebrow}>D12 · Dwadashamsha</p>
+            <p className={styles.eyebrow}>{t('eyebrow')}</p>
             <h2 className={styles.heroTitle}>
               {analysis.d12LagnaName}
-              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
-                {' '}· {analysis.d12LagnaSanskrit}
-              </span>
+              {!c.hi && (
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{' '}· {analysis.d12LagnaSanskrit}</span>
+              )}
             </h2>
             <p className={styles.heroSub}>{analysis.summary}</p>
           </div>
           <div className={styles.badgeRow}>
             {isolation.lagnaEmpty ? (
-              <span className={cn(styles.badge, styles.badgeTeal)}>Empty lagna → lord</span>
+              <span className={cn(styles.badge, styles.badgeTeal)}>{t('badgeEmpty')}</span>
             ) : (
               <span className={cn(styles.badge, styles.badgeGold)}>
-                {isolation.occupants.map((o) => o.name).join(' · ')} on lagna
+                {t('badgeOnLagna', { names: isolation.occupants.map((o) => o.name).join(' · ') })}
               </span>
             )}
             {isolation.aloneInDreams && (
               <span className={cn(styles.badge)} style={{ color: 'var(--rose, #fb7185)' }}>
-                Alone in dreams
+                {t('badgeAlone')}
               </span>
             )}
             {thirst && (
               <span className={cn(styles.badge, styles.badgeGold)}>
-                Thirst · {thirst.name}
+                {t('badgeThirst', { name: thirst.name })}
               </span>
             )}
             {ketuRelease.tone === 'supportive' && (
-              <span className={cn(styles.badge, styles.badgeTeal)}>Ketu release</span>
+              <span className={cn(styles.badge, styles.badgeTeal)}>{t('badgeKetu')}</span>
             )}
           </div>
         </div>
 
         <div className={styles.statGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>D12 Lagna</div>
+            <div className={styles.statLabel}>{t('statLagna')}</div>
             <div className={styles.statValue}>{analysis.d12LagnaName}</div>
-            <div className={styles.statHint}>Isolation · Dreams · Residue</div>
+            <div className={styles.statHint}>{t('statLagnaHint')}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Primary signal</div>
+            <div className={styles.statLabel}>{t('statSignal')}</div>
             <div className={styles.statValue}>
-              {isolation.primarySignal.strength === 'occupation' ? 'Occupation' : 'Lagna lord'}
+              {isolation.primarySignal.strength === 'occupation' ? t('signalOccupation') : t('signalLord')}
             </div>
             <div className={styles.statHint}>{isolation.primarySignal.label}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Thirst planet</div>
-            <div className={styles.statValue}>{thirst ? thirst.name : 'None marked'}</div>
+            <div className={styles.statLabel}>{t('statThirst')}</div>
+            <div className={styles.statValue}>{thirst ? thirst.name : t('noneMarked')}</div>
             <div className={styles.statHint}>
-              {thirst ? `${thirst.rashiName} · H${thirst.house}` : 'No D12 debility'}
+              {thirst ? `${thirst.rashiName} · ${c.houseShort(thirst.house)}` : t('noDebility')}
             </div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Ketu release</div>
+            <div className={styles.statLabel}>{t('statKetu')}</div>
             <div className={styles.statValue}>
-              {ketuRelease.house != null ? `H${ketuRelease.house}` : '—'}
+              {ketuRelease.house != null ? c.houseShort(ketuRelease.house) : '—'}
             </div>
             <div className={styles.statHint}>{ketuRelease.rashiName ?? '—'}</div>
           </div>
@@ -152,8 +156,8 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
       <div className={styles.chartsRow}>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D1 · Rashi Chart</span>
-            <span className={styles.chartAccent}>Today</span>
+            <span className={styles.chartTitle}>{t('chartD1')}</span>
+            <span className={styles.chartAccent}>{t('chartD1Accent')}</span>
           </div>
           <ChakraSelector
             ascRashi={chart.lagnas.ascRashi as Rashi}
@@ -170,8 +174,8 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
         </div>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D12 · Dwadashamsha</span>
-            <span className={styles.chartAccent}>{RASHI_SHORT[d12Asc]} lagna · Yesterday</span>
+            <span className={styles.chartTitle}>{t('chartD12')}</span>
+            <span className={styles.chartAccent}>{t('chartD12Accent', { lagna: c.lagnaOf(d12Asc) })}</span>
           </div>
           <ChakraSelector
             ascRashi={d12Asc}
@@ -188,19 +192,19 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
       </div>
 
       <div className={styles.tabScroll}>
-        <div className={styles.tabRow} role="tablist" aria-label="Dwadashamsha sections">
-          {TABS.map((t) => (
+        <div className={styles.tabRow} role="tablist" aria-label={t('tabsAria')}>
+          {TABS.map((tb) => (
             <button
-              key={t.id}
+              key={tb.id}
               type="button"
               role="tab"
-              aria-selected={tab === t.id}
-              className={cn(styles.tabBtn, tab === t.id && styles.tabBtnActive)}
-              onClick={() => setTab(t.id)}
+              aria-selected={tab === tb.id}
+              className={cn(styles.tabBtn, tab === tb.id && styles.tabBtnActive)}
+              onClick={() => setTab(tb.id)}
             >
-              <t.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === t.id ? 2.25 : 2} />
-              <span className={styles.tabLabelFull}>{t.label}</span>
-              <span className={styles.tabLabelShort}>{t.shortLabel}</span>
+              <tb.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === tb.id ? 2.25 : 2} />
+              <span className={styles.tabLabelFull}>{t(`tabs.${tb.id}`)}</span>
+              <span className={styles.tabLabelShort}>{t(`tabs.${tb.id}Short`)}</span>
             </button>
           ))}
         </div>
@@ -209,7 +213,7 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
       {tab === 'overview' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>D12 Insights</h3>
+            <h3 className={styles.sectionTitle}>{t('insightsTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
@@ -229,12 +233,12 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
       {tab === 'isolation' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Isolation &amp; dream tone</h3>
+            <h3 className={styles.sectionTitle}>{t('isolationTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            When D3 (subconscious) and D4 (heart) are quiet — deep sleep, solitude, pressure — D12 shows what still runs.
-            {isolation.lagnaEmpty ? ' Empty lagna: follow the lord’s house.' : ''}
+            {t('isolationIntro')}
+            {isolation.lagnaEmpty ? t('isolationEmpty') : ''}
           </p>
 
           <article className={cn(styles.insightCard, styles.insightHighlight)} style={{ marginBottom: '0.85rem' }}>
@@ -244,17 +248,17 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
 
           <div className={styles.sketchGrid}>
             <div className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}>Sign flavor</h4>
+              <h4 className={styles.insightTitle}>{t('signFlavor')}</h4>
               <p className={styles.insightText}>{isolation.signFlavor}</p>
             </div>
             <div className={styles.sketchCard}>
               <h4 className={styles.insightTitle}>
-                Lagna lord · {isolation.lagnaLord.name}
+                {t('lagnaLord', { name: isolation.lagnaLord.name })}
               </h4>
               <p className={styles.insightText}>{isolation.lagnaLord.reading}</p>
               {isolation.lagnaLord.conjunctNames.length > 0 && (
                 <p className={styles.statHint} style={{ marginTop: '0.4rem', whiteSpace: 'normal' }}>
-                  With {isolation.lagnaLord.conjunctNames.join(', ')}
+                  {t('with', { names: isolation.lagnaLord.conjunctNames.join(', ') })}
                 </p>
               )}
             </div>
@@ -263,7 +267,7 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
           {isolation.occupants.length > 0 && (
             <>
               <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-                <h3 className={styles.sectionTitle}>Planets on lagna</h3>
+                <h3 className={styles.sectionTitle}>{t('planetsOnLagna')}</h3>
                 <div className={styles.sectionRule} />
               </div>
               <div className={styles.cardGrid}>
@@ -284,10 +288,9 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
 
           {isolation.aloneInDreams && (
             <article className={cn(styles.insightCard, styles.insightCaution)} style={{ marginTop: '0.85rem' }}>
-              <h4 className={styles.insightTitle}>Empty kendras</h4>
+              <h4 className={styles.insightTitle}>{t('emptyKendras')}</h4>
               <p className={styles.insightText}>
-                Houses {isolation.emptyKendras.join(', ')} are empty — the dream field can feel without a visible support system.
-                Strengthen waking relationships so solitude does not equal abandonment.
+                {t('emptyKendrasText', { houses: isolation.emptyKendras.join(', ') })}
               </p>
             </article>
           )}
@@ -297,44 +300,44 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
       {tab === 'thirst' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Thirst &amp; release</h3>
+            <h3 className={styles.sectionTitle}>{t('thirstTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            Whatever felt incomplete tends to become craving now. Ketu is the best D12 ally for giving away and lightening the load.
+            {t('thirstIntro')}
           </p>
 
           {thirst ? (
             <article className={cn(styles.insightCard, styles.insightCaution)} style={{ marginBottom: '0.85rem' }}>
               <h4 className={styles.insightTitle}>
-                Primary thirst · {thirst.name}
+                {t('primaryThirst', { name: thirst.name })}
               </h4>
               <p className={styles.insightText}>{thirst.reading}</p>
               <p className={styles.insightText} style={{ marginTop: '0.45rem' }}>
                 {thirst.overcompensateHint}
               </p>
               <div className={styles.statHint} style={{ marginTop: '0.4rem', whiteSpace: 'normal' }}>
-                {thirst.rashiName} · H{thirst.house} · {thirst.dignity.replace(/_/g, ' ')}
+                {thirst.rashiName} · {c.houseShort(thirst.house)} · {c.dignity(thirst.dignity)}
               </div>
             </article>
           ) : (
-            <p className={styles.emptyHint}>No debilitated planet in D12 — thirst is quieter; watch weak dignity and 8th/12th pressure instead.</p>
+            <p className={styles.emptyHint}>{t('noThirst')}</p>
           )}
 
           {analysis.thirstCandidates.length > 1 && (
             <>
               <div className={styles.sectionHead} style={{ marginTop: '0.5rem' }}>
-                <h3 className={styles.sectionTitle}>Other debilitated markers</h3>
+                <h3 className={styles.sectionTitle}>{t('otherMarkers')}</h3>
                 <div className={styles.sectionRule} />
               </div>
               <div className={styles.cardGrid}>
-                {analysis.thirstCandidates.slice(1).map((t) => (
-                  <article key={t.id} className={styles.planetCard}>
+                {analysis.thirstCandidates.slice(1).map((tc) => (
+                  <article key={tc.id} className={styles.planetCard}>
                     <div className={styles.planetCardHead}>
-                      <h4 className={styles.planetName}>{t.name}</h4>
-                      <span className={cn(styles.pill, toneClass(t.tone))}>thirst</span>
+                      <h4 className={styles.planetName}>{tc.name}</h4>
+                      <span className={cn(styles.pill, toneClass(tc.tone))}>{t('thirstPill')}</span>
                     </div>
-                    <p className={styles.planetBody}>{t.reading}</p>
+                    <p className={styles.planetBody}>{tc.reading}</p>
                   </article>
                 ))}
               </div>
@@ -342,19 +345,19 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
           )}
 
           <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-            <h3 className={styles.sectionTitle}>Ketu · letting go</h3>
+            <h3 className={styles.sectionTitle}>{t('ketuLetGo')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <article className={cn(styles.insightCard, ketuRelease.tone === 'supportive' ? styles.insightStrength : styles.insightInfo)}>
             <h4 className={styles.insightTitle}>
-              Ketu
-              {ketuRelease.house != null ? ` · H${ketuRelease.house}` : ''}
+              {t('ketu')}
+              {ketuRelease.house != null ? ` · ${c.houseShort(ketuRelease.house)}` : ''}
             </h4>
             <p className={styles.insightText}>{ketuRelease.reading}</p>
           </article>
 
           <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-            <h3 className={styles.sectionTitle}>Planet rows</h3>
+            <h3 className={styles.sectionTitle}>{t('planetsTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <div className={styles.cardGrid}>
@@ -365,10 +368,10 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
                     {p.name}
                     {p.isRetro ? ' ℞' : ''}
                   </h4>
-                  <span className={cn(styles.pill, toneClass(p.tone))}>{p.tone}</span>
+                  <span className={cn(styles.pill, toneClass(p.tone))}>{c.tone(p.tone)}</span>
                 </div>
                 <div className={styles.mappingLine}>
-                  {p.rashiName} · H{p.house} · {p.dignity.replace(/_/g, ' ')}
+                  {p.rashiName} · {c.houseShort(p.house)} · {c.dignity(p.dignity)}
                 </div>
                 <p className={styles.planetBody}>{p.interpretation}</p>
               </article>
@@ -380,11 +383,11 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
       {tab === 'houses' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Focused D12 houses</h3>
+            <h3 className={styles.sectionTitle}>{t('focusedTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            1 alone-self · 4 root in solitude · 7 unfinished relating · 8 deep residue · 12 dreams &amp; release
+            {t('focusedIntro')}
           </p>
           <div className={styles.houseGrid}>
             {analysis.focusedHouses.map((h) => (
@@ -392,12 +395,12 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
                 key={h.house}
                 className={cn(styles.houseCard, (h.house === 8 || h.house === 12) && styles.houseCardHot)}
               >
-                <div className={styles.houseNum}>House {h.house}</div>
+                <div className={styles.houseNum}>{c.house(h.house)}</div>
                 <div className={styles.houseSign}>{h.rashiName}</div>
                 <div className={styles.houseMeta}>
-                  Lord {h.lordName}
+                  {t('lord', { name: h.lordName })}
                   <span className={cn(styles.pill, toneClass(h.tone))} style={{ marginLeft: 6 }}>
-                    {h.tone}
+                    {c.tone(h.tone)}
                   </span>
                 </div>
                 <div className={styles.housePlanets}>
@@ -415,22 +418,22 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
       {tab === 'contrast' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>D4 · D8 · D12</h3>
+            <h3 className={styles.sectionTitle}>{t('contrastTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            Keep these distinct: heart now (D4), this-life accumulated fear (D8), already-completed residue (D12).
+            {t('contrastIntro')}
           </p>
           <div className={styles.insightGrid}>
-            {analysis.contrasts.map((c) => (
-              <article key={c.id} className={cn(styles.insightCard, c.id === 'd12' ? styles.insightHighlight : styles.insightInfo)}>
-                <h4 className={styles.insightTitle}>{c.label}</h4>
+            {analysis.contrasts.map((ct) => (
+              <article key={ct.id} className={cn(styles.insightCard, ct.id === 'd12' ? styles.insightHighlight : styles.insightInfo)}>
+                <h4 className={styles.insightTitle}>{ct.label}</h4>
                 <p className={styles.insightText}>
-                  <strong>{c.nature}</strong> {c.summary}
+                  <strong>{ct.nature}</strong> {ct.summary}
                 </p>
-                {c.chartNote && (
+                {ct.chartNote && (
                   <p className={styles.insightText} style={{ marginTop: '0.45rem' }}>
-                    {c.chartNote}
+                    {ct.chartNote}
                   </p>
                 )}
               </article>
@@ -442,15 +445,15 @@ export function DwadashamshaWorkspace({ chart, userPlan: _userPlan = 'free' }: D
       {tab === 'cross' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Cross-varga notes</h3>
+            <h3 className={styles.sectionTitle}>{t('crossTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            Soft class combinations — combine thoughtfully; do not read any single varga in isolation.
+            {t('crossIntro')}
           </p>
           {analysis.crossNotes.length === 0 ? (
             <p className={styles.emptyHint}>
-              Related vargas (D2 / D3 / D4 / D6 / D8) are limited on this chart — open those divisions when available for fuller cross-reads.
+              {t('crossEmpty')}
             </p>
           ) : (
             <div className={styles.insightGrid}>

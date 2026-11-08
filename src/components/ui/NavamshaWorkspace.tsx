@@ -35,14 +35,15 @@ import { PanelShell, PlanGate } from '@/components/ui/patterns'
 import { NavamshaPredictionsPanel } from '@/components/ui/NavamshaPredictionsPanel'
 import {
   analyzeNavamsha,
-  NAVAMSHA_VARIANT_LABELS,
   type DashaTone,
   type NavamshaInsight,
   type NavamshaVariantId,
 } from '@/lib/engine/navamshaAnalysis'
 import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
-import { RASHI_SHORT } from '@/types/astrology'
 import { cn } from '@/lib/ui/cn'
+import { termHi } from '@/i18n/jyotish'
+import { useTranslations } from 'next-intl'
+import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import styles from './NavamshaWorkspace.module.css'
 
@@ -64,34 +65,31 @@ type IconType = typeof Star
 
 interface TabDef {
   id: TabId
-  label: string
-  shortLabel: string
   Icon: IconType
-  hint: string
 }
 
 const TABS: TabDef[] = [
-  { id: 'overview', label: 'Overview', shortLabel: 'Overview', Icon: Sparkles, hint: 'Key Navamsha themes at a glance' },
-  { id: 'predictions', label: 'Predictions', shortLabel: 'Predict', Icon: ScrollText, hint: 'Planet-by-planet readings and triggered rules' },
-  { id: 'destiny', label: 'Destiny', shortLabel: 'Destiny', Icon: Compass, hint: 'Dharma, Karakamsha and the soul’s direction' },
-  { id: 'mapping', label: 'D1 → D9 Mapping', shortLabel: 'Mapping', Icon: ArrowRight, hint: 'Where each natal planet lands in Navamsha' },
-  { id: 'relations', label: 'D1↔D9 Relations', shortLabel: 'Relations', Icon: Link2, hint: 'Sign-count links between Rashi and Navamsha' },
-  { id: 'houses', label: 'D9 Houses', shortLabel: 'Houses', Icon: Layers, hint: 'All twelve Navamsha bhavas' },
-  { id: 'vargottama', label: 'Vargottama & Pushkara', shortLabel: 'Vargottama', Icon: Gem, hint: 'Specially strengthened placements' },
-  { id: 'marriage', label: 'Marriage', shortLabel: 'Marriage', Icon: Heart, hint: '7th house, its lord and partnership notes' },
-  { id: 'spouse', label: 'Spouse Sketch', shortLabel: 'Spouse', Icon: Users, hint: 'Indicated nature of the partner' },
-  { id: 'dasha', label: 'Dasha × D9', shortLabel: 'Dasha', Icon: Hourglass, hint: 'Running Vimshottari lords read through Navamsha' },
-  { id: 'advanced', label: 'Advanced', shortLabel: 'Advanced', Icon: Waypoints, hint: 'Dispositors, exchanges, conjunctions and scores' },
-  { id: 'variants', label: 'D9 Variants', shortLabel: 'Variants', Icon: GitCompare, hint: 'Parashara vs Pada, Nadi and Somanatha schemes' },
+  { id: 'overview', Icon: Sparkles },
+  { id: 'predictions', Icon: ScrollText },
+  { id: 'destiny', Icon: Compass },
+  { id: 'mapping', Icon: ArrowRight },
+  { id: 'relations', Icon: Link2 },
+  { id: 'houses', Icon: Layers },
+  { id: 'vargottama', Icon: Gem },
+  { id: 'marriage', Icon: Heart },
+  { id: 'spouse', Icon: Users },
+  { id: 'dasha', Icon: Hourglass },
+  { id: 'advanced', Icon: Waypoints },
+  { id: 'variants', Icon: GitCompare },
 ]
 
 const TAB_BY_ID = Object.fromEntries(TABS.map((t) => [t.id, t])) as Record<TabId, TabDef>
 
-const TAB_GROUPS: { label: string; tabs: TabId[] }[] = [
-  { label: 'Read', tabs: ['overview', 'predictions', 'destiny'] },
-  { label: 'Chart', tabs: ['mapping', 'relations', 'houses', 'vargottama'] },
-  { label: 'Marriage', tabs: ['marriage', 'spouse'] },
-  { label: 'Depth', tabs: ['dasha', 'advanced', 'variants'] },
+const TAB_GROUPS: { key: 'read' | 'chart' | 'marriage' | 'depth'; tabs: TabId[] }[] = [
+  { key: 'read', tabs: ['overview', 'predictions', 'destiny'] },
+  { key: 'chart', tabs: ['mapping', 'relations', 'houses', 'vargottama'] },
+  { key: 'marriage', tabs: ['marriage', 'spouse'] },
+  { key: 'depth', tabs: ['dasha', 'advanced', 'variants'] },
 ]
 
 function compactDashaPath(pathLabel: string): string {
@@ -153,10 +151,11 @@ function PlanetTag({ id, name }: { id: GrahaId; name: string }) {
 }
 
 function ScoreBar({ score }: { score: number }) {
+  const t = useTranslations('divisional.d9')
   const rounded = Math.round(score)
   const pct = Math.max(0, Math.min(100, rounded))
   return (
-    <span className={cn(styles.scoreBar, scoreClass(rounded))} title={`D9 strength ${rounded}/100`}>
+    <span className={cn(styles.scoreBar, scoreClass(rounded))} title={t('scoreTitle', { n: rounded })}>
       <span className={styles.scoreTrack}>
         <span className={styles.scoreFill} style={{ width: `${pct}%` }} />
       </span>
@@ -166,6 +165,7 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 function SectionHead({ tab, title }: { tab: TabId; title?: string }) {
+  const t = useTranslations('divisional.d9')
   const def = TAB_BY_ID[tab]
   return (
     <div className={styles.sectionHead}>
@@ -173,8 +173,8 @@ function SectionHead({ tab, title }: { tab: TabId; title?: string }) {
         <def.Icon size={16} />
       </span>
       <div className={styles.sectionHeadText}>
-        <h3 className={styles.sectionTitle}>{title ?? def.label}</h3>
-        <p className={styles.sectionHint}>{def.hint}</p>
+        <h3 className={styles.sectionTitle}>{title ?? t(`tabs.${tab}.label`)}</h3>
+        <p className={styles.sectionHint}>{t(`tabs.${tab}.hint`)}</p>
       </div>
       <div className={styles.sectionRule} />
     </div>
@@ -219,11 +219,12 @@ function toneToKind(tone: DashaTone): NavamshaInsight['kind'] {
 }
 
 function Flags({ vg, pk }: { vg: boolean; pk: boolean }) {
+  const t = useTranslations('divisional.d9')
   if (!vg && !pk) return <span className={styles.mutedLine}>—</span>
   return (
     <>
-      {vg && <span className={cn(styles.pill, styles.pillVg)} title="Vargottama">VG</span>}
-      {pk && <span className={cn(styles.pill, styles.pillPk)} title="Pushkara Navamsha">PK</span>}
+      {vg && <span className={cn(styles.pill, styles.pillVg)} title={t('vgTitle')}>{t('vg')}</span>}
+      {pk && <span className={cn(styles.pill, styles.pillPk)} title={t('pkTitle')}>{t('pk')}</span>}
     </>
   )
 }
@@ -236,7 +237,10 @@ interface NavamshaWorkspaceProps {
 export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspaceProps) {
   const [tab, setTab] = useState<TabId>('overview')
   const [variantChart, setVariantChart] = useState<NavamshaVariantId>('D9')
-  const analysis = useMemo(() => analyzeNavamsha(chart), [chart])
+  const t = useTranslations('divisional.d9')
+  const c = useDivisionalCommon()
+  const { lang } = c
+  const analysis = useMemo(() => analyzeNavamsha(chart, lang), [chart, lang])
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
 
   const activeVargaName = variantChart
@@ -247,10 +251,10 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
   if (!analysis) {
     return (
       <PanelShell
-        title="Navamsha (D9)"
+        title={t('title')}
         empty={{
-          title: 'Navamsha data unavailable',
-          description: 'Recalculate the chart to generate the D9 Navamsha chart and interpretations.',
+          title: t('emptyTitle'),
+          description: t('emptyDesc'),
         }}
       >
         {null}
@@ -267,10 +271,10 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
   const totalPlanets = analysis.planets.length || 1
   const neutralCount = Math.max(0, analysis.planets.length - adv.supportiveCount - adv.mixedCount - adv.challengingCount)
   const distribution = [
-    { key: 'supportive', label: 'Supportive', count: adv.supportiveCount, cls: styles.accentTeal },
-    { key: 'mixed', label: 'Mixed', count: adv.mixedCount, cls: styles.accentGold },
-    { key: 'challenging', label: 'Challenging', count: adv.challengingCount, cls: styles.accentRose },
-    { key: 'neutral', label: 'Unclassified', count: neutralCount, cls: styles.accentBlue },
+    { key: 'supportive', label: t('dist.supportive'), count: adv.supportiveCount, cls: styles.accentTeal },
+    { key: 'mixed', label: t('dist.mixed'), count: adv.mixedCount, cls: styles.accentGold },
+    { key: 'challenging', label: t('dist.challenging'), count: adv.challengingCount, cls: styles.accentRose },
+    { key: 'neutral', label: t('dist.neutral'), count: neutralCount, cls: styles.accentBlue },
   ].filter((d) => d.count > 0)
 
   return (
@@ -282,38 +286,38 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
           <div className={styles.heroIntro}>
             <p className={styles.eyebrow}>
               <span className={styles.eyebrowDot} aria-hidden />
-              D9 · Navamsha
+              {t('eyebrow')}
             </p>
             <h2 className={styles.heroTitle}>
               {analysis.d9LagnaName}
-              <span className={styles.heroSanskrit}> · {analysis.d9LagnaSanskrit}</span>
+              {!c.hi && <span className={styles.heroSanskrit}> · {analysis.d9LagnaSanskrit}</span>}
             </h2>
             <p className={styles.heroSub}>{analysis.summary}</p>
             <div className={styles.badgeRow}>
               {analysis.lagnaVargottama && (
-                <span className={cn(styles.badge, styles.badgeGold)}><Crown size={12} />Vargottama Lagna</span>
+                <span className={cn(styles.badge, styles.badgeGold)}><Crown size={12} />{t('badgeVargLagna')}</span>
               )}
               {analysis.vargottama.length > 0 && (
                 <span className={cn(styles.badge, styles.badgeTeal)}>
-                  <Gem size={12} />{analysis.vargottama.length} Vargottama
+                  <Gem size={12} />{t('badgeVarg', { n: analysis.vargottama.length })}
                 </span>
               )}
               {analysis.pushkaraPlanets.length > 0 && (
                 <span className={cn(styles.badge, styles.badgeGold)}>
-                  <Sparkles size={12} />{analysis.pushkaraPlanets.length} Pushkara
+                  <Sparkles size={12} />{t('badgePush', { n: analysis.pushkaraPlanets.length })}
                 </span>
               )}
               {dasha && (
                 <span className={styles.badge}>
-                  <Hourglass size={12} />Dasha {compactDashaPath(dasha.pathLabel)}
+                  <Hourglass size={12} />{t('badgeDasha', { path: compactDashaPath(dasha.pathLabel) })}
                 </span>
               )}
             </div>
           </div>
 
-          <div className={styles.journey} aria-label="Lagna from D1 to D9">
+          <div className={styles.journey} aria-label={t('journeyAria')}>
             <div className={styles.journeyNode}>
-              <div className={styles.journeyLabel}>D1 Lagna</div>
+              <div className={styles.journeyLabel}>{t('d1Lagna')}</div>
               <div className={styles.journeySign}>{lagnaRel.fromName}</div>
             </div>
             <div className={styles.journeyLink}>
@@ -323,7 +327,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
               </span>
             </div>
             <div className={cn(styles.journeyNode, styles.journeyNodeD9)}>
-              <div className={styles.journeyLabel}>D9 Lagna</div>
+              <div className={styles.journeyLabel}>{t('d9Lagna')}</div>
               <div className={styles.journeySign}>{lagnaRel.toName}</div>
             </div>
           </div>
@@ -333,7 +337,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
           <div className={styles.statCard}>
             <span className={styles.statIcon} aria-hidden><Compass size={15} /></span>
             <div className={styles.statBody}>
-              <div className={styles.statLabel}>Navamsha Lagna</div>
+              <div className={styles.statLabel}>{t('statLagna')}</div>
               <div className={styles.statValue}>{analysis.d9LagnaName}</div>
               <div className={styles.statHint}>{lagnaRel.label}</div>
             </div>
@@ -341,28 +345,28 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
           <div className={styles.statCard}>
             <span className={styles.statIcon} aria-hidden><Crown size={15} /></span>
             <div className={styles.statBody}>
-              <div className={styles.statLabel}>Karakamsha</div>
+              <div className={styles.statLabel}>{t('statKarakamsha')}</div>
               <div className={styles.statValue}>{analysis.karakamshaName}</div>
-              <div className={styles.statHint}>Atmakaraka {analysis.atmakarakaName}</div>
+              <div className={styles.statHint}>{t('statAk', { name: analysis.atmakarakaName })}</div>
             </div>
           </div>
           <div className={cn(styles.statCard, styles.accentRose)}>
             <span className={styles.statIcon} aria-hidden><Heart size={15} /></span>
             <div className={styles.statBody}>
-              <div className={styles.statLabel}>7th Lord (D9)</div>
+              <div className={styles.statLabel}>{t('statLord7')}</div>
               <div className={styles.statValue}>{analysis.seventhLord.name}</div>
               <div className={styles.statHint}>
-                {analysis.seventhLord.d9RashiName} · H{analysis.seventhLord.d9House}
+                {analysis.seventhLord.d9RashiName} · {c.houseShort(analysis.seventhLord.d9House)}
               </div>
             </div>
           </div>
           <div className={cn(styles.statCard, scoreClass(adv.averageStrength))}>
             <span className={styles.statIcon} aria-hidden><Gauge size={15} /></span>
             <div className={styles.statBody}>
-              <div className={styles.statLabel}>Avg D9 Strength</div>
+              <div className={styles.statLabel}>{t('statAvg')}</div>
               <ScoreBar score={adv.averageStrength} />
               <div className={styles.statHint}>
-                {adv.strongest ? `Best ${adv.strongest.name}` : '0–100 composite'}
+                {adv.strongest ? t('statBest', { name: adv.strongest.name }) : t('statComposite')}
               </div>
             </div>
           </div>
@@ -375,9 +379,9 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
           <div className={styles.chartLabel}>
             <span className={styles.chartTitle}>
               <span className={styles.chartTag}>D1</span>
-              Rashi Chart
+              {t('chartRashi')}
             </span>
-            <span className={styles.chartAccent}>Birth promise</span>
+            <span className={styles.chartAccent}>{t('chartRashiAccent')}</span>
           </div>
           <ChakraSelector
             ascRashi={chart.lagnas.ascRashi as Rashi}
@@ -396,11 +400,11 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
           <div className={styles.chartLabel}>
             <span className={styles.chartTitle}>
               <span className={styles.chartTag}>{activeVargaName === 'D9' ? 'D9' : activeVargaName.replace('D9_', '')}</span>
-              {activeVargaName === 'D9' ? 'Navamsha' : NAVAMSHA_VARIANT_LABELS[activeVargaName]}
+              {activeVargaName === 'D9' ? t('chartNavamsha') : t(`variant.${activeVargaName}`)}
             </span>
             <span className={styles.chartAccent}>
-              {RASHI_SHORT[activeAsc]} lagna
-              {dashaHighlights.length ? ` · dasha H${dashaHighlights.join(', H')}` : ' · H1, H7, H9 lit'}
+              {c.lagnaOf(activeAsc)}
+              {dashaHighlights.length ? t('chartDasha', { houses: dashaHighlights.join(', ') }) : t('chartLit')}
             </span>
           </div>
           <ChakraSelector
@@ -418,13 +422,13 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       </div>
 
       {/* ── Tabs ─────────────────────────────────────────────── */}
-      <nav className={styles.tabNav} aria-label="Navamsha sections">
+      <nav className={styles.tabNav} aria-label={t('tabsAria')}>
         <div className={styles.tabRow} role="tablist">
           {TAB_GROUPS.map((g) => (
-            <div key={g.label} className={styles.tabGroup} role="presentation">
-              <span className={styles.tabGroupLabel}>{g.label}</span>
+            <div key={g.key} className={styles.tabGroup} role="presentation">
+              <span className={styles.tabGroupLabel}>{t(`groups.${g.key}`)}</span>
               {g.tabs.map((id) => {
-                const t = TAB_BY_ID[id]
+                const def = TAB_BY_ID[id]
                 const active = tab === id
                 return (
                   <button
@@ -432,13 +436,13 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                     type="button"
                     role="tab"
                     aria-selected={active}
-                    title={t.hint}
+                    title={t(`tabs.${id}.hint`)}
                     className={cn(styles.tabBtn, active && styles.tabBtnActive)}
                     onClick={() => setTab(id)}
                   >
-                    <t.Icon size={14} strokeWidth={active ? 2.25 : 2} aria-hidden />
-                    <span className={styles.tabLabelFull}>{t.label}</span>
-                    <span className={styles.tabLabelShort}>{t.shortLabel}</span>
+                    <def.Icon size={14} strokeWidth={active ? 2.25 : 2} aria-hidden />
+                    <span className={styles.tabLabelFull}>{t(`tabs.${id}.label`)}</span>
+                    <span className={styles.tabLabelShort}>{t(`tabs.${id}.short`)}</span>
                   </button>
                 )
               })}
@@ -450,7 +454,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── Overview ─────────────────────────────────────────── */}
       {tab === 'overview' && (
         <section className={styles.section}>
-          <SectionHead tab="overview" title="Navamsha Insights" />
+          <SectionHead tab="overview" title={t('insightsTitle')} />
           <p className={styles.lede}>{analysis.d9LagnaTheme}</p>
           <div className={styles.insightGrid}>
             {analysis.insights.map((ins) => (
@@ -460,7 +464,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
             ))}
           </div>
 
-          <h4 className={styles.subHead}>D9 strength at a glance</h4>
+          <h4 className={styles.subHead}>{t('strengthGlance')}</h4>
           <ol className={styles.rankList}>
             {ranked.map((p, i) => (
               <li key={`rank-${p.id}`} className={styles.rankRow}>
@@ -468,7 +472,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                 <PlanetTag id={p.id} name={p.name} />
                 <ScoreBar score={p.strengthScore} />
                 <span className={styles.rankMeta}>
-                  {p.d9RashiName} · H{p.d9House} · {p.d9Dignity.replace(/_/g, ' ')}
+                  {p.d9RashiName} · {c.houseShort(p.d9House)} · {c.dignity(p.d9Dignity)}
                 </span>
               </li>
             ))}
@@ -481,21 +485,21 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── Mapping table ────────────────────────────────────── */}
       {tab === 'mapping' && (
         <section className={styles.section}>
-          <SectionHead tab="mapping" title="Planet Rashi → Navamsha" />
+          <SectionHead tab="mapping" title={t('mappingTitle')} />
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Planet</th>
-                  <th>D1 Rashi</th>
-                  <th>Pada</th>
+                  <th>{t('col.planet')}</th>
+                  <th>{t('col.d1Rashi')}</th>
+                  <th>{t('col.pada')}</th>
                   <th />
-                  <th>D9 Navamsha</th>
-                  <th>Relation</th>
-                  <th>D9 House</th>
-                  <th>Dignity</th>
-                  <th>Strength</th>
-                  <th>Flags</th>
+                  <th>{t('col.d9Navamsha')}</th>
+                  <th>{t('col.relation')}</th>
+                  <th>{t('col.d9House')}</th>
+                  <th>{t('col.dignity')}</th>
+                  <th>{t('col.strength')}</th>
+                  <th>{t('col.flags')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -503,10 +507,10 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                   <tr key={p.id}>
                     <td>
                       <PlanetTag id={p.id} name={p.name} />
-                      {p.charaKaraka ? <span className={styles.cellSub}>{p.charaKaraka}</span> : null}
+                      {p.charaKaraka ? <span className={styles.cellSub}>{c.hi ? termHi(p.charaKaraka) : p.charaKaraka}</span> : null}
                     </td>
                     <td>
-                      {p.d1RashiShort} · H{p.d1House}
+                      {p.d1RashiShort} · {c.houseShort(p.d1House)}
                       <span className={styles.cellSub}>{p.d1Degree.toFixed(1)}°</span>
                     </td>
                     <td>{p.padaInSign}</td>
@@ -521,10 +525,10 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                       </span>
                       <span className={styles.cellSub}>{p.d1d9Relation.label.replace(/\s*\(.*\)$/, '')}</span>
                     </td>
-                    <td>H{p.d9House}</td>
+                    <td>{c.houseShort(p.d9House)}</td>
                     <td>
                       <span className={cn(styles.pill, dignityPill(p.d9Dignity))}>
-                        {p.d9Dignity.replace(/_/g, ' ')}
+                        {c.dignity(p.d9Dignity)}
                       </span>
                     </td>
                     <td><ScoreBar score={p.strengthScore} /></td>
@@ -535,7 +539,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
             </table>
           </div>
 
-          <h4 className={styles.subHead}>Planet interpretations</h4>
+          <h4 className={styles.subHead}>{t('interpretations')}</h4>
           <div className={styles.detailStack}>
             {analysis.planets.map((p) => (
               <details key={`card-${p.id}`} className={styles.detailItem}>
@@ -545,8 +549,8 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                     {p.d1RashiShort} → {p.d9RashiShort}
                   </span>
                   <span className={cn(styles.pill, toneClass(p.d1d9Relation.tone))}>{p.d1d9Relation.pair}</span>
-                  {p.isVargottama && <span className={cn(styles.pill, styles.pillVg)}>VG</span>}
-                  {p.isPushkara && <span className={cn(styles.pill, styles.pillPk)}>PK</span>}
+                  {p.isVargottama && <span className={cn(styles.pill, styles.pillVg)}>{t('vg')}</span>}
+                  {p.isPushkara && <span className={cn(styles.pill, styles.pillPk)}>{t('pk')}</span>}
                   <ChevronDown size={15} className={styles.detailChevron} aria-hidden />
                 </summary>
                 <p className={styles.planetBody}>{p.interpretation}</p>
@@ -559,24 +563,24 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── D1↔D9 Relations ──────────────────────────────────── */}
       {tab === 'relations' && (
         <section className={styles.section}>
-          <SectionHead tab="relations" title="D1 ↔ D9 Rashi Relations" />
+          <SectionHead tab="relations" title={t('relationsTitle')} />
           <p className={styles.leadText}>
-            Sign-count from natal rashi to Navamsha rashi — e.g. Aries → Taurus = 2nd / reverse 12th → pair <strong>2/12</strong>.
+            {t.rich('relationsIntro', { b: (chunks) => <strong>{chunks}</strong> })}
           </p>
 
           <Insight
             kind={toneToKind(lagnaRel.tone)}
-            kicker="Lagna link"
+            kicker={t('lagnaLink')}
             title={`${lagnaRel.fromName} → ${lagnaRel.toName} · ${lagnaRel.pair} ${lagnaRel.label}`}
             className={styles.insightWide}
           >
             <p className={styles.insightText}>
-              Forward {lagnaRel.forward}, reverse {lagnaRel.reverse}. {lagnaRel.note}
+              {t('fwdRev', { fwd: lagnaRel.forward, rev: lagnaRel.reverse })} {lagnaRel.note}
             </p>
           </Insight>
 
-          <h4 className={styles.subHead}>Relation mix · {analysis.planets.length} planets</h4>
-          <div className={styles.distBar} role="img" aria-label="Distribution of D1 to D9 relation tones">
+          <h4 className={styles.subHead}>{t('mixHead', { n: analysis.planets.length })}</h4>
+          <div className={styles.distBar} role="img" aria-label={t('distAria')}>
             {distribution.map((d) => (
               <span
                 key={d.key}
@@ -594,7 +598,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
               </span>
             ))}
             <span className={styles.distKey}>
-              Avg D9 score <strong>{Math.round(adv.averageStrength)}</strong>
+              {t('avgScore')} <strong>{Math.round(adv.averageStrength)}</strong>
             </span>
           </div>
 
@@ -617,14 +621,14 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Planet</th>
-                  <th>D1</th>
-                  <th>D9</th>
-                  <th>Fwd</th>
-                  <th>Rev</th>
-                  <th>Pair</th>
-                  <th>Class</th>
-                  <th>Note</th>
+                  <th>{t('col.planet')}</th>
+                  <th>{t('col.d1')}</th>
+                  <th>{t('col.d9')}</th>
+                  <th>{t('col.fwd')}</th>
+                  <th>{t('col.rev')}</th>
+                  <th>{t('col.pair')}</th>
+                  <th>{t('col.class')}</th>
+                  <th>{t('col.note')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -653,16 +657,16 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── Advanced ─────────────────────────────────────────── */}
       {tab === 'advanced' && (
         <section className={styles.section}>
-          <SectionHead tab="advanced" title="Advanced Navamsha" />
+          <SectionHead tab="advanced" title={t('advancedTitle')} />
 
           <div className={styles.insightGrid} style={{ marginBottom: '0.85rem' }}>
             {adv.strongest && (
-              <Insight kind="strength" kicker="Strongest in D9" Icon={TrendingUp} title={adv.strongest.name}>
+              <Insight kind="strength" kicker={t('strongest')} Icon={TrendingUp} title={adv.strongest.name}>
                 <ScoreBar score={adv.strongest.score} />
               </Insight>
             )}
             {adv.weakest && (
-              <Insight kind="caution" kicker="Needs care in D9" title={adv.weakest.name}>
+              <Insight kind="caution" kicker={t('weakest')} title={adv.weakest.name}>
                 <ScoreBar score={adv.weakest.score} />
               </Insight>
             )}
@@ -674,7 +678,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
             ))}
           </ul>
 
-          <h4 className={styles.subHead}>Strength scores</h4>
+          <h4 className={styles.subHead}>{t('scores')}</h4>
           <ol className={styles.rankList}>
             {ranked.map((p, i) => (
               <li key={`score-${p.id}`} className={styles.rankRow}>
@@ -683,50 +687,50 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                 <ScoreBar score={p.strengthScore} />
                 <span className={styles.rankMeta}>
                   <span className={cn(styles.pill, toneClass(p.d1d9Relation.tone))}>{p.d1d9Relation.pair}</span>
-                  {p.d9Dignity.replace(/_/g, ' ')} · H{p.d9House}
-                  {p.isVargottama ? ' · VG' : ''}
-                  {p.isPushkara ? ' · PK' : ''}
+                  {c.dignity(p.d9Dignity)} · {c.houseShort(p.d9House)}
+                  {p.isVargottama ? ` · ${t('vg')}` : ''}
+                  {p.isPushkara ? ` · ${t('pk')}` : ''}
                 </span>
               </li>
             ))}
           </ol>
 
-          <h4 className={styles.subHead}>Dignity crossovers</h4>
+          <h4 className={styles.subHead}>{t('crossovers')}</h4>
           {adv.dignityCrossovers.length === 0 ? (
-            <p className={styles.emptyHint}>No special D1↔D9 dignity crossovers flagged.</p>
+            <p className={styles.emptyHint}>{t('noCrossovers')}</p>
           ) : (
             <div className={styles.cardGrid}>
-              {adv.dignityCrossovers.map((c, i) => {
-                const down = c.kind === 'decline' || c.kind === 'neecha_navamsha'
+              {adv.dignityCrossovers.map((x, i) => {
+                const down = x.kind === 'decline' || x.kind === 'neecha_navamsha'
                 return (
                   <article
-                    key={`${c.id}-${c.kind}-${i}`}
+                    key={`${x.id}-${x.kind}-${i}`}
                     className={cn(styles.planetCard, down ? styles.toneChallenging : styles.toneSupportive)}
                   >
                     <div className={styles.planetCardHead}>
                       <h4 className={styles.planetName}>
-                        <span className={styles.planetDot} style={planetStyle(c.id)} aria-hidden />
-                        {c.name}
+                        <span className={styles.planetDot} style={planetStyle(x.id)} aria-hidden />
+                        {x.name}
                       </h4>
-                      <span className={cn(styles.pill, down ? styles.pillWeak : styles.pillStrong)}>{c.title}</span>
+                      <span className={cn(styles.pill, down ? styles.pillWeak : styles.pillStrong)}>{x.title}</span>
                     </div>
-                    <p className={styles.planetBody}>{c.text}</p>
+                    <p className={styles.planetBody}>{x.text}</p>
                   </article>
                 )
               })}
             </div>
           )}
 
-          <h4 className={styles.subHead}>Navamsha dispositors</h4>
+          <h4 className={styles.subHead}>{t('dispositors')}</h4>
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Planet</th>
-                  <th>D9 Sign</th>
-                  <th>Dispositor</th>
-                  <th>Disp. in D9</th>
-                  <th>Note</th>
+                  <th>{t('col.planet')}</th>
+                  <th>{t('col.d9Sign')}</th>
+                  <th>{t('col.dispositor')}</th>
+                  <th>{t('col.dispInD9')}</th>
+                  <th>{t('col.note')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -735,7 +739,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                     <td><PlanetTag id={d.planetId} name={d.planetName} /></td>
                     <td>{d.d9RashiName}</td>
                     <td><PlanetTag id={d.dispositorId} name={d.dispositorName} /></td>
-                    <td>{d.dispositorD9RashiName} · H{d.dispositorD9House}</td>
+                    <td>{d.dispositorD9RashiName} · {c.houseShort(d.dispositorD9House)}</td>
                     <td className={styles.cellNote}>{d.note}</td>
                   </tr>
                 ))}
@@ -743,9 +747,9 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
             </table>
           </div>
 
-          <h4 className={styles.subHead}>D9 Parivartana (exchanges)</h4>
+          <h4 className={styles.subHead}>{t('exchanges')}</h4>
           {adv.exchanges.length === 0 ? (
-            <p className={styles.emptyHint}>No mutual sign exchanges in Navamsha.</p>
+            <p className={styles.emptyHint}>{t('noExchanges')}</p>
           ) : (
             <div className={styles.cardGrid}>
               {adv.exchanges.map((e) => (
@@ -761,26 +765,26 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
             </div>
           )}
 
-          <h4 className={styles.subHead}>Navamsha conjunctions</h4>
+          <h4 className={styles.subHead}>{t('conjunctions')}</h4>
           {adv.conjunctions.length === 0 ? (
-            <p className={styles.emptyHint}>No multi-planet Navamsha conjunctions.</p>
+            <p className={styles.emptyHint}>{t('noConjunctions')}</p>
           ) : (
             <div className={styles.cardGrid}>
-              {adv.conjunctions.map((c) => (
-                <article key={c.rashi} className={styles.planetCard}>
+              {adv.conjunctions.map((cj) => (
+                <article key={cj.rashi} className={styles.planetCard}>
                   <div className={styles.planetCardHead}>
-                    <h4 className={styles.planetName}>{c.rashiName}</h4>
-                    <span className={styles.pill}>H{c.house}</span>
+                    <h4 className={styles.planetName}>{cj.rashiName}</h4>
+                    <span className={styles.pill}>{c.houseShort(cj.house)}</span>
                   </div>
                   <div className={styles.housePlanets} style={{ paddingTop: 0 }}>
-                    {c.planets.map((p) => (
+                    {cj.planets.map((p) => (
                       <span key={p.id} className={styles.chip}>
                         <span className={styles.planetDot} style={planetStyle(p.id)} aria-hidden />
                         {p.name}
                       </span>
                     ))}
                   </div>
-                  <p className={styles.planetBody}>{c.note}</p>
+                  <p className={styles.planetBody}>{cj.note}</p>
                 </article>
               ))}
             </div>
@@ -791,17 +795,17 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── Vargottama & Pushkara ────────────────────────────── */}
       {tab === 'vargottama' && (
         <section className={styles.section}>
-          <SectionHead tab="vargottama" title="Special Strengths" />
+          <SectionHead tab="vargottama" title={t('specialTitle')} />
           {analysis.lagnaVargottama && (
-            <Insight kind="strength" kicker="Vargottama Lagna" Icon={Crown} className={styles.insightWide}>
+            <Insight kind="strength" kicker={t('badgeVargLagna')} Icon={Crown} className={styles.insightWide}>
               <p className={styles.insightText}>
-                Ascendant is {analysis.d9LagnaName} in both D1 and D9 — identity and life direction stay remarkably consistent.
+                {t('vargLagnaText', { sign: analysis.d9LagnaName })}
               </p>
             </Insight>
           )}
           {analysis.vargottama.length === 0 && analysis.pushkaraPlanets.length === 0 ? (
             <p className={styles.emptyHint} style={{ marginTop: '0.75rem' }}>
-              No vargottama or Pushkara Navamsha planets in this chart.
+              {t('noSpecial')}
             </p>
           ) : (
             <div className={styles.cardGrid} style={{ marginTop: analysis.lagnaVargottama ? '0.75rem' : 0 }}>
@@ -812,11 +816,11 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                       <span className={styles.planetDot} style={planetStyle(p.id)} aria-hidden />
                       {p.name}
                     </h4>
-                    <span className={cn(styles.pill, styles.pillVg)}>Vargottama</span>
+                    <span className={cn(styles.pill, styles.pillVg)}>{t('vargottama')}</span>
                   </div>
-                  <div className={styles.mappingLine}>{p.d1RashiName} in D1 &amp; D9</div>
+                  <div className={styles.mappingLine}>{t('inD1D9', { sign: p.d1RashiName })}</div>
                   <p className={styles.planetBody}>
-                    Same-sign placement amplifies {p.name}&apos;s promise. Results tend to be steadier across life stages.
+                    {t('vargText', { name: p.name })}
                   </p>
                 </article>
               ))}
@@ -827,13 +831,13 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                       <span className={styles.planetDot} style={planetStyle(p.id)} aria-hidden />
                       {p.name}
                     </h4>
-                    <span className={cn(styles.pill, styles.pillPk)}>Pushkara</span>
+                    <span className={cn(styles.pill, styles.pillPk)}>{t('pushkara')}</span>
                   </div>
                   <div className={styles.mappingLine}>
-                    Pada {p.padaInSign} of {p.d1RashiName} → {p.d9RashiName}
+                    {t('padaOf', { pada: p.padaInSign, d1: p.d1RashiName, d9: p.d9RashiName })}
                   </div>
                   <p className={styles.planetBody}>
-                    {p.pushkaraNote ?? 'Auspicious Navamsha — remedies and spiritual practices are especially effective.'}
+                    {p.pushkaraNote ?? t('pushkaraText')}
                   </p>
                 </article>
               ))}
@@ -845,20 +849,19 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── Marriage ─────────────────────────────────────────── */}
       {tab === 'marriage' && (
         <section className={styles.section}>
-          <SectionHead tab="marriage" title="Marriage & Partnership" />
+          <SectionHead tab="marriage" title={t('marriageTitle')} />
           <div className={styles.insightGrid} style={{ marginBottom: '0.85rem' }}>
-            <Insight kind="highlight" kicker="D9 7th house" Icon={Heart} title={analysis.seventhHouse.rashiName}>
+            <Insight kind="highlight" kicker={t('seventh')} Icon={Heart} title={analysis.seventhHouse.rashiName}>
               <p className={styles.insightText}>
-                Lord {analysis.seventhHouse.lordName}
                 {analysis.seventhHouse.occupants.length
-                  ? ` · Occupied by ${analysis.seventhHouse.occupants.map((o) => o.name).join(', ')}`
-                  : ' · Unoccupied'}
+                  ? t('lordOcc', { lord: analysis.seventhHouse.lordName, names: analysis.seventhHouse.occupants.map((o) => o.name).join(', ') })
+                  : t('lordEmpty', { lord: analysis.seventhHouse.lordName })}
               </p>
             </Insight>
-            <Insight kind="info" kicker="7th lord journey" Icon={Waypoints} title={analysis.seventhLord.name}>
+            <Insight kind="info" kicker={t('lordJourney')} Icon={Waypoints} title={analysis.seventhLord.name}>
               <p className={styles.insightText}>
-                In {analysis.seventhLord.d9RashiName} (H{analysis.seventhLord.d9House})
-                {analysis.seventhLord.isVargottama ? ' · Vargottama' : ''}
+                {t('lordIn', { rashi: analysis.seventhLord.d9RashiName, house: analysis.seventhLord.d9House })}
+                {analysis.seventhLord.isVargottama ? t('vargSuffix') : ''}
               </p>
             </Insight>
           </div>
@@ -876,39 +879,39 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
           <SectionHead tab="spouse" />
           <p className={styles.lede}>{sketch.headline}</p>
           <div className={styles.traitRow}>
-            {sketch.traits.map((t) => (
-              <span key={t} className={cn(styles.badge, styles.badgeGold)}>{t}</span>
+            {sketch.traits.map((tr) => (
+              <span key={tr} className={cn(styles.badge, styles.badgeGold)}>{tr}</span>
             ))}
           </div>
           <div className={styles.sketchGrid}>
             <article className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}><UserRound size={14} aria-hidden />Physique / Presence</h4>
+              <h4 className={styles.insightTitle}><UserRound size={14} aria-hidden />{t('physique')}</h4>
               <p className={styles.insightText}>{sketch.physique}</p>
             </article>
             <article className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}><Activity size={14} aria-hidden />Temperament</h4>
+              <h4 className={styles.insightTitle}><Activity size={14} aria-hidden />{t('temperament')}</h4>
               <p className={styles.insightText}>{sketch.temperament}</p>
             </article>
             <article className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}><Gem size={14} aria-hidden />Values</h4>
+              <h4 className={styles.insightTitle}><Gem size={14} aria-hidden />{t('values')}</h4>
               <p className={styles.insightText}>{sketch.values}</p>
             </article>
             <article className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}><Briefcase size={14} aria-hidden />Vocation Hint</h4>
+              <h4 className={styles.insightTitle}><Briefcase size={14} aria-hidden />{t('vocation')}</h4>
               <p className={styles.insightText}>{sketch.vocationHint}</p>
             </article>
             <article className={cn(styles.sketchCard, styles.sketchWide)}>
-              <h4 className={styles.insightTitle}><Heart size={14} aria-hidden />Relationship Style</h4>
+              <h4 className={styles.insightTitle}><Heart size={14} aria-hidden />{t('style')}</h4>
               <p className={styles.insightText}>{sketch.relationshipStyle}</p>
             </article>
           </div>
           <div className={styles.insightGrid} style={{ marginTop: '0.85rem' }}>
-            <Insight kind="strength" kicker="Strengths">
+            <Insight kind="strength" kicker={t('strengths')}>
               <ul className={styles.bulletList}>
                 {sketch.strengths.map((s) => <li key={s}>{s}</li>)}
               </ul>
             </Insight>
-            <Insight kind="caution" kicker="Cautions">
+            <Insight kind="caution" kicker={t('cautions')}>
               <ul className={styles.bulletList}>
                 {sketch.cautions.map((s) => <li key={s}>{s}</li>)}
               </ul>
@@ -916,7 +919,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
           </div>
           <p className={styles.footnote}>
             <Info size={13} aria-hidden style={{ flex: '0 0 auto', marginTop: 2 }} />
-            Sources: {sketch.sources.join(' · ')}
+            {t('sources', { list: sketch.sources.join(' · ') })}
           </p>
         </section>
       )}
@@ -924,19 +927,19 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── Dasha overlay ────────────────────────────────────── */}
       {tab === 'dasha' && (
         <section className={styles.section}>
-          <SectionHead tab="dasha" title="Vimshottari × Navamsha" />
+          <SectionHead tab="dasha" title={t('dashaTitle')} />
           {!dasha ? (
-            <p className={styles.emptyHint}>No active Vimshottari path found. Recalculate dashas with the chart.</p>
+            <p className={styles.emptyHint}>{t('noDasha')}</p>
           ) : (
             <>
               <div className={styles.insightGrid} style={{ marginBottom: '1rem' }}>
-                <Insight kind="highlight" kicker="Current path" Icon={Hourglass}>
+                <Insight kind="highlight" kicker={t('currentPath')} Icon={Hourglass}>
                   <p className={styles.insightText}>{dasha.pathLabel}</p>
                 </Insight>
-                <Insight kind="info" kicker="Destiny window" Icon={Compass}>
+                <Insight kind="info" kicker={t('destinyWindow')} Icon={Compass}>
                   <p className={styles.insightText}>{dasha.destinyWindow}</p>
                 </Insight>
-                <Insight kind="highlight" kicker="Marriage timing colour" Icon={Heart} className={styles.insightWide}>
+                <Insight kind="highlight" kicker={t('marriageWindow')} Icon={Heart} className={styles.insightWide}>
                   <p className={styles.insightText}>{dasha.marriageWindow}</p>
                 </Insight>
               </div>
@@ -953,13 +956,13 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                             {l.lordName}
                           </h4>
                         </div>
-                        <span className={cn(styles.pill, toneClass(l.tone))}>{l.tone}</span>
+                        <span className={cn(styles.pill, toneClass(l.tone))}>{c.tone(l.tone)}</span>
                       </div>
                       <div className={styles.mappingLine}>
-                        {l.d9RashiName ? `${l.d9RashiName} · D9 H${l.d9House}` : 'D9 placement unavailable'}
-                        {l.d9Dignity ? ` · ${l.d9Dignity.replace(/_/g, ' ')}` : ''}
-                        {l.isVargottama ? ' · VG' : ''}
-                        {l.isPushkara ? ' · PK' : ''}
+                        {l.d9RashiName ? t('dashaPlace', { rashi: l.d9RashiName, house: l.d9House ?? '' }) : t('noPlacement')}
+                        {l.d9Dignity ? ` · ${c.dignity(l.d9Dignity)}` : ''}
+                        {l.isVargottama ? ` · ${t('vg')}` : ''}
+                        {l.isPushkara ? ` · ${t('pk')}` : ''}
                       </div>
                       <div className={styles.dashaDates}>{l.start} → {l.end}</div>
                       <p className={styles.planetBody}>{l.note}</p>
@@ -975,17 +978,17 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── Destiny ──────────────────────────────────────────── */}
       {tab === 'destiny' && (
         <section className={styles.section}>
-          <SectionHead tab="destiny" title="Destiny · Dharma · Karakamsha" />
+          <SectionHead tab="destiny" title={t('destinyTitle')} />
           <Insight
             kind="highlight"
-            kicker={`Karakamsha · ${analysis.karakamshaName}`}
+            kicker={t('karakamshaKicker', { sign: analysis.karakamshaName })}
             Icon={Crown}
-            title={`Atmakaraka ${analysis.atmakarakaName}`}
+            title={t('akTitle', { name: analysis.atmakarakaName })}
             className={styles.insightWide}
           >
             <p className={styles.insightText}>{analysis.karakamshaTheme}</p>
           </Insight>
-          <h4 className={styles.subHead}>Destiny notes</h4>
+          <h4 className={styles.subHead}>{t('destinyNotes')}</h4>
           <ul className={styles.noteList}>
             {analysis.destinyNotes.map((note, i) => (
               <li key={i} className={styles.noteItem}>{note}</li>
@@ -997,7 +1000,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── D9 Houses ────────────────────────────────────────── */}
       {tab === 'houses' && (
         <section className={styles.section}>
-          <SectionHead tab="houses" title="Navamsha Bhava Map" />
+          <SectionHead tab="houses" title={t('housesTitle')} />
           <div className={styles.houseGrid}>
             {analysis.houses.map((h) => (
               <article
@@ -1009,20 +1012,20 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
               >
                 <div className={styles.houseTop}>
                   <span className={styles.houseBadge}>{h.house}</span>
-                  <span className={styles.houseMeta}>Lord {h.lordName}</span>
+                  <span className={styles.houseMeta}>{t('lord', { name: h.lordName })}</span>
                 </div>
-                <div className={styles.houseSign}>{h.rashiName} <span className={styles.mutedLine}>{h.rashiShort}</span></div>
+                <div className={styles.houseSign}>{h.rashiName} {!c.hi && <span className={styles.mutedLine}>{h.rashiShort}</span>}</div>
                 <div className={styles.houseTheme} title={h.theme}>{h.theme}</div>
                 <div className={styles.housePlanets}>
                   {h.occupants.length ? (
                     h.occupants.map((o) => (
-                      <span key={o.id} className={styles.chip} title={o.dignity.replace(/_/g, ' ')}>
+                      <span key={o.id} className={styles.chip} title={c.dignity(o.dignity)}>
                         <span className={styles.planetDot} style={planetStyle(o.id)} aria-hidden />
                         {o.name}{o.isVargottama ? ' ★' : ''}
                       </span>
                     ))
                   ) : (
-                    <span className={styles.mutedLine}>Empty</span>
+                    <span className={styles.mutedLine}>{t('empty')}</span>
                   )}
                 </div>
               </article>
@@ -1030,7 +1033,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
           </div>
           <p className={styles.footnote}>
             <Info size={13} aria-hidden style={{ flex: '0 0 auto', marginTop: 2 }} />
-            ★ marks vargottama. Highlighted: lagna (1), spouse (7), dharma (9), plus active dasha houses.
+            {t('housesFoot')}
           </p>
         </section>
       )}
@@ -1038,8 +1041,8 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
       {/* ── Variants (Platinum) ──────────────────────────────── */}
       {tab === 'variants' && (
         <section className={styles.section}>
-          <SectionHead tab="variants" title="Navamsha Variants" />
-          <PlanGate userPlan={userPlan} required="platinum" featureName="D9 variants (Pada / Nadi / Somanatha)">
+          <SectionHead tab="variants" title={t('variantsTitle')} />
+          <PlanGate userPlan={userPlan} required="platinum" featureName={t('variantsFeature')}>
             <div className={styles.variantToolbar}>
               {(['D9', ...VARIANT_COLS] as NavamshaVariantId[]).map((id) => (
                 <button
@@ -1049,7 +1052,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                   className={cn(styles.tabBtn, variantChart === id && styles.tabBtnActive)}
                   onClick={() => setVariantChart(id)}
                 >
-                  {NAVAMSHA_VARIANT_LABELS[id]}
+                  {t(`variant.${id}`)}
                   {variants.lagnaNames[id] ? ` · ${variants.lagnaNames[id]}` : ''}
                 </button>
               ))}
@@ -1060,14 +1063,14 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                 const rate = variants.matchRates[id]
                 const pct = rate.total ? Math.round((rate.matches / rate.total) * 100) : 0
                 return (
-                  <Insight key={id} kind="info" Icon={GitCompare} kicker="vs Parashara" title={NAVAMSHA_VARIANT_LABELS[id]}>
+                  <Insight key={id} kind="info" Icon={GitCompare} kicker={t('vsParashara')} title={t(`variant.${id}`)}>
                     <ScoreBar score={pct} />
                     <p className={styles.insightText}>
-                      {rate.matches}/{rate.total} planets agree
+                      {t('agreeCount', { m: rate.matches, t: rate.total })}
                       {variants.lagna.D9 && variants.lagna[id]
                         ? variants.lagna.D9 === variants.lagna[id]
-                          ? ' · Lagna matches'
-                          : ` · Lagna ${variants.lagnaNames[id]} vs ${variants.lagnaNames.D9}`
+                          ? t('lagnaMatches')
+                          : t('lagnaVs', { a: variants.lagnaNames[id] ?? '', b: variants.lagnaNames.D9 ?? '' })
                         : ''}
                     </p>
                   </Insight>
@@ -1079,13 +1082,13 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>Planet</th>
-                    <th>D1</th>
-                    <th>Parashara</th>
-                    <th>Pada</th>
-                    <th>Nadi</th>
-                    <th>Somanatha</th>
-                    <th>Agree</th>
+                    <th>{t('col.planet')}</th>
+                    <th>{t('col.d1')}</th>
+                    <th>{t('col.parashara')}</th>
+                    <th>{t('variant.D9_Pada')}</th>
+                    <th>{t('variant.D9_Nadi')}</th>
+                    <th>{t('variant.D9_Somanatha')}</th>
+                    <th>{t('col.agree')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1098,7 +1101,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
                         const r = p.variants[id]
                         return (
                           <td key={id} className={r === p.parashara ? styles.cellMatch : undefined}>
-                            {RASHI_SHORT[r]}
+                            {c.signShort(r)}
                           </td>
                         )
                       })}
@@ -1116,7 +1119,7 @@ export function NavamshaWorkspace({ chart, userPlan = 'free' }: NavamshaWorkspac
             </ul>
             <p className={styles.footnote}>
               <Info size={13} aria-hidden style={{ flex: '0 0 auto', marginTop: 2 }} />
-              Selecting a variant above swaps the right-hand chart to that scheme when the chart payload includes it.
+              {t('variantsFoot')}
             </p>
           </PlanGate>
         </section>

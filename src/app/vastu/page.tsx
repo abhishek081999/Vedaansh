@@ -1,10 +1,10 @@
 'use client'
 
+import { Link } from '@/i18n/navigation'
 import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import { useChart } from '@/components/providers/ChartProvider'
-import Link from 'next/link'
 import type { UserPlan } from '@/types/astrology'
 
 const AstroVastuPanel = dynamic(

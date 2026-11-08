@@ -8,7 +8,11 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { GRAHA_NAMES, RASHI_NAMES, NAKSHATRA_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
-import { SIGN_INTERPRETATIONS, NAKSHATRA_INTERPRETATIONS, DIGNITY_INTERPRETATIONS, getPlanetInHouse, getPlanetInSign } from '@/lib/engine/interpretations'
+import { SIGN_INTERPRETATIONS, dignityInterpretation, getPlanetInHouse, getPlanetInSign, nakshatraInterpretation } from '@/lib/engine/interpretations'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { DIGNITY_HI } from '@/lib/engine/locale/todayReading.hi'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 import { getHouseTheme } from '@/lib/engine/houseInterpretations'
 import { getAspectedHouses, getAspectDescription, GRAHA_ASPECTS } from '@/lib/engine/aspects'
 
@@ -96,13 +100,17 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
   const degInSign = totalDeg % 30
   const nakIdx = planet.nakshatraIndex ?? Math.floor(totalDeg / (360 / 27)) % 27
 
-  const signInterp = getPlanetInSign(id, rashiNum, 'summary') || SIGN_INTERPRETATIONS[id]?.[rashiNum]
-  const nakInterp = NAKSHATRA_INTERPRETATIONS[nakIdx]
-  const dignityInterp = DIGNITY_INTERPRETATIONS[planet.dignity || 'neutral']
+  const t = useTranslations('chart.tooltip')
+  const { lang, hi } = useLang()
+  const signInterp = getPlanetInSign(id, rashiNum, 'summary', lang) || (hi ? undefined : SIGN_INTERPRETATIONS[id]?.[rashiNum])
+  const nakInterp = nakshatraInterpretation(nakIdx, lang)
+  const dignityInterp = dignityInterpretation(planet.dignity || 'neutral', lang)
+  const dignityLabel = (d: string) => (hi ? DIGNITY_HI[d] ?? d : d.replace('_', ' '))
+  const rashiLabel = hi ? RASHI_HI[rashiNum] : RASHI_NAMES[rashiNum]
   const dignityColor = DIGNITY_COLORS[planet.dignity || 'neutral'] || '#94a3b8'
-  const keywords = KEYWORD_MAP[id] || []
-  const houseInterp = planet.house ? getPlanetInHouse(id, planet.house, 'summary') : null
-  const houseTheme = planet.house ? getHouseTheme(planet.house) : null
+  const keywords = (t.has(`keywords.${id}`) ? (t.raw(`keywords.${id}`) as string[]) : KEYWORD_MAP[id]) || []
+  const houseInterp = planet.house ? getPlanetInHouse(id, planet.house, 'summary', lang) : null
+  const houseTheme = planet.house ? getHouseTheme(planet.house, lang) : null
 
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
@@ -163,17 +171,17 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '1rem', fontWeight: 700, color: col.primary }}>{GRAHA_NAMES[id as GrahaId] || planet.name}</span>
-            <span style={{ fontSize: '0.6rem', color: col.primary, opacity: 0.65, fontStyle: 'italic' }}>{PLANET_VEDIC[id]}</span>
+            <span style={{ fontSize: '1rem', fontWeight: 700, color: col.primary }}>{(hi ? GRAHA_HI[id as GrahaId] : GRAHA_NAMES[id as GrahaId]) || planet.name}</span>
+            {!hi && <span style={{ fontSize: '0.6rem', color: col.primary, opacity: 0.65, fontStyle: 'italic' }}>{PLANET_VEDIC[id]}</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #bbb5d8)' }}>{RASHI_NAMES[rashiNum]} · {Math.floor(degInSign)}°{Math.floor((degInSign % 1) * 60)}′</span>
-            {planet.dignity && <span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', color: dignityColor, background: `${dignityColor}18`, padding: '1px 5px', borderRadius: 3, border: `1px solid ${dignityColor}33` }}>{planet.dignity.replace('_', ' ')}</span>}
-            {planet.isRetro && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(248,113,113,0.3)' }}>℞ Retro</span>}
-            {planet.isCombust && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(245,158,11,0.3)' }}>☉ Combust</span>}
-            {planet.isMaraka && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#e07b8e', background: 'rgba(224,123,142,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(224,123,142,0.3)' }}>M Maraka</span>}
-            {planet.marakaCancelledByTrikona && !planet.isMaraka && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--text-muted)', background: 'rgba(224,123,142,0.06)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(224,123,142,0.2)' }} title="2nd/7th lordship cancelled by 5th/9th">M∅ Trikona</span>}
-            {planet.isBadhaka && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#c9842a', background: 'rgba(201,132,42,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(201,132,42,0.35)' }}>B Badhaka</span>}
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #bbb5d8)' }}>{rashiLabel} · {Math.floor(degInSign)}°{Math.floor((degInSign % 1) * 60)}′</span>
+            {planet.dignity && <span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', color: dignityColor, background: `${dignityColor}18`, padding: '1px 5px', borderRadius: 3, border: `1px solid ${dignityColor}33` }}>{dignityLabel(planet.dignity)}</span>}
+            {planet.isRetro && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(248,113,113,0.3)' }}>{t('retro')}</span>}
+            {planet.isCombust && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(245,158,11,0.3)' }}>{t('combust')}</span>}
+            {planet.isMaraka && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#e07b8e', background: 'rgba(224,123,142,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(224,123,142,0.3)' }}>{t('maraka')}</span>}
+            {planet.marakaCancelledByTrikona && !planet.isMaraka && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--text-muted)', background: 'rgba(224,123,142,0.06)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(224,123,142,0.2)' }} title={t('trikonaTitle')}>{t('trikona')}</span>}
+            {planet.isBadhaka && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#c9842a', background: 'rgba(201,132,42,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(201,132,42,0.35)' }}>{t('badhaka')}</span>}
           </div>
         </div>
         {isMobile && (
@@ -191,21 +199,21 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
         <div style={{ padding: '0.6rem 1rem 0.4rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {planet.gandanta?.isGandanta && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ fontSize: '0.6rem', background: 'rgba(244,63,94,0.1)', color: '#fb7185', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(244,63,94,0.3)', fontWeight: 700 }}>⚠ GANDANTA</span>
+              <span style={{ fontSize: '0.6rem', background: 'rgba(244,63,94,0.1)', color: '#fb7185', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(244,63,94,0.3)', fontWeight: 700 }}>{t('gandanta')}</span>
               <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.gandanta.type?.replace('-', ' ')}</span>
             </div>
           )}
           {planet.pushkara?.isPushkara && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ fontSize: '0.6rem', background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(78,205,196,0.3)', fontWeight: 700 }}>✦ PUSHKARA</span>
-              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>Navamsha</span>
+              <span style={{ fontSize: '0.6rem', background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(78,205,196,0.3)', fontWeight: 700 }}>{t('pushkara')}</span>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{t('navamsha')}</span>
             </div>
           )}
 
           {planet.yuddha?.isWarring && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ fontSize: '0.6rem', background: 'rgba(129,140,248,0.12)', color: '#818cf8', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(129,140,248,0.35)', fontWeight: 700 }}>⚔ YUDDHA</span>
-              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.yuddha.degreeDifference.toFixed(2)}° orb check (≤ {planet.yuddha.orb}°)</span>
+              <span style={{ fontSize: '0.6rem', background: 'rgba(129,140,248,0.12)', color: '#818cf8', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(129,140,248,0.35)', fontWeight: 700 }}>{t('yuddha')}</span>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{t('orb', { diff: planet.yuddha.degreeDifference.toFixed(2), orb: planet.yuddha.orb })}</span>
             </div>
           )}
         </div>
@@ -214,16 +222,16 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
       {/* ── Nakshatra Band ── */}
       <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', letterSpacing: '0.06em', marginBottom: '0.1rem' }}>Nakshatra</div>
-          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-gold, #e2c97e)' }}>{planet.nakshatraName || NAKSHATRA_NAMES[nakIdx]} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>P{planet.pada}</span></div>
+          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', letterSpacing: '0.06em', marginBottom: '0.1rem' }}>{t('nakshatra')}</div>
+          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-gold, #e2c97e)' }}>{hi ? NAKSHATRA_HI[nakIdx] : planet.nakshatraName || NAKSHATRA_NAMES[nakIdx]} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>{t('pada', { n: planet.pada ?? '' })}</span></div>
         </div>
-        {planet.charaKaraka && <div style={{ textAlign: 'right' }}><div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)' }}>Karaka</div><div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--gold, #c9a84c)' }}>{planet.charaKaraka}</div></div>}
+        {planet.charaKaraka && <div style={{ textAlign: 'right' }}><div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)' }}>{t('karaka')}</div><div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--gold, #c9a84c)' }}>{hi ? termHi(planet.charaKaraka) : planet.charaKaraka}</div></div>}
       </div>
 
       {/* ── Significations ── */}
       {keywords.length > 0 && (
         <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))' }}>
-          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted, #7a7498)', marginBottom: '0.3rem' }}>Significations</div>
+          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted, #7a7498)', marginBottom: '0.3rem' }}>{t('significations')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
             {keywords.map(k => <span key={k} style={{ fontSize: '0.62rem', padding: '1px 6px', borderRadius: 99, background: col.bg, color: col.primary, border: `1px solid ${col.primary}33` }}>{k}</span>)}
           </div>
@@ -233,7 +241,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
       {/* ── Interpretation ── */}
       {(signInterp || nakInterp) && (
         <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))' }}>
-          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', marginBottom: '0.3rem' }}>{id} in {RASHI_NAMES[rashiNum]}</div>
+          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', marginBottom: '0.3rem' }}>{t('inSign', { planet: hi ? GRAHA_HI[id as GrahaId] ?? id : id, rashi: rashiLabel })}</div>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary, #bbb5d8)', lineHeight: 1.55, margin: 0, fontStyle: 'italic' }}>{signInterp || nakInterp}</p>
         </div>
       )}
@@ -241,7 +249,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
       {houseInterp && planet.house ? (
         <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))' }}>
           <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', marginBottom: '0.3rem' }}>
-            In House {planet.house}{houseTheme ? ` · ${houseTheme.english}` : ''}
+            {t('inHouse', { n: planet.house })}{houseTheme ? ` · ${houseTheme.english}` : ''}
           </div>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary, #bbb5d8)', lineHeight: 1.55, margin: 0 }}>{houseInterp}</p>
         </div>
@@ -250,15 +258,15 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
       {/* ── Aspects ── */}
       {planet.house && getAspectedHouses(id as GrahaId, planet.house).length > 0 && (
         <div style={{ padding: '0.6rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))' }}>
-          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>Planetary Aspects (Drishti)</div>
+          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>{t('aspects')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {getAspectedHouses(id as GrahaId, planet.house).map((h, i) => {
               const rawAspect = GRAHA_ASPECTS[id as GrahaId]?.[i] || 7
-              const desc = getAspectDescription(rawAspect, id as GrahaId)
+              const desc = getAspectDescription(rawAspect, id as GrahaId, lang)
               return (
                 <div key={h} style={{ flex: '1 1 45%', minWidth: '100px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <div style={{ width: 18, height: 18, borderRadius: 4, background: `${col.primary}18`, color: col.primary, border: `1px solid ${col.primary}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800 }}>{h}</div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>{rawAspect}th · {desc}</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>{t('aspectNth', { n: rawAspect, desc })}</div>
                 </div>
               )
             })}
@@ -269,7 +277,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
       {/* ── Dignity Note ── */}
       {dignityInterp && planet.dignity && planet.dignity !== 'neutral' && (
         <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))' }}>
-          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: dignityColor, marginBottom: '0.2rem' }}>Dignity: {planet.dignity?.replace('_', ' ')}</div>
+          <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', color: dignityColor, marginBottom: '0.2rem' }}>{t('dignity', { d: dignityLabel(planet.dignity ?? 'neutral') })}</div>
           <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary, #bbb5d8)', lineHeight: 1.5, margin: 0 }}>{dignityInterp}</p>
         </div>
       )}
@@ -278,21 +286,21 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
       <div style={{ padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {planet.avastha && (
           <div>
-            <div style={{ fontSize: '0.52rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)' }}>Avastha</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary, #f0ecff)', fontWeight: 500 }}>{planet.avastha.baladi} · {planet.avastha.jagradadi}</div>
+            <div style={{ fontSize: '0.52rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)' }}>{t('avastha')}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-primary, #f0ecff)', fontWeight: 500 }}>{hi ? termHi(planet.avastha.baladi ?? '') : planet.avastha.baladi} · {hi ? termHi(planet.avastha.jagradadi ?? '') : planet.avastha.jagradadi}</div>
           </div>
         )}
         {planet.shadbala && (
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.52rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)' }}>Shadbala</div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: planet.shadbala.isStrong ? '#4ade80' : '#f87171' }}>{planet.shadbala.total.toFixed(1)} <span style={{ fontSize: '0.55rem' }}>Rupas</span></div>
+            <div style={{ fontSize: '0.52rem', textTransform: 'uppercase', color: 'var(--text-muted, #7a7498)' }}>{t('shadbala')}</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: planet.shadbala.isStrong ? '#4ade80' : '#f87171' }}>{planet.shadbala.total.toFixed(1)} <span style={{ fontSize: '0.55rem' }}>{t('rupas')}</span></div>
           </div>
         )}
       </div>
 
       <div style={{ padding: '0.3rem 1rem 0.5rem', textAlign: 'center' }}>
         <span style={{ fontSize: '0.58rem', color: 'var(--text-muted, #7a7498)' }}>
-          {isMobile ? 'Tap close to dismiss' : 'Hover for analytical details'}
+          {isMobile ? t('tap') : t('hover')}
         </span>
       </div>
     </div>,

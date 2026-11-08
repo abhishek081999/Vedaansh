@@ -2,6 +2,11 @@
 import React from 'react'
 import type { YogiPointResult, GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import type { Rashi } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { getYogiPointText } from '@/lib/engine/yogiPoint'
 
 // ─────────────────────────────────────────────────────────────
 //  YogiPointPanel.tsx
@@ -20,17 +25,21 @@ const COLORS = {
 }
 
 // Format longitude to sign + degree
-function formatLon(lon: number) {
+function formatLon(lon: number, hi = false) {
   const normalized = ((lon % 360) + 360) % 360
-  const sign = Math.floor(normalized / 30) + 1 as 1|2|3|4|5|6|7|8|9|10|11|12
+  const sign = Math.floor(normalized / 30) + 1 as Rashi
   const deg = normalized % 30
   return {
     sign,
-    signName: RASHI_NAMES[sign],
+    signName: hi ? RASHI_HI[sign] : RASHI_NAMES[sign],
     signShort: RASHI_SHORT[sign],
     degree: deg,
-    display: `${RASHI_SHORT[sign]} ${deg.toFixed(2)}°`,
+    display: `${hi ? RASHI_HI[sign] : RASHI_SHORT[sign]} ${deg.toFixed(2)}°`,
   }
+}
+
+function grahaLabel(id: GrahaId, hi: boolean): string {
+  return hi ? GRAHA_HI[id] : GRAHA_NAMES[id]
 }
 
 // Check if planet is conjunct a point
@@ -41,9 +50,14 @@ function isConjunct(planetLon: number, pointLon: number, orb: number = 5): boole
 }
 
 export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) {
-  const yogi = formatLon(yogiPoint.yogiPoint)
-  const sahayogi = formatLon(yogiPoint.sahayogiPoint)
-  const avayogi = formatLon(yogiPoint.avayogiPoint)
+  const t = useTranslations('planetsB.yogi')
+  const { lang, hi } = useLang()
+  const text = getYogiPointText(yogiPoint, lang)
+  const yogi = formatLon(yogiPoint.yogiPoint, hi)
+  const sahayogi = formatLon(yogiPoint.sahayogiPoint, hi)
+  const avayogi = formatLon(yogiPoint.avayogiPoint, hi)
+  const names = (list: Array<{ id: string; name: string }>) =>
+    list.map((g) => (hi && g.id in GRAHA_HI ? GRAHA_HI[g.id as GrahaId] : g.name)).join(', ')
   
   // Find planets conjunct each point
   const conjunctYogi = grahas.filter(g => isConjunct(g.lonSidereal, yogiPoint.yogiPoint))
@@ -67,10 +81,10 @@ export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) 
       }}>
         <div>
           <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)' }}>
-            Yogi Point System
+            {t('system')}
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-            Wealth & Prosperity Analysis
+            {t('subtitle')}
           </div>
         </div>
         <div style={{ 
@@ -93,17 +107,17 @@ export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) 
           textAlign: 'center',
         }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 700, color: COLORS.yogi.text, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Yogi Point
+            {t('yogiPoint')}
           </div>
           <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.5rem' }}>
             {yogi.display}
           </div>
           <div style={{ fontSize: '0.7rem', color: COLORS.yogi.text, marginTop: '0.35rem' }}>
-            Lord: <strong>{GRAHA_NAMES[yogiPoint.yogiGraha]}</strong>
+            {t('lord')} <strong>{grahaLabel(yogiPoint.yogiGraha, hi)}</strong>
           </div>
           {conjunctYogi.length > 0 && (
             <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
-              Conjunct: {conjunctYogi.map(g => g.name).join(', ')}
+              {t('conjunct')} {names(conjunctYogi)}
             </div>
           )}
         </div>
@@ -117,17 +131,17 @@ export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) 
           textAlign: 'center',
         }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 700, color: COLORS.sahayogi.text, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Sahayogi
+            {t('sahayogi')}
           </div>
           <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.5rem' }}>
             {sahayogi.display}
           </div>
           <div style={{ fontSize: '0.7rem', color: COLORS.sahayogi.text, marginTop: '0.35rem' }}>
-            Lord: <strong>{GRAHA_NAMES[yogiPoint.sahayogiGraha]}</strong>
+            {t('lord')} <strong>{grahaLabel(yogiPoint.sahayogiGraha, hi)}</strong>
           </div>
           {conjunctSahayogi.length > 0 && (
             <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
-              Conjunct: {conjunctSahayogi.map(g => g.name).join(', ')}
+              {t('conjunct')} {names(conjunctSahayogi)}
             </div>
           )}
         </div>
@@ -141,17 +155,17 @@ export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) 
           textAlign: 'center',
         }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 700, color: COLORS.avayogi.text, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Avayogi
+            {t('avayogi')}
           </div>
           <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.5rem' }}>
             {avayogi.display}
           </div>
           <div style={{ fontSize: '0.7rem', color: COLORS.avayogi.text, marginTop: '0.35rem' }}>
-            Lord: <strong>{GRAHA_NAMES[yogiPoint.avayogiGraha]}</strong>
+            {t('lord')} <strong>{grahaLabel(yogiPoint.avayogiGraha, hi)}</strong>
           </div>
           {conjunctAvayogi.length > 0 && (
             <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
-              Conjunct: {conjunctAvayogi.map(g => g.name).join(', ')}
+              {t('conjunct')} {names(conjunctAvayogi)}
             </div>
           )}
         </div>
@@ -166,17 +180,17 @@ export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) 
         border: '1px solid var(--border-soft)',
       }}>
         <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-          Interpretation
+          {t('interpretation')}
         </div>
         <div style={{ fontSize: '0.75rem', color: 'var(--text-primary)', lineHeight: 1.6 }}>
           <p style={{ margin: '0 0 0.5rem 0' }}>
-            <strong style={{ color: COLORS.yogi.text }}>Yogi:</strong> {yogiPoint.interpretation.yogi}
+            <strong style={{ color: COLORS.yogi.text }}>{t('yogiLabel')}</strong> {text.interpretation.yogi}
           </p>
           <p style={{ margin: '0 0 0.5rem 0' }}>
-            <strong style={{ color: COLORS.sahayogi.text }}>Sahayogi:</strong> {yogiPoint.interpretation.sahayogi}
+            <strong style={{ color: COLORS.sahayogi.text }}>{t('sahayogiLabel')}</strong> {text.interpretation.sahayogi}
           </p>
           <p style={{ margin: '0 0 0.5rem 0' }}>
-            <strong style={{ color: COLORS.avayogi.text }}>Avayogi:</strong> {yogiPoint.interpretation.avayogi}
+            <strong style={{ color: COLORS.avayogi.text }}>{t('avayogiLabel')}</strong> {text.interpretation.avayogi}
           </p>
         </div>
       </div>
@@ -190,7 +204,7 @@ export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) 
         borderLeft: '3px solid var(--amber)',
       }}>
         <div style={{ fontSize: '0.65rem', color: 'var(--amber)', fontWeight: 600 }}>
-          💡 Remedy: {yogiPoint.remedy}
+          💡 {t('remedy')} {text.remedy}
         </div>
       </div>
     </div>
@@ -199,7 +213,9 @@ export function YogiPointPanel({ yogiPoint, grahas = [] }: YogiPointPanelProps) 
 
 // Export a compact version for sidebars
 export function YogiPointCompact({ yogiPoint }: { yogiPoint: YogiPointResult }) {
-  const yogi = formatLon(yogiPoint.yogiPoint)
+  const t = useTranslations('planetsB.yogi')
+  const { hi } = useLang()
+  const yogi = formatLon(yogiPoint.yogiPoint, hi)
   
   return (
     <div style={{ 
@@ -211,12 +227,12 @@ export function YogiPointCompact({ yogiPoint }: { yogiPoint: YogiPointResult }) 
       borderRadius: 'var(--r-sm)',
       border: '1px solid var(--border-soft)',
     }}>
-      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Yogi</span>
+      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('compact')}</span>
       <span style={{ fontSize: '0.8rem', fontWeight: 600, color: COLORS.yogi.text }}>
         {yogi.display}
       </span>
       <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-        ({GRAHA_NAMES[yogiPoint.yogiGraha]})
+        ({grahaLabel(yogiPoint.yogiGraha, hi)})
       </span>
     </div>
   )

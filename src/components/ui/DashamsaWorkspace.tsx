@@ -34,24 +34,27 @@ import { DashamsaClassicalPanel } from '@/components/ui/DashamsaClassicalPanel'
 import { DashamsaSynthesisPanel } from '@/components/ui/DashamsaSynthesisPanel'
 import { DashamsaAdvancedPanel } from '@/components/ui/DashamsaAdvancedPanel'
 import { RASHI_SHORT } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import { cn } from '@/lib/ui/cn'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
+import { RASHI_HI } from '@/i18n/jyotish'
 import styles from './DashamsaWorkspace.module.css'
 
 type TabId = 'energy' | 'classical' | 'synthesis' | 'advanced' | 'karma' | 'sectors' | 'pending' | 'bondage' | 'karmaYoga' | 'circuit' | 'survival'
 
-const TABS: { id: TabId; label: string; shortLabel: string; Icon: LucideIcon }[] = [
-  { id: 'energy', label: 'Dashamsha Energy', shortLabel: 'Energy', Icon: Sparkles },
-  { id: 'classical', label: 'Classical Śāstra', shortLabel: 'Śāstra', Icon: ScrollText },
-  { id: 'synthesis', label: 'Career Synthesis', shortLabel: 'Synth', Icon: Target },
-  { id: 'advanced', label: 'Advanced Technical', shortLabel: 'Adv', Icon: Microscope },
-  { id: 'survival', label: 'Survival Practice', shortLabel: 'Survival', Icon: LifeBuoy },
-  { id: 'bondage', label: 'Soul Bondage', shortLabel: 'Bondage', Icon: Waypoints },
-  { id: 'circuit', label: 'Multi-Varga Circuit', shortLabel: 'Circuit', Icon: GitBranch },
-  { id: 'karmaYoga', label: 'Karma Yoga', shortLabel: 'Gītā', Icon: BookOpen },
-  { id: 'karma', label: 'Karma Verticals', shortLabel: 'Karma', Icon: Layers },
-  { id: 'sectors', label: 'Sectors & Signs', shortLabel: 'Sectors', Icon: Briefcase },
-  { id: 'pending', label: 'Pending Karma', shortLabel: 'Pending', Icon: HandHeart },
+const TABS: { id: TabId; Icon: LucideIcon }[] = [
+  { id: 'energy', Icon: Sparkles },
+  { id: 'classical', Icon: ScrollText },
+  { id: 'synthesis', Icon: Target },
+  { id: 'advanced', Icon: Microscope },
+  { id: 'survival', Icon: LifeBuoy },
+  { id: 'bondage', Icon: Waypoints },
+  { id: 'circuit', Icon: GitBranch },
+  { id: 'karmaYoga', Icon: BookOpen },
+  { id: 'karma', Icon: Layers },
+  { id: 'sectors', Icon: Briefcase },
+  { id: 'pending', Icon: HandHeart },
 ]
 
 function compactDashaPath(pathLabel: string): string {
@@ -102,6 +105,9 @@ interface DashamsaWorkspaceProps {
 }
 
 export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: DashamsaWorkspaceProps) {
+  const t = useTranslations('divisional.d10')
+  const c = useDivisionalCommon()
+  const { lang, hi } = c
   const [tab, setTab] = useState<TabId>('energy')
   const [transitPositions, setTransitPositions] = useState<
     { id: GrahaId; rashi: Rashi; isRetro?: boolean }[] | undefined
@@ -129,36 +135,36 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
     return () => { cancelled = true }
   }, [chart.meta?.settings?.ayanamsha])
 
-  const analysis = useMemo(() => analyzeDashamsa(chart), [chart])
+  const analysis = useMemo(() => analyzeDashamsa(chart, lang), [chart, lang])
   const practical = useMemo(
-    () => (analysis ? buildDashamsaPractical(analysis, chart) : null),
-    [analysis, chart],
+    () => (analysis ? buildDashamsaPractical(analysis, chart, lang) : null),
+    [analysis, chart, lang],
   )
   const classical = useMemo(
-    () => (analysis ? buildDashamsaClassical(analysis, chart) : null),
-    [analysis, chart],
+    () => (analysis ? buildDashamsaClassical(analysis, chart, lang) : null),
+    [analysis, chart, lang],
   )
   const synthesis = useMemo(
     () => (analysis && classical
-      ? buildDashamsaSynthesis(analysis, classical, chart, { transitPositions })
+      ? buildDashamsaSynthesis(analysis, classical, chart, { transitPositions }, lang)
       : null),
-    [analysis, classical, chart, transitPositions],
+    [analysis, classical, chart, transitPositions, lang],
   )
   const advanced = useMemo(
     () => (analysis && classical
-      ? buildDashamsaAdvanced(analysis, classical, chart)
+      ? buildDashamsaAdvanced(analysis, classical, chart, lang)
       : null),
-    [analysis, classical, chart],
+    [analysis, classical, chart, lang],
   )
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
 
   if (!analysis || !practical) {
     return (
       <PanelShell
-        title="Dashamsha (D10)"
+        title={t('title')}
         empty={{
-          title: 'Dashamsha data unavailable',
-          description: 'Recalculate the chart to generate the D10 Dashamsha chart and career interpretations.',
+          title: t('emptyTitle'),
+          description: t('emptyDesc'),
         }}
       >
         {null}
@@ -178,44 +184,49 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
         <div className={styles.heroGlow} aria-hidden />
         <div className={styles.heroTop}>
           <div>
-            <p className={styles.eyebrow}>D10 · Dashamsha</p>
+            <p className={styles.eyebrow}>{t('eyebrow')}</p>
             <h2 className={styles.heroTitle}>
               {analysis.d10LagnaName}
-              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {analysis.d10LagnaSanskrit}</span>
+              {!hi && (
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}> · {analysis.d10LagnaSanskrit}</span>
+              )}
             </h2>
             <p className={styles.heroSub}>{analysis.summary}</p>
           </div>
           <div className={styles.badgeRow}>
             <span className={cn(styles.badge, styles.badgeGold)}>
-              Digpala {analysis.lagnaDigpala.name}
+              {t('badgeDigpala', { name: analysis.lagnaDigpala.name })}
             </span>
             {classical && (
               <span className={cn(styles.badge, styles.badgeGold)}>
-                Mahatphala {classical.mahatphala.gradeLabel}
+                {t('badgeMahat', { grade: classical.mahatphala.gradeLabel })}
               </span>
             )}
             {synthesis && (
               <span className={cn(styles.badge, styles.badgeTeal)}>
-                {synthesis.track.id} · A10 {synthesis.a10.rashiShort}
+                {t('badgeTrack', {
+                  id: t(`trackName.${synthesis.track.id}`),
+                  a10: hi ? RASHI_HI[synthesis.a10.rashi] ?? synthesis.a10.rashiShort : synthesis.a10.rashiShort,
+                })}
               </span>
             )}
             {advanced && (
               <span className={cn(styles.badge, styles.badgeTeal)}>
-                Adv {advanced.raja.filter((r) => r.formed).length} links
+                {t('badgeAdv', { n: advanced.raja.filter((r) => r.formed).length })}
               </span>
             )}
             <span className={cn(styles.badge, styles.badgeTeal)}>
-              Sector {sectors.lagnaSector.short}
+              {t('badgeSector', { short: sectors.lagnaSector.short })}
             </span>
             <span className={cn(styles.badge, karma.recognition.tone === 'supportive' ? styles.badgeGold : styles.badgeTeal)}>
-              Recognition {karma.recognition.score}%
+              {t('badgeRecognition', { score: karma.recognition.score })}
             </span>
             {analysis.direction.foreignTheme && (
-              <span className={cn(styles.badge, styles.badgeTeal)}>Overseas / West</span>
+              <span className={cn(styles.badge, styles.badgeTeal)}>{t('badgeOverseas')}</span>
             )}
             {dasha && (
               <span className={cn(styles.badge, styles.badgeTeal)}>
-                Dasha {compactDashaPath(dasha.pathLabel)}
+                {t('badgeDasha', { path: compactDashaPath(dasha.pathLabel) })}
               </span>
             )}
           </div>
@@ -223,26 +234,26 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
         <div className={styles.statGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Dashamsha Lagna</div>
+            <div className={styles.statLabel}>{t('statLagna')}</div>
             <div className={styles.statValue}>{analysis.d10LagnaName}</div>
-            <div className={styles.statHint}>Ājīvikā · Karma · Respect</div>
+            <div className={styles.statHint}>{t('statLagnaHint')}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Lagna Digpala</div>
+            <div className={styles.statLabel}>{t('statDigpala')}</div>
             <div className={styles.statValue}>{analysis.lagnaDigpala.name}</div>
             <div className={styles.statHint}>{analysis.direction.compass}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>10th Lord Digpala</div>
+            <div className={styles.statLabel}>{t('statTenthDigpala')}</div>
             <div className={styles.statValue}>{analysis.keyLords[1]?.digpalaName ?? '—'}</div>
             <div className={styles.statHint}>
               {analysis.keyLords[1]
-                ? `${analysis.keyLords[1].name} · H${analysis.keyLords[1].d10House}`
-                : 'Work karma style'}
+                ? t('statTenthHint', { name: analysis.keyLords[1].name, house: analysis.keyLords[1].d10House })
+                : t('statTenthFallback')}
             </div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Primary sector</div>
+            <div className={styles.statLabel}>{t('statSector')}</div>
             <div className={styles.statValue}>{sectors.lagnaSector.short}</div>
             <div className={styles.statHint}>{sectors.lagnaSector.headline}</div>
           </div>
@@ -252,8 +263,8 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
       <div className={styles.chartsRow}>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D1 · Rashi Chart</span>
-            <span className={styles.chartAccent}>Birth promise</span>
+            <span className={styles.chartTitle}>{t('chartD1')}</span>
+            <span className={styles.chartAccent}>{t('chartD1Accent')}</span>
           </div>
           <ChakraSelector
             ascRashi={chart.lagnas.ascRashi as Rashi}
@@ -270,10 +281,10 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
         </div>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D10 · Dashamsha</span>
+            <span className={styles.chartTitle}>{t('chartD10')}</span>
             <span className={styles.chartAccent}>
-              {RASHI_SHORT[d10Asc]} lagna
-              {dashaHighlights.length ? ` · dasha H${dashaHighlights.join(',')}` : ''}
+              {c.lagnaOf(d10Asc)}
+              {dashaHighlights.length ? t('chartDasha', { houses: dashaHighlights.join(',') }) : ''}
             </span>
           </div>
           <ChakraSelector
@@ -291,19 +302,19 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
       </div>
 
       <div className={styles.tabScroll}>
-        <div className={styles.tabRow} role="tablist" aria-label="Dashamsha sections">
-          {TABS.map((t) => (
+        <div className={styles.tabRow} role="tablist" aria-label={t('tabsAria')}>
+          {TABS.map(({ id, Icon }) => (
             <button
-              key={t.id}
+              key={id}
               type="button"
               role="tab"
-              aria-selected={tab === t.id}
-              className={cn(styles.tabBtn, tab === t.id && styles.tabBtnActive)}
-              onClick={() => setTab(t.id)}
+              aria-selected={tab === id}
+              className={cn(styles.tabBtn, tab === id && styles.tabBtnActive)}
+              onClick={() => setTab(id)}
             >
-              <t.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === t.id ? 2.25 : 2} />
-              <span className={styles.tabLabelFull}>{t.label}</span>
-              <span className={styles.tabLabelShort}>{t.shortLabel}</span>
+              <Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === id ? 2.25 : 2} />
+              <span className={styles.tabLabelFull}>{t(`tabs.${id}`)}</span>
+              <span className={styles.tabLabelShort}>{t(`tabs.${id}Short`)}</span>
             </button>
           ))}
         </div>
@@ -312,24 +323,24 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
       {tab === 'classical' && (
         classical
           ? <DashamsaClassicalPanel classical={classical} />
-          : <p className={styles.heroSub}>Classical reading needs D1 lagna and the Dashamsha planets.</p>
+          : <p className={styles.heroSub}>{t('needClassical')}</p>
       )}
 
       {tab === 'synthesis' && (
         synthesis
           ? <DashamsaSynthesisPanel synthesis={synthesis} />
-          : <p className={styles.heroSub}>Synthesis needs A10 arudhas plus the Classical Śāstra reading.</p>
+          : <p className={styles.heroSub}>{t('needSynthesis')}</p>
       )}
 
       {tab === 'advanced' && (
         advanced
           ? <DashamsaAdvancedPanel advanced={advanced} />
-          : <p className={styles.heroSub}>Advanced technical needs Dashamsha planets plus the Classical Śāstra reading.</p>
+          : <p className={styles.heroSub}>{t('needAdvanced')}</p>
       )}
 
       {tab === 'energy' && (
         <>
-          <Section title="Dashamsha Energy">
+          <Section title={t('energyTitle')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
               {analysis.d10LagnaTheme}
             </p>
@@ -343,7 +354,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Prediction protocol">
+          <Section title={t('protocolTitle')}>
             <ol style={{ margin: '0 0 1rem', paddingLeft: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
               {analysis.advanced.protocol.map((step) => (
                 <li key={step} style={{ marginBottom: 6 }}>{step}</li>
@@ -351,36 +362,36 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </ol>
             <div className={styles.insightGrid}>
               <article className={cn(styles.insightCard, styles.insightHighlight)}>
-                <h4 className={styles.insightTitle}>Lagna Digpala</h4>
+                <h4 className={styles.insightTitle}>{t('lagnaDigpala')}</h4>
                 <p className={styles.insightText}>{analysis.advanced.lagnaDigpalaReading}</p>
               </article>
               <article className={cn(styles.insightCard, styles.insightHighlight)}>
-                <h4 className={styles.insightTitle}>10th lord Digpala</h4>
+                <h4 className={styles.insightTitle}>{t('tenthDigpala')}</h4>
                 <p className={styles.insightText}>{analysis.advanced.tenthLordDigpalaReading}</p>
               </article>
               <article className={cn(styles.insightCard, styles.insightHighlight)}>
-                <h4 className={styles.insightTitle}>11th lord · awards</h4>
+                <h4 className={styles.insightTitle}>{t('eleventhAwards')}</h4>
                 <p className={styles.insightText}>{analysis.advanced.eleventhLordReading}</p>
               </article>
               <article className={cn(styles.insightCard, styles.insightInfo)}>
-                <h4 className={styles.insightTitle}>Creation vs fame</h4>
+                <h4 className={styles.insightTitle}>{t('creationVsFame')}</h4>
                 <p className={styles.insightText}>{analysis.advanced.creationVsFame}</p>
               </article>
             </div>
           </Section>
 
-          <Section title="D1 → D10 mapping">
+          <Section title={t('mappingTitle')}>
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>Planet</th>
-                    <th>D1</th>
-                    <th>Part</th>
-                    <th>D10</th>
-                    <th>Digpala</th>
-                    <th>House</th>
-                    <th>Dignity</th>
+                    <th>{t('thPlanet')}</th>
+                    <th>{t('thD1')}</th>
+                    <th>{t('thPart')}</th>
+                    <th>{t('thD10')}</th>
+                    <th>{t('thDigpala')}</th>
+                    <th>{t('thHouse')}</th>
+                    <th>{t('thDignity')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -394,7 +405,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                       <td>H{p.d10House}</td>
                       <td>
                         <span className={cn(styles.pill, dignityPill(p.d10Dignity))}>
-                          {p.d10Dignity.replace(/_/g, ' ')}
+                          {c.dignity(p.d10Dignity)}
                         </span>
                       </td>
                     </tr>
@@ -404,10 +415,10 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Direction · Profession · Ethics · Lords">
+          <Section title={t('directionBlock')}>
             <div className={styles.insightGrid}>
               <article className={cn(styles.insightCard, styles.insightHighlight)}>
-                <h4 className={styles.insightTitle}>Direction</h4>
+                <h4 className={styles.insightTitle}>{t('direction')}</h4>
                 <p className={styles.insightText}>
                   <strong>{analysis.direction.compass}</strong> — {analysis.direction.advice}
                 </p>
@@ -435,7 +446,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Dasha × D10">
+          <Section title={t('dashaTitle')}>
             {dasha ? (
               <>
                 <p className={styles.heroSub} style={{ marginBottom: '0.5rem' }}>{dasha.careerWindow}</p>
@@ -445,7 +456,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                     <article key={`${l.level}-${l.lord}`} className={cn(styles.insightCard, styles.insightInfo)}>
                       <h4 className={styles.insightTitle}>
                         {l.levelLabel} · {l.lordName}
-                        <span className={cn(styles.pill, toneClass(l.tone))} style={{ marginLeft: 8 }}>{l.tone}</span>
+                        <span className={cn(styles.pill, toneClass(l.tone))} style={{ marginLeft: 8 }}>{c.tone(l.tone)}</span>
                       </h4>
                       <p className={styles.insightText}>{l.note}</p>
                     </article>
@@ -453,7 +464,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                 </div>
               </>
             ) : (
-              <p className={styles.heroSub}>No active Vimshottari path.</p>
+              <p className={styles.heroSub}>{t('noDasha')}</p>
             )}
           </Section>
         </>
@@ -461,37 +472,37 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'bondage' && (
         <>
-          <Section title="Why this soul took a body">
+          <Section title={t('bondageWhy')}>
             <p className={styles.heroSub} style={{ marginBottom: 0, maxWidth: 'none' }}>{bondage.framing}</p>
           </Section>
 
-          <Section title="Golden order — House → Sign → Planet">
+          <Section title={t('goldenOrder')}>
             <ol style={{ margin: '0 0 0.5rem', paddingLeft: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
               {bondage.goldenOrder.map((s) => (
                 <li key={s} style={{ marginBottom: 6 }}>{s}</li>
               ))}
             </ol>
             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Jumping to the planet first is the most common student error — it makes predictions fast and wrong.
+              {t('goldenError')}
             </p>
           </Section>
 
-          <Section title="Layered reading on this chart">
+          <Section title={t('layeredTitle')}>
             <div className={styles.insightGrid}>
               {bondage.layered.map((layer) => (
                 <article key={layer.id} className={cn(styles.insightCard, styles.insightHighlight)}>
                   <h4 className={styles.insightTitle}>{layer.title}</h4>
                   <p style={{ margin: '0 0 0.5rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>{layer.priority}</p>
-                  <p className={styles.insightText}><strong>1 · House:</strong> {layer.house.label} — {layer.house.text}</p>
-                  <p className={styles.insightText} style={{ marginTop: 6 }}><strong>2 · Sign:</strong> {layer.rashi.label} — {layer.rashi.text}</p>
-                  <p className={styles.insightText} style={{ marginTop: 6 }}><strong>3 · Planet:</strong> {layer.planet.label} — {layer.planet.text}</p>
+                  <p className={styles.insightText}><strong>{t('layerHouse')}</strong> {layer.house.label} — {layer.house.text}</p>
+                  <p className={styles.insightText} style={{ marginTop: 6 }}><strong>{t('layerSign')}</strong> {layer.rashi.label} — {layer.rashi.text}</p>
+                  <p className={styles.insightText} style={{ marginTop: 6 }}><strong>{t('layerPlanet')}</strong> {layer.planet.label} — {layer.planet.text}</p>
                   <p className={styles.insightText} style={{ marginTop: 8 }}>{layer.synthesis}</p>
                 </article>
               ))}
             </div>
           </Section>
 
-          <Section title="Inherited karma by planet">
+          <Section title={t('inheritedTitle')}>
             <div className={styles.insightGrid}>
               {bondage.inherited.map((p) => (
                 <article
@@ -514,7 +525,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                   </p>
                   <p className={styles.insightText}>{p.detail}</p>
                   <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    {p.d10House != null ? `D10 H${p.d10House} ${p.d10RashiName}` : 'Not in classical set'}
+                    {p.d10House != null ? `D10 H${p.d10House} ${p.d10RashiName}` : t('notClassical')}
                     {' · '}{p.toolNote}
                   </p>
                 </article>
@@ -522,30 +533,30 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Tools given to navigate bondage">
+          <Section title={t('toolsTitle')}>
             <div className={styles.insightGrid}>
-              {bondage.navigationTools.map((t) => (
-                <article key={t.planet} className={cn(styles.insightCard, t.active ? styles.insightHighlight : styles.insightInfo)}>
+              {bondage.navigationTools.map((tool) => (
+                <article key={tool.planet} className={cn(styles.insightCard, tool.active ? styles.insightHighlight : styles.insightInfo)}>
                   <h4 className={styles.insightTitle}>
-                    {t.planet}
-                    {t.active
-                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Strong</span>
-                      : <span className={styles.pill} style={{ marginLeft: 8 }}>Quiet</span>}
+                    {tool.planet}
+                    {tool.active
+                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('strong')}</span>
+                      : <span className={styles.pill} style={{ marginLeft: 8 }}>{t('quiet')}</span>}
                   </h4>
-                  <p className={styles.insightText}>{t.how}</p>
+                  <p className={styles.insightText}>{tool.how}</p>
                 </article>
               ))}
             </div>
           </Section>
 
-          <Section title="Reading principles">
+          <Section title={t('principlesTitle')}>
             <ul style={{ margin: '0 0 0.85rem', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
               {bondage.principles.map((p) => (
                 <li key={p} style={{ marginBottom: 6 }}>{p}</li>
               ))}
             </ul>
             <article className={cn(styles.insightCard, styles.insightInfo)}>
-              <h4 className={styles.insightTitle}>Homework</h4>
+              <h4 className={styles.insightTitle}>{t('homework')}</h4>
               <p className={styles.insightText}>{bondage.homework}</p>
             </article>
           </Section>
@@ -554,18 +565,18 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'karma' && (
         <>
-          <Section title="Why D10 matters today">
+          <Section title={t('karmaWhy')}>
             <p className={styles.heroSub} style={{ marginBottom: 0, maxWidth: 'none' }}>{karma.whyToday}</p>
           </Section>
 
-          <Section title="Karmic bonds (D10 Lagna ↔ others’ D1)">
+          <Section title={t('karmaBonds')}>
             <article className={cn(styles.insightCard, styles.insightHighlight)}>
               <h4 className={styles.insightTitle}>
-                Match sign {karma.bonds.d10LagnaName}
+                {t('matchSign', { name: karma.bonds.d10LagnaName })}
               </h4>
               <p className={styles.insightText}>{karma.bonds.text}</p>
               <p className={styles.insightText} style={{ marginTop: 8 }}>
-                Occupants: {karma.bonds.occupants.join(', ') || '—'} · Lagna lord {karma.bonds.lagnaLordName} in H{karma.bonds.lagnaLordHouse}
+                {t('occupantsLine', { occupants: karma.bonds.occupants.join(', ') || '—', lord: karma.bonds.lagnaLordName, house: karma.bonds.lagnaLordHouse })}
               </p>
               <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                 {karma.bonds.mutualTip}
@@ -573,12 +584,12 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </article>
           </Section>
 
-          <Section title="2nd house — speech, lineage, stored wealth">
+          <Section title={t('secondHouse')}>
             <article className={cn(styles.insightCard, styles.insightInfo)}>
               <h4 className={styles.insightTitle}>
-                Family & Vāṇī karma
-                {karma.secondHouse.speechBased && <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Speech-led</span>}
-                {karma.secondHouse.lineageLink && <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 6 }}>Lineage</span>}
+                {t('familyVani')}
+                {karma.secondHouse.speechBased && <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('speechLed')}</span>}
+                {karma.secondHouse.lineageLink && <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 6 }}>{t('lineage')}</span>}
               </h4>
               <p className={styles.insightText}>{karma.secondHouse.text}</p>
               <ul style={{ margin: '0.6rem 0 0', paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -589,35 +600,35 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </article>
           </Section>
 
-          <Section title="Moon-as-lagna — where the mind is stuck">
+          <Section title={t('moonMind')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.75rem' }}>
-              Recast D10 with Moon as lagna ({karma.moonMind.moonAscName}) to see karmic entanglement of the mind.
+              {t('moonMindIntro', { name: karma.moonMind.moonAscName })}
             </p>
             <div className={styles.insightGrid}>
               <article className={cn(styles.insightCard, styles.insightHighlight)}>
-                <h4 className={styles.insightTitle}>4th from Moon · sukha sought</h4>
+                <h4 className={styles.insightTitle}>{t('sukhaSought')}</h4>
                 <p className={styles.insightText}>{karma.moonMind.sukhNote}</p>
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  {karma.moonMind.sukhOccupants.join(' · ') || 'Empty'}
+                  {karma.moonMind.sukhOccupants.join(' · ') || t('empty')}
                 </p>
               </article>
               <article className={cn(styles.insightCard, styles.insightCaution)}>
-                <h4 className={styles.insightTitle}>12th from Moon · bulb’s shadow</h4>
+                <h4 className={styles.insightTitle}>{t('bulbShadow')}</h4>
                 <p className={styles.insightText}>{karma.moonMind.twelfthNote}</p>
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  {karma.moonMind.twelfthOccupants.join(' · ') || 'Empty'}
+                  {karma.moonMind.twelfthOccupants.join(' · ') || t('empty')}
                 </p>
               </article>
               <article className={cn(styles.insightCard, karma.moonMind.fireInitiative ? styles.insightHighlight : styles.insightInfo)}>
-                <h4 className={styles.insightTitle}>Fire 1–5–9 initiative</h4>
+                <h4 className={styles.insightTitle}>{t('fireInitiative')}</h4>
                 <p className={styles.insightText}>{karma.moonMind.fireNote}</p>
               </article>
             </div>
           </Section>
 
-          <Section title="Three verticals — body · mind · soul">
+          <Section title={t('verticals')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.85rem' }}>
-              Recast D10 from Lagna (body), Moon (mind / Matṛ-ṛṇa), and Sun (soul attachment). Compare all three.
+              {t('verticalsIntro')}
             </p>
             <div className={styles.insightGrid}>
               {karma.verticals.map((v) => (
@@ -625,7 +636,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                   <h4 className={styles.insightTitle}>
                     {v.label} / {v.labelSa}
                     <span style={{ fontWeight: 500, color: 'var(--text-muted)', marginLeft: 6 }}>
-                      rises {v.ascName}
+                      {t('rises', { name: v.ascName })}
                     </span>
                   </h4>
                   <p className={styles.insightText}>{v.meaning}</p>
@@ -640,36 +651,36 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Desire · Fear · Prārabdha">
+          <Section title={t('desireFear')}>
             <div className={styles.insightGrid}>
               <article className={cn(styles.insightCard, styles.insightHighlight)}>
-                <h4 className={styles.insightTitle}>11th — desired karma</h4>
+                <h4 className={styles.insightTitle}>{t('desiredKarma')}</h4>
                 <p className={styles.insightText}>{karma.desireFear.desire.text}</p>
                 <p className={styles.insightText} style={{ marginTop: 6 }}>{karma.desireFear.desire.lordNote}</p>
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  {karma.desireFear.desire.occupants.join(' · ') || 'Empty'}
+                  {karma.desireFear.desire.occupants.join(' · ') || t('empty')}
                 </p>
               </article>
               <article className={cn(styles.insightCard, styles.insightCaution)}>
-                <h4 className={styles.insightTitle}>8th — feared / hidden karma</h4>
+                <h4 className={styles.insightTitle}>{t('fearedKarma')}</h4>
                 <p className={styles.insightText}>{karma.desireFear.fear.text}</p>
                 <p className={styles.insightText} style={{ marginTop: 6 }}>{karma.desireFear.fear.lordNote}</p>
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  {karma.desireFear.fear.occupants.join(' · ') || 'Empty'}
+                  {karma.desireFear.fear.occupants.join(' · ') || t('empty')}
                 </p>
               </article>
               <article className={cn(styles.insightCard, styles.insightInfo)}>
-                <h4 className={styles.insightTitle}>6th — prārabdha (must endure)</h4>
+                <h4 className={styles.insightTitle}>{t('prarabdha')}</h4>
                 <p className={styles.insightText}>{karma.desireFear.prarabdha.text}</p>
                 <p className={styles.insightText} style={{ marginTop: 6 }}>{karma.desireFear.prarabdha.lordNote}</p>
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  {karma.desireFear.prarabdha.occupants.join(' · ') || 'Empty'}
+                  {karma.desireFear.prarabdha.occupants.join(' · ') || t('empty')}
                 </p>
               </article>
             </div>
           </Section>
 
-          <Section title="Recognition vs thankless work">
+          <Section title={t('recognition')}>
             <article className={cn(styles.insightCard, insightClass(karma.recognition.tone === 'supportive' ? 'strength' : karma.recognition.tone === 'challenging' ? 'caution' : 'info'))}>
               <h4 className={styles.insightTitle}>
                 {karma.recognition.headline}
@@ -696,7 +707,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             )}
           </Section>
 
-          <Section title="Key takeaways">
+          <Section title={t('takeaways')}>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
               {karma.takeaways.map((t) => (
                 <li key={t} style={{ marginBottom: 6 }}>{t}</li>
@@ -708,7 +719,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'sectors' && (
         <>
-          <Section title="Three-layer method">
+          <Section title={t('threeLayer')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.5rem', maxWidth: 'none' }}>{sectors.method}</p>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
               {sectors.houseFlavorNotes.map((n) => (
@@ -717,7 +728,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </ul>
           </Section>
 
-          <Section title="Primary sector (D10 Lagna sign)">
+          <Section title={t('primarySector')}>
             <article className={cn(styles.insightCard, styles.insightHighlight)}>
               <h4 className={styles.insightTitle}>
                 {sectors.lagnaSector.name} · {sectors.lagnaSector.headline}
@@ -728,13 +739,13 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
               </p>
               {sectors.lagnaSector.caution && (
                 <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  Caution: {sectors.lagnaSector.caution}
+                  {t('caution', { text: sectors.lagnaSector.caution })}
                 </p>
               )}
             </article>
           </Section>
 
-          <Section title="Active sign flavors in this chart">
+          <Section title={t('activeFlavors')}>
             <div className={styles.insightGrid}>
               {sectors.hits.map((h) => (
                 <article key={`${h.role}-${h.rashi}`} className={cn(styles.insightCard, styles.insightInfo)}>
@@ -757,23 +768,23 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Career combinations">
+          <Section title={t('careerCombos')}>
             <div className={styles.insightGrid}>
-              {sectors.combos.map((c) => (
-                <article key={c.id} className={cn(styles.insightCard, c.matched ? styles.insightHighlight : styles.insightInfo)}>
+              {sectors.combos.map((combo) => (
+                <article key={combo.id} className={cn(styles.insightCard, combo.matched ? styles.insightHighlight : styles.insightInfo)}>
                   <h4 className={styles.insightTitle}>
-                    {c.title}
-                    {c.matched
-                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Hit</span>
-                      : <span className={styles.pill} style={{ marginLeft: 8 }}>Quiet</span>}
+                    {combo.title}
+                    {combo.matched
+                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('hit')}</span>
+                      : <span className={styles.pill} style={{ marginLeft: 8 }}>{t('quiet')}</span>}
                   </h4>
-                  <p className={styles.insightText}>{c.detail}</p>
+                  <p className={styles.insightText}>{combo.detail}</p>
                 </article>
               ))}
             </div>
           </Section>
 
-          <Section title="Energy & counseling notes">
+          <Section title={t('energyNotes')}>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
               {sectors.energyNotes.map((n) => (
                 <li key={n} style={{ marginBottom: 6 }}>{n}</li>
@@ -785,7 +796,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'survival' && (
         <>
-          <Section title="Survival-series D10">
+          <Section title={t('survivalTitle')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.65rem', maxWidth: 'none' }}>
               {survival.framing}
             </p>
@@ -793,7 +804,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             <p className={styles.insightText} style={{ color: 'var(--text-secondary)' }}>{survival.d10VsD9}</p>
           </Section>
 
-          <Section title="Energy drain">
+          <Section title={t('energyDrain')}>
             <article className={cn(
               styles.insightCard,
               survival.energyDrain.risk === 'challenging' ? styles.insightCaution
@@ -818,8 +829,8 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                   <h4 className={styles.insightTitle}>
                     {f.title}
                     {f.matched
-                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Hit</span>
-                      : <span className={styles.pill} style={{ marginLeft: 8 }}>Quiet</span>}
+                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('hit')}</span>
+                      : <span className={styles.pill} style={{ marginLeft: 8 }}>{t('quiet')}</span>}
                   </h4>
                   <p className={styles.insightText}>{f.detail}</p>
                 </article>
@@ -827,11 +838,11 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Can this client be helped?">
+          <Section title={t('helpability')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.65rem', maxWidth: 'none' }}>{survival.helpability.text}</p>
             <div className={styles.insightGrid}>
               <article className={cn(styles.insightCard, styles.insightStrength)}>
-                <h4 className={styles.insightTitle}>Good signs</h4>
+                <h4 className={styles.insightTitle}>{t('goodSigns')}</h4>
                 <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.8rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
                   {survival.helpability.good.map((q) => (
                     <li key={q}>{q}</li>
@@ -839,7 +850,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                 </ul>
               </article>
               <article className={cn(styles.insightCard, styles.insightCaution)}>
-                <h4 className={styles.insightTitle}>Bad signs</h4>
+                <h4 className={styles.insightTitle}>{t('badSigns')}</h4>
                 <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.8rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
                   {survival.helpability.bad.map((q) => (
                     <li key={q}>{q}</li>
@@ -849,15 +860,15 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Sign distinctions (when relevant)">
+          <Section title={t('distinctions')}>
             <div className={styles.insightGrid}>
               {survival.distinctions.map((d) => (
                 <article key={d.id} className={cn(styles.insightCard, d.relevant ? styles.insightHighlight : styles.insightInfo)}>
                   <h4 className={styles.insightTitle}>
                     {d.left.split('—')[0]?.trim()} vs {d.right.split('—')[0]?.trim()}
                     {d.relevant
-                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Live</span>
-                      : <span className={styles.pill} style={{ marginLeft: 8 }}>Ref</span>}
+                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('live')}</span>
+                      : <span className={styles.pill} style={{ marginLeft: 8 }}>{t('ref')}</span>}
                   </h4>
                   <p style={{ margin: '0 0 0.35rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                     {d.left} · {d.right}
@@ -868,26 +879,26 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Survival career flags">
+          <Section title={t('survivalFlags')}>
             <div className={styles.insightGrid}>
-              {survival.extraCombos.map((c) => (
-                <article key={c.id} className={cn(styles.insightCard, c.matched ? styles.insightHighlight : styles.insightInfo)}>
+              {survival.extraCombos.map((combo) => (
+                <article key={combo.id} className={cn(styles.insightCard, combo.matched ? styles.insightHighlight : styles.insightInfo)}>
                   <h4 className={styles.insightTitle}>
-                    {c.title}
-                    {c.matched
-                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Hit</span>
-                      : <span className={styles.pill} style={{ marginLeft: 8 }}>Quiet</span>}
+                    {combo.title}
+                    {combo.matched
+                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('hit')}</span>
+                      : <span className={styles.pill} style={{ marginLeft: 8 }}>{t('quiet')}</span>}
                   </h4>
-                  <p className={styles.insightText}>{c.detail}</p>
+                  <p className={styles.insightText}>{combo.detail}</p>
                 </article>
               ))}
             </div>
           </Section>
 
-          <Section title="Business partnership overlay (D10)">
+          <Section title={t('partnership')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.65rem', maxWidth: 'none' }}>{survival.partnership.method}</p>
             <article className={cn(styles.insightCard, survival.partnership.hardHeaded ? styles.insightCaution : styles.insightInfo)} style={{ marginBottom: '0.75rem' }}>
-              <h4 className={styles.insightTitle}>This chart’s partnership posture</h4>
+              <h4 className={styles.insightTitle}>{t('partnershipPosture')}</h4>
               <p className={styles.insightText}>{survival.partnership.hardHeadedNote}</p>
             </article>
             <div className={styles.insightGrid}>
@@ -900,11 +911,11 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Sun house roles · takeaways">
+          <Section title={t('sunRoles')}>
             <div className={styles.insightGrid} style={{ marginBottom: '0.75rem' }}>
               {survival.sunHouseGuide.map((s) => (
                 <article key={s.house} className={cn(styles.insightCard, styles.insightInfo)}>
-                  <h4 className={styles.insightTitle}>Sun in H{s.house}</h4>
+                  <h4 className={styles.insightTitle}>{t('sunInHouse', { house: s.house })}</h4>
                   <p className={styles.insightText}>{s.role}</p>
                 </article>
               ))}
@@ -920,7 +931,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'circuit' && (
         <>
-          <Section title="Multi-varga circuit">
+          <Section title={t('circuitTitle')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
               {circuit.framing}
             </p>
@@ -933,14 +944,14 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
               <h4 className={styles.insightTitle}>
                 {circuit.syncVerdict.theme}
                 {circuit.syncVerdict.synced
-                  ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Synced</span>
-                  : <span className={styles.pill} style={{ marginLeft: 8 }}>Mixed</span>}
+                  ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('synced')}</span>
+                  : <span className={styles.pill} style={{ marginLeft: 8 }}>{t('mixed')}</span>}
               </h4>
               <p className={styles.insightText}>{circuit.syncVerdict.detail}</p>
             </article>
           </Section>
 
-          <Section title="Layer stack (current dasha)">
+          <Section title={t('layerStack')}>
             <div className={styles.insightGrid}>
               {circuit.layers.map((layer) => (
                 <article
@@ -949,7 +960,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                 >
                   <h4 className={styles.insightTitle}>
                     {layer.title}
-                    {!layer.available && <span className={styles.pill} style={{ marginLeft: 8 }}>Missing</span>}
+                    {!layer.available && <span className={styles.pill} style={{ marginLeft: 8 }}>{t('missing')}</span>}
                   </h4>
                   <p style={{ margin: '0 0 0.35rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                     {layer.represents}
@@ -974,9 +985,9 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Relationship & mind flags">
+          <Section title={t('relMind')}>
             {circuit.relationshipFlags.length === 0 && circuit.mindFears.length === 0 ? (
-              <p className={styles.heroSub}>No strong relationship/mind flags from current circuit patterns.</p>
+              <p className={styles.heroSub}>{t('noRelFlags')}</p>
             ) : (
               <div className={styles.insightGrid}>
                 {circuit.relationshipFlags.map((n) => (
@@ -995,7 +1006,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             )}
           </Section>
 
-          <Section title="Job disruption flavors (D10 8th)">
+          <Section title={t('jobDisruption')}>
             <article className={cn(styles.insightCard, circuit.jobDisruption.active ? styles.insightCaution : styles.insightInfo)} style={{ marginBottom: '0.75rem' }}>
               <h4 className={styles.insightTitle}>{circuit.jobDisruption.headline}</h4>
               <p className={styles.insightText}>{circuit.jobDisruption.caveat}</p>
@@ -1015,7 +1026,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Practice energy rules">
+          <Section title={t('practiceRules')}>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
               {circuit.practiceAdvice.map((a) => (
                 <li key={a} style={{ marginBottom: 6 }}>{a}</li>
@@ -1027,7 +1038,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'karmaYoga' && (
         <>
-          <Section title="Gītā · Karma Yoga on D10">
+          <Section title={t('gitaTitle')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
               {karmaYoga.framing}
             </p>
@@ -1042,7 +1053,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                     : styles.insightCaution,
             )}>
               <h4 className={styles.insightTitle}>
-                D1 ↔ D10 lagna sync
+                {t('lagnaSync')}
                 <span
                   className={cn(
                     styles.pill,
@@ -1069,7 +1080,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                 {karmaYoga.sync.d10Role}
               </p>
               <p className={styles.insightText} style={{ marginTop: 10 }}>
-                <strong style={{ fontWeight: 600 }}>How to bridge:</strong> {karmaYoga.sync.bridge}
+                <strong style={{ fontWeight: 600 }}>{t('howToBridge')}</strong> {karmaYoga.sync.bridge}
               </p>
               <ul style={{ margin: '0.65rem 0 0', paddingLeft: '1.1rem', fontSize: '0.78rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
                 {karmaYoga.sync.recharge.map((r) => (
@@ -1082,9 +1093,9 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </article>
           </Section>
 
-          <Section title="Dasha house events (D10)">
+          <Section title={t('dashaHouseEvents')}>
             {karmaYoga.dashaEvents.length === 0 ? (
-              <p className={styles.heroSub}>No dasha overlay available for this chart.</p>
+              <p className={styles.heroSub}>{t('noDashaOverlay')}</p>
             ) : (
               <div className={styles.insightGrid}>
                 {karmaYoga.dashaEvents.map((e) => (
@@ -1107,38 +1118,38 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             )}
           </Section>
 
-          <Section title="Crisis mode · Jnana vs Bhakti">
+          <Section title={t('crisisMode')}>
             <article className={cn(styles.insightCard, karmaYoga.crisisMode.active ? styles.insightCaution : styles.insightInfo)}>
               <h4 className={styles.insightTitle}>{karmaYoga.crisisMode.headline}</h4>
               <p className={styles.insightText}>{karmaYoga.crisisMode.acceptanceRule}</p>
-              <p className={styles.insightText} style={{ marginTop: 8 }}><strong>Jnana:</strong> {karmaYoga.crisisMode.jnanaPath}</p>
-              <p className={styles.insightText} style={{ marginTop: 6 }}><strong>Bhakti / Karma Yoga:</strong> {karmaYoga.crisisMode.bhaktiPath}</p>
+              <p className={styles.insightText} style={{ marginTop: 8 }}><strong>{t('jnana')}</strong> {karmaYoga.crisisMode.jnanaPath}</p>
+              <p className={styles.insightText} style={{ marginTop: 6 }}><strong>{t('bhaktiKarma')}</strong> {karmaYoga.crisisMode.bhaktiPath}</p>
             </article>
           </Section>
 
-          <Section title="Pañca-mahābhūta triad remedies">
+          <Section title={t('panchaRemedies')}>
             <div className={styles.insightGrid}>
-              {karmaYoga.triads.map((t) => (
-                <article key={t.id} className={cn(styles.insightCard, t.active ? styles.insightHighlight : styles.insightInfo)}>
+              {karmaYoga.triads.map((triad) => (
+                <article key={triad.id} className={cn(styles.insightCard, triad.active ? styles.insightHighlight : styles.insightInfo)}>
                   <h4 className={styles.insightTitle}>
-                    {t.houses} · {t.element}
-                    {t.active
-                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Active</span>
-                      : <span className={styles.pill} style={{ marginLeft: 8 }}>Quiet</span>}
+                    {triad.houses} · {triad.element}
+                    {triad.active
+                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('active')}</span>
+                      : <span className={styles.pill} style={{ marginLeft: 8 }}>{t('quiet')}</span>}
                   </h4>
                   <p style={{ margin: '0 0 0.35rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    {t.signs}
+                    {triad.signs}
                   </p>
-                  <p className={styles.insightText}>{t.remedy}</p>
-                  <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{t.reason}</p>
+                  <p className={styles.insightText}>{triad.remedy}</p>
+                  <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{triad.reason}</p>
                 </article>
               ))}
             </div>
           </Section>
 
-          <Section title="Planet corruption (D1 → D9 → D10)">
+          <Section title={t('planetCorruption')}>
             {karmaYoga.corruption.length === 0 ? (
-              <p className={styles.heroSub}>No classic strong-in-D1 / soft-in-D9 corruption pairs found.</p>
+              <p className={styles.heroSub}>{t('noCorruption')}</p>
             ) : (
               <div className={styles.insightGrid}>
                 {karmaYoga.corruption.map((c) => (
@@ -1154,9 +1165,9 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             )}
           </Section>
 
-          <Section title="Oil field · multi-chart · ethics">
+          <Section title={t('oilField')}>
             <article className={cn(styles.insightCard, styles.insightInfo)} style={{ marginBottom: '0.75rem' }}>
-              <h4 className={styles.insightTitle}>Energy drain / recharge</h4>
+              <h4 className={styles.insightTitle}>{t('energyDrainRecharge')}</h4>
               <p className={styles.insightText}>{karmaYoga.oilField}</p>
             </article>
             <ul style={{ margin: '0 0 0.85rem', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
@@ -1175,12 +1186,12 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
 
       {tab === 'pending' && (
         <>
-          <Section title="2–6–10 pending karma axis">
+          <Section title={t('pendingAxis')}>
             <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
               {pending.axisRule}
             </p>
             {pending.items.length === 0 ? (
-              <p className={styles.heroSub}>No classical planets currently sit in D10 2nd, 6th, or 10th.</p>
+              <p className={styles.heroSub}>{t('noPendingPlanets')}</p>
             ) : (
               <div className={styles.insightGrid}>
                 {pending.items.map((item) => (
@@ -1190,7 +1201,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                     </h4>
                     <p className={styles.insightText}>{item.pendingTheme}</p>
                     <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                      Dana: {item.charity}
+                      {t('dana', { text: item.charity })}
                     </p>
                   </article>
                 ))}
@@ -1198,7 +1209,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             )}
           </Section>
 
-          <Section title="Capricorn / 10–11 grind">
+          <Section title={t('capricornGrind')}>
             <article className={cn(styles.insightCard, pending.capricornHardWork.active ? styles.insightCaution : styles.insightInfo)}>
               <h4 className={styles.insightTitle}>{pending.capricornHardWork.headline}</h4>
               <p className={styles.insightText}>{pending.capricornHardWork.text}</p>
@@ -1212,7 +1223,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </article>
           </Section>
 
-          <Section title="Live clinical flags">
+          <Section title={t('clinicalFlags')}>
             <div className={styles.insightGrid}>
               {pending.flags.map((f) => (
                 <article
@@ -1227,8 +1238,8 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
                   <h4 className={styles.insightTitle}>
                     {f.title}
                     {f.matched
-                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>Hit</span>
-                      : <span className={styles.pill} style={{ marginLeft: 8 }}>Quiet</span>}
+                      ? <span className={cn(styles.pill, styles.pillVg)} style={{ marginLeft: 8 }}>{t('hit')}</span>
+                      : <span className={styles.pill} style={{ marginLeft: 8 }}>{t('quiet')}</span>}
                   </h4>
                   <p className={styles.insightText}>{f.detail}</p>
                 </article>
@@ -1236,13 +1247,13 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Remedies compendium">
+          <Section title={t('remedies')}>
             <div className={styles.insightGrid}>
               {pending.remedies.map((r) => (
                 <article key={r.id} className={cn(styles.insightCard, styles.insightInfo)}>
                   <h4 className={styles.insightTitle}>{r.title}</h4>
                   <p style={{ margin: '0 0 0.35rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    When: {r.when}
+                    {t('when', { text: r.when })}
                   </p>
                   <p className={styles.insightText}>{r.action}</p>
                 </article>
@@ -1250,7 +1261,7 @@ export function DashamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: Dasha
             </div>
           </Section>
 
-          <Section title="Reading methodology">
+          <Section title={t('methodology')}>
             <ol style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55 }}>
               {pending.methodSteps.map((s) => (
                 <li key={s} style={{ marginBottom: 6 }}>{s}</li>

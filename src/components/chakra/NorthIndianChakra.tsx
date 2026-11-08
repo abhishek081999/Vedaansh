@@ -14,6 +14,7 @@ import type { GrahaData, Rashi, ArudhaData, LagnaData } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { NAKSHATRA_SHORT } from '@/types/astrology'
 import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { useChartLabels } from './useChartLabels'
 import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
 import { getAspectedHouses } from '@/lib/engine/aspects'
 import type { GrahaId } from '@/types/astrology'
@@ -132,6 +133,7 @@ export function NorthIndianChakra({
   highlightHouses = [],
   showTooltip    = false,
 }: NorthIndianProps) {
+  const L = useChartLabels()
   const S = size
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -309,7 +311,7 @@ export function NorthIndianChakra({
       width={S}
       height={S}
       style={{ display: 'block', maxWidth: '100%', height: 'auto', overflow: 'visible' }}
-      aria-label="North Indian birth chart"
+      aria-label={L.t('northAria')}
     >
       {/* Background — transparent to let theme parchment show through */}
       <rect width={S} height={S} fill="transparent" />
@@ -515,9 +517,9 @@ export function NorthIndianChakra({
                     textAnchor="middle"
                     dominantBaseline="middle"
                   >
-                    <tspan>{g.id}</tspan>
+                    <tspan>{L.graha(String(g.id))}</tspan>
                     {g.isRetro && (
-                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">R</tspan>
+                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">{L.retro}</tspan>
                     )}
                     {g.isCombust && (
                       <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">C</tspan>
@@ -638,7 +640,7 @@ export function NorthIndianChakra({
                     fontFamily="var(--font-chart-mono)"
                     fill={tg.isRetro ? 'rgba(120,80,220,0.95)' : 'rgba(100,80,180,0.95)'}
                   >
-                    <tspan>{tg.id}</tspan>
+                    <tspan>{L.graha(String(tg.id))}</tspan>
                     {tg.isRetro && (
                       <tspan fontSize={tSub} baselineShift="super">℞</tspan>
                     )}
@@ -703,7 +705,7 @@ export function NorthIndianChakra({
                     fontFamily="var(--font-chart-planets)"
                     fill={cg.isRetro ? 'var(--rose)' : 'var(--gold)'}
                   >
-                    <tspan>{cg.id}</tspan>
+                    <tspan>{L.graha(String(cg.id))}</tspan>
                     {cg.isRetro && (
                       <tspan fontSize={cSub} baselineShift="super">℞</tspan>
                     )}
