@@ -17,6 +17,7 @@ import { analyzeVimshottariPeriod } from '@/lib/engine/dasha/vimshottariAnalysis
 import { analyzeDashaGochar } from '@/lib/engine/dasha/vimshottariGochar'
 import { buildUpcomingVimshottariTimeline } from '@/lib/engine/dasha/vimshottariTimeline'
 import {
+  VIMSHOTTARI_ANTAR_SCRIPTURES,
   VIMSHOTTARI_MAHA_SCRIPTURES,
   getVimshottariAntarScriptures,
   getVimshottariMahaScriptures,
@@ -27,7 +28,7 @@ import { analyzeKalachakra } from '@/lib/engine/dasha/kalachakraAnalysis'
 import { computeDashaLordRemedies, PLANET_REMEDY_TEACHINGS } from '@/lib/engine/planetaryRemedies'
 import { localizeDashaLordRemedies } from '@/lib/engine/dasha/dashaRemedyText'
 import { VIM_ANTAR_HI, VIM_INTERP_HI, VIM_INTERP_MORE_HI } from '@/lib/engine/locale/vimshottari.hi'
-import { MAHA_SCRIPTURES_HI } from '@/lib/engine/locale/vimshottariScriptures.hi'
+import { ANTAR_SCRIPTURES_HI, MAHA_SCRIPTURES_HI } from '@/lib/engine/locale/vimshottariScriptures.hi'
 import { YOGINI_HI } from '@/lib/engine/locale/yogini.hi'
 import { REMEDY_TEACHINGS_HI } from '@/lib/engine/locale/dashaRemedies.hi'
 import { CL_HI } from '@/lib/engine/locale/vimshottariClassical.hi'
@@ -98,6 +99,20 @@ describe('Vimshottari interpretation tables', () => {
 })
 
 describe('scriptures, yogini, remedies, classical rules tables', () => {
+  it('has Hindi for every MD–AD pair passage, in the same order', () => {
+    expect(Object.keys(ANTAR_SCRIPTURES_HI).sort()).toEqual(Object.keys(VIMSHOTTARI_ANTAR_SCRIPTURES).sort())
+    for (const md of LORDS) {
+      for (const ad of LORDS) {
+        const key = `${md}-${ad}`
+        const en = getVimshottariAntarScriptures(md, ad)
+        const hi = getVimshottariAntarScriptures(md, ad, 'hi')
+        expect(ANTAR_SCRIPTURES_HI[key]?.length, key).toBe(VIMSHOTTARI_ANTAR_SCRIPTURES[key].length)
+        expect(hi.map(p => p.source), key).toEqual(en.map(p => p.source))
+        for (const p of hi) expect(isHindi(p.text), `${key}: ${p.text}`).toBe(true)
+      }
+    }
+  })
+
   it('has Hindi for every mahadasha passage, in the same order', () => {
     for (const lord of LORDS) {
       expect(MAHA_SCRIPTURES_HI[lord]?.length, lord).toBe(VIMSHOTTARI_MAHA_SCRIPTURES[lord].length)

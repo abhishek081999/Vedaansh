@@ -57,11 +57,11 @@ function Dot({ id }: { id: GrahaId }) {
 }
 
 export function NavamshaPredictionsPanel({ chart }: { chart: ChartOutput }) {
-  const report = useMemo(() => analyzeNavamshaPredictions(chart), [chart])
   const [view, setView] = useState<View>('planets')
   const t = useTranslations('divisional.d9.pred')
   const c = useDivisionalCommon()
-  // Engine names are English; show glossary names on /hi.
+  const report = useMemo(() => analyzeNavamshaPredictions(chart, c.lang), [chart, c.lang])
+  // Some engine names stay English (ids); show glossary names on /hi.
   const nm = (en: string) => (c.hi ? termHi(en) : en)
   const gn = (id: GrahaId) => (c.hi ? c.graha(id) : GRAHA_NAMES[id])
   const rl = (cat: RuleCategory) => t(`rule.${cat}`)
@@ -83,7 +83,6 @@ export function NavamshaPredictionsPanel({ chart }: { chart: ChartOutput }) {
         </div>
         <div className={styles.sectionRule} />
       </div>
-      {c.hi && <p className={styles.emptyHint} style={{ marginBottom: '0.6rem' }}>{t('englishNote')}</p>}
       <p className={styles.lede}>{report.headline}</p>
 
       <div className={styles.insightGrid} style={{ marginBottom: '0.9rem' }}>

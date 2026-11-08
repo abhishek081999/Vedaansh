@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 //  __tests__/engine/divisionalHindi.test.ts
-//  Hindi parity for the divisional-chart engines (D3, D4, D9, D12, D27).
+//  Hindi parity for the divisional-chart engines (D3, D4, D9 + Predictions, D10, D12, D27).
 //  - every English table entry has a Hindi twin with the same {slots}
 //  - Hindi output keeps ids / numbers / enums identical to English
 //  - Hindi output is Devanagari; English stays the default
@@ -14,6 +14,9 @@ import * as d4c from '@/lib/engine/locale/chaturthamsaClassical.hi'
 import * as d9 from '@/lib/engine/locale/navamsha.hi'
 import * as d12 from '@/lib/engine/locale/dwadashamsha.hi'
 import * as d27 from '@/lib/engine/locale/nakshatramsha.hi'
+import * as d9p from '@/lib/engine/locale/navamshaPredictions.hi'
+import { NAVAMSHA_SIGNS_HI } from '@/lib/engine/locale/navamshaSignKnowledge.hi'
+import { NAVAMSHA_SIGNS } from '@/lib/engine/navamshaSignKnowledge'
 
 const DEVANAGARI = /[ऀ-ॿ]/
 const HOUSES = Array.from({ length: 12 }, (_, i) => i + 1)
@@ -108,6 +111,30 @@ describe('divisional Hindi tables', () => {
     expectHindiTable('D27_LAGNA_PLANET_HI', d27.D27_LAGNA_PLANET_HI, GRAHAS)
     expectHindiTemplates('D27_TEXT_HI', d27.D27_TEXT_HI)
   })
+  it('D9 Predictions tables are complete', () => {
+    // COMBINATIONS_HI follows the English COMBINATIONS array index by index.
+    expect(d9p.COMBINATIONS_HI.length).toBe(88)
+    for (const [i, c] of d9p.COMBINATIONS_HI.entries()) {
+      expect(DEVANAGARI.test(c.title) && DEVANAGARI.test(c.text), `COMBINATIONS_HI[${i}]`).toBe(true)
+    }
+    expectHindiTemplates('NP9_TEXT_HI', d9p.NP9_TEXT_HI as Record<string, string>)
+    // Each Hindi sign profile has the same keys, planets, houses, sources and age marks as English.
+    for (const h of HOUSES) {
+      const en = NAVAMSHA_SIGNS[h as keyof typeof NAVAMSHA_SIGNS]
+      const hi = NAVAMSHA_SIGNS_HI[h as keyof typeof NAVAMSHA_SIGNS_HI]
+      expect(hi.sign).toBe(en.sign)
+      expect(Object.keys(hi).sort(), `sign ${h} keys`).toEqual(Object.keys(en).sort())
+      expect(hi.keywords.length, `sign ${h} keywords`).toBe(en.keywords.length)
+      for (const part of ['planets', 'fromSign', 'fromElement', 'inHouse'] as const) {
+        expect(Object.keys(hi[part] ?? {}).sort(), `sign ${h} ${part}`).toEqual(Object.keys(en[part] ?? {}).sort())
+        for (const v of Object.values(hi[part] ?? {})) expect(DEVANAGARI.test(v as string), `sign ${h} ${part}`).toBe(true)
+      }
+      expect(hi.ages?.map((a) => a.age), `sign ${h} ages`).toEqual(en.ages?.map((a) => a.age))
+      for (const k of ['title', 'essence', 'shadow', 'remedy', 'guidance'] as const) {
+        expect(DEVANAGARI.test(hi[k]), `sign ${h} ${k}`).toBe(true)
+      }
+    }
+  })
 })
 
 describe('divisional engines in Hindi', () => {
@@ -134,13 +161,28 @@ describe('divisional engines in Hindi', () => {
     const { analyzeNavamsha } = await import('@/lib/engine/navamshaAnalysis')
     const { analyzeDwadashamsha } = await import('@/lib/engine/dwadashamshaAnalysis')
     const { analyzeNakshatramsha } = await import('@/lib/engine/nakshatramshaAnalysis')
+    const { analyzeNavamshaPredictions } = await import('@/lib/engine/navamshaPredictions')
+    const { analyzeDashamsa } = await import('@/lib/engine/dashamsaAnalysis')
+    const { buildDashamsaClassical } = await import('@/lib/engine/dashamsaClassical')
+    const { buildDashamsaPractical } = await import('@/lib/engine/dashamsaPractical')
+    const { buildDashamsaSynthesis } = await import('@/lib/engine/dashamsaSynthesis')
+    const { buildDashamsaAdvanced } = await import('@/lib/engine/dashamsaAdvanced')
     for (const chart of charts) {
+      const transit = { transitPositions: chart.grahas.map((g) => ({ id: g.id, rashi: ((g.rashi % 12) + 1) as never })) }
+      const d10 = (l?: 'en' | 'hi') => analyzeDashamsa(chart, l)!
+      const d10c = (l?: 'en' | 'hi') => buildDashamsaClassical(d10(l), chart, l)!
       const runs: [string, (lang?: 'en' | 'hi') => unknown][] = [
         ['D3', (l) => analyzeDrekkana(chart, l)],
         ['D4', (l) => analyzeChaturthamsa(chart, l)],
         ['D9', (l) => analyzeNavamsha(chart, l)],
         ['D12', (l) => analyzeDwadashamsha(chart, l)],
         ['D27', (l) => analyzeNakshatramsha(chart, l)],
+        ['D9 Predictions', (l) => analyzeNavamshaPredictions(chart, l)],
+        ['D10', (l) => d10(l)],
+        ['D10 Classical', (l) => d10c(l)],
+        ['D10 Practical', (l) => buildDashamsaPractical(d10(l), chart, l)],
+        ['D10 Synthesis', (l) => buildDashamsaSynthesis(d10(l), d10c(l), chart, transit, l)],
+        ['D10 Advanced', (l) => buildDashamsaAdvanced(d10(l), d10c(l), chart, l)],
       ]
       for (const [name, run] of runs) {
         const en = run()
@@ -149,7 +191,7 @@ describe('divisional engines in Hindi', () => {
         const hi = run('hi')
         sameShape(en, hi, name)
         // Most display strings are Devanagari (ids and enums stay Latin).
-        const prose = collectStrings(hi).filter((s) => s.length > 25)
+        const prose = collectStrings(hi).filter((s) => s.length > 25 && !/^[a-z0-9-]+$/.test(s))
         const latinOnly = prose.filter((s) => !DEVANAGARI.test(s))
         expect(latinOnly, `${name} Latin-only prose`).toEqual([])
       }

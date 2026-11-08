@@ -8,10 +8,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ChartOutput, Dignity, GrahaId, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { DEBILITATION_SIGN, EXALTATION_SIGN } from '@/lib/engine/dignity'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import {
+  classicalNotesInLang,
   getDignityAwarePlanetInSign,
   getHouseClassical,
   getPlanetInHouseClassical,
@@ -26,6 +26,22 @@ import {
   type DashamsaAnalysis,
   type DashamsaPlanetRow,
 } from '@/lib/engine/dashamsaAnalysis'
+import { dignityText, fill, gName, pick, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  D10C_TEXT_EN,
+  D10C_TEXT_HI,
+  ELEMENT_COPY_HI,
+  GRADE_COPY_HI,
+  GRADE_LABEL_EN,
+  GRADE_LABEL_HI,
+  LIVELIHOOD_HI,
+  MODALITY_COPY_HI,
+  OCCUPANT_PHALA_HI,
+  ROLE_LABEL_HI,
+  TENTH_LORD_PHALA_HI,
+} from '@/lib/engine/locale/dashamsaClassical.hi'
+
+type D10Text = Record<keyof typeof D10C_TEXT_EN, string>
 
 const CLASSICAL: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 const SAPTA: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
@@ -417,6 +433,16 @@ function houseSign(asc: Rashi, house: number): Rashi {
   return (((asc - 1 + house - 1) % 12) + 1) as Rashi
 }
 
+const NOTE_REF_HI: Record<string, string> = {
+  Vakri: 'वक्री', Asta: 'अस्त', 'Vakri+Asta': 'वक्री + अस्त', Dignity: 'गरिमा',
+}
+
+/** Hindi labels for the short `ref` tags of shared classical notes. */
+function localizeRefs(notes: ClassicalNote[], lang: EngineLang): ClassicalNote[] {
+  if (lang !== 'hi') return notes
+  return notes.map((n) => (n.ref && NOTE_REF_HI[n.ref] ? { ...n, ref: NOTE_REF_HI[n.ref] } : n))
+}
+
 function houseFrom(planetRashi: Rashi, from: Rashi): number {
   return ((planetRashi - from + 12) % 12) + 1
 }
@@ -444,7 +470,12 @@ interface RoleAcc {
   roles: ClassicalRole[]
 }
 
-function addRole(map: Map<GrahaId, RoleAcc>, id: GrahaId, key: RoleKey) {
+function addRole(
+  map: Map<GrahaId, RoleAcc>,
+  id: GrahaId,
+  key: RoleKey,
+  labels: Record<RoleKey, string> = ROLE_LABEL,
+) {
   if (!CLASSICAL.includes(id)) return
   let row = map.get(id)
   if (!row) {
@@ -452,7 +483,7 @@ function addRole(map: Map<GrahaId, RoleAcc>, id: GrahaId, key: RoleKey) {
     map.set(id, row)
   }
   if (row.roles.some((r) => r.key === key)) return
-  row.roles.push({ key, label: ROLE_LABEL[key], points: LIVELIHOOD_WEIGHTS[key] })
+  row.roles.push({ key, label: labels[key], points: LIVELIHOOD_WEIGHTS[key] })
 }
 
 function finishCandidate(
@@ -462,33 +493,46 @@ function finishCandidate(
   house: number,
   combust: boolean,
   useD1Digbala: boolean,
+  livelihood: typeof LIVELIHOOD = LIVELIHOOD,
+  lang: EngineLang = 'en',
+  T: D10Text,
 ): LivelihoodCandidate {
   const digHouse = DIGBALA_HOUSE[acc.id]
   const digbala = digHouse != null && house === digHouse
   let score = acc.roles.reduce((s, r) => s + r.points, 0)
   score += dignityPoints(dignity)
   score += housePoints(house)
+  const digPts = dignityPoints(dignity)
+  const housePts = housePoints(house)
   const bits = [
     ...acc.roles.map((r) => `${r.label} +${r.points}`),
-    `dignity ${dignity.replace(/_/g, ' ')} ${dignityPoints(dignity) >= 0 ? '+' : ''}${dignityPoints(dignity)}`,
-    `house ${house} ${housePoints(house) >= 0 ? '+' : ''}${housePoints(house)}`,
+    fill(T.candDignity, {
+      dignity: dignityText(dignity, lang),
+      pts: `${digPts >= 0 ? '+' : ''}${digPts}`,
+    }),
+    fill(T.candHouse, {
+      house,
+      pts: `${housePts >= 0 ? '+' : ''}${housePts}`,
+    }),
   ]
   if (row.isVargottama) {
     score += LIVELIHOOD_WEIGHTS.vargottama
-    bits.push(`vargottama +${LIVELIHOOD_WEIGHTS.vargottama}`)
+    bits.push(fill(T.candVargottama, { pts: LIVELIHOOD_WEIGHTS.vargottama }))
   }
   if (digbala) {
     score += LIVELIHOOD_WEIGHTS.digbala
-    bits.push(`${useD1Digbala ? 'digbala' : 'D10 digbala'} +${LIVELIHOOD_WEIGHTS.digbala}`)
+    bits.push(
+      fill(useD1Digbala ? T.candDigbala : T.candD10Digbala, { pts: LIVELIHOOD_WEIGHTS.digbala }),
+    )
   }
   if (combust) {
     score += LIVELIHOOD_WEIGHTS.combust
-    bits.push(`combust ${LIVELIHOOD_WEIGHTS.combust}`)
+    bits.push(fill(T.candCombust, { pts: LIVELIHOOD_WEIGHTS.combust }))
   }
-  const info = LIVELIHOOD[acc.id]
+  const info = livelihood[acc.id]
   return {
     id: acc.id,
-    name: GRAHA_NAMES[acc.id],
+    name: gName(acc.id, lang),
     score,
     roles: acc.roles,
     dignity,
@@ -527,9 +571,23 @@ function beneficAspectsTenth(planets: DashamsaPlanetRow[], tenthSign: Rashi): bo
 export function buildDashamsaClassical(
   analysis: DashamsaAnalysis,
   chart: ChartOutput,
+  lang: EngineLang = 'en',
 ): DashamsaClassical | null {
   const d1Asc = chart.lagnas?.ascRashi
   if (!d1Asc || !analysis.planets.length) return null
+
+  const T = pick(D10C_TEXT_EN, D10C_TEXT_HI as D10Text, lang)
+  const GRADE_LABEL = pick(GRADE_LABEL_EN, GRADE_LABEL_HI, lang)
+  const dig = (d: Dignity) => dignityText(d, lang)
+  const g = (id: GrahaId) => gName(id, lang)
+
+  const ROLE = pick(ROLE_LABEL, ROLE_LABEL_HI, lang)
+  const LIVE = pick(LIVELIHOOD, LIVELIHOOD_HI, lang)
+  const GRADE = pick(GRADE_COPY, GRADE_COPY_HI, lang)
+  const MOD = pick(MODALITY_COPY, MODALITY_COPY_HI, lang)
+  const ELEM = pick(ELEMENT_COPY, ELEMENT_COPY_HI, lang)
+  const TENTH = pick(TENTH_LORD_PHALA, TENTH_LORD_PHALA_HI, lang)
+  const OCC = pick(OCCUPANT_PHALA, OCCUPANT_PHALA_HI, lang)
 
   const byId = new Map(analysis.planets.map((p) => [p.id, p]))
   const d1Graha = new Map(chart.grahas?.map((g) => [g.id, g]) ?? [])
@@ -556,45 +614,45 @@ export function buildDashamsaClassical(
   const tenthFromSun = sun ? houseSign(sun.d1Rashi, 10) : null
 
   const d1Map = new Map<GrahaId, RoleAcc>()
-  addRole(d1Map, d1TenthLord, 'tenthLord')
+  addRole(d1Map, d1TenthLord, 'tenthLord', ROLE)
   for (const p of analysis.planets) {
-    if (p.d1Rashi === d1TenthSign) addRole(d1Map, p.id, 'occupant')
-    if (p.id !== d1TenthLord && aspectsSign(p.d1Rashi, p.id, d1TenthSign)) addRole(d1Map, p.id, 'aspect')
+    if (p.d1Rashi === d1TenthSign) addRole(d1Map, p.id, 'occupant', ROLE)
+    if (p.id !== d1TenthLord && aspectsSign(p.d1Rashi, p.id, d1TenthSign)) addRole(d1Map, p.id, 'aspect', ROLE)
     if (d1LordRow && p.id !== d1TenthLord && p.d1Rashi === d1LordRow.d1Rashi) {
-      addRole(d1Map, p.id, 'conjunctLord')
+      addRole(d1Map, p.id, 'conjunctLord', ROLE)
     }
     if (tenthFromMoon && (p.d1Rashi === tenthFromMoon || SIGN_LORDS[tenthFromMoon] === p.id)) {
-      addRole(d1Map, p.id, 'tenthFromMoon')
+      addRole(d1Map, p.id, 'tenthFromMoon', ROLE)
     }
     if (tenthFromSun && (p.d1Rashi === tenthFromSun || SIGN_LORDS[tenthFromSun] === p.id)) {
-      addRole(d1Map, p.id, 'tenthFromSun')
+      addRole(d1Map, p.id, 'tenthFromSun', ROLE)
     }
   }
-  if (navamshaLord) addRole(d1Map, navamshaLord, 'navamshaLord')
+  if (navamshaLord) addRole(d1Map, navamshaLord, 'navamshaLord', ROLE)
 
   const d1Candidates = [...d1Map.values()]
     .map((acc) => {
       const row = byId.get(acc.id)
       if (!row) return null
       const combust = d1Graha.get(acc.id)?.isCombust ?? false
-      return finishCandidate(acc, row, row.d1Dignity, row.d1House, combust, true)
+      return finishCandidate(acc, row, row.d1Dignity, row.d1House, combust, true, LIVE, lang, T)
     })
     .filter((c): c is LivelihoodCandidate => c != null)
     .sort((a, b) => b.score - a.score)
 
   const d10Map = new Map<GrahaId, RoleAcc>()
-  addRole(d10Map, d10TenthLord, 'tenthLord')
+  addRole(d10Map, d10TenthLord, 'tenthLord', ROLE)
   for (const p of analysis.planets) {
-    if (p.d10House === 10) addRole(d10Map, p.id, 'occupant')
+    if (p.d10House === 10) addRole(d10Map, p.id, 'occupant', ROLE)
     if (p.id !== d10TenthLord && aspectsSign(p.d10Rashi, p.id, d10TenthSign)) {
-      addRole(d10Map, p.id, 'aspect')
+      addRole(d10Map, p.id, 'aspect', ROLE)
     }
   }
   const d10Candidates = [...d10Map.values()]
     .map((acc) => {
       const row = byId.get(acc.id)
       if (!row) return null
-      return finishCandidate(acc, row, row.d10Dignity, row.d10House, false, false)
+      return finishCandidate(acc, row, row.d10Dignity, row.d10House, false, false, LIVE, lang, T)
     })
     .filter((c): c is LivelihoodCandidate => c != null)
     .sort((a, b) => b.score - a.score)
@@ -607,57 +665,80 @@ export function buildDashamsaClassical(
   const combust = d1Graha.get(winner.id)?.isCombust ?? false
   const retro = d1Graha.get(winner.id)?.isRetro ?? false
   const livelihoodPrediction = [
-    `${winner.name} leads the Phaladeepika test (${winner.roles.map((r) => r.label).join(', ')}).`,
-    LIVELIHOOD[winner.id]?.nature ?? '',
-    winner.fields.length ? `Fields: ${winner.fields.slice(0, 3).join('; ')}.` : '',
-    winnerRow
-      ? `In Dashamsha, ${winner.name} is in ${winnerRow.d10RashiName} H${winnerRow.d10House} (${winnerRow.d10Dignity.replace(/_/g, ' ')}).`
+    fill(T.livLead, { name: winner.name, roles: winner.roles.map((r) => r.label).join(', ') }),
+    LIVE[winner.id]?.nature ?? '',
+    winner.fields.length
+      ? fill(T.livFields, { fields: winner.fields.slice(0, 3).join('; ') })
       : '',
-    combust ? 'Combust in the birth chart: the skill works under another’s brilliance — credit may travel upward.' : '',
-    retro ? 'Retrograde: this significator revisits unfinished work before it stabilizes.' : '',
+    winnerRow
+      ? fill(T.livInD10, {
+          name: winner.name,
+          rashi: winnerRow.d10RashiName,
+          house: winnerRow.d10House,
+          dignity: dig(winnerRow.d10Dignity),
+        })
+      : '',
+    combust ? T.livCombust : '',
+    retro ? T.livRetro : '',
   ].filter(Boolean).join(' ')
 
   const agrees = winner.id === mahatWinner.id
   const agreement = agrees
-    ? `${winner.name} leads both the birth-chart livelihood test and the Dashamsha 10th complex. The kind of work and the way status is earned point the same way.`
-    : `${winner.name} is the livelihood type in the birth chart. ${mahatWinner.name} carries mahatphala inside D10 (${mahatWinner.roles.map((r) => r.label).join(', ')}). Use ${winner.name} for the kind of work and ${mahatWinner.name} for how status is earned.`
+    ? fill(T.agreeYes, { name: winner.name })
+    : fill(T.agreeNo, {
+        winner: winner.name,
+        mahat: mahatWinner.name,
+        roles: mahatWinner.roles.map((r) => r.label).join(', '),
+      })
 
   const pointers: ClassicalPointer[] = [
     {
       id: 'lord',
-      label: '10th lord',
-      detail: `${GRAHA_NAMES[d1TenthLord]} · D1 H${d1LordRow?.d1House ?? '—'} · ${d1LordRow?.d1Dignity.replace(/_/g, ' ') ?? '—'}`,
-      source: 'Phaladeepika',
+      label: T.ptrLord,
+      detail: fill(T.ptrLordDetail, {
+        planet: g(d1TenthLord),
+        house: d1LordRow?.d1House ?? '—',
+        dignity: d1LordRow ? dig(d1LordRow.d1Dignity) : '—',
+      }),
+      source: T.srcPhaladeepika,
     },
     {
       id: 'occupant',
-      label: 'Planets in the 10th',
-      detail: analysis.planets.filter((p) => p.d1Rashi === d1TenthSign).map((p) => p.name).join(', ') || 'None',
-      source: 'Phaladeepika · Brihat Jataka',
+      label: T.ptrOcc,
+      detail:
+        analysis.planets.filter((p) => p.d1Rashi === d1TenthSign).map((p) => p.name).join(', ')
+        || T.ptrOccNone,
+      source: T.srcPBJ,
     },
     {
       id: 'aspect',
-      label: 'Aspecting the 10th',
-      detail: analysis.planets
-        .filter((p) => aspectsSign(p.d1Rashi, p.id, d1TenthSign))
-        .map((p) => p.name)
-        .join(', ') || 'None by full graha drishti',
-      source: 'Phaladeepika · BPHS drishti',
+      label: T.ptrAspect,
+      detail:
+        analysis.planets
+          .filter((p) => aspectsSign(p.d1Rashi, p.id, d1TenthSign))
+          .map((p) => p.name)
+          .join(', ')
+        || T.ptrAspectNone,
+      source: T.srcDrishti,
     },
     {
       id: 'navamsha',
-      label: 'Navamsha lord of the 10th lord',
+      label: T.ptrNav,
       detail: navamshaLord
-        ? `${GRAHA_NAMES[navamshaLord]} (D9 of ${GRAHA_NAMES[d1TenthLord]} is ${RASHI_NAMES[d9OfLord!]})`
-        : 'D9 is not on this chart — Uttara Kalamrita check skipped',
-      source: 'Phaladeepika · Uttara Kalamrita',
+        ? fill(T.ptrNavDetail, {
+            navLord: g(navamshaLord),
+            tenthLord: g(d1TenthLord),
+            sign: rName(d9OfLord!, lang),
+          })
+        : T.ptrNavSkip,
+      source: T.srcUK,
     },
   ]
 
-  const lordPhala = TENTH_LORD_PHALA[tenthLordRow.d10House] ?? TENTH_LORD_PHALA[10]!
+  const lordPhala = TENTH[tenthLordRow.d10House] ?? TENTH[10]!
   const modality = signModality(d10TenthSign)
-  const modalityCopy = MODALITY_COPY[modality]
-  const element = ELEMENT_COPY[(d10TenthSign - 1) % 4] ?? ''
+  const modalityCopy = MOD[modality]
+  const element = ELEM[(d10TenthSign - 1) % 4] ?? ''
   const d1Modality = signModality(d1TenthSign)
 
   const occupants = analysis.planets
@@ -665,7 +746,7 @@ export function buildDashamsaClassical(
     .map((p) => ({
       id: p.id,
       name: p.name,
-      prediction: OCCUPANT_PHALA[p.id] || `${p.name} occupies the Dashamsha 10th.`,
+      prediction: OCC[p.id] || fill(T.occFallback, { name: p.name }),
     }))
 
   const yogas = buildYogas({
@@ -680,6 +761,8 @@ export function buildDashamsaClassical(
     moonRashi: moon?.d10Rashi ?? null,
     amk: (chart.karakas?.AmK ?? null) as GrahaId | null,
     byId,
+    T,
+    lang,
   })
 
   const amkId = (chart.karakas?.AmK ?? null) as GrahaId | null
@@ -687,19 +770,19 @@ export function buildDashamsaClassical(
   const amatyakaraka = amkRow && amkId
     ? {
         id: amkId,
-        name: GRAHA_NAMES[amkId],
+        name: g(amkId),
         house: amkRow.d10House,
         rashiName: amkRow.d10RashiName,
         dignity: amkRow.d10Dignity,
-        headline: `Amatyakaraka ${GRAHA_NAMES[amkId]} in D10 H${amkRow.d10House}`,
-        prediction: amkPrediction(amkRow),
-        source: 'Jaimini Sutras — AmK is the minister, the karma the person is known for',
+        headline: fill(T.amkHeadline, { name: g(amkId), house: amkRow.d10House }),
+        prediction: amkPrediction(amkRow, T, lang),
+        source: T.amkSource,
       }
     : null
 
   const luminaries: LuminaryKarma[] = []
-  if (moon) luminaries.push(luminary('Moon', moon.d10Rashi, d10Lagna, analysis.planets))
-  if (sun) luminaries.push(luminary('Sun', sun.d10Rashi, d10Lagna, analysis.planets))
+  if (moon) luminaries.push(luminary('Moon', moon.d10Rashi, d10Lagna, analysis.planets, T, lang))
+  if (sun) luminaries.push(luminary('Sun', sun.d10Rashi, d10Lagna, analysis.planets, T, lang))
 
   const factors = mahatFactors({
     lagnaLordRow,
@@ -708,31 +791,75 @@ export function buildDashamsaClassical(
     amkRow,
     beneficAspect: beneficAspectsTenth(analysis.planets, d10TenthSign),
     occupants,
+    T,
+    lang,
   })
   const raw = factors.reduce((s, f) => s + f.points, 0)
   const score = Math.max(8, Math.min(96, raw))
   const grade = mahatGrade(score)
 
-  const timing = buildTiming(chart, [
-    { id: 'tenth-lord', title: `D10 10th lord · ${tenthLordRow.name}`, planet: d10TenthLord, prediction: `${tenthLordRow.name} periods accelerate work karma and the house-${tenthLordRow.d10House} result above.` },
-    { id: 'livelihood', title: `Livelihood lord · ${winner.name}`, planet: winner.id, prediction: `${winner.name} periods bring the Phaladeepika profession into the open — ${LIVELIHOOD[winner.id]?.nature ?? 'the livelihood significator'}.` },
-    { id: 'mahat', title: `Mahatphala lord · ${mahatWinner.name}`, planet: mahatWinner.id, prediction: `${mahatWinner.name} periods show how status is actually earned in Dashamsha.` },
-    ...(amkId
-      ? [{ id: 'amk', title: `Amatyakaraka · ${GRAHA_NAMES[amkId]}`, planet: amkId, prediction: `${GRAHA_NAMES[amkId]} periods activate the Jaimini career significator.` }]
-      : []),
-  ])
+  const timing = buildTiming(
+    chart,
+  lang,
+  T,
+    [
+      {
+        id: 'tenth-lord',
+        title: fill(T.timeTenthLord, { name: tenthLordRow.name }),
+        planet: d10TenthLord,
+        prediction: fill(T.timePredTenthLord, {
+          name: tenthLordRow.name,
+          house: tenthLordRow.d10House,
+        }),
+      },
+      {
+        id: 'livelihood',
+        title: fill(T.timeLivelihood, { name: winner.name }),
+        planet: winner.id,
+        prediction: fill(T.timePredLivelihood, {
+          name: winner.name,
+          nature: LIVE[winner.id]?.nature ?? winner.name,
+        }),
+      },
+      {
+        id: 'mahat',
+        title: fill(T.timeMahat, { name: mahatWinner.name }),
+        planet: mahatWinner.id,
+        prediction: fill(T.timePredMahat, { name: mahatWinner.name }),
+      },
+      ...(amkId
+        ? [{
+            id: 'amk',
+            title: fill(T.timeAmk, { name: g(amkId) }),
+            planet: amkId,
+            prediction: fill(T.timePredAmk, { name: g(amkId) }),
+          }]
+        : []),
+    ],
+  )
 
   const formed = yogas.filter((y) => y.formed)
   const live = timing.find((t) => t.live)
 
   const predictions = [
-    `${GRADE_COPY[grade]} (${score}).`,
-    `${winner.name} is the livelihood planet. ${LIVELIHOOD[winner.id]?.fields.slice(0, 2).join(' and ') || LIVELIHOOD[winner.id]?.nature}.`,
+    fill(T.predGrade, { grade: GRADE[grade], score }),
+    fill(T.predLivelihood, {
+      name: winner.name,
+      detail: LIVE[winner.id]?.fields.slice(0, 2).join(lang === 'hi' ? ' और ' : ' and ') || LIVE[winner.id]?.nature || winner.name,
+    }),
     agreement,
-    `${tenthLordRow.name}, D10 10th lord, in house ${tenthLordRow.d10House}: ${lordPhala.headline}.`,
-    `${modalityCopy.label} D10 10th (${RASHI_NAMES[d10TenthSign]}). ${element}`,
-    formed[0] ? formed[0].prediction : 'No major career yoga is formed in this Dashamsha — read the 10th lord’s house as the whole story.',
-    live ? live.prediction : timing[0]?.prediction ?? 'Time the 10th lord, the livelihood planet, and the Amatyakaraka with Vimshottari.',
+    fill(T.predTenthLord, {
+      name: tenthLordRow.name,
+      house: tenthLordRow.d10House,
+      headline: lordPhala.headline,
+    }),
+    fill(T.predModality, {
+      label: modalityCopy.label,
+      sign: rName(d10TenthSign, lang),
+      element,
+    }),
+    formed[0] ? formed[0].prediction : T.predNoYoga,
+    live ? live.prediction : timing[0]?.prediction ?? T.predTimingFallback,
   ]
 
   const phala = buildPhala(analysis, chart, {
@@ -741,26 +868,29 @@ export function buildDashamsaClassical(
     eleventhLordId: d10EleventhLord,
     livelihoodId: winner.id,
     amkId,
-  })
+  }, lang, T)
   if (phala.lagna.careers[0]) {
     predictions.push(
-      `D10 lagna ${phala.lagna.rashiName} (${phala.lagna.keyword}) careers: ${phala.lagna.careers.slice(0, 3).join('; ')}.`,
+      fill(T.predLagnaCareers, {
+        sign: phala.lagna.rashiName,
+        keyword: phala.lagna.keyword,
+        careers: phala.lagna.careers.slice(0, 3).join('; '),
+      }),
     )
   }
   const priorityLens = phala.priorityPlanets[0]
   if (priorityLens) {
-    predictions.push(`${priorityLens.name} in D10: ${priorityLens.careerLens}`)
+    predictions.push(fill(T.predPriorityLens, { name: priorityLens.name, lens: priorityLens.careerLens }))
   }
 
   return {
-    framing:
-      'BPHS gives Dashamsha for mahatphala — power, status, and deeds of consequence. Phaladeepika names the livelihood from the birth-chart 10th. This tab applies both, then the yogas and the Amatyakaraka, and times them. Natal rashi and bhava phala tables are also read on the D10 placements.',
+    framing: T.framing,
     mahatphala: {
       grade,
-      gradeLabel: grade === 'mahat' ? 'Mahat' : grade[0]!.toUpperCase() + grade.slice(1),
+      gradeLabel: GRADE_LABEL[grade],
       score,
-      headline: GRADE_COPY[grade],
-      text: 'Counted factors: lagna-lord dignity, 10th-lord dignity, the 10th lord’s house, Digbala in the 10th, Dharma-Karmadhipati, Vargottama, Neecha Bhanga, a strong Amatyakaraka, and helpful drishti (aspect) on the D10 10th. Other formed yogas are listed beside the grade. This is a mahatphala grade, not a job title.',
+      headline: GRADE[grade],
+      text: T.mahatText,
       factors,
     },
     tenthLord: {
@@ -769,21 +899,30 @@ export function buildDashamsaClassical(
       house: tenthLordRow.d10House,
       dignity: tenthLordRow.d10Dignity,
       headline: lordPhala.headline,
-      prediction: `${tenthLordRow.name} in D10 H${tenthLordRow.d10House} (${tenthLordRow.d10RashiName}, ${tenthLordRow.d10Dignity.replace(/_/g, ' ')}). ${lordPhala.prediction}`,
-      source: 'BPHS — effects of the lord of the 10th, read in Dashamsha',
+      prediction: fill(T.tenthLordPred, {
+        name: tenthLordRow.name,
+        house: tenthLordRow.d10House,
+        rashi: tenthLordRow.d10RashiName,
+        dignity: dig(tenthLordRow.d10Dignity),
+        prediction: lordPhala.prediction,
+      }),
+      source: T.tenthLordSource,
     },
     tenthSign: {
-      signName: RASHI_NAMES[d10TenthSign],
+      signName: rName(d10TenthSign, lang),
       modality,
       modalityLabel: modalityCopy.label,
       element,
       prediction: `${modalityCopy.prediction} ${element}`,
-      d1Note: `Birth-chart 10th is ${RASHI_NAMES[d1TenthSign]} (${MODALITY_COPY[d1Modality].label}). D10 ${RASHI_NAMES[d10TenthSign]} is the mahatphala version of that promise.`,
-      source: 'Saravali · Brihat Jataka',
+      d1Note: fill(T.d1TenthNote, {
+        d1Sign: rName(d1TenthSign, lang),
+        d1Mod: MOD[d1Modality].label,
+        d10Sign: rName(d10TenthSign, lang),
+      }),
+      source: T.tenthSignSource,
     },
     livelihood: {
-      method:
-        'Phaladeepika takes the strongest among the 10th lord, planets in the 10th, planets aspecting the 10th, and the lord of the Navamsha occupied by the 10th lord. Uttara Kalamrita stresses that Navamsha lord. The 10th from Moon and from Sun are supporting checks (BPHS chandra and surya lagna).',
+      method: T.livMethod,
       winner,
       candidates: d1Candidates,
       prediction: livelihoodPrediction,
@@ -801,25 +940,8 @@ export function buildDashamsaClassical(
     timing,
     phala,
     predictions,
-    readingOrder: [
-      'Confirm D1 first. Dashamsha does not replace the birth chart — BPHS uses it for mahatphala on top of the rashi promise.',
-      'Name the Phaladeepika livelihood planet from the four pointers, with the Navamsha lord included when D9 is present.',
-      'Read that planet’s Dashamsha house as how the profession fruits.',
-      'Read the D10 10th lord’s house (BPHS bhava phala) for the shape of status.',
-      'Apply natal planet-in-house and planet-in-rashi phala to the D10 placements of the career lords.',
-      'Note chara, sthira, or dvisvabhava of the D10 10th — changes, one profession, or two tracks.',
-      'Keep only the yogas that are formed: Dharma-Karmadhipati, Digbala, Vargottama, Neecha Bhanga, Viparita, Budhaditya, shared 10th/11th lord.',
-      'Place the Amatyakaraka in D10. That is the Jaimini minister’s post.',
-      'Time the above with Vimshottari of the 10th lord, the livelihood planet, and the Amatyakaraka.',
-    ],
-    sources: [
-      'BPHS — Dashamsha is mahatphala; 10th-lord results; Digbala; Dharma-Karmadhipati; Neecha Bhanga; Viparita; Budhaditya; Vargottama',
-      'Phaladeepika — livelihood from the strongest of the 10th lord, occupants, aspectors, and the Navamsha lord of the 10th lord',
-      'Uttara Kalamrita — Navamsha of the 10th lord for profession',
-      'Saravali and Brihat Jataka — movable, fixed, or dual 10th',
-      'Jaimini — Amatyakaraka as the career significator',
-      'BPHS / Phaladeepika / Saravali — planet-in-rashi and planet-in-bhava phala applied inside Dashamsha',
-    ],
+    readingOrder: [T.ro1, T.ro2, T.ro3, T.ro4, T.ro5, T.ro6, T.ro7, T.ro8, T.ro9],
+    sources: [T.src1, T.src2, T.src3, T.src4, T.src5, T.src6],
   }
 }
 
@@ -833,15 +955,17 @@ function buildPhala(
     livelihoodId: GrahaId
     amkId: GrahaId | null
   },
+  lang: EngineLang,
+  T: D10Text,
 ): DashamsaPhala {
   const d1ById = new Map(chart.grahas?.map((g) => [g.id, g]) ?? [])
   const roleOf = (id: GrahaId): string | null => {
     const roles: string[] = []
-    if (id === keys.lagnaLordId) roles.push('D10 lagna lord')
-    if (id === keys.tenthLordId) roles.push('D10 10th lord')
-    if (id === keys.eleventhLordId) roles.push('D10 11th lord')
-    if (id === keys.livelihoodId) roles.push('livelihood planet')
-    if (keys.amkId && id === keys.amkId) roles.push('Amatyakaraka')
+    if (id === keys.lagnaLordId) roles.push(T.roleLagna)
+    if (id === keys.tenthLordId) roles.push(T.roleTenth)
+    if (id === keys.eleventhLordId) roles.push(T.role11)
+    if (id === keys.livelihoodId) roles.push(T.roleLivelihood)
+    if (keys.amkId && id === keys.amkId) roles.push(T.roleAmk)
     return roles.length ? roles.join(' · ') : null
   }
   const priorityIds = new Set<GrahaId>([
@@ -852,13 +976,13 @@ function buildPhala(
     ...(keys.amkId ? [keys.amkId] : []),
   ])
 
-  const deep = getRashiDeepGuide(analysis.d10Lagna)
+  const deep = getRashiDeepGuide(analysis.d10Lagna, lang)
   const lagna = {
     rashi: analysis.d10Lagna,
     rashiName: analysis.d10LagnaName,
-    keyword: deep?.keyword ?? 'livelihood',
+    keyword: deep?.keyword ?? T.keywordFallback,
     careers: deep?.careers.slice(0, 8) ?? [],
-    classical: getRashiClassical(analysis.d10Lagna),
+    classical: classicalNotesInLang(getRashiClassical(analysis.d10Lagna), lang),
     traits: [
       ...(deep?.positiveTraits.slice(0, 2) ?? []),
       ...(deep?.behavioralNotes.slice(0, 1) ?? []),
@@ -872,9 +996,9 @@ function buildPhala(
       house,
       rashi: row.rashi,
       rashiName: row.rashiName,
-      d10Theme: HOUSE_THEMES_D10[house] ?? row.theme,
-      signInHouse: getSignInHouse(house, row.rashi),
-      houseClassical: getHouseClassical(house).slice(0, 2),
+      d10Theme: row.theme || HOUSE_THEMES_D10[house] || fill(T.d10HouseTheme, { house }),
+      signInHouse: getSignInHouse(house, row.rashi, lang),
+      houseClassical: classicalNotesInLang(getHouseClassical(house).slice(0, 2), lang),
       occupants: row.occupants.map((o) => o.name),
     }
   })
@@ -883,22 +1007,26 @@ function buildPhala(
     .filter((p) => CLASSICAL.includes(p.id))
     .map((p) => {
       const natal = d1ById.get(p.id)
-      const houseTeaching = getPlanetInHouse(p.id, p.d10House, 'summary')
-      const houseClassical = getPlanetInHouseClassical(p.id, p.d10House)
-      const signClassical = getDignityAwarePlanetInSign(
-        p.id,
-        p.d10Rashi,
-        p.d10Dignity,
-        natal?.isCombust,
-        natal?.isRetro,
-      )
-      const d10Theme = HOUSE_THEMES_D10[p.d10House] ?? `D10 house ${p.d10House}`
+      const houseTeaching = getPlanetInHouse(p.id, p.d10House, 'summary', lang)
+      const houseClassical = classicalNotesInLang(getPlanetInHouseClassical(p.id, p.d10House), lang)
+      const signClassical = localizeRefs(classicalNotesInLang(
+        getDignityAwarePlanetInSign(
+          p.id,
+          p.d10Rashi,
+          p.d10Dignity,
+          natal?.isCombust,
+          natal?.isRetro,
+        ),
+        lang,
+      ), lang)
+      const houseRow = analysis.houses[p.d10House - 1]
+      const d10Theme = houseRow?.theme || HOUSE_THEMES_D10[p.d10House] || fill(T.d10HouseTheme, { house: p.d10House })
       const careerLens = [
         houseTeaching
-          ? `${p.name} in D10 H${p.d10House}: ${houseTeaching}`
-          : `${p.name} in D10 H${p.d10House} (${d10Theme}).`,
+          ? fill(T.careerLensHouse, { name: p.name, house: p.d10House, teaching: houseTeaching })
+          : fill(T.careerLensFallback, { name: p.name, house: p.d10House, theme: d10Theme }),
         signClassical[0]
-          ? `In ${p.d10RashiName}: ${signClassical[0].text}`
+          ? fill(T.careerLensSign, { rashi: p.d10RashiName, text: signClassical[0].text })
           : null,
       ].filter(Boolean).join(' ')
 
@@ -930,8 +1058,7 @@ function buildPhala(
   const otherPlanets = planetPhalas.filter((p) => !p.priority)
 
   return {
-    framing:
-      'The same BPHS / Phaladeepika / Saravali planet-in-house and planet-in-rashi tables used on the birth chart are read on Dashamsha placements. House meanings stay career-scoped by the D10 house themes.',
+    framing: T.phalaFraming,
     lagna,
     keyHouses,
     priorityPlanets,
@@ -944,35 +1071,52 @@ function luminary(
   grahaRashi: Rashi,
   d10Lagna: Rashi,
   planets: DashamsaPlanetRow[],
+  T: D10Text,
+  lang: EngineLang,
 ): LuminaryKarma {
   const sign = houseSign(grahaRashi, 10)
   const lord = SIGN_LORDS[sign]
   const occupants = planets.filter((p) => p.d10Rashi === sign).map((p) => p.name)
   const houseFromLagna = houseFrom(sign, d10Lagna)
-  const face = from === 'Moon' ? 'public reputation' : 'authority and the state'
+  const face = from === 'Moon' ? T.lumMoonFace : T.lumSunFace
+  const fromLabel = gName(from === 'Moon' ? 'Mo' : 'Su', lang)
+  const occPart = occupants.length ? fill(T.lumWithOcc, { names: occupants.join(', ') }) : ''
   return {
     from,
-    signName: RASHI_NAMES[sign],
+    signName: rName(sign, lang),
     houseFromLagna,
-    lordName: GRAHA_NAMES[lord],
+    lordName: gName(lord, lang),
     occupants,
-    prediction: `10th from ${from} in Dashamsha is ${RASHI_NAMES[sign]} (H${houseFromLagna}), lord ${GRAHA_NAMES[lord]}${occupants.length ? `, with ${occupants.join(', ')}` : ''}. This is the ${face} face of the same mahatphala.`,
+    prediction: fill(T.lumPred, {
+      from: fromLabel,
+      sign: rName(sign, lang),
+      house: houseFromLagna,
+      lord: gName(lord, lang),
+      occupants: occPart,
+      face,
+    }),
   }
 }
 
-function amkPrediction(row: DashamsaPlanetRow): string {
+function amkPrediction(row: DashamsaPlanetRow, T: D10Text, lang: EngineLang): string {
   const place = [1, 4, 7, 10].includes(row.d10House)
-    ? 'in a kendra (angular houses: 1, 4, 7, 10) — the career significator is visible'
+    ? T.amkPlaceKendra
     : [5, 9].includes(row.d10House)
-      ? 'in a trikona (trine houses: 1, 5, 9) — the career significator is tied to dharma, students, or fortune'
+      ? T.amkPlaceTrikona
       : row.d10House === 11
-        ? 'in the 11th — gains and networks are how the minister works'
+        ? T.amkPlace11
         : row.d10House === 10
-          ? 'in the 10th — the profession is the life'
+          ? T.amkPlace10
           : [6, 8, 12].includes(row.d10House)
-            ? 'in a dusthana (difficult houses: 6, 8, 12) — service under pressure, hidden work, or a career of fixing what is broken'
-            : 'supporting the profession from effort, speech, or courage'
-  return `Jaimini: Amatyakaraka ${row.name} in D10 ${row.d10RashiName} H${row.d10House} (${row.d10Dignity.replace(/_/g, ' ')}) is ${place}. Judge the post from this house, and the kind of work from the Phaladeepika planet.`
+            ? T.amkPlaceDusthana
+            : T.amkPlaceOther
+  return fill(T.amkPred, {
+    name: row.name,
+    rashi: row.d10RashiName,
+    house: row.d10House,
+    dignity: dignityText(row.d10Dignity, lang),
+    place,
+  })
 }
 
 function mahatFactors(input: {
@@ -982,81 +1126,91 @@ function mahatFactors(input: {
   amkRow: DashamsaPlanetRow | undefined
   beneficAspect: boolean
   occupants: { id: GrahaId }[]
+  T: D10Text
+  lang: EngineLang
 }): MahatFactor[] {
   const factors: MahatFactor[] = []
-  const { lagnaLordRow, tenthLordRow, yogas } = input
+  const { lagnaLordRow, tenthLordRow, yogas, T, lang } = input
+  const dig = (d: Dignity) => dignityText(d, lang)
   const formed = (id: string) => yogas.find((y) => y.id === id)?.formed ?? false
 
   if (lagnaLordRow) {
     const pts = dignityPoints(lagnaLordRow.d10Dignity)
     factors.push({
-      label: 'D10 lagna lord',
+      label: T.mfLagnaLord,
       points: pts,
-      note: `${lagnaLordRow.name} is ${lagnaLordRow.d10Dignity.replace(/_/g, ' ')} in house ${lagnaLordRow.d10House}.`,
+      note: fill(T.mfLagnaNote, {
+        name: lagnaLordRow.name,
+        dignity: dig(lagnaLordRow.d10Dignity),
+        house: lagnaLordRow.d10House,
+      }),
     })
   }
   factors.push({
-    label: 'D10 10th lord dignity',
+    label: T.mfTenthDig,
     points: dignityPoints(tenthLordRow.d10Dignity),
-    note: `${tenthLordRow.name} is ${tenthLordRow.d10Dignity.replace(/_/g, ' ')}.`,
+    note: fill(T.mfTenthDigNote, {
+      name: tenthLordRow.name,
+      dignity: dig(tenthLordRow.d10Dignity),
+    }),
   })
   factors.push({
-    label: 'D10 10th lord’s house',
+    label: T.mfTenthHouse,
     points: housePoints(tenthLordRow.d10House),
-    note: `House ${tenthLordRow.d10House} of the karma lord.`,
+    note: fill(T.mfTenthHouseNote, { house: tenthLordRow.d10House }),
   })
   if (input.occupants.some((o) => o.id === 'Su' || o.id === 'Ma')) {
     factors.push({
-      label: 'Digbala in the D10 10th',
+      label: T.mfDigbala,
       points: 8,
-      note: 'Sun or Mars in the Dashamsha 10th (BPHS directional strength).',
+      note: T.mfDigbalaNote,
     })
   }
   if (formed('dharma-karmadhipati')) {
     factors.push({
-      label: 'Dharma-Karmadhipati',
+      label: T.mfDk,
       points: 12,
-      note: '9th and 10th lords are connected in D10.',
+      note: T.mfDkNote,
     })
   }
   if (tenthLordRow.isVargottama) {
     factors.push({
-      label: 'Vargottama 10th lord',
+      label: T.mfVgTenth,
       points: 8,
-      note: `${tenthLordRow.name} repeats its natal sign in Dashamsha.`,
+      note: fill(T.mfVgTenthNote, { name: tenthLordRow.name }),
     })
   }
   if (lagnaLordRow?.isVargottama) {
     factors.push({
-      label: 'Vargottama lagna lord',
+      label: T.mfVgLagna,
       points: 6,
-      note: `${lagnaLordRow.name} repeats its natal sign in Dashamsha.`,
+      note: fill(T.mfVgLagnaNote, { name: lagnaLordRow.name }),
     })
   }
   if (formed('neecha-bhanga')) {
     const yoga = yogasTone(yogas, 'neecha-bhanga')
     factors.push({
-      label: 'Neecha Bhanga',
+      label: T.mfNeecha,
       points: yoga === 'supportive' ? 6 : yoga === 'challenging' ? -10 : 0,
       note: yoga === 'supportive'
-        ? 'Debility of a career lord is cancelled.'
+        ? T.mfNeechaCancel
         : yoga === 'challenging'
-          ? 'Debility stands without cancellation.'
-          : 'Debility is only partly cancelled.',
+          ? T.mfNeechaStand
+          : T.mfNeechaPartial,
     })
   }
   if (input.amkRow && [1, 4, 5, 7, 9, 10, 11].includes(input.amkRow.d10House)) {
     factors.push({
-      label: 'Amatyakaraka well placed',
+      label: T.mfAmk,
       points: 6,
-      note: `${input.amkRow.name} in D10 H${input.amkRow.d10House}.`,
+      note: fill(T.mfAmkNote, { name: input.amkRow.name, house: input.amkRow.d10House }),
     })
   }
   if (input.beneficAspect) {
     factors.push({
-      label: 'Helpful drishti (aspect) on the D10 10th',
+      label: T.mfDrishti,
       points: 4,
-      note: 'Jupiter, Venus, or the Moon aspects the karma sign.',
+      note: T.mfDrishtiNote,
     })
   }
   return factors
@@ -1078,11 +1232,15 @@ function buildYogas(ctx: {
   moonRashi: Rashi | null
   amk: GrahaId | null
   byId: Map<GrahaId, DashamsaPlanetRow>
+  T: D10Text
+  lang: EngineLang
 }): ClassicalYoga[] {
   const {
     planets, d10TenthLord, d10NinthLord, d10EleventhLord, d10LagnaLord,
-    tenthLordRow, lagnaLordRow, byId,
+    tenthLordRow, lagnaLordRow, byId, T, lang,
   } = ctx
+  const g = (id: GrahaId) => gName(id, lang)
+  const dig = (d: Dignity) => dignityText(d, lang)
   const ninth = byId.get(d10NinthLord)
   const eleventh = byId.get(d10EleventhLord)
 
@@ -1096,11 +1254,19 @@ function buildYogas(ctx: {
     : false
   const sameLord910 = d10NinthLord === d10TenthLord
   const dk = Boolean(sameLord910 || conjunct || exchange9 || aspect9)
-  let dkHow = '9th and 10th lords are not in sambandha.'
-  if (sameLord910) dkHow = `${GRAHA_NAMES[d10TenthLord]} owns both the 9th and the 10th — the yoga is in the lordship itself.`
-  else if (conjunct) dkHow = `${ninth!.name} and ${tenthLordRow.name} join in ${tenthLordRow.d10RashiName}.`
-  else if (exchange9) dkHow = `${GRAHA_NAMES[d10NinthLord]} and ${tenthLordRow.name} exchange signs.`
-  else if (aspect9) dkHow = `${GRAHA_NAMES[d10NinthLord]} and ${tenthLordRow.name} are in graha drishti.`
+  let dkHow = T.dkNotSambandha
+  if (sameLord910) dkHow = fill(T.dkSameLord, { planet: g(d10TenthLord) })
+  else if (conjunct) {
+    dkHow = fill(T.dkConjunct, {
+      ninth: ninth!.name,
+      tenth: tenthLordRow.name,
+      sign: tenthLordRow.d10RashiName,
+    })
+  } else if (exchange9) {
+    dkHow = fill(T.dkExchange, { ninth: g(d10NinthLord), tenth: tenthLordRow.name })
+  } else if (aspect9) {
+    dkHow = fill(T.dkAspect, { ninth: g(d10NinthLord), tenth: tenthLordRow.name })
+  }
 
   const digbalaOccupants = planets.filter((p) => p.d10House === 10 && (p.id === 'Su' || p.id === 'Ma'))
   const ownInTenth = planets.filter((p) =>
@@ -1113,7 +1279,7 @@ function buildYogas(ctx: {
   const neecha = neechaReport(ctx.moonRashi, byId, [
     d10TenthLord, d10LagnaLord, 'Su', 'Sa', 'Me', 'Ju', 'Ma', 'Ve', 'Mo',
     ...(ctx.amk ? [ctx.amk] : []),
-  ])
+  ], T)
 
   const same1011 = d10TenthLord === d10EleventhLord
   const labha = Boolean(
@@ -1125,143 +1291,132 @@ function buildYogas(ctx: {
   const parivartana1011 = eleventh ? exchanges(d10TenthLord, d10EleventhLord, byId) : false
   const parivartana910 = exchange9
 
-  const vip = viparita(ctx.d10Lagna, byId)
+  const vip = viparita(ctx.d10Lagna, byId, T)
   const vgNames = [lagnaLordRow, tenthLordRow].filter((p) => p?.isVargottama).map((p) => p!.name)
   const amkRow = ctx.amk ? byId.get(ctx.amk) : undefined
   const amkStrong = Boolean(amkRow && [1, 4, 5, 7, 9, 10, 11].includes(amkRow.d10House))
 
+  const ownDetail = ownInTenth
+    .map((p) => fill(T.ySwPlanet, { name: p.name, dignity: dig(p.d10Dignity) }))
+    .join(', ')
+
   const yogas: ClassicalYoga[] = [
     {
       id: 'dharma-karmadhipati',
-      name: 'Dharma-Karmadhipati',
-      source: 'BPHS raja yoga',
+      name: T.yDkName,
+      source: T.yDkSrc,
       formed: dk,
       tone: dk ? 'supportive' : 'neutral',
-      prediction: dk
-        ? `${dkHow} Dharma-Karmadhipati in the Dashamsha: fortune and profession move together. The rise is cleaner when the work can be defended as right.`
-        : 'Dharma-Karmadhipati is not formed — 9th and 10th lords are neither the same planet nor joined by conjunction, aspect, or exchange.',
+      prediction: dk ? fill(T.yDkYes, { how: dkHow }) : T.yDkNo,
     },
     {
       id: 'digbala-d10',
-      name: 'Digbala in the 10th',
-      source: 'BPHS digbala, read in Dashamsha',
+      name: T.yDigName,
+      source: T.yDigSrc,
       formed: digbalaOccupants.length > 0,
       tone: digbalaOccupants.length ? 'supportive' : 'neutral',
       prediction: digbalaOccupants.length
-        ? `${digbalaOccupants.map((p) => p.name).join(' and ')} in the Dashamsha 10th has directional strength. Authority or technical command is part of the post, not an accident.`
-        : 'Neither Sun nor Mars occupies the Dashamsha 10th, so karma-digbala is not formed there.',
+        ? fill(T.yDigYes, { names: digbalaOccupants.map((p) => p.name).join(lang === 'hi' ? ' और ' : ' and ') })
+        : T.yDigNo,
     },
     {
       id: 'swakshetra-tenth',
-      name: 'Own or exalted planet in the 10th',
-      source: 'BPHS — dignified graha in the karma house',
+      name: T.ySwName,
+      source: T.ySwSrc,
       formed: ownInTenth.length > 0,
       tone: ownInTenth.length ? 'supportive' : 'neutral',
-      prediction: ownInTenth.length
-        ? `${ownInTenth.map((p) => `${p.name} (${p.d10Dignity.replace(/_/g, ' ')})`).join(', ')} sits in the Dashamsha 10th. The profession has a seat of its own strength.`
-        : 'No planet is in own sign, moolatrikona, or exaltation in the Dashamsha 10th.',
+      prediction: ownInTenth.length ? fill(T.ySwYes, { detail: ownDetail }) : T.ySwNo,
     },
     {
       id: 'budhaditya',
-      name: 'Budha-Aditya',
-      source: 'BPHS',
+      name: T.yBudhaName,
+      source: T.yBudhaSrc,
       formed: budha,
       tone: budha ? 'supportive' : 'neutral',
-      prediction: budha
-        ? `Sun and Mercury join in D10 ${sun!.d10RashiName}. Skill, counsel, writing, and commerce serve the career. If Mercury is combust in the birth chart, the skill is real and the credit is shared upward.`
-        : 'Sun and Mercury are not conjunct in Dashamsha.',
+      prediction: budha ? fill(T.yBudhaYes, { sign: sun!.d10RashiName }) : T.yBudhaNo,
     },
     {
       id: 'neecha-bhanga',
-      name: neecha.cancelled ? 'Neecha Bhanga' : 'Debility in the career lords',
-      source: 'BPHS neecha bhanga',
+      name: neecha.cancelled ? T.yNeechaBhanga : T.yNeechaDebil,
+      source: T.yNeechaSrc,
       formed: neecha.planets.length > 0,
       tone: !neecha.planets.length ? 'neutral' : neecha.cancelled ? 'supportive' : neecha.partial ? 'mixed' : 'challenging',
-      prediction: neecha.planets.length
-        ? neecha.text
-        : 'No key career planet is debilitated in Dashamsha, so Neecha Bhanga is not in question.',
+      prediction: neecha.planets.length ? neecha.text : T.yNeechaNone,
     },
     {
       id: 'karma-labha-lord',
-      name: 'One lord for karma and gains',
-      source: 'BPHS lordship of the 10th and 11th',
+      name: T.yKarmaLabhaName,
+      source: T.yKarmaLabhaSrc,
       formed: same1011,
       tone: same1011 ? 'mixed' : 'neutral',
       prediction: same1011
-        ? `${GRAHA_NAMES[d10TenthLord]} owns both the Dashamsha 10th and 11th. Work and income are the same planet — gains follow the karma, and that planet’s delays or dignity hit both.`
-        : 'The 10th and 11th have different lords.',
+        ? fill(T.yKarmaLabhaYes, { planet: g(d10TenthLord) })
+        : T.yKarmaLabhaNo,
     },
     {
       id: 'labha-link',
-      name: '10th–11th income link',
-      source: 'BPHS — karma lord and labha',
+      name: T.yLabhaName,
+      source: T.yLabhaSrc,
       formed: labha && !same1011,
       tone: labha && !same1011 ? 'supportive' : 'neutral',
-      prediction: labha && !same1011
-        ? 'The 10th lord and 11th lord are linked by house or exchange. Income is a direct fruit of the profession.'
-        : 'No separate 10th–11th exchange or mutual house placement.',
+      prediction: labha && !same1011 ? T.yLabhaYes : T.yLabhaNo,
     },
     {
       id: 'parivartana-9-10',
-      name: 'Parivartana of 9th and 10th',
-      source: 'BPHS exchange',
+      name: T.yPar910Name,
+      source: T.yPar910Src,
       formed: parivartana910,
       tone: parivartana910 ? 'supportive' : 'neutral',
-      prediction: parivartana910
-        ? '9th and 10th lords exchange. Dharma-Karmadhipati by parivartana — fortune and work trade places.'
-        : '9th and 10th lords do not exchange signs.',
+      prediction: parivartana910 ? T.yPar910Yes : T.yPar910No,
     },
     {
       id: 'parivartana-1-10',
-      name: 'Parivartana of lagna and 10th',
-      source: 'BPHS exchange',
+      name: T.yPar110Name,
+      source: T.yPar110Src,
       formed: parivartana110,
       tone: parivartana110 ? 'supportive' : 'neutral',
-      prediction: parivartana110
-        ? 'Lagna lord and 10th lord exchange. The person and the profession are one story — self-made status.'
-        : 'Lagna lord and 10th lord do not exchange.',
+      prediction: parivartana110 ? T.yPar110Yes : T.yPar110No,
     },
     {
       id: 'parivartana-10-11',
-      name: 'Parivartana of 10th and 11th',
-      source: 'BPHS exchange',
+      name: T.yPar1011Name,
+      source: T.yPar1011Src,
       formed: parivartana1011,
       tone: parivartana1011 ? 'supportive' : 'neutral',
-      prediction: parivartana1011
-        ? '10th and 11th lords exchange. Gains and profession reinforce each other.'
-        : '10th and 11th lords do not exchange.',
+      prediction: parivartana1011 ? T.yPar1011Yes : T.yPar1011No,
     },
     {
       id: 'viparita',
-      name: 'Viparita in the career chart',
-      source: 'BPHS Harsha, Sarala, Vimala',
+      name: T.yVipName,
+      source: T.yVipSrc,
       formed: vip.formed,
       tone: vip.formed ? 'mixed' : 'neutral',
-      prediction: vip.formed
-        ? vip.text
-        : 'Dusthana (difficult houses: 6, 8, 12) lords are not placed in another dusthana, so Viparita is not lifting the career through crisis.',
+      prediction: vip.formed ? vip.text : T.yVipNo,
     },
     {
       id: 'vargottama-karma',
-      name: 'Vargottama career lords',
-      source: 'BPHS vargottama',
+      name: T.yVgName,
+      source: T.yVgSrc,
       formed: vgNames.length > 0,
       tone: vgNames.length ? 'supportive' : 'neutral',
       prediction: vgNames.length
-        ? `${vgNames.join(' and ')} ${vgNames.length > 1 ? 'keep' : 'keeps'} the same sign in D1 and D10. The career promise repeats instead of splitting. A vargottama debility repeats the fall-and-rise pattern; it does not erase it.`
-        : 'Neither the Dashamsha lagna lord nor the 10th lord is vargottama.',
+        ? fill(T.yVgYes, {
+            names: vgNames.join(lang === 'hi' ? ' और ' : ' and '),
+            keep: vgNames.length > 1 ? T.yVgKeep : T.yVgKeeps,
+          })
+        : T.yVgNo,
     },
     {
       id: 'amk-strength',
-      name: 'Amatyakaraka in a strong D10 house',
-      source: 'Jaimini',
+      name: T.yAmkName,
+      source: T.yAmkSrc,
       formed: amkStrong,
       tone: amkStrong ? 'supportive' : 'neutral',
       prediction: amkRow
         ? amkStrong
-          ? `Amatyakaraka ${amkRow.name} in D10 H${amkRow.d10House} can act — kendra (angular houses: 1, 4, 7, 10), trikona (trine houses: 1, 5, 9), or gains.`
-          : `Amatyakaraka ${amkRow.name} is in D10 H${amkRow.d10House}, outside kendra (angular houses: 1, 4, 7, 10), trikona (trine houses: 1, 5, 9), and the 11th. The minister works indirectly.`
-        : 'Amatyakaraka is not on this chart.',
+          ? fill(T.yAmkYesStrong, { name: amkRow.name, house: amkRow.d10House })
+          : fill(T.yAmkYesWeak, { name: amkRow.name, house: amkRow.d10House })
+        : T.yAmkNoChart,
     },
   ]
 
@@ -1284,6 +1439,7 @@ function neechaReport(
   moonRashi: Rashi | null,
   byId: Map<GrahaId, DashamsaPlanetRow>,
   relevant: GrahaId[],
+  T: D10Text,
 ): { planets: string[]; cancelled: boolean; partial: boolean; text: string } {
   const hits: { name: string; cancelled: boolean; reason: string }[] = []
   const seen = new Set<GrahaId>()
@@ -1310,10 +1466,16 @@ function neechaReport(
     )
     const bits: string[] = []
     if (fromLagnaDisp || fromMoonDisp) {
-      bits.push(`${dispositor!.name}, lord of the fall sign, is in a kendra (angular houses: 1, 4, 7, 10) from ${fromLagnaDisp ? 'D10 lagna' : 'D10 Moon'}`)
+      bits.push(fill(T.neechaDisp, {
+        name: dispositor!.name,
+        from: fromLagnaDisp ? T.neechaFromLagna : T.neechaFromMoon,
+      }))
     }
     if (fromLagnaEx || fromMoonEx) {
-      bits.push(`${exaltRow!.name}, exalted in that sign, is in a kendra (angular houses: 1, 4, 7, 10) from ${fromLagnaEx ? 'D10 lagna' : 'D10 Moon'}`)
+      bits.push(fill(T.neechaExalt, {
+        name: exaltRow!.name,
+        from: fromLagnaEx ? T.neechaFromLagna : T.neechaFromMoon,
+      }))
     }
     hits.push({
       name: row.name,
@@ -1325,8 +1487,8 @@ function neechaReport(
   const cancelledCount = hits.filter((h) => h.cancelled).length
   const text = hits.map((h) =>
     h.cancelled
-      ? `${h.name} is debilitated in Dashamsha and cancellation applies — ${h.reason}. BPHS: rise after the fall, especially in the dispositor (ruler of the sign it sits in)’s dasha.`
-      : `${h.name} is debilitated in Dashamsha without neecha bhanga. The career needs the dispositor (ruler of the sign it sits in)’s support; do not expect the fall to cancel itself.`,
+      ? fill(T.neechaCancelled, { name: h.name, reason: h.reason })
+      : fill(T.neechaUncancelled, { name: h.name }),
   ).join(' ')
   return {
     planets: hits.map((h) => h.name),
@@ -1339,29 +1501,40 @@ function neechaReport(
 function viparita(
   d10Lagna: Rashi,
   byId: Map<GrahaId, DashamsaPlanetRow>,
+  T: D10Text,
 ): { formed: boolean; text: string } {
-  const checks: { name: string; lordHouse: number; houses: number[] }[] = [
-    { name: 'Harsha (6th lord)', lordHouse: 6, houses: [8, 12] },
-    { name: 'Sarala (8th lord)', lordHouse: 8, houses: [6, 12] },
-    { name: 'Vimala (12th lord)', lordHouse: 12, houses: [6, 8] },
+  const checks: { label: string; lordHouse: number; houses: number[] }[] = [
+    { label: T.vipHarsha, lordHouse: 6, houses: [8, 12] },
+    { label: T.vipSarala, lordHouse: 8, houses: [6, 12] },
+    { label: T.vipVimala, lordHouse: 12, houses: [6, 8] },
   ]
   const hits: string[] = []
   for (const c of checks) {
     const lord = SIGN_LORDS[houseSign(d10Lagna, c.lordHouse)]
     const row = byId.get(lord)
     if (row && c.houses.includes(row.d10House)) {
-      hits.push(`${c.name} ${row.name} is in house ${row.d10House}`)
+      hits.push(fill(T.vipHit, { label: c.label, name: row.name, house: row.d10House }))
     }
   }
   if (!hits.length) return { formed: false, text: '' }
   return {
     formed: true,
-    text: `${hits.join('; ')}. Viparita can lift status through crisis, rivalry, or loss — the fruit is real and the road is not comfortable.`,
+    text: fill(T.vipSummary, { hits: hits.join('; ') }),
   }
 }
 
+const DASHA_LEVEL_KEYS = [
+  'dashaLevel0',
+  'dashaLevel1',
+  'dashaLevel2',
+  'dashaLevel3',
+  'dashaLevel4',
+] as const satisfies readonly (keyof typeof D10C_TEXT_EN)[]
+
 function buildTiming(
   chart: ChartOutput,
+  lang: EngineLang,
+  T: D10Text,
   items: { id: string; title: string; planet: GrahaId; prediction: string }[],
 ): ClassicalTiming[] {
   const path = getDashaPathAt(chart.dashas?.vimshottari ?? [])
@@ -1371,17 +1544,24 @@ function buildTiming(
     if (seen.has(item.planet)) continue
     seen.add(item.planet)
     const seg = path.find((p) => p.lord === item.planet)
-    const level = ['', 'Maha', 'Antar', 'Pratyantar', 'Sukshma'][seg?.level ?? 0] ?? 'Dasha'
+    const levelKey = DASHA_LEVEL_KEYS[seg?.level ?? 0] ?? 'dashaLevel0'
+    const level = T[levelKey]
+    const planet = gName(item.planet, lang)
     out.push({
       id: item.id,
       title: item.title,
       live: Boolean(seg),
       window: seg
-        ? `${level} ${GRAHA_NAMES[item.planet]} is running until ${formatDay(seg.end)}.`
-        : `When ${GRAHA_NAMES[item.planet]}’s Vimshottari periods run.`,
+        ? fill(T.timingWindowLive, { level, planet, end: formatDay(seg.end) })
+        : fill(T.timingWindowFuture, { planet }),
       prediction: seg
-        ? `${level} ${GRAHA_NAMES[item.planet]} is live until ${formatDay(seg.end)}. ${item.prediction}`
-        : `${item.prediction} Watch ${GRAHA_NAMES[item.planet]} mahadasha and antardasha.`,
+        ? fill(T.timingPredLive, {
+            level,
+            planet,
+            end: formatDay(seg.end),
+            prediction: item.prediction,
+          })
+        : fill(T.timingPredFuture, { prediction: item.prediction, planet }),
     })
   }
   return out

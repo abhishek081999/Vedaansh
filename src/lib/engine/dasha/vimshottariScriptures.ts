@@ -9,7 +9,7 @@ import type { GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
 import { fill, type EngineLang } from '@/lib/engine/lang'
 import { GRAHA_HI } from '@/i18n/jyotish'
-import { MAHA_SCRIPTURES_HI, SCRIPTURE_REF_HI, SCRIPTURE_TPL_HI } from '@/lib/engine/locale/vimshottariScriptures.hi'
+import { ANTAR_SCRIPTURES_HI, MAHA_SCRIPTURES_HI, SCRIPTURE_REF_HI, SCRIPTURE_TPL_HI } from '@/lib/engine/locale/vimshottariScriptures.hi'
 
 function hiName(id: string): string {
   return GRAHA_HI[id as GrahaId] ?? id
@@ -551,6 +551,22 @@ export function getVimshottariMahaScriptures(lord: string, lang: EngineLang = 'e
   }))
 }
 
+/** Hindi twin of getVimshottariAntarScriptures: same passages, sources and order. */
+function antarScripturesHi(mahaLord: string, antarLord: string): ScripturePassage[] {
+  const key = `${mahaLord}-${antarLord}`
+  const pair = VIMSHOTTARI_ANTAR_SCRIPTURES[key]
+  if (!pair?.length) return synthesiseAntarScriptureHi(mahaLord, antarLord)
+  const hi = ANTAR_SCRIPTURES_HI[key] ?? []
+  const background = getVimshottariMahaScriptures(antarLord, 'hi').slice(0, 1).map(p => ({
+    ...p,
+    text: fill(SCRIPTURE_TPL_HI.antarBackground, { antar: hiName(antarLord), text: p.text }),
+  }))
+  return [
+    ...pair.map((p, i) => ({ ...p, ...(p.ref ? { ref: SCRIPTURE_REF_HI[p.ref] ?? p.ref } : {}), text: hi[i] ?? p.text })),
+    ...background,
+  ]
+}
+
 /** Hindi classical-hierarchy passages for an MD–AD pair. */
 function synthesiseAntarScriptureHi(mahaLord: string, antarLord: string): ScripturePassage[] {
   const T = SCRIPTURE_TPL_HI
@@ -598,15 +614,7 @@ export function getVimshottariPratyantarScriptures(
  * otherwise classical hierarchy synthesis (never the full AD-lord mahadasha essay alone).
  */
 export function getVimshottariAntarScriptures(mahaLord: string, antarLord: string, lang: EngineLang = 'en'): ScripturePassage[] {
-  if (lang === 'hi') {
-    // The 81-pair paraphrases are English-only for now; Hindi shows the classical
-    // hierarchy for the pair plus the antar lord's own mahadasha background.
-    const background = getVimshottariMahaScriptures(antarLord, 'hi').slice(0, 1).map(p => ({
-      ...p,
-      text: fill(SCRIPTURE_TPL_HI.antarBackground, { antar: hiName(antarLord), text: p.text }),
-    }))
-    return [...synthesiseAntarScriptureHi(mahaLord, antarLord), ...background]
-  }
+  if (lang === 'hi') return antarScripturesHi(mahaLord, antarLord)
   const key = `${mahaLord}-${antarLord}`
   const pair = VIMSHOTTARI_ANTAR_SCRIPTURES[key]
   if (pair?.length) {

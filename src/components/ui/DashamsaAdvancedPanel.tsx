@@ -8,6 +8,7 @@ import React from 'react'
 import type { CareerTone } from '@/lib/engine/dashamsaAnalysis'
 import type { DashamsaAdvanced } from '@/lib/engine/dashamsaAdvanced'
 import { cn } from '@/lib/ui/cn'
+import { useTranslations } from 'next-intl'
 import styles from './DashamsaWorkspace.module.css'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -30,6 +31,7 @@ function toneClass(tone: CareerTone): string {
 }
 
 export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced }) {
+  const t = useTranslations('divisional.d10.adv')
   const {
     framing,
     headline,
@@ -47,12 +49,12 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
 
   return (
     <>
-      <Section title="Advanced technical">
+      <Section title={t('title')}>
         <p className={styles.heroSub} style={{ marginBottom: '0.65rem', maxWidth: 'none' }}>
           {framing}
         </p>
         <article className={cn(styles.insightCard, styles.insightHighlight)}>
-          <h4 className={styles.insightTitle}>Headline</h4>
+          <h4 className={styles.insightTitle}>{t('headline')}</h4>
           <p className={styles.insightText}>{headline}</p>
         </article>
         <div className={styles.insightGrid} style={{ marginTop: '0.75rem' }}>
@@ -64,7 +66,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
         </div>
       </Section>
 
-      <Section title="Dispositor chains">
+      <Section title={t('dispositors')}>
         {dispositor.map((chain) => (
           <article
             key={chain.startId + chain.role}
@@ -75,7 +77,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
               {chain.startName}
               <span className={cn(styles.pill, styles.pillPk)} style={{ marginLeft: 8 }}>{chain.role}</span>
               {chain.cyclic && (
-                <span className={cn(styles.pill, styles.pillWeak)} style={{ marginLeft: 6 }}>loop</span>
+                <span className={cn(styles.pill, styles.pillWeak)} style={{ marginLeft: 6 }}>{t('loop')}</span>
               )}
             </h4>
             <p className={styles.insightText} style={{ fontFamily: 'var(--font-mono, ui-monospace)', fontSize: '0.8rem' }}>
@@ -86,7 +88,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
         ))}
       </Section>
 
-      <Section title="Graha drishti on D10">
+      <Section title={t('drishti')}>
         <article className={cn(styles.insightCard, styles.insightInfo)} style={{ marginBottom: '0.65rem' }}>
           <p className={styles.insightText}>{drishti.prediction}</p>
         </article>
@@ -94,17 +96,17 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Target</th>
-                <th>Planet</th>
-                <th>From</th>
-                <th>Aspect</th>
-                <th>Note</th>
+                <th>{t('thTarget')}</th>
+                <th>{t('thPlanet')}</th>
+                <th>{t('thFrom')}</th>
+                <th>{t('thAspect')}</th>
+                <th>{t('thNote')}</th>
               </tr>
             </thead>
             <tbody>
               {drishti.onTenth.map((h) => (
                 <tr key={`10-${h.id}`}>
-                  <td>10th</td>
+                  <td>{t('tenth')}</td>
                   <td className={styles.planetCell}>{h.name}</td>
                   <td>H{h.fromHouse}</td>
                   <td><span className={cn(styles.pill, toneClass(h.tone) === styles.insightStrength ? styles.pillStrong : styles.pillPk)}>{h.aspectLabel}</span></td>
@@ -113,7 +115,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
               ))}
               {drishti.onLagna.map((h) => (
                 <tr key={`1-${h.id}`}>
-                  <td>Lagna</td>
+                  <td>{t('lagna')}</td>
                   <td className={styles.planetCell}>{h.name}</td>
                   <td>H{h.fromHouse}</td>
                   <td><span className={cn(styles.pill, styles.pillPk)}>{h.aspectLabel}</span></td>
@@ -122,7 +124,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
               ))}
               {!drishti.onTenth.length && !drishti.onLagna.length && (
                 <tr>
-                  <td colSpan={5} style={{ color: 'var(--text-muted)' }}>No full aspects on D10 10th or lagna.</td>
+                  <td colSpan={5} style={{ color: 'var(--text-muted)' }}>{t('noAspects')}</td>
                 </tr>
               )}
             </tbody>
@@ -130,7 +132,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
         </div>
       </Section>
 
-      <Section title="Natal Shadbala · career lords">
+      <Section title={t('shadbala')}>
         <p className={styles.heroSub} style={{ marginBottom: '0.55rem', maxWidth: 'none' }}>
           {shadbala.prediction}
         </p>
@@ -138,12 +140,12 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Planet</th>
-                <th>Role</th>
-                <th>Ratio</th>
-                <th>Band</th>
-                <th>Dig</th>
-                <th>Read</th>
+                <th>{t('thPlanet')}</th>
+                <th>{t('thRole')}</th>
+                <th>{t('thRatio')}</th>
+                <th>{t('thBand')}</th>
+                <th>{t('thDig')}</th>
+                <th>{t('thRead')}</th>
               </tr>
             </thead>
             <tbody>
@@ -164,7 +166,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
         </div>
       </Section>
 
-      <Section title="Bhava bala · 10th & 11th">
+      <Section title={t('bhavaBala')}>
         <p className={styles.heroSub} style={{ marginBottom: '0.55rem', maxWidth: 'none' }}>
           {bhavaBala.prediction}
         </p>
@@ -183,13 +185,13 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
           )}
           {!bhavaBala.tenth && !bhavaBala.eleventh && (
             <article className={cn(styles.insightCard, styles.insightInfo)}>
-              <p className={styles.insightText}>Bhava bala not on this chart — recalculate to attach house strength.</p>
+              <p className={styles.insightText}>{t('noBhava')}</p>
             </article>
           )}
         </div>
       </Section>
 
-      <Section title="Sarvashtakavarga · career houses">
+      <Section title={t('sav')}>
         <p className={styles.heroSub} style={{ marginBottom: '0.55rem', maxWidth: 'none' }}>
           {ashtakavarga.prediction}
         </p>
@@ -208,16 +210,16 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
         </div>
       </Section>
 
-      <Section title="Chara karakas in D10">
+      <Section title={t('karakas')}>
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Planet</th>
-                <th>D10 house</th>
-                <th>Sign</th>
-                <th>Career note</th>
+                <th>{t('thCode')}</th>
+                <th>{t('thPlanet')}</th>
+                <th>{t('thHouse')}</th>
+                <th>{t('thSign')}</th>
+                <th>{t('thCareerNote')}</th>
               </tr>
             </thead>
             <tbody>
@@ -232,7 +234,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
               ))}
               {!karakas.length && (
                 <tr>
-                  <td colSpan={5} style={{ color: 'var(--text-muted)' }}>No chara karakas on this payload.</td>
+                  <td colSpan={5} style={{ color: 'var(--text-muted)' }}>{t('noKarakas')}</td>
                 </tr>
               )}
             </tbody>
@@ -240,7 +242,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
         </div>
       </Section>
 
-      <Section title="Dignity & special flags">
+      <Section title={t('flags')}>
         <div className={styles.insightGrid}>
           {flags.map((f) => (
             <article key={f.id} className={cn(styles.insightCard, styles.insightInfo)}>
@@ -261,7 +263,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
         </div>
       </Section>
 
-      <Section title="D10 raja · kendra–trikona links">
+      <Section title={t('raja')}>
         <div className={styles.insightGrid}>
           {raja.map((r) => (
             <article
@@ -283,7 +285,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
         </div>
       </Section>
 
-      <Section title="Career dasha timeline">
+      <Section title={t('timeline')}>
         <p className={styles.heroSub} style={{ marginBottom: '0.55rem', maxWidth: 'none' }}>
           {timeline.headline}
         </p>
@@ -291,11 +293,11 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Period</th>
-                <th>Lord</th>
-                <th>Window</th>
-                <th>Career</th>
-                <th>Note</th>
+                <th>{t('thPeriod')}</th>
+                <th>{t('thLord')}</th>
+                <th>{t('thWindow')}</th>
+                <th>{t('thCareer')}</th>
+                <th>{t('thNote')}</th>
               </tr>
             </thead>
             <tbody>
@@ -306,7 +308,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
                   <td style={{ whiteSpace: 'nowrap', fontSize: '0.75rem' }}>{item.start} → {item.end}</td>
                   <td>
                     {item.careerHit
-                      ? <span className={cn(styles.pill, styles.pillStrong)}>hit</span>
+                      ? <span className={cn(styles.pill, styles.pillStrong)}>{t('hit')}</span>
                       : <span className={cn(styles.pill, styles.pillPk)}>bg</span>}
                   </td>
                   <td style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.note}</td>
@@ -314,7 +316,7 @@ export function DashamsaAdvancedPanel({ advanced }: { advanced: DashamsaAdvanced
               ))}
               {!timeline.items.length && (
                 <tr>
-                  <td colSpan={5} style={{ color: 'var(--text-muted)' }}>No Vimshottari periods attached — recalculate for timing.</td>
+                  <td colSpan={5} style={{ color: 'var(--text-muted)' }}>{t('noTimeline')}</td>
                 </tr>
               )}
             </tbody>
