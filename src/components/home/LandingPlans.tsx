@@ -4,38 +4,22 @@
 //  Plan summary on the landing page; /pricing holds the full comparison
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Check } from 'lucide-react'
+import { useLocale, useTranslations } from 'next-intl'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 import { PLAN_PRICES } from '@/lib/subscription/pricing'
 import styles from '@/components/home/LandingSections.module.css'
 
-const inr = new Intl.NumberFormat('en-IN')
-
-const PLANS = [
-  {
-    id: 'free',
-    name: 'Free',
-    blurb: 'Core charts and daily timing.',
-    features: ['Birth chart and 16 Shodashavarga', 'Panchang and public share links', '20 saved charts and 20 matches'],
-  },
-  {
-    id: 'gold',
-    name: 'Gold',
-    blurb: 'Full readings and timing tools.',
-    features: ['Relationship and career readings', 'Muhurta Finder and PDF export', '200 saved charts and 200 matches'],
-  },
-  {
-    id: 'platinum',
-    name: 'Platinum',
-    blurb: 'For professional practice.',
-    features: ['All 41 varga charts', 'Client CRM and white-label reports', 'Unlimited saves, email and bulk ZIP'],
-  },
-] as const
+const PLANS = [{ id: 'free' }, { id: 'gold' }, { id: 'platinum' }] as const // copy: home.plans.<id>
 
 export function LandingPlans({ trackLandingCta }: { trackLandingCta: (ctaName: string) => void }) {
   const [prices, setPrices] = useState<typeof PLAN_PRICES>(PLAN_PRICES)
+  const t = useTranslations('home.plans')
+  const locale = useLocale()
+  // Western digits in both languages; hi-IN still groups lakhs/crores.
+  const inr = new Intl.NumberFormat(locale === 'hi' ? 'hi-IN-u-nu-latn' : 'en-IN')
 
   // Admin BillingConfig may override the defaults, same as /pricing.
   useEffect(() => {
@@ -50,31 +34,31 @@ export function LandingPlans({ trackLandingCta }: { trackLandingCta: (ctaName: s
   return (
     <div className="landing-section-row-content">
       <VedicSectionHeader
-        kicker="Plans"
-        title="Start free, upgrade when your work needs it"
-        description="No credit card is needed for the Free plan."
+        kicker={t('kicker')}
+        title={t('title')}
+        description={t('description')}
         theme="gold"
       />
       <div className={styles.plans}>
         {PLANS.map((plan) => (
           <article key={plan.id} className={`${styles.plan} ${plan.id === 'gold' ? styles.planFeatured : ''}`}>
-            <h3>{plan.name}</h3>
-            <p className={styles.planBlurb}>{plan.blurb}</p>
+            <h3>{t(`${plan.id}.name`)}</h3>
+            <p className={styles.planBlurb}>{t(`${plan.id}.blurb`)}</p>
             <p className={styles.planPrice}>
               {plan.id === 'free' ? (
                 <strong>₹0</strong>
               ) : (
                 <>
                   <strong>₹{inr.format(prices[plan.id].monthly)}</strong>
-                  <span>/month</span>
+                  <span>{t('perMonth')}</span>
                 </>
               )}
             </p>
             <p className={styles.planYearly}>
-              {plan.id === 'free' ? 'Free forever' : `or ₹${inr.format(prices[plan.id].yearly)} a year`}
+              {plan.id === 'free' ? t('freeForever') : t('orYearly', { price: inr.format(prices[plan.id].yearly) })}
             </p>
             <ul>
-              {plan.features.map((feature) => (
+              {(t.raw(`${plan.id}.features`) as string[]).map((feature) => (
                 <li key={feature}>
                   <Check size={14} strokeWidth={2.5} aria-hidden />
                   {feature}
@@ -86,7 +70,7 @@ export function LandingPlans({ trackLandingCta }: { trackLandingCta: (ctaName: s
       </div>
       <div className={styles.centerAction}>
         <Link href="/pricing" className="btn btn-secondary" style={{ textDecoration: 'none' }} onClick={() => trackLandingCta('plans_compare')}>
-          Compare all features
+          {t('compare')}
         </Link>
       </div>
     </div>

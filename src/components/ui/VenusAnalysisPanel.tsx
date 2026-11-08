@@ -5,8 +5,8 @@
 //  Free overview · Gold+ full sections
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   BookOpen,
   Flower2,
@@ -25,6 +25,9 @@ import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { GrahaProfileHeader } from '@/components/ui/GrahaProfileHeader'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 
 type SubTab = 'overview' | 'foundations' | 'classical' | 'houses' | 'kalas' | 'conditions' | 'lore'
 type ClassicalView = 'mixed' | 'natal' | 'houses' | 'signs'
@@ -45,10 +48,13 @@ interface VenusAnalysisPanelProps {
 }
 
 export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPanelProps) {
+  const tv = useTranslations('planetsB.venus')
+  const tc = useTranslations('planetsB.common')
+  const { lang, hi } = useLang()
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const [classicalView, setClassicalView] = useState<ClassicalView>('mixed')
-  const data = useMemo(() => analyzeVenus(chart), [chart])
+  const data = useMemo(() => analyzeVenus(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -60,7 +66,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Venus data unavailable for this chart.
+        {tv('unavailable')}
       </div>
     )
   }
@@ -89,31 +95,30 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: natal Venus house, yuti, dusthana flags, and combust/vakri.
-            Gold unlocks karakatva, 16 kalas, classical catalogues, yogas, and mythology.
+            {tv('freePreview')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{tc('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{v.rashiName} · H{v.house}</Pill>
-        <Pill>{v.nakshatraName} P{v.pada}</Pill>
-        <Pill>{v.dignity.replace('_', ' ')}</Pill>
-        {v.ownSign && <Pill gold>Own sign</Pill>}
-        {v.exalted && <Pill gold>Exalted</Pill>}
-        {v.debilitated && <Pill warn>Debilitated</Pill>}
-        {v.isRetro && <Pill warn>Retrograde</Pill>}
-        {v.isCombust && <Pill warn>Combust</Pill>}
-        {data.inDusthana && <Pill warn>Dusthana</Pill>}
-        {v.inVenusNakshatra && <Pill gold>Venus nakshatra</Pill>}
+        <Pill gold>{v.rashiName} · {tc('houseShort', { n: v.house })}</Pill>
+        <Pill>{v.nakshatraName} {tc('padaShort', { n: v.pada })}</Pill>
+        <Pill>{hi ? dignityHi(v.dignity) : v.dignity.replace('_', ' ')}</Pill>
+        {v.ownSign && <Pill gold>{tc('ownSign')}</Pill>}
+        {v.exalted && <Pill gold>{tc('exalted')}</Pill>}
+        {v.debilitated && <Pill warn>{tc('debilitated')}</Pill>}
+        {v.isRetro && <Pill warn>{tc('retrograde')}</Pill>}
+        {v.isCombust && <Pill warn>{tc('combust')}</Pill>}
+        {data.inDusthana && <Pill warn>{tc('dusthana')}</Pill>}
+        {v.inVenusNakshatra && <Pill gold>{tv('ownNakshatra')}</Pill>}
         {activeYogas.length > 0 && (
-          <Pill>Yogas · {activeYogas.length}</Pill>
+          <Pill>{tc('yogasCount', { count: activeYogas.length })}</Pill>
         )}
         {data.companions.length > 0 && (
-          <Pill>Yuti · {data.companions.map(c => c.name).join(', ')}</Pill>
+          <Pill>{tc('yutiList', { names: data.companions.map(c => c.name).join(', ') })}</Pill>
         )}
       </div>
 
@@ -130,7 +135,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Venus analysis sections"
+        aria-label={tv('sectionsAria')}
       >
         {SUB_TABS.map(t => {
           const locked = !showFull && !t.free
@@ -162,7 +167,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
               }}
             >
               <t.Icon size={13} aria-hidden />
-              {t.label}
+              {tv(`tabs.${t.id}`)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -172,14 +177,14 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Natal Venus · H{data.houseFocus.house}</Label>
+            <Label>{tv('natalHouse', { n: data.houseFocus.house })}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
               {data.houseFocus.themes.map(t => <Pill key={t}>{t}</Pill>)}
               <Pill warn={data.houseFocus.difficulty === 'dusthana' || data.houseFocus.difficulty === 'watched'}>
-                {data.houseFocus.difficulty}
+                {tc(`difficulty.${data.houseFocus.difficulty}`)}
               </Pill>
             </div>
             <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -188,21 +193,21 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           </Card>
 
           <Card>
-            <Label>One-line teaching</Label>
+            <Label>{tc('oneLine')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
               {data.oneLiner}
             </p>
           </Card>
 
           <Card>
-            <Label>Company (yuti)</Label>
+            <Label>{tc('company')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.companionNote}
             </p>
           </Card>
 
           <Card>
-            <Label>Quick flags</Label>
+            <Label>{tc('quickFlags')}</Label>
             <FlagRow flag={data.retroFlag} />
             <FlagRow flag={data.combustFlag} />
             <FlagRow flag={data.bothFlag} />
@@ -218,9 +223,9 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           </Card>
 
           <Card>
-            <Label>Mixed interpretations teaser</Label>
+            <Label>{tc('mixedTeaser')}</Label>
             <p style={{ margin: '0 0 0.45rem', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-              House guide · classics · planet×house · rashi · planet×sign · nakshatra · dignity
+              {tc('mixedTeaserSources')}
             </p>
             {data.classical.natalMixed ? (
               <LayerStack
@@ -229,23 +234,24 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
               />
             ) : (
               <ClassicalNotesList
-                title="Venus in house — classics"
+                quiet={hi}
+                title={tv('houseClassics')}
                 notes={data.classical.natalHouseClassical.slice(0, 2)}
               />
             )}
             {!showFull && (
               <div style={{ marginTop: 6, fontSize: '0.65rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Lock size={12} aria-hidden /> Full mixed layers + 12×12 catalogues on Gold
+                <Lock size={12} aria-hidden /> {tc('mixedLocked')}
               </div>
             )}
           </Card>
 
           {!showFull && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Venus full analysis">
+            <PlanGate userPlan={userPlan} required="gold" featureName={tv('gateFeature')}>
               <div style={{ minHeight: 100, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Locked on Free</div>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>{tc('lockedOnFree')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Full karakatva · 16 kalas · classical catalogues · yogas · Yayati lore · remedies
+                  {tv('lockedList')}
                 </div>
               </div>
             </PlanGate>
@@ -265,13 +271,13 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
               border: '1px solid var(--border-soft)',
             }}
             role="tablist"
-            aria-label="Classical catalogue view"
+            aria-label={tc('classicalViewAria')}
           >
             {([
-              { id: 'mixed' as const, label: 'Mixed natal' },
-              { id: 'natal' as const, label: 'Classical natal' },
-              { id: 'houses' as const, label: 'All 12 houses' },
-              { id: 'signs' as const, label: 'All 12 signs' },
+              { id: 'mixed' as const, label: tc('cvMixed') },
+              { id: 'natal' as const, label: tc('cvNatal') },
+              { id: 'houses' as const, label: tc('cvHouses') },
+              { id: 'signs' as const, label: tc('cvSigns') },
             ]).map(cv => (
               <button
                 key={cv.id}
@@ -299,10 +305,10 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           {classicalView === 'mixed' && data.classical.natalMixed && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                All interpretation engines mixed for natal Venus in {v.rashiName} · H{v.house}.
+                {tv('mixedIntro', { rashi: v.rashiName, n: v.house })}
               </p>
               <Card>
-                <Label>Blended snapshot</Label>
+                <Label>{tc('blended')}</Label>
                 <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.natalMixed.blendedSummary.slice(0, 520)}
                   {data.classical.natalMixed.blendedSummary.length > 520 ? '…' : ''}
@@ -314,28 +320,31 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
 
           {classicalView === 'natal' && (
             <>
+              {hi && <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{tc('classicalNoteHi')}</p>}
               <Card>
-                <Label>Platform house note (H{v.house})</Label>
+                <Label>{tc('platformHouse', { n: v.house })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalHouseFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Venus in house ${v.house}`}
+                quiet={hi}
+                title={tv('classicalHouse', { n: v.house })}
                 notes={data.classical.natalHouseClassical}
               />
               <Card>
-                <Label>Platform sign note ({v.rashiName})</Label>
+                <Label>{tc('platformSign', { rashi: v.rashiName })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalSignFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Venus in ${v.rashiName} (+ dignity / vakri (retrograde) / asta)`}
+                quiet={hi}
+                title={tv('classicalSign', { rashi: v.rashiName })}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (
-                <ClassicalNotesList title="Vakri / Asta (Shukra)" notes={data.classical.vakriAst} />
+                <ClassicalNotesList quiet={hi} title={tv('vakriAst')} notes={data.classical.vakriAst} />
               )}
             </>
           )}
@@ -343,7 +352,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           {classicalView === 'houses' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed house layers for each bhava. Natal house highlighted.
+                {tc('housesIntro')}
               </p>
               {data.classical.allHouses.map(h => (
                 <div
@@ -356,8 +365,8 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
                   }}
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: h.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
-                    House {h.house}
-                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {tc('house', { n: h.house })}
+                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{tc('natal')}</span>}
                   </div>
                   <LayerStack layers={h.mixedLayers} compact={!h.isNatal} />
                 </div>
@@ -368,7 +377,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           {classicalView === 'signs' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed sign layers for each rāśi. Natal sign highlighted.
+                {tc('signsIntro')}
               </p>
               {data.classical.allSigns.map(s => (
                 <div
@@ -382,7 +391,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: s.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
                     {s.rashiName}
-                    {s.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {s.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{tc('natal')}</span>}
                   </div>
                   <LayerStack layers={s.mixedLayers} compact={!s.isNatal} />
                 </div>
@@ -395,26 +404,26 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
       {showFull && sub === 'foundations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Nature</Label>
+            <Label>{tc('nature')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.nature.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Philosophical takeaways</Label>
+            <Label>{tc('philosophy')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.philosophy.map(p => <li key={p}>{p}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Brihaspati vs Shukra</Label>
+            <Label>{tv('juVsVe')}</Label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
               {data.jupiterVsVenus.map(row => (
                 <div key={row.aspect} style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                   <strong style={{ color: 'var(--text-gold)' }}>{row.aspect}</strong>
-                  {' — '}Guru: {row.jupiter} · Shukra: {row.venus}
+                  {' — '}{tv('juVsVeRow', { jupiter: row.jupiter, venus: row.venus })}
                 </div>
               ))}
             </div>
@@ -439,7 +448,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           ))}
 
           <Card>
-            <Label>Summary attributes</Label>
+            <Label>{tc('summaryAttrs')}</Label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
@@ -457,7 +466,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           </Card>
 
           <Card>
-            <Label>Natural age · {data.naturalAge}</Label>
+            <Label>{tc('naturalAge', { age: data.naturalAge })}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.naturalAgeNote}
             </p>
@@ -471,7 +480,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
       {showFull && sub === 'houses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Natal house focus</Label>
+            <Label>{tc('natalHouseFocus')}</Label>
             <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
@@ -481,10 +490,10 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           </Card>
 
           <Card>
-            <Label>Dusthana seats (class)</Label>
+            <Label>{tc('dusthanaSeats')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Watched for opposite-sex friction: 6th, 8th, 12th. Current Venus in H{v.house}
-              {data.inDusthana ? ' — dusthana active.' : ' — outside dusthana set.'}
+              {tv('dusthanaNote', { n: v.house })}
+              {data.inDusthana ? tc('dusthanaActive') : tc('dusthanaOutside')}
             </p>
           </Card>
 
@@ -505,7 +514,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
                 {hf.themes.map(t => <Pill key={t}>{t}</Pill>)}
                 <Pill warn={hf.difficulty === 'dusthana' || hf.difficulty === 'watched'}>
-                  {hf.difficulty}
+                  {tc(`difficulty.${hf.difficulty}`)}
                 </Pill>
               </div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -515,15 +524,15 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           ))}
 
           <Card>
-            <Label>Companions</Label>
+            <Label>{tc('companions')}</Label>
             {data.companions.length === 0 ? (
-              <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>No close yuti.</p>
+              <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>{tc('noYuti')}</p>
             ) : (
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {data.companions.map(c => (
                   <li key={c.id}>
                     {c.name} · {c.sepDeg.toFixed(1)}°
-                    {c.sameSign ? ' · same sign' : ''}
+                    {c.sameSign ? ` · ${tc('sameSign')}` : ''}
                   </li>
                 ))}
               </ul>
@@ -538,9 +547,9 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
       {showFull && sub === 'kalas' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>16 Kalas of Venus</Label>
+            <Label>{tv('kalasTitle')}</Label>
             <p style={{ margin: '0 0 0.55rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-              When Venus is shubh, kalas manifest positively; when afflicted (vakri, neecha, asta, harsh yuti), disturbances appear in these same kalas.
+              {tv('kalasIntro')}
             </p>
             <div style={{
               display: 'grid',
@@ -569,7 +578,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           </Card>
 
           <Card>
-            <Label>Five stages (female-chart emphasis)</Label>
+            <Label>{tv('stagesTitle')}</Label>
             {data.stages.map(s => (
               <div key={s.stage} style={{ marginBottom: '0.65rem' }}>
                 <div style={{ fontWeight: 800, fontSize: '0.78rem', color: 'var(--text-gold)' }}>
@@ -584,7 +593,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           </Card>
 
           <Card>
-            <Label>Venus nakshatras</Label>
+            <Label>{tv('nakshatrasTitle')}</Label>
             {data.nakshatraTeachings.map(n => (
               <div
                 key={n.index}
@@ -619,19 +628,19 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           <FlagCard flag={data.bothFlag} />
 
           <Card>
-            <Label>Exaltation — Pisces</Label>
+            <Label>{tv('exaltLabel')}</Label>
             <EffectsBlock effects={data.exaltEffects} />
           </Card>
           <Card>
-            <Label>Debilitation — Virgo</Label>
+            <Label>{tv('debilLabel')}</Label>
             <EffectsBlock effects={data.debilEffects} />
           </Card>
           <Card>
-            <Label>Combust — shadow & gift</Label>
+            <Label>{tc('combustLabel')}</Label>
             <EffectsBlock effects={data.combustEffects} />
           </Card>
           <Card>
-            <Label>Retrograde — shadow & gift</Label>
+            <Label>{tc('retroLabel')}</Label>
             <EffectsBlock effects={data.retroEffects} />
           </Card>
 
@@ -640,11 +649,11 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
               <Label>{y.name}</Label>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
                 <span style={{ fontWeight: 700, fontSize: '0.78rem' }}>
-                  {y.active ? 'Indicated' : 'Not indicated'}
+                  {y.active ? tc('indicated') : tc('notIndicated')}
                 </span>
                 {y.sepDeg != null && (
                   <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                    {y.sepDeg.toFixed(1)}°{y.sameSign ? ' · same sign' : ''}
+                    {y.sepDeg.toFixed(1)}°{y.sameSign ? ` · ${tc('sameSign')}` : ''}
                   </span>
                 )}
               </div>
@@ -653,7 +662,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
               </p>
               {y.active && y.effects.length > 0 && (
                 <>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', margin: '0.45rem 0 4px' }}>Watch</div>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', margin: '0.45rem 0 4px' }}>{tc('watch')}</div>
                   <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {y.effects.map(e => <li key={e}>{e}</li>)}
                   </ul>
@@ -661,7 +670,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
               )}
               {y.active && y.positives.length > 0 && (
                 <>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.45rem 0 4px' }}>Gifts</div>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.45rem 0 4px' }}>{tc('gifts')}</div>
                   <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                     {y.positives.map(e => <li key={e}>{e}</li>)}
                   </ul>
@@ -671,7 +680,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
           ))}
 
           <Card>
-            <Label>Past-life indications (active highlighted)</Label>
+            <Label>{tc('pastLife')}</Label>
             {data.pastLifeHints.map(h => (
               <div key={h.id} style={{ marginBottom: '0.45rem', opacity: h.active ? 1 : 0.55 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -682,7 +691,7 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
                     textTransform: 'uppercase',
                     color: h.active ? 'var(--rose)' : 'var(--text-muted)',
                   }}>
-                    {h.active ? 'Active' : 'Clear'}
+                    {h.active ? tc('active') : tc('clear')}
                   </span>
                 </div>
                 <p style={{ margin: '0.2rem 0 0', fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -694,11 +703,11 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
 
           {(v.nearExaltPeak || v.nearDebilPeak) && (
             <Card>
-              <Label>Degree peak</Label>
+              <Label>{tc('degreePeak')}</Label>
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {v.nearExaltPeak
-                  ? 'Near classical exaltation peak in Pisces — selfless / spiritual Venus tradition strongest near deep exalt degrees.'
-                  : 'Near classical debilitation peak in Virgo — cold/analytical relating peaks; neecha-bhanga still softens.'}
+                  ? tv('peakExalt')
+                  : tv('peakDebil')}
               </p>
             </Card>
           )}
@@ -708,48 +717,48 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
       {showFull && sub === 'lore' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Remedies</Label>
+            <Label>{tc('remedies')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.remedies.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Mythology</Label>
+            <Label>{tc('mythology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.mythology.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Yayati arc (Bhog → Moksha)</Label>
+            <Label>{tv('yayati')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.yayatiArc.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Announced for further study</Label>
+            <Label>{tc('upcoming')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.upcomingTopics.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Caveats</Label>
+            <Label>{tc('caveats')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.caveats.map(c => <li key={c}>{c}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Methodology</Label>
+            <Label>{tc('methodology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.methodology.map(m => <li key={m}>{m}</li>)}
             </ul>
             <div style={{ marginTop: '0.55rem', fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
               <BookOpen size={12} aria-hidden />
-              Class teaching — Shukra mythology, karakatva, kalas, yogas, Yayati, remedies
+              {tv('footer')}
             </div>
           </Card>
         </div>
@@ -759,13 +768,14 @@ export function VenusAnalysisPanel({ chart, userPlan = 'free' }: VenusAnalysisPa
 }
 
 function EffectsBlock({ effects }: { effects: { negatives: string[]; positives: string[] } }) {
+  const tc = useTranslations('planetsB.common')
   return (
     <>
-      <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Challenges</div>
+      <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>{tc('challenges')}</div>
       <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
         {effects.negatives.map(n => <li key={n}>{n}</li>)}
       </ul>
-      <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Strengths</div>
+      <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{tc('strengths')}</div>
       <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
         {effects.positives.map(n => <li key={n}>{n}</li>)}
       </ul>
@@ -774,6 +784,8 @@ function EffectsBlock({ effects }: { effects: { negatives: string[]; positives: 
 }
 
 function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: boolean }) {
+  const tc = useTranslations('planetsB.common')
+  const { hi } = useLang()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.45rem' : '0.65rem' }}>
       {layers.map(layer => (
@@ -816,7 +828,8 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
           {layer.classicalNotes && layer.classicalNotes.length > 0 && (
             <div style={{ marginTop: 6 }}>
               <ClassicalNotesList
-                title="Sources"
+                quiet={hi}
+                title={tc('sources')}
                 notes={compact ? layer.classicalNotes.slice(0, 2) : layer.classicalNotes}
               />
             </div>
@@ -828,6 +841,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
 }
 
 function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const tc = useTranslations('planetsB.common')
   return (
     <div style={{ marginBottom: '0.45rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -838,7 +852,7 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
           textTransform: 'uppercase',
           color: flag.active ? 'var(--rose)' : 'var(--text-muted)',
         }}>
-          {flag.active ? 'Active' : 'Clear'}
+          {flag.active ? tc('active') : tc('clear')}
         </span>
       </div>
       <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -849,11 +863,12 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
 }
 
 function FlagCard({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const tc = useTranslations('planetsB.common')
   return (
     <Card>
       <Label>{flag.title}</Label>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? 'Indicated' : 'Not indicated'}</span>
+        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? tc('indicated') : tc('notIndicated')}</span>
       </div>
       <p style={{ margin: '0.4rem 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
         {flag.detail}

@@ -1,7 +1,6 @@
 'use client'
+import { Link, usePathname } from '@/i18n/navigation'
 import React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 
 export function AdminSidebar({ user, onClose }: { user: any, onClose?: () => void }) {
   const pathname = usePathname()

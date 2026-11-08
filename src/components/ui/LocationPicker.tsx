@@ -6,6 +6,7 @@
 // - Browser geolocation ("My location")
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 
 export interface LocationValue {
   lat:  number
@@ -51,7 +52,9 @@ function saveLocation(loc: LocationValue) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(loc)) } catch {}
 }
 
-export function LocationPicker({ value, onChange, label = 'Location', birthLocation, autoGeolocate }: Props) {
+export function LocationPicker({ value, onChange, label: labelProp, birthLocation, autoGeolocate }: Props) {
+  const t = useTranslations('common.location')
+  const label = labelProp ?? t('label')
   const [query,      setQuery]      = useState(value.name)
   const [results,    setResults]    = useState<AtlasResult[]>([])
   const [open,       setOpen]       = useState(false)
@@ -168,7 +171,7 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
           type="button"
           onClick={handleGeolocate}
           disabled={geoLoading}
-          title="Use my current location"
+          title={t('useMine')}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
             padding: '0.2rem 0.55rem', fontSize: '0.7rem', fontFamily: 'inherit',
@@ -178,14 +181,14 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
             transition: 'all 0.15s',
           }}
         >
-          {geoLoading ? '\u27f3' : '\ud83d\udccd'} {geoLoading ? 'Locating\u2026' : 'My location'}
+          {geoLoading ? '\u27f3' : '\ud83d\udccd'} {geoLoading ? t('locating') : t('mine')}
         </button>
 
         {birthLocation && (
           <button
             type="button"
             onClick={handleBirthLocation}
-            title={`Use birth location: ${birthLocation.name}`}
+            title={t('useBirth', { place: birthLocation.name })}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
               padding: '0.2rem 0.55rem', fontSize: '0.7rem', fontFamily: 'inherit',
@@ -197,7 +200,7 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
               maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}
           >
-            ✦ Birth: {birthLocation.name.split(',')[0]}
+            {t('birth', { place: birthLocation.name.split(',')[0] })}
           </button>
         )}
       </div>
@@ -209,7 +212,7 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
           value={query}
           onChange={e => handleInput(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
-          placeholder="Search city…"
+          placeholder={t('search')}
           autoComplete="off"
           style={{ width: '100%', paddingRight: loading ? '2rem' : undefined }}
         />

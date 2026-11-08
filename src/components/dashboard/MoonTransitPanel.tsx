@@ -4,8 +4,8 @@
 //  Moon over natal grahas / lagnas / upagrahas — 72h + 27d
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import type { ChartOutput } from '@/types/astrology'
 import { moonLitPath } from '@/lib/panchang/moon-phase'
 import {

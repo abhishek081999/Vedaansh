@@ -4,9 +4,10 @@
 //  Who Vedaansh is for, with entry points into the matching tools
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import type { MouseEvent } from 'react'
-import Link from 'next/link'
 import { BookOpen, Sprout, UsersRound } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 import styles from '@/components/home/LandingSections.module.css'
 
@@ -14,34 +15,28 @@ const AUDIENCES = [
   {
     id: 'seekers',
     icon: Sprout,
-    title: 'For seekers',
-    text: 'Understand your own chart and plan each day without learning the whole system first.',
     links: [
-      { href: '/today', label: 'Today’s Reading' },
-      { href: '/panchang', label: 'Daily Panchang' },
-      { href: '/compare', label: 'Kundali Matching' },
+      { href: '/today', slug: 'today_s_reading' },
+      { href: '/panchang', slug: 'daily_panchang' },
+      { href: '/compare', slug: 'kundali_matching' },
     ],
   },
   {
     id: 'students',
     icon: BookOpen,
-    title: 'For students',
-    text: 'Work through classical methods on real charts, with plain-language guides beside the calculations.',
     links: [
-      { href: '/guides', label: 'Jyotish guides' },
-      { href: '/jaimini', label: 'Jaimini' },
-      { href: '/nadi', label: 'Nadi' },
+      { href: '/guides', slug: 'jyotish_guides' },
+      { href: '/jaimini', slug: 'jaimini' },
+      { href: '/nadi', slug: 'nadi' },
     ],
   },
   {
     id: 'practitioners',
     icon: UsersRound,
-    title: 'For practitioners',
-    text: 'Keep client records, prepare consultations and send out reports under your own brand.',
     links: [
-      { href: '/pricing', label: 'Client CRM' },
-      { href: '/pricing', label: 'White-label reports' },
-      { href: '/pricing', label: 'PDF exports' },
+      { href: '/pricing', slug: 'client_crm' },
+      { href: '/pricing', slug: 'white_label_reports' },
+      { href: '/pricing', slug: 'pdf_exports' },
     ],
   },
 ] as const
@@ -52,32 +47,36 @@ type LandingAudienceProps = {
 }
 
 export function LandingAudience({ trackLandingCta, withChartGate }: LandingAudienceProps) {
+  const t = useTranslations('home.audience')
   return (
     <div className="landing-section-row-content">
-      <VedicSectionHeader kicker="Who it's for" title="Built for every stage of practice" theme="gold" />
+      <VedicSectionHeader kicker={t('kicker')} title={t('title')} theme="gold" />
       <div className={styles.audience}>
-        {AUDIENCES.map(({ id, icon: Icon, title, text, links }) => (
+        {AUDIENCES.map(({ id, icon: Icon, links }) => {
+          const labels = t.raw(`${id}.links`) as string[]
+          return (
           <article key={id} className={styles.audienceCard}>
             <Icon size={24} strokeWidth={1.6} aria-hidden />
-            <h3>{title}</h3>
-            <p>{text}</p>
+            <h3>{t(`${id}.title`)}</h3>
+            <p>{t(`${id}.text`)}</p>
             <ul>
-              {links.map((link) => (
-                <li key={link.label}>
+              {links.map((link, i) => (
+                <li key={link.slug}>
                   <Link
                     href={link.href}
                     onClick={(e) => {
-                      trackLandingCta(`audience_${id}_${link.label.toLowerCase().replace(/\W+/g, '_')}`)
+                      trackLandingCta(`audience_${id}_${link.slug}`)
                       withChartGate(link.href, e)
                     }}
                   >
-                    {link.label}
+                    {labels[i] ?? link.slug}
                   </Link>
                 </li>
               ))}
             </ul>
           </article>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

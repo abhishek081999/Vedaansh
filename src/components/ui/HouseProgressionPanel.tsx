@@ -1,9 +1,12 @@
 'use client'
 import React, { useMemo, useState } from 'react'
-import { format, addYears, differenceInYears, isWithinInterval } from 'date-fns'
-import type { ChartOutput, Rashi } from '@/types/astrology'
+import { format, addYears, isWithinInterval } from 'date-fns'
+import { useTranslations } from 'next-intl'
+import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, GRAHA_NAMES } from '@/types/astrology'
 import { SegmentRing, VizCard } from '@/components/ui/viz'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 
 interface HouseSignification {
   house: number
@@ -13,92 +16,7 @@ interface HouseSignification {
   detailedThemes: string[]
 }
 
-const HOUSE_INFO: HouseSignification[] = [
-  {
-    house: 1,
-    sanskrit: 'Tanu Bhava',
-    karakas: 'Self, body, head, brain, health',
-    themes: 'Body, health, self, head/brain, vitality, appearance, temperament',
-    detailedThemes: ['Body & structure', 'General health', 'Self-image', 'Initiative', 'Longevity']
-  },
-  {
-    house: 2,
-    sanskrit: 'Dhana Bhava',
-    karakas: 'Wealth, family, speech, food',
-    themes: 'Family, finances, food habits, speech, face, right eye, accumulated wealth',
-    detailedThemes: ['Income & savings', 'Family lineage', 'Speech & voice', 'Fixed assets', 'Moral values']
-  },
-  {
-    house: 3,
-    sanskrit: 'Sahaja Bhava',
-    karakas: 'Courage, siblings, communication, skills',
-    themes: 'Siblings, efforts, communication, hobbies, travel, courage, skills',
-    detailedThemes: ['Younger siblings', 'Mental stamina', 'Short travels', 'Writing & media', 'Willpower']
-  },
-  {
-    house: 4,
-    sanskrit: 'Sukha Bhava',
-    karakas: 'Mother, home, comforts, vehicles',
-    themes: 'Home, mother, property, vehicles, mental peace, emotional security',
-    detailedThemes: ['Fixed property', 'Inner happiness', 'Ancestral roots', 'Domestic peace', 'Schooling']
-  },
-  {
-    house: 5,
-    sanskrit: 'Putra Bhava',
-    karakas: 'Children, creativity, intellect, romance',
-    themes: 'Creativity, children, romance, past life karma, intelligence, investments',
-    detailedThemes: ['Progeny', 'Literary talent', 'Speculative gains', 'Mantra siddhi', 'Joy of life']
-  },
-  {
-    house: 6,
-    sanskrit: 'Shatru Bhava',
-    karakas: 'Enemies, debts, diseases, service',
-    themes: 'Service, routine, enemies, diseases, debts, competition, obstacles',
-    detailedThemes: ['Daily work', 'Legal disputes', 'Maternal relatives', 'Healing', 'Litigation']
-  },
-  {
-    house: 7,
-    sanskrit: 'Yuvati Bhava',
-    karakas: 'Spouse, marriage, partnerships, trade',
-    themes: 'Marriage, spouse, business partners, public image, social status, travel',
-    detailedThemes: ['Legal contracts', 'Open rivals', 'Foreign residence', 'Diplomacy', 'Attraction']
-  },
-  {
-    house: 8,
-    sanskrit: 'Ayu Bhava',
-    karakas: 'Longevity, deep change, secrets, endings',
-    themes: 'Sudden changes, inheritance, occult, secrets, lifespan, chronic illness, surgery',
-    detailedThemes: ['Insurance & taxes', 'Spouse’s wealth', 'Research & mysteries', 'Regeneration', 'Trauma']
-  },
-  {
-    house: 9,
-    sanskrit: 'Dharma Bhava',
-    karakas: 'Father, guru, dharma, fortune',
-    themes: 'Higher learning, religion, guru, teachers, long travel, father, grace',
-    detailedThemes: ['Ethical values', 'Pilgrimages', 'Philosophy', 'Blessings', 'Future lineage']
-  },
-  {
-    house: 10,
-    sanskrit: 'Karma Bhava',
-    karakas: 'Career, status, power, authority',
-    themes: 'Profession, reputation, public life, authority, father, ambition, career position',
-    detailedThemes: ['Professional status', 'Life mission', 'Official recognition', 'Government', 'Awards']
-  },
-  {
-    house: 11,
-    sanskrit: 'Labha Bhava',
-    karakas: 'Gains, fulfillment, elder siblings, community',
-    themes: 'Income, gains, friends, aspirations, fulfillment of desires, large networks',
-    detailedThemes: ['Marketplace gains', 'Influential contacts', 'Club memberships', 'Dividends', 'Well-wishers']
-  },
-  {
-    house: 12,
-    sanskrit: 'Vyaya Bhava',
-    karakas: 'Losses, expenditure, isolation, moksha',
-    themes: 'Expenses, losses, foreign lands, spirituality, isolation, hospital/prison, dreams',
-    detailedThemes: ['Subconscious mind', 'Subtle realms', 'Charitable acts', 'Detachment', 'Secret enemies']
-  }
-]
+const HOUSE_NUMS = Array.from({ length: 12 }, (_, i) => i + 1)
 
 const SIGN_SYMBOLS: Record<number, string> = {
   1: '♈', 2: '♉', 3: '♊', 4: '♋', 5: '♌', 6: '♍',
@@ -111,6 +29,20 @@ const GRAHA_SYMBOLS: Record<string, string> = {
 
 export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
   const [activeCycle, setActiveCycle] = useState(0) // 0 to 8 (9 cycles total)
+  const t = useTranslations('houseGuide.bcp')
+  const { hi, tag } = useLang()
+  const HOUSE_INFO: HouseSignification[] = HOUSE_NUMS.map((n) => ({
+    house: n,
+    sanskrit: t(`houses.${n}.sanskrit`),
+    karakas: t(`houses.${n}.karakas`),
+    themes: t(`houses.${n}.themes`),
+    detailedThemes: t.raw(`houses.${n}.detailed`) as string[],
+  }))
+  // 'dd MMM yyyy' in English (as before); Intl day-month-year in Hindi
+  const fmtDate = (d: Date) => {
+    if (!hi) return format(d, 'dd MMM yyyy')
+    return new Intl.DateTimeFormat(tag, { day: '2-digit', month: 'short', year: 'numeric' }).format(d)
+  }
   
   const birthDate = useMemo(() => {
     try {
@@ -159,7 +91,7 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
     // Simple calculation assuming standard bhava house number mapping
     // Usually BCP refers to houses from Lagna
     const signIndex = (ascRashi + hNum - 2) % 12 + 1 // 1-indexed
-    const signName = RASHI_NAMES[signIndex as Rashi]
+    const signName = hi ? RASHI_HI[signIndex as Rashi] : RASHI_NAMES[signIndex as Rashi]
     
     // Find lord
     const SIGN_LORDS: Record<number, string> = {
@@ -217,12 +149,12 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
           </div>
           
           <div style={{ flex: '1 1 400px' }}>
-            <div className="label-caps" style={{ color: 'var(--gold)', marginBottom: '0.5rem' }}>Current Progression Activation</div>
+            <div className="label-caps" style={{ color: 'var(--gold)', marginBottom: '0.5rem' }}>{t('currentLabel')}</div>
             <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              House {currentProgression.houseNum} <span style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontWeight: 400 }}>Active</span>
+              {t('houseActive', { n: currentProgression.houseNum })} <span style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontWeight: 400 }}>{t('active')}</span>
             </h2>
             <div style={{ marginTop: '0.5rem', fontSize: '1.1rem', color: 'var(--text-secondary)' }}>
-              Age {currentProgression.ageRange} · {currentHouseInfo?.sanskrit}
+              {t('ageLine', { range: currentProgression.ageRange, sanskrit: currentHouseInfo?.sanskrit ?? '' })}
             </div>
             <div style={{ marginTop: '1.25rem', padding: 0 }}>
               <p style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.6 }}>
@@ -250,27 +182,27 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
             minWidth: '240px',
             boxShadow: 'var(--shadow-sm)'
           }}>
-            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Active Period</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>{t('activePeriod')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>From:</span>
-                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{format(currentProgression.startDate, 'dd MMM yyyy')}</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('from')}</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{fmtDate(currentProgression.startDate)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>To:</span>
-                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{format(currentProgression.endDate, 'dd MMM yyyy')}</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('to')}</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{fmtDate(currentProgression.endDate)}</span>
               </div>
               <div style={{ height: 1, background: 'var(--border-soft)', margin: '0.25rem 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Rashi:</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('rashi')}</span>
                 <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-gold)' }}>
                   {SIGN_SYMBOLS[currentHouseDetails?.signIndex || 1]} {currentHouseDetails?.signName}
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Lord:</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('lord')}</span>
                 <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-                  {GRAHA_SYMBOLS[currentHouseDetails?.lordId || 'Su']} {GRAHA_NAMES[currentHouseDetails?.lordId as keyof typeof GRAHA_NAMES] || currentHouseDetails?.lordId}
+                  {GRAHA_SYMBOLS[currentHouseDetails?.lordId || 'Su']} {(hi ? GRAHA_HI : GRAHA_NAMES)[currentHouseDetails?.lordId as GrahaId] || currentHouseDetails?.lordId}
                 </span>
               </div>
             </div>
@@ -280,8 +212,8 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
 
       {currentProgression && (
         <VizCard
-          title="Where you are in the 12-house cycle"
-          caption={`Each year of life activates the next house from the Lagna. Cycle ${Math.floor((currentProgression.age - 1) / 12) + 1} of 9 — filled arcs are years already lived in this cycle.`}
+          title={t('cycleTitle')}
+          caption={t('cycleCaption', { cycle: Math.floor((currentProgression.age - 1) / 12) + 1 })}
         >
           <SegmentRing
             segments={HOUSE_INFO.map((h, i) => {
@@ -299,13 +231,13 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
                 max: 1,
                 color: houseNum === currentProgression.houseNum ? 'var(--gold)' : 'var(--accent)',
                 active: houseNum === currentProgression.houseNum,
-                title: `House ${houseNum} · ${h.sanskrit}`,
+                title: t('segTitle', { n: houseNum, sanskrit: h.sanskrit }),
               }
             })}
             centerValue={`H${currentProgression.houseNum}`}
-            centerLabel={`age ${currentProgression.ageRange}`}
+            centerLabel={t('centerAge', { range: currentProgression.ageRange })}
             size={220}
-            ariaLabel={`House ${currentProgression.houseNum} is active this year`}
+            ariaLabel={t('ringAria', { n: currentProgression.houseNum })}
           />
         </VizCard>
       )}
@@ -313,7 +245,7 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
       {/* Cycle Selector & Table */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <h3 className="label-caps" style={{ color: 'var(--text-gold)', fontSize: '0.75rem', margin: 0 }}>Cyclical Progression Table</h3>
+          <h3 className="label-caps" style={{ color: 'var(--text-gold)', fontSize: '0.75rem', margin: 0 }}>{t('tableTitle')}</h3>
           <div style={{ 
             display: 'flex', 
             background: 'var(--surface-3)', 
@@ -340,7 +272,7 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
                   transition: 'all 0.2s'
                 }}
               >
-                Cycle {i + 1} ({i * 12 + 1}–{(i + 1) * 12})
+                {t('cycleBtn', { n: i + 1, from: i * 12 + 1, to: (i + 1) * 12 })}
               </button>
             ))}
           </div>
@@ -350,12 +282,12 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border-soft)' }}>
-                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>Year</th>
-                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>From Date</th>
-                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>To Date</th>
-                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>House</th>
-                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>Themes & Significations</th>
-                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>Occupants</th>
+                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>{t('colYear')}</th>
+                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>{t('colFrom')}</th>
+                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>{t('colTo')}</th>
+                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>{t('colHouse')}</th>
+                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>{t('colThemes')}</th>
+                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase' }}>{t('colOccupants')}</th>
               </tr>
             </thead>
             <tbody>
@@ -372,11 +304,11 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
                     }}
                   >
                     <td style={{ padding: '1rem', fontWeight: 700, color: p.isCurrent ? 'var(--text-gold)' : 'var(--text-primary)' }}>
-                      Year {p.age}
-                      {p.isCurrent && <span style={{ marginLeft: '0.5rem', fontSize: '0.6rem', color: 'var(--text-gold)', background: 'var(--surface-1)', padding: '2px 6px', borderRadius: 10, border: '1px solid var(--gold)' }}>CURRENT</span>}
+                      {t('year', { n: p.age })}
+                      {p.isCurrent && <span style={{ marginLeft: '0.5rem', fontSize: '0.6rem', color: 'var(--text-gold)', background: 'var(--surface-1)', padding: '2px 6px', borderRadius: 10, border: '1px solid var(--gold)' }}>{t('current')}</span>}
                     </td>
-                    <td style={{ padding: '1rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{format(p.startDate, 'dd MMM yyyy')}</td>
-                    <td style={{ padding: '1rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{format(p.endDate, 'dd MMM yyyy')}</td>
+                    <td style={{ padding: '1rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{fmtDate(p.startDate)}</td>
+                    <td style={{ padding: '1rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{fmtDate(p.endDate)}</td>
                     <td style={{ padding: '1rem', textAlign: 'center' }}>
                       <div style={{ 
                         width: 32, height: 32, borderRadius: '50%', 
@@ -394,7 +326,7 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
                     <td style={{ padding: '1rem', textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                         {houseData.planetsInHouse.map(pl => (
-                          <span key={pl.id} style={{ fontSize: '1.1rem' }} title={pl.name}>{GRAHA_SYMBOLS[pl.id] || pl.id}</span>
+                          <span key={pl.id} style={{ fontSize: '1.1rem' }} title={hi ? GRAHA_HI[pl.id] : pl.name}>{GRAHA_SYMBOLS[pl.id] || pl.id}</span>
                         ))}
                       </div>
                     </td>
@@ -408,7 +340,7 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
 
       {/* House Themes Grid (Reference) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <h3 className="label-caps" style={{ color: 'var(--text-gold)', fontSize: '0.75rem', margin: 0 }}>House Signification Reference</h3>
+        <h3 className="label-caps" style={{ color: 'var(--text-gold)', fontSize: '0.75rem', margin: 0 }}>{t('refTitle')}</h3>
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', 
@@ -417,7 +349,7 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
           {HOUSE_INFO.map(info => (
             <div key={info.house} className="card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontWeight: 700, color: 'var(--text-gold)', fontSize: '1.1rem' }}>House {info.house}</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-gold)', fontSize: '1.1rem' }}>{t('refHouse', { n: info.house })}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{info.sanskrit}</div>
               </div>
               <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>{info.themes}</div>

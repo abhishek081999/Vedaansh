@@ -4,25 +4,27 @@
 //  Guide links and a compact install prompt for the landing page
 // ─────────────────────────────────────────────────────────────
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { ArrowRight, Smartphone } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { VedicSectionHeader } from '@/components/ui/VedicSectionHeader'
 import styles from '@/components/home/LandingSections.module.css'
 
-// Titles are shortened from src/lib/seo/guides.ts so that page data stays out of this bundle.
+// Titles: messages/<locale>/home.json → guides.items.<slug> (shortened from src/lib/seo/guides.ts).
 const FEATURED_GUIDES = [
-  { slug: 'free-vedic-birth-chart-kundali', topic: 'Start here', title: 'What a Vedic birth chart shows' },
-  { slug: 'vimshottari-dasha-explained', topic: 'Timing', title: 'Vimshottari Dasha explained' },
-  { slug: 'what-is-navamsha-d9-chart', topic: 'Divisional charts', title: 'What is Navamsha (D9)?' },
-  { slug: 'ashtakoot-guna-milan-explained', topic: 'Matching', title: 'Ashtakoot Guna Milan explained' },
+  { slug: 'free-vedic-birth-chart-kundali' },
+  { slug: 'vimshottari-dasha-explained' },
+  { slug: 'what-is-navamsha-d9-chart' },
+  { slug: 'ashtakoot-guna-milan-explained' },
 ] as const
 
 type TrackProps = { trackLandingCta: (ctaName: string) => void }
 
 export function LandingGuides({ trackLandingCta }: TrackProps) {
+  const t = useTranslations('home.guides')
   return (
     <div className="landing-section-row-content">
-      <VedicSectionHeader kicker="Learn" title="Learn Jyotish as you go" theme="gold" />
+      <VedicSectionHeader kicker={t('kicker')} title={t('title')} theme="gold" />
       <div className={styles.guides}>
         {FEATURED_GUIDES.map((guide) => (
           <Link
@@ -31,15 +33,15 @@ export function LandingGuides({ trackLandingCta }: TrackProps) {
             className={styles.guide}
             onClick={() => trackLandingCta(`guide_${guide.slug}`)}
           >
-            <span>{guide.topic}</span>
-            <strong>{guide.title}</strong>
+            <span>{t(`items.${guide.slug}.topic`)}</span>
+            <strong>{t(`items.${guide.slug}.title`)}</strong>
             <ArrowRight size={15} strokeWidth={2.25} aria-hidden />
           </Link>
         ))}
       </div>
       <div className={styles.centerAction}>
         <Link href="/guides" className={styles.textLink} onClick={() => trackLandingCta('guides_all')}>
-          See all guides
+          {t('seeAll')}
           <ArrowRight size={14} strokeWidth={2.25} aria-hidden />
         </Link>
       </div>
@@ -48,15 +50,16 @@ export function LandingGuides({ trackLandingCta }: TrackProps) {
 }
 
 export function LandingInstallStrip({ trackLandingCta }: TrackProps) {
+  const t = useTranslations('home.install')
   return (
     <div className={styles.install}>
       <span className={styles.installIcon}><Smartphone size={22} strokeWidth={1.75} aria-hidden /></span>
       <div>
-        <h3>Keep Vedaansh on your home screen</h3>
-        <p>Install it from Chrome on Android or Safari on iPhone and iPad. No app store needed.</p>
+        <h3>{t('title')}</h3>
+        <p>{t('text')}</p>
       </div>
       <Link href="/install" className="btn btn-secondary" style={{ textDecoration: 'none' }} onClick={() => trackLandingCta('install_strip')}>
-        See how to install
+        {t('cta')}
       </Link>
     </div>
   )

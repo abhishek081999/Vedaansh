@@ -7,6 +7,13 @@
 
 import type { GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import { MAHA_SCRIPTURES_HI, SCRIPTURE_REF_HI, SCRIPTURE_TPL_HI } from '@/lib/engine/locale/vimshottariScriptures.hi'
+
+function hiName(id: string): string {
+  return GRAHA_HI[id as GrahaId] ?? id
+}
 
 export type ScriptureSource =
   | 'BPHS'
@@ -533,8 +540,27 @@ function synthesiseAntarScripture(mahaLord: string, antarLord: string): Scriptur
 }
 
 /** Scripture passages for a mahadasha lord. */
-export function getVimshottariMahaScriptures(lord: string): ScripturePassage[] {
-  return VIMSHOTTARI_MAHA_SCRIPTURES[lord] ?? []
+export function getVimshottariMahaScriptures(lord: string, lang: EngineLang = 'en'): ScripturePassage[] {
+  const en = VIMSHOTTARI_MAHA_SCRIPTURES[lord] ?? []
+  if (lang !== 'hi') return en
+  const hi = MAHA_SCRIPTURES_HI[lord] ?? []
+  return en.map((p, i) => ({
+    ...p,
+    ...(p.ref ? { ref: SCRIPTURE_REF_HI[p.ref] ?? p.ref } : {}),
+    text: hi[i] ?? p.text,
+  }))
+}
+
+/** Hindi classical-hierarchy passages for an MD–AD pair. */
+function synthesiseAntarScriptureHi(mahaLord: string, antarLord: string): ScripturePassage[] {
+  const T = SCRIPTURE_TPL_HI
+  const v = { maha: hiName(mahaLord), antar: hiName(antarLord) }
+  const same = mahaLord === antarLord
+  return [
+    { source: 'BPHS', ref: SCRIPTURE_REF_HI['Dasha result hierarchy'], text: fill(same ? T.synthSame : T.synth, v) },
+    { source: 'Phaladeepika', text: fill(same ? T.synthSame2 : T.synth2, v) },
+    { source: 'Laghu Parashari', text: T.synth3 },
+  ]
 }
 
 /** Short classical hierarchy note for pratyantardasha (finest visible layer). */
@@ -542,7 +568,15 @@ export function getVimshottariPratyantarScriptures(
   mahaLord: string,
   antarLord: string,
   pratyaLord: string,
+  lang: EngineLang = 'en',
 ): ScripturePassage[] {
+  if (lang === 'hi') {
+    const v = { maha: hiName(mahaLord), antar: hiName(antarLord), pratya: hiName(pratyaLord) }
+    return [
+      { source: 'BPHS', ref: SCRIPTURE_REF_HI['Dasha subdivisions'], text: fill(SCRIPTURE_TPL_HI.pratya1, v) },
+      { source: 'Phaladeepika', text: fill(SCRIPTURE_TPL_HI.pratya2, v) },
+    ]
+  }
   const mahaName = GRAHA_NAMES[mahaLord as GrahaId] ?? mahaLord
   const antarName = GRAHA_NAMES[antarLord as GrahaId] ?? antarLord
   const pratyaName = GRAHA_NAMES[pratyaLord as GrahaId] ?? pratyaLord
@@ -563,7 +597,16 @@ export function getVimshottariPratyantarScriptures(
  * Scripture for antardasha: full 81-pair matrix when present,
  * otherwise classical hierarchy synthesis (never the full AD-lord mahadasha essay alone).
  */
-export function getVimshottariAntarScriptures(mahaLord: string, antarLord: string): ScripturePassage[] {
+export function getVimshottariAntarScriptures(mahaLord: string, antarLord: string, lang: EngineLang = 'en'): ScripturePassage[] {
+  if (lang === 'hi') {
+    // The 81-pair paraphrases are English-only for now; Hindi shows the classical
+    // hierarchy for the pair plus the antar lord's own mahadasha background.
+    const background = getVimshottariMahaScriptures(antarLord, 'hi').slice(0, 1).map(p => ({
+      ...p,
+      text: fill(SCRIPTURE_TPL_HI.antarBackground, { antar: hiName(antarLord), text: p.text }),
+    }))
+    return [...synthesiseAntarScriptureHi(mahaLord, antarLord), ...background]
+  }
   const key = `${mahaLord}-${antarLord}`
   const pair = VIMSHOTTARI_ANTAR_SCRIPTURES[key]
   if (pair?.length) {

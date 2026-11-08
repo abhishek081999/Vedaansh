@@ -12,10 +12,17 @@ import type {
   Rashi,
 } from '@/types/astrology'
 import {
-  GRAHA_NAMES,
-  RASHI_NAMES,
   RASHI_SANSKRIT,
 } from '@/types/astrology'
+import { dignityText, fill, gName, pick, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  D12_HOUSE_THEMES_HI,
+  D12_LAGNA_PLANET_HI,
+  D12_LAGNA_SIGN_FLAVOR_HI,
+  D12_PURPOSE_HI,
+  D12_TEXT_HI,
+  D12_THIRST_HI,
+} from '@/lib/engine/locale/dwadashamsha.hi'
 
 export type D12Tone = 'supportive' | 'challenging' | 'mixed' | 'neutral'
 
@@ -238,16 +245,108 @@ const LAGNA_PLANET_READINGS: Partial<Record<GrahaId, string>> = {
   Ke: 'Ketu on D12 lagna — supports release and lightening; solitude can feel like flowing away from burden.',
 }
 
+const D12_TEXT_EN: Record<keyof typeof D12_TEXT_HI, string> = {
+  thirstReading: 'Debilitated {planet} in D12 ({rashi}, H{house}): {lack}',
+  thirstGeneric: 'Debilitated {planet} in D12 marks a deep psychological thirst from what felt incomplete.',
+  thirstChaseGeneric: 'May overcompensate around that planet’s significations in this life.',
+  ketuMissing: 'Ketu placement unavailable in D12.',
+  ketuMarker: 'Ketu in {rashi} (H{house}, {dignity}) is the D12 “release” marker.',
+  ketuStrong: 'Supports giving away, flowing, and lightening life’s luggage when isolation arrives.',
+  ketuWeak: 'Still points to detachment practice — soften clinging rather than force renunciation.',
+  ketu4: 'Often far from home even in dreams — root release is part of the path.',
+  ketu12: '12th house Ketu strengthens sleep / dream release and letting go.',
+  houseFallback: 'D12 house {house}',
+  planetIn: '{planet} in {rashi} (H{house}, {dignity}).',
+  themeEnd: '{theme}.',
+  planetDebil: 'Debility here flags a thirst — what felt incomplete tends to chase completion now.',
+  planetKetu: 'Ketu favors release over accumulation in the D12 field.',
+  planetRetro: 'Retrograde intensifies the inner replay of that theme.',
+  houseEmpty: 'Empty — read the lord of {rashi} for quieter results.',
+  occupiedBy: 'Occupied by {names}.',
+  h12Malefic: 'Difficult pressure here can echo as unsettling dream content — soften with rest and release practice, not fear.',
+  h12Ketu: 'Ketu here supports letting go in sleep and solitude.',
+  h12Lum: 'Luminaries / Rahu in 12th can feel like wanting to speak but not fully expressing — give the inner voice a daytime outlet.',
+  h8: 'Deep residue and soul-thirst pressure; map carefully onto D1 without dramatic past-life claims.',
+  h4Ketu: 'Ketu in 4th: distance from home can appear even in dreams.',
+  h7Rahu: 'Rahu in 7th: unfinished relating / “best of” thirst may color partner themes.',
+  d4Malefic: 'D4 shows {names} near the heart/home — present emotional intolerance of toxicity is a D4 story, not automatic D12 residue.',
+  d4Lagna: 'D4 lagna {rashi} — what is innately in the heart right now (present, not programmed).',
+  d8Hit: 'D8 highlights {names} on crisis/fear axes — accumulated this-life fear, distinct from D12’s already-completed residue.',
+  d8Lagna: 'D8 lagna {rashi} available — use for this-life accumulated fear, not past residue.',
+  d8Missing: 'D8 not in this chart’s active varga set — contrast stays conceptual until Ashtamsha is calculated.',
+  d12Twelfth: 'D12 12th holds {names} — dream / release field for this chart.',
+  d12Lagna: 'D12 lagna {rashi} — past residue, dreams, and isolation tone.',
+  cD4Label: 'D4 · Heart (now)',
+  cD4Nature: 'Present, innately present — “you already are this.”',
+  cD4Summary: 'What is in the heart right now; emotional foundation and home space.',
+  cD8Label: 'D8 · Trauma (this life)',
+  cD8Nature: 'Accumulated over time in this life — fear, regret, suppression.',
+  cD8Summary: 'What you most fear; unresolved problems gathered gradually.',
+  cD12Label: 'D12 · Residue (yesterday)',
+  cD12Nature: 'Already completed before — post-echo, dreams, isolation.',
+  cD12Summary: 'What was unfinished “yesterday”; thirst and release when alone.',
+  xD4D3Title: 'D4 × D3 → D12 lens',
+  xD4D3Text: 'Heart space (D4) combined with subconscious space (D3) describes the D12 pattern. When D3+D4 already explain a question, D12 may stay optional — use it for isolation, dreams, and unfinished residue.',
+  xD6D2Title: 'D6 × D2 · Pending service',
+  xD6D2Names: 'D6 6th holds {names}; with D2 resources, this often reads as unfinished service / debt to feed, repay, or care for — map softly onto D1 without assigning blame.',
+  xD6D2Generic: 'D6×D2 available: look for unfinished service and ancestral-resource debts, then map back to D1 for practical payback (giving, feeding, supporting).',
+  xD12D2Title: 'D12 × D2 · Luggage and resources',
+  xD12D2Text: 'D12 2nd holds {names} — mixture of past luggage and material resources; generosity and fair distribution often heal hoarding imprints.',
+  xD8D3Title: 'D8 × D3 · Skills path',
+  xD8D3Text: 'Talents from the subconscious (D3) pressed by this-life fear/trauma (D8) can become either a wasted skill or a career. Cross-check D24 for unused learning potential.',
+  sumOpen: 'D12 opens in {rashi} — isolation and dream tone lead with {label}.',
+  sumAlone: 'Kendras (angular houses: 1, 4, 7, 10) are quiet — solitude can feel unsupported in the dream field.',
+  sumThirst: 'Deep thirst marked by debilitated {planet}.',
+  sumKetu: 'Ketu supports release and lightening the load.',
+  occColors: '{planet} colors the D12 isolation face.',
+  occRetro: 'Retrograde intensifies the inner replay.',
+  lordSits: '{lord} sits in {rashi} (H{house}, {dignity}).',
+  lordMissing: '{lord} placement unavailable.',
+  lordWith: 'With {names} — blend those natures into the isolation story.',
+  lordAlone: '{lord} alone steers the alone-time narrative.',
+  lordEmptyKendras: 'Empty kendras (angular houses: 1, 4, 7, 10) amplify the sense of being alone in dreams.',
+  occupiedLabel: 'Lagna occupied by {names}',
+  emptyLabel: 'Empty lagna — follow {lord} in house {house}',
+  houseLabel: 'House {house}',
+  yesterdayTitle: 'D12 as “yesterday”',
+  yesterdayText: 'D1 is today. What felt incomplete yesterday seeks completion now — through generosity, closure, and conscious release rather than panic.',
+  aloneTitle: 'Alone in the dream field',
+  aloneText: 'Kendras H{houses} are empty — solitude can feel unsupported. Build waking support so isolation does not equal abandonment.',
+  thirstTitle: 'Thirst · {planet}',
+  ketuTitle: 'Ketu · release',
+  h12Title: '12th house pressure',
+}
+
+/** Per-call language context (text tables + name helpers). */
+interface D12Ctx {
+  T: Record<keyof typeof D12_TEXT_HI, string>
+  HT: Record<number, string>
+  g: (id: GrahaId) => string
+  r: (x: Rashi) => string
+  dig: (d: Dignity) => string
+  names: (list: GrahaData[]) => string
+  lang: EngineLang
+}
+
+function d12Ctx(lang: EngineLang): D12Ctx {
+  const g = (id: GrahaId) => gName(id, lang)
+  return {
+    T: pick(D12_TEXT_EN, D12_TEXT_HI as Record<keyof typeof D12_TEXT_HI, string>, lang),
+    HT: pick(HOUSE_THEMES, D12_HOUSE_THEMES_HI, lang),
+    g,
+    r: (x: Rashi) => rName(x, lang),
+    dig: (d: Dignity) => dignityText(d, lang),
+    names: (list: GrahaData[]) => list.map((x) => g(x.id)).join(', '),
+    lang,
+  }
+}
+
 function wholeSignHouseSign(ascRashi: Rashi, house: number): Rashi {
   return (((ascRashi - 1 + house - 1) % 12) + 1) as Rashi
 }
 
 function houseOf(planetRashi: Rashi, ascRashi: Rashi): number {
   return ((planetRashi - ascRashi + 12) % 12) + 1
-}
-
-function dignityLabel(d: Dignity): string {
-  return d.replace(/_/g, ' ')
 }
 
 function toneFromDignity(d: Dignity, house: number): D12Tone {
@@ -265,25 +364,27 @@ function conjunctIds(grahas: GrahaData[], target: GrahaData): GrahaId[] {
   return grahas.filter((g) => g.id !== target.id && g.rashi === target.rashi).map((g) => g.id)
 }
 
-function buildThirst(g: GrahaData, asc: Rashi): DwadashamshaThirst {
+function buildThirst(g: GrahaData, asc: Rashi, L: D12Ctx): DwadashamshaThirst {
+  const { T } = L
   const house = houseOf(g.rashi, asc)
-  const pack = THIRST_READINGS[g.id]
+  const pack = L.lang === 'hi' ? D12_THIRST_HI[g.id] : THIRST_READINGS[g.id]
   return {
     id: g.id,
-    name: GRAHA_NAMES[g.id],
+    name: L.g(g.id),
     rashi: g.rashi,
-    rashiName: RASHI_NAMES[g.rashi],
+    rashiName: L.r(g.rashi),
     house,
     dignity: g.dignity,
     tone: 'challenging',
     reading: pack
-      ? `Debilitated ${GRAHA_NAMES[g.id]} in D12 (${RASHI_NAMES[g.rashi]}, H${house}): ${pack.lack}`
-      : `Debilitated ${GRAHA_NAMES[g.id]} in D12 marks a deep psychological thirst from what felt incomplete.`,
-    overcompensateHint: pack?.chase ?? 'May overcompensate around that planet’s significations in this life.',
+      ? fill(T.thirstReading, { planet: L.g(g.id), rashi: L.r(g.rashi), house, lack: pack.lack })
+      : fill(T.thirstGeneric, { planet: L.g(g.id) }),
+    overcompensateHint: pack?.chase ?? T.thirstChaseGeneric,
   }
 }
 
-function buildKetuRelease(grahas: GrahaData[], asc: Rashi): DwadashamshaKetuRelease {
+function buildKetuRelease(grahas: GrahaData[], asc: Rashi, L: D12Ctx): DwadashamshaKetuRelease {
+  const { T } = L
   const ketu = planetById(grahas, 'Ke')
   if (!ketu) {
     return {
@@ -292,52 +393,51 @@ function buildKetuRelease(grahas: GrahaData[], asc: Rashi): DwadashamshaKetuRele
       rashiName: null,
       dignity: null,
       tone: 'neutral',
-      reading: 'Ketu placement unavailable in D12.',
+      reading: T.ketuMissing,
     }
   }
   const house = houseOf(ketu.rashi, asc)
   const strong = STRONG_DIGNITY.includes(ketu.dignity) || [1, 4, 5, 9, 12].includes(house)
   const tone: D12Tone = strong ? 'supportive' : house === 6 || house === 8 ? 'mixed' : 'neutral'
   const bits = [
-    `Ketu in ${RASHI_NAMES[ketu.rashi]} (H${house}, ${dignityLabel(ketu.dignity)}) is the D12 “release” marker.`,
-    strong
-      ? 'Supports giving away, flowing, and lightening life’s luggage when isolation arrives.'
-      : 'Still points to detachment practice — soften clinging rather than force renunciation.',
+    fill(T.ketuMarker, { rashi: L.r(ketu.rashi), house, dignity: L.dig(ketu.dignity) }),
+    strong ? T.ketuStrong : T.ketuWeak,
   ]
-  if (house === 4) bits.push('Often far from home even in dreams — root release is part of the path.')
-  if (house === 12) bits.push('12th house Ketu strengthens sleep / dream release and letting go.')
+  if (house === 4) bits.push(T.ketu4)
+  if (house === 12) bits.push(T.ketu12)
   return {
     present: true,
     house,
-    rashiName: RASHI_NAMES[ketu.rashi],
+    rashiName: L.r(ketu.rashi),
     dignity: ketu.dignity,
     tone,
     reading: bits.join(' '),
   }
 }
 
-function buildPlanetRow(g: GrahaData, asc: Rashi): DwadashamshaPlanetRow {
+function buildPlanetRow(g: GrahaData, asc: Rashi, L: D12Ctx): DwadashamshaPlanetRow {
+  const { T } = L
   const house = houseOf(g.rashi, asc)
-  const theme = HOUSE_THEMES[house] ?? `D12 house ${house}`
+  const theme = L.HT[house] ?? fill(T.houseFallback, { house })
   const tone = toneFromDignity(g.dignity, house)
   const bits: string[] = [
-    `${GRAHA_NAMES[g.id]} in ${RASHI_NAMES[g.rashi]} (H${house}, ${dignityLabel(g.dignity)}).`,
-    theme + '.',
+    fill(T.planetIn, { planet: L.g(g.id), rashi: L.r(g.rashi), house, dignity: L.dig(g.dignity) }),
+    fill(T.themeEnd, { theme }),
   ]
   if (g.dignity === 'debilitated') {
-    bits.push('Debility here flags a thirst — what felt incomplete tends to chase completion now.')
+    bits.push(T.planetDebil)
   }
   if (g.id === 'Ke') {
-    bits.push('Ketu favors release over accumulation in the D12 field.')
+    bits.push(T.planetKetu)
   }
   if (g.isRetro) {
-    bits.push('Retrograde intensifies the inner replay of that theme.')
+    bits.push(T.planetRetro)
   }
   return {
     id: g.id,
-    name: GRAHA_NAMES[g.id],
+    name: L.g(g.id),
     rashi: g.rashi,
-    rashiName: RASHI_NAMES[g.rashi],
+    rashiName: L.r(g.rashi),
     house,
     dignity: g.dignity,
     isRetro: Boolean(g.isRetro),
@@ -351,41 +451,43 @@ function buildHouseReading(
   house: number,
   occupants: GrahaData[],
   rashi: Rashi,
+  L: D12Ctx,
 ): { reading: string; tone: D12Tone } {
-  const theme = HOUSE_THEMES[house] ?? `D12 house ${house}`
-  const names = occupants.map((g) => GRAHA_NAMES[g.id]).join(', ')
-  const bits: string[] = [`${theme}.`]
+  const { T } = L
+  const theme = L.HT[house] ?? fill(T.houseFallback, { house })
+  const names = L.names(occupants)
+  const bits: string[] = [fill(T.themeEnd, { theme })]
 
   if (!occupants.length) {
-    bits.push(`Empty — read the lord of ${RASHI_NAMES[rashi]} for quieter results.`)
+    bits.push(fill(T.houseEmpty, { rashi: L.r(rashi) }))
     return { reading: bits.join(' '), tone: 'neutral' }
   }
 
-  bits.push(`Occupied by ${names}.`)
+  bits.push(fill(T.occupiedBy, { names }))
 
   if (house === 12) {
     const malefics = occupants.filter((g) => MALEFICS.includes(g.id) && g.id !== 'Ke')
     if (malefics.length) {
-      bits.push('Difficult pressure here can echo as unsettling dream content — soften with rest and release practice, not fear.')
+      bits.push(T.h12Malefic)
     }
     if (occupants.some((g) => g.id === 'Ke')) {
-      bits.push('Ketu here supports letting go in sleep and solitude.')
+      bits.push(T.h12Ketu)
     }
     if (occupants.some((g) => g.id === 'Su' || g.id === 'Mo' || g.id === 'Ra')) {
-      bits.push('Luminaries / Rahu in 12th can feel like wanting to speak but not fully expressing — give the inner voice a daytime outlet.')
+      bits.push(T.h12Lum)
     }
   }
 
   if (house === 8) {
-    bits.push('Deep residue and soul-thirst pressure; map carefully onto D1 without dramatic past-life claims.')
+    bits.push(T.h8)
   }
 
   if (house === 4 && occupants.some((g) => g.id === 'Ke')) {
-    bits.push('Ketu in 4th: distance from home can appear even in dreams.')
+    bits.push(T.h4Ketu)
   }
 
   if (house === 7 && occupants.some((g) => g.id === 'Ra')) {
-    bits.push('Rahu in 7th: unfinished relating / “best of” thirst may color partner themes.')
+    bits.push(T.h7Rahu)
   }
 
   const maleficHit = occupants.filter((g) => MALEFICS.includes(g.id)).length
@@ -399,7 +501,8 @@ function buildHouseReading(
   return { reading: bits.join(' '), tone }
 }
 
-function buildContrasts(chart: ChartOutput, d12: { asc: Rashi; grahas: GrahaData[] }): DwadashamshaContrast[] {
+function buildContrasts(chart: ChartOutput, d12: { asc: Rashi; grahas: GrahaData[] }, L: D12Ctx): DwadashamshaContrast[] {
+  const { T } = L
   const d4Asc = chart.vargaLagnas?.D4 as Rashi | undefined
   const d4Grahas = chart.vargas?.D4
   const d8Asc = chart.vargaLagnas?.D8 as Rashi | undefined
@@ -410,87 +513,86 @@ function buildContrasts(chart: ChartOutput, d12: { asc: Rashi; grahas: GrahaData
     const occ = d4Grahas.filter((g) => houseOf(g.rashi, d4Asc) === 1 || houseOf(g.rashi, d4Asc) === 4)
     const mal = occ.filter((g) => MALEFICS.includes(g.id))
     d4Note = mal.length
-      ? `D4 shows ${mal.map((g) => GRAHA_NAMES[g.id]).join(', ')} near the heart/home — present emotional intolerance of toxicity is a D4 story, not automatic D12 residue.`
-      : `D4 lagna ${RASHI_NAMES[d4Asc]} — what is innately in the heart right now (present, not programmed).`
+      ? fill(T.d4Malefic, { names: L.names(mal) })
+      : fill(T.d4Lagna, { rashi: L.r(d4Asc) })
   }
 
   let d8Note: string | null = null
   if (d8Asc && d8Grahas?.length) {
     const h8 = d8Grahas.filter((g) => houseOf(g.rashi, d8Asc) === 8 || houseOf(g.rashi, d8Asc) === 1)
     d8Note = h8.length
-      ? `D8 highlights ${h8.map((g) => GRAHA_NAMES[g.id]).join(', ')} on crisis/fear axes — accumulated this-life fear, distinct from D12’s already-completed residue.`
-      : `D8 lagna ${RASHI_NAMES[d8Asc]} available — use for this-life accumulated fear, not past residue.`
+      ? fill(T.d8Hit, { names: L.names(h8) })
+      : fill(T.d8Lagna, { rashi: L.r(d8Asc) })
   } else {
-    d8Note = 'D8 not in this chart’s active varga set — contrast stays conceptual until Ashtamsha is calculated.'
+    d8Note = T.d8Missing
   }
 
   const d12Twelfth = d12.grahas.filter((g) => houseOf(g.rashi, d12.asc) === 12)
   const d12Note = d12Twelfth.length
-    ? `D12 12th holds ${d12Twelfth.map((g) => GRAHA_NAMES[g.id]).join(', ')} — dream / release field for this chart.`
-    : `D12 lagna ${RASHI_NAMES[d12.asc]} — past residue, dreams, and isolation tone.`
+    ? fill(T.d12Twelfth, { names: L.names(d12Twelfth) })
+    : fill(T.d12Lagna, { rashi: L.r(d12.asc) })
 
   return [
     {
       id: 'd4',
-      label: 'D4 · Heart (now)',
-      nature: 'Present, innately present — “you already are this.”',
-      summary: 'What is in the heart right now; emotional foundation and home space.',
+      label: T.cD4Label,
+      nature: T.cD4Nature,
+      summary: T.cD4Summary,
       chartNote: d4Note,
     },
     {
       id: 'd8',
-      label: 'D8 · Trauma (this life)',
-      nature: 'Accumulated over time in this life — fear, regret, suppression.',
-      summary: 'What you most fear; unresolved problems gathered gradually.',
+      label: T.cD8Label,
+      nature: T.cD8Nature,
+      summary: T.cD8Summary,
       chartNote: d8Note,
     },
     {
       id: 'd12',
-      label: 'D12 · Residue (yesterday)',
-      nature: 'Already completed before — post-echo, dreams, isolation.',
-      summary: 'What was unfinished “yesterday”; thirst and release when alone.',
+      label: T.cD12Label,
+      nature: T.cD12Nature,
+      summary: T.cD12Summary,
       chartNote: d12Note,
     },
   ]
 }
 
-function buildCrossNotes(chart: ChartOutput, d12Asc: Rashi, d12Grahas: GrahaData[]): DwadashamshaCrossNote[] {
+function buildCrossNotes(chart: ChartOutput, d12Asc: Rashi, d12Grahas: GrahaData[], L: D12Ctx): DwadashamshaCrossNote[] {
+  const { T } = L
   const notes: DwadashamshaCrossNote[] = []
   const has = (name: string) => Boolean(chart.vargas?.[name]?.length && chart.vargaLagnas?.[name])
 
   if (has('D3') && has('D4')) {
     notes.push({
       id: 'd4xd3',
-      title: 'D4 × D3 → D12 lens',
-      text: 'Heart space (D4) combined with subconscious space (D3) describes the D12 pattern. When D3+D4 already explain a question, D12 may stay optional — use it for isolation, dreams, and unfinished residue.',
+      title: T.xD4D3Title,
+      text: T.xD4D3Text,
       tone: 'neutral',
     })
   }
 
   if (has('D2') && has('D6')) {
-    const d2 = chart.vargas!.D2!
     const d6 = chart.vargas!.D6!
     const d6Asc = chart.vargaLagnas!.D6 as Rashi
     const d6Sixth = d6.filter((g) => houseOf(g.rashi, d6Asc) === 6)
-    const names = d6Sixth.map((g) => GRAHA_NAMES[g.id]).join(', ')
+    const names = L.names(d6Sixth)
     notes.push({
       id: 'd6xd2',
-      title: 'D6 × D2 · Pending service',
+      title: T.xD6D2Title,
       text: names
-        ? `D6 6th holds ${names}; with D2 resources, this often reads as unfinished service / debt to feed, repay, or care for — map softly onto D1 without assigning blame.`
-        : 'D6×D2 available: look for unfinished service and ancestral-resource debts, then map back to D1 for practical payback (giving, feeding, supporting).',
+        ? fill(T.xD6D2Names, { names })
+        : T.xD6D2Generic,
       tone: 'mixed',
     })
   }
 
   if (has('D2')) {
-    const d2 = chart.vargas!.D2!
     const d12Second = d12Grahas.filter((g) => houseOf(g.rashi, d12Asc) === 2)
     if (d12Second.length) {
       notes.push({
         id: 'd12xd2',
-        title: 'D12 × D2 · Luggage and resources',
-        text: `D12 2nd holds ${d12Second.map((g) => GRAHA_NAMES[g.id]).join(', ')} — mixture of past luggage and material resources; generosity and fair distribution often heal hoarding imprints.`,
+        title: T.xD12D2Title,
+        text: fill(T.xD12D2Text, { names: L.names(d12Second) }),
         tone: 'mixed',
       })
     }
@@ -499,8 +601,8 @@ function buildCrossNotes(chart: ChartOutput, d12Asc: Rashi, d12Grahas: GrahaData
   if (has('D8') && has('D3')) {
     notes.push({
       id: 'd8xd3',
-      title: 'D8 × D3 · Skills path',
-      text: 'Talents from the subconscious (D3) pressed by this-life fear/trauma (D8) can become either a wasted skill or a career. Cross-check D24 for unused learning potential.',
+      title: T.xD8D3Title,
+      text: T.xD8D3Text,
       tone: 'neutral',
     })
   }
@@ -512,31 +614,35 @@ function buildSummary(
   isolation: DwadashamshaIsolation,
   thirst: DwadashamshaThirst | null,
   ketu: DwadashamshaKetuRelease,
+  L: D12Ctx,
 ): string {
+  const { T } = L
   const parts: string[] = [
-    `D12 opens in ${isolation.lagnaName} — isolation and dream tone lead with ${isolation.primarySignal.label.toLowerCase()}.`,
+    fill(T.sumOpen, { rashi: isolation.lagnaName, label: isolation.primarySignal.label.toLowerCase() }),
   ]
   if (isolation.aloneInDreams) {
-    parts.push('Kendras (angular houses: 1, 4, 7, 10) are quiet — solitude can feel unsupported in the dream field.')
+    parts.push(T.sumAlone)
   }
   if (thirst) {
-    parts.push(`Deep thirst marked by debilitated ${thirst.name}.`)
+    parts.push(fill(T.sumThirst, { planet: thirst.name }))
   }
   if (ketu.tone === 'supportive') {
-    parts.push('Ketu supports release and lightening the load.')
+    parts.push(T.sumKetu)
   }
   return parts.join(' ')
 }
 
 /**
  * Analyze Dwadashamsha (D12) from chart vargas.
- * Returns null if D12 data is missing.
+ * Returns null if D12 data is missing. `lang` switches display text only.
  */
-export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | null {
+export function analyzeDwadashamsha(chart: ChartOutput, lang: EngineLang = 'en'): DwadashamshaAnalysis | null {
   const asc = chart.vargaLagnas?.D12 as Rashi | undefined
   const grahas = chart.vargas?.D12
   if (!asc || !grahas?.length) return null
 
+  const L = d12Ctx(lang)
+  const { T } = L
   const lagnaOcc = grahas.filter((g) => houseOf(g.rashi, asc) === 1)
   const lagnaEmpty = lagnaOcc.length === 0
   const lagnaLordId = SIGN_LORDS[asc]
@@ -548,14 +654,15 @@ export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | 
     (h) => !grahas.some((g) => houseOf(g.rashi, asc) === h),
   )
   const aloneInDreams = emptyKendras.length >= 3
+  const LPR = lang === 'hi' ? D12_LAGNA_PLANET_HI : LAGNA_PLANET_READINGS
 
   const occupants: DwadashamshaLagnaOccupant[] = lagnaOcc.map((g) => ({
     id: g.id,
-    name: GRAHA_NAMES[g.id],
+    name: L.g(g.id),
     isRetro: Boolean(g.isRetro),
     reading: [
-      LAGNA_PLANET_READINGS[g.id] ?? `${GRAHA_NAMES[g.id]} colors the D12 isolation face.`,
-      g.isRetro ? 'Retrograde intensifies the inner replay.' : null,
+      LPR[g.id] ?? fill(T.occColors, { planet: L.g(g.id) }),
+      g.isRetro ? T.occRetro : null,
     ]
       .filter(Boolean)
       .join(' '),
@@ -563,35 +670,35 @@ export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | 
 
   const isolationBase: Omit<DwadashamshaIsolation, 'primarySignal'> = {
     lagna: asc,
-    lagnaName: RASHI_NAMES[asc],
-    lagnaSanskrit: RASHI_SANSKRIT[asc],
+    lagnaName: L.r(asc),
+    lagnaSanskrit: lang === 'hi' ? L.r(asc) : RASHI_SANSKRIT[asc],
     lagnaEmpty,
     occupants,
     lagnaLord: {
       id: lagnaLordId,
-      name: GRAHA_NAMES[lagnaLordId],
+      name: L.g(lagnaLordId),
       house: lordHouse,
       rashi: lordG?.rashi ?? asc,
-      rashiName: RASHI_NAMES[lordG?.rashi ?? asc],
+      rashiName: L.r(lordG?.rashi ?? asc),
       dignity: lordG?.dignity ?? 'neutral',
       isRetro: Boolean(lordG?.isRetro),
       conjunctIds: lordConjuncts,
-      conjunctNames: lordConjuncts.map((id) => GRAHA_NAMES[id]),
+      conjunctNames: lordConjuncts.map((id) => L.g(id)),
       reading: [
         lordG
-          ? `${GRAHA_NAMES[lagnaLordId]} sits in ${RASHI_NAMES[lordG.rashi]} (H${lordHouse}, ${dignityLabel(lordG.dignity)}).`
-          : `${GRAHA_NAMES[lagnaLordId]} placement unavailable.`,
+          ? fill(T.lordSits, { lord: L.g(lagnaLordId), rashi: L.r(lordG.rashi), house: lordHouse, dignity: L.dig(lordG.dignity) })
+          : fill(T.lordMissing, { lord: L.g(lagnaLordId) }),
         lordConjuncts.length
-          ? `With ${lordConjuncts.map((id) => GRAHA_NAMES[id]).join(', ')} — blend those natures into the isolation story.`
-          : `${GRAHA_NAMES[lagnaLordId]} alone steers the alone-time narrative.`,
+          ? fill(T.lordWith, { names: lordConjuncts.map((id) => L.g(id)).join(', ') })
+          : fill(T.lordAlone, { lord: L.g(lagnaLordId) }),
         aloneInDreams
-          ? 'Empty kendras (angular houses: 1, 4, 7, 10) amplify the sense of being alone in dreams.'
+          ? T.lordEmptyKendras
           : null,
       ]
         .filter(Boolean)
         .join(' '),
     },
-    signFlavor: LAGNA_SIGN_FLAVOR[asc],
+    signFlavor: (lang === 'hi' ? D12_LAGNA_SIGN_FLAVOR_HI : LAGNA_SIGN_FLAVOR)[asc],
     aloneInDreams,
     emptyKendras: [...emptyKendras],
   }
@@ -599,12 +706,12 @@ export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | 
   const primarySignal: DwadashamshaIsolation['primarySignal'] = occupants.length
     ? {
         strength: 'occupation',
-        label: `Lagna occupied by ${occupants.map((o) => o.name).join(', ')}`,
+        label: fill(T.occupiedLabel, { names: occupants.map((o) => o.name).join(', ') }),
         detail: occupants.map((o) => o.reading).join(' '),
       }
     : {
         strength: 'lord',
-        label: `Empty lagna — follow ${GRAHA_NAMES[lagnaLordId]} in house ${lordHouse}`,
+        label: fill(T.emptyLabel, { lord: L.g(lagnaLordId), house: lordHouse }),
         detail: isolationBase.lagnaLord.reading,
       }
 
@@ -613,37 +720,37 @@ export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | 
   const thirstCandidates = grahas
     .filter((g) => g.dignity === 'debilitated')
     .sort((a, b) => CLASSICAL_ORDER.indexOf(a.id) - CLASSICAL_ORDER.indexOf(b.id))
-    .map((g) => buildThirst(g, asc))
+    .map((g) => buildThirst(g, asc, L))
   const thirst = thirstCandidates[0] ?? null
 
-  const ketuRelease = buildKetuRelease(grahas, asc)
+  const ketuRelease = buildKetuRelease(grahas, asc, L)
   const planets = CLASSICAL_ORDER
     .map((id) => planetById(grahas, id))
     .filter((g): g is GrahaData => Boolean(g))
-    .map((g) => buildPlanetRow(g, asc))
+    .map((g) => buildPlanetRow(g, asc, L))
 
   const houses: DwadashamshaHouseRow[] = []
   for (let h = 1; h <= 12; h++) {
     const rashi = wholeSignHouseSign(asc, h)
     const occ = grahas.filter((g) => houseOf(g.rashi, asc) === h)
-    const { reading, tone } = buildHouseReading(h, occ, rashi)
+    const { reading, tone } = buildHouseReading(h, occ, rashi, L)
     const lordId = SIGN_LORDS[rashi]
     houses.push({
       house: h,
       rashi,
-      rashiName: RASHI_NAMES[rashi],
+      rashiName: L.r(rashi),
       lordId,
-      lordName: GRAHA_NAMES[lordId],
-      occupants: occ.map((g) => ({ id: g.id, name: GRAHA_NAMES[g.id], isRetro: Boolean(g.isRetro) })),
-      theme: HOUSE_THEMES[h] ?? `House ${h}`,
+      lordName: L.g(lordId),
+      occupants: occ.map((g) => ({ id: g.id, name: L.g(g.id), isRetro: Boolean(g.isRetro) })),
+      theme: L.HT[h] ?? fill(T.houseLabel, { house: h }),
       reading,
       tone,
     })
   }
 
   const focusedHouses = houses.filter((h) => (FOCUS_HOUSES as readonly number[]).includes(h.house))
-  const contrasts = buildContrasts(chart, { asc, grahas })
-  const crossNotes = buildCrossNotes(chart, asc, grahas)
+  const contrasts = buildContrasts(chart, { asc, grahas }, L)
+  const crossNotes = buildCrossNotes(chart, asc, grahas, L)
 
   const insights: DwadashamshaInsight[] = []
   insights.push({
@@ -653,27 +760,27 @@ export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | 
   })
   insights.push({
     kind: 'info',
-    title: 'D12 as “yesterday”',
-    text: 'D1 is today. What felt incomplete yesterday seeks completion now — through generosity, closure, and conscious release rather than panic.',
+    title: T.yesterdayTitle,
+    text: T.yesterdayText,
   })
   if (isolation.aloneInDreams) {
     insights.push({
       kind: 'caution',
-      title: 'Alone in the dream field',
-      text: `Kendras H${isolation.emptyKendras.join(', ')} are empty — solitude can feel unsupported. Build waking support so isolation does not equal abandonment.`,
+      title: T.aloneTitle,
+      text: fill(T.aloneText, { houses: isolation.emptyKendras.join(', ') }),
     })
   }
   if (thirst) {
     insights.push({
       kind: 'caution',
-      title: `Thirst · ${thirst.name}`,
+      title: fill(T.thirstTitle, { planet: thirst.name }),
       text: `${thirst.reading} ${thirst.overcompensateHint}`,
     })
   }
   if (ketuRelease.present) {
     insights.push({
       kind: ketuRelease.tone === 'supportive' ? 'strength' : 'info',
-      title: 'Ketu · release',
+      title: T.ketuTitle,
       text: ketuRelease.reading,
     })
   }
@@ -681,13 +788,13 @@ export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | 
   if (h12 && h12.tone === 'challenging') {
     insights.push({
       kind: 'caution',
-      title: '12th house pressure',
+      title: T.h12Title,
       text: h12.reading,
     })
   }
   for (const note of crossNotes.slice(0, 2)) {
     insights.push({
-      kind: note.tone === 'challenging' || note.tone === 'mixed' ? 'info' : 'info',
+      kind: 'info',
       title: note.title,
       text: note.text,
     })
@@ -695,10 +802,10 @@ export function analyzeDwadashamsha(chart: ChartOutput): DwadashamshaAnalysis | 
 
   return {
     d12Lagna: asc,
-    d12LagnaName: RASHI_NAMES[asc],
-    d12LagnaSanskrit: RASHI_SANSKRIT[asc],
-    summary: buildSummary(isolation, thirst, ketuRelease),
-    purpose: D12_PURPOSE,
+    d12LagnaName: L.r(asc),
+    d12LagnaSanskrit: lang === 'hi' ? L.r(asc) : RASHI_SANSKRIT[asc],
+    summary: buildSummary(isolation, thirst, ketuRelease, L),
+    purpose: pick(D12_PURPOSE, D12_PURPOSE_HI, lang),
     isolation,
     thirst,
     thirstCandidates,

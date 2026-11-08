@@ -24,6 +24,25 @@ import {
   type InterpLayer,
   type MixedPlanetPlacement,
 } from '@/lib/engine/planetInterpretationMix'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { dignityHi, mergeHi, ordObl } from '@/lib/engine/locale/planetsA.util'
+import { SPECIAL_ASPECT_OVERVIEW_HI } from '@/lib/engine/locale/planetCard.hi'
+import { classicalBundleHi } from '@/lib/engine/planetsBClassicalHi'
+import {
+  SADE_SATI_PADAS_HI,
+  SATURN_ASPECTS_HI,
+  SATURN_EFFECTS_HI,
+  SATURN_FLAGS_HI as FH,
+  SATURN_HOUSE_FOCUS_HI,
+  SATURN_KARAKATVA_HI,
+  SATURN_MEDICAL_HI,
+  SATURN_NAKSHATRAS_HI,
+  SATURN_PHYSICAL_HI,
+  SATURN_REMEDIES_HI,
+  SATURN_STATIC_HI as SH,
+  SATURN_YOGAS_HI as YH,
+} from '@/lib/engine/locale/saturnAnalysis.hi'
 
 export interface SaturnSignificationGroup {
   category: string
@@ -612,7 +631,151 @@ function isMoolatrikona(rashi: Rashi, degree: number): boolean {
 /**
  * Natal Shani analysis from class teaching notes.
  */
-export function analyzeSaturn(chart: ChartOutput): SaturnAnalysisResult | null {
+export function analyzeSaturn(chart: ChartOutput, lang: EngineLang = 'en'): SaturnAnalysisResult | null {
+  const r = analyzeSaturnEn(chart)
+  return r && lang === 'hi' ? localizeSaturnHi(r, chart) : r
+}
+
+function sadeSatiPadaDefHi(p: SaturnSadeSatiPadaDef): SaturnSadeSatiPadaDef {
+  return { ...p, ...(SADE_SATI_PADAS_HI[p.id] ?? {}) }
+}
+
+function saturnHouseFocusHi(hf: SaturnHouseFocus): SaturnHouseFocus {
+  const hi = SATURN_HOUSE_FOCUS_HI[hf.house]
+  if (hi) return { ...hf, title: hi.title, themes: [...hi.themes], notes: [...hi.notes] }
+  return { ...hf, title: fill(FH.fallbackTitle, { nth: ordObl(hf.house) }), notes: [FH.fallbackNote] }
+}
+
+function aspectDefHi(d: SaturnAspectDef): SaturnAspectDef {
+  return { ...d, ...SATURN_ASPECTS_HI[d.span] }
+}
+
+/** Hindi display copy of an English Saturn result (ids, flags and numbers unchanged). */
+function localizeSaturnHi(r: SaturnAnalysisResult, chart: ChartOutput): SaturnAnalysisResult {
+  const sa = r.saturn
+  const nth = ordObl(sa.house)
+  const moon = chart.grahas.find(g => g.id === 'Mo')
+  const yogaOn = (id: SaturnYogaResult['id']) => r.yogas.find(y => y.id === id)?.active === true
+  const sep = sa.sepFromSunDeg != null ? sa.sepFromSunDeg.toFixed(1) : null
+  const yogas = r.yogas.map((y): SaturnYogaResult => {
+    const t = YH[y.id]
+    let detail: string
+    if (!y.active) detail = t.off
+    else if (y.id === 'visha') {
+      const via = moon?.rashi === 10 ? YH.visha.viaCap : moon && moon.rashi !== sa.rashi ? YH.visha.viaAspect : YH.visha.viaConj
+      detail = fill(YH.visha.on, { nth, via })
+    } else if (y.id === 'sa_ketu') detail = fill(YH.sa_ketu.on, { nth, h12: sa.house === 12 ? YH.sa_ketu.h12 : '' })
+    else if (y.id === 'sa_su_combust') detail = fill(YH.sa_su_combust.on, { nth, sep: sep ? fill(YH.sa_su_combust.sep, { sep }) : '' })
+    else detail = fill(t.on, { nth })
+    return { ...y, name: t.name, detail, effects: [...t.effects], positives: [...t.positives] }
+  })
+  const companions = r.companions.map(c => ({ ...c, name: GRAHA_HI[c.id] ?? c.name }))
+  const flag = (f: SaturnFlag, title: string, on: string, off: string): SaturnFlag => ({ ...f, title, detail: f.active ? on : off })
+  const remedies = [...SATURN_REMEDIES_HI.base]
+  if (sa.isCombust) remedies.unshift(SATURN_REMEDIES_HI.combust)
+  if (sa.isRetro) remedies.push(SATURN_REMEDIES_HI.retro)
+  if (yogaOn('visha')) remedies.push(SATURN_REMEDIES_HI.visha)
+  if (yogaOn('shapit')) remedies.push(SATURN_REMEDIES_HI.shapit)
+  if (sa.debilitated) remedies.push(SATURN_REMEDIES_HI.debil)
+  const aspects = r.aspects.map(a => {
+    const teaching = aspectDefHi(a.teaching)
+    return { ...a, teaching, note: fill(FH.aspectNote, { from: ordObl(sa.house), span: a.span, to: ordObl(a.targetHouse), meaning: teaching.meaning }) }
+  })
+  const nakshatraTeachings = r.nakshatraTeachings.map(n => ({
+    ...n,
+    name: NAKSHATRA_HI[n.index] ?? n.name,
+    rashiName: RASHI_HI[({ 7: 4, 16: 8, 25: 12 } as Record<number, Rashi>)[n.index] ?? 1],
+    traits: SATURN_NAKSHATRAS_HI[n.index] ? [...SATURN_NAKSHATRAS_HI[n.index]] : n.traits,
+  }))
+  const active = yogas.filter(y => y.active)
+  const oneLiner = r.isKantak
+    ? fill(FH.oneLinerKantak, { nth, yogas: active.length ? active.map(y => y.name).join('; ') : FH.oneLinerKantakNone })
+    : sa.house === 12
+      ? fill(FH.oneLiner12, { ketu: yogaOn('sa_ketu') ? FH.oneLiner12Ketu : '', moon: yogaOn('visha') ? FH.oneLiner12Moon : FH.oneLiner12None })
+      : fill(FH.oneLinerOther, { rashi: RASHI_HI[sa.rashi], nth, retro: sa.isRetro ? FH.oneLinerRetro : '' })
+  const L = SH.summaryLabels
+  const V = SH.summaryValues
+  const demo = r.sadeSatiPadaDemo
+  const classical = classicalBundleHi(r.classical, 'Sa', sa)
+  return {
+    ...r,
+    saturn: { ...sa, rashiName: RASHI_HI[sa.rashi], nakshatraName: NAKSHATRA_HI[sa.nakshatraIndex] ?? sa.nakshatraName },
+    nature: [...SH.nature],
+    philosophy: [...SH.philosophy],
+    karakatva: mergeHi(r.karakatva, SATURN_KARAKATVA_HI),
+    physical: mergeHi(r.physical, SATURN_PHYSICAL_HI),
+    zodiacal: SH.zodiacal.map(z => ({ ...z })),
+    medical: mergeHi(r.medical, SATURN_MEDICAL_HI),
+    houseFocus: saturnHouseFocusHi(r.houseFocus),
+    allHouseFocus: r.allHouseFocus.map(saturnHouseFocusHi),
+    kantakFlag: flag(r.kantakFlag, FH.kantakTitle, fill(FH.kantakOn, { nth }), FH.kantakOff),
+    aspects,
+    aspectOverview: FH.aspectOverview,
+    yogas,
+    companions,
+    companionNote: companions.length ? fill(FH.companionsWith, { names: companions.map(c => c.name).join(', ') }) : FH.companionsNone,
+    nakshatraTeachings,
+    activeNakshatraTeaching: nakshatraTeachings.find(n => n.isNatal) ?? null,
+    sadeSatiTeaching: [...SH.sadeSatiTeaching],
+    sadeSatiPhases: SH.sadeSatiPhases.map(x => ({ ...x })),
+    sadeSatiPadas: r.sadeSatiPadas.map(sadeSatiPadaDefHi),
+    sadeSatiPadaDemo: demo
+      ? {
+          ...demo,
+          pada: sadeSatiPadaDefHi(demo.pada),
+          birthNakshatraName: NAKSHATRA_HI[demo.birthNakshatraIndex] ?? demo.birthNakshatraName,
+          saturnNakshatraName: NAKSHATRA_HI[demo.saturnNakshatraIndex] ?? demo.saturnNakshatraName,
+        }
+      : null,
+    dhaiyyaTeaching: [...SH.dhaiyyaTeaching],
+    retroFlag: flag(r.retroFlag, FH.retroTitle, FH.retroOn, FH.retroOff),
+    combustFlag: flag(
+      r.combustFlag,
+      FH.combustTitle,
+      fill(FH.combustOn, { orb: sa.combustOrbUsed, sep: sep ? fill(FH.combustSep, { sep }) : '' }),
+      fill(FH.combustOff, { orb: sa.combustOrbUsed }),
+    ),
+    bothFlag: flag(r.bothFlag, FH.bothTitle, FH.bothOn, FH.bothOff),
+    exaltFlag: flag(r.exaltFlag, FH.exaltTitle, fill(FH.exaltOn, { peak: sa.nearExaltPeak ? FH.exaltPeak : '' }), FH.exaltOff),
+    debilFlag: flag(r.debilFlag, FH.debilTitle, fill(FH.debilOn, { retro: sa.isRetro ? FH.debilRetro : '' }), FH.debilOff),
+    indrajeetFlag: flag(r.indrajeetFlag, FH.indrajeetTitle, FH.indrajeetOn, FH.indrajeetOff),
+    fatherFlag: flag(r.fatherFlag, FH.fatherTitle, FH.fatherOn, FH.fatherOff),
+    retroEffects: mergeHi(r.retroEffects, SATURN_EFFECTS_HI.retro),
+    combustEffects: mergeHi(r.combustEffects, SATURN_EFFECTS_HI.combust),
+    mythology: [...SH.mythology],
+    dasharathaStory: [...SH.dasharathaStory],
+    ashtadhaGati: SH.ashtadhaGati.map(x => ({ ...x })),
+    goldenRules: [...SH.goldenRules],
+    remedies,
+    naturalAgeNote: SH.naturalAgeNote,
+    dashaNote: SH.dashaNote,
+    classical: {
+      ...classical,
+      aspectOverviewClassical: SPECIAL_ASPECT_OVERVIEW_HI.Sa ? [{ source: 'Teaching', text: SPECIAL_ASPECT_OVERVIEW_HI.Sa }] : [],
+      aspectTeachings: aspects.map(a => ({
+        source: 'Teaching' as const,
+        ref: `Sa ${a.span}→H${a.targetHouse}`,
+        text: `${a.teaching.name}: ${a.teaching.detail} ${a.note}`,
+      })),
+    },
+    caveats: [...SH.caveats],
+    methodology: [...SH.methodology],
+    summaryAttrs: [
+      { label: L.seat, value: fill(V.seat, { rashi: RASHI_HI[sa.rashi], n: sa.house }) },
+      { label: L.nakshatra, value: fill(V.nak, { nak: NAKSHATRA_HI[sa.nakshatraIndex] ?? '', pada: sa.pada }) },
+      { label: L.dignity, value: dignityHi(sa.dignity) },
+      { label: L.kantak, value: r.isKantak ? fill(V.yesHouse, { n: sa.house }) : V.no },
+      { label: L.motion, value: sa.isRetro ? V.vakri : V.margi },
+      { label: L.combust, value: sa.isCombust ? fill(V.combustYes, { orb: sa.combustOrbUsed }) : V.no },
+      { label: L.dasha, value: V.dasha },
+      { label: L.maturity, value: V.maturity },
+      { label: L.yogas, value: active.length ? active.map(y => y.name).join(', ') : V.none },
+    ],
+    oneLiner,
+  }
+}
+
+function analyzeSaturnEn(chart: ChartOutput): SaturnAnalysisResult | null {
   const saturn = chart.grahas.find(g => g.id === 'Sa')
   if (!saturn) return null
 

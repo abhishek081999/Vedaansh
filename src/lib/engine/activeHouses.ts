@@ -1,4 +1,20 @@
 import type { ChartOutput, GrahaId, GrahaData, LagnaData, DashaNode } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+
+const HOUSE_TOPICS_HI: Record<number, string> = {
+  1: 'स्वयं, ओज, आरंभ',
+  2: 'मूल्य, धन, वाणी',
+  3: 'प्रयास, भाई-बहन, कौशल',
+  4: 'सुख, घर, माता',
+  5: 'सृजन, संतान, आनंद',
+  6: 'सेवा, स्वास्थ्य, दिनचर्या',
+  7: 'साझेदारी, व्यापार, अन्य लोग',
+  8: 'रूपांतरण, गहराई, आयु',
+  9: 'भाग्य, धर्म, ज्ञान',
+  10: 'कर्म, करियर, प्रतिष्ठा',
+  11: 'लाभ, समुदाय, आकांक्षाएँ',
+  12: 'अध्यात्म, मुक्ति, हानि',
+}
 
 // Simplified lordship mapping
 const RASHI_LORD: Record<number, GrahaId> = {
@@ -111,7 +127,8 @@ export function getProgressionHouse(birthDateStr: string): number {
     return (age % 12) + 1
 }
 
-export function getHouseTopics(): Record<number, string> {
+export function getHouseTopics(lang: EngineLang = 'en'): Record<number, string> {
+  if (lang === 'hi') return HOUSE_TOPICS_HI
   return {
     1:  'Self, vitality, beginning',
     2:  'Value, wealth, speech',

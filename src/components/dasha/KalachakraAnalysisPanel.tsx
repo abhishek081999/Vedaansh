@@ -6,6 +6,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { NAKSHATRA_HI } from '@/i18n/jyotish'
+import { KC_GATI_NAME_HI } from '@/lib/engine/locale/kalachakra.hi'
 import type { DashaNode, GrahaData, Rashi } from '@/types/astrology'
 import {
   analyzeKalachakra,
@@ -43,12 +47,12 @@ function toneBg(tone: KalachakraTone): string {
   return 'var(--gold-faint)'
 }
 
-function formatRange(startMs: number, endMs: number, timezone?: string): string {
+function formatRange(startMs: number, endMs: number, timezone?: string, tag = 'en-IN'): string {
   const opts: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric', timeZone: timezone || undefined }
   const start = new Date(startMs)
   const end = new Date(endMs)
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return ''
-  return `${start.toLocaleDateString('en-IN', opts)} – ${end.toLocaleDateString('en-IN', opts)}`
+  return `${start.toLocaleDateString(tag, opts)} – ${end.toLocaleDateString(tag, opts)}`
 }
 
 function PeriodBar({
@@ -112,6 +116,7 @@ function FocusCard({
   occupants: string[]
   text: string
 }) {
+  const t = useTranslations('dashaPanel.kala')
   return (
     <div style={{
       flex: '1 1 220px',
@@ -135,7 +140,7 @@ function FocusCard({
             color: 'var(--text-gold)',
           }}>{name}</span>
         )) : (
-          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>No planet</span>
+          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{t('noPlanet')}</span>
         )}
       </div>
       <p style={{ margin: '0.45rem 0 0', fontSize: '0.75rem', lineHeight: 1.45, color: 'var(--text-secondary)' }}>{text}</p>
@@ -151,6 +156,8 @@ export function KalachakraAnalysisPanel({
   timezone,
   compact = false,
 }: Props) {
+  const t = useTranslations('dashaPanel.kala')
+  const { lang, tag, hi } = useLang()
   const slim = useMemo(
     () => grahas.map((g) => ({ id: g.id, rashi: g.rashi, dignity: g.dignity })),
     [grahas],
@@ -161,8 +168,9 @@ export function KalachakraAnalysisPanel({
       nodes,
       grahas: slim,
       ascRashi,
+      lang,
     }),
-    [moonLonSidereal, nodes, slim, ascRashi],
+    [moonLonSidereal, nodes, slim, ascRashi, lang],
   )
 
   const [mahaKey, setMahaKey] = useState<string | null>(null)
@@ -174,8 +182,8 @@ export function KalachakraAnalysisPanel({
     ? nodes.find((n) => `${n.level}:${n.lord}:${new Date(n.start).getTime()}` === selectedMaha.key)
     : undefined
   const antars = useMemo(
-    () => kalachakraAntars(mahaNode, ascRashi, slim, moonLonSidereal, analysis.currentAntarKey),
-    [mahaNode, ascRashi, slim, moonLonSidereal, analysis.currentAntarKey],
+    () => kalachakraAntars(mahaNode, ascRashi, slim, moonLonSidereal, analysis.currentAntarKey, lang),
+    [mahaNode, ascRashi, slim, moonLonSidereal, analysis.currentAntarKey, lang],
   )
   const selectedAntar = antars.find((p) => p.key === antarKey)
     ?? antars.find((p) => p.isCurrent)
@@ -192,9 +200,9 @@ export function KalachakraAnalysisPanel({
       </p>
       <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
         {[
-          `${seed.nakshatraName} pada ${seed.pada}`,
-          seed.gati,
-          `Paramayu ${seed.paramayu}y`,
+          t('pada', { nak: hi ? NAKSHATRA_HI[seed.nakshatraIndex] ?? seed.nakshatraName : seed.nakshatraName, pada: seed.pada }),
+          hi ? KC_GATI_NAME_HI[seed.gati] ?? seed.gati : seed.gati,
+          t('paramayu', { years: seed.paramayu }),
         ].map((chip) => (
           <span key={chip} style={{
             fontSize: '0.62rem',
@@ -210,12 +218,12 @@ export function KalachakraAnalysisPanel({
       </div>
 
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        <FocusCard kicker="Deha · body" signName={analysis.deha.signName} occupants={analysis.deha.occupants} text={analysis.deha.text} />
-        <FocusCard kicker="Jeeva · life" signName={analysis.jeeva.signName} occupants={analysis.jeeva.occupants} text={analysis.jeeva.text} />
+        <FocusCard kicker={t('deha')} signName={analysis.deha.signName} occupants={analysis.deha.occupants} text={analysis.deha.text} />
+        <FocusCard kicker={t('jeeva')} signName={analysis.jeeva.signName} occupants={analysis.jeeva.occupants} text={analysis.jeeva.text} />
       </div>
 
       <PeriodBar
-        label="Mahadasha"
+        label={t('maha')}
         periods={analysis.mahadashas}
         selectedKey={selectedMaha?.key ?? null}
         onSelect={(key) => {
@@ -226,7 +234,7 @@ export function KalachakraAnalysisPanel({
 
       {!compact && antars.length > 0 && (
         <PeriodBar
-          label={`${selectedMaha?.signName ?? 'Sign'} antardasha`}
+          label={t('antars', { sign: selectedMaha?.signName ?? t('sign') })}
           periods={antars}
           selectedKey={selectedAntar?.key ?? null}
           onSelect={setAntarKey}
@@ -244,16 +252,19 @@ export function KalachakraAnalysisPanel({
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.02rem', color: 'var(--text-primary)' }}>
               {focus.signName}
               <span style={{ marginLeft: 8, fontSize: '0.68rem', fontWeight: 700, color: toneColor(focus.tone), textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {focus.tone}
+                {t(`tone.${focus.tone}`)}
               </span>
             </div>
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              {formatRange(focus.startMs, focus.endMs, timezone)}
+              {formatRange(focus.startMs, focus.endMs, timezone, tag)}
             </div>
           </div>
           {focus.gati && (
             <div style={{ marginTop: 4, fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-gold)' }}>
-              {focus.gati.name} · {ordinal(focus.gati.house)} from the previous sign
+              {t('gatiLine', {
+                gati: hi ? KC_GATI_NAME_HI[focus.gati.name] ?? focus.gati.name : focus.gati.name,
+                nth: hi ? focus.gati.house : ordinal(focus.gati.house),
+              })}
             </div>
           )}
           <p style={{ margin: '0.45rem 0 0', fontSize: '0.78rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>

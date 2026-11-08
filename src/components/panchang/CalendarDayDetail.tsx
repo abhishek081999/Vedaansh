@@ -4,16 +4,14 @@
 //  Side panel for the day selected in the monthly calendar
 // ─────────────────────────────────────────────────────────────
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { limbUntil, type PanchangApiData } from '@/components/panchang/DailyPanchangView'
 import type { DayReading, DayTone } from '@/lib/panchang/day-reading'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { masaHi, termHi } from '@/i18n/jyotish'
+import { useLimbUntilText } from '@/components/panchang/DailyPanchangView'
 import styles from './PanchangCalendar.module.css'
-
-export const TONE_LABEL: Record<DayTone, string> = {
-  favourable: 'Favourable',
-  mixed: 'Mixed',
-  cautious: 'Cautious',
-}
 
 export const TONE_CLASS: Record<DayTone, string> = {
   favourable: styles.toneFavourable,
@@ -21,8 +19,8 @@ export const TONE_CLASS: Record<DayTone, string> = {
   cautious: styles.toneCautious,
 }
 
-function fmtTime(iso: string, tz: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+function fmtTime(iso: string, tz: string, tag: string): string {
+  return new Intl.DateTimeFormat(tag, {
     timeZone: tz,
     hour: 'numeric',
     minute: '2-digit',
@@ -30,27 +28,32 @@ function fmtTime(iso: string, tz: string): string {
   }).format(new Date(iso))
 }
 
-function fmtRange(w: { start: string; end: string }, tz: string): string {
-  return `${fmtTime(w.start, tz)} – ${fmtTime(w.end, tz)}`
+function fmtRange(w: { start: string; end: string }, tz: string, tag: string): string {
+  return `${fmtTime(w.start, tz, tag)} – ${fmtTime(w.end, tz, tag)}`
 }
 
 export function CalendarDayDetail({ data, reading }: { data: PanchangApiData; reading: DayReading }) {
+  const t = useTranslations('panchang.calendar')
+  const tl = useTranslations('panchang.limbs')
+  const { tag, hi } = useLang()
+  const untilText = useLimbUntilText()
+  const name = (en: string) => (hi ? termHi(en) : en)
   const tz = data.location.tz
   const calendar = data.calendarContext
-  const heading = new Date(data.date + 'T12:00:00Z').toLocaleDateString('en-IN', {
+  const heading = new Date(data.date + 'T12:00:00Z').toLocaleDateString(tag, {
     timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long',
   })
   const limbs = [
-    { term: 'Tithi', value: data.tithi.name, until: limbUntil(data.tithi.name, data.timeline?.tithi, data.limbEnds?.tithi, data.date, tz) },
-    { term: 'Nakshatra', value: `${data.nakshatra.name}, pada ${data.nakshatra.pada}`, until: limbUntil(data.nakshatra.name, data.timeline?.nakshatra, data.limbEnds?.nakshatra, data.date, tz) },
-    { term: 'Yoga', value: data.yoga.name, until: limbUntil(data.yoga.name, data.timeline?.yoga, data.limbEnds?.yoga, data.date, tz) },
-    { term: 'Karana', value: data.karana.name, until: limbUntil(data.karana.name, data.timeline?.karana, null, data.date, tz) },
+    { term: tl('tithi'), value: name(data.tithi.name), until: limbUntil(data.tithi.name, data.timeline?.tithi, data.limbEnds?.tithi, data.date, tz, untilText) },
+    { term: tl('nakshatra'), value: t('pada', { nak: name(data.nakshatra.name), pada: data.nakshatra.pada }), until: limbUntil(data.nakshatra.name, data.timeline?.nakshatra, data.limbEnds?.nakshatra, data.date, tz, untilText) },
+    { term: tl('yoga'), value: name(data.yoga.name), until: limbUntil(data.yoga.name, data.timeline?.yoga, data.limbEnds?.yoga, data.date, tz, untilText) },
+    { term: tl('karana'), value: name(data.karana.name), until: limbUntil(data.karana.name, data.timeline?.karana, null, data.date, tz, untilText) },
   ]
   const times = [
-    { term: 'Sunrise', value: fmtTime(data.sunrise, tz) },
-    { term: 'Sunset', value: fmtTime(data.sunset, tz) },
-    ...(data.abhijitMuhurta ? [{ term: 'Abhijit', value: fmtRange(data.abhijitMuhurta, tz) }] : []),
-    { term: 'Rahu Kalam', value: fmtRange(data.rahuKalam, tz) },
+    { term: t('sunrise'), value: fmtTime(data.sunrise, tz, tag) },
+    { term: t('sunset'), value: fmtTime(data.sunset, tz, tag) },
+    ...(data.abhijitMuhurta ? [{ term: t('abhijit'), value: fmtRange(data.abhijitMuhurta, tz, tag) }] : []),
+    { term: t('rahu'), value: fmtRange(data.rahuKalam, tz, tag) },
   ]
 
   return (
@@ -58,12 +61,12 @@ export function CalendarDayDetail({ data, reading }: { data: PanchangApiData; re
       <header>
         <h2 className={styles.detailDate}>{heading}</h2>
         <p className={styles.detailContext}>
-          {data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'} paksha
-          {calendar && ` · ${calendar.sauraMasa} · ${calendar.rituSa}`}
+          {t('pakshaLine', { paksha: name(data.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna') })}
+          {calendar && ` · ${hi ? masaHi(calendar.sauraMasa) : calendar.sauraMasa} · ${name(calendar.rituSa)}`}
         </p>
         <p className={styles.detailTone}>
           <span className={styles.toneDot} aria-hidden />
-          {TONE_LABEL[reading.tone]} day
+          {t('toneDay', { tone: t(`tone.${reading.tone}`) })}
         </p>
       </header>
 
@@ -87,7 +90,7 @@ export function CalendarDayDetail({ data, reading }: { data: PanchangApiData; re
       </dl>
 
       <Link href={`/panchang?date=${data.date}`} className={styles.detailLink}>
-        Full panchang and predictions →
+        {t('fullLink')}
       </Link>
     </aside>
   )

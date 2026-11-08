@@ -8,6 +8,14 @@
 import type { GrahaData, GrahaId, ShadbalaResult } from '@/types/astrology'
 import { NAKSHATRA_NAMES } from '@/types/astrology'
 import { NAKSHATRA_DEITY } from './nakshatraAdvanced'
+import { fill, type EngineLang } from './lang'
+import { NAKSHATRA_DEITY_HI, NAKSHATRA_HI } from '@/i18n/jyotish'
+import {
+  PLANET_REMEDY_TEACHINGS_HI,
+  REMEDY_CORE_PRINCIPLE_HI,
+  REMEDY_INSIGHT_HI,
+  REMEDY_REASON_HI,
+} from './locale/planetaryRemedies.hi'
 
 export type RemedyGrahaId = 'Su' | 'Mo' | 'Ma' | 'Me' | 'Ju' | 'Ve' | 'Sa' | 'Ra' | 'Ke'
 
@@ -343,9 +351,40 @@ function needFromScore(score: number): RemedyNeed {
   return 'low'
 }
 
+/** Core principle box in the requested language. */
+export function getRemedyCorePrinciple(lang: EngineLang = 'en'): { title: string; steps: readonly string[]; keyRule: string } {
+  return lang === 'hi' ? REMEDY_CORE_PRINCIPLE_HI : REMEDY_CORE_PRINCIPLE
+}
+
+/** Teaching card for one graha in the requested language (grahaId unchanged). */
+export function getPlanetRemedyTeaching(id: RemedyGrahaId, lang: EngineLang = 'en'): PlanetRemedyTeaching {
+  const en = PLANET_REMEDY_TEACHINGS[id]
+  return lang === 'hi' ? { grahaId: id, ...PLANET_REMEDY_TEACHINGS_HI[id] } : en
+}
+
+function localizeRemedies(r: PlanetaryRemediesResult, lang: EngineLang): PlanetaryRemediesResult {
+  if (lang !== 'hi') return r
+  const planets = r.planets.map((p) => ({
+    ...p,
+    teaching: getPlanetRemedyTeaching(p.grahaId, 'hi'),
+    reasons: p.reasons.map((x) => REMEDY_REASON_HI[x] ?? x),
+    nakshatraName: NAKSHATRA_HI[p.nakshatraIndex] ?? p.nakshatraName,
+    nakshatraDeity: NAKSHATRA_DEITY_HI[p.nakshatraIndex] ?? p.nakshatraDeity,
+  }))
+  const top = planets[0]
+  const insight =
+    r.priority.length > 0
+      ? fill(REMEDY_INSIGHT_HI.priority, { names: r.priority.map((id) => PLANET_REMEDY_TEACHINGS_HI[id].name).join(', ') })
+      : top && top.score > 0
+        ? fill(REMEDY_INSIGHT_HI.top, { name: top.teaching.name })
+        : REMEDY_INSIGHT_HI.none
+  return { planets, priority: r.priority, insight }
+}
+
 export function computePlanetaryRemedies(
   grahas: GrahaData[],
   shadbala?: ShadbalaResult | null,
+  lang: EngineLang = 'en',
 ): PlanetaryRemediesResult {
   const planets: PlanetRemedyAssessment[] = []
   for (const id of REMEDY_GRAHAS) {
@@ -378,7 +417,7 @@ export function computePlanetaryRemedies(
         ? `No severely afflicted graha. ${top.teaching.name} shows the most strain — behavioural remedies are enough.`
         : 'No significant affliction found — remedies below serve as general lifestyle guidance.'
 
-  return { planets, priority, insight }
+  return localizeRemedies({ planets, priority, insight }, lang)
 }
 
 // ─────────────────────────────────────────────────────────────

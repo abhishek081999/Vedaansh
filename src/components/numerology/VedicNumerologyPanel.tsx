@@ -5,9 +5,9 @@
 //  Pre-fills name / DOB / gender from the active chart when present.
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Bookmark, FileDown, Hash } from 'lucide-react'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput, Gender, UserPlan } from '@/types/astrology'
 import {

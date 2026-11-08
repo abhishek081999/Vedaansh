@@ -5,8 +5,8 @@
 //  Relationship and marriage panel
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
 import { RadarChart, VizCard } from '@/components/ui/viz'
 import {
   Briefcase,

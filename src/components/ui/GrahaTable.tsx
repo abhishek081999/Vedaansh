@@ -15,8 +15,11 @@ import { SIGN_INTERPRETATIONS, NAKSHATRA_INTERPRETATIONS, DIGNITY_INTERPRETATION
 import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, KARAKA_SHORT_HI, NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 import { ConditionBadges } from '@/components/ui/AdvancedAnalysisPanel'
-import { VARGA_META, getVargaPosition, PLATINUM_VARGAS } from '@/lib/engine/vargas'
+import { VARGA_META, getVargaPosition, PLATINUM_VARGAS, vargaText } from '@/lib/engine/vargas'
 import { getMarakaBadhakaFlags } from '@/lib/engine/marakaBadhaka'
 import { Meter } from '@/components/ui/viz'
 import { DIGNITY_MAX, dignityRank } from '@/lib/ui/dignityScale'
@@ -65,7 +68,9 @@ const DIGNITY_STYLE: Record<string, { bg: string; color: string; label: string }
 }
 
 function DignityCell({ dignity }: { dignity: string }) {
-  const s = DIGNITY_STYLE[dignity] ?? DIGNITY_STYLE.neutral
+  const t = useTranslations('chart.grahaTable')
+  const base = DIGNITY_STYLE[dignity] ?? DIGNITY_STYLE.neutral
+  const s = { ...base, label: t.has(`dignity.${dignity}`) ? t(`dignity.${dignity}`) : base.label }
   return (
     <span style={{
       display: 'inline-block',
@@ -81,7 +86,7 @@ function DignityCell({ dignity }: { dignity: string }) {
       {s.label}
       {dignityRank(dignity) !== null && (
         <span style={{ display: 'block', marginTop: 2 }}>
-          <Meter value={(dignityRank(dignity) ?? 0) + 1} max={DIGNITY_MAX + 1} color={s.color} height={3} title={`Dignity ${s.label}`} />
+          <Meter value={(dignityRank(dignity) ?? 0) + 1} max={DIGNITY_MAX + 1} color={s.color} height={3} title={t('dignityMeter', { label: s.label })} />
         </span>
       )}
     </span>
@@ -136,7 +141,11 @@ interface GrahaTableProps {
 
 export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, defaultVarga = 'D1', arudhas }: GrahaTableProps) {
   const { language } = useAppLayout()
-  const isSa = language === 'sa'
+  const t = useTranslations('chart.grahaTable')
+  const { hi } = useLang()
+  const isSa = language === 'sa' && !hi
+  const rashiShort = (r: Rashi) => (hi ? RASHI_HI[r] : isSa ? RASHI_SANSKRIT[r] : RASHI_SHORT[r])
+  const nakLabel = (totalDeg: number, en: string) => (hi ? NAKSHATRA_HI[Math.floor(totalDeg / (360 / 27)) % 27] : en)
   // Independent of VargaSwitcher — only changes via this table's own dropdown
   const [selectedVarga, setSelectedVarga] = React.useState<string>(defaultVarga)
   const [showWideColumns, setShowWideColumns] = useState(true)
@@ -161,20 +170,20 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     // 1. Handle Lagnas (Ascendants) - Now on top
     if (selectedVarga === 'D1' && lagnas) {
       const items = [
-          { name: 'Lagna',              deg: lagnas.ascDegree    },
+          { name: t('lagnas.lagna'),   deg: lagnas.ascDegree    },
           ...(arudhas && arudhas.AL ? [
-            { name: 'Arudha Lagna (AL)', deg: (arudhas.AL - 1) * 30 + (lagnas.ascDegree % 30) }
+            { name: t('lagnas.al'), deg: (arudhas.AL - 1) * 30 + (lagnas.ascDegree % 30) }
           ] : []),
           ...(!limited ? [
-            { name: 'BL (Bhava)',       deg: lagnas.bhavaLagna   },
-            { name: 'HL (Hora)',        deg: lagnas.horaLagna    },
-            { name: 'GL (Ghati)',       deg: lagnas.ghatiLagna   },
-            { name: 'VL (Vighati)',     deg: lagnas.vighatiLagna },
-            { name: 'Varnada',          deg: lagnas.varnadaLagna },
-            { name: 'SL (Shri)',         deg: lagnas.sriLagna     },
-            { name: 'PP (Pranapada)',   deg: lagnas.pranapada    },
-            { name: 'IL (Indu)',        deg: lagnas.induLagna    },
-            { name: 'BB (Bhrigu Bindu)', deg: lagnas.bhriguBindu  },
+            { name: t('lagnas.bl'),      deg: lagnas.bhavaLagna   },
+            { name: t('lagnas.hl'),      deg: lagnas.horaLagna    },
+            { name: t('lagnas.gl'),      deg: lagnas.ghatiLagna   },
+            { name: t('lagnas.vl'),      deg: lagnas.vighatiLagna },
+            { name: t('lagnas.varnada'), deg: lagnas.varnadaLagna },
+            { name: t('lagnas.sl'),      deg: lagnas.sriLagna     },
+            { name: t('lagnas.pp'),      deg: lagnas.pranapada    },
+            { name: t('lagnas.il'),      deg: lagnas.induLagna    },
+            { name: t('lagnas.bb'),      deg: lagnas.bhriguBindu  },
           ] : []),
         ]
 
@@ -189,7 +198,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       const vPosition = getVargaPosition(lagnas.ascDegree, selectedVarga as any)
       
       list.push({ 
-        name: `Lagna (${selectedVarga})`, 
+        name: t('lagnas.vargaLagna', { varga: selectedVarga }), 
         totalDeg: vPosition ? vPosition.totalDegree : (vLagnaRashi - 1) * 30,
         color: 'var(--text-gold)' 
       })
@@ -204,7 +213,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       .forEach(g => {
         list.push({
           id:       g.id,
-          name:     isSa ? GRAHA_SANSKRIT[g.id] : GRAHA_NAMES[g.id],
+          name:     hi ? GRAHA_HI[g.id] : isSa ? GRAHA_SANSKRIT[g.id] : GRAHA_NAMES[g.id],
           totalDeg: g.totalDegree,
           isRetro:  g.isRetro,
           karaka:   g.charaKaraka,
@@ -218,12 +227,12 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     // 3. Upagrahas only in D1 (at the bottom)
     if (upagrahas && !limited && selectedVarga === 'D1') {
       Object.values(upagrahas).forEach(d => {
-        list.push({ name: d.name, totalDeg: d.lonSidereal, color: 'var(--text-secondary)' })
+        list.push({ name: hi ? termHi(d.name) : d.name, totalDeg: d.lonSidereal, color: 'var(--text-secondary)' })
       })
     }
 
     return list
-  }, [selectedVarga, lagnas, upagrahas, vargaLagnas, isSa, limited, arudhas, vargas])
+  }, [selectedVarga, lagnas, upagrahas, vargaLagnas, isSa, limited, arudhas, vargas, hi, t])
 
   const vargaOptions = vargas ? Object.keys(vargas)
     .sort((a, b) => {
@@ -272,7 +281,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         borderBottom: '1px solid var(--border-soft)',
       }}>
         <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
-          ✦ Micro-Details{selectedVarga !== 'D1' ? ` · ${selectedVarga}` : ''}
+          {t('micro')}{selectedVarga !== 'D1' ? ` · ${selectedVarga}` : ''}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <button
@@ -289,13 +298,13 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
             }}
-            title={showWideColumns ? 'Compact columns' : 'Show wider columns'}
+            title={showWideColumns ? t('compact') : t('wider')}
           >
-            ↔ {showWideColumns ? 'Less' : 'More'}
+            ↔ {showWideColumns ? t('less') : t('more')}
           </button>
           {vargas && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Varga:</span>
+            <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{t('varga')}</span>
             <select
               value={selectedVarga}
               onChange={(e) => { const val = e.target.value; setSelectedVarga(val) }}
@@ -308,7 +317,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
             >
               {vargaOptions.map(opt => (
                 <option key={opt} value={opt}>
-                  {opt}{VARGA_META[opt]?.full ? ` (${VARGA_META[opt].full})` : ''}
+                  {opt}{VARGA_META[opt]?.full ? ` (${vargaText(opt, hi ? 'hi' : 'en')?.full ?? VARGA_META[opt].full})` : ''}
                 </option>
               ))}
             </select>
@@ -330,7 +339,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
 
           <thead>
             <tr style={{ background: 'var(--surface-2)', borderBottom: '2px solid var(--primary-brand)' }}>
-              {['Body', 'Deg ′ ″', 'Nakshatra', selectedVarga === 'D1' ? 'Rashi·D9' : 'Natal→Varga', 'Dignity', 'Avastha'].map((h, idx) => (
+              {[t('head.body'), t('head.deg'), t('head.nak'), selectedVarga === 'D1' ? t('head.rashiD9') : t('head.natalVarga'), t('head.dignity'), t('head.avastha')].map((h, idx) => (
                 <th key={h} style={{
                   padding: '0.25rem 0.45rem', color: 'var(--primary-brand)', fontSize: '0.55rem', fontWeight: 800,
                   letterSpacing: '0.08em', textTransform: 'uppercase', textAlign: idx === 0 ? 'left' : 'center',
@@ -386,7 +395,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                         style={{ fontWeight: 600, color: b.color || 'var(--text-primary)', fontSize: '0.78rem', cursor: isMainPlanet ? 'help' : 'default' }}>
                         {b.name}{b.isRetro && <sup style={{ fontSize: '0.5rem', marginLeft: 1 }}>℞</sup>}
                       </span>
-                      {b.karaka && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 2px', background: 'var(--surface-3)', borderRadius: 2 }}>{b.karaka}</span>}
+                      {b.karaka && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 2px', background: 'var(--surface-3)', borderRadius: 2 }}>{hi ? KARAKA_SHORT_HI[b.karaka] ?? b.karaka : b.karaka}</span>}
                       {(b.conditions || mb?.isMaraka || mb?.isBadhaka) && (
                         <ConditionBadges
                           graha={b.conditions}
@@ -404,7 +413,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                   <td style={{ textAlign: 'center', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       <div>
-                        <b title={nak.name}>{nak.name}</b> <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>({nak.pada})</span>
+                        <b title={nakLabel(b.totalDeg, nak.name)}>{nakLabel(b.totalDeg, nak.name)}</b> <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>({nak.pada})</span>
                       </div>
                       {(() => {
                         if (moonNakIdx === null || !isMainPlanet) return null
@@ -413,7 +422,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                         const nt = NAVTARA_MAP[distance % 9]
                         return (
                           <div style={{ fontSize: '0.52rem', fontWeight: 800, textTransform: 'uppercase', color: nt.color, letterSpacing: '0.05em', marginTop: 1 }}>
-                            {nt.label}
+                            {hi ? termHi(nt.label) : nt.label}
                           </div>
                         )
                       })()}
@@ -423,14 +432,14 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                   <td style={{ textAlign: 'center', fontSize: '0.72rem' }}>
                     {selectedVarga === 'D1' ? (
                       <>
-                        <b style={{ color: 'var(--text-gold)' }}>{isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}</b>
-                        <span style={{ fontSize: '0.6rem', color: 'var(--primary-brand)', marginLeft: 3 }}>({isSa ? RASHI_SANSKRIT[nav] : RASHI_SHORT[nav]})</span>
+                        <b style={{ color: 'var(--text-gold)' }}>{hi || isSa ? rashiShort(rashiIdx) : rshort}</b>
+                        <span style={{ fontSize: '0.6rem', color: 'var(--primary-brand)', marginLeft: 3 }}>({rashiShort(nav)})</span>
                       </>
                     ) : (
                       <>
-                        <span style={{ color: 'var(--text-muted)' }}>{natalGraha ? (isSa ? RASHI_SANSKRIT[natalGraha.rashi] : RASHI_SHORT[natalGraha.rashi]) : '—'}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{natalGraha ? rashiShort(natalGraha.rashi) : '—'}</span>
                         <span style={{ color: 'var(--border-bright)', margin: '0 2px' }}>›</span>
-                        <b style={{ color: 'var(--text-gold)' }}>{isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}</b>
+                        <b style={{ color: 'var(--text-gold)' }}>{hi || isSa ? rashiShort(rashiIdx) : rshort}</b>
                       </>
                     )}
                   </td>
@@ -439,7 +448,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                   {/* Avastha */}
                   <td style={{ textAlign: 'center', fontSize: '0.7rem' }}>
                     {b.avastha
-                      ? <span>{b.avastha.baladi} <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{b.avastha.jagradadi}</span></span>
+                      ? <span>{hi ? termHi(b.avastha.baladi) : b.avastha.baladi} <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{hi ? termHi(b.avastha.jagradadi) : b.avastha.jagradadi}</span></span>
                       : <span style={{ color: 'var(--text-muted)' }}>—</span>}
                   </td>
                 </tr>
@@ -470,7 +479,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         ].map(({ code, label, bg, color, border }) => (
           <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
             <span style={{ fontSize: '0.55rem', background: bg, color, padding: '0 3px', borderRadius: 2, border: `1px solid ${border}`, fontWeight: 700 }}>{code}</span>
-            <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{label}</span>
+            <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{t(`legend.${code}`) || label}</span>
           </div>
         ))}
       </div>

@@ -6,8 +6,8 @@
 //  Free overview · Gold+ full sections
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   Droplets,
   Flame,
@@ -31,42 +31,45 @@ import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { PanelShell } from '@/components/ui/patterns/PanelShell'
 import { SegmentRing, VizCard } from '@/components/ui/viz'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 
 type SubTab = 'overview' | 'trikona' | 'dasha' | 'stability' | 'remedies'
 
-const SUB_TABS: { id: SubTab; label: string; free?: boolean }[] = [
-  { id: 'overview', label: 'Overview', free: true },
-  { id: 'trikona', label: 'Trikonas' },
-  { id: 'dasha', label: 'Dasha flavor' },
-  { id: 'stability', label: 'Life tempo' },
-  { id: 'remedies', label: 'Remedies' },
+const SUB_TABS: { id: SubTab; free?: boolean }[] = [
+  { id: 'overview', free: true },
+  { id: 'trikona' },
+  { id: 'dasha' },
+  { id: 'stability' },
+  { id: 'remedies' },
 ]
 
 const HOUSE_PICK = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const
 
 function HouseRemedyCard({ pack }: { pack: HouseRemedyComposition }) {
+  const t = useTranslations('chartTools.tattva')
   return (
-    <Card title={`H${pack.house} · ${pack.rashiName} · ${pack.houseThemes}`} tone={pack.tone}>
+    <Card title={t('packTitle', { h: pack.house, rashi: pack.rashiName, themes: pack.houseThemes })} tone={pack.tone}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
-        <Pill gold>Lord {pack.rashiLordName}</Pill>
+        <Pill gold>{t('lord', { name: pack.rashiLordName })}</Pill>
         {pack.karakaNames.map((n) => (
-          <Pill key={n}>Karaka {n}</Pill>
+          <Pill key={n}>{t('karaka', { name: n })}</Pill>
         ))}
         {pack.secondaryKarakas.map((id) => (
           <Pill key={id}>+{id}</Pill>
         ))}
-        {pack.moonBlocked && <Pill color="var(--rose)">Moon blocked</Pill>}
+        {pack.moonBlocked && <Pill color="var(--rose)">{t('moonBlocked')}</Pill>}
       </div>
       <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 6 }}>
-        Priority: {pack.priorityReason}
+        {t('priority', { reason: pack.priorityReason })}
         {pack.occupants.length > 0
-          ? ` · Occupants: ${pack.occupants.map((o) => o.name).join(', ')}`
-          : ' · Empty house'}
+          ? ` · ${t('occupants', { names: pack.occupants.map((o) => o.name).join(', ') })}`
+          : ` · ${t('emptyHouse')}`}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div><span style={{ fontWeight: 700, color: 'var(--text-muted)' }}>House: </span>{pack.strands.house}</div>
-        <div><span style={{ fontWeight: 700, color: 'var(--text-muted)' }}>Karaka: </span>{pack.strands.karaka}</div>
-        <div><span style={{ fontWeight: 700, color: 'var(--text-muted)' }}>Rashi: </span>{pack.strands.rashi}</div>
+        <div><span style={{ fontWeight: 700, color: 'var(--text-muted)' }}>{t('strand.house')} </span>{pack.strands.house}</div>
+        <div><span style={{ fontWeight: 700, color: 'var(--text-muted)' }}>{t('strand.karaka')} </span>{pack.strands.karaka}</div>
+        <div><span style={{ fontWeight: 700, color: 'var(--text-muted)' }}>{t('strand.rashi')} </span>{pack.strands.rashi}</div>
       </div>
       <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border-soft)' }}>
         {pack.synthesis}
@@ -166,6 +169,8 @@ export function TattvaPredictionPanel({
   userPlan?: UserPlan
 }) {
   const showFull = planMeetsUiGate(userPlan, 'gold')
+  const t = useTranslations('chartTools.tattva')
+  const { lang } = useLang()
   const [sub, setSub] = useState<SubTab>('overview')
   const [pickedHouse, setPickedHouse] = useState<number | null>(null)
 
@@ -178,8 +183,9 @@ export function TattvaPredictionPanel({
       dashaNodes: chart.dashas?.vimshottari,
       d10Grahas,
       d10Asc,
+      lang,
     })
-  }, [chart])
+  }, [chart, lang])
 
   const customRemedy = useMemo(() => {
     if (!pickedHouse || !data) return null
@@ -188,15 +194,16 @@ export function TattvaPredictionPanel({
       grahas: chart.grahas,
       ascRashi: chart.lagnas.ascRashi,
       ketuMahadasha: data.dashaFlavor.ketuMahadasha,
-      priorityReason: `Manual pick · H${pickedHouse}`,
+      priorityReason: t('manualPick', { h: pickedHouse }),
+      lang,
     })
-  }, [pickedHouse, data, chart.grahas, chart.lagnas.ascRashi])
+  }, [pickedHouse, data, chart.grahas, chart.lagnas.ascRashi, lang, t])
 
   if (!data) {
     return (
       <PanelShell
-        title="Tattva Prediction"
-        empty={{ title: 'Unavailable', description: 'Recalculate the chart to load grahas and lagna.' }}
+        title={t('title')}
+        empty={{ title: t('unavailable'), description: t('unavailableHint') }}
       >
         {null}
       </PanelShell>
@@ -228,11 +235,10 @@ export function TattvaPredictionPanel({
         >
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: dominant tattva, Agni initiation mode, and Moon/dasha gate.
-            Gold unlocks trikonas, money types, life tempo, and the house × karaka × rashi remedy composer.
+            {t('freePreview')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{t('viewPlans')}</Button>
           </Link>
         </div>
       )}
@@ -241,52 +247,52 @@ export function TattvaPredictionPanel({
         <Pill gold>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
             <Sparkles size={12} aria-hidden />
-            {data.trikonas.find((t) => t.id === data.dominantTrikona)?.label ?? 'Tattva'}
+            {data.trikonas.find((tk) => tk.id === data.dominantTrikona)?.label ?? t('tattva')}
           </span>
         </Pill>
         <Pill color={tattvaToneColor(data.agni.tone)}>{data.agni.label}</Pill>
         {data.predictMode === 'guidance' && (
-          <Pill color="var(--rose)">Moon · guidance mode</Pill>
+          <Pill color="var(--rose)">{t('guidanceMode')}</Pill>
         )}
         {maha?.energy && (
           <Pill color="var(--gold)">
-            MD {maha.lordName}: {dashaEnergyLabel(maha.energy)}
+            {t('mdEnergy', { lord: maha.lordName, energy: dashaEnergyLabel(maha.energy, lang) })}
           </Pill>
         )}
-        {data.network.rahuInAirTrikona && <Pill>Rahu in 3–7–11</Pill>}
+        {data.network.rahuInAirTrikona && <Pill>{t('rahuAir')}</Pill>}
       </div>
 
       <VizCard
-        title="Element balance"
-        caption="Planets in each trikona — Agni (1-5-9), Prithvi (2-6-10), Vayu (3-7-11), Jal (4-8-12)"
-        legend={data.trikonas.map((t) => ({ label: `${t.label} · ${t.planetCount}`, color: TATTVA_COLOR[t.tattva] }))}
+        title={t('balanceTitle')}
+        caption={t('balanceCaption')}
+        legend={data.trikonas.map((tk) => ({ label: `${tk.label} · ${tk.planetCount}`, color: TATTVA_COLOR[tk.tattva] }))}
       >
         <SegmentRing
-          segments={data.trikonas.map((t) => ({
-            label: t.sanskrit,
-            value: t.planetCount,
-            max: Math.max(t.planetCount, 0.4),
-            color: TATTVA_COLOR[t.tattva],
-            active: t.id === data.dominantTrikona,
-            title: `${t.label}: ${t.planetCount} planet(s) in houses ${t.houses.join('-')}`,
+          segments={data.trikonas.map((tk) => ({
+            label: tk.sanskrit,
+            value: tk.planetCount,
+            max: Math.max(tk.planetCount, 0.4),
+            color: TATTVA_COLOR[tk.tattva],
+            active: tk.id === data.dominantTrikona,
+            title: t('segmentTitle', { label: tk.label, n: tk.planetCount, houses: tk.houses.join('-') }),
           }))}
           size={190}
           thickness={24}
-          centerValue={data.trikonas.find((t) => t.id === data.dominantTrikona)?.sanskrit ?? ''}
-          centerLabel="dominant"
-          ariaLabel="Planet count per elemental trikona"
+          centerValue={data.trikonas.find((tk) => tk.id === data.dominantTrikona)?.sanskrit ?? ''}
+          centerLabel={t('dominantLower')}
+          ariaLabel={t('ringAria')}
         />
       </VizCard>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-        {SUB_TABS.map((t) => {
-          const locked = !showFull && !t.free
-          const active = sub === t.id
+        {SUB_TABS.map((tk) => {
+          const locked = !showFull && !tk.free
+          const active = sub === tk.id
           return (
             <button
-              key={t.id}
+              key={tk.id}
               type="button"
-              onClick={() => select(t.id)}
+              onClick={() => select(tk.id)}
               disabled={locked}
               style={{
                 fontSize: '0.68rem',
@@ -301,7 +307,7 @@ export function TattvaPredictionPanel({
               }}
             >
               {locked ? <Lock size={10} style={{ marginRight: 4, verticalAlign: '-1px' }} /> : null}
-              {t.label}
+              {t(`tabs.${tk.id}`)}
             </button>
           )
         })}
@@ -309,11 +315,11 @@ export function TattvaPredictionPanel({
 
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-          <Card title="How to read this" tone="mixed">
+          <Card title={t('howToRead')} tone="mixed">
             {data.educationalNote}
           </Card>
           {data.predictMode === 'guidance' && (
-            <Card title="Moon forecast gate" tone="caution">
+            <Card title={t('moonGate')} tone="caution">
               {data.predictModeNote}
             </Card>
           )}
@@ -346,10 +352,10 @@ export function TattvaPredictionPanel({
                     }}
                   >
                     <div className="label-caps" style={{ fontSize: '0.58rem' }}>
-                      {m.label}{m.dominant ? ' · lead' : ''}
+                      {m.label}{m.dominant ? ` · ${t('lead')}` : ''}
                     </div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.4 }}>
-                      {m.planetCount} planet{m.planetCount === 1 ? '' : 's'} · {m.detail}
+                      {t('planets', { n: m.planetCount })} · {m.detail}
                     </div>
                   </div>
                 ))}
@@ -361,33 +367,33 @@ export function TattvaPredictionPanel({
 
       {sub === 'trikona' && showFull && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-          {data.trikonas.map((t) => (
+          {data.trikonas.map((tk) => (
             <div
-              key={t.id}
+              key={tk.id}
               style={{
-                border: t.id === data.dominantTrikona ? '1px solid var(--gold)' : '1px solid var(--border)',
+                border: tk.id === data.dominantTrikona ? '1px solid var(--gold)' : '1px solid var(--border)',
                 borderRadius: 'var(--r-md)',
                 background: 'var(--surface-2)',
                 padding: '0.7rem 0.8rem',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem' }}>
-                <TattvaIcon id={t.tattva} />
-                <span style={{ fontWeight: 700, fontSize: '0.78rem' }}>{t.label}</span>
-                <Pill>{t.planetCount} planets</Pill>
-                {t.id === data.dominantTrikona && <Pill gold>Dominant</Pill>}
+                <TattvaIcon id={tk.tattva} />
+                <span style={{ fontWeight: 700, fontSize: '0.78rem' }}>{tk.label}</span>
+                <Pill>{t('planets', { n: tk.planetCount })}</Pill>
+                {tk.id === data.dominantTrikona && <Pill gold>{t('dominant')}</Pill>}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                {t.headline}
+                {tk.headline}
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.4 }}>
-                {t.detail}
+                {tk.detail}
               </div>
-              {t.occupants.length > 0 && (
+              {tk.occupants.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
-                  {t.occupants.map((o) => (
+                  {tk.occupants.map((o) => (
                     <Pill key={`${o.id}-${o.house}`}>
-                      {o.name} · H{o.house} · {o.rashiName}
+                      {o.name} · {t('h', { n: o.house })} · {o.rashiName}
                     </Pill>
                   ))}
                 </div>
@@ -399,30 +405,32 @@ export function TattvaPredictionPanel({
 
       {sub === 'dasha' && showFull && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-          <Card title="Active vs Reactive (spice only)" tone="mixed">
+          <Card title={t('activeVsReactive')} tone="mixed">
             {data.dashaFlavor.spiceNote}
           </Card>
           {data.dashaFlavor.levels.length === 0 && (
-            <Card title="No current Vimshottari path" tone="mixed">
-              Recalculate dashas or check the Dasha tab for a current period.
+            <Card title={t('noPath')} tone="mixed">
+              {t('noPathHint')}
             </Card>
           )}
           {data.dashaFlavor.levels.map((lv) => (
             <Card
               key={lv.level}
-              title={`${lv.level === 'maha' ? 'Mahadasha' : 'Antardasha'} · ${lv.lordName}${lv.rashiName ? ` in ${lv.rashiName}` : ''}`}
+              title={lv.rashiName
+                ? t('levelIn', { level: t(lv.level), lord: lv.lordName, rashi: lv.rashiName })
+                : t('levelOnly', { level: t(lv.level), lord: lv.lordName })}
               tone={lv.energy === 'active' ? 'supportive' : lv.energy === 'reactive' ? 'caution' : 'mixed'}
             >
               {lv.energy && (
                 <div style={{ marginBottom: 6 }}>
-                  <Pill gold>{dashaEnergyLabel(lv.energy)}</Pill>
+                  <Pill gold>{dashaEnergyLabel(lv.energy, lang)}</Pill>
                 </div>
               )}
               {lv.note}
             </Card>
           ))}
           {data.predictMode === 'guidance' && (
-            <Card title="Prediction mode" tone="caution">
+            <Card title={t('predictionMode')} tone="caution">
               {data.predictModeNote}
             </Card>
           )}
@@ -432,22 +440,20 @@ export function TattvaPredictionPanel({
       {sub === 'stability' && showFull && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
           <Card title={data.lifeStability.headline} tone="mixed">
-            Chara / Sthira / Dwiswabhava planet piles — how often life reinvent itself.
+            {t('stabilityIntro')}
           </Card>
-          <Card title="D1 Rashi chart" tone="supportive">
-            Movable {data.lifeStability.d1.movable} · Fixed {data.lifeStability.d1.fixed} · Dual{' '}
-            {data.lifeStability.d1.dual}
+          <Card title={t('d1Title')} tone="supportive">
+            {t('modalityCounts', { movable: data.lifeStability.d1.movable, fixed: data.lifeStability.d1.fixed, dual: data.lifeStability.d1.dual })}
             <div style={{ marginTop: 6 }}>{data.lifeStability.d1.note}</div>
           </Card>
           {data.lifeStability.d10 ? (
-            <Card title="D10 Dashamsha (career tempo)" tone="supportive">
-              Movable {data.lifeStability.d10.movable} · Fixed {data.lifeStability.d10.fixed} · Dual{' '}
-              {data.lifeStability.d10.dual}
+            <Card title={t('d10Title')} tone="supportive">
+              {t('modalityCounts', { movable: data.lifeStability.d10.movable, fixed: data.lifeStability.d10.fixed, dual: data.lifeStability.d10.dual })}
               <div style={{ marginTop: 6 }}>{data.lifeStability.d10.note}</div>
             </Card>
           ) : (
-            <Card title="D10 not on this chart" tone="mixed">
-              Recalculate with Dashamsha available to compare career change tempo.
+            <Card title={t('noD10')} tone="mixed">
+              {t('noD10Hint')}
             </Card>
           )}
         </div>
@@ -460,17 +466,17 @@ export function TattvaPredictionPanel({
               {r.text}
               {r.blockedByKetu && (
                 <div style={{ marginTop: 6, color: 'var(--rose)', fontSize: '0.72rem' }}>
-                  Blocked: Moon remedies during Ketu Mahadasha.
+                  {t('blocked')}
                 </div>
               )}
             </Card>
           ))}
 
           <div className="label-caps" style={{ marginTop: '0.35rem' }}>
-            House × karaka × rashi composer
+            {t('composer')}
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-            Auto packs prioritise dusthanas, 4–8 tension, and lead money houses. Pick any house to recompose.
+            {t('composerHint')}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {HOUSE_PICK.map((h) => {
@@ -493,7 +499,7 @@ export function TattvaPredictionPanel({
                     cursor: 'pointer',
                   }}
                 >
-                  H{h}
+                  {t('h', { n: h })}
                 </button>
               )
             })}
@@ -508,9 +514,9 @@ export function TattvaPredictionPanel({
 
           {(maha || antar) && (
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-              Current path:{' '}
-              {maha ? `${maha.lordName} MD` : '—'}
-              {antar ? ` → ${antar.lordName} AD` : ''}
+              {t('currentPath')}{' '}
+              {maha ? t('mdShort', { lord: maha.lordName }) : '—'}
+              {antar ? ` → ${t('adShort', { lord: antar.lordName })}` : ''}
             </div>
           )}
         </div>
@@ -527,9 +533,11 @@ export function TattvaDashaOverlayStrip({
   grahas: ChartOutput['grahas']
   dashaNodes?: import('@/types/astrology').DashaNode[]
 }) {
+  const t = useTranslations('chartTools.tattva')
+  const { lang } = useLang()
   const compact = useMemo(
-    () => analyzeTattvaDashaOverlay(grahas, dashaNodes),
-    [grahas, dashaNodes],
+    () => analyzeTattvaDashaOverlay(grahas, dashaNodes, new Date(), lang),
+    [grahas, dashaNodes, lang],
   )
 
   if (!compact) return null
@@ -551,19 +559,19 @@ export function TattvaDashaOverlayStrip({
       }}
     >
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
-        <div className="label-caps" style={{ fontSize: '0.58rem' }}>Tattva · Dasha</div>
+        <div className="label-caps" style={{ fontSize: '0.58rem' }}>{t('stripTitle')}</div>
         {maha?.energy && (
           <Pill gold>
-            MD {maha.lordName}: {dashaEnergyLabel(maha.energy)}
+            {t('mdEnergy', { lord: maha.lordName, energy: dashaEnergyLabel(maha.energy, lang) })}
           </Pill>
         )}
         {antar?.energy && (
           <Pill>
-            AD {antar.lordName}: {dashaEnergyLabel(antar.energy)}
+            {t('adEnergy', { lord: antar.lordName, energy: dashaEnergyLabel(antar.energy, lang) })}
           </Pill>
         )}
         {compact.predictMode === 'guidance' && (
-          <Pill color="var(--rose)">Moon · soft predictions</Pill>
+          <Pill color="var(--rose)">{t('softPredictions')}</Pill>
         )}
       </div>
       <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>

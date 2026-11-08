@@ -7,6 +7,7 @@
 
 import React, { useState, useRef, useCallback, useEffect, useId } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, ChartSettings, Gender } from '@/types/astrology'
 import { DEFAULT_SETTINGS } from '@/types/astrology'
 import { parseCoordinate } from '@/lib/atlas/coords'
@@ -81,6 +82,7 @@ function tagsEqual(a: string[], b: string[]): boolean {
 // ── Component ────────────────────────────────────────────────
 
 export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsChange, initialTags = EMPTY_TAGS, initialName = 'Untitled', savedChartId = null, initialData }: BirthFormProps) {
+  const t = useTranslations('chart.birthForm')
   const fieldId = useId()
   const ids = {
     name: `${fieldId}-name`,
@@ -346,7 +348,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
       const res = await fetch(`/api/atlas/search?q=${encodeURIComponent(query)}`)
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Location search failed')
+        setError(data.error ?? t('errors.search'))
         setLocationResults([])
         return
       }
@@ -379,7 +381,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
     } finally {
       setSearching(false)
     }
-  }, [])
+  }, [t])
 
   const useMyLocation = () => {
     if (!navigator.geolocation) return
@@ -517,7 +519,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
 
       const json = await res.json()
       if (!res.ok || !json.success) {
-        setError(json.error ?? 'Calculation failed')
+        setError(json.error ?? t('errors.calc'))
         return
       }
 
@@ -556,7 +558,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
 
       onResult(json.data)
     } catch {
-      setError('Network error — please try again')
+      setError(t('errors.network'))
     } finally {
       setLoading(false)
       onLoading?.(false)
@@ -567,13 +569,13 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError('Please enter a name'); return }
-    if (!date) { setError('Please enter birth date'); return }
+    if (!name.trim()) { setError(t('errors.name')); return }
+    if (!date) { setError(t('errors.date')); return }
     const dParts = date.split('-')
     const isNeg = date.startsWith('-') && dParts.length > 3
     const yVal = isNeg ? '-' + dParts[1] : dParts[0]
     if (!yVal || isNaN(parseInt(yVal))) {
-      setError('Please enter a valid birth year')
+      setError(t('errors.year'))
       return
     }
     let latVal = lat
@@ -582,11 +584,11 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
       const parsedLat = parseCoordinate(latInput.trim())
       const parsedLng = parseCoordinate(lngInput.trim())
       if (!latInput.trim() || !lngInput.trim() || !Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) {
-        setError('Please enter valid latitude and longitude')
+        setError(t('errors.coords'))
         return
       }
       if (parsedLat < -90 || parsedLat > 90 || parsedLng < -180 || parsedLng > 180) {
-        setError('Latitude must be -90…90 and longitude -180…180')
+        setError(t('errors.range'))
         return
       }
       latVal = parsedLat
@@ -596,7 +598,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
     }
 
     if (latVal === null || lngVal === null) {
-      setError('Please select a location or enter coordinates manually')
+      setError(t('errors.place'))
       return
     }
 
@@ -710,12 +712,12 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
       }}>
         {/* Name Field */}
         <div style={{ flex: 1 }}>
-          <label className="field-label" htmlFor={ids.name} style={{ marginBottom: '0.15rem' }}>Name / Label</label>
+          <label className="field-label" htmlFor={ids.name} style={{ marginBottom: '0.15rem' }}>{t('name')}</label>
           <input
             id={ids.name}
             className="input"
             type="text"
-            placeholder="e.g. Ravi Kumar"
+            placeholder={t('namePh')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="off"
@@ -725,7 +727,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
 
         {/* Gender Selection (Compact) */}
         <div style={{ width: isMobile ? 100 : 120, flexShrink: 0 }}>
-          <span id={ids.gender} className="field-label" style={{ marginBottom: '0.15rem', display: 'block' }}>Gender</span>
+          <span id={ids.gender} className="field-label" style={{ marginBottom: '0.15rem', display: 'block' }}>{t('gender')}</span>
           <div
             role="group"
             aria-labelledby={ids.gender}
@@ -745,7 +747,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                 key={g}
                 type="button"
                 onClick={() => setGender(g)}
-                title={g}
+                title={t(`genders.${g}`)}
+                aria-label={t(`genders.${g}`)}
                 style={{
                   flex: 1,
                   borderRadius: 'var(--r-sm)',
@@ -760,7 +763,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                   padding: 0
                 }}
               >
-                {g === 'male' ? 'M' : g === 'female' ? 'F' : 'O'}
+                {t(`genderShort.${g}`)}
               </button>
             ))}
           </div>
@@ -776,11 +779,11 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
       }}>
         {/* Date Field */}
         <div style={{ width: '100%', minWidth: 0 }}>
-          <label className="field-label" htmlFor={ids.date} style={{ marginBottom: '0.25rem' }}>Date</label>
+          <label className="field-label" htmlFor={ids.date} style={{ marginBottom: '0.25rem' }}>{t('date')}</label>
           <div
             id={ids.date}
             role="group"
-            aria-label="Birth date"
+            aria-label={t('birthDate')}
             style={{
             display: 'flex',
             alignItems: 'center',
@@ -813,10 +816,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                 cursor: 'pointer', appearance: 'none', textAlign: 'center'
               }}
             >
-              {[
-                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-              ].map((m, i) => (
+              {(t.raw('months') as string[]).map((m, i) => (
                 <option key={m} value={i + 1}>{m}</option>
               ))}
             </select>
@@ -837,7 +837,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
         {/* Time Field - Same Pill Design */}
         <div style={{ width: '100%', minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-            <label className="field-label" htmlFor={ids.time} style={{ marginBottom: 0 }}>Time</label>
+            <label className="field-label" htmlFor={ids.time} style={{ marginBottom: 0 }}>{t('time')}</label>
             <button
               type="button"
               onClick={setToNow}
@@ -848,13 +848,13 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                 padding: 0, textTransform: 'uppercase', fontWeight: 600,
               }}
             >
-              Now ↺
+              {t('now')}
             </button>
           </div>
           <div
             id={ids.time}
             role="group"
-            aria-label="Birth time"
+            aria-label={t('birthTime')}
             style={{
             display: 'flex',
             alignItems: 'center',
@@ -922,8 +922,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                 cursor: 'pointer', appearance: 'none', textAlign: 'center', fontWeight: 600
               }}
             >
-              <option value="AM">AM</option>
-              <option value="PM">PM</option>
+              <option value="AM">{t('am')}</option>
+              <option value="PM">{t('pm')}</option>
             </select>
           </div>
         </div>
@@ -934,16 +934,16 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
       {/* Location Field with autocomplete */}
       <div style={{ position: 'relative', width: '100%' }} ref={dropdownRef}>
         <label className="field-label" htmlFor={ids.place} style={{ marginBottom: '0.15rem', display: 'flex', alignItems: 'center' }}>
-          Place
+          {t('place')}
           {searching && (
             <span style={{ marginLeft: 8, fontSize: '0.62rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-              searching…
+              {t('searching')}
             </span>
           )}
           <button
             type="button"
             onClick={useMyLocation}
-            title="Use current device location"
+            title={t('useLocationTitle')}
             style={{
               marginLeft: 'auto',
               background: 'none', border: 'none', cursor: 'pointer',
@@ -952,7 +952,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
               padding: 0, textTransform: 'uppercase', fontWeight: 600,
             }}
           >
-            Use My Location 📍
+            {t('useLocation')}
           </button>
         </label>
         {/* Mode Toggler */}
@@ -967,7 +967,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
               textTransform: 'uppercase', padding: '0 2px'
             }}
           >
-            {manualMode ? '✓ Search City' : '✎ Enter Lat/Lng'}
+            {manualMode ? t('searchCity') : t('enterCoords')}
           </button>
         </div>
 
@@ -975,12 +975,12 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', animation: 'fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) both' }}>
              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label htmlFor={ids.lat} style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Latitude (-90 to 90)</label>
+                  <label htmlFor={ids.lat} style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>{t('lat')}</label>
                   <input
                     id={ids.lat}
                     type="text"
                     inputMode="decimal"
-                    placeholder="e.g. 28:02 or 28.0333"
+                    placeholder={t('latPh')}
                     className="input"
                     style={{ width: '100%' }}
                     value={latInput}
@@ -989,12 +989,12 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                   />
                 </div>
                 <div>
-                  <label htmlFor={ids.lng} style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Longitude (-180 to 180)</label>
+                  <label htmlFor={ids.lng} style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>{t('lng')}</label>
                   <input
                     id={ids.lng}
                     type="text"
                     inputMode="decimal"
-                    placeholder="e.g. 73:31 or 73.5167"
+                    placeholder={t('lngPh')}
                     className="input"
                     style={{ width: '100%' }}
                     value={lngInput}
@@ -1011,7 +1011,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                 id={ids.place}
                 className="input"
                 type="text"
-                placeholder="City, Country"
+                placeholder={t('placePh')}
                 value={place}
                 onChange={(e) => handlePlaceChange(e.target.value)}
                 onFocus={() => {
@@ -1085,8 +1085,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                 display: 'flex', gap: '0.8rem', flexWrap: 'wrap',
                 alignItems: 'center'
               }}>
-                <span title="Latitude">{lat.toFixed(4)}° N</span>
-                <span title="Longitude">{lng.toFixed(4)}° E</span>
+                <span title={t('latitude')}>{lat.toFixed(4)}° N</span>
+                <span title={t('longitude')}>{lng.toFixed(4)}° E</span>
               </div>
             )}
           </>
@@ -1116,7 +1116,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
             transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
             fontSize: '0.55rem',
           }}>▶</span>
-          Timezone
+          {t('timezone')}
           <span style={{
             marginLeft: 'auto',
             minWidth: 0,
@@ -1128,7 +1128,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
             fontSize: '0.78rem',
             letterSpacing: 0,
           }}>
-            {tz || 'Not set'}
+            {tz || t('notSet')}
           </span>
         </button>
 
@@ -1146,7 +1146,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
               <label className="field-label" htmlFor={ids.tz} style={{ marginBottom: 0 }}>
-                Timezone (IANA)
+                {t('tzIana')}
               </label>
               {manualMode && (
                 <button
@@ -1158,14 +1158,14 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
                     textTransform: 'uppercase', padding: 0, letterSpacing: '0.04em',
                   }}
                 >
-                  Resolve from Coords
+                  {t('resolveTz')}
                 </button>
               )}
             </div>
             <input
               id={ids.tz}
               type="text"
-              placeholder="Search e.g. Asia/Kolkata"
+              placeholder={t('tzPh')}
               className="input"
               style={{ width: '100%', boxSizing: 'border-box' }}
               value={tz}
@@ -1212,7 +1212,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
             transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
             fontSize: '0.55rem',
           }}>▶</span>
-          Advanced settings
+          {t('advanced')}
         </button>
 
         {showAdvanced && (
@@ -1223,45 +1223,45 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
             animation: 'fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) both',
           }}>
             <div>
-              <label className="field-label" htmlFor={ids.ayanamsha}>Ayanamsha</label>
+              <label className="field-label" htmlFor={ids.ayanamsha}>{t('ayanamsha')}</label>
               <select id={ids.ayanamsha} className="input" value={settings.ayanamsha}
                 onChange={(e) => setSettings((s) => ({ ...s, ayanamsha: e.target.value as any }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
-                <option value="lahiri">Lahiri (default)</option>
-                <option value="true_chitra">True Chitra</option>
-                <option value="raman">Raman</option>
-                <option value="true_revati">True Revati</option>
-                <option value="usha_shashi">Usha-Shashi</option>
-                <option value="yukteshwar">Yukteshwar</option>
+                <option value="lahiri">{t('ay.lahiri')}</option>
+                <option value="true_chitra">{t('ay.true_chitra')}</option>
+                <option value="raman">{t('ay.raman')}</option>
+                <option value="true_revati">{t('ay.true_revati')}</option>
+                <option value="usha_shashi">{t('ay.usha_shashi')}</option>
+                <option value="yukteshwar">{t('ay.yukteshwar')}</option>
               </select>
             </div>
             <div>
-              <label className="field-label" htmlFor={ids.houseSystem}>House system</label>
+              <label className="field-label" htmlFor={ids.houseSystem}>{t('houseSystem')}</label>
               <select id={ids.houseSystem} className="input" value={settings.houseSystem}
                 onChange={(e) => setSettings((s) => ({ ...s, houseSystem: e.target.value as any }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
-                <option value="whole_sign">Whole Sign</option>
-                <option value="placidus">Placidus</option>
-                <option value="equal">Equal House</option>
-                <option value="bhava_chalita">Bhava Chalita</option>
+                <option value="whole_sign">{t('hs.whole_sign')}</option>
+                <option value="placidus">{t('hs.placidus')}</option>
+                <option value="equal">{t('hs.equal')}</option>
+                <option value="bhava_chalita">{t('hs.bhava_chalita')}</option>
               </select>
             </div>
             <div>
-              <label className="field-label" htmlFor={ids.karaka}>Karaka scheme</label>
+              <label className="field-label" htmlFor={ids.karaka}>{t('karaka')}</label>
               <select id={ids.karaka} className="input" value={settings.karakaScheme}
                 onChange={(e) => setSettings((s) => ({ ...s, karakaScheme: Number(e.target.value) as 7 | 8 }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
-                <option value={7}>7 Karakas (default)</option>
-                <option value={8}>8 Karakas</option>
+                <option value={7}>{t('karaka7')}</option>
+                <option value={8}>{t('karaka8')}</option>
               </select>
             </div>
             <div>
-              <label className="field-label" htmlFor={ids.nodes}>Rahu / Ketu nodes</label>
+              <label className="field-label" htmlFor={ids.nodes}>{t('nodes')}</label>
               <select id={ids.nodes} className="input" value={settings.nodeMode}
                 onChange={(e) => setSettings((s) => ({ ...s, nodeMode: e.target.value as any }))}
                 style={{ width: '100%', boxSizing: 'border-box' }}>
-                <option value="mean">Mean nodes</option>
-                <option value="true">True nodes</option>
+                <option value="mean">{t('mean')}</option>
+                <option value="true">{t('true')}</option>
               </select>
             </div>
           </div>
@@ -1280,7 +1280,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
               style={{ cursor: 'pointer' }}
             />
             <label htmlFor={ids.saveLibrary} style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500, cursor: 'pointer' }}>
-              Save this chart to my library
+              {t('save')}
             </label>
           </div>
           {saveToLibrary && (
@@ -1341,10 +1341,10 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, onSaveTagsC
               display: 'inline-block',
               flexShrink: 0,
             }} />
-            Consulting the stars…
+            {t('calculating')}
           </>
         ) : (
-          <>🪐 Calculate Chart</>
+          <>{t('calculate')}</>
         )}
       </button>
     </form>

@@ -7,11 +7,13 @@
 //  Works for any DashaNode tree (Vimshottari, Yogini, Chara, …).
 // ─────────────────────────────────────────────────────────────
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import type { DashaNode } from '@/types/astrology'
 import { expandVimshottariNode } from '@/lib/engine/dasha/vimshottari'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
-import { lordColor, lordName } from './dashaPalette'
+import { lordCodeIn, lordColor, lordNameIn } from './dashaPalette'
 import styles from './dasha-visualizer.module.css'
 
 interface DashaVisualizerProps {
@@ -28,6 +30,31 @@ interface DashaVisualizerProps {
 const YEAR_MS = 365.2425 * 24 * 60 * 60 * 1000
 const LEVEL_NAMES = ['Mahadasha', 'Antardasha', 'Pratyantar', 'Sukshma', 'Prana', 'Deha']
 
+/** Display text for the current locale; English defaults keep the component usable without a provider. */
+interface VizText {
+  hi: boolean
+  tag: string
+  levels: string[]
+  t: (key: string, values?: Record<string, string | number>) => string
+}
+
+const EN_TEMPLATES: Record<string, string> = {
+  d: '{n}d', m: '{n}m', y: '{n}y', ym: '{y}y {m}m', level: 'Level {n}',
+  wheelAria: 'Dasha life wheel', nowAge: 'NOW · AGE {age}', adSuffix: '{lord} AD', mdDone: '{pct}% of MD done',
+  outside: 'Outside dasha span', left: '{span} left', runningNow: 'Running now', noPeriod: 'No period runs at this moment.',
+  nextChanges: 'Next changes', ribbon: 'Life ribbon', tapHint: 'Tap a Mahadasha to zoom in',
+  md: 'MD', ad: 'AD', pd: 'PD', age: 'age', ageRange: ' · age {from}–{to}', noSub: 'Sub-periods are not available for this system.',
+}
+
+const EN_VIZ: VizText = {
+  hi: false,
+  tag: 'en-IN',
+  levels: LEVEL_NAMES,
+  t: (key, values) => (EN_TEMPLATES[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => String(values?.[k] ?? '')),
+}
+
+const VizCtx = createContext<VizText>(EN_VIZ)
+
 // ── Helpers ──────────────────────────────────────────────────
 
 function ms(d: Date | string): number {
@@ -38,31 +65,31 @@ function nodeKey(n: DashaNode): string {
   return `${n.level}:${n.lord}:${ms(n.start)}`
 }
 
-function label(n: DashaNode): string {
-  return n.label || lordName(n.lord)
+function label(n: DashaNode, x: VizText = EN_VIZ): string {
+  return (x.hi ? '' : n.label) || lordNameIn(n.lord, x.hi)
 }
 
-function fmtDate(t: number, tz?: string, withDay = true): string {
+function fmtDate(t: number, tz?: string, withDay = true, x: VizText = EN_VIZ): string {
   try {
-    return new Intl.DateTimeFormat('en-IN', {
+    return new Intl.DateTimeFormat(x.tag, {
       day: withDay ? 'numeric' : undefined,
       month: 'short',
       year: 'numeric',
       timeZone: tz,
     }).format(new Date(t))
   } catch {
-    return new Date(t).toLocaleDateString('en-IN')
+    return new Date(t).toLocaleDateString(x.tag)
   }
 }
 
-function fmtSpan(spanMs: number): string {
+function fmtSpan(spanMs: number, x: VizText = EN_VIZ): string {
   const days = Math.max(0, Math.round(spanMs / 86_400_000))
-  if (days < 45) return `${days}d`
+  if (days < 45) return x.t('d', { n: days })
   const years = Math.floor(days / 365.2425)
   const months = Math.round((days - years * 365.2425) / 30.44)
-  if (years === 0) return `${months}m`
-  if (months === 0 || months === 12) return `${months === 12 ? years + 1 : years}y`
-  return `${years}y ${months}m`
+  if (years === 0) return x.t('m', { n: months })
+  if (months === 0 || months === 12) return x.t('y', { n: months === 12 ? years + 1 : years })
+  return x.t('ym', { y: years, m: months })
 }
 
 function childrenOf(n: DashaNode, lazy: boolean, tribhagi: boolean, now: number): DashaNode[] {
@@ -107,6 +134,7 @@ function LifeWheel({ nodes, t0, t1, now, birth, selected, onSelect, path }: {
   onSelect: (n: DashaNode) => void
   path: DashaNode[]
 }) {
+  const x = useContext(VizCtx)
   const span = t1 - t0
   const ang = (t: number) => ((t - t0) / span) * 360
   const nowIn = now >= t0 && now <= t1
@@ -122,7 +150,7 @@ function LifeWheel({ nodes, t0, t1, now, birth, selected, onSelect, path }: {
   const mdPct = md ? Math.round(((now - ms(md.start)) / (ms(md.end) - ms(md.start))) * 100) : 0
 
   return (
-    <svg viewBox={`0 0 ${VB} ${VB}`} className={styles.wheel} role="img" aria-label="Dasha life wheel">
+    <svg viewBox={`0 0 ${VB} ${VB}`} className={styles.wheel} role="img" aria-label={x.t('wheelAria')}>
       <circle cx={C} cy={C} r={150} className={styles.wheelBg} />
 
       {/* past shading */}
@@ -137,11 +165,11 @@ function LifeWheel({ nodes, t0, t1, now, birth, selected, onSelect, path }: {
         const [lx, ly] = polar(133, (a0 + a1) / 2)
         return (
           <g key={nodeKey(n)} className={styles.seg} onClick={() => onSelect(n)}>
-            <title>{`${label(n)} Mahadasha · ${fmtDate(ms(n.start), undefined, false)} – ${fmtDate(ms(n.end), undefined, false)} (${fmtSpan(ms(n.end) - ms(n.start))})`}</title>
+            <title>{`${label(n, x)} ${x.levels[0]} · ${fmtDate(ms(n.start), undefined, false, x)} – ${fmtDate(ms(n.end), undefined, false, x)} (${fmtSpan(ms(n.end) - ms(n.start), x)})`}</title>
             <path d={arcPath(116, 150, a0, a1)} fill={color} fillOpacity={isSel ? 0.95 : 0.7}
               className={isSel ? styles.segSel : styles.segEdge} />
             {a1 - a0 > 11 && (
-              <text x={lx} y={ly} className={styles.ringText} textAnchor="middle" dominantBaseline="central">{n.lord}</text>
+              <text x={lx} y={ly} className={styles.ringText} textAnchor="middle" dominantBaseline="central">{lordCodeIn(n.lord, x.hi)}</text>
             )}
           </g>
         )
@@ -155,7 +183,7 @@ function LifeWheel({ nodes, t0, t1, now, birth, selected, onSelect, path }: {
         return (
           <path key={nodeKey(c)} d={arcPath(90, 112, a0, a1)} fill={lordColor(c.lord)} fillOpacity={0.55}
             className={styles.segEdge}>
-            <title>{`${label(c)} Antardasha · ${fmtDate(ms(c.start), undefined, false)} – ${fmtDate(ms(c.end), undefined, false)}`}</title>
+            <title>{`${label(c, x)} ${x.levels[1]} · ${fmtDate(ms(c.start), undefined, false, x)} – ${fmtDate(ms(c.end), undefined, false, x)}`}</title>
           </path>
         )
       })}
@@ -192,13 +220,13 @@ function LifeWheel({ nodes, t0, t1, now, birth, selected, onSelect, path }: {
       <circle cx={C} cy={C} r={78} className={styles.hub} />
       {md ? (
         <>
-          <text x={C} y={C - 30} textAnchor="middle" className={styles.hubEyebrow}>NOW · AGE {Math.floor(ageNow)}</text>
-          <text x={C} y={C - 6} textAnchor="middle" className={styles.hubTitle} style={{ fill: lordColor(md.lord) }}>{label(md)}</text>
-          {ad && <text x={C} y={C + 16} textAnchor="middle" className={styles.hubSub}>{label(ad)} AD</text>}
-          <text x={C} y={C + 38} textAnchor="middle" className={styles.hubMeta}>{mdPct}% of MD done</text>
+          <text x={C} y={C - 30} textAnchor="middle" className={styles.hubEyebrow}>{x.t('nowAge', { age: Math.floor(ageNow) })}</text>
+          <text x={C} y={C - 6} textAnchor="middle" className={styles.hubTitle} style={{ fill: lordColor(md.lord) }}>{label(md, x)}</text>
+          {ad && <text x={C} y={C + 16} textAnchor="middle" className={styles.hubSub}>{x.t('adSuffix', { lord: label(ad, x) })}</text>}
+          <text x={C} y={C + 38} textAnchor="middle" className={styles.hubMeta}>{x.t('mdDone', { pct: mdPct })}</text>
         </>
       ) : (
-        <text x={C} y={C} textAnchor="middle" className={styles.hubSub}>Outside dasha span</text>
+        <text x={C} y={C} textAnchor="middle" className={styles.hubSub}>{x.t('outside')}</text>
       )}
     </svg>
   )
@@ -216,6 +244,7 @@ function Track({ items, t0, t1, now, selectedKey, onPick, height = 30, minLabelP
   height?: number
   minLabelPct?: number
 }) {
+  const x = useContext(VizCtx)
   const span = Math.max(1, t1 - t0)
   const pct = (t: number) => Math.min(100, Math.max(0, ((t - t0) / span) * 100))
   return (
@@ -238,15 +267,15 @@ function Track({ items, t0, t1, now, selectedKey, onPick, height = 30, minLabelP
               background: `color-mix(in oklab, ${color} ${sel ? 55 : 32}%, var(--surface-2))`,
               borderColor: `color-mix(in oklab, ${color} 70%, transparent)`,
             }}
-            title={`${label(n)} ${LEVEL_NAMES[n.level - 1] ?? ''} · ${fmtDate(ms(n.start))} – ${fmtDate(ms(n.end))} (${fmtSpan(ms(n.end) - ms(n.start))})`}
+            title={`${label(n, x)} ${x.levels[n.level - 1] ?? ''} · ${fmtDate(ms(n.start), undefined, true, x)} – ${fmtDate(ms(n.end), undefined, true, x)} (${fmtSpan(ms(n.end) - ms(n.start), x)})`}
             onClick={onPick ? () => onPick(n) : undefined}
             tabIndex={onPick ? 0 : -1}
           >
             {/* Bar is a size container: CSS picks the full or short label by its own pixel width. */}
             {w >= minLabelPct / 3 ? (
               <>
-                <span className={styles.full}>{label(n)}</span>
-                <span className={styles.short}>{n.lord}</span>
+                <span className={styles.full}>{label(n, x)}</span>
+                <span className={styles.short}>{lordCodeIn(n.lord, x.hi)}</span>
               </>
             ) : null}
           </button>
@@ -258,6 +287,7 @@ function Track({ items, t0, t1, now, selectedKey, onPick, height = 30, minLabelP
 }
 
 function Axis({ t0, t1, birth, mode }: { t0: number; t1: number; birth: number; mode: 'age' | 'year' }) {
+  const x = useContext(VizCtx)
   const span = t1 - t0
   const years = span / YEAR_MS
   const ticks: Array<{ p: number; text: string }> = []
@@ -271,7 +301,7 @@ function Axis({ t0, t1, birth, mode }: { t0: number; t1: number; birth: number; 
     const d = new Date(Date.UTC(new Date(t0).getUTCFullYear(), new Date(t0).getUTCMonth() + 1, 1))
     const step = years > 1.2 ? 3 : years > 0.6 ? 2 : 1
     for (; d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + step)) {
-      const m = d.toLocaleString('en-IN', { month: 'short', timeZone: 'UTC' })
+      const m = d.toLocaleString(x.tag, { month: 'short', timeZone: 'UTC' })
       ticks.push({ p: ((d.getTime() - t0) / span) * 100, text: d.getUTCMonth() < step ? `${m} ’${String(d.getUTCFullYear()).slice(2)}` : m })
     }
   } else {
@@ -294,6 +324,7 @@ function Axis({ t0, t1, birth, mode }: { t0: number; t1: number; birth: number; 
 // ── Progress meters & upcoming ───────────────────────────────
 
 function Meter({ n, now, tz }: { n: DashaNode; now: number; tz?: string }) {
+  const x = useContext(VizCtx)
   const s = ms(n.start)
   const e = ms(n.end)
   const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100))
@@ -301,17 +332,17 @@ function Meter({ n, now, tz }: { n: DashaNode; now: number; tz?: string }) {
   return (
     <div className={styles.meter} style={{ '--accent': color } as React.CSSProperties}>
       <div className={styles.meterHead}>
-        <span className={styles.meterLevel}>{LEVEL_NAMES[n.level - 1] ?? `Level ${n.level}`}</span>
-        <span className={styles.meterLeft}>{fmtSpan(e - now)} left</span>
+        <span className={styles.meterLevel}>{x.levels[n.level - 1] ?? x.t('level', { n: n.level })}</span>
+        <span className={styles.meterLeft}>{x.t('left', { span: fmtSpan(e - now, x) })}</span>
       </div>
-      <strong className={styles.meterLord}>{label(n)}</strong>
+      <strong className={styles.meterLord}>{label(n, x)}</strong>
       <div className={styles.meterTrack}>
         <i style={{ width: `${pct}%` }} />
       </div>
       <div className={styles.meterDates}>
-        <span>{fmtDate(s, tz, n.level > 1)}</span>
+        <span>{fmtDate(s, tz, n.level > 1, x)}</span>
         <b>{Math.round(pct)}%</b>
-        <span>{fmtDate(e, tz, n.level > 1)}</span>
+        <span>{fmtDate(e, tz, n.level > 1, x)}</span>
       </div>
     </div>
   )
@@ -341,6 +372,12 @@ function collectUpcoming(nodes: DashaNode[], now: number, lazy: boolean, tribhag
 // ── Component ────────────────────────────────────────────────
 
 export function DashaVisualizer({ nodes, birthDate, timezone, asOf, lazyExpand = false, tribhagi = false }: DashaVisualizerProps) {
+  const tv = useTranslations('chart.dashaViz')
+  const { hi, tag } = useLang()
+  const x = useMemo<VizText>(
+    () => (hi ? { hi, tag, levels: tv.raw('levels') as string[], t: (k, v) => tv(k, v) } : EN_VIZ),
+    [hi, tag, tv],
+  )
   const asOfMs = asOf?.getTime()
   // Freeze "now" per asOf so memoised paths and selection don't reset on every render.
   const now = useMemo(() => asOfMs ?? Date.now(), [asOfMs])
@@ -381,32 +418,33 @@ export function DashaVisualizer({ nodes, birthDate, timezone, asOf, lazyExpand =
   const selMdKey = selMd ? nodeKey(selMd) : null
 
   return (
+    <VizCtx.Provider value={x}>
     <div className={styles.root}>
       <div className={styles.top}>
         <LifeWheel nodes={nodes} t0={t0} t1={t1} now={now} birth={birth} selected={selMd} path={path}
           onSelect={n => { setSelMd(n); setSelAd(null) }} />
 
         <div className={styles.side}>
-          <h4 className={styles.h}>Running now</h4>
+          <h4 className={styles.h}>{x.t('runningNow')}</h4>
           {meterPath.length ? (
             <div className={styles.meters}>
               {meterPath.map(n => <Meter key={nodeKey(n)} n={n} now={now} tz={timezone} />)}
             </div>
-          ) : <p className={styles.muted}>No period runs at this moment.</p>}
+          ) : <p className={styles.muted}>{x.t('noPeriod')}</p>}
 
           {upcoming.length > 0 && (
             <>
-              <h4 className={styles.h}>Next changes</h4>
+              <h4 className={styles.h}>{x.t('nextChanges')}</h4>
               <ol className={styles.upcoming}>
                 {upcoming.map(u => (
                   <li key={nodeKey(u.n)}>
                     <span className={styles.upDot} style={{ background: lordColor(u.n.lord) }} />
-                    <span className={styles.upDate}>{fmtDate(u.t, timezone)}</span>
+                    <span className={styles.upDate}>{fmtDate(u.t, timezone, true, x)}</span>
                     <span className={styles.upText}>
-                      <b>{label(u.n)}</b> {LEVEL_NAMES[u.n.level - 1]?.toLowerCase()}
-                      {u.parent ? <em> in {label(u.parent)}</em> : null}
+                      <b>{label(u.n, x)}</b> {x.hi ? x.levels[u.n.level - 1] : LEVEL_NAMES[u.n.level - 1]?.toLowerCase()}
+                      {u.parent ? <em>{x.hi ? x.t('inParent', { lord: label(u.parent, x) }) : <> in {label(u.parent)}</>}</em> : null}
                     </span>
-                    <span className={styles.upIn}>in {fmtSpan(u.t - now)}</span>
+                    <span className={styles.upIn}>{x.hi ? x.t('inSpan', { span: fmtSpan(u.t - now, x) }) : <>in {fmtSpan(u.t - now)}</>}</span>
                   </li>
                 ))}
               </ol>
@@ -417,14 +455,14 @@ export function DashaVisualizer({ nodes, birthDate, timezone, asOf, lazyExpand =
 
       <section className={styles.block}>
         <div className={styles.blockHead}>
-          <h4 className={styles.h}>Life ribbon</h4>
-          <span className={styles.muted}>Tap a Mahadasha to zoom in</span>
+          <h4 className={styles.h}>{x.t('ribbon')}</h4>
+          <span className={styles.muted}>{x.t('tapHint')}</span>
         </div>
         <div className={styles.rowGrid}>
-          <span className={styles.rowLabel}>MD</span>
+          <span className={styles.rowLabel}>{x.t('md')}</span>
           <Track items={nodes} t0={t0} t1={t1} now={now} selectedKey={selMdKey}
             onPick={n => { setSelMd(n); setSelAd(null) }} height={34} minLabelPct={5} />
-          <span className={styles.rowLabel}>age</span>
+          <span className={styles.rowLabel}>{x.t('age')}</span>
           <Axis t0={t0} t1={t1} birth={birth} mode="age" />
         </div>
       </section>
@@ -434,25 +472,25 @@ export function DashaVisualizer({ nodes, birthDate, timezone, asOf, lazyExpand =
           <div className={styles.blockHead}>
             <h4 className={styles.h}>
               <span className={styles.swatch} style={{ background: lordColor(selMd.lord) }} />
-              {label(selMd)} Mahadasha
+              {x.hi ? x.t('mahaTitle', { lord: label(selMd, x) }) : <>{label(selMd)} Mahadasha</>}
             </h4>
             <span className={styles.muted}>
-              {fmtDate(ms(selMd.start), timezone)} – {fmtDate(ms(selMd.end), timezone)} · {fmtSpan(ms(selMd.end) - ms(selMd.start))}
-              {' · '}age {Math.max(0, Math.floor((ms(selMd.start) - birth) / YEAR_MS))}–{Math.floor((ms(selMd.end) - birth) / YEAR_MS)}
+              {fmtDate(ms(selMd.start), timezone, true, x)} – {fmtDate(ms(selMd.end), timezone, true, x)} · {fmtSpan(ms(selMd.end) - ms(selMd.start), x)}
+              {x.t('ageRange', { from: Math.max(0, Math.floor((ms(selMd.start) - birth) / YEAR_MS)), to: Math.floor((ms(selMd.end) - birth) / YEAR_MS) })}
             </span>
           </div>
           {ads.length === 0 ? (
-            <p className={styles.muted}>Sub-periods are not available for this system.</p>
+            <p className={styles.muted}>{x.t('noSub')}</p>
           ) : (
             <div className={styles.rowGrid}>
-              <span className={styles.rowLabel}>AD</span>
+              <span className={styles.rowLabel}>{x.t('ad')}</span>
               <Track items={ads} t0={ms(selMd.start)} t1={ms(selMd.end)} now={now}
                 selectedKey={activeAd ? nodeKey(activeAd) : null} onPick={setSelAd} height={32} />
               <span />
               <Axis t0={ms(selMd.start)} t1={ms(selMd.end)} birth={birth} mode="year" />
               {activeAd && pds.length > 0 && (
                 <>
-                  <span className={styles.rowLabel}>PD</span>
+                  <span className={styles.rowLabel}>{x.t('pd')}</span>
                   <div className={styles.zoomWrap}>
                     <div className={styles.connector} style={{
                       left: `${((ms(activeAd.start) - ms(selMd.start)) / (ms(selMd.end) - ms(selMd.start))) * 100}%`,
@@ -468,13 +506,14 @@ export function DashaVisualizer({ nodes, birthDate, timezone, asOf, lazyExpand =
           )}
           {activeAd && (
             <p className={styles.caption}>
-              <b style={{ color: lordColor(activeAd.lord) }}>{label(selMd)} / {label(activeAd)}</b>
-              {' '}· {fmtDate(ms(activeAd.start), timezone)} – {fmtDate(ms(activeAd.end), timezone)} ({fmtSpan(ms(activeAd.end) - ms(activeAd.start))})
-              {pds.length > 0 ? ' — the PD row shows its sub-periods.' : ''}
+              <b style={{ color: lordColor(activeAd.lord) }}>{label(selMd, x)} / {label(activeAd, x)}</b>
+              {' '}· {fmtDate(ms(activeAd.start), timezone, true, x)} – {fmtDate(ms(activeAd.end), timezone, true, x)} ({fmtSpan(ms(activeAd.end) - ms(activeAd.start), x)})
+              {pds.length > 0 ? (x.hi ? x.t('pdHint') : ' — the PD row shows its sub-periods.') : ''}
             </p>
           )}
         </section>
       )}
     </div>
+    </VizCtx.Provider>
   )
 }

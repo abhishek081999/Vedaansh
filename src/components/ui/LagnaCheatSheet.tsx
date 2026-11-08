@@ -6,7 +6,9 @@
 
 import React, { useMemo, useState } from 'react'
 import type { GrahaData, Rashi } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
 import { buildLagnaCheatSheet, cheatSheetToText } from '@/lib/engine/lagnaCheatSheet'
+import { useLang } from '@/i18n/useLang'
 
 interface LagnaCheatSheetProps {
   ascRashi: Rashi
@@ -14,7 +16,9 @@ interface LagnaCheatSheetProps {
 }
 
 export function LagnaCheatSheet({ ascRashi, grahas }: LagnaCheatSheetProps) {
-  const sheet = useMemo(() => buildLagnaCheatSheet(ascRashi, grahas), [ascRashi, grahas])
+  const t = useTranslations('houseGuide.cheat')
+  const { hi, lang } = useLang()
+  const sheet = useMemo(() => buildLagnaCheatSheet(ascRashi, grahas, lang), [ascRashi, grahas, lang])
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -23,7 +27,7 @@ export function LagnaCheatSheet({ ascRashi, grahas }: LagnaCheatSheetProps) {
   async function copy() {
     if (!sheet) return
     try {
-      await navigator.clipboard.writeText(cheatSheetToText(sheet))
+      await navigator.clipboard.writeText(cheatSheetToText(sheet, lang))
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
     } catch {
@@ -53,7 +57,7 @@ export function LagnaCheatSheet({ ascRashi, grahas }: LagnaCheatSheetProps) {
         <div>
           <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>{sheet.title}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 3 }}>
-            Quick consultation reference for this chart
+            {t('subtitle')}
           </div>
         </div>
         <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>{open ? '−' : '+'}</span>
@@ -65,15 +69,15 @@ export function LagnaCheatSheet({ ascRashi, grahas }: LagnaCheatSheetProps) {
             {sheet.headline}
           </p>
 
-          <Block title="This chart" items={sheet.thisChart} />
-          <Block title="Key points" items={sheet.keyPoints} />
+          <Block title={t('thisChart')} items={sheet.thisChart} />
+          <Block title={t('keyPoints')} items={sheet.keyPoints} />
 
           <div>
-            <div style={miniLabel}>Houses at a glance</div>
+            <div style={miniLabel}>{t('housesGlance')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4 }}>
               {sheet.houses.map((h) => (
                 <div key={h.house} style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                  <strong style={{ color: 'var(--text-gold)' }}>H{h.house}</strong> {h.signName} · {h.theme}
+                  <strong style={{ color: 'var(--text-gold)' }}>{hi ? t('houseShort', { n: h.house }) : `H${h.house}`}</strong> {h.signName} · {h.theme}
                   {h.occupants.length > 0 ? (
                     <span style={{ color: 'var(--text-primary)' }}> · {h.occupants.join(', ')}</span>
                   ) : null}
@@ -82,11 +86,11 @@ export function LagnaCheatSheet({ ascRashi, grahas }: LagnaCheatSheetProps) {
             </div>
           </div>
 
-          <Block title="Cautions and remedies" items={sheet.cautionsAndRemedies} />
+          <Block title={t('cautions')} items={sheet.cautionsAndRemedies} />
 
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-ghost" onClick={copy} style={{ fontSize: '0.75rem' }}>
-              {copied ? 'Copied' : 'Copy as text'}
+              {copied ? t('copied') : t('copy')}
             </button>
             <button
               type="button"
@@ -94,7 +98,7 @@ export function LagnaCheatSheet({ ascRashi, grahas }: LagnaCheatSheetProps) {
               onClick={() => window.print()}
               style={{ fontSize: '0.75rem' }}
             >
-              Print
+              {t('print')}
             </button>
           </div>
         </div>

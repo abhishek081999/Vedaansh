@@ -10,6 +10,20 @@ import type { Rashi } from '@/types/astrology'
 import type { ClassicalGrahaId, HouseNumber } from './houseInterpretations'
 import { CLASSICAL_GRAHAS } from './houseInterpretations'
 import { getVakriAstNotes, type VakriAstDetail } from './vakriAstInterpretations'
+import { fill, type EngineLang } from './lang'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import { RASHI_HI } from '@/i18n/jyotish'
+import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import {
+  ASPECT_NOTE_HI as ASPECT_TEXT_NOTE_HI,
+  CLASSICAL_REF_HI,
+  CLASSICAL_SOURCE_HI,
+  CLASSICAL_TEXT_HI,
+  PLANET_HOUSE_FALLBACK_HI,
+  PLANET_SIGN_FALLBACK_HI,
+} from './locale/classicalInterpretations.hi'
+import { VAKRI_TEMPLATE_HI, VAKRI_TEXT_HI } from './locale/vakriAstText.hi'
+import { LORDSHIP_HOUSE_SHORT_HI, LORDSHIP_REF_HI, LORDSHIP_TEMPLATE_HI, LORDSHIP_TEXT_HI } from './locale/lordship.hi'
 
 export type ClassicalSource =
   | 'BPHS'
@@ -796,4 +810,86 @@ export function getAspectClassicalNote(
     `${g} from house ${fromHouse} casts ${spanLabel} on house ${toHouse}. ${body}`,
     'Drishti',
   )
+}
+
+// ── Hindi (additive; English output above is unchanged) ─────
+
+const GRAHA_BY_NAME = new Map<string, ClassicalGrahaId>(
+  (CLASSICAL_GRAHAS as ClassicalGrahaId[]).map((id) => [GRAHA_NAMES[id], id]),
+)
+const RASHI_BY_NAME = new Map<string, Rashi>(
+  (Object.entries(RASHI_NAMES) as [string, string][]).map(([r, n]) => [n, Number(r) as Rashi]),
+)
+const ORD_SPAN_HI: Record<number, string> = { 3: 'तीसरी', 4: 'चौथी', 5: 'पाँचवीं', 6: 'छठी', 7: 'सातवीं', 8: 'आठवीं', 9: 'नौवीं', 10: 'दसवीं', 11: 'ग्यारहवीं', 12: 'बारहवीं' }
+
+/** Display label for a classical source in `lang`. */
+export function classicalSourceLabel(source: ClassicalSource, lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? CLASSICAL_SOURCE_HI[source] ?? CLASSICAL_SOURCE_LABEL[source] : CLASSICAL_SOURCE_LABEL[source]
+}
+
+/** Hindi for any text this module emits; unknown text comes back unchanged. */
+export function classicalTextHi(text: string): string {
+  const direct = CLASSICAL_TEXT_HI[text] ?? VAKRI_TEXT_HI[text] ?? LORDSHIP_TEXT_HI[text]
+  if (direct) return direct
+  const lord = lordshipTemplateHi(text)
+  if (lord) return lord
+  const actFull = /^Natal vakri activation window ~(.+?): /.exec(text)
+  if (actFull) return fill(VAKRI_TEMPLATE_HI.activationFull, { age: actFull[1]! })
+  const actShort = /^Natal vakri activation ~(.+?) \(early/.exec(text)
+  if (actShort) return fill(VAKRI_TEMPLATE_HI.activationShort, { age: actShort[1]! })
+  const multi = /^(\d+) vakri planets \(excluding nodes\): (.+?) Shared traits/.exec(text)
+  if (multi) return fill(VAKRI_TEMPLATE_HI.multi, { count: multi[1]!, level: VAKRI_TEXT_HI[multi[2]!] ?? multi[2]! })
+  const aspect = /^(Su|Mo|Ma|Me|Ju|Ve|Sa) from house (\d+) casts (.+?) on house (\d+)\. ([\s\S]*)$/.exec(text)
+  if (aspect) {
+    const [, g, from, span, to, body] = aspect
+    const n = Number(/^(\d+)/.exec(span!)?.[1])
+    return fill(ASPECT_TEXT_NOTE_HI, {
+      graha: GRAHA_HI[g as ClassicalGrahaId],
+      from: from!,
+      to: to!,
+      span: CLASSICAL_TEXT_HI[span!] ?? `${ORD_SPAN_HI[n] ?? n} दृष्टि`,
+      body: CLASSICAL_TEXT_HI[body!] ?? body!,
+    })
+  }
+  const house = /^(\w+) in house (\d+): /.exec(text)
+  if (house) {
+    const id = GRAHA_BY_NAME.get(house[1]!)
+    if (id && PLANET_HOUSE_FALLBACK_HI[id]) return fill(PLANET_HOUSE_FALLBACK_HI[id]!, { graha: GRAHA_HI[id], h: house[2]! })
+  }
+  const sign = /^(\w+) in (\w+): /.exec(text)
+  if (sign) {
+    const id = GRAHA_BY_NAME.get(sign[1]!)
+    const r = RASHI_BY_NAME.get(sign[2]!)
+    if (id && r && PLANET_SIGN_FALLBACK_HI[id]) return fill(PLANET_SIGN_FALLBACK_HI[id]!, { graha: GRAHA_HI[id], rashi: RASHI_HI[r] })
+  }
+  return text
+}
+
+function lordshipTemplateHi(text: string): string | null {
+  const T = LORDSHIP_TEMPLATE_HI
+  const sh = (h: string) => LORDSHIP_HOUSE_SHORT_HI[Number(h)] ?? h
+  const rules: Array<[RegExp, string]> = [
+    [/^Lord of (\d+) in own house \((\d+)\): /, T.own],
+    [/^Lord of trikona (\d+) \(.+?\) in kendra (\d+): /, T.trikonaInKendra],
+    [/^Lord of kendra (\d+) \(.+?\) in trikona (\d+): /, T.kendraInTrikona],
+    [/^Dusthāna lord of (\d+) in dusthāna (\d+): /, T.dusthanaPair],
+    [/^Lord of (\d+) \(.+?\) in dusthāna (\d+): /, T.toDusthana],
+    [/^Lord of (\d+) \(.+?\) in upachaya (\d+): /, T.toUpachaya],
+    [/^Lord of (\d+) \(.+?\) in house (\d+) \(/, T.general],
+  ]
+  for (const [re, tpl] of rules) {
+    const m = re.exec(text)
+    if (m) return fill(tpl, { from: m[1]!, to: m[2]!, fromShort: sh(m[1]!), toShort: sh(m[2]!) })
+  }
+  return null
+}
+
+/** Notes with text and ref in `lang` (source id unchanged). */
+export function classicalNotesInLang(notes: ClassicalNote[], lang: EngineLang = 'en'): ClassicalNote[] {
+  if (lang !== 'hi') return notes
+  return notes.map((n) => {
+    const out: ClassicalNote = { ...n, text: classicalTextHi(n.text) }
+    if (n.ref) out.ref = CLASSICAL_REF_HI[n.ref] ?? LORDSHIP_REF_HI[n.ref] ?? CLASSICAL_TEXT_HI[n.ref] ?? VAKRI_TEXT_HI[n.ref] ?? LORDSHIP_TEXT_HI[n.ref] ?? (n.ref === 'Multi-Vakri' ? VAKRI_TEMPLATE_HI.multiRef : n.ref)
+    return out
+  })
 }

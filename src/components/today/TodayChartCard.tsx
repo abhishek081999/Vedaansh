@@ -9,6 +9,7 @@ import React, { useMemo } from 'react'
 import type { ChartOutput, GrahaData } from '@/types/astrology'
 import type { TodayTransitGraha } from '@/lib/engine/todayReading'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
+import { useTranslations } from 'next-intl'
 import styles from './today-reading.module.css'
 
 /**
@@ -37,12 +38,13 @@ function toOverlay(t: TodayTransitGraha[]): GrahaData[] {
 }
 
 export function TodayChartCard({ chart, transit }: { chart: ChartOutput; transit: TodayTransitGraha[] }) {
+  const t = useTranslations('today.chart')
   const overlay = useMemo(() => toOverlay(transit), [transit])
   const moonNak = chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0
 
   return (
-    <section className={styles.card} aria-label="Your chart with today's transits">
-      <h2 className={styles.cardTitle}>Your chart · today&apos;s transits</h2>
+    <section className={styles.card} aria-label={t('aria')}>
+      <h2 className={styles.cardTitle}>{t('title')}</h2>
       <div className={styles.chartWrap}>
         <ChakraSelector
           ascRashi={chart.lagnas.ascRashi}
@@ -55,7 +57,7 @@ export function TodayChartCard({ chart, transit }: { chart: ChartOutput; transit
         />
       </div>
       <p className={styles.note}>
-        Your natal planets are shown as usual; the purple planets are where the planets are right now. Open Chart Settings to switch style or hide the natal layer.
+        {t('note')}
       </p>
     </section>
   )

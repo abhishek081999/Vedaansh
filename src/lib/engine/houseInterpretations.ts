@@ -5,6 +5,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { GrahaId, Rashi } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { HOUSE_THEMES_HI, PLANET_IN_HOUSE_SUMMARY_HI } from '@/lib/engine/locale/interpretations.hi'
+import { HOUSE_NOTES_HI, HOUSE_THEME_DETAIL_HI, PLANET_IN_HOUSE_FULL_HI, SIGN_IN_HOUSE_HI } from '@/lib/engine/locale/houseGuide.hi'
 
 export type ClassicalGrahaId = 'Su' | 'Mo' | 'Ma' | 'Me' | 'Ju' | 'Ve' | 'Sa' | 'Ra' | 'Ke'
 export type HouseNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
@@ -109,7 +112,15 @@ export const DELAYED_MARRIAGE_INDICATORS: string[] = [
 export const TWELFTH_HOUSE_READING_NOTE =
   'Twelfth-house planets color sleep, dreams, private expense, foreign/ashram spaces, and mokṣa tendency. Traditional teaching also flag hard outcomes when combinations support them—e.g. troubled Rahu (jail), Rahu+troubled Moon (mental instability/madness), weak Mars or stressed Ketu (ED). Still read dignity, aspects, and the full chart; for crisis ideation, urge real-world support.'
 
-export function getKendradhipatiNoteForLagna(ascRashi: Rashi): string | null {
+export function getKendradhipatiNoteForLagna(ascRashi: Rashi, lang: EngineLang = 'en'): string | null {
+  if (lang === 'hi') {
+    const n = HOUSE_NOTES_HI
+    if (ascRashi === 3 || ascRashi === 6) return `${n.kendradhipati} ${n.kendradhipatiDualJu}`
+    if (ascRashi === 9 || ascRashi === 12) return `${n.kendradhipati} ${n.kendradhipatiDualMe}`
+    if (ascRashi === 2 || ascRashi === 5 || ascRashi === 8 || ascRashi === 11) return n.kendradhipatiFixed
+    if (ascRashi === 1 || ascRashi === 4 || ascRashi === 7 || ascRashi === 10) return n.kendradhipatiMovable
+    return null
+  }
   // Dual signs: full dosha teaching applies most clearly
   if (ascRashi === 3 || ascRashi === 6) {
     return `${KENDRADHIPATI_NOTE} For this dual Ascendant, Jupiter as kendra (angular houses: 1, 4, 7, 10) lord is the classic focus.`
@@ -125,6 +136,53 @@ export function getKendradhipatiNoteForLagna(ascRashi: Rashi): string | null {
     return 'Movable Ascendant: Moon/Venus may be kendra (angular houses: 1, 4, 7, 10) lords without the full dual-sign kendrādhipati package—still weigh pakṣa bala (Moon) and dignity.'
   }
   return null
+}
+
+export interface HouseGuideNotes {
+  houseLayout: string
+  conjunction: string
+  lagnaLord: string
+  lagnaLordInFirst: string
+  analysisLagnas: string
+  thirdHouseDasha: string
+  twelfthHouse: string
+  lagnaStrengthChecks: string[]
+  marriagePillars: string[]
+  earlyMarriage: string[]
+  delayedMarriage: string[]
+}
+
+/** Teaching notes the House guide shows, in the requested language. */
+export function getHouseGuideNotes(lang: EngineLang = 'en'): HouseGuideNotes {
+  if (lang === 'hi') {
+    const n = HOUSE_NOTES_HI
+    return {
+      houseLayout: n.houseLayout,
+      conjunction: n.conjunction,
+      lagnaLord: n.lagnaLord,
+      lagnaLordInFirst: n.lagnaLordInFirst,
+      analysisLagnas: n.analysisLagnas,
+      thirdHouseDasha: n.thirdHouseDasha,
+      twelfthHouse: n.twelfthHouse,
+      lagnaStrengthChecks: n.lagnaStrengthChecks,
+      marriagePillars: n.marriagePillars,
+      earlyMarriage: n.earlyMarriage,
+      delayedMarriage: n.delayedMarriage,
+    }
+  }
+  return {
+    houseLayout: HOUSE_LAYOUT_NOTE,
+    conjunction: CONJUNCTION_NOTE,
+    lagnaLord: LAGNA_LORD_NOTE,
+    lagnaLordInFirst: LAGNA_LORD_IN_FIRST,
+    analysisLagnas: ANALYSIS_LAGNAS_NOTE,
+    thirdHouseDasha: THIRD_HOUSE_DASHA_CAUTION,
+    twelfthHouse: TWELFTH_HOUSE_READING_NOTE,
+    lagnaStrengthChecks: LAGNA_STRENGTH_CHECKS,
+    marriagePillars: MARRIAGE_PILLARS,
+    earlyMarriage: EARLY_MARRIAGE_INDICATORS,
+    delayedMarriage: DELAYED_MARRIAGE_INDICATORS,
+  }
 }
 
 export const MARRIAGE_PILLARS: string[] = [
@@ -694,15 +752,16 @@ function asClassical(id: string): ClassicalGrahaId | null {
   return null
 }
 
-export function getHouseTheme(house: number): HouseTheme | null {
-  const h = asHouse(house)
-  return h ? HOUSE_THEMES[h] : null
-}
-
-export function getSignInHouse(house: number, rashi: number): string | null {
+export function getHouseTheme(house: number, lang: EngineLang = 'en'): HouseTheme | null {
   const h = asHouse(house)
   if (!h) return null
-  const table = SIGN_IN_HOUSE[h]
+  return lang === 'hi' ? { ...HOUSE_THEMES[h], ...HOUSE_THEMES_HI[h], ...HOUSE_THEME_DETAIL_HI[h] } : HOUSE_THEMES[h]
+}
+
+export function getSignInHouse(house: number, rashi: number, lang: EngineLang = 'en'): string | null {
+  const h = asHouse(house)
+  if (!h) return null
+  const table = (lang === 'hi' ? SIGN_IN_HOUSE_HI : SIGN_IN_HOUSE)[h]
   if (!table) return null
   if (rashi < 1 || rashi > 12) return null
   return table[rashi as Rashi] ?? null
@@ -712,10 +771,12 @@ export function getPlanetInHouse(
   grahaId: string,
   house: number,
   detail: InterpDetail = 'summary',
+  lang: EngineLang = 'en',
 ): string | null {
   const g = asClassical(grahaId)
   const h = asHouse(house)
   if (!g || !h) return null
+  if (lang === 'hi') return (detail === 'full' ? PLANET_IN_HOUSE_FULL_HI : PLANET_IN_HOUSE_SUMMARY_HI)[g][h] ?? null
   return (detail === 'full' ? FULL : SUMMARY)[g][h] ?? null
 }
 

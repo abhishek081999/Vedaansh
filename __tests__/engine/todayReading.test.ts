@@ -246,3 +246,31 @@ describe('buildTodayReading', () => {
     expect(r.narrative.length).toBeGreaterThanOrEqual(3)
   })
 })
+
+// ── Hindi output (lang: 'hi') ────────────────────────────────
+
+describe('buildTodayReading in Hindi', () => {
+  const DEVANAGARI = /[ऀ-ॿ]/
+  const en = buildTodayReading({ natal: natalChart(), transit: skyWith(), panchang: panchang(), now: NOW })!
+  const hi = buildTodayReading({ natal: natalChart(), transit: skyWith(), panchang: panchang(), now: NOW, lang: 'hi' })!
+
+  it('keeps the numbers and ids identical to English', () => {
+    expect(hi.score).toBe(en.score)
+    expect(hi.label).toBe(en.label)
+    expect(hi.tara.taraNumber).toBe(en.tara.taraNumber)
+    expect(hi.gochar.map(g => [g.planet, g.status])).toEqual(en.gochar.map(g => [g.planet, g.status]))
+    expect(hi.areas.map(a => [a.id, a.score, a.verdict])).toEqual(en.areas.map(a => [a.id, a.score, a.verdict]))
+  })
+
+  it('writes every reader-facing sentence in Devanagari', () => {
+    const texts = [
+      hi.headline, hi.labelText, ...hi.narrative, hi.moon.chandraNote, hi.saturn.note,
+      ...hi.panchang.flatMap(p => [p.label, p.note]), ...hi.areas.map(a => a.label),
+      ...hi.doList, ...hi.avoidList, ...hi.dasha.map(d => d.note), ...hi.gochar.map(g => g.note),
+      hi.remedy.vara.remedy.mantra,
+    ]
+    for (const t of texts) expect(t, t).toMatch(DEVANAGARI)
+    // No English sentence frames left behind
+    for (const t of texts) expect(t, t).not.toMatch(/\b(from your|the Moon|transits|is in)\b/)
+  })
+})

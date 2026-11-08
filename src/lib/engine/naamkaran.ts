@@ -20,6 +20,24 @@ import {
   type TaraTone,
 } from '@/lib/engine/navtaraPrediction'
 import type { TaraName } from '@/lib/engine/nakshatraAdvanced'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { TARA_HI } from '@/lib/engine/locale/todayReading.hi'
+import {
+  AKSHAR_CHAKRA_DE,
+  EXTRA_SOUNDS_DE,
+  GENDER_HI,
+  ISHTA_TEXT_HI,
+  MOTION_HI,
+  MOTION_LABEL_HI,
+  NAAM_HI as NH,
+  NOTE_PART_HI,
+  PRIORITY_HI,
+  ROLE_HI,
+  SAHASRANAMA_NAME_DE,
+  SESSION_SHRAVANA_DE,
+  VARGA_HI,
+} from '@/lib/engine/locale/naamkaran.hi'
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -1450,7 +1468,8 @@ export function analyzeNaamkaran(chart: ChartOutput): NaamkaranResult | null {
   }
 }
 
-export function naamkaranMotionLabel(m: RashiMotion): string {
+export function naamkaranMotionLabel(m: RashiMotion, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return MOTION_LABEL_HI[m]!
   if (m === 'char') return 'Char (movable) — 2 syllables'
   if (m === 'sthir') return 'Sthir (fixed) — 4 syllables'
   return 'Dwiswabhav (dual) — 3 syllables'
@@ -1466,3 +1485,259 @@ export function naamkaranAccess(userPlan: UserPlan = 'free'): { showFull: boolea
 }
 
 export { katapayadiValueForName, houseOf as naamkaranHouseOf, syllableForMotion, rashiMotion }
+
+// ── Hindi ─────────────────────────────────────────────────────
+
+const SOUND_DE: Map<string, string> = (() => {
+  const m = new Map<string, string>()
+  AKSHAR_CHAKRA.forEach((row, i) => row.forEach((snd, j) => {
+    if (!m.has(snd)) m.set(snd, AKSHAR_CHAKRA_DE[i]![j]!)
+  }))
+  for (const [k, v] of Object.entries(EXTRA_SOUNDS_DE)) if (!m.has(k)) m.set(k, v)
+  return m
+})()
+
+/**
+ * Devanagari for an akṣara sound. Pass the nakshatra index and pada when
+ * known so dental/cerebral sounds with the same Latin spelling stay apart.
+ */
+export function naamSoundDe(sound: string, nakshatraIndex?: number, pada?: number, session = false): string {
+  if (nakshatraIndex != null && pada != null) {
+    if (session && nakshatraIndex === 21) return SESSION_SHRAVANA_DE[pada - 1] ?? sound
+    if (AKSHAR_CHAKRA[nakshatraIndex]?.[pada - 1] === sound) return AKSHAR_CHAKRA_DE[nakshatraIndex]?.[pada - 1] ?? sound
+  }
+  return SOUND_DE.get(sound) ?? sound
+}
+
+function noteHi(note: string | undefined): string | undefined {
+  if (!note) return note
+  return NOTE_PART_HI[note] ?? note.split(' · ').map((p) => NOTE_PART_HI[p] ?? p).join(' · ')
+}
+
+function nakIdx(name: string | null): number {
+  return name ? (NAKSHATRA_NAMES as readonly string[]).indexOf(name) : -1
+}
+
+/** Display names that ride along with ids/indices anywhere in the result. */
+function localizeNames<T>(value: T): T {
+  if (Array.isArray(value)) return value.map((v) => localizeNames(v)) as T
+  if (!value || typeof value !== 'object') return value
+  const src = value as Record<string, unknown>
+  const out: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(src)) out[k] = localizeNames(v)
+  const num = (k: string) => (typeof src[k] === 'number' ? (src[k] as number) : null)
+  const str = (k: string) => (typeof src[k] === 'string' ? (src[k] as string) : null)
+  const ni = num('nakshatraIndex')
+  if (ni != null && str('nakshatraName') != null) out.nakshatraName = NAKSHATRA_HI[ni] ?? src.nakshatraName
+  if (ni == null && str('nakshatraName')) {
+    const i = nakIdx(str('nakshatraName'))
+    if (i >= 0) out.nakshatraName = NAKSHATRA_HI[i]
+  }
+  const bi = num('birthNakshatraIndex')
+  if (bi != null) out.birthNakshatraName = NAKSHATRA_HI[bi] ?? src.birthNakshatraName
+  const pairs: Array<[string, string]> = [['rashi', 'rashiName'], ['moonRashi', 'moonRashiName'], ['impliedRashi', 'impliedRashiName'], ['navamsaLagna', 'navamsaLagnaName']]
+  for (const [rk, nk] of pairs) {
+    const r = num(rk)
+    if (r != null && str(nk) != null) out[nk] = RASHI_HI[r as Rashi] ?? src[nk]
+  }
+  const gpairs: Array<[string, string]> = [['planetId', 'planetName'], ['id', 'name'], ['akId', 'akName'], ['lord', 'lordName']]
+  for (const [ik, nk] of gpairs) {
+    const id = str(ik)
+    if (id && id in GRAHA_HI && str(nk) != null) out[nk] = GRAHA_HI[id as GrahaId]
+  }
+  if (str('varga')) out.varga = VARGA_HI[src.varga as string] ?? src.varga
+  if (str('role') && ROLE_HI[src.role as string]) out.role = ROLE_HI[src.role as string]
+  return out as T
+}
+
+function ishtaHi(i: IshtaDevataRef | null): IshtaDevataRef | null {
+  if (!i) return i
+  return {
+    ...i,
+    ishta: ISHTA_TEXT_HI[i.ishta] ?? i.ishta,
+    sahasranama: ISHTA_TEXT_HI[i.sahasranama] ?? i.sahasranama,
+    femaleNote: i.femaleNote ? ISHTA_TEXT_HI[i.femaleNote] ?? i.femaleNote : undefined,
+  }
+}
+
+function suggestionsHi(list: NameSuggestion[]): NameSuggestion[] {
+  return list.map((s) => ({ ...s, source: ISHTA_TEXT_HI[s.source] ?? s.source, note: noteHi(s.note) }))
+}
+
+function classicalSummaryHi(c: ClassicalNaamPrescription): string {
+  const parity = c.gender === 'male' ? NH.parityMale : c.gender === 'female' ? NH.parityFemale : NH.parityNone
+  return fill(NH.classicalSummary, {
+    sound: naamSoundDe(c.sound, c.letter.nakshatraIndex, c.letter.pada),
+    nak: NAKSHATRA_HI[c.letter.nakshatraIndex] ?? c.letter.nakshatraName,
+    pada: c.letter.pada,
+    rashi: RASHI_HI[c.moonRashi],
+    motion: MOTION_HI[c.rashiMotion]!,
+    count: c.syllableCount,
+    parity,
+    adjust: c.genderAdjusted ? fill(NH.adjust, { from: c.syllableFromRashi, to: c.syllableCount }) : '',
+  })
+}
+
+function katapayadiHi(k: KatapayadiCheck | null): KatapayadiCheck | null {
+  if (!k) return k
+  const base = { planet: GRAHA_HI[k.planetId], deg: k.degreeInSign.toFixed(2), rem: k.remainder, rashi: RASHI_HI[k.impliedRashi] }
+  return {
+    ...k,
+    summary: k.navamsaLagna != null
+      ? fill(NH.katapayadiFull, {
+          ...base,
+          sum: k.digitSum,
+          nav: RASHI_HI[k.navamsaLagna],
+          verdict: k.alignsWithNavamsaLagna ? NH.katapayadiAligns : NH.katapayadiNoMatch,
+        })
+      : fill(NH.katapayadiShort, base),
+  }
+}
+
+/**
+ * Hindi copy of an analyzeNaamkaran() result. Ids, sounds, indices and
+ * counts are untouched; only display strings change. English returns `r`.
+ */
+export function localizeNaamkaran(r: NaamkaranResult, lang: EngineLang = 'en'): NaamkaranResult {
+  if (lang !== 'hi') return r
+  const out = localizeNames(r)
+  const byName = new Map(Object.entries(GRAHA_NAMES).map(([id, n]) => [n as string, GRAHA_HI[id as GrahaId]]))
+  const classical = out.classical
+    ? {
+        ...out.classical,
+        summary: classicalSummaryHi(r.classical!),
+        agreeingPlanets: r.classical!.agreeingPlanets.map((n) => byName.get(n) ?? n),
+      }
+    : null
+
+  let rashiNaam = out.rashiNaam
+  if (rashiNaam && r.rashiNaam) {
+    const rn = r.rashiNaam
+    rashiNaam = {
+      ...rashiNaam,
+      suggestions: suggestionsHi(rashiNaam.suggestions),
+      summary: fill(NH.rashiSummary, {
+        rashi: RASHI_HI[rn.rashi],
+        list: rn.letters.map((l) => l.letterDe).join(', '),
+        sound: naamSoundDe(rn.selectedSound),
+        de: rn.selectedDe,
+        count: rn.syllableCount,
+        parity: rn.genderAdjusted ? NH.rashiSummaryParity : '',
+      }),
+      methodNote: NH.rashiMethod,
+    }
+  }
+
+  let twoName = out.twoName
+  if (twoName && r.twoName) {
+    const j = twoName.janma
+    const v = twoName.vyavahara
+    const vEn = r.twoName.vyavahara
+    const vNak = vEn ? nakIdx(vEn.nakshatraName) : -1
+    twoName = {
+      methodNote: NH.twoMethod,
+      janma: j && r.twoName.janma
+        ? {
+            ...j,
+            title: NH.janmaTitle,
+            basis: NH.janmaBasis,
+            alternates: r.twoName.janma.alternates.map((a, i) => {
+              const alt = r.classical?.alternates[i]
+              return {
+                ...a,
+                note: alt ? fill(NH.padaNote, { nak: NAKSHATRA_HI[alt.nakshatraIndex] ?? alt.nakshatraName, pada: alt.pada }) : a.note,
+              }
+            }),
+            suggestions: suggestionsHi(j.suggestions),
+            summary: classical?.summary ?? j.summary,
+          }
+        : j,
+      vyavahara: v && vEn
+        ? {
+            ...v,
+            title: NH.vyTitle,
+            basis: vEn.pada != null ? NH.vyBasisPada : NH.vyBasisRow,
+            alternates: v.alternates.map((a) => ({ ...a, note: fill(NH.rowNote, { rashi: RASHI_HI[vEn.rashi] }) })),
+            suggestions: suggestionsHi(v.suggestions),
+            summary: vEn.pada != null
+              ? fill(NH.vySummaryPada, {
+                  sound: naamSoundDe(vEn.sound, vNak >= 0 ? vNak : undefined, vEn.pada),
+                  nak: vNak >= 0 ? NAKSHATRA_HI[vNak]! : vEn.nakshatraName ?? '',
+                  pada: vEn.pada,
+                  rashi: RASHI_HI[vEn.rashi],
+                  count: vEn.syllableCount,
+                })
+              : fill(NH.vySummaryRow, { sound: naamSoundDe(vEn.sound), rashi: RASHI_HI[vEn.rashi], count: vEn.syllableCount }),
+          }
+        : v,
+    }
+  }
+
+  let session = out.session
+  if (session && r.session) {
+    const sel = r.session.selected
+    session = {
+      ...session,
+      ishta: ishtaHi(session.ishta),
+      suggestions: suggestionsHi(session.suggestions),
+      katapayadi: katapayadiHi(r.session.katapayadi),
+      summary: sel
+        ? fill(NH.sessionSummary, {
+            sound: naamSoundDe(sel.sound, sel.nakshatraIndex, sel.pada),
+            planet: GRAHA_HI[sel.planetId],
+            nak: NAKSHATRA_HI[sel.nakshatraIndex] ?? sel.nakshatraName,
+            pada: sel.pada,
+            rashi: RASHI_HI[sel.rashi],
+            house: sel.house,
+            priority: PRIORITY_HI[sel.priority]!,
+            count: r.session.syllableCount ?? '—',
+            verdict: r.session.trikonaValidated ? NH.sessionTrikona : sel.priority === 'kendra' ? NH.sessionKendra : NH.sessionNone,
+          })
+        : NH.sessionEmpty,
+      methodNote: NH.sessionMethod,
+    }
+  }
+
+  let navtara = out.navtara
+  if (navtara && r.navtara) {
+    navtara = {
+      ...navtara,
+      groups: navtara.groups.map((g) => ({ ...g, shortLabel: TARA_HI[g.tara]?.shortLabel ?? g.shortLabel })),
+      hardNakshatras: r.navtara.hardNakshatras.map((n) => {
+        const i = nakIdx(n)
+        return i >= 0 ? NAKSHATRA_HI[i]! : n
+      }),
+    }
+  }
+
+  return {
+    ...out,
+    ishta: ishtaHi(out.ishta),
+    suggestions: suggestionsHi(out.suggestions),
+    katapayadi: katapayadiHi(r.katapayadi),
+    classical,
+    rashiNaam,
+    twoName,
+    session,
+    navtara,
+    validation: {
+      ...out.validation,
+      summary: classical
+        ? classical.summary
+        : r.selected
+          ? fill(NH.fallbackSound, { sound: naamSoundDe(r.selected.sound) })
+          : NH.noLetter,
+    },
+    methodNote: NH.methodNote,
+  }
+}
+
+/** Gender word for display. */
+export function naamkaranGenderLabel(g: Gender, lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? GENDER_HI[g] ?? g : g
+}
+
+/** Display form of a curated Sahasranama name (Devanagari on Hindi pages). */
+export function naamDisplayName(name: string, lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? SAHASRANAMA_NAME_DE[name] ?? name : name
+}

@@ -21,20 +21,21 @@ import {
   type D27Tone,
   type NakshatramshaInsight,
 } from '@/lib/engine/nakshatramshaAnalysis'
-import { RASHI_SHORT } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import { cn } from '@/lib/ui/cn'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
 import styles from './NakshatramshaWorkspace.module.css'
 
 type TabId = 'overview' | 'bandwidth' | 'ask' | 'layer' | 'houses' | 'planets'
 
-const TABS: { id: TabId; label: string; shortLabel: string; Icon: LucideIcon }[] = [
-  { id: 'overview', label: 'Overview', shortLabel: 'Overview', Icon: Sparkles },
-  { id: 'bandwidth', label: 'Bandwidth', shortLabel: 'Capacity', Icon: Activity },
-  { id: 'ask', label: 'Likely Asks', shortLabel: 'Asks', Icon: MessageCircle },
-  { id: 'layer', label: 'D1→D3→D27', shortLabel: 'Layers', Icon: Waves },
-  { id: 'houses', label: 'Key Houses', shortLabel: 'Houses', Icon: Layers },
-  { id: 'planets', label: 'Planets', shortLabel: 'Planets', Icon: Zap },
+const TABS: { id: TabId; Icon: LucideIcon }[] = [
+  { id: 'overview', Icon: Sparkles },
+  { id: 'bandwidth', Icon: Activity },
+  { id: 'ask', Icon: MessageCircle },
+  { id: 'layer', Icon: Waves },
+  { id: 'houses', Icon: Layers },
+  { id: 'planets', Icon: Zap },
 ]
 
 function insightClass(kind: NakshatramshaInsight['kind']): string {
@@ -58,7 +59,10 @@ interface NakshatramshaWorkspaceProps {
 
 export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: NakshatramshaWorkspaceProps) {
   const [tab, setTab] = useState<TabId>('overview')
-  const analysis = useMemo(() => analyzeNakshatramsha(chart), [chart])
+  const t = useTranslations('divisional.d27')
+  const c = useDivisionalCommon()
+  const { lang } = c
+  const analysis = useMemo(() => analyzeNakshatramsha(chart, lang), [chart, lang])
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
   const d27Asc = (chart.vargaLagnas?.D27 ?? 1) as Rashi
   const d27Grahas = chart.vargas?.D27 ?? []
@@ -66,10 +70,10 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
   if (!analysis) {
     return (
       <PanelShell
-        title="Nakshatramsha (D27)"
+        title={t('title')}
         empty={{
-          title: 'Nakshatramsha data unavailable',
-          description: 'Recalculate the chart to generate the D27 chart and bandwidth / consultation interpretations.',
+          title: t('emptyTitle'),
+          description: t('emptyDesc'),
         }}
       >
         {null}
@@ -85,12 +89,14 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
         <div className={styles.heroGlow} aria-hidden />
         <div className={styles.heroTop}>
           <div>
-            <p className={styles.eyebrow}>D27 · Nakshatramsha / Bhamsha</p>
+            <p className={styles.eyebrow}>{t('eyebrow')}</p>
             <h2 className={styles.heroTitle}>
               {analysis.d27LagnaName}
-              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
-                {' '}· {analysis.d27LagnaSanskrit}
-              </span>
+              {!c.hi && (
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
+                  {' '}· {analysis.d27LagnaSanskrit}
+                </span>
+              )}
             </h2>
             <p className={styles.heroSub}>{analysis.summary}</p>
           </div>
@@ -100,38 +106,38 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
             </span>
             {askThemes[0] && (
               <span className={cn(styles.badge, styles.badgeGold)}>
-                Ask · H{askThemes[0].house}
+                {t('badgeAsk', { house: askThemes[0].house })}
               </span>
             )}
             {layerLink.d3OverlapNote && (
-              <span className={cn(styles.badge, styles.badgeTeal)}>D3↔D27 repeat</span>
+              <span className={cn(styles.badge, styles.badgeTeal)}>{t('badgeRepeat')}</span>
             )}
           </div>
         </div>
 
         <div className={styles.statGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>D27 Lagna</div>
+            <div className={styles.statLabel}>{t('statLagna')}</div>
             <div className={styles.statValue}>{analysis.d27LagnaName}</div>
-            <div className={styles.statHint}>Fine consciousness</div>
+            <div className={styles.statHint}>{t('statLagnaHint')}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Bandwidth</div>
+            <div className={styles.statLabel}>{t('statBandwidth')}</div>
             <div className={styles.statValue}>{bandwidth.score}/20</div>
-            <div className={styles.statHint}>{bandwidth.band}</div>
+            <div className={styles.statHint}>{t(`band.${bandwidth.band}`)}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Top ask</div>
+            <div className={styles.statLabel}>{t('statTopAsk')}</div>
             <div className={styles.statValue}>
-              {askThemes[0] ? `H${askThemes[0].house}` : '—'}
+              {askThemes[0] ? c.houseShort(askThemes[0].house) : '—'}
             </div>
             <div className={styles.statHint}>{askThemes[0]?.theme ?? '—'}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Lagna lord</div>
+            <div className={styles.statLabel}>{t('statLord')}</div>
             <div className={styles.statValue}>{focus.lagnaLord.name}</div>
             <div className={styles.statHint}>
-              {focus.lagnaLord.rashiName} · H{focus.lagnaLord.house}
+              {focus.lagnaLord.rashiName} · {c.houseShort(focus.lagnaLord.house)}
             </div>
           </div>
         </div>
@@ -140,8 +146,8 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
       <div className={styles.chartsRow}>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D1 · Rashi</span>
-            <span className={styles.chartAccent}>Outer</span>
+            <span className={styles.chartTitle}>{t('chartD1')}</span>
+            <span className={styles.chartAccent}>{t('chartD1Accent')}</span>
           </div>
           <ChakraSelector
             ascRashi={chart.lagnas.ascRashi as Rashi}
@@ -158,8 +164,8 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
         </div>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D27 · Nakshatramsha</span>
-            <span className={styles.chartAccent}>{RASHI_SHORT[d27Asc]} lagna · Bandwidth</span>
+            <span className={styles.chartTitle}>{t('chartD27')}</span>
+            <span className={styles.chartAccent}>{t('chartD27Accent', { lagna: c.lagnaOf(d27Asc) })}</span>
           </div>
           <ChakraSelector
             ascRashi={d27Asc}
@@ -176,19 +182,19 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
       </div>
 
       <div className={styles.tabScroll}>
-        <div className={styles.tabRow} role="tablist" aria-label="Nakshatramsha sections">
-          {TABS.map((t) => (
+        <div className={styles.tabRow} role="tablist" aria-label={t('tabsAria')}>
+          {TABS.map((tb) => (
             <button
-              key={t.id}
+              key={tb.id}
               type="button"
               role="tab"
-              aria-selected={tab === t.id}
-              className={cn(styles.tabBtn, tab === t.id && styles.tabBtnActive)}
-              onClick={() => setTab(t.id)}
+              aria-selected={tab === tb.id}
+              className={cn(styles.tabBtn, tab === tb.id && styles.tabBtnActive)}
+              onClick={() => setTab(tb.id)}
             >
-              <t.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === t.id ? 2.25 : 2} />
-              <span className={styles.tabLabelFull}>{t.label}</span>
-              <span className={styles.tabLabelShort}>{t.shortLabel}</span>
+              <tb.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === tb.id ? 2.25 : 2} />
+              <span className={styles.tabLabelFull}>{t(`tabs.${tb.id}`)}</span>
+              <span className={styles.tabLabelShort}>{t(`tabs.${tb.id}Short`)}</span>
             </button>
           ))}
         </div>
@@ -197,7 +203,7 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
       {tab === 'overview' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>D27 Insights</h3>
+            <h3 className={styles.sectionTitle}>{t('insightsTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
@@ -217,7 +223,7 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
       {tab === 'bandwidth' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Pressure capacity</h3>
+            <h3 className={styles.sectionTitle}>{t('pressureTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <article className={cn(styles.insightCard, insightClass(
@@ -230,16 +236,16 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
           </article>
           <div className={styles.sketchGrid} style={{ marginTop: '0.85rem' }}>
             <div className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}>Sign flavor</h4>
+              <h4 className={styles.insightTitle}>{t('signFlavor')}</h4>
               <p className={styles.insightText}>{focus.signFlavor}</p>
             </div>
             <div className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}>Lagna lord · {focus.lagnaLord.name}</h4>
+              <h4 className={styles.insightTitle}>{t('lagnaLord', { name: focus.lagnaLord.name })}</h4>
               <p className={styles.insightText}>{focus.lagnaLord.reading}</p>
             </div>
           </div>
           <p className={styles.heroSub} style={{ marginTop: '0.85rem', maxWidth: 'none' }}>
-            Speaker analogy: circumstances change volume and frequency, but D27 sketches the maximum handleable load — not a medical or clinical risk score.
+            {t('speaker')}
           </p>
         </section>
       )}
@@ -247,25 +253,25 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
       {tab === 'ask' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>What may be voiced</h3>
+            <h3 className={styles.sectionTitle}>{t('voicedTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            Sutra: energy that cannot generate cleanly in D27 is often exactly what the client asks about.
+            {t('sutra')}
           </p>
           <article className={cn(styles.insightCard, styles.insightInfo)} style={{ marginBottom: '0.85rem' }}>
-            <h4 className={styles.insightTitle}>Consultation hint</h4>
+            <h4 className={styles.insightTitle}>{t('hintTitle')}</h4>
             <p className={styles.insightText}>{focus.consultationHint}</p>
           </article>
           <div className={styles.insightGrid}>
             {askThemes.map((a) => (
               <article key={a.house} className={cn(styles.insightCard, toneClass(a.tone))}>
                 <h4 className={styles.insightTitle}>
-                  H{a.house} · {a.theme}
+                  {c.houseShort(a.house)} · {a.theme}
                 </h4>
                 <p className={styles.insightText}>{a.reading}</p>
                 <div className={styles.statHint} style={{ marginTop: '0.35rem', whiteSpace: 'normal' }}>
-                  Vitality {a.vitalityScore}
+                  {c.vitality(a.vitalityScore)}
                 </div>
               </article>
             ))}
@@ -276,7 +282,7 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
       {tab === 'layer' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Consciousness layers</h3>
+            <h3 className={styles.sectionTitle}>{t('layersTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <article className={cn(styles.insightCard, styles.insightHighlight)}>
@@ -285,7 +291,7 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
           </article>
           {layerLink.d3LagnaName && (
             <p className={styles.heroSub} style={{ marginTop: '0.85rem', maxWidth: 'none' }}>
-              D3 lagna: {layerLink.d3LagnaName}. Open Drekkana (D3) beside this tab for silent mind-loops vs voiced D27 asks.
+              {t('d3Lagna', { sign: layerLink.d3LagnaName })}
             </p>
           )}
         </section>
@@ -294,7 +300,7 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
       {tab === 'houses' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Focused D27 houses</h3>
+            <h3 className={styles.sectionTitle}>{t('focusedTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <div className={styles.houseGrid}>
@@ -303,12 +309,12 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
                 key={h.house}
                 className={cn(styles.houseCard, (h.house === 1 || h.house === 7) && styles.houseCardHot)}
               >
-                <div className={styles.houseNum}>House {h.house}</div>
+                <div className={styles.houseNum}>{c.house(h.house)}</div>
                 <div className={styles.houseSign}>{h.rashiName}</div>
                 <div className={styles.houseMeta}>
-                  Vitality {h.vitalityScore}
+                  {c.vitality(h.vitalityScore)}
                   <span className={cn(styles.pill, toneClass(h.tone))} style={{ marginLeft: 6 }}>
-                    {h.tone}
+                    {c.tone(h.tone)}
                   </span>
                 </div>
                 <div className={styles.housePlanets}>
@@ -326,7 +332,7 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
       {tab === 'planets' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Planet rows</h3>
+            <h3 className={styles.sectionTitle}>{t('planetsTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <div className={styles.cardGrid}>
@@ -337,10 +343,10 @@ export function NakshatramshaWorkspace({ chart, userPlan: _userPlan = 'free' }: 
                     {p.name}
                     {p.isRetro ? ' ℞' : ''}
                   </h4>
-                  <span className={cn(styles.pill, toneClass(p.tone))}>{p.tone}</span>
+                  <span className={cn(styles.pill, toneClass(p.tone))}>{c.tone(p.tone)}</span>
                 </div>
                 <div className={styles.mappingLine}>
-                  {p.rashiName} · H{p.house} · {p.dignity.replace(/_/g, ' ')}
+                  {p.rashiName} · {c.houseShort(p.house)} · {c.dignity(p.dignity)}
                 </div>
                 <p className={styles.planetBody}>{p.interpretation}</p>
               </article>

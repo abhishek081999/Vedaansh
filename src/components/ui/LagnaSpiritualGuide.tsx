@@ -8,6 +8,9 @@ import React, { useMemo, useState } from 'react'
 import { BookOpen, ChevronDown, Sparkles } from 'lucide-react'
 import type { Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { RASHI_HI } from '@/i18n/jyotish'
 import {
   getChartLagnaSpirituality,
   getLagnaElementRows,
@@ -27,9 +30,11 @@ const ELEMENT_TONE: Record<LagnaElementId, string> = {
 }
 
 export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
-  const data = useMemo(() => getChartLagnaSpirituality(ascRashi), [ascRashi])
-  const elementRows = useMemo(() => getLagnaElementRows(), [])
-  const lagnaRows = useMemo(() => getLagnaSpiritualRows(), [])
+  const t = useTranslations('houseGuide.spiritual')
+  const { hi, lang } = useLang()
+  const data = useMemo(() => getChartLagnaSpirituality(ascRashi, lang), [ascRashi, lang])
+  const elementRows = useMemo(() => getLagnaElementRows(lang), [lang])
+  const lagnaRows = useMemo(() => getLagnaSpiritualRows(lang), [lang])
   const [elementsOpen, setElementsOpen] = useState(false)
   const [allLagnasOpen, setAllLagnasOpen] = useState(false)
   const [principlesOpen, setPrinciplesOpen] = useState(true)
@@ -64,7 +69,7 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
           }}
         >
           <Sparkles size={12} aria-hidden style={{ color: 'var(--gold)' }} />
-          Spiritual Lagna · this chart
+          {t('label')}
         </div>
         <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
           {note}
@@ -111,17 +116,17 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
               border: `1px solid ${tone}40`,
             }}
           >
-            Your Lagna
+            {t('yourLagna')}
           </span>
         </div>
 
-        <Field label="Primary consciousness" value={lagna.primaryConsciousness} />
-        <Field label="Subconscious energy" value={lagna.subconsciousEnergy} />
-        <Field label="Invisible fear" value={lagna.invisibleFear} />
-        <Field label="Ego type" value={lagna.egoType} />
-        <Field label="Purpose" value={lagna.purpose} />
-        <Field label="Life pattern" value={lagna.lifePattern} />
-        <Field label="What breaks the pattern" value={lagna.whatBreaksPattern} />
+        <Field label={t('primary')} value={lagna.primaryConsciousness} />
+        <Field label={t('subconscious')} value={lagna.subconsciousEnergy} />
+        <Field label={t('fear')} value={lagna.invisibleFear} />
+        <Field label={t('ego')} value={lagna.egoType} />
+        <Field label={t('purpose')} value={lagna.purpose} />
+        <Field label={t('pattern')} value={lagna.lifePattern} />
+        <Field label={t('breaks')} value={lagna.whatBreaksPattern} />
 
         <div
           style={{
@@ -130,18 +135,18 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
             borderTop: '1px solid var(--border-soft)',
           }}
         >
-          <div style={miniLabel}>Element · birth consciousness</div>
+          <div style={miniLabel}>{t('birth')}</div>
           <p style={bodyText}>{element.birthConsciousness}</p>
-          <div style={{ ...miniLabel, marginTop: '0.55rem' }}>Spiritual path</div>
+          <div style={{ ...miniLabel, marginTop: '0.55rem' }}>{t('path')}</div>
           <p style={bodyText}>{element.spiritualPath}</p>
-          <div style={{ ...miniLabel, marginTop: '0.55rem' }}>Understanding method</div>
+          <div style={{ ...miniLabel, marginTop: '0.55rem' }}>{t('method')}</div>
           <p style={bodyText}>{element.understandingMethod}</p>
-          <div style={{ ...miniLabel, marginTop: '0.55rem' }}>Liberation practice</div>
+          <div style={{ ...miniLabel, marginTop: '0.55rem' }}>{t('liberation')}</div>
           <p style={bodyText}>
             {element.liberationPath}
             <span style={{ color: 'var(--text-muted)' }}> · {element.liberationSanskrit}</span>
           </p>
-          <div style={{ ...miniLabel, marginTop: '0.55rem' }}>Challenge</div>
+          <div style={{ ...miniLabel, marginTop: '0.55rem' }}>{t('challenge')}</div>
           <p style={bodyText}>{element.challenge}</p>
         </div>
       </div>
@@ -150,7 +155,7 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
       <Collapsible
         open={elementsOpen}
         onToggle={() => setElementsOpen((o) => !o)}
-        title="Four elements · spiritual direction"
+        title={t('elementsTitle')}
       >
         <div style={{ overflowX: 'auto' }}>
           <div
@@ -176,11 +181,11 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
                 borderBottom: '1px solid var(--border-soft)',
               }}
             >
-              <span>Element</span>
-              <span>Signs</span>
-              <span>Path · method</span>
-              <span>Liberation</span>
-              <span>Fear pattern</span>
+              <span>{t('colElement')}</span>
+              <span>{t('colSigns')}</span>
+              <span>{t('colPath')}</span>
+              <span>{t('colLiberation')}</span>
+              <span>{t('colFear')}</span>
             </div>
             {elementRows.map((row) => {
               const active = row.id === element.id
@@ -205,7 +210,7 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
                     </div>
                   </span>
                   <span style={{ color: 'var(--text-secondary)' }}>
-                    {row.signs.map((s) => RASHI_NAMES[s]).join(', ')}
+                    {row.signs.map((s) => (hi ? RASHI_HI[s] : RASHI_NAMES[s])).join(', ')}
                   </span>
                   <span style={{ color: 'var(--text-secondary)' }}>
                     {row.spiritualPath}
@@ -226,7 +231,7 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
       <Collapsible
         open={allLagnasOpen}
         onToggle={() => setAllLagnasOpen((o) => !o)}
-        title="All twelve Lagnas · consciousness map"
+        title={t('allTitle')}
       >
         <div style={{ overflowX: 'auto' }}>
           <div
@@ -252,11 +257,11 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
                 borderBottom: '1px solid var(--border-soft)',
               }}
             >
-              <span>Lagna</span>
-              <span>Element</span>
-              <span>Consciousness · fear</span>
-              <span>Purpose · pattern</span>
-              <span>Breaks pattern</span>
+              <span>{t('colLagna')}</span>
+              <span>{t('colElement')}</span>
+              <span>{t('colConsciousness')}</span>
+              <span>{t('colPurpose')}</span>
+              <span>{t('colBreaks')}</span>
             </div>
             {lagnaRows.map((row) => {
               const active = row.rashi === ascRashi
@@ -282,7 +287,7 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
                     </div>
                   </span>
                   <span style={{ color: el, fontWeight: 600, textTransform: 'capitalize' }}>
-                    {row.elementId}
+                    {t(`element.${row.elementId}`)}
                   </span>
                   <span style={{ color: 'var(--text-secondary)' }}>
                     {row.primaryConsciousness}
@@ -330,7 +335,7 @@ export function LagnaSpiritualGuide({ ascRashi }: LagnaSpiritualGuideProps) {
         >
           <BookOpen size={16} style={{ color: 'var(--gold)', flexShrink: 0 }} aria-hidden />
           <span style={{ flex: 1, fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-            Key spiritual principles
+            {t('principles')}
           </span>
           <ChevronDown
             size={16}

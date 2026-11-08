@@ -7,6 +7,9 @@
 import type { GrahaId, Rashi } from '@/types/astrology'
 import type { ClassicalGrahaId, HouseNumber } from './houseInterpretations'
 import { CLASSICAL_GRAHAS } from './houseInterpretations'
+import type { EngineLang } from '@/lib/engine/lang'
+import { PLANET_IN_SIGN_SUMMARY_HI } from '@/lib/engine/locale/interpretations.hi'
+import { RASHI_PROFILE_TEXT_HI } from '@/lib/engine/locale/rashiProfiles.hi'
 
 export type InterpDetail = 'full' | 'summary'
 
@@ -721,8 +724,10 @@ export function getPlanetInSign(
   grahaId: string,
   rashi: number,
   detail: InterpDetail = 'summary',
+  lang: EngineLang = 'en',
 ): string | null {
   if (!(CLASSICAL_GRAHAS as string[]).includes(grahaId)) return null
+  if (lang === 'hi') return PLANET_IN_SIGN_SUMMARY_HI[rashi as Rashi]?.[grahaId as ClassicalGrahaId] ?? null
   const p = getRashiProfile(rashi)
   if (!p) return null
   const note = p.planetInSign[grahaId as ClassicalGrahaId]
@@ -740,4 +745,9 @@ export function listOccupiedRashis(grahas: { id: GrahaId; rashi: Rashi }[]): Ras
     if ((CLASSICAL_GRAHAS as string[]).includes(g.id)) set.add(g.rashi)
   }
   return [...set].sort((a, b) => a - b)
+}
+
+/** Hindi for rashi-profile prose (coreNature, lordNotes, inHouse, remedies, specialRules); unknown text unchanged. */
+export function rashiProfileText(text: string, lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? RASHI_PROFILE_TEXT_HI[text] ?? text : text
 }

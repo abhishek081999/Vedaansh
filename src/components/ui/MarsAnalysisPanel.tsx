@@ -5,8 +5,8 @@
 //  Free overview · Gold+ full sections
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   Activity,
   BookOpen,
@@ -25,17 +25,20 @@ import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { GrahaProfileHeader } from '@/components/ui/GrahaProfileHeader'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 
 type SubTab = 'overview' | 'foundations' | 'classical' | 'aspects' | 'ketu' | 'remedies'
 type ClassicalView = 'mixed' | 'natal' | 'houses' | 'signs'
 
 const SUB_TABS: { id: SubTab; label: string; Icon: typeof Swords; free?: boolean }[] = [
-  { id: 'overview', label: 'Overview', Icon: Swords, free: true },
-  { id: 'foundations', label: 'Karakatva & Kalas', Icon: Sparkles },
-  { id: 'classical', label: 'Classical', Icon: ScrollText },
-  { id: 'aspects', label: 'Aspects & House', Icon: Shield },
-  { id: 'ketu', label: 'Mars–Ketu', Icon: Flame },
-  { id: 'remedies', label: 'Remedies', Icon: BookOpen },
+  { id: 'overview', label: 'tab_overview', Icon: Swords, free: true },
+  { id: 'foundations', label: 'tab_foundations', Icon: Sparkles },
+  { id: 'classical', label: 'tab_classical', Icon: ScrollText },
+  { id: 'aspects', label: 'tab_aspects', Icon: Shield },
+  { id: 'ketu', label: 'tab_ketu', Icon: Flame },
+  { id: 'remedies', label: 'tab_remedies', Icon: BookOpen },
 ]
 
 interface MarsAnalysisPanelProps {
@@ -47,7 +50,10 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const [classicalView, setClassicalView] = useState<ClassicalView>('mixed')
-  const data = useMemo(() => analyzeMars(chart), [chart])
+  const t = useTranslations('planetsA.mars')
+  const c = useTranslations('planetsA.common')
+  const { lang, hi } = useLang()
+  const data = useMemo(() => analyzeMars(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -59,7 +65,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Mars data unavailable for this chart.
+        {t('unavailable')}
       </div>
     )
   }
@@ -87,30 +93,29 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: natal Mars house, upachaya status, and key flags.
-            Gold unlocks karakatva, classical house/sign catalogue, aspects, Mars–Ketu, and remedies.
+            {t('freeNote')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{c('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{m.rashiName} · H{m.house}</Pill>
-        <Pill>{m.nakshatraName} P{m.pada}</Pill>
-        <Pill>{m.dignity.replace('_', ' ')}</Pill>
-        {data.upachaya.inUpachaya && <Pill gold>Upachaya</Pill>}
-        {m.isRetro && <Pill warn>Retrograde</Pill>}
-        {m.isCombust && <Pill warn>Combust</Pill>}
+        <Pill gold>{m.rashiName} · {c('houseShort', { n: m.house })}</Pill>
+        <Pill>{m.nakshatraName} {c('padaShort', { n: m.pada })}</Pill>
+        <Pill>{hi ? dignityHi(m.dignity) : m.dignity.replace('_', ' ')}</Pill>
+        {data.upachaya.inUpachaya && <Pill gold>{t('upachaya')}</Pill>}
+        {m.isRetro && <Pill warn>{c('retro')}</Pill>}
+        {m.isCombust && <Pill warn>{c('combust')}</Pill>}
         {data.marsKetu.active && (
           <Pill warn>
-            Mars–Ketu
-            {data.marsKetu.placementTone === 'constructive' ? ' · constructive' : ''}
-            {data.marsKetu.placementTone === 'intense' ? ' · intense' : ''}
+            {t('marsKetu')}
+            {data.marsKetu.placementTone === 'constructive' ? t('constructive') : ''}
+            {data.marsKetu.placementTone === 'intense' ? t('intense') : ''}
           </Pill>
         )}
-        {data.functionalMaleficCaution.active && <Pill warn>Functional caution</Pill>}
+        {data.functionalMaleficCaution.active && <Pill warn>{t('functionalCaution')}</Pill>}
       </div>
 
       <div
@@ -126,19 +131,19 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Mars analysis sections"
+        aria-label={t('sectionsAria')}
       >
-        {SUB_TABS.map(t => {
-          const locked = !showFull && !t.free
-          const active = sub === t.id
+        {SUB_TABS.map(tab => {
+          const locked = !showFull && !tab.free
+          const active = sub === tab.id
           return (
             <button
-              key={t.id}
+              key={tab.id}
               type="button"
               role="tab"
               aria-selected={active}
               disabled={locked}
-              onClick={() => select(t.id)}
+              onClick={() => select(tab.id)}
               style={{
                 flex: '1 1 auto',
                 padding: '0.42rem 0.55rem',
@@ -157,8 +162,8 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
                 whiteSpace: 'nowrap',
               }}
             >
-              <t.Icon size={13} aria-hidden />
-              {t.label}
+              <tab.Icon size={13} aria-hidden />
+              {t(tab.label)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -168,12 +173,12 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Natal Mars · H{data.houseFocus.house}</Label>
+            <Label>{t('natalMars', { n: data.houseFocus.house })}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
-              {data.houseFocus.themes.map(t => <Pill key={t}>{t}</Pill>)}
+              {data.houseFocus.themes.map(th => <Pill key={th}>{th}</Pill>)}
             </div>
             <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.houseFocus.notes.map(n => <li key={n}>{n}</li>)}
@@ -181,7 +186,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           </Card>
 
           <Card>
-            <Label>Upachaya & activity</Label>
+            <Label>{t('upachayaActivity')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.upachaya.detail}
             </p>
@@ -194,12 +199,12 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           </Card>
 
           <Card>
-            <Label>Quick flags</Label>
+            <Label>{c('quickFlags')}</Label>
             <FlagRow flag={data.retroFlag} />
             <FlagRow flag={data.combustFlag} />
             {data.bothLimited && (
               <p style={{ margin: '0.4rem 0 0', fontSize: '0.7rem', color: 'var(--rose)' }}>
-                Retrograde + combust: both limitation patterns apply together.
+                {c('bothLimited')}
               </p>
             )}
             {data.houseCaution && <FlagRow flag={data.houseCaution} />}
@@ -207,22 +212,22 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           </Card>
 
           <Card>
-            <Label>Aspects from H{m.house}</Label>
+            <Label>{c('aspectsFrom', { n: m.house })}</Label>
             <p style={{ margin: '0 0 0.45rem', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
               {data.aspectOverview}
             </p>
             {data.aspects.map(a => (
               <div key={a.span} style={{ marginBottom: '0.4rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                <strong style={{ color: 'var(--text-gold)' }}>{a.span}→H{a.targetHouse}</strong>
+                <strong style={{ color: 'var(--text-gold)' }}>{a.span}→{c('houseShort', { n: a.targetHouse })}</strong>
                 {' — '}{a.teaching.meaning}
               </div>
             ))}
           </Card>
 
           <Card>
-            <Label>Mixed interpretations teaser</Label>
+            <Label>{c('mixedTeaserLabel')}</Label>
             <p style={{ margin: '0 0 0.45rem', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-              House guide · classics · planet×house · rashi · planet×sign · nakshatra · dignity
+              {c('mixedTeaserLayers')}{hi ? ` · ${c('classicalEnNote')}` : ''}
             </p>
             {data.classical.natalMixed ? (
               <LayerStack
@@ -231,30 +236,30 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
               />
             ) : (
               <ClassicalNotesList
-                title="Mars in house — classics"
+                title={t('housesClassics')}
                 notes={data.classical.natalHouseClassical.slice(0, 2)}
               />
             )}
             {!showFull && (
               <div style={{ marginTop: 6, fontSize: '0.65rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Lock size={12} aria-hidden /> Full mixed layers + 12×12 catalogues on Gold
+                <Lock size={12} aria-hidden /> {c('mixedGold')}
               </div>
             )}
           </Card>
 
           <Card>
-            <Label>Natural age · {data.naturalAge}</Label>
+            <Label>{c('naturalAge', { n: data.naturalAge })}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.naturalAgeNote}
             </p>
           </Card>
 
           {!showFull && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Mars full analysis">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('gateFeature')}>
               <div style={{ minHeight: 100, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Locked on Free</div>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>{c('lockedFree')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Full karakatva · classical 12 houses × 12 signs · 4 kalas · aspects · Mars–Ketu · remedies
+                  {t('lockedList')}
                 </div>
               </div>
             </PlanGate>
@@ -274,13 +279,13 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
               border: '1px solid var(--border-soft)',
             }}
             role="tablist"
-            aria-label="Classical catalogue view"
+            aria-label={c('classicalAria')}
           >
             {([
-              { id: 'mixed' as const, label: 'Mixed natal' },
-              { id: 'natal' as const, label: 'Classical natal' },
-              { id: 'houses' as const, label: 'All 12 houses' },
-              { id: 'signs' as const, label: 'All 12 signs' },
+              { id: 'mixed' as const, label: c('viewMixed') },
+              { id: 'natal' as const, label: c('viewNatal') },
+              { id: 'houses' as const, label: c('viewHouses') },
+              { id: 'signs' as const, label: c('viewSigns') },
             ]).map(v => (
               <button
                 key={v.id}
@@ -308,12 +313,11 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           {classicalView === 'mixed' && data.classical.natalMixed && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                All interpretation engines mixed for natal Mars in {m.rashiName} · H{m.house}:
-                house themes, classical bhavas, planet×house, rashi guide, planet×sign, psyche,
-                dignity, nakshatra, vakri/asta, and lordship.
+                {t('mixedIntro', { sign: m.rashiName, n: m.house })}
+                {hi ? ` ${c('classicalEnNote')}` : ''}
               </p>
               <Card>
-                <Label>Blended snapshot</Label>
+                <Label>{c('blended')}</Label>
                 <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.natalMixed.blendedSummary.slice(0, 520)}
                   {data.classical.natalMixed.blendedSummary.length > 520 ? '…' : ''}
@@ -321,11 +325,11 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
               </Card>
               <LayerStack layers={data.classical.natalMixed.layers} />
               <ClassicalNotesList
-                title="Special aspects overview"
+                title={c('specialAspects')}
                 notes={data.classical.aspectOverviewClassical}
               />
               <ClassicalNotesList
-                title="Natal aspect landings"
+                title={c('aspectLandings')}
                 notes={data.classical.aspectTeachings}
               />
             </>
@@ -334,34 +338,34 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           {classicalView === 'natal' && (
             <>
               <Card>
-                <Label>Platform house note (H{m.house})</Label>
+                <Label>{c('platformHouse', { n: m.house })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalHouseFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Mars in house ${m.house}`}
+                title={t('classicalHouse', { n: m.house })}
                 notes={data.classical.natalHouseClassical}
               />
               <Card>
-                <Label>Platform sign note ({m.rashiName})</Label>
+                <Label>{c('platformSign', { sign: m.rashiName })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalSignFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Mars in ${m.rashiName} (+ dignity / vakri (retrograde) / asta)`}
+                title={t('classicalSign', { sign: m.rashiName })}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (
-                <ClassicalNotesList title="Vakri / Asta (Mangala)" notes={data.classical.vakriAst} />
+                <ClassicalNotesList title={t('vakriAst')} notes={data.classical.vakriAst} />
               )}
               <ClassicalNotesList
-                title="Special aspects overview"
+                title={c('specialAspects')}
                 notes={data.classical.aspectOverviewClassical}
               />
               <ClassicalNotesList
-                title="Natal aspect landings"
+                title={c('aspectLandings')}
                 notes={data.classical.aspectTeachings}
               />
             </>
@@ -370,8 +374,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           {classicalView === 'houses' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed house layers (theme + classical bhava + planet×house platform & classics) for each bhava.
-                Natal house highlighted.
+                {c('housesMixedIntro')}
               </p>
               {data.classical.allHouses.map(h => (
                 <div
@@ -384,8 +387,8 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
                   }}
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: h.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
-                    House {h.house}
-                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {c('house', { n: h.house })}
+                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{c('natal')}</span>}
                   </div>
                   <LayerStack layers={h.mixedLayers} compact={!h.isNatal} />
                 </div>
@@ -396,8 +399,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           {classicalView === 'signs' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed sign layers (rashi guide + classics + planet×sign + psyche) for each rāśi.
-                Natal sign highlighted.
+                {c('signsMixedIntro')}
               </p>
               {data.classical.allSigns.map(s => (
                 <div
@@ -411,7 +413,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: s.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
                     {s.rashiName}
-                    {s.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {s.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{c('natal')}</span>}
                   </div>
                   <LayerStack layers={s.mixedLayers} compact={!s.isNatal} />
                 </div>
@@ -424,7 +426,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
       {showFull && sub === 'foundations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Distinctions</Label>
+            <Label>{t('distinctions')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.distinctions.map(d => <li key={d}>{d}</li>)}
             </ul>
@@ -443,10 +445,10 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           ))}
 
           <Card>
-            <Label>Sports & training</Label>
+            <Label>{t('sports')}</Label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
               <Activity size={14} aria-hidden style={{ color: 'var(--text-gold)' }} />
-              <span style={{ fontSize: '0.74rem', fontWeight: 600 }}>Physical Mars sports</span>
+              <span style={{ fontSize: '0.74rem', fontWeight: 600 }}>{t('physicalSports')}</span>
             </div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.sports.map(s => <li key={s}>{s}</li>)}
@@ -457,7 +459,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           </Card>
 
           <Card>
-            <Label>Four kalas</Label>
+            <Label>{t('fourKalas')}</Label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
@@ -474,7 +476,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
                   }}
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.78rem', color: 'var(--text-gold)' }}>
-                    {k.name} <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>{k.sanskrit}</span>
+                    {k.name} {!hi && <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>{k.sanskrit}</span>}
                   </div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{k.quality}</div>
                   <p style={{ margin: '0.3rem 0 0', fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -489,21 +491,21 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           </Card>
 
           <Card>
-            <Label>Professions</Label>
+            <Label>{c('professions')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.professions.map(p => <li key={p}>{p}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Spiritual pattern</Label>
+            <Label>{c('spiritual')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.spiritual.map(s => <li key={s}>{s}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Summary attributes</Label>
+            <Label>{c('summaryAttrs')}</Label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
@@ -525,7 +527,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
       {showFull && sub === 'aspects' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>House focus</Label>
+            <Label>{c('houseFocus')}</Label>
             <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
@@ -542,7 +544,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
             <Card key={a.span}>
               <Label>{a.teaching.name}</Label>
               <div style={{ fontWeight: 700, fontSize: '0.82rem' }}>
-                Lands on house {a.targetHouse}
+                {c('landsOn', { n: a.targetHouse })}
               </div>
               <p style={{ margin: '0.35rem 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                 {a.teaching.detail}
@@ -552,7 +554,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           ))}
 
           <Card>
-            <Label>Manglik framing</Label>
+            <Label>{t('manglik')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.manglikOverview}
             </p>
@@ -571,16 +573,16 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
       {showFull && sub === 'ketu' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Mars–Ketu status</Label>
+            <Label>{t('ketuStatus')}</Label>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontWeight: 800, fontSize: '0.88rem', color: data.marsKetu.active ? 'var(--text-gold)' : 'var(--text-primary)' }}>
-                {data.marsKetu.active ? 'Active' : 'Not indicated'}
+                {data.marsKetu.active ? c('active') : c('notIndicated')}
               </span>
               {data.marsKetu.active && data.marsKetu.sepDeg != null && (
                 <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                   {data.marsKetu.sepDeg.toFixed(1)}°
-                  {data.marsKetu.sameSign ? ' · same sign' : ''}
-                  {' · '}{data.marsKetu.placementTone}
+                  {data.marsKetu.sameSign ? t('sameSign') : ''}
+                  {' · '}{t(`tone_${data.marsKetu.placementTone}`)}
                 </span>
               )}
             </div>
@@ -590,26 +592,23 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
           </Card>
 
           <Card>
-            <Label>When well placed</Label>
+            <Label>{t('wellPlaced')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.marsKetu.positives.map(p => <li key={p}>{p}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>When badly placed</Label>
+            <Label>{t('badlyPlaced')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.marsKetu.negatives.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Fire contradiction</Label>
+            <Label>{t('fireContradiction')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Mars = anger fire (क्रोध अग्नि) — keep-going physical aggression.
-              Ketu = sadhana fire (साधना अग्नि) — past-life spiritual heat.
-              Ketu detaches; Mars starts anew. Both fiery → lifelong अंतर्द्वंद when conjunct.
-              BPHS: Ketu as ध्वज रूप (tall flag, unstable sway); Mars as क्रूर कर्मा yet शक्ति युक्त.
+              {t('fireText')}
             </p>
           </Card>
         </div>
@@ -618,34 +617,34 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
       {showFull && sub === 'remedies' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Remedies</Label>
+            <Label>{c('remedies')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.remedies.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Mythology</Label>
+            <Label>{c('mythology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.mythology.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Caveats</Label>
+            <Label>{c('caveats')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.caveats.map(c => <li key={c}>{c}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Methodology</Label>
+            <Label>{c('methodology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.methodology.map(mth => <li key={mth}>{mth}</li>)}
             </ul>
             <div style={{ marginTop: '0.55rem', fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
               <BookOpen size={12} aria-hidden />
-              Class teaching — Mangala karakatva, aspects, kalas, Mars–Ketu, remedies
+              {t('sourceLine')}
             </div>
           </Card>
         </div>
@@ -655,6 +654,7 @@ export function MarsAnalysisPanel({ chart, userPlan = 'free' }: MarsAnalysisPane
 }
 
 function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: boolean }) {
+  const c = useTranslations('planetsA.common')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.45rem' : '0.65rem' }}>
       {layers.map(layer => (
@@ -697,7 +697,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
           {layer.classicalNotes && layer.classicalNotes.length > 0 && (
             <div style={{ marginTop: 6 }}>
               <ClassicalNotesList
-                title="Sources"
+                title={c('sources')}
                 notes={compact ? layer.classicalNotes.slice(0, 2) : layer.classicalNotes}
               />
             </div>
@@ -709,6 +709,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
 }
 
 function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const c = useTranslations('planetsA.common')
   return (
     <div style={{ marginBottom: '0.45rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -719,7 +720,7 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
           textTransform: 'uppercase',
           color: flag.active ? 'var(--rose)' : 'var(--text-muted)',
         }}>
-          {flag.active ? 'Active' : 'Clear'}
+          {flag.active ? c('active') : c('clear')}
         </span>
       </div>
       <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -730,11 +731,12 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
 }
 
 function FlagCard({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const c = useTranslations('planetsA.common')
   return (
     <Card>
       <Label>{flag.title}</Label>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? 'Indicated' : 'Not indicated'}</span>
+        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? c('indicated') : c('notIndicated')}</span>
       </div>
       <p style={{ margin: '0.4rem 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
         {flag.detail}

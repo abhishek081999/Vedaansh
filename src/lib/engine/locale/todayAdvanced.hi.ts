@@ -1,0 +1,33 @@
+// Hindi text for src/lib/engine/todayAdvanced.ts.
+export const ADV_HI = {
+  lagna: 'लग्न',
+  kakshyaPlain: '{planet} {where} पर: इस राशि में {n} बिंदु।',
+  kakshyaGood: '{planet} {where} पर {lord} की कक्ष्या में है, जिसमें बिंदु है: इसके फल अभी सहज रूप से मिल सकते हैं।',
+  kakshyaBad: '{planet} {where} पर {lord} की कक्ष्या में है, जिसमें बिंदु नहीं: आगे बढ़ने तक इसके फल रुके रहते हैं।',
+  verdict: {
+    'Confirmed supportive': 'पक्का शुभ',
+    'Mostly supportive': 'अधिकतर शुभ',
+    'Mostly testing': 'अधिकतर परीक्षा वाला',
+    'Confirmed testing': 'पक्का परीक्षा वाला',
+  } as Record<string, string>,
+  sudSupport: '{names} लग्न, चंद्र और सूर्य — तीनों से शुभ {verb}: आज का सबसे भरोसेमंद शुभ प्रभाव।',
+  sudTest: '{names} तीनों संदर्भ बिंदुओं से परीक्षा वाले {verb}: आज का सबसे भरोसेमंद दबाव।',
+  isOne: 'है', isMany: 'हैं',
+  sudNone: 'आज तीनों संदर्भ बिंदु अधिकांश ग्रहों पर असहमत हैं, इसलिए कोई एक प्रभाव हावी नहीं है।',
+  rahu: 'राहु काल', yamaganda: 'यमगंड', gulika: 'गुलिक काल', abhijit: 'अभिजित मुहूर्त',
+  strong: 'आपकी कुंडली में {planet} बलवान है',
+  weak: 'आपकी कुंडली में {planet} निर्बल है',
+  chog: '{name} चौघड़िया',
+  rules: 'आपके {houses} भाव का स्वामी',
+  activities: {
+    'Career & authority': 'करियर और अधिकार',
+    'Money & deals': 'धन और सौदे',
+    'Partnership & love': 'साझेदारी और प्रेम',
+    'Study & communication': 'अध्ययन और संवाद',
+    'New beginnings': 'नई शुरुआत',
+    'Legal, rivals & conflict': 'कानूनी मामले, प्रतिद्वंद्वी और विवाद',
+  } as Record<string, string>,
+  whyLord: '{lord} आपके {houses} भाव का स्वामी है, इसलिए इसकी होरा आपके जीवन के इस क्षेत्र का प्रतिनिधित्व करती है।',
+  whyKaraka: '{lord} इसका नैसर्गिक कारक है, और आज यह आपके लिए अच्छे अंक पाता है।',
+  whyNone: 'आज ऐसी कोई होरा शेष नहीं जो उपयुक्त भी हो और राहु, यमगंड व गुलिक से मुक्त भी।',
+}

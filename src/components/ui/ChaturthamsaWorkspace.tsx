@@ -24,21 +24,22 @@ import {
   type D4Tone,
 } from '@/lib/engine/chaturthamsaAnalysis'
 import { buildChaturthamsaClassical } from '@/lib/engine/chaturthamsaClassical'
-import { RASHI_SHORT } from '@/types/astrology'
 import { cn } from '@/lib/ui/cn'
+import { useTranslations } from 'next-intl'
+import { useDivisionalCommon } from '@/components/ui/useDivisionalCommon'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
 import styles from './ChaturthamsaWorkspace.module.css'
 
 type TabId = 'overview' | 'classical' | 'heart' | 'keyPlanets' | 'houses' | 'relocation' | 'affinity'
 
-const TABS: { id: TabId; label: string; shortLabel: string; Icon: LucideIcon }[] = [
-  { id: 'overview', label: 'Overview', shortLabel: 'Overview', Icon: Sparkles },
-  { id: 'classical', label: 'Classical Śāstra', shortLabel: 'Śāstra', Icon: ScrollText },
-  { id: 'heart', label: 'Heart (Lagna)', shortLabel: 'Heart', Icon: Heart },
-  { id: 'keyPlanets', label: 'Key Planets', shortLabel: 'Keys', Icon: Home },
-  { id: 'houses', label: 'Houses', shortLabel: 'Houses', Icon: Layers },
-  { id: 'relocation', label: 'Relocation', shortLabel: 'Moves', Icon: Hourglass },
-  { id: 'affinity', label: 'Affinity Guide', shortLabel: 'Affinity', Icon: Users },
+const TABS: { id: TabId; Icon: LucideIcon }[] = [
+  { id: 'overview', Icon: Sparkles },
+  { id: 'classical', Icon: ScrollText },
+  { id: 'heart', Icon: Heart },
+  { id: 'keyPlanets', Icon: Home },
+  { id: 'houses', Icon: Layers },
+  { id: 'relocation', Icon: Hourglass },
+  { id: 'affinity', Icon: Users },
 ]
 
 function insightClass(kind: ChaturthamsaInsight['kind']): string {
@@ -55,13 +56,6 @@ function toneClass(tone: D4Tone): string {
   return styles.toneNeutral
 }
 
-function strengthLabel(s: string): string {
-  if (s === 'occupation') return 'Occupation'
-  if (s === 'lord') return 'Lagna lord'
-  if (s === 'aspect') return 'Aspect'
-  return 'Sign'
-}
-
 interface ChaturthamsaWorkspaceProps {
   chart: ChartOutput
   userPlan?: UserPlan
@@ -69,10 +63,13 @@ interface ChaturthamsaWorkspaceProps {
 
 export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: ChaturthamsaWorkspaceProps) {
   const [tab, setTab] = useState<TabId>('overview')
-  const analysis = useMemo(() => analyzeChaturthamsa(chart), [chart])
+  const t = useTranslations('divisional.d4')
+  const c = useDivisionalCommon()
+  const { lang } = c
+  const analysis = useMemo(() => analyzeChaturthamsa(chart, lang), [chart, lang])
   const classical = useMemo(
-    () => (analysis ? buildChaturthamsaClassical(analysis, chart) : null),
-    [analysis, chart],
+    () => (analysis ? buildChaturthamsaClassical(analysis, chart, lang) : null),
+    [analysis, chart, lang],
   )
   const moonNakIndex = chart.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
 
@@ -83,10 +80,10 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
   if (!analysis) {
     return (
       <PanelShell
-        title="Chaturthamsha (D4)"
+        title={t('title')}
         empty={{
-          title: 'Chaturthamsha data unavailable',
-          description: 'Recalculate the chart to generate the D4 chart and home / happiness interpretations.',
+          title: t('emptyTitle'),
+          description: t('emptyDesc'),
         }}
       >
         {null}
@@ -102,36 +99,36 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
         <div className={styles.heroGlow} aria-hidden />
         <div className={styles.heroTop}>
           <div>
-            <p className={styles.eyebrow}>D4 · Chaturthamsha</p>
+            <p className={styles.eyebrow}>{t('eyebrow')}</p>
             <h2 className={styles.heroTitle}>
               {analysis.d4LagnaName}
-              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
-                {' '}· {analysis.d4LagnaSanskrit}
-              </span>
+              {!c.hi && (
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{' '}· {analysis.d4LagnaSanskrit}</span>
+              )}
             </h2>
             <p className={styles.heroSub}>{analysis.summary}</p>
           </div>
           <div className={styles.badgeRow}>
             {heart.lagnaEmpty ? (
-              <span className={cn(styles.badge, styles.badgeTeal)}>Empty lagna → lord</span>
+              <span className={cn(styles.badge, styles.badgeTeal)}>{t('badgeEmpty')}</span>
             ) : (
               <span className={cn(styles.badge, styles.badgeGold)}>
-                {heart.occupants.map((o) => o.name).join(' · ')} on lagna
+                {t('badgeOnLagna', { names: heart.occupants.map((o) => o.name).join(' · ') })}
               </span>
             )}
             {heart.heartDisturbed && (
               <span className={cn(styles.badge)} style={{ color: 'var(--rose, #fb7185)' }}>
-                Nodes on heart
+                {t('badgeNodes')}
               </span>
             )}
             {classical && (
               <span className={cn(styles.badge, styles.badgeGold)}>
-                Sukhaphala {classical.sukhaphala.score}
+                {t('badgeSukha', { score: classical.sukhaphala.score })}
               </span>
             )}
             {relocation?.pathLabel && (
               <span className={cn(styles.badge, styles.badgeTeal)}>
-                Dasha {relocation.pathLabel}
+                {t('badgeDasha', { path: relocation.pathLabel })}
               </span>
             )}
           </div>
@@ -139,28 +136,28 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
 
         <div className={styles.statGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>D4 Lagna</div>
+            <div className={styles.statLabel}>{t('statLagna')}</div>
             <div className={styles.statValue}>{analysis.d4LagnaName}</div>
-            <div className={styles.statHint}>Home · Happiness · Space</div>
+            <div className={styles.statHint}>{t('statLagnaHint')}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Primary signal</div>
-            <div className={styles.statValue}>{strengthLabel(heart.primarySignal.strength)}</div>
+            <div className={styles.statLabel}>{t('statSignal')}</div>
+            <div className={styles.statValue}>{t(`strength.${heart.primarySignal.strength}`)}</div>
             <div className={styles.statHint}>{heart.primarySignal.label}</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Lagna lord</div>
+            <div className={styles.statLabel}>{t('statLord')}</div>
             <div className={styles.statValue}>{heart.lagnaLord.name}</div>
             <div className={styles.statHint}>
-              {heart.lagnaLord.rashiName} · H{heart.lagnaLord.house}
+              {heart.lagnaLord.rashiName} · {c.houseShort(heart.lagnaLord.house)}
             </div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statLabel}>Key triad</div>
+            <div className={styles.statLabel}>{t('statTriad')}</div>
             <div className={styles.statValue}>
-              {keyTriad.map((t) => t.name).join(' · ')}
+              {keyTriad.map((k) => k.name).join(' · ')}
             </div>
-            <div className={styles.statHint}>Moon · 4th lord · Jupiter</div>
+            <div className={styles.statHint}>{t('statTriadHint')}</div>
           </div>
         </div>
       </header>
@@ -168,8 +165,8 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
       <div className={styles.chartsRow}>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D1 · Rashi Chart</span>
-            <span className={styles.chartAccent}>Birth promise</span>
+            <span className={styles.chartTitle}>{t('chartD1')}</span>
+            <span className={styles.chartAccent}>{t('chartD1Accent')}</span>
           </div>
           <ChakraSelector
             ascRashi={chart.lagnas.ascRashi as Rashi}
@@ -186,10 +183,10 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
         </div>
         <div className={styles.chartCard}>
           <div className={styles.chartLabel}>
-            <span className={styles.chartTitle}>D4 · Chaturthamsha</span>
+            <span className={styles.chartTitle}>{t('chartD4')}</span>
             <span className={styles.chartAccent}>
-              {RASHI_SHORT[d4Asc]} lagna
-              {dashaHighlights.length ? ` · dasha H${dashaHighlights.join(',')}` : ''}
+              {c.lagnaOf(d4Asc)}
+              {dashaHighlights.length ? t('chartDasha', { houses: dashaHighlights.join(',') }) : ''}
             </span>
           </div>
           <ChakraSelector
@@ -207,19 +204,19 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
       </div>
 
       <div className={styles.tabScroll}>
-        <div className={styles.tabRow} role="tablist" aria-label="Chaturthamsha sections">
-          {TABS.map((t) => (
+        <div className={styles.tabRow} role="tablist" aria-label={t('tabsAria')}>
+          {TABS.map((tb) => (
             <button
-              key={t.id}
+              key={tb.id}
               type="button"
               role="tab"
-              aria-selected={tab === t.id}
-              className={cn(styles.tabBtn, tab === t.id && styles.tabBtnActive)}
-              onClick={() => setTab(t.id)}
+              aria-selected={tab === tb.id}
+              className={cn(styles.tabBtn, tab === tb.id && styles.tabBtnActive)}
+              onClick={() => setTab(tb.id)}
             >
-              <t.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === t.id ? 2.25 : 2} />
-              <span className={styles.tabLabelFull}>{t.label}</span>
-              <span className={styles.tabLabelShort}>{t.shortLabel}</span>
+              <tb.Icon size={14} style={{ marginRight: 5, verticalAlign: -2 }} strokeWidth={tab === tb.id ? 2.25 : 2} />
+              <span className={styles.tabLabelFull}>{t(`tabs.${tb.id}`)}</span>
+              <span className={styles.tabLabelShort}>{t(`tabs.${tb.id}Short`)}</span>
             </button>
           ))}
         </div>
@@ -230,7 +227,7 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
           ? <ChaturthamsaClassicalPanel classical={classical} />
           : (
             <section className={styles.section}>
-              <p className={styles.emptyHint}>Classical sukhaphala unavailable for this chart.</p>
+              <p className={styles.emptyHint}>{t('classicalEmpty')}</p>
             </section>
           )
       )}
@@ -238,7 +235,7 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
       {tab === 'overview' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>D4 Insights</h3>
+            <h3 className={styles.sectionTitle}>{t('insightsTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
@@ -255,7 +252,7 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
           {analysis.conflictFlags.length > 0 && (
             <>
               <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-                <h3 className={styles.sectionTitle}>Conflict cautions</h3>
+                <h3 className={styles.sectionTitle}>{t('conflictTitle')}</h3>
                 <div className={styles.sectionRule} />
               </div>
               <ul className={styles.noteList}>
@@ -273,12 +270,12 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
       {tab === 'heart' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>D4 Lagna — the heart</h3>
+            <h3 className={styles.sectionTitle}>{t('heartTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            Hierarchy: occupation (full) → lagna lord &amp; conjunctions → aspects (~30–40%) → sign flavor (weakest).
-            {heart.lagnaEmpty ? ' This lagna is empty — the lord’s address carries the story.' : ''}
+            {t('heartIntro')}
+            {heart.lagnaEmpty ? t('heartEmpty') : ''}
           </p>
 
           <article className={cn(styles.insightCard, styles.insightHighlight)} style={{ marginBottom: '0.85rem' }}>
@@ -288,17 +285,17 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
 
           <div className={styles.sketchGrid}>
             <div className={styles.sketchCard}>
-              <h4 className={styles.insightTitle}>Sign flavor</h4>
+              <h4 className={styles.insightTitle}>{t('signFlavor')}</h4>
               <p className={styles.insightText}>{heart.signFlavor}</p>
             </div>
             <div className={styles.sketchCard}>
               <h4 className={styles.insightTitle}>
-                Lagna lord · {heart.lagnaLord.name}
+                {t('lagnaLord', { name: heart.lagnaLord.name })}
               </h4>
               <p className={styles.insightText}>{heart.lagnaLord.reading}</p>
               {heart.lagnaLord.conjunctNames.length > 0 && (
                 <p className={styles.statHint} style={{ marginTop: '0.4rem', whiteSpace: 'normal' }}>
-                  With {heart.lagnaLord.conjunctNames.join(', ')}
+                  {t('with', { names: heart.lagnaLord.conjunctNames.join(', ') })}
                 </p>
               )}
             </div>
@@ -307,7 +304,7 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
           {heart.occupants.length > 0 && (
             <>
               <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-                <h3 className={styles.sectionTitle}>Planets on lagna</h3>
+                <h3 className={styles.sectionTitle}>{t('planetsOnLagna')}</h3>
                 <div className={styles.sectionRule} />
               </div>
               <div className={styles.cardGrid}>
@@ -336,13 +333,13 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
           {heart.aspectsOnLagna.length > 0 && (
             <>
               <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-                <h3 className={styles.sectionTitle}>Aspects on lagna (partial)</h3>
+                <h3 className={styles.sectionTitle}>{t('aspectsTitle')}</h3>
                 <div className={styles.sectionRule} />
               </div>
               <ul className={styles.noteList}>
                 {heart.aspectsOnLagna.map((a) => (
                   <li key={a.id} className={styles.noteItem}>
-                    <strong>{a.name}</strong> from H{a.fromHouse} ({a.fromRashiName}). {a.note}
+                    <strong>{a.name}</strong> {t('aspectFrom', { house: a.fromHouse, rashi: a.fromRashiName })} {a.note}
                   </li>
                 ))}
               </ul>
@@ -354,25 +351,25 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
       {tab === 'keyPlanets' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Moon · 4th lord · Jupiter</h3>
+            <h3 className={styles.sectionTitle}>{t('triadTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            These three frame emotional climate, where happiness is sought, and whether contentment (santosh) holds.
+            {t('triadIntro')}
           </p>
           <div className={styles.cardGrid}>
-            {keyTriad.map((t) => (
-              <article key={t.role} className={styles.planetCard}>
+            {keyTriad.map((k) => (
+              <article key={k.role} className={styles.planetCard}>
                 <div className={styles.planetCardHead}>
-                  <h4 className={styles.planetName}>{t.name}</h4>
-                  <span className={cn(styles.pill, toneClass(t.tone))}>{t.tone}</span>
+                  <h4 className={styles.planetName}>{k.name}</h4>
+                  <span className={cn(styles.pill, toneClass(k.tone))}>{c.tone(k.tone)}</span>
                 </div>
-                <div className={styles.mappingLine}>{t.roleLabel}</div>
+                <div className={styles.mappingLine}>{k.roleLabel}</div>
                 <p className={styles.planetBody}>
-                  {t.rashiName} · H{t.house} · {t.dignity.replace(/_/g, ' ')}
-                  {t.isRetro ? ' · ℞' : ''}
+                  {k.rashiName} · {c.houseShort(k.house)} · {c.dignity(k.dignity)}
+                  {k.isRetro ? ' · ℞' : ''}
                 </p>
-                <p className={styles.planetBody}>{t.reading}</p>
+                <p className={styles.planetBody}>{k.reading}</p>
               </article>
             ))}
           </div>
@@ -380,7 +377,7 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
           {analysis.retrogradeNotes.length > 0 && (
             <>
               <div className={styles.sectionHead} style={{ marginTop: '1.1rem' }}>
-                <h3 className={styles.sectionTitle}>Retrograde intensity</h3>
+                <h3 className={styles.sectionTitle}>{t('retroTitle')}</h3>
                 <div className={styles.sectionRule} />
               </div>
               <ul className={styles.noteList}>
@@ -396,11 +393,11 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
       {tab === 'houses' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Focused D4 houses</h3>
+            <h3 className={styles.sectionTitle}>{t('focusedTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            3 communication · 4 internal happiness · 6 conflict · 8 secrets &amp; moves · 9 father · 11 desires
+            {t('focusedIntro')}
           </p>
           <div className={styles.houseGrid}>
             {analysis.focusedHouses.map((h) => (
@@ -408,12 +405,12 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
                 key={h.house}
                 className={cn(styles.houseCard, (h.house === 4 || h.house === 8) && styles.houseCardHot)}
               >
-                <div className={styles.houseNum}>House {h.house}</div>
+                <div className={styles.houseNum}>{c.house(h.house)}</div>
                 <div className={styles.houseSign}>{h.rashiName}</div>
                 <div className={styles.houseMeta}>
-                  Lord {h.lordName}
+                  {t('lord', { name: h.lordName })}
                   <span className={cn(styles.pill, toneClass(h.tone))} style={{ marginLeft: 6 }}>
-                    {h.tone}
+                    {c.tone(h.tone)}
                   </span>
                 </div>
                 <div className={styles.housePlanets}>
@@ -431,11 +428,11 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
       {tab === 'relocation' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Residence change</h3>
+            <h3 className={styles.sectionTitle}>{t('relocTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           {!relocation ? (
-            <p className={styles.emptyHint}>Relocation timing unavailable.</p>
+            <p className={styles.emptyHint}>{t('relocEmpty')}</p>
           ) : (
             <>
               <article className={cn(styles.insightCard, insightClass(
@@ -448,28 +445,28 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
 
               <div className={styles.statGrid} style={{ marginBottom: '0.85rem' }}>
                 <div className={styles.statCard}>
-                  <div className={styles.statLabel}>D4 8th occupants</div>
+                  <div className={styles.statLabel}>{t('eighthOcc')}</div>
                   <div className={styles.statValue}>
                     {relocation.eighthOccupants.length
                       ? relocation.eighthOccupants.map((o) => o.name).join(', ')
-                      : 'None'}
+                      : t('none')}
                   </div>
-                  <div className={styles.statHint}>Their dashas time moves</div>
+                  <div className={styles.statHint}>{t('eighthOccHint')}</div>
                 </div>
                 <div className={styles.statCard}>
-                  <div className={styles.statLabel}>8th / occupant period</div>
-                  <div className={styles.statValue}>{relocation.eighthLordPeriodActive ? 'Active' : 'Quiet'}</div>
-                  <div className={styles.statHint}>Current path</div>
+                  <div className={styles.statLabel}>{t('eighthPeriod')}</div>
+                  <div className={styles.statValue}>{relocation.eighthLordPeriodActive ? t('active') : t('quiet')}</div>
+                  <div className={styles.statHint}>{t('currentPath')}</div>
                 </div>
                 <div className={styles.statCard}>
-                  <div className={styles.statLabel}>MD–AD 6/8 link</div>
-                  <div className={styles.statValue}>{relocation.sixthEighthDashaLink ? 'Yes' : 'No'}</div>
-                  <div className={styles.statHint}>Class relocation rule</div>
+                  <div className={styles.statLabel}>{t('mdAd')}</div>
+                  <div className={styles.statValue}>{relocation.sixthEighthDashaLink ? t('yes') : t('no')}</div>
+                  <div className={styles.statHint}>{t('classRule')}</div>
                 </div>
                 <div className={styles.statCard}>
-                  <div className={styles.statLabel}>Path</div>
+                  <div className={styles.statLabel}>{t('path')}</div>
                   <div className={styles.statValue}>{relocation.pathLabel || '—'}</div>
-                  <div className={styles.statHint}>Vimshottari</div>
+                  <div className={styles.statHint}>{t('vimshottari')}</div>
                 </div>
               </div>
 
@@ -482,7 +479,7 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
                           {l.levelLabel} · {l.lordName}
                         </h4>
                         <span className={cn(styles.pill, toneClass(l.tone))}>
-                          {l.d4House != null ? `H${l.d4House}` : '—'}
+                          {l.d4House != null ? c.houseShort(l.d4House) : '—'}
                         </span>
                       </div>
                       <div className={styles.statHint} style={{ whiteSpace: 'normal' }}>
@@ -502,11 +499,11 @@ export function ChaturthamsaWorkspace({ chart, userPlan: _userPlan = 'free' }: C
       {tab === 'affinity' && (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h3 className={styles.sectionTitle}>Roommate / partner affinity</h3>
+            <h3 className={styles.sectionTitle}>{t('affinityTitle')}</h3>
             <div className={styles.sectionRule} />
           </div>
           <p className={styles.heroSub} style={{ marginBottom: '0.85rem', maxWidth: 'none' }}>
-            Single-chart guide from D4 lagna occupants. For full couple overlay, use Milan match-making (D4 step).
+            {t('affinityIntro')}
           </p>
           <div className={styles.insightGrid}>
             {analysis.affinityGuide.map((n) => (

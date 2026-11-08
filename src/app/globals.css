@@ -3177,6 +3177,9 @@ select.input {
   z-index: var(--z-modal);
   padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(to top, rgba(11, 11, 20, 0.98), rgba(11, 11, 20, 0.92));
+  /* Always-dark bar: set its own text colour (--text is not a defined token). */
+  --text: #f0ecff;
+  color: var(--text);
   border-top: 1px solid var(--border-soft);
   backdrop-filter: blur(12px);
   animation: pwa-banner-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -9158,4 +9161,47 @@ select.input {
   .landing-shell .landing-explore-tier--tertiary .landing-major-sections-grid .landing-major-section-card .stat-sub {
     display: block;
   }
+}
+
+/* ── Language switcher (English ⇄ हिन्दी) ─────────────────── */
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 34px;
+  padding: 0 0.7rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--header-text, var(--text-primary));
+  font: 600 0.78rem/1 var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.lang-switcher:hover { background: var(--surface-3); border-color: var(--gold); }
+.lang-switcher:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.lang-switcher-label { font-family: var(--font-deva), var(--font-body); }
+.sidenav-footer .lang-switcher { width: 100%; justify-content: center; margin-bottom: 0.6rem; }
+@media (max-width: 480px) {
+  .app-header .lang-switcher { padding: 0 0.55rem; }
+}
+
+/* Hindi pages: Devanagari first, slightly looser line-height for matras. */
+html[lang^="hi"] {
+  --font-body: var(--font-noto-deva), var(--font-inter), 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-sans: var(--font-noto-deva), var(--font-inter), 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-display: var(--font-noto-deva), var(--font-newsreader), 'Noto Sans Devanagari', Georgia, serif;
+}
+html[lang^="hi"] body { line-height: 1.7; }
+[data-theme="classic"] .app-header .lang-switcher {
+  background: var(--classic-maroon-deep);
+  border-color: var(--classic-maroon-deep);
+  color: var(--classic-gold);
+}
+[data-theme="classic"] .app-header .lang-switcher:hover {
+  background: var(--classic-maroon-press);
+  border-color: var(--classic-maroon-press);
+  color: #ffffff;
 }

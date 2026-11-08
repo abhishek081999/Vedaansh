@@ -8,6 +8,8 @@
 
 import type { DashaNode, GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import { fill, type EngineLang } from '@/lib/engine/lang'
 import { expandVimshottariNode } from '@/lib/engine/dasha/vimshottari'
 import { isDashaRunning } from '@/lib/engine/dasha/current'
 import type { DashaDay, GocharRow, MoonDay } from '@/lib/engine/todayReading'
@@ -24,6 +26,8 @@ export interface TodayDashaInput {
   windowStart?: Date
   /** End of today's window (next sunrise). Defaults to 24h after `windowStart`. */
   windowEnd?: Date
+  /** Language of the text fields */
+  lang?: EngineLang
 }
 
 export interface DashaLevelRow {
@@ -93,6 +97,30 @@ const LEVEL_LABEL: Record<number, string> = {
   1: 'Mahadasha', 2: 'Antardasha', 3: 'Pratyantar', 4: 'Sookshma', 5: 'Prana', 6: 'Deha',
 }
 
+const LEVEL_LABEL_HI: Record<number, string> = {
+  1: 'महादशा', 2: 'अंतर्दशा', 3: 'प्रत्यंतर्दशा', 4: 'सूक्ष्म दशा', 5: 'प्राण दशा', 6: 'देह दशा',
+}
+
+const DASHA_TEXT_HI = {
+  level: 'स्तर {n}',
+  trail: 'आपकी वर्तमान ग्रह दशाएँ {trail} हैं।',
+  lead: '{level} स्वामी {lord} {tone}',
+  tone: { supportive: 'अच्छी स्थिति में है', mixed: 'मिश्रित है', challenging: 'दबाव में है' },
+  and: ' और ',
+  pranaOne: 'आज एक छोटी प्राण दशा (सबसे छोटा दशा स्तर) बदलती है।',
+  pranaMany: 'आज {n} छोटी प्राण दशाएँ (सबसे छोटा दशा स्तर) बदलती हैं।',
+  change: 'आज {level} बदलती है{fromTo}।',
+  fromTo: ' — {from} से {to}',
+}
+
+function levelLabel(level: number, lang: EngineLang): string {
+  return lang === 'hi' ? LEVEL_LABEL_HI[level] ?? fill(DASHA_TEXT_HI.level, { n: level }) : LEVEL_LABEL[level] ?? `Level ${level}`
+}
+
+function lordLabel(lord: string, lang: EngineLang): string {
+  return (lang === 'hi' ? GRAHA_HI[lord as GrahaId] : GRAHA_NAMES[lord as GrahaId]) ?? lord
+}
+
 const MAX_LEVEL = 6
 const HOUR = 3_600_000
 const DAY = 24 * HOUR
@@ -105,8 +133,11 @@ function toMs(v: Date | string | number): number {
 
 const iso = (ms: number) => new Date(ms).toISOString()
 
-/** Compact span: "4y 2m", "3m 12d", "2d 5h", "7h 20m". */
-export function formatSpan(ms: number): string {
+const SPAN_HI = { now: 'अभी', y: 'वर्ष', mo: 'माह', d: 'दिन', h: 'घं.', m: 'मि.' }
+
+/** Compact span: "4y 2m", "3m 12d", "2d 5h", "7h 20m" (Hindi: "4 वर्ष 2 माह" …). */
+export function formatSpan(ms: number, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return formatSpanHi(ms)
   if (ms <= 0) return 'now'
   const days = ms / DAY
   if (days >= 365.25) {
@@ -130,6 +161,29 @@ export function formatSpan(ms: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
+function formatSpanHi(ms: number): string {
+  const H = SPAN_HI
+  if (ms <= 0) return H.now
+  const days = ms / DAY
+  const pair = (a: number, ua: string, b: number, ub: string) => (b > 0 ? `${a} ${ua} ${b} ${ub}` : `${a} ${ua}`)
+  if (days >= 365.25) {
+    const y = Math.floor(days / 365.25)
+    return pair(y, H.y, Math.floor((days - y * 365.25) / 30.44), H.mo)
+  }
+  if (days >= 60) {
+    const m = Math.floor(days / 30.44)
+    return pair(m, H.mo, Math.floor(days - m * 30.44), H.d)
+  }
+  if (days >= 1) {
+    const d = Math.floor(days)
+    return pair(d, H.d, Math.floor((ms - d * DAY) / HOUR), H.h)
+  }
+  const h = Math.floor(ms / HOUR)
+  const m = Math.floor((ms - h * HOUR) / 60_000)
+  if (h === 0) return `${Math.max(m, 1)} ${H.m}`
+  return pair(h, H.h, m, H.m)
+}
+
 /** Children of a node, built on demand for the deeper levels the chart API leaves empty. */
 function childrenOf(node: DashaNode, nowMs: number): DashaNode[] {
   if (node.level >= MAX_LEVEL) return []
@@ -148,14 +202,14 @@ function runningPath(roots: DashaNode[], nowMs: number): DashaNode[] {
   return path
 }
 
-function micro(n: DashaNode, nowMs: number): DashaMicroPeriod {
+function micro(n: DashaNode, nowMs: number, lang: EngineLang = 'en'): DashaMicroPeriod {
   const start = toMs(n.start)
   const end = toMs(n.end)
   return {
     level: n.level,
-    levelLabel: LEVEL_LABEL[n.level] ?? `Level ${n.level}`,
+    levelLabel: levelLabel(n.level, lang),
     lord: n.lord as GrahaId,
-    lordName: GRAHA_NAMES[n.lord as GrahaId] ?? n.lord,
+    lordName: lordLabel(n.lord, lang),
     startIso: iso(start),
     endIso: iso(end),
     current: nowMs >= start && nowMs < end,
@@ -163,9 +217,10 @@ function micro(n: DashaNode, nowMs: number): DashaMicroPeriod {
   }
 }
 
-const nameOf = (lord: string) => GRAHA_NAMES[lord as GrahaId] ?? lord
-
 export function buildTodayDasha(input: TodayDashaInput): TodayDasha | null {
+  const lang = input.lang ?? 'en'
+  const hi = lang === 'hi'
+  const nameOf = (lord: string) => lordLabel(lord, lang)
   const roots = input.natal.dashas?.vimshottari ?? []
   const nowMs = input.now.getTime()
   const path = runningPath(roots, nowMs)
@@ -183,13 +238,13 @@ export function buildTodayDasha(input: TodayDashaInput): TodayDasha | null {
     const r = readingBy.get(n.level)
     return {
       level: n.level,
-      levelLabel: LEVEL_LABEL[n.level] ?? `Level ${n.level}`,
+      levelLabel: levelLabel(n.level, lang),
       lord: n.lord as GrahaId,
       lordName: nameOf(n.lord),
       startIso: iso(start),
       endIso: iso(end),
       progress: Math.min(Math.max((nowMs - start) / span, 0), 1),
-      remaining: formatSpan(end - nowMs),
+      remaining: formatSpan(end - nowMs, lang),
       tone: r?.tone,
       note: r?.note,
     }
@@ -202,7 +257,7 @@ export function buildTodayDasha(input: TodayDashaInput): TodayDasha | null {
   if (pratyantar && sookshmaNode) {
     const siblings = childrenOf(pratyantar, nowMs)
     const idx = siblings.findIndex(s => isDashaRunning(s, nowMs))
-    if (idx >= 0) sookshma = siblings.slice(Math.max(idx - 1, 0), idx + 2).map(s => micro(s, nowMs))
+    if (idx >= 0) sookshma = siblings.slice(Math.max(idx - 1, 0), idx + 2).map(s => micro(s, nowMs, lang))
   }
 
   // ── Prana touching today's window ─────────────────────────
@@ -216,7 +271,7 @@ export function buildTodayDasha(input: TodayDashaInput): TodayDasha | null {
     }
     prana = candidates
       .filter(p => toMs(p.end) > winStart && toMs(p.start) < winEnd)
-      .map(p => micro(p, nowMs))
+      .map(p => micro(p, nowMs, lang))
   }
 
   // ── Next change at each of the first four levels ──────────
@@ -228,11 +283,11 @@ export function buildTodayDasha(input: TodayDashaInput): TodayDasha | null {
     const at = toMs(n.end)
     changes.push({
       level: n.level,
-      levelLabel: LEVEL_LABEL[n.level] ?? `Level ${n.level}`,
+      levelLabel: levelLabel(n.level, lang),
       fromLordName: nameOf(n.lord),
       toLordName: next ? nameOf(next.lord) : null,
       atIso: iso(at),
-      inText: `in ${formatSpan(at - nowMs)}`,
+      inText: hi ? `${formatSpan(at - nowMs, lang)} में` : `in ${formatSpan(at - nowMs)}`,
       today: at >= winStart && at < winEnd,
     })
   })
@@ -242,7 +297,7 @@ export function buildTodayDasha(input: TodayDashaInput): TodayDasha | null {
   const lordRoles = new Map<GrahaId, string[]>()
   for (const n of path.slice(0, 3)) {
     const lord = n.lord as GrahaId
-    lordRoles.set(lord, [...(lordRoles.get(lord) ?? []), LEVEL_LABEL[n.level] ?? `Level ${n.level}`])
+    lordRoles.set(lord, [...(lordRoles.get(lord) ?? []), levelLabel(n.level, lang)])
   }
   const lords: DashaLordTransit[] = []
   for (const [lord, roles] of lordRoles) {
@@ -278,10 +333,23 @@ export function buildTodayDasha(input: TodayDashaInput): TodayDasha | null {
     .map(d => `the ${d.levelLabel} lord ${d.lordName} ${TONE_TEXT[d.tone]}`)
     .join(' and ')
   const turnovers = prana.filter(p => toMs(p.startIso) > winStart && toMs(p.startIso) < winEnd).length
+  const soon = changes.find(c => c.today && c.level <= 3)
+  if (hi) {
+    const D = DASHA_TEXT_HI
+    const leadHi = [3, 2]
+      .map(l => readingBy.get(l))
+      .filter((d): d is DashaDay => Boolean(d))
+      .map(d => fill(D.lead, { level: d.levelLabel, lord: d.lordName, tone: D.tone[d.tone] }))
+      .join(D.and)
+    const hiParts = [fill(D.trail, { trail })]
+    if (leadHi) hiParts.push(`${leadHi}।`)
+    if (turnovers > 0) hiParts.push(turnovers === 1 ? D.pranaOne : fill(D.pranaMany, { n: turnovers }))
+    if (soon) hiParts.push(fill(D.change, { level: soon.levelLabel, fromTo: soon.toLordName ? fill(D.fromTo, { from: soon.fromLordName, to: soon.toLordName }) : '' }))
+    return { levels, sookshma, prana, changes, lords, summary: hiParts.join(' ') }
+  }
   const parts = [`Your current planetary periods (dashas) are ${trail}.`]
   if (lead) parts.push(`${lead[0].toUpperCase()}${lead.slice(1)}.`)
   if (turnovers > 0) parts.push(`${turnovers === 1 ? 'One' : turnovers} short Prana period${turnovers === 1 ? '' : 's'} (the smallest dasha level) change${turnovers === 1 ? 's' : ''} today.`)
-  const soon = changes.find(c => c.today && c.level <= 3)
   if (soon) parts.push(`The ${soon.levelLabel} changes today${soon.toLordName ? ` from ${soon.fromLordName} to ${soon.toLordName}` : ''}.`)
 
   return { levels, sookshma, prana, changes, lords, summary: parts.join(' ') }

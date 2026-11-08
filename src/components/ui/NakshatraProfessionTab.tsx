@@ -4,8 +4,8 @@
 //  Profession / career analysis for the Nakshatra workspace
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Briefcase, Layers, Network, Compass, Lock } from 'lucide-react'
 import type { ChartOutput, GrahaId, UserPlan } from '@/types/astrology'

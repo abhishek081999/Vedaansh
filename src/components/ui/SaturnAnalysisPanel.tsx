@@ -5,8 +5,8 @@
 //  Free overview · Gold+ full sections
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   BookOpen,
   Hourglass,
@@ -24,6 +24,9 @@ import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { GrahaProfileHeader } from '@/components/ui/GrahaProfileHeader'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { dignityHi } from '@/lib/engine/locale/planetsA.util'
 
 type SubTab = 'overview' | 'foundations' | 'classical' | 'houses' | 'yogas' | 'cycles' | 'lore'
 type ClassicalView = 'mixed' | 'natal' | 'houses' | 'signs'
@@ -44,10 +47,13 @@ interface SaturnAnalysisPanelProps {
 }
 
 export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysisPanelProps) {
+  const ts = useTranslations('planetsB.saturn')
+  const tc = useTranslations('planetsB.common')
+  const { lang, hi } = useLang()
   const showFull = planMeetsUiGate(userPlan, 'gold')
   const [sub, setSub] = useState<SubTab>('overview')
   const [classicalView, setClassicalView] = useState<ClassicalView>('mixed')
-  const data = useMemo(() => analyzeSaturn(chart), [chart])
+  const data = useMemo(() => analyzeSaturn(chart, lang), [chart, lang])
 
   if (!data) {
     return (
@@ -59,7 +65,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
         fontSize: '0.8rem',
         textAlign: 'center',
       }}>
-        Saturn data unavailable for this chart.
+        {ts('unavailable')}
       </div>
     )
   }
@@ -88,30 +94,29 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: natal Saturn house, Kantak, 3/7/10 aspects, and yoga/combust/vakri flags.
-            Gold unlocks karakatva, Sade Sati padā, catalogues, mythology, and remedies.
+            {ts('freePreview')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{tc('viewPlans')}</Button>
           </Link>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-        <Pill gold>{s.rashiName} · H{s.house}</Pill>
-        <Pill>{s.nakshatraName} P{s.pada}</Pill>
-        <Pill>{s.dignity.replace('_', ' ')}</Pill>
-        {s.ownSign && <Pill gold>Own sign</Pill>}
-        {s.exalted && <Pill gold>Exalted</Pill>}
-        {s.debilitated && <Pill warn>Debilitated</Pill>}
-        {s.isRetro && <Pill warn>Retrograde</Pill>}
-        {s.isCombust && <Pill warn>Combust</Pill>}
-        {data.isKantak && <Pill warn>Kantak</Pill>}
-        {s.inSaturnNakshatra && <Pill gold>Saturn nakshatra</Pill>}
-        {s.nearIndrajeetPoint && <Pill warn>Indrajeet point</Pill>}
-        {activeYogas.length > 0 && <Pill>Yogas · {activeYogas.length}</Pill>}
+        <Pill gold>{s.rashiName} · {tc('houseShort', { n: s.house })}</Pill>
+        <Pill>{s.nakshatraName} {tc('padaShort', { n: s.pada })}</Pill>
+        <Pill>{hi ? dignityHi(s.dignity) : s.dignity.replace('_', ' ')}</Pill>
+        {s.ownSign && <Pill gold>{tc('ownSign')}</Pill>}
+        {s.exalted && <Pill gold>{tc('exalted')}</Pill>}
+        {s.debilitated && <Pill warn>{tc('debilitated')}</Pill>}
+        {s.isRetro && <Pill warn>{tc('retrograde')}</Pill>}
+        {s.isCombust && <Pill warn>{tc('combust')}</Pill>}
+        {data.isKantak && <Pill warn>{ts('kantak')}</Pill>}
+        {s.inSaturnNakshatra && <Pill gold>{ts('ownNakshatra')}</Pill>}
+        {s.nearIndrajeetPoint && <Pill warn>{ts('indrajeet')}</Pill>}
+        {activeYogas.length > 0 && <Pill>{tc('yogasCount', { count: activeYogas.length })}</Pill>}
         {data.companions.length > 0 && (
-          <Pill>Yuti · {data.companions.map(c => c.name).join(', ')}</Pill>
+          <Pill>{tc('yutiList', { names: data.companions.map(c => c.name).join(', ') })}</Pill>
         )}
       </div>
 
@@ -128,7 +133,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           overflowX: 'auto',
         }}
         role="tablist"
-        aria-label="Saturn analysis sections"
+        aria-label={ts('sectionsAria')}
       >
         {SUB_TABS.map(t => {
           const locked = !showFull && !t.free
@@ -160,7 +165,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
               }}
             >
               <t.Icon size={13} aria-hidden />
-              {t.label}
+              {ts(`tabs.${t.id}`)}
               {locked && <Lock size={11} aria-hidden />}
             </button>
           )
@@ -170,7 +175,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
       {sub === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <Card>
-            <Label>Natal Saturn · H{data.houseFocus.house}</Label>
+            <Label>{ts('natalHouse', { n: data.houseFocus.house })}</Label>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
@@ -180,7 +185,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
                 gold={data.houseFocus.tone === 'supportive' || data.houseFocus.tone === 'moksha'}
                 warn={data.houseFocus.tone === 'kantak' || data.houseFocus.tone === 'dusthana' || data.houseFocus.tone === 'watched'}
               >
-                {data.houseFocus.tone}
+                {ts(`tone.${data.houseFocus.tone}`)}
               </Pill>
             </div>
             <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -189,35 +194,35 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           </Card>
 
           <Card>
-            <Label>One-line teaching</Label>
+            <Label>{tc('oneLine')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
               {data.oneLiner}
             </p>
           </Card>
 
           <Card>
-            <Label>Special aspects (3 / 7 / 10)</Label>
+            <Label>{ts('aspects')}</Label>
             <p style={{ margin: '0 0 0.45rem', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
               {data.aspectOverview}
             </p>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.aspects.map(a => (
                 <li key={a.span}>
-                  {a.span}th → H{a.targetHouse}: {a.teaching.meaning}
+                  {ts('aspectRow', { span: a.span, n: a.targetHouse, meaning: a.teaching.meaning })}
                 </li>
               ))}
             </ul>
           </Card>
 
           <Card>
-            <Label>Company (yuti)</Label>
+            <Label>{tc('company')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.companionNote}
             </p>
           </Card>
 
           <Card>
-            <Label>Quick flags</Label>
+            <Label>{tc('quickFlags')}</Label>
             <FlagRow flag={data.kantakFlag} />
             <FlagRow flag={data.retroFlag} />
             <FlagRow flag={data.combustFlag} />
@@ -235,9 +240,9 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           </Card>
 
           <Card>
-            <Label>Mixed interpretations teaser</Label>
+            <Label>{tc('mixedTeaser')}</Label>
             <p style={{ margin: '0 0 0.45rem', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-              House guide · classics · planet×house · rashi · planet×sign · nakshatra · dignity
+              {tc('mixedTeaserSources')}
             </p>
             {data.classical.natalMixed ? (
               <LayerStack
@@ -246,30 +251,31 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
               />
             ) : (
               <ClassicalNotesList
-                title="Saturn in house — classics"
+                quiet={hi}
+                title={ts('houseClassics')}
                 notes={data.classical.natalHouseClassical.slice(0, 2)}
               />
             )}
             {!showFull && (
               <div style={{ marginTop: 6, fontSize: '0.65rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Lock size={12} aria-hidden /> Full mixed layers + 12×12 catalogues on Gold
+                <Lock size={12} aria-hidden /> {tc('mixedLocked')}
               </div>
             )}
           </Card>
 
           <Card>
-            <Label>Natural age · {data.naturalAge}</Label>
+            <Label>{tc('naturalAge', { age: data.naturalAge })}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.naturalAgeNote}
             </p>
           </Card>
 
           {!showFull && (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Saturn full analysis">
+            <PlanGate userPlan={userPlan} required="gold" featureName={ts('gateFeature')}>
               <div style={{ minHeight: 100, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Locked on Free</div>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>{tc('lockedOnFree')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Full karakatva · Sade Sati padā · classical catalogues · yogas · mythology · remedies
+                  {ts('lockedList')}
                 </div>
               </div>
             </PlanGate>
@@ -289,13 +295,13 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
               border: '1px solid var(--border-soft)',
             }}
             role="tablist"
-            aria-label="Classical catalogue view"
+            aria-label={tc('classicalViewAria')}
           >
             {([
-              { id: 'mixed' as const, label: 'Mixed natal' },
-              { id: 'natal' as const, label: 'Classical natal' },
-              { id: 'houses' as const, label: 'All 12 houses' },
-              { id: 'signs' as const, label: 'All 12 signs' },
+              { id: 'mixed' as const, label: tc('cvMixed') },
+              { id: 'natal' as const, label: tc('cvNatal') },
+              { id: 'houses' as const, label: tc('cvHouses') },
+              { id: 'signs' as const, label: tc('cvSigns') },
             ]).map(cv => (
               <button
                 key={cv.id}
@@ -323,10 +329,10 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           {classicalView === 'mixed' && data.classical.natalMixed && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                All interpretation engines mixed for natal Saturn in {s.rashiName} · H{s.house}.
+                {ts('mixedIntro', { rashi: s.rashiName, n: s.house })}
               </p>
               <Card>
-                <Label>Blended snapshot</Label>
+                <Label>{tc('blended')}</Label>
                 <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.natalMixed.blendedSummary.slice(0, 520)}
                   {data.classical.natalMixed.blendedSummary.length > 520 ? '…' : ''}
@@ -338,36 +344,41 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
 
           {classicalView === 'natal' && (
             <>
+              {hi && <p style={{ margin: 0, fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{tc('classicalNoteHi')}</p>}
               <ClassicalNotesList
-                title="Special aspects overview"
+                quiet={hi}
+                title={ts('aspectOverview')}
                 notes={data.classical.aspectOverviewClassical}
               />
               <ClassicalNotesList
-                title="Aspect hits from natal seat"
+                quiet={hi}
+                title={ts('aspectHits')}
                 notes={data.classical.aspectTeachings}
               />
               <Card>
-                <Label>Platform house note (H{s.house})</Label>
+                <Label>{tc('platformHouse', { n: s.house })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalHouseFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Saturn in house ${s.house}`}
+                quiet={hi}
+                title={ts('classicalHouse', { n: s.house })}
                 notes={data.classical.natalHouseClassical}
               />
               <Card>
-                <Label>Platform sign note ({s.rashiName})</Label>
+                <Label>{tc('platformSign', { rashi: s.rashiName })}</Label>
                 <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {data.classical.platformNatalSignFull ?? '—'}
                 </p>
               </Card>
               <ClassicalNotesList
-                title={`Classical · Saturn in ${s.rashiName} (+ dignity / vakri (retrograde) / asta)`}
+                quiet={hi}
+                title={ts('classicalSign', { rashi: s.rashiName })}
                 notes={data.classical.natalSignClassical}
               />
               {data.classical.vakriAst.length > 0 && (
-                <ClassicalNotesList title="Vakri / Asta (Shani)" notes={data.classical.vakriAst} />
+                <ClassicalNotesList quiet={hi} title={ts('vakriAst')} notes={data.classical.vakriAst} />
               )}
             </>
           )}
@@ -375,7 +386,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           {classicalView === 'houses' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed house layers for each bhava. Natal house highlighted.
+                {tc('housesIntro')}
               </p>
               {data.classical.allHouses.map(h => (
                 <div
@@ -388,8 +399,8 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
                   }}
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: h.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
-                    House {h.house}
-                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {tc('house', { n: h.house })}
+                    {h.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{tc('natal')}</span>}
                   </div>
                   <LayerStack layers={h.mixedLayers} compact={!h.isNatal} />
                 </div>
@@ -400,7 +411,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           {classicalView === 'signs' && (
             <>
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Mixed sign layers for each rāśi. Natal sign highlighted.
+                {tc('signsIntro')}
               </p>
               {data.classical.allSigns.map(sg => (
                 <div
@@ -414,7 +425,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.82rem', color: sg.isNatal ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 6 }}>
                     {sg.rashiName}
-                    {sg.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                    {sg.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{tc('natal')}</span>}
                   </div>
                   <LayerStack layers={sg.mixedLayers} compact={!sg.isNatal} />
                 </div>
@@ -427,14 +438,14 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
       {showFull && sub === 'foundations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Nature</Label>
+            <Label>{tc('nature')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.nature.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Philosophical takeaways</Label>
+            <Label>{tc('philosophy')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.philosophy.map(p => <li key={p}>{p}</li>)}
             </ul>
@@ -468,7 +479,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           ))}
 
           <Card>
-            <Label>Zodiacal summary</Label>
+            <Label>{ts('zodiacal')}</Label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
@@ -486,7 +497,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           </Card>
 
           <Card>
-            <Label>Saturn nakshatras (moksha trikona)</Label>
+            <Label>{ts('nakshatras')}</Label>
             {data.nakshatraTeachings.map(n => (
               <div
                 key={n.index}
@@ -500,7 +511,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
               >
                 <div style={{ fontWeight: 700, fontSize: '0.78rem', color: n.isNatal ? 'var(--text-gold)' : 'var(--text-primary)' }}>
                   {n.name} · {n.rashiName}
-                  {n.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                  {n.isNatal && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{tc('natal')}</span>}
                 </div>
                 <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                   {n.traits.map(t => <li key={t}>{t}</li>)}
@@ -510,7 +521,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           </Card>
 
           <Card>
-            <Label>Summary attributes</Label>
+            <Label>{tc('summaryAttrs')}</Label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
@@ -528,7 +539,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           </Card>
 
           <Card>
-            <Label>Dasha note</Label>
+            <Label>{tc('dashaNote')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               {data.dashaNote}
             </p>
@@ -539,7 +550,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
       {showFull && sub === 'houses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Natal house focus</Label>
+            <Label>{tc('natalHouseFocus')}</Label>
             <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-gold)' }}>
               {data.houseFocus.title}
             </div>
@@ -549,11 +560,11 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           </Card>
 
           <Card>
-            <Label>Kantak seats (1 · 4 · 7 · 10)</Label>
+            <Label>{ts('kantakSeats')}</Label>
             <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Current Saturn in H{s.house}
-              {data.isKantak ? ' — natal Kantak Shani active.' : ' — outside kendra Kantak set.'}
-              {' '}Natal Kantak is permanent; transit Kantaka/Dhaiya from Moon is separate.
+              {ts('kantakNow', { n: s.house })}
+              {data.isKantak ? ts('kantakActive') : ts('kantakOutside')}
+              {' '}{ts('kantakPermanent')}
             </p>
           </Card>
 
@@ -562,11 +573,11 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           <FlagCard flag={data.indrajeetFlag} />
 
           <Card>
-            <Label>Aspect hits from natal seat</Label>
+            <Label>{ts('aspectHits')}</Label>
             {data.aspects.map(a => (
               <div key={a.span} style={{ marginBottom: '0.55rem' }}>
                 <div style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--text-gold)' }}>
-                  {a.teaching.name} → H{a.targetHouse}
+                  {a.teaching.name} → {tc('houseShort', { n: a.targetHouse })}
                 </div>
                 <p style={{ margin: '0.2rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                   {a.teaching.detail}
@@ -587,7 +598,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
             >
               <div style={{ fontWeight: 800, fontSize: '0.82rem', color: hf.house === s.house ? 'var(--text-gold)' : 'var(--text-primary)', marginBottom: 4 }}>
                 {hf.title}
-                {hf.house === s.house && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>NATAL</span>}
+                {hf.house === s.house && <span style={{ fontSize: '0.55rem', marginLeft: 6 }}>{tc('natal')}</span>}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
                 {hf.themes.map(t => <Pill key={t}>{t}</Pill>)}
@@ -595,7 +606,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
                   gold={hf.tone === 'supportive' || hf.tone === 'moksha'}
                   warn={hf.tone === 'kantak' || hf.tone === 'dusthana' || hf.tone === 'watched'}
                 >
-                  {hf.tone}
+                  {ts(`tone.${hf.tone}`)}
                 </Pill>
               </div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -609,15 +620,15 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
       {showFull && sub === 'yogas' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Companions</Label>
+            <Label>{tc('companions')}</Label>
             {data.companions.length === 0 ? (
-              <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>No close yuti.</p>
+              <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>{tc('noYuti')}</p>
             ) : (
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {data.companions.map(c => (
                   <li key={c.id}>
                     {c.name} · {c.sepDeg.toFixed(1)}°
-                    {c.sameSign ? ' · same sign' : ''}
+                    {c.sameSign ? ` · ${tc('sameSign')}` : ''}
                   </li>
                 ))}
               </ul>
@@ -634,7 +645,7 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
                   textTransform: 'uppercase',
                   color: y.active ? 'var(--rose)' : 'var(--text-muted)',
                 }}>
-                  {y.active ? 'Active' : 'Clear'}
+                  {y.active ? tc('active') : tc('clear')}
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -642,14 +653,14 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
               </p>
               {y.sepDeg != null && (
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  Separation {y.sepDeg.toFixed(1)}°{y.sameSign ? ' · same sign' : ''}
+                  {ts('separation', { deg: y.sepDeg.toFixed(1) })}{y.sameSign ? ` · ${tc('sameSign')}` : ''}
                 </p>
               )}
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', margin: '0.55rem 0 4px' }}>Effects</div>
+              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', margin: '0.55rem 0 4px' }}>{ts('effects')}</div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {y.effects.map(e => <li key={e}>{e}</li>)}
               </ul>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Constructive lean</div>
+              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{ts('constructiveLean')}</div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {y.positives.map(e => <li key={e}>{e}</li>)}
               </ul>
@@ -663,24 +674,24 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           <FlagCard flag={data.debilFlag} />
 
           <Card>
-            <Label>Combust — zigzag discipline</Label>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Challenges</div>
+            <Label>{ts('combustLabel')}</Label>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>{tc('challenges')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.combustEffects.negatives.map(n => <li key={n}>{n}</li>)}
             </ul>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Constructive</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{ts('constructive')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.combustEffects.positives.map(n => <li key={n}>{n}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Retrograde — self-evaluation & pending work</Label>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>Challenges</div>
+            <Label>{ts('retroLabel')}</Label>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--rose)', marginBottom: 4 }}>{tc('challenges')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.retroEffects.negatives.map(n => <li key={n}>{n}</li>)}
             </ul>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>Strengths</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--teal)', margin: '0.55rem 0 4px' }}>{tc('strengths')}</div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.retroEffects.positives.map(n => <li key={n}>{n}</li>)}
             </ul>
@@ -691,17 +702,17 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
       {showFull && sub === 'cycles' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Sade Sati teaching</Label>
+            <Label>{ts('sadeSati')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.sadeSatiTeaching.map(t => <li key={t}>{t}</li>)}
             </ul>
             <p style={{ margin: '0.55rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-              Live gochar phases: Transit workspace → Sade Sati tracker.
+              {ts('sadeSatiLive')}
             </p>
           </Card>
 
           <Card>
-            <Label>Three phases (~2.5 yrs each)</Label>
+            <Label>{ts('phases')}</Label>
             {data.sadeSatiPhases.map(p => (
               <div key={p.phase} style={{ marginBottom: '0.45rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                 <strong style={{ color: 'var(--text-gold)' }}>{p.phase}</strong>
@@ -711,42 +722,40 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
           </Card>
 
           <Card>
-            <Label>Sade Sati padā (paaya) — Parashara quality</Label>
+            <Label>{ts('padas')}</Label>
             {data.sadeSatiPadas.map(p => (
               <div key={p.id} style={{ marginBottom: '0.45rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                 <strong style={{ color: p.tone === 'favorable' ? 'var(--text-gold)' : p.tone === 'severe' ? 'var(--rose)' : 'var(--text-primary)' }}>
                   {p.name}
                 </strong>
-                {' '}(positions {p.positions.join(', ')}): {p.result}
+                {' '}{ts('padaRow', { positions: p.positions.join(', '), result: p.result })}
               </div>
             ))}
           </Card>
 
           {data.sadeSatiPadaDemo && (
             <Card>
-              <Label>Padā calculation demo (natal Moon → natal Saturn nakshatra)</Label>
+              <Label>{ts('padaDemo')}</Label>
               <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                Birth Moon: {data.sadeSatiPadaDemo.birthNakshatraName} → Saturn: {data.sadeSatiPadaDemo.saturnNakshatraName}
-                {' '}· count {data.sadeSatiPadaDemo.countFromBirth}
-                {' '}→ pad position {data.sadeSatiPadaDemo.padPosition}
+                {ts('padaDemoRow', { moon: data.sadeSatiPadaDemo.birthNakshatraName, saturn: data.sadeSatiPadaDemo.saturnNakshatraName, count: data.sadeSatiPadaDemo.countFromBirth, pos: data.sadeSatiPadaDemo.padPosition })}
                 {' '}→ <strong style={{ color: 'var(--text-gold)' }}>{data.sadeSatiPadaDemo.pada.name}</strong>
                 {' '}({data.sadeSatiPadaDemo.pada.result})
               </p>
               <p style={{ margin: '0.45rem 0 0', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                Teaching demo only. For live Sade Sati quality, count from birth Moon nakshatra to Saturn’s transit nakshatra when the period begins.
+                {ts('padaDemoNote')}
               </p>
             </Card>
           )}
 
           <Card>
-            <Label>Dhaiyya (2.5-year transit)</Label>
+            <Label>{ts('dhaiyya')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               {data.dhaiyyaTeaching.map(t => <li key={t}>{t}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Ashtadha Gati (eight motions)</Label>
+            <Label>{ts('ashtadha')}</Label>
             {data.ashtadhaGati.map(g => (
               <div key={g.name} style={{ marginBottom: '0.4rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                 <strong style={{ color: 'var(--text-gold)' }}>{g.name}</strong>
@@ -760,48 +769,48 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
       {showFull && sub === 'lore' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <Card>
-            <Label>Remedies & conduct</Label>
+            <Label>{ts('remedies')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.remedies.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Golden rules</Label>
+            <Label>{tc('goldenRules')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.goldenRules.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Mythology — birth of Shani</Label>
+            <Label>{ts('mythology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.mythology.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Dasharatha & Rohini (Padma Purana)</Label>
+            <Label>{ts('dasharatha')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.dasharathaStory.map(r => <li key={r}>{r}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Caveats</Label>
+            <Label>{tc('caveats')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.caveats.map(c => <li key={c}>{c}</li>)}
             </ul>
           </Card>
 
           <Card>
-            <Label>Methodology</Label>
+            <Label>{tc('methodology')}</Label>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {data.methodology.map(mth => <li key={mth}>{mth}</li>)}
             </ul>
             <div style={{ marginTop: '0.55rem', fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', gap: 4, alignItems: 'center' }}>
               <BookOpen size={12} aria-hidden />
-              Class teaching — Shani karakatva, Kantak, Sade Sati, Visha/Shapit, 3/7/10 aspects
+              {ts('footer')}
             </div>
           </Card>
         </div>
@@ -811,6 +820,8 @@ export function SaturnAnalysisPanel({ chart, userPlan = 'free' }: SaturnAnalysis
 }
 
 function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: boolean }) {
+  const tc = useTranslations('planetsB.common')
+  const { hi } = useLang()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.45rem' : '0.65rem' }}>
       {layers.map(layer => (
@@ -849,7 +860,8 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
           {layer.classicalNotes && layer.classicalNotes.length > 0 && (
             <div style={{ marginTop: 6 }}>
               <ClassicalNotesList
-                title="Sources"
+                quiet={hi}
+                title={tc('sources')}
                 notes={compact ? layer.classicalNotes.slice(0, 2) : layer.classicalNotes}
               />
             </div>
@@ -861,6 +873,7 @@ function LayerStack({ layers, compact }: { layers: InterpLayer[]; compact?: bool
 }
 
 function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const tc = useTranslations('planetsB.common')
   return (
     <div style={{ marginBottom: '0.45rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -871,7 +884,7 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
           textTransform: 'uppercase',
           color: flag.active ? 'var(--rose)' : 'var(--text-muted)',
         }}>
-          {flag.active ? 'Active' : 'Clear'}
+          {flag.active ? tc('active') : tc('clear')}
         </span>
       </div>
       <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -882,11 +895,12 @@ function FlagRow({ flag }: { flag: { title: string; active: boolean; detail: str
 }
 
 function FlagCard({ flag }: { flag: { title: string; active: boolean; detail: string } }) {
+  const tc = useTranslations('planetsB.common')
   return (
     <Card>
       <Label>{flag.title}</Label>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? 'Indicated' : 'Not indicated'}</span>
+        <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{flag.active ? tc('indicated') : tc('notIndicated')}</span>
       </div>
       <p style={{ margin: '0.4rem 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
         {flag.detail}

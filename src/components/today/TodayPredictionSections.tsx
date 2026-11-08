@@ -7,23 +7,19 @@
 
 import React from 'react'
 import type { Confidence, Tone as PredTone, TodayPredictions } from '@/lib/engine/todayPredictions'
-import { fmtWhen, toned } from './TodayReadingSections'
+import { toned, useTodayFmt } from './TodayReadingSections'
+import { useTranslations } from 'next-intl'
 import styles from './today-reading.module.css'
 
 type UiTone = 'good' | 'mixed' | 'caution'
 
 const TONE: Record<PredTone, UiTone> = { favourable: 'good', mixed: 'mixed', challenging: 'caution' }
-const TONE_LABEL: Record<PredTone, string> = { favourable: 'Favourable', mixed: 'Mixed', challenging: 'Challenging' }
-const CONF_LABEL: Record<Confidence, string> = {
-  high: 'High confidence',
-  moderate: 'Moderate confidence',
-  low: 'Light indication',
-}
-
 export function PredictionsCard({ p, tz }: { p: TodayPredictions; tz: string }) {
+  const t = useTranslations('today.predictions')
+  const fm = useTodayFmt()
   return (
-    <section className={styles.card} aria-label="What to expect today">
-      <h2 className={styles.cardTitle}>What to expect today</h2>
+    <section className={styles.card} aria-label={t('aria')}>
+      <h2 className={styles.cardTitle}>{t('title')}</h2>
 
       {p.phases.length > 0 && (
         <div className={styles.phases}>
@@ -32,9 +28,9 @@ export function PredictionsCard({ p, tz }: { p: TodayPredictions; tz: string }) 
               <span className={styles.phaseHead}>
                 <span className={styles.dot} />
                 {ph.label}
-                {ph.untilIso ? ` · until ~${fmtWhen(ph.untilIso, tz)}` : ''}
+                {ph.untilIso ? t('until', { when: fm.when(ph.untilIso, tz) }) : ''}
               </span>
-              <span className={styles.phaseTitle}>Moon in {ph.rashiName} · {ph.areaTitle}</span>
+              <span className={styles.phaseTitle}>{t('moonIn', { rashi: ph.rashiName, area: ph.areaTitle })}</span>
               <span className={styles.kvNote} style={{ gridColumn: 'auto' }}>{ph.text}</span>
             </div>
           ))}
@@ -42,15 +38,15 @@ export function PredictionsCard({ p, tz }: { p: TodayPredictions; tz: string }) 
       )}
 
       {p.predictions.length === 0 && (
-        <p className={styles.note}>No single area stands out strongly today; it is a quiet day astrologically.</p>
+        <p className={styles.note}>{t('quiet')}</p>
       )}
 
       {p.predictions.map(item => (
         <article key={item.house} className={styles.predItem} style={toned(TONE[item.tone])}>
           <header className={styles.predHead}>
             <h3 className={styles.predTitle}>{item.title}</h3>
-            <span className={styles.badge}>{TONE_LABEL[item.tone]}</span>
-            <span className={styles.predConf}>{CONF_LABEL[item.confidence]}</span>
+            <span className={styles.badge}>{t(`tone.${item.tone as PredTone}`)}</span>
+            <span className={styles.predConf}>{t(`conf.${item.confidence as Confidence}`)}</span>
           </header>
           <p className={styles.predText}>{item.text}</p>
           <ul className={styles.because}>
@@ -61,13 +57,13 @@ export function PredictionsCard({ p, tz }: { p: TodayPredictions; tz: string }) 
 
       {p.yogaNotes.length > 0 && (
         <div className={styles.phase} style={toned('good')}>
-          <span className={styles.phaseHead}><span className={styles.dot} />Natal yoga in play</span>
+          <span className={styles.phaseHead}><span className={styles.dot} />{t('yoga')}</span>
           {p.yogaNotes.map(n => <span key={n} className={styles.kvNote} style={{ gridColumn: 'auto' }}>{n}</span>)}
         </div>
       )}
 
       <p className={styles.note}>
-        Each house is read from your birth chart (Ashtakavarga bindus, Shadbala of its lord, Bhava Bala) against today&apos;s transits, drishti and your running dasha. These are tendencies, not fixed events.
+        {t('note')}
       </p>
     </section>
   )
@@ -75,17 +71,18 @@ export function PredictionsCard({ p, tz }: { p: TodayPredictions; tz: string }) 
 
 /** House-by-house map for today, as a compact tab panel. */
 export function HouseMapPanel({ p }: { p: TodayPredictions }) {
+  const t = useTranslations('today.predictions')
   return (
     <div className={styles.panelBody}>
       {p.houses.map(h => {
         const tone: UiTone = h.verdict === 'Quiet' ? 'mixed' : TONE[h.tone]
         return (
           <div key={h.house} className={styles.kv} style={toned(tone)}>
-            <span className={styles.kvKey}>House {h.house}</span>
+            <span className={styles.kvKey}>{t('house', { n: h.house })}</span>
             <span className={styles.kvVal}>
-              <span className={styles.badge}>{h.verdict}</span>
+              <span className={styles.badge}>{h.verdictLabel}</span>
               <span className={styles.mono}>{h.score}</span>
-              <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>{h.rashiName} · natal {h.promise}</span>
+              <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>{t('natalPromise', { rashi: h.rashiName, promise: t(`promise.${h.promise}`) })}</span>
             </span>
             <span className={styles.kvNote}>
               {h.areaTitle}

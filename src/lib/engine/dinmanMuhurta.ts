@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NAKSHATRA_NAMES } from '@/types/astrology'
+import { NAKSHATRA_HI } from '@/i18n/jyotish'
+import type { EngineLang } from '@/lib/engine/lang'
 import { getNakshatraMuhurtaMeta, type MuhurtaNakGroupId } from '@/lib/engine/nakshatraMuhurta'
 
 export type DinmanPeriod = 'day' | 'night'
@@ -84,19 +86,22 @@ const NIGHT_NAK: DinmanNakId[] = [
   7,  // 15 Pushya (implied completion — regional lists may differ)
 ]
 
-function nakLabel(id: DinmanNakId): string {
+function nakLabel(id: DinmanNakId, lang: EngineLang): string {
+  if (lang === 'hi') return id === -1 ? 'अभिजित' : (NAKSHATRA_HI[id] ?? `नक्षत्र ${id}`)
   return id === -1 ? 'Abhijit' : (NAKSHATRA_NAMES[id] ?? `Nak ${id}`)
 }
 
-function groupFor(id: DinmanNakId): { id: MuhurtaNakGroupId; label: string; goodFor: string } {
+function groupFor(id: DinmanNakId, lang: EngineLang): { id: MuhurtaNakGroupId; label: string; goodFor: string } {
   if (id === -1) {
-    return {
-      id: 'Laghu',
-      label: 'Laghu (Kshipra) · Abhijit',
-      goodFor: 'Light auspicious starts, shop opening, education, partnerships',
-    }
+    return lang === 'hi'
+      ? { id: 'Laghu', label: 'लघु (क्षिप्र) · अभिजित', goodFor: 'हल्के शुभ आरंभ, दुकान का उद्घाटन, शिक्षा, साझेदारी' }
+      : {
+          id: 'Laghu',
+          label: 'Laghu (Kshipra) · Abhijit',
+          goodFor: 'Light auspicious starts, shop opening, education, partnerships',
+        }
   }
-  const m = getNakshatraMuhurtaMeta(id)
+  const m = getNakshatraMuhurtaMeta(id, 1, lang)
   return { id: m.group.id, label: m.group.label, goodFor: m.group.goodFor }
 }
 
@@ -112,6 +117,7 @@ function buildPeriodSlots(
   end: Date,
   nakIds: DinmanNakId[],
   nowMs: number,
+  lang: EngineLang,
 ): DinmanSlot[] {
   const total = end.getTime() - start.getTime()
   if (!(total > 0) || nakIds.length !== 15) return []
@@ -119,14 +125,14 @@ function buildPeriodSlots(
   return nakIds.map((nakIndex, i) => {
     const s = new Date(start.getTime() + i * unit)
     const e = new Date(start.getTime() + (i + 1) * unit)
-    const g = groupFor(nakIndex)
+    const g = groupFor(nakIndex, lang)
     return {
       period,
       slot: i + 1,
       start: s,
       end: e,
       nakIndex,
-      nakName: nakLabel(nakIndex),
+      nakName: nakLabel(nakIndex, lang),
       groupId: g.id,
       groupLabel: g.label,
       favorability: favorabilityFor(g.id),
@@ -143,7 +149,7 @@ function buildPeriodSlots(
 export function getDinmanRatriman(
   sunrise: Date,
   sunset: Date,
-  opts?: { now?: Date; nextSunrise?: Date },
+  opts?: { now?: Date; nextSunrise?: Date; lang?: EngineLang },
 ): DinmanRatrimanResult {
   const sr = new Date(sunrise)
   const ss = new Date(sunset)
@@ -152,8 +158,9 @@ export function getDinmanRatriman(
     : new Date(sr.getTime() + 24 * 60 * 60 * 1000)
   const nowMs = (opts?.now ?? new Date()).getTime()
 
-  const daySlots = buildPeriodSlots('day', sr, ss, DAY_NAK, nowMs)
-  const nightSlots = buildPeriodSlots('night', ss, nextSr, NIGHT_NAK, nowMs)
+  const lang = opts?.lang ?? 'en'
+  const daySlots = buildPeriodSlots('day', sr, ss, DAY_NAK, nowMs, lang)
+  const nightSlots = buildPeriodSlots('night', ss, nextSr, NIGHT_NAK, nowMs, lang)
   const all = [...daySlots, ...nightSlots]
   const current = all.find((s) => s.isCurrent) ?? null
   const nextFavourable =
@@ -170,7 +177,9 @@ export function getDinmanRatriman(
   }
 }
 
-export function formatDinmanSlotLabel(slot: DinmanSlot): string {
-  const period = slot.period === 'day' ? 'Dinman' : 'Ratriman'
+export function formatDinmanSlotLabel(slot: DinmanSlot, lang: EngineLang = 'en'): string {
+  const period = lang === 'hi'
+    ? slot.period === 'day' ? 'दिनमान' : 'रात्रिमान'
+    : slot.period === 'day' ? 'Dinman' : 'Ratriman'
   return `${period} #${slot.slot} · ${slot.nakName}`
 }

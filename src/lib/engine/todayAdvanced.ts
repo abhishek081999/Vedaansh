@@ -19,6 +19,9 @@ import { GOCHAR_FAVOURABLE, houseFrom, isGocharPlanet } from '@/lib/engine/gocha
 import { KAKSHYA_LORDS, KAKSHYA_SPAN_DEG, kakshyaIndexFromDegree } from '@/lib/engine/ashtakavargaKakshya'
 import type { DashaDay, GocharRow, MoonDay, TodayPanchangInput, TodayTransitGraha } from '@/lib/engine/todayReading'
 import type { PredictionNatalInput } from '@/lib/engine/todayPredictions'
+import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { ADV_HI } from '@/lib/engine/locale/todayAdvanced.hi'
 
 // ── Input / output contracts ─────────────────────────────────
 
@@ -37,6 +40,8 @@ export interface BuildAdvancedInput {
   panchang: TodayPanchangInput
   reading: { moon: MoonDay; gochar: GocharRow[]; dasha: DashaDay[] }
   now?: Date
+  /** Language of the text fields */
+  lang?: EngineLang
 }
 
 export type Tone3 = 'good' | 'mixed' | 'caution'
@@ -70,6 +75,8 @@ export interface SudarshanaRow {
   houses: { lagna: number; moon: number; sun: number }
   good: number
   verdict: 'Confirmed supportive' | 'Mostly supportive' | 'Mostly testing' | 'Confirmed testing'
+  /** `verdict` in the requested language */
+  verdictLabel: string
 }
 
 export interface HoraSegment {
@@ -107,11 +114,16 @@ const BAV_PLANETS = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
 const BENEFIC = new Set<GrahaId>(['Ju', 'Ve', 'Me', 'Mo'])
 const HORA_LORDS = new Set<GrahaId>(['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'])
 const lordOfSign = (rashi: number): GrahaId => RASHI_LORDS[(rashi - 1 + 12) % 12].lord
-const kakshyaName = (l: string) => (l === 'As' ? 'Lagna' : GRAHA_NAMES[l as GrahaId] ?? l)
+const kakshyaName = (l: string, hi = false) =>
+  l === 'As' ? (hi ? ADV_HI.lagna : 'Lagna') : (hi ? GRAHA_HI[l as GrahaId] : GRAHA_NAMES[l as GrahaId]) ?? l
+const ordEn = (x: number) => `${x}${x === 1 ? 'st' : x === 2 ? 'nd' : x === 3 ? 'rd' : 'th'}`
 
 // ── 1. Kakshya ───────────────────────────────────────────────
 
 function buildKakshya(input: BuildAdvancedInput, nowMs: number): TodayAdvanced['kakshya'] {
+  const hi = input.lang === 'hi'
+  const gName = (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id])
+  const rName = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
   const av = input.natal.ashtakavarga
   if (!av) return null
   const rows: KakshyaRow[] = []
@@ -130,15 +142,19 @@ function buildKakshya(input: BuildAdvancedInput, nowMs: number): TodayAdvanced['
       bav >= 5 && hasBindu !== false ? 'strong'
         : bav <= 3 && hasBindu !== true ? 'weak'
           : 'steady'
-    const where = `${t.degree.toFixed(1)}° ${RASHI_NAMES[t.rashi]}`
-    const note = hasBindu === null
+    const where = `${t.degree.toFixed(1)}° ${rName(t.rashi)}`
+    const note = hi
+      ? fill(hasBindu === null ? ADV_HI.kakshyaPlain : hasBindu ? ADV_HI.kakshyaGood : ADV_HI.kakshyaBad, {
+          planet: gName(planet), where, n: bav, lord: kakshyaName(lord, true),
+        })
+      : hasBindu === null
       ? `${GRAHA_NAMES[planet]} at ${where}: ${bav} bindus in this sign.`
       : hasBindu
         ? `${GRAHA_NAMES[planet]} at ${where} is in ${kakshyaName(lord)}'s kakshya, which carries a bindu: its results can land cleanly now.`
         : `${GRAHA_NAMES[planet]} at ${where} is in ${kakshyaName(lord)}'s kakshya with no bindu: its results are held back until it moves on.`
     rows.push({
-      planet, planetName: GRAHA_NAMES[planet], rashiName: RASHI_NAMES[t.rashi],
-      degreeInSign: Math.round(t.degree * 10) / 10, kakshyaLord: kakshyaName(lord),
+      planet, planetName: gName(planet), rashiName: rName(t.rashi),
+      degreeInSign: Math.round(t.degree * 10) / 10, kakshyaLord: kakshyaName(lord, hi),
       hasBindu, bav, sav, verdict, note,
     })
   }
@@ -162,12 +178,12 @@ function buildKakshya(input: BuildAdvancedInput, nowMs: number): TodayAdvanced['
       const lord = KAKSHYA_LORDS[kakshyaIndexFromDegree(degInSign)]
       const favourable = moPrastara[lord]?.[rashi - 1] === 1
       const prev = moonWindows[moonWindows.length - 1]
-      if (prev && prev.favourable === favourable && prev.rashiName === RASHI_NAMES[rashi]) {
+      if (prev && prev.favourable === favourable && prev.rashiName === rName(rashi)) {
         prev.endIso = new Date(end).toISOString()
       } else {
         moonWindows.push({
           startIso: new Date(t).toISOString(), endIso: new Date(end).toISOString(),
-          rashiName: RASHI_NAMES[rashi], kakshyaLord: kakshyaName(lord), favourable, current: moonWindows.length === 0,
+          rashiName: rName(rashi), kakshyaLord: kakshyaName(lord, hi), favourable, current: moonWindows.length === 0,
         })
       }
       lon += ((end - t) / 86_400_000) * tm.speed
@@ -181,6 +197,7 @@ function buildKakshya(input: BuildAdvancedInput, nowMs: number): TodayAdvanced['
 // ── 2. Sudarshana Chakra ─────────────────────────────────────
 
 function buildSudarshana(input: BuildAdvancedInput): TodayAdvanced['sudarshana'] {
+  const hi = input.lang === 'hi'
   const natalBy = (id: GrahaId) => input.natal.grahas.find(g => g.id === id)
   const lagna = input.natal.lagnas.ascRashi
   const moonSign = natalBy('Mo')?.rashi
@@ -201,9 +218,11 @@ function buildSudarshana(input: BuildAdvancedInput): TodayAdvanced['sudarshana']
     const moonRow = input.reading.gochar.find(r => r.planet === planet)
     const moonGood = moonRow ? moonRow.status === 'favourable' : fav.includes(houses.moon)
     const good = (fav.includes(houses.lagna) ? 1 : 0) + (moonGood ? 1 : 0) + (fav.includes(houses.sun) ? 1 : 0)
+    const verdict: SudarshanaRow['verdict'] =
+      good === 3 ? 'Confirmed supportive' : good === 2 ? 'Mostly supportive' : good === 1 ? 'Mostly testing' : 'Confirmed testing'
     rows.push({
-      planet, planetName: GRAHA_NAMES[planet], houses, good,
-      verdict: good === 3 ? 'Confirmed supportive' : good === 2 ? 'Mostly supportive' : good === 1 ? 'Mostly testing' : 'Confirmed testing',
+      planet, planetName: hi ? GRAHA_HI[planet] : GRAHA_NAMES[planet], houses, good,
+      verdict, verdictLabel: hi ? ADV_HI.verdict[verdict] : verdict,
     })
   }
 
@@ -211,6 +230,12 @@ function buildSudarshana(input: BuildAdvancedInput): TodayAdvanced['sudarshana']
   const names = (v: SudarshanaRow['verdict']) => rows.filter(r => r.verdict === v).map(r => r.planetName)
   const sup = names('Confirmed supportive')
   const test = names('Confirmed testing')
+  if (hi) {
+    if (sup.length) summary.push(fill(ADV_HI.sudSupport, { names: sup.join(', '), verb: sup.length > 1 ? ADV_HI.isMany : ADV_HI.isOne }))
+    if (test.length) summary.push(fill(ADV_HI.sudTest, { names: test.join(', '), verb: test.length > 1 ? ADV_HI.isMany : ADV_HI.isOne }))
+    if (!sup.length && !test.length) summary.push(ADV_HI.sudNone)
+    return { rows, summary }
+  }
   if (sup.length) summary.push(`${sup.join(', ')} ${sup.length > 1 ? 'are' : 'is'} supportive from Lagna, Moon and Sun alike: the most dependable good influence${sup.length > 1 ? 's' : ''} today.`)
   if (test.length) summary.push(`${test.join(', ')} ${test.length > 1 ? 'are' : 'is'} testing from all three reference points: the most dependable pressure${test.length > 1 ? 's' : ''} today.`)
   if (!sup.length && !test.length) summary.push('The three reference points disagree about most planets today, so no single influence dominates.')
@@ -232,15 +257,17 @@ const ACTIVITIES: ActivityDef[] = [
 
 function buildTimeline(input: BuildAdvancedInput, nowMs: number): TodayAdvanced['timeline'] {
   const { natal, panchang, reading } = input
+  const hi = input.lang === 'hi'
+  const gName = (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id])
   const table = panchang.horaTable ?? []
   if (table.length === 0) return null
 
   const lagna = natal.lagnas.ascRashi
   const natalBy = (id: GrahaId) => natal.grahas.find(g => g.id === id)
   const avoidSpans = [
-    { label: 'Rahu Kalam', ...panchang.rahuKalam },
-    { label: 'Yamaganda', ...panchang.yamaganda },
-    { label: 'Gulika Kalam', ...panchang.gulikaKalam },
+    { label: hi ? ADV_HI.rahu : 'Rahu Kalam', ...panchang.rahuKalam },
+    { label: hi ? ADV_HI.yamaganda : 'Yamaganda', ...panchang.yamaganda },
+    { label: hi ? ADV_HI.gulika : 'Gulika Kalam', ...panchang.gulikaKalam },
   ].map(a => ({ label: a.label, start: ms(a.start), end: ms(a.end) })).filter(a => Number.isFinite(a.start) && Number.isFinite(a.end))
   const slots = [...(panchang.choghadiya?.day ?? []), ...(panchang.choghadiya?.night ?? [])]
   const abhijit = panchang.abhijitMuhurta ? { start: ms(panchang.abhijitMuhurta.start), end: ms(panchang.abhijitMuhurta.end) } : null
@@ -260,8 +287,8 @@ function buildTimeline(input: BuildAdvancedInput, nowMs: number): TodayAdvanced[
 
     const g = natalBy(h.lord)
     if (g) {
-      if (['exalted', 'own', 'moolatrikona'].includes(g.dignity)) { s += 9; notes.push(`${GRAHA_NAMES[h.lord]} is strong in your chart`) }
-      else if (g.dignity === 'debilitated') { s -= 9; notes.push(`${GRAHA_NAMES[h.lord]} is weak in your chart`) }
+      if (['exalted', 'own', 'moolatrikona'].includes(g.dignity)) { s += 9; notes.push(hi ? fill(ADV_HI.strong, { planet: gName(h.lord) }) : `${GRAHA_NAMES[h.lord]} is strong in your chart`) }
+      else if (g.dignity === 'debilitated') { s -= 9; notes.push(hi ? fill(ADV_HI.weak, { planet: gName(h.lord) }) : `${GRAHA_NAMES[h.lord]} is weak in your chart`) }
     }
     const ratio = natal.shadbala?.planets?.[h.lord]?.ratio
     if (typeof ratio === 'number') s += ratio >= 1.15 ? 5 : ratio < 0.85 ? -5 : 0
@@ -275,18 +302,22 @@ function buildTimeline(input: BuildAdvancedInput, nowMs: number): TodayAdvanced[
     const slot = slots.find(c => mid >= ms(c.start) && mid < ms(c.end))
     if (slot) {
       s += slot.quality === 'good' ? 7 : slot.quality === 'avoid' ? -9 : 0
-      notes.push(`${slot.name} choghadiya`)
+      notes.push(hi ? fill(ADV_HI.chog, { name: termHi(slot.name) }) : `${slot.name} choghadiya`)
     }
     const hit = avoidSpans.find(a => mid >= a.start && mid < a.end)
     if (hit) { s -= 14; notes.push(hit.label) }
-    if (abhijit && mid >= abhijit.start && mid < abhijit.end) { s += 10; notes.push('Abhijit Muhurta') }
+    if (abhijit && mid >= abhijit.start && mid < abhijit.end) { s += 10; notes.push(hi ? ADV_HI.abhijit : 'Abhijit Muhurta') }
 
     const score = Math.round(clamp(s, 5, 95))
     const owned = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(x => houseLord(x) === h.lord)
-    if (owned.length) notes.push(`rules your ${owned.slice(0, 3).map(x => `${x}${x === 1 ? 'st' : x === 2 ? 'nd' : x === 3 ? 'rd' : 'th'}`).join('/')}`)
+    if (owned.length) {
+      notes.push(hi
+        ? fill(ADV_HI.rules, { houses: owned.slice(0, 3).join('/') })
+        : `rules your ${owned.slice(0, 3).map(ordEn).join('/')}`)
+    }
 
     return {
-      lord: h.lord, lordName: GRAHA_NAMES[h.lord], startIso: h.start, endIso: h.end,
+      lord: h.lord, lordName: gName(h.lord), startIso: h.start, endIso: h.end,
       score, tone: score >= 62 ? 'good' : score < 42 ? 'caution' : 'mixed',
       current: nowMs >= start && nowMs < end, past: end <= nowMs, notes,
       avoid: Boolean(hit) || slot?.quality === 'avoid',
@@ -311,13 +342,17 @@ function buildTimeline(input: BuildAdvancedInput, nowMs: number): TodayAdvanced[
     const alt = top ? ranked.find(x => !taken.has(x.s.startIso) && x.fit >= top.fit - 8) : undefined
     const pick = (alt ?? top)?.s ?? null
     if (pick) taken.add(pick.startIso)
-    const housesTxt = def.houses.map(h => `${h}${h === 1 ? 'st' : h === 2 ? 'nd' : h === 3 ? 'rd' : 'th'}`).join('/')
-    const why = pick
+    const housesTxt = hi ? def.houses.join('/') : def.houses.map(ordEn).join('/')
+    const why = hi
+      ? pick
+        ? fill(personal.has(pick.lord) ? ADV_HI.whyLord : ADV_HI.whyKaraka, { lord: pick.lordName, houses: housesTxt })
+        : ADV_HI.whyNone
+      : pick
       ? personal.has(pick.lord)
         ? `${pick.lordName} is the lord of your ${housesTxt} house${def.houses.length > 1 ? 's' : ''}, so its hora speaks for this area of your life.`
         : `${pick.lordName} is the natural significator for this, and it scores well for you today.`
       : 'No clear hora remains today that is both suitable and clear of Rahu, Yamaganda and Gulika.'
-    return { activity: def.activity, slot: pick, why }
+    return { activity: hi ? ADV_HI.activities[def.activity] ?? def.activity : def.activity, slot: pick, why }
   })
 
   return { segments, best, activities }

@@ -12,6 +12,17 @@ import { abuseLimits, rateLimitMessages, RATE_LIMIT_WINDOWS } from '@/lib/securi
 import { logSecurityEvent } from '@/lib/security/events'
 import { withDocumentCsp } from '@/lib/security/csp'
 import { classifyProxyPath, isAuthSigninPost } from '@/lib/security/proxyRules'
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE,
+  LOCALE_HEADER,
+  PATHNAME_HEADER,
+  isAppLocale,
+  isLocalizablePath,
+  localizePath,
+  splitLocalePath,
+  type AppLocale,
+} from '@/i18n/config'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -28,8 +39,44 @@ function sameHostUrl(req: NextRequest, path: string): URL {
   return url
 }
 
+const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+
+/** /en/... is never canonical: English lives at the unprefixed path. */
+function englishPrefixTarget(pathname: string): string | null {
+  if (pathname === '/en') return '/'
+  if (pathname.startsWith('/en/')) return pathname.slice(3)
+  return null
+}
+
 export default auth(async (req: NextRequest & { auth: any }) => {
-  const { pathname } = req.nextUrl
+  // ── Locale: /hi/... is served by the same page with the Hindi locale ──
+  const requestPath = req.nextUrl.pathname
+  const localeParts = splitLocalePath(requestPath)
+  const { pathname } = localeParts
+  const locale: AppLocale = localeParts.locale
+  const localizable = isLocalizablePath(pathname)
+  const isPageGet = req.method === 'GET' && localizable
+
+  const englishTarget = isPageGet ? englishPrefixTarget(requestPath) : null
+  if (englishTarget) {
+    const url = sameHostUrl(req, englishTarget)
+    url.search = req.nextUrl.search
+    const res = NextResponse.redirect(url)
+    res.cookies.set(LOCALE_COOKIE, DEFAULT_LOCALE, { path: '/', maxAge: LOCALE_COOKIE_MAX_AGE, sameSite: 'lax' })
+    return res
+  }
+
+  // A visitor who chose Hindi keeps getting Hindi on unprefixed links.
+  const savedLocale = req.cookies.get(LOCALE_COOKIE)?.value
+  if (isPageGet && !localeParts.prefixed && isAppLocale(savedLocale) && savedLocale !== DEFAULT_LOCALE) {
+    const url = sameHostUrl(req, localizePath(pathname, savedLocale))
+    url.search = req.nextUrl.search
+    return NextResponse.redirect(url)
+  }
+
+  /** Same-host redirect to an unprefixed app path, kept in the visitor's locale. */
+  const localizedUrl = (path: string) => sameHostUrl(req, localizePath(path, locale))
+
   const session      = req.auth
   const route        = classifyProxyPath(pathname)
 
@@ -56,15 +103,15 @@ export default auth(async (req: NextRequest & { auth: any }) => {
       if (route.isAdminApi) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
-      const loginUrl = sameHostUrl(req, '/login')
-      loginUrl.searchParams.set('callbackUrl', pathname)
+      const loginUrl = localizedUrl('/login')
+      loginUrl.searchParams.set('callbackUrl', requestPath)
       return NextResponse.redirect(loginUrl)
     }
     if (session.user.role !== 'admin') {
       if (route.isAdminApi) {
         return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 })
       }
-      return NextResponse.redirect(sameHostUrl(req, '/'))
+      return NextResponse.redirect(localizedUrl('/'))
     }
   }
 
@@ -97,8 +144,8 @@ export default auth(async (req: NextRequest & { auth: any }) => {
 
   // ── Page route protection ─────────────────────────────────
   if (route.isProtectedPage && !session?.user) {
-    const loginUrl = sameHostUrl(req, '/login')
-    loginUrl.searchParams.set('callbackUrl', pathname)
+    const loginUrl = localizedUrl('/login')
+    loginUrl.searchParams.set('callbackUrl', requestPath)
     return NextResponse.redirect(loginUrl)
   }
 
@@ -106,7 +153,7 @@ export default auth(async (req: NextRequest & { auth: any }) => {
   if (route.isGoldPage && session?.user?.id) {
     const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan === 'free') {
-      return NextResponse.redirect(sameHostUrl(req, '/account?upgrade=gold'))
+      return NextResponse.redirect(localizedUrl('/account?upgrade=gold'))
     }
   }
 
@@ -114,13 +161,34 @@ export default auth(async (req: NextRequest & { auth: any }) => {
   if (route.isPlatinumPage && session?.user?.id) {
     const plan = (await getEffectivePlanForUserId(session.user.id)) ?? 'free'
     if (plan !== 'platinum') {
-      return NextResponse.redirect(sameHostUrl(req, '/account?upgrade=platinum'))
+      return NextResponse.redirect(localizedUrl('/account?upgrade=platinum'))
     }
   }
 
   // Flight requests skip only the CSP step below: their headers are client-supplied,
   // so they must never skip the gates above.
-  return withDocumentCsp(req, pathname)
+  // Locale + unprefixed path for the render (metadata builds canonical/hreflang
+  // from it). Document requests always get them; RSC navigations only when the
+  // URL is prefixed or the client sent its own copy (which is overwritten), so
+  // plain English navigations pass through untouched.
+  const localeHeaders = { [LOCALE_HEADER]: locale, [PATHNAME_HEADER]: pathname }
+  const requestHeaders =
+    localeParts.prefixed || req.headers.has(LOCALE_HEADER) || req.headers.has(PATHNAME_HEADER)
+      ? localeHeaders
+      : undefined
+  let rewriteTo: URL | undefined
+  if (localeParts.prefixed) {
+    // sameHostUrl, not req.nextUrl: Auth.js points req.url at AUTH_URL, and a
+    // rewrite to another origin would proxy the request to that site.
+    rewriteTo = sameHostUrl(req, pathname)
+    rewriteTo.search = req.nextUrl.search
+  }
+
+  const response = withDocumentCsp(req, pathname, { rewriteTo, requestHeaders, documentHeaders: localeHeaders })
+  if (localeParts.prefixed && isPageGet && savedLocale !== locale) {
+    response.cookies.set(LOCALE_COOKIE, locale, { path: '/', maxAge: LOCALE_COOKIE_MAX_AGE, sameSite: 'lax' })
+  }
+  return response
 })
 
 export const config = {

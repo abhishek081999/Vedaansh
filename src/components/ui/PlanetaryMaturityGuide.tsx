@@ -7,15 +7,22 @@
 
 import React, { useState } from 'react'
 import { BookOpen, ChevronDown, Hourglass } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import {
+  getPlanetaryMaturityNotes,
   getPlanetaryMaturityRows,
-  PLANETARY_MATURITY_NOTES,
 } from '@/lib/engine/planetaryMaturity'
 import { formatKarakaHouseLabels } from '@/lib/engine/naturalHouseKarakas'
 import styles from './PlanetaryMaturityGuide.module.css'
 
 export function PlanetaryMaturityGuide() {
-  const rows = getPlanetaryMaturityRows()
+  const t = useTranslations('planetsB.maturity')
+  const { lang, hi } = useLang()
+  const rows = getPlanetaryMaturityRows(lang)
+  const notes = getPlanetaryMaturityNotes(lang)
+  const houseLabels = (houses: number[]) =>
+    hi ? (houses.length ? houses.map((h) => t('houseShort', { n: h })).join(', ') : '—') : formatKarakaHouseLabels(houses)
   const [notesOpen, setNotesOpen] = useState(true)
 
   return (
@@ -26,10 +33,7 @@ export function PlanetaryMaturityGuide() {
         color: 'var(--text-secondary)',
         lineHeight: 1.55,
       }}>
-        Classical ages when each graha is said to mature and begin delivering its themes more fully.
-        Houses listed are natural (naisargika) karakatvas — after maturity, those bhava themes are
-        classically said to deliver more fully. Teaching reference only, not a prediction guarantee;
-        distinct from energy-cycle activation, natal vakri windows, and Jaimini Sthira/Chara karakas.
+        {t('intro')}
       </p>
 
       <div style={{
@@ -52,10 +56,10 @@ export function PlanetaryMaturityGuide() {
             color: 'var(--text-muted)',
           }}
         >
-          <span>Planet</span>
-          <span>Maturity</span>
-          <span>Houses as karaka</span>
-          <span>Significances after maturity</span>
+          <span>{t('colPlanet')}</span>
+          <span>{t('colMaturity')}</span>
+          <span>{t('colHouses')}</span>
+          <span>{t('colSignificances')}</span>
         </div>
 
         {rows.map((row) => (
@@ -102,7 +106,7 @@ export function PlanetaryMaturityGuide() {
                 color: 'var(--text-muted)',
                 marginLeft: 4,
               }}>
-                yrs
+                {t('yrs')}
               </span>
             </div>
             <div className={styles.fullRow} style={{
@@ -112,11 +116,11 @@ export function PlanetaryMaturityGuide() {
               fontVariantNumeric: 'tabular-nums',
               lineHeight: 1.45,
             }}>
-              <span className={styles.cellLabel}>Houses as karaka</span>
-              {formatKarakaHouseLabels(row.karakaHouses)}
+              <span className={styles.cellLabel}>{t('colHouses')}</span>
+              {houseLabels(row.karakaHouses)}
             </div>
             <div className={styles.fullRow}>
-            <span className={styles.cellLabel}>Significances after maturity</span>
+            <span className={styles.cellLabel}>{t('colSignificances')}</span>
             <ul style={{
               margin: 0,
               padding: '0 0 0 1.1rem',
@@ -163,7 +167,7 @@ export function PlanetaryMaturityGuide() {
             fontSize: '0.9rem',
             color: 'var(--text-primary)',
           }}>
-            Important points to remember
+            {t('notesTitle')}
           </span>
           <ChevronDown
             size={16}
@@ -184,7 +188,7 @@ export function PlanetaryMaturityGuide() {
             gap: '0.85rem',
             borderTop: '1px solid var(--border-soft)',
           }}>
-            {PLANETARY_MATURITY_NOTES.map((note) => (
+            {notes.map((note) => (
               <div key={note.id} style={{ paddingTop: '0.85rem' }}>
                 <h4 style={{
                   margin: '0 0 0.35rem',

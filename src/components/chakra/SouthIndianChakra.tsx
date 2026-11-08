@@ -14,6 +14,7 @@ import type { GrahaData, Rashi, ArudhaData, LagnaData } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { NAKSHATRA_SHORT } from '@/types/astrology'
 import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { useChartLabels } from './useChartLabels'
 import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
 import { getAspectedHouses } from '@/lib/engine/aspects'
 import type { GrahaId } from '@/types/astrology'
@@ -104,6 +105,7 @@ export function SouthIndianChakra({
   highlightHouses = [],
   showTooltip    = false,
 }: SouthIndianProps) {
+  const L = useChartLabels()
   const cell = size / 4
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -228,7 +230,7 @@ export function SouthIndianChakra({
       width={size}
       height={size}
       style={{ display: 'block', maxWidth: '100%', height: 'auto', overflow: 'visible' }}
-      aria-label="South Indian birth chart"
+      aria-label={L.t('southAria')}
     >
       {/* Background — transparent for parchment theme */}
       <rect width={size} height={size} fill="transparent" />
@@ -385,9 +387,9 @@ export function SouthIndianChakra({
                     fontWeight="var(--fw-chart-planet)"
                     dominantBaseline="middle"
                   >
-                    <tspan>{g.id}</tspan>
+                    <tspan>{L.graha(String(g.id))}</tspan>
                     {g.isRetro && (
-                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">R</tspan>
+                      <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">{L.retro}</tspan>
                     )}
                     {g.isCombust && (
                       <tspan fontSize={subMarkFs} fontWeight="700" baselineShift="0.28em">C</tspan>
@@ -481,7 +483,7 @@ export function SouthIndianChakra({
             fill={tg.isRetro ? 'rgba(200,140,255,0.90)' : 'rgba(139,124,246,0.90)'}
             style={{ filter: 'drop-shadow(0 0 3px rgba(139,124,246,0.5))' }}
           >
-            <tspan>{tg.id}</tspan>
+            <tspan>{L.graha(String(tg.id))}</tspan>
             {tg.isRetro && <tspan fontSize={tSub} baselineShift="super">℞</tspan>}
             {showDegrees ? <tspan>{` ${Math.floor(tg.degree)}°`}</tspan> : null}
           </text>
@@ -510,7 +512,7 @@ export function SouthIndianChakra({
               fontFamily="var(--font-chart-planets)"
               fill={cg.isRetro ? 'var(--rose)' : 'var(--gold)'}
             >
-              <tspan>{cg.id}</tspan>
+              <tspan>{L.graha(String(cg.id))}</tspan>
               {cg.isRetro && <tspan fontSize={cSub} baselineShift="super">℞</tspan>}
               {showDegrees ? <tspan fontSize={cSub*0.9} dy={cFs*0.2}>{` ${Math.floor(cg.degree)}°`}</tspan> : null}
             </text>

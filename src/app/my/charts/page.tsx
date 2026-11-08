@@ -5,6 +5,7 @@
 //  Click a chart → loads it into the main calculator on home page
 // ─────────────────────────────────────────────────────────────
 
+import { Link, useRouter } from '@/i18n/navigation'
 import React, { useState, useEffect, useCallback } from 'react'
 import { ChartNotes } from '@/components/ui/ChartNotes'
 import { ChartTagsInput } from '@/components/ui/ChartTagsInput'
@@ -12,9 +13,7 @@ import { formatTagLabel } from '@/lib/chart/tags'
 import { BulkImport } from '@/components/ui/BulkImport'
 import { SavedMilanLibrary } from '@/components/ui/SavedMilanLibrary'
 import { SavedNumerologyLibrary } from '@/components/ui/SavedNumerologyLibrary'
-import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'

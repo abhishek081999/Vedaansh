@@ -13,6 +13,27 @@ import type {
   ShadbalaResult,
 } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_LORDS } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { VIM_HOUSE_THEME_HI, VIM_INSIGHT_HI, VIM_TONE_HI } from '@/lib/engine/locale/vimshottari.hi'
+import {
+  DIGNITY_HI,
+  KARAKA_NAME_HI,
+  LAGNA_SPECIAL_HI,
+  LAGNA_SPECIAL_PREFIX_HI,
+  MARAKA_NOTE_HI,
+  SHADBALA_BAND_HI,
+  VIM_CHARA_HI,
+  VIM_D9_HI,
+  VIM_DISPOSITOR_HI,
+  VIM_FLAG_HI,
+  VIM_LAYER_HI,
+  VIM_LIFE_AREA_HI,
+  VIM_RELATION_HI,
+  VIM_SUMMARY_HI,
+  YOGAKARAKA_NOTE_HI,
+} from '@/lib/engine/locale/vimshottariAnalysis.hi'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { getMarakaLords } from '@/lib/engine/marakaBadhaka'
 import { DASHA_SEQUENCE } from '@/lib/engine/dasha/vimshottari'
 import { KARAKA_DESCRIPTIONS, type KarakaRole8 } from '@/lib/engine/karakas'
 import { getMarakaBadhakaFlags } from '@/lib/engine/marakaBadhaka'
@@ -133,6 +154,8 @@ export interface VimshottariCrispInsight {
   bullets: string[]
   /** Soft watch-out (optional) */
   watch: string | null
+  /** Display text for toneLabel; set only for non-English output. Compare on toneLabel. */
+  toneText?: string
 }
 
 export interface VimshottariPeriodAnalysis {
@@ -174,6 +197,8 @@ export interface AnalyzeVimshottariInput {
   ashtakavarga?: AshtakavargaResult | null
   /** D9 grahas when available */
   navamshaGrahas?: GrahaData[] | null
+  /** Language of the plain-language insight (default English). */
+  lang?: EngineLang
 }
 
 /** Whole-sign SIGN_LORDS — same table as marakaBadhaka (client-safe). */
@@ -368,7 +393,9 @@ function lordSnapshot(
 export function buildDispositorChain(
   lord: string,
   grahas: GrahaData[],
+  lang: EngineLang = 'en',
 ): DispositorChain {
+  if (lang === 'hi') return buildDispositorChainHi(lord, grahas)
   const g = findGraha(grahas, lord)
   const periodName = GRAHA_NAMES[lord as GrahaId] ?? lord
   const links: DispositorLink[] = [
@@ -401,6 +428,70 @@ export function buildDispositorChain(
     : `The dispositor chain for ${periodName} is incomplete. Placement data is missing.`
 
   return { links, summary }
+}
+
+function hiName(id: string): string {
+  return GRAHA_HI[id as GrahaId] ?? id
+}
+
+function buildDispositorChainHi(lord: string, grahas: GrahaData[]): DispositorChain {
+  const T = VIM_DISPOSITOR_HI
+  const g = findGraha(grahas, lord)
+  const periodName = hiName(lord)
+  const links: DispositorLink[] = [
+    { lord: lord as GrahaId, role: 'period', label: fill(T.period, { name: periodName }) },
+  ]
+  if (g) {
+    const signLord = SIGN_LORDS[g.rashi]
+    if (signLord) {
+      links.push({ lord: signLord, role: 'sign', label: fill(T.sign, { name: hiName(signLord), period: periodName }) })
+    }
+    const nakLord = NAKSHATRA_LORDS[g.nakshatraIndex] as GrahaId | undefined
+    if (nakLord) {
+      links.push({ lord: nakLord, role: 'nakshatra', label: fill(T.nakshatra, { name: hiName(nakLord) }) })
+    }
+  }
+  const summary = links.length >= 3
+    ? fill(T.summary, { a: hiName(links[0].lord), b: hiName(links[1].lord), c: hiName(links[2].lord) })
+    : fill(T.incomplete, { name: periodName })
+  return { links, summary }
+}
+
+function buildCharaKarakaNoteHi(
+  mahadasha: VimshottariLordSnapshot,
+  antardasha: VimshottariLordSnapshot | null,
+): string | null {
+  const parts: string[] = []
+  const describe = (snap: VimshottariLordSnapshot, layer: 'MD' | 'AD') => {
+    const role = snap.charaKaraka
+    if (!role) return
+    const tpl = role === 'AK' || role === 'AmK' || role === 'DK' ? VIM_CHARA_HI[role] : VIM_CHARA_HI.other
+    parts.push(fill(tpl, { layer: VIM_LAYER_HI[layer], role: KARAKA_NAME_HI[role] ?? role }))
+  }
+  describe(mahadasha, 'MD')
+  if (antardasha) describe(antardasha, 'AD')
+  return parts.length ? parts.slice(0, 2).join(' ') : null
+}
+
+function buildD9NoteHi(
+  mahadasha: VimshottariLordSnapshot,
+  antardasha: VimshottariLordSnapshot | null,
+): string | null {
+  const T = VIM_D9_HI
+  const parts: string[] = []
+  const strong = (d: string | null) => d === 'exalted' || d === 'own' || d === 'moolatrikona'
+  const describe = (snap: VimshottariLordSnapshot, layer: 'MD' | 'AD') => {
+    if (!snap.d9Dignity && !snap.isVargottama) return
+    const v = { layer: VIM_LAYER_HI[layer], dignity: DIGNITY_HI[snap.d9Dignity ?? ''] ?? snap.d9Dignity ?? '' }
+    if (snap.isVargottama) parts.push(fill(T.vargottama, v))
+    if (strong(snap.d9Dignity)) parts.push(fill(T.strong, v))
+    else if (snap.d9Dignity === 'debilitated' || isEnemyDignity(snap.d9Dignity)) {
+      parts.push(fill(strong(snap.dignity) ? T.hollow : T.weak, v))
+    }
+  }
+  describe(mahadasha, 'MD')
+  if (antardasha) describe(antardasha, 'AD')
+  return parts.length ? parts.slice(0, 2).join(' ') : null
 }
 
 function buildCharaKarakaNote(
@@ -446,22 +537,12 @@ const LIFE_AREA_DEFS: Array<{
 export function buildLifeAreaActivation(
   mahadasha: VimshottariLordSnapshot,
   antardasha: VimshottariLordSnapshot | null,
+  lang: EngineLang = 'en',
 ): VimshottariLifeAreaMap {
-  const scoreHouse = (h: number): number => {
-    let s = 0
-    if (mahadasha.housesRuled.includes(h)) s += 3
-    if (mahadasha.house === h) s += 2
-    if (antardasha?.housesRuled.includes(h)) s += 2
-    if (antardasha?.house === h) s += 1
-    return s
-  }
+  const scored = scoreLifeAreas(mahadasha, antardasha)
+  if (lang === 'hi') return lifeAreasHi(scored)
 
-  const areas: LifeAreaActivation[] = LIFE_AREA_DEFS.map(def => {
-    const houseScores = def.houses.map(h => ({ h, s: scoreHouse(h) }))
-    const total = houseScores.reduce((a, x) => a + x.s, 0)
-    const activeHouses = houseScores.filter(x => x.s > 0).map(x => x.h)
-    const strength: LifeAreaActivation['strength'] =
-      total >= 5 ? 'high' : total >= 3 ? 'medium' : total >= 1 ? 'low' : 'quiet'
+  const areas: LifeAreaActivation[] = scored.map(({ def, strength, activeHouses }) => {
     const themes = activeHouses.map(h => HOUSE_THEME[h] ?? `H${h}`).join('; ')
     const note =
       strength === 'quiet'
@@ -476,6 +557,50 @@ export function buildLifeAreaActivation(
     : 'No single area of life dominates. The houses are mixed.'
 
   return { areas, headline }
+}
+
+interface ScoredLifeArea {
+  def: (typeof LIFE_AREA_DEFS)[number]
+  strength: LifeAreaActivation['strength']
+  activeHouses: number[]
+}
+
+/** Score MD/AD owned + occupied houses per life area (shared by every language). */
+function scoreLifeAreas(
+  mahadasha: VimshottariLordSnapshot,
+  antardasha: VimshottariLordSnapshot | null,
+): ScoredLifeArea[] {
+  const scoreHouse = (h: number): number => {
+    let s = 0
+    if (mahadasha.housesRuled.includes(h)) s += 3
+    if (mahadasha.house === h) s += 2
+    if (antardasha?.housesRuled.includes(h)) s += 2
+    if (antardasha?.house === h) s += 1
+    return s
+  }
+  return LIFE_AREA_DEFS.map(def => {
+    const houseScores = def.houses.map(h => ({ h, s: scoreHouse(h) }))
+    const total = houseScores.reduce((a, x) => a + x.s, 0)
+    const activeHouses = houseScores.filter(x => x.s > 0).map(x => x.h)
+    const strength: LifeAreaActivation['strength'] =
+      total >= 5 ? 'high' : total >= 3 ? 'medium' : total >= 1 ? 'low' : 'quiet'
+    return { def, strength, activeHouses }
+  })
+}
+
+/** Hindi life-area map: same ids, houses and strengths as English. */
+function lifeAreasHi(scored: ScoredLifeArea[]): VimshottariLifeAreaMap {
+  const T = VIM_LIFE_AREA_HI
+  const areas: LifeAreaActivation[] = scored.map(({ def, strength, activeHouses }) => {
+    const themes = activeHouses.map(h => VIM_HOUSE_THEME_HI[h] ?? fill(VIM_INSIGHT_HI.house, { n: h })).join('; ')
+    const note = strength === 'quiet' ? T.quiet : fill(T.active, { houses: activeHouses.join(T.houseJoin), themes })
+    return { id: def.id, label: T.labels[def.id] ?? def.label, houses: def.houses, strength, note }
+  })
+  const hot = areas.filter(a => a.strength === 'high' || a.strength === 'medium')
+  return {
+    areas,
+    headline: hot.length ? fill(T.headline, { areas: hot.map(a => a.label).join(', ') }) : T.headlineNone,
+  }
 }
 
 function buildD9Note(
@@ -598,7 +723,9 @@ export function buildCrispInsight(
   mix: { favorableShare: number; challengingShare: number; neutralShare: number },
   mahaLord: string,
   antarLord: string | null,
+  lang: EngineLang = 'en',
 ): VimshottariCrispInsight {
+  if (lang === 'hi') return buildCrispInsightHi(mahadasha, antardasha, flags, mix, mahaLord, antarLord)
   const mahaInterp = getVimshottariInterpretation(mahaLord)
   const antarHint = antarLord ? getVimshottariAntarHint(mahaLord, antarLord) : null
 
@@ -690,6 +817,68 @@ export function buildCrispInsight(
     headline,
     bullets: trimmed.length ? trimmed : [mahaInterp?.primaryPositive ?? 'Mixed themes of life come into play.'],
     watch: watches[0] ?? null,
+  }
+}
+
+function houseThemeListHi(houses: number[]): string {
+  return houses
+    .slice(0, 3)
+    .map(h => VIM_HOUSE_THEME_HI[h] ?? fill(VIM_INSIGHT_HI.house, { n: h }))
+    .join('; ')
+}
+
+/** Hindi twin of buildCrispInsight: same tone and selection rules, Hindi sentences. */
+function buildCrispInsightHi(
+  mahadasha: VimshottariLordSnapshot,
+  antardasha: VimshottariLordSnapshot | null,
+  flags: VimshottariFlag[],
+  mix: { favorableShare: number; challengingShare: number; neutralShare: number },
+  mahaLord: string,
+  antarLord: string | null,
+): VimshottariCrispInsight {
+  const T = VIM_INSIGHT_HI
+  const en = buildCrispInsight(mahadasha, antardasha, flags, mix, mahaLord, antarLord)
+  const mahaInterp = getVimshottariInterpretation(mahaLord, 'hi')
+  const antarHint = antarLord ? getVimshottariAntarHint(mahaLord, antarLord, 'hi') : null
+  const theme = (h: number) => VIM_HOUSE_THEME_HI[h] ?? fill(T.house, { n: h })
+  const has = (id: string) => flags.some(f => f.id === id)
+
+  const bullets: string[] = []
+  if (antarHint) bullets.push(antarHint)
+  else if (mahaInterp) bullets.push(mahaInterp.lifeEvents)
+  if (mahadasha.housesRuled.length) {
+    const placed = mahadasha.house != null ? fill(T.mdPlaced, { theme: theme(mahadasha.house) }) : ''
+    bullets.push(fill(T.mdActivates, { themes: houseThemeListHi(mahadasha.housesRuled), placed }))
+  }
+  if (antardasha && antardasha.housesRuled.length && antardasha.lord !== mahadasha.lord) {
+    const placed = antardasha.house != null ? fill(T.adPlaced, { theme: theme(antardasha.house) }) : ''
+    bullets.push(fill(T.adColours, { themes: houseThemeListHi(antardasha.housesRuled), placed }))
+  }
+  if (has('yogakaraka') || mahadasha.isYogakaraka) bullets.push(T.yogakaraka)
+  if (has('lp-10in10')) bullets.push(T.lp10in10)
+  if (has('lp-4-10')) bullets.push(T.lp410)
+  if (has('cl-rajayoga-antar')) bullets.push(T.rajayogaAntar)
+  if (flags.some(f => f.id.startsWith('cl-node-kendra'))) bullets.push(T.nodeKendra)
+  if (has('lp-5-9')) bullets.push(T.lp59)
+  const trimmed = bullets.filter(Boolean).slice(0, 3)
+
+  const watchOrder: Array<[string, string]> = [
+    ['chidra', T.chidra], ['arishta', T.arishta], ['avarohini', T.avarohini], ['rikta', T.rikta],
+    ['maraka', T.maraka], ['cl-kendradhipati', T.kendradhipati], ['retrograde', T.retrograde],
+  ]
+  const watch = watchOrder.find(([id]) => has(id))?.[1] ?? null
+
+  const keyTheme = mahaInterp?.keyTheme ?? T.themesFallback
+  const headline = fill(
+    en.toneLabel === 'Favorable stretch' ? T.favourable : en.toneLabel === 'Challenging stretch' ? T.challenging : T.mixed,
+    { theme: keyTheme },
+  )
+  return {
+    toneLabel: en.toneLabel,
+    toneText: VIM_TONE_HI[en.toneLabel],
+    headline,
+    bullets: trimmed.length ? trimmed : [mahaInterp?.primaryPositive ?? T.bulletFallback],
+    watch,
   }
 }
 
@@ -1095,6 +1284,7 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
     ageAtMahaStartYears: ageAtMahaStart(nodes, mahaNode),
     shadbala,
     ashtakavarga,
+    lang: input.lang,
   })
   for (const { flag, weight } of classical) {
     if (weight > 0) fav += weight
@@ -1144,15 +1334,53 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
     mix,
     mahaNode.lord,
     antarNode?.lord ?? null,
+    input.lang,
   )
 
-  const lifeAreas = buildLifeAreaActivation(mahadasha, antardasha)
-  const d9Note = buildD9Note(mahadasha, antardasha)
+  const lang = input.lang ?? 'en'
+  const lifeAreas = buildLifeAreaActivation(mahadasha, antardasha, lang)
+  const d9Note = lang === 'hi' ? buildD9NoteHi(mahadasha, antardasha) : buildD9Note(mahadasha, antardasha)
   const dispositorChains = {
-    mahadasha: buildDispositorChain(mahaNode.lord, grahas),
-    antardasha: antarNode ? buildDispositorChain(antarNode.lord, grahas) : null,
+    mahadasha: buildDispositorChain(mahaNode.lord, grahas, lang),
+    antardasha: antarNode ? buildDispositorChain(antarNode.lord, grahas, lang) : null,
   }
-  const charaKarakaNote = buildCharaKarakaNote(mahadasha, antardasha)
+  const charaKarakaNote = lang === 'hi'
+    ? buildCharaKarakaNoteHi(mahadasha, antardasha)
+    : buildCharaKarakaNote(mahadasha, antardasha)
+
+  if (lang === 'hi') {
+    const hiCtx: FlagHiContext = {
+      ascRashi,
+      mahadasha,
+      riktaLord,
+      aroTarget,
+      seqIdx,
+      relation,
+      chidraPhase: antarNode ? isChidraAntardasha(mahaNode.lord, antarNode.lord).phase : null,
+    }
+    const hiParts = summaryParts.map(p => VIM_SUMMARY_HI.parts[SUMMARY_PART_KEY[p] ?? ''] ?? p)
+    return {
+      mahadasha,
+      antardasha,
+      pratyantardasha,
+      relation: relation ? { ...relation, label: VIM_RELATION_HI[relation.kind ?? 'none'] ?? relation.label } : null,
+      flags: flags.map(f => localizeFlagHi(f, hiCtx)),
+      ...mix,
+      yogakarakaNote: YOGAKARAKA_NOTE_HI[ascRashi] ?? yk.note,
+      lagnaSpecialNote: LAGNA_SPECIAL_HI[ascRashi]
+        ? fill(LAGNA_SPECIAL_PREFIX_HI, { rashi: RASHI_HI[ascRashi], note: LAGNA_SPECIAL_HI[ascRashi] })
+        : profile.specialNote,
+      marakaNote: fill(MARAKA_NOTE_HI[ascRashi] ?? MARAKA_NOTE_HI.other, {
+        names: getMarakaLords(ascRashi).map(id => hiName(id)).join(' / '),
+      }),
+      summary: hiParts.length ? fill(VIM_SUMMARY_HI.withParts, { parts: hiParts.join(', ') }) : VIM_SUMMARY_HI.plain,
+      insight,
+      lifeAreas,
+      d9Note,
+      dispositorChains,
+      charaKarakaNote,
+    }
+  }
 
   return {
     mahadasha,
@@ -1171,4 +1399,56 @@ export function analyzeVimshottariPeriod(input: AnalyzeVimshottariInput): Vimsho
     dispositorChains,
     charaKarakaNote,
   }
+}
+
+const SUMMARY_PART_KEY: Record<string, string> = {
+  'Yogakaraka support': 'yogakaraka',
+  'Chidra phase': 'chidra',
+  'Rikta pressure': 'rikta',
+  'Arishta affliction': 'arishta',
+  'Arohini lift': 'arohini',
+  'Avarohini strain': 'avarohini',
+  'Laghu Parashari yoga': 'laghu',
+  'rajayoga antar': 'rajayoga',
+  'harmonious MD–AD link': 'harmonious',
+  'strained MD–AD link': 'strained',
+}
+
+interface FlagHiContext {
+  ascRashi: Rashi
+  mahadasha: VimshottariLordSnapshot
+  riktaLord: VimshottariLordSnapshot | null
+  aroTarget: VimshottariLordSnapshot | null
+  seqIdx: number
+  relation: MdAdRelation | null
+  chidraPhase: 'beginning' | 'end' | null
+}
+
+/**
+ * Hindi label/detail for a flag built by analyzeVimshottariPeriod.
+ * Classical (`cl-*`) flags already arrive in Hindi from collectClassicalDashaRules.
+ */
+function localizeFlagHi(f: VimshottariFlag, c: FlagHiContext): VimshottariFlag {
+  if (f.id.startsWith('cl-')) return f
+  const charaMatch = f.id.match(/^(chara-(?:ak|amk|dk))-(\w+)$/)
+  const key = charaMatch
+    ? charaMatch[1]
+    : f.id === 'chidra'
+      ? `chidra-${c.chidraPhase ?? 'beginning'}`
+      : f.id
+  const T = VIM_FLAG_HI[key]
+  if (!T) return f
+  const md = c.mahadasha
+  const relationHi = c.relation ? VIM_RELATION_HI[c.relation.kind ?? 'none'] ?? c.relation.label : ''
+  const v: Record<string, string | number> = {
+    house: md.house ?? '',
+    note: YOGAKARAKA_NOTE_HI[c.ascRashi] ?? f.detail,
+    ratio: md.shadbalaRatio != null ? md.shadbalaRatio.toFixed(2) : '',
+    band: SHADBALA_BAND_HI[md.shadbalaBand ?? 'strong'] ?? md.shadbalaBand ?? '',
+    lord: hiName(charaMatch?.[2] ?? (key === 'rikta' ? c.riktaLord?.lord : c.aroTarget?.lord) ?? ''),
+    bindus: (key === 'rikta' ? c.riktaLord?.bavBindus : md.bavBindus) ?? '',
+    n: c.seqIdx + 1,
+    relation: relationHi,
+  }
+  return { ...f, label: fill(T.label, v), detail: fill(T.detail, v) }
 }

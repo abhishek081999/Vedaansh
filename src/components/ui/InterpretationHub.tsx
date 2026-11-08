@@ -6,8 +6,8 @@
 //  planet strip, and expandable insight cards.
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import {
   BookOpen,
   ChevronDown,
@@ -38,6 +38,18 @@ import { BarList, Gauge, Legend, Meter, RadarChart, SegmentRing, VizCard, toneFo
 import { lordColor } from '@/components/dasha/dashaPalette'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import styles from './InterpretationHub.module.css'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+
+/** Graha / rashi names in the page language. */
+function useNames() {
+  const { hi } = useLang()
+  return {
+    graha: (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id]) ?? id,
+    rashiShort: (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_SHORT[r]),
+  }
+}
 
 interface InterpretationHubProps {
   chart: ChartOutput
@@ -55,14 +67,14 @@ const GLYPH: Record<string, string> = {
   Su: '☉', Mo: '☽', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋',
 }
 
-const SECTION_META: Record<HubSectionId, { label: string; Icon: typeof Sparkles }> = {
-  overview: { label: 'Overview', Icon: Sparkles },
-  planets: { label: 'Planets', Icon: Orbit },
-  houses: { label: 'Houses', Icon: Home },
-  rashis: { label: 'Rashis', Icon: Compass },
-  strength: { label: 'Strength', Icon: GaugeIcon },
-  transit: { label: 'Transit', Icon: BookOpen },
-  dasha: { label: 'Dasha', Icon: Timer },
+const SECTION_META: Record<HubSectionId, { Icon: typeof Sparkles }> = {
+  overview: { Icon: Sparkles },
+  planets: { Icon: Orbit },
+  houses: { Icon: Home },
+  rashis: { Icon: Compass },
+  strength: { Icon: GaugeIcon },
+  transit: { Icon: BookOpen },
+  dasha: { Icon: Timer },
 }
 
 const TONE_COLOR: Record<HubTone, string> = {
@@ -74,15 +86,15 @@ const TONE_COLOR: Record<HubTone, string> = {
 
 function toneStyles(tone: HubTone) {
   if (tone === 'supportive') {
-    return { bg: 'rgba(78,205,196,0.10)', border: 'rgba(78,205,196,0.35)', text: 'var(--teal)', label: 'Supportive' }
+    return { bg: 'rgba(78,205,196,0.10)', border: 'rgba(78,205,196,0.35)', text: 'var(--teal)', label: 'supportive' as const }
   }
   if (tone === 'caution') {
-    return { bg: 'rgba(224,123,142,0.12)', border: 'rgba(224,123,142,0.35)', text: 'var(--rose)', label: 'Caution' }
+    return { bg: 'rgba(224,123,142,0.12)', border: 'rgba(224,123,142,0.35)', text: 'var(--rose)', label: 'caution' as const }
   }
   if (tone === 'mixed') {
-    return { bg: 'rgba(201,168,76,0.10)', border: 'rgba(201,168,76,0.35)', text: 'var(--text-gold)', label: 'Mixed' }
+    return { bg: 'rgba(201,168,76,0.10)', border: 'rgba(201,168,76,0.35)', text: 'var(--text-gold)', label: 'mixed' as const }
   }
-  return { bg: 'var(--surface-1, transparent)', border: 'var(--border-soft)', text: 'var(--text-muted)', label: 'Note' }
+  return { bg: 'var(--surface-1, transparent)', border: 'var(--border-soft)', text: 'var(--text-muted)', label: 'note' as const }
 }
 
 function countTones(items: HubItem[]) {
@@ -106,6 +118,7 @@ function HubCard({
   focused?: boolean
   onFocus?: () => void
 }) {
+  const t = useTranslations('chartTools.hub')
   const [open, setOpen] = useState(false)
   const color = toneStyles(item.tone)
   const ref = useRef<HTMLDivElement>(null)
@@ -145,7 +158,7 @@ function HubCard({
             }}
           >
             <span className={styles.toneDot} style={{ background: color.text }} aria-hidden />
-            {color.label}
+            {t(`tone.${color.label}`)}
           </div>
         ) : null}
       </div>
@@ -198,7 +211,7 @@ function HubCard({
             }}
           >
             {open ? <ChevronUp size={12} aria-hidden /> : <ChevronDown size={12} aria-hidden />}
-            {open ? 'Hide details' : `Show ${item.points.length} detail${item.points.length === 1 ? '' : 's'}`}
+            {open ? t('hideDetails') : t('showDetails', { n: item.points.length })}
           </button>
           {open ? (
             <ul className={styles.detailList}>
@@ -220,17 +233,19 @@ function HubCard({
 }
 
 function ToneBalanceViz({ section }: { section: HubSection }) {
+  const t = useTranslations('chartTools.hub')
+  const { hi } = useLang()
   const counts = countTones(section.items)
   const total = section.items.length || 1
   const supportiveShare = Math.round((counts.supportive / total) * 100)
   return (
     <VizCard
-      title="Reading balance"
-      caption={`${section.items.length} notes in ${section.label.toLowerCase()}`}
+      title={t('balanceTitle')}
+      caption={t('balanceCaption', { n: section.items.length, section: hi ? section.label : section.label.toLowerCase() })}
       legend={[
-        { label: 'Supportive', color: TONE_COLOR.supportive },
-        { label: 'Mixed', color: TONE_COLOR.mixed },
-        { label: 'Caution', color: TONE_COLOR.caution },
+        { label: t('tone.supportive'), color: TONE_COLOR.supportive },
+        { label: t('tone.mixed'), color: TONE_COLOR.mixed },
+        { label: t('tone.caution'), color: TONE_COLOR.caution },
       ]}
     >
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', justifyContent: 'center' }}>
@@ -240,21 +255,21 @@ function ToneBalanceViz({ section }: { section: HubSection }) {
           thickness={18}
           showLabels={false}
           centerValue={`${supportiveShare}%`}
-          centerLabel="Support"
-          ariaLabel="Tone balance"
+          centerLabel={t('support')}
+          ariaLabel={t('toneAria')}
           segments={[
-            { label: 'Supportive', value: counts.supportive, max: Math.max(1, counts.supportive), color: TONE_COLOR.supportive },
-            { label: 'Mixed', value: counts.mixed, max: Math.max(1, counts.mixed), color: TONE_COLOR.mixed },
-            { label: 'Caution', value: counts.caution, max: Math.max(1, counts.caution), color: TONE_COLOR.caution },
-            { label: 'Notes', value: counts.neutral, max: Math.max(1, counts.neutral), color: TONE_COLOR.neutral },
+            { label: t('tone.supportive'), value: counts.supportive, max: Math.max(1, counts.supportive), color: TONE_COLOR.supportive },
+            { label: t('tone.mixed'), value: counts.mixed, max: Math.max(1, counts.mixed), color: TONE_COLOR.mixed },
+            { label: t('tone.caution'), value: counts.caution, max: Math.max(1, counts.caution), color: TONE_COLOR.caution },
+            { label: t('notes'), value: counts.neutral, max: Math.max(1, counts.neutral), color: TONE_COLOR.neutral },
           ].filter((s) => s.value > 0)}
         />
         </div>
         <div style={{ flex: '1 1 170px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           {([
-            ['Supportive', counts.supportive, TONE_COLOR.supportive],
-            ['Mixed', counts.mixed, TONE_COLOR.mixed],
-            ['Caution', counts.caution, TONE_COLOR.caution],
+            [t('tone.supportive'), counts.supportive, TONE_COLOR.supportive],
+            [t('tone.mixed'), counts.mixed, TONE_COLOR.mixed],
+            [t('tone.caution'), counts.caution, TONE_COLOR.caution],
           ] as const).map(([label, value, color]) => (
             <div key={label} style={{ display: 'grid', gridTemplateColumns: '72px minmax(0, 1fr) auto', gap: '0.45rem', alignItems: 'center' }}>
               <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{label}</span>
@@ -278,8 +293,10 @@ function PlanetStripViz({
   onSelect: (id: string) => void
 }) {
   const asc = chart.lagnas.ascRashi
+  const t = useTranslations('chartTools.hub')
+  const names = useNames()
   return (
-    <VizCard title="Planet map" caption="Tap a graha to jump to its reading">
+    <VizCard title={t('planetMap')} caption={t('planetMapCaption')}>
       <div className={styles.planetStrip}>
         {CLASSICAL.map((id) => {
           const g = chart.grahas.find((p) => p.id === id)
@@ -294,11 +311,11 @@ function PlanetStripViz({
               type="button"
               className={`${styles.planetChip}${active ? ` ${styles.planetChipActive}` : ''}`}
               onClick={() => onSelect(itemId)}
-              title={`${g.name} · H${house} · ${g.dignity}`}
+              title={`${names.graha(id)} · ${t('h', { n: house })} · ${t.has(`dignity.${g.dignity}`) ? t(`dignity.${g.dignity}`) : g.dignity}`}
             >
               <span style={{ color: lordColor(id), fontSize: '0.95rem', lineHeight: 1 }}>{GLYPH[id]}</span>
-              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-primary)' }}>{GRAHA_NAMES[id]}</span>
-              <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>H{house}</span>
+              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-primary)' }}>{names.graha(id)}</span>
+              <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{t('h', { n: house })}</span>
               <span className={styles.toneDot} style={{ background: TONE_COLOR[tone] }} aria-hidden />
             </button>
           )
@@ -318,6 +335,8 @@ function HouseMapViz({
   onSelect: (id: string) => void
 }) {
   const asc = chart.lagnas.ascRashi
+  const t = useTranslations('chartTools.hub')
+  const names = useNames()
   const byHouse = useMemo(() => {
     const map: Record<number, { rashi: Rashi; grahas: GrahaData[] }> = {}
     for (let h = 1; h <= 12; h++) {
@@ -334,7 +353,7 @@ function HouseMapViz({
   const weakest = chart.bhavaBala?.weakestHouse
 
   return (
-    <VizCard title="House chart" caption="Whole-sign houses from Lagna · tap a bhava to open its reading">
+    <VizCard title={t('houseChart')} caption={t('houseChartCaption')}>
       <div className={styles.houseMap}>
         {Array.from({ length: 12 }, (_, i) => {
           const h = i + 1
@@ -352,12 +371,12 @@ function HouseMapViz({
               onClick={() => onSelect(itemId)}
             >
               <span style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-gold)', letterSpacing: '0.04em' }}>
-                H{h}
+                {t('h', { n: h })}
               </span>
-              <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{RASHI_SHORT[cell.rashi]}</span>
+              <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{names.rashiShort(cell.rashi)}</span>
               <span style={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', minHeight: 14 }}>
                 {cell.grahas.map((g) => (
-                  <span key={g.id} style={{ color: lordColor(g.id), fontSize: '0.72rem', lineHeight: 1 }} title={g.name}>
+                  <span key={g.id} style={{ color: lordColor(g.id), fontSize: '0.72rem', lineHeight: 1 }} title={names.graha(g.id)}>
                     {GLYPH[g.id] ?? g.id}
                   </span>
                 ))}
@@ -368,8 +387,8 @@ function HouseMapViz({
       </div>
       <Legend
         items={[
-          { label: 'Strongest bhava', color: 'var(--teal)' },
-          { label: 'Weakest bhava', color: 'var(--rose)' },
+          { label: t('strongestBhava'), color: 'var(--teal)' },
+          { label: t('weakestBhava'), color: 'var(--rose)' },
         ]}
       />
     </VizCard>
@@ -379,6 +398,8 @@ function HouseMapViz({
 function StrengthCharts({ chart }: { chart: ChartOutput }) {
   const sb = chart.shadbala
   const bb = chart.bhavaBala
+  const t = useTranslations('chartTools.hub')
+  const names = useNames()
 
   const shadbalaRows = useMemo(() => {
     if (!sb?.planets) return []
@@ -391,7 +412,7 @@ function StrengthCharts({ chart }: { chart: ChartOutput }) {
           label: (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <span style={{ color: lordColor(id) }}>{GLYPH[id]}</span>
-              {GRAHA_NAMES[id]}
+              {names.graha(id)}
             </span>
           ),
           value: p.ratio,
@@ -402,9 +423,9 @@ function StrengthCharts({ chart }: { chart: ChartOutput }) {
       })
       .filter((r): r is NonNullable<typeof r> => !!r)
       .sort((a, b) => b.value - a.value)
-  }, [sb])
+  }, [sb, names])
 
-  const radarAxes = SHADBALA_AXES.map((id) => GRAHA_NAMES[id] ?? id)
+  const radarAxes = SHADBALA_AXES.map((id) => names.graha(id))
   const radarValues = SHADBALA_AXES.map((id) => sb?.planets?.[id]?.ratio ?? 0)
   const radarThreshold = SHADBALA_AXES.map(() => 1)
 
@@ -419,7 +440,7 @@ function StrengthCharts({ chart }: { chart: ChartOutput }) {
       .sort((a, b) => b.totalRupa - a.totalRupa)
       .map((h) => ({
         key: String(h.house),
-        label: `H${h.house}`,
+        label: t('h', { n: h.house }),
         value: h.totalRupa,
         color:
           h.house === bb.strongestHouse
@@ -429,30 +450,30 @@ function StrengthCharts({ chart }: { chart: ChartOutput }) {
               : 'var(--gold)',
         valueText: h.totalRupa.toFixed(1),
       }))
-  }, [bb])
+  }, [bb, t])
 
   if (!shadbalaRows.length && !houseRows.length) return null
 
   return (
     <div className={styles.vizRow}>
       {shadbalaRows.length ? (
-        <VizCard title="Shadbala radar" caption="Ratio vs required strength (dashed = 1.0)">
+        <VizCard title={t('radarTitle')} caption={t('radarCaption')}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ flex: '1 1 180px', minWidth: 0 }}>
             <RadarChart
               axes={radarAxes}
-              series={[{ label: 'Ratio', values: radarValues, color: 'var(--gold)' }]}
+              series={[{ label: t('ratio'), values: radarValues, color: 'var(--gold)' }]}
               threshold={radarThreshold}
               max={Math.max(1.4, ...radarValues)}
               size={200}
-              ariaLabel="Shadbala strength radar"
+              ariaLabel={t('radarAria')}
             />
             </div>
             <div style={{ flex: '0 1 150px', minWidth: 0 }}>
             <Gauge
               value={avgRatio}
               max={1.4}
-              label="Mean ratio"
+              label={t('meanRatio')}
               valueText={avgRatio.toFixed(2)}
               size={150}
               zones={[
@@ -466,13 +487,13 @@ function StrengthCharts({ chart }: { chart: ChartOutput }) {
         </VizCard>
       ) : null}
       {shadbalaRows.length ? (
-        <VizCard title="Shadbala ratios" caption="Tick mark = required strength (1.0)">
+        <VizCard title={t('ratiosTitle')} caption={t('ratiosCaption')}>
           <BarList rows={shadbalaRows} max={Math.max(1.4, ...shadbalaRows.map((r) => r.value))} />
         </VizCard>
       ) : null}
       {houseRows.length ? (
-        <VizCard title="Bhava Bala" caption="House strength in rupas">
-          <BarList rows={houseRows} unit="R" />
+        <VizCard title={t('bhavaBala')} caption={t('bhavaBalaCaption')}>
+          <BarList rows={houseRows} unit={t('rupaUnit')} />
         </VizCard>
       ) : null}
     </div>
@@ -492,6 +513,8 @@ function SectionVisuals({
   onSelect: (id: string) => void
   showFull: boolean
 }) {
+  const t = useTranslations('chartTools.hub')
+  const names = useNames()
   if (section.id === 'strength') return <StrengthCharts chart={chart} />
 
   if (section.id === 'planets') {
@@ -517,7 +540,7 @@ function SectionVisuals({
       <div className={styles.vizRow}>
         <ToneBalanceViz section={section} />
         {showFull && section.id === 'overview' && chart.shadbala?.planets ? (
-          <VizCard title="At a glance" caption="Top Shadbala ratios">
+          <VizCard title={t('glance')} caption={t('glanceCaption')}>
             <BarList
               rows={SHADBALA_AXES
                 .map((id) => {
@@ -525,7 +548,7 @@ function SectionVisuals({
                   if (!p) return null
                   return {
                     key: id,
-                    label: GRAHA_NAMES[id],
+                    label: names.graha(id),
                     value: p.ratio,
                     threshold: 1,
                     color: toneFor(Math.min(1.2, p.ratio) / 1.2),
@@ -548,6 +571,8 @@ function SectionVisuals({
 
 export function InterpretationHub({ chart, userPlan = 'free' }: InterpretationHubProps) {
   const showFull = planMeetsUiGate(userPlan, 'gold')
+  const t = useTranslations('chartTools.hub')
+  const { lang } = useLang()
   const [active, setActive] = useState<HubSectionId>('overview')
   const [focusId, setFocusId] = useState<string | null>(null)
   const [transitPositions, setTransitPositions] = useState<TransitPosition[] | null>(null)
@@ -574,8 +599,8 @@ export function InterpretationHub({ chart, userPlan = 'free' }: InterpretationHu
   }, [ascRashi, showFull])
 
   const sections = useMemo(
-    () => buildInterpretationHub(chart, transitPositions, now),
-    [chart, transitPositions, now],
+    () => buildInterpretationHub(chart, transitPositions, now, lang),
+    [chart, transitPositions, now, lang],
   )
   const section = sections.find((s) => s.id === active) ?? sections[0]
 
@@ -604,7 +629,7 @@ export function InterpretationHub({ chart, userPlan = 'free' }: InterpretationHu
   }
 
   const toolbar = (
-    <div className={styles.tabs} role="tablist" aria-label="Interpretation sections">
+    <div className={styles.tabs} role="tablist" aria-label={t('sectionsAria')}>
       {sections.map((s) => {
         const selected = s.id === section.id
         const locked = !showFull && !FREE_SECTION_IDS.includes(s.id)
@@ -618,13 +643,13 @@ export function InterpretationHub({ chart, userPlan = 'free' }: InterpretationHu
             aria-selected={selected}
             aria-disabled={locked}
             disabled={locked}
-            title={locked ? 'Gold unlocks this section' : undefined}
+            title={locked ? t('goldUnlocks') : undefined}
             className={`${styles.tab}${selected ? ` ${styles.tabActive}` : ''}`}
             onClick={() => selectSection(s.id)}
             style={locked ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
           >
             {locked ? <Lock size={11} aria-hidden /> : <Icon size={12} aria-hidden />}
-            {meta.label}
+            {s.label}
             {s.items.length ? <span className={styles.tabCount}>{s.items.length}</span> : null}
           </button>
         )
@@ -633,7 +658,7 @@ export function InterpretationHub({ chart, userPlan = 'free' }: InterpretationHu
   )
 
   return (
-    <PanelShell title="Interpretation" toolbar={toolbar} padding="sm" className="fade-up">
+    <PanelShell title={t('title')} toolbar={toolbar} padding="sm" className="fade-up">
       <div className={styles.root}>
         {!showFull && (
           <div
@@ -650,11 +675,10 @@ export function InterpretationHub({ chart, userPlan = 'free' }: InterpretationHu
           >
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-              Free preview: overview tone map and the first {FREE_OVERVIEW_LIMIT} chart themes.
-              Gold unlocks planets, houses, rashis, strength charts, transits, and dasha readings.
+              {t('freePreview', { n: FREE_OVERVIEW_LIMIT })}
             </div>
             <Link href="/pricing" style={{ textDecoration: 'none' }}>
-              <Button variant="primary" size="sm">View plans</Button>
+              <Button variant="primary" size="sm">{t('viewPlans')}</Button>
             </Link>
           </div>
         )}
@@ -672,7 +696,7 @@ export function InterpretationHub({ chart, userPlan = 'free' }: InterpretationHu
           <p className={styles.intro}>
             {showFull
               ? section.intro
-              : 'A short preview of the strongest themes in this chart. Upgrade for the full reading hub.'}
+              : t('previewIntro')}
           </p>
           {visibleItems.length ? (
             <div className={styles.cardGrid}>
@@ -687,12 +711,12 @@ export function InterpretationHub({ chart, userPlan = 'free' }: InterpretationHu
             </div>
           ) : (
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', padding: '0.5rem 0' }}>
-              No readings in this section yet.
+              {t('empty')}
             </div>
           )}
 
           {lockedExtra > 0 ? (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Full interpretation hub">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('featureName')}>
               <div className={styles.cardGrid} style={{ marginTop: '0.75rem', minHeight: 120 }}>
                 {section.items.slice(FREE_OVERVIEW_LIMIT, FREE_OVERVIEW_LIMIT + 2).map((item, idx) => (
                   <HubCard key={`locked-${idx}-${item.id}`} item={item} />

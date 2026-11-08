@@ -4,8 +4,8 @@
 //  Birth-chart career and profession desk
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useEffect, useMemo, useState, useTransition } from 'react'
-import Link from 'next/link'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { RASHI_SHORT } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'

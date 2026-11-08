@@ -6,6 +6,11 @@
 
 import { useState } from 'react'
 import type { YogaResult, YogaCategory } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import { YOGA_CATEGORY_HI, YOGA_STRENGTH_HI, yogaDescriptionHi, yogaEffectHi, yogaNameHi } from '@/lib/engine/locale/yogas.hi'
+import type { GrahaId } from '@/types/astrology'
 import { Crown, Gem, Sparkles, Moon, Anchor, Sword, ArrowLeftRight, Star, Info, Zap } from 'lucide-react'
 
 const CATEGORY_CONFIG: Record<YogaCategory, { label: string; color: string; bg: string; icon: any }> = {
@@ -34,6 +39,8 @@ const STRENGTH_CONFIG = {
 const CATEGORY_ORDER: YogaCategory[] = ['mahapurusha', 'raja', 'dhana', 'parivartana', 'special', 'viparita', 'lunar', 'nabhasa', 'malefic']
 
 function YogaCard({ yoga }: { yoga: YogaResult }) {
+  const t = useTranslations('chart.yogas')
+  const { hi } = useLang()
   const cat = CATEGORY_CONFIG[yoga.category]
   const str = STRENGTH_CONFIG[yoga.strength]
 
@@ -52,7 +59,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <cat.icon size={16} style={{ color: cat.color }} />
             <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-              {yoga.name}
+              {hi ? yogaNameHi(yoga.name) : yoga.name}
             </span>
           </div>
           <div style={{ fontSize: '0.72rem', fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--text-muted)', marginTop: 2 }}>
@@ -68,7 +75,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
           whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.25rem'
         }}>
           {yoga.strength === 'strong' && <Zap size={10} fill="currentColor" />}
-          {str.label}
+          {hi ? YOGA_STRENGTH_HI[yoga.strength] ?? str.label : str.label}
         </span>
       </div>
 
@@ -81,7 +88,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
             fontSize: '0.72rem', fontFamily: 'var(--font-display)',
             color: 'var(--text-secondary)', fontWeight: 500,
           }}>
-            {PLANET_NAMES[p] ?? p}
+            {hi ? GRAHA_HI[p as GrahaId] ?? p : PLANET_NAMES[p] ?? p}
           </span>
         ))}
         {yoga.houses.map(h => (
@@ -91,14 +98,14 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
             fontSize: '0.72rem', fontFamily: 'var(--font-mono)',
             color: 'var(--text-gold)',
           }}>
-            H{h}
+            {t('house', { n: h })}
           </span>
         ))}
       </div>
 
       {/* Description */}
       <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-        {yoga.description}
+        {hi ? yogaDescriptionHi(yoga.description) : yoga.description}
       </div>
 
       {/* Effect */}
@@ -109,13 +116,15 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
         borderLeft: `2px solid ${cat.color}55`,
         lineHeight: 1.5,
       }}>
-        {yoga.effect}
+        {hi ? yogaEffectHi(yoga.name, yoga.effect) : yoga.effect}
       </div>
     </div>
   )
 }
 
 export function YogaList({ yogas }: { yogas: YogaResult[] }) {
+  const t = useTranslations('chart.yogas')
+  const { hi } = useLang()
   const [showAll, setShowAll] = useState(false)
   
   if (!yogas?.length) {
@@ -153,13 +162,13 @@ export function YogaList({ yogas }: { yogas: YogaResult[] }) {
       }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-gold)' }}>
-            {yogas.length} Classical Yogas
+            {t('count', { n: yogas.length })}
           </span>
           <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
           {yogas.filter(y => y.strength === 'strong').length > 0 && (
             <span style={{ fontSize: '0.74rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--teal)' }} />
-              {yogas.filter(y => y.strength === 'strong').length} Strong
+              {t('strongCount', { n: yogas.filter(y => y.strength === 'strong').length })}
             </span>
           )}
         </div>
@@ -172,7 +181,7 @@ export function YogaList({ yogas }: { yogas: YogaResult[] }) {
               color: 'var(--text-gold)', padding: '0.25rem 0.6rem', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer'
             }}
           >
-            Show All ({yogas.length})
+            {t('showAll', { n: yogas.length })}
           </button>
         )}
         {showAll && (
@@ -183,7 +192,7 @@ export function YogaList({ yogas }: { yogas: YogaResult[] }) {
                color: 'var(--text-muted)', padding: '0.25rem 0.6rem', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer'
              }}
            >
-             Show Less
+             {t('showLess')}
            </button>
         )}
       </div>
@@ -208,7 +217,7 @@ export function YogaList({ yogas }: { yogas: YogaResult[] }) {
               }}>
                 <cfg.icon size={14} style={{ color: cfg.color }} />
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: cfg.color }}>
-                  {cfg.label}
+                  {hi ? YOGA_CATEGORY_HI[cat] ?? cfg.label : cfg.label}
                 </span>
                 <div style={{ flex: 1, height: 1, background: `${cfg.color}15` }} />
               </div>
@@ -229,12 +238,12 @@ export function YogaList({ yogas }: { yogas: YogaResult[] }) {
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
           }}
         >
-          View More Yogas (+{yogas.length - visibleLimit})
+          {t('viewMore', { n: yogas.length - visibleLimit })}
         </button>
       )}
 
       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', textAlign: 'center', paddingTop: '0.5rem', borderTop: '1px solid var(--border-soft)' }}>
-        Per BPHS, Phaladeepika & Saravali · Strength depends on planetary dignity, house position and aspects
+        {t('source')}
       </div>
     </div>
   )

@@ -7,6 +7,9 @@
 import React, { useEffect, useState } from 'react'
 import type { ChartOutput, GrahaId, PanchangData, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 
 export function getCurrentMahaDashaLord(chart: ChartOutput): GrahaId | null {
   const now = Date.now()
@@ -24,11 +27,6 @@ export function getCurrentMahaDashaLord(chart: ChartOutput): GrahaId | null {
   return current.lord as GrahaId
 }
 
-function getCurrentMahaDasha(chart: ChartOutput): string {
-  const lord = getCurrentMahaDashaLord(chart)
-  if (!lord) return '—'
-  return `${GRAHA_NAMES[lord] ?? lord} mahadasha`
-}
 
 function isNowSlot(start?: Date | string, end?: Date | string): boolean {
   if (!start || !end) return false
@@ -47,6 +45,8 @@ export function MajorKundaliStrip({
   todayPanchang?: PanchangData | null
   isMobile?: boolean
 }) {
+  const t = useTranslations('chart.strip')
+  const { hi } = useLang()
   const [fetchedPanchang, setFetchedPanchang] = useState<PanchangData | null>(null)
   const todayPanchang = todayPanchangProp !== undefined ? todayPanchangProp : fetchedPanchang
 
@@ -68,26 +68,23 @@ export function MajorKundaliStrip({
 
   const moon = chart.grahas.find((g) => g.id === 'Mo')
   const sun = chart.grahas.find((g) => g.id === 'Su')
-  const ak = chart.karakas?.AK ? (GRAHA_NAMES[chart.karakas.AK] ?? chart.karakas.AK) : '—'
-  const natalPanchang = [
-    `Vara ${chart.panchang.vara.name}`,
-    `Tithi ${chart.panchang.tithi.name} (${chart.panchang.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'})`,
-    `Nak ${chart.panchang.nakshatra.name}`,
-    `Yoga ${chart.panchang.yoga.name}`,
-    `Karana ${chart.panchang.karana.name}`,
+  const T = (v: string) => (hi ? termHi(v) : v)
+  const graha = (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id]) ?? id
+  const sign = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
+  const ak = chart.karakas?.AK ? graha(chart.karakas.AK as GrahaId) : '—'
+  const panchangLine = (p: PanchangData) => [
+    t('vara', { v: T(p.vara.name) }),
+    t('tithi', { v: T(p.tithi.name), paksha: p.tithi.paksha === 'shukla' ? t('shukla') : t('krishna') }),
+    t('nak', { v: T(p.nakshatra.name) }),
+    t('yoga', { v: T(p.yoga.name) }),
+    t('karana', { v: T(p.karana.name) }),
   ].join(' · ')
-  const livePanchang = todayPanchang
-    ? [
-      `Vara ${todayPanchang.vara.name}`,
-      `Tithi ${todayPanchang.tithi.name} (${todayPanchang.tithi.paksha === 'shukla' ? 'Shukla' : 'Krishna'})`,
-      `Nak ${todayPanchang.nakshatra.name}`,
-      `Yoga ${todayPanchang.yoga.name}`,
-      `Karana ${todayPanchang.karana.name}`,
-    ].join(' · ')
-    : 'Loading live panchang...'
+  const natalPanchang = panchangLine(chart.panchang)
+  const livePanchang = todayPanchang ? panchangLine(todayPanchang) : t('loading')
+  const mahaLord = getCurrentMahaDashaLord(chart)
   const [y, mm, dd] = chart.meta.birthDate.split('-')
   const [bh, bmin] = chart.meta.birthTime.split(':').map(Number)
-  const bAmpm = bh >= 12 ? 'pm' : 'am'
+  const bAmpm = bh >= 12 ? t('pm') : t('am')
   const formattedTime = `${bh % 12 || 12}:${String(bmin).padStart(2, '0')} ${bAmpm}`
   const formattedDOB = `${dd} ${mm} ${y} · ${formattedTime} · ${chart.meta.birthPlace}`
 
@@ -100,16 +97,16 @@ export function MajorKundaliStrip({
   }
   const runningAge = Math.max(0, completedAge) + 1
 
-  const items: { label: string; value: string; hideLabel?: boolean }[] = [
-    ...(isMobile ? [{ label: 'DOB', value: formattedDOB }] : []),
-    { label: 'Age', value: String(runningAge) },
-    { label: 'Lagna', value: `${RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
-    { label: 'Moon', value: moon ? `${RASHI_NAMES[moon.rashi]} · ${moon.nakshatraName}` : '—' },
-    { label: 'Sun', value: sun ? `${RASHI_NAMES[sun.rashi]} ${sun.degree.toFixed(1)}°` : '—' },
-    { label: 'AK', value: ak },
-    { label: '', value: getCurrentMahaDasha(chart), hideLabel: true },
-    { label: 'Natal Panchang', value: natalPanchang },
-    { label: 'Live Panchang', value: livePanchang },
+  const items: { id: string; label: string; value: string; hideLabel?: boolean }[] = [
+    ...(isMobile ? [{ id: 'dob', label: t('dob'), value: formattedDOB }] : []),
+    { id: 'age', label: t('age'), value: String(runningAge) },
+    { id: 'lagna', label: t('lagna'), value: `${sign(chart.lagnas.ascRashi as Rashi)} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
+    { id: 'moon', label: t('moon'), value: moon ? `${sign(moon.rashi)} · ${T(moon.nakshatraName)}` : '—' },
+    { id: 'sun', label: t('sun'), value: sun ? `${sign(sun.rashi)} ${sun.degree.toFixed(1)}°` : '—' },
+    { id: 'ak', label: t('ak'), value: ak },
+    { id: 'maha', label: '', value: mahaLord ? t('maha', { lord: graha(mahaLord) }) : '—', hideLabel: true },
+    { id: 'natal', label: t('natal'), value: natalPanchang },
+    { id: 'live', label: t('live'), value: livePanchang },
   ]
 
   return (
@@ -128,14 +125,14 @@ export function MajorKundaliStrip({
       }}
     >
       {items.map((item, idx) => (
-        <React.Fragment key={item.label || `item-${idx}`}>
+        <React.Fragment key={item.id}>
           <span style={{ whiteSpace: 'nowrap', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
             {!item.hideLabel && (
               <span style={{ fontSize: '0.56rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
-                {item.label === 'Live Panchang' ? (
+                {item.id === 'live' ? (
                   <>
-                    <span style={{ color: 'var(--rose)' }}>Live</span>
-                    <span style={{ marginLeft: 3 }}>Panchang</span>
+                    <span style={{ color: 'var(--rose)' }}>{t('live')}</span>
+                    <span style={{ marginLeft: 3 }}>{t('panchang')}</span>
                   </>
                 ) : item.label}
               </span>

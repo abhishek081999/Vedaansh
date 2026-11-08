@@ -4,9 +4,9 @@
 //  Reset Password page — uses token from URL to set new password
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { VedaanshLoader } from '@/components/ui/primitives/VedaanshLoader'
 
 function ResetPasswordForm() {

@@ -7,10 +7,18 @@
 'use client'
 
 import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { BhavaBalaResult, GrahaData, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, GRAHA_SHORT_HI, RASHI_HI } from '@/i18n/jyotish'
 import { lordColor } from '@/components/dasha/dashaPalette'
 import { arcPath, polar, VizCard, Legend } from '@/components/ui/viz'
+
+/** Planet glyph: English two-letter id, Hindi short name; Md/Gk stay as they are. */
+function glyph(id: string, hi: boolean): string {
+  return hi ? (GRAHA_SHORT_HI as Record<string, string>)[id] ?? id : id
+}
 
 const TAU = Math.PI * 2
 const RAD = Math.PI / 180
@@ -56,6 +64,8 @@ export function BhavaChalitWheel({
   selected: number | null
   onSelect: (house: number) => void
 }) {
+  const t = useTranslations('houseGuide.visuals')
+  const { hi } = useLang()
   const S = 420
   const c = S / 2
   const R_SIGN_O = 200
@@ -109,7 +119,7 @@ export function BhavaChalitWheel({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-      <svg viewBox={`0 0 ${S} ${S}`} width="100%" style={{ maxWidth: S, display: 'block', margin: '0 auto' }} role="img" aria-label="Bhava Chalit wheel: Sripati houses over the zodiac">
+      <svg viewBox={`0 0 ${S} ${S}`} width="100%" style={{ maxWidth: S, display: 'block', margin: '0 auto' }} role="img" aria-label={t('wheelAria')}>
         <defs>
           <radialGradient id="hv-core" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.12} />
@@ -129,7 +139,7 @@ export function BhavaChalitWheel({
             <g key={`s${r}`}>
               <path d={slice(start, start + 30, R_SIGN_O, R_SIGN_I)} fill={isAsc ? 'var(--gold-faint)' : i % 2 ? 'var(--surface-2)' : 'var(--surface-3)'} stroke="var(--border-soft)" />
               <text x={tx} y={ty} textAnchor="middle" dominantBaseline="middle" fontSize={10} fontWeight={700} fill={isAsc ? 'var(--text-gold)' : 'var(--text-muted)'}>
-                {RASHI_SHORT[r]}
+                {hi ? RASHI_HI[r] : RASHI_SHORT[r]}
               </text>
             </g>
           )
@@ -142,7 +152,7 @@ export function BhavaChalitWheel({
           const [tx, ty] = polar(c, c, (R_HOUSE_O + R_HOUSE_I) / 2, ang(h.madhya))
           return (
             <g key={`h${h.houseNum}`} onClick={() => onSelect(h.houseNum)} style={{ cursor: 'pointer' }}>
-              <title>{`House ${h.houseNum} · ${RASHI_NAMES[h.rashi]} madhya · ${span(h.sandhiStart, h.sandhiEnd).toFixed(1)}° wide`}</title>
+              <title>{t('houseTitle', { n: h.houseNum, sign: hi ? RASHI_HI[h.rashi] : RASHI_NAMES[h.rashi], width: span(h.sandhiStart, h.sandhiEnd).toFixed(1) })}</title>
               <path
                 d={slice(h.sandhiStart, h.sandhiEnd, R_HOUSE_O, R_HOUSE_I)}
                 fill={isSel ? 'var(--gold)' : kendra ? 'var(--surface-3)' : 'var(--surface-2)'}
@@ -171,7 +181,7 @@ export function BhavaChalitWheel({
         })}
 
         {/* Lagna and MC axes */}
-        {[{ lon: ascDegree, label: 'ASC' }, { lon: houses[9]?.madhya, label: 'MC' }].map((a) =>
+        {[{ lon: ascDegree, label: t('asc') }, { lon: houses[9]?.madhya, label: t('mc') }].map((a) =>
           a.lon === undefined ? null : (() => {
             const [x0, y0] = polar(c, c, R_HOUSE_I - 4, ang(a.lon))
             const [x1, y1] = polar(c, c, R_SIGN_O + 6, ang(a.lon))
@@ -196,12 +206,12 @@ export function BhavaChalitWheel({
           const shifted = shiftIds.has(g.id)
           return (
             <g key={g.id}>
-              <title>{`${g.name} ${g.rashiName} ${g.degree.toFixed(1)}°${g.isRetro ? ' (R)' : ''}${shifted ? ' · changes house in Chalit' : ''}`}</title>
+              <title>{`${hi ? GRAHA_HI[g.id] : g.name} ${hi ? RASHI_HI[g.rashi] : g.rashiName} ${g.degree.toFixed(1)}°${g.isRetro ? ' (R)' : ''}${shifted ? t('shiftTitle') : ''}`}</title>
               <line x1={px} y1={py} x2={tx} y2={ty} stroke={col} strokeOpacity={0.45} strokeWidth={1} />
               <circle cx={tx} cy={ty} r={2} fill={col} />
               <circle cx={px} cy={py} r={10.5} fill="var(--surface-1)" stroke={col} strokeWidth={shifted ? 2.2 : 1.2} strokeDasharray={shifted ? '3 2' : undefined} />
               <text x={px} y={py} textAnchor="middle" dominantBaseline="central" fontSize={9.5} fontWeight={800} fill={col} style={{ fontFamily: 'var(--font-chart-planets)' }}>
-                {g.id}
+                {glyph(g.id, hi)}
                 {g.isRetro ? 'ᴿ' : ''}
               </text>
             </g>
@@ -221,22 +231,22 @@ export function BhavaChalitWheel({
       </svg>
       <Legend
         items={[
-          { label: 'Madhya (house centre)', color: 'var(--gold)' },
-          { label: 'Sandhi (junction)', color: 'var(--border-bright)', dashed: true },
-          { label: 'Mandi / Gulika', color: 'var(--rose)' },
+          { label: t('legendMadhya'), color: 'var(--gold)' },
+          { label: t('legendSandhi'), color: 'var(--border-bright)', dashed: true },
+          { label: t('legendUpagraha'), color: 'var(--rose)' },
         ]}
       />
       {shifts.length > 0 ? (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Chalit shifts (dashed rings):</span>
+          <span style={{ color: 'var(--text-muted)' }}>{t('shiftsLabel')}</span>
           {shifts.map((s) => (
             <span key={s.id} style={{ padding: '2px 7px', borderRadius: 999, border: `1px solid ${lordColor(s.id)}`, color: lordColor(s.id), fontWeight: 700 }}>
-              {s.id} H{s.from} → H{s.to}
+              {glyph(s.id, hi)} {hi ? `भाव ${s.from} → भाव ${s.to}` : `H${s.from} → H${s.to}`}
             </span>
           ))}
         </div>
       ) : (
-        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>No planet changes house between whole-sign and Sripati Chalit.</div>
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('noShifts')}</div>
       )}
     </div>
   )
@@ -254,6 +264,7 @@ export function HouseStrengthRose({
   selected: number | null
   onSelect: (house: number) => void
 }) {
+  const t = useTranslations('houseGuide.visuals')
   const S = 260
   const c = S / 2
   const R0 = 26
@@ -265,7 +276,7 @@ export function HouseStrengthRose({
   const a0 = (h: number) => -Math.PI / 2 - h * step
 
   return (
-    <svg viewBox={`0 0 ${S} ${S}`} width="100%" style={{ maxWidth: S, display: 'block', margin: '0 auto' }} role="img" aria-label="Bhava Bala by house">
+    <svg viewBox={`0 0 ${S} ${S}`} width="100%" style={{ maxWidth: S, display: 'block', margin: '0 auto' }} role="img" aria-label={t('roseAria')}>
       {[0.5, 1].map((p) => (
         <circle key={p} cx={c} cy={c} r={R0 + (R1 - R0) * p} fill="none" stroke="var(--border-soft)" strokeDasharray={p === 1 ? undefined : '2 3'} />
       ))}
@@ -278,7 +289,7 @@ export function HouseStrengthRose({
         const [lx, ly] = polar(c, c, R1 + 12, end - step / 2)
         return (
           <g key={h.house} onClick={() => onSelect(h.house)} style={{ cursor: 'pointer' }}>
-            <title>{`House ${h.house}: ${h.totalRupa.toFixed(2)} rupa${h.isStrong ? ' · strong' : ''}`}</title>
+            <title>{`${t('roseTitle', { n: h.house, rupa: h.totalRupa.toFixed(2) })}${h.isStrong ? t('roseStrong') : ''}`}</title>
             <path d={arcPath(c, c, R1, R0, start + 0.03, end - 0.03)} fill="var(--surface-2)" />
             <path d={arcPath(c, c, r, R0, start + 0.03, end - 0.03)} fill={color} fillOpacity={isSel ? 1 : 0.75} stroke={isSel ? 'var(--text-primary)' : 'none'} />
             <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize={9.5} fontWeight={isSel ? 800 : 600} fill={isSel ? 'var(--text-primary)' : 'var(--text-muted)'}>
@@ -288,7 +299,7 @@ export function HouseStrengthRose({
         )
       })}
       <text x={c} y={c} textAnchor="middle" dominantBaseline="middle" fontSize={9} fill="var(--text-muted)">
-        rupa
+        {t('rupa')}
       </text>
     </svg>
   )
@@ -303,11 +314,11 @@ const PURUSHARTHA: { id: string; label: string; houses: number[]; color: string 
   { id: 'moksha', label: 'Moksha', houses: [4, 8, 12], color: 'var(--teal)' },
 ]
 
-const GROUPS: { label: string; houses: number[] }[] = [
-  { label: 'Kendra', houses: [1, 4, 7, 10] },
-  { label: 'Trikona', houses: [1, 5, 9] },
-  { label: 'Upachaya', houses: [3, 6, 10, 11] },
-  { label: 'Dusthana', houses: [6, 8, 12] },
+const GROUPS: { id: string; label: string; houses: number[] }[] = [
+  { id: 'kendra', label: 'Kendra', houses: [1, 4, 7, 10] },
+  { id: 'trikona', label: 'Trikona', houses: [1, 5, 9] },
+  { id: 'upachaya', label: 'Upachaya', houses: [3, 6, 10, 11] },
+  { id: 'dusthana', label: 'Dusthana', houses: [6, 8, 12] },
 ]
 
 /** Four aims of life × three houses each, with occupants and group counts. */
@@ -322,6 +333,8 @@ export function PurusharthaGrid({
   selected: number | null
   onSelect: (house: number) => void
 }) {
+  const t = useTranslations('houseGuide.visuals')
+  const { hi } = useLang()
   const occ = (n: number) => houses.find((h) => h.houseNum === n)?.planetsInHouse ?? []
   const max = bhavaBala ? Math.max(1, ...Object.values(bhavaBala.houses).map((h) => h.totalRupa)) : 1
 
@@ -332,7 +345,7 @@ export function PurusharthaGrid({
           const count = row.houses.reduce((s, n) => s + occ(n).length, 0)
           return (
             <React.Fragment key={row.id}>
-              <span style={{ alignSelf: 'center', fontSize: '0.68rem', fontWeight: 800, color: row.color, paddingRight: 4 }}>{row.label}</span>
+              <span style={{ alignSelf: 'center', fontSize: '0.68rem', fontWeight: 800, color: row.color, paddingRight: 4 }}>{t(`purushartha.${row.id}`)}</span>
               {row.houses.map((n) => {
                 const planets = occ(n)
                 const bb = bhavaBala?.houses[n]
@@ -342,7 +355,7 @@ export function PurusharthaGrid({
                     key={n}
                     type="button"
                     onClick={() => onSelect(n)}
-                    title={`House ${n}${bb ? ` · ${bb.totalRupa.toFixed(2)} rupa` : ''}`}
+                    title={bb ? t('gridTitleRupa', { n, rupa: bb.totalRupa.toFixed(2) }) : t('gridTitle', { n })}
                     style={{
                       position: 'relative',
                       minHeight: 46,
@@ -366,7 +379,7 @@ export function PurusharthaGrid({
                     <span style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 2 }}>
                       {planets.map((p) => (
                         <span key={p.id} style={{ fontSize: '0.62rem', fontWeight: 800, color: lordColor(p.id), fontFamily: 'var(--font-chart-planets)' }}>
-                          {p.id}
+                          {glyph(p.id, hi)}
                         </span>
                       ))}
                     </span>
@@ -384,7 +397,7 @@ export function PurusharthaGrid({
           return (
             <div key={g.label} style={{ padding: '5px 6px', borderRadius: 6, background: 'var(--surface-2)', textAlign: 'center' }}>
               <div style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>{count}</div>
-              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{g.label}</div>
+              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t(`groups.${g.id}`)}</div>
             </div>
           )
         })}
@@ -401,6 +414,8 @@ export function PurusharthaGrid({
  * it is weak and partly carries into the neighbouring house.
  */
 export function SandhiMeter({ house }: { house: HouseVizDatum }) {
+  const t = useTranslations('houseGuide.visuals')
+  const { hi } = useLang()
   const total = span(house.sandhiStart, house.sandhiEnd) || 1
   const madhyaAt = span(house.sandhiStart, house.madhya) / total
   const items = [
@@ -410,9 +425,9 @@ export function SandhiMeter({ house }: { house: HouseVizDatum }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: items.length ? 12 : 4 }}>
-        <span>Sandhi</span>
-        <span style={{ color: 'var(--text-gold)' }}>Madhya</span>
-        <span>Sandhi</span>
+        <span>{t('sandhi')}</span>
+        <span style={{ color: 'var(--text-gold)' }}>{t('madhya')}</span>
+        <span>{t('sandhi')}</span>
       </div>
       <div
         style={{
@@ -431,7 +446,7 @@ export function SandhiMeter({ house }: { house: HouseVizDatum }) {
           return (
             <span
               key={it.id}
-              title={`${it.id}: ${(strength * 100).toFixed(0)}% towards the madhya`}
+              title={t('meterTitle', { id: glyph(it.id, hi), pct: (strength * 100).toFixed(0) })}
               style={{
                 position: 'absolute',
                 left: `${Math.min(100, Math.max(0, at * 100))}%`,
@@ -449,13 +464,13 @@ export function SandhiMeter({ house }: { house: HouseVizDatum }) {
                 whiteSpace: 'nowrap',
               }}
             >
-              {it.id}
+              {glyph(it.id, hi)}
             </span>
           )
         })}
       </div>
       <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: items.length ? 12 : 4, fontFamily: 'var(--font-mono)' }}>
-        {total.toFixed(1)}° wide{total > 34 ? ' · expanded' : total < 26 ? ' · compressed' : ''}
+        {t('wide', { deg: total.toFixed(1) })}{total > 34 ? t('expanded') : total < 26 ? t('compressed') : ''}
       </div>
     </div>
   )
@@ -479,30 +494,31 @@ export function HouseVisualsOverview({
   selected: number | null
   onSelect: (house: number) => void
 }) {
+  const t = useTranslations('houseGuide.visuals')
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '1rem', alignItems: 'start' }}>
       <VizCard
-        title="Bhava Chalit wheel"
-        caption="Signs on the outside, Sripati houses (sandhi to sandhi) inside them. Houses stretch or shrink with your latitude. Tap a house to jump to it."
+        title={t('wheelCardTitle')}
+        caption={t('wheelCardCaption')}
         style={{ gridRow: 'span 2' }}
       >
         <BhavaChalitWheel houses={houses} grahas={grahas} ascDegree={ascDegree} ascRashi={ascRashi} selected={selected} onSelect={onSelect} />
       </VizCard>
       {bhavaBala && (
         <VizCard
-          title="House strength (Bhava Bala)"
-          caption={`Longer wedge = stronger house. Strongest H${bhavaBala.strongestHouse}, weakest H${bhavaBala.weakestHouse}.`}
+          title={t('roseCardTitle')}
+          caption={t('roseCardCaption', { strong: bhavaBala.strongestHouse, weak: bhavaBala.weakestHouse })}
           legend={[
-            { label: 'Strongest', color: 'var(--teal)' },
-            { label: 'Strong', color: 'var(--gold)' },
-            { label: 'Below par', color: 'var(--accent)' },
-            { label: 'Weakest', color: 'var(--rose)' },
+            { label: t('legendStrongest'), color: 'var(--teal)' },
+            { label: t('legendStrong'), color: 'var(--gold)' },
+            { label: t('legendBelow'), color: 'var(--accent)' },
+            { label: t('legendWeakest'), color: 'var(--rose)' },
           ]}
         >
           <HouseStrengthRose bhavaBala={bhavaBala} selected={selected} onSelect={onSelect} />
         </VizCard>
       )}
-      <VizCard title="Aims of life" caption="Dharma, Artha, Kama and Moksha triads with their occupants; the bar under each house is its Bhava Bala.">
+      <VizCard title={t('aimsTitle')} caption={t('aimsCaption')}>
         <PurusharthaGrid houses={houses} bhavaBala={bhavaBala} selected={selected} onSelect={onSelect} />
       </VizCard>
     </div>

@@ -5,7 +5,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react'
+import { useTranslations } from 'next-intl'
 import { GRAHA_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
 import type { HouseNumber } from '@/lib/engine/houseInterpretations'
 import { getLagnaHouseReading } from '@/lib/engine/lagnaCharacter'
 import type { DashaLordLink } from '@/lib/engine/lagnaDashaLinks'
@@ -16,40 +19,40 @@ interface LagnaDashaLinksProps {
   onJumpToHouse: (house: HouseNumber) => void
 }
 
-function fmt(d: Date | null): string {
+function fmt(d: Date | null, tag = 'en-IN'): string {
   if (!d) return ''
   const date = new Date(d)
   if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
-}
-
-function lordName(lord: string): string {
-  return GRAHA_NAMES[lord as GrahaId] ?? lord
+  return date.toLocaleDateString(tag, { month: 'short', year: 'numeric' })
 }
 
 export function LagnaDashaLinks({ ascRashi, links, onJumpToHouse }: LagnaDashaLinksProps) {
+  const t = useTranslations('houseGuide.dashaLinks')
+  const { hi, lang, tag } = useLang()
+  const lordName = (lord: string) => (hi ? GRAHA_HI : GRAHA_NAMES)[lord as GrahaId] ?? lord
   if (links.length === 0) return null
 
   return (
     <div className="card" style={{ padding: '1rem 1.15rem', border: '1px solid var(--border-soft)' }}>
-      <div style={label}>Running dasha and your Lagna</div>
+      <div style={label}>{t('title')}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', marginTop: '0.55rem' }}>
         {links.map((link) => {
-          const range = [fmt(link.start), fmt(link.end)].filter(Boolean).join(' to ')
-          const houses: { kind: string; house: HouseNumber }[] = []
-          if (link.placedHouse) houses.push({ kind: 'Sits in', house: link.placedHouse })
-          for (const h of link.ruledHouses) houses.push({ kind: 'Rules', house: h })
+          const dateTag = hi ? tag : 'en-IN'
+          const range = [fmt(link.start, dateTag), fmt(link.end, dateTag)].filter(Boolean).join(t('to'))
+          const houses: { kind: 'sits' | 'rules'; house: HouseNumber }[] = []
+          if (link.placedHouse) houses.push({ kind: 'sits', house: link.placedHouse })
+          for (const h of link.ruledHouses) houses.push({ kind: 'rules', house: h })
           return (
             <div key={link.level}>
               <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {link.level}: {lordName(link.lord)}
+                {t(link.level === 'Mahadasha' ? 'maha' : 'antar')}: {lordName(link.lord)}
                 {range ? (
                   <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.72rem' }}> · {range}</span>
                 ) : null}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
                 {houses.map(({ kind, house }) => {
-                  const reading = getLagnaHouseReading(ascRashi, house)
+                  const reading = getLagnaHouseReading(ascRashi, house, lang)
                   return (
                     <button
                       key={`${kind}-${house}`}
@@ -68,7 +71,7 @@ export function LagnaDashaLinks({ ascRashi, links, onJumpToHouse }: LagnaDashaLi
                       }}
                     >
                       <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>
-                        {kind} house {house}
+                        {t(kind, { n: house })}
                       </span>
                       {reading ? (
                         <span style={{ color: 'var(--text-secondary)' }}>
@@ -80,7 +83,7 @@ export function LagnaDashaLinks({ ascRashi, links, onJumpToHouse }: LagnaDashaLi
                 })}
                 {houses.length === 0 ? (
                   <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                    House placement not available for this lord.
+                    {t('noPlacement')}
                   </div>
                 ) : null}
               </div>
@@ -89,7 +92,7 @@ export function LagnaDashaLinks({ ascRashi, links, onJumpToHouse }: LagnaDashaLi
         })}
       </div>
       <p style={{ margin: '0.65rem 0 0', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-        Rahu and Ketu own no house; read them through their sign lord and conjunctions. Tap a house to open its reading below.
+        {t('note')}
       </p>
     </div>
   )

@@ -6,6 +6,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { CircleCheck, TriangleAlert } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import styles from './PanchangDayWindows.module.css'
 
 interface TimeWindow {
@@ -46,8 +48,8 @@ const TONE_CLASS: Record<Tone, string> = {
   caution: styles.toneCaution,
 }
 
-function fmtTime(ms: number, tz: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+function fmtTime(ms: number, tz: string, tag = 'en-IN'): string {
+  return new Intl.DateTimeFormat(tag, {
     timeZone: tz,
     hour: 'numeric',
     minute: '2-digit',
@@ -80,6 +82,8 @@ export function PanchangDayWindows({
   durMuhurat,
 }: Props) {
   const [now, setNow] = useState(() => Date.now())
+  const t = useTranslations('panchang.windows')
+  const { tag } = useLang()
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 60_000)
@@ -88,19 +92,19 @@ export function PanchangDayWindows({
 
   const { good, avoid } = useMemo(() => {
     const goodItems = [
-      brahma && toItem('brahma', 'Brahma Muhurta', 'Brahma', 'good', brahma),
-      abhijit && toItem('abhijit', 'Abhijit Muhurta', 'Abhijit', 'good', abhijit),
-      godhuli && toItem('godhuli', 'Godhuli', 'Godhuli', 'good', godhuli),
+      brahma && toItem('brahma', t('brahma'), t('brahmaShort'), 'good', brahma),
+      abhijit && toItem('abhijit', t('abhijit'), t('abhijitShort'), 'good', abhijit),
+      godhuli && toItem('godhuli', t('godhuli'), t('godhuliShort'), 'good', godhuli),
     ].filter((w): w is WindowItem => Boolean(w))
     const avoidItems = [
-      toItem('rahu', 'Rahu Kalam', 'Rahu', 'bad', rahu),
-      toItem('gulika', 'Gulika Kalam', 'Gulika', 'bad', gulika),
-      toItem('yamaganda', 'Yamaganda', 'Yamaganda', 'caution', yamaganda),
-      ...(durMuhurat ?? []).map((w, i) => toItem(`dur-${i}`, 'Dur Muhurat', 'Dur', 'bad', w)),
+      toItem('rahu', t('rahu'), t('rahuShort'), 'bad', rahu),
+      toItem('gulika', t('gulika'), t('gulikaShort'), 'bad', gulika),
+      toItem('yamaganda', t('yamaganda'), t('yamagandaShort'), 'caution', yamaganda),
+      ...(durMuhurat ?? []).map((w, i) => toItem(`dur-${i}`, t('dur'), t('durShort'), 'bad', w)),
     ]
     const byStart = (a: WindowItem, b: WindowItem) => a.startMs - b.startMs
     return { good: goodItems.sort(byStart), avoid: avoidItems.sort(byStart) }
-  }, [abhijit, brahma, godhuli, rahu, gulika, yamaganda, durMuhurat])
+  }, [abhijit, brahma, godhuli, rahu, gulika, yamaganda, durMuhurat, t])
 
   const sunriseMs = new Date(sunrise).getTime()
   const sunsetMs = new Date(sunset).getTime()
@@ -110,8 +114,8 @@ export function PanchangDayWindows({
   const nowOnRail = now >= railStart && now <= sunsetMs
 
   const lanes: Array<{ title: string; items: WindowItem[] }> = [
-    { title: 'Favourable', items: good },
-    { title: 'Avoid', items: avoid },
+    { title: t('favourable'), items: good },
+    { title: t('avoid'), items: avoid },
   ]
 
   return (
@@ -120,10 +124,10 @@ export function PanchangDayWindows({
       <div className={styles.rail} aria-hidden>
         <div className={styles.railScale}>
           <span className={styles.scaleMark} style={{ left: `${pct(sunriseMs)}%` }}>
-            Sunrise {fmtTime(sunriseMs, tz)}
+            {t('sunriseAt', { time: fmtTime(sunriseMs, tz, tag) })}
           </span>
           <span className={`${styles.scaleMark} ${styles.scaleMarkEnd}`} style={{ left: '100%' }}>
-            Sunset {fmtTime(sunsetMs, tz)}
+            {t('sunsetAt', { time: fmtTime(sunsetMs, tz, tag) })}
           </span>
         </div>
         {lanes.map((lane) => (
@@ -139,7 +143,7 @@ export function PanchangDayWindows({
                     key={w.key}
                     className={`${styles.segment} ${TONE_CLASS[w.tone]}`}
                     style={{ left: `${left}%`, width: `${width}%` }}
-                    title={`${w.label} · ${fmtTime(w.startMs, tz)} – ${fmtTime(w.endMs, tz)}`}
+                    title={`${w.label} · ${fmtTime(w.startMs, tz, tag)} – ${fmtTime(w.endMs, tz, tag)}`}
                   >
                     {width >= MIN_SEGMENT_LABEL_PCT && <span className={styles.segmentName}>{w.short}</span>}
                   </span>
@@ -152,8 +156,8 @@ export function PanchangDayWindows({
       </div>
 
       <div className={styles.lists}>
-        <WindowList title="Favourable" icon={<CircleCheck size={15} aria-hidden />} items={good} tz={tz} now={now} toneClass={styles.toneTextGood} />
-        <WindowList title="Avoid" icon={<TriangleAlert size={15} aria-hidden />} items={avoid} tz={tz} now={now} toneClass={styles.toneTextBad} />
+        <WindowList title={t('favourable')} icon={<CircleCheck size={15} aria-hidden />} items={good} tz={tz} now={now} toneClass={styles.toneTextGood} />
+        <WindowList title={t('avoid')} icon={<TriangleAlert size={15} aria-hidden />} items={avoid} tz={tz} now={now} toneClass={styles.toneTextBad} />
       </div>
     </div>
   )
@@ -169,6 +173,8 @@ interface WindowListProps {
 }
 
 function WindowList({ title, icon, items, tz, now, toneClass }: WindowListProps) {
+  const t = useTranslations('panchang.windows')
+  const { tag } = useLang()
   return (
     <div className={styles.list}>
       <h3 className={`${styles.listTitle} ${toneClass}`}>{icon}{title}</h3>
@@ -180,12 +186,12 @@ function WindowList({ title, icon, items, tz, now, toneClass }: WindowListProps)
               <span className={`${styles.swatch} ${TONE_CLASS[w.tone]}`} aria-hidden />
               <span className={styles.rowName}>
                 {w.label}
-                {active && <span className={styles.nowBadge}>Now</span>}
+                {active && <span className={styles.nowBadge}>{t('now')}</span>}
               </span>
               <span className={styles.rowTime}>
-                {fmtTime(w.startMs, tz)} – {fmtTime(w.endMs, tz)}
+                {fmtTime(w.startMs, tz, tag)} – {fmtTime(w.endMs, tz, tag)}
               </span>
-              <span className={styles.rowDuration}>{Math.round((w.endMs - w.startMs) / 60_000)} min</span>
+              <span className={styles.rowDuration}>{t('min', { n: Math.round((w.endMs - w.startMs) / 60_000) })}</span>
             </li>
           )
         })}

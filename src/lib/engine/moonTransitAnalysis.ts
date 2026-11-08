@@ -9,6 +9,9 @@ import { GRAHA_NAMES, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { calcChandraBala } from '@/lib/engine/muhurtaPersonal'
 import { getTaraFromBirth } from '@/lib/engine/navtaraPrediction'
+import { GRAHA_HI, termHi } from '@/i18n/jyotish'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { HOUSE_SHORT_THEMES_HI, ordHi } from '@/lib/engine/locale/todayReading.hi'
 
 export type MoonContactKind = 'graha' | 'lagna' | 'upagraha'
 export type MoonContactTone = 'supportive' | 'mixed' | 'pressure'
@@ -153,7 +156,27 @@ function arudhaLon(natal: ChartOutput): number | null {
 }
 
 /** Collect natal conjunction targets for the Moon. */
-export function collectMoonTargets(natal: ChartOutput): MoonContactTarget[] {
+const LAGNA_LABELS_HI: Record<string, string> = {
+  Asc: 'लग्न', AL: 'आरूढ़ लग्न', bhavaLagna: 'भाव लग्न', horaLagna: 'होरा लग्न', ghatiLagna: 'घटी लग्न',
+  vighatiLagna: 'विघटी लग्न', varnadaLagna: 'वर्णद लग्न', sriLagna: 'श्री लग्न', pranapada: 'प्राणपद',
+  induLagna: 'इंदु लग्न', bhriguBindu: 'भृगु बिंदु',
+}
+
+const CONTACT_HI = {
+  house: 'आपके जन्म का {target} {nth} भाव में है — {theme}।',
+  grahaGood: 'चंद्रमा जन्म के {target} से मिलता है। मन और मनोदशा {theme} की ओर झुकती है। {house}',
+  grahaBad: 'चंद्रमा जन्म के {target} से मिलता है। {theme} को लेकर भावनाएँ तीखी हो सकती हैं; प्रतिक्रिया धीमी रखें। {house}',
+  grahaMixed: 'चंद्रमा जन्म के {target} से मिलता है। ध्यान {theme} पर केंद्रित होता है, कोई निश्चित परिणाम नहीं। {house}',
+  asc: 'चंद्रमा आपके लग्न से गुज़रता है। शरीर का बोध और आप स्वयं को कैसे प्रस्तुत करते हैं, यह आगे आता है। {house}',
+  lagna: 'चंद्रमा {target} से गुज़रता है। यह बताता है कि उस लग्न का विषय मनोदशा और गति में कैसे दिखता है। {house}',
+  upaBad: 'चंद्रमा {target} से गुज़रता है। संपर्क सटीक रहने तक तीखी नई शुरुआत के बजाय दिनचर्या चुनें। {house}',
+  upa: 'चंद्रमा {target} से गुज़रता है। {theme} के आसपास सूक्ष्म समय-संकेत। {house}',
+  chandra: ' चंद्र बल स्थिर अर्थ का साथ देता है।',
+  lifeThemes: 'जीवन के विषय',
+}
+
+export function collectMoonTargets(natal: ChartOutput, lang: EngineLang = 'en'): MoonContactTarget[] {
+  const hi = lang === 'hi'
   const asc = natal.lagnas.ascRashi
   const out: MoonContactTarget[] = []
 
@@ -162,7 +185,7 @@ export function collectMoonTargets(natal: ChartOutput): MoonContactTarget[] {
     if (!g) continue
     out.push({
       key: id,
-      label: GRAHA_NAMES[id],
+      label: hi ? GRAHA_HI[id] : GRAHA_NAMES[id],
       code: id,
       kind: 'graha',
       lon: normLon(g.lonSidereal),
@@ -173,7 +196,7 @@ export function collectMoonTargets(natal: ChartOutput): MoonContactTarget[] {
 
   out.push({
     key: 'Asc',
-    label: 'Lagna',
+    label: hi ? LAGNA_LABELS_HI.Asc : 'Lagna',
     code: 'As',
     kind: 'lagna',
     lon: normLon(natal.lagnas.ascDegree),
@@ -184,7 +207,7 @@ export function collectMoonTargets(natal: ChartOutput): MoonContactTarget[] {
   if (alLon != null) {
     out.push({
       key: 'AL',
-      label: 'Arudha Lagna',
+      label: hi ? LAGNA_LABELS_HI.AL : 'Arudha Lagna',
       code: 'AL',
       kind: 'lagna',
       lon: normLon(alLon),
@@ -198,7 +221,7 @@ export function collectMoonTargets(natal: ChartOutput): MoonContactTarget[] {
     const lon = normLon(raw)
     out.push({
       key,
-      label,
+      label: hi ? LAGNA_LABELS_HI[key] ?? label : label,
       code,
       kind: 'lagna',
       lon,
@@ -210,7 +233,7 @@ export function collectMoonTargets(natal: ChartOutput): MoonContactTarget[] {
     if (!u || !Number.isFinite(u.lonSidereal)) continue
     out.push({
       key,
-      label: u.name || key,
+      label: hi ? termHi(u.name || key) : u.name || key,
       code: UPAGRAHA_CODE[key] ?? key.slice(0, 2),
       kind: 'upagraha',
       lon: normLon(u.lonSidereal),
@@ -239,7 +262,19 @@ function contactTone(target: MoonContactTarget, chandraQuality: 'good' | 'bad' |
   return base
 }
 
-function contactText(target: MoonContactTarget, tone: MoonContactTone, chandraQuality: 'good' | 'bad' | 'avg'): string {
+function contactTextHi(target: MoonContactTarget, tone: MoonContactTone, chandraQuality: 'good' | 'bad' | 'avg'): string {
+  const C = CONTACT_HI
+  const theme = HOUSE_SHORT_THEMES_HI[target.natalHouse] ?? C.lifeThemes
+  const house = fill(C.house, { target: target.label, nth: ordHi(target.natalHouse), theme })
+  const v = { target: target.label, theme, house }
+  if (target.kind === 'graha') return fill(tone === 'supportive' ? C.grahaGood : tone === 'pressure' ? C.grahaBad : C.grahaMixed, v)
+  if (target.kind === 'lagna') return fill(target.key === 'Asc' ? C.asc : C.lagna, v)
+  if (PRESSURE_UPAGRAHAS.has(target.key)) return fill(C.upaBad, v)
+  return fill(C.upa, v) + (chandraQuality === 'good' ? C.chandra : '')
+}
+
+function contactText(target: MoonContactTarget, tone: MoonContactTone, chandraQuality: 'good' | 'bad' | 'avg', lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return contactTextHi(target, tone, chandraQuality)
   const theme = HOUSE_THEME[target.natalHouse] ?? 'life themes'
   const houseBit = `Your natal ${target.label} sits in the ${target.natalHouse}${suffix(target.natalHouse)} house — ${theme}.`
 
@@ -279,6 +314,7 @@ function buildContact(
   speed: number,
   nowMs: number,
   chandraQuality: 'good' | 'bad' | 'avg',
+  lang: EngineLang = 'en',
 ): MoonContact {
   const hours = hoursToConjunction(moonLon, target.lon, speed)
   const orbNow = absOrbDeg(moonLon, target.lon)
@@ -296,7 +332,7 @@ function buildContact(
     orbNow,
     activeNow: orbNow <= ACTIVE_ORB_DEG,
     tone,
-    text: contactText(target, tone, chandraQuality),
+    text: contactText(target, tone, chandraQuality, lang),
   }
 }
 
@@ -310,6 +346,8 @@ export interface BuildMoonTransitInput {
   nearHours?: number
   cycleDays?: number
   activeOrbDeg?: number
+  /** Language of labels and text */
+  lang?: EngineLang
 }
 
 /**
@@ -338,13 +376,13 @@ export function buildMoonTransitReport(input: BuildMoonTransitInput): MoonTransi
   // Chandra quality at contact time uses Moon's rashi at the hit for near-term tone;
   // for simplicity we use current Chandra quality for text, and recompute per-contact
   // from the estimated hit longitude.
-  const targets = collectMoonTargets(input.natal)
+  const targets = collectMoonTargets(input.natal, input.lang)
   const contacts = targets.map(t => {
     const hours = hoursToConjunction(moonLon, t.lon, speed)
     const hitLon = normLon(moonLon + (hours / 24) * speed)
     const hitRashi = rashiOfLon(hitLon)
     const hitChandra = calcChandraBala(natalMoon.rashi, hitRashi)
-    const base = buildContact(t, moonLon, speed, nowMs, hitChandra.quality)
+    const base = buildContact(t, moonLon, speed, nowMs, hitChandra.quality, input.lang)
     return base
   })
 

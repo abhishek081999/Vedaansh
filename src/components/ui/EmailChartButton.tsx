@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
 
 interface Props {
   chart: ChartOutput
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function EmailChartButton({ chart, compact = false, style }: Props) {
+  const t = useTranslations('chart.actions')
   const { data: session } = useSession()
   const plan = (session?.user as any)?.plan ?? 'free'
   const requiresUpgrade = plan !== 'platinum'
@@ -60,10 +62,10 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
           setStatus('idle')
         }, 3000)
       } else {
-        throw new Error(data.error || 'Failed to send email')
+        throw new Error(data.error || t('emailFailed'))
       }
     } catch (e: any) {
-      setErrorMsg(e.message || 'Error occurred')
+      setErrorMsg(e.message || t('emailFailed'))
       setStatus('error')
     } finally {
       setLoading(false)
@@ -85,7 +87,7 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
       <button
         onClick={handleToggle}
         disabled={loading}
-        title={requiresUpgrade ? 'Email delivery requires Platinum plan' : `Email dossier to client`}
+        title={requiresUpgrade ? t('emailLocked') : t('emailTitle')}
         style={{
           display:        'inline-flex',
           alignItems:     'center',
@@ -104,7 +106,7 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
         }}
       >
         {requiresUpgrade ? '🔒 ' : '✉️ '}
-        {compact ? 'Email' : 'Email to Client'}
+        {compact ? t('email') : t('emailClient')}
       </button>
 
       {isOpen && isMobileCompactPopup && (
@@ -137,12 +139,12 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
           animation: 'fadeUp 0.2s ease-out'
         }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>
-            Send Dossier via Email
+            {t('emailHeading')}
           </div>
           
           {status === 'success' ? (
             <div style={{ fontSize: '0.8rem', color: 'var(--teal)', padding: '8px 0', textAlign: 'center' }}>
-              ✓ Sent successfully to {email}
+              {t('sent', { email })}
             </div>
           ) : (
             <>
@@ -187,7 +189,7 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
                     cursor: loading ? 'wait' : 'pointer'
                   }}
                 >
-                  {loading ? 'Sending...' : 'Send Now'}
+                  {loading ? t('sending') : t('sendNow')}
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
@@ -200,7 +202,7 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
                     cursor: 'pointer'
                   }}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
               </div>
             </>

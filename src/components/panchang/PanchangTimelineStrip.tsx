@@ -7,6 +7,9 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { Sunrise, Sunset } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { termHi } from '@/i18n/jyotish'
 import { addHours, startOfHour } from 'date-fns'
 import { fromZonedTime, toZonedTime } from 'date-fns-tz'
 import type { PanchangDayTimeline, TimelineSegment } from '@/lib/panchang/day-timeline'
@@ -28,8 +31,8 @@ function pctBetween(ms: number, w0: number, w1: number): number {
   return Math.max(0, Math.min(100, ((ms - w0) / (w1 - w0)) * 100))
 }
 
-function fmtTime(ms: number, tz: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+function fmtTime(ms: number, tz: string, tag = 'en-IN'): string {
+  return new Intl.DateTimeFormat(tag, {
     timeZone: tz,
     hour: 'numeric',
     minute: '2-digit',
@@ -37,8 +40,8 @@ function fmtTime(ms: number, tz: string): string {
   }).format(new Date(ms))
 }
 
-function fmtHour(ms: number, tz: string): string {
-  return new Intl.DateTimeFormat('en-IN', {
+function fmtHour(ms: number, tz: string, tag = 'en-IN'): string {
+  return new Intl.DateTimeFormat(tag, {
     timeZone: tz,
     hour: 'numeric',
     hour12: true,
@@ -58,11 +61,19 @@ function hourLabelInstants(w0: number, w1: number, tz: string): number[] {
   return out
 }
 
-function segmentTime(index: number, count: number, startMs: number, endMs: number, tz: string): string {
-  if (count === 1) return 'All day'
-  if (index === 0) return `Until ${fmtTime(endMs, tz)}`
-  if (index === count - 1) return `From ${fmtTime(startMs, tz)}`
-  return `${fmtTime(startMs, tz)} – ${fmtTime(endMs, tz)}`
+interface StripText {
+  tag: string
+  allDay: string
+  until: (time: string) => string
+  from: (time: string) => string
+  name: (en: string) => string
+}
+
+function segmentTime(index: number, count: number, startMs: number, endMs: number, tz: string, x: StripText): string {
+  if (count === 1) return x.allDay
+  if (index === 0) return x.until(fmtTime(endMs, tz, x.tag))
+  if (index === count - 1) return x.from(fmtTime(startMs, tz, x.tag))
+  return `${fmtTime(startMs, tz, x.tag)} – ${fmtTime(endMs, tz, x.tag)}`
 }
 
 interface LimbRowProps {
@@ -72,9 +83,10 @@ interface LimbRowProps {
   w1: number
   now: number
   tz: string
+  x: StripText
 }
 
-function LimbRow({ label, segments, w0, w1, now, tz }: LimbRowProps) {
+function LimbRow({ label, segments, w0, w1, now, tz, x }: LimbRowProps) {
   return (
     <div className={styles.row}>
       <div className={styles.rowLabel}>{label}</div>
@@ -84,7 +96,8 @@ function LimbRow({ label, segments, w0, w1, now, tz }: LimbRowProps) {
           const endMs = new Date(seg.end).getTime()
           const width = Math.max(0, pctBetween(endMs, w0, w1) - pctBetween(startMs, w0, w1))
           const active = now >= startMs && now <= endMs
-          const time = segmentTime(i, segments.length, startMs, endMs, tz)
+          const time = segmentTime(i, segments.length, startMs, endMs, tz, x)
+          const sub = seg.sub ? x.name(seg.sub) : seg.sub
           const isBhadra = seg.sub === 'Bhadra'
           return (
             <div
@@ -97,12 +110,12 @@ function LimbRow({ label, segments, w0, w1, now, tz }: LimbRowProps) {
                 isBhadra ? styles.segmentBhadra : '',
               ].filter(Boolean).join(' ')}
               style={{ '--segment-width': `${width}%` } as CSSProperties}
-              title={[seg.label, seg.sub, time].filter(Boolean).join(' · ')}
+              title={[x.name(seg.label), sub, time].filter(Boolean).join(' · ')}
             >
               <span className={styles.segmentDot} aria-hidden />
-              <span className={styles.segmentName}>{seg.label}</span>
+              <span className={styles.segmentName}>{x.name(seg.label)}</span>
               <span className={styles.segmentTime}>
-                {seg.sub && width >= MIN_TIME_WIDTH_PCT * 2 ? `${seg.sub} · ${time}` : time}
+                {sub && width >= MIN_TIME_WIDTH_PCT * 2 ? `${sub} · ${time}` : time}
               </span>
             </div>
           )
@@ -120,6 +133,16 @@ export function PanchangTimelineStrip({
   tz: string
 }) {
   const [now, setNow] = useState(() => Date.now())
+  const t = useTranslations('panchang.timelineStrip')
+  const tl = useTranslations('panchang.limbs')
+  const { tag, hi } = useLang()
+  const x: StripText = {
+    tag,
+    allDay: t('allDay'),
+    until: (time) => t('until', { time }),
+    from: (time) => t('from', { time }),
+    name: (en) => (hi ? termHi(en) : en),
+  }
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 60_000)
@@ -144,10 +167,10 @@ export function PanchangTimelineStrip({
   )
 
   const limbs: Array<[string, TimelineSegment[]]> = [
-    ['Tithi', timeline.tithi],
-    ['Nakshatra', timeline.nakshatra],
-    ['Yoga', timeline.yoga],
-    ['Karana', timeline.karana],
+    [tl('tithi'), timeline.tithi],
+    [tl('nakshatra'), timeline.nakshatra],
+    [tl('yoga'), timeline.yoga],
+    [tl('karana'), timeline.karana],
   ]
 
   return (
@@ -159,7 +182,7 @@ export function PanchangTimelineStrip({
           <span className={styles.sunsetLine} style={{ left: `${sunsetPct}%` }} />
           {nowOnTrack && (
             <span className={styles.nowLine} style={{ left: `${pctBetween(now, w0, w1)}%` }}>
-              <span className={styles.nowFlag}>Now</span>
+              <span className={styles.nowFlag}>{t('now')}</span>
             </span>
           )}
         </div>
@@ -167,21 +190,21 @@ export function PanchangTimelineStrip({
         <div className={styles.rulerRow}>
           <div className={styles.ruler}>
             <span className={`${styles.sunMark} ${styles.sunMarkStart}`} style={{ left: `${sunrisePct}%` }}>
-              <Sunrise size={14} aria-hidden /> {fmtTime(sunriseMs, tz)}
+              <Sunrise size={14} aria-hidden /> {fmtTime(sunriseMs, tz, tag)}
             </span>
             {hourLabels.map(({ ms, pct }) => (
               <span key={ms} className={styles.hourLabel} style={{ left: `${pct}%` }}>
-                {fmtHour(ms, tz)}
+                {fmtHour(ms, tz, tag)}
               </span>
             ))}
             <span className={styles.sunMark} style={{ left: `${sunsetPct}%` }}>
-              <Sunset size={14} aria-hidden /> {fmtTime(sunsetMs, tz)}
+              <Sunset size={14} aria-hidden /> {fmtTime(sunsetMs, tz, tag)}
             </span>
           </div>
         </div>
 
         {limbs.map(([label, segments]) => (
-          <LimbRow key={label} label={label} segments={segments} w0={w0} w1={w1} now={now} tz={tz} />
+          <LimbRow key={label} label={label} segments={segments} w0={w0} w1={w1} now={now} tz={tz} x={x} />
         ))}
       </div>
     </div>

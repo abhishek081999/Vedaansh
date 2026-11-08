@@ -6,8 +6,8 @@
 //  Timeline scores: + hora / choghadiya / panchaka / kalam at each slot
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import { useState, useCallback, useEffect, useMemo } from 'react'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import {
   Briefcase, Plane, Home, Heart, Stethoscope, Zap, BookOpen, Flame, CalendarPlus, FileText,

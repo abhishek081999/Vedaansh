@@ -1,8 +1,9 @@
 'use client'
 
+import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import Link from 'next/link'
 import { Download, HelpCircle, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/primitives/Button'
 import { Modal } from '@/components/ui/primitives/Modal'
 import { PwaInstallGuide } from '@/components/ui/PwaInstallGuide'
@@ -10,12 +11,13 @@ import { usePwaInstall } from '@/hooks/usePwaInstall'
 
 export function PwaInstallBanner() {
   const { canInstall, visible, guideOpen, install, dismiss, openGuide, closeGuide } = usePwaInstall()
+  const t = useTranslations('common.pwa')
 
   if (!visible) return null
 
   return (
     <>
-      <div className="pwa-install-banner" role="region" aria-label="Install Vedaansh app">
+      <div className="pwa-install-banner" role="region" aria-label={t('region')}>
         <div className="pwa-install-banner-inner">
           <Image
             src="/icons/icon-192x192.png"
@@ -26,11 +28,9 @@ export function PwaInstallBanner() {
             aria-hidden
           />
           <div className="pwa-install-banner-copy">
-            <strong>Install Vedaansh</strong>
+            <strong>{t('title')}</strong>
             <span>
-              {canInstall
-                ? 'Add to your home screen for quick access.'
-                : 'Add to your home screen — see steps below.'}
+              {canInstall ? t('quick') : t('steps')}
             </span>
           </div>
           <div className="pwa-install-banner-actions">
@@ -38,12 +38,12 @@ export function PwaInstallBanner() {
               {canInstall ? (
                 <>
                   <Download size={14} strokeWidth={2} aria-hidden />
-                  Install
+                  {t('install')}
                 </>
               ) : (
                 <>
                   <HelpCircle size={14} strokeWidth={2} aria-hidden />
-                  How to install
+                  {t('howTo')}
                 </>
               )}
             </Button>
@@ -53,14 +53,14 @@ export function PwaInstallBanner() {
                 className="pwa-install-banner-link"
                 onClick={openGuide}
               >
-                Other options
+                {t('other')}
               </button>
             ) : null}
             <button
               type="button"
               className="pwa-install-banner-dismiss"
               onClick={dismiss}
-              aria-label="Dismiss install prompt"
+              aria-label={t('dismiss')}
             >
               <X size={16} strokeWidth={2} />
             </button>
@@ -71,13 +71,13 @@ export function PwaInstallBanner() {
       <Modal
         open={guideOpen}
         onOpenChange={(open) => (open ? openGuide() : closeGuide())}
-        title="Install Vedaansh"
-        description="3 quick steps for your phone."
+        title={t('title')}
+        description={t('modalDesc')}
       >
         <PwaInstallGuide compact />
         <p className="pwa-install-guide-footer">
           <Link href="/install" className="pwa-install-guide-footer-link" onClick={closeGuide}>
-            Open install page
+            {t('openPage')}
           </Link>
         </p>
       </Modal>

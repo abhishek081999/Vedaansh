@@ -186,6 +186,16 @@ export const NAKSHATRA_INTERPRETATIONS: string[] = [
   "Nourishing and complete. High compassion and ability to complete journeys successfully.",
 ]
 
+/** Dignity note in `lang`. */
+export function dignityInterpretation(dignity: string, lang: EngineLang = 'en'): string | undefined {
+  return (lang === 'hi' ? DIGNITY_INTERPRETATIONS_HI : DIGNITY_INTERPRETATIONS)[dignity]
+}
+
+/** Nakshatra note (index 0–26) in `lang`. */
+export function nakshatraInterpretation(index: number, lang: EngineLang = 'en'): string | undefined {
+  return (lang === 'hi' ? NAKSHATRA_INTERPRETATIONS_HI : NAKSHATRA_INTERPRETATIONS)[index]
+}
+
 export function getInterpretation(p: any): string {
   const planet = p.grahaId as GrahaId
   const rashi = (Math.floor(p.degree / 30) + 1) as Rashi
@@ -282,3 +292,5 @@ export {
   getChartMultiVakriNotes,
   buildClassicalPdfBlocks,
 } from './classicalChartAnalysis'
+import type { EngineLang } from '@/lib/engine/lang'
+import { DIGNITY_INTERPRETATIONS_HI, NAKSHATRA_INTERPRETATIONS_HI } from '@/lib/engine/locale/interpretations.hi'

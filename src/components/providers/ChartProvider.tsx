@@ -1,6 +1,6 @@
 'use client'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, Dispatch, SetStateAction } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
 import type { ChartOutput } from '@/types/astrology'
 
 /** Routes that mount HomeClient (and therefore ChartFormDrawer). */

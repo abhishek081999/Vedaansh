@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLang } from '@/i18n/useLang'
 import type { ChartOutput } from '@/types/astrology'
 import {
   buildTodayReading,
@@ -69,6 +70,7 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 export function useTodayReading(chart: ChartOutput | null, location: TodayLocation): TodayReadingState {
+  const { lang } = useLang()
   const [reading, setReading] = useState<TodayReading | null>(null)
   const [predictions, setPredictions] = useState<TodayPredictions | null>(null)
   const [advanced, setAdvanced] = useState<TodayAdvanced | null>(null)
@@ -110,12 +112,12 @@ export function useTodayReading(chart: ChartOutput | null, location: TodayLocati
         panchang = (await getJson<{ data: TodayPanchangInput }>(panchangUrl(previousDay(date)))).data
       }
 
-      const built = buildTodayReading({ natal: chart, transit: planets.grahas, panchang, now })
+      const built = buildTodayReading({ natal: chart, transit: planets.grahas, panchang, now, lang })
       if (id !== requestId.current) return
-      if (!built) throw new Error('Could not build today\'s reading from this chart.')
+      if (!built) throw new Error(lang === 'hi' ? 'इस कुंडली से आज का फल नहीं बन सका।' : 'Could not build today\'s reading from this chart.')
       setReading(built)
-      setPredictions(buildTodayPredictions({ natal: chart, transit: planets.grahas, reading: built, now }))
-      setAdvanced(buildTodayAdvanced({ natal: chart, transit: planets.grahas, panchang, reading: built, now }))
+      setPredictions(buildTodayPredictions({ natal: chart, transit: planets.grahas, reading: built, now, lang }))
+      setAdvanced(buildTodayAdvanced({ natal: chart, transit: planets.grahas, panchang, reading: built, now, lang }))
       const dayStart = Date.parse(panchang.sunrise)
       setDasha(buildTodayDasha({
         natal: chart,
@@ -123,16 +125,17 @@ export function useTodayReading(chart: ChartOutput | null, location: TodayLocati
         now,
         windowStart: Number.isFinite(dayStart) ? new Date(dayStart) : now,
         windowEnd: Number.isFinite(dayStart) ? new Date(dayStart + 24 * 3_600_000) : undefined,
+        lang,
       }))
       setTransit(planets.grahas)
       setAsOf(now)
     } catch (e) {
       if (id !== requestId.current) return
-      setError(e instanceof Error ? e.message : 'Could not load today\'s reading.')
+      setError(e instanceof Error ? e.message : lang === 'hi' ? 'आज का फल लोड नहीं हो सका।' : 'Could not load today\'s reading.')
     } finally {
       if (id === requestId.current) setLoading(false)
     }
-  }, [chart, lat, lng, tz, ayanamsha, nodeMode])
+  }, [chart, lat, lng, tz, ayanamsha, nodeMode, lang])
 
   /** Drops any in-flight response (unmount, or chart / location changed). */
   const invalidate = useCallback(() => { requestId.current += 1 }, [])

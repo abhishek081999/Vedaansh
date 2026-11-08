@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
-import { PANCHANG_CALENDAR_SEO } from '@/lib/seo/intro-content'
+import { panchangCalendarIntro } from '@/lib/seo/intro-content.hi'
+import { localizeMetadata, pageLocale } from '@/lib/seo/i18nMeta'
 import { routeOgImage, SITE_URL } from '@/lib/seo/site'
 
-export const metadata: Metadata = {
+const metadataEn: Metadata = {
   title:       'Vedic Panchang Calendar — Monthly Tithi & Nakshatra',
   description: 'Monthly Vedic Panchang calendar: every day\'s Tithi, Nakshatra, Yoga, Karana, festivals, Ekadashi, Amavasya & Purnima. Swiss Ephemeris accuracy.',
   alternates:  { canonical: `${SITE_URL}/panchang/calendar` },
@@ -24,6 +25,15 @@ export const metadata: Metadata = {
   },
 }
 
+export async function generateMetadata(): Promise<Metadata> {
+  return localizeMetadata('/panchang/calendar', await pageLocale(), metadataEn, {
+    title: 'मासिक पंचांग कैलेंडर — तिथि, नक्षत्र और पर्व',
+    description: 'मासिक वैदिक पंचांग कैलेंडर: हर दिन की तिथि, नक्षत्र, योग, करण, पर्व, एकादशी, अमावस्या और पूर्णिमा। स्विस एफ़ेमेरिस की सटीकता।',
+    ogTitle: 'मासिक पंचांग कैलेंडर — Vedaansh',
+    keywords: ['पंचांग कैलेंडर', 'हिंदू कैलेंडर', 'तिथि कैलेंडर', 'एकादशी', 'पूर्णिमा', 'अमावस्या', 'मासिक पंचांग'],
+  })
+}
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type':    'BreadcrumbList',
@@ -35,11 +45,12 @@ const jsonLd = {
 }
 
 export default async function PanchangCalendarLayout({ children }: { children: React.ReactNode }) {
+  const locale = await pageLocale()
   return (
     <>
       <JsonLd data={jsonLd} />
       {children}
-      <SeoIntro {...PANCHANG_CALENDAR_SEO} />
+      <SeoIntro {...panchangCalendarIntro(locale)} />
     </>
   )
 }

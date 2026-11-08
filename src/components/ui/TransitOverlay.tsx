@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import type { GrahaData, ChartOutput } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
 
 interface TransitOverlayProps {
   natalChart:    ChartOutput
@@ -32,6 +33,7 @@ function nowTimeIST(): string {
 }
 
 export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProps) {
+  const t = useTranslations('chart.transitOverlay')
   const [enabled,  setEnabled]  = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [transit,  setTransit]  = useState<ChartOutput | null>(null)
@@ -61,12 +63,12 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
       setTransit(json.data)
       onTransitLoad(json.data.grahas)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed')
+      setError(e instanceof Error ? e.message : t('failed'))
       onTransitLoad(null)
     } finally {
       setLoading(false)
     }
-  }, [natalChart, onTransitLoad])
+  }, [natalChart, onTransitLoad, t])
 
   // Auto-fetch when enabled
   useEffect(() => {
@@ -107,7 +109,7 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
             fontFamily: 'var(--font-display)', fontSize: '0.85rem',
             fontWeight: 600, color: enabled ? 'var(--accent)' : 'var(--text-secondary)',
           }}>
-            Transit Overlay
+            {t('toggle')}
           </span>
         </button>
 
@@ -141,7 +143,7 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
             textTransform: 'uppercase', color: 'var(--accent)',
             fontFamily: 'var(--font-display)',
           }}>
-            ✓ Live
+            {t('live')}
           </span>
         )}
 
@@ -171,8 +173,8 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
       {/* Legend */}
       {enabled && (
         <div style={{ marginTop: '0.5rem', display: 'flex', gap: '1rem', fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
-          <span style={{ color: 'var(--text-primary)' }}>● Natal</span>
-          <span style={{ color: 'var(--accent)' }}>● Transit</span>
+          <span style={{ color: 'var(--text-primary)' }}>{t('natal')}</span>
+          <span style={{ color: 'var(--accent)' }}>{t('transit')}</span>
         </div>
       )}
     </div>

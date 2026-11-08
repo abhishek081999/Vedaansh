@@ -5,9 +5,9 @@
 
 'use client'
 
+import { Link } from '@/i18n/navigation'
 import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useChart } from '@/components/providers/ChartProvider'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'

@@ -1,7 +1,7 @@
 'use client'
 
+import { Link } from '@/i18n/navigation'
 import React from 'react'
-import Link from 'next/link'
 import {
   ABOUT_VISION,
   ABOUT_DEVELOPER,

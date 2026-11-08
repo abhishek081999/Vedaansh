@@ -7,6 +7,9 @@ import React, { useMemo, useState } from 'react'
 import type { ChartOutput, Rashi, UpagrahaData } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
 import { calcSripatiBhava, planetInSripatiHouse } from '@/lib/engine/sripatiBhava'
 import {
   getHouseTheme,
@@ -42,7 +45,12 @@ const HOUSE_LABELS: Record<number, string> = {
   10: 'Dasham Madhya',
 }
 
+/** Hindi short kendra labels for the cusp table (local; not in the glossary). */
+const HOUSE_LABEL_SHORT_HI: Record<number, string> = { 1: 'लग्न', 4: 'चतुर्थ', 7: 'सप्तम', 10: 'दशम' }
+const UPAGRAHA_HI: Record<string, string> = { Maandi: 'मांदी', Mandi: 'मांदी', Gulika: 'गुलिक' }
+
 function LonFmt({ val }: { val: number }) {
+  const { hi } = useLang()
   const normalized = ((val % 360) + 360) % 360
   const r = (Math.floor(normalized / 30) + 1) as Rashi
   const deg = Math.floor(normalized % 30)
@@ -51,7 +59,7 @@ function LonFmt({ val }: { val: number }) {
   const sec = Math.floor((mTotal % 1) * 60)
   return (
     <span style={{ fontFamily: 'var(--font-mono)' }}>
-      {RASHI_SHORT[r]} {deg}° {min}′ {sec}″
+      {hi ? RASHI_HI[r] : RASHI_SHORT[r]} {deg}° {min}′ {sec}″
     </span>
   )
 }
@@ -101,6 +109,10 @@ function SummaryChip({
 }
 
 export function HousePanel({ chart }: { chart: ChartOutput }) {
+  const t = useTranslations('chart.housePanel')
+  const { hi, lang } = useLang()
+  const gname = (id: string) => (hi ? GRAHA_HI[id as keyof typeof GRAHA_HI] : GRAHA_NAMES[id as keyof typeof GRAHA_NAMES]) || id
+  const rname = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
   const [activeTab, setActiveTab] = useState<'analysis' | 'progression' | 'guide' | 'lagna' | 'rashi'>('analysis')
   const [selectedHouse, setSelectedHouse] = useState<number | null>(null)
   const selectHouse = (n: number) => {
@@ -185,7 +197,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
       >
         <div>
           <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.4rem', fontSize: '0.65rem' }}>
-            House & Bhava Workspace
+            {t('eyebrow')}
           </div>
           <h2
             style={{
@@ -197,27 +209,26 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
               letterSpacing: '-0.01em',
             }}
           >
-            Bhava Analysis
+            {t('title')}
           </h2>
           <p style={{ margin: '0.5rem 0 0', fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '640px', lineHeight: 1.5 }}>
-            Sripati Bhava Madhya (house midpoints), Bhava Sandhi (junctions), Dasham Madhya (MC), and Mandi —
-            used to judge cusp vs core house results (Bhava Chalit).
+            {t('intro')}
           </p>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <SummaryChip label="Lagna Madhya" value={<LonFmt val={sripati.lagnaMadhya} />} />
-          <SummaryChip label="Dasham Madhya" value={<LonFmt val={sripati.dashamMadhya} />} />
+          <SummaryChip label={t('lagnaMadhya')} value={<LonFmt val={sripati.lagnaMadhya} />} />
+          <SummaryChip label={t('dashamMadhya')} value={<LonFmt val={sripati.dashamMadhya} />} />
           {mandi ? (
             <SummaryChip
-              label="Mandi"
+              label={t('mandi')}
               value={<LonFmt val={mandi.lonSidereal} />}
-              hint={mandiHouse ? `H${mandiHouse}` : undefined}
+              hint={mandiHouse ? t('house', { n: mandiHouse }) : undefined}
             />
           ) : null}
           <SummaryChip
-            label="System"
-            value={houseSystem.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+            label={t('system')}
+            value={hi && houseSystem === 'whole_sign' ? t('wholeSign') : houseSystem.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
           />
         </div>
       </div>
@@ -232,11 +243,11 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
       >
         {(
           [
-            { label: 'Lagna Madhya (H1)', lon: sripati.lagnaMadhya },
-            { label: 'Chaturtha Madhya (H4)', lon: sripati.chaturthaMadhya },
-            { label: 'Saptama Madhya (H7)', lon: sripati.saptamaMadhya },
-            { label: 'Dasham Madhya (H10)', lon: sripati.dashamMadhya },
-          ] as const
+            { label: t('a1'), lon: sripati.lagnaMadhya },
+            { label: t('a4'), lon: sripati.chaturthaMadhya },
+            { label: t('a7'), lon: sripati.saptamaMadhya },
+            { label: t('a10'), lon: sripati.dashamMadhya },
+          ]
         ).map((a) => (
           <div
             key={a.label}
@@ -285,11 +296,11 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
         }}
       >
         {[
-          { id: 'analysis' as const, label: 'Bhava Analysis' },
-          { id: 'progression' as const, label: 'House Progression (BCP)' },
-          { id: 'guide' as const, label: 'House Guide' },
-          { id: 'lagna' as const, label: 'Ascendant Guide' },
-          { id: 'rashi' as const, label: 'Rashi Guide' },
+          { id: 'analysis' as const, label: t('tabAnalysis') },
+          { id: 'progression' as const, label: t('tabProgression') },
+          { id: 'guide' as const, label: t('tabGuide') },
+          { id: 'lagna' as const, label: t('tabLagna') },
+          { id: 'rashi' as const, label: t('tabRashi') },
         ].map((t) => (
           <button
             key={t.id}
@@ -337,10 +348,10 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
               }}
             >
               <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>
-                Lagna Lord in 1st House ({GRAHA_NAMES[lagnaLordId as keyof typeof GRAHA_NAMES] || lagnaLordId})
+                {t('lagnaLordFirst', { lord: gname(lagnaLordId) })}
               </div>
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                {LAGNA_LORD_IN_FIRST}
+                {hi ? t('lagnaLordFirstText') : LAGNA_LORD_IN_FIRST}
               </p>
             </div>
           ) : null}
@@ -353,11 +364,11 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
             }}
           >
             {houseData.map((h) => {
-              const theme = getHouseTheme(h.houseNum)
-              const signNote = getSignInHouse(h.houseNum, h.rashi)
+              const theme = getHouseTheme(h.houseNum, lang)
+              const signNote = getSignInHouse(h.houseNum, h.rashi, lang)
               // Whole-sign house for planet summaries (matches lagna-based reading)
               const wsRashi = (((ascRashi - 1 + h.houseNum - 1) % 12) + 1) as Rashi
-              const wsSignNote = getSignInHouse(h.houseNum, wsRashi)
+              const wsSignNote = getSignInHouse(h.houseNum, wsRashi, lang)
               return (
               <div
                 key={h.houseNum}
@@ -432,11 +443,11 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                           fontWeight: 700,
                         }}
                       >
-                        {theme?.sanskrit ?? h.specialLabel ?? 'Bhava Madhya'}
+                        {theme?.sanskrit ?? h.specialLabel ?? t('bhavaMadhya')}
                       </div>
                       <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {RASHI_NAMES[h.rashi]}{' '}
-                        <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>Madhya</span>
+                        {rname(h.rashi)}{' '}
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>{t('madhya')}</span>
                       </div>
                       {theme ? (
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
@@ -466,7 +477,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                     }}
                   >
                     <div style={{ fontSize: '0.58rem', color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
-                      {RASHI_NAMES[wsRashi]} in House {h.houseNum}
+                      {t('signInHouse', { sign: rname(wsRashi as Rashi), n: h.houseNum })}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                       {wsSignNote || signNote}
@@ -492,7 +503,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                         marginBottom: '0.35rem',
                       }}
                     >
-                      Bhava Sandhi (Start)
+                      {t('sandhiStart')}
                     </div>
                     <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>
                       <LonFmt val={h.sandhiStart} />
@@ -515,7 +526,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                         marginBottom: '0.35rem',
                       }}
                     >
-                      Bhava Sandhi (End)
+                      {t('sandhiEnd')}
                     </div>
                     <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>
                       <LonFmt val={h.sandhiEnd} />
@@ -538,10 +549,10 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                         marginBottom: '0.35rem',
                       }}
                     >
-                      Nakshatra
+                      {t('nakshatra')}
                     </div>
-                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{h.nak.name}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-gold)' }}>Pada {h.nak.pada}</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{hi ? termHi(h.nak.name) : h.nak.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-gold)' }}>{t('pada', { n: h.nak.pada })}</div>
                   </div>
                   <div
                     style={{
@@ -560,12 +571,12 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                         marginBottom: '0.35rem',
                       }}
                     >
-                      House Lord
+                      {t('houseLord')}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                       <span style={{ fontSize: '1rem' }}>{GRAHA_SYMBOLS[h.lordId] || h.lordId}</span>
                       <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                        {GRAHA_NAMES[h.lordId as keyof typeof GRAHA_NAMES] || h.lordId}
+                        {gname(h.lordId)}
                       </span>
                     </div>
                   </div>
@@ -581,12 +592,12 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                       marginBottom: '0.65rem',
                     }}
                   >
-                    Occupants ({h.planetsInHouse.length + h.upagrahasInHouse.length})
+                    {t('occupants', { n: h.planetsInHouse.length + h.upagrahasInHouse.length })}
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                     {h.planetsInHouse.length === 0 && h.upagrahasInHouse.length === 0 ? (
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.4rem' }}>
-                        No planets in this bhava (Sripati)
+                        {t('noPlanets')}
                       </div>
                     ) : (
                       <>
@@ -605,7 +616,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                             }}
                           >
                             <span style={{ fontSize: '1rem' }}>{GRAHA_SYMBOLS[p.id] || p.id}</span>
-                            <span style={{ fontWeight: 600 }}>{p.id}</span>
+                            <span style={{ fontWeight: 600 }}>{hi ? GRAHA_HI[p.id] : p.id}</span>
                             <div style={{ width: 1, height: 10, background: 'var(--border-soft)' }} />
                             <span style={{ fontSize: '0.72rem', opacity: 0.7, fontFamily: 'var(--font-mono)' }}>
                               {p.degree.toFixed(1)}°
@@ -627,7 +638,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                               color: 'var(--text-gold)',
                             }}
                           >
-                            <span style={{ fontWeight: 700 }}>{u.id}</span>
+                            <span style={{ fontWeight: 700 }}>{hi ? UPAGRAHA_HI[u.id] ?? u.id : u.id}</span>
                             <div style={{ width: 1, height: 10, background: 'var(--border-soft)' }} />
                             <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>
                               <LonFmt val={u.lon} />
@@ -642,7 +653,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginTop: '0.85rem' }}>
                       {h.planetsInHouse.map((p) => {
                         const wsHouse = wholeSignHouseFromLagna(ascRashi, p.rashi)
-                        const note = getPlanetInHouse(p.id, wsHouse, 'summary')
+                        const note = getPlanetInHouse(p.id, wsHouse, 'summary', lang)
                         if (!note) return null
                         return (
                           <div
@@ -655,7 +666,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                             }}
                           >
                             <div style={{ fontSize: '0.58rem', color: 'var(--text-gold)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.2rem' }}>
-                              {GRAHA_NAMES[p.id] || p.id} in House {wsHouse}
+                              {t('planetInHouse', { planet: gname(p.id), n: wsHouse })}
                             </div>
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
                               {note}
@@ -673,19 +684,19 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
 
           <div style={{ marginTop: '2rem', minWidth: 0 }}>
             <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>
-              Detailed Bhava Table — Madhya & Sandhi
+              {t('tableTitle')}
             </h3>
             <div className="card" style={{ padding: 0, overflowX: 'auto', background: 'var(--surface-1)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border-soft)' }}>
                     <th style={thStyle}>H#</th>
-                    <th style={thStyle}>Bhava Sandhi (Start)</th>
-                    <th style={thStyle}>Bhava Madhya</th>
-                    <th style={thStyle}>Bhava Sandhi (End)</th>
-                    <th style={thStyle}>Nakshatra</th>
-                    <th style={thStyle}>Rashi (Lord)</th>
-                    <th style={thStyle}>Occupants</th>
+                    <th style={thStyle}>{t('sandhiStart')}</th>
+                    <th style={thStyle}>{t('bhavaMadhya')}</th>
+                    <th style={thStyle}>{t('sandhiEnd')}</th>
+                    <th style={thStyle}>{t('nakshatra')}</th>
+                    <th style={thStyle}>{t('rashiLord')}</th>
+                    <th style={thStyle}>{t('occupantsCol')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -695,7 +706,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                         {h.houseNum}
                         {h.specialLabel ? (
                           <div style={{ fontSize: '0.65rem', fontWeight: 500, opacity: 0.75, marginTop: 2 }}>
-                            {h.specialLabel.replace(' Madhya', '')}
+                            {hi ? HOUSE_LABEL_SHORT_HI[h.houseNum] : h.specialLabel.replace(' Madhya', '')}
                           </div>
                         ) : null}
                       </td>
@@ -714,14 +725,14 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                         <LonFmt val={h.sandhiEnd} />
                       </td>
                       <td style={{ padding: '1rem' }}>
-                        <div style={{ fontWeight: 500 }}>{h.nak.name}</div>
-                        <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>Pada {h.nak.pada}</div>
+                        <div style={{ fontWeight: 500 }}>{hi ? termHi(h.nak.name) : h.nak.name}</div>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{t('pada', { n: h.nak.pada })}</div>
                       </td>
                       <td style={{ padding: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <span style={{ color: 'var(--gold)' }}>{SIGN_SYMBOLS[h.rashi]}</span>
                           <span>
-                            {RASHI_NAMES[h.rashi]} ({h.lordId})
+                            {rname(h.rashi)} ({hi ? gname(h.lordId) : h.lordId})
                           </span>
                         </div>
                       </td>
@@ -738,7 +749,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                                 fontSize: '0.75rem',
                               }}
                             >
-                              {p.id}
+                              {hi ? GRAHA_HI[p.id] : p.id}
                             </span>
                           ))}
                           {h.upagrahasInHouse.map((u) => (
@@ -754,7 +765,7 @@ export function HousePanel({ chart }: { chart: ChartOutput }) {
                                 fontWeight: 600,
                               }}
                             >
-                              {u.id}
+                              {hi ? UPAGRAHA_HI[u.id] ?? u.id : u.id}
                             </span>
                           ))}
                         </div>

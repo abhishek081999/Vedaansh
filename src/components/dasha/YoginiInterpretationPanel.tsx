@@ -5,6 +5,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import type { GrahaId } from '@/types/astrology'
 import type { DashaNode } from '@/types/astrology'
 import {
   getYoginiInterpretation,
@@ -62,8 +66,10 @@ function YoginiCard({
   levelLabel: string
   defaultExpanded?: boolean
 }) {
+  const t = useTranslations('dashaPanel')
+  const { hi } = useLang()
   const [expanded, setExpanded] = useState(defaultExpanded)
-  const planet = GRAHA_NAME[data.lord] ?? data.lord
+  const planet = hi ? GRAHA_HI[data.lord as GrahaId] ?? data.lord : GRAHA_NAME[data.lord] ?? data.lord
   const borderColor = isMaleficNature(data.nature)
     ? 'var(--rose)'
     : isBeneficNature(data.nature)
@@ -123,11 +129,11 @@ function YoginiCard({
                 padding: '0.15rem 0.4rem',
               }}
             >
-              {data.nature}
+              {t(`vim.nature.${data.nature.replace(' ', '')}`)}
             </span>
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4, fontWeight: 600 }}>
-            {data.years} {data.years === 1 ? 'Year' : 'Years'} · {data.keyTheme}
+            {t(data.years === 1 ? 'yogini.year' : 'yogini.years', { n: data.years })} · {data.keyTheme}
           </div>
           {!expanded && (
             <p style={{ margin: '0.45rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
@@ -145,7 +151,7 @@ function YoginiCard({
             whiteSpace: 'nowrap',
           }}
         >
-          {expanded ? '▴ Less' : '▾ More'}
+          {expanded ? t('yogini.less') : t('yogini.more')}
         </span>
       </button>
 
@@ -160,24 +166,24 @@ function YoginiCard({
             gap: '0.85rem',
           }}
         >
-          <Section title="Positive Effects">
-            <Line label="Primary" value={data.primaryPositive} />
-            <Line label="Secondary" value={data.secondaryBenefits} />
+          <Section title={t('yogini.positive')}>
+            <Line label={t('yogini.primary')} value={data.primaryPositive} />
+            <Line label={t('yogini.secondary')} value={data.secondaryBenefits} />
           </Section>
-          <Section title="Mind & Psychology">
-            <Line label="State" value={data.psychologicalState} />
-            <Line label="Activation" value={data.mentalActivation} />
+          <Section title={t('yogini.mind')}>
+            <Line label={t('yogini.state')} value={data.psychologicalState} />
+            <Line label={t('yogini.activation')} value={data.mentalActivation} />
           </Section>
-          <Section title="Risks & Caution">
+          <Section title={t('yogini.risks')}>
             {data.negativeEffects
-              ? <Line label="Negatives" value={data.negativeEffects} />
-              : <div style={{ fontSize: '0.82rem', color: 'var(--teal)' }}>Generally favorable — few classical negatives.</div>}
-            {data.healthConcerns && <Line label="Health" value={data.healthConcerns} />}
-            {data.otherRisks && <Line label="Other" value={data.otherRisks} />}
+              ? <Line label={t('yogini.negatives')} value={data.negativeEffects} />
+              : <div style={{ fontSize: '0.82rem', color: 'var(--teal)' }}>{t('yogini.favorable')}</div>}
+            {data.healthConcerns && <Line label={t('yogini.health')} value={data.healthConcerns} />}
+            {data.otherRisks && <Line label={t('yogini.other')} value={data.otherRisks} />}
           </Section>
-          <Section title="Triggers & Events">
-            <Line label="Triggers" value={data.primaryTriggers} />
-            <Line label="Life events" value={data.lifeEvents} />
+          <Section title={t('yogini.triggers')}>
+            <Line label={t('yogini.triggersLabel')} value={data.primaryTriggers} />
+            <Line label={t('yogini.lifeEvents')} value={data.lifeEvents} />
           </Section>
         </div>
       )}
@@ -186,6 +192,8 @@ function YoginiCard({
 }
 
 export function YoginiInterpretationPanel({ nodes }: Props) {
+  const t = useTranslations('dashaPanel.yogini')
+  const { lang } = useLang()
   const activePath = useMemo(() => {
     const path: DashaNode[] = []
     let current = nodes.find(n => n.isCurrent)
@@ -198,18 +206,18 @@ export function YoginiInterpretationPanel({ nodes }: Props) {
 
   if (activePath.length < 1) return null
 
-  const maha = getYoginiInterpretation(activePath[0].lord)
-  const antar = activePath[1] ? getYoginiInterpretation(activePath[1].lord) : null
+  const maha = getYoginiInterpretation(activePath[0].lord, lang)
+  const antar = activePath[1] ? getYoginiInterpretation(activePath[1].lord, lang) : null
   if (!maha) return null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
       <div className="label-caps" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', padding: '0 0.15rem' }}>
-        Yogini Interpretation
+        {t('title')}
       </div>
-      <YoginiCard data={maha} levelLabel="Active Yogini (Mahadasha)" />
+      <YoginiCard data={maha} levelLabel={t('maha')} />
       {antar && (
-        <YoginiCard data={antar} levelLabel="Active Antar-Yogini" />
+        <YoginiCard data={antar} levelLabel={t('antar')} />
       )}
     </div>
   )

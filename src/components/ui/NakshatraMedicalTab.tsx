@@ -4,8 +4,8 @@
 //  Medical astrology analysis for the Nakshatra workspace
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Activity, BookOpen, Layers, Thermometer, Lock } from 'lucide-react'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'

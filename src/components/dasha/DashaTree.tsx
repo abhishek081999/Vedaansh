@@ -8,7 +8,10 @@ import type { DashaNode } from '@/types/astrology'
 import { NAKSHATRA_NAMES, NAKSHATRA_SHORT } from '@/types/astrology'
 import { expandVimshottariNode } from '@/lib/engine/dasha/vimshottari'
 import { isDashaRunning, getDashaPathAt } from '@/lib/engine/dasha/current'
-import { GRAHA_COLOR, GRAHA_NAME } from './dashaPalette'
+import { GRAHA_COLOR, lordCodeIn, lordNameIn } from './dashaPalette'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { NAKSHATRA_HI, NAKSHATRA_SHORT_HI, termHi } from '@/i18n/jyotish'
 
 const VIMSHOTTARI_SEQUENCE = ['Ke', 'Ve', 'Su', 'Mo', 'Ma', 'Ra', 'Ju', 'Sa', 'Me'] as const
 const NAVTARA_META = [
@@ -44,15 +47,16 @@ function fmtDateCompact(d: Date | string, timezone?: string, isMobile = false) {
     })
 }
 
-function fmtDate(d: Date | string, timezone?: string) {
+function fmtDate(d: Date | string, timezone?: string, tag = 'en-IN') {
   const date = toDate(d)
   if (!Number.isFinite(date.getTime())) return '—'
-  return date.toLocaleDateString('en-IN', {
+  return date.toLocaleDateString(tag, {
     day: '2-digit', month: 'long', year: 'numeric', timeZone: timezone || undefined,
   })
 }
 
-function nakshatraDisplay(idx: number, compact = false): string {
+function nakshatraDisplay(idx: number, compact = false, hi = false): string {
+  if (hi) return (compact ? NAKSHATRA_SHORT_HI[idx] : NAKSHATRA_HI[idx]) ?? NAKSHATRA_NAMES[idx] ?? ''
   return compact
     ? (NAKSHATRA_SHORT[idx] ?? NAKSHATRA_NAMES[idx] ?? '')
     : (NAKSHATRA_NAMES[idx] ?? NAKSHATRA_SHORT[idx] ?? '')
@@ -88,6 +92,8 @@ export function DashaTree({
   asOf?: Date
   timezone?: string
 }) {
+  const t = useTranslations('chart.dashaTree')
+  const { hi, tag } = useLang()
   const [activePath, setActivePath] = useState<DashaNode[]>([])
   const [currentPath, setCurrentPath] = useState<DashaNode[]>([])
   const [isMobile, setIsMobile] = useState(false)
@@ -154,7 +160,7 @@ export function DashaTree({
     return { num, ...NAVTARA_META[num - 1] }
   }, [birthMahaNode, currentMahaNode])
 
-  const fullCurrentCode = currentPath.map(n => n.lord).join('/')
+  const fullCurrentCode = currentPath.map(n => lordCodeIn(n.lord, hi)).join('/')
 
   function canExpand(node: DashaNode): boolean {
     if (resolveChildren(node).length > 0) return true
@@ -170,7 +176,7 @@ export function DashaTree({
   }
 
   const codePathForNode = (node: DashaNode) =>
-    [...activePath.map(n => n.lord), node.lord].join('/')
+    [...activePath.map(n => n.lord), node.lord].map(l => lordCodeIn(l, hi)).join('/')
 
   const navtaraColor = navtara?.quality === 'auspicious'
     ? 'var(--teal)' : navtara?.quality === 'inauspicious' ? 'var(--rose)' : 'var(--amber)'
@@ -184,13 +190,13 @@ export function DashaTree({
           {/* Mahadasha label */}
           {currentMahaNode && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>MD</span>
+              <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('md')}</span>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-gold)' }}>
-                {GRAHA_NAME[currentMahaNode.lord] ?? currentMahaNode.lord}
+                {lordNameIn(currentMahaNode.lord, hi)}
               </span>
               {showNakshatra && currentMahaNode.nakshatraIndex != null && (
                 <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--amber)', whiteSpace: 'nowrap' }}>
-                  · {nakshatraDisplay(currentMahaNode.nakshatraIndex)}
+                  · {nakshatraDisplay(currentMahaNode.nakshatraIndex, false, hi)}
                 </span>
               )}
             </span>
@@ -208,7 +214,7 @@ export function DashaTree({
           {/* Tara badge */}
           {navtara && (
             <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '1px 5px', borderRadius: 3, border: `1px solid ${navtaraColor}`, color: navtaraColor, whiteSpace: 'nowrap' }}>
-              Tara·{navtara.num} {navtara.name}
+              {t('tara', { n: navtara.num, name: hi ? termHi(navtara.name) : navtara.name })}
             </span>
           )}
         </div>
@@ -224,21 +230,21 @@ export function DashaTree({
                 borderRadius: 4, padding: '0.1rem 0.35rem', fontSize: '0.6rem', cursor: 'pointer',
                 fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px'
               }}
-              title="Show time on mobile"
+              title={t('timeTitle')}
             >
-              🕒 {showTimeOnMobile ? 'Time ON' : 'Time'}
+              🕒 {showTimeOnMobile ? t('timeOn') : t('time')}
             </button>
           )}
           {activePath.length > 0 && (
             <button type="button" onClick={() => setActivePath(activePath.slice(0, -1))}
               style={{ border: '1px solid var(--border-soft)', background: 'transparent', color: 'var(--text-muted)', borderRadius: 4, padding: '0.1rem 0.4rem', fontSize: '0.62rem', cursor: 'pointer' }}>
-              ← Back
+              {t('back')}
             </button>
           )}
           {currentPath.length > 0 && (
             <button type="button" onClick={() => setActivePath(currentPath)}
               style={{ border: '1px solid rgba(78,205,196,0.35)', background: 'rgba(78,205,196,0.08)', color: 'var(--teal)', borderRadius: 4, padding: '0.1rem 0.4rem', fontSize: '0.62rem', cursor: 'pointer' }}>
-              {asOf ? 'At moment' : 'Current'}
+              {asOf ? t('atMoment') : t('current')}
             </button>
           )}
           {activePath.length > 0 && (
@@ -255,14 +261,14 @@ export function DashaTree({
         <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button type="button" onClick={() => setActivePath([])}
             style={{ border: 'none', background: 'none', color: 'var(--text-muted)', fontSize: '0.62rem', cursor: 'pointer', padding: '0 0.15rem' }}>
-            Root
+            {t('root')}
           </button>
           {activePath.map((node, i) => (
             <React.Fragment key={`bc-${node.lord}-${i}`}>
               <span style={{ color: 'var(--border)', fontSize: '0.6rem' }}>›</span>
               <button type="button" onClick={() => handleNavigate(node, i)}
                 style={{ border: 'none', background: 'none', color: i === activePath.length - 1 ? 'var(--teal)' : 'var(--text-muted)', fontSize: '0.62rem', cursor: 'pointer', padding: '0 0.15rem', fontWeight: i === activePath.length - 1 ? 700 : 400 }}>
-                {GRAHA_NAME[node.lord] ?? node.lord}
+                {lordNameIn(node.lord, hi)}
               </button>
             </React.Fragment>
           ))}
@@ -322,7 +328,7 @@ export function DashaTree({
                   minWidth: 0,
                 }}>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {node.label || GRAHA_NAME[node.lord] || node.lord}
+                    {(hi ? undefined : node.label) || lordNameIn(node.lord, hi)}
                   </span>
                   {showNakshatra && node.level === 1 && node.nakshatraIndex != null && (
                     <span style={{
@@ -331,7 +337,7 @@ export function DashaTree({
                       color: isActiveRow ? 'var(--amber)' : 'var(--text-gold)',
                       flexShrink: 0,
                     }}>
-                      {nakshatraDisplay(node.nakshatraIndex, isMobile)}
+                      {nakshatraDisplay(node.nakshatraIndex, isMobile, hi)}
                     </span>
                   )}
                 </span>
@@ -358,7 +364,7 @@ export function DashaTree({
 
       {/* ── Birth note ── */}
       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', opacity: 0.8 }}>
-        Born: {fmtDate(birthDate, timezone)} · Cycle: {fmtDate(nodes[0]?.start, timezone)}
+        {t('born', { born: fmtDate(birthDate, timezone, tag), cycle: fmtDate(nodes[0]?.start, timezone, tag) })}
       </div>
     </div>
   )

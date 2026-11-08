@@ -6,6 +6,9 @@
 
 import type { Rashi } from '@/types/astrology'
 import type { ClassicalGrahaId } from './houseInterpretations'
+import type { EngineLang } from './lang'
+import { termHi } from '@/i18n/jyotish'
+import { RASHI_DEEP_GUIDE_HI, RASHI_SHARED_TEACHINGS_HI } from './locale/rashiDeepGuide.hi'
 
 export interface RashiNakshatraSpan {
   name: string
@@ -996,9 +999,80 @@ export const RASHI_SHARED_TEACHINGS: RashiSharedTeaching[] = [
   KARMA_TEACHING,
 ]
 
-export function getRashiDeepGuide(rashi: number): RashiDeepGuide | null {
+export function getRashiDeepGuide(rashi: number, lang: EngineLang = 'en'): RashiDeepGuide | null {
   if (rashi < 1 || rashi > 12) return null
-  return GUIDES[rashi as Rashi]
+  const en = GUIDES[rashi as Rashi]
+  if (lang !== 'hi') return en
+  return deepGuideHi(en)
+}
+
+/** Hindi pada spans: "All 4" → "चारों चरण", "Padas 2–4" → "चरण 2–4", "Pada 1 only" → "केवल चरण 1". */
+function padasHi(p: string): string {
+  if (/^All 4$/i.test(p)) return 'चारों चरण'
+  const only = /^Pada (\d+) only$/i.exec(p)
+  if (only) return `केवल चरण ${only[1]}`
+  const m = /^Padas? (.+)$/i.exec(p)
+  return m ? `चरण ${m[1]}` : p
+}
+
+/** Lists swap only when the Hindi list has the same length (otherwise English stays). */
+function list(en: string[] | undefined, hi: string[] | undefined): string[] | undefined {
+  if (!en) return en
+  return hi && hi.length === en.length ? hi : en
+}
+
+function deepGuideHi(en: RashiDeepGuide): RashiDeepGuide {
+  const hi = RASHI_DEEP_GUIDE_HI[en.rashi]
+  if (!hi) return en
+  return {
+    ...en,
+    keyword: hi.keyword,
+    temperament: hi.temperament,
+    lordName: hi.lordName,
+    exaltedPlanet: en.exaltedPlanet ? hi.exaltedPlanet ?? en.exaltedPlanet : undefined,
+    strongTime: hi.strongTime,
+    weakTime: en.weakTime ? hi.weakTime ?? en.weakTime : undefined,
+    kaalPurushPart: hi.kaalPurushPart,
+    direction: en.direction ? hi.direction ?? en.direction : undefined,
+    varna: en.varna ? hi.varna ?? en.varna : undefined,
+    guna: en.guna ? hi.guna ?? en.guna : undefined,
+    deity: en.deity ? hi.deity ?? en.deity : undefined,
+    chakraHint: en.chakraHint ? hi.chakraHint ?? en.chakraHint : undefined,
+    nakshatras: en.nakshatras.map((n, i) => ({
+      name: termHi(n.name),
+      padas: padasHi(n.padas),
+      ...(n.lord ? { lord: termHi(n.lord) } : {}),
+      ...(n.note ? { note: hi.nakshatraNotes?.[i] ?? n.note } : {}),
+    })),
+    symbolMeaning: list(en.symbolMeaning, hi.symbolMeaning)!,
+    spiritual: list(en.spiritual, hi.spiritual)!,
+    positiveTraits: list(en.positiveTraits, hi.positiveTraits)!,
+    challengingTraits: list(en.challengingTraits, hi.challengingTraits)!,
+    behavioralNotes: list(en.behavioralNotes, hi.behavioralNotes)!,
+    careers: list(en.careers, hi.careers)!,
+    healthThemes: list(en.healthThemes, hi.healthThemes)!,
+    compatibility: en.compatibility && hi.compatibility
+      ? {
+          best: list(en.compatibility.best, hi.compatibility.best)!,
+          moderate: list(en.compatibility.moderate, hi.compatibility.moderate),
+          low: list(en.compatibility.low, hi.compatibility.low),
+          principle: hi.compatibility.principle,
+        }
+      : en.compatibility,
+    luckyColors: list(en.luckyColors, hi.luckyColors),
+    unluckyColors: list(en.unluckyColors, hi.unluckyColors),
+    gemstone: en.gemstone ? hi.gemstone ?? en.gemstone : undefined,
+    lordContrast: en.lordContrast ? hi.lordContrast ?? en.lordContrast : undefined,
+    practicalNotes: list(en.practicalNotes, hi.practicalNotes)!,
+  }
+}
+
+export function getRashiSharedTeachings(lang: EngineLang = 'en'): RashiSharedTeaching[] {
+  if (lang !== 'hi') return RASHI_SHARED_TEACHINGS
+  return RASHI_SHARED_TEACHINGS.map((t, i) => {
+    const hi = RASHI_SHARED_TEACHINGS_HI[i]
+    return hi && hi.points.length === t.points.length ? { ...t, title: hi.title, points: hi.points } : t
+  })
 }
 
 export function getRashiKeyword(rashi: number): string | null {

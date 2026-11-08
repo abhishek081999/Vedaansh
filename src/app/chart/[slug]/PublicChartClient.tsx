@@ -5,8 +5,8 @@
 //  Receives pre-calculated data from the server.
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import { useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 

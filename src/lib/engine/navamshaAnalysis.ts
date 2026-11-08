@@ -12,12 +12,24 @@ import type {
   Rashi,
 } from '@/types/astrology'
 import {
-  GRAHA_NAMES,
-  RASHI_NAMES,
   RASHI_SANSKRIT,
   RASHI_SHORT,
 } from '@/types/astrology'
-import { D9, degInSign, VARGA_FUNCTIONS, VARGA_META, type VargaName } from '@/lib/engine/vargas'
+import { D9, degInSign, VARGA_FUNCTIONS, VARGA_META, vargaText, type VargaName } from '@/lib/engine/vargas'
+import { dignityText, fill, gName, pick, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  D9_DASHA_LEVEL_HI,
+  D9_HOUSE_THEMES_HI,
+  D9_LAGNA_THEMES_HI,
+  D9_PLANET_THEMES_HI,
+  D9_RASHI_FLAVOR_HI,
+  D9_RELATION_LABELS_HI,
+  D9_RELATION_NOTES_HI,
+  D9_SPOUSE_PHYSIQUE_HI,
+  D9_SPOUSE_TEMPERAMENT_HI,
+  D9_TEXT_HI,
+  D9_VOCATION_HI,
+} from '@/lib/engine/locale/navamsha.hi'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { DEBILITATION_SIGN, EXALTATION_SIGN, OWN_SIGNS } from '@/lib/engine/dignity'
 
@@ -75,35 +87,27 @@ const RELATION_NOTES: Record<D1D9RelationKind, string> = {
   unclassified: 'Unclassified sign link — read dignity and houses for nuance.',
 }
 
-export function relationFromSignCount(forward: number): Omit<D1D9SignRelation, 'fromRashi' | 'toRashi' | 'fromName' | 'toName' | 'forward' | 'reverse' | 'pair'> {
-  if (forward === 1) {
-    return { kind: 'vargottama', label: 'Vargottama (1/1)', tone: 'supportive', note: RELATION_NOTES.vargottama }
-  }
-  if (forward === 7) {
-    return { kind: 'opposing', label: 'Opposing (7/7)', tone: 'mixed', note: RELATION_NOTES.opposing }
-  }
-  if (forward === 6 || forward === 8) {
-    return { kind: 'shadashtaka', label: 'Shadashtaka (6/8)', tone: 'challenging', note: RELATION_NOTES.shadashtaka }
-  }
-  if (forward === 2 || forward === 12) {
-    return { kind: 'dwirdwadasa', label: 'Dwir-dwadasa (2/12)', tone: 'challenging', note: RELATION_NOTES.dwirdwadasa }
-  }
-  if (forward === 5 || forward === 9) {
-    return { kind: 'trikona', label: 'Trikona (5/9)', tone: 'supportive', note: RELATION_NOTES.trikona }
-  }
-  if (forward === 4 || forward === 10) {
-    return { kind: 'kendra', label: 'Kendra (4/10)', tone: 'supportive', note: RELATION_NOTES.kendra }
-  }
-  if (forward === 3 || forward === 11) {
-    return { kind: 'upachaya', label: 'Upachaya (3/11)', tone: 'mixed', note: RELATION_NOTES.upachaya }
-  }
-  return { kind: 'unclassified', label: 'Unclassified', tone: 'neutral', note: RELATION_NOTES.unclassified }
+export function relationFromSignCount(forward: number, lang: EngineLang = 'en'): Omit<D1D9SignRelation, 'fromRashi' | 'toRashi' | 'fromName' | 'toName' | 'forward' | 'reverse' | 'pair'> {
+  const R = (kind: D1D9RelationKind, label: string, tone: DashaTone) => ({
+    kind,
+    label: lang === 'hi' ? D9_RELATION_LABELS_HI[kind] ?? label : label,
+    tone,
+    note: lang === 'hi' ? D9_RELATION_NOTES_HI[kind] ?? RELATION_NOTES[kind] : RELATION_NOTES[kind],
+  })
+  if (forward === 1) return R('vargottama', 'Vargottama (1/1)', 'supportive')
+  if (forward === 7) return R('opposing', 'Opposing (7/7)', 'mixed')
+  if (forward === 6 || forward === 8) return R('shadashtaka', 'Shadashtaka (6/8)', 'challenging')
+  if (forward === 2 || forward === 12) return R('dwirdwadasa', 'Dwir-dwadasa (2/12)', 'challenging')
+  if (forward === 5 || forward === 9) return R('trikona', 'Trikona (5/9)', 'supportive')
+  if (forward === 4 || forward === 10) return R('kendra', 'Kendra (4/10)', 'supportive')
+  if (forward === 3 || forward === 11) return R('upachaya', 'Upachaya (3/11)', 'mixed')
+  return R('unclassified', 'Unclassified', 'neutral')
 }
 
-export function buildD1D9Relation(d1Rashi: Rashi, d9Rashi: Rashi): D1D9SignRelation {
+export function buildD1D9Relation(d1Rashi: Rashi, d9Rashi: Rashi, lang: EngineLang = 'en'): D1D9SignRelation {
   const forward = signCount(d1Rashi, d9Rashi)
   const reverse = signCount(d9Rashi, d1Rashi)
-  const meta = relationFromSignCount(forward)
+  const meta = relationFromSignCount(forward, lang)
   const pair =
     forward === 1 ? '1/1'
       : forward === 7 ? '7/7'
@@ -111,8 +115,8 @@ export function buildD1D9Relation(d1Rashi: Rashi, d9Rashi: Rashi): D1D9SignRelat
   return {
     fromRashi: d1Rashi,
     toRashi: d9Rashi,
-    fromName: RASHI_NAMES[d1Rashi],
-    toName: RASHI_NAMES[d9Rashi],
+    fromName: rName(d1Rashi, lang),
+    toName: rName(d9Rashi, lang),
     forward,
     reverse,
     pair,
@@ -473,6 +477,162 @@ export const NAVAMSHA_VARIANT_LABELS: Record<NavamshaVariantId, string> = {
   D9_Somanatha: 'Somanatha',
 }
 
+const D9_TEXT_EN: Record<keyof typeof D9_TEXT_HI, string> = {
+  themeFallback: 'Navamsha expression of this graha.',
+  pMoves: '{planet} moves from {d1} (D1 H{d1House}) into {d9} Navamsha (D9 H{d9House}), carrying {flavor}.',
+  pRelation: 'D1→D9 relation {pair} ({label}): {note}',
+  pVargottama: 'Vargottama — same sign in D1 and D9 — greatly strengthens {planet}\'s promise and makes its results more consistent.',
+  pStrong: 'Dignified in Navamsha ({dignity}) — mature results tend to support destiny and relationships.',
+  pWeak: 'Challenged in Navamsha ({dignity}) — refine this area through awareness, remedies, and patience.',
+  pShift: 'Dignity shifts from {d1} in D1 to {d9} in D9 — look at both charts together.',
+  pPushkara: 'Pushkara Navamsha — highly auspicious for remedies and spiritual practice.',
+  pPada: 'Pada {pada} of {rashi} feeds this Navamsha; dispositor {disp} steers results.',
+  dispNote: '{planet}\'s Navamsha in {rashi} is steered by {disp} placed in {dispRashi} (D9 H{house}).',
+  dispNoteShort: '{planet}\'s Navamsha dispositor is {disp}.',
+  exchangeNote: 'D9 Parivartana: {a} in {aRashi} ↔ {b} in {bRashi} — mutual exchange strengthens both significations.',
+  conjNote: '{names} share {rashi} Navamsha (D9 H{house}) — blended destiny themes.',
+  ucchaTitle: 'Uccha Navamsha',
+  ucchaText: '{planet} is exalted in Navamsha ({rashi}) — fruition potential is high even if D1 is mixed.',
+  neechaTitle: 'Neecha Navamsha',
+  neechaText: '{planet} is debilitated in Navamsha ({rashi}) — refine delivery of this planet\'s mature results.',
+  ownTitle: 'Own Navamsha',
+  ownText: '{planet} occupies own sign in D9 ({rashi}) — solid self-expression in destiny matters.',
+  improveTitle: 'D1→D9 Improvement',
+  improveText: '{planet} is {d1} in D1 but {d9} in D9 — hardship can ripen into strength.',
+  declineTitle: 'D1→D9 Caution',
+  declineText: '{planet} looks strong in D1 ({d1}) but weakens in D9 ({d9}) — guard overconfidence.',
+  advLagna: 'Lagna D1 {d1} → D9 {d9} is {pair} ({label}). {note}',
+  advMix: '{s} supportive · {m} mixed · {c} challenging D1↔D9 planet links.',
+  advExchanges: '{n} D9 Parivartana yogas detected.',
+  advExchangesOne: '{n} D9 Parivartana yoga detected.',
+  advConj: '{n} Navamsha conjunction clusters.',
+  advConjOne: '{n} Navamsha conjunction cluster.',
+  advStrongest: 'Strongest D9 signature: {planet} ({score}).',
+  sl7: '7th lord of Navamsha ({planet}) occupies {rashi} in D9 house {house} — a key to spouse nature and partnership karma.',
+  sl7Varg: '{planet} is vargottama, stabilizing marriage indicators.',
+  sl7Strong: 'Strong dignity ({dignity}) favors supportive partnership outcomes.',
+  sl7Weak: 'Weak dignity ({dignity}) suggests extra care, counseling, or remedial focus in relationships.',
+  sl7Dus: 'Placement in dusthana house {house} of D9 can bring tests that ultimately deepen the bond if handled wisely.',
+  sl7Good: 'Helpful house {house} support for partnership themes is encouraging.',
+  ssSrc7: 'D9 7th in {rashi}',
+  ssSrcLord: '7th lord {planet} in {rashi} (H{house})',
+  ssTinged: '{planet}-tinged presence',
+  ssSrcOcc: 'Occupants of D9 7th: {names}',
+  ssVenusTrait: 'romance flavored by {rashi}',
+  ssSrcVenus: 'Venus in D9 {rashi} H{house}',
+  ssDkTrait: 'DK {planet} signature',
+  ssSrcDk: 'Darakaraka {planet} in {rashi}',
+  ssVargLord: 'Vargottama 7th lord — steadier partnering karma',
+  ssStrongLord: '7th lord dignified in Navamsha',
+  ssWeakLord: '7th lord challenged in Navamsha — patience and clear communication matter',
+  ssDusLord: '7th lord in D9 dusthana H{house} — growth through tests',
+  ssVargVenus: 'Vargottama Venus supports lasting affection',
+  ssWeakVenus: 'Venus challenged in D9 — nurture aesthetic and emotional harmony',
+  ssJuFemale: 'Strong Jupiter in D9 blesses husband/partner themes',
+  ssJuMale: 'Strong Jupiter in D9 blesses wisdom within the union',
+  ssGraceFemale: 'Jupiter',
+  ssGraceMale: 'Venus',
+  ssAffection: 'Affection style leans {flavor} (Venus D9 H{house}).',
+  ssWatch: 'Watch {planet} carefully for finer romance tones.',
+  ssHeadline: 'Partner sketch from {rashi} Navamsha 7th · lord {planet}',
+  ssNoStrength: 'Classical indicators are mixed — synthesize D1 7th with D9 carefully',
+  ssNoCaution: 'No major D9 caution flags — still confirm with dashas and D1',
+  dlMissing: '{planet} not found in D9 graha set.',
+  dlOperates: '{planet} operates from {rashi} Navamsha (H{house}, {dignity}).',
+  dlVarg: 'Vargottama — period results tend to stick.',
+  dlPush: 'Pushkara — auspicious for remedies during this stretch.',
+  dlPartner: 'D9 house {house} links this period to partnership / intimacy themes.',
+  dlDharma: 'D9 house {house} links this period to self-expression and dharma.',
+  dlLevelFallback: 'L{level}',
+  dmPartner: 'Current {path} touches partnership houses in D9 ({items}).',
+  dmNot: 'Current path {path} is less directly on D9 marriage houses — watch Venus/7th lord transits for timing color.',
+  dmItem: '{planet} H{house}',
+  ddMaha: 'Mahadasha lord {planet}{rashi}{house} sets the destiny climate{antar}.',
+  ddRashi: ' in {rashi}',
+  ddHouse: ' (D9 H{house})',
+  ddAntar: '; Antar {planet} refines the chapter',
+  ddNone: 'No active Vimshottari path available.',
+  ddDestiny: '{window} Destiny-leaning lords: {items}.',
+  variantsNote: 'Use Parashara D9 as the primary predictive chart; variants refine research and Nadi-style comparisons.',
+  iLagnaTitle: 'Navamsha Lagna',
+  iLagnaText: '{rashi} ({sanskrit}) — {theme}',
+  iVargLagnaTitle: 'Vargottama Lagna',
+  iVargLagnaText: 'Ascendant sign is the same in D1 and D9 — a powerful marker of consistent identity, purpose, and life direction.',
+  iVargTitle: '{n} Vargottama Planets',
+  iVargTitleOne: '{n} Vargottama Planet',
+  sumVargOne: '{n} vargottama graha',
+  iVargOne: '{planet} occupies the same sign in Rashi and Navamsha — its significations gain lasting strength.',
+  iVargMany: '{names} occupy the same sign in Rashi and Navamsha — their significations gain lasting strength.',
+  iPushTitle: 'Pushkara Navamsha',
+  iPushOne: '{planet} sits in Pushkara Navamsha — excellent for remedies, mantra, and auspicious beginnings.',
+  iPushMany: '{names} sit in Pushkara Navamsha — excellent for remedies, mantra, and auspicious beginnings.',
+  iStrongTitle: 'Dignified in D9',
+  iStrongText: '{items} support mature destiny outcomes.',
+  iWeakTitle: 'Challenged in D9',
+  iWeakText: '{items} ask for conscious refinement in those life areas.',
+  iDigItem: '{planet} ({dignity})',
+  iKarakamshaTitle: 'Karakamsha',
+  iKarakamshaText: 'Atmakaraka {planet} falls in {rashi} Navamsha (Karakamsha) — a Jaimini key to soul purpose and spiritual leaning.',
+  mn7: 'D9 7th house is {rashi} ruled by {lord}. {theme}.',
+  mnOcc: 'Planets in D9 7th: {names} — they color spouse traits and partnership dynamics.',
+  mnEmpty: 'D9 7th is unoccupied — read the 7th lord carefully along with Venus (and Jupiter for feminine charts).',
+  mnVenus: 'Venus in {rashi} (D9 H{house}{varg}) shapes romance, harmony, and aesthetic taste in marriage.',
+  mnJupiter: 'Jupiter in {rashi} (D9 H{house}{varg}) blesses wisdom, children themes, and ethical tone in the union.',
+  mnVargSuffix: ', vargottama',
+  mnDk: 'Darakaraka {planet} in {rashi} Navamsha (H{house}) is a Jaimini spouse significator — study this placement closely.',
+  dnKarakamsha: 'Karakamsha in {rashi}: {flavor} guides the soul\'s mature expression.',
+  dnAk: 'Atmakaraka {planet} in D9 house {house} ({rashi}) shows where the soul\'s lessons crystallize.',
+  dnNinth: 'D9 9th house {rashi} (lord {lord}) highlights fortune, mentors, and dharma after maturity.',
+  sumLagna: 'Navamsha lagna {rashi}',
+  sumVargLagna: 'vargottama lagna',
+  sumVarg: '{n} vargottama grahas',
+  sumKarakamsha: 'Karakamsha {rashi}',
+  sumLord7: '7th lord {planet} in D9 H{house}',
+  iDashaTitle: 'Current Dasha × D9',
+  iDashaText: '{path} — {window}',
+  iLagnaRelTitle: 'Lagna D1↔D9 {pair}',
+  iLagnaRelText: '{from} → {to}: {label}. {note}',
+  iMixTitle: 'D1↔D9 Relation Mix',
+  iMixText: '{s} supportive · {m} mixed · {c} challenging planet links (2/12, 5/9, 6/8, etc.).',
+  karakamshaTheme: 'Atmakaraka {planet} in {rashi} — {flavor}.',
+}
+
+/** Per-call language context (text tables + name helpers). */
+interface D9Ctx {
+  T: Record<keyof typeof D9_TEXT_HI, string>
+  lang: EngineLang
+  g: (id: GrahaId) => string
+  r: (x: Rashi) => string
+  short: (x: Rashi) => string
+  dig: (d: Dignity) => string
+  planetTheme: Record<string, string>
+  flavor: Record<number, string>
+  houseTheme: Record<number, string>
+  lagnaTheme: Record<number, string>
+  physique: Record<number, string>
+  temperament: Record<number, string>
+  vocation: Record<number, string>
+}
+
+function d9Ctx(lang: EngineLang): D9Ctx {
+  const hi = lang === 'hi'
+  return {
+    T: pick(D9_TEXT_EN, D9_TEXT_HI as Record<keyof typeof D9_TEXT_HI, string>, lang),
+    lang,
+    g: (id: GrahaId) => gName(id, lang),
+    r: (x: Rashi) => rName(x, lang),
+    short: (x: Rashi) => (hi ? rName(x, lang) : RASHI_SHORT[x]),
+    dig: (d: Dignity) => dignityText(d, lang),
+    planetTheme: hi ? D9_PLANET_THEMES_HI : PLANET_NAVAMSHA_THEMES,
+    flavor: hi ? D9_RASHI_FLAVOR_HI : RASHI_NAVAMSHA_FLAVOR,
+    houseTheme: hi ? D9_HOUSE_THEMES_HI : HOUSE_THEMES_D9,
+    lagnaTheme: hi ? D9_LAGNA_THEMES_HI : NAVAMSHA_LAGNA_THEMES,
+    physique: hi ? D9_SPOUSE_PHYSIQUE_HI : SPOUSE_PHYSIQUE,
+    temperament: hi ? D9_SPOUSE_TEMPERAMENT_HI : SPOUSE_TEMPERAMENT,
+    vocation: hi ? D9_VOCATION_HI : VOCATION_BY_SIGN,
+  }
+}
+
 function houseOf(planetRashi: Rashi, ascRashi: Rashi): number {
   return ((planetRashi - ascRashi + 12) % 12) + 1
 }
@@ -480,10 +640,6 @@ function houseOf(planetRashi: Rashi, ascRashi: Rashi): number {
 function padaFromDegree(degreeInSign: number): number {
   const p = Math.floor(degreeInSign / (30 / 9)) + 1
   return Math.min(9, Math.max(1, p))
-}
-
-function dignityLabel(d: Dignity): string {
-  return d.replace(/_/g, ' ')
 }
 
 function planetStrengthScore(row: {
@@ -509,42 +665,35 @@ function planetStrengthScore(row: {
   return Math.max(0, Math.min(100, score))
 }
 
-function buildPlanetInterpretation(row: Omit<NavamshaPlanetRow, 'theme' | 'interpretation'>): {
+function buildPlanetInterpretation(row: Omit<NavamshaPlanetRow, 'theme' | 'interpretation'>, L: D9Ctx): {
   theme: string
   interpretation: string
 } {
-  const theme = PLANET_NAVAMSHA_THEMES[row.id] ?? 'Navamsha expression of this graha.'
-  const flavor = RASHI_NAVAMSHA_FLAVOR[row.d9Rashi]
+  const { T } = L
+  const theme = L.planetTheme[row.id] ?? T.themeFallback
+  const flavor = L.flavor[row.d9Rashi]
   const parts: string[] = []
 
-  parts.push(
-    `${row.name} moves from ${row.d1RashiName} (D1 H${row.d1House}) into ${row.d9RashiName} Navamsha (D9 H${row.d9House}), carrying ${flavor}.`,
-  )
-  parts.push(
-    `D1→D9 relation ${row.d1d9Relation.pair} (${row.d1d9Relation.label}): ${row.d1d9Relation.note}`,
-  )
+  parts.push(fill(T.pMoves, { planet: row.name, d1: row.d1RashiName, d1House: row.d1House, d9: row.d9RashiName, d9House: row.d9House, flavor }))
+  parts.push(fill(T.pRelation, { pair: row.d1d9Relation.pair, label: row.d1d9Relation.label, note: row.d1d9Relation.note }))
 
   if (row.isVargottama) {
-    parts.push(
-      `Vargottama — same sign in D1 and D9 — greatly strengthens ${row.name}'s promise and makes its results more consistent.`,
-    )
+    parts.push(fill(T.pVargottama, { planet: row.name }))
   }
 
   if (STRONG_DIGNITY.includes(row.d9Dignity)) {
-    parts.push(`Dignified in Navamsha (${dignityLabel(row.d9Dignity)}) — mature results tend to support destiny and relationships.`)
+    parts.push(fill(T.pStrong, { dignity: L.dig(row.d9Dignity) }))
   } else if (WEAK_DIGNITY.includes(row.d9Dignity)) {
-    parts.push(`Challenged in Navamsha (${dignityLabel(row.d9Dignity)}) — refine this area through awareness, remedies, and patience.`)
+    parts.push(fill(T.pWeak, { dignity: L.dig(row.d9Dignity) }))
   } else if (row.d1Dignity !== row.d9Dignity) {
-    parts.push(`Dignity shifts from ${dignityLabel(row.d1Dignity)} in D1 to ${dignityLabel(row.d9Dignity)} in D9 — look at both charts together.`)
+    parts.push(fill(T.pShift, { d1: L.dig(row.d1Dignity), d9: L.dig(row.d9Dignity) }))
   }
 
   if (row.isPushkara) {
-    parts.push(row.pushkaraNote ?? 'Pushkara Navamsha — highly auspicious for remedies and spiritual practice.')
+    parts.push((L.lang === 'hi' ? null : row.pushkaraNote) ?? T.pPushkara)
   }
 
-  parts.push(
-    `Pada ${row.padaInSign} of ${row.d1RashiName} feeds this Navamsha; dispositor ${row.d9DispositorName} steers results.`,
-  )
+  parts.push(fill(T.pPada, { pada: row.padaInSign, rashi: row.d1RashiName, disp: row.d9DispositorName }))
 
   return { theme, interpretation: parts.join(' ') }
 }
@@ -553,8 +702,10 @@ function buildAdvanced(
   d1Asc: Rashi,
   d9Lagna: Rashi,
   planets: NavamshaPlanetRow[],
+  L: D9Ctx,
 ): NavamshaAdvanced {
-  const lagnaRelation = buildD1D9Relation(d1Asc, d9Lagna)
+  const { T, lang } = L
+  const lagnaRelation = buildD1D9Relation(d1Asc, d9Lagna, lang)
   const kindOrder: D1D9RelationKind[] = [
     'vargottama', 'trikona', 'kendra', 'upachaya', 'opposing', 'dwirdwadasa', 'shadashtaka', 'unclassified',
   ]
@@ -569,6 +720,7 @@ function buildAdvanced(
                 : kind === 'kendra' ? 4
                   : kind === 'upachaya' ? 3
                     : 0,
+      lang,
     )
     buckets.set(kind, {
       kind,
@@ -623,8 +775,8 @@ function buildAdvanced(
       dispositorD9RashiName: disp?.d9RashiName ?? p.d9RashiName,
       dispositorD9House: disp?.d9House ?? p.d9House,
       note: disp
-        ? `${p.name}'s Navamsha in ${p.d9RashiName} is steered by ${p.d9DispositorName} placed in ${disp.d9RashiName} (D9 H${disp.d9House}).`
-        : `${p.name}'s Navamsha dispositor is ${p.d9DispositorName}.`,
+        ? fill(T.dispNote, { planet: p.name, rashi: p.d9RashiName, disp: p.d9DispositorName, dispRashi: disp.d9RashiName, house: disp.d9House })
+        : fill(T.dispNoteShort, { planet: p.name, disp: p.d9DispositorName }),
     }
   })
 
@@ -644,7 +796,7 @@ function buildAdvanced(
           bId: b.id,
           bName: b.name,
           bRashi: b.d9Rashi,
-          note: `D9 Parivartana: ${a.name} in ${a.d9RashiName} ↔ ${b.name} in ${b.d9RashiName} — mutual exchange strengthens both significations.`,
+          note: fill(T.exchangeNote, { a: a.name, aRashi: a.d9RashiName, b: b.name, bRashi: b.d9RashiName }),
         })
       }
     }
@@ -661,10 +813,10 @@ function buildAdvanced(
     if (group.length < 2) continue
     conjunctions.push({
       rashi,
-      rashiName: RASHI_NAMES[rashi],
+      rashiName: L.r(rashi),
       house: group[0]!.d9House,
       planets: group.map((g) => ({ id: g.id, name: g.name })),
-      note: `${group.map((g) => g.name).join(' + ')} share ${RASHI_NAMES[rashi]} Navamsha (D9 H${group[0]!.d9House}) — blended destiny themes.`,
+      note: fill(T.conjNote, { names: group.map((g) => g.name).join(' + '), rashi: L.r(rashi), house: group[0]!.d9House }),
     })
   }
 
@@ -677,36 +829,36 @@ function buildAdvanced(
     if (exalt && p.d9Rashi === exalt) {
       dignityCrossovers.push({
         id: p.id, name: p.name, kind: 'uccha_navamsha',
-        title: 'Uccha Navamsha',
-        text: `${p.name} is exalted in Navamsha (${p.d9RashiName}) — fruition potential is high even if D1 is mixed.`,
+        title: T.ucchaTitle,
+        text: fill(T.ucchaText, { planet: p.name, rashi: p.d9RashiName }),
       })
     }
     if (debil && p.d9Rashi === debil) {
       dignityCrossovers.push({
         id: p.id, name: p.name, kind: 'neecha_navamsha',
-        title: 'Neecha Navamsha',
-        text: `${p.name} is debilitated in Navamsha (${p.d9RashiName}) — refine delivery of this planet's mature results.`,
+        title: T.neechaTitle,
+        text: fill(T.neechaText, { planet: p.name, rashi: p.d9RashiName }),
       })
     }
     if (owns.includes(p.d9Rashi) && !p.isVargottama) {
       dignityCrossovers.push({
         id: p.id, name: p.name, kind: 'own_navamsha',
-        title: 'Own Navamsha',
-        text: `${p.name} occupies own sign in D9 (${p.d9RashiName}) — solid self-expression in destiny matters.`,
+        title: T.ownTitle,
+        text: fill(T.ownText, { planet: p.name, rashi: p.d9RashiName }),
       })
     }
     if (WEAK_DIGNITY.includes(p.d1Dignity) && STRONG_DIGNITY.includes(p.d9Dignity)) {
       dignityCrossovers.push({
         id: p.id, name: p.name, kind: 'improvement',
-        title: 'D1→D9 Improvement',
-        text: `${p.name} is ${dignityLabel(p.d1Dignity)} in D1 but ${dignityLabel(p.d9Dignity)} in D9 — hardship can ripen into strength.`,
+        title: T.improveTitle,
+        text: fill(T.improveText, { planet: p.name, d1: L.dig(p.d1Dignity), d9: L.dig(p.d9Dignity) }),
       })
     }
     if (STRONG_DIGNITY.includes(p.d1Dignity) && WEAK_DIGNITY.includes(p.d9Dignity)) {
       dignityCrossovers.push({
         id: p.id, name: p.name, kind: 'decline',
-        title: 'D1→D9 Caution',
-        text: `${p.name} looks strong in D1 (${dignityLabel(p.d1Dignity)}) but weakens in D9 (${dignityLabel(p.d9Dignity)}) — guard overconfidence.`,
+        title: T.declineTitle,
+        text: fill(T.declineText, { planet: p.name, d1: L.dig(p.d1Dignity), d9: L.dig(p.d9Dignity) }),
       })
     }
   }
@@ -723,12 +875,12 @@ function buildAdvanced(
     : null
 
   const notes: string[] = [
-    `Lagna D1 ${RASHI_NAMES[d1Asc]} → D9 ${RASHI_NAMES[d9Lagna]} is ${lagnaRelation.pair} (${lagnaRelation.label}). ${lagnaRelation.note}`,
-    `${supportiveCount} supportive · ${mixedCount} mixed · ${challengingCount} challenging D1↔D9 planet links.`,
+    fill(T.advLagna, { d1: L.r(d1Asc), d9: L.r(d9Lagna), pair: lagnaRelation.pair, label: lagnaRelation.label, note: lagnaRelation.note }),
+    fill(T.advMix, { s: supportiveCount, m: mixedCount, c: challengingCount }),
   ]
-  if (exchanges.length) notes.push(`${exchanges.length} D9 Parivartana yoga${exchanges.length > 1 ? 's' : ''} detected.`)
-  if (conjunctions.length) notes.push(`${conjunctions.length} Navamsha conjunction cluster${conjunctions.length > 1 ? 's' : ''}.`)
-  if (strongest) notes.push(`Strongest D9 signature: ${strongest.name} (${strongest.score}).`)
+  if (exchanges.length) notes.push(fill(exchanges.length > 1 ? T.advExchanges : T.advExchangesOne, { n: exchanges.length }))
+  if (conjunctions.length) notes.push(fill(conjunctions.length > 1 ? T.advConj : T.advConjOne, { n: conjunctions.length }))
+  if (strongest) notes.push(fill(T.advStrongest, { planet: strongest.name, score: strongest.score }))
 
   return {
     lagnaRelation,
@@ -753,19 +905,19 @@ function seventhLordInterpretation(
   d9House: number,
   dignity: Dignity,
   isVargottama: boolean,
+  L: D9Ctx,
 ): string {
-  const name = GRAHA_NAMES[lord]
-  const parts = [
-    `7th lord of Navamsha (${name}) occupies ${RASHI_NAMES[d9Rashi]} in D9 house ${d9House} — a key to spouse nature and partnership karma.`,
-  ]
-  if (isVargottama) parts.push(`${name} is vargottama, stabilizing marriage indicators.`)
-  if (STRONG_DIGNITY.includes(dignity)) parts.push(`Strong dignity (${dignityLabel(dignity)}) favors supportive partnership outcomes.`)
-  if (WEAK_DIGNITY.includes(dignity)) parts.push(`Weak dignity (${dignityLabel(dignity)}) suggests extra care, counseling, or remedial focus in relationships.`)
+  const { T } = L
+  const name = L.g(lord)
+  const parts = [fill(T.sl7, { planet: name, rashi: L.r(d9Rashi), house: d9House })]
+  if (isVargottama) parts.push(fill(T.sl7Varg, { planet: name }))
+  if (STRONG_DIGNITY.includes(dignity)) parts.push(fill(T.sl7Strong, { dignity: L.dig(dignity) }))
+  if (WEAK_DIGNITY.includes(dignity)) parts.push(fill(T.sl7Weak, { dignity: L.dig(dignity) }))
   if ([6, 8, 12].includes(d9House)) {
-    parts.push(`Placement in dusthana house ${d9House} of D9 can bring tests that ultimately deepen the bond if handled wisely.`)
+    parts.push(fill(T.sl7Dus, { house: d9House }))
   }
   if ([1, 4, 5, 7, 9, 10, 11].includes(d9House)) {
-    parts.push(`Helpful house ${d9House} support for partnership themes is encouraging.`)
+    parts.push(fill(T.sl7Good, { house: d9House }))
   }
   return parts.join(' ')
 }
@@ -781,10 +933,10 @@ function toneFromPlanet(row: NavamshaPlanetRow | undefined): DashaTone {
   return 'neutral'
 }
 
-function formatDashaDate(value: Date | string | number): string {
+function formatDashaDate(value: Date | string | number, lang: EngineLang = 'en'): string {
   const d = value instanceof Date ? value : new Date(value)
   if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
+  return d.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 function buildSpouseSketch(input: {
@@ -795,61 +947,62 @@ function buildSpouseSketch(input: {
   jupiterInD9: NavamshaPlanetRow | null
   dkRow: NavamshaPlanetRow | undefined
   gender: ChartOutput['meta']['gender']
-}): SpouseSketch {
+}, L: D9Ctx): SpouseSketch {
+  const { T } = L
   const { d9Lagna, seventhHouse, seventhLord, venusInD9, jupiterInD9, dkRow, gender } = input
   const spouseSign = seventhHouse.rashi
   const sources: string[] = [
-    `D9 7th in ${seventhHouse.rashiName}`,
-    `7th lord ${seventhLord.name} in ${seventhLord.d9RashiName} (H${seventhLord.d9House})`,
+    fill(T.ssSrc7, { rashi: seventhHouse.rashiName }),
+    fill(T.ssSrcLord, { planet: seventhLord.name, rashi: seventhLord.d9RashiName, house: seventhLord.d9House }),
   ]
 
   const traits: string[] = [
-    SPOUSE_TEMPERAMENT[spouseSign].split(';')[0]!.trim(),
-    RASHI_NAVAMSHA_FLAVOR[seventhLord.d9Rashi].replace(' energy', ''),
+    L.temperament[spouseSign].split(';')[0]!.trim(),
+    L.flavor[seventhLord.d9Rashi].replace(L.lang === 'hi' ? ' ऊर्जा' : ' energy', ''),
   ]
 
   if (seventhHouse.occupants.length) {
-    traits.push(...seventhHouse.occupants.map((o) => `${o.name}-tinged presence`))
-    sources.push(`Occupants of D9 7th: ${seventhHouse.occupants.map((o) => o.name).join(', ')}`)
+    traits.push(...seventhHouse.occupants.map((o) => fill(T.ssTinged, { planet: o.name })))
+    sources.push(fill(T.ssSrcOcc, { names: seventhHouse.occupants.map((o) => o.name).join(', ') }))
   }
   if (venusInD9) {
-    traits.push(`romance flavored by ${venusInD9.d9RashiName}`)
-    sources.push(`Venus in D9 ${venusInD9.d9RashiName} H${venusInD9.d9House}`)
+    traits.push(fill(T.ssVenusTrait, { rashi: venusInD9.d9RashiName }))
+    sources.push(fill(T.ssSrcVenus, { rashi: venusInD9.d9RashiName, house: venusInD9.d9House }))
   }
   if (dkRow) {
-    traits.push(`DK ${dkRow.name} signature`)
-    sources.push(`Darakaraka ${dkRow.name} in ${dkRow.d9RashiName}`)
+    traits.push(fill(T.ssDkTrait, { planet: dkRow.name }))
+    sources.push(fill(T.ssSrcDk, { planet: dkRow.name, rashi: dkRow.d9RashiName }))
   }
 
   const strengths: string[] = []
   const cautions: string[] = []
-  if (seventhLord.isVargottama) strengths.push('Vargottama 7th lord — steadier partnering karma')
-  if (STRONG_DIGNITY.includes(seventhLord.d9Dignity)) strengths.push('7th lord dignified in Navamsha')
-  if (WEAK_DIGNITY.includes(seventhLord.d9Dignity)) cautions.push('7th lord challenged in Navamsha — patience and clear communication matter')
-  if ([6, 8, 12].includes(seventhLord.d9House)) cautions.push(`7th lord in D9 dusthana H${seventhLord.d9House} — growth through tests`)
-  if (venusInD9?.isVargottama) strengths.push('Vargottama Venus supports lasting affection')
-  if (venusInD9 && WEAK_DIGNITY.includes(venusInD9.d9Dignity)) cautions.push('Venus challenged in D9 — nurture aesthetic and emotional harmony')
+  if (seventhLord.isVargottama) strengths.push(T.ssVargLord)
+  if (STRONG_DIGNITY.includes(seventhLord.d9Dignity)) strengths.push(T.ssStrongLord)
+  if (WEAK_DIGNITY.includes(seventhLord.d9Dignity)) cautions.push(T.ssWeakLord)
+  if ([6, 8, 12].includes(seventhLord.d9House)) cautions.push(fill(T.ssDusLord, { house: seventhLord.d9House }))
+  if (venusInD9?.isVargottama) strengths.push(T.ssVargVenus)
+  if (venusInD9 && WEAK_DIGNITY.includes(venusInD9.d9Dignity)) cautions.push(T.ssWeakVenus)
   if (jupiterInD9 && STRONG_DIGNITY.includes(jupiterInD9.d9Dignity)) {
-    strengths.push(gender === 'female' ? 'Strong Jupiter in D9 blesses husband/partner themes' : 'Strong Jupiter in D9 blesses wisdom within the union')
+    strengths.push(gender === 'female' ? T.ssJuFemale : T.ssJuMale)
   }
 
-  const gracePlanet = gender === 'female' ? 'Jupiter' : 'Venus'
+  const gracePlanet = gender === 'female' ? T.ssGraceFemale : T.ssGraceMale
   const relationshipStyle = [
-    SPOUSE_TEMPERAMENT[spouseSign],
+    L.temperament[spouseSign],
     venusInD9
-      ? `Affection style leans ${RASHI_NAVAMSHA_FLAVOR[venusInD9.d9Rashi]} (Venus D9 H${venusInD9.d9House}).`
-      : `Watch ${gracePlanet} carefully for finer romance tones.`,
+      ? fill(T.ssAffection, { flavor: L.flavor[venusInD9.d9Rashi], house: venusInD9.d9House })
+      : fill(T.ssWatch, { planet: gracePlanet }),
   ].join(' ')
 
   return {
-    headline: `Partner sketch from ${seventhHouse.rashiName} Navamsha 7th · lord ${seventhLord.name}`,
-    physique: SPOUSE_PHYSIQUE[spouseSign],
-    temperament: SPOUSE_TEMPERAMENT[spouseSign],
-    values: NAVAMSHA_LAGNA_THEMES[d9Lagna].split(';')[0]!.trim(),
-    vocationHint: VOCATION_BY_SIGN[seventhLord.d9Rashi] ?? VOCATION_BY_SIGN[spouseSign],
+    headline: fill(T.ssHeadline, { rashi: seventhHouse.rashiName, planet: seventhLord.name }),
+    physique: L.physique[spouseSign],
+    temperament: L.temperament[spouseSign],
+    values: L.lagnaTheme[d9Lagna].split(';')[0]!.trim(),
+    vocationHint: L.vocation[seventhLord.d9Rashi] ?? L.vocation[spouseSign],
     relationshipStyle,
-    strengths: strengths.length ? strengths : ['Classical indicators are mixed — synthesize D1 7th with D9 carefully'],
-    cautions: cautions.length ? cautions : ['No major D9 caution flags — still confirm with dashas and D1'],
+    strengths: strengths.length ? strengths : [T.ssNoStrength],
+    cautions: cautions.length ? cautions : [T.ssNoCaution],
     traits: Array.from(new Set(traits)).slice(0, 8),
     sources,
   }
@@ -858,42 +1011,43 @@ function buildSpouseSketch(input: {
 function buildDashaOverlay(
   chart: ChartOutput,
   planets: NavamshaPlanetRow[],
+  L: D9Ctx,
 ): NavamshaDashaOverlay | null {
+  const { T, lang } = L
   const nodes = chart.dashas?.vimshottari
   if (!nodes?.length) return null
 
   const path = getDashaPathAt(nodes)
   if (!path.length) return null
 
+  const levels: readonly string[] = lang === 'hi' ? D9_DASHA_LEVEL_HI : DASHA_LEVEL_LABELS
   const byId = new Map(planets.map((p) => [p.id, p]))
   const lords: NavamshaDashaLordOverlay[] = path.slice(0, 4).map((node) => {
     const lord = node.lord as GrahaId
     const row = byId.get(lord)
     const tone = toneFromPlanet(row)
-    const levelLabel = DASHA_LEVEL_LABELS[node.level] ?? `L${node.level}`
+    const levelLabel = levels[node.level] ?? fill(lang === 'hi' ? T.dlLevelFallback : 'L{level}', { level: node.level })
     const noteParts: string[] = []
     if (!row) {
-      noteParts.push(`${GRAHA_NAMES[lord] ?? lord} not found in D9 graha set.`)
+      noteParts.push(fill(T.dlMissing, { planet: L.g(lord) ?? lord }))
     } else {
-      noteParts.push(
-        `${row.name} operates from ${row.d9RashiName} Navamsha (H${row.d9House}, ${dignityLabel(row.d9Dignity)}).`,
-      )
-      if (row.isVargottama) noteParts.push('Vargottama — period results tend to stick.')
-      if (row.isPushkara) noteParts.push('Pushkara — auspicious for remedies during this stretch.')
+      noteParts.push(fill(T.dlOperates, { planet: row.name, rashi: row.d9RashiName, house: row.d9House, dignity: L.dig(row.d9Dignity) }))
+      if (row.isVargottama) noteParts.push(T.dlVarg)
+      if (row.isPushkara) noteParts.push(T.dlPush)
       if ([7, 2, 8, 12].includes(row.d9House)) {
-        noteParts.push(`D9 house ${row.d9House} links this period to partnership / intimacy themes.`)
+        noteParts.push(fill(T.dlPartner, { house: row.d9House }))
       }
       if ([1, 5, 9].includes(row.d9House)) {
-        noteParts.push(`D9 house ${row.d9House} links this period to self-expression and dharma.`)
+        noteParts.push(fill(T.dlDharma, { house: row.d9House }))
       }
     }
     return {
       level: node.level,
       levelLabel,
       lord,
-      lordName: GRAHA_NAMES[lord] ?? String(lord),
-      start: formatDashaDate(node.start),
-      end: formatDashaDate(node.end),
+      lordName: L.g(lord) ?? String(lord),
+      start: formatDashaDate(node.start, lang),
+      end: formatDashaDate(node.end, lang),
       d9Rashi: row?.d9Rashi ?? null,
       d9RashiName: row?.d9RashiName ?? null,
       d9House: row?.d9House ?? null,
@@ -909,25 +1063,32 @@ function buildDashaOverlay(
   const antar = lords[1]
   const marriageRelevant = lords.filter((l) => l.d9House != null && [2, 7, 8, 11, 12].includes(l.d9House))
   const destinyRelevant = lords.filter((l) => l.d9House != null && [1, 5, 9, 10].includes(l.d9House))
+  const pathText = lords.map((l) => l.lordName).join(' / ')
+  const item = (l: NavamshaDashaLordOverlay) => fill(T.dmItem, { planet: l.lordName, house: l.d9House ?? '' })
 
   const marriageWindow = marriageRelevant.length
-    ? `Current ${lords.map((l) => l.lordName).join(' / ')} touches partnership houses in D9 (${marriageRelevant.map((l) => `${l.lordName} H${l.d9House}`).join(', ')}).`
-    : `Current path ${lords.map((l) => l.lordName).join(' / ')} is less directly on D9 marriage houses — watch Venus/7th lord transits for timing color.`
+    ? fill(T.dmPartner, { path: pathText, items: marriageRelevant.map(item).join(', ') })
+    : fill(T.dmNot, { path: pathText })
 
   const destinyWindow = maha
-    ? `Mahadasha lord ${maha.lordName}${maha.d9RashiName ? ` in ${maha.d9RashiName}` : ''}${maha.d9House != null ? ` (D9 H${maha.d9House})` : ''} sets the destiny climate${antar ? `; Antar ${antar.lordName} refines the chapter` : ''}.`
-    : 'No active Vimshottari path available.'
+    ? fill(T.ddMaha, {
+        planet: maha.lordName,
+        rashi: maha.d9RashiName ? fill(T.ddRashi, { rashi: maha.d9RashiName }) : '',
+        house: maha.d9House != null ? fill(T.ddHouse, { house: maha.d9House }) : '',
+        antar: antar ? fill(T.ddAntar, { planet: antar.lordName }) : '',
+      })
+    : T.ddNone
 
   const highlightHouses = Array.from(
     new Set(lords.map((l) => l.d9House).filter((h): h is number => h != null)),
   )
 
   return {
-    pathLabel: lords.map((l) => l.lordName).join(' / '),
+    pathLabel: pathText,
     lords,
     marriageWindow,
     destinyWindow: destinyRelevant.length
-      ? `${destinyWindow} Destiny-leaning lords: ${destinyRelevant.map((l) => `${l.lordName} H${l.d9House}`).join(', ')}.`
+      ? fill(T.ddDestiny, { window: destinyWindow, items: destinyRelevant.map(item).join(', ') })
       : destinyWindow,
     highlightHouses,
   }
@@ -953,7 +1114,8 @@ function resolveVariantRashi(
   return fn ? (fn(natal.lonSidereal) as Rashi) : null
 }
 
-function buildVariantCompare(chart: ChartOutput): NavamshaVariantCompare {
+function buildVariantCompare(chart: ChartOutput, L: D9Ctx): NavamshaVariantCompare {
+  const { lang } = L
   const available = NAVAMSHA_VARIANT_IDS.filter((id) => {
     if (id === 'D9') return Boolean(chart.vargas?.D9?.length)
     return Boolean(chart.vargas?.[id]?.length) || Boolean(VARGA_FUNCTIONS[id as VargaName])
@@ -964,7 +1126,7 @@ function buildVariantCompare(chart: ChartOutput): NavamshaVariantCompare {
   for (const id of NAVAMSHA_VARIANT_IDS) {
     const r = resolveVariantRashi(chart, id, 'As')
     lagna[id] = r
-    lagnaNames[id] = r ? RASHI_NAMES[r] : null
+    lagnaNames[id] = r ? L.r(r) : null
   }
 
   const planets: NavamshaVariantPlanetCell[] = []
@@ -979,11 +1141,11 @@ function buildVariantCompare(chart: ChartOutput): NavamshaVariantCompare {
     const agreementCount = [pada, nadi, soma].filter((r) => r === para).length
     planets.push({
       id: gid,
-      name: GRAHA_NAMES[gid],
+      name: L.g(gid),
       d1Rashi: d1.rashi,
-      d1RashiShort: RASHI_SHORT[d1.rashi],
+      d1RashiShort: L.short(d1.rashi),
       parashara: para,
-      parasharaShort: RASHI_SHORT[para],
+      parasharaShort: L.short(para),
       variants,
       agreementCount,
     })
@@ -1000,12 +1162,16 @@ function buildVariantCompare(chart: ChartOutput): NavamshaVariantCompare {
     if (p.variants.D9_Somanatha === p.parashara) matchRates.D9_Somanatha.matches++
   }
 
+  const vt = (name: string) => {
+    const m = lang === 'hi' ? vargaText(name, lang) : VARGA_META[name]
+    return m ? `${m.full}: ${m.topic}.` : ''
+  }
   const notes = [
-    `${VARGA_META.D9.full}: ${VARGA_META.D9.topic}.`,
-    `${VARGA_META.D9_Pada.full}: ${VARGA_META.D9_Pada.topic}.`,
-    `${VARGA_META.D9_Nadi.full}: ${VARGA_META.D9_Nadi.topic}.`,
-    `${VARGA_META.D9_Somanatha.full}: ${VARGA_META.D9_Somanatha.topic}.`,
-    'Use Parashara D9 as the primary predictive chart; variants refine research and Nadi-style comparisons.',
+    vt('D9'),
+    vt('D9_Pada'),
+    vt('D9_Nadi'),
+    vt('D9_Somanatha'),
+    L.T.variantsNote,
   ]
 
   return { available, lagna, lagnaNames, planets, notes, matchRates }
@@ -1015,11 +1181,13 @@ function buildVariantCompare(chart: ChartOutput): NavamshaVariantCompare {
  * Full Navamsha analysis from a calculated chart.
  * Requires chart.vargas.D9 and chart.vargaLagnas.D9.
  */
-export function analyzeNavamsha(chart: ChartOutput): NavamshaAnalysis | null {
+export function analyzeNavamsha(chart: ChartOutput, lang: EngineLang = 'en'): NavamshaAnalysis | null {
   const d9Grahas = chart.vargas?.D9
   const d9Lagna = chart.vargaLagnas?.D9
   if (!d9Grahas?.length || !d9Lagna) return null
 
+  const L = d9Ctx(lang)
+  const { T } = L
   const d1Asc = chart.lagnas.ascRashi
   const d9ById = new Map<GrahaId, GrahaData>()
   for (const g of d9Grahas) d9ById.set(g.id, g)
@@ -1032,18 +1200,18 @@ export function analyzeNavamsha(chart: ChartOutput): NavamshaAnalysis | null {
     if (!d1 || !d9) continue
 
     const padaInSign = d1.pushkara?.navamsha ?? padaFromDegree(d1.degree)
-    const d1d9Relation = buildD1D9Relation(d1.rashi, d9.rashi)
+    const d1d9Relation = buildD1D9Relation(d1.rashi, d9.rashi, lang)
     const d9Dispositor = SIGN_LORDS[d9.rashi]
     const base = {
       id,
-      name: GRAHA_NAMES[id],
+      name: L.g(id),
       d1Rashi: d1.rashi,
-      d1RashiName: RASHI_NAMES[d1.rashi],
-      d1RashiShort: RASHI_SHORT[d1.rashi],
+      d1RashiName: L.r(d1.rashi),
+      d1RashiShort: L.short(d1.rashi),
       d1Degree: d1.degree,
       d9Rashi: d9.rashi,
-      d9RashiName: RASHI_NAMES[d9.rashi],
-      d9RashiShort: RASHI_SHORT[d9.rashi],
+      d9RashiName: L.r(d9.rashi),
+      d9RashiShort: L.short(d9.rashi),
       d9Degree: d9.degree,
       padaInSign,
       d1House: houseOf(d1.rashi, d1Asc),
@@ -1052,15 +1220,15 @@ export function analyzeNavamsha(chart: ChartOutput): NavamshaAnalysis | null {
       d9Dignity: d9.dignity,
       isVargottama: d1.rashi === d9.rashi,
       isPushkara: Boolean(d1.pushkara?.isPushkara),
-      pushkaraNote: d1.pushkara?.remedy ?? null,
+      pushkaraNote: lang === 'hi' ? (d1.pushkara?.remedy ? T.pPushkara : null) : d1.pushkara?.remedy ?? null,
       charaKaraka: d1.charaKaraka,
       d1d9Relation,
       d9Dispositor,
-      d9DispositorName: GRAHA_NAMES[d9Dispositor],
+      d9DispositorName: L.g(d9Dispositor),
       strengthScore: 0,
     }
     base.strengthScore = planetStrengthScore(base)
-    const { theme, interpretation } = buildPlanetInterpretation(base)
+    const { theme, interpretation } = buildPlanetInterpretation(base, L)
     planets.push({ ...base, theme, interpretation })
   }
 
@@ -1086,11 +1254,11 @@ export function analyzeNavamsha(chart: ChartOutput): NavamshaAnalysis | null {
     houses.push({
       house: h,
       rashi,
-      rashiName: RASHI_NAMES[rashi],
-      rashiShort: RASHI_SHORT[rashi],
+      rashiName: L.r(rashi),
+      rashiShort: L.short(rashi),
       lord,
-      lordName: GRAHA_NAMES[lord],
-      theme: HOUSE_THEMES_D9[h],
+      lordName: L.g(lord),
+      theme: L.houseTheme[h],
       occupants,
     })
   }
@@ -1100,9 +1268,9 @@ export function analyzeNavamsha(chart: ChartOutput): NavamshaAnalysis | null {
   const seventhLordRow = planets.find((p) => p.id === seventhLordId)
   const seventhLord = {
     id: seventhLordId,
-    name: GRAHA_NAMES[seventhLordId],
+    name: L.g(seventhLordId),
     d9Rashi: seventhLordRow?.d9Rashi ?? d9Lagna,
-    d9RashiName: seventhLordRow?.d9RashiName ?? RASHI_NAMES[d9Lagna],
+    d9RashiName: seventhLordRow?.d9RashiName ?? L.r(d9Lagna),
     d9House: seventhLordRow?.d9House ?? 1,
     d9Dignity: seventhLordRow?.d9Dignity ?? ('neutral' as Dignity),
     isVargottama: seventhLordRow?.isVargottama ?? false,
@@ -1112,6 +1280,7 @@ export function analyzeNavamsha(chart: ChartOutput): NavamshaAnalysis | null {
       seventhLordRow?.d9House ?? 1,
       seventhLordRow?.d9Dignity ?? 'neutral',
       seventhLordRow?.isVargottama ?? false,
+      L,
     ),
   }
 
@@ -1123,113 +1292,92 @@ export function analyzeNavamsha(chart: ChartOutput): NavamshaAnalysis | null {
   const lagnaVargottama = d1Asc === d9Lagna
   const venusInD9 = planets.find((p) => p.id === 'Ve') ?? null
   const jupiterInD9 = planets.find((p) => p.id === 'Ju') ?? null
+  const names = (list: NavamshaPlanetRow[]) => list.map((p) => p.name).join(', ')
+  const digItems = (list: NavamshaPlanetRow[]) =>
+    list.map((p) => fill(T.iDigItem, { planet: p.name, dignity: L.dig(p.d9Dignity) })).join(', ')
 
   const insights: NavamshaInsight[] = []
 
   insights.push({
     kind: 'highlight',
-    title: 'Navamsha Lagna',
-    text: `${RASHI_NAMES[d9Lagna]} (${RASHI_SANSKRIT[d9Lagna]}) — ${NAVAMSHA_LAGNA_THEMES[d9Lagna]}`,
+    title: T.iLagnaTitle,
+    text: fill(T.iLagnaText, { rashi: L.r(d9Lagna), sanskrit: RASHI_SANSKRIT[d9Lagna], theme: L.lagnaTheme[d9Lagna] }),
   })
 
   if (lagnaVargottama) {
-    insights.push({
-      kind: 'strength',
-      title: 'Vargottama Lagna',
-      text: 'Ascendant sign is the same in D1 and D9 — a powerful marker of consistent identity, purpose, and life direction.',
-    })
+    insights.push({ kind: 'strength', title: T.iVargLagnaTitle, text: T.iVargLagnaText })
   }
 
   if (vargottama.length) {
     insights.push({
       kind: 'strength',
-      title: `${vargottama.length} Vargottama Planet${vargottama.length > 1 ? 's' : ''}`,
+      title: fill(vargottama.length > 1 ? T.iVargTitle : T.iVargTitleOne, { n: vargottama.length }),
       text: vargottama.length === 1
-        ? `${vargottama[0]!.name} occupies the same sign in Rashi and Navamsha — its significations gain lasting strength.`
-        : `${vargottama.map((p) => p.name).join(', ')} occupy the same sign in Rashi and Navamsha — their significations gain lasting strength.`,
+        ? fill(T.iVargOne, { planet: vargottama[0]!.name })
+        : fill(T.iVargMany, { names: names(vargottama) }),
     })
   }
 
   if (pushkaraPlanets.length) {
     insights.push({
       kind: 'highlight',
-      title: 'Pushkara Navamsha',
+      title: T.iPushTitle,
       text: pushkaraPlanets.length === 1
-        ? `${pushkaraPlanets[0]!.name} sits in Pushkara Navamsha — excellent for remedies, mantra, and auspicious beginnings.`
-        : `${pushkaraPlanets.map((p) => p.name).join(', ')} sit in Pushkara Navamsha — excellent for remedies, mantra, and auspicious beginnings.`,
+        ? fill(T.iPushOne, { planet: pushkaraPlanets[0]!.name })
+        : fill(T.iPushMany, { names: names(pushkaraPlanets) }),
     })
   }
 
   if (strongInD9.length) {
-    insights.push({
-      kind: 'strength',
-      title: 'Dignified in D9',
-      text: `${strongInD9.map((p) => `${p.name} (${dignityLabel(p.d9Dignity)})`).join(', ')} support mature destiny outcomes.`,
-    })
+    insights.push({ kind: 'strength', title: T.iStrongTitle, text: fill(T.iStrongText, { items: digItems(strongInD9) }) })
   }
 
   if (weakInD9.length) {
-    insights.push({
-      kind: 'caution',
-      title: 'Challenged in D9',
-      text: `${weakInD9.map((p) => `${p.name} (${dignityLabel(p.d9Dignity)})`).join(', ')} ask for conscious refinement in those life areas.`,
-    })
+    insights.push({ kind: 'caution', title: T.iWeakTitle, text: fill(T.iWeakText, { items: digItems(weakInD9) }) })
   }
 
   insights.push({
     kind: 'info',
-    title: 'Karakamsha',
-    text: `Atmakaraka ${GRAHA_NAMES[ak]} falls in ${RASHI_NAMES[karakamsha]} Navamsha (Karakamsha) — a Jaimini key to soul purpose and spiritual leaning.`,
+    title: T.iKarakamshaTitle,
+    text: fill(T.iKarakamshaText, { planet: L.g(ak), rashi: L.r(karakamsha) }),
   })
 
   const marriageNotes: string[] = [
     seventhLord.interpretation,
-    `D9 7th house is ${seventhHouse.rashiName} ruled by ${seventhHouse.lordName}. ${HOUSE_THEMES_D9[7]}.`,
+    fill(T.mn7, { rashi: seventhHouse.rashiName, lord: seventhHouse.lordName, theme: L.houseTheme[7] }),
   ]
   if (seventhHouse.occupants.length) {
-    marriageNotes.push(
-      `Planets in D9 7th: ${seventhHouse.occupants.map((o) => o.name).join(', ')} — they color spouse traits and partnership dynamics.`,
-    )
+    marriageNotes.push(fill(T.mnOcc, { names: seventhHouse.occupants.map((o) => o.name).join(', ') }))
   } else {
-    marriageNotes.push('D9 7th is unoccupied — read the 7th lord carefully along with Venus (and Jupiter for feminine charts).')
+    marriageNotes.push(T.mnEmpty)
   }
   if (venusInD9) {
-    marriageNotes.push(
-      `Venus in ${venusInD9.d9RashiName} (D9 H${venusInD9.d9House}${venusInD9.isVargottama ? ', vargottama' : ''}) shapes romance, harmony, and aesthetic taste in marriage.`,
-    )
+    marriageNotes.push(fill(T.mnVenus, { rashi: venusInD9.d9RashiName, house: venusInD9.d9House, varg: venusInD9.isVargottama ? T.mnVargSuffix : '' }))
   }
   if (jupiterInD9) {
-    marriageNotes.push(
-      `Jupiter in ${jupiterInD9.d9RashiName} (D9 H${jupiterInD9.d9House}${jupiterInD9.isVargottama ? ', vargottama' : ''}) blesses wisdom, children themes, and ethical tone in the union.`,
-    )
+    marriageNotes.push(fill(T.mnJupiter, { rashi: jupiterInD9.d9RashiName, house: jupiterInD9.d9House, varg: jupiterInD9.isVargottama ? T.mnVargSuffix : '' }))
   }
   const dkRow = planets.find((p) => p.id === dk)
   if (dkRow) {
-    marriageNotes.push(
-      `Darakaraka ${dkRow.name} in ${dkRow.d9RashiName} Navamsha (H${dkRow.d9House}) is a Jaimini spouse significator — study this placement closely.`,
-    )
+    marriageNotes.push(fill(T.mnDk, { planet: dkRow.name, rashi: dkRow.d9RashiName, house: dkRow.d9House }))
   }
 
   const destinyNotes: string[] = [
-    NAVAMSHA_LAGNA_THEMES[d9Lagna],
-    `Karakamsha in ${RASHI_NAMES[karakamsha]}: ${RASHI_NAVAMSHA_FLAVOR[karakamsha]} guides the soul's mature expression.`,
+    L.lagnaTheme[d9Lagna],
+    fill(T.dnKarakamsha, { rashi: L.r(karakamsha), flavor: L.flavor[karakamsha] }),
   ]
   if (akRow) {
-    destinyNotes.push(
-      `Atmakaraka ${akRow.name} in D9 house ${akRow.d9House} (${akRow.d9RashiName}) shows where the soul's lessons crystallize.`,
-    )
+    destinyNotes.push(fill(T.dnAk, { planet: akRow.name, house: akRow.d9House, rashi: akRow.d9RashiName }))
   }
   const d9Ninth = houses[8]!
-  destinyNotes.push(
-    `D9 9th house ${d9Ninth.rashiName} (lord ${d9Ninth.lordName}) highlights fortune, mentors, and dharma after maturity.`,
-  )
+  destinyNotes.push(fill(T.dnNinth, { rashi: d9Ninth.rashiName, lord: d9Ninth.lordName }))
 
   const summaryParts = [
-    `Navamsha lagna ${RASHI_NAMES[d9Lagna]}`,
-    lagnaVargottama ? 'vargottama lagna' : null,
-    vargottama.length ? `${vargottama.length} vargottama graha${vargottama.length > 1 ? 's' : ''}` : null,
-    `Karakamsha ${RASHI_NAMES[karakamsha]}`,
-    `7th lord ${seventhLord.name} in D9 H${seventhLord.d9House}`,
+    fill(T.sumLagna, { rashi: L.r(d9Lagna) }),
+    lagnaVargottama ? T.sumVargLagna : null,
+    vargottama.length ? fill(vargottama.length > 1 ? T.sumVarg : T.sumVargOne, { n: vargottama.length }) : null,
+    fill(T.sumKarakamsha, { rashi: L.r(karakamsha) }),
+    fill(T.sumLord7, { planet: seventhLord.name, house: seventhLord.d9House }),
   ].filter(Boolean)
 
   const spouseSketch = buildSpouseSketch({
@@ -1240,46 +1388,46 @@ export function analyzeNavamsha(chart: ChartOutput): NavamshaAnalysis | null {
     jupiterInD9,
     dkRow,
     gender: chart.meta?.gender ?? 'other',
-  })
-  const dashaOverlay = buildDashaOverlay(chart, planets)
-  const variants = buildVariantCompare(chart)
-  const advanced = buildAdvanced(d1Asc, d9Lagna, planets)
+  }, L)
+  const dashaOverlay = buildDashaOverlay(chart, planets, L)
+  const variants = buildVariantCompare(chart, L)
+  const advanced = buildAdvanced(d1Asc, d9Lagna, planets, L)
 
   if (dashaOverlay) {
     insights.push({
       kind: 'info',
-      title: 'Current Dasha × D9',
-      text: `${dashaOverlay.pathLabel} — ${dashaOverlay.destinyWindow}`,
+      title: T.iDashaTitle,
+      text: fill(T.iDashaText, { path: dashaOverlay.pathLabel, window: dashaOverlay.destinyWindow }),
     })
   }
 
   insights.push({
     kind: advanced.lagnaRelation.tone === 'challenging' ? 'caution' : 'highlight',
-    title: `Lagna D1↔D9 ${advanced.lagnaRelation.pair}`,
-    text: `${advanced.lagnaRelation.fromName} → ${advanced.lagnaRelation.toName}: ${advanced.lagnaRelation.label}. ${advanced.lagnaRelation.note}`,
+    title: fill(T.iLagnaRelTitle, { pair: advanced.lagnaRelation.pair }),
+    text: fill(T.iLagnaRelText, { from: advanced.lagnaRelation.fromName, to: advanced.lagnaRelation.toName, label: advanced.lagnaRelation.label, note: advanced.lagnaRelation.note }),
   })
 
   if (advanced.supportiveCount || advanced.challengingCount) {
     insights.push({
       kind: 'info',
-      title: 'D1↔D9 Relation Mix',
-      text: `${advanced.supportiveCount} supportive · ${advanced.mixedCount} mixed · ${advanced.challengingCount} challenging planet links (2/12, 5/9, 6/8, etc.).`,
+      title: T.iMixTitle,
+      text: fill(T.iMixText, { s: advanced.supportiveCount, m: advanced.mixedCount, c: advanced.challengingCount }),
     })
   }
 
   return {
     d9Lagna,
-    d9LagnaName: RASHI_NAMES[d9Lagna],
-    d9LagnaSanskrit: RASHI_SANSKRIT[d9Lagna],
-    d9LagnaTheme: NAVAMSHA_LAGNA_THEMES[d9Lagna],
+    d9LagnaName: L.r(d9Lagna),
+    d9LagnaSanskrit: lang === 'hi' ? L.r(d9Lagna) : RASHI_SANSKRIT[d9Lagna],
+    d9LagnaTheme: L.lagnaTheme[d9Lagna],
     lagnaVargottama,
     karakamsha,
-    karakamshaName: RASHI_NAMES[karakamsha],
-    karakamshaTheme: `Atmakaraka ${GRAHA_NAMES[ak]} in ${RASHI_NAMES[karakamsha]} — ${RASHI_NAVAMSHA_FLAVOR[karakamsha]}.`,
+    karakamshaName: L.r(karakamsha),
+    karakamshaTheme: fill(T.karakamshaTheme, { planet: L.g(ak), rashi: L.r(karakamsha), flavor: L.flavor[karakamsha] }),
     atmakaraka: ak,
-    atmakarakaName: GRAHA_NAMES[ak],
+    atmakarakaName: L.g(ak),
     darakaraka: dk,
-    darakarakaName: GRAHA_NAMES[dk],
+    darakarakaName: L.g(dk),
     planets,
     vargottama,
     pushkaraPlanets,

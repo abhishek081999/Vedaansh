@@ -1,19 +1,16 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { ChevronRight } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
+import { useTranslations } from 'next-intl'
 import { LandingCosmicWheel, useTodaySky, type CosmicWheelVariant } from '@/components/home/LandingCosmicWheel'
 import { LandingTodaySky } from '@/components/home/LandingTodaySky'
 
 type HeroSlide = {
   id: CosmicWheelVariant
-  kicker: string
-  title: string
-  desc: string
   accent: string
-  bullets: string[]
-  cta: { label: string; href?: string; action?: 'openAstrology' | 'openMyChart' }
+  cta: { href?: string; action?: 'openAstrology' | 'openMyChart' }
 }
 
 type LandingPremiumHeroProps = {
@@ -25,52 +22,13 @@ type LandingPremiumHeroProps = {
   withChartGate: (href: string, e?: MouseEvent<HTMLElement>) => void
 }
 
+// Copy lives in messages/<locale>/home.json under hero.slides.<id>.
 const HERO_SLIDES: HeroSlide[] = [
-  {
-    id: 'astrology',
-    kicker: 'Astrology Workspace',
-    title: 'Charts, dashas, guidance — one workspace',
-    desc: 'Kundali through vargas and dasha layers in a single focused flow.',
-    accent: '#c9a84c',
-    bullets: ['D1–D60 & vargas', 'Consultation-ready'],
-    cta: { label: 'Open Astrology', action: 'openAstrology' },
-  },
-  {
-    id: 'prashna',
-    kicker: 'Prashna Engine',
-    title: 'Clear answers for timely questions',
-    desc: 'Structured Prashna when you need a direct read on a decision.',
-    accent: '#8b7cf6',
-    bullets: ['Focused flow', 'Timing cues'],
-    cta: { label: 'Open Prashna', href: '/prashna' },
-  },
-  {
-    id: 'panchang',
-    kicker: 'Daily Panchang',
-    title: 'Today’s tithi, nakshatra, muhurta',
-    desc: 'Panchang signals and day-level timing at a glance.',
-    accent: '#2f9e8f',
-    bullets: ['Rahu Kalam & yogas', 'Day factors'],
-    cta: { label: 'Open Panchang', href: '/panchang' },
-  },
-  {
-    id: 'calendar',
-    kicker: 'Vedic Calendar',
-    title: 'Month view — stronger dates first',
-    desc: 'Scan festivals and windows before you lock a day.',
-    accent: '#e07a5f',
-    bullets: ['Monthly grid', 'Festival context'],
-    cta: { label: 'Open Calendar', href: '/panchang/calendar' },
-  },
-  {
-    id: 'compare',
-    kicker: 'Kundali Matching',
-    title: 'Match two charts — Ashtakoot & more',
-    desc: 'Ashtakoot scoring, dosha checks, and side-by-side charts without loading a saved natal first.',
-    accent: '#c084fc',
-    bullets: ['36-point Guna Milan', 'Dual birth forms'],
-    cta: { label: 'Open Kundali Matching', href: '/compare' },
-  },
+  { id: 'astrology', accent: '#c9a84c', cta: { action: 'openAstrology' } },
+  { id: 'prashna', accent: '#8b7cf6', cta: { href: '/prashna' } },
+  { id: 'panchang', accent: '#2f9e8f', cta: { href: '/panchang' } },
+  { id: 'calendar', accent: '#e07a5f', cta: { href: '/panchang/calendar' } },
+  { id: 'compare', accent: '#c084fc', cta: { href: '/compare' } },
 ]
 
 export function LandingPremiumHero({
@@ -85,6 +43,7 @@ export function LandingPremiumHero({
   const [prevActive, setPrevActive] = useState(0)
   const [reducedMotion, setReducedMotion] = useState(false)
   const { sky, failed: skyFailed } = useTodaySky()
+  const t = useTranslations('home.hero')
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -131,12 +90,12 @@ export function LandingPremiumHero({
     <section
       className={`landing-premium-hero landing-premium-hero-carousel fade-up ${reducedMotion ? 'reduced-motion' : ''}`}
       style={{ ['--hero-accent' as string]: slide.accent }}
-      aria-label="Vedaansh product highlights"
+      aria-label={t('ariaLabel')}
     >
       <div className="landing-premium-hero-carousel-inner">
         <div className="landing-hero-carousel-top landing-premium-hero-top">
           <button type="button" className="landing-hero-next" onClick={goNext}>
-            Next
+            {t('next')}
             <ChevronRight size={13} strokeWidth={2.25} aria-hidden />
           </button>
         </div>
@@ -150,12 +109,12 @@ export function LandingPremiumHero({
             <div className="landing-hero-carousel-slide-bg" />
 
             <div className="landing-premium-hero-copy">
-              <p className="landing-hero-carousel-kicker">{slide.kicker}</p>
-              <h1 className="landing-premium-hero-title landing-hero-carousel-title">{slide.title}</h1>
-              <p className="landing-premium-hero-desc landing-hero-carousel-desc">{slide.desc}</p>
+              <p className="landing-hero-carousel-kicker">{t(`slides.${slide.id}.kicker`)}</p>
+              <h1 className="landing-premium-hero-title landing-hero-carousel-title">{t(`slides.${slide.id}.title`)}</h1>
+              <p className="landing-premium-hero-desc landing-hero-carousel-desc">{t(`slides.${slide.id}.desc`)}</p>
 
               <ul className="landing-hero-carousel-bullets">
-                {slide.bullets.map((item) => (
+                {(t.raw(`slides.${slide.id}.bullets`) as string[]).map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
@@ -167,7 +126,7 @@ export function LandingPremiumHero({
                     className="btn btn-primary landing-premium-hero-primary landing-hero-carousel-primary"
                     onClick={handleSlideCta}
                   >
-                    {slide.cta.label}
+                    {t(`slides.${slide.id}.cta`)}
                   </button>
                 ) : (
                   <Link
@@ -179,7 +138,7 @@ export function LandingPremiumHero({
                     }}
                     style={{ textDecoration: 'none' }}
                   >
-                    {slide.cta.label}
+                    {t(`slides.${slide.id}.cta`)}
                   </Link>
                 )}
                 {showMyChart && slide.id === 'astrology' ? (
@@ -191,7 +150,7 @@ export function LandingPremiumHero({
                       onOpenMyChart()
                     }}
                   >
-                    Own Chart
+                    {t('ownChart')}
                   </button>
                 ) : null}
                 {showMyCharts && slide.id === 'astrology' ? (
@@ -201,17 +160,17 @@ export function LandingPremiumHero({
                     onClick={() => trackLandingCta('hero_quick_my_charts')}
                     style={{ textDecoration: 'none' }}
                   >
-                    My Charts
+                    {t('myCharts')}
                   </Link>
                 ) : null}
               </div>
 
               <div className="landing-premium-hero-trust">
-                <span>Swiss Ephemeris</span>
+                <span>{t('trust.ephemeris')}</span>
                 <span className="landing-premium-hero-trust-dot" aria-hidden />
-                <span>Lahiri ayanamsha</span>
+                <span>{t('trust.ayanamsha')}</span>
                 <span className="landing-premium-hero-trust-dot" aria-hidden />
-                <span>No login required</span>
+                <span>{t('trust.noLogin')}</span>
               </div>
             </div>
 
@@ -222,7 +181,7 @@ export function LandingPremiumHero({
         </div>
 
         <div className="landing-hero-carousel-nav">
-          <div className="landing-hero-carousel-tabs" role="tablist" aria-label="Hero modules">
+          <div className="landing-hero-carousel-tabs" role="tablist" aria-label={t('tabsLabel')}>
             {HERO_SLIDES.map((item, idx) => (
               <button
                 key={item.id}
@@ -234,7 +193,7 @@ export function LandingPremiumHero({
                 style={{ ['--tab-accent' as string]: item.accent }}
               >
                 <span className="landing-hero-carousel-tab-dot" style={{ background: item.accent }} />
-                {item.kicker}
+                {t(`slides.${item.id}.kicker`)}
               </button>
             ))}
           </div>
@@ -246,7 +205,7 @@ export function LandingPremiumHero({
                 className="landing-hero-carousel-footer-link"
                 onClick={() => trackLandingCta('hero_footer_my_charts')}
               >
-                My Charts
+                {t('myCharts')}
               </Link>
             </div>
           ) : null}

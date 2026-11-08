@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslations } from 'next-intl'
 import type { LucideIcon } from 'lucide-react'
 import { LayoutDashboard, Sparkles, Info, Clock, Moon, Zap, Star, Compass } from 'lucide-react'
 
@@ -52,6 +53,7 @@ export function MobileDashboardNav({
   onScrollToDashContent,
   onScrollToStrengthContent,
 }: MobileDashboardNavProps) {
+  const t = useTranslations('chart.mobileNav')
   if (typeof document === 'undefined') return null
 
   return (
@@ -59,7 +61,7 @@ export function MobileDashboardNav({
       {showStrengthSubNav &&
         createPortal(
           <nav
-            aria-label="Strength analytics sections"
+            aria-label={t('strengthAria')}
             style={{
               position: 'fixed',
               bottom: strengthSubNavStacked ? 'calc(3.75rem + env(safe-area-inset-bottom, 0px))' : 0,
@@ -76,7 +78,8 @@ export function MobileDashboardNav({
               WebkitBackdropFilter: 'blur(10px)',
             }}
           >
-            {strengthTabs.map(({ id, icon: Icon, label }) => {
+            {strengthTabs.map(({ id, icon: Icon }) => {
+              const label = t(id)
               const active = activeStrengthSubTab === id
               return (
                 <button
@@ -144,7 +147,7 @@ export function MobileDashboardNav({
       {showMainNav &&
         createPortal(
           <nav
-            aria-label="Dashboard sections"
+            aria-label={t('dashAria')}
             style={{
               position: 'fixed',
               bottom: 0,
@@ -164,7 +167,8 @@ export function MobileDashboardNav({
               WebkitBackdropFilter: 'blur(10px)',
             }}
           >
-            {MAIN_TABS.map(({ id, icon: Icon, label }) => {
+            {MAIN_TABS.map(({ id, icon: Icon }) => {
+              const label = t(id)
               const active = highlightedDashTab === id
               return (
                 <button

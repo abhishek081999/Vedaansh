@@ -11,6 +11,11 @@ import { ChartStyleProvider } from '@/components/providers/ChartStyleProvider'
 import { AppFramework }      from '@/components/ui/AppFramework'
 import { YantraBackdropRoute } from '@/components/ui/YantraBackdropRoute'
 import { SITE_URL } from '@/lib/seo/site'
+import { getLocale, getMessages, getTranslations } from 'next-intl/server'
+import type { AbstractIntlMessages } from 'next-intl'
+import { IntlProvider } from '@/components/providers/IntlProvider'
+import { ROOT_CLIENT_NAMESPACES, pickNamespaces } from '@/i18n/messages'
+import { LOCALES, LOCALE_TAGS, OG_LOCALES, PATHNAME_HEADER, isAppLocale, localizePath } from '@/i18n/config'
 
 // ── Fonts (next/font — zero layout shift, self-hosted) ────────
 // Newsreader: scholarly serif for titles. Holds up from panel headings to the hero.
@@ -45,7 +50,8 @@ const jetbrainsMono = JetBrains_Mono({
 })
 const notoDevanagari = Noto_Sans_Devanagari({
   subsets:  ['devanagari'],
-  weight:   ['500', '600'],
+  // 400/700 too: Hindi pages set whole paragraphs and bold headings in it.
+  weight:   ['400', '500', '600', '700'],
   variable: '--font-noto-deva',
   display:  'swap',
   preload:  false,
@@ -66,7 +72,7 @@ const themeScript = `(function(){try{var t=localStorage.getItem('jyotish-theme')
 const BASE_URL = SITE_URL
 
 // ── Root metadata ─────────────────────────────────────────────
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   metadataBase: new URL(BASE_URL),
 
   title: {
@@ -162,6 +168,43 @@ export const metadata: Metadata = {
   },
 }
 
+/** hreflang alternates for the current path (pages may override canonical). */
+function localeAlternates(pathname: string, locale: (typeof LOCALES)[number]): Metadata['alternates'] {
+  const abs = (l: (typeof LOCALES)[number]) => {
+    const p = localizePath(pathname, l)
+    return p === '/' ? BASE_URL : `${BASE_URL}${p}`
+  }
+  return {
+    canonical: abs(locale),
+    languages: {
+      ...Object.fromEntries(LOCALES.map((l) => [LOCALE_TAGS[l], abs(l)])),
+      'x-default': abs('en'),
+    },
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const rawLocale = await getLocale()
+  const locale = isAppLocale(rawLocale) ? rawLocale : 'en'
+  const t = await getTranslations('common.meta')
+  const pathname = (await headers()).get(PATHNAME_HEADER) ?? '/'
+  return {
+    ...baseMetadata,
+    title: { template: t('titleTemplate'), default: t('title') },
+    description: t('description'),
+    openGraph: {
+      ...baseMetadata.openGraph,
+      locale: OG_LOCALES[locale],
+      alternateLocale: LOCALES.filter((l) => l !== locale).map((l) => OG_LOCALES[l]),
+      url: localeAlternates(pathname, locale)?.canonical as string,
+      title: t('ogTitle'),
+      description: t('ogDescription'),
+    },
+    twitter: { ...baseMetadata.twitter, title: t('ogTitle'), description: t('ogDescription') },
+    alternates: localeAlternates(pathname, locale),
+  }
+}
+
 // ── Viewport ──────────────────────────────────────────────────
 export const viewport: Viewport = {
   themeColor: [
@@ -252,9 +295,15 @@ const jsonLdOrg = {
 // ── Root Layout ───────────────────────────────────────────────
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const nonce = (await headers()).get('x-nonce') ?? ''
+  const rawLocale = await getLocale()
+  const locale = isAppLocale(rawLocale) ? rawLocale : 'en'
+  const clientMessages = pickNamespaces(
+    (await getMessages()) as Record<string, unknown>,
+    ROOT_CLIENT_NAMESPACES,
+  ) as AbstractIntlMessages
 
   return (
-    <html lang="en-IN" suppressHydrationWarning data-scroll-behavior="smooth" className={`${newsreader.variable} ${inter.variable} ${plexMono.variable} ${jetbrainsMono.variable} ${notoDevanagari.variable}`}>
+    <html lang={LOCALE_TAGS[locale]} suppressHydrationWarning data-scroll-behavior="smooth" className={`${newsreader.variable} ${inter.variable} ${plexMono.variable} ${jetbrainsMono.variable} ${notoDevanagari.variable}`}>
       <head>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
@@ -279,13 +328,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           id="ld-website"
           type="application/ld+json"
           nonce={nonce}
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({ ...jsonLdWebSite, inLanguage: LOCALE_TAGS[locale] }) }}
         />
         <script
           id="ld-webapp"
           type="application/ld+json"
           nonce={nonce}
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebApp) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({ ...jsonLdWebApp, inLanguage: LOCALE_TAGS[locale] }) }}
         />
         <script
           id="ld-org"
@@ -295,6 +344,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body>
+        <IntlProvider locale={locale} messages={clientMessages}>
         <AuthProvider>
           <AppLayoutProvider>
             <ChartProvider>
@@ -307,6 +357,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </ChartProvider>
           </AppLayoutProvider>
         </AuthProvider>
+        </IntlProvider>
       </body>
     </html>
   )

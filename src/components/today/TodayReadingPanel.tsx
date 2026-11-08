@@ -7,12 +7,14 @@
 
 import React, { useMemo, useState } from 'react'
 import { MapPin, RefreshCw } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import type { ChartOutput } from '@/types/astrology'
 import { LocationPicker, type LocationValue } from '@/components/ui/LocationPicker'
 import { useTodayReading, type TodayLocation } from '@/hooks/useTodayReading'
 import {
   AreasCard, DoAvoidCards, FactorsCard, MoonCard,
-  PanchangCard, RemedyCard, TransitsPanel, WindowsCard, fmtTime, scoreTone, toned,
+  PanchangCard, RemedyCard, TransitsPanel, WindowsCard, scoreTone, toned, useTodayFmt,
 } from './TodayReadingSections'
 import { TodayChartCard } from './TodayChartCard'
 import { HouseMapPanel, PredictionsCard } from './TodayPredictionSections'
@@ -37,9 +39,9 @@ function readSavedLocation(): TodayLocation | null {
   return null
 }
 
-function formatLongDate(d: Date, tz: string): string {
+function formatLongDate(d: Date, tz: string, tag = 'en-IN'): string {
   try {
-    return new Intl.DateTimeFormat('en-IN', {
+    return new Intl.DateTimeFormat(tag, {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: tz,
     }).format(d)
   } catch {
@@ -48,12 +50,15 @@ function formatLongDate(d: Date, tz: string): string {
 }
 
 export function TodayReadingPanel({ chart }: { chart: ChartOutput }) {
+  const t = useTranslations('today.page')
+  const { tag } = useLang()
+  const fm = useTodayFmt()
   const birthLocation = useMemo<TodayLocation>(() => ({
     lat: chart.meta.latitude,
     lng: chart.meta.longitude,
     tz: chart.meta.timezone,
-    name: chart.meta.birthPlace || 'Birth place',
-  }), [chart.meta.latitude, chart.meta.longitude, chart.meta.timezone, chart.meta.birthPlace])
+    name: chart.meta.birthPlace || t('birthPlace'),
+  }), [chart.meta.latitude, chart.meta.longitude, chart.meta.timezone, chart.meta.birthPlace, t])
 
   const [saved, setSaved] = useState<TodayLocation | null>(readSavedLocation)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -72,30 +77,30 @@ export function TodayReadingPanel({ chart }: { chart: ChartOutput }) {
   const tabs = useMemo<TodayTabDef[]>(() => {
     if (!reading) return []
     const list: TodayTabDef[] = []
-    if (dasha) list.push({ id: 'dasha', label: 'Dasha', content: <TodayDashaPanel d={dasha} tz={tz} now={asOf ?? new Date()} /> })
-    list.push({ id: 'transits', label: 'Transits', content: <TransitsPanel r={reading} /> })
-    if (predictions) list.push({ id: 'houses', label: 'Houses', content: <HouseMapPanel p={predictions} /> })
+    if (dasha) list.push({ id: 'dasha', label: t('tabDasha'), content: <TodayDashaPanel d={dasha} tz={tz} now={asOf ?? new Date()} /> })
+    list.push({ id: 'transits', label: t('tabTransits'), content: <TransitsPanel r={reading} /> })
+    if (predictions) list.push({ id: 'houses', label: t('tabHouses'), content: <HouseMapPanel p={predictions} /> })
     return list
-  }, [reading, dasha, predictions, tz, asOf])
+  }, [reading, dasha, predictions, tz, asOf, t])
   const firstName = (chart.meta.name || '').trim().split(/\s+/)[0]
 
   return (
     <div className={`${styles.page} fade-up`}>
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>Today&apos;s Reading</h1>
+          <h1 className={styles.title}>{t('title')}</h1>
           <p className={styles.subtitle}>
-            {formatLongDate(asOf ?? new Date(), tz)}
-            {firstName ? ` · for ${firstName}` : ''}
-            {asOf ? ` · updated ${fmtTime(asOf.toISOString(), tz)}` : ''}
+            {formatLongDate(asOf ?? new Date(), tz, tag)}
+            {firstName ? t('forName', { name: firstName }) : ''}
+            {asOf ? t('updated', { time: fm.time(asOf.toISOString(), tz) }) : ''}
           </p>
         </div>
         <div className={styles.headerActions}>
           <button type="button" className={styles.chip} onClick={() => setPickerOpen(o => !o)} aria-expanded={pickerOpen}>
             <MapPin size={13} aria-hidden /> {location.name}
           </button>
-          <button type="button" className={styles.chip} onClick={refresh} disabled={loading} aria-label="Refresh reading">
-            <RefreshCw size={13} aria-hidden /> {loading ? 'Updating…' : 'Refresh'}
+          <button type="button" className={styles.chip} onClick={refresh} disabled={loading} aria-label={t('refreshLabel')}>
+            <RefreshCw size={13} aria-hidden /> {loading ? t('updating') : t('refresh')}
           </button>
         </div>
       </header>
@@ -105,7 +110,7 @@ export function TodayReadingPanel({ chart }: { chart: ChartOutput }) {
           <LocationPicker
             value={location}
             onChange={onLocation}
-            label="Where are you today? (sunrise, Rahu Kalam and horas depend on it)"
+            label={t('whereToday')}
             birthLocation={birthLocation}
             autoGeolocate={false}
           />
@@ -115,7 +120,7 @@ export function TodayReadingPanel({ chart }: { chart: ChartOutput }) {
       {error && !reading && (
         <div className={styles.card} role="alert">
           <p className={styles.note} style={{ color: 'var(--rose)' }}>{error}</p>
-          <button type="button" className="btn btn-primary" style={{ alignSelf: 'flex-start' }} onClick={refresh}>Try again</button>
+          <button type="button" className="btn btn-primary" style={{ alignSelf: 'flex-start' }} onClick={refresh}>{t('retry')}</button>
         </div>
       )}
 
@@ -128,17 +133,17 @@ export function TodayReadingPanel({ chart }: { chart: ChartOutput }) {
 
       {reading && (
         <>
-          {error && <p className={styles.note} style={{ color: 'var(--amber)' }}>Showing the last reading; refresh failed: {error}</p>}
+          {error && <p className={styles.note} style={{ color: 'var(--amber)' }}>{t('staleError', { error })}</p>}
 
           <div className={styles.topRow}>
             <div className={styles.chartCol}>
               <TodayChartCard chart={chart} transit={transit} />
-              <TodayTabs tabs={tabs} label="Dasha, transits and houses for today" />
+              <TodayTabs tabs={tabs} label={t('tabsLabel')} />
             </div>
             <div className={styles.sideCol}>
-              <section className={styles.hero} style={toned(scoreTone(reading.score))} aria-label="Overall day">
+              <section className={styles.hero} style={toned(scoreTone(reading.score))} aria-label={t('overall')}>
                 <div className={styles.heroViz}>
-                  <ScoreDial score={reading.score} label={reading.label} />
+                  <ScoreDial score={reading.score} label={reading.labelText} />
                   <DaySignals r={reading} />
                 </div>
                 <div>
@@ -188,7 +193,7 @@ export function TodayReadingPanel({ chart }: { chart: ChartOutput }) {
           <FactorsCard r={reading} />
 
           <p className={styles.note}>
-            A rule-based reading from classical indicators (Chandra/Tara Bala, gochar with Vedha, panchang, dasha). It describes the day&apos;s tone, not fixed events, and is not medical, legal or financial advice.
+            {t('disclaimer')}
           </p>
         </>
       )}

@@ -6,12 +6,16 @@
 //  Shadbala method = strongest planets → BPHS → Trikona/Kendra.
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import { Lock, Sparkles, BookOpen, Star } from 'lucide-react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import {
   analyzeNaamkaran,
+  localizeNaamkaran,
+  naamSoundDe,
+  naamDisplayName,
+  naamkaranGenderLabel,
   naamkaranMotionLabel,
   rashiMotion,
   syllableForMotion,
@@ -26,17 +30,44 @@ import { suggestSahasranamaNames } from '@/lib/engine/naamkaranNames'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { Button } from '@/components/ui/primitives/Button'
 import { PanelShell } from '@/components/ui/patterns/PanelShell'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
+import { RASHI_HI } from '@/i18n/jyotish'
+
+type T = ReturnType<typeof useTranslations>
+
+/** Naamkaran helpers in the page language. */
+function useNk() {
+  const t = useTranslations('chartTools.naam')
+  const { lang, hi } = useLang()
+  return {
+    t,
+    lang,
+    hi,
+    /** Sound for display: Devanagari on Hindi pages. */
+    sd: (sound: string, nak?: number, pada?: number, session = false) => (hi ? naamSoundDe(sound, nak, pada, session) : sound),
+    gender: (g: string) => naamkaranGenderLabel(g as Parameters<typeof naamkaranGenderLabel>[0], lang),
+    parity: (p: string) => (hi ? t(`parity.${p}`) : p),
+    priority3: (p: string) => (hi ? t(`priority.${p}`) : p.slice(0, 3)),
+    /** Curated name in the page script. */
+    nm: (name: string) => naamDisplayName(name, lang),
+  }
+}
+
+function stemTag(t: T, key: 'rashi' | 'janma' | 'vyavahara' | 'shadbala'): string {
+  return t(`stem.${key}`)
+}
 
 type SubTab = 'overview' | 'rashi' | 'twoname' | 'session' | 'checks' | 'ishta' | 'names'
 
-const SUB_TABS: { id: SubTab; label: string; free?: boolean }[] = [
-  { id: 'overview', label: 'Classical', free: true },
-  { id: 'rashi', label: 'Rashi naam' },
-  { id: 'twoname', label: 'Two names' },
-  { id: 'session', label: 'Shadbala method' },
-  { id: 'checks', label: 'Checks' },
-  { id: 'ishta', label: 'Ishta' },
-  { id: 'names', label: 'Names' },
+const SUB_TABS: { id: SubTab; free?: boolean }[] = [
+  { id: 'overview', free: true },
+  { id: 'rashi' },
+  { id: 'twoname' },
+  { id: 'session' },
+  { id: 'checks' },
+  { id: 'ishta' },
+  { id: 'names' },
 ]
 
 function Pill({
@@ -155,11 +186,12 @@ function ClassicalBlock({
   activePada: number | null
   onPickPada: (c: AlphabetCandidate) => void
 }) {
+  const { t, sd, lang, gender, parity } = useNk()
   const rx = data.classical
   if (!rx) {
     return (
-      <Card title="Classical prescription" accent="var(--rose)">
-        Moon nakshatra / pada unavailable. Recalculate the chart.
+      <Card title={t('classical.unavailableTitle')} accent="var(--rose)">
+        {t('classical.unavailable')}
       </Card>
     )
   }
@@ -179,24 +211,24 @@ function ClassicalBlock({
       }}
     >
       <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.06em', color: 'var(--gold)' }}>
-        CLASSICAL JANMA-NAAM
+        {t('classical.eyebrow')}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
         <div>
           <div style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--gold)', fontFamily: 'var(--font-mono)', lineHeight: 1 }}>
-            {rx.sound}
+            {sd(rx.sound, rx.letter.nakshatraIndex, rx.letter.pada)}
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 4 }}>
-            {rx.letter.nakshatraName} pāda {rx.letter.pada} · Chandra {rx.moonRashiName}
+            {t('classical.where', { nak: rx.letter.nakshatraName, pada: rx.letter.pada, rashi: rx.moonRashiName })}
           </div>
         </div>
         <div>
           <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-            {rx.syllableCount} syllables
+            {t('syllables', { n: rx.syllableCount })}
           </div>
           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-            {naamkaranMotionLabel(rx.rashiMotion)}
-            {rx.genderAdjusted ? ` → adjusted for ${rx.gender}` : ''}
+            {naamkaranMotionLabel(rx.rashiMotion, lang)}
+            {rx.genderAdjusted ? ` → ${t('adjustedFor', { gender: gender(rx.gender) })}` : ''}
           </div>
         </div>
       </div>
@@ -206,28 +238,28 @@ function ClassicalBlock({
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        <Pill gold>Prescribed · {rx.sound}</Pill>
-        <Pill>{rx.syllableCount} syl</Pill>
+        <Pill gold>{t('prescribed', { sound: sd(rx.sound, rx.letter.nakshatraIndex, rx.letter.pada) })}</Pill>
+        <Pill>{t('syl', { n: rx.syllableCount })}</Pill>
         {rx.genderParity !== 'any' && (
-          <Pill color="var(--teal)">{rx.genderParity} ({rx.gender})</Pill>
+          <Pill color="var(--teal)">{parity(rx.genderParity)} ({gender(rx.gender)})</Pill>
         )}
         {rx.genderAdjusted && (
-          <Pill>Rashi was {rx.syllableFromRashi}</Pill>
+          <Pill>{t('rashiWas', { n: rx.syllableFromRashi })}</Pill>
         )}
       </div>
 
       <div>
         <div className="label-caps" style={{ fontSize: '0.6rem', marginBottom: 4 }}>
-          Same nakshatra only — birth pada is prescribed; other three are the sole letter alternates
+          {t('classical.sameStar')}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {sameStar.map((c) => (
             <SoundChip
               key={`janma-${c.pada}`}
-              sound={c.sound}
+              sound={sd(c.sound, c.nakshatraIndex, c.pada)}
               active={pada === c.pada}
               marked={c.pada === rx.letter.pada}
-              meta={c.pada === rx.letter.pada ? `p${c.pada} · prescribed` : `p${c.pada}`}
+              meta={c.pada === rx.letter.pada ? t('padaPrescribed', { p: c.pada }) : t('padaShort', { p: c.pada })}
               onClick={() => onPickPada(c)}
             />
           ))}
@@ -270,67 +302,68 @@ function RashiNaamBody({
   activeSound: string
   onPick: (sound: string) => void
 }) {
+  const { t, sd, hi, lang, nm } = useNk()
   const suggestions = useMemo(
     () => stemsFor(
       { sound: method.selectedSound, syllableCount: method.syllableCount, suggestions: method.suggestions },
       ishta,
       activeSound,
-      'Rashi naam · curated stem',
+      stemTag(t, 'rashi'),
     ),
-    [method, ishta, activeSound],
+    [method, ishta, activeSound, t],
   )
   const active = method.letters.find((l) => l.sound === activeSound) ?? method.letters[0]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <Card title="Rashi naam">{method.methodNote}</Card>
+      <Card title={t('tabs.rashi')}>{method.methodNote}</Card>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.55rem' }}>
-        <Card title="Moon sign" accent="var(--gold)">
+        <Card title={t('moonSign')} accent="var(--gold)">
           <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
-            {method.rashiSanskrit}
+            {hi ? RASHI_HI[method.rashi] : method.rashiSanskrit}
           </div>
           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{method.rashiName}</div>
         </Card>
-        <Card title="Syllables" accent="var(--teal)">
-          <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{method.syllableCount} syllables</div>
+        <Card title={t('syllablesTitle')} accent="var(--teal)">
+          <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{t('syllables', { n: method.syllableCount })}</div>
           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-            {naamkaranMotionLabel(method.rashiMotion)}
-            {method.genderAdjusted ? ` · rashi was ${method.syllableFromRashi}` : ''}
+            {naamkaranMotionLabel(method.rashiMotion, lang)}
+            {method.genderAdjusted ? ` · ${t('rashiWasLower', { n: method.syllableFromRashi })}` : ''}
           </div>
         </Card>
-        <Card title="Default start" accent="var(--gold)">
+        <Card title={t('defaultStart')} accent="var(--gold)">
           <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--gold)' }}>
-            {active?.letterDe} {active?.sound}
+            {active?.letterDe}{hi ? '' : ` ${active?.sound ?? ''}`}
           </div>
         </Card>
       </div>
       <div>
         <div className="label-caps" style={{ fontSize: '0.6rem', marginBottom: 4 }}>
-          Moon-sign letters — first is the usual start
+          {t('moonSignLetters')}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {method.letters.map((l) => (
             <SoundChip
               key={l.sound}
-              sound={`${l.letterDe} ${l.sound}`}
+              sound={hi ? l.letterDe : `${l.letterDe} ${l.sound}`}
               active={activeSound === l.sound}
               marked={l.sound === method.selectedSound}
-              meta={l.sound === method.selectedSound ? 'default' : 'option'}
+              meta={l.sound === method.selectedSound ? t('default') : t('option')}
               onClick={() => onPick(l.sound)}
             />
           ))}
         </div>
       </div>
-      <Card title="Sahasranama stems" accent="var(--teal)">
+      <Card title={t('stems')} accent="var(--teal)">
         {suggestions.length === 0 ? (
           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            Search the stotra for “{active?.sound ?? '—'}” with {method.syllableCount} syllables.
+            {t('searchStotra', { sound: active ? sd(active.sound) : '—', n: method.syllableCount })}
           </span>
         ) : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {suggestions.map((s) => (
               <Pill key={`${s.name}-${s.syllables}`} gold>
-                {s.name} · {s.syllables}syl
+                {nm(s.name)} · {t('sylShort', { n: s.syllables })}
               </Pill>
             ))}
           </div>
@@ -352,8 +385,9 @@ function RoleCard({
   onPick: (sound: string) => void
   suggestions: NaamkaranResult['suggestions']
 }) {
+  const { t, sd, hi, nm } = useNk()
   const options = [
-    { sound: role.sound, letterDe: role.letterDe, note: 'prescribed' },
+    { sound: role.sound, letterDe: role.letterDe, note: t('prescribedLower') },
     ...role.alternates,
   ]
   return (
@@ -361,16 +395,16 @@ function RoleCard({
       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 8 }}>{role.basis}</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
         <Pill gold>{role.rashiName}</Pill>
-        <Pill>{role.syllableCount} syl</Pill>
+        <Pill>{t('syl', { n: role.syllableCount })}</Pill>
         {role.nakshatraName && role.pada != null && (
-          <Pill>{role.nakshatraName} p{role.pada}</Pill>
+          <Pill>{role.nakshatraName} {t('padaShort', { p: role.pada })}</Pill>
         )}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
         {options.map((o) => (
           <SoundChip
             key={`${role.role}-${o.sound}-${o.note}`}
-            sound={o.letterDe ? `${o.letterDe} ${o.sound}` : o.sound}
+            sound={o.letterDe ? (hi ? o.letterDe : `${o.letterDe} ${o.sound}`) : sd(o.sound)}
             active={activeSound === o.sound}
             marked={o.sound === role.sound}
             meta={o.note}
@@ -380,12 +414,12 @@ function RoleCard({
       </div>
       {suggestions.length === 0 ? (
         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-          Search for “{activeSound}” · {role.syllableCount} syllables.
+          {t('searchFor', { sound: sd(activeSound), n: role.syllableCount })}
         </div>
       ) : (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {suggestions.map((s) => (
-            <Pill key={`${role.role}-${s.name}-${s.syllables}`}>{s.name}</Pill>
+            <Pill key={`${role.role}-${s.name}-${s.syllables}`}>{nm(s.name)}</Pill>
           ))}
         </div>
       )}
@@ -408,24 +442,25 @@ function TwoNameBody({
   onJanma: (sound: string) => void
   onVyavahara: (sound: string) => void
 }) {
+  const { t } = useNk()
   const janmaActive = janmaSound ?? method.janma?.sound ?? ''
   const vyActive = vyavaharaSound ?? method.vyavahara?.sound ?? ''
   const janmaSuggestions = useMemo(
     () => method.janma
-      ? stemsFor(method.janma, ishta, janmaActive, 'Janma nama · curated stem')
+      ? stemsFor(method.janma, ishta, janmaActive, stemTag(t, 'janma'))
       : [],
-    [method.janma, ishta, janmaActive],
+    [method.janma, ishta, janmaActive, t],
   )
   const vySuggestions = useMemo(
     () => method.vyavahara
-      ? stemsFor(method.vyavahara, ishta, vyActive, 'Vyavahara nama · curated stem')
+      ? stemsFor(method.vyavahara, ishta, vyActive, stemTag(t, 'vyavahara'))
       : [],
-    [method.vyavahara, ishta, vyActive],
+    [method.vyavahara, ishta, vyActive, t],
   )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <Card title="Two names">{method.methodNote}</Card>
+      <Card title={t('tabs.twoname')}>{method.methodNote}</Card>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.65rem' }}>
         {method.janma && (
           <RoleCard
@@ -457,6 +492,7 @@ function SessionMethodBody({
   active: AlphabetCandidate | null
   onPick: (c: AlphabetCandidate) => void
 }) {
+  const { t, sd, priority3, nm } = useNk()
   const pick = active ?? session.selected
   const syl = pick ? syllableForMotion(rashiMotion(pick.rashi)) : session.syllableCount
   const suggestions = useMemo(() => {
@@ -477,58 +513,58 @@ function SessionMethodBody({
       syllables: s.syllables,
       startSound: pick.sound,
       source: session.ishta!.sahasranama,
-      note: 'Shadbala method · curated stem',
+      note: stemTag(t, 'shadbala'),
     }))
-  }, [pick, syl, session])
+  }, [pick, syl, session, t])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <Card title="Shadbala method">
+      <Card title={t('tabs.session')}>
         {session.methodNote}
       </Card>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.55rem' }}>
-        <Card title="Step 1 · Strongest" accent="var(--teal)">
+        <Card title={t('session.step1Strong')} accent="var(--teal)">
           <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{session.strongest.name}</div>
           <div style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
             {session.strongest.total.toFixed(1)} · {session.strongest.ratio.toFixed(2)}×
           </div>
         </Card>
-        <Card title="Step 1 · Weakest" accent="var(--rose)">
+        <Card title={t('session.step1Weak')} accent="var(--rose)">
           <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{session.weakest.name}</div>
           <div style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
             {session.weakest.total.toFixed(1)} · {session.weakest.ratio.toFixed(2)}×
           </div>
         </Card>
-        <Card title="Step 7 · Syllables" accent="var(--gold)">
+        <Card title={t('session.step7')} accent="var(--gold)">
           {syl != null ? (
             <>
-              <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{syl} syllables</div>
+              <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{t('syllables', { n: syl })}</div>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                From chosen letter’s rashi{pick ? ` (${pick.rashiName})` : ''}
+                {t('session.fromRashi')}{pick ? ` (${pick.rashiName})` : ''}
               </div>
             </>
           ) : (
             '—'
           )}
         </Card>
-        <Card title="Active sound" accent="var(--gold)">
+        <Card title={t('session.activeSound')} accent="var(--gold)">
           {pick ? (
             <>
               <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--gold)', fontFamily: 'var(--font-mono)' }}>
-                {pick.sound}
+                {sd(pick.sound, pick.nakshatraIndex, pick.pada)}
               </div>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                {pick.planetName} · {pick.nakshatraName} p{pick.pada} · H{pick.house}
+                {pick.planetName} · {pick.nakshatraName} {t('padaShort', { p: pick.pada })} · {t('h', { n: pick.house })}
               </div>
             </>
           ) : (
-            'Pick a letter below'
+            t('session.pickBelow')
           )}
         </Card>
       </div>
 
-      <Card title="Step 2 · BPHS letters (strong planets)">
+      <Card title={t('session.step2')}>
         {session.vargaLetters.map((v) => (
           <div key={v.planetId} style={{ marginBottom: 10 }}>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -543,7 +579,7 @@ function SessionMethodBody({
 
       <div>
         <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: 6 }}>
-          Steps 3–6 · Alphabets in Trikona (1/5/9) then Kendra (1/4/7/10)
+          {t('session.step36')}
         </div>
         <div
           style={{
@@ -563,19 +599,19 @@ function SessionMethodBody({
               }}
             >
               <div style={{ fontSize: '0.62rem', fontWeight: 700, color: opt.rank === 1 ? 'var(--teal)' : 'var(--gold)' }}>
-                {opt.rank === 1 ? '1ST' : '2ND'} STRONGEST · {opt.name}
+                {t(opt.rank === 1 ? 'session.first' : 'session.second', { name: opt.name })}
               </div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '4px 0 8px' }}>
                 {opt.varga}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {opt.letterOptions.length === 0 ? (
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>No Trikona/Kendra sound</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('session.noSound')}</span>
                 ) : (
                   opt.letterOptions.map((c) => (
                     <SoundChip
                       key={`${c.planetId}-${c.sound}-${c.nakshatraIndex}-${c.pada}`}
-                      sound={c.sound}
+                      sound={sd(c.sound, c.nakshatraIndex, c.pada)}
                       active={
                         !!pick &&
                         pick.planetId === c.planetId &&
@@ -589,7 +625,7 @@ function SessionMethodBody({
                         session.selected.sound === c.sound &&
                         session.selected.pada === c.pada
                       }
-                      meta={`H${c.house} · ${c.priority.slice(0, 3)}`}
+                      meta={`${t('h', { n: c.house })} · ${priority3(c.priority)}`}
                       onClick={() => onPick(c)}
                     />
                   ))
@@ -601,11 +637,11 @@ function SessionMethodBody({
       </div>
 
       {session.ishta && (
-        <Card title="Steps 8–9 · Ishta (AK in D1) → Sahasranama" accent="var(--teal)">
+        <Card title={t('session.step89')} accent="var(--teal)">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
             <Pill gold>{session.ishta.ishta}</Pill>
-            <Pill>AK {session.ishta.akName} in {session.ishta.rashiName}</Pill>
-            <Pill>Lord {session.ishta.lordName}</Pill>
+            <Pill>{t('akIn', { ak: session.ishta.akName, rashi: session.ishta.rashiName })}</Pill>
+            <Pill>{t('lord', { name: session.ishta.lordName })}</Pill>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 8 }}>
             <BookOpen size={14} aria-hidden style={{ marginTop: 2, flexShrink: 0 }} />
@@ -616,13 +652,13 @@ function SessionMethodBody({
           )}
           {(suggestions.length > 0 ? suggestions : session.suggestions).length === 0 ? (
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              Search the stotra for “{pick?.sound ?? '—'}” with {syl ?? '—'} syllables.
+              {t('searchStotra', { sound: pick ? sd(pick.sound, pick.nakshatraIndex, pick.pada) : '—', n: syl ?? '—' })}
             </div>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {(suggestions.length > 0 ? suggestions : session.suggestions).map((s) => (
                 <Pill key={`${s.name}-${s.syllables}`} gold>
-                  {s.name} · {s.syllables}syl
+                  {nm(s.name)} · {t('sylShort', { n: s.syllables })}
                 </Pill>
               ))}
             </div>
@@ -631,18 +667,18 @@ function SessionMethodBody({
       )}
 
       {session.katapayadi && (
-        <Card title="Step 10 · Katapayadi">
+        <Card title={t('session.step10')}>
           {session.katapayadi.summary}
         </Card>
       )}
 
       <Card
-        title="Step 11 · Final validation"
+        title={t('session.step11')}
         accent={session.trikonaValidated ? 'var(--teal)' : 'var(--gold)'}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
           <Star size={14} aria-hidden />
-          {session.trikonaValidated ? 'Trikona confirmed' : 'Soft / Kendra path'}
+          {session.trikonaValidated ? t('session.trikonaOk') : t('session.softPath')}
         </div>
         {session.summary}
       </Card>
@@ -651,24 +687,21 @@ function SessionMethodBody({
 }
 
 function ChecksBody({ data }: { data: NaamkaranResult }) {
+  const { t, sd } = useNk()
+  const csound = data.classical ? sd(data.classical.sound, data.classical.letter.nakshatraIndex, data.classical.letter.pada) : '—'
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-        These never replace the Moon-pada prescription. They only confirm or caution.
+        {t('checks.intro')}
       </div>
 
-      <Card title="Shadbala letter agree" accent="var(--teal)">
-        {data.classical?.shadbalaAgrees ? (
-          <>
-            Strong planet letter-group also contains “{data.classical.sound}”:
-            {' '}{data.classical.agreeingPlanets.join(', ')}.
-          </>
-        ) : (
-          <>No top Shadbala planet owns “{data.classical?.sound ?? '—'}”. That does not invalidate the Moon pada.</>
-        )}
+      <Card title={t('checks.agreeTitle')} accent="var(--teal)">
+        {data.classical?.shadbalaAgrees
+          ? t('checks.agreeYes', { sound: csound, planets: data.classical.agreeingPlanets.join(', ') })
+          : t('checks.agreeNo', { sound: csound })}
         <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {data.relevantPlanets.map((p) => (
-            <Pill key={p.id} gold={p.role.includes('1st')}>
+            <Pill key={p.id} gold={p.id === data.relevantPlanets[0]?.id}>
               {p.name} · {p.total.toFixed(0)}
             </Pill>
           ))}
@@ -682,28 +715,26 @@ function ChecksBody({ data }: { data: NaamkaranResult }) {
         ))}
       </Card>
 
-      <Card title="Navtara (ceremony timing)" accent="var(--gold)">
+      <Card title={t('checks.navtaraTitle')} accent="var(--gold)">
         {data.navtara ? (
           <>
-            Birth star {data.navtara.birthNakshatraName} pāda {data.navtara.birthPada}
-            {' · '}sound {data.navtara.janmaSound}.
+            {t('checks.birthStar', { nak: data.navtara.birthNakshatraName, pada: data.navtara.birthPada, sound: sd(data.navtara.janmaSound, data.navtara.birthNakshatraIndex, data.navtara.birthPada) })}
             <div style={{ marginTop: 6 }}>
-              Avoid fixing the naamkaran muhurta when the day’s Moon is in Vipat, Pratyari, or Vadha:
-              {' '}{data.navtara.hardNakshatras.join(', ')}.
+              {t('checks.avoid', { list: data.navtara.hardNakshatras.join(', ') })}
             </div>
           </>
         ) : (
-          'Navtara unavailable.'
+          t('checks.navtaraNone')
         )}
       </Card>
 
       {data.katapayadi && (
-        <Card title="Katapayadi (soft cipher — optional)">
+        <Card title={t('checks.katapayadiTitle')}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
             <Pill>{data.katapayadi.planetName}</Pill>
             <Pill>Σ {data.katapayadi.digitSum}</Pill>
             <Pill color="var(--teal)">
-              Rem {data.katapayadi.remainder} · {data.katapayadi.impliedRashiName}
+              {t('checks.rem', { n: data.katapayadi.remainder })} · {data.katapayadi.impliedRashiName}
             </Pill>
           </div>
           {data.katapayadi.summary}
@@ -721,6 +752,7 @@ export function NaamkaranPanel({
   userPlan?: UserPlan
 }) {
   const showFull = planMeetsUiGate(userPlan, 'gold')
+  const { t, sd, lang, nm } = useNk()
   const [sub, setSub] = useState<SubTab>('overview')
   const [pickedPada, setPickedPada] = useState<AlphabetCandidate | null>(null)
   const [sessionPick, setSessionPick] = useState<AlphabetCandidate | null>(null)
@@ -728,7 +760,10 @@ export function NaamkaranPanel({
   const [janmaSound, setJanmaSound] = useState<string | null>(null)
   const [vyavaharaSound, setVyavaharaSound] = useState<string | null>(null)
 
-  const data = useMemo(() => analyzeNaamkaran(chart), [chart])
+  const data = useMemo(() => {
+    const r = analyzeNaamkaran(chart)
+    return r ? localizeNaamkaran(r, lang) : null
+  }, [chart, lang])
 
   useEffect(() => {
     setPickedPada(null)
@@ -741,10 +776,10 @@ export function NaamkaranPanel({
   if (!data) {
     return (
       <PanelShell
-        title="Naamkaran"
+        title={t('title')}
         empty={{
-          title: 'Unavailable',
-          description: 'Recalculate the chart so Moon, Shadbala, and lagna are present.',
+          title: t('unavailable'),
+          description: t('unavailableHint'),
         }}
       >
         {null}
@@ -758,7 +793,10 @@ export function NaamkaranPanel({
   }
 
   const rx = data.classical
-  const displaySound = pickedPada?.sound ?? rx?.sound ?? '—'
+  const displaySound = pickedPada
+    ? sd(pickedPada.sound, pickedPada.nakshatraIndex, pickedPada.pada)
+    : rx ? sd(rx.sound, rx.letter.nakshatraIndex, rx.letter.pada) : '—'
+  const rxSound = rx ? sd(rx.sound, rx.letter.nakshatraIndex, rx.letter.pada) : '—'
   const displayPada = pickedPada?.pada ?? rx?.letter.pada ?? null
 
   return (
@@ -778,11 +816,10 @@ export function NaamkaranPanel({
         >
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free: classical Moon-pada letter and gender-aware syllable count.
-            Gold unlocks Rashi naam, two names, the Shadbala method, checks, Karakamsha Ishta, and Sahasranama stems.
+            {t('freePreview')}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{t('viewPlans')}</Button>
           </Link>
         </div>
       )}
@@ -791,26 +828,26 @@ export function NaamkaranPanel({
         <Pill gold>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
             <Sparkles size={12} aria-hidden />
-            Naamkaran
+            {t('title')}
           </span>
         </Pill>
-        {rx && <Pill color="var(--gold)">Start · {rx.sound}</Pill>}
-        {rx && <Pill>{rx.syllableCount} syllables</Pill>}
+        {rx && <Pill color="var(--gold)">{t('start', { sound: rxSound })}</Pill>}
+        {rx && <Pill>{t('syllables', { n: rx.syllableCount })}</Pill>}
         {data.ishta && showFull && <Pill color="var(--teal)">{data.ishta.ishta}</Pill>}
       </div>
 
-      <div role="tablist" aria-label="Naamkaran sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        {SUB_TABS.map((t) => {
-          const locked = !showFull && !t.free
-          const active = sub === t.id
+      <div role="tablist" aria-label={t('sectionsAria')} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {SUB_TABS.map((tab) => {
+          const locked = !showFull && !tab.free
+          const active = sub === tab.id
           return (
             <button
-              key={t.id}
+              key={tab.id}
               type="button"
               role="tab"
               aria-selected={active}
               disabled={locked}
-              onClick={() => select(t.id)}
+              onClick={() => select(tab.id)}
               style={{
                 fontSize: '0.68rem',
                 fontWeight: 700,
@@ -827,7 +864,7 @@ export function NaamkaranPanel({
               }}
             >
               {locked && <Lock size={10} aria-hidden />}
-              {t.label}
+              {t(`tabs.${tab.id}`)}
             </button>
           )
         })}
@@ -840,11 +877,10 @@ export function NaamkaranPanel({
             activePada={displayPada}
             onPickPada={setPickedPada}
           />
-          <Card title="Method">{data.methodNote}</Card>
+          <Card title={t('method')}>{data.methodNote}</Card>
           {pickedPada && rx && pickedPada.pada !== rx.letter.pada && (
             <div style={{ fontSize: '0.72rem', color: 'var(--rose)' }}>
-              Viewing alternate pāda {pickedPada.pada} (“{pickedPada.sound}”).
-              The prescribed start remains “{rx.sound}” (pāda {rx.letter.pada}).
+              {t('viewingAlt', { pada: pickedPada.pada, sound: displaySound, rx: rxSound, rxPada: rx.letter.pada })}
             </div>
           )}
         </div>
@@ -859,7 +895,7 @@ export function NaamkaranPanel({
         />
       )}
       {sub === 'rashi' && showFull && !data.rashiNaam && (
-        <Card title="Rashi naam">Unavailable — Moon sign is missing.</Card>
+        <Card title={t('tabs.rashi')}>{t('rashiUnavailable')}</Card>
       )}
 
       {sub === 'twoname' && showFull && data.twoName && (
@@ -873,7 +909,7 @@ export function NaamkaranPanel({
         />
       )}
       {sub === 'twoname' && showFull && !data.twoName && (
-        <Card title="Two names">Unavailable — need Moon and lagna.</Card>
+        <Card title={t('tabs.twoname')}>{t('twoUnavailable')}</Card>
       )}
 
       {sub === 'session' && showFull && data.session && (
@@ -884,7 +920,7 @@ export function NaamkaranPanel({
         />
       )}
       {sub === 'session' && showFull && !data.session && (
-        <Card title="Shadbala method">Unavailable — need Shadbala and grahas.</Card>
+        <Card title={t('tabs.session')}>{t('sessionUnavailable')}</Card>
       )}
 
       {sub === 'checks' && showFull && <ChecksBody data={data} />}
@@ -892,26 +928,26 @@ export function NaamkaranPanel({
       {sub === 'ishta' && showFull && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
           {data.atmakaraka && (
-            <Card title="Atmakaraka" accent="var(--gold)">
+            <Card title={t('ishta.ak')} accent="var(--gold)">
               <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
                 {data.atmakaraka.name} · D1 {data.atmakaraka.rashiName} ({data.atmakaraka.degree.toFixed(2)}°)
               </div>
-              Soul significator (highest degree in sign).
+              {t('ishta.akNote')}
             </Card>
           )}
           {data.ishta ? (
-            <Card title="Ishta Devata (Karakamsha)" accent="var(--teal)">
+            <Card title={t('ishta.title')} accent="var(--teal)">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 <Pill gold>{data.ishta.ishta}</Pill>
                 <Pill>
-                  {data.ishta.source === 'karakamsha' ? 'Karakamsha' : 'AK D1 fallback'} · {data.ishta.rashiName}
+                  {data.ishta.source === 'karakamsha' ? t('ishta.karakamsha') : t('ishta.fallback')} · {data.ishta.rashiName}
                 </Pill>
-                <Pill>Lord {data.ishta.lordName}</Pill>
-                <Pill>AK {data.ishta.akName}</Pill>
+                <Pill>{t('lord', { name: data.ishta.lordName })}</Pill>
+                <Pill>{t('ak', { name: data.ishta.akName })}</Pill>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                 <BookOpen size={14} aria-hidden style={{ marginTop: 2, flexShrink: 0 }} />
-                <span>Search text: {data.ishta.sahasranama}</span>
+                <span>{t('ishta.searchText', { text: data.ishta.sahasranama })}</span>
               </div>
               {data.ishta.femaleNote && (
                 <div style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--gold)' }}>
@@ -920,29 +956,28 @@ export function NaamkaranPanel({
               )}
             </Card>
           ) : (
-            <Card title="Ishta Devata">Atmakaraka / Navamsa unavailable on this chart.</Card>
+            <Card title={t('ishta.titleShort')}>{t('ishta.unavailable')}</Card>
           )}
         </div>
       )}
 
       {sub === 'names' && showFull && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-          <Card title="Search criteria">
-            Start with <strong style={{ color: 'var(--gold)' }}>{displaySound}</strong>
+          <Card title={t('names.criteria')}>
+            {t('names.startWith')} <strong style={{ color: 'var(--gold)' }}>{displaySound}</strong>
             {rx && (
               <>
-                {' '}({rx.letter.nakshatraName} pāda {displayPada ?? rx.letter.pada})
-                {' · '}{rx.syllableCount} syllables
-                {' · '}Chandra {rx.moonRashiName}
+                {' '}({t('names.where', { nak: rx.letter.nakshatraName, pada: displayPada ?? rx.letter.pada })})
+                {' · '}{t('syllables', { n: rx.syllableCount })}
+                {' · '}{t('names.chandra', { rashi: rx.moonRashiName })}
               </>
             )}
-            {data.ishta && <> · from {data.ishta.sahasranama}</>}
+            {data.ishta && <> · {t('names.from', { text: data.ishta.sahasranama })}</>}
           </Card>
 
           {data.suggestions.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: 0 }}>
-              No curated stem matched. Search the Sahasranama manually for words starting with “{displaySound}”
-              and matching the syllable count.
+              {t('names.none', { sound: displaySound })}
             </p>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.5rem' }}>
@@ -957,10 +992,10 @@ export function NaamkaranPanel({
                   }}
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                    {s.name}
+                    {nm(s.name)}
                   </div>
                   <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                    {s.syllables} syl · {s.startSound}
+                    {t('syl', { n: s.syllables })} · {sd(s.startSound)}
                   </div>
                   {s.note && (
                     <div style={{ fontSize: '0.62rem', color: 'var(--gold)', marginTop: 4 }}>{s.note}</div>
@@ -970,16 +1005,16 @@ export function NaamkaranPanel({
             </div>
           )}
           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-            Stems are curated guidance only — confirm in the full Sahasranama and with family custom before the ceremony.
+            {t('names.disclaimer')}
           </div>
         </div>
       )}
 
       {sub === 'checks' && showFull && data.validation.summary && (
-        <Card title="Validation" accent={data.classical ? 'var(--teal)' : undefined}>
+        <Card title={t('validation')} accent={data.classical ? 'var(--teal)' : undefined}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <Star size={14} aria-hidden />
-            {data.classical ? 'Prescription locked to Moon pada' : 'Incomplete'}
+            {data.classical ? t('locked') : t('incomplete')}
           </div>
           {data.validation.summary}
         </Card>

@@ -6,6 +6,17 @@
 import type { GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
 import { VIMSHOTTARI_YEARS } from '@/lib/engine/dasha/vimshottari'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI } from '@/i18n/jyotish'
+import {
+  VIM_ANTAR_HI,
+  VIM_BUILD_HI,
+  VIM_DURATION_HI,
+  VIM_INTERP_HI,
+  VIM_INTERP_MORE_HI,
+  VIM_RESULT_HIERARCHY_HI,
+  phraseHi,
+} from '@/lib/engine/locale/vimshottari.hi'
 
 export type VimshottariNature =
   | 'Benefic'
@@ -254,18 +265,38 @@ export const VIMSHOTTARI_INTERPRETATIONS: Record<string, VimshottariInterpretati
   },
 }
 
-export function getVimshottariInterpretation(lord: string): VimshottariInterpretation | null {
-  return VIMSHOTTARI_INTERPRETATIONS[lord] ?? null
+/** With lang 'hi', every display field comes back in Hindi; lord, years and nature stay as ids. */
+export function getVimshottariInterpretation(lord: string, lang: EngineLang = 'en'): VimshottariInterpretation | null {
+  const en = VIMSHOTTARI_INTERPRETATIONS[lord] ?? null
+  if (!en || lang !== 'hi') return en
+  const hi = VIM_INTERP_HI[lord]
+  const more = VIM_INTERP_MORE_HI[lord]
+  return hi ? { ...en, ...hi, ...(more ?? {}) } : en
 }
 
-export function getVimshottariAntarHint(mahaLord: string, antarLord: string): string | null {
-  return VIMSHOTTARI_ANTAR_HINTS[`${mahaLord}-${antarLord}`] ?? null
+/** VIMSHOTTARI_RESULT_HIERARCHY in the requested language. */
+export function getVimshottariResultHierarchy(lang: EngineLang = 'en'): string {
+  return lang === 'hi' ? VIM_RESULT_HIERARCHY_HI : VIMSHOTTARI_RESULT_HIERARCHY
+}
+
+export function getVimshottariAntarHint(mahaLord: string, antarLord: string, lang: EngineLang = 'en'): string | null {
+  const key = `${mahaLord}-${antarLord}`
+  if (lang === 'hi') return VIM_ANTAR_HI[key] ?? VIMSHOTTARI_ANTAR_HINTS[key] ?? null
+  return VIMSHOTTARI_ANTAR_HINTS[key] ?? null
 }
 
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000
 
 /** Format antardasha length for UI (months when under ~1.5y). */
-export function formatVimshottariDurationYears(years: number): string {
+export function formatVimshottariDurationYears(years: number, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') {
+    if (!Number.isFinite(years) || years <= 0) return VIM_DURATION_HI.sub
+    if (years < 1.5) {
+      const months = Math.max(1, Math.round(years * 12))
+      return months === 1 ? VIM_DURATION_HI.month : fill(VIM_DURATION_HI.months, { n: months })
+    }
+    return fill(VIM_DURATION_HI.years, { n: Math.round(years * 10) / 10 })
+  }
   if (!Number.isFinite(years) || years <= 0) return 'Sub-period'
   if (years < 1.5) {
     const months = Math.max(1, Math.round(years * 12))
@@ -287,7 +318,9 @@ export function buildVimshottariAntarInterpretation(
   mahaLord: string,
   antarLord: string,
   durationYears: number,
+  lang: EngineLang = 'en',
 ): VimshottariInterpretation | null {
+  if (lang === 'hi') return buildAntarHi(mahaLord, antarLord, durationYears)
   const maha = getVimshottariInterpretation(mahaLord)
   const antar = getVimshottariInterpretation(antarLord)
   if (!maha || !antar) return null
@@ -360,7 +393,9 @@ export function buildVimshottariPratyantarInterpretation(
   antarLord: string,
   pratyaLord: string,
   durationYears: number,
+  lang: EngineLang = 'en',
 ): VimshottariInterpretation | null {
+  if (lang === 'hi') return buildPratyantarHi(mahaLord, antarLord, pratyaLord, durationYears)
   const maha = getVimshottariInterpretation(mahaLord)
   const antar = getVimshottariInterpretation(antarLord)
   const pratya = getVimshottariInterpretation(pratyaLord)
@@ -400,6 +435,100 @@ export function buildVimshottariPratyantarInterpretation(
     phaseStart: `${pratyaName} enters as a micro-theme under ${antarName} and ${mahaName}.`,
     phaseMiddle: `In the middle, ${pratya.keyTheme} is most visible in day-to-day timing.`,
     phaseEnd: 'As this pratyantar ends, the next one reframes the same antardasha.',
+  }
+}
+
+function grahaHi(id: string): string {
+  return GRAHA_HI[id as GrahaId] ?? id
+}
+
+/** Hindi twin of buildVimshottariAntarInterpretation: same selection rules, Hindi sentences. */
+function buildAntarHi(mahaLord: string, antarLord: string, durationYears: number): VimshottariInterpretation | null {
+  const maha = getVimshottariInterpretation(mahaLord, 'hi')
+  const antar = getVimshottariInterpretation(antarLord, 'hi')
+  if (!maha || !antar) return null
+  const T = VIM_BUILD_HI
+  const hint = getVimshottariAntarHint(mahaLord, antarLord, 'hi')
+  const sameLord = mahaLord === antarLord
+  const v = {
+    maha: grahaHi(maha.lord),
+    antar: grahaHi(antar.lord),
+    title: antar.title,
+    mahaTheme: maha.keyTheme,
+    antarTheme: antar.keyTheme,
+    antarPositive: phraseHi(antar.primaryPositive),
+    antarEvents: phraseHi(antar.lifeEvents),
+    mahaEvents: phraseHi(maha.lifeEvents),
+    psych: antar.psychologicalState,
+    hint: hint ?? '',
+  }
+  return {
+    lord: antar.lord,
+    title: fill(sameLord ? T.antarTitleSame : T.antarTitle, v),
+    years: durationYears > 0 ? durationYears : antar.years / 9,
+    nature: antar.nature,
+    keyTheme: fill(sameLord ? T.antarThemeSame : T.antarTheme, v),
+    primaryPositive: hint ?? fill(sameLord ? T.antarPositiveSame : T.antarPositive, v),
+    secondaryBenefits: fill(hint ? T.antarSecondaryHint : T.antarSecondary, v),
+    psychologicalState: fill(sameLord ? T.antarPsychSame : T.antarPsych, v),
+    negativeEffects: antar.negativeEffects
+      ? fill(T.antarNeg, { neg: antar.negativeEffects })
+      : maha.negativeEffects
+        ? fill(T.antarNegMaha, { neg: maha.negativeEffects })
+        : null,
+    healthCaution: antar.healthCaution ?? maha.healthCaution,
+    lifeEvents: hint ?? fill(T.antarEvents, v),
+    phaseStart: fill(sameLord ? T.antarPhaseStartSame : T.antarPhaseStart, v),
+    phaseMiddle: fill(hint ? T.antarPhaseMiddleHint : T.antarPhaseMiddle, v),
+    phaseEnd: T.antarPhaseEnd,
+  }
+}
+
+/** Hindi twin of buildVimshottariPratyantarInterpretation. */
+function buildPratyantarHi(
+  mahaLord: string,
+  antarLord: string,
+  pratyaLord: string,
+  durationYears: number,
+): VimshottariInterpretation | null {
+  const maha = getVimshottariInterpretation(mahaLord, 'hi')
+  const antar = getVimshottariInterpretation(antarLord, 'hi')
+  const pratya = getVimshottariInterpretation(pratyaLord, 'hi')
+  if (!maha || !antar || !pratya) return null
+  const T = VIM_BUILD_HI
+  const antarHint = getVimshottariAntarHint(mahaLord, antarLord, 'hi')
+  const v = {
+    maha: grahaHi(maha.lord),
+    antar: grahaHi(antar.lord),
+    pratya: grahaHi(pratya.lord),
+    mahaTheme: maha.keyTheme,
+    antarTheme: antar.keyTheme,
+    pratyaTheme: pratya.keyTheme,
+    pratyaPositive: phraseHi(pratya.primaryPositive),
+    pratyaEvents: phraseHi(pratya.lifeEvents),
+    psych: pratya.psychologicalState,
+    hint: antarHint ?? '',
+  }
+  const allSame = pratyaLord === antarLord && antarLord === mahaLord
+  return {
+    lord: pratya.lord,
+    title: fill(T.pratyaTitle, v),
+    years: durationYears > 0 ? durationYears : antar.years / 81,
+    nature: pratya.nature,
+    keyTheme: fill(T.pratyaTheme, v),
+    primaryPositive: fill(allSame ? T.pratyaPositiveSame : T.pratyaPositive, v),
+    secondaryBenefits: fill(antarHint ? T.pratyaSecondaryHint : T.pratyaSecondary, v),
+    psychologicalState: fill(T.pratyaPsych, v),
+    negativeEffects: pratya.negativeEffects
+      ? fill(T.pratyaNeg, { neg: pratya.negativeEffects })
+      : antar.negativeEffects
+        ? fill(T.pratyaNegAntar, { neg: antar.negativeEffects })
+        : null,
+    healthCaution: pratya.healthCaution ?? antar.healthCaution ?? maha.healthCaution,
+    lifeEvents: fill(T.pratyaEvents, v),
+    phaseStart: fill(T.pratyaPhaseStart, v),
+    phaseMiddle: fill(T.pratyaPhaseMiddle, v),
+    phaseEnd: T.pratyaPhaseEnd,
   }
 }
 

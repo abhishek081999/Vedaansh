@@ -4,24 +4,19 @@
 //  Chart-specific Bhava guide — this chart’s signs & occupants
 // ─────────────────────────────────────────────────────────────
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SANSKRIT } from '@/types/astrology'
+import { useLang } from '@/i18n/useLang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
 import {
-  ANALYSIS_LAGNAS_NOTE,
-  CONJUNCTION_NOTE,
+  getHouseGuideNotes,
   getHouseTheme,
   getKendradhipatiNoteForLagna,
   getPlanetInHouse,
   getSignInHouse,
   isClassicalGraha,
-  DELAYED_MARRIAGE_INDICATORS,
-  EARLY_MARRIAGE_INDICATORS,
-  LAGNA_LORD_IN_FIRST,
-  LAGNA_STRENGTH_CHECKS,
-  MARRIAGE_PILLARS,
   RASHI_LORDS,
-  THIRD_HOUSE_DASHA_CAUTION,
-  TWELFTH_HOUSE_READING_NOTE,
   wholeSignHouseFromLagna,
   type HouseNumber,
 } from '@/lib/engine/houseInterpretations'
@@ -42,7 +37,7 @@ import {
 import { ClassicalNotesList } from './ClassicalNotesList'
 import {
   getNaturalHouseKarakaRows,
-  NATURAL_HOUSE_KARAKAS_NOTE,
+  getNaturalHouseKarakasNote,
 } from '@/lib/engine/naturalHouseKarakas'
 import { getPlanetaryMaturity } from '@/lib/engine/planetaryMaturity'
 import { LagnaSpiritualGuide } from './LagnaSpiritualGuide'
@@ -61,6 +56,12 @@ interface HouseGuideTabProps {
 
 export function HouseGuideTab({ chart }: HouseGuideTabProps) {
   const [openHouse, setOpenHouse] = useState<HouseNumber | null>(1)
+  const t = useTranslations('houseGuide.guide')
+  const tl = useTranslations('houseGuide.lagna')
+  const { hi, lang } = useLang()
+  const gname = (id: GrahaId) => (hi ? GRAHA_HI[id] : GRAHA_NAMES[id])
+  const rname = (r: Rashi) => (hi ? RASHI_HI[r] : RASHI_NAMES[r])
+  const notes = useMemo(() => getHouseGuideNotes(lang), [lang])
   const ascRashi = chart.lagnas.ascRashi
   const lagnaLordId = SIGN_LORDS[ascRashi]
   const lagnaLordRow = RASHI_LORDS.find((r) => r.number === ascRashi)
@@ -77,11 +78,11 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
         rashi,
         lordId,
         occupants,
-        theme: getHouseTheme(houseNum)!,
-        signNote: getSignInHouse(houseNum, rashi),
+        theme: getHouseTheme(houseNum, lang)!,
+        signNote: getSignInHouse(houseNum, rashi, lang),
       }
     })
-  }, [ascRashi, chart.grahas])
+  }, [ascRashi, chart.grahas, lang])
 
   const lagnaLordPlacement = useMemo(() => {
     const lord = chart.grahas.find((g) => g.id === lagnaLordId)
@@ -93,14 +94,14 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
   const lagnaLordInFirst = lagnaLordPlacement?.house === 1
   const lagnaLordClassical = useMemo(() => getLagnaLordClassical(chart), [chart])
   const multiVakriNotes = useMemo(() => getChartMultiVakriNotes(chart), [chart])
-  const kendradhipatiNote = useMemo(() => getKendradhipatiNoteForLagna(ascRashi), [ascRashi])
+  const kendradhipatiNote = useMemo(() => getKendradhipatiNoteForLagna(ascRashi, lang), [ascRashi, lang])
   const manglikAnalysis = useMemo(
     () => calculateManglik(chart.grahas, [], ascRashi),
     [chart.grahas, ascRashi],
   )
   const manglikTeaching = useMemo(
-    () => getManglikTeaching(manglikAnalysis, chart.grahas, ascRashi),
-    [manglikAnalysis, chart.grahas, ascRashi],
+    () => getManglikTeaching(manglikAnalysis, chart.grahas, ascRashi, lang),
+    [manglikAnalysis, chart.grahas, ascRashi, lang],
   )
   const marsRashi = useMemo(() => chart.grahas.find((g) => g.id === 'Ma')?.rashi ?? null, [chart.grahas])
 
@@ -133,11 +134,10 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
             marginBottom: '0.4rem',
           }}
         >
-          Your chart · House reading
+          {t('introLabel')}
         </div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-          Interpretations below use this chart’s whole-sign houses from Lagna — only the signs and planets
-          present in each house. Educational reference, not medical or legal advice.
+          {t('intro')}
         </p>
       </div>
 
@@ -160,11 +160,10 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
             marginBottom: '0.4rem',
           }}
         >
-          Natural house karakas (Naisargika)
+          {t('karakaLabel')}
         </div>
         <p style={{ margin: '0 0 0.85rem', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-          {NATURAL_HOUSE_KARAKAS_NOTE} Maturity ages link to Planets → Maturity Ages; Jaimini fixed
-          significators live under the Jaimini panel.
+          {getNaturalHouseKarakasNote(lang)} {t('karakaExtra')}
         </p>
         <div style={{
           border: '1px solid var(--border-soft)',
@@ -186,11 +185,11 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
               borderBottom: '1px solid var(--border-soft)',
             }}
           >
-            <span>House</span>
-            <span>Themes</span>
-            <span>Karakas · maturity</span>
+            <span>{t('colHouse')}</span>
+            <span>{t('colThemes')}</span>
+            <span>{t('colKarakas')}</span>
           </div>
-          {getNaturalHouseKarakaRows().map((row) => (
+          {getNaturalHouseKarakaRows(lang).map((row) => (
             <div
               key={row.house}
               style={{
@@ -204,13 +203,13 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
               }}
             >
               <span style={{ fontWeight: 700, color: 'var(--gold)', fontVariantNumeric: 'tabular-nums' }}>
-                H{row.house}
+                {t('houseShort', { n: row.house })}
               </span>
               <span style={{ color: 'var(--text-secondary)', lineHeight: 1.45 }}>{row.themes}</span>
               <span style={{ color: 'var(--text-primary)', lineHeight: 1.45 }}>
                 {row.karakas.map((id, i) => {
                   const mat = getPlanetaryMaturity(id)
-                  const label = `${GRAHA_NAMES[id]}${mat ? ` (${mat.maturityAge}y)` : ''}`
+                  const label = mat ? t('maturity', { name: gname(id), age: mat.maturityAge }) : gname(id)
                   return (
                     <React.Fragment key={id}>
                       {i > 0 ? ', ' : ''}
@@ -233,20 +232,20 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
         }}
       >
         <SnapshotChip
-          label="Lagna (1st)"
-          value={`${RASHI_NAMES[ascRashi]} (${ascRashi})`}
-          hint={RASHI_SANSKRIT[ascRashi]}
+          label={t('chipLagna')}
+          value={`${rname(ascRashi)} (${ascRashi})`}
+          hint={hi ? RASHI_NAMES[ascRashi] : RASHI_SANSKRIT[ascRashi]}
         />
         <SnapshotChip
-          label="Lagna Lord"
-          value={`${GRAHA_NAMES[lagnaLordId]} (${lagnaLordId})`}
-          hint={lagnaLordRow ? `${lagnaLordRow.lordHindi}` : undefined}
+          label={t('chipLagnaLord')}
+          value={`${gname(lagnaLordId)} (${lagnaLordId})`}
+          hint={hi ? GRAHA_NAMES[lagnaLordId] : lagnaLordRow ? `${lagnaLordRow.lordHindi}` : undefined}
         />
         {lagnaLordPlacement ? (
           <SnapshotChip
-            label="Lagna Lord placed in"
-            value={`House ${lagnaLordPlacement.house}`}
-            hint={RASHI_NAMES[lagnaLordPlacement.rashi]}
+            label={t('chipLordPlaced')}
+            value={t('chipHouse', { n: lagnaLordPlacement.house })}
+            hint={rname(lagnaLordPlacement.rashi)}
           />
         ) : null}
       </div>
@@ -254,20 +253,20 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
       <LagnaSpiritualGuide ascRashi={ascRashi} />
 
       <div style={callout}>
-        <div style={sectionLabel}>Lagna strength checklist</div>
+        <div style={sectionLabel}>{t('strengthLabel')}</div>
         <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.78rem', lineHeight: 1.55 }}>
-          {LAGNA_STRENGTH_CHECKS.map((c) => (
+          {notes.lagnaStrengthChecks.map((c) => (
             <li key={c}>{c}</li>
           ))}
         </ul>
         <p style={{ margin: '0.65rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          {ANALYSIS_LAGNAS_NOTE}
+          {notes.analysisLagnas}
         </p>
       </div>
 
       {kendradhipatiNote ? (
         <div style={callout}>
-          <div style={sectionLabel}>Kendrādhipati note (this Lagna)</div>
+          <div style={sectionLabel}>{t('kendraLabel')}</div>
           <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
             {kendradhipatiNote}
           </p>
@@ -285,7 +284,7 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
             marginBottom: '0.35rem',
           }}
         >
-          <div style={sectionLabel}>Mānglik (Kuja) analysis</div>
+          <div style={sectionLabel}>{t('manglikLabel')}</div>
           <span
             style={{
               padding: '2px 8px',
@@ -301,14 +300,14 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
           >
             {manglikTeaching.headline}
             {manglikTeaching.status === 'present' && manglikAnalysis.intensity !== 'None'
-              ? ` · ${manglikAnalysis.intensity}`
+              ? ` · ${hi ? tl(`intensity.${manglikAnalysis.intensity}`) : manglikAnalysis.intensity}`
               : ''}
           </span>
         </div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
           {manglikAnalysis.house > 0 && marsRashi != null
-            ? `Mars in house ${manglikAnalysis.house} · ${RASHI_NAMES[marsRashi]}`
-            : 'Mars placement unavailable'}
+            ? t('marsIn', { n: manglikAnalysis.house, sign: rname(marsRashi) })
+            : t('marsUnavailable')}
         </p>
         <p style={{ margin: '0.5rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
           {manglikTeaching.statusDetail}
@@ -340,14 +339,14 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
         {manglikTeaching.perspectives ? (
           <div style={{ marginTop: '0.55rem' }}>
             <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-gold)', marginBottom: '0.25rem' }}>
-              Scope · {manglikTeaching.perspectives.scopeLabel}
+              {t('scope', { label: manglikTeaching.perspectives.scopeLabel })}
             </div>
             <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
               {manglikTeaching.perspectives.scopeDetail}
             </p>
             {manglikTeaching.perspectives.marsVenusConjunctInKuja ? (
               <p style={{ margin: '0.35rem 0 0', fontSize: '0.72rem', color: 'var(--amber)', lineHeight: 1.5 }}>
-                Mars–Venus together in a Kuja house — high-intensity relating cue.
+                {t('marsVenus')}
               </p>
             ) : null}
           </div>
@@ -362,26 +361,26 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
 
       {lagnaLordInFirst ? (
         <div style={callout}>
-          <div style={sectionLabel}>Lagna Lord in 1st House</div>
+          <div style={sectionLabel}>{t('lordInFirstLabel')}</div>
           <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            {LAGNA_LORD_IN_FIRST}
+            {notes.lagnaLordInFirst}
           </p>
         </div>
       ) : null}
 
       {lagnaLordClassical.length > 0 ? (
         <ClassicalNotesList
-          title="Classical · Lagna lord placement"
+          title={t('classicalLagnaLord')}
           notes={lagnaLordClassical}
         />
       ) : null}
 
       {multiVakriNotes.length > 0 ? (
-        <ClassicalNotesList title="Vakri (retrograde) · chart pattern" notes={multiVakriNotes} />
+        <ClassicalNotesList title={t('vakriPattern')} notes={multiVakriNotes} />
       ) : null}
 
       <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-        {CONJUNCTION_NOTE}
+        {notes.conjunction}
       </p>
 
       {/* Per-house — chart specific */}
@@ -394,12 +393,12 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
             color: 'var(--text-primary)',
           }}
         >
-          Houses in this chart
+          {t('housesTitle')}
         </h3>
 
         {houses.map((h) => {
           const open = openHouse === h.houseNum
-          const occupantIds = h.occupants.map((p) => p.id).join(' · ')
+          const occupantIds = h.occupants.map((p) => (hi ? GRAHA_HI[p.id] : p.id)).join(' · ')
           const classicalPack = open ? getChartHouseClassical(chart, h.houseNum) : null
           return (
             <div
@@ -430,16 +429,16 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
               >
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    House {h.houseNum} — {h.theme.english}
+                    {t('houseHead', { n: h.houseNum, theme: h.theme.english })}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 3, display: 'flex', flexWrap: 'wrap', gap: '0.35rem 0.75rem' }}>
                     <span>
-                      {RASHI_NAMES[h.rashi]} · Lord {GRAHA_NAMES[h.lordId] || h.lordId}
+                      {t('signLord', { sign: rname(h.rashi), lord: gname(h.lordId) || h.lordId })}
                     </span>
                     <span style={{ color: h.occupants.length ? 'var(--text-gold)' : 'var(--text-muted)' }}>
                       {h.occupants.length
-                        ? `Occupants: ${occupantIds}`
-                        : 'Empty (no classical grahas)'}
+                        ? t('occupants', { list: occupantIds })
+                        : t('empty')}
                     </span>
                   </div>
                 </div>
@@ -455,7 +454,7 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                   </p>
 
                   <div>
-                    <div style={sectionLabel}>Themes for this house</div>
+                    <div style={sectionLabel}>{t('themesLabel')}</div>
                     <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: 1.55 }}>
                       {h.theme.coreThemes.map((c) => (
                         <li key={c}>{c}</li>
@@ -465,18 +464,18 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
 
                   {h.houseNum === 3 ? (
                     <div style={callout}>
-                      <div style={sectionLabel}>Third-house dashā caution</div>
+                      <div style={sectionLabel}>{t('thirdLabel')}</div>
                       <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                        {THIRD_HOUSE_DASHA_CAUTION}
+                        {notes.thirdHouseDasha}
                       </p>
                     </div>
                   ) : null}
 
                   {h.houseNum === 12 ? (
                     <div style={callout}>
-                      <div style={sectionLabel}>Twelfth-house reading frame</div>
+                      <div style={sectionLabel}>{t('twelfthLabel')}</div>
                       <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                        {TWELFTH_HOUSE_READING_NOTE}
+                        {notes.twelfthHouse}
                       </p>
                     </div>
                   ) : null}
@@ -484,22 +483,22 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                   <LagnaHouseCallout ascRashi={ascRashi} house={h.houseNum} />
 
                   <ClassicalNotesList
-                    title="Classical bhava (BPHS & others)"
+                    title={t('classicalBhava')}
                     notes={getHouseClassical(h.houseNum)}
                   />
 
                   <div style={callout}>
                     <div style={sectionLabel}>
-                      Sign in House {h.houseNum}: {RASHI_NAMES[h.rashi]} ({RASHI_SANSKRIT[h.rashi]})
+                      {t('signInHouse', { n: h.houseNum, sign: rname(h.rashi), sanskrit: hi ? RASHI_NAMES[h.rashi] : RASHI_SANSKRIT[h.rashi] })}
                     </div>
                     <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                      Ruled by {GRAHA_NAMES[h.lordId] || h.lordId}.
-                      {h.signNote ? ` ${h.signNote}` : ' Sign flavor for this house is read with the house lord and occupants.'}
+                      {t('ruledBy', { lord: gname(h.lordId) || h.lordId })}
+                      {` ${h.signNote ?? t('signFallback')}`}
                     </p>
                   </div>
 
                   <ClassicalNotesList
-                    title={`Classical rashi — ${RASHI_NAMES[h.rashi]}`}
+                    title={t('classicalRashi', { sign: rname(h.rashi) })}
                     notes={getRashiClassical(h.rashi)}
                   />
 
@@ -507,8 +506,8 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                     <ClassicalNotesList
                       title={
                         classicalPack.lordship.isLagnaLord
-                          ? `Classical · Lagna lord (${GRAHA_NAMES[classicalPack.lordship.lordId]}) in house ${classicalPack.lordship.placedIn}`
-                          : `Classical · Lord of H${h.houseNum} (${GRAHA_NAMES[classicalPack.lordship.lordId]}) in house ${classicalPack.lordship.placedIn}`
+                          ? t('classicalLagnaLordIn', { lord: gname(classicalPack.lordship.lordId), n: classicalPack.lordship.placedIn })
+                          : t('classicalLordOf', { h: h.houseNum, lord: gname(classicalPack.lordship.lordId), n: classicalPack.lordship.placedIn })
                       }
                       notes={classicalPack.lordship.notes}
                     />
@@ -517,7 +516,7 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                   {classicalPack && classicalPack.aspectNotes.length > 0 ? (
                     <>
                       <ClassicalNotesList
-                        title="Classical · Drishti (aspect) on this house"
+                        title={t('classicalDrishti')}
                         notes={classicalPack.aspectNotes}
                       />
                       {(['Ma', 'Ju', 'Sa'] as const)
@@ -525,7 +524,7 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                         .map((gid) => (
                           <ClassicalNotesList
                             key={`asp-ov-${h.houseNum}-${gid}`}
-                            title={`Classical · ${GRAHA_NAMES[gid]} special aspects`}
+                            title={t('classicalSpecial', { graha: gname(gid) })}
                             notes={getSpecialAspectOverview(gid)}
                           />
                         ))}
@@ -535,25 +534,25 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                   {h.houseNum === 7 ? (
                     <>
                       <div style={callout}>
-                        <div style={sectionLabel}>Marriage reading pillars</div>
+                        <div style={sectionLabel}>{t('pillarsLabel')}</div>
                         <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: 1.55 }}>
-                          {MARRIAGE_PILLARS.map((p) => (
+                          {notes.marriagePillars.map((p) => (
                             <li key={p}>{p}</li>
                           ))}
                         </ul>
                       </div>
                       <div style={callout}>
-                        <div style={sectionLabel}>Early marriage cues (yogas)</div>
+                        <div style={sectionLabel}>{t('earlyLabel')}</div>
                         <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.78rem', lineHeight: 1.55 }}>
-                          {EARLY_MARRIAGE_INDICATORS.map((p) => (
+                          {notes.earlyMarriage.map((p) => (
                             <li key={p}>{p}</li>
                           ))}
                         </ul>
                       </div>
                       <div style={callout}>
-                        <div style={sectionLabel}>Delayed marriage cues</div>
+                        <div style={sectionLabel}>{t('delayedLabel')}</div>
                         <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-secondary)', fontSize: '0.78rem', lineHeight: 1.55 }}>
-                          {DELAYED_MARRIAGE_INDICATORS.map((p) => (
+                          {notes.delayedMarriage.map((p) => (
                             <li key={p}>{p}</li>
                           ))}
                         </ul>
@@ -563,17 +562,16 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
 
                   <div>
                     <div style={sectionLabel}>
-                      Planets in House {h.houseNum} ({h.occupants.length})
+                      {t('planetsIn', { n: h.houseNum, count: h.occupants.length })}
                     </div>
                     {h.occupants.length === 0 ? (
                       <p style={{ margin: '0.45rem 0 0', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                        No classical planets in this house from Lagna. Results come mainly from the house lord
-                        ({GRAHA_NAMES[h.lordId] || h.lordId}) and aspects.
+                        {t('noPlanets', { lord: gname(h.lordId) || h.lordId })}
                       </p>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginTop: '0.45rem' }}>
                         {h.occupants.map((p) => {
-                          const full = getPlanetInHouse(p.id, h.houseNum, 'full')
+                          const full = getPlanetInHouse(p.id, h.houseNum, 'full', lang)
                           const classical = getPlanetInHouseClassical(p.id, h.houseNum)
                           const dignityNotes = getPlanetDignityNotes(
                             p.dignity,
@@ -600,30 +598,30 @@ export function HouseGuideTab({ chart }: HouseGuideTabProps) {
                               }}
                             >
                               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-gold)', marginBottom: '0.25rem' }}>
-                                {GRAHA_NAMES[p.id] || p.id} ({p.id}) in House {h.houseNum}
+                                {t('planetHead', { name: gname(p.id) || p.id, id: p.id, n: h.houseNum })}
                                 <span style={{ fontWeight: 500, color: 'var(--text-muted)', marginLeft: 6 }}>
-                                  {RASHI_NAMES[p.rashi]} {p.degree.toFixed(1)}°
+                                  {rname(p.rashi)} {p.degree.toFixed(1)}°
                                   {p.isRetro ? ' ℞' : ''}
                                   {p.isCombust ? ' ☉' : ''}
-                                  {p.dignity ? ` · ${p.dignity.replace(/_/g, ' ')}` : ''}
+                                  {p.dignity ? ` · ${hi && tl.has(`dignity.${p.dignity}`) ? tl(`dignity.${p.dignity}`) : p.dignity.replace(/_/g, ' ')}` : ''}
                                 </span>
                               </div>
                               <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                                {full || 'Placement noted; combine with dignity and aspects.'}
+                                {full || t('placementFallback')}
                               </div>
-                              <ClassicalNotesList title="Classical phalita" notes={classical} />
+                              <ClassicalNotesList title={t('phalita')} notes={classical} />
                               {pureDignity.length > 0 ? (
-                                <ClassicalNotesList title="Dignity" notes={pureDignity} />
+                                <ClassicalNotesList title={t('dignity')} notes={pureDignity} />
                               ) : null}
                               {statusNotes.length > 0 ? (
-                                <ClassicalNotesList title="Vakri / Asta" notes={statusNotes} />
+                                <ClassicalNotesList title={t('vakriAsta')} notes={statusNotes} />
                               ) : null}
                             </div>
                           )
                         })}
                         {h.occupants.length > 1 ? (
                           <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                            Conjunction (Yuti): these planets blend their influences in House {h.houseNum}.
+                            {t('yuti', { n: h.houseNum })}
                           </p>
                         ) : null}
                       </div>

@@ -11,7 +11,9 @@ import { Hourglass, Infinity as InfinityIcon, Moon, Sparkles, Sun } from 'lucide
 import type { PanchangItem, TodayReading, TodayTransitGraha } from '@/lib/engine/todayReading'
 import type { HoraSegment } from '@/lib/engine/todayAdvanced'
 import { ClockDial, Legend, RadarChart, SegmentRing, polar, type DialWindow } from '@/components/ui/viz'
-import { fmtTime, scoreTone, toneColor, toned } from './TodayReadingSections'
+import { scoreTone, toneColor, toned, useTodayFmt } from './TodayReadingSections'
+import { useTranslations } from 'next-intl'
+import { TARA_HI } from '@/lib/engine/locale/todayReading.hi'
 import styles from './today-reading.module.css'
 
 type Tone = 'good' | 'mixed' | 'caution'
@@ -27,6 +29,8 @@ function ordinal(n: number): string {
 const SWEEP = 0.75 // 270° arc
 
 export function ScoreDial({ score, label }: { score: number; label: string }) {
+  const t = useTranslations('today.visuals')
+  const { hi } = useTodayFmt()
   const size = 148
   const c = size / 2
   const r = 58
@@ -43,7 +47,7 @@ export function ScoreDial({ score, label }: { score: number; label: string }) {
       height={size}
       className={styles.dial}
       role="img"
-      aria-label={`${label}, ${score} out of 100`}
+      aria-label={t('dialAria', { label, score })}
     >
       <defs>
         <radialGradient id="todayDialGlow" cx="50%" cy="50%" r="50%">
@@ -82,27 +86,29 @@ export function ScoreDial({ score, label }: { score: number; label: string }) {
         {score}
       </text>
       <text x={c} y={c + 22} textAnchor="middle" fontSize={9} fontWeight={800} letterSpacing="0.12em" fill={color}>
-        {label.toUpperCase()}
+        {hi ? label : label.toUpperCase()}
       </text>
-      <text x={c} y={size - 6} textAnchor="middle" fontSize={8.5} fill="var(--text-muted)">out of 100</text>
+      <text x={c} y={size - 6} textAnchor="middle" fontSize={8.5} fill="var(--text-muted)">{t('outOf')}</text>
     </svg>
   )
 }
 
 /** Three quick signals shown next to the dial: Tara, Chandra Bala, Panchang balance. */
 export function DaySignals({ r }: { r: TodayReading }) {
+  const t = useTranslations('today.visuals')
+  const fm = useTodayFmt()
   const taraTone: Tone = r.tara.tone === 'supportive' || r.tara.tone === 'transformative' ? 'good' : r.tara.isHard ? 'caution' : 'mixed'
   const moonTone: Tone = r.moon.chandraQuality === 'good' ? 'good' : r.moon.chandraQuality === 'bad' ? 'caution' : 'mixed'
   const pGood = r.panchang.filter(p => p.quality === 'good').length
   const pBad = r.panchang.filter(p => p.quality === 'caution').length
   const pTone: Tone = pGood > pBad + 1 ? 'good' : pBad > pGood ? 'caution' : 'mixed'
   const items: Array<{ k: string; v: string; t: Tone }> = [
-    { k: 'Tara', v: r.tara.name, t: taraTone },
-    { k: 'Chandra', v: `${ordinal(r.moon.chandraPosition)} from Moon`, t: moonTone },
-    { k: 'Panchang', v: `${pGood}/5 supportive`, t: pTone },
+    { k: t('tara'), v: r.tara.name, t: taraTone },
+    { k: t('chandra'), v: t('fromMoon', { nth: fm.nth(r.moon.chandraPosition) }), t: moonTone },
+    { k: t('panchang'), v: t('pSupport', { n: pGood }), t: pTone },
   ]
   return (
-    <ul className={styles.signals} aria-label="Key signals today">
+    <ul className={styles.signals} aria-label={t('signals')}>
       {items.map(it => (
         <li key={it.k} className={styles.signal} style={toned(it.t)}>
           <span className={styles.signalKey}>{it.k}</span>
@@ -116,17 +122,19 @@ export function DaySignals({ r }: { r: TodayReading }) {
 // ── Life areas radar ─────────────────────────────────────────
 
 export function AreasRadar({ r }: { r: TodayReading }) {
+  const t = useTranslations('today.visuals')
+  const { hi } = useTodayFmt()
   if (r.areas.length < 3) return null
   // Scores cluster around 40–70, so scale to the top score (min 80) to keep the shape readable.
   const top = Math.max(80, ...r.areas.map(a => a.score))
   return (
     <RadarChart
-      axes={r.areas.map(a => a.label.split(' & ')[0])}
-      series={[{ label: 'Today', values: r.areas.map(a => a.score), color: toneColor(scoreTone(r.score)) }]}
+      axes={r.areas.map(a => a.label.split(hi ? ' और ' : ' & ')[0])}
+      series={[{ label: t('today'), values: r.areas.map(a => a.score), color: toneColor(scoreTone(r.score)) }]}
       threshold={r.areas.map(() => 50)}
       max={top}
       size={180}
-      ariaLabel={`Life areas: ${r.areas.map(a => `${a.label} ${a.score}`).join(', ')}`}
+      ariaLabel={t('radarAria', { list: r.areas.map(a => `${a.label} ${a.score}`).join(', ') })}
     />
   )
 }
@@ -174,11 +182,13 @@ function MoonDisc({ tithi, size = 86, label }: { tithi: number; size?: number; l
 }
 
 function ChandraWheel({ position }: { position: number }) {
+  const t = useTranslations('today.visuals')
+  const fm = useTodayFmt()
   const size = 132
   const c = size / 2
   const R = 48
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ maxWidth: size }} role="img" aria-label={`Transit Moon is ${position} houses from your natal Moon`}>
+    <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ maxWidth: size }} role="img" aria-label={t('chandraAria', { n: position })}>
       <circle cx={c} cy={c} r={R} fill="none" stroke="var(--border)" strokeDasharray="2 3" />
       {Array.from({ length: 12 }).map((_, i) => {
         const h = i + 1
@@ -187,7 +197,7 @@ function ChandraWheel({ position }: { position: number }) {
         const active = h === position
         return (
           <g key={h}>
-            <title>{`${ordinal(h)} from natal Moon`}</title>
+            <title>{t('fromNatal', { nth: fm.nth(h) })}</title>
             {active && <circle cx={x} cy={y} r={13} fill={toneColor(tone)} opacity={0.22} className={styles.pulse} />}
             <circle cx={x} cy={y} r={active ? 9 : 7} fill={active ? toneColor(tone) : 'var(--surface-2)'} stroke={toneColor(tone)} strokeWidth={active ? 0 : 1.2} />
             <text x={x} y={y + 0.5} textAnchor="middle" dominantBaseline="middle" fontSize={active ? 9 : 7.5} fontWeight={700} fill={active ? 'var(--surface-1)' : 'var(--text-secondary)'}>
@@ -197,12 +207,14 @@ function ChandraWheel({ position }: { position: number }) {
         )
       })}
       <text x={c} y={c - 4} textAnchor="middle" fontSize={16} fill="var(--gold)">☾</text>
-      <text x={c} y={c + 12} textAnchor="middle" fontSize={7.5} letterSpacing="0.08em" fill="var(--text-muted)">NATAL MOON</text>
+      <text x={c} y={c + 12} textAnchor="middle" fontSize={7.5} letterSpacing="0.08em" fill="var(--text-muted)">{t('natalMoon')}</text>
     </svg>
   )
 }
 
 export function MoonVisuals({ r, sun, moon }: { r: TodayReading; sun?: TodayTransitGraha | null; moon?: TodayTransitGraha | null }) {
+  const t = useTranslations('today.visuals')
+  const fm = useTodayFmt()
   const tithi = sun && moon ? tithiFrom(sun.lonSidereal, moon.lonSidereal) : null
   const lit = tithi ? Math.round(((1 - Math.cos((tithi / 30) * Math.PI * 2)) / 2) * 100) : null
   const tithiName = r.panchang.find(p => p.key === 'tithi')?.value
@@ -212,11 +224,11 @@ export function MoonVisuals({ r, sun, moon }: { r: TodayReading; sun?: TodayTran
       {tithi !== null && (
         <figure className={styles.moonVizCell}>
           <div className={styles.moonDisc}>
-            <MoonDisc tithi={tithi} label={`${tithiName ?? 'Tithi'}, about ${lit}% lit`} />
+            <MoonDisc tithi={tithi} label={t('lit', { name: tithiName ?? t('tithiN', { n: tithi }), lit: lit ?? 0 })} />
           </div>
           <figcaption>
-            <strong>{tithiName ?? `Tithi ${tithi}`}</strong>
-            <span>{tithi <= 15 ? 'Waxing' : 'Waning'} · {lit}% lit</span>
+            <strong>{tithiName ?? t('tithiN', { n: tithi })}</strong>
+            <span>{t('litLine', { dir: tithi <= 15 ? t('waxing') : t('waning'), lit: lit ?? 0 })}</span>
           </figcaption>
         </figure>
       )}
@@ -227,9 +239,9 @@ export function MoonVisuals({ r, sun, moon }: { r: TodayReading; sun?: TodayTran
           gapDeg={3}
           showLabels={false}
           centerValue={r.tara.taraNumber}
-          centerLabel="of 9"
-          ariaLabel={`Tara ${r.tara.taraNumber} of 9: ${r.tara.name}`}
-          segments={TARA_NAMES.map((n, i) => ({
+          centerLabel={t('of9')}
+          ariaLabel={t('taraAria', { n: r.tara.taraNumber, name: r.tara.name })}
+          segments={TARA_NAMES.map((en) => (fm.hi ? TARA_HI[en]?.name ?? en : en)).map((n, i) => ({
             label: n,
             value: 1,
             max: 1,
@@ -239,15 +251,15 @@ export function MoonVisuals({ r, sun, moon }: { r: TodayReading; sun?: TodayTran
           }))}
         />
         <figcaption>
-          <strong>{r.tara.name} Tara</strong>
+          <strong>{t('taraName', { name: r.tara.name })}</strong>
           <span>{r.tara.label}</span>
         </figcaption>
       </figure>
       <figure className={styles.moonVizCell}>
         <ChandraWheel position={r.moon.chandraPosition} />
         <figcaption>
-          <strong>Chandra Bala</strong>
-          <span>{ordinal(r.moon.chandraPosition)} from natal Moon</span>
+          <strong>{t('chandraBala')}</strong>
+          <span>{t('fromNatal', { nth: fm.nth(r.moon.chandraPosition) })}</span>
         </figcaption>
       </figure>
     </div>
@@ -265,8 +277,9 @@ const LIMB_ICON: Record<PanchangItem['key'], React.ReactNode> = {
 }
 
 export function PanchangLimbs({ items }: { items: PanchangItem[] }) {
+  const t = useTranslations('today.visuals')
   return (
-    <ol className={styles.limbs} aria-label="Five limbs of the panchang">
+    <ol className={styles.limbs} aria-label={t('limbs')}>
       {items.map(it => (
         <li key={it.key} className={styles.limb} style={toned(it.quality)}>
           <span className={styles.limbIcon}>{LIMB_ICON[it.key]}</span>
@@ -293,6 +306,9 @@ function hoursIn(iso: string, tz: string): number {
 }
 
 export function DayDial({ r, segments, tz, now }: { r: TodayReading; segments?: HoraSegment[]; tz: string; now: Date }) {
+  const t = useTranslations('today.visuals')
+  const fm = useTodayFmt()
+  const fmtTime = fm.time
   const windows: DialWindow[] = []
   segments?.forEach(s => {
     windows.push({
@@ -300,7 +316,7 @@ export function DayDial({ r, segments, tz, now }: { r: TodayReading; segments?: 
       start: hoursIn(s.startIso, tz),
       end: hoursIn(s.endIso, tz),
       color: toneColor(s.tone),
-      label: `${s.lordName} hora · ${fmtTime(s.startIso, tz)}–${fmtTime(s.endIso, tz)}`,
+      label: t('horaSeg', { lord: s.lordName, from: fmtTime(s.startIso, tz), to: fmtTime(s.endIso, tz) }),
       ring: 0,
     })
   })
@@ -309,7 +325,7 @@ export function DayDial({ r, segments, tz, now }: { r: TodayReading; segments?: 
     start: hoursIn(w.startIso, tz),
     end: hoursIn(w.endIso, tz),
     color: 'var(--teal)',
-    label: `${w.label} · ${fmtTime(w.startIso, tz)}–${fmtTime(w.endIso, tz)}`,
+    label: t('winSeg', { label: w.label, from: fmtTime(w.startIso, tz), to: fmtTime(w.endIso, tz) }),
     ring: 1,
   }))
   r.windows.avoid.forEach(w => windows.push({
@@ -317,7 +333,7 @@ export function DayDial({ r, segments, tz, now }: { r: TodayReading; segments?: 
     start: hoursIn(w.startIso, tz),
     end: hoursIn(w.endIso, tz),
     color: 'var(--rose)',
-    label: `${w.label} · ${fmtTime(w.startIso, tz)}–${fmtTime(w.endIso, tz)}`,
+    label: t('winSeg', { label: w.label, from: fmtTime(w.startIso, tz), to: fmtTime(w.endIso, tz) }),
     ring: 1,
   }))
   if (windows.length === 0) return null
@@ -335,13 +351,13 @@ export function DayDial({ r, segments, tz, now }: { r: TodayReading; segments?: 
         sunset={sunset}
         size={220}
         centerTop={fmtTime(now.toISOString(), tz)}
-        centerBottom={cur ? cur.label : 'now'}
+        centerBottom={cur ? cur.label : t('now')}
       />
       <Legend
         items={[
-          ...(segments?.length ? [{ label: 'Outer ring: horas (colour = quality)', color: 'var(--amber)' }] : []),
-          { label: 'Good window', color: 'var(--teal)' },
-          { label: 'Avoid starting', color: 'var(--rose)' },
+          ...(segments?.length ? [{ label: t('ringHoras'), color: 'var(--amber)' }] : []),
+          { label: t('good'), color: 'var(--teal)' },
+          { label: t('avoid'), color: 'var(--rose)' },
         ]}
       />
     </div>

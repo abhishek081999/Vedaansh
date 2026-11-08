@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "titleTemplate": "%s — Vedaansh",
+    "title": "Vedaansh — Free Vedic Astrology & Jyotisha Platform",
+    "description": "Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, 16 Shodashavarga charts, Panchang & Arudhas. Arc-second accuracy via Swiss Ephemeris. No login required.",
+    "ogTitle": "Vedaansh — Free Vedic Astrology Platform",
+    "ogDescription": "Free Vedic birth charts, Dasha, 16 vargas, Panchang. Swiss Ephemeris precision."
+  },
+  "brand": {
+    "name": "Vedaansh",
+    "invocation": "॥ श्री गणेशाय नमः ॥"
+  },
+  "shell": {
+    "signIn": "Sign in",
+    "logOut": "Log out",
+    "profile": "Profile",
+    "myCharts": "My Charts",
+    "account": "Account",
+    "accountMenu": "Account menu",
+    "syncingSession": "Syncing session",
+    "syncing": "Syncing…",
+    "toggleNav": "Toggle navigation menu",
+    "closeMenu": "Close menu",
+    "scrollTop": "Scroll to top",
+    "offline": "OFFLINE",
+    "dash": "Dash",
+    "newConsultation": "+ New Consultation",
+    "skipToContent": "Skip to main content"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Switch language to {language}",
+    "current": "Current language: {language}"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "learnMore": "Learn more",
+    "seeAll": "See all",
+    "upgrade": "Upgrade",
+    "getStarted": "Get started",
+    "download": "Download",
+    "share": "Share",
+    "copy": "Copy",
+    "copied": "Copied",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "submit": "Submit"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Check your connection and try again.",
+    "notFound": "Page not found"
+  },
+  "footer": {
+    "links": {
+      "guides": "Guides",
+      "search": "Search",
+      "install": "Install App",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "refund": "Refund",
+      "support": "Support"
+    },
+    "navLabel": "Legal and support",
+    "tagline": "Jyotisha · The Eye of the Vedas",
+    "poweredBy": "Powered by",
+    "ayanamsha": "Lahiri ayanamsha"
+  },
+  "seo": {
+    "relatedGuides": "Related guides",
+    "faq": "Frequently asked questions"
+  },
+  "pwa": {
+    "region": "Install Vedaansh app",
+    "title": "Install Vedaansh",
+    "quick": "Add to your home screen for quick access.",
+    "steps": "Add to your home screen — see steps below.",
+    "install": "Install",
+    "howTo": "How to install",
+    "other": "Other options",
+    "dismiss": "Dismiss install prompt",
+    "modalDesc": "3 quick steps for your phone.",
+    "openPage": "Open install page"
+  },
+  "location": {
+    "label": "Location",
+    "useMine": "Use my current location",
+    "locating": "Locating…",
+    "mine": "My location",
+    "useBirth": "Use birth location: {place}",
+    "birth": "✦ Birth: {place}",
+    "search": "Search city…"
+  }
+}

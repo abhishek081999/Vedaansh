@@ -9,6 +9,13 @@
 
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_LORDS, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import {
+  MONTH_SHORT_HI, SOLAR_MONTHS_HI, SUN_AGE_SOURCE_HI, SUN_APPEARANCE_HI, SUN_BODY_SIDE_HI,
+  SUN_MOTION_DETAIL_HI, SUN_MOTION_LABEL_HI, SUN_PRACTICES_HI, SUN_READING_PRINCIPLES_HI,
+  SUN_SANDHI_HI, SUN_STEPS_HI,
+} from '@/lib/engine/locale/sunReadingMethod.hi'
 
 export type SunMotion = 'uchchagami' | 'neechagami' | 'exalted_point' | 'debilitated_point'
 
@@ -141,7 +148,7 @@ function aspectsByWholeSign(from: GrahaData, toRashi: Rashi): boolean {
   return false
 }
 
-function analyzeMotion(sunLon: number) {
+function analyzeMotion(sunLon: number, hi = false) {
   const lon = normalizeLon(sunLon)
   const EXALT = 10 // 10° Aries
   const DEBIL = 190 // 10° Libra
@@ -153,7 +160,7 @@ function analyzeMotion(sunLon: number) {
   else if (Math.abs(lon - DEBIL) < 0.5) kind = 'debilitated_point'
   else kind = toExalt < toDebil ? 'uchchagami' : 'neechagami'
 
-  const labels: Record<SunMotion, string> = {
+  const labels: Record<SunMotion, string> = hi ? SUN_MOTION_LABEL_HI : {
     uchchagami: 'Uchchagami — moving toward exaltation',
     neechagami: 'Neechagami — moving toward debilitation',
     exalted_point: 'At deep exaltation (10° Aries)',
@@ -162,11 +169,11 @@ function analyzeMotion(sunLon: number) {
 
   let detail: string
   if (kind === 'uchchagami') {
-    detail = toExalt <= 40
+    detail = hi ? (toExalt <= 40 ? SUN_MOTION_DETAIL_HI.uchNear : SUN_MOTION_DETAIL_HI.uchFar) : toExalt <= 40
       ? 'Close to exaltation and gaining strength — like walking home from office: once the house is in sight, energy returns. Treat even a Pisces Sun as normalising, not weak.'
       : 'On the rising half of the zodiac; tej is building over the sign cycle.'
   } else if (kind === 'neechagami') {
-    detail = toDebil <= 40
+    detail = hi ? (toDebil <= 40 ? SUN_MOTION_DETAIL_HI.neechNear : SUN_MOTION_DETAIL_HI.neechFar) : toDebil <= 40
       ? 'Close to debilitation (late Virgo / early Libra) — read neecha-like traits: ego clashes with father and gurus, starts duties loudly then pulls back, false pride. Works best when approached with love, not force.'
       : 'On the falling half of the zodiac; Sun spends strength as it moves toward Libra.'
   } else {
@@ -176,7 +183,7 @@ function analyzeMotion(sunLon: number) {
   return { kind, label: labels[kind], detail, degreesToExaltation: toExalt, degreesToDebilitation: toDebil }
 }
 
-function analyzeSandhi(sun: GrahaData) {
+function analyzeSandhi(sun: GrahaData, hi = false) {
   const deg = sun.degree
   const isWaterEnd = [4, 8, 12].includes(sun.rashi) && deg >= 26 + 2 / 3
   const isFireStart = [1, 5, 9].includes(sun.rashi) && deg <= 3 + 1 / 3
@@ -184,56 +191,58 @@ function analyzeSandhi(sun: GrahaData) {
   if (gandanta) {
     return {
       active: true,
-      detail: `Sun is in a gandanta / sandhi junction (${deg.toFixed(1)}° ${RASHI_NAMES[sun.rashi]}) — end of one cycle, start of the next. Expect a sharp life transformation; the junction nakshatra lord shapes timing.`,
+      detail: hi ? fill(SUN_SANDHI_HI.gandanta, { deg: deg.toFixed(1), rashi: RASHI_HI[sun.rashi] }) : `Sun is in a gandanta / sandhi junction (${deg.toFixed(1)}° ${RASHI_NAMES[sun.rashi]}) — end of one cycle, start of the next. Expect a sharp life transformation; the junction nakshatra lord shapes timing.`,
     }
   }
   if (deg < 1 || deg > 29) {
     return {
       active: true,
-      detail: `Rashi sandhi (${deg.toFixed(1)}°) — Sun straddles two signs; blend both signs' results and check D9 before judging.`,
+      detail: hi ? fill(SUN_SANDHI_HI.rashi, { deg: deg.toFixed(1) }) : `Rashi sandhi (${deg.toFixed(1)}°) — Sun straddles two signs; blend both signs' results and check D9 before judging.`,
     }
   }
-  return { active: false, detail: 'Sun is not in a sign junction — its sign results come through cleanly.' }
+  return { active: false, detail: hi ? SUN_SANDHI_HI.none : 'Sun is not in a sign junction — its sign results come through cleanly.' }
 }
 
-function solarMonthFor(sun: GrahaData): SolarMonthDef & { approxBirthWindow: string } {
-  const def = SOLAR_MONTHS.find(m => m.rashi === sun.rashi) ?? SOLAR_MONTHS[0]
+function solarMonthFor(sun: GrahaData, inHindi = false): SolarMonthDef & { approxBirthWindow: string } {
+  const idx = Math.max(0, SOLAR_MONTHS.findIndex(m => m.rashi === sun.rashi))
+  const def = inHindi ? { ...SOLAR_MONTHS[idx], ...SOLAR_MONTHS_HI[idx] } : SOLAR_MONTHS[idx]
   const offsetDays = Math.round((sun.degree / 30) * def.days)
   // Fixed non-leap year is enough for an "around this date" hint.
   const base = new Date(Date.UTC(2001, def.ingress.month - 1, def.ingress.day + offsetDays))
   const lo = new Date(base.getTime() - 2 * 86400000)
   const hi = new Date(base.getTime() + 2 * 86400000)
-  const fmt = (d: Date) => `${MONTH_SHORT[d.getUTCMonth()]} ${d.getUTCDate()}`
+  const fmt = (d: Date) => inHindi ? `${d.getUTCDate()} ${MONTH_SHORT_HI[d.getUTCMonth()]}` : `${MONTH_SHORT[d.getUTCMonth()]} ${d.getUTCDate()}`
   return { ...def, approxBirthWindow: `${fmt(lo)} – ${fmt(hi)}` }
 }
 
-function bodySideFor(house: number) {
+function bodySideFor(house: number, hi = false) {
   if (house === 1 || house === 7) {
-    return { side: 'central' as const, detail: `Sun in house ${house} — central axis (head, spine, chest line) rather than one side.` }
+    return { side: 'central' as const, detail: hi ? fill(SUN_BODY_SIDE_HI.central, { house }) : `Sun in house ${house} — central axis (head, spine, chest line) rather than one side.` }
   }
   if (house >= 8) {
     return {
       side: 'left' as const,
-      detail: `Sun in house ${house} (8–12 band) — Surya issues (eyes, bones, legs) tend to show on the LEFT side, e.g. 12th → left eye, 8th → left leg/calf.`,
+      detail: hi ? fill(SUN_BODY_SIDE_HI.left, { house }) : `Sun in house ${house} (8–12 band) — Surya issues (eyes, bones, legs) tend to show on the LEFT side, e.g. 12th → left eye, 8th → left leg/calf.`,
     }
   }
   return {
     side: 'right' as const,
-    detail: `Sun in house ${house} (2–6 band) — Surya issues tend to show on the RIGHT side of the body.`,
+    detail: hi ? fill(SUN_BODY_SIDE_HI.right, { house }) : `Sun in house ${house} (2–6 band) — Surya issues tend to show on the RIGHT side of the body.`,
   }
 }
 
-function appearanceFor(sun: GrahaData, house: number, chart: ChartOutput) {
+function appearanceFor(sun: GrahaData, house: number, chart: ChartOutput, hi = false) {
   const asc = chart.lagnas.ascRashi as Rashi
   const reasons: string[] = []
-  if (house === 1) reasons.push('Sun in Lagna')
-  if (house === 7) reasons.push('Sun aspects Lagna from the 7th')
-  if (asc === 5) reasons.push('Leo Lagna — Sun is lagnesh')
-  if (house === 5 || house === 9) reasons.push(`Sun in trine (house ${house}) to Lagna`)
+  const A = hi ? SUN_APPEARANCE_HI : null
+  if (house === 1) reasons.push(A?.lagna ?? 'Sun in Lagna')
+  if (house === 7) reasons.push(A?.seventh ?? 'Sun aspects Lagna from the 7th')
+  if (asc === 5) reasons.push(A?.leo ?? 'Leo Lagna — Sun is lagnesh')
+  if (house === 5 || house === 9) reasons.push(A ? fill(A.trine, { house }) : `Sun in trine (house ${house}) to Lagna`)
   return {
     applies: reasons.length > 0,
-    reason: reasons.length ? reasons.join(' · ') : 'Sun has no direct hold on Lagna — read appearance from Lagna and its lord first.',
-    traits: [
+    reason: reasons.length ? reasons.join(' · ') : (A?.none ?? 'Sun has no direct hold on Lagna — read appearance from Lagna and its lord first.'),
+    traits: A ? [...A.traits] : [
       'Broad forehead; bright, steady eyes',
       'Oval face with defined, slightly sharp features',
       'Broad chest and shoulders (rib cage), upright posture',
@@ -244,7 +253,7 @@ function appearanceFor(sun: GrahaData, house: number, chart: ChartOutput) {
   }
 }
 
-function mahadashaAt(chart: ChartOutput, age: number): string | null {
+function mahadashaAt(chart: ChartOutput, age: number, hi = false): string | null {
   const nodes = chart.dashas?.vimshottari
   const birth = chart.meta?.birthDate ? new Date(chart.meta.birthDate) : null
   if (!nodes?.length || !birth || Number.isNaN(birth.getTime())) return null
@@ -252,7 +261,7 @@ function mahadashaAt(chart: ChartOutput, age: number): string | null {
   at.setFullYear(at.getFullYear() + age)
   const node = nodes.find(n => new Date(n.start) <= at && at < new Date(n.end))
   if (!node) return null
-  return GRAHA_NAMES[node.lord as GrahaId] ?? node.lord
+  return (hi ? GRAHA_HI[node.lord as GrahaId] : GRAHA_NAMES[node.lord as GrahaId]) ?? node.lord
 }
 
 function buildSteps(
@@ -262,7 +271,9 @@ function buildSteps(
   houseOf: (id: GrahaId) => number | null,
   motion: ReturnType<typeof analyzeMotion>,
   sandhi: { active: boolean; detail: string },
+  hi = false,
 ): SunReadingStep[] {
+  if (hi) return buildStepsHi(chart, sun, house, houseOf, motion, sandhi)
   const signLord = SIGN_LORD[sun.rashi]
   const nakLord = NAKSHATRA_LORDS[sun.nakshatraIndex]
   const grahas = chart.grahas
@@ -317,10 +328,73 @@ function buildSteps(
   ]
 }
 
+function buildStepsHi(
+  chart: ChartOutput,
+  sun: GrahaData,
+  house: number,
+  houseOf: (id: GrahaId) => number | null,
+  motion: ReturnType<typeof analyzeMotion>,
+  sandhi: { active: boolean; detail: string },
+): SunReadingStep[] {
+  const H = SUN_STEPS_HI
+  const signLord = SIGN_LORD[sun.rashi]
+  const nakLord = NAKSHATRA_LORDS[sun.nakshatraIndex]
+  const grahas = chart.grahas
+  const ju = grahas.find(g => g.id === 'Ju')
+  const lh = (id: GrahaId) => (houseOf(id) ? fill(H.inHouse, { house: houseOf(id)! }) : '')
+
+  const background = [
+    fill(H.sign, { rashi: RASHI_HI[sun.rashi], deg: sun.degree.toFixed(1), lord: GRAHA_HI[signLord], lordHouse: lh(signLord) }),
+    fill(H.house, { house }),
+    fill(H.nak, { nak: NAKSHATRA_HI[sun.nakshatraIndex], pada: sun.pada, lord: GRAHA_HI[nakLord], lordHouse: lh(nakLord) }),
+    `${motion.label}।`,
+  ]
+  if (sandhi.active) background.push(H.junction)
+
+  const T = H.traits
+  const traits: string[] = []
+  if (sun.rashi === 1) traits.push(T.aries)
+  if (sun.rashi === 5) traits.push(T.leo)
+  if ([3, 7, 11].includes(sun.rashi)) traits.push(T.air)
+  if ([4, 8, 12].includes(sun.rashi)) traits.push(T.water)
+  if ([2, 6, 10].includes(sun.rashi)) traits.push(T.earth)
+  if ([1, 5, 9].includes(sun.rashi)) traits.push(T.fire)
+  if (house === 8 || house === 12) traits.push(T.hidden)
+  if (house === 5 || house === 11) traits.push(T.popular)
+  if (house === 9) traits.push(T.ninth)
+
+  const D = H.daivik
+  const daivik: string[] = []
+  if (ju && (ju.rashi === sun.rashi || aspectsByWholeSign(ju, sun.rashi))) {
+    daivik.push(fill(D.jupiter, { how: ju.rashi === sun.rashi ? D.conjoins : D.aspects }))
+  }
+  if (nakLord === 'Ju' || nakLord === 'Ke') daivik.push(fill(D.nakLord, { lord: GRAHA_HI[nakLord] }))
+  if ([9, 12].includes(house)) daivik.push(fill(D.house, { house }))
+  if ([1, 5, 8, 9].includes(sun.rashi)) daivik.push(D.sign)
+  if (!daivik.length) daivik.push(D.none)
+
+  const N = H.negatives
+  const negatives: string[] = []
+  if (sun.rashi === 7 || sun.dignity === 'debilitated') negatives.push(N.libra)
+  if (sun.rashi === 11) negatives.push(N.aquarius)
+  if ([6, 8, 12].includes(house)) negatives.push(fill(N.dusthana, { house }))
+  for (const id of ['Ra', 'Ke', 'Sa'] as GrahaId[]) {
+    const g = grahas.find(x => x.id === id)
+    if (g && g.rashi === sun.rashi) negatives.push(fill(N.with, { planet: GRAHA_HI[id] }))
+  }
+  if (motion.kind === 'neechagami' && motion.degreesToDebilitation <= 40) negatives.push(N.neechagami)
+  if (sun.rashi === 9 || sun.rashi === 12) negatives.push(N.kharmas)
+  if (!negatives.length) negatives.push(N.none)
+
+  const pts = [background, traits.length ? traits : [T.fallback], daivik, negatives, [H.remedies]]
+  return pts.map((points, i) => ({ step: i + 1, title: H.titles[i], question: H.questions[i], points }))
+}
+
 /**
  * Five-step Surya reading plus motion, month, body side, appearance and activation ages.
  */
-export function analyzeSunReadingMethod(chart: ChartOutput): SunReadingResult | null {
+export function analyzeSunReadingMethod(chart: ChartOutput, lang: EngineLang = 'en'): SunReadingResult | null {
+  const hi = lang === 'hi'
   const sun = chart.grahas.find(g => g.id === 'Su')
   if (!sun) return null
 
@@ -331,20 +405,20 @@ export function analyzeSunReadingMethod(chart: ChartOutput): SunReadingResult | 
     return g ? wholeSignHouse(g.rashi, asc) : null
   }
 
-  const motion = analyzeMotion(sun.lonSidereal)
-  const sandhi = analyzeSandhi(sun)
+  const motion = analyzeMotion(sun.lonSidereal, hi)
+  const sandhi = analyzeSandhi(sun, hi)
   const nakLord = NAKSHATRA_LORDS[sun.nakshatraIndex]
   const signLord = SIGN_LORD[sun.rashi]
 
   const ageEntries: Array<{ age: number; source: string }> = [
-    { age: MATURITY_AGE.Su!, source: 'Sun matures (22)' },
+    { age: MATURITY_AGE.Su!, source: hi ? SUN_AGE_SOURCE_HI.sun : 'Sun matures (22)' },
   ]
   const karaka = HOUSE_KARAKA[house]
   if (MATURITY_AGE[karaka]) {
-    ageEntries.push({ age: MATURITY_AGE[karaka]!, source: `House ${house} matures via karaka ${GRAHA_NAMES[karaka]}` })
+    ageEntries.push({ age: MATURITY_AGE[karaka]!, source: hi ? fill(SUN_AGE_SOURCE_HI.house, { house, karaka: GRAHA_HI[karaka] }) : `House ${house} matures via karaka ${GRAHA_NAMES[karaka]}` })
   }
   if (MATURITY_AGE[nakLord]) {
-    ageEntries.push({ age: MATURITY_AGE[nakLord]!, source: `Nakshatra lord ${GRAHA_NAMES[nakLord]} matures` })
+    ageEntries.push({ age: MATURITY_AGE[nakLord]!, source: hi ? fill(SUN_AGE_SOURCE_HI.nakLord, { lord: GRAHA_HI[nakLord] }) : `Nakshatra lord ${GRAHA_NAMES[nakLord]} matures` })
   }
   const seen = new Set<string>()
   const activationAges = ageEntries
@@ -355,29 +429,29 @@ export function analyzeSunReadingMethod(chart: ChartOutput): SunReadingResult | 
       seen.add(key)
       return true
     })
-    .map(e => ({ ...e, mahadasha: mahadashaAt(chart, e.age) }))
+    .map(e => ({ ...e, mahadasha: mahadashaAt(chart, e.age, hi) }))
 
   return {
     sun: {
       rashi: sun.rashi,
-      rashiName: RASHI_NAMES[sun.rashi],
+      rashiName: hi ? RASHI_HI[sun.rashi] : RASHI_NAMES[sun.rashi],
       degreeInSign: sun.degree,
       house,
-      nakshatraName: NAKSHATRA_NAMES[sun.nakshatraIndex],
+      nakshatraName: hi ? NAKSHATRA_HI[sun.nakshatraIndex] : NAKSHATRA_NAMES[sun.nakshatraIndex],
       pada: sun.pada,
       nakshatraLord: nakLord,
       nakshatraLordHouse: houseOf(nakLord),
       signLord,
       signLordHouse: houseOf(signLord),
     },
-    steps: buildSteps(chart, sun, house, houseOf, motion, sandhi),
+    steps: buildSteps(chart, sun, house, houseOf, motion, sandhi, hi),
     motion,
     sandhi,
-    solarMonth: solarMonthFor(sun),
-    bodySide: bodySideFor(house),
-    appearance: appearanceFor(sun, house, chart),
+    solarMonth: solarMonthFor(sun, hi),
+    bodySide: bodySideFor(house, hi),
+    appearance: appearanceFor(sun, house, chart, hi),
     activationAges,
-    principles: SUN_READING_PRINCIPLES,
-    practices: SUN_PRACTICES,
+    principles: hi ? [...SUN_READING_PRINCIPLES_HI] : SUN_READING_PRINCIPLES,
+    practices: hi ? [...SUN_PRACTICES_HI] : SUN_PRACTICES,
   }
 }

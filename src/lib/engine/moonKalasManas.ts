@@ -7,6 +7,14 @@
 
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { dignityHi, mergeHi } from '@/lib/engine/locale/planetsA.util'
+import {
+  CHANDRA_KALAS_HI, GAJA_KESARI_HI, MANAS_HI, MOON_BASIC_INFO_HI, MOON_FRAMEWORK_HI, MOON_INSIGHTS_HI,
+  MOON_PAST_LIFE_HI, MOON_SIGNIFICATIONS_HI, MOON_TEXT_HI, PSYCHOLOGY_NEGATIVE_HI, PSYCHOLOGY_POSITIVE_HI,
+  TEACHING_QUOTES_HI, TRIPURA_KALAS_HI, VEDIC_MOON_QUOTES_HI,
+} from '@/lib/engine/locale/moonKalasManas.hi'
 
 export interface MoonKalaDef {
   number: number
@@ -337,6 +345,25 @@ export const TEACHING_QUOTES = [
 /** Moon-owned nakshatra indexes: Rohini=3, Hasta=12, Shravana=21 */
 export const MOON_NAKSHATRA_INDEXES = [3, 12, 21] as const
 
+const CHANDRA_KALAS_LOCAL_HI: MoonKalaDef[] = CHANDRA_KALAS.map((k, i) => mergeHi(k, CHANDRA_KALAS_HI[i]))
+const TRIPURA_KALAS_LOCAL_HI: MoonKalaDef[] = TRIPURA_SUNDARI_KALAS.map((k, i) => mergeHi(k, TRIPURA_KALAS_HI[i]))
+const MANAS_STAGES_LOCAL_HI: ManasStageDef[] = MANAS_STAGES.map(m => mergeHi(m, MANAS_HI[m.id]))
+
+/** Chandra kalas in `lang` (numbers and degrees unchanged). */
+export function chandraKalas(lang: EngineLang = 'en'): MoonKalaDef[] {
+  return lang === 'hi' ? CHANDRA_KALAS_LOCAL_HI : CHANDRA_KALAS
+}
+
+/** Tripura Sundari kalas in `lang`. */
+export function tripuraKalas(lang: EngineLang = 'en'): MoonKalaDef[] {
+  return lang === 'hi' ? TRIPURA_KALAS_LOCAL_HI : TRIPURA_SUNDARI_KALAS
+}
+
+/** Manas stages in `lang` (ids and nakshatra indexes unchanged). */
+export function manasStages(lang: EngineLang = 'en'): ManasStageDef[] {
+  return lang === 'hi' ? MANAS_STAGES_LOCAL_HI : MANAS_STAGES
+}
+
 const SIGN_LORD: Record<Rashi, GrahaId> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
   7: 'Ve', 8: 'Ma', 9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju',
@@ -432,7 +459,14 @@ export function buildPossessionSummary(
   leadingChandra: MoonKalaDef,
   isPurnima: boolean,
   isAmavasya: boolean,
+  lang: EngineLang = 'en',
 ): string {
+  if (lang === 'hi') {
+    const P = MOON_TEXT_HI.possession
+    if (isPurnima || possessedCount >= 16) return P.all
+    if (isAmavasya || possessedCount <= 1) return P.minimal
+    return fill(possessionMode === 'accumulated' ? P.accumulated : P.remaining, { n: possessedCount, kala: leadingChandra.name })
+  }
   if (isPurnima || possessedCount >= 16) {
     return 'All 16 kalas possessed (Purnima) — not only the 16th; the full set from Amavasya to Full Moon is yours.'
   }
@@ -480,6 +514,27 @@ export function kalaFromElongation(elongationDeg: number): {
  * After Krishna Panchami kalas decrease; Amavasya weakest; Shukla Ashtami recovers energy.
  */
 export function computePakshaBali(
+  paksha: 'shukla' | 'krishna',
+  tithiNumber: number,
+  isAmavasya: boolean,
+  isPurnima: boolean,
+  lang: EngineLang = 'en',
+): PakshaBaliResult {
+  const r = computePakshaBaliEn(paksha, tithiNumber, isAmavasya, isPurnima)
+  if (lang !== 'hi') return r
+  const P = MOON_TEXT_HI.paksha
+  let tip = tithiNumber
+  if (tithiNumber > 15) tip = tithiNumber - 15
+  if (tithiNumber === 30 || isAmavasya) return { ...r, ...P.weakest }
+  if (isPurnima || (paksha === 'shukla' && tip === 15)) return { ...r, ...P.purnima }
+  if (paksha === 'shukla') {
+    if (tip >= 5) return { ...r, label: P.shuklaFull, detail: tip >= 8 ? P.shuklaFullAshtami : P.shuklaFullPanchami }
+    return { ...r, ...P.recovering }
+  }
+  return tip <= 5 ? { ...r, ...P.krishnaFull } : { ...r, ...P.waning }
+}
+
+function computePakshaBaliEn(
   paksha: 'shukla' | 'krishna',
   tithiNumber: number,
   isAmavasya: boolean,
@@ -549,20 +604,23 @@ export function assessMoonNeechaBhanga(
   moon: GrahaData,
   grahas: GrahaData[],
   ascRashi: Rashi,
+  lang: EngineLang = 'en',
 ): MoonNeechaBhangaResult {
+  const N = lang === 'hi' ? MOON_TEXT_HI.neecha : null
   const isDebilitated = moon.rashi === 8 || moon.dignity === 'debilitated'
   if (!isDebilitated) {
     return {
       isDebilitated: false,
       cancelled: false,
       factors: [],
-      detail: 'Moon is not debilitated — Neecha Bhanga does not apply.',
+      detail: N?.notDebil ?? 'Moon is not debilitated — Neecha Bhanga does not apply.',
     }
   }
 
   const dispositorId = SIGN_LORD[moon.rashi]
   const dispositor = grahas.find(g => g.id === dispositorId)
   const factors: string[] = []
+  const flags = { lagna: false, exalted: false }
 
   if (dispositor) {
     const dispFromLagna = wholeSignHouse(dispositor.rashi, ascRashi)
@@ -573,13 +631,15 @@ export function assessMoonNeechaBhanga(
       || (dispositor.id === 'Ma' && dispositor.rashi === 10)
 
     if (KENDRAS.has(dispFromLagna)) {
-      factors.push(`Dispositor ${dispositor.name} in kendra from Lagna (H${dispFromLagna})`)
+      flags.lagna = true
+      factors.push(N ? fill(N.dispLagna, { name: GRAHA_HI[dispositor.id], h: dispFromLagna }) : `Dispositor ${dispositor.name} in kendra from Lagna (H${dispFromLagna})`)
     }
     if (KENDRAS.has(dispFromMoon)) {
-      factors.push(`Dispositor (ruler of the sign it sits in) in kendra (angular houses: 1, 4, 7, 10) from Moon (${dispFromMoon}th from Moon)`)
+      factors.push(N ? fill(N.dispMoon, { n: dispFromMoon }) : `Dispositor (ruler of the sign it sits in) in kendra (angular houses: 1, 4, 7, 10) from Moon (${dispFromMoon}th from Moon)`)
     }
     if (dispositorExalted) {
-      factors.push(`Dispositor exalted (${RASHI_NAMES[dispositor.rashi]})`)
+      flags.exalted = true
+      factors.push(N ? fill(N.dispExalted, { rashi: RASHI_HI[dispositor.rashi] }) : `Dispositor exalted (${RASHI_NAMES[dispositor.rashi]})`)
     }
 
     // Exaltation lord of Moon (Venus rules Taurus) in kendra / aspecting —
@@ -589,20 +649,21 @@ export function assessMoonNeechaBhanga(
       const veFromLag = wholeSignHouse(ve.rashi, ascRashi)
       const veFromMoon = signCount(moon.rashi, ve.rashi)
       if (KENDRAS.has(veFromLag) || KENDRAS.has(veFromMoon)) {
-        factors.push(`Exaltation lord Venus in kendra (from Lagna H${veFromLag} / from Moon ${veFromMoon}th)`)
+        factors.push(N ? fill(N.venus, { lag: veFromLag, moon: veFromMoon }) : `Exaltation lord Venus in kendra (from Lagna H${veFromLag} / from Moon ${veFromMoon}th)`)
       }
     }
   }
 
   // Strong cancellation: dispositor exalted AND in kendra from Lagna (teaching example)
-  const cancelled = factors.some(f => f.includes('Dispositor exalted'))
-    && factors.some(f => f.includes('kendra from Lagna'))
+  const cancelled = flags.exalted && flags.lagna
 
   return {
     isDebilitated: true,
     cancelled,
     factors,
-    detail: cancelled
+    detail: N
+      ? (cancelled ? N.cancelled : factors.length > 0 ? fill(N.partial, { n: factors.length }) : N.none)
+      : cancelled
       ? 'Neecha Bhanga indicated — especially when Mars (Scorpio lord) is exalted in a kendra (angular houses: 1, 4, 7, 10) from Lagna. Debility softens; mind retains strength under stress.'
       : factors.length > 0
         ? `Partial cancellation factors present (${factors.length}). Confirm classical conditions before calling full Neecha Bhanga.`
@@ -615,7 +676,9 @@ function scoreManas(
   grahas: GrahaData[],
   house: number,
   isPurnima: boolean,
+  hi = false,
 ): Array<{ id: ManasId; score: number; reasons: string[] }> {
+  const R = hi ? MOON_TEXT_HI.manasReason : null
   const byId = Object.fromEntries(grahas.map(g => [g.id, g])) as Partial<Record<GrahaId, GrahaData>>
   const scores: Record<ManasId, { score: number; reasons: string[] }> = {
     kama: { score: 0, reasons: [] },
@@ -630,11 +693,11 @@ function scoreManas(
   for (const stage of MANAS_STAGES) {
     if (stage.nakshatraIndexes.includes(moon.nakshatraIndex)) {
       scores[stage.id].score += 3
-      scores[stage.id].reasons.push(`Moon in ${NAKSHATRA_NAMES[moon.nakshatraIndex]}`)
+      scores[stage.id].reasons.push(R ? fill(R.nak, { nak: NAKSHATRA_HI[moon.nakshatraIndex] }) : `Moon in ${NAKSHATRA_NAMES[moon.nakshatraIndex]}`)
     }
     if (stage.houses?.includes(house)) {
       scores[stage.id].score += 2
-      scores[stage.id].reasons.push(`Moon in house ${house}`)
+      scores[stage.id].reasons.push(R ? fill(R.house, { house }) : `Moon in house ${house}`)
     }
   }
 
@@ -648,51 +711,51 @@ function scoreManas(
 
   if (ve && sameSignOrConjunct(moon, ve)) {
     scores.kama.score += 3
-    scores.kama.reasons.push('Moon with Venus')
+    scores.kama.reasons.push(R?.venus ?? 'Moon with Venus')
   }
   if (ma && sameSignOrConjunct(moon, ma)) {
     scores.krodha.score += 3
-    scores.krodha.reasons.push('Moon with Mars')
+    scores.krodha.reasons.push(R?.mars ?? 'Moon with Mars')
   }
   if (su && sameSignOrConjunct(moon, su)) {
     scores.mat.score += 2
-    scores.mat.reasons.push('Moon with Sun')
+    scores.mat.reasons.push(R?.sun ?? 'Moon with Sun')
     scores.chaitanya.score += 1
-    scores.chaitanya.reasons.push('Moon with Sun (ego awakening seed)')
+    scores.chaitanya.reasons.push(R?.sunSeed ?? 'Moon with Sun (ego awakening seed)')
   }
   if (ra && sameSignOrConjunct(moon, ra)) {
     scores.mat.score += 3
-    scores.mat.reasons.push('Moon with Rahu')
+    scores.mat.reasons.push(R?.rahu ?? 'Moon with Rahu')
   }
   if (ke && sameSignOrConjunct(moon, ke)) {
     scores.bhaya.score += 2
-    scores.bhaya.reasons.push('Moon with Ketu')
+    scores.bhaya.reasons.push(R?.ketu ?? 'Moon with Ketu')
     scores.smriti.score += 2
-    scores.smriti.reasons.push('Moon with Ketu (samskara / dreams)')
+    scores.smriti.reasons.push(R?.ketuSmriti ?? 'Moon with Ketu (samskara / dreams)')
     scores.chaitanya.score += 2
-    scores.chaitanya.reasons.push('Moon with Ketu (detachment)')
+    scores.chaitanya.reasons.push(R?.ketuDetach ?? 'Moon with Ketu (detachment)')
   }
   if (sa && sameSignOrConjunct(moon, sa)) {
     scores.bhaya.score += 3
-    scores.bhaya.reasons.push('Moon with Saturn')
+    scores.bhaya.reasons.push(R?.saturn ?? 'Moon with Saturn')
   }
   if (ju && sameSignOrConjunct(moon, ju)) {
     scores.viveka.score += 3
-    scores.viveka.reasons.push('Moon with Jupiter')
+    scores.viveka.reasons.push(R?.jupiter ?? 'Moon with Jupiter')
     scores.smriti.score += 1
-    scores.smriti.reasons.push('Moon with Jupiter')
+    scores.smriti.reasons.push(R?.jupiter ?? 'Moon with Jupiter')
   }
   if (moon.dignity === 'exalted' || moon.dignity === 'own' || moon.dignity === 'moolatrikona') {
     scores.smriti.score += 2
-    scores.smriti.reasons.push('Strong Moon dignity')
+    scores.smriti.reasons.push(R?.strong ?? 'Strong Moon dignity')
   }
   if (moon.dignity === 'debilitated' || moon.isCombust) {
     scores.bhaya.score += 2
-    scores.bhaya.reasons.push(moon.dignity === 'debilitated' ? 'Debilitated Moon' : 'Combust Moon')
+    scores.bhaya.reasons.push(moon.dignity === 'debilitated' ? (R?.debil ?? 'Debilitated Moon') : (R?.combust ?? 'Combust Moon'))
   }
   if (isPurnima) {
     scores.chaitanya.score += 2
-    scores.chaitanya.reasons.push('Purnima — pure mind emphasis')
+    scores.chaitanya.reasons.push(R?.purnima ?? 'Purnima — pure mind emphasis')
   }
 
   return (Object.keys(scores) as ManasId[])
@@ -708,6 +771,7 @@ function buildChartInsights(
   isPurnima: boolean,
   pakshaBali: PakshaBaliResult,
   neechaBhanga: MoonNeechaBhangaResult,
+  hi = false,
 ): MoonChartInsight[] {
   const ju = grahas.find(g => g.id === 'Ju')
   const ra = grahas.find(g => g.id === 'Ra')
@@ -801,7 +865,17 @@ function buildChartInsights(
     },
   ]
 
-  return insights
+  if (!hi) return insights
+  return insights.map(ins => {
+    const h = MOON_INSIGHTS_HI[ins.id]
+    if (!h) return ins
+    let detail = h.detail
+    if (ins.id === 'gaja_kesari') detail = juHouse != null ? fill(GAJA_KESARI_HI, { ju: juHouse, mo: house }) : h.detail
+    else if (ins.id === 'weak_paksha') detail = fill(h.detail, { label: pakshaBali.label })
+    else if (ins.id === 'neecha_bhanga') detail = neechaBhanga.detail
+    else if (ins.id === 'moon_nak_owned') detail = fill(h.detail, { nak: NAKSHATRA_HI[moon.nakshatraIndex] })
+    return { ...ins, title: h.title, detail }
+  })
 }
 
 function buildAnalysisFramework(
@@ -819,7 +893,32 @@ function buildAnalysisFramework(
   grahan: { active: boolean; with: 'Ra' | 'Ke' | null },
   dispositorNote: string,
   conjunctions: string[],
+  hi = false,
 ): MoonAnalysisCheck[] {
+  if (hi) {
+    const F = MOON_FRAMEWORK_HI
+    const nodeHi = grahan.with ? GRAHA_HI[grahan.with] : ''
+    return [
+      { id: 'paksha', step: 1, label: F.paksha.label, status: paksha === 'shukla' ? F.paksha.shukla : F.paksha.krishna, note: F.paksha.note, ok: true },
+      { id: 'tithi', step: 2, label: F.tithi.label, status: termHi(tithiName), note: fill(F.tithi.note, { label: pakshaBali.label }), ok: pakshaBali.band === 'full' || pakshaBali.band === 'recovering' },
+      {
+        id: 'dignity', step: 3, label: F.dignity.label,
+        status: fill(F.dignity.status, { dignity: dignityHi(moon.dignity), rashi: moon.rashiName, deg: moon.degreeInSign.toFixed(1), house: moon.house }),
+        note: F.dignity.note,
+        ok: moon.dignity === 'exalted' || moon.dignity === 'own' || moon.dignity === 'moolatrikona',
+      },
+      {
+        id: 'neecha', step: 4, label: F.neecha.label,
+        status: !neechaBhanga.isDebilitated ? F.neecha.na : neechaBhanga.cancelled ? F.neecha.cancelled : neechaBhanga.factors.length ? F.neecha.partial : F.neecha.notCancelled,
+        note: neechaBhanga.detail,
+        ok: !neechaBhanga.isDebilitated || neechaBhanga.cancelled,
+      },
+      { id: 'conjunctions', step: 5, label: F.conjunctions.label, status: conjunctions.length ? conjunctions.join(', ') : F.conjunctions.none, note: F.conjunctions.note, ok: !grahan.active },
+      { id: 'aspects', step: 6, label: F.aspects.label, status: grahan.active ? fill(F.aspects.grahan, { node: nodeHi }) : F.aspects.none, note: F.aspects.note, ok: !grahan.active },
+      { id: 'dispositor', step: 7, label: F.dispositor.label, status: dispositorNote, note: F.dispositor.note, ok: true },
+      { id: 'nakshatra', step: 8, label: F.nakshatra.label, status: moon.nakshatraName, note: F.nakshatra.note, ok: true },
+    ]
+  }
   return [
     {
       id: 'paksha',
@@ -900,7 +999,11 @@ function buildAnalysisFramework(
  * Analyze natal Moon for kalas (birth-time elongation), manas emphasis,
  * Paksha Bali, Neecha Bhanga, significations, and past-life flags.
  */
-export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult | null {
+export function analyzeMoonKalasManas(chart: ChartOutput, lang: EngineLang = 'en'): MoonKalasManasResult | null {
+  const hi = lang === 'hi'
+  const CK = chandraKalas(lang)
+  const TK = tripuraKalas(lang)
+  const MS = manasStages(lang)
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const sun = chart.grahas.find(g => g.id === 'Su')
   if (!moon || !sun) return null
@@ -919,6 +1022,11 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
     possessionMode,
     paksha,
   } = kalaFromElongation(elongation)
+  if (hi) {
+    activeChandraKala = CK[activeChandraKala.number - 1]
+    activeTripuraKala = TK[activeTripuraKala.number - 1]
+    activeKala = activeChandraKala
+  }
 
   // Prefer named tithi for cumulative possession (Ashtami → 1–8; Purnima → all 16)
   const tithiPaksha = tithi.paksha ?? paksha
@@ -930,15 +1038,15 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
     possessedCount = 16
     awakenedCount = 16
     possessionMode = 'accumulated'
-    activeChandraKala = CHANDRA_KALAS[15]
-    activeTripuraKala = TRIPURA_SUNDARI_KALAS[15]
+    activeChandraKala = CK[15]
+    activeTripuraKala = TK[15]
     activeKala = activeChandraKala
   } else if (isAmavasya) {
     possessedCount = 1
     awakenedCount = 1
     possessionMode = 'remaining'
-    activeChandraKala = CHANDRA_KALAS[0]
-    activeTripuraKala = TRIPURA_SUNDARI_KALAS[0]
+    activeChandraKala = CK[0]
+    activeTripuraKala = TK[0]
     activeKala = activeChandraKala
   } else if (tithiPaksha === 'shukla' && tithiInPaksha >= 1 && tithiInPaksha <= 14) {
     // Shukla Ashtami → possess kalas 1–8 (Amavasya through Ashtami), not only the 8th
@@ -946,8 +1054,8 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
     awakenedCount = tithiInPaksha
     possessionMode = 'accumulated'
     const idx = Math.min(15, possessedCount - 1)
-    activeChandraKala = CHANDRA_KALAS[idx]
-    activeTripuraKala = TRIPURA_SUNDARI_KALAS[idx]
+    activeChandraKala = CK[idx]
+    activeTripuraKala = TK[idx]
     activeKala = activeChandraKala
   } else if (tithiPaksha === 'krishna' && tithiInPaksha >= 1 && tithiInPaksha <= 14) {
     // Waning: remaining ≈ 16 − progress into Krishna
@@ -955,8 +1063,8 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
     awakenedCount = possessedCount
     possessionMode = 'remaining'
     const idx = Math.min(15, Math.max(0, possessedCount - 1))
-    activeChandraKala = CHANDRA_KALAS[idx]
-    activeTripuraKala = TRIPURA_SUNDARI_KALAS[idx]
+    activeChandraKala = CK[idx]
+    activeTripuraKala = TK[idx]
     activeKala = activeChandraKala
   }
 
@@ -966,9 +1074,10 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
     activeChandraKala,
     isPurnima,
     isAmavasya,
+    lang,
   )
-  const possessedChandraKalas = CHANDRA_KALAS.slice(0, possessedCount)
-  const possessedTripuraKalas = TRIPURA_SUNDARI_KALAS.slice(0, possessedCount)
+  const possessedChandraKalas = CK.slice(0, possessedCount)
+  const possessedTripuraKalas = TK.slice(0, possessedCount)
   const housesFromSun = signCount(sun.rashi, moon.rashi)
 
   const asc = chart.lagnas.ascRashi as Rashi
@@ -998,19 +1107,23 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
   const grahanActive = withRahu || withKetu
   const grahanWith: 'Ra' | 'Ke' | null = withRahu ? 'Ra' : withKetu ? 'Ke' : null
 
-  const pakshaBali = computePakshaBali(paksha, tithi.number, isAmavasya, isPurnima)
-  const neechaBhanga = assessMoonNeechaBhanga(moon, chart.grahas, asc)
+  const pakshaBali = computePakshaBali(paksha, tithi.number, isAmavasya, isPurnima, lang)
+  const neechaBhanga = assessMoonNeechaBhanga(moon, chart.grahas, asc, lang)
 
   const dispositorId = SIGN_LORD[moon.rashi]
   const dispositor = chart.grahas.find(g => g.id === dispositorId)
-  const dispositorNote = dispositor
+  const dispositorNote = hi
+    ? (dispositor
+        ? fill(MOON_TEXT_HI.dispositor, { name: GRAHA_HI[dispositor.id], rashi: RASHI_HI[dispositor.rashi], house: wholeSignHouse(dispositor.rashi, asc), dignity: dignityHi(dispositor.dignity) })
+        : MOON_TEXT_HI.dispositorMissing)
+    : dispositor
     ? `${dispositor.name} in ${RASHI_NAMES[dispositor.rashi]} H${wholeSignHouse(dispositor.rashi, asc)} (${dispositor.dignity})`
     : 'Dispositor not found'
 
   const conjunctions: string[] = []
   for (const g of chart.grahas) {
     if (g.id !== 'Mo' && sameSignOrConjunct(moon, g)) {
-      conjunctions.push(g.name)
+      conjunctions.push(hi ? GRAHA_HI[g.id] ?? g.name : g.name)
     }
   }
 
@@ -1059,15 +1172,24 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
     },
   ]
 
-  const manasScores = scoreManas(moon, chart.grahas, house, isPurnima)
-  const primary = MANAS_STAGES.find(s => s.id === manasScores[0]?.id) ?? MANAS_STAGES[0]
+  if (hi) {
+    for (let i = 0; i < pastLifeFlags.length; i++) pastLifeFlags[i] = mergeHi(pastLifeFlags[i], MOON_PAST_LIFE_HI[pastLifeFlags[i].id])
+  }
+
+  const manasScores = scoreManas(moon, chart.grahas, house, isPurnima, hi)
+  const primary = MS.find(s => s.id === manasScores[0]?.id) ?? MS[0]
   const secondary = manasScores
     .slice(1, 3)
     .filter(s => s.score > 0)
-    .map(s => MANAS_STAGES.find(m => m.id === s.id)!)
+    .map(s => MS.find(m => m.id === s.id)!)
     .filter(Boolean)
 
-  const worshipNote = isAmavasya
+  const W = MOON_TEXT_HI.worship
+  const worshipNote = hi
+    ? (isAmavasya ? W.amavasya : isPurnima ? W.purnima : possessionMode === 'accumulated'
+        ? fill(W.shukla, { n: possessedCount, kala: activeChandraKala.name, deg: elongation.toFixed(1) })
+        : fill(W.krishna, { n: possessedCount }))
+    : isAmavasya
     ? 'Amavasya is extremely important for major pujas (Tantric, Vedic, Puranic, Dakshin or Vam marga) — results of worship come very quickly.'
     : isPurnima
       ? 'Purnima is excellent for worship and ritual; all 16 kalas are possessed (the full set, not only Purna / Purnima).'
@@ -1077,9 +1199,9 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
 
   const moonMeta = {
     rashi: moon.rashi,
-    rashiName: RASHI_NAMES[moon.rashi],
+    rashiName: hi ? RASHI_HI[moon.rashi] : RASHI_NAMES[moon.rashi],
     nakshatraIndex: moon.nakshatraIndex,
-    nakshatraName: NAKSHATRA_NAMES[moon.nakshatraIndex],
+    nakshatraName: hi ? NAKSHATRA_HI[moon.nakshatraIndex] : NAKSHATRA_NAMES[moon.nakshatraIndex],
     pada: moon.pada,
     house,
     dignity: moon.dignity,
@@ -1092,7 +1214,7 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
     nearDebilPeak,
   }
 
-  return {
+  const result: MoonKalasManasResult = {
     ageContext: 'Birth-chart Moon analysis',
     elongationDeg: elongation,
     paksha,
@@ -1135,10 +1257,11 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
       { active: grahanActive, with: grahanWith },
       dispositorNote,
       conjunctions,
+      hi,
     ),
     neechaBhanga,
-    chartInsights: buildChartInsights(moon, chart.grahas, house, asc, isPurnima, pakshaBali, neechaBhanga),
-    manasStages: MANAS_STAGES,
+    chartInsights: buildChartInsights(moon, chart.grahas, house, asc, isPurnima, pakshaBali, neechaBhanga, hi),
+    manasStages: MS,
     primaryManas: primary,
     secondaryManas: secondary,
     manasScores,
@@ -1165,5 +1288,28 @@ export function analyzeMoonKalasManas(chart: ChartOutput): MoonKalasManasResult 
     chandraKalas: CHANDRA_KALAS,
     tripuraKalas: TRIPURA_SUNDARI_KALAS,
     allKalas: CHANDRA_KALAS,
+  }
+  if (!hi) return result
+  const H = MOON_TEXT_HI
+  return {
+    ...result,
+    ageContext: H.ageContext,
+    tithiName: termHi(tithi.name),
+    basicInfo: { ...MOON_BASIC_INFO_HI },
+    significations: MOON_SIGNIFICATIONS.map((g, i) => mergeHi(g, MOON_SIGNIFICATIONS_HI[i])),
+    vedicQuotes: VEDIC_MOON_QUOTES.map((q, i) => mergeHi(q, VEDIC_MOON_QUOTES_HI[i])),
+    psychology: { positive: [...PSYCHOLOGY_POSITIVE_HI], negativeWhenAfflicted: [...PSYCHOLOGY_NEGATIVE_HI], waterNote: H.waterNote },
+    chandraKalasNote: H.chandraKalasNote,
+    shriVidyaNote: H.shriVidyaNote,
+    grahanYoga: {
+      ...result.grahanYoga,
+      detail: grahanActive ? fill(H.grahan.active, { node: GRAHA_HI[grahanWith!] }) : H.grahan.none,
+    },
+    chartReadingTips: [...H.tips],
+    gocharNote: H.gocharNote,
+    teachingQuotes: [...TEACHING_QUOTES_HI],
+    chandraKalas: CK,
+    tripuraKalas: TK,
+    allKalas: CK,
   }
 }

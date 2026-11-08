@@ -28,3 +28,24 @@ export function lordName(lord: string): string {
 export function lordColor(lord: string): string {
   return GRAHA_COLOR[lord] ?? 'var(--text-muted)'
 }
+
+/** Hindi lord names: grahas and the sign codes used by sign-based dashas. */
+export const LORD_NAME_HI: Record<string, string> = {
+  Su: 'सूर्य', Mo: 'चंद्र', Ma: 'मंगल', Me: 'बुध', Ju: 'गुरु', Ve: 'शुक्र', Sa: 'शनि', Ra: 'राहु', Ke: 'केतु',
+  Ar: 'मेष', Ta: 'वृषभ', Ge: 'मिथुन', Cn: 'कर्क', Le: 'सिंह', Vi: 'कन्या', Li: 'तुला', Sc: 'वृश्चिक',
+  Sg: 'धनु', Cp: 'मकर', Aq: 'कुंभ', Pi: 'मीन',
+}
+
+/** Short Hindi codes for dasha paths (रा/सू/गु). */
+export const LORD_CODE_HI: Record<string, string> = {
+  Su: 'सू', Mo: 'चं', Ma: 'मं', Me: 'बु', Ju: 'गु', Ve: 'शु', Sa: 'श', Ra: 'रा', Ke: 'के',
+  Ar: 'मे', Ta: 'वृ', Ge: 'मि', Cn: 'क', Le: 'सिं', Vi: 'कन्या', Li: 'तु', Sc: 'वृश्चि', Sg: 'ध', Cp: 'म', Aq: 'कुं', Pi: 'मी',
+}
+
+export function lordNameIn(lord: string, hi: boolean): string {
+  return (hi ? LORD_NAME_HI[lord] : GRAHA_NAME[lord]) ?? lord
+}
+
+export function lordCodeIn(lord: string, hi: boolean): string {
+  return (hi ? LORD_CODE_HI[lord] : undefined) ?? lord
+}

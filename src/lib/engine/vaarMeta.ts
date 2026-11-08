@@ -6,6 +6,9 @@
 
 import type { GrahaId } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_NAMES } from '@/types/astrology'
+import { GRAHA_HI, NAKSHATRA_HI } from '@/i18n/jyotish'
+import { fill, overlay, type EngineLang } from '@/lib/engine/lang'
+import { HORA_PURPOSE_HI, VAAR_BIRTH_TEMPERAMENT_HI, VAAR_HI, VAAR_TEXT_HI } from '@/lib/engine/locale/vaarMeta.hi'
 
 export interface VaarMeta {
   number:     number // 0=Sun … 6=Sat
@@ -100,13 +103,19 @@ export const HORA_PURPOSE_HINTS: Array<{ purpose: string; lords: GrahaId[]; note
   { purpose: 'Property', lords: ['Sa', 'Ma'], note: 'Saturn or Mars hora' },
 ]
 
-export function getVaarMeta(varaNumber: number): VaarMeta {
+export function getVaarMeta(varaNumber: number, lang: EngineLang = 'en'): VaarMeta {
   const n = ((Math.floor(varaNumber) % 7) + 7) % 7
-  return VAAR[n]
+  return overlay(VAAR[n], VAAR_HI[n], lang)
 }
 
-export function formatVaarWeatherLine(meta: VaarMeta): string {
+export function formatVaarWeatherLine(meta: VaarMeta, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return fill(VAAR_TEXT_HI.weather, { lord: meta.lordName, guidance: meta.dayGuidance })
   return `Vaar Pati ${meta.lordName} — ${meta.dayGuidance}`
+}
+
+/** HORA_PURPOSE_HINTS in the requested language (lords unchanged). */
+export function listHoraPurposeHints(lang: EngineLang = 'en'): typeof HORA_PURPOSE_HINTS {
+  return HORA_PURPOSE_HINTS.map((h, i) => overlay(h, HORA_PURPOSE_HI[i], lang))
 }
 
 export interface CurrentHoraInfo {
@@ -117,10 +126,20 @@ export interface CurrentHoraInfo {
   purposeHint: string
 }
 
-function purposeHintForLord(lord: GrahaId): string {
-  const hits = HORA_PURPOSE_HINTS.filter((h) => h.lords.includes(lord)).map((h) => h.purpose)
-  if (hits.length === 0) return `${GRAHA_NAMES[lord]} hora — match to chart house lord for purpose`
-  return `${GRAHA_NAMES[lord]} hora — suited to: ${hits.slice(0, 3).join(', ')}`
+function grahaLabel(lord: GrahaId, lang: EngineLang): string {
+  return (lang === 'hi' ? GRAHA_HI[lord] : GRAHA_NAMES[lord]) ?? lord
+}
+
+function purposeHintForLord(lord: GrahaId, lang: EngineLang = 'en'): string {
+  const hits = listHoraPurposeHints(lang).filter((h) => h.lords.includes(lord)).map((h) => h.purpose)
+  const name = grahaLabel(lord, lang)
+  if (lang === 'hi') {
+    return hits.length === 0
+      ? fill(VAAR_TEXT_HI.horaNone, { lord: name })
+      : fill(VAAR_TEXT_HI.horaHits, { lord: name, purposes: hits.slice(0, 3).join(', ') })
+  }
+  if (hits.length === 0) return `${name} hora — match to chart house lord for purpose`
+  return `${name} hora — suited to: ${hits.slice(0, 3).join(', ')}`
 }
 
 /**
@@ -129,6 +148,7 @@ function purposeHintForLord(lord: GrahaId): string {
 export function getCurrentHora(
   horaTable: Array<{ lord: GrahaId; start: Date | string; end: Date | string }>,
   now: Date = new Date(),
+  lang: EngineLang = 'en',
 ): CurrentHoraInfo | null {
   const t = now.getTime()
   for (const h of horaTable) {
@@ -137,10 +157,10 @@ export function getCurrentHora(
     if (t >= start.getTime() && t < end.getTime()) {
       return {
         lord: h.lord,
-        lordName: GRAHA_NAMES[h.lord] ?? h.lord,
+        lordName: grahaLabel(h.lord, lang),
         start,
         end,
-        purposeHint: purposeHintForLord(h.lord),
+        purposeHint: purposeHintForLord(h.lord, lang),
       }
     }
   }
@@ -151,10 +171,16 @@ export function getCurrentHora(
  * Optional natal check: does Vaar Pati sit in a classical strength/weakness nakshatra?
  * Pass the natal nakshatra index of the Vaar Pati planet (not Moon, unless Moon is Vaar Pati).
  */
-export function vaarPatiNakNote(varaNumber: number, vaarPatiNakIndex: number | null | undefined): string | null {
+export function vaarPatiNakNote(
+  varaNumber: number,
+  vaarPatiNakIndex: number | null | undefined,
+  lang: EngineLang = 'en',
+): string | null {
   if (vaarPatiNakIndex == null || vaarPatiNakIndex < 0 || vaarPatiNakIndex > 26) return null
   const meta = getVaarMeta(varaNumber)
+  const local = getVaarMeta(varaNumber, lang)
   const name = NAKSHATRA_NAMES[vaarPatiNakIndex]
+  const shown = lang === 'hi' ? NAKSHATRA_HI[vaarPatiNakIndex] : name
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
   const nNorm = norm(name)
   const matches = (list: string[]) =>
@@ -163,16 +189,20 @@ export function vaarPatiNakNote(varaNumber: number, vaarPatiNakIndex: number | n
       return nNorm === sn || nNorm.includes(sn) || sn.includes(nNorm)
     })
   if (matches(meta.strengthenNaks)) {
-    return `${meta.lordName} in ${name} — classical strength for Vaar Pati`
+    return lang === 'hi'
+      ? fill(VAAR_TEXT_HI.strength, { lord: local.lordName, nak: shown })
+      : `${meta.lordName} in ${name} — classical strength for Vaar Pati`
   }
   if (matches(meta.weakenNaks)) {
-    return `${meta.lordName} in ${name} — classical caution for Vaar Pati (may need more effort)`
+    return lang === 'hi'
+      ? fill(VAAR_TEXT_HI.weak, { lord: local.lordName, nak: shown })
+      : `${meta.lordName} in ${name} — classical caution for Vaar Pati (may need more effort)`
   }
   return null
 }
 
-export function listVaarMeta(): VaarMeta[] {
-  return [...VAAR]
+export function listVaarMeta(lang: EngineLang = 'en'): VaarMeta[] {
+  return VAAR.map((v, i) => overlay(v, VAAR_HI[i], lang))
 }
 
 /** Birth-weekday temperament (shown in character; events depend on the chart). */
@@ -186,7 +216,7 @@ const VAAR_BIRTH_TEMPERAMENT: string[] = [
   'Slightly blunt with family yet kind to staff; drawn to crafts; slow, steady growth — both hard-working and lazy.',
 ]
 
-export function getVaarBirthTemperament(varaNumber: number): string {
+export function getVaarBirthTemperament(varaNumber: number, lang: EngineLang = 'en'): string {
   const n = ((Math.floor(varaNumber) % 7) + 7) % 7
-  return VAAR_BIRTH_TEMPERAMENT[n]
+  return (lang === 'hi' ? VAAR_BIRTH_TEMPERAMENT_HI[n] : undefined) ?? VAAR_BIRTH_TEMPERAMENT[n]
 }

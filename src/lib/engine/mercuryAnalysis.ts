@@ -6,6 +6,12 @@
 
 import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { mergeHi } from '@/lib/engine/locale/planetsA.util'
+import {
+  MERCURY_EFFECTS_HI, MERCURY_HOUSE_FOCUS_HI, MERCURY_KARAKATVA_HI, MERCURY_MEDICAL_HI, MERCURY_TEXT_HI,
+} from '@/lib/engine/locale/mercuryAnalysis.hi'
 import { getPlanetInHouse } from '@/lib/engine/houseInterpretations'
 import {
   getDignityAwarePlanetInSign,
@@ -414,7 +420,14 @@ function sameSignOrConjunct(a: GrahaData, b: GrahaData, orb = 8): boolean {
 /**
  * Natal Budha analysis from class teaching notes.
  */
-export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null {
+function mercuryHouseFocusHi(h: number, en: MercuryHouseFocus): MercuryHouseFocus {
+  const row = MERCURY_HOUSE_FOCUS_HI[h]
+  if (row) return mergeHi(en, row)
+  return { ...en, title: fill(MERCURY_TEXT_HI.houseFallbackTitle, { house: h }), notes: [MERCURY_TEXT_HI.houseFallbackNote] }
+}
+
+export function analyzeMercury(chart: ChartOutput, lang: EngineLang = 'en'): MercuryAnalysisResult | null {
+  const hi = lang === 'hi'
   const mercury = chart.grahas.find(g => g.id === 'Me')
   if (!mercury) return null
 
@@ -608,7 +621,7 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
     natalMixed,
   }
 
-  return {
+  const result: MercuryAnalysisResult = {
     mercury: {
       rashi: mercury.rashi,
       rashiName: RASHI_NAMES[mercury.rashi],
@@ -740,5 +753,68 @@ export function analyzeMercury(chart: ChartOutput): MercuryAnalysisResult | null
       { label: 'Enemy', value: 'Moon (Mars neutral)' },
       { label: 'Body', value: 'Nerves · brain junction · skin' },
     ],
+  }
+  if (!hi) return result
+
+  const T = MERCURY_TEXT_HI
+  const hfHi = mercuryHouseFocusHi(house, houseFocus)
+  const companionsHi = companions.map(c => ({ ...c, name: GRAHA_HI[c.id] ?? c.name }))
+  const remediesHi = [...T.remedies]
+  if (bothActive) remediesHi.unshift(T.remedyBoth)
+  if (house === 9) remediesHi.push(T.remedy9)
+  const cautionHi: MercuryFlag | null = houseCaution
+    ? inProblematicHouse
+      ? {
+          ...houseCaution,
+          title: house === 9 ? T.caution.h9 : house === 7 ? T.caution.h7 : T.caution.h12,
+          detail: hfHi.notes[0] ?? fill(T.caution.fallback, { house }),
+        }
+      : { ...houseCaution, title: T.caution.debil4Title, detail: T.caution.debil4 }
+    : null
+  return {
+    ...result,
+    mercury: { ...result.mercury, rashiName: RASHI_HI[mercury.rashi], nakshatraName: NAKSHATRA_HI[mercury.nakshatraIndex] },
+    nature: [...T.nature],
+    karakatva: MERCURY_KARAKATVA.map((g, i) => mergeHi(g, MERCURY_KARAKATVA_HI[i])),
+    medical: MERCURY_MEDICAL.map((g, i) => mergeHi(g, MERCURY_MEDICAL_HI[i])),
+    vedicRoles: T.vedicRoles.map(r => ({ ...r })),
+    houseFocus: hfHi,
+    allHouseFocus: result.allHouseFocus.map(h => mercuryHouseFocusHi(h.house, h)),
+    houseCaution: cautionHi,
+    companions: companionsHi,
+    companionNote: companionsHi.length > 0
+      ? fill(T.companionsWith, { list: companionsHi.map(c => c.name).join(', ') })
+      : T.companionsNone,
+    moonEnemyFlag: { ...moonEnemyFlag, title: T.moonEnemy.title, detail: withMoon ? T.moonEnemy.active : T.moonEnemy.inactive },
+    retroFlag: { ...retroFlag, title: T.retro.title, detail: mercury.isRetro ? T.retro.active : T.retro.inactive },
+    combustFlag: {
+      ...combustFlag,
+      title: T.combust.title,
+      detail: isCombust
+        ? fill(T.combust.active, { orb: combustOrbUsed, sep: sepFromSun != null ? fill(T.combust.sep, { sep: sepFromSun.toFixed(1) }) : '' })
+        : fill(T.combust.inactive, { orb: combustOrbUsed, motion: mercury.isRetro ? T.combust.vakri : T.combust.direct }),
+    },
+    bothFlag: { ...bothFlag, title: T.both.title, detail: bothActive ? T.both.active : T.both.inactive },
+    retroEffects: { negatives: [...MERCURY_EFFECTS_HI.retro.negatives], positives: [...MERCURY_EFFECTS_HI.retro.positives] },
+    combustEffects: { negatives: [...MERCURY_EFFECTS_HI.combust.negatives], positives: [...MERCURY_EFFECTS_HI.combust.positives] },
+    bothEffects: { negatives: [...MERCURY_EFFECTS_HI.both.negatives], positives: [...MERCURY_EFFECTS_HI.both.positives] },
+    twelfthPastLife: {
+      ...twelfthPastLife,
+      title: T.twelfth.title,
+      detail: house === 12 && bothActive ? T.twelfth.both : house === 12 ? T.twelfth.house : T.twelfth.none,
+    },
+    needsSupport: [...T.needsSupport],
+    oneLiner: T.oneLiner,
+    mythology: [...T.mythology],
+    curses: [...T.curses],
+    professions: [...T.professions],
+    languagesNote: T.languagesNote,
+    remedies: remediesHi,
+    rudrakshaNote: T.rudrakshaNote,
+    naturalAgeNote: T.naturalAgeNote,
+    relationships: { enemy: T.relationships.enemy, neutrals: [...T.relationships.neutrals], note: T.relationships.note },
+    caveats: [...T.caveats],
+    methodology: [...T.methodology],
+    summaryAttrs: T.summaryAttrs.map(a => ({ ...a })),
   }
 }

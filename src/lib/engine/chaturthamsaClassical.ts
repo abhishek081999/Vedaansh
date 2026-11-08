@@ -6,14 +6,16 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { ChartOutput, Dignity, GrahaId, Rashi } from '@/types/astrology'
-import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import type { ClassicalNote } from '@/lib/engine/classicalInterpretations'
+import { houseNotes as houseNotesL, planetInHouseNotes, planetInSignNotes, rashiNotes as rashiNotesL } from '@/lib/engine/divisionalClassicalHi'
+import { dignityText, fill, gName, pick, rName, type EngineLang } from '@/lib/engine/divisionalLang'
 import {
-  getDignityAwarePlanetInSign,
-  getHouseClassical,
-  getPlanetInHouseClassical,
-  getRashiClassical,
-  type ClassicalNote,
-} from '@/lib/engine/classicalInterpretations'
+  D4C_FOURTH_LORD_PHALA_HI,
+  D4C_GRADE_HI,
+  D4C_GRADE_NAME_HI,
+  D4C_OCCUPANT_HI,
+  D4C_TEXT_HI,
+} from '@/lib/engine/locale/chaturthamsaClassical.hi'
 import { hasParasharaAspect } from '@/lib/engine/aspects'
 import {
   type ChaturthamsaAnalysis,
@@ -239,17 +241,101 @@ function byIdMap(planets: ChaturthamsaPlanetRow[]): Map<GrahaId, ChaturthamsaPla
   return new Map(planets.map((p) => [p.id, p]))
 }
 
+const D4C_TEXT_EN: Record<keyof typeof D4C_TEXT_HI, string> = {
+  fLordDig: '4th lord dignity in D4',
+  fLordDigNote: '{planet} is {dignity} in {rashi} (H{house}).',
+  fLordHouse: '4th lord’s D4 house',
+  fLordHouseNote: '4th lord in house {house}.',
+  fLagnaLord: 'D4 lagna lord dignity',
+  fLagnaLordNote: '{planet} ({dignity}) steers the heart of Chaturthamsha.',
+  fMoon: 'Moon (emotional shelter)',
+  fMoonNote: 'Moon in D4 H{house} {rashi} — {dignity}.',
+  fJupiter: 'Jupiter (santosh)',
+  fJupiterNote: 'Jupiter in D4 H{house} — contentment with what the house holds.',
+  fDigbala: 'Digbala in the 4th (Mo/Ve)',
+  fDigbalaNote: '{names} gain directional strength in the 4th — classic for comfort and conveyances.',
+  fVargottama: 'Vargottama 4th lord (D1↔D4)',
+  fVargottamaNote: '{planet} repeats the same sign in D1 and D4 — property/sukha promise is consistent.',
+  fMalefic: 'Difficult planets in D4 4th',
+  fMaleficNote: '{names} press domestic peace — Phaladeepika warns on sukha when the 4th is heated.',
+  fDrishti: 'Helpful drishti on D4 4th',
+  fDrishtiNote: 'Jupiter, Venus, Moon, or Mercury aspects the 4th — classical relief for mother-comfort and property.',
+  fNodes: 'Nodes on D4 lagna',
+  fNodesNote: 'BPHS tradition: nodes on a varga lagna disturb that division’s heart — struggle around personal space and sukha.',
+  yGkName: 'Gaja-Kesari flavor (Moon–Jupiter)',
+  yGkYes: 'Moon and Jupiter link in D4 ({moon} / {jupiter}) — classical support for dignity, counsel, and a spacious emotional home.',
+  yGkNo: 'Moon and Jupiter are not in a classical Gaja-Kesari link in D4.',
+  yPariName: 'Parivartana 1↔4',
+  yPariYes: 'Lagna lord and 4th lord exchange in D4 — self and shelter fuse; property and identity rise together.',
+  yPariNo: 'No 1–4 lord exchange in D4.',
+  yMaKeName: 'Mars–Ketu in the 4th',
+  yMaKeYes: 'Mars–Ketu in the D4 4th: sharp domestic speech, renovation heat, or abrupt breaks in residence — weigh with D1 before predicting violence.',
+  yMaKeNo: 'Mars–Ketu do not co-occupy the D4 4th.',
+  yVishName: 'Saturn–Moon (Vish-style) in D4',
+  yVishYes: 'Saturn with Moon in D4: material structures may rise while emotional dryness and overthinking about home/commitment linger.',
+  yVishNo: 'Saturn and Moon are not conjunct in D4.',
+  yNodesName: 'Rahu/Ketu on D4 lagna',
+  yNodesYes: 'Nodes occupy the Chaturthamsha lagna — the division’s heart is disturbed until wisdom softens attachment and aversion.',
+  yNodesNo: 'D4 lagna is free of the nodes.',
+  yDigName: 'Sukha digbala (Moon/Venus in 4th)',
+  yDigYes: 'Moon and/or Venus in the D4 4th — directional strength for conveyances, aesthetics, and mother-comfort.',
+  yDigNo: 'Neither Moon nor Venus sits in the D4 4th for digbala.',
+  srcBphsPd: 'BPHS · Phaladeepika',
+  srcBphsYoga: 'BPHS yoga',
+  srcCaution: 'Classical caution',
+  srcPdPop: 'Phaladeepika · popular yoga tradition',
+  srcVarga: 'BPHS varga principle',
+  srcDigbala: 'BPHS Digbala',
+  homeLensFallback: '{planet} in D4 H{house} ({rashi}) colors home and happiness through its karakatva.',
+  propGood: 'Property: {planet} in house {house} with workable dignity supports lands/house ownership; confirm with D1 4th and D16 for vehicles.',
+  propDus: 'Property: 4th lord in dusthana (difficult houses: 6, 8, 12) H{house} — ownership may come through struggle, inheritance, foreign soil, or delayed purchase.',
+  propMid: 'Property: follow {planet} in D4 H{house} with the D1 4th lord for timing of lands and dwelling.',
+  motherGood: 'Mother / emotional comfort: Moon is supportive in Chaturthamsha — nurture and domestic peace are available when dashas agree.',
+  motherBad: 'Mother / emotional comfort: difficult planets on the D4 4th caution early or ongoing strain around mother-comfort — read with D1 Moon and 4th.',
+  motherMid: 'Mother / emotional comfort: mixed — weigh Moon, 4th lord, and helpful planets on the 4th together.',
+  convVe: 'Conveyances: Venus in the D4 4th is a classical vehicle/comfort signature (pair with D16).',
+  convMaSu: 'Conveyances: Sun/Mars influence on the 4th can give vehicles with heat, status, or machinery — maintenance and temper matter.',
+  convMid: 'Conveyances: check Venus, 4th lord, and Shodasamsha (D16) for cars and luxuries; D4 shows the comfort climate around them.',
+  relocNow: 'Relocation: current dasha flags a move window — {headline}. Classical texts time residence change from the 4th/8th complex and their lords’ periods.',
+  reloc8: 'Relocation: 8th-house links in D4 support residence change in related dashas (BPHS āyu/transformation house applied to shelter).',
+  relocNone: 'Relocation: no strong current 8th/6–8 flag — still watch 4th-lord and 8th-lord periods for moves.',
+  contGood: 'Contentment (santosh): Jupiter is supportive in D4 — the person can feel “enough” when wisdom and counsel are honored.',
+  contBad: 'Contentment: troubled Jupiter in D4 — even with assets, satisfaction may spoil until counsel, dharma, or temple/wisdom practices restore santosh.',
+  contMid: 'Contentment: Jupiter’s D4 condition is mixed — santosh depends on dasha and how the 4th lord is used.',
+  agreeYes: '{planet} is 4th lord in both D1 and D4 — birth-chart shelter promise and Chaturthamsha fortune point the same graha.',
+  agreeNo: 'D1 4th lord is {d1}; inside D4 the 4th lord is {d4}. Use D1 for the life-level promise and D4 for how home fortune unfolds.',
+  predLord: '{headline}. {prediction}',
+  predLordFallback: '{planet} as D4 4th lord in house {house} steers sukhaphala.',
+  predYoga: '{name}: {detail}',
+  occFallback: '{planet} in the D4 4th colors bandhu/sukha through its nature.',
+  framing: 'Bṛhat Parāśara Horā Śāstra’s Shodashavarga assigns Chaturthamsha (D4) to the fortune of home and fixed comforts — an expansion of Bandhu/Sukha Bhava (mother, lands, conveyances, emotional peace). Phaladeepika and Saravali 4th-house phala are read on D4 placements; Digbala of Moon/Venus in the 4th is weighed. This tab does not replace D1 — it grades sukhaphala on top of the rashi promise.',
+  src1: 'BPHS — Shodashavarga (Chaturthamsha); Bandhu/Sukha Bhava; Digbala; graha-in-bhava phala',
+  src2: 'Phaladeepika — 4th house (mother, property, domestic peace); planet-in-house',
+  src3: 'Saravali / Brihat Jataka — rashi natures applied to D4 lagna and 4th',
+  src4: 'Jātaka tradition — Vargottama, Parivartana, Gaja-Kesari flavor in the varga',
+  sukhaHeadline: 'Sukhaphala {score}/100 · {grade}',
+  sukhaText: 'Counted factors: 4th-lord dignity and house, D4 lagna-lord dignity, Moon and Jupiter, Mo/Ve digbala in the 4th, Vargottama of the D1 4th lord, difficult planets in the 4th, helpful drishti (aspect), and nodes on the D4 lagna. This is a comfort/property grade — not a street address.',
+  lordHeadlineFallback: '4th lord {planet}',
+  caution: 'Confirm D1 first. Chaturthamsha does not replace the birth chart — BPHS uses it for the fortune of shelter on top of the rashi 4th. Pair vehicles with D16 and marriage peace with D9 when those questions dominate.',
+  roleFourth: '4th lord',
+  roleLagna: 'D4 lagna lord',
+  roleMoon: 'Moon (mind/sukha)',
+  roleJupiter: 'Jupiter (santosh)',
+  roleIn4: 'in D4 4th',
+}
+
 function roleFor(
   id: GrahaId,
   fourthLordId: GrahaId,
   lagnaLordId: GrahaId,
   fourthOcc: Set<GrahaId>,
+  T: Record<keyof typeof D4C_TEXT_HI, string>,
 ): string | null {
-  if (id === fourthLordId) return '4th lord'
-  if (id === lagnaLordId) return 'D4 lagna lord'
-  if (id === 'Mo') return 'Moon (mind/sukha)'
-  if (id === 'Ju') return 'Jupiter (santosh)'
-  if (fourthOcc.has(id)) return 'in D4 4th'
+  if (id === fourthLordId) return T.roleFourth
+  if (id === lagnaLordId) return T.roleLagna
+  if (id === 'Mo') return T.roleMoon
+  if (id === 'Ju') return T.roleJupiter
+  if (fourthOcc.has(id)) return T.roleIn4
   return null
 }
 
@@ -261,7 +347,13 @@ function roleFor(
 export function buildChaturthamsaClassical(
   analysis: ChaturthamsaAnalysis,
   chart: ChartOutput,
+  lang: EngineLang = 'en',
 ): ChaturthamsaClassical | null {
+  const T = pick(D4C_TEXT_EN, D4C_TEXT_HI as Record<keyof typeof D4C_TEXT_HI, string>, lang)
+  const FLP = pick(FOURTH_LORD_PHALA, D4C_FOURTH_LORD_PHALA_HI, lang)
+  const OCC = pick(FOURTH_OCCUPANT_PHALA, D4C_OCCUPANT_HI as Partial<Record<GrahaId, string>>, lang)
+  const dig = (d: Dignity) => dignityText(d, lang)
+  const g = (id: GrahaId) => gName(id, lang)
   const d1Asc = chart.lagnas?.ascRashi
   if (!d1Asc || !analysis.planets.length) return null
 
@@ -293,26 +385,26 @@ export function buildChaturthamsaClassical(
   const flDig = dignityPoints(fourthLord.dignity)
   score += flDig
   factors.push({
-    label: '4th lord dignity in D4',
+    label: T.fLordDig,
     points: flDig,
-    note: `${fourthLord.name} is ${fourthLord.dignity.replace(/_/g, ' ')} in ${fourthLord.rashiName} (H${fourthLord.house}).`,
+    note: fill(T.fLordDigNote, { planet: fourthLord.name, dignity: dig(fourthLord.dignity), rashi: fourthLord.rashiName, house: fourthLord.house }),
   })
 
   const flHouse = housePoints(fourthLord.house)
   score += flHouse
   factors.push({
-    label: '4th lord’s D4 house',
+    label: T.fLordHouse,
     points: flHouse,
-    note: FOURTH_LORD_PHALA[fourthLord.house]?.headline ?? `4th lord in house ${fourthLord.house}.`,
+    note: FLP[fourthLord.house]?.headline ?? fill(T.fLordHouseNote, { house: fourthLord.house }),
   })
 
   if (lagnaLord) {
     const ll = dignityPoints(lagnaLord.dignity)
     score += Math.round(ll * 0.6)
     factors.push({
-      label: 'D4 lagna lord dignity',
+      label: T.fLagnaLord,
       points: Math.round(ll * 0.6),
-      note: `${lagnaLord.name} (${lagnaLord.dignity.replace(/_/g, ' ')}) steers the heart of Chaturthamsha.`,
+      note: fill(T.fLagnaLordNote, { planet: lagnaLord.name, dignity: dig(lagnaLord.dignity) }),
     })
   }
 
@@ -320,9 +412,9 @@ export function buildChaturthamsaClassical(
     const mo = dignityPoints(moon.dignity) + (moon.house === 4 ? 6 : 0)
     score += Math.round(mo * 0.5)
     factors.push({
-      label: 'Moon (emotional shelter)',
+      label: T.fMoon,
       points: Math.round(mo * 0.5),
-      note: `Moon in D4 H${moon.house} ${moon.rashiName} — ${moon.dignity.replace(/_/g, ' ')}.`,
+      note: fill(T.fMoonNote, { house: moon.house, rashi: moon.rashiName, dignity: dig(moon.dignity) }),
     })
   }
 
@@ -330,9 +422,9 @@ export function buildChaturthamsaClassical(
     const juPts = dignityPoints(jupiter.dignity) + ([1, 4, 5, 9, 10].includes(jupiter.house) ? 4 : 0)
     score += Math.round(juPts * 0.45)
     factors.push({
-      label: 'Jupiter (santosh)',
+      label: T.fJupiter,
       points: Math.round(juPts * 0.45),
-      note: `Jupiter in D4 H${jupiter.house} — contentment with what the house holds.`,
+      note: fill(T.fJupiterNote, { house: jupiter.house }),
     })
   }
 
@@ -340,9 +432,9 @@ export function buildChaturthamsaClassical(
   if (digbalaHit.length) {
     score += 6
     factors.push({
-      label: 'Digbala in the 4th (Mo/Ve)',
+      label: T.fDigbala,
       points: 6,
-      note: `${digbalaHit.map((p) => p.name).join(', ')} gain directional strength in the 4th — classic for comfort and conveyances.`,
+      note: fill(T.fDigbalaNote, { names: digbalaHit.map((p) => p.name).join(', ') }),
     })
   }
 
@@ -351,9 +443,9 @@ export function buildChaturthamsaClassical(
   if (vargottamaFourth) {
     score += 8
     factors.push({
-      label: 'Vargottama 4th lord (D1↔D4)',
+      label: T.fVargottama,
       points: 8,
-      note: `${GRAHA_NAMES[d1FourthLordId]} repeats the same sign in D1 and D4 — property/sukha promise is consistent.`,
+      note: fill(T.fVargottamaNote, { planet: g(d1FourthLordId) }),
     })
   }
 
@@ -362,9 +454,9 @@ export function buildChaturthamsaClassical(
     const pen = -5 * maleficsInFourth.length
     score += pen
     factors.push({
-      label: 'Difficult planets in D4 4th',
+      label: T.fMalefic,
       points: pen,
-      note: `${maleficsInFourth.map((p) => p.name).join(', ')} press domestic peace — Phaladeepika warns on sukha when the 4th is heated.`,
+      note: fill(T.fMaleficNote, { names: maleficsInFourth.map((p) => p.name).join(', ') }),
     })
   }
 
@@ -374,18 +466,18 @@ export function buildChaturthamsaClassical(
   if (beneficsAspectFourth) {
     score += 5
     factors.push({
-      label: 'Helpful drishti on D4 4th',
+      label: T.fDrishti,
       points: 5,
-      note: 'Jupiter, Venus, Moon, or Mercury aspects the 4th — classical relief for mother-comfort and property.',
+      note: T.fDrishtiNote,
     })
   }
 
   if (analysis.heart.nodesOnLagna) {
     score -= 8
     factors.push({
-      label: 'Nodes on D4 lagna',
+      label: T.fNodes,
       points: -8,
-      note: 'BPHS tradition: nodes on a varga lagna disturb that division’s heart — struggle around personal space and sukha.',
+      note: T.fNodesNote,
     })
   }
 
@@ -400,12 +492,12 @@ export function buildChaturthamsaClassical(
     const gk = sc === 1 || sc === 7 || [5, 9].includes(sc) || hasParasharaAspect(jupiter.rashi, 'Ju', moon.rashi)
     yogas.push({
       id: 'gaja-kesari-d4',
-      name: 'Gaja-Kesari flavor (Moon–Jupiter)',
+      name: T.yGkName,
       formed: gk,
-      source: 'BPHS · Phaladeepika',
+      source: T.srcBphsPd,
       detail: gk
-        ? `Moon and Jupiter link in D4 (${RASHI_NAMES[moon.rashi]} / ${RASHI_NAMES[jupiter.rashi]}) — classical support for dignity, counsel, and a spacious emotional home.`
-        : 'Moon and Jupiter are not in a classical Gaja-Kesari link in D4.',
+        ? fill(T.yGkYes, { moon: rName(moon.rashi, lang), jupiter: rName(jupiter.rashi, lang) })
+        : T.yGkNo,
       tone: gk ? 'supportive' : 'neutral',
     })
   }
@@ -416,24 +508,20 @@ export function buildChaturthamsaClassical(
     && fourthLord.house === 1
   yogas.push({
     id: 'parivartana-1-4',
-    name: 'Parivartana 1↔4',
+    name: T.yPariName,
     formed: Boolean(exchange14),
-    source: 'BPHS yoga',
-    detail: exchange14
-      ? 'Lagna lord and 4th lord exchange in D4 — self and shelter fuse; property and identity rise together.'
-      : 'No 1–4 lord exchange in D4.',
+    source: T.srcBphsYoga,
+    detail: exchange14 ? T.yPariYes : T.yPariNo,
     tone: exchange14 ? 'supportive' : 'neutral',
   })
 
   const keMaFourth = fourthOccIds.has('Ke') && fourthOccIds.has('Ma')
   yogas.push({
     id: 'mars-ketu-fourth',
-    name: 'Mars–Ketu in the 4th',
+    name: T.yMaKeName,
     formed: keMaFourth,
-    source: 'Classical caution',
-    detail: keMaFourth
-      ? 'Mars–Ketu in the D4 4th: sharp domestic speech, renovation heat, or abrupt breaks in residence — weigh with D1 before predicting violence.'
-      : 'Mars–Ketu do not co-occupy the D4 4th.',
+    source: T.srcCaution,
+    detail: keMaFourth ? T.yMaKeYes : T.yMaKeNo,
     tone: keMaFourth ? 'challenging' : 'neutral',
   })
 
@@ -442,35 +530,29 @@ export function buildChaturthamsaClassical(
     && (byId.get('Sa')!.rashi === moon.rashi)
   yogas.push({
     id: 'vish-yoga-d4',
-    name: 'Saturn–Moon (Vish-style) in D4',
+    name: T.yVishName,
     formed: Boolean(saMo),
-    source: 'Phaladeepika · popular yoga tradition',
-    detail: saMo
-      ? 'Saturn with Moon in D4: material structures may rise while emotional dryness and overthinking about home/commitment linger.'
-      : 'Saturn and Moon are not conjunct in D4.',
+    source: T.srcPdPop,
+    detail: saMo ? T.yVishYes : T.yVishNo,
     tone: saMo ? 'mixed' : 'neutral',
   })
 
   yogas.push({
     id: 'nodes-lagna',
-    name: 'Rahu/Ketu on D4 lagna',
+    name: T.yNodesName,
     formed: analysis.heart.nodesOnLagna,
-    source: 'BPHS varga principle',
-    detail: analysis.heart.nodesOnLagna
-      ? 'Nodes occupy the Chaturthamsha lagna — the division’s heart is disturbed until wisdom softens attachment and aversion.'
-      : 'D4 lagna is free of the nodes.',
+    source: T.srcVarga,
+    detail: analysis.heart.nodesOnLagna ? T.yNodesYes : T.yNodesNo,
     tone: analysis.heart.nodesOnLagna ? 'challenging' : 'supportive',
   })
 
   const veMoFourth = digbalaHit.length >= 1 && (fourthOccIds.has('Ve') || fourthOccIds.has('Mo'))
   yogas.push({
     id: 'sukha-digbala',
-    name: 'Sukha digbala (Moon/Venus in 4th)',
+    name: T.yDigName,
     formed: veMoFourth,
-    source: 'BPHS Digbala',
-    detail: veMoFourth
-      ? 'Moon and/or Venus in the D4 4th — directional strength for conveyances, aesthetics, and mother-comfort.'
-      : 'Neither Moon nor Venus sits in the D4 4th for digbala.',
+    source: T.srcDigbala,
+    detail: veMoFourth ? T.yDigYes : T.yDigNo,
     tone: veMoFourth ? 'supportive' : 'neutral',
   })
 
@@ -482,24 +564,24 @@ export function buildChaturthamsaClassical(
   for (const id of CLASSICAL) {
     const row = byId.get(id)
     if (!row) continue
-    const houseNotes = getPlanetInHouseClassical(id, row.house)
-    const signNotes = getDignityAwarePlanetInSign(id, row.rashi, row.dignity)
-    const occupant = FOURTH_OCCUPANT_PHALA[id]
+    const houseNotes = planetInHouseNotes(id, row.house, lang)
+    const signNotes = planetInSignNotes(id, row.rashi, row.dignity, lang)
+    const occupant = OCC[id]
     const homeLens =
       row.house === 4 && occupant
         ? occupant
         : houseNotes[0]?.text
-          ?? `${GRAHA_NAMES[id]} in D4 H${row.house} (${row.rashiName}) colors home and happiness through its karakatva.`
+          ?? fill(T.homeLensFallback, { planet: g(id), house: row.house, rashi: row.rashiName })
     phala.push({
       id,
-      name: GRAHA_NAMES[id],
+      name: g(id),
       d4House: row.house,
       d4Rashi: row.rashi,
       d4RashiName: row.rashiName,
       dignity: row.dignity,
-      role: roleFor(id, fourthLordId, lagnaLordId, fourthOccIds),
+      role: roleFor(id, fourthLordId, lagnaLordId, fourthOccIds, T),
       homeLens,
-      houseTeaching: getHouseClassical(row.house)[0]?.text ?? null,
+      houseTeaching: houseNotesL(row.house, lang)[0]?.text ?? null,
       houseClassical: houseNotes,
       signClassical: signNotes,
       priority: priorityIds.has(id),
@@ -507,97 +589,90 @@ export function buildChaturthamsaClassical(
   }
 
   // ── Domain predictions ─────────────────────────────────────
-  const flPhala = FOURTH_LORD_PHALA[fourthLord.house]
+  const flPhala = FLP[fourthLord.house]
   const property =
     [4, 11, 2, 9].includes(fourthLord.house) && dignityPoints(fourthLord.dignity) >= 2
-      ? `Property: ${fourthLord.name} in house ${fourthLord.house} with workable dignity supports lands/house ownership; confirm with D1 4th and D16 for vehicles.`
+      ? fill(T.propGood, { planet: fourthLord.name, house: fourthLord.house })
       : [6, 8, 12].includes(fourthLord.house)
-        ? `Property: 4th lord in dusthana (difficult houses: 6, 8, 12) H${fourthLord.house} — ownership may come through struggle, inheritance, foreign soil, or delayed purchase.`
-        : `Property: follow ${fourthLord.name} in D4 H${fourthLord.house} with the D1 4th lord for timing of lands and dwelling.`
+        ? fill(T.propDus, { house: fourthLord.house })
+        : fill(T.propMid, { planet: fourthLord.name, house: fourthLord.house })
 
   const motherComfort =
     moon && (moon.house === 4 || dignityPoints(moon.dignity) >= 6)
-      ? 'Mother / emotional comfort: Moon is supportive in Chaturthamsha — nurture and domestic peace are available when dashas agree.'
+      ? T.motherGood
       : maleficsInFourth.length
-        ? 'Mother / emotional comfort: difficult planets on the D4 4th caution early or ongoing strain around mother-comfort — read with D1 Moon and 4th.'
-        : 'Mother / emotional comfort: mixed — weigh Moon, 4th lord, and helpful planets on the 4th together.'
+        ? T.motherBad
+        : T.motherMid
 
   const conveyances =
     venus && venus.house === 4
-      ? 'Conveyances: Venus in the D4 4th is a classical vehicle/comfort signature (pair with D16).'
+      ? T.convVe
       : fourthOccIds.has('Ma') || fourthOccIds.has('Su')
-        ? 'Conveyances: Sun/Mars influence on the 4th can give vehicles with heat, status, or machinery — maintenance and temper matter.'
-        : 'Conveyances: check Venus, 4th lord, and Shodasamsha (D16) for cars and luxuries; D4 shows the comfort climate around them.'
+        ? T.convMaSu
+        : T.convMid
 
   const relocation =
     analysis.relocation?.eighthLordPeriodActive || analysis.relocation?.sixthEighthDashaLink
-      ? `Relocation: current dasha flags a move window — ${analysis.relocation.headline}. Classical texts time residence change from the 4th/8th complex and their lords’ periods.`
+      ? fill(T.relocNow, { headline: analysis.relocation.headline })
       : fourthLord.house === 8 || fourthOccIds.size && analysis.planets.some((p) => p.house === 8)
-        ? 'Relocation: 8th-house links in D4 support residence change in related dashas (BPHS āyu/transformation house applied to shelter).'
-        : 'Relocation: no strong current 8th/6–8 flag — still watch 4th-lord and 8th-lord periods for moves.'
+        ? T.reloc8
+        : T.relocNone
 
   const contentment =
     jupiter && dignityPoints(jupiter.dignity) >= 6 && ![6, 8, 12].includes(jupiter.house)
-      ? 'Contentment (santosh): Jupiter is supportive in D4 — the person can feel “enough” when wisdom and counsel are honored.'
+      ? T.contGood
       : jupiter && (dignityPoints(jupiter.dignity) < 0 || [6, 8, 12].includes(jupiter.house))
-        ? 'Contentment: troubled Jupiter in D4 — even with assets, satisfaction may spoil until counsel, dharma, or temple/wisdom practices restore santosh.'
-        : 'Contentment: Jupiter’s D4 condition is mixed — santosh depends on dasha and how the 4th lord is used.'
+        ? T.contBad
+        : T.contMid
 
   const agrees = d1FourthLordId === fourthLordId
   const d1Agreement = {
     agrees,
     d1FourthLord: d1FourthLordId,
-    d1FourthLordName: GRAHA_NAMES[d1FourthLordId],
+    d1FourthLordName: g(d1FourthLordId),
     d4FourthLord: fourthLordId,
     text: agrees
-      ? `${GRAHA_NAMES[d1FourthLordId]} is 4th lord in both D1 and D4 — birth-chart shelter promise and Chaturthamsha fortune point the same graha.`
-      : `D1 4th lord is ${GRAHA_NAMES[d1FourthLordId]}; inside D4 the 4th lord is ${GRAHA_NAMES[fourthLordId]}. Use D1 for the life-level promise and D4 for how home fortune unfolds.`,
+      ? fill(T.agreeYes, { planet: g(d1FourthLordId) })
+      : fill(T.agreeNo, { d1: g(d1FourthLordId), d4: g(fourthLordId) }),
   }
 
   const formedYogas = yogas.filter((y) => y.formed)
   const predictions: string[] = [
     flPhala
-      ? `${flPhala.headline}. ${flPhala.prediction}`
-      : `${fourthLord.name} as D4 4th lord in house ${fourthLord.house} steers sukhaphala.`,
+      ? fill(T.predLord, { headline: flPhala.headline, prediction: flPhala.prediction })
+      : fill(T.predLordFallback, { planet: fourthLord.name, house: fourthLord.house }),
     d1Agreement.text,
     property,
     motherComfort,
     contentment,
   ]
   if (formedYogas[0]) {
-    predictions.push(`${formedYogas[0].name}: ${formedYogas[0].detail}`)
+    predictions.push(fill(T.predYoga, { name: formedYogas[0].name, detail: formedYogas[0].detail }))
   }
   if (analysis.relocation && (analysis.relocation.eighthLordPeriodActive || analysis.relocation.sixthEighthDashaLink)) {
     predictions.push(relocation)
   }
 
-  const fourthHouseNotes = getHouseClassical(4)
-  const fourthRashiNotes = getRashiClassical(fourthSign)
+  const fourthHouseNotes = houseNotesL(4, lang)
+  const fourthRashiNotes = rashiNotesL(fourthSign, lang)
   const occupantPhala = analysis.planets
     .filter((p) => p.house === 4)
     .map((p) => ({
       id: p.id,
       name: p.name,
-      text: FOURTH_OCCUPANT_PHALA[p.id] ?? `${p.name} in the D4 4th colors bandhu/sukha through its nature.`,
+      text: OCC[p.id] ?? fill(T.occFallback, { planet: p.name }),
     }))
 
   return {
-    framing:
-      'Bṛhat Parāśara Horā Śāstra’s Shodashavarga assigns Chaturthamsha (D4) to the fortune of home and fixed comforts — an expansion of Bandhu/Sukha Bhava (mother, lands, conveyances, emotional peace). Phaladeepika and Saravali 4th-house phala are read on D4 placements; Digbala of Moon/Venus in the 4th is weighed. This tab does not replace D1 — it grades sukhaphala on top of the rashi promise.',
-    sources: [
-      'BPHS — Shodashavarga (Chaturthamsha); Bandhu/Sukha Bhava; Digbala; graha-in-bhava phala',
-      'Phaladeepika — 4th house (mother, property, domestic peace); planet-in-house',
-      'Saravali / Brihat Jataka — rashi natures applied to D4 lagna and 4th',
-      'Jātaka tradition — Vargottama, Parivartana, Gaja-Kesari flavor in the varga',
-    ],
+    framing: T.framing,
+    sources: [T.src1, T.src2, T.src3, T.src4],
     predictions,
     sukhaphala: {
       grade,
-      gradeLabel: GRADE_LABEL[grade],
+      gradeLabel: lang === 'hi' ? D4C_GRADE_HI[grade] : GRADE_LABEL[grade],
       score,
-      headline: `Sukhaphala ${score}/100 · ${grade}`,
-      text:
-        'Counted factors: 4th-lord dignity and house, D4 lagna-lord dignity, Moon and Jupiter, Mo/Ve digbala in the 4th, Vargottama of the D1 4th lord, difficult planets in the 4th, helpful drishti (aspect), and nodes on the D4 lagna. This is a comfort/property grade — not a street address.',
+      headline: fill(T.sukhaHeadline, { score, grade: lang === 'hi' ? D4C_GRADE_NAME_HI[grade] : grade }),
+      text: T.sukhaText,
       factors,
     },
     fourthLord: {
@@ -606,12 +681,12 @@ export function buildChaturthamsaClassical(
       house: fourthLord.house,
       rashiName: fourthLord.rashiName,
       dignity: fourthLord.dignity,
-      headline: flPhala?.headline ?? `4th lord ${fourthLord.name}`,
+      headline: flPhala?.headline ?? fill(T.lordHeadlineFallback, { planet: fourthLord.name }),
       prediction: flPhala?.prediction ?? fourthLord.interpretation,
     },
     fourthHouse: {
       rashi: fourthSign,
-      rashiName: RASHI_NAMES[fourthSign],
+      rashiName: rName(fourthSign, lang),
       occupants: analysis.planets.filter((p) => p.house === 4).map((p) => p.name),
       houseNotes: fourthHouseNotes,
       rashiNotes: fourthRashiNotes,
@@ -627,7 +702,6 @@ export function buildChaturthamsaClassical(
       relocation,
       contentment,
     },
-    caution:
-      'Confirm D1 first. Chaturthamsha does not replace the birth chart — BPHS uses it for the fortune of shelter on top of the rashi 4th. Pair vehicles with D16 and marriage peace with D9 when those questions dominate.',
+    caution: T.caution,
   }
 }

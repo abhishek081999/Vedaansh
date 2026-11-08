@@ -7,6 +7,9 @@
 import type { GrahaData, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { getLagnaCharacterProfile } from '@/lib/engine/lagnaCharacter'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import { CHEAT_SHEET_HI } from '@/lib/engine/locale/houseGuide.hi'
 import { buildLagnaChartOverlay, HOUSE_NUMBERS } from '@/lib/engine/lagnaChartOverlay'
 
 export interface CheatSheetHouseRow {
@@ -28,12 +31,13 @@ export interface LagnaCheatSheet {
   cautionsAndRemedies: string[]
 }
 
-function firstSentence(text: string): string {
-  const idx = text.indexOf('. ')
+function firstSentence(text: string, sep = '. '): string {
+  const idx = text.indexOf(sep)
   return idx === -1 ? text : text.slice(0, idx + 1)
 }
 
-export function buildLagnaCheatSheet(ascRashi: Rashi, grahas: GrahaData[]): LagnaCheatSheet | null {
+export function buildLagnaCheatSheet(ascRashi: Rashi, grahas: GrahaData[], lang: EngineLang = 'en'): LagnaCheatSheet | null {
+  if (lang === 'hi') return buildLagnaCheatSheetHi(ascRashi, grahas)
   const profile = getLagnaCharacterProfile(ascRashi)
   if (!profile) return null
 
@@ -75,18 +79,50 @@ export function buildLagnaCheatSheet(ascRashi: Rashi, grahas: GrahaData[]): Lagn
   }
 }
 
-export function cheatSheetToText(sheet: LagnaCheatSheet): string {
+export function cheatSheetToText(sheet: LagnaCheatSheet, lang: EngineLang = 'en'): string {
+  const hi = lang === 'hi'
   const lines: string[] = [sheet.title, '', sheet.headline, '']
-  lines.push('This chart')
+  lines.push(hi ? CHEAT_SHEET_HI.textThisChart : 'This chart')
   for (const t of sheet.thisChart) lines.push(`- ${t}`)
-  lines.push('', 'Key points')
+  lines.push('', hi ? CHEAT_SHEET_HI.textKeyPoints : 'Key points')
   for (const k of sheet.keyPoints) lines.push(`- ${k}`)
-  lines.push('', 'Houses')
+  lines.push('', hi ? CHEAT_SHEET_HI.textHouses : 'Houses')
   for (const h of sheet.houses) {
     const occ = h.occupants.length > 0 ? ` [${h.occupants.join(', ')}]` : ''
-    lines.push(`H${h.house} ${h.signName}: ${h.theme}${occ}`)
+    lines.push(`${hi ? fill(CHEAT_SHEET_HI.houseShort, { n: h.house }) : `H${h.house}`} ${h.signName}: ${h.theme}${occ}`)
   }
-  lines.push('', 'Cautions and remedies')
+  lines.push('', hi ? CHEAT_SHEET_HI.textCautions : 'Cautions and remedies')
   for (const c of sheet.cautionsAndRemedies) lines.push(`- ${c}`)
   return lines.join('\n')
+}
+
+function buildLagnaCheatSheetHi(ascRashi: Rashi, grahas: GrahaData[]): LagnaCheatSheet | null {
+  const profile = getLagnaCharacterProfile(ascRashi, 'hi')
+  if (!profile) return null
+  const t = CHEAT_SHEET_HI
+  const overlay = buildLagnaChartOverlay(ascRashi, grahas)
+  const first = overlay[0]
+  const thisChart: string[] = []
+  if (first) {
+    const lord = GRAHA_HI[first.lordId]
+    thisChart.push(first.lordPlacedHouse ? fill(t.lordSits, { lord, n: first.lordPlacedHouse }) : fill(t.lordNA, { lord }))
+  }
+  const crowded = overlay.filter((h) => h.occupants.length > 1).map((h) => fill(t.houseShort, { n: h.house }))
+  if (crowded.length > 0) thisChart.push(fill(t.crowded, { list: crowded.join(', ') }))
+  const empty = overlay.filter((h) => h.occupants.length === 0).length
+  thisChart.push(fill(t.occupancy, { occ: 12 - empty, empty }))
+  return {
+    title: fill(t.title, { sign: RASHI_HI[ascRashi] }),
+    ascName: RASHI_HI[ascRashi],
+    headline: firstSentence(profile.intro, '। '),
+    thisChart,
+    keyPoints: profile.traits.map((tr) => `${tr.title}: ${tr.points[0]}`),
+    houses: HOUSE_NUMBERS.map((h) => ({
+      house: h,
+      signName: profile.houses[h].signName,
+      theme: profile.houses[h].theme,
+      occupants: overlay[h - 1].occupants.map((o) => GRAHA_HI[o.id]),
+    })),
+    cautionsAndRemedies: [...profile.exceptions, ...profile.readingNotes],
+  }
 }

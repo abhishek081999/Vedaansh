@@ -4,13 +4,12 @@
 //  CRM Client Management Dashboard (Platinum)
 // ─────────────────────────────────────────────────────────────
 
+import { Link, useRouter } from '@/i18n/navigation'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import { BREAKPOINTS } from '@/lib/ui/breakpoints'
-import Link from 'next/link'
 import { BirthForm } from '@/components/ui/BirthForm'
 
 interface ClientNote {

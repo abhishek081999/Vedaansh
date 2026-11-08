@@ -8,6 +8,7 @@
 import React, { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput } from '@/types/astrology'
+import { useTranslations } from 'next-intl'
 
 interface Props {
   chart: ChartOutput
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function ExportPdfButton({ chart, compact = false, style, label, title }: Props) {
+  const t = useTranslations('chart.actions')
   const { data: session } = useSession()
   const plan = (session?.user as any)?.plan ?? 'free'
   const [loading, setLoading] = useState(false)
@@ -47,7 +49,7 @@ export function ExportPdfButton({ chart, compact = false, style, label, title }:
           window.location.href = '/pricing?highlight=gold'
           return
         }
-        throw new Error(data.error || 'Export failed')
+        throw new Error(data.error || t('exportFailed'))
       }
 
       // Get HTML blob and open in new tab
@@ -83,7 +85,7 @@ export function ExportPdfButton({ chart, compact = false, style, label, title }:
       <button
         onClick={handleExport}
         disabled={loading}
-        title={title ?? (isFree ? 'PDF export requires Gold plan' : `Export ${chart.meta.name} as PDF`)}
+        title={title ?? (isFree ? t('pdfLocked') : t('pdfTitle', { name: chart.meta.name }))}
         style={{
           display:        'inline-flex',
           alignItems:     'center',
@@ -106,17 +108,17 @@ export function ExportPdfButton({ chart, compact = false, style, label, title }:
         {loading ? (
           <>
             <span style={{ fontSize: 14 }}>⏳</span>
-            {!compact && 'Preparing…'}
+            {!compact && t('preparing')}
           </>
         ) : isFree ? (
           <>
             <span style={{ fontSize: 14 }}>🔒</span>
-            {compact ? 'PDF' : 'PDF Export (Gold)'}
+            {compact ? t('pdf') : t('pdfGold')}
           </>
         ) : (
           <>
             <span style={{ fontSize: 14 }}>⬇</span>
-            {label ?? (compact ? 'PDF' : 'Download PDF')}
+            {label ?? (compact ? t('pdf') : t('downloadPdf'))}
           </>
         )}
       </button>

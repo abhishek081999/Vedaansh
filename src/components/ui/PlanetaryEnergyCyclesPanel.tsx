@@ -5,8 +5,8 @@
 //  Free: 2-planet preview · Gold+: full nine cycles
 // ─────────────────────────────────────────────────────────────
 
+import { Link } from '@/i18n/navigation'
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import type { ChartOutput, GrahaId, UserPlan } from '@/types/astrology'
 import { PanelShell } from '@/components/ui/patterns/PanelShell'
@@ -19,6 +19,8 @@ import {
   type PlanetaryEnergyCycle,
 } from '@/lib/engine/planetaryEnergyCycles'
 import { ICON } from '@/components/ui/PlanetDetailCard'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import { TimelineBand, VizCard, type BandSegment } from '@/components/ui/viz'
 
 /** Free users see these two as a teaser (prefer active status when sorting). */
@@ -81,6 +83,7 @@ function CycleCard({
   /** Free teaser: title + status + short summary only */
   previewOnly?: boolean
 }) {
+  const t = useTranslations('planetsB.energy')
   const s = STATUS_STYLE[cycle.status]
   return (
     <div style={{
@@ -174,7 +177,7 @@ function CycleCard({
               gap: '0.35rem',
             }}>
               <Lock size={12} aria-hidden />
-              Full phases, timing windows, and chart notes on Gold
+              {t('lockedExtras')}
             </div>
           ) : (
             <>
@@ -187,7 +190,7 @@ function CycleCard({
                     color: 'var(--text-muted)',
                     marginBottom: '0.4rem',
                   }}>
-                    Phases
+                    {t('phases')}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                     {cycle.phases.map(p => (
@@ -216,7 +219,7 @@ function CycleCard({
                     color: 'var(--text-muted)',
                     marginBottom: '0.4rem',
                   }}>
-                    Timing Windows
+                    {t('windows')}
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                     {cycle.windows.map(w => (
@@ -248,7 +251,7 @@ function CycleCard({
                     color: 'var(--text-muted)',
                     marginBottom: '0.35rem',
                   }}>
-                    How it shows
+                    {t('howItShows')}
                   </div>
                   <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.68rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                     {cycle.manifestations.map(m => <li key={m}>{m}</li>)}
@@ -270,7 +273,7 @@ function CycleCard({
                     color: 'var(--text-gold)',
                     marginBottom: '0.3rem',
                   }}>
-                    This chart
+                    {t('thisChart')}
                   </div>
                   {cycle.natalNotes.map(n => (
                     <div key={n} style={{ fontSize: '0.68rem', color: 'var(--text-primary)', lineHeight: 1.45 }}>
@@ -296,11 +299,13 @@ export function PlanetaryEnergyCyclesPanel({
   userPlan = 'free',
   embedded = false,
 }: PlanetaryEnergyCyclesPanelProps) {
+  const t = useTranslations('planetsB.energy')
+  const { lang } = useLang()
   const showFull = planMeetsUiGate(userPlan, 'gold')
 
   const result = useMemo(
-    () => computePlanetaryEnergyCycles(chart.grahas, chart.meta.birthDate),
-    [chart.grahas, chart.meta.birthDate],
+    () => computePlanetaryEnergyCycles(chart.grahas, chart.meta.birthDate, undefined, lang),
+    [chart.grahas, chart.meta.birthDate, lang],
   )
 
   const activeFirst = useMemo(() => {
@@ -350,12 +355,12 @@ export function PlanetaryEnergyCyclesPanel({
           lane,
           color: WINDOW_KIND_COLOR[w.kind],
           emphasis: w.active,
-          title: `${c.grahaName} · ${w.label} · age ${w.ages}`,
+          title: t('segTitle', { graha: c.grahaName, label: w.label, ages: w.ages }),
         })
       })
     }
     return { lanes, segments }
-  }, [result.cycles])
+  }, [result.cycles, t])
 
   const activeCount = result.cycles.filter(c => c.status === 'active').length
 
@@ -375,11 +380,10 @@ export function PlanetaryEnergyCyclesPanel({
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
             <Lock size={14} aria-hidden style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Free preview: {FREE_PREVIEW_COUNT} energy cycles with a short summary.
-            Full nine planets, phases, timing windows, and chart notes require Gold.
+            {t('freePreview', { count: FREE_PREVIEW_COUNT })}
           </div>
           <Link href="/pricing" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="sm">View plans</Button>
+            <Button variant="primary" size="sm">{t('viewPlans')}</Button>
           </Link>
         </div>
       )}
@@ -401,21 +405,21 @@ export function PlanetaryEnergyCyclesPanel({
       }}>
         <span>{result.insight}</span>
         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-          Age {result.age}
-          {activeCount > 0 ? ` · ${activeCount} active` : ''}
-          {!showFull ? ' · preview' : ''}
+          {t('age', { age: result.age })}
+          {activeCount > 0 ? ` · ${t('activeCount', { count: activeCount })}` : ''}
+          {!showFull ? ` · ${t('preview')}` : ''}
         </span>
       </div>
 
       {showFull && ageMap.segments.length > 0 && (
         <div style={{ marginBottom: '0.85rem' }}>
           <VizCard
-            title="Energy windows by age"
-            caption="Every timed lock, release and activation window on one age axis. Gold line = your current age."
+            title={t('vizTitle')}
+            caption={t('vizCaption')}
             legend={[
-              { label: 'Lock', color: WINDOW_KIND_COLOR.lock },
-              { label: 'Release', color: WINDOW_KIND_COLOR.release },
-              { label: 'Activation', color: WINDOW_KIND_COLOR.activation },
+              { label: t('legendLock'), color: WINDOW_KIND_COLOR.lock },
+              { label: t('legendRelease'), color: WINDOW_KIND_COLOR.release },
+              { label: t('legendActivation'), color: WINDOW_KIND_COLOR.activation },
             ]}
           >
             <TimelineBand
@@ -427,7 +431,7 @@ export function PlanetaryEnergyCyclesPanel({
               ticks={9}
               laneHeight={18}
               tickFormat={(v) => `${Math.round(v)}`}
-              ariaLabel="Planetary energy windows by age"
+              ariaLabel={t('vizAria')}
             />
           </VizCard>
         </div>
@@ -454,7 +458,7 @@ export function PlanetaryEnergyCyclesPanel({
           <PlanGate
             userPlan={userPlan}
             required="gold"
-            featureName="Full Planetary Energy Cycles"
+            featureName={t('gateFeature')}
           >
             <div style={{
               display: 'grid',
@@ -490,12 +494,12 @@ export function PlanetaryEnergyCyclesPanel({
 
   return (
     <PanelShell
-      title="Planetary Energy Cycles"
+      title={t('panelTitle')}
       headerActions={
         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-          Age {result.age}
-          {activeCount > 0 ? ` · ${activeCount} active` : ''}
-          {!showFull ? ' · Free preview' : ''}
+          {t('age', { age: result.age })}
+          {activeCount > 0 ? ` · ${t('activeCount', { count: activeCount })}` : ''}
+          {!showFull ? ` · ${t('freePreviewShort')}` : ''}
         </span>
       }
       padding="sm"
