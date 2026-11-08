@@ -13,6 +13,8 @@ import { aspectsSign, signModality } from '@/lib/engine/dashamsaClassical'
 import { NATURAL_ENEMIES } from '@/lib/engine/dignity'
 import { badhakaHouse, getBadhakaLord } from '@/lib/engine/marakaBadhaka'
 import { getNakshatraProfession } from '@/lib/engine/nakshatraProfession'
+import { type EngineLang } from '@/lib/engine/lang'
+import { localizeCareerMethod } from '@/lib/engine/careerMethodLocale'
 
 export type MethodTone = 'supportive' | 'caution' | 'mixed'
 export type WorkShape = 'job' | 'business' | 'partnership' | 'independent' | 'family' | 'mixed'
@@ -427,7 +429,7 @@ function formatDay(value: Date | string | number): string {
   return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10)
 }
 
-export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date()): CareerMethodAnalysis | null {
+export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date(), lang: EngineLang = 'en'): CareerMethodAnalysis | null {
   const asc = chart.lagnas?.ascRashi
   if (!asc) return null
 
@@ -2703,7 +2705,7 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
 
   const headline = `${typeAnswer} ${gn(dominantGraha?.id ?? 'Su')} leads. ${rn(tenthSign)} on the 10th.`
 
-  return {
+  const result: CareerMethodAnalysis = {
     headline,
     dominant: {
       planet: dominantGraha ? gn(dominantGraha.id) : '10th lord',
@@ -2736,4 +2738,5 @@ export function analyzeCareerMethod(chart: ChartOutput, asOf: Date = new Date())
     streams,
     gana,
   }
+  return lang === 'hi' ? localizeCareerMethod(result) : result
 }

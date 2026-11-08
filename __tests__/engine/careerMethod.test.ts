@@ -1945,4 +1945,56 @@ describe('analyzeCareerMethod', () => {
     expect(reading!.gana.notes.find(n => n.id === 'blueprint')!.reading).toMatch(/care/)
     expect(reading!.gana.closing).toMatch(/not the same career/)
   })
+
+  it('keeps English output byte-identical when lang=en', () => {
+    const fixture = chart({
+      asc: 1,
+      grahas: [
+        g('Sa', 10, 'own', { nakshatraIndex: 0, pada: 1 }),
+        g('Su', 5, 'own'),
+        g('Mo', 4, 'own'),
+        g('Ma', 8, 'own'),
+        g('Me', 3, 'own'),
+        g('Ju', 9, 'own'),
+        g('Ve', 2, 'own'),
+        g('Ra', 6),
+        g('Ke', 12),
+      ],
+    })
+    const en = analyzeCareerMethod(fixture, AS_OF, 'en')!
+    const legacy = analyzeCareerMethod(fixture, AS_OF)!
+    expect(JSON.stringify(en)).toBe(JSON.stringify(legacy))
+    expect(en.principle).toMatch(/^The same combination/)
+    expect(en.questions.map(q => q.title)).toEqual([
+      'Type of work',
+      'Skill set',
+      'Income',
+      'Direction and growth',
+      'Environment',
+    ])
+  })
+
+  it('returns Devanagari headlines and section closings when lang=hi', () => {
+    const fixture = chart({
+      asc: 1,
+      grahas: [
+        g('Sa', 10, 'own', { nakshatraIndex: 0, pada: 1 }),
+        g('Su', 5, 'own'),
+        g('Mo', 4, 'own'),
+        g('Ma', 8, 'own'),
+        g('Me', 3, 'own'),
+        g('Ju', 9, 'own'),
+        g('Ve', 2, 'own'),
+        g('Ra', 6),
+        g('Ke', 12),
+      ],
+    })
+    const hi = analyzeCareerMethod(fixture, AS_OF, 'hi')!
+    const devanagari = /[\u0900-\u097F]/
+    expect(hi.principle).toMatch(devanagari)
+    expect(hi.questions.every(q => devanagari.test(q.title))).toBe(true)
+    expect(hi.system.closing).toMatch(devanagari)
+    expect(hi.gana.closing).toMatch(devanagari)
+    expect(hi.practice.lessons).toMatch(devanagari)
+  })
 })

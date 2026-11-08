@@ -5,6 +5,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
+import { termHi } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
 import React, { useEffect, useMemo, useState, useTransition } from 'react'
 import type { ChartOutput, GrahaId, Rashi, UserPlan } from '@/types/astrology'
 import { RASHI_SHORT } from '@/types/astrology'
@@ -28,39 +31,10 @@ import {
 
 type CareerMode = 'desk' | 'method'
 
-const CAREER_METHODS: { id: CareerMode; code: string; name: string; topic: string }[] = [
-  {
-    id: 'desk',
-    code: 'M1',
-    name: 'Career reading',
-    topic: 'The 10th house and its lord, whether the career can be delivered, the turns of the work, and who helps or blocks the post.',
-  },
-  {
-    id: 'method',
-    code: 'M2',
-    name: 'Professional method',
-    topic: 'The karma field first, then the pair that is joined, then how the nakshatra behaves. Dashamsha comes after the birth chart.',
-  },
-]
-
 /** A reading block. Several sections are stacked inside one tab. */
 type Section = 'delivery' | 'strength' | 'chain' | 'turns' | 'support' | 'overview' | 'houses' | 'yogas' | 'planets' | 'stars' | 'confirm' | 'timing' | 'remedies' | 'brief'
 
 type View = 'overview' | 'promise' | 'houses' | 'yogas' | 'turns' | 'timing' | 'action'
-
-/**
- * Seven tabs, each grouping related sections (rendered in the order of the JSX below).
- * Keep the labels short enough to fit on one row on a phone.
- */
-const VIEWS: { id: View; label: string; hint: string; sections: Section[] }[] = [
-  { id: 'overview', label: 'Overview', hint: 'Five scores, the six questions, the likely track, foreign work, and profession fields', sections: ['overview'] },
-  { id: 'promise', label: 'Promise and Strength', hint: 'Can the 10th deliver, how strong the career planets are, and the D9, D10, and A10 checks', sections: ['delivery', 'strength', 'confirm'] },
-  { id: 'houses', label: 'Houses and Planets', hint: 'Livelihood houses, the 10th from Moon and Sun, each planet at work, the dispositor (ruler of the sign it sits in) chain, and the varga ladder', sections: ['houses', 'planets', 'chain'] },
-  { id: 'yogas', label: 'Yogas and Nakshatra', hint: 'Career yogas and the nakshatra profession formula', sections: ['yogas', 'stars'] },
-  { id: 'turns', label: 'Turns and Support', hint: 'Starts, breaks, changes, and rises of the career, and who helps or blocks the post', sections: ['turns', 'support'] },
-  { id: 'timing', label: 'Timing', hint: 'Good and poor periods from mahadasha down to sookshma, and the slow-planet transits', sections: ['timing'] },
-  { id: 'action', label: 'Remedies and Brief', hint: 'What to do with this chart, and a consultant brief to copy', sections: ['remedies', 'brief'] },
-]
 
 const TONE: Record<CareerTone, string> = {
   supportive: 'var(--teal)',
@@ -182,6 +156,7 @@ function ZoomTrack({
   segments: CareerTrackSegment[]
   nowShare: number | null
 }) {
+  const tTiming = useTranslations('careerProfession.timing')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
       <div className="label-caps" style={{ fontSize: '0.58rem' }}>{caption}</div>
@@ -206,7 +181,10 @@ function ZoomTrack({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.4rem' }}>
         {segments.map(seg => (
           <article key={seg.id} style={{ padding: '0.65rem 0.75rem', borderLeft: `3px solid ${FIT_COLOR[seg.fit]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-            <SectionLabel>{seg.live ? 'Now · ' : ''}{seg.lord} · {seg.start} to {seg.end}</SectionLabel>
+            <SectionLabel>
+              {seg.live ? tTiming('nowPrefix') : ''}
+              {tTiming('periodRange', { lord: seg.lord, start: seg.start, end: seg.end })}
+            </SectionLabel>
             <div style={{ fontWeight: 750, fontSize: '0.78rem', marginBottom: 4 }}>{seg.label}</div>
             <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{seg.reason}</p>
           </article>
@@ -223,6 +201,7 @@ function CareerPeriodTracker({
   tracker: CareerTracker
   transits: CareerTransitReading | null
 }) {
+  const tTiming = useTranslations('careerProfession.timing')
   if (!tracker.mahas.length) {
     return (
       <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>{tracker.headline}</p>
@@ -235,16 +214,16 @@ function CareerPeriodTracker({
         {(['good', 'mixed', 'poor'] as CareerFit[]).map(fit => (
           <span key={fit} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
             <span style={{ width: 10, height: 10, borderRadius: 2, background: FIT_COLOR[fit] }} />
-            {fit === 'good' ? 'Good for career' : fit === 'poor' ? 'Poor for career' : 'Mixed for career'}
+            {fit === 'good' ? tTiming('fitGood') : fit === 'poor' ? tTiming('fitPoor') : tTiming('fitMixed')}
           </span>
         ))}
       </div>
       <div style={{ position: 'relative' }}>
-        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>Mahadasha</div>
+        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>{tTiming('mahadasha')}</div>
         <PeriodBar segments={tracker.mahas} height={38} />
         {tracker.antars.length ? (
           <>
-            <div className="label-caps" style={{ fontSize: '0.58rem', margin: '0.45rem 0 4px' }}>Antardasha</div>
+            <div className="label-caps" style={{ fontSize: '0.58rem', margin: '0.45rem 0 4px' }}>{tTiming('antardasha')}</div>
             <PeriodBar segments={tracker.antars} height={22} />
           </>
         ) : null}
@@ -267,7 +246,7 @@ function CareerPeriodTracker({
       <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tracker.nowLabel}</p>
       {tracker.pratyantars.length ? (
         <ZoomTrack
-          caption={`Pratyantardasha · ${tracker.pratyantarWindow}`}
+          caption={tTiming('pratyantardasha', { window: tracker.pratyantarWindow })}
           segments={tracker.pratyantars}
           nowShare={tracker.pratyantarNowShare}
         />
@@ -276,15 +255,15 @@ function CareerPeriodTracker({
       ) : null}
       {tracker.sookshmas.length ? (
         <ZoomTrack
-          caption={`Sookshma · ${tracker.sookshmaWindow}`}
+          caption={tTiming('sookshma', { window: tracker.sookshmaWindow })}
           segments={tracker.sookshmas}
           nowShare={tracker.sookshmaNowShare}
         />
       ) : null}
       <div>
-        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>Transits (gochar)</div>
+        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>{tTiming('transitsGochar')}</div>
         {!transits ? (
-          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reading the current transits…</p>
+          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tTiming('readingTransits')}</p>
         ) : !transits.available ? (
           <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{transits.headline}</p>
         ) : (
@@ -293,7 +272,14 @@ function CareerPeriodTracker({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.4rem' }}>
               {transits.hits.map(hit => (
                 <article key={hit.id} style={{ padding: '0.65rem 0.75rem', borderLeft: `3px solid ${FIT_COLOR[hit.fit]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                  <SectionLabel>{hit.planet} · house {hit.house} · {hit.signName}{hit.retro ? ' · retrograde' : ''}</SectionLabel>
+                  <SectionLabel>
+                    {tTiming('transitHit', {
+                      planet: hit.planet,
+                      house: hit.house,
+                      sign: hit.signName,
+                      retro: hit.retro ? tTiming('retrogradeSuffix') : '',
+                    })}
+                  </SectionLabel>
                   <div style={{ fontWeight: 750, fontSize: '0.78rem', marginBottom: 4 }}>{hit.label}</div>
                   <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{hit.reading}</p>
                 </article>
@@ -305,7 +291,10 @@ function CareerPeriodTracker({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
         {tracker.mahas.map(seg => (
           <article key={seg.id} style={{ padding: '0.75rem 0.85rem', borderLeft: `3px solid ${FIT_COLOR[seg.fit]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-            <SectionLabel>{seg.live ? 'Now · ' : ''}{seg.lord} · {seg.start} to {seg.end}</SectionLabel>
+            <SectionLabel>
+              {seg.live ? tTiming('nowPrefix') : ''}
+              {tTiming('periodRange', { lord: seg.lord, start: seg.start, end: seg.end })}
+            </SectionLabel>
             <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 4 }}>{seg.label}</div>
             <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{seg.reason}</p>
           </article>
@@ -316,6 +305,8 @@ function CareerPeriodTracker({
 }
 
 function CareerCharts({ chart, showD10, highlight, d10Highlight }: { chart: ChartOutput; showD10: boolean; highlight: number[]; d10Highlight: number[] }) {
+  const t = useTranslations('careerProfession.charts')
+  const { hi } = useLang()
   const moonNakIndex = chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0
   const d1Asc = chart.lagnas.ascRashi as Rashi
   const d10Asc = (chart.vargaLagnas?.D10 ?? d1Asc) as Rashi
@@ -328,12 +319,17 @@ function CareerCharts({ chart, showD10, highlight, d10Highlight }: { chart: Char
     minWidth: 0,
     overflow: 'hidden',
   }
+  const lagnaSign = (rashi: Rashi) => {
+    const en = RASHI_SHORT[rashi]
+    const sign = hi ? termHi(en) : en
+    return t('lagna', { sign })
+  }
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '0.75rem' }}>
       <article style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
-          <span className="label-caps" style={{ fontSize: '0.62rem' }}>D1 · Lagna chart</span>
-          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-gold)' }}>{RASHI_SHORT[d1Asc]} lagna</span>
+          <span className="label-caps" style={{ fontSize: '0.62rem' }}>{t('d1Label')}</span>
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-gold)' }}>{lagnaSign(d1Asc)}</span>
         </div>
         <ChakraSelector
           ascRashi={d1Asc}
@@ -352,8 +348,8 @@ function CareerCharts({ chart, showD10, highlight, d10Highlight }: { chart: Char
       {showD10 && d10Grahas.length ? (
         <article style={card}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
-            <span className="label-caps" style={{ fontSize: '0.62rem' }}>D10 · Dashamsha</span>
-            <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-gold)' }}>{RASHI_SHORT[d10Asc]} lagna</span>
+            <span className="label-caps" style={{ fontSize: '0.62rem' }}>{t('d10Label')}</span>
+            <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-gold)' }}>{lagnaSign(d10Asc)}</span>
           </div>
           <ChakraSelector
             ascRashi={d10Asc}
@@ -371,13 +367,50 @@ function CareerCharts({ chart, showD10, highlight, d10Highlight }: { chart: Char
   )
 }
 
+function CareerReadingLoader() {
+  const t = useTranslations('careerProfession.page')
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280, padding: '3rem 1rem' }}>
+      <VedaanshLoader size={44} message={t('loader')} />
+    </div>
+  )
+}
+
 function CareerReading({ chart, userPlan = 'free' }: Props) {
+  const tHero = useTranslations('careerProfession.hero')
+  const tTabs = useTranslations('careerProfession.tabs')
+  const tSections = useTranslations('careerProfession.sections')
+  const tMethods = useTranslations('careerProfession.methods')
+  const tPage = useTranslations('careerProfession.page')
+  const tLocked = useTranslations('careerProfession.locked')
+  const tBrief = useTranslations('careerProfession.brief')
+  const tUi = useTranslations('careerProfession.ui')
+  const { lang } = useLang()
   const full = planMeetsUiGate(userPlan, 'gold')
   const { setActiveTab } = useAppLayout()
-  const data = useMemo(() => analyzeCareerProfession(chart), [chart])
+  const data = useMemo(() => analyzeCareerProfession(chart, new Date(), lang), [chart, lang])
+  const careerMethods = useMemo(
+    (): { id: CareerMode; code: string; name: string; topic: string }[] => [
+      { id: 'desk', code: tMethods('desk.code'), name: tMethods('desk.name'), topic: tMethods('desk.topic') },
+      { id: 'method', code: tMethods('method.code'), name: tMethods('method.name'), topic: tMethods('method.topic') },
+    ],
+    [tMethods],
+  )
+  const views = useMemo(
+    (): { id: View; label: string; hint: string; sections: Section[] }[] => [
+      { id: 'overview', label: tTabs('overview'), hint: tTabs('overviewHint'), sections: ['overview'] },
+      { id: 'promise', label: tTabs('promise'), hint: tTabs('promiseHint'), sections: ['delivery', 'strength', 'confirm'] },
+      { id: 'houses', label: tTabs('houses'), hint: tTabs('housesHint'), sections: ['houses', 'planets', 'chain'] },
+      { id: 'yogas', label: tTabs('yogas'), hint: tTabs('yogasHint'), sections: ['yogas', 'stars'] },
+      { id: 'turns', label: tTabs('turns'), hint: tTabs('turnsHint'), sections: ['turns', 'support'] },
+      { id: 'timing', label: tTabs('timing'), hint: tTabs('timingHint'), sections: ['timing'] },
+      { id: 'action', label: tTabs('action'), hint: tTabs('actionHint'), sections: ['remedies', 'brief'] },
+    ],
+    [tTabs],
+  )
   const [mode, setMode] = useState<CareerMode>('desk')
   const [view, setView] = useState<View>('overview')
-  const activeView = VIEWS.find(v => v.id === view) ?? VIEWS[0]
+  const activeView = views.find(v => v.id === view) ?? views[0]
   const has = (section: Section) => activeView.sections.includes(section)
   const [copied, setCopied] = useState(false)
   const [transits, setTransits] = useState<CareerTransitReading | null>(null)
@@ -397,20 +430,20 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               return [{ id: row.planetId, rashi: row.sign, isRetro: row.isRetro === true }]
             })
           : []
-        setTransits(readCareerTransits(chart, positions))
+        setTransits(readCareerTransits(chart, positions, lang))
       })
       .catch(() => {
         if (!cancel) {
-          setTransits({ available: false, headline: 'Transit could not be read.', hits: [] })
+          setTransits({ available: false, headline: tUi('transitError'), hits: [] })
         }
       })
     return () => { cancel = true }
-  }, [ascRashi, chart])
+  }, [ascRashi, chart, lang, tUi])
 
   if (!data) {
     return (
       <div style={{ padding: '1.25rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        This chart has no ascendant, so career and profession cannot be read yet.
+        {tPage('noAscendant')}
       </div>
     )
   }
@@ -428,11 +461,11 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', padding: '0.85rem' }}>
       <header>
-        <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: 6 }}>Career and profession</div>
+        <div className="label-caps" style={{ fontSize: '0.62rem', marginBottom: 6 }}>{tHero('eyebrow')}</div>
         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.28rem', maxWidth: 420 }}>
-          <span className="label-caps" style={{ fontSize: '0.58rem' }}>Method</span>
+          <span className="label-caps" style={{ fontSize: '0.58rem' }}>{tHero('methodLabel')}</span>
           <select
-            aria-label="Select career method"
+            aria-label={tHero('methodAria')}
             value={mode}
             onChange={e => setMode(e.target.value as CareerMode)}
             style={{
@@ -448,7 +481,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               cursor: 'pointer',
             }}
           >
-            {CAREER_METHODS.map(m => (
+            {careerMethods.map(m => (
               <option key={m.id} value={m.id}>
                 {m.code} · {m.name}
               </option>
@@ -456,7 +489,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
           </select>
         </label>
         <p style={{ margin: '0.55rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5, maxWidth: 760 }}>
-          {CAREER_METHODS.find(m => m.id === mode)?.topic}
+          {careerMethods.find(m => m.id === mode)?.topic}
         </p>
         {mode === 'desk' && (
           <>
@@ -487,11 +520,11 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               <ScoreMeter key={d.id} label={d.label} planet={d.planet} score={d.score} summary={firstSentence(d.summary)} />
             ))}
           </div>
-          <PlanGate userPlan={userPlan} required="gold" featureName="Career and profession">
+          <PlanGate userPlan={userPlan} required="gold" featureName={tPage('featureName')}>
             <div style={{ minHeight: 112, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>Full reading is on Gold</div>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>{tLocked('title')}</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                Profession fields, job or business, yogas, D9 and D10 confirmation, A10, timing, and the consultant brief.
+                {tLocked('text')}
               </div>
             </div>
           </PlanGate>
@@ -513,9 +546,9 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               borderBottom: '1px solid var(--border-soft)',
             }}
             role="group"
-            aria-label="Career and profession sections"
+            aria-label={tTabs('aria')}
           >
-            {VIEWS.map(v => (
+            {views.map(v => (
               <button
                 key={v.id}
                 type="button"
@@ -542,15 +575,15 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
           {has('delivery') && (
             <>
               <article style={{ padding: '0.95rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
-                <SectionLabel>Can the promise be delivered?</SectionLabel>
+                <SectionLabel>{tSections('delivery')}</SectionLabel>
                 <h3 style={{ margin: '0 0 0.4rem', fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 650, color: TONE[data.advanced.delivery.tone] }}>
                   {data.advanced.delivery.verdict}
                 </h3>
                 <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.advanced.delivery.reading}</p>
               </article>
-              <SectionLabel>Checks on the promise</SectionLabel>
+              <SectionLabel>{tSections('deliveryVotes')}</SectionLabel>
               <AnswerGrid notes={data.advanced.delivery.votes} />
-              <SectionLabel>What the work pays</SectionLabel>
+              <SectionLabel>{tSections('prosperity')}</SectionLabel>
               <AnswerGrid notes={data.advanced.prosperity.notes} />
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.prosperity.closing}</p>
             </>
@@ -558,11 +591,11 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
 
           {has('strength') && (
             <>
-              <SectionLabel>Career planets</SectionLabel>
+              <SectionLabel>{tSections('strengthPlanets')}</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                 {data.advanced.strength.rows.map(row => (
                   <article key={row.id} style={{ padding: '0.85rem', borderLeft: `3px solid ${TONE[row.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>{row.role} · {row.planet}</SectionLabel>
+                    <SectionLabel>{tSections('rolePlanet', { role: row.role, planet: row.planet })}</SectionLabel>
                     <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{row.dignity}</div>
                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{row.reading}</p>
                   </article>
@@ -570,13 +603,13 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               </div>
               {data.advanced.strength.houses.length ? (
                 <>
-                  <SectionLabel>Livelihood houses</SectionLabel>
+                  <SectionLabel>{tSections('livelihoodHouses')}</SectionLabel>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.55rem' }}>
                     {data.advanced.strength.houses.map(h => (
                       <article key={h.house} style={{ padding: '0.8rem 0.9rem', borderLeft: `3px solid ${TONE[h.tone]}`, background: 'var(--surface-1)', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
-                        <SectionLabel>House {h.house} · {h.label}</SectionLabel>
+                        <SectionLabel>{tSections('livelihoodHouseRow', { house: h.house, label: h.label })}</SectionLabel>
                         <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>
-                          {[h.bindus != null ? `${h.bindus} bindus` : '', h.bhava ?? ''].filter(Boolean).join(' · ')}
+                          {[h.bindus != null ? tUi('bindus', { count: h.bindus }) : '', h.bhava ?? ''].filter(Boolean).join(' · ')}
                         </div>
                         <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{h.reading}</p>
                       </article>
@@ -591,7 +624,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
           {has('turns') && (
             <>
               <article style={{ padding: '0.95rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
-                <SectionLabel>The turns of the career</SectionLabel>
+                <SectionLabel>{tSections('turns')}</SectionLabel>
                 <h3 style={{ margin: '0 0 0.45rem', fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 650 }}>
                   {data.advanced.turns.headline}
                 </h3>
@@ -604,15 +637,15 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
           {has('support') && (
             <>
               <article style={{ padding: '0.95rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
-                <SectionLabel>Who helps the career</SectionLabel>
+                <SectionLabel>{tSections('support')}</SectionLabel>
                 <h3 style={{ margin: '0 0 0.45rem', fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 650, color: TONE[data.advanced.support.tone] }}>
                   {data.advanced.support.headline}
                 </h3>
                 <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.support.closing}</p>
               </article>
-              <SectionLabel>Outside help on the 10th (argala)</SectionLabel>
+              <SectionLabel>{tSections('argala')}</SectionLabel>
               <AnswerGrid notes={data.advanced.support.argala} />
-              <SectionLabel>Around the post — signature, rival, client, and cost</SectionLabel>
+              <SectionLabel>{tSections('room')}</SectionLabel>
               <AnswerGrid notes={data.advanced.support.room} />
             </>
           )}
@@ -624,7 +657,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
                   <ScoreMeter key={d.id} label={d.label} planet={d.planet} score={d.score} summary={d.summary} />
                 ))}
               </div>
-              <SectionLabel>The six questions</SectionLabel>
+              <SectionLabel>{tSections('sixQuestions')}</SectionLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.65rem' }}>
                 {data.significators.map(s => (
                   <article
@@ -665,7 +698,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
                   ) : null}
                 </article>
               </div>
-              <SectionLabel>Profession fields</SectionLabel>
+              <SectionLabel>{tSections('professionFields')}</SectionLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.55rem' }}>
                 {data.fields.map(f => (
                   <article key={f.field} style={{ padding: '0.75rem 0.85rem', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
@@ -679,11 +712,11 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
 
           {has('houses') && (
             <>
-              <SectionLabel>Houses that feed the livelihood</SectionLabel>
+              <SectionLabel>{tSections('feedLivelihood')}</SectionLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.65rem' }}>
                 {data.houses.map(h => (
                   <article key={h.house} style={{ padding: '0.85rem', borderLeft: `3px solid ${TONE[h.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>House {h.house} · {h.signName}</SectionLabel>
+                    <SectionLabel>{tSections('houseSign', { house: h.house, sign: h.signName })}</SectionLabel>
                     <div style={{ fontWeight: 750, fontSize: '0.82rem', marginBottom: 4 }}>{h.role}</div>
                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{h.reading}</p>
                   </article>
@@ -691,11 +724,11 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               </div>
               {(data.fromMoon || data.fromSun) && (
                 <>
-                  <SectionLabel>Phaladeepika — 10th from Moon and Sun</SectionLabel>
+                  <SectionLabel>{tSections('phaladeepika')}</SectionLabel>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.65rem' }}>
                     {[data.fromMoon, data.fromSun].filter(Boolean).map(card => (
                       <article key={card!.title} style={{ padding: '0.85rem', borderLeft: `3px solid ${TONE[card!.tone]}`, background: 'var(--surface-1)', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
-                        <SectionLabel>{card!.title} · {card!.signName}</SectionLabel>
+                        <SectionLabel>{tSections('cardTitleSign', { title: card!.title, sign: card!.signName })}</SectionLabel>
                         <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{card!.reading}</p>
                       </article>
                     ))}
@@ -707,40 +740,42 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
 
           {has('yogas') && (
             <>
-              <SectionLabel>Career yogas</SectionLabel>
+              <SectionLabel>{tSections('careerYogas')}</SectionLabel>
               <NoteList notes={data.yogas} />
             </>
           )}
 
           {has('planets') && (
             <>
-              <SectionLabel>What each planet is doing for the work</SectionLabel>
+              <SectionLabel>{tSections('planetsAtWork')}</SectionLabel>
               <NoteList notes={data.planets} />
             </>
           )}
 
           {has('chain') && (
             <>
-              <SectionLabel>Dispositor chain</SectionLabel>
+              <SectionLabel>{tSections('dispositorChain')}</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                 {data.advanced.chain.steps.map((step, index) => (
                   <article key={`${step.planet}-${index}`} style={{ padding: '0.85rem', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>Step {index + 1} · house {step.house}</SectionLabel>
-                    <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{step.planet} in {step.signName}</div>
+                    <SectionLabel>{tSections('stepHouse', { step: index + 1, house: step.house })}</SectionLabel>
+                    <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{tSections('planetInSign', { planet: step.planet, sign: step.signName })}</div>
                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{step.reading}</p>
                   </article>
                 ))}
               </div>
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.advanced.chain.closing}</p>
-              <SectionLabel>Who sees the career</SectionLabel>
+              <SectionLabel>{tSections('whoSees')}</SectionLabel>
               <AnswerGrid notes={data.advanced.chain.aspects} />
-              <SectionLabel>Condition of the career planets</SectionLabel>
+              <SectionLabel>{tSections('planetConditions')}</SectionLabel>
               <AnswerGrid notes={data.advanced.chain.conditions} />
-              <SectionLabel>Varga ladder of the 10th lord</SectionLabel>
+              <SectionLabel>{tSections('vargaLadder')}</SectionLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.55rem' }}>
                 {data.advanced.ladder.rows.map(row => (
                   <article key={row.varga} style={{ padding: '0.8rem 0.9rem', borderLeft: `3px solid ${TONE[row.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>{row.varga}{row.house != null ? ` · house ${row.house}` : ''}</SectionLabel>
+                    <SectionLabel>
+                      {row.house != null ? tSections('vargaHouse', { varga: row.varga, house: row.house }) : tSections('vargaOnly', { varga: row.varga })}
+                    </SectionLabel>
                     <div style={{ fontWeight: 750, fontSize: '0.84rem', marginBottom: 6 }}>{row.signName}</div>
                     <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{row.reading}</p>
                   </article>
@@ -752,7 +787,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
 
           {has('stars') && (
             <>
-              <SectionLabel>Nakshatra formula</SectionLabel>
+              <SectionLabel>{tSections('nakshatraFormula')}</SectionLabel>
               <article style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
                 <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.nakshatra.formula}</p>
               </article>
@@ -764,7 +799,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
                       <span style={{ fontSize: '0.68rem', color: 'var(--text-gold)', fontWeight: 700 }}>{row.priority}</span>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.25rem 0 0.4rem' }}>
-                      {row.nakshatra} · pada {row.pada}
+                      {tSections('nakshatraPada', { nakshatra: row.nakshatra, pada: row.pada })}
                     </div>
                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{row.line}</p>
                     {row.fields.length ? (
@@ -777,7 +812,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
               </div>
               <p style={{ margin: 0, fontSize: '0.78rem' }}>
                 <Link href="/nakshatra/profession" style={{ color: 'var(--text-gold)', fontWeight: 700, textDecoration: 'none' }}>
-                  Open the nakshatra profession lab
+                  {tSections('openNakshatraLab')}
                 </Link>
               </p>
             </>
@@ -785,17 +820,17 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
 
           {has('confirm') && (
             <>
-              <SectionLabel>Does the promise hold?</SectionLabel>
+              <SectionLabel>{tSections('confirmHold')}</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                 {data.navamsha && (
                   <article style={{ padding: '0.85rem', borderLeft: `3px solid ${TONE[data.navamsha.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>Navamsha of the 10th lord · {data.navamsha.signName}</SectionLabel>
+                    <SectionLabel>{tSections('navamshaLord', { sign: data.navamsha.signName })}</SectionLabel>
                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.navamsha.reading}</p>
                   </article>
                 )}
                 {data.dashamsha && (
                   <article style={{ padding: '0.85rem', borderLeft: `3px solid ${TONE[data.dashamsha.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>Dashamsha · {data.dashamsha.lagnaName} lagna</SectionLabel>
+                    <SectionLabel>{tSections('dashamshaLagna', { lagna: data.dashamsha.lagnaName })}</SectionLabel>
                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.dashamsha.reading}</p>
                     <button
                       type="button"
@@ -812,19 +847,19 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
                         cursor: 'pointer',
                       }}
                     >
-                      Open Dashamsha
+                      {tSections('openDashamsha')}
                     </button>
                   </article>
                 )}
                 {data.a10 && (
                   <article style={{ padding: '0.85rem', borderLeft: `3px solid ${TONE[data.a10.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-                    <SectionLabel>A10 · {data.a10.signName} · house {data.a10.house}</SectionLabel>
+                    <SectionLabel>{tSections('a10', { sign: data.a10.signName, house: data.a10.house })}</SectionLabel>
                     <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.a10.reading}</p>
                   </article>
                 )}
                 {!data.navamsha && !data.dashamsha && !data.a10 && (
                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Recalculate the chart so Navamsha, Dashamsha, and A10 are included.
+                    {tSections('recalculateDivisionals')}
                   </p>
                 )}
               </div>
@@ -833,14 +868,14 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
 
           {has('timing') && (
             <>
-              <SectionLabel>Which periods favor the career</SectionLabel>
+              <SectionLabel>{tSections('timingFavor')}</SectionLabel>
               <CareerPeriodTracker tracker={data.tracker} transits={transits} />
             </>
           )}
 
           {has('remedies') && (
             <>
-              <SectionLabel>What to do with this chart</SectionLabel>
+              <SectionLabel>{tSections('remedies')}</SectionLabel>
               <NoteList notes={data.remedies} />
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{data.ethics}</p>
             </>
@@ -849,7 +884,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
           {has('brief') && (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
-                <SectionLabel>Consultant brief</SectionLabel>
+                <SectionLabel>{tSections('consultantBrief')}</SectionLabel>
                 <button
                   type="button"
                   onClick={copyBrief}
@@ -864,7 +899,7 @@ function CareerReading({ chart, userPlan = 'free' }: Props) {
                     cursor: 'pointer',
                   }}
                 >
-                  {copied ? 'Copied' : 'Copy'}
+                  {copied ? tBrief('copied') : tBrief('copy')}
                 </button>
               </div>
               {data.brief.sections.map(s => (
@@ -894,11 +929,7 @@ export function CareerProfessionPanel({ chart, userPlan = 'free' }: Props) {
   }, [chart, startTransition])
 
   if (!shown) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280, padding: '3rem 1rem' }}>
-        <VedaanshLoader size={44} message="Reading career and profession…" />
-      </div>
-    )
+    return <CareerReadingLoader />
   }
   return <CareerReading chart={chart} userPlan={userPlan} />
 }

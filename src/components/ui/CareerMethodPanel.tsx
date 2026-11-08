@@ -5,6 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useLang } from '@/i18n/useLang'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
@@ -24,12 +26,18 @@ function Label({ children }: { children: React.ReactNode }) {
   )
 }
 
-function HouseGrid({ houses }: { houses: { house: number; signName: string; role: string; reading: string; tone: MethodTone; occupants: string[] }[] }) {
+function HouseGrid({
+  houses,
+  houseLabel,
+}: {
+  houses: { house: number; signName: string; role: string; reading: string; tone: MethodTone; occupants: string[] }[]
+  houseLabel: (house: number, sign: string) => string
+}) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.55rem' }}>
       {houses.map(h => (
         <article key={h.house} style={{ padding: '0.75rem 0.85rem', borderLeft: `3px solid ${TONE[h.tone]}`, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
-          <Label>House {h.house} · {h.signName}</Label>
+          <Label>{houseLabel(h.house, h.signName)}</Label>
           <div style={{ fontWeight: 750, fontSize: '0.8rem', marginBottom: 4 }}>{h.role}</div>
           <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{h.reading}</p>
         </article>
@@ -43,42 +51,10 @@ type NoteGroupId =
   | 'kshetra' | 'sector' | 'profile' | 'streams' | 'pillars' | 'calling'
   | 'gana' | 'disha' | 'pipeline' | 'counsel' | 'demand' | 'pattern' | 'study'
 
-/** Heading shown above each note group, since several groups share one tab. */
-const GROUP_TITLE: Record<NoteGroupId | 'system', string> = {
-  kshetra: 'Karma field',
-  sector: 'Sector — the kind of work',
-  profile: 'Profile — how the field is worked',
-  streams: 'Streams — the pair that is joined',
-  pillars: 'Pillars — house, planet, and sign',
-  calling: 'Calling — what pulls the person',
-  gana: 'Nakshatra and gana',
-  disha: 'Direction — halves, growth, and comfort',
-  pipeline: 'Pipeline — from want to result',
-  counsel: 'Counsel — mind and aim',
-  demand: 'Demand — staying, venturing, and reach',
-  system: 'Lords and chains',
-  pattern: 'Pattern — dasha phase and karmic loops',
-  study: 'Education',
-}
-
 /** A reading block. Several sections are stacked inside one tab. */
 type Section = NoteGroupId | 'system' | 'style' | 'questions' | 'houses' | 'steps' | 'combinations' | 'd10' | 'later'
 
 type MethodView = 'field' | 'pair' | 'nakshatra' | 'mind' | 'lords' | 'houses' | 'later'
-
-/**
- * Seven tabs in the order of the method: field, pair, nakshatra, then Dashamsha.
- * Sections render in the order listed here. Keep labels short enough for one row on a phone.
- */
-const VIEWS: { id: MethodView; label: string; hint: string; sections: Section[] }[] = [
-  { id: 'field', label: 'Karma Field', hint: 'The field of karma, the sector, and how the 10th lord works that field', sections: ['kshetra', 'sector', 'profile'] },
-  { id: 'pair', label: 'Pairs and Calling', hint: 'Combinations that are actually joined, streams, the pillars, and the calling', sections: ['combinations', 'streams', 'pillars', 'calling'] },
-  { id: 'nakshatra', label: 'Nakshatra and D10', hint: 'How the nakshatra behaves, then the Dashamsha check after the birth chart', sections: ['gana', 'd10'] },
-  { id: 'mind', label: 'Mind and Decision', hint: 'Direction, the pipeline from want to result, counsel, and demand', sections: ['disha', 'pipeline', 'counsel', 'demand'] },
-  { id: 'lords', label: 'Lords and Patterns', hint: 'Lords and chains, dasha phase and karmic loops, and the style of working', sections: ['system', 'pattern', 'style'] },
-  { id: 'houses', label: 'Houses and Steps', hint: 'The five questions, the houses behind them, and the seven steps', sections: ['questions', 'houses', 'steps'] },
-  { id: 'later', label: 'Study and Later', hint: 'Education, job and family questions, the five layers of a career, and the profession formula', sections: ['study', 'later'] },
-]
 
 interface Props {
   chart: ChartOutput
@@ -111,7 +87,25 @@ function NoteGroup({ title, group }: { title: string; group: { notes: Notes; clo
   )
 }
 
-function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }) {
+function MethodSection({
+  id,
+  data,
+  groupTitle,
+  sectionTitle,
+  houseLabel,
+  stepLabel,
+  layerLabel,
+  noCombinations,
+}: {
+  id: Section
+  data: CareerMethodAnalysis
+  groupTitle: (key: NoteGroupId | 'system') => string
+  sectionTitle: (key: string) => string
+  houseLabel: (house: number, sign: string) => string
+  stepLabel: (step: number) => string
+  layerLabel: (index: number, title: string) => string
+  noCombinations: string
+}) {
   switch (id) {
     case 'questions':
       return (
@@ -124,7 +118,7 @@ function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }
               </article>
             ))}
           </div>
-          <Label>Five questions</Label>
+          <Label>{sectionTitle('fiveQuestions')}</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.55rem' }}>
             {data.questions.map(q => (
               <article key={q.id} style={{ padding: '0.8rem 0.9rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
@@ -140,21 +134,21 @@ function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }
     case 'houses':
       return (
         <>
-          <Label>Structure — the frame</Label>
-          <HouseGrid houses={data.structure} />
-          <Label>Support — muscle and bone</Label>
-          <HouseGrid houses={data.support} />
+          <Label>{sectionTitle('structureFrame')}</Label>
+          <HouseGrid houses={data.structure} houseLabel={houseLabel} />
+          <Label>{sectionTitle('supportBone')}</Label>
+          <HouseGrid houses={data.support} houseLabel={houseLabel} />
         </>
       )
 
     case 'steps':
       return (
         <>
-          <Label>The seven steps</Label>
+          <Label>{sectionTitle('sevenSteps')}</Label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
             {data.steps.map(s => (
               <article key={s.step} style={{ padding: '0.85rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
-                <Label>Step {s.step}</Label>
+                <Label>{stepLabel(s.step)}</Label>
                 <div style={{ fontWeight: 750, fontSize: '0.86rem', marginBottom: 4 }}>{s.title}</div>
                 <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{s.reading}</p>
               </article>
@@ -168,7 +162,7 @@ function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }
         <>
           {data.combinations.length > 0 ? (
             <>
-              <Label>Combinations on this chart</Label>
+              <Label>{sectionTitle('combinationsOnChart')}</Label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.55rem' }}>
                 {data.combinations.map(c => (
                   <article key={c.id} style={{ padding: '0.8rem 0.9rem', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)' }}>
@@ -181,7 +175,7 @@ function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }
             </>
           ) : (
             <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              No textbook pair is locked on this chart. The dominant planet and the 10th lord carry the field.
+              {noCombinations}
             </p>
           )}
 
@@ -195,7 +189,7 @@ function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }
 
           {data.modern.length > 0 && (
             <>
-              <Label>Where that energy sits now</Label>
+              <Label>{sectionTitle('energyNow')}</Label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.55rem' }}>
                 {data.modern.map(m => (
                   <article key={m.title} style={{ padding: '0.8rem 0.9rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
@@ -213,7 +207,7 @@ function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }
       return (
         <>
           <article style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: `1px solid ${TONE[data.d10.tone]}`, background: 'var(--surface-1)' }}>
-            <Label>D10 verdict</Label>
+            <Label>{sectionTitle('d10Verdict')}</Label>
             <div style={{ fontWeight: 750, fontSize: '0.9rem', marginBottom: 6 }}>{data.d10.verdict}</div>
             <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{data.d10.reading}</p>
           </article>
@@ -224,20 +218,20 @@ function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }
     case 'later':
       return (
         <>
-          <Label>Job, family, and venture questions</Label>
+          <Label>{sectionTitle('jobFamilyVenture')}</Label>
           <NoteGrid notes={data.practice.notes} />
 
-          <Label>Five layers of a career</Label>
+          <Label>{sectionTitle('fiveLayers')}</Label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
             {data.practice.layers.map((layer, i) => (
               <article key={layer.title} style={{ padding: '0.75rem 0.9rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
-                <Label>{i + 1}. {layer.title}</Label>
+                <Label>{layerLabel(i + 1, layer.title)}</Label>
                 <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{layer.reading}</p>
               </article>
             ))}
           </div>
 
-          <Label>Profession formula</Label>
+          <Label>{sectionTitle('professionFormula')}</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.45rem' }}>
             {data.practice.formula.map(row => (
               <article key={row.label} style={{ padding: '0.7rem 0.8rem', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)' }}>
@@ -254,7 +248,7 @@ function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }
     case 'style':
       return (
         <>
-          <Label>Style of working</Label>
+          <Label>{sectionTitle('styleOfWorking')}</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.55rem' }}>
             {data.system.style.map(note => (
               <article key={note.id} style={{ padding: '0.8rem 0.9rem', borderRadius: 'var(--r-sm)', background: 'var(--surface-2)' }}>
@@ -268,23 +262,46 @@ function MethodSection({ id, data }: { id: Section; data: CareerMethodAnalysis }
       )
 
     case 'system':
-      return <NoteGroup title={GROUP_TITLE.system} group={data.system} />
+      return <NoteGroup title={groupTitle('system')} group={data.system} />
 
     default:
-      return <NoteGroup title={GROUP_TITLE[id]} group={data[id]} />
+      return <NoteGroup title={groupTitle(id)} group={data[id]} />
   }
 }
 
 export function CareerMethodPanel({ chart, userPlan = 'free' }: Props) {
+  const t = useTranslations('careerProfession.methodPanel')
+  const tTabs = useTranslations('careerProfession.methodPanel.tabs')
+  const tGroups = useTranslations('careerProfession.methodPanel.groups')
+  const tSections = useTranslations('careerProfession.methodPanel.sections')
+  const { lang } = useLang()
   const full = planMeetsUiGate(userPlan, 'gold')
-  const data = useMemo(() => analyzeCareerMethod(chart), [chart])
+  const data = useMemo(() => analyzeCareerMethod(chart, new Date(), lang), [chart, lang])
+  const views = useMemo(
+    (): { id: MethodView; label: string; hint: string; sections: Section[] }[] => [
+      { id: 'field', label: tTabs('field'), hint: tTabs('fieldHint'), sections: ['kshetra', 'sector', 'profile'] },
+      { id: 'pair', label: tTabs('pair'), hint: tTabs('pairHint'), sections: ['combinations', 'streams', 'pillars', 'calling'] },
+      { id: 'nakshatra', label: tTabs('nakshatra'), hint: tTabs('nakshatraHint'), sections: ['gana', 'd10'] },
+      { id: 'mind', label: tTabs('mind'), hint: tTabs('mindHint'), sections: ['disha', 'pipeline', 'counsel', 'demand'] },
+      { id: 'lords', label: tTabs('lords'), hint: tTabs('lordsHint'), sections: ['system', 'pattern', 'style'] },
+      { id: 'houses', label: tTabs('houses'), hint: tTabs('housesHint'), sections: ['questions', 'houses', 'steps'] },
+      { id: 'later', label: tTabs('later'), hint: tTabs('laterHint'), sections: ['study', 'later'] },
+    ],
+    [tTabs],
+  )
   const [view, setView] = useState<MethodView>('field')
-  const activeView = VIEWS.find(v => v.id === view) ?? VIEWS[0]
+  const activeView = views.find(v => v.id === view) ?? views[0]
+
+  const groupTitle = (key: NoteGroupId | 'system') => tGroups(key)
+  const sectionTitle = (key: string) => tSections(key as 'fiveQuestions')
+  const houseLabel = (house: number, sign: string) => t('houseGrid', { house, sign })
+  const stepLabel = (step: number) => t('stepN', { step })
+  const layerLabel = (index: number, title: string) => t('layerN', { index, title })
 
   if (!data) {
     return (
       <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-        This chart has no ascendant, so the professional method cannot start.
+        {t('noAscendant')}
       </p>
     )
   }
@@ -292,7 +309,7 @@ export function CareerMethodPanel({ chart, userPlan = 'free' }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <header>
-        <Label>M2 · Professional method</Label>
+        <Label>{t('headerEyebrow')}</Label>
         <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.35rem', fontWeight: 650 }}>{data.headline}</h2>
         <p style={{ margin: '0.45rem 0 0', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55, maxWidth: 760 }}>
           <strong style={{ color: 'var(--text-primary)' }}>{data.dominant.planet}.</strong> {data.dominant.principle}. {data.dominant.reading}
@@ -312,7 +329,7 @@ export function CareerMethodPanel({ chart, userPlan = 'free' }: Props) {
             ))}
           </div>
 
-          <Label>Five questions</Label>
+          <Label>{tSections('fiveQuestions')}</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.55rem' }}>
             {data.questions.map(q => (
               <article key={q.id} style={{ padding: '0.8rem 0.9rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
@@ -322,7 +339,7 @@ export function CareerMethodPanel({ chart, userPlan = 'free' }: Props) {
             ))}
           </div>
 
-          <Label>Job, family, and venture questions</Label>
+          <Label>{tSections('jobFamilyVenture')}</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.55rem' }}>
             {data.practice.notes.filter(n => n.id === 'service' || n.id === 'changes' || n.id === 'father').map(n => (
               <article key={n.id} style={{ padding: '0.8rem 0.9rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
@@ -331,11 +348,11 @@ export function CareerMethodPanel({ chart, userPlan = 'free' }: Props) {
               </article>
             ))}
           </div>
-          <PlanGate userPlan={userPlan} required="gold" featureName="Professional career method">
+          <PlanGate userPlan={userPlan} required="gold" featureName={t('lockedFeatureName')}>
             <div style={{ minHeight: 96, padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)' }}>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>The full method is on Gold</div>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('lockedTitle')}</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                The karma field first, then the pair that is joined, then the nakshatra’s group and behavior, then Dashamsha.
+                {t('lockedText')}
               </div>
             </div>
           </PlanGate>
@@ -357,9 +374,9 @@ export function CareerMethodPanel({ chart, userPlan = 'free' }: Props) {
               borderBottom: '1px solid var(--border-soft)',
             }}
             role="group"
-            aria-label="Professional method sections"
+            aria-label={t('tabsAria')}
           >
-            {VIEWS.map(v => (
+            {views.map(v => (
               <button
                 key={v.id}
                 type="button"
@@ -384,7 +401,17 @@ export function CareerMethodPanel({ chart, userPlan = 'free' }: Props) {
           <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{activeView.hint}</p>
 
           {activeView.sections.map(section => (
-            <MethodSection key={section} id={section} data={data} />
+            <MethodSection
+              key={section}
+              id={section}
+              data={data}
+              groupTitle={groupTitle}
+              sectionTitle={sectionTitle}
+              houseLabel={houseLabel}
+              stepLabel={stepLabel}
+              layerLabel={layerLabel}
+              noCombinations={t('noCombinations')}
+            />
           ))}
         </>
       )}

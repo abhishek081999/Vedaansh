@@ -14,6 +14,7 @@ export const NAMESPACES = [
   // Chart workspace tabs, one file per area so parallel work never edits the same JSON.
   'dashaPanel', 'planetsA', 'planetsB', 'houseGuide', 'divisional', 'chartTools',
   'relationshipMarriage',
+  'careerProfession',
   'compare',
 ] as const
 export type Namespace = (typeof NAMESPACES)[number]

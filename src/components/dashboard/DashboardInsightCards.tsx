@@ -209,8 +209,9 @@ function LifeHighlightsBody({ chart, onOpenRelationship, onOpenCareer }: {
   onOpenCareer?: () => void
 }) {
   const t = useTranslations('chart.insights')
-  const marriage = useMemo(() => analyzeMarriedLife(chart), [chart])
-  const career = useMemo(() => analyzeCareerMethod(chart), [chart])
+  const { lang } = useLang()
+  const marriage = useMemo(() => analyzeMarriedLife(chart, lang), [chart, lang])
+  const career = useMemo(() => analyzeCareerMethod(chart, new Date(), lang), [chart, lang])
   const link = (label: string, fn?: () => void) =>
     fn ? (
       <button type="button" onClick={fn} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}>
