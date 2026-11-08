@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NAKSHATRA_NAMES, NAKSHATRA_LORDS, GRAHA_NAMES } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { nakshatraName } from '@/i18n/jyotish'
 import type { ChartOutput, DashaNode, GrahaData, GrahaId } from '@/types/astrology'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import {
@@ -514,6 +516,7 @@ export function checkMuhurtaNavtara(
   birthNakIndex: number,
   dayMoonNakIndex: number,
   activityLabel?: string,
+  lang: EngineLang = 'en',
 ): MuhurtaNavtaraCheck {
   const profile = getTaraFromBirth(birthNakIndex, dayMoonNakIndex)
   const isHardTara = profile.isHard
@@ -524,8 +527,18 @@ export function checkMuhurtaNavtara(
       : 'favourable'
 
   const activityBit = activityLabel ? ` for ${activityLabel}` : ''
+  const activityBitHi = activityLabel ? ` (${activityLabel})` : ''
   let advice: string
-  if (verdict === 'avoid') {
+  if (lang === 'hi') {
+    const tara = profile.hindi || profile.name
+    if (verdict === 'avoid') {
+      advice = `दिन का चंद्र ${tara} तारा में है — बुकिंग${activityBitHi} स्थगित करें।`
+    } else if (verdict === 'caution') {
+      advice = `जन्म तारा दिन${activityBitHi}: अनिवार्य हो तो संभव, किंतु कार्य को कोमल और स्वभाव-संगत रखें।`
+    } else {
+      advice = `${tara} तारा दिन बुकिंग${activityBitHi} के लिए अनुकूल है।`
+    }
+  } else if (verdict === 'avoid') {
     advice = `Day Moon is in ${profile.name} — postpone booking${activityBit}. ${profile.decisionWindow}`
   } else if (verdict === 'caution') {
     advice = `Janma tara day${activityBit}: workable if unavoidable, but keep the act gentle and identity-aligned.`
@@ -533,9 +546,14 @@ export function checkMuhurtaNavtara(
     advice = `${profile.name} day supports booking${activityBit}. ${profile.decisionWindow}`
   }
 
+  const dayIdx = clampNak(dayMoonNakIndex)
+
   return {
-    dayNakshatraIndex: clampNak(dayMoonNakIndex),
-    dayNakshatraName: NAKSHATRA_NAMES[clampNak(dayMoonNakIndex)],
+    dayNakshatraIndex: dayIdx,
+    dayNakshatraName:
+      lang === 'hi'
+        ? nakshatraName(dayIdx, 'hi', NAKSHATRA_NAMES[dayIdx])
+        : NAKSHATRA_NAMES[dayIdx],
     tara: profile.name,
     taraNumber: profile.taraNumber,
     profile,

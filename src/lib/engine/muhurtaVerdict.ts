@@ -3,19 +3,67 @@
  * Plain-language verdicts for daily use.
  */
 
+import type { EngineLang } from '@/lib/engine/lang'
+import { fill } from '@/lib/engine/lang'
 import type { MuhurtaScore } from '@/lib/engine/muhurtaAnalysis'
-import { MUHURTA_ACTIVITY_LABELS, type MuhurtaActivity } from '@/lib/engine/muhurtaAnalysis'
+import { muhurtaActivityLabel, type MuhurtaActivity } from '@/lib/engine/muhurtaAnalysis'
+import { buildVerdictHi, MV_HI } from '@/lib/engine/locale/muhurtaVerdict.hi'
 
 export function plainMuhurtaVerdict(
   activity: MuhurtaActivity,
   score: MuhurtaScore,
-  opts?: { timeLabel?: string; avoidNow?: string[] },
+  opts?: { timeLabel?: string; avoidNow?: string[]; lang?: EngineLang },
 ): { headline: string; detail: string; tone: 'good' | 'ok' | 'caution' | 'avoid' } {
-  const act = MUHURTA_ACTIVITY_LABELS[activity]
-  const when = opts?.timeLabel ? ` around ${opts.timeLabel}` : ''
-  const avoid = opts?.avoidNow?.length
-    ? ` Avoid: ${opts.avoidNow.join(', ')}.`
-    : ''
+  const lang = opts?.lang ?? 'en'
+  const act = muhurtaActivityLabel(activity, lang)
+  const actLower = act
+  const when =
+    opts?.timeLabel && lang === 'hi'
+      ? fill(MV_HI.whenAround, { time: opts.timeLabel })
+      : opts?.timeLabel
+        ? ` around ${opts.timeLabel}`
+        : ''
+  const avoid =
+    opts?.avoidNow?.length && lang === 'hi'
+      ? fill(MV_HI.avoidPrefix, { list: opts.avoidNow.join(', ') })
+      : opts?.avoidNow?.length
+        ? ` Avoid: ${opts.avoidNow.join(', ')}.`
+        : ''
+
+  const scoreVal = typeof score.score === 'number' ? score.score : 0
+  const labelEn =
+    scoreVal >= 80
+      ? 'Excellent'
+      : scoreVal >= 65
+        ? 'Good'
+        : scoreVal >= 45
+          ? 'Neutral'
+          : scoreVal >= 30
+            ? 'Challenging'
+            : 'Avoid'
+
+  const mapKind = (): 'excellent' | 'good' | 'neutral' | 'caution' | 'avoid' => {
+    if (labelEn === 'Excellent' || scoreVal >= 80) return 'excellent'
+    if (labelEn === 'Good' || scoreVal >= 65) return 'good'
+    if (labelEn === 'Neutral' || scoreVal >= 45) return 'neutral'
+    if (labelEn === 'Challenging' || scoreVal >= 30) return 'caution'
+    return 'avoid'
+  }
+
+  if (lang === 'hi') {
+    const v = buildVerdictHi(mapKind(), act, actLower, when, avoid)
+    return {
+      ...v,
+      tone:
+        mapKind() === 'excellent' || mapKind() === 'good'
+          ? 'good'
+          : mapKind() === 'neutral'
+            ? 'ok'
+            : mapKind() === 'caution'
+              ? 'caution'
+              : 'avoid',
+    }
+  }
 
   if (score.label === 'Excellent' || score.score >= 80) {
     return {
@@ -68,7 +116,7 @@ export function pickBestUpcoming(
   return best
 }
 
-export function formatClock(iso: string): string {
+export function formatClock(iso: string, lang: EngineLang = 'en'): string {
   const d = new Date(iso)
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleTimeString(lang === 'hi' ? 'hi-IN' : [], { hour: '2-digit', minute: '2-digit' })
 }

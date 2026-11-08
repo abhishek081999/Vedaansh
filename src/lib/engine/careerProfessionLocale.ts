@@ -15,9 +15,118 @@ import type {
 import { LIVELIHOOD, OCCUPANT_PHALA, TENTH_LORD_PHALA } from '@/lib/engine/dashamsaClassical'
 import { LIVELIHOOD_HI, OCCUPANT_PHALA_HI, TENTH_LORD_PHALA_HI } from '@/lib/engine/locale/dashamsaClassical.hi'
 import { CP_HI } from '@/lib/engine/locale/careerProfession.hi'
+import { CAREER_EXACT_HI } from '@/lib/engine/locale/careerExact.hi'
 import { fill, type EngineLang } from '@/lib/engine/lang'
 import { gName, rName } from '@/lib/engine/divisionalLang'
 import { GRAHA_NAMES, RASHI_NAMES, type GrahaId, type Rashi } from '@/types/astrology'
+
+const VIMSOPAKA_HI: Record<string, string> = {
+  weak: 'दुर्बल',
+  moderate: 'मध्यम',
+  strong: 'बलवान',
+  'very strong': 'अति बलवान',
+  very_strong: 'अति बलवान',
+}
+
+const SURVIVAL_PREFIX_HI: Record<string, string> = {
+  'A substantial working income': 'ठोस कामकाजी आय',
+  'A steady income that grows with the period': 'अवधि के साथ बढ़ने वाली स्थिर आय',
+  'A modest income until the 2nd and 11th are strengthened': 'द्वितीय और एकादश मजबूत होने तक साधारण आय',
+  'A large scale of gains': 'बड़े पैमाने के लाभ',
+}
+
+const SHAPE_LABEL_EN_HI: [string, string][] = [
+  ['Job — under a structure', 'नौकरी — संरचना के तले'],
+  ["Business — a market of one’s own", 'व्यापार — अपना बाज़ार'],
+  ["Business — a market of one's own", 'व्यापार — अपना बाज़ार'],
+  ['Partnership business', 'साझेदारी व्यापार'],
+  ['Independent work', 'स्वतंत्र काम'],
+  ['Family or lineage work', 'पारिवारिक या वंश का काम'],
+]
+
+const CLASSICAL_GRAHA_EN: Record<string, GrahaId> = {
+  Sun: 'Su',
+  Moon: 'Mo',
+  Mars: 'Ma',
+  Mercury: 'Me',
+  Jupiter: 'Ju',
+  Venus: 'Ve',
+  Saturn: 'Sa',
+  Rahu: 'Ra',
+  Ketu: 'Ke',
+}
+
+function applyCareerPatterns(text: string): string {
+  let out = text
+  for (const [en, hi] of SHAPE_LABEL_EN_HI) {
+    if (out.includes(en)) out = out.split(en).join(hi)
+  }
+  out = out.replace(
+    /Vimsopaka is (weak|moderate|strong|very strong|very weak|very_strong|very_weak) \(dashavarga ([\d.]+) of 20\)\.?/gi,
+    (_m, strength: string, n: string) => {
+      const key = strength.toLowerCase().replace(/\s+/g, ' ')
+      const hi =
+        VIMSOPAKA_HI[key] ??
+        VIMSOPAKA_HI[key.replace(' ', '_')] ??
+        (key === 'very weak' ? 'अति दुर्बल' : strength)
+      return `विम्शोपक ${hi} (दशवर्ग ${n} में से 20)।`
+    },
+  )
+  out = out.replace(
+    /Houses 1 through 6 are the private half: ([^.]+)\. Houses 7 through 12 are the public half: ([^.]+)\.\s*(Saturn or Ketu on the private half can build the skill alone\.)?\s*(The Sun or Rahu on the public half wants the work to be seen\.)?\s*(Neither isolation nor a hunger to be seen is locked by this count\.)?/g,
+    (_m, priv: string, pub: string, satLine?: string, sunLine?: string, neitherLine?: string) => {
+      const tail = [
+        satLine ? 'शनि या केतु निजी अर्ध पर अकेले कौशल बना सकते हैं।' : '',
+        sunLine ? 'सूर्य या राहु सार्वजनिक अर्ध पर काम दिखना चाहते हैं।' : '',
+        neitherLine ? 'न एकांत न दिखने की भूख इस गिनती से लॉक।' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')
+      return `भाव 1 से 6 निजी अर्ध: ${priv.trim()}। भाव 7 से 12 सार्वजनिक अर्ध: ${pub.trim()}।${tail ? ` ${tail}` : ''}`
+    },
+  )
+  out = out.replace(/^Mixed\. (.+) and (.+) are both live\.$/, 'मिश्रित। $1 और $2 दोनों जीवित हैं।')
+  out = out.replace(
+    /^(.+?) is whether the 2nd can carry the person and the family\. A title without the 2nd is not survival\.$/,
+    (_m, prefix: string) => {
+      const hiPrefix = SURVIVAL_PREFIX_HI[prefix] ?? prefix
+      return `${hiPrefix} यह है कि द्वितीय व्यक्ति और परिवार उठा सके। द्वितीय के बिना शीर्षक जीवन नहीं।`
+    },
+  )
+  out = out.replace(/(\d+)\s*bindus on the 10th/gi, 'दशम पर $1 बिन्दु')
+  out = out.replace(
+    /^([A-Za-z]+) is yoga karaka \(natural indicator\), and it is weak\.$/,
+    (_m, planet: string) => {
+      const id = CLASSICAL_GRAHA_EN[planet]
+      const pn = id ? gName(id, 'hi') : planet
+      return `${pn} योगकारक (स्वाभाविक संकेत) है, और दुर्बल है।`
+    },
+  )
+  out = out.replace(/^([A-Za-z]+) is yoga karaka \(natural indicator\)\.$/, (_m, planet: string) => {
+    const id = CLASSICAL_GRAHA_EN[planet]
+    const pn = id ? gName(id, 'hi') : planet
+    return `${pn} योगकारक (स्वाभाविक संकेत) है।`
+  })
+  out = out.replace(/^([A-Za-z]+) is strong enough to use the yoga\.$/, (_m, planet: string) => {
+    const id = CLASSICAL_GRAHA_EN[planet]
+    const pn = id ? gName(id, 'hi') : planet
+    return `${pn} योग प्रयोग करने जितना बलवान है।`
+  })
+  out = out.replace(/\bDashamsha leaves it open\b/g, 'दशांश इसे खुला छोड़ता है')
+  out = out.replace(/\bThe career chart strains it\b/g, 'करियर चार्ट इसे तनाव देता है')
+  return out
+}
+
+function localizeCareerId(id: string): string {
+  const hit = CAREER_EXACT_HI[id]
+  if (hit) return hit
+  const aspect = id.match(/^aspect-10th lord-(\w+)$/)
+  if (aspect) {
+    const gid = aspect[1] as GrahaId
+    return `दशमेश-दृष्टि-${gName(gid, 'hi')}`
+  }
+  return id
+}
 
 const GRAHA_ORDER = Object.keys(GRAHA_NAMES) as GrahaId[]
 
@@ -66,14 +175,26 @@ function applyPhrases(text: string, pairs: [string, string][]): string {
 
 export function localizeCareerString(text: string, lang: EngineLang = 'hi'): string {
   if (lang !== 'hi' || !text) return text
-  let out = replaceClassicalBlocks(text)
+  const exact = CAREER_EXACT_HI[text]
+  if (exact) return exact
+  let out = applyCareerPatterns(text)
+  if (CAREER_EXACT_HI[out]) return CAREER_EXACT_HI[out]
+  out = replaceClassicalBlocks(out)
   out = applyPhrases(out, CP_HI.detailPhrases)
   out = applyPhrases(out, CP_HI.titlePhrases)
+  // Second pass: exact fragments / full lines that appear after partial phrase replace
+  if (CAREER_EXACT_HI[out]) return CAREER_EXACT_HI[out]
+  out = applyCareerPatterns(out)
+  // Replace any remaining known exact substrings (longest first already in object insertion)
+  for (const [en, hi] of Object.entries(CAREER_EXACT_HI)) {
+    if (en.length >= 20 && out.includes(en)) out = out.split(en).join(hi)
+  }
   return swapAstroTerms(out)
 }
 
 function localizeTitle(title: string): string {
-  return swapAstroTerms(applyPhrases(title, CP_HI.titlePhrases))
+  if (CAREER_EXACT_HI[title]) return CAREER_EXACT_HI[title]
+  return swapAstroTerms(applyPhrases(applyCareerPatterns(title), CP_HI.titlePhrases))
 }
 
 function localizeNote(note: CareerNote): CareerNote {
@@ -82,10 +203,11 @@ function localizeNote(note: CareerNote): CareerNote {
     const detail = row.detail.includes('{')
       ? localizeCareerString(fill(row.detail, { planets: note.detail.match(/[A-Za-z, ]+$/)?.[0] ?? '' }))
       : localizeCareerString(row.detail)
-    return { ...note, title: row.title ?? localizeTitle(note.title), detail }
+    return { ...note, id: localizeCareerId(note.id), title: row.title ?? localizeTitle(note.title), detail }
   }
   return {
     ...note,
+    id: localizeCareerId(note.id),
     title: localizeTitle(note.title),
     detail: localizeCareerString(note.detail),
   }
@@ -99,6 +221,7 @@ function localizeTurnsNote(note: CareerAdvancedNote): CareerAdvancedNote {
       : localizeCareerString(note.answer)
   return {
     ...note,
+    id: localizeCareerId(note.id),
     title: localizeTitle(note.title),
     answer,
     reading: localizeCareerString(note.reading),
@@ -112,6 +235,7 @@ function localizeAdvancedNote(note: CareerAdvancedNote): CareerAdvancedNote {
       localizeCareerString(note.answer)
     return {
       ...note,
+      id: localizeCareerId(note.id),
       title: localizeTitle(note.title),
       answer,
       reading: localizeCareerString(note.reading),
@@ -119,6 +243,7 @@ function localizeAdvancedNote(note: CareerAdvancedNote): CareerAdvancedNote {
   }
   return {
     ...note,
+    id: localizeCareerId(note.id),
     title: localizeTitle(note.title),
     answer: localizeCareerString(note.answer),
     reading: localizeCareerString(note.reading),

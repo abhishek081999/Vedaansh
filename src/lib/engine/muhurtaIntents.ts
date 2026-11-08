@@ -3,7 +3,9 @@
  * Society daily-use quick intents → MuhurtaActivity + copy.
  */
 
+import type { EngineLang } from '@/lib/engine/lang'
 import type { MuhurtaActivity } from '@/lib/engine/muhurtaAnalysis'
+import { MUHURTA_INTENTS_HI } from '@/lib/engine/locale/muhurtaIntents.hi'
 
 export interface MuhurtaIntent {
   id: string
@@ -24,3 +26,11 @@ export const MUHURTA_INTENTS: readonly MuhurtaIntent[] = [
   { id: 'wedding', label: 'Wedding', blurb: 'Vivaha muhurta search', activity: 'MARRIAGE' },
   { id: 'date', label: 'Relationship', blurb: 'Proposal, engagement talk', activity: 'RELATIONSHIP' },
 ] as const
+
+export function getMuhurtaIntents(lang: EngineLang = 'en'): readonly MuhurtaIntent[] {
+  if (lang !== 'hi') return MUHURTA_INTENTS
+  return MUHURTA_INTENTS.map((intent) => {
+    const hi = MUHURTA_INTENTS_HI[intent.id]
+    return hi ? { ...intent, label: hi.label, blurb: hi.blurb } : intent
+  })
+}

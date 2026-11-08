@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import type { SeoIntroProps, SeoRelatedLink } from '@/components/seo/SeoIntro.types'
 import type { AppLocale } from '@/i18n/config'
-import { COMPARE_SEO, HOME_FAQ, HOME_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO } from './intro-content'
+import { COMPARE_SEO, HOME_FAQ, HOME_SEO, MUHURTA_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO } from './intro-content'
 
 function guideLink(slug: string, label: string): SeoRelatedLink {
   return { href: `/guides/${slug}`, label }
@@ -150,4 +150,29 @@ export function panchangIntro(locale: AppLocale): SeoIntroProps {
 
 export function panchangCalendarIntro(locale: AppLocale): SeoIntroProps {
   return locale === 'hi' ? PANCHANG_CALENDAR_SEO_HI : PANCHANG_CALENDAR_SEO
+}
+
+export const MUHURTA_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'वैदिक मुहूर्त खोजक — Vedaansh',
+  h1: 'वैदिक मुहूर्त खोजक — शुभ समय-खिड़कियाँ',
+  paragraphs: [
+    'विवाह, यात्रा, व्यापार, संपत्ति, शिक्षा आदि के लिए शुभ मुहूर्त खोजें। Vedaansh प्रत्येक दिन को योग गुणवत्ता, तिथि, नक्षत्र, वार स्वामी और राहु काल / गुलिक से बचाव के आधार पर मूल्यांकित करता है।',
+    'अभिजित मुहूर्त और व्यक्तिगत तारा/चंद्र बल (जन्म कुंडली सहित) इलेक्शनल ज्योतिष के निर्णय को परिष्कृत करते हैं।',
+  ],
+  h2: 'मुहूर्त विश्लेषण में शामिल',
+  bullets: [
+    { label: 'गतिविधि-विशिष्ट स्कोर', desc: 'विवाह, गृह प्रवेश, यात्रा, अनुबंध आदि' },
+    { label: 'टाइमलाइन दृश्य', desc: 'तिथि सीमा में अनुकूल अंतराल देखें' },
+    { label: 'शास्त्रीय नियम', desc: 'ज्योतिष परंपरा के योग, तिथि और नक्षत्र फ़िल्टर' },
+  ],
+  relatedLinks: [
+    guideLink('muhurta-for-marriage', 'विवाह मुहूर्त'),
+    guideLink('what-is-panchang-tithi-nakshatra', 'पंचांग मूल बातें'),
+    guideLink('rahu-kalam-explained', 'राहु काल'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function muhurtaIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? MUHURTA_SEO_HI : MUHURTA_SEO
 }

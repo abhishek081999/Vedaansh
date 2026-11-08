@@ -1,3 +1,8 @@
+import type { EngineLang } from '@/lib/engine/lang'
+import {
+  PANCHAKA_LABELS_HI,
+  PANCHAKA_SHUBH_HI,
+} from '@/lib/engine/locale/muhurtaAdvanced.hi'
 
 import { GrahaId } from '@/types/astrology';
 
@@ -75,26 +80,33 @@ export function getChoghadiya(
 // ── Muhurta Panchaka ──────────────────────────────────────────
 // Traditional formula: (Tithi + Vara + Nakshatra + Lagna) % 9
 
+const PANCHAKA_LABELS_EN: Record<number, string> = {
+  1: 'Mrityu Panchaka (Take extra care)',
+  2: 'Agni Panchaka (Fire/Theft)',
+  4: 'Raja Panchaka (Legal/State)',
+  6: 'Chora Panchaka (Loss/Theft)',
+  8: 'Roga Panchaka (Disease)',
+}
+
+const PANCHAKA_SHUBH_EN = 'Shubh Panchaka (Auspicious)'
+
+export function panchakaDisplayLabel(remainder: number, isAuspicious: boolean, lang: EngineLang = 'en'): string {
+  if (isAuspicious) return lang === 'hi' ? PANCHAKA_SHUBH_HI : PANCHAKA_SHUBH_EN
+  if (lang === 'hi') return PANCHAKA_LABELS_HI[remainder] ?? PANCHAKA_SHUBH_HI
+  return PANCHAKA_LABELS_EN[remainder] ?? PANCHAKA_SHUBH_EN
+}
+
 export function getMuhurtaPanchaka(
-  tithi: number, 
+  tithi: number,
   vara: number, // 0=Sun...6=Sat
   nakshatra: number, // 1=Ashwini...27=Revati
-  lagna: number // 1=Aries...12=Pisces
+  lagna: number, // 1=Aries...12=Pisces
+  lang: EngineLang = 'en',
 ): { remainder: number; label: string; isAuspicious: boolean } {
-  // Traditional numbering starts at 1
-  const sum = tithi + (vara + 1) + nakshatra + lagna;
-  const remainder = sum % 9;
-  
-  const labels: Record<number, string> = {
-    1: 'Mrityu Panchaka (Take extra care)',
-    2: 'Agni Panchaka (Fire/Theft)',
-    4: 'Raja Panchaka (Legal/State)',
-    6: 'Chora Panchaka (Loss/Theft)',
-    8: 'Roga Panchaka (Disease)'
-  };
-  
-  const label = labels[remainder] || 'Shubh Panchaka (Auspicious)';
-  const isAuspicious = ![1, 2, 4, 6, 8].includes(remainder);
-  
-  return { remainder, label, isAuspicious };
+  const sum = tithi + (vara + 1) + nakshatra + lagna
+  const remainder = sum % 9
+  const isAuspicious = ![1, 2, 4, 6, 8].includes(remainder)
+  const label = panchakaDisplayLabel(remainder, isAuspicious, lang)
+
+  return { remainder, label, isAuspicious }
 }

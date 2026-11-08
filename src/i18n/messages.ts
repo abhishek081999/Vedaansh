@@ -16,6 +16,7 @@ export const NAMESPACES = [
   'relationshipMarriage',
   'careerProfession',
   'compare',
+  'muhurta',
 ] as const
 export type Namespace = (typeof NAMESPACES)[number]
 

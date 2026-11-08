@@ -18,17 +18,19 @@ const DIV_CODE = /^(D\d{1,2}|DK|UL|AK|AmK|PK|GK|BK)$/
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}/
 const NUMERIC = /^[\d./\s:%+×\-—,]+$/
 
-const ENGLISH_SENTENCE =
-  /\b(The|This|Marriage|Venus|Jupiter|with the|in the)\b/i
-
 const DEVANAGARI = /[\u0900-\u097F]/
+const LATIN_WORD = /[A-Za-z]{4,}/
+const DASHA_ID = /^(maha|antar|pratyantar|sookshma)/i
+const DASHA_CHART_ID = /dasha-[A-Za-z]{2}-\d+/
 
 function isAllowedLatin(s: string): boolean {
   const t = s.trim()
-  if (t.length <= 40) return true
+  if (t.length < 25) return true
   if (DEVANAGARI.test(t)) return true
   if (ISO_DATE.test(t)) return true
   if (NUMERIC.test(t)) return true
+  if (DASHA_ID.test(t)) return true
+  if (DASHA_CHART_ID.test(t)) return true
   const tokens = t.split(/\s+/).filter(Boolean)
   if (tokens.every(w => GRAHA_CODE.test(w) || DIV_CODE.test(w))) return true
   return false
@@ -38,7 +40,7 @@ function findEnglishLeaks(strings: string[]): string[] {
   const leaks: string[] = []
   for (const s of strings) {
     if (isAllowedLatin(s)) continue
-    if (s.length > 40 && ENGLISH_SENTENCE.test(s)) leaks.push(s.slice(0, 160))
+    if (LATIN_WORD.test(s)) leaks.push(s.slice(0, 160))
   }
   return [...new Set(leaks)]
 }

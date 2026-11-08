@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Sun,
   Moon,
@@ -11,6 +12,8 @@ import {
   XCircle,
   AlertCircle,
 } from 'lucide-react'
+import { useLang } from '@/i18n/useLang'
+import { termHi } from '@/i18n/jyotish'
 
 interface MuhurtaDiagnosticsProps {
   diagnostics?: {
@@ -28,7 +31,25 @@ interface MuhurtaDiagnosticsProps {
 }
 
 export function MuhurtaDiagnostics({ diagnostics }: MuhurtaDiagnosticsProps) {
+  const t = useTranslations('muhurta.diagnostics')
+  const { hi } = useLang()
+
   if (!diagnostics) return null
+
+  const timingDesc = (quality: string) => {
+    if (quality === 'Good') return t('timingGood')
+    if (quality === 'Bad') return t('timingBad')
+    return t('timingNeutral')
+  }
+
+  const dashaFit = (fit: string) => {
+    if (fit === 'supportive' || fit === 'challenging' || fit === 'neutral') {
+      return t(`dashaFit.${fit}` as 'dashaFit.supportive')
+    }
+    return fit
+  }
+
+  const graha = (code: string) => (hi ? termHi(code) : code)
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginTop: '0.5rem' }}>
@@ -36,27 +57,35 @@ export function MuhurtaDiagnostics({ diagnostics }: MuhurtaDiagnosticsProps) {
       {diagnostics.choghadiya && (
         <DiagCard
           icon={<Sun className="w-4 h-4" />}
-          label="Choghadiya"
-          value={diagnostics.choghadiya.type}
+          label={t('choghadiya')}
+          value={
+            ['Amrit', 'Shubh', 'Labh', 'Chala', 'Rog', 'Kaal', 'Udveg'].includes(diagnostics.choghadiya.type)
+              ? t(`choghadiyaType.${diagnostics.choghadiya.type}` as 'choghadiyaType.Amrit')
+              : diagnostics.choghadiya.type
+          }
           status={diagnostics.choghadiya.quality === 'Good' ? 'success' : diagnostics.choghadiya.quality === 'Bad' ? 'error' : 'warning'}
-          desc={`${diagnostics.choghadiya.quality} Timing`}
+          desc={timingDesc(diagnostics.choghadiya.quality)}
         />
       )}
 
       {diagnostics.panchaka && (
         <DiagCard
           icon={<Shield className="w-4 h-4" />}
-          label="Panchaka Status"
-          value={diagnostics.panchaka.isAuspicious ? 'Shubh' : diagnostics.panchaka.label.split(' ')[0]}
+          label={t('panchaka')}
+          value={
+            diagnostics.panchaka.isAuspicious
+              ? t('shubh')
+              : diagnostics.panchaka.label.split(/[\s(/]/)[0]
+          }
           status={diagnostics.panchaka.isAuspicious ? 'success' : 'error'}
-          desc={diagnostics.panchaka.isAuspicious ? 'Auspicious' : 'Avoided'}
+          desc={diagnostics.panchaka.isAuspicious ? t('auspicious') : t('avoided')}
         />
       )}
 
       {diagnostics.taraBala && (
         <DiagCard
           icon={<Zap className="w-4 h-4" />}
-          label="Tara Bala"
+          label={t('taraBala')}
           value={diagnostics.taraBala.name}
           status={
             diagnostics.taraBala.favorable === true || diagnostics.taraBala.score > 0
@@ -65,15 +94,18 @@ export function MuhurtaDiagnostics({ diagnostics }: MuhurtaDiagnosticsProps) {
                 ? 'error'
                 : 'warning'
           }
-          desc={`${diagnostics.taraBala.score > 0 ? '+' : ''}${diagnostics.taraBala.score} Resonance`}
+          desc={t('resonance', {
+            sign: diagnostics.taraBala.score > 0 ? '+' : '',
+            score: diagnostics.taraBala.score,
+          })}
         />
       )}
 
       {diagnostics.chandraBala && (
         <DiagCard
           icon={<Moon className="w-4 h-4" />}
-          label="Chandra Bala"
-          value={`${diagnostics.chandraBala.house}th House`}
+          label={t('chandraBala')}
+          value={t('houseNth', { n: diagnostics.chandraBala.house })}
           status={
             diagnostics.chandraBala.isFavorable
               ? 'success'
@@ -83,10 +115,10 @@ export function MuhurtaDiagnostics({ diagnostics }: MuhurtaDiagnosticsProps) {
           }
           desc={
             diagnostics.chandraBala.isFavorable
-              ? 'High Support'
+              ? t('highSupport')
               : diagnostics.chandraBala.isChallenging
-                ? 'Challenging'
-                : 'Neutral'
+                ? t('challenging')
+                : t('neutralSupport')
           }
         />
       )}
@@ -94,7 +126,7 @@ export function MuhurtaDiagnostics({ diagnostics }: MuhurtaDiagnosticsProps) {
       {diagnostics.lagna && (
         <DiagCard
           icon={<Shield className="w-4 h-4" />}
-          label="Electional Lagna"
+          label={t('electionalLagna')}
           value={`R${diagnostics.lagna.rashi}`}
           status={diagnostics.lagna.fit === 'good' ? 'success' : diagnostics.lagna.fit === 'avoid' ? 'error' : 'warning'}
           desc={diagnostics.lagna.note}
@@ -104,40 +136,48 @@ export function MuhurtaDiagnostics({ diagnostics }: MuhurtaDiagnosticsProps) {
       {diagnostics.grahan?.active && (
         <DiagCard
           icon={<AlertCircle className="w-4 h-4" />}
-          label="Grahan Yoga"
-          value={diagnostics.grahan.type ?? 'Active'}
+          label={t('grahanYoga')}
+          value={
+            diagnostics.grahan.type === 'solar' || diagnostics.grahan.type === 'lunar'
+              ? t(`grahanType.${diagnostics.grahan.type}`)
+              : (diagnostics.grahan.type ?? t('grahanActive'))
+          }
           status="error"
-          desc="Avoid major beginnings"
+          desc={t('avoidBeginnings')}
         />
       )}
 
       {diagnostics.tyajya && (
         <DiagCard
           icon={<XCircle className="w-4 h-4" />}
-          label="Tyajya"
-          value="Active"
+          label={t('tyajya')}
+          value={t('tyajyaActive')}
           status="error"
-          desc="Visha portion of nakshatra"
+          desc={t('vishaPortion')}
         />
       )}
 
       {diagnostics.dasha && (
         <DiagCard
           icon={<Zap className="w-4 h-4" />}
-          label="Mahadasha"
-          value={diagnostics.dasha.maha}
+          label={t('mahadasha')}
+          value={graha(diagnostics.dasha.maha)}
           status={diagnostics.dasha.fit === 'supportive' ? 'success' : diagnostics.dasha.fit === 'challenging' ? 'error' : 'warning'}
-          desc={diagnostics.dasha.antar ? `Antar ${diagnostics.dasha.antar}` : diagnostics.dasha.fit}
+          desc={
+            diagnostics.dasha.antar
+              ? t('antarDasha', { lord: graha(diagnostics.dasha.antar) })
+              : dashaFit(diagnostics.dasha.fit)
+          }
         />
       )}
 
       {diagnostics.sav && (
         <DiagCard
           icon={<Sun className="w-4 h-4" />}
-          label="SAV @ Lagna"
+          label={t('savLagna')}
           value={`${diagnostics.sav.bindus}`}
           status={diagnostics.sav.bindus >= 30 ? 'success' : diagnostics.sav.bindus <= 22 ? 'error' : 'warning'}
-          desc={`Rashi ${diagnostics.sav.lagna}`}
+          desc={t('rashiLabel', { n: diagnostics.sav.lagna })}
         />
       )}
 

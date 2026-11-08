@@ -6,6 +6,12 @@
 
 import type { GrahaId } from '@/types/astrology'
 import { checkGandanta } from '@/lib/engine/gandanta'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { GRAHA_HI, RASHI_HI } from '@/i18n/jyotish'
+import {
+  ELECTIONAL_LAGNA_NOTE_HI,
+  ME_HI,
+} from '@/lib/engine/locale/muhurtaElection.hi'
 import {
   analyzeMuhurta,
   type MuhurtaActivity,
@@ -136,10 +142,15 @@ export interface MuhurtaAdvancedInput {
 /**
  * Apply advanced electional overlays onto a base MuhurtaScore (mutates copy).
  */
+function electionActivityName(activity: MuhurtaActivity, lang: EngineLang): string {
+  return lang === 'hi' ? ME_HI.activityLabel[activity] : activity
+}
+
 export function applyMuhurtaAdvanced(
   activity: MuhurtaActivity,
   base: MuhurtaScore,
   adv: MuhurtaAdvancedInput,
+  lang: EngineLang = 'en',
 ): MuhurtaScore {
   let score = base.score
   const factors = [...base.factors]
@@ -158,15 +169,31 @@ export function applyMuhurtaAdvanced(
     if (rules.good.includes(adv.lagnaRashi)) {
       fit = 'good'
       score += 12
-      factors.push(`Electional lagna R${adv.lagnaRashi} (Favorable)`)
+      factors.push(
+        lang === 'hi'
+          ? fill(ME_HI.lagnaFav, { rashi: adv.lagnaRashi })
+          : `Electional lagna R${adv.lagnaRashi} (Favorable)`,
+      )
     } else if (rules.avoid.includes(adv.lagnaRashi)) {
       fit = 'avoid'
       score -= 12
-      factors.push(`Electional lagna R${adv.lagnaRashi} (Less suited)`)
+      factors.push(
+        lang === 'hi'
+          ? fill(ME_HI.lagnaAvoid, { rashi: adv.lagnaRashi })
+          : `Electional lagna R${adv.lagnaRashi} (Less suited)`,
+      )
     } else {
-      factors.push(`Electional lagna R${adv.lagnaRashi} (Neutral)`)
+      factors.push(
+        lang === 'hi'
+          ? fill(ME_HI.lagnaNeutral, { rashi: adv.lagnaRashi })
+          : `Electional lagna R${adv.lagnaRashi} (Neutral)`,
+      )
     }
-    diagnostics.lagna = { rashi: adv.lagnaRashi, fit, note: rules.note }
+    diagnostics.lagna = {
+      rashi: adv.lagnaRashi,
+      fit,
+      note: lang === 'hi' ? ELECTIONAL_LAGNA_NOTE_HI[activity] : rules.note,
+    }
   }
 
   if (typeof adv.moonLonSidereal === 'number') {
@@ -174,7 +201,11 @@ export function applyMuhurtaAdvanced(
     if (g.isGandanta) {
       const pen = g.severity === 'exact' ? 25 : 12
       score -= pen
-      factors.push(`Moon Gandanta (${g.severity})`)
+      const sev =
+        lang === 'hi'
+          ? (ME_HI.gandantaSeverity[g.severity as keyof typeof ME_HI.gandantaSeverity] ?? g.severity)
+          : g.severity
+      factors.push(lang === 'hi' ? fill(ME_HI.gandanta, { severity: sev }) : `Moon Gandanta (${g.severity})`)
       diagnostics.gandanta = { active: true, severity: g.severity }
     } else {
       diagnostics.gandanta = { active: false, severity: 'none' }
@@ -184,7 +215,7 @@ export function applyMuhurtaAdvanced(
     const nakIndex = Math.floor((((adv.moonLonSidereal % 360) + 360) % 360) / NAK_SPAN)
     if (isTyajyaPortion(nakIndex, degInNak)) {
       score -= 18
-      factors.push('Tyajya / Visha portion of Nakshatra')
+      factors.push(lang === 'hi' ? ME_HI.tyajya : 'Tyajya / Visha portion of Nakshatra')
       diagnostics.tyajya = true
     } else {
       diagnostics.tyajya = false
@@ -195,7 +226,16 @@ export function applyMuhurtaAdvanced(
     const gr = checkGrahanYoga(adv.sunLonSidereal, adv.moonLonSidereal)
     if (gr.active) {
       score -= 30
-      factors.push(`Grahan yoga (${gr.type}) — avoid major beginnings`)
+      const gt = gr.type
+        ? lang === 'hi'
+          ? (ME_HI.grahanType[gr.type] ?? gr.type)
+          : gr.type
+        : ''
+      factors.push(
+        lang === 'hi'
+          ? fill(ME_HI.grahan, { type: gt })
+          : `Grahan yoga (${gr.type}) — avoid major beginnings`,
+      )
       diagnostics.grahan = { active: true, type: gr.type }
     } else {
       diagnostics.grahan = { active: false, type: null }
@@ -206,18 +246,29 @@ export function applyMuhurtaAdvanced(
     const friendly = DASHA_FRIENDLY[activity]
     const hard = DASHA_HARD[activity]
     let fit = 'neutral'
+    const mahaName = lang === 'hi' ? (GRAHA_HI[adv.dasha.maha] ?? adv.dasha.maha) : adv.dasha.maha
+    const actName = electionActivityName(activity, lang)
     if (friendly.includes(adv.dasha.maha)) {
       score += 10
       fit = 'supportive'
-      factors.push(`Mahadasha ${adv.dasha.maha} supportive for ${activity}`)
+      factors.push(
+        lang === 'hi'
+          ? fill(ME_HI.dashaSupport, { maha: mahaName, activity: actName })
+          : `Mahadasha ${adv.dasha.maha} supportive for ${activity}`,
+      )
     } else if (hard.includes(adv.dasha.maha)) {
       score -= 10
       fit = 'challenging'
-      factors.push(`Mahadasha ${adv.dasha.maha} challenging for ${activity}`)
+      factors.push(
+        lang === 'hi'
+          ? fill(ME_HI.dashaHard, { maha: mahaName, activity: actName })
+          : `Mahadasha ${adv.dasha.maha} challenging for ${activity}`,
+      )
     }
     if (adv.dasha.antar && hard.includes(adv.dasha.antar)) {
       score -= 5
-      factors.push(`Antardasha ${adv.dasha.antar} caution`)
+      const ant = lang === 'hi' ? (GRAHA_HI[adv.dasha.antar] ?? adv.dasha.antar) : adv.dasha.antar
+      factors.push(lang === 'hi' ? fill(ME_HI.antarCaution, { antar: ant }) : `Antardasha ${adv.dasha.antar} caution`)
     }
     diagnostics.dasha = {
       maha: adv.dasha.maha,
@@ -235,22 +286,36 @@ export function applyMuhurtaAdvanced(
     diagnostics.sav = { bindus, lagna: adv.lagnaRashi }
     if (bindus >= 30) {
       score += 8
-      factors.push(`SAV at lagna: ${bindus} bindus (Strong)`)
+      factors.push(
+        lang === 'hi' ? fill(ME_HI.savStrong, { bindus }) : `SAV at lagna: ${bindus} bindus (Strong)`,
+      )
     } else if (bindus <= 22) {
       score -= 8
-      factors.push(`SAV at lagna: ${bindus} bindus (Weak)`)
+      factors.push(
+        lang === 'hi' ? fill(ME_HI.savWeak, { bindus }) : `SAV at lagna: ${bindus} bindus (Weak)`,
+      )
     } else {
-      factors.push(`SAV at lagna: ${bindus} bindus`)
+      factors.push(lang === 'hi' ? fill(ME_HI.savMid, { bindus }) : `SAV at lagna: ${bindus} bindus`)
     }
   }
 
   const finalScore = Math.max(0, Math.min(100, score))
-  let label: MuhurtaScore['label'] = 'Neutral'
-  if (finalScore >= 80) label = 'Excellent'
-  else if (finalScore >= 65) label = 'Good'
-  else if (finalScore >= 45) label = 'Neutral'
-  else if (finalScore >= 30) label = 'Challenging'
-  else label = 'Avoid'
+  let labelEn: 'Excellent' | 'Good' | 'Neutral' | 'Challenging' | 'Avoid' = 'Neutral'
+  if (finalScore >= 80) labelEn = 'Excellent'
+  else if (finalScore >= 65) labelEn = 'Good'
+  else if (finalScore >= 45) labelEn = 'Neutral'
+  else if (finalScore >= 30) labelEn = 'Challenging'
+  else labelEn = 'Avoid'
+  const label =
+    lang === 'hi'
+      ? ({
+          Excellent: 'उत्तम',
+          Good: 'अच्छा',
+          Neutral: 'मध्यम',
+          Challenging: 'कठिन',
+          Avoid: 'टालें',
+        }[labelEn] as MuhurtaScore['label'])
+      : labelEn
 
   return {
     score: finalScore,
@@ -260,12 +325,16 @@ export function applyMuhurtaAdvanced(
   }
 }
 
-export function lagnaRashiName(r: number): string {
+export function lagnaRashiName(r: number, lang: EngineLang = 'en'): string {
+  const idx = ((r - 1) % 12 + 12) % 12
+  if (lang === 'hi') {
+    return RASHI_HI[(idx + 1) as keyof typeof RASHI_HI] ?? `R${r}`
+  }
   const names = [
     'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
     'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
   ]
-  return names[((r - 1) % 12 + 12) % 12] ?? `R${r}`
+  return names[idx] ?? `R${r}`
 }
 
 /** Base panchanga score + optional advanced electional overlays. */
@@ -274,8 +343,9 @@ export function scoreMuhurtaFull(
   panchang: Parameters<typeof analyzeMuhurta>[1],
   natal: { moonNak: number; moonSign: number },
   adv?: MuhurtaAdvancedInput,
+  lang: EngineLang = 'en',
 ): MuhurtaScore {
-  const base = analyzeMuhurta(activity, panchang, natal)
+  const base = analyzeMuhurta(activity, panchang, natal, lang)
   if (!adv) return base
-  return applyMuhurtaAdvanced(activity, base, adv)
+  return applyMuhurtaAdvanced(activity, base, adv, lang)
 }

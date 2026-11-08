@@ -269,12 +269,17 @@ function collectRelationshipHiBlobs(): unknown[] {
   ]
 }
 
+// These smoke tests run the full Milan / relationship analyzer surface twice
+// (plus HTML generation). Default Vitest 5s is fine locally (~4–5s) but CI
+// runners often land around 10s — give them headroom.
+const HI_LEAK_TIMEOUT_MS = 30_000
+
 describe('Milan / relationship Hindi leak smoke', () => {
   it('major analyzers (lang=hi) avoid English sentence leaks', () => {
     const strings = collectStrings(collectRelationshipHiBlobs())
     const leaks = findEnglishLeaks(strings)
     expect(leaks, `English leaks (${leaks.length}):\n${leaks.join('\n---\n')}`).toEqual([])
-  })
+  }, HI_LEAK_TIMEOUT_MS)
 
   it('generateMilanHTML (lang=hi) avoids English sentence leaks in visible text', () => {
     const moA = moonAshtakoot(chartA)
@@ -291,5 +296,5 @@ describe('Milan / relationship Hindi leak smoke', () => {
     const longTokens = words.filter((w) => w.length > 40)
     const leaks = findEnglishLeaks(longTokens)
     expect(leaks, `HTML text leaks (${leaks.length}):\n${leaks.join('\n---\n')}`).toEqual([])
-  })
+  }, HI_LEAK_TIMEOUT_MS)
 })

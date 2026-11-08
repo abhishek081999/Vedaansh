@@ -25,8 +25,13 @@ import { scoreMuhurtaFull } from '@/lib/engine/muhurtaElection'
 import { calcHouses } from '@/lib/engine/houses'
 import { getChoghadiya, getMuhurtaPanchaka } from '@/lib/engine/muhurtaAdvanced'
 import type { GrahaId } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
 
 export const dynamic = 'force-dynamic'
+
+function parseEngineLang(raw: string | null): EngineLang {
+  return raw === 'hi' ? 'hi' : 'en'
+}
 
 export async function GET(req: NextRequest) {
   const blocked = await guardRoute(req, routeSecurityPresets.muhurtaRead())
@@ -52,6 +57,7 @@ export async function GET(req: NextRequest) {
     const ayanMode = (searchParams.get('ayan') || 'lahiri') as Parameters<typeof getAyanamsha>[1]
     const mahaLord = (searchParams.get('maha') || '') as GrahaId | ''
     const antarLord = (searchParams.get('antar') || '') as GrahaId | ''
+    const lang = parseEngineLang(searchParams.get('lang'))
     const savRaw = searchParams.get('sav') || ''
     const savBindusByRashi = savRaw
       ? savRaw.split(',').map(n => parseInt(n, 10)).filter(n => Number.isFinite(n))
@@ -135,6 +141,7 @@ export async function GET(req: NextRequest) {
         vara.number,
         nakshatra.index + 1,
         lagnaIndex,
+        lang,
       )
 
       const choghadiyaRes = getChoghadiya(
@@ -197,13 +204,14 @@ export async function GET(req: NextRequest) {
               dasha,
               savBindusByRashi: savOk,
             },
+            lang,
           )
         } catch (scoringError) {
           console.error(`[muhurta/timeline] Scoring error for ${act}:`, scoringError)
           scores[act] = {
             score: 0,
-            label: 'Avoid',
-            factors: ['Error in calculation'],
+            label: (lang === 'hi' ? 'टालें' : 'Avoid') as MuhurtaScore['label'],
+            factors: [lang === 'hi' ? 'गणना में त्रुटि' : 'Error in calculation'],
           }
         }
       }

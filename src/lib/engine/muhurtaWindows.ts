@@ -9,6 +9,12 @@ import {
   getGodhuliMuhurat,
   type TimeWindow,
 } from '@/lib/panchang/muhurta-extra'
+import type { EngineLang } from '@/lib/engine/lang'
+import { MUHURTA_WINDOW_LABELS_HI } from '@/lib/engine/locale/muhurtaWindows.hi'
+
+function windowLabel(en: string, lang: EngineLang): string {
+  return lang === 'hi' ? (MUHURTA_WINDOW_LABELS_HI[en] ?? en) : en
+}
 
 export interface LabeledWindow {
   label: string
@@ -37,7 +43,10 @@ export interface MuhurtaWindowInputs {
 /**
  * Build labeled avoid + favorable windows for a civil day.
  */
-export function assembleMuhurtaWindows(input: MuhurtaWindowInputs): {
+export function assembleMuhurtaWindows(
+  input: MuhurtaWindowInputs,
+  lang: EngineLang = 'en',
+): {
   favorable: LabeledWindow[]
   avoid: LabeledWindow[]
 } {
@@ -46,12 +55,17 @@ export function assembleMuhurtaWindows(input: MuhurtaWindowInputs): {
   const brahma = getBrahmaMuhurta(input.sunrise)
 
   const favorable: LabeledWindow[] = [
-    { label: 'Brahma Muhurta', start: brahma.start, end: brahma.end, kind: 'favorable' },
-    { label: 'Godhuli', start: godhuli.start, end: godhuli.end, kind: 'favorable' },
+    {
+      label: windowLabel('Brahma Muhurta', lang),
+      start: brahma.start,
+      end: brahma.end,
+      kind: 'favorable',
+    },
+    { label: windowLabel('Godhuli', lang), start: godhuli.start, end: godhuli.end, kind: 'favorable' },
   ]
   if (input.abhijitMuhurta) {
     favorable.unshift({
-      label: 'Abhijit',
+      label: windowLabel('Abhijit', lang),
       start: input.abhijitMuhurta.start,
       end: input.abhijitMuhurta.end,
       kind: 'favorable',
@@ -59,14 +73,34 @@ export function assembleMuhurtaWindows(input: MuhurtaWindowInputs): {
   }
 
   const avoid: LabeledWindow[] = [
-    { label: 'Rahu Kalam', start: input.rahuKalam.start, end: input.rahuKalam.end, kind: 'avoid' },
-    { label: 'Gulika', start: input.gulikaKalam.start, end: input.gulikaKalam.end, kind: 'avoid' },
-    { label: 'Dur Muhurat', start: dur1.start, end: dur1.end, kind: 'avoid' },
-    { label: 'Dur Muhurat', start: dur2.start, end: dur2.end, kind: 'avoid' },
+    {
+      label: windowLabel('Rahu Kalam', lang),
+      start: input.rahuKalam.start,
+      end: input.rahuKalam.end,
+      kind: 'avoid',
+    },
+    {
+      label: windowLabel('Gulika', lang),
+      start: input.gulikaKalam.start,
+      end: input.gulikaKalam.end,
+      kind: 'avoid',
+    },
   ]
+  avoid.push({
+    label: windowLabel('Dur Muhurat', lang),
+    start: dur1.start,
+    end: dur1.end,
+    kind: 'avoid',
+  })
+  avoid.push({
+    label: windowLabel('Dur Muhurat', lang),
+    start: dur2.start,
+    end: dur2.end,
+    kind: 'avoid',
+  })
   if (input.yamaganda) {
     avoid.splice(2, 0, {
-      label: 'Yamaganda',
+      label: windowLabel('Yamaganda', lang),
       start: input.yamaganda.start,
       end: input.yamaganda.end,
       kind: 'avoid',
