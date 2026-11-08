@@ -6,6 +6,7 @@
 
 import { Link } from '@/i18n/navigation'
 import React from 'react'
+import { useTranslations } from 'next-intl'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
 import type { JayaBhavaReading } from '@/lib/engine/jayaBhava'
 import type { MarriageClassReading } from '@/lib/engine/marriageClass'
@@ -39,13 +40,24 @@ export function toneClass(tone: LifeTone): string {
 }
 
 const TONE_ICON = { supportive: CheckCircle2, caution: AlertTriangle, mixed: CircleDot } as const
-const TONE_LABEL: Record<LifeTone, string> = { supportive: 'Supportive', caution: 'Needs care', mixed: 'Mixed' }
 
 function scoreTone(score: number): LifeTone {
   return score >= 7 ? 'supportive' : score <= 3 ? 'caution' : 'mixed'
 }
 
-const SCORE_BAND: Record<LifeTone, string> = { supportive: 'Strong', mixed: 'Moderate', caution: 'Tender' }
+type UiTranslator = ReturnType<typeof useTranslations>
+
+function toneLabel(tone: LifeTone, tu: UiTranslator): string {
+  if (tone === 'supportive') return tu('toneSupportive')
+  if (tone === 'caution') return tu('toneCaution')
+  return tu('toneMixed')
+}
+
+function scoreBand(tone: LifeTone, tu: UiTranslator): string {
+  if (tone === 'supportive') return tu('bandStrong')
+  if (tone === 'caution') return tu('bandTender')
+  return tu('bandModerate')
+}
 
 const CLIENT_SAFE_STRIP = /\b(class reads?|classical line|yogas? marked)\b/gi
 
@@ -73,8 +85,10 @@ export function ScoreMeter({
   score: number
   summary: string
 }) {
+  const tu = useTranslations('relationshipMarriage.ui')
   const tone = scoreTone(score)
   const width = Math.max(0, Math.min(10, score)) * 10
+  const band = scoreBand(tone, tu)
   return (
     <div className={`${s.meter} ${toneClass(tone)}`}>
       <div className={s.meterTop}>
@@ -82,10 +96,10 @@ export function ScoreMeter({
           <strong className={s.meterLabel}>{label}</strong>
           <span className={s.meterPlanet}>{planet}</span>
         </div>
-        <div className={s.meterScore} aria-label={`${label}: ${score} out of 10, ${SCORE_BAND[tone]}`}>
+        <div className={s.meterScore} aria-label={tu('scoreAria', { label, score, band })}>
           <span className={s.meterNumber}>{score}</span>
           <span className={s.meterOutOf}>/10</span>
-          <span className={s.meterBand}>{SCORE_BAND[tone]}</span>
+          <span className={s.meterBand}>{band}</span>
         </div>
       </div>
       <div className={s.track} role="presentation">
@@ -97,16 +111,18 @@ export function ScoreMeter({
 }
 
 export function NoteCards({ notes, clientSafe = false }: { notes: MarriedLifeNote[]; clientSafe?: boolean }) {
+  const tu = useTranslations('relationshipMarriage.ui')
   if (!notes.length) return null
   return (
     <div className={s.noteList}>
       {notes.map(raw => {
         const n = softenNote(raw, clientSafe)
         const Icon = TONE_ICON[n.tone]
+        const tone = toneLabel(n.tone, tu)
         return (
           <article key={n.id} className={`${s.note} ${toneClass(n.tone)}`}>
             <header className={s.noteHead}>
-              <span className={s.noteIcon} role="img" aria-label={TONE_LABEL[n.tone]} title={TONE_LABEL[n.tone]}>
+              <span className={s.noteIcon} role="img" aria-label={tone} title={tone}>
                 <Icon size={14} strokeWidth={2.2} aria-hidden />
               </span>
               <h4 className={s.noteTitle}>{n.title}</h4>
@@ -120,8 +136,10 @@ export function NoteCards({ notes, clientSafe = false }: { notes: MarriedLifeNot
 }
 
 export function MuhurtaWindowLink({ from, to }: { from?: string; to?: string }) {
+  const tu = useTranslations('relationshipMarriage.ui')
   if (!from) return null
   const href = `/muhurta?from=${encodeURIComponent(from)}${to ? `&to=${encodeURIComponent(to)}` : ''}`
+  const label = to ? tu('muhurtaSearchRange', { from, to }) : tu('muhurtaSearch', { from })
   return (
     <Link
       href={href}
@@ -140,14 +158,15 @@ export function MuhurtaWindowLink({ from, to }: { from?: string; to?: string }) 
         width: 'fit-content',
       }}
     >
-      Search muhurta {from}{to ? ` → ${to}` : ''}
+      {label}
     </Link>
   )
 }
 
 export function CaseBriefCard({ brief, clientSafe = false }: { brief: MarriageCaseBrief; clientSafe?: boolean }) {
+  const tu = useTranslations('relationshipMarriage.ui')
   return (
-    <section className={s.brief} aria-label="Case brief">
+    <section className={s.brief} aria-label={tu('caseBriefAria')}>
       <div className={s.briefHead}>
         <ClipboardList size={15} aria-hidden />
         <h3 className={s.briefTitle}>{brief.headline}</h3>
@@ -177,24 +196,25 @@ export function CaseBriefCard({ brief, clientSafe = false }: { brief: MarriageCa
 }
 
 export function SynastrySections({ reading, clientSafe = false }: { reading: MarriageSynastryReading; clientSafe?: boolean }) {
+  const ts = useTranslations('relationshipMarriage.sections')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {reading.overlayAonB.length ? (
         <div>
-          <SectionLabel>A into B</SectionLabel>
+          <SectionLabel>{ts('synastryA')}</SectionLabel>
           <NoteCards notes={reading.overlayAonB} clientSafe={clientSafe} />
         </div>
       ) : null}
       {reading.overlayBonA.length ? (
         <div>
-          <SectionLabel>B into A</SectionLabel>
+          <SectionLabel>{ts('synastryB')}</SectionLabel>
           <NoteCards notes={reading.overlayBonA} clientSafe={clientSafe} />
         </div>
       ) : null}
       <div>
-        <SectionLabel>D9 × D9</SectionLabel>
+        <SectionLabel>{ts('synastryD9')}</SectionLabel>
         <NoteCards notes={reading.d9} clientSafe={clientSafe} />
       </div>
     </div>
@@ -202,6 +222,7 @@ export function SynastrySections({ reading, clientSafe = false }: { reading: Mar
 }
 
 export function IntimateLifeSections({ reading, clientSafe = false }: { reading: IntimateLife; clientSafe?: boolean }) {
+  const ts = useTranslations('relationshipMarriage.sections')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       {reading.headline ? (
@@ -210,13 +231,13 @@ export function IntimateLifeSections({ reading, clientSafe = false }: { reading:
       {reading.notes.length ? <NoteCards notes={reading.notes} clientSafe={clientSafe} /> : null}
       {reading.inlaws.length ? (
         <div>
-          <SectionLabel>In-laws</SectionLabel>
+          <SectionLabel>{ts('inlaws')}</SectionLabel>
           <NoteCards notes={reading.inlaws} clientSafe={clientSafe} />
         </div>
       ) : null}
       {reading.influence.length ? (
         <div>
-          <SectionLabel>Mind</SectionLabel>
+          <SectionLabel>{ts('mind')}</SectionLabel>
           <NoteCards notes={reading.influence} clientSafe={clientSafe} />
         </div>
       ) : null}
@@ -235,15 +256,16 @@ export function YogaChecklist({
   onFilterChange: (v: string) => void
   clientSafe?: boolean
 }) {
+  const tu = useTranslations('relationshipMarriage.ui')
   const q = filter.trim().toLowerCase()
   const shown = q ? notes.filter(n => `${n.title} ${n.detail} ${n.id}`.toLowerCase().includes(q)) : notes
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
       <input
-        aria-label="Filter yoga checklist"
+        aria-label={tu('yogaFilter')}
         value={filter}
         onChange={e => onFilterChange(e.target.value)}
-        placeholder="Filter yoga notes…"
+        placeholder={tu('yogaFilter')}
         style={{
           padding: '0.4rem 0.55rem',
           border: '1px solid var(--border)',
@@ -256,20 +278,21 @@ export function YogaChecklist({
       />
       <NoteCards notes={shown} clientSafe={clientSafe} />
       {!shown.length ? (
-        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>No yoga notes match this filter.</p>
+        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tu('yogaEmpty')}</p>
       ) : null}
     </div>
   )
 }
 
 export function JayaSections({ reading, showPrinciples = true, clientSafe = false }: { reading: JayaBhavaReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'Seventh lord', notes: reading.lord },
-    { label: 'Planets in the 7th', notes: reading.occupants },
-    { label: 'How the bond behaves', notes: reading.dynamics },
-    { label: 'More than one bond', notes: reading.multiplicity },
-    { label: 'When marriage is marked', notes: reading.timing },
-    { label: 'Strain on the marriage', notes: reading.strain },
+  const tg = useTranslations('relationshipMarriage.groups.jaya')
+  const groups: { key: 'lord' | 'occupants' | 'dynamics' | 'multiplicity' | 'timing' | 'strain'; notes: MarriedLifeNote[] }[] = [
+    { key: 'lord', notes: reading.lord },
+    { key: 'occupants', notes: reading.occupants },
+    { key: 'dynamics', notes: reading.dynamics },
+    { key: 'multiplicity', notes: reading.multiplicity },
+    { key: 'timing', notes: reading.timing },
+    { key: 'strain', notes: reading.strain },
   ]
   const showCoach = showPrinciples && !clientSafe
   return (
@@ -277,8 +300,8 @@ export function JayaSections({ reading, showPrinciples = true, clientSafe = fals
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -290,23 +313,24 @@ export function JayaSections({ reading, showPrinciples = true, clientSafe = fals
 }
 
 export function MarriageClassSections({ reading, showPrinciples = true, clientSafe = false }: { reading: MarriageClassReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'Birth chart and Navamsha', notes: reading.frame },
-    { label: 'What kind of marriage', notes: reading.kind },
-    { label: 'Feeling, attraction, and protection', notes: reading.pillars },
-    { label: 'The pattern', notes: reading.pattern },
-    { label: 'Old debt or soul bond', notes: reading.bond },
-    { label: 'Birth stars', notes: reading.nakshatra },
-    { label: 'Navamsha and the marriage point', notes: reading.navamsha },
-    { label: 'When it cannot restart', notes: reading.strain },
+  const tg = useTranslations('relationshipMarriage.groups.class')
+  const groups: { key: 'frame' | 'kind' | 'pillars' | 'pattern' | 'bond' | 'nakshatra' | 'navamsha' | 'strain'; notes: MarriedLifeNote[] }[] = [
+    { key: 'frame', notes: reading.frame },
+    { key: 'kind', notes: reading.kind },
+    { key: 'pillars', notes: reading.pillars },
+    { key: 'pattern', notes: reading.pattern },
+    { key: 'bond', notes: reading.bond },
+    { key: 'nakshatra', notes: reading.nakshatra },
+    { key: 'navamsha', notes: reading.navamsha },
+    { key: 'strain', notes: reading.strain },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -318,18 +342,19 @@ export function MarriageClassSections({ reading, showPrinciples = true, clientSa
 }
 
 export function MarriageHousesSections({ reading, showPrinciples = true, clientSafe = false }: { reading: MarriageHousesReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'The eight houses', notes: reading.houses },
-    { label: 'How the houses group', notes: reading.groups },
-    { label: 'What has to activate', notes: reading.activation },
+  const tg = useTranslations('relationshipMarriage.groups.houses')
+  const groups: { key: 'houses' | 'groups' | 'activation'; notes: MarriedLifeNote[] }[] = [
+    { key: 'houses', notes: reading.houses },
+    { key: 'groups', notes: reading.groups },
+    { key: 'activation', notes: reading.activation },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -341,18 +366,19 @@ export function MarriageHousesSections({ reading, showPrinciples = true, clientS
 }
 
 export function SeventhLordSections({ reading, showPrinciples = true, clientSafe = false }: { reading: SeventhLordReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'Where the 7th lord sits', notes: reading.placement },
-    { label: 'Combinations', notes: reading.combinations },
-    { label: 'Age band', notes: reading.timing },
+  const tg = useTranslations('relationshipMarriage.groups.lord')
+  const groups: { key: 'placement' | 'combinations' | 'timing'; notes: MarriedLifeNote[] }[] = [
+    { key: 'placement', notes: reading.placement },
+    { key: 'combinations', notes: reading.combinations },
+    { key: 'timing', notes: reading.timing },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -364,17 +390,18 @@ export function SeventhLordSections({ reading, showPrinciples = true, clientSafe
 }
 
 export function KarmicDebtSections({ reading, showPrinciples = true, clientSafe = false }: { reading: KarmicDebtReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'The account', notes: reading.debt },
-    { label: 'Whether it can finish', notes: reading.release },
+  const tg = useTranslations('relationshipMarriage.groups.karmic')
+  const groups: { key: 'debt' | 'release'; notes: MarriedLifeNote[] }[] = [
+    { key: 'debt', notes: reading.debt },
+    { key: 'release', notes: reading.release },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -386,18 +413,19 @@ export function KarmicDebtSections({ reading, showPrinciples = true, clientSafe 
 }
 
 export function DivorceEnergySections({ reading, showPrinciples = true, clientSafe = false }: { reading: DivorceEnergyReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'The three energies', notes: reading.energies },
-    { label: 'Cancellations and softeners', notes: reading.cancellations },
-    { label: 'What can speed it', notes: reading.triggers },
+  const tg = useTranslations('relationshipMarriage.groups.divorce')
+  const groups: { key: 'energies' | 'cancellations' | 'triggers'; notes: MarriedLifeNote[] }[] = [
+    { key: 'energies', notes: reading.energies },
+    { key: 'cancellations', notes: reading.cancellations },
+    { key: 'triggers', notes: reading.triggers },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -409,18 +437,19 @@ export function DivorceEnergySections({ reading, showPrinciples = true, clientSa
 }
 
 export function PartnerNatureSections({ reading, showPrinciples = true, clientSafe = false }: { reading: PartnerNatureReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'From this chart', notes: reading.portrait },
-    { label: 'Appearance, family, direction', notes: reading.classical },
-    { label: 'Planets on the marriage', notes: reading.planets },
+  const tg = useTranslations('relationshipMarriage.groups.partner')
+  const groups: { key: 'portrait' | 'classical' | 'planets'; notes: MarriedLifeNote[] }[] = [
+    { key: 'portrait', notes: reading.portrait },
+    { key: 'classical', notes: reading.classical },
+    { key: 'planets', notes: reading.planets },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -454,17 +483,18 @@ export function MarriageGocharSections({
 }
 
 export function VenusJupiterSections({ reading, showPrinciples = true, clientSafe = false }: { reading: VenusJupiterReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'The pattern', notes: reading.scenario },
-    { label: 'What can steady it', notes: reading.support },
+  const tg = useTranslations('relationshipMarriage.groups.venusJupiter')
+  const groups: { key: 'scenario' | 'support'; notes: MarriedLifeNote[] }[] = [
+    { key: 'scenario', notes: reading.scenario },
+    { key: 'support', notes: reading.support },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -476,19 +506,20 @@ export function VenusJupiterSections({ reading, showPrinciples = true, clientSaf
 }
 
 export function ClassicalMarriageSections({ reading, clientSafe = false }: { reading: ClassicalMarriageReading; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'Spouse portrait', notes: reading.spouse },
-    { label: 'Marriage timing', notes: reading.timing },
-    { label: 'Happiness and strain', notes: reading.happiness },
-    { label: 'More than one bond', notes: reading.remarriage },
+  const tg = useTranslations('relationshipMarriage.groups.classical')
+  const groups: { key: 'spouse' | 'timing' | 'happiness' | 'remarriage'; notes: MarriedLifeNote[] }[] = [
+    { key: 'spouse', notes: reading.spouse },
+    { key: 'timing', notes: reading.timing },
+    { key: 'happiness', notes: reading.happiness },
+    { key: 'remarriage', notes: reading.remarriage },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -497,19 +528,22 @@ export function ClassicalMarriageSections({ reading, clientSafe = false }: { rea
 }
 
 export function MarriageKarmaSections({ reading, clientSafe = false }: { reading: MarriageKarmaReading; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'Debt and account', notes: reading.debt },
-    { label: 'Venus in the debt frame', notes: reading.venus },
-    { label: 'Period notes', notes: reading.period },
+  const tg = useTranslations('relationshipMarriage.groups.karma')
+  const tu = useTranslations('relationshipMarriage.ui')
+  const groups: { key: 'debt' | 'venus' | 'period'; notes: MarriedLifeNote[] }[] = [
+    { key: 'debt', notes: reading.debt },
+    { key: 'venus', notes: reading.venus },
+    { key: 'period', notes: reading.period },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-        Kind: <strong style={{ color: 'var(--text-secondary)' }}>{reading.flags.kind}</strong>
+        {tu('kindLabel')}{' '}
+        <strong style={{ color: 'var(--text-secondary)' }}>{reading.flags.kind}</strong>
       </p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -518,18 +552,19 @@ export function MarriageKarmaSections({ reading, clientSafe = false }: { reading
 }
 
 export function MarriageMarsSections({ reading, showPrinciples = true, clientSafe = false }: { reading: MarriageMarsReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'The level of Mars', notes: reading.level },
-    { label: 'Houses and the will to stay', notes: reading.placements },
-    { label: 'Who Mars sits with', notes: reading.pairs },
+  const tg = useTranslations('relationshipMarriage.groups.mars')
+  const groups: { key: 'level' | 'placements' | 'pairs'; notes: MarriedLifeNote[] }[] = [
+    { key: 'level', notes: reading.level },
+    { key: 'placements', notes: reading.placements },
+    { key: 'pairs', notes: reading.pairs },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -541,18 +576,19 @@ export function MarriageMarsSections({ reading, showPrinciples = true, clientSaf
 }
 
 export function MarriageVivahSections({ reading, showPrinciples = true, clientSafe = false }: { reading: MarriageVivahReading; showPrinciples?: boolean; clientSafe?: boolean }) {
-  const groups: { label: string; notes: MarriedLifeNote[] }[] = [
-    { label: 'Harm', notes: reading.harm },
-    { label: 'Stars, repetition, and a later bond', notes: reading.pattern },
-    { label: 'Bond and debt', notes: reading.debt },
+  const tg = useTranslations('relationshipMarriage.groups.vivah')
+  const groups: { key: 'harm' | 'pattern' | 'debt'; notes: MarriedLifeNote[] }[] = [
+    { key: 'harm', notes: reading.harm },
+    { key: 'pattern', notes: reading.pattern },
+    { key: 'debt', notes: reading.debt },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 700 }}>{reading.headline}</p>
       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{reading.summary}</p>
       {groups.map(group => group.notes.length ? (
-        <div key={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+        <div key={group.key}>
+          <SectionLabel>{tg(group.key)}</SectionLabel>
           <NoteCards notes={group.notes} clientSafe={clientSafe} />
         </div>
       ) : null)}
@@ -564,12 +600,14 @@ export function MarriageVivahSections({ reading, showPrinciples = true, clientSa
 }
 
 export function VenusMarriageSections({ reading, clientSafe = false }: { reading: VenusMarriageReading; clientSafe?: boolean }) {
+  const tu = useTranslations('relationshipMarriage.ui')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
       <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-        Bridge: <strong style={{ color: 'var(--text-secondary)' }}>{reading.flags.bridge}</strong>
-        {reading.flags.combust ? ' · combust' : ''}
-        {reading.flags.venusDasha ? ' · Venus dasha' : ''}
+        {tu('bridgeLabel')}{' '}
+        <strong style={{ color: 'var(--text-secondary)' }}>{reading.flags.bridge}</strong>
+        {reading.flags.combust ? tu('combustSuffix') : ''}
+        {reading.flags.venusDasha ? tu('venusDashaSuffix') : ''}
       </p>
       <NoteCards notes={reading.venus} clientSafe={clientSafe} />
     </div>

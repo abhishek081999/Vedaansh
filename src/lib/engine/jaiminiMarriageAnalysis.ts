@@ -22,6 +22,9 @@ import { getRashiDrishti, getSignType, rashiAspectsOrOccupies } from '@/lib/engi
 import { DEBILITATION_SIGN } from '@/lib/engine/dignity'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { ensureCharaDashas } from '@/lib/engine/dasha/hydrateChara'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+import { JMA_HI, localizeJaiminiLine } from '@/lib/engine/locale/jaiminiMarriageAnalysis.hi'
 
 // ── Constants ────────────────────────────────────────────────
 
@@ -555,7 +558,183 @@ function scenarioFromBands(dk: StrengthBand, ul: StrengthBand): {
 
 // ── Main analyzer ────────────────────────────────────────────
 
-export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnalysis | null {
+function localizeJaimini(analysis: JaiminiMarriageAnalysis, lang: EngineLang): JaiminiMarriageAnalysis {
+  if (lang !== 'hi') return analysis
+  const dkId = analysis.darakaraka.id
+  const profile = JMA_HI.dkProfiles[dkId] ?? analysis.darakaraka.profile
+  const scenario = JMA_HI.scenarios[analysis.dkUlScenario]
+  const pathLabel =
+    JMA_HI.marriagePathLabel[analysis.marriagePath.type] ?? localizeJaiminiLine(analysis.marriagePath.label)
+  const qualityText =
+    JMA_HI.qualitySummary[analysis.qualityBand]
+    + (analysis.dkNavamsha.trinalBlessing && analysis.qualityBand !== 'strong'
+      ? JMA_HI.qualitySummary.trineSuffix
+      : '')
+  const mapLines = (lines: string[]) => lines.map(localizeJaiminiLine)
+  const locSign = <T extends { rashi: Rashi; rashiName: string; rashiShort: string }>(s: T): T => ({
+    ...s,
+    rashiName: rName(s.rashi, 'hi'),
+    rashiShort: rName(s.rashi, 'hi').slice(0, 3),
+  })
+  const locSignLord = <T extends { rashi: Rashi; rashiName: string; rashiShort: string; lord: GrahaId; lordName: string }>(s: T): T => ({
+    ...locSign(s),
+    lordName: gName(s.lord, 'hi'),
+  })
+  return {
+    ...analysis,
+    summary: fill(JMA_HI.summary, {
+      dk: gName(dkId, 'hi'),
+      dkSign: rName(analysis.darakaraka.sign.rashi, 'hi'),
+      ulSign: rName(analysis.upapada.sign.rashi, 'hi'),
+      scenario: scenario.label,
+      path: pathLabel,
+      quality: JMA_HI.qualityBand[analysis.qualityBand] ?? analysis.qualityBand,
+      flags: String(analysis.activeRedFlagCount),
+    }),
+    dkUlScenarioLabel: scenario.label,
+    dkUlScenarioNote: scenario.note,
+    qualitySummary: qualityText,
+    qualityBand: analysis.qualityBand,
+    darakaraka: {
+      ...analysis.darakaraka,
+      name: gName(dkId, 'hi'),
+      sign: locSignLord(analysis.darakaraka.sign),
+      signType: analysis.darakaraka.signType,
+      profile,
+      companions: analysis.darakaraka.companions.map(c => ({
+        ...c,
+        name: gName(c.id, 'hi'),
+        charaKaraka: c.charaKaraka ? (JMA_HI.karakaShort[c.charaKaraka] ?? c.charaKaraka) : null,
+      })),
+      notes: mapLines(analysis.darakaraka.notes),
+      strength: {
+        ...analysis.darakaraka.strength,
+        reasons: mapLines(analysis.darakaraka.strength.reasons),
+      },
+      influenceAreas: analysis.darakaraka.influenceAreas.map(a => ({
+        ...a,
+        theme: JMA_HI.houseInfluence[a.house] ?? a.theme,
+        note: fill(JMA_HI.influenceNote, {
+          dk: gName(dkId, 'hi'),
+          sign: rName(analysis.darakaraka.sign.rashi, 'hi'),
+          house: a.house,
+          theme: JMA_HI.houseInfluence[a.house] ?? a.theme,
+        }),
+      })),
+    },
+    upapada: {
+      ...analysis.upapada,
+      sign: locSignLord(analysis.upapada.sign),
+      seventhFromUl: locSignLord(analysis.upapada.seventhFromUl),
+      secondFromUl: locSignLord(analysis.upapada.secondFromUl),
+      ulLord: {
+        ...analysis.upapada.ulLord,
+        rashiName: rName(analysis.upapada.ulLord.rashi, 'hi'),
+        name: gName(analysis.upapada.ulLord.id, 'hi'),
+      },
+      notes: mapLines(analysis.upapada.notes),
+      strength: {
+        ...analysis.upapada.strength,
+        reasons: mapLines(analysis.upapada.strength.reasons),
+      },
+    },
+    seventh: {
+      ...analysis.seventh,
+      sign: locSign(analysis.seventh.sign),
+      lord: {
+        ...analysis.seventh.lord,
+        name: gName(analysis.seventh.lord.id, 'hi'),
+        rashiName: rName(analysis.seventh.lord.rashi, 'hi'),
+      },
+      notes: mapLines(analysis.seventh.notes),
+    },
+    dkNavamsha: {
+      ...analysis.dkNavamsha,
+      rashiName: rName(analysis.dkNavamsha.rashi, 'hi'),
+      seventhFromDk: locSign(analysis.dkNavamsha.seventhFromDk),
+      notes: mapLines(analysis.dkNavamsha.notes),
+    },
+    social: {
+      ...analysis.social,
+      sun: { ...analysis.social.sun, rashiName: rName(analysis.social.sun.rashi, 'hi') },
+      moon: { ...analysis.social.moon, rashiName: rName(analysis.social.moon.rashi, 'hi') },
+      notes: mapLines(analysis.social.notes),
+    },
+    marriagePath: {
+      ...analysis.marriagePath,
+      label: pathLabel,
+      notes: analysis.marriagePath.notes.map(n => JMA_HI.marriagePathNotes[n] ?? localizeJaiminiLine(n)),
+    },
+    redFlags: analysis.redFlags.map(f => {
+      const row = JMA_HI.redFlags[f.id as keyof typeof JMA_HI.redFlags]
+      if (!row) return { ...f, label: localizeJaiminiLine(f.label), detail: localizeJaiminiLine(f.detail) }
+      const conflictNote = f.id === 'dk_ul_conflict' && f.active ? scenario.note : row.on || f.detail
+      return {
+        ...f,
+        label: row.label,
+        detail: f.active ? conflictNote : row.off,
+      }
+    }),
+    timing: analysis.timing.map(t => {
+      const row = JMA_HI.timing[t.id]
+      return row
+        ? {
+            ...t,
+            label: row.label,
+            note: row.note,
+            rashiName: rName(t.rashi, 'hi'),
+            activePathLabel: t.activePathLabel ? localizeJaiminiLine(t.activePathLabel) : t.activePathLabel,
+          }
+        : {
+            ...t,
+            label: localizeJaiminiLine(t.label),
+            note: localizeJaiminiLine(t.note),
+            rashiName: rName(t.rashi, 'hi'),
+          }
+    }),
+    insights: analysis.insights.map(ins => {
+      if (ins.title === 'DK vs UL') {
+        return { ...ins, title: JMA_HI.insights.dkVsUl, text: `${scenario.label}। ${scenario.note}` }
+      }
+      if (ins.title === 'Marriage path') {
+        return {
+          ...ins,
+          title: JMA_HI.insights.marriagePath,
+          text: fill(JMA_HI.insights.pathText, {
+            path: pathLabel,
+            love: analysis.marriagePath.loveScore,
+            arranged: analysis.marriagePath.arrangedScore,
+          }),
+        }
+      }
+      if (ins.title === 'Quality') {
+        return { ...ins, title: JMA_HI.insights.quality, text: qualityText }
+      }
+      if (ins.title === 'D9 blessing') {
+        return { ...ins, title: JMA_HI.insights.d9Blessing.title, text: JMA_HI.insights.d9Blessing.text }
+      }
+      if (ins.title === 'Red flags clustered') {
+        return {
+          ...ins,
+          title: JMA_HI.insights.redFlags.title,
+          text: fill(JMA_HI.insights.redFlags.text, { count: analysis.activeRedFlagCount }),
+        }
+      }
+      if (ins.title === 'Active timing') {
+        const active = analysis.timing
+          .filter(t => t.isActiveNow)
+          .map(t => JMA_HI.timing[t.id]?.label ?? t.label)
+          .join(', ')
+        return { ...ins, title: JMA_HI.insights.activeTiming.title, text: fill(JMA_HI.insights.activeTiming.text, { active }) }
+      }
+      return { ...ins, title: localizeJaiminiLine(ins.title), text: localizeJaiminiLine(ins.text) }
+    }),
+    checklist: [...JMA_HI.checklist],
+    quotes: [...JMA_HI.quotes],
+  }
+}
+
+export function analyzeJaiminiMarriage(chart: ChartOutput, lang: EngineLang = 'en'): JaiminiMarriageAnalysis | null {
   const { grahas, lagnas, arudhas, vargas, vargaLagnas } = chart
   if (!grahas?.length || !lagnas?.ascRashi || !arudhas?.A12) return null
 
@@ -1158,7 +1337,7 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
     + `${pathLabel}. Quality: ${qualityBand}. `
     + `${activeRedFlagCount} red flag(s) active.`
 
-  return {
+  const result: JaiminiMarriageAnalysis = {
     darakaraka,
     upapada,
     seventh,
@@ -1179,4 +1358,5 @@ export function analyzeJaiminiMarriage(chart: ChartOutput): JaiminiMarriageAnaly
     quotes,
     summary,
   }
+  return localizeJaimini(result, lang)
 }

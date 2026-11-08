@@ -5,6 +5,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ChartOutput, DashaNode } from '@/types/astrology'
 import type { AshtakootResult } from '@/lib/engine/ashtakoot'
 import type { DashaPairAnalysis } from '@/lib/engine/milanExtras'
@@ -12,41 +13,39 @@ import { lordColor, lordName } from '@/components/dasha/dashaPalette'
 import { Gauge, SegmentRing, TimelineBand, VizCard, type BandSegment } from '@/components/ui/viz'
 
 const KOOTA_ORDER = ['varna', 'vashya', 'tara', 'yoni', 'maitri', 'gana', 'bhakoot', 'nadi'] as const
-const KOOTA_LABEL: Record<(typeof KOOTA_ORDER)[number], string> = {
-  varna: 'Varna', vashya: 'Vashya', tara: 'Tara', yoni: 'Yoni',
-  maitri: 'Maitri', gana: 'Gana', bhakoot: 'Bhakoot', nadi: 'Nadi',
-}
-
 function kootaColor(points: number, max: number, dosha?: boolean): string {
   if (dosha || points === 0) return 'var(--rose)'
   return points / max >= 0.75 ? 'var(--teal)' : 'var(--gold)'
 }
 
 export function MilanGunaRing({ ashtakoot }: { ashtakoot: AshtakootResult }) {
+  const t = useTranslations('relationshipMarriage.compareMil.viz')
+  const kootaLabel = (k: (typeof KOOTA_ORDER)[number]) => t(`koota.${k}`)
   const segments = KOOTA_ORDER.map((k) => {
     const s = ashtakoot[k]
+    const label = kootaLabel(k)
     return {
-      label: KOOTA_LABEL[k],
+      label,
       value: s.points,
       max: s.max,
       color: kootaColor(s.points, s.max, s.dosha),
-      title: `${KOOTA_LABEL[k]}: ${s.points}/${s.max} — ${s.meaning}`,
+      title: `${label}: ${s.points}/${s.max} — ${s.meaning}`,
     }
   })
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.75rem' }}>
       <VizCard
-        title="36 gunas by koota"
-        caption="Each arc's length is that koota's weight (Varna 1 … Nadi 8); the filled part is what this match scored."
+        title={t('gunaTitle')}
+        caption={t('gunaCaption')}
         legend={[
-          { label: 'Strong', color: 'var(--teal)' },
-          { label: 'Partial', color: 'var(--gold)' },
-          { label: 'Zero / dosha', color: 'var(--rose)' },
+          { label: t('strong'), color: 'var(--teal)' },
+          { label: t('partial'), color: 'var(--gold)' },
+          { label: t('zeroDosha'), color: 'var(--rose)' },
         ]}
       >
-        <SegmentRing segments={segments} centerValue={`${ashtakoot.total}`} centerLabel="of 36" size={210} ariaLabel={`Ashtakoot ${ashtakoot.total} of 36`} />
+        <SegmentRing segments={segments} centerValue={`${ashtakoot.total}`} centerLabel={t('of36')} size={210} ariaLabel={t('ashtakootAria', { total: ashtakoot.total })} />
       </VizCard>
-      <VizCard title="Where the score sits" caption="Traditional minimum 18 · usual range 18–32 · above 32 read with care">
+      <VizCard title={t('gaugeTitle')} caption={t('gaugeCaption')}>
         <Gauge
           value={ashtakoot.total}
           max={36}
@@ -118,18 +117,19 @@ export function MilanDashaTimeline({
     return { segments: segs, from, to }
   }, [chartA, chartB, dashaPair, nameA, nameB])
 
+  const t = useTranslations('relationshipMarriage.compareMil.viz')
   if (!segments.length) return null
   return (
     <VizCard
-      title="Shared life phases"
-      caption="Both partners' Vimshottari Mahadashas side by side; the bottom lane marks the overlap windows the engine scored. Gold line = today."
+      title={t('timelineTitle')}
+      caption={t('timelineCaption')}
       legend={[
-        { label: 'Supportive overlap', color: 'var(--teal)' },
-        { label: 'Mixed', color: 'var(--gold)' },
-        { label: 'Needs care', color: 'var(--rose)' },
+        { label: t('supportiveOverlap'), color: 'var(--teal)' },
+        { label: t('mixed'), color: 'var(--gold)' },
+        { label: t('needsCare'), color: 'var(--rose)' },
       ]}
     >
-      <TimelineBand segments={segments} laneLabels={[nameA, nameB, 'Overlap']} from={from} to={to} now={Date.now()} ariaLabel="Partner dasha timeline" />
+      <TimelineBand segments={segments} laneLabels={[nameA, nameB, t('overlapLane')]} from={from} to={to} now={Date.now()} ariaLabel={t('timelineAria')} />
     </VizCard>
   )
 }

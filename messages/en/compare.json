@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "title": "Free Kundali Matching — Ashtakoot Guna Milan",
+    "description": "Free Kundali matching with 36-point Ashtakoot Guna Milan, dosha exceptions, Venus–Mars chemistry, house-difficult influence matching, and Mangal Dosha checks. No login required."
+  },
+  "loader": {
+    "openingSaved": "Opening your saved match…",
+    "chartLibrary": "Loading chart library",
+    "selectorFallback": "Loading…"
+  },
+  "steps": {
+    "person1": "Person 1",
+    "person2": "Person 2",
+    "matchResult": "Match Result"
+  },
+  "form": {
+    "enterPerson1": "Enter Birth Details of Person 1",
+    "enterPerson2": "Enter Birth Details of Person 2",
+    "person1Loaded": "PERSON 1 LOADED",
+    "change": "Change",
+    "selectFromCharts": "Select from My Charts",
+    "orManual": "OR ENTER MANUALLY"
+  },
+  "errors": {
+    "openSaved": "Could not open this saved match",
+    "loadChart": "Could not load this chart. Please try again.",
+    "calculateChart": "Could not calculate this chart",
+    "network": "Network problem. Please check your connection and try again."
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "matching": "Kundali Matching"
+  },
+  "saved": {
+    "searchPlaceholder": "Search saved matches…",
+    "newMatch": "+ New match",
+    "countOne": "{count} match saved",
+    "countMany": "{count} matches saved",
+    "loading": "Loading your saved matches…",
+    "loadFailed": "Could not load your saved matches. Please try again.",
+    "emptySearch": "No matches with that name",
+    "emptyNone": "No saved matches yet",
+    "matchTwoCharts": "Match two charts",
+    "opening": "Opening…",
+    "open": "Open",
+    "yesDelete": "Yes, delete",
+    "remove": "Remove"
+  },
+  "save": {
+    "signInRequired": "Sign in to save this match to My Charts.",
+    "failed": "Could not save this match. Please try again.",
+    "openedFromCharts": "Opened from My Charts",
+    "saved": "Saved to My Charts → Kundali Milan",
+    "saving": "Saving…",
+    "saveButton": "Save Kundali Milan",
+    "signIn": "Sign in",
+    "openMyCharts": "Open My Charts"
+  },
+  "score": {
+    "outOf36": "OUT OF 36",
+    "relationshipHint": "This page reads the two charts together. <link>Relationship</link> on a single chart for that person's own marriage reading."
+  },
+  "print": {
+    "allSections": "Print all sections"
+  },
+  "tabs": {
+    "summary": "Summary",
+    "matchReading": "Match reading",
+    "eachChart": "Each chart",
+    "charts": "Charts"
+  },
+  "verdict": {
+    "strengthsTitle": "Relationship strengths",
+    "awarenessTitle": "Areas for awareness",
+    "awarenessEmpty": "Each of the eight kootas holds its full score. Dosha, the Navamsha and the 7th lord are the next places to look.",
+    "strengthNadi": "Nadi / prana",
+    "strengthMaitri": "Graha Maitri",
+    "strengthGana": "Gana temperament",
+    "strengthYoni": "Yoni affinity",
+    "strengthEligibility": "Eligibility band",
+    "strengthBhakoot": "Bhakoot exception",
+    "strengthNadiBody": "Different Nadi, a complementary life-force that tradition links with a healthy outlook for children.",
+    "strengthEligibilityBody": "Score sits in the classical 18–32 range.",
+    "strengthBhakootBody": "An apparent dosha is cancelled by friendly sign lords or the direction rule.",
+    "gunaTitle": "Detailed Guna Milan analysis",
+    "tableKoota": "KOOTA",
+    "tablePerson1": "PERSON 1",
+    "tablePerson2": "PERSON 2",
+    "tableStrength": "STRENGTH",
+    "tableScore": "SCORE"
+  },
+  "chartTools": {
+    "sideBySide": "Side-by-side",
+    "overlay": "Overlay",
+    "positions": "Positions",
+    "dasha": "Dasha",
+    "panchang": "Panchang",
+    "ashtakavarga": "Ashtakavarga",
+    "auraAffinity": "Aura affinity"
+  },
+  "numerology": {
+    "title": "Numerology Match (Anka Jyotish)",
+    "defaultTitle": "Couple Numerology",
+    "subtitle": "Anka Jyotish match: core numbers, what each partner's grid fills for the other, and the relationship number (Bhagyank + Bhagyank).",
+    "verdictMatch": "{verdict} numerological match",
+    "verdict": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "average": "Average",
+      "challenging": "Challenging"
+    },
+    "harmony": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "neutral": "Neutral",
+      "mixed": "Mixed",
+      "challenging": "Challenging"
+    },
+    "combinedGrid": "Combined Lo Shu grid",
+    "gridAria": "Combined Lo Shu grid",
+    "gridCellPresent": "{n} × {count}",
+    "gridCellMissing": "{n} missing for both",
+    "partnerSupplies": "Teal border = supplied by the partner.",
+    "bringsTo": "{from} brings to {to}",
+    "missingBoth": "Missing for both — shared remedies",
+    "sharedPlane": "{name} ({numbers}) completes only together — {meaning}",
+    "relationshipLine": "Relationship number {value}",
+    "relationshipMeta": "({planet} · {keyword}) — {theme}: {guidance}"
+  },
+  "charts": {
+    "overlayTitle": "Chart overlay",
+    "overlayHint": "Showing Person 2's planets placed in Person 1's houses",
+    "auraTitle": "Aura and emotional affinity",
+    "planetCol": "PLANET",
+    "relationCol": "RELATION",
+    "axis": "Axis",
+    "sav": "SAV",
+    "natalPanchang": "Natal Panchang",
+    "levelGood": "GOOD",
+    "levelCare": "CARE",
+    "levelMix": "MIX",
+    "numerologyTitle": "Numerology Match (Anka Jyotish)",
+    "person1Fallback": "Person 1",
+    "person2Fallback": "Person 2"
+  },
+  "role": {
+    "boy": "Boy",
+    "girl": "Girl"
+  },
+  "footer": {
+    "brand": "VEDAANSH PRECISION ASTROLOGY ENGINE",
+    "tagline": "SWISS EPHEMERIS · ASHTAKOOT + THREE-STAGE KUNDALI MILAN"
+  }
+}

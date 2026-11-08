@@ -54,6 +54,11 @@ describe('daily rashi horoscope', () => {
     expect(ashtama.headline).toMatch(/Chandrashtama/)
   })
 
+  it('returns Hindi Chandrashtama headline when lang is hi', () => {
+    const ashtama = buildRashiHoroscope(sky({ ...BASE, Mo: 8 }), 1, 'hi')
+    expect(ashtama.headline).toMatch(/चंद्राष्टम/)
+  })
+
   it('flags Sade Sati phases from Saturn', () => {
     const h = buildRashiHoroscope(sky({ ...BASE, Sa: 12 }), 1)
     expect(h.longTerm.join(' ')).toMatch(/Sade Sati — rising/)

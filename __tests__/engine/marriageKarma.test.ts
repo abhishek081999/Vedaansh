@@ -150,4 +150,15 @@ describe('marriage karma and Venus', () => {
   it('returns nothing without an ascendant', () => {
     expect(analyzeMarriageKarma({ grahas: [], lagnas: {} } as unknown as ChartOutput)).toBeNull()
   })
+
+  it('keeps English and returns Hindi debt notes', () => {
+    const c = chart({
+      asc: 1,
+      grahas: [g('Ve', 7), g('Ra', 7), g('Ju', 9), g('Ma', 1), g('Sa', 10)],
+    })
+    const en = analyzeMarriageKarma(c, 'en')!
+    expect(en.debt[0]?.title).toBe('This marriage carries a debt')
+    const hi = analyzeMarriageKarma(c, 'hi')!
+    expect(hi.debt[0]?.detail).toMatch(/[\u0900-\u097F]/)
+  })
 })

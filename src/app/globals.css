@@ -9195,6 +9195,48 @@ html[lang^="hi"] {
   --font-display: var(--font-noto-deva), var(--font-newsreader), 'Noto Sans Devanagari', Georgia, serif;
 }
 html[lang^="hi"] body { line-height: 1.7; }
+
+/*
+ * Hero titles use background-clip:text + sub-1.15 line-height for Latin display.
+ * That combination clips Devanagari matras (above/below the em box) and negative
+ * letter-spacing can mash conjuncts. Solid fill + roomier metrics for Hindi.
+ */
+html[lang^="hi"] .landing-hero-carousel-title,
+html[lang^="hi"] .landing-premium-hero-title,
+html[lang^="hi"] .landing-hero-title {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: var(--text-primary);
+  color: var(--text-primary);
+  line-height: 1.38;
+  letter-spacing: 0;
+  padding-block: 0.12em;
+  overflow: visible;
+}
+
+html[lang^="hi"] .landing-hero-carousel-kicker,
+html[lang^="hi"] .landing-premium-hero-kicker {
+  text-transform: none;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  overflow: visible;
+}
+
+html[lang^="hi"] .landing-hero-carousel-desc,
+html[lang^="hi"] .landing-premium-hero-desc,
+html[lang^="hi"] .landing-hero-subline {
+  line-height: 1.65;
+}
+
+html[lang^="hi"][data-theme='dark'] .landing-hero-carousel-title,
+html[lang^="hi"][data-theme='dark'] .landing-premium-hero-title {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: var(--text-primary);
+  color: var(--text-primary);
+}
 [data-theme="classic"] .app-header .lang-switcher {
   background: var(--classic-maroon-deep);
   border-color: var(--classic-maroon-deep);

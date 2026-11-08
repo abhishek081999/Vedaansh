@@ -7,6 +7,10 @@
 
 import type { ChartOutput, Dignity, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_LORDS, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+import { VV_HI } from '@/lib/engine/locale/marriageVivah.hi'
+import { NAKSHATRA_HI } from '@/i18n/jyotish'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
 
 export type HarmChannel = 'body' | 'speech' | 'sexual' | 'work'
@@ -58,8 +62,27 @@ function signOf(asc: number, house: number): Rashi {
   return ((((asc - 1 + house - 1) % 12) + 1) as Rashi)
 }
 
-function gn(id: GrahaId | string): string {
-  return GRAHA_NAMES[id as GrahaId] ?? id
+function gn(id: GrahaId | string, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return GRAHA_NAMES[id as GrahaId] ?? String(id)
+  return gName(id as GrahaId, lang)
+}
+
+function localizeVivahNotes(notes: MarriedLifeNote[], lang: EngineLang): MarriedLifeNote[] {
+  if (lang !== 'hi') return notes
+  return notes.map((n) => {
+    if (n.id.startsWith('vivah-exchange-')) {
+      const rest = n.id.slice('vivah-exchange-'.length)
+      const [a, b] = rest.split('-') as [GrahaId, GrahaId]
+      return {
+        ...n,
+        title: fill(VV_HI.exchange.title, { a: gn(a, lang), b: gn(b, lang) }),
+        detail: n.detail,
+      }
+    }
+    const row = VV_HI.notes[n.id as keyof typeof VV_HI.notes]
+    if (row) return { ...n, title: row.title, detail: row.detail }
+    return n
+  })
 }
 
 function find(list: GrahaData[] | undefined, id: GrahaId): GrahaData | undefined {
@@ -95,6 +118,43 @@ function nakLord(g: GrahaData | undefined): GrahaId | null {
 function nakName(g: GrahaData | undefined): string | null {
   if (!g || typeof g.nakshatraIndex !== 'number') return null
   return NAKSHATRA_NAMES[g.nakshatraIndex] ?? null
+}
+
+function starPlacementLine(
+  g: GrahaData,
+  lordId: GrahaId,
+  house: number,
+  lang: EngineLang,
+): string {
+  const idx = g.nakshatraIndex
+  const nak =
+    typeof idx === 'number' && idx >= 0
+      ? (lang === 'hi' ? NAKSHATRA_HI[idx] : NAKSHATRA_NAMES[idx])
+      : null
+  const graha = gn(g.id, lang)
+  const lord = gn(lordId, lang)
+  if (lang === 'en') {
+    return `${graha} sits in ${nak ?? 'a star'} of ${lord}, house ${house}`
+  }
+  const nakPart = nak ? `${lord} के ${nak} में` : 'एक नक्षत्र में'
+  return `${graha} ${nakPart}, ${house} भाव`
+}
+
+function exchangeDetail(
+  a: GrahaData,
+  b: GrahaData,
+  ha: number,
+  hb: number,
+  fortune: boolean,
+  moonKetu: boolean,
+  lang: EngineLang,
+): string {
+  if (lang === 'en') {
+    return `${gn(a.id)} sits in ${nakName(a) ?? 'a star'} of ${gn(b.id)}, house ${ha}. ${gn(b.id)} sits in ${nakName(b) ?? 'a star'} of ${gn(a.id)}, house ${hb}. What one signifies passes to the other.${fortune ? ' These are the 8th and the 9th: marital longevity and fortune. The blessing disturbs the longevity of the marriage.' : ''}${moonKetu ? ' Emotion and the mother mix with Ketu’s detachment. A child can bring that earlier wound back into the room.' : ''}`
+  }
+  const lineA = starPlacementLine(a, b.id, ha, lang)
+  const lineB = starPlacementLine(b, a.id, hb, lang)
+  return `${lineA}. ${lineB}. एक का कारक दूसरे को मिलता है।${fortune ? VV_HI.exchange.fortune : ''}${moonKetu ? VV_HI.exchange.moonKetu : ''}`
 }
 
 function nakIndexFromLon(lon: number): number {
@@ -134,7 +194,7 @@ function emptyFlags(): MarriageVivahFlags {
   }
 }
 
-export function analyzeMarriageVivah(chart: ChartOutput | null | undefined): MarriageVivahReading | null {
+export function analyzeMarriageVivah(chart: ChartOutput | null | undefined, lang: EngineLang = 'en'): MarriageVivahReading | null {
   const asc = chart?.lagnas?.ascRashi
   if (!chart || !asc) return null
 
@@ -246,7 +306,7 @@ export function analyzeMarriageVivah(chart: ChartOutput | null | undefined): Mar
     pattern.push(note(
       `vivah-exchange-${a.id}-${b.id}`,
       `${gn(a.id)} and ${gn(b.id)} exchange stars`,
-      `${gn(a.id)} sits in ${nakName(a) ?? 'a star'} of ${gn(b.id)}, house ${ha}. ${gn(b.id)} sits in ${nakName(b) ?? 'a star'} of ${gn(a.id)}, house ${hb}. What one signifies passes to the other.${fortune ? ' These are the 8th and the 9th: marital longevity and fortune. The blessing disturbs the longevity of the marriage.' : ''}${moonKetu ? ' Emotion and the mother mix with Ketu’s detachment. A child can bring that earlier wound back into the room.' : ''}`,
+      exchangeDetail(a, b, ha, hb, fortune, moonKetu, lang),
       fortune || moonKetu ? 'caution' : 'mixed',
     ))
   }
@@ -278,7 +338,7 @@ export function analyzeMarriageVivah(chart: ChartOutput | null | undefined): Mar
     pattern.push(note(
       'vivah-punarvasu',
       'Punarvasu repeats the same shape',
-      `${punarIds.map(gn).join(' and ')} ${punarIds.length > 1 ? 'are' : 'is'} in Punarvasu. That star means the same thing returns. A later bond tends to repeat the shape of the earlier one unless Jupiter is actually giving the marriage a new direction.`,
+      `${punarIds.map(id => gn(id, lang)).join(' and ')} ${punarIds.length > 1 ? 'are' : 'is'} in Punarvasu. That star means the same thing returns. A later bond tends to repeat the shape of the earlier one unless Jupiter is actually giving the marriage a new direction.`,
       'caution',
     ))
   }
@@ -452,7 +512,48 @@ export function analyzeMarriageVivah(chart: ChartOutput | null | undefined): Mar
     ? `On this chart: ${marks.join(', ')}.`
     : 'Mars is not the harm indicator here, and the debt chains, the star exchange, and Punarvasu are not on the marriage.'
 
-  return { headline, summary, principles: MARRIAGE_VIVAH_PRINCIPLES, harm, pattern, debt, flags }
+  const marksHi = [
+    flags.marsHarm ? VV_HI.markLabels.marsHarm : '',
+    flags.mercuryReplay ? VV_HI.markLabels.mercuryReplay : '',
+    flags.starExchange ? VV_HI.markLabels.starExchange : '',
+    flags.punarvasu ? VV_HI.markLabels.punarvasu : '',
+    flags.laterBond ? VV_HI.markLabels.laterBond : '',
+    flags.bandhan ? VV_HI.markLabels.bandhan : '',
+    flags.transformationChain ? VV_HI.markLabels.transformationChain : '',
+    flags.serviceChain ? VV_HI.markLabels.serviceChain : '',
+    flags.blind ? VV_HI.markLabels.blind : '',
+    flags.guidesOthers ? VV_HI.markLabels.guidesOthers : '',
+    flags.crisis ? VV_HI.markLabels.crisis : '',
+    flags.jupiterHolds ? VV_HI.markLabels.jupiterHolds : '',
+  ].filter(Boolean).join(', ')
+
+  const headlineHi = flags.crisis
+    ? VV_HI.headlines.crisis
+    : flags.marsHarm
+      ? VV_HI.headlines.marsHarm
+      : flags.transformationChain || flags.serviceChain
+        ? VV_HI.headlines.debt
+        : flags.blind
+          ? VV_HI.headlines.blind
+          : flags.jupiterHolds && marksHi.split(',').length === 1
+            ? VV_HI.headlines.jupiterOnly
+            : marksHi
+              ? VV_HI.headlines.marks
+              : VV_HI.headlines.clean
+
+  const summaryHi = marksHi
+    ? fill(VV_HI.summaryWithMarks, { marks: marksHi })
+  : VV_HI.summaryClean
+
+  return {
+    headline: lang === 'en' ? headline : headlineHi,
+    summary: lang === 'en' ? summary : summaryHi,
+    principles: lang === 'en' ? MARRIAGE_VIVAH_PRINCIPLES : VV_HI.principles,
+    harm: localizeVivahNotes(harm, lang),
+    pattern: localizeVivahNotes(pattern, lang),
+    debt: localizeVivahNotes(debt, lang),
+    flags,
+  }
 }
 
 export function compareMarriageVivah(
@@ -460,25 +561,40 @@ export function compareMarriageVivah(
   b: MarriageVivahReading,
   nameA: string,
   nameB: string,
+  lang: EngineLang = 'en',
 ): MarriedLifeNote[] {
   const notes: MarriedLifeNote[] = []
   const marsWho = [a.flags.marsHarm ? nameA : '', b.flags.marsHarm ? nameB : ''].filter(Boolean)
   if (marsWho.length) {
-    notes.push(note(
-      'vivah-pair-mars',
-      'Harm stays on the chart that has the weak Mars',
-      `${marsWho.join(' and ')} ${marsWho.length > 1 ? 'carry' : 'carries'} Mars as the harm indicator on the marriage. The other chart does not erase it. That person is best supported from outside the couple.`,
-      'caution',
-    ))
+    notes.push(lang === 'hi'
+      ? {
+        id: 'vivah-pair-mars',
+        title: VV_HI.notes['vivah-pair-mars'].title,
+        detail: fill(VV_HI.notes['vivah-pair-mars'].detail, { who: marsWho.join(' और ') }),
+        tone: 'caution',
+      }
+      : note(
+        'vivah-pair-mars',
+        'Harm stays on the chart that has the weak Mars',
+        `${marsWho.join(' and ')} ${marsWho.length > 1 ? 'carry' : 'carries'} Mars as the harm indicator on the marriage. The other chart does not erase it. That person is best supported from outside the couple.`,
+        'caution',
+      ))
   }
   const crisisWho = [a.flags.crisis ? nameA : '', b.flags.crisis ? nameB : ''].filter(Boolean)
   if (crisisWho.length) {
-    notes.push(note(
-      'vivah-pair-crisis',
-      'A mental-crisis mark needs a clinician',
-      `${crisisWho.join(' and ')} ${crisisWho.length > 1 ? 'have' : 'has'} the marriage lord in the 8th with the Moon tied to Ketu. Matching does not treat that. A clinician comes first. If someone is in immediate danger, contact local emergency services or the 988 Suicide and Crisis Lifeline.`,
-      'caution',
-    ))
+    notes.push(lang === 'hi'
+      ? {
+        id: 'vivah-pair-crisis',
+        title: VV_HI.notes['vivah-pair-crisis'].title,
+        detail: fill(VV_HI.notes['vivah-pair-crisis'].detail, { who: crisisWho.join(' और ') }),
+        tone: 'caution',
+      }
+      : note(
+        'vivah-pair-crisis',
+        'A mental-crisis mark needs a clinician',
+        `${crisisWho.join(' and ')} ${crisisWho.length > 1 ? 'have' : 'has'} the marriage lord in the 8th with the Moon tied to Ketu. Matching does not treat that. A clinician comes first. If someone is in immediate danger, contact local emergency services or the 988 Suicide and Crisis Lifeline.`,
+        'caution',
+      ))
   }
   return notes
 }

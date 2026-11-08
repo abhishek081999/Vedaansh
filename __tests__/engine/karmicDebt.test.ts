@@ -131,4 +131,16 @@ describe('karmic debt in marriage', () => {
   it('returns nothing without an ascendant', () => {
     expect(analyzeKarmicDebt({ grahas: [], lagnas: {} } as unknown as ChartOutput)).toBeNull()
   })
+
+  it('keeps English principles and returns Hindi headline', () => {
+    const c = chart({
+      asc: 1,
+      grahas: [g('Ve', 7), g('Ra', 7), g('Ju', 9), g('Ma', 1), g('Sa', 10), g('Ke', 8)],
+    })
+    const en = analyzeKarmicDebt(c, 'en')!
+    expect(en.principles).toMatch(/karmic debt in marriage/)
+    const hi = analyzeKarmicDebt(c, 'hi')!
+    expect(hi.headline).toMatch(/[\u0900-\u097F]/)
+    expect(hi.principles).toMatch(/[\u0900-\u097F]/)
+  })
 })

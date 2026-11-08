@@ -123,4 +123,16 @@ describe('Venus and Jupiter in marriage', () => {
   it('returns nothing without an ascendant', () => {
     expect(analyzeVenusJupiterBond({ grahas: [], lagnas: {} } as unknown as ChartOutput)).toBeNull()
   })
+
+  it('keeps English headline and returns Hindi scenario copy', () => {
+    const c = chart({
+      asc: 1,
+      grahas: [g('Ve', 7, 'own'), g('Ju', 10, 'debilitated'), g('Ra', 3), g('Ke', 9), g('Ma', 1), g('Sa', 11)],
+    })
+    const en = analyzeVenusJupiterBond(c, 'en')!
+    expect(en.headline).toMatch(/Jupiter is not giving it depth/)
+    const hi = analyzeVenusJupiterBond(c, 'hi')!
+    expect(hi.headline).toMatch(/[\u0900-\u097F]/)
+    expect(hi.scenario[0]?.detail).toMatch(/[\u0900-\u097F]/)
+  })
 })

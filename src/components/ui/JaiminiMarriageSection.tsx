@@ -5,12 +5,16 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import type { EngineLang } from '@/lib/engine/lang'
 import {
   analyzeJaiminiMarriage,
   type InsightTone,
   type StrengthBand,
 } from '@/lib/engine/jaiminiMarriageAnalysis'
-import type { ChartOutput } from '@/types/astrology'
+import { dignityText, gName } from '@/lib/engine/divisionalLang'
+import { JMA_HI } from '@/lib/engine/locale/jaiminiMarriageAnalysis.hi'
+import type { ChartOutput, GrahaId } from '@/types/astrology'
 import { cn } from '@/lib/ui/cn'
 import styles from './JaiminiMarriageSection.module.css'
 
@@ -23,17 +27,6 @@ type SubTab =
   | 'flags'
   | 'timing'
   | 'guide'
-
-const SUB_TABS: { id: SubTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'dk', label: 'Darakaraka' },
-  { id: 'ul', label: 'Upapada' },
-  { id: 'd9', label: 'DK in D9' },
-  { id: 'path', label: 'Love / Arranged' },
-  { id: 'flags', label: 'Red Flags' },
-  { id: 'timing', label: 'Timing' },
-  { id: 'guide', label: 'Guide' },
-]
 
 function bandPill(band: StrengthBand): string {
   if (band === 'strong') return styles.pillStrong
@@ -48,89 +41,112 @@ function toneClass(tone: InsightTone): string {
   return ''
 }
 
-interface JaiminiMarriageSectionProps {
-  chart: ChartOutput
+function grahaLabel(id: GrahaId, name: string, lang: EngineLang): string {
+  return lang === 'hi' ? gName(id, 'hi') : name
 }
 
-export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
+interface JaiminiMarriageSectionProps {
+  chart: ChartOutput
+  lang?: EngineLang
+}
+
+export function JaiminiMarriageSection({ chart, lang = 'en' }: JaiminiMarriageSectionProps) {
+  const t = useTranslations('relationshipMarriage.jaimini')
+  const subTabs = useMemo(
+    (): { id: SubTab; label: string }[] => [
+      { id: 'overview', label: t('sub.overview') },
+      { id: 'dk', label: t('sub.dk') },
+      { id: 'ul', label: t('sub.ul') },
+      { id: 'd9', label: t('sub.d9') },
+      { id: 'path', label: t('sub.path') },
+      { id: 'flags', label: t('sub.flags') },
+      { id: 'timing', label: t('sub.timing') },
+      { id: 'guide', label: t('sub.guide') },
+    ],
+    [t],
+  )
   const [sub, setSub] = useState<SubTab>('overview')
-  const analysis = useMemo(() => analyzeJaiminiMarriage(chart), [chart])
+  const analysis = useMemo(() => analyzeJaiminiMarriage(chart, lang), [chart, lang])
+  const bandText = (band: StrengthBand) => t(`band.${band}`)
 
   if (!analysis) {
     return (
       <div className={styles.root}>
-        <p className={styles.empty}>
-          Marriage analysis needs D1 grahas, Upapada (A12), and D9 data. Recalculate the chart to continue.
-        </p>
+        <p className={styles.empty}>{t('empty')}</p>
       </div>
     )
   }
 
   const { darakaraka: dk, upapada: ul, dkNavamsha: d9, seventh, social, marriagePath } = analysis
+  const redFlagBadge =
+    analysis.activeRedFlagCount === 1
+      ? t('redFlag', { count: analysis.activeRedFlagCount })
+      : t('redFlags', { count: analysis.activeRedFlagCount })
 
   return (
     <div className={styles.root}>
       <header className={styles.hero}>
-        <p className={styles.eyebrow}>Jaimini · Relationship</p>
-        <h3 className={styles.title}>Marriage Analysis</h3>
+        <p className={styles.eyebrow}>{t('eyebrow')}</p>
+        <h3 className={styles.title}>{t('title')}</h3>
         <p className={styles.summary}>{analysis.summary}</p>
         <div className={styles.badgeRow}>
           <span className={cn(styles.badge, styles.badgeGold)}>
-            DK {dk.name} · {dk.sign.rashiShort}
+            DK {grahaLabel(dk.id, dk.name, lang)} · {dk.sign.rashiShort}
           </span>
           <span className={cn(styles.badge, styles.badgeGold)}>
             UL {ul.sign.rashiShort}
           </span>
           <span className={cn(styles.badge, analysis.balance === 'balanced' ? styles.badgeOk : styles.badgeWarn)}>
-            {analysis.balance === 'balanced' ? 'Balanced' : 'Imbalanced'}
+            {analysis.balance === 'balanced' ? t('balanced') : t('imbalanced')}
           </span>
           <span className={cn(styles.badge, analysis.activeRedFlagCount ? styles.badgeWarn : styles.badgeOk)}>
-            {analysis.activeRedFlagCount} red flag{analysis.activeRedFlagCount === 1 ? '' : 's'}
+            {redFlagBadge}
           </span>
         </div>
       </header>
 
       <div className={styles.statGrid}>
         <div className={styles.stat}>
-          <div className={styles.statLabel}>Darakaraka</div>
-          <div className={styles.statValue}>{dk.name}</div>
+          <div className={styles.statLabel}>{t('statDk')}</div>
+          <div className={styles.statValue}>{grahaLabel(dk.id, dk.name, lang)}</div>
           <div className={styles.statHint}>
             {dk.sign.rashiName} · H{dk.sign.houseFromLagna}
             {dk.isRetro ? ' · R' : ''}
           </div>
         </div>
         <div className={styles.stat}>
-          <div className={styles.statLabel}>Upapada</div>
+          <div className={styles.statLabel}>{t('statUl')}</div>
           <div className={styles.statValue}>{ul.sign.rashiName}</div>
           <div className={styles.statHint}>H{ul.sign.houseFromLagna} · 7th {ul.seventhFromUl.rashiShort}</div>
         </div>
         <div className={styles.stat}>
-          <div className={styles.statLabel}>DK / UL</div>
+          <div className={styles.statLabel}>{t('statDkUl')}</div>
           <div className={styles.statValue}>
-            <span className={cn(styles.pill, bandPill(dk.strength.band))}>{dk.strength.band}</span>
+            <span className={cn(styles.pill, bandPill(dk.strength.band))}>{bandText(dk.strength.band)}</span>
             {' / '}
-            <span className={cn(styles.pill, bandPill(ul.strength.band))}>{ul.strength.band}</span>
+            <span className={cn(styles.pill, bandPill(ul.strength.band))}>{bandText(ul.strength.band)}</span>
           </div>
           <div className={styles.statHint}>{analysis.dkUlScenarioLabel}</div>
         </div>
         <div className={styles.stat}>
-          <div className={styles.statLabel}>Path · Quality</div>
-          <div className={styles.statValue}>{marriagePath.type.replace(/_/g, ' ')}</div>
+          <div className={styles.statLabel}>{t('statPath')}</div>
+          <div className={styles.statValue}>{marriagePath.label}</div>
           <div className={styles.statHint}>
-            Quality <span className={cn(styles.pill, bandPill(analysis.qualityBand))}>{analysis.qualityBand}</span>
+            {t('quality')}{' '}
+            <span className={cn(styles.pill, bandPill(analysis.qualityBand))}>{bandText(analysis.qualityBand)}</span>
           </div>
         </div>
       </div>
 
-      <nav className={styles.subNav} aria-label="Marriage analysis sections">
-        {SUB_TABS.map(t => (
+      <nav className={styles.subNav} aria-label={t('navAria')}>
+        {subTabs.map(tab => (
           <button
-            key={t.id}
+            key={tab.id}
             type="button"
-            className={cn(styles.subBtn, sub === t.id && styles.subBtnActive)}
-            onClick={() => setSub(t.id)}
+            className={cn(styles.subBtn, sub === tab.id && styles.subBtnActive)}
+            onClick={() => setSub(tab.id)}
           >
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </nav>
@@ -138,7 +154,7 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
       {sub === 'overview' && (
         <div className={styles.stack}>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Key insights</h4>
+            <h4 className={styles.sectionTitle}>{t('keyInsights')}</h4>
             <div className={styles.insightGrid}>
               {analysis.insights.map(ins => (
                 <article key={ins.title} className={cn(styles.insight, toneClass(ins.tone))}>
@@ -149,7 +165,7 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
             </div>
           </section>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>DK vs UL</h4>
+            <h4 className={styles.sectionTitle}>{t('dkUlCompare')}</h4>
             <p className={styles.insightText}>{analysis.dkUlScenarioNote}</p>
             <p className={styles.insightText} style={{ marginTop: '0.45rem' }}>{analysis.qualitySummary}</p>
           </section>
@@ -160,30 +176,30 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
       {sub === 'dk' && (
         <div className={styles.stack}>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Partner significator</h4>
+            <h4 className={styles.sectionTitle}>{t('dkPartnerSignificator')}</h4>
             <ul className={styles.noteList}>
               {dk.notes.map(n => <li key={n} className={styles.noteItem}>{n}</li>)}
             </ul>
           </section>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>DK planet profile</h4>
+            <h4 className={styles.sectionTitle}>{t('dkPlanetProfile')}</h4>
             <table className={styles.table}>
               <tbody>
-                <tr><th scope="row">Nature</th><td>{dk.profile.nature}</td></tr>
-                <tr><th scope="row">Hidden challenge</th><td>{dk.profile.hiddenChallenge}</td></tr>
-                <tr><th scope="row">Karmic lesson</th><td>{dk.profile.karmicLesson}</td></tr>
-                <tr><th scope="row">Dignity</th><td>{dk.dignity}{dk.isCombust ? ' · combust' : ''}</td></tr>
-                <tr><th scope="row">Sign type</th><td>{dk.signType}</td></tr>
+                <tr><th scope="row">{t('profileNature')}</th><td>{dk.profile.nature}</td></tr>
+                <tr><th scope="row">{t('profileHidden')}</th><td>{dk.profile.hiddenChallenge}</td></tr>
+                <tr><th scope="row">{t('profileKarmic')}</th><td>{dk.profile.karmicLesson}</td></tr>
+                <tr><th scope="row">{t('profileDignity')}</th><td>{dignityText(dk.dignity, lang)}{dk.isCombust ? t('combustSuffix') : ''}</td></tr>
+                <tr><th scope="row">{t('profileSignType')}</th><td>{lang === 'hi' ? (JMA_HI.signType[dk.signType] ?? dk.signType) : dk.signType}</td></tr>
               </tbody>
             </table>
           </section>
           {dk.companions.length > 0 && (
             <section className={styles.section}>
-              <h4 className={styles.sectionTitle}>Companions with DK</h4>
+              <h4 className={styles.sectionTitle}>{t('dkCompanions')}</h4>
               <ul className={styles.noteList}>
                 {dk.companions.map(c => (
                   <li key={c.id} className={styles.noteItem}>
-                    {c.name}{c.isRetro ? ' (R)' : ''} · {c.dignity}
+                    {grahaLabel(c.id, c.name, lang)}{c.isRetro ? ' (R)' : ''} · {dignityText(c.dignity, lang)}
                     {c.charaKaraka ? ` · ${c.charaKaraka}` : ''}
                   </li>
                 ))}
@@ -191,17 +207,17 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
             </section>
           )}
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Spouse influence areas (Jaimini aspects)</h4>
+            <h4 className={styles.sectionTitle}>{t('dkInfluenceAreas')}</h4>
             <ul className={styles.noteList}>
               {dk.influenceAreas.map(a => (
                 <li key={a.house} className={styles.noteItem}>
-                  H{a.house} — {a.theme}
+                  {t('influenceHouse', { house: a.house, theme: a.theme })}
                 </li>
               ))}
             </ul>
           </section>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>7th house (classical + rashi)</h4>
+            <h4 className={styles.sectionTitle}>{t('seventhClassical')}</h4>
             <ul className={styles.noteList}>
               {seventh.notes.map(n => <li key={n} className={styles.noteItem}>{n}</li>)}
             </ul>
@@ -212,56 +228,56 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
       {sub === 'ul' && (
         <div className={styles.stack}>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Upapada Lagna — survival</h4>
+            <h4 className={styles.sectionTitle}>{t('ulSurvival')}</h4>
             <ul className={styles.noteList}>
               {ul.notes.map(n => <li key={n} className={styles.noteItem}>{n}</li>)}
             </ul>
           </section>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>UL map</h4>
+            <h4 className={styles.sectionTitle}>{t('ulMap')}</h4>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Point</th>
-                  <th>Sign</th>
-                  <th>House</th>
-                  <th>Lord</th>
+                  <th>{t('tablePoint')}</th>
+                  <th>{t('tableSign')}</th>
+                  <th>{t('tableHouse')}</th>
+                  <th>{t('tableLord')}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>UL</td>
+                  <td>{t('tableUl')}</td>
                   <td>{ul.sign.rashiName}</td>
                   <td>H{ul.sign.houseFromLagna}</td>
                   <td>{ul.sign.lordName}</td>
                 </tr>
                 <tr>
-                  <td>7th from UL</td>
+                  <td>{t('table7FromUl')}</td>
                   <td>{ul.seventhFromUl.rashiName}</td>
                   <td>H{ul.seventhFromUl.houseFromLagna}</td>
                   <td>{ul.seventhFromUl.lordName}</td>
                 </tr>
                 <tr>
-                  <td>2nd from UL</td>
+                  <td>{t('table2FromUl')}</td>
                   <td>{ul.secondFromUl.rashiName}</td>
                   <td>H{ul.secondFromUl.houseFromLagna}</td>
                   <td>{ul.secondFromUl.lordName}</td>
                 </tr>
                 <tr>
-                  <td>UL lord</td>
+                  <td>{t('tableUlLord')}</td>
                   <td>{ul.ulLord.rashiName}</td>
                   <td>H{ul.ulLord.houseFromLagna}</td>
                   <td>
-                    {ul.ulLord.name}
-                    {ul.ulLord.isCombust ? ' · combust' : ''}
-                    {ul.ulLord.isDebilitated ? ' · deb' : ''}
+                    {grahaLabel(ul.ulLord.id, ul.ulLord.name, lang)}
+                    {ul.ulLord.isCombust ? t('combustSuffix') : ''}
+                    {ul.ulLord.isDebilitated ? ` · ${t('debShort')}` : ''}
                   </td>
                 </tr>
               </tbody>
             </table>
           </section>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Strength reasons</h4>
+            <h4 className={styles.sectionTitle}>{t('ulStrengthReasons')}</h4>
             <ul className={styles.noteList}>
               {ul.strength.reasons.map(r => <li key={r} className={styles.noteItem}>{r}</li>)}
             </ul>
@@ -272,31 +288,33 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
       {sub === 'd9' && (
         <div className={styles.stack}>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>DK in Navamsha — true partner nature</h4>
+            <h4 className={styles.sectionTitle}>{t('d9TruePartner')}</h4>
             <ul className={styles.noteList}>
               {d9.notes.map(n => <li key={n} className={styles.noteItem}>{n}</li>)}
             </ul>
           </section>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>D9 snapshot</h4>
+            <h4 className={styles.sectionTitle}>{t('d9Snapshot')}</h4>
             <table className={styles.table}>
               <tbody>
-                <tr><th scope="row">DK in D9</th><td>{d9.rashiName} · H{d9.houseFromD9Lagna}</td></tr>
-                <tr><th scope="row">Dignity</th><td>{d9.dignity}{d9.isDebilitated ? ' (debilitated)' : ''}</td></tr>
-                <tr><th scope="row">7th from DK</th><td>{d9.seventhFromDk.rashiName}</td></tr>
+                <tr><th scope="row">{t('d9DkRow')}</th><td>{d9.rashiName} · H{d9.houseFromD9Lagna}</td></tr>
+                <tr><th scope="row">{t('d9Dignity')}</th><td>{dignityText(d9.dignity, lang)}{d9.isDebilitated ? t('debilitatedParen') : ''}</td></tr>
+                <tr><th scope="row">{t('d9SeventhFromDk')}</th><td>{d9.seventhFromDk.rashiName}</td></tr>
                 <tr>
-                  <th scope="row">Blessing</th>
-                  <td>{d9.trinalBlessing ? 'Trine (1/5/9) — divine support' : 'Not in D9 trine'}</td>
+                  <th scope="row">{t('d9BlessingRow')}</th>
+                  <td>{d9.trinalBlessing ? t('trineSupport') : t('notTrine')}</td>
                 </tr>
               </tbody>
             </table>
           </section>
           {d9.seventhOccupants.length > 0 && (
             <section className={styles.section}>
-              <h4 className={styles.sectionTitle}>Planets in 7th from DK (D9)</h4>
+              <h4 className={styles.sectionTitle}>{t('d9SeventhOccupants')}</h4>
               <ul className={styles.noteList}>
                 {d9.seventhOccupants.map(o => (
-                  <li key={o.id} className={styles.noteItem}>{o.name} · {o.dignity}</li>
+                  <li key={o.id} className={styles.noteItem}>
+                    {grahaLabel(o.id, o.name, lang)} · {dignityText(o.dignity, lang)}
+                  </li>
                 ))}
               </ul>
             </section>
@@ -309,21 +327,21 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
           <section className={styles.section}>
             <h4 className={styles.sectionTitle}>{marriagePath.label}</h4>
             <p className={styles.insightText}>
-              Love markers: {marriagePath.loveScore} · Arranged markers: {marriagePath.arrangedScore}
+              {t('pathLoveMarkers', { love: marriagePath.loveScore, arranged: marriagePath.arrangedScore })}
             </p>
             <ul className={styles.noteList} style={{ marginTop: '0.55rem' }}>
               {marriagePath.notes.map(n => <li key={n} className={styles.noteItem}>{n}</li>)}
             </ul>
           </section>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Society & family acceptance</h4>
+            <h4 className={styles.sectionTitle}>{t('pathSocietyTitle')}</h4>
             <ul className={styles.noteList}>
               {social.notes.map(n => <li key={n} className={styles.noteItem}>{n}</li>)}
             </ul>
             <p className={styles.insightText} style={{ marginTop: '0.5rem' }}>
-              Family support:{' '}
-              <span className={cn(styles.pill, bandPill(social.familySupport))}>{social.familySupport}</span>
-              {' · '}Sun {social.sun.rashiName} · Moon {social.moon.rashiName}
+              {t('pathFamilySupport')}{' '}
+              <span className={cn(styles.pill, bandPill(social.familySupport))}>{bandText(social.familySupport)}</span>
+              {' · '}{social.sun.rashiName} · {social.moon.rashiName}
             </p>
           </section>
         </div>
@@ -332,7 +350,7 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
       {sub === 'flags' && (
         <div className={styles.stack}>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Marriage strain checklist</h4>
+            <h4 className={styles.sectionTitle}>{t('flagsTitle')}</h4>
             <div className={styles.flagRow}>
               {analysis.redFlags.map(f => (
                 <div key={f.id} className={cn(styles.flag, f.active && styles.flagActive)}>
@@ -346,7 +364,7 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
             </div>
           </section>
           <blockquote className={styles.quote}>
-            {analysis.quotes.find(q => q.includes('Divorce')) ?? analysis.quotes[3]}
+            {analysis.quotes[3]}
           </blockquote>
         </div>
       )}
@@ -354,35 +372,35 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
       {sub === 'timing' && (
         <div className={styles.stack}>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Marriage timing windows</h4>
+            <h4 className={styles.sectionTitle}>{t('timingTitle')}</h4>
             <p className={styles.insightText} style={{ marginBottom: '0.55rem' }}>
-              Activate DK / UL / 7th-from-UL / 7th-from-DK in Chara dasha, then confirm with Vimshottari.
+              {t('timingLead')}
               {ul.sign.rashi === 9
-                ? ' Sagittarius is the Upapada. While its dasha runs, marriage is highly likely for a person of marriageable age.'
+                ? t('timingSagUl')
                 : ul.seventhFromUl.rashi === 9
-                  ? ' Sagittarius is the 7th from the Upapada. While its dasha runs, marriage is highly likely for a person of marriageable age.'
+                  ? t('timingSag7Ul')
                   : ''}
             </p>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Window</th>
-                  <th>Sign</th>
-                  <th>System</th>
-                  <th>Now</th>
+                  <th>{t('timingTableWindow')}</th>
+                  <th>{t('timingTableSign')}</th>
+                  <th>{t('timingTableSystem')}</th>
+                  <th>{t('timingTableNow')}</th>
                 </tr>
               </thead>
               <tbody>
-                {analysis.timing.map(t => (
-                  <tr key={t.id}>
+                {analysis.timing.map(row => (
+                  <tr key={row.id}>
                     <td>
-                      <div>{t.label}</div>
-                      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 2 }}>{t.note}</div>
+                      <div>{row.label}</div>
+                      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 2 }}>{row.note}</div>
                     </td>
-                    <td>{t.rashiName}</td>
-                    <td>{t.system === 'chara' ? 'Chara' : 'Vimshottari'}</td>
-                    <td className={t.isActiveNow ? styles.timingActive : undefined}>
-                      {t.isActiveNow ? 'Active' : '—'}
+                    <td>{row.rashiName}</td>
+                    <td>{row.system === 'chara' ? t('chara') : t('vimshottari')}</td>
+                    <td className={row.isActiveNow ? styles.timingActive : undefined}>
+                      {row.isActiveNow ? t('active') : '—'}
                     </td>
                   </tr>
                 ))}
@@ -390,12 +408,12 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
             </table>
             {analysis.timing[0]?.activePathLabel && (
               <p className={styles.insightText} style={{ marginTop: '0.55rem' }}>
-                Current path: {analysis.timing.find(t => t.activePathLabel)?.activePathLabel}
+                {t('timingCurrentPath', { path: analysis.timing.find(row => row.activePathLabel)?.activePathLabel ?? '' })}
               </p>
             )}
           </section>
           <blockquote className={styles.quote}>
-            {analysis.quotes.find(q => q.includes('Vimshottari')) ?? analysis.quotes[2]}
+            {analysis.quotes[2]}
           </blockquote>
         </div>
       )}
@@ -403,7 +421,7 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
       {sub === 'guide' && (
         <div className={styles.stack}>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Practical checklist</h4>
+            <h4 className={styles.sectionTitle}>{t('guideChecklistTitle')}</h4>
             <ol className={styles.noteList} style={{ listStyle: 'decimal', paddingLeft: '1.1rem' }}>
               {analysis.checklist.map(step => (
                 <li key={step} className={styles.noteItem} style={{ borderLeft: 'none', paddingLeft: 0 }}>
@@ -413,7 +431,7 @@ export function JaiminiMarriageSection({ chart }: JaiminiMarriageSectionProps) {
             </ol>
           </section>
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>Session principles</h4>
+            <h4 className={styles.sectionTitle}>{t('guidePrinciplesTitle')}</h4>
             <div className={styles.stack}>
               {analysis.quotes.map(q => (
                 <blockquote key={q} className={styles.quote}>{q}</blockquote>

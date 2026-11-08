@@ -10,9 +10,11 @@ import { DEFAULT_LOCALE } from './config'
 
 /** Every namespace, one JSON file each per locale. Add new ones here. */
 export const NAMESPACES = [
-  'common', 'nav', 'home', 'panchang', 'today', 'chart',
+  'common', 'nav', 'home', 'panchang', 'horoscope', 'today', 'chart',
   // Chart workspace tabs, one file per area so parallel work never edits the same JSON.
   'dashaPanel', 'planetsA', 'planetsB', 'houseGuide', 'divisional', 'chartTools',
+  'relationshipMarriage',
+  'compare',
 ] as const
 export type Namespace = (typeof NAMESPACES)[number]
 
@@ -23,7 +25,7 @@ export type Namespace = (typeof NAMESPACES)[number]
  */
 // 'chart' holds the birth form and chart widgets, which appear on many pages.
 export const ROOT_CLIENT_NAMESPACES: Namespace[] = [
-  'common', 'nav', 'home', 'chart',
+  'common', 'nav', 'home', 'horoscope', 'chart',
   'dashaPanel', 'planetsA', 'planetsB', 'houseGuide', 'divisional', 'chartTools',
 ]
 

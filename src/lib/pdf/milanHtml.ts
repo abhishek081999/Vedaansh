@@ -1,8 +1,15 @@
 // src/lib/pdf/milanHtml.ts
 // Full Kundali Milan compare print — all "All Sections" content, kundali-print style.
 
-import type { ChartOutput, GrahaData, GrahaId, Rashi } from '@/types/astrology'
+import type { ChartOutput, GrahaId, Rashi } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { fill } from '@/lib/engine/lang'
 import { GRAHA_NAMES, RASHI_NAMES, RASHI_SHORT, NAKSHATRA_NAMES } from '@/types/astrology'
+import { GRAHA_HI, NAKSHATRA_HI, RASHI_HI, termHi } from '@/i18n/jyotish'
+import { getCompatibility, kootaLabels } from '@/lib/engine/compareCompat'
+import type { KootaKey } from '@/lib/engine/ashtakoot'
+import { getManglikTeaching } from '@/lib/engine/manglikTeaching'
+import { MILAN_HTML_HI } from '@/lib/engine/locale/milanHtml.hi'
 import type { AshtakootResult } from '@/lib/engine/ashtakoot'
 import { calculatePorutham, type PoruthamResult } from '@/lib/engine/porutham'
 import { analyzeMilanDeep, type MilanDeepResult } from '@/lib/engine/milanDeepAnalysis'
@@ -61,22 +68,167 @@ function signDiff(a: number, b: number): number {
   return ((b - a + 12) % 12) + 1
 }
 
-function rn(s: number): string {
+const MILAN_HTML_EN = {
+  htmlLang: 'en',
+  docTitle: 'Kundali Milan',
+  footerBrand: 'Kundali Milan',
+  footerConfidential: 'गोपनीय',
+  pageLabel: 'पृ.',
+  printBarSuffix: 'कुण्डली मिलान (All Sections)',
+  exportButton: '⬇ Export Full Milan Report',
+  completeDossier: 'Complete Kundali Milan Dossier',
+  subTitle: 'All Sections · Ashtakoot to Panchang',
+  computedOn: 'Computed on {date} · Swiss Ephemeris',
+  gunasDenom: '/ 36 GUNAS',
+
+  badge01: '01 · Ashtakoot (36)',
+  titleAshtakoot: 'Detailed Guna Milan',
+  thKoota: 'Koota',
+  thGroom: 'Groom',
+  thBride: 'Bride',
+  thScore: 'Score',
+  thInsight: 'Insight',
+
+  badge02: '02 · Deep Milan · Porutham · Manglik',
+  titleDeepSchools: 'Deep Milan & Schools',
+  manglikPairLabel: 'Manglik pair:',
+  d9JaiminiLabel: 'D9 / Jaimini:',
+  poruthamHeading: 'South Indian Porutham',
+  thPorutham: 'Porutham',
+  thMatch: 'Match',
+  thDetail: 'Detail',
+  matchYes: 'Yes',
+  matchNo: 'No',
+
+  badge03: '03 · Dosha Analysis',
+  titleDosha: 'Manglik & Pape-Samya',
+  kujaDosha: 'Kuja Dosha',
+  nonManglik: 'Non-Manglik',
+  marsInHouse: 'Mars in {nth}th house.',
+  cancellationsPrefix: 'Cancellations:',
+  noMarsInfluence: 'No difficult influence from Mars.',
+  papeSamyaTitle: 'Pape-Samya (Malefic Balance)',
+  thPerson: 'Person',
+  thMaleficWeight: 'Malefic Weight',
+  papeBalanced:
+    'Stable balance — pressures from difficult planets are well compensated between both charts.',
+  papeImbalancePrefix: 'Imbalance detected',
+  papeImbalanceSuffix: 'pts) — may need conscious adjustment.',
+
+  badge04: '04 · Aura Affinity',
+  titleAura: 'Aura & Psychological Affinity',
+  noAffinity: 'No strong affinity signals computed.',
+
+  badge05: '05 · Side-by-Side Charts',
+  titleD1: 'Rashi (D1) Kundali',
+  lagnaMoon: 'Lagna {rashi} · Moon {nak}',
+
+  badge06: '06 · Navamsha · Overlay',
+  titleD9Synastry: 'D9 Charts & Synastry Note',
+  overlayView: 'Overlay view',
+  overlayNote:
+    'Synastry places {nameB}\'s planets into {nameA}\'s houses. Compare house lords and Venus–Mars chemistry alongside the planetary positions table on the next page.',
+
+  badge07: '07 · Planetary Positions',
+  titleGrahaTable: 'Side-by-Side Graha Table',
+  thPlanet: 'Planet',
+  thRelation: 'Relation',
+  relationAxis: '{fwd} / {rev} axis',
+
+  badge08: '08 · Ashtakavarga',
+  titleBindu: 'Bindu Matrices',
+  avMissing: 'Ashtakavarga data missing.',
+  thSign: 'Sign',
+
+  badge09: '09 · Dasha',
+  titleDasha: 'Vimshottari Periods',
+  dashaMissing: 'Dasha data missing.',
+  vimshottari: 'Vimshottari',
+  currentDasha: 'Current:',
+  thMahadasha: 'Mahadasha',
+  thStart: 'Start',
+  thEnd: 'End',
+
+  badge10: '10 · Panchang',
+  titleNatalPanchang: 'Natal Panchang',
+  panchangMissing: 'Panchang data missing.',
+  natalPanchang: 'Natal Panchang',
+  lblVara: 'Vara',
+  lblTithi: 'Tithi',
+  lblNakshatra: 'Nakshatra',
+  lblYoga: 'Yoga',
+  lblKarana: 'Karana',
+  lblSunrise: 'Sunrise',
+  lblSunset: 'Sunset',
+
+  badge11: '11 · Match-Making',
+  titleMatchMaking: 'Match-Making Summary',
+  stepsLabel: 'Steps',
+  deepMilanLabel: 'Deep Milan:',
+  matchMakingUnavailable: 'Match-making summary unavailable.',
+
+  badge12: '12 · Married Life',
+  titleMarriedLife: 'Married Life · Classical Notes',
+  moonPair: 'Moon pair',
+  moonPairUnavailable: 'Moon pair unavailable.',
+  dimensionScores: 'Dimension scores',
+  classicalUnavailable: 'Classical unavailable',
+  separationEnergy: 'Separation energy:',
+  crossChartOverlay: 'Cross-chart overlay',
+  jaiminiBoth: 'Jaimini (both)',
+  venusJupiterPair: 'Venus–Jupiter pair',
+  marriageMethod: 'Marriage method',
+  marsTwoCharts: 'Mars in the two charts',
+  partnerNaturePair: 'Partner nature pair',
+  karmicDebtPair: 'Karmic debt pair',
+
+  badge13: '13 · Timing & Remedies',
+  titleTimingRemedies: 'Marriage Windows & Upaya',
+  thWindow: 'Window',
+  thTimingGroom: 'Groom',
+  thTimingBride: 'Bride',
+  thNote: 'Note',
+  remediesHeading: 'Remedies',
+  closingDisclaimer:
+    'Educational Jyotish summary. Confirm with a qualified astrologer before marriage decisions.',
+
+  intensityHigh: 'High',
+  intensityLow: 'Low',
+  intensityNone: 'None',
+} as const
+
+type MilanHtmlChrome = typeof MILAN_HTML_EN | typeof MILAN_HTML_HI
+
+function milanChrome(lang: EngineLang): MilanHtmlChrome {
+  return (lang === 'hi' ? MILAN_HTML_HI : MILAN_HTML_EN) as MilanHtmlChrome
+}
+
+function dateLocale(lang: EngineLang): string {
+  return lang === 'hi' ? 'hi-IN' : 'en-IN'
+}
+
+function rn(s: number, lang: EngineLang): string {
+  if (lang === 'hi') return RASHI_HI[s as Rashi] ?? '—'
   return RASHI_NAMES[s as keyof typeof RASHI_NAMES] ?? '—'
 }
 
-function fmtDate(value?: string | Date | null): string {
+function gn(id: GrahaId, lang: EngineLang): string {
+  if (lang === 'hi') return GRAHA_HI[id] ?? id
+  return GRAHA_NAMES[id] ?? id
+}
+
+function fmtDate(value: string | Date | null | undefined, lang: EngineLang): string {
   if (!value) return '—'
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return String(value)
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  return d.toLocaleDateString(dateLocale(lang), { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-function fmtDateTime(value?: string | Date | null): string {
+function fmtDateTime(value: string | Date | null | undefined, lang: EngineLang): string {
   if (!value) return '—'
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleString('en-IN', {
+  return d.toLocaleString(dateLocale(lang), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -86,83 +238,18 @@ function fmtDateTime(value?: string | Date | null): string {
   })
 }
 
-interface CompatItem {
-  label: string
-  score: number
-  reason: string
-  level: 'good' | 'neutral' | 'bad'
-}
-
-function getCompatibility(a: ChartOutput, b: ChartOutput): CompatItem[] {
-  const items: CompatItem[] = []
-  const aMo = a.grahas.find((g: GrahaData) => g.id === 'Mo')
-  const bMo = b.grahas.find((g: GrahaData) => g.id === 'Mo')
-  const aVe = a.grahas.find((g: GrahaData) => g.id === 'Ve')
-  const bVe = b.grahas.find((g: GrahaData) => g.id === 'Ve')
-  const aJu = a.grahas.find((g: GrahaData) => g.id === 'Ju')
-  const aSu = a.grahas.find((g: GrahaData) => g.id === 'Su')
-  const bSu = b.grahas.find((g: GrahaData) => g.id === 'Su')
-
-  if (aMo && bMo) {
-    const sA = signOf(aMo.totalDegree)
-    const sB = signOf(bMo.totalDegree)
-    const diff = signDiff(sA, sB)
-    const reverseDiff = signDiff(sB, sA)
-    const isGood = [1, 5, 9, 3, 7, 11].includes(diff)
-    const isBad = [2, 12, 6, 8].includes(diff)
-    items.push({
-      label: 'Moon Sign Affinity',
-      score: isGood ? 2 : isBad ? -1 : 0,
-      level: isGood ? 'good' : isBad ? 'bad' : 'neutral',
-      reason: `${rn(sA)} ↔ ${rn(sB)} (${diff}/${reverseDiff} relation)`,
-    })
-  }
-
-  const aL = a.lagnas.ascRashi
-  const bL = b.lagnas.ascRashi
-  if (aL && bL) {
-    const diff = signDiff(aL, bL)
-    const isGood = [1, 5, 9, 3, 7, 11].includes(diff)
-    items.push({
-      label: 'Ascendant Harmony',
-      score: isGood ? 2 : 0,
-      level: isGood ? 'good' : 'neutral',
-      reason: `${rn(aL)} ↔ ${rn(bL)}`,
-    })
-  }
-
-  if (aVe && bMo) {
-    const d = signDiff(signOf(aVe.totalDegree), signOf(bMo.totalDegree))
-    if ([1, 5, 9].includes(d)) {
-      items.push({ label: "A's Venus ↔ B's Moon", score: 1.5, level: 'good', reason: 'Strong emotional attraction' })
-    }
-  }
-  if (bVe && aMo) {
-    const d = signDiff(signOf(bVe.totalDegree), signOf(aMo.totalDegree))
-    if ([1, 5, 9].includes(d)) {
-      items.push({ label: "B's Venus ↔ A's Moon", score: 1.5, level: 'good', reason: 'Strong emotional attraction' })
-    }
-  }
-  if (aJu && bMo) {
-    const d = signDiff(signOf(aJu.totalDegree), signOf(bMo.totalDegree))
-    if ([1, 5, 7, 9].includes(d)) {
-      items.push({ label: "A's Jupiter blesses B's Moon", score: 1, level: 'good', reason: 'Fortunate for stability' })
-    }
-  }
-  if (aSu && bSu) {
-    const d = signDiff(signOf(aSu.totalDegree), signOf(bSu.totalDegree))
-    if ([1, 5, 9].includes(d)) {
-      items.push({ label: 'Sun Sign Affinity', score: 1, level: 'good', reason: 'Soul compatibility' })
-    }
-  }
-  return items
-}
-
-function moonNakName(chart: ChartOutput): string {
+function moonNakName(chart: ChartOutput, lang: EngineLang): string {
   const mo = chart.grahas.find(g => g.id === 'Mo')
   if (!mo) return '—'
   const idx = mo.nakshatraIndex >= 0 ? mo.nakshatraIndex : Math.floor(mo.totalDegree / (360 / 27))
+  if (lang === 'hi') return NAKSHATRA_HI[idx] ?? termHi(mo.nakshatraName ?? '') ?? '—'
   return NAKSHATRA_NAMES[idx] ?? mo.nakshatraName ?? '—'
+}
+
+function manglikIntensityLabel(intensity: 'None' | 'Low' | 'High', c: MilanHtmlChrome): string {
+  if (intensity === 'High') return c.intensityHigh
+  if (intensity === 'Low') return c.intensityLow
+  return c.intensityNone
 }
 
 export interface MilanReportInput {
@@ -180,6 +267,7 @@ export interface MilanReportInput {
   remedies?: MilanRemedy[]
   jaimini?: DualJaiminiMilan | null
   branding?: string
+  lang?: EngineLang
 }
 
 /** Assemble a full printable Milan report from two charts + Ashtakoot. */
@@ -189,6 +277,7 @@ export function buildMilanReportInput(
   ashtakoot: AshtakootResult,
   roleA: MilanRole = 'boy',
   roleB: MilanRole = 'girl',
+  lang: EngineLang = 'en',
 ): MilanReportInput {
   const roles = resolveMilanRoles(chartA, chartB, { personA: roleA, personB: roleB })
   const boyMo = roles.boyChart.grahas.find(g => g.id === 'Mo')
@@ -202,11 +291,11 @@ export function buildMilanReportInput(
   const boySign = boyMo?.rashi ?? 1
   const girlSign = girlMo?.rashi ?? 1
 
-  const porutham = calculatePorutham(boyNak, boySign, girlNak, girlSign)
-  const manglik = analyzeManglikPair(roles.boyChart, roles.girlChart)
-  const timing = analyzeMarriageTiming(roles.boyChart, roles.girlChart)
-  const jaimini = analyzeDualJaiminiMarriage(roles.boyChart, roles.girlChart)
-  const deep = analyzeMilanDeep(roles.boyChart, roles.girlChart)
+  const porutham = calculatePorutham(boyNak, boySign, girlNak, girlSign, lang)
+  const manglik = analyzeManglikPair(roles.boyChart, roles.girlChart, lang)
+  const timing = analyzeMarriageTiming(roles.boyChart, roles.girlChart, new Date(), lang)
+  const jaimini = analyzeDualJaiminiMarriage(roles.boyChart, roles.girlChart, lang)
+  const deep = analyzeMilanDeep(roles.boyChart, roles.girlChart, lang)
   const remedies = buildMilanRemedies({
     nadiDosha: !!ashtakoot.nadi.dosha,
     bhakootDosha: ashtakoot.bhakoot.points === 0,
@@ -215,7 +304,7 @@ export function buildMilanReportInput(
     poruthamCriticalFails: porutham.items
       .filter(i => i.weight === 'critical' && !i.matched)
       .map(i => i.name),
-  })
+  }, lang)
 
   return {
     chartA,
@@ -231,6 +320,7 @@ export function buildMilanReportInput(
     timing,
     remedies,
     jaimini,
+    lang,
   }
 }
 
@@ -254,13 +344,13 @@ export function openMilanPrintPreview(input: MilanReportInput): boolean {
   return false
 }
 
-function pageFooter(pageNo: number, brand: string): string {
+function pageFooter(pageNo: number, brand: string, c: MilanHtmlChrome): string {
   return `<div class="footer-line">
     <div style="display:flex;align-items:center;gap:8px">
       <span style="opacity:0.4;color:${THEME.temple};font-family:'Noto Serif Devanagari',serif">ॐ</span>
-      <span>${esc(brand)} · Kundali Milan · गोपनीय</span>
+      <span>${esc(brand)} · ${esc(c.footerBrand)} · ${esc(c.footerConfidential)}</span>
     </div>
-    <div style="color:${THEME.temple}">पृ. ${pageNo}</div>
+    <div style="color:${THEME.temple}">${esc(c.pageLabel)} ${pageNo}</div>
   </div>`
 }
 
@@ -268,18 +358,19 @@ function sectionBadge(text: string): string {
   return `<div class="section-badge">${esc(text)}</div>`
 }
 
-function buildAVCompact(chart: ChartOutput): string {
-  if (!chart.ashtakavarga) return '<p style="color:#6d5d4b">Ashtakavarga data missing.</p>'
-  const planets = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
+function buildAVCompact(chart: ChartOutput, lang: EngineLang, c: MilanHtmlChrome): string {
+  if (!chart.ashtakavarga) return `<p style="color:#6d5d4b">${esc(c.avMissing)}</p>`
+  const planets = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as const
   const av = chart.ashtakavarga
-  const header = `<tr><th>Sign</th>${planets.map(p => `<th>${p}</th>`).join('')}<th>SAV</th></tr>`
+  const header = `<tr><th>${esc(c.thSign)}</th>${planets.map(p => `<th>${lang === 'hi' ? GRAHA_SHORT_HI(p) : p}</th>`).join('')}<th>SAV</th></tr>`
   let rows = ''
   for (let r = 1; r <= 12; r++) {
     let cells = ''
     planets.forEach(p => {
       cells += `<td>${av.bav[p]?.bindus[r - 1] ?? 0}</td>`
     })
-    rows += `<tr><td style="font-weight:700">${RASHI_SHORT[r as Rashi]}</td>${cells}<td style="background:${THEME.accentLight};font-weight:800">${av.sav[r - 1] || 0}</td></tr>`
+    const signLabel = lang === 'hi' ? RASHI_HI[r as Rashi] : RASHI_SHORT[r as Rashi]
+    rows += `<tr><td style="font-weight:700">${esc(signLabel)}</td>${cells}<td style="background:${THEME.accentLight};font-weight:800">${av.sav[r - 1] || 0}</td></tr>`
   }
   return `
     <div style="font-weight:800;margin-bottom:0.4rem;color:${THEME.primary}">${esc(chart.meta.name)} — SAV ${av.savTotal}</div>
@@ -287,9 +378,13 @@ function buildAVCompact(chart: ChartOutput): string {
   `
 }
 
-function buildDashaCompact(chart: ChartOutput): string {
+function GRAHA_SHORT_HI(id: GrahaId): string {
+  return ({ Su: 'सू', Mo: 'चं', Ma: 'मं', Me: 'बु', Ju: 'गु', Ve: 'शु', Sa: 'श' } as Record<string, string>)[id] ?? id
+}
+
+function buildDashaCompact(chart: ChartOutput, lang: EngineLang, c: MilanHtmlChrome): string {
   const nodes = chart.dashas.vimshottari ?? []
-  if (!nodes.length) return '<p style="color:#6d5d4b">Dasha data missing.</p>'
+  if (!nodes.length) return `<p style="color:#6d5d4b">${esc(c.dashaMissing)}</p>`
   const now = new Date()
   const current = nodes.find(m => now >= new Date(m.start) && now <= new Date(m.end))
   const antar = current?.children?.find(m => now >= new Date(m.start) && now <= new Date(m.end))
@@ -298,81 +393,87 @@ function buildDashaCompact(chart: ChartOutput): string {
     .map(m => {
       const active = current?.lord === m.lord
       return `<tr style="${active ? `background:${THEME.accentLight}` : ''}">
-        <td><strong>${esc(GRAHA_NAMES[m.lord as GrahaId] ?? m.lord)}</strong>${active ? ' ●' : ''}</td>
-        <td>${fmtDate(m.start)}</td>
-        <td>${fmtDate(m.end)}</td>
+        <td><strong>${esc(gn(m.lord as GrahaId, lang))}</strong>${active ? ' ●' : ''}</td>
+        <td>${fmtDate(m.start, lang)}</td>
+        <td>${fmtDate(m.end, lang)}</td>
       </tr>`
     })
     .join('')
   return `
-    <div style="font-weight:800;margin-bottom:0.45rem;color:${THEME.primary}">${esc(chart.meta.name)} — Vimshottari</div>
+    <div style="font-weight:800;margin-bottom:0.45rem;color:${THEME.primary}">${esc(chart.meta.name)} — ${esc(c.vimshottari)}</div>
     ${
       current
         ? `<p style="font-size:11px;color:${THEME.muted};margin:0 0 0.55rem">
-             Current: <strong>${esc(GRAHA_NAMES[current.lord as GrahaId] ?? current.lord)}</strong>
-             ${antar ? ` / ${esc(GRAHA_NAMES[antar.lord as GrahaId] ?? antar.lord)}` : ''}
+             ${esc(c.currentDasha)} <strong>${esc(gn(current.lord as GrahaId, lang))}</strong>
+             ${antar ? ` / ${esc(gn(antar.lord as GrahaId, lang))}` : ''}
            </p>`
         : ''
     }
     <table>
-      <thead><tr><th>Mahadasha</th><th>Start</th><th>End</th></tr></thead>
+      <thead><tr><th>${esc(c.thMahadasha)}</th><th>${esc(c.thStart)}</th><th>${esc(c.thEnd)}</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `
 }
 
-function buildPanchangCompact(chart: ChartOutput): string {
+function buildPanchangCompact(chart: ChartOutput, lang: EngineLang, c: MilanHtmlChrome): string {
   const p = chart.panchang
-  if (!p) return '<p style="color:#6d5d4b">Panchang data missing.</p>'
+  if (!p) return `<p style="color:#6d5d4b">${esc(c.panchangMissing)}</p>`
+  const loc = (name?: string) => (lang === 'hi' && name ? termHi(name) : name ?? '—')
   const rows = [
-    ['Vara', p.vara?.name],
-    ['Tithi', p.tithi ? `${p.tithi.name} (${p.tithi.paksha})` : '—'],
-    ['Nakshatra', p.nakshatra?.name],
-    ['Yoga', p.yoga?.name],
-    ['Karana', p.karana?.name],
-    ['Sunrise', fmtDateTime(p.sunrise)],
-    ['Sunset', fmtDateTime(p.sunset)],
+    [c.lblVara, loc(p.vara?.name)],
+    [c.lblTithi, p.tithi ? `${loc(p.tithi.name)} (${loc(p.tithi.paksha)})` : '—'],
+    [c.lblNakshatra, loc(p.nakshatra?.name)],
+    [c.lblYoga, loc(p.yoga?.name)],
+    [c.lblKarana, loc(p.karana?.name)],
+    [c.lblSunrise, fmtDateTime(p.sunrise, lang)],
+    [c.lblSunset, fmtDateTime(p.sunset, lang)],
   ]
     .map(([k, v]) => `<tr><td style="font-weight:700;width:28%">${esc(String(k))}</td><td>${esc(String(v ?? '—'))}</td></tr>`)
     .join('')
   return `
-    <div style="font-weight:800;margin-bottom:0.45rem;color:${THEME.primary}">${esc(chart.meta.name)} — Natal Panchang</div>
+    <div style="font-weight:800;margin-bottom:0.45rem;color:${THEME.primary}">${esc(chart.meta.name)} — ${esc(c.natalPanchang)}</div>
     <table><tbody>${rows}</tbody></table>
   `
 }
 
 export function generateMilanHTML(input: MilanReportInput): string {
+  const reportLang = input.lang ?? 'en'
+  const c = milanChrome(reportLang)
   const brand = (input.branding || 'VEDAANSH').toUpperCase()
   const a = input.ashtakoot
   const { chartA, chartB } = input
-  const generated = new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })
+  const generated = new Date().toLocaleDateString(dateLocale(reportLang), { dateStyle: 'long' })
   const pct = Math.round((a.total / 36) * 100)
   const eligOk = a.eligibility.traditionallyAccepted
-  const compat = getCompatibility(chartA, chartB)
+  const compat = getCompatibility(chartA, chartB, reportLang)
 
   const m1 = calculateManglik(chartA.grahas, [], chartA.lagnas.ascRashi)
   const m2 = calculateManglik(chartB.grahas, [], chartB.lagnas.ascRashi)
+  const teachA = getManglikTeaching(m1, chartA.grahas, chartA.lagnas.ascRashi, reportLang)
+  const teachB = getManglikTeaching(m2, chartB.grahas, chartB.lagnas.ascRashi, reportLang)
   const p1 = calculatePapeSamya(chartA.grahas, chartA.lagnas.ascRashi)
   const p2 = calculatePapeSamya(chartB.grahas, chartB.lagnas.ascRashi)
   const papeDiff = Math.abs(p1.totalWeight - p2.totalWeight)
   const papeBalanced = papeDiff <= 1.25
 
-  const kootas = [
-    ['Varna', a.varna],
-    ['Vashya', a.vashya],
-    ['Tara', a.tara],
-    ['Yoni', a.yoni],
-    ['Maitri', a.maitri],
-    ['Gana', a.gana],
-    ['Bhakoot', a.bhakoot],
-    ['Nadi', a.nadi],
-  ] as const
+  const kootLabels = kootaLabels(reportLang)
+  const kootas: [KootaKey, typeof a.varna][] = [
+    ['varna', a.varna],
+    ['vashya', a.vashya],
+    ['tara', a.tara],
+    ['yoni', a.yoni],
+    ['maitri', a.maitri],
+    ['gana', a.gana],
+    ['bhakoot', a.bhakoot],
+    ['nadi', a.nadi],
+  ]
 
   const kootRows = kootas
     .map(([k, s]) => {
-      const weak = s.points === 0 || (k === 'Nadi' && s.dosha)
+      const weak = s.points === 0 || (k === 'nadi' && s.dosha)
       return `<tr style="${weak ? `background:${THEME.accentLight}` : ''}">
-        <td><strong>${esc(k)}</strong><div style="font-size:9px;color:${THEME.muted};margin-top:2px">${esc(s.meaning)}</div></td>
+        <td><strong>${esc(kootLabels[k])}</strong><div style="font-size:9px;color:${THEME.muted};margin-top:2px">${esc(s.meaning)}</div></td>
         <td>${esc(s.p1)}</td>
         <td>${esc(s.p2)}</td>
         <td style="white-space:nowrap;font-weight:800;color:${weak ? THEME.rose : THEME.secondary}">
@@ -388,7 +489,7 @@ export function generateMilanHTML(input: MilanReportInput): string {
         .map(
           i => `<tr style="${i.matched ? '' : `background:${THEME.accentLight}`}">
             <td><strong>${esc(i.name)}</strong></td>
-            <td style="color:${i.matched ? THEME.emerald : THEME.rose};font-weight:800">${i.matched ? 'Yes' : 'No'}</td>
+            <td style="color:${i.matched ? THEME.emerald : THEME.rose};font-weight:800">${i.matched ? esc(c.matchYes) : esc(c.matchNo)}</td>
             <td>${esc(i.detail)}</td>
           </tr>`,
         )
@@ -421,7 +522,7 @@ export function generateMilanHTML(input: MilanReportInput): string {
         .join('')
     : ''
 
-  const match = analyzeMatchMaking(chartA, chartB)
+  const match = analyzeMatchMaking(chartA, chartB, reportLang)
   const matchMakingBlock = match
     ? `<div class="card" style="margin-bottom:0.75rem">
          <div style="font-weight:800;color:${THEME.secondary};margin-bottom:0.35rem">${esc(match.headline)}</div>
@@ -434,40 +535,40 @@ export function generateMilanHTML(input: MilanReportInput): string {
            </div>`).join('')}
          ${match.steps.length ? `
            <div style="margin-top:0.75rem;padding-top:0.55rem;border-top:1px solid ${THEME.border}">
-             <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted};margin-bottom:0.4rem">Steps</div>
+             <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted};margin-bottom:0.4rem">${esc(c.stepsLabel)}</div>
              ${match.steps.slice(0, 8).map((s, i) => `
                <div style="font-size:10px;color:${THEME.muted};margin-bottom:0.35rem;line-height:1.4">
                  <strong style="color:${THEME.text}">${i + 1}. ${esc(s.title)}</strong> — ${esc(s.detail)}
                </div>`).join('')}
            </div>` : ''}
-         ${input.deep?.overall ? `<p style="font-size:10px;color:${THEME.muted};margin:0.65rem 0 0"><strong>Deep Milan:</strong> ${esc(input.deep.overall.stageLabel)} — ${esc(input.deep.overall.summary)}</p>` : ''}
+         ${input.deep?.overall ? `<p style="font-size:10px;color:${THEME.muted};margin:0.65rem 0 0"><strong>${esc(c.deepMilanLabel)}</strong> ${esc(input.deep.overall.stageLabel)} — ${esc(input.deep.overall.summary)}</p>` : ''}
        </div>`
     : input.deep?.overall
-      ? `<div class="card"><strong>Deep Milan</strong><p style="font-size:11px;color:${THEME.muted};margin:0.35rem 0 0">${esc(input.deep.overall.stageLabel)} — ${esc(input.deep.overall.summary)}</p></div>`
-      : '<p style="color:#6d5d4b;font-size:11px">Match-making summary unavailable.</p>'
+      ? `<div class="card"><strong>${esc(c.deepMilanLabel.replace(/:$/, ''))}</strong><p style="font-size:11px;color:${THEME.muted};margin:0.35rem 0 0">${esc(input.deep.overall.stageLabel)} — ${esc(input.deep.overall.summary)}</p></div>`
+      : `<p style="color:#6d5d4b;font-size:11px">${esc(c.matchMakingUnavailable)}</p>`
 
-  const married = analyzeMilanMarriedLife(chartA, chartB)
-  const classicalA = analyzeClassicalMarriage(chartA)
-  const classicalB = analyzeClassicalMarriage(chartB)
-  const splitA = analyzeDivorceEnergy(chartA)
-  const splitB = analyzeDivorceEnergy(chartB)
-  const syn = analyzeMarriageSynastry(chartA, chartB)
-  const caseBrief = analyzePairCaseBrief(chartA, chartB, { skipGocharScan: true })
-  const veJuA = analyzeVenusJupiterBond(chartA)
-  const veJuB = analyzeVenusJupiterBond(chartB)
-  const veJuPair = veJuA && veJuB ? compareVenusJupiterBond(veJuA, veJuB, chartA.meta.name, chartB.meta.name) : []
-  const vivahA = analyzeMarriageVivah(chartA)
-  const vivahB = analyzeMarriageVivah(chartB)
-  const vivahPair = vivahA && vivahB ? compareMarriageVivah(vivahA, vivahB, chartA.meta.name, chartB.meta.name) : []
-  const marsA = analyzeMarriageMars(chartA)
-  const marsB = analyzeMarriageMars(chartB)
-  const marsPair = marsA && marsB ? compareMarriageMars(marsA, marsB, chartA.meta.name, chartB.meta.name) : []
-  const partnerA = analyzePartnerNature(chartA)
-  const partnerB = analyzePartnerNature(chartB)
-  const partnerPair = partnerA && partnerB ? comparePartnerNature(partnerA, partnerB, chartA.meta.name, chartB.meta.name) : []
-  const debtA = analyzeKarmicDebt(chartA)
-  const debtB = analyzeKarmicDebt(chartB)
-  const debtPair = debtA && debtB ? compareKarmicDebt(debtA, debtB, chartA.meta.name, chartB.meta.name) : []
+  const married = analyzeMilanMarriedLife(chartA, chartB, { lang: reportLang })
+  const classicalA = analyzeClassicalMarriage(chartA, reportLang)
+  const classicalB = analyzeClassicalMarriage(chartB, reportLang)
+  const splitA = analyzeDivorceEnergy(chartA, reportLang)
+  const splitB = analyzeDivorceEnergy(chartB, reportLang)
+  const syn = analyzeMarriageSynastry(chartA, chartB, reportLang)
+  const caseBrief = analyzePairCaseBrief(chartA, chartB, { skipGocharScan: true, lang: reportLang })
+  const veJuA = analyzeVenusJupiterBond(chartA, reportLang)
+  const veJuB = analyzeVenusJupiterBond(chartB, reportLang)
+  const veJuPair = veJuA && veJuB ? compareVenusJupiterBond(veJuA, veJuB, chartA.meta.name, chartB.meta.name, reportLang) : []
+  const vivahA = analyzeMarriageVivah(chartA, reportLang)
+  const vivahB = analyzeMarriageVivah(chartB, reportLang)
+  const vivahPair = vivahA && vivahB ? compareMarriageVivah(vivahA, vivahB, chartA.meta.name, chartB.meta.name, reportLang) : []
+  const marsA = analyzeMarriageMars(chartA, {}, reportLang)
+  const marsB = analyzeMarriageMars(chartB, {}, reportLang)
+  const marsPair = marsA && marsB ? compareMarriageMars(marsA, marsB, chartA.meta.name, chartB.meta.name, reportLang) : []
+  const partnerA = analyzePartnerNature(chartA, reportLang)
+  const partnerB = analyzePartnerNature(chartB, reportLang)
+  const partnerPair = partnerA && partnerB ? comparePartnerNature(partnerA, partnerB, chartA.meta.name, chartB.meta.name, reportLang) : []
+  const debtA = analyzeKarmicDebt(chartA, reportLang)
+  const debtB = analyzeKarmicDebt(chartB, reportLang)
+  const debtPair = debtA && debtB ? compareKarmicDebt(debtA, debtB, chartA.meta.name, chartB.meta.name, reportLang) : []
   const noteList = (notes: { title: string; detail: string }[], limit = 4) =>
     notes.slice(0, limit).map(n => `
       <div style="margin-bottom:0.35rem;padding-left:0.45rem;border-left:2px solid ${THEME.border}">
@@ -480,13 +581,13 @@ export function generateMilanHTML(input: MilanReportInput): string {
       <div style="margin-top:0.4rem">${noteList(caseBrief.bullets, 5)}</div>
     </div>` : ''}
     <div class="card" style="margin-bottom:0.75rem">
-      <div style="font-weight:800;color:${THEME.secondary};margin-bottom:0.35rem">Moon pair</div>
+      <div style="font-weight:800;color:${THEME.secondary};margin-bottom:0.35rem">${esc(c.moonPair)}</div>
       <p style="font-size:11px;color:${THEME.muted};margin:0;line-height:1.5">
-        ${married ? `${esc(married.moon.signA)} × ${esc(married.moon.signB)} — ${esc(married.moon.detail)}` : 'Moon pair unavailable.'}
+        ${married ? `${esc(married.moon.signA)} × ${esc(married.moon.signB)} — ${esc(married.moon.detail)}` : esc(c.moonPairUnavailable)}
       </p>
     </div>
     ${married ? `<div class="card" style="margin-bottom:0.75rem">
-      <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted};margin-bottom:0.4rem">Dimension scores</div>
+      <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted};margin-bottom:0.4rem">${esc(c.dimensionScores)}</div>
       ${married.dimensions.map(d => `
         <div style="font-size:10px;margin-bottom:0.3rem;color:${THEME.muted}">
           <strong style="color:${THEME.text}">${esc(d.label)}</strong>
@@ -497,45 +598,45 @@ export function generateMilanHTML(input: MilanReportInput): string {
     <div class="two-col" style="align-items:start;margin-bottom:0.75rem">
       <div class="card">
         <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted}">${esc(chartA.meta.name)}</div>
-        <p style="font-size:11px;margin:0.35rem 0;font-weight:700">${classicalA ? esc(classicalA.headline) : 'Classical unavailable'}</p>
+        <p style="font-size:11px;margin:0.35rem 0;font-weight:700">${classicalA ? esc(classicalA.headline) : esc(c.classicalUnavailable)}</p>
         <p style="font-size:10px;color:${THEME.muted};margin:0;line-height:1.45">${classicalA ? esc(classicalA.summary) : ''}</p>
         <p style="font-size:10px;margin:0.45rem 0 0;color:${splitA?.flags.level === 'held' ? THEME.emerald : THEME.rose}">
-          Separation energy: ${esc(splitA?.flags.level ?? '—')}
+          ${esc(c.separationEnergy)} ${esc(splitA?.flags.level ?? '—')}
         </p>
       </div>
       <div class="card">
         <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted}">${esc(chartB.meta.name)}</div>
-        <p style="font-size:11px;margin:0.35rem 0;font-weight:700">${classicalB ? esc(classicalB.headline) : 'Classical unavailable'}</p>
+        <p style="font-size:11px;margin:0.35rem 0;font-weight:700">${classicalB ? esc(classicalB.headline) : esc(c.classicalUnavailable)}</p>
         <p style="font-size:10px;color:${THEME.muted};margin:0;line-height:1.45">${classicalB ? esc(classicalB.summary) : ''}</p>
         <p style="font-size:10px;margin:0.45rem 0 0;color:${splitB?.flags.level === 'held' ? THEME.emerald : THEME.rose}">
-          Separation energy: ${esc(splitB?.flags.level ?? '—')}
+          ${esc(c.separationEnergy)} ${esc(splitB?.flags.level ?? '—')}
         </p>
       </div>
     </div>
-    ${syn ? `<div class="card" style="margin-bottom:0.75rem"><strong style="color:${THEME.primary}">Cross-chart overlay</strong>
+    ${syn ? `<div class="card" style="margin-bottom:0.75rem"><strong style="color:${THEME.primary}">${esc(c.crossChartOverlay)}</strong>
       <p style="font-size:11px;color:${THEME.muted};margin:0.35rem 0 0;line-height:1.45">${esc(syn.summary)} D9×D9: ${esc(String(syn.flags.d9Score))}.</p></div>` : ''}
     ${input.jaimini ? `<div class="card" style="margin-bottom:0.75rem">
-      <strong style="color:${THEME.primary}">Jaimini (both)</strong>
+      <strong style="color:${THEME.primary}">${esc(c.jaiminiBoth)}</strong>
       <p style="font-size:11px;color:${THEME.muted};margin:0.35rem 0 0;line-height:1.45">${esc(input.jaimini.summary)}</p>
     </div>` : ''}
     ${veJuPair.length ? `<div class="card" style="margin-bottom:0.75rem">
-      <strong style="color:${THEME.primary}">Venus–Jupiter pair</strong>
+      <strong style="color:${THEME.primary}">${esc(c.venusJupiterPair)}</strong>
       <div style="margin-top:0.4rem">${noteList(veJuPair)}</div>
     </div>` : ''}
     ${vivahPair.length ? `<div class="card" style="margin-bottom:0.75rem">
-      <strong style="color:${THEME.primary}">Marriage method</strong>
+      <strong style="color:${THEME.primary}">${esc(c.marriageMethod)}</strong>
       <div style="margin-top:0.4rem">${noteList(vivahPair)}</div>
     </div>` : ''}
     ${marsPair.length ? `<div class="card" style="margin-bottom:0.75rem">
-      <strong style="color:${THEME.primary}">Mars in the two charts</strong>
+      <strong style="color:${THEME.primary}">${esc(c.marsTwoCharts)}</strong>
       <div style="margin-top:0.4rem">${noteList(marsPair)}</div>
     </div>` : ''}
     ${partnerPair.length ? `<div class="card" style="margin-bottom:0.75rem">
-      <strong style="color:${THEME.primary}">Partner nature pair</strong>
+      <strong style="color:${THEME.primary}">${esc(c.partnerNaturePair)}</strong>
       <div style="margin-top:0.4rem">${noteList(partnerPair)}</div>
     </div>` : ''}
     ${debtPair.length ? `<div class="card" style="margin-bottom:0.75rem">
-      <strong style="color:${THEME.primary}">Karmic debt pair</strong>
+      <strong style="color:${THEME.primary}">${esc(c.karmicDebtPair)}</strong>
       <div style="margin-top:0.4rem">${noteList(debtPair)}</div>
     </div>` : ''}
   `
@@ -557,23 +658,27 @@ export function generateMilanHTML(input: MilanReportInput): string {
     const sA = signOf(gA.totalDegree)
     const sB = signOf(gB.totalDegree)
     const diff = signDiff(sA, sB)
+    const rev = (14 - diff) % 12 || 12
     return `<tr>
-      <td style="font-weight:800">${esc(GRAHA_NAMES[id] ?? id)}</td>
-      <td>${rn(sA)} ${gA.totalDegree.toFixed(1)}°</td>
-      <td>${rn(sB)} ${gB.totalDegree.toFixed(1)}°</td>
-      <td>${diff} / ${(14 - diff) % 12 || 12} axis</td>
+      <td style="font-weight:800">${esc(gn(id, reportLang))}</td>
+      <td>${rn(sA, reportLang)} ${gA.totalDegree.toFixed(1)}°</td>
+      <td>${rn(sB, reportLang)} ${gB.totalDegree.toFixed(1)}°</td>
+      <td>${esc(fill(c.relationAxis, { fwd: diff, rev }))}</td>
     </tr>`
   }).join('')
 
+  const overlaySynopsis = fill(c.overlayNote, { nameA: chartA.meta.name, nameB: chartB.meta.name })
+  const computedLine = fill(c.computedOn, { date: generated })
+
   let page = 1
-  const nextFooter = () => pageFooter(page++, brand)
+  const nextFooter = () => pageFooter(page++, brand, c)
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${c.htmlLang}">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Kundali Milan — ${esc(input.boyName)} × ${esc(input.girlName)} | ${esc(brand)}</title>
+  <title>${esc(c.docTitle)} — ${esc(input.boyName)} × ${esc(input.girlName)} | ${esc(brand)}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -724,9 +829,9 @@ export function generateMilanHTML(input: MilanReportInput): string {
 <div class="print-bar no-print">
   <div style="display:flex;align-items:center;gap:12px">
     <span style="font-family:'Noto Serif Devanagari',serif;font-size:1.1rem;opacity:0.7">ॐ</span>
-    <span style="font-weight:800;letter-spacing:1px">${esc(brand)} — कुण्डली मिलान (All Sections)</span>
+    <span style="font-weight:800;letter-spacing:1px">${esc(brand)} — ${esc(c.printBarSuffix)}</span>
   </div>
-  <button type="button" onclick="window.print()">⬇ Export Full Milan Report</button>
+  <button type="button" onclick="window.print()">${esc(c.exportButton)}</button>
 </div>
 
 <!-- 1 COVER -->
@@ -739,11 +844,11 @@ export function generateMilanHTML(input: MilanReportInput): string {
   </div>
   <div style="font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:900;color:${THEME.primary};letter-spacing:0.18em;margin-bottom:1.2rem">${esc(brand)}</div>
   <div style="font-family:'Noto Serif Devanagari',serif;font-size:0.88rem;color:${THEME.secondary};letter-spacing:0.4em;text-transform:uppercase;opacity:0.8;margin-bottom:0.45rem">वैवाहिक मिलान प्रतिवेदन</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:${THEME.muted};letter-spacing:0.32em;text-transform:uppercase;margin-bottom:1.5rem">Complete Kundali Milan Dossier</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:${THEME.muted};letter-spacing:0.32em;text-transform:uppercase;margin-bottom:1.5rem">${esc(c.completeDossier)}</div>
   <h1 class="main-title" style="border-top:2px solid ${THEME.temple};border-bottom:2px solid ${THEME.temple};padding:12px 24px">
     ${esc(chartA.meta.name)} × ${esc(chartB.meta.name)}
   </h1>
-  <div class="sub-title">All Sections · Ashtakoot to Panchang</div>
+  <div class="sub-title">${esc(c.subTitle)}</div>
   <div style="margin-top:1.8rem;font-size:2.6rem;font-weight:900;color:${THEME.primary};font-family:'Cormorant Garamond',serif">
     ${a.total} <span style="font-size:1rem;color:${THEME.muted};font-weight:600">/ 36</span>
   </div>
@@ -751,26 +856,26 @@ export function generateMilanHTML(input: MilanReportInput): string {
     ${esc(a.eligibility.label)}
   </div>
   <div style="margin-top:1.5rem;font-size:11px;color:${THEME.muted}">
-    ${esc(moonNakName(chartA))} · ${esc(moonNakName(chartB))}
+    ${esc(moonNakName(chartA, reportLang))} · ${esc(moonNakName(chartB, reportLang))}
   </div>
   <div style="margin-top:2rem;opacity:0.15;font-size:4rem;font-family:'Noto Serif Devanagari',serif;color:${THEME.temple}">ॐ</div>
-  <div style="margin-top:1.5rem;font-size:10px;color:${THEME.muted}">Computed on ${esc(generated)} · Swiss Ephemeris</div>
+  <div style="margin-top:1.5rem;font-size:10px;color:${THEME.muted}">${esc(computedLine)}</div>
 </div>
 
 <!-- 2 ASHTAKOOT -->
 <div class="page">
-  ${sectionBadge('01 · Ashtakoot (36)')}
-  <h2 class="section-title">Detailed Guna Milan</h2>
+  ${sectionBadge(c.badge01)}
+  <h2 class="section-title">${esc(c.titleAshtakoot)}</h2>
   <p style="font-size:11px;color:${THEME.muted};margin-bottom:0.5rem">${esc(a.layers.psychology)}</p>
   <div class="score-hero">
-    <div class="score-ring"><span class="num">${a.total}</span><span class="den">/ 36 GUNAS</span></div>
+    <div class="score-ring"><span class="num">${a.total}</span><span class="den">${esc(c.gunasDenom)}</span></div>
     <div>
       <div class="elig">${esc(a.eligibility.label)}</div>
       <p style="font-size:12px;color:${THEME.muted};margin:0">${esc(a.eligibility.detail)}</p>
     </div>
   </div>
   <table>
-    <thead><tr><th>Koota</th><th>Groom</th><th>Bride</th><th>Score</th><th>Insight</th></tr></thead>
+    <thead><tr><th>${esc(c.thKoota)}</th><th>${esc(c.thGroom)}</th><th>${esc(c.thBride)}</th><th>${esc(c.thScore)}</th><th>${esc(c.thInsight)}</th></tr></thead>
     <tbody>${kootRows}</tbody>
   </table>
   ${nextFooter()}
@@ -778,8 +883,8 @@ export function generateMilanHTML(input: MilanReportInput): string {
 
 <!-- 3 DEEP + PORUTHAM + MANGLIK -->
 <div class="page">
-  ${sectionBadge('02 · Deep Milan · Porutham · Manglik')}
-  <h2 class="section-title">Deep Milan &amp; Schools</h2>
+  ${sectionBadge(c.badge02)}
+  <h2 class="section-title">${esc(c.titleDeepSchools)}</h2>
   ${
     input.deep
       ? `<div class="card">
@@ -793,23 +898,23 @@ export function generateMilanHTML(input: MilanReportInput): string {
   ${
     input.manglik
       ? `<div class="card">
-           <strong style="color:${THEME.primary}">Manglik pair:</strong> ${esc(input.manglik.label)}
+           <strong style="color:${THEME.primary}">${esc(c.manglikPairLabel)}</strong> ${esc(input.manglik.label)}
            <div style="font-size:11px;color:${THEME.muted};margin-top:0.3rem">${esc(input.manglik.detail)}</div>
          </div>`
       : ''
   }
   ${
     input.jaimini
-      ? `<div class="card"><strong style="color:${THEME.primary}">D9 / Jaimini:</strong> ${esc(input.jaimini.summary)}</div>`
+      ? `<div class="card"><strong style="color:${THEME.primary}">${esc(c.d9JaiminiLabel)}</strong> ${esc(input.jaimini.summary)}</div>`
       : ''
   }
   ${
     input.porutham
       ? `<h3 style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:${THEME.secondary};margin:0.6rem 0 0.4rem">
-           South Indian Porutham · ${input.porutham.matchedCount}/10 · ${esc(input.porutham.scoreLabel)}
+           ${esc(c.poruthamHeading)} · ${input.porutham.matchedCount}/10 · ${esc(input.porutham.scoreLabel)}
          </h3>
          <p style="font-size:11px;color:${THEME.muted};margin-bottom:0.45rem">${esc(input.porutham.summary)}</p>
-         <table><thead><tr><th>Porutham</th><th>Match</th><th>Detail</th></tr></thead><tbody>${poruthamRows}</tbody></table>`
+         <table><thead><tr><th>${esc(c.thPorutham)}</th><th>${esc(c.thMatch)}</th><th>${esc(c.thDetail)}</th></tr></thead><tbody>${poruthamRows}</tbody></table>`
       : ''
   }
   ${nextFooter()}
@@ -817,32 +922,40 @@ export function generateMilanHTML(input: MilanReportInput): string {
 
 <!-- 4 DOSHAS -->
 <div class="page">
-  ${sectionBadge('03 · Dosha Analysis')}
-  <h2 class="section-title">Manglik &amp; Pape-Samya</h2>
+  ${sectionBadge(c.badge03)}
+  <h2 class="section-title">${esc(c.titleDosha)}</h2>
   <div class="two-col">
     <div class="card">
       <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted}">${esc(chartA.meta.name)}</div>
-      <div style="font-weight:800;font-size:14px;margin:0.25rem 0;color:${m1.isManglik ? THEME.rose : THEME.emerald}">
-        ${m1.isManglik ? `Kuja Dosha · ${esc(m1.intensity)}` : 'Non-Manglik'}
+      <div style="font-weight:800;font-size:14px;margin:0.25rem 0;color:${teachA.status === 'present' ? THEME.rose : THEME.emerald}">
+        ${teachA.status === 'present'
+    ? `${esc(c.kujaDosha)} · ${esc(manglikIntensityLabel(m1.intensity, c))}`
+    : esc(c.nonManglik)}
       </div>
       <p style="font-size:11px;color:${THEME.muted};margin:0">
-        ${m1.isManglik ? `Mars in ${m1.house}th house.` : m1.cancellations?.length ? `Cancellations: ${esc(m1.cancellations.join(', '))}` : 'No difficult influence from Mars.'}
+        ${teachA.cancellationNotes.length
+    ? `${esc(c.cancellationsPrefix)} ${esc(teachA.cancellationNotes.join(', '))}`
+    : esc(teachA.statusDetail || c.noMarsInfluence)}
       </p>
     </div>
     <div class="card">
       <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${THEME.muted}">${esc(chartB.meta.name)}</div>
-      <div style="font-weight:800;font-size:14px;margin:0.25rem 0;color:${m2.isManglik ? THEME.rose : THEME.emerald}">
-        ${m2.isManglik ? `Kuja Dosha · ${esc(m2.intensity)}` : 'Non-Manglik'}
+      <div style="font-weight:800;font-size:14px;margin:0.25rem 0;color:${teachB.status === 'present' ? THEME.rose : THEME.emerald}">
+        ${teachB.status === 'present'
+    ? `${esc(c.kujaDosha)} · ${esc(manglikIntensityLabel(m2.intensity, c))}`
+    : esc(c.nonManglik)}
       </div>
       <p style="font-size:11px;color:${THEME.muted};margin:0">
-        ${m2.isManglik ? `Mars in ${m2.house}th house.` : m2.cancellations?.length ? `Cancellations: ${esc(m2.cancellations.join(', '))}` : 'No difficult influence from Mars.'}
+        ${teachB.cancellationNotes.length
+    ? `${esc(c.cancellationsPrefix)} ${esc(teachB.cancellationNotes.join(', '))}`
+    : esc(teachB.statusDetail || c.noMarsInfluence)}
       </p>
     </div>
   </div>
   <div class="card" style="margin-top:0.75rem">
-    <div style="font-weight:800;margin-bottom:0.45rem;color:${THEME.secondary}">Pape-Samya (Malefic Balance)</div>
+    <div style="font-weight:800;margin-bottom:0.45rem;color:${THEME.secondary}">${esc(c.papeSamyaTitle)}</div>
     <table>
-      <thead><tr><th>Person</th><th>Malefic Weight</th></tr></thead>
+      <thead><tr><th>${esc(c.thPerson)}</th><th>${esc(c.thMaleficWeight)}</th></tr></thead>
       <tbody>
         <tr><td>${esc(chartA.meta.name)}</td><td style="font-weight:800">${p1.totalWeight.toFixed(2)}</td></tr>
         <tr><td>${esc(chartB.meta.name)}</td><td style="font-weight:800">${p2.totalWeight.toFixed(2)}</td></tr>
@@ -851,8 +964,8 @@ export function generateMilanHTML(input: MilanReportInput): string {
     <p style="margin:0.65rem 0 0;font-size:11px;color:${papeBalanced ? THEME.emerald : THEME.rose}">
       ${
         papeBalanced
-          ? 'Stable balance — pressures from difficult planets are well compensated between both charts.'
-          : `Imbalance detected (${papeDiff.toFixed(2)} pts) — may need conscious adjustment.`
+          ? esc(c.papeBalanced)
+          : `${esc(c.papeImbalancePrefix)} (${papeDiff.toFixed(2)} ${esc(c.papeImbalanceSuffix)}`
       }
     </p>
   </div>
@@ -861,26 +974,26 @@ export function generateMilanHTML(input: MilanReportInput): string {
 
 <!-- 5 AURA AFFINITY -->
 <div class="page">
-  ${sectionBadge('04 · Aura Affinity')}
-  <h2 class="section-title">Aura &amp; Psychological Affinity</h2>
-  <div class="compat-grid">${compatCards || '<p style="color:#6d5d4b">No strong affinity signals computed.</p>'}</div>
+  ${sectionBadge(c.badge04)}
+  <h2 class="section-title">${esc(c.titleAura)}</h2>
+  <div class="compat-grid">${compatCards || `<p style="color:#6d5d4b">${esc(c.noAffinity)}</p>`}</div>
   ${nextFooter()}
 </div>
 
 <!-- 6 SIDE-BY-SIDE CHARTS -->
 <div class="page">
-  ${sectionBadge('05 · Side-by-Side Charts')}
-  <h2 class="section-title">Rashi (D1) Kundali</h2>
+  ${sectionBadge(c.badge05)}
+  <h2 class="section-title">${esc(c.titleD1)}</h2>
   <div class="two-col" style="align-items:start">
     <div class="chart-wrap">
       <h3>${esc(chartA.meta.name)}</h3>
       ${buildChartSVG(chartA, 'D1', 250)}
-      <div style="font-size:10px;color:${THEME.muted};margin-top:0.35rem">Lagna ${rn(chartA.lagnas.ascRashi)} · Moon ${esc(moonNakName(chartA))}</div>
+      <div style="font-size:10px;color:${THEME.muted};margin-top:0.35rem">${esc(fill(c.lagnaMoon, { rashi: rn(chartA.lagnas.ascRashi, reportLang), nak: moonNakName(chartA, reportLang) }))}</div>
     </div>
     <div class="chart-wrap">
       <h3>${esc(chartB.meta.name)}</h3>
       ${buildChartSVG(chartB, 'D1', 250)}
-      <div style="font-size:10px;color:${THEME.muted};margin-top:0.35rem">Lagna ${rn(chartB.lagnas.ascRashi)} · Moon ${esc(moonNakName(chartB))}</div>
+      <div style="font-size:10px;color:${THEME.muted};margin-top:0.35rem">${esc(fill(c.lagnaMoon, { rashi: rn(chartB.lagnas.ascRashi, reportLang), nak: moonNakName(chartB, reportLang) }))}</div>
     </div>
   </div>
   ${nextFooter()}
@@ -888,8 +1001,8 @@ export function generateMilanHTML(input: MilanReportInput): string {
 
 <!-- 7 NAVAMSHA + OVERLAY -->
 <div class="page">
-  ${sectionBadge('06 · Navamsha · Overlay')}
-  <h2 class="section-title">D9 Charts &amp; Synastry Note</h2>
+  ${sectionBadge(c.badge06)}
+  <h2 class="section-title">${esc(c.titleD9Synastry)}</h2>
   <div class="two-col" style="align-items:start;margin-bottom:1rem">
     <div class="chart-wrap">
       <h3>${esc(chartA.meta.name)} — D9</h3>
@@ -901,10 +1014,9 @@ export function generateMilanHTML(input: MilanReportInput): string {
     </div>
   </div>
   <div class="card">
-    <strong style="color:${THEME.primary}">Overlay view</strong>
+    <strong style="color:${THEME.primary}">${esc(c.overlayView)}</strong>
     <p style="font-size:11px;color:${THEME.muted};margin:0.35rem 0 0">
-      Synastry places ${esc(chartB.meta.name)}&apos;s planets into ${esc(chartA.meta.name)}&apos;s houses.
-      Compare house lords and Venus–Mars chemistry alongside the planetary positions table on the next page.
+      ${esc(overlaySynopsis)}
     </p>
   </div>
   ${nextFooter()}
@@ -912,15 +1024,15 @@ export function generateMilanHTML(input: MilanReportInput): string {
 
 <!-- 8 PLANETS -->
 <div class="page">
-  ${sectionBadge('07 · Planetary Positions')}
-  <h2 class="section-title">Side-by-Side Graha Table</h2>
+  ${sectionBadge(c.badge07)}
+  <h2 class="section-title">${esc(c.titleGrahaTable)}</h2>
   <table>
     <thead>
       <tr>
-        <th>Planet</th>
+        <th>${esc(c.thPlanet)}</th>
         <th>${esc(chartA.meta.name)}</th>
         <th>${esc(chartB.meta.name)}</th>
-        <th>Relation</th>
+        <th>${esc(c.thRelation)}</th>
       </tr>
     </thead>
     <tbody>${planetRows}</tbody>
@@ -930,71 +1042,71 @@ export function generateMilanHTML(input: MilanReportInput): string {
 
 <!-- 9 ASHTAKAVARGA -->
 <div class="page">
-  ${sectionBadge('08 · Ashtakavarga')}
-  <h2 class="section-title">Bindu Matrices</h2>
-  <div style="margin-bottom:1.1rem">${buildAVCompact(chartA)}</div>
-  <div>${buildAVCompact(chartB)}</div>
+  ${sectionBadge(c.badge08)}
+  <h2 class="section-title">${esc(c.titleBindu)}</h2>
+  <div style="margin-bottom:1.1rem">${buildAVCompact(chartA, reportLang, c)}</div>
+  <div>${buildAVCompact(chartB, reportLang, c)}</div>
   ${nextFooter()}
 </div>
 
 <!-- 10 DASHA -->
 <div class="page">
-  ${sectionBadge('09 · Dasha')}
-  <h2 class="section-title">Vimshottari Periods</h2>
+  ${sectionBadge(c.badge09)}
+  <h2 class="section-title">${esc(c.titleDasha)}</h2>
   <div class="two-col" style="align-items:start">
-    <div>${buildDashaCompact(chartA)}</div>
-    <div>${buildDashaCompact(chartB)}</div>
+    <div>${buildDashaCompact(chartA, reportLang, c)}</div>
+    <div>${buildDashaCompact(chartB, reportLang, c)}</div>
   </div>
   ${nextFooter()}
 </div>
 
 <!-- 11 PANCHANG -->
 <div class="page">
-  ${sectionBadge('10 · Panchang')}
-  <h2 class="section-title">Natal Panchang</h2>
+  ${sectionBadge(c.badge10)}
+  <h2 class="section-title">${esc(c.titleNatalPanchang)}</h2>
   <div class="two-col" style="align-items:start">
-    <div>${buildPanchangCompact(chartA)}</div>
-    <div>${buildPanchangCompact(chartB)}</div>
+    <div>${buildPanchangCompact(chartA, reportLang, c)}</div>
+    <div>${buildPanchangCompact(chartB, reportLang, c)}</div>
   </div>
   ${nextFooter()}
 </div>
 
 <!-- 12 MATCH-MAKING -->
 <div class="page">
-  ${sectionBadge('11 · Match-Making')}
-  <h2 class="section-title">Match-Making Summary</h2>
+  ${sectionBadge(c.badge11)}
+  <h2 class="section-title">${esc(c.titleMatchMaking)}</h2>
   ${matchMakingBlock}
   ${nextFooter()}
 </div>
 
 <!-- 13 MARRIED LIFE CLASSICAL -->
 <div class="page">
-  ${sectionBadge('12 · Married Life')}
-  <h2 class="section-title">Married Life · Classical Notes</h2>
+  ${sectionBadge(c.badge12)}
+  <h2 class="section-title">${esc(c.titleMarriedLife)}</h2>
   ${marriedLifeBlock}
   ${nextFooter()}
 </div>
 
 <!-- 14 TIMING + REMEDIES -->
 <div class="page">
-  ${sectionBadge('13 · Timing & Remedies')}
-  <h2 class="section-title">Marriage Windows &amp; Upaya</h2>
+  ${sectionBadge(c.badge13)}
+  <h2 class="section-title">${esc(c.titleTimingRemedies)}</h2>
   ${
     input.timing
       ? `<p style="font-size:11px;color:${THEME.muted};margin-bottom:0.5rem">${esc(input.timing.summary)}</p>
-         <table><thead><tr><th>Window</th><th>Groom</th><th>Bride</th><th>Note</th></tr></thead><tbody>${timingRows}</tbody></table>`
+         <table><thead><tr><th>${esc(c.thWindow)}</th><th>${esc(c.thTimingGroom)}</th><th>${esc(c.thTimingBride)}</th><th>${esc(c.thNote)}</th></tr></thead><tbody>${timingRows}</tbody></table>`
       : ''
   }
   ${
     remedyItems
-      ? `<h3 style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:${THEME.secondary};margin:1rem 0 0.45rem">Remedies</h3>
+      ? `<h3 style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:${THEME.secondary};margin:1rem 0 0.45rem">${esc(c.remediesHeading)}</h3>
          <ul style="padding-left:1.15rem;font-size:12px">${remedyItems}</ul>`
       : ''
   }
   <div style="margin-top:auto;padding:0.9rem;border:2px double ${THEME.temple};background:${THEME.accentLight};text-align:center">
     <div style="font-family:'Noto Serif Devanagari',serif;color:${THEME.primary};margin-bottom:0.3rem">॥ शुभम् भवतु ॥</div>
     <p style="font-size:10px;color:${THEME.muted};margin:0">
-      Educational Jyotish summary. Confirm with a qualified astrologer before marriage decisions.
+      ${esc(c.closingDisclaimer)}
     </p>
   </div>
   ${nextFooter()}

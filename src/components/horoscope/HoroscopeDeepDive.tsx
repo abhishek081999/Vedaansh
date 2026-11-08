@@ -4,25 +4,38 @@
 //  Saptahik week chart · Chandrashtama window · Rashi swabhav.
 // ─────────────────────────────────────────────────────────────
 
+import { getTranslations } from 'next-intl/server'
 import type { WeekDay } from '@/lib/horoscope/daily'
 import type { RashiProfile } from '@/lib/engine/rashiInterpretations'
+import { pageLocale } from '@/lib/seo/i18nMeta'
+import { intlTag } from '@/i18n/config'
 import { RASHI_SANSKRIT, type Rashi } from '@/types/astrology'
 import { RashiIcon } from './RashiIcon'
 import styles from './HoroscopeDeepDive.module.css'
 
 const TZ = 'Asia/Kolkata'
-const ORD = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th']
-const LORD_NAMES: Record<string, string> = {
-  Su: 'Sun', Mo: 'Moon', Ma: 'Mars', Me: 'Mercury', Ju: 'Jupiter', Ve: 'Venus', Sa: 'Saturn', Ra: 'Rahu', Ke: 'Ketu',
+
+type HoroscopeCopy = Awaited<ReturnType<typeof getTranslations<'horoscope'>>>
+
+const PLANET_GLYPHS: Record<string, string> = {
+  Su: '☉', Mo: '☽', Ma: '♂', Me: '☿', Ju: '♃', Ve: '♀', Sa: '♄', Ra: '☊', Ke: '☋',
 }
 
-const fmtDay = (date: string, opts: Intl.DateTimeFormatOptions) =>
-  new Intl.DateTimeFormat('en-IN', { ...opts, timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`))
+const fmtDay = (date: string, tag: string, opts: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat(tag, { ...opts, timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`))
 
-const fmtWhen = (iso: string) =>
-  new Intl.DateTimeFormat('en-IN', {
+const fmtWhen = (iso: string, tag: string) =>
+  new Intl.DateTimeFormat(tag, {
     weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: TZ,
   }).format(new Date(iso))
+
+function ordinalHouse(t: HoroscopeCopy, house: number): string {
+  return t(`ordinal.${house}` as 'ordinal.1')
+}
+
+function planetName(t: HoroscopeCopy, id: string): string {
+  return t(`planets.${id}` as 'planets.Su')
+}
 
 // ── Saptahik chart ───────────────────────────────────────────
 
@@ -32,7 +45,7 @@ const PAD_X = 50
 const TOP = 30
 const BASE = 150
 
-function WeekChart({ week }: { week: WeekDay[] }) {
+function WeekChart({ week, t, tag }: { week: WeekDay[]; t: HoroscopeCopy; tag: string }) {
   const x = (i: number) => PAD_X + (i * (W - 2 * PAD_X)) / (week.length - 1)
   const y = (score: number) => BASE - ((score - 0) / 100) * (BASE - TOP)
   const line = week.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)} ${y(d.score).toFixed(1)}`).join('')
@@ -40,7 +53,7 @@ function WeekChart({ week }: { week: WeekDay[] }) {
   const best = week.reduce((b, d, i) => (d.score > week[b].score ? i : b), 0)
 
   return (
-    <svg className={styles.week} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Score for each of the next seven days">
+    <svg className={styles.week} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('aria.weekChart')}>
       {[25, 50, 75].map((g) => (
         <line key={g} x1={PAD_X - 20} x2={W - PAD_X + 20} y1={y(g)} y2={y(g)} className={styles.grid} />
       ))}
@@ -59,13 +72,13 @@ function WeekChart({ week }: { week: WeekDay[] }) {
             {d.score}
           </text>
           <text x={x(i)} y={BASE + 24} className={i === 0 ? styles.dayNow : styles.day}>
-            {i === 0 ? 'Aaj' : i === 1 ? 'Kal' : fmtDay(d.date, { weekday: 'short' })}
+            {i === 0 ? t('deepDive.weekDayToday') : i === 1 ? t('deepDive.weekDayTomorrow') : fmtDay(d.date, tag, { weekday: 'short' })}
           </text>
           <text x={x(i)} y={BASE + 40} className={styles.date}>
-            {fmtDay(d.date, { day: 'numeric', month: 'short' })}
+            {fmtDay(d.date, tag, { day: 'numeric', month: 'short' })}
           </text>
           <text x={x(i)} y={BASE + 58} className={d.moonHouse === 8 ? styles.moonCare : styles.moon}>
-            ☽ {ORD[d.moonHouse]}
+            {PLANET_GLYPHS.Mo} {ordinalHouse(t, d.moonHouse)}
           </text>
         </g>
       ))}
@@ -84,27 +97,33 @@ export interface HoroscopeDeepDiveProps {
   now: number
 }
 
-export function HoroscopeDeepDive({ rashi, english, week, chandrashtama, profile, now }: HoroscopeDeepDiveProps) {
+export async function HoroscopeDeepDive({ rashi, english, week, chandrashtama, profile, now }: HoroscopeDeepDiveProps) {
+  const t = await getTranslations('horoscope')
+  const locale = await pageLocale()
+  const tag = intlTag(locale)
   const sa = RASHI_SANSKRIT[rashi]
   const best = week.length ? week.reduce((b, d) => (d.score > b.score ? d : b), week[0]) : null
   const chActive = chandrashtama ? Date.parse(chandrashtama.start) <= now : false
 
   return (
-    <section className={styles.dive} aria-label={`${english} deeper reading`}>
+    <section className={styles.dive} aria-label={t('aria.deepDive', { english })}>
       {week.length > 1 ? (
         <div className={styles.block}>
           <h2 className={styles.title}>
-            Saptahik <em>· {sa}&rsquo;s week ahead</em>
+            {t('deepDive.weekTitle')} <em>{t('deepDive.weekTitleEm', { sanskrit: sa })}</em>
           </h2>
-          <WeekChart week={week} />
+          <WeekChart week={week} t={t} tag={tag} />
           <p className={styles.caption}>
             {best ? (
               <>
-                Best day: <strong>{fmtDay(best.date, { weekday: 'long', day: 'numeric', month: 'short' })}</strong> (
-                {best.score}) — {best.headline.toLowerCase()}.{' '}
+                {t('deepDive.weekCaptionBest', {
+                  day: fmtDay(best.date, tag, { weekday: 'long', day: 'numeric', month: 'short' }),
+                  score: best.score,
+                  headline: best.headline.toLowerCase(),
+                })}{' '}
               </>
             ) : null}
-            Shaded days are Chandrashtama. ☽ shows the Moon&rsquo;s house from {sa}.
+            {t('deepDive.weekCaptionTail', { sanskrit: sa })}
           </p>
         </div>
       ) : null}
@@ -113,17 +132,25 @@ export function HoroscopeDeepDive({ rashi, english, week, chandrashtama, profile
         {chandrashtama ? (
           <div className={styles.block}>
             <h2 className={styles.title}>
-              Chandrashtama <em>· {chActive ? 'running now' : 'next window'}</em>
+              {t('deepDive.chandraTitle')}{' '}
+              <em>{t(chActive ? 'deepDive.chandraTitleNow' : 'deepDive.chandraTitleNext')}</em>
             </h2>
             <div className={styles.ch} data-active={chActive || undefined}>
               <RashiIcon rashi={chandrashtama.rashi} size={44} className={styles.chIcon} />
               <div>
                 <p className={styles.chWhen}>
-                  {chActive ? 'Now' : fmtWhen(chandrashtama.start)} → {fmtWhen(chandrashtama.end)}
+                  {chActive
+                    ? t('deepDive.chandraNow')
+                    : t('deepDive.chandraWhen', {
+                        start: fmtWhen(chandrashtama.start, tag),
+                        end: fmtWhen(chandrashtama.end, tag),
+                      })}
                 </p>
                 <p className={styles.chText}>
-                  The Moon moves through {RASHI_SANSKRIT[chandrashtama.rashi]}, the 8th sign from {sa}. Keep these
-                  ~2½ days for routine work: avoid launches, big purchases, long drives and arguments.
+                  {t('deepDive.chandraText', {
+                    transitRashi: RASHI_SANSKRIT[chandrashtama.rashi],
+                    sanskrit: sa,
+                  })}
                 </p>
               </div>
             </div>
@@ -133,7 +160,7 @@ export function HoroscopeDeepDive({ rashi, english, week, chandrashtama, profile
         {profile ? (
           <div className={styles.block}>
             <h2 className={styles.title}>
-              Rashi swabhav <em>· the nature of {sa}</em>
+              {t('deepDive.swabhavTitle')} <em>{t('deepDive.swabhavTitleEm', { sanskrit: sa })}</em>
             </h2>
             <p className={styles.lead}>{profile.coreSummary}</p>
             <ul className={styles.list}>
@@ -143,13 +170,13 @@ export function HoroscopeDeepDive({ rashi, english, week, chandrashtama, profile
             </ul>
             <p className={styles.lord}>
               <strong>
-                Rashi lord · {LORD_NAMES[profile.lord] ?? profile.lord} ({profile.lordHindi})
+                {t('deepDive.lordLine', { lord: planetName(t, profile.lord), lordHindi: profile.lordHindi })}
               </strong>{' '}
               {profile.lordSummary}
             </p>
             {profile.remedies.length > 0 ? (
               <>
-                <h3 className={styles.sub}>Upaya for {sa}</h3>
+                <h3 className={styles.sub}>{t('deepDive.upayaFor', { sanskrit: sa })}</h3>
                 <ul className={styles.list}>
                   {profile.remedies.slice(0, 3).map((r) => (
                     <li key={r}>{r}</li>

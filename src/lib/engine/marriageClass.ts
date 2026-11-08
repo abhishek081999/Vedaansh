@@ -9,6 +9,11 @@ import { GRAHA_NAMES, NAKSHATRA_LORDS, NAKSHATRA_NAMES, RASHI_NAMES } from '@/ty
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import { D9 } from '@/lib/engine/vargas'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName, pick } from '@/lib/engine/divisionalLang'
+import { MC_HI } from '@/lib/engine/locale/marriageClass.hi'
+
+let CURRENT_LANG: EngineLang = 'en'
 
 export type MarriageKind = 'physical' | 'mental' | 'soul' | 'open'
 export type MarriagePattern = 'linear' | 'second' | 'divorce' | 'many' | 'open'
@@ -70,10 +75,16 @@ function signOf(asc: number, house: number): Rashi {
 }
 
 function rn(r: number): string {
+  if (CURRENT_LANG === 'hi') return rName(r as Rashi, 'hi')
   return RASHI_NAMES[r as Rashi] ?? `R${r}`
 }
 
 function plainStrength(d: Dignity | undefined): string {
+  if (CURRENT_LANG === 'hi') {
+    if (!d) return MC_HI.dignity.default
+    const key = d as keyof typeof MC_HI.dignity
+    return MC_HI.dignity[key] ?? MC_HI.dignity.default
+  }
   switch (d) {
     case 'exalted': return 'exalted, at its strongest'
     case 'moolatrikona': return 'in its best own sign'
@@ -89,6 +100,7 @@ function plainStrength(d: Dignity | undefined): string {
 }
 
 function gn(id: GrahaId | string): string {
+  if (CURRENT_LANG === 'hi') return gName(id as GrahaId, 'hi')
   return GRAHA_NAMES[id as GrahaId] ?? id
 }
 
@@ -96,17 +108,46 @@ function find(list: GrahaData[] | undefined, id: GrahaId): GrahaData | undefined
   return list?.find(g => g.id === id)
 }
 
-function note(id: string, title: string, detail: string, tone: LifeTone): MarriedLifeNote {
+function note(
+  id: string,
+  title: string,
+  detail: string,
+  tone: LifeTone,
+  slots: Record<string, string | number> = {},
+  hiOverride?: { title: string; detail: string },
+): MarriedLifeNote {
+  if (CURRENT_LANG === 'hi') {
+    if (hiOverride) return { id, title: hiOverride.title, detail: hiOverride.detail, tone }
+    const row = MC_HI.notes[id as keyof typeof MC_HI.notes]
+    if (row && 'title' in row && row.title) {
+      return {
+        id,
+        title: fill(row.title, slots),
+        detail: fill(row.detail, slots),
+        tone,
+      }
+    }
+  }
   return { id, title, detail, tone }
 }
 
 function partner(gender: Gender | undefined): string {
+  if (CURRENT_LANG === 'hi') {
+    if (gender === 'male') return MC_HI.partner.male
+    if (gender === 'female') return MC_HI.partner.female
+    return MC_HI.partner.other
+  }
   if (gender === 'male') return 'wife'
   if (gender === 'female') return 'husband'
   return 'partner'
 }
 
 function manyField(gender: Gender | undefined): string {
+  if (CURRENT_LANG === 'hi') {
+    if (gender === 'male') return MC_HI.manyField.male
+    if (gender === 'female') return MC_HI.manyField.female
+    return MC_HI.manyField.other
+  }
   if (gender === 'male') return 'In this chart the field is women.'
   if (gender === 'female') return 'In this chart the field is men.'
   return 'The field is this person’s own partnerships.'
@@ -148,15 +189,38 @@ function holdsAcross(d1: GrahaData | undefined, d9g: GrahaData | undefined): boo
   return birth != null && birth !== 'weak'
 }
 
+function planetLabel(id: GrahaId | string, fallback: string): string {
+  if (CURRENT_LANG === 'hi') return MC_HI.planetLabel[id] ?? fallback
+  return fallback
+}
+
 function strengthSentence(name: string, d1: GrahaData | undefined, d9g: GrahaData | undefined): string {
+  const b = dignityBand(d1, true)
+  const n = dignityBand(d9g, false)
+  if (CURRENT_LANG === 'hi') {
+    const S = MC_HI.strength
+    const birth = !d1
+      ? fill(S.missingBirth, { name })
+      : fill(S.birthLine, { name, dignity: plainStrength(d1.dignity), combust: d1.isCombust ? S.combust : '' })
+    const deep = !d9g
+      ? S.deepMissing
+      : fill(S.deepLine, { name, dignity: plainStrength(d9g.dignity) })
+    let verdict = S.verdict.even
+    if (n === 'strong' && b === 'weak') verdict = S.verdict.rescue
+    else if (n === 'strong' && b === 'strong') verdict = S.verdict.bothStrong
+    else if (n === 'strong') verdict = S.verdict.navStrong
+    else if (n === 'weak' && b === 'strong') verdict = S.verdict.undermine
+    else if (n === 'weak') verdict = S.verdict.navWeak
+    else if (b === 'weak') verdict = S.verdict.birthWeakNoNav
+    else if (b === 'strong') verdict = S.verdict.birthStrongNavOrdinary
+    return fill(S.sentence, { birth, deep, verdict })
+  }
   const birth = !d1
     ? `${name} is missing in the birth chart`
     : `In the birth chart ${name} is ${plainStrength(d1.dignity)}${d1.isCombust ? ', too close to the Sun' : ''}`
   const deep = !d9g
     ? 'the Navamsha is not available'
     : `in the Navamsha ${name} is ${plainStrength(d9g.dignity)}`
-  const b = dignityBand(d1, true)
-  const n = dignityBand(d9g, false)
   let verdict = 'Neither chart is especially strong or weak'
   if (n === 'strong' && b === 'weak') verdict = 'The birth chart is weak and the Navamsha is strong, so the deeper chart holds it'
   else if (n === 'strong' && b === 'strong') verdict = 'Both charts are strong'
@@ -228,7 +292,8 @@ function exchange(a: GrahaData, b: GrahaData): boolean {
  * Marriage-class reading for one chart.
  * Returns null when the ascendant is missing.
  */
-export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading | null {
+export function analyzeMarriageClass(chart: ChartOutput, lang: EngineLang = 'en'): MarriageClassReading | null {
+  CURRENT_LANG = lang
   const asc = chart.lagnas?.ascRashi
   if (!asc) return null
 
@@ -276,6 +341,14 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
         'One marriage planet, two strengths',
         `${gn(lord.id)} rules marriage in both charts. In the birth chart it is in ${rn(lord.rashi)}${lordHouse ? `, house ${lordHouse}` : ''}, ${plainStrength(lord.dignity)}. In the Navamsha it is in ${rn(d9Lord.rashi)}, ${plainStrength(d9Lord.dignity)}. The birth chart is the marriage people live. The Navamsha is the quality underneath, and these two strengths do not match.`,
         deepBand === 'strong' ? 'supportive' : 'caution',
+        {
+          lord: gn(lord.id),
+          d1Sign: rn(lord.rashi),
+          d1House: lordHouse ? `, ${lordHouse}वाँ भाव` : '',
+          d1Dignity: plainStrength(lord.dignity),
+          d9Sign: rn(d9Lord.rashi),
+          d9Dignity: plainStrength(d9Lord.dignity),
+        },
       ))
     }
   } else if (!d9Lord && !d9Asc) {
@@ -312,6 +385,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
       'Strength in the birth chart and in the Navamsha',
       strengthLines.join(' '),
       rescued && !undermined ? 'supportive' : undermined && !rescued ? 'caution' : 'mixed',
+      { lines: strengthLines.join(' ') },
     ))
   }
 
@@ -321,6 +395,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
       'A high standard, not a free gift',
       `The planet that rules marriage is exalted, at its strongest. That alone describes a ${spouse} of real quality. Children are a separate question. The same strength is hard to live up to. The fuller result needs a strong rising-sign lord in the 7th house, and a helpful planet joining or seeing that house.`,
       'mixed',
+      { spouse },
     ))
   }
 
@@ -417,36 +492,83 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
   const jupiterMalNote = jupiterD1Mal && dignityBand(d9Jupiter, false) === 'strong' && !jupiterD9Mal
     ? ' A difficult planet sits on Jupiter in the birth chart. The Navamsha is clear of that.'
     : ''
+  const moonLine = !moonLinked
+    ? (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.noMoon : 'does not reach the marriage house')
+    : moonOk
+      ? (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.moonOk : 'reaches the marriage and holds')
+      : moonHolds
+        ? (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.moonNodes : 'reaches the marriage, and Rahu or Ketu still pulls the feelings')
+        : (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.moonWeak : 'reaches the marriage and does not hold')
+  const venusLine = !venusLinked
+    ? (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.noMoon : 'does not reach the marriage house')
+    : venusOk
+      ? (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.moonOk : 'reaches the marriage and holds')
+      : venusHolds
+        ? (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.venusMal : 'reaches the marriage, and a difficult planet still sits on it')
+        : (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.moonWeak : 'reaches the marriage and does not hold')
+  const jupiterLine = !jupiterLinked
+    ? (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.noMoon : 'does not reach the marriage house')
+    : jupiterOk
+      ? (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.moonOk : 'reaches the marriage and holds')
+      : jupiterHolds
+        ? (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.jupiterMal : 'reaches the marriage, and a difficult planet still sits on it')
+        : (CURRENT_LANG === 'hi' ? MC_HI.pillarReach.moonWeak : 'reaches the marriage and does not hold')
+  const venusMalNoteHi = venusMalNote ? MC_HI.venusMalNote : ''
+  const jupiterMalNoteHi = jupiterMalNote ? MC_HI.jupiterMalNote : ''
   pillarNotes.push(note(
     'class-pillars',
     missing >= 2 ? 'Two pillars of the marriage are missing' : missing === 1 ? 'One pillar is thin' : 'Emotional bond, attraction, and protection are all available',
     `Feeling (the Moon) ${!moonLinked ? 'does not reach the marriage house' : moonOk ? 'reaches the marriage and holds' : moonHolds ? 'reaches the marriage, and Rahu or Ketu still pulls the feelings' : 'reaches the marriage and does not hold'}. ${strengthSentence('the Moon', moon, d9Moon)} Attraction (Venus) ${!venusLinked ? 'does not reach the marriage house' : venusOk ? 'reaches the marriage and holds' : venusHolds ? 'reaches the marriage, and a difficult planet still sits on it' : 'reaches the marriage and does not hold'}. ${strengthSentence('Venus', venus, d9Venus)}${venusMalNote} Protection (Jupiter) ${!jupiterLinked ? 'does not reach the marriage house' : jupiterOk ? 'reaches the marriage and holds' : jupiterHolds ? 'reaches the marriage, and a difficult planet still sits on it' : 'reaches the marriage and does not hold'}. ${strengthSentence('Jupiter', jupiter, d9Jupiter)}${jupiterMalNote} A stable marriage needs all three. If two are missing, the marriage does not hold.`,
     missing >= 2 ? 'caution' : missing === 1 ? 'mixed' : 'supportive',
+    {
+      pillarTitle: missing >= 2 ? MC_HI.pillarTitle.twoMissing : missing === 1 ? MC_HI.pillarTitle.oneThin : MC_HI.pillarTitle.all,
+      moonLine,
+      moonStrength: strengthSentence(CURRENT_LANG === 'hi' ? MC_HI.planetLabel.Mo : 'the Moon', moon, d9Moon),
+      venusLine,
+      venusStrength: strengthSentence(CURRENT_LANG === 'hi' ? MC_HI.planetLabel.Ve : 'Venus', venus, d9Venus),
+      venusMal: CURRENT_LANG === 'hi' ? venusMalNoteHi : venusMalNote,
+      jupiterLine,
+      jupiterStrength: strengthSentence(CURRENT_LANG === 'hi' ? MC_HI.planetLabel.Ju : 'Jupiter', jupiter, d9Jupiter),
+      jupiterMal: CURRENT_LANG === 'hi' ? jupiterMalNoteHi : jupiterMalNote,
+    },
   ))
 
   if (jupiterLinked && jupiter && !jupiterClean) {
+    const jupStr = strengthSentence(CURRENT_LANG === 'hi' ? MC_HI.planetLabel.Ju : 'Jupiter', jupiter, d9Jupiter)
+  const stainHi = jupiterD1Mal || jupiterD9Mal
+      ? 'जहाँ दबाव है वहाँ कठिन ग्रह बैठा है — मार्गदर्शन वहीं मना।'
+      : 'कमज़ोरी गुरु के अपने बल में है।'
     pillarNotes.push(note(
       'class-jupiter-stained',
       'Jupiter touches the marriage, and the protection is thin',
-      `A clean Jupiter seeing the 7th house or Venus can hold the marriage. ${strengthSentence('Jupiter', jupiter, d9Jupiter)} ${jupiterD1Mal || jupiterD9Mal ? 'A difficult planet sits on Jupiter where that strain is named, so guidance is refused there.' : 'The weakness is in Jupiter’s own strength.'}`,
+      `A clean Jupiter seeing the 7th house or Venus can hold the marriage. ${jupStr} ${jupiterD1Mal || jupiterD9Mal ? 'A difficult planet sits on Jupiter where that strain is named, so guidance is refused there.' : 'The weakness is in Jupiter’s own strength.'}`,
       'caution',
+      { jupiterStrength: jupStr, stain: lang === 'hi' ? stainHi : (jupiterD1Mal || jupiterD9Mal ? 'A difficult planet sits on Jupiter where that strain is named, so guidance is refused there.' : 'The weakness is in Jupiter’s own strength.') },
     ))
   } else if (jupiterOk) {
+    const jupStr = strengthSentence(CURRENT_LANG === 'hi' ? MC_HI.planetLabel.Ju : 'Jupiter', jupiter, d9Jupiter)
     pillarNotes.push(note(
       'class-jupiter-clean',
       'A clean Jupiter can hold the vow',
-      `Jupiter reaches the marriage. ${strengthSentence('Jupiter', jupiter, d9Jupiter)} That can hold the vow. It means the couple still has someone, inside the chart, who can listen.`,
+      `Jupiter reaches the marriage. ${jupStr} That can hold the vow. It means the couple still has someone, inside the chart, who can listen.`,
       'supportive',
+      { jupiterStrength: jupStr },
     ))
   }
 
   if (saturn && KENDRA.has(houseOf(saturn.rashi, asc)) && (dignityBand(saturn, true) === 'strong' || dignityBand(d9Saturn, false) === 'strong')) {
     const saturnHolds = holdsAcross(saturn, d9Saturn)
+    const satStr = strengthSentence(CURRENT_LANG === 'hi' ? MC_HI.planetLabel.Sa : 'Saturn', saturn, d9Saturn)
     pillarNotes.push(note(
       'class-saturn-stable',
       saturnHolds ? 'Saturn holds the marriage by consistency' : 'Saturn looks steady, and the Navamsha does not keep it',
-      `The Moon and Saturn steady a marriage. Mars is secondary. Venus decides whether attraction exists. ${strengthSentence('Saturn', saturn, d9Saturn)} ${saturnHolds ? 'It keeps the vow by routine and boundaries, not by romance.' : 'A corner house in the birth chart is not enough once the Navamsha is weak.'}`,
+      `The Moon and Saturn steady a marriage. Mars is secondary. Venus decides whether attraction exists. ${satStr} ${saturnHolds ? 'It keeps the vow by routine and boundaries, not by romance.' : 'A corner house in the birth chart is not enough once the Navamsha is weak.'}`,
       saturnHolds ? 'supportive' : 'mixed',
+      {
+        saturnTitle: saturnHolds ? MC_HI.saturnTitles.holds : MC_HI.saturnTitles.thin,
+        saturnStrength: satStr,
+        saturnTail: saturnHolds ? MC_HI.saturnTail.holds : MC_HI.saturnTail.thin,
+      },
     ))
   }
 
@@ -484,7 +606,17 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
         tone: 'mixed',
       },
     }
-    if (rel !== '2-12') patternNotes.push(note('class-moon-venus', code[rel].title, code[rel].detail, code[rel].tone))
+    if (rel !== '2-12') {
+      const hiAxis = MC_HI.moonVenusAxis[rel]
+      patternNotes.push(note(
+        'class-moon-venus',
+        code[rel].title,
+        code[rel].detail,
+        code[rel].tone,
+        {},
+        hiAxis ? { title: hiAxis.title, detail: hiAxis.detail } : undefined,
+      ))
+    }
   }
 
   const lordAfflicted = !!lord && (weak(lord) || (lordHouse != null && DUSTHANA.has(lordHouse)) || maleficsOn(lord, chart.grahas).length > 0)
@@ -521,6 +653,7 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
       'Several bonds, from a strong Venus',
       `Venus is in a double-natured sign (Gemini, Virgo, Sagittarius, or Pisces), the lord of that sign is strong, and the 7th house is strong. All three are required. If one is missing, this does not apply. It means several important relationships, not automatically several weddings: one marriage with other bonds, or a life that grows by moving from person to person. A close friendship beside the marriage, with a clear boundary, is different. ${manyField(chart.meta?.gender)} The work is to stop using the next person as a way to improve oneself.`,
       'mixed',
+      { manyField: manyField(chart.meta?.gender) },
     ))
   } else if (d9 && lord && lordHouse != null && KENDRA.has(lordHouse) && !lordAfflicted && !venusAfflicted && d9LordStrong && !!moon && FIXED.has(moon.rashi)) {
     pattern = 'linear'
@@ -602,11 +735,19 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
   if (d9LordTouch.length) layerBits.push(`${d9LordTouch.join(' and ')} on the D9 7th lord`)
   if (d9SeventhLordHouse != null && DUSTHANA.has(d9SeventhLordHouse)) layerBits.push(`the D9 7th lord in house ${d9SeventhLordHouse}`)
   if (layerBits.length) {
+    const layerBitsHi: string[] = []
+    if (lordTouch.length) layerBitsHi.push(fill(MC_HI.layers.on7Lord, { who: lordTouch.map(g => gn(g)).join(' और ') }))
+    if (lordHouse != null && DUSTHANA.has(lordHouse)) layerBitsHi.push(fill(MC_HI.layers.lordInHouse, { house: lordHouse }))
+    if (venusTouch.length) layerBitsHi.push(fill(MC_HI.layers.onVenus, { who: venusTouch.map(g => gn(g)).join(' और ') }))
+    if (d9VenusTouch.length) layerBitsHi.push(fill(MC_HI.layers.onD9Venus, { who: d9VenusTouch.map(g => gn(g)).join(' और ') }))
+    if (d9LordTouch.length) layerBitsHi.push(fill(MC_HI.layers.onD9Lord, { who: d9LordTouch.map(g => gn(g)).join(' और ') }))
+    if (d9SeventhLordHouse != null && DUSTHANA.has(d9SeventhLordHouse)) layerBitsHi.push(fill(MC_HI.layers.d9LordInHouse, { house: d9SeventhLordHouse }))
     patternNotes.push(note(
       'class-layers',
       'Where the strain sits',
       `Three questions stay separate. Here they are: ${layerBits.join('; ')}. The marriage lord answers whether a bond breaks. Venus answers whether attraction still has one direction. The Navamsha answers whether the same damage is still there at a deeper level. The first layer ends before the next one begins. Naming the place of the strain is not yet naming a year.`,
       'caution',
+      { layers: (CURRENT_LANG === 'hi' ? layerBitsHi : layerBits).join('; ') },
     ))
   }
 
@@ -730,6 +871,10 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
       pure ? 'A soul bond, with a helpful planet beside it' : obliged ? 'A soul bond, with an old obligation' : 'A soul bond',
       `${lead}The start is slow. Emotion is quiet. Decisions do not need a debate. Both people should be able to say that life became easier, and both should mean the same life. Venus with Ketu, under Jupiter, is a past-life spiritual pair: inner growth matters more than display.`,
       'supportive',
+      {
+        soulTitle: pure ? MC_HI.soulTitles.pure : obliged ? MC_HI.soulTitles.obliged : MC_HI.soulTitles.plain,
+        soulLead: pure ? MC_HI.soulLeads.pure : obliged ? MC_HI.soulLeads.obliged : MC_HI.soulLeads.plain,
+      },
     ))
   }
 
@@ -1014,6 +1159,13 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
         ? 'From the lagna, the Moon, or the 7th lord, a seventh is under both the Sun and Rahu. That is a classical second-bond signature in a woman’s chart. It does not say how the first bond ended.'
         : 'From the lagna, the Moon, or the 7th lord, a seventh is under both the Sun and Rahu. In a man’s chart this opens a second chapter in partnership — another serious bond or a life rebuilt after the first. It does not name death or divorce.',
       'caution',
+      {
+        genderLine: gender === 'female'
+          ? MC_HI.remarriageGender.female
+          : gender === 'male'
+            ? MC_HI.remarriageGender.male
+            : MC_HI.remarriageGender.other,
+      },
     ))
   }
 
@@ -1042,36 +1194,58 @@ export function analyzeMarriageClass(chart: ChartOutput): MarriageClassReading |
 
   if (manyYoga) multiplicity = true
 
-  const headline = pattern === 'linear'
-    ? 'This marriage can grow in a straight line'
-    : pattern === 'second'
-      ? 'A later bond is the one that fits'
-      : pattern === 'divorce'
-        ? 'The birth chart, the Navamsha, and Venus are all unsteady'
-        : pattern === 'many'
-          ? 'This chart draws more than one bond'
-          : bond === 'karmic'
-            ? 'This marriage is paying an old account'
-            : bond === 'soul'
-              ? 'This marriage is a soul bond'
-              : kind === 'physical'
-                ? 'This marriage is chosen from the body and from means'
-                : kind === 'mental'
-                  ? 'This marriage is chosen from feeling'
-                  : kind === 'soul'
-                    ? 'Venus is leading this marriage'
-                    : 'The kind of marriage is still mixed'
+  const headline = lang === 'en'
+    ? (pattern === 'linear'
+      ? 'This marriage can grow in a straight line'
+      : pattern === 'second'
+        ? 'A later bond is the one that fits'
+        : pattern === 'divorce'
+          ? 'The birth chart, the Navamsha, and Venus are all unsteady'
+          : pattern === 'many'
+            ? 'This chart draws more than one bond'
+            : bond === 'karmic'
+              ? 'This marriage is paying an old account'
+              : bond === 'soul'
+                ? 'This marriage is a soul bond'
+                : kind === 'physical'
+                  ? 'This marriage is chosen from the body and from means'
+                  : kind === 'mental'
+                    ? 'This marriage is chosen from feeling'
+                    : kind === 'soul'
+                      ? 'Venus is leading this marriage'
+                      : 'The kind of marriage is still mixed')
+    : (pattern === 'linear' ? MC_HI.headlines.linear
+      : pattern === 'second' ? MC_HI.headlines.second
+        : pattern === 'divorce' ? MC_HI.headlines.divorce
+          : pattern === 'many' ? MC_HI.headlines.many
+            : bond === 'karmic' ? MC_HI.headlines.karmic
+              : bond === 'soul' ? MC_HI.headlines.soul
+                : kind === 'physical' ? MC_HI.headlines.physical
+                  : kind === 'mental' ? MC_HI.headlines.mental
+                    : kind === 'soul' ? MC_HI.headlines.soulKind
+                      : MC_HI.headlines.open)
 
-  const summary = [
-    lord ? `${gn(lord.id)} rules the marriage house (7th) from ${rn(lord.rashi)}.` : '',
-    venus ? `Venus is in ${rn(venus.rashi)}${nakName(veNak) ? `, ${nakName(veNak)}` : ''}.` : '',
-    d9Venus ? `In Navamsha (D9, the deeper marriage chart), Venus is ${plainStrength(d9Venus.dignity)}${d9Asc ? `, and the deeper rising sign is ${rn(d9Asc)}` : ''}.` : 'Venus is not available in Navamsha (D9).',
-  ].filter(Boolean).join(' ')
+  const summary = lang === 'en'
+    ? [
+      lord ? `${gn(lord.id)} rules the marriage house (7th) from ${rn(lord.rashi)}.` : '',
+      venus ? `Venus is in ${rn(venus.rashi)}${nakName(veNak) ? `, ${nakName(veNak)}` : ''}.` : '',
+      d9Venus ? `In Navamsha (D9, the deeper marriage chart), Venus is ${plainStrength(d9Venus.dignity)}${d9Asc ? `, and the deeper rising sign is ${rn(d9Asc)}` : ''}.` : 'Venus is not available in Navamsha (D9).',
+    ].filter(Boolean).join(' ')
+    : [
+      lord ? fill(MC_HI.summary.lord, { lord: gn(lord.id), sign: rn(lord.rashi) }) : '',
+      venus ? fill(MC_HI.summary.venus, { sign: rn(venus.rashi), nak: nakName(veNak) ? `, ${nakName(veNak)}` : '' }) : '',
+      d9Venus
+        ? fill(MC_HI.summary.d9Venus, {
+          dignity: plainStrength(d9Venus.dignity),
+          asc: d9Asc ? fill(MC_HI.summary.d9Asc, { sign: rn(d9Asc) }) : '',
+        })
+        : MC_HI.summary.d9VenusMissing,
+    ].filter(Boolean).join(' ')
 
   return {
     headline,
     summary,
-    principles: MARRIAGE_CLASS_PRINCIPLES,
+    principles: pick(MARRIAGE_CLASS_PRINCIPLES, MC_HI.principles, lang),
     frame,
     kind: kindNotes,
     pillars: pillarNotes,
@@ -1090,7 +1264,10 @@ export function compareMarriageClass(
   b: MarriageClassReading,
   nameA: string,
   nameB: string,
+  lang: EngineLang = 'en',
 ): MarriedLifeNote[] {
+  const prev = CURRENT_LANG
+  CURRENT_LANG = lang
   const notes: MarriedLifeNote[] = []
   if (a.flags.bond === 'karmic' && b.flags.bond === 'soul' || a.flags.bond === 'soul' && b.flags.bond === 'karmic') {
     const fast = a.flags.bond === 'karmic' ? nameA : nameB
@@ -1100,13 +1277,20 @@ export function compareMarriageClass(
       'One chart wants heat, the other wants peace',
       `${fast} is an old account: fast, intense, and low in peace. ${slow} is a soul bond: slow and quiet. The paces do not match. The quieter person will feel the other’s urgency as pressure. The more urgent person will feel the other’s calm as absence.`,
       'caution',
+      { fast, slow },
     ))
   } else if (a.flags.bond !== 'open' && a.flags.bond === b.flags.bond) {
+    const bondTitle = a.flags.bond === 'karmic'
+      ? (lang === 'en' ? 'Both charts are an old account' : MC_HI.compareBondTitle.karmic)
+      : a.flags.bond === 'soul'
+        ? (lang === 'en' ? 'Both charts are a soul bond' : MC_HI.compareBondTitle.soul)
+        : (lang === 'en' ? 'Both charts carry both layers' : MC_HI.compareBondTitle.mixed)
     notes.push(note(
       'class-pair-same-bond',
-      a.flags.bond === 'karmic' ? 'Both charts are an old account' : a.flags.bond === 'soul' ? 'Both charts are a soul bond' : 'Both charts carry both layers',
+      bondTitle,
       `${nameA} and ${nameB} have the same kind of bond. That does not make the marriage easy. It means they will recognize the pace.`,
       a.flags.bond === 'soul' ? 'supportive' : 'mixed',
+      { a: nameA, b: nameB, bondTitle },
     ))
   }
 
@@ -1128,16 +1312,18 @@ export function compareMarriageClass(
       'One chart is completing an earlier bond',
       `${completing} is the chart whose first bond is karmic completion. ${steady} is built for a linear marriage. This pairing fits when ${completing} has already finished that earlier chapter. It grinds when this relationship is still the first one.`,
       'mixed',
+      { completing, steady },
     ))
   } else if (a.flags.pattern === 'divorce' || b.flags.pattern === 'divorce') {
     const who = a.flags.pattern === 'divorce' && b.flags.pattern === 'divorce'
-      ? 'Both charts'
+      ? (lang === 'en' ? 'Both charts' : 'दोनों चार्ट')
       : a.flags.pattern === 'divorce' ? nameA : nameB
     notes.push(note(
       'class-pair-unstable',
       'Instability is in the pattern, not only in the fight',
       `${who} show D1, D9, and Venus unstable together. This is a tendency, not a verdict, and it gives no date for a separation: the type of pattern and the dasha have to agree first. A good week does not mean the pattern has been repaired, either.`,
       'caution',
+      { who },
     ))
   }
 
@@ -1147,7 +1333,9 @@ export function compareMarriageClass(
       'The two marriage-types do not form one shared label',
       `${nameA} and ${nameB} are best understood separately: kind of marriage, the three pillars, then D9. A shared label would be a convenience, not a finding.`,
       'mixed',
+      { a: nameA, b: nameB },
     ))
   }
+  CURRENT_LANG = prev
   return notes
 }

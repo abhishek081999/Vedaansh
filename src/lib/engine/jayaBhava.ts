@@ -8,6 +8,16 @@ import type { ChartOutput, Dignity, Gender, GrahaData, GrahaId, Rashi } from '@/
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { D9 } from '@/lib/engine/vargas'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
+import { fill, pick, gName, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  JAYA_COMPARE_HI,
+  JAYA_PRINCIPLES_HI,
+  JAYA_TEXT_HI,
+  MOON_SIGN_TEXTURE_HI,
+  OCCUPANT_HI,
+} from '@/lib/engine/locale/jayaBhava.hi'
+
+let CURRENT_LANG: EngineLang = 'en'
 
 export interface JayaFlags {
   dignifiedLord: boolean
@@ -64,12 +74,14 @@ function nthFrom(sign: number, count: number): Rashi {
   return ((((sign - 1 + count - 1) % 12) + 1) as Rashi)
 }
 
-function rn(r: number): string {
-  return RASHI_NAMES[r as Rashi] ?? `R${r}`
+function rn(r: number, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return RASHI_NAMES[r as Rashi] ?? `R${r}`
+  return rName(r as Rashi, lang)
 }
 
-function gn(id: GrahaId): string {
-  return GRAHA_NAMES[id] ?? id
+function gn(id: GrahaId, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return GRAHA_NAMES[id] ?? id
+  return gName(id, lang)
 }
 
 function find(chart: ChartOutput, id: GrahaId): GrahaData | undefined {
@@ -77,6 +89,7 @@ function find(chart: ChartOutput, id: GrahaId): GrahaData | undefined {
 }
 
 function ordinal(n: number): string {
+  if (CURRENT_LANG === 'hi') return JAYA_TEXT_HI.ordinal(n)
   const mod100 = n % 100
   if (mod100 >= 11 && mod100 <= 13) return `${n}th`
   switch (n % 10) {
@@ -87,11 +100,33 @@ function ordinal(n: number): string {
   }
 }
 
-function note(id: string, title: string, detail: string, tone: LifeTone): MarriedLifeNote {
+function note(
+  id: string,
+  title: string,
+  detail: string,
+  tone: LifeTone,
+  slots: Record<string, string | number> = {},
+  hiOverride?: { title: string; detail: string },
+): MarriedLifeNote {
+  if (CURRENT_LANG === 'hi') {
+    if (hiOverride) return { id, ...hiOverride, tone }
+    const row = JAYA_TEXT_HI.notes[id as keyof typeof JAYA_TEXT_HI.notes]
+    if (row) return { id, title: fill(row.title, slots), detail: fill(row.detail, slots), tone }
+    const pushTitle = JAYA_TEXT_HI.pushTitles[id]
+    const pushDetail = JAYA_TEXT_HI.pushDetails[id]
+    if (pushTitle && pushDetail) {
+      return { id, title: pushTitle, detail: fill(JAYA_TEXT_HI.timingLead, { label: slots.label ?? '', relative: slots.relative ?? '', detail: pushDetail }), tone }
+    }
+  }
   return { id, title, detail, tone }
 }
 
-function partner(gender: Gender | undefined): string {
+function partner(gender: Gender | undefined, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') {
+    if (gender === 'male') return 'पत्नी'
+    if (gender === 'female') return 'पति'
+    return 'साथी'
+  }
   if (gender === 'male') return 'wife'
   if (gender === 'female') return 'husband'
   return 'partner'
@@ -217,6 +252,10 @@ const OCCUPANT: Partial<Record<GrahaId, { title: string; detail: string; tone: L
 }
 
 function dusthanaCopy(house: number, spouse: string): string {
+  if (CURRENT_LANG === 'hi') {
+    const base = JAYA_TEXT_HI.dusthana[house as 6 | 8 | 12] ?? JAYA_TEXT_HI.dusthana[12]
+    return base.replace('साथी', spouse)
+  }
   if (house === 6) {
     return `The 7th lord in the 6th makes the marriage a service. One partner becomes the caretaker, effort does not stay optional, and the caretaker’s reserves are what get spent. That disturbance of ease is what classical texts call a sickly ${spouse}: the strain is emotional first. The 6th also looks toward loss, so the care can be used up.`
   }
@@ -228,19 +267,21 @@ function dusthanaCopy(house: number, spouse: string): string {
 
 function venusMaleficCopy(ids: GrahaId[]): string {
   const lines: string[] = []
-  if (ids.includes('Sa')) lines.push('Saturn cools it: duty replaces warmth.')
-  if (ids.includes('Ma')) lines.push('Mars agitates it: harmony gives way to contest.')
-  if (ids.includes('Ra')) lines.push('Rahu clouds it: the bond can become an image, an obsession, or a performance.')
-  if (ids.includes('Ke')) lines.push('Ketu thins it: feeling steps back, and the relationship is treated as something already finished.')
-  if (ids.includes('Su')) lines.push('The Sun unbalances it: one ego sets the terms.')
+  const M = CURRENT_LANG === 'hi' ? JAYA_TEXT_HI.venusMalefic : null
+  if (ids.includes('Sa')) lines.push(M?.Sa ?? 'Saturn cools it: duty replaces warmth.')
+  if (ids.includes('Ma')) lines.push(M?.Ma ?? 'Mars agitates it: harmony gives way to contest.')
+  if (ids.includes('Ra')) lines.push(M?.Ra ?? 'Rahu clouds it: the bond can become an image, an obsession, or a performance.')
+  if (ids.includes('Ke')) lines.push(M?.Ke ?? 'Ketu thins it: feeling steps back, and the relationship is treated as something already finished.')
+  if (ids.includes('Su')) lines.push(M?.Su ?? 'The Sun unbalances it: one ego sets the terms.')
   return lines.join(' ')
 }
 
 function nurtureLine(id: GrahaId): string | null {
-  if (id === 'Ma') return 'Mars adds an immediate physical pull. The person is drawn before they have a theory of the partner.'
-  if (id === 'Sa') return 'Saturn’s way of sustaining a bond is stability with low vitality. The relationship underperforms as romance and overperforms as structure.'
-  if (id === 'Ju') return 'Jupiter sustains by substance. The partner is impressive in wisdom or standing, and the couple is visible for that reason.'
-  if (id === 'Ve') return 'Venus sustains by abundance. Romance and sensual ease are how the bond feeds the person.'
+  const N = CURRENT_LANG === 'hi' ? JAYA_TEXT_HI.nurture : null
+  if (id === 'Ma') return N?.Ma ?? 'Mars adds an immediate physical pull. The person is drawn before they have a theory of the partner.'
+  if (id === 'Sa') return N?.Sa ?? 'Saturn’s way of sustaining a bond is stability with low vitality. The relationship underperforms as romance and overperforms as structure.'
+  if (id === 'Ju') return N?.Ju ?? 'Jupiter sustains by substance. The partner is impressive in wisdom or standing, and the couple is visible for that reason.'
+  if (id === 'Ve') return N?.Ve ?? 'Venus sustains by abundance. Romance and sensual ease are how the bond feeds the person.'
   return null
 }
 
@@ -248,12 +289,15 @@ function nurtureLine(id: GrahaId): string | null {
  * Seventh-house combinations that this chart actually forms.
  * Returns null when the ascendant is missing.
  */
-export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
+export function analyzeJayaBhava(chart: ChartOutput, lang: EngineLang = 'en'): JayaBhavaReading | null {
+  CURRENT_LANG = lang
   const asc = chart.lagnas?.ascRashi
   if (!asc) return null
 
   const gender = chart.meta?.gender
-  const spouse = partner(gender)
+  const spouse = partner(gender, lang)
+  const occupantsHi = pick(OCCUPANT, OCCUPANT_HI as typeof OCCUPANT, lang)
+  const moonTexture = pick(MOON_SIGN_TEXTURE, MOON_SIGN_TEXTURE_HI, lang)
   const seventhSign = signOf(asc, 7)
   const lordId = LORDS[seventhSign]
   const lord = find(chart, lordId)
@@ -285,13 +329,22 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
   const years: number[] = []
 
   if (lord && lordHouse != null) {
-    const seat = `${gn(lord.id)} rules the 7th (${rn(seventhSign)}) from ${rn(lord.rashi)}, house ${lordHouse}`
+    const seat = `${gn(lord.id, lang)} rules the 7th (${rn(seventhSign, lang)}) from ${rn(lord.rashi, lang)}, house ${lordHouse}`
+    const seatSlots = {
+      lord: gn(lord.id, lang),
+      seventh: rn(seventhSign, lang),
+      sign: rn(lord.rashi, lang),
+      house: lordHouse,
+    }
+    const strengthEn = lord.dignity === 'exalted' ? 'exaltation' : 'its own strength'
+    const strengthHi = lord.dignity === 'exalted' ? 'उच्च' : 'अपने बल में'
     if (lordDignified && !lord.isCombust) {
       lordNotes.push(note(
         'bphs-19-1',
         'Full happiness through the partner',
-        `${seat}, in ${lord.dignity === 'exalted' ? 'exaltation' : 'its own strength'}. This is the gold-standard seat for partnership. The bond can carry intimacy, respect, and a shared direction at the same time. Full happiness here means the two can meet trouble together. It does not mean a life with no trouble.`,
+        `${seat}, in ${strengthEn}. This is the gold-standard seat for partnership. The bond can carry intimacy, respect, and a shared direction at the same time. Full happiness here means the two can meet trouble together. It does not mean a life with no trouble.`,
         'supportive',
+        { seat: fill(JAYA_TEXT_HI.lordSeat, seatSlots), strength: strengthHi },
       ))
     } else if (lordDignified && lord.isCombust) {
       lordNotes.push(note(
@@ -299,6 +352,8 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
         'Dignified 7th lord, under combustion',
         `${seat}. Own sign or exaltation is still the happiness benchmark, and combustion drains it. The capacity is there. The expression is scorched until the Sun’s pressure eases.`,
         'mixed',
+        { seat: fill(JAYA_TEXT_HI.lordSeat, seatSlots) },
+        { title: JAYA_TEXT_HI.notes['bphs-19-1-combust'].title, detail: fill(JAYA_TEXT_HI.notes['bphs-19-1-combust'].detail, { seat: fill(JAYA_TEXT_HI.lordSeat, seatSlots) }) },
       ))
     } else if (lordDusthana) {
       lordNotes.push(note(
@@ -306,6 +361,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
         `7th lord in the ${ordinal(lordHouse)} — development, not ease`,
         `${seat}, without own sign or exaltation. ${dusthanaCopy(lordHouse, spouse)} The classical term Rogini here means a disturbance of the partner’s ease: emotional strain, psychological load, or a bond that wears the person down. It is not a finding that the ${spouse} is physically ill. If this lord later gains strength, the same house becomes workable. Strength overrides the house.`,
         'caution',
+        { seat: fill(JAYA_TEXT_HI.lordSeat, seatSlots), house: ordinal(lordHouse), dusthana: dusthanaCopy(lordHouse, spouse), spouse },
       ))
     } else {
       lordNotes.push(note(
@@ -313,6 +369,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
         `7th lord in the ${ordinal(lordHouse)}`,
         `${seat}. This is neither the full-happiness benchmark nor the 6th, 8th, or 12th developmental seat. Continuity depends on dignity, on who occupies the 7th, and on the dasha that opens the marriage.`,
         lordWeak ? 'caution' : 'mixed',
+        { seat: fill(JAYA_TEXT_HI.lordSeat, seatSlots), house: ordinal(lordHouse) },
       ))
     }
 
@@ -322,6 +379,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
         'Dignity overrides the difficult house',
         `${dusthanaCopy(lordHouse, spouse)} Because the lord is dignified, that pressure stays manageable. The marriage is still aimed at ${lordHouse === 6 ? 'service' : lordHouse === 8 ? 'change' : 'renunciation'}, and the strength makes the aim constructive.`,
         'mixed',
+        { dusthana: dusthanaCopy(lordHouse, spouse), aim: JAYA_TEXT_HI.aim[lordHouse] ?? 'त्याग' },
       ))
     }
   }
@@ -337,11 +395,13 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
   }
 
   if (lord && lordWeak && !(lordDusthana && !lordDignified)) {
+    const weakState = lord.isCombust ? 'combust' : lord.dignity === 'debilitated' ? 'debilitated' : 'enemy'
     lordNotes.push(note(
       'bphs-19-5',
       'A weak 7th lord scatters the bond',
       `The 7th lord is ${lord.isCombust ? 'combust' : lord.dignity === 'debilitated' ? 'debilitated' : 'in a hostile sign'}. It cannot pour the whole relationship into one channel. The life then holds several heavy bonds at once — a spouse plus a mentor, a colleague, a friend — each legitimate, each costly. Several marriages in fact need a separating dasha, a second-marriage yoga, and Navamsha agreement. Until those agree, read dispersal of attention, and a ${spouse} who carries more strain than ease.`,
       'caution',
+      { weakState: JAYA_TEXT_HI.weakState[weakState] ?? weakState, spouse },
     ))
   }
 
@@ -351,11 +411,17 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       : SATURN_SIGNS.has(lord.rashi)
         ? 'In Saturn’s sign the person treats more than one bond with real gravity: sequential commitments, each taken seriously.'
         : 'In Venus’s sign the person is drawn to more than one kind of beauty and more than one tone of closeness.'
+    const whyHi = lord.dignity === 'exalted'
+      ? JAYA_TEXT_HI.whyMany.exalted
+      : SATURN_SIGNS.has(lord.rashi)
+        ? JAYA_TEXT_HI.whyMany.saturn
+        : JAYA_TEXT_HI.whyMany.venus
     lordNotes.push(note(
       'bphs-19-6',
       'Even a strong 7th tends toward more than one bond',
       `${why} At full strength this reads as many possibilities in partnership. Whether they become several marriages depends on the rest of the chart. The work is to choose one commitment and let the surplus become depth, not a second household.`,
       'mixed',
+      { why: whyHi },
     ))
   }
 
@@ -394,12 +460,14 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       occupantNotes.push(note(
         'bphs-19-7-mo',
         'Moon in the 7th — an emotionally matched bond',
-        `The partner lines up with the person’s feeling and background. The marriage can feel like coming home. The 7th is ${rn(seventhSign)}. ${MOON_SIGN_TEXTURE[seventhSign] ?? ''} Emotional weather in the home becomes the person’s own weather.`,
+        lang === 'en'
+          ? `The partner lines up with the person’s feeling and background. The marriage can feel like coming home. The 7th is ${rn(seventhSign, lang)}. ${MOON_SIGN_TEXTURE[seventhSign] ?? ''} Emotional weather in the home becomes the person’s own weather.`
+          : `साथी भावना और पृष्ठभूमि से मेल खाता है। विवाह घर जैसा। सप्तम ${rn(seventhSign, lang)}। ${moonTexture[seventhSign] ?? ''} घर की भावनात्मक हवा व्यक्ति की अपनी हवा बन जाती है।`,
         'mixed',
       ))
       continue
     }
-    const row = OCCUPANT[g.id]
+    const row = occupantsHi[g.id]
     if (!row) continue
     const extra = nurtureLine(g.id)
     occupantNotes.push(note(
@@ -486,6 +554,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       'The best-case partnership pattern',
       `Three conditions meet: the 7th lord is dignified, a helpful planet occupies the 7th, and a strong ${gn(lagnaId)} sits in the 7th. The ${spouse} is then read as virtuous in the sense that the marriage brings out the better self, and as generative: children, work, and a lineage of effort, not a single event. A weak lagna lord could not have sustained this. The mirror only reflects what stands in front of it.`,
       'supportive',
+      { lagnaLord: gn(lagnaId, lang), spouse },
     ))
   }
 
@@ -494,7 +563,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
   if (marriageAfflicted) {
     const mild = lordDignified && !lordWeak
     dynamicNotes.push(note(
-      'bphs-19-16',
+      mild ? 'bphs-19-16-mild' : 'bphs-19-16-severe',
       mild ? 'Difficult planets touch a strong 7th' : 'Difficult planets on a weak marriage signature',
       mild
         ? 'A difficult planet joins the 7th or its lord, and the lord still has strength. This points to a mild loss of ease: friction, a thinner romance, a season of distance. It does not by itself indicate the marriage ending.'
@@ -509,11 +578,17 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       : lordHouse === 8
         ? 'In the 8th with no strength, the change is forced. Crisis rewrites both people.'
         : 'In the 12th with no strength, the bond dissolves by distance or by becoming a marriage in name.'
+    const kindHi = lordHouse === 6
+      ? 'बल के बिना 6 में विवाह अवैतनिक मेहनत — सेवा से निकलने की इच्छा।'
+      : lordHouse === 8
+        ? 'बल के बिना 8 में परिवर्तन जबरन — संकट दोनों को बदलता है।'
+        : 'बल के बिना 12 में दूरी या नाम-मात्र विवाह।'
     dynamicNotes.push(note(
       'bphs-19-17',
       'A weak 7th lord in a developmental house',
       `${kind} The house still describes a curriculum. Debility means the curriculum arrives as pain rather than as a chosen discipline. Growth is available. Ease is not the design.`,
       'caution',
+      { kind: lang === 'hi' ? kindHi : kind },
     ))
   } else if (lord?.dignity === 'debilitated' && !lordDusthana) {
     dynamicNotes.push(note(
@@ -529,6 +604,12 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
   if (moon && houseOf(moon.rashi, asc) === 7 && lordHouse === 12 && karakaWeak) {
     const phase = waxing(moon, sun)
     const base = `The Moon in the 7th ties peace of mind to the marriage. The 7th lord in the 12th spends that marriage on distance and giving-up. ${karaka ? gn(karaka.id) : 'The marriage significator'} is too weak to repair the gap.`
+    const baseHi = `7 में चंद्र मन को विवाह से बाँधता है। सप्तमेश 12 में दूरी और त्याग पर खर्च। ${karaka ? gn(karaka.id, lang) : 'विवाह कारक'} कमज़ोर — खाई भर नहीं सकता।`
+    const hi18 = phase === true
+      ? JAYA_TEXT_HI.notes['bphs-19-18-wax']
+      : phase === false
+        ? JAYA_TEXT_HI.notes['bphs-19-18-wan']
+        : JAYA_TEXT_HI.notes['bphs-19-18-open']
     dynamicNotes.push(note(
       'bphs-19-18',
       phase === true ? 'A waxing Moon softens the denial of marital ease' : 'Need without a working mechanism',
@@ -536,6 +617,8 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
         ? `${base} Classical texts apply the full denial of marital happiness to a waning Moon. This Moon is waxing, so the adversity is mitigated: the need is still there, and the mechanism is still thin, but the chart is not read as a marriage without happiness.`
         : `${base} The person needs a partner and is poorly built to sustain one. The lived experience is “I give everything and I am not met,” not “the spouse is the defect.” Strengthen the Moon’s emotional skill, make peace with the 12th, and support Venus or Jupiter. Blaming a sequence of partners misses the chart. ${phase === false ? 'The Moon is waning, which is the classical condition for the full reading.' : 'Classical texts reserve the full denial for a waning Moon. The Moon’s phase is not available for this chart, so the far end stays open.'}`,
       phase === true ? 'mixed' : 'caution',
+      { base: lang === 'hi' ? baseHi : base },
+      lang === 'hi' ? { title: hi18.title, detail: fill(hi18.detail, { base: baseHi }) } : undefined,
     ))
   }
 
@@ -578,11 +661,15 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
   const pushYears = (id: string, title: string, detail: string, pair: [number, number] | [number], tone: LifeTone = 'mixed') => {
     years.push(...pair)
     const label = pair.length === 2 ? `${ordinal(pair[0])} or ${ordinal(pair[1])}` : ordinal(pair[0])
+    const labelHi = pair.length === 2 ? `${ordinal(pair[0])} या ${ordinal(pair[1])}` : ordinal(pair[0])
+    const relKey = pair[0] <= 16 ? 'early' : pair[0] <= 22 ? 'middling' : 'later'
+    const relativeHi = JAYA_TEXT_HI.timingRelative[relKey] ?? relKey
     timingNotes.push(note(
       id,
       title,
       `This timing mark sits at the ${label} year. Treat the number as an early-marriage-era marker. What travels is the order: this chart ripens ${pair[0] <= 16 ? 'early' : pair[0] <= 22 ? 'on a middling schedule' : 'late'} relative to a chart with a different marker. ${detail}`,
       tone,
+      { label: labelHi, relative: relativeHi, detail: JAYA_TEXT_HI.pushDetails[id] ?? detail },
     ))
   }
 
@@ -723,6 +810,8 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
       'How to use these years',
       'These age markers assume a culture of very early marriage. Read the sequence of the markers rather than the literal birthday, and confirm any year with the dasha of the 7th lord, Venus, and Jupiter.',
       'mixed',
+      {},
+      lang === 'hi' ? JAYA_TEXT_HI.timingFrame : undefined,
     ))
   }
 
@@ -800,7 +889,7 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
     ))
   }
 
-  const lossSpectrum = strainNotes.length > 0 || dynamicNotes.some(n => n.id === 'bphs-19-16' || n.id === 'bphs-19-17' || n.id === 'bphs-19-18')
+  const lossSpectrum = strainNotes.length > 0 || dynamicNotes.some(n => n.id.startsWith('bphs-19-16') || n.id === 'bphs-19-17' || n.id === 'bphs-19-18')
   const gold = dynamicNotes.some(n => n.id === 'bphs-19-14')
   const dusthanaUndignified = lordDusthana && !lordDignified
 
@@ -810,21 +899,42 @@ export function analyzeJayaBhava(chart: ChartOutput): JayaBhavaReading | null {
   else if (lordDignified && !lordWeak) headline = 'Full happiness through the partner is available'
   else if (dusthanaUndignified) headline = 'This marriage is built for development'
   else if (lordWeak) headline = 'The planet ruling the marriage house cannot hold the bond alone'
+  if (lang === 'hi') {
+    headline = gold ? JAYA_TEXT_HI.headlines.gold
+      : siege ? JAYA_TEXT_HI.headlines.siege
+        : lordDignified && !lordWeak ? JAYA_TEXT_HI.headlines.dignified
+          : dusthanaUndignified ? JAYA_TEXT_HI.headlines.develop
+            : lordWeak ? JAYA_TEXT_HI.headlines.weak
+              : JAYA_TEXT_HI.headlines.default
+  }
 
-  const occNames = in7.map(g => gn(g.id))
+  const occNames = in7.map(g => gn(g.id, lang))
   const occLine = occNames.length === 0
     ? 'The marriage house (7th) is empty, so its ruling planet carries the description.'
     : occNames.length === 1
       ? `${occNames[0]} sits in the marriage house (7th).`
       : `${occNames.slice(0, -1).join(', ')} and ${occNames[occNames.length - 1]} sit in the marriage house (7th).`
+  const occHi = occNames.length === 0
+    ? JAYA_TEXT_HI.summary.occEmpty
+    : occNames.length === 1
+      ? fill(JAYA_TEXT_HI.summary.occOne, { who: occNames[0] })
+      : fill(JAYA_TEXT_HI.summary.occMany, { who: `${occNames.slice(0, -1).join(', ')} और ${occNames[occNames.length - 1]}` })
   const summary = lord && lordHouse != null
+  ? (lang === 'en'
     ? `${gn(lord.id)} rules ${rn(seventhSign)} as the marriage-house (7th) lord and sits in the ${ordinal(lordHouse)}${lordDignified ? ', with dignity' : lordWeak ? ', without strength' : ''}. ${occLine}`
-    : 'The planet ruling the marriage house (7th) is not available in this chart.'
+    : fill(JAYA_TEXT_HI.summary.lord, {
+      lord: gn(lord.id, lang),
+      seventh: rn(seventhSign, lang),
+      house: lordHouse,
+      dignity: lordDignified ? JAYA_TEXT_HI.summary.dignityYes : lordWeak ? JAYA_TEXT_HI.summary.dignityWeak : '',
+      occ: occHi,
+    }))
+  : (lang === 'en' ? 'The planet ruling the marriage house (7th) is not available in this chart.' : JAYA_TEXT_HI.summary.missing)
 
   return {
     headline,
     summary,
-    principles: JAYA_PRINCIPLES,
+    principles: pick(JAYA_PRINCIPLES, JAYA_PRINCIPLES_HI, lang),
     lord: lordNotes,
     occupants: occupantNotes,
     dynamics: dynamicNotes,
@@ -857,14 +967,20 @@ export function compareJayaBhava(
   b: JayaBhavaReading,
   nameA: string,
   nameB: string,
+  lang: EngineLang = 'en',
 ): MarriedLifeNote[] {
+  const prevLang = CURRENT_LANG
+  CURRENT_LANG = lang
   const notes: MarriedLifeNote[] = []
+  const C = JAYA_COMPARE_HI
 
   if (a.flags.goldStandard && b.flags.goldStandard) {
     notes.push(note(
       'jaya-pair-gold',
-      'Both charts meet the gold standard',
-      `${nameA} and ${nameB} each have a dignified 7th lord, a helpful planet in the 7th, and a strong lagna lord invested in partnership. The marriage has two people who can actually stand in it.`,
+      lang === 'en' ? 'Both charts meet the gold standard' : C.gold.title,
+      lang === 'en'
+        ? `${nameA} and ${nameB} each have a dignified 7th lord, a helpful planet in the 7th, and a strong lagna lord invested in partnership. The marriage has two people who can actually stand in it.`
+        : fill(C.gold.detail, { a: nameA, b: nameB }),
       'supportive',
     ))
   } else if (a.flags.dignifiedLord && b.flags.dignifiedLord) {
@@ -873,6 +989,8 @@ export function compareJayaBhava(
       'Both 7th lords can carry a marriage',
       `${nameA} and ${nameB} both have the classical benchmark for marital happiness available. Trouble can still come, and the charts say the two can meet it as a pair.`,
       'supportive',
+      { a: nameA, b: nameB },
+      lang === 'hi' ? { title: C.dignity.title, detail: fill(C.dignity.detail, { a: nameA, b: nameB }) } : undefined,
     ))
   }
 
@@ -884,6 +1002,8 @@ export function compareJayaBhava(
       'Both marriages are developmental',
       `Each 7th lord sits in the 6th, 8th, or 12th without dignity. The couple will grow by service, crisis, or sacrifice. Ease is not what either chart promised. Naming that before the wedding keeps it a shared project.`,
       'caution',
+      {},
+      lang === 'hi' ? { title: C.bothDevelop.title, detail: C.bothDevelop.detail } : undefined,
     ))
   } else if (devA !== devB) {
     const heavier = devA ? nameA : nameB
@@ -893,18 +1013,22 @@ export function compareJayaBhava(
       'One chart is steadier than the other',
       `${steadier} has the more workable 7th lord. ${heavier}’s marriage signature is aimed at development through a difficult house. The steadier person will be asked to carry that curriculum. It becomes resentment only when it is mistaken for a personality flaw.`,
       'mixed',
+      { steadier, heavier },
+      lang === 'hi' ? { title: C.uneven.title, detail: fill(C.uneven.detail, { steadier, heavier }) } : undefined,
     ))
   }
 
   if (a.flags.siege || b.flags.siege) {
     const who = a.flags.siege && b.flags.siege
-      ? 'Both charts'
+      ? (lang === 'en' ? 'Both charts' : 'दोनों चार्ट')
       : a.flags.siege ? nameA : nameB
     notes.push(note(
       'jaya-pair-siege',
       'A three-part pressure on partnership',
       `${who} show Mars in the 6th, Rahu in the 7th, and Saturn in the 8th. The pattern is a fight on the way in, an unstable bond, and a long aftermath. This does not indicate a death. The useful question is whether the couple can see the pattern before they reenact it.`,
       'caution',
+      { who },
+      lang === 'hi' ? { title: C.siege.title, detail: fill(C.siege.detail, { who }) } : undefined,
     ))
   } else if (a.flags.lossSpectrum && b.flags.lossSpectrum) {
     notes.push(note(
@@ -912,17 +1036,22 @@ export function compareJayaBhava(
       'Continuity is the work for both',
       'Both charts carry a strain line on the 7th. Separation language still needs Navamsha and dasha. What can be said now is that neither person should expect the marriage to be self-maintaining.',
       'caution',
+      {},
+      lang === 'hi' ? { title: C.strain.title, detail: C.strain.detail } : undefined,
     ))
   }
 
   const bandA = band(a.flags.earliestYear)
   const bandB = band(b.flags.earliestYear)
+  const bandLabel = { early: 'जल्दी', middle: 'मध्यम', late: 'देर' } as const
   if (bandA && bandB && bandA !== bandB) {
     notes.push(note(
       'jaya-pair-timing',
       'The marriage clocks do not match',
       `${nameA}’s earliest marriage-timing marker is ${bandA}. ${nameB}’s is ${bandB}. The later clock sets the real pace. Pushing the earlier chart produces a wedding the other person is not built for yet.`,
       'mixed',
+      { a: nameA, b: nameB, bandA: bandLabel[bandA], bandB: bandLabel[bandB] },
+      lang === 'hi' ? { title: C.timingMismatch.title, detail: fill(C.timingMismatch.detail, { a: nameA, b: nameB, bandA: bandLabel[bandA], bandB: bandLabel[bandB] }) } : undefined,
     ))
   } else if (bandA && bandB) {
     notes.push(note(
@@ -930,6 +1059,8 @@ export function compareJayaBhava(
       'The marriage clocks agree',
       `Both earliest markers sit in the ${bandA} band. Relative timing is aligned. The absolute year still has to be read from dasha, with a modern cultural delay.`,
       'supportive',
+      { band: bandLabel[bandA] },
+      lang === 'hi' ? { title: C.timingMatch.title, detail: fill(C.timingMatch.detail, { band: bandLabel[bandA] }) } : undefined,
     ))
   }
 
@@ -939,8 +1070,11 @@ export function compareJayaBhava(
       'No shared extreme on the seventh',
       `${nameA} and ${nameB} do not share a gold-standard pairing or a shared strain signature. Each 7th lord is best understood on its own, together with the cross-chart notes above.`,
       'mixed',
+      { a: nameA, b: nameB },
+      lang === 'hi' ? { title: C.plain.title, detail: fill(C.plain.detail, { a: nameA, b: nameB }) } : undefined,
     ))
   }
 
+  CURRENT_LANG = prevLang
   return notes
 }

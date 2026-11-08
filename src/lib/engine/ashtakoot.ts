@@ -2,6 +2,9 @@
 // 36-point Ashtakoot Milan (Gun Milan) with dosha exceptions,
 // psychological profiles, and eligibility banding (ideal 18–32; above 32 = caution).
 
+import type { EngineLang } from '@/lib/engine/lang'
+import { localizeAshtakootResult } from '@/lib/engine/locale/ashtakoot.hi'
+
 export type KootaKey =
   | 'varna'
   | 'vashya'
@@ -641,6 +644,7 @@ export function calculateAshtakoot(
   girlNak: number,
   girlSign: number,
   opts: AshtakootOptions = {},
+  lang: EngineLang = 'en',
 ): AshtakootResult {
   const boyDeg = degInSign(opts.boyMoonDegree)
   const girlDeg = degInSign(opts.girlMoonDegree)
@@ -667,7 +671,7 @@ export function calculateAshtakoot(
     bhakoot.points +
     nadi.points
 
-  return {
+  const result: AshtakootResult = {
     varna,
     vashya,
     tara,
@@ -686,4 +690,6 @@ export function calculateAshtakoot(
     disclaimer:
       'Ashtakoot looks only at the Moon and nakshatra (Stage 1). Totals above 32 (including 36/36) are sometimes read as being very alike, and same Nadi remains the most weighty koota concern even if points are restored. The D1/D9 charts and Venus–Mars chemistry add important context, and none of this is a prediction about your relationship.',
   }
+  if (lang === 'hi') return localizeAshtakootResult(result)
+  return result
 }

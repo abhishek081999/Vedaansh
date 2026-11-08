@@ -9,6 +9,13 @@ import type { ChartOutput, Dignity, Gender, GrahaData, GrahaId, Rashi } from '@/
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
+import { fill, pick, gName, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  COMPLEMENT_HI,
+  MARRIAGE_HOUSES_PRINCIPLES_HI,
+  MH_ROLE_HI,
+  MH_TEXT_HI,
+} from '@/lib/engine/locale/marriageHouses.hi'
 
 export type HouseHealth = 'holding' | 'thin' | 'strained'
 
@@ -74,12 +81,14 @@ function signOf(asc: number, house: number): Rashi {
   return ((((asc - 1 + house - 1) % 12) + 1) as Rashi)
 }
 
-function rn(r: number): string {
-  return RASHI_NAMES[r as Rashi] ?? `R${r}`
+function rn(r: number, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return RASHI_NAMES[r as Rashi] ?? `R${r}`
+  return rName(r as Rashi, lang)
 }
 
-function gn(id: GrahaId | string): string {
-  return GRAHA_NAMES[id as GrahaId] ?? id
+function gn(id: GrahaId | string, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return GRAHA_NAMES[id as GrahaId] ?? id
+  return gName(id as GrahaId, lang)
 }
 
 function find(list: GrahaData[] | undefined, id: GrahaId): GrahaData | undefined {
@@ -110,14 +119,15 @@ function isMalefic(g: GrahaData): boolean {
   return g.id === 'Su' || g.id === 'Ma' || g.id === 'Sa' || g.id === 'Ra' || g.id === 'Ke'
 }
 
-function ordinalHouse(n: number): string {
+function ordinalHouse(n: number, lang: EngineLang = 'en'): string {
+  if (lang === 'hi') return MH_TEXT_HI.ordinal(n)
   if (n === 1) return '1st'
   if (n === 2) return '2nd'
   if (n === 3) return '3rd'
   return `${n}th`
 }
 
-export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): MarriageHousesReading | null {
+export function analyzeMarriageHouses(chart: ChartOutput | null | undefined, lang: EngineLang = 'en'): MarriageHousesReading | null {
   const asc = chart?.lagnas?.ascRashi
   if (!chart || !asc) return null
 
@@ -206,21 +216,32 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   const groups: MarriedLifeNote[] = []
   const activation: MarriedLifeNote[] = []
 
+  const complement = pick(COMPLEMENT, COMPLEMENT_HI, lang)
   const seventhSign = signOf(asc, 7)
+  const seventhClause = health[7] === 'holding'
+    ? (lang === 'en' ? 'This 7th can complete the meeting.' : MH_TEXT_HI.seventh.holding)
+    : health[7] === 'strained'
+      ? (lang === 'en' ? 'This 7th is under strain, so the missing piece arrives with friction.' : MH_TEXT_HI.seventh.strained)
+      : (lang === 'en' ? 'This 7th is neither a clear strength nor a clear break.' : MH_TEXT_HI.seventh.thin)
   houses.push(note(
     'houses-seventh',
-    'The 7th completes you, then steps aside',
-    `The 7th is ${rn(seventhSign)}. It is the incomplete part of this person, and the partner is asked to bring ${COMPLEMENT[seventhSign]}. The match is complementing: the partner supplies that missing piece. ${health[7] === 'holding' ? 'This 7th can complete the meeting.' : health[7] === 'strained' ? 'This 7th is under strain, so the missing piece arrives with friction.' : 'This 7th is neither a clear strength nor a clear break.'} Once the marriage exists, the 7th has done its work. The real test is the 8th: how the two hold each other when something actually goes wrong.`,
+    lang === 'en' ? 'The 7th completes you, then steps aside' : MH_TEXT_HI.seventh.title,
+    lang === 'en'
+      ? `The 7th is ${rn(seventhSign, lang)}. It is the incomplete part of this person, and the partner is asked to bring ${complement[seventhSign]}. The match is complementing: the partner supplies that missing piece. ${health[7] === 'holding' ? 'This 7th can complete the meeting.' : health[7] === 'strained' ? 'This 7th is under strain, so the missing piece arrives with friction.' : 'This 7th is neither a clear strength nor a clear break.'} Once the marriage exists, the 7th has done its work. The real test is the 8th: how the two hold each other when something actually goes wrong.`
+      : fill(MH_TEXT_HI.seventh.lead, { sign: rn(seventhSign, lang), complement: complement[seventhSign], clause: seventhClause }),
     health[7] === 'holding' ? 'supportive' : health[7] === 'strained' ? 'caution' : 'mixed',
   ))
 
   const role = (house: number, title: string, holding: string, strained: string) => {
     const state = health[house]
     if (state === 'thin') return
+    const hi = MH_ROLE_HI[house]
     houses.push(note(
       `houses-${house}`,
-      title,
-      `The ${ordinalHouse(house)} is ${rn(signOf(asc, house))}. ${state === 'holding' ? holding : strained}`,
+      lang === 'en' ? title : hi?.title ?? title,
+      lang === 'en'
+        ? `The ${ordinalHouse(house, lang)} is ${rn(signOf(asc, house), lang)}. ${state === 'holding' ? holding : strained}`
+        : `यह ${ordinalHouse(house, lang)} ${rn(signOf(asc, house), lang)} है। ${state === 'holding' ? hi?.holding ?? holding : hi?.strained ?? strained}`,
       state === 'holding' ? 'supportive' : 'caution',
     ))
   }
@@ -238,10 +259,16 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     'This is where marriages can come under strain without the 7th being involved: family pressure, money, or one wrong word. The 2nd is not holding the union of the two family lines.',
   )
   if (fourthStrained) {
+    const fourthSign = rn(signOf(asc, 4), lang)
+    const seventhClause4 = seventhHolding
+      ? (lang === 'en' ? 'The 7th is holding, so it is not the source of that instability.' : MH_TEXT_HI.fourthStrained.seventhHolding)
+      : (lang === 'en' ? 'The 7th may be under strain as well, but the 4th matters in its own right, whether or not the 7th is also affected.' : MH_TEXT_HI.fourthStrained.seventhNot)
     houses.push(note(
       'houses-fourth-divorce',
-      'The 4th is unbalanced — a source of instability',
-      `The 4th is ${rn(signOf(asc, 4))}, and it is not holding emotional security. Classical texts treat a disturbed 4th as an essential factor whenever a marriage is under strain. Many unstable marriages come from this house alone. ${seventhHolding ? 'The 7th is holding, so it is not the source of that instability.' : 'The 7th may be under strain as well, but the 4th matters in its own right, whether or not the 7th is also affected.'}`,
+      lang === 'en' ? 'The 4th is unbalanced — a source of instability' : MH_TEXT_HI.fourthStrained.title,
+      lang === 'en'
+        ? `The 4th is ${fourthSign}, and it is not holding emotional security. Classical texts treat a disturbed 4th as an essential factor whenever a marriage is under strain. Many unstable marriages come from this house alone. ${seventhClause4}`
+        : fill(MH_TEXT_HI.fourthStrained.detail, { sign: fourthSign, seventhClause: seventhClause4 }),
       'caution',
     ))
   } else if (health[4] === 'holding') {
@@ -260,14 +287,20 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   )
   if (health[8] !== 'thin') {
     const bride = gender === 'female'
-      ? ' For the person entering the other household, this is where the life changes shape after the wedding.'
-      : ' This is the ground-level support: secrets, intensity, and whether the two stay when the problem is real.'
-    role(
-      8,
-      '8th house — the test after the wedding',
-      `The 7th has stepped aside. The 8th can hold the intimacy and the crisis.${bride}`,
-      `The 7th can still arrange a wedding. The 8th is where it is lived, and this 8th is strained: secrets, transformation, and support in trouble are the weak point.${bride}`,
-    )
+      ? (lang === 'en' ? ' For the person entering the other household, this is where the life changes shape after the wedding.' : MH_TEXT_HI.eighthBride.female)
+      : (lang === 'en' ? ' This is the ground-level support: secrets, intensity, and whether the two stay when the problem is real.' : MH_TEXT_HI.eighthBride.male)
+    const hi8 = MH_ROLE_HI[8]
+    const state = health[8]
+    houses.push(note(
+      'houses-8',
+      lang === 'en' ? '8th house — the test after the wedding' : hi8.title,
+      lang === 'en'
+        ? (state === 'holding'
+          ? `The 7th has stepped aside. The 8th can hold the intimacy and the crisis.${bride}`
+          : `The 7th can still arrange a wedding. The 8th is where it is lived, and this 8th is strained: secrets, transformation, and support in trouble are the weak point.${bride}`)
+        : (state === 'holding' ? `${hi8.holding}${bride}` : `${hi8.strained}${bride}`),
+      state === 'holding' ? 'supportive' : 'caution',
+    ))
   }
   role(
     9,
@@ -291,15 +324,15 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   if (trineBalanced) {
     groups.push(note(
       'houses-trine',
-      'A value-based marriage',
-      'The 1st, 5th, and 9th are carrying their weight. The aim is “we move forward,” with the self meaning the couple. The marriage is held by dharma: growth together, and staying when a season is hard.',
+      lang === 'en' ? 'A value-based marriage' : MH_TEXT_HI.groups.trine.title,
+      lang === 'en' ? 'The 1st, 5th, and 9th are carrying their weight. The aim is “we move forward,” with the self meaning the couple. The marriage is held by dharma: growth together, and staying when a season is hard.' : MH_TEXT_HI.groups.trine.detail,
       'supportive',
     ))
   } else if (count(TRINE, 'strained') >= 2) {
     groups.push(note(
       'houses-trine-thin',
-      'Self-development is not the bond’s center',
-      'Two of the 1st, 5th, and 9th are strained. The value-based marriage that classical texts describe — growing as a couple, staying because the direction is shared — does not have all three of its houses here.',
+      lang === 'en' ? 'Self-development is not the bond’s center' : MH_TEXT_HI.groups.trineThin.title,
+      lang === 'en' ? 'Two of the 1st, 5th, and 9th are strained. The value-based marriage that classical texts describe — growing as a couple, staying because the direction is shared — does not have all three of its houses here.' : MH_TEXT_HI.groups.trineThin.detail,
       'caution',
     ))
   }
@@ -307,8 +340,8 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   if (relationshipBalanced) {
     groups.push(note(
       'houses-relationship',
-      'The relationship is the priority',
-      'The 4th, 7th, 8th, and 12th are holding. The couple put the bond first and carry the wider family with them. These charts are also the more troubled ones: the commitment is real, and so is the work.',
+      lang === 'en' ? 'The relationship is the priority' : MH_TEXT_HI.groups.relationship.title,
+      lang === 'en' ? 'The 4th, 7th, 8th, and 12th are holding. The couple put the bond first and carry the wider family with them. These charts are also the more troubled ones: the commitment is real, and so is the work.' : MH_TEXT_HI.groups.relationship.detail,
       'mixed',
     ))
   }
@@ -316,45 +349,60 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
   if (axisStrained) {
     groups.push(note(
       'houses-divorce-axis',
-      'The self–partner–crisis–release axis is strained',
-      'The 1st, 7th, 8th, and 12th are one axis: self, partnership, intimacy under crisis, and detachment. Two or more of them are strained. Classical texts note that the same mahadasha can bring a marriage and, later, an ending of it. The difference lies in the finer periods, not in a second yoga.',
+      lang === 'en' ? 'The self–partner–crisis–release axis is strained' : MH_TEXT_HI.groups.divorceAxis.title,
+      lang === 'en' ? 'The 1st, 7th, 8th, and 12th are one axis: self, partnership, intimacy under crisis, and detachment. Two or more of them are strained. Classical texts note that the same mahadasha can bring a marriage and, later, an ending of it. The difference lies in the finer periods, not in a second yoga.' : MH_TEXT_HI.groups.divorceAxis.detail,
       'caution',
     ))
   }
 
   const held = EIGHT.filter(h => health[h] === 'holding').length
-  const strained = EIGHT.filter(h => health[h] === 'strained').length
-  if (strained > 0) {
+  const strainedCount = EIGHT.filter(h => health[h] === 'strained').length
+  if (strainedCount > 0) {
     groups.push(note(
       'houses-cover',
-      'Why the partner’s chart matters',
-      `${held} of these marriage houses are holding and ${strained} are strained. Match-making exists so the partner’s chart can cover the houses this chart does not. Three or four houses balanced between the two charts are enough for the marriage to be workable.`,
-      strained > held ? 'caution' : 'mixed',
+      lang === 'en' ? 'Why the partner’s chart matters' : MH_TEXT_HI.groups.cover.title,
+      lang === 'en'
+        ? `${held} of these marriage houses are holding and ${strainedCount} are strained. Match-making exists so the partner’s chart can cover the houses this chart does not. Three or four houses balanced between the two charts are enough for the marriage to be workable.`
+        : fill(MH_TEXT_HI.groups.cover.detail, { held, strained: strainedCount }),
+      strainedCount > held ? 'caution' : 'mixed',
     ))
   }
 
   if (path.length && md) {
     const rawNames = path.slice(0, 3).map(p => gn(p.lord))
     const names = rawNames.filter((name, i) => i === 0 || name !== rawNames[i - 1]).join(' → ')
+    const ord = (h: number) => ordinalHouse(h, lang)
+  const triList = triTied.map(ord).join(lang === 'en' ? ', ' : ', ')
+  const bindList = bindTied.map(ord).join(lang === 'en' ? ', ' : ', ')
+  const bindListLong = bindTied.map(h => (lang === 'en' ? `the ${ord(h)}` : ord(h))).join(lang === 'en' ? ' and ' : ' और ')
     if (triangularActive && bindingActive) {
+      const act = MH_TEXT_HI.activation
       activation.push(note(
         'houses-both-energies',
-        'The decision and the binding are both on',
-        `${names} ties the triangular houses (${triTied.map(ordinalHouse).join(', ')}) and the binding houses (${bindTied.map(ordinalHouse).join(', ')}). Classical texts say a marriage is decided from the 1st, 5th, and 9th, and actually happens only when the 2nd, 8th, and 11th answer as well. Both are answering in this period.`,
+        lang === 'en' ? 'The decision and the binding are both on' : act.both.title,
+        lang === 'en'
+          ? `${names} ties the triangular houses (${triList}) and the binding houses (${bindList}). Classical texts say a marriage is decided from the 1st, 5th, and 9th, and actually happens only when the 2nd, 8th, and 11th answer as well. Both are answering in this period.`
+          : fill(act.both.detail, { names, tri: triList, bind: bindList }),
         'supportive',
       ))
     } else if (triangularActive) {
+      const act = MH_TEXT_HI.activation
       activation.push(note(
         'houses-triangle-only',
-        'The marriage can be decided and still not happen',
-        `${names} ties ${triTied.map(ordinalHouse).join(' and ')}. That is the triangular energy: the decision. The binding houses 2, 8, and 11 are not in this period. This gap is the traditional explanation for a “right dasha” that brings no wedding.`,
+        lang === 'en' ? 'The marriage can be decided and still not happen' : act.triOnly.title,
+        lang === 'en'
+          ? `${names} ties ${triTied.map(ord).join(' and ')}. That is the triangular energy: the decision. The binding houses 2, 8, and 11 are not in this period. This gap is the traditional explanation for a “right dasha” that brings no wedding.`
+          : fill(act.triOnly.detail, { names, tri: triTied.map(ord).join(' और ') }),
         'mixed',
       ))
     } else if (bindingActive) {
+      const act = MH_TEXT_HI.activation
       activation.push(note(
         'houses-binding-only',
-        'The form is available before the decision',
-        `${names} ties ${bindTied.map(h => `the ${ordinalHouse(h)}`).join(' and ')}. Those houses are what turn a decision into a marriage. The 1st, 5th, and 9th are not both in the period, so the will to marry is not what this dasha is switching on.`,
+        lang === 'en' ? 'The form is available before the decision' : act.bindOnly.title,
+        lang === 'en'
+          ? `${names} ties ${bindListLong}. Those houses are what turn a decision into a marriage. The 1st, 5th, and 9th are not both in the period, so the will to marry is not what this dasha is switching on.`
+          : fill(act.bindOnly.detail, { names, bind: bindListLong }),
         'mixed',
       ))
     }
@@ -366,25 +414,33 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     const d9Ready = !!d9Asc && path.some(p => p.lord === LORDS[d9Asc])
     const readinessHits = [lagnaReady, moonReady, d9Ready].filter(Boolean).length
     const readiness = readinessHits >= 2
+    const act = MH_TEXT_HI.activation
     if (readiness) {
       activation.push(note(
         'houses-readiness',
-        'Inner readiness, not the wedding date',
-        `${names} touches ${readinessHits} of the lagna, the Moon, and the Navamsha lagna lord. That is the preparation: the person becomes able to marry. It is not the timing of the wedding. Looking back from a known wedding date, this is the pattern the seven years before the marriage tend to show.`,
+        lang === 'en' ? 'Inner readiness, not the wedding date' : act.readiness.title,
+        lang === 'en'
+          ? `${names} touches ${readinessHits} of the lagna, the Moon, and the Navamsha lagna lord. That is the preparation: the person becomes able to marry. It is not the timing of the wedding. Looking back from a known wedding date, this is the pattern the seven years before the marriage tend to show.`
+          : fill(act.readiness.detail, { names, n: readinessHits }),
         'mixed',
       ))
     }
 
     if (manifestCount >= 2) {
       const who = karakaId === 'Ju'
-        ? 'Jupiter is the significator in a woman’s chart.'
+        ? (lang === 'en' ? 'Jupiter is the significator in a woman’s chart.' : MH_TEXT_HI.significator.jupiter)
         : karakaId === 'Ve'
-          ? 'Venus is the significator in a man’s chart.'
-          : 'Venus is the significator in a man’s chart and Jupiter in a woman’s. This chart does not say which.'
+          ? (lang === 'en' ? 'Venus is the significator in a man’s chart.' : MH_TEXT_HI.significator.venus)
+          : (lang === 'en' ? 'Venus is the significator in a man’s chart and Jupiter in a woman’s. This chart does not say which.' : MH_TEXT_HI.significator.open)
+      const marriageExtra = (ties(md, 2) || ties(ad, 2)) && (ties(md, 11) || ties(ad, 11))
+        ? (lang === 'en' ? 'The 2nd and the 11th are also in the period, which is what converts the relationship into a marriage.' : act.manifestMarriage)
+        : (lang === 'en' ? 'Marriage itself still wants the 2nd and the 11th. Without them this is a relationship, not yet a household.' : act.manifestRelation)
       activation.push(note(
         'houses-manifest',
-        'A relationship can form in this period',
-        `${who} Two or more of the 5th, the 7th, and that significator are tied to ${names}. Classical texts treat that as enough for a relationship to become visible. ${ (ties(md, 2) || ties(ad, 2)) && (ties(md, 11) || ties(ad, 11)) ? 'The 2nd and the 11th are also in the period, which is what converts the relationship into a marriage.' : 'Marriage itself still wants the 2nd and the 11th. Without them this is a relationship, not yet a household.' }`,
+        lang === 'en' ? 'A relationship can form in this period' : act.manifest.title,
+        lang === 'en'
+          ? `${who} Two or more of the 5th, the 7th, and that significator are tied to ${names}. Classical texts treat that as enough for a relationship to become visible. ${marriageExtra}`
+          : fill(act.manifest.detail, { who, names, marriageExtra }),
         'mixed',
       ))
     }
@@ -394,8 +450,10 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     if (saturnInPeriod && eighthInPeriod) {
       activation.push(note(
         'houses-saturn-eighth',
-        'Saturn and the 8th bind the contract',
-        'Saturn is in the period and the 8th is tied to it. Traditionally those two give a marriage its structural binding: marriage as a contract, with maturity, fairness, patience, and karmic weight, not only as love. The 8th is the emotional contract underneath the social one.',
+        lang === 'en' ? 'Saturn and the 8th bind the contract' : act.saturnEighth.title,
+        lang === 'en'
+          ? 'Saturn is in the period and the 8th is tied to it. Traditionally those two give a marriage its structural binding: marriage as a contract, with maturity, fairness, patience, and karmic weight, not only as love. The 8th is the emotional contract underneath the social one.'
+          : act.saturnEighth.detail,
         'mixed',
       ))
     }
@@ -405,15 +463,26 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     if (md && stable && !struggle) {
       activation.push(note(
         'houses-dasha-stable',
-        'This mahadasha can hold a relationship',
-        `${gn(md.id)} is tied to the 7th, the 2nd, or the 11th by lordship, occupation, or company. A stable relationship can follow from that link, whichever planet is running. ${saturnInPeriod ? 'Saturn is in the period, which supports a marriage that lasts.' : 'Saturn is outside this period. It tends to be present in the marriages that last.'}`,
+        lang === 'en' ? 'This mahadasha can hold a relationship' : act.dashaStable.title,
+        lang === 'en'
+          ? `${gn(md.id, lang)} is tied to the 7th, the 2nd, or the 11th by lordship, occupation, or company. A stable relationship can follow from that link, whichever planet is running. ${saturnInPeriod ? 'Saturn is in the period, which supports a marriage that lasts.' : 'Saturn is outside this period. It tends to be present in the marriages that last.'}`
+          : fill(act.dashaStable.detail, {
+            lord: gn(md.id, lang),
+            saturnLine: saturnInPeriod ? act.saturnIn : act.saturnOut,
+          }),
         'supportive',
       ))
     } else if (md && struggle) {
       activation.push(note(
         'houses-dasha-struggle',
-        'This mahadasha can strain the marriage',
-        `${gn(md.id)} is tied to the 6th, 8th, or 12th. Strain in the marriage can follow from that link. Stability comes later and asks for Saturn’s patience. ${saturnInPeriod ? 'Saturn is already in the period, so that patience is available to be used.' : ''} ${stable ? 'The same planet also touches a marriage house, so the period contains both the bond and the bill.' : ''}`,
+        lang === 'en' ? 'This mahadasha can strain the marriage' : act.dashaStruggle.title,
+        lang === 'en'
+          ? `${gn(md.id, lang)} is tied to the 6th, 8th, or 12th. Strain in the marriage can follow from that link. Stability comes later and asks for Saturn’s patience. ${saturnInPeriod ? 'Saturn is already in the period, so that patience is available to be used.' : ''} ${stable ? 'The same planet also touches a marriage house, so the period contains both the bond and the bill.' : ''}`
+          : fill(act.dashaStruggle.detail, {
+            lord: gn(md.id, lang),
+            saturnAvail: saturnInPeriod ? act.saturnAvail : '',
+            bothLine: stable ? act.bothBondBill : '',
+          }),
         'caution',
       ))
     }
@@ -422,8 +491,10 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     if (mdD9?.dignity === 'exalted') {
       activation.push(note(
         'houses-dasha-d9',
-        'The mahadasha lord is exalted in D9',
-        `${gn(md!.id)} is exalted in Navamsha. A high-quality marriage can follow from that dignity, whichever planet is running. The period has to be open in D1 as well. Exaltation in D9 does not invent a wedding the houses have not allowed.`,
+        lang === 'en' ? 'The mahadasha lord is exalted in D9' : act.d9Exalted.title,
+        lang === 'en'
+          ? `${gn(md!.id, lang)} is exalted in Navamsha. A high-quality marriage can follow from that dignity, whichever planet is running. The period has to be open in D1 as well. Exaltation in D9 does not invent a wedding the houses have not allowed.`
+          : fill(act.d9Exalted.detail, { lord: gn(md!.id, lang) }),
         'supportive',
       ))
     }
@@ -431,25 +502,32 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     if (loveMarriage) {
       activation.push(note(
         'houses-love',
-        'The 5th and the 7th are both in this period',
-        'Feeling and partnership are tied to the same dasha. A love marriage is the likely shape: the bond is chosen from affection, and the 7th is in the same period.',
+        lang === 'en' ? 'The 5th and the 7th are both in this period' : act.love.title,
+        lang === 'en'
+          ? 'Feeling and partnership are tied to the same dasha. A love marriage is the likely shape: the bond is chosen from affection, and the 7th is in the same period.'
+          : act.love.detail,
         'mixed',
       ))
     }
 
-    const smoothParts: string[] = []
-    if (readiness) smoothParts.push('inner readiness')
-    if (manifestCount >= 2) smoothParts.push('a relationship that can become visible')
-    if (triangularActive) smoothParts.push('the decision houses')
-    if (bindingActive) smoothParts.push('the binding houses')
-    if (saturnInPeriod && eighthInPeriod) smoothParts.push('Saturn with the 8th')
-    if (health[2] === 'holding') smoothParts.push('a 2nd house that can hold a family')
-    if (d9Asc && !d9Silent) smoothParts.push('a Navamsha that answers')
+    const smoothPartsEn: string[] = []
+    const smoothPartsHi: string[] = []
+    const sp = act.smoothParts
+    if (readiness) { smoothPartsEn.push('inner readiness'); smoothPartsHi.push(sp.readiness) }
+    if (manifestCount >= 2) { smoothPartsEn.push('a relationship that can become visible'); smoothPartsHi.push(sp.manifest) }
+    if (triangularActive) { smoothPartsEn.push('the decision houses'); smoothPartsHi.push(sp.tri) }
+    if (bindingActive) { smoothPartsEn.push('the binding houses'); smoothPartsHi.push(sp.bind) }
+    if (saturnInPeriod && eighthInPeriod) { smoothPartsEn.push('Saturn with the 8th'); smoothPartsHi.push(sp.saturn8) }
+    if (health[2] === 'holding') { smoothPartsEn.push('a 2nd house that can hold a family'); smoothPartsHi.push(sp.h2) }
+    if (d9Asc && !d9Silent) { smoothPartsEn.push('a Navamsha that answers'); smoothPartsHi.push(sp.d9) }
+  const smoothParts = lang === 'en' ? smoothPartsEn : smoothPartsHi
     if (smoothParts.length >= 3) {
       activation.push(note(
         'houses-smooth',
-        'Several conditions are on together',
-        `${smoothParts.join(', ')} are on together in ${names}. Three or four agreeing conditions are the smooth case: a person mature enough, a family structure that can receive them, a ready mind, an open dasha, and a sky that still has to confirm. This count is not a wedding date.`,
+        lang === 'en' ? 'Several conditions are on together' : act.smooth.title,
+        lang === 'en'
+          ? `${smoothPartsEn.join(', ')} are on together in ${names}. Three or four agreeing conditions are the smooth case: a person mature enough, a family structure that can receive them, a ready mind, an open dasha, and a sky that still has to confirm. This count is not a wedding date.`
+          : fill(act.smooth.detail, { parts: smoothPartsHi.join(', '), names }),
         'mixed',
       ))
     }
@@ -457,37 +535,51 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
 
   if (d9Silent) {
     const why = d9SeventhLord && weak(d9SeventhLord)
-      ? `The D9 7th lord, ${gn(d9SeventhLord.id)}, is weak.`
+      ? (lang === 'en' ? `The D9 7th lord, ${gn(d9SeventhLord.id, lang)}, is weak.` : fill(MH_TEXT_HI.activation.d9SilentWhy.weakLord, { lord: gn(d9SeventhLord.id, lang) }))
       : d9SeventhHouse != null && [6, 8, 12].includes(d9SeventhHouse)
-        ? `The D9 7th lord sits in the ${ordinalHouse(d9SeventhHouse)} of Navamsha.`
-        : 'Venus or Jupiter is under pressure in Navamsha.'
+        ? (lang === 'en' ? `The D9 7th lord sits in the ${ordinalHouse(d9SeventhHouse, lang)} of Navamsha.` : fill(MH_TEXT_HI.activation.d9SilentWhy.dusthana, { house: ordinalHouse(d9SeventhHouse, lang) }))
+        : (lang === 'en' ? 'Venus or Jupiter is under pressure in Navamsha.' : MH_TEXT_HI.activation.d9SilentWhy.karaka)
+    const act = MH_TEXT_HI.activation
     activation.push(note(
       'houses-d9-silent',
-      'Navamsha can let a marriage period pass',
-      `${why} Traditional texts explain a promising-looking dasha that produces no wedding this way: in D9 the significator is hit, or the 7th lord has gone quiet. D1 can be willing. D9 is not answering.`,
+      lang === 'en' ? 'Navamsha can let a marriage period pass' : act.d9Silent.title,
+      lang === 'en'
+        ? `${why} Traditional texts explain a promising-looking dasha that produces no wedding this way: in D9 the significator is hit, or the 7th lord has gone quiet. D1 can be willing. D9 is not answering.`
+        : fill(act.d9Silent.detail, { why }),
       'caution',
     ))
   } else if (d9Asc && d9SeventhLord && dignified(d9SeventhLord.dignity) && !d9KarakaHit) {
+    const act = MH_TEXT_HI.activation
     activation.push(note(
       'houses-d9-live',
-      'Navamsha is answering',
-      `The D9 7th lord, ${gn(d9SeventhLord.id)}, is strong, and the significator is clear of a difficult planet there. Navamsha has to be alive and to respond. This one is responding. A willing birth-chart period still has to be open, or the response has nothing to meet.`,
+      lang === 'en' ? 'Navamsha is answering' : act.d9Live.title,
+      lang === 'en'
+        ? `The D9 7th lord, ${gn(d9SeventhLord.id, lang)}, is strong, and the significator is clear of a difficult planet there. Navamsha has to be alive and to respond. This one is responding. A willing birth-chart period still has to be open, or the response has nothing to meet.`
+        : fill(act.d9Live.detail, { lord: gn(d9SeventhLord.id, lang) }),
       'supportive',
     ))
   }
 
   if ((fourthStrained || axisStrained) && path.length >= 3) {
+    const act = MH_TEXT_HI.activation
+    const pathStr = path.slice(0, 4).map(p => gn(p.lord, lang)).join(' → ')
     activation.push(note(
       'houses-finer',
-      'The same period can marry and later divide',
-      `The running periods are ${path.slice(0, 4).map(p => gn(p.lord)).join(' → ')}. When the 4th or the 1–7–8–12 axis is already strained, a separation cannot be read from the mahadasha alone. These finer lords are where a wedding and a later ending would be told apart. They are not themselves a finding that the marriage ends.`,
+      lang === 'en' ? 'The same period can marry and later divide' : act.finer.title,
+      lang === 'en'
+        ? `The running periods are ${pathStr}. When the 4th or the 1–7–8–12 axis is already strained, a separation cannot be read from the mahadasha alone. These finer lords are where a wedding and a later ending would be told apart. They are not themselves a finding that the marriage ends.`
+        : fill(act.finer.detail, { path: pathStr }),
       'caution',
     ))
   } else if ((fourthStrained || axisStrained) && path.length > 0 && path.length < 3) {
+    const act = MH_TEXT_HI.activation
+    const pathStr = path.map(p => gn(p.lord, lang)).join(' → ')
     activation.push(note(
       'houses-finer',
-      'Finer periods are not on this chart',
-      `${path.map(p => gn(p.lord)).join(' → ')} is as deep as the stored dasha goes. Classical practice looks to the finer sukshma and prana periods before telling a wedding from a later ending inside one mahadasha. That distinction cannot be read from the levels present here.`,
+      lang === 'en' ? 'Finer periods are not on this chart' : act.finerMissing.title,
+      lang === 'en'
+        ? `${pathStr} is as deep as the stored dasha goes. Classical practice looks to the finer sukshma and prana periods before telling a wedding from a later ending inside one mahadasha. That distinction cannot be read from the levels present here.`
+        : fill(act.finerMissing.detail, { path: pathStr }),
       'mixed',
     ))
   }
@@ -506,10 +598,32 @@ export function analyzeMarriageHouses(chart: ChartOutput | null | undefined): Ma
     ? `${gn(path[0].lord)} is the running period lord. ${triangularActive && bindingActive ? 'Decision houses and binding houses are both active in this period.' : triangularActive ? 'Decision houses are active; binding houses are not.' : bindingActive ? 'Binding houses are active; decision houses are not.' : 'This period is not carrying both the decision and the binding.'}`
     : `The marriage house (7th) is ${rn(seventhSign)}. The period that would activate these houses is not on this chart.`
 
+  const headlineHi = fourthStrained
+    ? MH_TEXT_HI.headlines.fourth
+    : trineBalanced
+      ? MH_TEXT_HI.headlines.trine
+      : relationshipBalanced
+        ? MH_TEXT_HI.headlines.relation
+        : triangularActive && bindingActive
+          ? MH_TEXT_HI.headlines.bothActive
+          : MH_TEXT_HI.headlines.default
+  const summaryHi = path.length
+    ? fill(MH_TEXT_HI.summary.lord, {
+        lord: gn(path[0].lord, 'hi'),
+        clause: triangularActive && bindingActive
+          ? MH_TEXT_HI.summary.both
+          : triangularActive
+            ? MH_TEXT_HI.summary.triOnly
+            : bindingActive
+              ? MH_TEXT_HI.summary.bindOnly
+              : MH_TEXT_HI.summary.neither,
+      })
+    : fill(MH_TEXT_HI.summary.noPath, { sign: rn(seventhSign, 'hi') })
+
   return {
-    headline,
-    summary,
-    principles: MARRIAGE_HOUSES_PRINCIPLES,
+    headline: lang === 'en' ? headline : headlineHi,
+    summary: lang === 'en' ? summary : summaryHi,
+    principles: pick(MARRIAGE_HOUSES_PRINCIPLES, MARRIAGE_HOUSES_PRINCIPLES_HI, lang),
     houses,
     groups,
     activation,
@@ -522,6 +636,7 @@ export function compareMarriageHouses(
   b: MarriageHousesReading,
   nameA: string,
   nameB: string,
+  lang: EngineLang = 'en',
 ): MarriedLifeNote[] {
   const notes: MarriedLifeNote[] = []
   const covers = (from: MarriageHousesReading, onto: MarriageHousesReading) =>
@@ -529,18 +644,27 @@ export function compareMarriageHouses(
   const aCovers = covers(a, b)
   const bCovers = covers(b, a)
   const total = aCovers.length + bCovers.length
+  const fmtHouses = (list: number[]) => list.map(h => ordinalHouse(h, lang)).join(lang === 'en' ? ', ' : ', ')
   if (total >= 3) {
     notes.push(note(
       'houses-pair-cover',
-      'The two charts cover each other',
-      `${nameA} holds ${aCovers.length ? aCovers.map(ordinalHouse).join(', ') : 'none'} of the houses ${nameB} strains. ${nameB} holds ${bCovers.length ? bCovers.map(ordinalHouse).join(', ') : 'none'} of the houses ${nameA} strains. ${total} houses are covered between them. Three or four such covers are traditionally taken as enough for the marriage to work. Ashtakoot is this complementary balancing in another language.`,
+      lang === 'en' ? 'The two charts cover each other' : MH_TEXT_HI.compare.cover.title,
+      lang === 'en'
+        ? `${nameA} holds ${aCovers.length ? fmtHouses(aCovers) : 'none'} of the houses ${nameB} strains. ${nameB} holds ${bCovers.length ? fmtHouses(bCovers) : 'none'} of the houses ${nameA} strains. ${total} houses are covered between them. Three or four such covers are traditionally taken as enough for the marriage to work. Ashtakoot is this complementary balancing in another language.`
+        : fill(MH_TEXT_HI.compare.cover.detail, {
+            nameA, nameB, total,
+            aCovers: aCovers.length ? fmtHouses(aCovers) : MH_TEXT_HI.compare.none,
+            bCovers: bCovers.length ? fmtHouses(bCovers) : MH_TEXT_HI.compare.none,
+          }),
       'supportive',
     ))
   } else if (EIGHT.some(h => a.flags.health[h] === 'strained' || b.flags.health[h] === 'strained')) {
     notes.push(note(
       'houses-pair-gap',
-      'The weak houses are still mostly uncovered',
-      `Only ${total} strained house${total === 1 ? '' : 's'} ${total === 1 ? 'is' : 'are'} held by the other chart. Three or four covers are what is asked for. The partner is there to supply what this chart cannot. That supply is thin here.`,
+      lang === 'en' ? 'The weak houses are still mostly uncovered' : MH_TEXT_HI.compare.gap.title,
+      lang === 'en'
+        ? `Only ${total} strained house${total === 1 ? '' : 's'} ${total === 1 ? 'is' : 'are'} held by the other chart. Three or four covers are what is asked for. The partner is there to supply what this chart cannot. That supply is thin here.`
+        : fill(MH_TEXT_HI.compare.gap.detail, { total }),
       'caution',
     ))
   }
@@ -548,8 +672,10 @@ export function compareMarriageHouses(
   if (a.flags.fourthStrained && b.flags.fourthStrained) {
     notes.push(note(
       'houses-pair-fourth',
-      'Both 4th houses are unbalanced',
-      `${nameA} and ${nameB} each carry a strained 4th, the house classical texts watch most closely for marital instability: emotional security is missing on both sides. A quiet 7th in either chart does not remove it.`,
+      lang === 'en' ? 'Both 4th houses are unbalanced' : MH_TEXT_HI.compare.fourthBoth.title,
+      lang === 'en'
+        ? `${nameA} and ${nameB} each carry a strained 4th, the house classical texts watch most closely for marital instability: emotional security is missing on both sides. A quiet 7th in either chart does not remove it.`
+        : fill(MH_TEXT_HI.compare.fourthBoth.detail, { nameA, nameB }),
       'caution',
     ))
   } else if (a.flags.fourthStrained || b.flags.fourthStrained) {
@@ -557,8 +683,10 @@ export function compareMarriageHouses(
     const other = a.flags.fourthStrained ? nameB : nameA
     notes.push(note(
       'houses-pair-fourth',
-      'One 4th house has to be carried',
-      `${who}’s 4th is unbalanced. ${other} is the chart that has to supply emotional protection, because a marriage can become unstable from the 4th alone.`,
+      lang === 'en' ? 'One 4th house has to be carried' : MH_TEXT_HI.compare.fourthOne.title,
+      lang === 'en'
+        ? `${who}’s 4th is unbalanced. ${other} is the chart that has to supply emotional protection, because a marriage can become unstable from the 4th alone.`
+        : fill(MH_TEXT_HI.compare.fourthOne.detail, { who, other }),
       'mixed',
     ))
   }
@@ -566,8 +694,10 @@ export function compareMarriageHouses(
   if (a.flags.trineBalanced && b.flags.relationshipBalanced || b.flags.trineBalanced && a.flags.relationshipBalanced) {
     notes.push(note(
       'houses-pair-styles',
-      'One chart grows, the other holds the bond',
-      'One chart’s 1st, 5th, and 9th are the value-based pattern. The other’s 4th, 7th, 8th, and 12th put the relationship first. Together they cover the two priorities that traditional texts distinguish.',
+      lang === 'en' ? 'One chart grows, the other holds the bond' : MH_TEXT_HI.compare.styles.title,
+      lang === 'en'
+        ? 'One chart’s 1st, 5th, and 9th are the value-based pattern. The other’s 4th, 7th, 8th, and 12th put the relationship first. Together they cover the two priorities that traditional texts distinguish.'
+        : MH_TEXT_HI.compare.styles.detail,
       'supportive',
     ))
   }

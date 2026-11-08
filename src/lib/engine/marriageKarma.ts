@@ -5,6 +5,9 @@
 
 import type { ChartOutput, Dignity, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName } from '@/lib/engine/divisionalLang'
+import { MK_HI } from '@/lib/engine/locale/marriageKarma.hi'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
 
 export interface MarriageKarmaFlags {
@@ -47,15 +50,34 @@ function strong(d: Dignity | undefined): boolean {
   return !!d && STRONG.includes(d)
 }
 
-function note(id: string, title: string, detail: string, tone: LifeTone): MarriedLifeNote {
+function note(
+  id: string,
+  title: string,
+  detail: string,
+  tone: LifeTone,
+  lang: EngineLang = 'en',
+  values?: Record<string, string | number>,
+): MarriedLifeNote {
+  if (lang === 'hi') {
+    const row = MK_HI.notes[id as keyof typeof MK_HI.notes]
+    if (row) {
+      return {
+        id,
+        title: values ? fill(row.title, values) : row.title,
+        detail: values ? fill(row.detail, values) : row.detail,
+        tone,
+      }
+    }
+  }
   return { id, title, detail, tone }
 }
 
-function gn(id: GrahaId): string {
-  return GRAHA_NAMES[id] ?? id
+function gn(id: GrahaId, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return GRAHA_NAMES[id] ?? id
+  return gName(id, lang)
 }
 
-export function analyzeMarriageKarma(chart: ChartOutput): MarriageKarmaReading | null {
+export function analyzeMarriageKarma(chart: ChartOutput, lang: EngineLang = 'en'): MarriageKarmaReading | null {
   const asc = chart.lagnas?.ascRashi
   if (!asc) return null
 
@@ -98,6 +120,7 @@ export function analyzeMarriageKarma(chart: ChartOutput): MarriageKarmaReading |
       'This marriage carries a debt',
       'Venus and a difficult planet sit on the partnership. The account is paid by staying, by separating the work, or by both. This does not indicate a death. A busy 8th house is not a sign of one either.',
       'caution',
+      lang,
     ))
   } else if (kind === 'karma') {
     debt.push(note(
@@ -105,6 +128,7 @@ export function analyzeMarriageKarma(chart: ChartOutput): MarriageKarmaReading |
       'One karmic mark, not the whole debt',
       'Ketu in the Navamsha 7th is one mark on the partnership. It does not, by itself, turn the birth chart into a karmic-debt stack.',
       'mixed',
+      lang,
     ))
   } else {
     debt.push(note(
@@ -112,16 +136,26 @@ export function analyzeMarriageKarma(chart: ChartOutput): MarriageKarmaReading |
       'No marriage debt is stacked here',
       'The 7th is not carrying Venus with Rahu, and the Navamsha 7th is not marked by Ketu alone as a debt. The chart stays open.',
       'supportive',
+      lang,
     ))
   }
 
   if (seventhLord && houseOf(seventhLord.rashi, asc) === 2) {
-    debt.push(note(
-      'karma-seventh-in-second',
-      'The 7th lord sits in the 2nd',
-      `${gn(seventhLordId)} rules marriage and sits in the household. The partnership is worked through family, speech, and shared money.`,
-      'mixed',
-    ))
+    const lordLabel = gn(seventhLordId, lang)
+    debt.push(lang === 'hi'
+      ? {
+        id: 'karma-seventh-in-second',
+        title: MK_HI.notes['karma-seventh-in-second'].title,
+        detail: fill(MK_HI.notes['karma-seventh-in-second'].detail, { lord: lordLabel }),
+        tone: 'mixed',
+      }
+      : note(
+        'karma-seventh-in-second',
+        'The 7th lord sits in the 2nd',
+        `${gn(seventhLordId)} rules marriage and sits in the household. The partnership is worked through family, speech, and shared money.`,
+        'mixed',
+        lang,
+      ))
   }
 
   if (jupiterMeans) {
@@ -130,6 +164,7 @@ export function analyzeMarriageKarma(chart: ChartOutput): MarriageKarmaReading |
       'Jupiter gives the exalted Venus a meaning',
       'Venus is exalted, and Jupiter is strong enough to give that Venus a meaning. This is still a compromised marriage if the rest of the stack is heavy. Exaltation is not a promise of a perfect spouse.',
       'mixed',
+      lang,
     ))
   } else if (venus && (venus.dignity === 'debilitated' || venus.dignity === 'enemy' || venus.dignity === 'great_enemy')) {
     venusNotes.push(note(
@@ -137,6 +172,7 @@ export function analyzeMarriageKarma(chart: ChartOutput): MarriageKarmaReading |
       'A weak Venus is not the verdict',
       'Venus is weak in this chart. That does not, by itself, condemn the marriage. Jupiter, the 7th lord, and the Navamsha still have to be read.',
       'mixed',
+      lang,
     ))
   }
 
@@ -146,20 +182,30 @@ export function analyzeMarriageKarma(chart: ChartOutput): MarriageKarmaReading |
       'Saturn on the household can complete',
       'Saturn sits with the household, Mars holds the 8th, and the 5th and the 9th can see the work. That is completion: a realization. The 8th is the account being closed, not a death.',
       'mixed',
+      lang,
     ))
   }
 
   if (rina && md && md === sixthLord) {
-    period.push(note(
-      'karma-separation-clock',
-      `${gn(md)} is the separator in this period`,
-      `${gn(md)} rules the 6th and is running. In a debt chart that period carries conflict: duty, argument, and a separate judgment about whether the two keep sharing the work. The period does not close the marriage by itself.`,
-      'caution',
-    ))
+    const lordLabel = gn(md, lang)
+    period.push(lang === 'hi'
+      ? {
+        id: 'karma-separation-clock',
+        title: fill(MK_HI.notes['karma-separation-clock'].title, { lord: lordLabel }),
+        detail: fill(MK_HI.notes['karma-separation-clock'].detail, { lord: lordLabel }),
+        tone: 'caution',
+      }
+      : note(
+        'karma-separation-clock',
+        `${gn(md)} is the separator in this period`,
+        `${gn(md)} rules the 6th and is running. In a debt chart that period carries conflict: duty, argument, and a separate judgment about whether the two keep sharing the work. The period does not close the marriage by itself.`,
+        'caution',
+        lang,
+      ))
   }
 
   return {
-    name: chart.meta?.name ?? 'This chart',
+    name: chart.meta?.name ?? (lang === 'en' ? 'This chart' : MK_HI.defaultName),
     debt,
     venus: venusNotes,
     period,
@@ -179,6 +225,7 @@ export function compareMarriageKarma(
   b: MarriageKarmaReading,
   nameA: string,
   nameB: string,
+  lang: EngineLang = 'en',
 ): MarriedLifeNote[] {
   const notes: MarriedLifeNote[] = []
   const debt = a.flags.kind === 'rina' ? a : b.flags.kind === 'rina' ? b : null
@@ -191,16 +238,26 @@ export function compareMarriageKarma(
       'The debt sits in one chart',
       `${debtName} carries the marriage debt. ${openName} does not. The account is not shared evenly, so the open chart is asked to meet a stack it did not bring.`,
       'caution',
+      lang,
+      { debtName, openName },
     ))
   }
   const lordInOtherLagna = a.flags.lagnaLordSign === b.flags.lagna || b.flags.lagnaLordSign === a.flags.lagna
   if (lordInOtherLagna) {
-    notes.push(note(
-      'karma-pair-lagna',
-      'A lagna lord sits in the other lagna',
-      `${nameA}’s rising-sign lord and ${nameB}’s lagna meet. One person’s identity is standing in the other’s rising sign, so the debt and the self are not read in isolation.`,
-      'mixed',
-    ))
+    notes.push(lang === 'hi'
+      ? {
+        id: 'karma-pair-lagna',
+        title: MK_HI.notes['karma-pair-lagna'].title,
+        detail: fill(MK_HI.notes['karma-pair-lagna'].detail, { nameA, nameB }),
+        tone: 'mixed',
+      }
+      : note(
+        'karma-pair-lagna',
+        'A lagna lord sits in the other lagna',
+        `${nameA}’s rising-sign lord and ${nameB}’s lagna meet. One person’s identity is standing in the other’s rising sign, so the debt and the self are not read in isolation.`,
+        'mixed',
+        lang,
+      ))
   }
   return notes
 }

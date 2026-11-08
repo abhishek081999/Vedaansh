@@ -5,6 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Link } from '@/i18n/navigation'
+import { useLang } from '@/i18n/useLang'
+import { useTranslations } from 'next-intl'
 import React, { useMemo, useState, useEffect } from 'react'
 import type { ChartOutput, UserPlan } from '@/types/astrology'
 import type { AshtakootResult, GanaSchool } from '@/lib/engine/ashtakoot'
@@ -30,6 +32,7 @@ import {
 } from '@/lib/milan/milanHistory'
 import { planMeetsUiGate } from '@/lib/ui/planGate'
 import { PlanGate } from '@/components/ui/patterns/PlanGate'
+import { JMA_HI } from '@/lib/engine/locale/jaiminiMarriageAnalysis.hi'
 
 const TONE: Record<string, string> = {
   supportive: 'var(--teal)',
@@ -54,6 +57,11 @@ export function MilanExpandPanel({
   userPlan = 'free',
   part,
 }: Props & { part?: 'manglik' | 'match' }) {
+  const { lang } = useLang()
+  const qualityBandLabel = (band: string) =>
+    lang === 'hi' ? (JMA_HI.qualityBand[band as keyof typeof JMA_HI.qualityBand] ?? band) : band
+  const t = useTranslations('relationshipMarriage.compareMil.expand')
+  const tUi = useTranslations('relationshipMarriage.ui')
   const full = planMeetsUiGate(userPlan, 'gold')
   const roles = useMemo(
     () => resolveMilanRoles(chartA, chartB, { personA: roleA, personB: roleB }),
@@ -72,23 +80,23 @@ export function MilanExpandPanel({
   const girlSign = roles.girlChart.grahas.find(g => g.id === 'Mo')?.rashi ?? 1
 
   const porutham = useMemo(
-    () => calculatePorutham(boyNak, boySign, girlNak, girlSign),
-    [boyNak, boySign, girlNak, girlSign],
+    () => calculatePorutham(boyNak, boySign, girlNak, girlSign, lang),
+    [boyNak, boySign, girlNak, girlSign, lang],
   )
   const manglik = useMemo(
-    () => analyzeManglikPair(roles.boyChart, roles.girlChart),
-    [roles.boyChart, roles.girlChart],
+    () => analyzeManglikPair(roles.boyChart, roles.girlChart, lang),
+    [roles.boyChart, roles.girlChart, lang],
   )
   const timing = useMemo(
-    () => analyzeMarriageTiming(roles.boyChart, roles.girlChart),
-    [roles.boyChart, roles.girlChart],
+    () => analyzeMarriageTiming(roles.boyChart, roles.girlChart, new Date(), lang),
+    [roles.boyChart, roles.girlChart, lang],
   )
   const { windows: gocharWindowsBoy } = useMarriageGocharWindows(roles.boyChart.lagnas?.ascRashi, full)
   const { windows: gocharWindowsGirl } = useMarriageGocharWindows(roles.girlChart.lagnas?.ascRashi, full)
   const gocharMuhurta = useMemo(() => {
     if (!full) return null
-    const a = analyzeMarriageGochar(roles.boyChart, { injectWindows: gocharWindowsBoy })
-    const b = analyzeMarriageGochar(roles.girlChart, { injectWindows: gocharWindowsGirl })
+    const a = analyzeMarriageGochar(roles.boyChart, { injectWindows: gocharWindowsBoy }, lang)
+    const b = analyzeMarriageGochar(roles.girlChart, { injectWindows: gocharWindowsGirl }, lang)
     const win = a?.muhurtaFrom
       ? { from: a.muhurtaFrom, to: a.muhurtaTo }
       : b?.muhurtaFrom
@@ -99,14 +107,17 @@ export function MilanExpandPanel({
             ? { from: timing.windows[0].start, to: timing.windows[0].end }
             : null
     return win
-  }, [full, roles.boyChart, roles.girlChart, timing, gocharWindowsBoy, gocharWindowsGirl])
+  }, [full, roles.boyChart, roles.girlChart, timing, gocharWindowsBoy, gocharWindowsGirl, lang])
   const jaimini = useMemo(
-    () => analyzeDualJaiminiMarriage(roles.boyChart, roles.girlChart),
-    [roles.boyChart, roles.girlChart],
+    () => analyzeDualJaiminiMarriage(roles.boyChart, roles.girlChart, lang),
+    [roles.boyChart, roles.girlChart, lang],
   )
-  const deep = useMemo(() => analyzeMilanDeep(roles.boyChart, roles.girlChart), [roles.boyChart, roles.girlChart])
-  const vaidBoy = useMemo(() => catalogVaidhavyaCues(roles.boyChart), [roles.boyChart])
-  const vaidGirl = useMemo(() => catalogVaidhavyaCues(roles.girlChart), [roles.girlChart])
+  const deep = useMemo(
+    () => analyzeMilanDeep(roles.boyChart, roles.girlChart, lang),
+    [roles.boyChart, roles.girlChart, lang],
+  )
+  const vaidBoy = useMemo(() => catalogVaidhavyaCues(roles.boyChart, lang), [roles.boyChart, lang])
+  const vaidGirl = useMemo(() => catalogVaidhavyaCues(roles.girlChart, lang), [roles.girlChart, lang])
 
   const remedies = useMemo(
     () => buildMilanRemedies({
@@ -115,8 +126,8 @@ export function MilanExpandPanel({
       manglikMismatch: manglik.verdict === 'mismatch',
       ganaHarsh: ashtakoot.gana.points <= 1,
       poruthamCriticalFails: porutham.items.filter(i => i.weight === 'critical' && !i.matched).map(i => i.name),
-    }),
-    [ashtakoot, manglik, porutham],
+    }, lang),
+    [ashtakoot, manglik, porutham, lang],
   )
 
   const [history, setHistory] = useState<SavedMilanEntry[]>([])
@@ -136,7 +147,8 @@ export function MilanExpandPanel({
     timing,
     remedies,
     jaimini,
-  }), [chartA, chartB, roles, ashtakoot, porutham, deep, manglik, timing, remedies, jaimini])
+    lang,
+  }), [chartA, chartB, roles, ashtakoot, porutham, deep, manglik, timing, remedies, jaimini, lang])
 
   const openPrintPreview = () => {
     if (!full) return
@@ -160,7 +172,7 @@ export function MilanExpandPanel({
   if (part === 'manglik') {
     return (
       <div className="card" style={{ padding: '1.2rem', borderLeft: `4px solid ${TONE[manglik.tone]}` }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Manglik (Kuja Dosha) check for this match</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>{t('manglikTitle')}</h3>
         <div style={{ fontWeight: 800, marginBottom: 4 }}>{manglik.label}</div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{manglik.detail}</p>
       </div>
@@ -172,7 +184,7 @@ export function MilanExpandPanel({
       {/* Controls */}
       <div className="card" style={{ padding: '1rem 1.25rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
         <div>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>Person 1 role</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>{t('person1Role')}</div>
           <select
             value={roleA}
             onChange={e => {
@@ -182,50 +194,46 @@ export function MilanExpandPanel({
             className="input"
             style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem' }}
           >
-            <option value="boy">Groom</option>
-            <option value="girl">Bride</option>
+            <option value="boy">{t('groom')}</option>
+            <option value="girl">{t('bride')}</option>
           </select>
         </div>
         <div>
-          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>Gana school</div>
+          <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 4 }}>{t('ganaSchool')}</div>
           <select
             value={ganaSchool}
             onChange={e => onGanaSchoolChange(e.target.value as GanaSchool)}
             className="input"
             style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem' }}
           >
-            <option value="classical">Classical (bride×groom)</option>
-            <option value="parampara">Parampara (traditional teaching)</option>
+            <option value="classical">{t('ganaClassical')}</option>
+            <option value="parampara">{t('ganaParampara')}</option>
           </select>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button type="button" className="btn btn-secondary" style={{ fontSize: '0.75rem' }} onClick={saveHistory}>
-            Save on this device
+            {t('saveDevice')}
           </button>
           {full ? (
             <button type="button" className="btn" style={{ fontSize: '0.75rem' }} onClick={openPrintPreview}>
-              Print all sections
+              {t('printAll')}
             </button>
           ) : (
-            <PlanGate userPlan={userPlan} required="gold" featureName="Kundali Milan print">
+            <PlanGate userPlan={userPlan} required="gold" featureName={t('printFeature')}>
               <div style={{ minHeight: 36, minWidth: 120 }} />
             </PlanGate>
           )}
         </div>
       </div>
-      <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-        “Save on this device” keeps a score snapshot in this browser only. Use{' '}
-        <strong style={{ color: 'var(--text-secondary)' }}>Save Kundali Milan</strong> in the header to store births in My Charts.
-      </p>
+      <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('saveHint')}</p>
 
       <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        Scoring follows the roles chosen: <strong style={{ color: 'var(--text-gold)' }}>{roles.boyLabel}</strong> as Groom and{' '}
-        <strong style={{ color: 'var(--accent)' }}>{roles.girlLabel}</strong> as Bride.
+        {t('rolesHint', { boy: roles.boyLabel, girl: roles.girlLabel })}
       </p>
 
       {part === 'match' ? null : (
       <div className="card" style={{ padding: '1.2rem', borderLeft: `4px solid ${TONE[manglik.tone]}` }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Manglik (Kuja Dosha) check for this match</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>{t('manglikTitle')}</h3>
         <div style={{ fontWeight: 800, marginBottom: 4 }}>{manglik.label}</div>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{manglik.detail}</p>
       </div>
@@ -234,7 +242,7 @@ export function MilanExpandPanel({
       {/* Porutham */}
       <div className="card" style={{ padding: '1.2rem' }}>
         <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>
-          South Indian Porutham · {porutham.matchedCount}/10 · {porutham.scoreLabel}
+          {t('poruthamTitle', { matched: porutham.matchedCount, label: porutham.scoreLabel })}
         </h3>
         <p style={{ margin: '0 0 0.85rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>{porutham.summary}</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.5rem' }}>
@@ -253,11 +261,11 @@ export function MilanExpandPanel({
 
       {/* Timing */}
       <div className="card" style={{ padding: '1.2rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>Marriage timing · Mahadasha and Antardasha</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>{t('timingTitle')}</h3>
         <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{timing.summary}</p>
         {timing.antarPairs.length > 0 && (
           <>
-            <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Antardasha pairs</div>
+            <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>{t('antarPairs')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginBottom: '0.85rem' }}>
               {timing.antarPairs.slice(0, 5).map((w, i) => (
                 <div key={`a-${i}`} style={{ fontSize: '0.75rem', borderLeft: `3px solid ${TONE[w.tone]}`, paddingLeft: '0.65rem' }}>
@@ -268,7 +276,7 @@ export function MilanExpandPanel({
             </div>
           </>
         )}
-        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>Mahadasha windows</div>
+        <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: 6 }}>{t('mahaWindows')}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
           {timing.windows.slice(0, 5).map((w, i) => (
             <div key={`m-${i}`} style={{ fontSize: '0.75rem', borderLeft: `3px solid ${TONE[w.tone]}`, paddingLeft: '0.65rem' }}>
@@ -293,7 +301,9 @@ export function MilanExpandPanel({
                 background: 'var(--surface-2)',
               }}
             >
-              Search muhurta {gocharMuhurta.from}{gocharMuhurta.to ? ` → ${gocharMuhurta.to}` : ''}
+              {gocharMuhurta.to
+                ? tUi('muhurtaSearchRange', { from: gocharMuhurta.from, to: gocharMuhurta.to })
+                : tUi('muhurtaSearch', { from: gocharMuhurta.from })}
             </Link>
           </div>
         ) : null}
@@ -301,7 +311,7 @@ export function MilanExpandPanel({
 
       {/* Jaimini D9 */}
       <div className="card" style={{ padding: '1.2rem', borderLeft: `4px solid ${TONE[jaimini.tone]}` }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>D9 / Jaimini marriage (per chart)</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.4rem', fontSize: '0.72rem' }}>{t('jaiminiTitle')}</h3>
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{jaimini.summary}</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.65rem', marginTop: '0.85rem' }}>
           {[
@@ -312,14 +322,14 @@ export function MilanExpandPanel({
               <div style={{ fontWeight: 800 }}>{label}</div>
               {a ? (
                 <>
-                  <div style={{ marginTop: 4 }}>Band: <strong>{a.qualityBand}</strong></div>
+                  <div style={{ marginTop: 4 }}>{t('band')}: <strong>{qualityBandLabel(a.qualityBand)}</strong></div>
                   <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>{a.qualitySummary}</div>
                   <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>
-                    Darakaraka {a.darakaraka?.name ?? '—'} · points to watch {a.activeRedFlagCount}
+                    {t('darakaraka')} {a.darakaraka?.name ?? '—'} · {t('watchPoints')} {a.activeRedFlagCount}
                   </div>
                 </>
               ) : (
-                <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>D9 and Upapada data incomplete</div>
+                <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>{t('jaiminiIncomplete')}</div>
               )}
             </div>
           ))}
@@ -328,14 +338,14 @@ export function MilanExpandPanel({
 
       {/* Vaidhavya catalog */}
       <div className="card" style={{ padding: '1.2rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Partner longevity and wellbeing yogas (Vaidhavya / Vidhur)</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>{t('vaidhavyaTitle')}</h3>
         <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Classical cues for the wellbeing and long life of each partner. They are a tendency to be read with the whole chart, not a prediction of loss.
+          {t('vaidhavyaLead')}
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.75rem' }}>
           {[
-            { title: `${roles.boyLabel} (Vidhur cues)`, items: vaidBoy },
-            { title: `${roles.girlLabel} (Vaidhavya cues)`, items: vaidGirl },
+            { title: `${roles.boyLabel} (${t('vidhurCol')})`, items: vaidBoy },
+            { title: `${roles.girlLabel} (${t('vaidhavyaCol')})`, items: vaidGirl },
           ].map(col => (
             <div key={col.title}>
               <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: 6 }}>{col.title}</div>
@@ -352,7 +362,7 @@ export function MilanExpandPanel({
 
       {/* Remedies */}
       <div className="card" style={{ padding: '1.2rem' }}>
-        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Traditional remedies (shown when a dosha is flagged)</h3>
+        <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>{t('remediesTitle')}</h3>
         <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
           {remedies.map(r => (
             <li key={r.id} style={{ marginBottom: '0.55rem' }}>
@@ -367,24 +377,24 @@ export function MilanExpandPanel({
       {/* History */}
       {history.length > 0 && (
         <div className="card" style={{ padding: '1.2rem' }}>
-          <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>Saved on this device</h3>
+          <h3 className="label-caps" style={{ margin: '0 0 0.75rem', fontSize: '0.72rem' }}>{t('historyTitle')}</h3>
           <p style={{ margin: '0 0 0.75rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            Score snapshots only; they do not reopen the charts. Use the Save button in the header to store them in My Charts.
+            {t('historyLead')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
             {history.slice(0, 12).map(h => (
               <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', fontSize: '0.75rem', padding: '0.45rem 0', borderBottom: '1px solid var(--border-soft)' }}>
                 <div>
                   <strong>{h.boyName} × {h.girlName}</strong>
-                  <span style={{ color: 'var(--text-muted)' }}> · {h.total}/36 · {h.poruthamMatched ?? '—'}/10 Porutham</span>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{new Date(h.savedAt).toLocaleString()}</div>
+                  <span style={{ color: 'var(--text-muted)' }}> · {h.total}/36 · {h.poruthamMatched ?? '—'}{t('poruthamSuffix')}</span>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{new Date(h.savedAt).toLocaleString(lang === 'hi' ? 'hi-IN' : undefined)}</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setHistory(deleteMilanHistoryEntry(h.id))}
                   style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 4, fontSize: '0.65rem', color: 'var(--text-muted)', cursor: 'pointer', height: 'fit-content' }}
                 >
-                  Remove
+                  {t('remove')}
                 </button>
               </div>
             ))}

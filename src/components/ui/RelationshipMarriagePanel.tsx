@@ -5,6 +5,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useId, useMemo, useState, useTransition } from 'react'
+import { useTranslations } from 'next-intl'
+import { termHi } from '@/i18n/jyotish'
+import { useLang } from '@/i18n/useLang'
 import type { ChartOutput, Rashi, UserPlan } from '@/types/astrology'
 import { RASHI_SHORT } from '@/types/astrology'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
@@ -48,20 +51,6 @@ type Section = 'overview' | 'axis' | 'bonds' | 'classical' | 'jaimini' | 'jaya' 
 
 type View = MarriageView
 
-/**
- * Seven tabs, each grouping related sections (rendered in the order of the JSX below).
- * Keep the labels short enough to fit on one row on a phone.
- */
-const VIEWS: { id: View; label: string; hint: string; sections: Section[] }[] = [
-  { id: 'overview', label: 'Overview', hint: 'Significators, the four questions, who brings the proposal', sections: ['overview'] },
-  { id: 'seventh', label: '7th House', hint: 'Aries and Libra axis, Jaya Bhava, and the 7th lord', sections: ['axis', 'jaya', 'lord'] },
-  { id: 'planets', label: 'Planets and Yogas', hint: 'Venus, Jupiter, Mars, Saturn, nodes, and marriage combinations', sections: ['bond', 'bonds', 'mars', 'planets'] },
-  { id: 'partner', label: 'Partner and Intimacy', hint: 'The partner, intimate life, and in-laws', sections: ['partner', 'intimate'] },
-  { id: 'bond', label: 'Bond and Karma', hint: 'D1 and D9, karmic debt, marriage method, and separation', sections: ['class', 'method', 'split'] },
-  { id: 'classical', label: 'Classical and Jaimini', hint: 'Classical predictions, yoga checklist, Darakaraka and Upapada', sections: ['jaimini', 'classical'] },
-  { id: 'timing', label: 'Timing and Remedies', hint: 'Eight houses, dashas, transits, past and future windows, remedies', sections: ['houses', 'timing', 'remedies'] },
-]
-
 interface Props {
   chart: ChartOutput
   userPlan?: UserPlan
@@ -83,6 +72,8 @@ function firstSentence(text: string): string {
 }
 
 function MarriageCharts({ chart, userPlan, showDivisionals }: { chart: ChartOutput; userPlan: UserPlan; showDivisionals: boolean }) {
+  const t = useTranslations('relationshipMarriage.charts')
+  const { hi } = useLang()
   const divisionals = VARGA_UI_LIST.filter(v => v.name !== 'D1')
   const [vargaName, setVargaName] = useState('D9')
   const moonNakIndex = chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0
@@ -110,19 +101,24 @@ function MarriageCharts({ chart, userPlan, showDivisionals }: { chart: ChartOutp
   const option = (v: (typeof divisionals)[number]) => {
     const unlocked = planRank(userPlan) >= tierRank(v.tier)
     const ready = v.name in (chart.vargas ?? {})
-    const suffix = !unlocked ? ' (Platinum)' : !ready ? ' (recalculate)' : ''
+    const suffix = !unlocked ? t('platinumSuffix') : !ready ? t('recalculateSuffix') : ''
     return (
       <option key={v.name} value={v.name} disabled={!unlocked || !ready}>
         {v.name} · {v.full}{suffix}
       </option>
     )
   }
+  const lagnaSign = (rashi: Rashi) => {
+    const en = RASHI_SHORT[rashi]
+    const sign = hi ? termHi(en) : en
+    return t('lagna', { sign })
+  }
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '0.75rem' }}>
       <article style={card}>
         <div style={labelRow}>
-          <span className="label-caps" style={{ fontSize: '0.62rem' }}>D1 · Lagna chart</span>
-          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-gold)' }}>{RASHI_SHORT[d1Asc]} lagna</span>
+          <span className="label-caps" style={{ fontSize: '0.62rem' }}>{t('d1Label')}</span>
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-gold)' }}>{lagnaSign(d1Asc)}</span>
         </div>
         <ChakraSelector
           ascRashi={d1Asc}
@@ -143,7 +139,7 @@ function MarriageCharts({ chart, userPlan, showDivisionals }: { chart: ChartOutp
       <article style={card}>
         <div style={labelRow}>
           <select
-            aria-label="Open a divisional chart"
+            aria-label={t('divisionalAria')}
             value={selected?.name ?? 'D9'}
             onChange={e => setVargaName(e.target.value)}
             style={{
@@ -158,11 +154,11 @@ function MarriageCharts({ chart, userPlan, showDivisionals }: { chart: ChartOutp
               fontFamily: 'inherit',
             }}
           >
-            <optgroup label="Divisional charts">{core.map(option)}</optgroup>
-            <optgroup label="Extended charts">{extended.map(option)}</optgroup>
+            <optgroup label={t('coreGroup')}>{core.map(option)}</optgroup>
+            <optgroup label={t('extendedGroup')}>{extended.map(option)}</optgroup>
           </select>
           <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-gold)', flexShrink: 0 }}>
-            {selectedGrahas.length ? `${RASHI_SHORT[selectedAsc]} lagna` : 'Not on this chart'}
+            {selectedGrahas.length ? lagnaSign(selectedAsc) : t('notOnChart')}
           </span>
         </div>
         {selected && selectedGrahas.length ? (
@@ -178,9 +174,7 @@ function MarriageCharts({ chart, userPlan, showDivisionals }: { chart: ChartOutp
             highlightHouses={[7]}
           />
         ) : (
-          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Recalculate the chart so this divisional chart is included.
-          </p>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('recalculateHint')}</p>
         )}
       </article>
       ) : null}
@@ -189,39 +183,56 @@ function MarriageCharts({ chart, userPlan, showDivisionals }: { chart: ChartOutp
 }
 
 function MarriageReadingLoader() {
+  const t = useTranslations('relationshipMarriage.page')
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280, padding: '3rem 1rem' }}>
-      <VedaanshLoader size={44} message="Reading relationship and marriage…" />
+      <VedaanshLoader size={44} message={t('loader')} />
     </div>
   )
 }
 
 function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = false }: Props) {
+  const tTabs = useTranslations('relationshipMarriage.tabs')
+  const tSections = useTranslations('relationshipMarriage.sections')
+  const tPage = useTranslations('relationshipMarriage.page')
+  const { lang } = useLang()
   const full = planMeetsUiGate(userPlan, 'gold')
-  const data = useMemo(() => analyzeMarriedLife(chart), [chart])
-  const axis = useMemo(() => (full ? analyzeSeventhAxis(chart) : null), [chart, full])
-  const intimate = useMemo(() => (full ? analyzeIntimateLife(chart) : null), [chart, full])
-  const jaya = useMemo(() => (full ? analyzeJayaBhava(chart) : null), [chart, full])
-  const marriageClass = useMemo(() => (full ? analyzeMarriageClass(chart) : null), [chart, full])
-  const marriageHouses = useMemo(() => (full ? analyzeMarriageHouses(chart) : null), [chart, full])
-  const seventhLord = useMemo(() => (full ? analyzeSeventhLord(chart) : null), [chart, full])
-  const karmicDebt = useMemo(() => (full ? analyzeKarmicDebt(chart) : null), [chart, full])
-  const venusJupiter = useMemo(() => (full ? analyzeVenusJupiterBond(chart) : null), [chart, full])
-  const marriageVivah = useMemo(() => (full ? analyzeMarriageVivah(chart) : null), [chart, full])
-  const marriageMars = useMemo(() => (full ? analyzeMarriageMars(chart) : null), [chart, full])
+  const views = useMemo(
+    (): { id: View; label: string; hint: string; sections: Section[] }[] => [
+      { id: 'overview', label: tTabs('overview'), hint: tTabs('overviewHint'), sections: ['overview'] },
+      { id: 'seventh', label: tTabs('seventh'), hint: tTabs('seventhHint'), sections: ['axis', 'jaya', 'lord'] },
+      { id: 'planets', label: tTabs('planets'), hint: tTabs('planetsHint'), sections: ['bond', 'bonds', 'mars', 'planets'] },
+      { id: 'partner', label: tTabs('partner'), hint: tTabs('partnerHint'), sections: ['partner', 'intimate'] },
+      { id: 'bond', label: tTabs('bond'), hint: tTabs('bondHint'), sections: ['class', 'method', 'split'] },
+      { id: 'classical', label: tTabs('classical'), hint: tTabs('classicalHint'), sections: ['jaimini', 'classical'] },
+      { id: 'timing', label: tTabs('timing'), hint: tTabs('timingHint'), sections: ['houses', 'timing', 'remedies'] },
+    ],
+    [tTabs],
+  )
+  const data = useMemo(() => analyzeMarriedLife(chart, lang), [chart, lang])
+  const axis = useMemo(() => (full ? analyzeSeventhAxis(chart, lang) : null), [chart, full, lang])
+  const intimate = useMemo(() => (full ? analyzeIntimateLife(chart, lang) : null), [chart, full, lang])
+  const jaya = useMemo(() => (full ? analyzeJayaBhava(chart, lang) : null), [chart, full, lang])
+  const marriageClass = useMemo(() => (full ? analyzeMarriageClass(chart, lang) : null), [chart, full, lang])
+  const marriageHouses = useMemo(() => (full ? analyzeMarriageHouses(chart, lang) : null), [chart, full, lang])
+  const seventhLord = useMemo(() => (full ? analyzeSeventhLord(chart, lang) : null), [chart, full, lang])
+  const karmicDebt = useMemo(() => (full ? analyzeKarmicDebt(chart, lang) : null), [chart, full, lang])
+  const venusJupiter = useMemo(() => (full ? analyzeVenusJupiterBond(chart, lang) : null), [chart, full, lang])
+  const marriageVivah = useMemo(() => (full ? analyzeMarriageVivah(chart, lang) : null), [chart, full, lang])
+  const marriageMars = useMemo(() => (full ? analyzeMarriageMars(chart, undefined, lang) : null), [chart, full, lang])
   const { windows: gocharWindows } = useMarriageGocharWindows(chart.lagnas?.ascRashi, full)
   const marriageGochar = useMemo(
-    () => (full ? analyzeMarriageGochar(chart, { injectWindows: gocharWindows }) : null),
-    [chart, full, gocharWindows],
+    () => (full ? analyzeMarriageGochar(chart, { injectWindows: gocharWindows }, lang) : null),
+    [chart, full, gocharWindows, lang],
   )
-  const partnerNature = useMemo(() => (full ? analyzePartnerNature(chart) : null), [chart, full])
-  const divorceEnergy = useMemo(() => (full ? analyzeDivorceEnergy(chart) : null), [chart, full])
-  const classical = useMemo(() => (full ? analyzeClassicalMarriage(chart) : null), [chart, full])
-  const marriageKarma = useMemo(() => (full ? analyzeMarriageKarma(chart) : null), [chart, full])
-  const venusMarriage = useMemo(() => (full ? analyzeVenusMarriage(chart) : null), [chart, full])
+  const partnerNature = useMemo(() => (full ? analyzePartnerNature(chart, lang) : null), [chart, full, lang])
+  const divorceEnergy = useMemo(() => (full ? analyzeDivorceEnergy(chart, lang) : null), [chart, full, lang])
+  const classical = useMemo(() => (full ? analyzeClassicalMarriage(chart, lang) : null), [chart, full, lang])
+  const marriageKarma = useMemo(() => (full ? analyzeMarriageKarma(chart, lang) : null), [chart, full, lang])
+  const venusMarriage = useMemo(() => (full ? analyzeVenusMarriage(chart, lang) : null), [chart, full, lang])
   const caseBrief = useMemo(
-    () => (full ? analyzeMarriageCaseBrief(chart, { skipGocharScan: true }) : null),
-    [chart, full],
+    () => (full ? analyzeMarriageCaseBrief(chart, { skipGocharScan: true, lang }) : null),
+    [chart, full, lang],
   )
   const yogaNotes = useMemo(() => {
     if (!full) return []
@@ -237,14 +248,12 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
   const [clientSafe, setClientSafe] = useState(true)
   const [yogaFilter, setYogaFilter] = useState('')
   const panelId = useId()
-  const activeView = VIEWS.find(v => v.id === view) ?? VIEWS[0]
+  const activeView = views.find(v => v.id === view) ?? views[0]
   const has = (section: Section) => activeView.sections.includes(section)
 
   if (!data) {
     return (
-      <div style={{ padding: '1.25rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        This chart has no ascendant, so married life cannot be read yet.
-      </div>
+      <div style={{ padding: '1.25rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{tPage('noAscendant')}</div>
     )
   }
 
@@ -261,7 +270,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
               <ScoreMeter key={d.id} label={d.label} planet={d.planet} score={d.score} summary={firstSentence(d.summary)} />
             ))}
           </div>
-          <PlanGate userPlan={userPlan} required="gold" featureName="Relationship and marriage">
+          <PlanGate userPlan={userPlan} required="gold" featureName={tPage('featureName')}>
             <MarriageLockedCard />
           </PlanGate>
         </>
@@ -270,7 +279,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
       {full && <>
       {caseBrief ? <CaseBriefCard brief={caseBrief} clientSafe={clientSafe} /> : null}
       <MarriageTabs
-        views={VIEWS}
+        views={views}
         view={view}
         onView={setView}
         clientSafe={clientSafe}
@@ -300,7 +309,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
 
       {has('axis') && axis && (
         <>
-          <SectionLabel>Aries and Libra — the marriage axis</SectionLabel>
+          <SectionLabel>{tSections('axis')}</SectionLabel>
           <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{axis.principle}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '0.65rem' }}>
             <article style={{ padding: '0.85rem', borderLeft: '3px solid var(--text-gold)', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
@@ -313,7 +322,12 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
             </article>
           </div>
           <article style={{ padding: '0.9rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
-            <SectionLabel>{axis.pair.lagnaName} lagna · {axis.pair.seventhName} in the 7th</SectionLabel>
+            <SectionLabel>
+              {tSections('axisLagnaSeventh', {
+                lagna: axis.pair.lagnaName,
+                seventh: axis.pair.seventhName,
+              })}
+            </SectionLabel>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{axis.pair.self}</p>
             <p style={{ margin: '0.55rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{axis.pair.teaches}</p>
             {axis.pair.friction ? (
@@ -322,7 +336,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
             <p style={{ margin: '0.65rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{axis.perception}</p>
           </article>
           <article style={{ padding: '0.85rem 1rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
-            <SectionLabel>What to read in the partner</SectionLabel>
+            <SectionLabel>{tSections('axisMatch')}</SectionLabel>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{axis.matchHint}</p>
           </article>
           <NoteCards notes={axis.notes} clientSafe={clientSafe} />
@@ -331,31 +345,31 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
 
       {has('jaya') && jaya && (
         <>
-          <SectionLabel>Seventh house — Jaya Bhava</SectionLabel>
+          <SectionLabel>{tSections('jaya')}</SectionLabel>
           <JayaSections reading={jaya} clientSafe={clientSafe} />
         </>
       )}
 
       {has('jaimini') && (
         <>
-          <SectionLabel>Jaimini — Darakaraka and Upapada</SectionLabel>
-          <JaiminiMarriageSection chart={chart} />
+          <SectionLabel>{tSections('jaimini')}</SectionLabel>
+          <JaiminiMarriageSection chart={chart} lang={lang} />
         </>
       )}
 
       {has('class') && marriageClass && (
         <>
-          <SectionLabel>D1, D9, and the kind of bond</SectionLabel>
+          <SectionLabel>{tSections('class')}</SectionLabel>
           <MarriageClassSections reading={marriageClass} clientSafe={clientSafe} />
           {karmicDebt ? (
             <>
-              <SectionLabel>Karmic debt</SectionLabel>
+              <SectionLabel>{tSections('karmicDebt')}</SectionLabel>
               <KarmicDebtSections reading={karmicDebt} clientSafe={clientSafe} />
             </>
           ) : null}
           {marriageKarma ? (
             <>
-              <SectionLabel>Marriage debt and karma</SectionLabel>
+              <SectionLabel>{tSections('marriageKarma')}</SectionLabel>
               <MarriageKarmaSections reading={marriageKarma} clientSafe={clientSafe} />
             </>
           ) : null}
@@ -364,11 +378,11 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
 
       {has('bond') && venusJupiter && (
         <>
-          <SectionLabel>Venus and Jupiter — closeness and depth</SectionLabel>
+          <SectionLabel>{tSections('venusJupiter')}</SectionLabel>
           <VenusJupiterSections reading={venusJupiter} clientSafe={clientSafe} />
           {venusMarriage ? (
             <>
-              <SectionLabel>Venus as the marriage bridge</SectionLabel>
+              <SectionLabel>{tSections('venusBridge')}</SectionLabel>
               <VenusMarriageSections reading={venusMarriage} clientSafe={clientSafe} />
             </>
           ) : null}
@@ -377,55 +391,55 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
 
       {has('method') && marriageVivah && (
         <>
-          <SectionLabel>Marriage method — Mars, stars, bond, and debt</SectionLabel>
+          <SectionLabel>{tSections('vivah')}</SectionLabel>
           <MarriageVivahSections reading={marriageVivah} clientSafe={clientSafe} />
         </>
       )}
 
       {has('partner') && partnerNature && (
         <>
-          <SectionLabel>The partner — read from this chart</SectionLabel>
+          <SectionLabel>{tSections('partner')}</SectionLabel>
           <PartnerNatureSections reading={partnerNature} clientSafe={clientSafe} />
         </>
       )}
 
       {has('split') && divorceEnergy && (
         <>
-          <SectionLabel>Separation — Moon, Venus, and Saturn</SectionLabel>
+          <SectionLabel>{tSections('split')}</SectionLabel>
           <DivorceEnergySections reading={divorceEnergy} clientSafe={clientSafe} />
         </>
       )}
 
       {has('houses') && marriageHouses && (
         <>
-          <SectionLabel>Eight houses — and when a period can marry</SectionLabel>
+          <SectionLabel>{tSections('houses')}</SectionLabel>
           <MarriageHousesSections reading={marriageHouses} clientSafe={clientSafe} />
         </>
       )}
 
       {has('lord') && seventhLord && (
         <>
-          <SectionLabel>7th lord — house, combinations, age band</SectionLabel>
+          <SectionLabel>{tSections('lord')}</SectionLabel>
           <SeventhLordSections reading={seventhLord} clientSafe={clientSafe} />
         </>
       )}
 
       {has('bonds') && (
         <>
-          <SectionLabel>Venus and the marriage combinations</SectionLabel>
+          <SectionLabel>{tSections('combinations')}</SectionLabel>
           <NoteCards notes={data.combinations} clientSafe={clientSafe} />
-          <SectionLabel>What each planet is doing</SectionLabel>
+          <SectionLabel>{tSections('roles')}</SectionLabel>
           <NoteCards notes={data.roles} clientSafe={clientSafe} />
         </>
       )}
 
       {has('classical') && classical && (
         <>
-          <SectionLabel>Classical predictions</SectionLabel>
+          <SectionLabel>{tSections('classical')}</SectionLabel>
           <ClassicalMarriageSections reading={classical} clientSafe={clientSafe} />
           {yogaNotes.length ? (
             <>
-              <SectionLabel>Yoga checklist</SectionLabel>
+              <SectionLabel>{tSections('yogaChecklist')}</SectionLabel>
               <YogaChecklist notes={yogaNotes} filter={yogaFilter} onFilterChange={setYogaFilter} clientSafe={clientSafe} />
             </>
           ) : null}
@@ -434,25 +448,25 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
 
       {has('mars') && marriageMars && (
         <>
-          <SectionLabel>Mars — the fire that starts and defends the marriage</SectionLabel>
+          <SectionLabel>{tSections('mars')}</SectionLabel>
           <MarriageMarsSections reading={marriageMars} clientSafe={clientSafe} />
         </>
       )}
 
       {has('planets') && (
         <>
-          <SectionLabel>Jupiter — vow and blessing</SectionLabel>
+          <SectionLabel>{tSections('jupiter')}</SectionLabel>
           <NoteCards notes={data.jupiter} clientSafe={clientSafe} />
-          <SectionLabel>Mars, Rahu, and Ketu</SectionLabel>
+          <SectionLabel>{tSections('marsNodes')}</SectionLabel>
           <NoteCards notes={data.marsAndNodes} clientSafe={clientSafe} />
-          <SectionLabel>Saturn and family speech</SectionLabel>
+          <SectionLabel>{tSections('saturn')}</SectionLabel>
           <NoteCards notes={data.saturn} clientSafe={clientSafe} />
         </>
       )}
 
       {has('intimate') && intimate && (
         <>
-          <SectionLabel>Intimate life and in-laws</SectionLabel>
+          <SectionLabel>{tSections('intimate')}</SectionLabel>
           <IntimateLifeSections reading={intimate} clientSafe={clientSafe} />
         </>
       )}
@@ -461,25 +475,25 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
         <>
           {marriageGochar ? (
             <>
-              <SectionLabel>Jupiter and Saturn — transit beside the period</SectionLabel>
+              <SectionLabel>{tSections('gochar')}</SectionLabel>
               <MarriageGocharSections reading={marriageGochar} clientSafe={clientSafe} />
             </>
           ) : null}
           {intimate?.divisions.length ? (
             <>
-              <SectionLabel>D3 and D7</SectionLabel>
+              <SectionLabel>{tSections('d3d7')}</SectionLabel>
               <NoteCards notes={intimate.divisions} clientSafe={clientSafe} />
             </>
           ) : null}
           {intimate?.timings.some(n => n.id.startsWith('past-')) ? (
             <>
-              <SectionLabel>Last 5 years</SectionLabel>
+              <SectionLabel>{tSections('past5')}</SectionLabel>
               <NoteCards notes={intimate.timings.filter(n => n.id.startsWith('past-'))} clientSafe={clientSafe} />
             </>
           ) : null}
           {intimate?.timings.some(n => !n.id.startsWith('past-')) ? (
             <>
-              <SectionLabel>Open and ahead</SectionLabel>
+              <SectionLabel>{tSections('ahead')}</SectionLabel>
               <NoteCards notes={intimate.timings.filter(n => !n.id.startsWith('past-'))} clientSafe={clientSafe} />
             </>
           ) : null}
@@ -488,7 +502,7 @@ function RelationshipMarriageReading({ chart, userPlan = 'free', embedded = fals
 
       {has('remedies') && (
         <>
-          <SectionLabel>Remedies from the birth chart</SectionLabel>
+          <SectionLabel>{tSections('remedies')}</SectionLabel>
           <NoteCards notes={data.remedies} clientSafe={clientSafe} />
         </>
       )}

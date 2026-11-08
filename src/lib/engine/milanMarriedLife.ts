@@ -6,6 +6,9 @@
 
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { rName } from '@/lib/engine/divisionalLang'
+import { MML_HI } from '@/lib/engine/locale/milanMarriedLife.hi'
 import {
   analyzeMarriedLife,
   marriageHouseSnapshot,
@@ -63,7 +66,48 @@ function moonHasSaturn(chart: ChartOutput): boolean {
  * Includes the Capricorn–Scorpio, Gemini–Taurus, Gemini–Pisces,
  * and Gemini vs Mars-sign notes from relationship matching.
  */
-export function moonEmotionalPair(signA: number, signB: number, saturnOnMoon = false): MoonPairReading {
+function moonPairHindi(
+  signA: number,
+  signB: number,
+  saturnOnMoon: boolean,
+  key: string,
+  rel: number,
+  en: MoonPairReading,
+): MoonPairReading {
+  const nameA = rName(signA as Rashi, 'hi')
+  const nameB = rName(signB as Rashi, 'hi')
+  let block: { title: string; detail: string } | undefined
+  if (key === '8-10') block = MML_HI.moon['8-10']
+  else if (key === '2-3') block = MML_HI.moon['2-3']
+  else if (key === '3-12') block = MML_HI.moon['3-12']
+  else if (key === '2-4') block = MML_HI.moon['2-4']
+  else if (key === '4-5') block = MML_HI.moon['4-5']
+  else if (key === '9-11') block = MML_HI.moon['9-11']
+  else if ((signA === 3 && signB === 1) || (signB === 3 && signA === 1)) block = MML_HI.moon['3-1']
+  else if ((signA === 3 && MARS_SIGNS.has(signB)) || (signB === 3 && MARS_SIGNS.has(signA))) block = MML_HI.moon['3-mars']
+  else if (rel === 1) block = { ...MML_HI.moon.same, detail: fill(MML_HI.moon.same.detail, { signA: nameA, signB: nameB }) }
+  else if (rel === 5 || rel === 9) block = { ...MML_HI.moon.trine, detail: fill(MML_HI.moon.trine.detail, { signA: nameA, signB: nameB }) }
+  else if (rel === 7) block = { ...MML_HI.moon.opposite, detail: fill(MML_HI.moon.opposite.detail, { signA: nameA, signB: nameB }) }
+  else if (rel === 3 || rel === 11) block = { ...MML_HI.moon.friendly, detail: fill(MML_HI.moon.friendly.detail, { signA: nameA, signB: nameB }) }
+  else if (rel === 6 || rel === 8) block = { ...MML_HI.moon.friction68, detail: fill(MML_HI.moon.friction68.detail, { signA: nameA, signB: nameB }) }
+  else if (rel === 4 || rel === 10) block = { ...MML_HI.moon.square, detail: fill(MML_HI.moon.square.detail, { signA: nameA, signB: nameB }) }
+  else block = { ...MML_HI.moon.adjacent, detail: fill(MML_HI.moon.adjacent.detail, { signA: nameA, signB: nameB }) }
+
+  let detail = block?.detail ?? en.detail
+  let title = block?.title ?? MML_HI.moonDefaultTitle
+  if (saturnOnMoon) {
+    detail += MML_HI.saturnMoon
+    if (key === '2-3') detail += MML_HI.saturnMoon23
+  }
+  return { signA: nameA, signB: nameB, tone: en.tone, title, detail }
+}
+
+export function moonEmotionalPair(
+  signA: number,
+  signB: number,
+  saturnOnMoon = false,
+  lang: EngineLang = 'en',
+): MoonPairReading {
   const nameA = RASHI_NAMES[signA as Rashi] ?? `R${signA}`
   const nameB = RASHI_NAMES[signB as Rashi] ?? `R${signB}`
   const key = signA < signB ? `${signA}-${signB}` : `${signB}-${signA}`
@@ -144,7 +188,12 @@ export function moonEmotionalPair(signA: number, signB: number, saturnOnMoon = f
     }
   }
 
-  return { signA: nameA, signB: nameB, tone, title, detail }
+  const base = { signA: nameA, signB: nameB, tone, title, detail }
+  if (lang === 'hi') {
+    const rel = signRel(signA, signB)
+    return moonPairHindi(signA, signB, saturnOnMoon, key, rel, base)
+  }
+  return base
 }
 
 function toneRank(t: LifeTone): number {
@@ -160,24 +209,31 @@ function combineTone(a: LifeTone, b: LifeTone): LifeTone {
   return 'mixed'
 }
 
-function tenthMilLine(chart: ChartOutput, snap: HouseSnapshot, name: string): string | null {
+function tenthMilLine(chart: ChartOutput, snap: HouseSnapshot, name: string, lang: EngineLang = 'en'): string | null {
   const female = chart.meta?.gender === 'female'
   if (!female && snap.malefics.length === 0) return null
   if (snap.malefics.length === 0) {
     return female
-      ? `${name}'s 10th house is clear of difficult planets, so career pressure and the bond with the mother-in-law are not a sharp point in this chart.`
+      ? (lang === 'hi'
+        ? fill(MML_HI.tenth.femaleClear, { name })
+        : `${name}'s 10th house is clear of difficult planets, so career pressure and the bond with the mother-in-law are not a sharp point in this chart.`)
       : null
   }
   const who = snap.malefics.join(', ')
   if (female) {
-    return `${name}'s 10th house holds ${who}. Classically, for the bride this points to some career strain and a relationship with the mother-in-law that may need patience and goodwill.`
+    return lang === 'hi'
+      ? fill(MML_HI.tenth.femaleMalefic, { name, who })
+      : `${name}'s 10th house holds ${who}. Classically, for the bride this points to some career strain and a relationship with the mother-in-law that may need patience and goodwill.`
   }
-  return `${name}'s 10th house holds ${who}. Read this as public and career pressure. The mother-in-law is read more cleanly from the bride's 10th house.`
+  return lang === 'hi'
+    ? fill(MML_HI.tenth.maleMalefic, { name, who })
+    : `${name}'s 10th house holds ${who}. Read this as public and career pressure. The mother-in-law is read more cleanly from the bride's 10th house.`
 }
 
 export interface MilanMarriedLifeOptions {
   /** Which chart is the bride when gender is absent. */
   bride?: 'a' | 'b'
+  lang?: EngineLang
 }
 
 export function analyzeMilanMarriedLife(
@@ -185,8 +241,9 @@ export function analyzeMilanMarriedLife(
   chartB: ChartOutput,
   opts: MilanMarriedLifeOptions = {},
 ): MilanMarriedLifeResult | null {
-  const personA = analyzeMarriedLife(chartA)
-  const personB = analyzeMarriedLife(chartB)
+  const lang = opts.lang ?? 'en'
+  const personA = analyzeMarriedLife(chartA, lang)
+  const personB = analyzeMarriedLife(chartB, lang)
   if (!personA || !personB) return null
 
   const nameA = chartA.meta?.name || 'Person 1'
@@ -195,16 +252,43 @@ export function analyzeMilanMarriedLife(
   const moonB = chartB.grahas.find(g => g.id === 'Mo')
   const signA = moonA?.rashi ?? 1
   const signB = moonB?.rashi ?? 1
-  const moon = moonEmotionalPair(signA, signB, moonHasSaturn(chartA) || moonHasSaturn(chartB))
+  const saturnMoon = moonHasSaturn(chartA) || moonHasSaturn(chartB)
+  const moon = moonEmotionalPair(signA, signB, saturnMoon, lang)
 
-  const homeA = marriageHouseSnapshot(chartA, 4, `${nameA} — home`)
-  const homeB = marriageHouseSnapshot(chartB, 4, `${nameB} — home`)
-  const tenthA = marriageHouseSnapshot(chartA, 10, `${nameA} — 10th`)
-  const tenthB = marriageHouseSnapshot(chartB, 10, `${nameB} — 10th`)
+  const homeA = marriageHouseSnapshot(
+    chartA,
+    4,
+    lang === 'hi' ? fill(MML_HI.topics.homeA, { name: nameA }) : `${nameA} — home`,
+    lang,
+  )
+  const homeB = marriageHouseSnapshot(
+    chartB,
+    4,
+    lang === 'hi' ? fill(MML_HI.topics.homeB, { name: nameB }) : `${nameB} — home`,
+    lang,
+  )
+  const tenthA = marriageHouseSnapshot(
+    chartA,
+    10,
+    lang === 'hi' ? fill(MML_HI.topics.tenthA, { name: nameA }) : `${nameA} — 10th`,
+    lang,
+  )
+  const tenthB = marriageHouseSnapshot(
+    chartB,
+    10,
+    lang === 'hi' ? fill(MML_HI.topics.tenthB, { name: nameB }) : `${nameB} — 10th`,
+    lang,
+  )
 
   let homeReading: string
   const homeTone = combineTone(homeA.tone, homeB.tone)
-  if (homeA.tone === 'supportive' && homeB.tone === 'supportive') {
+  if (lang === 'hi') {
+    if (homeA.tone === 'supportive' && homeB.tone === 'supportive') homeReading = MML_HI.home.bothSupportive
+    else if (homeA.tone === 'caution' && homeB.tone === 'caution') homeReading = MML_HI.home.bothCaution
+    else if (homeA.tone === 'caution') homeReading = fill(MML_HI.home.aCaution, { nameA, nameB })
+    else if (homeB.tone === 'caution') homeReading = fill(MML_HI.home.bCaution, { nameA, nameB })
+    else homeReading = MML_HI.home.mixed
+  } else if (homeA.tone === 'supportive' && homeB.tone === 'supportive') {
     homeReading = 'Both 4th houses are relatively clear. Domestic peace comes more easily when speech stays kind.'
   } else if (homeA.tone === 'caution' && homeB.tone === 'caution') {
     homeReading = 'Both 4th houses are under some stress, so home life itself may need care. Looking only at the 7th house would miss this.'
@@ -219,12 +303,12 @@ export function analyzeMilanMarriedLife(
   const brideA = opts.bride === 'a' || chartA.meta?.gender === 'female'
   const brideB = opts.bride === 'b' || chartB.meta?.gender === 'female'
   const milBits = [
-    tenthMilLine(brideA ? { ...chartA, meta: { ...chartA.meta, gender: 'female' } } : chartA, tenthA, nameA),
-    tenthMilLine(brideB ? { ...chartB, meta: { ...chartB.meta, gender: 'female' } } : chartB, tenthB, nameB),
+    tenthMilLine(brideA ? { ...chartA, meta: { ...chartA.meta, gender: 'female' } } : chartA, tenthA, nameA, lang),
+    tenthMilLine(brideB ? { ...chartB, meta: { ...chartB.meta, gender: 'female' } } : chartB, tenthB, nameB, lang),
   ].filter((s): s is string => !!s)
 
   if (!brideA && !brideB) {
-    milBits.push('Choose which chart is the bride: her 10th house is traditionally read for the mother-in-law, and difficult planets there suggest taking extra care.')
+    milBits.push(lang === 'hi' ? MML_HI.tenth.brideHint : 'Choose which chart is the bride: her 10th house is traditionally read for the mother-in-law, and difficult planets there suggest taking extra care.')
   }
 
   const tenthTone: LifeTone =
@@ -235,47 +319,82 @@ export function analyzeMilanMarriedLife(
   const dimensions: DimensionCompare[] = personA.dimensions.map((d, i) => {
     const other = personB.dimensions[i]
     const gap = Math.abs(d.score - other.score)
-    let note = `${nameA} ${d.score}/10 · ${nameB} ${other.score}/10.`
+    let note: string
     let tone: LifeTone = 'mixed'
-    if (gap >= 4) {
-      note += ' The gap is wide, so one of you may feel this theme much more strongly.'
-      tone = 'caution'
-    } else if (d.score >= 7 && other.score >= 7) {
-      note += ' Both charts support this theme.'
-      tone = 'supportive'
-    } else if (d.score <= 3 && other.score <= 3) {
-      note += ' Both charts are quiet on this theme, so it may need more conscious attention.'
-      tone = 'caution'
+    if (lang === 'hi') {
+      note = fill(MML_HI.dimNote.base, { nameA, nameB, scoreA: d.score, scoreB: other.score })
+      if (gap >= 4) {
+        note += MML_HI.dimNote.wideGap
+        tone = 'caution'
+      } else if (d.score >= 7 && other.score >= 7) {
+        note += MML_HI.dimNote.bothHigh
+        tone = 'supportive'
+      } else if (d.score <= 3 && other.score <= 3) {
+        note += MML_HI.dimNote.bothLow
+        tone = 'caution'
+      } else {
+        note += MML_HI.dimNote.close
+      }
+      if (d.id === 'passion' && gap >= 4) note += MML_HI.dimNote.passionGap
+      if (d.id === 'longevity' && d.score >= 6 && other.score >= 6) {
+        note += MML_HI.dimNote.longevityBoth
+        tone = tone === 'caution' ? 'mixed' : 'supportive'
+      }
     } else {
-      note += ' Close enough to work well if it is talked about.'
+      note = `${nameA} ${d.score}/10 · ${nameB} ${other.score}/10.`
+      if (gap >= 4) {
+        note += ' The gap is wide, so one of you may feel this theme much more strongly.'
+        tone = 'caution'
+      } else if (d.score >= 7 && other.score >= 7) {
+        note += ' Both charts support this theme.'
+        tone = 'supportive'
+      } else if (d.score <= 3 && other.score <= 3) {
+        note += ' Both charts are quiet on this theme, so it may need more conscious attention.'
+        tone = 'caution'
+      } else {
+        note += ' Close enough to work well if it is talked about.'
+      }
+      if (d.id === 'passion' && gap >= 4) {
+        note += ' Differing desire is the practical challenge: one may press while the other withdraws, so gentle talk helps.'
+      }
+      if (d.id === 'longevity' && d.score >= 6 && other.score >= 6) {
+        note += ' Both 7th lords support lasting continuity.'
+        tone = tone === 'caution' ? 'mixed' : 'supportive'
+      }
     }
-    if (d.id === 'passion' && gap >= 4) {
-      note += ' Differing desire is the practical challenge: one may press while the other withdraws, so gentle talk helps.'
-    }
-    if (d.id === 'longevity' && d.score >= 6 && other.score >= 6) {
-      note += ' Both 7th lords support lasting continuity.'
-      tone = tone === 'caution' ? 'mixed' : 'supportive'
-    }
-    return { id: d.id, label: d.label, scoreA: d.score, scoreB: other.score, note, tone }
+    const label = lang === 'hi'
+      ? (MML_HI.dimensionLabels[d.id as keyof typeof MML_HI.dimensionLabels]?.label ?? d.label)
+      : d.label
+    return { id: d.id, label, scoreA: d.score, scoreB: other.score, note, tone }
   })
 
   const findings: MarriedLifeNote[] = []
   findings.push({
     id: 'moon',
     title: moon.title,
-    detail: `${moon.signA} Moon (${nameA}) with ${moon.signB} Moon (${nameB}). ${moon.detail}`,
+    detail: lang === 'hi'
+      ? fill(MML_HI.findings.moonDetail, {
+        signA: moon.signA,
+        signB: moon.signB,
+        nameA,
+        nameB,
+        detail: moon.detail,
+      })
+      : `${moon.signA} Moon (${nameA}) with ${moon.signB} Moon (${nameB}). ${moon.detail}`,
     tone: moon.tone,
   })
   findings.push({
     id: 'home',
-    title: '4th house: the heart of the home',
+    title: lang === 'hi' ? MML_HI.findings.homeTitle : '4th house: the heart of the home',
     detail: homeReading,
     tone: homeTone,
   })
   findings.push({
     id: 'tenth',
-    title: '10th house: career and mother-in-law',
-    detail: milBits.join(' ') || 'Neither 10th house stands out. The bride’s 10th house is still worth reading for the mother-in-law, along with both careers.',
+    title: lang === 'hi' ? MML_HI.findings.tenthTitle : '10th house: career and mother-in-law',
+    detail: milBits.join(' ') || (lang === 'hi'
+      ? MML_HI.tenth.findingsDefault
+      : 'Neither 10th house stands out. The bride’s 10th house is still worth reading for the mother-in-law, along with both careers.'),
     tone: tenthTone,
   })
 
@@ -283,7 +402,7 @@ export function analyzeMilanMarriedLife(
   if (passion && passion.tone === 'caution') {
     findings.push({
       id: 'passion-gap',
-      title: 'Passion levels differ',
+      title: lang === 'hi' ? MML_HI.findings.passionGapTitle : 'Passion levels differ',
       detail: passion.note,
       tone: 'caution',
     })
@@ -291,13 +410,13 @@ export function analyzeMilanMarriedLife(
 
   findings.push({
     id: 'proposal-a',
-    title: `${nameA}: who brings the proposal`,
+    title: lang === 'hi' ? fill(MML_HI.findings.proposalTitle, { name: nameA }) : `${nameA}: who brings the proposal`,
     detail: personA.proposal.detail,
     tone: 'mixed',
   })
   findings.push({
     id: 'proposal-b',
-    title: `${nameB}: who brings the proposal`,
+    title: lang === 'hi' ? fill(MML_HI.findings.proposalTitle, { name: nameB }) : `${nameB}: who brings the proposal`,
     detail: personB.proposal.detail,
     tone: 'mixed',
   })
@@ -309,8 +428,16 @@ export function analyzeMilanMarriedLife(
     const fruitTone: LifeTone = [1, 5, 7, 9].includes(rel) ? 'supportive' : [6, 8].includes(rel) ? 'caution' : 'mixed'
     findings.push({
       id: 'd9-fruit',
-      title: 'Navamsha lagnas: the fruit of the marriage',
-      detail: `${nameA}'s D9 lagna is ${RASHI_NAMES[d9A]} and ${nameB}'s is ${RASHI_NAMES[d9B]} (${rel === 1 ? 'same sign' : `${rel}th relation`}). Guna scores do not replace this. The Navamsha shows how living together tends to unfold, while any remedies are guided by each D1 chart.`,
+      title: lang === 'hi' ? MML_HI.findings.d9Title : 'Navamsha lagnas: the fruit of the marriage',
+      detail: lang === 'hi'
+        ? fill(MML_HI.findings.d9Detail, {
+          nameA,
+          nameB,
+          signA: rName(d9A, 'hi'),
+          signB: rName(d9B, 'hi'),
+          relText: rel === 1 ? MML_HI.findings.d9Same : fill(MML_HI.findings.d9Rel, { rel }),
+        })
+        : `${nameA}'s D9 lagna is ${RASHI_NAMES[d9A]} and ${nameB}'s is ${RASHI_NAMES[d9B]} (${rel === 1 ? 'same sign' : `${rel}th relation`}). Guna scores do not replace this. The Navamsha shows how living together tends to unfold, while any remedies are guided by each D1 chart.`,
       tone: fruitTone,
     })
   }
@@ -323,10 +450,12 @@ export function analyzeMilanMarriedLife(
   const ascA = chartA.lagnas?.ascRashi
   const ascB = chartB.lagnas?.ascRashi
   if (ascA && ascB) {
-    for (const link of dusthanaLinks(nameA, ascA, nameB, ascB)) {
+    for (const link of dusthanaLinks(nameA, ascA, nameB, ascB, lang)) {
       findings.push({
         id: `dusthana-${link.native}`,
-        title: `${link.helper} can support ${link.native} in hard times`,
+        title: lang === 'hi'
+          ? fill(MML_HI.findings.dusthanaTitle, { helper: link.helper, native: link.native })
+          : `${link.helper} can support ${link.native} in hard times`,
         detail: link.detail,
         tone: 'mixed',
       })
@@ -334,13 +463,13 @@ export function analyzeMilanMarriedLife(
   }
 
   for (const [who, ch] of [[nameA, chartA], [nameB, chartB]] as const) {
-    const intimate = analyzeIntimateLife(ch)
+    const intimate = analyzeIntimateLife(ch, lang)
     if (!intimate) continue
     const sharp = intimate.notes.filter(n => n.tone === 'caution').slice(0, 2)
     if (!sharp.length) continue
     findings.push({
       id: `intimate-${who}`,
-      title: `${who}: areas of intimate pressure`,
+      title: lang === 'hi' ? fill(MML_HI.findings.intimateTitle, { who }) : `${who}: areas of intimate pressure`,
       detail: `${intimate.headline} ${sharp.map(n => n.title).join('. ')}.`,
       tone: 'caution',
     })
@@ -352,26 +481,37 @@ export function analyzeMilanMarriedLife(
     const spark = [rel1, rel2].some(r => [1, 5, 7, 9].includes(r))
     findings.push({
       id: 'spark',
-      title: 'Venus–Mars spark across the charts',
+      title: lang === 'hi' ? MML_HI.findings.sparkTitle : 'Venus–Mars spark across the charts',
       detail: spark
-        ? 'At least one Venus–Mars pair falls in conjunction, trine or opposition, so romance and warmth can find each other. Gunas do not measure this.'
-        : 'Venus and Mars across the two charts do not form a 1st, 5th, 7th or 9th link. Attraction may grow through time, shared rituals and honesty rather than instant chemistry.',
+        ? (lang === 'hi' ? MML_HI.findings.sparkYes : 'At least one Venus–Mars pair falls in conjunction, trine or opposition, so romance and warmth can find each other. Gunas do not measure this.')
+        : (lang === 'hi' ? MML_HI.findings.sparkNo : 'Venus and Mars across the two charts do not form a 1st, 5th, 7th or 9th link. Attraction may grow through time, shared rituals and honesty rather than instant chemistry.'),
       tone: spark ? 'supportive' : 'caution',
     })
   }
 
   const support = findings.filter(f => f.tone === 'supportive').length
   const caution = findings.filter(f => f.tone === 'caution').length
-  const summary = [
-    `Beyond the 36 gunas: ${nameA} and ${nameB} are read for flavor (Venus), passion (Mars), lasting continuity (7th lord), blessing (Jupiter) and the fruit of the marriage (D9 lagna).`,
-    moon.detail,
-    homeReading,
-    caution > support
-      ? 'There are more points to handle with care than points of support, so a high guna total is best read alongside the 4th house, the 10th house and the 7th lord.'
-      : support > caution
-        ? 'This layer of the match looks broadly supportive. It is still worth talking through the points of caution together.'
-        : 'This layer of the match is mixed. Open, conscious communication can carry it well.',
-  ].join(' ')
+  const summary = lang === 'hi'
+    ? [
+      fill(MML_HI.summary.lead, { nameA, nameB }),
+      moon.detail,
+      homeReading,
+      caution > support
+        ? MML_HI.summary.cautionHeavy
+        : support > caution
+          ? MML_HI.summary.supportHeavy
+          : MML_HI.summary.mixed,
+    ].join(' ')
+    : [
+      `Beyond the 36 gunas: ${nameA} and ${nameB} are read for flavor (Venus), passion (Mars), lasting continuity (7th lord), blessing (Jupiter) and the fruit of the marriage (D9 lagna).`,
+      moon.detail,
+      homeReading,
+      caution > support
+        ? 'There are more points to handle with care than points of support, so a high guna total is best read alongside the 4th house, the 10th house and the 7th lord.'
+        : support > caution
+          ? 'This layer of the match looks broadly supportive. It is still worth talking through the points of caution together.'
+          : 'This layer of the match is mixed. Open, conscious communication can carry it well.',
+    ].join(' ')
 
   return {
     personA,
@@ -383,7 +523,7 @@ export function analyzeMilanMarriedLife(
     tenth: {
       a: tenthA,
       b: tenthB,
-      reading: milBits.join(' ') || 'The bride’s 10th house is traditionally read for the mother-in-law.',
+      reading: milBits.join(' ') || (lang === 'hi' ? MML_HI.tenth.default : 'The bride’s 10th house is traditionally read for the mother-in-law.'),
       tone: tenthTone,
     },
     dimensions,

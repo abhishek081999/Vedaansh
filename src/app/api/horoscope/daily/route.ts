@@ -17,6 +17,7 @@ export const dynamic = 'force-dynamic'
 const QuerySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   sign: z.string().max(20).optional(),
+  lang: z.enum(['en', 'hi']).optional(),
 })
 
 /** Keep the public endpoint to a sensible window around today. */
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
   const parsed = QuerySchema.safeParse({
     date: sp.get('date') ?? undefined,
     sign: sp.get('sign') ?? undefined,
+    lang: sp.get('lang') ?? undefined,
   })
   if (!parsed.success) {
     return NextResponse.json({ success: false, error: 'Invalid query' }, { status: 400 })
@@ -49,7 +51,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const report = await getDailyHoroscope(date)
+    const lang = parsed.data.lang ?? 'en'
+    const report = await getDailyHoroscope(date, lang)
     const data = rashi ? { ...report, signs: report.signs.filter((s) => s.rashi === rashi) } : report
     return NextResponse.json(
       { success: true, data },

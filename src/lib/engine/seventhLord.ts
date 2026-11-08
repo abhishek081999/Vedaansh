@@ -8,6 +8,9 @@
 import type { ChartOutput, Dignity, Gender, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
 import { getDashaPathAt } from '@/lib/engine/dasha/current'
+import { fill, type EngineLang } from '@/lib/engine/lang'
+import { gName, rName } from '@/lib/engine/divisionalLang'
+import { SL_HI } from '@/lib/engine/locale/seventhLord.hi'
 import { D30 } from '@/lib/engine/vargas'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
 
@@ -54,20 +57,31 @@ function signOf(asc: number, house: number): Rashi {
   return ((((asc - 1 + house - 1) % 12) + 1) as Rashi)
 }
 
-function rn(r: number): string {
-  return RASHI_NAMES[r as Rashi] ?? `R${r}`
-}
-
-function gn(id: GrahaId | string): string {
-  return GRAHA_NAMES[id as GrahaId] ?? id
-}
-
 function find(list: GrahaData[] | undefined, id: GrahaId): GrahaData | undefined {
   return list?.find(g => g.id === id)
 }
 
 function note(id: string, title: string, detail: string, tone: LifeTone): MarriedLifeNote {
   return { id, title, detail, tone }
+}
+
+function localizeNotes(notes: MarriedLifeNote[], lang: EngineLang): MarriedLifeNote[] {
+  if (lang !== 'hi') return notes
+  return notes.map((n) => {
+    const row = SL_HI.notes[n.id as keyof typeof SL_HI.notes]
+    if (row) return { ...n, title: row.title, detail: row.detail }
+    return n
+  })
+}
+
+function gn(id: GrahaId | string, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return GRAHA_NAMES[id as GrahaId] ?? String(id)
+  return gName(id as GrahaId, lang)
+}
+
+function rn(r: number, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return RASHI_NAMES[r as Rashi] ?? `R${r}`
+  return rName(r as Rashi, lang) ?? `R${r}`
 }
 
 function dignified(d: Dignity | undefined): boolean {
@@ -127,7 +141,7 @@ function atWar(a: GrahaData | undefined, b: GrahaData | undefined): boolean {
   return diff <= 1
 }
 
-export function analyzeSeventhLord(chart: ChartOutput | null | undefined): SeventhLordReading | null {
+export function analyzeSeventhLord(chart: ChartOutput | null | undefined, lang: EngineLang = 'en'): SeventhLordReading | null {
   const asc = chart?.lagnas?.ascRashi
   if (!chart || !asc) return null
 
@@ -625,7 +639,44 @@ export function analyzeSeventhLord(chart: ChartOutput | null | undefined): Seven
     ? `${gn(lord.id)} rules the marriage house (7th) from ${rn(seventh)} and sits in ${rn(lord.rashi)}. ${band === 'open' ? 'The age band is not decisive from the marks on this chart.' : band === 'timely' ? 'The timely age band has the stronger count.' : band === 'delayed' ? 'The delayed age band has the stronger count.' : 'The late age band has the stronger count.'}`
     : 'Without the planet ruling the marriage house (7th), those house results cannot be read.'
 
-  return { headline, summary, principles: SEVENTH_LORD_PRINCIPLES, placement, combinations, timing, flags }
+  const headlineHi = exchange
+    ? SL_HI.headlines.exchange
+    : lordHouse === 4
+      ? SL_HI.headlines.fourth
+      : lordHouse === 12
+        ? SL_HI.headlines.twelfth
+        : band === 'late'
+          ? SL_HI.headlines.late
+          : lord
+            ? fill(SL_HI.headlines.default, { lord: gn(lord.id, 'hi'), house: `${lordHouse} भाव` })
+            : SL_HI.headlines.noLord
+
+  const bandLineHi = band === 'open'
+    ? SL_HI.summary.bandOpen
+    : band === 'timely'
+      ? SL_HI.summary.bandTimely
+      : band === 'delayed'
+        ? SL_HI.summary.bandDelayed
+        : SL_HI.summary.bandLate
+
+  const summaryHi = lord
+    ? fill(SL_HI.summary.withLord, {
+      lord: gn(lord.id, 'hi'),
+      seventh: rn(seventh, 'hi'),
+      sign: rn(lord.rashi, 'hi'),
+      bandLine: bandLineHi,
+    })
+    : SL_HI.summary.noLord
+
+  return {
+    headline: lang === 'en' ? headline : headlineHi,
+    summary: lang === 'en' ? summary : summaryHi,
+    principles: lang === 'en' ? SEVENTH_LORD_PRINCIPLES : SL_HI.principles,
+    placement: localizeNotes(placement, lang),
+    combinations: localizeNotes(combinations, lang),
+    timing: localizeNotes(timing, lang),
+    flags,
+  }
 }
 
 export function compareSeventhLord(
@@ -633,30 +684,52 @@ export function compareSeventhLord(
   b: SeventhLordReading,
   nameA: string,
   nameB: string,
+  lang: EngineLang = 'en',
 ): MarriedLifeNote[] {
   const notes: MarriedLifeNote[] = []
   if (a.flags.band !== 'open' && b.flags.band !== 'open' && a.flags.band !== b.flags.band) {
-    notes.push(note(
-      'seventh-pair-band',
-      'The marriage clocks are in different bands',
-      `${nameA} sits in the ${a.flags.band} band and ${nameB} in the ${b.flags.band} band. A match is still possible, though classical texts would not call it the smooth, same-year kind.`,
-      'mixed',
-    ))
+    notes.push(lang === 'hi'
+      ? {
+        id: 'seventh-pair-band',
+        title: SL_HI.notes['seventh-pair-band'].title,
+        detail: fill(SL_HI.notes['seventh-pair-band'].detail, {
+          nameA,
+          nameB,
+          bandA: SL_HI.bandLabel[a.flags.band],
+          bandB: SL_HI.bandLabel[b.flags.band],
+        }),
+        tone: 'mixed',
+      }
+      : note(
+        'seventh-pair-band',
+        'The marriage clocks are in different bands',
+        `${nameA} sits in the ${a.flags.band} band and ${nameB} in the ${b.flags.band} band. A match is still possible, though classical texts would not call it the smooth, same-year kind.`,
+        'mixed',
+      ))
   } else if (a.flags.band !== 'open' && a.flags.band === b.flags.band) {
-    notes.push(note(
-      'seventh-pair-band',
-      'The marriage clocks agree',
-      `${nameA} and ${nameB} both fall in the ${a.flags.band} band. Timing pressure is shared rather than carried by one chart.`,
-      a.flags.band === 'late' ? 'caution' : 'supportive',
-    ))
+    notes.push(lang === 'hi'
+      ? {
+        id: 'seventh-pair-band',
+        title: SL_HI.notes['seventh-pair-band-same'].title,
+        detail: fill(SL_HI.notes['seventh-pair-band-same'].detail, { band: SL_HI.bandLabel[a.flags.band] }),
+        tone: a.flags.band === 'late' ? 'caution' : 'supportive',
+      }
+      : note(
+        'seventh-pair-band',
+        'The marriage clocks agree',
+        `${nameA} and ${nameB} both fall in the ${a.flags.band} band. Timing pressure is shared rather than carried by one chart.`,
+        a.flags.band === 'late' ? 'caution' : 'supportive',
+      ))
   }
   if (a.flags.saturnNinth && b.flags.saturnNinth) {
-    notes.push(note(
-      'seventh-pair-saturn-ninth',
-      'Both charts have Saturn in the 9th',
-      'Saturn in the 9th troubles married life in a man’s chart and a woman’s chart. Both people bring that D1 mark.',
-      'caution',
-    ))
+    notes.push(lang === 'hi'
+      ? { id: 'seventh-pair-saturn-ninth', ...SL_HI.notes['seventh-pair-saturn-ninth'], tone: 'caution' as const }
+      : note(
+        'seventh-pair-saturn-ninth',
+        'Both charts have Saturn in the 9th',
+        'Saturn in the 9th troubles married life in a man’s chart and a woman’s chart. Both people bring that D1 mark.',
+        'caution',
+      ))
   }
   return notes
 }

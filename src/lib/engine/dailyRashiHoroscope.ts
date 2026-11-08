@@ -17,6 +17,23 @@ import {
   type GocharStatus,
 } from '@/lib/engine/gocharRules'
 import type { DailyHoroscopeSky } from '@/lib/engine/dailyHoroscopeSky'
+import { fill, gName, pick, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  DR_AREA_LABELS_HI,
+  DR_AREA_TEXT_HI,
+  DR_HOUSE_MATTERS_HI,
+  DR_MOON_KARYA_HI,
+  DR_MOON_THEMES_HI,
+  DR_MOON_VARJYA_HI,
+  DR_ORD_HI,
+  DR_PLANET_COLOR_HI,
+  DR_PLANET_DIRECTION_HI,
+  DR_PLANET_KARYA_HI,
+  DR_PLANET_ROLE_HI,
+  DR_PLANET_VARJYA_HI,
+  DR_REMEDY_ACT_HI,
+  DR_TEXT_HI,
+} from '@/lib/engine/locale/dailyRashiHoroscope.hi'
 
 export type HoroscopeTone = 'excellent' | 'good' | 'mixed' | 'challenging'
 export type HoroscopeAreaId = 'love' | 'career' | 'money' | 'health' | 'mind'
@@ -338,33 +355,61 @@ function clampScore(raw: number): number {
   return Math.max(8, Math.min(96, Math.round(raw)))
 }
 
-function transitNote(planet: GocharPlanet, house: number, status: GocharStatus, vedhaBy?: GocharPlanet): string {
-  const matters = HOUSE_MATTERS[house]
-  if (status === 'favourable') return `${NAMES[planet]} in your ${ORD[house]} supports ${matters}.`
-  if (status === 'vedha') return `${NAMES[planet]} in your ${ORD[house]} would help ${matters}, but ${NAMES[vedhaBy!]} blocks it (vedha).`
-  return `${NAMES[planet]} in your ${ORD[house]} asks for care around ${matters}.`
+function transitNote(planet: GocharPlanet, house: number, status: GocharStatus, vedhaBy: GocharPlanet | undefined, lang: EngineLang): string {
+  if (lang === 'en') {
+    const matters = HOUSE_MATTERS[house]
+    if (status === 'favourable') return `${NAMES[planet]} in your ${ORD[house]} supports ${matters}.`
+    if (status === 'vedha') return `${NAMES[planet]} in your ${ORD[house]} would help ${matters}, but ${NAMES[vedhaBy!]} blocks it (vedha).`
+    return `${NAMES[planet]} in your ${ORD[house]} asks for care around ${matters}.`
+  }
+  const matters = DR_HOUSE_MATTERS_HI[house]
+  const ord = DR_ORD_HI[house]
+  const p = gName(planet, lang)
+  if (status === 'favourable') return fill(DR_TEXT_HI.transitFavourable, { planet: p, ord, matters })
+  if (status === 'vedha') return fill(DR_TEXT_HI.transitVedha, { planet: p, ord, matters, blocker: gName(vedhaBy!, lang) })
+  return fill(DR_TEXT_HI.transitUnfavourable, { planet: p, ord, matters })
 }
 
-function longTermNotes(houses: Record<GocharPlanet, number>): string[] {
+function longTermNotes(houses: Record<GocharPlanet, number>, lang: EngineLang): string[] {
   const out: string[] = []
   const sa = houses.Sa
-  if (sa === 12) out.push('Sade Sati — rising phase: Saturn in your 12th asks you to trim expenses and rest more.')
-  else if (sa === 1) out.push('Sade Sati — peak phase: Saturn over your Moon sign rewards patience, discipline and simple living.')
-  else if (sa === 2) out.push('Sade Sati — setting phase: Saturn in your 2nd steadies finances slowly; speak with care.')
-  else if (sa === 8) out.push('Ashtama Shani: Saturn in your 8th — avoid shortcuts and keep health check-ups regular.')
-  else if (sa === 4) out.push('Kantaka Shani: Saturn in your 4th can weigh on home and peace of mind; keep routines simple.')
-  else if (sa === 3 || sa === 6 || sa === 11) out.push(`Saturn in your ${ORD[sa]} is a strong backing — steady effort pays off this period.`)
+  if (lang === 'en') {
+    if (sa === 12) out.push('Sade Sati — rising phase: Saturn in your 12th asks you to trim expenses and rest more.')
+    else if (sa === 1) out.push('Sade Sati — peak phase: Saturn over your Moon sign rewards patience, discipline and simple living.')
+    else if (sa === 2) out.push('Sade Sati — setting phase: Saturn in your 2nd steadies finances slowly; speak with care.')
+    else if (sa === 8) out.push('Ashtama Shani: Saturn in your 8th — avoid shortcuts and keep health check-ups regular.')
+    else if (sa === 4) out.push('Kantaka Shani: Saturn in your 4th can weigh on home and peace of mind; keep routines simple.')
+    else if (sa === 3 || sa === 6 || sa === 11) out.push(`Saturn in your ${ORD[sa]} is a strong backing — steady effort pays off this period.`)
+  } else {
+    if (sa === 12) out.push(DR_TEXT_HI.sadeSati12)
+    else if (sa === 1) out.push(DR_TEXT_HI.sadeSati1)
+    else if (sa === 2) out.push(DR_TEXT_HI.sadeSati2)
+    else if (sa === 8) out.push(DR_TEXT_HI.ashtamaShani)
+    else if (sa === 4) out.push(DR_TEXT_HI.kantakaShani)
+    else if (sa === 3 || sa === 6 || sa === 11) out.push(fill(DR_TEXT_HI.saturnStrong, { ord: DR_ORD_HI[sa] }))
+  }
 
   const ju = houses.Ju
-  if ([2, 5, 7, 9, 11].includes(ju)) out.push(`Jupiter in your ${ORD[ju]} is a protective backdrop this year for ${HOUSE_MATTERS[ju]}.`)
-  else out.push(`Jupiter in your ${ORD[ju]} gives limited help this period — rely on your own planning.`)
+  if (lang === 'en') {
+    if ([2, 5, 7, 9, 11].includes(ju)) out.push(`Jupiter in your ${ORD[ju]} is a protective backdrop this year for ${HOUSE_MATTERS[ju]}.`)
+    else out.push(`Jupiter in your ${ORD[ju]} gives limited help this period — rely on your own planning.`)
+  } else if ([2, 5, 7, 9, 11].includes(ju)) {
+    out.push(fill(DR_TEXT_HI.jupiterHelp, { ord: DR_ORD_HI[ju], matters: DR_HOUSE_MATTERS_HI[ju] }))
+  } else {
+    out.push(fill(DR_TEXT_HI.jupiterLimit, { ord: DR_ORD_HI[ju] }))
+  }
 
   const ra = houses.Ra
-  if ([3, 6, 11].includes(ra)) out.push(`Rahu in your ${ORD[ra]} fuels ambition — good for bold, unconventional goals.`)
+  if ([3, 6, 11].includes(ra)) {
+    if (lang === 'en') out.push(`Rahu in your ${ORD[ra]} fuels ambition — good for bold, unconventional goals.`)
+    else out.push(fill(DR_TEXT_HI.rahuAmbition, { ord: DR_ORD_HI[ra] }))
+  }
   return out
 }
 
-function scoreAreas(houses: Record<GocharPlanet, number>, values: Record<GocharPlanet, number>): HoroscopeArea[] {
+function scoreAreas(houses: Record<GocharPlanet, number>, values: Record<GocharPlanet, number>, lang: EngineLang): HoroscopeArea[] {
+  const labels = pick(AREA_LABELS, DR_AREA_LABELS_HI, lang)
+  const texts = pick(AREA_TEXT, DR_AREA_TEXT_HI, lang)
   return (Object.keys(AREA_WEIGHTS) as HoroscopeAreaId[]).map((id) => {
     let sum = 0
     let total = 0
@@ -377,22 +422,26 @@ function scoreAreas(houses: Record<GocharPlanet, number>, values: Record<GocharP
     const tone = toneOf(score)
     return {
       id,
-      label: AREA_LABELS[id],
+      label: labels[id],
       sanskrit: AREA_SANSKRIT[id],
       score,
       rating: ratingOf(score),
       tone,
-      text: AREA_TEXT[id][tone],
+      text: texts[id][tone],
     }
   })
 }
 
-function karyaVarjya(houses: Record<GocharPlanet, number>, transits: HoroscopeTransit[]) {
-  const karya = [...MOON_KARYA[houses.Mo]]
-  const varjya = [...MOON_VARJYA[houses.Mo]]
+function karyaVarjya(houses: Record<GocharPlanet, number>, transits: HoroscopeTransit[], lang: EngineLang) {
+  const moonKarya = pick(MOON_KARYA, DR_MOON_KARYA_HI, lang)
+  const moonVarjya = pick(MOON_VARJYA, DR_MOON_VARJYA_HI, lang)
+  const planetKarya = pick(PLANET_KARYA, DR_PLANET_KARYA_HI, lang)
+  const planetVarjya = pick(PLANET_VARJYA, DR_PLANET_VARJYA_HI, lang)
+  const karya = [...moonKarya[houses.Mo]]
+  const varjya = [...moonVarjya[houses.Mo]]
   for (const t of transits) {
-    if (t.status === 'favourable' && PLANET_KARYA[t.planet]) karya.push(PLANET_KARYA[t.planet]!)
-    else if ((t.retro || [8, 12].includes(t.house)) && PLANET_VARJYA[t.planet]) varjya.push(PLANET_VARJYA[t.planet]!)
+    if (t.status === 'favourable' && planetKarya[t.planet]) karya.push(planetKarya[t.planet]!)
+    else if ((t.retro || [8, 12].includes(t.house)) && planetVarjya[t.planet]) varjya.push(planetVarjya[t.planet]!)
   }
   return { karya: karya.slice(0, 4), varjya: varjya.slice(0, 4) }
 }
@@ -425,7 +474,12 @@ function shubhSamay(
 const ALL: GocharPlanet[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 
 /** Reading for one Moon sign. */
-export function buildRashiHoroscope(sky: DailyHoroscopeSky, rashi: Rashi): RashiHoroscope {
+export function buildRashiHoroscope(sky: DailyHoroscopeSky, rashi: Rashi, lang: EngineLang = 'en'): RashiHoroscope {
+  const moonThemes = pick(MOON_THEMES, DR_MOON_THEMES_HI, lang)
+  const planetRole = pick(PLANET_ROLE, DR_PLANET_ROLE_HI, lang)
+  const planetColor = pick(PLANET_COLOR, DR_PLANET_COLOR_HI, lang)
+  const planetDirection = pick(PLANET_DIRECTION, DR_PLANET_DIRECTION_HI, lang)
+  const remedyAct = pick(REMEDY_ACT, DR_REMEDY_ACT_HI, lang)
   const houses = {} as Record<GocharPlanet, number>
   for (const g of sky.grahas) houses[g.id] = houseFrom(g.rashi, rashi)
 
@@ -442,7 +496,7 @@ export function buildRashiHoroscope(sky: DailyHoroscopeSky, rashi: Rashi): Rashi
     const span = Date.parse(sky.dayEnd) - Date.parse(sky.dayStart)
     const share = (Date.parse(sky.moonIngress.at) - Date.parse(sky.dayStart)) / span
     values.Mo = share * values.Mo + (1 - share) * statusValue(laterEval.status, laterHouse)
-    later = { house: laterHouse, at: sky.moonIngress.at, theme: MOON_THEMES[laterHouse].text }
+    later = { house: laterHouse, at: sky.moonIngress.at, theme: moonThemes[laterHouse].text }
   }
 
   let sum = 0
@@ -461,7 +515,7 @@ export function buildRashiHoroscope(sky: DailyHoroscopeSky, rashi: Rashi): Rashi
     status: e.status,
     retro: e.planet === 'Ra' || e.planet === 'Ke' ? false : Boolean(retro.get(e.planet)),
     vedhaBy: e.vedhaBy,
-    note: transitNote(e.planet, e.houseFromMoon, e.status, e.vedhaBy),
+    note: transitNote(e.planet, e.houseFromMoon, e.status, e.vedhaBy, lang),
   }))
 
   // Fast grahas carry the daily message; slow ones go to the long-term block.
@@ -472,18 +526,28 @@ export function buildRashiHoroscope(sky: DailyHoroscopeSky, rashi: Rashi): Rashi
     .map((t) => t.note)
   for (const t of transits) {
     if (t.retro && ['Me', 'Ve', 'Ma'].includes(t.planet)) {
-      cautions.push(`${NAMES[t.planet]} is retrograde — revisit, repair and re-check ${PLANET_ROLE[t.planet]} rather than starting fresh.`)
+      if (lang === 'en') {
+        cautions.push(`${NAMES[t.planet]} is retrograde — revisit, repair and re-check ${PLANET_ROLE[t.planet]} rather than starting fresh.`)
+      } else {
+        cautions.push(fill(DR_TEXT_HI.retroCaution, { planet: gName(t.planet, lang), role: planetRole[t.planet] }))
+      }
     }
   }
 
   const moonHouse = houses.Mo
-  const theme = MOON_THEMES[moonHouse]
-  const areas = scoreAreas(houses, values)
+  const theme = moonThemes[moonHouse]
+  const areas = scoreAreas(houses, values, lang)
   const best = [...areas].sort((a, b) => b.score - a.score)[0]
   const weakest = [...areas].sort((a, b) => a.score - b.score)[0]
   const summaryParts = [theme.text]
-  if (best.tone === 'excellent' || best.tone === 'good') summaryParts.push(`${best.label} is your strongest area today.`)
-  if (weakest.tone === 'challenging') summaryParts.push(`Go gently with ${weakest.label.toLowerCase()} matters.`)
+  if (best.tone === 'excellent' || best.tone === 'good') {
+    if (lang === 'en') summaryParts.push(`${best.label} is your strongest area today.`)
+    else summaryParts.push(fill(DR_TEXT_HI.summaryStrong, { area: best.label }))
+  }
+  if (weakest.tone === 'challenging') {
+    if (lang === 'en') summaryParts.push(`Go gently with ${weakest.label.toLowerCase()} matters.`)
+    else summaryParts.push(fill(DR_TEXT_HI.summaryGentle, { area: weakest.label }))
+  }
 
   // Ally: highest-weight favourable graha (Moon excluded — it already sets the tone); fallback to the sign lord.
   const ally =
@@ -496,13 +560,21 @@ export function buildRashiHoroscope(sky: DailyHoroscopeSky, rashi: Rashi): Rashi
     .sort((a, b) => DAY_WEIGHTS[b] * -values[b] - DAY_WEIGHTS[a] * -values[a])[0]
   const remedyPlanet = troubler ?? RASHI_LORDS[rashi]
   const remedy = troubler
-    ? `To ease ${NAMES[troubler]}: ${REMEDY_ACT[troubler]}, and chant “${PLANET_MANTRA[troubler]}” 11 times.`
-    : `Thank your sign lord ${NAMES[remedyPlanet]}: ${REMEDY_ACT[remedyPlanet]}.`
+    ? lang === 'en'
+      ? `To ease ${NAMES[troubler]}: ${REMEDY_ACT[troubler]}, and chant “${PLANET_MANTRA[troubler]}” 11 times.`
+      : fill(DR_TEXT_HI.remedyTrouble, {
+          planet: gName(troubler, lang),
+          act: remedyAct[troubler],
+          mantra: PLANET_MANTRA[troubler],
+        })
+    : lang === 'en'
+      ? `Thank your sign lord ${NAMES[remedyPlanet]}: ${REMEDY_ACT[remedyPlanet]}.`
+      : fill(DR_TEXT_HI.remedyThanks, { planet: gName(remedyPlanet, lang), act: remedyAct[remedyPlanet] })
 
   return {
     rashi,
     slug: RASHI_SLUGS[rashi],
-    english: RASHI_NAMES[rashi],
+    english: rName(rashi, lang),
     sanskrit: RASHI_SANSKRIT[rashi],
     glyph: RASHI_GLYPHS[rashi],
     devanagari: RASHI_DEVANAGARI[rashi],
@@ -517,13 +589,13 @@ export function buildRashiHoroscope(sky: DailyHoroscopeSky, rashi: Rashi): Rashi
     transits,
     highlights,
     cautions,
-    longTerm: longTermNotes(houses),
-    ...karyaVarjya(houses, transits),
+    longTerm: longTermNotes(houses, lang),
+    ...karyaVarjya(houses, transits, lang),
     lucky: {
       ally,
-      color: PLANET_COLOR[ally],
+      color: planetColor[ally],
       number: PLANET_NUMBER[ally],
-      direction: PLANET_DIRECTION[ally],
+      direction: planetDirection[ally],
       mantra: PLANET_MANTRA[ally],
     },
     shubhSamay: shubhSamay(sky, values),
@@ -532,9 +604,9 @@ export function buildRashiHoroscope(sky: DailyHoroscopeSky, rashi: Rashi): Rashi
 }
 
 /** Readings for all twelve Moon signs. */
-export function buildDailyHoroscopeReport(sky: DailyHoroscopeSky): DailyHoroscopeReport {
+export function buildDailyHoroscopeReport(sky: DailyHoroscopeSky, lang: EngineLang = 'en'): DailyHoroscopeReport {
   const moon = sky.grahas.find((g) => g.id === 'Mo')!
-  const signs = ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as Rashi[]).map((r) => buildRashiHoroscope(sky, r))
+  const signs = ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as Rashi[]).map((r) => buildRashiHoroscope(sky, r, lang))
   return {
     date: sky.date,
     dayStart: sky.dayStart,

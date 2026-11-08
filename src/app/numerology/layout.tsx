@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { IntlScope } from '@/components/providers/IntlScope'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { SeoIntro } from '@/components/seo/SeoIntro'
 import { NUMEROLOGY_SEO } from '@/lib/seo/intro-content'
@@ -31,10 +32,10 @@ const jsonLd = breadcrumbJsonLd([
 
 export default async function NumerologyLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <IntlScope namespaces={['compare']}>
       <JsonLd data={jsonLd} />
       {children}
       <SeoIntro {...NUMEROLOGY_SEO} />
-    </>
+    </IntlScope>
   )
 }

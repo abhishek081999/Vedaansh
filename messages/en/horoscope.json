@@ -1,0 +1,179 @@
+{
+  "aria": {
+    "section": "Daily horoscope by Moon sign",
+    "chakra": "Choose your Moon sign",
+    "chakraSign": "{sanskrit} ({english}) — {tone}, {score} of 100",
+    "moonToday": "Moon today · {nakshatra}",
+    "diamonds": "{rating} of 5",
+    "dayTabs": "Day",
+    "taalikaBar": "{sanskrit} ({english}) {score} of 100{chandrashtama}",
+    "chandrashtamaSuffix": ", Chandrashtama",
+    "weekChart": "Score for each of the next seven days",
+    "deepDive": "{english} deeper reading"
+  },
+  "landing": {
+    "kicker": "Dainik Rashifal",
+    "title": "Today’s horoscope for every rashi"
+  },
+  "page": {
+    "kicker": "Dainik Rashifal",
+    "title": "{english} horoscope today",
+    "titleRashi": "{sanskrit} Rashi"
+  },
+  "intro": "Read from your Moon sign (Janma Rashi), the way Vedic astrology does it: live grahas, the classical gochar tables and today’s panchang.",
+  "tabs": {
+    "today": "Aaj · Today",
+    "tomorrow": "Kal · Tomorrow"
+  },
+  "toolbar": {
+    "readAtSunrise": "{date}, read at sunrise",
+    "readingSky": "Reading the sky…",
+    "share": "Share",
+    "linkCopied": "Link copied",
+    "shareTitle": "Vedaansh Dainik Rashifal",
+    "shareText": "{english} ({sanskrit}) today: {headline}"
+  },
+  "strip": {
+    "vara": "Vara",
+    "tithi": "Tithi",
+    "chandra": "Chandra",
+    "yoga": "Yoga",
+    "karana": "Karana",
+    "pakshaShukla": "Shukla",
+    "pakshaKrishna": "Krishna"
+  },
+  "card": {
+    "kicker": "{sanskrit} Rashi · {english} Moon sign",
+    "meta": "{date} · {element} sign ruled by {lord}",
+    "later": "From {time} the Moon moves into your {house}: {theme}",
+    "phala": "Phala",
+    "phalaEm": "· the day by area",
+    "shubhRang": "Shubh rang",
+    "shubhAnk": "Shubh ank",
+    "disha": "Disha",
+    "shubhSamay": "Shubh samay",
+    "shubhSamayEm": "· good hours, {place} time",
+    "horaLine": "{glyph} {planet} hora",
+    "karya": "Karya",
+    "karyaEm": "· lean into",
+    "varjya": "Varjya",
+    "varjyaEm": "· go easy on",
+    "upaya": "Upaya · ",
+    "gochara": "Gochara",
+    "gocharaEm": "· planets from your Moon sign",
+    "gocharaLine": "{planet}{retro} · {house}",
+    "retrograde": " (R)",
+    "dirgha": "Dirgha",
+    "dirghaEm": "· the bigger picture",
+    "savdhani": "Savdhani",
+    "savdhaniEm": "· notes of care",
+    "scoreOf": "/100"
+  },
+  "tone": {
+    "excellent": "Excellent",
+    "good": "Good",
+    "mixed": "Mixed",
+    "challenging": "Take care"
+  },
+  "planets": {
+    "Su": "Sun",
+    "Mo": "Moon",
+    "Ma": "Mars",
+    "Me": "Mercury",
+    "Ju": "Jupiter",
+    "Ve": "Venus",
+    "Sa": "Saturn",
+    "Ra": "Rahu",
+    "Ke": "Ketu"
+  },
+  "ordinal": {
+    "1": "1st",
+    "2": "2nd",
+    "3": "3rd",
+    "4": "4th",
+    "5": "5th",
+    "6": "6th",
+    "7": "7th",
+    "8": "8th",
+    "9": "9th",
+    "10": "10th",
+    "11": "11th",
+    "12": "12th"
+  },
+  "hint": {
+    "line1": "Tap your Moon sign on the chakra.",
+    "line2": "Not sure which it is?",
+    "line3": "It is not your Western Sun sign; enter your birth details once and we will show it."
+  },
+  "actions": {
+    "findMoonSign": "Find my Moon sign",
+    "allTwelve": "All twelve rashis",
+    "fullReading": "Full {sanskrit} reading"
+  },
+  "taalika": {
+    "title": "Rashi taalika",
+    "titleEm": "· all twelve rashis today",
+    "strongest": "Strongest today: {sanskrit} ({score})",
+    "chandrashtama": "Chandrashtama: {sanskrit} — the Moon transits its 8th; avoid new starts"
+  },
+  "method": {
+    "lead": "Classical gochara from the Moon sign · Swiss Ephemeris · Lahiri ayanamsha · ",
+    "personalLink": "make it personal with your birth chart"
+  },
+  "deepDive": {
+    "weekTitle": "Saptahik",
+    "weekTitleEm": "· {sanskrit}’s week ahead",
+    "weekCaptionBest": "Best day: {day} ({score}) — {headline}.",
+    "weekCaptionTail": "Shaded days are Chandrashtama. ☽ shows the Moon’s house from {sanskrit}.",
+    "chandraTitle": "Chandrashtama",
+    "chandraTitleNow": "running now",
+    "chandraTitleNext": "next window",
+    "chandraNow": "Now",
+    "chandraWhen": "{start} → {end}",
+    "chandraText": "The Moon moves through {transitRashi}, the 8th sign from {sanskrit}. Keep these ~2½ days for routine work: avoid launches, big purchases, long drives and arguments.",
+    "swabhavTitle": "Rashi swabhav",
+    "swabhavTitleEm": "· the nature of {sanskrit}",
+    "lordLine": "Rashi lord · {lord} ({lordHindi})",
+    "upayaFor": "Upaya for {sanskrit}",
+    "weekDayToday": "Aaj",
+    "weekDayTomorrow": "Kal"
+  },
+  "signGrid": {
+    "title": "All twelve Moon signs today"
+  },
+  "faq": {
+    "title": "About the daily rashifal",
+    "note": "This is a general reading shared by everyone born with the Moon in {name}.",
+    "noteLink": "Today’s Reading",
+    "items": [
+      {
+        "q": "Is this horoscope based on my Sun sign or Moon sign?",
+        "a": "Vedic astrology reads the daily horoscope (rashifal) from your Moon sign — the sidereal sign the Moon occupied at your birth. It often differs from your Western Sun sign."
+      },
+      {
+        "q": "How is today’s horoscope calculated?",
+        "a": "We take today’s real planetary positions from the Swiss Ephemeris (Lahiri ayanamsha) and count each graha from your Moon sign, applying the classical gochara tables of favourable houses and Vedha (obstruction) from BPHS and Phaladeepika. The Moon’s transit carries the most weight for a single day."
+      },
+      {
+        "q": "How do I find my Moon sign?",
+        "a": "Enter your birth date, time and place in the free Vedaansh birth chart. Your Moon sign (Chandra Rashi) appears in the chart summary."
+      }
+    ]
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "dailyHoroscope": "Daily Horoscope",
+    "signToday": "{name} Horoscope Today"
+  },
+  "meta": {
+    "fallbackTitle": "Daily Horoscope",
+    "title": "{name} ({sanskrit}) Horoscope Today — Vedic Daily Rashifal",
+    "description": "Today's Vedic horoscope for {name} Moon sign ({sanskrit} Rashi): career, love, money and health scores from live planetary transits, plus lucky colour, number and remedy.",
+    "keywords": ["{name} horoscope today", "{sanskrit} rashifal", "daily horoscope", "Vedic horoscope", "Moon sign horoscope", "gochar"],
+    "ogTitleSuffix": " | Vedaansh",
+    "hiTitle": "{name} ({sanskrit}) आज का राशिफल — वैदिक दैनिक राशिफल",
+    "hiDescription": "{name} चंद्र राशि ({sanskrit}) के लिए आज का वैदिक राशिफल: करियर, प्रेम, धन और स्वास्थ्य स्कोर, शुभ रंग, अंक और उपाय।",
+    "hiKeywords": ["{name} आज का राशिफल", "{sanskrit} राशिफल", "दैनिक राशिफल", "वैदिक राशिफल", "चंद्र राशि राशिफल", "गोचर"]
+  },
+  "placeDefault": "Ujjain"
+}

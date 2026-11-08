@@ -6,8 +6,19 @@
 
 import type { ChartOutput, Dignity, GrahaData, GrahaId, Rashi } from '@/types/astrology'
 import { GRAHA_NAMES, NAKSHATRA_LORDS, NAKSHATRA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { NAKSHATRA_HI } from '@/i18n/jyotish'
 import type { LifeTone, MarriedLifeNote } from '@/lib/engine/marriedLifeAnalysis'
 import { wholeSignHouse, wholeSignHouseSign } from '@/lib/engine/marriedLifeAnalysis'
+import { fill, pick, gName, rName, type EngineLang } from '@/lib/engine/divisionalLang'
+import {
+  ARIES_SEAT_HI,
+  LIBRA_DUTY_HI,
+  LIBRA_PLANET_HI,
+  MATCH_HINT_HI,
+  PAIR_HI,
+  SEVENTH_AXIS_PRINCIPLE_HI,
+  SEVENTH_AXIS_TEXT_HI,
+} from '@/lib/engine/locale/seventhAxis.hi'
 
 export interface AxisSeat {
   house: number
@@ -268,8 +279,24 @@ function inHouse(chart: ChartOutput, house: number, asc: number): GrahaData[] {
   return classical(chart).filter(g => wholeSignHouse(g.rashi, asc) === house)
 }
 
-function names(list: GrahaData[]): string {
-  return list.map(g => GRAHA_NAMES[g.id] ?? g.id).join(', ')
+function names(list: GrahaData[], lang: EngineLang = 'en'): string {
+  return list.map(g => gn(g.id, lang)).join(lang === 'hi' ? ', ' : ', ')
+}
+
+function gn(id: GrahaId, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return GRAHA_NAMES[id] ?? id
+  return gName(id, lang)
+}
+
+function rn(r: Rashi, lang: EngineLang = 'en'): string {
+  if (lang === 'en') return RASHI_NAMES[r] ?? `R${r}`
+  return rName(r, lang)
+}
+
+function nakName(index: number | undefined, lang: EngineLang): string {
+  if (index == null) return lang === 'hi' ? SEVENTH_AXIS_TEXT_HI.notes['rin-nakshatra'].nakFallback : 'a Saturn nakshatra'
+  if (lang === 'hi') return NAKSHATRA_HI[index] ?? NAKSHATRA_NAMES[index] ?? SEVENTH_AXIS_TEXT_HI.notes['rin-nakshatra'].nakFallback
+  return NAKSHATRA_NAMES[index] ?? 'a Saturn nakshatra'
 }
 
 function isStrong(d: Dignity | undefined): boolean {
@@ -307,70 +334,91 @@ function debtNakshatra(g: GrahaData | undefined): boolean {
   return !!g && DEBT_NAKSHATRAS.has(g.nakshatraIndex)
 }
 
-function perceptionLine(chart: ChartOutput, asc: number): string {
+function perceptionLine(chart: ChartOutput, asc: number, lang: EngineLang = 'en'): string {
   const lagna = inHouse(chart, 1, asc)
   const seventh = inHouse(chart, 7, asc)
+  const T = lang === 'hi' ? SEVENTH_AXIS_TEXT_HI.perception : null
   const self = lagna.length
-    ? `The lagna holds ${names(lagna)}. That is who this person is.`
-    : 'The lagna is empty. Identity is carried by the lagna lord, wherever that lord sits.'
+    ? lang === 'en'
+      ? `The lagna holds ${names(lagna, lang)}. That is who this person is.`
+      : fill(T!.lagnaHolds, { names: names(lagna, lang) })
+    : lang === 'en'
+      ? 'The lagna is empty. Identity is carried by the lagna lord, wherever that lord sits.'
+      : T!.lagnaEmpty
   const seen = seventh.length
-    ? `The 7th holds ${names(seventh)}. People perceive this person through that planet, including when the lagna tells a different story.`
-    : 'The 7th is empty, so perception follows the 7th lord. A house with no planet has less fuel of its own, and the lord still decides how the bond behaves. Attention is less locked on marriage, which is why an empty 7th is an easier seat for liberation readings.'
+    ? lang === 'en'
+      ? `The 7th holds ${names(seventh, lang)}. People perceive this person through that planet, including when the lagna tells a different story.`
+      : fill(T!.seventhHolds, { names: names(seventh, lang) })
+    : lang === 'en'
+      ? 'The 7th is empty, so perception follows the 7th lord. A house with no planet has less fuel of its own, and the lord still decides how the bond behaves. Attention is less locked on marriage, which is why an empty 7th is an easier seat for liberation readings.'
+      : T!.seventhEmpty
   return `${self} ${seen}`
 }
 
-function pairTeaching(chart: ChartOutput, asc: number): { teaches: string; friction: string | null } {
-  const row = PAIR[asc]
+function pairTeaching(chart: ChartOutput, asc: number, lang: EngineLang = 'en'): { teaches: string; friction: string | null } {
+  const row = pick(PAIR, PAIR_HI, lang)[asc]
   let teaches = row.teaches
   if (asc === 3) {
     const benefics = inHouse(chart, 7, asc).filter(g => g.id === 'Ju' || g.id === 'Ve' || g.id === 'Me')
     if (benefics.length) {
-      teaches += ` ${names(benefics)} in the 7th: ask the spouse before searching outside for advice.`
+      teaches += lang === 'en'
+        ? ` ${names(benefics, lang)} in the 7th: ask the spouse before searching outside for advice.`
+        : fill(SEVENTH_AXIS_TEXT_HI.geminiBenefic, { names: names(benefics, lang) })
     }
   }
   return { teaches, friction: row.friction }
 }
 
-function pushScorpio(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) {
+function pushScorpio(chart: ChartOutput, asc: number, notes: MarriedLifeNote[], lang: EngineLang) {
   if (asc !== 2 && asc !== 8) return
   const there = inSign(chart, 8)
   const research = there.filter(g => g.id === 'Sa' || g.id === 'Ke')
   const soft = there.filter(g => g.id === 'Mo' || g.id === 'Ve')
+  const N = SEVENTH_AXIS_TEXT_HI.notes
   if (research.length) {
     notes.push(note(
       'scorpio-research',
-      'Saturn or Ketu in Scorpio',
-      `${names(research)} in Scorpio supports occult and research sense. Difficult planets are the planets that work in this sign.`,
+      lang === 'en' ? 'Saturn or Ketu in Scorpio' : N['scorpio-research'].title,
+      lang === 'en'
+        ? `${names(research, lang)} in Scorpio supports occult and research sense. Difficult planets are the planets that work in this sign.`
+        : fill(N['scorpio-research'].detail, { names: names(research, lang) }),
       'supportive',
     ))
   }
   if (soft.length) {
     notes.push(note(
       'scorpio-soft',
-      'Moon or Venus in Scorpio',
-      `${names(soft)} in Scorpio is an uncomfortable seat. The Moon is debilitated here, and Venus does not perform. Feeling and romance run hot and do not run smoothly.`,
+      lang === 'en' ? 'Moon or Venus in Scorpio' : N['scorpio-soft'].title,
+      lang === 'en'
+        ? `${names(soft, lang)} in Scorpio is an uncomfortable seat. The Moon is debilitated here, and Venus does not perform. Feeling and romance run hot and do not run smoothly.`
+        : fill(N['scorpio-soft'].detail, { names: names(soft, lang) }),
       'caution',
     ))
   }
 }
 
-function pushPassion(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) {
+function pushPassion(chart: ChartOutput, asc: number, notes: MarriedLifeNote[], lang: EngineLang) {
   const moon = find(chart, 'Mo')
   const venus = find(chart, 'Ve')
   const obsessed = isStrong(moon?.dignity) && !!venus && (isStrong(venus.dignity) || (venus.dignity && FRIENDLY.includes(venus.dignity)))
   if (asc === 8 || obsessed) {
+    const P = SEVENTH_AXIS_TEXT_HI.notes.passion
     notes.push(note(
       'passion',
-      'Passionate attachment',
-      asc === 8
-        ? `Scorpio lagna loves with fixation.${obsessed ? ' A strong Moon with a benefic Venus intensifies it.' : ''} The bond becomes the whole room.`
-        : 'A strong Moon with a helpful planet Venus loves with fixation. The bond becomes the whole room.',
+      lang === 'en' ? 'Passionate attachment' : P.title,
+      lang === 'en'
+        ? asc === 8
+          ? `Scorpio lagna loves with fixation.${obsessed ? ' A strong Moon with a benefic Venus intensifies it.' : ''} The bond becomes the whole room.`
+          : 'A strong Moon with a helpful planet Venus loves with fixation. The bond becomes the whole room.'
+        : asc === 8
+          ? fill(P.scorpio, { extra: obsessed ? P.extra : '' })
+          : P.general,
       'mixed',
     ))
   }
 }
 
-function pushDebt(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) {
+function pushDebt(chart: ChartOutput, asc: number, notes: MarriedLifeNote[], lang: EngineLang) {
   const venus = find(chart, 'Ve')
   const saturn = find(chart, 'Sa')
   const seventhLord = find(chart, LORDS[wholeSignHouseSign(asc, 7)])
@@ -378,11 +426,16 @@ function pushDebt(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) {
     .filter((g): g is GrahaData => !!g && debtNakshatra(g))
   const unique = [...new Map(flagged.map(g => [g.id, g])).values()]
   if (unique.length) {
-    const stars = unique.map(g => `${GRAHA_NAMES[g.id]} in ${NAKSHATRA_NAMES[g.nakshatraIndex] ?? 'a Saturn nakshatra'}`)
+    const R = SEVENTH_AXIS_TEXT_HI.notes['rin-nakshatra']
+    const stars = unique.map(g => lang === 'en'
+      ? `${GRAHA_NAMES[g.id]} in ${NAKSHATRA_NAMES[g.nakshatraIndex] ?? 'a Saturn nakshatra'}`
+      : fill(R.star, { graha: gn(g.id, lang), nak: nakName(g.nakshatraIndex, lang) }))
     notes.push(note(
       'rin-nakshatra',
-      'Debt nakshatra',
-      `${stars.join('; ')}. Pushya, Anuradha, and Uttara Bhadrapada are Saturn’s nakshatras, and they carry debt. Financial and karmic debt sits inside the marriage story.`,
+      lang === 'en' ? 'Debt nakshatra' : R.title,
+      lang === 'en'
+        ? `${stars.join('; ')}. Pushya, Anuradha, and Uttara Bhadrapada are Saturn’s nakshatras, and they carry debt. Financial and karmic debt sits inside the marriage story.`
+        : fill(R.detail, { stars: stars.join('; ') }),
       'caution',
     ))
   }
@@ -394,52 +447,57 @@ function pushDebt(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) {
     || (LORDS[eighthSign] === 'Me' && [6, 8, 12].includes(wholeSignHouse(mercury.rashi, asc)))
   )
   if (mercuryOnEighth) {
+    const M = SEVENTH_AXIS_TEXT_HI.notes['mercury-eighth']
     notes.push(note(
       'mercury-eighth',
-      'Mercury on the 8th',
-      'Mercury on the 8th ties a debt to the maternal uncle’s family, including a rite left unfinished after a loss in the family.',
+      lang === 'en' ? 'Mercury on the 8th' : M.title,
+      lang === 'en' ? 'Mercury on the 8th ties a debt to the maternal uncle’s family, including a rite left unfinished after a loss in the family.' : M.detail,
       'caution',
     ))
   }
 }
 
-function pushWater(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) {
+function pushWater(chart: ChartOutput, asc: number, notes: MarriedLifeNote[], lang: EngineLang) {
   const saturn = find(chart, 'Sa')
   if (asc === 4 || asc === 10 || isWeak(saturn?.dignity)) {
+    const W = SEVENTH_AXIS_TEXT_HI.notes['saturn-water']
     notes.push(note(
       'saturn-water',
-      'Saturn and household water',
-      'On this Saturn axis, check the house for leaking taps and wasted bathroom water. A small water feature in Saturn’s direction is the correction. An aquarium belongs to Pisces and is a different remedy.',
+      lang === 'en' ? 'Saturn and household water' : W.title,
+      lang === 'en' ? 'On this Saturn axis, check the house for leaking taps and wasted bathroom water. A small water feature in Saturn’s direction is the correction. An aquarium belongs to Pisces and is a different remedy.' : W.detail,
       'mixed',
     ))
   }
 }
 
-function pushAffairFlag(chart: ChartOutput, asc: number, notes: MarriedLifeNote[]) {
+function pushAffairFlag(chart: ChartOutput, asc: number, notes: MarriedLifeNote[], lang: EngineLang) {
   if (asc !== 6 && asc !== 12) return
   if (signPressed(chart, 6) && signPressed(chart, 12)) {
+    const V = SEVENTH_AXIS_TEXT_HI.notes['virgo-pisces-pressure']
     notes.push(note(
       'virgo-pisces-pressure',
-      'Virgo and Pisces both under pressure',
-      'Both ends of this marriage axis are under pressure. That can show interest outside the marriage, but it is a flag to look at more closely, not a conclusion. The rest of the chart, including the Navamsha, decides it.',
+      lang === 'en' ? 'Virgo and Pisces both under pressure' : V.title,
+      lang === 'en' ? 'Both ends of this marriage axis are under pressure. That can show interest outside the marriage, but it is a flag to look at more closely, not a conclusion. The rest of the chart, including the Navamsha, decides it.' : V.detail,
       'caution',
     ))
   }
 }
 
-function pushLibraLinks(chart: ChartOutput, notes: MarriedLifeNote[]) {
+function pushLibraLinks(chart: ChartOutput, notes: MarriedLifeNote[], lang: EngineLang) {
   const inLibra = inSign(chart, 7)
+  const libraPlanets = pick(LIBRA_PLANET, LIBRA_PLANET_HI as typeof LIBRA_PLANET, lang)
   if (!inLibra.length) {
+    const E = SEVENTH_AXIS_TEXT_HI.notes['libra-empty']
     notes.push(note(
       'libra-empty',
-      'Libra is empty',
-      'No planet sits in Libra. The circumstances of marriage are carried by Venus and by the house Libra occupies.',
+      lang === 'en' ? 'Libra is empty' : E.title,
+      lang === 'en' ? 'No planet sits in Libra. The circumstances of marriage are carried by Venus and by the house Libra occupies.' : E.detail,
       'mixed',
     ))
   }
   for (const g of inLibra) {
-    const row = LIBRA_PLANET[g.id]
-    if (row) notes.push(note(`libra-${g.id}`, row.title, row.detail, row.tone))
+    const row = libraPlanets[g.id]
+    if (row) notes.push(note(`libra-${g.id}`, row.title, row.detail, (LIBRA_PLANET[g.id]?.tone ?? 'mixed') as LifeTone))
   }
 
   const sun = find(chart, 'Su')
@@ -447,57 +505,70 @@ function pushLibraLinks(chart: ChartOutput, notes: MarriedLifeNote[]) {
     const sunLord = NAKSHATRA_LORDS[sun.nakshatraIndex]
     const linked = inLibra.filter(g => g.nakshatraIndex != null && NAKSHATRA_LORDS[g.nakshatraIndex] === sunLord)
     if (linked.length && sunLord) {
+      const S = SEVENTH_AXIS_TEXT_HI.notes['sun-nakshatra-libra']
       notes.push(note(
         'sun-nakshatra-libra',
-        'Sun linked to Libra by nakshatra',
-        `The Sun is in ${NAKSHATRA_NAMES[sun.nakshatraIndex]}, whose lord is ${GRAHA_NAMES[sunLord]}. ${names(linked)} in Libra shares that nakshatra lord, so authority and the father still color the circumstances of marriage.`,
+        lang === 'en' ? 'Sun linked to Libra by nakshatra' : S.title,
+        lang === 'en'
+          ? `The Sun is in ${NAKSHATRA_NAMES[sun.nakshatraIndex]}, whose lord is ${GRAHA_NAMES[sunLord]}. ${names(linked, lang)} in Libra shares that nakshatra lord, so authority and the father still color the circumstances of marriage.`
+          : fill(S.detail, {
+              sunNak: nakName(sun.nakshatraIndex, lang),
+              lord: gn(sunLord, lang),
+              linked: names(linked, lang),
+            }),
         'mixed',
       ))
     }
   }
 }
 
-export function analyzeSeventhAxis(chart: ChartOutput): SeventhAxisReading | null {
+export function analyzeSeventhAxis(chart: ChartOutput, lang: EngineLang = 'en'): SeventhAxisReading | null {
   const asc = chart.lagnas?.ascRashi
   if (!asc) return null
 
   const ariesHouse = wholeSignHouse(1, asc)
   const libraHouse = wholeSignHouse(7, asc)
   const seventh = wholeSignHouseSign(asc, 7)
-  const duty = LIBRA_DUTY[libraHouse]
-  const taught = pairTeaching(chart, asc)
+  const duty = pick(LIBRA_DUTY, LIBRA_DUTY_HI, lang)[libraHouse]
+  const ariesSeat = pick(ARIES_SEAT, ARIES_SEAT_HI, lang)
+  const pairRow = pick(PAIR, PAIR_HI, lang)[asc]
+  const matchHints = pick(MATCH_HINT, MATCH_HINT_HI, lang)
+  const taught = pairTeaching(chart, asc, lang)
   const notes: MarriedLifeNote[] = []
-  pushLibraLinks(chart, notes)
-  pushScorpio(chart, asc, notes)
-  pushPassion(chart, asc, notes)
-  pushDebt(chart, asc, notes)
-  pushWater(chart, asc, notes)
-  pushAffairFlag(chart, asc, notes)
+  pushLibraLinks(chart, notes, lang)
+  pushScorpio(chart, asc, notes, lang)
+  pushPassion(chart, asc, notes, lang)
+  pushDebt(chart, asc, notes, lang)
+  pushWater(chart, asc, notes, lang)
+  pushAffairFlag(chart, asc, notes, lang)
 
+  const H = SEVENTH_AXIS_TEXT_HI
   return {
-    headline: `${RASHI_NAMES[asc]} lagna · Libra in house ${libraHouse}`,
-    principle: PRINCIPLE,
+    headline: lang === 'en'
+      ? `${RASHI_NAMES[asc]} lagna · Libra in house ${libraHouse}`
+      : fill(H.headline, { lagna: rn(asc, lang), house: libraHouse }),
+    principle: pick(PRINCIPLE, SEVENTH_AXIS_PRINCIPLE_HI, lang),
     aries: {
       house: ariesHouse,
-      signName: 'Aries',
-      title: `Aries in house ${ariesHouse}`,
-      detail: ARIES_SEAT[ariesHouse],
+      signName: lang === 'en' ? 'Aries' : H.signAries,
+      title: lang === 'en' ? `Aries in house ${ariesHouse}` : fill(H.ariesTitle, { house: ariesHouse }),
+      detail: ariesSeat[ariesHouse],
     },
     libra: {
       house: libraHouse,
-      signName: 'Libra',
-      title: `Libra in house ${libraHouse} — ${duty.title}`,
+      signName: lang === 'en' ? 'Libra' : H.signLibra,
+      title: lang === 'en' ? `Libra in house ${libraHouse} — ${duty.title}` : fill(H.libraTitle, { house: libraHouse, dutyTitle: duty.title }),
       detail: duty.detail,
     },
-    perception: perceptionLine(chart, asc),
+    perception: perceptionLine(chart, asc, lang),
     pair: {
-      lagnaName: RASHI_NAMES[asc],
-      seventhName: RASHI_NAMES[seventh],
-      self: PAIR[asc].self,
+      lagnaName: rn(asc, lang),
+      seventhName: rn(seventh, lang),
+      self: pairRow.self,
       teaches: taught.teaches,
       friction: taught.friction,
     },
-    matchHint: MATCH_HINT[asc],
+    matchHint: matchHints[asc],
     notes,
   }
 }
@@ -506,26 +577,32 @@ function personName(chart: ChartOutput, fallback: string): string {
   return chart.meta?.name?.trim() || fallback
 }
 
-export function seventhAxisMatch(chartA: ChartOutput, chartB: ChartOutput): AxisMatchNote | null {
+export function seventhAxisMatch(chartA: ChartOutput, chartB: ChartOutput, lang: EngineLang = 'en'): AxisMatchNote | null {
   const ascA = chartA.lagnas?.ascRashi
   const ascB = chartB.lagnas?.ascRashi
   if (!ascA || !ascB) return null
 
-  const nameA = personName(chartA, 'Person 1')
-  const nameB = personName(chartB, 'Person 2')
+  const nameA = personName(chartA, lang === 'en' ? 'Person 1' : 'व्यक्ति १')
+  const nameB = personName(chartB, lang === 'en' ? 'Person 2' : 'व्यक्ति २')
   const bits: string[] = []
   let tone: LifeTone = 'mixed'
+  const duties = pick(LIBRA_DUTY, LIBRA_DUTY_HI, lang)
+  const M = SEVENTH_AXIS_TEXT_HI.match
 
   const side = (chart: ChartOutput, other: ChartOutput, name: string, otherName: string) => {
     const asc = chart.lagnas?.ascRashi
     if (!asc) return
     const house = wholeSignHouse(7, asc)
-    bits.push(`${name}: Libra in house ${house} (${LIBRA_DUTY[house].title}).`)
+    bits.push(lang === 'en'
+      ? `${name}: Libra in house ${house} (${LIBRA_DUTY[house].title}).`
+      : fill(M.libraHouse, { name, house, duty: duties[house].title }))
 
     if (asc === 3) {
       const score = dignityMark(find(other, 'Ju'))
       if (score <= 2) tone = 'caution'
-      bits.push(`${name} is Gemini lagna. ${otherName}’s Jupiter counts for more than Venus here. That Jupiter is ${score}/5.`)
+      bits.push(lang === 'en'
+        ? `${name} is Gemini lagna. ${otherName}’s Jupiter counts for more than Venus here. That Jupiter is ${score}/5.`
+        : fill(M.geminiJupiter, { name, other: otherName, score }))
     }
     if (asc === 9) {
       const mercury = find(other, 'Me')
@@ -535,15 +612,21 @@ export function seventhAxisMatch(chartA: ChartOutput, chartB: ChartOutput): Axis
       const underSaturn = !!mercury && !!saturn && saturnReaches(saturn.rashi, mercury.rashi)
       if (withRahu && underSaturn) {
         tone = 'caution'
-        bits.push(`${otherName}’s Mercury is with Rahu and under Saturn. For ${name}’s Sagittarius lagna, that person uses the knowledge for their own rise. This match is best avoided.`)
+        bits.push(lang === 'en'
+          ? `${otherName}’s Mercury is with Rahu and under Saturn. For ${name}’s Sagittarius lagna, that person uses the knowledge for their own rise. This match is best avoided.`
+          : fill(M.sagMercuryBad, { name, other: otherName }))
       } else {
-        bits.push(`${name} is Sagittarius lagna. ${otherName}’s Mercury shows whether there is a real exchange of knowledge.`)
+        bits.push(lang === 'en'
+          ? `${name} is Sagittarius lagna. ${otherName}’s Mercury shows whether there is a real exchange of knowledge.`
+          : fill(M.sagMercuryOk, { name, other: otherName }))
       }
     }
     if (asc === 11) {
       const score = dignityMark(find(other, 'Su'))
       if (score <= 2) tone = 'caution'
-      bits.push(`${name} is Aquarius lagna. ${otherName}’s Sun is ${score}/5. This lagna needs that Sun to be strong.`)
+      bits.push(lang === 'en'
+        ? `${name} is Aquarius lagna. ${otherName}’s Sun is ${score}/5. This lagna needs that Sun to be strong.`
+        : fill(M.aquariusSun, { name, other: otherName, score }))
     }
   }
 
@@ -553,22 +636,26 @@ export function seventhAxisMatch(chartA: ChartOutput, chartB: ChartOutput): Axis
   const pair = [ascA, ascB].sort((a, b) => a - b).join('-')
   if (pair === '4-10') {
     tone = 'caution'
-    bits.push('Cancer with Capricorn carries built-in friction. The Moon and Saturn complete each other only while both stay in the marriage.')
+    bits.push(lang === 'en' ? 'Cancer with Capricorn carries built-in friction. The Moon and Saturn complete each other only while both stay in the marriage.' : M.cancerCapricorn)
   }
   if (pair === '5-11') {
-    bits.push('Leo with Aquarius needs humility on the Leo side and clean conduct on the Aquarius side. Leo’s 7th lord is at home in Aquarius. Aquarius depends on the Sun staying strong.')
+    bits.push(lang === 'en' ? 'Leo with Aquarius needs humility on the Leo side and clean conduct on the Aquarius side. Leo’s 7th lord is at home in Aquarius. Aquarius depends on the Sun staying strong.' : M.leoAquarius)
   }
   if (pair === '6-12') {
-    bits.push('Virgo with Pisces: read Venus. Desire often sits at two temperatures on this axis.')
+    bits.push(lang === 'en' ? 'Virgo with Pisces: read Venus. Desire often sits at two temperatures on this axis.' : M.virgoPisces)
     if (signPressed(chartA, 6) && signPressed(chartA, 12) && signPressed(chartB, 6) && signPressed(chartB, 12)) {
       tone = 'caution'
-      bits.push('Virgo and Pisces are under pressure in both charts. Whether this becomes a pull outside the marriage is an open question, and only the whole horoscope can settle it.')
+      bits.push(lang === 'en' ? 'Virgo and Pisces are under pressure in both charts. Whether this becomes a pull outside the marriage is an open question, and only the whole horoscope can settle it.' : M.virgoPiscesPressure)
     }
   }
 
+  const libA = wholeSignHouse(7, ascA)
+  const libB = wholeSignHouse(7, ascB)
   return {
     tone,
-    mark: tone === 'caution' ? 'Axis caution' : `Libra ${wholeSignHouse(7, ascA)} · ${wholeSignHouse(7, ascB)}`,
+    mark: tone === 'caution'
+      ? lang === 'en' ? 'Axis caution' : M.markCaution
+      : lang === 'en' ? `Libra ${libA} · ${libB}` : fill(M.markLibra, { a: libA, b: libB }),
     detail: bits.join(' '),
   }
 }

@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import type { SeoIntroProps, SeoRelatedLink } from '@/components/seo/SeoIntro.types'
 import type { AppLocale } from '@/i18n/config'
-import { HOME_FAQ, HOME_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO } from './intro-content'
+import { COMPARE_SEO, HOME_FAQ, HOME_SEO, PANCHANG_CALENDAR_SEO, PANCHANG_SEO } from './intro-content'
 
 function guideLink(slug: string, label: string): SeoRelatedLink {
   return { href: `/guides/${slug}`, label }
@@ -115,6 +115,33 @@ export const PANCHANG_CALENDAR_SEO_HI: SeoIntroProps = {
     guideLink('rahu-kalam-explained', 'राहु काल की व्याख्या'),
     { href: '/panchang', label: 'दैनिक पंचांग' },
   ],
+}
+
+export const COMPARE_SEO_HI: SeoIntroProps = {
+  ariaLabel: 'कुंडली मिलान और तुलना — Vedaansh',
+  h1: 'निःशुल्क कुंडली मिलान — अष्टकूट गुण मिलान और अंतरदृष्टि',
+  paragraphs: [
+    '36-गुण अष्टकूट (गुण मिलान), मंगल और नाड़ी जाँच, और द्वि-चार्ट सिनैस्ट्री के साथ दो जन्म कुंडलियाँ साथ-साथ देखें। दोनों के जन्म विवरण दर्ज करें — सहेजी चार्ट ज़रूरी नहीं।',
+    'Vedaansh लाहिरी अयनांश के साथ स्विस एफ़ेमेरिस के निरयन स्थानों से शास्त्रीय परंपरा के अनुरूप विवाह-मेल विश्लेषण देता है।',
+  ],
+  h2: 'मिलान-सुविधाएँ',
+  bullets: [
+    { label: 'अष्टकूट मिलान', desc: 'वर्ण, वश्य, तारा, योनि, ग्रह मैत्री, गण, भकूट और नाड़ी' },
+    { label: 'दोष विश्लेषण', desc: 'मंगल दोष, नाड़ी और भकूट संघर्ष के विशेष बिंदु' },
+    { label: 'दोहरी कुंडलियाँ', desc: 'साथ-साथ D1, दशा और पंचांग तुलना' },
+    { label: 'बिना लॉगिन', desc: 'तुरंत निःशुल्क मेल-जाँच' },
+  ],
+  relatedLinks: [
+    guideLink('ashtakoot-guna-milan-explained', 'अष्टकूट गुण मिलान'),
+    guideLink('mangal-dosha-explained', 'मंगल दोष'),
+    guideLink('what-is-navamsha-d9-chart', 'नवांश (D9)'),
+    guideLink('what-is-dashamsha-d10-chart', 'दशमांश (D10)'),
+    { href: '/guides', label: 'सभी मार्गदर्शिकाएँ' },
+  ],
+}
+
+export function compareIntro(locale: AppLocale): SeoIntroProps {
+  return locale === 'hi' ? COMPARE_SEO_HI : COMPARE_SEO
 }
 
 export function panchangIntro(locale: AppLocale): SeoIntroProps {

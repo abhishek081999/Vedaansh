@@ -5,6 +5,14 @@
 
 import type { Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
+import type { EngineLang } from '@/lib/engine/lang'
+import { rName } from '@/lib/engine/divisionalLang'
+import {
+  LM_DEFAULT_REASON_HI,
+  LM_ELEMENT_HI,
+  LM_PAIRS_REASON_HI,
+  lagnaLevelLabel,
+} from '@/lib/engine/locale/lagnaMatch.hi'
 
 export type LagnaMatchLevel =
   | 'excellent'
@@ -121,23 +129,30 @@ function key(a: number, b: number): string {
   return a < b ? `${a}-${b}` : `${b}-${a}`
 }
 
-export function lagnaMatch(signA: number, signB: number): LagnaMatch {
+export function lagnaMatch(signA: number, signB: number, lang: EngineLang = 'en'): LagnaMatch {
   const a = ((((signA - 1 + 12) % 12) + 1) as Rashi)
   const b = ((((signB - 1 + 12) % 12) + 1) as Rashi)
   const row = PAIRS[key(a, b)] ?? {
     level: 'moderate' as const,
     reason: 'No general note is stored for this pair of lagnas. The house relationship is the best place to start, then the signs.',
   }
+  const k = key(a, b)
+  const reason = lang === 'en'
+    ? row.reason
+    : (LM_PAIRS_REASON_HI[k] ?? LM_DEFAULT_REASON_HI)
   return {
     a,
     b,
-    nameA: RASHI_NAMES[a],
-    nameB: RASHI_NAMES[b],
+    nameA: lang === 'en' ? RASHI_NAMES[a] : rName(a, lang),
+    nameB: lang === 'en' ? RASHI_NAMES[b] : rName(b, lang),
     level: row.level,
     tone: LEVEL_TONE[row.level],
-    reason: row.reason,
+    reason,
   }
 }
+
+/** User-facing level label (English enum values stay unchanged in data). */
+export { lagnaLevelLabel }
 
 const ELEMENT: Record<number, 'fire' | 'earth' | 'air' | 'water'> = {
   1: 'fire', 5: 'fire', 9: 'fire',
@@ -146,10 +161,11 @@ const ELEMENT: Record<number, 'fire' | 'earth' | 'air' | 'water'> = {
   4: 'water', 8: 'water', 12: 'water',
 }
 
-export function lagnaElementNote(signA: number, signB: number): string | null {
+export function lagnaElementNote(signA: number, signB: number, lang: EngineLang = 'en'): string | null {
   const ea = ELEMENT[signA]
   const eb = ELEMENT[signB]
   if (!ea || ea !== eb) return null
+  if (lang === 'hi') return LM_ELEMENT_HI[ea]
   if (ea === 'water') {
     return 'Both lagnas are water. Kindness is remembered, and the bond is emotional at the root. A breach of trust or a long stretch of feeling alone can weigh heavily on the marriage, because the foundation is feeling.'
   }
